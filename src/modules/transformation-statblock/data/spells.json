@@ -1,0 +1,329 @@
+{
+  "animalForm": {
+    "name": "Animal Form",
+    "level": 2,
+    "traditions": ["primal"],
+    "duration": "1 minute",
+    "baseStats": {
+      "level2": {
+        "ac": "16 + level",
+        "tempHP": 5,
+        "attackModifier": 9,
+        "damageBonus": 1,
+        "athletics": 9
+      },
+      "level3": {
+        "ac": "17 + level",
+        "tempHP": 10,
+        "attackModifier": 14,
+        "damageBonus": 2,
+        "athletics": 14
+      },
+      "level4": {
+        "ac": "18 + level",
+        "tempHP": 15,
+        "attackModifier": 16,
+        "damageBonus": 2,
+        "athletics": 16
+      },
+      "level5": {
+        "ac": "18 + level",
+        "tempHP": 20,
+        "attackModifier": 18,
+        "damageBonus": 3,
+        "athletics": 20
+      }
+    },
+    "forms": {
+      "ape": {
+        "name": "Ape",
+        "speed": 25,
+        "climbSpeed": 25,
+        "attacks": [
+          {
+            "name": "fist",
+            "damage": "2d6",
+            "damageType": "bludgeoning",
+            "traits": []
+          }
+        ],
+        "abilities": ["Low-light vision", "Scent (imprecise) 30 feet"]
+      },
+      "bear": {
+        "name": "Bear",
+        "speed": 30,
+        "attacks": [
+          {
+            "name": "jaws",
+            "damage": "2d8",
+            "damageType": "piercing",
+            "traits": []
+          },
+          {
+            "name": "claw",
+            "damage": "1d8",
+            "damageType": "slashing",
+            "traits": ["agile"]
+          }
+        ],
+        "abilities": ["Low-light vision", "Scent (imprecise) 30 feet"]
+      },
+      "bull": {
+        "name": "Bull",
+        "speed": 30,
+        "attacks": [
+          {
+            "name": "horn",
+            "damage": "2d8",
+            "damageType": "piercing",
+            "traits": []
+          }
+        ],
+        "abilities": ["Low-light vision", "Scent (imprecise) 30 feet"]
+      },
+      "canine": {
+        "name": "Canine",
+        "speed": 40,
+        "attacks": [
+          {
+            "name": "jaws",
+            "damage": "2d6",
+            "damageType": "piercing",
+            "traits": []
+          }
+        ],
+        "abilities": ["Low-light vision", "Scent (imprecise) 30 feet"]
+      },
+      "cat": {
+        "name": "Cat",
+        "speed": 40,
+        "attacks": [
+          {
+            "name": "jaws",
+            "damage": "2d6",
+            "damageType": "piercing",
+            "traits": []
+          },
+          {
+            "name": "claw",
+            "damage": "1d10",
+            "damageType": "slashing",
+            "traits": ["agile"]
+          }
+        ],
+        "abilities": ["Low-light vision", "Scent (imprecise) 30 feet"]
+      },
+      "deer": {
+        "name": "Deer",
+        "speed": 50,
+        "attacks": [
+          {
+            "name": "antler",
+            "damage": "2d6",
+            "damageType": "piercing",
+            "traits": []
+          }
+        ],
+        "abilities": ["Low-light vision", "Scent (imprecise) 30 feet"]
+      },
+      "frog": {
+        "name": "Frog",
+        "speed": 25,
+        "swimSpeed": 25,
+        "attacks": [
+          {
+            "name": "jaws",
+            "damage": "2d6",
+            "damageType": "bludgeoning",
+            "traits": []
+          },
+          {
+            "name": "tongue",
+            "damage": "2d4",
+            "damageType": "bludgeoning",
+            "traits": ["reach 10 feet"]
+          }
+        ],
+        "abilities": ["Low-light vision", "Scent (imprecise) 30 feet"]
+      },
+      "shark": {
+        "name": "Shark",
+        "speed": 0,
+        "swimSpeed": 35,
+        "attacks": [
+          {
+            "name": "jaws",
+            "damage": "2d8",
+            "damageType": "piercing",
+            "traits": []
+          }
+        ],
+        "abilities": ["Low-light vision", "Scent (imprecise) 30 feet"]
+      },
+      "snake": {
+        "name": "Snake",
+        "speed": 20,
+        "climbSpeed": 20,
+        "swimSpeed": 20,
+        "attacks": [
+          {
+            "name": "fangs",
+            "damage": "2d4",
+            "damageType": "piercing",
+            "additionalDamage": "1d6 poison",
+            "traits": []
+          }
+        ],
+        "abilities": ["Low-light vision", "Scent (imprecise) 30 feet"]
+      }
+    }
+  },
+  "dinosaurForm": {
+    "name": "Dinosaur Form",
+    "level": 4,
+    "traditions": ["primal"],
+    "duration": "1 minute",
+    "baseStats": {
+      "level4": {
+        "ac": "18 + level",
+        "tempHP": 15,
+        "attackModifier": 16,
+        "damageBonus": 9,
+        "athletics": 18,
+        "size": "Large"
+      },
+      "level5": {
+        "ac": "18 + level",
+        "tempHP": 20,
+        "attackModifier": 18,
+        "damageBonus": 6,
+        "athletics": 21,
+        "size": "Huge",
+        "reachBonus": 5,
+        "doubleDamage": true
+      },
+      "level7": {
+        "ac": "21 + level",
+        "tempHP": 25,
+        "attackModifier": 25,
+        "damageBonus": 15,
+        "athletics": 25,
+        "size": "Gargantuan",
+        "reachBonus": 10,
+        "doubleDamage": true
+      }
+    },
+    "forms": {
+      "ankylosaurus": {
+        "name": "Ankylosaurus",
+        "speed": 25,
+        "attacks": [
+          {
+            "name": "tail",
+            "damage": "2d6",
+            "damageType": "bludgeoning",
+            "traits": ["backswing", "reach 10 feet"]
+          },
+          {
+            "name": "foot",
+            "damage": "2d6",
+            "damageType": "bludgeoning",
+            "traits": []
+          }
+        ],
+        "abilities": ["Low-light vision", "Scent (imprecise) 30 feet"]
+      },
+      "brontosaurus": {
+        "name": "Brontosaurus",
+        "speed": 25,
+        "attacks": [
+          {
+            "name": "tail",
+            "damage": "2d6",
+            "damageType": "bludgeoning",
+            "traits": ["reach 15 feet"]
+          },
+          {
+            "name": "foot",
+            "damage": "2d8",
+            "damageType": "bludgeoning",
+            "traits": []
+          }
+        ],
+        "abilities": ["Low-light vision", "Scent (imprecise) 30 feet"]
+      },
+      "deinonychus": {
+        "name": "Deinonychus",
+        "speed": 40,
+        "attacks": [
+          {
+            "name": "talon",
+            "damage": "2d4",
+            "damageType": "piercing",
+            "additionalDamage": "1 persistent bleed",
+            "traits": ["agile"]
+          },
+          {
+            "name": "jaws",
+            "damage": "1d10",
+            "damageType": "piercing",
+            "traits": []
+          }
+        ],
+        "abilities": ["Low-light vision", "Scent (imprecise) 30 feet"]
+      },
+      "stegosaurus": {
+        "name": "Stegosaurus",
+        "speed": 30,
+        "attacks": [
+          {
+            "name": "tail",
+            "damage": "2d8",
+            "damageType": "piercing",
+            "traits": ["reach 10 feet"]
+          }
+        ],
+        "abilities": ["Low-light vision", "Scent (imprecise) 30 feet"]
+      },
+      "triceratops": {
+        "name": "Triceratops",
+        "speed": 30,
+        "attacks": [
+          {
+            "name": "horn",
+            "damage": "2d8",
+            "damageType": "piercing",
+            "additionalDamage": "1d6 persistent bleed on critical hit",
+            "traits": []
+          },
+          {
+            "name": "foot",
+            "damage": "2d6",
+            "damageType": "bludgeoning",
+            "traits": []
+          }
+        ],
+        "abilities": ["Low-light vision", "Scent (imprecise) 30 feet"]
+      },
+      "tyrannosaurus": {
+        "name": "Tyrannosaurus",
+        "speed": 30,
+        "attacks": [
+          {
+            "name": "jaws",
+            "damage": "1d12",
+            "damageType": "piercing",
+            "traits": ["deadly d12", "reach 10 feet"]
+          },
+          {
+            "name": "tail",
+            "damage": "1d10",
+            "damageType": "bludgeoning",
+            "traits": ["reach 10 feet"]
+          }
+        ],
+        "abilities": ["Low-light vision", "Scent (imprecise) 30 feet"]
+      }
+    }
+  }
+}
