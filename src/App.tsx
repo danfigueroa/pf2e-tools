@@ -5,6 +5,7 @@ import { darkTheme } from './theme';
 import { MainLayout } from './layouts/MainLayout';
 import { HomePage } from './pages/HomePage';
 import { TransformationPage } from './modules/transformation-statblock/TransformationPage';
+import { CharacterSheetPage } from './modules/character-sheet/CharacterSheetPage';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path="/" element={<MainLayout />}>
             <Route index element={<HomePage />} />
             <Route path="transformation" element={<TransformationPage />} />
+            <Route path="character-sheet" element={<CharacterSheetPage />} />
             <Route path="settings" element={
               <div style={{ textAlign: 'center', padding: '2rem' }}>
                 <h2>Configurações</h2>

@@ -46,6 +46,12 @@ const navigationItems: NavigationItem[] = [
     description: 'Gere stat blocks para magias de transformação',
   },
   {
+    text: 'Ficha de Personagem (PDF)',
+    icon: <TransformIcon />,
+    path: '/character-sheet',
+    description: 'Crie ficha PDF a partir de um JSON de personagem',
+  },
+  {
     text: 'Configurações',
     icon: <SettingsIcon />,
     path: '/settings',

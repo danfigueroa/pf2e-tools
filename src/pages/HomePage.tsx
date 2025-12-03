@@ -42,6 +42,19 @@ const tools: ToolCard[] = [
     ],
   },
   {
+    title: 'Ficha de Personagem (PDF)',
+    description: 'Importe um JSON de personagem e gere uma ficha completa em PDF com atributos, perícias, equipamentos, armas, armaduras, feats, habilidades especiais e magias.',
+    icon: <TransformIcon sx={{ fontSize: 40 }} />,
+    path: '/character-sheet',
+    status: 'available',
+    features: [
+      'Upload de JSON',
+      'Links para descrições na AON',
+      'Layout simples e intuitivo',
+      'Download imediato',
+    ],
+  },
+  {
     title: 'Calculadora de Magias',
     description: 'Ferramenta para calcular dano, duração e efeitos de magias com base no nível do conjurador e modificadores.',
     icon: <MagicIcon sx={{ fontSize: 40 }} />,

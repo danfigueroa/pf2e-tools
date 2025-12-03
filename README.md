@@ -21,6 +21,16 @@ Um sistema web moderno e modular que oferece diversas ferramentas para automatiz
 - Exportação em PDF/PNG
 - Interface step-by-step intuitiva
 
+### ✅ Ficha de Personagem (PDF)
+- Gere uma ficha completa em PDF a partir de um arquivo JSON de personagem (formato Pathbuilder/semelhante)
+- Inclui: atributos, perícias, equipamentos, armas, armaduras, dinheiro, feats, habilidades especiais, lores e magias
+- Onde a descrição não existir no JSON, o PDF adiciona links clicáveis para busca na Archives of Nethys (AON)
+- Como usar:
+  1. Acesse o menu "Ficha de Personagem (PDF)"
+  2. Clique em "Importar JSON" e selecione seu arquivo de personagem
+  3. Clique em "Gerar PDF" para baixar
+  4. Opcional: mova `character-example.json` para `public/` para usar o botão "Usar exemplo" durante o dev
+
 ### 🚧 Em Desenvolvimento
 - Calculadora de Magias
 - Gerador de Encontros
@@ -80,6 +90,13 @@ src/
   - [ ] Input de dados do personagem
   - [ ] Geração do stat block
   - [ ] Exportação PDF/PNG
+
+- [ ] **Fase 1.5**: Ficha de Personagem (PDF)
+  - [x] Upload de JSON e parsing
+  - [x] Geração de PDF com layout simples
+  - [x] Links clicáveis para descrições na AON
+  - [ ] Busca e inclusão automática de descrições (quando possível)
+  - [ ] Personalização de layout/estilo
 
 - [ ] **Fase 2**: Calculadora de Magias
 - [ ] **Fase 3**: Gerador de Encontros
