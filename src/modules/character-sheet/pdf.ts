@@ -724,37 +724,17 @@ function formatActions(actions: string | undefined): string {
     }
 }
 
-// Calcula dano para o nível da magia
-function calculateSpellDamage(baseDamage: string | undefined, spellLevel: number, heightened?: Record<string, string>): string {
-    if (!baseDamage) return ''
+// Formata informação de heightened
+function formatHeightened(heightened?: Record<string, string>): string {
+    if (!heightened || Object.keys(heightened).length === 0) return ''
     
-    // Extrai o número de dados e o tipo (ex: "1d8" -> 1, 8)
-    const match = baseDamage.match(/(\d+)d(\d+)/)
-    if (!match) return baseDamage
-    
-    let diceCount = parseInt(match[1])
-    const dieSize = match[2]
-    
-    // Verifica heightened +1 ou +2
-    if (heightened) {
-        if (heightened['+1']) {
-            // Aumenta por nível
-            const incMatch = heightened['+1'].match(/(\d+)d/)
-            if (incMatch) {
-                const increment = parseInt(incMatch[1])
-                diceCount += increment * (spellLevel - 1)
-            }
-        } else if (heightened['+2']) {
-            // Aumenta a cada 2 níveis
-            const incMatch = heightened['+2'].match(/(\d+)d/)
-            if (incMatch) {
-                const increment = parseInt(incMatch[1])
-                diceCount += increment * Math.floor((spellLevel - 1) / 2)
-            }
-        }
+    const parts: string[] = []
+    for (const [level, effect] of Object.entries(heightened)) {
+        // Simplifica o texto do efeito
+        const shortEffect = effect.length > 50 ? effect.slice(0, 47) + '...' : effect
+        parts.push(`${level}: ${shortEffect}`)
     }
-    
-    return `${diceCount}d${dieSize}`
+    return parts.join(' | ')
 }
 
 function drawSpells(doc: jsPDF, build: BuildInfo, y: number): number {
@@ -876,18 +856,26 @@ function drawSpells(doc: jsPDF, build: BuildInfo, y: number): number {
                     
                     // Dano (se houver)
                     if (spellInfo.damage) {
-                        const calculatedDamage = calculateSpellDamage(
-                            spellInfo.damage, 
-                            spellLevel.spellLevel || build.level || 1,
-                            spellInfo.heightened
-                        )
                         setColor(doc, COLORS.black)
                         doc.setFont('helvetica', 'bold')
                         doc.setFontSize(7)
-                        let damageText = `Dano: ${calculatedDamage}`
+                        let damageText = `Dano: ${spellInfo.damage}`
                         if (spellInfo.damageType) damageText += ` ${spellInfo.damageType}`
                         doc.text(damageText, x + 6, y + 2.5)
                         y += 3.5
+                    }
+                    
+                    // Heightened (se houver)
+                    if (spellInfo.heightened && Object.keys(spellInfo.heightened).length > 0) {
+                        setColor(doc, COLORS.gray)
+                        doc.setFont('helvetica', 'italic')
+                        doc.setFontSize(6)
+                        const heightenedText = `Heightened: ${formatHeightened(spellInfo.heightened)}`
+                        const heightLines = doc.splitTextToSize(heightenedText, sectionWidth - 10)
+                        heightLines.slice(0, 2).forEach((line: string) => {
+                            doc.text(line, x + 6, y + 2.5)
+                            y += 3
+                        })
                     }
                     
                     // Descrição

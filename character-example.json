@@ -435,12 +435,12 @@
                 "name": "Heal",
                 "actions": "1 to 3",
                 "traits": ["concentrate", "divine", "healing", "manipulate", "vitality"],
-                "range": "varies",
-                "targets": "1 willing living creature or 1 undead",
-                "damage": "1d8",
-                "damageType": "vitality",
-                "description": "Você canaliza energia positiva para curar os vivos ou ferir os mortos-vivos. Com 1 ação, toque cura 1d8. Com 2 ações, alcance 30 pés cura 1d8+8. Com 3 ações, emanação de 30 pés cura 1d8 a todos os vivos.",
-                "heightened": {"+1": "A quantidade curada aumenta em 1d8 (ou 8 pontos para a versão de 2 ações)."}
+                "range": "toque / 30 pés / emanação 30 pés",
+                "targets": "1 criatura viva ou morto-vivo",
+                "damage": "1d8 / 1d8+8 / 1d8",
+                "damageType": "vitality (cura vivos, fere mortos-vivos)",
+                "description": "1 ação: toque, cura 1d8. 2 ações: 30 pés, cura 1d8+8. 3 ações: emanação 30 pés, cura 1d8 todos os vivos na área.",
+                "heightened": {"+1": "+1d8 cura (ou +8 para 2 ações)"}
             },
             "Silence": {
                 "name": "Silence",
@@ -478,21 +478,21 @@
                 "range": "120 feet",
                 "targets": "1 creature",
                 "damage": "5d6",
-                "damageType": "cold",
-                "description": "Você dispara um raio de luz lunar gelada no alvo. Faça um ataque de magia à distância. O raio causa 5d6 de dano de frio. Contra demônios e mortos-vivos, causa 5d6 adicionais de dano de bem.",
-                "heightened": {"+1": "O dano de frio aumenta em 2d6 e o dano de bem aumenta em 2d6."}
+                "damageType": "cold (+5d6 vitality vs fiends/undead)",
+                "description": "Você dispara um raio de luz lunar gelada no alvo. Faça um ataque de magia à distância. Causa 5d6 de dano de frio, mais 5d6 de dano de vitalidade adicional contra demônios e mortos-vivos.",
+                "heightened": {"+1": "Dano de frio +2d6, dano de vitalidade +2d6"}
             },
             "Radiant Beam": {
                 "name": "Radiant Beam",
                 "actions": "2",
                 "traits": ["concentrate", "divine", "fire", "light", "vitality"],
                 "range": "120 feet",
-                "area": "line",
+                "area": "60-foot line",
                 "defense": "basic Reflex",
-                "damage": "8d6",
-                "damageType": "fire",
-                "description": "Você dispara um feixe de luz radiante ardente. Criaturas na linha sofrem 8d6 de dano de fogo (teste básico de Reflexos). Mortos-vivos e criaturas com fraqueza à luz sofrem dano de vitalidade adicional igual ao seu nível.",
-                "heightened": {"+1": "O dano aumenta em 2d6."}
+                "damage": "5d6",
+                "damageType": "fire (+nível vitality vs undead)",
+                "description": "Você dispara um feixe de luz radiante ardente. Criaturas na linha sofrem 5d6 de dano de fogo (teste básico de Reflexos). Mortos-vivos sofrem dano de vitalidade adicional igual ao seu nível.",
+                "heightened": {"+1": "Dano de fogo +2d6"}
             },
             "Sure Strike": {
                 "name": "Sure Strike",
@@ -552,8 +552,8 @@
                 "targets": "1 creature",
                 "damage": "8d6",
                 "damageType": "cold",
-                "description": "Você conjura um grande espinho de gelo purificador que atravessa o alvo. Faça um ataque de magia à distância. O alvo sofre 8d6 de dano de frio.",
-                "heightened": {"+1": "O dano aumenta em 2d6."}
+                "description": "Você conjura um grande espinho de gelo purificador que atravessa o alvo. Faça um ataque de magia à distância contra a CA do alvo. O alvo sofre 8d6 de dano de frio.",
+                "heightened": {"+1": "Dano +2d6"}
             },
             "Sacred Beasts": {
                 "name": "Sacred Beasts",
