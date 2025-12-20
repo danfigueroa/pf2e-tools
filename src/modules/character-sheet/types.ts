@@ -144,6 +144,14 @@ export interface BuildInfo {
   money: { cp: number; sp: number; gp: number; pp: number };
   spellCasters: SpellCaster[];
   focusPoints?: number;
+  focus?: Record<string, Record<string, {
+    abilityBonus?: number;
+    proficiency?: number;
+    itemBonus?: number;
+    focusCantrips?: string[];
+    focusSpells?: string[];
+  }>>;
+  mods?: Record<string, Record<string, number>>;
   acTotal?: {
     acProfBonus: number;
     acAbilityBonus: number;
