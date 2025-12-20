@@ -72,9 +72,65 @@ export const CharacterSheetPage: React.FC = () => {
         return copy
     }
 
+    const enrichSpellDescriptions = async (b: BuildInfo) => {
+        // Coletar todos os nomes de magias
+        const spellNames: string[] = []
+        
+        // Magias dos spellcasters
+        b.spellCasters?.forEach((caster) => {
+            caster.spells.forEach((level) => {
+                spellNames.push(...level.list)
+            })
+        })
+        
+        // Magias de foco
+        if (b.focus) {
+            Object.values(b.focus).forEach((tradition: any) => {
+                Object.values(tradition).forEach((abilityGroup: any) => {
+                    if (abilityGroup.focusSpells) {
+                        spellNames.push(...abilityGroup.focusSpells)
+                    }
+                    if (abilityGroup.focusCantrips) {
+                        spellNames.push(...abilityGroup.focusCantrips)
+                    }
+                })
+            })
+        }
+        
+        const unique = Array.from(new Set(spellNames))
+        const missing = unique.filter(
+            (n) => !b.spellDescriptions || !b.spellDescriptions[n]
+        )
+        
+        if (!missing.length) return b
+        
+        const copy: BuildInfo = {
+            ...b,
+            spellDescriptions: { ...(b.spellDescriptions || {}) },
+        }
+        
+        await Promise.all(
+            missing.map(async (n) => {
+                try {
+                    const r = await fetch(
+                        `/api/spell?name=${encodeURIComponent(n)}`
+                    )
+                    if (!r.ok) return
+                    const data = await r.json()
+                    if (data && data.description) {
+                        copy.spellDescriptions![n] = data
+                    }
+                } catch {}
+            })
+        )
+        
+        return copy
+    }
+
     const enrichDescriptions = async (b: BuildInfo) => {
         let enriched = await enrichFeatDescriptions(b)
         enriched = await enrichSpecialDescriptions(enriched)
+        enriched = await enrichSpellDescriptions(enriched)
         return enriched
     }
 

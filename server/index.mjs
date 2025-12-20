@@ -151,6 +151,123 @@ async function scrapeGenericDescription(name) {
   }
 }
 
+// Busca informações detalhadas de uma magia na AON
+async function scrapeSpellDescription(name) {
+  if (CACHE.has(`spell:${name}`)) return CACHE.get(`spell:${name}`)
+  const q = encodeURIComponent(name)
+  const searchUrl = `https://2e.aonprd.com/Search.aspx?q=${q}`
+  
+  try {
+    const html = await fetchHtml(searchUrl)
+    const $ = cheerio.load(html)
+    
+    // Procura link para a magia
+    let spellHref = null
+    $('a[href*="/Spells.aspx?ID="]').each((_, el) => {
+      const text = $(el).text().trim()
+      const href = $(el).attr('href') || ''
+      if (!spellHref) spellHref = href
+      if (text.toLowerCase() === name.trim().toLowerCase()) {
+        spellHref = href
+        return false
+      }
+    })
+    
+    if (!spellHref) {
+      CACHE.set(`spell:${name}`, null)
+      return null
+    }
+    
+    const detailUrl = spellHref.startsWith('http') ? spellHref : `https://2e.aonprd.com/${spellHref.replace(/^\//, '')}`
+    const detailHtml = await fetchHtml(detailUrl)
+    const $$ = cheerio.load(detailHtml)
+    
+    const result = { name }
+    
+    // Extrai informações do texto da página
+    const mainText = $$('#main').text()
+    const mainHtml = $$('#main').html() || ''
+    
+    // Ações - procura por padrões como [one-action], [two-actions], etc
+    if (mainHtml.includes('one-action') || mainText.includes('1 action')) result.actions = '1'
+    else if (mainHtml.includes('two-actions') || mainText.includes('2 actions')) result.actions = '2'
+    else if (mainHtml.includes('three-actions') || mainText.includes('3 actions')) result.actions = '3'
+    else if (mainHtml.includes('reaction')) result.actions = 'reaction'
+    else if (mainHtml.includes('free-action')) result.actions = 'free'
+    
+    // Traits
+    const traits = []
+    $$('a[href*="/Traits.aspx"]').each((_, el) => {
+      const trait = $$(el).text().trim().toLowerCase()
+      if (trait && !traits.includes(trait)) traits.push(trait)
+    })
+    if (traits.length) result.traits = traits.slice(0, 6)
+    
+    // Range
+    const rangeMatch = mainText.match(/Range\s+([^;]+)/i)
+    if (rangeMatch) result.range = rangeMatch[1].trim()
+    
+    // Area
+    const areaMatch = mainText.match(/Area\s+([^;]+)/i)
+    if (areaMatch) result.area = areaMatch[1].trim()
+    
+    // Targets
+    const targetsMatch = mainText.match(/Targets?\s+([^;]+)/i)
+    if (targetsMatch) result.targets = targetsMatch[1].trim()
+    
+    // Duration
+    const durationMatch = mainText.match(/Duration\s+([^;]+)/i)
+    if (durationMatch) result.duration = durationMatch[1].trim()
+    
+    // Defense/Saving Throw
+    const defenseMatch = mainText.match(/Defense\s+([^;]+)/i) || mainText.match(/Saving Throw\s+([^;]+)/i)
+    if (defenseMatch) result.defense = defenseMatch[1].trim()
+    
+    // Damage - procura padrões de dano
+    const damageMatch = mainText.match(/(\d+d\d+)\s*(vitality|void|fire|cold|electricity|acid|sonic|mental|poison|force|bleed|persistent|slashing|piercing|bludgeoning)?/i)
+    if (damageMatch) {
+      result.damage = damageMatch[1]
+      if (damageMatch[2]) result.damageType = damageMatch[2].toLowerCase()
+    }
+    
+    // Heightened
+    const heightened = {}
+    const heightenedMatches = mainText.matchAll(/Heightened\s*\(([^)]+)\)\s*([^H]+)/gi)
+    for (const match of heightenedMatches) {
+      const level = match[1].trim()
+      const effect = match[2].trim().slice(0, 100)
+      heightened[level] = effect
+    }
+    if (Object.keys(heightened).length) result.heightened = heightened
+    
+    // Descrição - pega o texto principal
+    const metaDesc = $$('meta[name="description"]').attr('content') || ''
+    if (metaDesc && metaDesc.length > 30) {
+      result.description = metaDesc.trim().slice(0, 400)
+    } else {
+      const paras = $$('#main p').map((_, el) => $$(el).text().replace(/\s+/g, ' ').trim()).get()
+      const filtered = paras.filter((t) => 
+        t.length > 30 && 
+        !t.includes('Source') &&
+        !t.startsWith('Range') &&
+        !t.startsWith('Area') &&
+        !t.startsWith('Duration') &&
+        !t.startsWith('Targets')
+      )
+      if (filtered.length) {
+        result.description = filtered.slice(0, 2).join(' ').slice(0, 400)
+      }
+    }
+    
+    CACHE.set(`spell:${name}`, result)
+    return result
+    
+  } catch (e) {
+    CACHE.set(`spell:${name}`, null)
+    return null
+  }
+}
+
 function json(res, code, data) {
   const body = JSON.stringify(data)
   res.writeHead(code, {
@@ -174,6 +291,12 @@ const server = http.createServer(async (req, res) => {
       if (!name) return json(res, 400, { error: 'missing name' })
       const desc = await scrapeGenericDescription(name)
       return json(res, 200, { name, description: desc })
+    }
+    if (req.method === 'GET' && url.pathname === '/api/spell') {
+      const name = url.searchParams.get('name') || ''
+      if (!name) return json(res, 400, { error: 'missing name' })
+      const spellData = await scrapeSpellDescription(name)
+      return json(res, 200, spellData || { name, description: null })
     }
     if (req.method === 'GET' && url.pathname === '/health') {
       return json(res, 200, { ok: true })

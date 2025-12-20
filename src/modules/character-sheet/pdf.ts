@@ -709,6 +709,54 @@ function drawLores(doc: jsPDF, build: BuildInfo, y: number): number {
     return y + LAYOUT.sectionGap
 }
 
+// Formata o símbolo de ações
+function formatActions(actions: string | undefined): string {
+    if (!actions) return ''
+    switch (actions) {
+        case '1': return '(1 ação)'
+        case '2': return '(2 ações)'
+        case '3': return '(3 ações)'
+        case 'reaction': return '(reação)'
+        case 'free': return '(livre)'
+        case '1 to 3': return '(1 a 3 ações)'
+        case '1 to 2': return '(1 a 2 ações)'
+        default: return `(${actions})`
+    }
+}
+
+// Calcula dano para o nível da magia
+function calculateSpellDamage(baseDamage: string | undefined, spellLevel: number, heightened?: Record<string, string>): string {
+    if (!baseDamage) return ''
+    
+    // Extrai o número de dados e o tipo (ex: "1d8" -> 1, 8)
+    const match = baseDamage.match(/(\d+)d(\d+)/)
+    if (!match) return baseDamage
+    
+    let diceCount = parseInt(match[1])
+    const dieSize = match[2]
+    
+    // Verifica heightened +1 ou +2
+    if (heightened) {
+        if (heightened['+1']) {
+            // Aumenta por nível
+            const incMatch = heightened['+1'].match(/(\d+)d/)
+            if (incMatch) {
+                const increment = parseInt(incMatch[1])
+                diceCount += increment * (spellLevel - 1)
+            }
+        } else if (heightened['+2']) {
+            // Aumenta a cada 2 níveis
+            const incMatch = heightened['+2'].match(/(\d+)d/)
+            if (incMatch) {
+                const increment = parseInt(incMatch[1])
+                diceCount += increment * Math.floor((spellLevel - 1) / 2)
+            }
+        }
+    }
+    
+    return `${diceCount}d${dieSize}`
+}
+
 function drawSpells(doc: jsPDF, build: BuildInfo, y: number): number {
     if (!build.spellCasters?.length) return y
     
@@ -761,35 +809,108 @@ function drawSpells(doc: jsPDF, build: BuildInfo, y: number): number {
         caster.spells.forEach((spellLevel) => {
             if (!spellLevel.list.length) return
             
-            y = ensurePageSpace(doc, y, 10)
+            y = ensurePageSpace(doc, y, 12)
             
-            // Nível
+            // Header do nível
+            setColor(doc, COLORS.veryLightGray, 'fill')
+            doc.rect(x, y, sectionWidth, 5, 'F')
             setColor(doc, COLORS.black)
             doc.setFont('helvetica', 'bold')
             doc.setFontSize(8)
-            const levelText = spellLevel.spellLevel === 0 ? 'Truques' : `Nível ${spellLevel.spellLevel}`
-            doc.text(`${levelText}:`, x + 2, y + 3)
+            const levelText = spellLevel.spellLevel === 0 ? 'TRUQUES (Cantrips)' : `NÍVEL ${spellLevel.spellLevel}`
+            doc.text(levelText, x + 2, y + 3.5)
+            y += 7
             
-            // Lista de magias
-            setColor(doc, COLORS.gray)
-            doc.setFont('helvetica', 'normal')
-            doc.setFontSize(7)
+            // Deduplica magias (algumas aparecem múltiplas vezes)
+            const uniqueSpells = [...new Set(spellLevel.list)]
+            const spellCounts = spellLevel.list.reduce((acc, spell) => {
+                acc[spell] = (acc[spell] || 0) + 1
+                return acc
+            }, {} as Record<string, number>)
             
-            const spellsText = spellLevel.list.join(', ')
-            const maxWidth = sectionWidth - 30
-            const spellLines = doc.splitTextToSize(spellsText, maxWidth)
-            
-            spellLines.forEach((line: string, idx: number) => {
-                doc.text(line, x + 25, y + 3 + idx * 3.5)
-            })
-            
-            // Links para cada magia (invisíveis mas clicáveis)
-            spellLevel.list.forEach((spellName) => {
+            uniqueSpells.forEach((spellName) => {
+                y = ensurePageSpace(doc, y, 18)
+                
+                const spellInfo = build.spellDescriptions?.[spellName]
                 const url = getAonSearchUrl(spellName)
-                doc.link(x + 25, y - 1, maxWidth, 5, { url })
+                const count = spellCounts[spellName]
+                
+                // Nome da magia + ações + quantidade
+                setColor(doc, COLORS.black)
+                doc.setFont('helvetica', 'bold')
+                doc.setFontSize(8)
+                
+                let nameText = `• ${spellName}`
+                if (count > 1) nameText += ` (×${count})`
+                if (spellInfo?.actions) nameText += ` ${formatActions(spellInfo.actions)}`
+                
+                doc.text(nameText, x + 2, y + 3)
+                doc.link(x + 2, y - 1, doc.getTextWidth(nameText), 5, { url })
+                
+                // Traits (se houver)
+                if (spellInfo?.traits?.length) {
+                    setColor(doc, COLORS.gray)
+                    doc.setFont('helvetica', 'italic')
+                    doc.setFontSize(6)
+                    doc.text(spellInfo.traits.join(', '), x + sectionWidth - 2, y + 3, { align: 'right' })
+                }
+                
+                y += 4
+                
+                if (spellInfo) {
+                    // Linha de metadados (range, area, targets, duration, defense)
+                    const metadata: string[] = []
+                    if (spellInfo.range) metadata.push(`Alcance: ${spellInfo.range}`)
+                    if (spellInfo.area) metadata.push(`Área: ${spellInfo.area}`)
+                    if (spellInfo.targets) metadata.push(`Alvos: ${spellInfo.targets}`)
+                    if (spellInfo.duration) metadata.push(`Duração: ${spellInfo.duration}`)
+                    if (spellInfo.defense) metadata.push(`Defesa: ${spellInfo.defense}`)
+                    
+                    if (metadata.length) {
+                        setColor(doc, COLORS.gray)
+                        doc.setFont('helvetica', 'normal')
+                        doc.setFontSize(6)
+                        doc.text(metadata.join(' | '), x + 6, y + 2.5)
+                        y += 3.5
+                    }
+                    
+                    // Dano (se houver)
+                    if (spellInfo.damage) {
+                        const calculatedDamage = calculateSpellDamage(
+                            spellInfo.damage, 
+                            spellLevel.spellLevel || build.level || 1,
+                            spellInfo.heightened
+                        )
+                        setColor(doc, COLORS.black)
+                        doc.setFont('helvetica', 'bold')
+                        doc.setFontSize(7)
+                        let damageText = `Dano: ${calculatedDamage}`
+                        if (spellInfo.damageType) damageText += ` ${spellInfo.damageType}`
+                        doc.text(damageText, x + 6, y + 2.5)
+                        y += 3.5
+                    }
+                    
+                    // Descrição
+                    if (spellInfo.description) {
+                        setColor(doc, COLORS.gray)
+                        doc.setFont('helvetica', 'normal')
+                        doc.setFontSize(6)
+                        const descLines = doc.splitTextToSize(spellInfo.description, sectionWidth - 10)
+                        descLines.slice(0, 3).forEach((line: string) => {
+                            doc.text(line, x + 6, y + 2.5)
+                            y += 3
+                        })
+                        if (descLines.length > 3) {
+                            doc.text('...', x + 6, y + 2.5)
+                            y += 3
+                        }
+                    }
+                }
+                
+                y += 1
             })
             
-            y += Math.max(5, spellLines.length * 3.5 + 2)
+            y += 2
         })
         
         y += LAYOUT.sectionGap
@@ -801,11 +922,11 @@ function drawSpells(doc: jsPDF, build: BuildInfo, y: number): number {
 function drawFocusSpells(doc: jsPDF, build: BuildInfo, y: number): number {
     if (!build.focus || !build.focusPoints) return y
     
-    y = ensurePageSpace(doc, y, 20)
+    y = ensurePageSpace(doc, y, 30)
     const x = LAYOUT.pageMargin
     const sectionWidth = LAYOUT.contentWidth
     
-    y = drawSectionTitle(doc, `Magias de Foco (${build.focusPoints} pontos)`, x, y, sectionWidth / 2)
+    y = drawSectionTitle(doc, `Magias de Foco (${build.focusPoints} pontos)`, x, y, sectionWidth)
     
     // Coletar todas as focus spells
     const focusSpells: string[] = []
@@ -821,15 +942,59 @@ function drawFocusSpells(doc: jsPDF, build: BuildInfo, y: number): number {
     })
     
     if (focusSpells.length) {
-        setColor(doc, COLORS.gray)
-        doc.setFont('helvetica', 'normal')
-        doc.setFontSize(7)
-        
-        focusSpells.forEach((spell) => {
-            const url = getAonSearchUrl(spell)
-            doc.text(`• ${spell}`, x + 2, y + 3)
-            doc.link(x + 2, y - 1, doc.getTextWidth(`• ${spell}`), 5, { url })
+        focusSpells.forEach((spellName) => {
+            y = ensurePageSpace(doc, y, 15)
+            
+            const spellInfo = build.spellDescriptions?.[spellName]
+            const url = getAonSearchUrl(spellName)
+            
+            // Nome + ações
+            setColor(doc, COLORS.black)
+            doc.setFont('helvetica', 'bold')
+            doc.setFontSize(8)
+            
+            let nameText = `• ${spellName}`
+            if (spellInfo?.actions) nameText += ` ${formatActions(spellInfo.actions)}`
+            
+            doc.text(nameText, x + 2, y + 3)
+            doc.link(x + 2, y - 1, doc.getTextWidth(nameText), 5, { url })
+            
             y += 4
+            
+            if (spellInfo) {
+                // Metadata
+                const metadata: string[] = []
+                if (spellInfo.range) metadata.push(`Alcance: ${spellInfo.range}`)
+                if (spellInfo.area) metadata.push(`Área: ${spellInfo.area}`)
+                if (spellInfo.targets) metadata.push(`Alvos: ${spellInfo.targets}`)
+                if (spellInfo.duration) metadata.push(`Duração: ${spellInfo.duration}`)
+                
+                if (metadata.length) {
+                    setColor(doc, COLORS.gray)
+                    doc.setFont('helvetica', 'normal')
+                    doc.setFontSize(6)
+                    doc.text(metadata.join(' | '), x + 6, y + 2.5)
+                    y += 3.5
+                }
+                
+                // Descrição
+                if (spellInfo.description) {
+                    setColor(doc, COLORS.gray)
+                    doc.setFont('helvetica', 'normal')
+                    doc.setFontSize(6)
+                    const descLines = doc.splitTextToSize(spellInfo.description, sectionWidth - 10)
+                    descLines.slice(0, 2).forEach((line: string) => {
+                        doc.text(line, x + 6, y + 2.5)
+                        y += 3
+                    })
+                    if (descLines.length > 2) {
+                        doc.text('...', x + 6, y + 2.5)
+                        y += 3
+                    }
+                }
+            }
+            
+            y += 1
         })
     }
     

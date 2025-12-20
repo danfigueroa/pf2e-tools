@@ -298,6 +298,30 @@
                 null
             ]
         ],
+        "featDescriptions": {
+            "Domain Initiate": "Você obtém um poder de domínio inicial e um feitiço de foco ligado ao seu domínio escolhido.",
+            "Oddity Identification": "Você reconhece e identifica rapidamente propriedades incomuns, reduzindo a CD para identificar itens e fenômenos estranhos.",
+            "Android Lore": "Você possui conhecimentos especializados sobre androides, incluindo cultura, tecnologia e história.",
+            "Skill Training": "Treina uma perícia adicional, tornando-se treinado na perícia selecionada.",
+            "Investigator Dedication": "Adota o arquétipo de Investigador, ganhando habilidades de dedução e pistas.",
+            "Prescient Planner": "Planeja com antecedência, permitindo preparar itens úteis que você ‘já tinha’ pensado em levar.",
+            "Multilingual": "Aprende idiomas adicionais, reforçando comunicação em diversas culturas.",
+            "Expanded Domain Initiate": "Ganha acesso a um segundo domínio, com poder e feitiço de foco adicional.",
+            "Basic Deduction": "Aplica dedução básica para obter pistas em cenas e situações complexas.",
+            "That's Odd": "Percebe detalhes estranhos, encontrando pistas que outros poderiam ignorar.",
+            "Godspeed": "Aprimora suas ações com bênçãos de velocidade, agindo mais rapidamente por um curto período.",
+            "Advanced Targeting System": "Integra um sistema avançado de mira arcana ao corpo, melhorando precisão.",
+            "Sanctify Water": "Confere propriedades sagradas à água, útil contra criaturas profanas.",
+            "Steady Spellcasting": "Evita interrupções durante conjuração, mantendo concentração sob pressão.",
+            "Keen Recollection": "Recorda informações com precisão, mesmo sem treinamento formal.",
+            "Correct the Story": "Corrige narrativas falsas, desmontando mentiras e versões incorretas.",
+            "Incredible Initiative": "Aumenta iniciativa, reagindo mais rápido no início dos confrontos.",
+            "Consult the Spirits": "Busca orientação de espíritos para obter insights em investigações.",
+            "Advanced Domain": "Acesso a poderes mais avançados do domínio, ampliando sua influência divina.",
+            "Skill Mastery": "Eleva perícias a níveis superiores, alcançando excelência.",
+            "Break Curse": "Rompe maldições persistentes, libertando criaturas e itens afetados.",
+            "Mythic Magic": "Canaliza magia mítica, ampliando suas capacidades arcanas além do comum."
+        },
         "specials": [
             "Deity",
             "Healing Font",
@@ -327,6 +351,267 @@
             "Wisdom",
             "Polyglot Android"
         ],
+        "specialDescriptions": {
+            "Deity": "Você serve uma divindade e segue seus princípios, recebendo poderes divinos em troca de devoção.",
+            "Healing Font": "Você canaliza energia positiva, podendo conjurar Curar várias vezes por dia como magias de fonte.",
+            "Cleric Spellcasting": "Você pode conjurar magias divinas usando Sabedoria como atributo de conjuração.",
+            "Cloistered Cleric": "Você é um clérigo focado em magias e conhecimento divino, com proficiência em armaduras leves.",
+            "Domain: Metal": "Você tem acesso ao domínio de Metal, ganhando poderes relacionados a metais e forja.",
+            "Anathema": "Atos proibidos pela sua divindade que, se cometidos, podem fazer você perder seus poderes.",
+            "Sanctification": "Sua conexão divina permite santificar ou profanar sua magia, adicionando o traço holy ou unholy.",
+            "Low-Light Vision": "Você pode ver em luz fraca como se fosse luz plena, ignorando penumbra.",
+            "Constructed (Android)": "Seu corpo é parcialmente construído, conferindo resistências e vulnerabilidades únicas.",
+            "Emotionally Unaware": "Você tem dificuldade em perceber e expressar emoções, sofrendo penalidade em certas perícias sociais.",
+            "Rewrite Fate": "Você pode alterar o destino, permitindo re-rolar um teste uma vez por dia.",
+            "Sage's Calling": "Você foi chamado para buscar conhecimento, ganhando benefícios em testes de Recordar Conhecimento.",
+            "Domain: Healing": "Você tem acesso ao domínio de Cura, ganhando poderes relacionados a restauração e vitalidade.",
+            "Clue In": "Você pode compartilhar uma pista com um aliado, permitindo que ele se beneficie de Perseguir uma Pista.",
+            "On the Case": "Você está sempre investigando, podendo designar um caso ativo para ganhar bônus.",
+            "Pursue a Lead": "Você pode designar uma criatura ou objeto como sua pista, ganhando bônus para investigá-lo.",
+            "Second Doctrine": "A segunda doutrina do clérigo, melhorando suas capacidades de acordo com sua subclasse.",
+            "Lightning": "Você tem afinidade com raios e eletricidade, podendo canalizar esse elemento.",
+            "Perception Expertise": "Você se torna expert em Percepção, melhorando sua capacidade de notar detalhes.",
+            "Keen Recollection": "Você pode tentar Recordar Conhecimento em qualquer perícia, mesmo sem treinamento.",
+            "Third Doctrine": "A terceira doutrina do clérigo, continuando a evolução de suas habilidades de classe.",
+            "Religion": "Você é treinado ou possui proficiência avançada em Religião.",
+            "Metal": "Você tem conexão com o elemento ou domínio de Metal.",
+            "Diplomacy": "Você é treinado ou possui proficiência avançada em Diplomacia.",
+            "Society": "Você é treinado ou possui proficiência avançada em Sociedade.",
+            "Wisdom": "Sabedoria é seu atributo-chave para habilidades de classe.",
+            "Polyglot Android": "Você conhece vários idiomas adicionais devido à sua herança de androide poliglota."
+        },
+        "spellDescriptions": {
+            "Detect Magic": {
+                "name": "Detect Magic",
+                "actions": "2",
+                "traits": ["cantrip", "concentrate", "detection", "divine"],
+                "area": "30-foot emanation",
+                "description": "Você sente a presença de magia dentro da área. Você pode identificar a escola de magia (abjuração, conjuração, etc.) e a intensidade aproximada da aura mágica."
+            },
+            "Guidance": {
+                "name": "Guidance",
+                "actions": "1",
+                "traits": ["cantrip", "concentrate", "divine"],
+                "range": "30 feet",
+                "targets": "1 creature",
+                "duration": "until the start of your next turn",
+                "description": "Você pede ajuda divina, concedendo ao alvo um bônus de status de +1 em um teste de ataque, teste de Percepção, teste de resistência ou teste de perícia."
+            },
+            "Shield": {
+                "name": "Shield",
+                "actions": "1",
+                "traits": ["cantrip", "concentrate", "divine"],
+                "duration": "until the start of your next turn",
+                "description": "Você ergue um escudo mágico de força. Você ganha um bônus de circunstância de +1 na CA até o início do seu próximo turno. Enquanto a magia estiver ativa, você pode usar a reação Bloquear com Escudo."
+            },
+            "Bless": {
+                "name": "Bless",
+                "actions": "2",
+                "traits": ["concentrate", "divine", "mental"],
+                "area": "15-foot emanation",
+                "duration": "1 minute",
+                "description": "Você abençoa seus aliados, concedendo a cada criatura na área um bônus de status de +1 em jogadas de ataque. A emanação se move junto com você."
+            },
+            "Fear": {
+                "name": "Fear",
+                "actions": "2",
+                "traits": ["concentrate", "divine", "emotion", "fear", "mental"],
+                "range": "30 feet",
+                "targets": "1 creature",
+                "defense": "Will",
+                "description": "Você planta medo na mente do alvo. O alvo faz um teste de resistência de Vontade.",
+                "heightened": {"+1": "Você pode afetar uma criatura adicional."}
+            },
+            "Enfeeble": {
+                "name": "Enfeeble",
+                "actions": "2",
+                "traits": ["concentrate", "divine"],
+                "range": "30 feet",
+                "targets": "1 creature",
+                "defense": "Fortitude",
+                "description": "Você fisicamente enfraquece o alvo. O alvo fica enfraquecido 1 por 1 rodada em uma falha, ou enfraquecido 2 por 1 minuto em uma falha crítica."
+            },
+            "Heal": {
+                "name": "Heal",
+                "actions": "1 to 3",
+                "traits": ["concentrate", "divine", "healing", "manipulate", "vitality"],
+                "range": "varies",
+                "targets": "1 willing living creature or 1 undead",
+                "damage": "1d8",
+                "damageType": "vitality",
+                "description": "Você canaliza energia positiva para curar os vivos ou ferir os mortos-vivos. Com 1 ação, toque cura 1d8. Com 2 ações, alcance 30 pés cura 1d8+8. Com 3 ações, emanação de 30 pés cura 1d8 a todos os vivos.",
+                "heightened": {"+1": "A quantidade curada aumenta em 1d8 (ou 8 pontos para a versão de 2 ações)."}
+            },
+            "Silence": {
+                "name": "Silence",
+                "actions": "2",
+                "traits": ["concentrate", "divine", "illusion"],
+                "range": "touch",
+                "targets": "1 willing creature",
+                "duration": "1 minute",
+                "description": "O alvo fica completamente silencioso, não produzindo nenhum som. Isso impede conjuração de magias com componente verbal.",
+                "heightened": {"4th": "A magia pode ser conjurada em uma área de 10 pés, silenciando todos dentro."}
+            },
+            "Calm": {
+                "name": "Calm",
+                "actions": "2",
+                "traits": ["concentrate", "divine", "emotion", "incapacitation", "mental"],
+                "range": "120 feet",
+                "area": "10-foot burst",
+                "duration": "1 minute",
+                "defense": "Will",
+                "description": "Você acalma criaturas hostis na área. Cada alvo deve fazer um teste de resistência de Vontade. Em uma falha, a criatura não pode usar ações hostis."
+            },
+            "Fly": {
+                "name": "Fly",
+                "actions": "2",
+                "traits": ["concentrate", "divine"],
+                "range": "touch",
+                "targets": "1 creature",
+                "duration": "5 minutes",
+                "description": "O alvo ganha uma Velocidade de voo igual à sua Velocidade ou 20 pés, o que for maior."
+            },
+            "Moonlight Ray": {
+                "name": "Moonlight Ray",
+                "actions": "2",
+                "traits": ["attack", "cold", "concentrate", "divine", "light"],
+                "range": "120 feet",
+                "targets": "1 creature",
+                "damage": "5d6",
+                "damageType": "cold",
+                "description": "Você dispara um raio de luz lunar gelada no alvo. Faça um ataque de magia à distância. O raio causa 5d6 de dano de frio. Contra demônios e mortos-vivos, causa 5d6 adicionais de dano de bem.",
+                "heightened": {"+1": "O dano de frio aumenta em 2d6 e o dano de bem aumenta em 2d6."}
+            },
+            "Radiant Beam": {
+                "name": "Radiant Beam",
+                "actions": "2",
+                "traits": ["concentrate", "divine", "fire", "light", "vitality"],
+                "range": "120 feet",
+                "area": "line",
+                "defense": "basic Reflex",
+                "damage": "8d6",
+                "damageType": "fire",
+                "description": "Você dispara um feixe de luz radiante ardente. Criaturas na linha sofrem 8d6 de dano de fogo (teste básico de Reflexos). Mortos-vivos e criaturas com fraqueza à luz sofrem dano de vitalidade adicional igual ao seu nível.",
+                "heightened": {"+1": "O dano aumenta em 2d6."}
+            },
+            "Sure Strike": {
+                "name": "Sure Strike",
+                "actions": "1",
+                "traits": ["concentrate", "arcane", "fortune"],
+                "duration": "until the end of your turn",
+                "description": "Você visualiza mentalmente seu próximo ataque com precisão perfeita. Na próxima jogada de ataque que fizer neste turno, role duas vezes e use o melhor resultado."
+            },
+            "Blood Vendetta": {
+                "name": "Blood Vendetta",
+                "actions": "reaction",
+                "traits": ["concentrate", "divine", "curse"],
+                "range": "30 feet",
+                "targets": "the triggering creature",
+                "duration": "varies",
+                "description": "Você amaldiçoa o alvo quando ele o fere. Quando sofrer dano de um ataque, você pode conjurar esta magia como reação. O alvo sofre dano persistente de sangramento igual a metade do dano que ele causou a você."
+            },
+            "Anointed Ground": {
+                "name": "Anointed Ground",
+                "actions": "3",
+                "traits": ["concentrate", "divine"],
+                "range": "60 feet",
+                "area": "30-foot burst",
+                "duration": "1 minute",
+                "description": "Você santifica uma área de terreno. Aliados na área ganham bônus de status de +1 em CA e testes de resistência. Inimigos na área sofrem penalidade de status de -1 nos mesmos testes."
+            },
+            "Invoke True Name": {
+                "name": "Invoke True Name",
+                "actions": "1",
+                "traits": ["cantrip", "concentrate", "divine"],
+                "range": "30 feet",
+                "targets": "1 creature",
+                "description": "Você invoca o nome verdadeiro de uma criatura, forçando-a a revelar informações sobre si mesma."
+            },
+            "Know the Way": {
+                "name": "Know the Way",
+                "actions": "1",
+                "traits": ["cantrip", "concentrate", "divine", "detection"],
+                "range": "self",
+                "duration": "until the end of your turn",
+                "description": "Você ganha conhecimento intuitivo sobre direções e caminhos, sabendo qual direção seguir para alcançar um local conhecido."
+            },
+            "It Is Written": {
+                "name": "It Is Written",
+                "actions": "2",
+                "traits": ["concentrate", "divine", "fortune"],
+                "range": "30 feet",
+                "targets": "1 creature",
+                "duration": "1 round",
+                "description": "Você declara que algo está destinado a acontecer. O alvo pode rolar duas vezes em seu próximo teste e usar o melhor resultado."
+            },
+            "Purifying Icicle": {
+                "name": "Purifying Icicle",
+                "actions": "2",
+                "traits": ["attack", "cold", "concentrate", "divine", "water"],
+                "range": "60 feet",
+                "targets": "1 creature",
+                "damage": "8d6",
+                "damageType": "cold",
+                "description": "Você conjura um grande espinho de gelo purificador que atravessa o alvo. Faça um ataque de magia à distância. O alvo sofre 8d6 de dano de frio.",
+                "heightened": {"+1": "O dano aumenta em 2d6."}
+            },
+            "Sacred Beasts": {
+                "name": "Sacred Beasts",
+                "actions": "3",
+                "traits": ["concentrate", "divine"],
+                "range": "30 feet",
+                "duration": "sustained up to 1 minute",
+                "description": "Você convoca bestas sagradas para lutar ao seu lado. As bestas atacam seus inimigos e protegem seus aliados."
+            },
+            "Forced Mercy": {
+                "name": "Forced Mercy",
+                "actions": "2",
+                "traits": ["concentrate", "divine", "emotion", "incapacitation", "mental"],
+                "range": "30 feet",
+                "targets": "1 creature",
+                "defense": "Will",
+                "duration": "varies",
+                "description": "Você força uma criatura a mostrar misericórdia. Em uma falha, a criatura não pode atacar criaturas indefesas ou que se renderam."
+            },
+            "Serrate": {
+                "name": "Serrate",
+                "actions": "1",
+                "traits": ["concentrate", "divine", "focus"],
+                "range": "touch",
+                "targets": "1 metal weapon",
+                "duration": "1 minute",
+                "description": "A arma metálica que você toca desenvolve bordas serrilhadas afiadas. A arma causa 1d6 adicional de dano persistente de sangramento em um acerto crítico.",
+                "damage": "1d6",
+                "damageType": "persistent bleed"
+            },
+            "Healer's Blessing": {
+                "name": "Healer's Blessing",
+                "actions": "1",
+                "traits": ["concentrate", "divine", "focus", "healing"],
+                "range": "30 feet",
+                "targets": "1 willing creature",
+                "description": "Você abençoa uma criatura com poder de cura aprimorado. A próxima magia de cura que afetar o alvo restaura pontos de vida adicionais iguais ao seu nível de conjurador."
+            },
+            "Charged Javelin": {
+                "name": "Charged Javelin",
+                "actions": "2",
+                "traits": ["attack", "concentrate", "divine", "electricity", "focus"],
+                "range": "60 feet",
+                "targets": "1 creature",
+                "damage": "4d6",
+                "damageType": "electricity",
+                "description": "Você arremessa um dardo de eletricidade pura no alvo. Faça um ataque de magia à distância. O dardo causa 4d6 de dano de eletricidade.",
+                "heightened": {"+1": "O dano aumenta em 2d6."}
+            },
+            "Repel Metal": {
+                "name": "Repel Metal",
+                "actions": "2",
+                "traits": ["concentrate", "divine", "focus"],
+                "area": "60-foot emanation",
+                "duration": "sustained up to 1 minute",
+                "description": "Você cria um campo que repele objetos metálicos. Objetos metálicos não empunhados são empurrados para fora da área. Criaturas vestindo armadura metálica ou empunhando armas metálicas devem fazer um teste de Reflexos."
+            }
+        },
         "lores": [
             ["Ancient Regional", 4],
             ["Android", 2]

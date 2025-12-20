@@ -97,6 +97,21 @@ export interface SpellListByLevel {
   list: string[];
 }
 
+export interface SpellDescription {
+  name: string;
+  actions?: string;        // "1", "2", "3", "reaction", "free", "1 to 3"
+  traits?: string[];       // ["divine", "healing", "vitality"]
+  range?: string;          // "30 feet", "touch", "120 feet"
+  area?: string;           // "15-foot emanation", "30-foot cone"
+  targets?: string;        // "1 creature", "you"
+  duration?: string;       // "1 minute", "sustained up to 1 minute"
+  defense?: string;        // "basic Fortitude", "Will"
+  description: string;     // Descrição completa
+  damage?: string;         // "1d8" (dado base)
+  damageType?: string;     // "vitality", "fire", "cold"
+  heightened?: Record<string, string>;  // { "+1": "damage increases by 1d8" }
+}
+
 export interface SpellCaster {
   name: string;
   magicTradition: 'arcane' | 'divine' | 'occult' | 'primal' | string;
@@ -132,6 +147,7 @@ export interface BuildInfo {
   featDescriptions?: Record<string, string>;
   specials: string[];
   specialDescriptions?: Record<string, string>;
+  spellDescriptions?: Record<string, SpellDescription>;
   lores: [string, number][];
   equipment: [string, number, string?][];
   specificProficiencies: {
