@@ -45,6 +45,39 @@ export const CharacterSheetPage: React.FC = () => {
         return copy
     }
 
+    const enrichSpecialDescriptions = async (b: BuildInfo) => {
+        const names = (b.specials || []).map((s) => String(s))
+        const unique = Array.from(new Set(names))
+        const missing = unique.filter(
+            (n) => !b.specialDescriptions || !b.specialDescriptions[n]
+        )
+        if (!missing.length) return b
+        const copy: BuildInfo = {
+            ...b,
+            specialDescriptions: { ...(b.specialDescriptions || {}) },
+        }
+        await Promise.all(
+            missing.map(async (n) => {
+                try {
+                    const r = await fetch(
+                        `/api/search?name=${encodeURIComponent(n)}`
+                    )
+                    if (!r.ok) return
+                    const data = await r.json()
+                    if (data && data.description)
+                        copy.specialDescriptions![n] = String(data.description)
+                } catch {}
+            })
+        )
+        return copy
+    }
+
+    const enrichDescriptions = async (b: BuildInfo) => {
+        let enriched = await enrichFeatDescriptions(b)
+        enriched = await enrichSpecialDescriptions(enriched)
+        return enriched
+    }
+
     const handleFileUpload: React.ChangeEventHandler<HTMLInputElement> = async (
         e
     ) => {
@@ -55,7 +88,7 @@ export const CharacterSheetPage: React.FC = () => {
             const text = await file.text()
             const json = JSON.parse(text)
             let parsed = parseCharacterJson(json)
-            parsed = await enrichFeatDescriptions(parsed)
+            parsed = await enrichDescriptions(parsed)
             setBuild(parsed)
         } catch (err: unknown) {
             console.error(err)
@@ -80,7 +113,7 @@ export const CharacterSheetPage: React.FC = () => {
                 )
             const json = await res.json()
             let parsed = parseCharacterJson(json)
-            parsed = await enrichFeatDescriptions(parsed)
+            parsed = await enrichDescriptions(parsed)
             setBuild(parsed)
         } catch (err: unknown) {
             const message =

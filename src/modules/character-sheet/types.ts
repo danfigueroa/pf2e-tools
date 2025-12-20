@@ -131,6 +131,7 @@ export interface BuildInfo {
   feats: any[];
   featDescriptions?: Record<string, string>;
   specials: string[];
+  specialDescriptions?: Record<string, string>;
   lores: [string, number][];
   equipment: [string, number, string?][];
   specificProficiencies: {

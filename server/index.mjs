@@ -17,7 +17,7 @@ async function fetchHtml(url) {
 const CACHE = new Map()
 
 async function scrapeFeatDescription(name) {
-  if (CACHE.has(name)) return CACHE.get(name)
+  if (CACHE.has(`feat:${name}`)) return CACHE.get(`feat:${name}`)
   const q = encodeURIComponent(name)
   const searchUrl = `https://2e.aonprd.com/Search.aspx?q=${q}`
   const html = await fetchHtml(searchUrl)
@@ -33,28 +33,122 @@ async function scrapeFeatDescription(name) {
       return false
     }
   })
-  if (!featHref) { CACHE.set(name, null); return null }
+  if (!featHref) { CACHE.set(`feat:${name}`, null); return null }
   const detailUrl = featHref.startsWith('http') ? featHref : `https://2e.aonprd.com/${featHref.replace(/^\//, '')}`
   const detailHtml = await fetchHtml(detailUrl)
   const $$ = cheerio.load(detailHtml)
   const main = $$('#main')
   let description = ''
   const metaDesc = $$('meta[name="description"]').attr('content') || ''
-  if (metaDesc && metaDesc.trim().length > 40) { CACHE.set(name, metaDesc.trim()); return metaDesc.trim() }
+  if (metaDesc && metaDesc.trim().length > 40) { CACHE.set(`feat:${name}`, metaDesc.trim()); return metaDesc.trim() }
   const ld = $$('script[type="application/ld+json"]').first().text()
   if (ld) {
     try {
       const obj = JSON.parse(ld)
       const d = (obj && (obj.description || (obj[0]?.description))) || ''
-      if (d && d.trim().length > 40) { CACHE.set(name, String(d).trim()); return String(d).trim() }
+      if (d && d.trim().length > 40) { CACHE.set(`feat:${name}`, String(d).trim()); return String(d).trim() }
     } catch {}
   }
   const paras = main.find('p').map((_, el) => $$(el).text().replace(/\s+/g, ' ').trim()).get()
   const filtered = paras.filter((t) => t.length > 60 && !t.includes('|') && !/^Prerequisites?:/i.test(t) && !/^Requirements?:/i.test(t) && !/^Frequency:/i.test(t) && !/^Trigger:/i.test(t) && !/^Source:/i.test(t))
   if (filtered.length) description = filtered.slice(0, 2).join(' ')
   if (!description) description = main.text().replace(/\s+/g, ' ').trim().slice(0, 600)
-  CACHE.set(name, description || null)
+  CACHE.set(`feat:${name}`, description || null)
   return description || null
+}
+
+// Busca genérica na AON para qualquer tipo de conteúdo (class features, specials, etc.)
+async function scrapeGenericDescription(name) {
+  if (CACHE.has(`generic:${name}`)) return CACHE.get(`generic:${name}`)
+  const q = encodeURIComponent(name)
+  const searchUrl = `https://2e.aonprd.com/Search.aspx?q=${q}`
+  
+  try {
+    const html = await fetchHtml(searchUrl)
+    const $ = cheerio.load(html)
+    
+    // Procura o primeiro resultado que corresponda ao nome
+    let bestHref = null
+    let bestMatch = false
+    
+    // Procura em várias categorias de links
+    $('a').each((_, el) => {
+      const text = $(el).text().trim()
+      const href = $(el).attr('href') || ''
+      
+      // Ignora links de navegação e busca
+      if (!href || href.startsWith('#') || href.includes('Search.aspx')) return
+      if (!href.includes('.aspx?ID=')) return
+      
+      // Match exato tem prioridade
+      if (text.toLowerCase() === name.trim().toLowerCase()) {
+        bestHref = href
+        bestMatch = true
+        return false
+      }
+      
+      // Primeiro resultado válido como fallback
+      if (!bestHref && text.toLowerCase().includes(name.trim().toLowerCase().split(' ')[0])) {
+        bestHref = href
+      }
+    })
+    
+    if (!bestHref) { 
+      CACHE.set(`generic:${name}`, null)
+      return null 
+    }
+    
+    const detailUrl = bestHref.startsWith('http') ? bestHref : `https://2e.aonprd.com/${bestHref.replace(/^\//, '')}`
+    const detailHtml = await fetchHtml(detailUrl)
+    const $$ = cheerio.load(detailHtml)
+    
+    let description = ''
+    
+    // Tenta pegar a meta description
+    const metaDesc = $$('meta[name="description"]').attr('content') || ''
+    if (metaDesc && metaDesc.trim().length > 30) {
+      description = metaDesc.trim()
+    }
+    
+    // Se não encontrou, tenta JSON-LD
+    if (!description) {
+      const ld = $$('script[type="application/ld+json"]').first().text()
+      if (ld) {
+        try {
+          const obj = JSON.parse(ld)
+          const d = (obj && (obj.description || (obj[0]?.description))) || ''
+          if (d && d.trim().length > 30) description = String(d).trim()
+        } catch {}
+      }
+    }
+    
+    // Se não encontrou, pega o texto do main
+    if (!description) {
+      const main = $$('#main')
+      const paras = main.find('p').map((_, el) => $$(el).text().replace(/\s+/g, ' ').trim()).get()
+      const filtered = paras.filter((t) => 
+        t.length > 40 && 
+        !t.includes('|') && 
+        !/^Source:/i.test(t) &&
+        !/^Prerequisites?:/i.test(t)
+      )
+      if (filtered.length) {
+        description = filtered.slice(0, 2).join(' ')
+      }
+    }
+    
+    // Limita o tamanho
+    if (description && description.length > 300) {
+      description = description.slice(0, 297) + '...'
+    }
+    
+    CACHE.set(`generic:${name}`, description || null)
+    return description || null
+    
+  } catch (e) {
+    CACHE.set(`generic:${name}`, null)
+    return null
+  }
 }
 
 function json(res, code, data) {
@@ -73,6 +167,12 @@ const server = http.createServer(async (req, res) => {
       const name = url.searchParams.get('name') || ''
       if (!name) return json(res, 400, { error: 'missing name' })
       const desc = await scrapeFeatDescription(name)
+      return json(res, 200, { name, description: desc })
+    }
+    if (req.method === 'GET' && url.pathname === '/api/search') {
+      const name = url.searchParams.get('name') || ''
+      if (!name) return json(res, 400, { error: 'missing name' })
+      const desc = await scrapeGenericDescription(name)
       return json(res, 200, { name, description: desc })
     }
     if (req.method === 'GET' && url.pathname === '/health') {

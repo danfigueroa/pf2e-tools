@@ -599,32 +599,79 @@ function drawFeats(doc: jsPDF, build: BuildInfo, y: number): number {
 function drawSpecials(doc: jsPDF, build: BuildInfo, y: number): number {
     if (!build.specials?.length) return y
     
-    y = ensurePageSpace(doc, y, 25)
+    y = ensurePageSpace(doc, y, 40)
     const x = LAYOUT.pageMargin
     const sectionWidth = LAYOUT.contentWidth
     
     y = drawSectionTitle(doc, 'Habilidades Especiais', x, y, sectionWidth)
     
-    // Lista em múltiplas colunas compacta
-    const cols = 3
-    const colWidth = sectionWidth / cols
-    
-    setColor(doc, COLORS.gray)
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(7)
-    
-    build.specials.forEach((special, idx) => {
-        const col = idx % cols
-        const row = Math.floor(idx / cols)
-        const specialX = x + col * colWidth
-        const specialY = y + row * 4
+    build.specials.forEach((special) => {
+        y = ensurePageSpace(doc, y, 10)
         
-        const truncated = String(special).length > 28 ? String(special).substring(0, 25) + '...' : String(special)
-        doc.text(`• ${truncated}`, specialX + 2, specialY + 3)
+        const name = String(special)
+        const desc = build.specialDescriptions?.[name] || null
+        const url = getAonSearchUrl(name)
+        
+        if (desc) {
+            // Com descrição: "• Nome: descrição" (nome em bold, descrição normal)
+            setColor(doc, COLORS.black)
+            doc.setFont('helvetica', 'bold')
+            doc.setFontSize(8)
+            const nameText = `• ${name}: `
+            doc.text(nameText, x + 2, y + 3)
+            
+            const nameWidth = doc.getTextWidth(nameText)
+            
+            // Descrição na mesma linha e continuando abaixo se necessário
+            setColor(doc, COLORS.gray)
+            doc.setFont('helvetica', 'normal')
+            doc.setFontSize(7)
+            
+            const remainingWidth = sectionWidth - nameWidth - 6
+            const firstLineDesc = doc.splitTextToSize(desc, remainingWidth)
+            
+            if (firstLineDesc.length > 0) {
+                doc.text(firstLineDesc[0], x + 2 + nameWidth, y + 3)
+            }
+            
+            // Se a descrição continua, mostra as linhas seguintes
+            if (firstLineDesc.length > 1 || desc.length > firstLineDesc[0]?.length) {
+                const remainingDesc = desc.slice(firstLineDesc[0]?.length || 0).trim()
+                if (remainingDesc) {
+                    const moreLines = doc.splitTextToSize(remainingDesc, sectionWidth - 8)
+                    y += 4
+                    moreLines.slice(0, 2).forEach((line: string) => {
+                        doc.text(line, x + 6, y + 2.5)
+                        y += 3.5
+                    })
+                    if (moreLines.length > 2) {
+                        doc.text('...', x + 6, y + 2.5)
+                        y += 3.5
+                    }
+                } else {
+                    y += 4
+                }
+            } else {
+                y += 4
+            }
+            
+            // Link para AON (cobre o nome)
+            doc.link(x + 2, y - 8, nameWidth, 5, { url })
+        } else {
+            // Sem descrição: apenas "• Nome" com link
+            setColor(doc, COLORS.black)
+            doc.setFont('helvetica', 'bold')
+            doc.setFontSize(8)
+            doc.text(`• ${name}`, x + 2, y + 3)
+            
+            const nameWidth = doc.getTextWidth(`• ${name}`)
+            doc.link(x + 2, y - 1, nameWidth, 5, { url })
+            
+            y += 4
+        }
     })
     
-    const totalRows = Math.ceil(build.specials.length / cols)
-    return y + totalRows * 4 + LAYOUT.sectionGap
+    return y + LAYOUT.sectionGap
 }
 
 function drawLores(doc: jsPDF, build: BuildInfo, y: number): number {
