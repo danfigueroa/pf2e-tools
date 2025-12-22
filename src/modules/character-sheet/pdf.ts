@@ -303,15 +303,15 @@ function drawWeapons(doc: jsPDF, build: BuildInfo, y: number): number {
     const levelB = build.level || 0
     
     build.weapons.forEach((weapon) => {
-        y = ensurePageSpace(doc, y, 20)
+        y = ensurePageSpace(doc, y, 25)
         
         // Calcular ataque
         const isRanged = weapon.display.toLowerCase().includes('ranged') || weapon.name.toLowerCase().includes('ranged')
         const abilityKey = isRanged ? 'dex' : 'str'
         const abilityVal = abilityMod((build.abilities as any)[abilityKey])
         const profRank = getWeaponProficiency(build, weapon)
-        const itemBonus = weapon.pot || 0
-        const attackTotal = abilityVal + levelB + profRank + itemBonus
+        const potencyBonus = weapon.pot || 0 // Bônus de potência (armas mágicas)
+        const attackTotal = abilityVal + levelB + profRank + potencyBonus
         const profLabel = getProficiencyLabel(profRank)
         
         // Calcular dano
@@ -324,20 +324,38 @@ function drawWeapons(doc: jsPDF, build: BuildInfo, y: number): number {
         doc.setFontSize(9)
         doc.text(weapon.display, x + 2, y + 4)
         
-        // Bônus de ataque no final
-        const attackText = `Ataque: ${signed(attackTotal)} [${profLabel}]`
+        // Bônus de ataque no final (inclui bônus de potência)
+        let attackText = `Ataque: ${signed(attackTotal)} [${profLabel}]`
+        if (potencyBonus > 0) {
+            attackText += ` (+${potencyBonus} potência)`
+        }
         doc.text(attackText, x + sectionWidth - 2, y + 4, { align: 'right' })
         
         y += 6
         
-        // Linha 3: Dano
-        setColor(doc, COLORS.black)
+        // Linha 2: Tipo de proficiência da arma
+        setColor(doc, COLORS.gray)
         doc.setFont('helvetica', 'normal')
+        doc.setFontSize(7)
+        const profType = weapon.prof ? weapon.prof.charAt(0).toUpperCase() + weapon.prof.slice(1) : ''
+        doc.text(`Tipo: ${profType}`, x + 4, y + 3)
+        y += 4
+        
+        // Linha 3: Dano (com bônus de potência se for mágica)
+        setColor(doc, COLORS.black)
         doc.setFontSize(8)
         let damageText = `Dano: ${diceCount}d${baseSides} ${damageTypeLabel(weapon.damageType)}`
-        if (weapon.damageBonus) damageText += ` ${signed(weapon.damageBonus)}`
         
-        // Dano extra
+        // Bônus de dano base
+        let totalDamageBonus = weapon.damageBonus || 0
+        
+        // Em PF2e, armas com potência +1/+2/+3 NÃO adicionam ao dano, apenas ao ataque
+        // O dano extra vem das runas Striking (mais dados de dano)
+        if (totalDamageBonus !== 0) {
+            damageText += ` ${signed(totalDamageBonus)}`
+        }
+        
+        // Dano extra (de runas de propriedade como Flaming, Frost, etc.)
         if (weapon.extraDamage?.length) {
             weapon.extraDamage.forEach((extra) => {
                 damageText += ` + ${extra}`
@@ -345,14 +363,23 @@ function drawWeapons(doc: jsPDF, build: BuildInfo, y: number): number {
         }
         
         doc.text(damageText, x + 4, y + 3)
-        
         y += 5
         
-        // Linha 4: Runas e traits (se houver)
+        // Linha 4: Runas (se houver)
         if (weapon.runes?.length) {
             setColor(doc, COLORS.gray)
             doc.setFontSize(7)
             doc.text(`Runas: ${weapon.runes.join(', ')}`, x + 4, y + 3)
+            y += 4
+        }
+        
+        // Linha 5: Striking info (se tiver)
+        if (weapon.str) {
+            setColor(doc, COLORS.gray)
+            doc.setFontSize(7)
+            const strikingLabel = weapon.str.includes('greater') ? 'Greater Striking (+2 dados)' : 
+                                  weapon.str.includes('striking') ? 'Striking (+1 dado)' : weapon.str
+            doc.text(`Striking: ${strikingLabel}`, x + 4, y + 3)
             y += 4
         }
         
@@ -594,19 +621,16 @@ function drawFeats(doc: jsPDF, build: BuildInfo, y: number): number {
             
             y += 4
             
-            // Descrição (se houver)
+            // Descrição completa (sem limite de linhas)
             if (feat.desc) {
                 setColor(doc, COLORS.gray)
                 doc.setFontSize(7)
                 const descLines = doc.splitTextToSize(feat.desc, sectionWidth - 10)
-                descLines.slice(0, 2).forEach((line: string) => {
+                descLines.forEach((line: string) => {
+                    y = ensurePageSpace(doc, y, 5)
                     doc.text(line, x + 8, y + 3)
                     y += 3.5
                 })
-                if (descLines.length > 2) {
-                    doc.text('...', x + 8, y + 3)
-                    y += 3.5
-                }
             }
         })
         
@@ -654,20 +678,17 @@ function drawSpecials(doc: jsPDF, build: BuildInfo, y: number): number {
                 doc.text(firstLineDesc[0], x + 2 + nameWidth, y + 3)
             }
             
-            // Se a descrição continua, mostra as linhas seguintes
+            // Se a descrição continua, mostra todas as linhas seguintes
             if (firstLineDesc.length > 1 || desc.length > firstLineDesc[0]?.length) {
                 const remainingDesc = desc.slice(firstLineDesc[0]?.length || 0).trim()
                 if (remainingDesc) {
                     const moreLines = doc.splitTextToSize(remainingDesc, sectionWidth - 8)
                     y += 4
-                    moreLines.slice(0, 2).forEach((line: string) => {
+                    moreLines.forEach((line: string) => {
+                        y = ensurePageSpace(doc, y, 5)
                         doc.text(line, x + 6, y + 2.5)
                         y += 3.5
                     })
-                    if (moreLines.length > 2) {
-                        doc.text('...', x + 6, y + 2.5)
-                        y += 3.5
-                    }
                 } else {
                     y += 4
                 }

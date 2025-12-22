@@ -63,9 +63,10 @@ function fetchGroq(prompt) {
   })
 }
 
-// Controle de rate limiting
+// Controle de rate limiting (Groq free tier: 6000 tokens/min)
+// Cada tradução usa ~500 tokens, então max 12 traduções/min = 5 segundos entre cada
 let lastTranslationTime = 0
-const MIN_DELAY_MS = 500 // 500ms entre traduções
+const MIN_DELAY_MS = 6000 // 6 segundos entre traduções para respeitar o rate limit
 
 async function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -157,9 +158,15 @@ TRADUÇÃO:`
     return text
   } catch (e) {
     console.error('[translate] Error:', e.message)
-    // Em caso de erro, tenta novamente uma vez
+    // Em caso de rate limit, espera mais tempo e tenta novamente
+    const isRateLimit = e.message?.includes('Rate limit')
+    const waitTime = isRateLimit ? 10000 : 2000 // 10s se rate limit, 2s se outro erro
+    
     try {
-      await delay(1000)
+      console.log(`[translate] Aguardando ${waitTime/1000}s antes de retry...`)
+      await delay(waitTime)
+      lastTranslationTime = Date.now()
+      
       let translated = await fetchGroq(prompt)
       translated = translated
         .replace(/^(Tradução|Translation|TRADUÇÃO|Aqui está|Here is|Here's|TIPO:[^\n]*|Tradução em português:?|Portuguese:?)\s*/gi, '')
