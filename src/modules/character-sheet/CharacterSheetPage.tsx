@@ -15,6 +15,17 @@ import { downloadCharacterPdf } from './pdf'
 export const CharacterSheetPage: React.FC = () => {
     const [build, setBuild] = useState<BuildInfo | null>(null)
     const [error, setError] = useState<string | null>(null)
+    const [apiWarning, setApiWarning] = useState<string | null>(null)
+    const [loadingDescriptions, setLoadingDescriptions] = useState(false)
+
+    const checkApiAvailable = async (): Promise<boolean> => {
+        try {
+            const r = await fetch('/api/feat?name=test', { method: 'HEAD' })
+            return r.ok || r.status === 400 // 400 significa que a API existe mas o parâmetro está errado
+        } catch {
+            return false
+        }
+    }
 
     const enrichFeatDescriptions = async (b: BuildInfo) => {
         const names = (b.feats || []).map((f: any) =>
@@ -127,17 +138,57 @@ export const CharacterSheetPage: React.FC = () => {
         return copy
     }
 
-    const enrichDescriptions = async (b: BuildInfo) => {
-        let enriched = await enrichFeatDescriptions(b)
-        enriched = await enrichSpecialDescriptions(enriched)
-        enriched = await enrichSpellDescriptions(enriched)
-        return enriched
+    const enrichDescriptions = async (b: BuildInfo): Promise<BuildInfo> => {
+        const apiAvailable = await checkApiAvailable()
+        
+        if (!apiAvailable) {
+            // Conta quantas descrições já existem no JSON
+            const existingFeats = Object.keys(b.featDescriptions || {}).length
+            const existingSpecials = Object.keys(b.specialDescriptions || {}).length
+            const existingSpells = Object.keys(b.spellDescriptions || {}).length
+            
+            const totalFeats = (b.feats || []).length
+            const totalSpecials = (b.specials || []).length
+            const totalSpells = (b.spellCasters || []).flatMap(c => c.spells.flatMap(s => s.list)).length
+            
+            if (existingFeats < totalFeats || existingSpecials < totalSpecials || existingSpells < totalSpells) {
+                setApiWarning(
+                    `Servidor de API não está rodando. Descrições pré-carregadas: ` +
+                    `${existingFeats}/${totalFeats} talentos, ` +
+                    `${existingSpecials}/${totalSpecials} habilidades, ` +
+                    `${existingSpells}/${new Set((b.spellCasters || []).flatMap(c => c.spells.flatMap(s => s.list))).size} magias. ` +
+                    `Para buscar automaticamente da AON, rode: npm run dev:full`
+                )
+            }
+            return b
+        }
+        
+        setApiWarning(null)
+        setLoadingDescriptions(true)
+        
+        try {
+            let enriched = await enrichFeatDescriptions(b)
+            enriched = await enrichSpecialDescriptions(enriched)
+            enriched = await enrichSpellDescriptions(enriched)
+            
+            // Mostra estatísticas de carregamento
+            const loadedFeats = Object.keys(enriched.featDescriptions || {}).length
+            const loadedSpecials = Object.keys(enriched.specialDescriptions || {}).length
+            const loadedSpells = Object.keys(enriched.spellDescriptions || {}).length
+            
+            console.log(`Descrições carregadas: ${loadedFeats} feats, ${loadedSpecials} specials, ${loadedSpells} spells`)
+            
+            return enriched
+        } finally {
+            setLoadingDescriptions(false)
+        }
     }
 
     const handleFileUpload: React.ChangeEventHandler<HTMLInputElement> = async (
         e
     ) => {
         setError(null)
+        setApiWarning(null)
         const file = e.target.files?.[0]
         if (!file) return
         try {
@@ -159,6 +210,7 @@ export const CharacterSheetPage: React.FC = () => {
 
     const handleUseExample = async () => {
         setError(null)
+        setApiWarning(null)
         try {
             // Permite o usuário selecionar o arquivo exemplo manualmente
             // ou tentamos buscar via caminho relativo. Se falhar, exibimos instruções.
@@ -201,6 +253,18 @@ export const CharacterSheetPage: React.FC = () => {
             {error && (
                 <Alert severity="error" sx={{ mb: 2 }}>
                     {error}
+                </Alert>
+            )}
+
+            {apiWarning && (
+                <Alert severity="warning" sx={{ mb: 2 }}>
+                    {apiWarning}
+                </Alert>
+            )}
+
+            {loadingDescriptions && (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                    Buscando descrições da Archives of Nethys...
                 </Alert>
             )}
 

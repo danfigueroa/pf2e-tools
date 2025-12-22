@@ -1,268 +1,250 @@
 import http from 'node:http'
+import https from 'node:https'
 import { URL } from 'node:url'
-import * as cheerio from 'cheerio'
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3001
-
-async function fetchHtml(url) {
-  const res = await fetch(url, {
-    headers: {
-      'user-agent': 'pf2e-tools/1.0 (+https://localhost)'
-    }
-  })
-  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`)
-  return await res.text()
-}
-
 const CACHE = new Map()
 
-async function scrapeFeatDescription(name) {
-  if (CACHE.has(`feat:${name}`)) return CACHE.get(`feat:${name}`)
-  const q = encodeURIComponent(name)
-  const searchUrl = `https://2e.aonprd.com/Search.aspx?q=${q}`
-  const html = await fetchHtml(searchUrl)
-  const $ = cheerio.load(html)
-  let featHref = null
-  $('a[href*="/Feats.aspx?ID="]').each((_, el) => {
-    const text = $(el).text().trim()
-    const href = $(el).attr('href') || ''
-    if (!href.includes('/Feats.aspx?ID=')) return
-    if (!featHref) featHref = href
-    if (text.toLowerCase() === name.trim().toLowerCase()) {
-      featHref = href
-      return false
+// Usa a API Elasticsearch da AON
+function fetchJson(url) {
+  return new Promise((resolve, reject) => {
+    const parsedUrl = new URL(url)
+    const options = {
+      hostname: parsedUrl.hostname,
+      path: parsedUrl.pathname + parsedUrl.search,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 pf2e-tools',
+        'Accept': 'application/json'
+      }
     }
-  })
-  if (!featHref) { CACHE.set(`feat:${name}`, null); return null }
-  const detailUrl = featHref.startsWith('http') ? featHref : `https://2e.aonprd.com/${featHref.replace(/^\//, '')}`
-  const detailHtml = await fetchHtml(detailUrl)
-  const $$ = cheerio.load(detailHtml)
-  const main = $$('#main')
-  let description = ''
-  const metaDesc = $$('meta[name="description"]').attr('content') || ''
-  if (metaDesc && metaDesc.trim().length > 40) { CACHE.set(`feat:${name}`, metaDesc.trim()); return metaDesc.trim() }
-  const ld = $$('script[type="application/ld+json"]').first().text()
-  if (ld) {
-    try {
-      const obj = JSON.parse(ld)
-      const d = (obj && (obj.description || (obj[0]?.description))) || ''
-      if (d && d.trim().length > 40) { CACHE.set(`feat:${name}`, String(d).trim()); return String(d).trim() }
-    } catch {}
-  }
-  const paras = main.find('p').map((_, el) => $$(el).text().replace(/\s+/g, ' ').trim()).get()
-  const filtered = paras.filter((t) => t.length > 60 && !t.includes('|') && !/^Prerequisites?:/i.test(t) && !/^Requirements?:/i.test(t) && !/^Frequency:/i.test(t) && !/^Trigger:/i.test(t) && !/^Source:/i.test(t))
-  if (filtered.length) description = filtered.slice(0, 2).join(' ')
-  if (!description) description = main.text().replace(/\s+/g, ' ').trim().slice(0, 600)
-  CACHE.set(`feat:${name}`, description || null)
-  return description || null
-}
-
-// Busca genérica na AON para qualquer tipo de conteúdo (class features, specials, etc.)
-async function scrapeGenericDescription(name) {
-  if (CACHE.has(`generic:${name}`)) return CACHE.get(`generic:${name}`)
-  const q = encodeURIComponent(name)
-  const searchUrl = `https://2e.aonprd.com/Search.aspx?q=${q}`
-  
-  try {
-    const html = await fetchHtml(searchUrl)
-    const $ = cheerio.load(html)
     
-    // Procura o primeiro resultado que corresponda ao nome
-    let bestHref = null
-    let bestMatch = false
-    
-    // Procura em várias categorias de links
-    $('a').each((_, el) => {
-      const text = $(el).text().trim()
-      const href = $(el).attr('href') || ''
-      
-      // Ignora links de navegação e busca
-      if (!href || href.startsWith('#') || href.includes('Search.aspx')) return
-      if (!href.includes('.aspx?ID=')) return
-      
-      // Match exato tem prioridade
-      if (text.toLowerCase() === name.trim().toLowerCase()) {
-        bestHref = href
-        bestMatch = true
-        return false
+    const req = https.get(options, (res) => {
+      if (res.statusCode !== 200) {
+        reject(new Error(`HTTP ${res.statusCode}`))
+        return
       }
       
-      // Primeiro resultado válido como fallback
-      if (!bestHref && text.toLowerCase().includes(name.trim().toLowerCase().split(' ')[0])) {
-        bestHref = href
-      }
+      let data = ''
+      res.setEncoding('utf8')
+      res.on('data', chunk => { data += chunk })
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(data))
+        } catch (e) {
+          reject(e)
+        }
+      })
+      res.on('error', reject)
     })
     
-    if (!bestHref) { 
-      CACHE.set(`generic:${name}`, null)
-      return null 
+    req.on('error', reject)
+    req.setTimeout(10000, () => {
+      req.destroy()
+      reject(new Error('Request timeout'))
+    })
+  })
+}
+
+// Busca na API Elasticsearch da AON
+async function searchAon(query, category = null, exactMatch = true) {
+  const q = encodeURIComponent(query)
+  let url = `https://elasticsearch.aonprd.com/aon/_search?q=${q}&size=20`
+  
+  try {
+    const data = await fetchJson(url)
+    const hits = data.hits?.hits || []
+    
+    // Filtra por categoria se especificada
+    let filtered = hits
+    if (category) {
+      filtered = hits.filter(h => h._source?.category === category)
     }
     
-    const detailUrl = bestHref.startsWith('http') ? bestHref : `https://2e.aonprd.com/${bestHref.replace(/^\//, '')}`
-    const detailHtml = await fetchHtml(detailUrl)
-    const $$ = cheerio.load(detailHtml)
-    
-    let description = ''
-    
-    // Tenta pegar a meta description
-    const metaDesc = $$('meta[name="description"]').attr('content') || ''
-    if (metaDesc && metaDesc.trim().length > 30) {
-      description = metaDesc.trim()
+    // Procura match exato pelo nome
+    if (exactMatch) {
+      const exact = filtered.find(h => {
+        const name = h._source?.name || h._source?.feat_markdown || ''
+        return name.toLowerCase() === query.toLowerCase()
+      })
+      if (exact) return exact._source
     }
     
-    // Se não encontrou, tenta JSON-LD
-    if (!description) {
-      const ld = $$('script[type="application/ld+json"]').first().text()
-      if (ld) {
-        try {
-          const obj = JSON.parse(ld)
-          const d = (obj && (obj.description || (obj[0]?.description))) || ''
-          if (d && d.trim().length > 30) description = String(d).trim()
-        } catch {}
-      }
+    // Retorna o primeiro resultado se não encontrou exato
+    return filtered[0]?._source || null
+  } catch (e) {
+    console.error(`[searchAon] Error: ${e.message}`)
+    return null
+  }
+}
+
+// Busca descrição de um Feat usando a API Elasticsearch
+async function scrapeFeatDescription(name) {
+  if (CACHE.has(`feat:${name}`)) return CACHE.get(`feat:${name}`)
+  
+  try {
+    const result = await searchAon(name, 'feat')
+    
+    if (!result) {
+      CACHE.set(`feat:${name}`, null)
+      return null
     }
     
-    // Se não encontrou, pega o texto do main
-    if (!description) {
-      const main = $$('#main')
-      const paras = main.find('p').map((_, el) => $$(el).text().replace(/\s+/g, ' ').trim()).get()
-      const filtered = paras.filter((t) => 
-        t.length > 40 && 
-        !t.includes('|') && 
-        !/^Source:/i.test(t) &&
-        !/^Prerequisites?:/i.test(t)
-      )
-      if (filtered.length) {
-        description = filtered.slice(0, 2).join(' ')
-      }
-    }
+    // Extrai a descrição do markdown ou text
+    let description = result.text || result.markdown || ''
+    
+    // Remove tags HTML e limpa
+    description = description
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
     
     // Limita o tamanho
-    if (description && description.length > 300) {
+    if (description.length > 400) {
+      description = description.slice(0, 397) + '...'
+    }
+    
+    console.log(`[scrapeFeat] Found "${name}": ${description.substring(0, 100)}...`)
+    
+    CACHE.set(`feat:${name}`, description || null)
+    return description || null
+    
+  } catch (e) {
+    console.error(`[scrapeFeat] Error for "${name}":`, e.message)
+    CACHE.set(`feat:${name}`, null)
+    return null
+  }
+}
+
+// Busca genérica na AON para qualquer tipo de conteúdo
+async function scrapeGenericDescription(name) {
+  if (CACHE.has(`generic:${name}`)) return CACHE.get(`generic:${name}`)
+  
+  try {
+    // Busca sem filtro de categoria
+    const result = await searchAon(name, null)
+    
+    if (!result) {
+      CACHE.set(`generic:${name}`, null)
+      return null
+    }
+    
+    let description = result.text || result.markdown || ''
+    
+    // Remove tags HTML e limpa
+    description = description
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+    
+    // Limita o tamanho
+    if (description.length > 300) {
       description = description.slice(0, 297) + '...'
     }
+    
+    console.log(`[scrapeGeneric] Found "${name}": ${description.substring(0, 80)}...`)
     
     CACHE.set(`generic:${name}`, description || null)
     return description || null
     
   } catch (e) {
+    console.error(`[scrapeGeneric] Error for "${name}":`, e.message)
     CACHE.set(`generic:${name}`, null)
     return null
   }
 }
 
-// Busca informações detalhadas de uma magia na AON
+// Busca informações detalhadas de uma magia usando a API Elasticsearch
 async function scrapeSpellDescription(name) {
   if (CACHE.has(`spell:${name}`)) return CACHE.get(`spell:${name}`)
-  const q = encodeURIComponent(name)
-  const searchUrl = `https://2e.aonprd.com/Search.aspx?q=${q}`
   
   try {
-    const html = await fetchHtml(searchUrl)
-    const $ = cheerio.load(html)
+    const result = await searchAon(name, 'spell')
     
-    // Procura link para a magia
-    let spellHref = null
-    $('a[href*="/Spells.aspx?ID="]').each((_, el) => {
-      const text = $(el).text().trim()
-      const href = $(el).attr('href') || ''
-      if (!spellHref) spellHref = href
-      if (text.toLowerCase() === name.trim().toLowerCase()) {
-        spellHref = href
-        return false
-      }
-    })
-    
-    if (!spellHref) {
+    if (!result) {
       CACHE.set(`spell:${name}`, null)
       return null
     }
     
-    const detailUrl = spellHref.startsWith('http') ? spellHref : `https://2e.aonprd.com/${spellHref.replace(/^\//, '')}`
-    const detailHtml = await fetchHtml(detailUrl)
-    const $$ = cheerio.load(detailHtml)
+    const spellData = { name }
     
-    const result = { name }
-    
-    // Extrai informações do texto da página
-    const mainText = $$('#main').text()
-    const mainHtml = $$('#main').html() || ''
-    
-    // Ações - procura por padrões como [one-action], [two-actions], etc
-    if (mainHtml.includes('one-action') || mainText.includes('1 action')) result.actions = '1'
-    else if (mainHtml.includes('two-actions') || mainText.includes('2 actions')) result.actions = '2'
-    else if (mainHtml.includes('three-actions') || mainText.includes('3 actions')) result.actions = '3'
-    else if (mainHtml.includes('reaction')) result.actions = 'reaction'
-    else if (mainHtml.includes('free-action')) result.actions = 'free'
+    // Ações
+    if (result.actions) {
+      const actionsMap = {
+        'Single Action': '1',
+        'Two Actions': '2', 
+        'Three Actions': '3',
+        'Reaction': 'reaction',
+        'Free Action': 'free',
+        'One to Two Actions': '1 to 2',
+        'One to Three Actions': '1 to 3',
+        'Two to Three Actions': '2 to 3'
+      }
+      spellData.actions = actionsMap[result.actions] || result.actions_number?.toString() || null
+    }
     
     // Traits
-    const traits = []
-    $$('a[href*="/Traits.aspx"]').each((_, el) => {
-      const trait = $$(el).text().trim().toLowerCase()
-      if (trait && !traits.includes(trait)) traits.push(trait)
-    })
-    if (traits.length) result.traits = traits.slice(0, 6)
+    if (result.trait) {
+      spellData.traits = Array.isArray(result.trait) ? result.trait.slice(0, 6) : [result.trait]
+    }
     
     // Range
-    const rangeMatch = mainText.match(/Range\s+([^;]+)/i)
-    if (rangeMatch) result.range = rangeMatch[1].trim()
+    if (result.range) spellData.range = result.range
     
     // Area
-    const areaMatch = mainText.match(/Area\s+([^;]+)/i)
-    if (areaMatch) result.area = areaMatch[1].trim()
+    if (result.area) spellData.area = result.area
     
     // Targets
-    const targetsMatch = mainText.match(/Targets?\s+([^;]+)/i)
-    if (targetsMatch) result.targets = targetsMatch[1].trim()
+    if (result.targets) spellData.targets = result.targets
     
     // Duration
-    const durationMatch = mainText.match(/Duration\s+([^;]+)/i)
-    if (durationMatch) result.duration = durationMatch[1].trim()
+    if (result.duration) spellData.duration = result.duration
     
-    // Defense/Saving Throw
-    const defenseMatch = mainText.match(/Defense\s+([^;]+)/i) || mainText.match(/Saving Throw\s+([^;]+)/i)
-    if (defenseMatch) result.defense = defenseMatch[1].trim()
+    // Defense
+    if (result.saving_throw || result.defense) {
+      spellData.defense = result.saving_throw || result.defense
+    }
     
-    // Damage - procura padrões de dano
-    const damageMatch = mainText.match(/(\d+d\d+)\s*(vitality|void|fire|cold|electricity|acid|sonic|mental|poison|force|bleed|persistent|slashing|piercing|bludgeoning)?/i)
+    // Descrição
+    let description = result.text || result.markdown || ''
+    description = description
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+    
+    if (description.length > 400) {
+      description = description.slice(0, 397) + '...'
+    }
+    spellData.description = description
+    
+    // Tenta extrair dano do texto
+    const damageMatch = description.match(/(\d+d\d+)\s*(vitality|void|fire|cold|electricity|acid|sonic|mental|poison|force|bleed|slashing|piercing|bludgeoning)?/i)
     if (damageMatch) {
-      result.damage = damageMatch[1]
-      if (damageMatch[2]) result.damageType = damageMatch[2].toLowerCase()
+      spellData.damage = damageMatch[1]
+      if (damageMatch[2]) spellData.damageType = damageMatch[2].toLowerCase()
     }
     
     // Heightened
-    const heightened = {}
-    const heightenedMatches = mainText.matchAll(/Heightened\s*\(([^)]+)\)\s*([^H]+)/gi)
-    for (const match of heightenedMatches) {
-      const level = match[1].trim()
-      const effect = match[2].trim().slice(0, 100)
-      heightened[level] = effect
-    }
-    if (Object.keys(heightened).length) result.heightened = heightened
-    
-    // Descrição - pega o texto principal
-    const metaDesc = $$('meta[name="description"]').attr('content') || ''
-    if (metaDesc && metaDesc.length > 30) {
-      result.description = metaDesc.trim().slice(0, 400)
+    if (result.heightened) {
+      spellData.heightened = result.heightened
     } else {
-      const paras = $$('#main p').map((_, el) => $$(el).text().replace(/\s+/g, ' ').trim()).get()
-      const filtered = paras.filter((t) => 
-        t.length > 30 && 
-        !t.includes('Source') &&
-        !t.startsWith('Range') &&
-        !t.startsWith('Area') &&
-        !t.startsWith('Duration') &&
-        !t.startsWith('Targets')
-      )
-      if (filtered.length) {
-        result.description = filtered.slice(0, 2).join(' ').slice(0, 400)
+      // Tenta extrair do texto
+      const heightened = {}
+      const heightenedMatches = description.matchAll(/Heightened\s*\(([^)]+)\)\s*([^H\.]+)/gi)
+      for (const match of heightenedMatches) {
+        const level = match[1].trim()
+        const effect = match[2].trim().slice(0, 100)
+        heightened[level] = effect
       }
+      if (Object.keys(heightened).length) spellData.heightened = heightened
     }
     
-    CACHE.set(`spell:${name}`, result)
-    return result
+    console.log(`[scrapeSpell] Found "${name}": actions=${spellData.actions}, traits=${spellData.traits?.length || 0}`)
+    
+    CACHE.set(`spell:${name}`, spellData)
+    return spellData
     
   } catch (e) {
+    console.error(`[scrapeSpell] Error for "${name}":`, e.message)
     CACHE.set(`spell:${name}`, null)
     return null
   }
