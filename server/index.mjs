@@ -22,7 +22,7 @@ function fetchGroq(prompt) {
         { role: 'user', content: prompt }
       ],
       temperature: 0.3,
-      max_tokens: 1024
+      max_tokens: 2048
     })
     
     const options = {
@@ -73,14 +73,14 @@ async function delay(ms) {
 
 // Traduz texto de inglês para português usando Groq (Llama 3.1) com contexto de PF2e
 async function translateToPortuguese(text, itemType = 'item') {
-  if (!text || text.length < 10) return text
+  if (!text || text.length < 5) return text
   if (!GROQ_API_KEY) {
     console.log('[translate] Sem GROQ_API_KEY, retornando texto original')
     return text
   }
   
   // Verifica cache
-  const cacheKey = text.substring(0, 150)
+  const cacheKey = `${itemType}:${text.substring(0, 200)}`
   if (TRANSLATION_CACHE.has(cacheKey)) {
     return TRANSLATION_CACHE.get(cacheKey)
   }
@@ -93,37 +93,87 @@ async function translateToPortuguese(text, itemType = 'item') {
   }
   lastTranslationTime = Date.now()
   
-  const prompt = `Você é um tradutor especializado em Pathfinder 2nd Edition Remaster (PF2e).
+  const prompt = `Você é um tradutor especializado em jogos de RPG, especificamente Pathfinder 2nd Edition Remaster.
 
-CONTEXTO:
-- Pathfinder 2e é um RPG de mesa da Paizo
-- Use a terminologia oficial em português quando existir
-- Mantenha termos técnicos de jogo em inglês quando não houver tradução consagrada (ex: "Hit Points", "AC", "DC")
+TAREFA: Traduza o texto abaixo de inglês para português brasileiro.
 
-TERMOS COMUNS:
-- feat = talento, spell = magia, action = ação, reaction = reação
-- saving throw = teste de resistência, damage = dano, healing = cura
-- creature = criatura, ally = aliado, enemy = inimigo, target = alvo
-- range = alcance, duration = duração, trigger = gatilho
+GLOSSÁRIO OBRIGATÓRIO (use sempre estes termos):
+- feat = talento
+- skill = perícia  
+- action/actions = ação/ações
+- trained/expert/master/legendary = treinado/especialista/mestre/lendário
+- proficiency bonus = bônus de proficiência
+- saving throw = teste de resistência (Fortitude, Reflex, Will)
+- hit points (HP) = pontos de vida (PV)
+- damage = dano
+- armor class (AC) = classe de armadura (CA)
+- check = teste
+- critical hit = acerto crítico
+- critical failure = falha crítica
+- spell = magia
+- cantrip = truque
+- focus spell = magia de foco
+- heightened = elevada/intensificada
+- strike = Golpe
+- flat check = teste simples
+- circumstance bonus = bônus de circunstância
+- status bonus = bônus de status
+- item bonus = bônus de item
+
+REGRAS:
+1. Traduza TODO o texto, incluindo descrições longas
+2. Mantenha termos técnicos como nomes próprios de classes, ancestralidades e magias em inglês se preferir
+3. Mantenha referências como "Source Player Core pg. X"
+4. Responda SOMENTE com a tradução, sem explicações adicionais
+5. NÃO adicione prefixos como "Tradução:" ou "Aqui está:"
 
 TIPO DE ITEM: ${itemType}
 
-TEXTO PARA TRADUZIR:
+TEXTO ORIGINAL:
 ${text}
 
-Responda APENAS com a tradução em português brasileiro, sem explicações.`
+TRADUÇÃO:`
 
   try {
-    const translated = await fetchGroq(prompt)
+    let translated = await fetchGroq(prompt)
     
-    if (translated && translated.length > 10) {
+    // Limpa a resposta - remove prefixos comuns que o LLM adiciona
+    translated = translated
+      .replace(/^(Tradução|Translation|TRADUÇÃO|Aqui está|Here is|Here's|TIPO:[^\n]*|Tradução em português:?|Portuguese:?)\s*/gi, '')
+      .replace(/^["']|["']$/g, '')
+      .replace(/^\s*\n+/, '')
+      .trim()
+    
+    // Verifica se a tradução é válida
+    // Deve ter pelo menos 30% do tamanho original (traduções PT tendem a ser menores)
+    const minLength = Math.max(text.length * 0.3, 20)
+    if (translated && translated.length >= minLength) {
       TRANSLATION_CACHE.set(cacheKey, translated)
-      console.log(`[translate] OK: "${text.substring(0, 40)}..." -> "${translated.substring(0, 40)}..."`)
+      console.log(`[translate] OK (${translated.length} chars): "${translated.substring(0, 80)}..."`)
       return translated
     }
+    
+    console.log(`[translate] Tradução muito curta (${translated?.length || 0} vs min ${minLength}), retornando original`)
     return text
   } catch (e) {
     console.error('[translate] Error:', e.message)
+    // Em caso de erro, tenta novamente uma vez
+    try {
+      await delay(1000)
+      let translated = await fetchGroq(prompt)
+      translated = translated
+        .replace(/^(Tradução|Translation|TRADUÇÃO|Aqui está|Here is|Here's|TIPO:[^\n]*|Tradução em português:?|Portuguese:?)\s*/gi, '')
+        .replace(/^["']|["']$/g, '')
+        .replace(/^\s*\n+/, '')
+        .trim()
+      if (translated && translated.length >= text.length * 0.3) {
+        TRANSLATION_CACHE.set(cacheKey, translated)
+        console.log(`[translate] OK on retry: "${translated.substring(0, 60)}..."`)
+        return translated
+      }
+    } catch (e2) {
+      console.error('[translate] Retry failed:', e2.message)
+    }
     return text
   }
 }
@@ -235,10 +285,8 @@ async function scrapeFeatDescription(name) {
       .replace(/\s+/g, ' ')
       .trim()
     
-    // Limita o tamanho (aumentado para 800 caracteres)
-    if (description.length > 800) {
-      description = description.slice(0, 797) + '...'
-    }
+    // Não cortar o texto - manter descrição completa
+    // O PDF vai fazer o wrap do texto automaticamente
     
     // Traduz para português
     if (description) {
@@ -285,10 +333,7 @@ async function scrapeGenericDescription(name) {
       .replace(/\s+/g, ' ')
       .trim()
     
-    // Limita o tamanho (aumentado para 600 caracteres)
-    if (description.length > 600) {
-      description = description.slice(0, 597) + '...'
-    }
+    // Não cortar o texto - manter descrição completa
     
     // Traduz para português
     if (description) {
@@ -372,9 +417,7 @@ async function scrapeSpellDescription(name) {
       .replace(/\s+/g, ' ')
       .trim()
     
-    if (description.length > 600) {
-      description = description.slice(0, 597) + '...'
-    }
+    // Não cortar o texto - manter descrição completa
     
     // Traduz para português
     if (description) {
@@ -455,6 +498,14 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === 'GET' && (url.pathname === '/health' || url.pathname === '/api/health')) {
       return json(res, 200, { ok: true })
+    }
+    if (req.method === 'POST' && url.pathname === '/api/clear-cache') {
+      const cacheSize = CACHE.size
+      const translationCacheSize = TRANSLATION_CACHE.size
+      CACHE.clear()
+      TRANSLATION_CACHE.clear()
+      console.log(`[cache] Limpo! ${cacheSize} itens de busca, ${translationCacheSize} traduções`)
+      return json(res, 200, { cleared: true, items: cacheSize, translations: translationCacheSize })
     }
     res.writeHead(404)
     res.end('not found')

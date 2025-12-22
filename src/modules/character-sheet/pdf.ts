@@ -368,11 +368,31 @@ function drawWeapons(doc: jsPDF, build: BuildInfo, y: number): number {
 }
 
 function getWeaponProficiency(build: BuildInfo, weapon: Weapon): number {
+    // 1. Primeiro verifica proficiências específicas por nome da arma
     const sp = build.specificProficiencies || { trained: [], expert: [], master: [], legendary: [] }
     if (sp.legendary?.includes(weapon.name)) return 8
     if (sp.master?.includes(weapon.name)) return 6
     if (sp.expert?.includes(weapon.name)) return 4
     if (sp.trained?.includes(weapon.name)) return 2
+    
+    // 2. Se não tem proficiência específica, usa a proficiência da categoria da arma
+    const proficiencies = build.proficiencies as Record<string, number>
+    const weaponCategory = weapon.prof?.toLowerCase() || ''
+    
+    if (weaponCategory === 'unarmed' && proficiencies?.unarmed) {
+        return proficiencies.unarmed
+    }
+    if (weaponCategory === 'simple' && proficiencies?.simple) {
+        return proficiencies.simple
+    }
+    if (weaponCategory === 'martial' && proficiencies?.martial) {
+        return proficiencies.martial
+    }
+    if (weaponCategory === 'advanced' && proficiencies?.advanced) {
+        return proficiencies.advanced
+    }
+    
+    // 3. Se a arma não especifica categoria, tenta inferir ou usa 0
     return 0
 }
 
