@@ -20,8 +20,11 @@ export const CharacterSheetPage: React.FC = () => {
 
     const checkApiAvailable = async (): Promise<boolean> => {
         try {
-            const r = await fetch('/api/feat?name=test', { method: 'HEAD' })
-            return r.ok || r.status === 400 // 400 significa que a API existe mas o parâmetro está errado
+            const controller = new AbortController()
+            const timeoutId = setTimeout(() => controller.abort(), 2000)
+            const r = await fetch('/api/health', { signal: controller.signal })
+            clearTimeout(timeoutId)
+            return r.ok
         } catch {
             return false
         }
