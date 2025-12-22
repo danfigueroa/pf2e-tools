@@ -262,7 +262,7 @@ async function translateToPortuguese(text, itemType = 'item') {
 function cleanAonText(text) {
   if (!text) return ''
   
-  return text
+  let cleaned = text
     // Remove tags XML/HTML completas (ex: <title level="1" ...>)
     .replace(/<[^>]+>/g, '')
     // Remove entidades HTML
@@ -277,7 +277,14 @@ function cleanAonText(text) {
     .replace(/\s{2,}/g, ' ')
     // Remove espaços antes de pontuação
     .replace(/\s+([.,;:!?])/g, '$1')
-    .trim()
+  
+  // Remove a parte "leva a..." ou "leads to..." (árvore de talentos)
+  // Padrões: "X leva a... Y, Z" ou "X leads to... Y, Z"
+  cleaned = cleaned
+    .replace(/\s+\S+\s+(leva a|leads to)\.{0,3}\s*.*/gi, '')
+    .replace(/\s+(Leads to|Leva a):?\s*.*/gi, '')
+  
+  return cleaned.trim()
 }
 
 // Extrai apenas o texto principal da descrição, removendo duplicatas
