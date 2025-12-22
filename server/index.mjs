@@ -4,35 +4,34 @@ import https from 'node:https'
 import { URL } from 'node:url'
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3001
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || ''
+const GROQ_API_KEY = process.env.GROQ_API_KEY || ''
 const CACHE = new Map()
 const TRANSLATION_CACHE = new Map()
 
-// Faz requisição POST para a API do Gemini
-function fetchGemini(prompt) {
+// Faz requisição POST para a API do Groq (gratuita e rápida!)
+function fetchGroq(prompt) {
   return new Promise((resolve, reject) => {
-    if (!GEMINI_API_KEY) {
-      reject(new Error('GEMINI_API_KEY não configurada'))
+    if (!GROQ_API_KEY) {
+      reject(new Error('GROQ_API_KEY não configurada'))
       return
     }
     
-    const url = new URL(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`)
-    
     const body = JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.3,
-        maxOutputTokens: 1024
-      }
+      model: 'llama-3.1-8b-instant',
+      messages: [
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.3,
+      max_tokens: 1024
     })
     
     const options = {
-      hostname: url.hostname,
-      path: url.pathname + url.search,
+      hostname: 'api.groq.com',
+      path: '/openai/v1/chat/completions',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(body)
+        'Authorization': `Bearer ${GROQ_API_KEY}`
       }
     }
     
@@ -43,10 +42,10 @@ function fetchGemini(prompt) {
         try {
           const json = JSON.parse(data)
           if (json.error) {
-            reject(new Error(json.error.message))
+            reject(new Error(json.error.message || JSON.stringify(json.error)))
             return
           }
-          const text = json.candidates?.[0]?.content?.parts?.[0]?.text || ''
+          const text = json.choices?.[0]?.message?.content || ''
           resolve(text.trim())
         } catch (e) {
           reject(e)
@@ -64,11 +63,11 @@ function fetchGemini(prompt) {
   })
 }
 
-// Traduz texto de inglês para português usando Gemini com contexto de PF2e
+// Traduz texto de inglês para português usando Groq (Llama 3.1) com contexto de PF2e
 async function translateToPortuguese(text, itemType = 'item') {
   if (!text || text.length < 10) return text
-  if (!GEMINI_API_KEY) {
-    console.log('[translate] Sem API key do Gemini, retornando texto original')
+  if (!GROQ_API_KEY) {
+    console.log('[translate] Sem GROQ_API_KEY, retornando texto original')
     return text
   }
   
@@ -84,48 +83,26 @@ CONTEXTO:
 - Pathfinder 2e é um RPG de mesa da Paizo
 - Use a terminologia oficial em português quando existir
 - Mantenha termos técnicos de jogo em inglês quando não houver tradução consagrada (ex: "Hit Points", "AC", "DC")
-- Traduza de forma natural e fluida para português brasileiro
 
-TERMOS COMUNS DO PF2e:
-- "feat" = "talento"
-- "spell" = "magia"
-- "action" = "ação"
-- "reaction" = "reação"
-- "free action" = "ação livre"
-- "saving throw" = "teste de resistência"
-- "Fortitude/Reflex/Will" = manter em inglês ou "Fortitude/Reflexos/Vontade"
-- "damage" = "dano"
-- "healing" = "cura"
-- "creature" = "criatura"
-- "ally/allies" = "aliado/aliados"
-- "enemy/enemies" = "inimigo/inimigos"
-- "target" = "alvo"
-- "range" = "alcance"
-- "duration" = "duração"
-- "trigger" = "gatilho"
-- "requirement" = "requisito"
-- "critical hit/success" = "acerto/sucesso crítico"
-- "critical failure" = "falha crítica"
+TERMOS COMUNS:
+- feat = talento, spell = magia, action = ação, reaction = reação
+- saving throw = teste de resistência, damage = dano, healing = cura
+- creature = criatura, ally = aliado, enemy = inimigo, target = alvo
+- range = alcance, duration = duração, trigger = gatilho
 
 TIPO DE ITEM: ${itemType}
 
 TEXTO PARA TRADUZIR:
 ${text}
 
-INSTRUÇÕES:
-- Traduza APENAS o texto, sem explicações adicionais
-- Mantenha a formatação original
-- Seja conciso e direto
-- Não adicione informações que não estão no original
-
-TRADUÇÃO:`
+Responda APENAS com a tradução em português brasileiro, sem explicações.`
 
   try {
-    const translated = await fetchGemini(prompt)
+    const translated = await fetchGroq(prompt)
     
     if (translated && translated.length > 10) {
       TRANSLATION_CACHE.set(cacheKey, translated)
-      console.log(`[translate] OK: "${text.substring(0, 50)}..." -> "${translated.substring(0, 50)}..."`)
+      console.log(`[translate] OK: "${text.substring(0, 40)}..." -> "${translated.substring(0, 40)}..."`)
       return translated
     }
     return text
