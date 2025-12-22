@@ -7,9 +7,14 @@ const PORT = process.env.PORT ? Number(process.env.PORT) : 3001
 const GROQ_API_KEY = process.env.GROQ_API_KEY || ''
 const CACHE = new Map()
 const TRANSLATION_CACHE = new Map()
+const FAILED_TRANSLATIONS = new Set() // Marca textos que falharam para não tentar novamente
 
-// Faz requisição POST para a API do Groq (gratuita e rápida!)
-function fetchGroq(prompt) {
+// ============================================================================
+// SISTEMA DE TRADUÇÃO ROBUSTO
+// ============================================================================
+
+// Faz requisição POST para a API do Groq
+function fetchGroq(prompt, temperature = 0.1) {
   return new Promise((resolve, reject) => {
     if (!GROQ_API_KEY) {
       reject(new Error('GROQ_API_KEY não configurada'))
@@ -21,7 +26,7 @@ function fetchGroq(prompt) {
       messages: [
         { role: 'user', content: prompt }
       ],
-      temperature: 0.3,
+      temperature, // Baixa temperatura = mais consistente
       max_tokens: 2048
     })
     
@@ -54,7 +59,7 @@ function fetchGroq(prompt) {
     })
     
     req.on('error', reject)
-    req.setTimeout(15000, () => {
+    req.setTimeout(30000, () => {
       req.destroy()
       reject(new Error('Timeout'))
     })
@@ -63,16 +68,104 @@ function fetchGroq(prompt) {
   })
 }
 
-// Controle de rate limiting (Groq free tier: 6000 tokens/min)
-// Cada tradução usa ~500 tokens, então max 12 traduções/min = 5 segundos entre cada
+// Controle de rate limiting com backoff exponencial
 let lastTranslationTime = 0
-const MIN_DELAY_MS = 6000 // 6 segundos entre traduções para respeitar o rate limit
+let consecutiveErrors = 0
+const BASE_DELAY_MS = 8000 // 8 segundos base entre traduções
 
 async function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-// Traduz texto de inglês para português usando Groq (Llama 3.1) com contexto de PF2e
+// Detecta se o texto tem caracteres corrompidos ou estranhos
+function hasCorruptedCharacters(text) {
+  if (!text) return true
+  
+  // Padrões de corrupção comuns:
+  // 1. Sequências de caracteres Unicode estranhos repetidos (ỹỹỹ, etc.)
+  // 2. Muitos caracteres especiais seguidos
+  // 3. Texto com espaçamento muito estranho (letra por letra)
+  
+  const patterns = [
+    /[\u1EF9\u1EF8]{2,}/g,        // ỹ repetido
+    /[ãáàâéêíóôõúç]{5,}/gi,       // Muitos acentos seguidos (improvável em PT)
+    /(\w)\s+(\w)\s+(\w)\s+(\w)\s+(\w)\s+(\w)/g, // Letras separadas por espaços
+    /[^\x00-\x7F\u00C0-\u024F\u1E00-\u1EFF]{3,}/g, // Muitos caracteres não-latinos
+    /(.)\1{4,}/g,                  // Qualquer caractere repetido 5+ vezes
+  ]
+  
+  for (const pattern of patterns) {
+    if (pattern.test(text)) {
+      return true
+    }
+  }
+  
+  // Verifica proporção de caracteres estranhos
+  const strangeChars = (text.match(/[^\x00-\x7F\u00C0-\u024F]/g) || []).length
+  const ratio = strangeChars / text.length
+  if (ratio > 0.15) { // Mais de 15% de caracteres estranhos
+    return true
+  }
+  
+  return false
+}
+
+// Limpa o texto traduzido de problemas comuns
+function cleanTranslation(text) {
+  if (!text) return ''
+  
+  return text
+    // Remove prefixos comuns do LLM
+    .replace(/^(Tradução|Translation|TRADUÇÃO|Aqui está|Here is|Here's|TIPO:[^\n]*|Tradução em português:?|Portuguese:?|Resposta:?)\s*/gi, '')
+    // Remove aspas no início/fim
+    .replace(/^["']|["']$/g, '')
+    // Remove linhas vazias no início
+    .replace(/^\s*\n+/, '')
+    // Remove caracteres de controle
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '')
+    // Normaliza espaços múltiplos
+    .replace(/\s{3,}/g, ' ')
+    // Corrige espaçamento estranho de letras (F a ç a -> Faça)
+    .replace(/(\w)\s+(?=\w\s+\w\s+\w)/g, '$1')
+    .trim()
+}
+
+// Verifica se a tradução é válida
+function isValidTranslation(original, translated) {
+  if (!translated || translated.length < 10) return false
+  
+  // Deve ter pelo menos 25% do tamanho original
+  if (translated.length < original.length * 0.25) return false
+  
+  // Não deve ter caracteres corrompidos
+  if (hasCorruptedCharacters(translated)) return false
+  
+  // Não deve ser idêntica ao original (não foi traduzida)
+  if (translated === original) return false
+  
+  // Deve conter algumas palavras em português comuns
+  const ptWords = /\b(você|que|para|com|uma?|seu|sua|pode|não|este|esta|como|fazer|quando|então|mais|também|sobre|entre|cada|mesmo|essa?|pelo|pela|aos?|nas?|nos?|dos?|das?)\b/i
+  if (!ptWords.test(translated)) {
+    // Se não tem palavras PT, verifica se pelo menos parte foi traduzida
+    const englishRatio = (translated.match(/\b(you|the|and|that|with|for|are|this|from|have|your|can|will|when|make|each|any)\b/gi) || []).length
+    const words = translated.split(/\s+/).length
+    if (englishRatio / words > 0.3) { // Mais de 30% em inglês
+      return false
+    }
+  }
+  
+  return true
+}
+
+// Gera o prompt de tradução otimizado
+function getTranslationPrompt(text) {
+  // Prompt simples e direto para evitar que o modelo retorne o prompt
+  return `Translate to Brazilian Portuguese. Only output the translation, nothing else:
+
+${text}`
+}
+
+// Função principal de tradução com sistema robusto
 async function translateToPortuguese(text, itemType = 'item') {
   if (!text || text.length < 5) return text
   if (!GROQ_API_KEY) {
@@ -81,111 +174,90 @@ async function translateToPortuguese(text, itemType = 'item') {
   }
   
   // Verifica cache
-  const cacheKey = `${itemType}:${text.substring(0, 200)}`
+  const cacheKey = `${itemType}:${text.substring(0, 300)}`
   if (TRANSLATION_CACHE.has(cacheKey)) {
     return TRANSLATION_CACHE.get(cacheKey)
   }
   
+  // Se já falhou antes, não tenta novamente nesta sessão
+  if (FAILED_TRANSLATIONS.has(cacheKey)) {
+    console.log('[translate] Pulando tradução que já falhou anteriormente')
+    return text
+  }
+  
+  // Calcula delay com backoff exponencial baseado em erros consecutivos
+  const backoffMultiplier = Math.min(Math.pow(1.5, consecutiveErrors), 4) // Max 4x
+  const currentDelay = BASE_DELAY_MS * backoffMultiplier
+  
   // Rate limiting: espera se necessário
   const now = Date.now()
   const timeSinceLastTranslation = now - lastTranslationTime
-  if (timeSinceLastTranslation < MIN_DELAY_MS) {
-    await delay(MIN_DELAY_MS - timeSinceLastTranslation)
+  if (timeSinceLastTranslation < currentDelay) {
+    await delay(currentDelay - timeSinceLastTranslation)
   }
   lastTranslationTime = Date.now()
   
-  const prompt = `Você é um tradutor especializado em jogos de RPG, especificamente Pathfinder 2nd Edition Remaster.
-
-TAREFA: Traduza o texto abaixo de inglês para português brasileiro.
-
-GLOSSÁRIO OBRIGATÓRIO (use sempre estes termos):
-- feat = talento
-- skill = perícia  
-- action/actions = ação/ações
-- trained/expert/master/legendary = treinado/especialista/mestre/lendário
-- proficiency bonus = bônus de proficiência
-- saving throw = teste de resistência (Fortitude, Reflex, Will)
-- hit points (HP) = pontos de vida (PV)
-- damage = dano
-- armor class (AC) = classe de armadura (CA)
-- check = teste
-- critical hit = acerto crítico
-- critical failure = falha crítica
-- spell = magia
-- cantrip = truque
-- focus spell = magia de foco
-- heightened = elevada/intensificada
-- strike = Golpe
-- flat check = teste simples
-- circumstance bonus = bônus de circunstância
-- status bonus = bônus de status
-- item bonus = bônus de item
-
-REGRAS:
-1. Traduza TODO o texto, incluindo descrições longas
-2. Mantenha termos técnicos como nomes próprios de classes, ancestralidades e magias em inglês se preferir
-3. Mantenha referências como "Source Player Core pg. X"
-4. Responda SOMENTE com a tradução, sem explicações adicionais
-5. NÃO adicione prefixos como "Tradução:" ou "Aqui está:"
-
-TIPO DE ITEM: ${itemType}
-
-TEXTO ORIGINAL:
-${text}
-
-TRADUÇÃO:`
-
-  try {
-    let translated = await fetchGroq(prompt)
-    
-    // Limpa a resposta - remove prefixos comuns que o LLM adiciona
-    translated = translated
-      .replace(/^(Tradução|Translation|TRADUÇÃO|Aqui está|Here is|Here's|TIPO:[^\n]*|Tradução em português:?|Portuguese:?)\s*/gi, '')
-      .replace(/^["']|["']$/g, '')
-      .replace(/^\s*\n+/, '')
-      .trim()
-    
-    // Verifica se a tradução é válida
-    // Deve ter pelo menos 30% do tamanho original (traduções PT tendem a ser menores)
-    const minLength = Math.max(text.length * 0.3, 20)
-    if (translated && translated.length >= minLength) {
-      TRANSLATION_CACHE.set(cacheKey, translated)
-      console.log(`[translate] OK (${translated.length} chars): "${translated.substring(0, 80)}..."`)
-      return translated
-    }
-    
-    console.log(`[translate] Tradução muito curta (${translated?.length || 0} vs min ${minLength}), retornando original`)
-    return text
-  } catch (e) {
-    console.error('[translate] Error:', e.message)
-    // Em caso de rate limit, espera mais tempo e tenta novamente
-    const isRateLimit = e.message?.includes('Rate limit')
-    const waitTime = isRateLimit ? 10000 : 2000 // 10s se rate limit, 2s se outro erro
-    
+  const prompt = getTranslationPrompt(text)
+  const maxRetries = 3
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      console.log(`[translate] Aguardando ${waitTime/1000}s antes de retry...`)
-      await delay(waitTime)
-      lastTranslationTime = Date.now()
+      console.log(`[translate] Tentativa ${attempt}/${maxRetries} para "${text.substring(0, 40)}..."`)
       
-      let translated = await fetchGroq(prompt)
-      translated = translated
-        .replace(/^(Tradução|Translation|TRADUÇÃO|Aqui está|Here is|Here's|TIPO:[^\n]*|Tradução em português:?|Portuguese:?)\s*/gi, '')
-        .replace(/^["']|["']$/g, '')
-        .replace(/^\s*\n+/, '')
-        .trim()
-      if (translated && translated.length >= text.length * 0.3) {
+      // Usa temperatura mais baixa em retries para respostas mais consistentes
+      const temperature = attempt === 1 ? 0.1 : 0.05
+      let translated = await fetchGroq(prompt, temperature)
+      
+      // Limpa a resposta
+      translated = cleanTranslation(translated)
+      
+      // Valida a tradução
+      if (isValidTranslation(text, translated)) {
         TRANSLATION_CACHE.set(cacheKey, translated)
-        console.log(`[translate] OK on retry: "${translated.substring(0, 60)}..."`)
+        consecutiveErrors = 0 // Reset contador de erros
+        console.log(`[translate] ✓ OK: "${translated.substring(0, 60)}..."`)
         return translated
       }
-    } catch (e2) {
-      console.error('[translate] Retry failed:', e2.message)
+      
+      // Tradução inválida
+      console.log(`[translate] ✗ Tradução inválida na tentativa ${attempt}`)
+      if (hasCorruptedCharacters(translated)) {
+        console.log(`[translate]   Motivo: caracteres corrompidos detectados`)
+      }
+      
+      // Espera antes do próximo retry
+      if (attempt < maxRetries) {
+        const retryDelay = 3000 * attempt // 3s, 6s, 9s
+        console.log(`[translate] Aguardando ${retryDelay/1000}s antes do retry...`)
+        await delay(retryDelay)
+      }
+      
+    } catch (e) {
+      console.error(`[translate] Erro na tentativa ${attempt}:`, e.message)
+      consecutiveErrors++
+      
+      // Se é rate limit, espera mais
+      if (e.message?.includes('Rate limit')) {
+        const waitTime = 15000 * attempt // 15s, 30s, 45s
+        console.log(`[translate] Rate limit - aguardando ${waitTime/1000}s...`)
+        await delay(waitTime)
+        lastTranslationTime = Date.now()
+      } else if (attempt < maxRetries) {
+        await delay(2000 * attempt)
+      }
     }
-    return text
   }
+  
+  // Todas as tentativas falharam
+  console.log(`[translate] ✗ Falha total após ${maxRetries} tentativas, marcando para não tentar novamente`)
+  FAILED_TRANSLATIONS.add(cacheKey)
+  return null // Retorna null para indicar falha (melhor que retornar texto potencialmente corrompido)
 }
 
-// Usa a API Elasticsearch da AON
+// ============================================================================
+// API DE BUSCA (AON Elasticsearch)
+// ============================================================================
+
 function fetchJson(url) {
   return new Promise((resolve, reject) => {
     const parsedUrl = new URL(url)
@@ -220,307 +292,299 @@ function fetchJson(url) {
     req.on('error', reject)
     req.setTimeout(10000, () => {
       req.destroy()
-      reject(new Error('Request timeout'))
+      reject(new Error('Timeout'))
     })
   })
 }
 
 // Busca na API Elasticsearch da AON
-async function searchAon(query, category = null) {
-  const q = encodeURIComponent(query)
-  let url = `https://elasticsearch.aonprd.com/aon/_search?q=${q}&size=30`
+async function searchAon(name, category = null) {
+  const cacheKey = `aon:${category}:${name}`
+  if (CACHE.has(cacheKey)) {
+    return CACHE.get(cacheKey)
+  }
   
   try {
-    const data = await fetchJson(url)
-    const hits = data.hits?.hits || []
+    // Monta a query de busca
+    const searchBody = {
+      query: {
+        bool: {
+          must: [
+            {
+              multi_match: {
+                query: name,
+                fields: ['name^3', 'text'],
+                type: 'best_fields',
+                fuzziness: 'AUTO'
+              }
+            }
+          ]
+        }
+      },
+      size: 10
+    }
     
-    // Filtra por categoria se especificada
-    let filtered = hits
+    // Adiciona filtro de categoria se especificado
     if (category) {
-      filtered = hits.filter(h => h._source?.category === category)
+      searchBody.query.bool.filter = [
+        { term: { category: category } }
+      ]
     }
     
-    // Procura match exato pelo nome (case insensitive)
-    const queryLower = query.toLowerCase().trim()
-    const exact = filtered.find(h => {
-      const name = (h._source?.name || '').toLowerCase().trim()
-      return name === queryLower
-    })
+    const url = `https://elasticsearch.aonprd.com/aon/_search`
+    const body = JSON.stringify(searchBody)
     
-    if (exact) {
-      console.log(`[searchAon] Match exato para "${query}": ${exact._source?.name}`)
-      return exact._source
-    }
-    
-    // Se não encontrou exato, tenta match parcial
-    const partial = filtered.find(h => {
-      const name = (h._source?.name || '').toLowerCase()
-      return name.includes(queryLower) || queryLower.includes(name)
-    })
-    
-    if (partial) {
-      console.log(`[searchAon] Match parcial para "${query}": ${partial._source?.name}`)
-      return partial._source
-    }
-    
-    console.log(`[searchAon] Nenhum match para "${query}"`)
-    return null
-  } catch (e) {
-    console.error(`[searchAon] Error: ${e.message}`)
-    return null
-  }
-}
-
-// Busca descrição de um Feat usando a API Elasticsearch
-async function scrapeFeatDescription(name) {
-  if (CACHE.has(`feat:${name}`)) return CACHE.get(`feat:${name}`)
-  
-  try {
-    const result = await searchAon(name, 'feat')
-    
-    if (!result) {
-      CACHE.set(`feat:${name}`, null)
-      return null
-    }
-    
-    // Extrai a descrição do markdown ou text
-    let description = result.text || result.markdown || ''
-    
-    // Remove tags HTML e limpa
-    description = description
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-    
-    // Não cortar o texto - manter descrição completa
-    // O PDF vai fazer o wrap do texto automaticamente
-    
-    // Traduz para português
-    if (description) {
-      try {
-        const translated = await translateToPortuguese(description, 'talento (feat)')
-        if (translated && translated.length > 20) {
-          description = translated
+    const result = await new Promise((resolve, reject) => {
+      const options = {
+        hostname: 'elasticsearch.aonprd.com',
+        path: '/aon/_search',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0 pf2e-tools'
         }
-      } catch (e) {
-        console.error(`[scrapeFeat] Erro ao traduzir "${name}":`, e.message)
       }
+      
+      const req = https.request(options, (res) => {
+        let data = ''
+        res.on('data', chunk => { data += chunk })
+        res.on('end', () => {
+          try {
+            resolve(JSON.parse(data))
+          } catch (e) {
+            reject(e)
+          }
+        })
+      })
+      
+      req.on('error', reject)
+      req.setTimeout(10000, () => {
+        req.destroy()
+        reject(new Error('Timeout'))
+      })
+      
+      req.write(body)
+      req.end()
+    })
+    
+    if (result.hits?.hits?.length > 0) {
+      // Procura match exato primeiro
+      const exactMatch = result.hits.hits.find(hit => {
+        const hitName = hit._source?.name?.toLowerCase()
+        return hitName === name.toLowerCase()
+      })
+      
+      const bestHit = exactMatch || result.hits.hits[0]
+      const source = bestHit._source
+      
+      // Monta a descrição a partir dos campos disponíveis
+      let description = ''
+      
+      // Nome e fonte
+      if (source.name) {
+        description += source.name + ' '
+      }
+      if (source.source) {
+        description += `Source ${source.source} `
+      }
+      if (source.page) {
+        description += `pg. ${source.page} `
+      }
+      
+      // Pré-requisitos
+      if (source.prerequisites) {
+        description += `Prerequisites ${source.prerequisites} `
+      }
+      
+      // Texto principal
+      if (source.text) {
+        description += `--- ${source.text}`
+      } else if (source.markdown) {
+        // Remove markdown e pega texto limpo
+        const cleanText = source.markdown
+          .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links
+          .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold
+          .replace(/\*([^*]+)\*/g, '$1') // Remove italic
+          .replace(/#+\s*/g, '') // Remove headers
+        description += `--- ${cleanText}`
+      }
+      
+      CACHE.set(cacheKey, { name: source.name, description: description.trim() })
+      return { name: source.name, description: description.trim() }
     }
     
-    console.log(`[scrapeFeat] Found "${name}": ${description?.substring(0, 100)}...`)
-    
-    CACHE.set(`feat:${name}`, description || null)
-    return description || null
-    
+    return null
   } catch (e) {
-    console.error(`[scrapeFeat] Error for "${name}":`, e.message)
-    CACHE.set(`feat:${name}`, null)
+    console.error(`[searchAon] Erro buscando "${name}":`, e.message)
     return null
   }
 }
 
-// Busca genérica na AON para qualquer tipo de conteúdo
+// Busca descrição de feat
+async function scrapeFeatDescription(featName) {
+  console.log(`[scrapeFeat] Buscando: ${featName}`)
+  
+  const result = await searchAon(featName, 'feat')
+  if (result?.description) {
+    console.log(`[scrapeFeat] Encontrado: ${result.name}`)
+    
+    // Traduz a descrição
+    const translated = await translateToPortuguese(result.description)
+    // Se a tradução falhou, retorna o original em inglês (melhor que nada)
+    return translated || result.description
+  }
+  
+  console.log(`[scrapeFeat] Não encontrado: ${featName}`)
+  return null
+}
+
+// Busca descrição genérica (habilidades, ancestries, etc.)
 async function scrapeGenericDescription(name) {
-  if (CACHE.has(`generic:${name}`)) return CACHE.get(`generic:${name}`)
+  console.log(`[scrapeGeneric] Buscando: ${name}`)
   
-  try {
-    // Busca sem filtro de categoria
-    const result = await searchAon(name, null)
+  const result = await searchAon(name)
+  if (result?.description) {
+    console.log(`[scrapeGeneric] Encontrado "${result.name}": ${result.description.substring(0, 60)}...`)
     
-    if (!result) {
-      CACHE.set(`generic:${name}`, null)
-      return null
-    }
-    
-    let description = result.text || result.markdown || ''
-    
-    // Remove tags HTML e limpa
-    description = description
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-    
-    // Não cortar o texto - manter descrição completa
-    
-    // Traduz para português
-    if (description) {
-      try {
-        const translated = await translateToPortuguese(description, 'habilidade especial de classe')
-        if (translated && translated.length > 20) {
-          description = translated
-        }
-      } catch (e) {
-        console.error(`[scrapeGeneric] Erro ao traduzir "${name}":`, e.message)
-      }
-    }
-    
-    console.log(`[scrapeGeneric] Found "${name}": ${description?.substring(0, 80)}...`)
-    
-    CACHE.set(`generic:${name}`, description || null)
-    return description || null
-    
-  } catch (e) {
-    console.error(`[scrapeGeneric] Error for "${name}":`, e.message)
-    CACHE.set(`generic:${name}`, null)
-    return null
+    // Traduz a descrição
+    const translated = await translateToPortuguese(result.description)
+    // Se a tradução falhou, retorna o original em inglês
+    return translated || result.description
   }
+  
+  console.log(`[scrapeGeneric] Não encontrado: ${name}`)
+  return null
 }
 
-// Busca informações detalhadas de uma magia usando a API Elasticsearch
-async function scrapeSpellDescription(name) {
-  if (CACHE.has(`spell:${name}`)) return CACHE.get(`spell:${name}`)
+// Busca descrição de magia
+async function scrapeSpellDescription(spellName) {
+  console.log(`[scrapeSpell] Buscando: ${spellName}`)
   
-  try {
-    const result = await searchAon(name, 'spell')
-    
-    if (!result) {
-      CACHE.set(`spell:${name}`, null)
-      return null
-    }
-    
-    const spellData = { name }
-    
-    // Ações
-    if (result.actions) {
-      const actionsMap = {
-        'Single Action': '1',
-        'Two Actions': '2', 
-        'Three Actions': '3',
-        'Reaction': 'reaction',
-        'Free Action': 'free',
-        'One to Two Actions': '1 to 2',
-        'One to Three Actions': '1 to 3',
-        'Two to Three Actions': '2 to 3'
-      }
-      spellData.actions = actionsMap[result.actions] || result.actions_number?.toString() || null
-    }
-    
-    // Traits
-    if (result.trait) {
-      spellData.traits = Array.isArray(result.trait) ? result.trait.slice(0, 6) : [result.trait]
-    }
-    
-    // Range
-    if (result.range) spellData.range = result.range
-    
-    // Area
-    if (result.area) spellData.area = result.area
-    
-    // Targets
-    if (result.targets) spellData.targets = result.targets
-    
-    // Duration
-    if (result.duration) spellData.duration = result.duration
-    
-    // Defense
-    if (result.saving_throw || result.defense) {
-      spellData.defense = result.saving_throw || result.defense
-    }
-    
-    // Descrição
-    let description = result.text || result.markdown || ''
-    description = description
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-    
-    // Não cortar o texto - manter descrição completa
-    
-    // Traduz para português
-    if (description) {
-      try {
-        const translated = await translateToPortuguese(description, 'magia (spell)')
-        if (translated && translated.length > 20) {
-          description = translated
-        }
-      } catch (e) {
-        console.error(`[scrapeSpell] Erro ao traduzir "${name}":`, e.message)
-      }
-    }
-    spellData.description = description
-    
-    // Tenta extrair dano do texto
-    const damageMatch = description.match(/(\d+d\d+)\s*(vitality|void|fire|cold|electricity|acid|sonic|mental|poison|force|bleed|slashing|piercing|bludgeoning)?/i)
-    if (damageMatch) {
-      spellData.damage = damageMatch[1]
-      if (damageMatch[2]) spellData.damageType = damageMatch[2].toLowerCase()
-    }
-    
-    // Heightened
-    if (result.heightened) {
-      spellData.heightened = result.heightened
-    } else {
-      // Tenta extrair do texto
-      const heightened = {}
-      const heightenedMatches = description.matchAll(/Heightened\s*\(([^)]+)\)\s*([^H\.]+)/gi)
-      for (const match of heightenedMatches) {
-        const level = match[1].trim()
-        const effect = match[2].trim().slice(0, 100)
-        heightened[level] = effect
-      }
-      if (Object.keys(heightened).length) spellData.heightened = heightened
-    }
-    
-    console.log(`[scrapeSpell] Found "${name}": actions=${spellData.actions}, traits=${spellData.traits?.length || 0}`)
-    
-    CACHE.set(`spell:${name}`, spellData)
-    return spellData
-    
-  } catch (e) {
-    console.error(`[scrapeSpell] Error for "${name}":`, e.message)
-    CACHE.set(`spell:${name}`, null)
-    return null
+  const result = await searchAon(spellName, 'spell')
+  if (result?.description) {
+    console.log(`[scrapeSpell] Encontrado: ${result.name}`)
+    return result.description // Magias não são traduzidas por serem muito técnicas
   }
+  
+  console.log(`[scrapeSpell] Não encontrado: ${spellName}`)
+  return null
 }
 
-function json(res, code, data) {
-  const body = JSON.stringify(data)
-  res.writeHead(code, {
-    'content-type': 'application/json; charset=utf-8',
-    'access-control-allow-origin': '*'
-  })
-  res.end(body)
-}
+// ============================================================================
+// SERVIDOR HTTP
+// ============================================================================
 
 const server = http.createServer(async (req, res) => {
-  try {
-    const url = new URL(req.url, `http://localhost:${PORT}`)
-    if (req.method === 'GET' && url.pathname === '/api/feat') {
-      const name = url.searchParams.get('name') || ''
-      if (!name) return json(res, 400, { error: 'missing name' })
-      const desc = await scrapeFeatDescription(name)
-      return json(res, 200, { name, description: desc })
-    }
-    if (req.method === 'GET' && url.pathname === '/api/search') {
-      const name = url.searchParams.get('name') || ''
-      if (!name) return json(res, 400, { error: 'missing name' })
-      const desc = await scrapeGenericDescription(name)
-      return json(res, 200, { name, description: desc })
-    }
-    if (req.method === 'GET' && url.pathname === '/api/spell') {
-      const name = url.searchParams.get('name') || ''
-      if (!name) return json(res, 400, { error: 'missing name' })
-      const spellData = await scrapeSpellDescription(name)
-      return json(res, 200, spellData || { name, description: null })
-    }
-    if (req.method === 'GET' && (url.pathname === '/health' || url.pathname === '/api/health')) {
-      return json(res, 200, { ok: true })
-    }
-    if (req.method === 'POST' && url.pathname === '/api/clear-cache') {
-      const cacheSize = CACHE.size
-      const translationCacheSize = TRANSLATION_CACHE.size
-      CACHE.clear()
-      TRANSLATION_CACHE.clear()
-      console.log(`[cache] Limpo! ${cacheSize} itens de busca, ${translationCacheSize} traduções`)
-      return json(res, 200, { cleared: true, items: cacheSize, translations: translationCacheSize })
-    }
-    res.writeHead(404)
-    res.end('not found')
-  } catch (e) {
-    json(res, 500, { error: String(e && e.message ? e.message : e) })
+  // CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204)
+    res.end()
+    return
   }
+  
+  const parsedUrl = new URL(req.url, `http://localhost:${PORT}`)
+  const pathname = parsedUrl.pathname
+  
+  // Health check
+  if (pathname === '/api/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json' })
+    res.end(JSON.stringify({ 
+      status: 'ok', 
+      hasApiKey: !!GROQ_API_KEY,
+      cacheSize: CACHE.size,
+      translationCacheSize: TRANSLATION_CACHE.size,
+      failedTranslations: FAILED_TRANSLATIONS.size
+    }))
+    return
+  }
+  
+  // Limpa cache
+  if (pathname === '/api/clear-cache' && req.method === 'POST') {
+    CACHE.clear()
+    TRANSLATION_CACHE.clear()
+    FAILED_TRANSLATIONS.clear()
+    res.writeHead(200, { 'Content-Type': 'application/json' })
+    res.end(JSON.stringify({ status: 'ok', message: 'Cache limpo' }))
+    return
+  }
+  
+  // Busca feat
+  if (pathname === '/api/feat') {
+    const name = parsedUrl.searchParams.get('name')
+    if (!name) {
+      res.writeHead(400, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: 'Missing name parameter' }))
+      return
+    }
+    
+    try {
+      const description = await scrapeFeatDescription(name)
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ name, description }))
+    } catch (e) {
+      console.error('[/api/feat] Error:', e)
+      res.writeHead(500, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: e.message }))
+    }
+    return
+  }
+  
+  // Busca genérica (habilidades especiais, etc.)
+  if (pathname === '/api/search') {
+    const name = parsedUrl.searchParams.get('name')
+    if (!name) {
+      res.writeHead(400, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: 'Missing name parameter' }))
+      return
+    }
+    
+    try {
+      const description = await scrapeGenericDescription(name)
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ name, description }))
+    } catch (e) {
+      console.error('[/api/search] Error:', e)
+      res.writeHead(500, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: e.message }))
+    }
+    return
+  }
+  
+  // Busca magia
+  if (pathname === '/api/spell') {
+    const name = parsedUrl.searchParams.get('name')
+    if (!name) {
+      res.writeHead(400, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: 'Missing name parameter' }))
+      return
+    }
+    
+    try {
+      const description = await scrapeSpellDescription(name)
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ name, description }))
+    } catch (e) {
+      console.error('[/api/spell] Error:', e)
+      res.writeHead(500, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: e.message }))
+    }
+    return
+  }
+  
+  // 404
+  res.writeHead(404, { 'Content-Type': 'application/json' })
+  res.end(JSON.stringify({ error: 'Not found' }))
 })
 
 server.listen(PORT, () => {
-  process.stdout.write(`api listening on http://localhost:${PORT}\n`)
+  console.log(`api listening on http://localhost:${PORT}`)
+  if (!GROQ_API_KEY) {
+    console.log('⚠️  GROQ_API_KEY não configurada - traduções desabilitadas')
+  } else {
+    console.log('✓ GROQ_API_KEY configurada - traduções habilitadas')
+  }
 })
