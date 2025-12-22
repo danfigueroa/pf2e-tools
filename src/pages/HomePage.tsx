@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Box,
   Card,
@@ -7,14 +6,12 @@ import {
   Button,
   Typography,
   Container,
-  Chip,
   useTheme,
 } from '@mui/material';
 import {
+  Description as SheetIcon,
   Transform as TransformIcon,
-  AutoAwesome as MagicIcon,
-  Speed as SpeedIcon,
-  Security as ShieldIcon,
+  ArrowForward as ArrowIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
@@ -23,260 +20,159 @@ interface ToolCard {
   description: string;
   icon: React.ReactElement;
   path: string;
-  status: 'available' | 'coming-soon' | 'beta';
   features: string[];
 }
 
 const tools: ToolCard[] = [
   {
-    title: 'Gerador de Stat Block de Transformação',
-    description: 'Crie stat blocks detalhados para personagens transformados por magias como Forma Animal, Forma Elemental e outras magias de transformação do Pathfinder 2e Remaster.',
-    icon: <TransformIcon sx={{ fontSize: 40 }} />,
-    path: '/transformation',
-    status: 'available',
-    features: [
-      'Suporte a múltiplas formas',
-      'Cálculos automáticos de atributos',
-      'Exportação em PDF/PNG',
-      'Interface intuitiva',
-    ],
-  },
-  {
-    title: 'Ficha de Personagem (PDF)',
-    description: 'Importe um JSON de personagem e gere uma ficha completa em PDF com atributos, perícias, equipamentos, armas, armaduras, feats, habilidades especiais e magias.',
-    icon: <TransformIcon sx={{ fontSize: 40 }} />,
+    title: 'Ficha de Personagem',
+    description: 'Importe um JSON de personagem (Pathbuilder/Wanderer\'s Guide) e gere uma ficha completa em PDF com todos os detalhes do seu personagem.',
+    icon: <SheetIcon sx={{ fontSize: 32 }} />,
     path: '/character-sheet',
-    status: 'available',
     features: [
-      'Upload de JSON',
-      'Links para descrições na AON',
-      'Layout simples e intuitivo',
-      'Download imediato',
+      'Atributos e perícias',
+      'Ataques e armadura',
+      'Talentos com descrições',
+      'Magias detalhadas',
     ],
   },
   {
-    title: 'Calculadora de Magias',
-    description: 'Ferramenta para calcular dano, duração e efeitos de magias com base no nível do conjurador e modificadores.',
-    icon: <MagicIcon sx={{ fontSize: 40 }} />,
-    path: '/spells',
-    status: 'coming-soon',
+    title: 'Stat Block de Transformação',
+    description: 'Gere stat blocks para magias de transformação como Forma Animal, Forma Elemental e outras do Pathfinder 2e Remaster.',
+    icon: <TransformIcon sx={{ fontSize: 32 }} />,
+    path: '/transformation',
     features: [
-      'Cálculo de dano por nível',
-      'Efeitos de heightening',
-      'Base de dados de magias',
-      'Comparação de magias',
-    ],
-  },
-  {
-    title: 'Gerador de Encontros',
-    description: 'Crie encontros balanceados automaticamente com base no nível do grupo e dificuldade desejada.',
-    icon: <ShieldIcon sx={{ fontSize: 40 }} />,
-    path: '/encounters',
-    status: 'coming-soon',
-    features: [
-      'Balanceamento automático',
-      'Filtros por tipo de criatura',
-      'Cálculo de XP',
-      'Sugestões de terreno',
-    ],
-  },
-  {
-    title: 'Calculadora de Iniciativa',
-    description: 'Gerencie a ordem de iniciativa em combates com recursos avançados para mestres.',
-    icon: <SpeedIcon sx={{ fontSize: 40 }} />,
-    path: '/initiative',
-    status: 'coming-soon',
-    features: [
-      'Rastreamento de HP',
-      'Efeitos temporários',
-      'Timer de rodadas',
-      'Notas de combate',
+      'Múltiplas formas',
+      'Cálculos automáticos',
+      'Exportação PDF/PNG',
+      'Fácil de usar',
     ],
   },
 ];
 
-const getStatusColor = (status: ToolCard['status']) => {
-  switch (status) {
-    case 'available':
-      return 'success';
-    case 'beta':
-      return 'warning';
-    case 'coming-soon':
-      return 'default';
-    default:
-      return 'default';
-  }
-};
-
-const getStatusText = (status: ToolCard['status']) => {
-  switch (status) {
-    case 'available':
-      return 'Disponível';
-    case 'beta':
-      return 'Beta';
-    case 'coming-soon':
-      return 'Em Breve';
-    default:
-      return 'Desconhecido';
-  }
-};
-
-export const HomePage: React.FC = () => {
+export const HomePage = () => {
   const navigate = useNavigate();
   const theme = useTheme();
 
-  const handleToolClick = (path: string, status: ToolCard['status']) => {
-    if (status === 'available') {
-      navigate(path);
-    }
-  };
-
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ mb: 6 }}>
+    <Container maxWidth="md">
+      {/* Header */}
+      <Box sx={{ textAlign: 'center', mb: 6, pt: 2 }}>
         <Typography
-          variant="h2"
+          variant="h1"
           component="h1"
-          gutterBottom
           sx={{
-            background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-            backgroundClip: 'text',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
+            color: theme.palette.primary.main,
             fontWeight: 700,
-            textAlign: 'center',
-            mb: 2,
+            mb: 1.5,
           }}
         >
-          PF2e Toolkit
+          PF2e Tools
         </Typography>
         
         <Typography
-          variant="h5"
-          component="h2"
-          color="text.secondary"
-          sx={{ textAlign: 'center', mb: 4, fontWeight: 300 }}
-        >
-          Ferramentas essenciais para jogadores e mestres de Pathfinder 2e Remaster
-        </Typography>
-        
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: 2,
-            flexWrap: 'wrap',
-            mb: 4,
+          variant="h4"
+          component="p"
+          sx={{ 
+            color: 'text.secondary',
+            fontWeight: 400,
+            maxWidth: 500,
+            mx: 'auto',
           }}
         >
-          <Chip
-            label="Código Aberto"
-            color="primary"
-            variant="outlined"
-          />
-          <Chip
-            label="Interface Moderna"
-            color="secondary"
-            variant="outlined"
-          />
-          <Chip
-            label="Sempre Atualizado"
-            color="primary"
-            variant="outlined"
-          />
-        </Box>
+          Ferramentas para Pathfinder 2e Remaster
+        </Typography>
       </Box>
 
+      {/* Tools Grid */}
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
           gap: 3,
         }}
       >
-        {tools.map((tool, index) => (
-          <Box key={index}>
-            <Card
-              sx={{
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                transition: 'all 0.3s ease-in-out',
-                cursor: tool.status === 'available' ? 'pointer' : 'default',
-                opacity: tool.status === 'coming-soon' ? 0.7 : 1,
-                '&:hover': tool.status === 'available' ? {
-                  transform: 'translateY(-4px)',
-                  boxShadow: theme.shadows[8],
-                } : {},
-              }}
-              onClick={() => handleToolClick(tool.path, tool.status)}
-            >
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Box
+        {tools.map((tool) => (
+          <Card
+            key={tool.path}
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              transition: 'all 0.2s ease',
+              cursor: 'pointer',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                borderColor: theme.palette.primary.light,
+              },
+            }}
+            onClick={() => navigate(tool.path)}
+          >
+            <CardContent sx={{ flexGrow: 1, p: 3 }}>
+              {/* Icon + Title */}
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1.5 }}>
+                <Box
+                  sx={{
+                    color: theme.palette.primary.main,
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                >
+                  {tool.icon}
+                </Box>
+                <Typography variant="h3" component="h2">
+                  {tool.title}
+                </Typography>
+              </Box>
+              
+              {/* Description */}
+              <Typography
+                variant="body1"
+                color="text.secondary"
+                sx={{ mb: 2.5, lineHeight: 1.6 }}
+              >
+                {tool.description}
+              </Typography>
+              
+              {/* Features */}
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {tool.features.map((feature) => (
+                  <Typography
+                    key={feature}
+                    variant="body2"
                     sx={{
-                      color: theme.palette.primary.main,
-                      mr: 2,
+                      px: 1.5,
+                      py: 0.5,
+                      bgcolor: 'rgba(20, 184, 166, 0.1)',
+                      border: '1px solid rgba(20, 184, 166, 0.2)',
+                      borderRadius: 1,
+                      color: 'primary.light',
+                      fontSize: '0.8rem',
                     }}
                   >
-                    {tool.icon}
-                  </Box>
-                  <Box sx={{ flexGrow: 1 }}>
-                    <Typography variant="h6" component="h3" gutterBottom>
-                      {tool.title}
-                    </Typography>
-                    <Chip
-                      label={getStatusText(tool.status)}
-                      color={getStatusColor(tool.status)}
-                      size="small"
-                    />
-                  </Box>
-                </Box>
-                
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mb: 2, lineHeight: 1.6 }}
-                >
-                  {tool.description}
-                </Typography>
-                
-                <Box>
-                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                    Recursos:
+                    {feature}
                   </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                    {tool.features.map((feature, featureIndex) => (
-                      <Chip
-                        key={featureIndex}
-                        label={feature}
-                        size="small"
-                        variant="outlined"
-                        sx={{ fontSize: '0.75rem' }}
-                      />
-                    ))}
-                  </Box>
-                </Box>
-              </CardContent>
-              
-              <CardActions sx={{ p: 2, pt: 0 }}>
-                <Button
-                  variant={tool.status === 'available' ? 'contained' : 'outlined'}
-                  disabled={tool.status === 'coming-soon'}
-                  fullWidth
-                  sx={{ fontWeight: 500 }}
-                >
-                  {tool.status === 'available' ? 'Usar Ferramenta' : 'Em Desenvolvimento'}
-                </Button>
-              </CardActions>
-            </Card>
-          </Box>
+                ))}
+              </Box>
+            </CardContent>
+            
+            <CardActions sx={{ p: 3, pt: 0 }}>
+              <Button
+                variant="contained"
+                fullWidth
+                endIcon={<ArrowIcon />}
+                sx={{ py: 1.25 }}
+              >
+                Acessar
+              </Button>
+            </CardActions>
+          </Card>
         ))}
       </Box>
       
-      <Box sx={{ mt: 6, textAlign: 'center' }}>
+      {/* Footer */}
+      <Box sx={{ mt: 6, textAlign: 'center', pb: 2 }}>
         <Typography variant="body2" color="text.secondary">
-          Desenvolvido com ❤️ para a comunidade Pathfinder 2e
+          Feito para a comunidade Pathfinder 2e
         </Typography>
       </Box>
     </Container>

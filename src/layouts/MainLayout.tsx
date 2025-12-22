@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   AppBar,
   Box,
@@ -18,18 +18,17 @@ import {
 import {
   Menu as MenuIcon,
   Home as HomeIcon,
+  Description as SheetIcon,
   Transform as TransformIcon,
-  Settings as SettingsIcon,
 } from '@mui/icons-material';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 
-const drawerWidth = 280;
+const drawerWidth = 260;
 
 interface NavigationItem {
   text: string;
   icon: React.ReactElement;
   path: string;
-  description: string;
 }
 
 const navigationItems: NavigationItem[] = [
@@ -37,29 +36,20 @@ const navigationItems: NavigationItem[] = [
     text: 'Início',
     icon: <HomeIcon />,
     path: '/',
-    description: 'Página inicial com visão geral das ferramentas',
+  },
+  {
+    text: 'Ficha de Personagem',
+    icon: <SheetIcon />,
+    path: '/character-sheet',
   },
   {
     text: 'Stat Block de Transformação',
     icon: <TransformIcon />,
     path: '/transformation',
-    description: 'Gere stat blocks para magias de transformação',
-  },
-  {
-    text: 'Ficha de Personagem (PDF)',
-    icon: <TransformIcon />,
-    path: '/character-sheet',
-    description: 'Crie ficha PDF a partir de um JSON de personagem',
-  },
-  {
-    text: 'Configurações',
-    icon: <SettingsIcon />,
-    path: '/settings',
-    description: 'Configurações do sistema',
   },
 ];
 
-export const MainLayout: React.FC = () => {
+export const MainLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -79,61 +69,79 @@ export const MainLayout: React.FC = () => {
 
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Toolbar>
-        <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 700 }}>
-          PF2e Toolkit
+      {/* Logo */}
+      <Box 
+        sx={{ 
+          p: 2.5,
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
+        <Typography 
+          variant="h6" 
+          sx={{ 
+            fontWeight: 700,
+            color: 'primary.main',
+            letterSpacing: '-0.02em',
+          }}
+        >
+          PF2e Tools
         </Typography>
-      </Toolbar>
+      </Box>
       
-      <Box sx={{ overflow: 'auto', flex: 1 }}>
-        <List>
-          {navigationItems.map((item) => (
-            <ListItem key={item.text} disablePadding>
-              <ListItemButton
-                selected={location.pathname === item.path}
-                onClick={() => handleNavigation(item.path)}
-                sx={{
-                  mx: 1,
-                  mb: 0.5,
-                  borderRadius: 1,
-                  '&.Mui-selected': {
-                    backgroundColor: theme.palette.primary.main + '20',
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.main + '30',
-                    },
-                  },
-                }}
-              >
-                <ListItemIcon
+      {/* Navigation */}
+      <Box sx={{ overflow: 'auto', flex: 1, py: 1 }}>
+        <List disablePadding>
+          {navigationItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <ListItem key={item.text} disablePadding sx={{ px: 1.5, py: 0.25 }}>
+                <ListItemButton
+                  selected={isActive}
+                  onClick={() => handleNavigation(item.path)}
                   sx={{
-                    color: location.pathname === item.path 
-                      ? theme.palette.primary.main 
-                      : 'inherit',
+                    borderRadius: 1.5,
+                    '&.Mui-selected': {
+                      backgroundColor: theme.palette.primary.main + '12',
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.main + '18',
+                      },
+                    },
                   }}
                 >
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText 
-                  primary={item.text}
-                  secondary={item.description}
-                  primaryTypographyProps={{
-                    fontSize: '0.9rem',
-                    fontWeight: location.pathname === item.path ? 600 : 400,
-                  }}
-                  secondaryTypographyProps={{
-                    fontSize: '0.75rem',
-                    sx: { mt: 0.5 },
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
-          ))}
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 40,
+                      color: isActive ? 'primary.main' : 'text.secondary',
+                    }}
+                  >
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary={item.text}
+                    primaryTypographyProps={{
+                      fontSize: '0.9rem',
+                      fontWeight: isActive ? 600 : 400,
+                      color: isActive ? 'primary.main' : 'text.primary',
+                    }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            );
+          })}
         </List>
       </Box>
       
-      <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
+      {/* Footer */}
+      <Box 
+        sx={{ 
+          p: 2,
+          borderTop: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
         <Typography variant="caption" color="text.secondary">
-          Ferramentas para Pathfinder 2e Remaster
+          Pathfinder 2e Remaster
         </Typography>
       </Box>
     </Box>
@@ -143,11 +151,13 @@ export const MainLayout: React.FC = () => {
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <CssBaseline />
       
+      {/* AppBar (Mobile) */}
       <AppBar
         position="fixed"
         sx={{
           width: { md: `calc(100% - ${drawerWidth}px)` },
           ml: { md: `${drawerWidth}px` },
+          display: { md: 'none' },
         }}
       >
         <Toolbar>
@@ -156,40 +166,40 @@ export const MainLayout: React.FC = () => {
             aria-label="abrir menu"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { md: 'none' } }}
+            sx={{ mr: 2 }}
           >
             <MenuIcon />
           </IconButton>
           
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            {navigationItems.find(item => item.path === location.pathname)?.text || 'PF2e Toolkit'}
+          <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 600 }}>
+            {navigationItems.find(item => item.path === location.pathname)?.text || 'PF2e Tools'}
           </Typography>
         </Toolbar>
       </AppBar>
       
+      {/* Sidebar */}
       <Box
         component="nav"
         sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
       >
+        {/* Mobile Drawer */}
         <Drawer
           variant="temporary"
           open={mobileOpen}
           onClose={handleDrawerToggle}
-          ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
-          }}
+          ModalProps={{ keepMounted: true }}
           sx={{
             display: { xs: 'block', md: 'none' },
             '& .MuiDrawer-paper': {
               boxSizing: 'border-box',
               width: drawerWidth,
-              backgroundImage: 'none',
             },
           }}
         >
           {drawer}
         </Drawer>
         
+        {/* Desktop Drawer */}
         <Drawer
           variant="permanent"
           sx={{
@@ -197,7 +207,6 @@ export const MainLayout: React.FC = () => {
             '& .MuiDrawer-paper': {
               boxSizing: 'border-box',
               width: drawerWidth,
-              backgroundImage: 'none',
             },
           }}
           open
@@ -206,6 +215,7 @@ export const MainLayout: React.FC = () => {
         </Drawer>
       </Box>
       
+      {/* Main Content */}
       <Box
         component="main"
         sx={{
@@ -215,8 +225,10 @@ export const MainLayout: React.FC = () => {
           backgroundColor: 'background.default',
         }}
       >
-        <Toolbar />
-        <Box sx={{ p: 3 }}>
+        {/* Spacer for mobile AppBar */}
+        <Toolbar sx={{ display: { md: 'none' } }} />
+        
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
           <Outlet />
         </Box>
       </Box>

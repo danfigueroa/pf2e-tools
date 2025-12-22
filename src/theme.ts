@@ -1,59 +1,65 @@
 import { createTheme } from '@mui/material/styles';
 
-export const darkTheme = createTheme({
+// Cores inspiradas no Pathfinder 2e Remaster
+// Verde-teal característico + fundo escuro elegante
+export const pathfinderTheme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#8B5CF6', // Purple
-      light: '#A78BFA',
-      dark: '#7C3AED',
+      main: '#14B8A6', // Verde-teal vibrante
+      light: '#2DD4BF',
+      dark: '#0D9488',
+      contrastText: '#0A0A0A',
     },
     secondary: {
-      main: '#10B981', // Emerald
-      light: '#34D399',
-      dark: '#059669',
+      main: '#D4A853', // Dourado suave
+      light: '#E5C078',
+      dark: '#B8923E',
+      contrastText: '#0A0A0A',
     },
     background: {
-      default: '#0F172A', // Slate 900
-      paper: '#1E293B', // Slate 800
+      default: '#0A0F0D', // Verde muito escuro (quase preto)
+      paper: '#131A17', // Verde escuro para cards
     },
     surface: {
-      main: '#334155', // Slate 700
+      main: '#1A2420', // Superfícies elevadas
     },
     text: {
-      primary: '#F8FAFC', // Slate 50
-      secondary: '#CBD5E1', // Slate 300
+      primary: '#F0FDF4', // Branco com tom verde
+      secondary: '#94A3B8', // Cinza claro
     },
     error: {
-      main: '#EF4444',
+      main: '#F87171',
     },
     warning: {
-      main: '#F59E0B',
+      main: '#FBBF24',
     },
     success: {
-      main: '#10B981',
+      main: '#34D399',
     },
-    divider: '#475569', // Slate 600
+    divider: '#1E2D28', // Divisor sutil
   },
   typography: {
-    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"Source Sans 3", "Inter", "Roboto", sans-serif',
     h1: {
-      fontSize: '2.5rem',
+      fontSize: '2.25rem',
       fontWeight: 700,
       lineHeight: 1.2,
+      letterSpacing: '-0.02em',
     },
     h2: {
-      fontSize: '2rem',
+      fontSize: '1.75rem',
       fontWeight: 600,
       lineHeight: 1.3,
+      letterSpacing: '-0.01em',
     },
     h3: {
-      fontSize: '1.5rem',
+      fontSize: '1.375rem',
       fontWeight: 600,
       lineHeight: 1.4,
     },
     h4: {
-      fontSize: '1.25rem',
+      fontSize: '1.125rem',
       fontWeight: 500,
       lineHeight: 1.4,
     },
@@ -65,6 +71,10 @@ export const darkTheme = createTheme({
       fontSize: '0.875rem',
       lineHeight: 1.5,
     },
+    button: {
+      fontWeight: 600,
+      letterSpacing: '0.02em',
+    },
   },
   shape: {
     borderRadius: 8,
@@ -73,24 +83,18 @@ export const darkTheme = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         body: {
-          scrollbarColor: '#475569 #1E293B',
+          scrollbarColor: '#1E2D28 #0A0F0D',
           '&::-webkit-scrollbar, & *::-webkit-scrollbar': {
-            backgroundColor: '#1E293B',
+            backgroundColor: '#0A0F0D',
             width: '8px',
           },
           '&::-webkit-scrollbar-thumb, & *::-webkit-scrollbar-thumb': {
             borderRadius: 8,
-            backgroundColor: '#475569',
+            backgroundColor: '#1E2D28',
             minHeight: 24,
           },
-          '&::-webkit-scrollbar-thumb:focus, & *::-webkit-scrollbar-thumb:focus': {
-            backgroundColor: '#64748B',
-          },
-          '&::-webkit-scrollbar-thumb:active, & *::-webkit-scrollbar-thumb:active': {
-            backgroundColor: '#64748B',
-          },
           '&::-webkit-scrollbar-thumb:hover, & *::-webkit-scrollbar-thumb:hover': {
-            backgroundColor: '#64748B',
+            backgroundColor: '#2A3F38',
           },
         },
       },
@@ -99,7 +103,14 @@ export const darkTheme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: 'none',
-          border: '1px solid #334155',
+          backgroundColor: '#131A17',
+          border: '1px solid #1E2D28',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+          transition: 'all 0.2s ease',
+          '&:hover': {
+            borderColor: '#14B8A6',
+            boxShadow: '0 8px 30px rgba(20, 184, 166, 0.15)',
+          },
         },
       },
     },
@@ -107,7 +118,21 @@ export const darkTheme = createTheme({
       styleOverrides: {
         root: {
           textTransform: 'none',
-          fontWeight: 500,
+          fontWeight: 600,
+          borderRadius: 8,
+        },
+        contained: {
+          boxShadow: '0 2px 8px rgba(20, 184, 166, 0.3)',
+          '&:hover': {
+            boxShadow: '0 4px 16px rgba(20, 184, 166, 0.4)',
+          },
+        },
+        outlined: {
+          borderColor: '#1E2D28',
+          '&:hover': {
+            borderColor: '#14B8A6',
+            backgroundColor: 'rgba(20, 184, 166, 0.08)',
+          },
         },
       },
     },
@@ -115,13 +140,50 @@ export const darkTheme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: 'none',
-          backgroundColor: '#1E293B',
-          borderBottom: '1px solid #334155',
+          backgroundColor: '#0D1512',
+          borderBottom: '1px solid #1E2D28',
+          boxShadow: 'none',
+        },
+      },
+    },
+    MuiDrawer: {
+      styleOverrides: {
+        paper: {
+          backgroundColor: '#0D1512',
+          borderRight: '1px solid #1E2D28',
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          fontWeight: 500,
+        },
+        outlined: {
+          borderColor: '#1E2D28',
+        },
+      },
+    },
+    MuiListItemButton: {
+      styleOverrides: {
+        root: {
+          '&.Mui-selected': {
+            backgroundColor: 'rgba(20, 184, 166, 0.12)',
+            '&:hover': {
+              backgroundColor: 'rgba(20, 184, 166, 0.18)',
+            },
+          },
+          '&:hover': {
+            backgroundColor: 'rgba(255, 255, 255, 0.04)',
+          },
         },
       },
     },
   },
 });
+
+// Exportar com nome antigo para compatibilidade
+export const darkTheme = pathfinderTheme;
 
 // Extend the theme interface to include custom colors
 declare module '@mui/material/styles' {
