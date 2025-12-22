@@ -258,6 +258,71 @@ async function translateToPortuguese(text, itemType = 'item') {
 // API DE BUSCA (AON Elasticsearch)
 // ============================================================================
 
+// Limpa o texto da AON removendo tags HTML/XML e metadata
+function cleanAonText(text) {
+  if (!text) return ''
+  
+  return text
+    // Remove tags XML/HTML completas (ex: <title level="1" ...>)
+    .replace(/<[^>]+>/g, '')
+    // Remove entidades HTML
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    // Remove padrões de metadata da AON
+    .replace(/\s*---\s*/g, ' --- ')
+    // Remove espaços múltiplos
+    .replace(/\s{2,}/g, ' ')
+    // Remove espaços antes de pontuação
+    .replace(/\s+([.,;:!?])/g, '$1')
+    .trim()
+}
+
+// Extrai apenas o texto principal da descrição, removendo duplicatas
+function extractMainDescription(source) {
+  let parts = []
+  
+  // Nome (apenas uma vez)
+  if (source.name) {
+    parts.push(source.name)
+  }
+  
+  // Fonte
+  if (source.source) {
+    parts.push(`Fonte: ${source.source}`)
+    if (source.page) {
+      parts[parts.length - 1] += ` pg. ${source.page}`
+    }
+  }
+  
+  // Pré-requisitos
+  if (source.prerequisites) {
+    parts.push(`Pré-requisitos: ${source.prerequisites}`)
+  }
+  
+  // Texto principal - prioriza 'text', depois 'markdown'
+  let mainText = ''
+  if (source.text) {
+    mainText = cleanAonText(source.text)
+  } else if (source.markdown) {
+    mainText = source.markdown
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links markdown
+      .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold
+      .replace(/\*([^*]+)\*/g, '$1') // Remove italic
+      .replace(/#+\s*/g, '') // Remove headers
+    mainText = cleanAonText(mainText)
+  }
+  
+  if (mainText) {
+    parts.push('---')
+    parts.push(mainText)
+  }
+  
+  return parts.join(' ')
+}
+
 function fetchJson(url) {
   return new Promise((resolve, reject) => {
     const parsedUrl = new URL(url)
@@ -377,40 +442,11 @@ async function searchAon(name, category = null) {
       const bestHit = exactMatch || result.hits.hits[0]
       const source = bestHit._source
       
-      // Monta a descrição a partir dos campos disponíveis
-      let description = ''
+      // Extrai descrição limpa
+      const description = extractMainDescription(source)
       
-      // Nome e fonte
-      if (source.name) {
-        description += source.name + ' '
-      }
-      if (source.source) {
-        description += `Source ${source.source} `
-      }
-      if (source.page) {
-        description += `pg. ${source.page} `
-      }
-      
-      // Pré-requisitos
-      if (source.prerequisites) {
-        description += `Prerequisites ${source.prerequisites} `
-      }
-      
-      // Texto principal
-      if (source.text) {
-        description += `--- ${source.text}`
-      } else if (source.markdown) {
-        // Remove markdown e pega texto limpo
-        const cleanText = source.markdown
-          .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links
-          .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold
-          .replace(/\*([^*]+)\*/g, '$1') // Remove italic
-          .replace(/#+\s*/g, '') // Remove headers
-        description += `--- ${cleanText}`
-      }
-      
-      CACHE.set(cacheKey, { name: source.name, description: description.trim() })
-      return { name: source.name, description: description.trim() }
+      CACHE.set(cacheKey, { name: source.name, description })
+      return { name: source.name, description }
     }
     
     return null
