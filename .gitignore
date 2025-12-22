@@ -1,3 +1,7 @@
+# Environment variables (contém chaves secretas)
+.env
+.env.local
+
 # Logs
 logs
 *.log

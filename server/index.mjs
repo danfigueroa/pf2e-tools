@@ -1,9 +1,139 @@
+import 'dotenv/config'
 import http from 'node:http'
 import https from 'node:https'
 import { URL } from 'node:url'
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3001
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || ''
 const CACHE = new Map()
+const TRANSLATION_CACHE = new Map()
+
+// Faz requisição POST para a API do Gemini
+function fetchGemini(prompt) {
+  return new Promise((resolve, reject) => {
+    if (!GEMINI_API_KEY) {
+      reject(new Error('GEMINI_API_KEY não configurada'))
+      return
+    }
+    
+    const url = new URL(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`)
+    
+    const body = JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.3,
+        maxOutputTokens: 1024
+      }
+    })
+    
+    const options = {
+      hostname: url.hostname,
+      path: url.pathname + url.search,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body)
+      }
+    }
+    
+    const req = https.request(options, (res) => {
+      let data = ''
+      res.on('data', chunk => { data += chunk })
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data)
+          if (json.error) {
+            reject(new Error(json.error.message))
+            return
+          }
+          const text = json.candidates?.[0]?.content?.parts?.[0]?.text || ''
+          resolve(text.trim())
+        } catch (e) {
+          reject(e)
+        }
+      })
+    })
+    
+    req.on('error', reject)
+    req.setTimeout(15000, () => {
+      req.destroy()
+      reject(new Error('Timeout'))
+    })
+    req.write(body)
+    req.end()
+  })
+}
+
+// Traduz texto de inglês para português usando Gemini com contexto de PF2e
+async function translateToPortuguese(text, itemType = 'item') {
+  if (!text || text.length < 10) return text
+  if (!GEMINI_API_KEY) {
+    console.log('[translate] Sem API key do Gemini, retornando texto original')
+    return text
+  }
+  
+  // Verifica cache
+  const cacheKey = text.substring(0, 150)
+  if (TRANSLATION_CACHE.has(cacheKey)) {
+    return TRANSLATION_CACHE.get(cacheKey)
+  }
+  
+  const prompt = `Você é um tradutor especializado em Pathfinder 2nd Edition Remaster (PF2e).
+
+CONTEXTO:
+- Pathfinder 2e é um RPG de mesa da Paizo
+- Use a terminologia oficial em português quando existir
+- Mantenha termos técnicos de jogo em inglês quando não houver tradução consagrada (ex: "Hit Points", "AC", "DC")
+- Traduza de forma natural e fluida para português brasileiro
+
+TERMOS COMUNS DO PF2e:
+- "feat" = "talento"
+- "spell" = "magia"
+- "action" = "ação"
+- "reaction" = "reação"
+- "free action" = "ação livre"
+- "saving throw" = "teste de resistência"
+- "Fortitude/Reflex/Will" = manter em inglês ou "Fortitude/Reflexos/Vontade"
+- "damage" = "dano"
+- "healing" = "cura"
+- "creature" = "criatura"
+- "ally/allies" = "aliado/aliados"
+- "enemy/enemies" = "inimigo/inimigos"
+- "target" = "alvo"
+- "range" = "alcance"
+- "duration" = "duração"
+- "trigger" = "gatilho"
+- "requirement" = "requisito"
+- "critical hit/success" = "acerto/sucesso crítico"
+- "critical failure" = "falha crítica"
+
+TIPO DE ITEM: ${itemType}
+
+TEXTO PARA TRADUZIR:
+${text}
+
+INSTRUÇÕES:
+- Traduza APENAS o texto, sem explicações adicionais
+- Mantenha a formatação original
+- Seja conciso e direto
+- Não adicione informações que não estão no original
+
+TRADUÇÃO:`
+
+  try {
+    const translated = await fetchGemini(prompt)
+    
+    if (translated && translated.length > 10) {
+      TRANSLATION_CACHE.set(cacheKey, translated)
+      console.log(`[translate] OK: "${text.substring(0, 50)}..." -> "${translated.substring(0, 50)}..."`)
+      return translated
+    }
+    return text
+  } catch (e) {
+    console.error('[translate] Error:', e.message)
+    return text
+  }
+}
 
 // Usa a API Elasticsearch da AON
 function fetchJson(url) {
@@ -103,7 +233,12 @@ async function scrapeFeatDescription(name) {
       description = description.slice(0, 397) + '...'
     }
     
-    console.log(`[scrapeFeat] Found "${name}": ${description.substring(0, 100)}...`)
+    // Traduz para português
+    if (description) {
+      description = await translateToPortuguese(description, 'talento (feat)')
+    }
+    
+    console.log(`[scrapeFeat] Found "${name}": ${description?.substring(0, 100)}...`)
     
     CACHE.set(`feat:${name}`, description || null)
     return description || null
@@ -141,7 +276,12 @@ async function scrapeGenericDescription(name) {
       description = description.slice(0, 297) + '...'
     }
     
-    console.log(`[scrapeGeneric] Found "${name}": ${description.substring(0, 80)}...`)
+    // Traduz para português
+    if (description) {
+      description = await translateToPortuguese(description, 'habilidade especial de classe')
+    }
+    
+    console.log(`[scrapeGeneric] Found "${name}": ${description?.substring(0, 80)}...`)
     
     CACHE.set(`generic:${name}`, description || null)
     return description || null
@@ -213,6 +353,11 @@ async function scrapeSpellDescription(name) {
     
     if (description.length > 400) {
       description = description.slice(0, 397) + '...'
+    }
+    
+    // Traduz para português
+    if (description) {
+      description = await translateToPortuguese(description, 'magia (spell)')
     }
     spellData.description = description
     
