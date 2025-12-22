@@ -63,6 +63,14 @@ function fetchGroq(prompt) {
   })
 }
 
+// Controle de rate limiting
+let lastTranslationTime = 0
+const MIN_DELAY_MS = 500 // 500ms entre traduções
+
+async function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
 // Traduz texto de inglês para português usando Groq (Llama 3.1) com contexto de PF2e
 async function translateToPortuguese(text, itemType = 'item') {
   if (!text || text.length < 10) return text
@@ -76,6 +84,14 @@ async function translateToPortuguese(text, itemType = 'item') {
   if (TRANSLATION_CACHE.has(cacheKey)) {
     return TRANSLATION_CACHE.get(cacheKey)
   }
+  
+  // Rate limiting: espera se necessário
+  const now = Date.now()
+  const timeSinceLastTranslation = now - lastTranslationTime
+  if (timeSinceLastTranslation < MIN_DELAY_MS) {
+    await delay(MIN_DELAY_MS - timeSinceLastTranslation)
+  }
+  lastTranslationTime = Date.now()
   
   const prompt = `Você é um tradutor especializado em Pathfinder 2nd Edition Remaster (PF2e).
 
@@ -219,14 +235,21 @@ async function scrapeFeatDescription(name) {
       .replace(/\s+/g, ' ')
       .trim()
     
-    // Limita o tamanho
-    if (description.length > 400) {
-      description = description.slice(0, 397) + '...'
+    // Limita o tamanho (aumentado para 800 caracteres)
+    if (description.length > 800) {
+      description = description.slice(0, 797) + '...'
     }
     
     // Traduz para português
     if (description) {
-      description = await translateToPortuguese(description, 'talento (feat)')
+      try {
+        const translated = await translateToPortuguese(description, 'talento (feat)')
+        if (translated && translated.length > 20) {
+          description = translated
+        }
+      } catch (e) {
+        console.error(`[scrapeFeat] Erro ao traduzir "${name}":`, e.message)
+      }
     }
     
     console.log(`[scrapeFeat] Found "${name}": ${description?.substring(0, 100)}...`)
@@ -262,14 +285,21 @@ async function scrapeGenericDescription(name) {
       .replace(/\s+/g, ' ')
       .trim()
     
-    // Limita o tamanho
-    if (description.length > 300) {
-      description = description.slice(0, 297) + '...'
+    // Limita o tamanho (aumentado para 600 caracteres)
+    if (description.length > 600) {
+      description = description.slice(0, 597) + '...'
     }
     
     // Traduz para português
     if (description) {
-      description = await translateToPortuguese(description, 'habilidade especial de classe')
+      try {
+        const translated = await translateToPortuguese(description, 'habilidade especial de classe')
+        if (translated && translated.length > 20) {
+          description = translated
+        }
+      } catch (e) {
+        console.error(`[scrapeGeneric] Erro ao traduzir "${name}":`, e.message)
+      }
     }
     
     console.log(`[scrapeGeneric] Found "${name}": ${description?.substring(0, 80)}...`)
@@ -342,13 +372,20 @@ async function scrapeSpellDescription(name) {
       .replace(/\s+/g, ' ')
       .trim()
     
-    if (description.length > 400) {
-      description = description.slice(0, 397) + '...'
+    if (description.length > 600) {
+      description = description.slice(0, 597) + '...'
     }
     
     // Traduz para português
     if (description) {
-      description = await translateToPortuguese(description, 'magia (spell)')
+      try {
+        const translated = await translateToPortuguese(description, 'magia (spell)')
+        if (translated && translated.length > 20) {
+          description = translated
+        }
+      } catch (e) {
+        console.error(`[scrapeSpell] Erro ao traduzir "${name}":`, e.message)
+      }
     }
     spellData.description = description
     
