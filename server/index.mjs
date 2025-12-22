@@ -153,9 +153,9 @@ function fetchJson(url) {
 }
 
 // Busca na API Elasticsearch da AON
-async function searchAon(query, category = null, exactMatch = true) {
+async function searchAon(query, category = null) {
   const q = encodeURIComponent(query)
-  let url = `https://elasticsearch.aonprd.com/aon/_search?q=${q}&size=20`
+  let url = `https://elasticsearch.aonprd.com/aon/_search?q=${q}&size=30`
   
   try {
     const data = await fetchJson(url)
@@ -167,17 +167,31 @@ async function searchAon(query, category = null, exactMatch = true) {
       filtered = hits.filter(h => h._source?.category === category)
     }
     
-    // Procura match exato pelo nome
-    if (exactMatch) {
-      const exact = filtered.find(h => {
-        const name = h._source?.name || h._source?.feat_markdown || ''
-        return name.toLowerCase() === query.toLowerCase()
-      })
-      if (exact) return exact._source
+    // Procura match exato pelo nome (case insensitive)
+    const queryLower = query.toLowerCase().trim()
+    const exact = filtered.find(h => {
+      const name = (h._source?.name || '').toLowerCase().trim()
+      return name === queryLower
+    })
+    
+    if (exact) {
+      console.log(`[searchAon] Match exato para "${query}": ${exact._source?.name}`)
+      return exact._source
     }
     
-    // Retorna o primeiro resultado se não encontrou exato
-    return filtered[0]?._source || null
+    // Se não encontrou exato, tenta match parcial
+    const partial = filtered.find(h => {
+      const name = (h._source?.name || '').toLowerCase()
+      return name.includes(queryLower) || queryLower.includes(name)
+    })
+    
+    if (partial) {
+      console.log(`[searchAon] Match parcial para "${query}": ${partial._source?.name}`)
+      return partial._source
+    }
+    
+    console.log(`[searchAon] Nenhum match para "${query}"`)
+    return null
   } catch (e) {
     console.error(`[searchAon] Error: ${e.message}`)
     return null
