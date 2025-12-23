@@ -126,6 +126,24 @@ export interface SpellCaster {
   blendedSpells: string[];
 }
 
+export interface Pet {
+  type: 'Animal Companion' | 'Familiar' | string;
+  name: string;
+  animal?: string;          // Tipo do animal (Bear, Wolf, etc.)
+  mature?: boolean;         // Companheiro maduro
+  incredible?: boolean;     // Companheiro incrível
+  incredibleType?: string;  // Tipo do incrível (Savage, Nimble, etc.)
+  specializations?: string[];
+  armor?: string;           // Armadura do companheiro
+  equipment?: string[];
+}
+
+export interface Familiar {
+  name: string;
+  type: string;
+  abilities?: string[];
+}
+
 export interface BuildInfo {
   name: string;
   class: string;
@@ -176,6 +194,10 @@ export interface BuildInfo {
     acTotal: number;
     shieldBonus: number | null;
   };
+  pets?: Pet[];
+  familiars?: Familiar[];
+  rituals?: string[];
+  resistances?: string[];
 }
 
 export interface CharacterFile {

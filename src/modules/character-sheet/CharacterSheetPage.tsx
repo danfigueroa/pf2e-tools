@@ -151,7 +151,8 @@ export const CharacterSheetPage = () => {
                 const r = await fetch(`/api/spell?name=${encodeURIComponent(n)}`)
                 if (!r.ok) continue
                 const data = await r.json()
-                if (data && data.description) {
+                // Salva o objeto completo se tiver nome ou descrição
+                if (data && (data.name || data.description || data.actions)) {
                     copy.spellDescriptions![n] = data
                 }
             } catch {}

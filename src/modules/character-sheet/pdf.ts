@@ -257,9 +257,11 @@ function drawDefensesAndHP(doc: jsPDF, build: BuildInfo, y: number): number {
     const rightX = x + halfWidth + 4
     let rightY = drawSectionTitle(doc, 'Pontos de Vida & CD', rightX, y, halfWidth)
     
-    // HP
+    // HP = ancestryhp + ((classhp + CON mod + bonushpPerLevel) * level) + bonushp
     const conMod = abilityMod(build.abilities.con)
-    const hp = (build.attributes.ancestryhp || 0) + ((build.attributes.classhp + conMod) * build.level)
+    const bonusPerLevel = build.attributes.bonushpPerLevel || 0
+    const bonusFlat = build.attributes.bonushp || 0
+    const hp = (build.attributes.ancestryhp || 0) + ((build.attributes.classhp + conMod + bonusPerLevel) * build.level) + bonusFlat
     
     setColor(doc, COLORS.black)
     doc.setFont('helvetica', 'bold')
@@ -750,19 +752,56 @@ function drawLores(doc: jsPDF, build: BuildInfo, y: number): number {
     return y + LAYOUT.sectionGap
 }
 
-// Formata o símbolo de ações
+// Formata o símbolo de ações (traduz todos os formatos possíveis)
 function formatActions(actions: string | undefined): string {
     if (!actions) return ''
-    switch (actions) {
-        case '1': return '(1 ação)'
-        case '2': return '(2 ações)'
-        case '3': return '(3 ações)'
-        case 'reaction': return '(reação)'
-        case 'free': return '(livre)'
-        case '1 to 3': return '(1 a 3 ações)'
-        case '1 to 2': return '(1 a 2 ações)'
-        default: return `(${actions})`
+    
+    const normalized = actions.toString().toLowerCase().trim()
+    
+    // Tempos de lançamento longos (não são ações de combate)
+    if (normalized.includes('minute') || normalized.includes('hour') || normalized.includes('day')) {
+        return '' // Não mostrar como ações
     }
+    
+    // Valores numéricos simples
+    if (normalized === '1') return '(1 ação)'
+    if (normalized === '2') return '(2 ações)'
+    if (normalized === '3') return '(3 ações)'
+    
+    // Variações de "single/one action"
+    if (normalized.includes('single') && normalized.includes('three')) return '(1 a 3 ações)'
+    if (normalized.includes('single') && normalized.includes('two')) return '(1 a 2 ações)'
+    if (normalized.includes('one') && normalized.includes('three')) return '(1 a 3 ações)'
+    if (normalized.includes('one') && normalized.includes('two')) return '(1 a 2 ações)'
+    if (normalized.includes('two') && normalized.includes('three')) return '(2 a 3 ações)'
+    
+    if (normalized === 'single action' || normalized === 'one action' || normalized.includes('single action')) return '(1 ação)'
+    if (normalized === 'two actions' || normalized === 'two-action' || normalized.includes('two action')) return '(2 ações)'
+    if (normalized === 'three actions' || normalized === 'three-action' || normalized.includes('three action')) return '(3 ações)'
+    
+    // Reação e livre
+    if (normalized.includes('reaction') || normalized === 'r') return '(reação)'
+    if (normalized.includes('free') || normalized === 'f') return '(livre)'
+    
+    // Variáveis numéricas
+    if (normalized.includes('1 to 3') || normalized.includes('1-3')) return '(1 a 3 ações)'
+    if (normalized.includes('1 to 2') || normalized.includes('1-2')) return '(1 a 2 ações)'
+    if (normalized.includes('2 to 3') || normalized.includes('2-3')) return '(2 a 3 ações)'
+    
+    // Se contém "action" mas não foi pego acima, traduz genericamente
+    if (normalized.includes('action')) {
+        let result = normalized
+            .replace(/single/g, '1')
+            .replace(/one/g, '1')
+            .replace(/two/g, '2')
+            .replace(/three/g, '3')
+            .replace(/actions?/g, 'ação')
+            .replace(/to/g, 'a')
+        return `(${result})`
+    }
+    
+    // Para outros valores, retorna vazio (provavelmente não é ação de combate)
+    return ''
 }
 
 // Formata informação de heightened
@@ -1056,6 +1095,297 @@ function drawFooter(doc: jsPDF) {
 // MAIN EXPORT FUNCTIONS
 // ============================================================================
 
+// ============================================================================
+// COMPANHEIROS ANIMAIS E FAMILIARES
+// ============================================================================
+
+// Stats base dos animais mais comuns (PF2e) com benefícios de suporte corretos
+const ANIMAL_STATS: Record<string, { size: string; speed: number; attacks: string[]; support: string; advanced?: string }> = {
+    'Bear': { 
+        size: 'Small→Medium', 
+        speed: 35, 
+        attacks: ['Jaws 1d8 P', 'Claw 1d6 S (agile)'], 
+        support: 'O urso ataca seu inimigo. Até seu próximo turno, alvos que o urso agarrou sofrem +1d8 cortante dos seus Golpes.',
+        advanced: 'Bear Hug: Se o urso acertar um Golpe e tiver mais uma ação, pode gastar essa ação para tentar Agarrar o alvo. Se tiver sucesso, o alvo também sofre 1d8 de dano de concussão.'
+    },
+    'Wolf': { 
+        size: 'Small', 
+        speed: 40, 
+        attacks: ['Jaws 1d8 P'], 
+        support: 'O lobo derruba presas. Até seu próximo turno, seus Golpes que acertarem alvos adjacentes ao lobo os derrubam.',
+        advanced: 'Knockdown: Se o lobo acertar um Golpe e tiver mais uma ação, pode gastar essa ação para tentar Derrubar o alvo.'
+    },
+    'Horse': { 
+        size: 'Large', 
+        speed: 40, 
+        attacks: ['Hoof 1d6 B'], 
+        support: 'O cavalo galopa. Você ganha +2 de circunstância em testes de Atletismo para Empurrar.',
+        advanced: 'Gallop: O cavalo Caminha duas vezes. Você ganha +4 metros de Velocidade durante esse movimento.'
+    },
+    'Cat': { 
+        size: 'Small', 
+        speed: 35, 
+        attacks: ['Jaws 1d6 P', 'Claw 1d4 S (agile)'], 
+        support: 'O felino causa ferimentos profundos. Seus Golpes que acertarem causam 1d6 sangramento persistente.',
+        advanced: 'Cat Pounce: O felino Caminha e então faz um Golpe. Se estava escondido no início, permanece escondido até após o Golpe.'
+    },
+    'Bird': { 
+        size: 'Small', 
+        speed: 10, 
+        attacks: ['Beak 1d6 P', 'Talon 1d4 S (agile, finesse)'], 
+        support: 'A ave distrai o alvo. Alvos atingidos ficam flat-footed até o início do seu próximo turno.',
+        advanced: 'Flyby Attack: A ave Voa e faz um Golpe em qualquer ponto durante seu movimento.'
+    },
+    'Snake': { 
+        size: 'Small', 
+        speed: 20, 
+        attacks: ['Fangs 1d8 P'], 
+        support: 'A serpente envenena seu alvo. Seus Golpes aplicam veneno de cobra (1d8 veneno).',
+        advanced: 'Constrict: A serpente causa 1d8 de dano de concussão em uma criatura que está agarrando.'
+    },
+    'Badger': { 
+        size: 'Small', 
+        speed: 25, 
+        attacks: ['Jaws 1d8 P', 'Claw 1d6 S (agile)'], 
+        support: 'O texugo se enterra e emerge para atacar. Seus Golpes ignoram cobertura do alvo.',
+        advanced: 'Badger Rage: O texugo entra em fúria por 1 minuto, ganhando +4 de dano mas -1 CA.'
+    },
+    'Shark': { 
+        size: 'Small→Medium', 
+        speed: 0, 
+        attacks: ['Jaws 1d8 P'], 
+        support: 'O tubarão fareja sangue. Você ganha +1 de circunstância em Golpes contra criaturas sangrando.',
+        advanced: 'Brutal Jaws: Se o tubarão acertar um Golpe crítico, o alvo sofre 1d8 de sangramento persistente.'
+    },
+    'Dromaeosaur': { 
+        size: 'Small', 
+        speed: 50, 
+        attacks: ['Jaws 1d8 P', 'Talon 1d6 S'], 
+        support: 'O dinossauro persegue presas. Seus Golpes contra alvos que se moveram causam +1d6 de dano.',
+        advanced: 'Darting Attack: O dromaeosaur Caminha e faz um Golpe, ganhando +1 de circunstância no ataque.'
+    },
+}
+
+function getAnimalCompanionHP(level: number, isMature: boolean, isIncredible: boolean): number {
+    // Base: 6 + CON mod (assume +2) por nível, ajustado para mature/incredible
+    let hp = (6 + 2) * level
+    if (isMature) hp += level * 2  // +2 HP por nível quando mature
+    if (isIncredible) hp += level * 2  // +2 HP por nível quando incredible
+    return hp
+}
+
+function getAnimalCompanionAC(level: number, isMature: boolean, isIncredible: boolean): number {
+    // Base AC = 10 + level + DEX (assume +2) + proficiency
+    let ac = 10 + level + 2 + 2  // trained
+    if (isMature) ac += 2  // expert unarmored
+    if (isIncredible) ac += 2  // master unarmored (savage) ou outras melhorias
+    return ac
+}
+
+function drawPets(doc: jsPDF, build: BuildInfo, y: number): number {
+    if (!build.pets?.length && !build.familiars?.length) return y
+    
+    y = ensurePageSpace(doc, y, 80)
+    const x = LAYOUT.pageMargin
+    const sectionWidth = LAYOUT.contentWidth
+    
+    y = drawSectionTitle(doc, 'Companheiro Animal', x, y, sectionWidth)
+    
+    // Animal Companions
+    build.pets?.forEach((pet) => {
+        y = ensurePageSpace(doc, y, 60)
+        
+        const animalType = pet.animal || 'Unknown'
+        const stats = ANIMAL_STATS[animalType] || { size: '?', speed: 25, attacks: ['Attack 1d6'], support: '—' }
+        const level = build.level || 1
+        const hp = getAnimalCompanionHP(level, !!pet.mature, !!pet.incredible)
+        const ac = getAnimalCompanionAC(level, !!pet.mature, !!pet.incredible)
+        
+        // Cabeçalho: Nome e Tipo
+        setColor(doc, COLORS.black)
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(11)
+        doc.text(pet.name, x + 2, y + 4)
+        
+        setColor(doc, COLORS.gray)
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(8)
+        doc.text(`${animalType} Companion`, x + sectionWidth - 2, y + 4, { align: 'right' })
+        y += 7
+        
+        // Status badges
+        const badges: string[] = []
+        if (pet.mature) badges.push('Maduro')
+        if (pet.incredible) badges.push(`Incrível (${pet.incredibleType || 'Standard'})`)
+        if (badges.length) {
+            setColor(doc, COLORS.black)
+            doc.setFont('helvetica', 'bold')
+            doc.setFontSize(7)
+            doc.text(badges.join(' • '), x + 4, y + 3)
+            y += 5
+        }
+        
+        // Linha 1: HP, AC, Speed
+        setColor(doc, COLORS.veryLightGray, 'fill')
+        doc.rect(x, y, sectionWidth, 8, 'F')
+        
+        setColor(doc, COLORS.black)
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(9)
+        doc.text(`HP: ${hp}`, x + 4, y + 5.5)
+        doc.text(`CA: ${ac}`, x + 35, y + 5.5)
+        doc.text(`Velocidade: ${stats.speed} pés`, x + 65, y + 5.5)
+        
+        // Tamanho
+        let sizeText = stats.size
+        if (pet.mature && stats.size.includes('→')) {
+            sizeText = stats.size.split('→')[1] // Pega o tamanho maior quando mature
+        }
+        doc.text(`Tamanho: ${sizeText}`, x + sectionWidth - 4, y + 5.5, { align: 'right' })
+        y += 10
+        
+        // Ataques
+        setColor(doc, COLORS.black)
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(8)
+        doc.text('Ataques:', x + 2, y + 4)
+        
+        doc.setFont('helvetica', 'normal')
+        const attackBonus = level + 4 + (pet.mature ? 2 : 0) + (pet.incredible ? 2 : 0)
+        const attackText = stats.attacks.map(a => `${a.split(' ')[0]} ${signed(attackBonus)} (${a.split(' ').slice(1).join(' ')})`).join(', ')
+        doc.text(attackText, x + 22, y + 4)
+        y += 6
+        
+        // Support Benefit
+        setColor(doc, COLORS.black)
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(7)
+        doc.text('Benefício de Suporte:', x + 2, y + 4)
+        y += 8
+        
+        setColor(doc, COLORS.gray)
+        doc.setFont('helvetica', 'normal')
+        const supportLines = doc.splitTextToSize(stats.support, sectionWidth - 10)
+        supportLines.forEach((line: string) => {
+            doc.text(line, x + 4, y)
+            y += 3.5
+        })
+        y += 2
+        
+        // Habilidade Especial (Advanced Maneuver)
+        if (stats.advanced) {
+            y = ensurePageSpace(doc, y, 20)
+            
+            setColor(doc, COLORS.black)
+            doc.setFont('helvetica', 'bold')
+            doc.setFontSize(7)
+            doc.text('Habilidade Especial:', x + 2, y + 4)
+            y += 8
+            
+            setColor(doc, COLORS.gray)
+            doc.setFont('helvetica', 'normal')
+            const advancedLines = doc.splitTextToSize(stats.advanced, sectionWidth - 10)
+            advancedLines.forEach((line: string) => {
+                doc.text(line, x + 4, y)
+                y += 3.5
+            })
+            y += 2
+        }
+        
+        // Armadura do pet
+        if (pet.armor) {
+            setColor(doc, COLORS.gray)
+            doc.setFont('helvetica', 'normal')
+            doc.setFontSize(7)
+            doc.text(`Armadura: ${pet.armor}`, x + 4, y + 3)
+            y += 6
+        }
+        
+        // Separador
+        setColor(doc, COLORS.veryLightGray, 'draw')
+        doc.setLineWidth(0.3)
+        doc.line(x, y + 2, x + sectionWidth, y + 2)
+        y += 6
+    })
+    
+    // Familiars
+    build.familiars?.forEach((familiar) => {
+        y = ensurePageSpace(doc, y, 25)
+        
+        setColor(doc, COLORS.black)
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(10)
+        doc.text(familiar.name, x + 2, y + 4)
+        
+        setColor(doc, COLORS.gray)
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(8)
+        doc.text('Familiar', x + sectionWidth - 2, y + 4, { align: 'right' })
+        y += 6
+        
+        // Familiar stats
+        const famHP = 5 * Math.floor((build.level || 1) / 2)
+        doc.setFontSize(8)
+        doc.text(`HP: ${famHP} • CA: ${15 + (build.level || 1)} • Percepção/Saves: igual ao mestre`, x + 4, y + 3)
+        y += 5
+        
+        if (familiar.abilities?.length) {
+            setColor(doc, COLORS.gray)
+            doc.setFontSize(7)
+            const lines = doc.splitTextToSize(`Habilidades: ${familiar.abilities.join(', ')}`, sectionWidth - 8)
+            lines.forEach((line: string) => {
+                doc.text(line, x + 4, y + 3)
+                y += 4
+            })
+        }
+        
+        y += 3
+    })
+    
+    return y + LAYOUT.sectionGap
+}
+
+// ============================================================================
+// RESISTÊNCIAS E RITUAIS
+// ============================================================================
+
+function drawResistancesAndRituals(doc: jsPDF, build: BuildInfo, y: number): number {
+    if (!build.resistances?.length && !build.rituals?.length) return y
+    
+    const x = LAYOUT.pageMargin
+    const sectionWidth = LAYOUT.contentWidth
+    
+    // Resistências
+    if (build.resistances?.length) {
+        y = ensurePageSpace(doc, y, 15)
+        
+        setColor(doc, COLORS.black)
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(8)
+        doc.text('Resistências:', x + 2, y + 4)
+        
+        doc.setFont('helvetica', 'normal')
+        doc.text(build.resistances.join(', '), x + 30, y + 4)
+        y += 6
+    }
+    
+    // Rituais
+    if (build.rituals?.length) {
+        y = ensurePageSpace(doc, y, 15)
+        
+        setColor(doc, COLORS.black)
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(8)
+        doc.text('Rituais:', x + 2, y + 4)
+        
+        doc.setFont('helvetica', 'normal')
+        doc.text(build.rituals.join(', '), x + 20, y + 4)
+        y += 6
+    }
+    
+    return y + 2
+}
+
 export async function generateCharacterPdf(build: BuildInfo): Promise<ArrayBuffer> {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' })
     
@@ -1063,14 +1393,16 @@ export async function generateCharacterPdf(build: BuildInfo): Promise<ArrayBuffe
     let y = drawHeader(doc, build)
     y = drawAbilityScores(doc, build, y)
     y = drawDefensesAndHP(doc, build, y)
-    y = drawWeapons(doc, build, y)  // Ataques na primeira página!
+    y = drawResistancesAndRituals(doc, build, y) // Resistências logo após HP
+    y = drawWeapons(doc, build, y)
     y = drawSkills(doc, build, y)
     
-    // PÁGINA 2+: Lores, Equipamentos, Feats, Magias
+    // PÁGINA 2+: Lores, Equipamentos, Feats, Magias, Companheiros
     y = drawLores(doc, build, y)
     y = drawArmor(doc, build, y)
     y = drawFeats(doc, build, y)
     y = drawSpecials(doc, build, y)
+    y = drawPets(doc, build, y) // Companheiros após habilidades especiais
     y = drawSpells(doc, build, y)
     y = drawFocusSpells(doc, build, y)
     

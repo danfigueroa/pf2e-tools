@@ -114,7 +114,7 @@ function hasCorruptedCharacters(text) {
 function cleanTranslation(text) {
   if (!text) return ''
   
-  return text
+  let cleaned = text
     // Remove prefixos comuns do LLM
     .replace(/^(Tradução|Translation|TRADUÇÃO|Aqui está|Here is|Here's|TIPO:[^\n]*|Tradução em português:?|Portuguese:?|Resposta:?)\s*/gi, '')
     // Remove aspas no início/fim
@@ -123,11 +123,36 @@ function cleanTranslation(text) {
     .replace(/^\s*\n+/, '')
     // Remove caracteres de controle
     .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '')
-    // Normaliza espaços múltiplos
-    .replace(/\s{3,}/g, ' ')
-    // Corrige espaçamento estranho de letras (F a ç a -> Faça)
-    .replace(/(\w)\s+(?=\w\s+\w\s+\w)/g, '$1')
-    .trim()
+  
+  // Remove caracteres Unicode estranhos - mapeia para equivalentes latinos
+  const charMap = {
+    // Vietnamita
+    'ỹ': 'y', 'Ỹ': 'Y', 'ỳ': 'y', 'Ỳ': 'Y', 'ỷ': 'y', 'ỵ': 'y', 'ỹ': 'y',
+    'ẵ': 'ã', 'Ẵ': 'Ã', 'ặ': 'a', 'Ặ': 'A', 'ắ': 'á', 'ằ': 'à', 'ẳ': 'a', 'ẫ': 'ã',
+    'ề': 'ê', 'Ề': 'Ê', 'ể': 'ê', 'Ể': 'Ê', 'ễ': 'ê', 'ệ': 'ê', 'ế': 'é',
+    'ị': 'i', 'Ị': 'I', 'ỉ': 'i', 'ĩ': 'i',
+    'ọ': 'o', 'Ọ': 'O', 'ỏ': 'o', 'ố': 'ô', 'ồ': 'ô', 'ổ': 'ô', 'ỗ': 'ô', 'ộ': 'ô',
+    'ụ': 'u', 'Ụ': 'U', 'ử': 'u', 'Ử': 'U', 'ũ': 'u', 'ủ': 'u', 'ứ': 'u', 'ừ': 'u',
+    'ơ': 'o', 'Ơ': 'O', 'ư': 'u', 'Ư': 'U', 'ờ': 'o', 'ớ': 'o', 'ở': 'o',
+  }
+  
+  cleaned = cleaned.replace(/[\u1E00-\u1EFF]/g, (char) => charMap[char] || '')
+  
+  // IMPORTANTE: Corrige o padrão de espaçamento letra por letra
+  // Detecta: "c o n s i d e r a m" e transforma em "consideram"
+  // Padrão: letra, espaço, letra, espaço, letra... (pelo menos 5 ocorrências)
+  cleaned = cleaned.replace(/\b([a-záàâãéêíóôõúç])\s+([a-záàâãéêíóôõúç])\s+([a-záàâãéêíóôõúç])\s+([a-záàâãéêíóôõúç])\s+([a-záàâãéêíóôõúç])(\s+[a-záàâãéêíóôõúç])*/gi, (match) => {
+    return match.replace(/\s+/g, '')
+  })
+  
+  // Remove sequências de caracteres estranhos repetidos
+  cleaned = cleaned.replace(/[ỹỳỷỵ]+/g, 'y')
+  cleaned = cleaned.replace(/(.)\1{3,}/g, '$1$1') // Reduz repetições excessivas
+  
+  // Normaliza espaços múltiplos
+  cleaned = cleaned.replace(/\s{2,}/g, ' ')
+  
+  return cleaned.trim()
 }
 
 // Verifica se a tradução é válida
@@ -499,18 +524,91 @@ async function scrapeGenericDescription(name) {
   return null
 }
 
-// Busca descrição de magia
+// Busca descrição detalhada de magia
 async function scrapeSpellDescription(spellName) {
   console.log(`[scrapeSpell] Buscando: ${spellName}`)
   
-  const result = await searchAon(spellName, 'spell')
-  if (result?.description) {
-    console.log(`[scrapeSpell] Encontrado: ${result.name}`)
-    return result.description // Magias não são traduzidas por serem muito técnicas
+  const cacheKey = `spell:${spellName}`
+  if (CACHE.has(cacheKey)) {
+    return CACHE.get(cacheKey)
   }
   
-  console.log(`[scrapeSpell] Não encontrado: ${spellName}`)
-  return null
+  try {
+    const searchBody = {
+      query: {
+        bool: {
+          must: [
+            { multi_match: { query: spellName, fields: ['name^3'], type: 'best_fields' } }
+          ],
+          filter: [
+            { term: { category: 'spell' } }
+          ]
+        }
+      },
+      size: 5
+    }
+    
+    const result = await new Promise((resolve, reject) => {
+      const options = {
+        hostname: 'elasticsearch.aonprd.com',
+        path: '/aon/_search',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0 pf2e-tools'
+        }
+      }
+      
+      const req = https.request(options, (res) => {
+        let data = ''
+        res.on('data', chunk => { data += chunk })
+        res.on('end', () => {
+          try { resolve(JSON.parse(data)) } catch (e) { reject(e) }
+        })
+      })
+      req.on('error', reject)
+      req.setTimeout(10000, () => { req.destroy(); reject(new Error('Timeout')) })
+      req.write(JSON.stringify(searchBody))
+      req.end()
+    })
+    
+    if (result.hits?.hits?.length > 0) {
+      const exactMatch = result.hits.hits.find(h => h._source?.name?.toLowerCase() === spellName.toLowerCase())
+      const source = (exactMatch || result.hits.hits[0])._source
+      
+      // Extrair campos da magia
+      const spellData = {
+        name: source.name,
+        actions: source.actions || source.action || null,
+        traits: source.trait || [],
+        range: source.range || null,
+        area: source.area || null,
+        targets: source.targets || source.target || null,
+        duration: source.duration || null,
+        defense: source.save || source.defense || null,
+        description: cleanAonText(source.text || source.markdown || ''),
+        damage: source.damage || null,
+        damageType: source.damage_type || null,
+        heightened: source.heightened || null
+      }
+      
+      // Traduzir a descrição
+      if (spellData.description) {
+        const translated = await translateToPortuguese(spellData.description)
+        if (translated) spellData.description = translated
+      }
+      
+      console.log(`[scrapeSpell] Encontrado: ${source.name} (${spellData.actions || '?'} ações)`)
+      CACHE.set(cacheKey, spellData)
+      return spellData
+    }
+    
+    console.log(`[scrapeSpell] Não encontrado: ${spellName}`)
+    return null
+  } catch (e) {
+    console.error(`[scrapeSpell] Erro:`, e.message)
+    return null
+  }
 }
 
 // ============================================================================
@@ -597,7 +695,7 @@ const server = http.createServer(async (req, res) => {
     return
   }
   
-  // Busca magia
+  // Busca magia (retorna objeto completo com actions, traits, etc.)
   if (pathname === '/api/spell') {
     const name = parsedUrl.searchParams.get('name')
     if (!name) {
@@ -607,9 +705,10 @@ const server = http.createServer(async (req, res) => {
     }
     
     try {
-      const description = await scrapeSpellDescription(name)
+      const spellData = await scrapeSpellDescription(name)
       res.writeHead(200, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify({ name, description }))
+      // Retorna o objeto completo da magia (não apenas description)
+      res.end(JSON.stringify(spellData || { name, description: null }))
     } catch (e) {
       console.error('[/api/spell] Error:', e)
       res.writeHead(500, { 'Content-Type': 'application/json' })
