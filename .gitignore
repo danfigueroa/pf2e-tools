@@ -1,6 +1,10 @@
 # Environment variables (contém chaves secretas)
 .env
 .env.local
+.env.production.local
+
+# Vercel
+.vercel
 
 # Logs
 logs

@@ -158,16 +158,63 @@ yarn build
 yarn preview
 ```
 
+### 🚀 Deploy na Vercel (Gratuito)
+
+O projeto está configurado para deploy automático na Vercel.
+
+#### Passo a Passo
+
+1. **Crie uma conta na Vercel**
+
+    - Acesse [vercel.com](https://vercel.com) e faça login com GitHub
+
+2. **Importe o repositório**
+
+    - Clique em "New Project"
+    - Selecione o repositório `pf2e-tools`
+    - A Vercel detectará automaticamente as configurações do Vite
+
+3. **Configure as variáveis de ambiente**
+
+    - Vá em "Settings" > "Environment Variables"
+    - Adicione: `GROQ_API_KEY` = `sua_chave_groq`
+    - Obtenha a chave gratuitamente em: [console.groq.com/keys](https://console.groq.com/keys)
+
+4. **Deploy**
+    - Clique em "Deploy"
+    - Aguarde o build finalizar
+    - Seu app estará disponível em `https://seu-projeto.vercel.app`
+
+#### Estrutura de API Serverless
+
+```
+api/
+├── _lib/
+│   └── aon.js          # Funções compartilhadas (busca AON, tradução)
+├── health.js           # GET /api/health
+├── feat.js             # GET /api/feat?name=...
+├── search.js           # GET /api/search?name=...&category=...
+├── spell.js            # GET /api/spell?name=...
+└── clear-cache.js      # POST /api/clear-cache
+```
+
 ---
 
 ## 🏗️ Arquitetura do Projeto
 
 ```
 pf2e-tools/
+├── api/                          # Serverless Functions (Vercel)
+│   ├── _lib/aon.js               # Funções compartilhadas
+│   ├── health.js                 # Health check
+│   ├── feat.js                   # Busca talentos
+│   ├── search.js                 # Busca genérica
+│   ├── spell.js                  # Busca magias
+│   └── clear-cache.js            # Limpa cache
 ├── public/
 │   └── character-example.json    # Exemplo de personagem para testes
 ├── server/
-│   └── index.mjs                 # Servidor de API (scraping AON)
+│   └── index.mjs                 # Servidor de API local (desenvolvimento)
 ├── src/
 │   ├── components/               # Componentes reutilizáveis
 │   ├── hooks/                    # Custom React hooks
