@@ -405,7 +405,7 @@ function getWeaponProficiency(build: BuildInfo, weapon: Weapon): number {
     if (sp.trained?.includes(weapon.name)) return 2
     
     // 2. Se não tem proficiência específica, usa a proficiência da categoria da arma
-    const proficiencies = build.proficiencies as Record<string, number>
+    const proficiencies = build.proficiencies as unknown as Record<string, number>
     const weaponCategory = weapon.prof?.toLowerCase() || ''
     
     if (weaponCategory === 'unarmed' && proficiencies?.unarmed) {
@@ -1353,7 +1353,6 @@ function drawResistancesAndRituals(doc: jsPDF, build: BuildInfo, y: number): num
     if (!build.resistances?.length && !build.rituals?.length) return y
     
     const x = LAYOUT.pageMargin
-    const sectionWidth = LAYOUT.contentWidth
     
     // Resistências
     if (build.resistances?.length) {

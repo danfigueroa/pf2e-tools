@@ -167,7 +167,6 @@ export const CharacterSheetPage = () => {
         if (!apiAvailable) {
             const existingFeats = Object.keys(b.featDescriptions || {}).length
             const existingSpecials = Object.keys(b.specialDescriptions || {}).length
-            const existingSpells = Object.keys(b.spellDescriptions || {}).length
             
             const totalFeats = (b.feats || []).length
             const totalSpecials = (b.specials || []).length
