@@ -57,7 +57,7 @@ interface SpellLevelStats {
 }
 
 // Get stats for a specific spell at a specific heightened level
-const getSpellStats = (spellId: string, spellLevel: number, effectiveLevel: number): SpellLevelStats => {
+const getSpellStats = (spellId: string, effectiveLevel: number): SpellLevelStats => {
   // Default stats structure
   const baseStats: SpellLevelStats = {
     acBase: 16,
@@ -192,11 +192,10 @@ const StatBlockGenerator: React.FC<StatBlockGeneratorProps> = ({
     const effectiveSpellLevel = getEffectiveSpellLevel();
     
     // Get spell-specific stats
-    const spellStats = getSpellStats(spell.id, spell.level, effectiveSpellLevel);
+    const spellStats = getSpellStats(spell.id, effectiveSpellLevel);
     
     // Calculate ability modifiers
     const strMod = Math.floor((safeAbilityScores.strength - 10) / 2);
-    const proficiencyBonus = safeLevel;
     
     // AC is base + character level
     const baseAC = spellStats.acBase + safeLevel;
