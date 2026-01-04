@@ -1,5 +1,17 @@
 import type { TransformationSpell, TransformationForm } from '../../../types';
 
+// Import all spell data from separate files
+import { aerialFormSpell, aerialForms } from './aerial-form';
+import { insectFormSpell, insectForms } from './insect-form';
+import { dragonFormSpell, dragonForms } from './dragon-form';
+import { elementalFormSpell, elementalForms } from './elemental-form';
+import { plantFormSpell, plantForms } from './plant-form';
+import { monstrosityFormSpell, monstrosityForms } from './monstrosity-form';
+import { feyFormSpell, feyForms } from './fey-form';
+import { fiendFormSpell, fiendForms } from './fiend-form';
+import { angelFormSpell, angelForms } from './angel-form';
+import { natureIncarnateSpell, natureIncarnateForms } from './nature-incarnate';
+
 // Animal forms available for Animal Form spell
 export const animalForms: TransformationForm[] = [
   {
@@ -396,6 +408,188 @@ export const animalFormSpell: TransformationSpell = {
   forms: animalForms
 };
 
+// Dinosaur forms
+export const dinosaurForms: TransformationForm[] = [
+  {
+    id: 'ankylosaurus',
+    name: 'Ankylosaurus',
+    size: 'Large',
+    speed: {
+      land: 25
+    },
+    attacks: [
+      {
+        name: 'Tail',
+        type: 'melee',
+        bonus: 18,
+        damage: '2d6 bludgeoning',
+        traits: ['backswing', 'reach'],
+        range: 10
+      },
+      {
+        name: 'Foot',
+        type: 'melee',
+        bonus: 18,
+        damage: '2d6 bludgeoning',
+        traits: []
+      }
+    ],
+    abilities: [],
+    senses: {
+      lowLightVision: true,
+      scent: 30
+    },
+    description: 'Speed 25 feet; Melee tail (backswing, reach 10 feet), Damage 2d6 bludgeoning; Melee foot, Damage 2d6 bludgeoning.'
+  },
+  {
+    id: 'brontosaurus',
+    name: 'Brontosaurus',
+    size: 'Large',
+    speed: {
+      land: 25
+    },
+    attacks: [
+      {
+        name: 'Tail',
+        type: 'melee',
+        bonus: 18,
+        damage: '2d6 bludgeoning',
+        traits: ['reach'],
+        range: 15
+      },
+      {
+        name: 'Foot',
+        type: 'melee',
+        bonus: 18,
+        damage: '2d8 bludgeoning',
+        traits: []
+      }
+    ],
+    abilities: [],
+    senses: {
+      lowLightVision: true,
+      scent: 30
+    },
+    description: 'Speed 25 feet; Melee tail (reach 15 feet), Damage 2d6 bludgeoning; Melee foot, Damage 2d8 bludgeoning.'
+  },
+  {
+    id: 'deinonychus',
+    name: 'Deinonychus',
+    size: 'Large',
+    speed: {
+      land: 40
+    },
+    attacks: [
+      {
+        name: 'Talon',
+        type: 'melee',
+        bonus: 18,
+        damage: '2d4 piercing plus 1 persistent bleed',
+        traits: ['agile']
+      },
+      {
+        name: 'Jaws',
+        type: 'melee',
+        bonus: 18,
+        damage: '1d10 piercing',
+        traits: []
+      }
+    ],
+    abilities: [],
+    senses: {
+      lowLightVision: true,
+      scent: 30
+    },
+    description: 'Speed 40 feet; Melee talon (agile), Damage 2d4 piercing plus 1 persistent bleed; Melee jaws, Damage 1d10 piercing.'
+  },
+  {
+    id: 'stegosaurus',
+    name: 'Stegosaurus',
+    size: 'Large',
+    speed: {
+      land: 30
+    },
+    attacks: [
+      {
+        name: 'Tail',
+        type: 'melee',
+        bonus: 18,
+        damage: '2d8 piercing',
+        traits: ['reach'],
+        range: 10
+      }
+    ],
+    abilities: [],
+    senses: {
+      lowLightVision: true,
+      scent: 30
+    },
+    description: 'Speed 30 feet; Melee tail (reach 10 feet), Damage 2d8 piercing.'
+  },
+  {
+    id: 'triceratops',
+    name: 'Triceratops',
+    size: 'Large',
+    speed: {
+      land: 30
+    },
+    attacks: [
+      {
+        name: 'Horn',
+        type: 'melee',
+        bonus: 18,
+        damage: '2d8 piercing',
+        traits: []
+      },
+      {
+        name: 'Foot',
+        type: 'melee',
+        bonus: 18,
+        damage: '2d6 bludgeoning',
+        traits: []
+      }
+    ],
+    abilities: [],
+    senses: {
+      lowLightVision: true,
+      scent: 30
+    },
+    description: 'Speed 30 feet; Melee horn, Damage 2d8 piercing; Melee foot, Damage 2d6 bludgeoning.'
+  },
+  {
+    id: 'tyrannosaurus',
+    name: 'Tyrannosaurus',
+    size: 'Large',
+    speed: {
+      land: 30
+    },
+    attacks: [
+      {
+        name: 'Jaws',
+        type: 'melee',
+        bonus: 18,
+        damage: '1d12 piercing',
+        traits: ['deadly', 'reach'],
+        range: 10
+      },
+      {
+        name: 'Tail',
+        type: 'melee',
+        bonus: 18,
+        damage: '1d10 bludgeoning',
+        traits: ['reach'],
+        range: 10
+      }
+    ],
+    abilities: [],
+    senses: {
+      lowLightVision: true,
+      scent: 30
+    },
+    description: 'Speed 30 feet; Melee jaws (deadly d12, reach 10 feet), Damage 1d12 piercing; Melee tail (reach 10 feet), Damage 1d10 bludgeoning.'
+  }
+];
+
 // Dinosaur Form spell data
 export const dinosaurFormSpell: TransformationSpell = {
   id: 'dinosaur-form',
@@ -412,200 +606,72 @@ export const dinosaurFormSpell: TransformationSpell = {
     5: 'Your battle form is Huge and your attacks have 15-foot reach. You instead gain 20 temporary HP, AC = 18 + your level, attack modifier +18, damage bonus +15, and Athletics +20.',
     7: 'Your battle form is Gargantuan and your attacks have 20-foot reach. You instead gain 25 temporary HP, AC = 19 + your level, attack modifier +25, damage bonus +19, and Athletics +25.'
   },
-  forms: [
-    {
-      id: 'ankylosaurus',
-      name: 'Ankylosaurus',
-      size: 'Large',
-      speed: {
-        land: 25
-      },
-      attacks: [
-        {
-          name: 'Tail',
-          type: 'melee',
-          bonus: 18,
-          damage: '2d6 bludgeoning',
-          traits: ['backswing', 'reach'],
-          range: 10
-        },
-        {
-          name: 'Foot',
-          type: 'melee',
-          bonus: 18,
-          damage: '2d6 bludgeoning',
-          traits: []
-        }
-      ],
-      abilities: [],
-      senses: {
-        lowLightVision: true,
-        scent: 30
-      },
-      description: 'Speed 25 feet; Melee tail (backswing, reach 10 feet), Damage 2d6 bludgeoning; Melee foot, Damage 2d6 bludgeoning.'
-    },
-    {
-      id: 'brontosaurus',
-      name: 'Brontosaurus',
-      size: 'Large',
-      speed: {
-        land: 25
-      },
-      attacks: [
-        {
-          name: 'Tail',
-          type: 'melee',
-          bonus: 18,
-          damage: '2d6 bludgeoning',
-          traits: ['reach'],
-          range: 15
-        },
-        {
-          name: 'Foot',
-          type: 'melee',
-          bonus: 18,
-          damage: '2d8 bludgeoning',
-          traits: []
-        }
-      ],
-      abilities: [],
-      senses: {
-        lowLightVision: true,
-        scent: 30
-      },
-      description: 'Speed 25 feet; Melee tail (reach 15 feet), Damage 2d6 bludgeoning; Melee foot, Damage 2d8 bludgeoning.'
-    },
-    {
-      id: 'deinonychus',
-      name: 'Deinonychus',
-      size: 'Large',
-      speed: {
-        land: 40
-      },
-      attacks: [
-        {
-          name: 'Talon',
-          type: 'melee',
-          bonus: 18,
-          damage: '2d4 piercing plus 1 persistent bleed',
-          traits: ['agile']
-        },
-        {
-          name: 'Jaws',
-          type: 'melee',
-          bonus: 18,
-          damage: '1d10 piercing',
-          traits: []
-        }
-      ],
-      abilities: [],
-      senses: {
-        lowLightVision: true,
-        scent: 30
-      },
-      description: 'Speed 40 feet; Melee talon (agile), Damage 2d4 piercing plus 1 persistent bleed; Melee jaws, Damage 1d10 piercing.'
-    },
-    {
-      id: 'stegosaurus',
-      name: 'Stegosaurus',
-      size: 'Large',
-      speed: {
-        land: 30
-      },
-      attacks: [
-        {
-          name: 'Tail',
-          type: 'melee',
-          bonus: 18,
-          damage: '2d8 piercing',
-          traits: ['reach'],
-          range: 10
-        }
-      ],
-      abilities: [],
-      senses: {
-        lowLightVision: true,
-        scent: 30
-      },
-      description: 'Speed 30 feet; Melee tail (reach 10 feet), Damage 2d8 piercing.'
-    },
-    {
-      id: 'triceratops',
-      name: 'Triceratops',
-      size: 'Large',
-      speed: {
-        land: 30
-      },
-      attacks: [
-        {
-          name: 'Horn',
-          type: 'melee',
-          bonus: 18,
-          damage: '2d8 piercing',
-          traits: []
-        },
-        {
-          name: 'Foot',
-          type: 'melee',
-          bonus: 18,
-          damage: '2d6 bludgeoning',
-          traits: []
-        }
-      ],
-      abilities: [],
-      senses: {
-        lowLightVision: true,
-        scent: 30
-      },
-      description: 'Speed 30 feet; Melee horn, Damage 2d8 piercing; Melee foot, Damage 2d6 bludgeoning.'
-    },
-    {
-      id: 'tyrannosaurus',
-      name: 'Tyrannosaurus',
-      size: 'Large',
-      speed: {
-        land: 30
-      },
-      attacks: [
-        {
-          name: 'Jaws',
-          type: 'melee',
-          bonus: 18,
-          damage: '1d12 piercing',
-          traits: ['deadly', 'reach'],
-          range: 10
-        },
-        {
-          name: 'Tail',
-          type: 'melee',
-          bonus: 18,
-          damage: '1d10 bludgeoning',
-          traits: ['reach'],
-          range: 10
-        }
-      ],
-      abilities: [],
-      senses: {
-        lowLightVision: true,
-        scent: 30
-      },
-      description: 'Speed 30 feet; Melee jaws (deadly d12, reach 10 feet), Damage 1d12 piercing; Melee tail (reach 10 feet), Damage 1d10 bludgeoning.'
-    }
-  ]
+  forms: dinosaurForms
 };
 
-// Export all spells (for future expansion)
+// Re-export imported spells and forms
+export {
+  aerialFormSpell,
+  aerialForms,
+  insectFormSpell,
+  insectForms,
+  dragonFormSpell,
+  dragonForms,
+  elementalFormSpell,
+  elementalForms,
+  plantFormSpell,
+  plantForms,
+  monstrosityFormSpell,
+  monstrosityForms,
+  feyFormSpell,
+  feyForms,
+  fiendFormSpell,
+  fiendForms,
+  angelFormSpell,
+  angelForms,
+  natureIncarnateSpell,
+  natureIncarnateForms
+};
+
+// Export all spells - sorted by spell level for better UX
 export const transformationSpells: TransformationSpell[] = [
-  animalFormSpell,
-  dinosaurFormSpell
+  animalFormSpell,          // Level 2
+  insectFormSpell,          // Level 3
+  aerialFormSpell,          // Level 4
+  dinosaurFormSpell,        // Level 4
+  feyFormSpell,             // Level 4
+  elementalFormSpell,       // Level 5
+  plantFormSpell,           // Level 5
+  dragonFormSpell,          // Level 6
+  fiendFormSpell,           // Level 6
+  angelFormSpell,           // Level 7
+  monstrosityFormSpell,     // Level 8
+  natureIncarnateSpell,     // Level 10
 ];
 
 // Helper function to get forms for a specific spell
 export const getFormsForSpell = (spellId: string): TransformationForm[] => {
-  return animalFormSpell.forms.filter(form => form.id.includes(spellId.split('-')[0]));
+  const spell = transformationSpells.find(s => s.id === spellId);
+  return spell?.forms || [];
 };
 
 // Helper function to get spell by id
 export const getSpellById = (spellId: string): TransformationSpell | undefined => {
   return transformationSpells.find(spell => spell.id === spellId);
+};
+
+// Helper function to get spells by tradition
+export const getSpellsByTradition = (tradition: string): TransformationSpell[] => {
+  return transformationSpells.filter(spell => spell.traditions.includes(tradition));
+};
+
+// Helper function to get spells by level
+export const getSpellsByLevel = (level: number): TransformationSpell[] => {
+  return transformationSpells.filter(spell => spell.level === level);
+};
+
+// Helper function to get spells available at a certain caster level
+export const getAvailableSpells = (casterLevel: number): TransformationSpell[] => {
+  const maxSpellLevel = Math.ceil(casterLevel / 2);
+  return transformationSpells.filter(spell => spell.level <= maxSpellLevel);
 };
