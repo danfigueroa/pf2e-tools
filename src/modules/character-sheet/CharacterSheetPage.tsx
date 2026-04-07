@@ -293,6 +293,24 @@ export const CharacterSheetPage = () => {
         await downloadCharacterPdf(build)
     }
 
+    const handleDownloadEnrichedJson = () => {
+        if (!build) return
+        const json = JSON.stringify({ success: true, build }, null, 2)
+        const blob = new Blob([json], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `${build.name}_enriquecido.json`
+        a.click()
+        URL.revokeObjectURL(url)
+    }
+
+    const hasEnrichedDescriptions = build && (
+        Object.keys(build.featDescriptions || {}).length > 0 ||
+        Object.keys(build.specialDescriptions || {}).length > 0 ||
+        Object.keys(build.spellDescriptions || {}).length > 0
+    )
+
     const getPhaseIcon = () => {
         switch (loading.phase) {
             case 'fetching': return <FetchIcon sx={{ animation: 'pulse 1s infinite' }} />
@@ -418,6 +436,16 @@ export const CharacterSheetPage = () => {
                         >
                             Gerar PDF
                         </Button>
+                        {hasEnrichedDescriptions && (
+                            <Button
+                                variant="outlined"
+                                color="success"
+                                disabled={loading.active}
+                                onClick={handleDownloadEnrichedJson}
+                            >
+                                Salvar JSON com Traduções
+                            </Button>
+                        )}
                     </Stack>
 
                     {build && !loading.active && (
