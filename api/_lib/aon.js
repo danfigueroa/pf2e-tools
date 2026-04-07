@@ -180,6 +180,46 @@ export async function translateToPortuguese(text, apiKey) {
   }
 }
 
+// Gera descrição via Groq quando o item não é encontrado no AON
+export async function generateFallbackDescription(name, itemType, apiKey) {
+  if (!name || !apiKey) return null
+
+  const typeLabel = {
+    feat: 'talento',
+    spell: 'magia',
+    'class-feature': 'habilidade de classe',
+    special: 'habilidade especial',
+  }[itemType] || 'habilidade'
+
+  const prompt = `Em 1-2 frases curtas em português brasileiro, descreva o que é "${name}" no RPG Pathfinder 2e (${typeLabel}). Seja direto e objetivo. Retorne APENAS a descrição, sem formatação.`
+
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 256,
+        temperature: 0.3
+      })
+    })
+
+    if (!response.ok) return null
+
+    const data = await response.json()
+    let result = data.choices?.[0]?.message?.content?.trim()
+    if (!result || result.length < 10) return null
+
+    return cleanTranslation(result)
+  } catch {
+    return null
+  }
+}
+
 export function getCache() {
   return cache
 }
