@@ -1,4 +1,4 @@
-import { searchAon, extractMainDescription, translateToPortuguese } from './_lib/aon.js'
+import { searchAon, extractMainDescription, translateToPortuguese, generateFallbackDescription } from './_lib/aon.js'
 
 export default async function handler(req, res) {
   // CORS
@@ -31,20 +31,25 @@ export default async function handler(req, res) {
       bestMatch = results[0]
     }
     
+    const apiKey = process.env.GROQ_API_KEY
+
     if (!bestMatch) {
+      // Fallback: gera descrição via Groq para talentos não encontrados no AON
+      const fallback = await generateFallbackDescription(name, 'feat', apiKey)
+      if (fallback) {
+        return res.status(200).json({ name, description: fallback, level: null, traits: [] })
+      }
       return res.status(404).json({ error: 'Talento não encontrado' })
     }
-    
+
     const source = bestMatch._source
     let description = source.text || source.markdown || ''
     description = extractMainDescription(description, 800)
-    
-    // Traduz se tiver API key
-    const apiKey = process.env.GROQ_API_KEY
+
     if (apiKey && description) {
       description = await translateToPortuguese(description, apiKey)
     }
-    
+
     return res.status(200).json({
       name: source.name || name,
       description,
