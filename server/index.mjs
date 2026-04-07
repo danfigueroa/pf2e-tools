@@ -279,6 +279,29 @@ async function translateToPortuguese(text, itemType = 'item') {
   return null // Retorna null para indicar falha (melhor que retornar texto potencialmente corrompido)
 }
 
+// Gera descrição via Groq quando o item não é encontrado no AON
+async function generateFallbackDescription(name, itemType = 'special') {
+  if (!GROQ_API_KEY || !name) return null
+
+  const typeLabel = {
+    feat: 'talento',
+    spell: 'magia',
+    'class-feature': 'habilidade de classe',
+    special: 'habilidade especial',
+  }[itemType] || 'habilidade'
+
+  const prompt = `Em 1-2 frases curtas em português brasileiro, descreva o que é "${name}" no RPG Pathfinder 2e (${typeLabel}). Seja direto e objetivo. Retorne APENAS a descrição, sem formatação.`
+
+  try {
+    const result = await fetchGroq(prompt, 0.3)
+    if (!result || result.length < 10) return null
+    return cleanTranslation(result)
+  } catch (e) {
+    console.error(`[fallback] Erro gerando descrição para "${name}":`, e.message)
+    return null
+  }
+}
+
 // ============================================================================
 // API DE BUSCA (AON Elasticsearch)
 // ============================================================================
@@ -491,92 +514,104 @@ async function searchAon(name, category = null) {
 // Busca descrição de feat
 async function scrapeFeatDescription(featName) {
   console.log(`[scrapeFeat] Buscando: ${featName}`)
-  
+
   const result = await searchAon(featName, 'feat')
   if (result?.description) {
     console.log(`[scrapeFeat] Encontrado: ${result.name}`)
-    
-    // Traduz a descrição
     const translated = await translateToPortuguese(result.description)
-    // Se a tradução falhou, retorna o original em inglês (melhor que nada)
     return translated || result.description
   }
-  
-  console.log(`[scrapeFeat] Não encontrado: ${featName}`)
-  return null
+
+  console.log(`[scrapeFeat] Não encontrado no AON, usando fallback Groq: ${featName}`)
+  return await generateFallbackDescription(featName, 'feat')
 }
 
 // Busca descrição genérica (habilidades, ancestries, etc.)
 async function scrapeGenericDescription(name) {
   console.log(`[scrapeGeneric] Buscando: ${name}`)
-  
-  const result = await searchAon(name)
-  if (result?.description) {
-    console.log(`[scrapeGeneric] Encontrado "${result.name}": ${result.description.substring(0, 60)}...`)
-    
-    // Traduz a descrição
-    const translated = await translateToPortuguese(result.description)
-    // Se a tradução falhou, retorna o original em inglês
-    return translated || result.description
+
+  // Limpa o nome: remove "(imprecise) 30 feet" e similares
+  const cleanedName = name
+    .replace(/\s*\([^)]*\)\s*/g, ' ')
+    .replace(/\d+\s*feet?/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  // Busca em cascata por categoria
+  const categoriesToTry = ['class-feature', 'feat', 'action', null]
+  let bestResult = null
+
+  for (const cat of categoriesToTry) {
+    const result = await searchAon(cleanedName, cat)
+    if (result?.description) {
+      // Prefere match exato de nome
+      if (result.name?.toLowerCase() === cleanedName.toLowerCase()) {
+        bestResult = result
+        break
+      }
+      if (!bestResult) bestResult = result
+    }
   }
-  
-  console.log(`[scrapeGeneric] Não encontrado: ${name}`)
-  return null
+
+  if (bestResult?.description) {
+    console.log(`[scrapeGeneric] Encontrado "${bestResult.name}": ${bestResult.description.substring(0, 60)}...`)
+    const translated = await translateToPortuguese(bestResult.description)
+    return translated || bestResult.description
+  }
+
+  console.log(`[scrapeGeneric] Não encontrado no AON, usando fallback Groq: ${name}`)
+  return await generateFallbackDescription(cleanedName, 'special')
 }
 
 // Busca descrição detalhada de magia
 async function scrapeSpellDescription(spellName) {
   console.log(`[scrapeSpell] Buscando: ${spellName}`)
-  
+
   const cacheKey = `spell:${spellName}`
   if (CACHE.has(cacheKey)) {
     return CACHE.get(cacheKey)
   }
-  
+
   try {
-    const searchBody = {
-      query: {
-        bool: {
-          must: [
-            { multi_match: { query: spellName, fields: ['name^3'], type: 'best_fields' } }
-          ],
-          filter: [
-            { term: { category: 'spell' } }
-          ]
-        }
-      },
-      size: 5
-    }
-    
-    const result = await new Promise((resolve, reject) => {
-      const options = {
-        hostname: 'elasticsearch.aonprd.com',
-        path: '/aon/_search',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 pf2e-tools'
-        }
+    // Tenta múltiplas categorias: spell → cantrip → focus
+    let source = null
+    for (const cat of ['spell', 'cantrip', 'focus']) {
+      const searchBody = {
+        query: {
+          bool: {
+            must: [{ multi_match: { query: spellName, fields: ['name^3'], type: 'best_fields' } }],
+            filter: [{ term: { category: cat } }]
+          }
+        },
+        size: 5
       }
-      
-      const req = https.request(options, (res) => {
-        let data = ''
-        res.on('data', chunk => { data += chunk })
-        res.on('end', () => {
-          try { resolve(JSON.parse(data)) } catch (e) { reject(e) }
+
+      const result = await new Promise((resolve, reject) => {
+        const options = {
+          hostname: 'elasticsearch.aonprd.com',
+          path: '/aon/_search',
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 pf2e-tools' }
+        }
+        const req = https.request(options, (res) => {
+          let data = ''
+          res.on('data', chunk => { data += chunk })
+          res.on('end', () => { try { resolve(JSON.parse(data)) } catch (e) { reject(e) } })
         })
+        req.on('error', reject)
+        req.setTimeout(10000, () => { req.destroy(); reject(new Error('Timeout')) })
+        req.write(JSON.stringify(searchBody))
+        req.end()
       })
-      req.on('error', reject)
-      req.setTimeout(10000, () => { req.destroy(); reject(new Error('Timeout')) })
-      req.write(JSON.stringify(searchBody))
-      req.end()
-    })
-    
-    if (result.hits?.hits?.length > 0) {
-      const exactMatch = result.hits.hits.find(h => h._source?.name?.toLowerCase() === spellName.toLowerCase())
-      const source = (exactMatch || result.hits.hits[0])._source
-      
-      // Extrair campos da magia
+
+      if (result.hits?.hits?.length > 0) {
+        const exact = result.hits.hits.find(h => h._source?.name?.toLowerCase() === spellName.toLowerCase())
+        if (exact) { source = exact._source; break }
+        if (!source) source = result.hits.hits[0]._source
+      }
+    }
+
+    if (source) {
       const spellData = {
         name: source.name,
         actions: source.actions || source.action || null,
@@ -591,19 +626,26 @@ async function scrapeSpellDescription(spellName) {
         damageType: source.damage_type || null,
         heightened: source.heightened || null
       }
-      
-      // Traduzir a descrição
+
       if (spellData.description) {
         const translated = await translateToPortuguese(spellData.description)
         if (translated) spellData.description = translated
       }
-      
+
       console.log(`[scrapeSpell] Encontrado: ${source.name} (${spellData.actions || '?'} ações)`)
       CACHE.set(cacheKey, spellData)
       return spellData
     }
-    
-    console.log(`[scrapeSpell] Não encontrado: ${spellName}`)
+
+    // Fallback: gera descrição via Groq
+    console.log(`[scrapeSpell] Não encontrado no AON, usando fallback Groq: ${spellName}`)
+    const fallbackDesc = await generateFallbackDescription(spellName, 'spell')
+    if (fallbackDesc) {
+      const spellData = { name: spellName, actions: null, traits: [], range: null, area: null, targets: null, duration: null, defense: null, description: fallbackDesc, damage: null, damageType: null, heightened: null }
+      CACHE.set(cacheKey, spellData)
+      return spellData
+    }
+
     return null
   } catch (e) {
     console.error(`[scrapeSpell] Erro:`, e.message)
