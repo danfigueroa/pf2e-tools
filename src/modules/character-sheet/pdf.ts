@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf'
-import { getAonSearchUrl } from './types'
-import type { BuildInfo, Weapon } from './types'
+import { getAonSearchUrl, parseFeatEntry } from './types'
+import type { BuildInfo, CompanionStats, FocusAbility, FocusTradition, Weapon } from './types'
 
 // ============================================================================
 // DESIGN SYSTEM - Print Friendly (Monocromático)
@@ -326,11 +326,8 @@ function drawWeapons(doc: jsPDF, build: BuildInfo, y: number): number {
         doc.setFontSize(9)
         doc.text(weapon.display, x + 2, y + 4)
         
-        // Bônus de ataque no final (inclui bônus de potência)
-        let attackText = `Ataque: ${signed(attackTotal)} [${profLabel}]`
-        if (potencyBonus > 0) {
-            attackText += ` (+${potencyBonus} potência)`
-        }
+        // Bônus de ataque (attackTotal já inclui potência)
+        const attackText = `Ataque: ${signed(attackTotal)} [${profLabel}]`
         doc.text(attackText, x + sectionWidth - 2, y + 4, { align: 'right' })
         
         y += 6
@@ -580,10 +577,8 @@ function drawFeats(doc: jsPDF, build: BuildInfo, y: number): number {
     // Agrupar feats por tipo
     const featsByType: Record<string, Array<{ name: string; desc: string | null; level: number }>> = {}
     
-    build.feats.forEach((f: any) => {
-        const name = Array.isArray(f) ? String(f[0]) : String(f?.name ?? f)
-        const type = Array.isArray(f) ? String(f[2] || 'Outro') : 'Outro'
-        const level = Array.isArray(f) ? Number(f[3] || 1) : 1
+    build.feats.forEach((f) => {
+        const { name, type, level } = parseFeatEntry(f)
         const desc = build.featDescriptions?.[name] || null
         
         if (!featsByType[type]) featsByType[type] = []
@@ -623,16 +618,20 @@ function drawFeats(doc: jsPDF, build: BuildInfo, y: number): number {
             
             y += 4
             
-            // Descrição completa (sem limite de linhas)
+            // Descrição — até 4 linhas
             if (feat.desc) {
                 setColor(doc, COLORS.gray)
                 doc.setFontSize(7)
                 const descLines = doc.splitTextToSize(feat.desc, sectionWidth - 10)
-                descLines.forEach((line: string) => {
+                descLines.slice(0, 4).forEach((line: string) => {
                     y = ensurePageSpace(doc, y, 5)
                     doc.text(line, x + 8, y + 3)
                     y += 3.5
                 })
+                if (descLines.length > 4) {
+                    doc.text('...', x + 8, y + 3)
+                    y += 3.5
+                }
             }
         })
         
@@ -804,15 +803,12 @@ function formatActions(actions: string | undefined): string {
     return ''
 }
 
-// Formata informação de heightened
+// Formata informação de heightened — sem truncamento (o PDF cuida do wrapping)
 function formatHeightened(heightened?: Record<string, string>): string {
     if (!heightened || Object.keys(heightened).length === 0) return ''
-    
     const parts: string[] = []
     for (const [level, effect] of Object.entries(heightened)) {
-        // Simplifica o texto do efeito
-        const shortEffect = effect.length > 50 ? effect.slice(0, 47) + '...' : effect
-        parts.push(`${level}: ${shortEffect}`)
+        parts.push(`${level}: ${effect}`)
     }
     return parts.join(' | ')
 }
@@ -945,30 +941,32 @@ function drawSpells(doc: jsPDF, build: BuildInfo, y: number): number {
                         y += 3.5
                     }
                     
-                    // Heightened (se houver)
+                    // Heightened (se houver) — sem limite de linhas
                     if (spellInfo.heightened && Object.keys(spellInfo.heightened).length > 0) {
                         setColor(doc, COLORS.gray)
                         doc.setFont('helvetica', 'italic')
                         doc.setFontSize(6)
                         const heightenedText = `Heightened: ${formatHeightened(spellInfo.heightened)}`
                         const heightLines = doc.splitTextToSize(heightenedText, sectionWidth - 10)
-                        heightLines.slice(0, 2).forEach((line: string) => {
+                        heightLines.forEach((line: string) => {
+                            y = ensurePageSpace(doc, y, 4)
                             doc.text(line, x + 6, y + 2.5)
                             y += 3
                         })
                     }
-                    
-                    // Descrição
+
+                    // Descrição — até 5 linhas
                     if (spellInfo.description) {
                         setColor(doc, COLORS.gray)
                         doc.setFont('helvetica', 'normal')
                         doc.setFontSize(6)
                         const descLines = doc.splitTextToSize(spellInfo.description, sectionWidth - 10)
-                        descLines.slice(0, 3).forEach((line: string) => {
+                        descLines.slice(0, 5).forEach((line: string) => {
+                            y = ensurePageSpace(doc, y, 4)
                             doc.text(line, x + 6, y + 2.5)
                             y += 3
                         })
-                        if (descLines.length > 3) {
+                        if (descLines.length > 5) {
                             doc.text('...', x + 6, y + 2.5)
                             y += 3
                         }
@@ -998,8 +996,8 @@ function drawFocusSpells(doc: jsPDF, build: BuildInfo, y: number): number {
     
     // Coletar todas as focus spells
     const focusSpells: string[] = []
-    Object.values(build.focus).forEach((tradition: any) => {
-        Object.values(tradition).forEach((abilityGroup: any) => {
+    Object.values(build.focus).forEach((tradition: FocusTradition) => {
+        Object.values(tradition).forEach((abilityGroup: FocusAbility) => {
             if (abilityGroup.focusSpells) {
                 focusSpells.push(...abilityGroup.focusSpells)
             }
@@ -1045,27 +1043,28 @@ function drawFocusSpells(doc: jsPDF, build: BuildInfo, y: number): number {
                     y += 3.5
                 }
                 
-                // Descrição
+                // Descrição — até 5 linhas
                 if (spellInfo.description) {
                     setColor(doc, COLORS.gray)
                     doc.setFont('helvetica', 'normal')
                     doc.setFontSize(6)
                     const descLines = doc.splitTextToSize(spellInfo.description, sectionWidth - 10)
-                    descLines.slice(0, 2).forEach((line: string) => {
+                    descLines.slice(0, 5).forEach((line: string) => {
+                        y = ensurePageSpace(doc, y, 4)
                         doc.text(line, x + 6, y + 2.5)
                         y += 3
                     })
-                    if (descLines.length > 2) {
+                    if (descLines.length > 5) {
                         doc.text('...', x + 6, y + 2.5)
                         y += 3
                     }
                 }
             }
-            
+
             y += 1
         })
     }
-    
+
     return y + LAYOUT.sectionGap
 }
 
@@ -1196,7 +1195,9 @@ function drawPets(doc: jsPDF, build: BuildInfo, y: number): number {
         y = ensurePageSpace(doc, y, 60)
         
         const animalType = pet.animal || 'Unknown'
-        const stats = ANIMAL_STATS[animalType] || { size: '?', speed: 25, attacks: ['Attack 1d6'], support: '—' }
+        // Prefere stats buscados do AON; cai no hardcoded se não disponível
+        const liveStats: CompanionStats | null = build.petDescriptions?.[animalType] || null
+        const hardcoded = ANIMAL_STATS[animalType] || { size: '?', speed: 25, attacks: ['Attack 1d6'], support: '—' }
         const level = build.level || 1
         const hp = getAnimalCompanionHP(level, !!pet.mature, !!pet.incredible)
         const ac = getAnimalCompanionAC(level, !!pet.mature, !!pet.incredible)
@@ -1232,59 +1233,69 @@ function drawPets(doc: jsPDF, build: BuildInfo, y: number): number {
         setColor(doc, COLORS.black)
         doc.setFont('helvetica', 'bold')
         doc.setFontSize(9)
+        const speed = liveStats?.speed ?? hardcoded.speed
+        const sizeRaw = liveStats?.size ?? hardcoded.size
+        const sizeText = pet.mature && sizeRaw.includes('→') ? sizeRaw.split('→')[1] : sizeRaw
+        const supportText = liveStats?.supportBenefit ?? hardcoded.support
+        const advancedText = liveStats?.advancedManeuver ?? hardcoded.advanced ?? null
+
         doc.text(`HP: ${hp}`, x + 4, y + 5.5)
         doc.text(`CA: ${ac}`, x + 35, y + 5.5)
-        doc.text(`Velocidade: ${stats.speed} pés`, x + 65, y + 5.5)
-        
-        // Tamanho
-        let sizeText = stats.size
-        if (pet.mature && stats.size.includes('→')) {
-            sizeText = stats.size.split('→')[1] // Pega o tamanho maior quando mature
-        }
+        doc.text(`Velocidade: ${speed} pés`, x + 65, y + 5.5)
         doc.text(`Tamanho: ${sizeText}`, x + sectionWidth - 4, y + 5.5, { align: 'right' })
         y += 10
-        
+
         // Ataques
         setColor(doc, COLORS.black)
         doc.setFont('helvetica', 'bold')
         doc.setFontSize(8)
         doc.text('Ataques:', x + 2, y + 4)
-        
+
         doc.setFont('helvetica', 'normal')
         const attackBonus = level + 4 + (pet.mature ? 2 : 0) + (pet.incredible ? 2 : 0)
-        const attackText = stats.attacks.map(a => `${a.split(' ')[0]} ${signed(attackBonus)} (${a.split(' ').slice(1).join(' ')})`).join(', ')
+        let attackText: string
+        if (liveStats?.attacks.length) {
+            attackText = liveStats.attacks.map(a => {
+                const traitStr = a.traits.length ? ` (${a.traits.join(', ')})` : ''
+                return `${a.name} ${signed(attackBonus)} ${a.damage}${traitStr}`
+            }).join(', ')
+        } else {
+            attackText = (hardcoded.attacks as string[]).map(
+                a => `${a.split(' ')[0]} ${signed(attackBonus)} (${a.split(' ').slice(1).join(' ')})`
+            ).join(', ')
+        }
         doc.text(attackText, x + 22, y + 4)
         y += 6
-        
+
         // Support Benefit
         setColor(doc, COLORS.black)
         doc.setFont('helvetica', 'bold')
         doc.setFontSize(7)
         doc.text('Benefício de Suporte:', x + 2, y + 4)
         y += 8
-        
+
         setColor(doc, COLORS.gray)
         doc.setFont('helvetica', 'normal')
-        const supportLines = doc.splitTextToSize(stats.support, sectionWidth - 10)
+        const supportLines = doc.splitTextToSize(supportText, sectionWidth - 10)
         supportLines.forEach((line: string) => {
             doc.text(line, x + 4, y)
             y += 3.5
         })
         y += 2
-        
+
         // Habilidade Especial (Advanced Maneuver)
-        if (stats.advanced) {
+        if (advancedText) {
             y = ensurePageSpace(doc, y, 20)
-            
+
             setColor(doc, COLORS.black)
             doc.setFont('helvetica', 'bold')
             doc.setFontSize(7)
             doc.text('Habilidade Especial:', x + 2, y + 4)
             y += 8
-            
+
             setColor(doc, COLORS.gray)
             doc.setFont('helvetica', 'normal')
-            const advancedLines = doc.splitTextToSize(stats.advanced, sectionWidth - 10)
+            const advancedLines = doc.splitTextToSize(advancedText, sectionWidth - 10)
             advancedLines.forEach((line: string) => {
                 doc.text(line, x + 4, y)
                 y += 3.5
