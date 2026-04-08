@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
     Box,
     Button,
@@ -17,8 +17,8 @@ import {
     CheckCircle as DoneIcon,
     Description as PdfIcon,
 } from '@mui/icons-material'
-import { parseCharacterJson } from './types'
-import type { BuildInfo } from './types'
+import { parseCharacterJson, parseFeatEntry } from './types'
+import type { BuildInfo, CompanionStats, FocusAbility, FocusTradition } from './types'
 import { downloadCharacterPdf } from './pdf'
 
 interface LoadingState {
@@ -27,6 +27,54 @@ interface LoadingState {
     current: string
     progress: number
     total: number
+}
+
+// Cache localStorage para evitar re-buscar descrições já traduzidas
+const DESC_CACHE_VERSION = 'v1'
+function descCacheKey(type: 'feat' | 'spell' | 'special', name: string) {
+    return `pf2e:${DESC_CACHE_VERSION}:${type}:${name}`
+}
+function getCachedDesc(type: 'feat' | 'spell' | 'special', name: string): string | null {
+    try { return localStorage.getItem(descCacheKey(type, name)) } catch { return null }
+}
+function getCachedSpell(name: string): object | null {
+    try {
+        const raw = localStorage.getItem(descCacheKey('spell', name))
+        return raw ? JSON.parse(raw) : null
+    } catch { return null }
+}
+function saveDescCache(type: 'feat' | 'special', name: string, value: string) {
+    try { localStorage.setItem(descCacheKey(type, name), value) } catch {}
+}
+function saveSpellCache(name: string, value: object) {
+    try { localStorage.setItem(descCacheKey('spell', name), JSON.stringify(value)) } catch {}
+}
+function getCachedCompanion(name: string): object | null {
+    try {
+        const raw = localStorage.getItem(`pf2e:${DESC_CACHE_VERSION}:companion:${name}`)
+        return raw ? JSON.parse(raw) : null
+    } catch { return null }
+}
+function saveCompanionCache(name: string, value: object) {
+    try { localStorage.setItem(`pf2e:${DESC_CACHE_VERSION}:companion:${name}`, JSON.stringify(value)) } catch {}
+}
+
+// Verifica se uma descrição vinda da API é válida (evita salvar string literal "null" ou vazias)
+function isValidDescription(value: unknown): value is string {
+    if (typeof value !== 'string') return false
+    const t = value.trim()
+    return t.length > 0 && t !== 'null' && t !== 'undefined'
+}
+
+const SESSION_KEY = 'pf2e:lastBuild'
+function saveSessionBuild(b: BuildInfo) {
+    try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(b)) } catch {}
+}
+function loadSessionBuild(): BuildInfo | null {
+    try {
+        const raw = sessionStorage.getItem(SESSION_KEY)
+        return raw ? JSON.parse(raw) : null
+    } catch { return null }
 }
 
 export const CharacterSheetPage = () => {
@@ -40,6 +88,13 @@ export const CharacterSheetPage = () => {
         progress: 0,
         total: 0,
     })
+    const abortRef = useRef<AbortController | null>(null)
+
+    // D: Restaura o último personagem carregado se o usuário recarregar a página
+    useEffect(() => {
+        const saved = loadSessionBuild()
+        if (saved) setBuild(saved)
+    }, [])
 
     const checkApiAvailable = async (): Promise<boolean> => {
         try {
@@ -54,38 +109,62 @@ export const CharacterSheetPage = () => {
     }
 
     const enrichFeatDescriptions = async (b: BuildInfo, updateProgress: (current: string) => void) => {
-        const names = (b.feats || []).map((f: any) =>
-            Array.isArray(f) ? String(f[0]) : String(f?.name ?? f)
-        )
+        const names = (b.feats || []).map((f) => parseFeatEntry(f).name)
         const unique = Array.from(new Set(names))
-        const missing = unique.filter(
-            (n) => !b.featDescriptions || !b.featDescriptions[n]
-        )
+        const missing = unique.filter((n) => !b.featDescriptions?.[n])
         if (!missing.length) return b
-        
+
         const copy: BuildInfo = {
             ...b,
             featDescriptions: { ...(b.featDescriptions || {}) },
         }
-        
-        for (const n of missing) {
-            updateProgress(n)
-            try {
-                const r = await fetch(`/api/feat?name=${encodeURIComponent(n)}`)
-                if (!r.ok) continue
-                const data = await r.json()
-                if (data && data.description) {
-                    copy.featDescriptions![n] = String(data.description)
-                }
-            } catch {}
+
+        // Resolve do localStorage primeiro
+        const fromCache = missing.filter(n => {
+            const cached = getCachedDesc('feat', n)
+            if (cached) { copy.featDescriptions![n] = cached; return false }
+            return true
+        })
+
+        if (!fromCache.length) return copy
+
+        updateProgress(`${fromCache.length} talentos`)
+        try {
+            const r = await fetch('/api/feats', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ names: fromCache }),
+                signal: abortRef.current?.signal,
+            })
+            if (r.ok) {
+                const data: Record<string, { name: string; description: string | null }> = await r.json()
+                Object.entries(data).forEach(([key, val]) => {
+                    if (isValidDescription(val?.description)) {
+                        copy.featDescriptions![key] = val.description!
+                        saveDescCache('feat', key, val.description!)
+                    }
+                })
+            }
+        } catch (e: unknown) {
+            if (e instanceof Error && e.name === 'AbortError') return copy
         }
-        
+
         return copy
     }
 
+    // Nomes muito genéricos que não valem a pena buscar (perícias, traits básicos, etc.)
+    const SKIP_SPECIALS = new Set([
+        'large', 'medium', 'small', 'tiny', 'huge', 'gargantuan',
+        'nature', 'arcana', 'religion', 'occultism', 'society',
+        'acrobatics', 'athletics', 'crafting', 'deception', 'diplomacy',
+        'intimidation', 'medicine', 'performance', 'stealth', 'survival', 'thievery',
+    ])
+
     const enrichSpecialDescriptions = async (b: BuildInfo, updateProgress: (current: string) => void) => {
         const names = (b.specials || []).map((s) => String(s))
-        const unique = Array.from(new Set(names))
+        const unique = Array.from(new Set(names)).filter(
+            (n) => !SKIP_SPECIALS.has(n.toLowerCase())
+        )
         const missing = unique.filter(
             (n) => !b.specialDescriptions || !b.specialDescriptions[n]
         )
@@ -96,18 +175,36 @@ export const CharacterSheetPage = () => {
             specialDescriptions: { ...(b.specialDescriptions || {}) },
         }
         
-        for (const n of missing) {
-            updateProgress(n)
-            try {
-                const r = await fetch(`/api/search?name=${encodeURIComponent(n)}`)
-                if (!r.ok) continue
-                const data = await r.json()
-                if (data && data.description) {
-                    copy.specialDescriptions![n] = String(data.description)
-                }
-            } catch {}
+        // Resolve do localStorage primeiro
+        const fromCache = missing.filter(n => {
+            const cached = getCachedDesc('special', n)
+            if (cached) { copy.specialDescriptions![n] = cached; return false }
+            return true
+        })
+
+        if (!fromCache.length) return copy
+
+        updateProgress(`${fromCache.length} habilidades`)
+        try {
+            const r = await fetch('/api/searches', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ names: fromCache }),
+                signal: abortRef.current?.signal,
+            })
+            if (r.ok) {
+                const data: Record<string, { name: string; description: string | null }> = await r.json()
+                Object.entries(data).forEach(([key, val]) => {
+                    if (isValidDescription(val?.description)) {
+                        copy.specialDescriptions![key] = val.description!
+                        saveDescCache('special', key, val.description!)
+                    }
+                })
+            }
+        } catch (e: unknown) {
+            if (e instanceof Error && e.name === 'AbortError') return copy
         }
-        
+
         return copy
     }
 
@@ -121,8 +218,8 @@ export const CharacterSheetPage = () => {
         })
         
         if (b.focus) {
-            Object.values(b.focus).forEach((tradition: any) => {
-                Object.values(tradition).forEach((abilityGroup: any) => {
+            Object.values(b.focus).forEach((tradition: FocusTradition) => {
+                Object.values(tradition).forEach((abilityGroup: FocusAbility) => {
                     if (abilityGroup.focusSpells) {
                         spellNames.push(...abilityGroup.focusSpells)
                     }
@@ -145,19 +242,81 @@ export const CharacterSheetPage = () => {
             spellDescriptions: { ...(b.spellDescriptions || {}) },
         }
         
-        for (const n of missing) {
-            updateProgress(n)
+        // Resolve do localStorage primeiro
+        const fromCache = missing.filter(n => {
+            const cached = getCachedSpell(n)
+            if (cached) { copy.spellDescriptions![n] = cached as any; return false }
+            return true
+        })
+
+        if (fromCache.length) {
+            updateProgress(`${fromCache.length} magias`)
             try {
-                const r = await fetch(`/api/spell?name=${encodeURIComponent(n)}`)
-                if (!r.ok) continue
-                const data = await r.json()
-                // Salva o objeto completo se tiver nome ou descrição
-                if (data && (data.name || data.description || data.actions)) {
-                    copy.spellDescriptions![n] = data
+                const r = await fetch('/api/spells', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ names: fromCache }),
+                    signal: abortRef.current?.signal,
+                })
+                if (r.ok) {
+                    const data: Record<string, object> = await r.json()
+                    Object.entries(data).forEach(([key, val]) => {
+                        const v = val as any
+                        if (v && (v.name || isValidDescription(v.description) || v.actions)) {
+                            copy.spellDescriptions![key] = v
+                            saveSpellCache(key, v)
+                        }
+                    })
                 }
-            } catch {}
+            } catch (e: unknown) {
+                if (e instanceof Error && e.name === 'AbortError') return copy
+            }
         }
         
+        return copy
+    }
+
+    const enrichPetDescriptions = async (b: BuildInfo): Promise<BuildInfo> => {
+        const animalNames = (b.pets || [])
+            .filter(p => p.type === 'Animal Companion' && p.animal)
+            .map(p => p.animal!)
+
+        const unique = Array.from(new Set(animalNames))
+        const missing = unique.filter(n => !b.petDescriptions?.[n])
+        if (!missing.length) return b
+
+        const copy: BuildInfo = {
+            ...b,
+            petDescriptions: { ...(b.petDescriptions || {}) },
+        }
+
+        // Resolve do localStorage primeiro
+        const fromCache = missing.filter(n => {
+            const cached = getCachedCompanion(n)
+            if (cached) { copy.petDescriptions![n] = cached as CompanionStats; return false }
+            return true
+        })
+
+        if (!fromCache.length) return copy
+
+        try {
+            const r = await fetch('/api/companions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ names: fromCache }),
+                signal: abortRef.current?.signal,
+            })
+            if (r.ok) {
+                const data: Record<string, CompanionStats> = await r.json()
+                Object.entries(data).forEach(([name, stats]) => {
+                    copy.petDescriptions![name] = stats
+                    saveCompanionCache(name, stats)
+                })
+            }
+        } catch (e: unknown) {
+            if (e instanceof Error && e.name === 'AbortError') return copy
+        }
+
         return copy
     }
 
@@ -183,10 +342,10 @@ export const CharacterSheetPage = () => {
         setApiWarning(null)
         
         // Calcular total de itens para buscar
-        const featNames = Array.from(new Set((b.feats || []).map((f: any) =>
-            Array.isArray(f) ? String(f[0]) : String(f?.name ?? f)
-        )))
-        const specialNames = Array.from(new Set((b.specials || []).map((s) => String(s))))
+        const featNames = Array.from(new Set((b.feats || []).map((f) => parseFeatEntry(f).name)))
+        const specialNames = Array.from(new Set((b.specials || []).map((s) => String(s)))).filter(
+            (n) => !SKIP_SPECIALS.has(n.toLowerCase())
+        )
         const spellNames: string[] = []
         b.spellCasters?.forEach((caster) => {
             caster.spells.forEach((level) => spellNames.push(...level.list))
@@ -195,52 +354,62 @@ export const CharacterSheetPage = () => {
         const missingFeats = featNames.filter(n => !b.featDescriptions?.[n])
         const missingSpecials = specialNames.filter(n => !b.specialDescriptions?.[n])
         const missingSpells = Array.from(new Set(spellNames)).filter(n => !b.spellDescriptions?.[n])
-        
-        const total = missingFeats.length + missingSpecials.length + missingSpells.length
-        
+        const missingPets = (b.pets || [])
+            .filter(p => p.type === 'Animal Companion' && p.animal && !b.petDescriptions?.[p.animal])
+            .map(p => p.animal!)
+
+        // Com batch endpoints, total = nº de chamadas (máx 4)
+        const total = (missingFeats.length > 0 ? 1 : 0) + (missingSpecials.length > 0 ? 1 : 0)
+            + (missingSpells.length > 0 ? 1 : 0) + (missingPets.length > 0 ? 1 : 0)
+
         if (total === 0) return b
-        
+
         let progress = 0
         const updateProgress = (current: string) => {
             progress++
-            setLoading(prev => ({
-                ...prev,
-                current,
-                progress,
-            }))
+            setLoading(prev => ({ ...prev, current, progress }))
         }
-        
+
+        // Cria novo AbortController para esta busca
+        abortRef.current = new AbortController()
+
         setLoading({
             active: true,
             phase: 'fetching',
-            current: '',
+            current: 'Buscando descrições em paralelo...',
             progress: 0,
             total,
         })
-        
+
         try {
-            let enriched = b
-            
-            if (missingFeats.length > 0) {
-                setLoading(prev => ({ ...prev, phase: 'fetching', current: 'Buscando talentos...' }))
-                enriched = await enrichFeatDescriptions(enriched, updateProgress)
+            // Quatro pipelines em paralelo
+            const [enrichedFeats, enrichedSpecials, enrichedSpells, enrichedPets] = await Promise.all([
+                missingFeats.length > 0
+                    ? enrichFeatDescriptions(b, updateProgress)
+                    : Promise.resolve(b),
+                missingSpecials.length > 0
+                    ? enrichSpecialDescriptions(b, updateProgress)
+                    : Promise.resolve(b),
+                missingSpells.length > 0
+                    ? enrichSpellDescriptions(b, updateProgress)
+                    : Promise.resolve(b),
+                missingPets.length > 0
+                    ? enrichPetDescriptions(b)
+                    : Promise.resolve(b),
+            ])
+
+            // Merge: junta os resultados dos quatro pipelines
+            const enriched: BuildInfo = {
+                ...b,
+                featDescriptions: { ...b.featDescriptions, ...enrichedFeats.featDescriptions },
+                specialDescriptions: { ...b.specialDescriptions, ...enrichedSpecials.specialDescriptions },
+                spellDescriptions: { ...b.spellDescriptions, ...enrichedSpells.spellDescriptions },
+                petDescriptions: { ...b.petDescriptions, ...enrichedPets.petDescriptions },
             }
-            
-            if (missingSpecials.length > 0) {
-                setLoading(prev => ({ ...prev, phase: 'fetching', current: 'Buscando habilidades...' }))
-                enriched = await enrichSpecialDescriptions(enriched, updateProgress)
-            }
-            
-            if (missingSpells.length > 0) {
-                setLoading(prev => ({ ...prev, phase: 'fetching', current: 'Buscando magias...' }))
-                enriched = await enrichSpellDescriptions(enriched, updateProgress)
-            }
-            
+
             setLoading(prev => ({ ...prev, phase: 'done', current: 'Concluído!' }))
-            
-            // Pequeno delay para mostrar "Concluído"
             await new Promise(resolve => setTimeout(resolve, 800))
-            
+
             return enriched
         } finally {
             setLoading({
@@ -253,6 +422,11 @@ export const CharacterSheetPage = () => {
         }
     }
 
+    const applyBuild = (b: BuildInfo) => {
+        setBuild(b)
+        saveSessionBuild(b)
+    }
+
     const handleFileUpload: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
         setError(null)
         setApiWarning(null)
@@ -263,8 +437,9 @@ export const CharacterSheetPage = () => {
             const json = JSON.parse(text)
             let parsed = parseCharacterJson(json)
             parsed = await enrichDescriptions(parsed)
-            setBuild(parsed)
+            applyBuild(parsed)
         } catch (err: unknown) {
+            if (err instanceof Error && err.name === 'AbortError') return
             console.error(err)
             const message = err instanceof Error ? err.message : 'Falha ao ler o arquivo JSON.'
             setError(message)
@@ -281,8 +456,9 @@ export const CharacterSheetPage = () => {
             const json = await res.json()
             let parsed = parseCharacterJson(json)
             parsed = await enrichDescriptions(parsed)
-            setBuild(parsed)
+            applyBuild(parsed)
         } catch (err: unknown) {
+            if (err instanceof Error && err.name === 'AbortError') return
             const message = err instanceof Error ? err.message : 'Não foi possível carregar o exemplo.'
             setError(message)
         }
@@ -291,6 +467,12 @@ export const CharacterSheetPage = () => {
     const handleGenerate = async () => {
         if (!build) return
         await downloadCharacterPdf(build)
+    }
+
+    // B: Cancela a busca em andamento
+    const handleCancelEnrich = () => {
+        abortRef.current?.abort()
+        setLoading({ active: false, phase: 'idle', current: '', progress: 0, total: 0 })
     }
 
     const handleDownloadEnrichedJson = () => {
@@ -388,13 +570,19 @@ export const CharacterSheetPage = () => {
                             }}
                         />
                         
-                        <Typography 
-                            variant="caption" 
-                            color="text.secondary" 
-                            sx={{ mt: 1, display: 'block' }}
-                        >
-                            Cada item leva alguns segundos devido ao rate limit da API de tradução
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1 }}>
+                            <Typography variant="caption" color="text.secondary">
+                                Cada item leva alguns segundos devido ao rate limit da API de tradução
+                            </Typography>
+                            <Button
+                                size="small"
+                                color="error"
+                                variant="outlined"
+                                onClick={handleCancelEnrich}
+                            >
+                                Cancelar
+                            </Button>
+                        </Box>
                     </CardContent>
                 </Card>
             </Fade>
