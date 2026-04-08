@@ -126,6 +126,21 @@ export interface SpellCaster {
   blendedSpells: string[];
 }
 
+export interface CompanionAttack {
+  name: string;
+  damage: string;
+  traits: string[];
+}
+
+/** Stats do companheiro animal, buscados do AON e traduzidos */
+export interface CompanionStats {
+  size: string;
+  speed: number;
+  attacks: CompanionAttack[];
+  supportBenefit: string;
+  advancedManeuver: string | null;
+}
+
 export interface Pet {
   type: 'Animal Companion' | 'Familiar' | string;
   name: string;
@@ -144,6 +159,39 @@ export interface Familiar {
   abilities?: string[];
 }
 
+// Formato de talento vindo do JSON do Pathbuilder/exportador
+// Array: [nome, qualificador|null, tipo, nível, ...campos extras]
+export type FeatArray = [string, string | null, string?, number?, ...unknown[]]
+// Objeto (formato alternativo menos comum)
+export interface FeatObject { name: string; type?: string; level?: number }
+export type FeatEntry = FeatArray | FeatObject
+
+/** Extrai nome, tipo e nível de qualquer formato de entrada de talento */
+export function parseFeatEntry(f: FeatEntry): { name: string; type: string; level: number } {
+  if (Array.isArray(f)) {
+    return {
+      name: String(f[0] ?? ''),
+      type: String(f[2] ?? 'Outro'),
+      level: Number(f[3] ?? 1),
+    }
+  }
+  return {
+    name: String(f.name ?? ''),
+    type: String(f.type ?? 'Outro'),
+    level: Number(f.level ?? 1),
+  }
+}
+
+export interface FocusAbility {
+  abilityBonus?: number;
+  proficiency?: number;
+  itemBonus?: number;
+  focusCantrips?: string[];
+  focusSpells?: string[];
+}
+
+export type FocusTradition = Record<string, FocusAbility>
+
 export interface BuildInfo {
   name: string;
   class: string;
@@ -161,7 +209,7 @@ export interface BuildInfo {
   abilities: Abilities;
   attributes: Attributes;
   proficiencies: Proficiencies;
-  feats: any[];
+  feats: FeatEntry[];
   featDescriptions?: Record<string, string>;
   specials: string[];
   specialDescriptions?: Record<string, string>;
@@ -179,13 +227,7 @@ export interface BuildInfo {
   money: { cp: number; sp: number; gp: number; pp: number };
   spellCasters: SpellCaster[];
   focusPoints?: number;
-  focus?: Record<string, Record<string, {
-    abilityBonus?: number;
-    proficiency?: number;
-    itemBonus?: number;
-    focusCantrips?: string[];
-    focusSpells?: string[];
-  }>>;
+  focus?: Record<string, FocusTradition>;
   mods?: Record<string, Record<string, number>>;
   acTotal?: {
     acProfBonus: number;
@@ -195,6 +237,7 @@ export interface BuildInfo {
     shieldBonus: number | null;
   };
   pets?: Pet[];
+  petDescriptions?: Record<string, CompanionStats>;
   familiars?: Familiar[];
   rituals?: string[];
   resistances?: string[];
