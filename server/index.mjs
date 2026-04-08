@@ -182,12 +182,9 @@ function isValidTranslation(original, translated) {
   return true
 }
 
-// Gera o prompt de tradução otimizado
+// Gera o prompt de tradução — consistente com api/_lib/aon.js
 function getTranslationPrompt(text) {
-  // Prompt simples e direto para evitar que o modelo retorne o prompt
-  return `Translate to Brazilian Portuguese. Only output the translation, nothing else:
-
-${text}`
+  return `Traduza para português brasileiro o seguinte texto de RPG Pathfinder 2e. Mantenha termos técnicos em inglês quando apropriado (como "flat-footed", "flanking", "prone", "grabbed", "immobilized"). Retorne APENAS a tradução, sem explicações:\n\n${text}`
 }
 
 // Função principal de tradução com sistema robusto
@@ -629,7 +626,7 @@ async function scrapeSpellDescription(spellName) {
 
       if (spellData.description) {
         const translated = await translateToPortuguese(spellData.description)
-        if (translated) spellData.description = translated
+        spellData.description = translated || spellData.description
       }
 
       console.log(`[scrapeSpell] Encontrado: ${source.name} (${spellData.actions || '?'} ações)`)
@@ -651,6 +648,94 @@ async function scrapeSpellDescription(spellName) {
     console.error(`[scrapeSpell] Erro:`, e.message)
     return null
   }
+}
+
+// Busca e extrai stats de companheiro animal via AON + Groq
+async function scrapeCompanionStats(animalName) {
+  console.log(`[scrapeCompanion] Buscando: ${animalName}`)
+
+  const cacheKey = `companion:${animalName}`
+  if (CACHE.has(cacheKey)) return CACHE.get(cacheKey)
+
+  let bestMatch = null
+  for (const query of [`${animalName} animal companion`, animalName]) {
+    const result = await searchAon(query)
+    if (result) {
+      const n = (result.name || '').toLowerCase()
+      if (n.includes(animalName.toLowerCase()) && n.includes('companion')) {
+        bestMatch = result; break
+      }
+      if (!bestMatch) bestMatch = result
+    }
+  }
+
+  if (!bestMatch?.description) {
+    console.log(`[scrapeCompanion] Não encontrado: ${animalName}`)
+    return null
+  }
+
+  if (!GROQ_API_KEY) return null
+
+  const prompt = `Você é um especialista em Pathfinder 2e. A partir deste texto de companheiro animal, extraia os dados e retorne APENAS JSON válido. Traduza os campos de texto para português brasileiro.
+
+Formato obrigatório:
+{
+  "size": "Small",
+  "speed": 35,
+  "attacks": [{"name": "Jaws", "damage": "1d8 P", "traits": []}],
+  "supportBenefit": "(descrição em pt-BR)",
+  "advancedManeuver": "(descrição em pt-BR ou null)"
+}
+
+Regras:
+- size: tamanho base do companheiro
+- speed: apenas o número em pés
+- attacks: todos os ataques com nome, dado de dano e tipo (P/S/B)
+- supportBenefit: benefício de suporte em português
+- advancedManeuver: manobra avançada em português, ou null
+
+Texto:
+${bestMatch.description.substring(0, 2000)}`
+
+  try {
+    const raw = await fetchGroq(prompt, 0.1)
+    const jsonMatch = raw?.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) return null
+
+    const parsed = JSON.parse(jsonMatch[0])
+    if (!parsed.size || !parsed.attacks || !parsed.supportBenefit) return null
+
+    const stats = {
+      size: String(parsed.size),
+      speed: Number(parsed.speed) || 25,
+      attacks: Array.isArray(parsed.attacks) ? parsed.attacks.map(a => ({
+        name: String(a.name || ''),
+        damage: String(a.damage || ''),
+        traits: Array.isArray(a.traits) ? a.traits.map(String) : []
+      })) : [],
+      supportBenefit: String(parsed.supportBenefit),
+      advancedManeuver: parsed.advancedManeuver ? String(parsed.advancedManeuver) : null
+    }
+
+    console.log(`[scrapeCompanion] Extraído: ${animalName} (${stats.size}, ${stats.speed} pés)`)
+    CACHE.set(cacheKey, stats)
+    return stats
+  } catch (e) {
+    console.error(`[scrapeCompanion] Erro ao parsear JSON:`, e.message)
+    return null
+  }
+}
+
+// Lê o body de uma requisição POST como JSON
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    let data = ''
+    req.on('data', chunk => { data += chunk })
+    req.on('end', () => {
+      try { resolve(JSON.parse(data)) } catch { resolve({}) }
+    })
+    req.on('error', reject)
+  })
 }
 
 // ============================================================================
@@ -759,6 +844,145 @@ const server = http.createServer(async (req, res) => {
     return
   }
   
+  // Companheiro animal (único)
+  if (pathname === '/api/companion') {
+    const name = parsedUrl.searchParams.get('name')
+    if (!name) {
+      res.writeHead(400, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: 'Missing name parameter' }))
+      return
+    }
+    try {
+      const stats = await scrapeCompanionStats(name)
+      if (!stats) {
+        res.writeHead(404, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: 'Companheiro não encontrado' }))
+        return
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify(stats))
+    } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: e.message }))
+    }
+    return
+  }
+
+  // Batch: múltiplos companheiros animais
+  if (pathname === '/api/companions' && req.method === 'POST') {
+    let body
+    try { body = await readBody(req) } catch { body = {} }
+    const names = body?.names
+    if (!Array.isArray(names) || !names.length) {
+      res.writeHead(400, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: 'Campo "names" deve ser um array não-vazio' }))
+      return
+    }
+    try {
+      const results = {}
+      for (const name of names) {
+        const stats = await scrapeCompanionStats(name)
+        if (stats) results[name] = stats
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify(results))
+    } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: e.message }))
+    }
+    return
+  }
+
+  // Batch: múltiplos talentos
+  if (pathname === '/api/feats' && req.method === 'POST') {
+    let body
+    try { body = await readBody(req) } catch { body = {} }
+    const names = body?.names
+    if (!Array.isArray(names) || !names.length) {
+      res.writeHead(400, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: 'Campo "names" deve ser um array não-vazio' }))
+      return
+    }
+    try {
+      const CONCURRENCY = 3
+      const results = {}
+      for (let i = 0; i < names.length; i += CONCURRENCY) {
+        const chunk = names.slice(i, i + CONCURRENCY)
+        const resolved = await Promise.all(chunk.map(async n => {
+          const description = await scrapeFeatDescription(n)
+          return { name: n, description }
+        }))
+        resolved.forEach(r => { results[r.name] = { name: r.name, description: r.description } })
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify(results))
+    } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: e.message }))
+    }
+    return
+  }
+
+  // Batch: múltiplas habilidades especiais
+  if (pathname === '/api/searches' && req.method === 'POST') {
+    let body
+    try { body = await readBody(req) } catch { body = {} }
+    const names = body?.names
+    if (!Array.isArray(names) || !names.length) {
+      res.writeHead(400, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: 'Campo "names" deve ser um array não-vazio' }))
+      return
+    }
+    try {
+      const CONCURRENCY = 3
+      const results = {}
+      for (let i = 0; i < names.length; i += CONCURRENCY) {
+        const chunk = names.slice(i, i + CONCURRENCY)
+        const resolved = await Promise.all(chunk.map(async n => {
+          const description = await scrapeGenericDescription(n)
+          return { name: n, description }
+        }))
+        resolved.forEach(r => { results[r.name] = { name: r.name, description: r.description } })
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify(results))
+    } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: e.message }))
+    }
+    return
+  }
+
+  // Batch: múltiplas magias
+  if (pathname === '/api/spells' && req.method === 'POST') {
+    let body
+    try { body = await readBody(req) } catch { body = {} }
+    const names = body?.names
+    if (!Array.isArray(names) || !names.length) {
+      res.writeHead(400, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: 'Campo "names" deve ser um array não-vazio' }))
+      return
+    }
+    try {
+      const CONCURRENCY = 3
+      const results = {}
+      for (let i = 0; i < names.length; i += CONCURRENCY) {
+        const chunk = names.slice(i, i + CONCURRENCY)
+        const resolved = await Promise.all(chunk.map(async n => {
+          const spellData = await scrapeSpellDescription(n)
+          return spellData || { name: n, description: null }
+        }))
+        resolved.forEach(r => { results[r.name] = r })
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify(results))
+    } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: e.message }))
+    }
+    return
+  }
+
   // 404
   res.writeHead(404, { 'Content-Type': 'application/json' })
   res.end(JSON.stringify({ error: 'Not found' }))
