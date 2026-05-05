@@ -33,7 +33,7 @@ ${rawText.substring(0, 2000)}`
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
+        model: 'llama-3.3-70b-versatile',
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 512,
         temperature: 0.1

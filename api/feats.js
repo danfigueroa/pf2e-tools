@@ -46,7 +46,9 @@ export default async function handler(req, res) {
     for (let i = 0; i < names.length; i += CONCURRENCY) {
       const batch = names.slice(i, i + CONCURRENCY)
       const resolved = await Promise.all(batch.map(n => resolveFeat(n, apiKey)))
-      resolved.forEach(r => { results[r.name] = r })
+      // Chaveia pelo nome de INPUT — caso contrário, o frontend perde o feat
+      // quando o AON devolve uma forma normalizada do nome.
+      resolved.forEach((r, idx) => { results[batch[idx]] = r })
     }
     return res.status(200).json(results)
   } catch (error) {

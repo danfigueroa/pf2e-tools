@@ -7,8 +7,13 @@ const cache = new Map()
 export function cleanAonText(text) {
   if (!text) return ''
   return text
+    // Inserir pontuação ao fechar blocos para que itens de lista/parágrafo não fiquem
+    // colados (ex.: "<li>1</li><li>2</li>" não vire "1 2" sem separador semântico)
+    .replace(/<\/(li|p|h[1-6]|tr|td|th|div)>/gi, '. ')
+    .replace(/<br\s*\/?>(?!\s*<)/gi, '. ')
     .replace(/<[^>]*>/g, ' ')
     .replace(/&[a-z]+;/gi, ' ')
+    .replace(/\.\s*\.\s*/g, '. ')
     .replace(/\s+/g, ' ')
     .trim()
 }
@@ -25,6 +30,8 @@ export function extractMainDescription(text, maxLength = 600) {
     .replace(/\b(Fonte|Source)\s+[A-Z][^.]+\.\s*/g, '')
     .replace(/\bpg\.\s*\d+\s*/g, '')
     .replace(/\b\d+\.\d+\s*/g, '')
+    // Referências a livros do PF2e (ex.: "Player Core 2 250", "Core Rulebook 320")
+    .replace(/\b(Player Core|Core Rulebook|Advanced Player'?s? Guide|Secrets of Magic|Guns and Gears|Dark Archive|Book of the Dead|Rage of Elements|Treasure Vault|Gamemastery Guide|Bestiary(?:\s\d)?)(?:\s\d)?\s+\d{1,4}\b/gi, '')
     .replace(/\b(PFS|Standard|Limited|Restricted)\b/gi, '')
     .replace(/Pré-requisitos?:?\s*[^.]+\./gi, '')
     .replace(/Prerequisites?:?\s*[^.]+\./gi, '')
@@ -33,6 +40,11 @@ export function extractMainDescription(text, maxLength = 600) {
     .replace(/Gatilho:?\s*[^.]+\./gi, '')
     .replace(/(Leads to|Leva a)\.{3}[^.]*\.?/gi, '')
     .replace(/---/g, ' ')
+    // Remove marcadores de lista órfãos: "1." / "1)" no início, ou após ponto/quebra
+    // (somente quando seguidos de letra maiúscula — evita atingir "1d6", "+2", "5 feet")
+    .replace(/(^|[.;:!?]\s)\d{1,2}[.)]\s+(?=[A-ZÁÉÍÓÚÂÊÔÃÕ])/g, '$1')
+    // Número órfão no início (resíduo de "Source ... pg." ou ref de livro removida)
+    .replace(/^\s*\d{1,4}\s+(?=[A-ZÁÉÍÓÚÂÊÔÃÕ])/, '')
     .replace(/\s+/g, ' ')
     .trim()
   
@@ -135,13 +147,13 @@ export function cleanTranslation(text) {
   return cleaned.trim()
 }
 
-// Traduz texto para português usando Groq
+// Traduz texto para português usando Groq, com 1 retry para falhas transitórias
 export async function translateToPortuguese(text, apiKey) {
   if (!text || !apiKey) return text
-  
+
   const prompt = `Traduza para português brasileiro o seguinte texto de RPG Pathfinder 2e. Mantenha termos técnicos em inglês quando apropriado (como "flat-footed", "flanking"). Retorne APENAS a tradução, sem explicações:\n\n${text}`
-  
-  try {
+
+  const attempt = async () => {
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -149,35 +161,41 @@ export async function translateToPortuguese(text, apiKey) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
+        model: 'llama-3.3-70b-versatile',
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 2048,
         temperature: 0.3
       })
     })
-    
+
     if (!response.ok) {
-      console.error('Groq API error:', response.status)
-      return text
+      const transient = response.status === 429 || response.status >= 500
+      throw Object.assign(new Error(`Groq ${response.status}`), { transient, status: response.status })
     }
-    
+
     const data = await response.json()
-    let translated = data.choices?.[0]?.message?.content?.trim()
-    
-    if (!translated) return text
-    
-    translated = cleanTranslation(translated)
-    
-    // Validação básica
-    if (translated.length < text.length * 0.3) {
+    const translated = data.choices?.[0]?.message?.content?.trim()
+    if (!translated) throw Object.assign(new Error('Resposta vazia'), { transient: true })
+    return cleanTranslation(translated)
+  }
+
+  for (let i = 0; i < 2; i++) {
+    try {
+      const translated = await attempt()
+      // Validação básica — se devolver muito menos que o original é provável que tenha
+      // sido truncado/erro de tradução. Retentar uma vez antes de cair no original.
+      if (translated.length < text.length * 0.3 && i === 0) continue
+      return translated
+    } catch (error) {
+      if (error?.transient && i === 0) {
+        await new Promise(r => setTimeout(r, 400))
+        continue
+      }
+      console.error('Translation error:', error?.message || error)
       return text
     }
-    
-    return translated
-  } catch (error) {
-    console.error('Translation error:', error)
-    return text
   }
+  return text
 }
 
 // Gera descrição via Groq quando o item não é encontrado no AON
@@ -201,7 +219,7 @@ export async function generateFallbackDescription(name, itemType, apiKey) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
+        model: 'llama-3.3-70b-versatile',
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 256,
         temperature: 0.3

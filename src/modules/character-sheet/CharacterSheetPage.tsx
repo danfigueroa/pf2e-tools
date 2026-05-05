@@ -262,7 +262,10 @@ export const CharacterSheetPage = () => {
                     const data: Record<string, object> = await r.json()
                     Object.entries(data).forEach(([key, val]) => {
                         const v = val as any
-                        if (v && (v.name || isValidDescription(v.description) || v.actions)) {
+                        // Para paridade com feats: só armazenar quando há descrição válida.
+                        // Sem isso, magias com erro de tradução apareciam só com metadados,
+                        // diferente da renderização de feats.
+                        if (v && isValidDescription(v.description)) {
                             copy.spellDescriptions![key] = v
                             saveSpellCache(key, v)
                         }

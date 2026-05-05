@@ -956,7 +956,7 @@ function drawSpells(doc: jsPDF, build: BuildInfo, y: number): number {
                     }
 
                     // Descrição — até 5 linhas
-                    if (spellInfo.description) {
+                    if (spellInfo.description?.trim()) {
                         setColor(doc, COLORS.gray)
                         doc.setFont('helvetica', 'normal')
                         doc.setFontSize(6)
