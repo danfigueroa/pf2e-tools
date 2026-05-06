@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import {
   Description as SheetIcon,
+  PhoneIphone as ViewerIcon,
   Transform as TransformIcon,
   ArrowForward as ArrowIcon,
 } from '@mui/icons-material';
@@ -25,7 +26,19 @@ interface ToolCard {
 
 const tools: ToolCard[] = [
   {
-    title: 'Ficha de Personagem',
+    title: 'Ficha Virtual',
+    description: 'Visualização interativa da ficha em qualquer dispositivo. Toque em talentos, magias e habilidades para ver as descrições completas em português, traduzidas do Archives of Nethys.',
+    icon: <ViewerIcon sx={{ fontSize: 32 }} />,
+    path: '/ficha-virtual',
+    features: [
+      'Mobile, tablet e desktop',
+      'Descrições sob demanda',
+      'Magias e talentos clicáveis',
+      'Cache local',
+    ],
+  },
+  {
+    title: 'Ficha em PDF',
     description: 'Importe um JSON de personagem (Pathbuilder/Wanderer\'s Guide) e gere uma ficha completa em PDF com todos os detalhes do seu personagem.',
     icon: <SheetIcon sx={{ fontSize: 32 }} />,
     path: '/character-sheet',

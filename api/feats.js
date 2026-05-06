@@ -2,8 +2,15 @@
 import { searchAon, extractMainDescription, translateToPortuguese, generateFallbackDescription } from './_lib/aon.js'
 
 async function resolveFeat(name, apiKey) {
-  const results = await searchAon(name, 'feat', 10)
-  const bestMatch = results.find(r => r._source.name?.toLowerCase() === name.toLowerCase()) || results[0]
+  // Tenta categorias na ordem: feat (mais comum) → heritage → ancestry-feature → class-feature.
+  // Heritages como "Running Animal" e features de classe não vivem em 'feat' no AON.
+  let bestMatch = null
+  for (const cat of ['feat', 'heritage', 'ancestry-feature', 'class-feature']) {
+    const results = await searchAon(name, cat, 10)
+    const exact = results.find(r => r._source.name?.toLowerCase() === name.toLowerCase())
+    if (exact) { bestMatch = exact; break }
+    if (!bestMatch && results.length > 0) bestMatch = results[0]
+  }
 
   if (!bestMatch) {
     const fallback = await generateFallbackDescription(name, 'feat', apiKey)

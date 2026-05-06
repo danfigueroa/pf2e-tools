@@ -5,6 +5,7 @@ import { MainLayout } from './layouts/MainLayout';
 import { HomePage } from './pages/HomePage';
 import { TransformationPage } from './modules/transformation-statblock/TransformationPage';
 import { CharacterSheetPage } from './modules/character-sheet/CharacterSheetPage';
+import { CharacterViewerPage } from './modules/character-viewer/CharacterViewerPage';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path="/" element={<MainLayout />}>
             <Route index element={<HomePage />} />
             <Route path="character-sheet" element={<CharacterSheetPage />} />
+            <Route path="ficha-virtual" element={<CharacterViewerPage />} />
             <Route path="transformation" element={<TransformationPage />} />
           </Route>
         </Routes>

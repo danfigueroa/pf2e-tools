@@ -26,9 +26,15 @@ export function extractMainDescription(text, maxLength = 600) {
   
   // Remove padrões de metadados comuns
   cleaned = cleaned
+    // Source/Fonte com livro + "pg./p. NN" — alta confiança
+    .replace(/\b(?:Fonte|Source)s?:?\s+[^.\n]+?\s+p(?:g)?\.\s*\d+\s*/gi, ' ')
+    // Source/Fonte com livro terminado por separador --- ou em-dash
+    .replace(/\b(?:Fonte|Source)s?:?\s+[^.\n]+?(?=\s*(?:---+|[—–]+))/gi, ' ')
+    // Source/Fonte: <livro>. (com colon e ponto final)
     .replace(/^(Fonte|Source):?\s*[^.]+\./i, '')
     .replace(/\b(Fonte|Source)\s+[A-Z][^.]+\.\s*/g, '')
-    .replace(/\bpg\.\s*\d+\s*/g, '')
+    // Refs de página soltas
+    .replace(/\bp(?:g)?\.\s*\d+\s*/g, '')
     .replace(/\b\d+\.\d+\s*/g, '')
     // Referências a livros do PF2e (ex.: "Player Core 2 250", "Core Rulebook 320")
     .replace(/\b(Player Core|Core Rulebook|Advanced Player'?s? Guide|Secrets of Magic|Guns and Gears|Dark Archive|Book of the Dead|Rage of Elements|Treasure Vault|Gamemastery Guide|Bestiary(?:\s\d)?)(?:\s\d)?\s+\d{1,4}\b/gi, '')
@@ -39,7 +45,9 @@ export function extractMainDescription(text, maxLength = 600) {
     .replace(/Trigger:?\s*[^.]+\./gi, '')
     .replace(/Gatilho:?\s*[^.]+\./gi, '')
     .replace(/(Leads to|Leva a)\.{3}[^.]*\.?/gi, '')
-    .replace(/---/g, ' ')
+    // Separadores temáticos (--- e em/en-dash)
+    .replace(/\s*-{2,}\s*/g, ' ')
+    .replace(/\s*[—–]+\s*/g, ' ')
     // Remove marcadores de lista órfãos: "1." / "1)" no início, ou após ponto/quebra
     // (somente quando seguidos de letra maiúscula — evita atingir "1d6", "+2", "5 feet")
     .replace(/(^|[.;:!?]\s)\d{1,2}[.)]\s+(?=[A-ZÁÉÍÓÚÂÊÔÃÕ])/g, '$1')

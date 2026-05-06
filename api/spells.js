@@ -87,15 +87,23 @@ async function resolveSpell(name, apiKey) {
     if (fallback) description = fallback
   }
 
+  // Prefere os campos *_raw do AON (ex.: "30 feet" em vez de só "30").
+  // Fallback para o campo numérico/cru quando *_raw não existir.
+  const rangeStr = source.range_raw || (source.range != null ? String(source.range) : '')
+  const areaStr = source.area_raw || (Array.isArray(source.area) ? source.area.join(', ') : (source.area || ''))
+  const targetsStr = source.targets_raw || source.targets || ''
+  const durationStr = source.duration_raw || (source.duration != null ? String(source.duration) : '')
+  const defenseStr = source.saving_throw || source.defense || ''
+
   return {
     name: source.name || name,
     actions: source.actions || '',
-    traits: source.trait || [],
-    range: translateMetadata(cleanAonText(source.range || '')),
-    area: translateMetadata(cleanAonText(source.area || '')),
-    targets: translateMetadata(cleanAonText(source.targets || '')),
-    duration: translateMetadata(cleanAonText(source.duration || '')),
-    defense: translateMetadata(cleanAonText(source.saving_throw || source.defense || '')),
+    traits: source.trait || source.tradition || [],
+    range: translateMetadata(cleanAonText(rangeStr)),
+    area: translateMetadata(cleanAonText(areaStr)),
+    targets: translateMetadata(cleanAonText(targetsStr)),
+    duration: translateMetadata(cleanAonText(durationStr)),
+    defense: translateMetadata(cleanAonText(defenseStr)),
     description: description || null,
     damage: cleanAonText(source.damage || ''),
     damageType: cleanAonText(source.damage_type || source.damageType || ''),

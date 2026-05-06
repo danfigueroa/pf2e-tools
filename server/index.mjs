@@ -41,10 +41,11 @@ function fetchGroq(prompt, temperature = 0.1) {
     }
     
     const req = https.request(options, (res) => {
-      let data = ''
-      res.on('data', chunk => { data += chunk })
+      const chunks = []
+      res.on('data', chunk => { chunks.push(chunk) })
       res.on('end', () => {
         try {
+          const data = Buffer.concat(chunks).toString('utf8')
           const json = JSON.parse(data)
           if (json.error) {
             reject(new Error(json.error.message || JSON.stringify(json.error)))
@@ -332,47 +333,23 @@ function cleanAonText(text) {
   return cleaned.trim()
 }
 
-// Extrai apenas o texto principal da descrição, removendo duplicatas
+// Extrai o texto principal da descrição. NÃO concatena name/source/prerequisites
+// no começo: o source.text do AON já contém "Source X pg. NN" inline; se duplicarmos,
+// a tradução vira "Nome Nome Fonte: ... Fonte ..." (ruído puro).
+// O frontend (format-description.ts) extrai a Fonte/Source para o chip dedicado.
 function extractMainDescription(source) {
-  let parts = []
-  
-  // Nome (apenas uma vez)
-  if (source.name) {
-    parts.push(source.name)
-  }
-  
-  // Fonte
-  if (source.source) {
-    parts.push(`Fonte: ${source.source}`)
-    if (source.page) {
-      parts[parts.length - 1] += ` pg. ${source.page}`
-    }
-  }
-  
-  // Pré-requisitos
-  if (source.prerequisites) {
-    parts.push(`Pré-requisitos: ${source.prerequisites}`)
-  }
-  
-  // Texto principal - prioriza 'text', depois 'markdown'
   let mainText = ''
   if (source.text) {
     mainText = cleanAonText(source.text)
   } else if (source.markdown) {
     mainText = source.markdown
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links markdown
-      .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold
-      .replace(/\*([^*]+)\*/g, '$1') // Remove italic
-      .replace(/#+\s*/g, '') // Remove headers
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // links markdown
+      .replace(/\*\*([^*]+)\*\*/g, '$1')        // bold
+      .replace(/\*([^*]+)\*/g, '$1')            // italic
+      .replace(/#+\s*/g, '')                    // headers
     mainText = cleanAonText(mainText)
   }
-  
-  if (mainText) {
-    parts.push('---')
-    parts.push(mainText)
-  }
-  
-  return parts.join(' ')
+  return mainText
 }
 
 function fetchJson(url) {
@@ -463,17 +440,17 @@ async function searchAon(name, category = null) {
       }
       
       const req = https.request(options, (res) => {
-        let data = ''
-        res.on('data', chunk => { data += chunk })
+        const chunks = []
+        res.on('data', chunk => { chunks.push(chunk) })
         res.on('end', () => {
           try {
-            resolve(JSON.parse(data))
+            resolve(JSON.parse(Buffer.concat(chunks).toString('utf8')))
           } catch (e) {
             reject(e)
           }
         })
       })
-      
+
       req.on('error', reject)
       req.setTimeout(10000, () => {
         req.destroy()
@@ -512,11 +489,24 @@ async function searchAon(name, category = null) {
 async function scrapeFeatDescription(featName) {
   console.log(`[scrapeFeat] Buscando: ${featName}`)
 
-  const result = await searchAon(featName, 'feat')
-  if (result?.description) {
-    console.log(`[scrapeFeat] Encontrado: ${result.name}`)
-    const translated = await translateToPortuguese(result.description)
-    return translated || result.description
+  // Tenta categorias em ordem; prefere match exato. Heritages como
+  // "Running Animal" e features de classe vivem em outras categorias no AON.
+  let bestResult = null
+  for (const cat of ['feat', 'heritage', 'ancestry-feature', 'class-feature']) {
+    const result = await searchAon(featName, cat)
+    if (result?.description) {
+      if (result.name?.toLowerCase() === featName.toLowerCase()) {
+        bestResult = result
+        break
+      }
+      if (!bestResult) bestResult = result
+    }
+  }
+
+  if (bestResult?.description) {
+    console.log(`[scrapeFeat] Encontrado: ${bestResult.name}`)
+    const translated = await translateToPortuguese(bestResult.description)
+    return translated || bestResult.description
   }
 
   console.log(`[scrapeFeat] Não encontrado no AON, usando fallback Groq: ${featName}`)
@@ -591,9 +581,9 @@ async function scrapeSpellDescription(spellName) {
           headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 pf2e-tools' }
         }
         const req = https.request(options, (res) => {
-          let data = ''
-          res.on('data', chunk => { data += chunk })
-          res.on('end', () => { try { resolve(JSON.parse(data)) } catch (e) { reject(e) } })
+          const chunks = []
+          res.on('data', chunk => { chunks.push(chunk) })
+          res.on('end', () => { try { resolve(JSON.parse(Buffer.concat(chunks).toString('utf8'))) } catch (e) { reject(e) } })
         })
         req.on('error', reject)
         req.setTimeout(10000, () => { req.destroy(); reject(new Error('Timeout')) })
@@ -609,15 +599,23 @@ async function scrapeSpellDescription(spellName) {
     }
 
     if (source) {
+      // Prefere os campos *_raw do AON (ex.: "30 feet" em vez de só "30").
+      // Quando o campo é numérico ou array, fallback para conversão simples.
+      const rangeStr = source.range_raw || (source.range != null ? String(source.range) : null)
+      const areaStr = source.area_raw || (Array.isArray(source.area) ? source.area.join(', ') : (source.area || null))
+      const targetsStr = source.targets_raw || source.targets || source.target || null
+      const durationStr = source.duration_raw || (source.duration != null ? String(source.duration) : null)
+      const defenseStr = source.saving_throw || source.save || source.defense || null
+
       const spellData = {
         name: source.name,
         actions: source.actions || source.action || null,
-        traits: source.trait || [],
-        range: source.range || null,
-        area: source.area || null,
-        targets: source.targets || source.target || null,
-        duration: source.duration || null,
-        defense: source.save || source.defense || null,
+        traits: source.trait || source.tradition || [],
+        range: rangeStr,
+        area: areaStr,
+        targets: targetsStr,
+        duration: durationStr,
+        defense: defenseStr,
         description: cleanAonText(source.text || source.markdown || ''),
         damage: source.damage || null,
         damageType: source.damage_type || null,
@@ -628,6 +626,34 @@ async function scrapeSpellDescription(spellName) {
         const translated = await translateToPortuguese(spellData.description)
         spellData.description = translated || spellData.description
       }
+
+      // Tradução leve dos metadados curtos (range/area/duration/etc.) via dicionário,
+      // para não gastar chamadas Groq em strings padronizadas como "30 feet".
+      const tdict = (s) => {
+        if (!s) return s
+        return String(s)
+          .replace(/\bfeet\b/gi, 'pés').replace(/\bfoot\b/gi, 'pé')
+          .replace(/\bmile(s)?\b/gi, 'milha$1')
+          .replace(/\bround(s)?\b/gi, 'rodada$1')
+          .replace(/\bturn(s)?\b/gi, 'turno$1')
+          .replace(/\bminute(s)?\b/gi, 'minuto$1')
+          .replace(/\bhour(s)?\b/gi, 'hora$1')
+          .replace(/\bday(s)?\b/gi, 'dia$1')
+          .replace(/\btouch\b/gi, 'toque').replace(/\bself\b/gi, 'próprio')
+          .replace(/\bunlimited\b/gi, 'ilimitado').replace(/\bsustained\b/gi, 'sustentada')
+          .replace(/\bup to\b/gi, 'até')
+          .replace(/\bcreature(s)?\b/gi, 'criatura$1').replace(/\bwilling\b/gi, 'disposta')
+          .replace(/\bally\b/gi, 'aliado').replace(/\benemy\b/gi, 'inimigo')
+          .replace(/\bemanation\b/gi, 'emanação').replace(/\bburst\b/gi, 'estouro')
+          .replace(/\bcone\b/gi, 'cone').replace(/\bline\b/gi, 'linha').replace(/\bcube\b/gi, 'cubo')
+          .replace(/\bWill\b/g, 'Vontade').replace(/\bReflex\b/g, 'Reflexos').replace(/\bFortitude\b/g, 'Fortitude')
+          .replace(/\bbasic\b/gi, 'básico').replace(/\bsave\b/gi, 'salvamento')
+      }
+      spellData.range = tdict(spellData.range)
+      spellData.area = tdict(spellData.area)
+      spellData.targets = tdict(spellData.targets)
+      spellData.duration = tdict(spellData.duration)
+      spellData.defense = tdict(spellData.defense)
 
       console.log(`[scrapeSpell] Encontrado: ${source.name} (${spellData.actions || '?'} ações)`)
       CACHE.set(cacheKey, spellData)
@@ -657,16 +683,14 @@ async function scrapeCompanionStats(animalName) {
   const cacheKey = `companion:${animalName}`
   if (CACHE.has(cacheKey)) return CACHE.get(cacheKey)
 
-  let bestMatch = null
-  for (const query of [`${animalName} animal companion`, animalName]) {
-    const result = await searchAon(query)
-    if (result) {
-      const n = (result.name || '').toLowerCase()
-      if (n.includes(animalName.toLowerCase()) && n.includes('companion')) {
-        bestMatch = result; break
-      }
-      if (!bestMatch) bestMatch = result
-    }
+  // No AON, animal companions ficam na categoria 'animal-companion' (ex.: "Bear",
+  // "Wolf"). Sem o filtro, a busca por "Bear" retorna a creature-family ou o feat
+  // genérico "Animal Companion".
+  let bestMatch = await searchAon(animalName, 'animal-companion')
+  if (!bestMatch?.description) {
+    // Fallback: busca sem categoria, prefere match exato.
+    const fallback = await searchAon(animalName)
+    if (fallback?.description) bestMatch = fallback
   }
 
   if (!bestMatch?.description) {

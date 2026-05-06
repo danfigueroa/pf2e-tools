@@ -19,6 +19,7 @@ import {
   Menu as MenuIcon,
   Home as HomeIcon,
   Description as SheetIcon,
+  PhoneIphone as ViewerIcon,
   Transform as TransformIcon,
 } from '@mui/icons-material';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
@@ -38,7 +39,12 @@ const navigationItems: NavigationItem[] = [
     path: '/',
   },
   {
-    text: 'Ficha de Personagem',
+    text: 'Ficha Virtual',
+    icon: <ViewerIcon />,
+    path: '/ficha-virtual',
+  },
+  {
+    text: 'Ficha em PDF',
     icon: <SheetIcon />,
     path: '/character-sheet',
   },
