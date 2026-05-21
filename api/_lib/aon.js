@@ -45,6 +45,11 @@ export function extractMainDescription(text, maxLength = 600) {
     .replace(/Trigger:?\s*[^.]+\./gi, '')
     .replace(/Gatilho:?\s*[^.]+\./gi, '')
     .replace(/(Leads to|Leva a)\.{3}[^.]*\.?/gi, '')
+    // Metadados de magia que aparecem como texto inline no AON antes da descrição
+    .replace(/\bCast:?\s+[^.]+\.?\s*/gi, '')
+    .replace(/\bTraditions?:?\s+[^.\n]+\.?\s*/gi, '')
+    .replace(/\bBloodlines?:?\s+[^.\n]+\.?\s*/gi, '')
+    .replace(/\bSubclasses?:?\s+[^.\n]+\.?\s*/gi, '')
     // Separadores temáticos (--- e em/en-dash)
     .replace(/\s*-{2,}\s*/g, ' ')
     .replace(/\s*[—–]+\s*/g, ' ')

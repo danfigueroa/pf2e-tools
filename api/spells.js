@@ -95,10 +95,19 @@ async function resolveSpell(name, apiKey) {
   const durationStr = source.duration_raw || (source.duration != null ? String(source.duration) : '')
   const defenseStr = source.saving_throw || source.defense || ''
 
+  const TRADITION_KEYWORDS = ['arcane', 'divine', 'occult', 'primal']
+  const allTraits = source.trait || []
+  const traditions = source.tradition && source.tradition.length > 0
+    ? source.tradition
+    : allTraits.filter(t => TRADITION_KEYWORDS.includes((t || '').toLowerCase()))
+  const traits = allTraits.filter(t => !TRADITION_KEYWORDS.includes((t || '').toLowerCase()))
+
   return {
     name: source.name || name,
     actions: source.actions || '',
-    traits: source.trait || source.tradition || [],
+    traits: traits.length > 0 ? traits : (traditions.length === 0 ? allTraits : []),
+    traditions: traditions.length > 0 ? traditions : undefined,
+    castComponents: cleanAonText(source.cast_components || source.components || ''),
     range: translateMetadata(cleanAonText(rangeStr)),
     area: translateMetadata(cleanAonText(areaStr)),
     targets: translateMetadata(cleanAonText(targetsStr)),

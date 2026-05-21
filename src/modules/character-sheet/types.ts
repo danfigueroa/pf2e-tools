@@ -100,7 +100,9 @@ export interface SpellListByLevel {
 export interface SpellDescription {
   name: string;
   actions?: string;        // "1", "2", "3", "reaction", "free", "1 to 3"
-  traits?: string[];       // ["divine", "healing", "vitality"]
+  traits?: string[];       // ["healing", "vitality"] — sem tradições
+  traditions?: string[]    // ["divine", "primal"] — separado de traits
+  castComponents?: string  // "somatic, verbal"
   range?: string;          // "30 feet", "touch", "120 feet"
   area?: string;           // "15-foot emanation", "30-foot cone"
   targets?: string;        // "1 creature", "you"

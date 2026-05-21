@@ -259,7 +259,7 @@ const SpellMetadata = ({ spell, accent }: { spell: SpellDescription; accent: str
                 ))}
             </Stack>
         )}
-        {(spell.range || spell.area || spell.targets || spell.duration || spell.defense || spell.damage) && (
+        {(spell.traditions?.length || spell.castComponents || spell.range || spell.area || spell.targets || spell.duration || spell.defense || spell.damage) && (
             <Box
                 sx={{
                     display: 'grid',
@@ -273,6 +273,15 @@ const SpellMetadata = ({ spell, accent }: { spell: SpellDescription; accent: str
                     backgroundColor: accent + '0a',
                 }}
             >
+                {spell.traditions && spell.traditions.length > 0 && (
+                    <MetaRow label="Tradições" value={spell.traditions.join(', ')} />
+                )}
+                {spell.castComponents && (
+                    <MetaRow
+                        label="Conjuração"
+                        value={`${actionSymbol(spell.actions ?? '')} ${spell.castComponents}`.trim()}
+                    />
+                )}
                 {spell.range && <MetaRow label="Alcance" value={spell.range} />}
                 {spell.area && <MetaRow label="Área" value={spell.area} />}
                 {spell.targets && <MetaRow label="Alvos" value={spell.targets} />}
