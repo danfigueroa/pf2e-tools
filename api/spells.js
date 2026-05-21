@@ -76,7 +76,7 @@ async function resolveSpell(name, apiKey) {
   }
 
   const source = bestMatch._source
-  let description = extractMainDescription(source.text || source.markdown || '', 600)
+  let description = extractMainDescription(source.text || source.markdown || '')
   if (apiKey && description) {
     description = await translateToPortuguese(description, apiKey)
   }
