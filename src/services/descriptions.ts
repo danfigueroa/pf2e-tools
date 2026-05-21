@@ -4,7 +4,7 @@
 
 import type { SpellDescription, CompanionStats } from '../modules/character-sheet/types'
 
-const CACHE_VERSION = 'v5'
+const CACHE_VERSION = 'v6'
 
 type Kind = 'feat' | 'spell' | 'special' | 'companion' | 'item'
 
