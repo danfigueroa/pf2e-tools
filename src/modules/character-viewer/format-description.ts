@@ -175,7 +175,7 @@ function stripLeadingMetadata(text: string): string {
     const m = text.match(PROSE_START_RE)
     if (!m || m.index === undefined || m.index === 0) return text
     // Prefixo > 120 chars provavelmente é prosa real, não metadata.
-    if (m.index > 400) return text
+    if (m.index > 800) return text
     return text.slice(m.index).trim()
 }
 
