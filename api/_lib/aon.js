@@ -19,12 +19,25 @@ export function cleanAonText(text) {
 }
 
 // Extrai a descrição principal removendo metadados
-export function extractMainDescription(text, maxLength = 600) {
+export function extractMainDescription(text, maxLength = 2000) {
   if (!text) return ''
-  
+
+  // AON usa <hr> para separar o bloco de metadados da descrição.
+  // Split aqui ANTES de cleanAonText para não precisar remover campos via regex.
+  const hrMatch = text.match(/<hr\s*\/?>/i)
+  if (hrMatch) {
+    text = text.substring(hrMatch.index + hrMatch[0].length)
+  } else {
+    // Fallback: markdown usa separador \n---\n
+    const mdParts = text.split(/\n-{3,}\n/)
+    if (mdParts.length > 1) {
+      text = mdParts.slice(1).join('\n---\n')
+    }
+  }
+
   let cleaned = cleanAonText(text)
-  
-  // Remove padrões de metadados comuns
+
+  // Remove padrões de metadados comuns (fallback para quando <hr> não existir)
   cleaned = cleaned
     // Source/Fonte com livro + "pg./p. NN" — alta confiança
     .replace(/\b(?:Fonte|Source)s?:?\s+[^.\n]+?\s+p(?:g)?\.\s*\d+\s*/gi, ' ')
@@ -50,6 +63,12 @@ export function extractMainDescription(text, maxLength = 600) {
     .replace(/\bTraditions?:?\s+[^.\n]+\.?\s*/gi, '')
     .replace(/\bBloodlines?:?\s+[^.\n]+\.?\s*/gi, '')
     .replace(/\bSubclasses?:?\s+[^.\n]+\.?\s*/gi, '')
+    .replace(/\bRange:?\s+[^.\n]+\.?\s*/gi, '')
+    .replace(/\bArea:?\s+[^.\n]+\.?\s*/gi, '')
+    .replace(/\bTargets?:?\s+[^.\n]+\.?\s*/gi, '')
+    .replace(/\bDuration:?\s+[^.\n]+\.?\s*/gi, '')
+    .replace(/\b(?:Saving Throw|Defense):?\s+[^.\n]+\.?\s*/gi, '')
+    .replace(/\bComponents?:?\s+[^.\n]+\.?\s*/gi, '')
     // Separadores temáticos (--- e em/en-dash)
     .replace(/\s*-{2,}\s*/g, ' ')
     .replace(/\s*[—–]+\s*/g, ' ')
@@ -60,17 +79,11 @@ export function extractMainDescription(text, maxLength = 600) {
     .replace(/^\s*\d{1,4}\s+(?=[A-ZÁÉÍÓÚÂÊÔÃÕ])/, '')
     .replace(/\s+/g, ' ')
     .trim()
-  
-  // Remove prefixo repetido do nome
-  const firstDash = cleaned.indexOf(' --- ')
-  if (firstDash > 0 && firstDash < 100) {
-    cleaned = cleaned.substring(firstDash + 5).trim()
-  }
-  
+
   if (cleaned.length > maxLength) {
     cleaned = cleaned.substring(0, maxLength - 3) + '...'
   }
-  
+
   return cleaned
 }
 
