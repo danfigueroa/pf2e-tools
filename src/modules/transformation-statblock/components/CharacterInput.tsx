@@ -87,6 +87,21 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
     }
   };
 
+  const clearImport = () => {
+    setFormData({
+      name: 'Aventureiro',
+      level: 5,
+      class: 'Druida',
+      abilityScores: { strength: 12, dexterity: 14, constitution: 14, intelligence: 12, wisdom: 18, charisma: 10 },
+      skills: {},
+      proficiencyBonus: 3,
+      classFeatures: [],
+      equipment: [],
+    });
+    setImported(false);
+    setErrors([]);
+  };
+
   const validateForm = (): boolean => {
     const newErrors: string[] = [];
     
@@ -102,16 +117,20 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
       newErrors.push('Selecione uma magia de transformação');
     }
     
-    if (!formData.abilityScores) {
-      newErrors.push('Atributos são obrigatórios');
-    } else {
-      Object.entries(formData.abilityScores).forEach(([attr, value]) => {
-        if (value < 8 || value > 20) {
-          newErrors.push(`${attr} deve estar entre 8 e 20`);
-        }
-      });
+    // Ability-score bounds only apply to manual entry; imported sheets carry
+    // real scores that can exceed 20 at high levels.
+    if (!imported) {
+      if (!formData.abilityScores) {
+        newErrors.push('Atributos são obrigatórios');
+      } else {
+        Object.entries(formData.abilityScores).forEach(([attr, value]) => {
+          if (value < 8 || value > 20) {
+            newErrors.push(`${attr} deve estar entre 8 e 20`);
+          }
+        });
+      }
     }
-    
+
     setErrors(newErrors);
     return newErrors.length === 0;
   };
@@ -152,7 +171,8 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
       </Typography>
       
       <Typography variant="body2" color="text.secondary" gutterBottom>
-        Configure os dados básicos do seu personagem para calcular o stat block da transformação.
+        Importe a ficha do personagem e escolha a magia de transformação. Sem import, preencha os
+        dados manualmente (usa aproximações).
       </Typography>
 
       {errors.length > 0 && (
@@ -167,12 +187,11 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
       <Card sx={{ mt: 2 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
-            Importar Ficha (opcional)
+            Importar Ficha
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Carregue um JSON do Pathbuilder 2e para preencher HP, salvamentos, percepção,
-            atletismo e ataque com os valores reais do personagem. Sem import, os campos abaixo
-            usam aproximações.
+            Carregue um JSON do Pathbuilder 2e para usar HP, salvamentos, percepção, atletismo e
+            ataque reais. Depois de importar, basta escolher a magia — os campos manuais somem.
           </Typography>
           <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
             {CAMPAIGN_PRESETS.map((preset) => (
@@ -190,7 +209,12 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
               <input type="file" hidden accept="application/json,.json" onChange={handleFileUpload} />
             </Button>
             {imported && (
-              <Chip label="Ficha importada ✓" color="success" size="small" />
+              <>
+                <Chip label="Ficha importada ✓" color="success" size="small" />
+                <Button variant="text" size="small" color="inherit" onClick={clearImport}>
+                  Limpar
+                </Button>
+              </>
             )}
           </Stack>
         </CardContent>
@@ -199,51 +223,76 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
       <Card sx={{ mt: 2 }}>
         <CardContent>
           <Stack spacing={3}>
-            {/* Basic Info */}
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              <TextField
-                label="Nome"
-                value={formData.name || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                sx={{ flex: 1, minWidth: 200 }}
-              />
-              
-              <TextField
-                label="Nível"
-                type="number"
-                value={formData.level || 1}
-                onChange={(e) => setFormData(prev => ({ ...prev, level: parseInt(e.target.value) || 1 }))}
-                inputProps={{ min: 1, max: 20 }}
-                sx={{ flex: 1, minWidth: 120 }}
-              />
-              
-              <TextField
-                label="HP Base"
-                type="number"
-                value={formData.baseHP || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, baseHP: parseInt(e.target.value) || undefined }))}
-                inputProps={{ min: 1 }}
-                sx={{ flex: 1, minWidth: 120 }}
-                helperText="Pontos de vida base do personagem"
-              />
-            </Box>
+            {/* Imported character summary (read-only) */}
+            {imported && (
+              <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'divider' }}>
+                <Typography variant="subtitle1" gutterBottom>
+                  {formData.name} — {formData.class} Nv {formData.level}
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  {formData.maxHP != null && <Chip size="small" label={`HP ${formData.maxHP}`} />}
+                  {formData.perception != null && <Chip size="small" label={`Perc ${formatModifier(formData.perception)}`} />}
+                  {formData.saves && <Chip size="small" label={`Fort ${formatModifier(formData.saves.fortitude)}`} />}
+                  {formData.saves && <Chip size="small" label={`Ref ${formatModifier(formData.saves.reflex)}`} />}
+                  {formData.saves && <Chip size="small" label={`Will ${formatModifier(formData.saves.will)}`} />}
+                  {formData.athletics != null && <Chip size="small" label={`Atletismo ${formatModifier(formData.athletics)}`} />}
+                  {formData.attackBonus != null && <Chip size="small" label={`Ataque ${formatModifier(formData.attackBonus)}`} />}
+                </Box>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                  Valores reais da ficha. Para preencher à mão, use "Limpar" acima.
+                </Typography>
+              </Box>
+            )}
 
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              <FormControl sx={{ flex: 1, minWidth: 150 }}>
-                <InputLabel>Classe</InputLabel>
-                <Select
-                  value={formData.class || ''}
-                  label="Classe"
-                  onChange={(e) => setFormData(prev => ({ ...prev, class: e.target.value }))}
-                >
-                  <MenuItem value="Druida">Druida</MenuItem>
-                  <MenuItem value="Ranger">Ranger</MenuItem>
-                  <MenuItem value="Mago">Mago</MenuItem>
-                  <MenuItem value="Feiticeiro">Feiticeiro</MenuItem>
-                  <MenuItem value="Outro">Outro</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
+            {/* Manual entry (fallback when no sheet is imported) */}
+            {!imported && (
+              <>
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                  <TextField
+                    label="Nome"
+                    value={formData.name || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    sx={{ flex: 1, minWidth: 200 }}
+                  />
+
+                  <TextField
+                    label="Nível"
+                    type="number"
+                    value={formData.level || 1}
+                    onChange={(e) => setFormData(prev => ({ ...prev, level: parseInt(e.target.value) || 1 }))}
+                    inputProps={{ min: 1, max: 20 }}
+                    sx={{ flex: 1, minWidth: 120 }}
+                  />
+
+                  <TextField
+                    label="HP Base"
+                    type="number"
+                    value={formData.baseHP || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, baseHP: parseInt(e.target.value) || undefined }))}
+                    inputProps={{ min: 1 }}
+                    sx={{ flex: 1, minWidth: 120 }}
+                    helperText="Pontos de vida base do personagem"
+                  />
+                </Box>
+
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                  <FormControl sx={{ flex: 1, minWidth: 150 }}>
+                    <InputLabel>Classe</InputLabel>
+                    <Select
+                      value={formData.class || ''}
+                      label="Classe"
+                      onChange={(e) => setFormData(prev => ({ ...prev, class: e.target.value }))}
+                    >
+                      <MenuItem value="Druida">Druida</MenuItem>
+                      <MenuItem value="Ranger">Ranger</MenuItem>
+                      <MenuItem value="Mago">Mago</MenuItem>
+                      <MenuItem value="Feiticeiro">Feiticeiro</MenuItem>
+                      <MenuItem value="Outro">Outro</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+              </>
+            )}
 
             {/* Spell Selection */}
             <Box>
@@ -288,29 +337,33 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
               )}
             </Box>
 
-            {/* Ability Scores */}
-            <Box>
-              <Typography variant="h6" gutterBottom>
-                Atributos
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                {formData.abilityScores && Object.entries(formData.abilityScores).map(([ability, score]) => (
-                  <TextField
-                    key={ability}
-                    label={ability.charAt(0).toUpperCase() + ability.slice(1)}
-                    type="number"
-                    value={score}
-                    onChange={(e) => handleAbilityChange(
-                      ability as keyof PlayerCharacter['abilityScores'], 
-                      parseInt(e.target.value) || 10
-                    )}
-                    inputProps={{ min: 8, max: 20 }}
-                    helperText={formatModifier(getModifier(score))}
-                    sx={{ width: 120 }}
-                  />
-                ))}
+            {/* Ability Scores (manual entry only) */}
+            {!imported && (
+              <Box>
+                <Typography variant="h6" gutterBottom>
+                  Atributos
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                  {formData.abilityScores && Object.entries(formData.abilityScores)
+                    .filter(([ability]) => ability !== 'breakdown')
+                    .map(([ability, score]) => (
+                    <TextField
+                      key={ability}
+                      label={ability.charAt(0).toUpperCase() + ability.slice(1)}
+                      type="number"
+                      value={score}
+                      onChange={(e) => handleAbilityChange(
+                        ability as keyof PlayerCharacter['abilityScores'],
+                        parseInt(e.target.value) || 10
+                      )}
+                      inputProps={{ min: 8, max: 20 }}
+                      helperText={formatModifier(getModifier(score))}
+                      sx={{ width: 120 }}
+                    />
+                  ))}
+                </Box>
               </Box>
-            </Box>
+            )}
 
             {/* Submit Button */}
             <Box sx={{ textAlign: 'center', mt: 2 }}>
