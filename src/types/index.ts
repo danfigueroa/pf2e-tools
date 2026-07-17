@@ -122,6 +122,14 @@ export interface PlayerCharacter {
     classFeatures: string[]
     equipment: string[]
     baseHP?: number
+    // Real final modifiers (populated when importing a character sheet). Battle
+    // forms keep your own saves/Perception and use "your own if higher" for
+    // attack/Athletics, so these are needed for a rules-accurate stat block.
+    maxHP?: number
+    perception?: number
+    athletics?: number
+    attackBonus?: number
+    saves?: SavingThrows
 }
 
 export interface TransformationConfig {

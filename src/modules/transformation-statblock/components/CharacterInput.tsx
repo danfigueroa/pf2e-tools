@@ -16,6 +16,8 @@ import {
 } from '@mui/material';
 import type { PlayerCharacter, TransformationSpell } from '../../../types';
 import { transformationSpells } from '../data/spells';
+import { playerCharacterFromJson } from '../data/from-pathbuilder';
+import { CAMPAIGN_PRESETS } from '../../character-viewer/campaignPresets';
 
 interface CharacterInputProps {
   onCharacterInput: (character: PlayerCharacter, spell: TransformationSpell) => void;
@@ -45,6 +47,45 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
   const [currentSpell, setCurrentSpell] = useState<TransformationSpell | null>(selectedSpell || null);
 
   const [errors, setErrors] = useState<string[]>([]);
+  const [imported, setImported] = useState(false);
+
+  const applyImportedCharacter = (json: unknown) => {
+    try {
+      const pc = playerCharacterFromJson(json);
+      setFormData(pc);
+      setImported(true);
+      setErrors([]);
+    } catch (e) {
+      setImported(false);
+      setErrors([e instanceof Error ? e.message : 'Falha ao importar JSON']);
+    }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        applyImportedCharacter(JSON.parse(String(reader.result)));
+      } catch {
+        setImported(false);
+        setErrors(['Arquivo JSON inválido']);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const handlePreset = async (filename: string) => {
+    try {
+      const res = await fetch(`/characters/${filename}`);
+      applyImportedCharacter(await res.json());
+    } catch {
+      setImported(false);
+      setErrors(['Não foi possível carregar o personagem da campanha']);
+    }
+  };
 
   const validateForm = (): boolean => {
     const newErrors: string[] = [];
@@ -121,6 +162,39 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
           ))}
         </Alert>
       )}
+
+      {/* Import from character sheet (Pathbuilder JSON) — fills real modifiers */}
+      <Card sx={{ mt: 2 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            Importar Ficha (opcional)
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Carregue um JSON do Pathbuilder 2e para preencher HP, salvamentos, percepção,
+            atletismo e ataque com os valores reais do personagem. Sem import, os campos abaixo
+            usam aproximações.
+          </Typography>
+          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+            {CAMPAIGN_PRESETS.map((preset) => (
+              <Button
+                key={preset.filename}
+                variant="outlined"
+                size="small"
+                onClick={() => handlePreset(preset.filename)}
+              >
+                {preset.name} (Nv {preset.level})
+              </Button>
+            ))}
+            <Button variant="contained" size="small" component="label">
+              Carregar JSON
+              <input type="file" hidden accept="application/json,.json" onChange={handleFileUpload} />
+            </Button>
+            {imported && (
+              <Chip label="Ficha importada ✓" color="success" size="small" />
+            )}
+          </Stack>
+        </CardContent>
+      </Card>
 
       <Card sx={{ mt: 2 }}>
         <CardContent>

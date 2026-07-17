@@ -27,22 +27,10 @@ interface CalculatedStats {
   will: number;
   perception: number;
   athletics: number;
-  acrobatics: number;
-  stealth: number;
   attackBonus: number;
-  spellAttackBonus: number;
-  spellDC: number;
   damageBonus: number;
   size: string;
   reach: number;
-  transformedAbilities: {
-    strength: number;
-    dexterity: number;
-    constitution: number;
-    intelligence: number;
-    wisdom: number;
-    charisma: number;
-  };
 }
 
 // Spell-specific stat calculations based on spell level and heightening
@@ -125,6 +113,22 @@ const getSpellStats = (spellId: string, effectiveLevel: number): SpellLevelStats
     },
     'nature-incarnate': {
       10: { acBase: 25, tempHP: 30, attackMod: 34, damageMod: 18, athleticsMod: 36, size: 'Gargantuan', reach: 25 }
+    },
+    'ooze-form': {
+      // Ooze Form deliberately has very low AC (7 + level) but is immune to
+      // crits/precision. Heightening only changes size and reach (per AoN).
+      3: { acBase: 7, tempHP: 20, attackMod: 14, damageMod: 5, athleticsMod: 14, size: 'Medium', reach: 5 },
+      4: { acBase: 7, tempHP: 20, attackMod: 14, damageMod: 5, athleticsMod: 14, size: 'Large', reach: 10 },
+      5: { acBase: 7, tempHP: 20, attackMod: 14, damageMod: 5, athleticsMod: 14, size: 'Huge', reach: 15 },
+      8: { acBase: 7, tempHP: 20, attackMod: 14, damageMod: 5, athleticsMod: 14, size: 'Gargantuan', reach: 20 }
+    },
+    'element-embodied': {
+      // Damage dice are carried on each form's attacks; no separate flat bonus.
+      10: { acBase: 25, tempHP: 30, attackMod: 34, damageMod: 0, athleticsMod: 34, size: 'Gargantuan', reach: 20 }
+    },
+    'avatar': {
+      // Deity-specific; damage dice carried on each form's attacks.
+      10: { acBase: 25, tempHP: 30, attackMod: 33, damageMod: 0, athleticsMod: 35, size: 'Huge', reach: 10 }
     }
   };
 
@@ -194,77 +198,51 @@ const StatBlockGenerator: React.FC<StatBlockGeneratorProps> = ({
     // Get spell-specific stats
     const spellStats = getSpellStats(spell.id, effectiveSpellLevel);
     
-    // Calculate ability modifiers
+    // Ability modifiers (used as fallback when real values weren't imported)
     const strMod = Math.floor((safeAbilityScores.strength - 10) / 2);
-    
-    // AC is base + character level
-    const baseAC = spellStats.acBase + safeLevel;
-    const temporaryHP = spellStats.tempHP;
-    
-    // Use spell's attack modifier or character's, whichever is better
-    const characterAttackBonus = safeLevel + strMod;
-    const attackModifier = Math.max(spellStats.attackMod, characterAttackBonus);
-    
-    // Athletics uses spell's modifier or character's
-    const characterAthletics = safeLevel + strMod;
-    const athleticsModifier = Math.max(spellStats.athleticsMod, characterAthletics);
-    
-    const damageBonus = spellStats.damageMod;
-    
-    // Character's saves (unchanged by transformation)
     const conMod = Math.floor((safeAbilityScores.constitution - 10) / 2);
     const dexMod = Math.floor((safeAbilityScores.dexterity - 10) / 2);
     const wisMod = Math.floor((safeAbilityScores.wisdom - 10) / 2);
-    
-    const baseFortitude = safeLevel + conMod + 2; // Assuming trained
-    const baseReflex = safeLevel + dexMod + 2;
-    const baseWill = safeLevel + wisMod + 2;
-    const basePerception = safeLevel + wisMod;
-    
-    // Other skills (estimated based on character level)
-    const acrobatics = safeLevel + dexMod + 2;
-    const stealth = safeLevel + dexMod + 2;
-    
-    // Spell stats remain the same (assuming primary casting ability)
-    const spellcastingModifier = Math.max(wisMod, 
-      Math.floor((safeAbilityScores.charisma - 10) / 2),
-      Math.floor((safeAbilityScores.intelligence - 10) / 2)
-    );
-    const spellAttackBonus = safeLevel + spellcastingModifier + 2; // Trained
-    const spellDC = 10 + safeLevel + spellcastingModifier + 2;
-    
-    // HP calculation: character's base HP (temp HP shown separately)
-    const characterBaseHP = character.baseHP || ((8 + conMod) * safeLevel);
-    const hp = characterBaseHP;
-    
-    // Transformed ability scores (physical stats from form, mental unchanged)
-    const transformedAbilities = {
-      strength: 18, // Most forms have good strength
-      dexterity: 14,
-      constitution: 16,
-      intelligence: safeAbilityScores.intelligence,
-      wisdom: safeAbilityScores.wisdom,
-      charisma: safeAbilityScores.charisma
-    };
-    
+
+    // AC is the spell's base + your level (battle forms replace your normal AC).
+    const baseAC = spellStats.acBase + safeLevel;
+    // Some forms grant extra temporary HP (e.g. earth/wood Element Embodied).
+    const temporaryHP = spellStats.tempHP + (form?.hpBonus ?? 0);
+
+    // Attack/Athletics: use the spell's value unless the character's own is
+    // higher. Prefer the imported real modifier; otherwise approximate as
+    // level + ability + 2 (trained).
+    const ownAttack = character.attackBonus ?? (safeLevel + strMod + 2);
+    const attackModifier = Math.max(spellStats.attackMod, ownAttack);
+
+    const ownAthletics = character.athletics ?? (safeLevel + strMod + 2);
+    const athleticsModifier = Math.max(spellStats.athleticsMod, ownAthletics);
+
+    const damageBonus = spellStats.damageMod;
+
+    // Saves and Perception are unchanged by the transformation — use the real
+    // imported values, falling back to a trained approximation.
+    const fortitude = character.saves?.fortitude ?? (safeLevel + conMod + 2);
+    const reflex = character.saves?.reflex ?? (safeLevel + dexMod + 2);
+    const will = character.saves?.will ?? (safeLevel + wisMod + 2);
+    const perception = character.perception ?? (safeLevel + wisMod);
+
+    // HP: your real maximum HP (temp HP is shown separately).
+    const hp = character.maxHP ?? character.baseHP ?? ((8 + conMod) * safeLevel);
+
     return {
       ac: baseAC,
       hp,
       tempHP: temporaryHP,
-      fortitude: baseFortitude,
-      reflex: baseReflex,
-      will: baseWill,
-      perception: basePerception,
+      fortitude,
+      reflex,
+      will,
+      perception,
       athletics: athleticsModifier,
-      acrobatics,
-      stealth,
       attackBonus: attackModifier,
-      spellAttackBonus,
-      spellDC,
       damageBonus,
       size: spellStats.size,
-      reach: spellStats.reach,
-      transformedAbilities
+      reach: spellStats.reach
     };
   };
 
@@ -426,22 +404,10 @@ const StatBlockGenerator: React.FC<StatBlockGeneratorProps> = ({
 
         <Divider sx={{ bgcolor: '#4a4a6a', my: 1 }} />
 
-        {/* Skills */}
+        {/* Skills — battle forms grant an Athletics modifier (use your own if higher) */}
         <Box sx={{ mb: 2 }}>
           <Typography variant="body2">
-            <strong style={{ color: '#ffd700' }}>Athletics</strong> {formatModifier(stats.athletics)}, <strong style={{ color: '#ffd700' }}>Acrobatics</strong> {formatModifier(stats.acrobatics)}, <strong style={{ color: '#ffd700' }}>Stealth</strong> {formatModifier(stats.stealth)}
-          </Typography>
-        </Box>
-
-        <Divider sx={{ bgcolor: '#4a4a6a', my: 1 }} />
-
-        {/* Spellcasting (retained) */}
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="body2">
-            <strong style={{ color: '#ffd700' }}>Spell Attack</strong> {formatModifier(stats.spellAttackBonus)}, <strong style={{ color: '#ffd700' }}>Spell DC</strong> {stats.spellDC}
-          </Typography>
-          <Typography variant="caption" sx={{ color: '#888' }}>
-            (Spellcasting abilities retained while transformed)
+            <strong style={{ color: '#ffd700' }}>Athletics</strong> {formatModifier(stats.athletics)}
           </Typography>
         </Box>
 

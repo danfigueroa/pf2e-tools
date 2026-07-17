@@ -11,6 +11,9 @@ import { feyFormSpell, feyForms } from './fey-form';
 import { fiendFormSpell, fiendForms } from './fiend-form';
 import { angelFormSpell, angelForms } from './angel-form';
 import { natureIncarnateSpell, natureIncarnateForms } from './nature-incarnate';
+import { oozeFormSpell, oozeForms } from './ooze-form';
+import { elementEmbodiedSpell, elementEmbodiedForms } from './element-embodied';
+import { avatarSpell, avatarForms } from './avatar';
 
 // Animal forms available for Animal Form spell
 export const animalForms: TransformationForm[] = [
@@ -630,12 +633,19 @@ export {
   angelFormSpell,
   angelForms,
   natureIncarnateSpell,
-  natureIncarnateForms
+  natureIncarnateForms,
+  oozeFormSpell,
+  oozeForms,
+  elementEmbodiedSpell,
+  elementEmbodiedForms,
+  avatarSpell,
+  avatarForms
 };
 
 // Export all spells - sorted by spell level for better UX
 export const transformationSpells: TransformationSpell[] = [
   animalFormSpell,          // Level 2
+  oozeFormSpell,            // Level 3
   insectFormSpell,          // Level 3
   aerialFormSpell,          // Level 4
   dinosaurFormSpell,        // Level 4
@@ -647,6 +657,8 @@ export const transformationSpells: TransformationSpell[] = [
   angelFormSpell,           // Level 7
   monstrosityFormSpell,     // Level 8
   natureIncarnateSpell,     // Level 10
+  elementEmbodiedSpell,     // Level 10
+  avatarSpell,              // Level 10
 ];
 
 // Helper function to get forms for a specific spell
