@@ -22,7 +22,13 @@ import {
 import type { SpellDescription } from '../../character-sheet/types'
 import { actionSymbol, getAonSearchUrl, signed, traditionColor } from '../helpers'
 import { parseDescription, type DescriptionPart, type HeightenedEntry } from '../format-description'
-import { applyHeightening, computeHeightenedDamage, type AppliedHeightened } from '../heightening'
+import {
+    applyHeightening,
+    computeHeightenedDamage,
+    isPureDamageEntry,
+    spellHeightenedEntries,
+    type AppliedHeightened,
+} from '../heightening'
 
 export interface SpellCasterInfo {
     name: string
@@ -114,16 +120,20 @@ export const DescriptionDrawer = ({ request, onClose }: Props) => {
     const parsed = useMemo(() => {
         if (!request) return null
         const raw = state.spell?.description ?? state.text
-        return parseDescription(raw, request.name)
+        // Magias v9+ chegam com prosa limpa do backend — sem strip heurístico.
+        return parseDescription(raw, request.name, { stripMetadata: request.type !== 'spell' })
     }, [request, state.text, state.spell])
 
-    // Só marcamos entradas de heightening como aplicáveis quando sabemos o rank
-    // conjurado (request.level) e o rank base da magia (spell.level, do AON).
+    // Modo "nível-ciente": sabemos o rank conjurado (request.level) e o rank
+    // base da magia (spell.level, do AON) — a magia é exibida já elevada.
     const levelAware =
         request?.type === 'spell' && request.level != null && state.spell?.level != null
 
     const heightenedEntries = useMemo<AppliedHeightened[]>(() => {
-        const merged = mergeHeightened(state.spell?.heightened, parsed?.heightened)
+        const merged = spellHeightenedEntries(
+            state.spell,
+            mergeHeightened(state.spell?.heightened, parsed?.heightened),
+        )
         if (request?.type === 'spell' && request.level != null) {
             return applyHeightening(merged, state.spell?.level, request.level)
         }
@@ -134,6 +144,29 @@ export const DescriptionDrawer = ({ request, onClose }: Props) => {
         if (!levelAware || !state.spell) return null
         return computeHeightenedDamage(state.spell, heightenedEntries)
     }, [levelAware, state.spell, heightenedEntries])
+
+    // Substituição do dado base pelo elevado dentro da prosa (destacado).
+    const damageSub = useMemo(() => {
+        if (!levelAware || !heightenedDamage || !state.spell?.damage) return null
+        if (heightenedDamage === state.spell.damage) return null
+        return { from: state.spell.damage, to: heightenedDamage }
+    }, [levelAware, heightenedDamage, state.spell])
+
+    // Bloco de heightening exibido:
+    // - nível-ciente: só as entradas que se APLICAM neste rank, e ainda oculta
+    //   as "puras de dano" quando o dano já foi recalculado (nada de info de
+    //   níveis mais altos irrelevantes ao slot preparado);
+    // - fluxos sem nível: lista completa como sempre.
+    const heightenedBlock = useMemo(() => {
+        if (heightenedEntries.length === 0) return null
+        if (!levelAware) {
+            return { title: 'CONJURADA COM NÍVEL MAIS ALTO', entries: heightenedEntries, levelAware: false }
+        }
+        const applied = heightenedEntries.filter((e) => e.applies)
+        const visible = heightenedDamage ? applied.filter((e) => !isPureDamageEntry(e.text)) : applied
+        if (visible.length === 0) return null
+        return { title: `NESTE NÍVEL (${request?.type === 'spell' ? request.level : ''})`, entries: visible, levelAware: true }
+    }, [heightenedEntries, levelAware, heightenedDamage, request])
 
     return (
         <Drawer
@@ -189,7 +222,7 @@ export const DescriptionDrawer = ({ request, onClose }: Props) => {
                         </Stack>
 
                         {/* Bloco de fonte */}
-                        {parsed?.source && (
+                        {(state.spell?.sourceBook || parsed?.source) && (
                             <Box
                                 sx={{
                                     display: 'flex',
@@ -220,7 +253,7 @@ export const DescriptionDrawer = ({ request, onClose }: Props) => {
                                         FONTE
                                     </Typography>
                                     <Typography variant="body2" sx={{ lineHeight: 1.3, mt: 0.25 }}>
-                                        {parsed.source}
+                                        {state.spell?.sourceBook || parsed?.source}
                                     </Typography>
                                 </Box>
                             </Box>
@@ -290,8 +323,8 @@ export const DescriptionDrawer = ({ request, onClose }: Props) => {
                         ) : (
                             <DescriptionBody
                                 parts={parsed?.parts ?? []}
-                                heightened={heightenedEntries}
-                                levelAware={levelAware}
+                                heightenedBlock={heightenedBlock}
+                                damageSub={damageSub}
                                 accent={accent}
                             />
                         )}
@@ -443,24 +476,54 @@ function mergeHeightened(
     return parsed || []
 }
 
+// Renderiza o texto de um parágrafo substituindo a primeira ocorrência do dado
+// base pelo dano elevado (destacado) quando `sub` é fornecido.
+const PartText = ({ text, sub, accent }: { text: string; sub: { from: string; to: string } | null; accent: string }) => {
+    if (!sub) return <>{text}</>
+    const idx = text.indexOf(sub.from)
+    if (idx === -1) return <>{text}</>
+    return (
+        <>
+            {text.slice(0, idx)}
+            <Box
+                component="span"
+                title={`Dado base ${sub.from}, elevado para o nível conjurado`}
+                sx={{ color: accent, fontWeight: 700 }}
+            >
+                {sub.to}
+            </Box>
+            {text.slice(idx + sub.from.length)}
+        </>
+    )
+}
+
+interface HeightenedBlockData {
+    title: string
+    entries: AppliedHeightened[]
+    levelAware: boolean
+}
+
 const DescriptionBody = ({
     parts,
-    heightened,
-    levelAware,
+    heightenedBlock,
+    damageSub,
     accent,
 }: {
     parts: DescriptionPart[]
-    heightened: AppliedHeightened[]
-    levelAware: boolean
+    heightenedBlock: HeightenedBlockData | null
+    damageSub: { from: string; to: string } | null
     accent: string
 }) => {
-    if (parts.length === 0 && heightened.length === 0) {
+    if (parts.length === 0 && !heightenedBlock) {
         return (
             <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
                 Descrição não encontrada. Tente abrir no Archives of Nethys.
             </Typography>
         )
     }
+
+    // A substituição de dano vale só para a primeira parte que contém o dado base.
+    const subPartIdx = damageSub ? parts.findIndex((p) => p.text.includes(damageSub.from)) : -1
 
     return (
         <Box sx={{ '& > * + *': { mt: 1.5 } }}>
@@ -479,8 +542,9 @@ const DescriptionBody = ({
                     DESCRIÇÃO
                 </Typography>
             )}
-            {parts.map((p, idx) =>
-                p.kind === 'labeled' ? (
+            {parts.map((p, idx) => {
+                const sub = idx === subPartIdx ? damageSub : null
+                return p.kind === 'labeled' ? (
                     <Box key={idx}>
                         <Typography
                             component="span"
@@ -493,17 +557,17 @@ const DescriptionBody = ({
                             {p.label}.
                         </Typography>
                         <Typography component="span" sx={{ lineHeight: 1.7 }}>
-                            {p.text}
+                            <PartText text={p.text} sub={sub} accent={accent} />
                         </Typography>
                     </Box>
                 ) : (
                     <Typography key={idx} sx={{ lineHeight: 1.7 }}>
-                        {p.text}
+                        <PartText text={p.text} sub={sub} accent={accent} />
                     </Typography>
-                ),
-            )}
+                )
+            })}
 
-            {heightened.length > 0 && (
+            {heightenedBlock && (
                 <Box
                     sx={{
                         mt: 2.5,
@@ -526,57 +590,52 @@ const DescriptionBody = ({
                             mb: 1.25,
                         }}
                     >
-                        CONJURADA COM NÍVEL MAIS ALTO
+                        {heightenedBlock.title}
                     </Typography>
                     <Stack spacing={1}>
-                        {heightened.map((h, idx) => {
-                            const highlighted = levelAware && h.applies
-                            const dimmed = levelAware && !h.applies
-                            return (
+                        {heightenedBlock.entries.map((h, idx) => (
+                            <Box
+                                key={`${h.level}-${idx}`}
+                                sx={{
+                                    display: 'flex',
+                                    gap: 1.25,
+                                    alignItems: 'baseline',
+                                }}
+                            >
                                 <Box
-                                    key={`${h.level}-${idx}`}
                                     sx={{
-                                        display: 'flex',
-                                        gap: 1.25,
-                                        alignItems: 'baseline',
-                                        opacity: dimmed ? 0.55 : 1,
+                                        flexShrink: 0,
+                                        minWidth: 44,
+                                        px: 0.75,
+                                        py: 0.25,
+                                        borderRadius: 0.75,
+                                        textAlign: 'center',
+                                        backgroundColor: accent + '25',
+                                        border: '1px solid',
+                                        borderColor: accent + '60',
+                                        fontFamily: 'monospace',
+                                        fontWeight: 700,
+                                        fontSize: '0.78rem',
+                                        color: accent,
+                                        lineHeight: 1.3,
                                     }}
                                 >
-                                    <Box
-                                        sx={{
-                                            flexShrink: 0,
-                                            minWidth: 44,
-                                            px: 0.75,
-                                            py: 0.25,
-                                            borderRadius: 0.75,
-                                            textAlign: 'center',
-                                            backgroundColor: highlighted ? accent + '45' : accent + '25',
-                                            border: highlighted ? '2px solid' : '1px solid',
-                                            borderColor: highlighted ? accent : accent + '60',
-                                            fontFamily: 'monospace',
-                                            fontWeight: 700,
-                                            fontSize: '0.78rem',
-                                            color: accent,
-                                            lineHeight: 1.3,
-                                        }}
-                                    >
-                                        {h.level}
-                                    </Box>
-                                    <Typography sx={{ lineHeight: 1.55, flex: 1 }}>
-                                        {h.text}
-                                        {highlighted && (
-                                            <Typography
-                                                component="span"
-                                                variant="caption"
-                                                sx={{ ml: 0.75, color: accent, fontWeight: 700, whiteSpace: 'nowrap' }}
-                                            >
-                                                {h.times > 1 ? `✓ aplica ×${h.times}` : '✓ aplica'}
-                                            </Typography>
-                                        )}
-                                    </Typography>
+                                    {h.level}
                                 </Box>
-                            )
-                        })}
+                                <Typography sx={{ lineHeight: 1.55, flex: 1 }}>
+                                    {h.text}
+                                    {heightenedBlock.levelAware && h.times > 1 && (
+                                        <Typography
+                                            component="span"
+                                            variant="caption"
+                                            sx={{ ml: 0.75, color: accent, fontWeight: 700, whiteSpace: 'nowrap' }}
+                                        >
+                                            ✓ aplica ×{h.times}
+                                        </Typography>
+                                    )}
+                                </Typography>
+                            </Box>
+                        ))}
                     </Stack>
                 </Box>
             )}

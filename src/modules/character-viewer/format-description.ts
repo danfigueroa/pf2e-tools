@@ -63,8 +63,16 @@ const SOURCE_WITH_DASH_RE = /\b(?:Fonte|Source)s?:?\s+([^.—–\n]+?)(?=\s*(?:-
 // limitado a algumas palavras Maiúsculas seguidas para evitar comer prosa.
 const SOURCE_BARE_RE = /\b(?:Fonte|Source)s?:?\s+((?:[A-ZÁÉÍÓÚ][\w']*\s+){0,4}[A-ZÁÉÍÓÚ][\w']*)\b/g
 
-export function parseDescription(raw: string | undefined, itemName: string): ParsedDescription {
+export interface ParseOptions {
+    // Desliga o strip heurístico de metadados iniciais. Usar quando a fonte já
+    // entrega prosa limpa (magias v9+ do backend) — a heurística pode comer
+    // frases legítimas que não começam com um marcador conhecido.
+    stripMetadata?: boolean
+}
+
+export function parseDescription(raw: string | undefined, itemName: string, opts: ParseOptions = {}): ParsedDescription {
     if (!raw) return { parts: [], heightened: [] }
+    const stripMetadata = opts.stripMetadata !== false
     let text = raw.trim()
 
     // 0. Normalizar separadores ASCII "---" para em-dash, simplifica os regex abaixo.
@@ -126,7 +134,7 @@ export function parseDescription(raw: string | undefined, itemName: string): Par
     //      até o primeiro marcador de prosa real (Você, Seus, Quando, etc.).
     //      Só atua quando o prefixo é curto (≤120 chars) — para não comer descrições
     //      legítimas que começam com prosa não-canônica.
-    text = stripLeadingMetadata(text)
+    if (stripMetadata) text = stripLeadingMetadata(text)
 
     // 6. Paragrafação: usa \n\n quando há, senão quebra antes de cada label
     //    conhecido (Sucesso Crítico:, etc.); senão, agrupa em chunks de ~3 frases.

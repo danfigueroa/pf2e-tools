@@ -214,7 +214,8 @@ export async function translateToPortuguese(text, apiKey) {
       return translated
     } catch (error) {
       if (error?.transient && i === 0) {
-        await new Promise(r => setTimeout(r, 400))
+        // 429 (rate limit do Groq) merece espera maior antes do retry.
+        await new Promise(r => setTimeout(r, error?.status === 429 ? 2000 : 400))
         continue
       }
       console.error('Translation error:', error?.message || error)

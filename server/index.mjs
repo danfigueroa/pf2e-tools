@@ -2,7 +2,7 @@ import 'dotenv/config'
 import http from 'node:http'
 import https from 'node:https'
 import { URL } from 'node:url'
-import { translateMetadata } from '../api/_lib/metadata-i18n.js'
+import { resolveSpell } from '../api/_lib/spells-core.js'
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3001
 const GROQ_API_KEY = process.env.GROQ_API_KEY || ''
@@ -552,112 +552,22 @@ async function scrapeGenericDescription(name) {
 }
 
 // Busca descrição detalhada de magia
-async function scrapeSpellDescription(spellName) {
-  console.log(`[scrapeSpell] Buscando: ${spellName}`)
-
+// Resolução de magias delegada ao núcleo compartilhado com o serverless
+// (api/_lib/spells-core.js) — mesma busca, parse estrutural e tradução.
+// Aqui só entra o cache em memória do dev server.
+async function resolveSpellCached(spellName) {
   const cacheKey = `spell:${spellName}`
   if (CACHE.has(cacheKey)) {
     return CACHE.get(cacheKey)
   }
-
+  console.log(`[spell] Buscando: ${spellName}`)
   try {
-    // Tenta múltiplas categorias: spell → cantrip → focus
-    let source = null
-    for (const cat of ['spell', 'cantrip', 'focus']) {
-      const searchBody = {
-        query: {
-          bool: {
-            must: [{ multi_match: { query: spellName, fields: ['name^3'], type: 'best_fields' } }],
-            filter: [{ term: { category: cat } }]
-          }
-        },
-        size: 5
-      }
-
-      const result = await new Promise((resolve, reject) => {
-        const options = {
-          hostname: 'elasticsearch.aonprd.com',
-          path: '/aon/_search',
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 pf2e-tools' }
-        }
-        const req = https.request(options, (res) => {
-          const chunks = []
-          res.on('data', chunk => { chunks.push(chunk) })
-          res.on('end', () => { try { resolve(JSON.parse(Buffer.concat(chunks).toString('utf8'))) } catch (e) { reject(e) } })
-        })
-        req.on('error', reject)
-        req.setTimeout(10000, () => { req.destroy(); reject(new Error('Timeout')) })
-        req.write(JSON.stringify(searchBody))
-        req.end()
-      })
-
-      if (result.hits?.hits?.length > 0) {
-        const exact = result.hits.hits.find(h => h._source?.name?.toLowerCase() === spellName.toLowerCase())
-        if (exact) { source = exact._source; break }
-        if (!source) source = result.hits.hits[0]._source
-      }
-    }
-
-    if (source) {
-      // Prefere os campos *_raw do AON (ex.: "30 feet" em vez de só "30").
-      // Quando o campo é numérico ou array, fallback para conversão simples.
-      const rangeStr = source.range_raw || (source.range != null ? String(source.range) : null)
-      const areaStr = source.area_raw || (Array.isArray(source.area) ? source.area.join(', ') : (source.area || null))
-      const targetsStr = source.targets_raw || source.targets || source.target || null
-      const durationStr = source.duration_raw || (source.duration != null ? String(source.duration) : null)
-      const defenseStr = source.saving_throw || source.save || source.defense || null
-
-      const spellData = {
-        name: source.name,
-        // Rank base da magia no AON — o client usa para calcular heightening.
-        level: typeof source.level === 'number' ? source.level : null,
-        // Padrão de heighten do AON (ex. ["+1"]), quando o texto não for parseável.
-        heighten: Array.isArray(source.heighten) && source.heighten.length > 0 ? source.heighten : undefined,
-        actions: source.actions || source.action || null,
-        traits: source.trait || source.tradition || [],
-        range: rangeStr,
-        area: areaStr,
-        targets: targetsStr,
-        duration: durationStr,
-        defense: defenseStr,
-        description: cleanAonText(source.text || source.markdown || ''),
-        damage: source.damage || null,
-        damageType: source.damage_type || null,
-        heightened: source.heightened || null
-      }
-
-      if (spellData.description) {
-        const translated = await translateToPortuguese(spellData.description)
-        spellData.description = translated || spellData.description
-      }
-
-      // Tradução leve dos metadados curtos (range/area/duration/etc.) via
-      // dicionário compartilhado (api/_lib/metadata-i18n.js), para não gastar
-      // chamadas Groq em strings padronizadas como "30 feet".
-      spellData.range = translateMetadata(spellData.range)
-      spellData.area = translateMetadata(spellData.area)
-      spellData.targets = translateMetadata(spellData.targets)
-      spellData.duration = translateMetadata(spellData.duration)
-      spellData.defense = translateMetadata(spellData.defense)
-
-      console.log(`[scrapeSpell] Encontrado: ${source.name} (${spellData.actions || '?'} ações)`)
-      CACHE.set(cacheKey, spellData)
-      return spellData
-    }
-
-    // Fallback: gera descrição via Groq
-    console.log(`[scrapeSpell] Não encontrado no AON, usando fallback Groq: ${spellName}`)
-    const fallbackDesc = await generateFallbackDescription(spellName, 'spell')
-    if (fallbackDesc) {
-      const spellData = { name: spellName, level: null, actions: null, traits: [], range: null, area: null, targets: null, duration: null, defense: null, description: fallbackDesc, damage: null, damageType: null, heightened: null }
-      CACHE.set(cacheKey, spellData)
-      return spellData
-    }
-
-    return null
+    const spellData = await resolveSpell(spellName, GROQ_API_KEY)
+    // Tradução pendente (ex.: 429 do Groq) → não cachear, retenta na próxima.
+    if (spellData && !spellData.translationPending) CACHE.set(cacheKey, spellData)
+    return spellData
   } catch (e) {
-    console.error(`[scrapeSpell] Erro:`, e.message)
+    console.error(`[spell] Erro:`, e.message)
     return null
   }
 }
@@ -842,7 +752,7 @@ const server = http.createServer(async (req, res) => {
     }
     
     try {
-      const spellData = await scrapeSpellDescription(name)
+      const spellData = await resolveSpellCached(name)
       res.writeHead(200, { 'Content-Type': 'application/json' })
       // Retorna o objeto completo da magia (não apenas description)
       res.end(JSON.stringify(spellData || { name, description: null }))
@@ -979,10 +889,12 @@ const server = http.createServer(async (req, res) => {
       for (let i = 0; i < names.length; i += CONCURRENCY) {
         const chunk = names.slice(i, i + CONCURRENCY)
         const resolved = await Promise.all(chunk.map(async n => {
-          const spellData = await scrapeSpellDescription(n)
+          const spellData = await resolveSpellCached(n)
           return spellData || { name: n, description: null }
         }))
-        resolved.forEach(r => { results[r.name] = r })
+        // Chavear pelo nome de INPUT (não pelo nome do AON), como no serverless —
+        // senão o frontend não encontra magias cujo nome o AON normalizou.
+        resolved.forEach((r, idx) => { results[chunk[idx]] = r })
       }
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify(results))

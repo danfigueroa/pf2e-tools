@@ -4,7 +4,7 @@
 
 import type { SpellDescription, CompanionStats } from '../modules/character-sheet/types'
 
-const CACHE_VERSION = 'v8'
+const CACHE_VERSION = 'v9'
 
 type Kind = 'feat' | 'spell' | 'special' | 'companion' | 'item'
 
@@ -119,7 +119,9 @@ export async function fetchSpellDescription(name: string): Promise<SpellDescript
         return item
     })
 
-    if (result) writeCache('spell', name, result)
+    // translationPending = ficou em EN por falha transitória de tradução;
+    // exibe mas não cacheia, para retraduzir na próxima consulta.
+    if (result && !result.translationPending) writeCache('spell', name, result)
     return result
 }
 
@@ -151,7 +153,9 @@ export async function prefetchSpellDescriptions(
                 const data = (await r.json()) as Record<string, SpellDescription | undefined>
                 for (const name of chunk) {
                     const item = data[name]
-                    if (item && isValidString(item.description)) writeCache('spell', name, item)
+                    if (item && isValidString(item.description) && !item.translationPending) {
+                        writeCache('spell', name, item)
+                    }
                 }
             }
         } catch {

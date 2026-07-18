@@ -1,5 +1,5 @@
-import { searchAon, extractMainDescription, translateToPortuguese, cleanAonText, generateFallbackDescription } from './_lib/aon.js'
-import { translateMetadata } from './_lib/metadata-i18n.js'
+// Endpoint single (GET ?name=...) — legado; usa o mesmo núcleo do batch.
+import { resolveSpell } from './_lib/spells-core.js'
 
 export default async function handler(req, res) {
   // CORS
@@ -18,52 +18,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    const apiKey = process.env.GROQ_API_KEY
-
-    // Tenta múltiplas categorias: spell → cantrip → focus
-    let bestMatch = null
-    for (const cat of ['spell', 'cantrip', 'focus']) {
-      const results = await searchAon(name, cat, 10)
-      const exact = results.find(r => r._source.name?.toLowerCase() === name.toLowerCase())
-      if (exact) { bestMatch = exact; break }
-      if (!bestMatch && results.length > 0) bestMatch = results[0]
-    }
-
-    if (!bestMatch) {
-      // Fallback: gera descrição via Groq
-      const fallback = await generateFallbackDescription(name, 'spell', apiKey)
-      if (fallback) {
-        return res.status(200).json({ name, actions: '', traits: [], range: '', area: '', targets: '', duration: '', defense: '', description: fallback, damage: '', damageType: '', heightened: '' })
-      }
+    const spellData = await resolveSpell(name, process.env.GROQ_API_KEY)
+    if (!spellData.description) {
       return res.status(404).json({ error: 'Magia não encontrada' })
     }
-
-    const source = bestMatch._source
-    let description = extractMainDescription(source.text || source.markdown || '', 600)
-
-    const spellData = {
-      name: source.name || name,
-      actions: source.actions || '',
-      traits: source.trait || [],
-      range: translateMetadata(cleanAonText(source.range || '')),
-      area: translateMetadata(cleanAonText(source.area || '')),
-      targets: translateMetadata(cleanAonText(source.targets || '')),
-      duration: translateMetadata(cleanAonText(source.duration || '')),
-      defense: translateMetadata(cleanAonText(source.saving_throw || source.defense || '')),
-      description,
-      damage: '',
-      damageType: '',
-      heightened: ''
-    }
-
-    if (apiKey && spellData.description) {
-      spellData.description = await translateToPortuguese(spellData.description, apiKey)
-    }
-
     return res.status(200).json(spellData)
   } catch (error) {
     console.error('Spell API error:', error)
     return res.status(500).json({ error: 'Erro ao buscar magia' })
   }
 }
-

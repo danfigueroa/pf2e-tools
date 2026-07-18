@@ -4,7 +4,7 @@ import { ChevronRight as ChevronIcon, CloudDownload as DownloadIcon } from '@mui
 import type { BuildInfo, SpellCaster, FocusTradition, FocusAbility } from '../../character-sheet/types'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
 import { actionSymbol, signed, spellcasterStats, traditionColor, traditionLabel } from '../helpers'
-import { castRankForSlot } from '../heightening'
+import { castRankForSlot, damageAtRank } from '../heightening'
 import { getCachedSpell, prefetchSpellDescriptions } from '../../../services/descriptions'
 
 interface Props {
@@ -228,10 +228,16 @@ const SpellRow = ({
     onSelect: Props['onSelect']
 }) => {
     const cached = getCachedSpell(name)
+    // Dano já no nível do slot (request.level = rank efetivo de conjuração).
+    const castRank = request.type === 'spell' ? request.level : undefined
+    const dmg = cached && castRank != null ? damageAtRank(cached, castRank) : cached?.damage || null
     const summary = cached
-        ? [cached.range, cached.defense, cached.duration]
+        ? [
+            dmg ? `${dmg}${cached.damageType ? ` ${cached.damageType}` : ''}` : null,
+            cached.range || cached.area || null,
+            cached.defense || cached.duration || null,
+        ]
             .filter((v): v is string => typeof v === 'string' && v.trim().length > 0)
-            .slice(0, 3)
             .join(' · ')
         : ''
     const actions = cached?.actions ? actionSymbol(cached.actions) : ''

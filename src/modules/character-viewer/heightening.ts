@@ -59,6 +59,35 @@ export function applyHeightening(
     })
 }
 
+/** Entradas de heightening da magia: as estruturadas do backend quando
+ *  existirem (parseadas do EN canônico — confiáveis), senão as extraídas do
+ *  texto traduzido pelo parser (fallback para payloads antigos). */
+export function spellHeightenedEntries(
+    spell: Pick<SpellDescription, 'heightenedEntries'> | undefined,
+    parsedEntries: HeightenedEntry[] | undefined,
+): HeightenedEntry[] {
+    if (spell?.heightenedEntries?.length) return spell.heightenedEntries
+    return parsedEntries ?? []
+}
+
+/** Dano no rank conjurado calculado direto do SpellDescription (para resumos
+ *  de linha, onde não há parser de texto envolvido). */
+export function damageAtRank(spell: SpellDescription, castRank: number): string | null {
+    if (!spell.damage) return null
+    if (spell.level == null || !spell.heightenedEntries?.length) return spell.damage
+    const applied = applyHeightening(spell.heightenedEntries, spell.level, castRank)
+    return computeHeightenedDamage(spell, applied) ?? spell.damage
+}
+
+/** Entrada de heightening "pura de dano" — o efeito dela já está representado
+ *  pelo dano recalculado, então não precisa reaparecer no bloco "neste nível".
+ *  Estrito de propósito: qualquer cláusula extra ("e a fraqueza aumenta...")
+ *  mantém a entrada visível. */
+export function isPureDamageEntry(text: string): boolean {
+    const t = text.trim()
+    return /^(?:O dano (?:inicial |persistente )?aumenta em|The (?:initial |persistent )?damage increases by|A (?:quantidade de )?cura aumenta em|The (?:amount of )?healing increases by)\s+\d+d\d+(?:\s*[+-]\s*\d+)?[.!]?$/i.test(t)
+}
+
 const DICE_RE = /(\d+)d(\d+)(?:\s*\+\s*(\d+))?/
 
 /** Dano final no rank conjurado, ou null quando não parseável com segurança.
