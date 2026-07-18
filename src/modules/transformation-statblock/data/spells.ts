@@ -220,8 +220,8 @@ export const animalForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Aquatic',
-        description: 'Can breathe underwater but not in air',
+        name: 'Aquático',
+        description: 'Pode respirar debaixo da água, mas não no ar',
         traits: []
       }
     ],
@@ -282,8 +282,8 @@ export const animalForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Amphibious',
-        description: 'Can breathe in water and in air',
+        name: 'Anfíbio',
+        description: 'Pode respirar na água e no ar',
         traits: []
       }
     ],
@@ -319,8 +319,8 @@ export const animalForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Hold Breath',
-        description: 'Can hold breath for the duration of the transformation',
+        name: 'Prender a Respiração',
+        description: 'Pode prender a respiração durante a transformação',
         traits: []
       }
     ],
@@ -348,8 +348,8 @@ export const animalForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Hold Breath',
-        description: 'Can hold breath for the duration of the transformation',
+        name: 'Prender a Respiração',
+        description: 'Pode prender a respiração durante a transformação',
         traits: []
       }
     ],
@@ -378,8 +378,8 @@ export const animalForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Hold Breath',
-        description: 'Can hold breath for the duration of the transformation',
+        name: 'Prender a Respiração',
+        description: 'Pode prender a respiração durante a transformação',
         traits: []
       }
     ],

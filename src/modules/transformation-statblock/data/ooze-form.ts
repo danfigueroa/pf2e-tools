@@ -23,13 +23,13 @@ export const oozeForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Motion Sense',
-        description: 'You have no vision but sense the movement of creatures within 30 feet (imprecise).',
+        name: 'Sentido de Movimento',
+        description: 'Você não enxerga, mas percebe o movimento de criaturas em até 30 pés (impreciso).',
         traits: []
       },
       {
-        name: 'Corrosive Body',
-        description: 'A creature that hits you with an unarmed attack takes acid damage from your body.',
+        name: 'Corpo Corrosivo',
+        description: 'Uma criatura que acertar você com um ataque desarmado sofre dano de ácido do seu corpo.',
         traits: []
       }
     ],
@@ -61,13 +61,13 @@ export const oozeForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Motion Sense',
-        description: 'You have no vision but sense the movement of creatures within 30 feet (imprecise).',
+        name: 'Sentido de Movimento',
+        description: 'Você não enxerga, mas percebe o movimento de criaturas em até 30 pés (impreciso).',
         traits: []
       },
       {
-        name: 'Numbing Touch',
-        description: 'A creature hit by your cube face must succeed at a Fortitude save or be stunned 1 (stunned 1 and paralyzed for 1 round on a critical failure).',
+        name: 'Toque Entorpecente',
+        description: 'Uma criatura atingida pela face do cubo deve ser bem-sucedida em um salvamento de Fortitude ou fica atordoada 1 (atordoada 1 e paralisada por 1 rodada em uma falha crítica).',
         traits: ['incapacitation']
       }
     ],
@@ -101,13 +101,13 @@ export const oozeForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Motion Sense',
-        description: 'You have no vision but sense the movement of creatures within 30 feet (imprecise).',
+        name: 'Sentido de Movimento',
+        description: 'Você não enxerga, mas percebe o movimento de criaturas em até 30 pés (impreciso).',
         traits: []
       },
       {
-        name: 'Grab',
-        description: 'You can use your pseudopod to Grab a creature you hit.',
+        name: 'Agarrar',
+        description: 'Você pode usar seu pseudópode para Agarrar uma criatura que atingir.',
         traits: []
       }
     ],
@@ -140,13 +140,13 @@ export const oozeForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Motion Sense',
-        description: 'You have no vision but sense the movement of creatures within 30 feet (imprecise).',
+        name: 'Sentido de Movimento',
+        description: 'Você não enxerga, mas percebe o movimento de criaturas em até 30 pés (impreciso).',
         traits: []
       },
       {
-        name: 'Grab',
-        description: 'You can use your pseudopod to Grab a creature you hit.',
+        name: 'Agarrar',
+        description: 'Você pode usar seu pseudópode para Agarrar uma criatura que atingir.',
         traits: []
       }
     ],

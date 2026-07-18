@@ -9,6 +9,7 @@ import {
   Alert
 } from '@mui/material';
 import type { TransformationSpell, TransformationForm } from '../../../types';
+import { translateName, translateSize, translateAttackName, translateDamageString, translateTrait } from '../i18n';
 
 interface FormSelectorProps {
   selectedSpell: TransformationSpell | null;
@@ -48,10 +49,10 @@ export const FormSelector: React.FC<FormSelectorProps> = ({
 
   const formatAttacks = (attacks: TransformationForm['attacks']) => {
     return attacks.map(attack => {
-      const traits = attack.traits && attack.traits.length > 0 
-        ? ` (${attack.traits.join(', ')})` 
+      const traits = attack.traits && attack.traits.length > 0
+        ? ` (${attack.traits.map(translateTrait).join(', ')})`
         : '';
-      return `${attack.name}${traits}: ${attack.damage}`;
+      return `${translateAttackName(attack.name)}${traits}: ${translateDamageString(attack.damage)}`;
     }).join('; ');
   };
 
@@ -63,7 +64,7 @@ export const FormSelector: React.FC<FormSelectorProps> = ({
         </Typography>
         
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Escolha uma das formas disponíveis para a magia {selectedSpell.name}:
+          Escolha uma das formas disponíveis para a magia {translateName(selectedSpell.name)}:
         </Typography>
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
@@ -85,9 +86,9 @@ export const FormSelector: React.FC<FormSelectorProps> = ({
                 <CardContent>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                     <Typography variant="h6">
-                      {form.name}
+                      {translateName(form.name)}
                     </Typography>
-                    <Chip label={form.size} size="small" />
+                    <Chip label={translateSize(form.size)} size="small" />
                   </Box>
                   
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
@@ -100,17 +101,14 @@ export const FormSelector: React.FC<FormSelectorProps> = ({
                   
                   {form.senses && (
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                      <strong>Sentidos:</strong> 
-                      {form.senses.lowLightVision && ' Visão na penumbra'}
-                      {form.senses.scent && ` Faro ${form.senses.scent} pés (impreciso)`}
-                      {form.senses.darkvision && ` Visão no escuro ${form.senses.darkvision} pés`}
+                      <strong>Sentidos:</strong>
+                      {form.senses.lowLightVision && ' visão na penumbra'}
+                      {form.senses.scent && ` olfato ${form.senses.scent} pés (impreciso)`}
+                      {form.senses.darkvision && ` visão no escuro ${form.senses.darkvision} pés`}
+                      {form.senses.tremorsense && ` sentido sísmico ${form.senses.tremorsense} pés`}
                     </Typography>
                   )}
-                  
-                  <Typography variant="caption" color="text.secondary">
-                    {form.description}
-                  </Typography>
-                  
+
                   {selectedForm?.id === form.id && (
                     <Box sx={{ mt: 2 }}>
                       <Chip label="Selecionado" color="primary" size="small" />
@@ -125,7 +123,7 @@ export const FormSelector: React.FC<FormSelectorProps> = ({
         {selectedForm && (
           <Box sx={{ mt: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'divider' }}>
             <Typography variant="subtitle2" gutterBottom>
-              Forma Selecionada: {selectedForm.name}
+              Forma Selecionada: {translateName(selectedForm.name)}
             </Typography>
             <Button 
               variant="outlined" 

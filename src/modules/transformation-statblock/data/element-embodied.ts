@@ -32,8 +32,8 @@ export const elementEmbodiedForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Flight',
-        description: 'You have a fly Speed and can hover in place.',
+        name: 'Voo',
+        description: 'Você tem um Deslocamento de voo e pode pairar no lugar.',
         traits: []
       }
     ],
@@ -62,8 +62,8 @@ export const elementEmbodiedForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Earth Glide',
-        description: 'You can Burrow through earth and stone at your burrow Speed.',
+        name: 'Deslizar pela Terra',
+        description: 'Você pode Escavar através de terra e pedra com seu Deslocamento de escavação.',
         traits: []
       }
     ],
@@ -93,8 +93,8 @@ export const elementEmbodiedForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Engulfing Flames',
-        description: 'Creatures that end their turn adjacent to you take fire damage.',
+        name: 'Chamas Envolventes',
+        description: 'Criaturas que terminam o turno adjacentes a você sofrem dano de fogo.',
         traits: []
       }
     ],
@@ -126,8 +126,8 @@ export const elementEmbodiedForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Drench',
-        description: 'You can Push creatures you hit and extinguish non-magical fires.',
+        name: 'Encharcar',
+        description: 'Você pode Empurrar criaturas que atingir e apagar fogos não mágicos.',
         traits: []
       }
     ],
@@ -155,8 +155,8 @@ export const elementEmbodiedForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Conduct Energy',
-        description: 'You conduct electricity, dealing extra electricity damage with your Strikes.',
+        name: 'Conduzir Energia',
+        description: 'Você conduz eletricidade, causando dano de eletricidade adicional com seus ataques.',
         traits: []
       }
     ],
@@ -185,8 +185,8 @@ export const elementEmbodiedForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Verdant Regrowth',
-        description: 'Your body constantly mends, and your vines can entangle creatures you hit.',
+        name: 'Rebrota Verdejante',
+        description: 'Seu corpo se regenera constantemente, e seus cipós podem prender criaturas que você atingir.',
         traits: []
       }
     ],

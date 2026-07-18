@@ -30,23 +30,23 @@ export const natureIncarnateForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Green Tongue',
-        description: 'You can communicate with plants and command them to move or take simple actions.',
+        name: 'Língua Verde',
+        description: 'Você pode se comunicar com plantas e ordenar que se movam ou executem ações simples.',
         traits: []
       },
       {
-        name: 'Forest\'s Wrath',
-        description: 'Plants in a 60-foot emanation are difficult terrain for your enemies.',
+        name: 'Ira da Floresta',
+        description: 'Plantas em uma emanação de 60 pés são terreno difícil para seus inimigos.',
         traits: ['aura']
       },
       {
-        name: 'Regeneration',
-        description: 'You gain fast healing 10. This fast healing is deactivated while you are in an area without plants or if affected by fire damage.',
+        name: 'Regeneração',
+        description: 'Você ganha cura acelerada 10. Essa cura é desativada enquanto você estiver em uma área sem plantas ou se sofrer dano de fogo.',
         traits: []
       },
       {
-        name: 'Verdant Burst',
-        description: 'When you would be reduced to 0 HP, you can release a 30-foot emanation of healing energy. All allies in the area heal 10d10 HP, and plants grow as if a year had passed.',
+        name: 'Explosão Verdejante',
+        description: 'Quando você seria reduzido a 0 PV, você pode liberar uma emanação de 30 pés de energia curativa. Todos os aliados na área curam 10d10 PV, e plantas crescem como se um ano tivesse passado.',
         traits: ['healing']
       }
     ],
@@ -99,18 +99,18 @@ export const natureIncarnateForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Destructive Frenzy',
-        description: 'Your Strikes deal double damage to objects and structures.',
+        name: 'Fúria Destrutiva',
+        description: 'Seus ataques causam dano dobrado a objetos e estruturas.',
         traits: []
       },
       {
-        name: 'Devastating Stomp',
-        description: 'You Stride up to half your Speed and then stomp, dealing 4d10 bludgeoning damage to all creatures in a 20-foot emanation (basic Reflex save).',
+        name: 'Pisão Devastador',
+        description: 'Você se Desloca até metade do seu Deslocamento e então pisoteia, causando 4d10 de dano contundente a todas as criaturas em uma emanação de 20 pés (salvamento de Reflexos básico).',
         traits: []
       },
       {
-        name: 'Unstoppable',
-        description: 'You are immune to slowed and paralyzed. You treat all difficult terrain as normal terrain.',
+        name: 'Imparável',
+        description: 'Você é imune a lentidão e paralisia. Você trata todo terreno difícil como terreno normal.',
         traits: []
       }
     ],
@@ -135,7 +135,7 @@ export const natureIncarnateForms: TransformationForm[] = [
     },
     attacks: [
       {
-        name: 'Elemental Strike',
+        name: 'Golpe Elemental',
         type: 'melee',
         bonus: 34,
         damage: '4d12 bludgeoning plus 4d6 energy (choose type)',
@@ -145,18 +145,18 @@ export const natureIncarnateForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Elemental Attunement',
-        description: 'Choose air, earth, fire, or water when you transform. You gain immunity to your chosen element and weakness 15 to the opposing element.',
+        name: 'Sintonia Elemental',
+        description: 'Escolha ar, terra, fogo ou água ao se transformar. Você ganha imunidade ao elemento escolhido e fraqueza 15 ao elemento oposto.',
         traits: []
       },
       {
-        name: 'Elemental Surge',
-        description: 'Once per round, you can release a 60-foot line or 30-foot cone of your chosen element, dealing 10d6 damage of your element\'s type (basic Reflex save).',
+        name: 'Surto Elemental',
+        description: 'Uma vez por rodada, você pode liberar uma linha de 60 pés ou cone de 30 pés do seu elemento, causando 10d6 de dano do tipo do seu elemento (salvamento de Reflexos básico).',
         traits: []
       },
       {
-        name: 'Primal Aura',
-        description: 'You emanate an aura of your element in a 30-foot emanation. Creatures of your element are quickened 1, while creatures vulnerable to your element are slowed 1.',
+        name: 'Aura Primal',
+        description: 'Você emana uma aura do seu elemento em uma emanação de 30 pés. Criaturas do seu elemento ficam apressadas 1, enquanto criaturas vulneráveis ao seu elemento ficam lentas 1.',
         traits: ['aura']
       }
     ],
@@ -186,14 +186,14 @@ export const natureIncarnateForms: TransformationForm[] = [
         range: 30
       },
       {
-        name: 'Constrict',
+        name: 'Constrição',
         type: 'melee',
         bonus: 34,
         damage: '6d6 bludgeoning plus 2d6 poison',
         traits: []
       },
       {
-        name: 'Tail Lash',
+        name: 'Chicotada de Cauda',
         type: 'melee',
         bonus: 34,
         damage: '6d8 bludgeoning',
@@ -203,18 +203,18 @@ export const natureIncarnateForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Primordial Toxin',
-        description: 'Your bite and constrict deliver a potent poison that deals 4d6 persistent poison damage on a failed Fortitude save.',
+        name: 'Toxina Primordial',
+        description: 'Sua mordida e constrição aplicam um veneno potente que causa 4d6 de dano de veneno persistente com um salvamento de Fortitude falho.',
         traits: ['poison']
       },
       {
-        name: 'Coils of the World',
-        description: 'You can Grab creatures up to Huge size. While you have a creature grabbed, you can use Constrict on it as a single action.',
+        name: 'Anéis do Mundo',
+        description: 'Você pode Agarrar criaturas de até tamanho Enorme. Enquanto tiver uma criatura agarrada, pode usar Constrição nela como uma única ação.',
         traits: []
       },
       {
-        name: 'Swallow Whole',
-        description: 'Large or smaller creatures you have grabbed can be swallowed. Swallowed creatures take 6d6 bludgeoning and 6d6 acid damage each round.',
+        name: 'Engolir Inteiro',
+        description: 'Criaturas Grandes ou menores que você agarrou podem ser engolidas. Criaturas engolidas sofrem 6d6 de dano contundente e 6d6 de ácido por rodada.',
         traits: []
       }
     ],

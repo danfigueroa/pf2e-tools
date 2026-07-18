@@ -25,8 +25,8 @@ export const avatarForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Deific Aspect',
-        description: 'Use this generic form when your deity is not listed; substitute your deity\'s favored weapon, movement, and signature ability as described in their avatar entry.',
+        name: 'Aspecto Divino',
+        description: 'Use esta forma genérica quando sua divindade não estiver listada; substitua pela arma favorecida, deslocamento e habilidade característica da sua divindade, conforme a entrada de avatar dela.',
         traits: []
       }
     ],
@@ -55,8 +55,8 @@ export const avatarForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Retributive Strike',
-        description: 'When an ally near you is struck, you can retaliate against the attacker with radiant force.',
+        name: 'Golpe Retributivo',
+        description: 'Quando um aliado perto de você é atingido, você pode retaliar contra o atacante com força radiante.',
         traits: []
       }
     ],
@@ -84,8 +84,8 @@ export const avatarForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Bloodthirsty',
-        description: 'Your Strikes deal extra damage against creatures that have already taken damage this combat.',
+        name: 'Sede de Sangue',
+        description: 'Seus ataques causam dano adicional contra criaturas que já sofreram dano neste combate.',
         traits: []
       }
     ],
@@ -121,8 +121,8 @@ export const avatarForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Healing Light',
-        description: 'You radiate restorative light, and your fire Strikes can harm undead with positive energy.',
+        name: 'Luz Curativa',
+        description: 'Você irradia luz restauradora, e seus ataques de fogo podem ferir mortos-vivos com energia positiva.',
         traits: []
       }
     ],
@@ -151,8 +151,8 @@ export const avatarForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Devastation',
-        description: 'You can Burrow, and your Strikes destroy unattended objects and terrain with ease.',
+        name: 'Devastação',
+        description: 'Você pode Escavar, e seus ataques destroem objetos sem dono e terreno com facilidade.',
         traits: []
       }
     ],
@@ -182,8 +182,8 @@ export const avatarForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Final Judgment',
-        description: 'Your Strikes are especially effective against undead and creatures that cheated death.',
+        name: 'Julgamento Final',
+        description: 'Seus ataques são especialmente eficazes contra mortos-vivos e criaturas que enganaram a morte.',
         traits: []
       }
     ],

@@ -2,14 +2,22 @@ import React from 'react';
 import {
   Box,
   Card,
-  CardContent,
   Typography,
-  Divider,
-  Chip,
-  Stack,
   Alert
 } from '@mui/material';
 import type { TransformationSpell, TransformationForm, PlayerCharacter, Attack, Ability } from '../../../types';
+import {
+  LABELS,
+  translateSize,
+  translateDamageString,
+  translateDamageType,
+  translateTrait,
+  translateAttackName,
+  translateImmunity,
+  translateSense,
+  translateSpeedType,
+  translateName,
+} from '../i18n';
 
 interface StatBlockGeneratorProps {
   spell: TransformationSpell | null;
@@ -250,22 +258,22 @@ const StatBlockGenerator: React.FC<StatBlockGeneratorProps> = ({
   const effectiveLevel = getEffectiveSpellLevel();
 
   const formatSpeed = (speed: TransformationForm['speed']) => {
-    const speeds = [];
-    if (speed.land) speeds.push(`${speed.land} feet`);
-    if (speed.climb) speeds.push(`climb ${speed.climb} feet`);
-    if (speed.swim) speeds.push(`swim ${speed.swim} feet`);
-    if (speed.fly) speeds.push(`fly ${speed.fly} feet`);
-    if (speed.burrow) speeds.push(`burrow ${speed.burrow} feet`);
-    return speeds.join(', ') || 'none';
+    const speeds: string[] = [];
+    if (speed.land) speeds.push(`${speed.land} pés`);
+    if (speed.climb) speeds.push(`${translateSpeedType('climb')} ${speed.climb} pés`);
+    if (speed.swim) speeds.push(`${translateSpeedType('swim')} ${speed.swim} pés`);
+    if (speed.fly) speeds.push(`${translateSpeedType('fly')} ${speed.fly} pés`);
+    if (speed.burrow) speeds.push(`${translateSpeedType('burrow')} ${speed.burrow} pés`);
+    return speeds.join(', ') || 'nenhum';
   };
 
   const formatSenses = (senses: TransformationForm['senses']) => {
-    const senseList = [];
-    if (senses?.lowLightVision) senseList.push('low-light vision');
-    if (senses?.darkvision) senseList.push(`darkvision ${senses.darkvision} feet`);
-    if (senses?.scent) senseList.push(`scent (imprecise) ${senses.scent} feet`);
-    if (senses?.tremorsense) senseList.push(`tremorsense (imprecise) ${senses.tremorsense} feet`);
-    return senseList.join(', ') || 'normal';
+    const senseList: string[] = [];
+    if (senses?.lowLightVision) senseList.push(translateSense('lowLightVision'));
+    if (senses?.darkvision) senseList.push(`${translateSense('darkvision')} ${senses.darkvision} pés`);
+    if (senses?.scent) senseList.push(`${translateSense('scent')} (impreciso) ${senses.scent} pés`);
+    if (senses?.tremorsense) senseList.push(`${translateSense('tremorsense')} (impreciso) ${senses.tremorsense} pés`);
+    return senseList.join(', ');
   };
 
   const formatModifier = (value: number) => {
@@ -274,155 +282,141 @@ const StatBlockGenerator: React.FC<StatBlockGeneratorProps> = ({
 
   const formatResistances = (resistances?: Record<string, number>) => {
     if (!resistances || Object.keys(resistances).length === 0) return null;
-    return Object.entries(resistances).map(([type, value]) => `${type} ${value}`).join(', ');
+    return Object.entries(resistances).map(([type, value]) => `${translateDamageType(type)} ${value}`).join(', ');
   };
 
   const formatImmunities = (immunities?: string[]) => {
     if (!immunities || immunities.length === 0) return null;
-    return immunities.join(', ');
+    return immunities.map(translateImmunity).join(', ');
   };
 
   const formatWeaknesses = (weaknesses?: Record<string, number>) => {
     if (!weaknesses || Object.keys(weaknesses).length === 0) return null;
-    return Object.entries(weaknesses).map(([type, value]) => `${type} ${value}`).join(', ');
+    return Object.entries(weaknesses).map(([type, value]) => `${translateDamageType(type)} ${value}`).join(', ');
   };
 
+  const sensesText = formatSenses(form.senses);
+
+  // Traços exibidos na faixa de traits (raridade omitida = Comum)
+  const traitTags = [translateSize(stats.size), ...(form.traits ?? []).map(translateTrait)];
+
+  // Paleta oficial (pergaminho + vinho + laranja)
+  const MAROON = '#5c1f1b';
+  const ORANGE = '#c0521f';
+  const PARCHMENT = '#f7f2e7';
+  const INK = '#1a1a1a';
+
+  const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <strong style={{ color: MAROON }}>{children}</strong>
+  );
+
+  const Rule = () => (
+    <Box sx={{ height: '3px', bgcolor: ORANGE, my: 1, borderRadius: '2px' }} />
+  );
+
   return (
-    <Card sx={{ mt: 2, bgcolor: '#1a1a2e', color: '#eee', border: '2px solid #4a4a6a' }}>
-      <CardContent>
-        {/* Header */}
-        <Box sx={{ borderBottom: '2px solid #4a4a6a', pb: 1, mb: 2 }}>
-          <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold', color: '#ffd700' }}>
-            {character.name} ({form.name})
-          </Typography>
-          <Typography variant="body2" sx={{ color: '#aaa' }}>
-            {stats.size} creature • {spell.name} (Rank {effectiveLevel})
-          </Typography>
-        </Box>
+    <Card sx={{ mt: 2, bgcolor: PARCHMENT, color: INK, border: `1px solid ${MAROON}`, borderRadius: '4px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.25)' }}>
+      {/* Header bar */}
+      <Box sx={{ bgcolor: MAROON, color: '#f7f2e7', px: 2, py: 1, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1 }}>
+        <Typography component="h2" sx={{ fontWeight: 700, fontSize: '1.35rem', letterSpacing: '0.02em', textTransform: 'uppercase', lineHeight: 1.1 }}>
+          {character.name} <Box component="span" sx={{ fontWeight: 400, textTransform: 'none', fontSize: '0.9rem', opacity: 0.9 }}>({translateName(form.name)})</Box>
+        </Typography>
+        <Typography sx={{ fontWeight: 700, fontSize: '1.1rem', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+          {LABELS.creature} {effectiveLevel}
+        </Typography>
+      </Box>
 
-        {/* Perception and Senses */}
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="body2">
-            <strong style={{ color: '#ffd700' }}>Perception</strong> {formatModifier(stats.perception)}; {formatSenses(form.senses)}
-          </Typography>
-        </Box>
+      {/* Trait tags */}
+      <Box sx={{ px: 2, py: 1, display: 'flex', gap: 0.5, flexWrap: 'wrap', bgcolor: '#efe7d4' }}>
+        {traitTags.map((t, i) => (
+          <Box key={i} sx={{ bgcolor: MAROON, color: '#f7f2e7', border: '1px solid #d9c58a', px: 1, py: 0.25, fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+            {t}
+          </Box>
+        ))}
+      </Box>
 
-        <Divider sx={{ bgcolor: '#4a4a6a', my: 1 }} />
+      <Box sx={{ px: 2, py: 1.5 }}>
+        {/* Spell line */}
+        <Typography variant="body2" sx={{ fontStyle: 'italic', color: '#5a5044', mb: 1 }}>
+          {translateName(spell.name)} ({LABELS.level} {effectiveLevel})
+        </Typography>
+
+        {/* Perception / Senses */}
+        <Typography variant="body2">
+          <Label>{LABELS.perception}</Label> {formatModifier(stats.perception)}{sensesText ? `; ${sensesText}` : ''}
+        </Typography>
+        {/* Skills */}
+        <Typography variant="body2">
+          <Label>{LABELS.skills}</Label> {LABELS.athletics} {formatModifier(stats.athletics)}
+        </Typography>
+
+        <Rule />
 
         {/* Defense */}
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="body2">
-            <strong style={{ color: '#ffd700' }}>AC</strong> {stats.ac}; <strong style={{ color: '#ffd700' }}>Fort</strong> {formatModifier(stats.fortitude)}, <strong style={{ color: '#ffd700' }}>Ref</strong> {formatModifier(stats.reflex)}, <strong style={{ color: '#ffd700' }}>Will</strong> {formatModifier(stats.will)}
-          </Typography>
-          <Typography variant="body2">
-            <strong style={{ color: '#ffd700' }}>HP</strong> {stats.hp} (+ {stats.tempHP} temporary HP)
-          </Typography>
-          {formatImmunities(form.immunities) && (
-            <Typography variant="body2">
-              <strong style={{ color: '#ffd700' }}>Immunities</strong> {formatImmunities(form.immunities)}
-            </Typography>
-          )}
-          {formatResistances(form.resistances) && (
-            <Typography variant="body2">
-              <strong style={{ color: '#ffd700' }}>Resistances</strong> {formatResistances(form.resistances)}
-            </Typography>
-          )}
-          {formatWeaknesses(form.weaknesses) && (
-            <Typography variant="body2">
-              <strong style={{ color: '#ffd700' }}>Weaknesses</strong> {formatWeaknesses(form.weaknesses)}
-            </Typography>
-          )}
-        </Box>
+        <Typography variant="body2">
+          <Label>{LABELS.ac}</Label> {stats.ac}; <Label>{LABELS.fort}</Label> {formatModifier(stats.fortitude)}, <Label>{LABELS.ref}</Label> {formatModifier(stats.reflex)}, <Label>{LABELS.will}</Label> {formatModifier(stats.will)}
+        </Typography>
+        <Typography variant="body2">
+          <Label>{LABELS.hp}</Label> {stats.hp}; <Label>{LABELS.tempHp}</Label> {stats.tempHP}
+          {formatImmunities(form.immunities) && <> ; <Label>{LABELS.immunities}</Label> {formatImmunities(form.immunities)}</>}
+          {formatResistances(form.resistances) && <> ; <Label>{LABELS.resistances}</Label> {formatResistances(form.resistances)}</>}
+          {formatWeaknesses(form.weaknesses) && <> ; <Label>{LABELS.weaknesses}</Label> {formatWeaknesses(form.weaknesses)}</>}
+        </Typography>
 
-        <Divider sx={{ bgcolor: '#4a4a6a', my: 1 }} />
+        <Rule />
 
         {/* Speed */}
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="body2">
-            <strong style={{ color: '#ffd700' }}>Speed</strong> {formatSpeed(form.speed)}
-          </Typography>
-        </Box>
-
-        <Divider sx={{ bgcolor: '#4a4a6a', my: 1 }} />
+        <Typography variant="body2">
+          <Label>{LABELS.speed}</Label> {formatSpeed(form.speed)}
+        </Typography>
 
         {/* Attacks */}
-        <Box sx={{ mb: 2 }}>
-          {form.attacks.map((attack: Attack, index: number) => {
-            const formatDamageWithBonus = (damage: string, bonus: number) => {
-              if (damage.includes('+') || damage.includes('-') || bonus === 0) {
-                return damage;
-              }
-              return `${damage}${bonus > 0 ? '+' + bonus : ''}`;
-            };
-            
-            const attackType = attack.type === 'melee' ? 'Melee' : 'Ranged';
-            const reachInfo = attack.range ? ` (reach ${attack.range} ft)` : (stats.reach > 5 && attack.type === 'melee' ? ` (reach ${stats.reach} ft)` : '');
-            
-            return (
-              <Typography key={index} variant="body2" sx={{ mb: 0.5 }}>
-                <strong style={{ color: '#ffd700' }}>{attackType}</strong> <span style={{ color: '#88f' }}>◆</span> {attack.name} {formatModifier(stats.attackBonus)}{reachInfo}, <strong>Damage</strong> {formatDamageWithBonus(attack.damage, stats.damageBonus)}
-                {attack.traits && attack.traits.length > 0 && (
-                  <span style={{ color: '#888' }}> ({attack.traits.join(', ')})</span>
-                )}
-              </Typography>
-            );
-          })}
-        </Box>
+        {form.attacks.map((attack: Attack, index: number) => {
+          const formatDamageWithBonus = (damage: string, bonus: number) => {
+            if (damage.includes('+') || damage.includes('-') || bonus === 0) {
+              return translateDamageString(damage);
+            }
+            return translateDamageString(`${damage}${bonus > 0 ? '+' + bonus : ''}`);
+          };
 
-        {/* Special Abilities */}
+          const attackType = attack.type === 'melee' ? LABELS.melee : LABELS.ranged;
+          const reach = attack.range ?? (stats.reach > 5 && attack.type === 'melee' ? stats.reach : 0);
+          const reachInfo = reach ? ` (${translateTrait('reach')} ${reach} pés)` : '';
+
+          return (
+            <Typography key={index} variant="body2" sx={{ mt: 0.5 }}>
+              <Label>{attackType}</Label> <Box component="span" sx={{ color: ORANGE, fontWeight: 700 }}>◆</Box> {translateAttackName(attack.name)} {formatModifier(stats.attackBonus)}{reachInfo}
+              {attack.traits && attack.traits.length > 0 && (
+                <Box component="span" sx={{ color: '#6b6152' }}> ({attack.traits.map(translateTrait).join(', ')})</Box>
+              )}
+              , <Label>{LABELS.damage}</Label> {formatDamageWithBonus(attack.damage, stats.damageBonus)}
+            </Typography>
+          );
+        })}
+
+        {/* Special abilities */}
         {form.abilities && form.abilities.length > 0 && (
           <>
-            <Divider sx={{ bgcolor: '#4a4a6a', my: 1 }} />
-            <Box sx={{ mb: 2 }}>
-              {form.abilities.map((ability: Ability, index: number) => (
-                <Box key={index} sx={{ mb: 1 }}>
-                  <Typography variant="body2">
-                    <strong style={{ color: '#ffd700' }}>{ability.name}</strong> {ability.description}
-                  </Typography>
-                  {ability.traits && ability.traits.length > 0 && (
-                    <Stack direction="row" spacing={0.5} sx={{ mt: 0.5, flexWrap: 'wrap' }}>
-                      {ability.traits.map((trait: string, traitIndex: number) => (
-                        <Chip 
-                          key={traitIndex} 
-                          label={trait} 
-                          size="small" 
-                          sx={{ 
-                            bgcolor: '#2a2a4a', 
-                            color: '#aaf',
-                            fontSize: '0.7rem',
-                            height: 20
-                          }} 
-                        />
-                      ))}
-                    </Stack>
-                  )}
-                </Box>
-              ))}
-            </Box>
+            <Rule />
+            {form.abilities.map((ability: Ability, index: number) => (
+              <Typography key={index} variant="body2" sx={{ mb: 0.5 }}>
+                <Label>{ability.name}</Label>
+                {ability.traits && ability.traits.length > 0 && (
+                  <Box component="span" sx={{ color: '#6b6152' }}> ({ability.traits.map(translateTrait).join(', ')})</Box>
+                )}{' '}
+                {ability.description}
+              </Typography>
+            ))}
           </>
         )}
 
-        <Divider sx={{ bgcolor: '#4a4a6a', my: 1 }} />
+        <Rule />
 
-        {/* Skills — battle forms grant an Athletics modifier (use your own if higher) */}
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="body2">
-            <strong style={{ color: '#ffd700' }}>Athletics</strong> {formatModifier(stats.athletics)}
-          </Typography>
-        </Box>
-
-        <Divider sx={{ bgcolor: '#4a4a6a', my: 1 }} />
-
-        {/* Notes */}
-        <Box sx={{ bgcolor: '#0a0a1a', p: 1.5, borderRadius: 1, mt: 2 }}>
-          <Typography variant="body2" sx={{ fontStyle: 'italic', color: '#aaa', fontSize: '0.85rem' }}>
-            {form.description}
-          </Typography>
-          <Typography variant="caption" sx={{ color: '#666', display: 'block', mt: 1 }}>
-            Duration: {spell.duration} • Traditions: {spell.traditions.join(', ')} • Level {character.level} {character.class}
-          </Typography>
-        </Box>
-      </CardContent>
+        {/* Footer note */}
+        <Typography variant="caption" sx={{ color: '#6b6152', display: 'block' }}>
+          {LABELS.duration}: {spell.duration} • {LABELS.traditions}: {spell.traditions.map(translateTrait).join(', ')} • {LABELS.level} {character.level} {character.class}
+        </Typography>
+      </Box>
     </Card>
   );
 };

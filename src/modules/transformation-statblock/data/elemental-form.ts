@@ -21,8 +21,8 @@ export const elementalForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'High Winds',
-        description: 'You gain a +2 circumstance bonus to AC and saves against ranged attacks.',
+        name: 'Ventos Fortes',
+        description: 'Você recebe +2 de bônus de circunstância na CA e nos salvamentos contra ataques à distância.',
         traits: ['air']
       }
     ],
@@ -107,8 +107,8 @@ export const elementalForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Amphibious',
-        description: 'Can breathe in water and air.',
+        name: 'Anfíbio',
+        description: 'Pode respirar na água e no ar.',
         traits: []
       }
     ],
@@ -167,8 +167,8 @@ export const elementalForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Wooden Regeneration',
-        description: 'You gain fast healing 2 while standing in an area of bright light.',
+        name: 'Regeneração de Madeira',
+        description: 'Você ganha cura acelerada 2 enquanto estiver em uma área de luz brilhante.',
         traits: []
       }
     ],

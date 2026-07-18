@@ -28,8 +28,8 @@ export const aerialForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Echolocation',
-        description: 'Precise echolocation 40 feet',
+        name: 'Ecolocalização',
+        description: 'Ecolocalização precisa 40 pés',
         traits: []
       }
     ],

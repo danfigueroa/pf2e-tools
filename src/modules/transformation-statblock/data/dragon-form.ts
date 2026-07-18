@@ -37,9 +37,9 @@ export const dragonForms: TransformationForm[] = [
         ],
         abilities: [
             {
-                name: 'Breath Weapon',
+                name: 'Arma de Sopro',
                 description:
-                    '60-foot line of acid dealing 11d6 acid damage (basic Reflex save).',
+                    'Linha de 60 pés de ácido causando 11d6 de dano de ácido (salvamento de Reflexos básico).',
                 traits: ['acid'],
             },
         ],
@@ -88,9 +88,9 @@ export const dragonForms: TransformationForm[] = [
         ],
         abilities: [
             {
-                name: 'Breath Weapon',
+                name: 'Arma de Sopro',
                 description:
-                    '80-foot line of electricity dealing 6d12 electricity damage (basic Reflex save).',
+                    'Linha de 80 pés de eletricidade causando 6d12 de dano de eletricidade (salvamento de Reflexos básico).',
                 traits: ['electricity'],
             },
         ],
@@ -139,9 +139,9 @@ export const dragonForms: TransformationForm[] = [
         ],
         abilities: [
             {
-                name: 'Breath Weapon',
+                name: 'Arma de Sopro',
                 description:
-                    '30-foot cone of poison dealing 10d6 poison damage (basic Fortitude save).',
+                    'Cone de 30 pés de veneno causando 10d6 de dano de veneno (salvamento de Fortitude básico).',
                 traits: ['poison'],
             },
         ],
@@ -189,9 +189,9 @@ export const dragonForms: TransformationForm[] = [
         ],
         abilities: [
             {
-                name: 'Breath Weapon',
+                name: 'Arma de Sopro',
                 description:
-                    '30-foot cone of fire dealing 10d6 fire damage (basic Reflex save).',
+                    'Cone de 30 pés de fogo causando 10d6 de dano de fogo (salvamento de Reflexos básico).',
                 traits: ['fire'],
             },
         ],
@@ -240,9 +240,9 @@ export const dragonForms: TransformationForm[] = [
         ],
         abilities: [
             {
-                name: 'Breath Weapon',
+                name: 'Arma de Sopro',
                 description:
-                    '30-foot cone of cold dealing 10d6 cold damage (basic Reflex save).',
+                    'Cone de 30 pés de frio causando 10d6 de dano de frio (salvamento de Reflexos básico).',
                 traits: ['cold'],
             },
         ],
@@ -291,9 +291,9 @@ export const dragonForms: TransformationForm[] = [
         ],
         abilities: [
             {
-                name: 'Breath Weapon',
+                name: 'Arma de Sopro',
                 description:
-                    '60-foot line of fire dealing 11d6 fire damage (basic Reflex save).',
+                    'Linha de 60 pés de fogo causando 11d6 de dano de fogo (salvamento de Reflexos básico).',
                 traits: ['fire'],
             },
         ],
@@ -342,9 +342,9 @@ export const dragonForms: TransformationForm[] = [
         ],
         abilities: [
             {
-                name: 'Breath Weapon',
+                name: 'Arma de Sopro',
                 description:
-                    '80-foot line of electricity dealing 6d12 electricity damage (basic Reflex save).',
+                    'Linha de 80 pés de eletricidade causando 6d12 de dano de eletricidade (salvamento de Reflexos básico).',
                 traits: ['electricity'],
             },
         ],
@@ -393,9 +393,9 @@ export const dragonForms: TransformationForm[] = [
         ],
         abilities: [
             {
-                name: 'Breath Weapon',
+                name: 'Arma de Sopro',
                 description:
-                    '60-foot line of acid dealing 10d6 acid damage (basic Reflex save).',
+                    'Linha de 60 pés de ácido causando 10d6 de dano de ácido (salvamento de Reflexos básico).',
                 traits: ['acid'],
             },
         ],
@@ -444,9 +444,9 @@ export const dragonForms: TransformationForm[] = [
         ],
         abilities: [
             {
-                name: 'Breath Weapon',
+                name: 'Arma de Sopro',
                 description:
-                    '30-foot cone of fire dealing 10d6 fire damage (basic Reflex save).',
+                    'Cone de 30 pés de fogo causando 10d6 de dano de fogo (salvamento de Reflexos básico).',
                 traits: ['fire'],
             },
         ],
@@ -497,9 +497,9 @@ export const dragonForms: TransformationForm[] = [
         ],
         abilities: [
             {
-                name: 'Breath Weapon',
+                name: 'Arma de Sopro',
                 description:
-                    '30-foot cone of cold dealing 10d6 cold damage (basic Reflex save).',
+                    'Cone de 30 pés de frio causando 10d6 de dano de frio (salvamento de Reflexos básico).',
                 traits: ['cold'],
             },
         ],

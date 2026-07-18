@@ -20,13 +20,13 @@ export const angelForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Perfect Recall',
-        description: 'You can perfectly recall anything you\'ve seen or heard and have a +4 bonus to checks to remember things.',
+        name: 'Memória Perfeita',
+        description: 'Você recorda perfeitamente tudo o que viu ou ouviu e recebe +4 em testes para lembrar de coisas.',
         traits: []
       },
       {
-        name: 'Repository of Lore',
-        description: 'You can roll Recall Knowledge using Religion or Lore instead of the normal skill.',
+        name: 'Repositório de Saber',
+        description: 'Você pode rolar Recordar Conhecimento usando Religião ou Ofício no lugar da perícia normal.',
         traits: []
       }
     ],
@@ -60,13 +60,13 @@ export const angelForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Harmonize',
-        description: 'You can use Performance to cast a single-action heal spell once per round, healing 2d8 HP to a creature within 30 feet.',
+        name: 'Harmonizar',
+        description: 'Você pode usar Atuação para conjurar uma magia curar de uma ação uma vez por rodada, curando 2d8 PV de uma criatura em até 30 pés.',
         traits: ['healing', 'sonic']
       },
       {
-        name: 'Deafening Chorus',
-        description: 'Once per round, you can create a burst of sound. Creatures within 15 feet take 2d6 sonic damage (basic Fortitude save).',
+        name: 'Coro Ensurdecedor',
+        description: 'Uma vez por rodada, você pode criar uma explosão de som. Criaturas em até 15 pés sofrem 2d6 de dano sônico (salvamento de Fortitude básico).',
         traits: ['sonic']
       }
     ],
@@ -102,13 +102,13 @@ export const angelForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Aura of Vitality',
-        description: 'Allies within 20 feet of you gain fast healing 2.',
+        name: 'Aura de Vitalidade',
+        description: 'Aliados em até 20 pés de você ganham cura acelerada 2.',
         traits: ['aura', 'healing']
       },
       {
-        name: 'Dispelling Field',
-        description: 'Once per round, you can attempt to counteract a magical effect on a creature you touch.',
+        name: 'Campo Dissipador',
+        description: 'Uma vez por rodada, você pode tentar anular um efeito mágico em uma criatura que tocar.',
         traits: []
       }
     ],
@@ -144,13 +144,13 @@ export const angelForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Elemental Resistance',
-        description: 'You have resistance 10 to acid, cold, electricity, and fire.',
+        name: 'Resistência Elemental',
+        description: 'Você tem resistência 10 a ácido, frio, eletricidade e fogo.',
         traits: []
       },
       {
-        name: 'Solid Blow',
-        description: 'When you critically hit with your mace, the target is pushed 10 feet.',
+        name: 'Golpe Sólido',
+        description: 'Quando você acerta um acerto crítico com sua maça, o alvo é empurrado 10 pés.',
         traits: []
       }
     ],
@@ -188,13 +188,13 @@ export const angelForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Traveler\'s Aura',
-        description: 'Allies within 20 feet are unaffected by difficult terrain and gain a +10-foot status bonus to Speed.',
+        name: 'Aura do Viajante',
+        description: 'Aliados em até 20 pés não são afetados por terreno difícil e ganham +10 pés de bônus de condição no Deslocamento.',
         traits: ['aura']
       },
       {
-        name: 'Messenger\'s Amnesty',
-        description: 'You and all allies within 20 feet can\'t be attacked by summoned or called creatures unless those creatures are directly controlled.',
+        name: 'Salvo-conduto do Mensageiro',
+        description: 'Você e todos os aliados em até 20 pés não podem ser atacados por criaturas invocadas ou chamadas, a menos que sejam controladas diretamente.',
         traits: ['aura']
       }
     ],
@@ -230,13 +230,13 @@ export const angelForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Blade of Justice',
-        description: 'Your holy greatsword deals an extra 2d6 spirit damage to fiends and undead.',
+        name: 'Lâmina da Justiça',
+        description: 'Seu espadão sagrado causa 2d6 de dano de espírito adicional contra corruptores e mortos-vivos.',
         traits: []
       },
       {
-        name: 'Holy Armaments',
-        description: 'Any weapon you wield gains the holy rune\'s effect.',
+        name: 'Armamentos Sagrados',
+        description: 'Qualquer arma que você empunhar ganha o efeito da runa sagrada.',
         traits: []
       }
     ],

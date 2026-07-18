@@ -151,7 +151,7 @@ export const insectForms: TransformationForm[] = [
     abilities: [
       {
         name: 'Web',
-        description: 'You can shoot a web as a ranged attack to entangle a target.',
+        description: 'Você pode disparar uma teia como ataque à distância para prender um alvo.',
         traits: []
       }
     ],

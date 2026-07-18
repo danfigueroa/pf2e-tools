@@ -30,13 +30,13 @@ export const monstrosityForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Self-Immolation',
-        description: 'All your melee attacks deal an extra 2d8 fire damage. You gain immunity to fire and weakness 10 to cold.',
+        name: 'Autoimolação',
+        description: 'Todos os seus ataques corpo a corpo causam 2d8 de dano de fogo adicional. Você ganha imunidade a fogo e fraqueza 10 a frio.',
         traits: ['fire']
       },
       {
-        name: 'Shroud of Flame',
-        description: 'Any creature that touches you or hits you with an unarmed attack or non-reach melee weapon takes 2d6 fire damage.',
+        name: 'Manto de Chamas',
+        description: 'Qualquer criatura que tocar você ou acertá-lo com ataque desarmado ou arma corpo a corpo sem alcance sofre 2d6 de dano de fogo.',
         traits: ['fire', 'aura']
       }
     ],
@@ -86,8 +86,8 @@ export const monstrosityForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Inexorable',
-        description: 'You can burrow through solid rock and cannot be grabbed, immobilized, or restrained by nonmagical means.',
+        name: 'Inexorável',
+        description: 'Você pode escavar rocha sólida e não pode ser agarrado, imobilizado ou contido por meios não mágicos.',
         traits: []
       }
     ],
@@ -126,12 +126,12 @@ export const monstrosityForms: TransformationForm[] = [
     abilities: [
       {
         name: 'Spine Rake',
-        description: 'Once per round as part of a Swim action, you deal 3d6 slashing damage to any creature you swim through or past.',
+        description: 'Uma vez por rodada, como parte de uma ação de Nadar, você causa 3d6 de dano cortante a qualquer criatura por quem nadar.',
         traits: []
       },
       {
-        name: 'Aquatic',
-        description: 'Can breathe underwater.',
+        name: 'Aquático',
+        description: 'Pode respirar debaixo da água.',
         traits: []
       }
     ],
@@ -167,13 +167,13 @@ export const monstrosityForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Ink Cloud',
-        description: 'Once per minute, you can emit a 30-foot-radius cloud of ink, creating concealment for 1 minute in water.',
+        name: 'Nuvem de Tinta',
+        description: 'Uma vez por minuto, você pode emitir uma nuvem de tinta com raio de 30 pés, criando camuflagem por 1 minuto na água.',
         traits: []
       },
       {
-        name: 'Aquatic',
-        description: 'Can breathe underwater.',
+        name: 'Aquático',
+        description: 'Pode respirar debaixo da água.',
         traits: []
       }
     ],
@@ -209,8 +209,8 @@ export const monstrosityForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Trample',
-        description: 'You Stride up to double your Speed and can move through spaces of Large or smaller creatures. Each creature you move through takes 2d8 bludgeoning damage (basic Reflex save).',
+        name: 'Atropelar',
+        description: 'Você se Desloca até o dobro do seu Deslocamento e pode atravessar espaços de criaturas Grandes ou menores. Cada criatura por quem passar sofre 2d8 de dano contundente (salvamento de Reflexos básico).',
         traits: []
       }
     ],

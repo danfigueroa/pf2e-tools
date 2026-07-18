@@ -20,13 +20,13 @@ export const feyForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Tree Meld',
-        description: 'You can Step into a tree and hide within it. While inside, you gain total concealment and can perceive your surroundings using normal senses.',
+        name: 'Fundir-se à Árvore',
+        description: 'Você pode entrar em uma árvore e se esconder nela. Dentro dela, você tem camuflagem total e percebe os arredores com seus sentidos normais.',
         traits: []
       },
       {
-        name: 'Nature Empathy',
-        description: 'You can communicate with plants and animals.',
+        name: 'Empatia Natural',
+        description: 'Você pode se comunicar com plantas e animais.',
         traits: []
       }
     ],
@@ -63,8 +63,8 @@ export const feyForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Pack Attack',
-        description: 'Your Strikes deal 1d6 extra damage to creatures within reach of at least one of your allies.',
+        name: 'Ataque em Matilha',
+        description: 'Seus ataques causam 1d6 de dano adicional a criaturas ao alcance de pelo menos um aliado seu.',
         traits: []
       }
     ],
@@ -96,13 +96,13 @@ export const feyForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Blinding Beauty',
-        description: 'Once per round, you can attempt to dazzle a creature within 30 feet that can see you (Will save).',
+        name: 'Beleza Cegante',
+        description: 'Uma vez por rodada, você pode tentar ofuscar uma criatura em até 30 pés que possa ver você (salvamento de Vontade).',
         traits: ['emotion', 'visual']
       },
       {
-        name: 'Water Breathing',
-        description: 'You can breathe underwater.',
+        name: 'Respiração Aquática',
+        description: 'Você pode respirar debaixo da água.',
         traits: []
       }
     ],
@@ -133,13 +133,13 @@ export const feyForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Invisibility',
-        description: 'You can become invisible at will for 1 minute or until you attack.',
+        name: 'Invisibilidade',
+        description: 'Você pode ficar invisível à vontade por 1 minuto ou até atacar.',
         traits: ['illusion']
       },
       {
-        name: 'Sprinkle Pixie Dust',
-        description: 'You can grant an adjacent ally a fly Speed of 45 feet for 1 round.',
+        name: 'Aspergir Pó de Pixie',
+        description: 'Você pode conceder a um aliado adjacente um Deslocamento de voo de 45 pés por 1 rodada.',
         traits: []
       }
     ],
@@ -176,13 +176,13 @@ export const feyForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Fleet',
-        description: 'You gain a +10-foot status bonus to your land Speed and ignore difficult terrain.',
+        name: 'Ligeiro',
+        description: 'Você recebe +10 pés de bônus de condição no seu Deslocamento terrestre e ignora terreno difícil.',
         traits: []
       },
       {
-        name: 'Woodland Stride',
-        description: 'You ignore difficult terrain from plants and undergrowth.',
+        name: 'Passo na Floresta',
+        description: 'Você ignora terreno difícil causado por plantas e vegetação rasteira.',
         traits: []
       }
     ],
@@ -219,13 +219,13 @@ export const feyForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Iron Boots',
-        description: 'Your boot Strikes ignore the first 5 points of a target\'s resistance to physical damage.',
+        name: 'Botas de Ferro',
+        description: 'Seus ataques de bota ignoram os primeiros 5 pontos de resistência a dano físico do alvo.',
         traits: []
       },
       {
         name: 'Stomp',
-        description: 'If you hit a prone creature with a boot Strike, the creature takes an additional 2d6 persistent bleed damage.',
+        description: 'Se você acertar uma criatura caída com um ataque de bota, ela sofre 2d6 de dano de sangramento persistente adicional.',
         traits: []
       }
     ],

@@ -18,6 +18,7 @@ import type { PlayerCharacter, TransformationSpell } from '../../../types';
 import { transformationSpells } from '../data/spells';
 import { playerCharacterFromJson } from '../data/from-pathbuilder';
 import { CAMPAIGN_PRESETS } from '../../character-viewer/campaignPresets';
+import { translateName, translateSpellMeta, translateTrait } from '../i18n';
 
 interface CharacterInputProps {
   onCharacterInput: (character: PlayerCharacter, spell: TransformationSpell) => void;
@@ -308,7 +309,7 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
                 >
                   {transformationSpells.map((spell) => (
                     <MenuItem key={spell.id} value={spell.id}>
-                      {spell.name} (Nível {spell.level})
+                      {translateName(spell.name)} (Nível {spell.level})
                     </MenuItem>
                   ))}
                 </Select>
@@ -317,18 +318,18 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
               {currentSpell && (
                 <Box sx={{ mt: 2, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'divider' }}>
                   <Typography variant="subtitle2" gutterBottom>
-                    {currentSpell.name}
+                    {translateName(currentSpell.name)}
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 1, mb: 1, flexWrap: 'wrap' }}>
                     {currentSpell.traditions.map((tradition) => (
-                      <Chip key={tradition} label={tradition} size="small" variant="outlined" />
+                      <Chip key={tradition} label={translateTrait(tradition)} size="small" variant="outlined" />
                     ))}
                     <Chip label={`Nível ${currentSpell.level}`} size="small" color="secondary" />
                   </Box>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                    <strong>Conjuração:</strong> {currentSpell.cast} | 
-                    <strong> Alcance:</strong> {currentSpell.range} | 
-                    <strong> Duração:</strong> {currentSpell.duration}
+                    <strong>Conjuração:</strong> {translateSpellMeta(currentSpell.cast)} |
+                    <strong> Alcance:</strong> {translateSpellMeta(currentSpell.range)} |
+                    <strong> Duração:</strong> {translateSpellMeta(currentSpell.duration)}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     <strong>Formas Disponíveis:</strong> {currentSpell.forms.length} opções
