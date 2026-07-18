@@ -1,6 +1,9 @@
-import { Box, Card, CardContent, Typography, Stack, Divider, useTheme } from '@mui/material'
+import { Box, Card, CardContent, Typography, Stack, Divider, Chip, useTheme } from '@mui/material'
+import { MenuBook as GuideIcon } from '@mui/icons-material'
 import type { BuildInfo } from '../../character-sheet/types'
 import { abilityMod, signed, ABILITY_LABELS, totalHp, type AbilityKey } from '../helpers'
+import { getCombatGuide } from '../combatGuides'
+import { GuideMarkdown } from '../components/GuideMarkdown'
 
 interface Props { build: BuildInfo }
 
@@ -26,8 +29,26 @@ export const OverviewSection = ({ build }: Props) => {
         { label: 'Vontade', rank: build.proficiencies.will, ability: 'wis' as AbilityKey },
     ]
 
+    const guide = getCombatGuide(build)
+
     return (
         <Stack spacing={2}>
+            {/* Guia de uso — como jogar em combate */}
+            <Card sx={{ borderColor: theme.palette.primary.main + '55' }}>
+                <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5, flexWrap: 'wrap' }}>
+                        <GuideIcon sx={{ color: 'primary.light' }} />
+                        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                            Guia de Uso — Como Jogar
+                        </Typography>
+                        {!guide.curated && (
+                            <Chip label="automático" size="small" variant="outlined" sx={{ ml: 'auto' }} />
+                        )}
+                    </Box>
+                    <GuideMarkdown markdown={guide.markdown} />
+                </CardContent>
+            </Card>
+
             {/* Stat tiles */}
             <Box sx={{
                 display: 'grid',
