@@ -59,15 +59,22 @@ Gera uma ficha de personagem completa, profissional e pronta para impressão.
 -   🎒 Equipamentos, armaduras e dinheiro
 -   📖 Conhecimentos (Lores) com bônus calculados
 
-### ✅ Gerador de Stat Block de Transformação (Parcialmente Implementado)
+### ✅ Gerador de Stat Block de Transformação (Implementado)
 
-Cria stat blocks para magias de transformação como _Animal Form_, _Elemental Form_, etc.
+Gera o stat block de qualquer _battle form_ (magia de transformação) do Pathfinder 2e Remaster,
+no **padrão oficial de bloco de criatura** e **traduzido para pt-BR**.
 
 **Características:**
 
--   Interface step-by-step
--   Suporte a múltiplas formas
--   Exportação em PDF/PNG
+-   Interface step-by-step (Personagem → Forma → Stat Block → Exportar)
+-   **Todas as battle forms**: Animal, Ooze, Insect, Aerial, Dinosaur, Fey, Elemental, Plant,
+    Dragon, Fiend, Angel, Monstrosity, Nature Incarnate, Element Embodied e Avatar
+-   **Importa a ficha (JSON Pathbuilder 2e)** para usar os modificadores reais do personagem
+    (HP, salvamentos, percepção, atletismo, ataque) — segue a regra "use o valor da magia, a
+    menos que o seu seja maior"
+-   Layout de bloco de criatura oficial (faixa vinho, tags de trait, corpo pergaminho,
+    divisórias laranja, glyph de ação), tudo em português
+-   Exportação em PDF/PNG (print-friendly)
 
 ### 🚧 Em Desenvolvimento
 
@@ -83,12 +90,13 @@ Cria stat blocks para magias de transformação como _Animal Form_, _Elemental F
 
 | Tecnologia        | Versão | Uso                     |
 | ----------------- | ------ | ----------------------- |
-| React             | 18.x   | Framework UI            |
+| React             | 19.x   | Framework UI            |
 | TypeScript        | 5.x    | Tipagem estática        |
 | Vite              | 5.x    | Build tool e dev server |
-| Material-UI (MUI) | 5.x    | Componentes de UI       |
-| jsPDF             | 2.x    | Geração de PDFs         |
-| React Router      | 6.x    | Roteamento SPA          |
+| Material-UI (MUI) | 7.x    | Componentes de UI       |
+| jsPDF             | 3.x    | Geração de PDFs         |
+| html2canvas       | 1.x    | Captura do stat block   |
+| React Router      | 7.x    | Roteamento SPA          |
 
 ### Backend (Servidor de Scraping)
 
@@ -226,9 +234,10 @@ pf2e-tools/
 │   │   │   ├── pdf.ts                  # Geração do PDF
 │   │   │   └── types.ts                # Interfaces TypeScript
 │   │   └── transformation-statblock/   # Módulo de Stat Blocks
-│   │       ├── TransformationPage.tsx
-│   │       ├── components/
-│   │       └── data/
+│   │       ├── TransformationPage.tsx   # Fluxo em steps
+│   │       ├── i18n.ts                  # Tradução pt-BR (vocabulário mecânico + nomes)
+│   │       ├── components/              # CharacterInput, FormSelector, StatBlockGenerator, ExportOptions
+│   │       └── data/                    # 1 arquivo por magia + spells.ts + from-pathbuilder.ts
 │   ├── pages/
 │   │   └── HomePage.tsx          # Página inicial
 │   ├── services/                 # Serviços e integrações
@@ -360,6 +369,47 @@ interface SpellDescription {
     heightened?: Record<string, string>
 }
 ```
+
+---
+
+### Módulo: Transformation Statblock (Formas de Transformação)
+
+**Localização:** `src/modules/transformation-statblock/`
+
+Gera o stat block de uma _battle form_ do PF2e Remaster, no padrão oficial de bloco de criatura e
+em português. O componente de preview é o mesmo que a exportação (PDF/PNG) captura via `html2canvas`.
+
+#### Arquivos
+
+| Arquivo                        | Responsabilidade                                                                     |
+| ------------------------------ | ------------------------------------------------------------------------------------ |
+| `TransformationPage.tsx`       | Fluxo em steps: Personagem → Forma → Stat Block → Exportar                            |
+| `i18n.ts`                      | Tradução pt-BR: rótulos, tipos de dano, sentidos, tamanhos, traits, imunidades e nomes de magias/formas/ataques |
+| `components/CharacterInput`    | Import da ficha (JSON) ou entrada manual; seleção da magia                            |
+| `components/FormSelector`      | Escolha da forma (criatura) da magia                                                 |
+| `components/StatBlockGenerator`| Calcula os stats (RAW) e renderiza o bloco no layout Paizo                            |
+| `components/ExportOptions`     | Exportação PDF/PNG/impressão (renderiza o StatBlockGenerator)                         |
+| `data/spells.ts`               | Agrega todas as magias (`transformationSpells`) e helpers (`getFormsForSpell`, …)     |
+| `data/<magia>.ts`              | 1 arquivo por magia: `<x>Spell` + `<x>Forms` (formas, ataques, habilidades)          |
+| `data/from-pathbuilder.ts`     | Converte o JSON Pathbuilder em `PlayerCharacter` com modificadores reais              |
+
+#### Regras (RAW) importantes
+
+-   **AC** = valor da magia + nível do personagem (substitui a CA normal).
+-   **Ataque / Atletismo** = `max(valor da magia, valor do personagem)` — a regra "a menos que o
+    seu seja maior". Requer o modificador real (por isso o import da ficha).
+-   **Salvamentos, Percepção e PV** não mudam com a transformação — usam os valores reais do
+    personagem (ou aproximações treinadas quando não há import).
+-   Battle forms **não** alteram atributos nem concedem ataque/DC de magia (removidos do bloco).
+-   Caso especial: **Ooze Form** tem CA baixa de propósito (`7 + nível`), pois é imune a crítico.
+
+#### Convenção de dados vs. tradução
+
+Os arquivos `data/` mantêm valores **canônicos em inglês** para campos mecânicos (tamanho, tipos
+de dano nas strings de ataque, traits, sentidos, imunidades) — o `i18n.ts` traduz no render. Já
+**nomes e descrições de habilidades** são armazenados em pt-BR nos próprios `data/`. Os campos
+`form.description` e `spell.description/heightened` não são exibidos no layout atual (dados de
+referência) e permanecem em inglês.
 
 ---
 
@@ -498,11 +548,13 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
 
 ### 🚧 Em Progresso
 
--   [ ] **Módulo de Stat Block de Transformação**
+-   [x] **Módulo de Stat Block de Transformação**
     -   [x] Interface step-by-step
-    -   [ ] Seletor de magias com dados completos
-    -   [ ] Cálculos automáticos de atributos
-    -   [ ] Exportação PDF/PNG
+    -   [x] Todas as battle forms do Remaster (inclui Ooze, Element Embodied, Avatar)
+    -   [x] Importação da ficha (JSON Pathbuilder) com modificadores reais
+    -   [x] Cálculos RAW (saves/percepção/ataque/atletismo reais)
+    -   [x] Layout de bloco de criatura oficial, traduzido para pt-BR
+    -   [x] Exportação PDF/PNG
 
 ### 📅 Planejado
 
