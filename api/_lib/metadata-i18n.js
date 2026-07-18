@@ -17,6 +17,8 @@ const METADATA_DICTIONARY = [
   [/\bbasic\s+(Reflex|Fortitude|Will)\b/gi, '$1 básico'],
   [/\bwith the\s+(\w+)\s+trait\b/gi, 'com o traço $1'],
   [/\bunder your control\b/gi, 'sob seu controle'],
+  [/\bundead creatures\b/gi, 'criaturas mortas-vivas'],
+  [/\bundead creature\b/gi, 'criatura morta-viva'],
   [/\bwilling living creatures\b/gi, 'criaturas vivas dispostas'],
   [/\bwilling living creature\b/gi, 'criatura viva disposta'],
   [/\bliving creatures\b/gi, 'criaturas vivas'],
