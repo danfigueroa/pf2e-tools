@@ -1,7 +1,7 @@
 import { Box, Card, CardContent, Typography, Stack, Divider, Chip, useTheme } from '@mui/material'
 import { MenuBook as GuideIcon } from '@mui/icons-material'
 import type { BuildInfo } from '../../character-sheet/types'
-import { abilityMod, signed, ABILITY_LABELS, totalHp, type AbilityKey } from '../helpers'
+import { abilityMod, signed, ABILITY_LABELS, totalHp, isMythicCharacter, MYTHIC_PROFICIENCY_BONUS, MYTHIC_COLOR, type AbilityKey } from '../helpers'
 import { getCombatGuide } from '../combatGuides'
 import { GuideMarkdown } from '../components/GuideMarkdown'
 
@@ -30,6 +30,7 @@ export const OverviewSection = ({ build }: Props) => {
     ]
 
     const guide = getCombatGuide(build)
+    const mythic = isMythicCharacter(build)
 
     return (
         <Stack spacing={2}>
@@ -51,19 +52,31 @@ export const OverviewSection = ({ build }: Props) => {
                     <SectionTitle>Salvaguardas</SectionTitle>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} divider={<Divider flexItem orientation="vertical" />}>
                         {saves.map((s) => {
-                            const total = build.level + s.rank + abilityMod(build.abilities[s.ability])
+                            const mod = abilityMod(build.abilities[s.ability])
+                            const total = build.level + s.rank + mod
+                            const mythicTotal = build.level + MYTHIC_PROFICIENCY_BONUS + mod
                             return (
                                 <Box key={s.label} sx={{ flex: 1, textAlign: 'center', py: { xs: 0.5, sm: 0 } }}>
                                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                                         {s.label}
                                     </Typography>
-                                    <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.light' }}>
+                                    <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.light', lineHeight: 1.2 }}>
                                         {signed(total)}
                                     </Typography>
+                                    {mythic && (
+                                        <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, color: MYTHIC_COLOR }}>
+                                            ✦ {signed(mythicTotal)}
+                                        </Typography>
+                                    )}
                                 </Box>
                             )
                         })}
                     </Stack>
+                    {mythic && (
+                        <Typography variant="caption" sx={{ display: 'block', mt: 1, color: MYTHIC_COLOR, fontWeight: 600, textAlign: 'center' }}>
+                            ✦ valor com proficiência mítica (nível + 10) — ao gastar um Ponto Mítico
+                        </Typography>
+                    )}
                 </CardContent>
             </Card>
 

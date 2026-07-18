@@ -1,4 +1,4 @@
-import type { Abilities } from '../character-sheet/types'
+import { parseFeatEntry, type Abilities, type BuildInfo } from '../character-sheet/types'
 
 export type AbilityKey = keyof Pick<Abilities, 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'>
 
@@ -13,6 +13,17 @@ export const ABILITY_LABELS: Record<AbilityKey, string> = {
 
 export function abilityMod(score: number): number {
     return Math.floor((score - 10) / 2)
+}
+
+// Proficiência mítica (War of Immortals): um passo acima de lendário.
+// Bônus = nível + 10 (lendário é nível + 8). Usada só quando uma habilidade
+// mítica manda, normalmente gastando um Ponto Mítico.
+export const MYTHIC_PROFICIENCY_BONUS = 10
+export const MYTHIC_COLOR = '#e0567c'
+
+// Personagem "mítico" = possui ao menos um talento do tipo Mythic Feat.
+export function isMythicCharacter(build: BuildInfo): boolean {
+    return (build.feats ?? []).some((f) => /mythic/i.test(parseFeatEntry(f).type))
 }
 
 export function signed(n: number): string {

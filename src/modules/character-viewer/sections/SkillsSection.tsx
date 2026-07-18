@@ -1,6 +1,14 @@
 import { Box, Card, CardContent, Typography, Chip } from '@mui/material'
 import type { BuildInfo, Proficiencies } from '../../character-sheet/types'
-import { abilityMod, signed, proficiencyLabel, type AbilityKey } from '../helpers'
+import {
+    abilityMod,
+    signed,
+    proficiencyLabel,
+    isMythicCharacter,
+    MYTHIC_PROFICIENCY_BONUS,
+    MYTHIC_COLOR,
+    type AbilityKey,
+} from '../helpers'
 
 interface Props { build: BuildInfo }
 
@@ -32,6 +40,7 @@ const RANK_COLOR: Record<number, string> = {
 }
 
 export const SkillsSection = ({ build }: Props) => {
+    const mythic = isMythicCharacter(build)
     return (
         <Card>
             <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
@@ -43,7 +52,9 @@ export const SkillsSection = ({ build }: Props) => {
                 >
                     {SKILL_ROWS.map((s, idx) => {
                         const rank = build.proficiencies[s.key] as number
-                        const total = rank > 0 ? build.level + rank + abilityMod(build.abilities[s.ability]) : abilityMod(build.abilities[s.ability])
+                        const mod = abilityMod(build.abilities[s.ability])
+                        const total = rank > 0 ? build.level + rank + mod : mod
+                        const mythicTotal = build.level + MYTHIC_PROFICIENCY_BONUS + mod
                         const color = RANK_COLOR[rank] || 'text.primary'
                         return (
                             <Box
@@ -76,9 +87,16 @@ export const SkillsSection = ({ build }: Props) => {
                                         }}
                                     />
                                 </Box>
-                                <Typography variant="h6" sx={{ fontWeight: 700, color, minWidth: 44, textAlign: 'right' }}>
-                                    {signed(total)}
-                                </Typography>
+                                <Box sx={{ minWidth: 44, textAlign: 'right' }}>
+                                    <Typography variant="h6" sx={{ fontWeight: 700, color, lineHeight: 1.1 }}>
+                                        {signed(total)}
+                                    </Typography>
+                                    {mythic && (
+                                        <Typography sx={{ fontSize: '0.68rem', fontWeight: 700, color: MYTHIC_COLOR, lineHeight: 1.1, whiteSpace: 'nowrap' }}>
+                                            ✦ {signed(mythicTotal)}
+                                        </Typography>
+                                    )}
+                                </Box>
                             </Box>
                         )
                     })}
@@ -89,14 +107,28 @@ export const SkillsSection = ({ build }: Props) => {
                             Saberes (Lore)
                         </Typography>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mt: 0.75 }}>
-                            {build.lores.map(([loreName, rank]) => (
-                                <Chip
-                                    key={loreName}
-                                    label={`${loreName}: ${signed(build.level + rank + abilityMod(build.abilities.int))}`}
-                                    size="small"
-                                />
-                            ))}
+                            {build.lores.map(([loreName, rank]) => {
+                                const intMod = abilityMod(build.abilities.int)
+                                const loreTotal = build.level + rank + intMod
+                                const loreMythic = build.level + MYTHIC_PROFICIENCY_BONUS + intMod
+                                return (
+                                    <Chip
+                                        key={loreName}
+                                        label={mythic
+                                            ? `${loreName}: ${signed(loreTotal)} · ✦ ${signed(loreMythic)}`
+                                            : `${loreName}: ${signed(loreTotal)}`}
+                                        size="small"
+                                    />
+                                )
+                            })}
                         </Box>
+                    </Box>
+                )}
+                {mythic && (
+                    <Box sx={{ px: 2, py: 1.25, borderTop: '1px solid', borderColor: 'divider' }}>
+                        <Typography variant="caption" sx={{ color: MYTHIC_COLOR, fontWeight: 600 }}>
+                            ✦ valor com proficiência mítica (nível + 10) — ao gastar um Ponto Mítico
+                        </Typography>
                     </Box>
                 )}
             </CardContent>
