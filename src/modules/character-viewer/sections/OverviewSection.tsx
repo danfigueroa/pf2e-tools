@@ -33,22 +33,6 @@ export const OverviewSection = ({ build }: Props) => {
 
     return (
         <Stack spacing={2}>
-            {/* Guia de uso — como jogar em combate */}
-            <Card sx={{ borderColor: theme.palette.primary.main + '55' }}>
-                <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5, flexWrap: 'wrap' }}>
-                        <GuideIcon sx={{ color: 'primary.light' }} />
-                        <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                            Guia de Uso — Como Jogar
-                        </Typography>
-                        {!guide.curated && (
-                            <Chip label="automático" size="small" variant="outlined" sx={{ ml: 'auto' }} />
-                        )}
-                    </Box>
-                    <GuideMarkdown markdown={guide.markdown} />
-                </CardContent>
-            </Card>
-
             {/* Stat tiles */}
             <Box sx={{
                 display: 'grid',
@@ -143,6 +127,22 @@ export const OverviewSection = ({ build }: Props) => {
                     </CardContent>
                 </Card>
             )}
+
+            {/* Guia de uso — como jogar em combate (último elemento) */}
+            <Card sx={{ borderColor: theme.palette.primary.main + '55' }}>
+                <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5, flexWrap: 'wrap' }}>
+                        <GuideIcon sx={{ color: 'primary.light' }} />
+                        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                            Guia de Uso — Como Jogar
+                        </Typography>
+                        {!guide.curated && (
+                            <Chip label="automático" size="small" variant="outlined" sx={{ ml: 'auto' }} />
+                        )}
+                    </Box>
+                    <GuideMarkdown markdown={guide.markdown} />
+                </CardContent>
+            </Card>
         </Stack>
     )
 }
