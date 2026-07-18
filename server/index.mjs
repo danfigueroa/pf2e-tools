@@ -2,6 +2,7 @@ import 'dotenv/config'
 import http from 'node:http'
 import https from 'node:https'
 import { URL } from 'node:url'
+import { translateMetadata } from '../api/_lib/metadata-i18n.js'
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3001
 const GROQ_API_KEY = process.env.GROQ_API_KEY || ''
@@ -631,33 +632,14 @@ async function scrapeSpellDescription(spellName) {
         spellData.description = translated || spellData.description
       }
 
-      // Tradução leve dos metadados curtos (range/area/duration/etc.) via dicionário,
-      // para não gastar chamadas Groq em strings padronizadas como "30 feet".
-      const tdict = (s) => {
-        if (!s) return s
-        return String(s)
-          .replace(/\bfeet\b/gi, 'pés').replace(/\bfoot\b/gi, 'pé')
-          .replace(/\bmile(s)?\b/gi, 'milha$1')
-          .replace(/\bround(s)?\b/gi, 'rodada$1')
-          .replace(/\bturn(s)?\b/gi, 'turno$1')
-          .replace(/\bminute(s)?\b/gi, 'minuto$1')
-          .replace(/\bhour(s)?\b/gi, 'hora$1')
-          .replace(/\bday(s)?\b/gi, 'dia$1')
-          .replace(/\btouch\b/gi, 'toque').replace(/\bself\b/gi, 'próprio')
-          .replace(/\bunlimited\b/gi, 'ilimitado').replace(/\bsustained\b/gi, 'sustentada')
-          .replace(/\bup to\b/gi, 'até')
-          .replace(/\bcreature(s)?\b/gi, 'criatura$1').replace(/\bwilling\b/gi, 'disposta')
-          .replace(/\bally\b/gi, 'aliado').replace(/\benemy\b/gi, 'inimigo')
-          .replace(/\bemanation\b/gi, 'emanação').replace(/\bburst\b/gi, 'estouro')
-          .replace(/\bcone\b/gi, 'cone').replace(/\bline\b/gi, 'linha').replace(/\bcube\b/gi, 'cubo')
-          .replace(/\bWill\b/g, 'Vontade').replace(/\bReflex\b/g, 'Reflexos').replace(/\bFortitude\b/g, 'Fortitude')
-          .replace(/\bbasic\b/gi, 'básico').replace(/\bsave\b/gi, 'salvamento')
-      }
-      spellData.range = tdict(spellData.range)
-      spellData.area = tdict(spellData.area)
-      spellData.targets = tdict(spellData.targets)
-      spellData.duration = tdict(spellData.duration)
-      spellData.defense = tdict(spellData.defense)
+      // Tradução leve dos metadados curtos (range/area/duration/etc.) via
+      // dicionário compartilhado (api/_lib/metadata-i18n.js), para não gastar
+      // chamadas Groq em strings padronizadas como "30 feet".
+      spellData.range = translateMetadata(spellData.range)
+      spellData.area = translateMetadata(spellData.area)
+      spellData.targets = translateMetadata(spellData.targets)
+      spellData.duration = translateMetadata(spellData.duration)
+      spellData.defense = translateMetadata(spellData.defense)
 
       console.log(`[scrapeSpell] Encontrado: ${source.name} (${spellData.actions || '?'} ações)`)
       CACHE.set(cacheKey, spellData)

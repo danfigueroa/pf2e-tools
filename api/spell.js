@@ -1,4 +1,5 @@
 import { searchAon, extractMainDescription, translateToPortuguese, cleanAonText, generateFallbackDescription } from './_lib/aon.js'
+import { translateMetadata } from './_lib/metadata-i18n.js'
 
 export default async function handler(req, res) {
   // CORS
@@ -44,11 +45,11 @@ export default async function handler(req, res) {
       name: source.name || name,
       actions: source.actions || '',
       traits: source.trait || [],
-      range: cleanAonText(source.range || ''),
-      area: cleanAonText(source.area || ''),
-      targets: cleanAonText(source.targets || ''),
-      duration: cleanAonText(source.duration || ''),
-      defense: cleanAonText(source.saving_throw || source.defense || ''),
+      range: translateMetadata(cleanAonText(source.range || '')),
+      area: translateMetadata(cleanAonText(source.area || '')),
+      targets: translateMetadata(cleanAonText(source.targets || '')),
+      duration: translateMetadata(cleanAonText(source.duration || '')),
+      defense: translateMetadata(cleanAonText(source.saving_throw || source.defense || '')),
       description,
       damage: '',
       damageType: '',
