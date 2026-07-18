@@ -1,4 +1,4 @@
-import { parseFeatEntry, type Abilities, type BuildInfo } from '../character-sheet/types'
+import { parseFeatEntry, type Abilities, type BuildInfo, type SpellCaster } from '../character-sheet/types'
 
 export type AbilityKey = keyof Pick<Abilities, 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'>
 
@@ -76,6 +76,14 @@ export function traditionLabel(tradition: string): string {
         primal: 'Primal',
     }
     return map[tradition?.toLowerCase()] || tradition
+}
+
+// CD e bônus de ataque de conjuração de um caster (proficiency já vem
+// resolvida do Pathbuilder como bônus 2/4/6/8).
+export function spellcasterStats(build: BuildInfo, caster: SpellCaster): { dc: number; attack: number } {
+    const abilityScore = (build.abilities as unknown as Record<string, number>)[caster.ability] || 10
+    const attack = build.level + caster.proficiency + abilityMod(abilityScore)
+    return { dc: 10 + attack, attack }
 }
 
 export function getAonSearchUrl(name: string): string {

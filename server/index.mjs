@@ -609,6 +609,10 @@ async function scrapeSpellDescription(spellName) {
 
       const spellData = {
         name: source.name,
+        // Rank base da magia no AON — o client usa para calcular heightening.
+        level: typeof source.level === 'number' ? source.level : null,
+        // Padrão de heighten do AON (ex. ["+1"]), quando o texto não for parseável.
+        heighten: Array.isArray(source.heighten) && source.heighten.length > 0 ? source.heighten : undefined,
         actions: source.actions || source.action || null,
         traits: source.trait || source.tradition || [],
         range: rangeStr,
@@ -664,7 +668,7 @@ async function scrapeSpellDescription(spellName) {
     console.log(`[scrapeSpell] Não encontrado no AON, usando fallback Groq: ${spellName}`)
     const fallbackDesc = await generateFallbackDescription(spellName, 'spell')
     if (fallbackDesc) {
-      const spellData = { name: spellName, actions: null, traits: [], range: null, area: null, targets: null, duration: null, defense: null, description: fallbackDesc, damage: null, damageType: null, heightened: null }
+      const spellData = { name: spellName, level: null, actions: null, traits: [], range: null, area: null, targets: null, duration: null, defense: null, description: fallbackDesc, damage: null, damageType: null, heightened: null }
       CACHE.set(cacheKey, spellData)
       return spellData
     }

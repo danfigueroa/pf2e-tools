@@ -4,7 +4,7 @@
 
 import type { SpellDescription, CompanionStats } from '../modules/character-sheet/types'
 
-const CACHE_VERSION = 'v6'
+const CACHE_VERSION = 'v7'
 
 type Kind = 'feat' | 'spell' | 'special' | 'companion' | 'item'
 
@@ -121,6 +121,45 @@ export async function fetchSpellDescription(name: string): Promise<SpellDescript
 
     if (result) writeCache('spell', name, result)
     return result
+}
+
+// Pré-carrega todas as magias do personagem em chunks pequenos e sequenciais:
+// um POST grande estouraria o timeout serverless (cada magia custa scraping AON
+// + tradução Groq). Resultados vão para o mesmo cache usado por fetchSpellDescription.
+const PREFETCH_CHUNK_SIZE = 5
+
+export async function prefetchSpellDescriptions(
+    names: string[],
+    onProgress?: (done: number, total: number) => void,
+): Promise<void> {
+    const pending = Array.from(new Set(names)).filter(
+        (n) => !readCache<SpellDescription>('spell', n, true),
+    )
+    const total = pending.length
+    let done = 0
+    onProgress?.(0, total)
+
+    for (let i = 0; i < pending.length; i += PREFETCH_CHUNK_SIZE) {
+        const chunk = pending.slice(i, i + PREFETCH_CHUNK_SIZE)
+        try {
+            const r = await fetch('/api/spells', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ names: chunk }),
+            })
+            if (r.ok) {
+                const data = (await r.json()) as Record<string, SpellDescription | undefined>
+                for (const name of chunk) {
+                    const item = data[name]
+                    if (item && isValidString(item.description)) writeCache('spell', name, item)
+                }
+            }
+        } catch {
+            // falha de rede num chunk não impede os demais
+        }
+        done += chunk.length
+        onProgress?.(done, total)
+    }
 }
 
 export async function fetchItemDescription(name: string): Promise<string | null> {

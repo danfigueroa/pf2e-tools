@@ -99,6 +99,8 @@ export interface SpellListByLevel {
 
 export interface SpellDescription {
   name: string;
+  level?: number | null;   // rank base da magia no AON (null quando não achada)
+  heighten?: string[];     // padrão de heighten do AON, ex. ["+1"]
   actions?: string;        // "1", "2", "3", "reaction", "free", "1 to 3"
   traits?: string[];       // ["healing", "vitality"] — sem tradições
   traditions?: string[]    // ["divine", "primal"] — separado de traits

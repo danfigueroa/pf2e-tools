@@ -72,7 +72,7 @@ async function resolveSpell(name, apiKey) {
 
   if (!bestMatch) {
     const fallback = await generateFallbackDescription(name, 'spell', apiKey)
-    return { name, actions: '', traits: [], range: '', area: '', targets: '', duration: '', defense: '', description: fallback || null, damage: '', damageType: '', heightened: {} }
+    return { name, level: null, actions: '', traits: [], range: '', area: '', targets: '', duration: '', defense: '', description: fallback || null, damage: '', damageType: '', heightened: {} }
   }
 
   const source = bestMatch._source
@@ -104,6 +104,10 @@ async function resolveSpell(name, apiKey) {
 
   return {
     name: source.name || name,
+    // Rank base da magia no AON — o client usa para calcular heightening.
+    level: typeof source.level === 'number' ? source.level : null,
+    // Padrão de heighten do AON (ex. ["+1"]), quando o texto não for parseável.
+    heighten: Array.isArray(source.heighten) && source.heighten.length > 0 ? source.heighten : undefined,
     actions: source.actions || '',
     traits: traits.length > 0 ? traits : (traditions.length === 0 ? allTraits : []),
     traditions: traditions.length > 0 ? traditions : undefined,
