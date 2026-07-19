@@ -101,7 +101,19 @@ export const DescriptionDrawer = ({ request, onClose }: Props) => {
                     return
                 }
                 const spell = await fetchSpellDescription(request.name)
-                if (!cancelled) setState({ loading: false, spell: spell ?? undefined })
+                if (cancelled) return
+                setState({ loading: false, spell: spell ?? undefined })
+                // Tradução pendente (falha transitória, ex. rate limit): o
+                // resultado EN não foi cacheado — retentar em alguns segundos
+                // e trocar pela versão traduzida sem o usuário fazer nada.
+                if (spell?.translationPending) {
+                    await new Promise((r) => setTimeout(r, 6000))
+                    if (cancelled) return
+                    const retry = await fetchSpellDescription(request.name)
+                    if (!cancelled && retry && !retry.translationPending) {
+                        setState({ loading: false, spell: retry })
+                    }
+                }
             }
         }
         load()
@@ -257,6 +269,17 @@ export const DescriptionDrawer = ({ request, onClose }: Props) => {
                                     </Typography>
                                 </Box>
                             </Box>
+                        )}
+
+                        {/* Tradução pendente (o effect retenta sozinho em segundos) */}
+                        {request.type === 'spell' && state.spell?.translationPending && (
+                            <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                sx={{ display: 'block', fontStyle: 'italic', mb: 1.5 }}
+                            >
+                                Texto original em inglês — traduzindo automaticamente…
+                            </Typography>
                         )}
 
                         {/* Bloco de nível de conjuração */}

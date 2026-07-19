@@ -173,49 +173,79 @@ export function cleanTranslation(text) {
   return cleaned.trim()
 }
 
-// Traduz texto para português usando Groq, com 1 retry para falhas transitórias
+// ---- Fila global de chamadas ao Groq ---------------------------------------
+// Serializa e espaça as chamadas para respeitar o rate limit (TPM/RPM) do tier
+// gratuito. Sem isso, cargas em lote ("Carregar todas") disparam dezenas de
+// traduções em rajada e quase todas caem em 429 → fallback EN.
+const GROQ_MIN_INTERVAL_MS = 800
+let groqChain = Promise.resolve()
+let lastGroqCallAt = 0
+
+function scheduleGroqCall(fn) {
+  const run = async () => {
+    const wait = lastGroqCallAt + GROQ_MIN_INTERVAL_MS - Date.now()
+    if (wait > 0) await new Promise(r => setTimeout(r, wait))
+    lastGroqCallAt = Date.now()
+    return fn()
+  }
+  const p = groqChain.then(run, run)
+  groqChain = p.catch(() => {})
+  return p
+}
+
+async function callGroq(prompt, apiKey, { model = 'llama-3.3-70b-versatile', maxTokens = 2048 } = {}) {
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: maxTokens,
+      temperature: 0.3
+    })
+  })
+
+  if (!response.ok) {
+    const transient = response.status === 429 || response.status >= 500
+    const retryAfter = Number(response.headers.get('retry-after')) || 0
+    throw Object.assign(new Error(`Groq ${response.status} (${model})`), { transient, status: response.status, retryAfter })
+  }
+
+  const data = await response.json()
+  return data.choices?.[0]?.message?.content?.trim()
+}
+
+// Traduz texto para português usando Groq. Tenta o modelo principal 2x e cai
+// para o llama-3.1-8b-instant (rate limit separado e bem maior — suficiente
+// para tradução) antes de desistir e devolver o texto original.
+const TRANSLATION_MODELS = ['llama-3.3-70b-versatile', 'llama-3.3-70b-versatile', 'llama-3.1-8b-instant']
+
 export async function translateToPortuguese(text, apiKey) {
   if (!text || !apiKey) return text
 
   const prompt = `Traduza para português brasileiro o seguinte texto de RPG Pathfinder 2e. Mantenha termos técnicos em inglês quando apropriado (como "flat-footed", "flanking"). Retorne APENAS a tradução, sem explicações:\n\n${text}`
 
-  const attempt = async () => {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 2048,
-        temperature: 0.3
-      })
-    })
-
-    if (!response.ok) {
-      const transient = response.status === 429 || response.status >= 500
-      throw Object.assign(new Error(`Groq ${response.status}`), { transient, status: response.status })
-    }
-
-    const data = await response.json()
-    const translated = data.choices?.[0]?.message?.content?.trim()
-    if (!translated) throw Object.assign(new Error('Resposta vazia'), { transient: true })
-    return cleanTranslation(translated)
-  }
-
-  for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < TRANSLATION_MODELS.length; i++) {
+    const isLast = i === TRANSLATION_MODELS.length - 1
     try {
-      const translated = await attempt()
-      // Validação básica — se devolver muito menos que o original é provável que tenha
-      // sido truncado/erro de tradução. Retentar uma vez antes de cair no original.
-      if (translated.length < text.length * 0.3 && i === 0) continue
+      const raw = await scheduleGroqCall(() => callGroq(prompt, apiKey, { model: TRANSLATION_MODELS[i] }))
+      if (!raw) throw Object.assign(new Error('Resposta vazia'), { transient: true })
+      const translated = cleanTranslation(raw)
+      // Validação básica — se devolver muito menos que o original é provável que
+      // tenha sido truncado/erro de tradução. Retentar antes de cair no original.
+      if (translated.length < text.length * 0.3 && !isLast) continue
       return translated
     } catch (error) {
-      if (error?.transient && i === 0) {
-        // 429 (rate limit do Groq) merece espera maior antes do retry.
-        await new Promise(r => setTimeout(r, error?.status === 429 ? 2000 : 400))
+      if (error?.transient && !isLast) {
+        // 429: respeita o retry-after do Groq (com teto para não estourar o
+        // timeout serverless); demais falhas transitórias esperam pouco.
+        const waitMs = error?.status === 429
+          ? Math.min((error.retryAfter || 2.5) * 1000, 4000)
+          : 400
+        await new Promise(r => setTimeout(r, waitMs))
         continue
       }
       console.error('Translation error:', error?.message || error)
@@ -239,26 +269,8 @@ export async function generateFallbackDescription(name, itemType, apiKey) {
   const prompt = `Em 1-2 frases curtas em português brasileiro, descreva o que é "${name}" no RPG Pathfinder 2e (${typeLabel}). Seja direto e objetivo. Retorne APENAS a descrição, sem formatação.`
 
   try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 256,
-        temperature: 0.3
-      })
-    })
-
-    if (!response.ok) return null
-
-    const data = await response.json()
-    let result = data.choices?.[0]?.message?.content?.trim()
+    const result = await scheduleGroqCall(() => callGroq(prompt, apiKey, { maxTokens: 256 }))
     if (!result || result.length < 10) return null
-
     return cleanTranslation(result)
   } catch {
     return null

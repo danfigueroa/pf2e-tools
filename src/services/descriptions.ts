@@ -134,36 +134,45 @@ export async function prefetchSpellDescriptions(
     names: string[],
     onProgress?: (done: number, total: number) => void,
 ): Promise<void> {
-    const pending = Array.from(new Set(names)).filter(
-        (n) => !readCache<SpellDescription>('spell', n, true),
-    )
+    const unique = Array.from(new Set(names))
+    const notCached = () =>
+        unique.filter((n) => !readCache<SpellDescription>('spell', n, true))
+
+    let pending = notCached()
     const total = pending.length
-    let done = 0
     onProgress?.(0, total)
 
-    for (let i = 0; i < pending.length; i += PREFETCH_CHUNK_SIZE) {
-        const chunk = pending.slice(i, i + PREFETCH_CHUNK_SIZE)
-        try {
-            const r = await fetch('/api/spells', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ names: chunk }),
-            })
-            if (r.ok) {
-                const data = (await r.json()) as Record<string, SpellDescription | undefined>
-                for (const name of chunk) {
-                    const item = data[name]
-                    if (item && isValidString(item.description) && !item.translationPending) {
-                        writeCache('spell', name, item)
+    // Até 3 passadas: resultados com translationPending (falha transitória de
+    // tradução, ex. rate limit do Groq) não entram no cache e são retentados
+    // na passada seguinte — o backend retraduz.
+    for (let pass = 0; pass < 3 && pending.length > 0; pass++) {
+        for (let i = 0; i < pending.length; i += PREFETCH_CHUNK_SIZE) {
+            const chunk = pending.slice(i, i + PREFETCH_CHUNK_SIZE)
+            try {
+                const r = await fetch('/api/spells', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ names: chunk }),
+                })
+                if (r.ok) {
+                    const data = (await r.json()) as Record<string, SpellDescription | undefined>
+                    for (const name of chunk) {
+                        const item = data[name]
+                        if (item && isValidString(item.description) && !item.translationPending) {
+                            writeCache('spell', name, item)
+                        }
                     }
                 }
+            } catch {
+                // falha de rede num chunk não impede os demais
             }
-        } catch {
-            // falha de rede num chunk não impede os demais
+            onProgress?.(total - notCached().length, total)
         }
-        done += chunk.length
-        onProgress?.(done, total)
+        const stillPending = notCached()
+        if (stillPending.length >= pending.length) break // sem progresso — parar
+        pending = stillPending
     }
+    onProgress?.(total - notCached().length, total)
 }
 
 export async function fetchItemDescription(name: string): Promise<string | null> {
