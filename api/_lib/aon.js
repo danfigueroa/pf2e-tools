@@ -22,22 +22,43 @@ export function cleanAonText(text) {
 export function extractMainDescription(text, maxLength = 2000) {
   if (!text) return ''
 
-  // AON usa <hr> para separar o bloco de metadados da descrição.
+  // AON separa o bloco de metadados da descrição com <hr> (campo `markdown`)
+  // ou com "---" (campo `text`, onde o separador vem inline, sem quebra de linha).
   // Split aqui ANTES de cleanAonText para não precisar remover campos via regex.
-  const hrMatch = text.match(/<hr\s*\/?>/i)
-  if (hrMatch) {
-    text = text.substring(hrMatch.index + hrMatch[0].length)
-  } else {
-    // Fallback: markdown usa separador \n---\n
-    const mdParts = text.split(/\n-{3,}\n/)
-    if (mdParts.length > 1) {
-      text = mdParts.slice(1).join('\n---\n')
-    }
+  // Só o PRIMEIRO separador divide: os seguintes (ex.: antes de "Heightened")
+  // fazem parte da descrição e são preservados.
+  const sepMatch = text.match(/<hr\s*\/?>|(?:^|\s)-{3,}(?:\s|$)/i)
+  const hasSeparator = Boolean(sepMatch)
+  if (sepMatch) {
+    text = text.substring(sepMatch.index + sepMatch[0].length)
   }
 
   let cleaned = cleanAonText(text)
 
-  // Remove padrões de metadados comuns (fallback para quando <hr> não existir)
+  // Fallback para entradas SEM separador: remove os campos de metadados por
+  // rótulo. É heurístico e perigoso — rótulos como "Target", "Range", "Cast" e
+  // "Trigger" também ocorrem em prosa legítima ("If the target is…"), e aí o
+  // regex come o resto da frase. Por isso só roda quando não houve separador.
+  if (!hasSeparator) {
+    cleaned = cleaned
+      .replace(/\bPré-requisitos?\b:?\s*[^.]+\./gi, '')
+      .replace(/\bPrerequisites?\b:?\s*[^.]+\./gi, '')
+      .replace(/\bFrequen(?:cy|cia)\b:?\s*[^.]+\./gi, '')
+      .replace(/\bTriggers?\b:?\s*[^.]+\./gi, '')
+      .replace(/\bGatilhos?\b:?\s*[^.]+\./gi, '')
+      .replace(/\bCast\b:?\s+[^.]+\.?\s*/gi, '')
+      .replace(/\bTraditions?\b:?\s+[^.\n]+\.?\s*/gi, '')
+      .replace(/\bBloodlines?\b:?\s+[^.\n]+\.?\s*/gi, '')
+      .replace(/\bSubclasses?\b:?\s+[^.\n]+\.?\s*/gi, '')
+      .replace(/\bRange\b:?\s+[^.\n]+\.?\s*/gi, '')
+      .replace(/\bArea\b:?\s+[^.\n]+\.?\s*/gi, '')
+      .replace(/\bTargets?\b:?\s+[^.\n]+\.?\s*/gi, '')
+      .replace(/\bDuration\b:?\s+[^.\n]+\.?\s*/gi, '')
+      .replace(/\b(?:Saving Throw|Defense)\b:?\s+[^.\n]+\.?\s*/gi, '')
+      .replace(/\bComponents?\b:?\s+[^.\n]+\.?\s*/gi, '')
+  }
+
+  // Limpeza sempre segura (refs bibliográficas, separadores, resíduos)
   cleaned = cleaned
     // Source/Fonte com livro + "pg./p. NN" — alta confiança
     .replace(/\b(?:Fonte|Source)s?:?\s+[^.\n]+?\s+p(?:g)?\.\s*\d+\s*/gi, ' ')
@@ -52,23 +73,7 @@ export function extractMainDescription(text, maxLength = 2000) {
     // Referências a livros do PF2e (ex.: "Player Core 2 250", "Core Rulebook 320")
     .replace(/\b(Player Core|Core Rulebook|Advanced Player'?s? Guide|Secrets of Magic|Guns and Gears|Dark Archive|Book of the Dead|Rage of Elements|Treasure Vault|Gamemastery Guide|Bestiary(?:\s\d)?)(?:\s\d)?\s+\d{1,4}\b/gi, '')
     .replace(/\b(PFS|Standard|Limited|Restricted)\b/gi, '')
-    .replace(/Pré-requisitos?:?\s*[^.]+\./gi, '')
-    .replace(/Prerequisites?:?\s*[^.]+\./gi, '')
-    .replace(/Frequen(cy|cia):?\s*[^.]+\./gi, '')
-    .replace(/Trigger:?\s*[^.]+\./gi, '')
-    .replace(/Gatilho:?\s*[^.]+\./gi, '')
     .replace(/(Leads to|Leva a)\.{3}[^.]*\.?/gi, '')
-    // Metadados de magia que aparecem como texto inline no AON antes da descrição
-    .replace(/\bCast:?\s+[^.]+\.?\s*/gi, '')
-    .replace(/\bTraditions?:?\s+[^.\n]+\.?\s*/gi, '')
-    .replace(/\bBloodlines?:?\s+[^.\n]+\.?\s*/gi, '')
-    .replace(/\bSubclasses?:?\s+[^.\n]+\.?\s*/gi, '')
-    .replace(/\bRange:?\s+[^.\n]+\.?\s*/gi, '')
-    .replace(/\bArea:?\s+[^.\n]+\.?\s*/gi, '')
-    .replace(/\bTargets?:?\s+[^.\n]+\.?\s*/gi, '')
-    .replace(/\bDuration:?\s+[^.\n]+\.?\s*/gi, '')
-    .replace(/\b(?:Saving Throw|Defense):?\s+[^.\n]+\.?\s*/gi, '')
-    .replace(/\bComponents?:?\s+[^.\n]+\.?\s*/gi, '')
     // Separadores temáticos (--- e em/en-dash)
     .replace(/\s*-{2,}\s*/g, ' ')
     .replace(/\s*[—–]+\s*/g, ' ')
