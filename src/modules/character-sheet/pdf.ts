@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf'
 import { getAonSearchUrl, parseFeatEntry } from './types'
+import { strikingDice, weaponDamageDice } from './weapon'
 import type { BuildInfo, CompanionStats, FocusAbility, FocusTradition, Weapon } from './types'
 
 // ============================================================================
@@ -316,10 +317,9 @@ function drawWeapons(doc: jsPDF, build: BuildInfo, y: number): number {
         const attackTotal = abilityVal + levelB + profRank + potencyBonus
         const profLabel = getProficiencyLabel(profRank)
         
-        // Calcular dano
-        const diceCount = getDiceCount(weapon)
-        const baseSides = String(weapon.die).replace(/^d/i, '')
-        
+        // Calcular dano (Striking + aumento de passo do dado)
+        const damageDice = weaponDamageDice(weapon)
+
         // Linha 1: Nome completo e bônus de ataque
         setColor(doc, COLORS.black)
         doc.setFont('helvetica', 'bold')
@@ -343,10 +343,10 @@ function drawWeapons(doc: jsPDF, build: BuildInfo, y: number): number {
         // Linha 3: Dano (com bônus de potência se for mágica)
         setColor(doc, COLORS.black)
         doc.setFontSize(8)
-        let damageText = `Dano: ${diceCount}d${baseSides} ${damageTypeLabel(weapon.damageType)}`
-        
+        let damageText = `Dano: ${damageDice} ${damageTypeLabel(weapon.damageType)}`
+
         // Bônus de dano base
-        let totalDamageBonus = weapon.damageBonus || 0
+        const totalDamageBonus = weapon.damageBonus || 0
         
         // Em PF2e, armas com potência +1/+2/+3 NÃO adicionam ao dano, apenas ao ataque
         // O dano extra vem das runas Striking (mais dados de dano)
@@ -376,8 +376,11 @@ function drawWeapons(doc: jsPDF, build: BuildInfo, y: number): number {
         if (weapon.str) {
             setColor(doc, COLORS.gray)
             doc.setFontSize(7)
-            const strikingLabel = weapon.str.includes('greater') ? 'Greater Striking (+2 dados)' : 
-                                  weapon.str.includes('striking') ? 'Striking (+1 dado)' : weapon.str
+            const extraDice = strikingDice(weapon.str) - 1
+            const strikingName = weapon.str.replace(/([a-z])([A-Z])/g, '$1 $2')
+            const strikingLabel = extraDice > 0
+                ? `${strikingName} (+${extraDice} dado${extraDice > 1 ? 's' : ''})`
+                : weapon.str
             doc.text(`Striking: ${strikingLabel}`, x + 4, y + 3)
             y += 4
         }
@@ -420,13 +423,6 @@ function getWeaponProficiency(build: BuildInfo, weapon: Weapon): number {
     
     // 3. Se a arma não especifica categoria, tenta inferir ou usa 0
     return 0
-}
-
-function getDiceCount(weapon: Weapon): number {
-    const str = (weapon.str || '').toLowerCase()
-    if (str.includes('greater')) return 3
-    if (str.includes('striking')) return 2
-    return 1
 }
 
 function drawSkills(doc: jsPDF, build: BuildInfo, y: number): number {

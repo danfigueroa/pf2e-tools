@@ -1,5 +1,6 @@
 import { Box, Card, CardContent, Typography, Stack, Chip, Divider } from '@mui/material'
 import type { BuildInfo } from '../../character-sheet/types'
+import { weaponDamageFormula } from '../../character-sheet/weapon'
 import { signed } from '../helpers'
 
 interface Props { build: BuildInfo }
@@ -20,22 +21,16 @@ export const CombatSection = ({ build }: Props) => {
                                     {w.display || w.name}
                                 </Typography>
                                 <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.75 }}>
-                                    <Chip label={`${w.die} ${w.damageType}`} size="small" variant="outlined" />
                                     <Chip label={`Proficiência: ${capitalize(w.prof)}`} size="small" variant="outlined" />
                                     {w.qty > 1 && <Chip label={`x${w.qty}`} size="small" variant="outlined" />}
                                     {w.runes?.map((r) => (
                                         <Chip key={r} label={r} size="small" sx={{ textTransform: 'capitalize' }} />
                                     ))}
                                 </Stack>
-                                {w.extraDamage && w.extraDamage.length > 0 && (
-                                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                                        Dano extra: {w.extraDamage.join(', ')}
-                                    </Typography>
-                                )}
                             </Box>
                             <Box
                                 sx={{
-                                    minWidth: { sm: 120 },
+                                    minWidth: { sm: 160 },
                                     textAlign: { xs: 'left', sm: 'center' },
                                     display: 'flex',
                                     flexDirection: { xs: 'row', sm: 'column' },
@@ -44,7 +39,11 @@ export const CombatSection = ({ build }: Props) => {
                             >
                                 <StatRow label="Ataque" value={signed(w.attack)} highlight />
                                 <Divider sx={{ display: { xs: 'none', sm: 'block' }, my: 0.5 }} flexItem />
-                                <StatRow label="Bônus de dano" value={signed(w.damageBonus)} />
+                                <StatRow
+                                    label="Dano"
+                                    value={`${weaponDamageFormula(w)} ${w.damageType}`.trim()}
+                                    extra={w.extraDamage?.length ? w.extraDamage.map((d) => `+ ${d}`).join(' ') : undefined}
+                                />
                             </Box>
                         </Stack>
                     </CardContent>
@@ -88,7 +87,7 @@ export const CombatSection = ({ build }: Props) => {
     )
 }
 
-const StatRow = ({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) => (
+const StatRow = ({ label, value, highlight, extra }: { label: string; value: string; highlight?: boolean; extra?: string }) => (
     <Box sx={{ flex: 1 }}>
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{label}</Typography>
         <Typography
@@ -97,6 +96,11 @@ const StatRow = ({ label, value, highlight }: { label: string; value: string; hi
         >
             {value}
         </Typography>
+        {extra && (
+            <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.3 }}>
+                {extra}
+            </Typography>
+        )}
     </Box>
 )
 
