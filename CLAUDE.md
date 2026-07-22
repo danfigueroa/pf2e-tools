@@ -32,6 +32,9 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
 - `server/index.mjs` — mesmo backend para dev local.
 - Núcleo compartilhado: `api/_lib/aon.js` (scraping com cheerio + tradução via Groq).
 - Requer `GROQ_API_KEY` no `.env` (tradução das descrições da AON).
+- Endpoints: `feat`, `search`, `spell`, `companion`, `health`, `clear-cache`, mais as variantes
+  plurais (`feats`, `searches`, `spells`, `companions`) para busca em lote. Cliente no frontend:
+  `src/services/descriptions.ts` (com cache).
 
 ## Convenções
 
@@ -42,6 +45,19 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
 - Helpers reutilizáveis do viewer: `src/modules/character-viewer/helpers.ts` (`abilityMod`, `totalHp`, …).
 - Fichas de exemplo (formato Pathbuilder, campo `build`) em `public/characters/*.json`; presets em
   `src/modules/character-viewer/campaignPresets.ts`.
+
+## Módulo character-viewer (Ficha Virtual)
+
+- Visualizador interativo em `/ficha-virtual`. Reusa `parseCharacterJson`/`BuildInfo` do
+  `character-sheet`. Layout: **abas no desktop, acordeões no mobile**; áreas em `sections/*`
+  (Overview, Combat, Skills, Feats, Specials, Spells, Pets, Inventory) — as vazias somem sozinhas.
+- **Guia "Como Jogar"** (Visão Geral): `combatGuides.ts`. Cada guia casa **por nome** da ficha
+  (`byName`) e é escrito à mão (`curated: true`); sem guia catalogado, `buildFallbackGuide()` gera
+  um resumo heurístico (marcado como automático). Guias curados **sem IA** — ver memória.
+- **Ao adicionar uma ficha nova**: (1) copiar o JSON para `public/characters/`; (2) registrar em
+  `campaignPresets.ts`; (3) escrever um guia curado em `combatGuides.ts` casando pelo nome.
+- Descrições da AON são buscadas **sob demanda** ao tocar num item (`DescriptionDrawer` →
+  `services/descriptions.ts`); a última ficha fica em `sessionStorage`.
 
 ## Módulo transformation-statblock (contexto que se perde fácil)
 

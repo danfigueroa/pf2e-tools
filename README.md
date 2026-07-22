@@ -37,6 +37,37 @@ O **PF2e Toolkit** é uma aplicação web projetada para auxiliar jogadores e me
 
 ## ✨ Funcionalidades
 
+O toolkit expõe **três ferramentas** (rotas em `src/App.tsx`), listadas na página inicial:
+
+| Ferramenta                    | Rota              | Módulo                                | O que faz                                                              |
+| ----------------------------- | ----------------- | ------------------------------------- | ---------------------------------------------------------------------- |
+| **Ficha Virtual**             | `/ficha-virtual`  | `src/modules/character-viewer/`       | Visualizador interativo da ficha, com descrições da AON traduzidas     |
+| **Ficha em PDF**              | `/character-sheet` | `src/modules/character-sheet/`        | Gera uma ficha completa em PDF (jsPDF)                                  |
+| **Stat Block de Transformação** | `/transformation` | `src/modules/transformation-statblock/` | Gera o stat block de qualquer _battle form_ do Remaster              |
+
+### ✅ Ficha Virtual (Implementado)
+
+Visualizador interativo da ficha (formato **JSON Pathbuilder 2e**), pensado para uso na mesa em
+qualquer dispositivo — no desktop as áreas viram **abas**; no mobile viram **acordeões**.
+
+**Características:**
+
+-   📂 **Carregamento**: upload de JSON, colar texto, ou **presets de campanha** prontos
+    (`public/characters/*.json`, registrados em `campaignPresets.ts`). A última ficha fica salva na
+    sessão (`sessionStorage`) e é restaurada ao recarregar.
+-   🗂️ **Áreas**: Visão Geral, Combate, Perícias, Talentos, Habilidades, Magias, Companheiros e
+    Inventário — as áreas sem conteúdo (magias, companheiros…) somem automaticamente.
+-   📖 **Guia de Uso "Como Jogar"** na Visão Geral: um resumo tático por personagem (papel em
+    combate, rotina de turno, recursos, erros comuns). É **escrito à mão** por ficha em
+    `combatGuides.ts`; fichas ainda não catalogadas caem num **gerador heurístico** a partir dos
+    dados da build (marcado como automático).
+-   🌐 **Descrições sob demanda**: toque em um talento, habilidade, magia ou item e um _drawer_
+    abre com a descrição completa buscada da **Archives of Nethys** e **traduzida para pt-BR**
+    (requer o backend rodando; ver [API do Servidor](#-api-do-servidor)).
+-   🐾 **Companheiros e familiares**: stats de companheiros animais são pré-carregados do backend.
+-   ⚔️ Cálculos derivados (modificadores, PV, CA, salvamentos, ataques, dano de arma) via
+    helpers reutilizáveis (`helpers.ts`).
+
 ### ✅ Ficha de Personagem em PDF (Implementado)
 
 Gera uma ficha de personagem completa, profissional e pronta para impressão.
@@ -94,17 +125,23 @@ no **padrão oficial de bloco de criatura** e **traduzido para pt-BR**.
 | TypeScript        | 5.x    | Tipagem estática        |
 | Vite              | 5.x    | Build tool e dev server |
 | Material-UI (MUI) | 7.x    | Componentes de UI       |
+| MUI X Data Grid   | 8.x    | Tabelas de dados        |
 | jsPDF             | 3.x    | Geração de PDFs         |
 | html2canvas       | 1.x    | Captura do stat block   |
 | React Router      | 7.x    | Roteamento SPA          |
 
-### Backend (Servidor de Scraping)
+### Backend (Servidor de Scraping + Tradução)
 
-| Tecnologia  | Uso                 |
-| ----------- | ------------------- |
-| Node.js     | Runtime             |
-| Cheerio     | Web scraping da AON |
-| HTTP nativo | Servidor de API     |
+| Tecnologia  | Uso                                             |
+| ----------- | ----------------------------------------------- |
+| Node.js     | Runtime                                         |
+| Cheerio     | Web scraping da AON                             |
+| Groq        | Tradução das descrições da AON para pt-BR       |
+| HTTP nativo | Servidor de API local (`server/index.mjs`)      |
+
+> O mesmo backend roda em dois modos: **funções serverless** em `api/*.js` (deploy Vercel) e o
+> servidor local `server/index.mjs`, ambos compartilhando o núcleo `api/_lib/aon.js`. A tradução
+> exige a variável `GROQ_API_KEY` (ver [Deploy](#-deploy-na-vercel-gratuito)).
 
 ### Ferramentas de Desenvolvimento
 
@@ -145,7 +182,7 @@ npm run dev
 ```
 
 -   Acesse: `http://localhost:5173`
--   Usa dados pré-carregados no JSON de exemplo
+-   Funciona sem o backend, mas as descrições traduzidas da AON ficam indisponíveis (use `dev:full`)
 
 #### Desenvolvimento Completo (Frontend + API)
 
@@ -198,12 +235,16 @@ O projeto está configurado para deploy automático na Vercel.
 ```
 api/
 ├── _lib/
-│   └── aon.js          # Funções compartilhadas (busca AON, tradução)
-├── health.js           # GET /api/health
-├── feat.js             # GET /api/feat?name=...
-├── search.js           # GET /api/search?name=...&category=...
-├── spell.js            # GET /api/spell?name=...
-└── clear-cache.js      # POST /api/clear-cache
+│   ├── aon.js              # Núcleo: busca na AON (cheerio) + tradução (Groq)
+│   ├── spell-parse.js      # Parse estrutural das magias
+│   ├── spells-core.js      # Helpers de magias
+│   └── metadata-i18n.js    # Dicionário de tradução de metadados
+├── health.js               # GET  /api/health
+├── feat.js / feats.js      # GET  /api/feat?name=...  ·  batch: /api/feats
+├── search.js / searches.js # GET  /api/search?name=...  ·  batch: /api/searches
+├── spell.js / spells.js    # GET  /api/spell?name=...   ·  batch: /api/spells
+├── companion.js / companions.js # GET /api/companion?name=... (stats de companheiro animal)
+└── clear-cache.js          # POST /api/clear-cache
 ```
 
 ---
@@ -212,39 +253,43 @@ api/
 
 ```
 pf2e-tools/
-├── api/                          # Serverless Functions (Vercel)
-│   ├── _lib/aon.js               # Funções compartilhadas
-│   ├── health.js                 # Health check
-│   ├── feat.js                   # Busca talentos
-│   ├── search.js                 # Busca genérica
-│   ├── spell.js                  # Busca magias
-│   └── clear-cache.js            # Limpa cache
+├── api/                          # Serverless Functions (Vercel) — ver estrutura acima
+│   └── _lib/                     # Núcleo compartilhado (aon, spell-parse, metadata-i18n…)
 ├── public/
-│   └── character-example.json    # Exemplo de personagem para testes
+│   └── characters/              # Fichas de exemplo/campanha (Pathbuilder, campo `build`)
+│       ├── ardagar9.json
+│       ├── eldarion9.json
+│       ├── zayto9.json
+│       └── ghanburi10.json
 ├── server/
 │   └── index.mjs                 # Servidor de API local (desenvolvimento)
 ├── src/
-│   ├── components/               # Componentes reutilizáveis
-│   ├── hooks/                    # Custom React hooks
 │   ├── layouts/
 │   │   └── MainLayout.tsx        # Layout principal com navegação
 │   ├── modules/
-│   │   ├── character-sheet/      # Módulo de Ficha de Personagem
+│   │   ├── character-viewer/     # Módulo de Ficha Virtual (visualizador interativo)
+│   │   │   ├── CharacterViewerPage.tsx  # Página: abas (desktop) / acordeões (mobile)
+│   │   │   ├── campaignPresets.ts       # Presets de campanha (fichas em public/characters)
+│   │   │   ├── combatGuides.ts          # Guias "Como Jogar" (curados + fallback heurístico)
+│   │   │   ├── helpers.ts               # abilityMod, totalHp, spellcasterStats, …
+│   │   │   ├── sections/                # Overview, Combat, Skills, Feats, Specials, Spells, Pets, Inventory
+│   │   │   └── components/              # UploadCard, CharacterHeader, DescriptionDrawer, GuideMarkdown
+│   │   ├── character-sheet/      # Módulo de Ficha em PDF
 │   │   │   ├── CharacterSheetPage.tsx  # Página principal
 │   │   │   ├── pdf.ts                  # Geração do PDF
-│   │   │   └── types.ts                # Interfaces TypeScript
+│   │   │   └── types.ts                # Interfaces + parseCharacterJson (reusado pelos módulos)
 │   │   └── transformation-statblock/   # Módulo de Stat Blocks
 │   │       ├── TransformationPage.tsx   # Fluxo em steps
 │   │       ├── i18n.ts                  # Tradução pt-BR (vocabulário mecânico + nomes)
 │   │       ├── components/              # CharacterInput, FormSelector, StatBlockGenerator, ExportOptions
 │   │       └── data/                    # 1 arquivo por magia + spells.ts + from-pathbuilder.ts
 │   ├── pages/
-│   │   └── HomePage.tsx          # Página inicial
-│   ├── services/                 # Serviços e integrações
+│   │   └── HomePage.tsx          # Página inicial (cards das ferramentas)
+│   ├── services/
+│   │   └── descriptions.ts       # Cliente do backend (busca + cache das descrições AON)
 │   ├── types/
 │   │   └── index.ts              # Tipos globais
-│   ├── utils/                    # Funções utilitárias
-│   ├── App.tsx                   # Componente raiz
+│   ├── App.tsx                   # Componente raiz + rotas
 │   ├── main.tsx                  # Entry point
 │   └── theme.ts                  # Configuração do tema MUI
 ├── package.json
@@ -266,6 +311,45 @@ pf2e-tools/
 ---
 
 ## 📦 Módulos Detalhados
+
+### Módulo: Character Viewer (Ficha Virtual)
+
+**Localização:** `src/modules/character-viewer/`
+
+Visualizador interativo da ficha. Reaproveita `parseCharacterJson`/`BuildInfo` do módulo
+`character-sheet`, então aceita o mesmo formato de JSON Pathbuilder.
+
+#### Arquivos
+
+| Arquivo                     | Responsabilidade                                                                    |
+| --------------------------- | ----------------------------------------------------------------------------------- |
+| `CharacterViewerPage.tsx`   | Estado da ficha, restauração por sessão, layout em abas (desktop) / acordeões (mobile), drawer de descrições |
+| `campaignPresets.ts`        | Lista de fichas prontas (`public/characters/*.json`) exibidas no `UploadCard`        |
+| `combatGuides.ts`           | Guias "Como Jogar" — curados à mão por nome + gerador heurístico de fallback         |
+| `helpers.ts`                | Cálculos derivados: `abilityMod`, `totalHp`, `spellcasterStats`, `isMythicCharacter`, … |
+| `sections/*`                | Uma área por aba: Overview, Combat, Skills, Feats, Specials, Spells, Pets, Inventory |
+| `components/UploadCard`     | Upload / colar JSON / escolher preset                                               |
+| `components/DescriptionDrawer` | Drawer que busca a descrição na AON e mostra traduzida                            |
+| `components/GuideMarkdown`  | Render do markdown do guia de uso                                                    |
+
+#### Guia de Uso "Como Jogar"
+
+O guia tático de cada personagem fica em `combatGuides.ts`. Cada guia **casa por nome** da ficha
+(`byName(...)`) e é escrito à mão (`curated: true`). Fichas sem guia catalogado caem em
+`buildFallbackGuide()`, que monta um resumo automático a partir de classe, atributos, PV, CA,
+saves e talentos — sinalizado na UI como guia automático.
+
+> **Ao adicionar uma ficha nova:** copie o JSON para `public/characters/`, registre em
+> `campaignPresets.ts` e (recomendado) escreva um guia curado em `combatGuides.ts` casando pelo
+> nome do personagem.
+
+#### Descrições traduzidas sob demanda
+
+Ao tocar em um item (talento, habilidade, magia, equipamento), o `DescriptionDrawer` chama o
+backend via `src/services/descriptions.ts`, que busca na AON e devolve o texto traduzido (com
+cache). Sem o backend rodando, um _alert_ avisa e a ficha continua utilizável sem as descrições.
+
+---
 
 ### Módulo: Character Sheet (Ficha de Personagem)
 
@@ -419,11 +503,18 @@ O servidor (`server/index.mjs`) fornece endpoints para buscar dados da Archives 
 
 ### Endpoints
 
-| Método | Rota          | Parâmetros | Descrição                                    |
-| ------ | ------------- | ---------- | -------------------------------------------- |
-| GET    | `/api/feat`   | `name`     | Busca descrição de um Feat                   |
-| GET    | `/api/search` | `name`     | Busca descrição genérica (Special Abilities) |
-| GET    | `/api/spell`  | `name`     | Busca informações detalhadas de uma magia    |
+| Método | Rota             | Parâmetros | Descrição                                       |
+| ------ | ---------------- | ---------- | ----------------------------------------------- |
+| GET    | `/api/health`    | —          | Health check (verifica backend disponível)      |
+| GET    | `/api/feat`      | `name`     | Busca descrição de um Feat                       |
+| GET    | `/api/search`    | `name`     | Busca descrição genérica (Special Abilities/itens) |
+| GET    | `/api/spell`     | `name`     | Busca informações detalhadas de uma magia        |
+| GET    | `/api/companion` | `name`     | Stats de companheiro animal                      |
+| POST   | `/api/clear-cache` | —        | Limpa o cache de descrições                      |
+
+As variantes **plurais** (`/api/feats`, `/api/searches`, `/api/spells`, `/api/companions`) aceitam
+uma lista de nomes para busca em lote. Todas as descrições são **traduzidas para pt-BR** via Groq
+antes de retornar.
 
 ### Exemplo de Resposta `/api/spell`
 
@@ -535,7 +626,13 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
 
 -   [x] Estrutura base do projeto
 -   [x] Sistema de navegação e layout
--   [x] **Módulo de Ficha de Personagem**
+-   [x] **Módulo de Ficha Virtual (visualizador interativo)**
+    -   [x] Layout em abas (desktop) / acordeões (mobile)
+    -   [x] Presets de campanha + upload/colar JSON + restauração por sessão
+    -   [x] Guias de uso "Como Jogar" (curados à mão + fallback heurístico)
+    -   [x] Descrições da AON traduzidas para pt-BR sob demanda (drawer)
+    -   [x] Áreas: Combate, Perícias, Talentos, Habilidades, Magias, Companheiros, Inventário
+-   [x] **Módulo de Ficha de Personagem (PDF)**
     -   [x] Upload e parsing de JSON
     -   [x] Geração de PDF completo
     -   [x] Layout profissional print-friendly
@@ -633,24 +730,33 @@ const spellAttack = proficiencyRank + level + keyAbilityMod
 
 ### Arquivos Principais para Modificações
 
-| Funcionalidade   | Arquivo                                              |
-| ---------------- | ---------------------------------------------------- |
-| Layout do PDF    | `src/modules/character-sheet/pdf.ts`                 |
-| Tipos de dados   | `src/modules/character-sheet/types.ts`               |
-| UI da página     | `src/modules/character-sheet/CharacterSheetPage.tsx` |
-| API de scraping  | `server/index.mjs`                                   |
-| Dados de exemplo | `public/character-example.json`                      |
-| Tema global      | `src/theme.ts`                                       |
+| Funcionalidade         | Arquivo                                                     |
+| ---------------------- | ---------------------------------------------------------- |
+| Ficha Virtual (viewer) | `src/modules/character-viewer/CharacterViewerPage.tsx`     |
+| Guias "Como Jogar"     | `src/modules/character-viewer/combatGuides.ts`             |
+| Presets de campanha    | `src/modules/character-viewer/campaignPresets.ts`          |
+| Layout do PDF          | `src/modules/character-sheet/pdf.ts`                       |
+| Tipos + parse do JSON  | `src/modules/character-sheet/types.ts`                     |
+| Stat block (battle forms) | `src/modules/transformation-statblock/`                 |
+| Núcleo do backend AON  | `api/_lib/aon.js` (serverless) · `server/index.mjs` (local) |
+| Fichas de exemplo      | `public/characters/*.json`                                 |
+| Tema global            | `src/theme.ts`                                             |
 
 ### Testes
 
-Para testar a ficha de personagem:
+Validação obrigatória de mudanças não triviais:
 
-1. Execute `npm run dev:full`
-2. Acesse http://localhost:5173
-3. Vá em "Ficha de Personagem (PDF)"
-4. Clique em "Carregar Exemplo"
-5. Clique em "Gerar PDF"
+```bash
+npm run build   # tsc -b && vite build
+npm run lint    # eslint
+```
+
+Para testar a Ficha Virtual manualmente:
+
+1. Execute `npm run dev:full` (frontend + backend de tradução)
+2. Acesse http://localhost:5173 e abra **Ficha Virtual**
+3. Escolha um preset de campanha (ou faça upload de um JSON Pathbuilder)
+4. Navegue pelas abas e toque em talentos/magias para ver as descrições traduzidas
 
 ---
 
