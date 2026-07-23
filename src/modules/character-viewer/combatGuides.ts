@@ -143,12 +143,13 @@ const GHAN_BURI = `## 🎯 Papel em Combate
 ## 🔁 Rotina de Turno
 - 🛡️ **1ª ação — Raise a Shield (SEMPRE):** +3 CA com o Escudo-Fortaleza enquanto erguido. Este é o botão que você aperta *toda rodada* — sua defesa inteira depende dele.
 - 🔨 **2ª–3ª ação — Strike com a Warhammer (+23):** 2d8+8 contusão **+1d6 elétrico (Shock) +1d6 sônico (Thundering)**. No **crítico**, a especialização do grupo *Hammer* **derruba** o alvo (prone).
-- 💥 **Alternativa de pico — Vicious Swing (2 ações):** um Strike com **+1 dado de dano**. Graças a **Furious Focus**, ele conta como **um só ataque** para o MAP — é seu maior golpe sem penalidade.
+- 🎯 **Exacting Strike (1 ação):** um Strike que, se **errar**, **não conta para o MAP** — dá pra atacar agressivo sem medo de estragar a mira do 2º golpe. Ótimo como *primeiro* ataque da rodada.
 - 🛑 Se precisar segurar posição: erga o escudo, dê **Take Cover** atrás dele e guarde as reações — você vira uma rocha.
 
 ## ⭐ Nunca Esqueça
 - 🧱 **Take Cover atrás do Escudo-Fortaleza:** com o escudo erguido, **Take Cover** sobe o bônus de circunstância para **+4 CA** — e com **Reflexive Shield** esse bônus **também vale nos Reflexos**. Contra AoE e chuva de flechas, é ouro.
 - 🛡️ **Muitas reações de escudo:** você tem **Shield Block** + **Quick Shield Block** (uma **reação extra** só para Shield Block por rodada) + **Reactive Shield** (erguer o escudo *como reação* ao ser atingido). Quase nunca leve um golpe "no seco".
+- 🧑‍🤝‍🧑 **Shield Warden:** você pode gastar **Shield Block para parar dano de um aliado adjacente**, não só o seu. Junte com **Devoted Guardian** (fica colado em quem protege) e com a reação extra do **Quick Shield Block** — você vira o guarda-costas da party. Grande contra golpes que iriam derrubar o conjurador.
 - 💢 **Disarming Block:** ao dar Shield Block, você pode **desarmar ou empurrar** quem te acertou. **Destructive Block:** seu bloqueio ainda **devolve dano / dispensa a redução** — bloquear vira ofensa.
 - ⚔️ **Reactive Strike (Ataque de Oportunidade):** inimigo que se move ou manipula no seu alcance de **3 m** leva um Strike de graça. Combine com o alcance Grande para travar o campo.
 - 😱 **Intimidating Glare → Fearsome Brute:** **Demoralize** só no olhar (sem idioma); contra alvo **amedrontado**, o **Fearsome Brute** soma **dano extra**. Assuste primeiro, esmague depois.
@@ -180,8 +181,8 @@ const GHAN_BURI = `## 🎯 Papel em Combate
 ## ⚠️ Erros Comuns
 - ❌ **Esquecer de erguer o escudo:** sem *Raise a Shield*, você perde +3 CA, o Take Cover, o Reflexive Shield e o Devoted Guardian de uma vez. É o erro nº 1.
 - ❌ Não usar **Take Cover** contra AoE — você tem uma das melhores defesas do jogo contra área e deixa parada.
-- ❌ Bater com Strikes normais quando **Vicious Swing** (sem custo de MAP via Furious Focus) daria mais dano.
-- ❌ Deixar **reações de Shield Block sobrando** — você tem várias por rodada; use-as.
+- ❌ Não abrir a rodada com **Exacting Strike**: é o Strike que "perdoa" o erro (não soma MAP), então deveria vir *antes* dos ataques normais.
+- ❌ Deixar **reações de Shield Block sobrando** — você tem várias por rodada e ainda pode gastá-las para **proteger um aliado** (Shield Warden); use-as.
 - ❌ Guardar **pontos míticos / Rewrite Fate** a ponto de terminar a luta sem gastar.
 - ❌ Perseguir inimigos em vez de **segurar a linha**: seu valor é travar o campo com alcance 3 m e Reactive Strike, não correr atrás (velocidade baixa com armadura pesada).`
 
