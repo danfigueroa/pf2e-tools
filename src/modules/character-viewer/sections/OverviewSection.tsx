@@ -4,6 +4,7 @@ import type { BuildInfo } from '../../character-sheet/types'
 import { abilityMod, signed, ABILITY_LABELS, totalHp, isMythicCharacter, MYTHIC_PROFICIENCY_BONUS, MYTHIC_COLOR, type AbilityKey } from '../helpers'
 import { getCombatGuide } from '../combatGuides'
 import { GuideMarkdown } from '../components/GuideMarkdown'
+import { HpTracker } from '../components/HpTracker'
 
 interface Props { build: BuildInfo }
 
@@ -34,14 +35,16 @@ export const OverviewSection = ({ build }: Props) => {
 
     return (
         <Stack spacing={2}>
+            {/* Pontos de vida (interativo) */}
+            <HpTracker build={build} maxHp={hp} />
+
             {/* Stat tiles */}
             <Box sx={{
                 display: 'grid',
-                gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' },
+                gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)' },
                 gap: 1.5,
             }}>
                 <StatTile label="CA" value={ac} accent={theme.palette.primary.main} />
-                <StatTile label="PV" value={hp} accent="#e07a5f" />
                 <StatTile label="Percepção" value={perception} />
                 <StatTile label="Deslocamento" value={`${speed} pés`} />
             </Box>
