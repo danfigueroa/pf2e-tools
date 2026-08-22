@@ -166,12 +166,14 @@ const CompanionSheet = ({ stats }: { stats: ComputedCompanion }) => (
 
         {/* Salvamentos */}
         <Row label="Salvamentos">
-            {[stats.saves.fortitude, stats.saves.reflex, stats.saves.will].map((s) => (
-                <Typography key={s.name} variant="body2" component="span" sx={{ mr: 2 }}>
-                    <Box component="span" sx={{ color: 'text.secondary' }}>{translateSkill(s.name)} </Box>
-                    <Box component="span" sx={{ fontWeight: 700, fontFamily: 'monospace' }}>{signed(s.modifier)}</Box>
-                </Typography>
-            ))}
+            <InlineList>
+                {[stats.saves.fortitude, stats.saves.reflex, stats.saves.will].map((s) => (
+                    <Typography key={s.name} variant="body2" component="span">
+                        <Box component="span" sx={{ color: 'text.secondary' }}>{translateSkill(s.name)} </Box>
+                        <Box component="span" sx={{ fontWeight: 700, fontFamily: 'monospace' }}>{signed(s.modifier)}</Box>
+                    </Typography>
+                ))}
+            </InlineList>
         </Row>
 
         {stats.attacks.length > 0 && (
@@ -202,15 +204,17 @@ const CompanionSheet = ({ stats }: { stats: ComputedCompanion }) => (
 
         {stats.skills.length > 0 && (
             <Row label="Perícias">
-                {stats.skills.map((s) => (
-                    <Typography key={s.name} variant="body2" component="span" sx={{ mr: 2, whiteSpace: 'nowrap' }}>
-                        <Box component="span" sx={{ color: 'text.secondary' }}>{translateSkill(s.name)} </Box>
-                        <Box component="span" sx={{ fontWeight: 700, fontFamily: 'monospace' }}>{signed(s.modifier)}</Box>
-                        {s.rank > 1 && (
-                            <Box component="span" sx={{ color: ACCENT, fontSize: '0.75em' }}> ({rankLabel(s.rank)})</Box>
-                        )}
-                    </Typography>
-                ))}
+                <InlineList>
+                    {stats.skills.map((s) => (
+                        <Typography key={s.name} variant="body2" component="span" sx={{ whiteSpace: 'nowrap' }}>
+                            <Box component="span" sx={{ color: 'text.secondary' }}>{translateSkill(s.name)} </Box>
+                            <Box component="span" sx={{ fontWeight: 700, fontFamily: 'monospace' }}>{signed(s.modifier)}</Box>
+                            {s.rank > 1 && (
+                                <Box component="span" sx={{ color: ACCENT, fontSize: '0.75em' }}> ({rankLabel(s.rank)})</Box>
+                            )}
+                        </Typography>
+                    ))}
+                </InlineList>
             </Row>
         )}
 
@@ -272,6 +276,17 @@ const BigStat = ({ label, value, hint }: { label: string; value: string; hint?: 
         </Typography>
         <Typography sx={{ fontWeight: 700, fontSize: '1.05rem', lineHeight: 1.2 }}>{value}</Typography>
         {hint && <Typography variant="caption" color="text.secondary">{hint}</Typography>}
+    </Box>
+)
+
+/**
+ * Itens irmãos em JSX não têm espaço entre si, então uma lista de `<span>`
+ * nunca ganha ponto de quebra e vaza para fora do card no celular — era o que
+ * acontecia com as perícias do companheiro. Um flex com wrap resolve.
+ */
+const InlineList = ({ children }: { children: React.ReactNode }) => (
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', columnGap: 2, rowGap: 0.5 }}>
+        {children}
     </Box>
 )
 
