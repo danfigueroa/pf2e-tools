@@ -23,6 +23,23 @@ body {
   min-height: 100vh;
   background-color: #EDE3CC;
   color: #23201A;
+  /* iOS Safari infla o texto ao girar o aparelho se isto ficar em `auto`. */
+  -webkit-text-size-adjust: 100%;
+  /* Rede de segurança: nada de barra horizontal na página inteira. `clip`
+     em vez de `hidden` porque `hidden` criaria um contexto de rolagem e
+     quebraria `position: sticky` dentro do conteúdo. */
+  overflow-x: clip;
+}
+
+/* Nome de personagem, talento ou magia longo não estoura a caixa. */
+h1, h2, h3, h4, h5, h6, p, li, td, th {
+  overflow-wrap: break-word;
+}
+
+/* Toque: sem o atraso de 300ms e sem o realce cinza do iOS. */
+button, [role='button'], a, summary {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 a {
