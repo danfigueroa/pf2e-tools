@@ -215,8 +215,8 @@ const StatTile = ({ label, value, accent, delta = 0, base }: {
                 sx={{
                     display: 'block',
                     textTransform: 'uppercase',
-                    letterSpacing: { xs: '0.01em', sm: '0.04em' },
-                    fontSize: { xs: '0.66rem', sm: '0.75rem' },
+                    letterSpacing: { xs: 0, sm: '0.04em' },
+                    fontSize: { xs: '0.62rem', sm: '0.75rem' },
                 }}
             >
                 {label}
