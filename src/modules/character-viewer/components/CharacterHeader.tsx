@@ -15,8 +15,9 @@ export const CharacterHeader = ({ build, onReset }: Props) => {
         <Card
             sx={{
                 mb: 3,
-                background: `linear-gradient(135deg, ${theme.palette.primary.main}18 0%, transparent 60%)`,
-                borderColor: theme.palette.primary.main + '40',
+                background: `linear-gradient(135deg, ${theme.palette.primary.main}14 0%, transparent 60%)`,
+                borderColor: theme.palette.secondary.main,
+                borderTop: `4px solid ${theme.palette.primary.main}`,
             }}
         >
             <CardContent sx={{ p: { xs: 2.5, md: 3 } }}>

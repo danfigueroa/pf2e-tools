@@ -1,5 +1,4 @@
-/* Google Font - Source Sans 3 */
-@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&display=swap');
+/* Fontes carregadas em index.html: Cinzel (títulos) + Source Sans 3 (corpo). */
 
 :root {
   font-family: 'Source Sans 3', system-ui, -apple-system, sans-serif;
@@ -9,7 +8,7 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 * {
@@ -18,11 +17,12 @@
   box-sizing: border-box;
 }
 
+/* Espelha palette.parchment.page / ink.primary (src/theme/palette.ts). */
 body {
   min-width: 320px;
   min-height: 100vh;
-  background-color: #0A0F0D;
-  color: #F0FDF4;
+  background-color: #EDE3CC;
+  color: #23201A;
 }
 
 a {
@@ -30,45 +30,34 @@ a {
   text-decoration: none;
 }
 
-/* Print-friendly styles */
+/* Impressão: o app já é claro, então basta soltar as tintas de fundo,
+   esconder a navegação e evitar quebra dentro dos cards. */
 @media print {
   * {
     -webkit-print-color-adjust: exact !important;
     color-adjust: exact !important;
   }
-  
+
   body {
-    background: white !important;
-    color: black !important;
+    background: #fff !important;
   }
-  
-  /* Hide navigation */
+
   nav, .MuiAppBar-root, .MuiDrawer-root {
     display: none !important;
   }
-  
-  /* Main content full width */
+
   main {
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
   }
-  
-  /* Cards */
+
   .MuiCard-root, .MuiPaper-root {
-    background: white !important;
-    color: black !important;
-    border: 1px solid #000 !important;
+    background: #fff !important;
     box-shadow: none !important;
     page-break-inside: avoid;
   }
-  
-  /* Text */
-  .MuiTypography-root {
-    color: black !important;
-  }
-  
-  /* Hide buttons */
+
   .MuiButton-root, button {
     display: none !important;
   }

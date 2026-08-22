@@ -539,8 +539,8 @@ export const CharacterSheetPage = () => {
                 <Card 
                     sx={{ 
                         mb: 3, 
-                        bgcolor: 'rgba(20, 184, 166, 0.08)',
-                        border: '1px solid rgba(20, 184, 166, 0.3)',
+                        bgcolor: 'rgba(27, 59, 42, 0.06)',
+                        border: '1px solid rgba(27, 59, 42, 0.25)',
                         display: loading.active ? 'block' : 'none',
                     }}
                 >
@@ -571,7 +571,7 @@ export const CharacterSheetPage = () => {
                             sx={{
                                 height: 6,
                                 borderRadius: 3,
-                                bgcolor: 'rgba(20, 184, 166, 0.1)',
+                                bgcolor: 'rgba(27, 59, 42, 0.10)',
                                 '& .MuiLinearProgress-bar': {
                                     borderRadius: 3,
                                     bgcolor: 'primary.main',

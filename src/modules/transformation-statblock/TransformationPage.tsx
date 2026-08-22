@@ -130,7 +130,7 @@ export const TransformationPage: React.FC = () => {
           component="h1"
           gutterBottom
           sx={{
-            background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+            background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.dark})`,
             backgroundClip: 'text',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',

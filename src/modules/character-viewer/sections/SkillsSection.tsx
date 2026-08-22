@@ -1,4 +1,5 @@
 import { Box, Card, CardContent, Typography, Chip } from '@mui/material'
+import { RANK_COLORS } from '../../../theme/palette'
 import type { BuildInfo, Proficiencies } from '../../character-sheet/types'
 import {
     abilityMod,
@@ -31,13 +32,7 @@ const SKILL_ROWS: Array<{ key: keyof Proficiencies; label: string; ability: Abil
     { key: 'thievery', label: 'Roubo', ability: 'dex' },
 ]
 
-const RANK_COLOR: Record<number, string> = {
-    0: 'text.disabled',
-    2: 'primary.light',
-    4: '#5b8def',
-    6: '#a259e0',
-    8: '#f5c542',
-}
+const RANK_COLOR: Record<number, string> = RANK_COLORS
 
 export const SkillsSection = ({ build }: Props) => {
     const mythic = isMythicCharacter(build)

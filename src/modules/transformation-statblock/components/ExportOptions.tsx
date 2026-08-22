@@ -54,7 +54,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ config }) => {
       if (exportOptions.format === 'pdf') {
         // Generate PDF
         const canvas = await html2canvas(statBlockRef.current, {
-          backgroundColor: exportOptions.includeBackground ? '#ffffff' : '#ffffff', // Always white for print-friendly
+          backgroundColor: '#ffffff', // sempre branco: o stat block é uma peça de impressão
           scale: 2,
           useCORS: true
         });
@@ -87,7 +87,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ config }) => {
       } else {
         // Generate PNG or JPG
         const canvas = await html2canvas(statBlockRef.current, {
-          backgroundColor: exportOptions.includeBackground ? '#ffffff' : '#ffffff', // Always white for print-friendly
+          backgroundColor: '#ffffff', // sempre branco: o stat block é uma peça de impressão
           scale: 2,
           useCORS: true
         });
@@ -131,14 +131,14 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ config }) => {
           <title>Stat Block - ${config.character.name}</title>
           <style>
             body {
-              font-family: 'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+              font-family: 'Source Sans 3', 'Helvetica', 'Arial', sans-serif;
               background: white;
               color: black;
               margin: 20px;
               line-height: 1.6;
             }
             .MuiCard-root {
-              border: 1px solid #000;
+              border: 1px solid #1B3B2A;
               border-radius: 8px;
               padding: 16px;
               background: white;
@@ -160,13 +160,13 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ config }) => {
             }
             .MuiDivider-root {
               border: none;
-              border-top: 1px solid #000;
+              border-top: 1px solid #A8842C;
               margin: 16px 0;
             }
             .MuiChip-root {
               display: inline-block;
               padding: 2px 8px;
-              border: 1px solid #000;
+              border: 1px solid #1B3B2A;
               border-radius: 4px;
               font-size: 0.75rem;
               margin: 2px;
@@ -227,7 +227,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ config }) => {
           <Box 
             ref={statBlockRef}
             sx={{ 
-              border: '1px solid #e0e0e0', 
+              border: '1px solid #CDBE9E', 
               borderRadius: 1, 
               p: 2,
               backgroundColor: exportOptions.includeBackground ? '#ffffff' : 'transparent'

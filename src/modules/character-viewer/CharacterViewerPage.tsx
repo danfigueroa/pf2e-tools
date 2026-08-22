@@ -25,6 +25,7 @@ import {
     Inventory2 as InventoryIcon,
 } from '@mui/icons-material'
 
+import { green, gold, parchment, displayFont } from '../../theme'
 import { parseCharacterJson, type BuildInfo } from '../character-sheet/types'
 import { UploadCard } from './components/UploadCard'
 import { CharacterHeader } from './components/CharacterHeader'
@@ -198,17 +199,30 @@ export const CharacterViewerPage = () => {
                             sx={{
                                 '&:before': { display: 'none' },
                                 mb: 1,
+                                border: '1px solid',
+                                borderColor: 'divider',
                                 borderRadius: 1.5,
                                 overflow: 'hidden',
                             }}
                         >
-                            <AccordionSummary expandIcon={<ExpandIcon />}>
+                            <AccordionSummary
+                                expandIcon={<ExpandIcon sx={{ color: gold.bright }} />}
+                                sx={{
+                                    backgroundColor: green.main,
+                                    color: parchment.page,
+                                    borderBottom: `2px solid ${gold.main}`,
+                                }}
+                            >
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
-                                    <Box sx={{ color: 'primary.light', display: 'flex' }}>{s.icon}</Box>
-                                    <Typography sx={{ fontWeight: 600 }}>{s.label}</Typography>
+                                    <Box sx={{ color: gold.bright, display: 'flex' }}>{s.icon}</Box>
+                                    <Typography
+                                        sx={{ fontFamily: displayFont, fontWeight: 700, letterSpacing: '0.06em' }}
+                                    >
+                                        {s.label}
+                                    </Typography>
                                 </Box>
                             </AccordionSummary>
-                            <AccordionDetails sx={{ pt: 0 }}>
+                            <AccordionDetails sx={{ pt: 2 }}>
                                 {s.render(build, setDrawerReq)}
                             </AccordionDetails>
                         </Accordion>
@@ -222,10 +236,17 @@ export const CharacterViewerPage = () => {
                         variant="scrollable"
                         scrollButtons="auto"
                         sx={{
-                            borderBottom: '1px solid',
-                            borderColor: 'divider',
+                            backgroundColor: green.main,
+                            borderRadius: 1,
+                            borderBottom: `3px solid ${gold.bright}`,
                             mb: 3,
-                            '& .MuiTab-root': { minHeight: 48, textTransform: 'none', fontWeight: 600 },
+                            minHeight: 48,
+                            '& .MuiTab-root': {
+                                minHeight: 48,
+                                color: 'rgba(237, 227, 204, 0.75)',
+                                '&.Mui-selected': { color: gold.bright },
+                            },
+                            '& .MuiTabs-scrollButtons': { color: parchment.page },
                         }}
                     >
                         {visibleSections.map((s) => (

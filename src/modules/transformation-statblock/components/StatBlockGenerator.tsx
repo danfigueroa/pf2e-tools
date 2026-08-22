@@ -300,24 +300,27 @@ const StatBlockGenerator: React.FC<StatBlockGeneratorProps> = ({
   // Traços exibidos na faixa de traits (raridade omitida = Comum)
   const traitTags = [translateSize(stats.size), ...(form.traits ?? []).map(translateTrait)];
 
-  // Paleta oficial (pergaminho + vinho + laranja)
-  const MAROON = '#5c1f1b';
-  const ORANGE = '#c0521f';
+  // Paleta Remaster (pergaminho + verde + ouro). Hex literal de propósito: o
+  // html2canvas da exportação não entende funções de cor modernas, e este
+  // bloco é justamente o que ele captura.
+  const GREEN = '#1B3B2A';
+  const GOLD = '#A8842C';
+  const GOLD_DEEP = '#7E611D'; // texto sobre pergaminho pede ouro mais escuro
   const PARCHMENT = '#f7f2e7';
   const INK = '#1a1a1a';
 
   const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <strong style={{ color: MAROON }}>{children}</strong>
+    <strong style={{ color: GREEN }}>{children}</strong>
   );
 
   const Rule = () => (
-    <Box sx={{ height: '3px', bgcolor: ORANGE, my: 1, borderRadius: '2px' }} />
+    <Box sx={{ height: '3px', bgcolor: GOLD, my: 1, borderRadius: '2px' }} />
   );
 
   return (
-    <Card sx={{ mt: 2, bgcolor: PARCHMENT, color: INK, border: `1px solid ${MAROON}`, borderRadius: '4px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.25)' }}>
+    <Card sx={{ mt: 2, bgcolor: PARCHMENT, color: INK, border: `1px solid ${GREEN}`, borderRadius: '4px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.25)' }}>
       {/* Header bar */}
-      <Box sx={{ bgcolor: MAROON, color: '#f7f2e7', px: 2, py: 1, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1 }}>
+      <Box sx={{ bgcolor: GREEN, color: '#f7f2e7', px: 2, py: 1, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1 }}>
         <Typography component="h2" sx={{ fontWeight: 700, fontSize: '1.35rem', letterSpacing: '0.02em', textTransform: 'uppercase', lineHeight: 1.1 }}>
           {character.name} <Box component="span" sx={{ fontWeight: 400, textTransform: 'none', fontSize: '0.9rem', opacity: 0.9 }}>({translateName(form.name)})</Box>
         </Typography>
@@ -329,7 +332,7 @@ const StatBlockGenerator: React.FC<StatBlockGeneratorProps> = ({
       {/* Trait tags */}
       <Box sx={{ px: 2, py: 1, display: 'flex', gap: 0.5, flexWrap: 'wrap', bgcolor: '#efe7d4' }}>
         {traitTags.map((t, i) => (
-          <Box key={i} sx={{ bgcolor: MAROON, color: '#f7f2e7', border: '1px solid #d9c58a', px: 1, py: 0.25, fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+          <Box key={i} sx={{ bgcolor: GREEN, color: '#f7f2e7', border: '1px solid #C8A951', px: 1, py: 0.25, fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
             {t}
           </Box>
         ))}
@@ -385,7 +388,7 @@ const StatBlockGenerator: React.FC<StatBlockGeneratorProps> = ({
 
           return (
             <Typography key={index} variant="body2" sx={{ mt: 0.5 }}>
-              <Label>{attackType}</Label> <Box component="span" sx={{ color: ORANGE, fontWeight: 700 }}>◆</Box> {translateAttackName(attack.name)} {formatModifier(stats.attackBonus)}{reachInfo}
+              <Label>{attackType}</Label> <Box component="span" sx={{ color: GOLD_DEEP, fontWeight: 700 }}>◆</Box> {translateAttackName(attack.name)} {formatModifier(stats.attackBonus)}{reachInfo}
               {attack.traits && attack.traits.length > 0 && (
                 <Box component="span" sx={{ color: '#6b6152' }}> ({attack.traits.map(translateTrait).join(', ')})</Box>
               )}

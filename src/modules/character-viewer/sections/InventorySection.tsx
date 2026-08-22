@@ -1,5 +1,6 @@
 import { Box, Card, CardContent, Typography, Stack, Chip } from '@mui/material'
 import { ChevronRight as ChevronIcon } from '@mui/icons-material'
+import { COIN_COLORS } from '../../../theme/palette'
 import type { BuildInfo } from '../../character-sheet/types'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
 
@@ -35,10 +36,10 @@ export const InventorySection = ({ build, onSelect }: Props) => {
                             Dinheiro
                         </Typography>
                         <Stack direction="row" spacing={2} sx={{ mt: 1, flexWrap: 'wrap', gap: 1 }}>
-                            <Coin label="pp" value={money.pp} accent="#bcd2f5" />
-                            <Coin label="po" value={money.gp} accent="#f5c542" />
-                            <Coin label="pp" value={money.sp} accent="#cfd1d4" />
-                            <Coin label="pc" value={money.cp} accent="#b9794a" />
+                            <Coin label="pp" value={money.pp} accent={COIN_COLORS.pp} />
+                            <Coin label="po" value={money.gp} accent={COIN_COLORS.gp} />
+                            <Coin label="pp" value={money.sp} accent={COIN_COLORS.sp} />
+                            <Coin label="pc" value={money.cp} accent={COIN_COLORS.cp} />
                         </Stack>
                     </CardContent>
                 </Card>

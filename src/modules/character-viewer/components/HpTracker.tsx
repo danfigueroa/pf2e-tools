@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { HP_COLOR } from '../../../theme/palette'
 import {
     Box,
     Button,
@@ -132,10 +133,10 @@ export const HpTracker = ({ build, maxHp }: Props) => {
     }
 
     return (
-        <Card sx={{ borderColor: '#e07a5f60' }}>
+        <Card sx={{ borderColor: HP_COLOR + '60' }}>
             <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5, flexWrap: 'wrap' }}>
-                    <HpIcon sx={{ color: '#e07a5f' }} />
+                    <HpIcon sx={{ color: HP_COLOR }} />
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
                         Pontos de Vida
                     </Typography>

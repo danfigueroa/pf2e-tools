@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { TYPE_ACCENT as PALETTE_TYPE_ACCENT } from '../../../theme/palette'
 import {
     Drawer,
     Box,
@@ -68,12 +69,8 @@ const TYPE_LABEL: Record<DescriptionRequest['type'], string> = {
     item: 'Item',
 }
 
-const TYPE_ACCENT: Record<DescriptionRequest['type'], string> = {
-    feat: '#14b8a6',     // teal — sintonizado com o tema
-    special: '#a259e0',  // roxo
-    spell: '#5b8def',    // azul (sobrescrito por tradição quando há)
-    item: '#f5c542',     // dourado
-}
+// Acentos por tipo (o de magia é sobrescrito pela tradição quando há).
+const TYPE_ACCENT: Record<DescriptionRequest['type'], string> = PALETTE_TYPE_ACCENT
 
 export const DescriptionDrawer = ({ request, onClose }: Props) => {
     const theme = useTheme()

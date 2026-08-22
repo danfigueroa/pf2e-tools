@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="PF2e Toolkit">
+  <rect width="64" height="64" rx="10" fill="#14281D"/>
+  <rect x="2.5" y="2.5" width="59" height="59" rx="8" fill="none" stroke="#C8A951" stroke-width="2"/>
+  <!-- escudo -->
+  <path d="M32 11 L50 17 V33 C50 43 42 50.5 32 54 C22 50.5 14 43 14 33 V17 Z"
+        fill="#1B3B2A" stroke="#C8A951" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- runa central -->
+  <path d="M32 20 V45 M32 20 H40 A5.5 5.5 0 0 1 40 31 H32"
+        fill="none" stroke="#EDE3CC" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M24 33 H32" fill="none" stroke="#C8A951" stroke-width="3.5" stroke-linecap="round"/>
+</svg>

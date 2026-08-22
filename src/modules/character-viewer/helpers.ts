@@ -1,3 +1,4 @@
+import { TRADITION_COLORS, ink } from '../../theme/palette'
 import { parseFeatEntry, type Abilities, type BuildInfo, type SpellCaster } from '../character-sheet/types'
 
 export type AbilityKey = keyof Pick<Abilities, 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'>
@@ -19,7 +20,7 @@ export function abilityMod(score: number): number {
 // Bônus = nível + 10 (lendário é nível + 8). Usada só quando uma habilidade
 // mítica manda, normalmente gastando um Ponto Mítico.
 export const MYTHIC_PROFICIENCY_BONUS = 10
-export const MYTHIC_COLOR = '#e0567c'
+export { MYTHIC_COLOR } from '../../theme/palette'
 
 // Personagem "mítico" = possui ao menos um talento do tipo Mythic Feat.
 export function isMythicCharacter(build: BuildInfo): boolean {
@@ -56,16 +57,12 @@ export function actionSymbol(actions?: string | number): string {
     return ''
 }
 
-// Cores temáticas por tradição mágica (PF2e canônico)
-export const TRADITION_COLORS: Record<string, string> = {
-    arcane:  '#5b8def', // azul
-    divine:  '#f5c542', // dourado
-    occult:  '#a259e0', // roxo
-    primal:  '#3fae5a', // verde
-}
+// Cores temáticas por tradição mágica (PF2e canônico) — os tons vivem em
+// src/theme/palette.ts, entonados para ler sobre pergaminho.
+export { TRADITION_COLORS } from '../../theme/palette'
 
 export function traditionColor(tradition: string): string {
-    return TRADITION_COLORS[tradition?.toLowerCase()] || '#888'
+    return TRADITION_COLORS[tradition?.toLowerCase()] || ink.disabled
 }
 
 export function traditionLabel(tradition: string): string {

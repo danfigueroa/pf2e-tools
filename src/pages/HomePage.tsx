@@ -6,7 +6,6 @@ import {
   Button,
   Typography,
   Container,
-  useTheme,
 } from '@mui/material';
 import {
   Description as SheetIcon,
@@ -15,6 +14,7 @@ import {
   ArrowForward as ArrowIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { green, gold, parchment } from '../theme';
 
 interface ToolCard {
   title: string;
@@ -65,28 +65,34 @@ const tools: ToolCard[] = [
 
 export const HomePage = () => {
   const navigate = useNavigate();
-  const theme = useTheme();
 
   return (
     <Container maxWidth="md">
-      {/* Header */}
+      {/* Cabeçalho */}
       <Box sx={{ textAlign: 'center', mb: 6, pt: 2 }}>
         <Typography
           variant="h1"
           component="h1"
-          sx={{
-            color: theme.palette.primary.main,
-            fontWeight: 700,
-            mb: 1.5,
-          }}
+          sx={{ color: green.main, mb: 1.5 }}
         >
           PF2e Tools
         </Typography>
-        
+
+        {/* Filete dourado, como os cabeçalhos dos livros */}
+        <Box
+          sx={{
+            width: 180,
+            height: 2,
+            mx: 'auto',
+            mb: 2,
+            backgroundColor: gold.main,
+          }}
+        />
+
         <Typography
           variant="h4"
           component="p"
-          sx={{ 
+          sx={{
             color: 'text.secondary',
             fontWeight: 400,
             maxWidth: 500,
@@ -97,7 +103,7 @@ export const HomePage = () => {
         </Typography>
       </Box>
 
-      {/* Tools Grid */}
+      {/* Grade de ferramentas */}
       <Box
         sx={{
           display: 'grid',
@@ -111,33 +117,37 @@ export const HomePage = () => {
             sx={{
               display: 'flex',
               flexDirection: 'column',
-              transition: 'all 0.2s ease',
+              overflow: 'hidden',
               cursor: 'pointer',
+              transition: 'transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease',
               '&:hover': {
                 transform: 'translateY(-2px)',
-                borderColor: theme.palette.primary.light,
               },
             }}
             onClick={() => navigate(tool.path)}
           >
-            <CardContent sx={{ flexGrow: 1, p: 3 }}>
-              {/* Icon + Title */}
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1.5 }}>
-                <Box
-                  sx={{
-                    color: theme.palette.primary.main,
-                    display: 'flex',
-                    alignItems: 'center',
-                  }}
-                >
-                  {tool.icon}
-                </Box>
-                <Typography variant="h3" component="h2">
-                  {tool.title}
-                </Typography>
+            {/* Cabeçalho em barra verde com filete ouro */}
+            <Box
+              sx={{
+                backgroundColor: green.main,
+                borderBottom: `2px solid ${gold.main}`,
+                color: parchment.page,
+                px: 2.5,
+                py: 1.5,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5,
+              }}
+            >
+              <Box sx={{ color: gold.bright, display: 'flex', alignItems: 'center' }}>
+                {tool.icon}
               </Box>
-              
-              {/* Description */}
+              <Typography variant="h3" component="h2" sx={{ fontSize: '1.15rem' }}>
+                {tool.title}
+              </Typography>
+            </Box>
+
+            <CardContent sx={{ flexGrow: 1, p: 3 }}>
               <Typography
                 variant="body1"
                 color="text.secondary"
@@ -145,8 +155,8 @@ export const HomePage = () => {
               >
                 {tool.description}
               </Typography>
-              
-              {/* Features */}
+
+              {/* Etiquetas de recurso */}
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {tool.features.map((feature) => (
                   <Typography
@@ -155,10 +165,12 @@ export const HomePage = () => {
                     sx={{
                       px: 1.5,
                       py: 0.5,
-                      bgcolor: 'rgba(20, 184, 166, 0.1)',
-                      border: '1px solid rgba(20, 184, 166, 0.2)',
+                      bgcolor: 'rgba(27, 59, 42, 0.07)',
+                      border: '1px solid',
+                      borderColor: 'divider',
                       borderRadius: 1,
-                      color: 'primary.light',
+                      color: green.main,
+                      fontWeight: 600,
                       fontSize: '0.8rem',
                     }}
                   >
@@ -167,7 +179,7 @@ export const HomePage = () => {
                 ))}
               </Box>
             </CardContent>
-            
+
             <CardActions sx={{ p: 3, pt: 0 }}>
               <Button
                 variant="contained"
@@ -181,8 +193,8 @@ export const HomePage = () => {
           </Card>
         ))}
       </Box>
-      
-      {/* Footer */}
+
+      {/* Rodapé */}
       <Box sx={{ mt: 6, textAlign: 'center', pb: 2 }}>
         <Typography variant="body2" color="text.secondary">
           Feito para a comunidade Pathfinder 2e

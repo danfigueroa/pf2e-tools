@@ -1,4 +1,5 @@
 import { Box, Card, CardContent, Typography, Stack, Chip, Divider } from '@mui/material'
+import { green } from '../../../theme/palette'
 import type { BuildInfo, CompanionStats, Pet } from '../../character-sheet/types'
 import { signed } from '../helpers'
 import {
@@ -13,7 +14,7 @@ import { translateSize, translateDamageType, translateAttackName, translateTrait
 
 interface Props { build: BuildInfo }
 
-const ACCENT = '#14b8a6'
+const ACCENT = green.main
 
 export const PetsSection = ({ build }: Props) => {
     const pets = build.pets || []
