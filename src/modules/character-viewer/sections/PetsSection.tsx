@@ -11,6 +11,8 @@ import {
     type ComputedCompanion,
 } from '../companionStats'
 import { translateSize, translateDamageType, translateAttackName, translateTrait } from '../../transformation-statblock/i18n'
+import { CompanionHpBar } from '../components/CompanionHpBar'
+import { petKeyFor } from '../components/useHpTracker'
 
 interface Props { build: BuildInfo }
 
@@ -40,6 +42,7 @@ export const PetsSection = ({ build }: Props) => {
                     pet={pet}
                     base={pet.animal ? build.petDescriptions?.[pet.animal] : undefined}
                     level={build.level || 1}
+                    storageKey={petKeyFor(build, 'pet', pet.name, idx)}
                 />
             ))}
 
@@ -62,6 +65,11 @@ export const PetsSection = ({ build }: Props) => {
                                 ))}
                             </Stack>
                         )}
+                        {/* RAW: um familiar tem 5 PV por nível do mestre. */}
+                        <CompanionHpBar
+                            storageKey={petKeyFor(build, 'fam', fam.name, idx)}
+                            maxHp={5 * (build.level || 1)}
+                        />
                     </CardContent>
                 </Card>
             ))}
@@ -69,7 +77,7 @@ export const PetsSection = ({ build }: Props) => {
     )
 }
 
-const PetCard = ({ pet, base, level }: { pet: Pet; base?: CompanionStats; level: number }) => {
+const PetCard = ({ pet, base, level, storageKey }: { pet: Pet; base?: CompanionStats; level: number; storageKey: string }) => {
     // `abilities` só existe no formato novo — protege contra um cache antigo
     // (formato v10) que ainda estivesse no localStorage do usuário.
     const stats = base?.abilities ? computeCompanion(base, pet, level) : null
@@ -108,6 +116,8 @@ const PetCard = ({ pet, base, level }: { pet: Pet; base?: CompanionStats; level:
                     </Typography>
                 )}
 
+                {stats && <CompanionHpBar storageKey={storageKey} maxHp={stats.hp} />}
+
                 {stats && <CompanionSheet stats={stats} />}
             </CardContent>
         </Card>
@@ -122,11 +132,11 @@ const CompanionSheet = ({ stats }: { stats: ComputedCompanion }) => (
             </Typography>
         )}
 
-        {/* Linha principal: PV, CA, Percepção, Deslocamento */}
+        {/* Linha principal: CA, Percepção, Deslocamento (PV fica na barra acima) */}
         <Box
             sx={{
                 display: 'grid',
-                gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' },
+                gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)' },
                 gap: 1,
                 p: 1.5,
                 borderRadius: 1,
@@ -135,7 +145,6 @@ const CompanionSheet = ({ stats }: { stats: ComputedCompanion }) => (
                 backgroundColor: ACCENT + '0a',
             }}
         >
-            <BigStat label="PV" value={String(stats.hp)} />
             <BigStat label="CA" value={String(stats.ac)} />
             <BigStat label="Percepção" value={signed(stats.perception.modifier)} hint={rankLabel(stats.perception.rank)} />
             <BigStat label="Deslocamento" value={formatSpeeds(stats)} />
