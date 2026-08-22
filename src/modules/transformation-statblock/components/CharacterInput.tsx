@@ -20,6 +20,9 @@ import { playerCharacterFromJson } from '../data/from-pathbuilder';
 import { CAMPAIGN_PRESETS } from '../../character-viewer/campaignPresets';
 import { translateName, translateSpellMeta, translateTrait } from '../i18n';
 
+/** Colunas que se dobram sozinhas: uma no celular, quantas couberem depois. */
+const FIELD_GRID = { xs: '1fr', sm: 'repeat(auto-fit, minmax(180px, 1fr))' };
+
 interface CharacterInputProps {
   onCharacterInput: (character: PlayerCharacter, spell: TransformationSpell) => void;
   character?: PlayerCharacter;
@@ -248,12 +251,13 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
             {/* Manual entry (fallback when no sheet is imported) */}
             {!imported && (
               <>
-                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                {/* `minWidth` fixo estourava a caixa num celular; a grade
+                    empilha sozinha quando não cabe mais uma coluna. */}
+                <Box sx={{ display: 'grid', gridTemplateColumns: FIELD_GRID, gap: 2 }}>
                   <TextField
                     label="Nome"
                     value={formData.name || ''}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    sx={{ flex: 1, minWidth: 200 }}
                   />
 
                   <TextField
@@ -262,7 +266,6 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
                     value={formData.level || 1}
                     onChange={(e) => setFormData(prev => ({ ...prev, level: parseInt(e.target.value) || 1 }))}
                     inputProps={{ min: 1, max: 20 }}
-                    sx={{ flex: 1, minWidth: 120 }}
                   />
 
                   <TextField
@@ -271,13 +274,12 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
                     value={formData.baseHP || ''}
                     onChange={(e) => setFormData(prev => ({ ...prev, baseHP: parseInt(e.target.value) || undefined }))}
                     inputProps={{ min: 1 }}
-                    sx={{ flex: 1, minWidth: 120 }}
                     helperText="Pontos de vida base do personagem"
                   />
                 </Box>
 
-                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                  <FormControl sx={{ flex: 1, minWidth: 150 }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: FIELD_GRID, gap: 2 }}>
+                  <FormControl>
                     <InputLabel>Classe</InputLabel>
                     <Select
                       value={formData.class || ''}
@@ -344,7 +346,13 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
                 <Typography variant="h6" gutterBottom>
                   Atributos
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(96px, 1fr))',
+                    gap: 2,
+                  }}
+                >
                   {formData.abilityScores && Object.entries(formData.abilityScores)
                     .filter(([ability]) => ability !== 'breakdown')
                     .map(([ability, score]) => (
@@ -359,7 +367,6 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
                       )}
                       inputProps={{ min: 8, max: 20 }}
                       helperText={formatModifier(getModifier(score))}
-                      sx={{ width: 120 }}
                     />
                   ))}
                 </Box>
@@ -368,12 +375,13 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
 
             {/* Submit Button */}
             <Box sx={{ textAlign: 'center', mt: 2 }}>
-              <Button 
-                variant="contained" 
+              <Button
+                variant="contained"
                 size="large"
                 onClick={handleSubmit}
+                sx={{ width: { xs: '100%', sm: 'auto' }, minWidth: { sm: 200 } }}
               >
-Continuar
+                Continuar
               </Button>
             </Box>
           </Stack>
