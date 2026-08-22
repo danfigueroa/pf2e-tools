@@ -545,9 +545,9 @@ export const CharacterSheetPage = () => {
                     }}
                 >
                     <CardContent>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 2 }}>
                             {getPhaseIcon()}
-                            <Box sx={{ flex: 1 }}>
+                            <Box sx={{ flex: '1 1 180px', minWidth: 0 }}>
                                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                                     {loading.phase === 'fetching' && 'Buscando descrições da AON...'}
                                     {loading.phase === 'translating' && 'Traduzindo para português...'}
@@ -579,8 +579,8 @@ export const CharacterSheetPage = () => {
                             }}
                         />
                         
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1 }}>
-                            <Typography variant="caption" color="text.secondary">
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                            <Typography variant="caption" color="text.secondary" sx={{ flex: '1 1 200px' }}>
                                 Cada item leva alguns segundos devido ao rate limit da API de tradução
                             </Typography>
                             <Button
@@ -602,7 +602,10 @@ export const CharacterSheetPage = () => {
                     <Stack
                         direction={{ xs: 'column', sm: 'row' }}
                         spacing={2}
-                        alignItems="center"
+                        // No celular os botões viram blocos de largura cheia;
+                        // centralizados eles ficavam de tamanhos diferentes.
+                        alignItems={{ xs: 'stretch', sm: 'center' }}
+                        sx={{ flexWrap: 'wrap', gap: 2 }}
                     >
                         <Button 
                             component="label" 
