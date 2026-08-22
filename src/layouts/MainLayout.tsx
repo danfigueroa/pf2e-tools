@@ -249,6 +249,9 @@ export const MainLayout = () => {
         sx={{
           flexGrow: 1,
           width: { md: `calc(100% - ${drawerWidth}px)` },
+          // Item flex tem `min-width: auto`: sem isto, um filho largo (linha de
+          // stat block, nome comprido) empurra o main além da viewport.
+          minWidth: 0,
           minHeight: '100vh',
           backgroundColor: 'background.default',
         }}
@@ -256,7 +259,9 @@ export const MainLayout = () => {
         {/* Spacer for mobile AppBar */}
         <Toolbar sx={{ display: { md: 'none' } }} />
 
-        <Box sx={{ p: { xs: 2, sm: 3 } }}>
+        {/* No celular a moldura do conteúdo encolhe: cada 8px aqui é 8px a
+            mais para os números da ficha, que é o que se lê na mesa. */}
+        <Box sx={{ px: { xs: 1.5, sm: 3 }, py: { xs: 2, sm: 3 } }}>
           <Outlet />
         </Box>
       </Box>
