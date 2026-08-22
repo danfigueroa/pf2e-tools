@@ -61,6 +61,31 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   numa **única** chamada, via marcadores `<<N>>` (`translateSegments`). Uma chamada por item é o que
   mantém uma ficha inteira dentro do rate limit do tier gratuito.
 
+## Tema (verde/pergaminho/ouro)
+
+Identidade da linha **Remaster**: verde profundo, bege pergaminho e ouro/latão — não o
+vermelho/carmesim do Pathfinder antigo. Estrutura: **moldura verde** (sidebar, AppBar, cabeçalhos de
+seção com filete dourado) e **conteúdo em pergaminho** com tinta escura. Títulos em Cinzel, corpo em
+Source Sans 3 (ambas num único `<link>` no `index.html`).
+
+- `src/theme/palette.ts` — tokens (`green`, `parchment`, `gold`, `ink`, `rule`) e os mapas semânticos:
+  tradições de magia, proficiência, moedas, PV, tipo de item, raridade. `src/theme/index.ts` monta o
+  `createTheme` a partir deles. **Componente não declara hex próprio** — importa daqui.
+- **Tudo em hex de 6 dígitos.** Nada de `oklch`/`color-mix`: o `html2canvas` (1.4.1) que exporta o
+  stat block não entende funções de cor modernas. E vários componentes concatenam alpha na string
+  (`accent + '22'`), o que só funciona com hex — token que seja caminho de tema (`'primary.light'`)
+  produz `'primary.light22'`, CSS inválido que some sem erro. Já foi bug real nos chips de perícia.
+- **Acento é cor de texto também.** Antes de escolher um tom, cheque contraste sobre
+  `parchment.paper` (alvo ≥4,5:1). É por isso que `gold.main` (#A8842C, 3,1:1) só entra em filetes e
+  bordas, e o texto dourado usa `gold.deep` (#7E611D).
+- **Sem override global de `MuiDrawer`**: o drawer de navegação é moldura (verde, pintado no
+  `MainLayout`) e o `DescriptionDrawer` é conteúdo (pergaminho padrão). Um override global quebra um
+  dos dois.
+- `StatBlockGenerator.tsx` mantém hex literais de propósito — é justamente o subtree que o
+  `html2canvas` captura. Ao mexer nele, acompanhe a folha de impressão escrita à mão em
+  `ExportOptions.tsx`, que replica classes do MUI e desanda em silêncio.
+- Fora do tema: `character-sheet/pdf.ts` tem paleta própria monocromática para o jsPDF.
+
 ## Convenções
 
 - Um módulo por funcionalidade em `src/modules/`. Padrão: `*Page.tsx` (UI/estado), lógica em
