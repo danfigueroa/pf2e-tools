@@ -31,6 +31,14 @@ interface Props {
 }
 
 /**
+ * Os botõezinhos de +/−/× dentro da pílula da condição são o alvo mais
+ * apertado da ficha. No celular eles crescem (a pílula acompanha); no desktop,
+ * onde há ponteiro, ficam compactos como antes.
+ */
+const TAP_PADDING = { xs: 0.6, sm: 0.25 }
+const TAP_ICON = { xs: '1.15rem', sm: '0.9rem' }
+
+/**
  * Barra de condições ativas. Fica fora das abas, logo abaixo do cabeçalho, para
  * continuar visível enquanto se navega pela ficha — as condições afetam todas
  * as abas ao mesmo tempo.
@@ -92,7 +100,7 @@ export const ConditionsBar = ({ conditions }: Props) => {
                                                 gap: 0.25,
                                                 pl: 1,
                                                 pr: implied ? 1 : 0.25,
-                                                py: 0.25,
+                                                py: { xs: 0.4, sm: 0.25 },
                                                 borderRadius: 4,
                                                 border: '1px solid',
                                                 borderStyle: implied ? 'dashed' : 'solid',
@@ -116,17 +124,17 @@ export const ConditionsBar = ({ conditions }: Props) => {
                                                         size="small"
                                                         aria-label={`Diminuir ${def.name}`}
                                                         onClick={() => adjust(entry.id, -1)}
-                                                        sx={{ p: 0.25 }}
+                                                        sx={{ p: TAP_PADDING }}
                                                     >
-                                                        <RemoveIcon sx={{ fontSize: '0.9rem' }} />
+                                                        <RemoveIcon sx={{ fontSize: TAP_ICON }} />
                                                     </IconButton>
                                                     <IconButton
                                                         size="small"
                                                         aria-label={`Aumentar ${def.name}`}
                                                         onClick={() => adjust(entry.id, 1)}
-                                                        sx={{ p: 0.25 }}
+                                                        sx={{ p: TAP_PADDING }}
                                                     >
-                                                        <AddIcon sx={{ fontSize: '0.9rem' }} />
+                                                        <AddIcon sx={{ fontSize: TAP_ICON }} />
                                                     </IconButton>
                                                 </>
                                             )}
@@ -135,9 +143,9 @@ export const ConditionsBar = ({ conditions }: Props) => {
                                                     size="small"
                                                     aria-label={`Remover ${def.name}`}
                                                     onClick={() => toggle(entry.id)}
-                                                    sx={{ p: 0.25 }}
+                                                    sx={{ p: TAP_PADDING }}
                                                 >
-                                                    <CloseIcon sx={{ fontSize: '0.9rem' }} />
+                                                    <CloseIcon sx={{ fontSize: TAP_ICON }} />
                                                 </IconButton>
                                             )}
                                         </Box>

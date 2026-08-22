@@ -22,7 +22,7 @@ export const SlotPips = ({ total, used, color, onChange, label, size = 14 }: Pro
     if (total <= 0) return null
 
     return (
-        <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5 }}>
+        <Stack direction="row" sx={{ flexWrap: 'wrap', gap: { xs: 0.75, sm: 0.5 } }}>
             {Array.from({ length: total }, (_, i) => {
                 const spent = i < used
                 return (
@@ -34,8 +34,12 @@ export const SlotPips = ({ total, used, color, onChange, label, size = 14 }: Pro
                                 onChange(spent ? i : i + 1)
                             }}
                             sx={{
-                                width: size,
-                                height: size,
+                                // Pip de 14px é impossível de acertar com o
+                                // dedo: no celular ele cresce, no desktop fica
+                                // do tamanho pedido.
+                                width: { xs: size + 6, sm: size },
+                                height: { xs: size + 6, sm: size },
+                                flexShrink: 0,
                                 borderRadius: '50%',
                                 border: '1px solid',
                                 borderColor: spent ? 'divider' : color,
