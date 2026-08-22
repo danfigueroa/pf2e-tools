@@ -49,8 +49,8 @@ export const OverviewSection = ({ build, mods }: Props) => {
             {/* Stat tiles */}
             <Box sx={{
                 display: 'grid',
-                gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)' },
-                gap: 1.5,
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: { xs: 1, sm: 1.5 },
             }}>
                 <StatTile
                     label="CA"
@@ -206,11 +206,30 @@ const StatTile = ({ label, value, accent, delta = 0, base }: {
     base?: number
 }) => (
     <Card sx={{ borderColor: accent ? accent + '60' : undefined }}>
-        <CardContent sx={{ textAlign: 'center', py: 1.5, '&:last-child': { pb: 1.5 } }}>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+        {/* "DESLOCAMENTO" é o rótulo mais longo e define o aperto: no celular
+            a margem interna e a fonte encolhem para ele caber numa linha. */}
+        <CardContent sx={{ textAlign: 'center', px: { xs: 1, sm: 2 }, py: 1.5, '&:last-child': { pb: 1.5 } }}>
+            <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{
+                    display: 'block',
+                    textTransform: 'uppercase',
+                    letterSpacing: { xs: '0.01em', sm: '0.04em' },
+                    fontSize: { xs: '0.66rem', sm: '0.75rem' },
+                }}
+            >
                 {label}
             </Typography>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: accent || 'primary.light', mt: 0.25 }}>
+            <Typography
+                variant="h4"
+                sx={{
+                    fontWeight: 700,
+                    color: accent || 'primary.light',
+                    mt: 0.25,
+                    fontSize: { xs: '1.35rem', sm: '1.5rem' },
+                }}
+            >
                 {value}
             </Typography>
             <ConditionDelta delta={delta} base={base} />
