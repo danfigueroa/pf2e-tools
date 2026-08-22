@@ -66,10 +66,12 @@ const tools: ToolCard[] = [
 export const HomePage = () => {
   const navigate = useNavigate();
 
+  // Sem gutters: o MainLayout já dá a margem, e no celular a soma das duas
+  // comia 32px de cada lado.
   return (
-    <Container maxWidth="md">
+    <Container maxWidth="md" disableGutters>
       {/* Cabeçalho */}
-      <Box sx={{ textAlign: 'center', mb: 6, pt: 2 }}>
+      <Box sx={{ textAlign: 'center', mb: { xs: 4, sm: 6 }, pt: 2 }}>
         <Typography
           variant="h1"
           component="h1"
@@ -81,7 +83,7 @@ export const HomePage = () => {
         {/* Filete dourado, como os cabeçalhos dos livros */}
         <Box
           sx={{
-            width: 180,
+            width: { xs: 120, sm: 180 },
             height: 2,
             mx: 'auto',
             mb: 2,
@@ -147,7 +149,7 @@ export const HomePage = () => {
               </Typography>
             </Box>
 
-            <CardContent sx={{ flexGrow: 1, p: 3 }}>
+            <CardContent sx={{ flexGrow: 1, p: { xs: 2.5, sm: 3 } }}>
               <Typography
                 variant="body1"
                 color="text.secondary"
@@ -180,7 +182,7 @@ export const HomePage = () => {
               </Box>
             </CardContent>
 
-            <CardActions sx={{ p: 3, pt: 0 }}>
+            <CardActions sx={{ p: { xs: 2.5, sm: 3 }, pt: 0 }}>
               <Button
                 variant="contained"
                 fullWidth
@@ -195,7 +197,7 @@ export const HomePage = () => {
       </Box>
 
       {/* Rodapé */}
-      <Box sx={{ mt: 6, textAlign: 'center', pb: 2 }}>
+      <Box sx={{ mt: { xs: 4, sm: 6 }, textAlign: 'center', pb: 2 }}>
         <Typography variant="body2" color="text.secondary">
           Feito para a comunidade Pathfinder 2e
         </Typography>
