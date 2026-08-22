@@ -309,6 +309,10 @@ const StatBlockGenerator: React.FC<StatBlockGeneratorProps> = ({
   const PARCHMENT = '#f7f2e7';
   const INK = '#1a1a1a';
 
+  // O bloco também é lido no celular: no xs a margem interna encolhe para
+  // sobrar linha para os números.
+  const PAD_X = { xs: 1.25, sm: 2 };
+
   const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     <strong style={{ color: GREEN }}>{children}</strong>
   );
@@ -319,18 +323,19 @@ const StatBlockGenerator: React.FC<StatBlockGeneratorProps> = ({
 
   return (
     <Card sx={{ mt: 2, bgcolor: PARCHMENT, color: INK, border: `1px solid ${GREEN}`, borderRadius: '4px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.25)' }}>
-      {/* Header bar */}
-      <Box sx={{ bgcolor: GREEN, color: '#f7f2e7', px: 2, py: 1, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1 }}>
-        <Typography component="h2" sx={{ fontWeight: 700, fontSize: '1.35rem', letterSpacing: '0.02em', textTransform: 'uppercase', lineHeight: 1.1 }}>
+      {/* Header bar — nome longo em tela estreita quebra para a linha de baixo
+          em vez de espremer o "CRIATURA N", que precisa ficar inteiro. */}
+      <Box sx={{ bgcolor: GREEN, color: '#f7f2e7', px: PAD_X, py: 1, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
+        <Typography component="h2" sx={{ fontWeight: 700, fontSize: { xs: '1.05rem', sm: '1.35rem' }, letterSpacing: '0.02em', textTransform: 'uppercase', lineHeight: 1.15, minWidth: 0, overflowWrap: 'break-word' }}>
           {character.name} <Box component="span" sx={{ fontWeight: 400, textTransform: 'none', fontSize: '0.9rem', opacity: 0.9 }}>({translateName(form.name)})</Box>
         </Typography>
-        <Typography sx={{ fontWeight: 700, fontSize: '1.1rem', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+        <Typography sx={{ fontWeight: 700, fontSize: { xs: '0.95rem', sm: '1.1rem' }, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
           {LABELS.creature} {effectiveLevel}
         </Typography>
       </Box>
 
       {/* Trait tags */}
-      <Box sx={{ px: 2, py: 1, display: 'flex', gap: 0.5, flexWrap: 'wrap', bgcolor: '#efe7d4' }}>
+      <Box sx={{ px: PAD_X, py: 1, display: 'flex', gap: 0.5, flexWrap: 'wrap', bgcolor: '#efe7d4' }}>
         {traitTags.map((t, i) => (
           <Box key={i} sx={{ bgcolor: GREEN, color: '#f7f2e7', border: '1px solid #C8A951', px: 1, py: 0.25, fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
             {t}
@@ -338,7 +343,7 @@ const StatBlockGenerator: React.FC<StatBlockGeneratorProps> = ({
         ))}
       </Box>
 
-      <Box sx={{ px: 2, py: 1.5 }}>
+      <Box sx={{ px: PAD_X, py: 1.5 }}>
         {/* Spell line */}
         <Typography variant="body2" sx={{ fontStyle: 'italic', color: '#5a5044', mb: 1 }}>
           {translateName(spell.name)} ({LABELS.level} {effectiveLevel})
