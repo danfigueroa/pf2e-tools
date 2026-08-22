@@ -106,6 +106,13 @@ Source Sans 3 (ambas num único `<link>` no `index.html`).
   um resumo heurístico (marcado como automático). Guias curados **sem IA** — ver memória.
 - **Ao adicionar uma ficha nova**: (1) copiar o JSON para `public/characters/`; (2) registrar em
   `campaignPresets.ts`; (3) escrever um guia curado em `combatGuides.ts` casando pelo nome.
+- **Slots de magia** (`useSpellSlots.ts` + `SlotPips.tsx`): estado do dia em `localStorage`, na mesma
+  chave por personagem do PV (`charKeyFor`). Guarda **contagem** de gastos, nunca índice de slot —
+  assim sobrevive a um re-upload em que a ordem da lista mudou. Preparado/inato: cada cópia
+  preparada é um slot, os pips ficam na linha da magia. Espontâneo: os slots são do nível
+  (`perDay`), os pips ficam no cabeçalho e a linha ganha botão de gastar. Truques (nível 0) são à
+  vontade e **nunca** têm slot, inclusive os inatos. Foco é um contador único (`build.focusPoints`).
+  "Novo dia" zera tudo.
 - Descrições da AON são buscadas **sob demanda** ao tocar num item (`DescriptionDrawer` →
   `services/descriptions.ts`); a última ficha fica em `sessionStorage`.
 
