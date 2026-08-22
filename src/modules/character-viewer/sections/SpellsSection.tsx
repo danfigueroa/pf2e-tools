@@ -1,11 +1,20 @@
 import { useMemo, useState } from 'react'
-import { Box, Button, Card, CardContent, Typography, Stack, Chip, Divider, LinearProgress } from '@mui/material'
-import { ChevronRight as ChevronIcon, CloudDownload as DownloadIcon } from '@mui/icons-material'
+import { Box, Button, Card, CardContent, IconButton, Tooltip, Typography, Stack, Chip, Divider, LinearProgress } from '@mui/material'
+import {
+    ChevronRight as ChevronIcon,
+    CloudDownload as DownloadIcon,
+    Restore as RestoreIcon,
+    Bolt as SpendIcon,
+} from '@mui/icons-material'
 import type { BuildInfo, SpellCaster, FocusTradition, FocusAbility } from '../../character-sheet/types'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
 import { actionSymbol, signed, spellcasterStats, traditionColor, traditionLabel } from '../helpers'
 import { castRankForSlot, damageAtRank } from '../heightening'
 import { getCachedSpell, prefetchSpellDescriptions } from '../../../services/descriptions'
+import { charKeyFor } from '../components/useHpTracker'
+import { slotKey, useSpellSlots, type SpellSlotsApi } from '../components/useSpellSlots'
+import { SlotPips, SlotCount } from '../components/SlotPips'
+import { gold } from '../../../theme'
 
 interface Props {
     build: BuildInfo
@@ -16,6 +25,8 @@ export const SpellsSection = ({ build, onSelect }: Props) => {
     const hasCasters = build.spellCasters?.some(c => c.spells.some(l => l.list.length > 0))
     const focusSpells = useMemo(() => collectFocusSpells(build), [build])
     const focusRank = castRankForSlot(0, build.level)
+    const focusMax = build.focusPoints ?? 0
+    const slots = useSpellSlots(charKeyFor(build), focusMax)
 
     const allNames = useMemo(() => {
         const names = new Set<string>()
@@ -47,8 +58,37 @@ export const SpellsSection = ({ build, onSelect }: Props) => {
         )
     }
 
+    // Truques são à vontade: só há o que controlar a partir do nível 1 (ou no foco).
+    const hasTrackable =
+        !!build.spellCasters?.some(c => c.spells.some(l => l.spellLevel > 0 && l.list.length > 0)) ||
+        (focusSpells.length > 0 && focusMax > 0)
+
     return (
         <Stack spacing={2}>
+            {hasTrackable && (
+                <Card>
+                    <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                        <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between">
+                            <Typography variant="caption" color="text.secondary" sx={{ flex: 1 }}>
+                                {slots.spentCount > 0
+                                    ? `Gastos hoje: ${slots.spentCount}. Toque num slot gasto para recuperá-lo.`
+                                    : 'Toque num slot para gastá-lo; toque de novo para recuperá-lo.'}
+                            </Typography>
+                            <Button
+                                size="small"
+                                variant="outlined"
+                                startIcon={<RestoreIcon />}
+                                disabled={slots.spentCount === 0}
+                                onClick={slots.resetAll}
+                                sx={{ flexShrink: 0 }}
+                            >
+                                Novo dia
+                            </Button>
+                        </Stack>
+                    </CardContent>
+                </Card>
+            )}
+
             {!allCached && (
                 <Card>
                     <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
@@ -78,23 +118,43 @@ export const SpellsSection = ({ build, onSelect }: Props) => {
             )}
 
             {build.spellCasters
-                ?.filter(c => c.spells.some(l => l.list.length > 0))
-                .map((caster, idx) => (
-                    <CasterCard key={`${caster.name}-${idx}`} caster={caster} build={build} onSelect={onSelect} />
+                ?.map((caster, idx) => ({ caster, idx }))
+                .filter(({ caster }) => caster.spells.some(l => l.list.length > 0))
+                .map(({ caster, idx }) => (
+                    <CasterCard
+                        key={`${caster.name}-${idx}`}
+                        caster={caster}
+                        casterIdx={idx}
+                        build={build}
+                        slots={slots}
+                        onSelect={onSelect}
+                    />
                 ))}
 
             {focusSpells.length > 0 && (
                 <Card>
                     <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
                         <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
-                            <Typography variant="overline" sx={{ fontWeight: 700, color: 'primary.light' }}>
-                                Magias de Foco (nível {focusRank})
-                            </Typography>
-                            {build.focusPoints != null && (
-                                <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                                    ({build.focusPoints} ponto{build.focusPoints === 1 ? '' : 's'})
+                            <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between">
+                                <Typography variant="overline" sx={{ fontWeight: 700, color: 'primary.light' }}>
+                                    Magias de Foco (nível {focusRank})
                                 </Typography>
-                            )}
+                                {focusMax > 0 && (
+                                    <Stack direction="row" spacing={1} alignItems="center">
+                                        <Typography variant="caption" color="text.secondary">
+                                            <SlotCount total={focusMax} used={slots.focusUsed} /> pontos
+                                        </Typography>
+                                        <SlotPips
+                                            total={focusMax}
+                                            used={slots.focusUsed}
+                                            color={gold.main}
+                                            onChange={slots.setFocusUsed}
+                                            label="Ponto de foco"
+                                            size={16}
+                                        />
+                                    </Stack>
+                                )}
+                            </Stack>
                         </Box>
                         {focusSpells.map((s, idx) => (
                             <SpellRow
@@ -109,8 +169,21 @@ export const SpellsSection = ({ build, onSelect }: Props) => {
                                     caster: focusCasterInfo(build, s),
                                 }}
                                 onSelect={onSelect}
+                                spend={focusMax > 0 ? {
+                                    onSpend: slots.spendFocus,
+                                    disabled: slots.focusUsed >= focusMax,
+                                    tooltip: 'Gastar 1 Ponto de Foco',
+                                } : undefined}
+                                dimmed={focusMax > 0 && slots.focusUsed >= focusMax}
                             />
                         ))}
+                        {focusMax > 0 && (
+                            <Box sx={{ px: 2, py: 1, borderTop: '1px solid', borderColor: 'divider' }}>
+                                <Typography variant="caption" color="text.secondary">
+                                    Refocus (10 min) devolve 1 ponto — toque num ponto gasto para recuperá-lo.
+                                </Typography>
+                            </Box>
+                        )}
                     </CardContent>
                 </Card>
             )}
@@ -118,9 +191,45 @@ export const SpellsSection = ({ build, onSelect }: Props) => {
     )
 }
 
-const CasterCard = ({ caster, build, onSelect }: { caster: SpellCaster; build: BuildInfo; onSelect: Props['onSelect'] }) => {
+interface CasterProps {
+    caster: SpellCaster
+    casterIdx: number
+    build: BuildInfo
+    slots: SpellSlotsApi
+    onSelect: Props['onSelect']
+}
+
+const CasterCard = ({ caster, casterIdx, build, slots, onSelect }: CasterProps) => {
     const { dc, attack } = spellcasterStats(build, caster)
     const accent = traditionColor(caster.magicTradition)
+    // Espontâneo: os slots do nível são intercambiáveis (repertório à parte).
+    // Preparado/inato: cada cópia preparada é o próprio slot.
+    const isSpontaneous = caster.spellcastingType === 'spontaneous'
+
+    const levels = useMemo(
+        () => caster.spells
+            .filter(l => l.list.length > 0)
+            .map(l => ({ spellLevel: l.spellLevel, entries: dedupe(l.list) })),
+        [caster],
+    )
+
+    const levelKey = (spellLevel: number, name?: string) => slotKey(casterIdx, caster.name, spellLevel, name)
+
+    /** Total/gastos do nível — truques (nível 0) são à vontade, não têm slot. */
+    const levelSummary = (spellLevel: number, entries: Array<{ name: string; count: number }>) => {
+        if (spellLevel === 0) return null
+        if (isSpontaneous) {
+            const total = caster.perDay?.[spellLevel] ?? 0
+            return total > 0 ? { total, used: Math.min(total, slots.usedOf(levelKey(spellLevel))) } : null
+        }
+        let total = 0
+        let used = 0
+        for (const e of entries) {
+            total += e.count
+            used += Math.min(e.count, slots.usedOf(levelKey(spellLevel, e.name)))
+        }
+        return { total, used }
+    }
 
     return (
         <Card sx={{ borderLeft: `3px solid ${accent}` }}>
@@ -157,55 +266,100 @@ const CasterCard = ({ caster, build, onSelect }: { caster: SpellCaster; build: B
                     </Stack>
                 </Box>
 
-                {caster.perDay?.some(n => n > 0) && (
+                {/* Resumo dos slots do dia (disponíveis/total por nível). */}
+                {levels.some(l => levelSummary(l.spellLevel, l.entries) != null) && (
                     <Box sx={{ px: 2, pb: 1.5 }}>
                         <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5 }}>
-                            {caster.perDay.map((n, lvl) =>
-                                n > 0 ? (
+                            {levels.map((l) => {
+                                const s = levelSummary(l.spellLevel, l.entries)
+                                if (!s) return null
+                                const empty = s.used >= s.total
+                                return (
                                     <Chip
-                                        key={lvl}
+                                        key={l.spellLevel}
                                         size="small"
-                                        label={`Nv ${lvl}: ${n}`}
-                                        sx={{ height: 22, fontSize: '0.7rem' }}
+                                        label={<>Nv {l.spellLevel}: <SlotCount total={s.total} used={s.used} /></>}
+                                        sx={{
+                                            height: 22,
+                                            fontSize: '0.7rem',
+                                            opacity: empty ? 0.5 : 1,
+                                            textDecoration: empty ? 'line-through' : 'none',
+                                        }}
                                     />
-                                ) : null,
-                            )}
+                                )
+                            })}
                         </Stack>
                     </Box>
                 )}
 
                 <Divider />
 
-                {caster.spells.filter(l => l.list.length > 0).map((level) => {
-                    const castRank = castRankForSlot(level.spellLevel, build.level)
+                {levels.map(({ spellLevel, entries }) => {
+                    const castRank = castRankForSlot(spellLevel, build.level)
+                    const summary = levelSummary(spellLevel, entries)
+                    const key = levelKey(spellLevel)
                     return (
-                        <Box key={level.spellLevel}>
+                        <Box key={spellLevel}>
                             <Box sx={{
                                 px: 2, py: 0.75,
                                 backgroundColor: 'action.hover',
                                 borderBottom: '1px solid',
                                 borderColor: 'divider',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: 1,
                             }}>
                                 <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: '0.06em' }}>
-                                    {level.spellLevel === 0 ? `TRUQUES (NÍVEL ${castRank})` : `NÍVEL ${level.spellLevel}`}
+                                    {spellLevel === 0 ? `TRUQUES (NÍVEL ${castRank})` : `NÍVEL ${spellLevel}`}
                                 </Typography>
+                                {/* Espontâneo: os slots ficam no cabeçalho, não na magia. */}
+                                {isSpontaneous && summary && (
+                                    <SlotPips
+                                        total={summary.total}
+                                        used={summary.used}
+                                        color={accent}
+                                        onChange={(next) => slots.setUsed(key, next, summary.total)}
+                                        label={`Slot de nível ${spellLevel}`}
+                                    />
+                                )}
                             </Box>
-                            {dedupe(level.list).map(({ name, count }) => (
-                                <SpellRow
-                                    key={name}
-                                    name={name}
-                                    count={count}
-                                    accent={accent}
-                                    request={{
-                                        type: 'spell',
-                                        name,
-                                        level: castRank,
-                                        autoHeightened: level.spellLevel === 0,
-                                        caster: { name: caster.name, dc, attack, tradition: caster.magicTradition },
-                                    }}
-                                    onSelect={onSelect}
-                                />
-                            ))}
+                            {entries.map(({ name, count }) => {
+                                const rowKey = levelKey(spellLevel, name)
+                                const used = Math.min(count, slots.usedOf(rowKey))
+                                const tracked = spellLevel > 0 && !isSpontaneous
+                                const spontaneousSpend = isSpontaneous && summary
+                                    ? {
+                                        onSpend: () => slots.spendOne(key, summary.total),
+                                        disabled: summary.used >= summary.total,
+                                        tooltip: `Gastar 1 slot de nível ${spellLevel}`,
+                                    }
+                                    : undefined
+                                return (
+                                    <SpellRow
+                                        key={name}
+                                        name={name}
+                                        count={count}
+                                        accent={accent}
+                                        request={{
+                                            type: 'spell',
+                                            name,
+                                            level: castRank,
+                                            autoHeightened: spellLevel === 0,
+                                            caster: { name: caster.name, dc, attack, tradition: caster.magicTradition },
+                                        }}
+                                        onSelect={onSelect}
+                                        pips={tracked ? {
+                                            total: count,
+                                            used,
+                                            onChange: (next: number) => slots.setUsed(rowKey, next, count),
+                                            label: `Slot de ${name}`,
+                                        } : undefined}
+                                        spend={spontaneousSpend}
+                                        dimmed={tracked ? used >= count : false}
+                                    />
+                                )
+                            })}
                         </Box>
                     )
                 })}
@@ -214,19 +368,20 @@ const CasterCard = ({ caster, build, onSelect }: { caster: SpellCaster; build: B
     )
 }
 
-const SpellRow = ({
-    name,
-    count,
-    accent,
-    request,
-    onSelect,
-}: {
+interface SpellRowProps {
     name: string
     count?: number
     accent: string
     request: DescriptionRequest
     onSelect: Props['onSelect']
-}) => {
+    /** Slots da própria magia (conjurador preparado). */
+    pips?: { total: number; used: number; onChange: (next: number) => void; label: string }
+    /** Botão de gastar um slot compartilhado (espontâneo) ou ponto de foco. */
+    spend?: { onSpend: () => void; disabled: boolean; tooltip: string }
+    dimmed?: boolean
+}
+
+const SpellRow = ({ name, count, accent, request, onSelect, pips, spend, dimmed }: SpellRowProps) => {
     const cached = getCachedSpell(name)
     // Dano já no nível do slot (request.level = rank efetivo de conjuração).
     const castRank = request.type === 'spell' ? request.level : undefined
@@ -252,6 +407,7 @@ const SpellRow = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
+                gap: 1,
                 px: 2,
                 py: 1.25,
                 cursor: 'pointer',
@@ -262,15 +418,15 @@ const SpellRow = ({
                 '&:focus-visible': { backgroundColor: 'action.focus', outline: 'none' },
             }}
         >
-            <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontWeight: 500 }}>
+            <Box sx={{ minWidth: 0, opacity: dimmed ? 0.5 : 1 }}>
+                <Typography sx={{ fontWeight: 500, textDecoration: dimmed ? 'line-through' : 'none' }}>
                     {name}
                     {actions && (
                         <Typography component="span" sx={{ ml: 0.75, color: accent, fontSize: '0.85em' }}>
                             {actions}
                         </Typography>
                     )}
-                    {count && count > 1 && (
+                    {count && count > 1 && !pips && (
                         <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>
                             ×{count}
                         </Typography>
@@ -282,7 +438,33 @@ const SpellRow = ({
                     </Typography>
                 )}
             </Box>
-            <ChevronIcon fontSize="small" sx={{ color: 'text.secondary', flexShrink: 0 }} />
+            <Stack direction="row" spacing={0.75} alignItems="center" sx={{ flexShrink: 0 }}>
+                {pips && (
+                    <SlotPips
+                        total={pips.total}
+                        used={pips.used}
+                        color={accent}
+                        onChange={pips.onChange}
+                        label={pips.label}
+                    />
+                )}
+                {spend && (
+                    <Tooltip title={spend.disabled ? 'Sem slots disponíveis' : spend.tooltip}>
+                        <span>
+                            <IconButton
+                                size="small"
+                                aria-label={spend.tooltip}
+                                disabled={spend.disabled}
+                                onClick={(e) => { e.stopPropagation(); spend.onSpend() }}
+                                sx={{ color: accent }}
+                            >
+                                <SpendIcon fontSize="small" />
+                            </IconButton>
+                        </span>
+                    </Tooltip>
+                )}
+                <ChevronIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+            </Stack>
         </Box>
     )
 }
