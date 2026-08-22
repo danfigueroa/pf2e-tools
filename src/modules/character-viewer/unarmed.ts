@@ -83,6 +83,16 @@ const AWAKENED_HERITAGE_CHOICES: Record<string, string[]> = {
     'swimming animal': ['claw', 'jaws', 'tail'],
 }
 
+/**
+ * A ficha registra só a herança (Running Animal, Flying Animal…), que é ampla
+ * demais — Running Animal cobre de urso a cavalo. Quando sabemos a espécie do
+ * personagem, a lista sai daqui, casando **pelo nome** como os guias de
+ * `combatGuides.ts`: o urso do Ardagar não tem cauda para atacar.
+ */
+const CHARACTER_ANIMALS: Record<string, { animal: string; attacks: string[] }> = {
+    ardagar: { animal: 'Urso', attacks: ['claw', 'jaws'] },
+}
+
 /** Itens que concedem um ataque desarmado — casados pelo nome do item. */
 const ITEM_ATTACKS: Record<string, { base: UnarmedBase; note: string }> = {
     'wolfjaw armor': {
@@ -133,15 +143,15 @@ function collectGrants(build: BuildInfo): Grant[] {
 
     if (/awakened animal/i.test(build.ancestry || '')) {
         // A herança substitui o punho por um ataque animal.
-        const keys = AWAKENED_HERITAGE_CHOICES[heritage] ?? ['claw', 'jaws']
-        const source = build.heritage ? `${build.heritage} (Awakened Animal)` : 'Awakened Animal'
+        const known = CHARACTER_ANIMALS[(build.name || '').trim().toLowerCase()]
+        const keys = known?.attacks ?? AWAKENED_HERITAGE_CHOICES[heritage] ?? ['claw', 'jaws']
+        const source = known?.animal
+            ?? (build.heritage ? `${build.heritage} (Awakened Animal)` : 'Awakened Animal')
+        const note = known
+            ? `${known.animal}: ataque animal à escolha do personagem — a ficha não registra qual foi.`
+            : 'Ataque animal à escolha do personagem — a ficha não registra qual foi.'
         for (const key of keys) {
-            grants.push({
-                base: ANIMAL_ATTACKS[key],
-                source,
-                note: 'Ataque animal à escolha do personagem — a ficha não registra qual foi.',
-                choice: true,
-            })
+            grants.push({ base: ANIMAL_ATTACKS[key], source, note, choice: true })
         }
     } else {
         grants.push({ base: ANIMAL_ATTACKS.fist, source: 'Todo personagem' })
