@@ -1,4 +1,4 @@
-import { Box, Card, CardContent, Typography, Stack, Divider, Chip, useTheme } from '@mui/material'
+import { Box, Card, CardContent, Typography, Stack, Chip, useTheme } from '@mui/material'
 import { MenuBook as GuideIcon } from '@mui/icons-material'
 import type { BuildInfo } from '../../character-sheet/types'
 import { abilityMod, signed, ABILITY_LABELS, totalHp, isMythicCharacter, MYTHIC_PROFICIENCY_BONUS, MYTHIC_COLOR, type AbilityKey } from '../helpers'
@@ -76,7 +76,16 @@ export const OverviewSection = ({ build, mods }: Props) => {
             <Card>
                 <CardContent>
                     <SectionTitle>Salvaguardas</SectionTitle>
-                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} divider={<Divider flexItem orientation="vertical" />}>
+                    {/* Grade em vez de Stack: no celular o Stack virava coluna
+                        e o divisor vertical ficava atravessado. Três colunas
+                        cabem mesmo em 320px — são três números curtos. */}
+                    <Box
+                        sx={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(3, 1fr)',
+                            '& > * + *': { borderLeft: '1px solid', borderColor: 'divider' },
+                        }}
+                    >
                         {saves.map((s) => {
                             const mod = abilityMod(build.abilities[s.ability])
                             const delta = mods.total[s.target]
@@ -84,7 +93,7 @@ export const OverviewSection = ({ build, mods }: Props) => {
                             const total = base + delta
                             const mythicTotal = build.level + MYTHIC_PROFICIENCY_BONUS + mod + delta
                             return (
-                                <Box key={s.label} sx={{ flex: 1, textAlign: 'center', py: { xs: 0.5, sm: 0 } }}>
+                                <Box key={s.label} sx={{ textAlign: 'center', px: 0.5, py: { xs: 0.5, sm: 0 } }}>
                                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                                         {s.label}
                                     </Typography>
@@ -100,7 +109,7 @@ export const OverviewSection = ({ build, mods }: Props) => {
                                 </Box>
                             )
                         })}
-                    </Stack>
+                    </Box>
                     {mythic && (
                         <Typography variant="caption" sx={{ display: 'block', mt: 1, color: MYTHIC_COLOR, fontWeight: 600, textAlign: 'center' }}>
                             ✦ valor com proficiência mítica (nível + 10) — ao gastar um Ponto Mítico
