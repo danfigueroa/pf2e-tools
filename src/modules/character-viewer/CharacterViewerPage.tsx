@@ -121,7 +121,9 @@ const SECTIONS: SectionDef[] = [
 
 export const CharacterViewerPage = () => {
     const theme = useTheme()
-    const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+    // Acordeão só no celular. Do tablet para cima as abas roláveis cabem e
+    // poupam a rolagem vertical enorme que 8 seções empilhadas produzem.
+    const isPhone = useMediaQuery(theme.breakpoints.down('sm'))
 
     const [build, setBuild] = useState<BuildInfo | null>(null)
     const [error, setError] = useState<string | null>(null)
@@ -207,7 +209,7 @@ export const CharacterViewerPage = () => {
                 </Alert>
             )}
 
-            {isMobile ? (
+            {isPhone ? (
                 <Box>
                     {visibleSections.map((s) => (
                         <Accordion
@@ -253,6 +255,7 @@ export const CharacterViewerPage = () => {
                         onChange={(_, v) => setActiveTab(v)}
                         variant="scrollable"
                         scrollButtons="auto"
+                        allowScrollButtonsMobile
                         sx={{
                             backgroundColor: green.main,
                             borderRadius: 1,
@@ -264,7 +267,12 @@ export const CharacterViewerPage = () => {
                                 color: 'rgba(237, 227, 204, 0.75)',
                                 '&.Mui-selected': { color: gold.bright },
                             },
-                            '& .MuiTabs-scrollButtons': { color: parchment.page },
+                            '& .MuiTabs-scrollButtons': {
+                                color: parchment.page,
+                                // No tablet a faixa rola, mas sem seta ninguém
+                                // descobre que há aba depois de "Magias".
+                                '&.Mui-disabled': { opacity: 0.3 },
+                            },
                         }}
                     >
                         {visibleSections.map((s) => (
@@ -273,7 +281,14 @@ export const CharacterViewerPage = () => {
                                 label={s.label}
                                 icon={s.icon}
                                 iconPosition="start"
-                                sx={{ minHeight: 48 }}
+                                sx={{
+                                    minHeight: 48,
+                                    // Tablet: só o rótulo, senão sobram duas
+                                    // abas visíveis e o resto vira rolagem.
+                                    '& > .MuiTab-iconWrapper': {
+                                        display: { xs: 'none', md: 'inline-flex' },
+                                    },
+                                }}
                             />
                         ))}
                     </Tabs>
