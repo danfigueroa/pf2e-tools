@@ -87,7 +87,9 @@ const FeatRow = ({ name, level, onClick }: { name: string; level: number; onClic
         }}
     >
         <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flex: 1, minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {/* Cortar com reticências escondia justamente o fim do nome do
+                talento no celular; melhor deixar quebrar em duas linhas. */}
+            <Typography sx={{ fontWeight: 500, minWidth: 0 }}>
                 {name}
             </Typography>
             <Chip label={`Nv ${level}`} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.7rem', flexShrink: 0 }} />
