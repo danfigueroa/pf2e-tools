@@ -215,8 +215,13 @@ async function callGroq(prompt, apiKey, { model = 'llama-3.3-70b-versatile', max
 
   if (!response.ok) {
     const transient = response.status === 429 || response.status >= 500
+    // 400/404 = modelo inválido ou descontinuado. NÃO é transitório (esperar não
+    // ajuda), mas também não pode abortar a cadeia: o próximo modelo da lista
+    // pode estar ativo. Foi exatamente isso que travou tudo em inglês quando o
+    // Groq aposentou o llama-3.3-70b-versatile.
+    const badModel = response.status === 400 || response.status === 404
     const retryAfter = Number(response.headers.get('retry-after')) || 0
-    throw Object.assign(new Error(`Groq ${response.status} (${model})`), { transient, status: response.status, retryAfter })
+    throw Object.assign(new Error(`Groq ${response.status} (${model})`), { transient, badModel, status: response.status, retryAfter })
   }
 
   const data = await response.json()
@@ -224,27 +229,34 @@ async function callGroq(prompt, apiKey, { model = 'llama-3.3-70b-versatile', max
 }
 
 // Traduz texto para português usando Groq. Tenta o modelo principal 2x e cai
-// para o llama-3.1-8b-instant (rate limit separado e bem maior — suficiente
-// para tradução) antes de desistir e devolver o texto original.
-const TRANSLATION_MODELS = ['llama-3.3-70b-versatile', 'llama-3.3-70b-versatile', 'llama-3.1-8b-instant']
+// para o gpt-oss-20b (mais rápido e com rate limit separado) antes de desistir.
+// ATENÇÃO: o Groq aposenta modelos sem aviso — quando TODOS os modelos desta
+// lista devolvem 404, nada é traduzido e a ficha inteira volta em inglês.
+// Confira em https://console.groq.com/docs/models ou GET /openai/v1/models.
+const TRANSLATION_MODELS = ['openai/gpt-oss-120b', 'openai/gpt-oss-120b', 'openai/gpt-oss-20b']
 
-export async function translateToPortuguese(text, apiKey) {
-  if (!text || !apiKey) return text
-
-  const prompt = `Traduza para português brasileiro o seguinte texto de RPG Pathfinder 2e. Mantenha termos técnicos em inglês quando apropriado (como "flat-footed", "flanking"). Retorne APENAS a tradução, sem explicações:\n\n${text}`
-
+// Executa um prompt de tradução percorrendo a cadeia de modelos. `validate`
+// rejeita respostas suspeitas (truncamento, marcadores perdidos) e força o
+// próximo modelo. Devolve null quando todas as tentativas falham — quem chama
+// decide o fallback (normalmente: manter o inglês e marcar translationPending).
+async function runTranslationPrompt(prompt, apiKey, { maxTokens = 4096, validate } = {}) {
   for (let i = 0; i < TRANSLATION_MODELS.length; i++) {
     const isLast = i === TRANSLATION_MODELS.length - 1
     try {
-      const raw = await scheduleGroqCall(() => callGroq(prompt, apiKey, { model: TRANSLATION_MODELS[i] }))
+      const raw = await scheduleGroqCall(() => callGroq(prompt, apiKey, { model: TRANSLATION_MODELS[i], maxTokens }))
       if (!raw) throw Object.assign(new Error('Resposta vazia'), { transient: true })
-      const translated = cleanTranslation(raw)
-      // Validação básica — se devolver muito menos que o original é provável que
-      // tenha sido truncado/erro de tradução. Retentar antes de cair no original.
-      if (translated.length < text.length * 0.3 && !isLast) continue
-      return translated
+      const cleaned = cleanTranslation(raw)
+      if (validate && !validate(cleaned) && !isLast) continue
+      return cleaned
     } catch (error) {
-      if (error?.transient && !isLast) {
+      if ((error?.transient || error?.badModel) && !isLast) {
+        if (error.badModel) {
+          console.error(`Modelo indisponível no Groq: ${TRANSLATION_MODELS[i]} — tentando o próximo`)
+          // Pula as repetições do mesmo modelo (a lista repete o principal só
+          // para dar uma 2ª chance a falhas transitórias, não a um 404).
+          while (i + 1 < TRANSLATION_MODELS.length && TRANSLATION_MODELS[i + 1] === TRANSLATION_MODELS[i]) i++
+          continue
+        }
         // 429: respeita o retry-after do Groq (com teto para não estourar o
         // timeout serverless); demais falhas transitórias esperam pouco.
         const waitMs = error?.status === 429
@@ -254,10 +266,91 @@ export async function translateToPortuguese(text, apiKey) {
         continue
       }
       console.error('Translation error:', error?.message || error)
-      return text
+      return null
     }
   }
-  return text
+  return null
+}
+
+const TRANSLATION_PREAMBLE = 'Traduza para português brasileiro o texto de RPG Pathfinder 2e abaixo. Traduza TODA a prosa, inclusive graus de proficiência (trained → treinado, expert → perito, master → mestre, legendary → lendário) e vocabulário comum ("skill" → "perícia", "check" → "teste", "damage" → "dano"). Mantenha em inglês APENAS os nomes próprios (de magias, talentos, criaturas e livros) e os nomes de ações e condições do sistema: Strike, Stride, Step, Seek, Interact, Escape, Grapple, Demoralize, flat-footed, off-guard, flanking, grabbed, prone, frightened.'
+
+export async function translateToPortuguese(text, apiKey) {
+  if (!text || !apiKey) return text
+
+  const prompt = `${TRANSLATION_PREAMBLE} Retorne APENAS a tradução, sem explicações:\n\n${text}`
+  // Validação básica — se devolver muito menos que o original é provável que
+  // tenha sido truncado/erro de tradução. Retentar antes de cair no original.
+  const out = await runTranslationPrompt(prompt, apiKey, {
+    validate: t => t.length >= text.length * 0.3,
+  })
+  return out || text
+}
+
+// Traduz VÁRIOS trechos numa única chamada ao Groq, usando marcadores <<N>>.
+// Uma chamada por item (em vez de uma por campo) é o que mantém uma ficha
+// inteira dentro do rate limit do tier gratuito.
+//
+// Devolve um array do mesmo tamanho da entrada: a tradução de cada trecho ou
+// `null` quando o marcador não voltou / veio curto demais. Nunca devolve
+// tradução parcial de um trecho — na dúvida, null e o chamador mantém o EN.
+export async function translateSegments(segments, apiKey) {
+  const out = segments.map(() => null)
+  if (!apiKey) return out
+
+  const present = segments
+    .map((s, i) => ({ i, en: String(s || '').trim() }))
+    .filter(x => x.en.length > 0)
+  if (present.length === 0) return out
+
+  if (present.length === 1) {
+    const { i, en } = present[0]
+    const translated = await translateToPortuguese(en, apiKey)
+    if (translated && translated !== en && translated.trim().length >= en.length * 0.4) {
+      out[i] = translated.trim()
+    }
+    return out
+  }
+
+  const body = present.map((x, n) => `<<${n + 1}>>\n${x.en}`).join('\n\n')
+  const prompt = `${TRANSLATION_PREAMBLE} O conteúdo está dividido em ${present.length} segmentos; cada um começa com um marcador <<N>> em linha própria. Devolva os ${present.length} segmentos na MESMA ordem, cada um precedido pelo seu marcador <<N>> idêntico, sem comentários ou explicações:\n\n${body}`
+
+  const raw = await runTranslationPrompt(prompt, apiKey, {
+    maxTokens: 8192,
+    validate: t => countMarkers(t, present.length) === present.length,
+  })
+  if (!raw) return out
+
+  const parts = splitMarkers(raw, present.length)
+  present.forEach((x, n) => {
+    const t = parts[n]
+    if (t && t.length >= x.en.length * 0.4) out[x.i] = t
+  })
+  return out
+}
+
+function markerHits(text, count) {
+  const re = /<<\s*(\d+)\s*>>/g
+  const hits = []
+  let m
+  while ((m = re.exec(text)) !== null) {
+    const n = Number(m[1])
+    if (n >= 1 && n <= count) hits.push({ n, end: re.lastIndex, start: m.index })
+  }
+  return hits
+}
+
+function countMarkers(text, count) {
+  return new Set(markerHits(text, count).map(h => h.n)).size
+}
+
+function splitMarkers(text, count) {
+  const parts = new Array(count).fill(null)
+  const hits = markerHits(text, count)
+  hits.forEach((h, idx) => {
+    const stop = idx + 1 < hits.length ? hits[idx + 1].start : text.length
+    parts[h.n - 1] = text.slice(h.end, stop).trim()
+  })
+  return parts
 }
 
 // Gera descrição via Groq quando o item não é encontrado no AON

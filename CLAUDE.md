@@ -30,11 +30,27 @@ Sempre valide mudanças não triviais com `npm run build` (roda `tsc -b`) e `npm
 Dois modos servindo os mesmos endpoints de consulta à AON:
 - `api/*.js` — funções serverless (deploy Vercel).
 - `server/index.mjs` — mesmo backend para dev local.
-- Núcleo compartilhado: `api/_lib/aon.js` (scraping com cheerio + tradução via Groq).
+- Núcleo compartilhado: `api/_lib/` — `aon.js` (busca no Elasticsearch da AON + tradução via Groq),
+  `aon-parse.js` (escolha do hit remaster-aware e split do texto), `spells-core.js` (magias),
+  `feat-core.js` (talentos, features de classe, heritages, ações, itens).
 - Requer `GROQ_API_KEY` no `.env` (tradução das descrições da AON).
 - Endpoints: `feat`, `search`, `spell`, `companion`, `health`, `clear-cache`, mais as variantes
   plurais (`feats`, `searches`, `spells`, `companions`) para busca em lote. Cliente no frontend:
   `src/services/descriptions.ts` (com cache).
+
+### Tradução (o ponto que mais quebra)
+
+- **Modelos do Groq são aposentados sem aviso.** A lista fica em `TRANSLATION_MODELS`
+  (`api/_lib/aon.js`); se todos derem 404, *toda* a ficha volta em inglês. Confira com
+  `GET https://api.groq.com/openai/v1/models`. Erros 400/404 pulam para o próximo modelo, 429
+  respeita o `retry-after`.
+- **Nada de cachear inglês.** Quando a tradução falha, o payload volta com `translationPending: true`
+  e ninguém cacheia (nem o cache em memória do backend, nem o `localStorage` do cliente) — a próxima
+  consulta retraduz e o drawer troca o texto sozinho. Ao mexer no cache, bump da `CACHE_VERSION`
+  em `src/services/descriptions.ts` (e `DESC_CACHE_VERSION` no módulo de PDF).
+- Metadados em prosa (pré-requisitos, gatilho, requisitos…) são traduzidos junto com a descrição
+  numa **única** chamada, via marcadores `<<N>>` (`translateSegments`). Uma chamada por item é o que
+  mantém uma ficha inteira dentro do rate limit do tier gratuito.
 
 ## Convenções
 

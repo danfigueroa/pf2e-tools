@@ -30,7 +30,9 @@ interface LoadingState {
 }
 
 // Cache localStorage para evitar re-buscar descrições já traduzidas
-const DESC_CACHE_VERSION = 'v1'
+// v2: descarta as descrições em inglês que a v1 gravou permanentemente quando
+// a tradução falhava (ver translationPending abaixo).
+const DESC_CACHE_VERSION = 'v2'
 function descCacheKey(type: 'feat' | 'spell' | 'special', name: string) {
     return `pf2e:${DESC_CACHE_VERSION}:${type}:${name}`
 }
@@ -137,11 +139,13 @@ export const CharacterSheetPage = () => {
                 signal: abortRef.current?.signal,
             })
             if (r.ok) {
-                const data: Record<string, { name: string; description: string | null }> = await r.json()
+                const data: Record<string, { name: string; description: string | null; translationPending?: boolean }> = await r.json()
                 Object.entries(data).forEach(([key, val]) => {
                     if (isValidDescription(val?.description)) {
                         copy.featDescriptions![key] = val.description!
-                        saveDescCache('feat', key, val.description!)
+                        // translationPending = veio em inglês por falha transitória
+                        // do tradutor; usa neste PDF mas não fixa no cache.
+                        if (!val.translationPending) saveDescCache('feat', key, val.description!)
                     }
                 })
             }
@@ -193,11 +197,13 @@ export const CharacterSheetPage = () => {
                 signal: abortRef.current?.signal,
             })
             if (r.ok) {
-                const data: Record<string, { name: string; description: string | null }> = await r.json()
+                const data: Record<string, { name: string; description: string | null; translationPending?: boolean }> = await r.json()
                 Object.entries(data).forEach(([key, val]) => {
                     if (isValidDescription(val?.description)) {
                         copy.specialDescriptions![key] = val.description!
-                        saveDescCache('special', key, val.description!)
+                        // translationPending = veio em inglês por falha transitória
+                        // do tradutor; usa neste PDF mas não fixa no cache.
+                        if (!val.translationPending) saveDescCache('special', key, val.description!)
                     }
                 })
             }

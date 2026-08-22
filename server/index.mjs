@@ -3,12 +3,11 @@ import http from 'node:http'
 import https from 'node:https'
 import { URL } from 'node:url'
 import { resolveSpell } from '../api/_lib/spells-core.js'
+import { resolveFeat, resolveSpecial } from '../api/_lib/feat-core.js'
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3001
 const GROQ_API_KEY = process.env.GROQ_API_KEY || ''
 const CACHE = new Map()
-const TRANSLATION_CACHE = new Map()
-const FAILED_TRANSLATIONS = new Set() // Marca textos que falharam para não tentar novamente
 
 // ============================================================================
 // SISTEMA DE TRADUÇÃO ROBUSTO
@@ -70,48 +69,6 @@ function fetchGroq(prompt, temperature = 0.1) {
   })
 }
 
-// Controle de rate limiting com backoff exponencial
-let lastTranslationTime = 0
-let consecutiveErrors = 0
-const BASE_DELAY_MS = 8000 // 8 segundos base entre traduções
-
-async function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
-
-// Detecta se o texto tem caracteres corrompidos ou estranhos
-function hasCorruptedCharacters(text) {
-  if (!text) return true
-  
-  // Padrões de corrupção comuns:
-  // 1. Sequências de caracteres Unicode estranhos repetidos (ỹỹỹ, etc.)
-  // 2. Muitos caracteres especiais seguidos
-  // 3. Texto com espaçamento muito estranho (letra por letra)
-  
-  const patterns = [
-    /[\u1EF9\u1EF8]{2,}/g,        // ỹ repetido
-    /[ãáàâéêíóôõúç]{5,}/gi,       // Muitos acentos seguidos (improvável em PT)
-    /(\w)\s+(\w)\s+(\w)\s+(\w)\s+(\w)\s+(\w)/g, // Letras separadas por espaços
-    /[^\x00-\x7F\u00C0-\u024F\u1E00-\u1EFF]{3,}/g, // Muitos caracteres não-latinos
-    /(.)\1{4,}/g,                  // Qualquer caractere repetido 5+ vezes
-  ]
-  
-  for (const pattern of patterns) {
-    if (pattern.test(text)) {
-      return true
-    }
-  }
-  
-  // Verifica proporção de caracteres estranhos
-  const strangeChars = (text.match(/[^\x00-\x7F\u00C0-\u024F]/g) || []).length
-  const ratio = strangeChars / text.length
-  if (ratio > 0.15) { // Mais de 15% de caracteres estranhos
-    return true
-  }
-  
-  return false
-}
-
 // Limpa o texto traduzido de problemas comuns
 function cleanTranslation(text) {
   if (!text) return ''
@@ -155,127 +112,6 @@ function cleanTranslation(text) {
   cleaned = cleaned.replace(/\s{2,}/g, ' ')
   
   return cleaned.trim()
-}
-
-// Verifica se a tradução é válida
-function isValidTranslation(original, translated) {
-  if (!translated || translated.length < 10) return false
-  
-  // Deve ter pelo menos 25% do tamanho original
-  if (translated.length < original.length * 0.25) return false
-  
-  // Não deve ter caracteres corrompidos
-  if (hasCorruptedCharacters(translated)) return false
-  
-  // Não deve ser idêntica ao original (não foi traduzida)
-  if (translated === original) return false
-  
-  // Deve conter algumas palavras em português comuns
-  const ptWords = /\b(você|que|para|com|uma?|seu|sua|pode|não|este|esta|como|fazer|quando|então|mais|também|sobre|entre|cada|mesmo|essa?|pelo|pela|aos?|nas?|nos?|dos?|das?)\b/i
-  if (!ptWords.test(translated)) {
-    // Se não tem palavras PT, verifica se pelo menos parte foi traduzida
-    const englishRatio = (translated.match(/\b(you|the|and|that|with|for|are|this|from|have|your|can|will|when|make|each|any)\b/gi) || []).length
-    const words = translated.split(/\s+/).length
-    if (englishRatio / words > 0.3) { // Mais de 30% em inglês
-      return false
-    }
-  }
-  
-  return true
-}
-
-// Gera o prompt de tradução — consistente com api/_lib/aon.js
-function getTranslationPrompt(text) {
-  return `Traduza para português brasileiro o seguinte texto de RPG Pathfinder 2e. Mantenha termos técnicos em inglês quando apropriado (como "flat-footed", "flanking", "prone", "grabbed", "immobilized"). Retorne APENAS a tradução, sem explicações:\n\n${text}`
-}
-
-// Função principal de tradução com sistema robusto
-async function translateToPortuguese(text, itemType = 'item') {
-  if (!text || text.length < 5) return text
-  if (!GROQ_API_KEY) {
-    console.log('[translate] Sem GROQ_API_KEY, retornando texto original')
-    return text
-  }
-  
-  // Verifica cache
-  const cacheKey = `${itemType}:${text.substring(0, 300)}`
-  if (TRANSLATION_CACHE.has(cacheKey)) {
-    return TRANSLATION_CACHE.get(cacheKey)
-  }
-  
-  // Se já falhou antes, não tenta novamente nesta sessão
-  if (FAILED_TRANSLATIONS.has(cacheKey)) {
-    console.log('[translate] Pulando tradução que já falhou anteriormente')
-    return text
-  }
-  
-  // Calcula delay com backoff exponencial baseado em erros consecutivos
-  const backoffMultiplier = Math.min(Math.pow(1.5, consecutiveErrors), 4) // Max 4x
-  const currentDelay = BASE_DELAY_MS * backoffMultiplier
-  
-  // Rate limiting: espera se necessário
-  const now = Date.now()
-  const timeSinceLastTranslation = now - lastTranslationTime
-  if (timeSinceLastTranslation < currentDelay) {
-    await delay(currentDelay - timeSinceLastTranslation)
-  }
-  lastTranslationTime = Date.now()
-  
-  const prompt = getTranslationPrompt(text)
-  const maxRetries = 3
-  
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      console.log(`[translate] Tentativa ${attempt}/${maxRetries} para "${text.substring(0, 40)}..."`)
-      
-      // Usa temperatura mais baixa em retries para respostas mais consistentes
-      const temperature = attempt === 1 ? 0.1 : 0.05
-      let translated = await fetchGroq(prompt, temperature)
-      
-      // Limpa a resposta
-      translated = cleanTranslation(translated)
-      
-      // Valida a tradução
-      if (isValidTranslation(text, translated)) {
-        TRANSLATION_CACHE.set(cacheKey, translated)
-        consecutiveErrors = 0 // Reset contador de erros
-        console.log(`[translate] ✓ OK: "${translated.substring(0, 60)}..."`)
-        return translated
-      }
-      
-      // Tradução inválida
-      console.log(`[translate] ✗ Tradução inválida na tentativa ${attempt}`)
-      if (hasCorruptedCharacters(translated)) {
-        console.log(`[translate]   Motivo: caracteres corrompidos detectados`)
-      }
-      
-      // Espera antes do próximo retry
-      if (attempt < maxRetries) {
-        const retryDelay = 3000 * attempt // 3s, 6s, 9s
-        console.log(`[translate] Aguardando ${retryDelay/1000}s antes do retry...`)
-        await delay(retryDelay)
-      }
-      
-    } catch (e) {
-      console.error(`[translate] Erro na tentativa ${attempt}:`, e.message)
-      consecutiveErrors++
-      
-      // Se é rate limit, espera mais
-      if (e.message?.includes('Rate limit')) {
-        const waitTime = 15000 * attempt // 15s, 30s, 45s
-        console.log(`[translate] Rate limit - aguardando ${waitTime/1000}s...`)
-        await delay(waitTime)
-        lastTranslationTime = Date.now()
-      } else if (attempt < maxRetries) {
-        await delay(2000 * attempt)
-      }
-    }
-  }
-  
-  // Todas as tentativas falharam
-  console.log(`[translate] ✗ Falha total após ${maxRetries} tentativas, marcando para não tentar novamente`)
-  FAILED_TRANSLATIONS.add(cacheKey)
-  return null // Retorna null para indicar falha (melhor que retornar texto potencialmente corrompido)
 }
 
 // Gera descrição via Groq quando o item não é encontrado no AON
@@ -486,69 +322,18 @@ async function searchAon(name, category = null) {
   }
 }
 
-// Busca descrição de feat
-async function scrapeFeatDescription(featName) {
-  console.log(`[scrapeFeat] Buscando: ${featName}`)
+// Talentos e habilidades especiais: mesma resolução do serverless
+// (api/_lib/feat-core.js). Aqui só entra o cache em memória do dev server —
+// payloads com translationPending (ex.: 429 do Groq) NÃO são cacheados, para
+// que a próxima consulta retraduza em vez de fixar o inglês.
+async function resolveEntryCached(name, kind) {
+  const cacheKey = `${kind}:${name}`
+  if (CACHE.has(cacheKey)) return CACHE.get(cacheKey)
 
-  // Tenta categorias em ordem; prefere match exato. Heritages como
-  // "Running Animal" e features de classe vivem em outras categorias no AON.
-  let bestResult = null
-  for (const cat of ['feat', 'heritage', 'ancestry-feature', 'class-feature']) {
-    const result = await searchAon(featName, cat)
-    if (result?.description) {
-      if (result.name?.toLowerCase() === featName.toLowerCase()) {
-        bestResult = result
-        break
-      }
-      if (!bestResult) bestResult = result
-    }
-  }
-
-  if (bestResult?.description) {
-    console.log(`[scrapeFeat] Encontrado: ${bestResult.name}`)
-    const translated = await translateToPortuguese(bestResult.description)
-    return translated || bestResult.description
-  }
-
-  console.log(`[scrapeFeat] Não encontrado no AON, usando fallback Groq: ${featName}`)
-  return await generateFallbackDescription(featName, 'feat')
-}
-
-// Busca descrição genérica (habilidades, ancestries, etc.)
-async function scrapeGenericDescription(name) {
-  console.log(`[scrapeGeneric] Buscando: ${name}`)
-
-  // Limpa o nome: remove "(imprecise) 30 feet" e similares
-  const cleanedName = name
-    .replace(/\s*\([^)]*\)\s*/g, ' ')
-    .replace(/\d+\s*feet?/gi, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-
-  // Busca em cascata por categoria
-  const categoriesToTry = ['class-feature', 'feat', 'action', null]
-  let bestResult = null
-
-  for (const cat of categoriesToTry) {
-    const result = await searchAon(cleanedName, cat)
-    if (result?.description) {
-      // Prefere match exato de nome
-      if (result.name?.toLowerCase() === cleanedName.toLowerCase()) {
-        bestResult = result
-        break
-      }
-      if (!bestResult) bestResult = result
-    }
-  }
-
-  if (bestResult?.description) {
-    console.log(`[scrapeGeneric] Encontrado "${bestResult.name}": ${bestResult.description.substring(0, 60)}...`)
-    const translated = await translateToPortuguese(bestResult.description)
-    return translated || bestResult.description
-  }
-
-  console.log(`[scrapeGeneric] Não encontrado no AON, usando fallback Groq: ${name}`)
-  return await generateFallbackDescription(cleanedName, 'special')
+  const resolver = kind === 'feat' ? resolveFeat : resolveSpecial
+  const entry = await resolver(name, GROQ_API_KEY)
+  if (entry && !entry.translationPending) CACHE.set(cacheKey, entry)
+  return entry
 }
 
 // Busca descrição detalhada de magia
@@ -683,9 +468,7 @@ const server = http.createServer(async (req, res) => {
     res.end(JSON.stringify({ 
       status: 'ok', 
       hasApiKey: !!GROQ_API_KEY,
-      cacheSize: CACHE.size,
-      translationCacheSize: TRANSLATION_CACHE.size,
-      failedTranslations: FAILED_TRANSLATIONS.size
+      cacheSize: CACHE.size
     }))
     return
   }
@@ -693,8 +476,6 @@ const server = http.createServer(async (req, res) => {
   // Limpa cache
   if (pathname === '/api/clear-cache' && req.method === 'POST') {
     CACHE.clear()
-    TRANSLATION_CACHE.clear()
-    FAILED_TRANSLATIONS.clear()
     res.writeHead(200, { 'Content-Type': 'application/json' })
     res.end(JSON.stringify({ status: 'ok', message: 'Cache limpo' }))
     return
@@ -710,9 +491,9 @@ const server = http.createServer(async (req, res) => {
     }
     
     try {
-      const description = await scrapeFeatDescription(name)
+      const feat = await resolveEntryCached(name, 'feat')
       res.writeHead(200, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify({ name, description }))
+      res.end(JSON.stringify(feat || { name, description: null }))
     } catch (e) {
       console.error('[/api/feat] Error:', e)
       res.writeHead(500, { 'Content-Type': 'application/json' })
@@ -731,9 +512,9 @@ const server = http.createServer(async (req, res) => {
     }
     
     try {
-      const description = await scrapeGenericDescription(name)
+      const entry = await resolveEntryCached(name, 'special')
       res.writeHead(200, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify({ name, description }))
+      res.end(JSON.stringify(entry || { name, description: null }))
     } catch (e) {
       console.error('[/api/search] Error:', e)
       res.writeHead(500, { 'Content-Type': 'application/json' })
@@ -829,10 +610,9 @@ const server = http.createServer(async (req, res) => {
       for (let i = 0; i < names.length; i += CONCURRENCY) {
         const chunk = names.slice(i, i + CONCURRENCY)
         const resolved = await Promise.all(chunk.map(async n => {
-          const description = await scrapeFeatDescription(n)
-          return { name: n, description }
+          return (await resolveEntryCached(n, 'feat')) || { name: n, description: null }
         }))
-        resolved.forEach(r => { results[r.name] = { name: r.name, description: r.description } })
+        resolved.forEach((r, idx) => { results[chunk[idx]] = r })
       }
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify(results))
@@ -859,10 +639,9 @@ const server = http.createServer(async (req, res) => {
       for (let i = 0; i < names.length; i += CONCURRENCY) {
         const chunk = names.slice(i, i + CONCURRENCY)
         const resolved = await Promise.all(chunk.map(async n => {
-          const description = await scrapeGenericDescription(n)
-          return { name: n, description }
+          return (await resolveEntryCached(n, 'special')) || { name: n, description: null }
         }))
-        resolved.forEach(r => { results[r.name] = { name: r.name, description: r.description } })
+        resolved.forEach((r, idx) => { results[chunk[idx]] = r })
       }
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify(results))

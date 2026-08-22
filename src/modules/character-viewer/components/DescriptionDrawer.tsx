@@ -19,7 +19,7 @@ import {
     fetchSpellDescription,
     fetchItemDescription,
 } from '../../../services/descriptions'
-import type { SpellDescription } from '../../character-sheet/types'
+import type { FeatDescription, SpellDescription } from '../../character-sheet/types'
 import { actionSymbol, getAonSearchUrl, signed, traditionColor } from '../helpers'
 import { parseDescription, type DescriptionPart, type HeightenedEntry } from '../format-description'
 import {
@@ -57,7 +57,7 @@ interface Props {
 
 interface State {
     loading: boolean
-    text?: string
+    entry?: FeatDescription   // talento / habilidade / item
     spell?: SpellDescription
 }
 
@@ -85,16 +85,32 @@ export const DescriptionDrawer = ({ request, onClose }: Props) => {
         let cancelled = false
         setState({ loading: true })
 
+        // Tradução pendente (falha transitória, ex. rate limit do Groq): o
+        // resultado EN não foi cacheado — retentar em alguns segundos e trocar
+        // pela versão traduzida sem o usuário fazer nada.
+        const retryIfPending = async <T extends { translationPending?: boolean }>(
+            first: T | null,
+            refetch: () => Promise<T | null>,
+            apply: (value: T) => void,
+        ) => {
+            if (!first?.translationPending) return
+            await new Promise((r) => setTimeout(r, 6000))
+            if (cancelled) return
+            const retry = await refetch()
+            if (!cancelled && retry && !retry.translationPending) apply(retry)
+        }
+
         const load = async () => {
-            if (request.type === 'feat') {
-                const text = await fetchFeatDescription(request.name)
-                if (!cancelled) setState({ loading: false, text: text ?? undefined })
-            } else if (request.type === 'special') {
-                const text = await fetchSpecialDescription(request.name)
-                if (!cancelled) setState({ loading: false, text: text ?? undefined })
-            } else if (request.type === 'item') {
-                const text = await fetchItemDescription(request.name)
-                if (!cancelled) setState({ loading: false, text: text ?? undefined })
+            if (request.type === 'feat' || request.type === 'special' || request.type === 'item') {
+                const fetcher =
+                    request.type === 'feat' ? fetchFeatDescription
+                        : request.type === 'special' ? fetchSpecialDescription
+                            : fetchItemDescription
+                const entry = await fetcher(request.name)
+                if (cancelled) return
+                setState({ loading: false, entry: entry ?? undefined })
+                await retryIfPending(entry, () => fetcher(request.name), (v) =>
+                    setState({ loading: false, entry: v }))
             } else if (request.type === 'spell') {
                 if (request.cached) {
                     setState({ loading: false, spell: request.cached })
@@ -103,17 +119,8 @@ export const DescriptionDrawer = ({ request, onClose }: Props) => {
                 const spell = await fetchSpellDescription(request.name)
                 if (cancelled) return
                 setState({ loading: false, spell: spell ?? undefined })
-                // Tradução pendente (falha transitória, ex. rate limit): o
-                // resultado EN não foi cacheado — retentar em alguns segundos
-                // e trocar pela versão traduzida sem o usuário fazer nada.
-                if (spell?.translationPending) {
-                    await new Promise((r) => setTimeout(r, 6000))
-                    if (cancelled) return
-                    const retry = await fetchSpellDescription(request.name)
-                    if (!cancelled && retry && !retry.translationPending) {
-                        setState({ loading: false, spell: retry })
-                    }
-                }
+                await retryIfPending(spell, () => fetchSpellDescription(request.name), (v) =>
+                    setState({ loading: false, spell: v }))
             }
         }
         load()
@@ -131,10 +138,11 @@ export const DescriptionDrawer = ({ request, onClose }: Props) => {
 
     const parsed = useMemo(() => {
         if (!request) return null
-        const raw = state.spell?.description ?? state.text
-        // Magias v9+ chegam com prosa limpa do backend — sem strip heurístico.
-        return parseDescription(raw, request.name, { stripMetadata: request.type !== 'spell' })
-    }, [request, state.text, state.spell])
+        const raw = state.spell?.description ?? state.entry?.description ?? undefined
+        // Tudo chega com prosa limpa do backend (v10+) — sem strip heurístico,
+        // que comia a primeira oração de descrições começando por "Você …".
+        return parseDescription(raw, request.name, { stripMetadata: false })
+    }, [request, state.entry, state.spell])
 
     // Modo "nível-ciente": sabemos o rank conjurado (request.level) e o rank
     // base da magia (spell.level, do AON) — a magia é exibida já elevada.
@@ -221,9 +229,9 @@ export const DescriptionDrawer = ({ request, onClose }: Props) => {
                                 />
                                 <Typography variant="h5" sx={{ fontWeight: 700, lineHeight: 1.2, wordBreak: 'break-word' }}>
                                     {request.name}
-                                    {state.spell?.actions && (
+                                    {(state.spell?.actions || state.entry?.actions) && (
                                         <Box component="span" sx={{ ml: 1, color: accent, fontSize: '0.85em' }}>
-                                            {actionSymbol(state.spell.actions)}
+                                            {actionSymbol(state.spell?.actions || state.entry?.actions)}
                                         </Box>
                                     )}
                                 </Typography>
@@ -234,7 +242,7 @@ export const DescriptionDrawer = ({ request, onClose }: Props) => {
                         </Stack>
 
                         {/* Bloco de fonte */}
-                        {(state.spell?.sourceBook || parsed?.source) && (
+                        {(state.spell?.sourceBook || state.entry?.sourceBook || parsed?.source) && (
                             <Box
                                 sx={{
                                     display: 'flex',
@@ -265,14 +273,14 @@ export const DescriptionDrawer = ({ request, onClose }: Props) => {
                                         FONTE
                                     </Typography>
                                     <Typography variant="body2" sx={{ lineHeight: 1.3, mt: 0.25 }}>
-                                        {state.spell?.sourceBook || parsed?.source}
+                                        {state.spell?.sourceBook || state.entry?.sourceBook || parsed?.source}
                                     </Typography>
                                 </Box>
                             </Box>
                         )}
 
                         {/* Tradução pendente (o effect retenta sozinho em segundos) */}
-                        {request.type === 'spell' && state.spell?.translationPending && (
+                        {(state.spell?.translationPending || state.entry?.translationPending) && (
                             <Typography
                                 variant="caption"
                                 color="text.secondary"
@@ -324,6 +332,11 @@ export const DescriptionDrawer = ({ request, onClose }: Props) => {
                             </Box>
                         )}
 
+                        {/* Metadata de talento / habilidade / item */}
+                        {request.type !== 'spell' && state.entry && (
+                            <EntryMetadata entry={state.entry} accent={accent} />
+                        )}
+
                         {/* Metadata da magia */}
                         {request.type === 'spell' && state.spell && (
                             <SpellMetadata
@@ -373,6 +386,80 @@ export const DescriptionDrawer = ({ request, onClose }: Props) => {
                 </Box>
             )}
         </Drawer>
+    )
+}
+
+// Metadata de talentos/habilidades/itens: traits, nível e os campos em prosa
+// (pré-requisitos, gatilho, requisitos…) que o backend extrai e traduz separado
+// da descrição — antes eles vinham colados no meio do texto ou eram perdidos
+// pelo strip heurístico de metadados.
+const EntryMetadata = ({ entry, accent }: { entry: FeatDescription; accent: string }) => {
+    const rows: [string, string][] = []
+    if (entry.className) rows.push(['Classe', entry.className])
+    if (entry.archetype?.length) rows.push(['Arquétipo', entry.archetype.join(', ')])
+    if (entry.prerequisites) rows.push(['Pré-requisitos', entry.prerequisites])
+    if (entry.frequency) rows.push(['Frequência', entry.frequency])
+    if (entry.trigger) rows.push(['Gatilho', entry.trigger])
+    if (entry.requirements) rows.push(['Requisitos', entry.requirements])
+    if (entry.cost) rows.push(['Custo', entry.cost])
+    if (entry.access) rows.push(['Acesso', entry.access])
+
+    if (rows.length === 0 && !entry.traits?.length && entry.level == null) return null
+
+    return (
+        <Box sx={{ mb: 2.5 }}>
+            {(entry.level != null || (entry.traits && entry.traits.length > 0)) && (
+                <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.5, mb: rows.length > 0 ? 1.5 : 0 }}>
+                    {entry.level != null && (
+                        <Chip
+                            label={`Nível ${entry.level}`}
+                            size="small"
+                            sx={{
+                                backgroundColor: accent + '25',
+                                color: accent,
+                                border: `1px solid ${accent}60`,
+                                fontWeight: 700,
+                                fontSize: '0.7rem',
+                                height: 22,
+                            }}
+                        />
+                    )}
+                    {entry.traits?.map((t) => (
+                        <Chip
+                            key={t}
+                            label={t}
+                            size="small"
+                            sx={{
+                                backgroundColor: 'action.hover',
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                textTransform: 'capitalize',
+                                fontSize: '0.7rem',
+                                height: 22,
+                            }}
+                        />
+                    ))}
+                </Stack>
+            )}
+            {rows.length > 0 && (
+                <Box
+                    sx={{
+                        display: 'grid',
+                        gap: 0.75,
+                        px: 1.5,
+                        py: 1.25,
+                        borderRadius: 1,
+                        border: '1px solid',
+                        borderColor: accent + '40',
+                        backgroundColor: accent + '0a',
+                    }}
+                >
+                    {rows.map(([label, value]) => (
+                        <MetaRow key={label} label={label} value={value} />
+                    ))}
+                </Box>
+            )}
+        </Box>
     )
 }
 

@@ -97,6 +97,27 @@ export interface SpellListByLevel {
   list: string[];
 }
 
+// Talento / habilidade (feature de classe, heritage, ação) vindo da AON já
+// estruturado e traduzido pelo backend (api/_lib/feat-core.js).
+export interface FeatDescription {
+  name: string;
+  level?: number | null;
+  actions?: string;        // "Single Action", "Two Actions", "Reaction", "Free Action"
+  traits?: string[];
+  category?: string;       // 'feat' | 'class-feature' | 'heritage' | 'action' | ...
+  className?: string;      // 'Fighter'
+  archetype?: string[];
+  sourceBook?: string;     // "Player Core, p. 141"
+  prerequisites?: string;
+  trigger?: string;
+  requirements?: string;
+  frequency?: string;
+  access?: string;
+  cost?: string;
+  description: string | null;
+  translationPending?: boolean;  // ficou em EN por falha de tradução — não cachear
+}
+
 export interface SpellDescription {
   name: string;
   level?: number | null;   // rank base da magia no AON (null quando não achada)

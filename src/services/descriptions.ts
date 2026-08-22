@@ -2,9 +2,12 @@
 // Compartilhado entre módulos (PDF e Ficha Virtual). Cada função é uma
 // chamada batch de tamanho 1 — o backend já dedupa e cacheia em memória.
 
-import type { SpellDescription, CompanionStats } from '../modules/character-sheet/types'
+import type { FeatDescription, SpellDescription, CompanionStats } from '../modules/character-sheet/types'
 
-const CACHE_VERSION = 'v9'
+// v10: talentos/habilidades/itens passaram a ser objetos estruturados e param
+// de ser cacheados quando a tradução falha (translationPending). A troca de
+// versão descarta as descrições em inglês que a v9 gravou de forma permanente.
+const CACHE_VERSION = 'v10'
 
 type Kind = 'feat' | 'spell' | 'special' | 'companion' | 'item'
 
@@ -83,30 +86,34 @@ function isValidString(v: unknown): v is string {
     return t.length > 0 && t !== 'null' && t !== 'undefined'
 }
 
-export async function fetchFeatDescription(name: string): Promise<string | null> {
-    const cached = readCache<string>('feat', name)
+// Talentos e habilidades seguem a mesma regra das magias: payload com
+// translationPending ficou em inglês por falha transitória do tradutor — é
+// exibido, mas NÃO vai para o cache, para ser retraduzido na próxima consulta.
+// (Cachear o inglês era o motivo de a ficha ficar presa em inglês para sempre.)
+async function fetchEntry(
+    kind: Extract<Kind, 'feat' | 'special' | 'item'>,
+    endpoint: string,
+    name: string,
+): Promise<FeatDescription | null> {
+    const cached = readCache<FeatDescription>(kind, name, true)
     if (cached) return cached
 
-    const result = await fetchOne<string>('/api/feats', name, (data) => {
-        const item = data[name] as { description?: unknown } | undefined
-        return isValidString(item?.description) ? item!.description as string : null
+    const result = await fetchOne<FeatDescription>(endpoint, name, (data) => {
+        const item = data[name] as FeatDescription | undefined
+        if (!item || !isValidString(item.description)) return null
+        return item
     })
 
-    if (result) writeCache('feat', name, result)
+    if (result && !result.translationPending) writeCache(kind, name, result)
     return result
 }
 
-export async function fetchSpecialDescription(name: string): Promise<string | null> {
-    const cached = readCache<string>('special', name)
-    if (cached) return cached
+export function fetchFeatDescription(name: string) {
+    return fetchEntry('feat', '/api/feats', name)
+}
 
-    const result = await fetchOne<string>('/api/searches', name, (data) => {
-        const item = data[name] as { description?: unknown } | undefined
-        return isValidString(item?.description) ? item!.description as string : null
-    })
-
-    if (result) writeCache('special', name, result)
-    return result
+export function fetchSpecialDescription(name: string) {
+    return fetchEntry('special', '/api/searches', name)
 }
 
 export async function fetchSpellDescription(name: string): Promise<SpellDescription | null> {
@@ -175,17 +182,8 @@ export async function prefetchSpellDescriptions(
     onProgress?.(total - notCached().length, total)
 }
 
-export async function fetchItemDescription(name: string): Promise<string | null> {
-    const cached = readCache<string>('item', name)
-    if (cached) return cached
-
-    const result = await fetchOne<string>('/api/searches', name, (data) => {
-        const item = data[name] as { description?: unknown } | undefined
-        return isValidString(item?.description) ? item!.description as string : null
-    })
-
-    if (result) writeCache('item', name, result)
-    return result
+export function fetchItemDescription(name: string) {
+    return fetchEntry('item', '/api/searches', name)
 }
 
 export async function fetchCompanionStats(name: string): Promise<CompanionStats | null> {
@@ -202,10 +200,10 @@ export async function fetchCompanionStats(name: string): Promise<CompanionStats 
 }
 
 export function getCachedFeat(name: string) {
-    return readCache<string>('feat', name)
+    return readCache<FeatDescription>('feat', name, true)
 }
 export function getCachedSpecial(name: string) {
-    return readCache<string>('special', name)
+    return readCache<FeatDescription>('special', name, true)
 }
 export function getCachedSpell(name: string) {
     return readCache<SpellDescription>('spell', name, true)

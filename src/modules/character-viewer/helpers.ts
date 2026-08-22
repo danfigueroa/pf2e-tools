@@ -47,7 +47,7 @@ export function actionSymbol(actions?: string | number): string {
     if (actions == null) return ''
     // Normaliza: lowercase + remove espaços para casar "Three Actions" e "ThreeActions" igual.
     const s = String(actions).toLowerCase().replace(/\s+/g, '').trim()
-    if (s === '1' || s === 'oneaction' || s === 'one') return '◆'
+    if (s === '1' || s === 'oneaction' || s === 'singleaction' || s === 'one') return '◆'
     if (s === '2' || s === 'twoactions' || s === 'two') return '◆◆'
     if (s === '3' || s === 'threeactions' || s === 'three') return '◆◆◆'
     if (s === 'reaction' || s === 'r') return '⤴'

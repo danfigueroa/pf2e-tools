@@ -1,11 +1,12 @@
 // Resolução de magia única e compartilhada entre as funções serverless
 // (api/spells.js, api/spell.js) e o servidor de dev (server/index.mjs).
-// Busca no AON, parseia a estrutura em EN (spell-parse.js), traduz SÓ a prosa
+// Busca no AON, parseia a estrutura em EN (aon-parse.js), traduz SÓ a prosa
 // com validação anti-truncamento e devolve payload estruturado.
 
 import { searchAon, cleanAonText, translateToPortuguese, generateFallbackDescription } from './aon.js'
 import { translateMetadata } from './metadata-i18n.js'
-import { pickBestSpellHit, parseSpellText, extractDamage, translateDamageType, translateHeightenedText } from './spell-parse.js'
+import { pickBestHit, parseAonText } from './aon-parse.js'
+import { extractDamage, translateDamageType, translateHeightenedText } from './spell-parse.js'
 
 const TRADITION_KEYWORDS = ['arcane', 'divine', 'occult', 'primal']
 
@@ -32,7 +33,7 @@ export async function resolveSpell(name, apiKey) {
   let best = null
   for (const cat of ['spell', 'cantrip', 'focus']) {
     const results = await searchAon(name, cat, 10)
-    const pick = pickBestSpellHit(results, name)
+    const pick = pickBestHit(results, name)
     if (pick && pick._source?.name?.toLowerCase() === String(name).toLowerCase()) { best = pick; break }
     if (!best && pick) best = pick
   }
@@ -43,7 +44,7 @@ export async function resolveSpell(name, apiKey) {
   }
 
   const source = best._source
-  const parsed = parseSpellText(source.text || '')
+  const parsed = parseAonText(source.text || '')
   let proseEN = parsed.proseEN
   if (!proseEN) proseEN = cleanAonText(source.markdown || '')
 
