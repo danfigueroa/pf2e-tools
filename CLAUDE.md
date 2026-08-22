@@ -121,6 +121,21 @@ Source Sans 3 (ambas num único `<link>` no `index.html`).
   (`perDay`), os pips ficam no cabeçalho e a linha ganha botão de gastar. Truques (nível 0) são à
   vontade e **nunca** têm slot, inclusive os inatos. Foco é um contador único (`build.focusPoints`).
   "Novo dia" zera tudo.
+- **Condições** (`conditions.ts` + `components/useConditions.ts` + `ConditionsBar.tsx`): catálogo do
+  Remaster escrito à mão (o Pathbuilder não exporta condição nenhuma), com o efeito mecânico de cada
+  uma declarado em `effects` sobre alvos atômicos (`ac`, `reflex`, `attackStr`, `skillDex`…) e
+  atalhos de grupo (`all`, `dexBased`, `strBased`, `mental`). O cálculo respeita as duas regras que
+  mais confundem: **penalidade do mesmo tipo não empilha** (vale a pior; status e circunstância
+  somam entre si) e **"testes e CDs" inclui a CA** — por isso Amedrontado baixa a CA e Fatigado, que
+  fala só de CA e salvaguardas, não toca em perícias. Condições impostas (Inconsciente → Cego,
+  Desprevenido, Caído) são derivadas em cascata, nunca guardadas: o `localStorage` só tem o que o
+  jogador marcou. A barra fica **fora das abas** (a condição afeta a ficha inteira) e o estado é
+  persistido na mesma chave por personagem do PV (`charKeyFor`).
+- **O que a condição não consegue ajustar sozinha** vira aviso, nunca número errado: o Pathbuilder
+  não registra se uma arma é de Força ou de Destreza, então no total da arma entra só o que penaliza
+  os dois casos (`sharedMod`) e o resto aparece como "FOR −2 · DES −1 a mais". Desarmados sabem o
+  atributo (`usesDex`), então ali o ajuste é exato. Efeitos que não são modificador (ações perdidas
+  por Lento, teste plano do Estupefato) ficam em `note` e saem no painel de detalhes.
 - Descrições da AON são buscadas **sob demanda** ao tocar num item (`DescriptionDrawer` →
   `services/descriptions.ts`); a última ficha fica em `sessionStorage`.
 
