@@ -30,6 +30,10 @@ import { parseCharacterJson, type BuildInfo } from '../character-sheet/types'
 import { UploadCard } from './components/UploadCard'
 import { CharacterHeader } from './components/CharacterHeader'
 import { DescriptionDrawer, type DescriptionRequest } from './components/DescriptionDrawer'
+import { ConditionsBar } from './components/ConditionsBar'
+import { charKeyFor } from './components/useHpTracker'
+import { useConditions } from './components/useConditions'
+import type { ConditionModifiers } from './conditions'
 
 import { OverviewSection } from './sections/OverviewSection'
 import { CombatSection } from './sections/CombatSection'
@@ -42,11 +46,18 @@ import { InventorySection } from './sections/InventorySection'
 
 const SESSION_KEY = 'pf2e:viewer:lastBuild'
 
+/** O que toda seção recebe: a ficha, o abridor do drawer e as condições ativas. */
+export interface SectionContext {
+    build: BuildInfo
+    onSelect: (req: DescriptionRequest) => void
+    mods: ConditionModifiers
+}
+
 interface SectionDef {
     id: string
     label: string
     icon: React.ReactElement
-    render: (build: BuildInfo, onSelect: (req: DescriptionRequest) => void) => React.ReactNode
+    render: (ctx: SectionContext) => React.ReactNode
     visible?: (build: BuildInfo) => boolean
 }
 
@@ -55,38 +66,38 @@ const SECTIONS: SectionDef[] = [
         id: 'overview',
         label: 'Visão Geral',
         icon: <OverviewIcon />,
-        render: (b) => <OverviewSection build={b} />,
+        render: ({ build, mods }) => <OverviewSection build={build} mods={mods} />,
     },
     {
         id: 'combat',
         label: 'Combate',
         icon: <CombatIcon />,
-        render: (b) => <CombatSection build={b} />,
+        render: ({ build, mods }) => <CombatSection build={build} mods={mods} />,
     },
     {
         id: 'skills',
         label: 'Perícias',
         icon: <SkillsIcon />,
-        render: (b) => <SkillsSection build={b} />,
+        render: ({ build, mods }) => <SkillsSection build={build} mods={mods} />,
     },
     {
         id: 'feats',
         label: 'Talentos',
         icon: <FeatsIcon />,
-        render: (b, sel) => <FeatsSection build={b} onSelect={sel} />,
+        render: ({ build, onSelect }) => <FeatsSection build={build} onSelect={onSelect} />,
     },
     {
         id: 'specials',
         label: 'Habilidades',
         icon: <SpecialsIcon />,
-        render: (b, sel) => <SpecialsSection build={b} onSelect={sel} />,
+        render: ({ build, onSelect }) => <SpecialsSection build={build} onSelect={onSelect} />,
         visible: (b) => (b.specials?.length ?? 0) > 0,
     },
     {
         id: 'spells',
         label: 'Magias',
         icon: <SpellsIcon />,
-        render: (b, sel) => <SpellsSection build={b} onSelect={sel} />,
+        render: ({ build, onSelect, mods }) => <SpellsSection build={build} onSelect={onSelect} mods={mods} />,
         visible: (b) => {
             const hasCasters = b.spellCasters?.some(c => c.spells.some(l => l.list.length > 0))
             const hasFocus = !!b.focus && Object.keys(b.focus).length > 0
@@ -97,14 +108,14 @@ const SECTIONS: SectionDef[] = [
         id: 'pets',
         label: 'Companheiros',
         icon: <PetsIcon />,
-        render: (b) => <PetsSection build={b} />,
+        render: ({ build }) => <PetsSection build={build} />,
         visible: (b) => (b.pets?.length ?? 0) > 0 || (b.familiars?.length ?? 0) > 0,
     },
     {
         id: 'inventory',
         label: 'Inventário',
         icon: <InventoryIcon />,
-        render: (b, sel) => <InventorySection build={b} onSelect={sel} />,
+        render: ({ build, onSelect }) => <InventorySection build={build} onSelect={onSelect} />,
     },
 ]
 
@@ -118,6 +129,10 @@ export const CharacterViewerPage = () => {
     const [expanded, setExpanded] = useState<string | false>('overview')
     const [drawerReq, setDrawerReq] = useState<DescriptionRequest | null>(null)
     const [apiAvailable, setApiAvailable] = useState<boolean | null>(null)
+
+    // Condições ficam fora das abas: afetam a ficha inteira e precisam de um
+    // hook incondicional, então a chave cai num placeholder enquanto não há ficha.
+    const conditions = useConditions(build ? charKeyFor(build) : 'none', build?.level ?? 1)
 
     // Restaurar ficha da sessão ao recarregar
     useEffect(() => {
@@ -177,10 +192,13 @@ export const CharacterViewerPage = () => {
     }
 
     const visibleSections = SECTIONS.filter(s => !s.visible || s.visible(build))
+    const ctx: SectionContext = { build, onSelect: setDrawerReq, mods: conditions.mods }
 
     return (
         <Container maxWidth="lg" disableGutters sx={{ pb: 6 }}>
             <CharacterHeader build={build} onReset={handleReset} />
+
+            <ConditionsBar conditions={conditions} />
 
             {apiAvailable === false && (
                 <Alert severity="warning" sx={{ mb: 2 }}>
@@ -223,7 +241,7 @@ export const CharacterViewerPage = () => {
                                 </Box>
                             </AccordionSummary>
                             <AccordionDetails sx={{ pt: 2 }}>
-                                {s.render(build, setDrawerReq)}
+                                {s.render(ctx)}
                             </AccordionDetails>
                         </Accordion>
                     ))}
@@ -260,7 +278,7 @@ export const CharacterViewerPage = () => {
                         ))}
                     </Tabs>
 
-                    {visibleSections[Math.min(activeTab, visibleSections.length - 1)].render(build, setDrawerReq)}
+                    {visibleSections[Math.min(activeTab, visibleSections.length - 1)].render(ctx)}
                 </Box>
             )}
 

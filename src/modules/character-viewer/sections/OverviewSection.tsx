@@ -5,13 +5,18 @@ import { abilityMod, signed, ABILITY_LABELS, totalHp, isMythicCharacter, MYTHIC_
 import { getCombatGuide } from '../combatGuides'
 import { GuideMarkdown } from '../components/GuideMarkdown'
 import { HpTracker } from '../components/HpTracker'
+import { ConditionDelta } from '../components/ConditionDelta'
+import type { ConditionModifiers } from '../conditions'
 
-interface Props { build: BuildInfo }
+interface Props {
+    build: BuildInfo
+    mods: ConditionModifiers
+}
 
-export const OverviewSection = ({ build }: Props) => {
+export const OverviewSection = ({ build, mods }: Props) => {
     const theme = useTheme()
     const conScore = build.abilities.con
-    const hp = totalHp({
+    const baseHp = totalHp({
         ancestryHp: build.attributes.ancestryhp,
         classHp: build.attributes.classhp,
         bonusHp: build.attributes.bonushp,
@@ -19,15 +24,18 @@ export const OverviewSection = ({ build }: Props) => {
         level: build.level,
         conScore,
     })
+    // Drenado corta PV máximos (valor × nível); nunca abaixo de 1.
+    const hp = Math.max(1, baseHp + mods.hpMaxDelta)
 
-    const ac = build.acTotal?.acTotal ?? 10
-    const perception = signed(build.level + build.proficiencies.perception + abilityMod(build.abilities.wis))
-    const speed = build.attributes.speed + (build.attributes.speedBonus || 0)
+    const baseAc = build.acTotal?.acTotal ?? 10
+    const basePerception = build.level + build.proficiencies.perception + abilityMod(build.abilities.wis)
+    const baseSpeed = build.attributes.speed + (build.attributes.speedBonus || 0)
+    const speed = Math.max(0, baseSpeed + mods.total.speed)
 
     const saves = [
-        { label: 'Fortitude', rank: build.proficiencies.fortitude, ability: 'con' as AbilityKey },
-        { label: 'Reflexos', rank: build.proficiencies.reflex, ability: 'dex' as AbilityKey },
-        { label: 'Vontade', rank: build.proficiencies.will, ability: 'wis' as AbilityKey },
+        { label: 'Fortitude', rank: build.proficiencies.fortitude, ability: 'con' as AbilityKey, target: 'fortitude' as const },
+        { label: 'Reflexos', rank: build.proficiencies.reflex, ability: 'dex' as AbilityKey, target: 'reflex' as const },
+        { label: 'Vontade', rank: build.proficiencies.will, ability: 'wis' as AbilityKey, target: 'will' as const },
     ]
 
     const guide = getCombatGuide(build)
@@ -36,7 +44,7 @@ export const OverviewSection = ({ build }: Props) => {
     return (
         <Stack spacing={2}>
             {/* Pontos de vida (interativo) */}
-            <HpTracker build={build} maxHp={hp} />
+            <HpTracker build={build} maxHp={hp} maxHpDelta={mods.hpMaxDelta} />
 
             {/* Stat tiles */}
             <Box sx={{
@@ -44,9 +52,24 @@ export const OverviewSection = ({ build }: Props) => {
                 gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)' },
                 gap: 1.5,
             }}>
-                <StatTile label="CA" value={ac} accent={theme.palette.primary.main} />
-                <StatTile label="Percepção" value={perception} />
-                <StatTile label="Deslocamento" value={`${speed} pés`} />
+                <StatTile
+                    label="CA"
+                    value={baseAc + mods.total.ac}
+                    accent={theme.palette.primary.main}
+                    delta={mods.total.ac}
+                    base={baseAc}
+                />
+                <StatTile
+                    label="Percepção"
+                    value={signed(basePerception + mods.total.perception)}
+                    delta={mods.total.perception}
+                    base={basePerception}
+                />
+                <StatTile
+                    label="Deslocamento"
+                    value={`${speed} pés`}
+                    delta={mods.total.speed}
+                />
             </Box>
 
             {/* Saves */}
@@ -56,8 +79,10 @@ export const OverviewSection = ({ build }: Props) => {
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} divider={<Divider flexItem orientation="vertical" />}>
                         {saves.map((s) => {
                             const mod = abilityMod(build.abilities[s.ability])
-                            const total = build.level + s.rank + mod
-                            const mythicTotal = build.level + MYTHIC_PROFICIENCY_BONUS + mod
+                            const delta = mods.total[s.target]
+                            const base = build.level + s.rank + mod
+                            const total = base + delta
+                            const mythicTotal = build.level + MYTHIC_PROFICIENCY_BONUS + mod + delta
                             return (
                                 <Box key={s.label} sx={{ flex: 1, textAlign: 'center', py: { xs: 0.5, sm: 0 } }}>
                                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
@@ -66,6 +91,7 @@ export const OverviewSection = ({ build }: Props) => {
                                     <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.light', lineHeight: 1.2 }}>
                                         {signed(total)}
                                     </Typography>
+                                    <ConditionDelta delta={delta} base={base} />
                                     {mythic && (
                                         <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, color: MYTHIC_COLOR }}>
                                             ✦ {signed(mythicTotal)}
@@ -163,7 +189,13 @@ export const OverviewSection = ({ build }: Props) => {
     )
 }
 
-const StatTile = ({ label, value, accent }: { label: string; value: string | number; accent?: string }) => (
+const StatTile = ({ label, value, accent, delta = 0, base }: {
+    label: string
+    value: string | number
+    accent?: string
+    delta?: number
+    base?: number
+}) => (
     <Card sx={{ borderColor: accent ? accent + '60' : undefined }}>
         <CardContent sx={{ textAlign: 'center', py: 1.5, '&:last-child': { pb: 1.5 } }}>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -172,6 +204,7 @@ const StatTile = ({ label, value, accent }: { label: string; value: string | num
             <Typography variant="h4" sx={{ fontWeight: 700, color: accent || 'primary.light', mt: 0.25 }}>
                 {value}
             </Typography>
+            <ConditionDelta delta={delta} base={base} />
         </CardContent>
     </Card>
 )

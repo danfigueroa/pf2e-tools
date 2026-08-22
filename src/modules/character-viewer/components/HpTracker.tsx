@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { HP_COLOR } from '../../../theme/palette'
+import { CONDITION_COLOR, HP_COLOR } from '../../../theme/palette'
 import {
     Box,
     Button,
@@ -22,10 +22,13 @@ import { charKeyFor, hpBarColor, useHpTracker } from './useHpTracker'
 
 interface Props {
     build: BuildInfo
+    /** Máximo já com o corte de Drenado aplicado. */
     maxHp: number
+    /** Quanto do máximo veio de condições (Drenado), só para exibir. */
+    maxHpDelta?: number
 }
 
-export const HpTracker = ({ build, maxHp }: Props) => {
+export const HpTracker = ({ build, maxHp, maxHpDelta = 0 }: Props) => {
     const theme = useTheme()
     const { current, temp, applyDamage, applyHealing, setTemp, resetFull } = useHpTracker(charKeyFor(build), maxHp)
 
@@ -82,6 +85,14 @@ export const HpTracker = ({ build, maxHp }: Props) => {
                     <Typography variant="h5" color="text.secondary" sx={{ fontWeight: 600 }}>
                         / {maxHp}
                     </Typography>
+                    {maxHpDelta !== 0 && (
+                        <Chip
+                            label={`${maxHpDelta} máx · condição`}
+                            size="small"
+                            variant="outlined"
+                            sx={{ ml: 1, fontWeight: 700, color: CONDITION_COLOR, borderColor: CONDITION_COLOR }}
+                        />
+                    )}
                     {temp > 0 && (
                         <Chip
                             icon={<TempIcon sx={{ fontSize: '1rem' }} />}

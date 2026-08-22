@@ -15,13 +15,16 @@ import { charKeyFor } from '../components/useHpTracker'
 import { slotKey, useSpellSlots, type SpellSlotsApi } from '../components/useSpellSlots'
 import { SlotPips, SlotCount } from '../components/SlotPips'
 import { gold } from '../../../theme'
+import { ConditionDelta } from '../components/ConditionDelta'
+import type { ConditionModifiers } from '../conditions'
 
 interface Props {
     build: BuildInfo
     onSelect: (req: DescriptionRequest) => void
+    mods: ConditionModifiers
 }
 
-export const SpellsSection = ({ build, onSelect }: Props) => {
+export const SpellsSection = ({ build, onSelect, mods }: Props) => {
     const hasCasters = build.spellCasters?.some(c => c.spells.some(l => l.list.length > 0))
     const focusSpells = useMemo(() => collectFocusSpells(build), [build])
     const focusRank = castRankForSlot(0, build.level)
@@ -128,6 +131,7 @@ export const SpellsSection = ({ build, onSelect }: Props) => {
                         build={build}
                         slots={slots}
                         onSelect={onSelect}
+                        mods={mods}
                     />
                 ))}
 
@@ -166,7 +170,7 @@ export const SpellsSection = ({ build, onSelect }: Props) => {
                                     name: s.name,
                                     level: focusRank,
                                     autoHeightened: true,
-                                    caster: focusCasterInfo(build, s),
+                                    caster: focusCasterInfo(build, s, mods),
                                 }}
                                 onSelect={onSelect}
                                 spend={focusMax > 0 ? {
@@ -197,10 +201,14 @@ interface CasterProps {
     build: BuildInfo
     slots: SpellSlotsApi
     onSelect: Props['onSelect']
+    mods: ConditionModifiers
 }
 
-const CasterCard = ({ caster, casterIdx, build, slots, onSelect }: CasterProps) => {
-    const { dc, attack } = spellcasterStats(build, caster)
+const CasterCard = ({ caster, casterIdx, build, slots, onSelect, mods }: CasterProps) => {
+    const base = spellcasterStats(build, caster)
+    // Estupefato pesa em CD e ataque de magia (testes de INT/SAB/CAR).
+    const dc = base.dc + mods.total.spellDc
+    const attack = base.attack + mods.total.attackSpell
     const accent = traditionColor(caster.magicTradition)
     // Espontâneo: os slots do nível são intercambiáveis (repertório à parte).
     // Preparado/inato: cada cópia preparada é o próprio slot.
@@ -262,6 +270,7 @@ const CasterCard = ({ caster, casterIdx, build, slots, onSelect }: CasterProps) 
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                                 CD {dc} · Atq {signed(attack)}
                             </Typography>
+                            <ConditionDelta delta={mods.total.spellDc} base={base.dc} align="right" />
                         </Box>
                     </Stack>
                 </Box>
@@ -499,9 +508,10 @@ function collectFocusSpells(build: BuildInfo): FocusSpellEntry[] {
 
 // CD/ataque de focus spells a partir de build.focus; omitido quando o JSON
 // não traz proficiência/atributo para o grupo.
-function focusCasterInfo(build: BuildInfo, entry: FocusSpellEntry) {
+function focusCasterInfo(build: BuildInfo, entry: FocusSpellEntry, mods: ConditionModifiers) {
     const { proficiency, abilityBonus, itemBonus } = entry.group
     if (proficiency == null || abilityBonus == null) return undefined
-    const attack = build.level + proficiency + abilityBonus + (itemBonus ?? 0)
-    return { name: 'Magias de Foco', dc: 10 + attack, attack, tradition: entry.tradition }
+    const base = build.level + proficiency + abilityBonus + (itemBonus ?? 0)
+    const attack = base + mods.total.attackSpell
+    return { name: 'Magias de Foco', dc: 10 + base + mods.total.spellDc, attack, tradition: entry.tradition }
 }

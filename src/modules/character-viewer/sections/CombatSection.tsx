@@ -1,15 +1,26 @@
-import { Box, Card, CardContent, Typography, Stack, Chip, Divider } from '@mui/material'
+import { Box, Card, CardContent, Typography, Stack, Chip, Divider, Tooltip } from '@mui/material'
 import type { BuildInfo } from '../../character-sheet/types'
 import { weaponDamageFormula } from '../../character-sheet/weapon'
 import { signed } from '../helpers'
 import { unarmedAttacks } from '../unarmed'
+import { sharedMod, type ConditionModifiers } from '../conditions'
+import { ConditionDelta } from '../components/ConditionDelta'
+import { CONDITION_COLOR } from '../../../theme'
 
-interface Props { build: BuildInfo }
+interface Props {
+    build: BuildInfo
+    mods: ConditionModifiers
+}
 
-export const CombatSection = ({ build }: Props) => {
+export const CombatSection = ({ build, mods }: Props) => {
     const weapons = build.weapons ?? []
     const unarmed = unarmedAttacks(build)
     const armor = build.armor ?? []
+    // O Pathbuilder não diz se a arma é de FOR ou de DES, então no número entra
+    // só o que penaliza os dois; o resto vira aviso ao lado.
+    const anyAttack = sharedMod(mods, ['attackStr', 'attackDex'])
+    const extraStr = mods.total.attackStr - anyAttack
+    const extraDex = mods.total.attackDex - anyAttack
     const isEmpty = weapons.length === 0 && unarmed.length === 0 && armor.length === 0 && !build.acTotal
 
     if (isEmpty) {
@@ -35,7 +46,10 @@ export const CombatSection = ({ build }: Props) => {
                                 </Stack>
                             </Box>
                             <AttackStats
-                                attack={signed(w.attack)}
+                                attack={signed(w.attack + anyAttack)}
+                                attackDelta={anyAttack}
+                                attackBase={w.attack}
+                                byAbility={<ByAbilityHint str={extraStr} dex={extraDex} damage={mods.total.damageStr} />}
                                 damage={`${weaponDamageFormula(w)} ${damageTypeLabel(w.damageType)}`.trim()}
                                 extra={w.extraDamage?.length ? w.extraDamage.map((d) => `+ ${d}`).join(' ') : undefined}
                             />
@@ -82,9 +96,12 @@ export const CombatSection = ({ build }: Props) => {
                                         </Stack>
                                     </Box>
                                     <AttackStats
-                                        attack={signed(u.attack)}
+                                        attack={signed(u.attack + unarmedDelta(mods, u.usesDex))}
+                                        attackDelta={unarmedDelta(mods, u.usesDex)}
+                                        attackBase={u.attack}
                                         attackHint={`MAP ${u.map}`}
                                         damage={`${u.damage} ${u.damageType}`}
+                                        damageDelta={mods.total.damageStr}
                                         extra={u.extraDamage?.length ? u.extraDamage.map((d) => `+ ${d}`).join(' ') : undefined}
                                     />
                                 </Stack>
@@ -130,7 +147,12 @@ export const CombatSection = ({ build }: Props) => {
                         )}
                         {build.acTotal && (
                             <Stack direction="row" spacing={2} sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-                                <MiniStat label="CA total" value={build.acTotal.acTotal} />
+                                <MiniStat
+                                    label="CA total"
+                                    value={build.acTotal.acTotal + mods.total.ac}
+                                    delta={mods.total.ac}
+                                    base={build.acTotal.acTotal}
+                                />
                                 <MiniStat label="Prof." value={signed(build.acTotal.acProfBonus)} />
                                 <MiniStat label="Atr." value={signed(build.acTotal.acAbilityBonus)} />
                                 <MiniStat label="Item" value={signed(build.acTotal.acItemBonus)} />
@@ -147,10 +169,15 @@ export const CombatSection = ({ build }: Props) => {
 }
 
 /** Bloco ataque/dano à direita do card, igual para armas e desarmados. */
-const AttackStats = ({ attack, attackHint, damage, extra }: {
+const AttackStats = ({ attack, attackHint, attackDelta = 0, attackBase, byAbility, damage, damageDelta = 0, extra }: {
     attack: string
     attackHint?: string
+    attackDelta?: number
+    attackBase?: number
+    /** Aviso das penalidades que dependem do atributo do ataque. */
+    byAbility?: React.ReactNode
     damage: string
+    damageDelta?: number
     extra?: string
 }) => (
     <Box
@@ -162,9 +189,23 @@ const AttackStats = ({ attack, attackHint, damage, extra }: {
             gap: { xs: 2, sm: 0 },
         }}
     >
-        <StatRow label="Ataque" value={attack} highlight extra={attackHint} />
+        <Box sx={{ flex: 1 }}>
+            <StatRow label="Ataque" value={attack} highlight extra={attackHint} />
+            <ConditionDelta delta={attackDelta} base={attackBase} />
+            {byAbility}
+        </Box>
         <Divider sx={{ display: { xs: 'none', sm: 'block' }, my: 0.5 }} flexItem />
-        <StatRow label="Dano" value={damage} extra={extra} />
+        <Box sx={{ flex: 1 }}>
+            <StatRow label="Dano" value={damage} extra={extra} />
+            {damageDelta !== 0 && (
+                <Typography
+                    component="span"
+                    sx={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, color: CONDITION_COLOR }}
+                >
+                    {signed(damageDelta)} no dano de FOR
+                </Typography>
+            )}
+        </Box>
     </Box>
 )
 
@@ -185,14 +226,48 @@ const StatRow = ({ label, value, highlight, extra }: { label: string; value: str
     </Box>
 )
 
-const MiniStat = ({ label, value }: { label: string; value: string | number }) => (
+const MiniStat = ({ label, value, delta = 0, base }: {
+    label: string
+    value: string | number
+    delta?: number
+    base?: number
+}) => (
     <Box sx={{ flex: 1 }}>
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.7rem' }}>
             {label}
         </Typography>
         <Typography sx={{ fontWeight: 600 }}>{value}</Typography>
+        <ConditionDelta delta={delta} base={base} align="left" />
     </Box>
 )
+
+/**
+ * Penalidades que só valem para um dos atributos de ataque. Aparecem à parte
+ * porque a arma na ficha não diz se o ataque é de Força ou de Destreza.
+ */
+const ByAbilityHint = ({ str, dex, damage }: { str: number; dex: number; damage: number }) => {
+    const bits = [
+        str !== 0 ? `FOR ${signed(str)}` : null,
+        dex !== 0 ? `DES ${signed(dex)}` : null,
+        damage !== 0 ? `dano de FOR ${signed(damage)}` : null,
+    ].filter(Boolean) as string[]
+    if (bits.length === 0) return null
+    return (
+        <Tooltip title="Penalidade extra conforme o atributo que a arma usa — a ficha do Pathbuilder não registra isso.">
+            <Typography
+                component="span"
+                sx={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, color: CONDITION_COLOR, cursor: 'help' }}
+            >
+                {bits.join(' · ')} a mais
+            </Typography>
+        </Tooltip>
+    )
+}
+
+/** Desarmado sempre é corpo-a-corpo; o atributo do ataque a gente conhece. */
+function unarmedDelta(mods: ConditionModifiers, usesDex: boolean): number {
+    return usesDex ? mods.total.attackDex : mods.total.attackStr
+}
 
 const EmptyMsg = ({ children }: { children: React.ReactNode }) => (
     <Card>
