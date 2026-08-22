@@ -7,7 +7,6 @@ import {
     CardContent,
     Chip,
     LinearProgress,
-    Stack,
     TextField,
     Typography,
     useTheme,
@@ -122,8 +121,9 @@ export const HpTracker = ({ build, maxHp, maxHpDelta = 0 }: Props) => {
                     }}
                 />
 
-                {/* Dano / Cura */}
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 1.5 }}>
+                {/* Dano / Cura — empilhar em coluna no celular gastava cinco
+                    linhas cheias de rolagem; campo e botões dividem a linha. */}
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 1.5 }}>
                     <TextField
                         type="number"
                         size="small"
@@ -132,14 +132,14 @@ export const HpTracker = ({ build, maxHp, maxHpDelta = 0 }: Props) => {
                         onChange={(e) => setAmountInput(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') handleDamage() }}
                         inputProps={{ min: 0, inputMode: 'numeric' }}
-                        sx={{ width: { xs: '100%', sm: 120 } }}
+                        sx={{ width: 96, flexShrink: 0 }}
                     />
                     <Button
                         variant="contained"
                         color="error"
                         disabled={!hasAmount}
                         onClick={handleDamage}
-                        sx={{ fontWeight: 700 }}
+                        sx={{ fontWeight: 700, flex: { xs: '1 1 0', sm: '0 0 auto' } }}
                     >
                         Dano
                     </Button>
@@ -148,14 +148,14 @@ export const HpTracker = ({ build, maxHp, maxHpDelta = 0 }: Props) => {
                         color="success"
                         disabled={!hasAmount}
                         onClick={handleHeal}
-                        sx={{ fontWeight: 700 }}
+                        sx={{ fontWeight: 700, flex: { xs: '1 1 0', sm: '0 0 auto' } }}
                     >
                         Curar
                     </Button>
-                </Stack>
+                </Box>
 
                 {/* PV temporários + Restaurar */}
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5 }}>
                     <TextField
                         type="number"
                         size="small"
@@ -164,26 +164,27 @@ export const HpTracker = ({ build, maxHp, maxHpDelta = 0 }: Props) => {
                         onChange={(e) => setTempInput(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') handleSetTemp() }}
                         inputProps={{ min: 0, inputMode: 'numeric' }}
-                        sx={{ width: { xs: '100%', sm: 120 } }}
+                        sx={{ width: 96, flexShrink: 0 }}
                     />
                     <Button
                         variant="outlined"
                         color="info"
                         disabled={!hasTemp}
                         onClick={handleSetTemp}
+                        sx={{ flex: { xs: '1 1 0', sm: '0 0 auto' } }}
                     >
-                        Definir PV Temp
+                        Definir
                     </Button>
                     <Button
                         variant="text"
                         color="inherit"
                         startIcon={<RestoreIcon />}
                         onClick={resetFull}
-                        sx={{ ml: { sm: 'auto' } }}
+                        sx={{ ml: 'auto' }}
                     >
                         Restaurar
                     </Button>
-                </Stack>
+                </Box>
             </CardContent>
         </Card>
     )
