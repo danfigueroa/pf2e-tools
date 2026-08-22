@@ -67,6 +67,9 @@ export const MYTHIC_COLOR = '#B03356'
 /** Pontos de vida (HpTracker). */
 export const HP_COLOR = '#B4442A'
 
+/** Condições ativas (ConditionsBar) — roxo de esmalte, distinto do PV e do mítico. */
+export const CONDITION_COLOR = '#5E4B8B'
+
 /** Moedas: platina, ouro, prata, cobre. */
 export const COIN_COLORS = {
     pp: '#7C8FA8',
