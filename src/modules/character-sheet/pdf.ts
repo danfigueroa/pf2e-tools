@@ -2,6 +2,8 @@ import jsPDF from 'jspdf'
 import { getAonSearchUrl, parseFeatEntry } from './types'
 import { strikingDice, weaponDamageDice } from './weapon'
 import type { BuildInfo, CompanionStats, FocusAbility, FocusTradition, Weapon } from './types'
+import { computeCompanion } from '../character-viewer/companionStats'
+import { translateSize, translateAttackName, translateDamageType } from '../transformation-statblock/i18n'
 
 // ============================================================================
 // DESIGN SYSTEM - Print Friendly (Monocromático)
@@ -1161,8 +1163,11 @@ const ANIMAL_STATS: Record<string, { size: string; speed: number; attacks: strin
     },
 }
 
+// Fallback grosseiro, usado só quando o AON não respondeu e não há stats reais:
+// assume Con/Des +2 e não conhece os PV de ancestralidade do tipo. Com os dados
+// do AON quem manda é computeCompanion(), que aplica as regras RAW.
 function getAnimalCompanionHP(level: number, isMature: boolean, isIncredible: boolean): number {
-    // Base: 6 + CON mod (assume +2) por nível, ajustado para mature/incredible
+    // Aproximação: 6 + CON (assumido +2) por nível
     let hp = (6 + 2) * level
     if (isMature) hp += level * 2  // +2 HP por nível quando mature
     if (isIncredible) hp += level * 2  // +2 HP por nível quando incredible
@@ -1195,8 +1200,11 @@ function drawPets(doc: jsPDF, build: BuildInfo, y: number): number {
         const liveStats: CompanionStats | null = build.petDescriptions?.[animalType] || null
         const hardcoded = ANIMAL_STATS[animalType] || { size: '?', speed: 25, attacks: ['Attack 1d6'], support: '—' }
         const level = build.level || 1
-        const hp = getAnimalCompanionHP(level, !!pet.mature, !!pet.incredible)
-        const ac = getAnimalCompanionAC(level, !!pet.mature, !!pet.incredible)
+        // `abilities` só existe no formato novo dos stats do AON; sem ele (cache
+        // antigo ou API fora), cai nas aproximações de fallback.
+        const computed = liveStats?.abilities ? computeCompanion(liveStats, pet, level) : null
+        const hp = computed?.hp ?? getAnimalCompanionHP(level, !!pet.mature, !!pet.incredible)
+        const ac = computed?.ac ?? getAnimalCompanionAC(level, !!pet.mature, !!pet.incredible)
         
         // Cabeçalho: Nome e Tipo
         setColor(doc, COLORS.black)
@@ -1229,11 +1237,10 @@ function drawPets(doc: jsPDF, build: BuildInfo, y: number): number {
         setColor(doc, COLORS.black)
         doc.setFont('helvetica', 'bold')
         doc.setFontSize(9)
-        const speed = liveStats?.speed ?? hardcoded.speed
-        const sizeRaw = liveStats?.size ?? hardcoded.size
-        const sizeText = pet.mature && sizeRaw.includes('→') ? sizeRaw.split('→')[1] : sizeRaw
-        const supportText = liveStats?.supportBenefit ?? hardcoded.support
-        const advancedText = liveStats?.advancedManeuver ?? hardcoded.advanced ?? null
+        const speed = computed?.speed ?? hardcoded.speed
+        const sizeText = computed ? translateSize(computed.size) : hardcoded.size
+        const supportText = computed?.supportBenefit ?? hardcoded.support
+        const advancedText = computed?.advancedManeuver ?? hardcoded.advanced ?? null
 
         doc.text(`HP: ${hp}`, x + 4, y + 5.5)
         doc.text(`CA: ${ac}`, x + 35, y + 5.5)
@@ -1248,14 +1255,14 @@ function drawPets(doc: jsPDF, build: BuildInfo, y: number): number {
         doc.text('Ataques:', x + 2, y + 4)
 
         doc.setFont('helvetica', 'normal')
-        const attackBonus = level + 4 + (pet.mature ? 2 : 0) + (pet.incredible ? 2 : 0)
         let attackText: string
-        if (liveStats?.attacks.length) {
-            attackText = liveStats.attacks.map(a => {
+        if (computed?.attacks.length) {
+            attackText = computed.attacks.map(a => {
                 const traitStr = a.traits.length ? ` (${a.traits.join(', ')})` : ''
-                return `${a.name} ${signed(attackBonus)} ${a.damage}${traitStr}`
+                return `${translateAttackName(a.name)} ${signed(a.attack)} ${a.damage} ${translateDamageType(a.damageType)}${traitStr}`
             }).join(', ')
         } else {
+            const attackBonus = level + 4 + (pet.mature ? 2 : 0) + (pet.incredible ? 2 : 0)
             attackText = (hardcoded.attacks as string[]).map(
                 a => `${a.split(' ')[0]} ${signed(attackBonus)} (${a.split(' ').slice(1).join(' ')})`
             ).join(', ')

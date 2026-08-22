@@ -7,7 +7,7 @@ import type { FeatDescription, SpellDescription, CompanionStats } from '../modul
 // v10: talentos/habilidades/itens passaram a ser objetos estruturados e param
 // de ser cacheados quando a tradução falha (translationPending). A troca de
 // versão descarta as descrições em inglês que a v9 gravou de forma permanente.
-const CACHE_VERSION = 'v10'
+const CACHE_VERSION = 'v11'
 
 type Kind = 'feat' | 'spell' | 'special' | 'companion' | 'item'
 

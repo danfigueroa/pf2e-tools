@@ -154,19 +154,40 @@ export interface SpellCaster {
   blendedSpells: string[];
 }
 
+// Ataque na forma CANÔNICA do AON (companheiro jovem: 1 dado, sem modificadores).
+// Os números finais saem de computeCompanion(), em character-viewer/companionStats.ts.
 export interface CompanionAttack {
-  name: string;
-  damage: string;
-  traits: string[];
+  category: string;      // 'melee' | 'ranged'
+  actions: string;       // "Single Action"
+  name: string;          // "jaws" — canônico EN, traduzido no render
+  traits: string[];      // ["Agile"]
+  damageDice: string;    // "1d8" — dado base do companheiro jovem
+  damageType: string;    // "piercing" — canônico EN
 }
 
-/** Stats do companheiro animal, buscados do AON e traduzidos */
+/**
+ * Base canônica do companheiro JOVEM, vinda dos campos estruturados do AON.
+ * Vocabulário mecânico (tamanho, tipos de dano, perícias, sentidos) fica em
+ * inglês e é traduzido no render; só a prosa (summary, supportBenefit) chega
+ * traduzida do backend. A progressão (mature/nimble/savage) e o nível são
+ * aplicados no frontend, porque dependem da ficha.
+ */
 export interface CompanionStats {
-  size: string;
-  speed: number;
+  name: string;
+  summary: string;
+  sourceBook?: string;
+  size: string;          // "Small"
+  speed: number;         // velocidade terrestre em pés
+  speeds: Record<string, number>;   // { land: 35, swim: 25 }
+  ancestryHp: number;    // PV de ancestralidade do tipo
+  abilities: { str: number; dex: number; con: number; int: number; wis: number; cha: number };
+  skills: string[];      // perícia extra treinada que vem do tipo
+  senses: string;
   attacks: CompanionAttack[];
   supportBenefit: string;
   advancedManeuver: string | null;
+  mount?: boolean;
+  translationPending?: boolean;
 }
 
 export interface Pet {
