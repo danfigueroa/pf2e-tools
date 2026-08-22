@@ -220,16 +220,16 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ config }) => {
 
       <Stack spacing={3}>
         {/* Preview */}
-        <Paper elevation={2} sx={{ p: 2 }}>
+        <Paper elevation={2} sx={{ p: { xs: 1.5, sm: 2 } }}>
           <Typography variant="h6" gutterBottom>
             Visualização Final
           </Typography>
           <Box 
             ref={statBlockRef}
-            sx={{ 
-              border: '1px solid #CDBE9E', 
-              borderRadius: 1, 
-              p: 2,
+            sx={{
+              border: '1px solid #CDBE9E',
+              borderRadius: 1,
+              p: { xs: 1, sm: 2 },
               backgroundColor: exportOptions.includeBackground ? '#ffffff' : 'transparent'
             }}
           >
@@ -309,14 +309,24 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ config }) => {
         </Card>
 
         {/* Action Buttons */}
-        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+        {/* No celular os dois botões viram blocos de largura cheia; o
+            `minWidth` fixo de antes forçava rolagem horizontal. */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: 2,
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
           <Button
             variant="contained"
             size="large"
             startIcon={<DownloadIcon />}
             onClick={handleExport}
             disabled={isExporting}
-            sx={{ minWidth: 200 }}
+            sx={{ minWidth: { sm: 200 } }}
           >
             {isExporting ? 'Exportando...' : `Baixar ${exportOptions.format.toUpperCase()}`}
           </Button>
@@ -326,7 +336,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ config }) => {
             size="large"
             startIcon={<PrintIcon />}
             onClick={handlePrint}
-            sx={{ minWidth: 150 }}
+            sx={{ minWidth: { sm: 150 } }}
           >
             Imprimir
           </Button>
