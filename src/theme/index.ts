@@ -7,6 +7,22 @@ export * from './palette'
 export const displayFont = '"Cinzel", "Spectral", Georgia, serif'
 export const bodyFont = '"Source Sans 3", "Roboto", system-ui, sans-serif'
 
+/** Espelha os breakpoints padrão do MUI — usado antes do tema existir. */
+const UP_SM = '@media (min-width:600px)'
+const UP_MD = '@media (min-width:900px)'
+
+/**
+ * Título que encolhe no celular. Cinzel é largo e versalete: no tamanho de
+ * desktop um `h1` estoura a linha numa tela de 360px. A escala cresce por
+ * breakpoint em vez de usar `clamp()` porque o `html2canvas` da exportação
+ * não entende funções de tamanho modernas.
+ */
+const fluidTitle = (mobile: string, tablet: string, desktop: string) => ({
+    fontSize: mobile,
+    [UP_SM]: { fontSize: tablet },
+    [UP_MD]: { fontSize: desktop },
+})
+
 /**
  * Tema PF2e Remaster: moldura verde escura com conteúdo em pergaminho.
  * Cores vêm todas de `./palette` — nada de hex literal aqui.
@@ -48,27 +64,27 @@ export const pathfinderTheme = createTheme({
         fontFamily: bodyFont,
         h1: {
             fontFamily: displayFont,
-            fontSize: '2.5rem',
+            ...fluidTitle('1.85rem', '2.15rem', '2.5rem'),
             fontWeight: 700,
             lineHeight: 1.15,
             letterSpacing: '0.02em',
         },
         h2: {
             fontFamily: displayFont,
-            fontSize: '1.875rem',
+            ...fluidTitle('1.45rem', '1.65rem', '1.875rem'),
             fontWeight: 700,
             lineHeight: 1.25,
             letterSpacing: '0.02em',
         },
         h3: {
             fontFamily: displayFont,
-            fontSize: '1.4rem',
+            ...fluidTitle('1.2rem', '1.3rem', '1.4rem'),
             fontWeight: 600,
             lineHeight: 1.3,
             letterSpacing: '0.015em',
         },
         h4: {
-            fontSize: '1.125rem',
+            ...fluidTitle('1.05rem', '1.125rem', '1.125rem'),
             fontWeight: 600,
             lineHeight: 1.4,
         },
@@ -140,6 +156,11 @@ export const pathfinderTheme = createTheme({
                     textTransform: 'none',
                     fontWeight: 600,
                     borderRadius: 6,
+                    // Dedo não acerta botão de 31px: em telas de toque todo
+                    // botão (inclusive os `size="small"`) vira alvo de 40px.
+                    '@media (pointer: coarse)': {
+                        minHeight: 40,
+                    },
                 },
                 contained: {
                     boxShadow: '0 1px 3px rgba(20, 40, 29, 0.28)',
@@ -210,6 +231,34 @@ export const pathfinderTheme = createTheme({
                     fontWeight: 700,
                     letterSpacing: '0.06em',
                     textTransform: 'none',
+                    // Cabem mais abas na faixa rolável do tablet.
+                    fontSize: '0.82rem',
+                    minWidth: 0,
+                    paddingLeft: 12,
+                    paddingRight: 12,
+                    [UP_MD]: {
+                        fontSize: '0.875rem',
+                        paddingLeft: 16,
+                        paddingRight: 16,
+                    },
+                },
+            },
+        },
+        MuiDialog: {
+            styleOverrides: {
+                // A margem padrão (32px de cada lado) come metade de um celular.
+                // O `:not` preserva o `fullScreen`, que precisa de margem zero.
+                paper: {
+                    '&:not(.MuiDialog-paperFullScreen)': {
+                        margin: 16,
+                        width: 'calc(100% - 32px)',
+                        maxHeight: 'calc(100% - 32px)',
+                        [UP_SM]: {
+                            margin: 32,
+                            width: 'calc(100% - 64px)',
+                            maxHeight: 'calc(100% - 64px)',
+                        },
+                    },
                 },
             },
         },
