@@ -7,7 +7,9 @@ import {
   Step,
   StepLabel,
   Button,
+  LinearProgress,
   Paper,
+  useMediaQuery,
   useTheme,
 } from '@mui/material';
 import type { TransformationConfig, PlayerCharacter, TransformationSpell } from '../../types';
@@ -49,6 +51,9 @@ export const TransformationPage: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [config, setConfig] = useState<Partial<TransformationConfig>>({});
   const theme = useTheme();
+  // Quatro rótulos longos lado a lado não cabem num celular — abaixo de 600px
+  // o passo a passo vira "Passo 2 de 4" com barra de progresso.
+  const isPhone = useMediaQuery(theme.breakpoints.down('sm'));
 
   const handleNext = () => {
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
@@ -123,7 +128,7 @@ export const TransformationPage: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="lg">
+    <Container maxWidth="lg" disableGutters>
       <Box sx={{ mb: 4 }}>
         <Typography
           variant="h3"
@@ -144,30 +149,47 @@ export const TransformationPage: React.FC = () => {
         <Typography
           variant="h6"
           color="text.secondary"
-          sx={{ textAlign: 'center', mb: 4, fontWeight: 300 }}
+          sx={{ textAlign: 'center', mb: 4, fontWeight: 300, fontSize: { xs: '0.95rem', sm: '1.25rem' } }}
         >
           Crie stat blocks detalhados para magias de transformação do Pathfinder 2e Remaster
         </Typography>
       </Box>
 
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Stepper activeStep={activeStep} alternativeLabel>
-          {steps.map((label, index) => (
-            <Step key={label} completed={isStepComplete(index)}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
+      <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
+        {isPhone ? (
+          <Box>
+            <Typography variant="overline" color="text.secondary" sx={{ display: 'block' }}>
+              Passo {activeStep + 1} de {steps.length}
+            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+              {steps[activeStep]}
+            </Typography>
+            <LinearProgress
+              variant="determinate"
+              value={((activeStep + 1) / steps.length) * 100}
+              sx={{ height: 6, borderRadius: 3 }}
+            />
+          </Box>
+        ) : (
+          <Stepper activeStep={activeStep} alternativeLabel>
+            {steps.map((label, index) => (
+              <Step key={label} completed={isStepComplete(index)}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+        )}
       </Paper>
 
-      <Paper sx={{ p: 4, minHeight: 400 }}>
+      <Paper sx={{ p: { xs: 1.5, sm: 3, md: 4 }, minHeight: { sm: 400 } }}>
         {renderStepContent(activeStep)}
-        
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, mt: 4 }}>
           <Button
             disabled={activeStep === 0}
             onClick={handleBack}
             variant="outlined"
+            sx={{ flex: { xs: 1, sm: '0 0 auto' } }}
           >
             Voltar
           </Button>
@@ -177,6 +199,7 @@ export const TransformationPage: React.FC = () => {
               variant="contained"
               onClick={handleNext}
               disabled={!canProceed}
+              sx={{ flex: { xs: 1, sm: '0 0 auto' } }}
             >
               Próximo
             </Button>
