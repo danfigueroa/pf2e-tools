@@ -31,6 +31,8 @@ export interface UnarmedAttack {
     note?: string
     /** Escolha do jogador que a ficha não registra — mostramos as opções. */
     choice?: boolean
+    /** Ataque de Destreza (acuidade valendo a pena) — muda a condição que pesa. */
+    usesDex: boolean
 }
 
 interface UnarmedBase {
@@ -173,7 +175,8 @@ export function unarmedAttacks(build: BuildInfo): UnarmedAttack[] {
         const agile = b.traits.includes('agile')
         // Acuidade permite trocar Força por Destreza no ataque; o dano de corpo
         // a corpo continua sendo Força.
-        const attackMod = finesse ? Math.max(strMod, dexMod) : strMod
+        const usesDex = finesse && dexMod > strMod
+        const attackMod = usesDex ? dexMod : strMod
         const dice = `${strikingDice(runes.striking)}${b.die}`
         const damage = strMod === 0 ? dice : `${dice}${strMod > 0 ? '+' : ''}${strMod}`
 
@@ -190,6 +193,7 @@ export function unarmedAttacks(build: BuildInfo): UnarmedAttack[] {
             source: grant.source,
             note: grant.note,
             choice: grant.choice,
+            usesDex,
         }
     })
 }
