@@ -106,6 +106,14 @@ Source Sans 3 (ambas num único `<link>` no `index.html`).
   um resumo heurístico (marcado como automático). Guias curados **sem IA** — ver memória.
 - **Ao adicionar uma ficha nova**: (1) copiar o JSON para `public/characters/`; (2) registrar em
   `campaignPresets.ts`; (3) escrever um guia curado em `combatGuides.ts` casando pelo nome.
+- **Ataques desarmados** (`unarmed.ts`): o JSON do Pathbuilder **não exporta desarmado nenhum** —
+  nem o punho padrão. A tabela é escrita à mão a partir das regras (Howl of the Wild pg. 22 para os
+  ataques animais) e os números são calculados aqui: ataque = nível + prof. desarmada + atributo
+  (acuidade permite DES) + potência de handwraps; dano sempre com FOR; MAP −4/−8 se ágil. Onde a
+  ficha não registra a escolha do jogador (Awakened Animal escolhe **um** ataque animal com o GM),
+  listamos as opções típicas da herança marcadas como `choice`. Itens que dão ataque (ex.: Wolfjaw
+  Armor) casam **pelo nome** em `ITEM_ATTACKS`. A aba de Combate nunca fica vazia: sem armas, ainda
+  mostra desarmados, armadura e a CA.
 - **Slots de magia** (`useSpellSlots.ts` + `SlotPips.tsx`): estado do dia em `localStorage`, na mesma
   chave por personagem do PV (`charKeyFor`). Guarda **contagem** de gastos, nunca índice de slot —
   assim sobrevive a um re-upload em que a ordem da lista mudou. Preparado/inato: cada cópia
