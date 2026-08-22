@@ -146,7 +146,20 @@ export const CombatSection = ({ build, mods }: Props) => {
                             </Typography>
                         )}
                         {build.acTotal && (
-                            <Stack direction="row" spacing={2} sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                            <Box
+                                sx={{
+                                    // Cinco colunas fixas espremiam "CA total"
+                                    // em duas linhas num celular; a grade
+                                    // reflui para duas ou três por linha.
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fit, minmax(72px, 1fr))',
+                                    gap: 1.5,
+                                    mt: 2,
+                                    pt: 2,
+                                    borderTop: '1px solid',
+                                    borderColor: 'divider',
+                                }}
+                            >
                                 <MiniStat
                                     label="CA total"
                                     value={build.acTotal.acTotal + mods.total.ac}
@@ -159,7 +172,7 @@ export const CombatSection = ({ build, mods }: Props) => {
                                 {build.acTotal.shieldBonus != null && (
                                     <MiniStat label="Escudo" value={signed(build.acTotal.shieldBonus)} />
                                 )}
-                            </Stack>
+                            </Box>
                         )}
                     </CardContent>
                 </Card>
