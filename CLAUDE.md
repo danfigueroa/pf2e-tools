@@ -86,6 +86,29 @@ Source Sans 3 (ambas num único `<link>` no `index.html`).
   `ExportOptions.tsx`, que replica classes do MUI e desanda em silêncio.
 - Fora do tema: `character-sheet/pdf.ts` tem paleta própria monocromática para o jsPDF.
 
+## Responsividade
+
+A plataforma é usada na mesa, no celular. Toda mudança de layout precisa passar por 320px.
+
+- **Breakpoints**: `xs` é celular, `sm` (600) é tablet, `md` (900) é onde a sidebar vira permanente.
+  A ficha virtual usa acordeão só abaixo de `sm`; de `sm` para cima são abas roláveis (sem ícone
+  até `md`, para caber mais rótulo na faixa).
+- **Nada de `minWidth` fixo dentro de `flex-wrap`** — era o que estourava os formulários do gerador
+  no celular. Use `display: grid` com `repeat(auto-fit, minmax(Npx, 1fr))`, que se dobra sozinho.
+- **Irmãos em JSX não têm espaço entre si**: uma fileira de `<span>` nunca ganha ponto de quebra e
+  vaza para fora do card (aconteceu com as perícias do companheiro). Liste em flex com `flexWrap`.
+- **Alvo de toque**: o tema dá `minHeight: 40` a todo `Button` sob `@media (pointer: coarse)`. Os
+  pips de slot e os +/−/× das condições crescem no `xs` por conta própria — são os alvos mais
+  apertados da ficha.
+- **Títulos já encolhem no tema** (`h1`–`h4`, via `fluidTitle`): não redefina `fontSize` de título
+  em componente sem motivo. A escala usa media query e não `clamp()` porque o `html2canvas` da
+  exportação não entende funções de tamanho modernas.
+- `main` tem `minWidth: 0` e o `body` tem `overflow-x: clip` como rede de segurança. Se aparecer
+  barra horizontal, o culpado é um filho largo — ache e conserte, não confie na trava.
+- **Para conferir no navegador**: o Chrome/Brave headless do macOS não desce de 500px de viewport.
+  Carregue a página num `<iframe>` da largura desejada (servido pelo próprio Vite, para o script da
+  página hospedeira poder clicar dentro do app) e tire o print da página que hospeda o iframe.
+
 ## Convenções
 
 - Um módulo por funcionalidade em `src/modules/`. Padrão: `*Page.tsx` (UI/estado), lógica em
