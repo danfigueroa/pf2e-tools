@@ -131,6 +131,10 @@ Source Sans 3 (ambas num único `<link>` no `index.html`).
 ## Git
 
 - Commits recentes vão direto na `main` (sem PR). Mensagens em português.
+- **Divida ao máximo.** Prefira muitos commits pequenos a um commit grande: cada mudança que se
+  sustenta sozinha vira um commit próprio, mesmo que faça parte de um trabalho maior. Ex.: tokens de
+  cor, tema, shell, cada módulo e a documentação seriam commits separados, não um só. Só agrupe o
+  que quebraria o `npm run build` se ficasse separado.
 - Não faça `git push` sem o usuário pedir.
 - **NUNCA se coloque como autor ou coautor de um commit.** Nada de `Co-Authored-By: Claude`,
   nada de trailer `Claude-Session:`, nada de "Generated with Claude Code" — nem em commits, nem
