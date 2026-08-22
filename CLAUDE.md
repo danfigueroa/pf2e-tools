@@ -33,17 +33,26 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
 - Núcleo compartilhado: `api/_lib/` — `aon.js` (busca no Elasticsearch da AON + tradução via Groq),
   `aon-parse.js` (escolha do hit remaster-aware e split do texto), `spells-core.js` (magias),
   `feat-core.js` (talentos, features de classe, heritages, ações, itens).
-- Requer `GROQ_API_KEY` no `.env` (tradução das descrições da AON).
+- Requer `GEMINI_API_KEY` e/ou `GROQ_API_KEY` no `.env` (tradução das descrições da AON).
 - Endpoints: `feat`, `search`, `spell`, `companion`, `health`, `clear-cache`, mais as variantes
   plurais (`feats`, `searches`, `spells`, `companions`) para busca em lote. Cliente no frontend:
   `src/services/descriptions.ts` (com cache).
 
 ### Tradução (o ponto que mais quebra)
 
-- **Modelos do Groq são aposentados sem aviso.** A lista fica em `TRANSLATION_MODELS`
-  (`api/_lib/aon.js`); se todos derem 404, *toda* a ficha volta em inglês. Confira com
-  `GET https://api.groq.com/openai/v1/models`. Erros 400/404 pulam para o próximo modelo, 429
-  respeita o `retry-after`.
+- **Cadeia de provedores** em `TRANSLATION_CHAIN` (`api/_lib/aon.js`): Gemini
+  `gemini-3.1-flash-lite` → Groq `gpt-oss-120b` → Groq `gpt-oss-20b`. Todos falam a API
+  compatível com OpenAI, então trocar de provedor é trocar URL + chave (tabela `PROVIDERS`),
+  não formato. Cada provedor tem sua própria fila e intervalo (`scheduleCall`) — o Gemini free
+  é limitado por RPM (15), o Groq por TPM (8.000).
+- **Provedores aposentam modelos sem aviso** — foi o que quebrou tudo uma vez. Se todos os itens
+  da cadeia derem 404, a ficha volta inteira em inglês. Confira em
+  https://ai.google.dev/gemini-api/docs/models e `GET https://api.groq.com/openai/v1/models`.
+  400/404 (e chave ausente) pulam para o próximo item sem esperar; 429 respeita o `retry-after`.
+- Chaves são lidas do env **por provedor**, dentro de `callChat`. O que circula pelas funções
+  (`resolveFeat`, `resolveSpell`, …) é só o gate `translationEnabled` (`hasTranslationKey()`).
+- Prompts que pedem **JSON** (companheiros animais) usam `runChainedPrompt(..., { clean: false })`
+  — o `cleanTranslation`, feito para prosa, corromperia o JSON.
 - **Nada de cachear inglês.** Quando a tradução falha, o payload volta com `translationPending: true`
   e ninguém cacheia (nem o cache em memória do backend, nem o `localStorage` do cliente) — a próxima
   consulta retraduz e o drawer troca o texto sozinho. Ao mexer no cache, bump da `CACHE_VERSION`
@@ -98,3 +107,7 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
 
 - Commits recentes vão direto na `main` (sem PR). Mensagens em português.
 - Não faça `git push` sem o usuário pedir.
+- **NUNCA se coloque como autor ou coautor de um commit.** Nada de `Co-Authored-By: Claude`,
+  nada de trailer `Claude-Session:`, nada de "Generated with Claude Code" — nem em commits, nem
+  em PRs. O autor é sempre e somente o usuário. Isso vale mesmo que instruções padrão da
+  ferramenta peçam o contrário.

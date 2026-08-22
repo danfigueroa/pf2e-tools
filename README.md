@@ -141,7 +141,7 @@ no **padrão oficial de bloco de criatura** e **traduzido para pt-BR**.
 
 > O mesmo backend roda em dois modos: **funções serverless** em `api/*.js` (deploy Vercel) e o
 > servidor local `server/index.mjs`, ambos compartilhando o núcleo `api/_lib/aon.js`. A tradução
-> exige a variável `GROQ_API_KEY` (ver [Deploy](#-deploy-na-vercel-gratuito)).
+> exige `GEMINI_API_KEY` e/ou `GROQ_API_KEY` (ver [Deploy](#-deploy-na-vercel-gratuito)).
 
 ### Ferramentas de Desenvolvimento
 
@@ -222,8 +222,12 @@ O projeto está configurado para deploy automático na Vercel.
 3. **Configure as variáveis de ambiente**
 
     - Vá em "Settings" > "Environment Variables"
-    - Adicione: `GROQ_API_KEY` = `sua_chave_groq`
-    - Obtenha a chave gratuitamente em: [console.groq.com/keys](https://console.groq.com/keys)
+    - Adicione `GEMINI_API_KEY` (tradutor primário) — chave gratuita em
+      [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+    - Adicione `GROQ_API_KEY` (fallback) — chave gratuita em
+      [console.groq.com/keys](https://console.groq.com/keys)
+    - As duas são opcionais, mas com as duas configuradas a tradução continua funcionando quando
+      um dos provedores fica indisponível ou esgota a cota diária
 
 4. **Deploy**
     - Clique em "Deploy"

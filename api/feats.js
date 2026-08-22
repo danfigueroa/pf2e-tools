@@ -1,6 +1,7 @@
 // Batch endpoint: busca múltiplos talentos. O núcleo fica em
 // api/_lib/feat-core.js, compartilhado com api/feat.js e server/index.mjs.
 import { resolveFeat, resolveMany } from './_lib/feat-core.js'
+import { hasTranslationKey } from './_lib/aon.js'
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -16,7 +17,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const results = await resolveMany(names, process.env.GROQ_API_KEY, resolveFeat)
+    const results = await resolveMany(names, hasTranslationKey(), resolveFeat)
     return res.status(200).json(results)
   } catch (error) {
     console.error('Feats batch API error:', error)

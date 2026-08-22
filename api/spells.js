@@ -2,6 +2,7 @@
 // Toda a resolução (busca AON + parse estrutural + tradução) vive em
 // api/_lib/spells-core.js, compartilhado com api/spell.js e server/index.mjs.
 import { resolveSpell } from './_lib/spells-core.js'
+import { hasTranslationKey } from './_lib/aon.js'
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -21,14 +22,14 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Body inválido' })
   }
 
-  const apiKey = process.env.GROQ_API_KEY
+  const translationEnabled = hasTranslationKey()
 
   try {
     const CONCURRENCY = 3
     const results = {}
     for (let i = 0; i < names.length; i += CONCURRENCY) {
       const batch = names.slice(i, i + CONCURRENCY)
-      const resolved = await Promise.all(batch.map(n => resolveSpell(n, apiKey)))
+      const resolved = await Promise.all(batch.map(n => resolveSpell(n, translationEnabled)))
       // Chavear pelo nome de INPUT (não pelo nome retornado do AON), assim o
       // frontend encontra a magia mesmo quando o AON normaliza capitalização/sufixo.
       resolved.forEach((r, idx) => { results[batch[idx]] = r })

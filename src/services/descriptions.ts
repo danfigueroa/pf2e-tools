@@ -135,7 +135,11 @@ export async function fetchSpellDescription(name: string): Promise<SpellDescript
 // Pré-carrega todas as magias do personagem em chunks pequenos e sequenciais:
 // um POST grande estouraria o timeout serverless (cada magia custa scraping AON
 // + tradução Groq). Resultados vão para o mesmo cache usado por fetchSpellDescription.
-const PREFETCH_CHUNK_SIZE = 5
+// 3, não 5: o tradutor primário (Gemini free) é limitado a 15 req/min, e uma
+// magia pode custar mais de uma chamada (prosa + heightening fora do dicionário).
+// Chunks menores mantêm cada POST dentro do maxDuration e a barra de progresso
+// avançando com frequência.
+const PREFETCH_CHUNK_SIZE = 3
 
 export async function prefetchSpellDescriptions(
     names: string[],

@@ -1,5 +1,6 @@
 // Endpoint single (GET ?name=...) — legado; usa o mesmo núcleo do batch.
 import { resolveSpecial } from './_lib/feat-core.js'
+import { hasTranslationKey } from './_lib/aon.js'
 
 export default async function handler(req, res) {
   // CORS
@@ -18,7 +19,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const entry = await resolveSpecial(name, process.env.GROQ_API_KEY)
+    const entry = await resolveSpecial(name, hasTranslationKey())
     if (!entry.description) {
       return res.status(404).json({ error: 'Item não encontrado' })
     }

@@ -29,7 +29,7 @@ function emptySpell(name, description) {
   }
 }
 
-export async function resolveSpell(name, apiKey) {
+export async function resolveSpell(name, translationEnabled) {
   let best = null
   for (const cat of ['spell', 'cantrip', 'focus']) {
     const results = await searchAon(name, cat, 10)
@@ -39,7 +39,7 @@ export async function resolveSpell(name, apiKey) {
   }
 
   if (!best) {
-    const fallback = await generateFallbackDescription(name, 'spell', apiKey)
+    const fallback = await generateFallbackDescription(name, 'spell', translationEnabled)
     return emptySpell(name, fallback)
   }
 
@@ -56,8 +56,8 @@ export async function resolveSpell(name, apiKey) {
   // Groq): server e client NÃO devem cachear, para retraduzirem depois.
   let translationPending = false
   let description = proseEN
-  if (apiKey && proseEN) {
-    const translated = await translateToPortuguese(proseEN, apiKey)
+  if (translationEnabled && proseEN) {
+    const translated = await translateToPortuguese(proseEN, translationEnabled)
     if (translated && translated !== proseEN && translated.trim().length >= proseEN.length * 0.4) {
       description = translated
     } else {
@@ -65,7 +65,7 @@ export async function resolveSpell(name, apiKey) {
     }
   }
   if (!description || description.trim().length < 20) {
-    const fallback = await generateFallbackDescription(name, 'spell', apiKey)
+    const fallback = await generateFallbackDescription(name, 'spell', translationEnabled)
     if (fallback) description = fallback
   }
 
@@ -73,8 +73,8 @@ export async function resolveSpell(name, apiKey) {
   const heightenedEntries = []
   for (const entry of parsed.heightenedEntries) {
     let text = translateHeightenedText(entry.text)
-    if (!text && apiKey && entry.text) {
-      const translated = await translateToPortuguese(entry.text, apiKey)
+    if (!text && translationEnabled && entry.text) {
+      const translated = await translateToPortuguese(entry.text, translationEnabled)
       if (translated && translated !== entry.text && translated.trim().length >= entry.text.length * 0.4) {
         text = translated
       } else {

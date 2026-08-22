@@ -171,6 +171,13 @@ export function cleanTranslation(text) {
     return match.replace(/\s+/g, '')
   })
   
+  // Ênfase markdown: alguns modelos "enfeitam" a tradução (ex.: "*Strike*") e a
+  // UI renderiza texto puro, então os asteriscos apareceriam literais.
+  cleaned = cleaned
+    .replace(/\*\*([^*\n]+)\*\*/g, '$1')
+    .replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s.,;:!?)]|$)/g, '$1$2')
+    .replace(/(^|[\s(])_([^_\n]+)_(?=[\s.,;:!?)]|$)/g, '$1$2')
+
   cleaned = cleaned.replace(/[ỹỳỷỵ]+/g, 'y')
   cleaned = cleaned.replace(/(.)\1{3,}/g, '$1$1')
   cleaned = cleaned.replace(/\s{2,}/g, ' ')
@@ -178,86 +185,152 @@ export function cleanTranslation(text) {
   return cleaned.trim()
 }
 
-// ---- Fila global de chamadas ao Groq ---------------------------------------
-// Serializa e espaça as chamadas para respeitar o rate limit (TPM/RPM) do tier
-// gratuito. Sem isso, cargas em lote ("Carregar todas") disparam dezenas de
-// traduções em rajada e quase todas caem em 429 → fallback EN.
-const GROQ_MIN_INTERVAL_MS = 800
-let groqChain = Promise.resolve()
-let lastGroqCallAt = 0
+// ---- Provedores de LLM ------------------------------------------------------
+// Todos os provedores usados aqui expõem a MESMA API (compatível com OpenAI):
+// POST /chat/completions com `Authorization: Bearer`. Trocar de provedor é
+// trocar URL + chave, não formato.
+const PROVIDERS = {
+  gemini: {
+    url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+    envKey: 'GEMINI_API_KEY',
+    // Free tier: 15 RPM, 500 RPD, 250k TPM. O gargalo é o RPM — daí o intervalo.
+    minIntervalMs: 4200,
+    // Flash-Lite não precisa "pensar" para traduzir, e os tokens de raciocínio
+    // saem do mesmo orçamento de max_tokens.
+    extraBody: { reasoning_effort: 'none' },
+  },
+  groq: {
+    url: 'https://api.groq.com/openai/v1/chat/completions',
+    envKey: 'GROQ_API_KEY',
+    // Free tier: 30 RPM e 1000 RPD, mas o teto real é 8.000 TPM — bem apertado
+    // para uma ficha inteira. Por isso é fallback, não primário.
+    minIntervalMs: 800,
+  },
+}
 
-function scheduleGroqCall(fn) {
+// Há alguma credencial configurada? Usado pelos handlers como gate: sem chave
+// nenhuma, o texto volta em inglês em vez de ficar tentando traduzir.
+export function hasTranslationKey() {
+  return Object.values(PROVIDERS).some(p => Boolean(process.env[p.envKey]))
+}
+
+// ---- Fila de chamadas, POR PROVEDOR -----------------------------------------
+// Serializa e espaça as chamadas para respeitar o rate limit. Sem isso, cargas
+// em lote ("Carregar todas") disparam dezenas de traduções em rajada e quase
+// todas caem em 429 → fallback EN. Uma fila por provedor porque o intervalo do
+// Gemini (4,2s) não tem por que atrasar o Groq (0,8s).
+const queues = new Map()
+
+function scheduleCall(providerName, fn) {
+  let q = queues.get(providerName)
+  if (!q) {
+    q = { chain: Promise.resolve(), lastAt: 0 }
+    queues.set(providerName, q)
+  }
   const run = async () => {
-    const wait = lastGroqCallAt + GROQ_MIN_INTERVAL_MS - Date.now()
+    const wait = q.lastAt + PROVIDERS[providerName].minIntervalMs - Date.now()
     if (wait > 0) await new Promise(r => setTimeout(r, wait))
-    lastGroqCallAt = Date.now()
+    q.lastAt = Date.now()
     return fn()
   }
-  const p = groqChain.then(run, run)
-  groqChain = p.catch(() => {})
+  const p = q.chain.then(run, run)
+  q.chain = p.catch(() => {})
   return p
 }
 
-async function callGroq(prompt, apiKey, { model = 'llama-3.3-70b-versatile', maxTokens = 2048 } = {}) {
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model,
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: maxTokens,
-      temperature: 0.3
-    })
-  })
-
-  if (!response.ok) {
-    const transient = response.status === 429 || response.status >= 500
-    // 400/404 = modelo inválido ou descontinuado. NÃO é transitório (esperar não
-    // ajuda), mas também não pode abortar a cadeia: o próximo modelo da lista
-    // pode estar ativo. Foi exatamente isso que travou tudo em inglês quando o
-    // Groq aposentou o llama-3.3-70b-versatile.
-    const badModel = response.status === 400 || response.status === 404
-    const retryAfter = Number(response.headers.get('retry-after')) || 0
-    throw Object.assign(new Error(`Groq ${response.status} (${model})`), { transient, badModel, status: response.status, retryAfter })
+// Uma chamada de chat completion. Já entra na fila do provedor — quem chama não
+// precisa (nem deve) agendar por fora.
+export async function callChat(prompt, { provider = 'groq', model, maxTokens = 4096, temperature = 0.3 } = {}) {
+  const cfg = PROVIDERS[provider]
+  if (!cfg) {
+    throw Object.assign(new Error(`Provedor desconhecido: ${provider}`), { badModel: true })
   }
 
-  const data = await response.json()
-  return data.choices?.[0]?.message?.content?.trim()
+  const apiKey = process.env[cfg.envKey]
+  // Sem chave, este provedor simplesmente não existe para esta instalação.
+  // `badModel` faz a cadeia pular para o próximo item sem esperar — é o que
+  // permite rodar só com GROQ_API_KEY, só com GEMINI_API_KEY, ou com as duas.
+  // Checado ANTES da fila para não gastar o intervalo à toa.
+  if (!apiKey) {
+    throw Object.assign(new Error(`${cfg.envKey} não configurada`), { badModel: true })
+  }
+
+  return scheduleCall(provider, async () => {
+    const response = await fetch(cfg.url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: maxTokens,
+        temperature,
+        ...(cfg.extraBody || {}),
+      })
+    })
+
+    if (!response.ok) {
+      const transient = response.status === 429 || response.status >= 500
+      // 400/404 = modelo inválido, descontinuado, ou parâmetro não suportado.
+      // NÃO é transitório (esperar não ajuda), mas também não pode abortar a
+      // cadeia: o próximo provedor pode estar ativo. Foi exatamente isso que
+      // travou tudo em inglês quando o Groq aposentou o llama-3.3-70b-versatile.
+      const badModel = response.status === 400 || response.status === 404
+      const retryAfter = Number(response.headers.get('retry-after')) || 0
+      throw Object.assign(
+        new Error(`${provider} ${response.status} (${model})`),
+        { transient, badModel, status: response.status, retryAfter },
+      )
+    }
+
+    const data = await response.json()
+    return data.choices?.[0]?.message?.content?.trim()
+  })
 }
 
-// Traduz texto para português usando Groq. Tenta o modelo principal 2x e cai
-// para o gpt-oss-20b (mais rápido e com rate limit separado) antes de desistir.
-// ATENÇÃO: o Groq aposenta modelos sem aviso — quando TODOS os modelos desta
-// lista devolvem 404, nada é traduzido e a ficha inteira volta em inglês.
-// Confira em https://console.groq.com/docs/models ou GET /openai/v1/models.
-const TRANSLATION_MODELS = ['openai/gpt-oss-120b', 'openai/gpt-oss-120b', 'openai/gpt-oss-20b']
+// Cadeia de fallback: qualidade primeiro, capacidade depois.
+// O Gemini não se repete na 2ª posição de propósito — se ele falhar (RPD
+// esgotado, pico), é melhor ir direto para a capacidade do Groq do que esperar
+// outros 4,2s pelo mesmo modelo.
+// ATENÇÃO: provedores aposentam modelos sem aviso. Se TODOS os itens desta lista
+// devolverem 404, nada é traduzido e a ficha inteira volta em inglês. Confira em
+// https://ai.google.dev/gemini-api/docs/models e GET https://api.groq.com/openai/v1/models
+const TRANSLATION_CHAIN = [
+  { provider: 'gemini', model: 'gemini-3.1-flash-lite' },
+  { provider: 'groq', model: 'openai/gpt-oss-120b' },
+  { provider: 'groq', model: 'openai/gpt-oss-20b' },
+]
 
-// Executa um prompt de tradução percorrendo a cadeia de modelos. `validate`
-// rejeita respostas suspeitas (truncamento, marcadores perdidos) e força o
-// próximo modelo. Devolve null quando todas as tentativas falham — quem chama
-// decide o fallback (normalmente: manter o inglês e marcar translationPending).
-async function runTranslationPrompt(prompt, apiKey, { maxTokens = 4096, validate } = {}) {
-  for (let i = 0; i < TRANSLATION_MODELS.length; i++) {
-    const isLast = i === TRANSLATION_MODELS.length - 1
+// Roda um prompt percorrendo a cadeia. `validate` rejeita respostas suspeitas
+// (truncamento, marcadores perdidos) e força o próximo item. Devolve null quando
+// tudo falha — quem chama decide o fallback (normalmente: manter o inglês e
+// marcar translationPending).
+// `clean: false` desliga o cleanTranslation — obrigatório para prompts que
+// pedem JSON, que a limpeza de prosa (aspas, repetições, espaços) corromperia.
+export async function runChainedPrompt(prompt, { maxTokens = 4096, validate, clean = true } = {}) {
+  for (let i = 0; i < TRANSLATION_CHAIN.length; i++) {
+    const isLast = i === TRANSLATION_CHAIN.length - 1
+    const { provider, model } = TRANSLATION_CHAIN[i]
     try {
-      const raw = await scheduleGroqCall(() => callGroq(prompt, apiKey, { model: TRANSLATION_MODELS[i], maxTokens }))
+      const raw = await callChat(prompt, { provider, model, maxTokens })
       if (!raw) throw Object.assign(new Error('Resposta vazia'), { transient: true })
-      const cleaned = cleanTranslation(raw)
-      if (validate && !validate(cleaned) && !isLast) continue
-      return cleaned
+      const out = clean ? cleanTranslation(raw) : raw
+      if (validate && !validate(out) && !isLast) continue
+      return out
     } catch (error) {
       if ((error?.transient || error?.badModel) && !isLast) {
         if (error.badModel) {
-          console.error(`Modelo indisponível no Groq: ${TRANSLATION_MODELS[i]} — tentando o próximo`)
-          // Pula as repetições do mesmo modelo (a lista repete o principal só
-          // para dar uma 2ª chance a falhas transitórias, não a um 404).
-          while (i + 1 < TRANSLATION_MODELS.length && TRANSLATION_MODELS[i + 1] === TRANSLATION_MODELS[i]) i++
+          console.error(`Indisponível: ${provider}/${model} (${error.message}) — tentando o próximo`)
+          // Pula repetições do mesmo par provedor+modelo: a lista pode repetir
+          // um item para dar 2ª chance a falha transitória, nunca a um 404.
+          while (i + 1 < TRANSLATION_CHAIN.length
+            && TRANSLATION_CHAIN[i + 1].provider === provider
+            && TRANSLATION_CHAIN[i + 1].model === model) i++
           continue
         }
-        // 429: respeita o retry-after do Groq (com teto para não estourar o
+        // 429: respeita o retry-after do provedor (com teto para não estourar o
         // timeout serverless); demais falhas transitórias esperam pouco.
         const waitMs = error?.status === 429
           ? Math.min((error.retryAfter || 2.5) * 1000, 4000)
@@ -272,30 +345,32 @@ async function runTranslationPrompt(prompt, apiKey, { maxTokens = 4096, validate
   return null
 }
 
-const TRANSLATION_PREAMBLE = 'Traduza para português brasileiro o texto de RPG Pathfinder 2e abaixo. Traduza TODA a prosa, inclusive graus de proficiência (trained → treinado, expert → perito, master → mestre, legendary → lendário) e vocabulário comum ("skill" → "perícia", "check" → "teste", "damage" → "dano"). Mantenha em inglês APENAS os nomes próprios (de magias, talentos, criaturas e livros) e os nomes de ações e condições do sistema: Strike, Stride, Step, Seek, Interact, Escape, Grapple, Demoralize, flat-footed, off-guard, flanking, grabbed, prone, frightened.'
+const TRANSLATION_PREAMBLE = 'Traduza para português brasileiro o texto de RPG Pathfinder 2e abaixo. Traduza TODA a prosa, inclusive graus de proficiência (trained → treinado, expert → perito, master → mestre, legendary → lendário) e vocabulário comum ("skill" → "perícia", "check" → "teste", "damage" → "dano"). Mantenha em inglês APENAS os nomes próprios (de magias, talentos, criaturas e livros) e os nomes de ações e condições do sistema: Strike, Stride, Step, Seek, Interact, Escape, Grapple, Demoralize, flat-footed, off-guard, flanking, grabbed, prone, frightened. Escreva em texto puro, sem NENHUMA formatação markdown (nada de *, ** ou _).'
 
-export async function translateToPortuguese(text, apiKey) {
-  if (!text || !apiKey) return text
+// `translationEnabled` é o gate (ver hasTranslationKey): as chaves em si vêm do
+// env, por provedor, dentro do callChat.
+export async function translateToPortuguese(text, translationEnabled) {
+  if (!text || !translationEnabled) return text
 
   const prompt = `${TRANSLATION_PREAMBLE} Retorne APENAS a tradução, sem explicações:\n\n${text}`
   // Validação básica — se devolver muito menos que o original é provável que
   // tenha sido truncado/erro de tradução. Retentar antes de cair no original.
-  const out = await runTranslationPrompt(prompt, apiKey, {
+  const out = await runChainedPrompt(prompt, {
     validate: t => t.length >= text.length * 0.3,
   })
   return out || text
 }
 
-// Traduz VÁRIOS trechos numa única chamada ao Groq, usando marcadores <<N>>.
-// Uma chamada por item (em vez de uma por campo) é o que mantém uma ficha
-// inteira dentro do rate limit do tier gratuito.
+// Traduz VÁRIOS trechos numa única chamada, usando marcadores <<N>>. Uma chamada
+// por item (em vez de uma por campo) é o que mantém uma ficha inteira dentro do
+// rate limit do tier gratuito.
 //
 // Devolve um array do mesmo tamanho da entrada: a tradução de cada trecho ou
 // `null` quando o marcador não voltou / veio curto demais. Nunca devolve
 // tradução parcial de um trecho — na dúvida, null e o chamador mantém o EN.
-export async function translateSegments(segments, apiKey) {
+export async function translateSegments(segments, translationEnabled) {
   const out = segments.map(() => null)
-  if (!apiKey) return out
+  if (!translationEnabled) return out
 
   const present = segments
     .map((s, i) => ({ i, en: String(s || '').trim() }))
@@ -304,7 +379,7 @@ export async function translateSegments(segments, apiKey) {
 
   if (present.length === 1) {
     const { i, en } = present[0]
-    const translated = await translateToPortuguese(en, apiKey)
+    const translated = await translateToPortuguese(en, translationEnabled)
     if (translated && translated !== en && translated.trim().length >= en.length * 0.4) {
       out[i] = translated.trim()
     }
@@ -314,7 +389,7 @@ export async function translateSegments(segments, apiKey) {
   const body = present.map((x, n) => `<<${n + 1}>>\n${x.en}`).join('\n\n')
   const prompt = `${TRANSLATION_PREAMBLE} O conteúdo está dividido em ${present.length} segmentos; cada um começa com um marcador <<N>> em linha própria. Devolva os ${present.length} segmentos na MESMA ordem, cada um precedido pelo seu marcador <<N>> idêntico, sem comentários ou explicações:\n\n${body}`
 
-  const raw = await runTranslationPrompt(prompt, apiKey, {
+  const raw = await runChainedPrompt(prompt, {
     maxTokens: 8192,
     validate: t => countMarkers(t, present.length) === present.length,
   })
@@ -353,9 +428,9 @@ function splitMarkers(text, count) {
   return parts
 }
 
-// Gera descrição via Groq quando o item não é encontrado no AON
-export async function generateFallbackDescription(name, itemType, apiKey) {
-  if (!name || !apiKey) return null
+// Gera descrição quando o item não é encontrado no AON.
+export async function generateFallbackDescription(name, itemType, translationEnabled) {
+  if (!name || !translationEnabled) return null
 
   const typeLabel = {
     feat: 'talento',
@@ -366,13 +441,9 @@ export async function generateFallbackDescription(name, itemType, apiKey) {
 
   const prompt = `Em 1-2 frases curtas em português brasileiro, descreva o que é "${name}" no RPG Pathfinder 2e (${typeLabel}). Seja direto e objetivo. Retorne APENAS a descrição, sem formatação.`
 
-  try {
-    const result = await scheduleGroqCall(() => callGroq(prompt, apiKey, { maxTokens: 256 }))
-    if (!result || result.length < 10) return null
-    return cleanTranslation(result)
-  } catch {
-    return null
-  }
+  const result = await runChainedPrompt(prompt, { maxTokens: 256 })
+  if (!result || result.length < 10) return null
+  return result
 }
 
 export function getCache() {

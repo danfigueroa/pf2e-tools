@@ -61,7 +61,7 @@ function emptyEntry(name, description, itemType) {
   }
 }
 
-async function resolveEntry(rawName, categories, itemType, apiKey) {
+async function resolveEntry(rawName, categories, itemType, translationEnabled) {
   const searchName = cleanSearchName(rawName) || String(rawName || '')
   let best = await findBestEntry(searchName, categories)
 
@@ -75,7 +75,7 @@ async function resolveEntry(rawName, categories, itemType, apiKey) {
   }
 
   if (!best) {
-    const fallback = await generateFallbackDescription(searchName, itemType, apiKey)
+    const fallback = await generateFallbackDescription(searchName, itemType, translationEnabled)
     return emptyEntry(rawName, fallback, itemType)
   }
 
@@ -110,8 +110,8 @@ async function resolveEntry(rawName, categories, itemType, apiKey) {
     joinField(source.cost),
   ]
 
-  const translated = apiKey
-    ? await translateSegments(segmentsEN, apiKey)
+  const translated = translationEnabled
+    ? await translateSegments(segmentsEN, translationEnabled)
     : segmentsEN.map(() => null)
 
   let translationPending = false
@@ -125,13 +125,13 @@ async function resolveEntry(rawName, categories, itemType, apiKey) {
     if (!en) return ''
     const pt = translated[idx]
     if (pt && (idx > 0 || pt !== en)) return pt
-    if (apiKey) translationPending = true
+    if (translationEnabled) translationPending = true
     return en
   }
 
   let description = take(0)
   if (!description || description.trim().length < 20) {
-    const fallback = await generateFallbackDescription(source.name || searchName, itemType, apiKey)
+    const fallback = await generateFallbackDescription(source.name || searchName, itemType, translationEnabled)
     if (fallback) {
       description = fallback
       translationPending = false
@@ -160,22 +160,22 @@ async function resolveEntry(rawName, categories, itemType, apiKey) {
   }
 }
 
-export function resolveFeat(name, apiKey) {
-  return resolveEntry(name, FEAT_CATEGORIES, 'feat', apiKey)
+export function resolveFeat(name, translationEnabled) {
+  return resolveEntry(name, FEAT_CATEGORIES, 'feat', translationEnabled)
 }
 
-export function resolveSpecial(name, apiKey) {
-  return resolveEntry(name, SPECIAL_CATEGORIES, 'special', apiKey)
+export function resolveSpecial(name, translationEnabled) {
+  return resolveEntry(name, SPECIAL_CATEGORIES, 'special', translationEnabled)
 }
 
 // Executa vários nomes com concorrência limitada, chaveando o resultado pelo
 // nome de ENTRADA — o AON normaliza nomes ("Power Attack" → "Vicious Swing") e
 // sem isso o frontend perde o item.
-export async function resolveMany(names, apiKey, resolver, concurrency = 3) {
+export async function resolveMany(names, translationEnabled, resolver, concurrency = 3) {
   const results = {}
   for (let i = 0; i < names.length; i += concurrency) {
     const chunk = names.slice(i, i + concurrency)
-    const resolved = await Promise.all(chunk.map(n => resolver(n, apiKey)))
+    const resolved = await Promise.all(chunk.map(n => resolver(n, translationEnabled)))
     resolved.forEach((r, idx) => { results[chunk[idx]] = r })
   }
   return results

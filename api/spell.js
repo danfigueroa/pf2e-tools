@@ -1,5 +1,6 @@
 // Endpoint single (GET ?name=...) — legado; usa o mesmo núcleo do batch.
 import { resolveSpell } from './_lib/spells-core.js'
+import { hasTranslationKey } from './_lib/aon.js'
 
 export default async function handler(req, res) {
   // CORS
@@ -18,7 +19,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const spellData = await resolveSpell(name, process.env.GROQ_API_KEY)
+    const spellData = await resolveSpell(name, hasTranslationKey())
     if (!spellData.description) {
       return res.status(404).json({ error: 'Magia não encontrada' })
     }
