@@ -60,14 +60,15 @@ const ZAYTO = `## 🎯 Papel em Combate
 - ❌ Não ligar **Bless/Fear** logo no início, quando o buff/debuff rende mais rounds.`
 
 // ---------------------------------------------------------------------------
-// ARDAGAR — Druida 9 (Ordem Animal), Awakened Animal + Urso
+// ARDAGAR — Druida 10 (Ordem Animal), Awakened Animal + Urso
 // ---------------------------------------------------------------------------
 const ARDAGAR = `## 🎯 Papel em Combate
-**Druida da Ordem Animal** (Awakened Animal, tamanho Grande) — controlador/invocador com um **Urso Selvagem** (companheiro maduro e incrível) na linha de frente. Você orquestra: comanda o urso, lança buffs e blasters, e vira **battle form** quando precisa bater. CON 18 e ~125 PV te deixam surpreendentemente durão.
+**Druida da Ordem Animal** (Awakened Animal, tamanho Grande) — controlador/invocador com um **Urso Selvagem** (companheiro maduro e incrível) na linha de frente. Você orquestra: comanda o urso, lança buffs e blasters, e vira **battle form** quando precisa bater. CON 19, ~138 PV e CA 26 te deixam surpreendentemente durão.
 
 ## 🔁 Rotina de Turno
 - 🐻 **1 ação — Comande o Urso:** sem o comando ele age só 1 vez; com o comando ele ganha **2 ações** (Stride+Strike ou 2 Strikes). *Nunca* pule isso.
-- ✨ **2 ações — Magia:** *Haste* (dá ação extra ao urso ou a você), *Lightning Bolt*/*Howling Blizzard* (dano em área), ou uma cura.
+- ✨ **2 ações — Magia:** *Haste* (dá ação extra ao urso ou a você), *Lightning Bolt* (dano em área), ou uma cura.
+- ⚡ **1 ação — Mythic Strike:** gaste um **Ponto Mítico** e ataque com proficiência mítica. É o desempate contra o que tem **resistência ou imunidade mítica**.
 - 🌿 Abertura alternativa: **Summon Elemental** para um terceiro corpo, ou entre em **battle form** e some ao urso na frente.
 
 ## ⭐ Nunca Esqueça
@@ -76,21 +77,24 @@ const ARDAGAR = `## 🎯 Papel em Combate
 - 🩹 **Heal Animal** (foco): recoloca o urso na luta; é **1 ponto de foco**, então **refocus** depois.
 - 🌀 **Wild Stride** + deslocamento alto: ignore terreno difícil para reposicionar e flanquear com o urso.
 - 🗣️ **Steady Spellcasting:** menos chance de perder a magia se te atingirem conjurando.
+- 🔄 **Healing Transformation (1 ação, nível 10):** antes de lançar uma magia de *polymorph* em **uma única criatura**, use isto — a transformação também cura **1d6 PV por nível da magia**. Uma *Animal Form* de 5º nível vira transformação + 5d6 de cura na mesma jogada. Não vale para truque nem para magia em área.
 
 ## ✨ Magias-Chave
 - 🐾 **Battle forms** — *Animal Form*, *Dinosaur Form*, *Elemental Form*: gaste um slot e vire um brutamontes de linha de frente (gere o stat block na aba **Transformação**).
-- ⚡ **Lightning Bolt** e ❄️ **Howling Blizzard:** dano em área primal.
+- ⚡ **Lightning Bolt:** dano em área primal.
 - 💨 **Haste** (o melhor buff de ação) e 🧊 **Frostbite** (truque de dano + debuff).
 - 🌊 **Summon Elemental** para bloquear passagem e flanquear.
-- ❤️ **Heal** (vários slots) para a party.
+- 💚 **Summon Healing Servitor** (5º, novo): um corpo extra que **cura enquanto você faz outra coisa** — bom quando a party toma dano espalhado e você não quer gastar seu turno curando.
+- ❤️ **Heal** (vários slots, agora com **três** de 5º nível) para a party.
 
 ## 🎒 Itens & Recursos
 - 🪄 **Staff of Healing (Greater), investido:** banco extra de curas — carregue-o e lance *Heal* sem gastar sua preparação.
 - 🐻 **Wolfjaw Armor:** concede um ataque de **mandíbulas** desarmado (você não carrega armas) — seu golpe corpo a corpo padrão.
 - 🔮 1 ponto de foco (Heal Animal): refocus entre lutas.
+- ⭐ **Pontos Míticos:** moeda de *Mythic Strike*, *Correct the Story* e *Mythic Allies*. São poucos por dia — guarde para o inimigo que realmente resiste.
 
 ## 🛡️ Defesa & Sobrevivência
-- 💪 **CON 18, ~125 PV e todos os saves ao menos expert** — você aguenta pancada; pode ficar mais à frente que a maioria dos conjuradores.
+- 💪 **CON 19, ~138 PV e todos os saves ao menos expert** — você aguenta pancada; pode ficar mais à frente que a maioria dos conjuradores.
 - 🐻 Deixe o urso segurar a linha e fique logo atrás, ao alcance de comandos e curas.
 - 🏃 Alta mobilidade (Godspeed/Wild Stride) para reposicionar sob pressão.
 
@@ -98,41 +102,50 @@ const ARDAGAR = `## 🎯 Papel em Combate
 - ❌ **Não comandar o urso** — corta o dano dele pela metade.
 - 🛡️ **Shield Block sem escudo:** você tem o talento, mas **nenhum escudo equipado** — sem escudo na mão a reação não faz nada. Considere adquirir um.
 - ❌ Entrar em battle form e *ainda* tentar conjurar: em forma de batalha suas magias ficam limitadas — decida o modo do turno.
-- ❌ Segurar *Haste*: ele rende mais quanto antes entrar.`
+- ❌ Segurar *Haste*: ele rende mais quanto antes entrar.
+- ❌ **Gastar Healing Transformation numa magia em área ou num truque** — ela só funciona em *polymorph* que tenha **um único alvo**.
+- ❌ Esquecer que **Consult the Spirits** é de exploração (10 minutos, **uma vez por dia**): é ferramenta de reconhecimento antes da luta, não recurso de combate.`
 
 // ---------------------------------------------------------------------------
-// ELDARION — Ladino 9 (Thief), Elfo
+// ELDARION — Ladino 10 (Thief), Elfo
 // ---------------------------------------------------------------------------
 const ELDARION = `## 🎯 Papel em Combate
-**Ladino Trapaceiro (Thief)** élfico — assassino de precisão e batedor. Seu jogo é **iniciativa alta → deixar o alvo _off-guard_ → descarregar Sneak Attack**. A maior CA da party (27) e Reflexos mestres fazem de você um esquivo difícil de fixar. Skirmisher: entra, fere pesado, sai.
+**Ladino Trapaceiro (Thief)** élfico — assassino de precisão e batedor. Seu jogo é **iniciativa alta → deixar o alvo _off-guard_ → descarregar Sneak Attack**. A maior CA da party (**29**) e Reflexos mestres fazem de você um esquivo difícil de fixar. Skirmisher: entra, fere pesado, sai.
 
 ## 🔁 Rotina de Turno
-- ⚔️ **Strike com a Gloom Blade (+18):** contra alvo **off-guard**, some **+2d6 de precisão (Sneak Attack)** e aplique **Debilitating Strike** (deixe o inimigo *lento*/*enfraquecido*).
+- ⚔️ **Strike com a Gloom Blade (+20):** contra alvo **off-guard**, some **+2d6 de precisão (Sneak Attack)** e aplique **Debilitating Strike** (deixe o inimigo *lento*/*enfraquecido*).
 - 🤝 **Garanta o off-guard:** *Gang Up* — **qualquer aliado adjacente** ao alvo já o deixa off-guard para você (sem precisar flanquear na diagonal exata). Ou flanqueie do jeito normal.
 - 🏃 **3ª ação:** reposicione (Step/Stride, *Swift Sneak* para furtar em velocidade plena) ou segure para a reação.
+- ⚡ **Mythic Strike (1 ação):** gaste um **Ponto Mítico** para atacar com proficiência mítica. Guarde para o inimigo com **resistência ou imunidade mítica** — e combine com off-guard, porque o Sneak Attack continua valendo.
 
 ## ⭐ Nunca Esqueça
 - 🛡️ **Nimble Dodge (reação):** +2 CA contra um ataque — quase sempre vale gastar. Não termine a rodada com a reação sobrando.
 - 🥇 **Surprise Attack:** na 1ª rodada, quem ainda não agiu está **off-guard** — por isso a iniciativa alta (Incredible Initiative + Elven Instincts) importa tanto. Bata forte no round 1.
 - ☠️ **Poison Weapon / Improved Poison Weapon:** envenene a lâmina **antes** da luta; com o aprimorado o veneno persiste por mais tempo.
 - 🤸 **Kip Up:** levante-se de graça sem provocar. **Evasive Reflexes** e **Slippery Prey** para escapar de agarrões e ameaças.
+- 🥷 **Sneak Adept (nível 10):** ao **Sneak**, uma *falha* vira **sucesso** — só a falha crítica ainda te denuncia. Furtar-se para a posição passou de aposta a plano confiável: use para abrir a luta já escondido e garantir o off-guard do round 1.
+- 🕊️ **Aerobatics Mastery (nível 10):** **+2 de circunstância** em Acrobacia para *Maneuver in Flight* e **duas manobras numa ação só** (CD da mais difícil +5). Com *Feet that Stride the Sky*, você reposiciona no ar em uma ação e ainda ataca.
 - 🩹 **Battle Medicine:** cura de emergência em você ou num aliado no meio do combate.
 
 ## 🎒 Itens & Recursos
 - 🗡️ **Gloom Blade** (shadow): não emite luz e ignora certas defesas; sua arma principal — combine com **Quick Draw**.
 - 🥷 **Shadow Weaver (+1 resilient, shadow):** bônus em Furtividade e nos saves — mantenha investida.
-- 💍 **Ring of Climbing** + **Feet that Stride the Sky** (mítico): mobilidade vertical e aérea para alcançar alvos e escapar.
+- 💍 **Ring of Climbing** + **Feet that Stride the Sky** (mítico): mobilidade vertical e aérea para alcançar alvos e escapar — agora com **Aerobatics Mastery** para manobrar de verdade lá em cima.
+- 🎭 **Vigilante — Quick Change (nível 10):** trocar de identidade caiu de **1 minuto para 3 ações**, ou seja, dá para fazer **dentro do combate**. Com Deception mestre (+CHA 18), a identidade social virou ferramenta tática, não só de interlúdio.
+- ⭐ **Pontos Míticos:** moeda de *Mythic Strike*, *Divert Destiny* e *Summon Mythic Power*. São escassos — gaste no golpe que decide a luta.
 
 ## 🛡️ Defesa & Sobrevivência
-- 🛡️ **Melhor defesa: CA 27 + Reflexos mestres (~+20) com Evasion** — transforma AoE em dano zero num sucesso.
+- 🛡️ **Melhor defesa: CA 29 + Reflexos mestres com Evasion** — transforma AoE em dano zero num sucesso.
 - 🧠 **Deny Advantage:** inimigos de nível igual ou menor não te deixam off-guard com facilidade.
-- ⚠️ ~96 PV e sem armadura pesada: não troque golpes parado com brutamontes — bata e recue (skirmish).
+- ⚠️ ~116 PV e sem armadura pesada: não troque golpes parado com brutamontes — bata e recue (skirmish).
 
 ## ⚠️ Erros Comuns
 - ❌ **Atacar sem off-guard:** sem isso você perde os **2d6** de Sneak Attack — monte o flanking/Gang Up antes.
 - ❌ Esquecer a **reação Nimble Dodge**.
 - ❌ Não pré-envenenar a arma no começo do combate.
-- ❌ Desperdiçar a alta iniciativa não focando o alvo certo no round 1 (Surprise Attack).`
+- ❌ Desperdiçar a alta iniciativa não focando o alvo certo no round 1 (Surprise Attack).
+- ❌ **Continuar tratando Sneak como aposta:** com *Sneak Adept* a falha vira sucesso — vale muito mais a pena se aproximar escondido do que atacar de longe sem off-guard.
+- ❌ Esquecer que **Quick Change** agora cabe num turno: trocar de identidade deixou de exigir sair de cena.`
 
 // ---------------------------------------------------------------------------
 // GHAN BURI — Guerreiro 10 (Bastion), Jotunborn Grande + Escudo-Fortaleza
