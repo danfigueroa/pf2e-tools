@@ -1,5 +1,6 @@
 import { Box, Card, CardContent, Stack, Typography, Chip, Button, useTheme, useMediaQuery } from '@mui/material'
-import { Refresh as RefreshIcon } from '@mui/icons-material'
+import { SwapHoriz as SwapIcon } from '@mui/icons-material'
+import { SyncStatus } from './SyncStatus'
 import type { BuildInfo } from '../../character-sheet/types'
 
 interface Props {
@@ -72,15 +73,24 @@ export const CharacterHeader = ({ build, onReset }: Props) => {
                             )}
                         </Stack>
                     </Box>
-                    <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={<RefreshIcon />}
-                        onClick={onReset}
-                        sx={{ flexShrink: 0 }}
+                    <Stack
+                        direction="row"
+                        spacing={1}
+                        alignItems="center"
+                        useFlexGap
+                        sx={{ flexWrap: 'wrap', gap: 1, flexShrink: 0 }}
                     >
-                        Trocar ficha
-                    </Button>
+                        <SyncStatus build={build} />
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<SwapIcon />}
+                            onClick={onReset}
+                            sx={{ flexShrink: 0 }}
+                        >
+                            Trocar ficha
+                        </Button>
+                    </Stack>
                 </Stack>
             </CardContent>
         </Card>
