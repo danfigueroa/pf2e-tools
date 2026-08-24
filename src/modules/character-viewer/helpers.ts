@@ -22,9 +22,36 @@ export function abilityMod(score: number): number {
 export const MYTHIC_PROFICIENCY_BONUS = 10
 export { MYTHIC_COLOR } from '../../theme/palette'
 
+/** Pool de Pontos Míticos de um personagem mítico — 3, recuperados a cada dia. */
+export const MYTHIC_POINTS_MAX = 3
+
 // Personagem "mítico" = possui ao menos um talento do tipo Mythic Feat.
 export function isMythicCharacter(build: BuildInfo): boolean {
     return (build.feats ?? []).some((f) => /mythic/i.test(parseFeatEntry(f).type))
+}
+
+/**
+ * Quanto somar a um bônus já pronto (o `attack` da arma, o total do save…)
+ * para **trocar** a proficiência normal pela mítica. É subtração da parte de
+ * proficiência que já está no número, não um bônus por cima.
+ *
+ * Destreinado não soma o nível no PF2e Remaster — por isso o nível só sai da
+ * conta quando o rank é maior que zero, e a proficiência mítica sempre o traz.
+ */
+export function mythicProficiencyDelta(level: number, rank: number): number {
+    const current = rank > 0 ? level + rank : 0
+    return level + MYTHIC_PROFICIENCY_BONUS - current
+}
+
+/**
+ * Rank de proficiência que uma arma usa. O Pathbuilder exporta a categoria da
+ * arma (`simple`, `martial`, …) em `weapon.prof`; categoria desconhecida
+ * devolve `null` para não inventar número mítico errado.
+ */
+export function weaponProficiencyRank(build: BuildInfo, prof: string): number | null {
+    const key = (prof || '').toLowerCase()
+    if (key !== 'unarmed' && key !== 'simple' && key !== 'martial' && key !== 'advanced') return null
+    return build.proficiencies[key] ?? 0
 }
 
 export function signed(n: number): string {
