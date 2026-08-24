@@ -260,6 +260,15 @@ cada fatia de estado mora**:
 - O catálogo de condições, o cálculo de modificadores e o `ConditionsDialog` vêm inteiros do
   `character-viewer` — inclusive a cascata de condições impostas (Inconsciente → Cego, Desprevenido,
   Caído). Nada disso foi reescrito.
+- **A lista é uma coluna só, e o cartão é uma faixa.** A ordem de turnos *é* a lista: em várias
+  colunas o olho perde quem age depois de quem, e rolar deixa de ser o gesto de ver os próximos
+  turnos. A partir do `sm` o cartão vira faixa (identidade à esquerda, PV numa coluna de 240px à
+  direita) para a coluna única não desperdiçar a largura nem alongar a rolagem.
+- **Dano e cura são botões escritos, sempre habilitados.** Desabilitados até haver número, a lista
+  inteira ficava acinzentada e parecia travada; sem número, o clique manda o foco para o campo.
+  Cada um leva `aria-label` com o nome do combatente — numa lista longa, "Dano, Dano, Dano" não
+  diz de quem. Pelo mesmo motivo o bloco de ↑↓⋮ é renderizado **uma vez** (via `useMediaQuery`, não
+  com dois `display: none`): dois botões de mesmo rótulo no DOM atrapalham teclado e leitor de tela.
 - **Busca de criatura aceita nome, faixa de nível, ou os dois** (`AonCreatureSearch`). Buscar só
   por faixa é como se monta encontro, então a lista precisa de ordenação estável (nível, depois
   nome) e do aviso "mostrando 12 de ~656" — sem termo, o índice tem centenas de acertos por nível.
