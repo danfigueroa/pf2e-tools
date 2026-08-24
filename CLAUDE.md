@@ -37,6 +37,9 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
 - Endpoints: `feat`, `search`, `spell`, `companion`, `health`, `clear-cache`, mais as variantes
   plurais (`feats`, `searches`, `spells`, `companions`) para busca em lote. Cliente no frontend:
   `src/services/descriptions.ts` (com cache).
+- `state` é o único endpoint com **estado**: guarda o jogo da mesa (ver a seção própria abaixo).
+  Fica em `api/state.js`, **um nível** — o glob `"api/*.js"` do `vercel.json` não pega subpastas,
+  então `api/state/[char].js` perderia o `maxDuration`.
 
 ### Tradução (o ponto que mais quebra)
 
@@ -60,6 +63,37 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
 - Metadados em prosa (pré-requisitos, gatilho, requisitos…) são traduzidos junto com a descrição
   numa **única** chamada, via marcadores `<<N>>` (`translateSegments`). Uma chamada por item é o que
   mantém uma ficha inteira dentro do rate limit do tier gratuito.
+
+## Estado compartilhado da mesa
+
+PV, PV de companheiros, slots de magia, pontos de foco e condições são **da mesa, não do
+navegador**: os jogadores veem os mesmos números. A sincronia é **sob demanda** — puxa ao abrir a
+ficha e no botão "Atualizar" do cabeçalho. Não há polling, SSE nem WebSocket, e não há login: quem
+abrir o site entra na mesma mesa.
+
+- **Backend**: `api/_lib/table-store.js` (núcleo, compartilhado com `server/index.mjs`) sobre
+  **Upstash Redis** via REST — `@upstash/redis`, não `@vercel/kv`, porque o dev server é `node:http`
+  puro e precisa do mesmo store. Aceita os dois pares de env (`KV_REST_API_*` da integração da
+  Vercel e `UPSTASH_REDIS_REST_*` do console da Upstash). **Sem credenciais, cai num `Map` de
+  processo** e o app segue funcionando; o indicador avisa "Só neste aparelho".
+- **Um HASH por personagem, um campo por fatia** (`hp`, `slots`, `conditions`, `pet:<kind>:<slug>#<i>`).
+  Documento único faria dois jogadores editando ao mesmo tempo se sobrescreverem — quem marcasse
+  condição apagaria o dano do outro. `HSET` por campo dá atomicidade por fatia sem transação, e a
+  leitura continua sendo um `HGETALL` só. Dentro da **mesma** fatia a última escrita ainda vence.
+- **Identidade em `charId.ts`**: o slug é só o **nome** normalizado (`Ghan Buri` → `ghan-buri`). O
+  Pathbuilder não exporta id nenhum, e a chave antiga incluía o nível — qualquer level-up órfãva o
+  estado. As chaves entregues aos hooks são `"<slug>/<campo>"`; o serviço corta no primeiro `/`.
+  `legacyCharKey`/`legacyPetKey` existem só para **migrar** uma vez o que já estava no `localStorage`.
+- **Cliente**: `src/services/tableState.ts` (dedupe de in-flight como em `descriptions.ts`, debounce
+  de 600 ms na escrita) + `components/useSharedState.ts`, que os três hooks consomem. As **APIs
+  públicas de `useHpTracker`/`useSpellSlots`/`useConditions` não mudaram** — a UI não sabe da rede.
+  O `localStorage` virou cache: pinta antes da rede e segura a sessão offline.
+- **`maxHp` não participa da carga.** Ele já foi dependência do efeito de releitura, e marcar Drenado
+  (ou os stats do companheiro chegarem da AON) relia o storage. Hoje `null` significa "ninguém mexeu"
+  e o clamp acontece no render. Não volte a colocar `maxHp` nas deps.
+- **Ações destrutivas agora são coletivas**: "Novo dia" zera os slots da mesa inteira, por isso pede
+  confirmação. O mesmo raciocínio vale para qualquer reset novo.
+- Sendo público, o endpoint valida slug/campo por regex e limita a escrita a 8 KB.
 
 ## Tema (verde/pergaminho/ouro)
 
@@ -137,8 +171,8 @@ A plataforma é usada na mesa, no celular. Toda mudança de layout precisa passa
   listamos as opções típicas da herança marcadas como `choice`. Itens que dão ataque (ex.: Wolfjaw
   Armor) casam **pelo nome** em `ITEM_ATTACKS`. A aba de Combate nunca fica vazia: sem armas, ainda
   mostra desarmados, armadura e a CA.
-- **Slots de magia** (`useSpellSlots.ts` + `SlotPips.tsx`): estado do dia em `localStorage`, na mesma
-  chave por personagem do PV (`charKeyFor`). Guarda **contagem** de gastos, nunca índice de slot —
+- **Slots de magia** (`useSpellSlots.ts` + `SlotPips.tsx`): estado do dia compartilhado com a mesa
+  (ver "Estado compartilhado"), na mesma chave por personagem do PV (`slotsKeyFor`). Guarda **contagem** de gastos, nunca índice de slot —
   assim sobrevive a um re-upload em que a ordem da lista mudou. Preparado/inato: cada cópia
   preparada é um slot, os pips ficam na linha da magia. Espontâneo: os slots são do nível
   (`perDay`), os pips ficam no cabeçalho e a linha ganha botão de gastar. Truques (nível 0) são à
@@ -153,7 +187,7 @@ A plataforma é usada na mesa, no celular. Toda mudança de layout precisa passa
   fala só de CA e salvaguardas, não toca em perícias. Condições impostas (Inconsciente → Cego,
   Desprevenido, Caído) são derivadas em cascata, nunca guardadas: o `localStorage` só tem o que o
   jogador marcou. A barra fica **fora das abas** (a condição afeta a ficha inteira) e o estado é
-  persistido na mesma chave por personagem do PV (`charKeyFor`).
+  compartilhado com a mesa, na mesma chave por personagem do PV (`conditionsKeyFor`).
 - **O que a condição não consegue ajustar sozinha** vira aviso, nunca número errado: o Pathbuilder
   não registra se uma arma é de Força ou de Destreza, então no total da arma entra só o que penaliza
   os dois casos (`sharedMod`) e o resto aparece como "FOR −2 · DES −1 a mais". Desarmados sabem o

@@ -65,6 +65,12 @@ qualquer dispositivo — no desktop as áreas viram **abas**; no mobile viram **
     abre com a descrição completa buscada da **Archives of Nethys** e **traduzida para pt-BR**
     (requer o backend rodando; ver [API do Servidor](#-api-do-servidor)).
 -   🐾 **Companheiros e familiares**: stats de companheiros animais são pré-carregados do backend.
+-   👥 **Estado compartilhado da mesa**: PV, PV de companheiros, slots de magia, pontos de foco e
+    condições são os **mesmos para todos os jogadores** — marcar 50 de dano no notebook aparece no
+    celular de quem estiver na mesa. A sincronia é **sob demanda**: puxa ao abrir a ficha e no botão
+    **Atualizar** do cabeçalho, que também mostra se o que você vê está compartilhado.
+    Requer um Redis configurado (ver [Instalação](#-instalação-e-execução)); **sem ele o app funciona
+    igual**, só que o estado fica no aparelho, como antes.
 -   ⚔️ Cálculos derivados (modificadores, PV, CA, salvamentos, ataques, dano de arma) via
     helpers reutilizáveis (`helpers.ts`).
 
@@ -195,6 +201,9 @@ npm run dev:full
 -   Frontend: `http://localhost:5173`
 -   API: `http://localhost:3001`
 -   Busca descrições automaticamente da Archives of Nethys
+-   Para testar o **estado compartilhado da mesa** entre dois navegadores, preencha
+    `KV_REST_API_URL` e `KV_REST_API_TOKEN` no `.env` (ver `.env.example`). Sem elas o servidor
+    guarda só em memória — o que já serve para um teste local, mas não sobrevive a um restart
 
 #### Build de Produção
 
@@ -229,7 +238,14 @@ O projeto está configurado para deploy automático na Vercel.
     - As duas são opcionais, mas com as duas configuradas a tradução continua funcionando quando
       um dos provedores fica indisponível ou esgota a cota diária
 
-4. **Deploy**
+4. **Ligue o estado compartilhado da mesa** (opcional)
+
+    - Vá em "Storage" > "Upstash Redis" (o plano gratuito basta) e conecte ao projeto
+    - A integração injeta `KV_REST_API_URL` e `KV_REST_API_TOKEN` sozinha — não é preciso colar nada
+    - Sem isso o app funciona igual, mas PV, slots e condições ficam no aparelho de cada jogador
+      em vez de serem compartilhados
+
+5. **Deploy**
     - Clique em "Deploy"
     - Aguarde o build finalizar
     - Seu app estará disponível em `https://seu-projeto.vercel.app`
@@ -248,8 +264,13 @@ api/
 ├── search.js / searches.js # GET  /api/search?name=...  ·  batch: /api/searches
 ├── spell.js / spells.js    # GET  /api/spell?name=...   ·  batch: /api/spells
 ├── companion.js / companions.js # GET /api/companion?name=... (stats de companheiro animal)
+├── state.js                # GET/POST /api/state — estado de jogo compartilhado da mesa
 └── clear-cache.js          # POST /api/clear-cache
 ```
+
+> `_lib/table-store.js` é o único módulo com persistência (Upstash Redis via REST). Todos os
+> outros endpoints são stateless.
+
 
 ---
 
@@ -515,6 +536,8 @@ O servidor (`server/index.mjs`) fornece endpoints para buscar dados da Archives 
 | GET    | `/api/spell`     | `name`     | Busca informações detalhadas de uma magia        |
 | GET    | `/api/companion` | `name`     | Stats de companheiro animal                      |
 | POST   | `/api/clear-cache` | —        | Limpa o cache de descrições                      |
+| GET    | `/api/state`     | `char`     | Estado de jogo compartilhado de um personagem    |
+| POST   | `/api/state`     | body       | Grava uma fatia (`{ char, field, data }`)        |
 
 As variantes **plurais** (`/api/feats`, `/api/searches`, `/api/spells`, `/api/companions`) aceitam
 uma lista de nomes para busca em lote. Todas as descrições são **traduzidas para pt-BR** via Groq
@@ -541,6 +564,21 @@ antes de retornar.
 ### Cache
 
 O servidor mantém um cache em memória para evitar requisições repetidas à AON.
+
+### Estado da mesa (`/api/state`)
+
+Único endpoint com estado. Guarda um **hash por personagem** no Redis, com um campo por fatia
+(`hp`, `slots`, `conditions`, `pet:…`) — assim dois jogadores editando coisas diferentes ao mesmo
+tempo não se sobrescrevem. O personagem é identificado por um **slug do nome** (`Ghan Buri` →
+`ghan-buri`), sem o nível, para que subir de nível não zere o estado da mesa.
+
+```bash
+curl "http://localhost:3001/api/state?char=ghan-buri"
+# {"char":"ghan-buri","fields":{"hp":{"data":{"current":42,"temp":7},"updatedAt":…}},"storeReady":true}
+```
+
+Sem credenciais de Redis o servidor responde igual, mas guarda só em memória — o cliente avisa
+**"Só neste aparelho"** e mantém tudo no `localStorage`.
 
 ---
 
@@ -636,6 +674,7 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
     -   [x] Guias de uso "Como Jogar" (curados à mão + fallback heurístico)
     -   [x] Descrições da AON traduzidas para pt-BR sob demanda (drawer)
     -   [x] Áreas: Combate, Perícias, Talentos, Habilidades, Magias, Companheiros, Inventário
+    -   [x] Estado de jogo compartilhado entre os jogadores (PV, slots, foco, condições)
 -   [x] **Módulo de Ficha de Personagem (PDF)**
     -   [x] Upload e parsing de JSON
     -   [x] Geração de PDF completo
