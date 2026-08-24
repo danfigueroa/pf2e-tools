@@ -202,6 +202,16 @@ A plataforma é usada na mesa, no celular. Toda mudança de layout precisa passa
   (`MYTHIC_POINTS_MAX`), compartilhado com a mesa no campo `mythic`, com a mesma mecânica de pips
   dos slots. A barra fica **fora das abas**, ao lado das condições, porque o ponto é gasto de
   qualquer aba. A legenda do ✦ é uma só (`MythicNote`), usada nas três seções.
+- **Armas que mudam de número conforme a situação** (`magicWeapons.ts`): o Pathbuilder exporta um
+  conjunto de números só por arma, o do caso padrão — a Gloom Blade do Eldarion no escuro vira um
+  `+2 striking shortsword` e isso não aparecia em lugar nenhum. O catálogo casa **pelo nome** da
+  arma (como `ITEM_ATTACKS` em `unarmed.ts`) e declara perfis situacionais; a aba de Combate
+  calcula cada linha a partir dos números da própria ficha (a runa striking do perfil substitui a
+  da ficha em `weaponDamageFormula`), então level-up e runas novas continuam certos sozinhos.
+- **O Inventário lista armas e armaduras junto do equipamento** (`inventoryRows`). Elas são
+  inventário como qualquer item, mas o Pathbuilder as manda em listas próprias (`weapons`/`armor`),
+  então sumiam da aba. A lista é derivada no render — o JSON da ficha **não** é editado à mão, que
+  seria perdido no próximo export.
 - **Slots de magia** (`useSpellSlots.ts` + `SlotPips.tsx`): estado do dia compartilhado com a mesa
   (ver "Estado compartilhado"), na mesma chave por personagem do PV (`slotsKeyFor`). Guarda **contagem** de gastos, nunca índice de slot —
   assim sobrevive a um re-upload em que a ordem da lista mudou. Preparado/inato: cada cópia

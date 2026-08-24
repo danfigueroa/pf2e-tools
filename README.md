@@ -79,6 +79,12 @@ qualquer dispositivo — no desktop as áreas viram **abas**; no mobile viram **
     **Atualizar** do cabeçalho, que também mostra se o que você vê está compartilhado.
     Requer um Redis configurado (ver [Instalação](#-instalação-e-execução)); **sem ele o app funciona
     igual**, só que o estado fica no aparelho, como antes.
+-   🌑 **Perfis situacionais de arma**: itens que ficam mais fortes em certas condições (a
+    _Gloom Blade_ na penumbra, e mais forte ainda contra quem não te detecta) mostram ataque e dano
+    de cada situação na aba de Combate — escritos à mão em `magicWeapons.ts`, calculados a partir
+    dos números da própria ficha.
+-   🎒 **Inventário completo**: armas e armaduras aparecem na lista junto do equipamento, com a
+    descrição da AON a um toque.
 -   ⚔️ Cálculos derivados (modificadores, PV, CA, salvamentos, ataques, dano de arma) via
     helpers reutilizáveis (`helpers.ts`).
 
@@ -392,6 +398,7 @@ Visualizador interativo da ficha. Reaproveita `parseCharacterJson`/`BuildInfo` d
 | `CharacterViewerPage.tsx`   | Estado da ficha, restauração por sessão, layout em abas (desktop) / acordeões (mobile), drawer de descrições |
 | `campaignPresets.ts`        | Lista de fichas prontas (`public/characters/*.json`) exibidas no `UploadCard`        |
 | `combatGuides.ts`           | Guias "Como Jogar" — curados à mão por nome + gerador heurístico de fallback         |
+| `magicWeapons.ts`           | Armas cujos números mudam com a situação (Gloom Blade no escuro), casadas pelo nome |
 | `helpers.ts`                | Cálculos derivados: `abilityMod`, `totalHp`, `spellcasterStats`, `isMythicCharacter`, `mythicProficiencyDelta`, … |
 | `components/useMythicPoints` | Pool de 3 Pontos Míticos, compartilhado com a mesa (campo `mythic`)                 |
 | `sections/*`                | Uma área por aba: Overview, Combat, Skills, Feats, Specials, Spells, Pets, Inventory |
