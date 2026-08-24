@@ -31,8 +31,11 @@ import { UploadCard } from './components/UploadCard'
 import { CharacterHeader } from './components/CharacterHeader'
 import { DescriptionDrawer, type DescriptionRequest } from './components/DescriptionDrawer'
 import { ConditionsBar } from './components/ConditionsBar'
-import { conditionsKeyFor, legacyCharKey } from './charId'
+import { MythicPointsBar } from './components/MythicPointsBar'
+import { conditionsKeyFor, legacyCharKey, mythicKeyFor } from './charId'
 import { useConditions } from './components/useConditions'
+import { useMythicPoints } from './components/useMythicPoints'
+import { isMythicCharacter, MYTHIC_POINTS_MAX } from './helpers'
 import type { ConditionModifiers } from './conditions'
 
 import { OverviewSection } from './sections/OverviewSection'
@@ -140,6 +143,13 @@ export const CharacterViewerPage = () => {
         build ? legacyCharKey(build) : undefined,
     )
 
+    // Pontos Míticos: mesma história das condições — gastos de qualquer aba,
+    // então o hook mora aqui e a chave também cai num placeholder sem ficha.
+    const mythicPoints = useMythicPoints(
+        build ? mythicKeyFor(build) : 'none/mythic',
+        MYTHIC_POINTS_MAX,
+    )
+
     // Restaurar ficha da sessão ao recarregar
     useEffect(() => {
         try {
@@ -205,6 +215,8 @@ export const CharacterViewerPage = () => {
             <CharacterHeader build={build} onReset={handleReset} />
 
             <ConditionsBar conditions={conditions} />
+
+            {isMythicCharacter(build) && <MythicPointsBar points={mythicPoints} />}
 
             {apiAvailable === false && (
                 <Alert severity="warning" sx={{ mb: 2 }}>

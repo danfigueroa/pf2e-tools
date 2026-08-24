@@ -32,6 +32,7 @@ export const conditionsKeyForSlug = (slug: string): string => `${slug}/condition
 
 export const hpKeyFor = (build: BuildInfo): string => hpKeyForSlug(charSlug(build))
 export const slotsKeyFor = (build: BuildInfo): string => `${charSlug(build)}/slots`
+export const mythicKeyFor = (build: BuildInfo): string => `${charSlug(build)}/mythic`
 export const conditionsKeyFor = (build: BuildInfo): string => conditionsKeyForSlug(charSlug(build))
 
 /** Companheiro/familiar, namespaced dentro do personagem dono. */
