@@ -345,7 +345,11 @@ export function translateSize(size: string): string {
 }
 
 export function translateRarity(rarity: string): string {
-  return RARITIES[rarity] ?? rarity;
+  // Os dados deste módulo trazem a raridade capitalizada, mas o índice da AON
+  // devolve minúscula ("uncommon") — sem isso a busca de criaturas mostrava a
+  // raridade em inglês.
+  const key = rarity.charAt(0).toUpperCase() + rarity.slice(1).toLowerCase();
+  return RARITIES[key] ?? rarity;
 }
 
 export function translateDamageType(type: string): string {
