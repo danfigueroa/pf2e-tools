@@ -114,6 +114,13 @@ export function useEncounterParty(slugs: string[]) {
     }, [])
 
     const api = useMemo(() => ({
+        /**
+         * Os dados crus. Está aqui de propósito: o resto da API lê o ref (para
+         * duas escritas no mesmo handler não se perderem), então sem este campo
+         * o objeto teria identidade constante e quem memoriza em cima dele
+         * nunca repintaria o que chega do servidor.
+         */
+        snapshot: party,
         get,
         vitals,
 
@@ -152,7 +159,7 @@ export function useEncounterParty(slugs: string[]) {
         async refresh() {
             await Promise.all(uniqueSlugs.map((slug) => refreshCharacter(slug)))
         },
-    }), [get, vitals, write, uniqueSlugs])
+    }), [party, get, vitals, write, uniqueSlugs])
 
     return api
 }

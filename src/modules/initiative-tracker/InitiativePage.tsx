@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useReducer, useState } from 'react'
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import {
     Alert,
     Box,
@@ -40,7 +40,20 @@ export const InitiativePage = () => {
         [state.combatants],
     )
     const party = useEncounterParty(slugs)
-    const views = useCombatantViews(state, party, dispatch)
+
+    // Um fireball derruba vários alvos dentro do MESMO handler. Os avisos são
+    // juntados e só depois viram um aviso só, em vez de snackbars que se
+    // atropelam.
+    const downedRef = useRef<string[]>([])
+    // `flushDowned` fecha sobre `viewsById`, que muda a cada render; sem o ref,
+    // o microtask rodaria com o mapa do primeiro render e não acharia ninguém.
+    const flushRef = useRef<() => void>(() => {})
+    const collectDowned = useCallback((id: string) => {
+        if (downedRef.current.length === 0) queueMicrotask(() => flushRef.current())
+        downedRef.current.push(id)
+    }, [])
+
+    const views = useCombatantViews(state, party, dispatch, collectDowned)
 
     const [selected, setSelected] = useState<Set<string>>(new Set())
     const [dialog, setDialog] = useState<OpenDialog>(null)
@@ -119,17 +132,7 @@ export const InitiativePage = () => {
     // --- Ações em lote -------------------------------------------------------
 
     const applyDamage = (entries: Array<{ view: CombatantView; amount: number }>) => {
-        const downed: string[] = []
-        for (const { view, amount } of entries) {
-            if (amount <= 0) continue
-            view.applyDamage(amount)
-            // A queda a 0 PV é detectável aqui porque o estado da mesa vive na
-            // página — nenhum observador, nenhum efeito.
-            if (view.current > 0 && view.current - Math.max(0, amount - view.temp) <= 0) {
-                downed.push(view.combatant.id)
-            }
-        }
-        suggestForDowned(downed)
+        for (const { view, amount } of entries) view.applyDamage(amount)
     }
 
     /**
@@ -137,12 +140,12 @@ export const InitiativePage = () => {
      * Ferido que já tinha; um NPC simplesmente morre. A sugestão nunca é
      * automática — quem decide é o GM.
      */
-    const suggestForDowned = (ids: string[]) => {
+    const flushDowned = () => {
+        const ids = downedRef.current
+        downedRef.current = []
         const first = ids.map((id) => viewsById.get(id)).find(Boolean)
         if (!first) return
 
-        // Um fireball pode derrubar mais de um; a sugestão trata o primeiro e
-        // avisa do resto, em vez de empilhar snackbars que se atropelam.
         const others = ids.length > 1 ? ` (+${ids.length - 1} caíram junto)` : ''
 
         if (first.combatant.kind === 'npc') {
@@ -161,6 +164,7 @@ export const InitiativePage = () => {
             action: () => first.setCondition('dying', dying),
         })
     }
+    flushRef.current = flushDowned
 
     const applyHeal = (mode: 'heal' | 'temp', amount: number) => {
         for (const view of targets) {

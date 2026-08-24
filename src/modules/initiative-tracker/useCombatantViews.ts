@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { computeConditionModifiers } from '../character-viewer/conditions'
 import type { EncounterAction } from './encounterReducer'
 import type { PartyApi } from './useEncounterParty'
@@ -13,9 +13,16 @@ export function useCombatantViews(
     state: EncounterState,
     party: PartyApi,
     dispatch: React.Dispatch<EncounterAction>,
+    /** Chamado quando um combatente que tinha PV chega a zero. */
+    onDowned?: (id: string) => void,
 ): CombatantView[] {
+    // O callback vem inline da página e muda de identidade a cada render; o ref
+    // mantém a lista de views estável entre renders.
+    const downedRef = useRef(onDowned)
+    downedRef.current = onDowned
+
     return useMemo(
-        () => state.combatants.map((c) => buildView(c, state, party, dispatch)),
+        () => state.combatants.map((c) => buildView(c, state, party, dispatch, downedRef)),
         [state, party, dispatch],
     )
 }
@@ -25,6 +32,7 @@ function buildView(
     state: EncounterState,
     party: PartyApi,
     dispatch: React.Dispatch<EncounterAction>,
+    onDowned: React.MutableRefObject<((id: string) => void) | undefined>,
 ): CombatantView {
     const isActive = state.activeId === combatant.id
 
@@ -71,7 +79,10 @@ function buildView(
         }
         return {
             ...shared,
-            applyDamage: (amount) => party.applyDamage(slug, amount, maxHp),
+            applyDamage: (amount) => {
+                party.applyDamage(slug, amount, maxHp)
+                reportIfDowned(vitals, amount, combatant.id, onDowned)
+            },
             applyHealing: (amount) => party.applyHealing(slug, amount, maxHp),
             setTemp: (amount) => party.setTemp(slug, amount, maxHp),
             setCondition,
@@ -87,7 +98,10 @@ function buildView(
 
     return {
         ...shared,
-        applyDamage: (amount) => dispatch({ type: 'npcDamage', entries: [{ id, amount }] }),
+        applyDamage: (amount) => {
+            dispatch({ type: 'npcDamage', entries: [{ id, amount }] })
+            reportIfDowned(vitals, amount, id, onDowned)
+        },
         applyHealing: (amount) => dispatch({ type: 'npcHeal', entries: [{ id, amount }] }),
         setTemp: (amount) => dispatch({ type: 'npcSetTemp', id, amount }),
         setCondition,
@@ -97,4 +111,20 @@ function buildView(
             for (const conditionId of Object.keys(conditions)) setCondition(conditionId, 0)
         },
     }
+}
+
+/**
+ * A queda a zero é detectada no ponto em que o dano é aplicado — assim vale
+ * para o −/+ do cartão e para o diálogo em lote, sem observador nem efeito.
+ * Os PV temporários absorvem primeiro, como na aplicação real.
+ */
+function reportIfDowned(
+    before: { current: number; temp: number },
+    amount: number,
+    id: string,
+    onDowned: React.MutableRefObject<((id: string) => void) | undefined>,
+) {
+    const dmg = Math.max(0, Math.floor(amount))
+    if (before.current <= 0 || dmg <= 0) return
+    if (before.current - Math.max(0, dmg - before.temp) <= 0) onDowned.current?.(id)
 }
