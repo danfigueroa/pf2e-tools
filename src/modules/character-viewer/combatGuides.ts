@@ -18,48 +18,6 @@ const byName = (name: string) => (b: BuildInfo) =>
     (b.name || '').trim().toLowerCase() === name.toLowerCase()
 
 // ---------------------------------------------------------------------------
-// ZAYTO ZORDON — Clérigo 9 (Casandalee), Android
-// ---------------------------------------------------------------------------
-const ZAYTO = `## 🎯 Papel em Combate
-**Clérigo Enclausurado de Casandalee** — suporte divino que cura, abençoa e controla o campo enquanto dispara à distância com a **Gun Sword**. Fique na **retaguarda/meio de campo**: CA 25 e FOR 0 não sustentam corpo a corpo. Sua força é a versatilidade — cura, debuffs e dano sagrado.
-
-## 🔁 Rotina de Turno
-- 🎯 **1ª ação — Devise a Stratagem (Investigador):** escolha o alvo e role o d20 *antes*; use esse resultado no tiro, atacando com **INT (+4)** no lugar de DES. Dá previsibilidade ao ataque.
-- 🔫 **2ª–3ª ação — Strike com a +2 Striking Astral Holy Gun Sword (Ranged, +16):** d10 P + 1d6/1d4 Spirit; contra criaturas profanas a runa **Holy** rende dano extra.
-- ✨ Alternativa: se a prioridade é buff/controle, gaste as 3 ações numa magia em vez de atacar.
-
-## ⭐ Nunca Esqueça
-- 🙌 **Fonte de Cura:** você tem **5 _Heals_ de 5º nível extras** por dia (além dos slots normais). *Heal* de 3 ações cura todos num raio de 9 m e fere mortos-vivos — não segure demais.
-- 💫 **Bless:** aura crescente de **+1 em ataques** dos aliados; ligue cedo nas lutas grandes.
-- 🔮 **3 Pontos de Foco** (Metal/Raio/Conhecimento/Perfeição) — quase sempre há um bom uso. **Refocus** entre combates para não desperdiçar.
-- 🔁 **Rewrite Fate (Mítico):** rerrole um teste crucial, seu ou de aliado.
-- 🔥 **Fiery Rebirth (Mítico):** você retorna à vida ao ser derrubado — jogue com ousadia sabendo desse seguro.
-- 🎯 **Sure Strike 1/dia (Advanced Targeting System):** guarde para o tiro que *precisa* acertar (chefe, momento decisivo).
-
-## ✨ Magias-Chave
-- ⚡ **Charged Javelin** (foco, Raio) e **Serrate** (foco, Metal): dano de foco confiável; *Serrate* ainda dá sangramento à arma.
-- 🧠 **Perfected Mind** (foco): remova/reduza um efeito mental em você ou aliado.
-- 🚫 **Banishment** (5º): tire de cena um extraplanar perigoso.
-- 🌙 **Moonlight Ray** e ☀️ **Radiant Beam:** dano sagrado à distância, ótimos contra profanos/mortos-vivos.
-- 😨 **Fear / Enfeeble / Calm / Silence:** pacote de controle — *Fear* espalha a penalidade, *Enfeeble* enfraquece um brutamontes, *Silence* corta conjuradores inimigos.
-- 🕊️ **Fly** e **It Is Written** para mobilidade e utilidade.
-
-## 🎒 Itens & Recursos
-- 🛡️ **Bands of Force** (investido, resilient): sua CA e o bônus em saves vêm daqui — mantenha investido.
-- 🔮 Pontos de foco e os 5 *Heals* extras são seus recursos renováveis mais fortes; gaste sem medo e **refocus/descanse** para recarregar.
-
-## 🛡️ Defesa & Sobrevivência
-- 💪 **Melhor save: Vontade (~+20)** (expert + SAB 19) — encare efeitos mentais de frente.
-- ⚠️ **Pontos fracos: CA 25 e Reflexos** — fuja de AoE e de corpo a corpo; use aliados como parede.
-- 🤖 **Constructed (Android):** bônus contra veneno, doença, sangramento e efeitos mentais/de morte — avance contra esses perigos.
-
-## ⚠️ Erros Comuns
-- ❌ Esquecer **Devise a Stratagem** e atacar "no seco", perdendo previsibilidade e o uso de INT.
-- ❌ Guardar *Heals* da Fonte "para depois" e terminar o dia com slots sobrando.
-- ❌ Entrar em corpo a corpo: a **Gun Sword - Melee** só tem ataque +2 — é plano B, não rotina.
-- ❌ Não ligar **Bless/Fear** logo no início, quando o buff/debuff rende mais rounds.`
-
-// ---------------------------------------------------------------------------
 // ARDAGAR — Druida 10 (Ordem Animal), Awakened Animal + Urso
 // ---------------------------------------------------------------------------
 const ARDAGAR = `## 🎯 Papel em Combate
@@ -200,7 +158,6 @@ const GHAN_BURI = `## 🎯 Papel em Combate
 - ❌ Perseguir inimigos em vez de **segurar a linha**: seu valor é travar o campo com alcance 3 m e Reactive Strike, não correr atrás (velocidade baixa com armadura pesada).`
 
 export const COMBAT_GUIDES: CombatGuide[] = [
-    { match: byName('Zayto Zordon'), markdown: ZAYTO, curated: true },
     { match: byName('Ardagar'), markdown: ARDAGAR, curated: true },
     { match: byName('Eldarion'), markdown: ELDARION, curated: true },
     { match: byName('Ghan Buri'), markdown: GHAN_BURI, curated: true },

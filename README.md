@@ -282,9 +282,8 @@ pf2e-tools/
 │   └── _lib/                     # Núcleo compartilhado (aon, spell-parse, metadata-i18n…)
 ├── public/
 │   └── characters/              # Fichas de exemplo/campanha (Pathbuilder, campo `build`)
-│       ├── ardagar9.json
-│       ├── eldarion9.json
-│       ├── zayto9.json
+│       ├── ardagar10.json
+│       ├── eldarion10.json
 │       └── ghanburi10.json
 ├── server/
 │   └── index.mjs                 # Servidor de API local (desenvolvimento)
