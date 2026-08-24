@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
     Box,
     Card,
@@ -65,6 +65,11 @@ export const CombatantCard = ({
     const npc = combatant.kind === 'npc' ? combatant : null
     const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null)
     const [initiative, setInitiative] = useState(String(combatant.initiative))
+
+    // O campo é local para não despachar a cada tecla, mas a iniciativa também
+    // muda por fora: voltar de Adiar reescreve o valor (regra RAW). Sem esta
+    // sincronia o cartão continuaria mostrando o número antigo.
+    useEffect(() => setInitiative(String(combatant.initiative)), [combatant.initiative])
 
     const closeMenu = () => setMenuAnchor(null)
     const commitInitiative = () => {
