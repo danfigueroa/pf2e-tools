@@ -7,9 +7,10 @@ Orientações para o Claude Code trabalhar neste repositório. Para detalhes de 
 **PF2e Toolkit** — SPA (React 19 + TypeScript + Vite + MUI 7) com ferramentas para Pathfinder 2e
 Remaster. Textos de UI em **português (pt-BR)**.
 
-Dois módulos ativos (rotas em `src/App.tsx`):
+Três módulos ativos (rotas em `src/App.tsx`):
 - `/ficha-virtual` → `src/modules/character-viewer/` — visualizador de ficha (JSON Pathbuilder) com
   descrições da AON traduzidas sob demanda.
+- `/iniciativa` → `src/modules/initiative-tracker/` — gerenciador de iniciativa e combate.
 - `/transformation` → `src/modules/transformation-statblock/` — gerador de stat block de battle forms.
 
 **`src/modules/character-sheet/` (Ficha em PDF) está DESATIVADO** — fora da rota, do menu e da home.
@@ -43,6 +44,11 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
 - Endpoints: `feat`, `search`, `spell`, `companion`, `health`, `clear-cache`, mais as variantes
   plurais (`feats`, `searches`, `spells`, `companions`) para busca em lote. Cliente no frontend:
   `src/services/descriptions.ts` (com cache).
+- `creature` é a exceção: **não passa pela cadeia de tradução**. A categoria `creature` do
+  Elasticsearch já devolve PV, CA, percepção, salvamentos, resistências, fraquezas e imunidades
+  **estruturados**, e traduzir 8 resultados a cada tecla estouraria o rate limit do tier gratuito.
+  O vocabulário curto é traduzido no cliente (`transformation-statblock/i18n.ts`).
+  Núcleo em `api/_lib/creature-core.js`, cliente em `src/services/creatures.ts`.
 - `state` é o único endpoint com **estado**: guarda o jogo da mesa (ver a seção própria abaixo).
   Fica em `api/state.js`, **um nível** — o glob `"api/*.js"` do `vercel.json` não pega subpastas,
   então `api/state/[char].js` perderia o `maxDuration`.
@@ -201,6 +207,53 @@ A plataforma é usada na mesa, no celular. Toda mudança de layout precisa passa
   por Lento, teste plano do Estupefato) ficam em `note` e saem no painel de detalhes.
 - Descrições da AON são buscadas **sob demanda** ao tocar num item (`DescriptionDrawer` →
   `services/descriptions.ts`); a última ficha fica em `sessionStorage`.
+
+## Módulo initiative-tracker (Iniciativa)
+
+Gerenciador de turnos e combate em `/iniciativa`. A decisão que explica o módulo inteiro é **onde
+cada fatia de estado mora**:
+
+| Fatia | Onde vive |
+| --- | --- |
+| Combatentes, rodada, turno, durações, defesas | `useReducer` + `localStorage` (`pf2e:initiative:v1`) |
+| PV e condições de **personagem** | estado da mesa (Redis), **as mesmas chaves da Ficha Virtual** |
+| PV e condições de **monstro** | dentro do encontro (reducer) |
+
+- **O encontro é do GM, o personagem é da mesa.** Dois GMs veem encontros diferentes, mas o dano que
+  qualquer um aplicar num personagem aparece na Ficha Virtual de quem estiver jogando, e vice-versa.
+  Por isso `api/_lib/table-store.js` **não mudou**: o dano em PC usa os campos `hp`/`conditions` que
+  já existiam, e monstro nenhum encosta no Redis.
+- **`useEncounterParty` levanta o estado compartilhado para a página**, em vez de chamar
+  `useHpTracker`/`useConditions` num componente por combatente (como faz `PetsSection`). O diálogo
+  de dano em área precisa **ler** PV, PV temporário e resistência de todos os alvos para montar a
+  prévia antes de aplicar; com o estado preso em hooks de filhos isso viraria um registro imperativo
+  de refs, vazio no primeiro paint. Por baixo são as mesmas primitivas de `services/tableState.ts`.
+- **A API do party expõe `snapshot`** justamente porque todo o resto lê de um `ref` (para duas
+  escritas no mesmo handler não se perderem). Sem esse campo o objeto teria identidade constante,
+  `useCombatantViews` nunca reprocessaria e o cartão abriria com PV cheio até a primeira interação.
+  Já foi bug.
+- **Durações decrementam no handler de `nextTurn`, nunca num efeito.** Um efeito que lê estado e
+  escreve na mesa reagiria ao próprio `subscribeSnapshot` e amplificaria escrita a cada releitura.
+  O mesmo handler também limpa duração órfã — de condição que o jogador tirou pela Ficha Virtual.
+- **A ordem de turnos é o próprio array `combatants`**, reordenado só em eventos explícitos (entrar
+  no encontro, mudar iniciativa, botão "Reordenar"). Derivar no render apagaria o desempate manual
+  das setas ↑↓ a cada repintura. Desempate RAW: em empate entre PC e adversário, **o adversário age
+  primeiro** (`kindRank`); `Array.sort` é estável, então o ajuste manual sobrevive.
+- **O turno ativo é `activeId`, nunca índice** — índice muda de dono quando alguém entra, sai ou adia.
+- **Adiar segue o RAW**: ao voltar, a iniciativa passa a ser **permanentemente** a da nova posição.
+  Sem isso o próximo "Reordenar" teleporta o combatente de volta para o topo.
+- **Dano** (`damage.ts` + `defenses.ts`) na ordem do Player Core: multiplicador da salvaguarda
+  (falha crítica ×2, falha ×1, sucesso ÷2, sucesso crítico ×0) → imunidade → fraqueza → resistência
+  → PV temporários. Resistência e fraqueza **não somam entre si**: vale a maior aplicável, e os
+  guarda-chuvas (`all`, `physical`, `energy`) contam. O que não vira número
+  ("physical 5 except cold iron") vira `defenseNotes` e sai como chip de aviso — nunca número.
+- **Queda a 0 PV é sugestão, nunca automatismo**: Morrendo `1 + Ferido` para personagem (RAW),
+  Derrotado para monstro. A detecção mora no `applyDamage` da view, então vale tanto para o −/+ do
+  cartão quanto para o diálogo em lote.
+- O catálogo de condições, o cálculo de modificadores e o `ConditionsDialog` vêm inteiros do
+  `character-viewer` — inclusive a cascata de condições impostas (Inconsciente → Cego, Desprevenido,
+  Caído). Nada disso foi reescrito.
+- **Não há rolagem de dados**: a iniciativa é digitada. Os dados rolam na mesa.
 
 ## Módulo transformation-statblock (contexto que se perde fácil)
 

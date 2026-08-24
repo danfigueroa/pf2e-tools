@@ -117,11 +117,34 @@ no **padrão oficial de bloco de criatura** e **traduzido para pt-BR**.
     divisórias laranja, glyph de ação), tudo em português
 -   Exportação em PDF/PNG (print-friendly)
 
+### ✅ Gerenciador de Iniciativa (Implementado)
+
+Ferramenta de mesa para conduzir o combate: monta o encontro, mantém a ordem de turnos e aplica
+dano, cura e condições em **um ou vários alvos de uma vez**.
+
+**Características:**
+
+-   **Importa os personagens da campanha** (presets ou JSON do Pathbuilder) e **busca monstros no
+    Archives of Nethys** pelo nome, já com PV, CA, percepção, salvamentos, resistências, fraquezas
+    e imunidades — mais um formulário manual e um campo de quantidade para criar "Goblin 1..4"
+-   **PV e condições dos personagens são os mesmos da Ficha Virtual**: o dano que o mestre aplica
+    aqui aparece no celular do jogador, e vice-versa
+-   **Dano em área do jeito que o PF2e funciona**: um valor de dano, cada alvo com o seu resultado
+    de salvaguarda (falha crítica ×2, falha ×1, sucesso ÷2, sucesso crítico ×0), com resistência,
+    fraqueza e PV temporários na conta — e o memorial visível antes de aplicar
+-   **Condições com duração em rodadas**, que decrementa no turno do alvo e some ao vencer, sobre o
+    catálogo Remaster completo (com condições impostas em cascata: Inconsciente → Cego,
+    Desprevenido, Caído)
+-   Ordem de turnos com o desempate oficial (o adversário age primeiro), ajuste manual, Adiar com
+    reentrada e marcação de derrotado
+-   Sugestão de **Morrendo** (já somando Ferido) ao um personagem chegar a 0 PV — nunca automática
+
+O encontro fica só no aparelho do mestre; os personagens é que são compartilhados com a mesa.
+
 ### 🚧 Em Desenvolvimento
 
 -   Calculadora de Magias
 -   Gerador de Encontros
--   Calculadora de Iniciativa
 
 ---
 
@@ -302,6 +325,14 @@ pf2e-tools/
 │   │   │   ├── helpers.ts               # abilityMod, totalHp, spellcasterStats, …
 │   │   │   ├── sections/                # Overview, Combat, Skills, Feats, Specials, Spells, Pets, Inventory
 │   │   │   └── components/              # UploadCard, CharacterHeader, DescriptionDrawer, GuideMarkdown
+│   │   ├── initiative-tracker/   # Módulo de Iniciativa (gerenciador de combate)
+│   │   │   ├── InitiativePage.tsx       # Página: turnos, seleção e ações em lote
+│   │   │   ├── encounterReducer.ts      # Reducer do encontro + ordem de turnos
+│   │   │   ├── encounterStorage.ts      # Persistência local do encontro
+│   │   │   ├── useEncounterParty.ts     # PV/condições dos personagens no estado da mesa
+│   │   │   ├── useCombatantViews.ts     # Unifica personagem e monstro numa interface só
+│   │   │   ├── damage.ts / defenses.ts  # Dano RAW, resistência, fraqueza e imunidade
+│   │   │   └── components/              # Cartão, barra de turno, diálogos de lote, busca AON
 │   │   ├── character-sheet/      # Módulo de Ficha em PDF
 │   │   │   ├── CharacterSheetPage.tsx  # Página principal
 │   │   │   ├── pdf.ts                  # Geração do PDF
@@ -314,7 +345,9 @@ pf2e-tools/
 │   ├── pages/
 │   │   └── HomePage.tsx          # Página inicial (cards das ferramentas)
 │   ├── services/
-│   │   └── descriptions.ts       # Cliente do backend (busca + cache das descrições AON)
+│   │   ├── descriptions.ts       # Cliente do backend (busca + cache das descrições AON)
+│   │   ├── creatures.ts          # Cliente da busca de criaturas na AON
+│   │   └── tableState.ts         # Sincronia do estado compartilhado da mesa
 │   ├── types/
 │   │   └── index.ts              # Tipos globais
 │   ├── App.tsx                   # Componente raiz + rotas
@@ -376,6 +409,55 @@ saves e talentos — sinalizado na UI como guia automático.
 Ao tocar em um item (talento, habilidade, magia, equipamento), o `DescriptionDrawer` chama o
 backend via `src/services/descriptions.ts`, que busca na AON e devolve o texto traduzido (com
 cache). Sem o backend rodando, um _alert_ avisa e a ficha continua utilizável sem as descrições.
+
+---
+
+### Módulo: Initiative Tracker (Iniciativa)
+
+**Localização:** `src/modules/initiative-tracker/` · **Rota:** `/iniciativa`
+
+Gerenciador de turnos e combate. A decisão central do módulo é **onde cada fatia de estado mora**:
+
+| Fatia                                        | Onde vive                                              |
+| -------------------------------------------- | ------------------------------------------------------ |
+| Combatentes, rodada, turno, durações, defesas | `useReducer` + `localStorage` (só neste aparelho)      |
+| PV e condições de **personagem**              | estado da mesa — **as mesmas chaves da Ficha Virtual** |
+| PV e condições de **monstro**                 | dentro do encontro                                     |
+
+Ou seja: o encontro é do mestre, mas o personagem é da mesa. O dano aplicado aqui aparece na Ficha
+Virtual de quem estiver jogando, e o dano que o jogador marcar na ficha aparece aqui.
+
+#### Arquivos
+
+| Arquivo                       | Responsabilidade                                                                  |
+| ----------------------------- | --------------------------------------------------------------------------------- |
+| `InitiativePage.tsx`          | Turnos, seleção de alvos, diálogos e a sugestão de Morrendo/Derrotado             |
+| `encounterReducer.ts`         | Reducer puro + ordem de turnos (`activeOrder`, `compareInitiative`, `peekNext`)   |
+| `encounterStorage.ts`         | Carga e gravação do encontro no `localStorage`, com saneamento                     |
+| `useEncounterParty.ts`        | PV e condições de todos os personagens do encontro, no estado compartilhado       |
+| `useCombatantViews.ts`        | Unifica personagem e monstro numa interface só para o cartão                       |
+| `damage.ts` / `defenses.ts`   | Dano RAW e casamento de resistência/fraqueza/imunidade por tipo                    |
+| `importCharacter.ts`          | Ficha ou criatura da AON → combatente                                              |
+| `components/CombatantCard`    | Cartão único (personagem e monstro), com PV, condições e ações do combatente       |
+| `components/BulkDamageDialog` | Dano em área com resultado de salvaguarda por alvo                                 |
+| `components/AonCreatureSearch`| Busca de criaturas em `/api/creature`, com quantidade                              |
+
+#### Regras que o módulo implementa
+
+-   **Dano** (Player Core, nesta ordem): multiplicador da salvaguarda (falha crítica ×2, falha ×1,
+    sucesso ÷2, sucesso crítico ×0) → imunidade → fraqueza → resistência → PV temporários → PV.
+    Resistência e fraqueza **não somam entre si**: vale a maior aplicável, e guarda-chuvas
+    (`all`, `physical`, `energy`) contam. Defesa com ressalva ("physical 5 except cold iron") vira
+    aviso, **nunca** número.
+-   **Ordem de turnos**: em empate entre personagem e adversário, **o adversário age primeiro**.
+    Entre dois personagens, as setas ↑↓ resolvem — e o ajuste sobrevive ao botão "Reordenar".
+-   **Adiar**: ao voltar, a iniciativa passa a ser **permanentemente** a da nova posição.
+-   **Durações** contam rodadas do próprio alvo: decrementam no início do turno dele e somem ao
+    vencer.
+-   **Queda a 0 PV** é sugestão, nunca automatismo: Morrendo `1 + Ferido` para personagem,
+    Derrotado para monstro.
+
+Não há rolagem de dados: a iniciativa é digitada. Os dados rolam na mesa.
 
 ---
 
@@ -538,6 +620,7 @@ O servidor (`server/index.mjs`) fornece endpoints para buscar dados da Archives 
 | GET    | `/api/search`    | `name`     | Busca descrição genérica (Special Abilities/itens) |
 | GET    | `/api/spell`     | `name`     | Busca informações detalhadas de uma magia        |
 | GET    | `/api/companion` | `name`     | Stats de companheiro animal                      |
+| GET    | `/api/creature`  | `q`, `limit` | Busca criaturas (PV, CA, defesas) — sem tradução |
 | POST   | `/api/clear-cache` | —        | Limpa o cache de descrições                      |
 | GET    | `/api/state`     | `char`     | Estado de jogo compartilhado de um personagem    |
 | POST   | `/api/state`     | body       | Grava uma fatia (`{ char, field, data }`)        |
@@ -545,6 +628,10 @@ O servidor (`server/index.mjs`) fornece endpoints para buscar dados da Archives 
 As variantes **plurais** (`/api/feats`, `/api/searches`, `/api/spells`, `/api/companions`) aceitam
 uma lista de nomes para busca em lote. Todas as descrições são **traduzidas para pt-BR** via Groq
 antes de retornar.
+
+`/api/creature` é a exceção: devolve só os campos já estruturados do índice da AON (números e
+vocabulário curto), sem passar por nenhum modelo — traduzir cada busca estouraria o rate limit do
+tier gratuito e deixaria a busca lenta demais para usar na mesa.
 
 ### Exemplo de Resposta `/api/spell`
 
@@ -687,6 +774,12 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
     -   [x] Bônus míticos em perícias e salvamentos
     -   [x] Integração com AON (feats, specials, spells)
     -   [x] Links clicáveis para referência
+-   [x] **Módulo de Iniciativa (gerenciador de combate)**
+    -   [x] Importação de personagens da campanha e busca de monstros na AON
+    -   [x] PV e condições dos personagens compartilhados com a Ficha Virtual
+    -   [x] Dano em área com resultado de salvaguarda por alvo, resistência e fraqueza
+    -   [x] Condições com duração em rodadas
+    -   [x] Ordem de turnos com desempate RAW, ajuste manual e Adiar
 -   [x] Servidor de scraping da AON
 
 ### 🚧 Em Progresso
@@ -703,7 +796,6 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
 
 -   [ ] Calculadora de Magias
 -   [ ] Gerador de Encontros
--   [ ] Calculadora de Iniciativa
 -   [ ] Suporte a múltiplos idiomas
 -   [ ] Temas customizáveis para PDF
 -   [ ] PWA (Progressive Web App)
