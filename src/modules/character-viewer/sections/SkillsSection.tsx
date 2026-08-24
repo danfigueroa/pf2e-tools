@@ -12,6 +12,7 @@ import {
 } from '../helpers'
 import { SKILL_TARGET, type ConditionModifiers } from '../conditions'
 import { ConditionDelta } from '../components/ConditionDelta'
+import { MythicNote } from '../components/MythicNote'
 
 interface Props {
     build: BuildInfo
@@ -130,9 +131,7 @@ export const SkillsSection = ({ build, mods }: Props) => {
                 )}
                 {mythic && (
                     <Box sx={{ px: 2, py: 1.25, borderTop: '1px solid', borderColor: 'divider' }}>
-                        <Typography variant="caption" sx={{ color: MYTHIC_COLOR, fontWeight: 600 }}>
-                            ✦ valor com proficiência mítica (nível + 10) — ao gastar um Ponto Mítico
-                        </Typography>
+                        <MythicNote />
                     </Box>
                 )}
             </CardContent>

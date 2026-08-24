@@ -6,6 +6,7 @@ import { getCombatGuide } from '../combatGuides'
 import { GuideMarkdown } from '../components/GuideMarkdown'
 import { HpTracker } from '../components/HpTracker'
 import { ConditionDelta } from '../components/ConditionDelta'
+import { MythicNote } from '../components/MythicNote'
 import type { ConditionModifiers } from '../conditions'
 
 interface Props {
@@ -110,11 +111,7 @@ export const OverviewSection = ({ build, mods }: Props) => {
                             )
                         })}
                     </Box>
-                    {mythic && (
-                        <Typography variant="caption" sx={{ display: 'block', mt: 1, color: MYTHIC_COLOR, fontWeight: 600, textAlign: 'center' }}>
-                            ✦ valor com proficiência mítica (nível + 10) — ao gastar um Ponto Mítico
-                        </Typography>
-                    )}
+                    {mythic && <MythicNote sx={{ mt: 1, textAlign: 'center' }} />}
                 </CardContent>
             </Card>
 

@@ -1,10 +1,17 @@
 import { Box, Card, CardContent, Typography, Stack, Chip, Divider, Tooltip } from '@mui/material'
 import type { BuildInfo } from '../../character-sheet/types'
 import { weaponDamageFormula } from '../../character-sheet/weapon'
-import { signed } from '../helpers'
+import {
+    signed,
+    isMythicCharacter,
+    mythicProficiencyDelta,
+    weaponProficiencyRank,
+    MYTHIC_COLOR,
+} from '../helpers'
 import { unarmedAttacks } from '../unarmed'
 import { sharedMod, type ConditionModifiers } from '../conditions'
 import { ConditionDelta } from '../components/ConditionDelta'
+import { MythicNote } from '../components/MythicNote'
 import { CONDITION_COLOR } from '../../../theme'
 
 interface Props {
@@ -21,6 +28,10 @@ export const CombatSection = ({ build, mods }: Props) => {
     const anyAttack = sharedMod(mods, ['attackStr', 'attackDex'])
     const extraStr = mods.total.attackStr - anyAttack
     const extraDex = mods.total.attackDex - anyAttack
+    // A proficiência mítica **substitui** a da arma, não soma por cima: o
+    // delta desconta o que já está embutido no ataque do Pathbuilder.
+    const mythic = isMythicCharacter(build)
+    const unarmedMythicDelta = mythicProficiencyDelta(build.level, build.proficiencies.unarmed ?? 0)
     const isEmpty = weapons.length === 0 && unarmed.length === 0 && armor.length === 0 && !build.acTotal
 
     if (isEmpty) {
@@ -49,6 +60,7 @@ export const CombatSection = ({ build, mods }: Props) => {
                                 attack={signed(w.attack + anyAttack)}
                                 attackDelta={anyAttack}
                                 attackBase={w.attack}
+                                mythicAttack={mythicWeaponAttack(build, w, anyAttack, mythic)}
                                 byAbility={<ByAbilityHint str={extraStr} dex={extraDex} damage={mods.total.damageStr} />}
                                 damage={`${weaponDamageFormula(w)} ${damageTypeLabel(w.damageType)}`.trim()}
                                 extra={w.extraDamage?.length ? w.extraDamage.map((d) => `+ ${d}`).join(' ') : undefined}
@@ -99,6 +111,9 @@ export const CombatSection = ({ build, mods }: Props) => {
                                         attack={signed(u.attack + unarmedDelta(mods, u.usesDex))}
                                         attackDelta={unarmedDelta(mods, u.usesDex)}
                                         attackBase={u.attack}
+                                        mythicAttack={mythic
+                                            ? u.attack + unarmedDelta(mods, u.usesDex) + unarmedMythicDelta
+                                            : null}
                                         attackHint={`MAP ${u.map}`}
                                         damage={`${u.damage} ${u.damageType}`}
                                         damageDelta={mods.total.damageStr}
@@ -114,6 +129,10 @@ export const CombatSection = ({ build, mods }: Props) => {
                         ))}
                     </CardContent>
                 </Card>
+            )}
+
+            {mythic && (weapons.length > 0 || unarmed.length > 0) && (
+                <MythicNote sx={{ px: 0.5 }} />
             )}
 
             {(armor.length > 0 || build.acTotal) && (
@@ -182,11 +201,13 @@ export const CombatSection = ({ build, mods }: Props) => {
 }
 
 /** Bloco ataque/dano à direita do card, igual para armas e desarmados. */
-const AttackStats = ({ attack, attackHint, attackDelta = 0, attackBase, byAbility, damage, damageDelta = 0, extra }: {
+const AttackStats = ({ attack, attackHint, attackDelta = 0, attackBase, mythicAttack, byAbility, damage, damageDelta = 0, extra }: {
     attack: string
     attackHint?: string
     attackDelta?: number
     attackBase?: number
+    /** Ataque com proficiência mítica; `null` quando não se aplica. */
+    mythicAttack?: number | null
     /** Aviso das penalidades que dependem do atributo do ataque. */
     byAbility?: React.ReactNode
     damage: string
@@ -205,6 +226,11 @@ const AttackStats = ({ attack, attackHint, attackDelta = 0, attackBase, byAbilit
         <Box sx={{ flex: 1 }}>
             <StatRow label="Ataque" value={attack} highlight extra={attackHint} />
             <ConditionDelta delta={attackDelta} base={attackBase} />
+            {mythicAttack != null && (
+                <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, color: MYTHIC_COLOR }}>
+                    ✦ {signed(mythicAttack)}
+                </Typography>
+            )}
             {byAbility}
         </Box>
         <Divider sx={{ display: { xs: 'none', sm: 'block' }, my: 0.5 }} flexItem />
@@ -275,6 +301,24 @@ const ByAbilityHint = ({ str, dex, damage }: { str: number; dex: number; damage:
             </Typography>
         </Tooltip>
     )
+}
+
+/**
+ * Ataque da arma com a proficiência mítica no lugar da categoria dela. Devolve
+ * `null` quando o personagem não é mítico ou quando a categoria da arma não
+ * casa com nenhuma proficiência conhecida — melhor não mostrar número do que
+ * mostrar um errado.
+ */
+function mythicWeaponAttack(
+    build: BuildInfo,
+    weapon: { prof: string; attack: number },
+    conditionDelta: number,
+    mythic: boolean,
+): number | null {
+    if (!mythic) return null
+    const rank = weaponProficiencyRank(build, weapon.prof)
+    if (rank === null) return null
+    return weapon.attack + conditionDelta + mythicProficiencyDelta(build.level, rank)
 }
 
 /** Desarmado sempre é corpo-a-corpo; o atributo do ataque a gente conhece. */
