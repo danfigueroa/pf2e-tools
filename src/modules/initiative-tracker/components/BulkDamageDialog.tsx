@@ -123,7 +123,7 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
                         setDefaultOutcome(v)
                         setOutcomes({})
                     }}
-                    sx={{ mb: 1, flexWrap: 'wrap' }}
+                    sx={{ mb: 1 }}
                 >
                     <ToggleButton value="none" aria-label={OUTCOME_LABELS.none}>Direto</ToggleButton>
                     {OUTCOME_ORDER.map((o) => (
