@@ -7,11 +7,17 @@ Orientações para o Claude Code trabalhar neste repositório. Para detalhes de 
 **PF2e Toolkit** — SPA (React 19 + TypeScript + Vite + MUI 7) com ferramentas para Pathfinder 2e
 Remaster. Textos de UI em **português (pt-BR)**.
 
-Três módulos (rotas em `src/App.tsx`):
+Dois módulos ativos (rotas em `src/App.tsx`):
 - `/ficha-virtual` → `src/modules/character-viewer/` — visualizador de ficha (JSON Pathbuilder) com
   descrições da AON traduzidas sob demanda.
-- `/character-sheet` → `src/modules/character-sheet/` — geração de ficha em PDF (jsPDF).
 - `/transformation` → `src/modules/transformation-statblock/` — gerador de stat block de battle forms.
+
+**`src/modules/character-sheet/` (Ficha em PDF) está DESATIVADO** — fora da rota, do menu e da home.
+O código continua no repositório e `types.ts` (`parseCharacterJson`, `BuildInfo`) **segue sendo usado
+pelos outros módulos**, então não apague a pasta. Para reativar, descomente os três pontos marcados
+com `Desativado`: o import e a rota em `App.tsx`, o item em `layouts/MainLayout.tsx` e o card em
+`pages/HomePage.tsx` (o import de `SheetIcon` está comentado junto em cada um). `/character-sheet`
+hoje redireciona para a Início.
 
 ## Comandos
 

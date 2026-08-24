@@ -8,7 +8,7 @@ import {
   Container,
 } from '@mui/material';
 import {
-  Description as SheetIcon,
+  // Description as SheetIcon, // desativado junto com a Ficha em PDF
   PhoneIphone as ViewerIcon,
   Transform as TransformIcon,
   ArrowForward as ArrowIcon,
@@ -37,18 +37,19 @@ const tools: ToolCard[] = [
       'Cache local',
     ],
   },
-  {
-    title: 'Ficha em PDF',
-    description: 'Importe um JSON de personagem (Pathbuilder/Wanderer\'s Guide) e gere uma ficha completa em PDF com todos os detalhes do seu personagem.',
-    icon: <SheetIcon sx={{ fontSize: 32 }} />,
-    path: '/character-sheet',
-    features: [
-      'Atributos e perícias',
-      'Ataques e armadura',
-      'Talentos com descrições',
-      'Magias detalhadas',
-    ],
-  },
+  // Desativado — Ficha em PDF (ver App.tsx).
+  // {
+  //   title: 'Ficha em PDF',
+  //   description: 'Importe um JSON de personagem (Pathbuilder/Wanderer\'s Guide) e gere uma ficha completa em PDF com todos os detalhes do seu personagem.',
+  //   icon: <SheetIcon sx={{ fontSize: 32 }} />,
+  //   path: '/character-sheet',
+  //   features: [
+  //     'Atributos e perícias',
+  //     'Ataques e armadura',
+  //     'Talentos com descrições',
+  //     'Magias detalhadas',
+  //   ],
+  // },
   {
     title: 'Stat Block de Transformação',
     description: 'Gere stat blocks para magias de transformação como Forma Animal, Forma Elemental e outras do Pathfinder 2e Remaster.',

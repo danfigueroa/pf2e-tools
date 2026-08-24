@@ -37,13 +37,17 @@ O **PF2e Toolkit** é uma aplicação web projetada para auxiliar jogadores e me
 
 ## ✨ Funcionalidades
 
-O toolkit expõe **três ferramentas** (rotas em `src/App.tsx`), listadas na página inicial:
+O toolkit expõe **duas ferramentas** (rotas em `src/App.tsx`), listadas na página inicial:
 
 | Ferramenta                    | Rota              | Módulo                                | O que faz                                                              |
 | ----------------------------- | ----------------- | ------------------------------------- | ---------------------------------------------------------------------- |
 | **Ficha Virtual**             | `/ficha-virtual`  | `src/modules/character-viewer/`       | Visualizador interativo da ficha, com descrições da AON traduzidas     |
-| **Ficha em PDF**              | `/character-sheet` | `src/modules/character-sheet/`        | Gera uma ficha completa em PDF (jsPDF)                                  |
 | **Stat Block de Transformação** | `/transformation` | `src/modules/transformation-statblock/` | Gera o stat block de qualquer _battle form_ do Remaster              |
+
+> ⏸️ **Ficha em PDF (`/character-sheet`) está desativada.** O código continua em
+> `src/modules/character-sheet/` — e o `types.ts` dele ainda é usado pelos outros módulos —, mas a
+> ferramenta está fora da rota, do menu e da página inicial. `/character-sheet` redireciona para a
+> Início. Para reativar, veja os pontos marcados com `Desativado` no `CLAUDE.md`.
 
 ### ✅ Ficha Virtual (Implementado)
 
@@ -74,7 +78,7 @@ qualquer dispositivo — no desktop as áreas viram **abas**; no mobile viram **
 -   ⚔️ Cálculos derivados (modificadores, PV, CA, salvamentos, ataques, dano de arma) via
     helpers reutilizáveis (`helpers.ts`).
 
-### ✅ Ficha de Personagem em PDF (Implementado)
+### ⏸️ Ficha de Personagem em PDF (Implementado, desativado)
 
 Gera uma ficha de personagem completa, profissional e pronta para impressão.
 
@@ -674,7 +678,7 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
     -   [x] Descrições da AON traduzidas para pt-BR sob demanda (drawer)
     -   [x] Áreas: Combate, Perícias, Talentos, Habilidades, Magias, Companheiros, Inventário
     -   [x] Estado de jogo compartilhado entre os jogadores (PV, slots, foco, condições)
--   [x] **Módulo de Ficha de Personagem (PDF)**
+-   [x] **Módulo de Ficha de Personagem (PDF)** — _desativado na plataforma_
     -   [x] Upload e parsing de JSON
     -   [x] Geração de PDF completo
     -   [x] Layout profissional print-friendly

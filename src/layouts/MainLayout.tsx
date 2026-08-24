@@ -17,7 +17,7 @@ import {
 import {
   Menu as MenuIcon,
   Home as HomeIcon,
-  Description as SheetIcon,
+  // Description as SheetIcon, // desativado junto com a Ficha em PDF
   PhoneIphone as ViewerIcon,
   Transform as TransformIcon,
 } from '@mui/icons-material';
@@ -46,11 +46,12 @@ const navigationItems: NavigationItem[] = [
     icon: <ViewerIcon />,
     path: '/ficha-virtual',
   },
-  {
-    text: 'Ficha em PDF',
-    icon: <SheetIcon />,
-    path: '/character-sheet',
-  },
+  // Desativado — Ficha em PDF (ver App.tsx).
+  // {
+  //   text: 'Ficha em PDF',
+  //   icon: <SheetIcon />,
+  //   path: '/character-sheet',
+  // },
   {
     text: 'Stat Block de Transformação',
     icon: <TransformIcon />,
