@@ -214,17 +214,26 @@ const server = http.createServer(async (req, res) => {
   // Busca de criaturas (gerenciador de iniciativa) — só dados estruturados,
   // sem passar pela cadeia de tradução.
   if (pathname === '/api/creature') {
-    const q = parsedUrl.searchParams.get('q')
-    if (!q || !q.trim()) {
+    const term = (parsedUrl.searchParams.get('q') || '').trim()
+    const level = (name) => {
+      const raw = parsedUrl.searchParams.get(name)
+      if (raw === null || raw.trim() === '') return null
+      const n = parseInt(raw, 10)
+      return Number.isFinite(n) ? n : null
+    }
+    const minLevel = level('minLevel')
+    const maxLevel = level('maxLevel')
+
+    if (!term && minLevel === null && maxLevel === null) {
       res.writeHead(400, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify({ error: 'Termo de busca é obrigatório' }))
+      res.end(JSON.stringify({ error: 'Informe um nome ou uma faixa de nível' }))
       return
     }
     try {
       const limit = parseInt(parsedUrl.searchParams.get('limit'), 10) || 8
-      const results = await resolveCreatures(q.trim(), limit)
+      const { results, total } = await resolveCreatures(term, limit, { minLevel, maxLevel })
       res.writeHead(200, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify({ results }))
+      res.end(JSON.stringify({ results, total }))
     } catch (e) {
       console.error('[/api/creature] Error:', e)
       res.writeHead(500, { 'Content-Type': 'application/json' })

@@ -8,7 +8,7 @@
 // inteira. O vocabulário curto (traços, tamanho, raridade, tipos de dano) é
 // traduzido no cliente, por src/modules/transformation-statblock/i18n.ts.
 
-import { searchAon } from './aon.js'
+import { searchAonRaw } from './aon.js'
 
 const AON_BASE = 'https://2e.aonprd.com'
 
@@ -85,18 +85,43 @@ function normalize(hit) {
 }
 
 /**
- * Até `limit` criaturas que casam com `query`, já normalizadas.
+ * Busca criaturas por nome, por faixa de nível, ou pelos dois.
  *
  * A mesma criatura aparece várias vezes no índice: a versão legacy (Bestiary) e
  * as reimpressões remaster. Descarta a legacy e mantém só a primeira ocorrência
- * de cada nome — o GM procurando "goblin warrior" quer uma linha, não três.
- * Busca mais hits do que devolve, porque a deduplicação come parte deles.
+ * de cada nome — quem procura "goblin warrior" quer uma linha, não três. Por
+ * isso busca mais acertos do que devolve: a deduplicação come parte deles.
+ *
+ * `total` é o número de acertos ANTES da deduplicação, e serve só para avisar
+ * quem varre uma faixa inteira ("mostrando 12 de 656") — não é a contagem exata
+ * de criaturas distintas.
+ *
+ * @returns {Promise<{results: object[], total: number}>}
  */
-export async function resolveCreatures(query, limit = 8) {
-  const size = Math.min(Math.max(limit, 1), 20)
-  const hits = await searchAon(query, 'creature', size * 3)
+export async function resolveCreatures(query, limit = 8, { minLevel = null, maxLevel = null } = {}) {
+  const size = Math.min(Math.max(limit, 1), 30)
+  const term = String(query || '').trim()
+
+  const filters = []
+  const range = {}
+  if (Number.isFinite(minLevel)) range.gte = minLevel
+  if (Number.isFinite(maxLevel)) range.lte = maxLevel
+  if (Object.keys(range).length > 0) filters.push({ range: { level: range } })
+
+  // Com termo, manda a relevância. Sem termo, a relevância é igual para todo
+  // mundo e só uma ordenação explícita dá uma lista estável e navegável.
+  const sort = term ? null : [{ level: 'asc' }, { 'name.keyword': 'asc' }]
+
+  const { hits, total } = await searchAonRaw({
+    query: term,
+    category: 'creature',
+    limit: size * 3,
+    filters,
+    sort,
+  })
+
   const seen = new Set()
-  const out = []
+  const results = []
   for (const hit of hits) {
     if (isLegacy(hit?._source)) continue
     const creature = normalize(hit)
@@ -104,8 +129,8 @@ export async function resolveCreatures(query, limit = 8) {
     const key = creature.name.toLowerCase()
     if (seen.has(key)) continue
     seen.add(key)
-    out.push(creature)
-    if (out.length >= size) break
+    results.push(creature)
+    if (results.length >= size) break
   }
-  return out
+  return { results, total }
 }
