@@ -1,5 +1,5 @@
 import { Box, Card, CardContent, Typography, Stack, Chip, Divider, Tooltip } from '@mui/material'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo, Weapon } from '../../character-sheet/types'
 import { weaponDamageFormula } from '../../character-sheet/weapon'
 import {
     signed,
@@ -9,6 +9,7 @@ import {
     MYTHIC_COLOR,
 } from '../helpers'
 import { unarmedAttacks } from '../unarmed'
+import { magicWeaponRules, type MagicWeaponRules } from '../magicWeapons'
 import { sharedMod, type ConditionModifiers } from '../conditions'
 import { ConditionDelta } from '../components/ConditionDelta'
 import { MythicNote } from '../components/MythicNote'
@@ -66,6 +67,7 @@ export const CombatSection = ({ build, mods }: Props) => {
                                 extra={w.extraDamage?.length ? w.extraDamage.map((d) => `+ ${d}`).join(' ') : undefined}
                             />
                         </Stack>
+                        <WeaponProfiles weapon={w} conditionDelta={anyAttack} />
                     </CardContent>
                 </Card>
             ))}
@@ -198,6 +200,100 @@ export const CombatSection = ({ build, mods }: Props) => {
             )}
         </Stack>
     )
+}
+
+/**
+ * Perfis situacionais da arma: o Pathbuilder exporta um conjunto de números só,
+ * o do caso padrão. Uma Gloom Blade no escuro ataca e dana mais, e sem isto o
+ * jogador não tem como saber na mesa. As regras vêm de `magicWeapons.ts`.
+ */
+const WeaponProfiles = ({ weapon, conditionDelta }: { weapon: Weapon; conditionDelta: number }) => {
+    const rules = magicWeaponRules(weapon.name)
+    if (!rules) return null
+
+    const rows = profileRows(weapon, rules, conditionDelta)
+
+    return (
+        <Box sx={{ mt: 2, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
+            <Typography variant="overline" sx={{ fontWeight: 700, letterSpacing: '0.06em', color: 'primary.light' }}>
+                Quando fica mais forte
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1.25 }}>
+                {rules.summary}
+            </Typography>
+
+            <Stack spacing={1}>
+                {rows.map((row) => (
+                    <Box
+                        key={row.when}
+                        sx={{
+                            px: 1.25,
+                            py: 0.75,
+                            borderRadius: 1,
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            // O perfil padrão é o número que já está no card
+                            // acima; os melhores é que precisam saltar aos olhos.
+                            backgroundColor: row.base ? 'transparent' : 'action.hover',
+                        }}
+                    >
+                        <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, lineHeight: 1.3 }}>
+                            {row.when}
+                        </Typography>
+                        {/* Irmãos em JSX não têm ponto de quebra: flex com wrap
+                            para os dois números não vazarem em 320px. */}
+                        <Stack direction="row" sx={{ flexWrap: 'wrap', columnGap: 1.5, rowGap: 0.25, mt: 0.25 }}>
+                            <Typography variant="body2">
+                                <Box component="span" sx={{ color: 'text.secondary' }}>Ataque </Box>
+                                <Box component="span" sx={{ fontWeight: 700 }}>{signed(row.attack)}</Box>
+                            </Typography>
+                            <Typography variant="body2">
+                                <Box component="span" sx={{ color: 'text.secondary' }}>Dano </Box>
+                                <Box component="span" sx={{ fontWeight: 700 }}>{row.damage}</Box>
+                                {row.extra.length > 0 && (
+                                    <Box component="span" sx={{ color: 'text.secondary' }}>
+                                        {' '}{row.extra.map((d) => `+ ${d}`).join(' ')}
+                                    </Box>
+                                )}
+                            </Typography>
+                        </Stack>
+                    </Box>
+                ))}
+            </Stack>
+
+            {rules.notes?.map((n) => (
+                <Typography key={n} variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, fontStyle: 'italic' }}>
+                    {n}
+                </Typography>
+            ))}
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                {rules.source}
+            </Typography>
+        </Box>
+    )
+}
+
+/** Uma linha por perfil, começando pelo que a ficha já mostra. */
+function profileRows(weapon: Weapon, rules: MagicWeaponRules, conditionDelta: number) {
+    const base = weapon.extraDamage ?? []
+    return [
+        {
+            when: rules.baseLabel,
+            base: true,
+            attack: weapon.attack + conditionDelta,
+            damage: weaponDamageFormula(weapon),
+            extra: base,
+        },
+        ...rules.profiles.map((p) => ({
+            when: p.when,
+            base: false,
+            attack: weapon.attack + conditionDelta + (p.attackDelta ?? 0),
+            // A runa striking do perfil substitui a da ficha; o resto do dano
+            // (dado base, bônus de Força, runas) continua o mesmo.
+            damage: weaponDamageFormula({ ...weapon, str: p.striking ?? weapon.str }),
+            extra: [...base, ...(p.extraDamage ?? [])],
+        })),
+    ]
 }
 
 /** Bloco ataque/dano à direita do card, igual para armas e desarmados. */
