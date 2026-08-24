@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Box, Button, Card, CardContent, IconButton, Tooltip, Typography, Stack, Chip, Divider, LinearProgress } from '@mui/material'
+import { Box, Button, Card, CardContent, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Tooltip, Typography, Stack, Chip, Divider, LinearProgress } from '@mui/material'
 import {
     ChevronRight as ChevronIcon,
     CloudDownload as DownloadIcon,
@@ -41,6 +41,9 @@ export const SpellsSection = ({ build, onSelect, mods }: Props) => {
     // Progresso do "Carregar todas"; cada atualização re-renderiza e as linhas
     // releem o cache — é assim que os resumos aparecem progressivamente.
     const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
+    // "Novo dia" agora devolve os slots para a mesa inteira, não só para quem
+    // clicou — deixou de ser um clique sem consequência.
+    const [confirmNewDay, setConfirmNewDay] = useState(false)
     const allCached = allNames.every(n => getCachedSpell(n) != null)
 
     const loadAll = async () => {
@@ -68,6 +71,25 @@ export const SpellsSection = ({ build, onSelect, mods }: Props) => {
 
     return (
         <Stack spacing={2}>
+            <Dialog open={confirmNewDay} onClose={() => setConfirmNewDay(false)}>
+                <DialogTitle>Começar um novo dia?</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Todos os slots de magia e pontos de foco voltam a ficar disponíveis.
+                        Como a ficha é compartilhada, isso vale para todos os jogadores.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button color="inherit" onClick={() => setConfirmNewDay(false)}>Cancelar</Button>
+                    <Button
+                        variant="contained"
+                        onClick={() => { slots.resetAll(); setConfirmNewDay(false) }}
+                    >
+                        Novo dia
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
             {hasTrackable && (
                 <Card>
                     <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
@@ -82,7 +104,7 @@ export const SpellsSection = ({ build, onSelect, mods }: Props) => {
                                 variant="outlined"
                                 startIcon={<RestoreIcon />}
                                 disabled={slots.spentCount === 0}
-                                onClick={slots.resetAll}
+                                onClick={() => setConfirmNewDay(true)}
                                 sx={{ flexShrink: 0 }}
                             >
                                 Novo dia
