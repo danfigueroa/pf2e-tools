@@ -18,8 +18,7 @@ import {
     useTheme,
 } from '@mui/material'
 import { gold, HP_COLOR, ink, parchment } from '../../../theme'
-import { translateDamageType } from '../../transformation-statblock/i18n'
-import { DAMAGE_TYPES } from '../defenses'
+import { DAMAGE_TYPES, damageTypeLabel } from '../defenses'
 import { computeDamage, describeDamage, OUTCOME_LABELS, type SaveOutcome } from '../damage'
 import type { CombatantView } from '../types'
 
@@ -58,7 +57,7 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
 
     const value = parseInt(amount, 10)
     const valid = Number.isFinite(value) && value > 0
-    const typeLabel = translateDamageType(type)
+    const typeLabel = damageTypeLabel(type).toLowerCase()
 
     const rows = useMemo(() => targets.map((view) => {
         const outcome = outcomes[view.combatant.id] ?? defaultOutcome
@@ -106,7 +105,7 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
                         sx={{ flex: 1 }}
                     >
                         {DAMAGE_TYPES.map((t) => (
-                            <MenuItem key={t} value={t}>{translateDamageType(t)}</MenuItem>
+                            <MenuItem key={t} value={t}>{damageTypeLabel(t)}</MenuItem>
                         ))}
                     </TextField>
                 </Stack>

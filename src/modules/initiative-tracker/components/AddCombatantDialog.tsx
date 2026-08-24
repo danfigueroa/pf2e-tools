@@ -82,20 +82,20 @@ const CharacterTab = ({
     const [loading, setLoading] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
 
-    const importJson = (json: unknown, presetFile?: string) => {
+    const importJson = (json: unknown, preset?: { filename: string; klass: string }) => {
         try {
-            onAdd([pcFromBuild(parseCharacterJson(json), presetFile)])
+            onAdd([pcFromBuild(parseCharacterJson(json), preset)])
         } catch {
             setError('JSON de personagem inválido — exporte a ficha pelo Pathbuilder.')
         }
     }
 
-    const handlePreset = async (filename: string) => {
-        setLoading(filename)
+    const handlePreset = async (preset: { filename: string; class: string }) => {
+        setLoading(preset.filename)
         setError(null)
         try {
-            const res = await fetch(`/characters/${filename}`)
-            importJson(await res.json(), filename)
+            const res = await fetch(`/characters/${preset.filename}`)
+            importJson(await res.json(), { filename: preset.filename, klass: preset.class })
         } catch {
             setError('Não foi possível carregar a ficha.')
         } finally {
@@ -125,7 +125,7 @@ const CharacterTab = ({
                         <Card key={preset.filename} sx={{ opacity: already ? 0.5 : 1 }}>
                             <CardActionArea
                                 disabled={already || loading !== null}
-                                onClick={() => handlePreset(preset.filename)}
+                                onClick={() => handlePreset(preset)}
                             >
                                 <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 }, textAlign: 'center' }}>
                                     {loading === preset.filename ? (

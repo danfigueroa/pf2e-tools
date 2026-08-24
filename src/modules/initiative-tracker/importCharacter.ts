@@ -11,7 +11,10 @@ import type { NpcCombatant, PcCombatant } from './types'
  * divergir da real. O vínculo com o estado da mesa é o slug, que sai apenas do
  * nome — então um level-up e um novo import não órfãvam PV nem condições.
  */
-export function pcFromBuild(build: BuildInfo, presetFile?: string): PcCombatant {
+export function pcFromBuild(
+    build: BuildInfo,
+    preset?: { filename: string; klass: string },
+): PcCombatant {
     const { values, notes } = parseResistanceStrings(build.resistances ?? [])
 
     return {
@@ -19,7 +22,8 @@ export function pcFromBuild(build: BuildInfo, presetFile?: string): PcCombatant 
         kind: 'pc',
         name: build.name,
         slug: charSlugFromName(build.name),
-        klass: build.class,
+        // A ficha do Pathbuilder traz a classe em inglês; o preset já tem o rótulo pt-BR.
+        klass: preset?.klass ?? build.class,
         level: build.level,
         initiative: 0,
         ac: build.acTotal?.acTotal ?? 10,
@@ -41,7 +45,7 @@ export function pcFromBuild(build: BuildInfo, presetFile?: string): PcCombatant 
         weaknesses: {},
         immunities: [],
         defenseNotes: notes,
-        presetFile,
+        presetFile: preset?.filename,
     }
 }
 

@@ -4,6 +4,8 @@
 // projeto (é o que a AON devolve e o que `translateDamageType` traduz no
 // render). Aqui só entra o casamento por tipo.
 
+import { translateDamageType } from '../transformation-statblock/i18n'
+
 /** Tipos que o diálogo de dano oferece, na ordem em que aparecem. */
 export const DAMAGE_TYPES = [
     'bludgeoning', 'piercing', 'slashing',
@@ -71,4 +73,13 @@ export function parseResistanceStrings(entries: string[]): {
         else notes.push(text)
     }
     return { values, notes }
+}
+
+/**
+ * Rótulo em pt-BR, capitalizado. `untyped` não existe no dicionário do módulo
+ * de transformação (lá todo dano tem tipo), então entra aqui.
+ */
+export function damageTypeLabel(type: string): string {
+    const label = type === 'untyped' ? 'sem tipo' : translateDamageType(type)
+    return label.charAt(0).toUpperCase() + label.slice(1)
 }
