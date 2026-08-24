@@ -4,6 +4,7 @@ import { URL } from 'node:url'
 import { resolveSpell } from '../api/_lib/spells-core.js'
 import { resolveFeat, resolveSpecial } from '../api/_lib/feat-core.js'
 import { resolveCompanion } from '../api/_lib/companion-core.js'
+import { resolveCreatures } from '../api/_lib/creature-core.js'
 import { hasTranslationKey } from '../api/_lib/aon.js'
 import {
   readCharacter,
@@ -204,6 +205,28 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify(stats))
     } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: e.message }))
+    }
+    return
+  }
+
+  // Busca de criaturas (gerenciador de iniciativa) — só dados estruturados,
+  // sem passar pela cadeia de tradução.
+  if (pathname === '/api/creature') {
+    const q = parsedUrl.searchParams.get('q')
+    if (!q || !q.trim()) {
+      res.writeHead(400, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: 'Termo de busca é obrigatório' }))
+      return
+    }
+    try {
+      const limit = parseInt(parsedUrl.searchParams.get('limit'), 10) || 8
+      const results = await resolveCreatures(q.trim(), limit)
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ results }))
+    } catch (e) {
+      console.error('[/api/creature] Error:', e)
       res.writeHead(500, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify({ error: e.message }))
     }
