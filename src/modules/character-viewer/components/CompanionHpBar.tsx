@@ -20,8 +20,10 @@ import { HP_COLOR } from '../../../theme/palette'
 import { hpBarColor, useHpTracker } from './useHpTracker'
 
 interface Props {
-    /** Chave de persistência (ver `petKeyFor`). */
+    /** Chave de sincronia da mesa (ver `petKeyFor`). */
     storageKey: string
+    /** Chave da versão local-only, para migrar o PV já marcado. */
+    legacyKey?: string
     maxHp: number
     /** Rótulo do estado de 0 PV — companheiros ficam inconscientes, não morrendo. */
     downLabel?: string
@@ -32,9 +34,9 @@ interface Props {
  * persistência e mesmas regras (PV temporários absorvem dano primeiro),
  * num bloco que cabe dentro do card do companheiro.
  */
-export const CompanionHpBar = ({ storageKey, maxHp, downLabel = 'Inconsciente' }: Props) => {
+export const CompanionHpBar = ({ storageKey, legacyKey, maxHp, downLabel = 'Inconsciente' }: Props) => {
     const theme = useTheme()
-    const { current, temp, applyDamage, applyHealing, setTemp, resetFull } = useHpTracker(storageKey, maxHp)
+    const { current, temp, applyDamage, applyHealing, setTemp, resetFull } = useHpTracker(storageKey, maxHp, legacyKey)
 
     const [amountInput, setAmountInput] = useState('')
     const [tempInput, setTempInput] = useState('')

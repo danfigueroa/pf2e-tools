@@ -17,7 +17,8 @@ import {
     Restore as RestoreIcon,
 } from '@mui/icons-material'
 import type { BuildInfo } from '../../character-sheet/types'
-import { charKeyFor, hpBarColor, useHpTracker } from './useHpTracker'
+import { hpBarColor, useHpTracker } from './useHpTracker'
+import { hpKeyFor, legacyCharKey } from '../charId'
 
 interface Props {
     build: BuildInfo
@@ -29,7 +30,7 @@ interface Props {
 
 export const HpTracker = ({ build, maxHp, maxHpDelta = 0 }: Props) => {
     const theme = useTheme()
-    const { current, temp, applyDamage, applyHealing, setTemp, resetFull } = useHpTracker(charKeyFor(build), maxHp)
+    const { current, temp, applyDamage, applyHealing, setTemp, resetFull } = useHpTracker(hpKeyFor(build), maxHp, legacyCharKey(build))
 
     const [amountInput, setAmountInput] = useState('')
     const [tempInput, setTempInput] = useState('')

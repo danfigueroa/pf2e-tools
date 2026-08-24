@@ -1,79 +1,83 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 import type { Palette } from '@mui/material'
-import type { BuildInfo } from '../../character-sheet/types'
+import { useSharedState } from './useSharedState'
+import { readLegacy } from '../charId'
 
-const STORAGE_PREFIX = 'pf2e:viewer:hp:'
+/** Prefixo da versão que só gravava local — lido uma vez, para migrar. */
+const LEGACY_PREFIX = 'pf2e:viewer:hp:'
 
-interface HpState {
+/**
+ * O que fica guardado. `max` não entra: é derivado da ficha (e do corte de
+ * Drenado), não é estado da mesa — guardá-lo só criava um valor que era
+ * gravado e ignorado na releitura.
+ */
+interface HpStored {
     current: number
     temp: number
-    max: number
 }
-
-/** Chave estável por personagem — BuildInfo não tem id único. */
-export const charKeyFor = (build: BuildInfo): string =>
-    [build.name, build.class, build.level, build.ancestry].join('|')
-
-/** Chave de um companheiro/familiar, namespaced dentro da chave do dono. */
-export const petKeyFor = (build: BuildInfo, kind: string, name: string, idx: number): string =>
-    `${charKeyFor(build)}|${kind}:${name}#${idx}`
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n))
 
-function loadState(key: string, max: number): HpState {
-    try {
-        const raw = localStorage.getItem(STORAGE_PREFIX + key)
-        if (raw) {
-            const saved = JSON.parse(raw) as Partial<HpState>
-            const temp = Math.max(0, Math.floor(saved.temp ?? 0))
-            // Se o máximo mudou (ex.: subida de nível/re-upload), adota o novo e limita os atuais.
-            const current = clamp(Math.floor(saved.current ?? max), 0, max)
-            return { current, temp, max }
-        }
-    } catch { /* noop */ }
-    return { current: max, temp: 0, max }
+function sanitize(raw: unknown): HpStored | null {
+    if (!raw || typeof raw !== 'object') return null
+    const saved = raw as Partial<HpStored>
+    if (typeof saved.current !== 'number' || !Number.isFinite(saved.current)) return null
+    return {
+        current: Math.max(0, Math.floor(saved.current)),
+        temp: Math.max(0, Math.floor(Number(saved.temp) || 0)),
+    }
 }
 
-/** Estado de PV (atuais/temporários) com persistência em localStorage por chave. */
-export function useHpTracker(key: string, maxHp: number) {
-    const [state, setState] = useState<HpState>(() => loadState(key, maxHp))
+/**
+ * PV atuais e temporários, compartilhados com a mesa inteira.
+ *
+ * `null` significa "ninguém mexeu ainda" e resolve para PV cheio no render —
+ * é por isso que `maxHp` não participa da carga: mudar o máximo (marcar
+ * Drenado, ou os stats do companheiro chegarem da AON) apenas reclampa o que
+ * está na tela, sem reler nem sobrescrever o estado da mesa.
+ */
+export function useHpTracker(syncKey: string, maxHp: number, legacyKey?: string) {
+    const [stored, setStored] = useSharedState<HpStored | null>(syncKey, {
+        empty: () => null,
+        sanitize,
+        legacy: legacyKey ? () => sanitize(readLegacy(LEGACY_PREFIX, legacyKey)) : undefined,
+        isEmpty: (v) => v === null,
+    })
 
-    // Recarrega ao trocar de personagem ou quando o máximo derivado muda.
-    useEffect(() => {
-        setState(loadState(key, maxHp))
-    }, [key, maxHp])
+    const state = useMemo(() => ({
+        current: clamp(stored?.current ?? maxHp, 0, maxHp),
+        temp: Math.max(0, stored?.temp ?? 0),
+    }), [stored, maxHp])
 
-    // Persiste a cada alteração.
-    useEffect(() => {
-        try {
-            localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(state))
-        } catch { /* noop */ }
-    }, [key, state])
+    // Os callbacks precisam do valor já clampado sem depender dele na
+    // identidade — senão toda mudança de PV recriaria os handlers.
+    const stateRef = useRef(state)
+    stateRef.current = state
 
     const applyDamage = useCallback((amount: number) => {
         const dmg = Math.max(0, Math.floor(amount))
         if (!dmg) return
-        setState((s) => {
-            const absorbed = Math.min(s.temp, dmg)
-            const rest = dmg - absorbed
-            return { ...s, temp: s.temp - absorbed, current: Math.max(0, s.current - rest) }
-        })
-    }, [])
+        const s = stateRef.current
+        const absorbed = Math.min(s.temp, dmg)
+        const rest = dmg - absorbed
+        setStored(() => ({ temp: s.temp - absorbed, current: Math.max(0, s.current - rest) }))
+    }, [setStored])
 
     const applyHealing = useCallback((amount: number) => {
         const heal = Math.max(0, Math.floor(amount))
         if (!heal) return
-        setState((s) => ({ ...s, current: Math.min(s.max, s.current + heal) }))
-    }, [])
+        const s = stateRef.current
+        setStored(() => ({ temp: s.temp, current: Math.min(maxHp, s.current + heal) }))
+    }, [setStored, maxHp])
 
     const setTemp = useCallback((amount: number) => {
         const temp = Math.max(0, Math.floor(amount))
-        setState((s) => ({ ...s, temp }))
-    }, [])
+        setStored(() => ({ current: stateRef.current.current, temp }))
+    }, [setStored])
 
     const resetFull = useCallback(() => {
-        setState((s) => ({ ...s, current: s.max, temp: 0 }))
-    }, [])
+        setStored(() => ({ current: maxHp, temp: 0 }))
+    }, [setStored, maxHp])
 
     return { current: state.current, temp: state.temp, applyDamage, applyHealing, setTemp, resetFull }
 }

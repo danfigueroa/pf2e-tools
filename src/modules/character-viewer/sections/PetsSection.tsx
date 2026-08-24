@@ -12,7 +12,7 @@ import {
 } from '../companionStats'
 import { translateSize, translateDamageType, translateAttackName, translateTrait } from '../../transformation-statblock/i18n'
 import { CompanionHpBar } from '../components/CompanionHpBar'
-import { petKeyFor } from '../components/useHpTracker'
+import { legacyPetKey, petKeyFor } from '../charId'
 
 interface Props { build: BuildInfo }
 
@@ -43,6 +43,7 @@ export const PetsSection = ({ build }: Props) => {
                     base={pet.animal ? build.petDescriptions?.[pet.animal] : undefined}
                     level={build.level || 1}
                     storageKey={petKeyFor(build, 'pet', pet.name, idx)}
+                    legacyKey={legacyPetKey(build, 'pet', pet.name, idx)}
                 />
             ))}
 
@@ -68,6 +69,7 @@ export const PetsSection = ({ build }: Props) => {
                         {/* RAW: um familiar tem 5 PV por nível do mestre. */}
                         <CompanionHpBar
                             storageKey={petKeyFor(build, 'fam', fam.name, idx)}
+                            legacyKey={legacyPetKey(build, 'fam', fam.name, idx)}
                             maxHp={5 * (build.level || 1)}
                         />
                     </CardContent>
@@ -77,7 +79,7 @@ export const PetsSection = ({ build }: Props) => {
     )
 }
 
-const PetCard = ({ pet, base, level, storageKey }: { pet: Pet; base?: CompanionStats; level: number; storageKey: string }) => {
+const PetCard = ({ pet, base, level, storageKey, legacyKey }: { pet: Pet; base?: CompanionStats; level: number; storageKey: string; legacyKey: string }) => {
     // `abilities` só existe no formato novo — protege contra um cache antigo
     // (formato v10) que ainda estivesse no localStorage do usuário.
     const stats = base?.abilities ? computeCompanion(base, pet, level) : null
@@ -116,7 +118,7 @@ const PetCard = ({ pet, base, level, storageKey }: { pet: Pet; base?: CompanionS
                     </Typography>
                 )}
 
-                {stats && <CompanionHpBar storageKey={storageKey} maxHp={stats.hp} />}
+                {stats && <CompanionHpBar storageKey={storageKey} legacyKey={legacyKey} maxHp={stats.hp} />}
 
                 {stats && <CompanionSheet stats={stats} />}
             </CardContent>

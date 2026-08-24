@@ -31,7 +31,7 @@ import { UploadCard } from './components/UploadCard'
 import { CharacterHeader } from './components/CharacterHeader'
 import { DescriptionDrawer, type DescriptionRequest } from './components/DescriptionDrawer'
 import { ConditionsBar } from './components/ConditionsBar'
-import { charKeyFor } from './components/useHpTracker'
+import { conditionsKeyFor, legacyCharKey } from './charId'
 import { useConditions } from './components/useConditions'
 import type { ConditionModifiers } from './conditions'
 
@@ -134,7 +134,11 @@ export const CharacterViewerPage = () => {
 
     // Condições ficam fora das abas: afetam a ficha inteira e precisam de um
     // hook incondicional, então a chave cai num placeholder enquanto não há ficha.
-    const conditions = useConditions(build ? charKeyFor(build) : 'none', build?.level ?? 1)
+    const conditions = useConditions(
+        build ? conditionsKeyFor(build) : 'none/conditions',
+        build?.level ?? 1,
+        build ? legacyCharKey(build) : undefined,
+    )
 
     // Restaurar ficha da sessão ao recarregar
     useEffect(() => {

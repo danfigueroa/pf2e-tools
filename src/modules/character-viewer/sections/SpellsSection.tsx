@@ -11,7 +11,7 @@ import type { DescriptionRequest } from '../components/DescriptionDrawer'
 import { actionSymbol, signed, spellcasterStats, traditionColor, traditionLabel } from '../helpers'
 import { castRankForSlot, damageAtRank } from '../heightening'
 import { getCachedSpell, prefetchSpellDescriptions } from '../../../services/descriptions'
-import { charKeyFor } from '../components/useHpTracker'
+import { legacyCharKey, slotsKeyFor } from '../charId'
 import { slotKey, useSpellSlots, type SpellSlotsApi } from '../components/useSpellSlots'
 import { SlotPips, SlotCount } from '../components/SlotPips'
 import { gold } from '../../../theme'
@@ -29,7 +29,7 @@ export const SpellsSection = ({ build, onSelect, mods }: Props) => {
     const focusSpells = useMemo(() => collectFocusSpells(build), [build])
     const focusRank = castRankForSlot(0, build.level)
     const focusMax = build.focusPoints ?? 0
-    const slots = useSpellSlots(charKeyFor(build), focusMax)
+    const slots = useSpellSlots(slotsKeyFor(build), focusMax, legacyCharKey(build))
 
     const allNames = useMemo(() => {
         const names = new Set<string>()
