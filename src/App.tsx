@@ -9,6 +9,7 @@ import { TransformationPage } from './modules/transformation-statblock/Transform
 // descomente o import e a rota abaixo, e as entradas em MainLayout.tsx e HomePage.tsx.
 // import { CharacterSheetPage } from './modules/character-sheet/CharacterSheetPage';
 import { CharacterViewerPage } from './modules/character-viewer/CharacterViewerPage';
+import { InitiativePage } from './modules/initiative-tracker/InitiativePage';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
                 para quem tiver o link antigo salvo. */}
             <Route path="character-sheet" element={<Navigate to="/" replace />} />
             <Route path="ficha-virtual" element={<CharacterViewerPage />} />
+            <Route path="iniciativa" element={<InitiativePage />} />
             <Route path="transformation" element={<TransformationPage />} />
           </Route>
         </Routes>

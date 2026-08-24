@@ -10,6 +10,7 @@ import {
 import {
   // Description as SheetIcon, // desativado junto com a Ficha em PDF
   PhoneIphone as ViewerIcon,
+  FormatListNumbered as InitiativeIcon,
   Transform as TransformIcon,
   ArrowForward as ArrowIcon,
 } from '@mui/icons-material';
@@ -35,6 +36,18 @@ const tools: ToolCard[] = [
       'Descrições sob demanda',
       'Magias e talentos clicáveis',
       'Cache local',
+    ],
+  },
+  {
+    title: 'Iniciativa',
+    description: 'Gerencie o combate na mesa: monte o encontro com os personagens da campanha e monstros da AON, siga a ordem de turnos e aplique dano, cura e condições em vários alvos de uma vez.',
+    icon: <InitiativeIcon sx={{ fontSize: 32 }} />,
+    path: '/iniciativa',
+    features: [
+      'Ordem de iniciativa',
+      'Dano em área com salvaguarda',
+      'Condições com duração',
+      'Monstros da AON',
     ],
   },
   // Desativado — Ficha em PDF (ver App.tsx).

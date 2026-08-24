@@ -19,6 +19,7 @@ import {
   Home as HomeIcon,
   // Description as SheetIcon, // desativado junto com a Ficha em PDF
   PhoneIphone as ViewerIcon,
+  FormatListNumbered as InitiativeIcon,
   Transform as TransformIcon,
 } from '@mui/icons-material';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
@@ -45,6 +46,11 @@ const navigationItems: NavigationItem[] = [
     text: 'Ficha Virtual',
     icon: <ViewerIcon />,
     path: '/ficha-virtual',
+  },
+  {
+    text: 'Iniciativa',
+    icon: <InitiativeIcon />,
+    path: '/iniciativa',
   },
   // Desativado — Ficha em PDF (ver App.tsx).
   // {
