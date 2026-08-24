@@ -92,55 +92,86 @@ export function extractMainDescription(text, maxLength = 2000) {
   return cleaned
 }
 
-// Busca no Elasticsearch do AON
-export async function searchAon(query, category = null, limit = 5) {
-  const cacheKey = `search:${query}:${category}:${limit}`
+/**
+ * Busca crua no Elasticsearch do AON.
+ *
+ * Existe separada de `searchAon` porque o gerenciador de iniciativa precisa de
+ * duas coisas que a busca por nome não usa: filtrar por faixa (nível) SEM
+ * termo nenhum, e saber o **total** de acertos — quem varre "todo monstro de
+ * nível 3" precisa ser avisado de que está vendo 12 de 656.
+ *
+ * @param {object} opts
+ * @param {string} [opts.query]     termo; vazio vira `match_all`
+ * @param {string} [opts.category]  categoria do AON (`creature`, `spell`, …)
+ * @param {number} [opts.limit]     tamanho da página
+ * @param {object[]} [opts.filters] cláusulas de filtro extras do Elasticsearch
+ * @param {object[]} [opts.sort]    ordenação; sem isso vale a relevância
+ * @returns {Promise<{hits: object[], total: number}>}
+ */
+export async function searchAonRaw({ query = '', category = null, limit = 5, filters = [], sort = null }) {
+  const cacheKey = `raw:${query}:${category}:${limit}:${JSON.stringify(filters)}:${JSON.stringify(sort)}`
   if (cache.has(cacheKey)) {
     return cache.get(cacheKey)
   }
-  
+
   try {
+    const term = String(query || '').trim()
     const searchBody = {
       size: limit,
       query: {
         bool: {
           must: [
-            {
-              multi_match: {
-                query: query,
-                fields: ['name^10', 'name.keyword^15', 'text', 'markdown'],
-                type: 'best_fields',
-                fuzziness: 'AUTO'
-              }
-            }
+            term
+              ? {
+                  multi_match: {
+                    query: term,
+                    fields: ['name^10', 'name.keyword^15', 'text', 'markdown'],
+                    type: 'best_fields',
+                    fuzziness: 'AUTO'
+                  }
+                }
+              : { match_all: {} }
           ]
         }
       }
     }
-    
-    if (category) {
-      searchBody.query.bool.filter = [{ term: { category: category } }]
-    }
-    
+
+    const allFilters = [...filters]
+    if (category) allFilters.push({ term: { category: category } })
+    if (allFilters.length > 0) searchBody.query.bool.filter = allFilters
+
+    // Sem termo não há relevância que ordene nada: o ES devolveria uma ordem
+    // arbitrária e a lista mudaria de lugar a cada busca.
+    if (sort) searchBody.sort = sort
+
     const response = await fetch('https://elasticsearch.aonprd.com/aon/_search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(searchBody)
     })
-    
+
     if (!response.ok) {
       throw new Error(`AON search failed: ${response.status}`)
     }
-    
+
     const data = await response.json()
-    const results = data.hits?.hits || []
-    
-    cache.set(cacheKey, results)
-    return results
+    const result = {
+      hits: data.hits?.hits || [],
+      total: data.hits?.total?.value ?? 0,
+    }
+
+    cache.set(cacheKey, result)
+    return result
   } catch (error) {
     console.error('AON search error:', error)
-    return []
+    return { hits: [], total: 0 }
   }
+}
+
+// Busca no Elasticsearch do AON (por nome, ordenada por relevância)
+export async function searchAon(query, category = null, limit = 5) {
+  const { hits } = await searchAonRaw({ query, category, limit })
+  return hits
 }
 
 // Limpa tradução de problemas comuns
