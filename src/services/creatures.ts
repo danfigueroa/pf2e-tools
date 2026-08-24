@@ -29,15 +29,45 @@ export interface AonCreature {
     url: string
 }
 
-const cache = new Map<string, AonCreature[]>()
-const inflight = new Map<string, Promise<AonCreature[]>>()
+export interface CreatureSearchFilters {
+    /** Níveis aceitam negativo (criaturas de nível -1). `null` = sem limite. */
+    minLevel?: number | null
+    maxLevel?: number | null
+}
 
-/** Busca criaturas por nome. Devolve `[]` em qualquer falha — a UI segue viva. */
-export function searchCreatures(query: string, limit = 8): Promise<AonCreature[]> {
+export interface CreatureSearchResult {
+    results: AonCreature[]
+    /** Acertos no índice antes da deduplicação — serve para avisar que há mais. */
+    total: number
+}
+
+const EMPTY: CreatureSearchResult = { results: [], total: 0 }
+
+const cache = new Map<string, CreatureSearchResult>()
+const inflight = new Map<string, Promise<CreatureSearchResult>>()
+
+/**
+ * Busca criaturas por nome, por faixa de nível, ou pelos dois.
+ * Devolve vazio em qualquer falha — a UI segue viva.
+ */
+export function searchCreatures(
+    query: string,
+    limit = 8,
+    filters: CreatureSearchFilters = {},
+): Promise<CreatureSearchResult> {
     const term = query.trim().toLowerCase()
-    if (term.length < 2) return Promise.resolve([])
+    const min = filters.minLevel ?? null
+    const max = filters.maxLevel ?? null
 
-    const cacheKey = `${term}:${limit}`
+    // Sem nome e sem faixa não há o que buscar (e o backend recusaria).
+    if (term.length < 2 && min === null && max === null) return Promise.resolve(EMPTY)
+
+    const params = new URLSearchParams({ limit: String(limit) })
+    if (term) params.set('q', term)
+    if (min !== null) params.set('minLevel', String(min))
+    if (max !== null) params.set('maxLevel', String(max))
+    const cacheKey = params.toString()
+
     const cached = cache.get(cacheKey)
     if (cached) return Promise.resolve(cached)
 
@@ -46,14 +76,17 @@ export function searchCreatures(query: string, limit = 8): Promise<AonCreature[]
 
     const request = (async () => {
         try {
-            const r = await fetch(`/api/creature?q=${encodeURIComponent(term)}&limit=${limit}`)
-            if (!r.ok) return []
-            const data = (await r.json()) as { results?: AonCreature[] }
-            const results = Array.isArray(data.results) ? data.results : []
-            cache.set(cacheKey, results)
-            return results
+            const r = await fetch(`/api/creature?${cacheKey}`)
+            if (!r.ok) return EMPTY
+            const data = (await r.json()) as Partial<CreatureSearchResult>
+            const result: CreatureSearchResult = {
+                results: Array.isArray(data.results) ? data.results : [],
+                total: typeof data.total === 'number' ? data.total : 0,
+            }
+            cache.set(cacheKey, result)
+            return result
         } catch {
-            return []
+            return EMPTY
         } finally {
             inflight.delete(cacheKey)
         }
