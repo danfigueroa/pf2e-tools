@@ -233,13 +233,10 @@ export const InitiativePage = () => {
                     </CardContent>
                 </Card>
             ) : (
-                <Box
-                    sx={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                        gap: 1.5,
-                    }}
-                >
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+                    {/* Coluna única de propósito: a ordem de turnos É a lista, e
+                        em várias colunas o olho perde quem age depois de quem.
+                        Rolar vira o gesto de ver os próximos turnos. */}
                     {views.map((view) => (
                         <CombatantCard
                             key={view.combatant.id}
