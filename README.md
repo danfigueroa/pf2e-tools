@@ -69,8 +69,12 @@ qualquer dispositivo — no desktop as áreas viram **abas**; no mobile viram **
     abre com a descrição completa buscada da **Archives of Nethys** e **traduzida para pt-BR**
     (requer o backend rodando; ver [API do Servidor](#-api-do-servidor)).
 -   🐾 **Companheiros e familiares**: stats de companheiros animais são pré-carregados do backend.
--   👥 **Estado compartilhado da mesa**: PV, PV de companheiros, slots de magia, pontos de foco e
-    condições são os **mesmos para todos os jogadores** — marcar 50 de dano no notebook aparece no
+-   ✦ **Míticos**: personagens com talento mítico ganham o **pool de 3 Pontos Míticos**
+    (gastar/devolver como os slots de magia, "Novo dia" para recuperar tudo) e o valor com
+    **proficiência mítica** ao lado de cada salvaguarda, perícia e **ataque** — a proficiência
+    mítica **substitui** a normal, não soma por cima.
+-   👥 **Estado compartilhado da mesa**: PV, PV de companheiros, slots de magia, pontos de foco,
+    pontos míticos e condições são os **mesmos para todos os jogadores** — marcar 50 de dano no notebook aparece no
     celular de quem estiver na mesa. A sincronia é **sob demanda**: puxa ao abrir a ficha e no botão
     **Atualizar** do cabeçalho, que também mostra se o que você vê está compartilhado.
     Requer um Redis configurado (ver [Instalação](#-instalação-e-execução)); **sem ele o app funciona
@@ -388,7 +392,8 @@ Visualizador interativo da ficha. Reaproveita `parseCharacterJson`/`BuildInfo` d
 | `CharacterViewerPage.tsx`   | Estado da ficha, restauração por sessão, layout em abas (desktop) / acordeões (mobile), drawer de descrições |
 | `campaignPresets.ts`        | Lista de fichas prontas (`public/characters/*.json`) exibidas no `UploadCard`        |
 | `combatGuides.ts`           | Guias "Como Jogar" — curados à mão por nome + gerador heurístico de fallback         |
-| `helpers.ts`                | Cálculos derivados: `abilityMod`, `totalHp`, `spellcasterStats`, `isMythicCharacter`, … |
+| `helpers.ts`                | Cálculos derivados: `abilityMod`, `totalHp`, `spellcasterStats`, `isMythicCharacter`, `mythicProficiencyDelta`, … |
+| `components/useMythicPoints` | Pool de 3 Pontos Míticos, compartilhado com a mesa (campo `mythic`)                 |
 | `sections/*`                | Uma área por aba: Overview, Combat, Skills, Feats, Specials, Spells, Pets, Inventory |
 | `components/UploadCard`     | Upload / colar JSON / escolher preset                                               |
 | `components/DescriptionDrawer` | Drawer que busca a descrição na AON e mostra traduzida                            |
@@ -659,7 +664,7 @@ O servidor mantém um cache em memória para evitar requisições repetidas à A
 ### Estado da mesa (`/api/state`)
 
 Único endpoint com estado. Guarda um **hash por personagem** no Redis, com um campo por fatia
-(`hp`, `slots`, `conditions`, `pet:…`) — assim dois jogadores editando coisas diferentes ao mesmo
+(`hp`, `slots`, `conditions`, `mythic`, `pet:…`) — assim dois jogadores editando coisas diferentes ao mesmo
 tempo não se sobrescrevem. O personagem é identificado por um **slug do nome** (`Ghan Buri` →
 `ghan-buri`), sem o nível, para que subir de nível não zere o estado da mesa.
 
@@ -765,7 +770,8 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
     -   [x] Guias de uso "Como Jogar" (curados à mão + fallback heurístico)
     -   [x] Descrições da AON traduzidas para pt-BR sob demanda (drawer)
     -   [x] Áreas: Combate, Perícias, Talentos, Habilidades, Magias, Companheiros, Inventário
-    -   [x] Estado de jogo compartilhado entre os jogadores (PV, slots, foco, condições)
+    -   [x] Estado de jogo compartilhado entre os jogadores (PV, slots, foco, condições, pontos míticos)
+    -   [x] Proficiência mítica em salvaguardas, perícias e ataques + pool de 3 Pontos Míticos
 -   [x] **Módulo de Ficha de Personagem (PDF)** — _desativado na plataforma_
     -   [x] Upload e parsing de JSON
     -   [x] Geração de PDF completo
@@ -849,8 +855,12 @@ const mod = Math.floor((abilityScore - 10) / 2)
 // Bônus de perícia
 const skillBonus = proficiencyRank + level + abilityMod + itemBonus
 
-// Bônus mítico (homebrew)
+// Bônus mítico (homebrew) — substitui a proficiência, não soma por cima
 const mythicBonus = 10 + level + abilityMod
+
+// Ataque com proficiência mítica: troca a parte de proficiência que já está no
+// número do Pathbuilder (destreinado não soma o nível)
+const mythicAttack = attack - (rank > 0 ? level + rank : 0) + (level + 10)
 
 // CD de magia
 const spellDC = 10 + proficiencyRank + level + keyAbilityMod

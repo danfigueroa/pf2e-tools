@@ -85,8 +85,8 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
 
 ## Estado compartilhado da mesa
 
-PV, PV de companheiros, slots de magia, pontos de foco e condições são **da mesa, não do
-navegador**: os jogadores veem os mesmos números. A sincronia é **sob demanda** — puxa ao abrir a
+PV, PV de companheiros, slots de magia, pontos de foco, pontos míticos e condições são **da mesa,
+não do navegador**: os jogadores veem os mesmos números. A sincronia é **sob demanda** — puxa ao abrir a
 ficha e no botão "Atualizar" do cabeçalho. Não há polling, SSE nem WebSocket, e não há login: quem
 abrir o site entra na mesma mesa.
 
@@ -95,7 +95,8 @@ abrir o site entra na mesma mesa.
   puro e precisa do mesmo store. Aceita os dois pares de env (`KV_REST_API_*` da integração da
   Vercel e `UPSTASH_REDIS_REST_*` do console da Upstash). **Sem credenciais, cai num `Map` de
   processo** e o app segue funcionando; o indicador avisa "Só neste aparelho".
-- **Um HASH por personagem, um campo por fatia** (`hp`, `slots`, `conditions`, `pet:<kind>:<slug>#<i>`).
+- **Um HASH por personagem, um campo por fatia** (`hp`, `slots`, `conditions`, `mythic`,
+  `pet:<kind>:<slug>#<i>`).
   Documento único faria dois jogadores editando ao mesmo tempo se sobrescreverem — quem marcasse
   condição apagaria o dano do outro. `HSET` por campo dá atomicidade por fatia sem transação, e a
   leitura continua sendo um `HGETALL` só. Dentro da **mesma** fatia a última escrita ainda vence.
@@ -190,6 +191,17 @@ A plataforma é usada na mesa, no celular. Toda mudança de layout precisa passa
   listamos as opções típicas da herança marcadas como `choice`. Itens que dão ataque (ex.: Wolfjaw
   Armor) casam **pelo nome** em `ITEM_ATTACKS`. A aba de Combate nunca fica vazia: sem armas, ainda
   mostra desarmados, armadura e a CA.
+- **Mítico** (`helpers.ts` + `useMythicPoints.ts` + `MythicPointsBar.tsx`): personagem mítico é o
+  que tem algum talento do tipo Mythic Feat (`isMythicCharacter`). Duas partes:
+  **(1) proficiência mítica** (nível + 10) ao lado do valor normal em salvaguardas, perícias e
+  ataques — ela **substitui** a proficiência, então `mythicProficiencyDelta` desconta o que já está
+  embutido no número (`level + rank`, ou zero se destreinado, que no Remaster não soma o nível) em
+  vez de somar +10 por cima. A categoria da arma vem de `weapon.prof` e vira rank por
+  `weaponProficiencyRank`; categoria desconhecida devolve `null` e a linha **não** mostra ✦ —
+  melhor sem número do que com número errado. **(2) pool de 3 Pontos Míticos**
+  (`MYTHIC_POINTS_MAX`), compartilhado com a mesa no campo `mythic`, com a mesma mecânica de pips
+  dos slots. A barra fica **fora das abas**, ao lado das condições, porque o ponto é gasto de
+  qualquer aba. A legenda do ✦ é uma só (`MythicNote`), usada nas três seções.
 - **Slots de magia** (`useSpellSlots.ts` + `SlotPips.tsx`): estado do dia compartilhado com a mesa
   (ver "Estado compartilhado"), na mesma chave por personagem do PV (`slotsKeyFor`). Guarda **contagem** de gastos, nunca índice de slot —
   assim sobrevive a um re-upload em que a ordem da lista mudou. Preparado/inato: cada cópia
