@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Box, IconButton, LinearProgress, Stack, TextField, Tooltip, Typography, useTheme } from '@mui/material'
+import { useRef, useState } from 'react'
+import { Box, Button, LinearProgress, Stack, TextField, Tooltip, Typography, useTheme } from '@mui/material'
 import { Favorite as HpIcon, HealthAndSafety as TempIcon } from '@mui/icons-material'
 import { hpBarColor } from '../../character-viewer/components/useHpTracker'
 import { HP_COLOR, ink } from '../../../theme'
@@ -10,11 +10,24 @@ export const CombatantVitals = ({ view }: { view: CombatantView }) => {
     const theme = useTheme()
     const [amount, setAmount] = useState('')
     const { current, temp, maxHp, maxHpDelta, applyDamage, applyHealing } = view
+    const { name } = view.combatant
+
+    const inputRef = useRef<HTMLInputElement>(null)
 
     const value = parseInt(amount, 10)
     const valid = Number.isFinite(value) && value > 0
+
+    /**
+     * Os botões ficam sempre habilitados. Desabilitados até haver número, a
+     * lista inteira aparecia acinzentada e parecia travada — o oposto do que
+     * um botão escrito "Dano" deveria comunicar. Sem número, o clique manda o
+     * foco para o campo em vez de não fazer nada.
+     */
     const run = (fn: (n: number) => void) => {
-        if (!valid) return
+        if (!valid) {
+            inputRef.current?.focus()
+            return
+        }
         fn(value)
         setAmount('')
     }
@@ -58,42 +71,49 @@ export const CombatantVitals = ({ view }: { view: CombatantView }) => {
                 }}
             />
 
-            <Stack direction="row" spacing={0.5} alignItems="center">
+            <Stack direction="row" spacing={0.75} alignItems="stretch">
                 <TextField
                     size="small"
                     placeholder="PV"
+                    inputRef={inputRef}
                     value={amount}
                     onChange={(e) => setAmount(e.target.value.replace(/\D/g, ''))}
                     onKeyDown={(e) => { if (e.key === 'Enter') run(applyDamage) }}
-                    inputProps={{ inputMode: 'numeric', 'aria-label': 'Quantidade de PV' }}
-                    sx={{ width: 68, '& .MuiInputBase-input': { py: 0.5, textAlign: 'center' } }}
+                    inputProps={{ inputMode: 'numeric', 'aria-label': `Quantidade de PV para ${name}` }}
+                    sx={{ width: 62, '& .MuiInputBase-input': { py: 0.5, textAlign: 'center' } }}
                 />
-                <Tooltip title="Causar dano">
-                    <span>
-                        <IconButton
-                            size="small"
-                            disabled={!valid}
-                            onClick={() => run(applyDamage)}
-                            sx={{ color: HP_COLOR }}
-                            aria-label="Causar dano"
-                        >
-                            <Typography sx={{ fontWeight: 700, lineHeight: 1 }}>−</Typography>
-                        </IconButton>
-                    </span>
-                </Tooltip>
-                <Tooltip title="Curar">
-                    <span>
-                        <IconButton
-                            size="small"
-                            disabled={!valid}
-                            onClick={() => run(applyHealing)}
-                            sx={{ color: theme.palette.success.main }}
-                            aria-label="Curar"
-                        >
-                            <Typography sx={{ fontWeight: 700, lineHeight: 1 }}>+</Typography>
-                        </IconButton>
-                    </span>
-                </Tooltip>
+                <Button
+                    size="small"
+                    variant="contained"
+                    onClick={() => run(applyDamage)}
+                    aria-label={`Causar dano em ${name}`}
+                    sx={{
+                        flex: 1,
+                        px: 1,
+                        backgroundColor: HP_COLOR,
+                        '&:hover': { backgroundColor: '#8F3622' },
+                    }}
+                >
+                    Dano
+                </Button>
+                <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => run(applyHealing)}
+                    aria-label={`Curar ${name}`}
+                    sx={{
+                        flex: 1,
+                        px: 1,
+                        color: theme.palette.success.main,
+                        borderColor: theme.palette.success.main,
+                        '&:hover': {
+                            borderColor: theme.palette.success.dark,
+                            backgroundColor: theme.palette.success.main + '14',
+                        },
+                    }}
+                >
+                    Cura
+                </Button>
             </Stack>
         </Box>
     )
