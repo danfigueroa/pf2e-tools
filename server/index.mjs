@@ -5,6 +5,14 @@ import { resolveSpell } from '../api/_lib/spells-core.js'
 import { resolveFeat, resolveSpecial } from '../api/_lib/feat-core.js'
 import { resolveCompanion } from '../api/_lib/companion-core.js'
 import { hasTranslationKey } from '../api/_lib/aon.js'
+import {
+  readCharacter,
+  writeField,
+  isValidSlug,
+  isValidField,
+  isStoreConfigured,
+  MAX_FIELD_BYTES,
+} from '../api/_lib/table-store.js'
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3001
 // Gate de tradução: as chaves em si (GEMINI_API_KEY / GROQ_API_KEY) são lidas
@@ -314,6 +322,70 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(500, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify({ error: e.message }))
     }
+    return
+  }
+
+  // Estado compartilhado da mesa (PV, slots, foco, condições).
+  // Mesma persistência do serverless (api/_lib/table-store.js) — aqui só entra
+  // o roteamento.
+  if (pathname === '/api/state') {
+    res.setHeader('Cache-Control', 'no-store')
+
+    if (req.method === 'GET') {
+      const char = parsedUrl.searchParams.get('char')
+      if (!isValidSlug(char)) {
+        res.writeHead(400, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: 'Parâmetro "char" inválido' }))
+        return
+      }
+      try {
+        const fields = await readCharacter(char)
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ char, fields, storeReady: isStoreConfigured() }))
+      } catch (e) {
+        console.error('[/api/state] Erro ao ler:', e)
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: 'Erro ao ler o estado da mesa' }))
+      }
+      return
+    }
+
+    if (req.method === 'POST') {
+      const { char, field, data } = await readBody(req)
+      if (!isValidSlug(char)) {
+        res.writeHead(400, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: 'Campo "char" inválido' }))
+        return
+      }
+      if (!isValidField(field)) {
+        res.writeHead(400, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: 'Campo "field" inválido' }))
+        return
+      }
+      if (data === undefined) {
+        res.writeHead(400, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: 'Campo "data" ausente' }))
+        return
+      }
+      if (JSON.stringify(data).length > MAX_FIELD_BYTES) {
+        res.writeHead(400, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: 'Estado grande demais' }))
+        return
+      }
+      try {
+        const updatedAt = await writeField(char, field, data)
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ ok: true, updatedAt, storeReady: isStoreConfigured() }))
+      } catch (e) {
+        console.error('[/api/state] Erro ao gravar:', e)
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: 'Erro ao gravar o estado da mesa' }))
+      }
+      return
+    }
+
+    res.writeHead(405, { 'Content-Type': 'application/json' })
+    res.end(JSON.stringify({ error: 'Method not allowed' }))
     return
   }
 
