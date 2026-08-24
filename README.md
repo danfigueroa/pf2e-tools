@@ -125,8 +125,9 @@ dano, cura e condições em **um ou vários alvos de uma vez**.
 **Características:**
 
 -   **Importa os personagens da campanha** (presets ou JSON do Pathbuilder) e **busca monstros no
-    Archives of Nethys** pelo nome, já com PV, CA, percepção, salvamentos, resistências, fraquezas
-    e imunidades — mais um formulário manual e um campo de quantidade para criar "Goblin 1..4"
+    Archives of Nethys** pelo nome **e/ou por faixa de nível** — útil para montar encontro na faixa
+    do grupo —, já com PV, CA, percepção, salvamentos, resistências, fraquezas e imunidades; mais um
+    formulário manual e um campo de quantidade para criar "Goblin 1..4"
 -   **PV e condições dos personagens são os mesmos da Ficha Virtual**: o dano que o mestre aplica
     aqui aparece no celular do jogador, e vice-versa
 -   **Dano em área do jeito que o PF2e funciona**: um valor de dano, cada alvo com o seu resultado
@@ -620,7 +621,7 @@ O servidor (`server/index.mjs`) fornece endpoints para buscar dados da Archives 
 | GET    | `/api/search`    | `name`     | Busca descrição genérica (Special Abilities/itens) |
 | GET    | `/api/spell`     | `name`     | Busca informações detalhadas de uma magia        |
 | GET    | `/api/companion` | `name`     | Stats de companheiro animal                      |
-| GET    | `/api/creature`  | `q`, `limit` | Busca criaturas (PV, CA, defesas) — sem tradução |
+| GET    | `/api/creature`  | `q`, `minLevel`, `maxLevel`, `limit` | Busca criaturas por nome e/ou faixa de nível — sem tradução |
 | POST   | `/api/clear-cache` | —        | Limpa o cache de descrições                      |
 | GET    | `/api/state`     | `char`     | Estado de jogo compartilhado de um personagem    |
 | POST   | `/api/state`     | body       | Grava uma fatia (`{ char, field, data }`)        |
@@ -775,7 +776,7 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
     -   [x] Integração com AON (feats, specials, spells)
     -   [x] Links clicáveis para referência
 -   [x] **Módulo de Iniciativa (gerenciador de combate)**
-    -   [x] Importação de personagens da campanha e busca de monstros na AON
+    -   [x] Importação de personagens da campanha e busca de monstros na AON (nome e/ou nível)
     -   [x] PV e condições dos personagens compartilhados com a Ficha Virtual
     -   [x] Dano em área com resultado de salvaguarda por alvo, resistência e fraqueza
     -   [x] Condições com duração em rodadas

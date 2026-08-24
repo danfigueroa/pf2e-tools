@@ -49,6 +49,13 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   **estruturados**, e traduzir 8 resultados a cada tecla estouraria o rate limit do tier gratuito.
   O vocabulário curto é traduzido no cliente (`transformation-statblock/i18n.ts`).
   Núcleo em `api/_lib/creature-core.js`, cliente em `src/services/creatures.ts`.
+  Aceita `q` (nome), `minLevel`/`maxLevel` (faixa de nível, negativo incluído) ou os dois — exige
+  pelo menos um, senão devolveria o bestiário inteiro.
+- **`searchAonRaw` vs `searchAon`** (`api/_lib/aon.js`): o `searchAon` continua sendo busca por
+  nome ordenada por relevância. O `searchAonRaw` existe porque a busca de criaturas precisa de duas
+  coisas que ele não faz — filtrar por faixa **sem termo nenhum** (aí a query vira `match_all` e a
+  ordenação tem que ser explícita, senão a lista embaralha a cada busca) e devolver o **total**,
+  para avisar quem está vendo 12 de 656. Os dois compartilham o mesmo fetch e o mesmo cache.
 - `state` é o único endpoint com **estado**: guarda o jogo da mesa (ver a seção própria abaixo).
   Fica em `api/state.js`, **um nível** — o glob `"api/*.js"` do `vercel.json` não pega subpastas,
   então `api/state/[char].js` perderia o `maxDuration`.
@@ -253,6 +260,10 @@ cada fatia de estado mora**:
 - O catálogo de condições, o cálculo de modificadores e o `ConditionsDialog` vêm inteiros do
   `character-viewer` — inclusive a cascata de condições impostas (Inconsciente → Cego, Desprevenido,
   Caído). Nada disso foi reescrito.
+- **Busca de criatura aceita nome, faixa de nível, ou os dois** (`AonCreatureSearch`). Buscar só
+  por faixa é como se monta encontro, então a lista precisa de ordenação estável (nível, depois
+  nome) e do aviso "mostrando 12 de ~656" — sem termo, o índice tem centenas de acertos por nível.
+  O `total` é anterior à deduplicação de legacy/reimpressões, então é aproximado de propósito.
 - **Não há rolagem de dados**: a iniciativa é digitada. Os dados rolam na mesa.
 
 ## Módulo transformation-statblock (contexto que se perde fácil)
