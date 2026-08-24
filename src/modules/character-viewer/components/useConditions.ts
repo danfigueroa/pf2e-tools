@@ -14,7 +14,7 @@ const LEGACY_PREFIX = 'pf2e:viewer:conditions:'
  */
 export type ConditionState = Record<string, number>
 
-function sanitize(raw: unknown): ConditionState {
+export function sanitizeConditions(raw: unknown): ConditionState {
     if (!raw || typeof raw !== 'object') return {}
     const state: ConditionState = {}
     Object.entries(raw as Record<string, unknown>).forEach(([id, v]) => {
@@ -32,10 +32,10 @@ const isEmpty = (s: ConditionState) => Object.keys(s).length === 0
 export function useConditions(syncKey: string, level: number, legacyKey?: string) {
     const [state, setState] = useSharedState<ConditionState>(syncKey, {
         empty: () => ({}),
-        sanitize,
+        sanitize: sanitizeConditions,
         legacy: legacyKey ? () => {
             const raw = readLegacy(LEGACY_PREFIX, legacyKey)
-            return raw === null ? null : sanitize(raw)
+            return raw === null ? null : sanitizeConditions(raw)
         } : undefined,
         isEmpty,
     })

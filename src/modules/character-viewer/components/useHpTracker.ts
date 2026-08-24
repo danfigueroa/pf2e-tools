@@ -11,14 +11,14 @@ const LEGACY_PREFIX = 'pf2e:viewer:hp:'
  * Drenado), não é estado da mesa — guardá-lo só criava um valor que era
  * gravado e ignorado na releitura.
  */
-interface HpStored {
+export interface HpStored {
     current: number
     temp: number
 }
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n))
 
-function sanitize(raw: unknown): HpStored | null {
+export function sanitizeHp(raw: unknown): HpStored | null {
     if (!raw || typeof raw !== 'object') return null
     const saved = raw as Partial<HpStored>
     if (typeof saved.current !== 'number' || !Number.isFinite(saved.current)) return null
@@ -39,8 +39,8 @@ function sanitize(raw: unknown): HpStored | null {
 export function useHpTracker(syncKey: string, maxHp: number, legacyKey?: string) {
     const [stored, setStored] = useSharedState<HpStored | null>(syncKey, {
         empty: () => null,
-        sanitize,
-        legacy: legacyKey ? () => sanitize(readLegacy(LEGACY_PREFIX, legacyKey)) : undefined,
+        sanitize: sanitizeHp,
+        legacy: legacyKey ? () => sanitizeHp(readLegacy(LEGACY_PREFIX, legacyKey)) : undefined,
         isEmpty: (v) => v === null,
     })
 

@@ -21,12 +21,18 @@ const slugify = (value: string): string =>
         .replace(/^-+|-+$/g, '')
         .slice(0, 64)
 
-/** Slug do personagem: `Ghan Buri` → `ghan-buri`. */
-export const charSlug = (build: BuildInfo): string => slugify(build.name || '') || 'sem-nome'
+/** Slug a partir do nome cru — o gerenciador de iniciativa guarda só o nome. */
+export const charSlugFromName = (name: string): string => slugify(name || '') || 'sem-nome'
 
-export const hpKeyFor = (build: BuildInfo): string => `${charSlug(build)}/hp`
+/** Slug do personagem: `Ghan Buri` → `ghan-buri`. */
+export const charSlug = (build: BuildInfo): string => charSlugFromName(build.name)
+
+export const hpKeyForSlug = (slug: string): string => `${slug}/hp`
+export const conditionsKeyForSlug = (slug: string): string => `${slug}/conditions`
+
+export const hpKeyFor = (build: BuildInfo): string => hpKeyForSlug(charSlug(build))
 export const slotsKeyFor = (build: BuildInfo): string => `${charSlug(build)}/slots`
-export const conditionsKeyFor = (build: BuildInfo): string => `${charSlug(build)}/conditions`
+export const conditionsKeyFor = (build: BuildInfo): string => conditionsKeyForSlug(charSlug(build))
 
 /** Companheiro/familiar, namespaced dentro do personagem dono. */
 export const petKeyFor = (build: BuildInfo, kind: string, name: string, idx: number): string =>
