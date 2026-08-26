@@ -50,12 +50,20 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   O vocabulário curto é traduzido no cliente (`transformation-statblock/i18n.ts`).
   Núcleo em `api/_lib/creature-core.js`, cliente em `src/services/creatures.ts`.
   Aceita `q` (nome), `minLevel`/`maxLevel` (faixa de nível, negativo incluído) ou os dois — exige
-  pelo menos um, senão devolveria o bestiário inteiro.
+  pelo menos um, senão devolveria o bestiário inteiro — mais `limit` e `offset` (paginação).
+  Devolve `{ results, total, nextOffset, hasMore }`.
+- **Paginação de criaturas é por cursor, contado em acertos do índice** — não em criaturas
+  devolvidas. Os dois números divergem porque a deduplicação de legacy/reimpressões come parte dos
+  acertos, então `offset` avança pelo `nextOffset` que a página anterior devolveu (quantos hits ela
+  consumiu), nunca por `página × tamanho`. Quem decide se acabou é o `hasMore`: o `total` é anterior
+  à deduplicação e sozinho mentiria nos dois sentidos. A deduplicação é **por página**, então quem
+  acumula páginas deduplica por nome ao concatenar (`appendUnique` no cliente).
 - **`searchAonRaw` vs `searchAon`** (`api/_lib/aon.js`): o `searchAon` continua sendo busca por
-  nome ordenada por relevância. O `searchAonRaw` existe porque a busca de criaturas precisa de duas
+  nome ordenada por relevância. O `searchAonRaw` existe porque a busca de criaturas precisa de três
   coisas que ele não faz — filtrar por faixa **sem termo nenhum** (aí a query vira `match_all` e a
-  ordenação tem que ser explícita, senão a lista embaralha a cada busca) e devolver o **total**,
-  para avisar quem está vendo 12 de 656. Os dois compartilham o mesmo fetch e o mesmo cache.
+  ordenação tem que ser explícita, senão a lista embaralha a cada busca), paginar (`from`) e
+  devolver o **total**, para avisar quem está vendo 20 de ~329. Os dois compartilham o mesmo fetch e
+  o mesmo cache.
 - `state` é o único endpoint com **estado**: guarda o jogo da mesa (ver a seção própria abaixo).
   Fica em `api/state.js`, **um nível** — o glob `"api/*.js"` do `vercel.json` não pega subpastas,
   então `api/state/[char].js` perderia o `maxDuration`.
@@ -293,8 +301,10 @@ cada fatia de estado mora**:
   com dois `display: none`): dois botões de mesmo rótulo no DOM atrapalham teclado e leitor de tela.
 - **Busca de criatura aceita nome, faixa de nível, ou os dois** (`AonCreatureSearch`). Buscar só
   por faixa é como se monta encontro, então a lista precisa de ordenação estável (nível, depois
-  nome) e do aviso "mostrando 12 de ~656" — sem termo, o índice tem centenas de acertos por nível.
-  O `total` é anterior à deduplicação de legacy/reimpressões, então é aproximado de propósito.
+  nome) e de **chegar até o fim**: 20 por página e "Carregar mais" até `hasMore` virar falso — uma
+  faixa de um nível só já passa de 100 criaturas, e antes a lista parava na primeira dúzia. O
+  `total` do aviso é anterior à deduplicação de legacy/reimpressões, então é aproximado de
+  propósito; ver "Paginação de criaturas" no Backend para o cursor.
 - **Não há rolagem de dados**: a iniciativa é digitada. Os dados rolam na mesa.
 
 ## Módulo transformation-statblock (contexto que se perde fácil)
