@@ -23,6 +23,7 @@ import {
 import type { FeatDescription, SpellDescription } from '../../character-sheet/types'
 import { actionSymbol, getAonSearchUrl, signed, traditionColor } from '../helpers'
 import { parseDescription, type DescriptionPart, type HeightenedEntry } from '../format-description'
+import { StaffSpellList } from './StaffSpellList'
 import {
     applyHeightening,
     computeHeightenedDamage,
@@ -54,6 +55,12 @@ export type DescriptionRequest =
 interface Props {
     request: DescriptionRequest | null
     onClose: () => void
+    /**
+     * Troca o conteúdo do drawer sem fechá-lo — as magias de um bastão abrem a
+     * própria descrição por aqui. O efeito de carga já reage a `request`, então
+     * a página só precisa reapontar o estado.
+     */
+    onNavigate?: (req: DescriptionRequest) => void
 }
 
 interface State {
@@ -72,7 +79,7 @@ const TYPE_LABEL: Record<DescriptionRequest['type'], string> = {
 // Acentos por tipo (o de magia é sobrescrito pela tradição quando há).
 const TYPE_ACCENT: Record<DescriptionRequest['type'], string> = PALETTE_TYPE_ACCENT
 
-export const DescriptionDrawer = ({ request, onClose }: Props) => {
+export const DescriptionDrawer = ({ request, onClose, onNavigate }: Props) => {
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down('md'))
     const [state, setState] = useState<State>({ loading: false })
@@ -342,6 +349,15 @@ export const DescriptionDrawer = ({ request, onClose }: Props) => {
                                 caster={request.caster}
                                 heightenedDamage={heightenedDamage}
                                 castLevel={request.level}
+                            />
+                        )}
+
+                        {/* Bastão: magias do degrau que a ficha possui (só elas) */}
+                        {request.type !== 'spell' && state.entry?.staff && !state.loading && (
+                            <StaffSpellList
+                                staff={state.entry.staff}
+                                accent={accent}
+                                onNavigate={onNavigate}
                             />
                         )}
 

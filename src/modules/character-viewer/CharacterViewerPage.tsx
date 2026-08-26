@@ -313,7 +313,11 @@ export const CharacterViewerPage = () => {
                 </Box>
             )}
 
-            <DescriptionDrawer request={drawerReq} onClose={() => setDrawerReq(null)} />
+            <DescriptionDrawer
+                request={drawerReq}
+                onClose={() => setDrawerReq(null)}
+                onNavigate={setDrawerReq}
+            />
         </Container>
     )
 }
