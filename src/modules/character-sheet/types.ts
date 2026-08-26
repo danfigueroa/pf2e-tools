@@ -99,6 +99,31 @@ export interface SpellListByLevel {
 
 // Talento / habilidade (feature de classe, heritage, ação) vindo da AON já
 // estruturado e traduzido pelo backend (api/_lib/feat-core.js).
+/**
+ * Magias de um bastão, já filtradas pelo degrau que o personagem possui.
+ *
+ * O AON guarda a família inteira num documento só ("Staff of Healing" traz
+ * base, Greater, Major e True), então o backend isola o degrau e acumula as
+ * magias **só para baixo**, como manda a regra do bastão (GM Core p. 278).
+ * Nomes de magia ficam em inglês: é por eles que a UI busca a descrição.
+ */
+export interface StaffInfo {
+  /** Degrau que a ficha possui, ex. "Staff of Healing (Greater)". */
+  tierName: string;
+  tierLevel: number;
+  price: string | null;
+  /** Efeito próprio do degrau, ex. "O bônus de item das magias heal é +2." */
+  effect: string;
+  ranks: {
+    /** 0 = truque (não gasta carga). */
+    rank: number;
+    /** `tierLevel` diz de qual degrau a magia veio (base ou o próprio). */
+    spells: { name: string; tierLevel: number }[];
+  }[];
+  /** Degraus somados na lista (o próprio e os inferiores). */
+  tiers: { name: string; level: number }[];
+}
+
 export interface FeatDescription {
   name: string;
   level?: number | null;
@@ -115,6 +140,8 @@ export interface FeatDescription {
   access?: string;
   cost?: string;
   description: string | null;
+  /** Só itens da categoria Staves (ver StaffInfo). */
+  staff?: StaffInfo;
   translationPending?: boolean;  // ficou em EN por falha de tradução — não cachear
 }
 

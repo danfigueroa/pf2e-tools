@@ -7,7 +7,10 @@ import type { FeatDescription, SpellDescription, CompanionStats } from '../modul
 // v10: talentos/habilidades/itens passaram a ser objetos estruturados e param
 // de ser cacheados quando a tradução falha (translationPending). A troca de
 // versão descarta as descrições em inglês que a v9 gravou de forma permanente.
-const CACHE_VERSION = 'v11'
+// v12: bastões ganharam o bloco `staff` (magias do degrau) e a resolução por
+// nome deixou de descartar o qualificador — o que estava em cache aponta para o
+// item base ("Staff of Healing" no lugar do Greater) e precisa ser descartado.
+const CACHE_VERSION = 'v12'
 
 type Kind = 'feat' | 'spell' | 'special' | 'companion' | 'item'
 
