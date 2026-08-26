@@ -231,9 +231,10 @@ const server = http.createServer(async (req, res) => {
     }
     try {
       const limit = parseInt(parsedUrl.searchParams.get('limit'), 10) || 8
-      const { results, total } = await resolveCreatures(term, limit, { minLevel, maxLevel })
+      const offset = parseInt(parsedUrl.searchParams.get('offset'), 10) || 0
+      const page = await resolveCreatures(term, limit, { minLevel, maxLevel, offset })
       res.writeHead(200, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify({ results, total }))
+      res.end(JSON.stringify(page))
     } catch (e) {
       console.error('[/api/creature] Error:', e)
       res.writeHead(500, { 'Content-Type': 'application/json' })

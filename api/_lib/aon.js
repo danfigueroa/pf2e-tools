@@ -108,8 +108,8 @@ export function extractMainDescription(text, maxLength = 2000) {
  * @param {object[]} [opts.sort]    ordenação; sem isso vale a relevância
  * @returns {Promise<{hits: object[], total: number}>}
  */
-export async function searchAonRaw({ query = '', category = null, limit = 5, filters = [], sort = null }) {
-  const cacheKey = `raw:${query}:${category}:${limit}:${JSON.stringify(filters)}:${JSON.stringify(sort)}`
+export async function searchAonRaw({ query = '', category = null, limit = 5, from = 0, filters = [], sort = null }) {
+  const cacheKey = `raw:${query}:${category}:${limit}:${from}:${JSON.stringify(filters)}:${JSON.stringify(sort)}`
   if (cache.has(cacheKey)) {
     return cache.get(cacheKey)
   }
@@ -118,6 +118,9 @@ export async function searchAonRaw({ query = '', category = null, limit = 5, fil
     const term = String(query || '').trim()
     const searchBody = {
       size: limit,
+      // Paginação: quem varre uma faixa de nível inteira precisa continuar de
+      // onde parou, e o ES só oferece isso por `from`.
+      from: Math.max(Number(from) || 0, 0),
       query: {
         bool: {
           must: [

@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end()
 
-  const { q, limit, minLevel, maxLevel } = req.query
+  const { q, limit, minLevel, maxLevel, offset } = req.query
   const term = q ? String(q).trim() : ''
   const min = parseLevel(minLevel)
   const max = parseLevel(maxLevel)
@@ -27,11 +27,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { results, total } = await resolveCreatures(term, parseInt(limit, 10) || 8, {
+    const page = await resolveCreatures(term, parseInt(limit, 10) || 8, {
       minLevel: min,
       maxLevel: max,
+      offset: parseInt(offset, 10) || 0,
     })
-    return res.status(200).json({ results, total })
+    return res.status(200).json(page)
   } catch (error) {
     console.error('Creature API error:', error)
     return res.status(500).json({ error: 'Erro ao buscar criatura' })

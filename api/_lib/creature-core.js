@@ -96,10 +96,24 @@ function normalize(hit) {
  * quem varre uma faixa inteira ("mostrando 12 de 656") — não é a contagem exata
  * de criaturas distintas.
  *
- * @returns {Promise<{results: object[], total: number}>}
+ * **Paginação**: o cursor é `offset`, contado em **acertos do índice**, não em
+ * criaturas devolvidas — justamente porque a deduplicação faz os dois números
+ * divergirem. Quem quer a página seguinte manda de volta o `nextOffset`
+ * recebido. `hasMore` é a resposta confiável para "acabou?": `total` é anterior
+ * à deduplicação e sozinho mentiria nos dois sentidos.
+ *
+ * Como a deduplicação é por página, dois nomes iguais podem cair em páginas
+ * diferentes; quem acumula páginas deve deduplicar por nome ao concatenar.
+ *
+ * @returns {Promise<{results: object[], total: number, nextOffset: number, hasMore: boolean}>}
  */
-export async function resolveCreatures(query, limit = 8, { minLevel = null, maxLevel = null } = {}) {
-  const size = Math.min(Math.max(limit, 1), 30)
+export async function resolveCreatures(
+  query,
+  limit = 8,
+  { minLevel = null, maxLevel = null, offset = 0 } = {},
+) {
+  const size = Math.min(Math.max(limit, 1), 50)
+  const from = Math.max(parseInt(offset, 10) || 0, 0)
   const term = String(query || '').trim()
 
   const filters = []
@@ -112,17 +126,22 @@ export async function resolveCreatures(query, limit = 8, { minLevel = null, maxL
   // mundo e só uma ordenação explícita dá uma lista estável e navegável.
   const sort = term ? null : [{ level: 'asc' }, { 'name.keyword': 'asc' }]
 
+  const fetchSize = size * 3
   const { hits, total } = await searchAonRaw({
     query: term,
     category: 'creature',
-    limit: size * 3,
+    limit: fetchSize,
+    from,
     filters,
     sort,
   })
 
   const seen = new Set()
   const results = []
+  // Quantos acertos do índice esta página consumiu — é o que avança o cursor.
+  let consumed = 0
   for (const hit of hits) {
+    consumed += 1
     if (isLegacy(hit?._source)) continue
     const creature = normalize(hit)
     if (!creature) continue
@@ -132,5 +151,11 @@ export async function resolveCreatures(query, limit = 8, { minLevel = null, maxL
     results.push(creature)
     if (results.length >= size) break
   }
-  return { results, total }
+
+  // Menos acertos que o pedido significa que o índice entregou tudo o que tinha
+  // a partir de `from`; aí só sobra o que este laço deixou para trás.
+  const exhausted = hits.length < fetchSize
+  const hasMore = consumed < hits.length || (!exhausted && from + hits.length < total)
+
+  return { results, total, nextOffset: from + consumed, hasMore }
 }
