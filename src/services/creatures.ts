@@ -33,15 +33,25 @@ export interface CreatureSearchFilters {
     /** Níveis aceitam negativo (criaturas de nível -1). `null` = sem limite. */
     minLevel?: number | null
     maxLevel?: number | null
+    /**
+     * Cursor da próxima página, contado em **acertos do índice** (não em
+     * criaturas devolvidas): a deduplicação de legacy/reimpressões faz os dois
+     * números divergirem. Use o `nextOffset` da página anterior.
+     */
+    offset?: number
 }
 
 export interface CreatureSearchResult {
     results: AonCreature[]
     /** Acertos no índice antes da deduplicação — serve para avisar que há mais. */
     total: number
+    /** Cursor a mandar de volta para pedir a página seguinte. */
+    nextOffset: number
+    /** Resposta confiável para "acabou?" — `total` é anterior à deduplicação. */
+    hasMore: boolean
 }
 
-const EMPTY: CreatureSearchResult = { results: [], total: 0 }
+const EMPTY: CreatureSearchResult = { results: [], total: 0, nextOffset: 0, hasMore: false }
 
 const cache = new Map<string, CreatureSearchResult>()
 const inflight = new Map<string, Promise<CreatureSearchResult>>()
@@ -58,6 +68,7 @@ export function searchCreatures(
     const term = query.trim().toLowerCase()
     const min = filters.minLevel ?? null
     const max = filters.maxLevel ?? null
+    const offset = Math.max(filters.offset ?? 0, 0)
 
     // Sem nome e sem faixa não há o que buscar (e o backend recusaria).
     if (term.length < 2 && min === null && max === null) return Promise.resolve(EMPTY)
@@ -66,6 +77,7 @@ export function searchCreatures(
     if (term) params.set('q', term)
     if (min !== null) params.set('minLevel', String(min))
     if (max !== null) params.set('maxLevel', String(max))
+    if (offset > 0) params.set('offset', String(offset))
     const cacheKey = params.toString()
 
     const cached = cache.get(cacheKey)
@@ -79,9 +91,12 @@ export function searchCreatures(
             const r = await fetch(`/api/creature?${cacheKey}`)
             if (!r.ok) return EMPTY
             const data = (await r.json()) as Partial<CreatureSearchResult>
+            const results = Array.isArray(data.results) ? data.results : []
             const result: CreatureSearchResult = {
-                results: Array.isArray(data.results) ? data.results : [],
+                results,
                 total: typeof data.total === 'number' ? data.total : 0,
+                nextOffset: typeof data.nextOffset === 'number' ? data.nextOffset : offset + results.length,
+                hasMore: data.hasMore === true,
             }
             cache.set(cacheKey, result)
             return result
