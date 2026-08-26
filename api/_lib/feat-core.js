@@ -17,12 +17,15 @@ import {
   generateFallbackDescription,
 } from './aon.js'
 import { pickBestHit, parseAonText } from './aon-parse.js'
+import { staffForTier } from './staff-parse.js'
 
 // Ordem de categorias por tipo de consulta: a mais provável primeiro. Heritages
 // ("Running Animal") e features de classe não vivem em 'feat' no AON; `null`
 // (sem filtro) fica por último como rede de segurança.
 const FEAT_CATEGORIES = ['feat', 'heritage', 'ancestry-feature', 'class-feature', 'action']
-const SPECIAL_CATEGORIES = ['class-feature', 'feat', 'action', 'ancestry-feature', 'heritage', null]
+// A lista de "special" também atende os itens do inventário (mesmo endpoint,
+// /api/searches), por isso 'equipment' entra antes da rede de segurança.
+const SPECIAL_CATEGORIES = ['class-feature', 'feat', 'action', 'ancestry-feature', 'heritage', 'equipment', null]
 
 // Pathbuilder anexa qualificadores ao nome ("Assurance (Athletics)",
 // "Scent (imprecise) 30 feet") que não existem no nome do AON.
@@ -62,15 +65,23 @@ function emptyEntry(name, description, itemType) {
 }
 
 async function resolveEntry(rawName, categories, itemType, translationEnabled) {
-  const searchName = cleanSearchName(rawName) || String(rawName || '')
-  let best = await findBestEntry(searchName, categories)
+  const fullName = String(rawName || '').trim()
+  const searchName = cleanSearchName(rawName) || fullName
+  const isExact = (hit, name) => hit?._source?.name?.toLowerCase() === String(name).toLowerCase()
 
-  // Sem match exato e o nome foi alterado pela limpeza: tenta o nome cru também
-  // (há talentos cujo nome no AON contém parênteses de verdade).
-  const exact = (hit) => hit?._source?.name?.toLowerCase() === searchName.toLowerCase()
-  if (!exact(best) && searchName !== String(rawName)) {
-    const alt = await findBestEntry(String(rawName), categories)
-    if (alt?._source?.name?.toLowerCase() === String(rawName).toLowerCase()) best = alt
+  // O nome CRU vem primeiro quando a limpeza mudou algo, porque o parêntese do
+  // Pathbuilder às vezes **é** parte do nome no AON: os degraus de bastão
+  // ("Staff of Healing (Greater)") existem como entradas próprias, e resolver
+  // pelo nome limpo devolvia o item BASE — nível, preço e magias errados.
+  // Só quando o nome cru não casa exato vale a limpeza, que é o caminho de
+  // "Assurance (Athletics)" e "Scent (imprecise) 30 feet".
+  let best = null
+  if (fullName && fullName !== searchName) {
+    best = await findBestEntry(fullName, categories)
+  }
+  if (!isExact(best, fullName)) {
+    const alt = await findBestEntry(searchName, categories)
+    if (isExact(alt, searchName)) best = alt
     else if (!best) best = alt
   }
 
@@ -82,9 +93,17 @@ async function resolveEntry(rawName, categories, itemType, translationEnabled) {
   const source = best._source
   const parsed = parseAonText(source.text || '')
 
+  // Bastão: o documento do AON guarda a FAMÍLIA inteira (base, Greater, Major,
+  // True). O parse próprio isola o degrau que a ficha possui e acumula as
+  // magias só para baixo — ver api/_lib/staff-parse.js.
+  const staff = staffForTier(source, fullName)
+
   // Prosa: estrutura do AON (bloco após "---"). Sem separador reconhecível cai
   // no strip heurístico por rótulo, que é o caminho antigo — pior, mas raro.
-  let proseEN = parsed.structured ? parsed.proseEN : ''
+  // Bastão é a exceção: `parseAonText` colaria os quatro degraus num parágrafo
+  // único (com preços e magias de rank 7 no meio), então a prosa vem da seção
+  // da família, sem degrau nenhum.
+  let proseEN = staff ? staff.intro : (parsed.structured ? parsed.proseEN : '')
   if (proseEN.includes('<')) proseEN = cleanAonText(proseEN)
   // Rodapé de navegação do AON ("Assurance leads to... Automatic Knowledge"):
   // não é descrição, e cortar antes da tradução ainda economiza tokens.
@@ -109,6 +128,12 @@ async function resolveEntry(rawName, categories, itemType, translationEnabled) {
     joinField(source.access),
     joinField(source.cost),
   ]
+
+  // O efeito do degrau ("The item bonus granted to heal spells is +2.") entra
+  // na MESMA chamada de tradução: uma chamada por item é o que mantém a ficha
+  // inteira dentro do rate limit do tier gratuito.
+  const staffEffectIdx = segmentsEN.length
+  if (staff?.effect) segmentsEN.push(staff.effect)
 
   const translated = translationEnabled
     ? await translateSegments(segmentsEN, translationEnabled)
@@ -140,6 +165,18 @@ async function resolveEntry(rawName, categories, itemType, translationEnabled) {
 
   const traits = Array.isArray(source.trait) ? source.trait : []
 
+  // `intro` já saiu como descrição — não repetir no payload.
+  const staffPayload = staff
+    ? {
+      tierName: staff.tierName,
+      tierLevel: staff.tierLevel,
+      price: staff.price,
+      effect: staff.effect ? take(staffEffectIdx) : '',
+      ranks: staff.ranks,
+      tiers: staff.tiers,
+    }
+    : null
+
   return {
     name: source.name || rawName,
     level: typeof source.level === 'number' ? source.level : null,
@@ -156,6 +193,7 @@ async function resolveEntry(rawName, categories, itemType, translationEnabled) {
     access: take(5) || undefined,
     cost: take(6) || undefined,
     description: description || null,
+    ...(staffPayload ? { staff: staffPayload } : {}),
     ...(translationPending ? { translationPending: true } : {}),
   }
 }
