@@ -64,6 +64,18 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   ordenação tem que ser explícita, senão a lista embaralha a cada busca), paginar (`from`) e
   devolver o **total**, para avisar quem está vendo 20 de ~329. Os dois compartilham o mesmo fetch e
   o mesmo cache.
+- **Bastões (staves)** (`api/_lib/staff-parse.js`): o AON guarda a **família inteira** num
+  documento só — pedir "Staff of Healing (Greater)" devolve base (item 4), Greater (8), Major (12) e
+  True (16) no mesmo `markdown`. Sem parse próprio, a prosa vinha com os quatro degraus colados num
+  parágrafo, preços e magias de rank 7 incluídos. O parse quebra por `<title level="2">` e monta a
+  lista pela regra do bastão (GM Core p. 278): **o próprio degrau mais todos os inferiores**, nunca
+  os superiores. Cada magia carrega o degrau de origem (`tierLevel`), e o payload sai em
+  `entry.staff`. Bastão sem lista legível (a entrada do Staff of Providence, p.ex.) devolve `null` e
+  segue pelo caminho genérico.
+- **O qualificador entre parênteses às vezes É o nome no AON.** `cleanSearchName` existe para
+  "Assurance (Athletics)", que não existe assim no AON — mas aplicá-lo sempre resolvia
+  "Staff of Healing (Greater)" como o item **base**, com nível, preço e magias errados. Por isso
+  `resolveEntry` tenta o **nome cru primeiro** e só cai na limpeza quando ele não casa exato.
 - `state` é o único endpoint com **estado**: guarda o jogo da mesa (ver a seção própria abaixo).
   Fica em `api/state.js`, **um nível** — o glob `"api/*.js"` do `vercel.json` não pega subpastas,
   então `api/state/[char].js` perderia o `maxDuration`.
@@ -220,6 +232,16 @@ A plataforma é usada na mesa, no celular. Toda mudança de layout precisa passa
   inventário como qualquer item, mas o Pathbuilder as manda em listas próprias (`weapons`/`armor`),
   então sumiam da aba. A lista é derivada no render — o JSON da ficha **não** é editado à mão, que
   seria perdido no próximo export.
+- **Bastão abre com a lista de magias do degrau** (`StaffSpellList.tsx`): as magias vêm agrupadas
+  por rank, com o custo em cargas ao lado (conjurar gasta cargas iguais ao rank; truque é de graça —
+  GM Core p. 278) e etiqueta de degrau nas herdadas do bastão inferior. Quem filtra o degrau é o
+  backend (ver "Bastões" no Backend) — o componente só desenha. Tocar numa magia troca o conteúdo do
+  drawer pelo dela, via o `onNavigate` que a página liga ao próprio `setDrawerReq`; o rank vai como
+  nível de conjuração, então a magia aparece já elevada. Truque vai **sem** nível: o bastão o eleva
+  ao rank dos truques de quem conjura, e o drawer não sabe o nível do personagem.
+- **Nome de magia fica em inglês** na lista do bastão, como no resto do módulo: é a chave de busca
+  na AON. Já preço e rótulo de rank são vocabulário mecânico e são traduzidos no render
+  (`formatPrice`, "470 gp" → "470 po").
 - **Slots de magia** (`useSpellSlots.ts` + `SlotPips.tsx`): estado do dia compartilhado com a mesa
   (ver "Estado compartilhado"), na mesma chave por personagem do PV (`slotsKeyFor`). Guarda **contagem** de gastos, nunca índice de slot —
   assim sobrevive a um re-upload em que a ordem da lista mudou. Preparado/inato: cada cópia
