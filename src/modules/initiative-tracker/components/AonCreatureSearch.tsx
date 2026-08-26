@@ -35,7 +35,14 @@ const parseLevel = (value: string): number | null => {
     return Number.isFinite(n) ? n : null
 }
 
-const LIMIT = 12
+const PAGE_SIZE = 20
+
+/** Concatena páginas sem repetir nome: a deduplicação do backend é por página. */
+const appendUnique = (current: AonCreature[], incoming: AonCreature[]): AonCreature[] => {
+    const seen = new Set(current.map((c) => c.name.toLowerCase()))
+    const added = incoming.filter((c) => !seen.has(c.name.toLowerCase()))
+    return added.length > 0 ? [...current, ...added] : current
+}
 
 /** Busca criaturas na AON por nome, por faixa de nível, ou pelos dois. */
 export const AonCreatureSearch = ({ onAdd }: Props) => {
@@ -44,7 +51,11 @@ export const AonCreatureSearch = ({ onAdd }: Props) => {
     const [maxLevel, setMaxLevel] = useState('')
     const [results, setResults] = useState<AonCreature[]>([])
     const [total, setTotal] = useState(0)
+    // Cursor em acertos do índice (ver `nextOffset` em services/creatures.ts).
+    const [nextOffset, setNextOffset] = useState(0)
+    const [hasMore, setHasMore] = useState(false)
     const [loading, setLoading] = useState(false)
+    const [loadingMore, setLoadingMore] = useState(false)
     const [searched, setSearched] = useState(false)
     const [quantity, setQuantity] = useState('1')
 
@@ -59,20 +70,44 @@ export const AonCreatureSearch = ({ onAdd }: Props) => {
         if (term.length < 2 && min === null && max === null) {
             setResults([])
             setTotal(0)
+            setNextOffset(0)
+            setHasMore(false)
             setSearched(false)
             return
         }
+        let cancelled = false
         setLoading(true)
         const timer = setTimeout(() => {
-            void searchCreatures(term, LIMIT, { minLevel: min, maxLevel: max }).then((found) => {
+            void searchCreatures(term, PAGE_SIZE, { minLevel: min, maxLevel: max }).then((found) => {
+                if (cancelled) return
                 setResults(found.results)
                 setTotal(found.total)
+                setNextOffset(found.nextOffset)
+                setHasMore(found.hasMore)
                 setSearched(true)
                 setLoading(false)
             })
         }, 350)
-        return () => { clearTimeout(timer); setLoading(false) }
+        return () => { cancelled = true; clearTimeout(timer); setLoading(false) }
     }, [query, minLevel, maxLevel])
+
+    // "Carregar mais" continua do cursor da última página: a busca por faixa de
+    // nível tem centenas de acertos, e a lista precisa chegar até o fim.
+    const loadMore = () => {
+        if (loadingMore || !hasMore) return
+        setLoadingMore(true)
+        void searchCreatures(query.trim(), PAGE_SIZE, {
+            minLevel: parseLevel(minLevel),
+            maxLevel: parseLevel(maxLevel),
+            offset: nextOffset,
+        }).then((found) => {
+            setResults((prev) => appendUnique(prev, found.results))
+            if (found.total > 0) setTotal(found.total)
+            setNextOffset(found.nextOffset)
+            setHasMore(found.hasMore)
+            setLoadingMore(false)
+        })
+    }
 
     const count = useMemo(() => Math.min(20, Math.max(1, parseInt(quantity, 10) || 1)), [quantity])
 
@@ -137,9 +172,11 @@ export const AonCreatureSearch = ({ onAdd }: Props) => {
                 </Typography>
             )}
 
-            {searched && total > results.length && (
+            {searched && results.length > 0 && (
                 <Typography variant="caption" sx={{ color: ink.secondary, display: 'block', mb: 1 }}>
-                    Mostrando {results.length} de ~{total}. Refine pelo nome ou aperte a faixa de nível.
+                    {hasMore
+                        ? `Mostrando ${results.length} de ~${total}.`
+                        : `${results.length} ${results.length === 1 ? 'criatura' : 'criaturas'}.`}
                 </Typography>
             )}
 
@@ -226,6 +263,19 @@ export const AonCreatureSearch = ({ onAdd }: Props) => {
                     </Box>
                 ))}
             </Stack>
+
+            {searched && hasMore && (
+                <Button
+                    fullWidth
+                    variant="outlined"
+                    onClick={loadMore}
+                    disabled={loadingMore}
+                    startIcon={loadingMore ? <CircularProgress size={16} /> : undefined}
+                    sx={{ mt: 1.5 }}
+                >
+                    {loadingMore ? 'Carregando…' : 'Carregar mais'}
+                </Button>
+            )}
         </Box>
     )
 }
