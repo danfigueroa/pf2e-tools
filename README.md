@@ -729,6 +729,7 @@ O servidor (`server/index.mjs`) fornece endpoints para buscar dados da Archives 
 | GET    | `/api/companion` | `name`     | Stats de companheiro animal                      |
 | GET    | `/api/creature`  | `q`, `minLevel`, `maxLevel`, `limit` | Busca criaturas por nome e/ou faixa de nível — sem tradução |
 | GET    | `/api/creature`  | `name`     | Ficha completa de uma criatura, com o degrau de benchmark de cada estatística — sem tradução |
+| GET    | `/api/search`    | `affliction` | Venenos e doenças com estágios, salvaguarda e duração — sem tradução |
 | POST   | `/api/clear-cache` | —        | Limpa o cache de descrições                      |
 | GET    | `/api/state`     | `char`     | Estado de jogo compartilhado de um personagem    |
 | POST   | `/api/state`     | body       | Grava uma fatia (`{ char, field, data }`)        |

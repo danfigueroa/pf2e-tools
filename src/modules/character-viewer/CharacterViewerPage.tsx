@@ -31,9 +31,11 @@ import { UploadCard } from './components/UploadCard'
 import { CharacterHeader } from './components/CharacterHeader'
 import { DescriptionDrawer, type DescriptionRequest } from './components/DescriptionDrawer'
 import { ConditionsBar } from './components/ConditionsBar'
+import { AfflictionsBar } from './components/AfflictionsBar'
 import { MythicPointsBar } from './components/MythicPointsBar'
-import { conditionsKeyFor, legacyCharKey, mythicKeyFor } from './charId'
+import { afflictionsKeyFor, conditionsKeyFor, legacyCharKey, mythicKeyFor } from './charId'
 import { useConditions } from './components/useConditions'
+import { useAfflictions } from './components/useAfflictions'
 import { useMythicPoints } from './components/useMythicPoints'
 import { isMythicCharacter, MYTHIC_POINTS_MAX } from './helpers'
 import type { ConditionModifiers } from './conditions'
@@ -137,10 +139,17 @@ export const CharacterViewerPage = () => {
 
     // Condições ficam fora das abas: afetam a ficha inteira e precisam de um
     // hook incondicional, então a chave cai num placeholder enquanto não há ficha.
+    // Aflições vêm ANTES das condições: o estágio ativo impõe condições que
+    // precisam entrar no cálculo dos modificadores da ficha.
+    const afflictions = useAfflictions(
+        build ? afflictionsKeyFor(build) : 'none/afflictions',
+    )
+
     const conditions = useConditions(
         build ? conditionsKeyFor(build) : 'none/conditions',
         build?.level ?? 1,
         build ? legacyCharKey(build) : undefined,
+        afflictions.conditions,
     )
 
     // Pontos Míticos: mesma história das condições — gastos de qualquer aba,
@@ -215,6 +224,7 @@ export const CharacterViewerPage = () => {
             <CharacterHeader build={build} onReset={handleReset} />
 
             <ConditionsBar conditions={conditions} />
+            <AfflictionsBar afflictions={afflictions.afflictions} onRemove={afflictions.remove} />
 
             {isMythicCharacter(build) && <MythicPointsBar points={mythicPoints} />}
 

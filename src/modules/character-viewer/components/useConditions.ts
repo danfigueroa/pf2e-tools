@@ -28,8 +28,21 @@ export function sanitizeConditions(raw: unknown): ConditionState {
 
 const isEmpty = (s: ConditionState) => Object.keys(s).length === 0
 
-/** Condições ativas + os modificadores que elas produzem, compartilhadas com a mesa. */
-export function useConditions(syncKey: string, level: number, legacyKey?: string) {
+/**
+ * Condições ativas + os modificadores que elas produzem, compartilhadas com a mesa.
+ *
+ * `derived` são condições que a ficha NÃO guarda e apenas sofre — hoje, as que
+ * o estágio de uma aflição impõe. Elas entram no cálculo dos modificadores (o
+ * veneno tem que baixar os números de verdade) mas nunca no estado gravado, que
+ * segue sendo só o que o jogador marcou. Em conflito vale o pior valor:
+ * condição de mesmo nome não empilha no PF2e.
+ */
+export function useConditions(
+    syncKey: string,
+    level: number,
+    legacyKey?: string,
+    derived?: ConditionState,
+) {
     const [state, setState] = useSharedState<ConditionState>(syncKey, {
         empty: () => ({}),
         sanitize: sanitizeConditions,
@@ -78,12 +91,22 @@ export function useConditions(syncKey: string, level: number, legacyKey?: string
 
     const clear = useCallback(() => setState(() => ({})), [setState])
 
+    /** O que o jogador marcou, somado ao que as aflições impõem. */
+    const effective: ConditionState = useMemo(() => {
+        if (!derived || Object.keys(derived).length === 0) return state
+        const out = { ...state }
+        for (const [id, value] of Object.entries(derived)) {
+            out[id] = Math.max(out[id] ?? 0, value)
+        }
+        return out
+    }, [state, derived])
+
     const mods: ConditionModifiers = useMemo(
-        () => computeConditionModifiers(state, level),
-        [state, level],
+        () => computeConditionModifiers(effective, level),
+        [effective, level],
     )
 
-    return { state, mods, setCondition, toggle, adjust, clear }
+    return { state, effective, derived: derived ?? {}, mods, setCondition, toggle, adjust, clear }
 }
 
 export type ConditionsApi = ReturnType<typeof useConditions>

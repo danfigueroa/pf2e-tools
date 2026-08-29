@@ -86,11 +86,22 @@ export const ConditionsBar = ({ conditions }: Props) => {
                         <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75, mt: 1.5 }}>
                             {mods.active.map((entry) => {
                                 const def = CONDITIONS_BY_ID[entry.id]
-                                const implied = !!entry.via
+                                // Condição vinda do estágio de uma aflição é
+                                // derivada como as impostas: não está gravada,
+                                // então um botão de remover não teria o que
+                                // remover. Sai sozinha quando a aflição sai.
+                                const fromAffliction = conditions.derived[entry.id] !== undefined
+                                const implied = !!entry.via || fromAffliction
                                 return (
                                     <Tooltip
                                         key={entry.id}
-                                        title={implied ? `${def.summary} (imposta por ${entry.via})` : def.summary}
+                                        title={
+                                            fromAffliction
+                                                ? `${def.summary} (imposta por uma aflição ativa)`
+                                                : entry.via
+                                                    ? `${def.summary} (imposta por ${entry.via})`
+                                                    : def.summary
+                                        }
                                         enterDelay={400}
                                     >
                                         <Box

@@ -107,6 +107,13 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   - `pickHit` procura o **nome exato antes** de descartar entradas legacy, não depois: "Adult Red
     Dragon" só existe como entrada do Bestiary, e filtrar primeiro fazia a busca cair no melhor
     acerto remaster que sobrava — o Adult Sea Dragon.
+- **`search?affliction=`** busca venenos e doenças com estágios (`api/_lib/affliction-core.js` +
+  `affliction-parse.js`). ~230 aflições não-legacy; o índice já traz `stage`, `saving_throw`,
+  `onset_raw` e `duration_raw` estruturados, então **não passa pela tradução**, como `creature`.
+  - **Só a primeira ocorrência de uma condição vira link** no `stage_markdown` — o estágio 3 do
+    Giant Centipede Venom traz "clumsy 1, and fatigued" cru. O casamento é por TEXTO contra o
+    catálogo de `conditions.ts`; `flat-footed` é o nome pré-Remaster de `off-guard`.
+  - Mora dentro de `api/search.js` por causa do limite de 12 funções (ver acima).
 - `state` é o único endpoint com **estado**: guarda o jogo da mesa (ver a seção própria abaixo).
   Fica em `api/state.js`, **um nível** — o glob `"api/*.js"` do `vercel.json` não pega subpastas,
   então `api/state/[char].js` perderia o `maxDuration`.
@@ -146,8 +153,8 @@ abrir o site entra na mesma mesa.
   puro e precisa do mesmo store. Aceita os dois pares de env (`KV_REST_API_*` da integração da
   Vercel e `UPSTASH_REDIS_REST_*` do console da Upstash). **Sem credenciais, cai num `Map` de
   processo** e o app segue funcionando; o indicador avisa "Só neste aparelho".
-- **Um HASH por personagem, um campo por fatia** (`hp`, `slots`, `conditions`, `mythic`,
-  `pet:<kind>:<slug>#<i>`).
+- **Um HASH por personagem, um campo por fatia** (`hp`, `slots`, `conditions`, `afflictions`,
+  `mythic`, `pet:<kind>:<slug>#<i>`).
   Documento único faria dois jogadores editando ao mesmo tempo se sobrescreverem — quem marcasse
   condição apagaria o dano do outro. `HSET` por campo dá atomicidade por fatia sem transação, e a
   leitura continua sendo um `HGETALL` só. Dentro da **mesma** fatia a última escrita ainda vence.
@@ -295,6 +302,10 @@ A plataforma é usada na mesa, no celular. Toda mudança de layout precisa passa
   os dois casos (`sharedMod`) e o resto aparece como "FOR −2 · DES −1 a mais". Desarmados sabem o
   atributo (`usesDex`), então ali o ajuste é exato. Efeitos que não são modificador (ações perdidas
   por Lento, teste plano do Estupefato) ficam em `note` e saem no painel de detalhes.
+- **Aflições** (`useAfflictions.ts` + `AfflictionsBar.tsx`): a ficha é a ponta de LEITURA do que o
+  GM aplicou no combate — mesma fatia da mesa (`<slug>/afflictions`). As condições do estágio
+  entram em `useConditions` pelo parâmetro `derived`: contam nos modificadores (o veneno baixa os
+  números de verdade) mas nunca no estado gravado.
 - Descrições da AON são buscadas **sob demanda** ao tocar num item (`DescriptionDrawer` →
   `services/descriptions.ts`); a última ficha fica em `sessionStorage`.
 
@@ -358,6 +369,23 @@ cada fatia de estado mora**:
   faixa de um nível só já passa de 100 criaturas, e antes a lista parava na primeira dúzia. O
   `total` do aviso é anterior à deduplicação de legacy/reimpressões, então é aproximado de
   propósito; ver "Paginação de criaturas" no Backend para o cursor.
+- **Aflições** (`afflictions.ts` + `components/AfflictionDialog.tsx` + `CombatantAfflictions.tsx`):
+  veneno e doença com estágios, buscados na AON. O motor é puro e aplica o RAW sobre o GRAU que o
+  GM informa — o app não rola dados. Crítico ✓ −2, ✓ −1, ✗ +1, crítico ✗ +2; **Virulento** troca a
+  recuperação (crítico melhora 1 em vez de 2, e sucesso simples exige dois seguidos).
+  - **As condições do estágio são DERIVADAS, nunca gravadas** — mesma política das condições
+    impostas. Tirar a aflição tira as condições dela junto, sem precisar lembrar o que foi
+    aplicado, e em conflito vale o pior valor. Por isso elas aparecem com borda tracejada e sem
+    botões, nos dois módulos: não há o que remover.
+  - Na view, `stored` (o que alguém marcou) e `conditions` (o que vale) passam a ser coisas
+    diferentes. **Os setters mexem em `stored`** — senão desmarcar um Enfraquecido vindo do veneno
+    gravaria a remoção de algo que nunca foi gravado.
+  - **Só 35% dos estágios são em rodadas**; o resto é minuto, hora ou dia. Os em rodadas descem no
+    handler de `nextTurn` (nunca num efeito, mesma razão das durações) e pedem a salvaguarda ao
+    vencer; os outros ganham um botão de avançar à mão. Fingir que cabem no relógio do combate
+    seria pior do que dizer que não cabem.
+  - A do **personagem vive na mesa** (campo `afflictions`) e aparece na Ficha Virtual; a do
+    **monstro vive no encontro**.
 - **Não há rolagem de dados**: a iniciativa é digitada. Os dados rolam na mesa.
 
 ## Módulo transformation-statblock (contexto que se perde fácil)
