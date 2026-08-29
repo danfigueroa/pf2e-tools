@@ -1,4 +1,5 @@
 import { useMemo, useRef } from 'react'
+import { mergeAfflictionConditions } from './afflictions'
 import { computeConditionModifiers } from '../character-viewer/conditions'
 import type { EncounterAction } from './encounterReducer'
 import type { PartyApi } from './useEncounterParty'
@@ -36,9 +37,18 @@ function buildView(
 ): CombatantView {
     const isActive = state.activeId === combatant.id
 
-    const conditions = combatant.kind === 'pc'
+    const afflictions = combatant.kind === 'pc'
+        ? party.get(combatant.slug).afflictions
+        : (combatant.afflictions ?? [])
+
+    // `stored` é o que alguém marcou à mão; `conditions` é o que VALE, já com as
+    // condições derivadas do estágio da aflição. Os setters mexem no `stored`,
+    // senão desmarcar um Enfraquecido que veio do veneno gravaria uma remoção
+    // de algo que nunca foi gravado.
+    const stored = combatant.kind === 'pc'
         ? party.get(combatant.slug).conditions
         : combatant.conditions
+    const conditions = mergeAfflictionConditions(stored, afflictions)
 
     const mods = computeConditionModifiers(conditions, combatant.level)
 
@@ -59,6 +69,7 @@ function buildView(
         maxHp,
         maxHpDelta: mods.hpMaxDelta,
         conditions,
+        afflictions,
         mods,
         defense: {
             resistances: combatant.resistances,
@@ -86,9 +97,13 @@ function buildView(
             applyHealing: (amount) => party.applyHealing(slug, amount, maxHp),
             setTemp: (amount) => party.setTemp(slug, amount, maxHp),
             setCondition,
-            toggleCondition: (id) => setCondition(id, conditions[id] ? 0 : 1),
-            adjustCondition: (id, delta) => setCondition(id, (conditions[id] ?? 0) + delta),
+            toggleCondition: (id) => setCondition(id, stored[id] ? 0 : 1),
+            adjustCondition: (id, delta) => setCondition(id, (stored[id] ?? 0) + delta),
             clearConditions: () => party.clearConditions(slug),
+            addAffliction: (a) => party.addAffliction(slug, a),
+            removeAffliction: (afflictionId) => party.removeAffliction(slug, afflictionId),
+            saveAffliction: (afflictionId, degree) => party.saveAffliction(slug, afflictionId, degree),
+            advanceAffliction: (afflictionId, by) => party.advanceAffliction(slug, afflictionId, by),
         }
     }
 
@@ -105,8 +120,12 @@ function buildView(
         applyHealing: (amount) => dispatch({ type: 'npcHeal', entries: [{ id, amount }] }),
         setTemp: (amount) => dispatch({ type: 'npcSetTemp', id, amount }),
         setCondition,
-        toggleCondition: (conditionId) => setCondition(conditionId, conditions[conditionId] ? 0 : 1),
-        adjustCondition: (conditionId, delta) => setCondition(conditionId, (conditions[conditionId] ?? 0) + delta),
+        toggleCondition: (conditionId) => setCondition(conditionId, stored[conditionId] ? 0 : 1),
+        adjustCondition: (conditionId, delta) => setCondition(conditionId, (stored[conditionId] ?? 0) + delta),
+        addAffliction: (affliction) => dispatch({ type: 'addAffliction', id, affliction }),
+        removeAffliction: (afflictionId) => dispatch({ type: 'removeAffliction', id, afflictionId }),
+        saveAffliction: (afflictionId, degree) => dispatch({ type: 'saveAffliction', id, afflictionId, degree }),
+        advanceAffliction: (afflictionId, by) => dispatch({ type: 'advanceAffliction', id, afflictionId, by }),
         clearConditions: () => {
             for (const conditionId of Object.keys(conditions)) setCondition(conditionId, 0)
         },

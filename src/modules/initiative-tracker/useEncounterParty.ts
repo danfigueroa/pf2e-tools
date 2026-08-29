@@ -11,14 +11,24 @@ import {
     sanitizeConditions,
     type ConditionState,
 } from '../character-viewer/components/useConditions'
+import {
+    applySave,
+    advanceStage,
+    sanitizeAfflictions,
+    tickAfflictions as tickAfflictionList,
+    type AfflictionState,
+    type SaveDegree,
+} from './afflictions'
 
 export interface PartySlice {
     /** `null` = ninguém mexeu ainda; resolve para PV cheio no render. */
     hp: HpStored | null
     conditions: ConditionState
+    /** Venenos e doenças ativos. As condições deles são DERIVADAS, não gravadas. */
+    afflictions: AfflictionState[]
 }
 
-const EMPTY_SLICE: PartySlice = { hp: null, conditions: {} }
+const EMPTY_SLICE: PartySlice = { hp: null, conditions: {}, afflictions: [] }
 
 /**
  * PV e condições de TODOS os personagens do encontro, no estado da mesa.
@@ -54,6 +64,7 @@ export function useEncounterParty(slugs: string[]) {
     const readSlice = useCallback((slug: string): PartySlice => ({
         hp: sanitizeHp(readLocal(slug, 'hp')),
         conditions: sanitizeConditions(readLocal(slug, 'conditions') ?? {}),
+        afflictions: sanitizeAfflictions(readLocal(slug, 'afflictions') ?? []),
     }), [])
 
     useEffect(() => {
@@ -76,6 +87,9 @@ export function useEncounterParty(slugs: string[]) {
                     conditions: snapshot.conditions === undefined
                         ? (prev[slug]?.conditions ?? {})
                         : sanitizeConditions(snapshot.conditions),
+                    afflictions: snapshot.afflictions === undefined
+                        ? (prev[slug]?.afflictions ?? [])
+                        : sanitizeAfflictions(snapshot.afflictions),
                 },
             }))
         }
@@ -97,6 +111,7 @@ export function useEncounterParty(slugs: string[]) {
         setParty(partyRef.current)
         if (patch.hp !== undefined) saveField(slug, 'hp', next.hp)
         if (patch.conditions !== undefined) saveField(slug, 'conditions', next.conditions)
+        if (patch.afflictions !== undefined) saveField(slug, 'afflictions', next.afflictions)
     }, [])
 
     const get = useCallback(
@@ -142,6 +157,45 @@ export function useEncounterParty(slugs: string[]) {
         setTemp(slug: string, amount: number, maxHp: number) {
             const { current } = vitals(slug, maxHp)
             write(slug, { hp: { current, temp: Math.max(0, Math.floor(amount)) } })
+        },
+
+        /**
+         * Desce uma rodada das aflições do personagem.
+         *
+         * Fica no handler de `nextTurn`, nunca num efeito: um efeito que lê o
+         * estado e escreve na mesa reagiria ao próprio `subscribeSnapshot` e
+         * amplificaria escrita a cada releitura — a mesma razão documentada
+         * para as durações de condição.
+         */
+        tickAfflictions(slug: string) {
+            const current = partyRef.current[slug]?.afflictions ?? []
+            if (current.length === 0) return
+            write(slug, { afflictions: tickAfflictionList(current).next })
+        },
+
+        addAffliction(slug: string, affliction: AfflictionState) {
+            write(slug, { afflictions: [...(partyRef.current[slug]?.afflictions ?? []), affliction] })
+        },
+
+        removeAffliction(slug: string, id: string) {
+            const list = (partyRef.current[slug]?.afflictions ?? []).filter((a) => a.id !== id)
+            write(slug, { afflictions: list })
+        },
+
+        /** Salvaguarda de fim de estágio; a aflição some quando é curada. */
+        saveAffliction(slug: string, id: string, degree: SaveDegree) {
+            const list = (partyRef.current[slug]?.afflictions ?? [])
+                .map((a) => (a.id === id ? applySave(a, degree) : a))
+                .filter((a): a is AfflictionState => a !== null)
+            write(slug, { afflictions: list })
+        },
+
+        /** Avanço manual — para os estágios que não são contados em rodadas. */
+        advanceAffliction(slug: string, id: string, by: number) {
+            const list = (partyRef.current[slug]?.afflictions ?? [])
+                .map((a) => (a.id === id ? advanceStage(a, by) : a))
+                .filter((a): a is AfflictionState => a !== null)
+            write(slug, { afflictions: list })
         },
 
         setCondition(slug: string, id: string, value: number) {

@@ -31,7 +31,7 @@ const TTL_SECONDS = 180 * 24 * 60 * 60
 export const MAX_FIELD_BYTES = 8 * 1024
 
 const SLUG_RE = /^[a-z0-9-]{1,64}$/
-const FIELD_RE = /^(hp|slots|conditions|mythic|pet:[a-z0-9:#-]{1,80})$/
+const FIELD_RE = /^(hp|slots|conditions|afflictions|mythic|pet:[a-z0-9:#-]{1,80})$/
 
 export const isValidSlug = (slug) => typeof slug === 'string' && SLUG_RE.test(slug)
 export const isValidField = (field) => typeof field === 'string' && FIELD_RE.test(field)

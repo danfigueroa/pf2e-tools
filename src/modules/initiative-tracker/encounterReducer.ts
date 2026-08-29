@@ -1,3 +1,10 @@
+import {
+    advanceStage,
+    applySave,
+    tickAfflictions,
+    type AfflictionState,
+    type SaveDegree,
+} from './afflictions'
 import type { Combatant, EncounterState, NpcCombatant, PcCombatant } from './types'
 
 export const emptyEncounter = (): EncounterState => ({
@@ -67,6 +74,10 @@ export type EncounterAction =
     | { type: 'npcSetTemp'; id: string; amount: number }
     | { type: 'setNpcCondition'; id: string; conditionId: string; value: number }
     | { type: 'setDuration'; id: string; conditionId: string; rounds: number | null }
+    | { type: 'addAffliction'; id: string; affliction: AfflictionState }
+    | { type: 'removeAffliction'; id: string; afflictionId: string }
+    | { type: 'saveAffliction'; id: string; afflictionId: string; degree: SaveDegree }
+    | { type: 'advanceAffliction'; id: string; afflictionId: string; by: number }
     | { type: 'endEncounter' }
 
 const mapById = (
@@ -100,6 +111,11 @@ function advance(state: EncounterState, drop: string[]): EncounterState {
     const combatants = mapById(state.combatants, next.id, (c) => ({
         ...c,
         durations: tickDurations(c.durations, drop),
+        // Aflição de MONSTRO desce aqui. A de personagem vive no estado da mesa
+        // e é decrementada no handler de nextTurn, junto das durações dele.
+        ...(c.kind === 'npc'
+            ? { afflictions: tickAfflictions(c.afflictions ?? []).next }
+            : {}),
     }))
 
     return {
@@ -287,6 +303,43 @@ export function encounterReducer(state: EncounterState, action: EncounterAction)
                         conditions[action.conditionId] = action.value
                     }
                     return { ...c, conditions, durations }
+                }),
+            }
+
+        case 'addAffliction':
+            return {
+                ...state,
+                combatants: mapById(state.combatants, action.id, (c) =>
+                    c.kind === 'npc'
+                        ? { ...c, afflictions: [...(c.afflictions ?? []), action.affliction] }
+                        : c),
+            }
+
+        case 'removeAffliction':
+            return {
+                ...state,
+                combatants: mapById(state.combatants, action.id, (c) =>
+                    c.kind === 'npc'
+                        ? { ...c, afflictions: (c.afflictions ?? []).filter((a) => a.id !== action.afflictionId) }
+                        : c),
+            }
+
+        case 'saveAffliction':
+        case 'advanceAffliction':
+            return {
+                ...state,
+                combatants: mapById(state.combatants, action.id, (c) => {
+                    if (c.kind !== 'npc') return c
+                    const afflictions = (c.afflictions ?? [])
+                        .map((a) => {
+                            if (a.id !== action.afflictionId) return a
+                            return action.type === 'saveAffliction'
+                                ? applySave(a, action.degree)
+                                : advanceStage(a, action.by)
+                        })
+                        // `null` significa curada: sai da lista.
+                        .filter((a): a is AfflictionState => a !== null)
+                    return { ...c, afflictions }
                 }),
             }
 

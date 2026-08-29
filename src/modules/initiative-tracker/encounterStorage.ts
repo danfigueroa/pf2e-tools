@@ -3,6 +3,7 @@
 // pelo `useEncounterParty`.
 
 import { CONDITIONS_BY_ID } from '../character-viewer/conditions'
+import { sanitizeAfflictions } from './afflictions'
 import { emptyEncounter } from './encounterReducer'
 import type { Combatant, EncounterState, NpcCombatant, PcCombatant } from './types'
 
@@ -67,6 +68,7 @@ function sanitizeCombatant(raw: unknown): Combatant | null {
             current: Math.min(maxHp, Math.max(0, num(c.current, maxHp))),
             temp: Math.max(0, num(c.temp)),
             conditions: conditionMap(c.conditions),
+            afflictions: sanitizeAfflictions(c.afflictions),
             traits: strings(c.traits),
             aonUrl: typeof c.aonUrl === 'string' ? c.aonUrl : undefined,
         }

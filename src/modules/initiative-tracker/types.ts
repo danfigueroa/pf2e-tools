@@ -1,5 +1,6 @@
 import type { ConditionModifiers } from '../character-viewer/conditions'
 import type { ConditionState } from '../character-viewer/components/useConditions'
+import type { AfflictionState, SaveDegree } from './afflictions'
 
 export type CombatantKind = 'pc' | 'npc'
 
@@ -42,6 +43,8 @@ export interface NpcCombatant extends CombatantBase {
     current: number
     temp: number
     conditions: ConditionState
+    /** Venenos e doenças. As do personagem vivem na mesa, não aqui. */
+    afflictions?: AfflictionState[]
     traits?: string[]
     aonUrl?: string
 }
@@ -71,6 +74,7 @@ export interface CombatantView {
     maxHp: number
     maxHpDelta: number
     conditions: ConditionState
+    afflictions: AfflictionState[]
     mods: ConditionModifiers
     defense: TargetDefense
     applyDamage: (amount: number) => void
@@ -78,6 +82,10 @@ export interface CombatantView {
     setTemp: (amount: number) => void
     setCondition: (id: string, value: number) => void
     toggleCondition: (id: string) => void
+    addAffliction: (affliction: AfflictionState) => void
+    removeAffliction: (afflictionId: string) => void
+    saveAffliction: (afflictionId: string, degree: SaveDegree) => void
+    advanceAffliction: (afflictionId: string, by: number) => void
     adjustCondition: (id: string, delta: number) => void
     clearConditions: () => void
     setDuration: (id: string, rounds: number | null) => void
