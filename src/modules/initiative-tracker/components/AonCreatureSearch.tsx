@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
     Box,
     Button,
@@ -12,7 +12,8 @@ import {
 import { Add as AddIcon, Search as SearchIcon } from '@mui/icons-material'
 import { gold, ink, parchment, RARITY_COLORS, rule } from '../../../theme'
 import { translateRarity, translateSize, translateTrait } from '../../transformation-statblock/i18n'
-import { searchCreatures, type AonCreature } from '../../../services/creatures'
+import type { AonCreature } from '../../../services/creatures'
+import { levelInput, useCreatureSearch } from '../../../hooks/useCreatureSearch'
 import { damageTypeLabel } from '../defenses'
 import { npcFromCreature } from '../importCharacter'
 import type { NpcCombatant } from '../types'
@@ -25,89 +26,13 @@ interface Props {
 const rarityColor = (rarity: string): string =>
     (RARITY_COLORS as Record<string, string>)[rarity] ?? ink.secondary
 
-/** Campos de nível aceitam o sinal de menos: existe criatura de nível -1. */
-const levelInput = (value: string) => value.replace(/[^\d-]/g, '').replace(/(?!^)-/g, '')
-
-const parseLevel = (value: string): number | null => {
-    const trimmed = value.trim()
-    if (trimmed === '' || trimmed === '-') return null
-    const n = parseInt(trimmed, 10)
-    return Number.isFinite(n) ? n : null
-}
-
-const PAGE_SIZE = 20
-
-/** Concatena páginas sem repetir nome: a deduplicação do backend é por página. */
-const appendUnique = (current: AonCreature[], incoming: AonCreature[]): AonCreature[] => {
-    const seen = new Set(current.map((c) => c.name.toLowerCase()))
-    const added = incoming.filter((c) => !seen.has(c.name.toLowerCase()))
-    return added.length > 0 ? [...current, ...added] : current
-}
-
 /** Busca criaturas na AON por nome, por faixa de nível, ou pelos dois. */
 export const AonCreatureSearch = ({ onAdd }: Props) => {
-    const [query, setQuery] = useState('')
-    const [minLevel, setMinLevel] = useState('')
-    const [maxLevel, setMaxLevel] = useState('')
-    const [results, setResults] = useState<AonCreature[]>([])
-    const [total, setTotal] = useState(0)
-    // Cursor em acertos do índice (ver `nextOffset` em services/creatures.ts).
-    const [nextOffset, setNextOffset] = useState(0)
-    const [hasMore, setHasMore] = useState(false)
-    const [loading, setLoading] = useState(false)
-    const [loadingMore, setLoadingMore] = useState(false)
-    const [searched, setSearched] = useState(false)
+    const {
+        query, setQuery, minLevel, setMinLevel, maxLevel, setMaxLevel,
+        results, total, hasMore, loading, loadingMore, searched, loadMore,
+    } = useCreatureSearch()
     const [quantity, setQuantity] = useState('1')
-
-    // Debounce: a busca dispara a cada tecla, e o Elasticsearch da AON não
-    // precisa ver "g", "go", "gob".
-    useEffect(() => {
-        const term = query.trim()
-        const min = parseLevel(minLevel)
-        const max = parseLevel(maxLevel)
-
-        // Só nome curto e sem faixa não é busca — é o campo ainda vazio.
-        if (term.length < 2 && min === null && max === null) {
-            setResults([])
-            setTotal(0)
-            setNextOffset(0)
-            setHasMore(false)
-            setSearched(false)
-            return
-        }
-        let cancelled = false
-        setLoading(true)
-        const timer = setTimeout(() => {
-            void searchCreatures(term, PAGE_SIZE, { minLevel: min, maxLevel: max }).then((found) => {
-                if (cancelled) return
-                setResults(found.results)
-                setTotal(found.total)
-                setNextOffset(found.nextOffset)
-                setHasMore(found.hasMore)
-                setSearched(true)
-                setLoading(false)
-            })
-        }, 350)
-        return () => { cancelled = true; clearTimeout(timer); setLoading(false) }
-    }, [query, minLevel, maxLevel])
-
-    // "Carregar mais" continua do cursor da última página: a busca por faixa de
-    // nível tem centenas de acertos, e a lista precisa chegar até o fim.
-    const loadMore = () => {
-        if (loadingMore || !hasMore) return
-        setLoadingMore(true)
-        void searchCreatures(query.trim(), PAGE_SIZE, {
-            minLevel: parseLevel(minLevel),
-            maxLevel: parseLevel(maxLevel),
-            offset: nextOffset,
-        }).then((found) => {
-            setResults((prev) => appendUnique(prev, found.results))
-            if (found.total > 0) setTotal(found.total)
-            setNextOffset(found.nextOffset)
-            setHasMore(found.hasMore)
-            setLoadingMore(false)
-        })
-    }
 
     const count = useMemo(() => Math.min(20, Math.max(1, parseInt(quantity, 10) || 1)), [quantity])
 
