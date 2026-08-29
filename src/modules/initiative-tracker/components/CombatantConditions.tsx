@@ -2,6 +2,7 @@ import { Box, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material
 import { Add as AddIcon, Close as CloseIcon, Remove as RemoveIcon } from '@mui/icons-material'
 import { CONDITION_COLOR, ink } from '../../../theme'
 import { CONDITIONS_BY_ID } from '../../character-viewer/conditions'
+import { stageConditions } from '../afflictions'
 import type { CombatantView } from '../types'
 
 /** Mesmos alvos de toque da barra de condições da Ficha Virtual. */
@@ -14,10 +15,22 @@ const TAP_ICON = { xs: '1.15rem', sm: '0.9rem' }
  * Percorre `mods.active` e não o estado cru: assim as condições **impostas**
  * (Inconsciente → Cego, Desprevenido, Caído) aparecem, marcadas com borda
  * tracejada e sem botões — elas somem sozinhas quando a origem sai.
+ *
+ * Condição vinda do estágio de uma AFLIÇÃO entra pelo mesmo caminho, e pela
+ * mesma razão: ela é derivada, não está gravada, e um botão de remover ali não
+ * teria o que remover — o clique não faria nada e pareceria defeito. Some
+ * sozinha quando o estágio muda ou a aflição acaba. Se a mesma condição também
+ * estiver marcada à mão, ela reaparece com botões quando a aflição sai.
  */
 export const CombatantConditions = ({ view }: { view: CombatantView }) => {
-    const { mods, combatant, adjustCondition, toggleCondition, setDuration } = view
+    const { mods, combatant, afflictions, adjustCondition, toggleCondition, setDuration } = view
     const durations = combatant.durations
+
+    /** id da condição → nome da aflição que a impõe agora. */
+    const fromAffliction = new Map<string, string>()
+    for (const a of afflictions) {
+        for (const id of Object.keys(stageConditions(a))) fromAffliction.set(id, a.def.name)
+    }
 
     if (mods.active.length === 0) {
         return (
@@ -32,13 +45,20 @@ export const CombatantConditions = ({ view }: { view: CombatantView }) => {
             {mods.active.map((entry) => {
                 const def = CONDITIONS_BY_ID[entry.id]
                 if (!def) return null
-                const imposed = !!entry.via
+                const viaAffliction = fromAffliction.get(entry.id)
+                const imposed = !!entry.via || viaAffliction !== undefined
                 const rounds = durations[entry.id]
 
                 return (
                     <Tooltip
                         key={entry.id}
-                        title={imposed ? `${def.summary} (imposta por ${entry.via})` : def.summary}
+                        title={
+                            viaAffliction
+                                ? `${def.summary} (do estágio de ${viaAffliction})`
+                                : entry.via
+                                    ? `${def.summary} (imposta por ${entry.via})`
+                                    : def.summary
+                        }
                     >
                         <Box
                             sx={{

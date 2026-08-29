@@ -32,6 +32,7 @@ import { gold, green, ink, parchment, rule } from '../../../theme'
 import { signed } from '../../character-viewer/helpers'
 import { translateTrait } from '../../transformation-statblock/i18n'
 import { CombatantConditions } from './CombatantConditions'
+import { CombatantAfflictions } from './CombatantAfflictions'
 import { CombatantVitals } from './CombatantVitals'
 import type { CombatantView } from '../types'
 
@@ -47,6 +48,7 @@ interface Props {
     onDuplicate: () => void
     onRemove: () => void
     onOpenConditions: () => void
+    onOpenAfflictions: () => void
 }
 
 export const CombatantCard = ({
@@ -61,6 +63,7 @@ export const CombatantCard = ({
     onDuplicate,
     onRemove,
     onOpenConditions,
+    onOpenAfflictions,
 }: Props) => {
     const { combatant, isActive } = view
     const npc = combatant.kind === 'npc' ? combatant : null
@@ -220,6 +223,13 @@ export const CombatantCard = ({
                     <CombatantConditions view={view} />
                 </Stack>
 
+                <CombatantAfflictions
+                    afflictions={view.afflictions}
+                    onSave={view.saveAffliction}
+                    onAdvance={view.advanceAffliction}
+                    onRemove={view.removeAffliction}
+                />
+
                 {(combatant.defenseNotes?.length || npc?.traits?.length) ? (
                     <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
                         {npc?.traits?.slice(0, 4).map((t: string) => (
@@ -257,6 +267,9 @@ export const CombatantCard = ({
                         <DuplicateIcon fontSize="small" sx={{ mr: 1 }} /> Duplicar
                     </MenuItem>
                 )}
+                <MenuItem onClick={() => { onOpenAfflictions(); closeMenu() }}>
+                    Aplicar aflição…
+                </MenuItem>
                 <MenuItem onClick={() => { onRemove(); closeMenu() }}>
                     <DeleteIcon fontSize="small" sx={{ mr: 1 }} /> Remover
                 </MenuItem>

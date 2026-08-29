@@ -28,6 +28,7 @@ import { BulkDamageDialog } from './components/BulkDamageDialog'
 import { BulkHealDialog } from './components/BulkHealDialog'
 import { BulkConditionDialog } from './components/BulkConditionDialog'
 import { AddCombatantDialog } from './components/AddCombatantDialog'
+import { AfflictionDialog } from './components/AfflictionDialog'
 import type { Combatant, CombatantView } from './types'
 
 type OpenDialog = 'add' | 'damage' | 'heal' | 'condition' | 'end' | null
@@ -58,6 +59,7 @@ export const InitiativePage = () => {
     const [selected, setSelected] = useState<Set<string>>(new Set())
     const [dialog, setDialog] = useState<OpenDialog>(null)
     const [conditionsFor, setConditionsFor] = useState<string | null>(null)
+    const [afflictionsFor, setAfflictionsFor] = useState<string | null>(null)
     const [toast, setToast] = useState<{ text: string; action?: () => void; label?: string } | null>(null)
 
     // O encontro fica só neste aparelho — PV e condições dos personagens é que
@@ -111,11 +113,18 @@ export const InitiativePage = () => {
         }
     }, [viewsById])
 
+    /** Aflição de personagem vive na mesa, então desce aqui — a de monstro
+     *  desce dentro do reducer, junto das durações. */
+    const tickPartyAfflictions = useCallback((upcoming: Combatant | null) => {
+        if (upcoming?.kind === 'pc') party.tickAfflictions(upcoming.slug)
+    }, [party])
+
     const handleNext = () => {
         const { next: upcoming } = peekNext(state)
         const drop = dropForNext(upcoming)
         dispatch({ type: 'nextTurn', drop })
         expireConditions(upcoming, drop)
+        tickPartyAfflictions(upcoming)
     }
 
     const handleDelay = (id: string) => {
@@ -127,6 +136,7 @@ export const InitiativePage = () => {
         const drop = dropForNext(upcoming)
         dispatch({ type: 'delay', id, drop })
         expireConditions(upcoming, drop)
+        tickPartyAfflictions(upcoming)
     }
 
     // --- Ações em lote -------------------------------------------------------
@@ -190,6 +200,7 @@ export const InitiativePage = () => {
     })
 
     const conditionsView = conditionsFor ? viewsById.get(conditionsFor) : null
+    const afflictionsView = afflictionsFor ? viewsById.get(afflictionsFor) : null
 
     return (
         <Container maxWidth="lg" disableGutters sx={{ pb: 2 }}>
@@ -263,6 +274,7 @@ export const InitiativePage = () => {
                                 })
                             }}
                             onOpenConditions={() => setConditionsFor(view.combatant.id)}
+                            onOpenAfflictions={() => setAfflictionsFor(view.combatant.id)}
                         />
                     ))}
                 </Box>
@@ -282,6 +294,13 @@ export const InitiativePage = () => {
                     onClear={() => setSelected(new Set())}
                 />
             )}
+
+            <AfflictionDialog
+                open={afflictionsView !== null && afflictionsView !== undefined}
+                targetName={afflictionsView?.combatant.name ?? null}
+                onClose={() => setAfflictionsFor(null)}
+                onApply={(affliction) => afflictionsView?.addAffliction(affliction)}
+            />
 
             <AddCombatantDialog
                 open={dialog === 'add'}
