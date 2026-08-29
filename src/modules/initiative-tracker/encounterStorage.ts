@@ -118,3 +118,19 @@ export function saveEncounter(state: EncounterState): void {
         // quota estourada — o encontro continua vivo em memória
     }
 }
+
+/**
+ * Acrescenta combatentes ao encontro guardado, sem passar pela página.
+ *
+ * É como o módulo de escalar monstro entrega um monstro pronto: grava aqui e
+ * navega para /iniciativa, que monta o estado inicial com `loadEncounter()`.
+ *
+ * Seguro porque a página de Iniciativa só escreve enquanto está montada — o
+ * efeito de gravação limpa o próprio timer ao desmontar, então nada dela
+ * sobrescreve o que foi acrescentado depois que o usuário saiu.
+ */
+export function appendCombatants(combatants: Combatant[]): void {
+    if (combatants.length === 0) return
+    const current = loadEncounter()
+    saveEncounter({ ...current, combatants: [...current.combatants, ...combatants] })
+}
