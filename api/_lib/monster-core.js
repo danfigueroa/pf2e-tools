@@ -24,15 +24,30 @@ import { parseCreatureStatblock } from './creature-parse.js'
 
 const AON_BASE = 'https://2e.aonprd.com'
 
-/** Rótulo de degrau do AON ("High") → chave das tabelas ("high"). */
+/** Os únicos degraus que as tabelas do GM Core conhecem. */
+const COLUMNS = new Set(['extreme', 'high', 'moderate', 'low', 'terrible'])
+
+/**
+ * Rótulo de degrau do AON ("High") → chave das tabelas ("high").
+ *
+ * Valida contra a lista porque a AON guarda a STRING "undefined" (não o valor
+ * `undefined`) para criaturas fora da faixa das tabelas — a Tarrasque, nível 25,
+ * é uma delas. Só minúsculas, `"undefined"` viraria um degrau que não existe em
+ * tabela nenhuma, toda consulta falharia e a ficha voltaria intacta sem que
+ * nada avisasse o motivo.
+ */
 function scale(value) {
   const raw = Array.isArray(value) ? value[0] : value
-  return typeof raw === 'string' && raw ? raw.toLowerCase() : null
+  if (typeof raw !== 'string') return null
+  const key = raw.toLowerCase()
+  return COLUMNS.has(key) ? key : null
 }
 
-/** Degrau por golpe: `attack_bonus_scale` é array, um item por Strike. */
+/** Degrau por golpe. A AON COLAPSA repetições: quase sempre vem um item só. */
 function scaleList(value) {
-  return toArray(value).map((v) => (typeof v === 'string' ? v.toLowerCase() : null))
+  return toArray(value)
+    .map((v) => scale(v))
+    .filter((v) => v !== null)
 }
 
 function numberList(value) {

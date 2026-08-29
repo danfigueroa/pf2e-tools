@@ -52,6 +52,7 @@ const NUMERIC = [
 const failures = []
 const monotony = []
 const roundTrip = []
+const overrideFails = []
 let checked = 0, strikesChecked = 0
 
 for (const name of await sample(LIMIT)) {
@@ -95,6 +96,20 @@ for (const name of await sample(LIMIT)) {
     if (up.ac < same.ac) monotony.push(`${name}: CA ${same.ac} -> ${up.ac}`)
     if (up.hp < same.hp) monotony.push(`${name}: PV ${same.hp} -> ${up.hp}`)
     if (up.perception < same.perception) monotony.push(`${name}: Perc ${same.perception} -> ${up.perception}`)
+  }
+
+  // --- o ajuste fino precisa ajustar ---
+  // Trocar o degrau de uma estatística tem que mover o número. Preservar a
+  // diferença usando o degrau ESCOLHIDO dos dois lados da conta fazia o
+  // override não fazer nada — as colunas da tabela sobem quase em paralelo, e a
+  // diferença se cancelava. Sem esta checagem o painel parecia funcionar.
+  {
+    const base = scaleMonster(monster, monster.level)
+    const other = monster.ac.scale === 'extreme' ? 'low' : 'extreme'
+    const forced = scaleMonster(monster, monster.level, { ac: other })
+    if (forced.ac === base.ac) {
+      overrideFails.push(`${name}(n${monster.level}) CA ${monster.ac.scale}->${other} não mudou (${base.ac})`)
+    }
   }
 
   // --- ida e volta ---
@@ -159,4 +174,8 @@ monotony.slice(0, 15).forEach((f) => console.log('  ✗', f))
 console.log(`\nIDA E VOLTA (+4 níveis e de volta deve fechar): ${roundTrip.length} falha(s)`)
 roundTrip.slice(0, 20).forEach((f) => console.log('  ✗', f))
 
-process.exit(failures.length + monotony.length + roundTrip.length > 0 ? 1 : 0)
+console.log(`\nAJUSTE FINO (trocar o degrau deve mover o número): ${overrideFails.length} falha(s)`)
+overrideFails.slice(0, 15).forEach((f) => console.log('  ✗', f))
+
+const total = failures.length + monotony.length + roundTrip.length + overrideFails.length
+process.exit(total > 0 ? 1 : 0)

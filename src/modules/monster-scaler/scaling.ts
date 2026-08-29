@@ -33,6 +33,7 @@ import {
     STRIKE_DAMAGE_TABLE,
     type Band,
     type ByLevel,
+    type DamageBenchmark,
     type ScaleColumn,
 } from './data/creatureTables'
 import type {
@@ -61,8 +62,17 @@ const mid = (band: Band): number => (band.max + band.min) / 2
  * Degrau mais próximo de um valor. Só para perícias, que são a única
  * estatística sem `*_scale` no índice da AON.
  */
+type Benchmark = number | Band | DamageBenchmark
+
+/** O número comparável de uma célula, seja ela valor, faixa ou fórmula de dano. */
+function benchmarkValue(entry: Benchmark): number | null {
+    if (typeof entry === 'number') return entry
+    if ('average' in entry) return entry.average
+    return mid(entry)
+}
+
 function inferColumn(
-    table: ByLevel<number | Band>,
+    table: ByLevel<Benchmark>,
     level: number,
     value: number,
 ): ScaleColumn | null {
@@ -73,7 +83,8 @@ function inferColumn(
     for (const column of ORDER) {
         const entry = row[column]
         if (entry === undefined) continue
-        const target = typeof entry === 'number' ? entry : mid(entry)
+        const target = benchmarkValue(entry)
+        if (target === null) continue
         const distance = Math.abs(value - target)
         if (distance < bestDistance) {
             bestDistance = distance
@@ -84,28 +95,47 @@ function inferColumn(
 }
 
 /**
- * Desloca preservando a diferença. Sem entrada na tabela (degrau que não existe
- * naquele nível), devolve o valor original em vez de chutar.
+ * Desloca preservando a diferença.
+ *
+ * A ORIGEM usa sempre o degrau que a AON deu à ficha (`base`); só o DESTINO usa
+ * o degrau escolhido (`target`). Usar o escolhido nos dois lados faz o ajuste
+ * fino não fazer nada: as colunas da tabela sobem quase em paralelo, então a
+ * diferença `tabela[alvo][X] - tabela[origem][X]` é praticamente a mesma para
+ * todo X, e trocar "Alto" por "Extremo" devolvia o mesmo número.
+ *
+ * Separando os dois, o desvio do monstro em relação ao PRÓPRIO degrau é o que
+ * se preserva, e mudar o degrau move o número para o patamar novo. Com
+ * `base === target` a conta é a de antes, então a identidade continua valendo.
+ *
+ * Sem entrada na tabela (degrau que não existe naquele nível), devolve o valor
+ * original em vez de chutar.
  */
 function shift(
     table: ByLevel<number>,
     from: number,
     to: number,
-    column: ScaleColumn | null,
+    base: ScaleColumn | null,
+    target: ScaleColumn | null,
     value: number,
 ): number {
-    if (!column) return value
-    const a = table[from]?.[column]
-    const b = table[to]?.[column]
+    if (!base || !target) return value
+    const a = table[from]?.[base]
+    const b = table[to]?.[target]
     if (a === undefined || b === undefined) return value
     return value + (b - a)
 }
 
 /** PV: razão entre os pontos médios das faixas, nunca menos de 1. */
-function shiftHp(from: number, to: number, column: ScaleColumn | null, value: number): number {
-    if (!column) return value
-    const a = HP_TABLE[from]?.[column]
-    const b = HP_TABLE[to]?.[column]
+function shiftHp(
+    from: number,
+    to: number,
+    base: ScaleColumn | null,
+    target: ScaleColumn | null,
+    value: number,
+): number {
+    if (!base || !target) return value
+    const a = HP_TABLE[from]?.[base]
+    const b = HP_TABLE[to]?.[target]
     if (!a || !b || mid(a) === 0) return value
     return Math.max(1, Math.round(value * (mid(b) / mid(a))))
 }
@@ -115,14 +145,37 @@ function shiftBand(
     table: ByLevel<Band>,
     from: number,
     to: number,
-    column: ScaleColumn | null,
+    base: ScaleColumn | null,
+    target: ScaleColumn | null,
     value: number,
 ): number {
-    if (!column) return value
-    const a = table[from]?.[column]
-    const b = table[to]?.[column]
+    if (!base || !target) return value
+    const a = table[from]?.[base]
+    const b = table[to]?.[target]
     if (!a || !b) return value
     return Math.round(value + (mid(b) - mid(a)))
+}
+
+/**
+ * Média de uma fórmula de dados: `3d10+12` → 28,5.
+ *
+ * Existe porque NÃO DÁ para confiar em `strike_damage_average` do índice por
+ * posição: a AON entrega esses arrays ORDENADOS, não na ordem dos golpes. O
+ * Adult Horned Dragon tem jaws/claw/tail/horn com médias 28,5/25,5/23,5/19 e o
+ * índice devolve [19,23,25,36] — casar por índice dava à mordida a média da
+ * chifrada. Calcular da própria fórmula é exato e independe de ordem.
+ */
+function formulaAverage(formula: string | null): number | null {
+    if (!formula) return null
+    const m = /^(\d+)d(\d+)([+-]\d+)?$/.exec(formula)
+    if (!m) {
+        const flat = parseInt(formula, 10)
+        return Number.isFinite(flat) ? flat : null
+    }
+    const count = parseInt(m[1], 10)
+    const faces = parseInt(m[2], 10)
+    const flat = parseInt(m[3] ?? '0', 10)
+    return count * ((faces + 1) / 2) + flat
 }
 
 /**
@@ -138,17 +191,18 @@ function shiftBand(
 function shiftDamage(
     from: number,
     to: number,
-    column: ScaleColumn | null,
+    base: ScaleColumn | null,
+    target: ScaleColumn | null,
     formula: string | null,
     average: number | null,
 ): string | null {
     if (!formula) return null
-    if (!column) return formula
+    if (!base || !target) return formula
 
-    const a = STRIKE_DAMAGE_TABLE[from]?.[column]
-    const b = STRIKE_DAMAGE_TABLE[to]?.[column]
+    const a = STRIKE_DAMAGE_TABLE[from]?.[base]
+    const b = STRIKE_DAMAGE_TABLE[to]?.[target]
     if (!a || !b || a.average === null || b.average === null) return formula
-    if (from === to) return formula
+    if (from === to && base === target) return formula
 
     // Quanto este golpe bate acima (ou abaixo) do benchmark do nível original.
     const deviation = (average ?? a.average) - a.average
@@ -186,6 +240,27 @@ const pick = (
 ): ScaleColumn | null => overrides[key] ?? fallback
 
 /**
+ * Degrau de origem de uma estatística: o que a AON atribuiu ou, na falta dele,
+ * o mais próximo do próprio valor.
+ *
+ * A dedução existe para as criaturas FORA da faixa das tabelas — a Tarrasque é
+ * nível 25 e a AON devolve a string "undefined" no lugar do degrau. Sem
+ * deduzir, escolher outro nível devolvia a ficha intacta, que é a pior resposta
+ * possível: parece que a ferramenta não fez nada e não diz por quê. Deduzir a
+ * partir do nível de origem já travado na faixa dá um resultado aproximado e
+ * honesto, marcado como deduzido no painel.
+ */
+function baseColumn(
+    declared: ScaleColumn | null,
+    table: ByLevel<Benchmark>,
+    level: number,
+    value: number,
+): { column: ScaleColumn | null; inferred: boolean } {
+    if (declared) return { column: declared, inferred: false }
+    return { column: inferColumn(table, level, value), inferred: true }
+}
+
+/**
  * O degrau de um golpe. A AON COLAPSA repetições em `attack_bonus_scale`: uma
  * criatura com três golpes moderados traz `["Moderate"]`, não três itens. Com
  * um item só, ele vale para todos; com a contagem certa, casa por índice; fora
@@ -195,7 +270,7 @@ function strikeColumn(
     scales: (ScaleColumn | null)[],
     index: number,
     strikeCount: number,
-    table: ByLevel<number | Band>,
+    table: ByLevel<Benchmark>,
     level: number,
     value: number,
 ): ScaleColumn | null {
@@ -233,25 +308,29 @@ export function scaleMonster(
     }
 
     // --- defesas e sentidos ---
-    const acColumn = pick(overrides, 'ac', source.ac.scale)
-    const ac = shift(AC_TABLE, from, to, acColumn, source.ac.value)
-    addRow('ac', 'CA', AC_TABLE, acColumn, source.ac.value, ac, 'flat')
+    const acBase = baseColumn(source.ac.scale, AC_TABLE, from, source.ac.value)
+    const acColumn = pick(overrides, 'ac', acBase.column)
+    const ac = shift(AC_TABLE, from, to, acBase.column, acColumn, source.ac.value)
+    addRow('ac', 'CA', AC_TABLE, acColumn, source.ac.value, ac, 'flat', acBase.inferred)
 
-    const hpColumn = pick(overrides, 'hp', source.hp.scale)
-    const hp = shiftHp(from, to, hpColumn, source.hp.value)
-    addRow('hp', 'PV', HP_TABLE, hpColumn, source.hp.value, hp, 'flat')
+    const hpBase = baseColumn(source.hp.scale, HP_TABLE, from, source.hp.value)
+    const hpColumn = pick(overrides, 'hp', hpBase.column)
+    const hp = shiftHp(from, to, hpBase.column, hpColumn, source.hp.value)
+    addRow('hp', 'PV', HP_TABLE, hpColumn, source.hp.value, hp, 'flat', hpBase.inferred)
 
-    const percColumn = pick(overrides, 'perception', source.perception.scale)
-    const perception = shift(PERCEPTION_TABLE, from, to, percColumn, source.perception.value)
-    addRow('perception', 'Percepção', PERCEPTION_TABLE, percColumn, source.perception.value, perception, 'modifier')
+    const percBase = baseColumn(source.perception.scale, PERCEPTION_TABLE, from, source.perception.value)
+    const percColumn = pick(overrides, 'perception', percBase.column)
+    const perception = shift(PERCEPTION_TABLE, from, to, percBase.column, percColumn, source.perception.value)
+    addRow('perception', 'Percepção', PERCEPTION_TABLE, percColumn, source.perception.value, perception, 'modifier', percBase.inferred)
 
     const saveLabels = { fort: 'Fortitude', ref: 'Reflexos', will: 'Vontade' } as const
     const saves = { fort: 0, ref: 0, will: 0 }
     for (const key of ['fort', 'ref', 'will'] as const) {
         const stat = source.saves[key]
-        const column = pick(overrides, key, stat.scale)
-        saves[key] = shift(SAVE_TABLE, from, to, column, stat.value)
-        addRow(key, saveLabels[key], SAVE_TABLE, column, stat.value, saves[key], 'modifier')
+        const base = baseColumn(stat.scale, SAVE_TABLE, from, stat.value)
+        const column = pick(overrides, key, base.column)
+        saves[key] = shift(SAVE_TABLE, from, to, base.column, column, stat.value)
+        addRow(key, saveLabels[key], SAVE_TABLE, column, stat.value, saves[key], 'modifier', base.inferred)
     }
 
     // --- atributos ---
@@ -262,9 +341,10 @@ export function scaleMonster(
     const attributes = {} as Record<AttributeKey, number>
     for (const key of Object.keys(attrLabels) as AttributeKey[]) {
         const stat = source.attributes[key]
-        const column = pick(overrides, `attr:${key}`, stat.scale)
-        attributes[key] = shift(ATTRIBUTE_TABLE, from, to, column, stat.value)
-        addRow(`attr:${key}`, attrLabels[key], ATTRIBUTE_TABLE, column, stat.value, attributes[key], 'modifier')
+        const base = baseColumn(stat.scale, ATTRIBUTE_TABLE, from, stat.value)
+        const column = pick(overrides, `attr:${key}`, base.column)
+        attributes[key] = shift(ATTRIBUTE_TABLE, from, to, base.column, column, stat.value)
+        addRow(`attr:${key}`, attrLabels[key], ATTRIBUTE_TABLE, column, stat.value, attributes[key], 'modifier', base.inferred)
     }
 
     // --- perícias: única estatística sem degrau no índice ---
@@ -272,7 +352,7 @@ export function scaleMonster(
     for (const [name, value] of Object.entries(source.skills)) {
         const guess = inferColumn(SKILL_TABLE, from, value)
         const column = pick(overrides, `skill:${name}`, guess)
-        skills[name] = shiftBand(SKILL_TABLE, from, to, column, value)
+        skills[name] = shiftBand(SKILL_TABLE, from, to, guess, column, value)
         addRow(
             `skill:${name}`,
             name.charAt(0).toUpperCase() + name.slice(1),
@@ -284,21 +364,21 @@ export function scaleMonster(
     // --- golpes ---
     const parsedStrikes = source.statblock?.strikes ?? []
     const strikes: ScaledStrike[] = parsedStrikes.map((strike, index) => {
-        const attackColumn = pick(
-            overrides,
-            `attack:${index}`,
-            strikeColumn(source.attackScales, index, parsedStrikes.length, STRIKE_ATTACK_TABLE, from, strike.bonus),
+        const attackBase = strikeColumn(
+            source.attackScales, index, parsedStrikes.length, STRIKE_ATTACK_TABLE, from, strike.bonus,
         )
-        const bonus = shift(STRIKE_ATTACK_TABLE, from, to, attackColumn, strike.bonus)
+        const attackColumn = pick(overrides, `attack:${index}`, attackBase)
+        const bonus = shift(STRIKE_ATTACK_TABLE, from, to, attackBase, attackColumn, strike.bonus)
         addRow(`attack:${index}`, `${strike.name} (ataque)`, STRIKE_ATTACK_TABLE, attackColumn, strike.bonus, bonus, 'modifier')
 
-        const average = source.damageAverages[index] ?? null
-        const damageColumn = pick(
-            overrides,
-            `damage:${index}`,
-            strikeColumn(source.damageScales, index, parsedStrikes.length, STRIKE_ATTACK_TABLE, from, average ?? 0),
+        const average = formulaAverage(strike.damage?.formula ?? null)
+        const damageBase = strikeColumn(
+            source.damageScales, index, parsedStrikes.length, STRIKE_DAMAGE_TABLE, from, average ?? 0,
         )
-        const damageFormula = shiftDamage(from, to, damageColumn, strike.damage?.formula ?? null, average)
+        const damageColumn = pick(overrides, `damage:${index}`, damageBase)
+        const damageFormula = shiftDamage(
+            from, to, damageBase, damageColumn, strike.damage?.formula ?? null, average,
+        )
 
         if (strike.damage?.riders) {
             warnings.push(`O dano extra de "${strike.name}" (${strike.damage.riders}) não foi reescalado.`)
@@ -318,12 +398,19 @@ export function scaleMonster(
         if (!strike.damage?.formula) return
         const scaled = strikes[index]
         const row = rows.find((r) => r.key === `attack:${index}`)
+        const avgFrom = formulaAverage(scaled.originalFormula) ?? 0
         rows.push({
             key: `damage:${index}`,
             label: `${strike.name} (dano)`,
-            from: source.damageAverages[index] ?? 0,
-            to: source.damageAverages[index] ?? 0,
-            column: pick(overrides, `damage:${index}`, source.damageScales[0] ?? row?.column ?? null),
+            from: Math.round(avgFrom),
+            to: Math.round(formulaAverage(scaled.damageFormula) ?? avgFrom),
+            column: pick(
+                overrides,
+                `damage:${index}`,
+                strikeColumn(
+                    source.damageScales, index, parsedStrikes.length, STRIKE_DAMAGE_TABLE, from, avgFrom,
+                ) ?? row?.column ?? null,
+            ),
             inferred: false,
             columns: columnsOf(STRIKE_DAMAGE_TABLE, to),
             kind: 'flat',
@@ -334,16 +421,38 @@ export function scaleMonster(
 
     // --- conjuração: só DC e ataque são estruturados ---
     const spellcasting = (source.statblock?.spellcasting ?? []).map((block) => {
-        const dcColumn = pick(overrides, 'spellDc', source.spellDcScale)
-        const atkColumn = pick(overrides, 'spellAttack', source.spellAttackScale ?? source.spellDcScale)
+        const dcBase = source.spellDcScale
+        const atkBase = source.spellAttackScale ?? source.spellDcScale
+        const dcColumn = pick(overrides, 'spellDc', dcBase)
+        const atkColumn = pick(overrides, 'spellAttack', atkBase)
         return {
             ...block,
-            dc: block.dc === null ? null : shiftSpell(from, to, dcColumn, block.dc, 'dc'),
-            attack: block.attack === null ? null : shiftSpell(from, to, atkColumn, block.attack, 'attack'),
+            dc: block.dc === null ? null : shiftSpell(from, to, dcBase, dcColumn, block.dc, 'dc'),
+            attack: block.attack === null ? null : shiftSpell(from, to, atkBase, atkColumn, block.attack, 'attack'),
         }
     })
 
     // --- avisos: tudo que a ferramenta deliberadamente não tocou ---
+
+    // Criatura fora da faixa das tabelas (a Tarrasque é nível 25) não tem
+    // degrau atribuído pela AON, e sem degrau `shift` devolve o valor original.
+    // Sem este aviso o GM escolheria outro nível, veria a ficha intacta e não
+    // saberia por quê — pior do que um erro visível.
+    if (source.level < MIN_LEVEL || source.level > MAX_LEVEL) {
+        warnings.push(
+            `A ficha original é de nível ${source.level}, fora da faixa das tabelas do GM Core `
+            + `(${MIN_LEVEL} a ${MAX_LEVEL}): os degraus foram deduzidos do nível ${clampLevel(source.level)} `
+            + 'e o resultado é aproximado.',
+        )
+    }
+
+    const unscaled = rows.filter((r) => r.column === null).map((r) => r.label)
+    if (unscaled.length > 0) {
+        warnings.push(
+            `Sem degrau de referência na AON, então não foi reescalado: ${unscaled.join(', ')}.`,
+        )
+    }
+
     if ((source.statblock?.abilities.length ?? 0) > 0) {
         warnings.push(
             'Habilidades especiais não foram reescaladas — ajuste dados e CDs manualmente.',
@@ -376,13 +485,14 @@ export function scaleMonster(
 function shiftSpell(
     from: number,
     to: number,
-    column: ScaleColumn | null,
+    base: ScaleColumn | null,
+    target: ScaleColumn | null,
     value: number,
     field: 'dc' | 'attack',
 ): number {
-    if (!column) return value
-    const a = SPELL_TABLE[from]?.[column]?.[field]
-    const b = SPELL_TABLE[to]?.[column]?.[field]
+    if (!base || !target) return value
+    const a = SPELL_TABLE[from]?.[base]?.[field]
+    const b = SPELL_TABLE[to]?.[target]?.[field]
     if (a === undefined || b === undefined) return value
     return value + (b - a)
 }
