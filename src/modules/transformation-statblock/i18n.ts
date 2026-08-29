@@ -25,7 +25,29 @@ export const LABELS = {
   traditions: 'Tradições',
   level: 'Nível',
   creature: 'Criatura',
+  // Usados pelo bloco de criatura da AON (módulo de escalar monstro).
+  items: 'Itens',
+  senses: 'Sentidos',
+  recallKnowledge: 'Rememorar Conhecimento',
+  source: 'Fonte',
 } as const;
+
+/**
+ * Símbolo de ação do stat block. O AON escreve por extenso
+ * ("Single Action", "Two Actions"); a ficha impressa usa o glifo.
+ */
+export const ACTION_GLYPHS: Record<string, string> = {
+  'free action': '◇',
+  'reaction': '⤾',
+  'single action': '◆',
+  'two actions': '◆◆',
+  'three actions': '◆◆◆',
+};
+
+export function actionGlyph(actions: string | null | undefined): string {
+  if (!actions) return '';
+  return ACTION_GLYPHS[actions.toLowerCase().trim()] ?? '';
+}
 
 // Abreviações de atributo
 export const ABILITY_ABBR: Record<string, string> = {
