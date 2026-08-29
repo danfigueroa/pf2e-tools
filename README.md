@@ -346,6 +346,10 @@ pf2e-tools/
 │       ├── ardagar10.json
 │       ├── eldarion10.json
 │       └── ghanburi10.json
+├── scripts/                      # Rodados à mão, fora do build
+│   ├── fetch-creature-tables.mjs # Gera creatureTables.ts a partir das tabelas do GM Core na AON
+│   ├── check-scaling.mjs         # Confere o motor de escala contra criaturas de verdade
+│   └── ts-loader.mjs             # Deixa o Node importar os .ts do src/ nos scripts acima
 ├── server/
 │   └── index.mjs                 # Servidor de API local (desenvolvimento)
 ├── src/
@@ -371,16 +375,25 @@ pf2e-tools/
 │   │   │   ├── CharacterSheetPage.tsx  # Página principal
 │   │   │   ├── pdf.ts                  # Geração do PDF
 │   │   │   └── types.ts                # Interfaces + parseCharacterJson (reusado pelos módulos)
-│   │   └── transformation-statblock/   # Módulo de Stat Blocks
-│   │       ├── TransformationPage.tsx   # Fluxo em steps
-│   │       ├── i18n.ts                  # Tradução pt-BR (vocabulário mecânico + nomes)
-│   │       ├── components/              # CharacterInput, FormSelector, StatBlockGenerator, ExportOptions
-│   │       └── data/                    # 1 arquivo por magia + spells.ts + from-pathbuilder.ts
+│   │   ├── transformation-statblock/   # Módulo de Stat Blocks
+│   │   │   ├── TransformationPage.tsx   # Fluxo em steps
+│   │   │   ├── i18n.ts                  # Tradução pt-BR (vocabulário mecânico + nomes)
+│   │   │   ├── components/              # CharacterInput, FormSelector, StatBlockGenerator, ExportOptions
+│   │   │   └── data/                    # 1 arquivo por magia + spells.ts + from-pathbuilder.ts
+│   │   └── monster-scaler/       # Módulo de Escalar Monstro (criatura da AON em outro nível)
+│   │       ├── MonsterScalerPage.tsx    # Página: controles à esquerda, stat block à direita
+│   │       ├── scaling.ts               # Motor: preserva a diferença em relação ao benchmark
+│   │       ├── toCombatant.ts           # Monstro reescalado → combatente da Iniciativa
+│   │       ├── components/              # MonsterSearch, ScaleAdjustPanel, MonsterStatBlock, MonsterExport
+│   │       └── data/creatureTables.ts   # GERADO por scripts/fetch-creature-tables.mjs
+│   ├── hooks/
+│   │   └── useCreatureSearch.ts  # Busca de criaturas (debounce, faixa, paginação) — Iniciativa + Escalar Monstro
 │   ├── pages/
 │   │   └── HomePage.tsx          # Página inicial (cards das ferramentas)
 │   ├── services/
 │   │   ├── descriptions.ts       # Cliente do backend (busca + cache das descrições AON)
 │   │   ├── creatures.ts          # Cliente da busca de criaturas na AON
+│   │   ├── monster.ts            # Cliente da ficha completa de uma criatura
 │   │   └── tableState.ts         # Sincronia do estado compartilhado da mesa
 │   ├── types/
 │   │   └── index.ts              # Tipos globais
@@ -643,6 +656,64 @@ referência) e permanecem em inglês.
 
 ---
 
+### Módulo: Monster Scaler (Escalar Monstro)
+
+**Localização:** `src/modules/monster-scaler/`
+
+Pega a ficha de uma criatura do Archives of Nethys e adapta para outro nível, pelas dez tabelas de
+construção de criaturas do **GM Core** (pg. 112-121, níveis -1 a 24). O bloco exibido é o mesmo que
+a exportação em PNG captura via `html2canvas`.
+
+#### Arquivos
+
+| Arquivo                          | Responsabilidade                                                              |
+| -------------------------------- | ----------------------------------------------------------------------------- |
+| `MonsterScalerPage.tsx`          | Página: controles à esquerda, stat block à direita (empilhado no celular)      |
+| `scaling.ts`                     | Motor puro: ficha + nível-alvo + overrides → ficha reescalada + avisos         |
+| `types.ts`                       | `MonsterDetail` (o que a API devolve) e `ScaledMonster` (o resultado)          |
+| `toCombatant.ts`                 | Monstro reescalado → `NpcCombatant` da Iniciativa                             |
+| `data/creatureTables.ts`         | **GERADO** por `scripts/fetch-creature-tables.mjs` — não editar à mão          |
+| `components/MonsterSearch`       | Busca na AON (usa `hooks/useCreatureSearch`, compartilhado com a Iniciativa)   |
+| `components/ScaleAdjustPanel`    | Uma linha por estatística, com o degrau trocável                              |
+| `components/MonsterStatBlock`    | Renderiza o bloco no layout Paizo (subtree capturado pelo `html2canvas`)       |
+| `components/MonsterExport`       | Exportação em PNG e botão "Enviar para Iniciativa"                            |
+
+Backend: `api/monster.js` → `api/_lib/monster-core.js` (números + degraus) e
+`api/_lib/creature-parse.js` (golpes, habilidades e conjuração, do campo `markdown` da AON).
+
+#### A regra que explica o módulo
+
+Preserva-se a **diferença** em relação ao benchmark, nunca o benchmark cru.
+
+Criaturas publicadas são feitas à mão e não batem com a tabela: o Bugbear Tormentor é "CA Alta" com
+CA 20, enquanto a tabela diz 19 no nível 3. Trocar o número pelo da tabela apagaria a personalidade
+do monstro e faria reescalar para o **próprio nível** devolver uma ficha diferente da original — a
+ferramenta perderia a confiança do GM no primeiro teste.
+
+Duas exceções à diferença: **PV usa razão** (cresce quase geometricamente, de 9 no nível -1 a ~500
+no 24) e o **dano** pega os dados da tabela do nível-alvo, deixando o modificador fixo absorver o
+desvio do golpe original.
+
+No ajuste fino, a **origem** da conta usa sempre o degrau que a AON deu à ficha e só o **destino**
+usa o degrau escolhido. Usar o escolhido dos dois lados faz o ajuste não fazer nada: as colunas da
+tabela sobem quase em paralelo e a diferença se cancela.
+
+#### O que **não** é reescalado
+
+Por decisão de produto, e sempre listado num aviso na página:
+
+-   A **prosa das habilidades** fica em inglês e intocada (dados e CDs dentro do texto ficam como
+    estão).
+-   A **lista de magias** não muda de rank — só a CD e o ataque de magia são ajustados.
+-   O **dano extra** dos golpes (`plus 2d6 fire`) fica como está: é escolha de design da criatura e
+    não segue a tabela de dano de ataque.
+-   Defesas com ressalva (`"physical 5 except cold iron"`) nunca viram número.
+
+A ferramenta **nunca inventa um número que o GM não conferiu** — mesma política do
+`api/_lib/creature-core.js`.
+
+---
+
 ## 🌐 API do Servidor
 
 O servidor (`server/index.mjs`) fornece endpoints para buscar dados da Archives of Nethys.
@@ -657,6 +728,7 @@ O servidor (`server/index.mjs`) fornece endpoints para buscar dados da Archives 
 | GET    | `/api/spell`     | `name`     | Busca informações detalhadas de uma magia        |
 | GET    | `/api/companion` | `name`     | Stats de companheiro animal                      |
 | GET    | `/api/creature`  | `q`, `minLevel`, `maxLevel`, `limit` | Busca criaturas por nome e/ou faixa de nível — sem tradução |
+| GET    | `/api/monster`   | `name`     | Ficha completa de uma criatura, com o degrau de benchmark de cada estatística — sem tradução |
 | POST   | `/api/clear-cache` | —        | Limpa o cache de descrições                      |
 | GET    | `/api/state`     | `char`     | Estado de jogo compartilhado de um personagem    |
 | POST   | `/api/state`     | body       | Grava uma fatia (`{ char, field, data }`)        |
@@ -665,9 +737,10 @@ As variantes **plurais** (`/api/feats`, `/api/searches`, `/api/spells`, `/api/co
 uma lista de nomes para busca em lote. Todas as descrições são **traduzidas para pt-BR** via Groq
 antes de retornar.
 
-`/api/creature` é a exceção: devolve só os campos já estruturados do índice da AON (números e
-vocabulário curto), sem passar por nenhum modelo — traduzir cada busca estouraria o rate limit do
-tier gratuito e deixaria a busca lenta demais para usar na mesa.
+`/api/creature` e `/api/monster` são a exceção: devolvem só os campos já estruturados do índice da
+AON (números e vocabulário curto) e o stat block parseado, sem passar por nenhum modelo — traduzir
+cada busca estouraria o rate limit do tier gratuito e deixaria a busca lenta demais para usar na
+mesa. No `/api/monster`, a prosa das habilidades fica em inglês por decisão de produto.
 
 ### Exemplo de Resposta `/api/spell`
 
@@ -817,6 +890,13 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
     -   [x] Dano em área com resultado de salvaguarda por alvo, resistência e fraqueza
     -   [x] Condições com duração em rodadas
     -   [x] Ordem de turnos com desempate RAW, ajuste manual e Adiar
+-   [x] **Módulo de Escalar Monstro (criatura da AON em outro nível)**
+    -   [x] Tabelas de construção de criaturas do GM Core transcritas do índice da AON (níveis -1 a 24)
+    -   [x] Motor que preserva a diferença da ficha em relação ao benchmark (reescalar para o
+            próprio nível devolve a ficha original)
+    -   [x] Ajuste fino do degrau por estatística
+    -   [x] Avisos do que não foi ajustado (prosa, lista de magias, dano extra)
+    -   [x] Exportação em PNG e envio direto para a Iniciativa
 -   [x] Servidor de scraping da AON
 
 ### 🚧 Em Progresso
@@ -917,6 +997,9 @@ const spellAttack = proficiencyRank + level + keyAbilityMod
 | Layout do PDF          | `src/modules/character-sheet/pdf.ts`                       |
 | Tipos + parse do JSON  | `src/modules/character-sheet/types.ts`                     |
 | Stat block (battle forms) | `src/modules/transformation-statblock/`                 |
+| Motor de escala de monstro | `src/modules/monster-scaler/scaling.ts`                |
+| Tabelas do GM Core (geradas) | `scripts/fetch-creature-tables.mjs` → `src/modules/monster-scaler/data/creatureTables.ts` |
+| Parse do stat block da AON | `api/_lib/creature-parse.js`                           |
 | Núcleo do backend AON  | `api/_lib/aon.js` (serverless) · `server/index.mjs` (local) |
 | Fichas de exemplo      | `public/characters/*.json`                                 |
 | Tema global            | `src/theme.ts`                                             |
@@ -929,6 +1012,18 @@ Validação obrigatória de mudanças não triviais:
 npm run build   # tsc -b && vite build
 npm run lint    # eslint
 ```
+
+Não há framework de teste no projeto. O que existe é um script de conferência do motor de escala,
+que roda contra criaturas de verdade da AON:
+
+```bash
+node scripts/check-scaling.mjs 200   # 200 criaturas; sai com código != 0 se algo falhar
+```
+
+Ele confere quatro propriedades: **identidade** (reescalar para o próprio nível devolve a ficha
+original), **monotonia** (subir de nível não baixa número), **ida e volta** (+4 níveis e de volta
+fecha) e **ajuste fino** (trocar o degrau move o número). Rode depois de qualquer mudança em
+`scaling.ts` ou nas tabelas.
 
 Para testar a Ficha Virtual manualmente:
 

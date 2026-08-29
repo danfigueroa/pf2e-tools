@@ -34,6 +34,16 @@ npm run lint       # eslint
 
 Sempre valide mudanças não triviais com `npm run build` (roda `tsc -b`) e `npm run lint`.
 
+Scripts avulsos, rodados à mão (não entram no build):
+
+```bash
+node scripts/fetch-creature-tables.mjs  # regera as tabelas do GM Core (confira o diff!)
+node scripts/check-scaling.mjs 200      # confere o motor de escala contra criaturas de verdade
+```
+
+Depois de mexer em `monster-scaler/scaling.ts` ou nas tabelas, rode o `check-scaling` — ele sai com
+código diferente de zero quando alguma das quatro propriedades quebra.
+
 ## Backend
 
 Dois modos servindo os mesmos endpoints de consulta à AON:
