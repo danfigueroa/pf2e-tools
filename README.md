@@ -127,6 +127,29 @@ no **padrão oficial de bloco de criatura** e **traduzido para pt-BR**.
     divisórias laranja, glyph de ação), tudo em português
 -   Exportação em PDF/PNG (print-friendly)
 
+### ✅ Escalar Monstro (Implementado)
+
+Pega a ficha de qualquer criatura do **Archives of Nethys** e adapta para o nível que a sua mesa
+precisa, pelas **tabelas de construção de criaturas do GM Core** (pg. 112-121, níveis -1 a 24).
+
+Resolve o problema de gostar da ficha de um monstro que está no nível errado para o grupo.
+
+**Características:**
+
+-   Busca a criatura na AON por nome, por faixa de nível, ou pelos dois
+-   **Preserva a personalidade do monstro**: em vez de trocar cada número pelo da tabela, guarda a
+    diferença entre a ficha original e o benchmark dela e desloca tudo junto. Reescalar um monstro
+    para o próprio nível devolve a ficha original, número por número
+-   **Ajuste fino por estatística**: cada linha mostra o degrau que a AON atribuiu
+    (Extremo/Alto/Moderado/Baixo) e permite trocá-lo — dá para pedir um ogro de nível 8 com CA
+    extrema sem mexer no resto
+-   Reescala CA, PV, percepção, salvamentos, atributos, perícias, ataques, dano e CD de magia
+-   **Diz o que não ajustou**: a prosa das habilidades fica em inglês e intocada, a lista de magias
+    não muda de rank e o dano extra dos golpes (`plus 2d6 fire`) fica como está — tudo listado num
+    aviso, porque a ferramenta nunca inventa um número que o GM não conferiu
+-   Stat block no padrão oficial, com exportação em **PNG**
+-   **"Enviar para Iniciativa"**: joga o monstro já reescalado direto no encontro
+
 ### ✅ Gerenciador de Iniciativa (Implementado)
 
 Ferramenta de mesa para conduzir o combate: monta o encontro, mantém a ordem de turnos e aplica

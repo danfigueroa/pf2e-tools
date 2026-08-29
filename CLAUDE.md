@@ -7,11 +7,13 @@ Orientações para o Claude Code trabalhar neste repositório. Para detalhes de 
 **PF2e Toolkit** — SPA (React 19 + TypeScript + Vite + MUI 7) com ferramentas para Pathfinder 2e
 Remaster. Textos de UI em **português (pt-BR)**.
 
-Três módulos ativos (rotas em `src/App.tsx`):
+Quatro módulos ativos (rotas em `src/App.tsx`):
 - `/ficha-virtual` → `src/modules/character-viewer/` — visualizador de ficha (JSON Pathbuilder) com
   descrições da AON traduzidas sob demanda.
 - `/iniciativa` → `src/modules/initiative-tracker/` — gerenciador de iniciativa e combate.
 - `/transformation` → `src/modules/transformation-statblock/` — gerador de stat block de battle forms.
+- `/escalar-monstro` → `src/modules/monster-scaler/` — adapta a ficha de uma criatura da AON
+  para outro nível, pelas tabelas de construção de criaturas do GM Core.
 
 **`src/modules/character-sheet/` (Ficha em PDF) está DESATIVADO** — fora da rota, do menu e da home.
 O código continua no repositório e `types.ts` (`parseCharacterJson`, `BuildInfo`) **segue sendo usado
@@ -76,6 +78,21 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   "Assurance (Athletics)", que não existe assim no AON — mas aplicá-lo sempre resolvia
   "Staff of Healing (Greater)" como o item **base**, com nível, preço e magias errados. Por isso
   `resolveEntry` tenta o **nome cru primeiro** e só cai na limpeza quando ele não casa exato.
+- **`monster`** é a ficha COMPLETA de uma criatura, para o módulo de escalar monstro
+  (`api/_lib/monster-core.js` + `creature-parse.js`). Devolve os números **com o degrau de
+  benchmark de cada um** (`ac_scale`, `strike_damage_scale`, …) e o stat block parseado do campo
+  `markdown` — que já vem de graça, porque `searchAonRaw` não filtra `_source`. Como `creature`,
+  **não passa pela cadeia de tradução**: a prosa das habilidades fica em inglês de propósito.
+  - O degrau é o **mais próximo, não um valor exato**: o Bugbear Tormentor é "CA Alta" com CA 20,
+    e a tabela diz 19 no nível 3. Quem consome precisa preservar essa diferença.
+  - A AON **colapsa** `attack_bonus_scale`/`strike_damage_scale` nos degraus distintos usados
+    (quase sempre um item), e **ordena** `attack_bonus`/`strike_damage_average` de forma crescente
+    — nenhum dos dois casa por índice com a ordem dos golpes. Ver `formulaAverage` em `scaling.ts`.
+  - Para criatura fora da faixa das tabelas (a Tarrasque é nível 25) a AON guarda a **string
+    `"undefined"`** no lugar do degrau. `scale()` valida contra a lista de degraus conhecidos.
+  - `pickHit` procura o **nome exato antes** de descartar entradas legacy, não depois: "Adult Red
+    Dragon" só existe como entrada do Bestiary, e filtrar primeiro fazia a busca cair no melhor
+    acerto remaster que sobrava — o Adult Sea Dragon.
 - `state` é o único endpoint com **estado**: guarda o jogo da mesa (ver a seção própria abaixo).
   Fica em `api/state.js`, **um nível** — o glob `"api/*.js"` do `vercel.json` não pega subpastas,
   então `api/state/[char].js` perderia o `maxDuration`.
@@ -347,6 +364,42 @@ cada fatia de estado mora**:
   são armazenados **em pt-BR** nos `data/`. Ao adicionar formas/habilidades novas, siga esse split.
 - O bloco exibido (`StatBlockGenerator`) é o mesmo que a exportação captura via `html2canvas`;
   `form.description` e `spell.description/heightened` não são exibidos.
+
+## Módulo monster-scaler (Escalar Monstro)
+
+Pega a ficha de uma criatura na AON e adapta para outro nível, pelas dez tabelas de construção de
+criaturas do GM Core (pg. 112-121, níveis -1 a 24).
+
+- **As tabelas são geradas, não digitadas**: `scripts/fetch-creature-tables.mjs` transcreve do
+  índice da AON (categoria `rules`, fonte `GM Core`, que publica as tabelas como `<table>` HTML)
+  para `data/creatureTables.ts`. São 1.400 números; digitados à mão erram em silêncio. Rode à mão e
+  **confira o diff** — é o passo em que um erro de parse vira monstro errado na mesa. Armadilhas:
+  travessão (não hífen) no nível negativo e nas faixas, traço longo para "não existe", PV e perícia
+  Baixa em faixa, dano como `"4d12+42 (68)"`.
+- **A regra que explica o motor** (`scaling.ts`): preserva-se a **diferença** em relação ao
+  benchmark, nunca o benchmark cru. Criaturas publicadas são feitas à mão e não batem com a tabela;
+  trocar o número pelo da tabela apagaria a personalidade do monstro e faria reescalar para o
+  **próprio nível** devolver uma ficha diferente da original.
+- **A origem usa o degrau da AON, o destino usa o degrau escolhido.** Usar o escolhido dos dois
+  lados faz o ajuste fino **não fazer nada**: as colunas sobem quase em paralelo e a diferença se
+  cancela. Foi bug real, e o painel parecia funcionar.
+- **PV usa razão, não diferença** (cresce quase geometricamente: 9 no nível -1, ~500 no 24).
+  **Dano** pega os dados da tabela do nível-alvo e deixa o modificador fixo absorver o desvio.
+- **O que NÃO é reescalado, por decisão de produto**: a prosa das habilidades (fica em inglês e
+  intocada), a lista de magias (só a CD e o ataque mudam) e o dano extra dos golpes
+  (`plus 2d6 fire`). Tudo isso vira `warnings`, exibidos na página. A ferramenta **nunca inventa um
+  número que o GM não conferiu** — mesma política de `creature-core.js`.
+- **`scripts/check-scaling.mjs` é o teste que vale**: contra criaturas de verdade, confere
+  identidade (mesmo nível devolve a ficha original), monotonia, ida e volta, e que o ajuste fino
+  ajusta. Não há framework de teste no repositório, por isso é script avulso. A ida e volta existe
+  porque a identidade não prova nada sobre o dano, que tem saída curta quando os níveis são iguais.
+- **`MonsterStatBlock.tsx` é o subtree que o `html2canvas` rasteriza**: hex literal de 6 dígitos,
+  nunca token de tema — ver a seção de Tema.
+- Busca compartilhada com a Iniciativa em `src/hooks/useCreatureSearch.ts` (debounce, faixa de
+  nível, paginação por cursor).
+- **"Enviar para Iniciativa"** grava direto no `localStorage` do encontro (`appendCombatants` em
+  `initiative-tracker/encounterStorage.ts`) e navega. Seguro porque a página de Iniciativa só
+  escreve enquanto montada — o efeito de gravação limpa o próprio timer ao desmontar.
 
 ## Git
 
