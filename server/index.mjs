@@ -5,6 +5,7 @@ import { resolveSpell } from '../api/_lib/spells-core.js'
 import { resolveFeat, resolveSpecial } from '../api/_lib/feat-core.js'
 import { resolveCompanion } from '../api/_lib/companion-core.js'
 import { resolveCreatures } from '../api/_lib/creature-core.js'
+import { resolveMonster } from '../api/_lib/monster-core.js'
 import { hasTranslationKey } from '../api/_lib/aon.js'
 import {
   readCharacter,
@@ -237,6 +238,32 @@ const server = http.createServer(async (req, res) => {
       res.end(JSON.stringify(page))
     } catch (e) {
       console.error('[/api/creature] Error:', e)
+      res.writeHead(500, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: e.message }))
+    }
+    return
+  }
+
+  // Ficha COMPLETA de uma criatura, com o degrau de benchmark de cada
+  // estatística — o que o módulo de escalar monstro precisa.
+  if (pathname === '/api/monster') {
+    const name = (parsedUrl.searchParams.get('name') || '').trim()
+    if (!name) {
+      res.writeHead(400, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: 'Informe o nome da criatura' }))
+      return
+    }
+    try {
+      const monster = await resolveMonster(name)
+      if (!monster) {
+        res.writeHead(404, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: 'Criatura não encontrada' }))
+        return
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify(monster))
+    } catch (e) {
+      console.error('[/api/monster] Error:', e)
       res.writeHead(500, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify({ error: e.message }))
     }

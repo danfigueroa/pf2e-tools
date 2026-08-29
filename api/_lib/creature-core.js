@@ -13,7 +13,7 @@ import { searchAonRaw } from './aon.js'
 const AON_BASE = 'https://2e.aonprd.com'
 
 /** Criaturas com variantes trazem arrays (`hp: [40, 55]`). Vale a primeira. */
-function firstNumber(value, fallback = 0) {
+export function firstNumber(value, fallback = 0) {
   const raw = Array.isArray(value) ? value[0] : value
   const n = typeof raw === 'string' ? parseInt(raw, 10) : raw
   return Number.isFinite(n) ? n : fallback
@@ -24,7 +24,7 @@ function firstNumber(value, fallback = 0) {
  * texto com ressalva ("5 (except cold iron)"). O que não vira número puro sai
  * como nota — a ferramenta nunca inventa um número que o GM não conferiu.
  */
-function splitDefense(raw, label, notes) {
+export function splitDefense(raw, label, notes) {
   const out = {}
   if (!raw || typeof raw !== 'object') return out
   for (const [type, value] of Object.entries(raw)) {
@@ -39,13 +39,13 @@ function splitDefense(raw, label, notes) {
   return out
 }
 
-function toArray(value) {
+export function toArray(value) {
   if (Array.isArray(value)) return value.filter(Boolean)
   return value ? [value] : []
 }
 
 /** Entradas pré-Remaster apontam para a versão nova por `remaster_id`. */
-const isLegacy = (source) =>
+export const isLegacy = (source) =>
   (Array.isArray(source?.remaster_id) && source.remaster_id.length > 0)
   || (Array.isArray(source?.remaster_name) && source.remaster_name.length > 0)
 
