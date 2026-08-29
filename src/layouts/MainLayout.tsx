@@ -21,6 +21,7 @@ import {
   PhoneIphone as ViewerIcon,
   FormatListNumbered as InitiativeIcon,
   Transform as TransformIcon,
+  Whatshot as ScalerIcon,
 } from '@mui/icons-material';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { green, gold, parchment } from '../theme';
@@ -62,6 +63,11 @@ const navigationItems: NavigationItem[] = [
     text: 'Stat Block de Transformação',
     icon: <TransformIcon />,
     path: '/transformation',
+  },
+  {
+    text: 'Escalar Monstro',
+    icon: <ScalerIcon />,
+    path: '/escalar-monstro',
   },
 ];
 

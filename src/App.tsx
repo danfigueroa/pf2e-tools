@@ -4,6 +4,7 @@ import { pathfinderTheme } from './theme';
 import { MainLayout } from './layouts/MainLayout';
 import { HomePage } from './pages/HomePage';
 import { TransformationPage } from './modules/transformation-statblock/TransformationPage';
+import { MonsterScalerPage } from './modules/monster-scaler/MonsterScalerPage';
 // MÓDULO DESATIVADO — Ficha em PDF. O código segue em src/modules/character-sheet/
 // (e `types.ts` continua sendo usado pelos outros módulos). Para reativar:
 // descomente o import e a rota abaixo, e as entradas em MainLayout.tsx e HomePage.tsx.
@@ -25,6 +26,7 @@ function App() {
             <Route path="ficha-virtual" element={<CharacterViewerPage />} />
             <Route path="iniciativa" element={<InitiativePage />} />
             <Route path="transformation" element={<TransformationPage />} />
+            <Route path="escalar-monstro" element={<MonsterScalerPage />} />
           </Route>
         </Routes>
       </Router>

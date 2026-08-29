@@ -12,6 +12,7 @@ import {
   PhoneIphone as ViewerIcon,
   FormatListNumbered as InitiativeIcon,
   Transform as TransformIcon,
+  Whatshot as ScalerIcon,
   ArrowForward as ArrowIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -73,6 +74,18 @@ const tools: ToolCard[] = [
       'Cálculos automáticos',
       'Exportação PDF/PNG',
       'Fácil de usar',
+    ],
+  },
+  {
+    title: 'Escalar Monstro',
+    description: 'Pegue a ficha de qualquer criatura do Archives of Nethys e adapte para o nível que a sua mesa precisa, pelas tabelas do GM Core.',
+    icon: <ScalerIcon sx={{ fontSize: 32 }} />,
+    path: '/escalar-monstro',
+    features: [
+      'Busca no Archives of Nethys',
+      'Tabelas do GM Core',
+      'Ajuste fino por estatística',
+      'Exportação PNG',
     ],
   },
 ];
