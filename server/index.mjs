@@ -6,6 +6,7 @@ import { resolveFeat, resolveSpecial } from '../api/_lib/feat-core.js'
 import { resolveCompanion } from '../api/_lib/companion-core.js'
 import { resolveCreatures } from '../api/_lib/creature-core.js'
 import { resolveMonster } from '../api/_lib/monster-core.js'
+import { resolveAfflictions } from '../api/_lib/affliction-core.js'
 import { hasTranslationKey } from '../api/_lib/aon.js'
 import {
   readCharacter,
@@ -147,6 +148,24 @@ const server = http.createServer(async (req, res) => {
   
   // Busca genérica (habilidades especiais, etc.)
   if (pathname === '/api/search') {
+    // Modo aflição (?affliction=): venenos e doenças com estágios, sem tradução.
+    // Vive no mesmo endpoint que a busca genérica porque o plano Hobby da Vercel
+    // só permite 12 funções serverless — ver api/search.js.
+    const afflictionTerm = (parsedUrl.searchParams.get('affliction') || '').trim()
+    if (afflictionTerm) {
+      try {
+        const limit = parseInt(parsedUrl.searchParams.get('limit'), 10) || 10
+        const page = await resolveAfflictions(afflictionTerm, limit)
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify(page))
+      } catch (e) {
+        console.error('[/api/search?affliction] Error:', e)
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: e.message }))
+      }
+      return
+    }
+
     const name = parsedUrl.searchParams.get('name')
     if (!name) {
       res.writeHead(400, { 'Content-Type': 'application/json' })
