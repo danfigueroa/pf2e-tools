@@ -88,8 +88,12 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   "Assurance (Athletics)", que não existe assim no AON — mas aplicá-lo sempre resolvia
   "Staff of Healing (Greater)" como o item **base**, com nível, preço e magias errados. Por isso
   `resolveEntry` tenta o **nome cru primeiro** e só cai na limpeza quando ele não casa exato.
-- **`monster`** é a ficha COMPLETA de uma criatura, para o módulo de escalar monstro
-  (`api/_lib/monster-core.js` + `creature-parse.js`). Devolve os números **com o degrau de
+- **`creature?name=`** é a ficha COMPLETA de uma criatura, para o módulo de escalar monstro
+  (`api/_lib/monster-core.js` + `creature-parse.js`). Vive no MESMO arquivo que a busca porque o
+  plano Hobby da Vercel permite **12 funções serverless por deploy** e `api/*.js` já tinha 12 —
+  um `api/monster.js` separado virava a 13ª, o `vercel build` passava e o deploy falhava depois,
+  na criação das funções, deixando produção parada no deploy anterior sem erro de build nenhum.
+  **Ao acrescentar endpoint novo, confira a contagem antes.** Devolve os números **com o degrau de
   benchmark de cada um** (`ac_scale`, `strike_damage_scale`, …) e o stat block parseado do campo
   `markdown` — que já vem de graça, porque `searchAonRaw` não filtra `_source`. Como `creature`,
   **não passa pela cadeia de tradução**: a prosa das habilidades fica em inglês de propósito.

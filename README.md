@@ -678,7 +678,7 @@ a exportação em PNG captura via `html2canvas`.
 | `components/MonsterStatBlock`    | Renderiza o bloco no layout Paizo (subtree capturado pelo `html2canvas`)       |
 | `components/MonsterExport`       | Exportação em PNG e botão "Enviar para Iniciativa"                            |
 
-Backend: `api/monster.js` → `api/_lib/monster-core.js` (números + degraus) e
+Backend: `api/creature.js?name=` → `api/_lib/monster-core.js` (números + degraus) e
 `api/_lib/creature-parse.js` (golpes, habilidades e conjuração, do campo `markdown` da AON).
 
 #### A regra que explica o módulo
@@ -728,7 +728,7 @@ O servidor (`server/index.mjs`) fornece endpoints para buscar dados da Archives 
 | GET    | `/api/spell`     | `name`     | Busca informações detalhadas de uma magia        |
 | GET    | `/api/companion` | `name`     | Stats de companheiro animal                      |
 | GET    | `/api/creature`  | `q`, `minLevel`, `maxLevel`, `limit` | Busca criaturas por nome e/ou faixa de nível — sem tradução |
-| GET    | `/api/monster`   | `name`     | Ficha completa de uma criatura, com o degrau de benchmark de cada estatística — sem tradução |
+| GET    | `/api/creature`  | `name`     | Ficha completa de uma criatura, com o degrau de benchmark de cada estatística — sem tradução |
 | POST   | `/api/clear-cache` | —        | Limpa o cache de descrições                      |
 | GET    | `/api/state`     | `char`     | Estado de jogo compartilhado de um personagem    |
 | POST   | `/api/state`     | body       | Grava uma fatia (`{ char, field, data }`)        |
@@ -737,10 +737,13 @@ As variantes **plurais** (`/api/feats`, `/api/searches`, `/api/spells`, `/api/co
 uma lista de nomes para busca em lote. Todas as descrições são **traduzidas para pt-BR** via Groq
 antes de retornar.
 
-`/api/creature` e `/api/monster` são a exceção: devolvem só os campos já estruturados do índice da
+`/api/creature` (nos dois modos) é a exceção: devolvem só os campos já estruturados do índice da
 AON (números e vocabulário curto) e o stat block parseado, sem passar por nenhum modelo — traduzir
 cada busca estouraria o rate limit do tier gratuito e deixaria a busca lenta demais para usar na
-mesa. No `/api/monster`, a prosa das habilidades fica em inglês por decisão de produto.
+mesa. No modo `?name=`, a prosa das habilidades fica em inglês por decisão de produto.
+
+> Os dois modos moram no mesmo arquivo porque o plano Hobby da Vercel permite **12 funções
+> serverless por deploy**, e `api/*.js` já tinha 12. Confira a contagem antes de criar um endpoint.
 
 ### Exemplo de Resposta `/api/spell`
 

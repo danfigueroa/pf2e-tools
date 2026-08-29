@@ -1,4 +1,4 @@
-// Cliente de /api/monster: a ficha completa de uma criatura da AON.
+// Cliente de `/api/creature?name=`: a ficha completa de uma criatura da AON.
 //
 // Mesma forma de `services/creatures.ts` — cache em memória e dedupe de
 // requisições em voo, sem `localStorage`. Aqui não há tradução envolvida, então
@@ -27,7 +27,7 @@ export async function fetchMonster(name: string): Promise<MonsterDetail | null> 
 
     const request = (async (): Promise<MonsterDetail | null> => {
         try {
-            const res = await fetch(`/api/monster?name=${encodeURIComponent(name.trim())}`)
+            const res = await fetch(`/api/creature?name=${encodeURIComponent(name.trim())}`)
             if (!res.ok) return null
             const data = (await res.json()) as MonsterDetail
             if (!data?.name) return null

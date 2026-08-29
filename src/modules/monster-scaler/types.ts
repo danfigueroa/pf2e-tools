@@ -1,6 +1,6 @@
 // Tipos do módulo de escalar monstro.
 //
-// `MonsterDetail` é o que /api/monster devolve: os números da AON com o DEGRAU
+// `MonsterDetail` é o que `/api/creature?name=` devolve: os números da AON com o DEGRAU
 // de benchmark de cada um ao lado. `ScaledMonster` é o resultado da conta.
 
 import type { ScaleColumn } from './data/creatureTables'
