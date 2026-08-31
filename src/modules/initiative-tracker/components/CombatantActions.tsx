@@ -17,9 +17,11 @@ import { Box, Button, Stack, Tooltip } from '@mui/material'
 import {
     Bolt as ConditionIcon,
     Coronavirus as AfflictionIcon,
+    ExpandMore as ExpandIcon,
     LocalFireDepartment as PersistentIcon,
+    MenuBook as SheetIcon,
 } from '@mui/icons-material'
-import { CONDITION_COLOR, gold, status } from '../../../theme'
+import { CONDITION_COLOR, gold, green, status } from '../../../theme'
 import type { CombatantView } from '../types'
 
 interface Props {
@@ -27,6 +29,10 @@ interface Props {
     onOpenConditions: () => void
     onOpenAfflictions: () => void
     onOpenPersistent: () => void
+    /** Nome na AON, ou `null` num combatente que não tem ficha para abrir. */
+    sheetName: string | null
+    sheetOpen: boolean
+    onToggleSheet: () => void
 }
 
 interface ActionProps {
@@ -90,6 +96,9 @@ export const CombatantActions = ({
     onOpenConditions,
     onOpenAfflictions,
     onOpenPersistent,
+    sheetName,
+    sheetOpen,
+    onToggleSheet,
 }: Props) => {
     const { name } = view.combatant
 
@@ -138,6 +147,42 @@ export const CombatantActions = ({
                 ariaLabel={`Dano persistente de ${name}${checkDue ? ', teste plano pendente' : ''}`}
                 onClick={onOpenPersistent}
             />
+
+            {/* Este não abre diálogo, abre uma gaveta no próprio cartão — daí a
+                seta à direita em vez de contagem, e o verde da moldura em vez de
+                um dos três acentos de estado. Personagem não entra: a ficha dele
+                é a Ficha Virtual, que já tem tudo e é da mesa. */}
+            {sheetName && (
+                <Tooltip title={sheetOpen ? 'Fechar a ficha' : `Ver a ficha de ${sheetName} sem sair daqui`}>
+                    <Button
+                        size="small"
+                        variant={sheetOpen ? 'contained' : 'outlined'}
+                        startIcon={<SheetIcon sx={{ fontSize: '1rem' }} />}
+                        endIcon={
+                            <ExpandIcon
+                                sx={{
+                                    fontSize: '1rem',
+                                    transition: 'transform 150ms',
+                                    transform: sheetOpen ? 'rotate(180deg)' : 'none',
+                                }}
+                            />
+                        }
+                        onClick={onToggleSheet}
+                        aria-expanded={sheetOpen}
+                        aria-label={`${sheetOpen ? 'Fechar' : 'Ver'} a ficha de ${name}`}
+                        sx={{
+                            flex: '0 0 auto',
+                            px: 1,
+                            fontSize: '0.75rem',
+                            ...(sheetOpen
+                                ? { backgroundColor: green.main, '&:hover': { backgroundColor: green.deepest } }
+                                : { color: green.main, borderColor: green.main + '66', '&:hover': { borderColor: green.main } }),
+                        }}
+                    >
+                        Ficha
+                    </Button>
+                </Tooltip>
+            )}
         </Stack>
     )
 }

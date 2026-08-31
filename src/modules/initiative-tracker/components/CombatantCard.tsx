@@ -30,7 +30,9 @@ import {
 import { gold, green, ink, parchment, rule } from '../../../theme'
 import { signed } from '../../character-viewer/helpers'
 import { translateTrait } from '../../transformation-statblock/i18n'
+import { aonNameOf } from '../importCharacter'
 import { CombatantActions } from './CombatantActions'
+import { CombatantSheet } from './CombatantSheet'
 import { CombatantConditions } from './CombatantConditions'
 import { CombatantAfflictions } from './CombatantAfflictions'
 import { CombatantPersistent } from './CombatantPersistent'
@@ -76,6 +78,10 @@ export const CombatantCard = ({
     // ruim para leitor de teclado e leitor de tela. Só um existe por vez.
     const isPhone = useMediaQuery(theme.breakpoints.down('sm'))
     const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null)
+    // A gaveta da ficha é local ao cartão e some ao recarregar de propósito: é
+    // uma consulta, não estado do encontro. O componente só monta enquanto
+    // aberta, então a busca acontece na abertura e reabrir bate no cache.
+    const [sheetOpen, setSheetOpen] = useState(false)
     const [initiative, setInitiative] = useState(String(combatant.initiative))
 
     // O campo é local para não despachar a cada tecla, mas a iniciativa também
@@ -90,6 +96,7 @@ export const CombatantCard = ({
     }
 
     const dimmed = combatant.defeated || combatant.delayed
+    const aonName = npc ? aonNameOf(npc) : null
 
     // No celular acompanha o nome; no desktop fecha a faixa à direita.
     const controls = (
@@ -222,6 +229,9 @@ export const CombatantCard = ({
                     onOpenConditions={onOpenConditions}
                     onOpenAfflictions={onOpenAfflictions}
                     onOpenPersistent={onOpenPersistent}
+                    sheetName={aonName}
+                    sheetOpen={sheetOpen}
+                    onToggleSheet={() => setSheetOpen((open) => !open)}
                 />
 
                 {/* As condições ativas descem para baixo dos botões: a fileira é
@@ -236,6 +246,10 @@ export const CombatantCard = ({
                 />
 
                 <CombatantPersistent persistent={view.persistent} onChange={view.setPersistent} />
+
+                {npc && aonName && sheetOpen && (
+                    <CombatantSheet npc={npc} aonName={aonName} modified={view.mods.active.length > 0} />
+                )}
 
                 {(combatant.defenseNotes?.length || npc?.traits?.length) ? (
                     <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
