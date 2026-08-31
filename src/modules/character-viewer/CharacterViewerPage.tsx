@@ -32,10 +32,12 @@ import { CharacterHeader } from './components/CharacterHeader'
 import { DescriptionDrawer, type DescriptionRequest } from './components/DescriptionDrawer'
 import { ConditionsBar } from './components/ConditionsBar'
 import { AfflictionsBar } from './components/AfflictionsBar'
+import { PersistentDamageBar } from './components/PersistentDamageBar'
 import { MythicPointsBar } from './components/MythicPointsBar'
-import { afflictionsKeyFor, conditionsKeyFor, legacyCharKey, mythicKeyFor } from './charId'
+import { afflictionsKeyFor, conditionsKeyFor, legacyCharKey, mythicKeyFor, persistentKeyFor } from './charId'
 import { useConditions } from './components/useConditions'
 import { useAfflictions } from './components/useAfflictions'
+import { usePersistentDamage } from './components/usePersistentDamage'
 import { useMythicPoints } from './components/useMythicPoints'
 import { isMythicCharacter, MYTHIC_POINTS_MAX } from './helpers'
 import type { ConditionModifiers } from './conditions'
@@ -145,6 +147,10 @@ export const CharacterViewerPage = () => {
         build ? afflictionsKeyFor(build) : 'none/afflictions',
     )
 
+    const persistentDamage = usePersistentDamage(
+        build ? persistentKeyFor(build) : 'none/persistent',
+    )
+
     const conditions = useConditions(
         build ? conditionsKeyFor(build) : 'none/conditions',
         build?.level ?? 1,
@@ -225,6 +231,10 @@ export const CharacterViewerPage = () => {
 
             <ConditionsBar conditions={conditions} />
             <AfflictionsBar afflictions={afflictions.afflictions} onRemove={afflictions.remove} />
+            <PersistentDamageBar
+                persistent={persistentDamage.persistent}
+                onRemove={persistentDamage.remove}
+            />
 
             {isMythicCharacter(build) && <MythicPointsBar points={mythicPoints} />}
 
