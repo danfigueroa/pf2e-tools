@@ -493,6 +493,7 @@ Virtual de quem estiver jogando, e o dano que o jogador marcar na ficha aparece 
 | `dice.ts`                     | Lê a fórmula de dano da prosa da AON e rola — o único ponto que rola dados         |
 | `importCharacter.ts`          | Ficha ou criatura da AON → combatente                                              |
 | `components/CombatantCard`    | Cartão único (personagem e monstro), com PV, condições e ações do combatente       |
+| `components/CombatantActions` | Os três botões de condição, aflição e dano persistente, com contagem e pendência   |
 | `components/BulkDamageDialog` | Dano em área com resultado de salvaguarda por alvo                                 |
 | `components/AonCreatureSearch`| Busca de criaturas em `/api/creature`, com quantidade                              |
 

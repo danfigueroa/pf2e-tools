@@ -18,7 +18,6 @@ import {
 import {
     ArrowDownward as DownIcon,
     ArrowUpward as UpIcon,
-    Bolt as ConditionIcon,
     ContentCopy as DuplicateIcon,
     Delete as DeleteIcon,
     HourglassEmpty as DelayIcon,
@@ -31,6 +30,7 @@ import {
 import { gold, green, ink, parchment, rule } from '../../../theme'
 import { signed } from '../../character-viewer/helpers'
 import { translateTrait } from '../../transformation-statblock/i18n'
+import { CombatantActions } from './CombatantActions'
 import { CombatantConditions } from './CombatantConditions'
 import { CombatantAfflictions } from './CombatantAfflictions'
 import { CombatantPersistent } from './CombatantPersistent'
@@ -217,14 +217,16 @@ export const CombatantCard = ({
                     {!isPhone && controls}
                 </Stack>
 
-                <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 1, flexWrap: 'wrap', gap: 0.5 }}>
-                    <Tooltip title="Condições">
-                        <IconButton size="small" onClick={onOpenConditions} sx={{ p: 0.4 }} aria-label="Condições">
-                            <ConditionIcon sx={{ fontSize: '1rem' }} />
-                        </IconButton>
-                    </Tooltip>
-                    <CombatantConditions view={view} />
-                </Stack>
+                <CombatantActions
+                    view={view}
+                    onOpenConditions={onOpenConditions}
+                    onOpenAfflictions={onOpenAfflictions}
+                    onOpenPersistent={onOpenPersistent}
+                />
+
+                {/* As condições ativas descem para baixo dos botões: a fileira é
+                    o que se OPERA, os chips são o que se LÊ. */}
+                <CombatantConditions view={view} />
 
                 <CombatantAfflictions
                     afflictions={view.afflictions}
@@ -272,12 +274,6 @@ export const CombatantCard = ({
                         <DuplicateIcon fontSize="small" sx={{ mr: 1 }} /> Duplicar
                     </MenuItem>
                 )}
-                <MenuItem onClick={() => { onOpenAfflictions(); closeMenu() }}>
-                    Aplicar aflição…
-                </MenuItem>
-                <MenuItem onClick={() => { onOpenPersistent(); closeMenu() }}>
-                    Dano persistente…
-                </MenuItem>
                 <MenuItem onClick={() => { onRemove(); closeMenu() }}>
                     <DeleteIcon fontSize="small" sx={{ mr: 1 }} /> Remover
                 </MenuItem>

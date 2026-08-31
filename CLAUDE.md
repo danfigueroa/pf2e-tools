@@ -369,6 +369,20 @@ cada fatia de estado mora**:
   Cada um leva `aria-label` com o nome do combatente — numa lista longa, "Dano, Dano, Dano" não
   diz de quem. Pelo mesmo motivo o bloco de ↑↓⋮ é renderizado **uma vez** (via `useMediaQuery`, não
   com dois `display: none`): dois botões de mesmo rótulo no DOM atrapalham teclado e leitor de tela.
+- **Condição, aflição e dano persistente são três botões escritos** (`CombatantActions.tsx`), pela
+  mesma razão do "Dano"/"Cura": condição era um ⚡ mudo e os outros dois só existiam dentro do menu
+  `⋮`, então envenenar um alvo exigia adivinhar onde a opção estava. O `⋮` ficou só com o que
+  governa a **presença** do combatente no encontro (adiar, derrotado, duplicar, remover) — dois
+  caminhos para a mesma ação convidam a procurar no lugar errado.
+  - Cada botão é também o **resumo** da sua fatia (leva a contagem do que está ativo) e vira **âmbar
+    sólido** quando aquela fatia espera resposta do GM: salvaguarda de estágio vencida
+    (`roundsLeft === 0`) ou teste plano pendente (`checkDue`). Sem isso, um veneno vencido só
+    aparecia para quem rolasse até a caixa dele.
+  - A contagem de condições sai de `mods.active`, **não** do estado cru — é a mesma lista que os
+    chips logo abaixo desenham, já com as impostas e as do estágio de aflição. Duas contas para a
+    mesma lista sairiam de sincronia.
+  - Largura **pelo conteúdo** (`flex: '0 0 auto'`), como os chips de condição: com `flex-grow`, o
+    botão que quebra para a segunda linha virava uma barra larga sozinha.
 - **Busca de criatura aceita nome, faixa de nível, ou os dois** (`AonCreatureSearch`). Buscar só
   por faixa é como se monta encontro, então a lista precisa de ordenação estável (nível, depois
   nome) e de **chegar até o fim**: 20 por página e "Carregar mais" até `hasMore` virar falso — uma

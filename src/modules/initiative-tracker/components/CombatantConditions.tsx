@@ -32,16 +32,13 @@ export const CombatantConditions = ({ view }: { view: CombatantView }) => {
         for (const id of Object.keys(stageConditions(a))) fromAffliction.set(id, a.def.name)
     }
 
-    if (mods.active.length === 0) {
-        return (
-            <Typography variant="caption" sx={{ color: ink.disabled, fontStyle: 'italic' }}>
-                Sem condições
-            </Typography>
-        )
-    }
+    // Nada a dizer quando não há condição: o "Sem condições" existia como
+    // rótulo do ⚡ mudo que abria o diálogo. Com o botão escrito na fileira de
+    // ações, repetir isso é só ruído numa lista de dez combatentes.
+    if (mods.active.length === 0) return null
 
     return (
-        <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
+        <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75, mt: 0.75 }}>
             {mods.active.map((entry) => {
                 const def = CONDITIONS_BY_ID[entry.id]
                 if (!def) return null
