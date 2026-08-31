@@ -30,12 +30,14 @@ export const charSlug = (build: BuildInfo): string => charSlugFromName(build.nam
 export const hpKeyForSlug = (slug: string): string => `${slug}/hp`
 export const conditionsKeyForSlug = (slug: string): string => `${slug}/conditions`
 export const afflictionsKeyForSlug = (slug: string): string => `${slug}/afflictions`
+export const persistentKeyForSlug = (slug: string): string => `${slug}/persistent`
 
 export const hpKeyFor = (build: BuildInfo): string => hpKeyForSlug(charSlug(build))
 export const slotsKeyFor = (build: BuildInfo): string => `${charSlug(build)}/slots`
 export const mythicKeyFor = (build: BuildInfo): string => `${charSlug(build)}/mythic`
 export const conditionsKeyFor = (build: BuildInfo): string => conditionsKeyForSlug(charSlug(build))
 export const afflictionsKeyFor = (build: BuildInfo): string => afflictionsKeyForSlug(charSlug(build))
+export const persistentKeyFor = (build: BuildInfo): string => persistentKeyForSlug(charSlug(build))
 
 /** Companheiro/familiar, namespaced dentro do personagem dono. */
 export const petKeyFor = (build: BuildInfo, kind: string, name: string, idx: number): string =>

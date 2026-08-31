@@ -7,6 +7,8 @@
 //     ├─ hp             → {"v":1,"data":{"current":57,"temp":0},"updatedAt":…}
 //     ├─ slots          → {"v":1,"data":{"used":{…},"focusUsed":1},"updatedAt":…}
 //     ├─ conditions     → {"v":1,"data":{"frightened":2},"updatedAt":…}
+//     ├─ afflictions    → {"v":1,"data":[{"def":…,"stage":2,…}],"updatedAt":…}
+//     ├─ persistent     → {"v":1,"data":[{"formula":"1d6","type":"fire",…}],"updatedAt":…}
 //     ├─ mythic         → {"v":1,"data":{"used":1},"updatedAt":…}
 //     └─ pet:pet:urso#0 → {"v":1,"data":{"current":40,"temp":0},"updatedAt":…}
 //
@@ -31,7 +33,7 @@ const TTL_SECONDS = 180 * 24 * 60 * 60
 export const MAX_FIELD_BYTES = 8 * 1024
 
 const SLUG_RE = /^[a-z0-9-]{1,64}$/
-const FIELD_RE = /^(hp|slots|conditions|afflictions|mythic|pet:[a-z0-9:#-]{1,80})$/
+const FIELD_RE = /^(hp|slots|conditions|afflictions|persistent|mythic|pet:[a-z0-9:#-]{1,80})$/
 
 export const isValidSlug = (slug) => typeof slug === 'string' && SLUG_RE.test(slug)
 export const isValidField = (field) => typeof field === 'string' && FIELD_RE.test(field)
