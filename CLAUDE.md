@@ -154,7 +154,8 @@ abrir o site entra na mesma mesa.
   Vercel e `UPSTASH_REDIS_REST_*` do console da Upstash). **Sem credenciais, cai num `Map` de
   processo** e o app segue funcionando; o indicador avisa "Só neste aparelho".
 - **Um HASH por personagem, um campo por fatia** (`hp`, `slots`, `conditions`, `afflictions`,
-  `mythic`, `pet:<kind>:<slug>#<i>`).
+  `persistent`, `mythic`, `pet:<kind>:<slug>#<i>`). Campo novo precisa entrar no `FIELD_RE` de
+  `table-store.js`, senão o POST volta "Campo inválido" e o estado fica só no `localStorage`.
   Documento único faria dois jogadores editando ao mesmo tempo se sobrescreverem — quem marcasse
   condição apagaria o dano do outro. `HSET` por campo dá atomicidade por fatia sem transação, e a
   leitura continua sendo um `HGETALL` só. Dentro da **mesma** fatia a última escrita ainda vence.
@@ -302,10 +303,12 @@ A plataforma é usada na mesa, no celular. Toda mudança de layout precisa passa
   os dois casos (`sharedMod`) e o resto aparece como "FOR −2 · DES −1 a mais". Desarmados sabem o
   atributo (`usesDex`), então ali o ajuste é exato. Efeitos que não são modificador (ações perdidas
   por Lento, teste plano do Estupefato) ficam em `note` e saem no painel de detalhes.
-- **Aflições** (`useAfflictions.ts` + `AfflictionsBar.tsx`): a ficha é a ponta de LEITURA do que o
-  GM aplicou no combate — mesma fatia da mesa (`<slug>/afflictions`). As condições do estágio
-  entram em `useConditions` pelo parâmetro `derived`: contam nos modificadores (o veneno baixa os
-  números de verdade) mas nunca no estado gravado.
+- **Aflições** (`useAfflictions.ts` + `AfflictionsBar.tsx`) e **dano persistente**
+  (`usePersistentDamage.ts` + `PersistentDamageBar.tsx`): a ficha é a ponta de LEITURA do que o GM
+  aplicou no combate — mesmas fatias da mesa (`<slug>/afflictions`, `<slug>/persistent`). O dano cai
+  no gerenciador de Iniciativa; aqui só se vê e se remove. As condições do estágio entram em
+  `useConditions` pelo parâmetro `derived`: contam nos modificadores (o veneno baixa os números de
+  verdade) mas nunca no estado gravado.
 - Descrições da AON são buscadas **sob demanda** ao tocar num item (`DescriptionDrawer` →
   `services/descriptions.ts`); a última ficha fica em `sessionStorage`.
 
@@ -319,11 +322,14 @@ cada fatia de estado mora**:
 | Combatentes, rodada, turno, durações, defesas | `useReducer` + `localStorage` (`pf2e:initiative:v1`) |
 | PV e condições de **personagem** | estado da mesa (Redis), **as mesmas chaves da Ficha Virtual** |
 | PV e condições de **monstro** | dentro do encontro (reducer) |
+| Aflições e dano persistente de **personagem** | estado da mesa (`afflictions`, `persistent`) |
+| Aflições e dano persistente de **monstro** | dentro do encontro (reducer) |
 
 - **O encontro é do GM, o personagem é da mesa.** Dois GMs veem encontros diferentes, mas o dano que
   qualquer um aplicar num personagem aparece na Ficha Virtual de quem estiver jogando, e vice-versa.
-  Por isso `api/_lib/table-store.js` **não mudou**: o dano em PC usa os campos `hp`/`conditions` que
-  já existiam, e monstro nenhum encosta no Redis.
+  O dano em PC usa os campos `hp`/`conditions` que a Ficha Virtual já tinha, e **monstro nenhum
+  encosta no Redis** — as fatias de monstro vivem inteiras no reducer. De `table-store.js` o módulo
+  só precisou de dois campos novos no `FIELD_RE`, `afflictions` e `persistent`.
 - **`useEncounterParty` levanta o estado compartilhado para a página**, em vez de chamar
   `useHpTracker`/`useConditions` num componente por combatente (como faz `PetsSection`). O diálogo
   de dano em área precisa **ler** PV, PV temporário e resistência de todos os alvos para montar a
@@ -384,9 +390,43 @@ cada fatia de estado mora**:
     handler de `nextTurn` (nunca num efeito, mesma razão das durações) e pedem a salvaguarda ao
     vencer; os outros ganham um botão de avançar à mão. Fingir que cabem no relógio do combate
     seria pior do que dizer que não cabem.
+  - **O dano do estágio cai ao ENTRAR no estágio, nos dois sentidos.** RAW, os efeitos de um estágio
+    valem quando a criatura entra nele — e um sucesso na salvaguarda também é entrar num estágio, o
+    anterior. Por isso a condição em `enterStage` é a mudança de número, não "piorou"; estágio que
+    não mudou (o sucesso simples de uma aflição virulenta) não causa dano nenhum.
+  - **A fórmula de dano é lida da prosa no CLIENTE** (`dice.ts`), e não em `affliction-parse.js`
+    como o resto do parse: o texto do estágio já está gravado no estado da mesa, então parsear aqui
+    faz o dano valer para os venenos aplicados antes, sem migração de campo. Só vira dano o que tem
+    um TIPO ao lado ou a palavra `damage` — senão "clumsy 1" entraria na conta. Das 565 prosas de
+    estágio reais do índice, 262 têm dano legível; as demais realmente não falam de dano.
+  - **A duração máxima encerra a aflição sozinha** (`maxRoundsLeft`), quando cabe no combate. Aqui
+    o minuto entra (10 rodadas exatas), ao contrário da duração de ESTÁGIO: das 174 aflições reais,
+    59 usam "6 rounds" e 20 "6 minutes". Hora e dia continuam de fora, e o GM encerra à mão.
   - A do **personagem vive na mesa** (campo `afflictions`) e aparece na Ficha Virtual; a do
     **monstro vive no encontro**.
-- **Não há rolagem de dados**: a iniciativa é digitada. Os dados rolam na mesa.
+- **Dano persistente** (`persistentDamage.ts` + `components/CombatantPersistent.tsx` +
+  `PersistentDamageDialog.tsx`): RAW (Player Core), cai ao **final de cada turno** do alvo, com os
+  dados rolados de novo, e só então vem o **teste plano de CD 15** para acabar — CD 10 com ajuda
+  apropriada. Pode ser removido a qualquer momento, que é como cura e fim de combate o encerram.
+  - **O alvo é quem está SAINDO do turno, não quem entra.** `applyPersistent(state.activeId)` roda
+    antes do `dispatch` de `nextTurn` em `passTurn`; o tique de durações e de aflição continua sendo
+    do PRÓXIMO. Confundir os dois faz o dano cair uma posição adiantada na ordem.
+  - **`checkDue` só liga depois de o dano cair**: sem dano não há teste plano, e o cartão não deve
+    oferecer um botão que ainda não vale.
+  - **Estágio de aflição que impõe dano persistente cria a entrada sozinho** (`syncFromAffliction`),
+    com `fromAffliction` apontando para a aflição. A entrada é REGERADA a cada troca de estágio e
+    sai junto quando a aflição sai — nunca acumula uma cópia por tique. O que já existia com a mesma
+    fórmula e tipo é preservado, para o `checkDue` e a CD baixada não se perderem.
+  - Mesma divisão das aflições: a do **personagem vive na mesa** (campo `persistent`, visível na
+    Ficha Virtual por `PersistentDamageBar`); a do **monstro vive no encontro**.
+- **O que o app rola e o que não rola** (`dice.ts` é o único ponto que rola): rolagem de quem está
+  jogando continua na mesa — a iniciativa é digitada, e salvaguarda, salvaguarda de estágio e teste
+  plano de dano persistente são informados pelo GM em botões. O app rola os dois danos que o RAW
+  manda cair sem ninguém pedir: o do **estágio de uma aflição** e o **persistente do fim do turno**.
+  Pedir esses dois ao GM seria um clique por turno por combatente afligido, que é o trabalho que o
+  módulo existe para tirar da mesa. Em troca, **toda aplicação automática traz o memorial da rolagem
+  e um "Desfazer"** (`AutoDamage` em `useCombatantViews.ts`, com aviso próprio no topo — o dano
+  automático e a queda a 0 PV caem no mesmo handler e disputando um Snackbar só um seria lido).
 
 ## Módulo transformation-statblock (contexto que se perde fácil)
 

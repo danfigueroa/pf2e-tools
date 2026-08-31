@@ -472,6 +472,8 @@ Gerenciador de turnos e combate. A decisão central do módulo é **onde cada fa
 | Combatentes, rodada, turno, durações, defesas | `useReducer` + `localStorage` (só neste aparelho)      |
 | PV e condições de **personagem**              | estado da mesa — **as mesmas chaves da Ficha Virtual** |
 | PV e condições de **monstro**                 | dentro do encontro                                     |
+| Aflições e dano persistente de **personagem** | estado da mesa (aparecem na Ficha Virtual)             |
+| Aflições e dano persistente de **monstro**    | dentro do encontro                                     |
 
 Ou seja: o encontro é do mestre, mas o personagem é da mesa. O dano aplicado aqui aparece na Ficha
 Virtual de quem estiver jogando, e o dano que o jogador marcar na ficha aparece aqui.
@@ -486,6 +488,9 @@ Virtual de quem estiver jogando, e o dano que o jogador marcar na ficha aparece 
 | `useEncounterParty.ts`        | PV e condições de todos os personagens do encontro, no estado compartilhado       |
 | `useCombatantViews.ts`        | Unifica personagem e monstro numa interface só para o cartão                       |
 | `damage.ts` / `defenses.ts`   | Dano RAW e casamento de resistência/fraqueza/imunidade por tipo                    |
+| `afflictions.ts`              | Estágios de veneno/doença: salvaguarda, dano do estágio e duração máxima           |
+| `persistentDamage.ts`         | Dano persistente: entrada, teste plano de recuperação e vínculo com a aflição      |
+| `dice.ts`                     | Lê a fórmula de dano da prosa da AON e rola — o único ponto que rola dados         |
 | `importCharacter.ts`          | Ficha ou criatura da AON → combatente                                              |
 | `components/CombatantCard`    | Cartão único (personagem e monstro), com PV, condições e ações do combatente       |
 | `components/BulkDamageDialog` | Dano em área com resultado de salvaguarda por alvo                                 |
@@ -505,8 +510,21 @@ Virtual de quem estiver jogando, e o dano que o jogador marcar na ficha aparece 
     vencer.
 -   **Queda a 0 PV** é sugestão, nunca automatismo: Morrendo `1 + Ferido` para personagem,
     Derrotado para monstro.
+-   **Aflições** (venenos e doenças buscados na AON): crítico ✓ −2 estágios, ✓ −1, ✗ +1,
+    crítico ✗ +2; **Virulento** exige dois sucessos seguidos para melhorar um. O **dano escrito no
+    estágio cai sozinho** ao entrar nele — inclusive ao melhorar, que RAW também é entrar num
+    estágio. A aflição **some sozinha** quando a duração máxima vence, quando ela cabe no relógio do
+    combate (rodadas e minutos; hora e dia o mestre encerra à mão).
+-   **Dano persistente**: cai **ao final de cada turno** do alvo, com os dados rolados de novo, e em
+    seguida vem o **teste plano de CD 15** para acabar (CD 10 com ajuda apropriada). Pode ser
+    removido a qualquer momento, de personagem ou de monstro. O estágio de aflição que impõe dano
+    persistente cria a entrada sozinho, e ela sai junto quando a aflição sai.
 
-Não há rolagem de dados: a iniciativa é digitada. Os dados rolam na mesa.
+**O que o app rola e o que não rola.** Rolagem de quem está jogando continua na mesa: a iniciativa é
+digitada, e salvaguarda, salvaguarda de estágio e teste plano são informados pelo mestre em botões.
+O que o app rola são os dois danos que o RAW manda cair sem ninguém pedir — o do estágio de uma
+aflição e o persistente do fim do turno —, porque pedir esses dois viraria um clique por turno por
+combatente afligido. Cada aplicação automática mostra o memorial da rolagem e um **Desfazer**.
 
 ---
 
