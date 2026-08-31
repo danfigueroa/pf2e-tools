@@ -56,6 +56,7 @@ export function npcFromCreature(creature: AonCreature, index = 0): NpcCombatant 
         id: crypto.randomUUID(),
         kind: 'npc',
         name: index > 0 ? `${creature.name} ${index + 1}` : creature.name,
+        aonName: creature.name,
         level: creature.level,
         initiative: 0,
         ac: creature.ac,
@@ -106,4 +107,28 @@ export function npcFromManual(input: {
         immunities: [],
         defenseNotes: [],
     }
+}
+
+/**
+ * Nome pelo qual buscar a ficha completa deste monstro na AON.
+ *
+ * Encontro salvo antes do campo `aonName` não tem o nome de origem gravado, e
+ * a URL da AON não o carrega — então ele é reconstruído desfazendo os DOIS
+ * sufixos que o próprio app acrescenta: a marca de nível do escalar monstro
+ * ("Bugbear Tormentor (N8)") e a numeração de cópia ("Goblin Warrior 2"), nessa
+ * ordem, porque as duas se acumulam.
+ *
+ * Exige `aonUrl`: sem ele o combatente foi digitado à mão e não há ficha que
+ * buscar — melhor não oferecer o botão do que oferecer um que sempre falha.
+ *
+ * @returns o nome, ou `null` quando o combatente não veio da AON.
+ */
+export function aonNameOf(npc: NpcCombatant): string | null {
+    if (npc.aonName) return npc.aonName
+    if (!npc.aonUrl) return null
+    const stripped = npc.name
+        .replace(/\s+\d+$/, '')
+        .replace(/\s*\(N-?\d+\)$/i, '')
+        .trim()
+    return stripped || null
 }

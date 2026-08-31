@@ -72,7 +72,7 @@ export const MonsterScalerPage = () => {
 
     const handleSendToInitiative = () => {
         if (!scaled) return
-        appendCombatants([npcFromScaled(scaled)])
+        appendCombatants([npcFromScaled(scaled, 0, overrides)])
         navigate('/iniciativa')
     }
 

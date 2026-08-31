@@ -2,6 +2,7 @@ import type { ConditionModifiers } from '../character-viewer/conditions'
 import type { ConditionState } from '../character-viewer/components/useConditions'
 import type { AfflictionState, SaveDegree } from './afflictions'
 import type { PersistentDamage } from './persistentDamage'
+import type { ScaleOverrides } from '../monster-scaler/types'
 import type { DamageBreakdown } from './damage'
 
 export type CombatantKind = 'pc' | 'npc'
@@ -51,6 +52,21 @@ export interface NpcCombatant extends CombatantBase {
     persistent?: PersistentDamage[]
     traits?: string[]
     aonUrl?: string
+    /**
+     * Nome da criatura na AON — a chave para buscar a ficha completa.
+     *
+     * Guardado à parte porque o `name` do combatente DIVERGE dele: a cópia
+     * numerada vira "Goblin Warrior 2" e o escalar monstro marca o nível em
+     * "Bugbear Tormentor (N8)". Buscar pelo nome exibido não acharia nenhum
+     * dos dois.
+     */
+    aonName?: string
+    /**
+     * Ajustes finos de degrau escolhidos no escalar monstro. Sem eles, reabrir
+     * a ficha reescalaria pelos degraus da AON e mostraria números diferentes
+     * dos que estão no próprio cartão — pior do que não mostrar ficha nenhuma.
+     */
+    scaleOverrides?: ScaleOverrides
 }
 
 export type Combatant = PcCombatant | NpcCombatant

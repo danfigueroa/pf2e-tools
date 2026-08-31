@@ -6,6 +6,7 @@ import { CONDITIONS_BY_ID } from '../character-viewer/conditions'
 import { sanitizeAfflictions } from './afflictions'
 import { sanitizePersistent } from './persistentDamage'
 import { emptyEncounter } from './encounterReducer'
+import type { ScaleOverrides } from '../monster-scaler/types'
 import type { Combatant, EncounterState, NpcCombatant, PcCombatant } from './types'
 
 const STORAGE_KEY = 'pf2e:initiative:v1'
@@ -37,6 +38,20 @@ function conditionMap(value: unknown): Record<string, number> {
         out[id] = Math.max(1, raw)
     }
     return out
+}
+
+/**
+ * Ajustes de degrau do escalar monstro: só chave e valor em texto entram.
+ * `scaleMonster` valida a coluna contra a tabela, então um degrau inventado
+ * aqui não vira número errado — cai fora lá.
+ */
+function scaleOverrides(value: unknown): ScaleOverrides | undefined {
+    if (!value || typeof value !== 'object') return undefined
+    const out: Record<string, string> = {}
+    for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
+        if (typeof raw === 'string') out[key] = raw
+    }
+    return Object.keys(out).length > 0 ? (out as ScaleOverrides) : undefined
 }
 
 function sanitizeCombatant(raw: unknown): Combatant | null {
@@ -73,6 +88,8 @@ function sanitizeCombatant(raw: unknown): Combatant | null {
             persistent: sanitizePersistent(c.persistent),
             traits: strings(c.traits),
             aonUrl: typeof c.aonUrl === 'string' ? c.aonUrl : undefined,
+            aonName: typeof c.aonName === 'string' ? c.aonName : undefined,
+            scaleOverrides: scaleOverrides(c.scaleOverrides),
         }
         return npc
     }

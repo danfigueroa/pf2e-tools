@@ -6,9 +6,19 @@
 // ver qual é qual.
 
 import type { NpcCombatant } from '../initiative-tracker/types'
-import type { ScaledMonster } from './types'
+import type { ScaledMonster, ScaleOverrides } from './types'
 
-export function npcFromScaled(monster: ScaledMonster, index = 0): NpcCombatant {
+/**
+ * @param overrides os ajustes finos de degrau, levados junto para o cartão da
+ *   Iniciativa poder reabrir a ficha com os MESMOS números que saíram daqui.
+ *   Sem eles, a ficha reescalaria pelos degraus da AON e mostraria um AC
+ *   diferente do que está no próprio cartão.
+ */
+export function npcFromScaled(
+    monster: ScaledMonster,
+    index = 0,
+    overrides: ScaleOverrides = {},
+): NpcCombatant {
     const maxHp = Math.max(1, monster.hp)
     const base = `${monster.source.name} (N${monster.level})`
     return {
@@ -32,5 +42,7 @@ export function npcFromScaled(monster: ScaledMonster, index = 0): NpcCombatant {
         defenseNotes: monster.source.defenseNotes,
         traits: monster.source.traits,
         aonUrl: monster.source.url,
+        aonName: monster.source.name,
+        ...(Object.keys(overrides).length > 0 ? { scaleOverrides: overrides } : {}),
     }
 }
