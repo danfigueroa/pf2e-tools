@@ -2,9 +2,11 @@
 //
 // Motor puro: sem React, sem rede. A UI só desenha o que sai daqui.
 //
-// **O app não rola dados** — os dados rolam na mesa (mesma regra da iniciativa
-// digitada). Então o GM informa o GRAU da salvaguarda e o motor aplica o RAW.
+// **O app não rola SALVAGUARDA** — essa é rolagem de quem está jogando, então o
+// GM informa o GRAU e o motor aplica o RAW. O DANO do estágio é outra história:
+// ele cai sozinho, com desfazer (ver o cabeçalho de `dice.ts`).
 
+import { parseDamageEntries, type DamageEntry } from './dice'
 import { CONDITIONS_BY_ID } from '../character-viewer/conditions'
 import type { ConditionState } from '../character-viewer/components/useConditions'
 
@@ -50,6 +52,12 @@ export interface AfflictionState {
     stage: number
     /** Rodadas até a próxima salvaguarda; `null` quando não é em rodadas. */
     roundsLeft: number | null
+    /**
+     * Rodadas até a DURAÇÃO MÁXIMA acabar e a aflição sumir sozinha, ou `null`
+     * quando ela não cabe no relógio do combate (horas, dias) — aí quem tira é
+     * o GM, como já acontece com os estágios não contados em rodadas.
+     */
+    maxRoundsLeft: number | null
     /** Virulento exige DOIS sucessos seguidos para melhorar um estágio. */
     successStreak: number
 }
@@ -117,6 +125,37 @@ export function advanceStage(state: AfflictionState, by = 1): AfflictionState | 
     return { ...state, stage: capped, successStreak: 0, roundsLeft: roundsFor(state.def, capped) }
 }
 
+/**
+ * Dano escrito no estágio atual, lido da prosa da AON.
+ *
+ * O RAW aplica os efeitos de um estágio quando a criatura ENTRA nele — e "entra"
+ * vale nos dois sentidos, porque um sucesso na salvaguarda também é entrar no
+ * estágio anterior. Quem aplica é a view do combatente, no mesmo instante da
+ * troca de estágio; aqui só se lê o que está escrito.
+ */
+export function stageDamage(state: AfflictionState): DamageEntry[] {
+    return parseDamageEntries(stageOf(state)?.text ?? '')
+}
+
+/**
+ * Rodadas da duração MÁXIMA, quando ela cabe no relógio do combate.
+ *
+ * Ao contrário das durações de estágio (que só contam rodadas, porque 65% delas
+ * são em minutos ou dias e fingir o contrário seria pior), aqui o minuto entra:
+ * um minuto são 10 rodadas exatas, a duração máxima é o corte definitivo da
+ * aflição, e das 174 aflições reais do índice quase todas usam rodada ou minuto
+ * ("6 rounds" em 59 delas, "6 minutes" em 20). Hora e dia continuam de fora.
+ *
+ * O casamento é pelo COMEÇO do texto, não pelo texto inteiro: há entrada como
+ * "6 rounds (but see stage 3)" cuja ressalva não muda o número.
+ */
+const MAX_UNIT_ROUNDS: Record<string, number> = { round: 1, minute: 10 }
+
+export function maxDurationRounds(def: AfflictionDef): number | null {
+    const m = /^(\d+)\s*(round|minute)s?\b/i.exec((def.maxDurationRaw ?? '').trim())
+    return m ? parseInt(m[1], 10) * MAX_UNIT_ROUNDS[m[2].toLowerCase()] : null
+}
+
 /** Rodadas do estágio, ou `null` se a duração dele não for em rodadas. */
 export function roundsFor(def: AfflictionDef, stage: number): number | null {
     return def.stages[stage - 1]?.durationRounds ?? null
@@ -140,21 +179,38 @@ export function stageConditions(state: AfflictionState): Record<string, number> 
 }
 
 /**
- * Desce um round de cada aflição e devolve quais VENCERAM — as que pedem
- * salvaguarda agora. Aflição sem duração em rodadas passa intacta.
+ * Desce um round de cada aflição.
+ *
+ * Devolve três coisas: a lista nova, quais VENCERAM o estágio (pedem
+ * salvaguarda agora) e quais ACABARAM por duração máxima. As que acabaram já
+ * saem de `next` — a aflição some sozinha quando o tempo dela se esgota, sem o
+ * GM precisar lembrar de tirá-la. Aflição sem contagem em rodadas passa intacta.
  */
 export function tickAfflictions(
     afflictions: AfflictionState[],
-): { next: AfflictionState[]; due: string[] } {
+): { next: AfflictionState[]; due: string[]; expired: AfflictionState[] } {
     const due: string[] = []
-    const next = afflictions.map((a) => {
-        if (a.roundsLeft === null) return a
+    const expired: AfflictionState[] = []
+    const next: AfflictionState[] = []
+
+    for (const a of afflictions) {
+        const maxLeft = a.maxRoundsLeft === null ? null : a.maxRoundsLeft - 1
+        if (maxLeft !== null && maxLeft <= 0) {
+            expired.push(a)
+            continue
+        }
+        if (a.roundsLeft === null) {
+            next.push(maxLeft === a.maxRoundsLeft ? a : { ...a, maxRoundsLeft: maxLeft })
+            continue
+        }
         const left = a.roundsLeft - 1
-        if (left > 0) return { ...a, roundsLeft: left }
-        due.push(a.id)
-        return { ...a, roundsLeft: 0 }
-    })
-    return { next, due }
+        // Já em zero, a salvaguarda continua pendente a cada tique até o GM
+        // informar o grau — não some por esquecimento.
+        if (left <= 0) due.push(a.id)
+        next.push({ ...a, roundsLeft: Math.max(0, left), maxRoundsLeft: maxLeft })
+    }
+
+    return { next, due, expired }
 }
 
 export function newAffliction(def: AfflictionDef, stage: number): AfflictionState {
@@ -163,6 +219,7 @@ export function newAffliction(def: AfflictionDef, stage: number): AfflictionStat
         def,
         stage,
         roundsLeft: roundsFor(def, stage),
+        maxRoundsLeft: maxDurationRounds(def),
         successStreak: 0,
     }
 }
@@ -228,6 +285,11 @@ export function sanitizeAfflictions(raw: unknown): AfflictionState[] {
             },
             stage: Math.min(stage, def.stages.length),
             roundsLeft: Number.isFinite(a.roundsLeft as number) ? (a.roundsLeft as number) : null,
+            // Aflição gravada antes desta versão não tem o campo: cai no que a
+            // definição diz, em vez de virar "sem prazo" para sempre.
+            maxRoundsLeft: Number.isFinite(a.maxRoundsLeft as number)
+                ? (a.maxRoundsLeft as number)
+                : maxDurationRounds(def),
             successStreak: Math.max(0, Math.floor(Number(a.successStreak) || 0)),
         })
     }
