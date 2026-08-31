@@ -33,6 +33,7 @@ import { signed } from '../../character-viewer/helpers'
 import { translateTrait } from '../../transformation-statblock/i18n'
 import { CombatantConditions } from './CombatantConditions'
 import { CombatantAfflictions } from './CombatantAfflictions'
+import { CombatantPersistent } from './CombatantPersistent'
 import { CombatantVitals } from './CombatantVitals'
 import type { CombatantView } from '../types'
 
@@ -49,6 +50,7 @@ interface Props {
     onRemove: () => void
     onOpenConditions: () => void
     onOpenAfflictions: () => void
+    onOpenPersistent: () => void
 }
 
 export const CombatantCard = ({
@@ -64,6 +66,7 @@ export const CombatantCard = ({
     onRemove,
     onOpenConditions,
     onOpenAfflictions,
+    onOpenPersistent,
 }: Props) => {
     const { combatant, isActive } = view
     const npc = combatant.kind === 'npc' ? combatant : null
@@ -230,6 +233,8 @@ export const CombatantCard = ({
                     onRemove={view.removeAffliction}
                 />
 
+                <CombatantPersistent persistent={view.persistent} onChange={view.setPersistent} />
+
                 {(combatant.defenseNotes?.length || npc?.traits?.length) ? (
                     <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
                         {npc?.traits?.slice(0, 4).map((t: string) => (
@@ -269,6 +274,9 @@ export const CombatantCard = ({
                 )}
                 <MenuItem onClick={() => { onOpenAfflictions(); closeMenu() }}>
                     Aplicar aflição…
+                </MenuItem>
+                <MenuItem onClick={() => { onOpenPersistent(); closeMenu() }}>
+                    Dano persistente…
                 </MenuItem>
                 <MenuItem onClick={() => { onRemove(); closeMenu() }}>
                     <DeleteIcon fontSize="small" sx={{ mr: 1 }} /> Remover

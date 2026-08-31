@@ -1,8 +1,9 @@
 // Aplicar um veneno ou doença num combatente.
 //
 // Busca na AON (~230 aflições com estágios) e pede o grau da salvaguarda
-// INICIAL — o app não rola dados, então quem informa o resultado é o GM.
-// RAW: falha entra no estágio 1, falha crítica no 2, sucesso não afeta.
+// INICIAL — a salvaguarda é rolagem de quem está jogando, então quem informa o
+// resultado é o GM. RAW: falha entra no estágio 1, falha crítica no 2, sucesso
+// não afeta. O DANO do estágio, esse o app rola e aplica sozinho ao entrar.
 
 import { useEffect, useState } from 'react'
 import {
@@ -178,6 +179,8 @@ export function AfflictionDialog({ open, targetName, onClose, onApply }: Props) 
                         </Typography>
                         <Typography variant="caption" sx={{ color: ink.secondary }}>
                             Falha entra no estágio 1; falha crítica, no 2. Sucesso não aflige.
+                            O dano do estágio é rolado e aplicado na hora — o aviso traz o valor
+                            e o "Desfazer".
                         </Typography>
                         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 1, mt: 1 }}>
                             {SAVE_DEGREES.map((d) => (

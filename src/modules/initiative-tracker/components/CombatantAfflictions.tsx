@@ -1,14 +1,19 @@
 // Aflições ativas de um combatente, no cartão do combate.
 //
 // O que o GM precisa ver sem abrir nada: em que estágio está, o que o estágio
-// faz, e quando cai a próxima salvaguarda. O app NÃO rola os dados — mostra os
-// quatro graus e aplica o RAW sobre o que o GM escolher.
+// faz, quanto de dano ele causou e quando cai a próxima salvaguarda.
+//
+// A SALVAGUARDA não é rolada pelo app — mostram-se os quatro graus e o RAW é
+// aplicado sobre o que o GM escolher. O DANO do estágio é, e já caiu quando a
+// aflição entrou no estágio: o chip vermelho existe para o GM conferir o que
+// o app aplicou (o aviso da página traz o valor rolado e o "Desfazer").
 
 import { Box, Button, Chip, IconButton, Tooltip, Typography } from '@mui/material'
 import { Close as CloseIcon, ArrowForward as NextIcon } from '@mui/icons-material'
 import { CONDITIONS_BY_ID } from '../../character-viewer/conditions'
 import { gold, ink, parchment, rule, status } from '../../../theme'
-import { SAVE_DEGREES, stageOf, type AfflictionState } from '../afflictions'
+import { SAVE_DEGREES, stageDamage, stageOf, type AfflictionState } from '../afflictions'
+import { damageTypeLabel } from '../defenses'
 
 interface Props {
     afflictions: AfflictionState[]
@@ -35,6 +40,9 @@ export function CombatantAfflictions({ afflictions, onSave, onAdvance, onRemove 
                 // cujo estágio não se conta em rodadas (minutos, dias…).
                 const due = a.roundsLeft === 0
                 const untracked = a.roundsLeft === null
+                // O dano do estágio já caiu quando a aflição entrou nele; o
+                // chip está aqui para o GM conferir o que o app aplicou.
+                const damage = stageDamage(a).filter((d) => !d.persistent)
 
                 return (
                     <Box
@@ -79,9 +87,17 @@ export function CombatantAfflictions({ afflictions, onSave, onAdvance, onRemove 
                             </Typography>
                         )}
 
-                        {stage && stage.conditions.length > 0 && (
+                        {(stage?.conditions.length || damage.length) ? (
                             <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
-                                {stage.conditions.map((c) => (
+                                {damage.map((d, i) => (
+                                    <Chip
+                                        key={`dmg${i}`}
+                                        size="small"
+                                        label={`${d.formula} de ${damageTypeLabel(d.type).toLowerCase()}`}
+                                        sx={{ backgroundColor: status.error + '22', color: status.error, fontWeight: 700 }}
+                                    />
+                                ))}
+                                {stage?.conditions.map((c) => (
                                     <Chip
                                         key={c.id}
                                         size="small"
@@ -91,7 +107,7 @@ export function CombatantAfflictions({ afflictions, onSave, onAdvance, onRemove 
                                     />
                                 ))}
                             </Box>
-                        )}
+                        ) : null}
 
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap', mt: 0.75 }}>
                             <Typography variant="caption" sx={{ color: ink.secondary }}>
@@ -102,6 +118,9 @@ export function CombatantAfflictions({ afflictions, onSave, onAdvance, onRemove 
                                 {!untracked && !due && a.roundsLeft !== null
                                     ? ` · salva em ${a.roundsLeft} rodada${a.roundsLeft > 1 ? 's' : ''}`
                                     : ''}
+                                {a.maxRoundsLeft !== null
+                                    ? ` · acaba em ${a.maxRoundsLeft} rodada${a.maxRoundsLeft > 1 ? 's' : ''}`
+                                    : a.def.maxDurationRaw ? ` · máx. ${a.def.maxDurationRaw}` : ''}
                             </Typography>
                         </Box>
 

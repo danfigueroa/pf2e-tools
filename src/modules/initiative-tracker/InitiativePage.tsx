@@ -20,7 +20,8 @@ import { ConditionsDialog } from '../character-viewer/components/ConditionsDialo
 import { encounterReducer, activeOrder, peekNext } from './encounterReducer'
 import { loadEncounter, saveEncounter } from './encounterStorage'
 import { useEncounterParty } from './useEncounterParty'
-import { useCombatantViews } from './useCombatantViews'
+import { useCombatantViews, rollDamage, type AutoDamage } from './useCombatantViews'
+import { damageTypeLabel } from './defenses'
 import { EncounterToolbar } from './components/EncounterToolbar'
 import { CombatantCard } from './components/CombatantCard'
 import { BulkActionBar } from './components/BulkActionBar'
@@ -29,9 +30,27 @@ import { BulkHealDialog } from './components/BulkHealDialog'
 import { BulkConditionDialog } from './components/BulkConditionDialog'
 import { AddCombatantDialog } from './components/AddCombatantDialog'
 import { AfflictionDialog } from './components/AfflictionDialog'
+import { PersistentDamageDialog } from './components/PersistentDamageDialog'
 import type { Combatant, CombatantView } from './types'
 
 type OpenDialog = 'add' | 'damage' | 'heal' | 'condition' | 'end' | null
+
+/**
+ * "Eldarion sofreu 7 de Dano persistente (1d6 fogo → 4, 1 sangramento → 3)".
+ *
+ * O memorial da rolagem é obrigatório: o app rolou o dado no lugar da mesa, e
+ * quem está mediando precisa poder conferir o número — e discordar, pelo
+ * "Desfazer" ao lado.
+ */
+function describeAutoDamage(event: AutoDamage): string {
+    const parts = event.rolls.map((r) => {
+        const label = damageTypeLabel(r.type).toLowerCase()
+        if (r.immune) return `${r.formula} ${label}: imune`
+        const defended = r.final !== r.rolled ? ` → ${r.final}` : ''
+        return `${r.formula} ${label} ${r.rolled}${defended}`
+    })
+    return `${event.name} sofreu ${event.total} — ${event.source} (${parts.join(', ')})`
+}
 
 export const InitiativePage = () => {
     const [state, dispatch] = useReducer(encounterReducer, undefined, loadEncounter)
@@ -54,12 +73,18 @@ export const InitiativePage = () => {
         downedRef.current.push(id)
     }, [])
 
-    const views = useCombatantViews(state, party, dispatch, collectDowned)
+    // Dano que o app aplicou sozinho (estágio de aflição, dano persistente).
+    // O aviso mostra o que foi rolado e oferece "Desfazer" — nada acontece sem
+    // o GM poder voltar atrás, que é o preço de o app rolar por conta própria.
+    const [autoDamage, setAutoDamage] = useState<AutoDamage | null>(null)
+
+    const views = useCombatantViews(state, party, dispatch, collectDowned, setAutoDamage)
 
     const [selected, setSelected] = useState<Set<string>>(new Set())
     const [dialog, setDialog] = useState<OpenDialog>(null)
     const [conditionsFor, setConditionsFor] = useState<string | null>(null)
     const [afflictionsFor, setAfflictionsFor] = useState<string | null>(null)
+    const [persistentFor, setPersistentFor] = useState<string | null>(null)
     const [toast, setToast] = useState<{ text: string; action?: () => void; label?: string } | null>(null)
 
     // O encontro fica só neste aparelho — PV e condições dos personagens é que
@@ -119,24 +144,66 @@ export const InitiativePage = () => {
         if (upcoming?.kind === 'pc') party.tickAfflictions(upcoming.slug)
     }, [party])
 
-    const handleNext = () => {
+    /**
+     * Dano persistente de quem ACABA de terminar o turno.
+     *
+     * RAW (Player Core): o dano cai ao final do seu turno, com os dados rolados
+     * de novo a cada vez, e só então vem o teste plano de CD 15 para acabar com
+     * ele. Por isso o alvo é o combatente ATIVO — quem está saindo —, e não o
+     * próximo, que é quem recebe o tique de durações e de aflição.
+     *
+     * Fica no handler, nunca num efeito: um efeito que lê estado e escreve na
+     * mesa reagiria ao próprio `subscribeSnapshot`, pela mesma razão já
+     * documentada para as durações.
+     */
+    const applyPersistent = useCallback((leavingId: string | null) => {
+        if (!leavingId) return
+        const view = viewsById.get(leavingId)
+        if (!view || view.persistent.length === 0) return
+
+        const { rolls, total } = rollDamage(view.persistent, view.defense)
+        const before = { current: view.current, temp: view.temp }
+        if (total > 0) view.applyDamage(total)
+
+        // Agora o teste plano existe: só depois de o dano cair é que se rola
+        // para se livrar dele.
+        view.setPersistent(view.persistent.map((p) => ({ ...p, checkDue: true })))
+
+        setAutoDamage({
+            combatantId: leavingId,
+            name: view.combatant.name,
+            source: 'Dano persistente',
+            rolls,
+            total,
+            undo: () => view.setVitals(before.current, before.temp),
+        })
+    }, [viewsById])
+
+    /** Tudo que acontece ao passar a vez, na ordem do RAW. */
+    const passTurn = (action: (drop: string[]) => void) => {
+        // Fim do turno de quem está saindo…
+        applyPersistent(state.activeId)
+
+        // …e só então o próximo entra, com o tique das durações e das aflições.
         const { next: upcoming } = peekNext(state)
         const drop = dropForNext(upcoming)
-        dispatch({ type: 'nextTurn', drop })
+        action(drop)
         expireConditions(upcoming, drop)
         tickPartyAfflictions(upcoming)
     }
 
+    const handleNext = () => {
+        if (state.activeId === null) return
+        passTurn((drop) => dispatch({ type: 'nextTurn', drop }))
+    }
+
     const handleDelay = (id: string) => {
+        // Adiar de quem não está agindo só tira da ordem: nenhum turno terminou.
         if (state.activeId !== id) {
             dispatch({ type: 'delay', id, drop: [] })
             return
         }
-        const { next: upcoming } = peekNext(state)
-        const drop = dropForNext(upcoming)
-        dispatch({ type: 'delay', id, drop })
-        expireConditions(upcoming, drop)
-        tickPartyAfflictions(upcoming)
+        passTurn((drop) => dispatch({ type: 'delay', id, drop }))
     }
 
     // --- Ações em lote -------------------------------------------------------
@@ -201,6 +268,7 @@ export const InitiativePage = () => {
 
     const conditionsView = conditionsFor ? viewsById.get(conditionsFor) : null
     const afflictionsView = afflictionsFor ? viewsById.get(afflictionsFor) : null
+    const persistentView = persistentFor ? viewsById.get(persistentFor) : null
 
     return (
         <Container maxWidth="lg" disableGutters sx={{ pb: 2 }}>
@@ -275,6 +343,7 @@ export const InitiativePage = () => {
                             }}
                             onOpenConditions={() => setConditionsFor(view.combatant.id)}
                             onOpenAfflictions={() => setAfflictionsFor(view.combatant.id)}
+                            onOpenPersistent={() => setPersistentFor(view.combatant.id)}
                         />
                     ))}
                 </Box>
@@ -300,6 +369,13 @@ export const InitiativePage = () => {
                 targetName={afflictionsView?.combatant.name ?? null}
                 onClose={() => setAfflictionsFor(null)}
                 onApply={(affliction) => afflictionsView?.addAffliction(affliction)}
+            />
+
+            <PersistentDamageDialog
+                open={persistentView !== null && persistentView !== undefined}
+                targetName={persistentView?.combatant.name ?? null}
+                onClose={() => setPersistentFor(null)}
+                onApply={(entry) => persistentView?.setPersistent([...persistentView.persistent, entry])}
             />
 
             <AddCombatantDialog
@@ -363,6 +439,26 @@ export const InitiativePage = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* Aviso próprio, no topo: o dano automático e a queda a 0 PV podem
+                cair no MESMO handler (um veneno que derruba), e disputando um
+                Snackbar só um dos dois sumiria antes de ser lido. */}
+            <Snackbar
+                open={!!autoDamage}
+                autoHideDuration={10000}
+                onClose={() => setAutoDamage(null)}
+                message={autoDamage ? describeAutoDamage(autoDamage) : ''}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                action={autoDamage ? (
+                    <Button
+                        size="small"
+                        sx={{ color: gold.bright }}
+                        onClick={() => { autoDamage.undo(); setAutoDamage(null) }}
+                    >
+                        Desfazer
+                    </Button>
+                ) : undefined}
+            />
 
             <Snackbar
                 open={!!toast}
