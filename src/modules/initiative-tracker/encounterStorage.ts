@@ -4,6 +4,7 @@
 
 import { CONDITIONS_BY_ID } from '../character-viewer/conditions'
 import { sanitizeAfflictions } from './afflictions'
+import { sanitizePersistent } from './persistentDamage'
 import { emptyEncounter } from './encounterReducer'
 import type { Combatant, EncounterState, NpcCombatant, PcCombatant } from './types'
 
@@ -69,6 +70,7 @@ function sanitizeCombatant(raw: unknown): Combatant | null {
             temp: Math.max(0, num(c.temp)),
             conditions: conditionMap(c.conditions),
             afflictions: sanitizeAfflictions(c.afflictions),
+            persistent: sanitizePersistent(c.persistent),
             traits: strings(c.traits),
             aonUrl: typeof c.aonUrl === 'string' ? c.aonUrl : undefined,
         }

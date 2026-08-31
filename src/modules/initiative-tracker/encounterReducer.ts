@@ -5,6 +5,7 @@ import {
     type AfflictionState,
     type SaveDegree,
 } from './afflictions'
+import { syncFromAffliction, type PersistentDamage } from './persistentDamage'
 import type { Combatant, EncounterState, NpcCombatant, PcCombatant } from './types'
 
 export const emptyEncounter = (): EncounterState => ({
@@ -72,6 +73,9 @@ export type EncounterAction =
     | { type: 'npcDamage'; entries: Array<{ id: string; amount: number }> }
     | { type: 'npcHeal'; entries: Array<{ id: string; amount: number }> }
     | { type: 'npcSetTemp'; id: string; amount: number }
+    /** Restaura PV e temporário exatos — o "Desfazer" do dano automático. */
+    | { type: 'npcSetVitals'; id: string; current: number; temp: number }
+    | { type: 'setPersistent'; id: string; list: PersistentDamage[] }
     | { type: 'setNpcCondition'; id: string; conditionId: string; value: number }
     | { type: 'setDuration'; id: string; conditionId: string; rounds: number | null }
     | { type: 'addAffliction'; id: string; affliction: AfflictionState }
@@ -108,15 +112,12 @@ function advance(state: EncounterState, drop: string[]): EncounterState {
     const { next, wraps } = peekNext(state)
     if (!next) return { ...state, activeId: null }
 
-    const combatants = mapById(state.combatants, next.id, (c) => ({
-        ...c,
-        durations: tickDurations(c.durations, drop),
+    const combatants = mapById(state.combatants, next.id, (c) => {
+        const durations = tickDurations(c.durations, drop)
         // Aflição de MONSTRO desce aqui. A de personagem vive no estado da mesa
         // e é decrementada no handler de nextTurn, junto das durações dele.
-        ...(c.kind === 'npc'
-            ? { afflictions: tickAfflictions(c.afflictions ?? []).next }
-            : {}),
-    }))
+        return c.kind === 'npc' ? { ...c, durations, ...tickNpcAfflictions(c) } : { ...c, durations }
+    })
 
     return {
         ...state,
@@ -124,6 +125,17 @@ function advance(state: EncounterState, drop: string[]): EncounterState {
         activeId: next.id,
         round: state.round + (wraps ? 1 : 0),
     }
+}
+
+/**
+ * Um tique de aflição no monstro. A que estourou a duração máxima sai da lista,
+ * e o dano persistente que ela impunha sai junto — mesma regra de `removeAffliction`.
+ */
+function tickNpcAfflictions(npc: NpcCombatant): Partial<NpcCombatant> {
+    const { next, expired } = tickAfflictions(npc.afflictions ?? [])
+    let persistent = npc.persistent ?? []
+    for (const gone of expired) persistent = syncFromAffliction(persistent, gone.id, null)
+    return { afflictions: next, persistent }
 }
 
 /** Decrementa as rodadas restantes e descarta o que expirou ou saiu de cena. */
@@ -156,6 +168,8 @@ export function encounterReducer(state: EncounterState, action: EncounterAction)
                 temp: 0,
                 conditions: {},
                 durations: {},
+                afflictions: [],
+                persistent: [],
                 defeated: false,
                 delayed: false,
             }
@@ -281,6 +295,20 @@ export function encounterReducer(state: EncounterState, action: EncounterAction)
             }
         }
 
+        case 'npcSetVitals':
+            return {
+                ...state,
+                combatants: mapById(state.combatants, action.id, (c) =>
+                    c.kind === 'npc'
+                        ? {
+                            ...c,
+                            current: clampHp(action.current, c.maxHp),
+                            temp: Math.max(0, Math.floor(action.temp)),
+                        }
+                        : c,
+                ),
+            }
+
         case 'npcSetTemp':
             return {
                 ...state,
@@ -311,7 +339,13 @@ export function encounterReducer(state: EncounterState, action: EncounterAction)
                 ...state,
                 combatants: mapById(state.combatants, action.id, (c) =>
                     c.kind === 'npc'
-                        ? { ...c, afflictions: [...(c.afflictions ?? []), action.affliction] }
+                        ? {
+                            ...c,
+                            afflictions: [...(c.afflictions ?? []), action.affliction],
+                            persistent: syncFromAffliction(
+                                c.persistent ?? [], action.affliction.id, action.affliction,
+                            ),
+                        }
                         : c),
             }
 
@@ -320,7 +354,11 @@ export function encounterReducer(state: EncounterState, action: EncounterAction)
                 ...state,
                 combatants: mapById(state.combatants, action.id, (c) =>
                     c.kind === 'npc'
-                        ? { ...c, afflictions: (c.afflictions ?? []).filter((a) => a.id !== action.afflictionId) }
+                        ? {
+                            ...c,
+                            afflictions: (c.afflictions ?? []).filter((a) => a.id !== action.afflictionId),
+                            persistent: syncFromAffliction(c.persistent ?? [], action.afflictionId, null),
+                        }
                         : c),
             }
 
@@ -330,17 +368,32 @@ export function encounterReducer(state: EncounterState, action: EncounterAction)
                 ...state,
                 combatants: mapById(state.combatants, action.id, (c) => {
                     if (c.kind !== 'npc') return c
+                    let moved: AfflictionState | null = null
                     const afflictions = (c.afflictions ?? [])
                         .map((a) => {
                             if (a.id !== action.afflictionId) return a
-                            return action.type === 'saveAffliction'
+                            moved = action.type === 'saveAffliction'
                                 ? applySave(a, action.degree)
                                 : advanceStage(a, action.by)
+                            return moved
                         })
                         // `null` significa curada: sai da lista.
                         .filter((a): a is AfflictionState => a !== null)
-                    return { ...c, afflictions }
+                    // O estágio novo pode impor outro dano persistente (ou
+                    // nenhum): a entrada é regerada, nunca acumulada.
+                    return {
+                        ...c,
+                        afflictions,
+                        persistent: syncFromAffliction(c.persistent ?? [], action.afflictionId, moved),
+                    }
                 }),
+            }
+
+        case 'setPersistent':
+            return {
+                ...state,
+                combatants: mapById(state.combatants, action.id, (c) =>
+                    c.kind === 'npc' ? { ...c, persistent: action.list } : c),
             }
 
         case 'setDuration':

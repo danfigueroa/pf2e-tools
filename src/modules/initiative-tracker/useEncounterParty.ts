@@ -19,6 +19,7 @@ import {
     type AfflictionState,
     type SaveDegree,
 } from './afflictions'
+import { syncFromAffliction, sanitizePersistent, type PersistentDamage } from './persistentDamage'
 
 export interface PartySlice {
     /** `null` = ninguém mexeu ainda; resolve para PV cheio no render. */
@@ -26,9 +27,11 @@ export interface PartySlice {
     conditions: ConditionState
     /** Venenos e doenças ativos. As condições deles são DERIVADAS, não gravadas. */
     afflictions: AfflictionState[]
+    /** Dano persistente. Também é da mesa: aparece na Ficha Virtual do jogador. */
+    persistent: PersistentDamage[]
 }
 
-const EMPTY_SLICE: PartySlice = { hp: null, conditions: {}, afflictions: [] }
+const EMPTY_SLICE: PartySlice = { hp: null, conditions: {}, afflictions: [], persistent: [] }
 
 /**
  * PV e condições de TODOS os personagens do encontro, no estado da mesa.
@@ -65,6 +68,7 @@ export function useEncounterParty(slugs: string[]) {
         hp: sanitizeHp(readLocal(slug, 'hp')),
         conditions: sanitizeConditions(readLocal(slug, 'conditions') ?? {}),
         afflictions: sanitizeAfflictions(readLocal(slug, 'afflictions') ?? []),
+        persistent: sanitizePersistent(readLocal(slug, 'persistent') ?? []),
     }), [])
 
     useEffect(() => {
@@ -90,6 +94,9 @@ export function useEncounterParty(slugs: string[]) {
                     afflictions: snapshot.afflictions === undefined
                         ? (prev[slug]?.afflictions ?? [])
                         : sanitizeAfflictions(snapshot.afflictions),
+                    persistent: snapshot.persistent === undefined
+                        ? (prev[slug]?.persistent ?? [])
+                        : sanitizePersistent(snapshot.persistent),
                 },
             }))
         }
@@ -112,6 +119,7 @@ export function useEncounterParty(slugs: string[]) {
         if (patch.hp !== undefined) saveField(slug, 'hp', next.hp)
         if (patch.conditions !== undefined) saveField(slug, 'conditions', next.conditions)
         if (patch.afflictions !== undefined) saveField(slug, 'afflictions', next.afflictions)
+        if (patch.persistent !== undefined) saveField(slug, 'persistent', next.persistent)
     }, [])
 
     const get = useCallback(
@@ -127,6 +135,31 @@ export function useEncounterParty(slugs: string[]) {
             temp: Math.max(0, stored?.temp ?? 0),
         }
     }, [])
+
+    /**
+     * Move uma aflição de estágio e regera o dano persistente que ela impõe.
+     *
+     * Salvaguarda e avanço manual são a mesma operação vista de dois ângulos —
+     * as duas trocam o estágio, podem curar (`null` sai da lista) e as duas
+     * precisam que a entrada de dano persistente do estágio velho dê lugar à do
+     * novo. Uma função só evita as duas versões saírem de sincronia.
+     */
+    const moveStage = useCallback((
+        slug: string,
+        id: string,
+        move: (a: AfflictionState) => AfflictionState | null,
+    ) => {
+        const slice = partyRef.current[slug] ?? EMPTY_SLICE
+        let moved: AfflictionState | null = null
+        const afflictions = slice.afflictions
+            .map((a) => {
+                if (a.id !== id) return a
+                moved = move(a)
+                return moved
+            })
+            .filter((a): a is AfflictionState => a !== null)
+        write(slug, { afflictions, persistent: syncFromAffliction(slice.persistent, id, moved) })
+    }, [write])
 
     const api = useMemo(() => ({
         /**
@@ -159,6 +192,16 @@ export function useEncounterParty(slugs: string[]) {
             write(slug, { hp: { current, temp: Math.max(0, Math.floor(amount)) } })
         },
 
+        /** PV exatos — é o "Desfazer" do dano que o app aplicou sozinho. */
+        setVitals(slug: string, current: number, temp: number, maxHp: number) {
+            write(slug, {
+                hp: {
+                    current: Math.min(maxHp, Math.max(0, Math.floor(current))),
+                    temp: Math.max(0, Math.floor(temp)),
+                },
+            })
+        },
+
         /**
          * Desce uma rodada das aflições do personagem.
          *
@@ -170,32 +213,42 @@ export function useEncounterParty(slugs: string[]) {
         tickAfflictions(slug: string) {
             const current = partyRef.current[slug]?.afflictions ?? []
             if (current.length === 0) return
-            write(slug, { afflictions: tickAfflictionList(current).next })
+            const { next, expired } = tickAfflictionList(current)
+            // A que estourou a duração máxima sai sozinha, e leva junto o dano
+            // persistente que impunha — mesma regra do lado do monstro.
+            let persistent = partyRef.current[slug]?.persistent ?? []
+            for (const gone of expired) persistent = syncFromAffliction(persistent, gone.id, null)
+            write(slug, expired.length > 0 ? { afflictions: next, persistent } : { afflictions: next })
         },
 
         addAffliction(slug: string, affliction: AfflictionState) {
-            write(slug, { afflictions: [...(partyRef.current[slug]?.afflictions ?? []), affliction] })
+            const slice = partyRef.current[slug] ?? EMPTY_SLICE
+            write(slug, {
+                afflictions: [...slice.afflictions, affliction],
+                persistent: syncFromAffliction(slice.persistent, affliction.id, affliction),
+            })
         },
 
         removeAffliction(slug: string, id: string) {
-            const list = (partyRef.current[slug]?.afflictions ?? []).filter((a) => a.id !== id)
-            write(slug, { afflictions: list })
+            const slice = partyRef.current[slug] ?? EMPTY_SLICE
+            write(slug, {
+                afflictions: slice.afflictions.filter((a) => a.id !== id),
+                persistent: syncFromAffliction(slice.persistent, id, null),
+            })
         },
 
         /** Salvaguarda de fim de estágio; a aflição some quando é curada. */
         saveAffliction(slug: string, id: string, degree: SaveDegree) {
-            const list = (partyRef.current[slug]?.afflictions ?? [])
-                .map((a) => (a.id === id ? applySave(a, degree) : a))
-                .filter((a): a is AfflictionState => a !== null)
-            write(slug, { afflictions: list })
+            moveStage(slug, id, (a) => applySave(a, degree))
         },
 
         /** Avanço manual — para os estágios que não são contados em rodadas. */
         advanceAffliction(slug: string, id: string, by: number) {
-            const list = (partyRef.current[slug]?.afflictions ?? [])
-                .map((a) => (a.id === id ? advanceStage(a, by) : a))
-                .filter((a): a is AfflictionState => a !== null)
-            write(slug, { afflictions: list })
+            moveStage(slug, id, (a) => advanceStage(a, by))
+        },
+
+        setPersistent(slug: string, list: PersistentDamage[]) {
+            write(slug, { persistent: list })
         },
 
         setCondition(slug: string, id: string, value: number) {
@@ -213,7 +266,7 @@ export function useEncounterParty(slugs: string[]) {
         async refresh() {
             await Promise.all(uniqueSlugs.map((slug) => refreshCharacter(slug)))
         },
-    }), [party, get, vitals, write, uniqueSlugs])
+    }), [party, get, vitals, write, moveStage, uniqueSlugs])
 
     return api
 }
