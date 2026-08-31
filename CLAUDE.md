@@ -383,6 +383,29 @@ cada fatia de estado mora**:
     mesma lista sairiam de sincronia.
   - Largura **pelo conteúdo** (`flex: '0 0 auto'`), como os chips de condição: com `flex-grow`, o
     botão que quebra para a segunda linha virava uma barra larga sozinha.
+- **A ficha completa do monstro abre DENTRO do cartão** (`CombatantSheet.tsx`, botão "Ficha" em
+  `CombatantActions`): o GM já escolheu a criatura na AON, e abrir outra aba no meio do turno para
+  reler um Golpe é a ida e volta que o módulo existe para evitar. **Nada foi reescrito** — a ficha
+  vem de `services/monster.ts` (`fetchMonster`, o cliente do escalar monstro) e é desenhada pelo
+  `MonsterStatBlock` dele, como o `ConditionsDialog` veio inteiro do character-viewer.
+  - **Buscada ao abrir, nunca guardada no encontro.** A ficha completa é grande e o encontro mora no
+    `localStorage`; gravá-la lá seria uma segunda cópia capaz de divergir da AON — a mesma razão
+    pela qual `pcFromBuild` não guarda o `BuildInfo` inteiro. O componente só monta enquanto aberto,
+    e reabrir bate no cache em memória.
+  - **`aonName` é um campo à parte porque o `name` do combatente DIVERGE dele**: a cópia numerada
+    vira "Goblin Warrior 2" e o escalar monstro marca "Bugbear Tormentor (N8)". Encontro salvo antes
+    do campo é resgatado por `aonNameOf`, que desfaz os dois sufixos nessa ordem (eles se acumulam)
+    e exige `aonUrl` — combatente digitado à mão não tem ficha e não ganha o botão.
+  - **O alvo da escala é `npc.level`, não o nível da AON.** Um monstro comum tem os dois iguais e
+    `scaleMonster` devolve a ficha original (a identidade que o `check-scaling` verifica); um vindo
+    do escalar monstro reproduz os números do próprio cartão. Um campo resolve os dois casos.
+  - **`scaleOverrides` viaja junto** (`npcFromScaled`) por um motivo medido: sem os ajustes finos,
+    reabrir um Bugbear Tormentor escalado para o nível 8 desenhava **CA 28 enquanto o cartão dizia
+    20**. Ficha que contradiz o cartão é pior que ficha nenhuma.
+  - O bloco mostra os números **publicados**, e o cartão mostra os números **com as condições**.
+    Não "conserte" isso aplicando os modificadores no bloco: teriam de valer também para
+    salvaguardas, perícias e ataques, e é o mesmo componente que o escalar monstro exporta em PNG.
+    O aviso só aparece quando há condição ativa, senão seria ruído.
 - **Busca de criatura aceita nome, faixa de nível, ou os dois** (`AonCreatureSearch`). Buscar só
   por faixa é como se monta encontro, então a lista precisa de ordenação estável (nível, depois
   nome) e de **chegar até o fim**: 20 por página e "Carregar mais" até `hasMore` virar falso — uma

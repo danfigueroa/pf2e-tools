@@ -493,7 +493,8 @@ Virtual de quem estiver jogando, e o dano que o jogador marcar na ficha aparece 
 | `dice.ts`                     | Lê a fórmula de dano da prosa da AON e rola — o único ponto que rola dados         |
 | `importCharacter.ts`          | Ficha ou criatura da AON → combatente                                              |
 | `components/CombatantCard`    | Cartão único (personagem e monstro), com PV, condições e ações do combatente       |
-| `components/CombatantActions` | Os três botões de condição, aflição e dano persistente, com contagem e pendência   |
+| `components/CombatantActions` | Os botões de condição, aflição, dano persistente e ficha, com contagem e pendência |
+| `components/CombatantSheet`   | A ficha completa do monstro da AON, aberta dentro do próprio cartão                |
 | `components/BulkDamageDialog` | Dano em área com resultado de salvaguarda por alvo                                 |
 | `components/AonCreatureSearch`| Busca de criaturas em `/api/creature`, com quantidade                              |
 
@@ -511,6 +512,10 @@ Virtual de quem estiver jogando, e o dano que o jogador marcar na ficha aparece 
     vencer.
 -   **Queda a 0 PV** é sugestão, nunca automatismo: Morrendo `1 + Ferido` para personagem,
     Derrotado para monstro.
+-   **Ficha do monstro no próprio cartão**: todo monstro vindo da AON ganha um botão "Ficha" que
+    abre o stat block completo ali mesmo — Golpes, habilidades, magias, perícias —, sem trocar de
+    aba. É buscada ao abrir e não fica guardada no encontro. Monstro adaptado pelo Escalar Monstro
+    mostra a ficha **já no nível dele**, com os mesmos números do cartão.
 -   **Aflições** (venenos e doenças buscados na AON): crítico ✓ −2 estágios, ✓ −1, ✗ +1,
     crítico ✗ +2; **Virulento** exige dois sucessos seguidos para melhorar um. O **dano escrito no
     estágio cai sozinho** ao entrar nele — inclusive ao melhorar, que RAW também é entrar num
