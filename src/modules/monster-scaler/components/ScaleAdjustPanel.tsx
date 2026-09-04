@@ -8,7 +8,8 @@ import { Box, Button, MenuItem, Select, Typography } from '@mui/material'
 import { gold, ink, parchment, rule } from '../../../theme'
 import type { BenchColumn, ScaledRow } from '../types'
 
-// As duas últimas são as colunas da tabela de dano em área, que não usa degraus.
+// Nem toda linha usa os cinco degraus: dano em área tem colunas próprias
+// (ilimitado/limitado) e a linha de ranks de conjuração escolhe um comportamento.
 const COLUMN_LABELS: Record<BenchColumn, string> = {
     extreme: 'Extremo',
     high: 'Alto',
@@ -17,6 +18,8 @@ const COLUMN_LABELS: Record<BenchColumn, string> = {
     terrible: 'Terrível',
     unlimited: 'Ilimitado',
     limited: 'Limitado',
+    follow: 'Acompanham',
+    original: 'Originais',
 }
 
 interface Props {

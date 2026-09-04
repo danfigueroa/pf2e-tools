@@ -14,6 +14,7 @@ import {
     translateSize,
     translateTrait,
 } from '../../transformation-statblock/i18n'
+import { formatSpellEntry, groupLabel } from '../spellcasting'
 import type { ScaledMonster } from '../types'
 
 // Paleta Remaster (pergaminho + verde + ouro), literal de propósito.
@@ -221,8 +222,31 @@ export function MonsterStatBlock({ monster }: Props) {
                         </Typography>
                         {block.groups.map((group, g) => (
                             <Typography key={g} variant="body2" sx={{ pl: 1.5 }}>
-                                <Box component="span" sx={{ fontWeight: 700 }}>{group.rank}</Box>{' '}
-                                {group.spells.join(', ')}
+                                <Box component="span" sx={{ fontWeight: 700 }}>
+                                    {groupLabel(group)}
+                                </Box>
+                                {/* A contagem de slots só é escrita onde a AON escreve:
+                                    em espontânea. Em preparada, o número de magias
+                                    preparadas JÁ é o número de slots. */}
+                                {block.kind === 'spontaneous' && group.slots !== null && (
+                                    <Box component="span" sx={{ color: MUTED }}>
+                                        {' '}({group.slots} {group.slots === 1 ? 'slot' : 'slots'})
+                                    </Box>
+                                )}{' '}
+                                {group.spells.map(formatSpellEntry).join(', ')}
+                                {/* Slot que abriu com o nível novo fica visível e vazio:
+                                    a ferramenta não escolhe magia pelo GM. */}
+                                {group.empty > 0 && (
+                                    <Box component="span" sx={{ color: MUTED, fontStyle: 'italic' }}>
+                                        {group.spells.length > 0 ? ', ' : ''}
+                                        {group.empty}{' '}
+                                        {/* Onde a contagem de slots já foi escrita (espontânea),
+                                            repeti-la aqui viraria "4 slots — 4 slots vazios". */}
+                                        {block.kind === 'spontaneous' || group.spells.length > 0
+                                            ? (group.empty === 1 ? 'vazio' : 'vazios')
+                                            : (group.empty === 1 ? 'slot vazio' : 'slots vazios')}
+                                    </Box>
+                                )}
                             </Typography>
                         ))}
                     </Box>
