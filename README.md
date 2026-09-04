@@ -149,6 +149,12 @@ Resolve o problema de gostar da ficha de um monstro que está no nível errado p
     junto — a CD pela tabela de CD do GM Core, o dano pela de **Dano em Área** (pg. 124) —, e as
     duas entram no ajuste fino como qualquer outra linha. O **teste plano** fica de fora: a CD dele
     é fixa pelas regras, não pelo nível do monstro; e "1d4 rounds" de recarga não é dano
+-   **Monstro conjurador ganha ranks e slots ao subir de nível** e a lista de magias é sua: o
+    editor busca no Archives of Nethys pela tradição do bloco e pelo rank do slot, e o que o nível
+    novo abriu aparece marcado como vazio — a ferramenta nunca escolhe a magia por você. A escada
+    anda preservando a forma (as magias do topo continuam no topo) e dá para pedir que os ranks
+    fiquem nos originais, bloco a bloco. Slots seguem o GM Core pg. 122, respeitando o número que a
+    ficha original já usava
 -   **Diz o que não ajustou**: fora as CDs e o dano, a prosa das habilidades fica em inglês e
     intocada (alcance, duração, o efeito em si), a lista de magias não muda de rank e o dano extra
     dos golpes (`plus 2d6 fire`) fica como está — tudo listado num aviso, porque a ferramenta nunca
@@ -391,6 +397,7 @@ pf2e-tools/
 │   │       ├── scaling.ts               # Motor: preserva a diferença em relação ao benchmark
 │   │       ├── abilityDc.ts             # CDs escritas na prosa das habilidades
 │   │       ├── abilityDamage.ts         # Dano escrito na prosa (baforada, aura, área)
+│   │       ├── spellcasting.ts          # Ranks, slots e a lista de magias no nível-alvo
 │   │       ├── toCombatant.ts           # Monstro reescalado → combatente da Iniciativa
 │   │       ├── components/              # MonsterSearch, ScaleAdjustPanel, MonsterStatBlock, MonsterExport
 │   │       └── data/creatureTables.ts   # GERADO por scripts/fetch-creature-tables.mjs
@@ -402,6 +409,7 @@ pf2e-tools/
 │   │   ├── descriptions.ts       # Cliente do backend (busca + cache das descrições AON)
 │   │   ├── creatures.ts          # Cliente da busca de criaturas na AON
 │   │   ├── monster.ts            # Cliente da ficha completa de uma criatura
+│   │   ├── spellList.ts          # Cliente da lista de magias (tradição + rank)
 │   │   └── tableState.ts         # Sincronia do estado compartilhado da mesa
 │   ├── types/
 │   │   └── index.ts              # Tipos globais

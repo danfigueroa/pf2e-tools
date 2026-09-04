@@ -114,6 +114,12 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
     Giant Centipede Venom traz "clumsy 1, and fatigued" cru. O casamento é por TEXTO contra o
     catálogo de `conditions.ts`; `flat-footed` é o nome pré-Remaster de `off-guard`.
   - Mora dentro de `api/search.js` por causa do limite de 12 funções (ver acima).
+- **`search?spells=1`** lista magias por tradição e rank (`api/_lib/spell-list-core.js`), para
+  escolher as magias de um monstro no escalar monstro. Como `creature` e `affliction`, **não passa
+  pela tradução**: o índice já traz `tradition`, `level` (que na categoria `spell` é o RANK) e
+  `spell_type` estruturados. O `maxRank` é TETO, não igualdade — magia de rank menor cabe em slot
+  maior, que é como se prepara uma magia elevada. Mora dentro de `api/search.js` pelo limite de 12
+  funções (ver acima), e a paginação/deduplicação é a mesma de `resolveCreatures`.
 - `state` é o único endpoint com **estado**: guarda o jogo da mesa (ver a seção própria abaixo).
   Fica em `api/state.js`, **um nível** — o glob `"api/*.js"` do `vercel.json` não pega subpastas,
   então `api/state/[char].js` perderia o `maxDuration`.
@@ -551,10 +557,44 @@ criaturas do GM Core (pg. 112-121, níveis -1 a 24).
   um ajuste guardado antes pode chegar com "Extremo" numa linha cujas colunas são
   "Ilimitado"/"Limitado". Degrau inválido é ignorado, não quebra a ficha.
 - **`scripts/check-scaling.mjs` é o teste que vale**: contra criaturas de verdade, confere
-  identidade (mesmo nível devolve a ficha original, prosa inclusive, caractere por caractere),
+  identidade (mesmo nível devolve a ficha original: números, prosa caractere por caractere e a
+  conjuração inteira — blocos, ranks, magias e os slots que o índice declara),
   monotonia (inclusive a das CDs e a do dano da prosa, e que a CD do teste plano NÃO se move), ida e
   volta, e que o ajuste fino ajusta. Não há framework de teste no repositório, por isso é script avulso. A ida e volta existe
   porque a identidade não prova nada sobre o dano, que tem saída curta quando os níveis são iguais.
+- **Conjuração** (`spellcasting.ts`): antes só a CD e o ataque mudavam de nível, e um dragão levado
+  para o 24 continuava com o cardápio de magias do 14. A regra é o GM Core pg. 122: o rank mais alto
+  é **metade do nível arredondada para cima**, cinco truques, e os slots por rank saem do nível ser
+  par (3 no topo) ou ímpar (2 no topo), com 3 em cada rank inferior.
+  - **A escada anda inteira**, preservando a forma — a mesma ideia de `scaling.ts`. O modo fica no
+    ajuste fino, uma linha por bloco: em **Acompanham**, todo grupo anda o mesmo tanto que o rank
+    máximo do nível andou, e os ranks que abrem são os de BAIXO; em **Originais**, cada magia fica
+    onde estava e os que abrem são os de CIMA. Magia inata, pelo RAW, não é limitada por nível, então
+    os dois são legítimos e quem decide é o GM.
+  - **O truque anda nos dois modos**, e é o único: truque é conjurado no rank de quem conjura,
+    sempre. Ele anda preservando a DIFERENÇA, e a diferença existe: o Mitflit é nível -1 com truque
+    de 1º e inata de 2º, e a Sacuishu é nível 9 (teto 5º) com "Cantrips (4th)". Mandar o truque para
+    o teto do nível, ou para o topo do bloco, reescrevia a ficha desses dois no PRÓPRIO nível.
+  - **Só abre o rank que o nível abriu.** Completar a escada de 1 até o topo parecia óbvio e
+    reescrevia fichas publicadas: o Elder Child of Belcorra é nível 9 e conjura do 2º ao 4º; o
+    Fortune Archdragon é nível 23 e tem UM grupo, de 10º. O próprio livro diz que não é preciso
+    preencher todo slot (pg. 122).
+  - **A contagem de slots preserva o desvio da ficha**, como todo número do módulo. A Ryta tem 4
+    slots de 1º rank no nível 4 — a opção generosa do livro — e continua com quatro; ninguém precisa
+    escolher "a opção generosa" num menu. Em espontânea o número vem escrito na ÚLTIMA magia do rank
+    ("Ventriloquism (4 slots)") e é do GRUPO, não da magia; em preparada, o número de magias
+    preparadas É o número de slots (com `×2` valendo dois).
+  - **Ritual fica intocado** (conjurado de um livro, em downtime — pg. 123) e é o único bloco sem
+    linha no ajuste fino.
+  - **Slot que abre fica VAZIO**, marcado no bloco e no aviso: a ferramenta não escolhe magia pelo
+    GM, mesma política de todo o resto. E nada é apagado — lista que passou do número de slots vira
+    aviso, não exclusão.
+- **A lista editada à mão vira a nova ORIGEM da escada** (`SpellEdits`, com o `level` em que foi
+  montada). É o que faz a escolha do GM sobreviver a uma troca de nível-alvo: a conta parte da lista
+  dele, não da ficha da AON. O `SpellEditorDialog` é **totalmente controlado** — não guarda cópia da
+  lista, devolve tudo a cada mudança —, porque o nível-alvo é trocado no painel ao lado com o
+  diálogo aberto. E, como os `scaleOverrides`, a edição viaja para o cartão da Iniciativa
+  (`spellEdits` em `NpcCombatant`), senão a ficha do cartão mostraria as magias da AON.
 - **`MonsterStatBlock.tsx` é o subtree que o `html2canvas` rasteriza**: hex literal de 6 dígitos,
   nunca token de tema — ver a seção de Tema.
 - Busca compartilhada com a Iniciativa em `src/hooks/useCreatureSearch.ts` (debounce, faixa de
