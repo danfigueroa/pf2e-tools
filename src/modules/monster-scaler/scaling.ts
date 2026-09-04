@@ -20,6 +20,7 @@
 
 import {
     AC_TABLE,
+    AREA_DAMAGE_TABLE,
     ATTRIBUTE_TABLE,
     HP_TABLE,
     MAX_LEVEL,
@@ -31,14 +32,17 @@ import {
     SPELL_TABLE,
     STRIKE_ATTACK_TABLE,
     STRIKE_DAMAGE_TABLE,
+    type AreaColumn,
     type Band,
     type ByLevel,
     type DamageBenchmark,
     type ScaleColumn,
 } from './data/creatureTables'
 import { collectAbilityDcs, rewriteAbilityDcs } from './abilityDc'
+import { collectAbilityDamage, rewriteAbilityDamage } from './abilityDamage'
 import type {
     AttributeKey,
+    BenchColumn,
     MonsterDetail,
     ScaledAbility,
     ScaledMonster,
@@ -52,6 +56,13 @@ export const clampLevel = (level: number): number =>
 
 /** Colunas que uma tabela oferece, na ordem do livro. */
 const ORDER: ScaleColumn[] = ['extreme', 'high', 'moderate', 'low', 'terrible']
+
+/**
+ * As colunas da tabela de dano em área, na ordem do livro. Na dúvida (empate na
+ * dedução) vale a primeira, que é a menor — a ferramenta não infla dano por
+ * conta própria.
+ */
+const AREA_ORDER: AreaColumn[] = ['unlimited', 'limited']
 
 function columnsOf(table: ByLevel<unknown>, level: number): ScaleColumn[] {
     const row = table[level] ?? {}
@@ -257,11 +268,81 @@ function shiftDefense(
     return out
 }
 
-const pick = (
+/**
+ * O degrau escolhido à mão, quando ele vale PARA ESTA LINHA.
+ *
+ * Conferir contra `allowed` não é cerimônia de tipo: os overrides viajam para o
+ * cartão da Iniciativa e voltam do `localStorage` (`scaleOverrides`), então um
+ * ajuste guardado antes pode chegar com um degrau que não existe na tabela
+ * daquela linha — "Extremo" numa linha de dano em área, cujas colunas são
+ * "Ilimitado" e "Limitado". Degrau inválido é ignorado, não quebra a ficha.
+ */
+function pick<T extends BenchColumn>(
     overrides: ScaleOverrides,
     key: string,
-    fallback: ScaleColumn | null,
-): ScaleColumn | null => overrides[key] ?? fallback
+    allowed: readonly T[],
+    fallback: T | null,
+): T | null {
+    const chosen = overrides[key]
+    return chosen !== undefined && (allowed as readonly BenchColumn[]).includes(chosen)
+        ? (chosen as T)
+        : fallback
+}
+
+/** Degrau de dano em área mais próximo de uma média. */
+function inferAreaColumn(level: number, average: number): AreaColumn | null {
+    const row = AREA_DAMAGE_TABLE[level]
+    if (!row) return null
+    let best: AreaColumn | null = null
+    let bestDistance = Infinity
+    for (const column of AREA_ORDER) {
+        const target = row[column]?.average
+        if (target === undefined || target === null) continue
+        const distance = Math.abs(average - target)
+        if (distance < bestDistance) {
+            bestDistance = distance
+            best = column
+        }
+    }
+    return best
+}
+
+/**
+ * Dano escrito na prosa: RAZÃO sobre a fórmula inteira, e não os dados da
+ * tabela mais um modificador.
+ *
+ * `shiftDamage`, o dos golpes, troca os dados pelos do nível-alvo e joga o
+ * desvio no modificador fixo. Funciona lá porque todo golpe fica perto do
+ * benchmark; na prosa, não: no mesmo texto convivem a baforada (que É o
+ * benchmark) e o `1d6` persistente de uma aura, e a mesma conta aplicada ao
+ * segundo devolvia fórmulas como `6d8-19`.
+ *
+ * Multiplicando a fórmula pela razão entre os benchmarks, cada dano cresce na
+ * própria escala e mantém a proporção que o designer deu a ele — mesmo
+ * raciocínio do PV, que também usa razão.
+ */
+function scaleAreaDamage(
+    from: number,
+    to: number,
+    base: AreaColumn | null,
+    target: AreaColumn | null,
+    formula: string,
+): string {
+    if (!base || !target) return formula
+    if (from === to && base === target) return formula
+    const a = AREA_DAMAGE_TABLE[from]?.[base]?.average
+    const b = AREA_DAMAGE_TABLE[to]?.[target]?.average
+    if (!a || !b) return formula
+    const parsed = /^(\d+)d(\d+)([+-]\d+)?$/.exec(formula)
+    if (!parsed) return formula
+
+    const ratio = b / a
+    const count = Math.max(1, Math.round(parseInt(parsed[1], 10) * ratio))
+    const flat = Math.round(parseInt(parsed[3] ?? '0', 10) * ratio)
+    const dice = `${count}d${parsed[2]}`
+    if (flat === 0) return dice
+    return `${dice}${flat > 0 ? '+' : ''}${flat}`
+}
 
 /**
  * Degrau de origem de uma estatística: o que a AON atribuiu ou, na falta dele,
@@ -343,17 +424,17 @@ export function scaleMonster(
 
     // --- defesas e sentidos ---
     const acBase = baseColumn(source.ac.scale, AC_TABLE, from, source.ac.value)
-    const acColumn = pick(overrides, 'ac', acBase.column)
+    const acColumn = pick(overrides, 'ac', ORDER, acBase.column)
     const ac = shift(AC_TABLE, from, to, acBase.column, acColumn, source.ac.value)
     addRow('ac', 'CA', AC_TABLE, acColumn, source.ac.value, ac, 'flat', acBase.inferred)
 
     const hpBase = baseColumn(source.hp.scale, HP_TABLE, from, source.hp.value)
-    const hpColumn = pick(overrides, 'hp', hpBase.column)
+    const hpColumn = pick(overrides, 'hp', ORDER, hpBase.column)
     const hp = shiftHp(from, to, hpBase.column, hpColumn, source.hp.value)
     addRow('hp', 'PV', HP_TABLE, hpColumn, source.hp.value, hp, 'flat', hpBase.inferred)
 
     const percBase = baseColumn(source.perception.scale, PERCEPTION_TABLE, from, source.perception.value)
-    const percColumn = pick(overrides, 'perception', percBase.column)
+    const percColumn = pick(overrides, 'perception', ORDER, percBase.column)
     const perception = shift(PERCEPTION_TABLE, from, to, percBase.column, percColumn, source.perception.value)
     addRow('perception', 'Percepção', PERCEPTION_TABLE, percColumn, source.perception.value, perception, 'modifier', percBase.inferred)
 
@@ -362,7 +443,7 @@ export function scaleMonster(
     for (const key of ['fort', 'ref', 'will'] as const) {
         const stat = source.saves[key]
         const base = baseColumn(stat.scale, SAVE_TABLE, from, stat.value)
-        const column = pick(overrides, key, base.column)
+        const column = pick(overrides, key, ORDER, base.column)
         saves[key] = shift(SAVE_TABLE, from, to, base.column, column, stat.value)
         addRow(key, saveLabels[key], SAVE_TABLE, column, stat.value, saves[key], 'modifier', base.inferred)
     }
@@ -376,7 +457,7 @@ export function scaleMonster(
     for (const key of Object.keys(attrLabels) as AttributeKey[]) {
         const stat = source.attributes[key]
         const base = baseColumn(stat.scale, ATTRIBUTE_TABLE, from, stat.value)
-        const column = pick(overrides, `attr:${key}`, base.column)
+        const column = pick(overrides, `attr:${key}`, ORDER, base.column)
         attributes[key] = shift(ATTRIBUTE_TABLE, from, to, base.column, column, stat.value)
         addRow(`attr:${key}`, attrLabels[key], ATTRIBUTE_TABLE, column, stat.value, attributes[key], 'modifier', base.inferred)
     }
@@ -385,7 +466,7 @@ export function scaleMonster(
     const skills: Record<string, number> = {}
     for (const [name, value] of Object.entries(source.skills)) {
         const guess = inferColumn(SKILL_TABLE, from, value)
-        const column = pick(overrides, `skill:${name}`, guess)
+        const column = pick(overrides, `skill:${name}`, ORDER, guess)
         skills[name] = shiftBand(SKILL_TABLE, from, to, guess, column, value)
         addRow(
             `skill:${name}`,
@@ -401,7 +482,7 @@ export function scaleMonster(
         const attackBase = strikeColumn(
             source.attackScales, index, parsedStrikes.length, STRIKE_ATTACK_TABLE, from, strike.bonus,
         )
-        const attackColumn = pick(overrides, `attack:${index}`, attackBase)
+        const attackColumn = pick(overrides, `attack:${index}`, ORDER, attackBase)
         const bonus = shift(STRIKE_ATTACK_TABLE, from, to, attackBase, attackColumn, strike.bonus)
         addRow(`attack:${index}`, `${strike.name} (ataque)`, STRIKE_ATTACK_TABLE, attackColumn, strike.bonus, bonus, 'modifier')
 
@@ -409,7 +490,7 @@ export function scaleMonster(
         const damageBase = strikeColumn(
             source.damageScales, index, parsedStrikes.length, STRIKE_DAMAGE_TABLE, from, average ?? 0,
         )
-        const damageColumn = pick(overrides, `damage:${index}`, damageBase)
+        const damageColumn = pick(overrides, `damage:${index}`, ORDER, damageBase)
         const damageFormula = shiftDamage(
             from, to, damageBase, damageColumn, strike.damage?.formula ?? null, average,
         )
@@ -441,6 +522,7 @@ export function scaleMonster(
             column: pick(
                 overrides,
                 `damage:${index}`,
+                ORDER,
                 strikeColumn(
                     source.damageScales, index, parsedStrikes.length, STRIKE_DAMAGE_TABLE, from, avgFrom,
                 ) ?? row?.column ?? null,
@@ -457,8 +539,8 @@ export function scaleMonster(
     const spellcasting = (source.statblock?.spellcasting ?? []).map((block) => {
         const dcBase = source.spellDcScale
         const atkBase = source.spellAttackScale ?? source.spellDcScale
-        const dcColumn = pick(overrides, 'spellDc', dcBase)
-        const atkColumn = pick(overrides, 'spellAttack', atkBase)
+        const dcColumn = pick(overrides, 'spellDc', ORDER, dcBase)
+        const atkColumn = pick(overrides, 'spellAttack', ORDER, atkBase)
         return {
             ...block,
             dc: block.dc === null ? null : shiftSpell(from, to, dcBase, dcColumn, block.dc, 'dc'),
@@ -481,7 +563,7 @@ export function scaleMonster(
         const declared = group.value === source.spellDc ? source.spellDcScale : null
         const base = baseColumn(declared, SPELL_DC_TABLE, from, group.value)
         const key = `dc:${group.value}`
-        const column = pick(overrides, key, base.column)
+        const column = pick(overrides, key, ORDER, base.column)
         const scaledDc = shiftSpell(from, to, base.column, column, group.value, 'dc')
         dcMap.set(group.value, scaledDc)
         addRow(
@@ -491,11 +573,38 @@ export function scaleMonster(
         )
     }
 
-    // A prosa segue em inglês e intocada; só os dígitos da CD mudam.
+    // --- dano escrito na prosa das habilidades (baforada, aura, área) ---
+    const damageGroups = collectAbilityDamage(source.statblock?.abilities ?? [])
+    const damageMap = new Map<string, string>()
+    for (const group of damageGroups) {
+        const average = formulaAverage(group.formula) ?? 0
+        const key = `areaDamage:${group.formula}`
+        const guess = inferAreaColumn(from, average)
+        const column = pick(overrides, key, AREA_ORDER, guess)
+        const scaledFormula = scaleAreaDamage(from, to, guess, column, group.formula)
+        damageMap.set(group.formula, scaledFormula)
+        rows.push({
+            key,
+            label: `Dano ${group.formula} (${labelAbilities(group.abilities)})`,
+            from: Math.round(average),
+            to: Math.round(formulaAverage(scaledFormula) ?? average),
+            column,
+            // A AON não classifica dano de prosa: o degrau sai do próprio valor.
+            inferred: overrides[key] === undefined,
+            columns: AREA_ORDER.filter((c) => AREA_DAMAGE_TABLE[to]?.[c] !== undefined),
+            kind: 'flat',
+            formulaFrom: group.formula,
+            formulaTo: scaledFormula,
+        })
+    }
+
+    // A prosa segue em inglês e intocada; o que muda são os dígitos da CD e as
+    // fórmulas de dano. Os dois padrões não se cruzam ("DC 15" x "15d6"), então
+    // a ordem das duas passadas é indiferente.
     const abilities: ScaledAbility[] = (source.statblock?.abilities ?? []).map((ability) => ({
         ...ability,
         originalText: ability.text,
-        text: rewriteAbilityDcs(ability.text, dcMap),
+        text: rewriteAbilityDamage(rewriteAbilityDcs(ability.text, dcMap), damageMap),
     }))
 
     // --- avisos: tudo que a ferramenta deliberadamente não tocou ---
@@ -520,10 +629,15 @@ export function scaleMonster(
     }
 
     if ((source.statblock?.abilities.length ?? 0) > 0) {
+        const adjusted = [
+            ...(dcGroups.length > 0 ? ['as CDs'] : []),
+            ...(damageGroups.length > 0 ? ['o dano'] : []),
+        ]
         warnings.push(
-            dcGroups.length > 0
-                ? 'Nas habilidades especiais, só as CDs foram ajustadas: dados de dano, alcance e '
-                    + 'duração na prosa ficam como estão (o teste plano também, que é de CD fixa).'
+            adjusted.length > 0
+                ? `Nas habilidades especiais, a ferramenta ajustou ${adjusted.join(' e ')} que a `
+                    + 'prosa declara; alcance, duração e o efeito em si ficam como estão (o teste '
+                    + 'plano também, que é de CD fixa).'
                 : 'A prosa das habilidades especiais não foi reescalada — ajuste dados e efeitos manualmente.',
         )
     }

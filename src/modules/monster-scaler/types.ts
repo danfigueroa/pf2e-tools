@@ -3,9 +3,16 @@
 // `MonsterDetail` é o que `/api/creature?name=` devolve: os números da AON com o DEGRAU
 // de benchmark de cada um ao lado. `ScaledMonster` é o resultado da conta.
 
-import type { ScaleColumn } from './data/creatureTables'
+import type { AreaColumn, ScaleColumn } from './data/creatureTables'
 
-export type { ScaleColumn }
+export type { AreaColumn, ScaleColumn }
+
+/**
+ * A coluna de benchmark de uma linha do painel. Quase toda tabela usa os cinco
+ * degraus, mas a de dano em área tem colunas próprias (uso ilimitado/limitado),
+ * então o painel e os overrides falam as duas línguas.
+ */
+export type BenchColumn = ScaleColumn | AreaColumn
 
 /** Número da ficha junto do degrau em que a AON o classificou. */
 export interface ScaledStat {
@@ -121,7 +128,7 @@ export interface MonsterDetail {
  */
 export type StatKey = string
 
-export type ScaleOverrides = Record<StatKey, ScaleColumn>
+export type ScaleOverrides = Record<StatKey, BenchColumn>
 
 /** Uma linha do painel de ajuste. */
 export interface ScaledRow {
@@ -131,11 +138,11 @@ export interface ScaledRow {
     from: number
     /** Valor no nível-alvo. */
     to: number
-    column: ScaleColumn | null
+    column: BenchColumn | null
     /** A AON não classifica perícia: o degrau dela é deduzido do valor. */
     inferred: boolean
     /** Colunas disponíveis na tabela desta estatística. */
-    columns: ScaleColumn[]
+    columns: BenchColumn[]
     kind: 'modifier' | 'flat'
     /**
      * Só nas linhas de dano: a fórmula tem que aparecer no painel, porque o
