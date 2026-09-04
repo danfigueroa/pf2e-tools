@@ -53,7 +53,65 @@ const failures = []
 const monotony = []
 const roundTrip = []
 const overrideFails = []
-let checked = 0, strikesChecked = 0, dcsChecked = 0, damageChecked = 0
+let checked = 0, strikesChecked = 0, dcsChecked = 0, damageChecked = 0, spellsChecked = 0
+
+/**
+ * A conjuração da ficha ORIGINAL como texto comparável.
+ *
+ * A contagem de slots sai dos dois lados: o AON só a escreve em ALGUNS ranks do
+ * bloco espontâneo (o Rumin Purgo tem "(3 slots)" do 2º ao 6º e nada no 1º), e o
+ * app a escreve em todos, derivada da mesma tabela e do desvio da própria ficha.
+ * Acrescentar um número certo onde o índice foi omisso não é reescrever a ficha
+ * — mas MUDAR um número que o índice declarou seria, e é isso que a checagem de
+ * slots declarados logo abaixo garante.
+ */
+// O `()` vazio é artefato do índice (um link sem texto: "Longstrider ()") e o
+// app o descarta ao ler a anotação. Descartar parêntese vazio não é reescrever
+// magia nenhuma.
+const stripSlots = (text) => text.replace(/\s*\(\d+ slots?\)/g, '').replace(/\s*\(\)/g, '')
+
+function spellText(blocks) {
+  return stripSlots(blocks
+    .map((b) => `${b.label}|${b.groups.map((g) => `${g.rank}=${g.spells.join('/')}`).join(';')}`)
+    .join(' || '))
+}
+
+/** Os slots que a ficha do AON declara, por bloco e rank: "0:3" → 4. */
+function declaredSlots(blocks) {
+  const out = new Map()
+  blocks.forEach((b, i) => {
+    for (const g of b.groups) {
+      for (const spell of g.spells) {
+        const m = /\((\d+) slots?\)\s*$/.exec(spell)
+        if (m) out.set(`${i}:${g.rank}`, parseInt(m[1], 10))
+      }
+    }
+  })
+  return out
+}
+
+/**
+ * O mesmo texto, a partir do resultado da escala. Os rótulos de grupo são
+ * remontados no formato do AON ("Cantrips (4th)") justamente para a comparação
+ * ser com o que o índice publicou, e não com uma forma interna.
+ */
+const ORD = (n) => (n === 1 ? '1st' : n === 2 ? '2nd' : n === 3 ? '3rd' : `${n}th`)
+
+/**
+ * O mesmo texto, a partir do resultado da escala. Os rótulos de grupo são
+ * remontados no formato do AON ("Cantrips (4th)") justamente para a comparação
+ * ser com o que o índice publicou, e não com uma forma interna.
+ */
+function sameSpellText(scaled) {
+  return stripSlots(scaled.spellcasting
+    .map((b) => `${b.label}|${b.groups.map((g) => {
+      const rank = g.label ?? (g.kind === 'cantrip' ? `Cantrips (${ORD(g.rank)})`
+        : g.kind === 'constant' ? `Constant (${ORD(g.rank)})` : ORD(g.rank))
+      const spells = g.spells.map((s) => (s.note ? `${s.name} (${s.note})` : s.name))
+      return `${rank}=${spells.join('/')}`
+    }).join(';')}`)
+    .join(' || '))
+}
 
 /**
  * As CDs escritas na prosa das habilidades, na ordem em que aparecem, com a
@@ -123,6 +181,33 @@ for (const name of await sample(LIMIT)) {
     }
     void i
   })
+
+  // A conjuração entra na identidade inteira: mesmos blocos, mesmos ranks,
+  // mesmas magias, mesma contagem de slots. É a checagem que pegou os truques
+  // indo para o teto do NÍVEL em vez do topo do BLOCO (a Sacuishu é nível 9 e
+  // conjura no 4º) e a Ryta perdendo o quarto slot de 1º rank, que é a opção
+  // generosa do livro e estava escrita na própria ficha.
+  {
+    const before = spellText(monster.statblock?.spellcasting ?? [])
+    const after = sameSpellText(same)
+    if (before !== after) {
+      failures.push(`${name}(n${monster.level}) conjuração mudou no próprio nível:\n      ${before}\n      ${after}`)
+    }
+    // Slot declarado no índice não pode mudar de valor no próprio nível.
+    const declared = declaredSlots(monster.statblock?.spellcasting ?? [])
+    same.spellcasting.forEach((block, i) => {
+      for (const group of block.groups) {
+        // Só grupo de rank: o truque tem o MESMO rank do topo do bloco e cairia
+        // na mesma chave, sem slot nenhum para comparar.
+        if (group.kind !== 'rank') continue
+        const want = declared.get(`${i}:${ORD(group.rank)}`)
+        if (want !== undefined && group.slots !== want) {
+          failures.push(`${name}(n${monster.level}) ${block.label} ${group.rank}º: ${want} slots -> ${group.slots}`)
+        }
+      }
+    })
+    spellsChecked += same.spellcasting.length
+  }
 
   // As CDs da prosa entram na identidade: reescalar para o próprio nível tem
   // que devolver o texto caractere por caractere.
@@ -254,7 +339,8 @@ function scaledAsSource(original, scaled) {
 
 console.log(
   `criaturas conferidas: ${checked} | golpes: ${strikesChecked}`
-  + ` | CDs na prosa: ${dcsChecked} | danos na prosa: ${damageChecked}`,
+  + ` | CDs na prosa: ${dcsChecked} | danos na prosa: ${damageChecked}`
+  + ` | blocos de conjuração: ${spellsChecked}`,
 )
 console.log(`\nIDENTIDADE (mesmo nível deve devolver a ficha original): ${failures.length} falha(s)`)
 failures.slice(0, 25).forEach((f) => console.log('  ✗', f))
