@@ -40,7 +40,7 @@ export function CombatantSheet({ npc, aonName, modified }: Props) {
     // iguais e `scaleMonster` devolve a ficha original (a propriedade de
     // identidade que o check-scaling verifica); para um que veio do escalar
     // monstro, ele reproduz exatamente os números que estão no cartão.
-    const { level, scaleOverrides } = npc
+    const { level, scaleOverrides, spellEdits } = npc
 
     useEffect(() => {
         let cancelled = false
@@ -48,10 +48,10 @@ export function CombatantSheet({ npc, aonName, modified }: Props) {
         void fetchMonster(aonName).then((detail) => {
             if (cancelled) return
             if (!detail) { setFailed(true); return }
-            setMonster(scaleMonster(detail, level, scaleOverrides ?? {}))
+            setMonster(scaleMonster(detail, level, scaleOverrides ?? {}, spellEdits ?? null))
         })
         return () => { cancelled = true }
-    }, [aonName, level, scaleOverrides])
+    }, [aonName, level, scaleOverrides, spellEdits])
 
     if (failed) {
         return (

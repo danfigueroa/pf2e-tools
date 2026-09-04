@@ -6,7 +6,7 @@
 // ver qual é qual.
 
 import type { NpcCombatant } from '../initiative-tracker/types'
-import type { ScaledMonster, ScaleOverrides } from './types'
+import type { ScaledMonster, ScaleOverrides, SpellEdits } from './types'
 
 /**
  * @param overrides os ajustes finos de degrau, levados junto para o cartão da
@@ -18,6 +18,7 @@ export function npcFromScaled(
     monster: ScaledMonster,
     index = 0,
     overrides: ScaleOverrides = {},
+    spellEdits: SpellEdits | null = null,
 ): NpcCombatant {
     const maxHp = Math.max(1, monster.hp)
     const base = `${monster.source.name} (N${monster.level})`
@@ -44,5 +45,8 @@ export function npcFromScaled(
         aonUrl: monster.source.url,
         aonName: monster.source.name,
         ...(Object.keys(overrides).length > 0 ? { scaleOverrides: overrides } : {}),
+        // Mesma razão dos overrides: sem a lista editada, a ficha do cartão
+        // mostraria as magias da AON, não as que o GM escolheu.
+        ...(spellEdits ? { spellEdits } : {}),
     }
 }
