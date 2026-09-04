@@ -36,9 +36,11 @@ import {
     type DamageBenchmark,
     type ScaleColumn,
 } from './data/creatureTables'
+import { collectAbilityDcs, rewriteAbilityDcs } from './abilityDc'
 import type {
     AttributeKey,
     MonsterDetail,
+    ScaledAbility,
     ScaledMonster,
     ScaledRow,
     ScaledStrike,
@@ -55,6 +57,28 @@ function columnsOf(table: ByLevel<unknown>, level: number): ScaleColumn[] {
     const row = table[level] ?? {}
     return ORDER.filter((c) => row[c] !== undefined)
 }
+
+/**
+ * A coluna de CD da tabela de conjuração, no formato das demais tabelas.
+ *
+ * `SPELL_TABLE` guarda CD e ataque no MESMO objeto por degrau, o que serve para
+ * `shiftSpell` mas não para `inferColumn`, que espera um número por coluna.
+ * Derivar aqui evita editar o arquivo gerado.
+ *
+ * É a tabela certa também para as CDs escritas na prosa: o GM Core manda usar o
+ * benchmark de CD de magia para qualquer efeito da criatura que peça
+ * salvaguarda, não só para as magias.
+ */
+const SPELL_DC_TABLE: ByLevel<number> = Object.fromEntries(
+    Object.entries(SPELL_TABLE).map(([level, row]) => [
+        level,
+        Object.fromEntries(
+            Object.entries(row)
+                .filter(([, cell]) => cell.dc !== undefined)
+                .map(([column, cell]) => [column, cell.dc as number]),
+        ),
+    ]),
+)
 
 const mid = (band: Band): number => (band.max + band.min) / 2
 
@@ -279,6 +303,16 @@ function strikeColumn(
     return inferColumn(table, level, value)
 }
 
+/**
+ * Rótulo da linha de CD no painel: as duas primeiras habilidades e a contagem do
+ * resto. Um dragão põe a mesma CD em cinco habilidades, e listar todas empurra a
+ * coluna do número para fora da tela no celular.
+ */
+function labelAbilities(names: string[]): string {
+    if (names.length <= 2) return names.join(', ')
+    return `${names.slice(0, 2).join(', ')} +${names.length - 2}`
+}
+
 export function scaleMonster(
     source: MonsterDetail,
     targetLevel: number,
@@ -432,6 +466,38 @@ export function scaleMonster(
         }
     })
 
+    // --- CDs escritas na prosa das habilidades ---
+    //
+    // Mesmo benchmark da CD de conjuração (ver `SPELL_DC_TABLE`), e mesma regra
+    // do resto do arquivo: preserva-se a diferença para a tabela.
+    //
+    // Quando a CD do texto é a MESMA que o índice publicou em `spell_dc`, o
+    // degrau vem de lá em vez de ser deduzido do valor. É o mesmo número, e
+    // deduzir faria o bloco de conjuração e a prosa andarem por caminhos
+    // diferentes — o Kadamel tem "Spells DC 38" nos dois lugares.
+    const dcGroups = collectAbilityDcs(source.statblock?.abilities ?? [])
+    const dcMap = new Map<number, number>()
+    for (const group of dcGroups) {
+        const declared = group.value === source.spellDc ? source.spellDcScale : null
+        const base = baseColumn(declared, SPELL_DC_TABLE, from, group.value)
+        const key = `dc:${group.value}`
+        const column = pick(overrides, key, base.column)
+        const scaledDc = shiftSpell(from, to, base.column, column, group.value, 'dc')
+        dcMap.set(group.value, scaledDc)
+        addRow(
+            key,
+            `CD ${group.value} (${labelAbilities(group.abilities)})`,
+            SPELL_DC_TABLE, column, group.value, scaledDc, 'flat', base.inferred,
+        )
+    }
+
+    // A prosa segue em inglês e intocada; só os dígitos da CD mudam.
+    const abilities: ScaledAbility[] = (source.statblock?.abilities ?? []).map((ability) => ({
+        ...ability,
+        originalText: ability.text,
+        text: rewriteAbilityDcs(ability.text, dcMap),
+    }))
+
     // --- avisos: tudo que a ferramenta deliberadamente não tocou ---
 
     // Criatura fora da faixa das tabelas (a Tarrasque é nível 25) não tem
@@ -455,7 +521,10 @@ export function scaleMonster(
 
     if ((source.statblock?.abilities.length ?? 0) > 0) {
         warnings.push(
-            'Habilidades especiais não foram reescaladas — ajuste dados e CDs manualmente.',
+            dcGroups.length > 0
+                ? 'Nas habilidades especiais, só as CDs foram ajustadas: dados de dano, alcance e '
+                    + 'duração na prosa ficam como estão (o teste plano também, que é de CD fixa).'
+                : 'A prosa das habilidades especiais não foi reescalada — ajuste dados e efeitos manualmente.',
         )
     }
     if (spellcasting.length > 0) {
@@ -473,7 +542,7 @@ export function scaleMonster(
     return {
         source,
         level: to,
-        ac, hp, perception, saves, attributes, skills, strikes, spellcasting,
+        ac, hp, perception, saves, attributes, skills, strikes, spellcasting, abilities,
         resistances: shiftDefense(from, to, source.resistances),
         weaknesses: shiftDefense(from, to, source.weaknesses),
         rows,

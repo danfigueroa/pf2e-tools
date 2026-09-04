@@ -145,6 +145,15 @@ export interface ScaledRow {
     formulaTo?: string | null
 }
 
+/**
+ * Habilidade com as CDs da prosa já no nível-alvo. O texto original fica junto
+ * porque é ele que o `check-scaling` compara: reescalar para o próprio nível
+ * tem que devolver a prosa idêntica.
+ */
+export interface ScaledAbility extends ParsedAbility {
+    originalText: string
+}
+
 export interface ScaledStrike extends ParsedStrike {
     /** Bônus e dano já no nível-alvo. */
     damageFormula: string | null
@@ -163,6 +172,8 @@ export interface ScaledMonster {
     skills: Record<string, number>
     strikes: ScaledStrike[]
     spellcasting: SpellcastingBlock[]
+    /** A prosa segue em inglês; só as CDs dentro dela acompanham o nível. */
+    abilities: ScaledAbility[]
     resistances: Record<string, number>
     weaknesses: Record<string, number>
     /** Linhas do painel de ajuste, na ordem de exibição. */
