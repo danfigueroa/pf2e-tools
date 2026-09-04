@@ -53,7 +53,7 @@ const failures = []
 const monotony = []
 const roundTrip = []
 const overrideFails = []
-let checked = 0, strikesChecked = 0, dcsChecked = 0
+let checked = 0, strikesChecked = 0, dcsChecked = 0, damageChecked = 0
 
 /**
  * As CDs escritas na prosa das habilidades, na ordem em que aparecem, com a
@@ -65,6 +65,25 @@ function dcList(abilities) {
   for (const a of abilities) {
     for (const m of a.text.matchAll(/\bDC\s*(\d+)\b( flat check)?/g)) {
       out.push({ ability: a.name, dc: parseInt(m[1], 10), flat: Boolean(m[2]) })
+    }
+  }
+  return out
+}
+
+/**
+ * O dano escrito na prosa, com a média ao lado — é a média que precisa subir
+ * junto com o nível, não a fórmula, que muda de dado.
+ */
+function damageList(abilities) {
+  const out = []
+  for (const a of abilities) {
+    for (const m of a.text.matchAll(/(\d+)d(\d+)([+-]\d+)?(\s+(?:persistent\s+)?[a-z]+)?\s+damage/gi)) {
+      const flat = m[3] ? parseInt(m[3], 10) : 0
+      out.push({
+        ability: a.name,
+        formula: m[0].trim(),
+        average: parseInt(m[1], 10) * ((parseInt(m[2], 10) + 1) / 2) + flat,
+      })
     }
   }
   return out
@@ -119,6 +138,19 @@ for (const name of await sample(LIMIT)) {
     if (up.ac < same.ac) monotony.push(`${name}: CA ${same.ac} -> ${up.ac}`)
     if (up.hp < same.hp) monotony.push(`${name}: PV ${same.hp} -> ${up.hp}`)
     if (up.perception < same.perception) monotony.push(`${name}: Perc ${same.perception} -> ${up.perception}`)
+
+    const beforeDmg = damageList(same.abilities)
+    const afterDmg = damageList(up.abilities)
+    if (beforeDmg.length !== afterDmg.length) {
+      monotony.push(`${name}: ${beforeDmg.length} dano(s) na prosa viraram ${afterDmg.length}`)
+    } else {
+      beforeDmg.forEach((b, i) => {
+        damageChecked += 1
+        if (afterDmg[i].average < b.average) {
+          monotony.push(`${name}: dano de "${b.ability}" ${b.formula} -> ${afterDmg[i].formula}`)
+        }
+      })
+    }
 
     const before = dcList(same.abilities)
     const after = dcList(up.abilities)
@@ -220,7 +252,10 @@ function scaledAsSource(original, scaled) {
   }
 }
 
-console.log(`criaturas conferidas: ${checked} | golpes: ${strikesChecked} | CDs na prosa: ${dcsChecked}`)
+console.log(
+  `criaturas conferidas: ${checked} | golpes: ${strikesChecked}`
+  + ` | CDs na prosa: ${dcsChecked} | danos na prosa: ${damageChecked}`,
+)
 console.log(`\nIDENTIDADE (mesmo nível deve devolver a ficha original): ${failures.length} falha(s)`)
 failures.slice(0, 25).forEach((f) => console.log('  ✗', f))
 console.log(`\nMONOTONIA (subir nível não pode baixar número): ${monotony.length} falha(s)`)
