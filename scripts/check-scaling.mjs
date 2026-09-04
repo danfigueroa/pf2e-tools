@@ -53,7 +53,22 @@ const failures = []
 const monotony = []
 const roundTrip = []
 const overrideFails = []
-let checked = 0, strikesChecked = 0
+let checked = 0, strikesChecked = 0, dcsChecked = 0
+
+/**
+ * As CDs escritas na prosa das habilidades, na ordem em que aparecem, com a
+ * marca de teste plano ao lado — a CD do teste plano é fixa (Player Core) e
+ * NÃO pode acompanhar o nível.
+ */
+function dcList(abilities) {
+  const out = []
+  for (const a of abilities) {
+    for (const m of a.text.matchAll(/\bDC\s*(\d+)\b( flat check)?/g)) {
+      out.push({ ability: a.name, dc: parseInt(m[1], 10), flat: Boolean(m[2]) })
+    }
+  }
+  return out
+}
 
 for (const name of await sample(LIMIT)) {
   const monster = await resolveMonster(name)
@@ -90,12 +105,36 @@ for (const name of await sample(LIMIT)) {
     void i
   })
 
+  // As CDs da prosa entram na identidade: reescalar para o próprio nível tem
+  // que devolver o texto caractere por caractere.
+  same.abilities.forEach((a) => {
+    if (a.text !== a.originalText) {
+      failures.push(`${name}(n${monster.level}) prosa de "${a.name}" mudou no próprio nível`)
+    }
+  })
+
   // --- monotonia: dois níveis acima não pode piorar nada ---
   if (monster.level <= 22) {
     const up = scaleMonster(monster, monster.level + 2)
     if (up.ac < same.ac) monotony.push(`${name}: CA ${same.ac} -> ${up.ac}`)
     if (up.hp < same.hp) monotony.push(`${name}: PV ${same.hp} -> ${up.hp}`)
     if (up.perception < same.perception) monotony.push(`${name}: Perc ${same.perception} -> ${up.perception}`)
+
+    const before = dcList(same.abilities)
+    const after = dcList(up.abilities)
+    if (before.length !== after.length) {
+      monotony.push(`${name}: ${before.length} CD(s) na prosa viraram ${after.length}`)
+    } else {
+      before.forEach((b, i) => {
+        dcsChecked += 1
+        const a = after[i]
+        if (b.flat && a.dc !== b.dc) {
+          monotony.push(`${name}: teste plano de "${b.ability}" mudou, CD ${b.dc} -> ${a.dc}`)
+        } else if (!b.flat && a.dc < b.dc) {
+          monotony.push(`${name}: CD de "${b.ability}" ${b.dc} -> ${a.dc}`)
+        }
+      })
+    }
   }
 
   // --- o ajuste fino precisa ajustar ---
@@ -133,6 +172,14 @@ for (const name of await sample(LIMIT)) {
         roundTrip.push(`${name}(n${monster.level}) golpe ${st.name} +${orig.bonus} -> +${st.bonus}`)
       }
     })
+    // A CD da prosa também precisa fechar: a identidade não a exercita, porque
+    // no mesmo nível o texto sai sem passar por conta nenhuma.
+    trip.abilities.forEach((a, i) => {
+      const orig = monster.statblock?.abilities[i]
+      if (orig && a.text !== orig.text) {
+        roundTrip.push(`${name}(n${monster.level}) prosa de "${a.name}" não voltou ao original`)
+      }
+    })
   }
 }
 
@@ -154,9 +201,17 @@ function scaledAsSource(original, scaled) {
       will: withScale(scaled.saves.will, original.saves.will),
     },
     skills: scaled.skills,
+    // A CD de conjuração precisa acompanhar o resto da ficha: ela é o degrau
+    // DECLARADO das CDs da prosa (ver `scaleMonster`), e deixá-la no valor
+    // original faria a volta cair na inferência por valor — que, num empate
+    // entre dois degraus, erra por 1 e acusaria falha onde não há.
+    spellDc: scaled.spellcasting.find((b) => b.dc !== null)?.dc
+      ?? scaled.rows.find((r) => r.key === `dc:${original.spellDc}`)?.to
+      ?? original.spellDc,
     damageAverages: original.damageAverages,
     statblock: original.statblock && {
       ...original.statblock,
+      abilities: scaled.abilities,
       strikes: scaled.strikes.map((st) => ({
         ...st,
         damage: st.damage && { ...st.damage, formula: st.damageFormula },
@@ -165,7 +220,7 @@ function scaledAsSource(original, scaled) {
   }
 }
 
-console.log(`criaturas conferidas: ${checked} | golpes: ${strikesChecked}`)
+console.log(`criaturas conferidas: ${checked} | golpes: ${strikesChecked} | CDs na prosa: ${dcsChecked}`)
 console.log(`\nIDENTIDADE (mesmo nível deve devolver a ficha original): ${failures.length} falha(s)`)
 failures.slice(0, 25).forEach((f) => console.log('  ✗', f))
 console.log(`\nMONOTONIA (subir nível não pode baixar número): ${monotony.length} falha(s)`)
