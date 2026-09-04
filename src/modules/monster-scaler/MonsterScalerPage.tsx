@@ -26,10 +26,11 @@ import { MonsterSearch } from './components/MonsterSearch'
 import { MonsterStatBlock } from './components/MonsterStatBlock'
 import { MonsterExport } from './components/MonsterExport'
 import { ScaleAdjustPanel } from './components/ScaleAdjustPanel'
+import { SpellEditorDialog } from './components/SpellEditorDialog'
 import { MAX_LEVEL, MIN_LEVEL } from './data/creatureTables'
 import { clampLevel, scaleMonster } from './scaling'
 import { npcFromScaled } from './toCombatant'
-import type { BenchColumn, MonsterDetail } from './types'
+import type { BenchColumn, MonsterDetail, SpellEdits } from './types'
 
 export const MonsterScalerPage = () => {
     const navigate = useNavigate()
@@ -38,6 +39,10 @@ export const MonsterScalerPage = () => {
     const [loadError, setLoadError] = useState<string | null>(null)
     const [level, setLevel] = useState(1)
     const [overrides, setOverrides] = useState<Record<string, BenchColumn>>({})
+    // A lista de magias montada à mão, ancorada no nível em que foi montada:
+    // trocar o nível-alvo desloca a lista editada, não a da AON.
+    const [spellEdits, setSpellEdits] = useState<SpellEdits | null>(null)
+    const [spellsOpen, setSpellsOpen] = useState(false)
     // Uma busca por faixa devolve vinte resultados, e deixá-los abertos empurra
     // o nível-alvo e o ajuste fino para fora da tela justo quando passam a ser
     // o que o GM quer mexer. Escolher uma criatura recolhe a lista.
@@ -59,20 +64,21 @@ export const MonsterScalerPage = () => {
             // e o nível do monstro anterior não diz nada sobre este.
             setLevel(clampLevel(found.level))
             setOverrides({})
+            setSpellEdits(null)
         })
     }, [])
 
-    // Trocar de monstro invalida qualquer degrau escolhido à mão.
-    useEffect(() => { setOverrides({}) }, [monster])
+    // Trocar de monstro invalida qualquer degrau — e qualquer magia — escolhido à mão.
+    useEffect(() => { setOverrides({}); setSpellEdits(null) }, [monster])
 
     const scaled = useMemo(
-        () => (monster ? scaleMonster(monster, level, overrides) : null),
-        [monster, level, overrides],
+        () => (monster ? scaleMonster(monster, level, overrides, spellEdits) : null),
+        [monster, level, overrides, spellEdits],
     )
 
     const handleSendToInitiative = () => {
         if (!scaled) return
-        appendCombatants([npcFromScaled(scaled, 0, overrides)])
+        appendCombatants([npcFromScaled(scaled, 0, overrides, spellEdits)])
         navigate('/iniciativa')
     }
 
@@ -172,6 +178,21 @@ export const MonsterScalerPage = () => {
                                 </Typography>
                             </Paper>
 
+                            {scaled.spellcasting.length > 0 && (
+                                <Paper sx={{ p: { xs: 1.5, sm: 2 } }}>
+                                    <Typography variant="overline" sx={{ color: gold.deep, letterSpacing: '0.06em' }}>
+                                        Magias
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ color: ink.secondary, mb: 1 }}>
+                                        O nível novo abre ranks e slots; as magias que entram neles
+                                        são escolha sua.
+                                    </Typography>
+                                    <Button size="small" variant="outlined" onClick={() => setSpellsOpen(true)}>
+                                        Editar magias
+                                    </Button>
+                                </Paper>
+                            )}
+
                             <Paper sx={{ p: { xs: 1.5, sm: 2 } }}>
                                 <ScaleAdjustPanel
                                     rows={scaled.rows}
@@ -228,6 +249,18 @@ export const MonsterScalerPage = () => {
                     )}
                 </Box>
             </Box>
+
+            {scaled && (
+                <SpellEditorDialog
+                    open={spellsOpen}
+                    blocks={scaled.spellcasting}
+                    level={level}
+                    edited={spellEdits !== null}
+                    onChange={setSpellEdits}
+                    onReset={() => setSpellEdits(null)}
+                    onClose={() => setSpellsOpen(false)}
+                />
+            )}
         </Container>
     )
 }
