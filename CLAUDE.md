@@ -495,6 +495,10 @@ criaturas do GM Core (pg. 112-121, níveis -1 a 24).
   **confira o diff** — é o passo em que um erro de parse vira monstro errado na mesa. Armadilhas:
   travessão (não hífen) no nível negativo e nas faixas, traço longo para "não existe", PV e perícia
   Baixa em faixa, dano como `"4d12+42 (68)"`.
+  - **A marcação do AON muda.** As tabelas passaram a sair como `<table class="inner">`, e o regex
+    `/<table>/` literal deixou de casar com TODAS as dez de uma vez — o script morria em "Sem tabela
+    para: …". Falha barulhenta, felizmente; o `<table[^>]*>` de hoje é a correção. Se o script
+    reclamar de todas as tabelas ao mesmo tempo, suspeite da marcação antes da rede.
 - **A regra que explica o motor** (`scaling.ts`): preserva-se a **diferença** em relação ao
   benchmark, nunca o benchmark cru. Criaturas publicadas são feitas à mão e não batem com a tabela;
   trocar o número pelo da tabela apagaria a personalidade do monstro e faria reescalar para o
@@ -504,10 +508,11 @@ criaturas do GM Core (pg. 112-121, níveis -1 a 24).
   cancela. Foi bug real, e o painel parecia funcionar.
 - **PV usa razão, não diferença** (cresce quase geometricamente: 9 no nível -1, ~500 no 24).
   **Dano** pega os dados da tabela do nível-alvo e deixa o modificador fixo absorver o desvio.
-- **O que NÃO é reescalado, por decisão de produto**: a prosa das habilidades (fica em inglês, e só
-  as CDs dentro dela mudam — ver abaixo), a lista de magias (só a CD e o ataque mudam) e o dano
-  extra dos golpes (`plus 2d6 fire`). Tudo isso vira `warnings`, exibidos na página. A ferramenta
-  **nunca inventa um número que o GM não conferiu** — mesma política de `creature-core.js`.
+- **O que NÃO é reescalado, por decisão de produto**: a prosa das habilidades (fica em inglês; só
+  as CDs e as fórmulas de dano dentro dela mudam — ver abaixo), a lista de magias (só a CD e o
+  ataque mudam) e o dano extra dos golpes (`plus 2d6 fire`, que fica no `riders` do golpe e não na
+  prosa). Tudo isso vira `warnings`, exibidos na página. A ferramenta **nunca inventa um número que
+  o GM não conferiu** — mesma política de `creature-core.js`.
 - **As CDs escritas na prosa** (`abilityDc.ts`) são a exceção: a CD de conjuração vinha estruturada
   do índice, mas a de "Breath Weapon … (DC 36 basic Reflex save)" só existe como texto — e 82% das
   criaturas do índice têm pelo menos uma. Deixá-la intacta entregava um monstro de nível 16 pedindo
@@ -523,10 +528,32 @@ criaturas do GM Core (pg. 112-121, níveis -1 a 24).
     dragão saem do mesmo benchmark, então têm que continuar iguais depois da escala).
   - Quando a CD do texto é a mesma que o índice publicou em `spell_dc`, o degrau vem de lá em vez de
     ser deduzido — senão o bloco de conjuração e a prosa andariam por caminhos diferentes.
+- **O dano escrito na prosa** (`abilityDamage.ts`) segue a mesma ideia, pela tabela de **Dano em
+  Área** (GM Core pg. 124, `AREA_DAMAGE_TABLE`), cujas colunas não são degraus: **uso ilimitado** (à
+  vontade) e **uso limitado** — a baforada de dragão é o exemplo que o livro dá do segundo. Sem
+  isso, um dragão levado para o nível 24 saía com CA, CD e golpes de nível 24 e uma baforada de
+  nível 14.
+  - **Aqui é RAZÃO, não diferença** — ao contrário do dano dos golpes. `shiftDamage` troca os dados
+    pelos do nível-alvo e joga o desvio no modificador fixo, o que só funciona porque todo golpe fica
+    perto do benchmark. Na prosa convivem a baforada (que É o benchmark) e o `1d6` persistente de
+    uma aura, e a mesma conta aplicada ao segundo devolvia fórmulas como `6d8-19`. Multiplicando a
+    fórmula pela razão entre os benchmarks, cada dano cresce na própria escala — mesmo raciocínio do
+    PV.
+  - **Só vira dano o que tem um TIPO ao lado ou a palavra `damage`**, a mesma regra de
+    `initiative-tracker/dice.ts` (de onde vem a lista de tipos). Sem ela, o "1d4 rounds" da recarga
+    da baforada entraria na conta. Dano fixo sem dado ("takes 3 fire damage") fica de fora: a tabela
+    do livro é toda em dados.
+  - A escala confere com o livro nos dois sentidos: a baforada 15d6 do Adult Red Dragon (nível 14)
+    vira 18d6 no 17, 25d6 no 24 e 9d6 no 8 — exatamente as linhas de uso limitado da tabela.
+- **`ScaleOverrides` fala duas línguas** (`BenchColumn = ScaleColumn | AreaColumn`), porque a linha
+  de dano em área não tem degrau. Por isso `pick()` valida o degrau escolhido contra as colunas
+  DAQUELA linha: os overrides viajam para o cartão da Iniciativa e voltam do `localStorage`, então
+  um ajuste guardado antes pode chegar com "Extremo" numa linha cujas colunas são
+  "Ilimitado"/"Limitado". Degrau inválido é ignorado, não quebra a ficha.
 - **`scripts/check-scaling.mjs` é o teste que vale**: contra criaturas de verdade, confere
   identidade (mesmo nível devolve a ficha original, prosa inclusive, caractere por caractere),
-  monotonia (inclusive a das CDs, e que a do teste plano NÃO se move), ida e volta, e que o ajuste
-  fino ajusta. Não há framework de teste no repositório, por isso é script avulso. A ida e volta existe
+  monotonia (inclusive a das CDs e a do dano da prosa, e que a CD do teste plano NÃO se move), ida e
+  volta, e que o ajuste fino ajusta. Não há framework de teste no repositório, por isso é script avulso. A ida e volta existe
   porque a identidade não prova nada sobre o dano, que tem saída curta quando os níveis são iguais.
 - **`MonsterStatBlock.tsx` é o subtree que o `html2canvas` rasteriza**: hex literal de 6 dígitos,
   nunca token de tema — ver a seção de Tema.
