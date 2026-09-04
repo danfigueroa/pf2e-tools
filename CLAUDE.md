@@ -586,6 +586,16 @@ criaturas do GM Core (pg. 112-121, níveis -1 a 24).
     preparadas É o número de slots (com `×2` valendo dois).
   - **Ritual fica intocado** (conjurado de um livro, em downtime — pg. 123) e é o único bloco sem
     linha no ajuste fino.
+  - **A mesma magia pode entrar várias vezes**, que é como se preenchem três slots de 3º com
+    Fireball duas vezes e Haste uma. A contagem é a notação do próprio índice (`Fear (2)`,
+    `Charm (×3)`) e é um TOKEN da anotação, não a anotação inteira — o Wyrmwraith escreve
+    "Charm (×3; undead targets only)" e o Horned Archon põe a contagem no fim, em
+    "Charm (animals only; x3)". Repetir só faz sentido em **preparada** (slots) e em **inata**
+    (vezes por dia): no repertório de uma espontânea, saber a mesma magia duas vezes não conjura
+    nada a mais, e truque/constante não têm o que contar.
+  - **Espontânea não tem slot vazio** enquanto souber alguma magia do rank: quatro slots de 1º com
+    três magias conhecidas é ficha normal (o Virulak Necromancer é assim), e marcar isso como vazio
+    acusava 60 grupos das fichas publicadas. Só rank sem magia nenhuma deixa slot inútil.
   - **Slot que abre fica VAZIO**, marcado no bloco e no aviso: a ferramenta não escolhe magia pelo
     GM, mesma política de todo o resto. E nada é apagado — lista que passou do número de slots vira
     aviso, não exclusão.

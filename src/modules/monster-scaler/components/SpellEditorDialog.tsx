@@ -31,7 +31,7 @@ import {
 import { Add as AddIcon, Search as SearchIcon } from '@mui/icons-material'
 import { gold, ink, parchment, rule } from '../../../theme'
 import { searchSpellList, type AonSpell } from '../../../services/spellList'
-import { buildSpellEdits, groupLabel } from '../spellcasting'
+import { buildSpellEdits, groupLabel, spellCopies, withCopies } from '../spellcasting'
 import type { ScaledSpellBlock, ScaledSpellGroup, SpellEdits, SpellEntry } from '../types'
 
 interface Props {
@@ -132,12 +132,44 @@ interface RowProps {
     onChange: (spells: SpellEntry[]) => void
 }
 
-function GroupRow({ block, group, adding, onToggleAdd, onChange }: RowProps) {
-    const remove = (index: number) =>
-        onChange(group.spells.filter((_, i) => i !== index))
+/**
+ * Onde repetir a mesma magia quer dizer alguma coisa: em PREPARADA, três slots
+ * de 3º rank podem levar Fireball duas vezes e Haste uma; em INATA, a contagem
+ * é quantas vezes por dia a magia sai. No repertório de uma espontânea, não:
+ * saber a mesma magia duas vezes não conjura nada a mais. Truque é à vontade e
+ * constante está sempre ligada, então em nenhum dos dois há o que contar.
+ */
+const allowsCopies = (block: ScaledSpellBlock, group: ScaledSpellGroup) =>
+    group.kind === 'rank' && (block.kind === 'prepared' || block.kind === 'innate')
 
-    const add = (spell: AonSpell, atWill: boolean) =>
+function GroupRow({ block, group, adding, onToggleAdd, onChange }: RowProps) {
+    const copies = allowsCopies(block, group)
+
+    /** O × tira uma cópia de cada vez; a última tira a magia. */
+    const remove = (index: number) => {
+        const entry = group.spells[index]
+        const count = spellCopies(entry)
+        if (copies && count > 1) {
+            onChange(group.spells.map((e, i) => (i === index ? withCopies(e, count - 1) : e)))
+            return
+        }
+        onChange(group.spells.filter((_, i) => i !== index))
+    }
+
+    const add = (spell: AonSpell, atWill: boolean) => {
+        const at = group.spells.findIndex(
+            (e) => e.name.toLowerCase() === spell.name.toLowerCase())
+        // Escolher de novo a mesma magia soma uma cópia, em vez de repetir o chip:
+        // é assim que a AON escreve ("Fear (2)", "Charm (×3)") e é o que a conta
+        // de slots lê.
+        if (at >= 0) {
+            if (!copies) return
+            onChange(group.spells.map((e, i) =>
+                (i === at ? withCopies(e, spellCopies(e) + 1) : e)))
+            return
+        }
         onChange([...group.spells, { name: spell.name, note: atWill ? 'at will' : null }])
+    }
 
     return (
         <Box sx={{ borderTop: `1px solid ${rule}88`, py: 1 }}>
@@ -174,12 +206,13 @@ function GroupRow({ block, group, adding, onToggleAdd, onChange }: RowProps) {
                         size="small"
                         label={entry.note ? `${entry.name} (${entry.note})` : entry.name}
                         onDelete={() => remove(i)}
+                        title={spellCopies(entry) > 1 ? 'Tirar uma cópia' : 'Tirar a magia'}
                         sx={{ backgroundColor: parchment.sunken }}
                     />
                 ))}
             </Box>
 
-            {adding && <SpellPicker block={block} group={group} onPick={add} />}
+            {adding && <SpellPicker block={block} group={group} copies={copies} onPick={add} />}
         </Box>
     )
 }
@@ -187,6 +220,8 @@ function GroupRow({ block, group, adding, onToggleAdd, onChange }: RowProps) {
 interface PickerProps {
     block: ScaledSpellBlock
     group: ScaledSpellGroup
+    /** Se repetir a mesma magia soma uma cópia em vez de não fazer nada. */
+    copies: boolean
     onPick: (spell: AonSpell, atWill: boolean) => void
 }
 
@@ -199,7 +234,7 @@ interface PickerProps {
  * presa à tradição, então há como abrir a lista inteira — mas o padrão é a
  * tradição do bloco, que é o que a ficha declara.
  */
-function SpellPicker({ block, group, onPick }: PickerProps) {
+function SpellPicker({ block, group, copies, onPick }: PickerProps) {
     const [query, setQuery] = useState('')
     const [results, setResults] = useState<AonSpell[]>([])
     const [loading, setLoading] = useState(false)
@@ -266,20 +301,26 @@ function SpellPicker({ block, group, onPick }: PickerProps) {
             )}
 
             <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 1, maxHeight: 220, overflowY: 'auto' }}>
-                {results.map((spell) => (
-                    <Chip
-                        key={spell.name}
-                        size="small"
-                        icon={<AddIcon fontSize="small" />}
-                        label={`${spell.name} · ${spell.rank}º`}
-                        disabled={already.has(spell.name.toLowerCase())}
-                        onClick={() => onPick(spell, atWill)}
-                        sx={{
-                            backgroundColor: parchment.paper,
-                            border: `1px solid ${spell.rarity === 'common' ? rule : gold.main}`,
-                        }}
-                    />
-                ))}
+                {results.map((spell) => {
+                    const has = already.has(spell.name.toLowerCase())
+                    return (
+                        <Chip
+                            key={spell.name}
+                            size="small"
+                            icon={<AddIcon fontSize="small" />}
+                            label={`${spell.name} · ${spell.rank}º`}
+                            // Já escolhida: soma uma cópia onde isso quer dizer
+                            // alguma coisa, e fica apagada onde não quer.
+                            disabled={has && !copies}
+                            title={has && copies ? 'Somar uma cópia' : undefined}
+                            onClick={() => onPick(spell, atWill)}
+                            sx={{
+                                backgroundColor: parchment.paper,
+                                border: `1px solid ${spell.rarity === 'common' ? rule : gold.main}`,
+                            }}
+                        />
+                    )
+                })}
             </Box>
         </Box>
     )

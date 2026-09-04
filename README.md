@@ -153,7 +153,8 @@ Resolve o problema de gostar da ficha de um monstro que está no nível errado p
     editor busca no Archives of Nethys pela tradição do bloco e pelo rank do slot, e o que o nível
     novo abriu aparece marcado como vazio — a ferramenta nunca escolhe a magia por você. A escada
     anda preservando a forma (as magias do topo continuam no topo) e dá para pedir que os ranks
-    fiquem nos originais, bloco a bloco. Slots seguem o GM Core pg. 122, respeitando o número que a
+    fiquem nos originais, bloco a bloco. A mesma magia pode entrar mais de uma vez — três slots de
+    3º com Fireball duas vezes e Haste uma —, com a notação do próprio Archives of Nethys. Slots seguem o GM Core pg. 122, respeitando o número que a
     ficha original já usava
 -   **Diz o que não ajustou**: fora as CDs e o dano, a prosa das habilidades fica em inglês e
     intocada (alcance, duração, o efeito em si), a lista de magias não muda de rank e o dano extra

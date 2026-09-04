@@ -129,12 +129,55 @@ export function parseSpellEntry(raw: string): SpellEntry {
 export const formatSpellEntry = (entry: SpellEntry): string =>
     entry.note ? `${entry.name} (${entry.note})` : entry.name
 
-/** `×3`, `x3` e `3` na anotação são CÓPIAS preparadas: ocupam 3 slots. */
-function copiesOf(entry: SpellEntry): number {
-    if (!entry.note) return 1
-    const m = /^[×x]?\s*(\d+)$/i.exec(entry.note.trim())
-    const n = m ? parseInt(m[1], 10) : 1
-    return Number.isFinite(n) && n > 0 ? n : 1
+/**
+ * A contagem de CÓPIAS dentro da anotação — `×3`, `x2`, `2` —, que é quantos
+ * slots a magia ocupa (preparada) ou quantas vezes por dia ela sai (inata).
+ *
+ * A contagem é um TOKEN da anotação, não a anotação inteira: o Wyrmwraith
+ * escreve "Charm (×3; undead targets only)" e o Horned Archon põe a contagem no
+ * fim, em "Charm (animals only; x3)". Ler a anotação inteira como número dava
+ * uma cópia só nesses casos, e o slot que a magia ocupava sobrava como vazio.
+ */
+function copyToken(note: string | null): { index: number; prefix: string; count: number } | null {
+    if (!note) return null
+    const parts = note.split(';')
+    for (let i = 0; i < parts.length; i += 1) {
+        const m = /^\s*([×x]?)\s*(\d+)\s*$/i.exec(parts[i])
+        // O prefixo sai como está, inclusive vazio: as três fichas que escrevem
+        // "Fear (2)" continuam escrevendo "(3)", não "(×3)".
+        if (m) return { index: i, prefix: m[1], count: parseInt(m[2], 10) }
+    }
+    return null
+}
+
+const copiesOf = (entry: SpellEntry): number => copyToken(entry.note)?.count ?? 1
+
+/** Quantas vezes a magia aparece: 1 quando a anotação não diz nada. */
+export const spellCopies = copiesOf
+
+/**
+ * A mesma magia com outra contagem de cópias.
+ *
+ * A anotação é reescrita NO LUGAR, preservando o estilo do índice (`×3` vira
+ * `×4`, `x3` vira `x4`) e o resto do texto ("undead targets only"). Uma cópia
+ * só não escreve contagem nenhuma: "Fireball", não "Fireball (×1)".
+ */
+export function withCopies(entry: SpellEntry, count: number): SpellEntry {
+    const n = Math.max(1, Math.round(count))
+    const token = copyToken(entry.note)
+    const parts = entry.note ? entry.note.split(';') : []
+
+    if (token) {
+        if (n > 1) parts[token.index] = `${token.prefix}${n}`
+        else parts.splice(token.index, 1)
+    } else if (n > 1) {
+        parts.unshift(`×${n}`)
+    } else {
+        return entry
+    }
+
+    const note = parts.map((p) => p.trim()).filter(Boolean).join('; ')
+    return { name: entry.name, note: note || null }
 }
 
 /**
@@ -411,11 +454,15 @@ function applySlots(
         Math.max(1, slotsForRank(toLevel, rank) + (deviations.get(rank) ?? lowestDeviation))
 
     const emptyOf = (group: NormalizedGroup | null, slots: number) => {
-        const prepared = group ? group.spells.reduce((sum, e) => sum + copiesOf(e), 0) : 0
-        // Em espontânea o repertório não é a lista de slots: saber mais magias
-        // do que se pode conjurar é o normal, e não é aviso nenhum.
-        const used = kind === 'prepared' ? prepared : Math.min(prepared, slots)
-        return { used: prepared, empty: Math.max(0, slots - used) }
+        const used = group ? group.spells.reduce((sum, e) => sum + copiesOf(e), 0) : 0
+        // ESPONTÂNEA não tem slot vazio enquanto souber ALGUMA magia do rank: o
+        // repertório não é a lista de slots, e quatro slots de 1º com três
+        // magias conhecidas é uma ficha normal — o Virulak Necromancer é assim.
+        // Só um rank sem magia nenhuma deixa slots inúteis.
+        if (kind !== 'prepared') {
+            return { used, empty: used > 0 ? 0 : slots }
+        }
+        return { used, empty: Math.max(0, slots - used) }
     }
 
     // Os grupos que já existiam, na ORDEM DA FICHA — a AON põe "Constant (6th)"
