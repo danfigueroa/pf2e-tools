@@ -40,13 +40,16 @@ import {
 } from './data/creatureTables'
 import { collectAbilityDcs, rewriteAbilityDcs } from './abilityDc'
 import { collectAbilityDamage, rewriteAbilityDamage } from './abilityDamage'
+import { maxSpellRank, parseGroupRank, rankLabel, scaleSpellcasting } from './spellcasting'
 import type {
     AttributeKey,
     BenchColumn,
+    RankMode,
     MonsterDetail,
     ScaledAbility,
     ScaledMonster,
     ScaledRow,
+    SpellEdits,
     ScaledStrike,
     ScaleOverrides,
 } from './types'
@@ -63,6 +66,9 @@ const ORDER: ScaleColumn[] = ['extreme', 'high', 'moderate', 'low', 'terrible']
  * conta própria.
  */
 const AREA_ORDER: AreaColumn[] = ['unlimited', 'limited']
+
+/** Como os ranks de um bloco de conjuração reagem ao nível. Padrão: acompanham. */
+const RANK_MODES: RankMode[] = ['follow', 'original']
 
 function columnsOf(table: ByLevel<unknown>, level: number): ScaleColumn[] {
     const row = table[level] ?? {}
@@ -398,6 +404,7 @@ export function scaleMonster(
     source: MonsterDetail,
     targetLevel: number,
     overrides: ScaleOverrides = {},
+    spellEdits: SpellEdits | null = null,
 ): ScaledMonster {
     const from = clampLevel(source.level)
     const to = clampLevel(targetLevel)
@@ -535,8 +542,12 @@ export function scaleMonster(
         })
     })
 
-    // --- conjuração: só DC e ataque são estruturados ---
-    const spellcasting = (source.statblock?.spellcasting ?? []).map((block) => {
+    // --- conjuração ---
+    //
+    // A CD e o ataque saem da tabela, como sempre; a LISTA de magias é outra
+    // conta, em `spellcasting.ts`: os ranks andam junto com o rank máximo do
+    // nível novo e os slots que abrem ficam vazios, esperando o GM.
+    const withNumbers = (source.statblock?.spellcasting ?? []).map((block) => {
         const dcBase = source.spellDcScale
         const atkBase = source.spellAttackScale ?? source.spellDcScale
         const dcColumn = pick(overrides, 'spellDc', ORDER, dcBase)
@@ -546,6 +557,40 @@ export function scaleMonster(
             dc: block.dc === null ? null : shiftSpell(from, to, dcBase, dcColumn, block.dc, 'dc'),
             attack: block.attack === null ? null : shiftSpell(from, to, atkBase, atkColumn, block.attack, 'attack'),
         }
+    })
+
+    const rankModes = withNumbers.map((_, index) =>
+        pick(overrides, `spellRanks:${index}`, RANK_MODES, 'follow') ?? 'follow')
+
+    const cast = scaleSpellcasting(withNumbers, {
+        fromLevel: from,
+        toLevel: to,
+        followRanks: (index) => rankModes[index] === 'follow',
+        edits: spellEdits,
+    })
+    const spellcasting = cast.blocks
+
+    // Uma linha por bloco no ajuste fino. Ritual fica de fora: o rank dele não
+    // tem relação com o nível de quem conjura.
+    spellcasting.forEach((block, index) => {
+        if (block.kind === 'ritual') return
+        const before = withNumbers[index].groups.reduce((best, group) => {
+            const parsed = parseGroupRank(group.rank)
+            return parsed ? Math.max(best, parsed.rank) : best
+        }, 0)
+        const after = block.groups.reduce((best, group) => Math.max(best, group.rank), 0)
+        rows.push({
+            key: `spellRanks:${index}`,
+            label: `Ranks — ${block.label}`,
+            from: before,
+            to: after,
+            column: rankModes[index],
+            inferred: false,
+            columns: RANK_MODES,
+            kind: 'flat',
+            formulaFrom: before > 0 ? rankLabel(before) : null,
+            formulaTo: after > 0 ? rankLabel(after) : null,
+        })
     })
 
     // --- CDs escritas na prosa das habilidades ---
@@ -641,9 +686,12 @@ export function scaleMonster(
                 : 'A prosa das habilidades especiais não foi reescalada — ajuste dados e efeitos manualmente.',
         )
     }
-    if (spellcasting.length > 0) {
+    warnings.push(...cast.warnings)
+    if (spellcasting.some((b) => b.kind !== 'ritual') && maxSpellRank(from) !== maxSpellRank(to)) {
         warnings.push(
-            'A lista de magias não foi ajustada: a CD e o ataque mudaram, os ranks não.',
+            `No nível ${to}, o teto de conjuração é ${rankLabel(maxSpellRank(to))} `
+            + `(no nível ${from} era ${rankLabel(maxSpellRank(from))}) — GM Core pg. 122. `
+            + 'Bloco que já ficava abaixo do teto continua abaixo, na mesma distância.',
         )
     }
     if (source.defenseNotes.length > 0) {

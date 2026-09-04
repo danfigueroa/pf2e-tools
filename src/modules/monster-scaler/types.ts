@@ -12,7 +12,16 @@ export type { AreaColumn, ScaleColumn }
  * degraus, mas a de dano em área tem colunas próprias (uso ilimitado/limitado),
  * então o painel e os overrides falam as duas línguas.
  */
-export type BenchColumn = ScaleColumn | AreaColumn
+export type BenchColumn = ScaleColumn | AreaColumn | RankMode
+
+/**
+ * Como os ranks de um bloco de conjuração reagem ao nível novo: acompanhando o
+ * rank máximo (padrão) ou parados nos originais. Magia inata, pelo RAW, não é
+ * limitada pelo nível — os dois comportamentos são legítimos, e quem decide é
+ * o GM. Truque e magia de foco ignoram o modo: RAW, vão sempre para o rank
+ * máximo.
+ */
+export type RankMode = 'follow' | 'original'
 
 /** Número da ficha junto do degrau em que a AON o classificou. */
 export interface ScaledStat {
@@ -50,6 +59,63 @@ export interface ParsedAbility {
 export interface SpellGroup {
     rank: string
     spells: string[]
+}
+
+export type SpellBlockKind =
+    | 'innate' | 'prepared' | 'spontaneous' | 'focus' | 'ritual' | 'other'
+
+export type SpellGroupKind = 'cantrip' | 'constant' | 'rank'
+
+/** "Darkness (at will)" — o nome é a chave de busca na AON, a nota é a ressalva. */
+export interface SpellEntry {
+    name: string
+    note: string | null
+}
+
+export interface ScaledSpellGroup {
+    kind: SpellGroupKind
+    rank: number
+    /** Rótulo cru, só quando o grupo não casou com nenhum formato conhecido. */
+    label: string | null
+    spells: SpellEntry[]
+    /** Slots do rank (preparada/espontânea). `null` em bloco sem slot. */
+    slots: number | null
+    /** Slots sem magia escolhida — o GM precisa preencher. */
+    empty: number
+}
+
+export interface ScaledSpellBlock {
+    label: string
+    kind: SpellBlockKind
+    /** Tradição lida do rótulo ("Occult Innate Spells"), para filtrar a busca. */
+    tradition: string | null
+    dc: number | null
+    attack: number | null
+    groups: ScaledSpellGroup[]
+}
+
+/**
+ * A lista que o GM montou à mão, com o NÍVEL em que ela foi montada.
+ *
+ * Guardar o nível junto é o que faz a edição sobreviver a uma troca de
+ * nível-alvo: a lista editada vira a nova origem da escada, e a conta parte
+ * dela em vez da ficha da AON. Sem isso, subir o nível depois de editar
+ * jogaria fora a escolha do GM ou a deslocaria duas vezes.
+ */
+export interface EditedSpellBlock {
+    groups: Array<{
+        kind: SpellGroupKind
+        rank: number
+        spells: SpellEntry[]
+        /** Slots do rank, quando o bloco tem — preserva a opção do livro escolhida. */
+        slots?: number | null
+    }>
+}
+
+export interface SpellEdits {
+    level: number
+    /** Um item por bloco, na ordem da ficha; `null` = bloco não editado. */
+    blocks: Array<EditedSpellBlock | null>
 }
 
 export interface SpellcastingBlock {
@@ -178,7 +244,7 @@ export interface ScaledMonster {
     attributes: Record<AttributeKey, number>
     skills: Record<string, number>
     strikes: ScaledStrike[]
-    spellcasting: SpellcastingBlock[]
+    spellcasting: ScaledSpellBlock[]
     /** A prosa segue em inglês; só as CDs dentro dela acompanham o nível. */
     abilities: ScaledAbility[]
     resistances: Record<string, number>
