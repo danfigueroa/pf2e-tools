@@ -67,7 +67,7 @@ export function ScaleAdjustPanel({ rows, overrides, onOverride, onReset }: Props
                             <Typography variant="body2" sx={{ fontWeight: 600, minWidth: 0, overflowWrap: 'break-word' }}>
                                 {row.label}
                                 {row.inferred && (
-                                    <Box component="span" sx={{ color: ink.disabled, fontWeight: 400 }} title="A AON não classifica perícias: o degrau foi deduzido do valor.">
+                                    <Box component="span" sx={{ color: ink.disabled, fontWeight: 400 }} title="A AON não classifica esta linha — perícias e as CDs escritas na prosa das habilidades: o degrau foi deduzido do valor.">
                                         {' '}·  deduzido
                                     </Box>
                                 )}

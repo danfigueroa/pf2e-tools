@@ -74,7 +74,9 @@ interface Props {
 export function MonsterStatBlock({ monster }: Props) {
     const { source } = monster
     const statblock = source.statblock
-    const abilities = statblock?.abilities ?? []
+    // As habilidades vêm do resultado da escala, não da ficha original: as CDs
+    // da prosa acompanham o nível-alvo.
+    const abilities = monster.abilities
 
     // O índice repete tamanho e raridade DENTRO de `traits`, então montar a
     // faixa somando os três produzia "MÉDIO" e "MEDIUM" lado a lado.
