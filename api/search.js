@@ -2,6 +2,7 @@
 //
 //   ?name=       → descrição de item/habilidade, TRADUZIDA (comportamento legado)
 //   ?affliction= → venenos e doenças com estágios, SEM tradução
+//   ?spells=1    → lista de magias por tradição e rank, SEM tradução
 //
 // O modo de aflição mora aqui porque o plano Hobby da Vercel permite 12 funções
 // serverless por deploy e `api/*.js` já está em 12 — arquivo novo passaria do
@@ -13,6 +14,7 @@
 // traz tudo estruturado e traduzir a cada tecla estoura o rate limit.
 import { resolveSpecial } from './_lib/feat-core.js'
 import { resolveAfflictions } from './_lib/affliction-core.js'
+import { resolveSpellList } from './_lib/spell-list-core.js'
 import { hasTranslationKey } from './_lib/aon.js'
 
 export default async function handler(req, res) {
@@ -33,6 +35,30 @@ export default async function handler(req, res) {
     } catch (error) {
       console.error('Affliction API error:', error)
       return res.status(500).json({ error: 'Erro ao buscar aflição' })
+    }
+  }
+
+  // Modo lista de magias: escolher as magias de um monstro no escalar monstro.
+  if (req.query?.spells) {
+    try {
+      const num = (key) => {
+        const n = parseInt(req.query[key], 10)
+        return Number.isFinite(n) ? n : null
+      }
+      return res.status(200).json(await resolveSpellList(
+        req.query.q ? String(req.query.q) : '',
+        parseInt(req.query.limit, 10) || 20,
+        {
+          tradition: req.query.tradition ? String(req.query.tradition) : null,
+          maxRank: num('maxRank'),
+          minRank: num('minRank'),
+          kind: req.query.kind ? String(req.query.kind) : 'spell',
+          offset: num('offset') ?? 0,
+        },
+      ))
+    } catch (error) {
+      console.error('Spell list API error:', error)
+      return res.status(500).json({ error: 'Erro ao buscar magias' })
     }
   }
 

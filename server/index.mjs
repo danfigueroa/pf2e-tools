@@ -7,6 +7,7 @@ import { resolveCompanion } from '../api/_lib/companion-core.js'
 import { resolveCreatures } from '../api/_lib/creature-core.js'
 import { resolveMonster } from '../api/_lib/monster-core.js'
 import { resolveAfflictions } from '../api/_lib/affliction-core.js'
+import { resolveSpellList } from '../api/_lib/spell-list-core.js'
 import { hasTranslationKey } from '../api/_lib/aon.js'
 import {
   readCharacter,
@@ -160,6 +161,34 @@ const server = http.createServer(async (req, res) => {
         res.end(JSON.stringify(page))
       } catch (e) {
         console.error('[/api/search?affliction] Error:', e)
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: e.message }))
+      }
+      return
+    }
+
+    // Modo lista de magias (?spells=1), pelo mesmo motivo do modo aflição.
+    if (parsedUrl.searchParams.get('spells')) {
+      try {
+        const num = (key) => {
+          const n = parseInt(parsedUrl.searchParams.get(key), 10)
+          return Number.isFinite(n) ? n : null
+        }
+        const page = await resolveSpellList(
+          parsedUrl.searchParams.get('q') || '',
+          parseInt(parsedUrl.searchParams.get('limit'), 10) || 20,
+          {
+            tradition: parsedUrl.searchParams.get('tradition'),
+            maxRank: num('maxRank'),
+            minRank: num('minRank'),
+            kind: parsedUrl.searchParams.get('kind') || 'spell',
+            offset: num('offset') ?? 0,
+          },
+        )
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify(page))
+      } catch (e) {
+        console.error('[/api/search?spells] Error:', e)
         res.writeHead(500, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ error: e.message }))
       }
