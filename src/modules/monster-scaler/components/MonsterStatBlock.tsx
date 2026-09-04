@@ -15,6 +15,8 @@ import {
     translateTrait,
 } from '../../transformation-statblock/i18n'
 import { formatSpellEntry, groupLabel } from '../spellcasting'
+import { splitConditions, traitTerm } from '../ruleTerms'
+import { RuleTip } from './RuleTip'
 import type { ScaledMonster } from '../types'
 
 // Paleta Remaster (pergaminho + verde + ouro), literal de propósito.
@@ -84,10 +86,14 @@ export function MonsterStatBlock({ monster }: Props) {
     const redundant = new Set(
         [source.size, source.rarity].filter(Boolean).map((t) => String(t).toLowerCase()),
     )
-    const traitTags = [
-        ...(source.rarity && source.rarity !== 'common' ? [capitalize(source.rarity)] : []),
-        ...(source.size ? [translateSize(source.size)] : []),
-        ...source.traits.filter((t) => !redundant.has(t.toLowerCase())).map(translateTrait),
+    // O rótulo é o que se lê (pt-BR); o termo é o que se pergunta à AON (inglês).
+    const traitTags: Array<{ label: string; term: string }> = [
+        ...(source.rarity && source.rarity !== 'common'
+            ? [{ label: capitalize(source.rarity), term: capitalize(source.rarity) }] : []),
+        ...(source.size ? [{ label: translateSize(source.size), term: capitalize(source.size) }] : []),
+        ...source.traits
+            .filter((t) => !redundant.has(t.toLowerCase()))
+            .map((t) => ({ label: translateTrait(t), term: traitTerm(t) })),
     ]
 
     const skills = Object.entries(monster.skills)
@@ -114,9 +120,10 @@ export function MonsterStatBlock({ monster }: Props) {
             </Box>
 
             <Box sx={{ px: PAD_X, py: 1, display: 'flex', gap: 0.5, flexWrap: 'wrap', bgcolor: TRAIT_BG }}>
-                {traitTags.map((t, i) => (
+                {traitTags.map(({ label, term }, i) => (
                     <Box key={i} sx={{ bgcolor: GREEN, color: PARCHMENT, border: `1px solid ${TRAIT_BORDER}`, px: 1, py: 0.25, fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-                        {t}
+                        {/* O chip já se destaca sozinho: aqui o tracejado só sujaria. */}
+                        <RuleTip name={term} kind="trait" plain>{label}</RuleTip>
                     </Box>
                 ))}
             </Box>
@@ -198,7 +205,18 @@ export function MonsterStatBlock({ monster }: Props) {
                         </Box>{' '}
                         {strike.name} {mod(strike.bonus)}
                         {strike.traits.length > 0 && (
-                            <Box component="span" sx={{ color: MUTED }}> ({strike.traits.map(translateTrait).join(', ')})</Box>
+                            <Box component="span" sx={{ color: MUTED }}>
+                                {' ('}
+                                {strike.traits.map((t, ti) => (
+                                    <Box component="span" key={ti}>
+                                        {ti > 0 ? ', ' : ''}
+                                        {/* O nome vai para a AON sem o alcance que a ficha
+                                            anexa: "reach 15 feet" é o traço "Reach". */}
+                                        <RuleTip name={traitTerm(t)} kind="trait">{translateTrait(t)}</RuleTip>
+                                    </Box>
+                                ))}
+                                {')'}
+                            </Box>
                         )}
                         {strike.damageFormula && (
                             <>
@@ -233,7 +251,14 @@ export function MonsterStatBlock({ monster }: Props) {
                                         {' '}({group.slots} {group.slots === 1 ? 'slot' : 'slots'})
                                     </Box>
                                 )}{' '}
-                                {group.spells.map(formatSpellEntry).join(', ')}
+                                {group.spells.map((entry, e) => (
+                                    <Box component="span" key={`${entry.name}-${e}`}>
+                                        {e > 0 ? ', ' : ''}
+                                        <RuleTip name={entry.name} kind="spell">
+                                            {formatSpellEntry(entry)}
+                                        </RuleTip>
+                                    </Box>
+                                ))}
                                 {/* Slot que abriu com o nível novo fica visível e vazio:
                                     a ferramenta não escolhe magia pelo GM. */}
                                 {group.empty > 0 && (
@@ -257,14 +282,24 @@ export function MonsterStatBlock({ monster }: Props) {
                         <Rule />
                         {abilities.map((ability, i) => (
                             <Typography key={i} variant="body2" sx={{ mb: 0.5 }}>
-                                <Label>{ability.name}</Label>
+                                {/* "Grab", "Ferocity" e afins vêm da AON só com nome e
+                                    ação: a regra inteira mora na caixinha. */}
+                                <RuleTip name={ability.name} kind="creature-ability">
+                                    <Label>{ability.name}</Label>
+                                </RuleTip>
                                 {ability.actions && (
                                     <Box component="span" sx={{ color: GOLD_DEEP, fontWeight: 700 }}> {actionGlyph(ability.actions)}</Box>
                                 )}
                                 {ability.traits.length > 0 && (
                                     <Box component="span" sx={{ color: MUTED }}> ({ability.traits.map(translateTrait).join(', ')})</Box>
                                 )}{' '}
-                                {ability.text}
+                                {/* Condição citada na prosa ("frightened 2") abre a
+                                    regra dela sem tirar o GM da ficha. */}
+                                {splitConditions(ability.text).map((seg, s) => (
+                                    seg.term
+                                        ? <RuleTip key={s} name={seg.term} kind="condition">{seg.text}</RuleTip>
+                                        : <Box component="span" key={s}>{seg.text}</Box>
+                                ))}
                             </Typography>
                         ))}
                     </>
