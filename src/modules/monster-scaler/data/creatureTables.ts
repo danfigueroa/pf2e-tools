@@ -1,6 +1,6 @@
 // GERADO por scripts/fetch-creature-tables.mjs — não editar à mão.
 //
-// Tabelas de construção de criaturas do GM Core (pg. 112-121), transcritas do
+// Tabelas de construção de criaturas do GM Core (pg. 112-124), transcritas do
 // índice do Archives of Nethys. Níveis -1 a 24.
 //
 // Coluna ausente é ausente de propósito: a tabela de Atributos não tem valor
@@ -13,6 +13,12 @@ export type ScaleColumn = 'extreme' | 'high' | 'moderate' | 'low' | 'terrible'
 export interface Band { max: number; min: number }
 
 export interface DamageBenchmark { formula: string; average: number | null }
+
+/**
+ * A tabela de dano em área não usa degraus: as colunas são uso ILIMITADO (à
+ * vontade) e uso LIMITADO (a baforada, que não sai em turnos seguidos).
+ */
+export type AreaColumn = 'unlimited' | 'limited'
 
 export type ByLevel<T> = Record<number, Partial<Record<ScaleColumn, T>>>
 
@@ -2537,6 +2543,269 @@ export const SPELL_TABLE: Record<number, Partial<Record<ScaleColumn, { dc?: numb
   }
 }
 
+export const AREA_DAMAGE_TABLE: Record<number, Partial<Record<AreaColumn, DamageBenchmark>>> = {
+  "0": {
+    unlimited: {
+      formula: "1d6",
+      average: 4
+    },
+    limited: {
+      formula: "1d10",
+      average: 6
+    }
+  },
+  "1": {
+    unlimited: {
+      formula: "2d4",
+      average: 5
+    },
+    limited: {
+      formula: "2d6",
+      average: 7
+    }
+  },
+  "2": {
+    unlimited: {
+      formula: "2d6",
+      average: 7
+    },
+    limited: {
+      formula: "3d6",
+      average: 11
+    }
+  },
+  "3": {
+    unlimited: {
+      formula: "2d8",
+      average: 9
+    },
+    limited: {
+      formula: "4d6",
+      average: 14
+    }
+  },
+  "4": {
+    unlimited: {
+      formula: "3d6",
+      average: 11
+    },
+    limited: {
+      formula: "5d6",
+      average: 18
+    }
+  },
+  "5": {
+    unlimited: {
+      formula: "2d10",
+      average: 12
+    },
+    limited: {
+      formula: "6d6",
+      average: 21
+    }
+  },
+  "6": {
+    unlimited: {
+      formula: "4d6",
+      average: 14
+    },
+    limited: {
+      formula: "7d6",
+      average: 25
+    }
+  },
+  "7": {
+    unlimited: {
+      formula: "4d6",
+      average: 15
+    },
+    limited: {
+      formula: "8d6",
+      average: 28
+    }
+  },
+  "8": {
+    unlimited: {
+      formula: "5d6",
+      average: 17
+    },
+    limited: {
+      formula: "9d6",
+      average: 32
+    }
+  },
+  "9": {
+    unlimited: {
+      formula: "5d6",
+      average: 18
+    },
+    limited: {
+      formula: "10d6",
+      average: 35
+    }
+  },
+  "10": {
+    unlimited: {
+      formula: "6d6",
+      average: 20
+    },
+    limited: {
+      formula: "11d6",
+      average: 39
+    }
+  },
+  "11": {
+    unlimited: {
+      formula: "6d6",
+      average: 21
+    },
+    limited: {
+      formula: "12d6",
+      average: 42
+    }
+  },
+  "12": {
+    unlimited: {
+      formula: "5d8",
+      average: 23
+    },
+    limited: {
+      formula: "13d6",
+      average: 46
+    }
+  },
+  "13": {
+    unlimited: {
+      formula: "7d6",
+      average: 24
+    },
+    limited: {
+      formula: "14d6",
+      average: 49
+    }
+  },
+  "14": {
+    unlimited: {
+      formula: "4d12",
+      average: 26
+    },
+    limited: {
+      formula: "15d6",
+      average: 53
+    }
+  },
+  "15": {
+    unlimited: {
+      formula: "6d8",
+      average: 27
+    },
+    limited: {
+      formula: "16d6",
+      average: 56
+    }
+  },
+  "16": {
+    unlimited: {
+      formula: "8d6",
+      average: 28
+    },
+    limited: {
+      formula: "17d6",
+      average: 60
+    }
+  },
+  "17": {
+    unlimited: {
+      formula: "8d6",
+      average: 29
+    },
+    limited: {
+      formula: "18d6",
+      average: 63
+    }
+  },
+  "18": {
+    unlimited: {
+      formula: "9d6",
+      average: 30
+    },
+    limited: {
+      formula: "19d6",
+      average: 67
+    }
+  },
+  "19": {
+    unlimited: {
+      formula: "7d8",
+      average: 32
+    },
+    limited: {
+      formula: "20d6",
+      average: 70
+    }
+  },
+  "20": {
+    unlimited: {
+      formula: "6d10",
+      average: 33
+    },
+    limited: {
+      formula: "21d6",
+      average: 74
+    }
+  },
+  "21": {
+    unlimited: {
+      formula: "10d6",
+      average: 35
+    },
+    limited: {
+      formula: "22d6",
+      average: 77
+    }
+  },
+  "22": {
+    unlimited: {
+      formula: "8d8",
+      average: 36
+    },
+    limited: {
+      formula: "23d6",
+      average: 81
+    }
+  },
+  "23": {
+    unlimited: {
+      formula: "11d6",
+      average: 38
+    },
+    limited: {
+      formula: "24d6",
+      average: 84
+    }
+  },
+  "24": {
+    unlimited: {
+      formula: "11d6",
+      average: 39
+    },
+    limited: {
+      formula: "25d6",
+      average: 88
+    }
+  },
+  "-1": {
+    unlimited: {
+      formula: "1d4",
+      average: 2
+    },
+    limited: {
+      formula: "1d6",
+      average: 4
+    }
+  }
+}
+
 export const RESISTANCE_TABLE: Record<number, Band> = {
   "0": {
     max: 3,
@@ -2648,4 +2917,4 @@ export const RESISTANCE_TABLE: Record<number, Band> = {
 export const MIN_LEVEL = -1
 export const MAX_LEVEL = 24
 
-export const TABLES_SOURCE = 'GM Core pg. 112-121'
+export const TABLES_SOURCE = 'GM Core pg. 112-124'
