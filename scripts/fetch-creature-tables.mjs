@@ -34,6 +34,9 @@ const WANTED = [
   'Strike Attack Bonus',
   'Strike Damage',
   'Spell DC and Spell Attack Modifier',
+  // Dano em área (pg. 124), a tabela da baforada de dragão. Vive numa página de
+  // nome diferente das outras: a regra é "Damage-Dealing Abilities".
+  'Damage-Dealing Abilities',
 ]
 
 // ---------------------------------------------------------------------------
@@ -55,8 +58,13 @@ const cellText = (html) =>
     .replace(/&nbsp;/g, ' ')
     .trim()
 
+/**
+ * O `<table` aceita ATRIBUTO: o AON passou a publicar as tabelas como
+ * `<table class="inner">`, e um `/<table>/` literal deixou de casar com
+ * qualquer uma delas — o script morria em "Sem tabela para: …" para as dez.
+ */
 function parseTables(markdown) {
-  return [...markdown.matchAll(/<table>([\s\S]*?)<\/table>/g)].map((t) =>
+  return [...markdown.matchAll(/<table[^>]*>([\s\S]*?)<\/table>/g)].map((t) =>
     [...t[1].matchAll(/<tr>([\s\S]*?)<\/tr>/g)].map((r) =>
       [...r[1].matchAll(/<t[dh]>([\s\S]*?)<\/t[dh]>/g)].map((c) => cellText(c[1])),
     ),
@@ -157,6 +165,28 @@ function buildSpellTable(rows) {
   return out
 }
 
+/**
+ * Dano em área: as colunas são USO ILIMITADO e USO LIMITADO, não os degraus.
+ * A baforada de dragão é o exemplo que o próprio livro dá de uso limitado.
+ */
+function buildAreaDamageTable(rows) {
+  const header = rows[0].map((h) => h.toLowerCase())
+  const out = {}
+  for (const row of rows.slice(1)) {
+    if (row.length < 2) continue
+    const level = parseLevel(row[0])
+    const entry = {}
+    for (let i = 1; i < row.length; i += 1) {
+      const key = ['unlimited', 'limited'].find((c) => header[i].startsWith(c))
+      if (!key) continue
+      const value = parseDamage(row[i])
+      if (value !== null) entry[key] = value
+    }
+    out[level] = entry
+  }
+  return out
+}
+
 /** Resistências: colunas Maximum/Minimum, não o degrau habitual. */
 function buildResistanceTable(rows) {
   const out = {}
@@ -224,6 +254,7 @@ async function main() {
     STRIKE_ATTACK_TABLE: buildByColumn(rows('Strike Attack Bonus'), parseNum),
     STRIKE_DAMAGE_TABLE: buildByColumn(rows('Strike Damage'), parseDamage),
     SPELL_TABLE: buildSpellTable(rows('Spell DC and Spell Attack Modifier')),
+    AREA_DAMAGE_TABLE: buildAreaDamageTable(rows('Damage-Dealing Abilities')),
     RESISTANCE_TABLE: buildResistanceTable(
       rows('Immunities, Weaknesses, and Resistances'),
     ),
@@ -240,7 +271,7 @@ async function main() {
 
   const banner = `// GERADO por scripts/fetch-creature-tables.mjs — não editar à mão.
 //
-// Tabelas de construção de criaturas do GM Core (pg. 112-121), transcritas do
+// Tabelas de construção de criaturas do GM Core (pg. 112-124), transcritas do
 // índice do Archives of Nethys. Níveis -1 a 24.
 //
 // Coluna ausente é ausente de propósito: a tabela de Atributos não tem valor
@@ -256,6 +287,12 @@ export interface Band { max: number; min: number }
 
 export interface DamageBenchmark { formula: string; average: number | null }
 
+/**
+ * A tabela de dano em área não usa degraus: as colunas são uso ILIMITADO (à
+ * vontade) e uso LIMITADO (a baforada, que não sai em turnos seguidos).
+ */
+export type AreaColumn = 'unlimited' | 'limited'
+
 export type ByLevel<T> = Record<number, Partial<Record<ScaleColumn, T>>>
 `
 
@@ -269,6 +306,7 @@ export type ByLevel<T> = Record<number, Partial<Record<ScaleColumn, T>>>
     ['STRIKE_ATTACK_TABLE', 'ByLevel<number>'],
     ['STRIKE_DAMAGE_TABLE', 'ByLevel<DamageBenchmark>'],
     ['SPELL_TABLE', 'Record<number, Partial<Record<ScaleColumn, { dc?: number; attack?: number }>>>'],
+    ['AREA_DAMAGE_TABLE', 'Record<number, Partial<Record<AreaColumn, DamageBenchmark>>>'],
     ['RESISTANCE_TABLE', 'Record<number, Band>'],
   ]
 
@@ -281,7 +319,7 @@ export type ByLevel<T> = Record<number, Partial<Record<ScaleColumn, T>>>
 export const MIN_LEVEL = -1
 export const MAX_LEVEL = 24
 
-export const TABLES_SOURCE = 'GM Core pg. 112-121'
+export const TABLES_SOURCE = 'GM Core pg. 112-124'
 `
 
   writeFileSync(OUT, `${banner}${types}\n${body}\n${footer}`, 'utf8')
