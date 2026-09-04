@@ -144,9 +144,14 @@ Resolve o problema de gostar da ficha de um monstro que está no nível errado p
     (Extremo/Alto/Moderado/Baixo) e permite trocá-lo — dá para pedir um ogro de nível 8 com CA
     extrema sem mexer no resto
 -   Reescala CA, PV, percepção, salvamentos, atributos, perícias, ataques, dano e CD de magia
--   **Diz o que não ajustou**: a prosa das habilidades fica em inglês e intocada, a lista de magias
-    não muda de rank e o dano extra dos golpes (`plus 2d6 fire`) fica como está — tudo listado num
-    aviso, porque a ferramenta nunca inventa um número que o GM não conferiu
+-   **As CDs das habilidades acompanham o nível**: a salvaguarda que só existe escrita na prosa
+    ("Breath Weapon … DC 36 basic Reflex save") é ajustada junto, pela tabela de CD do GM Core, e
+    entra no ajuste fino como qualquer outra linha. O **teste plano** fica de fora: a CD dele é fixa
+    pelas regras, não pelo nível do monstro
+-   **Diz o que não ajustou**: fora as CDs, a prosa das habilidades fica em inglês e intocada (dados
+    de dano, alcance e duração), a lista de magias não muda de rank e o dano extra dos golpes
+    (`plus 2d6 fire`) fica como está — tudo listado num aviso, porque a ferramenta nunca inventa um
+    número que o GM não conferiu
 -   Stat block no padrão oficial, com exportação em **PNG**
 -   **"Enviar para Iniciativa"**: joga o monstro já reescalado direto no encontro
 
@@ -383,6 +388,7 @@ pf2e-tools/
 │   │   └── monster-scaler/       # Módulo de Escalar Monstro (criatura da AON em outro nível)
 │   │       ├── MonsterScalerPage.tsx    # Página: controles à esquerda, stat block à direita
 │   │       ├── scaling.ts               # Motor: preserva a diferença em relação ao benchmark
+│   │       ├── abilityDc.ts             # CDs escritas na prosa das habilidades
 │   │       ├── toCombatant.ts           # Monstro reescalado → combatente da Iniciativa
 │   │       ├── components/              # MonsterSearch, ScaleAdjustPanel, MonsterStatBlock, MonsterExport
 │   │       └── data/creatureTables.ts   # GERADO por scripts/fetch-creature-tables.mjs

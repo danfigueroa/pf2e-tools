@@ -504,13 +504,29 @@ criaturas do GM Core (pg. 112-121, níveis -1 a 24).
   cancela. Foi bug real, e o painel parecia funcionar.
 - **PV usa razão, não diferença** (cresce quase geometricamente: 9 no nível -1, ~500 no 24).
   **Dano** pega os dados da tabela do nível-alvo e deixa o modificador fixo absorver o desvio.
-- **O que NÃO é reescalado, por decisão de produto**: a prosa das habilidades (fica em inglês e
-  intocada), a lista de magias (só a CD e o ataque mudam) e o dano extra dos golpes
-  (`plus 2d6 fire`). Tudo isso vira `warnings`, exibidos na página. A ferramenta **nunca inventa um
-  número que o GM não conferiu** — mesma política de `creature-core.js`.
+- **O que NÃO é reescalado, por decisão de produto**: a prosa das habilidades (fica em inglês, e só
+  as CDs dentro dela mudam — ver abaixo), a lista de magias (só a CD e o ataque mudam) e o dano
+  extra dos golpes (`plus 2d6 fire`). Tudo isso vira `warnings`, exibidos na página. A ferramenta
+  **nunca inventa um número que o GM não conferiu** — mesma política de `creature-core.js`.
+- **As CDs escritas na prosa** (`abilityDc.ts`) são a exceção: a CD de conjuração vinha estruturada
+  do índice, mas a de "Breath Weapon … (DC 36 basic Reflex save)" só existe como texto — e 82% das
+  criaturas do índice têm pelo menos uma. Deixá-la intacta entregava um monstro de nível 16 pedindo
+  a salvaguarda de um de nível 3, que é o número que mais importa na mesa depois da CA. Reescalar é
+  só trocar os dígitos; o resto da prosa continua intocado.
+  - Benchmark é o de **CD de magia** (`SPELL_DC_TABLE`, derivado do `SPELL_TABLE` gerado): o GM Core
+    manda usá-lo para qualquer efeito da criatura que peça salvaguarda, não só para as magias.
+  - **Teste plano nunca escala**: "DC 15 flat check" é CD fixa do sistema. E o `\b` depois do `\d+`
+    no regex não é enfeite — sem ele o motor faz backtracking, casa só o "1" de "DC 15 flat check"
+    (o lookahead passa, porque sobra "5 flat check") e a CD do teste plano viraria 275.
+  - Agrupadas **por valor**, não por ocorrência: nenhuma criatura da amostra passa de quatro CDs
+    distintas, e CDs iguais são iguais de propósito (a Breath Weapon e a Frightful Presence de um
+    dragão saem do mesmo benchmark, então têm que continuar iguais depois da escala).
+  - Quando a CD do texto é a mesma que o índice publicou em `spell_dc`, o degrau vem de lá em vez de
+    ser deduzido — senão o bloco de conjuração e a prosa andariam por caminhos diferentes.
 - **`scripts/check-scaling.mjs` é o teste que vale**: contra criaturas de verdade, confere
-  identidade (mesmo nível devolve a ficha original), monotonia, ida e volta, e que o ajuste fino
-  ajusta. Não há framework de teste no repositório, por isso é script avulso. A ida e volta existe
+  identidade (mesmo nível devolve a ficha original, prosa inclusive, caractere por caractere),
+  monotonia (inclusive a das CDs, e que a do teste plano NÃO se move), ida e volta, e que o ajuste
+  fino ajusta. Não há framework de teste no repositório, por isso é script avulso. A ida e volta existe
   porque a identidade não prova nada sobre o dano, que tem saída curta quando os níveis são iguais.
 - **`MonsterStatBlock.tsx` é o subtree que o `html2canvas` rasteriza**: hex literal de 6 dígitos,
   nunca token de tema — ver a seção de Tema.
