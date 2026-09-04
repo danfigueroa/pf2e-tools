@@ -6,20 +6,23 @@
 
 import { Box, Button, MenuItem, Select, Typography } from '@mui/material'
 import { gold, ink, parchment, rule } from '../../../theme'
-import type { ScaleColumn, ScaledRow } from '../types'
+import type { BenchColumn, ScaledRow } from '../types'
 
-const COLUMN_LABELS: Record<ScaleColumn, string> = {
+// As duas últimas são as colunas da tabela de dano em área, que não usa degraus.
+const COLUMN_LABELS: Record<BenchColumn, string> = {
     extreme: 'Extremo',
     high: 'Alto',
     moderate: 'Moderado',
     low: 'Baixo',
     terrible: 'Terrível',
+    unlimited: 'Ilimitado',
+    limited: 'Limitado',
 }
 
 interface Props {
     rows: ScaledRow[]
-    overrides: Record<string, ScaleColumn>
-    onOverride: (key: string, column: ScaleColumn) => void
+    overrides: Record<string, BenchColumn>
+    onOverride: (key: string, column: BenchColumn) => void
     onReset: () => void
 }
 
@@ -87,7 +90,7 @@ export function ScaleAdjustPanel({ rows, overrides, onOverride, onReset }: Props
                                 size="small"
                                 value={row.column ?? ''}
                                 displayEmpty
-                                onChange={(e) => onOverride(row.key, e.target.value as ScaleColumn)}
+                                onChange={(e) => onOverride(row.key, e.target.value as BenchColumn)}
                                 sx={{ fontSize: '0.8rem' }}
                                 inputProps={{ 'aria-label': `Degrau de ${row.label}` }}
                             >

@@ -29,7 +29,7 @@ import { ScaleAdjustPanel } from './components/ScaleAdjustPanel'
 import { MAX_LEVEL, MIN_LEVEL } from './data/creatureTables'
 import { clampLevel, scaleMonster } from './scaling'
 import { npcFromScaled } from './toCombatant'
-import type { MonsterDetail, ScaleColumn } from './types'
+import type { BenchColumn, MonsterDetail } from './types'
 
 export const MonsterScalerPage = () => {
     const navigate = useNavigate()
@@ -37,7 +37,7 @@ export const MonsterScalerPage = () => {
     const [loading, setLoading] = useState(false)
     const [loadError, setLoadError] = useState<string | null>(null)
     const [level, setLevel] = useState(1)
-    const [overrides, setOverrides] = useState<Record<string, ScaleColumn>>({})
+    const [overrides, setOverrides] = useState<Record<string, BenchColumn>>({})
     // Uma busca por faixa devolve vinte resultados, e deixá-los abertos empurra
     // o nível-alvo e o ajuste fino para fora da tela justo quando passam a ser
     // o que o GM quer mexer. Escolher uma criatura recolhe a lista.
