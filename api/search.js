@@ -3,6 +3,7 @@
 //   ?name=       → descrição de item/habilidade, TRADUZIDA (comportamento legado)
 //   ?affliction= → venenos e doenças com estágios, SEM tradução
 //   ?spells=1    → lista de magias por tradição e rank, SEM tradução
+//   ?rule=       → a regra de um termo (condição, habilidade, traço, magia), SEM tradução
 //
 // O modo de aflição mora aqui porque o plano Hobby da Vercel permite 12 funções
 // serverless por deploy e `api/*.js` já está em 12 — arquivo novo passaria do
@@ -15,6 +16,7 @@
 import { resolveSpecial } from './_lib/feat-core.js'
 import { resolveAfflictions } from './_lib/affliction-core.js'
 import { resolveSpellList } from './_lib/spell-list-core.js'
+import { resolveRule } from './_lib/rule-core.js'
 import { hasTranslationKey } from './_lib/aon.js'
 
 export default async function handler(req, res) {
@@ -35,6 +37,19 @@ export default async function handler(req, res) {
     } catch (error) {
       console.error('Affliction API error:', error)
       return res.status(500).json({ error: 'Erro ao buscar aflição' })
+    }
+  }
+
+  // Modo regra: o texto de um termo, em inglês, para a caixinha da ficha.
+  const rule = req.query?.rule ? String(req.query.rule).trim() : ''
+  if (rule) {
+    try {
+      const entry = await resolveRule(rule, req.query.kind ? String(req.query.kind) : null)
+      if (!entry) return res.status(404).json({ error: 'Regra não encontrada' })
+      return res.status(200).json(entry)
+    } catch (error) {
+      console.error('Rule API error:', error)
+      return res.status(500).json({ error: 'Erro ao buscar regra' })
     }
   }
 

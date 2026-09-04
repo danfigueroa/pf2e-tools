@@ -8,6 +8,7 @@ import { resolveCreatures } from '../api/_lib/creature-core.js'
 import { resolveMonster } from '../api/_lib/monster-core.js'
 import { resolveAfflictions } from '../api/_lib/affliction-core.js'
 import { resolveSpellList } from '../api/_lib/spell-list-core.js'
+import { resolveRule } from '../api/_lib/rule-core.js'
 import { hasTranslationKey } from '../api/_lib/aon.js'
 import {
   readCharacter,
@@ -161,6 +162,21 @@ const server = http.createServer(async (req, res) => {
         res.end(JSON.stringify(page))
       } catch (e) {
         console.error('[/api/search?affliction] Error:', e)
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: e.message }))
+      }
+      return
+    }
+
+    // Modo regra (?rule=): o texto em inglês de um termo da ficha de monstro.
+    const ruleTerm = (parsedUrl.searchParams.get('rule') || '').trim()
+    if (ruleTerm) {
+      try {
+        const entry = await resolveRule(ruleTerm, parsedUrl.searchParams.get('kind'))
+        res.writeHead(entry ? 200 : 404, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify(entry || { error: 'Regra não encontrada' }))
+      } catch (e) {
+        console.error('[/api/search?rule] Error:', e)
         res.writeHead(500, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ error: e.message }))
       }
