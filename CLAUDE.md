@@ -120,6 +120,13 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   `spell_type` estruturados. O `maxRank` é TETO, não igualdade — magia de rank menor cabe em slot
   maior, que é como se prepara uma magia elevada. Mora dentro de `api/search.js` pelo limite de 12
   funções (ver acima), e a paginação/deduplicação é a mesma de `resolveCreatures`.
+- **`search?rule=`** devolve a regra de um termo — condição, habilidade de criatura, traço, magia —
+  **em inglês, sem passar pela tradução** (`api/_lib/rule-core.js`). É o que alimenta as caixinhas
+  do stat block de monstro. Categorias, na ordem de busca: `creature-ability`, `condition`, `trait`,
+  `spell`, `action`, `rules`; quem chama diz a categoria, porque "Attack of Opportunity" existe como
+  talento, como feature de classe E como habilidade de criatura, e numa ficha de monstro vale a
+  última. Do markdown ficam só os rótulos mecânicos (Requirements, Effect, Range, Saving Throw…) —
+  sem isso a caixa de uma magia começaria pelas onze divindades que a concedem.
 - `state` é o único endpoint com **estado**: guarda o jogo da mesa (ver a seção própria abaixo).
   Fica em `api/state.js`, **um nível** — o glob `"api/*.js"` do `vercel.json` não pega subpastas,
   então `api/state/[char].js` perderia o `maxDuration`.
@@ -605,6 +612,23 @@ criaturas do GM Core (pg. 112-121, níveis -1 a 24).
   lista, devolve tudo a cada mudança —, porque o nível-alvo é trocado no painel ao lado com o
   diálogo aberto. E, como os `scaleOverrides`, a edição viaja para o cartão da Iniciativa
   (`spellEdits` em `NpcCombatant`), senão a ficha do cartão mostraria as magias da AON.
+- **Caixinha de regra no stat block** (`RuleTip.tsx` + `ruleTerms.ts` + `services/rules.ts`): passar
+  o mouse (ou segurar o dedo) numa condição, habilidade, traço ou magia abre a regra vinda da AON.
+  Vale também na ficha dentro do cartão da Iniciativa, que desenha o mesmo componente.
+  - **Em inglês, e isso é decisão de produto**, não limitação: a prosa das habilidades do monstro já
+    é inglesa no módulo, e uma caixa traduzida ao lado dela seria a mistura pior. Some-se que um
+    hover por termo estouraria o rate limit do tier gratuito.
+  - **Aqui o inglês PODE ser cacheado** (memória + `localStorage`, com versão), ao contrário do que
+    manda a regra geral. "Nada de cachear inglês" existe para tradução que FALHOU e precisa ser
+    tentada de novo; aqui o inglês é o resultado pretendido e regra publicada não muda.
+  - A busca acontece ao ABRIR a caixa, nunca no render: uma ficha tem dezenas de termos, e
+    pré-carregar todos seria uma enxurrada de requisições para ler talvez uma.
+  - O nome vai para a AON **sem o que a ficha anexa**: "reach 15 feet" é o traço `Reach`
+    (`traitTerm`), mesma limpeza que `cleanSearchName` faz no backend. As condições saem do catálogo
+    de `character-viewer/conditions.ts` pelo campo `en`, casadas por texto na prosa — inclusive
+    `flat-footed`, o nome pré-Remaster de off-guard.
+  - O **tracejado entra no PNG exportado de propósito**: num stat block impresso, marcar o termo de
+    glossário é o comportamento certo. O chip de traço não leva tracejado, que ali só sujaria.
 - **`MonsterStatBlock.tsx` é o subtree que o `html2canvas` rasteriza**: hex literal de 6 dígitos,
   nunca token de tema — ver a seção de Tema.
 - Busca compartilhada com a Iniciativa em `src/hooks/useCreatureSearch.ts` (debounce, faixa de

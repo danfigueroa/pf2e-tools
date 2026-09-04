@@ -160,6 +160,9 @@ Resolve o problema de gostar da ficha de um monstro que está no nível errado p
     intocada (alcance, duração, o efeito em si), a lista de magias não muda de rank e o dano extra
     dos golpes (`plus 2d6 fire`) fica como está — tudo listado num aviso, porque a ferramenta nunca
     inventa um número que o GM não conferiu
+-   **Regra na hora, sem sair da ficha**: passe o mouse (ou segure o dedo, no celular) numa
+    condição, habilidade, traço ou magia e a regra aparece numa caixinha, direto do Archives of
+    Nethys e em inglês — vale também na ficha do monstro dentro do cartão de Iniciativa
 -   Stat block no padrão oficial, com exportação em **PNG**
 -   **"Enviar para Iniciativa"**: joga o monstro já reescalado direto no encontro
 
@@ -399,6 +402,7 @@ pf2e-tools/
 │   │       ├── abilityDc.ts             # CDs escritas na prosa das habilidades
 │   │       ├── abilityDamage.ts         # Dano escrito na prosa (baforada, aura, área)
 │   │       ├── spellcasting.ts          # Ranks, slots e a lista de magias no nível-alvo
+│   │       ├── ruleTerms.ts             # Que pedaços da ficha são termo de regra
 │   │       ├── toCombatant.ts           # Monstro reescalado → combatente da Iniciativa
 │   │       ├── components/              # MonsterSearch, ScaleAdjustPanel, MonsterStatBlock, MonsterExport
 │   │       └── data/creatureTables.ts   # GERADO por scripts/fetch-creature-tables.mjs
@@ -411,6 +415,7 @@ pf2e-tools/
 │   │   ├── creatures.ts          # Cliente da busca de criaturas na AON
 │   │   ├── monster.ts            # Cliente da ficha completa de uma criatura
 │   │   ├── spellList.ts          # Cliente da lista de magias (tradição + rank)
+│   │   ├── rules.ts              # Cliente da regra de um termo (inglês, cacheado)
 │   │   └── tableState.ts         # Sincronia do estado compartilhado da mesa
 │   ├── types/
 │   │   └── index.ts              # Tipos globais
