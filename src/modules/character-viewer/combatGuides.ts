@@ -159,10 +159,68 @@ const GHAN_BURI = `## 🎯 Papel em Combate
 - ❌ Guardar **pontos míticos / Rewrite Fate** a ponto de terminar a luta sem gastar.
 - ❌ Perseguir inimigos em vez de **segurar a linha**: seu valor é travar o campo com alcance 3 m e Reactive Strike, não correr atrás (velocidade baixa com armadura pesada).`
 
+// ---------------------------------------------------------------------------
+// BRUKUTHUR — Bárbaro 10 (Instinto Gigante), Android + Manobras de Guerreiro
+// ---------------------------------------------------------------------------
+const BRUKUTHUR = `## 🎯 Papel em Combate
+**Bárbaro de Instinto Gigante**, Android Artesão com **Fighter Dedication** — a linha de frente que fecha distância e derruba. FOR 20, ~178 PV e Fortitude mestre com **Juggernaut** fazem de você quase impossível de parar por saves; **Giant's Stature** te deixa **Grande** (alcance +1,5 m) em pleno combate, e as manobras de Guerreiro (Trip, flanqueamento) somam controle ao dano bruto do Greataxe.
+
+## 🔁 Rotina de Turno
+- 😡 **Raiva:** normalmente você já entra em Raiva de graça — **Quick-Tempered** te faz Ragir automaticamente ao rolar iniciativa, e o primeiro Strike do 1º turno ainda soma o dano de Raiva extra.
+- 🏃 **Fechar distância — Sudden Charge (2 ações):** Stride duas vezes e Strike no final. Ótimo pra abrir o combate ou alcançar quem fugiu.
+- 🪓 **Golpe grande — Vicious Swing (2 ações, Flourish):** Strike com o Solar Bloodthirsty que conta como 2 ataques pro MAP, mas soma **um dado extra de dano**. Bom como abertura, antes do MAP normal pesar.
+- 🤼 **Derrubar — Slam Down (2 ações):** Strike e, se acertar e causar dano, tenta Derrubar de brinde — com arma de duas mãos, os dois ataques contam pro MAP mas ele só sobe **depois** dos dois. Prone deixa o alvo off-guard pro resto da party.
+- ⚔️ **Flanqueado por dois — Quick Reversal (2 ações):** vira a mesa contra quem tentou te flanquear: Strike em um dos dois flanqueadores e um segundo Strike no outro, sem MAP extra no segundo. Situacional, mas devastador quando acontece.
+- ⚡ **Reação — escolha uma por rodada:** **Reactive Strike** (inimigo no seu alcance usa manipulação/movimento/ataque à distância ou sai de uma casa — Strike nele), **No Escape** (inimigo no alcance tenta se afastar — persiga Stride até seu Speed) ou **Farabellus Flip** (+2 CA contra um ataque corpo a corpo; se ainda acertar, Step de graça). As três competem pelo mesmo slot — decida pela ameaça real da rodada.
+
+## ⭐ Nunca Esqueça
+- 🦣 **Giant's Stature (1 ação):** vira **Grande**, +1,5 m de alcance, seu equipamento cresce junto — troque **clumsy 1** (penaliza CA, Reflexos, Acrobacia e ataques à distância) por alcance e a chance de empunhar armas Grandes. Não ative se precisar de precisão fina naquele round.
+- 🤼 **Titan Wrestler + Athletics mestre:** Desarma, Agarra, Reposiciona, Empurra e Derruba criaturas até **duas categorias de tamanho maiores** que você — sendo Grande, isso alcança Enormes e Colossais. Contra chefes gigantes, você é um dos poucos que consegue tentar.
+- 🎯 **Assurance (Athletics):** resultado fixo de 10 + seu bônus de proficiência, sem rolar e sem somar nenhum outro bônus/penalidade. Ótimo pra travar uma manobra de CD média sem risco; contra o chefão, sua rolagem de verdade (com todos os bônus) ainda pode valer mais.
+- 🔨 **Brutality:** perícia especialista com armas simples/marciais/desarmado e, em Raiva, acesso ao **efeito de especialização crítica** — a do Greataxe é sangramento extra no crítico.
+- 🛡️ **Juggernaut:** Fortitude mestre e **sucesso vira sucesso crítico** — venenos e efeitos que só pedem uma falha simples raramente te seguram.
+- 💪 **Renewed Vigor (1 ação):** PV temporários iguais a metade do nível + CON (ou **nível cheio + CON** se você já atacou neste turno) — use antes de mergulhar de volta na briga, não só quando já estiver no fio.
+- 😱 **Terrifying Howl (1 ação):** Demoraliza **todos** os inimigos em 9 m de uma vez, sem penalidade por idioma — bom abridor de round 1 antes de fechar com Sudden Charge.
+
+## ⚡ Poderes Míticos
+- 👂 **Ears that Hear the Truth:** gaste um Ponto Mítico pra rolar Sentir Motivação, ou Percepção pra iniciativa, com **proficiência mítica**.
+- 💨 **Godspeed (1 ação):** gaste um Ponto Mítico — por 1 minuto, +3 m de velocidade e **quickened**: uma ação extra por rodada só pra Stride, Step ou Leap. Perfeito para perseguir vários alvos ou fechar um mapa grande.
+- 🗣️ **Correct the Story (reação):** inimigo **acerta uma crítica** em você (ataque ou save) — gaste um Ponto Mítico e ele **rerrola**, ficando com o novo resultado.
+- 💀 **Divert Destiny (ação livre, gatilho: cairia a 0 PV ou morreria):** gaste um Ponto Mítico, ignore Ferido/Morrendo por completo, **não** aumente Fadado, e levante-se com **10 + seu nível de PV**. É a sua rede de segurança — jogue sabendo que ela existe, mas ela também gasta do mesmo estoque escasso de Pontos Míticos.
+- 🔋 **Summon Mythic Power (1×/dia):** recupera 1 Ponto Mítico no meio da luta longa.
+
+## 🤖 Ancestralidade Android
+- 🔩 **Constructed:** +1 de circunstância em saves contra doença, veneno e radiação — seu corpo sintético resiste melhor a isso do que a biologia normal.
+- 😐 **Emotionally Unaware:** −1 de circunstância em Diplomacia, Atuação e nos testes de Percepção pra Sentir Motivação — não é bug, é ancestralidade; avise a mesa se alguém contar com você pra ler intenção social.
+- 💡 **Radiant Circuitry (Concentrar):** liga sua própria luz (20 pés claros + 20 dim) sem precisar de torch — desliga sozinha se você cair inconsciente.
+- 🎯 **Advanced Targeting System:** *Sure Strike* 1×/dia como magia inata arcana de 1º círculo — guarde pro ataque que realmente precisa acertar.
+- 🚀 **Arcane Propulsion (2 ações, 1×/dia):** voo por 5 minutos, na sua velocidade normal — para alcançar voadores, cruzar abismos ou simplesmente sair do chão quando o combate pede.
+- 🧬 **Adopted Ancestry (Automaton):** você tem acesso a talentos de ancestralidade Autômato pra escolher no futuro — ainda não usou nenhum, é uma porta aberta, não uma obrigação.
+
+## 🎒 Itens & Recursos
+- 🪓 **Solar Bloodthirsty (+1 striking Greataxe, Extending, +1d6 fogo):** a runa **Extending** estende a arma (Interact, 1 ação) ganhando alcance até o início do seu próximo turno — útil pra ameaçar sem precisar ficar colado, combinando com Reactive Strike/No Escape.
+- 🛡️ **Studded Leather (+1 resilient, Size-Changing):** a runa **Size-Changing** ajusta a armadura a qualquer mudança de tamanho — some com o próprio Giant's Stature (que já redimensiona seu equipamento) pra você nunca ficar destreinado por virar Grande.
+- 🧪 **Elixir of Life (Lesser), investido:** cura rápida de bolso fora do turno de Renewed Vigor.
+- ⭐ **Pontos Míticos:** moeda de *Godspeed*, *Correct the Story*, *Divert Destiny* e *Summon Mythic Power* — cinco usos possíveis competindo pelo mesmo estoque pequeno; priorize Divert Destiny quando a vida realmente estiver em jogo.
+
+## 🛡️ Defesa & Sobrevivência
+- ❤️ **~178 PV e CA 28** — você não é o mais esquivo da mesa, mas aguenta o tranco melhor que quase todo mundo.
+- 💪 **Fortitude mestre + Juggernaut:** sucesso em Fortitude vira crítico — venenos e doenças raramente te incomodam.
+- 🔥 **Raging Resistance (Raiva):** resistência a impacto (bludgeoning) + a energia que você escolheu ao pegar o talento (fogo, frio ou elétrico) — confirme qual está anotada na ficha.
+- 🎯 **Reflex Expertise:** Reflexos especialista — ainda seu save mais fraco, mas não tão vulnerável quanto o de um bárbaro comum.
+
+## ⚠️ Erros Comuns
+- ❌ **Deixar a Raiva cair no meio da luta e esquecer de reentrar:** Quick-Tempered só é de graça **ao rolar iniciativa** — depois disso, Ragir de novo custa 1 ação normal.
+- ❌ **Tentar usar duas reações na mesma rodada:** Reactive Strike, No Escape e Farabellus Flip disputam o mesmo slot — escolha uma pela ameaça daquele turno, não guarde todas esperando a "melhor".
+- ❌ **Ativar Giant's Stature sem pensar no clumsy 1:** o alcance é ótimo, mas a penalidade em CA/Reflexos/Acrobacia pode custar caro contra quem precisa de precisão (ex.: perseguir por terreno ruim).
+- ❌ **Forçar Quick Reversal sem estar flanqueado por dois:** é situacional — não vale gastar Vicious Swing/Slam Down esperando por ele quando a ficha de combate não está montada.
+- ❌ **Guardar Pontos Míticos até o fim da luta sem gastar:** entre Godspeed, Correct the Story, Divert Destiny e Summon Mythic Power, quase sempre há um uso melhor que "sobrar".`
+
 export const COMBAT_GUIDES: CombatGuide[] = [
     { match: byName('Ardagar'), markdown: ARDAGAR, curated: true },
     { match: byName('Eldarion'), markdown: ELDARION, curated: true },
     { match: byName('Ghan Buri'), markdown: GHAN_BURI, curated: true },
+    { match: (b) => (b.name || '').trim().toLowerCase().startsWith('brukuthur'), markdown: BRUKUTHUR, curated: true },
 ]
 
 // ---------------------------------------------------------------------------
