@@ -68,28 +68,30 @@ const ARDAGAR = `## 🎯 Papel em Combate
 // ELDARION — Ladino 10 (Thief), Elfo
 // ---------------------------------------------------------------------------
 const ELDARION = `## 🎯 Papel em Combate
-**Ladino Trapaceiro (Thief)** élfico — assassino de precisão e batedor. Seu jogo é **iniciativa alta → deixar o alvo _off-guard_ → descarregar Sneak Attack**. A maior CA da party (**29**) e Reflexos mestres fazem de você um esquivo difícil de fixar. Skirmisher: entra, fere pesado, sai.
+**Ladino Trapaceiro (Thief)** élfico — assassino de precisão e batedor. Seu jogo é **iniciativa alta → deixar o alvo _off-guard_ → descarregar Sneak Attack**. A maior CA da party (**29**) e Reflexos mestres fazem de você um esquivo difícil de fixar. Skirmisher: entra, fere pesado, sai. Uma camada de **Duelista (Swashbuckler Dedication, estilo Rascal)** dá um segundo motor por cima: **Panache**, ganho ao **Tumble Through** com sucesso, alimenta um pouco mais de precisão e libera um Finisher para fechar a troca.
 
 ## 🔁 Rotina de Turno
 - ⚔️ **Strike com a Gloom Blade (+20):** contra alvo **off-guard**, some **+2d6 de precisão (Sneak Attack)** e aplique **Debilitating Strike** (deixe o inimigo *lento*/*enfraquecido*).
 - 🤝 **Garanta o off-guard:** *Gang Up* — **qualquer aliado adjacente** ao alvo já o deixa off-guard para você (sem precisar flanquear na diagonal exata). Ou flanqueie do jeito normal.
-- 🏃 **3ª ação:** reposicione (Step/Stride, *Swift Sneak* para furtar em velocidade plena) ou segure para a reação.
+- 🤺 **Panache:** um **Tumble Through** bem-sucedido (inclusive atravessando o espaço do próprio alvo) te dá Panache — numa falha não-crítica você ainda ganha, só que até o fim do seu próximo turno. Com Panache ativa, seu próximo acerto com a Gloom Blade soma **+1 de precisão fixo** (Finishing Precision) e você pode fechar com **Retreating Finisher**: um Strike que, se errar, ainda te deixa **Step de graça** para fora de alcance.
+- 🏃 **3ª ação:** reposicione (Step/Stride, *Swift Sneak* para furtar em velocidade plena, ou o próprio Tumble Through para gerar Panache) ou segure para a reação.
 - ⚡ **Mythic Strike (1 ação):** gaste um **Ponto Mítico** para atacar com proficiência mítica. Guarde para o inimigo com **resistência ou imunidade mítica** — e combine com off-guard, porque o Sneak Attack continua valendo.
 
 ## ⭐ Nunca Esqueça
-- 🛡️ **Nimble Dodge (reação):** +2 CA contra um ataque — quase sempre vale gastar. Não termine a rodada com a reação sobrando.
+- 🛡️⚔️ **Nimble Dodge × Opportune Riposte:** duas reações competindo pelo mesmo slot. Ataque comum contra você → **Nimble Dodge** (+2 CA). Inimigo adjacente que **erra criticamente** um Strike contra você → **Opportune Riposte** (Strike ou Desarme nele). Escolha pela ameaça da rodada; não dá pra guardar as duas.
 - 🥇 **Surprise Attack:** na 1ª rodada, quem ainda não agiu está **off-guard** — por isso a iniciativa alta (Incredible Initiative + Elven Instincts) importa tanto. Bata forte no round 1.
 - ☠️ **Poison Weapon / Improved Poison Weapon:** envenene a lâmina **antes** da luta; com o aprimorado o veneno persiste por mais tempo.
 - 🤸 **Kip Up:** levante-se de graça sem provocar. **Evasive Reflexes** e **Slippery Prey** para escapar de agarrões e ameaças.
 - 🥷 **Sneak Adept (nível 10):** ao **Sneak**, uma *falha* vira **sucesso** — só a falha crítica ainda te denuncia. Furtar-se para a posição passou de aposta a plano confiável: use para abrir a luta já escondido e garantir o off-guard do round 1.
 - 🕊️ **Aerobatics Mastery (nível 10):** **+2 de circunstância** em Acrobacia para *Maneuver in Flight* e **duas manobras numa ação só** (CD da mais difícil +5). Com *Feet that Stride the Sky*, você reposiciona no ar em uma ação e ainda ataca.
 - 🩹 **Battle Medicine:** cura de emergência em você ou num aliado no meio do combate.
+- 🏃 **Swashbuckler's Speed:** **+1,5 m** de velocidade sempre, subindo para **+3 m** enquanto tiver Panache — soma com Elf Step e Feet that Stride the Sky para você nunca ficar sem espaço pra sair.
 
 ## 🎒 Itens & Recursos
 - 🗡️ **Gloom Blade** (shadow): não emite luz e ignora certas defesas; sua arma principal — combine com **Quick Draw**.
 - 🥷 **Shadow Weaver (+1 resilient, shadow):** bônus em Furtividade e nos saves — mantenha investida.
 - 💍 **Ring of Climbing** + **Feet that Stride the Sky** (mítico): mobilidade vertical e aérea para alcançar alvos e escapar — agora com **Aerobatics Mastery** para manobrar de verdade lá em cima.
-- 🎭 **Vigilante — Quick Change (nível 10):** trocar de identidade caiu de **1 minuto para 3 ações**, ou seja, dá para fazer **dentro do combate**. Com Deception mestre (+CHA 18), a identidade social virou ferramenta tática, não só de interlúdio.
+- 🤺 **Swashbuckler Dedication (estilo Rascal):** camada de duelista sobre o Ladino — Panache via Tumble Through, **+1 de precisão fixo** (Finishing Precision) e o Finisher **Retreating Finisher** para fechar um alvo e já sair dali. **Swashbuckler's Riposte** é quem te dá a **Opportune Riposte** (ver acima, em Nunca Esqueça).
 - ⭐ **Pontos Míticos:** moeda de *Mythic Strike*, *Divert Destiny* e *Summon Mythic Power*. São escassos — gaste no golpe que decide a luta.
 
 ## 🛡️ Defesa & Sobrevivência
@@ -103,7 +105,7 @@ const ELDARION = `## 🎯 Papel em Combate
 - ❌ Não pré-envenenar a arma no começo do combate.
 - ❌ Desperdiçar a alta iniciativa não focando o alvo certo no round 1 (Surprise Attack).
 - ❌ **Continuar tratando Sneak como aposta:** com *Sneak Adept* a falha vira sucesso — vale muito mais a pena se aproximar escondido do que atacar de longe sem off-guard.
-- ❌ Esquecer que **Quick Change** agora cabe num turno: trocar de identidade deixou de exigir sair de cena.`
+- ❌ **Usar Retreating Finisher sem Panache:** o finisher só existe com Panache ativa — sem ela é um Strike qualquer, sem o extra de precisão e sem o Step de segurança na falha.`
 
 // ---------------------------------------------------------------------------
 // GHAN BURI — Guerreiro 10 (Bastion), Jotunborn Grande + Escudo-Fortaleza
