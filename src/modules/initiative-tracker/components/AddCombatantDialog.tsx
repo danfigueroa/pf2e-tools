@@ -20,7 +20,7 @@ import {
 } from '@mui/material'
 import { Check as CheckIcon, CloudUpload as UploadIcon, Person as PersonIcon } from '@mui/icons-material'
 import { gold, green, ink, parchment } from '../../../theme'
-import { CAMPAIGN_PRESETS } from '../../character-viewer/campaignPresets'
+import { CAMPAIGN_PRESETS, type CharacterPreset } from '../../character-viewer/campaignPresets'
 import { charSlugFromName } from '../../character-viewer/charId'
 import { parseCharacterJson } from '../../character-sheet/types'
 import { npcFromManual, pcFromBuild } from '../importCharacter'
@@ -89,9 +89,9 @@ const CharacterTab = ({
     const [error, setError] = useState<string | null>(null)
 
     // Quem já está no combate não entra na seleção nem no "selecionar todos".
-    const available = CAMPAIGN_PRESETS.filter(
-        (p) => !existingSlugs.includes(charSlugFromName(p.name)),
-    )
+    // Pelo nome da FICHA, não pelo rótulo: "Ceros" e "Cerosqualhanthallas" dão slugs diferentes.
+    const inCombat = (p: CharacterPreset) => existingSlugs.includes(charSlugFromName(p.sheetName))
+    const available = CAMPAIGN_PRESETS.filter((p) => !inCombat(p))
     const allSelected = available.length > 0 && available.every((p) => selected.has(p.filename))
 
     const toggle = (filename: string) => {
@@ -178,7 +178,7 @@ const CharacterTab = ({
                 }}
             >
                 {CAMPAIGN_PRESETS.map((preset) => {
-                    const already = existingSlugs.includes(charSlugFromName(preset.name))
+                    const already = inCombat(preset)
                     const isSelected = selected.has(preset.filename)
                     return (
                         <Card
@@ -250,22 +250,35 @@ const CharacterTab = ({
 
                     const built: Combatant[] = []
                     const bad: string[] = []
+                    const repeated: string[] = []
+                    // Quem já está no combate, ou veio duas vezes na mesma seleção,
+                    // não entra de novo: os dois cartões dividiriam o mesmo PV da mesa.
+                    const seen = new Set(existingSlugs)
                     for (const file of files) {
                         try {
-                            built.push(buildFrom(JSON.parse(await file.text())))
+                            const pc = buildFrom(JSON.parse(await file.text()))
+                            if (seen.has(pc.slug)) {
+                                repeated.push(pc.name)
+                                continue
+                            }
+                            seen.add(pc.slug)
+                            built.push(pc)
                         } catch {
                             bad.push(file.name)
                         }
                     }
 
-                    if (bad.length === 0) {
+                    if (bad.length === 0 && repeated.length === 0) {
                         onAdd(built)
                         return
                     }
                     onAdd(built, false)
-                    setError(
-                        `JSON de personagem inválido — exporte a ficha pelo Pathbuilder: ${bad.join(', ')}.`,
-                    )
+                    setError([
+                        bad.length > 0
+                            ? `JSON de personagem inválido — exporte a ficha pelo Pathbuilder: ${bad.join(', ')}.`
+                            : null,
+                        repeated.length > 0 ? `Já está no combate: ${repeated.join(', ')}.` : null,
+                    ].filter(Boolean).join(' '))
                 }}
             />
         </Box>

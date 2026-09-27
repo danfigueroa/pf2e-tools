@@ -154,8 +154,20 @@ export function encounterReducer(state: EncounterState, action: EncounterAction)
         case 'hydrate':
             return action.state
 
-        case 'addCombatants':
-            return { ...state, combatants: sorted([...state.combatants, ...action.combatants]) }
+        case 'addCombatants': {
+            // Um personagem só pode estar uma vez no encontro: o PV e as condições
+            // dele moram na mesa, pelo slug, e duas cópias dividiriam o mesmo
+            // estado. O diálogo já filtra; isto é a trava para o que escapar dele.
+            const slugs = new Set(state.combatants.flatMap((c) => (c.kind === 'pc' ? [c.slug] : [])))
+            const fresh = action.combatants.filter((c) => {
+                if (c.kind !== 'pc') return true
+                if (slugs.has(c.slug)) return false
+                slugs.add(c.slug)
+                return true
+            })
+            if (fresh.length === 0) return state
+            return { ...state, combatants: sorted([...state.combatants, ...fresh]) }
+        }
 
         case 'duplicate': {
             const source = state.combatants.find((c) => c.id === action.id)
