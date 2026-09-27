@@ -107,7 +107,7 @@ const CharacterTab = ({
         setSelected(allSelected ? new Set() : new Set(available.map((p) => p.filename)))
     }
 
-    const buildFrom = (json: unknown, preset?: { filename: string; klass: string }) =>
+    const buildFrom = (json: unknown, preset?: { filename: string; klass: string; name: string }) =>
         pcFromBuild(parseCharacterJson(json), preset)
 
     /**
@@ -128,6 +128,7 @@ const CharacterTab = ({
                 const combatant = buildFrom(await res.json(), {
                     filename: preset.filename,
                     klass: preset.class,
+                    name: preset.name,
                 })
                 return { preset, combatant }
             } catch {

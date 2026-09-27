@@ -13,14 +13,16 @@ import type { NpcCombatant, PcCombatant } from './types'
  */
 export function pcFromBuild(
     build: BuildInfo,
-    preset?: { filename: string; klass: string },
+    preset?: { filename: string; klass: string; name: string },
 ): PcCombatant {
     const { values, notes } = parseResistanceStrings(build.resistances ?? [])
 
     return {
         id: crypto.randomUUID(),
         kind: 'pc',
-        name: build.name,
+        // O preset tem o nome curto ("Ceros"), que cabe no cartão; o slug continua
+        // saindo do nome da ficha, senão o combatente não acharia o estado da mesa.
+        name: preset?.name ?? build.name,
         slug: charSlugFromName(build.name),
         // A ficha do Pathbuilder traz a classe em inglês; o preset já tem o rótulo pt-BR.
         klass: preset?.klass ?? build.class,
