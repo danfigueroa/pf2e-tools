@@ -254,15 +254,19 @@ A plataforma é usada na mesa, no celular. Toda mudança de layout precisa passa
   (`byName`) e é escrito à mão (`curated: true`); sem guia catalogado, `buildFallbackGuide()` gera
   um resumo heurístico (marcado como automático). Guias curados **sem IA** — ver memória.
 - **Ao adicionar uma ficha nova**: (1) copiar o JSON para `public/characters/`; (2) registrar em
-  `campaignPresets.ts`; (3) escrever um guia curado em `combatGuides.ts` casando pelo nome.
+  `campaignPresets.ts`, com `sheetName` igual ao `build.name` do JSON; (3) escrever um guia curado
+  em `combatGuides.ts` casando pelo nome.
 - **Os presets alimentam três módulos**: Ficha Virtual, diálogo de personagens da Iniciativa e
   gerador de Transformação (que aceita qualquer personagem, não só conjurador). Tirar uma ficha de
-  `campaignPresets.ts` tira dos três. Elenco atual: Brukuthur, Cerosqualhanthallas, Eldarion,
-  Ghan Buri e Nathaniel, todos nível 10 — tabela e observações no README ("Fichas da campanha").
-- **O `name` do preset nem sempre é o nome da ficha.** O Pathbuilder exporta
-  `Brukuthur, The Barbarian Android` e `Nathaniel o Magus`, então os guias desses dois casam por
-  `startsWith`, não por `byName`. Pela mesma razão, o "já no combate" da Iniciativa (que compara o
-  slug do `preset.name` com o slug da ficha) não reconhece esses dois — eles podem entrar duas vezes.
+  `campaignPresets.ts` tira dos três. Elenco atual: Brukuthur, Ceros (Cerosqualhanthallas),
+  Eldarion, Ghan Buri e Nathaniel, todos nível 10 — tabela e observações no README.
+- **Preset tem dois nomes**: `name` é o rótulo curto (cards, botões e o nome do combatente na
+  Iniciativa, via `pcFromBuild`); `sheetName` é o `build.name` do JSON, de onde sai o slug da mesa.
+  O "já no combate" da Iniciativa compara pelo `sheetName` — pelo `name`, "Ceros" não bateria com
+  a ficha e o personagem entraria duas vezes, dois cartões no mesmo PV. Já foi bug com o Brukuthur.
+  O upload de JSON também filtra repetidos, e o reducer (`addCombatants`) descarta PC cujo slug já
+  está no encontro, como trava final. Os guias do Brukuthur e do Nathaniel casam por `startsWith`
+  porque o Pathbuilder exporta `Brukuthur, The Barbarian Android` e `Nathaniel o Magus`.
 - **Edição à mão num JSON de ficha**: o do Nathaniel troca o *Winder's Ring* pelo
   **Ring of Wizardry (Type I)** (erro do jogador, AON 462), com o +1 de Arcanismo em `mods`. Os dois
   slots de 1º rank do anel **não** estão em `perDay` — são preparados no dia. Ao receber um export
@@ -270,9 +274,11 @@ A plataforma é usada na mesa, no celular. Toda mudança de layout precisa passa
 - **O Ardagar saiu da campanha**: preset e JSON removidos. O guia curado (`ARDAGAR`) e a entrada
   de `CHARACTER_ANIMALS` em `unarmed.ts` ficaram, porque casam por nome e servem a quem carregar o
   JSON à mão. `public/character-example.json` (do módulo de PDF desativado) ainda é o Ardagar.
-- **Mythic Magic sai do Pathbuilder como conjurador espontâneo com 5 slots de 5º rank**, e a aba de
-  Magias desenha esses pips. Não existem: cada conjuração custa um Ponto Mítico. Os guias avisam; a
-  ficha ainda não trata o caso.
+- **Mythic Magic** sai do Pathbuilder como conjurador espontâneo com 5 slots de 5º rank, que **não
+  existem**: cada conjuração gasta um Ponto Mítico. `isMythicMagicCaster` (casa pelo nome do bloco)
+  faz a aba de Magias trocar os pips pelo botão que gasta do pool de `useMythicPoints` — que por isso
+  viaja no `SectionContext` —, e faz `spellcasterStats` usar a proficiência mítica. O "Novo dia"
+  dos slots não conta esse bloco: ele não devolve Ponto Mítico.
 - **Ataques desarmados** (`unarmed.ts`): o JSON do Pathbuilder **não exporta desarmado nenhum** —
   nem o punho padrão. A tabela é escrita à mão a partir das regras (Howl of the Wild pg. 22 para os
   ataques animais) e os números são calculados aqui: ataque = nível + prof. desarmada + atributo
