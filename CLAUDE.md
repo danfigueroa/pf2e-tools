@@ -255,6 +255,24 @@ A plataforma é usada na mesa, no celular. Toda mudança de layout precisa passa
   um resumo heurístico (marcado como automático). Guias curados **sem IA** — ver memória.
 - **Ao adicionar uma ficha nova**: (1) copiar o JSON para `public/characters/`; (2) registrar em
   `campaignPresets.ts`; (3) escrever um guia curado em `combatGuides.ts` casando pelo nome.
+- **Os presets alimentam três módulos**: Ficha Virtual, diálogo de personagens da Iniciativa e
+  gerador de Transformação (que aceita qualquer personagem, não só conjurador). Tirar uma ficha de
+  `campaignPresets.ts` tira dos três. Elenco atual: Brukuthur, Cerosqualhanthallas, Eldarion,
+  Ghan Buri e Nathaniel, todos nível 10 — tabela e observações no README ("Fichas da campanha").
+- **O `name` do preset nem sempre é o nome da ficha.** O Pathbuilder exporta
+  `Brukuthur, The Barbarian Android` e `Nathaniel o Magus`, então os guias desses dois casam por
+  `startsWith`, não por `byName`. Pela mesma razão, o "já no combate" da Iniciativa (que compara o
+  slug do `preset.name` com o slug da ficha) não reconhece esses dois — eles podem entrar duas vezes.
+- **Edição à mão num JSON de ficha**: o do Nathaniel troca o *Winder's Ring* pelo
+  **Ring of Wizardry (Type I)** (erro do jogador, AON 462), com o +1 de Arcanismo em `mods`. Os dois
+  slots de 1º rank do anel **não** estão em `perDay` — são preparados no dia. Ao receber um export
+  novo do Nathaniel, confira se o anel já vem certo antes de sobrescrever.
+- **O Ardagar saiu da campanha**: preset e JSON removidos. O guia curado (`ARDAGAR`) e a entrada
+  de `CHARACTER_ANIMALS` em `unarmed.ts` ficaram, porque casam por nome e servem a quem carregar o
+  JSON à mão. `public/character-example.json` (do módulo de PDF desativado) ainda é o Ardagar.
+- **Mythic Magic sai do Pathbuilder como conjurador espontâneo com 5 slots de 5º rank**, e a aba de
+  Magias desenha esses pips. Não existem: cada conjuração custa um Ponto Mítico. Os guias avisam; a
+  ficha ainda não trata o caso.
 - **Ataques desarmados** (`unarmed.ts`): o JSON do Pathbuilder **não exporta desarmado nenhum** —
   nem o punho padrão. A tabela é escrita à mão a partir das regras (Howl of the Wild pg. 22 para os
   ataques animais) e os números são calculados aqui: ataque = nível + prof. desarmada + atributo
