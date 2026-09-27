@@ -196,6 +196,8 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             Carregue um JSON do Pathbuilder 2e para usar HP, salvamentos, percepção, atletismo e
             ataque reais. Depois de importar, basta escolher a magia — os campos manuais somem.
+            Qualquer personagem da campanha pode se transformar, não só conjuradores: a forma pode
+            vir de pergaminho, varinha ou poção.
           </Typography>
           <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
             {CAMPAIGN_PRESETS.map((preset) => (
