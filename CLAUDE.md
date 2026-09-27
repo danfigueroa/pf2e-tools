@@ -274,6 +274,13 @@ A plataforma é usada na mesa, no celular. Toda mudança de layout precisa passa
 - **O Ardagar saiu da campanha**: preset e JSON removidos. O guia curado (`ARDAGAR`) e a entrada
   de `CHARACTER_ANIMALS` em `unarmed.ts` ficaram, porque casam por nome e servem a quem carregar o
   JSON à mão. `public/character-example.json` (do módulo de PDF desativado) ainda é o Ardagar.
+- **Conjurador de grimório** (magus, mago, arquétipo de mago) chega do Pathbuilder com as magias do
+  dia em `prepared` e o grimório em `spells` — que vem vazio quando o jogador não o preenche. Tudo no
+  app lê `spells`, e o bloco inteiro sumia da aba de Magias (foi o caso do Nathaniel).
+  `parseCharacterJson` chama `normalizeSpellCasters`, que copia `prepared` para `spells`; a ficha
+  restaurada do `sessionStorage` passa pela mesma função. O `perDay` do Magus vem com slots nos
+  ranks baixos que a classe não tem (só os dois ranks mais altos têm slot) — ignore: na preparada,
+  o slot é a cópia preparada, não o `perDay`.
 - **Mythic Magic** sai do Pathbuilder como conjurador espontâneo com 5 slots de 5º rank, que **não
   existem**: cada conjuração gasta um Ponto Mítico. `isMythicMagicCaster` (casa pelo nome do bloco)
   faz a aba de Magias trocar os pips pelo botão que gasta do pool de `useMythicPoints` — que por isso
