@@ -11,4 +11,5 @@ export const CAMPAIGN_PRESETS: CharacterPreset[] = [
     { name: 'Cerosqualhanthallas', class: 'Patrulheiro', level: 10, filename: 'cerosqualhanthallas10.json' },
     { name: 'Eldarion',  class: 'Ladino',    level: 10, filename: 'eldarion10.json'  },
     { name: 'Ghan Buri', class: 'Guerreiro', level: 10, filename: 'ghanburi10.json'  },
+    { name: 'Nathaniel', class: 'Magus', level: 10, filename: 'nathaniel10.json' },
 ]
