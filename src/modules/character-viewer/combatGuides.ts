@@ -272,12 +272,73 @@ const CEROSQUALHANTHALLAS = `## 🎯 Papel em Combate
 - ❌ **Achar que os "5 slots" de Mythic Magic são magias de graça:** cada uma custa um Ponto Mítico, o mesmo estoque do Mythic Strike e do Correct the Story.
 - ❌ **Snowdrift sem ação para atirar:** a neve some no começo do seu próximo turno. Sem *Haste*, o *off-guard* que você montou só serve aos aliados — e *Nature's Edge* vale só para você.`
 
+// ---------------------------------------------------------------------------
+// NATHANIEL — Magus 10 (Sparkling Targe), Aiuvarin + Mago (Teoria Unificada)
+// ---------------------------------------------------------------------------
+const NATHANIEL = `## 🎯 Papel em Combate
+**Magus de Sparkling Targe (Escudo Faiscante)** — espada longa numa mão, escudo na outra e magia no golpe. É **linha de frente híbrida**: descarrega uma magia inteira dentro de um Strike (*Spellstrike*) e, com o escudo erguido, bloqueia até dano mágico. FOR 19 e INT 19, **CA 28 (30 com o escudo erguido)**, ~138 PV e **Vontade mestre**. A **Wizard Dedication** dá magias de utilidade e área por fora.
+
+## 🔁 Rotina de Turno
+- 🌀 **1 ação — Arcane Cascade (postura):** seus golpes corpo a corpo ganham **+2 de dano** (força, ou o tipo da magia que você acabou de lançar) e você ganha **resistência 2 a dano de magias**. Entre nela no 1º turno e não saia.
+- ⚡ **2 ações — Spellstrike:** lance uma magia de 1 ou 2 ações que peça **ataque de magia ou salvaguarda** e entregue-a num **Strike com a Zarroc Sheilvean (+18, 2d8+6)**. Magia de ataque usa o **resultado do Strike** (acertou, acertou os dois); magia de salvaguarda faz o alvo rolar **mesmo se o Strike errar** — só a falha crítica do Strike desperdiça a magia. Conta como **dois ataques** para o MAP, mas o MAP só entra depois.
+- 🔄 **Recarregar o Spellstrike:** depois de usá-lo, ele fica descarregado. Recarrega com **1 ação** (*concentrate*) **ou lançando uma magia de confluência** — e é aí que entra o **Shielding Strike**.
+- 🛡️ **Shielding Strike (1 ação, foco):** **ergue o escudo e faz um Strike** numa ação só, **e recarrega o Spellstrike**. O ciclo ideal de um turno depois do primeiro: *Shielding Strike* (1) + *Spellstrike* (2).
+
+## ⭐ Nunca Esqueça
+- 🛡️ **Sparkling Targe:** em **Arcane Cascade** e com o escudo **erguido**, o **+2 do escudo vale também nas salvaguardas contra magias** e efeitos mágicos, e o **Shield Block** para até dano **não físico** de magia — com a Dureza aumentada em +2 (o dano extra da postura).
+- ⚙️ **Clockwork Shield (1×/dia, 1 ação):** por 1 minuto, **uma reação extra por turno só para Shield Block** (Dureza 12, 90 PV). Ligue na luta em que você vai ser o alvo — e o escudo ainda tem **espigões +2 striking** para bater.
+- 🔀 **Expansive Spellstrike:** magias de **explosão, cone ou linha** criam a área inteira no Spellstrike, em vez de atingir só o alvo. A explosão é centrada num canto do quadrado do alvo, que é **colado em você**: ⚠️ ***Ancestral Winds*** (6 m de raio) e ***Cave Fangs*** (6 m) **pegam você e os aliados adjacentes**. Com essas, lance **à distância**, do jeito normal.
+- 🔁 **Reações que disputam o mesmo slot:** **Reactive Strike** (inimigo no alcance se move, manipula ou ataca à distância), **Shield Block**, **Crosscurrent Counter** (alguém te **agarra ou imobiliza** → você tenta agarrá-lo de volta, mesmo fora do alcance e sem mão livre; no sucesso você se solta e o puxa para perto) e **Vanish Weapon** (ver Míticos). Decida pela ameaça da rodada — o *Clockwork Shield* é o que te dá um Shield Block **a mais**.
+- 🔥 **Runic Impression (1 ação, foco):** por 1 minuto a espada ganha uma runa à escolha — *flaming*, *frost*, *shock*, *thundering*, *corrosive*, *ghost touch* ou *returning*. Escolha pela **fraqueza** do inimigo; *ghost touch* contra incorpóreos.
+- 🎯 **Hand of the Apprentice (1 ação, foco):** arremessa a espada até **150 m** como ataque de magia, somando **INT** ao dano, e ela volta à mão. É o seu ataque à distância contra o voador.
+
+## ✨ Magias-Chave
+- 🔥 **Cinder Swarm (4º):** o melhor para *Spellstrike* — alvo único com aura de 1,5 m. **Formigas de fogo:** 3d6 perfurante + 2d6 fogo persistente e empurram 1,5 m; **vaga-lumes:** 3d6 fogo e **cegam** na falha (incapacitação). Sustente para repetir.
+- 👻 **Ancestral Winds (5º):** 5d6 vazio + 1d6 mental numa explosão de 6 m, a até 36 m, com **amedrontado 2** na falha, e sustentável. Lance **à distância** (ver o aviso do Expansive Spellstrike).
+- 🚪 **Banishment (5º):** manda um extraplanar de volta para casa. Guarde para o demônio ou o elemental que decide a luta.
+- 📦 **Containment (4º):** prende um inimigo (ou protege um aliado) num campo de força com Dureza 10 e 40 PV.
+- 🪨 **Cave Fangs (3º, arquétipo):** 6d6 perfurante numa explosão de 6 m e **terreno difícil por 1 minuto** — e o terreno difícil deixa os inimigos **off-guard para o Cerosqualhanthallas** (*Nature's Edge*). Combine com ele.
+- ✨ **Truques de Spellstrike:** *Gouging Claw* e *Telekinetic Projectile* (ataque), *Ignition* (ataque, fogo) e *Daze* (Vontade).
+- 📚 **Magias estudiosas:** dois slots especiais de 2º rank para *Gecko Grip* e *Resist Energy* (o Pathbuilder não as lista entre as preparadas).
+- 🕊️ **Aeromancer:** *Fly* de 4º rank, inata, **1×/dia**.
+
+## ⚡ Poderes Míticos
+- 🔥 **Mythic Magic:** gaste um Ponto Mítico para lançar *Blazing Bolt*, *Vanish Weapon* ou *Horizon Thunder Sphere* **no 5º rank** com **proficiência mítica** (ataque de magia ~**+24** em vez de +18). ⚠️ A ficha mostra **5 slots de 5º rank** para essas magias, mas **não há slot nenhum**: cada conjuração custa um Ponto Mítico. E **não as use no Spellstrike**: lá quem rola é o Strike, e a proficiência mítica se perde.
+- 🗡️ **Vanish Weapon (reação, via Mythic Magic):** um inimigo **acerta ou erra** (sem crítico) um golpe corpo a corpo com arma em você → tente **Desarmá-lo** com ataque de magia mítico, sem precisar de mão livre. No sucesso a arma some numa bolsa extradimensional sua.
+- 💀 **Divert Destiny (livre):** ao cair a 0 PV ou morrer, gaste um Ponto Mítico e fique **de pé com 10 + nível PV**, sem Ferido nem Morrendo.
+- 💨 **Godspeed (1 ação):** 1 minuto de **+3 m** de velocidade e *quickened* para Stride, Step ou Leap.
+- 👂 **Ears that Hear the Truth:** iniciativa (ou Sentir Motivação) com **proficiência mítica** por um Ponto Mítico — soma com *Incredible Initiative*.
+- 🔋 **Summon Mythic Power (1×/dia):** recupera 1 Ponto Mítico.
+- 🎲 **Rewrite Fate (livre):** rerrole uma perícia ou salvaguarda com proficiência mítica.
+
+## 🎒 Itens & Recursos
+- 🗡️ **Zarroc Sheilvean** (*+1 Striking Longsword*): 2d8+6 cortante, +18.
+- 🛡️ **Clockwork Shield** + **Breastplate +1 Resilient de Ferro Frio** — o ferro frio pesa contra feéricos e demônios **na armadura**, não na espada.
+- 💍 **Ring of Wizardry (Type I):** **+1 em Arcanismo** e **dois slots de 1º rank arcanos a mais** por dia. Escolha no preparo diário a qual fonte arcana eles vão (Magus ou o arquétipo de Mago) e prepare magias de 1º do grimório. Tirar o anel, por qualquer motivo, faz perder os slots extras.
+- 🔮 **3 pontos de foco** para *Shielding Strike*, *Runic Impression* e *Hand of the Apprentice* — refocus entre lutas.
+
+## 🛡️ Defesa & Sobrevivência
+- ❤️ **CA 28 → 30 com o escudo erguido · ~138 PV.**
+- 🧠 **Twofold Will:** Vontade **mestre (~+19)** e **sucesso vira crítico** — medo e controle mental raramente te pegam.
+- ⚠️ **Mais frágil: Reflexos (~+16).** Contra área mágica, fique em **Arcane Cascade com o escudo erguido**: o +2 do escudo entra na salvaguarda (*Sparkling Targe*).
+- 🗣️ **Steady Spellcasting:** menos chance de perder a magia quando te acertam enquanto conjura.
+
+## ⚠️ Erros Comuns
+- ❌ **Esquecer de recarregar o Spellstrike:** sem a ação de recarga ou uma magia de confluência, o próximo Spellstrike não existe. *Shielding Strike* recarrega de graça.
+- ❌ **Lutar fora de Arcane Cascade:** sem a postura você perde o dano extra, a resistência a magia e os benefícios do Sparkling Targe.
+- ❌ **Expansive Spellstrike com explosão grande:** *Ancestral Winds* e *Cave Fangs* centrados no alvo colado em você **te atingem**.
+- ❌ **Mythic Magic no Spellstrike:** a proficiência mítica só vale quando **você** rola o ataque de magia — lance essas diretamente.
+- ❌ **Achar que os "5 slots" de Mythic Magic são magias de graça:** cada uma custa um Ponto Mítico.
+- ❌ **Deixar o escudo abaixado:** CA 28 contra 30, e sem escudo erguido o Sparkling Targe não protege as salvaguardas.`
+
 export const COMBAT_GUIDES: CombatGuide[] = [
     { match: byName('Ardagar'), markdown: ARDAGAR, curated: true },
     { match: byName('Eldarion'), markdown: ELDARION, curated: true },
     { match: byName('Ghan Buri'), markdown: GHAN_BURI, curated: true },
     { match: (b) => (b.name || '').trim().toLowerCase().startsWith('brukuthur'), markdown: BRUKUTHUR, curated: true },
     { match: byName('Cerosqualhanthallas'), markdown: CEROSQUALHANTHALLAS, curated: true },
+    // O Pathbuilder exporta "Nathaniel o Magus"; casa pelo começo, como o Brukuthur.
+    { match: (b) => (b.name || '').trim().toLowerCase().startsWith('nathaniel'), markdown: NATHANIEL, curated: true },
 ]
 
 // ---------------------------------------------------------------------------
