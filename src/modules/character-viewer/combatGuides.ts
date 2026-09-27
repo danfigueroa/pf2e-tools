@@ -222,11 +222,62 @@ const BRUKUTHUR = `## 🎯 Papel em Combate
 - ❌ **Forçar Quick Reversal sem estar flanqueado por dois:** é situacional — não vale gastar Vicious Swing/Slam Down esperando por ele quando a ficha de combate não está montada.
 - ❌ **Guardar Pontos Míticos até o fim da luta sem gastar:** entre Godspeed, Correct the Story, Divert Destiny e Summon Mythic Power, quase sempre há um uso melhor que "sobrar".`
 
+// ---------------------------------------------------------------------------
+// CEROSQUALHANTHALLAS — Patrulheiro 10 (Precisão), Aiuvarin + Druida da Tempestade
+// ---------------------------------------------------------------------------
+const CEROSQUALHANTHALLAS = `## 🎯 Papel em Combate
+**Patrulheiro de Precisão** com arco longo composto — o **atirador** da party. Aiuvarin (meio-elfo) com **Druid Dedication (Ordem da Tempestade)**: marca uma presa e a derruba de longe, com magia de guardião (*warden*) e de tempestade por cima. DES 20, **Percepção mestre** e *Incredible Initiative* te fazem agir cedo; **Reflexos mestres** e CA 28 seguram o que chega até você.
+
+## 🔁 Rotina de Turno
+- 🎯 **1 ação — Hunt Prey:** marque o alvo. Quase tudo que você tem só vale contra a **presa**: a precisão, o Hunter's Aim e o Deadly Aim.
+- 🏹 **Strike com o arco (+21):** 3d8+4 perfurante, **+1d8 de precisão** no **primeiro acerto da rodada** contra a presa (*Hunter's Edge: Precision*).
+- 🔭 **Hunter's Aim (2 ações):** Strike contra a presa com **+2 de circunstância**, ignorando **ocultação** e **cobertura menor**. É o tiro para o alvo escondido na névoa ou atrás de um aliado.
+- 💥 **Deadly Aim (1 ação):** Strike contra a presa com **−2** no ataque e **+4 de dano**. Rende contra CA baixa ou alvo desprevenido — o −2 dói menos quando o alvo já está *off-guard*.
+- 🌀 **Gravity Weapon (1 ação, foco):** 1 minuto de **+6 de dano** (2 × os 3 dados da arma) no **primeiro Strike de cada rodada**. Ligue no 1º turno de uma luta que vai durar.
+
+## ⭐ Nunca Esqueça
+- 🏹 **Volley 9 m:** o arco longo tem **−2** contra alvos a **9 m ou menos**. Não fique colado: recue antes de atirar.
+- 🌿 **Nature's Edge:** inimigo em **terreno difícil** fica **off-guard para você** (−2 CA). Escombros, mato, a neve do *Snowdrift Spell* — e a **Cave Fangs do Nathaniel**, que enche 6 m de raio de terreno difícil por 1 minuto. Peça a magia e atire no que estiver dentro.
+- ❄️ **Snowdrift Spell (1 ação) + Tempest Surge:** a *Tempest Surge* tem o traço **ar**, então o *Snowdrift* enche de neve o espaço do alvo e os quadrados ao redor — terreno difícil até o **começo do seu próximo turno**. Como isso gasta o turno inteiro, o combo só fecha com **Haste**: sobra ação para atirar no alvo já *off-guard*.
+- ⏱️ **Pinch Time:** *Haste* **1×/dia**, só em você (1 minuto de ação extra para Strike ou Stride). Ligue na luta que importa: é +1 flecha por rodada.
+- 🧠 **Additional Recollection (ação livre):** ao **acertar** um *Recall Knowledge* sobre a presa, faça outro, de graça, sobre **outra** criatura.
+- 🗺️ **Terrain Transposition (2 ações, foco):** teletransporte-se até **27 m** para um espaço que você veja, levando só o que estiver segurando. Só funciona em **ambiente selvagem** — numa masmorra ou cidade, não conte com ela.
+
+## ⚡ Poderes Míticos
+- 🏹 **Mythic Strike (1 ação):** gaste um Ponto Mítico e atire com **proficiência mítica** (~**+27** em vez de +21), contando como arma mítica contra resistência e imunidade míticas. Contra a presa, some a precisão.
+- 🔥 **Mythic Magic:** gaste um Ponto Mítico para lançar *Scorching Ray*, *Heal* ou *Darkvision* **no 5º rank** e com **proficiência mítica**. O *Scorching Ray* de 2–3 ações dispara um raio por ação, em alvos diferentes — é o seu nova de área. ⚠️ A ficha mostra **5 slots de 5º rank** para essas magias, mas **não há slot nenhum**: cada conjuração custa um Ponto Mítico.
+- 🗣️ **Correct the Story (reação):** inimigo tira **crítico** num ataque ou numa salvaguarda — gaste um Ponto Mítico e ele **rerrola**.
+- 💨 **Godspeed (1 ação):** 1 minuto de **+3 m** de velocidade e *quickened* (a ação extra é só para Stride, Step ou Leap) — ótimo para manter a distância do *volley*.
+- 🎲 **Rewrite Fate (livre):** rerrole uma perícia ou salvaguarda com proficiência mítica.
+- 🐾 **Hunter's Calling:** *Seek* e *Track* com proficiência mítica por um Ponto Mítico; o **primeiro crítico do dia** nesses testes contra criatura hostil **devolve** o ponto.
+- 🌊 **Arms that Cut the Waves:** nado com proficiência mítica, e fôlego para **10 rodadas** a mais antes de sufocar. É de exploração, não de combate.
+
+## 🎒 Itens & Recursos
+- 🏹 **+2 Greater Striking Composite Longbow:** sua arma. A ficha soma **+1d6 elétrico** ao dano.
+- 🧥 **Cloak of Illusions (Greater):** **+2 em Furtividade**, *figment* à vontade e, **1×/dia**, puxar o capuz (2 ações) dá **invisibilidade de 4º rank**: 1 minuto que **não acaba quando você ataca**. Invisível, o alvo fica *off-guard* para você — combine com a precisão.
+- 🛡️ **Bands of Force:** +1 na CA e nas salvaguardas. **Return Force (reação):** inimigo **erra criticamente** um golpe corpo a corpo em você → as faixas o **empurram** (Atletismo +14) para longe — ótimo para o arqueiro que ficou cercado.
+- 🔮 **3 pontos de foco** para *Gravity Weapon*, *Soothing Mist*, *Tempest Surge* e *Terrain Transposition* — refocus entre lutas.
+- 💧 **Soothing Mist (2 ações, foco):** cura **5d8** num aliado a até 9 m **e encerra um dano persistente** (ácido, sangramento, fogo, veneno ou vazio) à sua escolha.
+- ⚡ **Tempest Surge (2 ações, foco):** **5d12 elétrico** (Reflexos básico, 9 m) e, na falha, **desajeitado 2** por 1 rodada.
+
+## 🛡️ Defesa & Sobrevivência
+- ❤️ **CA 28 · ~138 PV.** Melhor salvaguarda: **Reflexos mestres (~+22)**; Fortitude (~+18) e Vontade (~+19) são especialistas.
+- 🧠 **Ancestral Suspicion:** **+2** contra efeitos que te **controlariam** (*dominate* e afins), e um **sucesso vira crítico**.
+- 🏃 Seu lugar é **a 10–30 m da briga**, fora do *volley* e fora do alcance dos brutamontes. Se chegarem perto, *Godspeed* ou *Terrain Transposition* te tiram dali.
+
+## ⚠️ Erros Comuns
+- ❌ **Atirar sem Hunt Prey:** sem presa, nada de precisão, Hunter's Aim nem Deadly Aim.
+- ❌ **Atirar a 9 m ou menos** e comer o −2 do *volley* sem perceber.
+- ❌ **Esquecer que o +1d8 de precisão é só no primeiro acerto da rodada** — o segundo e o terceiro acerto não somam.
+- ❌ **Achar que os "5 slots" de Mythic Magic são magias de graça:** cada uma custa um Ponto Mítico, o mesmo estoque do Mythic Strike e do Correct the Story.
+- ❌ **Snowdrift sem ação para atirar:** a neve some no começo do seu próximo turno. Sem *Haste*, o *off-guard* que você montou só serve aos aliados — e *Nature's Edge* vale só para você.`
+
 export const COMBAT_GUIDES: CombatGuide[] = [
     { match: byName('Ardagar'), markdown: ARDAGAR, curated: true },
     { match: byName('Eldarion'), markdown: ELDARION, curated: true },
     { match: byName('Ghan Buri'), markdown: GHAN_BURI, curated: true },
     { match: (b) => (b.name || '').trim().toLowerCase().startsWith('brukuthur'), markdown: BRUKUTHUR, curated: true },
+    { match: byName('Cerosqualhanthallas'), markdown: CEROSQUALHANTHALLAS, curated: true },
 ]
 
 // ---------------------------------------------------------------------------
