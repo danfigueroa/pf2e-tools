@@ -298,7 +298,7 @@ const NATHANIEL = `## 🎯 Papel em Combate
 - 🚪 **Banishment (5º):** manda um extraplanar de volta para casa. Guarde para o demônio ou o elemental que decide a luta.
 - 📦 **Containment (4º):** prende um inimigo (ou protege um aliado) num campo de força com Dureza 10 e 40 PV.
 - 🪨 **Cave Fangs (3º, arquétipo):** 6d6 perfurante numa explosão de 6 m e **terreno difícil por 1 minuto** — e o terreno difícil deixa os inimigos **off-guard para o Cerosqualhanthallas** (*Nature's Edge*). Combine com ele.
-- ✨ **Truques de Spellstrike:** *Gouging Claw* e *Telekinetic Projectile* (ataque), *Ignition* (ataque, fogo) e *Daze* (Vontade).
+- ✨ **Truques de Spellstrike:** *Gouging Claw* e *Telekinetic Projectile* (ataque), *Ignition* (ataque, fogo) e *Daze* (Vontade) do Magus, e *Live Wire* (ataque, cortante + elétrico) do arquétipo de Mago — o Spellstrike aceita magia de qualquer bloco.
 - 📚 **Magias estudiosas (*Gecko Grip* e *Resist Energy*):** ao lançar uma delas, você pode entrar em **Arcane Cascade como ação livre** logo em seguida, no mesmo turno. **Não dão slot próprio** (isso era a regra antiga do Secrets of Magic): ficam no grimório e precisam ser preparadas nos slots normais. *Resist Energy* (2 ações) + postura de graça abre a luta protegido e já em Arcane Cascade.
 - 🕊️ **Aeromancer:** *Fly* de 4º rank, inata, **1×/dia**.
 
