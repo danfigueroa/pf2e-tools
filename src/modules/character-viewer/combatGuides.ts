@@ -175,7 +175,7 @@ const BRUKUTHUR = `## 🎯 Papel em Combate
 
 ## ⭐ Nunca Esqueça
 - 🦣 **Giant's Stature (1 ação):** vira **Grande**, +1,5 m de alcance, seu equipamento cresce junto — troque **clumsy 1** (penaliza CA, Reflexos, Acrobacia e ataques à distância) por alcance e a chance de empunhar armas Grandes. Não ative se precisar de precisão fina naquele round.
-- 🤼 **Titan Wrestler + Athletics mestre:** Desarma, Agarra, Reposiciona, Empurra e Derruba criaturas até **duas categorias de tamanho maiores** que você — sendo Grande, isso alcança Enormes e Colossais. Contra chefes gigantes, você é um dos poucos que consegue tentar.
+- 🤼 **Athletics mestre:** Desarmar, Agarrar, Reposicionar, Empurrar e Derrubar valem contra criaturas até **uma categoria de tamanho maior** que você — Grandes normalmente, e **Enormes** enquanto o *Giant's Stature* estiver ativo. Contra um chefe Enorme, ative a estatura **antes** de tentar a manobra.
 - 🎯 **Assurance (Athletics):** resultado fixo de 10 + seu bônus de proficiência, sem rolar e sem somar nenhum outro bônus/penalidade. Ótimo pra travar uma manobra de CD média sem risco; contra o chefão, sua rolagem de verdade (com todos os bônus) ainda pode valer mais.
 - 🔨 **Brutality:** perícia especialista com armas simples/marciais/desarmado e, em Raiva, acesso ao **efeito de especialização crítica** — a do Greataxe é sangramento extra no crítico.
 - 🛡️ **Juggernaut:** Fortitude mestre e **sucesso vira sucesso crítico** — venenos e efeitos que só pedem uma falha simples raramente te seguram.
@@ -213,6 +213,7 @@ const BRUKUTHUR = `## 🎯 Papel em Combate
 - ❌ **Deixar a Raiva cair no meio da luta e esquecer de reentrar:** Quick-Tempered só é de graça **ao rolar iniciativa** — depois disso, Ragir de novo custa 1 ação normal.
 - ❌ **Tentar usar duas reações na mesma rodada:** Reactive Strike, No Escape e Farabellus Flip disputam o mesmo slot — escolha uma pela ameaça daquele turno, não guarde todas esperando a "melhor".
 - ❌ **Ativar Giant's Stature sem pensar no clumsy 1:** o alcance é ótimo, mas a penalidade em CA/Reflexos/Acrobacia pode custar caro contra quem precisa de precisão (ex.: perseguir por terreno ruim).
+- ❌ **Tentar Derrubar/Agarrar um Colossal:** sem *Titan Wrestler* (trocado por *Inventor*, que é talento de downtime), o limite é **uma** categoria acima — nem com Giant's Stature a manobra alcança um alvo Colossal.
 - ❌ **Forçar Quick Reversal sem estar flanqueado por dois:** é situacional — não vale gastar Vicious Swing/Slam Down esperando por ele quando a ficha de combate não está montada.
 - ❌ **Guardar Pontos Míticos até o fim da luta sem gastar:** entre Godspeed, Correct the Story, Divert Destiny e Summon Mythic Power, quase sempre há um uso melhor que "sobrar".`
 
