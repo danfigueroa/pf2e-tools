@@ -80,7 +80,7 @@ const ELDARION = `## 🎯 Papel em Combate
 ## ⭐ Nunca Esqueça
 - 🛡️⚔️ **Nimble Dodge × Opportune Riposte:** duas reações competindo pelo mesmo slot. Ataque comum contra você → **Nimble Dodge** (+2 CA). Inimigo adjacente que **erra criticamente** um Strike contra você → **Opportune Riposte** (Strike ou Desarme nele). Escolha pela ameaça da rodada; não dá pra guardar as duas.
 - 🥇 **Surprise Attack:** na 1ª rodada, quem ainda não agiu está **off-guard** — por isso a iniciativa alta (Incredible Initiative + Elven Instincts) importa tanto. Bata forte no round 1.
-- ☠️ **Poison Weapon / Improved Poison Weapon:** envenene a lâmina **antes** da luta; com o aprimorado o veneno persiste por mais tempo.
+- ☠️ **Poison Weapon (1 ação):** aplica na lâmina um veneno de **ferimento ou de contato** (o Remaster libera o de contato, que normalmente não iria na arma) e, com mão livre, já saca o frasco na mesma ação. Todo dia você prepara venenos simples (1d4, **2d4** com *Improved Poison Weapon*, sem salvaguarda), e com o aprimorado uma **falha crítica** no ataque **não desperdiça** o veneno.
 - 🤸 **Kip Up:** levante-se de graça sem provocar. **Evasive Reflexes** e **Slippery Prey** para escapar de agarrões e ameaças.
 - 🥷 **Sneak Adept (nível 10):** ao **Sneak**, uma *falha* vira **sucesso** — só a falha crítica ainda te denuncia. Furtar-se para a posição passou de aposta a plano confiável: use para abrir a luta já escondido e garantir o off-guard do round 1.
 - 🕊️ **Aerobatics Mastery (nível 10):** **+2 de circunstância** em Acrobacia para *Maneuver in Flight* e **duas manobras numa ação só** (CD da mais difícil +5). Com *Feet that Stride the Sky*, você reposiciona no ar em uma ação e ainda ataca.
@@ -92,6 +92,10 @@ const ELDARION = `## 🎯 Papel em Combate
 - 🥷 **Shadow Weaver (+1 resilient, shadow):** bônus em Furtividade e nos saves — mantenha investida.
 - 💍 **Ring of Climbing** + **Feet that Stride the Sky** (mítico): mobilidade vertical e aérea para alcançar alvos e escapar — agora com **Aerobatics Mastery** para manobrar de verdade lá em cima.
 - 🤺 **Swashbuckler Dedication (estilo Rascal):** camada de duelista sobre o Ladino — Panache via Tumble Through, **+1 de precisão fixo** (Finishing Precision) e o Finisher **Retreating Finisher** para fechar um alvo e já sair dali. **Swashbuckler's Riposte** é quem te dá a **Opportune Riposte** (ver acima, em Nunca Esqueça).
+- 🧪 **Toxic Effluence** (contato, **Fort CD 29**, até 6 rodadas): vai na lâmina com *Poison Weapon* e **não tem incubação** — já no estágio 1 são 3d6 veneno + 3d6 fogo, **desajeitado 1 e enfraquecido 1**. É o veneno de combate: guarde para o alvo que precisa cair nesta luta.
+- 🧪 **Fearweed** (contato, **Fort CD 30**): também vai na lâmina, mas tem **incubação de 1 minuto** (10 rodadas) — o 7d6 e o amedrontado chegam quando a luta curta já acabou. Rende em emboscada preparada ou luta longa; o amedrontado dele **não sai** enquanto o veneno durar.
+- 🧪 **Breath of the Mantis God** (**inalado**, virulento, **Fort CD 29**): **não vai na arma** — ao abrir o frasco vira uma nuvem de **3 m de lado** por 1 minuto, e quem entra sangra (3d6 persistente) e fica drenado. Jogue antes de o grupo entrar, e **não entre na nuvem**: quem sabe dela pode prender a respiração (+2 na salvaguarda), mas você também respira.
+- 🧪 Os três venenos são **consumíveis** — o Pathbuilder os exporta como "investidos", mas cada um é uma dose e some ao ser usado.
 - ⭐ **Pontos Míticos:** moeda de *Mythic Strike*, *Divert Destiny* e *Summon Mythic Power*. São escassos — gaste no golpe que decide a luta.
 
 ## 🛡️ Defesa & Sobrevivência
@@ -103,6 +107,7 @@ const ELDARION = `## 🎯 Papel em Combate
 - ❌ **Atacar sem off-guard:** sem isso você perde os **2d6** de Sneak Attack — monte o flanking/Gang Up antes.
 - ❌ Esquecer a **reação Nimble Dodge**.
 - ❌ Não pré-envenenar a arma no começo do combate.
+- ❌ **Tentar passar o Breath of the Mantis God na lâmina:** é inalado, não entra por *Poison Weapon* — é uma nuvem, não um golpe. E não gaste o **Fearweed** no meio de uma luta curta: com 1 minuto de incubação, o efeito chega tarde.
 - ❌ Desperdiçar a alta iniciativa não focando o alvo certo no round 1 (Surprise Attack).
 - ❌ **Continuar tratando Sneak como aposta:** com *Sneak Adept* a falha vira sucesso — vale muito mais a pena se aproximar escondido do que atacar de longe sem off-guard.
 - ❌ **Usar Retreating Finisher sem Panache:** o finisher só existe com Panache ativa — sem ela é um Strike qualquer, sem o extra de precisão e sem o Step de segurança na falha.`
