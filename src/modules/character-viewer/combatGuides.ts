@@ -245,7 +245,7 @@ const CEROSQUALHANTHALLAS = `## 🎯 Papel em Combate
 
 ## ⚡ Poderes Míticos
 - 🏹 **Mythic Strike (1 ação):** gaste um Ponto Mítico e atire com **proficiência mítica** (~**+27** em vez de +21), contando como arma mítica contra resistência e imunidade míticas. Contra a presa, some a precisão.
-- 🔥 **Mythic Magic:** gaste um Ponto Mítico para lançar *Scorching Ray*, *Heal* ou *Darkvision* **no 5º rank** e com **proficiência mítica**. O *Scorching Ray* de 2–3 ações dispara um raio por ação, em alvos diferentes — é o seu nova de área. ⚠️ A ficha mostra **5 slots de 5º rank** para essas magias, mas **não há slot nenhum**: cada conjuração custa um Ponto Mítico.
+- 🔥 **Mythic Magic:** gaste um Ponto Mítico para lançar *Scorching Ray*, *Heal* ou *Darkvision* **no 5º rank** e com **proficiência mítica**. O *Scorching Ray* de 2–3 ações dispara um raio por ação, em alvos diferentes — é o seu nova de área. Na aba de Magias, o ⚡ ao lado de cada uma **gasta o Ponto Mítico** direto.
 - 🗣️ **Correct the Story (reação):** inimigo tira **crítico** num ataque ou numa salvaguarda — gaste um Ponto Mítico e ele **rerrola**.
 - 💨 **Godspeed (1 ação):** 1 minuto de **+3 m** de velocidade e *quickened* (a ação extra é só para Stride, Step ou Leap) — ótimo para manter a distância do *volley*.
 - 🎲 **Rewrite Fate (livre):** rerrole uma perícia ou salvaguarda com proficiência mítica.
@@ -269,7 +269,7 @@ const CEROSQUALHANTHALLAS = `## 🎯 Papel em Combate
 - ❌ **Atirar sem Hunt Prey:** sem presa, nada de precisão, Hunter's Aim nem Deadly Aim.
 - ❌ **Atirar a 9 m ou menos** e comer o −2 do *volley* sem perceber.
 - ❌ **Esquecer que o +1d8 de precisão é só no primeiro acerto da rodada** — o segundo e o terceiro acerto não somam.
-- ❌ **Achar que os "5 slots" de Mythic Magic são magias de graça:** cada uma custa um Ponto Mítico, o mesmo estoque do Mythic Strike e do Correct the Story.
+- ❌ **Gastar os Pontos Míticos em Mythic Magic sem pensar:** é o mesmo estoque de 3 do Mythic Strike e do Correct the Story.
 - ❌ **Snowdrift sem ação para atirar:** a neve some no começo do seu próximo turno. Sem *Haste*, o *off-guard* que você montou só serve aos aliados — e *Nature's Edge* vale só para você.`
 
 // ---------------------------------------------------------------------------
@@ -303,7 +303,7 @@ const NATHANIEL = `## 🎯 Papel em Combate
 - 🕊️ **Aeromancer:** *Fly* de 4º rank, inata, **1×/dia**.
 
 ## ⚡ Poderes Míticos
-- 🔥 **Mythic Magic:** gaste um Ponto Mítico para lançar *Blazing Bolt*, *Vanish Weapon* ou *Horizon Thunder Sphere* **no 5º rank** com **proficiência mítica** (ataque de magia ~**+24** em vez de +18). ⚠️ A ficha mostra **5 slots de 5º rank** para essas magias, mas **não há slot nenhum**: cada conjuração custa um Ponto Mítico. E **não as use no Spellstrike**: lá quem rola é o Strike, e a proficiência mítica se perde.
+- 🔥 **Mythic Magic:** gaste um Ponto Mítico para lançar *Blazing Bolt*, *Vanish Weapon* ou *Horizon Thunder Sphere* **no 5º rank** com **proficiência mítica** (ataque de magia ~**+24** em vez de +18). O ⚡ ao lado de cada uma, na aba de Magias, **gasta o Ponto Mítico** direto. E **não as use no Spellstrike**: lá quem rola é o Strike, e a proficiência mítica se perde.
 - 🗡️ **Vanish Weapon (reação, via Mythic Magic):** um inimigo **acerta ou erra** (sem crítico) um golpe corpo a corpo com arma em você → tente **Desarmá-lo** com ataque de magia mítico, sem precisar de mão livre. No sucesso a arma some numa bolsa extradimensional sua.
 - 💀 **Divert Destiny (livre):** ao cair a 0 PV ou morrer, gaste um Ponto Mítico e fique **de pé com 10 + nível PV**, sem Ferido nem Morrendo.
 - 💨 **Godspeed (1 ação):** 1 minuto de **+3 m** de velocidade e *quickened* para Stride, Step ou Leap.
@@ -328,7 +328,7 @@ const NATHANIEL = `## 🎯 Papel em Combate
 - ❌ **Lutar fora de Arcane Cascade:** sem a postura você perde o dano extra, a resistência a magia e os benefícios do Sparkling Targe.
 - ❌ **Expansive Spellstrike com explosão grande:** *Ancestral Winds* e *Cave Fangs* centrados no alvo colado em você **te atingem**.
 - ❌ **Mythic Magic no Spellstrike:** a proficiência mítica só vale quando **você** rola o ataque de magia — lance essas diretamente.
-- ❌ **Achar que os "5 slots" de Mythic Magic são magias de graça:** cada uma custa um Ponto Mítico.
+- ❌ **Gastar os Pontos Míticos em Mythic Magic sem pensar:** é o mesmo estoque de 3 do Divert Destiny, a sua rede de segurança.
 - ❌ **Deixar o escudo abaixado:** CA 28 contra 30, e sem escudo erguido o Sparkling Targe não protege as salvaguardas.`
 
 export const COMBAT_GUIDES: CombatGuide[] = [
