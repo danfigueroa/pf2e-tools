@@ -8,7 +8,7 @@ import {
 } from '@mui/icons-material'
 import type { BuildInfo, SpellCaster, FocusTradition, FocusAbility } from '../../character-sheet/types'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
-import { actionSymbol, signed, spellcasterStats, traditionColor, traditionLabel } from '../helpers'
+import { actionSymbol, isMythicMagicCaster, MYTHIC_COLOR, signed, spellcasterStats, traditionColor, traditionLabel } from '../helpers'
 import { castRankForSlot, damageAtRank } from '../heightening'
 import { getCachedSpell, prefetchSpellDescriptions } from '../../../services/descriptions'
 import { legacyCharKey, slotsKeyFor } from '../charId'
@@ -17,14 +17,16 @@ import { SlotPips, SlotCount } from '../components/SlotPips'
 import { gold } from '../../../theme'
 import { ConditionDelta } from '../components/ConditionDelta'
 import type { ConditionModifiers } from '../conditions'
+import type { MythicPointsApi } from '../components/useMythicPoints'
 
 interface Props {
     build: BuildInfo
     onSelect: (req: DescriptionRequest) => void
     mods: ConditionModifiers
+    mythicPoints: MythicPointsApi
 }
 
-export const SpellsSection = ({ build, onSelect, mods }: Props) => {
+export const SpellsSection = ({ build, onSelect, mods, mythicPoints }: Props) => {
     const hasCasters = build.spellCasters?.some(c => c.spells.some(l => l.list.length > 0))
     const focusSpells = useMemo(() => collectFocusSpells(build), [build])
     const focusRank = castRankForSlot(0, build.level)
@@ -65,8 +67,9 @@ export const SpellsSection = ({ build, onSelect, mods }: Props) => {
     }
 
     // Truques são à vontade: só há o que controlar a partir do nível 1 (ou no foco).
+    // Mythic Magic não tem slot — o que ela gasta é Ponto Mítico, que o "Novo dia" não devolve.
     const hasTrackable =
-        !!build.spellCasters?.some(c => c.spells.some(l => l.spellLevel > 0 && l.list.length > 0)) ||
+        !!build.spellCasters?.some(c => !isMythicMagicCaster(c) && c.spells.some(l => l.spellLevel > 0 && l.list.length > 0)) ||
         (focusSpells.length > 0 && focusMax > 0)
 
     return (
@@ -152,6 +155,7 @@ export const SpellsSection = ({ build, onSelect, mods }: Props) => {
                         casterIdx={idx}
                         build={build}
                         slots={slots}
+                        mythicPoints={mythicPoints}
                         onSelect={onSelect}
                         mods={mods}
                     />
@@ -222,11 +226,12 @@ interface CasterProps {
     casterIdx: number
     build: BuildInfo
     slots: SpellSlotsApi
+    mythicPoints: MythicPointsApi
     onSelect: Props['onSelect']
     mods: ConditionModifiers
 }
 
-const CasterCard = ({ caster, casterIdx, build, slots, onSelect, mods }: CasterProps) => {
+const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, mods }: CasterProps) => {
     const base = spellcasterStats(build, caster)
     // Estupefato pesa em CD e ataque de magia (testes de INT/SAB/CAR).
     const dc = base.dc + mods.total.spellDc
@@ -235,6 +240,9 @@ const CasterCard = ({ caster, casterIdx, build, slots, onSelect, mods }: CasterP
     // Espontâneo: os slots do nível são intercambiáveis (repertório à parte).
     // Preparado/inato: cada cópia preparada é o próprio slot.
     const isSpontaneous = caster.spellcastingType === 'spontaneous'
+    // Mythic Magic: os "slots" que o Pathbuilder exporta não existem; cada
+    // conjuração sai do pool de Pontos Míticos da barra do topo.
+    const isMythicMagic = isMythicMagicCaster(caster)
 
     const levels = useMemo(
         () => caster.spells
@@ -247,7 +255,7 @@ const CasterCard = ({ caster, casterIdx, build, slots, onSelect, mods }: CasterP
 
     /** Total/gastos do nível — truques (nível 0) são à vontade, não têm slot. */
     const levelSummary = (spellLevel: number, entries: Array<{ name: string; count: number }>) => {
-        if (spellLevel === 0) return null
+        if (spellLevel === 0 || isMythicMagic) return null
         if (isSpontaneous) {
             const total = caster.perDay?.[spellLevel] ?? 0
             return total > 0 ? { total, used: Math.min(total, slots.usedOf(levelKey(spellLevel))) } : null
@@ -282,9 +290,12 @@ const CasterCard = ({ caster, casterIdx, build, slots, onSelect, mods }: CasterP
                                     }}
                                 />
                                 <Chip
-                                    label={caster.spellcastingType === 'prepared' ? 'Preparado' : 'Espontâneo'}
+                                    label={isMythicMagic
+                                        ? 'Ponto Mítico'
+                                        : caster.spellcastingType === 'prepared' ? 'Preparado' : 'Espontâneo'}
                                     size="small"
                                     variant="outlined"
+                                    sx={isMythicMagic ? { color: MYTHIC_COLOR, borderColor: MYTHIC_COLOR } : undefined}
                                 />
                             </Stack>
                         </Box>
@@ -295,6 +306,12 @@ const CasterCard = ({ caster, casterIdx, build, slots, onSelect, mods }: CasterP
                             <ConditionDelta delta={mods.total.spellDc} base={base.dc} align="right" />
                         </Box>
                     </Stack>
+                    {isMythicMagic && (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                            Sem slots: cada conjuração gasta <strong>1 Ponto Mítico</strong>, com proficiência
+                            mítica no ataque e na CD. Disponíveis agora: {mythicPoints.available} de {mythicPoints.max}.
+                        </Typography>
+                    )}
                 </Box>
 
                 {/* Resumo dos slots do dia (disponíveis/total por nível). */}
@@ -358,8 +375,15 @@ const CasterCard = ({ caster, casterIdx, build, slots, onSelect, mods }: CasterP
                             {entries.map(({ name, count }) => {
                                 const rowKey = levelKey(spellLevel, name)
                                 const used = Math.min(count, slots.usedOf(rowKey))
-                                const tracked = spellLevel > 0 && !isSpontaneous
-                                const spontaneousSpend = isSpontaneous && summary
+                                const tracked = spellLevel > 0 && !isSpontaneous && !isMythicMagic
+                                const spontaneousSpend = isMythicMagic
+                                    ? {
+                                        onSpend: mythicPoints.spend,
+                                        disabled: mythicPoints.available === 0,
+                                        tooltip: 'Gastar 1 Ponto Mítico',
+                                        emptyTooltip: 'Sem Pontos Míticos disponíveis',
+                                    }
+                                    : isSpontaneous && summary
                                     ? {
                                         onSpend: () => slots.spendOne(key, summary.total),
                                         disabled: summary.used >= summary.total,
@@ -407,8 +431,8 @@ interface SpellRowProps {
     onSelect: Props['onSelect']
     /** Slots da própria magia (conjurador preparado). */
     pips?: { total: number; used: number; onChange: (next: number) => void; label: string }
-    /** Botão de gastar um slot compartilhado (espontâneo) ou ponto de foco. */
-    spend?: { onSpend: () => void; disabled: boolean; tooltip: string }
+    /** Botão de gastar um slot compartilhado (espontâneo), ponto de foco ou Ponto Mítico. */
+    spend?: { onSpend: () => void; disabled: boolean; tooltip: string; emptyTooltip?: string }
     dimmed?: boolean
 }
 
@@ -480,7 +504,7 @@ const SpellRow = ({ name, count, accent, request, onSelect, pips, spend, dimmed 
                     />
                 )}
                 {spend && (
-                    <Tooltip title={spend.disabled ? 'Sem slots disponíveis' : spend.tooltip}>
+                    <Tooltip title={spend.disabled ? (spend.emptyTooltip ?? 'Sem slots disponíveis') : spend.tooltip}>
                         <span>
                             <IconButton
                                 size="small"

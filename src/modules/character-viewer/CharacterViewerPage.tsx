@@ -38,7 +38,7 @@ import { afflictionsKeyFor, conditionsKeyFor, legacyCharKey, mythicKeyFor, persi
 import { useConditions } from './components/useConditions'
 import { useAfflictions } from './components/useAfflictions'
 import { usePersistentDamage } from './components/usePersistentDamage'
-import { useMythicPoints } from './components/useMythicPoints'
+import { useMythicPoints, type MythicPointsApi } from './components/useMythicPoints'
 import { isMythicCharacter, MYTHIC_POINTS_MAX } from './helpers'
 import type { ConditionModifiers } from './conditions'
 
@@ -53,11 +53,12 @@ import { InventorySection } from './sections/InventorySection'
 
 const SESSION_KEY = 'pf2e:viewer:lastBuild'
 
-/** O que toda seção recebe: a ficha, o abridor do drawer e as condições ativas. */
+/** O que toda seção recebe: a ficha, o abridor do drawer, as condições ativas e os Pontos Míticos. */
 export interface SectionContext {
     build: BuildInfo
     onSelect: (req: DescriptionRequest) => void
     mods: ConditionModifiers
+    mythicPoints: MythicPointsApi
 }
 
 interface SectionDef {
@@ -104,7 +105,9 @@ const SECTIONS: SectionDef[] = [
         id: 'spells',
         label: 'Magias',
         icon: <SpellsIcon />,
-        render: ({ build, onSelect, mods }) => <SpellsSection build={build} onSelect={onSelect} mods={mods} />,
+        render: ({ build, onSelect, mods, mythicPoints }) => (
+            <SpellsSection build={build} onSelect={onSelect} mods={mods} mythicPoints={mythicPoints} />
+        ),
         visible: (b) => {
             const hasCasters = b.spellCasters?.some(c => c.spells.some(l => l.list.length > 0))
             const hasFocus = !!b.focus && Object.keys(b.focus).length > 0
@@ -223,7 +226,7 @@ export const CharacterViewerPage = () => {
     }
 
     const visibleSections = SECTIONS.filter(s => !s.visible || s.visible(build))
-    const ctx: SectionContext = { build, onSelect: setDrawerReq, mods: conditions.mods }
+    const ctx: SectionContext = { build, onSelect: setDrawerReq, mods: conditions.mods, mythicPoints }
 
     return (
         <Container maxWidth="lg" disableGutters sx={{ pb: 6 }}>

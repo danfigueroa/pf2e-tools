@@ -104,9 +104,21 @@ export function traditionLabel(tradition: string): string {
 
 // CD e bônus de ataque de conjuração de um caster (proficiency já vem
 // resolvida do Pathbuilder como bônus 2/4/6/8).
+/**
+ * O talento **Mythic Magic** (War of Immortals pg. 83). O Pathbuilder o exporta
+ * como um conjurador espontâneo com slots no rank de metade do nível, mas esses
+ * slots não existem: cada conjuração gasta um **Ponto Mítico** e usa a
+ * proficiência mítica no ataque e na CD. Casa pelo nome do bloco, que é o nome
+ * do talento.
+ */
+export function isMythicMagicCaster(caster: SpellCaster): boolean {
+    return caster.name === 'Mythic Magic'
+}
+
 export function spellcasterStats(build: BuildInfo, caster: SpellCaster): { dc: number; attack: number } {
     const abilityScore = (build.abilities as unknown as Record<string, number>)[caster.ability] || 10
-    const attack = build.level + caster.proficiency + abilityMod(abilityScore)
+    const proficiency = isMythicMagicCaster(caster) ? MYTHIC_PROFICIENCY_BONUS : caster.proficiency
+    const attack = build.level + proficiency + abilityMod(abilityScore)
     return { dc: 10 + attack, attack }
 }
 
