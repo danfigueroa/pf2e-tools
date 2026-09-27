@@ -476,18 +476,24 @@ O guia tático de cada personagem fica em `combatGuides.ts`. Cada guia **casa po
 saves e talentos — sinalizado na UI como guia automático.
 
 > **Ao adicionar uma ficha nova:** copie o JSON para `public/characters/`, registre em
-> `campaignPresets.ts` e (recomendado) escreva um guia curado em `combatGuides.ts` casando pelo
-> nome do personagem.
+> `campaignPresets.ts` — com o `sheetName` **exatamente** igual ao `build.name` do JSON — e
+> (recomendado) escreva um guia curado em `combatGuides.ts` casando pelo nome do personagem.
 
 #### Fichas da campanha
 
 Os presets de `campaignPresets.ts` aparecem em **três** lugares: na Ficha Virtual, no diálogo de
 personagens da Iniciativa e no gerador de Transformação. Tirar ou pôr uma ficha ali mexe nos três.
 
+Cada preset tem **dois nomes**: `name` é o rótulo curto dos cards e o nome do combatente na
+Iniciativa ("Ceros" cabe onde "Cerosqualhanthallas" não cabe); `sheetName` é o nome como o
+Pathbuilder exporta, de onde sai o slug do estado da mesa. É pelo `sheetName` que a Iniciativa sabe
+quem **já está no combate** — pelo rótulo, "Ceros" e "Cerosqualhanthallas" dariam slugs diferentes e
+o mesmo personagem entraria duas vezes, dividindo o mesmo PV.
+
 | Preset                | Classe (nível 10)                   | Nome na ficha (casa o guia)          | Observações                                                        |
 | --------------------- | ----------------------------------- | ------------------------------------ | ------------------------------------------------------------------ |
 | Brukuthur             | Bárbaro (Gigante), Android          | `Brukuthur, The Barbarian Android`   | Guia casa pelo começo do nome. Titan Wrestler trocado por Inventor. |
-| Cerosqualhanthallas   | Patrulheiro (Precisão), Aiuvarin    | `Cerosqualhanthallas`                | Druid Dedication (Ordem da Tempestade), arco longo composto.       |
+| Ceros                 | Patrulheiro (Precisão), Aiuvarin    | `Cerosqualhanthallas`                | Nome curto nos cards. Druid Dedication (Tempestade), arco longo.   |
 | Eldarion              | Ladino (Thief) + Swashbuckler       | `Eldarion`                           | Venenos Fearweed, Toxic Effluence e Breath of the Mantis God.      |
 | Ghan Buri             | Guerreiro (Bastion), Jotunborn      | `Ghan Buri`                          | —                                                                  |
 | Nathaniel             | Magus (Sparkling Targe), Aiuvarin   | `Nathaniel o Magus`                  | Guia casa pelo começo do nome. **Anel corrigido à mão** (abaixo).  |
@@ -499,8 +505,10 @@ personagens da Iniciativa e no gerador de Transformação. Tirar ou pôr uma fic
   **não** foram lançados em `perDay`: são preparados no dia, e a ficha não inventa magia pelo
   jogador. **Um novo export do Pathbuilder desfaz a troca** se o anel não for corrigido lá.
 - **Os venenos do Eldarion vêm como "Invested"** do Pathbuilder, mas são consumíveis — o guia avisa.
-- **Mythic Magic aparece como 5 slots de 5º rank** (Cerosqualhanthallas e Nathaniel): é como o
-  Pathbuilder exporta o talento, mas cada conjuração custa um **Ponto Mítico**. Os dois guias avisam.
+- **Mythic Magic gasta Ponto Mítico, não slot** (Ceros e Nathaniel). O Pathbuilder exporta o talento
+  como conjurador espontâneo com 5 slots de 5º rank, que não existem. A aba de Magias reconhece o
+  bloco pelo nome (`isMythicMagicCaster`), não desenha pips, liga o botão de cada magia ao pool de
+  Pontos Míticos da mesa e calcula CD e ataque com a **proficiência mítica** (nível + 10).
 - **O Ardagar saiu da campanha** (setembro/2026): preset e `public/characters/ardagar10.json`
   removidos. O guia curado e a espécie do urso em `unarmed.ts` continuam no código porque casam
   pelo nome — quem carregar o JSON dele à mão ainda vê tudo certo.
