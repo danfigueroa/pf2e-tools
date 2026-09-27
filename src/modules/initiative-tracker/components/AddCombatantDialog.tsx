@@ -199,7 +199,7 @@ const CharacterTab = ({
                                     {isSelected
                                         ? <CheckIcon sx={{ color: gold.deep }} />
                                         : <PersonIcon sx={{ color: green.main }} />}
-                                    <Typography sx={{ fontWeight: 700 }} noWrap>{preset.name}</Typography>
+                                    <Typography sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}>{preset.name}</Typography>
                                     <Typography variant="caption" sx={{ color: ink.secondary }}>
                                         {already ? 'já no combate' : `${preset.class} ${preset.level}`}
                                     </Typography>

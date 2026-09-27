@@ -77,7 +77,7 @@ export const UploadCard = ({ onJson, error }: Props) => {
                                 ) : (
                                     <PersonIcon sx={{ fontSize: 28, color: 'primary.main', mb: 0.5 }} />
                                 )}
-                                <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2, overflowWrap: 'anywhere' }}>
                                     {preset.name}
                                 </Typography>
                                 <Typography variant="caption" color="text.secondary">
