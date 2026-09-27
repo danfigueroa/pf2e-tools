@@ -26,7 +26,7 @@ import {
 } from '@mui/icons-material'
 
 import { green, gold, parchment, displayFont } from '../../theme'
-import { parseCharacterJson, type BuildInfo } from '../character-sheet/types'
+import { normalizeSpellCasters, parseCharacterJson, type BuildInfo } from '../character-sheet/types'
 import { UploadCard } from './components/UploadCard'
 import { CharacterHeader } from './components/CharacterHeader'
 import { DescriptionDrawer, type DescriptionRequest } from './components/DescriptionDrawer'
@@ -172,7 +172,8 @@ export const CharacterViewerPage = () => {
     useEffect(() => {
         try {
             const raw = sessionStorage.getItem(SESSION_KEY)
-            if (raw) setBuild(JSON.parse(raw) as BuildInfo)
+            // Normaliza de novo: a ficha salva antes da correção do `prepared` ainda vem sem ele.
+            if (raw) setBuild(normalizeSpellCasters(JSON.parse(raw) as BuildInfo))
         } catch { /* noop */ }
     }, [])
 

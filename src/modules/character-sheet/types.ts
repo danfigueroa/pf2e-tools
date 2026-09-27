@@ -177,7 +177,13 @@ export interface SpellCaster {
   innate: boolean;
   perDay: number[];
   spells: SpellListByLevel[];
-  prepared: string[];
+  /**
+   * Magias preparadas do dia, por rank. Só vem preenchido em conjurador de
+   * GRIMÓRIO (magus, mago, arquétipo de mago): aí `spells` é o grimório — que
+   * pode vir vazio — e o que ocupa os slots está aqui. `parseCharacterJson`
+   * copia isto para `spells`, que é o que o resto do app lê.
+   */
+  prepared: SpellListByLevel[];
   blendedSpells: string[];
 }
 
@@ -329,7 +335,28 @@ export function parseCharacterJson(json: unknown): BuildInfo {
   if (!obj || !obj.success || !obj.build) {
     throw new Error('JSON de personagem inválido: campo "build" ausente.');
   }
-  return obj.build;
+  return normalizeSpellCasters(obj.build);
+}
+
+const hasSpells = (lists: SpellListByLevel[] | undefined) =>
+  Array.isArray(lists) && lists.some((l) => Array.isArray(l?.list) && l.list.length > 0);
+
+/**
+ * Conjurador de grimório chega do Pathbuilder com as magias do dia em
+ * `prepared` e o grimório em `spells` (vazio quando o jogador não o
+ * preencheu). Todo o app lê `spells`, então sem isto o bloco inteiro do
+ * Magus e do arquétipo de Mago sumia da aba de Magias. Os slots do dia são
+ * as preparadas — cada cópia é um slot —, por isso elas substituem o
+ * grimório. Idempotente: pode rodar de novo sobre uma ficha já normalizada.
+ */
+export function normalizeSpellCasters(build: BuildInfo): BuildInfo {
+  if (!build.spellCasters?.some((c) => hasSpells(c.prepared))) return build;
+  return {
+    ...build,
+    spellCasters: build.spellCasters.map((c) =>
+      hasSpells(c.prepared) ? { ...c, spells: c.prepared } : c,
+    ),
+  };
 }
 
 export function formatAbilityScore(name: string, value: number) {
