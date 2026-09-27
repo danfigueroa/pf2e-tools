@@ -279,13 +279,13 @@ const NATHANIEL = `## 🎯 Papel em Combate
 **Magus de Sparkling Targe (Escudo Faiscante)** — espada longa numa mão, escudo na outra e magia no golpe. É **linha de frente híbrida**: descarrega uma magia inteira dentro de um Strike (*Spellstrike*) e, com o escudo erguido, bloqueia até dano mágico. FOR 19 e INT 19, **CA 28 (30 com o escudo erguido)**, ~138 PV e **Vontade mestre**. A **Wizard Dedication** dá magias de utilidade e área por fora.
 
 ## 🔁 Rotina de Turno
-- 🌀 **1 ação — Arcane Cascade (postura):** seus golpes corpo a corpo ganham **+2 de dano** (força, ou o tipo da magia que você acabou de lançar) e você ganha **resistência 2 a dano de magias**. Entre nela no 1º turno e não saia.
+- 🌀 **1 ação — Arcane Cascade (postura):** seus golpes corpo a corpo ganham **+2 de dano** de força e você ganha **resistência 2 a dano de magias**. Se você **lançou uma magia neste turno antes** de entrar na postura, o dano extra pode virar qualquer tipo que aquela magia cause — bom contra fraqueza. Entre nela no 1º turno e não saia.
 - ⚡ **2 ações — Spellstrike:** lance uma magia de 1 ou 2 ações que peça **ataque de magia ou salvaguarda** e entregue-a num **Strike com a Zarroc Sheilvean (+18, 2d8+6)**. Magia de ataque usa o **resultado do Strike** (acertou, acertou os dois); magia de salvaguarda faz o alvo rolar **mesmo se o Strike errar** — só a falha crítica do Strike desperdiça a magia. Conta como **dois ataques** para o MAP, mas o MAP só entra depois.
 - 🔄 **Recarregar o Spellstrike:** depois de usá-lo, ele fica descarregado. Recarrega com **1 ação** (*concentrate*) **ou lançando uma magia de confluência** — e é aí que entra o **Shielding Strike**.
 - 🛡️ **Shielding Strike (1 ação, foco):** **ergue o escudo e faz um Strike** numa ação só, **e recarrega o Spellstrike**. O ciclo ideal de um turno depois do primeiro: *Shielding Strike* (1) + *Spellstrike* (2).
 
 ## ⭐ Nunca Esqueça
-- 🛡️ **Sparkling Targe:** em **Arcane Cascade** e com o escudo **erguido**, o **+2 do escudo vale também nas salvaguardas contra magias** e efeitos mágicos, e o **Shield Block** para até dano **não físico** de magia — com a Dureza aumentada em +2 (o dano extra da postura).
+- 🛡️ **Sparkling Targe:** em **Arcane Cascade** e com o escudo **erguido**, o **+2 do escudo vale também nas salvaguardas contra magias** e efeitos mágicos, e o **Shield Block** para até dano **não físico** de magia — com a Dureza aumentada em +2 (a **resistência** que a postura te dá).
 - ⚙️ **Clockwork Shield (1×/dia, 1 ação):** por 1 minuto, **uma reação extra por turno só para Shield Block** (Dureza 12, 90 PV). Ligue na luta em que você vai ser o alvo — e o escudo ainda tem **espigões +2 striking** para bater.
 - 🔀 **Expansive Spellstrike:** magias de **explosão, cone ou linha** criam a área inteira no Spellstrike, em vez de atingir só o alvo. A explosão é centrada num canto do quadrado do alvo, que é **colado em você**: ⚠️ ***Ancestral Winds*** (6 m de raio) e ***Cave Fangs*** (6 m) **pegam você e os aliados adjacentes**. Com essas, lance **à distância**, do jeito normal.
 - 🔁 **Reações que disputam o mesmo slot:** **Reactive Strike** (inimigo no alcance se move, manipula ou ataca à distância), **Shield Block**, **Crosscurrent Counter** (alguém te **agarra ou imobiliza** → você tenta agarrá-lo de volta, mesmo fora do alcance e sem mão livre; no sucesso você se solta e o puxa para perto) e **Vanish Weapon** (ver Míticos). Decida pela ameaça da rodada — o *Clockwork Shield* é o que te dá um Shield Block **a mais**.
@@ -299,7 +299,7 @@ const NATHANIEL = `## 🎯 Papel em Combate
 - 📦 **Containment (4º):** prende um inimigo (ou protege um aliado) num campo de força com Dureza 10 e 40 PV.
 - 🪨 **Cave Fangs (3º, arquétipo):** 6d6 perfurante numa explosão de 6 m e **terreno difícil por 1 minuto** — e o terreno difícil deixa os inimigos **off-guard para o Cerosqualhanthallas** (*Nature's Edge*). Combine com ele.
 - ✨ **Truques de Spellstrike:** *Gouging Claw* e *Telekinetic Projectile* (ataque), *Ignition* (ataque, fogo) e *Daze* (Vontade).
-- 📚 **Magias estudiosas:** dois slots especiais de 2º rank para *Gecko Grip* e *Resist Energy* (o Pathbuilder não as lista entre as preparadas).
+- 📚 **Magias estudiosas (*Gecko Grip* e *Resist Energy*):** ao lançar uma delas, você pode entrar em **Arcane Cascade como ação livre** logo em seguida, no mesmo turno. **Não dão slot próprio** (isso era a regra antiga do Secrets of Magic): ficam no grimório e precisam ser preparadas nos slots normais. *Resist Energy* (2 ações) + postura de graça abre a luta protegido e já em Arcane Cascade.
 - 🕊️ **Aeromancer:** *Fly* de 4º rank, inata, **1×/dia**.
 
 ## ⚡ Poderes Míticos
