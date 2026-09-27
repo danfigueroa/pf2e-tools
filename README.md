@@ -123,6 +123,8 @@ no **padrão oficial de bloco de criatura** e **traduzido para pt-BR**.
 -   **Importa a ficha (JSON Pathbuilder 2e)** para usar os modificadores reais do personagem
     (HP, salvamentos, percepção, atletismo, ataque) — segue a regra "use o valor da magia, a
     menos que o seu seja maior"
+-   **Qualquer personagem da campanha** pode ser escolhido, não só conjuradores — a forma pode vir
+    de pergaminho, varinha ou poção. Os botões são os mesmos presets da Ficha Virtual
 -   Layout de bloco de criatura oficial (faixa vinho, tags de trait, corpo pergaminho,
     divisórias laranja, glyph de ação), tudo em português
 -   Exportação em PDF/PNG (print-friendly)
@@ -359,9 +361,11 @@ pf2e-tools/
 │   └── _lib/                     # Núcleo compartilhado (aon, spell-parse, metadata-i18n…)
 ├── public/
 │   └── characters/              # Fichas de exemplo/campanha (Pathbuilder, campo `build`)
-│       ├── ardagar10.json
+│       ├── brukuthur10.json
+│       ├── cerosqualhanthallas10.json
 │       ├── eldarion10.json
-│       └── ghanburi10.json
+│       ├── ghanburi10.json
+│       └── nathaniel10.json
 ├── scripts/                      # Rodados à mão, fora do build
 │   ├── fetch-creature-tables.mjs # Gera creatureTables.ts a partir das tabelas do GM Core na AON
 │   ├── check-scaling.mjs         # Confere o motor de escala contra criaturas de verdade
@@ -474,6 +478,32 @@ saves e talentos — sinalizado na UI como guia automático.
 > **Ao adicionar uma ficha nova:** copie o JSON para `public/characters/`, registre em
 > `campaignPresets.ts` e (recomendado) escreva um guia curado em `combatGuides.ts` casando pelo
 > nome do personagem.
+
+#### Fichas da campanha
+
+Os presets de `campaignPresets.ts` aparecem em **três** lugares: na Ficha Virtual, no diálogo de
+personagens da Iniciativa e no gerador de Transformação. Tirar ou pôr uma ficha ali mexe nos três.
+
+| Preset                | Classe (nível 10)                   | Nome na ficha (casa o guia)          | Observações                                                        |
+| --------------------- | ----------------------------------- | ------------------------------------ | ------------------------------------------------------------------ |
+| Brukuthur             | Bárbaro (Gigante), Android          | `Brukuthur, The Barbarian Android`   | Guia casa pelo começo do nome. Titan Wrestler trocado por Inventor. |
+| Cerosqualhanthallas   | Patrulheiro (Precisão), Aiuvarin    | `Cerosqualhanthallas`                | Druid Dedication (Ordem da Tempestade), arco longo composto.       |
+| Eldarion              | Ladino (Thief) + Swashbuckler       | `Eldarion`                           | Venenos Fearweed, Toxic Effluence e Breath of the Mantis God.      |
+| Ghan Buri             | Guerreiro (Bastion), Jotunborn      | `Ghan Buri`                          | —                                                                  |
+| Nathaniel             | Magus (Sparkling Targe), Aiuvarin   | `Nathaniel o Magus`                  | Guia casa pelo começo do nome. **Anel corrigido à mão** (abaixo).  |
+
+- **O JSON do Nathaniel tem uma edição à mão**: o jogador marcou o *Winder's Ring* por engano, e o
+  anel de nível 7 certo é o **Ring of Wizardry (Type I)**
+  ([AON 462](https://2e.aonprd.com/Equipment.aspx?ID=462)) — +1 de item em Arcanismo e dois slots
+  arcanos de 1º rank a mais. A troca está no `equipment` e o +1 no `mods.Arcana`. Os slots extras
+  **não** foram lançados em `perDay`: são preparados no dia, e a ficha não inventa magia pelo
+  jogador. **Um novo export do Pathbuilder desfaz a troca** se o anel não for corrigido lá.
+- **Os venenos do Eldarion vêm como "Invested"** do Pathbuilder, mas são consumíveis — o guia avisa.
+- **Mythic Magic aparece como 5 slots de 5º rank** (Cerosqualhanthallas e Nathaniel): é como o
+  Pathbuilder exporta o talento, mas cada conjuração custa um **Ponto Mítico**. Os dois guias avisam.
+- **O Ardagar saiu da campanha** (setembro/2026): preset e `public/characters/ardagar10.json`
+  removidos. O guia curado e a espécie do urso em `unarmed.ts` continuam no código porque casam
+  pelo nome — quem carregar o JSON dele à mão ainda vê tudo certo.
 
 #### Descrições traduzidas sob demanda
 
