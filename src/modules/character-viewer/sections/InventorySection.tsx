@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Box, Button, Card, CardContent, Typography, Stack, Chip, Snackbar } from '@mui/material'
-import { ChevronRight as ChevronIcon } from '@mui/icons-material'
-import { COIN_COLORS } from '../../../theme/palette'
+import { Box, Button, Card, CardContent, Typography, Stack, Chip, IconButton, Snackbar, Tooltip } from '@mui/material'
+import {
+    Add as AddIcon,
+    ChevronRight as ChevronIcon,
+    LocalDrink as DrinkIcon,
+    TouchApp as UseIcon,
+} from '@mui/icons-material'
+import { COIN_COLORS, HP_COLOR } from '../../../theme/palette'
 import { gold } from '../../../theme'
 import type { BuildInfo } from '../../character-sheet/types'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
@@ -236,15 +241,44 @@ export const InventorySection = ({ build, onSelect, mods }: Props) => {
                                             </Stack>
                                         </Box>
                                         {consumable && (
-                                            <Button
-                                                size="small"
-                                                variant={spent ? 'text' : 'outlined'}
-                                                aria-label={`${spent ? 'Devolver' : healing ? 'Beber' : 'Usar'} ${row.name}`}
-                                                onClick={() => (spent ? consumables.restore(row.name, row.qty) : use(row))}
-                                                sx={{ flex: '0 0 auto', mr: 2 }}
-                                            >
-                                                {spent ? 'Devolver' : healing ? 'Beber' : 'Usar'}
-                                            </Button>
+                                            <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flex: '0 0 auto', mr: 2 }}>
+                                                {/* Devolve 1 ao inventário — para a poção bebida sem querer, fora
+                                                    da janela do "Desfazer". Só até a quantidade da ficha: acima
+                                                    disso o item nunca existiu. Não mexe no PV. */}
+                                                {remaining < row.qty && (
+                                                    <Tooltip title="Devolver 1 ao inventário">
+                                                        <IconButton
+                                                            size="small"
+                                                            aria-label={`Devolver 1 ${row.name}`}
+                                                            onClick={() => consumables.restore(row.name, row.qty)}
+                                                            sx={{
+                                                                border: '1px solid',
+                                                                borderColor: 'divider',
+                                                                '@media (pointer: coarse)': { width: 40, height: 40 },
+                                                            }}
+                                                        >
+                                                            <AddIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                )}
+                                                {!spent && (
+                                                    <Button
+                                                        size="small"
+                                                        variant="contained"
+                                                        startIcon={healing ? <DrinkIcon /> : <UseIcon />}
+                                                        aria-label={`${healing ? 'Beber' : 'Usar'} ${row.name}`}
+                                                        onClick={() => use(row)}
+                                                        sx={healing ? {
+                                                            fontWeight: 700,
+                                                            backgroundColor: HP_COLOR,
+                                                            color: 'common.white',
+                                                            '&:hover': { backgroundColor: HP_COLOR, filter: 'brightness(0.88)' },
+                                                        } : { fontWeight: 700 }}
+                                                    >
+                                                        {healing ? 'Beber' : 'Usar'}
+                                                    </Button>
+                                                )}
+                                            </Stack>
                                         )}
                                     </Box>
                                 )
