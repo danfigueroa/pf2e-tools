@@ -333,6 +333,9 @@ A plataforma é usada na mesa, no celular. Toda mudança de layout precisa passa
   - O gasto é da mesa (campo `consumed`) e guarda **quantos** foram usados por nome, com `of` = a
     quantidade da ficha quando o uso foi marcado. Export novo com outra quantidade zera o contador
     daquele item: o jogador já tirou do Pathbuilder, e contaria duas vezes. "Novo dia" não mexe.
+  - O **＋** ao lado devolve 1 ao inventário (poção bebida sem querer, fora da janela do
+    "Desfazer"), vale para todo consumível e **não mexe no PV**. O teto é a quantidade da ficha:
+    acima disso o item nunca existiu — para ganhar mais, é no Pathbuilder.
   - **A cura é rolada e aplicada sozinha** no PV do personagem (quem bebe), com o `rollFormulaDetailed`
     do `initiative-tracker/dice.ts` — mesma política do dano automático da Iniciativa: memorial da
     rolagem e "Desfazer", que devolve o item e tira **só o que a cura somou**, sobre o PV de agora.
