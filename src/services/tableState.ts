@@ -89,6 +89,22 @@ function publishSnapshot(slug: string, snapshot: Snapshot) {
     snapshotListeners.get(slug)?.forEach((l) => l(snapshot))
 }
 
+// --- Edições locais por fatia ----------------------------------------------
+
+// Duas instâncias do mesmo hook sobre a mesma fatia (o PV na Visão Geral e o
+// Inventário que cura com uma poção, montados juntos nos acordeões do celular)
+// não se enxergavam: `saveField` só gravava. Este canal avisa as outras
+// instâncias da mesma fatia de cada edição feita neste aparelho.
+const fieldListeners = new Map<string, Set<(data: unknown) => void>>()
+
+export function subscribeField(slug: string, field: string, listener: (data: unknown) => void): () => void {
+    const id = `${slug}/${field}`
+    let set = fieldListeners.get(id)
+    if (!set) { set = new Set(); fieldListeners.set(id, set) }
+    set.add(listener)
+    return () => { set!.delete(listener) }
+}
+
 // --- Leitura ---------------------------------------------------------------
 
 // Mesmo padrão de dedupe de `descriptions.ts`: várias seções da ficha montam
@@ -166,6 +182,7 @@ export function saveField(slug: string, field: string, data: unknown): void {
     if (snapshot) snapshot[field] = data
 
     const id = `${slug}/${field}`
+    fieldListeners.get(id)?.forEach((l) => l(data))
     pending.set(id, { slug, field, data })
 
     const existing = timers.get(id)

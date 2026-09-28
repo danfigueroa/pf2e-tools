@@ -4,6 +4,7 @@ import {
     readLocal,
     saveField,
     splitSyncKey,
+    subscribeField,
     subscribeSnapshot,
 } from '../../../services/tableState'
 
@@ -76,6 +77,15 @@ export function useSharedState<T>(
     useEffect(() => subscribeSnapshot(slug, (snapshot) => {
         if (snapshot[field] === undefined) return
         setState(optionsRef.current.sanitize(snapshot[field]))
+    }), [slug, field])
+
+    // Edição feita por OUTRA instância desta fatia neste aparelho. A própria
+    // instância recebe o mesmo valor que acabou de gravar e o ignora.
+    useEffect(() => subscribeField(slug, field, (data) => {
+        if (Object.is(data, stateRef.current)) return
+        const next = optionsRef.current.sanitize(data)
+        stateRef.current = next
+        setState(next)
     }), [slug, field])
 
     const update = useCallback((updater: (prev: T) => T) => {
