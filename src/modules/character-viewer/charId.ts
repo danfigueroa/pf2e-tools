@@ -35,6 +35,7 @@ export const persistentKeyForSlug = (slug: string): string => `${slug}/persisten
 export const hpKeyFor = (build: BuildInfo): string => hpKeyForSlug(charSlug(build))
 export const slotsKeyFor = (build: BuildInfo): string => `${charSlug(build)}/slots`
 export const mythicKeyFor = (build: BuildInfo): string => `${charSlug(build)}/mythic`
+export const consumedKeyFor = (build: BuildInfo): string => `${charSlug(build)}/consumed`
 export const conditionsKeyFor = (build: BuildInfo): string => conditionsKeyForSlug(charSlug(build))
 export const afflictionsKeyFor = (build: BuildInfo): string => afflictionsKeyForSlug(charSlug(build))
 export const persistentKeyFor = (build: BuildInfo): string => persistentKeyForSlug(charSlug(build))
