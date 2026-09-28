@@ -9,6 +9,7 @@ import { resolveMonster } from '../api/_lib/monster-core.js'
 import { resolveAfflictions } from '../api/_lib/affliction-core.js'
 import { resolveSpellList } from '../api/_lib/spell-list-core.js'
 import { resolveRule } from '../api/_lib/rule-core.js'
+import { resolveItemTraits } from '../api/_lib/item-traits-core.js'
 import { hasTranslationKey } from '../api/_lib/aon.js'
 import {
   readCharacter,
@@ -177,6 +178,21 @@ const server = http.createServer(async (req, res) => {
         res.end(JSON.stringify(entry || { error: 'Regra não encontrada' }))
       } catch (e) {
         console.error('[/api/search?rule] Error:', e)
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: e.message }))
+      }
+      return
+    }
+
+    // Modo traços de item (?items=a|b): consumível? cura? Sem tradução.
+    const itemNames = parsedUrl.searchParams.get('items') || ''
+    if (itemNames) {
+      try {
+        const items = await resolveItemTraits(itemNames.split('|'))
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ items }))
+      } catch (e) {
+        console.error('[/api/search?items] Error:', e)
         res.writeHead(500, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ error: e.message }))
       }

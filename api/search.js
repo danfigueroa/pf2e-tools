@@ -4,6 +4,7 @@
 //   ?affliction= → venenos e doenças com estágios, SEM tradução
 //   ?spells=1    → lista de magias por tradição e rank, SEM tradução
 //   ?rule=       → a regra de um termo (condição, habilidade, traço, magia), SEM tradução
+//   ?items=a|b   → traços dos itens do inventário (consumível? cura?), SEM tradução
 //
 // O modo de aflição mora aqui porque o plano Hobby da Vercel permite 12 funções
 // serverless por deploy e `api/*.js` já está em 12 — arquivo novo passaria do
@@ -17,6 +18,7 @@ import { resolveSpecial } from './_lib/feat-core.js'
 import { resolveAfflictions } from './_lib/affliction-core.js'
 import { resolveSpellList } from './_lib/spell-list-core.js'
 import { resolveRule } from './_lib/rule-core.js'
+import { resolveItemTraits } from './_lib/item-traits-core.js'
 import { hasTranslationKey } from './_lib/aon.js'
 
 export default async function handler(req, res) {
@@ -50,6 +52,17 @@ export default async function handler(req, res) {
     } catch (error) {
       console.error('Rule API error:', error)
       return res.status(500).json({ error: 'Erro ao buscar regra' })
+    }
+  }
+
+  // Modo traços de item: quais itens do inventário são consumíveis, e a cura.
+  const items = req.query?.items ? String(req.query.items) : ''
+  if (items) {
+    try {
+      return res.status(200).json({ items: await resolveItemTraits(items.split('|')) })
+    } catch (error) {
+      console.error('Item traits API error:', error)
+      return res.status(500).json({ error: 'Erro ao buscar itens' })
     }
   }
 
