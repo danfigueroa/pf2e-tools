@@ -127,6 +127,12 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   talento, como feature de classe E como habilidade de criatura, e numa ficha de monstro vale a
   última. Do markdown ficam só os rótulos mecânicos (Requirements, Effect, Range, Saving Throw…) —
   sem isso a caixa de uma magia começaria pelas onze divindades que a concedem.
+- **`search?items=a|b|c`** devolve os traços dos itens do inventário — `consumable` e, nos de cura,
+  a fórmula (`healing: "3d6+6"`) — **sem tradução** (`api/_lib/item-traits-core.js`). Uma busca só
+  por `name.keyword` (o nome vem exato do Pathbuilder), preferindo a entrada remaster. A cura é lida
+  de "restores XdY+Z Hit Points" do `summary`, e **só** em item com o traço `Healing`; cura fixa ou
+  cura acelerada (Soothing Tonic) fica `null` e o item é consumido sem cura. Mora em `api/search.js`
+  pelo limite de 12 funções.
 - `state` é o único endpoint com **estado**: guarda o jogo da mesa (ver a seção própria abaixo).
   Fica em `api/state.js`, **um nível** — o glob `"api/*.js"` do `vercel.json` não pega subpastas,
   então `api/state/[char].js` perderia o `maxDuration`.
@@ -167,7 +173,7 @@ abrir o site entra na mesma mesa.
   Vercel e `UPSTASH_REDIS_REST_*` do console da Upstash). **Sem credenciais, cai num `Map` de
   processo** e o app segue funcionando; o indicador avisa "Só neste aparelho".
 - **Um HASH por personagem, um campo por fatia** (`hp`, `slots`, `conditions`, `afflictions`,
-  `persistent`, `mythic`, `pet:<kind>:<slug>#<i>`). Campo novo precisa entrar no `FIELD_RE` de
+  `persistent`, `mythic`, `consumed`, `pet:<kind>:<slug>#<i>`). Campo novo precisa entrar no `FIELD_RE` de
   `table-store.js`, senão o POST volta "Campo inválido" e o estado fica só no `localStorage`.
   Documento único faria dois jogadores editando ao mesmo tempo se sobrescreverem — quem marcasse
   condição apagaria o dano do outro. `HSET` por campo dá atomicidade por fatia sem transação, e a
@@ -185,6 +191,10 @@ abrir o site entra na mesma mesa.
   e o clamp acontece no render. Não volte a colocar `maxHp` nas deps.
 - **Ações destrutivas agora são coletivas**: "Novo dia" zera os slots da mesa inteira, por isso pede
   confirmação. O mesmo raciocínio vale para qualquer reset novo.
+- **Duas instâncias da mesma fatia se enxergam** (`subscribeField` em `tableState.ts`): `saveField`
+  avisa os outros hooks do mesmo `slug/campo` neste aparelho. Sem isso, a cura de uma poção no
+  Inventário não aparecia no `HpTracker` da Visão Geral — no celular os acordeões ficam montados
+  juntos, cada um com seu `useHpTracker`.
 - Sendo público, o endpoint valida slug/campo por regex e limita a escrita a 8 KB.
 
 ## Tema (verde/pergaminho/ouro)
@@ -315,6 +325,18 @@ A plataforma é usada na mesa, no celular. Toda mudança de layout precisa passa
   inventário como qualquer item, mas o Pathbuilder as manda em listas próprias (`weapons`/`armor`),
   então sumiam da aba. A lista é derivada no render — o JSON da ficha **não** é editado à mão, que
   seria perdido no próximo export.
+- **Consumíveis** (`useConsumables.ts` + `services/itemTraits.ts`): poção, elixir, veneno,
+  pergaminho e talismã ganham botão "Usar" ("Beber" quando curam). Quem diz o que é consumível é o
+  traço `Consumable` do AON (`search?items=`), porque o Pathbuilder exporta poção e veneno como
+  `"Invested"`, igual a um anel — por isso esse chip some num consumível confirmado. Sem entrada no
+  AON (pergaminho vem como "Scroll of Heal (Rank 1)"), vale um fallback por nome.
+  - O gasto é da mesa (campo `consumed`) e guarda **quantos** foram usados por nome, com `of` = a
+    quantidade da ficha quando o uso foi marcado. Export novo com outra quantidade zera o contador
+    daquele item: o jogador já tirou do Pathbuilder, e contaria duas vezes. "Novo dia" não mexe.
+  - **A cura é rolada e aplicada sozinha** no PV do personagem (quem bebe), com o `rollFormulaDetailed`
+    do `initiative-tracker/dice.ts` — mesma política do dano automático da Iniciativa: memorial da
+    rolagem e "Desfazer", que devolve o item e tira **só o que a cura somou**, sobre o PV de agora.
+    O teto da cura sai de `characterMaxHp`, o mesmo helper da Visão Geral.
 - **Bastão abre com a lista de magias do degrau** (`StaffSpellList.tsx`): as magias vêm agrupadas
   por rank, com o custo em cargas ao lado (conjurar gasta cargas iguais ao rank; truque é de graça —
   GM Core p. 278) e etiqueta de degrau nas herdadas do bastão inferior. Quem filtra o degrau é o
