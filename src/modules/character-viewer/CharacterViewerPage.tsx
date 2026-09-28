@@ -125,7 +125,7 @@ const SECTIONS: SectionDef[] = [
         id: 'inventory',
         label: 'Inventário',
         icon: <InventoryIcon />,
-        render: ({ build, onSelect }) => <InventorySection build={build} onSelect={onSelect} />,
+        render: ({ build, onSelect, mods }) => <InventorySection build={build} onSelect={onSelect} mods={mods} />,
     },
 ]
 
