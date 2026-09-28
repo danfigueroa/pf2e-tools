@@ -44,16 +44,35 @@ export function parseFormula(text: string): Formula | null {
     return { count, faces, flat }
 }
 
+/** Uma rolagem com os dados à mostra, para o memorial ("[4, 2, 5] + 6 = 17"). */
+export interface RollDetail {
+    total: number
+    rolls: number[]
+    flat: number
+}
+
 /**
- * Rola a fórmula. Dano nunca é negativo (um `1d4-2` que sai 1 vira 0), pela
- * mesma regra do Player Core que já vale em `computeDamage`.
+ * Rola a fórmula guardando cada dado. O total nunca é negativo (um `1d4-2` que
+ * sai 1 vira 0), pela mesma regra do Player Core que já vale em `computeDamage`.
  */
-export function rollFormula(text: string): number {
+export function rollFormulaDetailed(text: string): RollDetail | null {
     const f = parseFormula(text)
-    if (!f) return 0
-    let total = f.flat
-    for (let i = 0; i < f.count; i++) total += 1 + Math.floor(Math.random() * f.faces)
-    return Math.max(0, total)
+    if (!f) return null
+    const rolls = Array.from({ length: f.count }, () => 1 + Math.floor(Math.random() * f.faces))
+    const total = Math.max(0, rolls.reduce((a, b) => a + b, f.flat))
+    return { total, rolls, flat: f.flat }
+}
+
+/** Rola a fórmula e devolve só o total. */
+export function rollFormula(text: string): number {
+    return rollFormulaDetailed(text)?.total ?? 0
+}
+
+/** `[4, 2, 5] + 6 = 17` — o memorial de uma rolagem. */
+export function rollMemorial(roll: RollDetail): string {
+    const dice = roll.rolls.length ? `[${roll.rolls.join(', ')}]` : ''
+    const flat = roll.flat ? `${roll.flat > 0 ? '+' : '−'} ${Math.abs(roll.flat)}` : ''
+    return [dice, flat].filter(Boolean).join(' ') + ` = ${roll.total}`
 }
 
 /** Média da fórmula, para a prévia do que vai cair. `1d6` → 3,5 → 4. */
