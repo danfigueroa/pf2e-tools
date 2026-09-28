@@ -140,3 +140,20 @@ export function totalHp(opts: {
         + (opts.classHp + opts.bonusHpPerLevel + conMod) * opts.level
         + opts.bonusHp
 }
+
+/**
+ * PV máximo do personagem já com o corte de Drenado (`hpMaxDelta`), nunca
+ * abaixo de 1. A Visão Geral e o Inventário (que cura com poção) precisam do
+ * MESMO número, senão o teto da cura divergiria da barra.
+ */
+export function characterMaxHp(build: BuildInfo, hpMaxDelta: number): number {
+    const base = totalHp({
+        ancestryHp: build.attributes.ancestryhp,
+        classHp: build.attributes.classhp,
+        bonusHp: build.attributes.bonushp,
+        bonusHpPerLevel: build.attributes.bonushpPerLevel,
+        level: build.level,
+        conScore: build.abilities.con,
+    })
+    return Math.max(1, base + hpMaxDelta)
+}

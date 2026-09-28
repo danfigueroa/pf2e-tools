@@ -63,11 +63,14 @@ export function useHpTracker(syncKey: string, maxHp: number, legacyKey?: string)
         setStored(() => ({ temp: s.temp - absorbed, current: Math.max(0, s.current - rest) }))
     }, [setStored])
 
-    const applyHealing = useCallback((amount: number) => {
+    /** Cura e devolve quanto de fato entrou (o teto é o PV máximo). */
+    const applyHealing = useCallback((amount: number): number => {
         const heal = Math.max(0, Math.floor(amount))
-        if (!heal) return
+        if (!heal) return 0
         const s = stateRef.current
-        setStored(() => ({ temp: s.temp, current: Math.min(maxHp, s.current + heal) }))
+        const current = Math.min(maxHp, s.current + heal)
+        setStored(() => ({ temp: s.temp, current }))
+        return current - s.current
     }, [setStored, maxHp])
 
     const setTemp = useCallback((amount: number) => {
@@ -79,7 +82,15 @@ export function useHpTracker(syncKey: string, maxHp: number, legacyKey?: string)
         setStored(() => ({ current: maxHp, temp: 0 }))
     }, [setStored, maxHp])
 
-    return { current: state.current, temp: state.temp, applyDamage, applyHealing, setTemp, resetFull }
+    /**
+     * Volta a um PV exato — o "Desfazer" de uma cura automática. Desfazer com
+     * dano não serviria: o dano come o PV temporário antes do atual.
+     */
+    const restoreHp = useCallback((prev: HpStored) => {
+        setStored(() => sanitizeHp(prev))
+    }, [setStored])
+
+    return { current: state.current, temp: state.temp, applyDamage, applyHealing, setTemp, resetFull, restoreHp }
 }
 
 /** Cor da barra conforme a fração de PV restante. */

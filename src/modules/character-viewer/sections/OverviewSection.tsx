@@ -1,7 +1,7 @@
 import { Box, Card, CardContent, Typography, Stack, Chip, useTheme } from '@mui/material'
 import { MenuBook as GuideIcon } from '@mui/icons-material'
 import type { BuildInfo } from '../../character-sheet/types'
-import { abilityMod, signed, ABILITY_LABELS, totalHp, isMythicCharacter, MYTHIC_PROFICIENCY_BONUS, MYTHIC_COLOR, type AbilityKey } from '../helpers'
+import { abilityMod, signed, ABILITY_LABELS, characterMaxHp, isMythicCharacter, MYTHIC_PROFICIENCY_BONUS, MYTHIC_COLOR, type AbilityKey } from '../helpers'
 import { getCombatGuide } from '../combatGuides'
 import { GuideMarkdown } from '../components/GuideMarkdown'
 import { HpTracker } from '../components/HpTracker'
@@ -16,17 +16,8 @@ interface Props {
 
 export const OverviewSection = ({ build, mods }: Props) => {
     const theme = useTheme()
-    const conScore = build.abilities.con
-    const baseHp = totalHp({
-        ancestryHp: build.attributes.ancestryhp,
-        classHp: build.attributes.classhp,
-        bonusHp: build.attributes.bonushp,
-        bonusHpPerLevel: build.attributes.bonushpPerLevel,
-        level: build.level,
-        conScore,
-    })
     // Drenado corta PV máximos (valor × nível); nunca abaixo de 1.
-    const hp = Math.max(1, baseHp + mods.hpMaxDelta)
+    const hp = characterMaxHp(build, mods.hpMaxDelta)
 
     const baseAc = build.acTotal?.acTotal ?? 10
     const basePerception = build.level + build.proficiencies.perception + abilityMod(build.abilities.wis)
