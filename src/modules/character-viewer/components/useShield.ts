@@ -15,6 +15,9 @@ import {
     type ShieldStored,
 } from '../shield'
 import { useSharedState } from './useSharedState'
+import type { BuildInfo } from '../../character-sheet/types'
+import { shieldItemOf } from '../shield'
+import { shieldKeyFor } from '../charId'
 
 /** Os números do escudo: o item da ficha + o que a AON tem dele. */
 export function useShieldStats(item: ShieldItem | null): { stats: ShieldStats | null; loading: boolean } {
@@ -111,3 +114,12 @@ export function useShield(syncKey: string, stats: ShieldStats | null) {
 
     return { view, setRaised, block, repair, restore }
 }
+
+/** O escudo vestido do personagem, com números da AON e estado da mesa. */
+export function useCharacterShield(build: BuildInfo) {
+    const item = useMemo(() => shieldItemOf(build), [build])
+    const { stats, loading } = useShieldStats(item)
+    return { item, loading, ...useShield(shieldKeyFor(build), stats) }
+}
+
+export type CharacterShield = ReturnType<typeof useCharacterShield>
