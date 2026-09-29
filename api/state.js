@@ -12,6 +12,7 @@ import {
   isStoreConfigured,
   MAX_FIELD_BYTES,
 } from './_lib/table-store.js'
+import { handleSheetRequest, isSheetRequest } from './_lib/sheet-handler.js'
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -21,6 +22,17 @@ export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store')
 
   if (req.method === 'OPTIONS') return res.status(200).end()
+
+  // Fichas publicadas (e o guia gerado): mesmas rotas do dev server.
+  if (isSheetRequest(req.method, req.query || {}, req.body)) {
+    try {
+      const { status, body } = await handleSheetRequest(req.method, req.query || {}, req.body || {})
+      return res.status(status).json(body)
+    } catch (error) {
+      console.error('[/api/state] Erro na ficha publicada:', error)
+      return res.status(500).json({ error: 'Erro ao tratar a ficha publicada' })
+    }
+  }
 
   if (req.method === 'GET') {
     const char = req.query?.char

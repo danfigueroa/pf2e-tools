@@ -10,6 +10,7 @@ import { resolveAfflictions } from '../api/_lib/affliction-core.js'
 import { resolveSpellList } from '../api/_lib/spell-list-core.js'
 import { resolveRule } from '../api/_lib/rule-core.js'
 import { resolveItemTraits } from '../api/_lib/item-traits-core.js'
+import { handleSheetRequest, isSheetRequest } from '../api/_lib/sheet-handler.js'
 import { hasTranslationKey } from '../api/_lib/aon.js'
 import {
   readCharacter,
@@ -466,6 +467,23 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/api/state') {
     res.setHeader('Cache-Control', 'no-store')
 
+    // Fichas publicadas: o body só pode ser lido uma vez, então é lido aqui e
+    // repassado à rota do estado abaixo.
+    const query = Object.fromEntries(parsedUrl.searchParams)
+    const body = req.method === 'POST' ? await readBody(req).catch(() => ({})) : {}
+    if (isSheetRequest(req.method, query, body)) {
+      try {
+        const out = await handleSheetRequest(req.method, query, body)
+        res.writeHead(out.status, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify(out.body))
+      } catch (e) {
+        console.error('[/api/state] Erro na ficha publicada:', e)
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: e.message }))
+      }
+      return
+    }
+
     if (req.method === 'GET') {
       const char = parsedUrl.searchParams.get('char')
       if (!isValidSlug(char)) {
@@ -486,7 +504,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'POST') {
-      const { char, field, data } = await readBody(req)
+      const { char, field, data } = body
       if (!isValidSlug(char)) {
         res.writeHead(400, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ error: 'Campo "char" inválido' }))
