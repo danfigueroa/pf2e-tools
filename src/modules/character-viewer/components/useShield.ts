@@ -88,11 +88,14 @@ export function useShield(syncKey: string, stats: ShieldStats | null) {
         setStored(() => ({ hp: v.hp, raised }))
     }, [setStored])
 
-    /** Bloqueio: devolve o resultado para quem chamou aplicar o resto no PV. */
-    const block = useCallback((damage: number): BlockResult | null => {
+    /**
+     * Bloqueio: devolve o resultado para quem chamou aplicar o resto no PV.
+     * `destructive` só vale com o talento Destructive Block.
+     */
+    const block = useCallback((damage: number, destructive = false): BlockResult | null => {
         const v = viewRef.current
         if (!v || !v.canBlock) return null
-        const result = shieldBlock(damage, v.stats, v.hp)
+        const result = shieldBlock(damage, v.stats, v.hp, destructive)
         // Quebrou: deixa de estar erguido — escudo quebrado não cumpre a função.
         setStored(() => ({ hp: result.hpAfter, raised: !isBroken(result.hpAfter, v.stats) }))
         return result

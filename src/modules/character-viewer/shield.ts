@@ -6,6 +6,10 @@
 // - Shield Block (reação, exige o talento): contra dano físico com o escudo
 //   erguido, a Dureza absorve; o que sobra vai INTEIRO para a criatura e para o
 //   escudo — não se divide entre os dois.
+// - Destructive Block (Bastion 10, Player Core 2 p. 187): no Shield Block, a
+//   criatura reduz o dano pelo DOBRO da Dureza, e o escudo toma o dobro do dano
+//   que tomaria ANTES da Dureza — o dano cru dobrado, e aí a Dureza normal.
+//   É escolha de quem bloqueia, golpe a golpe, depois de saber o dano.
 // - Quebrado (PV ≤ BT): objeto quebrado não cumpre a função nem dá bônus (Player
 //   Core, condição Broken). Não ergue, não soma CA, não bloqueia. Destruído em 0.
 // - Repair (Crafting): sucesso devolve 5 + 5×rank, crítico 10 + 10×rank.
@@ -23,6 +27,8 @@ export interface ShieldItem {
     bonus: number | null
     /** Tem o talento Shield Block. */
     canBlock: boolean
+    /** Tem o talento Destructive Block. Opcional: encontro salvo antes não traz. */
+    destructive?: boolean
 }
 
 /** Números finais do escudo, já com runa de reforço. */
@@ -33,6 +39,8 @@ export interface ShieldStats {
     maxHp: number
     bt: number
     canBlock: boolean
+    /** Pode escolher o Destructive Block ao bloquear. */
+    destructive: boolean
 }
 
 /** O que a mesa guarda. `hp: null` = ninguém mexeu, escudo inteiro. */
@@ -51,6 +59,9 @@ export interface AonShield {
     specific: boolean
 }
 
+const hasFeat = (build: BuildInfo, re: RegExp) =>
+    (build.feats ?? []).some((f) => re.test(parseFeatEntry(f).name.trim()))
+
 /** O escudo vestido da ficha, ou `null`. */
 export function shieldItemOf(build: BuildInfo): ShieldItem | null {
     const worn = (build.armor ?? []).find((a) => a.prof === 'shield' && a.worn)
@@ -62,7 +73,8 @@ export function shieldItemOf(build: BuildInfo): ShieldItem | null {
         name: worn.name,
         runes: worn.runes ?? [],
         bonus: Number.isFinite(bonus) ? bonus : null,
-        canBlock: (build.feats ?? []).some((f) => /^shield block$/i.test(parseFeatEntry(f).name.trim())),
+        canBlock: hasFeat(build, /^shield block$/i),
+        destructive: hasFeat(build, /^destructive block$/i),
     }
 }
 
@@ -97,7 +109,15 @@ export function shieldStats(item: ShieldItem, aon: AonShield | null): ShieldStat
         hp = Math.min(rune.max[1], hp + rune.hp)
         bt = Math.min(rune.max[2], bt + rune.bt)
     }
-    return { name: item.name, bonus: item.bonus ?? aon.bonus, hardness, maxHp: hp, bt, canBlock: item.canBlock }
+    return {
+        name: item.name,
+        bonus: item.bonus ?? aon.bonus,
+        hardness,
+        maxHp: hp,
+        bt,
+        canBlock: item.canBlock,
+        destructive: item.canBlock && !!item.destructive,
+    }
 }
 
 export const isBroken = (hp: number, stats: Pick<ShieldStats, 'bt'>) => hp <= stats.bt
@@ -120,21 +140,40 @@ export interface BlockResult {
     /** Passou do BT neste bloqueio. */
     broke: boolean
     destroyed: boolean
+    /** Foi um Destructive Block. */
+    destructive: boolean
 }
 
-export function shieldBlock(damage: number, stats: ShieldStats, hp: number): BlockResult {
+/**
+ * Quanto o bloqueio segura e quanto cada lado toma. No comum, o que passa da
+ * Dureza vai inteiro para os dois. No Destructive Block, a criatura desconta o
+ * dobro da Dureza e o escudo toma o dano cru dobrado menos a Dureza — 30 de
+ * dano num escudo de Dureza 9 são 12 na criatura e 51 no escudo.
+ */
+export function blockSplit(damage: number, hardness: number, destructive: boolean) {
     const dmg = Math.max(0, Math.floor(damage))
-    const absorbed = Math.min(dmg, stats.hardness)
-    const rest = dmg - absorbed
-    const hpAfter = Math.max(0, hp - rest)
+    const h = Math.max(0, hardness)
+    const absorbed = Math.min(dmg, destructive ? 2 * h : h)
     return {
         absorbed,
-        toCreature: rest,
-        toShield: rest,
+        toCreature: dmg - absorbed,
+        toShield: Math.max(0, (destructive ? 2 * dmg : dmg) - h),
+    }
+}
+
+export function shieldBlock(damage: number, stats: ShieldStats, hp: number, destructive = false): BlockResult {
+    const useDestructive = destructive && stats.destructive
+    const { absorbed, toCreature, toShield } = blockSplit(damage, stats.hardness, useDestructive)
+    const hpAfter = Math.max(0, hp - toShield)
+    return {
+        absorbed,
+        toCreature,
+        toShield,
         hpBefore: hp,
         hpAfter,
         broke: !isBroken(hp, stats) && isBroken(hpAfter, stats),
         destroyed: hp > 0 && hpAfter === 0,
+        destructive: useDestructive,
     }
 }
 
