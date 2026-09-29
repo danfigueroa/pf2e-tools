@@ -7,6 +7,7 @@ import { resolveCompanion } from '../api/_lib/companion-core.js'
 import { resolveCreatures } from '../api/_lib/creature-core.js'
 import { resolveMonster } from '../api/_lib/monster-core.js'
 import { resolveAfflictions } from '../api/_lib/affliction-core.js'
+import { resolveShields } from '../api/_lib/shield-core.js'
 import { resolveSpellList } from '../api/_lib/spell-list-core.js'
 import { resolveRule } from '../api/_lib/rule-core.js'
 import { resolveItemTraits } from '../api/_lib/item-traits-core.js'
@@ -179,6 +180,21 @@ const server = http.createServer(async (req, res) => {
         res.end(JSON.stringify(entry || { error: 'Regra não encontrada' }))
       } catch (e) {
         console.error('[/api/search?rule] Error:', e)
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: e.message }))
+      }
+      return
+    }
+
+    // Modo escudo (?shields=a|b): bônus, Dureza, PV e BT. Sem tradução.
+    const shieldNames = parsedUrl.searchParams.get('shields') || ''
+    if (shieldNames) {
+      try {
+        const shields = await resolveShields(shieldNames.split('|'))
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ shields }))
+      } catch (e) {
+        console.error('[/api/search?shields] Error:', e)
         res.writeHead(500, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ error: e.message }))
       }
