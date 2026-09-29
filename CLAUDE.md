@@ -424,6 +424,12 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   - Estado na mesa, campo `shield` (`{ hp, raised }`, `hp: null` = inteiro, como o PV): o GM vê na
     Iniciativa o escudo que o jogador ergueu aqui. A CA da Visão Geral e da aba Combate somam o
     bônus erguido.
+  - **Destructive Block** (Bastion 10, Player Core 2 p. 187) é opção **por golpe**, só para quem
+    tem o talento (`ShieldItem.destructive`, casado pelo nome como o Shield Block — hoje só o Ghan
+    Buri): a criatura desconta o **dobro** da Dureza e o escudo toma o dano cru **dobrado, menos a
+    Dureza** ("double the damage … before applying its Hardness"). A conta mora em `blockSplit`,
+    usada pela ficha, pelo cartão e pelo dano em lote. O card da ficha mostra as duas contas lado a
+    lado, porque a escolha é feita depois de saber o dano.
   - Consertar: sucesso `5 + 5×rank` de Ofício, crítico `10 + 10×rank`. O app não rola o teste —
     o jogador informa o grau. Destruído não se conserta; "Restaurar tudo" é o escudo novo.
   - A barra é própria (não `LinearProgress`): precisa da marca do BT e da rachadura, que é
