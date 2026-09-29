@@ -83,6 +83,13 @@ function tidy(text) {
   t = t.replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim()
   const first = t.indexOf('## ')
   if (first > 0) t = t.slice(first)
+  // Itálico (*x* ou _x_) apesar de o prompt proibir: o `GuideMarkdown` só
+  // entende **negrito**, e o asterisco solto aparecia cru na tela.
+  // Lista com "* " ou "1. " também escapa do renderizador, que só lê "- ".
+  t = t
+    .replace(/^(\s*)(?:\*|\d+\.)\s+/gm, '$1- ')
+    .replace(/(?<![*\w])\*(?!\*)([^*\n]+?)\*(?![*\w])/g, '$1')
+    .replace(/(?<![_\w])_([^_\n]+?)_(?![_\w])/g, '$1')
   return t
 }
 
