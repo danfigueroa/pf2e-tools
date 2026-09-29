@@ -19,6 +19,7 @@ import {
 } from '@mui/icons-material'
 import { gold, green, parchment } from '../../../theme'
 import type { Combatant } from '../types'
+import { pop, useArmed } from '../../../motion/motion'
 
 interface Props {
     round: number
@@ -40,6 +41,10 @@ export const EncounterToolbar = ({
     const theme = useTheme()
     const isPhone = useMediaQuery(theme.breakpoints.down('sm'))
     const started = round > 0 && !!active
+    // A `key` pela rodada/combatente refaz a entrada a cada troca; ao abrir a
+    // página com o encontro em andamento, nada entra animado.
+    const armed = useArmed()
+    const enter = armed ? { animation: `${pop} 320ms ease-out`, '@media (prefers-reduced-motion: reduce)': { animation: 'none' } } : {}
 
     return (
         <Box
@@ -61,10 +66,19 @@ export const EncounterToolbar = ({
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                     {started ? (
                         <>
-                            <Typography variant="overline" sx={{ color: gold.bright, lineHeight: 1.2 }}>
+                            <Typography
+                                key={`r${round}`}
+                                variant="overline"
+                                sx={{ display: 'block', color: gold.bright, lineHeight: 1.2, transformOrigin: 'left center', ...enter }}
+                            >
                                 Rodada {round}
                             </Typography>
-                            <Typography variant="h5" sx={{ fontWeight: 700, lineHeight: 1.2 }} noWrap>
+                            <Typography
+                                key={active.id}
+                                variant="h5"
+                                sx={{ fontWeight: 700, lineHeight: 1.2, transformOrigin: 'left center', ...enter }}
+                                noWrap
+                            >
                                 {active.name}
                             </Typography>
                             {next && (

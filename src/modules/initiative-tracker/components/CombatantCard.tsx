@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
     Box,
     Card,
@@ -38,6 +38,7 @@ import { CombatantAfflictions } from './CombatantAfflictions'
 import { CombatantPersistent } from './CombatantPersistent'
 import { CombatantVitals } from './CombatantVitals'
 import type { CombatantView } from '../types'
+import { pulseAnimation, useReducedMotion, type Pulse } from '../../../motion/motion'
 
 interface Props {
     view: CombatantView
@@ -71,6 +72,16 @@ export const CombatantCard = ({
     onOpenPersistent,
 }: Props) => {
     const { combatant, isActive } = view
+
+    // Quem acabou de ganhar o turno brilha em dourado uma vez. Só na TROCA:
+    // recarregar a página com o encontro em andamento não pulsa ninguém.
+    const reduced = useReducedMotion()
+    const wasActive = useRef(isActive)
+    const [turnPulse, setTurnPulse] = useState<Pulse | null>(null)
+    useEffect(() => {
+        if (isActive && !wasActive.current && !reduced) setTurnPulse((p) => ({ kind: 'turn', id: (p?.id ?? 0) + 1 }))
+        wasActive.current = isActive
+    }, [isActive, reduced])
     const npc = combatant.kind === 'npc' ? combatant : null
     const theme = useTheme()
     // O bloco de controles muda de lugar conforme a largura. Renderizar nos dois
@@ -129,6 +140,8 @@ export const CombatantCard = ({
                 borderLeft: `4px solid ${isActive ? green.main : 'transparent'}`,
                 backgroundColor: isActive ? gold.main + '18' : parchment.paper,
                 borderColor: isActive ? gold.main : rule,
+                transition: 'background-color 300ms, border-color 300ms, opacity 300ms',
+                animation: pulseAnimation(turnPulse),
             }}
         >
             <CardContent sx={{ p: { xs: 1.25, sm: 1.5 }, '&:last-child': { pb: { xs: 1.25, sm: 1.5 } } }}>
