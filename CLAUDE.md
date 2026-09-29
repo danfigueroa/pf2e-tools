@@ -133,6 +133,14 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   de "restores XdY+Z Hit Points" do `summary`, e **só** em item com o traço `Healing`; cura fixa ou
   cura acelerada (Soothing Tonic) fica `null` e o item é consumido sem cura. Mora em `api/search.js`
   pelo limite de 12 funções.
+- **`search?shields=a|b`** devolve bônus na CA, Dureza, PV e BT dos escudos — que o Pathbuilder
+  **não exporta** — **sem tradução** (`api/_lib/shield-core.js`). Escudo base vem estruturado da
+  categoria `shield` (`hp_raw "24 (12)"` traz o BT); escudo específico (Clockwork Shield) está na
+  `equipment` com os números só na prosa, e o bônus é o do `base_item`. A leitura da prosa mora em
+  `shield-parse.js`, compartilhada com a busca de criatura, que devolve `shield` quando o texto do
+  monstro traz "shield (Hardness 5, HP 20, BT 10)" — só com "shield" logo antes, senão a dureza
+  do PRÓPRIO constructo viraria escudo. ~53% dos monstros com Shield Block têm os números; o resto
+  o GM define à mão. Mora em `api/search.js` pelo limite de 12 funções.
 - `state` é o único endpoint com **estado**: guarda o jogo da mesa (ver a seção própria abaixo).
   Fica em `api/state.js`, **um nível** — o glob `"api/*.js"` do `vercel.json` não pega subpastas,
   então `api/state/[char].js` perderia o `maxDuration`.
@@ -189,7 +197,7 @@ abrir o site entra na mesma mesa.
   Vercel e `UPSTASH_REDIS_REST_*` do console da Upstash). **Sem credenciais, cai num `Map` de
   processo** e o app segue funcionando; o indicador avisa "Só neste aparelho".
 - **Um HASH por personagem, um campo por fatia** (`hp`, `slots`, `conditions`, `afflictions`,
-  `persistent`, `mythic`, `consumed`, `pet:<kind>:<slug>#<i>`). Campo novo precisa entrar no `FIELD_RE` de
+  `persistent`, `mythic`, `consumed`, `shield`, `pet:<kind>:<slug>#<i>`). Campo novo precisa entrar no `FIELD_RE` de
   `table-store.js`, senão o POST volta "Campo inválido" e o estado fica só no `localStorage`.
   Documento único faria dois jogadores editando ao mesmo tempo se sobrescreverem — quem marcasse
   condição apagaria o dano do outro. `HSET` por campo dá atomicidade por fatia sem transação, e a
@@ -286,7 +294,8 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   números da animação são exatamente os do memorial no aviso.
 - Onde há animação: poção (frasco → dados → barra enchendo), PV da Ficha, do companheiro e do
   cartão da Iniciativa (conta, treme no dano, brilha na cura — inclusive o dano automático do fim
-  do turno), pips de slot/foco/míticos, chips de condição novos, troca de turno e de rodada.
+  do turno), pips de slot/foco/míticos, chips de condição novos, troca de turno e de rodada, e o escudo
+  (erguer, bloquear, quebrar com rachadura, consertar).
   Nada disso fica no subtree do `html2canvas`.
 
 ## Convenções
@@ -403,6 +412,22 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     do `initiative-tracker/dice.ts` — mesma política do dano automático da Iniciativa: memorial da
     rolagem e "Desfazer", que devolve o item e tira **só o que a cura somou**, sobre o PV de agora.
     O teto da cura sai de `characterMaxHp`, o mesmo helper da Visão Geral.
+- **Escudo** (`shield.ts` + `components/useShield.ts` + `ShieldCard.tsx`, Visão Geral): o
+  Pathbuilder manda o escudo em `build.armor` com `prof: 'shield'`, runas e `acTotal.shieldBonus`
+  — a CA exportada **não** inclui o escudo. Dureza/PV/BT vêm da AON (`services/shields.ts`, com
+  cache, como `itemTraits.ts`) e a **runa de reforço** é somada aqui, com o teto por grau (GM Core
+  p. 232, transcrita da AON); escudo específico não recebe runa.
+  - Regras: erguer soma o bônus de circunstância na CA; **quebrado (PV ≤ BT) não ergue, não soma
+    CA e não bloqueia** (condição Broken do Player Core) — por isso o bloqueio que quebra também
+    abaixa o escudo; destruído em 0. No Bloqueio com Escudo, o que passa da Dureza vai **inteiro**
+    para a criatura E para o escudo, não dividido. Só com o talento Shield Block.
+  - Estado na mesa, campo `shield` (`{ hp, raised }`, `hp: null` = inteiro, como o PV): o GM vê na
+    Iniciativa o escudo que o jogador ergueu aqui. A CA da Visão Geral e da aba Combate somam o
+    bônus erguido.
+  - Consertar: sucesso `5 + 5×rank` de Ofício, crítico `10 + 10×rank`. O app não rola o teste —
+    o jogador informa o grau. Destruído não se conserta; "Restaurar tudo" é o escudo novo.
+  - A barra é própria (não `LinearProgress`): precisa da marca do BT e da rachadura, que é
+    desenhada só no trecho preenchido. Cor `SHIELD_COLOR` — item, não criatura.
 - **Bastão abre com a lista de magias do degrau** (`StaffSpellList.tsx`): as magias vêm agrupadas
   por rank, com o custo em cargas ao lado (conjurar gasta cargas iguais ao rank; truque é de graça —
   GM Core p. 278) e etiqueta de degrau nas herdadas do bastão inferior. Quem filtra o degrau é o
@@ -588,6 +613,18 @@ cada fatia de estado mora**:
     fórmula e tipo é preservado, para o `checkDue` e a CD baixada não se perderem.
   - Mesma divisão das aflições: a do **personagem vive na mesa** (campo `persistent`, visível na
     Ficha Virtual por `PersistentDamageBar`); a do **monstro vive no encontro**.
+- **Escudo** (`useShieldCatalog.ts`, `CombatantShield.tsx`, `NpcShieldDialog.tsx`): o do
+  **personagem** é o da Ficha Virtual — `shieldItem` no combatente (sai do build em `pcFromBuild`)
+  + números da AON na página + campo `shield` da mesa; o do **monstro** vive inteiro no encontro
+  (`NpcShield`), lido da AON ou definido à mão. Encontro montado antes do escudo existir não tem o
+  `shieldItem`: é preciso tirar e pôr o personagem de novo.
+  - **Abaixa no handler de `passTurn`** para quem ENTRA no turno (Raise a Shield vale até o início
+    do próximo turno de quem ergueu) — nunca num efeito, mesma razão das durações.
+  - Bloqueio no cartão é um toggle ("Bloquear com escudo") que vale para o PRÓXIMO dano e desliga
+    sozinho: é uma reação, gasta num golpe. No dano em lote é uma caixa por alvo, habilitada só
+    para tipo físico (ou sem tipo). Em `computeDamage` o escudo entra **depois da resistência e
+    antes dos temporários**; quem aplica refaz a conta por `view.blockDamage(blockFrom)` para
+    gastar o escudo junto.
 - **O que o app rola e o que não rola** (`dice.ts` é o único ponto que rola): rolagem de quem está
   jogando continua na mesa — a iniciativa é digitada, e salvaguarda, salvaguarda de estágio e teste
   plano de dano persistente são informados pelo GM em botões. O app rola os dois danos que o RAW

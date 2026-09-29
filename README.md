@@ -85,6 +85,12 @@ qualquer dispositivo — no desktop as áreas viram **abas**; no mobile viram **
     dos números da própria ficha.
 -   🎒 **Inventário completo**: armas e armaduras aparecem na lista junto do equipamento, com a
     descrição da AON a um toque.
+-   🛡️ **Escudo**: o escudo vestido ganha um cartão na Visão Geral com **PV em barra própria** (cor
+    de aço, para não confundir com o PV do personagem), **Dureza**, o limiar de quebra (BT) marcado
+    na barra e o estado **Quebrado**/**Destruído**. **Erguer** soma o bônus na CA; **Bloquear**
+    aplica o Bloqueio com Escudo (a Dureza segura, o resto vai para você e para o escudo);
+    **Consertar** devolve PV pelo rank de Ofício (sucesso ou crítico). Os números vêm da AON, com as
+    runas de reforço somadas, e o estado é da mesa.
 -   ⚔️ Cálculos derivados (modificadores, PV, CA, salvamentos, ataques, dano de arma) via
     helpers reutilizáveis (`helpers.ts`).
 
@@ -190,6 +196,11 @@ dano, cura e condições em **um ou vários alvos de uma vez**.
 -   Ordem de turnos com o desempate oficial (o adversário age primeiro), ajuste manual, Adiar com
     reentrada e marcação de derrotado
 -   Sugestão de **Morrendo** (já somando Ferido) ao um personagem chegar a 0 PV — nunca automática
+-   **Levantar Escudo e Bloqueio com Escudo**: o botão escrito ergue o escudo (a CA do cartão sobe),
+    e ele **abaixa sozinho no início do próximo turno** de quem ergueu. O próximo dano — no cartão
+    ou no dano em lote, só físico — pode passar pelo escudo: a Dureza segura, o resto cai no PV e no
+    PV do escudo, que quebra no BT. O escudo do personagem é o mesmo da Ficha Virtual; o do monstro
+    vem da prosa da AON quando ela traz os números, ou é definido à mão
 
 O encontro fica só no aparelho do mestre; os personagens é que são compartilhados com a mesa.
 
