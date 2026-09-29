@@ -15,6 +15,8 @@ import { ConditionDelta } from '../components/ConditionDelta'
 import { MythicNote } from '../components/MythicNote'
 import { CONDITION_COLOR } from '../../../theme'
 
+import { useCharacterShield } from '../components/useShield'
+
 interface Props {
     build: BuildInfo
     mods: ConditionModifiers
@@ -24,6 +26,7 @@ export const CombatSection = ({ build, mods }: Props) => {
     const weapons = build.weapons ?? []
     const unarmed = unarmedAttacks(build)
     const armor = build.armor ?? []
+    const shieldAc = useCharacterShield(build).view?.acBonus ?? 0
     // O Pathbuilder não diz se a arma é de FOR ou de DES, então no número entra
     // só o que penaliza os dois; o resto vira aviso ao lado.
     const anyAttack = sharedMod(mods, ['attackStr', 'attackDex'])
@@ -182,8 +185,8 @@ export const CombatSection = ({ build, mods }: Props) => {
                                 }}
                             >
                                 <MiniStat
-                                    label="CA total"
-                                    value={build.acTotal.acTotal + mods.total.ac}
+                                    label={shieldAc ? 'CA (escudo erguido)' : 'CA total'}
+                                    value={build.acTotal.acTotal + mods.total.ac + shieldAc}
                                     delta={mods.total.ac}
                                     base={build.acTotal.acTotal}
                                 />

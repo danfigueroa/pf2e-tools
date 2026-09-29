@@ -5,6 +5,10 @@ import { abilityMod, signed, ABILITY_LABELS, characterMaxHp, isMythicCharacter, 
 import { getCombatGuide } from '../combatGuides'
 import { GuideMarkdown } from '../components/GuideMarkdown'
 import { HpTracker } from '../components/HpTracker'
+import { ShieldCard } from '../components/ShieldCard'
+import { useCharacterShield } from '../components/useShield'
+import { gold } from '../../../theme/palette'
+import { pop, useArmed } from '../../../motion/motion'
 import { ConditionDelta } from '../components/ConditionDelta'
 import { MythicNote } from '../components/MythicNote'
 import type { ConditionModifiers } from '../conditions'
@@ -22,6 +26,10 @@ export const OverviewSection = ({ build, mods, guide: slot }: Props) => {
     const hp = characterMaxHp(build, mods.hpMaxDelta)
 
     const baseAc = build.acTotal?.acTotal ?? 10
+    // O escudo erguido soma na CA; o Pathbuilder exporta a CA sem ele.
+    const shield = useCharacterShield(build)
+    const shieldAc = shield.view?.acBonus ?? 0
+    const armed = useArmed()
     const basePerception = build.level + build.proficiencies.perception + abilityMod(build.abilities.wis)
     const baseSpeed = build.attributes.speed + (build.attributes.speedBonus || 0)
     const speed = Math.max(0, baseSpeed + mods.total.speed)
@@ -46,6 +54,9 @@ export const OverviewSection = ({ build, mods, guide: slot }: Props) => {
             {/* Pontos de vida (interativo) */}
             <HpTracker build={build} maxHp={hp} maxHpDelta={mods.hpMaxDelta} />
 
+            {/* Escudo vestido: PV de item, Dureza, erguer/bloquear/consertar. */}
+            <ShieldCard build={build} shield={shield} hpMaxDelta={mods.hpMaxDelta} />
+
             {/* Stat tiles */}
             <Box sx={{
                 display: 'grid',
@@ -54,10 +65,18 @@ export const OverviewSection = ({ build, mods, guide: slot }: Props) => {
             }}>
                 <StatTile
                     label="CA"
-                    value={baseAc + mods.total.ac}
-                    accent={theme.palette.primary.main}
+                    value={baseAc + mods.total.ac + shieldAc}
+                    accent={shieldAc ? gold.deep : theme.palette.primary.main}
                     delta={mods.total.ac}
                     base={baseAc}
+                    // O número estoura ao erguer/abaixar — é a mudança que a mesa confere.
+                    valueKey={shieldAc}
+                    animate={armed}
+                    extra={shieldAc > 0 ? (
+                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: gold.deep }}>
+                            +{shieldAc} escudo erguido
+                        </Typography>
+                    ) : null}
                 />
                 <StatTile
                     label="Percepção"
@@ -240,14 +259,18 @@ export const OverviewSection = ({ build, mods, guide: slot }: Props) => {
     )
 }
 
-const StatTile = ({ label, value, accent, delta = 0, base }: {
+const StatTile = ({ label, value, accent, delta = 0, base, extra, valueKey, animate = false }: {
     label: string
     value: string | number
     accent?: string
     delta?: number
     base?: number
+    extra?: React.ReactNode
+    /** Troca → o número estoura de novo (ver `animate`). */
+    valueKey?: string | number
+    animate?: boolean
 }) => (
-    <Card sx={{ borderColor: accent ? accent + '60' : undefined }}>
+    <Card sx={{ borderColor: accent ? accent + '60' : undefined, transition: 'border-color 300ms' }}>
         {/* "DESLOCAMENTO" é o rótulo mais longo e define o aperto: no celular
             a margem interna e a fonte encolhem para ele caber numa linha. */}
         <CardContent sx={{ textAlign: 'center', px: { xs: 1, sm: 2 }, py: 1.5, '&:last-child': { pb: 1.5 } }}>
@@ -264,17 +287,21 @@ const StatTile = ({ label, value, accent, delta = 0, base }: {
                 {label}
             </Typography>
             <Typography
+                key={valueKey}
                 variant="h4"
                 sx={{
                     fontWeight: 700,
                     color: accent || 'primary.light',
                     mt: 0.25,
                     fontSize: { xs: '1.35rem', sm: '1.5rem' },
+                    animation: animate ? `${pop} 360ms ease-out` : 'none',
+                    '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
                 }}
             >
                 {value}
             </Typography>
             <ConditionDelta delta={delta} base={base} />
+            {extra}
         </CardContent>
     </Card>
 )
