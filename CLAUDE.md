@@ -266,6 +266,29 @@ A plataforma é usada na mesa, no celular. Toda mudança de layout precisa passa
   Carregue a página num `<iframe>` da largura desejada (servido pelo próprio Vite, para o script da
   página hospedeira poder clicar dentro do app) e tire o print da página que hospeda o iframe.
 
+## Animações
+
+Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem biblioteca nova).
+
+- **O estado muda na hora; a animação só apresenta.** A cura da poção é gravada no clique e a
+  `PotionOverlay` recebe o antes/depois já aplicados — fechar no meio não perde nada, e o
+  "Desfazer" segue no aviso que aparece quando ela fecha. Nenhuma animação segura escrita na mesa.
+- **Primeira pintura nunca anima** (`useArmed`, 1 s): o PV vem do cache, depois do servidor, e o
+  máximo do companheiro chega da AON — nada disso é "alguém tomou dano". Mudança vinda da mesa
+  DEPOIS disso anima de propósito: é a que ninguém na tela viu acontecer.
+- **Animação que se repete no mesmo elemento usa keyframes gêmeos** (`twin` em `motion.ts`):
+  trocar o nome é o que reinicia a animação. Trocar a `key` do contêiner remontaria o formulário
+  com o foco dentro.
+- **`prefers-reduced-motion`**: sem tremor, giro nem contagem; os números aparecem direto.
+- O delta flutuante ("−9") é `aria-hidden` e fica **dentro** do cartão: o `Card` do MUI tem
+  `overflow: hidden`, e um delta acima de um PV colado no topo do cartão sumia cortado.
+- `DiceRoll` não rola nada — mostra o `RollDetail` que `rollFormulaDetailed` já sorteou, então os
+  números da animação são exatamente os do memorial no aviso.
+- Onde há animação: poção (frasco → dados → barra enchendo), PV da Ficha, do companheiro e do
+  cartão da Iniciativa (conta, treme no dano, brilha na cura — inclusive o dano automático do fim
+  do turno), pips de slot/foco/míticos, chips de condição novos, troca de turno e de rodada.
+  Nada disso fica no subtree do `html2canvas`.
+
 ## Convenções
 
 - Um módulo por funcionalidade em `src/modules/`. Padrão: `*Page.tsx` (UI/estado), lógica em
