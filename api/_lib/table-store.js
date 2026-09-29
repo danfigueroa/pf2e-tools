@@ -51,7 +51,7 @@ export const isStoreConfigured = () => credentials() !== null
 // Client preguiçoso, no mesmo espírito de `callChat` em aon.js: as credenciais
 // são lidas do env na hora do uso, não capturadas na carga do módulo.
 let client = null
-function redis() {
+export function redis() {
     if (!client) {
         const creds = credentials()
         if (!creds) return null
