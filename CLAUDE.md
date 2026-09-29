@@ -136,6 +136,22 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
 - `state` é o único endpoint com **estado**: guarda o jogo da mesa (ver a seção própria abaixo).
   Fica em `api/state.js`, **um nível** — o glob `"api/*.js"` do `vercel.json` não pega subpastas,
   então `api/state/[char].js` perderia o `maxDuration`.
+- **O mesmo `state` serve as fichas publicadas** (`api/_lib/sheet-handler.js`, compartilhado com o
+  dev server): `GET ?sheets=1` (lista), `GET ?sheet=<slug>`, e `POST` com `action` — `publish`,
+  `guide` e `restore`. POST sem `action` continua sendo a escrita de fatia do estado. Mora aqui
+  pelo limite de 12 funções.
+  - O slug da ficha publicada sai do `build.name` do PRÓPRIO JSON, nunca do cliente: é a mesma
+    identidade do estado da mesa, e deixar o cliente escolher permitiria publicar por cima de outro.
+  - **`guide` gera o "Como Jogar" pela cadeia de IA** (`api/_lib/guide-core.js`, 5–30 s), numa
+    chamada separada da publicação para caber no `maxDuration` e o app mostrar o progresso. A base
+    do prompt é o guia da versão anterior, senão o curado que o cliente manda — a IA ATUALIZA em
+    vez de começar do zero, e as seções do guia anterior entram no prompt explicitamente (só
+    "siga as seções dele" o modelo ignorava). Sem guia de base, o modelo inventava efeito de
+    talento; o prompt proíbe descrever mecânica sem certeza, mas o guia gerado sai marcado "gerado
+    por IA" com aviso para conferir.
+  - O guia só é gravado se a ficha ainda for a que o gerou (`publishedAt`): duas publicações
+    seguidas não terminam com o guia da primeira na segunda. `tidy` tira itálico e lista `*`/`1.`,
+    que o `GuideMarkdown` não entende e mostrava crus.
 
 ### Tradução (o ponto que mais quebra)
 
@@ -196,6 +212,11 @@ abrir o site entra na mesma mesa.
   Inventário não aparecia no `HpTracker` da Visão Geral — no celular os acordeões ficam montados
   juntos, cada um com seu `useHpTracker`.
 - Sendo público, o endpoint valida slug/campo por regex e limita a escrita a 8 KB.
+- **A ficha publicada NÃO mora no hash do estado** (`api/_lib/sheet-store.js`, chave
+  `pf2e:sheet:v1:<slug>` + um SET com os slugs): o hash é lido inteiro a cada abertura e a cada
+  "Atualizar", e arrastar 8 KB de ficha e 7 KB de guia toda vez seria desperdício. Sem TTL — uma
+  ficha publicada é a fonte da verdade do personagem —, teto de 64 KB, e guarda UMA versão
+  anterior (`previous`), que é a salvaguarda de não haver login.
 
 ## Tema (verde/pergaminho/ouro)
 
@@ -260,16 +281,35 @@ A plataforma é usada na mesa, no celular. Toda mudança de layout precisa passa
 - Visualizador interativo em `/ficha-virtual`. Reusa `parseCharacterJson`/`BuildInfo` do
   `character-sheet`. Layout: **abas no desktop, acordeões no mobile**; áreas em `sections/*`
   (Overview, Combat, Skills, Feats, Specials, Spells, Pets, Inventory) — as vazias somem sozinhas.
-- **Guia "Como Jogar"** (Visão Geral): `combatGuides.ts`. Cada guia casa **por nome** da ficha
-  (`byName`) e é escrito à mão (`curated: true`); sem guia catalogado, `buildFallbackGuide()` gera
-  um resumo heurístico (marcado como automático). Guias curados **sem IA** — ver memória.
-- **Ao adicionar uma ficha nova**: (1) copiar o JSON para `public/characters/`; (2) registrar em
-  `campaignPresets.ts`, com `sheetName` igual ao `build.name` do JSON; (3) escrever um guia curado
-  em `combatGuides.ts` casando pelo nome.
+- **Guia "Como Jogar"** (Visão Geral), em ordem de precedência: (1) o **gerado por IA** da ficha
+  publicada, quando a ficha aberta É a da mesa; (2) o curado à mão em `combatGuides.ts`, casado
+  **por nome** (`byName`, `curated: true`); (3) `buildFallbackGuide()`, heurístico e marcado como
+  automático. Os curados continuam valendo para quem abre o JSON "só neste aparelho" e servem de
+  BASE para a primeira geração. A decisão de não usar IA foi revista quando os jogadores passaram a
+  publicar a própria ficha: o guia curado seguia descrevendo o nível anterior.
+- **Publicar a ficha para a mesa** (`components/usePublication.ts`, `PublishDialog.tsx`,
+  `PublishedBar.tsx`, `services/sheets.ts`): enviar um JSON abre um diálogo com o que muda
+  (`sheetDiff.ts` — nível, talentos, habilidades, magias, itens) contra a versão da mesa (a
+  publicada, senão o arquivo fixo). "Só ver neste aparelho" é o comportamento antigo; "Publicar"
+  grava, pede o guia e abre a ficha. Sem login, **qualquer pessoa publica** — decisão do usuário —,
+  então a diferença à vista e o "Versão anterior" da faixa sob o cabeçalho são a salvaguarda.
+  PV, condições e slots não mudam: a identidade é o slug do nome, igual antes.
+  - `published` só existe quando a ficha na tela é a da mesa. Quem abriu "só neste aparelho" não
+    vê o guia gerado para outra versão. Ao recarregar, o slug publicado no `sessionStorage` faz a
+    página reler a versão da mesa (alguém pode ter publicado outra no meio-tempo).
+- **Ao adicionar uma ficha nova**: o caminho do dia a dia é o jogador PUBLICAR pelo upload — ela
+  aparece na tela inicial como "publicada pela mesa", com guia gerado. Para virar preset fixo:
+  (1) copiar o JSON para `public/characters/`; (2) registrar em `campaignPresets.ts`, com
+  `sheetName` igual ao `build.name` do JSON; (3) opcionalmente, um guia curado em
+  `combatGuides.ts` casando pelo nome.
 - **Os presets alimentam três módulos**: Ficha Virtual, diálogo de personagens da Iniciativa e
   gerador de Transformação (que aceita qualquer personagem, não só conjurador). Tirar uma ficha de
   `campaignPresets.ts` tira dos três. Elenco atual: Brukuthur, Ceros (Cerosqualhanthallas),
   Eldarion, Ghan Buri e Nathaniel, todos nível 10 — tabela e observações no README.
+- **Os três carregam o preset por `loadPresetJson`**: a versão publicada pela mesa, se houver,
+  senão o arquivo fixo. O `level` de `CAMPAIGN_PRESETS` é o do arquivo, então os cards leem o nível
+  por `usePublishedSheets().levelOf` — senão mostrariam "10" depois de um level-up publicado.
+  Personagem publicado que não é preset só aparece na tela inicial da Ficha Virtual (`extras`).
 - **Preset tem dois nomes**: `name` é o rótulo curto (cards, botões e o nome do combatente na
   Iniciativa, via `pcFromBuild`); `sheetName` é o `build.name` do JSON, de onde sai o slug da mesa.
   O "já no combate" da Iniciativa compara pelo `sheetName` — pelo `name`, "Ceros" não bateria com
