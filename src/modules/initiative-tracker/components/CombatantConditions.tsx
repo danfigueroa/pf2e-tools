@@ -4,6 +4,7 @@ import { CONDITION_COLOR, ink } from '../../../theme'
 import { CONDITIONS_BY_ID } from '../../character-viewer/conditions'
 import { stageConditions } from '../afflictions'
 import type { CombatantView } from '../types'
+import { pop, useArmed } from '../../../motion/motion'
 
 /** Mesmos alvos de toque da barra de condições da Ficha Virtual. */
 const TAP_PADDING = { xs: 0.6, sm: 0.25 }
@@ -25,6 +26,7 @@ const TAP_ICON = { xs: '1.15rem', sm: '0.9rem' }
 export const CombatantConditions = ({ view }: { view: CombatantView }) => {
     const { mods, combatant, afflictions, adjustCondition, toggleCondition, setDuration } = view
     const durations = combatant.durations
+    const armed = useArmed()
 
     /** id da condição → nome da aflição que a impõe agora. */
     const fromAffliction = new Map<string, string>()
@@ -65,6 +67,8 @@ export const CombatantConditions = ({ view }: { view: CombatantView }) => {
                                 borderRadius: 4,
                                 border: `1px ${imposed ? 'dashed' : 'solid'} ${CONDITION_COLOR}${imposed ? '80' : ''}`,
                                 backgroundColor: imposed ? 'transparent' : CONDITION_COLOR + '18',
+                                animation: armed ? `${pop} 280ms ease-out` : 'none',
+                                '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
                                 pl: 1,
                                 pr: imposed ? 1 : 0.25,
                                 py: { xs: 0.25, sm: 0 },

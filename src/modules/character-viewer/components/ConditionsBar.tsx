@@ -25,6 +25,7 @@ import { signed } from '../helpers'
 import { CONDITIONS_BY_ID, TARGET_LABELS, affectedTargets } from '../conditions'
 import { ConditionsDialog } from './ConditionsDialog'
 import type { ConditionsApi } from './useConditions'
+import { pop, useArmed } from '../../../motion/motion'
 
 interface Props {
     conditions: ConditionsApi
@@ -44,6 +45,9 @@ const TAP_ICON = { xs: '1.15rem', sm: '0.9rem' }
  * as abas ao mesmo tempo.
  */
 export const ConditionsBar = ({ conditions }: Props) => {
+    // Condição nova entra com um estouro; a que sai some na hora, para a lista
+    // não esperar animação. Ao abrir a ficha, nada estoura.
+    const armed = useArmed()
     const { state, mods, toggle, adjust, clear } = conditions
     const [dialogOpen, setDialogOpen] = useState(false)
     const [showDetails, setShowDetails] = useState(false)
@@ -117,6 +121,8 @@ export const ConditionsBar = ({ conditions }: Props) => {
                                                 borderStyle: implied ? 'dashed' : 'solid',
                                                 borderColor: CONDITION_COLOR + (implied ? '66' : 'FF'),
                                                 backgroundColor: implied ? 'transparent' : CONDITION_COLOR + '1A',
+                                                animation: armed ? `${pop} 280ms ease-out` : 'none',
+                                                '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
                                             }}
                                         >
                                             <Typography
