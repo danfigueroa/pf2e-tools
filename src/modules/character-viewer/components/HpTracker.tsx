@@ -83,15 +83,16 @@ export const HpTracker = ({ build, maxHp, maxHpDelta = 0 }: Props) => {
 
                 {/* Números grandes */}
                 <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mb: 1 }}>
-                    <Box sx={{ position: 'relative' }}>
-                        <Typography variant="h3" sx={{ fontWeight: 800, color: barColor, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
-                            {feedback.shown}
-                        </Typography>
-                        <FloatingDeltas deltas={feedback.deltas} placement="above" />
-                    </Box>
+                    <Typography variant="h3" sx={{ fontWeight: 800, color: barColor, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+                        {feedback.shown}
+                    </Typography>
                     <Typography variant="h5" color="text.secondary" sx={{ fontWeight: 600 }}>
                         / {maxHp}
                     </Typography>
+                    {/* Âncora de largura zero: o delta nasce à direita do máximo. */}
+                    <Box sx={{ position: 'relative', alignSelf: 'flex-start' }}>
+                        <FloatingDeltas deltas={feedback.deltas} />
+                    </Box>
                     {maxHpDelta !== 0 && (
                         <Chip
                             label={`${maxHpDelta} máx · condição`}

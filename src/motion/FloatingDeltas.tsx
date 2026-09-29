@@ -35,7 +35,9 @@ export const FloatingDeltas = ({ deltas, placement = 'right' }: { deltas: Delta[
                     component="span"
                     sx={{
                         position: 'absolute',
-                        top: 0,
+                        // Acima do número, o delta cresce para cima a partir da
+                        // base do contêiner; ao lado, desce a partir do topo.
+                        ...(placement === 'above' ? { bottom: 0 } : { top: 0 }),
                         left: 0,
                         // `translate` é independente do `transform` que o keyframe anima.
                         translate: placement === 'above' ? '-50% 0' : undefined,
