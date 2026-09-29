@@ -36,9 +36,11 @@ import { CombatantSheet } from './CombatantSheet'
 import { CombatantConditions } from './CombatantConditions'
 import { CombatantAfflictions } from './CombatantAfflictions'
 import { CombatantPersistent } from './CombatantPersistent'
-import { CombatantVitals } from './CombatantVitals'
-import type { CombatantView } from '../types'
-import { pulseAnimation, useReducedMotion, type Pulse } from '../../../motion/motion'
+import { CombatantVitals, type ShieldBefore } from './CombatantVitals'
+import { NpcShieldDialog } from './NpcShieldDialog'
+import type { BlockResult } from '../../character-viewer/shield'
+import type { CombatantView, NpcShield } from '../types'
+import { pop, pulseAnimation, useArmed, useReducedMotion, type Pulse } from '../../../motion/motion'
 
 interface Props {
     view: CombatantView
@@ -54,6 +56,9 @@ interface Props {
     onOpenConditions: () => void
     onOpenAfflictions: () => void
     onOpenPersistent: () => void
+    onShieldBlocked: (view: CombatantView, result: BlockResult, before: ShieldBefore) => void
+    /** Só monstro: grava (ou remove, com `undefined`) o escudo. */
+    onSaveShield: (shield: NpcShield | undefined) => void
 }
 
 export const CombatantCard = ({
@@ -70,12 +75,17 @@ export const CombatantCard = ({
     onOpenConditions,
     onOpenAfflictions,
     onOpenPersistent,
+    onShieldBlocked,
+    onSaveShield,
 }: Props) => {
     const { combatant, isActive } = view
 
     // Quem acabou de ganhar o turno brilha em dourado uma vez. Só na TROCA:
     // recarregar a página com o encontro em andamento não pulsa ninguém.
     const reduced = useReducedMotion()
+    const armed = useArmed()
+    const [shieldDialog, setShieldDialog] = useState(false)
+    const shieldAc = view.shield?.acBonus ?? 0
     const wasActive = useRef(isActive)
     const [turnPulse, setTurnPulse] = useState<Pulse | null>(null)
     useEffect(() => {
@@ -212,10 +222,22 @@ export const CombatantCard = ({
                                 <Typography variant="caption">
                                     {combatant.kind === 'pc' ? combatant.klass ?? 'Personagem' : 'Nível'} {combatant.level}
                                 </Typography>
-                                <Stack direction="row" alignItems="center" spacing={0.25}>
-                                    <AcIcon sx={{ fontSize: '0.8rem' }} />
-                                    <Typography variant="caption">{combatant.ac + view.mods.total.ac}</Typography>
-                                </Stack>
+                                <Tooltip title={shieldAc ? `CA com escudo erguido (+${shieldAc})` : 'CA'}>
+                                    <Stack direction="row" alignItems="center" spacing={0.25} sx={{ color: shieldAc ? gold.deep : undefined }}>
+                                        <AcIcon sx={{ fontSize: '0.8rem' }} />
+                                        {/* Estoura ao erguer/abaixar: é o número que o GM confere. */}
+                                        <Typography
+                                            key={shieldAc}
+                                            variant="caption"
+                                            sx={{
+                                                fontWeight: shieldAc ? 700 : undefined,
+                                                animation: armed && !reduced ? `${pop} 360ms ease-out` : 'none',
+                                            }}
+                                        >
+                                            {combatant.ac + view.mods.total.ac + shieldAc}
+                                        </Typography>
+                                    </Stack>
+                                </Tooltip>
                                 {combatant.perception !== undefined && (
                                     <Stack direction="row" alignItems="center" spacing={0.25}>
                                         <PerceptionIcon sx={{ fontSize: '0.8rem' }} />
@@ -231,7 +253,11 @@ export const CombatantCard = ({
                     {/* PV: coluna própria a partir do tablet, para a faixa usar a
                         largura em vez de empilhar tudo e alongar a rolagem. */}
                     <Box sx={{ width: { xs: '100%', sm: 240 }, flexShrink: 0 }}>
-                        <CombatantVitals view={view} />
+                        <CombatantVitals
+                            view={view}
+                            onBlocked={onShieldBlocked}
+                            onEditShield={npc ? () => setShieldDialog(true) : undefined}
+                        />
                     </Box>
 
                     {!isPhone && controls}
@@ -245,6 +271,7 @@ export const CombatantCard = ({
                     sheetName={aonName}
                     sheetOpen={sheetOpen}
                     onToggleSheet={() => setSheetOpen((open) => !open)}
+                    onDefineShield={npc && !npc.shield ? () => setShieldDialog(true) : undefined}
                 />
 
                 {/* As condições ativas descem para baixo dos botões: a fileira é
@@ -305,6 +332,14 @@ export const CombatantCard = ({
                     <DeleteIcon fontSize="small" sx={{ mr: 1 }} /> Remover
                 </MenuItem>
             </Menu>
+            {npc && (
+                <NpcShieldDialog
+                    open={shieldDialog}
+                    shield={npc.shield}
+                    onClose={() => setShieldDialog(false)}
+                    onSave={(next) => { onSaveShield(next); setShieldDialog(false) }}
+                />
+            )}
         </Card>
     )
 }

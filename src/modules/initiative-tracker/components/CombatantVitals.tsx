@@ -1,16 +1,35 @@
 import { useRef, useState } from 'react'
 import { Box, Button, LinearProgress, Stack, TextField, Tooltip, Typography, useTheme } from '@mui/material'
-import { Favorite as HpIcon, HealthAndSafety as TempIcon } from '@mui/icons-material'
+import { Favorite as HpIcon, HealthAndSafety as TempIcon, Shield as ShieldIcon } from '@mui/icons-material'
 import { hpBarColor } from '../../character-viewer/components/useHpTracker'
-import { HP_COLOR, ink } from '../../../theme'
+import { HP_COLOR, ink, SHIELD_COLOR } from '../../../theme'
 import type { CombatantView } from '../types'
 import { useHpFeedback } from '../../../motion/useHpFeedback'
 import { FloatingDeltas } from '../../../motion/FloatingDeltas'
+import type { BlockResult, ShieldStored } from '../../character-viewer/shield'
+import { CombatantShield } from './CombatantShield'
+
+/** O estado antes de um bloqueio — o que o "Desfazer" devolve. */
+export interface ShieldBefore {
+    shield: ShieldStored
+    current: number
+    temp: number
+}
 
 /** Barra de PV com dano/cura rápidos, para o ajuste avulso fora do lote. */
-export const CombatantVitals = ({ view }: { view: CombatantView }) => {
+export const CombatantVitals = ({ view, onBlocked, onEditShield }: {
+    view: CombatantView
+    /** Um bloqueio aconteceu neste cartão — a página avisa e oferece desfazer. */
+    onBlocked?: (view: CombatantView, result: BlockResult, before: ShieldBefore) => void
+    /** Só monstro: o GM edita os números do escudo. */
+    onEditShield?: () => void
+}) => {
     const theme = useTheme()
     const [amount, setAmount] = useState('')
+    // O próximo "Dano" passa pelo escudo. Volta a desligar depois de usado:
+    // Shield Block é uma reação, gasta num golpe só.
+    const [blocking, setBlocking] = useState(false)
+    const canBlock = !!view.shield?.canBlock
     const { current, temp, maxHp, maxHpDelta, applyDamage, applyHealing } = view
     const { name } = view.combatant
 
@@ -32,6 +51,18 @@ export const CombatantVitals = ({ view }: { view: CombatantView }) => {
         }
         fn(value)
         setAmount('')
+    }
+
+    const damage = (n: number) => {
+        if (!(blocking && canBlock && view.shield)) {
+            applyDamage(n)
+            return
+        }
+        const before = { shield: { hp: view.shield.hp, raised: view.shield.raised }, current, temp }
+        const result = view.blockDamage(n)
+        setBlocking(false)
+        if (result) onBlocked?.(view, result, before)
+        else applyDamage(n)
     }
 
     // Dano automático (aflição, persistente no fim do turno) e dano em lote
@@ -93,14 +124,14 @@ export const CombatantVitals = ({ view }: { view: CombatantView }) => {
                     inputRef={inputRef}
                     value={amount}
                     onChange={(e) => setAmount(e.target.value.replace(/\D/g, ''))}
-                    onKeyDown={(e) => { if (e.key === 'Enter') run(applyDamage) }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') run(damage) }}
                     inputProps={{ inputMode: 'numeric', 'aria-label': `Quantidade de PV para ${name}` }}
                     sx={{ width: 62, '& .MuiInputBase-input': { py: 0.5, textAlign: 'center' } }}
                 />
                 <Button
                     size="small"
                     variant="contained"
-                    onClick={() => run(applyDamage)}
+                    onClick={() => run(damage)}
                     aria-label={`Causar dano em ${name}`}
                     sx={{
                         flex: 1,
@@ -130,6 +161,31 @@ export const CombatantVitals = ({ view }: { view: CombatantView }) => {
                     Cura
                 </Button>
             </Stack>
+
+            {canBlock && (
+                <Tooltip title="O próximo Dano passa pelo escudo: a Dureza segura, o resto vai para o PV e para o escudo. Só dano físico.">
+                    <Button
+                        size="small"
+                        fullWidth
+                        variant={blocking ? 'contained' : 'outlined'}
+                        startIcon={<ShieldIcon sx={{ fontSize: '1rem' }} />}
+                        onClick={() => setBlocking((b) => !b)}
+                        aria-pressed={blocking}
+                        aria-label={`Bloquear com escudo o próximo dano em ${name}`}
+                        sx={{
+                            mt: 0.75,
+                            fontSize: '0.75rem',
+                            ...(blocking
+                                ? { backgroundColor: SHIELD_COLOR, '&:hover': { backgroundColor: SHIELD_COLOR, filter: 'brightness(0.9)' } }
+                                : { color: SHIELD_COLOR, borderColor: SHIELD_COLOR + '66', '&:hover': { borderColor: SHIELD_COLOR } }),
+                        }}
+                    >
+                        {blocking ? 'Bloqueando o próximo dano' : 'Bloquear com escudo'}
+                    </Button>
+                </Tooltip>
+            )}
+
+            {view.shield && <CombatantShield shield={view.shield} onEdit={onEditShield} />}
         </Box>
     )
 }

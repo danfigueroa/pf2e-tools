@@ -21,6 +21,9 @@ import { encounterReducer, activeOrder, peekNext } from './encounterReducer'
 import { loadEncounter, saveEncounter } from './encounterStorage'
 import { useEncounterParty } from './useEncounterParty'
 import { useCombatantViews, rollDamage, type AutoDamage } from './useCombatantViews'
+import { useShieldCatalog } from './useShieldCatalog'
+import type { BlockResult } from '../character-viewer/shield'
+import type { ShieldBefore } from './components/CombatantVitals'
 import { damageTypeLabel } from './defenses'
 import { EncounterToolbar } from './components/EncounterToolbar'
 import { CombatantCard } from './components/CombatantCard'
@@ -78,7 +81,12 @@ export const InitiativePage = () => {
     // o GM poder voltar atrás, que é o preço de o app rolar por conta própria.
     const [autoDamage, setAutoDamage] = useState<AutoDamage | null>(null)
 
-    const views = useCombatantViews(state, party, dispatch, collectDowned, setAutoDamage)
+    const shieldNames = useMemo(
+        () => state.combatants.flatMap((c) => (c.kind === 'pc' && c.shieldItem ? [c.shieldItem.name] : [])),
+        [state.combatants],
+    )
+    const shieldCatalog = useShieldCatalog(shieldNames)
+    const views = useCombatantViews(state, party, dispatch, collectDowned, setAutoDamage, shieldCatalog)
 
     const [selected, setSelected] = useState<Set<string>>(new Set())
     const [dialog, setDialog] = useState<OpenDialog>(null)
@@ -190,6 +198,8 @@ export const InitiativePage = () => {
         action(drop)
         expireConditions(upcoming, drop)
         tickPartyAfflictions(upcoming)
+        // Raise a Shield vale até o INÍCIO do próximo turno de quem ergueu.
+        if (upcoming) viewsById.get(upcoming.id)?.setShieldRaised(false)
     }
 
     const handleNext = () => {
@@ -208,8 +218,32 @@ export const InitiativePage = () => {
 
     // --- Ações em lote -------------------------------------------------------
 
-    const applyDamage = (entries: Array<{ view: CombatantView; amount: number }>) => {
-        for (const { view, amount } of entries) view.applyDamage(amount)
+    const applyDamage = (entries: Array<{ view: CombatantView; amount: number; blockFrom?: number }>) => {
+        const broke: string[] = []
+        for (const { view, amount, blockFrom } of entries) {
+            if (blockFrom !== undefined) {
+                const result = view.blockDamage(blockFrom)
+                if (result?.broke || result?.destroyed) broke.push(view.combatant.name)
+                // Sem resultado o escudo não podia bloquear mais: cai o dano cheio.
+                if (!result) view.applyDamage(blockFrom)
+            } else {
+                view.applyDamage(amount)
+            }
+        }
+        if (broke.length > 0) setToast({ text: `Escudo quebrou: ${broke.join(', ')}.` })
+    }
+
+    /** Bloqueio feito no próprio cartão: avisa quando quebra, com "Desfazer". */
+    const onShieldBlocked = (view: CombatantView, result: BlockResult, before: ShieldBefore) => {
+        const tail = result.destroyed ? ' Escudo DESTRUÍDO.' : result.broke ? ' Escudo QUEBRADO.' : ''
+        setToast({
+            text: `${view.combatant.name}: Dureza segurou ${result.absorbed} · escudo −${result.toShield} · PV −${result.toCreature}.${tail}`,
+            label: 'Desfazer',
+            action: () => {
+                view.restoreShield(before.shield)
+                view.setVitals(before.current, before.temp)
+            },
+        })
     }
 
     /**
@@ -333,6 +367,8 @@ export const InitiativePage = () => {
                                 value: !view.combatant.defeated,
                             })}
                             onDuplicate={() => dispatch({ type: 'duplicate', id: view.combatant.id })}
+                            onShieldBlocked={onShieldBlocked}
+                            onSaveShield={(shield) => dispatch({ type: 'patch', id: view.combatant.id, patch: { shield } })}
                             onRemove={() => {
                                 dispatch({ type: 'remove', id: view.combatant.id })
                                 setSelected((prev) => {

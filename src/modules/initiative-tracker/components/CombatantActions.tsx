@@ -20,8 +20,10 @@ import {
     ExpandMore as ExpandIcon,
     LocalFireDepartment as PersistentIcon,
     MenuBook as SheetIcon,
+    Shield as ShieldIcon,
 } from '@mui/icons-material'
-import { CONDITION_COLOR, gold, green, status } from '../../../theme'
+import { CONDITION_COLOR, gold, green, SHIELD_COLOR, status } from '../../../theme'
+import { lift, useArmed, useReducedMotion } from '../../../motion/motion'
 import type { CombatantView } from '../types'
 
 interface Props {
@@ -33,6 +35,8 @@ interface Props {
     sheetName: string | null
     sheetOpen: boolean
     onToggleSheet: () => void
+    /** Só monstro sem escudo conhecido: abre o diálogo para definir um. */
+    onDefineShield?: () => void
 }
 
 interface ActionProps {
@@ -99,8 +103,11 @@ export const CombatantActions = ({
     sheetName,
     sheetOpen,
     onToggleSheet,
+    onDefineShield,
 }: Props) => {
     const { name } = view.combatant
+    const armed = useArmed()
+    const reduced = useReducedMotion()
 
     // A contagem de condições vem de `mods.active`, e não do estado cru: é o
     // que o cartão desenha logo abaixo, já com as impostas e as do estágio de
@@ -147,6 +154,57 @@ export const CombatantActions = ({
                 ariaLabel={`Dano persistente de ${name}${checkDue ? ', teste plano pendente' : ''}`}
                 onClick={onOpenPersistent}
             />
+
+            {/* Raise a Shield: é o botão que o GM mais aperta num turno de
+                quem tem escudo, então fica na fileira escrita, não no menu. */}
+            {view.shield ? (
+                <Tooltip title={view.shield.broken
+                    ? 'Escudo quebrado: não pode ser erguido'
+                    : view.shield.raised
+                        ? 'Abaixar o escudo (abaixa sozinho no início do próximo turno)'
+                        : `Levantar Escudo: +${view.shield.stats.bonus} de circunstância na CA`}
+                >
+                    <span style={{ display: 'inline-flex' }}>
+                        <Button
+                            size="small"
+                            variant={view.shield.raised ? 'contained' : 'outlined'}
+                            disabled={view.shield.broken && !view.shield.raised}
+                            startIcon={
+                                <ShieldIcon
+                                    key={view.shield.raised ? 'up' : 'down'}
+                                    sx={{
+                                        fontSize: '1rem',
+                                        animation: view.shield.raised && armed && !reduced ? `${lift} 380ms ease-out` : 'none',
+                                    }}
+                                />
+                            }
+                            onClick={() => view.setShieldRaised(!view.shield!.raised)}
+                            aria-pressed={view.shield.raised}
+                            aria-label={`${view.shield.raised ? 'Abaixar' : 'Levantar'} o escudo de ${name}`}
+                            sx={{
+                                flex: '0 0 auto',
+                                px: 1,
+                                fontSize: '0.75rem',
+                                ...(view.shield.raised
+                                    ? { backgroundColor: gold.main, color: '#FFFFFF', '&:hover': { backgroundColor: gold.deep } }
+                                    : { color: SHIELD_COLOR, borderColor: SHIELD_COLOR + '66', '&:hover': { borderColor: SHIELD_COLOR } }),
+                            }}
+                        >
+                            {view.shield.broken ? 'Escudo quebrado' : view.shield.raised ? `Escudo +${view.shield.stats.bonus}` : 'Levantar escudo'}
+                        </Button>
+                    </span>
+                </Tooltip>
+            ) : onDefineShield ? (
+                <ActionButton
+                    icon={<ShieldIcon sx={{ fontSize: '1rem' }} />}
+                    label="Escudo"
+                    count={0}
+                    color={SHIELD_COLOR}
+                    title="Definir o escudo deste monstro (Dureza, PV, BT)"
+                    ariaLabel={`Definir escudo de ${name}`}
+                    onClick={onDefineShield}
+                />
+            ) : null}
 
             {/* Este não abre diálogo, abre uma gaveta no próprio cartão — daí a
                 seta à direita em vez de contagem, e o verde da moldura em vez de
