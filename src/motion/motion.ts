@@ -97,19 +97,6 @@ export const pop = keyframes`
     100% { transform: scale(1); }
 `
 
-/** Anel que se expande a partir de um pip gasto. */
-export const ripple = keyframes`
-    0% { transform: scale(1); opacity: 0.7; }
-    100% { transform: scale(2.4); opacity: 0; }
-`
-
-/** Encolhe e volta — o pip sendo gasto. */
-export const squeeze = keyframes`
-    0% { transform: scale(1); }
-    40% { transform: scale(0.6); }
-    100% { transform: scale(1); }
-`
-
 /** Dado rolando: gira e quica. */
 export const tumble = keyframes`
     0% { transform: rotate(0deg) translateY(0); }
@@ -132,6 +119,25 @@ export const tilt = keyframes`
     50% { transform: rotate(-35deg) translateY(-4px); }
     100% { transform: rotate(-20deg); }
 `
+
+/**
+ * Encolher (gastar), estourar (recuperar) e anel, em gêmeos: o mesmo pip pode
+ * ser gastado e recuperado seguidas vezes. Indexe pela paridade de um contador.
+ */
+export const SPEND = twin(`
+    0% { transform: scale(1); }
+    40% { transform: scale(0.6); }
+    100% { transform: scale(1); }
+`)
+export const RECOVER = twin(`
+    0% { transform: scale(0.6); }
+    60% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+`)
+export const RIPPLE = twin(`
+    0% { transform: scale(1); opacity: 0.7; }
+    100% { transform: scale(2.4); opacity: 0; }
+`)
 
 export type PulseKind = 'heal' | 'hurt' | 'temp' | 'turn'
 
