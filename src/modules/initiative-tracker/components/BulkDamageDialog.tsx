@@ -2,11 +2,13 @@ import { useMemo, useState } from 'react'
 import {
     Box,
     Button,
+    Checkbox,
     Dialog,
     DialogActions,
     DialogContent,
     DialogTitle,
     Divider,
+    FormControlLabel,
     MenuItem,
     Stack,
     TextField,
@@ -17,7 +19,8 @@ import {
     useMediaQuery,
     useTheme,
 } from '@mui/material'
-import { gold, HP_COLOR, ink, parchment } from '../../../theme'
+import { gold, HP_COLOR, ink, parchment, SHIELD_COLOR } from '../../../theme'
+import { BLOCKABLE_TYPES, isBroken } from '../../character-viewer/shield'
 import { DAMAGE_TYPES, damageTypeLabel } from '../defenses'
 import { computeDamage, describeDamage, OUTCOME_LABELS, type SaveOutcome } from '../damage'
 import type { CombatantView } from '../types'
@@ -26,7 +29,11 @@ interface Props {
     open: boolean
     onClose: () => void
     targets: CombatantView[]
-    onApply: (entries: Array<{ view: CombatantView; amount: number }>) => void
+    /**
+     * `blockFrom` é o dano ANTES do escudo, quando o alvo bloqueou — quem aplica
+     * refaz a conta do bloqueio (`view.blockDamage`) para gastar o escudo junto.
+     */
+    onApply: (entries: Array<{ view: CombatantView; amount: number; blockFrom?: number }>) => void
 }
 
 /** Botões curtos: no celular "Sucesso crítico" não cabe em quatro colunas. */
@@ -54,6 +61,9 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
     const [type, setType] = useState<string>('untyped')
     const [defaultOutcome, setDefaultOutcome] = useState<SaveOutcome>('none')
     const [outcomes, setOutcomes] = useState<Record<string, SaveOutcome>>({})
+    const [blocks, setBlocks] = useState<Record<string, boolean>>({})
+    // Shield Block só segura dano físico (e o "sem tipo", que o GM usa para o golpe comum).
+    const blockable = BLOCKABLE_TYPES.has(type)
 
     const value = parseInt(amount, 10)
     const valid = Number.isFinite(value) && value > 0
@@ -61,12 +71,13 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
 
     const rows = useMemo(() => targets.map((view) => {
         const outcome = outcomes[view.combatant.id] ?? defaultOutcome
+        const blocking = blockable && !!view.shield?.canBlock && !!blocks[view.combatant.id]
         const breakdown = computeDamage(
-            { amount: valid ? value : 0, type, outcome },
+            { amount: valid ? value : 0, type, outcome, blockHardness: blocking ? view.shield!.stats.hardness : null },
             view.defense,
         )
-        return { view, outcome, breakdown }
-    }), [targets, outcomes, defaultOutcome, value, valid, type])
+        return { view, outcome, breakdown, blocking }
+    }), [targets, outcomes, defaultOutcome, value, valid, type, blocks, blockable])
 
     const total = rows.reduce((sum, r) => sum + r.breakdown.final, 0)
 
@@ -75,10 +86,15 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
         setType('untyped')
         setDefaultOutcome('none')
         setOutcomes({})
+        setBlocks({})
     }
 
     const handleApply = () => {
-        onApply(rows.map((r) => ({ view: r.view, amount: r.breakdown.final })))
+        onApply(rows.map((r) => ({
+            view: r.view,
+            amount: r.breakdown.final,
+            blockFrom: r.blocking ? r.breakdown.final + r.breakdown.blocked : undefined,
+        })))
         reset()
         onClose()
     }
@@ -136,7 +152,7 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
                 <Divider sx={{ my: 1.5 }} />
 
                 <Stack spacing={1}>
-                    {rows.map(({ view, outcome, breakdown }) => (
+                    {rows.map(({ view, outcome, breakdown, blocking }) => (
                         <Box
                             key={view.combatant.id}
                             sx={{
@@ -184,6 +200,26 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
                                     </ToggleButton>
                                 ))}
                             </ToggleButtonGroup>
+
+                            {view.shield?.canBlock && (
+                                <Tooltip title={blockable ? '' : 'Bloqueio com Escudo só segura dano físico.'}>
+                                    <FormControlLabel
+                                        sx={{ mt: 0.25, mr: 0, '& .MuiFormControlLabel-label': { fontSize: '0.8rem' } }}
+                                        control={
+                                            <Checkbox
+                                                size="small"
+                                                checked={blocking}
+                                                disabled={!blockable}
+                                                onChange={(e) => setBlocks((prev) => ({ ...prev, [view.combatant.id]: e.target.checked }))}
+                                                sx={{ color: SHIELD_COLOR, '&.Mui-checked': { color: SHIELD_COLOR } }}
+                                            />
+                                        }
+                                        label={blocking && valid
+                                            ? `Bloquear com escudo · escudo ${view.shield.hp} → ${Math.max(0, view.shield.hp - breakdown.toShield)}${isBroken(Math.max(0, view.shield.hp - breakdown.toShield), view.shield.stats) ? ' (quebra)' : ''}`
+                                            : `Bloquear com escudo (Dureza ${view.shield.stats.hardness})`}
+                                    />
+                                </Tooltip>
+                            )}
 
                             {valid && (
                                 <Typography variant="caption" sx={{ color: ink.secondary, display: 'block', mt: 0.5 }}>

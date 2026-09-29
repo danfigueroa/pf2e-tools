@@ -27,7 +27,11 @@ export interface DamageBreakdown {
     immune: boolean
     weakness: number
     resistance: number
-    /** Dano que efetivamente chega ao alvo, já com fraqueza e resistência. */
+    /** Quanto a Dureza do escudo segurou (Bloqueio com Escudo); 0 sem bloqueio. */
+    blocked: number
+    /** O que o escudo toma — o mesmo que passa para o alvo. */
+    toShield: number
+    /** Dano que efetivamente chega ao alvo, já com fraqueza, resistência e escudo. */
     final: number
     absorbedByTemp: number
     toHp: number
@@ -38,14 +42,24 @@ export interface DamageBreakdown {
 /**
  * Ordem RAW, e é ela que o memorial exibido segue:
  * base → multiplicador da salvaguarda → imunidade → fraqueza → resistência →
- * PV temporários → PV.
+ * escudo → PV temporários → PV.
+ *
+ * O escudo entra depois das defesas: o Bloqueio com Escudo segura o dano que
+ * a criatura TOMARIA, e esse já passou por resistência e fraqueza. O que sobra
+ * da Dureza vai inteiro para o alvo e, de novo inteiro, para o escudo.
  *
  * A absorção por PV temporários também acontece dentro de
  * `useHpTracker.applyDamage`/`npcDamage`; aqui ela é recalculada só para a
  * prévia. Os dois usam os mesmos números, então não divergem.
  */
 export function computeDamage(
-    input: { amount: number; type: string; outcome: SaveOutcome },
+    input: {
+        amount: number
+        type: string
+        outcome: SaveOutcome
+        /** Dureza do escudo que bloqueia; `null`/ausente = sem bloqueio. */
+        blockHardness?: number | null
+    },
     target: TargetDefense,
 ): DamageBreakdown {
     const base = Math.max(0, Math.floor(input.amount))
@@ -56,7 +70,10 @@ export function computeDamage(
     const weakness = immune || afterMultiplier <= 0 ? 0 : defenseValue(target.weaknesses, input.type)
     const resistance = immune || afterMultiplier <= 0 ? 0 : defenseValue(target.resistances, input.type)
 
-    const final = immune ? 0 : Math.max(0, afterMultiplier + weakness - resistance)
+    const afterDefense = immune ? 0 : Math.max(0, afterMultiplier + weakness - resistance)
+    const blocked = input.blockHardness != null ? Math.min(afterDefense, Math.max(0, input.blockHardness)) : 0
+    const final = afterDefense - blocked
+    const toShield = input.blockHardness != null ? final : 0
 
     const absorbedByTemp = Math.min(target.temp, final)
     const toHp = final - absorbedByTemp
@@ -68,6 +85,8 @@ export function computeDamage(
         immune,
         weakness,
         resistance,
+        blocked,
+        toShield,
         final,
         absorbedByTemp,
         toHp,
@@ -88,7 +107,8 @@ export function describeDamage(b: DamageBreakdown, typeLabel: string): string {
     if (b.resistance > 0) steps.push(`resistência ${typeLabel} −${b.resistance}`)
     // O total só acrescenta informação quando defesa entrou na conta: depois de
     // "×2 = 48" repetir "total 48" é ruído.
-    if (b.weakness > 0 || b.resistance > 0) steps.push(`total ${b.final}`)
+    if (b.weakness > 0 || b.resistance > 0) steps.push(`total ${b.final + b.blocked}`)
+    if (b.blocked > 0) steps.push(`escudo segurou ${b.blocked} (escudo −${b.toShield})`)
     if (b.absorbedByTemp > 0) steps.push(`${b.absorbedByTemp} absorvido por PV temporários`)
 
     return steps.join(' → ')
