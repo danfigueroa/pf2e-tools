@@ -20,7 +20,7 @@ import { gold, SHIELD_COLOR, status } from '../../../theme/palette'
 import type { BuildInfo } from '../../character-sheet/types'
 import { characterMaxHp } from '../helpers'
 import { hpKeyFor, legacyCharKey } from '../charId'
-import { craftingRank, repairAmount, type ShieldStored } from '../shield'
+import { blockSplit, craftingRank, isBroken, repairAmount, type ShieldStored } from '../shield'
 import type { CharacterShield } from './useShield'
 import { useHpTracker } from './useHpTracker'
 import { crack, floatUp, lift, pulseAnimation, useArmed, useReducedMotion, type Pulse } from '../../../motion/motion'
@@ -108,10 +108,10 @@ export const ShieldCard = ({ build, shield, hpMaxDelta }: Props) => {
     const valid = Number.isFinite(value) && value > 0
     const rank = craftingRank(build)
 
-    const handleBlock = () => {
+    const handleBlock = (destructive: boolean) => {
         if (!valid) return
         const before = { shield: { hp: view.hp, raised: view.raised }, hp: { current: hp.current, temp: hp.temp } }
-        const result = block(value)
+        const result = block(value, destructive)
         if (!result) return
         if (result.toCreature > 0) hp.applyDamage(result.toCreature)
         setAmount('')
@@ -122,7 +122,7 @@ export const ShieldCard = ({ build, shield, hpMaxDelta }: Props) => {
             ? ' · Escudo DESTRUÍDO'
             : result.broke ? ' · Escudo QUEBRADO' : ''
         setNotice({
-            text: `Bloqueio: Dureza segurou ${result.absorbed} · escudo −${result.toShield} · você −${result.toCreature}${tail}`,
+            text: `${result.destructive ? 'Bloqueio Destrutivo' : 'Bloqueio'}: Dureza segurou ${result.absorbed} · escudo −${result.toShield} · você −${result.toCreature}${tail}`,
             ...before,
         })
     }
@@ -296,7 +296,7 @@ export const ShieldCard = ({ build, shield, hpMaxDelta }: Props) => {
                             label="Dano do golpe"
                             value={amount}
                             onChange={(e) => setAmount(e.target.value.replace(/\D/g, ''))}
-                            onKeyDown={(e) => { if (e.key === 'Enter') handleBlock() }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleBlock(false) }}
                             inputProps={{ inputMode: 'numeric' }}
                             disabled={!view.canBlock}
                             sx={{ width: 130, flexShrink: 0 }}
@@ -307,7 +307,7 @@ export const ShieldCard = ({ build, shield, hpMaxDelta }: Props) => {
                                     fullWidth
                                     variant="contained"
                                     disabled={!view.canBlock || !valid}
-                                    onClick={handleBlock}
+                                    onClick={() => handleBlock(false)}
                                     sx={{ fontWeight: 700, backgroundColor: SHIELD_COLOR, '&:hover': { backgroundColor: SHIELD_COLOR, filter: 'brightness(0.9)' } }}
                                 >
                                     Bloquear
@@ -315,6 +315,17 @@ export const ShieldCard = ({ build, shield, hpMaxDelta }: Props) => {
                             </span>
                         </Tooltip>
                     </Box>
+                )}
+
+                {stats.canBlock && stats.destructive && (
+                    <DestructiveBlock
+                        damage={valid ? value : null}
+                        hardness={stats.hardness}
+                        shieldHp={shieldHp}
+                        bt={stats.bt}
+                        enabled={view.canBlock}
+                        onBlock={() => handleBlock(true)}
+                    />
                 )}
             </CardContent>
 
@@ -340,6 +351,54 @@ export const ShieldCard = ({ build, shield, hpMaxDelta }: Props) => {
                 ) : undefined}
             />
         </Card>
+    )
+}
+
+/**
+ * Destructive Block (Bastion): a escolha entre os dois bloqueios é feita depois
+ * de saber o dano, então os dois resultados aparecem lado a lado antes do toque.
+ */
+const DestructiveBlock = ({ damage, hardness, shieldHp, bt, enabled, onBlock }: {
+    damage: number | null
+    hardness: number
+    shieldHp: number
+    bt: number
+    enabled: boolean
+    onBlock: () => void
+}) => {
+    const outcome = (destructive: boolean) => {
+        if (damage == null) return ''
+        const split = blockSplit(damage, hardness, destructive)
+        const after = Math.max(0, shieldHp - split.toShield)
+        const tail = after === 0 ? ' (destruído)' : shieldHp > bt && isBroken(after, { bt }) ? ' (quebra)' : ''
+        return `você −${split.toCreature} · escudo −${split.toShield}${tail}`
+    }
+
+    return (
+        <Box sx={{ mt: 1.25 }}>
+            <Tooltip title={enabled
+                ? `Reduz o seu dano pelo dobro da Dureza (${2 * hardness}), mas o escudo toma o dobro do dano antes da Dureza.`
+                : 'Erga o escudo (inteiro) para bloquear.'}
+            >
+                <span style={{ display: 'flex' }}>
+                    <Button
+                        fullWidth
+                        variant="outlined"
+                        startIcon={<ShieldIcon />}
+                        disabled={!enabled || damage == null}
+                        onClick={onBlock}
+                        sx={{ fontWeight: 700, color: status.error, borderColor: status.error + '80', '&:hover': { borderColor: status.error } }}
+                    >
+                        Bloqueio Destrutivo
+                    </Button>
+                </span>
+            </Tooltip>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                {damage == null
+                    ? `Destructive Block: você desconta ${2 * hardness} (o dobro da Dureza) e o escudo toma o dobro do dano, menos a Dureza.`
+                    : `Comum: ${outcome(false)} · Destrutivo: ${outcome(true)}`}
+            </Typography>
+        </Box>
     )
 }
 
