@@ -9,6 +9,7 @@
 // traduzido no cliente, por src/modules/transformation-statblock/i18n.ts.
 
 import { searchAonRaw } from './aon.js'
+import { parseCreatureShield } from './shield-parse.js'
 
 const AON_BASE = 'https://2e.aonprd.com'
 
@@ -78,6 +79,9 @@ function normalize(hit) {
     weaknesses,
     immunities: toArray(s.immunity).map(i => String(i).toLowerCase()),
     defenseNotes,
+    // Dureza/PV/BT do escudo que ela carrega, quando a prosa diz. Sem isso, o GM
+    // define à mão no cartão.
+    shield: parseCreatureShield(s.text),
     speed: s.speed && typeof s.speed === 'object' ? s.speed : {},
     source: s.primary_source || null,
     url: url.startsWith('http') ? url : AON_BASE + url,
