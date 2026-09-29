@@ -1,5 +1,5 @@
-import { Box, Card, CardContent, Typography, Stack, Chip, useTheme } from '@mui/material'
-import { MenuBook as GuideIcon } from '@mui/icons-material'
+import { Alert, Box, Button, Card, CardContent, CircularProgress, Typography, Stack, Chip, useTheme } from '@mui/material'
+import { AutoAwesome as RegenerateIcon, MenuBook as GuideIcon } from '@mui/icons-material'
 import type { BuildInfo } from '../../character-sheet/types'
 import { abilityMod, signed, ABILITY_LABELS, characterMaxHp, isMythicCharacter, MYTHIC_PROFICIENCY_BONUS, MYTHIC_COLOR, type AbilityKey } from '../helpers'
 import { getCombatGuide } from '../combatGuides'
@@ -8,13 +8,15 @@ import { HpTracker } from '../components/HpTracker'
 import { ConditionDelta } from '../components/ConditionDelta'
 import { MythicNote } from '../components/MythicNote'
 import type { ConditionModifiers } from '../conditions'
+import type { GuideSlot } from '../components/usePublication'
 
 interface Props {
     build: BuildInfo
     mods: ConditionModifiers
+    guide: GuideSlot
 }
 
-export const OverviewSection = ({ build, mods }: Props) => {
+export const OverviewSection = ({ build, mods, guide: slot }: Props) => {
     const theme = useTheme()
     // Drenado corta PV máximos (valor × nível); nunca abaixo de 1.
     const hp = characterMaxHp(build, mods.hpMaxDelta)
@@ -30,7 +32,13 @@ export const OverviewSection = ({ build, mods }: Props) => {
         { label: 'Vontade', rank: build.proficiencies.will, ability: 'wis' as AbilityKey, target: 'will' as const },
     ]
 
-    const guide = getCombatGuide(build)
+    // Ficha publicada com guia gerado: vale o gerado, que descreve ESTA versão.
+    // Sem ele, o curado à mão (ou a heurística) continua aparecendo — com aviso
+    // se a ficha é da mesa, porque aí ele pode estar descrevendo a anterior.
+    const fallback = getCombatGuide(build)
+    const guide = slot.guide
+        ? { markdown: slot.guide.markdown, curated: true, ai: true }
+        : { ...fallback, ai: false }
     const mythic = isMythicCharacter(build)
 
     return (
@@ -175,11 +183,57 @@ export const OverviewSection = ({ build, mods }: Props) => {
                         <Typography variant="h6" sx={{ fontWeight: 700 }}>
                             Guia de Uso — Como Jogar
                         </Typography>
+                        {guide.ai && (
+                            <Chip label="gerado por IA" size="small" variant="outlined" sx={{ ml: 'auto' }} />
+                        )}
                         {!guide.curated && (
                             <Chip label="automático" size="small" variant="outlined" sx={{ ml: 'auto' }} />
                         )}
                     </Box>
+
+                    {slot.status === 'generating' && (
+                        <Alert severity="info" icon={<CircularProgress size={18} />} sx={{ mb: 2 }}>
+                            Gerando o guia para a ficha publicada… leva até meio minuto.
+                            {!guide.ai && ' Enquanto isso, segue o guia anterior.'}
+                        </Alert>
+                    )}
+                    {slot.status === 'failed' && (
+                        <Alert
+                            severity="warning"
+                            sx={{ mb: 2 }}
+                            action={<Button color="inherit" size="small" onClick={slot.onGenerate}>Tentar de novo</Button>}
+                        >
+                            Não deu para gerar o guia: {slot.error}
+                        </Alert>
+                    )}
+                    {slot.published && !slot.guide && slot.status === 'idle' && (
+                        <Alert
+                            severity="info"
+                            sx={{ mb: 2 }}
+                            action={<Button color="inherit" size="small" onClick={slot.onGenerate}>Gerar guia</Button>}
+                        >
+                            Esta ficha foi publicada sem guia novo — o de baixo pode descrever a versão anterior.
+                        </Alert>
+                    )}
+
                     <GuideMarkdown markdown={guide.markdown} />
+
+                    {guide.ai && slot.guide && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, mt: 2 }}>
+                            <Typography variant="caption" color="text.secondary" sx={{ flex: '1 1 auto' }}>
+                                Gerado por IA a partir da ficha em {new Date(slot.guide.generatedAt).toLocaleDateString('pt-BR')}.
+                                Confira na ficha antes de confiar num número.
+                            </Typography>
+                            <Button
+                                size="small"
+                                startIcon={<RegenerateIcon />}
+                                onClick={slot.onGenerate}
+                                disabled={slot.status === 'generating'}
+                            >
+                                Gerar de novo
+                            </Button>
+                        </Box>
+                    )}
                 </CardContent>
             </Card>
         </Stack>

@@ -12,10 +12,17 @@ import {
     Alert,
 } from '@mui/material'
 import { CloudUpload as UploadIcon, Person as PersonIcon } from '@mui/icons-material'
-import { CAMPAIGN_PRESETS } from '../campaignPresets'
+import { CAMPAIGN_PRESETS, loadPresetJson, type CharacterPreset } from '../campaignPresets'
+import { usePublishedSheets } from '../usePublishedSheets'
+import { fetchPublished, type PublishedSheet } from '../../../services/sheets'
+
+/** De onde veio o JSON: arquivo enviado agora abre o diálogo de publicar. */
+export type JsonOrigin =
+    | { kind: 'file' }
+    | { kind: 'preset'; published: PublishedSheet | null }
 
 interface Props {
-    onJson: (data: unknown) => void
+    onJson: (data: unknown, origin: JsonOrigin) => void
     error: string | null
 }
 
@@ -23,24 +30,36 @@ export const UploadCard = ({ onJson, error }: Props) => {
     const inputRef = useRef<HTMLInputElement>(null)
     const [loadingPreset, setLoadingPreset] = useState<string | null>(null)
 
+    const { levelOf, find, extras } = usePublishedSheets()
+
     const handleFile = async (file: File) => {
         try {
             const text = await file.text()
             const json = JSON.parse(text)
-            onJson(json)
+            onJson(json, { kind: 'file' })
         } catch {
-            onJson({ __invalid: true })
+            onJson({ __invalid: true }, { kind: 'file' })
         }
     }
 
-    const handlePreset = async (filename: string) => {
-        setLoadingPreset(filename)
+    const handlePreset = async (preset: CharacterPreset) => {
+        setLoadingPreset(preset.filename)
         try {
-            const res = await fetch(`/characters/${filename}`)
-            const json = await res.json()
-            onJson(json)
+            const { json, published } = await loadPresetJson(preset)
+            onJson(json, { kind: 'preset', published })
         } catch {
-            onJson({ __invalid: true })
+            onJson({ __invalid: true }, { kind: 'preset', published: null })
+        } finally {
+            setLoadingPreset(null)
+        }
+    }
+
+    // Personagem novo que alguém publicou — não existe arquivo fixo dele.
+    const handlePublished = async (slug: string) => {
+        setLoadingPreset(slug)
+        try {
+            const published = await fetchPublished(slug)
+            onJson(published?.json ?? { __invalid: true }, { kind: 'preset', published })
         } finally {
             setLoadingPreset(null)
         }
@@ -68,7 +87,7 @@ export const UploadCard = ({ onJson, error }: Props) => {
                             sx={{ flex: '1 1 140px', minWidth: 130 }}
                         >
                             <CardActionArea
-                                onClick={() => handlePreset(preset.filename)}
+                                onClick={() => handlePreset(preset)}
                                 disabled={loadingPreset !== null}
                                 sx={{ p: 1.5, textAlign: 'center' }}
                             >
@@ -81,7 +100,36 @@ export const UploadCard = ({ onJson, error }: Props) => {
                                     {preset.name}
                                 </Typography>
                                 <Typography variant="caption" color="text.secondary">
-                                    {preset.class} {preset.level}
+                                    {preset.class} {levelOf(preset)}
+                                </Typography>
+                                {find(preset) && (
+                                    <Typography variant="caption" sx={{ display: 'block', color: 'primary.main', fontWeight: 600 }}>
+                                        atualizada pela mesa
+                                    </Typography>
+                                )}
+                            </CardActionArea>
+                        </Card>
+                    ))}
+                    {extras.map((sheet) => (
+                        <Card key={sheet.slug} variant="outlined" sx={{ flex: '1 1 140px', minWidth: 130 }}>
+                            <CardActionArea
+                                onClick={() => handlePublished(sheet.slug)}
+                                disabled={loadingPreset !== null}
+                                sx={{ p: 1.5, textAlign: 'center' }}
+                            >
+                                {loadingPreset === sheet.slug ? (
+                                    <CircularProgress size={28} sx={{ mb: 0.5 }} />
+                                ) : (
+                                    <PersonIcon sx={{ fontSize: 28, color: 'primary.main', mb: 0.5 }} />
+                                )}
+                                <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2, overflowWrap: 'anywhere' }}>
+                                    {sheet.name}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                    {sheet.className} {sheet.level}
+                                </Typography>
+                                <Typography variant="caption" sx={{ display: 'block', color: 'primary.main', fontWeight: 600 }}>
+                                    publicada pela mesa
                                 </Typography>
                             </CardActionArea>
                         </Card>
@@ -90,7 +138,7 @@ export const UploadCard = ({ onJson, error }: Props) => {
 
                 <Divider sx={{ mb: 3 }}>
                     <Typography variant="caption" color="text.secondary">
-                        ou carregue sua própria ficha
+                        atualizou no Pathbuilder? envie o JSON
                     </Typography>
                 </Divider>
 
@@ -130,6 +178,9 @@ export const UploadCard = ({ onJson, error }: Props) => {
                     </Typography>
                     <Typography variant="caption" sx={{ display: 'block', opacity: 0.85 }}>
                         • Export do Pathbuilder 2e (campo <code>build</code>)
+                    </Typography>
+                    <Typography variant="caption" sx={{ display: 'block', opacity: 0.85 }}>
+                        • Enviar a ficha de um personagem da mesa permite publicar a versão nova para todos
                     </Typography>
                 </Box>
             </CardContent>
