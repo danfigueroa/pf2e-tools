@@ -67,6 +67,13 @@ export const MYTHIC_COLOR = '#B03356'
 /** Pontos de vida (HpTracker). */
 export const HP_COLOR = '#B4442A'
 
+/**
+ * Escudo (ShieldCard, cartão da Iniciativa) — aço azulado. É item, não
+ * criatura: a barra de PV dele não pode ser confundida com a do personagem.
+ * 5,5:1 sobre `parchment.paper`.
+ */
+export const SHIELD_COLOR = '#4A6572'
+
 /** Condições ativas (ConditionsBar) — roxo de esmalte, distinto do PV e do mítico. */
 export const CONDITION_COLOR = '#5E4B8B'
 
