@@ -4,6 +4,8 @@ import { Favorite as HpIcon, HealthAndSafety as TempIcon } from '@mui/icons-mate
 import { hpBarColor } from '../../character-viewer/components/useHpTracker'
 import { HP_COLOR, ink } from '../../../theme'
 import type { CombatantView } from '../types'
+import { useHpFeedback } from '../../../motion/useHpFeedback'
+import { FloatingDeltas } from '../../../motion/FloatingDeltas'
 
 /** Barra de PV com dano/cura rápidos, para o ajuste avulso fora do lote. */
 export const CombatantVitals = ({ view }: { view: CombatantView }) => {
@@ -32,15 +34,23 @@ export const CombatantVitals = ({ view }: { view: CombatantView }) => {
         setAmount('')
     }
 
+    // Dano automático (aflição, persistente no fim do turno) e dano em lote
+    // caem sem ninguém olhar para este cartão: o tremor e o "−7" é que avisam
+    // em qual deles caiu.
+    const feedback = useHpFeedback(current, temp)
+
     const ratio = maxHp > 0 ? current / maxHp : 0
 
     return (
-        <Box>
+        <Box sx={{ borderRadius: 1, animation: feedback.animation }}>
             <Stack direction="row" alignItems="baseline" spacing={0.5} sx={{ mb: 0.5 }}>
                 <HpIcon sx={{ fontSize: '1rem', color: HP_COLOR, alignSelf: 'center' }} />
-                <Typography sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
-                    {current}
-                </Typography>
+                <Box sx={{ position: 'relative' }}>
+                    <Typography sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+                        {feedback.shown}
+                    </Typography>
+                    <FloatingDeltas deltas={feedback.deltas} placement="above" />
+                </Box>
                 <Typography variant="body2" sx={{ color: ink.secondary }}>/ {maxHp}</Typography>
                 {maxHpDelta !== 0 && (
                     <Tooltip title="Máximo reduzido por Drenado">
@@ -67,7 +77,10 @@ export const CombatantVitals = ({ view }: { view: CombatantView }) => {
                     borderRadius: 4,
                     mb: 1,
                     backgroundColor: HP_COLOR + '22',
-                    '& .MuiLinearProgress-bar': { backgroundColor: hpBarColor(current, maxHp, theme.palette) },
+                    '& .MuiLinearProgress-bar': {
+                        backgroundColor: hpBarColor(current, maxHp, theme.palette),
+                        transition: 'transform 0.6s cubic-bezier(.2,.8,.2,1), background-color 0.6s',
+                    },
                 }}
             />
 
