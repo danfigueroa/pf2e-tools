@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Button, Card, CardContent, Typography, Stack, Chip, IconButton, Snackbar, Tooltip } from '@mui/material'
 import {
     Add as AddIcon,
@@ -17,6 +17,8 @@ import { useConsumables } from '../components/useConsumables'
 import { useHpTracker } from '../components/useHpTracker'
 import { fetchItemTraits, isConsumable, type ItemTraits } from '../../../services/itemTraits'
 import { rollFormulaDetailed, rollMemorial } from '../../initiative-tracker/dice'
+import { PotionOverlay, type DrinkEvent } from '../components/PotionOverlay'
+import { pop, useArmed } from '../../../motion/motion'
 
 interface Props {
     build: BuildInfo
@@ -89,6 +91,17 @@ export const InventorySection = ({ build, onSelect, mods }: Props) => {
 
     const [traits, setTraits] = useState<Record<string, ItemTraits | null>>({})
     const [notice, setNotice] = useState<UseNotice | null>(null)
+    // A poção sendo bebida na tela. O aviso com "Desfazer" só aparece quando a
+    // animação fecha — os dois juntos disputariam o olho de quem bebeu.
+    const [drink, setDrink] = useState<{ event: DrinkEvent; notice: UseNotice } | null>(null)
+    const drinkRef = useRef(drink)
+    drinkRef.current = drink
+    const closeDrink = useCallback(() => {
+        if (drinkRef.current) setNotice(drinkRef.current.notice)
+        setDrink(null)
+    }, [])
+    // Abrir a aba não é "usar um item": o estouro do contador só depois de montado.
+    const armed = useArmed()
 
     const equipmentNames = useMemo(
         () => (build.equipment ?? []).map(([name]) => name).join('|'),
@@ -111,13 +124,18 @@ export const InventorySection = ({ build, onSelect, mods }: Props) => {
             setNotice({ text: `${row.name} usado.`, name: row.name, qty: row.qty, healed: 0 })
             return
         }
+        const before = hp.current
         const healed = hp.applyHealing(roll.total)
         const capped = healed < roll.total ? ' (PV cheio)' : ''
-        setNotice({
-            text: `${row.name}: ${formula} → ${rollMemorial(roll)} · +${healed} PV${capped}`,
-            name: row.name,
-            qty: row.qty,
-            healed,
+        setNotice(null)
+        setDrink({
+            event: { name: row.name, formula, roll, before, after: before + healed, max: characterMaxHp(build, mods.hpMaxDelta) },
+            notice: {
+                text: `${row.name}: ${formula} → ${rollMemorial(roll)} · +${healed} PV${capped}`,
+                name: row.name,
+                qty: row.qty,
+                healed,
+            },
         })
     }
 
@@ -230,7 +248,14 @@ export const InventorySection = ({ build, onSelect, mods }: Props) => {
                                                 {spent ? (
                                                     <Chip label="Esgotado" size="small" />
                                                 ) : remaining < row.qty ? (
-                                                    <Chip label={`x${remaining} de ${row.qty}`} size="small" variant="outlined" />
+                                                    // A `key` pelo restante refaz o estouro a cada uso.
+                                                    <Chip
+                                                        key={remaining}
+                                                        label={`x${remaining} de ${row.qty}`}
+                                                        size="small"
+                                                        variant="outlined"
+                                                        sx={{ animation: armed ? `${pop} 320ms ease-out` : 'none', '@media (prefers-reduced-motion: reduce)': { animation: 'none' } }}
+                                                    />
                                                 ) : row.qty > 1 ? (
                                                     <Chip label={`x${row.qty}`} size="small" variant="outlined" />
                                                 ) : null}
@@ -287,6 +312,8 @@ export const InventorySection = ({ build, onSelect, mods }: Props) => {
                     </CardContent>
                 </Card>
             )}
+
+            <PotionOverlay drink={drink?.event ?? null} onClose={closeDrink} />
 
             <Snackbar
                 open={!!notice}
