@@ -120,7 +120,7 @@ const PotionContent = ({ drink, onClose }: { drink: DrinkEvent; onClose: () => v
 
                 {/* PV enchendo: o trecho que a cura somou fica mais claro. */}
                 <Box sx={{ mt: 2.5, position: 'relative' }}>
-                    {healing && !reduced && (
+                    {healing && healed > 0 && !reduced && (
                         <Box aria-hidden sx={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
                             {BUBBLES.map((b, i) => (
                                 <Box
@@ -208,10 +208,14 @@ const PotionContent = ({ drink, onClose }: { drink: DrinkEvent; onClose: () => v
                 <Box sx={{ minHeight: 36, mt: 1.5, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1 }}>
                     {phase === 'done' && (
                         <>
-                            <Typography sx={{ fontWeight: 700, color: status.success }}>
-                                {healed > 0 ? `+${healed} PV` : 'Nenhum PV recuperado'}
-                            </Typography>
-                            {capped && <Chip size="small" label="PV cheio" variant="outlined" />}
+                            {healed > 0 ? (
+                                <>
+                                    <Typography sx={{ fontWeight: 700, color: status.success }}>+{healed} PV</Typography>
+                                    {capped && <Chip size="small" label="PV cheio" variant="outlined" />}
+                                </>
+                            ) : (
+                                <Typography sx={{ fontWeight: 600 }} color="text.secondary">O PV já estava cheio.</Typography>
+                            )}
                         </>
                     )}
                 </Box>
