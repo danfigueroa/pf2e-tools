@@ -82,6 +82,7 @@ function shieldItem(value: unknown): ShieldItem | undefined {
         runes: strings(v.runes),
         bonus: bonus === null || Number.isFinite(bonus) ? bonus : null,
         canBlock: v.canBlock === true,
+        destructive: v.destructive === true,
     }
 }
 

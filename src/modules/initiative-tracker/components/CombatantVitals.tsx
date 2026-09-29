@@ -27,9 +27,11 @@ export const CombatantVitals = ({ view, onBlocked, onEditShield }: {
     const theme = useTheme()
     const [amount, setAmount] = useState('')
     // O próximo "Dano" passa pelo escudo. Volta a desligar depois de usado:
-    // Shield Block é uma reação, gasta num golpe só.
-    const [blocking, setBlocking] = useState(false)
+    // Shield Block é uma reação, gasta num golpe só. `destructive` é o
+    // Destructive Block, escolhido golpe a golpe por quem tem o talento.
+    const [blocking, setBlocking] = useState<'off' | 'normal' | 'destructive'>('off')
     const canBlock = !!view.shield?.canBlock
+    const canDestroy = canBlock && !!view.shield?.stats.destructive
     const { current, temp, maxHp, maxHpDelta, applyDamage, applyHealing } = view
     const { name } = view.combatant
 
@@ -54,13 +56,13 @@ export const CombatantVitals = ({ view, onBlocked, onEditShield }: {
     }
 
     const damage = (n: number) => {
-        if (!(blocking && canBlock && view.shield)) {
+        if (!(blocking !== 'off' && canBlock && view.shield)) {
             applyDamage(n)
             return
         }
         const before = { shield: { hp: view.shield.hp, raised: view.shield.raised }, current, temp }
-        const result = view.blockDamage(n)
-        setBlocking(false)
+        const result = view.blockDamage(n, blocking === 'destructive')
+        setBlocking('off')
         if (result) onBlocked?.(view, result, before)
         else applyDamage(n)
     }
@@ -163,26 +165,47 @@ export const CombatantVitals = ({ view, onBlocked, onEditShield }: {
             </Stack>
 
             {canBlock && (
-                <Tooltip title="O próximo Dano passa pelo escudo: a Dureza segura, o resto vai para o PV e para o escudo. Só dano físico.">
-                    <Button
-                        size="small"
-                        fullWidth
-                        variant={blocking ? 'contained' : 'outlined'}
-                        startIcon={<ShieldIcon sx={{ fontSize: '1rem' }} />}
-                        onClick={() => setBlocking((b) => !b)}
-                        aria-pressed={blocking}
-                        aria-label={`Bloquear com escudo o próximo dano em ${name}`}
-                        sx={{
-                            mt: 0.75,
-                            fontSize: '0.75rem',
-                            ...(blocking
-                                ? { backgroundColor: SHIELD_COLOR, '&:hover': { backgroundColor: SHIELD_COLOR, filter: 'brightness(0.9)' } }
-                                : { color: SHIELD_COLOR, borderColor: SHIELD_COLOR + '66', '&:hover': { borderColor: SHIELD_COLOR } }),
-                        }}
-                    >
-                        {blocking ? 'Bloqueando o próximo dano' : 'Bloquear com escudo'}
-                    </Button>
-                </Tooltip>
+                <Stack direction="row" spacing={0.75} sx={{ mt: 0.75 }}>
+                    <Tooltip title="O próximo Dano passa pelo escudo: a Dureza segura, o resto vai para o PV e para o escudo. Só dano físico.">
+                        <Button
+                            size="small"
+                            fullWidth
+                            variant={blocking === 'normal' ? 'contained' : 'outlined'}
+                            startIcon={<ShieldIcon sx={{ fontSize: '1rem' }} />}
+                            onClick={() => setBlocking((b) => (b === 'normal' ? 'off' : 'normal'))}
+                            aria-pressed={blocking === 'normal'}
+                            aria-label={`Bloquear com escudo o próximo dano em ${name}`}
+                            sx={{
+                                fontSize: '0.75rem',
+                                ...(blocking === 'normal'
+                                    ? { backgroundColor: SHIELD_COLOR, '&:hover': { backgroundColor: SHIELD_COLOR, filter: 'brightness(0.9)' } }
+                                    : { color: SHIELD_COLOR, borderColor: SHIELD_COLOR + '66', '&:hover': { borderColor: SHIELD_COLOR } }),
+                            }}
+                        >
+                            {blocking === 'normal' ? 'Bloqueando o próximo dano' : 'Bloquear com escudo'}
+                        </Button>
+                    </Tooltip>
+                    {canDestroy && (
+                        <Tooltip title={`Destructive Block: o próximo Dano desconta o dobro da Dureza (${2 * view.shield!.stats.hardness}) do PV, mas o escudo toma o dobro do dano antes da Dureza. Só dano físico.`}>
+                            <Button
+                                size="small"
+                                variant={blocking === 'destructive' ? 'contained' : 'outlined'}
+                                onClick={() => setBlocking((b) => (b === 'destructive' ? 'off' : 'destructive'))}
+                                aria-pressed={blocking === 'destructive'}
+                                aria-label={`Bloqueio Destrutivo no próximo dano em ${name}`}
+                                sx={{
+                                    flex: '0 0 auto',
+                                    fontSize: '0.75rem',
+                                    ...(blocking === 'destructive'
+                                        ? { backgroundColor: HP_COLOR, '&:hover': { backgroundColor: '#8F3622' } }
+                                        : { color: HP_COLOR, borderColor: HP_COLOR + '66', '&:hover': { borderColor: HP_COLOR } }),
+                                }}
+                            >
+                                Destrutivo
+                            </Button>
+                        </Tooltip>
+                    )}
+                </Stack>
             )}
 
             {view.shield && <CombatantShield shield={view.shield} onEdit={onEditShield} />}

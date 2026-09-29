@@ -174,7 +174,7 @@ function buildView(
         writeShield = (next) => party.setShield(combatant.slug, next)
     } else if (npc?.shield) {
         const own = npc.shield
-        stats = { name: own.name, bonus: own.bonus, hardness: own.hardness, maxHp: own.maxHp, bt: own.bt, canBlock: own.canBlock }
+        stats = { name: own.name, bonus: own.bonus, hardness: own.hardness, maxHp: own.maxHp, bt: own.bt, canBlock: own.canBlock, destructive: false }
         shieldStored = { hp: own.hp, raised: own.raised }
         writeShield = (next) => dispatch({
             type: 'patch',
@@ -190,9 +190,9 @@ function buildView(
             if (!shield || (raised && shield.broken) || shield.raised === raised) return
             writeShield({ hp: shield.hp, raised })
         },
-        blockDamage: (amount: number) => {
+        blockDamage: (amount: number, destructive = false) => {
             if (!shield?.canBlock) return null
-            const result = shieldBlock(amount, shield.stats, shield.hp)
+            const result = shieldBlock(amount, shield.stats, shield.hp, destructive)
             // Quebrou: deixa de estar erguido — quebrado não cumpre a função.
             writeShield({ hp: result.hpAfter, raised: !isBroken(result.hpAfter, shield.stats) })
             if (result.toCreature > 0) core.applyDamage(result.toCreature)

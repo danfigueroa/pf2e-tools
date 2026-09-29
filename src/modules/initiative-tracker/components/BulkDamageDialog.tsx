@@ -32,8 +32,9 @@ interface Props {
     /**
      * `blockFrom` é o dano ANTES do escudo, quando o alvo bloqueou — quem aplica
      * refaz a conta do bloqueio (`view.blockDamage`) para gastar o escudo junto.
+     * `destructive` é o Destructive Block.
      */
-    onApply: (entries: Array<{ view: CombatantView; amount: number; blockFrom?: number }>) => void
+    onApply: (entries: Array<{ view: CombatantView; amount: number; blockFrom?: number; destructive?: boolean }>) => void
 }
 
 /** Botões curtos: no celular "Sucesso crítico" não cabe em quatro colunas. */
@@ -62,6 +63,7 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
     const [defaultOutcome, setDefaultOutcome] = useState<SaveOutcome>('none')
     const [outcomes, setOutcomes] = useState<Record<string, SaveOutcome>>({})
     const [blocks, setBlocks] = useState<Record<string, boolean>>({})
+    const [destroys, setDestroys] = useState<Record<string, boolean>>({})
     // Shield Block só segura dano físico (e o "sem tipo", que o GM usa para o golpe comum).
     const blockable = BLOCKABLE_TYPES.has(type)
 
@@ -72,12 +74,19 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
     const rows = useMemo(() => targets.map((view) => {
         const outcome = outcomes[view.combatant.id] ?? defaultOutcome
         const blocking = blockable && !!view.shield?.canBlock && !!blocks[view.combatant.id]
+        const destructive = blocking && !!view.shield?.stats.destructive && !!destroys[view.combatant.id]
         const breakdown = computeDamage(
-            { amount: valid ? value : 0, type, outcome, blockHardness: blocking ? view.shield!.stats.hardness : null },
+            {
+                amount: valid ? value : 0,
+                type,
+                outcome,
+                blockHardness: blocking ? view.shield!.stats.hardness : null,
+                blockDestructive: destructive,
+            },
             view.defense,
         )
-        return { view, outcome, breakdown, blocking }
-    }), [targets, outcomes, defaultOutcome, value, valid, type, blocks, blockable])
+        return { view, outcome, breakdown, blocking, destructive }
+    }), [targets, outcomes, defaultOutcome, value, valid, type, blocks, destroys, blockable])
 
     const total = rows.reduce((sum, r) => sum + r.breakdown.final, 0)
 
@@ -87,6 +96,7 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
         setDefaultOutcome('none')
         setOutcomes({})
         setBlocks({})
+        setDestroys({})
     }
 
     const handleApply = () => {
@@ -94,6 +104,7 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
             view: r.view,
             amount: r.breakdown.final,
             blockFrom: r.blocking ? r.breakdown.final + r.breakdown.blocked : undefined,
+            destructive: r.destructive,
         })))
         reset()
         onClose()
@@ -152,7 +163,7 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
                 <Divider sx={{ my: 1.5 }} />
 
                 <Stack spacing={1}>
-                    {rows.map(({ view, outcome, breakdown, blocking }) => (
+                    {rows.map(({ view, outcome, breakdown, blocking, destructive }) => (
                         <Box
                             key={view.combatant.id}
                             sx={{
@@ -217,6 +228,23 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
                                         label={blocking && valid
                                             ? `Bloquear com escudo · escudo ${view.shield.hp} → ${Math.max(0, view.shield.hp - breakdown.toShield)}${isBroken(Math.max(0, view.shield.hp - breakdown.toShield), view.shield.stats) ? ' (quebra)' : ''}`
                                             : `Bloquear com escudo (Dureza ${view.shield.stats.hardness})`}
+                                    />
+                                </Tooltip>
+                            )}
+
+                            {blocking && view.shield?.stats.destructive && (
+                                <Tooltip title={`Destructive Block: o dobro da Dureza (${2 * view.shield.stats.hardness}) segura o dano, mas o escudo toma o dobro do dano antes da Dureza.`}>
+                                    <FormControlLabel
+                                        sx={{ ml: 2, mr: 0, '& .MuiFormControlLabel-label': { fontSize: '0.8rem' } }}
+                                        control={
+                                            <Checkbox
+                                                size="small"
+                                                checked={destructive}
+                                                onChange={(e) => setDestroys((prev) => ({ ...prev, [view.combatant.id]: e.target.checked }))}
+                                                sx={{ color: HP_COLOR, '&.Mui-checked': { color: HP_COLOR } }}
+                                            />
+                                        }
+                                        label={`Bloqueio Destrutivo (segura ${2 * view.shield.stats.hardness})`}
                                     />
                                 </Tooltip>
                             )}

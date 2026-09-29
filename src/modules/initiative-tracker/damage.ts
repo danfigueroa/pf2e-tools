@@ -1,4 +1,5 @@
 import { defenseValue, isImmune } from './defenses'
+import { blockSplit } from '../character-viewer/shield'
 import type { TargetDefense } from './types'
 
 /** Resultado da salvaguarda do alvo. `none` = dano direto (ataque comum). */
@@ -29,7 +30,7 @@ export interface DamageBreakdown {
     resistance: number
     /** Quanto a Dureza do escudo segurou (Bloqueio com Escudo); 0 sem bloqueio. */
     blocked: number
-    /** O que o escudo toma — o mesmo que passa para o alvo. */
+    /** O que o escudo toma — o mesmo que passa para o alvo, salvo no Destructive Block. */
     toShield: number
     /** Dano que efetivamente chega ao alvo, já com fraqueza, resistência e escudo. */
     final: number
@@ -59,6 +60,8 @@ export function computeDamage(
         outcome: SaveOutcome
         /** Dureza do escudo que bloqueia; `null`/ausente = sem bloqueio. */
         blockHardness?: number | null
+        /** Destructive Block: o dobro da Dureza segura, e o escudo toma o dobro. */
+        blockDestructive?: boolean
     },
     target: TargetDefense,
 ): DamageBreakdown {
@@ -71,9 +74,12 @@ export function computeDamage(
     const resistance = immune || afterMultiplier <= 0 ? 0 : defenseValue(target.resistances, input.type)
 
     const afterDefense = immune ? 0 : Math.max(0, afterMultiplier + weakness - resistance)
-    const blocked = input.blockHardness != null ? Math.min(afterDefense, Math.max(0, input.blockHardness)) : 0
+    const split = input.blockHardness != null
+        ? blockSplit(afterDefense, input.blockHardness, !!input.blockDestructive)
+        : null
+    const blocked = split?.absorbed ?? 0
     const final = afterDefense - blocked
-    const toShield = input.blockHardness != null ? final : 0
+    const toShield = split?.toShield ?? 0
 
     const absorbedByTemp = Math.min(target.temp, final)
     const toHp = final - absorbedByTemp

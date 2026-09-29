@@ -218,11 +218,11 @@ export const InitiativePage = () => {
 
     // --- Ações em lote -------------------------------------------------------
 
-    const applyDamage = (entries: Array<{ view: CombatantView; amount: number; blockFrom?: number }>) => {
+    const applyDamage = (entries: Array<{ view: CombatantView; amount: number; blockFrom?: number; destructive?: boolean }>) => {
         const broke: string[] = []
-        for (const { view, amount, blockFrom } of entries) {
+        for (const { view, amount, blockFrom, destructive } of entries) {
             if (blockFrom !== undefined) {
-                const result = view.blockDamage(blockFrom)
+                const result = view.blockDamage(blockFrom, destructive)
                 if (result?.broke || result?.destroyed) broke.push(view.combatant.name)
                 // Sem resultado o escudo não podia bloquear mais: cai o dano cheio.
                 if (!result) view.applyDamage(blockFrom)
@@ -237,7 +237,7 @@ export const InitiativePage = () => {
     const onShieldBlocked = (view: CombatantView, result: BlockResult, before: ShieldBefore) => {
         const tail = result.destroyed ? ' Escudo DESTRUÍDO.' : result.broke ? ' Escudo QUEBRADO.' : ''
         setToast({
-            text: `${view.combatant.name}: Dureza segurou ${result.absorbed} · escudo −${result.toShield} · PV −${result.toCreature}.${tail}`,
+            text: `${view.combatant.name}${result.destructive ? ' (Bloqueio Destrutivo)' : ''}: Dureza segurou ${result.absorbed} · escudo −${result.toShield} · PV −${result.toCreature}.${tail}`,
             label: 'Desfazer',
             action: () => {
                 view.restoreShield(before.shield)

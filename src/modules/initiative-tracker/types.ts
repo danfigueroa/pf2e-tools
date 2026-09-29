@@ -151,8 +151,9 @@ export interface CombatantView {
     /**
      * Bloqueio com Escudo: a Dureza segura, o resto vai para o PV (pelo mesmo
      * caminho do dano comum) e para o escudo. `null` se não pode bloquear.
+     * `destructive` é o Destructive Block, que só vale com o talento.
      */
-    blockDamage: (amount: number) => BlockResult | null
+    blockDamage: (amount: number, destructive?: boolean) => BlockResult | null
     /** Estado exato do escudo — o "Desfazer". */
     restoreShield: (stored: ShieldStored) => void
     adjustCondition: (id: string, delta: number) => void
