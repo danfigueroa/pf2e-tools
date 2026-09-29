@@ -14,6 +14,15 @@ import type { PersistentDamage } from './persistentDamage'
 import type { EncounterAction } from './encounterReducer'
 import type { PartyApi } from './useEncounterParty'
 import type { Combatant, CombatantView, EncounterState, TargetDefense } from './types'
+import {
+    isBroken,
+    shieldBlock,
+    shieldStats,
+    type AonShield,
+    type ShieldStats,
+    type ShieldStored,
+} from '../character-viewer/shield'
+import { shieldView } from '../character-viewer/components/useShield'
 
 /**
  * Um dano que o app aplicou SOZINHO — o do estágio de uma aflição ou o
@@ -31,6 +40,8 @@ export interface AutoDamage {
     undo: () => void
 }
 
+const EMPTY_CATALOG: Record<string, AonShield | null> = {}
+
 /**
  * Une as duas origens de estado numa lista uniforme: o PV de um personagem vem
  * da mesa (Redis) e o de um monstro vem do próprio encontro, mas o cartão que
@@ -44,6 +55,8 @@ export function useCombatantViews(
     onDowned?: (id: string) => void,
     /** Chamado quando o app aplica dano por conta própria (aflição). */
     onAutoDamage?: (event: AutoDamage) => void,
+    /** Números da AON dos escudos dos personagens, por nome (`useShieldCatalog`). */
+    shieldCatalog: Record<string, AonShield | null> = EMPTY_CATALOG,
 ): CombatantView[] {
     // Os callbacks vêm inline da página e mudam de identidade a cada render; os
     // refs mantêm a lista de views estável entre renders.
@@ -53,8 +66,8 @@ export function useCombatantViews(
     autoRef.current = onAutoDamage
 
     return useMemo(
-        () => state.combatants.map((c) => buildView(c, state, party, dispatch, downedRef, autoRef)),
-        [state, party, dispatch],
+        () => state.combatants.map((c) => buildView(c, state, party, dispatch, downedRef, autoRef, shieldCatalog)),
+        [state, party, dispatch, shieldCatalog],
     )
 }
 
@@ -91,6 +104,7 @@ function buildView(
     dispatch: React.Dispatch<EncounterAction>,
     onDowned: React.MutableRefObject<((id: string) => void) | undefined>,
     onAutoDamage: React.MutableRefObject<((event: AutoDamage) => void) | undefined>,
+    shieldCatalog: Record<string, AonShield | null>,
 ): CombatantView {
     const isActive = state.activeId === combatant.id
     // As duas origens, lidas uma vez: o personagem tem uma fatia na mesa, o
@@ -149,6 +163,44 @@ function buildView(
         ? pcCore(combatant, party, dispatch, maxHp, vitals, stored, onDowned)
         : npcCore(combatant, dispatch, vitals, stored, onDowned)
 
+    // Escudo: o do personagem tem números da AON e estado na mesa (o mesmo da
+    // Ficha Virtual); o do monstro carrega os dois dentro do encontro.
+    let stats: ShieldStats | null = null
+    let shieldStored: ShieldStored | null = null
+    let writeShield: (next: ShieldStored) => void = () => {}
+    if (combatant.kind === 'pc' && combatant.shieldItem) {
+        stats = shieldStats(combatant.shieldItem, shieldCatalog[combatant.shieldItem.name] ?? null)
+        shieldStored = slice?.shield ?? null
+        writeShield = (next) => party.setShield(combatant.slug, next)
+    } else if (npc?.shield) {
+        const own = npc.shield
+        stats = { name: own.name, bonus: own.bonus, hardness: own.hardness, maxHp: own.maxHp, bt: own.bt, canBlock: own.canBlock }
+        shieldStored = { hp: own.hp, raised: own.raised }
+        writeShield = (next) => dispatch({
+            type: 'patch',
+            id: npc.id,
+            patch: { shield: { ...own, hp: next.hp ?? own.maxHp, raised: next.raised } },
+        })
+    }
+    const shield = stats ? shieldView(stats, shieldStored) : null
+
+    const shieldApi = {
+        shield,
+        setShieldRaised: (raised: boolean) => {
+            if (!shield || (raised && shield.broken) || shield.raised === raised) return
+            writeShield({ hp: shield.hp, raised })
+        },
+        blockDamage: (amount: number) => {
+            if (!shield?.canBlock) return null
+            const result = shieldBlock(amount, shield.stats, shield.hp)
+            // Quebrou: deixa de estar erguido — quebrado não cumpre a função.
+            writeShield({ hp: result.hpAfter, raised: !isBroken(result.hpAfter, shield.stats) })
+            if (result.toCreature > 0) core.applyDamage(result.toCreature)
+            return result
+        },
+        restoreShield: (prev: ShieldStored) => writeShield(prev),
+    }
+
     const applyTypedDamage = (amount: number, type: string) => {
         const breakdown = computeDamage({ amount, type, outcome: 'none' }, defense)
         if (breakdown.final > 0) core.applyDamage(breakdown.final)
@@ -187,6 +239,7 @@ function buildView(
     return {
         ...shared,
         ...core,
+        ...shieldApi,
         applyTypedDamage,
         setPersistent: core.setPersistent,
 

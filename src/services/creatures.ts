@@ -27,6 +27,8 @@ export interface AonCreature {
     speed: Record<string, number>
     source: string | null
     url: string
+    /** Escudo que ela carrega, lido da prosa ("steel shield (Hardness 5, HP 20, BT 10)"). */
+    shield?: { bonus: number; hardness: number; hp: number; bt: number; block: boolean } | null
 }
 
 export interface CreatureSearchFilters {

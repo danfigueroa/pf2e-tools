@@ -7,7 +7,8 @@ import { sanitizeAfflictions } from './afflictions'
 import { sanitizePersistent } from './persistentDamage'
 import { emptyEncounter } from './encounterReducer'
 import type { ScaleOverrides } from '../monster-scaler/types'
-import type { Combatant, EncounterState, NpcCombatant, PcCombatant } from './types'
+import type { Combatant, EncounterState, NpcCombatant, NpcShield, PcCombatant } from './types'
+import type { ShieldItem } from '../character-viewer/shield'
 
 const STORAGE_KEY = 'pf2e:initiative:v1'
 
@@ -54,6 +55,36 @@ function scaleOverrides(value: unknown): ScaleOverrides | undefined {
     return Object.keys(out).length > 0 ? (out as ScaleOverrides) : undefined
 }
 
+function npcShield(value: unknown): NpcShield | undefined {
+    if (!value || typeof value !== 'object') return undefined
+    const v = value as Record<string, unknown>
+    const maxHp = num(v.maxHp, 0)
+    if (maxHp <= 0) return undefined
+    return {
+        name: typeof v.name === 'string' ? v.name : 'Escudo',
+        bonus: Math.max(0, num(v.bonus, 2)),
+        hardness: Math.max(0, num(v.hardness)),
+        maxHp,
+        bt: Math.max(0, Math.min(maxHp, num(v.bt, Math.floor(maxHp / 2)))),
+        canBlock: v.canBlock !== false,
+        hp: Math.max(0, Math.min(maxHp, num(v.hp, maxHp))),
+        raised: v.raised === true,
+    }
+}
+
+function shieldItem(value: unknown): ShieldItem | undefined {
+    if (!value || typeof value !== 'object') return undefined
+    const v = value as Record<string, unknown>
+    if (typeof v.name !== 'string' || !v.name) return undefined
+    const bonus = v.bonus == null ? null : num(v.bonus, NaN)
+    return {
+        name: v.name,
+        runes: strings(v.runes),
+        bonus: bonus === null || Number.isFinite(bonus) ? bonus : null,
+        canBlock: v.canBlock === true,
+    }
+}
+
 function sanitizeCombatant(raw: unknown): Combatant | null {
     if (!raw || typeof raw !== 'object') return null
     const c = raw as Record<string, unknown>
@@ -90,6 +121,7 @@ function sanitizeCombatant(raw: unknown): Combatant | null {
             aonUrl: typeof c.aonUrl === 'string' ? c.aonUrl : undefined,
             aonName: typeof c.aonName === 'string' ? c.aonName : undefined,
             scaleOverrides: scaleOverrides(c.scaleOverrides),
+            shield: npcShield(c.shield),
         }
         return npc
     }
@@ -102,6 +134,7 @@ function sanitizeCombatant(raw: unknown): Combatant | null {
         baseMaxHp: Math.max(1, num(c.baseMaxHp, 1)),
         klass: typeof c.klass === 'string' ? c.klass : undefined,
         presetFile: typeof c.presetFile === 'string' ? c.presetFile : undefined,
+        shieldItem: shieldItem(c.shieldItem),
     }
     return pc
 }

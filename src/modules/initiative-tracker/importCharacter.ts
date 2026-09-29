@@ -3,7 +3,8 @@ import { charSlugFromName } from '../character-viewer/charId'
 import { abilityMod, totalHp } from '../character-viewer/helpers'
 import { parseResistanceStrings } from './defenses'
 import type { AonCreature } from '../../services/creatures'
-import type { NpcCombatant, PcCombatant } from './types'
+import type { NpcCombatant, NpcShield, PcCombatant } from './types'
+import { shieldItemOf } from '../character-viewer/shield'
 
 /**
  * Ficha → combatente. Guarda só o que o encontro precisa: o `BuildInfo`
@@ -48,6 +49,7 @@ export function pcFromBuild(
         immunities: [],
         defenseNotes: notes,
         presetFile: preset?.filename,
+        shieldItem: shieldItemOf(build) ?? undefined,
     }
 }
 
@@ -76,6 +78,21 @@ export function npcFromCreature(creature: AonCreature, index = 0): NpcCombatant 
         defenseNotes: creature.defenseNotes,
         traits: creature.traits,
         aonUrl: creature.url,
+        shield: creature.shield ? npcShieldFrom(creature.shield) : undefined,
+    }
+}
+
+/** O escudo lido do texto da AON, inteiro e abaixado. */
+export function npcShieldFrom(s: NonNullable<AonCreature['shield']>, name = 'Escudo'): NpcShield {
+    return {
+        name,
+        bonus: s.bonus,
+        hardness: s.hardness,
+        maxHp: s.hp,
+        bt: s.bt,
+        canBlock: s.block,
+        hp: s.hp,
+        raised: false,
     }
 }
 

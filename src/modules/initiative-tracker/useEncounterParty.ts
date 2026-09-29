@@ -20,6 +20,7 @@ import {
     type SaveDegree,
 } from './afflictions'
 import { syncFromAffliction, sanitizePersistent, type PersistentDamage } from './persistentDamage'
+import { sanitizeShield, type ShieldStored } from '../character-viewer/shield'
 
 export interface PartySlice {
     /** `null` = ninguém mexeu ainda; resolve para PV cheio no render. */
@@ -29,9 +30,11 @@ export interface PartySlice {
     afflictions: AfflictionState[]
     /** Dano persistente. Também é da mesa: aparece na Ficha Virtual do jogador. */
     persistent: PersistentDamage[]
+    /** PV e "erguido" do escudo — o mesmo campo que a Ficha Virtual escreve. */
+    shield: ShieldStored | null
 }
 
-const EMPTY_SLICE: PartySlice = { hp: null, conditions: {}, afflictions: [], persistent: [] }
+const EMPTY_SLICE: PartySlice = { hp: null, conditions: {}, afflictions: [], persistent: [], shield: null }
 
 /**
  * PV e condições de TODOS os personagens do encontro, no estado da mesa.
@@ -69,6 +72,7 @@ export function useEncounterParty(slugs: string[]) {
         conditions: sanitizeConditions(readLocal(slug, 'conditions') ?? {}),
         afflictions: sanitizeAfflictions(readLocal(slug, 'afflictions') ?? []),
         persistent: sanitizePersistent(readLocal(slug, 'persistent') ?? []),
+        shield: sanitizeShield(readLocal(slug, 'shield')),
     }), [])
 
     useEffect(() => {
@@ -97,6 +101,9 @@ export function useEncounterParty(slugs: string[]) {
                     persistent: snapshot.persistent === undefined
                         ? (prev[slug]?.persistent ?? [])
                         : sanitizePersistent(snapshot.persistent),
+                    shield: snapshot.shield === undefined
+                        ? (prev[slug]?.shield ?? null)
+                        : sanitizeShield(snapshot.shield),
                 },
             }))
         }
@@ -120,6 +127,7 @@ export function useEncounterParty(slugs: string[]) {
         if (patch.conditions !== undefined) saveField(slug, 'conditions', next.conditions)
         if (patch.afflictions !== undefined) saveField(slug, 'afflictions', next.afflictions)
         if (patch.persistent !== undefined) saveField(slug, 'persistent', next.persistent)
+        if (patch.shield !== undefined) saveField(slug, 'shield', next.shield)
     }, [])
 
     const get = useCallback(
@@ -245,6 +253,10 @@ export function useEncounterParty(slugs: string[]) {
         /** Avanço manual — para os estágios que não são contados em rodadas. */
         advanceAffliction(slug: string, id: string, by: number) {
             moveStage(slug, id, (a) => advanceStage(a, by))
+        },
+
+        setShield(slug: string, shield: ShieldStored) {
+            write(slug, { shield })
         },
 
         setPersistent(slug: string, list: PersistentDamage[]) {
