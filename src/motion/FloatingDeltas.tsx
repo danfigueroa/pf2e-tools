@@ -1,5 +1,5 @@
 import { Box } from '@mui/material'
-import { status } from '../theme/palette'
+import { SHIELD_COLOR, status } from '../theme/palette'
 import { DURATION, floatUp, type PulseKind } from './motion'
 import type { Delta } from './useValueDeltas'
 
@@ -8,6 +8,9 @@ const COLOR: Record<PulseKind, string> = {
     hurt: status.error,
     temp: status.info,
     turn: status.info,
+    block: SHIELD_COLOR,
+    break: status.error,
+    repair: status.success,
 }
 
 /**

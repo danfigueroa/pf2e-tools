@@ -10,7 +10,7 @@
 import { useEffect, useState } from 'react'
 import { keyframes } from '@emotion/react'
 import { useMediaQuery } from '@mui/material'
-import { gold, status } from '../theme/palette'
+import { gold, SHIELD_COLOR, status } from '../theme/palette'
 
 export const DURATION = {
     /** Contagem de um número (PV subindo/descendo). */
@@ -82,6 +82,42 @@ const GLOW_GOLD = twin(`
     100% { box-shadow: 0 0 0 0 ${gold.main}00; }
 `)
 
+// Escudo: o bloqueio pisca em aço, a quebra treme forte e acende em vermelho,
+// o conserto brilha em latão.
+const GLOW_SHIELD = twin(`
+    0% { box-shadow: 0 0 0 0 ${SHIELD_COLOR}00; }
+    25% { box-shadow: 0 0 0 4px ${SHIELD_COLOR}77, 0 0 14px 2px ${SHIELD_COLOR}55; }
+    100% { box-shadow: 0 0 0 0 ${SHIELD_COLOR}00; }
+`)
+const BIG_SHAKE = twin(`
+    0%, 100% { transform: translateX(0) rotate(0deg); }
+    10% { transform: translateX(-8px) rotate(-1deg); }
+    25% { transform: translateX(8px) rotate(1deg); }
+    40% { transform: translateX(-6px) rotate(-0.5deg); }
+    55% { transform: translateX(5px); }
+    70% { transform: translateX(-3px); }
+    85% { transform: translateX(2px); }
+`)
+const GLOW_REPAIR = twin(`
+    0% { box-shadow: 0 0 0 0 ${gold.main}00; }
+    35% { box-shadow: 0 0 0 4px ${status.success}55, 0 0 16px 3px ${gold.bright}66; }
+    100% { box-shadow: 0 0 0 0 ${gold.main}00; }
+`)
+
+/** Escudo sendo erguido: o ícone sobe e assenta um pouco acima. */
+export const lift = keyframes`
+    0% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-6px) scale(1.2); }
+    100% { transform: translateY(-2px) scale(1.08); }
+`
+
+/** A rachadura do escudo quebrado sendo "desenhada". */
+export const crack = keyframes`
+    0% { clip-path: inset(0 100% 0 0); opacity: 0; }
+    20% { opacity: 1; }
+    100% { clip-path: inset(0 0 0 0); opacity: 1; }
+`
+
 /** Sobe e some — o "+12" ao lado do PV. */
 export const floatUp = keyframes`
     0% { opacity: 0; transform: translateY(4px) scale(0.8); }
@@ -139,7 +175,7 @@ export const RIPPLE = twin(`
     100% { transform: scale(2.4); opacity: 0; }
 `)
 
-export type PulseKind = 'heal' | 'hurt' | 'temp' | 'turn'
+export type PulseKind = 'heal' | 'hurt' | 'temp' | 'turn' | 'block' | 'break' | 'repair'
 
 export interface Pulse {
     kind: PulseKind
@@ -161,5 +197,11 @@ export function pulseAnimation(pulse: Pulse | null): string | undefined {
             return `${GLOW_TEMP[i]} ${ms}ms ease-out`
         case 'turn':
             return `${GLOW_GOLD[i]} ${ms + 350}ms ease-out`
+        case 'block':
+            return `${SHAKE[i]} 320ms ease-in-out, ${GLOW_SHIELD[i]} ${ms}ms ease-out`
+        case 'break':
+            return `${BIG_SHAKE[i]} 600ms ease-in-out, ${GLOW_HURT[i]} ${ms + 400}ms ease-out`
+        case 'repair':
+            return `${GLOW_REPAIR[i]} ${ms + 350}ms ease-out`
     }
 }
