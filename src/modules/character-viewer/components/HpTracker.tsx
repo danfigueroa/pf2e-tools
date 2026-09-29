@@ -19,6 +19,8 @@ import {
 import type { BuildInfo } from '../../character-sheet/types'
 import { hpBarColor, useHpTracker } from './useHpTracker'
 import { hpKeyFor, legacyCharKey } from '../charId'
+import { useHpFeedback } from '../../../motion/useHpFeedback'
+import { FloatingDeltas } from '../../../motion/FloatingDeltas'
 
 interface Props {
     build: BuildInfo
@@ -40,6 +42,8 @@ export const HpTracker = ({ build, maxHp, maxHpDelta = 0 }: Props) => {
     const tempValue = parseInt(tempInput, 10)
     const hasTemp = Number.isFinite(tempValue) && tempValue >= 0
 
+    const feedback = useHpFeedback(current, temp)
+
     const ratio = maxHp > 0 ? current / maxHp : 0
     const barColor = hpBarColor(current, maxHp, theme.palette)
 
@@ -60,7 +64,7 @@ export const HpTracker = ({ build, maxHp, maxHpDelta = 0 }: Props) => {
     }
 
     return (
-        <Card sx={{ borderColor: HP_COLOR + '60' }}>
+        <Card sx={{ borderColor: HP_COLOR + '60', animation: feedback.animation }}>
             <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5, flexWrap: 'wrap' }}>
                     <HpIcon sx={{ color: HP_COLOR }} />
@@ -79,9 +83,12 @@ export const HpTracker = ({ build, maxHp, maxHpDelta = 0 }: Props) => {
 
                 {/* Números grandes */}
                 <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mb: 1 }}>
-                    <Typography variant="h3" sx={{ fontWeight: 800, color: barColor, lineHeight: 1 }}>
-                        {current}
-                    </Typography>
+                    <Box sx={{ position: 'relative' }}>
+                        <Typography variant="h3" sx={{ fontWeight: 800, color: barColor, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+                            {feedback.shown}
+                        </Typography>
+                        <FloatingDeltas deltas={feedback.deltas} placement="above" />
+                    </Box>
                     <Typography variant="h5" color="text.secondary" sx={{ fontWeight: 600 }}>
                         / {maxHp}
                     </Typography>
@@ -118,7 +125,7 @@ export const HpTracker = ({ build, maxHp, maxHpDelta = 0 }: Props) => {
                         borderRadius: 5,
                         mb: 2,
                         backgroundColor: theme.palette.action.hover,
-                        '& .MuiLinearProgress-bar': { backgroundColor: barColor, borderRadius: 5 },
+                        '& .MuiLinearProgress-bar': { backgroundColor: barColor, borderRadius: 5, transition: 'transform 0.6s cubic-bezier(.2,.8,.2,1), background-color 0.6s' },
                     }}
                 />
 

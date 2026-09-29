@@ -18,6 +18,8 @@ import {
 } from '@mui/icons-material'
 import { HP_COLOR } from '../../../theme/palette'
 import { hpBarColor, useHpTracker } from './useHpTracker'
+import { useHpFeedback } from '../../../motion/useHpFeedback'
+import { FloatingDeltas } from '../../../motion/FloatingDeltas'
 
 interface Props {
     /** Chave de sincronia da mesa (ver `petKeyFor`). */
@@ -45,6 +47,8 @@ export const CompanionHpBar = ({ storageKey, legacyKey, maxHp, downLabel = 'Inco
     const hasAmount = Number.isFinite(amount) && amount > 0
     const tempValue = parseInt(tempInput, 10)
     const hasTemp = Number.isFinite(tempValue) && tempValue >= 0
+
+    const feedback = useHpFeedback(current, temp)
 
     const ratio = maxHp > 0 ? current / maxHp : 0
     const barColor = hpBarColor(current, maxHp, theme.palette)
@@ -74,6 +78,7 @@ export const CompanionHpBar = ({ storageKey, legacyKey, maxHp, downLabel = 'Inco
                 border: '1px solid',
                 borderColor: HP_COLOR + '40',
                 backgroundColor: HP_COLOR + '0a',
+                animation: feedback.animation,
             }}
         >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
@@ -81,10 +86,11 @@ export const CompanionHpBar = ({ storageKey, legacyKey, maxHp, downLabel = 'Inco
                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                     Pontos de Vida
                 </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5, ml: 'auto' }}>
-                    <Typography sx={{ fontWeight: 800, fontSize: '1.35rem', lineHeight: 1, color: barColor }}>
-                        {current}
+                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5, ml: 'auto', position: 'relative' }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: '1.35rem', lineHeight: 1, color: barColor, fontVariantNumeric: 'tabular-nums' }}>
+                        {feedback.shown}
                     </Typography>
+                    <FloatingDeltas deltas={feedback.deltas} placement="above" />
                     <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
                         / {maxHp}
                     </Typography>
@@ -112,7 +118,7 @@ export const CompanionHpBar = ({ storageKey, legacyKey, maxHp, downLabel = 'Inco
                     mt: 1,
                     mb: 1.5,
                     backgroundColor: theme.palette.action.hover,
-                    '& .MuiLinearProgress-bar': { backgroundColor: barColor, borderRadius: 4 },
+                    '& .MuiLinearProgress-bar': { backgroundColor: barColor, borderRadius: 4, transition: 'transform 0.6s cubic-bezier(.2,.8,.2,1), background-color 0.6s' },
                 }}
             />
 

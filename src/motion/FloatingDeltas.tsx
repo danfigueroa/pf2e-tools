@@ -26,7 +26,7 @@ export const FloatingDeltas = ({ deltas, placement = 'right' }: { deltas: Delta[
                 whiteSpace: 'nowrap',
                 ...(placement === 'right'
                     ? { top: 0, left: '100%', ml: 1 }
-                    : { bottom: '100%', left: '50%' }),
+                    : { bottom: '100%', left: '50%', mb: 0.25 }),
             }}
         >
             {deltas.map((d) => (
@@ -37,6 +37,8 @@ export const FloatingDeltas = ({ deltas, placement = 'right' }: { deltas: Delta[
                         position: 'absolute',
                         top: 0,
                         left: 0,
+                        // `translate` é independente do `transform` que o keyframe anima.
+                        translate: placement === 'above' ? '-50% 0' : undefined,
                         fontWeight: 800,
                         fontSize: '1.05em',
                         fontVariantNumeric: 'tabular-nums',
