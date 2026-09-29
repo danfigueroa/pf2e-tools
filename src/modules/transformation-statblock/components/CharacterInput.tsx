@@ -17,7 +17,8 @@ import {
 import type { PlayerCharacter, TransformationSpell } from '../../../types';
 import { transformationSpells } from '../data/spells';
 import { playerCharacterFromJson } from '../data/from-pathbuilder';
-import { CAMPAIGN_PRESETS } from '../../character-viewer/campaignPresets';
+import { CAMPAIGN_PRESETS, loadPresetJson, type CharacterPreset } from '../../character-viewer/campaignPresets';
+import { usePublishedSheets } from '../../character-viewer/usePublishedSheets';
 import { translateName, translateSpellMeta, translateTrait } from '../i18n';
 
 /** Colunas que se dobram sozinhas: uma no celular, quantas couberem depois. */
@@ -30,6 +31,7 @@ interface CharacterInputProps {
 }
 
 const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, character, selectedSpell }) => {
+  const { levelOf } = usePublishedSheets();
   const [formData, setFormData] = useState<Partial<PlayerCharacter>>({
     name: character?.name || 'Aventureiro',
     level: character?.level || 5,
@@ -81,10 +83,11 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
     e.target.value = '';
   };
 
-  const handlePreset = async (filename: string) => {
+  const handlePreset = async (preset: CharacterPreset) => {
     try {
-      const res = await fetch(`/characters/${filename}`);
-      applyImportedCharacter(await res.json());
+      // A versão publicada pela mesa, se houver (ver `loadPresetJson`).
+      const { json } = await loadPresetJson(preset);
+      applyImportedCharacter(json);
     } catch {
       setImported(false);
       setErrors(['Não foi possível carregar o personagem da campanha']);
@@ -205,9 +208,9 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
                 key={preset.filename}
                 variant="outlined"
                 size="small"
-                onClick={() => handlePreset(preset.filename)}
+                onClick={() => handlePreset(preset)}
               >
-                {preset.name} (Nv {preset.level})
+                {preset.name} (Nv {levelOf(preset)})
               </Button>
             ))}
             <Button variant="contained" size="small" component="label">

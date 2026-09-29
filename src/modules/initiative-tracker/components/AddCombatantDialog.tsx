@@ -20,7 +20,8 @@ import {
 } from '@mui/material'
 import { Check as CheckIcon, CloudUpload as UploadIcon, Person as PersonIcon } from '@mui/icons-material'
 import { gold, green, ink, parchment } from '../../../theme'
-import { CAMPAIGN_PRESETS, type CharacterPreset } from '../../character-viewer/campaignPresets'
+import { CAMPAIGN_PRESETS, loadPresetJson, type CharacterPreset } from '../../character-viewer/campaignPresets'
+import { usePublishedSheets } from '../../character-viewer/usePublishedSheets'
 import { charSlugFromName } from '../../character-viewer/charId'
 import { parseCharacterJson } from '../../character-sheet/types'
 import { npcFromManual, pcFromBuild } from '../importCharacter'
@@ -84,6 +85,7 @@ const CharacterTab = ({
     existingSlugs: string[]
 }) => {
     const inputRef = useRef<HTMLInputElement>(null)
+    const { levelOf } = usePublishedSheets()
     const [selected, setSelected] = useState<Set<string>>(new Set())
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -123,9 +125,10 @@ const CharacterTab = ({
 
         const results = await Promise.all(chosen.map(async (preset) => {
             try {
-                const res = await fetch(`/characters/${preset.filename}`)
-                if (!res.ok) throw new Error(String(res.status))
-                const combatant = buildFrom(await res.json(), {
+                // A versão publicada pela mesa, se houver — senão o combatente
+                // entraria com o PV e a CA do nível anterior.
+                const { json } = await loadPresetJson(preset)
+                const combatant = buildFrom(json, {
                     filename: preset.filename,
                     klass: preset.class,
                     name: preset.name,
@@ -202,7 +205,7 @@ const CharacterTab = ({
                                         : <PersonIcon sx={{ color: green.main }} />}
                                     <Typography sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}>{preset.name}</Typography>
                                     <Typography variant="caption" sx={{ color: ink.secondary }}>
-                                        {already ? 'já no combate' : `${preset.class} ${preset.level}`}
+                                        {already ? 'já no combate' : `${preset.class} ${levelOf(preset)}`}
                                     </Typography>
                                 </CardContent>
                             </CardActionArea>
