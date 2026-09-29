@@ -45,13 +45,15 @@ export const CombatantVitals = ({ view }: { view: CombatantView }) => {
         <Box sx={{ borderRadius: 1, animation: feedback.animation }}>
             <Stack direction="row" alignItems="baseline" spacing={0.5} sx={{ mb: 0.5 }}>
                 <HpIcon sx={{ fontSize: '1rem', color: HP_COLOR, alignSelf: 'center' }} />
-                <Box sx={{ position: 'relative' }}>
-                    <Typography sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
-                        {feedback.shown}
-                    </Typography>
-                    <FloatingDeltas deltas={feedback.deltas} placement="above" />
-                </Box>
+                <Typography sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+                    {feedback.shown}
+                </Typography>
                 <Typography variant="body2" sx={{ color: ink.secondary }}>/ {maxHp}</Typography>
+                {/* À direita, e não acima: o Card corta o que passa da borda
+                    (overflow hidden), e o PV fica colado no topo do cartão. */}
+                <Box sx={{ position: 'relative', alignSelf: 'flex-start' }}>
+                    <FloatingDeltas deltas={feedback.deltas} />
+                </Box>
                 {maxHpDelta !== 0 && (
                     <Tooltip title="Máximo reduzido por Drenado">
                         <Typography variant="caption" sx={{ color: HP_COLOR }}>({maxHpDelta})</Typography>
