@@ -25,6 +25,7 @@ import {
     Remove as ZoomOutIcon,
     Straighten as RulerIcon,
     Brush as DrawIcon,
+    Close as CloseIcon,
 } from '@mui/icons-material'
 import { MapCanvas, type CanvasApi, type MapTool, type TokenView } from './components/MapCanvas'
 import { MapListDrawer } from './components/MapListDrawer'
@@ -107,6 +108,9 @@ export const BattleMapPage = () => {
     const [drawer, setDrawer] = useState(false)
     const [tapped, setTapped] = useState<{ id: string; anchor: HTMLElement } | null>(null)
     const [resolving, setResolving] = useState(!routeId)
+    // O aviso "os tokens vêm da Iniciativa" cobre metade do mapa no celular:
+    // fechado uma vez, fica fechado nesta aba.
+    const [hintClosed, setHintClosed] = useState(false)
     const canvas = useRef<CanvasApi>(null)
     const [drawStyle, setDrawStyle] = useState<DrawStyle>(loadDrawStyle)
 
@@ -326,14 +330,20 @@ export const BattleMapPage = () => {
                         A mesa está em outro mapa.
                     </Alert>
                 )}
-                {data && tokenCount === 0 && (
+                {data && tokenCount === 0 && !hintClosed && (
                     <Alert
                         severity="info"
                         sx={{ width: 'min(520px, 100%)' }}
+                        // Com `action` o MUI esconde o × do `onClose`: os dois vão aqui.
                         action={(
-                            <Button color="inherit" size="small" onClick={openEncounter} sx={{ whiteSpace: 'nowrap' }}>
-                                Montar encontro
-                            </Button>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Button color="inherit" size="small" onClick={openEncounter} sx={{ whiteSpace: 'nowrap' }}>
+                                    Montar encontro
+                                </Button>
+                                <IconButton color="inherit" size="small" aria-label="Fechar aviso" onClick={() => setHintClosed(true)}>
+                                    <CloseIcon fontSize="small" />
+                                </IconButton>
+                            </Box>
                         )}
                     >
                         Os tokens vêm da Iniciativa: cada combatente do encontro deste mapa vira um

@@ -9,7 +9,8 @@ export const CELL_PX = 70
 export const FEET_PER_SQUARE = 5
 export const METERS_PER_SQUARE = 1.5
 
-export const MIN_ZOOM = 0.2
+/** 10%: um mapa de 40 quadrados precisa disso para caber inteiro na largura de um celular. */
+export const MIN_ZOOM = 0.1
 export const MAX_ZOOM = 4
 
 /** Abaixo deste zoom o grid vira ruído (e custa pintura): some. */
