@@ -172,6 +172,12 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
     limite de 4,5 MB do corpo. `blob-delete` só apaga URL do `*.public.blob.vercel-storage.com` —
     o endpoint é público. Sem `BLOB_READ_WRITE_TOKEN`, a imagem fica no IndexedDB de quem enviou
     (URL `idb:<chave>`) e os outros veem as iniciais.
+  - **Configuração do Blob na Vercel, duas armadilhas** (as duas aconteceram): a store precisa ser
+    **Public** (o app grava `access: 'public'`, e o acesso não muda depois); e a Vercel conecta
+    por OIDC, criando só `BLOB_STORE_ID`/`BLOB_WEBHOOK_PUBLIC_KEY`. O `handleUpload` do SDK exige
+    o token de leitura e escrita — sem a caixa "Add a read-write token env var" marcada, o token
+    tem que ser copiado da aba `.env.local` da store e criado à mão. Não revogar o token enquanto
+    o envio não migrar para o fluxo presigned (`handleUploadPresigned`, que funciona com OIDC).
 
 ### Tradução (o ponto que mais quebra)
 
@@ -268,7 +274,8 @@ Source Sans 3 (ambas num único `<link>` no `index.html`).
 
 ## Responsividade
 
-A plataforma é usada na mesa, no celular. Toda mudança de layout precisa passar por 320px.
+A plataforma é usada na mesa, no celular. Toda mudança de layout precisa passar por 320px —
+**exceto o Mapa de Combate**, que é só desktop (ver a seção dele).
 
 - **Breakpoints**: `xs` é celular, `sm` (600) é tablet, `md` (900) é onde a sidebar vira permanente.
   A ficha virtual usa acordeão só abaixo de `sm`; de `sm` para cima são abas roláveis (sem ícone
