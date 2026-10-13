@@ -239,7 +239,8 @@ abre, mas não é o alvo.
 -   **Alcance de movimento**: ao arrastar um token, três faixas (verde, âmbar, vermelha) mostram
     até onde ele chega com 1, 2 e 3 ações de Andar, e o rótulo diz quantas ações o movimento custa.
     O deslocamento do personagem é o da ficha, somando os bônus e nunca reduzido
--   **Ping**: Alt+clique faz um anel dourado piscar no ponto, na tela de todos
+-   **Ping**: segurar Alt (⌥ Option no Mac) e clicar faz um anel dourado piscar no ponto, na tela
+    de todos. A barra do mapa mostra o atalho
 -   **Vários mapas por sessão**: o GM cria os mapas na gaveta "Mapas da sessão" e **leva a mesa**
     de um para outro; quem estiver em outro mapa recebe o aviso "A mesa está em outro mapa — Ir"
 -   **Os tokens vêm da Iniciativa**: cada encontro é ligado a um mapa e cada combatente vira um
