@@ -29,6 +29,8 @@ interface CombatantBase {
     immunities: string[]
     /** Defesas com ressalva que nunca viram número — exibidas como aviso. */
     defenseNotes?: string[]
+    /** Tamanho em inglês ("Medium", "Large") — vira a pegada do token no mapa. */
+    size?: string
 }
 
 export interface PcCombatant extends CombatantBase {
@@ -93,6 +95,11 @@ export interface NpcCombatant extends CombatantBase {
     /** A lista de magias montada à mão no escalar monstro, com o nível dela. */
     spellEdits?: SpellEdits
     shield?: NpcShield
+    /**
+     * Imagem do token no mapa de combate (Blob, ou `idb:` sem Blob). A do
+     * personagem não mora aqui: é da mesa, enviada na Ficha Virtual.
+     */
+    tokenImage?: string
 }
 
 export type Combatant = PcCombatant | NpcCombatant

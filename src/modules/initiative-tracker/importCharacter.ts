@@ -50,6 +50,7 @@ export function pcFromBuild(
         defenseNotes: notes,
         presetFile: preset?.filename,
         shieldItem: shieldItemOf(build) ?? undefined,
+        size: build.sizeName || undefined,
     }
 }
 
@@ -79,6 +80,7 @@ export function npcFromCreature(creature: AonCreature, index = 0): NpcCombatant 
         traits: creature.traits,
         aonUrl: creature.url,
         shield: creature.shield ? npcShieldFrom(creature.shield) : undefined,
+        size: creature.size ?? undefined,
     }
 }
 

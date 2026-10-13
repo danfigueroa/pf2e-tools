@@ -44,6 +44,7 @@ export function npcFromScaled(
         traits: monster.source.traits,
         aonUrl: monster.source.url,
         aonName: monster.source.name,
+        size: monster.source.size ?? undefined,
         ...(Object.keys(overrides).length > 0 ? { scaleOverrides: overrides } : {}),
         // Mesma razão dos overrides: sem a lista editada, a ficha do cartão
         // mostraria as magias da AON, não as que o GM escolheu.
