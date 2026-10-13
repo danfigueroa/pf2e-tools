@@ -24,14 +24,18 @@ import {
     PanTool as SelectIcon,
     Remove as ZoomOutIcon,
     Straighten as RulerIcon,
+    Brush as DrawIcon,
 } from '@mui/icons-material'
 import { MapCanvas, type CanvasApi, type MapTool, type TokenView } from './components/MapCanvas'
 import { MapListDrawer } from './components/MapListDrawer'
 import { TokenPopover } from './components/TokenPopover'
 import { ImagePanel } from './components/ImagePanel'
+import { DrawPanel } from './components/DrawPanel'
+import { DRAW_WIDTHS, newDrawingId, type Drawing, type DrawStyle } from './drawing'
 import type { TokenHp } from './hp'
 import type { Cell, ImageRect } from './geometry'
 import {
+    clearDrawings,
     isMapStoreReady,
     listMaps,
     useMapData,
@@ -40,10 +44,25 @@ import {
     type MapData,
     type MapMeta,
 } from '../../services/maps'
-import { gold, green, ink, parchment } from '../../theme'
+import { DRAW_COLORS, gold, green, ink, parchment } from '../../theme'
 import { setCurrentMapId } from '../initiative-tracker/encounterStorage'
 
 const GM_KEY = 'pf2e:map:gm'
+const DRAW_KEY = 'pf2e:map:draw'
+
+/** Cor e espessura ficam lembradas neste aparelho: quem é o mago do fogo desenha sempre em laranja. */
+function loadDrawStyle(): DrawStyle {
+    const fallback: DrawStyle = { mode: 'free', color: DRAW_COLORS[0].hex, width: DRAW_WIDTHS[1] }
+    try {
+        const raw = JSON.parse(localStorage.getItem(DRAW_KEY) ?? 'null') as Partial<DrawStyle> | null
+        if (!raw) return fallback
+        const color = DRAW_COLORS.find((c) => c.hex === raw.color)?.hex ?? fallback.color
+        const width = DRAW_WIDTHS.find((w) => w === raw.width) ?? fallback.width
+        return { mode: raw.mode === 'line' ? 'line' : 'free', color, width }
+    } catch {
+        return fallback
+    }
+}
 
 /** PV de cada token, já com a regra de quem vê número. */
 function buildViews(data: MapData, gm: boolean): Map<string, TokenView> {
@@ -89,6 +108,12 @@ export const BattleMapPage = () => {
     const [tapped, setTapped] = useState<{ id: string; anchor: HTMLElement } | null>(null)
     const [resolving, setResolving] = useState(!routeId)
     const canvas = useRef<CanvasApi>(null)
+    const [drawStyle, setDrawStyle] = useState<DrawStyle>(loadDrawStyle)
+
+    const changeDrawStyle = (next: DrawStyle) => {
+        setDrawStyle(next)
+        try { localStorage.setItem(DRAW_KEY, JSON.stringify(next)) } catch { /* só nesta aba */ }
+    }
 
     const { data, error, activeId } = useMapData(id)
 
@@ -132,6 +157,14 @@ export const BattleMapPage = () => {
 
     const onMeta = useCallback((meta: MapMeta) => {
         if (id) writeMapField(id, 'meta', meta)
+    }, [id])
+
+    const onDraw = useCallback((drawing: Drawing) => {
+        if (id) writeMapField(id, `drw:${newDrawingId()}`, drawing)
+    }, [id])
+
+    const onErase = useCallback((drawingId: string) => {
+        if (id) writeMapField(id, `drw:${drawingId}`, null)
     }, [id])
 
     const onTokenTap = useCallback((tokenId: string, anchor: HTMLElement) => {
@@ -191,6 +224,9 @@ export const BattleMapPage = () => {
                     onImageRect={onImageRect}
                     onTokenTap={onTokenTap}
                     onZoomChange={setZoom}
+                    drawStyle={drawStyle}
+                    onDraw={onDraw}
+                    onErase={onErase}
                     apiRef={canvas}
                 />
             )}
@@ -259,6 +295,10 @@ export const BattleMapPage = () => {
                         <ToggleButton value="ruler" aria-label="Régua">
                             <RulerIcon fontSize="small" />
                             <Box component="span" sx={{ ml: 0.75, display: { xs: 'none', sm: 'inline' } }}>Régua</Box>
+                        </ToggleButton>
+                        <ToggleButton value="draw" aria-label="Desenhar">
+                            <DrawIcon fontSize="small" />
+                            <Box component="span" sx={{ ml: 0.75, display: { xs: 'none', sm: 'inline' } }}>Desenhar</Box>
                         </ToggleButton>
                         {gm && (
                             <ToggleButton value="image" aria-label="Camada do mapa">
@@ -335,6 +375,14 @@ export const BattleMapPage = () => {
             )}
 
             {gm && tool === 'image' && data && <ImagePanel meta={data.meta} onChange={onMeta} />}
+            {tool === 'draw' && data && id && (
+                <DrawPanel
+                    style={drawStyle}
+                    onChange={changeDrawStyle}
+                    count={Object.keys(data.drawings ?? {}).length}
+                    onClearAll={gm ? () => void clearDrawings(id) : undefined}
+                />
+            )}
 
             {/* Estados vazios */}
             {(resolving || (id && !data && !error)) && (

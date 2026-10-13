@@ -15,12 +15,14 @@ import {
     type ImageRect,
 } from '../geometry'
 import { Token } from './Token'
+import { DrawingLayer } from './DrawingLayer'
+import { finishStroke, snapHalf, type DrawStyle, type Drawing } from '../drawing'
 import type { TokenHp } from '../hp'
 import { useImageUrl } from '../../../services/images'
 import { MAP_BACKDROP, gold, mapChrome } from '../../../theme'
 import type { MapData } from '../../../services/maps'
 
-export type MapTool = 'select' | 'ruler' | 'image'
+export type MapTool = 'select' | 'ruler' | 'draw' | 'image'
 
 export interface CanvasApi {
     zoomBy: (factor: number) => void
@@ -43,6 +45,10 @@ interface Props {
     onImageRect: (rect: ImageRect) => void
     onTokenTap: (tokenId: string, anchor: HTMLElement) => void
     onZoomChange: (zoom: number) => void
+    /** Modo, cor e espessura da ferramenta Desenhar. */
+    drawStyle: DrawStyle
+    onDraw: (drawing: Drawing) => void
+    onErase: (drawingId: string) => void
     apiRef: Ref<CanvasApi>
 }
 
@@ -56,6 +62,7 @@ type Gesture =
         ox: number; oy: number; sx: number; sy: number; moved: boolean; to: Cell
     }
     | { kind: 'ruler'; from: Cell }
+    | { kind: 'draw'; line: boolean; pts: Array<[number, number]>; d: string }
     | { kind: 'image'; corner: Corner | null; sx: number; sy: number; start: ImageRect; rect: ImageRect }
 
 /** Canto da imagem sendo arrastado; `null` = mover a imagem inteira. */
@@ -127,7 +134,7 @@ const TAP_SLOP_PX = 6
  *   congela a rasterização na escala inicial e o mapa fica borrado ao aproximar.
  */
 export const MapCanvas = memo(function MapCanvas({
-    data, tool, views, onMove, onImageRect, onTokenTap, onZoomChange, apiRef,
+    data, tool, views, onMove, onImageRect, onTokenTap, onZoomChange, drawStyle, onDraw, onErase, apiRef,
 }: Props) {
     const viewportRef = useRef<HTMLDivElement>(null)
     const worldRef = useRef<HTMLDivElement>(null)
@@ -136,6 +143,8 @@ export const MapCanvas = memo(function MapCanvas({
     const pathRef = useRef<SVGLineElement>(null)
     const ghostRef = useRef<SVGRectElement>(null)
     const labelRef = useRef<HTMLDivElement>(null)
+    /** Traço em andamento: desenhado pelo DOM, vira desenho de verdade no soltar. */
+    const liveRef = useRef<SVGPathElement>(null)
 
     const tf = useRef<Transform>({ x: 0, y: 0, z: 1 })
     const frame = useRef<number | null>(null)
@@ -151,8 +160,10 @@ export const MapCanvas = memo(function MapCanvas({
     dataRef.current = data
     const toolRef = useRef(tool)
     toolRef.current = tool
-    const cb = useRef({ onMove, onImageRect, onTokenTap, onZoomChange })
-    cb.current = { onMove, onImageRect, onTokenTap, onZoomChange }
+    const cb = useRef({ onMove, onImageRect, onTokenTap, onZoomChange, onDraw, onErase })
+    cb.current = { onMove, onImageRect, onTokenTap, onZoomChange, onDraw, onErase }
+    const styleRef = useRef(drawStyle)
+    styleRef.current = drawStyle
 
     const rect = data.meta.imageRect
     const cells = useMemo(
@@ -315,6 +326,7 @@ export const MapCanvas = memo(function MapCanvas({
 
     const clearOverlay = () => {
         if (pathRef.current) pathRef.current.style.display = 'none'
+        if (liveRef.current) liveRef.current.setAttribute('d', '')
         drawGhost(null, 1)
         labelAt.current = null
         placeLabel()
@@ -341,15 +353,26 @@ export const MapCanvas = memo(function MapCanvas({
             placeToken(g.el, g.from.x * CELL_PX, g.from.y * CELL_PX)
             clearOverlay()
         }
+        // O segundo dedo transforma o traço em pinça: o rabisco começado some.
+        if (g?.kind === 'draw') clearOverlay()
         gesture.current = { kind: 'pinch', d0: Math.hypot(a.x - b.x, a.y - b.y) || 1, z0: tf.current.z, wx: w.x, wy: w.y }
     }
 
     const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-        if (e.button !== 0 && e.pointerType === 'mouse') return
+        // Botão do meio arrasta o mapa em qualquer ferramenta: no Desenhar e na
+        // Régua o botão esquerdo já tem outro uso.
+        const middle = e.pointerType === 'mouse' && e.button === 1
+        if (e.button !== 0 && e.pointerType === 'mouse' && !middle) return
         const vp = viewportRef.current!
         vp.setPointerCapture(e.pointerId)
         const p = local(e)
         pointers.current.set(e.pointerId, p)
+
+        if (middle) {
+            e.preventDefault()
+            gesture.current = { kind: 'pan', sx: p.x, sy: p.y, tx: tf.current.x, ty: tf.current.y }
+            return
+        }
 
         if (pointers.current.size === 2) { startPinch(); return }
         if (pointers.current.size > 2) return
@@ -362,6 +385,25 @@ export const MapCanvas = memo(function MapCanvas({
         if (current === 'ruler') {
             clearOverlay()
             gesture.current = { kind: 'ruler', from: cellAt(w.x, w.y) }
+            return
+        }
+
+        if (current === 'draw') {
+            clearOverlay()
+            const st = styleRef.current
+            if (st.mode === 'erase') {
+                const drawingId = target.closest<SVGElement>('[data-drawing-id]')?.dataset.drawingId
+                if (drawingId) cb.current.onErase(drawingId)
+                return
+            }
+            const line = st.mode === 'line'
+            const start = line ? snapHalf(w.x, w.y) : ([w.x, w.y] as [number, number])
+            const live = liveRef.current
+            if (live) {
+                live.setAttribute('stroke', st.color)
+                live.setAttribute('stroke-width', String(st.width * CELL_PX))
+            }
+            gesture.current = { kind: 'draw', line, pts: [start], d: `M${start[0]} ${start[1]}` }
             return
         }
 
@@ -420,6 +462,30 @@ export const MapCanvas = memo(function MapCanvas({
             return
         }
 
+        if (g.kind === 'draw') {
+            const live = liveRef.current
+            if (g.line) {
+                // Linha reta: as pontas encaixam no grid, e o rótulo diz o
+                // comprimento — "Wall of Fire, 60 pés" se mede aqui.
+                const end = snapHalf(w.x, w.y)
+                g.pts = [g.pts[0], end]
+                live?.setAttribute('d', `M${g.pts[0][0]} ${g.pts[0][1]}L${end[0]} ${end[1]}`)
+                const from = cellAt(g.pts[0][0], g.pts[0][1])
+                const to = cellAt(end[0], end[1])
+                if (labelRef.current) labelRef.current.textContent = formatDistance(squaresBetween(from, to))
+                labelAt.current = { wx: end[0], wy: end[1] }
+                placeLabel()
+                return
+            }
+            const last = g.pts[g.pts.length - 1]
+            // Um ponto a cada 2 px de tela: o resto é ruído do sensor.
+            if (Math.hypot(w.x - last[0], w.y - last[1]) * tf.current.z < 2) return
+            g.pts.push([w.x, w.y])
+            g.d += `L${Math.round(w.x)} ${Math.round(w.y)}`
+            live?.setAttribute('d', g.d)
+            return
+        }
+
         if (g.kind === 'token') {
             if (!g.moved && Math.hypot(p.x - g.sx, p.y - g.sy) < TAP_SLOP_PX) return
             g.moved = true
@@ -475,6 +541,16 @@ export const MapCanvas = memo(function MapCanvas({
             return
         }
 
+        if (g.kind === 'draw') {
+            const st = styleRef.current
+            const drawing = finishStroke(g.pts, st.color, st.width)
+            // O traço provisório só sai depois de o desenho de verdade estar no
+            // estado — sem isso o traço pisca entre um e outro.
+            if (drawing) cb.current.onDraw(drawing)
+            requestAnimationFrame(clearOverlay)
+            return
+        }
+
         if (g.kind === 'image' && g.rect !== g.start) {
             cb.current.onImageRect(g.rect)
         }
@@ -510,7 +586,7 @@ export const MapCanvas = memo(function MapCanvas({
                 touchAction: 'none',
                 userSelect: 'none',
                 WebkitUserSelect: 'none',
-                cursor: tool === 'ruler' ? 'crosshair' : 'default',
+                cursor: tool === 'ruler' || (tool === 'draw' && drawStyle.mode !== 'erase') ? 'crosshair' : 'default',
             }}
         >
             <div
@@ -602,6 +678,13 @@ export const MapCanvas = memo(function MapCanvas({
                     />
                 </svg>
 
+                <DrawingLayer
+                    drawings={data.drawings ?? {}}
+                    erasing={tool === 'draw' && drawStyle.mode === 'erase'}
+                    width={cols * CELL_PX}
+                    height={rows * CELL_PX}
+                />
+
                 {Object.entries(data.tokens).map(([id, token]) => {
                     const pos = data.pos[id]
                     if (!pos) return null
@@ -626,6 +709,13 @@ export const MapCanvas = memo(function MapCanvas({
                     height={rows * CELL_PX}
                     style={{ position: 'absolute', left: 0, top: 0, pointerEvents: 'none', overflow: 'visible' }}
                 >
+                    <path
+                        ref={liveRef}
+                        fill="none"
+                        strokeOpacity={0.6}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    />
                     <rect
                         ref={ghostRef}
                         fill={`${gold.bright}33`}
