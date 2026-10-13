@@ -659,6 +659,10 @@ cada fatia de estado mora**:
 
 VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:maps:active`).
 
+- **Exclusivamente desktop** (decisão do usuário): a regra dos 320px da seção de Responsividade
+  NÃO vale para este módulo. Não gaste esforço com layout de celular aqui; o que já existe de toque
+  (pinça, alvos maiores) fica, mas não é requisito.
+
 - **Desempenho molda o `MapCanvas` inteiro.** Um único "mundo" com uma `transform` CSS: pan, zoom
   e pinça escrevem a transformação **direto no DOM, num `requestAnimationFrame`** — nenhum render
   React durante o gesto (o rótulo "80%" só atualiza quando o gesto para). Arrastar token move o
@@ -713,8 +717,11 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
   WebP e devolve PNG calado — aí cai para JPEG.
 - **Desenhos** (`drawing.ts`, `DrawingLayer.tsx`, `DrawPanel.tsx`, ferramenta Desenhar — para
   todos, não só o GM: quem conjura a Wall of Fire é o jogador). Livre, Linha (pontas encaixam a
-  cada ½ quadrado e o rótulo mostra o comprimento) e Apagar (toque num desenho; um traço
-  transparente mais largo é o alvo, senão a linha fina seria impossível de acertar no dedo).
+  cada ½ quadrado e o rótulo mostra o comprimento) e Apagar (um desenho por vez). No modo
+  Apagar cada desenho ganha um **×** vermelho no início do traço, e o traço inteiro vira alvo com
+  28 px a mais de folga — os dois em px de TELA (`--inv-zoom`). Na primeira versão o alvo era o
+  traço na escala do mundo: com zoom baixo virava 2–3 px, e a impressão era de que só existia o
+  "Limpar todos".
   - **Um campo `drw:<id>` por desenho**, como `pos:<id>`: apagar um não toca nos outros e dois
     desenhando ao mesmo tempo não se sobrescrevem. Teto de 300 por mapa; "Limpar todos" (Modo
     GM) é uma ação própria, `map-clear-drawings`, que também tira os desenhos da fila de subida.
