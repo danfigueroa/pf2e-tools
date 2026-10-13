@@ -10,6 +10,7 @@
 //     ├─ afflictions    → {"v":1,"data":[{"def":…,"stage":2,…}],"updatedAt":…}
 //     ├─ persistent     → {"v":1,"data":[{"formula":"1d6","type":"fire",…}],"updatedAt":…}
 //     ├─ mythic         → {"v":1,"data":{"used":1},"updatedAt":…}
+//     ├─ token          → {"v":1,"data":{"url":"https://…blob…/token.webp"},"updatedAt":…}
 //     └─ pet:pet:urso#0 → {"v":1,"data":{"current":40,"temp":0},"updatedAt":…}
 //
 // Hash e não um documento único de propósito: com um JSON só por personagem,
@@ -33,7 +34,12 @@ const TTL_SECONDS = 180 * 24 * 60 * 60
 export const MAX_FIELD_BYTES = 8 * 1024
 
 const SLUG_RE = /^[a-z0-9-]{1,64}$/
-const FIELD_RE = /^(hp|slots|conditions|afflictions|persistent|mythic|consumed|shield|pet:[a-z0-9:#-]{1,80})$/
+const FIELD_RE = /^(hp|slots|conditions|afflictions|persistent|mythic|consumed|shield|token|pet:[a-z0-9:#-]{1,80})$/
+
+// Contador global de escritas no estado dos personagens. O mapa de combate o
+// lê junto da própria revisão (um MGET) para saber que o PV de alguém mudou
+// pela Ficha Virtual ou pela Iniciativa sem perguntar personagem a personagem.
+export const TABLE_REV_KEY = 'pf2e:table:rev'
 
 export const isValidSlug = (slug) => typeof slug === 'string' && SLUG_RE.test(slug)
 export const isValidField = (field) => typeof field === 'string' && FIELD_RE.test(field)
@@ -65,6 +71,10 @@ export function redis() {
 // some entre invocações — é justamente por isso que o cliente também mantém
 // cache em localStorage.
 const memory = new Map()
+let memoryRev = 0
+
+/** O contador acima quando não há Redis (lido por map-store.js). */
+export const memoryTableRev = () => memoryRev
 
 /** Envelope gravado em cada campo. */
 const envelope = (data) => ({ v: STATE_VERSION, data, updatedAt: Date.now() })
@@ -115,10 +125,14 @@ export async function writeField(slug, field, data) {
         const current = memory.get(key) || {}
         current[field] = JSON.stringify(value)
         memory.set(key, current)
+        memoryRev += 1
         return value.updatedAt
     }
 
-    await r.hset(key, { [field]: JSON.stringify(value) })
-    await r.expire(key, TTL_SECONDS)
+    const p = r.pipeline()
+    p.hset(key, { [field]: JSON.stringify(value) })
+    p.expire(key, TTL_SECONDS)
+    p.incr(TABLE_REV_KEY)
+    await p.exec()
     return value.updatedAt
 }
