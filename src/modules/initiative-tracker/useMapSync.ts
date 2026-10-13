@@ -22,6 +22,7 @@ function descriptors(state: EncounterState, views: CombatantView[]): Array<Token
             size: sizeSquares(c.size),
             maxHp: maxById.get(c.id) ?? c.baseMaxHp,
             defeated: c.defeated || undefined,
+            speed: c.speed,
         }
         : {
             id: c.id,
@@ -30,6 +31,7 @@ function descriptors(state: EncounterState, views: CombatantView[]): Array<Token
             size: sizeSquares(c.size),
             image: c.tokenImage,
             defeated: c.defeated || undefined,
+            speed: c.speed,
         })
 }
 

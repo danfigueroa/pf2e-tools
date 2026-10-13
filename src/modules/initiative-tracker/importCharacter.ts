@@ -7,6 +7,28 @@ import type { NpcCombatant, NpcShield, PcCombatant } from './types'
 import { shieldItemOf } from '../character-viewer/shield'
 
 /**
+ * Deslocamento do personagem para o mapa: o da ficha MAIS os bônus, nunca
+ * menos. O `speedBonus` do Pathbuilder embute a penalidade da armadura pesada,
+ * e na mesa ela não vale para quem tem como anulá-la — o Ghan Buri exporta
+ * `speed 25` e `speedBonus −10` (Hero's Plate) e anda os 25 pés dele
+ * (decisão do usuário). Os bônus positivos (Fleet, a velocidade do bárbaro)
+ * continuam somando.
+ */
+export function pcSpeed(build: BuildInfo): number {
+    return build.attributes.speed + Math.max(0, build.attributes.speedBonus || 0)
+}
+
+/**
+ * Deslocamento de uma criatura da AON: o terrestre; sem ele (quem só voa,
+ * como o Will-o'-Wisp), o maior que ela tiver.
+ */
+export function creatureSpeed(speed: Record<string, number> | undefined): number | undefined {
+    if (!speed) return undefined
+    const value = speed.land ?? speed.max ?? Math.max(0, ...Object.values(speed))
+    return value > 0 ? value : undefined
+}
+
+/**
  * Ficha → combatente. Guarda só o que o encontro precisa: o `BuildInfo`
  * inteiro no `localStorage` seria uma segunda cópia da ficha, capaz de
  * divergir da real. O vínculo com o estado da mesa é o slug, que sai apenas do
@@ -51,6 +73,7 @@ export function pcFromBuild(
         presetFile: preset?.filename,
         shieldItem: shieldItemOf(build) ?? undefined,
         size: build.sizeName || undefined,
+        speed: pcSpeed(build),
     }
 }
 
@@ -81,6 +104,7 @@ export function npcFromCreature(creature: AonCreature, index = 0): NpcCombatant 
         aonUrl: creature.url,
         shield: creature.shield ? npcShieldFrom(creature.shield) : undefined,
         size: creature.size ?? undefined,
+        speed: creatureSpeed(creature.speed),
     }
 }
 

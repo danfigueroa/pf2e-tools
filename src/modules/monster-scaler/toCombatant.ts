@@ -6,6 +6,7 @@
 // ver qual é qual.
 
 import type { NpcCombatant } from '../initiative-tracker/types'
+import { creatureSpeed } from '../initiative-tracker/importCharacter'
 import type { ScaledMonster, ScaleOverrides, SpellEdits } from './types'
 
 /**
@@ -45,6 +46,7 @@ export function npcFromScaled(
         aonUrl: monster.source.url,
         aonName: monster.source.name,
         size: monster.source.size ?? undefined,
+        speed: creatureSpeed(monster.source.speed),
         ...(Object.keys(overrides).length > 0 ? { scaleOverrides: overrides } : {}),
         // Mesma razão dos overrides: sem a lista editada, a ficha do cartão
         // mostraria as magias da AON, não as que o GM escolheu.

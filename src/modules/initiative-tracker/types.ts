@@ -31,6 +31,8 @@ interface CombatantBase {
     defenseNotes?: string[]
     /** Tamanho em inglês ("Medium", "Large") — vira a pegada do token no mapa. */
     size?: string
+    /** Deslocamento em pés — as faixas de 1, 2 e 3 Andares ao arrastar o token no mapa. */
+    speed?: number
 }
 
 export interface PcCombatant extends CombatantBase {

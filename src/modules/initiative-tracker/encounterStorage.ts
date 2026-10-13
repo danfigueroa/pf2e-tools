@@ -129,6 +129,7 @@ function sanitizeCombatant(raw: unknown): Combatant | null {
         immunities: strings(c.immunities).map((i) => i.toLowerCase()),
         defenseNotes: strings(c.defenseNotes),
         size: typeof c.size === 'string' ? c.size : undefined,
+        speed: typeof c.speed === 'number' && c.speed > 0 ? Math.floor(c.speed) : undefined,
     }
 
     if (c.kind === 'npc') {

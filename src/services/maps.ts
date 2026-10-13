@@ -37,6 +37,8 @@ export interface TokenDescriptor {
     /** Imagem do monstro. A do personagem é da mesa (`pcs[slug].token`). */
     image?: string
     defeated?: boolean
+    /** Deslocamento em pés — sem ele, o arrasto mostra só a distância. */
+    speed?: number
 }
 
 export interface NpcHp { current: number; max: number; temp: number; updatedAt?: number }
