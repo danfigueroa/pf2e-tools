@@ -21,7 +21,7 @@ import { AREA_LABELS, areaSquares, cellsPath, snapAngle45, tokensIn, type Area, 
 import type { TokenSpace } from './DrawingLayer'
 import type { TokenHp } from '../hp'
 import { useImageUrl } from '../../../services/images'
-import { MAP_BACKDROP, gold, mapChrome } from '../../../theme'
+import { MAP_BACKDROP, gold, mapChrome, status } from '../../../theme'
 import type { MapData } from '../../../services/maps'
 
 export type MapTool = 'select' | 'ruler' | 'draw' | 'area' | 'image'
@@ -65,6 +65,8 @@ type Gesture =
     | {
         kind: 'token'; id: string; el: HTMLElement; size: number; from: Cell
         ox: number; oy: number; sx: number; sy: number; moved: boolean; to: Cell
+        /** Deslocamento em pés, quando o token sabe o dele. */
+        speed?: number
     }
     | { kind: 'ruler'; from: Cell }
     | { kind: 'draw'; line: boolean; pts: Array<[number, number]>; d: string }
@@ -123,6 +125,33 @@ function placeToken(el: HTMLElement, left: number, top: number) {
     el.style.top = `${top}px`
 }
 
+/** Cores das faixas de 1, 2 e 3 Andares. */
+const BAND_COLORS = [status.success, status.warning, status.error]
+
+/**
+ * Faixas de alcance de um token: as posições onde ele pode parar com 1, 2 e 3
+ * Andares, pela distância PF2e (5-10-5) a partir de onde estava. Cada faixa é
+ * um anel — o que a anterior não alcançava —, desenhado na posição do CENTRO
+ * do token (um token Grande cai meio quadrado deslocado, como ele mesmo).
+ * Sem terreno difícil nem condições: o mapa não sabe de parede nem de Lento.
+ */
+function movementBands(from: Cell, size: number, speedFeet: number): string[] {
+    const reach = Math.floor(speedFeet / 5)
+    const out = ['', '', '']
+    if (reach <= 0) return out
+    const max = reach * 3
+    const off = (size - 1) / 2
+    for (let y = Math.max(0, from.y - max); y <= from.y + max; y++) {
+        for (let x = Math.max(0, from.x - max); x <= from.x + max; x++) {
+            const d = squaresBetween(from, { x, y })
+            if (d === 0 || d > max) continue
+            const band = Math.ceil(d / reach) - 1
+            out[band] += `M${(x + off) * CELL_PX} ${(y + off) * CELL_PX}h${CELL_PX}v${CELL_PX}h${-CELL_PX}z`
+        }
+    }
+    return out
+}
+
 /** Arrasto menor que isto é toque (abre o token), não movimento. */
 const TAP_SLOP_PX = 6
 
@@ -153,6 +182,7 @@ export const MapCanvas = memo(function MapCanvas({
     const liveRef = useRef<SVGPathElement>(null)
     /** Prévia da área de efeito: quadrados atingidos, redesenhados pelo DOM. */
     const areaRef = useRef<SVGPathElement>(null)
+    const bandRefs = [useRef<SVGPathElement>(null), useRef<SVGPathElement>(null), useRef<SVGPathElement>(null)]
 
     const tf = useRef<Transform>({ x: 0, y: 0, z: 1 })
     const frame = useRef<number | null>(null)
@@ -347,6 +377,7 @@ export const MapCanvas = memo(function MapCanvas({
         if (pathRef.current) pathRef.current.style.display = 'none'
         if (liveRef.current) liveRef.current.setAttribute('d', '')
         if (areaRef.current) areaRef.current.setAttribute('d', '')
+        for (const band of bandRefs) band.current?.setAttribute('d', '')
         drawGhost(null, 1)
         labelAt.current = null
         placeLabel()
@@ -500,7 +531,7 @@ export const MapCanvas = memo(function MapCanvas({
             gesture.current = {
                 kind: 'token', id, el: tokenEl, size, from: pos, to: pos,
                 ox: w.x - pos.x * CELL_PX, oy: w.y - pos.y * CELL_PX,
-                sx: p.x, sy: p.y, moved: false,
+                sx: p.x, sy: p.y, moved: false, speed: d.tokens[id]?.speed,
             }
             return
         }
@@ -590,6 +621,11 @@ export const MapCanvas = memo(function MapCanvas({
 
         if (g.kind === 'token') {
             if (!g.moved && Math.hypot(p.x - g.sx, p.y - g.sy) < TAP_SLOP_PX) return
+            if (!g.moved && g.speed) {
+                // Calculadas UMA vez, no começo do arrasto: o resto do gesto só
+                // mexe no token e no rótulo.
+                movementBands(g.from, g.size, g.speed).forEach((d, i) => bandRefs[i].current?.setAttribute('d', d))
+            }
             g.moved = true
             const left = w.x - g.ox
             const top = w.y - g.oy
@@ -599,6 +635,11 @@ export const MapCanvas = memo(function MapCanvas({
             g.to = { x: Math.max(0, snapped.x), y: Math.max(0, snapped.y) }
             drawGhost(g.to, g.size)
             drawLine(g.from, g.to, g.size)
+            if (g.speed && labelRef.current) {
+                const steps = Math.ceil((squaresBetween(g.from, g.to) * 5) / g.speed)
+                const actions = steps === 0 ? '' : steps > 3 ? ' · fora de alcance' : ` · ${steps} ${steps === 1 ? 'ação' : 'ações'}`
+                labelRef.current.textContent += actions
+            }
             return
         }
 
@@ -839,6 +880,18 @@ export const MapCanvas = memo(function MapCanvas({
                     height={rows * CELL_PX}
                     style={{ position: 'absolute', left: 0, top: 0, pointerEvents: 'none', overflow: 'visible' }}
                 >
+                    {bandRefs.map((ref, i) => (
+                        <path
+                            key={i}
+                            ref={ref}
+                            fill={BAND_COLORS[i]}
+                            fillOpacity={0.18}
+                            stroke={BAND_COLORS[i]}
+                            strokeOpacity={0.35}
+                            strokeWidth={1}
+                            vectorEffect="non-scaling-stroke"
+                        />
+                    ))}
                     <path
                         ref={areaRef}
                         fillOpacity={0.35}
