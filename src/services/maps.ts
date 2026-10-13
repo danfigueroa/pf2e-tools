@@ -371,17 +371,22 @@ export function writePcHp(id: string, slug: string, hp: HpStored): void {
 /**
  * A Iniciativa diz quem está no mapa. `hp` leva só os monstros cujo PV mudou
  * desde o último envio.
+ * @returns a revisão do mapa depois da escrita.
  */
 export async function syncTokens(
     id: string,
     tokens: Array<TokenDescriptor & { id: string }>,
     turn: string | null,
     hp: Record<string, Omit<NpcHp, 'updatedAt'>>,
-): Promise<void> {
-    await post({ action: 'map-sync', id, tokens, turn, hp })
+): Promise<number> {
+    const body = await post<{ rev: number }>({ action: 'map-sync', id, tokens, turn, hp })
     const entry = entries.get(id)
     if (entry && entry.listeners.size > 0) {
         entry.lastChange = Date.now()
+        // Espera um carregamento em curso terminar: ele pode ter saído ANTES
+        // desta escrita, e quem chamou precisa ver a revisão nova.
+        if (entry.loading) await entry.loading
         void loadMap(id)
     }
+    return body.rev
 }
