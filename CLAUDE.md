@@ -741,9 +741,11 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
   - Dois dedos (pinça) e o botão do meio do mouse movem o mapa em qualquer ferramenta — no
     Desenhar o arrasto de um dedo é o traço.
 - **Áreas de efeito** (`areas.ts`, `AreaPanel.tsx`, ferramenta Área — para todos): explosão,
-  emanação, cone e linha. Moram no MESMO campo `drw:<id>` dos desenhos (`{ type: 'area', … }`), e
-  por isso herdam o apagar um por vez, o "Limpar", o teto de 300 e a sincronia. Traço antigo, sem
-  `type`, continua traço.
+  emanação, cone e linha. **São CONSULTA, como a régua** (decisão do usuário): a área aparece só
+  para quem mede, fica parada depois do clique (`areaPinned`) até o próximo clique ou a troca de
+  ferramenta, e **nunca é gravada**. A primeira versão gravava cada área num `drw:` e o usuário
+  não queria isso — áreas gravadas nessa época ainda são desenhadas pelo `DrawingLayer` (ramo
+  `type: 'area'`) e saem pelo Apagar/Limpar do Desenhar.
   - Distância é a da régua (5-10-5) **contando o próprio quadrado**, como uma criatura andando até
     ele. É o que dá os moldes do livro: explosão de 5/10/15/20 ft = 4/12/24/44 quadrados; emanação
     de 5 ft num Médio = 3×3. Explosão e cone saem de um CRUZAMENTO do grid; a linha, de qualquer
@@ -751,12 +753,12 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
     um lado só, senão teria 10 ft.
   - Cone = 90° encaixado em 45° (reto ou diagonal); o diagonal é exatamente ¼ da explosão. O reto é
     aproximação pelo ângulo, como fazem os VTTs.
-  - **Emanação guarda o `tokenId`, não a posição**: a área é recalculada do `pos` do token a cada
-    render e anda junto quando ele se move.
   - A prévia conta as criaturas cuja pegada toca a área ("Explosão 20 ft · 3 criaturas"), sem a
-    que emana. Os × do modo Apagar ficam numa camada ACIMA dos tokens (`EraseBadgeLayer`), e
-    apagando os tokens deixam o clique passar (`[data-erasing]`): na camada dos desenhos, o × de
-    uma explosão caía embaixo de um token e o clique ia para ele — foi bug.
+    que emana. Explosão e emanação seguem o mouse antes do clique; cone e linha precisam de
+    arrasto para ter direção (clique seco só limpa a anterior).
+  - Os × do Apagar do Desenhar ficam numa camada ACIMA dos tokens (`EraseBadgeLayer`), e apagando
+    os tokens deixam o clique passar (`[data-erasing]`): na camada dos desenhos, o × caía embaixo
+    de um token e o clique ia para ele — foi bug.
 - **Alcance de movimento**: ao arrastar um token com `speed`, três anéis (1, 2 e 3 Andares, pela
   mesma distância 5-10-5) calculados UMA vez no início do arrasto, e o rótulo diz "2 ações" ou
   "fora de alcance". Não sabe de terreno difícil, paredes nem condições (Lento, Imobilizado).
