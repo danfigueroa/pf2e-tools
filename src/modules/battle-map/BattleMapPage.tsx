@@ -1,0 +1,368 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import {
+    Alert,
+    Box,
+    Button,
+    Card,
+    CardContent,
+    CircularProgress,
+    FormControlLabel,
+    IconButton,
+    Paper,
+    Switch,
+    ToggleButton,
+    ToggleButtonGroup,
+    Tooltip,
+    Typography,
+} from '@mui/material'
+import {
+    Add as ZoomInIcon,
+    CenterFocusStrong as FitIcon,
+    Image as ImageIcon,
+    Layers as MapsIcon,
+    PanTool as SelectIcon,
+    Remove as ZoomOutIcon,
+    Straighten as RulerIcon,
+} from '@mui/icons-material'
+import { MapCanvas, type CanvasApi, type MapTool, type TokenView } from './components/MapCanvas'
+import { MapListDrawer } from './components/MapListDrawer'
+import { TokenPopover } from './components/TokenPopover'
+import { ImagePanel } from './components/ImagePanel'
+import type { TokenHp } from './hp'
+import type { Cell, ImageRect } from './geometry'
+import {
+    isMapStoreReady,
+    listMaps,
+    useMapData,
+    writeMapField,
+    writePcHp,
+    type MapData,
+    type MapMeta,
+} from '../../services/maps'
+import { gold, green, ink, parchment } from '../../theme'
+
+const GM_KEY = 'pf2e:map:gm'
+
+/** PV de cada token, já com a regra de quem vê número. */
+function buildViews(data: MapData, gm: boolean): Map<string, TokenView> {
+    const views = new Map<string, TokenView>()
+    for (const [id, token] of Object.entries(data.tokens)) {
+        if (token.kind === 'pc' && token.slug) {
+            const pc = data.pcs[token.slug]
+            const max = Math.max(1, token.maxHp ?? 1)
+            // `null` na mesa = ninguém mexeu = PV cheio (mesma regra do useHpTracker).
+            const hp: TokenHp = {
+                current: Math.min(max, Math.max(0, pc?.hp?.current ?? max)),
+                max,
+                temp: Math.max(0, pc?.hp?.temp ?? 0),
+            }
+            views.set(id, { id, hp, showNumbers: true, image: pc?.token?.url ?? null })
+        } else {
+            const raw = data.hp[id]
+            const hp = raw ? { current: raw.current, max: raw.max, temp: raw.temp } : null
+            views.set(id, { id, hp, showNumbers: gm, image: token.image ?? null })
+        }
+    }
+    return views
+}
+
+/**
+ * Mapa de Combate. A página só monta peças e decide permissões de interface;
+ * desenho e gestos moram no `MapCanvas`, e a sincronia no `services/maps.ts`.
+ *
+ * Os tokens vêm do encontro da Iniciativa ligado a este mapa — aqui não se
+ * cria nem apaga token, só se move e se aplica dano.
+ */
+export const BattleMapPage = () => {
+    const { id: routeId } = useParams<{ id?: string }>()
+    const navigate = useNavigate()
+    const id = routeId ?? null
+
+    const [gm, setGm] = useState(() => {
+        try { return localStorage.getItem(GM_KEY) === '1' } catch { return false }
+    })
+    const [tool, setTool] = useState<MapTool>('select')
+    const [zoom, setZoom] = useState(1)
+    const [drawer, setDrawer] = useState(false)
+    const [tapped, setTapped] = useState<{ id: string; anchor: HTMLElement } | null>(null)
+    const [resolving, setResolving] = useState(!routeId)
+    const canvas = useRef<CanvasApi>(null)
+
+    const { data, error, activeId } = useMapData(id)
+
+    // Sem mapa na URL: vai para onde a mesa está; sem mesa, abre a lista.
+    useEffect(() => {
+        if (routeId) return
+        let alive = true
+        setResolving(true)
+        listMaps()
+            .then((body) => {
+                if (!alive) return
+                if (body.activeId) navigate(`/mapa/${body.activeId}`, { replace: true })
+                else setDrawer(true)
+            })
+            .catch(() => { if (alive) setDrawer(true) })
+            .finally(() => { if (alive) setResolving(false) })
+        return () => { alive = false }
+    }, [routeId, navigate])
+
+    const toggleGm = (on: boolean) => {
+        setGm(on)
+        if (!on && tool === 'image') setTool('select')
+        try { localStorage.setItem(GM_KEY, on ? '1' : '0') } catch { /* sem storage, só nesta aba */ }
+    }
+
+    const views = useMemo(() => (data ? buildViews(data, gm) : new Map<string, TokenView>()), [data, gm])
+
+    // Callbacks estáveis: o MapCanvas é memoizado e não pode repintar por causa
+    // de uma função nova a cada render.
+    const dataRef = useRef(data)
+    dataRef.current = data
+
+    const onMove = useCallback((tokenId: string, cell: Cell) => {
+        if (id) writeMapField(id, `pos:${tokenId}`, cell)
+    }, [id])
+
+    const onImageRect = useCallback((rect: ImageRect) => {
+        const d = dataRef.current
+        if (id && d) writeMapField(id, 'meta', { ...d.meta, imageRect: rect })
+    }, [id])
+
+    const onMeta = useCallback((meta: MapMeta) => {
+        if (id) writeMapField(id, 'meta', meta)
+    }, [id])
+
+    const onTokenTap = useCallback((tokenId: string, anchor: HTMLElement) => {
+        setTapped({ id: tokenId, anchor })
+    }, [])
+
+    const tappedToken = tapped && data ? data.tokens[tapped.id] ?? null : null
+    const tappedView = tapped ? views.get(tapped.id) : undefined
+    const canEditTapped = !!tappedToken && (tappedToken.kind === 'pc' || gm)
+
+    const applyHp = (next: TokenHp) => {
+        if (!id || !tapped || !tappedToken) return
+        if (tappedToken.kind === 'pc' && tappedToken.slug) {
+            writePcHp(id, tappedToken.slug, { current: next.current, temp: next.temp })
+        } else {
+            writeMapField(id, `hp:${tapped.id}`, { current: next.current, max: next.max, temp: next.temp })
+        }
+    }
+
+    const openMap = (next: string | null) => {
+        setTapped(null)
+        navigate(next ? `/mapa/${next}` : '/mapa')
+    }
+
+    const tokenCount = data ? Object.keys(data.tokens).length : 0
+
+    return (
+        <Box
+            sx={{
+                // Sangra até a borda: o mapa é a página. Desfaz o padding do
+                // MainLayout e ocupa a altura toda abaixo da AppBar do celular.
+                mx: { xs: -1.5, sm: -3 },
+                my: { xs: -2, sm: -3 },
+                height: { xs: 'calc(100dvh - 56px)', sm: 'calc(100dvh - 64px)', md: '100dvh' },
+                position: 'relative',
+                overflow: 'hidden',
+                backgroundColor: green.deepest,
+            }}
+        >
+            {data && (
+                <MapCanvas
+                    data={data}
+                    tool={tool}
+                    views={views}
+                    onMove={onMove}
+                    onImageRect={onImageRect}
+                    onTokenTap={onTokenTap}
+                    onZoomChange={setZoom}
+                    apiRef={canvas}
+                />
+            )}
+
+            {/* Barra superior */}
+            <Paper
+                elevation={4}
+                sx={{
+                    position: 'absolute',
+                    top: 8,
+                    left: 8,
+                    right: 8,
+                    zIndex: 2,
+                    px: 1,
+                    py: 0.5,
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: 1,
+                    backgroundColor: green.main,
+                    color: parchment.page,
+                    borderBottom: `2px solid ${gold.main}`,
+                }}
+            >
+                <Button
+                    onClick={() => setDrawer(true)}
+                    startIcon={<MapsIcon />}
+                    sx={{ color: gold.bright, fontWeight: 700, minWidth: 0, maxWidth: { xs: 160, sm: 280 } }}
+                >
+                    <Box component="span" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {data?.meta.name ?? 'Mapas'}
+                    </Box>
+                </Button>
+
+                <ToggleButtonGroup
+                    size="small"
+                    exclusive
+                    value={tool}
+                    onChange={(_, v: MapTool | null) => { if (v) setTool(v) }}
+                    sx={{
+                        '& .MuiToggleButton-root': {
+                            color: parchment.page,
+                            borderColor: `${gold.main}66`,
+                            px: { xs: 1, sm: 1.5 },
+                            '&.Mui-selected': { color: green.deepest, backgroundColor: gold.bright },
+                            '&.Mui-selected:hover': { backgroundColor: gold.bright },
+                        },
+                    }}
+                >
+                    <ToggleButton value="select" aria-label="Mover tokens">
+                        <SelectIcon fontSize="small" />
+                        <Box component="span" sx={{ ml: 0.75, display: { xs: 'none', sm: 'inline' } }}>Mover</Box>
+                    </ToggleButton>
+                    <ToggleButton value="ruler" aria-label="Régua">
+                        <RulerIcon fontSize="small" />
+                        <Box component="span" sx={{ ml: 0.75, display: { xs: 'none', sm: 'inline' } }}>Régua</Box>
+                    </ToggleButton>
+                    {gm && (
+                        <ToggleButton value="image" aria-label="Camada do mapa">
+                            <ImageIcon fontSize="small" />
+                            <Box component="span" sx={{ ml: 0.75, display: { xs: 'none', sm: 'inline' } }}>Mapa</Box>
+                        </ToggleButton>
+                    )}
+                </ToggleButtonGroup>
+
+                <Box sx={{ flex: 1 }} />
+
+                <FormControlLabel
+                    control={<Switch size="small" checked={gm} onChange={(e) => toggleGm(e.target.checked)} color="warning" />}
+                    label="Modo GM"
+                    sx={{ mr: 0.5, '& .MuiFormControlLabel-label': { fontSize: '0.85rem' } }}
+                />
+            </Paper>
+
+            {/* Zoom */}
+            {data && (
+                <Paper
+                    elevation={4}
+                    sx={{
+                        position: 'absolute',
+                        right: 12,
+                        bottom: 12,
+                        zIndex: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        backgroundColor: green.main,
+                        '& .MuiIconButton-root': { color: parchment.page, width: 44, height: 44 },
+                    }}
+                >
+                    <IconButton aria-label="Aproximar" onClick={() => canvas.current?.zoomBy(1.25)}><ZoomInIcon /></IconButton>
+                    <Typography variant="caption" sx={{ color: gold.bright, fontWeight: 700 }}>
+                        {Math.round(zoom * 100)}%
+                    </Typography>
+                    <IconButton aria-label="Afastar" onClick={() => canvas.current?.zoomBy(0.8)}><ZoomOutIcon /></IconButton>
+                    <Tooltip title="Enquadrar o mapa" placement="left">
+                        <IconButton aria-label="Enquadrar o mapa" onClick={() => canvas.current?.fit()}><FitIcon /></IconButton>
+                    </Tooltip>
+                </Paper>
+            )}
+
+            {gm && tool === 'image' && data && <ImagePanel meta={data.meta} onChange={onMeta} />}
+
+            {/* Avisos */}
+            <Box
+                sx={{
+                    position: 'absolute',
+                    top: { xs: 64, sm: 60 },
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: 'min(520px, calc(100% - 24px))',
+                    zIndex: 2,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1,
+                    pointerEvents: 'none',
+                    '& > *': { pointerEvents: 'auto' },
+                }}
+            >
+                {data && activeId && activeId !== id && (
+                    <Alert
+                        severity="info"
+                        action={<Button color="inherit" size="small" onClick={() => openMap(activeId)}>Ir</Button>}
+                    >
+                        A mesa está em outro mapa.
+                    </Alert>
+                )}
+                {data && tokenCount === 0 && gm && (
+                    <Alert severity="info">
+                        Sem tokens. Os tokens vêm da Iniciativa: escolha este mapa no encontro e
+                        adicione os combatentes.
+                    </Alert>
+                )}
+                {data && !isMapStoreReady() && (
+                    <Alert severity="warning">
+                        Servidor sem Redis: o mapa não é compartilhado com a mesa.
+                    </Alert>
+                )}
+            </Box>
+
+            {/* Estados vazios */}
+            {(resolving || (id && !data && !error)) && (
+                <Box sx={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center' }}>
+                    <CircularProgress sx={{ color: gold.bright }} />
+                </Box>
+            )}
+            {!resolving && (!id || error) && (
+                <Box sx={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', p: 2 }}>
+                    <Card sx={{ maxWidth: 420 }}>
+                        <CardContent sx={{ textAlign: 'center' }}>
+                            <Typography variant="h5" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
+                                {error ? 'Mapa não encontrado' : 'Mapa de Combate'}
+                            </Typography>
+                            <Typography sx={{ color: ink.secondary, mb: 2 }}>
+                                {error
+                                    ? 'Ele pode ter sido apagado depois do jogo.'
+                                    : 'Nenhum mapa aberto. Escolha um da sessão ou, no Modo GM, crie um novo.'}
+                            </Typography>
+                            <Button variant="contained" startIcon={<MapsIcon />} onClick={() => setDrawer(true)}>
+                                Mapas da sessão
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </Box>
+            )}
+
+            <MapListDrawer
+                open={drawer}
+                currentId={id}
+                gm={gm}
+                onClose={() => setDrawer(false)}
+                onOpenMap={openMap}
+            />
+
+            <TokenPopover
+                anchor={tapped?.anchor ?? null}
+                token={tappedToken}
+                hp={tappedView?.hp ?? null}
+                canEdit={canEditTapped}
+                onClose={() => setTapped(null)}
+                onApply={applyHp}
+            />
+        </Box>
+    )
+}
+
+export default BattleMapPage
