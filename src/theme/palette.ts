@@ -74,6 +74,26 @@ export const HP_COLOR = '#B4442A'
  */
 export const SHIELD_COLOR = '#4A6572'
 
+/**
+ * Borda dos tokens do mapa de combate. Ficam sobre a IMAGEM do mapa (lava,
+ * masmorra, pergaminho), não sobre o tema — por isso são mais vivas que os
+ * acentos de texto, e o anel de quem está no turno é o ouro claro.
+ */
+export const TOKEN_PC = '#4F9A6B'
+export const TOKEN_NPC = '#B23A2E'
+/** Fundo do token sem imagem e do mapa vazio. */
+export const MAP_BACKDROP = '#2B2A26'
+/** Peças desenhadas POR CIMA da imagem do mapa: precisam ler em qualquer fundo. */
+export const mapChrome = {
+    /** Linha do grid — usada com opacidade, não como cor cheia. */
+    grid: '#000000',
+    outline: '#000000',
+    track: '#1A1A1A',
+    text: '#FFFFFF',
+    /** Fundo dos rótulos (nome do token, distância da régua). */
+    label: '#14281D',
+} as const
+
 /** Condições ativas (ConditionsBar) — roxo de esmalte, distinto do PV e do mítico. */
 export const CONDITION_COLOR = '#5E4B8B'
 
