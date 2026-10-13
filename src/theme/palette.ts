@@ -106,6 +106,12 @@ export const DRAW_COLORS = [
     { id: 'arcane', label: 'Arcano', hex: '#9B59D0' },
     { id: 'light', label: 'Luz', hex: '#F2D04B' },
     { id: 'shadow', label: 'Sombra', hex: '#1C1C1C' },
+    { id: 'electricity', label: 'Elétrico', hex: '#7DF9FF' },
+    { id: 'poison', label: 'Veneno', hex: '#2E7D32' },
+    { id: 'blood', label: 'Sangue', hex: '#8E1B1B' },
+    { id: 'sonic', label: 'Sônico', hex: '#FF6FB5' },
+    { id: 'terrain', label: 'Terreno difícil', hex: '#8B5A2B' },
+    { id: 'vital', label: 'Vital', hex: '#FFFFFF' },
 ] as const
 
 /** Condições ativas (ConditionsBar) — roxo de esmalte, distinto do PV e do mítico. */
