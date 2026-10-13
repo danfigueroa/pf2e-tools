@@ -39,7 +39,7 @@ import { CombatantAfflictions } from './CombatantAfflictions'
 import { CombatantPersistent } from './CombatantPersistent'
 import { CombatantVitals, type ShieldBefore } from './CombatantVitals'
 import { NpcShieldDialog } from './NpcShieldDialog'
-import { TOKEN_MAX_SIDE, shrinkImage, uploadImage } from '../../../services/images'
+import { TOKEN_MAX_SIDE, imageErrorText, shrinkImage, uploadImage } from '../../../services/images'
 import type { BlockResult } from '../../character-viewer/shield'
 import type { CombatantView, NpcShield } from '../types'
 import { pop, pulseAnimation, useArmed, useReducedMotion, type Pulse } from '../../../motion/motion'
@@ -63,6 +63,13 @@ interface Props {
     onSaveShield: (shield: NpcShield | undefined) => void
     /** Só monstro: a imagem do token no mapa, já enviada. */
     onTokenImage: (url: string) => void
+    /** Envio da imagem falhou — o texto diz por quê. */
+    onTokenError: (message: string) => void
+    /**
+     * O encontro está num mapa. Sem mapa, imagem de monstro não tem dono: ela
+     * só existe para o mapa e é apagada junto com ele.
+     */
+    hasMap: boolean
 }
 
 export const CombatantCard = ({
@@ -82,6 +89,8 @@ export const CombatantCard = ({
     onShieldBlocked,
     onSaveShield,
     onTokenImage,
+    onTokenError,
+    hasMap,
 }: Props) => {
     const { combatant, isActive } = view
 
@@ -125,9 +134,9 @@ export const CombatantCard = ({
         setTokenBusy(true)
         try {
             const { blob } = await shrinkImage(file, TOKEN_MAX_SIDE, true)
-            onTokenImage(await uploadImage(blob, 'tokens', combatant.name))
-        } catch {
-            // Sem rede ou imagem ilegível: o token segue com as iniciais.
+            onTokenImage(await uploadImage(blob, 'monsters', combatant.name))
+        } catch (error) {
+            onTokenError(imageErrorText(error))
         } finally {
             setTokenBusy(false)
             if (tokenInput.current) tokenInput.current.value = ''
@@ -351,9 +360,14 @@ export const CombatantCard = ({
                     </MenuItem>
                 )}
                 {combatant.kind === 'npc' && (
-                    <MenuItem disabled={tokenBusy} onClick={() => { tokenInput.current?.click(); closeMenu() }}>
+                    <MenuItem
+                        disabled={tokenBusy || !hasMap}
+                        onClick={() => { tokenInput.current?.click(); closeMenu() }}
+                    >
                         <TokenIcon fontSize="small" sx={{ mr: 1 }} />
-                        {npc?.tokenImage ? 'Trocar imagem do token' : 'Imagem do token'}
+                        {!hasMap
+                            ? 'Imagem do token (escolha um mapa)'
+                            : npc?.tokenImage ? 'Trocar imagem do token' : 'Imagem do token'}
                     </MenuItem>
                 )}
                 <MenuItem onClick={() => { onRemove(); closeMenu() }}>

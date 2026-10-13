@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { Alert, Box, Button, CircularProgress, Paper, TextField, Typography } from '@mui/material'
 import { Image as ImageIcon } from '@mui/icons-material'
-import { MAP_MAX_SIDE, deleteImage, isLocalImage, shrinkImage, uploadImage } from '../../../services/images'
+import { MAP_MAX_SIDE, deleteImage, imageErrorText, isLocalImage, shrinkImage, uploadImage } from '../../../services/images'
 import { ink } from '../../../theme'
 import type { MapMeta } from '../../../services/maps'
 
@@ -28,13 +28,10 @@ export const ImagePanel = ({ meta, onChange }: Props) => {
         setBusy(true)
         setError(null)
         try {
-            const source = await createImageBitmap(file)
-            const sourceWidth = source.width
-            source.close()
             const shrunk = await shrinkImage(file, MAP_MAX_SIDE)
             const url = await uploadImage(shrunk.blob, 'maps', meta.name)
             const old = meta.image?.url
-            const w = Math.max(1, Math.round(sourceWidth / ASSUMED_PX_PER_SQUARE))
+            const w = Math.max(1, Math.round(shrunk.sourceWidth / ASSUMED_PX_PER_SQUARE))
             onChange({
                 ...meta,
                 image: { url, w: shrunk.width, h: shrunk.height },
@@ -42,7 +39,7 @@ export const ImagePanel = ({ meta, onChange }: Props) => {
             })
             if (old) void deleteImage(old)
         } catch (e) {
-            setError(e instanceof Error ? e.message : 'Não foi possível enviar a imagem')
+            setError(imageErrorText(e))
         } finally {
             setBusy(false)
             if (input.current) input.current.value = ''

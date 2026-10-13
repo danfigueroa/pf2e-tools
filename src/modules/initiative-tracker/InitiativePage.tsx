@@ -414,6 +414,8 @@ export const InitiativePage = () => {
                             onShieldBlocked={onShieldBlocked}
                             onSaveShield={(shield) => dispatch({ type: 'patch', id: view.combatant.id, patch: { shield } })}
                             onTokenImage={(url) => setTokenImage(view.combatant.id, url)}
+                            onTokenError={(text) => setToast({ text })}
+                            hasMap={mapId !== null}
                             onRemove={() => {
                                 dispatch({ type: 'remove', id: view.combatant.id })
                                 setSelected((prev) => {
