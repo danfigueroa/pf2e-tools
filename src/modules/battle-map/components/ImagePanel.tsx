@@ -49,11 +49,30 @@ export const ImagePanel = ({ meta, onChange }: Props) => {
         }
     }
 
-    const setWidth = (raw: string) => {
-        const w = Number(raw.replace(',', '.'))
-        if (!rect || !Number.isFinite(w) || w < 1) return
-        onChange({ ...meta, imageRect: { ...rect, w, h: w * (rect.h / rect.w) } })
+    /**
+     * Escala pelo número de quadrados: o GM conta os quadrados desenhados na
+     * imagem (ou decide quantos quer) e digita a largura OU a altura — a outra
+     * segue a proporção da imagem.
+     */
+    const setSide = (side: 'w' | 'h', raw: string) => {
+        const n = Number(raw.replace(',', '.'))
+        if (!rect || !Number.isFinite(n) || n < 1) return
+        const ratio = rect.h / rect.w
+        const w = side === 'w' ? n : n / ratio
+        onChange({ ...meta, imageRect: { ...rect, w, h: w * ratio } })
     }
+
+    const sideField = (side: 'w' | 'h', label: string) => rect && (
+        <TextField
+            key={`${side}-${rect[side].toFixed(2)}`}
+            size="small"
+            label={label}
+            defaultValue={Number(rect[side].toFixed(1))}
+            onBlur={(e) => setSide(side, e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') setSide(side, (e.target as HTMLInputElement).value) }}
+            slotProps={{ htmlInput: { inputMode: 'decimal' } }}
+        />
+    )
 
     return (
         <Paper
@@ -90,26 +109,16 @@ export const ImagePanel = ({ meta, onChange }: Props) => {
             </Button>
 
             {rect && (
-                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                    <TextField
-                        key={rect.w}
-                        size="small"
-                        label="Largura (quadrados)"
-                        defaultValue={Number(rect.w.toFixed(2))}
-                        onBlur={(e) => setWidth(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') setWidth((e.target as HTMLInputElement).value) }}
-                        slotProps={{ htmlInput: { inputMode: 'decimal' } }}
-                        sx={{ flex: 1 }}
-                    />
-                    <Typography variant="caption" sx={{ color: ink.secondary, whiteSpace: 'nowrap' }}>
-                        × {rect.h.toFixed(1)}
-                    </Typography>
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+                    {sideField('w', 'Largura')}
+                    {sideField('h', 'Altura')}
                 </Box>
             )}
 
             <Typography variant="caption" sx={{ color: ink.secondary }}>
-                Arraste a imagem para alinhar com o grid e a alça dourada para redimensionar
-                (cada quadrado = 5 ft). Imagem de {ASSUMED_PX_PER_SQUARE} px por quadrado já entra no tamanho certo.
+                Largura e altura em quadrados (cada um = 5 ft). Digite quantos quadrados o mapa
+                tem, ou puxe uma das alças
+                douradas. Arraste a imagem para alinhar as linhas dela com o grid.
             </Typography>
 
             {isLocalImage(meta.image?.url) && (

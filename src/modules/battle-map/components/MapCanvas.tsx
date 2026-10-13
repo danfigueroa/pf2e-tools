@@ -56,7 +56,33 @@ type Gesture =
         ox: number; oy: number; sx: number; sy: number; moved: boolean; to: Cell
     }
     | { kind: 'ruler'; from: Cell }
-    | { kind: 'image'; resize: boolean; sx: number; sy: number; start: ImageRect; rect: ImageRect }
+    | { kind: 'image'; corner: Corner | null; sx: number; sy: number; start: ImageRect; rect: ImageRect }
+
+/** Canto da imagem sendo arrastado; `null` = mover a imagem inteira. */
+type Corner = 'nw' | 'ne' | 'sw' | 'se'
+const CORNERS: Corner[] = ['nw', 'ne', 'sw', 'se']
+
+/** Alça de redimensionar: 36 px na tela em qualquer zoom (ver `--inv-zoom`). */
+const HANDLE_SIZE = 'calc(36px * var(--inv-zoom, 1))'
+const HANDLE_OFFSET = 'calc(-18px * var(--inv-zoom, 1))'
+
+/**
+ * Redimensiona pela alça de um canto, com a proporção travada e o canto
+ * OPOSTO parado — é o que o dedo espera ao puxar qualquer um dos quatro.
+ * `dx` é o deslocamento horizontal em quadrados; a altura segue a proporção.
+ */
+function resizeFrom(s: ImageRect, corner: Corner, dx: number): ImageRect {
+    const east = corner[1] === 'e'
+    const south = corner[0] === 's'
+    const w = Math.max(1, s.w + (east ? dx : -dx))
+    const h = w * (s.h / s.w)
+    return {
+        w,
+        h,
+        x: east ? s.x : s.x + s.w - w,
+        y: south ? s.y : s.y + s.h - h,
+    }
+}
 
 /** Arrasto menor que isto é toque (abre o token), não movimento. */
 const TAP_SLOP_PX = 6
@@ -127,7 +153,13 @@ export const MapCanvas = memo(function MapCanvas({
         const world = worldRef.current
         if (!world) return
         world.style.transform = `translate3d(${t.x}px, ${t.y}px, 0) scale(${t.z})`
-        if (gridRef.current) gridRef.current.style.display = t.z < GRID_MIN_ZOOM ? 'none' : 'block'
+        // Alças e contornos de edição usam o inverso do zoom para ter sempre o
+        // mesmo tamanho na TELA: a 40% uma alça de 28 px virava um alvo de 11 px.
+        world.style.setProperty('--inv-zoom', String(1 / t.z))
+        // Afastado, o grid vira ruído e some — menos na camada do mapa, onde ele
+        // é justamente a régua para alinhar a imagem.
+        const hideGrid = t.z < GRID_MIN_ZOOM && toolRef.current !== 'image'
+        if (gridRef.current) gridRef.current.style.display = hideGrid ? 'none' : 'block'
         placeLabel()
     }, [placeLabel])
 
@@ -152,7 +184,8 @@ export const MapCanvas = memo(function MapCanvas({
         schedule()
     }, [schedule])
 
-    const fit = useCallback(() => {
+    /** @param fill fração da tela que o enquadramento ocupa (sobra margem em volta). */
+    const fit = useCallback((fill = 0.95) => {
         const vp = viewportRef.current
         if (!vp) return
         const d = dataRef.current
@@ -173,7 +206,7 @@ export const MapCanvas = memo(function MapCanvas({
         }
         const w = box.w * CELL_PX
         const h = box.h * CELL_PX
-        const z = clamp(Math.min(vp.clientWidth / w, vp.clientHeight / h) * 0.95, MIN_ZOOM, MAX_ZOOM)
+        const z = clamp(Math.min(vp.clientWidth / w, vp.clientHeight / h) * fill, MIN_ZOOM, MAX_ZOOM)
         tf.current = {
             z,
             x: (vp.clientWidth - w * z) / 2 - box.x * CELL_PX * z,
@@ -188,7 +221,7 @@ export const MapCanvas = memo(function MapCanvas({
             if (!vp) return
             zoomAt(tf.current.z * factor, vp.clientWidth / 2, vp.clientHeight / 2)
         },
-        fit,
+        fit: () => fit(),
     }), [zoomAt, fit])
 
     // Enquadra ao abrir cada mapa (não a cada poll).
@@ -307,10 +340,8 @@ export const MapCanvas = memo(function MapCanvas({
 
         if (current === 'image' && d.meta.imageRect && target.closest('[data-map-image]')) {
             const r = d.meta.imageRect
-            gesture.current = {
-                kind: 'image', resize: !!target.closest('[data-image-handle]'),
-                sx: w.x, sy: w.y, start: r, rect: r,
-            }
+            const handle = target.closest<HTMLElement>('[data-image-handle]')?.dataset.imageHandle as Corner | undefined
+            gesture.current = { kind: 'image', corner: handle ?? null, sx: w.x, sy: w.y, start: r, rect: r }
             return
         }
 
@@ -379,11 +410,7 @@ export const MapCanvas = memo(function MapCanvas({
         if (g.kind === 'image') {
             const dx = (w.x - g.sx) / CELL_PX
             const dy = (w.y - g.sy) / CELL_PX
-            const s = g.start
-            g.rect = g.resize
-                // Proporção travada: arrastar o canto muda a largura, a altura segue.
-                ? { ...s, w: Math.max(1, s.w + dx), h: Math.max(1, s.w + dx) * (s.h / s.w) }
-                : { ...s, x: s.x + dx, y: s.y + dy }
+            g.rect = g.corner ? resizeFrom(g.start, g.corner, dx) : { ...g.start, x: g.start.x + dx, y: g.start.y + dy }
             const el = imageRef.current
             if (el) {
                 el.style.transform = `translate(${g.rect.x * CELL_PX}px, ${g.rect.y * CELL_PX}px)`
@@ -428,8 +455,14 @@ export const MapCanvas = memo(function MapCanvas({
         // ler o número. Some no próximo toque.
     }
 
-    // Trocar de ferramenta apaga a régua que ficou.
-    useEffect(() => { clearOverlay() }, [tool]) // eslint-disable-line react-hooks/exhaustive-deps
+    // Trocar de ferramenta apaga a régua que ficou. Entrar na camada do mapa
+    // reenquadra com folga: com a imagem ocupando a tela toda, as alças de
+    // baixo caíam sob o painel e os botões de zoom.
+    useEffect(() => {
+        clearOverlay()
+        if (tool === 'image' && dataRef.current.meta.imageRect) fit(0.6)
+        else schedule()
+    }, [tool]) // eslint-disable-line react-hooks/exhaustive-deps
 
     const imageUrl = useImageUrl(data.meta.image?.url)
     const editingImage = tool === 'image'
@@ -475,7 +508,7 @@ export const MapCanvas = memo(function MapCanvas({
                             width: rect.w * CELL_PX,
                             height: rect.h * CELL_PX,
                             transform: `translate(${rect.x * CELL_PX}px, ${rect.y * CELL_PX}px)`,
-                            outline: editingImage ? `2px dashed ${gold.bright}` : 'none',
+                            outline: editingImage ? `calc(2px * var(--inv-zoom, 1)) dashed ${gold.bright}` : 'none',
                             cursor: editingImage ? 'move' : 'inherit',
                         }}
                     >
@@ -488,22 +521,24 @@ export const MapCanvas = memo(function MapCanvas({
                                 style={{ width: '100%', height: '100%', display: 'block', pointerEvents: 'none' }}
                             />
                         )}
-                        {editingImage && (
+                        {editingImage && CORNERS.map((corner) => (
                             <div
-                                data-image-handle
+                                key={corner}
+                                data-image-handle={corner}
                                 style={{
                                     position: 'absolute',
-                                    right: -14,
-                                    bottom: -14,
-                                    width: 28,
-                                    height: 28,
+                                    [corner[0] === 'n' ? 'top' : 'bottom']: HANDLE_OFFSET,
+                                    [corner[1] === 'w' ? 'left' : 'right']: HANDLE_OFFSET,
+                                    width: HANDLE_SIZE,
+                                    height: HANDLE_SIZE,
                                     borderRadius: '50%',
                                     background: gold.bright,
-                                    border: `3px solid ${mapChrome.outline}`,
-                                    cursor: 'nwse-resize',
+                                    border: `calc(3px * var(--inv-zoom, 1)) solid ${mapChrome.outline}`,
+                                    boxSizing: 'border-box',
+                                    cursor: corner === 'nw' || corner === 'se' ? 'nwse-resize' : 'nesw-resize',
                                 }}
                             />
-                        )}
+                        ))}
                     </div>
                 )}
 
