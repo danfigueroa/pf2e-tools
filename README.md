@@ -37,12 +37,15 @@ O **PF2e Toolkit** é uma aplicação web projetada para auxiliar jogadores e me
 
 ## ✨ Funcionalidades
 
-O toolkit expõe **duas ferramentas** (rotas em `src/App.tsx`), listadas na página inicial:
+O toolkit expõe as ferramentas abaixo (rotas em `src/App.tsx`), listadas na página inicial:
 
 | Ferramenta                    | Rota              | Módulo                                | O que faz                                                              |
 | ----------------------------- | ----------------- | ------------------------------------- | ---------------------------------------------------------------------- |
 | **Ficha Virtual**             | `/ficha-virtual`  | `src/modules/character-viewer/`       | Visualizador interativo da ficha, com descrições da AON traduzidas     |
+| **Iniciativa**                | `/iniciativa`     | `src/modules/initiative-tracker/`     | Ordem de turnos, dano em área, condições e aflições                    |
+| **Mapa de Combate**           | `/mapa`           | `src/modules/battle-map/`             | Grid de 5 ft com imagem, tokens com barra de PV e régua                |
 | **Stat Block de Transformação** | `/transformation` | `src/modules/transformation-statblock/` | Gera o stat block de qualquer _battle form_ do Remaster              |
+| **Escalar Monstro**           | `/escalar-monstro` | `src/modules/monster-scaler/`        | Adapta uma criatura da AON para outro nível                            |
 
 > ⏸️ **Ficha em PDF (`/character-sheet`) está desativada.** O código continua em
 > `src/modules/character-sheet/` — e o `types.ts` dele ainda é usado pelos outros módulos —, mas a
@@ -202,7 +205,32 @@ dano, cura e condições em **um ou vários alvos de uma vez**.
     PV do escudo, que quebra no BT. O escudo do personagem é o mesmo da Ficha Virtual; o do monstro
     vem da prosa da AON quando ela traz os números, ou é definido à mão
 
-O encontro fica só no aparelho do mestre; os personagens é que são compartilhados com a mesa.
+O encontro fica só no aparelho do mestre — **um por mapa de combate** —; os personagens é que são
+compartilhados com a mesa.
+
+### ✅ Mapa de Combate (Implementado)
+
+Mapa tático em `/mapa`, no espírito do Roll20, pensado para o celular na mesa.
+
+**Características:**
+
+-   **Grid de quadrados de 5 ft (1,5 m)** sobre a imagem do mapa, com zoom pela roda do mouse,
+    pinça no celular e botões de +/−/enquadrar
+-   **Camada do mapa** (Modo GM): envia a imagem — reduzida no navegador para no máximo 4096 px — e
+    a dimensiona no grid arrastando ou pela largura em quadrados
+-   **Tokens com barra de PV**, movidos quadrado a quadrado, mostrando a distância percorrida.
+    Personagem mostra os números; monstro mostra só a barra (os números ficam no Modo GM)
+-   **Régua** com a regra das diagonais alternadas do Player Core (5-10-5)
+-   **Vários mapas por sessão**: o GM leva a mesa de um para outro, e quem estiver em outro mapa
+    recebe o aviso "A mesa está em outro mapa". Depois do jogo, apagar o mapa leva junto a imagem,
+    os tokens e as posições
+-   **Os tokens vêm da Iniciativa**: cada encontro é ligado a um mapa e cada combatente vira um
+    token. Dano dado no token aparece na Iniciativa (e vice-versa) e na Ficha Virtual
+-   **Imagem do token**: a do personagem é enviada na Ficha Virtual (vale em todos os mapas); a do
+    monstro, no menu do cartão da Iniciativa
+
+Todos veem o mesmo mapa: os aparelhos acompanham as mudanças a cada 1,5 s enquanto a aba está
+aberta, sem botão de atualizar.
 
 ### 🚧 Em Desenvolvimento
 
@@ -335,7 +363,13 @@ O projeto está configurado para deploy automático na Vercel.
     - Sem isso o app funciona igual, mas PV, slots e condições ficam no aparelho de cada jogador
       em vez de serem compartilhados
 
-5. **Deploy**
+5. **Ligue o armazenamento de imagens do Mapa de Combate** (opcional)
+
+    - Vá em "Storage" > "Blob" > "Create" (o plano Hobby basta) e conecte ao projeto
+    - A integração injeta `BLOB_READ_WRITE_TOKEN` sozinha
+    - Sem isso o mapa funciona, mas cada imagem fica só no aparelho de quem a enviou
+
+6. **Deploy**
     - Clique em "Deploy"
     - Aguarde o build finalizar
     - Seu app estará disponível em `https://seu-projeto.vercel.app`
