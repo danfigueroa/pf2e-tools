@@ -68,7 +68,8 @@ export const DrawPanel = ({ style, onChange, onClearAll, count }: Props) => {
 
             {erasing ? (
                 <Typography variant="body2" sx={{ color: ink.secondary }}>
-                    Toque num desenho para apagá-lo. Os outros ficam como estão.
+                    Toque no <strong>×</strong> vermelho (ou no próprio traço) para apagar só aquele
+                    desenho. Os outros ficam como estão.
                 </Typography>
             ) : (
                 <>
