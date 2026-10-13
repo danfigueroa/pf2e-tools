@@ -41,6 +41,7 @@ import {
     type MapMeta,
 } from '../../services/maps'
 import { gold, green, ink, parchment } from '../../theme'
+import { setCurrentMapId } from '../initiative-tracker/encounterStorage'
 
 const GM_KEY = 'pf2e:map:gm'
 
@@ -148,6 +149,17 @@ export const BattleMapPage = () => {
         } else {
             writeMapField(id, `hp:${tapped.id}`, { current: next.current, max: next.max, temp: next.temp })
         }
+    }
+
+    /**
+     * Abre a Iniciativa já no encontro DESTE mapa. Grava a escolha onde a
+     * página de Iniciativa a lê ao montar — ela não está montada agora, então
+     * não há encontro em memória para sobrescrever.
+     */
+    const openEncounter = () => {
+        if (!id) return
+        setCurrentMapId(id)
+        navigate('/iniciativa')
     }
 
     const openMap = (next: string | null) => {
@@ -274,10 +286,18 @@ export const BattleMapPage = () => {
                         A mesa está em outro mapa.
                     </Alert>
                 )}
-                {data && tokenCount === 0 && gm && (
-                    <Alert severity="info" sx={{ width: 'min(520px, 100%)' }}>
-                        Sem tokens. Os tokens vêm da Iniciativa: escolha este mapa no encontro e
-                        adicione os combatentes.
+                {data && tokenCount === 0 && (
+                    <Alert
+                        severity="info"
+                        sx={{ width: 'min(520px, 100%)' }}
+                        action={(
+                            <Button color="inherit" size="small" onClick={openEncounter} sx={{ whiteSpace: 'nowrap' }}>
+                                Montar encontro
+                            </Button>
+                        )}
+                    >
+                        Os tokens vêm da Iniciativa: cada combatente do encontro deste mapa vira um
+                        token aqui.
                     </Alert>
                 )}
                 {data && !isMapStoreReady() && (
