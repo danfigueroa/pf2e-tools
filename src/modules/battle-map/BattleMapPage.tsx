@@ -25,6 +25,7 @@ import {
     Remove as ZoomOutIcon,
     Straighten as RulerIcon,
     Brush as DrawIcon,
+    BlurCircular as AreaIcon,
     Close as CloseIcon,
 } from '@mui/icons-material'
 import { MapCanvas, type CanvasApi, type MapTool, type TokenView } from './components/MapCanvas'
@@ -32,6 +33,8 @@ import { MapListDrawer } from './components/MapListDrawer'
 import { TokenPopover } from './components/TokenPopover'
 import { ImagePanel } from './components/ImagePanel'
 import { DrawPanel } from './components/DrawPanel'
+import { AreaPanel } from './components/AreaPanel'
+import { AREA_FEET, type Area, type AreaStyle } from './areas'
 import { DRAW_WIDTHS, newDrawingId, type Drawing, type DrawStyle } from './drawing'
 import type { TokenHp } from './hp'
 import type { Cell, ImageRect } from './geometry'
@@ -50,6 +53,22 @@ import { setCurrentMapId } from '../initiative-tracker/encounterStorage'
 
 const GM_KEY = 'pf2e:map:gm'
 const DRAW_KEY = 'pf2e:map:draw'
+const AREA_KEY = 'pf2e:map:area'
+
+/** Forma, tamanho e cor da Área, lembrados neste aparelho como os do Desenhar. */
+function loadAreaStyle(): AreaStyle {
+    const fallback: AreaStyle = { mode: 'burst', feet: AREA_FEET[3], color: DRAW_COLORS[0].hex }
+    try {
+        const raw = JSON.parse(localStorage.getItem(AREA_KEY) ?? 'null') as Partial<AreaStyle> | null
+        if (!raw) return fallback
+        const mode = (['burst', 'emanation', 'cone', 'line'] as const).find((m) => m === raw.mode) ?? fallback.mode
+        const feet = typeof raw.feet === 'number' && raw.feet >= 5 && raw.feet <= 500 ? raw.feet : fallback.feet
+        const color = DRAW_COLORS.find((c) => c.hex === raw.color)?.hex ?? fallback.color
+        return { mode, feet, color }
+    } catch {
+        return fallback
+    }
+}
 
 /** Cor e espessura ficam lembradas neste aparelho: quem é o mago do fogo desenha sempre em laranja. */
 function loadDrawStyle(): DrawStyle {
@@ -113,6 +132,14 @@ export const BattleMapPage = () => {
     const [hintClosed, setHintClosed] = useState(false)
     const canvas = useRef<CanvasApi>(null)
     const [drawStyle, setDrawStyle] = useState<DrawStyle>(loadDrawStyle)
+    const [areaStyle, setAreaStyle] = useState<AreaStyle>(loadAreaStyle)
+
+    const changeAreaStyle = (next: AreaStyle) => {
+        setAreaStyle(next)
+        // O modo Apagar não fica lembrado: reabrir a ferramenta e só conseguir apagar confunde.
+        if (next.mode === 'erase') return
+        try { localStorage.setItem(AREA_KEY, JSON.stringify(next)) } catch { /* só nesta aba */ }
+    }
 
     const changeDrawStyle = (next: DrawStyle) => {
         setDrawStyle(next)
@@ -163,8 +190,8 @@ export const BattleMapPage = () => {
         if (id) writeMapField(id, 'meta', meta)
     }, [id])
 
-    const onDraw = useCallback((drawing: Drawing) => {
-        if (id) writeMapField(id, `drw:${newDrawingId()}`, drawing)
+    const onDraw = useCallback((mark: Drawing | Area) => {
+        if (id) writeMapField(id, `drw:${newDrawingId()}`, mark)
     }, [id])
 
     const onErase = useCallback((drawingId: string) => {
@@ -229,6 +256,7 @@ export const BattleMapPage = () => {
                     onTokenTap={onTokenTap}
                     onZoomChange={setZoom}
                     drawStyle={drawStyle}
+                    areaStyle={areaStyle}
                     onDraw={onDraw}
                     onErase={onErase}
                     apiRef={canvas}
@@ -303,6 +331,10 @@ export const BattleMapPage = () => {
                         <ToggleButton value="draw" aria-label="Desenhar">
                             <DrawIcon fontSize="small" />
                             <Box component="span" sx={{ ml: 0.75, display: { xs: 'none', sm: 'inline' } }}>Desenhar</Box>
+                        </ToggleButton>
+                        <ToggleButton value="area" aria-label="Área de efeito">
+                            <AreaIcon fontSize="small" />
+                            <Box component="span" sx={{ ml: 0.75, display: { xs: 'none', sm: 'inline' } }}>Área</Box>
                         </ToggleButton>
                         {gm && (
                             <ToggleButton value="image" aria-label="Camada do mapa">
@@ -385,6 +417,7 @@ export const BattleMapPage = () => {
             )}
 
             {gm && tool === 'image' && data && <ImagePanel meta={data.meta} onChange={onMeta} />}
+            {tool === 'area' && data && <AreaPanel style={areaStyle} onChange={changeAreaStyle} />}
             {tool === 'draw' && data && id && (
                 <DrawPanel
                     style={drawStyle}

@@ -7,6 +7,7 @@
 
 import type { Cell } from './geometry'
 import { FEET_PER_SQUARE } from './geometry'
+import { DRAW_COLORS } from '../../theme'
 
 export type AreaShape = 'burst' | 'emanation' | 'cone' | 'line'
 
@@ -137,3 +138,34 @@ export function cellsPath(cells: Cell[], cellPx: number): string {
     for (const c of cells) d += `M${c.x * cellPx} ${c.y * cellPx}h${cellPx}v${cellPx}h${-cellPx}z`
     return d
 }
+
+const SHAPES: AreaShape[] = ['burst', 'emanation', 'cone', 'line']
+
+/** Área vinda do servidor, validada — `null` se não for área (aí é traço) ou estiver malformada. */
+export function sanitizeArea(raw: unknown): Area | null {
+    if (!raw || typeof raw !== 'object') return null
+    const a = raw as Partial<Area>
+    if (a.type !== 'area' || !SHAPES.includes(a.shape as AreaShape)) return null
+    const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null)
+    const x = num(a.x)
+    const y = num(a.y)
+    const feet = num(a.feet)
+    if (x === null || y === null || feet === null || feet < 5 || feet > 500) return null
+    if (a.shape === 'emanation' && typeof a.tokenId !== 'string') return null
+    return {
+        type: 'area',
+        shape: a.shape as AreaShape,
+        x,
+        y,
+        angle: num(a.angle) ?? 0,
+        feet: Math.round(feet / 5) * 5,
+        color: typeof a.color === 'string' && /^#[0-9a-fA-F]{6}$/.test(a.color) ? a.color : DRAW_COLORS[0].hex,
+        tokenId: a.tokenId,
+    }
+}
+
+/** Ferramenta Área: a forma escolhida (ou o modo Apagar), o tamanho e a cor. */
+export interface AreaStyle { mode: AreaShape | 'erase'; feet: number; color: string }
+
+/** Tamanhos mais comuns das magias, em pés — atalhos do painel. */
+export const AREA_FEET = [5, 10, 15, 20, 30, 60] as const

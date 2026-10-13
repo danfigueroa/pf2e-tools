@@ -15,14 +15,16 @@ import {
     type ImageRect,
 } from '../geometry'
 import { Token } from './Token'
-import { DrawingLayer } from './DrawingLayer'
+import { DrawingLayer, EraseBadgeLayer } from './DrawingLayer'
 import { finishStroke, snapHalf, type DrawStyle, type Drawing } from '../drawing'
+import { AREA_LABELS, areaSquares, cellsPath, snapAngle45, tokensIn, type Area, type AreaStyle } from '../areas'
+import type { TokenSpace } from './DrawingLayer'
 import type { TokenHp } from '../hp'
 import { useImageUrl } from '../../../services/images'
 import { MAP_BACKDROP, gold, mapChrome } from '../../../theme'
 import type { MapData } from '../../../services/maps'
 
-export type MapTool = 'select' | 'ruler' | 'draw' | 'image'
+export type MapTool = 'select' | 'ruler' | 'draw' | 'area' | 'image'
 
 export interface CanvasApi {
     zoomBy: (factor: number) => void
@@ -47,7 +49,10 @@ interface Props {
     onZoomChange: (zoom: number) => void
     /** Modo, cor e espessura da ferramenta Desenhar. */
     drawStyle: DrawStyle
-    onDraw: (drawing: Drawing) => void
+    /** Forma, tamanho e cor da ferramenta Área. */
+    areaStyle: AreaStyle
+    /** Traço ou área pronta — os dois vão para um campo `drw:` do mapa. */
+    onDraw: (mark: Drawing | Area) => void
     onErase: (drawingId: string) => void
     apiRef: Ref<CanvasApi>
 }
@@ -63,6 +68,7 @@ type Gesture =
     }
     | { kind: 'ruler'; from: Cell }
     | { kind: 'draw'; line: boolean; pts: Array<[number, number]>; d: string }
+    | { kind: 'area'; area: Area; sx: number; sy: number; moved: boolean }
     | { kind: 'image'; corner: Corner | null; sx: number; sy: number; start: ImageRect; rect: ImageRect }
 
 /** Canto da imagem sendo arrastado; `null` = mover a imagem inteira. */
@@ -134,7 +140,7 @@ const TAP_SLOP_PX = 6
  *   congela a rasterização na escala inicial e o mapa fica borrado ao aproximar.
  */
 export const MapCanvas = memo(function MapCanvas({
-    data, tool, views, onMove, onImageRect, onTokenTap, onZoomChange, drawStyle, onDraw, onErase, apiRef,
+    data, tool, views, onMove, onImageRect, onTokenTap, onZoomChange, drawStyle, areaStyle, onDraw, onErase, apiRef,
 }: Props) {
     const viewportRef = useRef<HTMLDivElement>(null)
     const worldRef = useRef<HTMLDivElement>(null)
@@ -145,6 +151,8 @@ export const MapCanvas = memo(function MapCanvas({
     const labelRef = useRef<HTMLDivElement>(null)
     /** Traço em andamento: desenhado pelo DOM, vira desenho de verdade no soltar. */
     const liveRef = useRef<SVGPathElement>(null)
+    /** Prévia da área de efeito: quadrados atingidos, redesenhados pelo DOM. */
+    const areaRef = useRef<SVGPathElement>(null)
 
     const tf = useRef<Transform>({ x: 0, y: 0, z: 1 })
     const frame = useRef<number | null>(null)
@@ -164,12 +172,23 @@ export const MapCanvas = memo(function MapCanvas({
     cb.current = { onMove, onImageRect, onTokenTap, onZoomChange, onDraw, onErase }
     const styleRef = useRef(drawStyle)
     styleRef.current = drawStyle
+    const areaStyleRef = useRef(areaStyle)
+    areaStyleRef.current = areaStyle
 
     const rect = data.meta.imageRect
     const cells = useMemo(
         () => Object.entries(data.pos).map(([id, p]) => ({ ...p, size: data.tokens[id]?.size ?? 1 })),
         [data.pos, data.tokens],
     )
+    /** Espaço de cada token — origem das emanações e alvo da contagem de criaturas. */
+    const spaces = useMemo(() => {
+        const out = new Map<string, TokenSpace>()
+        for (const [id, p] of Object.entries(data.pos)) out.set(id, { x: p.x, y: p.y, size: data.tokens[id]?.size ?? 1 })
+        return out
+    }, [data.pos, data.tokens])
+    const spacesRef = useRef(spaces)
+    spacesRef.current = spaces
+
     const { cols, rows } = gridBounds(rect, cells)
     const grid = visibleGrid(rect, tool === 'image', cols, rows)
 
@@ -327,9 +346,53 @@ export const MapCanvas = memo(function MapCanvas({
     const clearOverlay = () => {
         if (pathRef.current) pathRef.current.style.display = 'none'
         if (liveRef.current) liveRef.current.setAttribute('d', '')
+        if (areaRef.current) areaRef.current.setAttribute('d', '')
         drawGhost(null, 1)
         labelAt.current = null
         placeLabel()
+    }
+
+    /**
+     * Prévia da área: os quadrados e, no rótulo, quantas criaturas ela pega —
+     * a conta que o GM precisa para pedir a salvaguarda. A criatura de onde
+     * sai uma emanação não entra na contagem.
+     */
+    const drawArea = (area: Area) => {
+        const space = area.tokenId ? spacesRef.current.get(area.tokenId) : undefined
+        const hit = areaSquares(area, space)
+        const el = areaRef.current
+        if (el) {
+            el.setAttribute('d', cellsPath(hit, CELL_PX))
+            el.setAttribute('fill', area.color)
+            el.setAttribute('stroke', area.color)
+        }
+        const others = [...spacesRef.current.entries()].filter(([id]) => id !== area.tokenId).map(([, s]) => s)
+        const n = tokensIn(hit, others)
+        if (labelRef.current) {
+            labelRef.current.textContent =
+                `${AREA_LABELS[area.shape]} ${area.feet} ft · ${n} ${n === 1 ? 'criatura' : 'criaturas'}`
+        }
+        labelAt.current = space
+            ? { wx: (space.x + space.size) * CELL_PX, wy: space.y * CELL_PX }
+            : { wx: area.x * CELL_PX, wy: area.y * CELL_PX }
+        placeLabel()
+    }
+
+    /** A área que o ponteiro em (wx, wy) criaria, sem direção ainda (cone/linha começam a leste). */
+    const areaAt = (wx: number, wy: number, target: HTMLElement): Area | null => {
+        const st = areaStyleRef.current
+        if (st.mode === 'erase') return null
+        const base = { type: 'area' as const, shape: st.mode, feet: st.feet, color: st.color, angle: 0 }
+        if (st.mode === 'emanation') {
+            const tokenId = target.closest<HTMLElement>('[data-token-id]')?.dataset.tokenId
+            return tokenId ? { ...base, x: 0, y: 0, tokenId } : null
+        }
+        if (st.mode === 'line') {
+            const [lx, ly] = snapHalf(wx, wy)
+            return { ...base, x: lx / CELL_PX, y: ly / CELL_PX }
+        }
+        // Explosão e cone: o cruzamento do grid mais próximo.
+        return { ...base, x: Math.round(wx / CELL_PX), y: Math.round(wy / CELL_PX) }
     }
 
     // --- Ponteiros ------------------------------------------------------------
@@ -354,7 +417,7 @@ export const MapCanvas = memo(function MapCanvas({
             clearOverlay()
         }
         // O segundo dedo transforma o traço em pinça: o rabisco começado some.
-        if (g?.kind === 'draw') clearOverlay()
+        if (g?.kind === 'draw' || g?.kind === 'area') clearOverlay()
         gesture.current = { kind: 'pinch', d0: Math.hypot(a.x - b.x, a.y - b.y) || 1, z0: tf.current.z, wx: w.x, wy: w.y }
     }
 
@@ -385,6 +448,20 @@ export const MapCanvas = memo(function MapCanvas({
         if (current === 'ruler') {
             clearOverlay()
             gesture.current = { kind: 'ruler', from: cellAt(w.x, w.y) }
+            return
+        }
+
+        if (current === 'area') {
+            clearOverlay()
+            if (areaStyleRef.current.mode === 'erase') {
+                const drawingId = target.closest<SVGElement>('[data-drawing-id]')?.dataset.drawingId
+                if (drawingId) cb.current.onErase(drawingId)
+                return
+            }
+            const area = areaAt(w.x, w.y, target)
+            if (!area) return
+            drawArea(area)
+            gesture.current = { kind: 'area', area, sx: p.x, sy: p.y, moved: false }
             return
         }
 
@@ -432,7 +509,17 @@ export const MapCanvas = memo(function MapCanvas({
     }
 
     const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-        if (!pointers.current.has(e.pointerId)) return
+        if (!pointers.current.has(e.pointerId)) {
+            // Sem botão apertado, a ferramenta Área mostra onde a explosão (ou a
+            // emanação do token sob o mouse) cairia — antes de clicar.
+            const mode = areaStyleRef.current.mode
+            if (toolRef.current === 'area' && !gesture.current && (mode === 'burst' || mode === 'emanation')) {
+                const area = areaAt(toWorld(local(e)).x, toWorld(local(e)).y, e.target as HTMLElement)
+                if (area) drawArea(area)
+                else clearOverlay()
+            }
+            return
+        }
         const p = local(e)
         pointers.current.set(e.pointerId, p)
         const g = gesture.current
@@ -459,6 +546,21 @@ export const MapCanvas = memo(function MapCanvas({
 
         if (g.kind === 'ruler') {
             drawLine(g.from, cellAt(w.x, w.y), 1)
+            return
+        }
+
+        if (g.kind === 'area') {
+            if (!g.moved && Math.hypot(p.x - g.sx, p.y - g.sy) < TAP_SLOP_PX) return
+            g.moved = true
+            const a = g.area
+            if (a.shape === 'burst') {
+                g.area = { ...a, x: Math.round(w.x / CELL_PX), y: Math.round(w.y / CELL_PX) }
+            } else if (a.shape === 'cone' || a.shape === 'line') {
+                const deg = (Math.atan2(w.y / CELL_PX - a.y, w.x / CELL_PX - a.x) * 180) / Math.PI
+                // Cone reto ou diagonal (como os moldes do livro); a linha vai para qualquer lado.
+                g.area = { ...a, angle: a.shape === 'cone' ? snapAngle45(deg) : Math.round(((deg % 360) + 360) % 360) }
+            }
+            drawArea(g.area)
             return
         }
 
@@ -541,6 +643,14 @@ export const MapCanvas = memo(function MapCanvas({
             return
         }
 
+        if (g.kind === 'area') {
+            // Cone e linha precisam de direção: um clique sem arrastar não cria nada.
+            const needsDirection = g.area.shape === 'cone' || g.area.shape === 'line'
+            if (!needsDirection || g.moved) cb.current.onDraw(g.area)
+            requestAnimationFrame(clearOverlay)
+            return
+        }
+
         if (g.kind === 'draw') {
             const st = styleRef.current
             const drawing = finishStroke(g.pts, st.color, st.width)
@@ -568,6 +678,7 @@ export const MapCanvas = memo(function MapCanvas({
     }, [tool]) // eslint-disable-line react-hooks/exhaustive-deps
 
     const imageUrl = useImageUrl(data.meta.image?.url)
+    const erasing = (tool === 'draw' && drawStyle.mode === 'erase') || (tool === 'area' && areaStyle.mode === 'erase')
     const editingImage = tool === 'image'
 
     return (
@@ -577,6 +688,7 @@ export const MapCanvas = memo(function MapCanvas({
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerUp}
+            onPointerLeave={() => { if (toolRef.current === 'area' && !gesture.current) clearOverlay() }}
             onContextMenu={(e) => e.preventDefault()}
             style={{
                 position: 'absolute',
@@ -586,11 +698,14 @@ export const MapCanvas = memo(function MapCanvas({
                 touchAction: 'none',
                 userSelect: 'none',
                 WebkitUserSelect: 'none',
-                cursor: tool === 'ruler' || (tool === 'draw' && drawStyle.mode !== 'erase') ? 'crosshair' : 'default',
+                cursor: tool === 'ruler'
+                    || (tool === 'draw' && drawStyle.mode !== 'erase')
+                    || (tool === 'area' && areaStyle.mode !== 'erase') ? 'crosshair' : 'default',
             }}
         >
             <div
                 ref={worldRef}
+                data-erasing={erasing || undefined}
                 style={{
                     position: 'absolute',
                     left: 0,
@@ -680,7 +795,8 @@ export const MapCanvas = memo(function MapCanvas({
 
                 <DrawingLayer
                     drawings={data.drawings ?? {}}
-                    erasing={tool === 'draw' && drawStyle.mode === 'erase'}
+                    spaces={spaces}
+                    erasing={erasing}
                     width={cols * CELL_PX}
                     height={rows * CELL_PX}
                 />
@@ -704,11 +820,32 @@ export const MapCanvas = memo(function MapCanvas({
                     )
                 })}
 
+                {erasing && (
+                    <>
+                        {/* Apagando, o clique atravessa os tokens: a área embaixo de
+                            uma criatura também precisa poder ser apagada. */}
+                        <style>{'[data-erasing] [data-token-id] { pointer-events: none; }'}</style>
+                        <EraseBadgeLayer
+                            drawings={data.drawings ?? {}}
+                            spaces={spaces}
+                            width={cols * CELL_PX}
+                            height={rows * CELL_PX}
+                        />
+                    </>
+                )}
+
                 <svg
                     width={cols * CELL_PX}
                     height={rows * CELL_PX}
                     style={{ position: 'absolute', left: 0, top: 0, pointerEvents: 'none', overflow: 'visible' }}
                 >
+                    <path
+                        ref={areaRef}
+                        fillOpacity={0.35}
+                        strokeOpacity={0.9}
+                        strokeWidth={2}
+                        vectorEffect="non-scaling-stroke"
+                    />
                     <path
                         ref={liveRef}
                         fill="none"
