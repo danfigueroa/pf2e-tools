@@ -16,20 +16,27 @@ import { deleteBlobImage, isBlobReady } from './maps'
 export const MAP_MAX_SIDE = 4096
 export const TOKEN_MAX_SIDE = 256
 
-export interface ShrunkImage { blob: Blob; width: number; height: number }
+export interface ShrunkImage {
+    blob: Blob
+    width: number
+    height: number
+    /** Largura do arquivo ORIGINAL — o mapa usa para estimar quantos quadrados ele tem. */
+    sourceWidth: number
+}
 
 /**
  * Reduz para caber em `maxSide` e recodifica. `square` recorta o centro num
  * quadrado — é o que vira o círculo do token.
  */
 export async function shrinkImage(file: Blob, maxSide: number, square = false): Promise<ShrunkImage> {
-    const bitmap = await createImageBitmap(file)
+    const bitmap = await decode(file)
     try {
-        const side = Math.min(bitmap.width, bitmap.height)
-        const sx = square ? (bitmap.width - side) / 2 : 0
-        const sy = square ? (bitmap.height - side) / 2 : 0
-        const sw = square ? side : bitmap.width
-        const sh = square ? side : bitmap.height
+        const { w: bw, h: bh } = dims(bitmap)
+        const side = Math.min(bw, bh)
+        const sx = square ? (bw - side) / 2 : 0
+        const sy = square ? (bh - side) / 2 : 0
+        const sw = square ? side : bw
+        const sh = square ? side : bh
         const scale = Math.min(1, maxSide / Math.max(sw, sh))
         const width = Math.max(1, Math.round(sw * scale))
         const height = Math.max(1, Math.round(sh * scale))
@@ -38,7 +45,7 @@ export async function shrinkImage(file: Blob, maxSide: number, square = false): 
         canvas.width = width
         canvas.height = height
         const ctx = canvas.getContext('2d')
-        if (!ctx) throw new Error('Canvas indisponível')
+        if (!ctx) throw new ImageError('Este navegador não consegue reduzir a imagem.')
         ctx.imageSmoothingQuality = 'high'
         ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, width, height)
 
@@ -46,11 +53,45 @@ export async function shrinkImage(file: Blob, maxSide: number, square = false): 
         // original. Nesse caso, JPEG.
         let blob = await toBlob(canvas, 'image/webp', 0.85)
         if (blob.type !== 'image/webp') blob = await toBlob(canvas, 'image/jpeg', 0.85)
-        return { blob, width, height }
+        return { blob, width, height, sourceWidth: bw }
     } finally {
-        bitmap.close()
+        if ('close' in bitmap) bitmap.close()
     }
 }
+
+/** Erro com texto para a pessoa — o que aparece no aviso quando o envio falha. */
+export class ImageError extends Error {}
+
+type Decoded = ImageBitmap | HTMLImageElement
+
+/**
+ * Abre a imagem. `createImageBitmap` é o caminho rápido, mas há navegador que
+ * o recusa para certos arquivos (PNG muito grande no Safari, JPEG com perfil de
+ * cor exótico); aí tenta pelo `<img>`, que decodifica quase tudo que o
+ * navegador consegue mostrar.
+ */
+async function decode(file: Blob): Promise<Decoded> {
+    try {
+        return await createImageBitmap(file)
+    } catch {
+        const url = URL.createObjectURL(file)
+        try {
+            const img = new Image()
+            img.src = url
+            await img.decode()
+            if (!img.naturalWidth) throw new Error('vazia')
+            return img
+        } catch {
+            throw new ImageError('Não deu para abrir esta imagem. Use PNG, JPG ou WebP.')
+        } finally {
+            URL.revokeObjectURL(url)
+        }
+    }
+}
+
+const dims = (d: Decoded) => ('naturalWidth' in d
+    ? { w: d.naturalWidth, h: d.naturalHeight }
+    : { w: d.width, h: d.height })
 
 function toBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob> {
     return new Promise((resolve, reject) => {
@@ -64,20 +105,39 @@ const slugify = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '')
     .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'imagem'
 
 /**
- * Sobe a imagem já reduzida e devolve a URL pública (ou `idb:` sem Blob).
- * @param folder `maps` ou `tokens` — o servidor só aceita essas duas pastas.
+ * Onde cada imagem mora no Blob, pelo tempo que ela vive:
+ * - `tokens/`   — token de PERSONAGEM: permanente, vale em todos os mapas;
+ * - `maps/`     — a imagem de um mapa: some quando o mapa é apagado;
+ * - `monsters/` — token de monstro: é do encontro de um mapa e some com ele.
  */
-export async function uploadImage(blob: Blob, folder: 'maps' | 'tokens', name: string): Promise<string> {
+export type ImageFolder = 'tokens' | 'maps' | 'monsters'
+
+/**
+ * Sobe a imagem já reduzida e devolve a URL pública (ou `idb:` sem Blob).
+ * O servidor só aceita as três pastas acima.
+ */
+export async function uploadImage(blob: Blob, folder: ImageFolder, name: string): Promise<string> {
     if (!(await isBlobReady())) return saveLocal(blob)
     // Import dinâmico: o cliente do Blob só pesa para quem de fato envia imagem.
     const { upload } = await import('@vercel/blob/client')
-    const result = await upload(`${folder}/${slugify(name)}.${extOf(blob.type)}`, blob, {
-        access: 'public',
-        handleUploadUrl: '/api/state?blob=1',
-        contentType: blob.type,
-    })
-    return result.url
+    try {
+        const result = await upload(`${folder}/${slugify(name)}.${extOf(blob.type)}`, blob, {
+            access: 'public',
+            handleUploadUrl: '/api/state?blob=1',
+            contentType: blob.type,
+        })
+        return result.url
+    } catch (error) {
+        // A mensagem crua do SDK vai junto: é ela que diz se foi o token, a
+        // rede ou o tipo do arquivo.
+        const detail = error instanceof Error ? error.message : String(error)
+        throw new ImageError(`O envio falhou: ${detail}`)
+    }
 }
+
+/** Texto do erro para mostrar a quem enviou. */
+export const imageErrorText = (error: unknown) =>
+    error instanceof ImageError ? error.message : 'Não foi possível enviar a imagem.'
 
 /** Imagem que deixou de ser usada. */
 export async function deleteImage(url: string | null | undefined): Promise<void> {
