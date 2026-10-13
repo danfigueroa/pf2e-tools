@@ -726,8 +726,20 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
     DOM, como o token arrastado, e só sai depois de o desenho de verdade entrar no estado.
   - Dois dedos (pinça) e o botão do meio do mouse movem o mapa em qualquer ferramenta — no
     Desenhar o arrasto de um dedo é o traço.
-- **Apagar o mapa apaga a imagem dele e as dos tokens de monstro** (do Blob), nunca o token de PC,
-  que é da mesa (campo `token`, enviado na Ficha Virtual pelo `TokenAvatar`).
+- **Vida de cada imagem, pela pasta no Blob** (`ImageFolder` em `services/images.ts`):
+  `tokens/` é token de PERSONAGEM, permanente (campo `token` da mesa, enviado na Ficha Virtual pelo
+  `TokenAvatar`); `maps/` e `monsters/` são do mapa e somem quando ele é apagado. A trava mora no
+  servidor (`isMapOwnedUrl`): apagar um mapa nunca apaga nada de `tokens/`, mesmo que uma URL de
+  lá apareça por engano na lista.
+  - O mapa guarda em `imgs` TODA imagem de monstro que já passou por ele (`syncTokens` acrescenta,
+    nunca tira). Sem isso, o monstro que saiu do encontro antes de o mapa ser apagado levava a
+    referência junto e a imagem ficava órfã no Blob.
+  - Imagem de monstro só com o encontro ligado a um mapa: sem mapa ela não teria dono nem hora de
+    ser apagada, então o item do menu fica desabilitado ("escolha um mapa").
+  - Erro de envio aparece com o motivo (`ImageError` / `imageErrorText`, com a mensagem crua do
+    SDK do Blob). A primeira versão engolia o erro e o envio "não fazia nada".
+  - `shrinkImage` tenta `createImageBitmap` e cai para `<img>` + `decode()` quando o navegador o
+    recusa (PNG enorme no Safari, perfil de cor exótico).
 - A página sangra até a borda desfazendo o padding do `MainLayout`; barra e avisos ficam numa
   coluna só porque a barra quebra em duas linhas no celular.
 
