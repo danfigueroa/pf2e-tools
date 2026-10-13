@@ -9,8 +9,9 @@
 //   POST { action: 'map-rename', id, name }
 //   POST { action: 'map-activate', id|null }
 //   POST { action: 'map-delete', id }      → apaga também as imagens do Blob
-//   POST { action: 'map-write', id, fields: { meta|pos:*|hp:*: data|null } }
+//   POST { action: 'map-write', id, fields: { meta|pos:*|hp:*|drw:*: data|null } }
 //   POST { action: 'map-sync', id, tokens, turn, hp } → a Iniciativa manda quem está no mapa
+//   POST { action: 'map-clear-drawings', id } → apaga todos os desenhos
 //   POST { action: 'blob-delete', url }    → imagem trocada (token do PC, do monstro)
 //   POST ?blob=1  (corpo do @vercel/blob) → token de upload direto do navegador
 
@@ -20,6 +21,7 @@ import { isStoreConfigured } from './table-store.js'
 import {
     MAX_MAP_FIELD_BYTES,
     MAX_TOKENS,
+    clearDrawings,
     createMap,
     deleteMap,
     isValidMapField,
@@ -38,7 +40,10 @@ const fail = (status, error) => ({ status, body: { error } })
 
 const isBlobConfigured = () => !!process.env.BLOB_READ_WRITE_TOKEN
 
-const MAP_ACTIONS = new Set(['map-create', 'map-rename', 'map-activate', 'map-delete', 'map-write', 'map-sync', 'blob-delete'])
+const MAP_ACTIONS = new Set([
+    'map-create', 'map-rename', 'map-activate', 'map-delete', 'map-write', 'map-sync',
+    'map-clear-drawings', 'blob-delete',
+])
 
 /** Falso quando a requisição não é de mapa — aí segue para as outras rotas do `state`. */
 export function isMapRequest(method, query, body) {
@@ -158,6 +163,13 @@ export async function handleMapRequest(method, query, body, request) {
             if (JSON.stringify(data).length > MAX_MAP_FIELD_BYTES) return fail(400, 'Campo grande demais')
         }
         const rev = await writeMapFields(id, fields)
+        if (rev === null) return fail(404, 'Mapa não encontrado')
+        if (rev === -1) return fail(400, 'Desenhos demais neste mapa — apague alguns')
+        return ok({ rev })
+    }
+
+    if (action === 'map-clear-drawings') {
+        const rev = await clearDrawings(id)
         if (rev === null) return fail(404, 'Mapa não encontrado')
         return ok({ rev })
     }

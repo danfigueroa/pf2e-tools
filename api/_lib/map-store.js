@@ -7,7 +7,9 @@
 //     ├─ turn          → id do combatente que está agindo (vem da Iniciativa)
 //     ├─ tok:<cid>     → o que o token É (nome, tipo, tamanho, imagem)…
 //     ├─ pos:<cid>     → …onde ele ESTÁ (quem escreve é o mapa)…
-//     └─ hp:<cid>      → …e o PV do monstro (Iniciativa e mapa, nos dois sentidos)
+//     ├─ hp:<cid>      → …e o PV do monstro (Iniciativa e mapa, nos dois sentidos)
+//     └─ drw:<id>      → um desenho (parede de fogo, área de magia) — um campo
+//                        por desenho, para apagar um sem tocar nos outros
 //
 // `tok`, `pos` e `hp` são três campos e não um porque cada um tem um dono
 // diferente: a Iniciativa reescreve o `tok` a cada mudança no encontro, o
@@ -40,7 +42,10 @@ const MAX_MAPS = 50
 
 const ID_RE = /^[a-z0-9]{6,16}$/
 const TOKEN_ID_RE = /^[a-z0-9-]{1,64}$/
-const FIELD_RE = /^(meta|turn|(tok|pos|hp):[a-z0-9-]{1,64})$/
+const FIELD_RE = /^(meta|turn|(tok|pos|hp|drw):[a-z0-9-]{1,64})$/
+
+/** Teto de desenhos por mapa: o hash inteiro desce a cada mudança. */
+export const MAX_DRAWINGS = 300
 
 export const isValidMapId = (id) => typeof id === 'string' && ID_RE.test(id)
 export const isValidTokenId = (id) => typeof id === 'string' && TOKEN_ID_RE.test(id)
@@ -226,6 +231,7 @@ export async function readMap(id) {
     const tokens = {}
     const pos = {}
     const hp = {}
+    const drawings = {}
     let turn = null
     for (const [field, value] of Object.entries(raw)) {
         const entry = unwrap(value)
@@ -236,6 +242,7 @@ export async function readMap(id) {
         if (kind === 'tok') tokens[tid] = entry.data
         else if (kind === 'pos') pos[tid] = entry.data
         else if (kind === 'hp') hp[tid] = { ...entry.data, updatedAt: entry.updatedAt }
+        else if (kind === 'drw') drawings[tid] = entry.data
         else if (field === 'turn') turn = entry.data
     }
 
@@ -245,7 +252,7 @@ export async function readMap(id) {
     const pcs = await readPcs(slugs)
     const revs = await readRevs(id)
 
-    return { id, meta: metaEntry.data, tokens, pos, hp, turn, pcs, ...revs }
+    return { id, meta: metaEntry.data, tokens, pos, hp, drawings, turn, pcs, ...revs }
 }
 
 /** `hp` e `token` de cada personagem, do hash da mesa — um HMGET por slug, num pipeline. */
@@ -279,6 +286,11 @@ async function readPcs(slugs) {
 export async function writeMapFields(id, fields) {
     const exists = await mapExists(id)
     if (!exists) return null
+    if (Object.entries(fields).some(([f, d]) => f.startsWith('drw:') && d !== null)) {
+        const raw = await hgetall(MAP_PREFIX + id)
+        const count = Object.keys(raw).filter((f) => f.startsWith('drw:')).length
+        if (count >= MAX_DRAWINGS) return -1
+    }
     const set = {}
     const del = []
     for (const [field, data] of Object.entries(fields)) {
@@ -286,6 +298,15 @@ export async function writeMapFields(id, fields) {
         else set[field] = envelope(data)
     }
     return writeRaw(id, set, del)
+}
+
+/** Apaga todos os desenhos de uma vez — o fim do combate. */
+export async function clearDrawings(id) {
+    const raw = await hgetall(MAP_PREFIX + id)
+    if (!unwrap(raw.meta)) return null
+    const fields = Object.keys(raw).filter((f) => f.startsWith('drw:'))
+    if (fields.length === 0) return (await readRevs(id)).rev
+    return writeRaw(id, {}, fields)
 }
 
 async function mapExists(id) {
