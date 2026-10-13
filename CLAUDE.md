@@ -769,7 +769,9 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
     ou o maior deslocamento de quem só voa (`creatureSpeed`). A Ficha Virtual ainda soma o
     `speedBonus` inteiro na Visão Geral.
   - Combatente importado antes do campo não tem `speed`: tirar e pôr de novo no encontro.
-- **Ping** (Alt+clique, qualquer ferramenta): campo `ping:<id>` que quem pingou apaga em 6 s. Quem
+- **Ping** (clique duplo, qualquer ferramenta, menos sobre token — lá o clique abre o painel de
+  dano). Foi Alt+clique na primeira versão: ninguém achava a dica nem sabia a tecla, e segurar o
+  clique brigaria com o início do arrasto, da régua e do traço. Campo `ping:<id>` que quem pingou apaga em 6 s. Quem
   recebe decide se pisca **pelo id, não pelo relógio** (`PingLayer`): o que já existia quando o
   mapa abriu conta como visto. Chega aos outros em ~2 s; aba escondida não recebe (o poll pausa).
 - **Vida de cada imagem, pela pasta no Blob** (`ImageFolder` em `services/images.ts`):

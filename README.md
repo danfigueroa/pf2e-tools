@@ -239,8 +239,8 @@ abre, mas não é o alvo.
 -   **Alcance de movimento**: ao arrastar um token, três faixas (verde, âmbar, vermelha) mostram
     até onde ele chega com 1, 2 e 3 ações de Andar, e o rótulo diz quantas ações o movimento custa.
     O deslocamento do personagem é o da ficha, somando os bônus e nunca reduzido
--   **Ping**: segurar Alt (⌥ Option no Mac) e clicar faz um anel dourado piscar no ponto, na tela
-    de todos. A barra do mapa mostra o atalho
+-   **Ping**: clique duplo em qualquer ponto do mapa faz um anel dourado piscar ali, na tela de
+    todos
 -   **Vários mapas por sessão**: o GM cria os mapas na gaveta "Mapas da sessão" e **leva a mesa**
     de um para outro; quem estiver em outro mapa recebe o aviso "A mesa está em outro mapa — Ir"
 -   **Os tokens vêm da Iniciativa**: cada encontro é ligado a um mapa e cada combatente vira um
@@ -717,7 +717,7 @@ Sem id na URL, abre o mapa para onde a mesa está. O módulo é o único carrega
 | `components/ImagePanel.tsx`     | Enviar a imagem do mapa e definir a escala em quadrados                   |
 | `components/MapListDrawer.tsx`  | Criar, renomear, levar a mesa e apagar mapas                              |
 | `components/AreaPanel.tsx`      | Forma, tamanho e cor da área de efeito                                    |
-| `components/PingLayer.tsx`      | O anel do Alt+clique, mostrado uma vez por aparelho                       |
+| `components/PingLayer.tsx`      | O anel do clique duplo, mostrado uma vez por aparelho                     |
 | `areas.ts`                      | Quadrados de explosão, emanação, cone e linha; criaturas dentro           |
 | `components/TokenPopover.tsx`   | Dano e cura no token                                                      |
 | `geometry.ts` / `drawing.ts`    | Distância PF2e, snap, tamanho do token; simplificação e validação do traço |
@@ -1125,7 +1125,7 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
     -   [x] Desenhar (livre, linha, 12 cores, apagar um por vez)
     -   [x] Áreas de efeito PF2e (explosão, emanação, cone, linha) com contagem de criaturas
     -   [x] Alcance de movimento (1, 2 e 3 Andares) ao arrastar
-    -   [x] Ping com Alt+clique
+    -   [x] Ping com clique duplo
     -   [x] Vários mapas por sessão, "levar a mesa" e apagar depois do jogo
     -   [x] Token do personagem permanente; o do monstro some com o mapa
 -   [x] **Módulo de Escalar Monstro (criatura da AON em outro nível)**
