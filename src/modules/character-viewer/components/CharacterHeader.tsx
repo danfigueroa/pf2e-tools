@@ -1,6 +1,8 @@
 import { Box, Card, CardContent, Stack, Typography, Chip, Button, useTheme, useMediaQuery } from '@mui/material'
 import { SwapHoriz as SwapIcon } from '@mui/icons-material'
 import { SyncStatus } from './SyncStatus'
+import { TokenAvatar } from './TokenAvatar'
+import { charSlug } from '../charId'
 import type { BuildInfo } from '../../character-sheet/types'
 
 interface Props {
@@ -28,50 +30,53 @@ export const CharacterHeader = ({ build, onReset }: Props) => {
                     alignItems={{ xs: 'flex-start', sm: 'center' }}
                     justifyContent="space-between"
                 >
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography
-                            variant={isMobile ? 'h4' : 'h3'}
-                            component="h1"
-                            sx={{
-                                fontWeight: 700,
-                                lineHeight: 1.1,
-                                letterSpacing: '-0.02em',
-                                mb: 0.5,
-                                wordBreak: 'break-word',
-                            }}
-                        >
-                            {build.name}
-                        </Typography>
-                        <Typography
-                            variant="body1"
-                            color="text.secondary"
-                            sx={{ mb: 1.5 }}
-                        >
-                            {[build.ancestry, build.heritage].filter(Boolean).join(' · ')}
-                            {' · '}
-                            {build.class}
-                            {build.dualClass ? ` / ${build.dualClass}` : ''}
-                        </Typography>
-                        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 0.75 }}>
-                            <Chip
-                                label={`Nível ${build.level}`}
-                                color="primary"
-                                size="small"
-                                sx={{ fontWeight: 600 }}
-                            />
-                            {build.background && (
-                                <Chip label={build.background} size="small" variant="outlined" />
-                            )}
-                            {build.deity && build.deity !== 'Not set' && (
-                                <Chip label={build.deity} size="small" variant="outlined" />
-                            )}
-                            {build.alignment && (
-                                <Chip label={build.alignment} size="small" variant="outlined" />
-                            )}
-                            {build.sizeName && (
-                                <Chip label={build.sizeName} size="small" variant="outlined" />
-                            )}
-                        </Stack>
+                    <Box sx={{ flex: 1, minWidth: 0, display: 'flex', gap: 2, alignItems: 'center' }}>
+                        <TokenAvatar slug={charSlug(build)} name={build.name} />
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography
+                                variant={isMobile ? 'h4' : 'h3'}
+                                component="h1"
+                                sx={{
+                                    fontWeight: 700,
+                                    lineHeight: 1.1,
+                                    letterSpacing: '-0.02em',
+                                    mb: 0.5,
+                                    wordBreak: 'break-word',
+                                }}
+                            >
+                                {build.name}
+                            </Typography>
+                            <Typography
+                                variant="body1"
+                                color="text.secondary"
+                                sx={{ mb: 1.5 }}
+                            >
+                                {[build.ancestry, build.heritage].filter(Boolean).join(' · ')}
+                                {' · '}
+                                {build.class}
+                                {build.dualClass ? ` / ${build.dualClass}` : ''}
+                            </Typography>
+                            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 0.75 }}>
+                                <Chip
+                                    label={`Nível ${build.level}`}
+                                    color="primary"
+                                    size="small"
+                                    sx={{ fontWeight: 600 }}
+                                />
+                                {build.background && (
+                                    <Chip label={build.background} size="small" variant="outlined" />
+                                )}
+                                {build.deity && build.deity !== 'Not set' && (
+                                    <Chip label={build.deity} size="small" variant="outlined" />
+                                )}
+                                {build.alignment && (
+                                    <Chip label={build.alignment} size="small" variant="outlined" />
+                                )}
+                                {build.sizeName && (
+                                    <Chip label={build.sizeName} size="small" variant="outlined" />
+                                )}
+                            </Stack>
+                        </Box>
                     </Box>
                     <Stack
                         direction="row"
