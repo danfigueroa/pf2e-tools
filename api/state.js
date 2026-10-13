@@ -13,6 +13,7 @@ import {
   MAX_FIELD_BYTES,
 } from './_lib/table-store.js'
 import { handleSheetRequest, isSheetRequest } from './_lib/sheet-handler.js'
+import { handleMapRequest, isMapRequest } from './_lib/map-handler.js'
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -22,6 +23,18 @@ export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store')
 
   if (req.method === 'OPTIONS') return res.status(200).end()
+
+  // Mapa de combate. Antes da ficha: as duas rotas usam `action` no POST, e a
+  // da ficha aceita qualquer `action`.
+  if (isMapRequest(req.method, req.query || {}, req.body)) {
+    try {
+      const { status, body } = await handleMapRequest(req.method, req.query || {}, req.body || {}, req)
+      return res.status(status).json(body)
+    } catch (error) {
+      console.error('[/api/state] Erro no mapa:', error)
+      return res.status(500).json({ error: 'Erro ao tratar o mapa' })
+    }
+  }
 
   // Fichas publicadas (e o guia gerado): mesmas rotas do dev server.
   if (isSheetRequest(req.method, req.query || {}, req.body)) {

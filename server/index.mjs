@@ -12,6 +12,7 @@ import { resolveSpellList } from '../api/_lib/spell-list-core.js'
 import { resolveRule } from '../api/_lib/rule-core.js'
 import { resolveItemTraits } from '../api/_lib/item-traits-core.js'
 import { handleSheetRequest, isSheetRequest } from '../api/_lib/sheet-handler.js'
+import { handleMapRequest, isMapRequest } from '../api/_lib/map-handler.js'
 import { hasTranslationKey } from '../api/_lib/aon.js'
 import {
   readCharacter,
@@ -487,6 +488,21 @@ const server = http.createServer(async (req, res) => {
     // repassado à rota do estado abaixo.
     const query = Object.fromEntries(parsedUrl.searchParams)
     const body = req.method === 'POST' ? await readBody(req).catch(() => ({})) : {}
+    // Mapa de combate antes da ficha: as duas rotas usam `action` no POST, e a
+    // da ficha aceita qualquer `action`.
+    if (isMapRequest(req.method, query, body)) {
+      try {
+        const out = await handleMapRequest(req.method, query, body, req)
+        res.writeHead(out.status, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify(out.body))
+      } catch (e) {
+        console.error('[/api/state] Erro no mapa:', e)
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: e.message }))
+      }
+      return
+    }
+
     if (isSheetRequest(req.method, query, body)) {
       try {
         const out = await handleSheetRequest(req.method, query, body)
