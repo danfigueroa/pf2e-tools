@@ -84,6 +84,32 @@ function resizeFrom(s: ImageRect, corner: Corner, dx: number): ImageRect {
     }
 }
 
+/**
+ * Onde o grid é desenhado. Com o mapa já dimensionado, só sobre a imagem —
+ * a área vazia em volta não serve a ninguém. Na camada do mapa volta a área
+ * inteira: é ela que mostra até onde a imagem pode crescer.
+ *
+ * A folga de ¼ de quadrado evita que uma imagem 0,05 quadrado fora do lugar
+ * ganhe uma coluna inteira de grid sobrando.
+ */
+function visibleGrid(rect: ImageRect | null, editing: boolean, cols: number, rows: number) {
+    if (!rect || editing) return { x: 0, y: 0, cols, rows }
+    const x = Math.floor(rect.x + 0.25)
+    const y = Math.floor(rect.y + 0.25)
+    return {
+        x,
+        y,
+        cols: Math.max(1, Math.ceil(rect.x + rect.w - 0.25) - x),
+        rows: Math.max(1, Math.ceil(rect.y + rect.h - 0.25) - y),
+    }
+}
+
+/** Posição do token, em px do mundo — `left/top`, como o `Token` desenha (ver lá o porquê). */
+function placeToken(el: HTMLElement, left: number, top: number) {
+    el.style.left = `${left}px`
+    el.style.top = `${top}px`
+}
+
 /** Arrasto menor que isto é toque (abre o token), não movimento. */
 const TAP_SLOP_PX = 6
 
@@ -134,6 +160,7 @@ export const MapCanvas = memo(function MapCanvas({
         [data.pos, data.tokens],
     )
     const { cols, rows } = gridBounds(rect, cells)
+    const grid = visibleGrid(rect, tool === 'image', cols, rows)
 
     // --- Transformação ------------------------------------------------------
 
@@ -311,7 +338,7 @@ export const MapCanvas = memo(function MapCanvas({
         // Pinça no meio de um arrasto: o token volta para onde estava.
         const g = gesture.current
         if (g?.kind === 'token') {
-            g.el.style.transform = `translate(${g.from.x * CELL_PX}px, ${g.from.y * CELL_PX}px)`
+            placeToken(g.el, g.from.x * CELL_PX, g.from.y * CELL_PX)
             clearOverlay()
         }
         gesture.current = { kind: 'pinch', d0: Math.hypot(a.x - b.x, a.y - b.y) || 1, z0: tf.current.z, wx: w.x, wy: w.y }
@@ -398,7 +425,7 @@ export const MapCanvas = memo(function MapCanvas({
             g.moved = true
             const left = w.x - g.ox
             const top = w.y - g.oy
-            g.el.style.transform = `translate(${left}px, ${top}px)`
+            placeToken(g.el, left, top)
             g.el.style.zIndex = '5'
             const snapped = snapToken(left + (g.size * CELL_PX) / 2, top + (g.size * CELL_PX) / 2, g.size)
             g.to = { x: Math.max(0, snapped.x), y: Math.max(0, snapped.y) }
@@ -443,7 +470,7 @@ export const MapCanvas = memo(function MapCanvas({
             clearOverlay()
             // Fixa no quadrado já: se o token cair no MESMO quadrado, o React
             // não tem o que mudar e o elemento ficaria onde o dedo soltou.
-            g.el.style.transform = `translate(${g.to.x * CELL_PX}px, ${g.to.y * CELL_PX}px)`
+            placeToken(g.el, g.to.x * CELL_PX, g.to.y * CELL_PX)
             if (g.to.x !== g.from.x || g.to.y !== g.from.y) cb.current.onMove(g.id, g.to)
             return
         }
@@ -544,9 +571,14 @@ export const MapCanvas = memo(function MapCanvas({
 
                 <svg
                     ref={gridRef}
-                    width={cols * CELL_PX}
-                    height={rows * CELL_PX}
-                    style={{ position: 'absolute', left: 0, top: 0, pointerEvents: 'none' }}
+                    width={grid.cols * CELL_PX}
+                    height={grid.rows * CELL_PX}
+                    style={{
+                        position: 'absolute',
+                        left: grid.x * CELL_PX,
+                        top: grid.y * CELL_PX,
+                        pointerEvents: 'none',
+                    }}
                 >
                     <defs>
                         <pattern id="pf2e-grid" width={CELL_PX} height={CELL_PX} patternUnits="userSpaceOnUse">

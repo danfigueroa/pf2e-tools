@@ -21,9 +21,19 @@ interface Props {
 
 /**
  * Um token. Memoizado: arrastar um token, ou o poll trazer o PV de outro,
- * não repinta os demais. A POSIÇÃO é um `transform` e, durante o arrasto, é o
- * `MapCanvas` que a escreve direto no DOM — o React só fica sabendo no soltar.
+ * não repinta os demais. Durante o arrasto é o `MapCanvas` que escreve a
+ * posição direto no DOM — o React só fica sabendo no soltar.
+ *
+ * A posição é `left/top` e NÃO `transform` de propósito, e a opacidade do
+ * derrotado vai nas peças, não no contêiner: os dois criariam um contexto de
+ * empilhamento por token, e aí o token de baixo cobriria a barra de PV do de
+ * cima. Sem contexto próprio, as camadas valem para o mapa inteiro — toda barra
+ * (`Z_BAR`) acima de todo nome (`Z_NAME`), acima de todo token.
  */
+const Z_TOKEN = 1
+const Z_NAME = 2
+const Z_BAR = 3
+
 export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, image, active }: Props) {
     const theme = useTheme()
     const src = useImageUrl(image)
@@ -34,20 +44,19 @@ export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, ima
     // Rótulos em px do mundo: crescem com o token grande, mas não com o zoom
     // de propósito — é o que faz o mapa afastado não virar uma sopa de texto.
     const font = Math.max(12, Math.min(18, px * 0.2))
+    const dim = token.defeated ? 0.45 : 1
 
     return (
         <div
             data-token-id={id}
             style={{
                 position: 'absolute',
-                left: 0,
-                top: 0,
                 width: px,
                 height: px,
-                transform: `translate(${x * CELL_PX}px, ${y * CELL_PX}px)`,
+                left: x * CELL_PX,
+                top: y * CELL_PX,
                 cursor: 'grab',
                 touchAction: 'none',
-                opacity: token.defeated ? 0.45 : 1,
             }}
         >
             {hp && (
@@ -55,6 +64,7 @@ export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, ima
                     aria-hidden
                     style={{
                         position: 'absolute',
+                        zIndex: Z_BAR,
                         left: '8%',
                         right: '8%',
                         top: -14,
@@ -89,7 +99,9 @@ export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, ima
             <div
                 style={{
                     position: 'absolute',
+                    zIndex: Z_TOKEN,
                     inset: 3,
+                    opacity: dim,
                     borderRadius: '50%',
                     border: `${active ? 4 : 3}px solid ${ring}`,
                     boxShadow: active
@@ -128,6 +140,8 @@ export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, ima
             <div
                 style={{
                     position: 'absolute',
+                    zIndex: Z_NAME,
+                    opacity: dim,
                     top: px - 2,
                     left: '50%',
                     transform: 'translateX(-50%)',
