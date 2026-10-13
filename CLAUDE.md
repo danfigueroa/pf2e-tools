@@ -711,6 +711,21 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
   baixo ali — é a régua do alinhamento. Toda imagem é reduzida no navegador antes
   de subir (`shrinkImage`: mapa ≤ 4096 px, token 256 px recortado no centro). Safari não codifica
   WebP e devolve PNG calado — aí cai para JPEG.
+- **Desenhos** (`drawing.ts`, `DrawingLayer.tsx`, `DrawPanel.tsx`, ferramenta Desenhar — para
+  todos, não só o GM: quem conjura a Wall of Fire é o jogador). Livre, Linha (pontas encaixam a
+  cada ½ quadrado e o rótulo mostra o comprimento) e Apagar (toque num desenho; um traço
+  transparente mais largo é o alvo, senão a linha fina seria impossível de acertar no dedo).
+  - **Um campo `drw:<id>` por desenho**, como `pos:<id>`: apagar um não toca nos outros e dois
+    desenhando ao mesmo tempo não se sobrescrevem. Teto de 300 por mapa; "Limpar todos" (Modo
+    GM) é uma ação própria, `map-clear-drawings`, que também tira os desenhos da fila de subida.
+  - Pontos em QUADRADOS, simplificados por Ramer–Douglas–Peucker (tolerância 0,04 quadrado) antes
+    de gravar: um traço chega com um ponto por evento de ponteiro, e sem isso estouraria o campo
+    de 8 KB. Traço longo demais afrouxa a tolerância em vez de ser cortado.
+  - Camada entre o grid e os tokens (o efeito fica sob as criaturas), memoizada à parte. A
+    transparência vai no traço com `strokeOpacity`; o traço provisório do arrasto é desenhado pelo
+    DOM, como o token arrastado, e só sai depois de o desenho de verdade entrar no estado.
+  - Dois dedos (pinça) e o botão do meio do mouse movem o mapa em qualquer ferramenta — no
+    Desenhar o arrasto de um dedo é o traço.
 - **Apagar o mapa apaga a imagem dele e as dos tokens de monstro** (do Blob), nunca o token de PC,
   que é da mesa (campo `token`, enviado na Ficha Virtual pelo `TokenAvatar`).
 - A página sangra até a borda desfazendo o padding do `MainLayout`; barra e avisos ficam numa
