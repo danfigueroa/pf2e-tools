@@ -740,6 +740,36 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
     DOM, como o token arrastado, e só sai depois de o desenho de verdade entrar no estado.
   - Dois dedos (pinça) e o botão do meio do mouse movem o mapa em qualquer ferramenta — no
     Desenhar o arrasto de um dedo é o traço.
+- **Áreas de efeito** (`areas.ts`, `AreaPanel.tsx`, ferramenta Área — para todos): explosão,
+  emanação, cone e linha. Moram no MESMO campo `drw:<id>` dos desenhos (`{ type: 'area', … }`), e
+  por isso herdam o apagar um por vez, o "Limpar", o teto de 300 e a sincronia. Traço antigo, sem
+  `type`, continua traço.
+  - Distância é a da régua (5-10-5) **contando o próprio quadrado**, como uma criatura andando até
+    ele. É o que dá os moldes do livro: explosão de 5/10/15/20 ft = 4/12/24/44 quadrados; emanação
+    de 5 ft num Médio = 3×3. Explosão e cone saem de um CRUZAMENTO do grid; a linha, de qualquer
+    ponto de ½ em ½, com 5 ft de largura — no empate (linha correndo sobre uma linha do grid) fica
+    um lado só, senão teria 10 ft.
+  - Cone = 90° encaixado em 45° (reto ou diagonal); o diagonal é exatamente ¼ da explosão. O reto é
+    aproximação pelo ângulo, como fazem os VTTs.
+  - **Emanação guarda o `tokenId`, não a posição**: a área é recalculada do `pos` do token a cada
+    render e anda junto quando ele se move.
+  - A prévia conta as criaturas cuja pegada toca a área ("Explosão 20 ft · 3 criaturas"), sem a
+    que emana. Os × do modo Apagar ficam numa camada ACIMA dos tokens (`EraseBadgeLayer`), e
+    apagando os tokens deixam o clique passar (`[data-erasing]`): na camada dos desenhos, o × de
+    uma explosão caía embaixo de um token e o clique ia para ele — foi bug.
+- **Alcance de movimento**: ao arrastar um token com `speed`, três anéis (1, 2 e 3 Andares, pela
+  mesma distância 5-10-5) calculados UMA vez no início do arrasto, e o rótulo diz "2 ações" ou
+  "fora de alcance". Não sabe de terreno difícil, paredes nem condições (Lento, Imobilizado).
+  - O `speed` vem do combatente da Iniciativa. **Personagem: `attributes.speed + max(0,
+    speedBonus)` — nunca reduzido** (`pcSpeed` em `importCharacter.ts`, decisão do usuário): o
+    `speedBonus` do Pathbuilder embute a penalidade da armadura pesada, e o Ghan Buri (25, −10 da
+    Hero's Plate) anda 25 na mesa. Bônus positivos (Fleet, bárbaro) somam. Monstro: `land` da AON,
+    ou o maior deslocamento de quem só voa (`creatureSpeed`). A Ficha Virtual ainda soma o
+    `speedBonus` inteiro na Visão Geral.
+  - Combatente importado antes do campo não tem `speed`: tirar e pôr de novo no encontro.
+- **Ping** (Alt+clique, qualquer ferramenta): campo `ping:<id>` que quem pingou apaga em 6 s. Quem
+  recebe decide se pisca **pelo id, não pelo relógio** (`PingLayer`): o que já existia quando o
+  mapa abriu conta como visto. Chega aos outros em ~2 s; aba escondida não recebe (o poll pausa).
 - **Vida de cada imagem, pela pasta no Blob** (`ImageFolder` em `services/images.ts`):
   `tokens/` é token de PERSONAGEM, permanente (campo `token` da mesa, enviado na Ficha Virtual pelo
   `TokenAvatar`); `maps/` e `monsters/` são do mapa e somem quando ele é apagado. A trava mora no

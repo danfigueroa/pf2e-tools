@@ -232,6 +232,14 @@ abre, mas não é o alvo.
     Luz, Sombra, Elétrico, Veneno, Sangue, Sônico, Terreno difícil, Vital) e três espessuras. O
     modo **Apagar** mostra um **×** em cada desenho e apaga só aquele; "Limpar todos" fica no
     Modo GM. Os desenhos ficam sob os tokens, semitransparentes
+-   **Área de efeito** (para todos): explosão, emanação, cone e linha medidos pela regra 5-10-5,
+    com o tamanho em pés e a cor do efeito. A prévia diz quantas criaturas a área pega
+    ("Explosão 20 ft · 3 criaturas"); a emanação sai do espaço de uma criatura e **anda junto**
+    com ela. Apaga-se uma por vez, como os desenhos
+-   **Alcance de movimento**: ao arrastar um token, três faixas (verde, âmbar, vermelha) mostram
+    até onde ele chega com 1, 2 e 3 ações de Andar, e o rótulo diz quantas ações o movimento custa.
+    O deslocamento do personagem é o da ficha, somando os bônus e nunca reduzido
+-   **Ping**: Alt+clique faz um anel dourado piscar no ponto, na tela de todos
 -   **Vários mapas por sessão**: o GM cria os mapas na gaveta "Mapas da sessão" e **leva a mesa**
     de um para outro; quem estiver em outro mapa recebe o aviso "A mesa está em outro mapa — Ir"
 -   **Os tokens vêm da Iniciativa**: cada encontro é ligado a um mapa e cada combatente vira um
@@ -692,7 +700,8 @@ Sem id na URL, abre o mapa para onde a mesa está. O módulo é o único carrega
 | Onde está cada token           | Redis, `pos:<id>` — escrito só pelo mapa                         |
 | PV de monstro                  | Redis, `hp:<id>` — Iniciativa e mapa, nos dois sentidos          |
 | PV e imagem de personagem      | estado da mesa (`hp`, `token`) — os mesmos da Ficha Virtual      |
-| Cada desenho                   | Redis, `drw:<id>` — um campo por desenho                         |
+| Cada desenho ou área de efeito | Redis, `drw:<id>` — um campo por desenho                         |
+| Ping                           | Redis, `ping:<id>` — apagado por quem pingou em 6 s              |
 | Imagens                        | Vercel Blob: `tokens/` (permanente), `maps/` e `monsters/` (do mapa) |
 
 #### Arquivos
@@ -706,6 +715,9 @@ Sem id na URL, abre o mapa para onde a mesa está. O módulo é o único carrega
 | `components/DrawPanel.tsx`      | Modo (livre, linha, apagar), cor e espessura                              |
 | `components/ImagePanel.tsx`     | Enviar a imagem do mapa e definir a escala em quadrados                   |
 | `components/MapListDrawer.tsx`  | Criar, renomear, levar a mesa e apagar mapas                              |
+| `components/AreaPanel.tsx`      | Forma, tamanho e cor da área de efeito                                    |
+| `components/PingLayer.tsx`      | O anel do Alt+clique, mostrado uma vez por aparelho                       |
+| `areas.ts`                      | Quadrados de explosão, emanação, cone e linha; criaturas dentro           |
 | `components/TokenPopover.tsx`   | Dano e cura no token                                                      |
 | `geometry.ts` / `drawing.ts`    | Distância PF2e, snap, tamanho do token; simplificação e validação do traço |
 | `services/maps.ts`              | Poll de revisão (1,5 s; pausa com a aba oculta) e escrita otimista        |
@@ -1110,6 +1122,9 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
     -   [x] Tokens com barra de PV vindos do encontro da Iniciativa (um encontro por mapa)
     -   [x] Régua com diagonal 5-10-5
     -   [x] Desenhar (livre, linha, 12 cores, apagar um por vez)
+    -   [x] Áreas de efeito PF2e (explosão, emanação, cone, linha) com contagem de criaturas
+    -   [x] Alcance de movimento (1, 2 e 3 Andares) ao arrastar
+    -   [x] Ping com Alt+clique
     -   [x] Vários mapas por sessão, "levar a mesa" e apagar depois do jogo
     -   [x] Token do personagem permanente; o do monstro some com o mapa
 -   [x] **Módulo de Escalar Monstro (criatura da AON em outro nível)**
