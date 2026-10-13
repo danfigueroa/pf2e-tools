@@ -54,6 +54,8 @@ import { setCurrentMapId } from '../initiative-tracker/encounterStorage'
 const GM_KEY = 'pf2e:map:gm'
 const DRAW_KEY = 'pf2e:map:draw'
 const AREA_KEY = 'pf2e:map:area'
+/** Tempo até quem pingou apagar o ping — sobra para o poll dos outros (1,5 s) pegá-lo. */
+const PING_LIFETIME_MS = 6000
 
 /** Forma, tamanho e cor da Área, lembrados neste aparelho como os do Desenhar. */
 function loadAreaStyle(): AreaStyle {
@@ -194,6 +196,17 @@ export const BattleMapPage = () => {
         if (id) writeMapField(id, `drw:${newDrawingId()}`, mark)
     }, [id])
 
+    /**
+     * Ping: grava o ponto e apaga sozinho depois de alguns segundos. Quem
+     * recebe decide se pisca pelo id (ver `PingLayer`), não pelo relógio.
+     */
+    const onPing = useCallback((x: number, y: number) => {
+        if (!id) return
+        const field = `ping:${newDrawingId()}`
+        writeMapField(id, field, { x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100 })
+        setTimeout(() => writeMapField(id, field, null), PING_LIFETIME_MS)
+    }, [id])
+
     const onErase = useCallback((drawingId: string) => {
         if (id) writeMapField(id, `drw:${drawingId}`, null)
     }, [id])
@@ -259,6 +272,7 @@ export const BattleMapPage = () => {
                     areaStyle={areaStyle}
                     onDraw={onDraw}
                     onErase={onErase}
+                    onPing={onPing}
                     apiRef={canvas}
                 />
             )}
@@ -346,6 +360,12 @@ export const BattleMapPage = () => {
 
                     <Box sx={{ flex: 1 }} />
 
+                    <Typography
+                        variant="caption"
+                        sx={{ color: parchment.page, opacity: 0.7, display: { xs: 'none', lg: 'block' } }}
+                    >
+                        Alt+clique: ping
+                    </Typography>
                     <FormControlLabel
                         control={<Switch size="small" checked={gm} onChange={(e) => toggleGm(e.target.checked)} color="warning" />}
                         label="Modo GM"

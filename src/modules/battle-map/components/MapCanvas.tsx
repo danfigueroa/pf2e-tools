@@ -16,6 +16,7 @@ import {
 } from '../geometry'
 import { Token } from './Token'
 import { DrawingLayer, EraseBadgeLayer } from './DrawingLayer'
+import { PingLayer } from './PingLayer'
 import { finishStroke, snapHalf, type DrawStyle, type Drawing } from '../drawing'
 import { AREA_LABELS, areaSquares, cellsPath, snapAngle45, tokensIn, type Area, type AreaStyle } from '../areas'
 import type { TokenSpace } from './DrawingLayer'
@@ -54,6 +55,8 @@ interface Props {
     /** Traço ou área pronta — os dois vão para um campo `drw:` do mapa. */
     onDraw: (mark: Drawing | Area) => void
     onErase: (drawingId: string) => void
+    /** Alt+clique: o ponto (em quadrados) que todos vão ver piscar. */
+    onPing: (x: number, y: number) => void
     apiRef: Ref<CanvasApi>
 }
 
@@ -169,7 +172,7 @@ const TAP_SLOP_PX = 6
  *   congela a rasterização na escala inicial e o mapa fica borrado ao aproximar.
  */
 export const MapCanvas = memo(function MapCanvas({
-    data, tool, views, onMove, onImageRect, onTokenTap, onZoomChange, drawStyle, areaStyle, onDraw, onErase, apiRef,
+    data, tool, views, onMove, onImageRect, onTokenTap, onZoomChange, drawStyle, areaStyle, onDraw, onErase, onPing, apiRef,
 }: Props) {
     const viewportRef = useRef<HTMLDivElement>(null)
     const worldRef = useRef<HTMLDivElement>(null)
@@ -198,8 +201,8 @@ export const MapCanvas = memo(function MapCanvas({
     dataRef.current = data
     const toolRef = useRef(tool)
     toolRef.current = tool
-    const cb = useRef({ onMove, onImageRect, onTokenTap, onZoomChange, onDraw, onErase })
-    cb.current = { onMove, onImageRect, onTokenTap, onZoomChange, onDraw, onErase }
+    const cb = useRef({ onMove, onImageRect, onTokenTap, onZoomChange, onDraw, onErase, onPing })
+    cb.current = { onMove, onImageRect, onTokenTap, onZoomChange, onDraw, onErase, onPing }
     const styleRef = useRef(drawStyle)
     styleRef.current = drawStyle
     const areaStyleRef = useRef(areaStyle)
@@ -465,6 +468,14 @@ export const MapCanvas = memo(function MapCanvas({
         if (middle) {
             e.preventDefault()
             gesture.current = { kind: 'pan', sx: p.x, sy: p.y, tx: tf.current.x, ty: tf.current.y }
+            return
+        }
+
+        // Alt+clique é ping em qualquer ferramenta — não começa gesto nenhum.
+        if (e.altKey && e.pointerType === 'mouse') {
+            pointers.current.delete(e.pointerId)
+            const at = toWorld(p)
+            cb.current.onPing(at.x / CELL_PX, at.y / CELL_PX)
             return
         }
 
@@ -874,6 +885,8 @@ export const MapCanvas = memo(function MapCanvas({
                         />
                     </>
                 )}
+
+                <PingLayer pings={data.pings ?? {}} />
 
                 <svg
                     width={cols * CELL_PX}

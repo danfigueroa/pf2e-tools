@@ -149,6 +149,12 @@ export const bubble = keyframes`
     100% { opacity: 0; transform: translateY(-70px) scale(1.1); }
 `
 
+/** Ping no mapa de combate: um anel que se abre e some, repetido algumas vezes. */
+export const pingRing = keyframes`
+    0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+`
+
 /** Frasco inclinando para beber. */
 export const tilt = keyframes`
     0% { transform: rotate(0deg); }
