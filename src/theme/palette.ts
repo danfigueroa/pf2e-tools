@@ -94,6 +94,20 @@ export const mapChrome = {
     label: '#14281D',
 } as const
 
+/**
+ * Cores dos desenhos do mapa, por efeito. Vivas e opacas de propósito: são
+ * desenhadas com transparência POR CIMA de uma imagem qualquer, e uma cor
+ * apagada sumiria no mapa de lava ou no de pergaminho.
+ */
+export const DRAW_COLORS = [
+    { id: 'fire', label: 'Fogo', hex: '#E0531F' },
+    { id: 'cold', label: 'Gelo', hex: '#3FA9F5' },
+    { id: 'acid', label: 'Ácido', hex: '#6BBF3A' },
+    { id: 'arcane', label: 'Arcano', hex: '#9B59D0' },
+    { id: 'light', label: 'Luz', hex: '#F2D04B' },
+    { id: 'shadow', label: 'Sombra', hex: '#1C1C1C' },
+] as const
+
 /** Condições ativas (ConditionsBar) — roxo de esmalte, distinto do PV e do mítico. */
 export const CONDITION_COLOR = '#5E4B8B'
 

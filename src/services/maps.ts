@@ -49,6 +49,8 @@ export interface MapData {
     tokens: Record<string, TokenDescriptor>
     pos: Record<string, Cell>
     hp: Record<string, NpcHp>
+    /** Desenhos crus do servidor — quem desenha valida com `sanitizeDrawing`. */
+    drawings: Record<string, unknown>
     turn: string | null
     pcs: Record<string, PcSlice>
     rev: number
@@ -186,17 +188,20 @@ function setSnapshot(entry: Entry, patch: Partial<MapSnapshot>) {
     entry.listeners.forEach((l) => l())
 }
 
-/** Aplica um campo (`meta`, `pos:<id>`, `hp:<id>`) numa cópia do mapa. */
+/** Prefixo do campo → onde ele mora no `MapData`. */
+const BAGS = { pos: 'pos', hp: 'hp', drw: 'drawings' } as const
+
+/** Aplica um campo (`meta`, `pos:<id>`, `hp:<id>`, `drw:<id>`) numa cópia do mapa. */
 function withField(data: MapData, field: string, value: unknown): MapData {
     if (field === 'meta') return { ...data, meta: value as MapMeta }
     const at = field.indexOf(':')
-    const kind = field.slice(0, at)
+    const prop = BAGS[field.slice(0, at) as keyof typeof BAGS]
+    if (!prop) return data
     const tid = field.slice(at + 1)
-    if (kind !== 'pos' && kind !== 'hp') return data
-    const bag = { ...data[kind] } as Record<string, unknown>
+    const bag = { ...(data[prop] ?? {}) } as Record<string, unknown>
     if (value === null) delete bag[tid]
     else bag[tid] = value
-    return { ...data, [kind]: bag }
+    return { ...data, [prop]: bag }
 }
 
 function withOverrides(entry: Entry, data: MapData): MapData {
@@ -347,6 +352,20 @@ async function flushWrites(entry: Entry) {
         }
         entry.writeTimer = setTimeout(() => { void flushWrites(entry) }, 3000)
     }
+}
+
+/** Apaga todos os desenhos do mapa (fim do combate). */
+export async function clearDrawings(id: string): Promise<void> {
+    const entry = entryFor(id)
+    // Desenho ainda na fila de subida voltaria depois da limpeza.
+    for (const bag of [entry.overrides, entry.pending]) {
+        for (const field of [...bag.keys()]) {
+            if (field.startsWith('drw:')) bag.delete(field)
+        }
+    }
+    if (entry.snapshot.data) setSnapshot(entry, { data: { ...entry.snapshot.data, drawings: {} } })
+    await post({ action: 'map-clear-drawings', id })
+    void loadMap(id)
 }
 
 /**
