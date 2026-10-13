@@ -11,7 +11,6 @@ import {
     Paper,
     ToggleButton,
     ToggleButtonGroup,
-    Tooltip,
     Typography,
 } from '@mui/material'
 import {
@@ -20,7 +19,8 @@ import {
     BackspaceOutlined as EraseIcon,
 } from '@mui/icons-material'
 import { DRAW_WIDTHS, type DrawMode, type DrawStyle } from '../drawing'
-import { DRAW_COLORS, gold, ink, mapChrome } from '../../../theme'
+import { gold, ink } from '../../../theme'
+import { ColorSwatches } from './ColorSwatches'
 
 interface Props {
     style: DrawStyle
@@ -73,28 +73,7 @@ export const DrawPanel = ({ style, onChange, onClearAll, count }: Props) => {
                 </Typography>
             ) : (
                 <>
-                    <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
-                        {DRAW_COLORS.map((c) => {
-                            const selected = style.color === c.hex
-                            return (
-                                <Tooltip key={c.id} title={c.label}>
-                                    <ButtonBase
-                                        aria-label={`Cor ${c.label}`}
-                                        aria-pressed={selected}
-                                        onClick={() => onChange({ ...style, color: c.hex })}
-                                        sx={{
-                                            width: 32,
-                                            height: 32,
-                                            borderRadius: '50%',
-                                            backgroundColor: c.hex,
-                                            border: `3px solid ${selected ? gold.bright : mapChrome.track}`,
-                                            boxShadow: selected ? `0 0 0 2px ${mapChrome.outline}` : 'none',
-                                        }}
-                                    />
-                                </Tooltip>
-                            )
-                        })}
-                    </Box>
+                    <ColorSwatches value={style.color} onChange={(color) => onChange({ ...style, color })} />
                     <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0.75 }}>
                         {DRAW_WIDTHS.map((w, i) => {
                             const selected = style.width === w
@@ -132,7 +111,7 @@ export const DrawPanel = ({ style, onChange, onClearAll, count }: Props) => {
 
             {onClearAll && count > 0 && (
                 <Button size="small" color="error" onClick={() => setConfirm(true)}>
-                    Limpar todos os desenhos ({count})
+                    Limpar desenhos e áreas ({count})
                 </Button>
             )}
 
