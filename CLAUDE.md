@@ -672,6 +672,13 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
     quadro — o mapa abria sem transformação nenhuma. Já foi bug.
   - Rótulo da régua fica FORA do mundo (tamanho fixo em qualquer zoom); a linha fica dentro, com
     `vector-effect: non-scaling-stroke`.
+- **Barra de PV acima de TODO token** (depois o nome, depois o círculo). Por isso o token é
+  posicionado por `left/top` e não `transform`, e a opacidade do derrotado vai nas peças e não no
+  contêiner: os dois criariam um contexto de empilhamento por token, e o token de baixo cobriria a
+  barra do de cima — foi o que aconteceu na primeira versão.
+- **O grid cobre só a imagem** depois de dimensionada (arredondada a quadrados inteiros, com folga
+  de ¼ para um desalinhamento mínimo não ganhar uma coluna). Na camada do mapa volta a área
+  inteira, que mostra até onde a imagem pode crescer. Sem imagem, a área padrão de 40×30.
 - **Mundo em quadrados**, pixel só no desenho (`CELL_PX = 70`). Quadrado = 5 ft / 1,5 m, e a régua
   usa as diagonais alternadas do Player Core (`squaresBetween`: 5-10-5). Token de tamanho N ocupa
   N×N (`sizeSquares`; Minúsculo ocupa 1, para não ficar menor que o dedo) e encaixa nas LINHAS do
