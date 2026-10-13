@@ -34,7 +34,7 @@ import { TokenPopover } from './components/TokenPopover'
 import { ImagePanel } from './components/ImagePanel'
 import { DrawPanel } from './components/DrawPanel'
 import { AreaPanel } from './components/AreaPanel'
-import { AREA_FEET, type Area, type AreaStyle } from './areas'
+import { AREA_FEET, type AreaStyle } from './areas'
 import { DRAW_WIDTHS, newDrawingId, type Drawing, type DrawStyle } from './drawing'
 import type { TokenHp } from './hp'
 import type { Cell, ImageRect } from './geometry'
@@ -138,8 +138,6 @@ export const BattleMapPage = () => {
 
     const changeAreaStyle = (next: AreaStyle) => {
         setAreaStyle(next)
-        // O modo Apagar não fica lembrado: reabrir a ferramenta e só conseguir apagar confunde.
-        if (next.mode === 'erase') return
         try { localStorage.setItem(AREA_KEY, JSON.stringify(next)) } catch { /* só nesta aba */ }
     }
 
@@ -192,8 +190,8 @@ export const BattleMapPage = () => {
         if (id) writeMapField(id, 'meta', meta)
     }, [id])
 
-    const onDraw = useCallback((mark: Drawing | Area) => {
-        if (id) writeMapField(id, `drw:${newDrawingId()}`, mark)
+    const onDraw = useCallback((drawing: Drawing) => {
+        if (id) writeMapField(id, `drw:${newDrawingId()}`, drawing)
     }, [id])
 
     /**

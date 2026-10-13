@@ -52,8 +52,8 @@ interface Props {
     drawStyle: DrawStyle
     /** Forma, tamanho e cor da ferramenta Área. */
     areaStyle: AreaStyle
-    /** Traço ou área pronta — os dois vão para um campo `drw:` do mapa. */
-    onDraw: (mark: Drawing | Area) => void
+    /** Traço pronto — vai para um campo `drw:` do mapa. */
+    onDraw: (drawing: Drawing) => void
     onErase: (drawingId: string) => void
     /** Alt+clique: o ponto (em quadrados) que todos vão ver piscar. */
     onPing: (x: number, y: number) => void
@@ -185,6 +185,12 @@ export const MapCanvas = memo(function MapCanvas({
     const liveRef = useRef<SVGPathElement>(null)
     /** Prévia da área de efeito: quadrados atingidos, redesenhados pelo DOM. */
     const areaRef = useRef<SVGPathElement>(null)
+    /**
+     * Área fixada pelo clique: fica na tela para conferir, como a régua, e não
+     * segue mais o mouse. Some no próximo clique ou ao trocar de ferramenta —
+     * nunca é gravada no mapa.
+     */
+    const areaPinned = useRef(false)
     const bandRefs = [useRef<SVGPathElement>(null), useRef<SVGPathElement>(null), useRef<SVGPathElement>(null)]
 
     const tf = useRef<Transform>({ x: 0, y: 0, z: 1 })
@@ -380,6 +386,7 @@ export const MapCanvas = memo(function MapCanvas({
         if (pathRef.current) pathRef.current.style.display = 'none'
         if (liveRef.current) liveRef.current.setAttribute('d', '')
         if (areaRef.current) areaRef.current.setAttribute('d', '')
+        areaPinned.current = false
         for (const band of bandRefs) band.current?.setAttribute('d', '')
         drawGhost(null, 1)
         labelAt.current = null
@@ -415,7 +422,6 @@ export const MapCanvas = memo(function MapCanvas({
     /** A área que o ponteiro em (wx, wy) criaria, sem direção ainda (cone/linha começam a leste). */
     const areaAt = (wx: number, wy: number, target: HTMLElement): Area | null => {
         const st = areaStyleRef.current
-        if (st.mode === 'erase') return null
         const base = { type: 'area' as const, shape: st.mode, feet: st.feet, color: st.color, angle: 0 }
         if (st.mode === 'emanation') {
             const tokenId = target.closest<HTMLElement>('[data-token-id]')?.dataset.tokenId
@@ -494,12 +500,8 @@ export const MapCanvas = memo(function MapCanvas({
         }
 
         if (current === 'area') {
+            // Cada clique descarta a área anterior e começa outra ali.
             clearOverlay()
-            if (areaStyleRef.current.mode === 'erase') {
-                const drawingId = target.closest<SVGElement>('[data-drawing-id]')?.dataset.drawingId
-                if (drawingId) cb.current.onErase(drawingId)
-                return
-            }
             const area = areaAt(w.x, w.y, target)
             if (!area) return
             drawArea(area)
@@ -555,7 +557,8 @@ export const MapCanvas = memo(function MapCanvas({
             // Sem botão apertado, a ferramenta Área mostra onde a explosão (ou a
             // emanação do token sob o mouse) cairia — antes de clicar.
             const mode = areaStyleRef.current.mode
-            if (toolRef.current === 'area' && !gesture.current && (mode === 'burst' || mode === 'emanation')) {
+            if (toolRef.current === 'area' && !gesture.current && !areaPinned.current
+                && (mode === 'burst' || mode === 'emanation')) {
                 const area = areaAt(toWorld(local(e)).x, toWorld(local(e)).y, e.target as HTMLElement)
                 if (area) drawArea(area)
                 else clearOverlay()
@@ -696,10 +699,11 @@ export const MapCanvas = memo(function MapCanvas({
         }
 
         if (g.kind === 'area') {
-            // Cone e linha precisam de direção: um clique sem arrastar não cria nada.
+            // Fica na tela para conferir. Cone e linha sem arrasto não têm
+            // direção: o clique só apaga a anterior.
             const needsDirection = g.area.shape === 'cone' || g.area.shape === 'line'
-            if (!needsDirection || g.moved) cb.current.onDraw(g.area)
-            requestAnimationFrame(clearOverlay)
+            if (needsDirection && !g.moved) clearOverlay()
+            else areaPinned.current = true
             return
         }
 
@@ -730,7 +734,7 @@ export const MapCanvas = memo(function MapCanvas({
     }, [tool]) // eslint-disable-line react-hooks/exhaustive-deps
 
     const imageUrl = useImageUrl(data.meta.image?.url)
-    const erasing = (tool === 'draw' && drawStyle.mode === 'erase') || (tool === 'area' && areaStyle.mode === 'erase')
+    const erasing = tool === 'draw' && drawStyle.mode === 'erase'
     const editingImage = tool === 'image'
 
     return (
@@ -740,7 +744,7 @@ export const MapCanvas = memo(function MapCanvas({
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerUp}
-            onPointerLeave={() => { if (toolRef.current === 'area' && !gesture.current) clearOverlay() }}
+            onPointerLeave={() => { if (toolRef.current === 'area' && !gesture.current && !areaPinned.current) clearOverlay() }}
             onContextMenu={(e) => e.preventDefault()}
             style={{
                 position: 'absolute',
@@ -752,7 +756,7 @@ export const MapCanvas = memo(function MapCanvas({
                 WebkitUserSelect: 'none',
                 cursor: tool === 'ruler'
                     || (tool === 'draw' && drawStyle.mode !== 'erase')
-                    || (tool === 'area' && areaStyle.mode !== 'erase') ? 'crosshair' : 'default',
+                    || tool === 'area' ? 'crosshair' : 'default',
             }}
         >
             <div

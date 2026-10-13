@@ -164,8 +164,8 @@ export function sanitizeArea(raw: unknown): Area | null {
     }
 }
 
-/** Ferramenta Área: a forma escolhida (ou o modo Apagar), o tamanho e a cor. */
-export interface AreaStyle { mode: AreaShape | 'erase'; feet: number; color: string }
+/** Ferramenta Área: a forma escolhida, o tamanho e a cor. */
+export interface AreaStyle { mode: AreaShape; feet: number; color: string }
 
 /** Tamanhos mais comuns das magias, em pés — atalhos do painel. */
 export const AREA_FEET = [5, 10, 15, 20, 30, 60] as const
