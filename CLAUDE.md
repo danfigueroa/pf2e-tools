@@ -7,13 +7,15 @@ Orientações para o Claude Code trabalhar neste repositório. Para detalhes de 
 **PF2e Toolkit** — SPA (React 19 + TypeScript + Vite + MUI 7) com ferramentas para Pathfinder 2e
 Remaster. Textos de UI em **português (pt-BR)**.
 
-Quatro módulos ativos (rotas em `src/App.tsx`):
+Cinco módulos ativos (rotas em `src/App.tsx`):
 - `/ficha-virtual` → `src/modules/character-viewer/` — visualizador de ficha (JSON Pathbuilder) com
   descrições da AON traduzidas sob demanda.
 - `/iniciativa` → `src/modules/initiative-tracker/` — gerenciador de iniciativa e combate.
 - `/transformation` → `src/modules/transformation-statblock/` — gerador de stat block de battle forms.
 - `/escalar-monstro` → `src/modules/monster-scaler/` — adapta a ficha de uma criatura da AON
   para outro nível, pelas tabelas de construção de criaturas do GM Core.
+- `/mapa/:id?` → `src/modules/battle-map/` — mapa de combate (VTT): grid de 5 ft, imagem, tokens
+  com barra de PV e régua. Único módulo carregado com `React.lazy`.
 
 **`src/modules/character-sheet/` (Ficha em PDF) está DESATIVADO** — fora da rota, do menu e da home.
 O código continua no repositório e `types.ts` (`parseCharacterJson`, `BuildInfo`) **segue sendo usado
@@ -160,6 +162,16 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   - O guia só é gravado se a ficha ainda for a que o gerou (`publishedAt`): duas publicações
     seguidas não terminam com o guia da primeira na segunda. `tidy` tira itálico e lista `*`/`1.`,
     que o `GuideMarkdown` não entende e mostrava crus.
+- **O mesmo `state` serve o Mapa de Combate** (`api/_lib/map-handler.js` + `map-store.js`):
+  `GET ?maps=1`, `?map=<id>`, `?mapRev=<id>` (o poll), `POST` com `action: 'map-*'` e
+  `blob-delete`, e `POST ?blob=1` (token de upload do Vercel Blob). Mora aqui pelo limite de 12
+  funções. **`isMapRequest` vem ANTES de `isSheetRequest`** nos dois servidores: a rota da ficha
+  aceita qualquer POST com `action` e engoliria as do mapa.
+  - Imagens (mapa e tokens) vão **direto do navegador para o Blob** (`@vercel/blob/client`); o
+    servidor só assina, limitado às pastas `maps/` e `tokens/`. Passar pela função esbarraria no
+    limite de 4,5 MB do corpo. `blob-delete` só apaga URL do `*.public.blob.vercel-storage.com` —
+    o endpoint é público. Sem `BLOB_READ_WRITE_TOKEN`, a imagem fica no IndexedDB de quem enviou
+    (URL `idb:<chave>`) e os outros veem as iniciais.
 
 ### Tradução (o ponto que mais quebra)
 
@@ -197,7 +209,7 @@ abrir o site entra na mesma mesa.
   Vercel e `UPSTASH_REDIS_REST_*` do console da Upstash). **Sem credenciais, cai num `Map` de
   processo** e o app segue funcionando; o indicador avisa "Só neste aparelho".
 - **Um HASH por personagem, um campo por fatia** (`hp`, `slots`, `conditions`, `afflictions`,
-  `persistent`, `mythic`, `consumed`, `shield`, `pet:<kind>:<slug>#<i>`). Campo novo precisa entrar no `FIELD_RE` de
+  `persistent`, `mythic`, `consumed`, `shield`, `token`, `pet:<kind>:<slug>#<i>`). Campo novo precisa entrar no `FIELD_RE` de
   `table-store.js`, senão o POST volta "Campo inválido" e o estado fica só no `localStorage`.
   Documento único faria dois jogadores editando ao mesmo tempo se sobrescreverem — quem marcasse
   condição apagaria o dano do outro. `HSET` por campo dá atomicidade por fatia sem transação, e a
@@ -220,6 +232,9 @@ abrir o site entra na mesma mesa.
   Inventário não aparecia no `HpTracker` da Visão Geral — no celular os acordeões ficam montados
   juntos, cada um com seu `useHpTracker`.
 - Sendo público, o endpoint valida slug/campo por regex e limita a escrita a 8 KB.
+- **`writeField` sobe o contador `pf2e:table:rev`** (no mesmo pipeline do HSET). É o que deixa o
+  Mapa de Combate saber que o PV de alguém mudou pela Ficha ou pela Iniciativa lendo um número só,
+  em vez de perguntar personagem a personagem.
 - **A ficha publicada NÃO mora no hash do estado** (`api/_lib/sheet-store.js`, chave
   `pf2e:sheet:v1:<slug>` + um SET com os slugs): o hash é lido inteiro a cada abertura e a cada
   "Atualizar", e arrastar 8 KB de ficha e 7 KB de guia toda vez seria desperdício. Sem TTL — uma
@@ -639,6 +654,76 @@ cada fatia de estado mora**:
   módulo existe para tirar da mesa. Em troca, **toda aplicação automática traz o memorial da rolagem
   e um "Desfazer"** (`AutoDamage` em `useCombatantViews.ts`, com aviso próprio no topo — o dano
   automático e a queda a 0 PV caem no mesmo handler e disputando um Snackbar só um seria lido).
+
+## Módulo battle-map (Mapa de Combate)
+
+VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:maps:active`).
+
+- **Desempenho molda o `MapCanvas` inteiro.** Um único "mundo" com uma `transform` CSS: pan, zoom
+  e pinça escrevem a transformação **direto no DOM, num `requestAnimationFrame`** — nenhum render
+  React durante o gesto (o rótulo "80%" só atualiza quando o gesto para). Arrastar token move o
+  elemento pelo ref e só no soltar vira escrita. Grid é **um `<svg>` com `<pattern>`**, nunca um
+  elemento por quadrado. Medido: 40 tokens sobre imagem de 4096 px, pan e zoom a 60 fps e zero
+  mutação de DOM nos tokens durante o gesto. Não troque por estado React "porque é mais simples".
+  - `will-change: transform` **só durante o gesto**: ligado o tempo todo, o navegador congela a
+    rasterização na escala inicial e o mapa fica borrado ao aproximar.
+  - O efeito de limpeza **zera** `frame`/`settle` além de cancelar: no StrictMode o efeito
+    desmonta e remonta, e um `frame` cancelado mas não zerado fazia `schedule` nunca mais pedir
+    quadro — o mapa abria sem transformação nenhuma. Já foi bug.
+  - Rótulo da régua fica FORA do mundo (tamanho fixo em qualquer zoom); a linha fica dentro, com
+    `vector-effect: non-scaling-stroke`.
+- **Mundo em quadrados**, pixel só no desenho (`CELL_PX = 70`). Quadrado = 5 ft / 1,5 m, e a régua
+  usa as diagonais alternadas do Player Core (`squaresBetween`: 5-10-5). Token de tamanho N ocupa
+  N×N (`sizeSquares`; Minúsculo ocupa 1, para não ficar menor que o dedo) e encaixa nas LINHAS do
+  grid (`snapToken` usa o centro do token, não o canto).
+- **Um hash por mapa, campos com donos diferentes** (`map-store.js`): `tok:<id>` (o que o token É —
+  só a Iniciativa escreve), `pos:<id>` (onde ESTÁ — só o mapa escreve), `hp:<id>` (PV do monstro —
+  os dois). Num campo só, o GM renomeando um goblin devolveria o goblin ao quadrado de antes do
+  arrasto. O `tokenId` é o id do combatente.
+- **Sincronia é poll de revisão** (`services/maps.ts`), porque a Vercel serverless não segura
+  conexão: `?mapRev=` lê três contadores num `MGET` (rev do mapa, `table:rev`, mapa ativo), e o
+  mapa inteiro só desce quando um muda — já com `hp`/`token` dos PCs presentes, num pipeline.
+  1,5 s com atividade recente, 4 s depois de 1 min parado, **parado com a aba oculta**. Ordem de
+  grandeza: 6 aparelhos × 4 h ≈ 40 mil comandos no Upstash (free: 500 mil/mês). `syncTokens` não
+  sobe a revisão quando nada mudou, senão todo aparelho rebaixaria o mapa à toa.
+- **Escrita otimista com override**: o campo escrito fica sobreposto até a escrita voltar, para um
+  poll que chegue no meio não devolver o token ao quadrado de antes. O PV de PC mexido no mapa vai
+  para o MESMO campo `hp` da mesa (`saveField`); como o `tableState` sobe com 600 ms de debounce,
+  o override dele dura 5 s.
+- **O mapa não cria token.** Quem está no mapa é o encontro da Iniciativa ligado a ele; o mapa
+  posiciona, move e aplica dano. Token novo nasce no primeiro quadrado livre da faixa de cima
+  (`freeSpot`, no servidor, que é quem conhece as posições de todo mundo).
+- **Quem vê número**: PC sempre; monstro só a barra, com "Ferido/Muito ferido…" no popover, e os
+  números no Modo GM. O Modo GM é só interface (sem senha — "todos podem tudo", decisão do usuário)
+  e mostra também a camada do mapa (enviar e dimensionar a imagem) e criar/apagar/ativar mapas.
+- A imagem do mapa supõe **70 px por quadrado** ao chegar (padrão do Roll20); o GM ajusta pela
+  alça (proporção travada) ou pela largura em quadrados. Toda imagem é reduzida no navegador antes
+  de subir (`shrinkImage`: mapa ≤ 4096 px, token 256 px recortado no centro). Safari não codifica
+  WebP e devolve PNG calado — aí cai para JPEG.
+- **Apagar o mapa apaga a imagem dele e as dos tokens de monstro** (do Blob), nunca o token de PC,
+  que é da mesa (campo `token`, enviado na Ficha Virtual pelo `TokenAvatar`).
+- A página sangra até a borda desfazendo o padding do `MainLayout`; barra e avisos ficam numa
+  coluna só porque a barra quebra em duas linhas no celular.
+
+### Ligação com a Iniciativa
+
+- **Um encontro por mapa** (`encounterStorage.ts`): chave `pf2e:initiative:v1:map:<id>`, e a
+  chave antiga é o encontro "Sem mapa". O mapa aberto na Iniciativa fica em `pf2e:initiative:map`
+  e é para onde o `appendCombatants` do escalar monstro manda. Trocar no `EncounterMapPicker`
+  grava o encontro atual e hidrata o do outro mapa.
+- **`useMapSync`**: manda a lista INTEIRA de combatentes (com `size`, `tokenImage`, derrotado) e o
+  turno ativo, com debounce de 400 ms — o servidor cria, mantém e apaga os tokens. Do PV de
+  monstro sobe só o que mudou desde o último envio (`lastHp`).
+  - É um efeito, e pode ser: lê só o estado LOCAL e escreve só no mapa. O laço que a seção da
+    Iniciativa proíbe é o de efeito que lê a mesa e escreve na mesa.
+  - **Volta do PV**: o que o mapa traz diferente do último valor enviado/recebido vira
+    `npcSetVitals`. Na ABERTURA o mapa vence (tudo daqui já tinha subido; o que difere foi dano no
+    token com a Iniciativa fechada). Enquanto há envio pendente ou a revisão lida é mais velha que
+    a da última escrita (`waitRev`), não desce nada — senão um poll atrasado desfazia o dano que o
+    GM acabou de dar.
+- `CombatantBase.size` (inglês, da AON/Pathbuilder) vira a pegada do token; Ghan Buri é Large,
+  2×2. `NpcCombatant.tokenImage`: trocar a imagem de um monstro troca a das cópias dele que tinham
+  a antiga (ou nenhuma), e a antiga só sai do Blob se ninguém mais a usa.
 
 ## Módulo transformation-statblock (contexto que se perde fácil)
 
