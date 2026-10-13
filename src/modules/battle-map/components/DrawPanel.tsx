@@ -125,7 +125,7 @@ export const DrawPanel = ({ style, onChange, onClearAll, count }: Props) => {
                     <Typography variant="caption" sx={{ color: ink.secondary }}>
                         {style.mode === 'line'
                             ? 'As pontas encaixam no grid e o comprimento aparece enquanto você arrasta.'
-                            : 'Arraste para desenhar. Dois dedos (ou o botão do meio) movem o mapa.'}
+                            : 'Arraste para desenhar. O botão do meio do mouse move o mapa.'}
                     </Typography>
                 </>
             )}
