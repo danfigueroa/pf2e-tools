@@ -18,7 +18,10 @@ import { PersonAdd as AddIcon } from '@mui/icons-material'
 import { gold, ink } from '../../theme'
 import { ConditionsDialog } from '../character-viewer/components/ConditionsDialog'
 import { encounterReducer, activeOrder, peekNext } from './encounterReducer'
-import { loadEncounter, saveEncounter } from './encounterStorage'
+import { currentMapId, loadEncounter, saveEncounter, setCurrentMapId } from './encounterStorage'
+import { useMapSync } from './useMapSync'
+import { EncounterMapPicker } from './components/EncounterMapPicker'
+import { deleteImage } from '../../services/images'
 import { useEncounterParty } from './useEncounterParty'
 import { useCombatantViews, rollDamage, type AutoDamage } from './useCombatantViews'
 import { useShieldCatalog } from './useShieldCatalog'
@@ -34,7 +37,7 @@ import { BulkConditionDialog } from './components/BulkConditionDialog'
 import { AddCombatantDialog } from './components/AddCombatantDialog'
 import { AfflictionDialog } from './components/AfflictionDialog'
 import { PersistentDamageDialog } from './components/PersistentDamageDialog'
-import type { Combatant, CombatantView } from './types'
+import type { Combatant, CombatantView, NpcCombatant } from './types'
 
 type OpenDialog = 'add' | 'damage' | 'heal' | 'condition' | 'end' | null
 
@@ -57,6 +60,7 @@ function describeAutoDamage(event: AutoDamage): string {
 
 export const InitiativePage = () => {
     const [state, dispatch] = useReducer(encounterReducer, undefined, loadEncounter)
+    const [mapId, setMapId] = useState<string | null>(currentMapId)
 
     const slugs = useMemo(
         () => state.combatants.filter((c) => c.kind === 'pc').map((c) => c.slug),
@@ -98,9 +102,47 @@ export const InitiativePage = () => {
     // O encontro fica só neste aparelho — PV e condições dos personagens é que
     // são da mesa (ver useEncounterParty).
     useEffect(() => {
-        const timer = setTimeout(() => saveEncounter(state), 300)
+        const timer = setTimeout(() => saveEncounter(state, mapId), 300)
         return () => clearTimeout(timer)
-    }, [state])
+    }, [state, mapId])
+
+    // Os combatentes viram os tokens do mapa ligado; o PV dos monstros anda nos
+    // dois sentidos.
+    useMapSync(mapId, state, views, dispatch)
+
+    /** Cada mapa tem o seu encontro: guarda o atual e abre o do outro. */
+    const switchMap = (next: string | null) => {
+        if (next === mapId) return
+        saveEncounter(state, mapId)
+        setCurrentMapId(next)
+        setMapId(next)
+        dispatch({ type: 'hydrate', state: loadEncounter(next) })
+        setSelected(new Set())
+    }
+
+    /**
+     * Imagem nova no token de um monstro. Vale também para as cópias dele que
+     * ainda tinham a imagem antiga (ou nenhuma): o "Goblin Warrior 2" tem a
+     * cara do "Goblin Warrior".
+     */
+    const setTokenImage = (id: string, url: string) => {
+        const source = state.combatants.find((c) => c.id === id)
+        if (!source || source.kind !== 'npc') return
+        const familyOf = (c: NpcCombatant) => c.aonName ?? c.name.replace(/\s+\d+$/, '')
+        const family = familyOf(source)
+        const old = source.tokenImage
+        let stillUsed = false
+        for (const c of state.combatants) {
+            if (c.kind !== 'npc') continue
+            if (c.id === id || (familyOf(c) === family && (!c.tokenImage || c.tokenImage === old))) {
+                dispatch({ type: 'patch', id: c.id, patch: { tokenImage: url } })
+            } else if (old && c.tokenImage === old) {
+                stillUsed = true
+            }
+        }
+        // A antiga só sai do armazenamento se ninguém mais a usa.
+        if (old && !stillUsed) void deleteImage(old)
+    }
 
     const viewsById = useMemo(
         () => new Map(views.map((v) => [v.combatant.id, v])),
@@ -311,6 +353,8 @@ export const InitiativePage = () => {
             </Typography>
             <Box sx={{ height: 2, width: { xs: 120, sm: 180 }, backgroundColor: gold.main, mb: 2 }} />
 
+            <EncounterMapPicker mapId={mapId} onChange={switchMap} />
+
             <EncounterToolbar
                 round={state.round}
                 active={active}
@@ -369,6 +413,7 @@ export const InitiativePage = () => {
                             onDuplicate={() => dispatch({ type: 'duplicate', id: view.combatant.id })}
                             onShieldBlocked={onShieldBlocked}
                             onSaveShield={(shield) => dispatch({ type: 'patch', id: view.combatant.id, patch: { shield } })}
+                            onTokenImage={(url) => setTokenImage(view.combatant.id, url)}
                             onRemove={() => {
                                 dispatch({ type: 'remove', id: view.combatant.id })
                                 setSelected((prev) => {
@@ -386,8 +431,9 @@ export const InitiativePage = () => {
             )}
 
             <Alert severity="info" sx={{ mt: 2 }}>
-                O encontro fica só neste aparelho. Os PV e as condições dos personagens são da mesa:
-                aparecem na Ficha Virtual de quem estiver jogando, nos dois sentidos.
+                O encontro fica só neste aparelho, um por mapa de combate. Os PV e as condições dos
+                personagens são da mesa: aparecem na Ficha Virtual de quem estiver jogando, nos dois
+                sentidos. Com um mapa escolhido, cada combatente vira um token nele.
             </Alert>
 
             {selected.size > 0 && (

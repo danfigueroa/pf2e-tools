@@ -1,6 +1,11 @@
 // Persistência do encontro. Fica SÓ neste aparelho, de propósito: o encontro é
 // do GM, enquanto PV e condições dos personagens são da mesa (Redis) e chegam
 // pelo `useEncounterParty`.
+//
+// Um encontro POR MAPA de combate: o GM prepara o do Mapa X e o do Mapa Y antes
+// da sessão, e trocar de mapa na Iniciativa troca o encontro. A chave antiga
+// (sem mapa) continua sendo o encontro "Sem mapa" — nada do que já estava
+// guardado se perde.
 
 import { CONDITIONS_BY_ID } from '../character-viewer/conditions'
 import { sanitizeAfflictions } from './afflictions'
@@ -11,6 +16,24 @@ import type { Combatant, EncounterState, NpcCombatant, NpcShield, PcCombatant } 
 import type { ShieldItem } from '../character-viewer/shield'
 
 const STORAGE_KEY = 'pf2e:initiative:v1'
+const MAP_KEY_PREFIX = 'pf2e:initiative:v1:map:'
+const CURRENT_MAP_KEY = 'pf2e:initiative:map'
+
+const keyFor = (mapId: string | null) => (mapId ? MAP_KEY_PREFIX + mapId : STORAGE_KEY)
+
+/** O mapa cujo encontro está aberto na Iniciativa (`null` = "Sem mapa"). */
+export function currentMapId(): string | null {
+    try { return localStorage.getItem(CURRENT_MAP_KEY) || null } catch { return null }
+}
+
+export function setCurrentMapId(mapId: string | null): void {
+    try {
+        if (mapId) localStorage.setItem(CURRENT_MAP_KEY, mapId)
+        else localStorage.removeItem(CURRENT_MAP_KEY)
+    } catch {
+        // sem storage: a troca vale só nesta aba
+    }
+}
 
 const num = (value: unknown, fallback = 0): number => {
     const n = typeof value === 'string' ? parseInt(value, 10) : value
@@ -105,6 +128,7 @@ function sanitizeCombatant(raw: unknown): Combatant | null {
         weaknesses: numberMap(c.weaknesses),
         immunities: strings(c.immunities).map((i) => i.toLowerCase()),
         defenseNotes: strings(c.defenseNotes),
+        size: typeof c.size === 'string' ? c.size : undefined,
     }
 
     if (c.kind === 'npc') {
@@ -123,6 +147,7 @@ function sanitizeCombatant(raw: unknown): Combatant | null {
             aonName: typeof c.aonName === 'string' ? c.aonName : undefined,
             scaleOverrides: scaleOverrides(c.scaleOverrides),
             shield: npcShield(c.shield),
+            tokenImage: typeof c.tokenImage === 'string' ? c.tokenImage : undefined,
         }
         return npc
     }
@@ -140,9 +165,9 @@ function sanitizeCombatant(raw: unknown): Combatant | null {
     return pc
 }
 
-export function loadEncounter(): EncounterState {
+export function loadEncounter(mapId: string | null = currentMapId()): EncounterState {
     try {
-        const raw = localStorage.getItem(STORAGE_KEY)
+        const raw = localStorage.getItem(keyFor(mapId))
         if (!raw) return emptyEncounter()
         const parsed = JSON.parse(raw) as Record<string, unknown>
         if (parsed?.version !== 1) return emptyEncounter()
@@ -166,9 +191,9 @@ export function loadEncounter(): EncounterState {
     }
 }
 
-export function saveEncounter(state: EncounterState): void {
+export function saveEncounter(state: EncounterState, mapId: string | null = currentMapId()): void {
     try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+        localStorage.setItem(keyFor(mapId), JSON.stringify(state))
     } catch {
         // quota estourada — o encontro continua vivo em memória
     }
@@ -183,6 +208,9 @@ export function saveEncounter(state: EncounterState): void {
  * Seguro porque a página de Iniciativa só escreve enquanto está montada — o
  * efeito de gravação limpa o próprio timer ao desmontar, então nada dela
  * sobrescreve o que foi acrescentado depois que o usuário saiu.
+ *
+ * Entra no encontro do mapa que está aberto na Iniciativa, que é o que a página
+ * vai mostrar ao chegar.
  */
 export function appendCombatants(combatants: Combatant[]): void {
     if (combatants.length === 0) return

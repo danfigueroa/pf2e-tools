@@ -21,6 +21,7 @@ import {
     ContentCopy as DuplicateIcon,
     Delete as DeleteIcon,
     HourglassEmpty as DelayIcon,
+    AccountCircle as TokenIcon,
     MoreVert as MoreIcon,
     OpenInNew as LinkIcon,
     PlayArrow as RejoinIcon,
@@ -38,6 +39,7 @@ import { CombatantAfflictions } from './CombatantAfflictions'
 import { CombatantPersistent } from './CombatantPersistent'
 import { CombatantVitals, type ShieldBefore } from './CombatantVitals'
 import { NpcShieldDialog } from './NpcShieldDialog'
+import { TOKEN_MAX_SIDE, shrinkImage, uploadImage } from '../../../services/images'
 import type { BlockResult } from '../../character-viewer/shield'
 import type { CombatantView, NpcShield } from '../types'
 import { pop, pulseAnimation, useArmed, useReducedMotion, type Pulse } from '../../../motion/motion'
@@ -59,6 +61,8 @@ interface Props {
     onShieldBlocked: (view: CombatantView, result: BlockResult, before: ShieldBefore) => void
     /** Só monstro: grava (ou remove, com `undefined`) o escudo. */
     onSaveShield: (shield: NpcShield | undefined) => void
+    /** Só monstro: a imagem do token no mapa, já enviada. */
+    onTokenImage: (url: string) => void
 }
 
 export const CombatantCard = ({
@@ -77,6 +81,7 @@ export const CombatantCard = ({
     onOpenPersistent,
     onShieldBlocked,
     onSaveShield,
+    onTokenImage,
 }: Props) => {
     const { combatant, isActive } = view
 
@@ -111,6 +116,23 @@ export const CombatantCard = ({
     useEffect(() => setInitiative(String(combatant.initiative)), [combatant.initiative])
 
     const closeMenu = () => setMenuAnchor(null)
+
+    // Imagem do token: recortada no quadrado do meio e reduzida a 256 px antes
+    // de subir — um token nunca aparece maior que isso no mapa.
+    const tokenInput = useRef<HTMLInputElement>(null)
+    const [tokenBusy, setTokenBusy] = useState(false)
+    const uploadToken = async (file: File) => {
+        setTokenBusy(true)
+        try {
+            const { blob } = await shrinkImage(file, TOKEN_MAX_SIDE, true)
+            onTokenImage(await uploadImage(blob, 'tokens', combatant.name))
+        } catch {
+            // Sem rede ou imagem ilegível: o token segue com as iniciais.
+        } finally {
+            setTokenBusy(false)
+            if (tokenInput.current) tokenInput.current.value = ''
+        }
+    }
     const commitInitiative = () => {
         const parsed = parseInt(initiative, 10)
         onSetInitiative(Number.isFinite(parsed) ? parsed : 0)
@@ -328,10 +350,25 @@ export const CombatantCard = ({
                         <DuplicateIcon fontSize="small" sx={{ mr: 1 }} /> Duplicar
                     </MenuItem>
                 )}
+                {combatant.kind === 'npc' && (
+                    <MenuItem disabled={tokenBusy} onClick={() => { tokenInput.current?.click(); closeMenu() }}>
+                        <TokenIcon fontSize="small" sx={{ mr: 1 }} />
+                        {npc?.tokenImage ? 'Trocar imagem do token' : 'Imagem do token'}
+                    </MenuItem>
+                )}
                 <MenuItem onClick={() => { onRemove(); closeMenu() }}>
                     <DeleteIcon fontSize="small" sx={{ mr: 1 }} /> Remover
                 </MenuItem>
             </Menu>
+            {npc && (
+                <input
+                    ref={tokenInput}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    hidden
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadToken(f) }}
+                />
+            )}
             {npc && (
                 <NpcShieldDialog
                     open={shieldDialog}
