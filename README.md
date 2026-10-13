@@ -210,24 +210,41 @@ compartilhados com a mesa.
 
 ### ✅ Mapa de Combate (Implementado)
 
-Mapa tático em `/mapa`, no espírito do Roll20, pensado para o celular na mesa.
+Mapa tático em `/mapa`, no espírito do Roll20. **Feito para desktop** (mouse e teclado); no celular
+abre, mas não é o alvo.
 
 **Características:**
 
--   **Grid de quadrados de 5 ft (1,5 m)** sobre a imagem do mapa, com zoom pela roda do mouse,
-    pinça no celular e botões de +/−/enquadrar
--   **Camada do mapa** (Modo GM): envia a imagem — reduzida no navegador para no máximo 4096 px — e
-    a dimensiona no grid arrastando ou pela largura em quadrados
--   **Tokens com barra de PV**, movidos quadrado a quadrado, mostrando a distância percorrida.
-    Personagem mostra os números; monstro mostra só a barra (os números ficam no Modo GM)
+-   **Grid de quadrados de 5 ft (1,5 m)**, com zoom pela roda do mouse (10% a 400%), botões de
+    +/−/enquadrar e o botão do meio do mouse para arrastar o mapa em qualquer ferramenta
+-   **Camada do mapa** (Modo GM, ferramenta **Mapa**): envia a imagem — reduzida no navegador para
+    no máximo 4096 px — e define a escala digitando **largura ou altura em quadrados**, ou puxando
+    uma das **quatro alças** (proporção travada). Fora dessa ferramenta o grid cobre só a imagem;
+    dentro dela, aparece a área em volta, para mostrar até onde dá para crescer
+-   **Tokens com barra de PV**, movidos quadrado a quadrado, mostrando a distância percorrida. A
+    barra fica sempre por cima dos tokens. Personagem mostra os números; monstro mostra só a barra
+    (os números ficam no Modo GM), e o jogador vê "Ferido / Muito ferido…" ao clicar
+-   **Dano e cura no token**: clicar abre o painel. O PV do personagem é o mesmo da Ficha Virtual;
+    o do monstro anda junto com a Iniciativa, nos dois sentidos
 -   **Régua** com a regra das diagonais alternadas do Player Core (5-10-5)
--   **Vários mapas por sessão**: o GM leva a mesa de um para outro, e quem estiver em outro mapa
-    recebe o aviso "A mesa está em outro mapa". Depois do jogo, apagar o mapa leva junto a imagem,
-    os tokens e as posições
+-   **Desenhar** (para todos — quem conjura a Wall of Fire é o jogador): traço **livre**, **linha**
+    reta que encaixa no grid e mostra o comprimento, 12 cores de efeito (Fogo, Gelo, Ácido, Arcano,
+    Luz, Sombra, Elétrico, Veneno, Sangue, Sônico, Terreno difícil, Vital) e três espessuras. O
+    modo **Apagar** mostra um **×** em cada desenho e apaga só aquele; "Limpar todos" fica no
+    Modo GM. Os desenhos ficam sob os tokens, semitransparentes
+-   **Vários mapas por sessão**: o GM cria os mapas na gaveta "Mapas da sessão" e **leva a mesa**
+    de um para outro; quem estiver em outro mapa recebe o aviso "A mesa está em outro mapa — Ir"
 -   **Os tokens vêm da Iniciativa**: cada encontro é ligado a um mapa e cada combatente vira um
-    token. Dano dado no token aparece na Iniciativa (e vice-versa) e na Ficha Virtual
--   **Imagem do token**: a do personagem é enviada na Ficha Virtual (vale em todos os mapas); a do
-    monstro, no menu do cartão da Iniciativa
+    token. O botão **Montar encontro** abre a Iniciativa já no encontro daquele mapa
+-   **Imagem do token**: a do personagem é enviada no círculo do cabeçalho da Ficha Virtual e é
+    **permanente** (vale em todos os mapas); a do monstro, no menu ⋮ do cartão da Iniciativa, e é
+    **temporária** — some quando o mapa é apagado
+-   **Apagar o mapa depois do jogo** leva junto a imagem, os tokens de monstro, as posições e os
+    desenhos. O token dos personagens fica
+
+**Modo GM** é só um interruptor de interface, sem senha (não há login no app): mostra a camada do
+mapa, os números de PV dos monstros e as ações coletivas (criar, levar a mesa, apagar, limpar
+desenhos).
 
 Todos veem o mesmo mapa: os aparelhos acompanham as mudanças a cada 1,5 s enquanto a aba está
 aberta, sem botão de atualizar.
@@ -366,7 +383,14 @@ O projeto está configurado para deploy automático na Vercel.
 5. **Ligue o armazenamento de imagens do Mapa de Combate** (opcional)
 
     - Vá em "Storage" > "Blob" > "Create" (o plano Hobby basta) e conecte ao projeto
-    - A integração injeta `BLOB_READ_WRITE_TOKEN` sozinha
+    - **Access: Public.** O app grava as imagens como públicas para todos na mesa enxergarem; numa
+      store Private o envio falha, e o acesso não muda depois de criada
+    - **Marque "Add a read-write token env var to this connection".** A Vercel hoje conecta por
+      OIDC e, sem essa caixa, só cria `BLOB_STORE_ID` e `BLOB_WEBHOOK_PUBLIC_KEY` — mas o envio
+      direto do navegador precisa de `BLOB_READ_WRITE_TOKEN`. Se esqueceu, copie o token da aba
+      `.env.local` da store e crie a variável à mão (tipo Secret, Production e Preview). Não clique
+      em "Revoke Token"
+    - Faça um **Redeploy** depois: a variável só vale em deploys novos
     - Sem isso o mapa funciona, mas cada imagem fica só no aparelho de quem a enviou
 
 6. **Deploy**
@@ -388,12 +412,13 @@ api/
 ├── search.js / searches.js # GET  /api/search?name=...  ·  batch: /api/searches
 ├── spell.js / spells.js    # GET  /api/spell?name=...   ·  batch: /api/spells
 ├── companion.js / companions.js # GET /api/companion?name=... (stats de companheiro animal)
-├── state.js                # GET/POST /api/state — estado de jogo compartilhado da mesa
+├── state.js                # GET/POST /api/state — estado da mesa, fichas publicadas e mapas de combate
 └── clear-cache.js          # POST /api/clear-cache
 ```
 
-> `_lib/table-store.js` é o único módulo com persistência (Upstash Redis via REST). Todos os
-> outros endpoints são stateless.
+> `_lib/table-store.js`, `sheet-store.js` e `map-store.js` são os módulos com persistência
+> (Upstash Redis via REST); as imagens do mapa vão para o Vercel Blob. Todos os outros endpoints
+> são stateless. O mapa mora dentro de `state.js` pelo limite de 12 funções do plano Hobby.
 
 
 ---
@@ -436,6 +461,12 @@ pf2e-tools/
 │   │   │   ├── useCombatantViews.ts     # Unifica personagem e monstro numa interface só
 │   │   │   ├── damage.ts / defenses.ts  # Dano RAW, resistência, fraqueza e imunidade
 │   │   │   └── components/              # Cartão, barra de turno, diálogos de lote, busca AON
+│   │   ├── battle-map/           # Módulo de Mapa de Combate (VTT, só desktop)
+│   │   │   ├── BattleMapPage.tsx        # Página: barra de ferramentas, Modo GM, avisos
+│   │   │   ├── geometry.ts              # Quadrado de 5 ft, diagonal 5-10-5, snap, tamanho do token
+│   │   │   ├── drawing.ts               # Desenhos: simplificação do traço, validação
+│   │   │   ├── hp.ts                    # Dano/cura no token
+│   │   │   └── components/              # MapCanvas, Token, DrawingLayer, DrawPanel, ImagePanel, MapListDrawer, TokenPopover
 │   │   ├── character-sheet/      # Módulo de Ficha em PDF
 │   │   │   ├── CharacterSheetPage.tsx  # Página principal
 │   │   │   ├── pdf.ts                  # Geração do PDF
@@ -465,7 +496,9 @@ pf2e-tools/
 │   │   ├── monster.ts            # Cliente da ficha completa de uma criatura
 │   │   ├── spellList.ts          # Cliente da lista de magias (tradição + rank)
 │   │   ├── rules.ts              # Cliente da regra de um termo (inglês, cacheado)
-│   │   └── tableState.ts         # Sincronia do estado compartilhado da mesa
+│   │   ├── tableState.ts         # Sincronia do estado compartilhado da mesa
+│   │   ├── maps.ts               # Mapa de combate: poll de revisão + escrita otimista
+│   │   └── images.ts             # Redução e envio de imagens (Vercel Blob, IndexedDB de reserva)
 │   ├── types/
 │   │   └── index.ts              # Tipos globais
 │   ├── App.tsx                   # Componente raiz + rotas
@@ -583,13 +616,19 @@ Gerenciador de turnos e combate. A decisão central do módulo é **onde cada fa
 Ou seja: o encontro é do mestre, mas o personagem é da mesa. O dano aplicado aqui aparece na Ficha
 Virtual de quem estiver jogando, e o dano que o jogador marcar na ficha aparece aqui.
 
+**Um encontro por mapa de combate.** O seletor "Mapa de combate" no topo troca o encontro: o mestre
+prepara o do Mapa X e o do Mapa Y antes da sessão. Com um mapa escolhido, cada combatente vira um
+token nele (`useMapSync.ts`), e o PV dos monstros anda nos dois sentidos entre o cartão e o token. O
+encontro antigo, de antes dos mapas, virou o "Sem mapa".
+
 #### Arquivos
 
 | Arquivo                       | Responsabilidade                                                                  |
 | ----------------------------- | --------------------------------------------------------------------------------- |
 | `InitiativePage.tsx`          | Turnos, seleção de alvos, diálogos e a sugestão de Morrendo/Derrotado             |
 | `encounterReducer.ts`         | Reducer puro + ordem de turnos (`activeOrder`, `compareInitiative`, `peekNext`)   |
-| `encounterStorage.ts`         | Carga e gravação do encontro no `localStorage`, com saneamento                     |
+| `encounterStorage.ts`         | Carga e gravação do encontro no `localStorage` (um por mapa), com saneamento       |
+| `useMapSync.ts`               | Combatentes → tokens do mapa ligado; PV de monstro nos dois sentidos               |
 | `useEncounterParty.ts`        | PV e condições de todos os personagens do encontro, no estado compartilhado       |
 | `useCombatantViews.ts`        | Unifica personagem e monstro numa interface só para o cartão                       |
 | `damage.ts` / `defenses.ts`   | Dano RAW e casamento de resistência/fraqueza/imunidade por tipo                    |
@@ -636,6 +675,49 @@ digitada, e salvaguarda, salvaguarda de estágio e teste plano são informados p
 O que o app rola são os dois danos que o RAW manda cair sem ninguém pedir — o do estágio de uma
 aflição e o persistente do fim do turno —, porque pedir esses dois viraria um clique por turno por
 combatente afligido. Cada aplicação automática mostra o memorial da rolagem e um **Desfazer**.
+
+---
+
+### Módulo: Battle Map (Mapa de Combate)
+
+**Localização:** `src/modules/battle-map/` · **Rota:** `/mapa/:id?` · **Só desktop**
+
+Sem id na URL, abre o mapa para onde a mesa está. O módulo é o único carregado sob demanda
+(`React.lazy`), para não pesar em quem só abre a ficha.
+
+| Fatia                          | Onde vive                                                        |
+| ------------------------------ | ---------------------------------------------------------------- |
+| Mapa (nome, imagem, escala)    | Redis, campo `meta` do hash do mapa                              |
+| Quem é cada token              | Redis, `tok:<id>` — escrito só pela Iniciativa                   |
+| Onde está cada token           | Redis, `pos:<id>` — escrito só pelo mapa                         |
+| PV de monstro                  | Redis, `hp:<id>` — Iniciativa e mapa, nos dois sentidos          |
+| PV e imagem de personagem      | estado da mesa (`hp`, `token`) — os mesmos da Ficha Virtual      |
+| Cada desenho                   | Redis, `drw:<id>` — um campo por desenho                         |
+| Imagens                        | Vercel Blob: `tokens/` (permanente), `maps/` e `monsters/` (do mapa) |
+
+#### Arquivos
+
+| Arquivo                         | Responsabilidade                                                         |
+| ------------------------------- | ------------------------------------------------------------------------ |
+| `BattleMapPage.tsx`             | Barra de ferramentas, Modo GM, avisos, PV de cada token                   |
+| `components/MapCanvas.tsx`      | Pan/zoom, grid, imagem, tokens, régua e gestos — sem render React no gesto |
+| `components/Token.tsx`          | Token com imagem ou iniciais, barra de PV e nome                          |
+| `components/DrawingLayer.tsx`   | Os desenhos, entre o grid e os tokens                                     |
+| `components/DrawPanel.tsx`      | Modo (livre, linha, apagar), cor e espessura                              |
+| `components/ImagePanel.tsx`     | Enviar a imagem do mapa e definir a escala em quadrados                   |
+| `components/MapListDrawer.tsx`  | Criar, renomear, levar a mesa e apagar mapas                              |
+| `components/TokenPopover.tsx`   | Dano e cura no token                                                      |
+| `geometry.ts` / `drawing.ts`    | Distância PF2e, snap, tamanho do token; simplificação e validação do traço |
+| `services/maps.ts`              | Poll de revisão (1,5 s; pausa com a aba oculta) e escrita otimista        |
+| `services/images.ts`            | Redução no navegador e envio direto para o Blob                           |
+| `api/_lib/map-store.js`         | Hash por mapa, contadores de revisão, posição livre para token novo       |
+| `api/_lib/map-handler.js`       | Rotas do mapa dentro de `/api/state` e assinatura do envio ao Blob        |
+
+#### Desempenho
+
+Pan, zoom e arrasto de token escrevem direto no DOM dentro de um `requestAnimationFrame` — o React
+não renderiza nada durante o gesto. O grid é um único `<svg>` com `<pattern>`. Medido com 40
+tokens sobre uma imagem de 4096 px: 60 fps e nenhuma mutação de DOM nos tokens durante o gesto.
 
 ---
 
@@ -1023,6 +1105,13 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
     -   [x] Dano em área com resultado de salvaguarda por alvo, resistência e fraqueza
     -   [x] Condições com duração em rodadas
     -   [x] Ordem de turnos com desempate RAW, ajuste manual e Adiar
+-   [x] **Módulo de Mapa de Combate (VTT, desktop)**
+    -   [x] Grid de 5 ft com zoom, imagem do mapa com escala em quadrados
+    -   [x] Tokens com barra de PV vindos do encontro da Iniciativa (um encontro por mapa)
+    -   [x] Régua com diagonal 5-10-5
+    -   [x] Desenhar (livre, linha, 12 cores, apagar um por vez)
+    -   [x] Vários mapas por sessão, "levar a mesa" e apagar depois do jogo
+    -   [x] Token do personagem permanente; o do monstro some com o mapa
 -   [x] **Módulo de Escalar Monstro (criatura da AON em outro nível)**
     -   [x] Tabelas de construção de criaturas do GM Core transcritas do índice da AON (níveis -1 a 24)
     -   [x] Motor que preserva a diferença da ficha em relação ao benchmark (reescalar para o
