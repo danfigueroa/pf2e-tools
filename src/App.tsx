@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { pathfinderTheme } from './theme';
@@ -11,6 +12,10 @@ import { MonsterScalerPage } from './modules/monster-scaler/MonsterScalerPage';
 // import { CharacterSheetPage } from './modules/character-sheet/CharacterSheetPage';
 import { CharacterViewerPage } from './modules/character-viewer/CharacterViewerPage';
 import { InitiativePage } from './modules/initiative-tracker/InitiativePage';
+
+// Único módulo carregado sob demanda: é o mais pesado de gestos e não serve a
+// quem só abre a ficha no celular.
+const BattleMapPage = lazy(() => import('./modules/battle-map/BattleMapPage'));
 
 function App() {
   return (
@@ -27,6 +32,10 @@ function App() {
             <Route path="iniciativa" element={<InitiativePage />} />
             <Route path="transformation" element={<TransformationPage />} />
             <Route path="escalar-monstro" element={<MonsterScalerPage />} />
+            <Route
+              path="mapa/:id?"
+              element={<Suspense fallback={null}><BattleMapPage /></Suspense>}
+            />
           </Route>
         </Routes>
       </Router>

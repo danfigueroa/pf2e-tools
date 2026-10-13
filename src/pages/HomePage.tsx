@@ -13,6 +13,7 @@ import {
   FormatListNumbered as InitiativeIcon,
   Transform as TransformIcon,
   Whatshot as ScalerIcon,
+  Map as MapIcon,
   ArrowForward as ArrowIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -49,6 +50,18 @@ const tools: ToolCard[] = [
       'Dano em área com salvaguarda',
       'Condições com duração',
       'Monstros da AON',
+    ],
+  },
+  {
+    title: 'Mapa de Combate',
+    description: 'Grid de quadrados de 5 pés sobre a imagem do mapa, com os tokens do encontro da Iniciativa, barra de PV e régua. Todos na mesa veem o mesmo mapa, e o GM leva a mesa de um mapa para outro.',
+    icon: <MapIcon sx={{ fontSize: 32 }} />,
+    path: '/mapa',
+    features: [
+      'Zoom e pinça no celular',
+      'Tokens com barra de PV',
+      'Régua com diagonal 5-10-5',
+      'Vários mapas por sessão',
     ],
   },
   // Desativado — Ficha em PDF (ver App.tsx).

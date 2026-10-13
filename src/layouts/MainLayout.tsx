@@ -22,11 +22,16 @@ import {
   FormatListNumbered as InitiativeIcon,
   Transform as TransformIcon,
   Whatshot as ScalerIcon,
+  Map as MapIcon,
 } from '@mui/icons-material';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { green, gold, parchment } from '../theme';
 
 const drawerWidth = 260;
+
+/** `/mapa/abc123` ainda é o item "Mapa de Combate". */
+const isCurrent = (pathname: string, path: string) =>
+  path === '/' ? pathname === '/' : pathname === path || pathname.startsWith(`${path}/`);
 
 /** Tinta clara sobre a moldura verde (pergaminho esmaecido). */
 const CHROME_TEXT = 'rgba(237, 227, 204, 0.78)';
@@ -52,6 +57,11 @@ const navigationItems: NavigationItem[] = [
     text: 'Iniciativa',
     icon: <InitiativeIcon />,
     path: '/iniciativa',
+  },
+  {
+    text: 'Mapa de Combate',
+    icon: <MapIcon />,
+    path: '/mapa',
   },
   // Desativado — Ficha em PDF (ver App.tsx).
   // {
@@ -119,7 +129,7 @@ export const MainLayout = () => {
       <Box sx={{ overflow: 'auto', flex: 1, py: 1 }}>
         <List disablePadding>
           {navigationItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = isCurrent(location.pathname, item.path);
             return (
               <ListItem key={item.text} disablePadding sx={{ px: 1.5, py: 0.25 }}>
                 <ListItemButton
@@ -219,7 +229,7 @@ export const MainLayout = () => {
               color: gold.bright,
             }}
           >
-            {navigationItems.find(item => item.path === location.pathname)?.text || 'PF2e Tools'}
+            {navigationItems.find(item => isCurrent(location.pathname, item.path))?.text || 'PF2e Tools'}
           </Typography>
         </Toolbar>
       </AppBar>
