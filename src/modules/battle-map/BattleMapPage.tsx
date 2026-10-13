@@ -183,75 +183,109 @@ export const BattleMapPage = () => {
                 />
             )}
 
-            {/* Barra superior */}
-            <Paper
-                elevation={4}
+            {/* Barra superior e avisos numa coluna só: no celular a barra quebra
+                em duas linhas, e um aviso com `top` fixo cobriria a segunda. */}
+            <Box
                 sx={{
                     position: 'absolute',
                     top: 8,
                     left: 8,
                     right: 8,
                     zIndex: 2,
-                    px: 1,
-                    py: 0.5,
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
-                    flexWrap: 'wrap',
                     gap: 1,
-                    backgroundColor: green.main,
-                    color: parchment.page,
-                    borderBottom: `2px solid ${gold.main}`,
+                    pointerEvents: 'none',
+                    '& > *': { pointerEvents: 'auto' },
                 }}
             >
-                <Button
-                    onClick={() => setDrawer(true)}
-                    startIcon={<MapsIcon />}
-                    sx={{ color: gold.bright, fontWeight: 700, minWidth: 0, maxWidth: { xs: 160, sm: 280 } }}
-                >
-                    <Box component="span" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {data?.meta.name ?? 'Mapas'}
-                    </Box>
-                </Button>
-
-                <ToggleButtonGroup
-                    size="small"
-                    exclusive
-                    value={tool}
-                    onChange={(_, v: MapTool | null) => { if (v) setTool(v) }}
+                <Paper
+                    elevation={4}
                     sx={{
-                        '& .MuiToggleButton-root': {
-                            color: parchment.page,
-                            borderColor: `${gold.main}66`,
-                            px: { xs: 1, sm: 1.5 },
-                            '&.Mui-selected': { color: green.deepest, backgroundColor: gold.bright },
-                            '&.Mui-selected:hover': { backgroundColor: gold.bright },
-                        },
+                        alignSelf: 'stretch',
+                        px: 1,
+                        py: 0.5,
+                        display: 'flex',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: 1,
+                        backgroundColor: green.main,
+                        color: parchment.page,
+                        borderBottom: `2px solid ${gold.main}`,
                     }}
                 >
-                    <ToggleButton value="select" aria-label="Mover tokens">
-                        <SelectIcon fontSize="small" />
-                        <Box component="span" sx={{ ml: 0.75, display: { xs: 'none', sm: 'inline' } }}>Mover</Box>
-                    </ToggleButton>
-                    <ToggleButton value="ruler" aria-label="Régua">
-                        <RulerIcon fontSize="small" />
-                        <Box component="span" sx={{ ml: 0.75, display: { xs: 'none', sm: 'inline' } }}>Régua</Box>
-                    </ToggleButton>
-                    {gm && (
-                        <ToggleButton value="image" aria-label="Camada do mapa">
-                            <ImageIcon fontSize="small" />
-                            <Box component="span" sx={{ ml: 0.75, display: { xs: 'none', sm: 'inline' } }}>Mapa</Box>
+                    <Button
+                        onClick={() => setDrawer(true)}
+                        startIcon={<MapsIcon />}
+                        sx={{ color: gold.bright, fontWeight: 700, minWidth: 0, maxWidth: { xs: 160, sm: 280 } }}
+                    >
+                        <Box component="span" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {data?.meta.name ?? 'Mapas'}
+                        </Box>
+                    </Button>
+
+                    <ToggleButtonGroup
+                        size="small"
+                        exclusive
+                        value={tool}
+                        onChange={(_, v: MapTool | null) => { if (v) setTool(v) }}
+                        sx={{
+                            '& .MuiToggleButton-root': {
+                                color: parchment.page,
+                                borderColor: `${gold.main}66`,
+                                px: { xs: 1, sm: 1.5 },
+                                '&.Mui-selected': { color: green.deepest, backgroundColor: gold.bright },
+                                '&.Mui-selected:hover': { backgroundColor: gold.bright },
+                            },
+                        }}
+                    >
+                        <ToggleButton value="select" aria-label="Mover tokens">
+                            <SelectIcon fontSize="small" />
+                            <Box component="span" sx={{ ml: 0.75, display: { xs: 'none', sm: 'inline' } }}>Mover</Box>
                         </ToggleButton>
-                    )}
-                </ToggleButtonGroup>
+                        <ToggleButton value="ruler" aria-label="Régua">
+                            <RulerIcon fontSize="small" />
+                            <Box component="span" sx={{ ml: 0.75, display: { xs: 'none', sm: 'inline' } }}>Régua</Box>
+                        </ToggleButton>
+                        {gm && (
+                            <ToggleButton value="image" aria-label="Camada do mapa">
+                                <ImageIcon fontSize="small" />
+                                <Box component="span" sx={{ ml: 0.75, display: { xs: 'none', sm: 'inline' } }}>Mapa</Box>
+                            </ToggleButton>
+                        )}
+                    </ToggleButtonGroup>
 
-                <Box sx={{ flex: 1 }} />
+                    <Box sx={{ flex: 1 }} />
 
-                <FormControlLabel
-                    control={<Switch size="small" checked={gm} onChange={(e) => toggleGm(e.target.checked)} color="warning" />}
-                    label="Modo GM"
-                    sx={{ mr: 0.5, '& .MuiFormControlLabel-label': { fontSize: '0.85rem' } }}
-                />
-            </Paper>
+                    <FormControlLabel
+                        control={<Switch size="small" checked={gm} onChange={(e) => toggleGm(e.target.checked)} color="warning" />}
+                        label="Modo GM"
+                        sx={{ mr: 0.5, '& .MuiFormControlLabel-label': { fontSize: '0.85rem' } }}
+                    />
+                </Paper>
+
+                {data && activeId && activeId !== id && (
+                    <Alert
+                        severity="info"
+                        sx={{ width: 'min(520px, 100%)' }}
+                        action={<Button color="inherit" size="small" onClick={() => openMap(activeId)}>Ir</Button>}
+                    >
+                        A mesa está em outro mapa.
+                    </Alert>
+                )}
+                {data && tokenCount === 0 && gm && (
+                    <Alert severity="info" sx={{ width: 'min(520px, 100%)' }}>
+                        Sem tokens. Os tokens vêm da Iniciativa: escolha este mapa no encontro e
+                        adicione os combatentes.
+                    </Alert>
+                )}
+                {data && !isMapStoreReady() && (
+                    <Alert severity="warning" sx={{ width: 'min(520px, 100%)' }}>
+                        Servidor sem Redis: o mapa não é compartilhado com a mesa.
+                    </Alert>
+                )}
+            </Box>
 
             {/* Zoom */}
             {data && (
@@ -281,43 +315,6 @@ export const BattleMapPage = () => {
             )}
 
             {gm && tool === 'image' && data && <ImagePanel meta={data.meta} onChange={onMeta} />}
-
-            {/* Avisos */}
-            <Box
-                sx={{
-                    position: 'absolute',
-                    top: { xs: 64, sm: 60 },
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    width: 'min(520px, calc(100% - 24px))',
-                    zIndex: 2,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 1,
-                    pointerEvents: 'none',
-                    '& > *': { pointerEvents: 'auto' },
-                }}
-            >
-                {data && activeId && activeId !== id && (
-                    <Alert
-                        severity="info"
-                        action={<Button color="inherit" size="small" onClick={() => openMap(activeId)}>Ir</Button>}
-                    >
-                        A mesa está em outro mapa.
-                    </Alert>
-                )}
-                {data && tokenCount === 0 && gm && (
-                    <Alert severity="info">
-                        Sem tokens. Os tokens vêm da Iniciativa: escolha este mapa no encontro e
-                        adicione os combatentes.
-                    </Alert>
-                )}
-                {data && !isMapStoreReady() && (
-                    <Alert severity="warning">
-                        Servidor sem Redis: o mapa não é compartilhado com a mesa.
-                    </Alert>
-                )}
-            </Box>
 
             {/* Estados vazios */}
             {(resolving || (id && !data && !error)) && (
