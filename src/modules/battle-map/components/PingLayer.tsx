@@ -22,7 +22,7 @@ const point = (raw: unknown): { x: number; y: number } | null => {
 }
 
 /**
- * Pings (Alt+clique): um anel dourado que se abre no ponto, para todos.
+ * Pings (clique duplo): um anel dourado que se abre no ponto, para todos.
  *
  * Mostra cada ping UMA vez por aparelho, decidindo pelo id e não pelo
  * relógio: os pings que já existiam quando o mapa abriu contam como vistos.

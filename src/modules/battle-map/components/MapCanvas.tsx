@@ -55,7 +55,7 @@ interface Props {
     /** Traço pronto — vai para um campo `drw:` do mapa. */
     onDraw: (drawing: Drawing) => void
     onErase: (drawingId: string) => void
-    /** Alt+clique: o ponto (em quadrados) que todos vão ver piscar. */
+    /** Clique duplo: o ponto (em quadrados) que todos vão ver piscar. */
     onPing: (x: number, y: number) => void
     apiRef: Ref<CanvasApi>
 }
@@ -191,6 +191,12 @@ export const MapCanvas = memo(function MapCanvas({
      * nunca é gravada no mapa.
      */
     const areaPinned = useRef(false)
+    /**
+     * O último toque começou num token? O `dblclick` não diz: com a captura de
+     * ponteiro no viewport, o navegador entrega o clique com o VIEWPORT como
+     * alvo, e o clique duplo num token pingava.
+     */
+    const downOnToken = useRef(false)
     const bandRefs = [useRef<SVGPathElement>(null), useRef<SVGPathElement>(null), useRef<SVGPathElement>(null)]
 
     const tf = useRef<Transform>({ x: 0, y: 0, z: 1 })
@@ -477,18 +483,12 @@ export const MapCanvas = memo(function MapCanvas({
             return
         }
 
-        // Alt+clique é ping em qualquer ferramenta — não começa gesto nenhum.
-        if (e.altKey && e.pointerType === 'mouse') {
-            pointers.current.delete(e.pointerId)
-            const at = toWorld(p)
-            cb.current.onPing(at.x / CELL_PX, at.y / CELL_PX)
-            return
-        }
 
         if (pointers.current.size === 2) { startPinch(); return }
         if (pointers.current.size > 2) return
 
         const target = e.target as HTMLElement
+        downOnToken.current = !!target.closest('[data-token-id]')
         const w = toWorld(p)
         const current = toolRef.current
         const d = dataRef.current
@@ -746,6 +746,14 @@ export const MapCanvas = memo(function MapCanvas({
             onPointerCancel={onPointerUp}
             onPointerLeave={() => { if (toolRef.current === 'area' && !gesture.current && !areaPinned.current) clearOverlay() }}
             onContextMenu={(e) => e.preventDefault()}
+            // Clique duplo é ping, em qualquer ferramenta — menos sobre um token,
+            // onde o clique abre o painel de dano e o duplo abriria e pingaria junto.
+            onDoubleClick={(e) => {
+                if (downOnToken.current) return
+                const box = viewportRef.current!.getBoundingClientRect()
+                const at = toWorld({ x: e.clientX - box.left, y: e.clientY - box.top })
+                cb.current.onPing(at.x / CELL_PX, at.y / CELL_PX)
+            }}
             style={{
                 position: 'absolute',
                 inset: 0,

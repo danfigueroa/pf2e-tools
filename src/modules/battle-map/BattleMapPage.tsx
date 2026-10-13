@@ -54,21 +54,6 @@ import { setCurrentMapId } from '../initiative-tracker/encounterStorage'
 
 const GM_KEY = 'pf2e:map:gm'
 
-/** A tecla do ping com o nome que o teclado de cada um mostra. */
-const ALT_KEY = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform) ? '⌥ Option' : 'Alt'
-
-/** Tecla desenhada como tecla — é o que faz "Alt + clique" ser lido como atalho. */
-const KBD = {
-    px: 0.75,
-    py: 0.1,
-    borderRadius: 0.5,
-    border: `1px solid ${gold.main}`,
-    borderBottomWidth: 2,
-    fontFamily: 'inherit',
-    fontSize: '0.75rem',
-    fontWeight: 700,
-    color: gold.bright,
-} as const
 const DRAW_KEY = 'pf2e:map:draw'
 const AREA_KEY = 'pf2e:map:area'
 /** Tempo até quem pingou apagar o ping — sobra para o poll dos outros (1,5 s) pegá-lo. */
@@ -373,31 +358,26 @@ export const BattleMapPage = () => {
                         )}
                     </ToggleButtonGroup>
 
-                    <Box sx={{ flex: 1 }} />
-
-                    <Tooltip
-                        title={`Segure ${ALT_KEY} e clique em qualquer ponto do mapa: um anel dourado pisca ali na tela de todos da mesa por alguns segundos. Funciona com qualquer ferramenta.`}
-                    >
+                    {/* Logo depois das ferramentas, onde o olho já está: no canto
+                        oposto, junto do Modo GM, ninguém achava. */}
+                    <Tooltip title="Clique duas vezes em qualquer ponto do mapa: um anel dourado pisca ali na tela de todos da mesa por alguns segundos. Vale em qualquer ferramenta (menos em cima de um token).">
                         <Box
                             sx={{
                                 display: { xs: 'none', md: 'flex' },
                                 alignItems: 'center',
-                                gap: 0.75,
-                                px: 1,
-                                py: 0.25,
-                                borderRadius: 1,
-                                border: `1px solid ${gold.main}66`,
+                                gap: 0.5,
                                 color: parchment.page,
                                 fontSize: '0.8rem',
                                 cursor: 'help',
                             }}
                         >
                             <PingIcon fontSize="small" sx={{ color: gold.bright }} />
-                            <span>
-                                Ping: <Box component="kbd" sx={KBD}>{ALT_KEY}</Box> + clique
-                            </span>
+                            Clique duplo: ping
                         </Box>
                     </Tooltip>
+
+                    <Box sx={{ flex: 1 }} />
+
                     <FormControlLabel
                         control={<Switch size="small" checked={gm} onChange={(e) => toggleGm(e.target.checked)} color="warning" />}
                         label="Modo GM"
