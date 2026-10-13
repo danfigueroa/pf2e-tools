@@ -8,6 +8,7 @@
 //     ├─ tok:<cid>     → o que o token É (nome, tipo, tamanho, imagem)…
 //     ├─ pos:<cid>     → …onde ele ESTÁ (quem escreve é o mapa)…
 //     ├─ hp:<cid>      → …e o PV do monstro (Iniciativa e mapa, nos dois sentidos)
+//     ├─ imgs          → toda imagem de monstro que já passou por este mapa
 //     └─ drw:<id>      → um desenho (parede de fogo, área de magia) — um campo
 //                        por desenho, para apagar um sem tocar nos outros
 //
@@ -179,6 +180,7 @@ export async function deleteMap(id) {
         const data = unwrap(value)?.data
         if (field === 'meta' && data?.image?.url) urls.push(data.image.url)
         if (field.startsWith('tok:') && data?.kind === 'npc' && data.image) urls.push(data.image)
+        if (field === 'imgs' && Array.isArray(data)) urls.push(...data.filter((u) => typeof u === 'string'))
     }
 
     const r = redis()
@@ -363,6 +365,14 @@ export async function syncTokens(id, tokens, turn, hp) {
         if (keep.has(tid)) set[`hp:${tid}`] = envelope(value)
     }
     set.turn = envelope(turn ?? null)
+
+    // Registro de toda imagem de monstro que entrou neste mapa. Sem ele, o
+    // monstro que saiu do encontro (ou trocou de imagem) levaria a referência
+    // embora e a imagem ficaria órfã no Blob quando o mapa fosse apagado.
+    const known = unwrap(raw.imgs)?.data
+    const imgs = new Set(Array.isArray(known) ? known : [])
+    for (const t of tokens) if (t.kind === 'npc' && typeof t.image === 'string') imgs.add(t.image)
+    set.imgs = envelope([...imgs].slice(-500))
 
     // Nada mudou de fato? Não sobe a revisão: o poll de todo mundo ficaria
     // baixando o mapa inteiro sem motivo.

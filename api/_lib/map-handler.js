@@ -60,6 +60,14 @@ const cleanName = (name) => String(name ?? '').trim().slice(0, 60)
  */
 const isBlobUrl = (url) => typeof url === 'string' && /^https:\/\/[a-z0-9]+\.public\.blob\.vercel-storage\.com\//.test(url)
 
+/**
+ * Imagens que pertencem a um MAPA: a dele e as dos monstros. O token de
+ * personagem (`tokens/`) é permanente e nunca sai junto com um mapa — a trava
+ * fica aqui, no servidor, para valer mesmo se um token de PC aparecer por
+ * engano na lista do mapa.
+ */
+const isMapOwnedUrl = (url) => isBlobUrl(url) && /\/(maps|monsters)\//.test(new URL(url).pathname)
+
 async function deleteBlobs(urls) {
     const ours = urls.filter(isBlobUrl)
     if (ours.length === 0 || !isBlobConfigured()) return
@@ -93,7 +101,8 @@ export async function handleMapRequest(method, query, body, request) {
             request,
             onBeforeGenerateToken: async (pathname) => {
                 // Pastas fixas: nada de o cliente escolher onde gravar.
-                if (!/^(maps|tokens)\/[a-z0-9-]{1,80}\.(webp|png|jpe?g)$/.test(pathname)) {
+                // tokens/ = personagem (permanente); maps/ e monsters/ = do mapa.
+                if (!/^(maps|tokens|monsters)\/[a-z0-9-]{1,80}\.(webp|png|jpe?g)$/.test(pathname)) {
                     throw new Error('Caminho inválido')
                 }
                 return {
@@ -138,7 +147,7 @@ export async function handleMapRequest(method, query, body, request) {
 
     if (action === 'map-delete') {
         const urls = await deleteMap(id)
-        await deleteBlobs(urls)
+        await deleteBlobs(urls.filter(isMapOwnedUrl))
         return ok({})
     }
 
