@@ -696,8 +696,12 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
 - **Quem vê número**: PC sempre; monstro só a barra, com "Ferido/Muito ferido…" no popover, e os
   números no Modo GM. O Modo GM é só interface (sem senha — "todos podem tudo", decisão do usuário)
   e mostra também a camada do mapa (enviar e dimensionar a imagem) e criar/apagar/ativar mapas.
-- A imagem do mapa supõe **70 px por quadrado** ao chegar (padrão do Roll20); o GM ajusta pela
-  alça (proporção travada) ou pela largura em quadrados. Toda imagem é reduzida no navegador antes
+- A imagem do mapa supõe **70 px por quadrado** ao chegar (padrão do Roll20); o GM ajusta pelas
+  quatro alças (proporção travada, canto oposto parado) ou digitando largura/altura em quadrados.
+  As alças têm **36 px na tela em qualquer zoom** (`--inv-zoom`, escrita no `apply`): presas à
+  escala do mundo, a 40% viravam um alvo de 11 px. Entrar na camada do mapa reenquadra com folga
+  (`fit(0.6)`), senão as alças de baixo caíam sob o painel e o zoom, e o grid não some no zoom
+  baixo ali — é a régua do alinhamento. Toda imagem é reduzida no navegador antes
   de subir (`shrinkImage`: mapa ≤ 4096 px, token 256 px recortado no centro). Safari não codifica
   WebP e devolve PNG calado — aí cai para JPEG.
 - **Apagar o mapa apaga a imagem dele e as dos tokens de monstro** (do Blob), nunca o token de PC,
