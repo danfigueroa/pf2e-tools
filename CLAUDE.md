@@ -359,7 +359,7 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
 - **Os presets alimentam três módulos**: Ficha Virtual, diálogo de personagens da Iniciativa e
   gerador de Transformação (que aceita qualquer personagem, não só conjurador). Tirar uma ficha de
   `campaignPresets.ts` tira dos três. Elenco atual: Brukuthur, Ceros (Cerosqualhanthallas),
-  Eldarion, Ghan Buri e Nathaniel, todos nível 10 — tabela e observações no README.
+  Eldarion, Ghan Buri, Nathaniel e Thalos, todos nível 10 — tabela e observações no README.
 - **Os três carregam o preset por `loadPresetJson`**: a versão publicada pela mesa, se houver,
   senão o arquivo fixo. O `level` de `CAMPAIGN_PRESETS` é o do arquivo, então os cards leem o nível
   por `usePublishedSheets().levelOf` — senão mostrariam "10" depois de um level-up publicado.
