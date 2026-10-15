@@ -331,6 +331,66 @@ const NATHANIEL = `## 🎯 Papel em Combate
 - ❌ **Gastar os Pontos Míticos em Mythic Magic sem pensar:** é o mesmo estoque de 3 do Divert Destiny, a sua rede de segurança.
 - ❌ **Deixar o escudo abaixado:** CA 28 contra 30, e sem escudo erguido o Sparkling Targe não protege as salvaguardas.`
 
+// ---------------------------------------------------------------------------
+// THALOS — Psíquico 10 (The Oscillating Wave + Wandering Reverie), Humano
+// ---------------------------------------------------------------------------
+const THALOS = `## 🎯 Papel em Combate
+**Psíquico da Onda Oscilante (The Oscillating Wave)** — artilharia de **fogo e frio** que alterna entre os dois a cada magia. Você bate de longe com **psi cantrips ampliados** (que escalam como magia de 5º rank) e, a cada poucas rodadas, **libera a psique** para somar **+2 por rank** no dano de todas as suas magias. CAR 20, ataque de magia **+19**, **CD 29**. Em troca, é o mais frágil da mesa: **CA 22 e ~98 PV** — seu lugar é a **18–36 m** da linha de frente.
+
+## 🔁 Rotina de Turno
+- 🔥 **Turno 1 — abra com uma magia:** Ignition ou Frostbite **ampliado** (1 Ponto de Foco, ação livre, logo antes de conjurar). Quando o dano de fogo ou frio cair, use a **reação Entropic Wheel** — ela dura 1 minuto. Conjurar neste turno é o **requisito** para liberar a psique no próximo.
+- 🧠 **Turno 2 — Unleash Psyche (livre, no início do turno):** por **2 rodadas**, toda magia de dano do Psíquico soma **+2 × rank** (**+10** num psi cantrip ou num slot de 5º). Gaste aqui o melhor que tiver: um slot alto ou um cantrip ampliado + **Psi Burst** (1 ação).
+- 🧠 **Turno 3 — ainda liberado:** repita. Se estiver exposto, a 3ª ação vira **Fade into Daydreams** (oculto até o próximo turno).
+- 😵 **Turnos 4–5 — a ressaca:** a psique apaga sozinha, você fica **estupefato 1 por 2 rodadas** (−1 no ataque e na CD de magia, teste plano CD 6 para conjurar) e **não pode liberar de novo por 2 rodadas**. Cantrips sem amp, Thermal Stasis num aliado ou Disturbing Knowledge. Continue conjurando: o turno seguinte a uma magia é o que pode liberar de novo, assim que a ressaca passar.
+
+## ⭐ Nunca Esqueça
+- 🌊 **A Onda alterna:** a primeira magia concedida ou psi cantrip padrão (Frostbite, Ignition) da luta escolhe **adicionar energia (fogo)** ou **remover (frio)** — e a próxima **tem que ser a outra**. O ritmo natural é Ignition (fogo) → Frostbite (frio) → Ignition… Repetir Frostbite faz o segundo sair **de fogo** — ótimo contra quem resiste a frio. **Refocus** volta ao neutro.
+- 🔋 **3 Pontos de Foco, 1 por amp.** No Refocus você recupera **2** se só gastou em amps do Psíquico. Guarde um ponto para a Entropic Wheel ampliada ou para o amp do turno liberado.
+- 🎯 **Unleash Psyche não se desliga:** liberou, são 2 rodadas e a ressaca vem. Só libere quando houver alvo para as duas. O bônus vale para o **dano inicial de magia** — não para dano persistente nem para o Psi Burst, que não é magia.
+- 💥 **Psi Burst (1 ação, 1×/rodada, só com a psique liberada):** **5d4** a até 9 m, Reflexo básico. É mindshift: pela Onda, pode sair **de fogo ou de frio**. É a ação que sobra depois de um cantrip de 2 ações.
+- 🛡️🧠 **Haughty Obstinacy + Mental Static:** um **sucesso** contra efeito mental que tenta **controlar suas ações** vira **crítico** — e crítico em Vontade contra efeito mental de uma criatura dispara a reação **Mental Static**: **10 de dano mental** nela.
+- 👁️ **Homing Beacon:** troca o amp de Frostbite/Ignition — o alvo atingido (ou que falhou) fica marcado por 1 minuto: **invisível vira só oculto**, oculto deixa de ser. Com **Thoughtsense** (9 m, vago; **impreciso** com a psique liberada, dá para Seek), é sua resposta a inimigo invisível.
+- 🎲 **Incredible Initiative:** iniciativa **+17** (Percepção +15 +2). Você costuma agir cedo — e abrir com magia é o que destrava o turno 2.
+
+## ✨ Magias-Chave
+- ❄️ **Frostbite** (2 ações, **36 m** pela Onda): 6d4 frio, Fortitude básica; falha crítica dá fraqueza 5 a concussão (combine com a Warhammer do Ghan Buri). **Ampliado:** **11d4** e você ganha **PV temporários = metade do dano** que o alvo sofrer, por 1 minuto — é a sua armadura.
+- 🔥 **Ignition** (2 ações, ataque de magia, **18 m** à distância ou corpo a corpo com **alcance 3 m**): 6d4 fogo (6d6 no corpo a corpo). **Ampliado:** **5d10 + 5 de respingo** (5d12 no corpo a corpo, e o respingo não te pega). Crítico: dano dobrado + **5d4 fogo persistente**.
+- ⚖️ **Redistribute Potential** (2 ações, 18 m): dois quadrados adjacentes, um de **frio** e um de **fogo**, 4d4 Fortitude básica; na falha, **desajeitado 1** (frio) ou **enfraquecido 1** (calor). **Ampliado:** duas **explosões de 3 m** com **6d6**, e as condições duram **1 minuto**. Seu cantrip de área.
+- ☸️ **Entropic Wheel** (reação, ao causar dano de fogo ou frio): 1 minuto acumulando motes (1, ou 2 ampliada; até **5**). Toda magia de fogo causa também **frio = motes**, e vice-versa — a alternância da Onda é justamente o que a gira.
+- 🌡️ **Thermal Stasis** (1 ação, 18 m): **resistência 10 a fogo e a frio** até o seu próximo turno; **ampliada, 1 minuto**. Contra baforada de dragão ou elemental, numa ação.
+- 🌨️ **Magias concedidas pela Onda** (entram no repertório): Breathe Fire (1º), Blazing Bolt (2º), Fireball (3º), Ice Storm (4º) e **Howling Blizzard** (5º — 10d6 frio, cone de 18 m com 2 ações ou explosão de 9 m a 150 m com 3, terreno difícil). Elas **também alternam**: uma Fireball pode sair congelada.
+- 🕊️ **Shory Aeromancer:** Fly de 4º rank, inata, **1×/dia**, só em você.
+
+## ⚡ Poderes Míticos
+- 🎲 **Rewrite Fate (livre):** rerrole uma perícia ou salvaguarda com **proficiência mítica** — Fortitude e Vontade **~+23**, Reflexos **~+20**.
+- 📖 **Correct the Story (reação):** um inimigo **acerta crítico** em você ou **tira sucesso crítico** na salvaguarda da sua Howling Blizzard → gaste um Ponto Mítico e ele rerrola.
+- 🌀 **Become Destiny (livre):** remova **uma condição**, encerre **uma magia** que está em você ou escape de uma armadilha/perigo. Tira o estupefato da ressaca, o amedrontado, o agarrado…
+- 🏹 **Arc of Destruction (reação):** um inimigo te mira com **Strike à distância de arma** → **+4 de status na CA**; se errar, você pega o projétil no ar e o devolve com proficiência mítica.
+- 🐍 **Hydra's Bond (preparação diária):** até **5 criaturas voluntárias** ligadas. Quando uma delas salva contra algo que a faria agir contra os aliados (confuso, dominate…), gaste um Ponto Mítico e ela rola com proficiência mítica; se falhar, todos sabem que está controlada, e o grupo ganha **+2** para contra-atacar o efeito.
+- 💭 **Dreamer's Calling:** Recordar Conhecimento de Arcanismo, Natureza, Religião ou Ocultismo com **proficiência mítica** por um Ponto Mítico — boa para achar a fraqueza do chefe.
+
+## 🎒 Itens & Recursos
+- 🔮 **3 Pontos de Foco** (amps) e ⭐ **3 Pontos Míticos** (todos os poderes acima disputam o mesmo estoque).
+- 🌊 **Wavetouched Paragon:** deslocamento de **natação 4,5 m**.
+- 🌟 **Saoc Astrology (1 ação, 3×/dia):** 1d8 antes da próxima perícia — até **+2** (num 1, −1). Bom antes do Disturbing Knowledge.
+- 😨 **Disturbing Knowledge (2 ações):** Ocultismo **+20** contra a CD de Vontade de **um** inimigo a 9 m — crítico deixa **confuso 1 rodada + amedrontado 1**; sucesso, amedrontado 1. Não é magia: funciona na ressaca sem teste plano (o −1 do estupefato ainda vale).
+- ⚠️ **A ficha exportada veio sem inventário e sem repertório de magias** — por isso a aba de Magias mostra só os psi cantrips e o Fly. Complete no Pathbuilder e publique de novo.
+
+## 🛡️ Defesa & Sobrevivência
+- ❤️ **CA 22 · ~98 PV** — os menores números da mesa. Fique longe: Frostbite tem 36 m de alcance justamente para isso.
+- 🎲 **Fortitude +17 · Vontade +17 · Reflexos +14** (o ponto fraco — área de Reflexo dói).
+- 🌫️ **Fade into Daydreams** (com a psique liberada): oculto, o atacante precisa passar num teste plano CD 5.
+- ❄️ **Frostbite ampliado** dá PV temporários; **Thermal Stasis** no próprio corpo contra fogo e frio.
+- 🩹 **Fast Recovery:** cura em dobro ao descansar e salvaguardas contra veneno/doença descem **2 estágios** num sucesso.
+
+## ⚠️ Erros Comuns
+- ❌ **Esquecer a alternância da Onda:** dois Frostbite seguidos não são dois de frio — o segundo é de fogo.
+- ❌ **Começar a luta sem conjurar:** sem magia no turno anterior, não há Unleash Psyche.
+- ❌ **Liberar a psique sem alvo:** são 2 rodadas inevitáveis e depois 2 de estupefato. Libere quando houver dano para despejar.
+- ❌ **Usar Psi Burst ou Fade into Daydreams fora da psique liberada:** as ações psyche só existem enquanto ela dura.
+- ❌ **Ignition corpo a corpo por ganância:** o d12 é tentador, mas com CA 22 você não quer um brutamontes adjacente. Ao menos use os **3 m** de alcance.
+- ❌ **Gastar a reação à toa:** Entropic Wheel, Mental Static, Correct the Story, Arc of Destruction e Cognitive Crossover disputam **uma** reação por rodada. No turno 1, ela é da roda.`
+
 export const COMBAT_GUIDES: CombatGuide[] = [
     { match: byName('Ardagar'), markdown: ARDAGAR, curated: true },
     { match: byName('Eldarion'), markdown: ELDARION, curated: true },
@@ -339,6 +399,7 @@ export const COMBAT_GUIDES: CombatGuide[] = [
     { match: byName('Cerosqualhanthallas'), markdown: CEROSQUALHANTHALLAS, curated: true },
     // O Pathbuilder exporta "Nathaniel o Magus"; casa pelo começo, como o Brukuthur.
     { match: (b) => (b.name || '').trim().toLowerCase().startsWith('nathaniel'), markdown: NATHANIEL, curated: true },
+    { match: byName('Thalos'), markdown: THALOS, curated: true },
 ]
 
 // ---------------------------------------------------------------------------
