@@ -585,7 +585,7 @@ o mesmo personagem entraria duas vezes, dividindo o mesmo PV.
 | Eldarion              | Ladino (Thief) + Swashbuckler       | `Eldarion`                           | Venenos Fearweed, Toxic Effluence e Breath of the Mantis God.      |
 | Ghan Buri             | Guerreiro (Bastion), Jotunborn      | `Ghan Buri`                          | —                                                                  |
 | Nathaniel             | Magus (Sparkling Targe), Aiuvarin   | `Nathaniel o Magus`                  | Guia casa pelo começo do nome. **Anel corrigido à mão** (abaixo).  |
-| Thalos                | Psíquico (Oscillating Wave), Humano | `Thalos`                             | **Export sem repertório nem inventário** (abaixo).                 |
+| Thalos                | Psíquico (Oscillating Wave), Humano | `Thalos`                             | Arquétipo livre **só até o nível 4** no export (abaixo).           |
 
 - **O JSON do Nathaniel tem uma edição à mão**: o jogador marcou o *Winder's Ring* por engano, e o
   anel de nível 7 certo é o **Ring of Wizardry (Type I)**
@@ -593,12 +593,11 @@ o mesmo personagem entraria duas vezes, dividindo o mesmo PV.
   arcanos de 1º rank a mais. A troca está no `equipment` e o +1 no `mods.Arcana`. Os slots extras
   **não** foram lançados em `perDay`: são preparados no dia, e a ficha não inventa magia pelo
   jogador. **Um novo export do Pathbuilder desfaz a troca** se o anel não for corrigido lá.
-- **O JSON do Thalos chegou incompleto do Pathbuilder**: o bloco do Psíquico tem os slots
-  (`perDay`, 2 por rank do 1º ao 5º) mas **nenhuma magia no repertório**, e `equipment`, `weapons` e
-  `armor` vêm vazios (só 15 po). Sem magia, a aba de Magias esconde o bloco do Psíquico e mostra só
-  os psi cantrips e o *Fly* do Shory Aeromancer. A ficha **não** foi completada à mão — nem as
-  magias concedidas pela mente consciente: quem escolhe o repertório é o jogador, no Pathbuilder.
-  Quando chegar um export completo, basta publicar pela Ficha Virtual.
+- **O export do Thalos tem só dois talentos de arquétipo livre**: Chronoskimmer Dedication (2) e
+  Psychic Duelist Dedication (4); os espaços do 6, 8 e 10 vêm vazios. A segunda dedicação também
+  fura a regra de dois talentos do arquétipo anterior. A ficha **não** foi completada à mão — quem
+  escolhe é o jogador, no Pathbuilder — e o guia avisa. O primeiro export (sem repertório nem
+  inventário) foi substituído; o Pathbuilder também não diz quais são as magias de assinatura.
 - **Os venenos do Eldarion vêm como "Invested"** do Pathbuilder, mas são consumíveis — o guia avisa.
 - **Mythic Magic gasta Ponto Mítico, não slot** (Ceros e Nathaniel). O Pathbuilder exporta o talento
   como conjurador espontâneo com 5 slots de 5º rank, que não existem. A aba de Magias reconhece o
