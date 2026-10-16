@@ -28,6 +28,7 @@ import {
     BlurCircular as AreaIcon,
     Close as CloseIcon,
     TouchApp as PingIcon,
+    Casino as DiceIcon,
 } from '@mui/icons-material'
 import { MapCanvas, type CanvasApi, type MapTool, type TokenView } from './components/MapCanvas'
 import { MapListDrawer } from './components/MapListDrawer'
@@ -35,6 +36,9 @@ import { TokenPopover } from './components/TokenPopover'
 import { ImagePanel } from './components/ImagePanel'
 import { DrawPanel } from './components/DrawPanel'
 import { AreaPanel } from './components/AreaPanel'
+import { DicePanel } from './components/DicePanel'
+import { DiceResultLayer } from './components/DiceResultLayer'
+import { ROLL_LIFETIME_MS, type SharedRoll } from './dice'
 import { AREA_FEET, type AreaStyle } from './areas'
 import { DRAW_WIDTHS, newDrawingId, type Drawing, type DrawStyle } from './drawing'
 import type { TokenHp } from './hp'
@@ -127,6 +131,7 @@ export const BattleMapPage = () => {
         try { return localStorage.getItem(GM_KEY) === '1' } catch { return false }
     })
     const [tool, setTool] = useState<MapTool>('select')
+    const [diceOpen, setDiceOpen] = useState(false)
     const [zoom, setZoom] = useState(1)
     const [drawer, setDrawer] = useState(false)
     const [tapped, setTapped] = useState<{ id: string; anchor: HTMLElement } | null>(null)
@@ -205,6 +210,14 @@ export const BattleMapPage = () => {
         const field = `ping:${newDrawingId()}`
         writeMapField(id, field, { x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100 })
         setTimeout(() => writeMapField(id, field, null), PING_LIFETIME_MS)
+    }, [id])
+
+    /** Rolagem: vai para a mesa como o ping — campo efêmero que quem rolou apaga. */
+    const onRoll = useCallback((roll: SharedRoll) => {
+        if (!id) return
+        const field = `roll:${newDrawingId()}`
+        writeMapField(id, field, roll)
+        setTimeout(() => writeMapField(id, field, null), ROLL_LIFETIME_MS)
     }, [id])
 
     const onErase = useCallback((drawingId: string) => {
@@ -358,6 +371,22 @@ export const BattleMapPage = () => {
                         )}
                     </ToggleButtonGroup>
 
+                    {/* Fora do seletor: abre um painel sem trocar a ferramenta ativa. */}
+                    <Button
+                        size="small"
+                        aria-pressed={diceOpen}
+                        onClick={() => setDiceOpen((o) => !o)}
+                        startIcon={<DiceIcon fontSize="small" />}
+                        sx={{
+                            color: diceOpen ? green.deepest : parchment.page,
+                            backgroundColor: diceOpen ? gold.bright : 'transparent',
+                            border: `1px solid ${gold.main}66`,
+                            '&:hover': { backgroundColor: diceOpen ? gold.bright : `${gold.main}33` },
+                        }}
+                    >
+                        <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Dados</Box>
+                    </Button>
+
                     {/* Logo depois das ferramentas, onde o olho já está: no canto
                         oposto, junto do Modo GM, ninguém achava. */}
                     <Tooltip title="Clique duas vezes em qualquer ponto do mapa: um anel dourado pisca ali na tela de todos da mesa por alguns segundos. Vale em qualquer ferramenta (menos em cima de um token).">
@@ -449,6 +478,8 @@ export const BattleMapPage = () => {
             )}
 
             {gm && tool === 'image' && data && <ImagePanel meta={data.meta} onChange={onMeta} />}
+            {data && id && diceOpen && <DicePanel onRoll={onRoll} />}
+            {data && <DiceResultLayer rolls={data.rolls ?? {}} />}
             {tool === 'area' && data && <AreaPanel style={areaStyle} onChange={changeAreaStyle} />}
             {tool === 'draw' && data && id && (
                 <DrawPanel
