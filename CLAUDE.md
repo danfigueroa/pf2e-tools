@@ -328,10 +328,7 @@ você gasta"** e o custo no contador de ações, o dano/cura, os alvos e os efei
   projétil, `ações × (1 + ⌊(rank−1)/2⌋)` projéteis.
 - **Um raio por ação** no Blazing Bolt: cada raio tem o PRÓPRIO ataque e dano (MAP igual para todos; ele só sobe depois),
   mas tudo vai numa rolagem SÓ — `TableRoll.rays` (`RollRay { check, damage }`, até 6): um cartão com os raios e, no fim, o
-  total e o "se todos forem críticos" (`rayTotal`/`rayCritTotal`). O cartão desenha **uma linha por raio** (ataque e dano
-  lado a lado, dados em miúdo) e NÃO uma bandeja animada por raio: três bandejas de d20 + 10d6 passavam da altura da
-  tela, com barra de rolagem e espaço sobrando. A `DiceTray` também deixou de ter `maxWidth` fixo de 340 px (estourava o
-  cartão de 328 px úteis e criava barra horizontal). Com `rays`, o `check`/`damage` do topo ficam ausentes.
+  total e o "se todos forem críticos" (`rayTotal`/`rayCritTotal`). Com `rays`, o `check`/`damage` do topo ficam ausentes.
   Mexeu no formato, mexa nos DOIS sanitizadores (`tableRoll.ts` e `roll-store.js`); o teto de bytes do servidor subiu de
   4 → 8 KB por causa deles. O ✦ mítico gasta o ponto uma vez só.
 - **Spellstrike aceita magia de ação variável** (Blazing Bolt!) com 1 ou 2 ações — antes ela era recusada por "não ter

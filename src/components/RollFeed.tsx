@@ -44,55 +44,34 @@ const Caption = ({ children, color }: { children: React.ReactNode; color?: strin
     </Typography>
 )
 
-/**
- * Vários raios na mesma rolagem: uma linha por raio (ataque e dano lado a lado), com os dados em
- * miúdo, e o total no fim. Em linhas e não em bandejas: três bandejas de d20 + 10d6 faziam um cartão
- * mais alto que a tela, com barra de rolagem e espaço sobrando.
- */
-const RaysBlock = ({ rays }: { rays: RollRay[] }) => {
-    const head = { color: gold.bright, fontWeight: 700, textAlign: 'center' as const, fontSize: '0.7rem', letterSpacing: '0.05em' }
-    return (
-        <Box sx={{ mt: 0.75 }}>
-            <Divider sx={{ borderColor: `${gold.main}55`, mb: 0.75 }} />
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'auto 1fr 1fr', columnGap: 1.25, rowGap: 0.9, alignItems: 'start' }}>
-                <span />
-                <Typography sx={head}>ATAQUE</Typography>
-                <Typography sx={head}>DANO SE ACERTAR</Typography>
-                {rays.map((ray, i) => {
-                    const nat = ray.check.d20
-                    const dmgParts = ray.damage.parts.filter((p) => !p.persistent)
-                    const faces = dmgParts.flatMap((p) => p.dice.map((d) => d.value))
-                    return (
-                        <Box key={i} sx={{ display: 'contents' }}>
-                            <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', pt: 0.4 }}>Raio {i + 1}</Typography>
-                            <Box sx={{ textAlign: 'center' }}>
-                                <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontWeight: 700, fontSize: '1.45rem', lineHeight: 1, color: nat === 20 ? gold.bright : nat === 1 ? '#FF6B6B' : 'inherit' }}>
-                                    {ray.check.total}
-                                </Typography>
-                                <Caption>d20 {nat} {signed(ray.check.mod)}{nat === 20 ? ' · natural 20' : nat === 1 ? ' · natural 1' : ''}</Caption>
-                                {ray.check.mythic && <Caption color={MYTHIC_ON_DARK}>✦ mítica</Caption>}
-                            </Box>
-                            <Box sx={{ textAlign: 'center' }}>
-                                <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontWeight: 700, fontSize: '1.45rem', lineHeight: 1 }}>
-                                    {ray.damage.total}
-                                </Typography>
-                                <Caption>{dmgParts.map((p) => `${partFormula(p)} ${p.label.replace(/^[\d+d−\s-]+/, '')}`.trim()).join(' · ')}</Caption>
-                                {faces.length > 0 && <Caption>[{faces.join(' ')}]</Caption>}
-                                {ray.damage.crit && <Caption color={gold.bright}>crítico {ray.damage.crit.total}</Caption>}
-                            </Box>
-                        </Box>
-                    )
-                })}
-            </Box>
-            <Divider sx={{ borderColor: `${gold.main}99`, my: 0.9 }} />
-            <Typography sx={{ textAlign: 'center', fontFamily: '"Cinzel", Georgia, serif', fontWeight: 700, fontSize: '1.5rem', lineHeight: 1.1 }}>
-                {rayTotal(rays)}
-            </Typography>
-            <Caption>Total dos {rays.length} raios, se todos acertarem</Caption>
-            <Caption color={gold.bright}><b>Todos críticos: {rayCritTotal(rays)}</b></Caption>
-        </Box>
-    )
-}
+/** Vários raios na mesma rolagem: cada um com o ataque e o dano, e o total dos raios no fim. */
+const RaysBlock = ({ rays, color }: { rays: RollRay[]; color: string }) => (
+    <Box sx={{ mt: 0.75 }}>
+        {rays.map((ray, i) => {
+            const dmg = damageDice(ray.damage.parts)
+            return (
+                <Box key={i} sx={{ mt: 0.75 }}>
+                    <Divider sx={{ borderColor: `${gold.main}55`, mb: 0.5 }} />
+                    <Caption color={gold.bright}>Raio {i + 1} de {rays.length}</Caption>
+                    <DiceTray dice={[{ faces: 20, value: ray.check.d20 }]} flat={ray.check.mod} total={ray.check.total} color={color} compact />
+                    {ray.check.mythic && <Caption color={MYTHIC_ON_DARK}>✦ proficiência mítica</Caption>}
+                    <Caption color={gold.bright}>Dano se acertar</Caption>
+                    <DiceTray dice={dmg.dice} flat={dmg.flat} total={ray.damage.total} color={color} compact />
+                    <Caption>{ray.damage.parts.filter((p) => !p.persistent).map((p) => `${p.label} ${p.total}`).join(' · ')}</Caption>
+                    {ray.damage.crit && <Caption color={gold.bright}><b>Crítico: {ray.damage.crit.total}</b></Caption>}
+                </Box>
+            )
+        })}
+        <Divider sx={{ borderColor: `${gold.main}99`, my: 0.75 }} />
+        <Typography sx={{ textAlign: 'center', fontWeight: 800, fontSize: '1.15rem' }}>
+            Total dos {rays.length} raios: {rayTotal(rays)}
+        </Typography>
+        <Caption color={gold.bright}>
+            <b>Se todos forem críticos: {rayCritTotal(rays)}</b>
+        </Caption>
+        <Caption>Some só os raios que acertarem.</Caption>
+    </Box>
+)
 
 /** O cartão de uma rolagem, com a bandeja animada. */
 const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) => {
@@ -111,7 +90,6 @@ const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) =
                 // Vários raios fazem um cartão alto: rola por dentro em vez de passar da tela.
                 maxHeight: 'calc(100vh - 32px)',
                 overflowY: 'auto',
-                overflowX: 'hidden',
                 boxShadow: '0 6px 24px #00000080',
                 color: parchment.page,
                 pointerEvents: 'auto',
@@ -165,7 +143,7 @@ const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) =
                 </Box>
             )}
 
-            {roll.rays && <RaysBlock rays={roll.rays} />}
+            {roll.rays && <RaysBlock rays={roll.rays} color={roll.color} />}
 
             {roll.free && (
                 <Box sx={{ mt: 0.75 }}>
