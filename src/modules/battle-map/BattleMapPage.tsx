@@ -185,7 +185,7 @@ export const BattleMapPage = () => {
     dataRef.current = data
 
     const onMove = useCallback((tokenId: string, cell: Cell) => {
-        if (id) writeMapField(id, `pos:${tokenId}`, cell)
+        if (id) writeMapField(id, `pos:${tokenId}`, cell, { now: true })
     }, [id])
 
     const onImageRect = useCallback((rect: ImageRect) => {
@@ -208,7 +208,7 @@ export const BattleMapPage = () => {
     const onPing = useCallback((x: number, y: number) => {
         if (!id) return
         const field = `ping:${newDrawingId()}`
-        writeMapField(id, field, { x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100 })
+        writeMapField(id, field, { x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100 }, { now: true })
         setTimeout(() => writeMapField(id, field, null), PING_LIFETIME_MS)
     }, [id])
 
@@ -216,7 +216,7 @@ export const BattleMapPage = () => {
     const onRoll = useCallback((roll: SharedRoll) => {
         if (!id) return
         const field = `roll:${newDrawingId()}`
-        writeMapField(id, field, roll)
+        writeMapField(id, field, roll, { now: true })
         setTimeout(() => writeMapField(id, field, null), ROLL_LIFETIME_MS)
     }, [id])
 
