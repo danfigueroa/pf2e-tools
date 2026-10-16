@@ -297,8 +297,10 @@ montado UMA vez no `MainLayout` (trocar de rota não refaz o "já visto"), e o h
   chave do MGET do `readRevs` (um MGET custa um comando com 3 ou 4 chaves), `maps.ts` repassa por
   `noteRollsRev`, e o poll próprio volta sozinho 6 s depois que o mapa para de avisar. O `rollsRev`
   NÃO entra na conta de "o mapa mudou" — rolagem não baixa o mapa.
-- O cartão é clicável para fechar (some sozinho em 8 s) e fica acima da AppBar e das gavetas
-  (`zIndex` 1250), abaixo dos diálogos.
+- O cartão fica **30 s** na tela (com 8 s sumia antes de a mesa ler a conta) e fecha antes pelo
+  **×** — só por ele: com o cartão inteiro clicável, um toque perdido o fechava no meio da
+  leitura. Fica acima da AppBar e das gavetas (`zIndex` 1250), abaixo dos diálogos. Vale para
+  toda rolagem, da ficha ou do mapa: as duas passam pelo mesmo `RollFeedLayer`.
 
 ## Tema (verde/pergaminho/ouro)
 
