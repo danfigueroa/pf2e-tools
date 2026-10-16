@@ -42,6 +42,13 @@ export const conditionsKeyFor = (build: BuildInfo): string => conditionsKeyForSl
 export const afflictionsKeyFor = (build: BuildInfo): string => afflictionsKeyForSlug(charSlug(build))
 export const persistentKeyFor = (build: BuildInfo): string => persistentKeyForSlug(charSlug(build))
 
+/**
+ * Chave dos hooks que a página monta antes de haver ficha (são incondicionais).
+ * Slug vazio, que nenhum nome gera: `useSharedState` não vai à rede com ele —
+ * antes, a tela de upload pedia `/api/state?char=none` à toa.
+ */
+export const noCharKey = (field: string): string => `/${field}`
+
 /** Companheiro/familiar, namespaced dentro do personagem dono. */
 export const petKeyFor = (build: BuildInfo, kind: string, name: string, idx: number): string =>
     `${charSlug(build)}/pet:${kind}:${slugify(name) || 'sem-nome'}#${idx}`

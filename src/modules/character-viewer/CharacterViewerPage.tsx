@@ -42,7 +42,7 @@ import { ConditionsBar } from './components/ConditionsBar'
 import { AfflictionsBar } from './components/AfflictionsBar'
 import { PersistentDamageBar } from './components/PersistentDamageBar'
 import { MythicPointsBar } from './components/MythicPointsBar'
-import { afflictionsKeyFor, charSlugFromName, conditionsKeyFor, legacyCharKey, mythicKeyFor, persistentKeyFor } from './charId'
+import { afflictionsKeyFor, charSlugFromName, conditionsKeyFor, legacyCharKey, mythicKeyFor, noCharKey, persistentKeyFor } from './charId'
 import { useConditions } from './components/useConditions'
 import { useAfflictions } from './components/useAfflictions'
 import { usePersistentDamage } from './components/usePersistentDamage'
@@ -167,15 +167,15 @@ export const CharacterViewerPage = () => {
     // Aflições vêm ANTES das condições: o estágio ativo impõe condições que
     // precisam entrar no cálculo dos modificadores da ficha.
     const afflictions = useAfflictions(
-        build ? afflictionsKeyFor(build) : 'none/afflictions',
+        build ? afflictionsKeyFor(build) : noCharKey('afflictions'),
     )
 
     const persistentDamage = usePersistentDamage(
-        build ? persistentKeyFor(build) : 'none/persistent',
+        build ? persistentKeyFor(build) : noCharKey('persistent'),
     )
 
     const conditions = useConditions(
-        build ? conditionsKeyFor(build) : 'none/conditions',
+        build ? conditionsKeyFor(build) : noCharKey('conditions'),
         build?.level ?? 1,
         build ? legacyCharKey(build) : undefined,
         afflictions.conditions,
@@ -184,7 +184,7 @@ export const CharacterViewerPage = () => {
     // Pontos Míticos: mesma história das condições — gastos de qualquer aba,
     // então o hook mora aqui e a chave também cai num placeholder sem ficha.
     const mythicPoints = useMythicPoints(
-        build ? mythicKeyFor(build) : 'none/mythic',
+        build ? mythicKeyFor(build) : noCharKey('mythic'),
         MYTHIC_POINTS_MAX,
     )
 

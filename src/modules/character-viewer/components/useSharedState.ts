@@ -45,10 +45,19 @@ export function useSharedState<T>(
     const stateRef = useRef(state)
     stateRef.current = state
 
+    // A chave que o `useState` acima já leu do cache: na montagem, reler daria
+    // o mesmo valor num objeto novo e um render a mais de quem usa o hook — na
+    // página da ficha, a árvore inteira.
+    const readKey = useRef<string | null>(`${slug}/${field}`)
+
     // Troca de personagem (ou de fatia): recomeça do cache e puxa do servidor.
     useEffect(() => {
         const opts = optionsRef.current
-        setState(fromCache(slug, field, opts))
+        if (readKey.current === `${slug}/${field}`) readKey.current = null
+        else setState(fromCache(slug, field, opts))
+
+        // Sem ficha aberta (`noCharKey`): só o cache local, nada de rede.
+        if (!slug) return
 
         let cancelled = false
         void loadCharacter(slug).then((snapshot) => {
@@ -93,7 +102,7 @@ export function useSharedState<T>(
         if (Object.is(next, stateRef.current)) return
         stateRef.current = next
         setState(next)
-        saveField(slug, field, next)
+        if (slug) saveField(slug, field, next)
     }, [slug, field])
 
     return [state, update]
