@@ -11,6 +11,7 @@ import { computeDamage } from './damage'
 import { rollFormula } from './dice'
 import { computeConditionModifiers } from '../character-viewer/conditions'
 import { activeSizeEffect, sizeEffectConditions } from '../character-viewer/sizeEffects'
+import { titanConditions, withRageResistance } from '../character-viewer/rage'
 import type { PersistentDamage } from './persistentDamage'
 import type { EncounterAction } from './encounterReducer'
 import type { PartyApi } from './useEncounterParty'
@@ -123,9 +124,15 @@ function buildView(
     const stored = slice ? slice.conditions : (npc?.conditions ?? {})
     // O Enlarge ligado pela Ficha Virtual impõe Desajeitado — derivado também.
     const sizeEffect = slice ? activeSizeEffect(slice.size, combatant.size) : null
+    // E o Desajeitado do Titan Mauler da Fúria do bárbaro, que vale com Fúria ou sem.
+    const rageSpec = combatant.kind === 'pc' ? combatant.rage ?? null : null
+    const rageConditions = slice && rageSpec ? titanConditions(slice.rage, rageSpec) : {}
+    const raging = !!(slice && rageSpec && slice.rage.active)
     const conditions = { ...mergeAfflictionConditions(stored, afflictions) }
-    for (const [id, value] of Object.entries(sizeEffectConditions(sizeEffect))) {
-        conditions[id] = Math.max(conditions[id] ?? 0, value)
+    for (const imposed of [sizeEffectConditions(sizeEffect), rageConditions]) {
+        for (const [id, value] of Object.entries(imposed)) {
+            conditions[id] = Math.max(conditions[id] ?? 0, value)
+        }
     }
 
     const mods = computeConditionModifiers(conditions, combatant.level)
@@ -139,8 +146,12 @@ function buildView(
         ? party.vitals(combatant.slug, maxHp)
         : { current: Math.min(maxHp, combatant.current), temp: combatant.temp }
 
+    // Raging Resistance: só com a Fúria ligada. Não soma com a que a ficha já tem
+    // no mesmo tipo — vale a maior, como toda resistência.
+    const resistances = withRageResistance(combatant.resistances, rageSpec, raging)
+
     const defense: TargetDefense = {
-        resistances: combatant.resistances,
+        resistances,
         weaknesses: combatant.weaknesses,
         immunities: combatant.immunities,
         current: vitals.current,
@@ -157,6 +168,8 @@ function buildView(
         conditions,
         afflictions,
         sizeEffect,
+        raging,
+        rageConditions,
         persistent,
         mods,
         defense,

@@ -7,6 +7,7 @@ import { parseResistanceStrings } from './defenses'
 import type { AonCreature } from '../../services/creatures'
 import type { NpcCombatant, NpcShield, PcCombatant } from './types'
 import { shieldItemOf } from '../character-viewer/shield'
+import { rageSpec } from '../character-viewer/rage'
 
 /**
  * Deslocamento do personagem para o mapa: o da ficha MAIS os bônus, nunca
@@ -76,6 +77,7 @@ export function pcFromBuild(
         defenseNotes: notes,
         presetFile: preset?.filename,
         shieldItem: shieldItemOf(build) ?? undefined,
+        rage: rageSpec(build) ?? undefined,
         size: build.sizeName || undefined,
         speed: pcSpeed(build),
     }

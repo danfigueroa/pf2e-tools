@@ -24,7 +24,7 @@ const TAP_ICON = { xs: '1.15rem', sm: '0.9rem' }
  * estiver marcada à mão, ela reaparece com botões quando a aflição sai.
  */
 export const CombatantConditions = ({ view }: { view: CombatantView }) => {
-    const { mods, combatant, afflictions, sizeEffect, adjustCondition, toggleCondition, setDuration } = view
+    const { mods, combatant, afflictions, sizeEffect, rageConditions, adjustCondition, toggleCondition, setDuration } = view
     const durations = combatant.durations
     const armed = useArmed()
 
@@ -38,6 +38,11 @@ export const CombatantConditions = ({ view }: { view: CombatantView }) => {
         for (const id of Object.keys(sizeEffect.conditions)) {
             if (!fromAffliction.has(id)) fromAffliction.set(id, `do ${sizeEffect.spell} ${sizeEffect.rank}º`)
         }
+    }
+
+    // O Desajeitado do Titan Mauler (Fúria do bárbaro): idem.
+    for (const id of Object.keys(rageConditions)) {
+        if (!fromAffliction.has(id)) fromAffliction.set(id, 'do Titan Mauler')
     }
 
     // Nada a dizer quando não há condição: o "Sem condições" existia como

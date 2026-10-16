@@ -1,6 +1,7 @@
 import type { ConditionModifiers } from '../character-viewer/conditions'
 import type { ConditionState } from '../character-viewer/components/useConditions'
 import type { SizeEffectDef } from '../character-viewer/sizeEffects'
+import type { RageSpec } from '../character-viewer/rage'
 import type { AfflictionState, SaveDegree } from './afflictions'
 import type { PersistentDamage } from './persistentDamage'
 import type { ScaleOverrides, SpellEdits } from '../monster-scaler/types'
@@ -51,6 +52,12 @@ export interface PcCombatant extends CombatantBase {
      * mesmo da Ficha Virtual.
      */
     shieldItem?: ShieldItem
+    /**
+     * O que a Fúria deste bárbaro dá (`rageSpec`): a resistência e o Desajeitado
+     * do Titan Mauler. Se ela está LIGADA é da mesa, campo `rage`. Encontro
+     * montado antes do campo não o tem: tirar e pôr o personagem de novo.
+     */
+    rage?: RageSpec
 }
 
 /**
@@ -133,6 +140,10 @@ export interface CombatantView {
     afflictions: AfflictionState[]
     /** Enlarge/Shrink ligado no personagem (Ficha Virtual); `null` = tamanho normal. */
     sizeEffect: SizeEffectDef | null
+    /** Fúria ligada pela Ficha Virtual — só leitura aqui, como o tamanho. */
+    raging: boolean
+    /** Desajeitado do Titan Mauler, derivado (vale também fora da Fúria). */
+    rageConditions: ConditionState
     persistent: PersistentDamage[]
     mods: ConditionModifiers
     defense: TargetDefense

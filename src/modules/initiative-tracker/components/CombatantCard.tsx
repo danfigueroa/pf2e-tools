@@ -28,7 +28,7 @@ import {
     Shield as AcIcon,
     Visibility as PerceptionIcon,
 } from '@mui/icons-material'
-import { gold, green, ink, parchment, rule } from '../../../theme'
+import { RAGE_COLOR, gold, green, ink, parchment, rule } from '../../../theme'
 import { signed } from '../../character-viewer/helpers'
 import { translateTrait } from '../../transformation-statblock/i18n'
 import { aonNameOf } from '../importCharacter'
@@ -258,6 +258,13 @@ export const CombatantCard = ({
                                     <Tooltip title={view.sizeEffect.summary}>
                                         <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main' }}>
                                             {sizeLabel(view.sizeEffect.size)} ({view.sizeEffect.spell})
+                                        </Typography>
+                                    </Tooltip>
+                                )}
+                                {view.raging && (
+                                    <Tooltip title="Fúria ligada na Ficha Virtual: resistência da Raging Resistance e dano extra nos Golpes corpo a corpo.">
+                                        <Typography variant="caption" sx={{ fontWeight: 700, color: RAGE_COLOR }}>
+                                            Em fúria
                                         </Typography>
                                     </Tooltip>
                                 )}

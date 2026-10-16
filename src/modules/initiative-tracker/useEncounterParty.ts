@@ -22,6 +22,7 @@ import {
 import { syncFromAffliction, sanitizePersistent, type PersistentDamage } from './persistentDamage'
 import { sanitizeShield, type ShieldStored } from '../character-viewer/shield'
 import { NO_SIZE_EFFECT, sanitizeSizeEffect, type SizeEffectStored } from '../character-viewer/sizeEffects'
+import { NO_RAGE, sanitizeRage, type RageStored } from '../character-viewer/rage'
 
 export interface PartySlice {
     /** `null` = ninguém mexeu ainda; resolve para PV cheio no render. */
@@ -35,9 +36,11 @@ export interface PartySlice {
     shield: ShieldStored | null
     /** Enlarge/Shrink ligado pela Ficha Virtual — só leitura aqui. */
     size: SizeEffectStored
+    /** Fúria ligada pela Ficha Virtual — só leitura aqui. */
+    rage: RageStored
 }
 
-const EMPTY_SLICE: PartySlice = { hp: null, conditions: {}, afflictions: [], persistent: [], shield: null, size: NO_SIZE_EFFECT }
+const EMPTY_SLICE: PartySlice = { hp: null, conditions: {}, afflictions: [], persistent: [], shield: null, size: NO_SIZE_EFFECT, rage: NO_RAGE }
 
 /**
  * PV e condições de TODOS os personagens do encontro, no estado da mesa.
@@ -77,6 +80,7 @@ export function useEncounterParty(slugs: string[]) {
         persistent: sanitizePersistent(readLocal(slug, 'persistent') ?? []),
         shield: sanitizeShield(readLocal(slug, 'shield')),
         size: sanitizeSizeEffect(readLocal(slug, 'size')),
+        rage: sanitizeRage(readLocal(slug, 'rage')),
     }), [])
 
     useEffect(() => {
@@ -111,6 +115,9 @@ export function useEncounterParty(slugs: string[]) {
                     size: snapshot.size === undefined
                         ? (prev[slug]?.size ?? NO_SIZE_EFFECT)
                         : sanitizeSizeEffect(snapshot.size),
+                    rage: snapshot.rage === undefined
+                        ? (prev[slug]?.rage ?? NO_RAGE)
+                        : sanitizeRage(snapshot.rage),
                 },
             }))
         }
