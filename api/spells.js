@@ -1,7 +1,7 @@
 // Batch endpoint: busca múltiplas magias em paralelo.
 // Toda a resolução (busca AON + parse estrutural + tradução) vive em
 // api/_lib/spells-core.js, compartilhado com api/spell.js e server/index.mjs.
-import { resolveSpell } from './_lib/spells-core.js'
+import { resolveSpells } from './_lib/spells-core.js'
 import { hasTranslationKey } from './_lib/aon.js'
 
 export default async function handler(req, res) {
@@ -25,14 +25,16 @@ export default async function handler(req, res) {
   const translationEnabled = hasTranslationKey()
 
   try {
-    const CONCURRENCY = 3
+    // Cada grupo traduz tudo numa chamada só (ver resolveSpells): o espaço entre
+    // chamadas do Gemini é o que fazia o "Carregar todas" levar ~10 s por magia.
+    const GROUP = 6
     const results = {}
-    for (let i = 0; i < names.length; i += CONCURRENCY) {
-      const batch = names.slice(i, i + CONCURRENCY)
-      const resolved = await Promise.all(batch.map(n => resolveSpell(n, translationEnabled)))
+    for (let i = 0; i < names.length; i += GROUP) {
+      const group = names.slice(i, i + GROUP)
+      const resolved = await resolveSpells(group, translationEnabled)
       // Chavear pelo nome de INPUT (não pelo nome retornado do AON), assim o
       // frontend encontra a magia mesmo quando o AON normaliza capitalização/sufixo.
-      resolved.forEach((r, idx) => { results[batch[idx]] = r })
+      resolved.forEach((r, idx) => { results[group[idx]] = r })
     }
     return res.status(200).json(results)
   } catch (error) {

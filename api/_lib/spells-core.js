@@ -3,7 +3,7 @@
 // Busca no AON, parseia a estrutura em EN (aon-parse.js), traduz SÓ a prosa
 // com validação anti-truncamento e devolve payload estruturado.
 
-import { searchAon, cleanAonText, translateToPortuguese, generateFallbackDescription } from './aon.js'
+import { searchAon, cleanAonText, translateSegments, generateFallbackDescription } from './aon.js'
 import { translateMetadata } from './metadata-i18n.js'
 import { pickBestHit, parseAonText } from './aon-parse.js'
 import { extractDamage, translateDamageType, translateHeightenedText } from './spell-parse.js'
@@ -30,7 +30,8 @@ function emptySpell(name, description) {
   }
 }
 
-export async function resolveSpell(name, translationEnabled) {
+/** Busca no AON e parseia em EN — a parte barata, sem LLM. */
+async function prepareSpell(name, translationEnabled) {
   let best = null
   for (const cat of ['spell', 'cantrip', 'focus']) {
     const results = await searchAon(name, cat, 10)
@@ -41,7 +42,7 @@ export async function resolveSpell(name, translationEnabled) {
 
   if (!best) {
     const fallback = await generateFallbackDescription(name, 'spell', translationEnabled)
-    return emptySpell(name, fallback)
+    return { name, done: emptySpell(name, fallback) }
   }
 
   const source = best._source
@@ -49,44 +50,55 @@ export async function resolveSpell(name, translationEnabled) {
   let proseEN = parsed.proseEN
   if (!proseEN) proseEN = cleanAonText(source.markdown || '')
 
+  // Entradas de heightening: o dicionário determinístico resolve a maioria; o
+  // que sobra vai para o LLM junto com a prosa.
+  const heightened = parsed.heightenedEntries.map((entry) => ({
+    level: entry.level,
+    en: entry.text,
+    text: translateHeightenedText(entry.text),
+  }))
+
+  // Trechos que precisam do LLM, na ordem: prosa primeiro, depois heightening.
+  const segments = []
+  if (translationEnabled && proseEN) segments.push(proseEN)
+  if (translationEnabled) for (const h of heightened) if (!h.text && h.en) segments.push(h.en)
+
+  return { name, source, parsed, proseEN, heightened, segments }
+}
+
+/** Monta o payload a partir do que `prepareSpell` achou e das traduções (na ordem de `segments`). */
+async function finishSpell(prep, translated, translationEnabled) {
+  const { name, source, parsed, proseEN, heightened } = prep
   const { damage, damageTypeEN } = extractDamage(proseEN)
   // Números da prosa e como o heightening mexe em cada um — sobre o EN, antes
   // da tradução. O cliente aplica no rank conjurado (heightening.ts).
   const scaling = buildScaling(proseEN, parsed.heightenedEntries)
 
-  // Tradução robusta: só a prosa passa pelo Groq; se o resultado vier vazio ou
-  // suspeito de truncamento (< 40% do EN), mantém o EN completo — nunca truncar.
-  // translationPending marca payloads que ficaram em EN por falha (ex.: 429 do
-  // Groq): server e client NÃO devem cachear, para retraduzirem depois.
+  // Se o resultado vier vazio ou suspeito de truncamento, mantém o EN completo —
+  // nunca truncar. translationPending marca payloads que ficaram em EN por falha
+  // (ex.: 429): server e client NÃO devem cachear, para retraduzirem depois.
+  let next = 0
   let translationPending = false
   let description = proseEN
   if (translationEnabled && proseEN) {
-    const translated = await translateToPortuguese(proseEN, translationEnabled)
-    if (translated && translated !== proseEN && translated.trim().length >= proseEN.length * 0.4) {
-      description = translated
-    } else {
-      translationPending = true
-    }
+    const t = translated[next++]
+    if (t && t !== proseEN && t.trim().length >= proseEN.length * 0.4) description = t
+    else translationPending = true
   }
   if (!description || description.trim().length < 20) {
     const fallback = await generateFallbackDescription(name, 'spell', translationEnabled)
     if (fallback) description = fallback
   }
 
-  // Entradas de heightening: dicionário determinístico → Groq → EN.
-  const heightenedEntries = []
-  for (const entry of parsed.heightenedEntries) {
-    let text = translateHeightenedText(entry.text)
-    if (!text && translationEnabled && entry.text) {
-      const translated = await translateToPortuguese(entry.text, translationEnabled)
-      if (translated && translated !== entry.text && translated.trim().length >= entry.text.length * 0.4) {
-        text = translated
-      } else {
-        translationPending = true
-      }
+  const heightenedEntries = heightened.map((h) => {
+    let text = h.text
+    if (!text && translationEnabled && h.en) {
+      const t = translated[next++]
+      if (t && t !== h.en && t.trim().length >= h.en.length * 0.4) text = t
+      else translationPending = true
     }
-    heightenedEntries.push({ level: entry.level, text: text || entry.text })
-  }
+    return { level: h.level, text: text || h.en }
+  })
 
   // Prefere os campos *_raw do AON (ex.: "30 feet" em vez de só "30").
   const rangeStr = source.range_raw || (source.range != null ? String(source.range) : '')
@@ -125,4 +137,30 @@ export async function resolveSpell(name, translationEnabled) {
     ...(scaling ? { scaling } : {}),
     ...(translationPending ? { translationPending: true } : {}),
   }
+}
+
+/**
+ * Várias magias de uma vez. A busca no AON roda em paralelo e a tradução de
+ * TODAS vai numa chamada só (marcadores <<N>>, `translateSegments`): o gargalo
+ * do "Carregar todas" era o espaço de 4,2 s entre chamadas do Gemini, e uma
+ * chamada por magia (mais uma por heightening) custava ~10 s cada.
+ * Devolve os payloads na ordem de `names`.
+ */
+export async function resolveSpells(names, translationEnabled) {
+  const preps = await Promise.all(names.map((n) => prepareSpell(n, translationEnabled)))
+  const owners = []
+  const segments = []
+  preps.forEach((prep, i) => {
+    for (const seg of prep.segments ?? []) { owners.push(i); segments.push(seg) }
+  })
+  const translated = segments.length > 0 ? await translateSegments(segments, translationEnabled) : []
+  const perSpell = preps.map(() => [])
+  translated.forEach((t, k) => perSpell[owners[k]].push(t))
+  return Promise.all(preps.map((prep, i) =>
+    prep.done ? prep.done : finishSpell(prep, perSpell[i], translationEnabled)))
+}
+
+export async function resolveSpell(name, translationEnabled) {
+  const [spell] = await resolveSpells([name], translationEnabled)
+  return spell
 }
