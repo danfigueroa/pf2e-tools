@@ -26,6 +26,7 @@ const energyMod = await import('../src/modules/character-viewer/energy.ts')
 const psyche = await import('../src/modules/character-viewer/psyche.ts')
 const magus = await import('../src/modules/character-viewer/magus.ts')
 const spellstrike = await import('../src/modules/character-viewer/spellstrike.ts')
+const ranger = await import('../src/modules/character-viewer/ranger.ts')
 const { normalizeSpellCasters } = await import('../src/modules/character-sheet/types.ts')
 const dice = await import('../src/dice/roll.ts')
 const initRolls = await import('../src/modules/initiative-tracker/initiativeRolls.ts')
@@ -450,6 +451,33 @@ ok(viaAttack.damage.total - 7 >= 1 && viaAttack.damage.crit.total >= 2 * 7, 'Mag
 const viaSave = rolls.spellstrikeRoll(ssWho, swordStrike, cascadePlan, null, undefined, { name: 'Ignition', components: [comp], usesAttack: false })
 ok(viaSave.damage.crit.total - viaSave.damage.total >= 0 && /magia 7/.test(viaSave.damage.crit.note), 'Magia de salvaguarda entra no crítico sem dobrar')
 ok(table.sanitizeTableRoll(viaAttack) !== null, 'A rolagem combinada passa no sanitizador do feed')
+
+
+// ── Patrulheiro: Hunt Prey, Gravity Weapon, Hunter's Aim ─────────────────────
+const cer = party.ceros
+ok(ranger.hasHuntPrey(cer) && ranger.hasGravityWeapon(cer) && ranger.hasPrecisionEdge(cer) && ranger.hasHuntersAim(cer), 'Ceros tem Hunt Prey, Gravity Weapon, Precision e Hunter\'s Aim')
+for (const who of ['brukuthur', 'eldarion', 'ghan', 'nathaniel', 'thalos']) ok(!ranger.hasRangerFeatures(party[who]), `${who} não é patrulheiro: sem a faixa`)
+eq(ranger.gravityBonus(3), 6, 'Gravity Weapon: 2 × 3 dados')
+const preyOn = ranger.withRanger(NO_MODIFIERS, ranger.activeRanger({ prey: true, gravity: false }, cer))
+const gravOn = ranger.withRanger(NO_MODIFIERS, ranger.activeRanger({ prey: false, gravity: true }, cer))
+ok(ranger.activeRanger(ranger.NO_RANGER, cer) === null, 'Sem presa nem gravidade não há efeito')
+ok(ranger.activeRanger({ prey: true, gravity: true }, party.eldarion) === null, 'Quem não tem as características não ganha o efeito')
+const cerBow = strikes.weaponStrike(cer, cer.weapons[0], GEAR['Composite Longbow'])
+const precisionOn = (mods, o = {}) => strikes.planStrike(cer, cerBow, mods, opts(o)).extras.some((e) => e.precision)
+eq(precisionOn(NO_MODIFIERS), false, 'Sem presa a precisão vem desligada')
+eq(precisionOn(preyOn), true, 'Presa marcada: a precisão do Hunter\'s Edge vem ligada')
+eq(precisionOn(preyOn, { extrasOn: { [cerBow.extras.find((e) => e.precision).key]: false } }), false, 'A escolha do jogador vence a presa')
+const dmgFlat = (mods, o = {}) => strikes.planStrike(cer, cerBow, mods, opts(o)).weapon.flat
+eq(dmgFlat(gravOn), dmgFlat(NO_MODIFIERS) + ranger.gravityBonus(cerBow.weaponDice.count), 'Gravity Weapon soma 2 × dados no primeiro Golpe')
+eq(dmgFlat(gravOn, { extrasOn: { [ranger.FIRST_STRIKE_KEY]: false } }), dmgFlat(NO_MODIFIERS), 'Desligar o "primeiro da rodada" tira o bônus')
+const ceFist = unarmedAttacks(cer)[0]
+eq(strikes.planStrike(cer, strikes.unarmedStrike(cer, ceFist), gravOn, opts()).weapon.flat, strikes.unarmedStrike(cer, ceFist).damageFlat, 'Desarmado não leva Gravity Weapon (é Golpe com arma)')
+const atk = (o = {}) => strikes.planStrike(cer, cerBow, NO_MODIFIERS, opts(o)).attackTotal
+eq(atk({ extrasOn: { [ranger.HUNTERS_AIM_KEY]: true } }), atk() + 2, "Hunter's Aim: +2 no ataque à distância")
+const swordCe = strikes.weaponStrike(cer, cer.weapons[1], { kind: 'weapon', traits: ['Agile'], weaponType: 'melee' })
+eq(strikes.planStrike(cer, swordCe, NO_MODIFIERS, opts({ extrasOn: { [ranger.HUNTERS_AIM_KEY]: true } })).attackTotal, strikes.planStrike(cer, swordCe, NO_MODIFIERS, opts()).attackTotal, "Hunter's Aim não vale corpo a corpo")
+eq(ranger.sanitizeRanger('lixo'), ranger.NO_RANGER, 'Estado inválido vira "sem nada"')
+ok(ranger.isRangerEmpty(ranger.NO_RANGER) && !ranger.isRangerEmpty({ prey: true, gravity: false }), 'Estado vazio só sem nada gravado')
 
 console.log(`${passed} conferências ok, ${failures} falha(s).`)
 process.exit(failures ? 1 : 0)
