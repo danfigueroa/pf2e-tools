@@ -554,8 +554,15 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     `ConditionModifiers.cascade` e `planStrike` o injeta como parcela extra (`key: 'arcane-cascade'`, sempre
     ligada, dobra no crítico; arremesso e à distância não levam). **O tipo é escolha do jogador** (seletor na
     faixa): a regra manda usar o da última magia que causava dano, e a ficha não vê isso; força é o padrão.
-  - **Spellstrike** é só indicador "Carregado/Gasto" + "Recarregar · 1 ação" (também recarrega ao conjurar
-    magia de conflux de 1+ ação). Não rola o Spellstrike: a rolagem combinada Golpe+magia ficou de fora.
+  - **Spellstrike** é indicador "Carregado/Gasto" + "Recarregar · 1 ação" (também recarrega ao conjurar
+    magia de conflux de 1+ ação), E vive dentro do diálogo do Golpe (`SpellstrikePanel` + `useSpellstrike` +
+    `spellstrike.ts`): o Magus escolhe a magia, e UM clique rola Golpe + magia, gasta o slot (truque não
+    gasta), marca o Spellstrike como gasto e, se o chip estiver ligado, entra na Arcane Cascade com o tipo
+    da magia. Só entram magias do bloco "Magus" (não as de herança/arquétipo) de 1–2 ações com ataque ou
+    salvaguarda (`spellstrikeIssue`). Magia de ATAQUE usa o resultado do Golpe e dobra no crítico; de
+    SALVAGUARDA não dobra (o alvo rola a dele). `spellstrikeRoll` (`rolls.ts`) soma as parcelas num `TableRoll`
+    só. Escolhida a magia e ainda não pronta (buscando, sem slot), o botão de rolar fica desabilitado:
+    rolar sem ela em silêncio enganaria. Só vale em Golpe corpo a corpo.
   - **Summon Mythic Power** (1×/dia, +1 Ponto Mítico) e **Divert Destiny** (reação: gasta 1 ponto, PV =
     10 + nível limitado ao máximo, zera ferido e morrendo, não mexe em condenado, com confirmação) valem
     para QUALQUER personagem mítico que tenha o talento — Brukuthur, Ghan Buri etc. também têm, e a faixa
