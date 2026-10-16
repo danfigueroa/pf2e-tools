@@ -45,6 +45,8 @@ export interface TableRoll {
     title: string
     /** "2º ataque · ✦ mítico", "rank 5". */
     sub?: string
+    /** Anotações da rolagem que não cabem no `sub` (veneno na arma, debilitação…). Até 300 caracteres. */
+    note?: string
     /** Teste de d20: o dado, o modificador e a conta. */
     check?: {
         d20: number
@@ -117,6 +119,7 @@ export function sanitizeTableRoll(raw: unknown): TableRoll | null {
     }
     if (typeof r.slug === 'string' && /^[a-z0-9-]{1,64}$/.test(r.slug)) out.slug = r.slug
     if (typeof r.sub === 'string' && r.sub) out.sub = str(r.sub, 80)
+    if (typeof r.note === 'string' && r.note) out.note = str(r.note, 300)
 
     if (r.check !== undefined) {
         const c = r.check as Record<string, unknown>

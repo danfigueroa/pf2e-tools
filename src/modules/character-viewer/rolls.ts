@@ -133,7 +133,11 @@ export function spellstrikeRoll(
         toPart(componentLabel(c), rollGroups(c.value.count ? [{ count: c.value.count, faces: c.value.faces }] : [], c.value.flat), c.persistent))
     const spellTotal = Math.max(0, parts.filter((p) => !p.persistent).reduce((n, p) => n + p.total, 0))
     const dmg = roll.damage!
-    dmg.parts = [...dmg.parts, ...parts]
+    // O feed aceita até 8 parcelas de dano; passando disso a rolagem inteira seria
+    // recusada. As da magia viram uma só (a soma de tudo que não é persistente).
+    dmg.parts = dmg.parts.length + parts.length <= 8
+        ? [...dmg.parts, ...parts]
+        : [...dmg.parts, { label: `magia: ${spell.name}`, dice: [], flat: spellTotal, total: spellTotal }]
     dmg.total += spellTotal
     if (dmg.crit) {
         const extra = spell.usesAttack ? 2 * spellTotal : spellTotal

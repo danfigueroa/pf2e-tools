@@ -78,6 +78,9 @@ export const RAGE_COLOR = '#A02A18'
 /** Psique liberada do Psíquico (a faixa da ficha). Violeta; 7,7:1 sobre `parchment.paper`. */
 export const PSYCHE_COLOR = '#5B3A8C'
 
+/** Poison Weapon (a faixa do Ladino). Roxo-veneno; 7,0:1 sobre `parchment.paper`. */
+export const ROGUE_COLOR = '#6A3F7A'
+
 /** Hunt Prey e Gravity Weapon (a faixa do Patrulheiro). Verde-floresta; 6,5:1 sobre `parchment.paper`. */
 export const RANGER_COLOR = '#3A6B35'
 

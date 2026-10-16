@@ -82,6 +82,7 @@ const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) =
                 {roll.by || 'Alguém'} · {roll.title}
             </Typography>
             {roll.sub && <Caption>{roll.sub}</Caption>}
+            {roll.note && <Caption>{roll.note}</Caption>}
 
             {roll.check && (
                 <Box sx={{ mt: 0.75 }}>
@@ -189,6 +190,7 @@ const HistoryRow = ({ roll }: { roll: TableRoll }) => (
             <Typography variant="caption" color="text.secondary">{timeOf(roll.at)}</Typography>
         </Box>
         {roll.sub && <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{roll.sub}</Typography>}
+        {roll.note && <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{roll.note}</Typography>}
         {roll.check && (
             <Box sx={{ mt: 0.5 }}>
                 <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>

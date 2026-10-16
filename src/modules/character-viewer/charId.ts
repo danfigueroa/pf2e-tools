@@ -57,6 +57,9 @@ export const magusKeyFor = (build: BuildInfo): string => magusKeyForSlug(charSlu
 /** Hunt Prey e Gravity Weapon do Patrulheiro (`ranger.ts`). */
 export const rangerKeyForSlug = (slug: string): string => `${slug}/ranger`
 export const rangerKeyFor = (build: BuildInfo): string => rangerKeyForSlug(charSlug(build))
+/** Veneno na arma do Ladino (`rogue.ts`). */
+export const rogueKeyForSlug = (slug: string): string => `${slug}/rogue`
+export const rogueKeyFor = (build: BuildInfo): string => rogueKeyForSlug(charSlug(build))
 export const psycheKeyFor = (build: BuildInfo): string => psycheKeyForSlug(charSlug(build))
 
 /**
