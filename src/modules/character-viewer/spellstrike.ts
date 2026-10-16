@@ -24,6 +24,8 @@ export interface SpellstrikeOption {
     name: string
     /** O bloco de conjuração de onde ela vem ("Magus", "Archetype Wizard", "Mythic Magic"…). */
     caster: string
+    /** Posição do bloco em `build.spellCasters` — dele sai a CD da magia de salvaguarda. */
+    casterIndex: number
     spellLevel: number
     /** Rank em que a magia entra no Golpe (truque = metade do nível, arredondada para cima). */
     rank: number
@@ -60,7 +62,7 @@ export function spellstrikeOptions(build: BuildInfo, usedOf: (key: string) => nu
             for (const n of level.list) counts.set(n, (counts.get(n) ?? 0) + 1)
             for (const [name, count] of counts) {
                 const rank = castRankForSlot(level.spellLevel, build.level)
-                const base = { id: `${index}|${level.spellLevel}|${name}`, name, caster: caster.name, spellLevel: level.spellLevel, rank }
+                const base = { id: `${index}|${level.spellLevel}|${name}`, name, caster: caster.name, casterIndex: index, spellLevel: level.spellLevel, rank }
                 if (mythicMagic) {
                     out.push({ ...base, kind: 'mythic', slot: null, left: mythicLeft })
                 } else if (level.spellLevel === 0) {

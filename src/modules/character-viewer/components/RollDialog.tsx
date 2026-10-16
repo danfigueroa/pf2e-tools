@@ -748,7 +748,10 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                         magus.setCascade(true)
                         actions.spend(1)
                     }
-                    const defense = !ss.usesAttack && ss.spell.defense ? `salvaguarda: ${ss.spell.defense}` : null
+                    // Magia de salvaguarda: a CD é a do BLOCO de onde ela vem (a do Mythic Magic é a mítica); a de ataque usa o Golpe.
+                    const caster = build.spellCasters?.[ss.option.casterIndex]
+                    const dc = caster ? spellcasterStats(build, caster).dc + mods.total.spellDc : null
+                    const defense = !ss.usesAttack && ss.spell.defense ? `salvaguarda: ${ss.spell.defense}${dc ? ` (CD ${dc})` : ''}` : null
                     send(noted(spellstrikeRoll(who, strike, plan, mythicDelta, [sub, `rank ${ss.option.rank}`, defense].filter(Boolean).join(' · '), {
                         name: ss.option.name,
                         components: ss.chosen,
