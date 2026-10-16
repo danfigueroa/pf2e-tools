@@ -19,6 +19,7 @@ import { gold, ink } from '../../theme'
 import { ConditionsDialog } from '../character-viewer/components/ConditionsDialog'
 import { encounterReducer, activeOrder, peekNext } from './encounterReducer'
 import { currentMapId, loadEncounter, saveEncounter, setCurrentMapId } from './encounterStorage'
+import { useInitiativeRolls } from './useInitiativeRolls'
 import { useMapSync } from './useMapSync'
 import { EncounterMapPicker } from './components/EncounterMapPicker'
 import { deleteImage } from '../../services/images'
@@ -98,6 +99,12 @@ export const InitiativePage = () => {
     const [afflictionsFor, setAfflictionsFor] = useState<string | null>(null)
     const [persistentFor, setPersistentFor] = useState<string | null>(null)
     const [toast, setToast] = useState<{ text: string; action?: () => void; label?: string } | null>(null)
+
+    // A iniciativa que o jogador rolou pela ficha vira a dele no encontro.
+    useInitiativeRolls(state.combatants, useCallback((u) => {
+        dispatch({ type: 'setInitiative', id: u.combatantId, value: u.value })
+        setToast({ text: `${u.name}: iniciativa ${u.value} (${u.skill}).` })
+    }, []))
 
     // O encontro fica só neste aparelho — PV e condições dos personagens é que
     // são da mesa (ver useEncounterParty).
