@@ -7,6 +7,7 @@ import { searchAon, cleanAonText, translateToPortuguese, generateFallbackDescrip
 import { translateMetadata } from './metadata-i18n.js'
 import { pickBestHit, parseAonText } from './aon-parse.js'
 import { extractDamage, translateDamageType, translateHeightenedText } from './spell-parse.js'
+import { buildScaling } from './spell-scaling.js'
 
 const TRADITION_KEYWORDS = ['arcane', 'divine', 'occult', 'primal']
 
@@ -44,11 +45,14 @@ export async function resolveSpell(name, translationEnabled) {
   }
 
   const source = best._source
-  const parsed = parseAonText(source.text || '')
+  const parsed = parseAonText(source.text || '', source.markdown)
   let proseEN = parsed.proseEN
   if (!proseEN) proseEN = cleanAonText(source.markdown || '')
 
   const { damage, damageTypeEN } = extractDamage(proseEN)
+  // Números da prosa e como o heightening mexe em cada um — sobre o EN, antes
+  // da tradução. O cliente aplica no rank conjurado (heightening.ts).
+  const scaling = buildScaling(proseEN, parsed.heightenedEntries)
 
   // Tradução robusta: só a prosa passa pelo Groq; se o resultado vier vazio ou
   // suspeito de truncamento (< 40% do EN), mantém o EN completo — nunca truncar.
@@ -118,6 +122,7 @@ export async function resolveSpell(name, translationEnabled) {
     damageType: translateDamageType(damageTypeEN),
     heightened: {},
     heightenedEntries,
+    ...(scaling ? { scaling } : {}),
     ...(translationPending ? { translationPending: true } : {}),
   }
 }
