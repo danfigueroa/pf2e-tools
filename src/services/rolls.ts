@@ -37,6 +37,11 @@ let snapshot: RollsSnapshot = { rolls: [], ready: false }
 let rev: number | null = null
 /** Rolagens daqui que o servidor ainda não devolveu. */
 const pending = new Map<string, TableRoll>()
+/** Toda rolagem que saiu DESTE aparelho na sessão. */
+const own = new Set<string>()
+
+/** A rolagem saiu deste aparelho — o feed a mostra mesmo se chegou antes da primeira leitura. */
+export const isOwnRoll = (id: string): boolean => own.has(id)
 const listeners = new Set<() => void>()
 let timer: ReturnType<typeof setTimeout> | null = null
 let inflight: Promise<void> | null = null
@@ -116,6 +121,7 @@ export function noteRollsRev(next: number | undefined): void {
 
 /** Manda uma rolagem à mesa. Otimista: aparece aqui na hora. */
 export async function postRoll(roll: TableRoll): Promise<void> {
+    own.add(roll.id)
     pending.set(roll.id, roll)
     publish(null)
     burst()

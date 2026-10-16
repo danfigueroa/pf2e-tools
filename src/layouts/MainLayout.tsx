@@ -23,9 +23,11 @@ import {
   Transform as TransformIcon,
   Whatshot as ScalerIcon,
   Map as MapIcon,
+  Casino as DiceIcon,
 } from '@mui/icons-material';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { green, gold, parchment } from '../theme';
+import { RollFeedLayer, RollHistoryDrawer } from '../components/RollFeed';
 
 const drawerWidth = 260;
 
@@ -83,6 +85,7 @@ const navigationItems: NavigationItem[] = [
 
 export const MainLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
@@ -173,6 +176,22 @@ export const MainLayout = () => {
         </List>
       </Box>
 
+      {/* Rolagens da mesa: o cartão some em segundos, o histórico fica. */}
+      <Box sx={{ px: 1.5, pb: 1 }}>
+        <ListItemButton
+          onClick={() => { setHistoryOpen(true); if (isMobile) setMobileOpen(false); }}
+          sx={{ borderRadius: 1, '&:hover': { backgroundColor: 'rgba(200, 169, 81, 0.08)' } }}
+        >
+          <ListItemIcon sx={{ minWidth: 40, color: CHROME_TEXT }}>
+            <DiceIcon />
+          </ListItemIcon>
+          <ListItemText
+            primary="Rolagens da mesa"
+            primaryTypographyProps={{ fontSize: '0.9rem', color: CHROME_TEXT }}
+          />
+        </ListItemButton>
+      </Box>
+
       {/* Rodapé */}
       <Box
         sx={{
@@ -231,6 +250,14 @@ export const MainLayout = () => {
           >
             {navigationItems.find(item => isCurrent(location.pathname, item.path))?.text || 'PF2e Tools'}
           </Typography>
+          <IconButton
+            color="inherit"
+            aria-label="Rolagens da mesa"
+            onClick={() => setHistoryOpen(true)}
+            sx={{ ml: 'auto' }}
+          >
+            <DiceIcon />
+          </IconButton>
         </Toolbar>
       </AppBar>
 
@@ -288,6 +315,10 @@ export const MainLayout = () => {
           <Outlet />
         </Box>
       </Box>
+
+      {/* Rolagens de qualquer aparelho, em qualquer página. */}
+      <RollFeedLayer />
+      <RollHistoryDrawer open={historyOpen} onClose={() => setHistoryOpen(false)} />
     </Box>
   );
 };

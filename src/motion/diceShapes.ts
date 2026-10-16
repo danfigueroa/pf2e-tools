@@ -8,3 +8,10 @@ export const DICE_SHAPE: Record<number, string | undefined> = {
     // d100: o dezena do d10, só que com cantos cortados — lê-se como "o outro d10".
     100: 'polygon(50% 0%, 90% 20%, 100% 62%, 50% 100%, 0% 62%, 10% 20%)',
 }
+
+/** Cor do número sobre o corpo do dado: preto nos claros, branco nos escuros (YIQ). */
+export function inkOn(hex: string): string {
+    const n = parseInt(hex.slice(1), 16)
+    const yiq = (((n >> 16) & 255) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000
+    return yiq >= 150 ? '#1A1A1A' : '#FFFFFF'
+}

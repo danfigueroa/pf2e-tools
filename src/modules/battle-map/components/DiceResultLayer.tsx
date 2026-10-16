@@ -81,7 +81,7 @@ export const DiceResultLayer = memo(function DiceResultLayer({ rolls }: Props) {
                     <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: gold.bright, fontWeight: 700, mb: 0.75 }}>
                         {roll.by || 'Alguém'} rolou {formulaText(roll.rolls.length, roll.faces, roll.flat)}
                     </Typography>
-                    <DiceTray roll={roll} />
+                    <DiceTray dice={roll.rolls.map((value) => ({ faces: roll.faces, value }))} flat={roll.flat} total={roll.total} color={roll.color} />
                     {/* Só o resultado vai para o leitor de tela; a bandeja é aria-hidden. */}
                     <Box component="span" sx={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }} role="status">
                         {rollSummary(roll)}

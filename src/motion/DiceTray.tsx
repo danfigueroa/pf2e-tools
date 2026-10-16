@@ -1,14 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Typography } from '@mui/material'
 import { keyframes } from '@emotion/react'
-import type { SharedRoll } from '../modules/battle-map/dice'
-import { inkOn } from '../modules/battle-map/dice'
+import type { RollDie } from '../dice/tableRoll'
 import { gold } from '../theme/palette'
-import { DICE_SHAPE } from './diceShapes'
+import { DICE_SHAPE, inkOn } from './diceShapes'
 import { pop, tumble, useReducedMotion } from './motion'
 import { useAnimatedNumber } from './useAnimatedNumber'
 
-// Bandeja de dados do mapa. Pensada para até 100 dados a 60 fps:
+// Bandeja de dados das rolagens da mesa. Pensada para até 100 dados a 60 fps:
 //
 // - o giro e o estouro final são CSS (`transform`/`opacity`, só compositor),
 //   com o assentamento de cada dado escrito como `animation-delay` — nenhum
@@ -17,6 +16,9 @@ import { useAnimatedNumber } from './useAnimatedNumber'
 //   para a bandeja inteira, escrevendo `textContent` pelo ref: nenhum render
 //   React por quadro (mesma regra do `MapCanvas`);
 // - o resultado já vem sorteado. A animação só apresenta.
+//
+// Cada dado tem o próprio tamanho: um Golpe mistura o d8 da arma com o d6 da
+// runa de choque na mesma bandeja.
 
 /** Troca de face enquanto rola. */
 const FACE_MS = 80
@@ -42,27 +44,33 @@ const shine = keyframes`
     100% { text-shadow: 0 0 8px ${gold.bright}88; }
 `
 
-const dieSize = (count: number) => (count > 36 ? 26 : count > 12 ? 34 : 46)
+const dieSize = (count: number, compact: boolean) =>
+    compact ? (count > 12 ? 24 : 30) : count > 36 ? 26 : count > 12 ? 34 : 46
 
 interface Props {
-    roll: SharedRoll
+    dice: RollDie[]
+    flat: number
+    /** O total a mostrar — o dano já vem com o piso aplicado, por isso não é recalculado aqui. */
+    total: number
+    color: string
+    /** Bandeja menor, para o dano debaixo do ataque. */
+    compact?: boolean
     /** Os dados assentaram e o total apareceu. */
     onDone?: () => void
 }
 
-export const DiceTray = ({ roll, onDone }: Props) => {
+export const DiceTray = ({ dice: rolls, flat, total, color, compact = false, onDone }: Props) => {
     const reduced = useReducedMotion()
-    const { rolls, faces, color, flat, total } = roll
     const count = rolls.length
     const stagger = count > 1 ? Math.min(MAX_STAGGER, STAGGER_BUDGET / (count - 1)) : 0
     const settleAt = (i: number) => FIRST_SETTLE + i * stagger
-    const end = settleAt(count - 1)
+    const end = count > 0 ? settleAt(count - 1) : 0
 
     const faceRefs = useRef<(HTMLSpanElement | null)[]>([])
-    const [done, setDone] = useState(reduced)
+    const [done, setDone] = useState(reduced || count === 0)
 
     useEffect(() => {
-        if (reduced) { setDone(true); return }
+        if (reduced || count === 0) { setDone(true); return }
         let raf = 0
         let last = -FACE_MS
         const start = performance.now()
@@ -74,7 +82,7 @@ export const DiceTray = ({ roll, onDone }: Props) => {
                 const n = Math.min(count, FACE_LIMIT)
                 for (let i = 0; i < n; i++) {
                     const el = faceRefs.current[i]
-                    if (el && t < settleAt(i)) el.textContent = String(1 + Math.floor(Math.random() * faces))
+                    if (el && t < settleAt(i)) el.textContent = String(1 + Math.floor(Math.random() * rolls[i].faces))
                 }
             }
             raf = requestAnimationFrame(frame)
@@ -83,23 +91,22 @@ export const DiceTray = ({ roll, onDone }: Props) => {
         // Zera o handle além de cancelar: o StrictMode desmonta e remonta o efeito.
         return () => { cancelAnimationFrame(raf); raf = 0 }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reduced, end, count, faces])
+    }, [reduced, end, count])
 
     const onDoneRef = useRef(onDone)
     onDoneRef.current = onDone
     useEffect(() => { if (done) onDoneRef.current?.() }, [done])
 
     const shownTotal = useAnimatedNumber(done ? total : 0, { duration: 450, instant: reduced })
-    const size = dieSize(count)
-    const shape = DICE_SHAPE[faces]
+    const size = dieSize(count, compact)
     const ink = inkOn(color)
-    const single20 = faces === 20 && count === 1
-    const nat = single20 ? rolls[0] : 0
+    const single20 = count === 1 && rolls[0].faces === 20
+    const nat = single20 ? rolls[0].value : 0
 
-    const dice = useMemo(() => rolls.map((value, i) => {
+    const dice = useMemo(() => rolls.map((d, i) => {
         const at = settleAt(i)
         const iterations = Math.max(1, Math.round(at / 420))
-        return { value, at, iterations, dur: at / iterations }
+        return { ...d, at, iterations, dur: at / iterations }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }), [rolls, stagger])
 
@@ -125,18 +132,16 @@ export const DiceTray = ({ roll, onDone }: Props) => {
                                 fontWeight: 800,
                                 fontSize: size > 40 ? '1.05rem' : size > 30 ? '0.85rem' : '0.7rem',
                                 fontVariantNumeric: 'tabular-nums',
-                                borderRadius: shape ? 0 : 1.5,
-                                clipPath: shape,
+                                borderRadius: DICE_SHAPE[d.faces] ? 0 : 1.5,
+                                clipPath: DICE_SHAPE[d.faces],
                                 animation: reduced ? 'none' : `${pop} 260ms ease-out ${d.at}ms`,
-                                // O número final fica fixo, sem girar junto: contra-rotação só durante o giro seria
-                                // custo à toa; o giro é curto e o número que passa já é aleatório.
                                 '& > span': {
                                     position: 'absolute',
                                     inset: 0,
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    paddingTop: faces === 4 ? '25%' : 0,
+                                    paddingTop: d.faces === 4 ? '25%' : 0,
                                 },
                             }}
                         >
@@ -160,7 +165,7 @@ export const DiceTray = ({ roll, onDone }: Props) => {
                 ))}
                 {flat !== 0 && (
                     <Typography
-                        sx={{ fontWeight: 700, fontSize: '1.1rem', opacity: done ? 1 : 0, transition: 'opacity 200ms' }}
+                        sx={{ fontWeight: 700, fontSize: compact ? '0.95rem' : '1.1rem', opacity: done ? 1 : 0, transition: 'opacity 200ms' }}
                     >
                         {flat > 0 ? '+' : '−'} {Math.abs(flat)}
                     </Typography>
@@ -168,10 +173,10 @@ export const DiceTray = ({ roll, onDone }: Props) => {
             </Box>
             <Typography
                 sx={{
-                    mt: 0.75,
+                    mt: compact ? 0.5 : 0.75,
                     fontFamily: '"Cinzel", Georgia, serif',
                     fontWeight: 700,
-                    fontSize: '2.2rem',
+                    fontSize: compact ? '1.5rem' : '2.2rem',
                     lineHeight: 1,
                     visibility: done ? 'visible' : 'hidden',
                     color: nat === 20 ? gold.bright : nat === 1 ? '#FF6B6B' : 'inherit',

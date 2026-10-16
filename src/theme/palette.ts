@@ -63,6 +63,8 @@ export const TRADITION_COLORS: Record<string, string> = {
 }
 
 export const MYTHIC_COLOR = '#B03356'
+/** O mesmo acento sobre a moldura escura (cartão de rolagem): o de cima dá 2,5:1 ali. */
+export const MYTHIC_ON_DARK = '#F2A0B6'
 
 /** Pontos de vida (HpTracker). */
 export const HP_COLOR = '#B4442A'

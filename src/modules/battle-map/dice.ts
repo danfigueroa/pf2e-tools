@@ -59,10 +59,3 @@ export function sanitizeRoll(raw: unknown): SharedRoll | null {
     const by = typeof r.by === 'string' ? r.by.slice(0, 24) : ''
     return { by, faces, rolls: r.rolls as number[], flat: r.flat as number, total: r.total as number, color: r.color }
 }
-
-/** Cor do número sobre o corpo do dado: preto nos claros, branco nos escuros (YIQ). */
-export function inkOn(hex: string): string {
-    const n = parseInt(hex.slice(1), 16)
-    const yiq = (((n >> 16) & 255) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000
-    return yiq >= 150 ? '#1A1A1A' : '#FFFFFF'
-}

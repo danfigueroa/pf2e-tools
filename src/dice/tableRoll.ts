@@ -177,6 +177,10 @@ export function partFormula(part: Pick<RolledPart, 'dice' | 'flat'>): string {
     return dice ? `${dice}${sign}${Math.abs(part.flat)}` : String(part.flat)
 }
 
+/** Os quatro graus de uma salvaguarda básica sobre o dano rolado (½ arredondado para baixo). */
+export const basicSaveLine = (total: number): string =>
+    `Falha ${total} · Sucesso ${Math.floor(total / 2)} · Falha crítica ${2 * total} · Sucesso crítico 0`
+
 /** Texto para leitor de tela e para o histórico: "Fortitude: 23 (d20 8 + 15)". */
 export function rollSummaryText(r: TableRoll): string {
     const bits: string[] = []
