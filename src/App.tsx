@@ -4,18 +4,25 @@ import { ThemeProvider, CssBaseline } from '@mui/material';
 import { pathfinderTheme } from './theme';
 import { MainLayout } from './layouts/MainLayout';
 import { HomePage } from './pages/HomePage';
-import { TransformationPage } from './modules/transformation-statblock/TransformationPage';
-import { MonsterScalerPage } from './modules/monster-scaler/MonsterScalerPage';
 // MÓDULO DESATIVADO — Ficha em PDF. O código segue em src/modules/character-sheet/
 // (e `types.ts` continua sendo usado pelos outros módulos). Para reativar:
 // descomente o import e a rota abaixo, e as entradas em MainLayout.tsx e HomePage.tsx.
-// import { CharacterSheetPage } from './modules/character-sheet/CharacterSheetPage';
-import { CharacterViewerPage } from './modules/character-viewer/CharacterViewerPage';
-import { InitiativePage } from './modules/initiative-tracker/InitiativePage';
+// const CharacterSheetPage = lazy(() => import('./modules/character-sheet/CharacterSheetPage').then((m) => ({ default: m.CharacterSheetPage })));
 
-// Único módulo carregado sob demanda: é o mais pesado de gestos e não serve a
-// quem só abre a ficha no celular.
+// Todo módulo é carregado sob demanda. Num bundle só, quem abria a Ficha
+// Virtual no celular baixava o html2canvas e o jsPDF das exportações, a
+// Iniciativa e o Escalar Monstro — mais da metade do JavaScript do site.
+const CharacterViewerPage = lazy(() =>
+  import('./modules/character-viewer/CharacterViewerPage').then((m) => ({ default: m.CharacterViewerPage })));
+const InitiativePage = lazy(() =>
+  import('./modules/initiative-tracker/InitiativePage').then((m) => ({ default: m.InitiativePage })));
+const TransformationPage = lazy(() =>
+  import('./modules/transformation-statblock/TransformationPage').then((m) => ({ default: m.TransformationPage })));
+const MonsterScalerPage = lazy(() =>
+  import('./modules/monster-scaler/MonsterScalerPage').then((m) => ({ default: m.MonsterScalerPage })));
 const BattleMapPage = lazy(() => import('./modules/battle-map/BattleMapPage'));
+
+const page = (element: React.ReactNode) => <Suspense fallback={null}>{element}</Suspense>;
 
 function App() {
   return (
@@ -28,14 +35,11 @@ function App() {
             {/* Desativado: manda para a Início em vez de deixar a tela em branco
                 para quem tiver o link antigo salvo. */}
             <Route path="character-sheet" element={<Navigate to="/" replace />} />
-            <Route path="ficha-virtual" element={<CharacterViewerPage />} />
-            <Route path="iniciativa" element={<InitiativePage />} />
-            <Route path="transformation" element={<TransformationPage />} />
-            <Route path="escalar-monstro" element={<MonsterScalerPage />} />
-            <Route
-              path="mapa/:id?"
-              element={<Suspense fallback={null}><BattleMapPage /></Suspense>}
-            />
+            <Route path="ficha-virtual" element={page(<CharacterViewerPage />)} />
+            <Route path="iniciativa" element={page(<InitiativePage />)} />
+            <Route path="transformation" element={page(<TransformationPage />)} />
+            <Route path="escalar-monstro" element={page(<MonsterScalerPage />)} />
+            <Route path="mapa/:id?" element={page(<BattleMapPage />)} />
           </Route>
         </Routes>
       </Router>
