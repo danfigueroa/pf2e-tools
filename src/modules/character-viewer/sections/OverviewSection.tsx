@@ -1,7 +1,8 @@
 import { Alert, Box, Button, Card, CardContent, CircularProgress, Typography, Stack, Chip, useTheme } from '@mui/material'
 import { AutoAwesome as RegenerateIcon, MenuBook as GuideIcon } from '@mui/icons-material'
 import type { BuildInfo } from '../../character-sheet/types'
-import { abilityMod, signed, ABILITY_LABELS, characterMaxHp, isMythicCharacter, MYTHIC_PROFICIENCY_BONUS, MYTHIC_COLOR, type AbilityKey } from '../helpers'
+import { abilityMod, signed, ABILITY_LABELS, characterMaxHp, isMythicCharacter, MYTHIC_COLOR, type AbilityKey } from '../helpers'
+import { perceptionCheck, saveCheck, SAVES } from '../checks'
 import { getCombatGuide } from '../combatGuides'
 import { GuideMarkdown } from '../components/GuideMarkdown'
 import { HpTracker } from '../components/HpTracker'
@@ -30,15 +31,11 @@ export const OverviewSection = ({ build, mods, guide: slot }: Props) => {
     const shield = useCharacterShield(build)
     const shieldAc = shield.view?.acBonus ?? 0
     const armed = useArmed()
-    const basePerception = build.level + build.proficiencies.perception + abilityMod(build.abilities.wis)
+    const perception = perceptionCheck(build, mods)
     const baseSpeed = build.attributes.speed + (build.attributes.speedBonus || 0)
     const speed = Math.max(0, baseSpeed + mods.total.speed)
 
-    const saves = [
-        { label: 'Fortitude', rank: build.proficiencies.fortitude, ability: 'con' as AbilityKey, target: 'fortitude' as const },
-        { label: 'Reflexos', rank: build.proficiencies.reflex, ability: 'dex' as AbilityKey, target: 'reflex' as const },
-        { label: 'Vontade', rank: build.proficiencies.will, ability: 'wis' as AbilityKey, target: 'will' as const },
-    ]
+    const saves = SAVES.map((s) => saveCheck(build, s.key, mods))
 
     // Ficha publicada com guia gerado: vale o gerado, que descreve ESTA versão.
     // Sem ele, o curado à mão (ou a heurística) continua aparecendo — com aviso
@@ -80,9 +77,9 @@ export const OverviewSection = ({ build, mods, guide: slot }: Props) => {
                 />
                 <StatTile
                     label="Percepção"
-                    value={signed(basePerception + mods.total.perception)}
-                    delta={mods.total.perception}
-                    base={basePerception}
+                    value={signed(perception.total)}
+                    delta={perception.conditionDelta}
+                    base={perception.base}
                 />
                 <StatTile
                     label="Deslocamento"
@@ -106,23 +103,18 @@ export const OverviewSection = ({ build, mods, guide: slot }: Props) => {
                         }}
                     >
                         {saves.map((s) => {
-                            const mod = abilityMod(build.abilities[s.ability])
-                            const delta = mods.total[s.target]
-                            const base = build.level + s.rank + mod
-                            const total = base + delta
-                            const mythicTotal = build.level + MYTHIC_PROFICIENCY_BONUS + mod + delta
                             return (
                                 <Box key={s.label} sx={{ textAlign: 'center', px: 0.5, py: { xs: 0.5, sm: 0 } }}>
                                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                                         {s.label}
                                     </Typography>
                                     <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.light', lineHeight: 1.2 }}>
-                                        {signed(total)}
+                                        {signed(s.total)}
                                     </Typography>
-                                    <ConditionDelta delta={delta} base={base} />
+                                    <ConditionDelta delta={s.conditionDelta} base={s.base} />
                                     {mythic && (
                                         <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, color: MYTHIC_COLOR }}>
-                                            ✦ {signed(mythicTotal)}
+                                            ✦ {signed(s.total + s.mythicDelta)}
                                         </Typography>
                                     )}
                                 </Box>

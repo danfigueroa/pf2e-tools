@@ -1,16 +1,14 @@
 import { Box, Card, CardContent, Typography, Chip } from '@mui/material'
 import { RANK_COLORS } from '../../../theme/palette'
-import type { BuildInfo, Proficiencies } from '../../character-sheet/types'
+import type { BuildInfo } from '../../character-sheet/types'
 import {
-    abilityMod,
     signed,
     proficiencyLabel,
     isMythicCharacter,
-    MYTHIC_PROFICIENCY_BONUS,
     MYTHIC_COLOR,
-    type AbilityKey,
 } from '../helpers'
-import { SKILL_TARGET, type ConditionModifiers } from '../conditions'
+import type { ConditionModifiers } from '../conditions'
+import { loreCheck, skillCheck, SKILLS } from '../checks'
 import { ConditionDelta } from '../components/ConditionDelta'
 import { MythicNote } from '../components/MythicNote'
 
@@ -19,30 +17,10 @@ interface Props {
     mods: ConditionModifiers
 }
 
-const SKILL_ROWS: Array<{ key: keyof Proficiencies; label: string; ability: AbilityKey }> = [
-    { key: 'acrobatics', label: 'Acrobacia', ability: 'dex' },
-    { key: 'arcana', label: 'Arcanismo', ability: 'int' },
-    { key: 'athletics', label: 'Atletismo', ability: 'str' },
-    { key: 'crafting', label: 'Ofício', ability: 'int' },
-    { key: 'deception', label: 'Engano', ability: 'cha' },
-    { key: 'diplomacy', label: 'Diplomacia', ability: 'cha' },
-    { key: 'intimidation', label: 'Intimidação', ability: 'cha' },
-    { key: 'medicine', label: 'Medicina', ability: 'wis' },
-    { key: 'nature', label: 'Natureza', ability: 'wis' },
-    { key: 'occultism', label: 'Ocultismo', ability: 'int' },
-    { key: 'performance', label: 'Performance', ability: 'cha' },
-    { key: 'religion', label: 'Religião', ability: 'wis' },
-    { key: 'society', label: 'Sociedade', ability: 'int' },
-    { key: 'stealth', label: 'Furtividade', ability: 'dex' },
-    { key: 'survival', label: 'Sobrevivência', ability: 'wis' },
-    { key: 'thievery', label: 'Roubo', ability: 'dex' },
-]
-
 const RANK_COLOR: Record<number, string> = RANK_COLORS
 
 export const SkillsSection = ({ build, mods }: Props) => {
     const mythic = isMythicCharacter(build)
-    const loreDelta = mods.total[SKILL_TARGET.int]
     return (
         <Card>
             <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
@@ -52,13 +30,9 @@ export const SkillsSection = ({ build, mods }: Props) => {
                         gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
                     }}
                 >
-                    {SKILL_ROWS.map((s, idx) => {
-                        const rank = build.proficiencies[s.key] as number
-                        const mod = abilityMod(build.abilities[s.ability])
-                        const delta = mods.total[SKILL_TARGET[s.ability]]
-                        const base = rank > 0 ? build.level + rank + mod : mod
-                        const total = base + delta
-                        const mythicTotal = build.level + MYTHIC_PROFICIENCY_BONUS + mod + delta
+                    {SKILLS.map((s, idx) => {
+                        const check = skillCheck(build, s.key, mods)
+                        const { rank } = check
                         const color = RANK_COLOR[rank] || 'text.primary'
                         return (
                             <Box
@@ -93,12 +67,12 @@ export const SkillsSection = ({ build, mods }: Props) => {
                                 </Box>
                                 <Box sx={{ minWidth: 44, textAlign: 'right' }}>
                                     <Typography variant="h6" sx={{ fontWeight: 700, color, lineHeight: 1.1 }}>
-                                        {signed(total)}
+                                        {signed(check.total)}
                                     </Typography>
-                                    <ConditionDelta delta={delta} base={base} align="right" />
+                                    <ConditionDelta delta={check.conditionDelta} base={check.base} align="right" />
                                     {mythic && (
                                         <Typography sx={{ fontSize: '0.68rem', fontWeight: 700, color: MYTHIC_COLOR, lineHeight: 1.1, whiteSpace: 'nowrap' }}>
-                                            ✦ {signed(mythicTotal)}
+                                            ✦ {signed(check.total + check.mythicDelta)}
                                         </Typography>
                                     )}
                                 </Box>
@@ -112,10 +86,11 @@ export const SkillsSection = ({ build, mods }: Props) => {
                             Saberes (Lore)
                         </Typography>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mt: 0.75 }}>
-                            {build.lores.map(([loreName, rank]) => {
-                                const intMod = abilityMod(build.abilities.int)
-                                const loreTotal = build.level + rank + intMod + loreDelta
-                                const loreMythic = build.level + MYTHIC_PROFICIENCY_BONUS + intMod + loreDelta
+                            {build.lores.map((lore) => {
+                                const [loreName] = lore
+                                const check = loreCheck(build, lore, mods)
+                                const loreTotal = check.total
+                                const loreMythic = check.total + check.mythicDelta
                                 return (
                                     <Chip
                                         key={loreName}

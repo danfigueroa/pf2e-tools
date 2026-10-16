@@ -1,5 +1,7 @@
 import type { BuildInfo } from '../character-sheet/types'
-import { abilityMod, totalHp } from './helpers'
+import { totalHp } from './helpers'
+import { saveCheck, SAVES } from './checks'
+import { NO_MODIFIERS } from './conditions'
 
 // Guias de uso ("como jogar em combate") escritos à mão a partir da análise de
 // cada ficha (classe, talentos, magias, itens). Cada guia casa por nome do
@@ -453,11 +455,7 @@ const CLASS_ROLE: Record<string, string> = {
 }
 
 function bestSave(b: BuildInfo): string {
-    const saves = [
-        { label: 'Fortitude', total: b.level + b.proficiencies.fortitude + abilityMod(b.abilities.con) },
-        { label: 'Reflexos', total: b.level + b.proficiencies.reflex + abilityMod(b.abilities.dex) },
-        { label: 'Vontade', total: b.level + b.proficiencies.will + abilityMod(b.abilities.wis) },
-    ]
+    const saves = SAVES.map((s) => saveCheck(b, s.key, NO_MODIFIERS))
     saves.sort((a, c) => c.total - a.total)
     const best = saves[0]
     const worst = saves[saves.length - 1]

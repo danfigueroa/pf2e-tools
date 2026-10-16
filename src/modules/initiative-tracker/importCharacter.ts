@@ -1,6 +1,8 @@
 import type { BuildInfo } from '../character-sheet/types'
 import { charSlugFromName } from '../character-viewer/charId'
-import { abilityMod, totalHp } from '../character-viewer/helpers'
+import { totalHp } from '../character-viewer/helpers'
+import { perceptionCheck } from '../character-viewer/checks'
+import { NO_MODIFIERS } from '../character-viewer/conditions'
 import { parseResistanceStrings } from './defenses'
 import type { AonCreature } from '../../services/creatures'
 import type { NpcCombatant, NpcShield, PcCombatant } from './types'
@@ -52,7 +54,9 @@ export function pcFromBuild(
         level: build.level,
         initiative: 0,
         ac: build.acTotal?.acTotal ?? 10,
-        perception: build.level + build.proficiencies.perception + abilityMod(build.abilities.wis),
+        // Mesmo número da Ficha Virtual, bônus de item incluído (sem condições:
+        // as do combatente são aplicadas no cartão).
+        perception: perceptionCheck(build, NO_MODIFIERS).total,
         baseMaxHp: totalHp({
             ancestryHp: build.attributes.ancestryhp,
             classHp: build.attributes.classhp,
