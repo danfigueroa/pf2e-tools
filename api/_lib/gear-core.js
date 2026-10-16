@@ -64,6 +64,8 @@ function weaponEntry(name, base, own = []) {
     // Os do item específico entram depois dos da base, sem repetir.
     traits: [...new Set([...traitsOf(base), ...own])],
     weaponType: type === 'melee' || type === 'ranged' ? type : null,
+    // Grupo da arma ("Knife", "Hammer"): decide a especialização crítica.
+    group: base.weapon_group ? String(base.weapon_group).trim() : null,
   }
 }
 

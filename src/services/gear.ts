@@ -16,6 +16,8 @@ export interface WeaponGear {
     /** Como o AON escreve: "Deadly d10", "Fatal 1d10", "Thrown 20 ft.". */
     traits: string[]
     weaponType: 'melee' | 'ranged' | null
+    /** Grupo da arma ("Knife"): decide a especialização crítica. */
+    group?: string | null
 }
 
 export interface ArmorGear {
@@ -31,7 +33,7 @@ export interface ArmorGear {
 
 export type Gear = WeaponGear | ArmorGear
 
-const CACHE_VERSION = 'v1'
+const CACHE_VERSION = 'v2'
 const storageKey = (name: string) => `pf2e:gear:${CACHE_VERSION}:${name.toLowerCase()}`
 
 const memory = new Map<string, Gear | null>()
