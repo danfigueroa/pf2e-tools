@@ -47,6 +47,9 @@ export const sizeKeyFor = (build: BuildInfo): string => sizeKeyForSlug(charSlug(
 /** Fúria do bárbaro (`rage.ts`) — a Iniciativa lê o mesmo campo. */
 export const rageKeyForSlug = (slug: string): string => `${slug}/rage`
 export const rageKeyFor = (build: BuildInfo): string => rageKeyForSlug(charSlug(build))
+/** Unleash Psyche do Psíquico (`psyche.ts`). */
+export const psycheKeyForSlug = (slug: string): string => `${slug}/psyche`
+export const psycheKeyFor = (build: BuildInfo): string => psycheKeyForSlug(charSlug(build))
 
 /**
  * Chave dos hooks que a página monta antes de haver ficha (são incondicionais).

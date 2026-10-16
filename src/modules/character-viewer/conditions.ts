@@ -1,5 +1,6 @@
 import type { AbilityKey } from './helpers'
 import type { RageEffect } from './rage'
+import type { PsycheEffect } from './psyche'
 
 /**
  * Condições do Pathfinder 2e Remaster (apêndice do Player Core) e o efeito
@@ -504,6 +505,8 @@ export interface ConditionModifiers {
      * golpe a golpe.
      */
     rage?: RageEffect
+    /** Psique liberada (Unleash Psyche): o dano das magias do Psíquico sobe, resolvido por magia. */
+    psyche?: PsycheEffect
 }
 
 const emptyTargets = <T,>(make: () => T): Record<ModTarget, T> =>
