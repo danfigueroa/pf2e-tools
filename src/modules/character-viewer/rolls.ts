@@ -118,6 +118,29 @@ export function fieryRebirthRoll(who: RollerIdentity, damage: number, dc: number
     return roll
 }
 
+/**
+ * O veneno simples do Poison Weapon (1d4 de veneno, 2d4 com o Improved) entra no
+ * Golpe como parcela à parte. NÃO dobra no crítico: o veneno é efeito da injeção,
+ * não dano do Golpe — e sem salvaguarda. Vale se o Golpe acertar; a mesa decide.
+ */
+export function withSimplePoison(roll: TableRoll, dice: { count: number; faces: number }): TableRoll {
+    if (!roll.damage) return roll
+    const rolled = rollGroups([dice])
+    const label = `veneno simples (${dice.count}d${dice.faces})`
+    const dmg = roll.damage
+    return {
+        ...roll,
+        damage: {
+            ...dmg,
+            parts: dmg.parts.length < 8 ? [...dmg.parts, toPart(label, rolled)] : dmg.parts,
+            total: dmg.total + rolled.total,
+            ...(dmg.crit
+                ? { crit: { total: dmg.crit.total + rolled.total, note: `${dmg.crit.note} + veneno ${rolled.total} (não dobra)` } }
+                : {}),
+        },
+    }
+}
+
 /** A magia que entra no Golpe do Spellstrike. */
 export interface SpellstrikeInput {
     name: string

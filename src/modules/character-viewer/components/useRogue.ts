@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import { useSharedState } from './useSharedState'
-import { NO_ROGUE, isRogueEmpty, sanitizeRogue, type RogueStored } from '../rogue'
+import { NO_ROGUE, SIMPLE_POISON, isRogueEmpty, sanitizeRogue, type RogueStored } from '../rogue'
 
 /**
  * Veneno na arma (Poison Weapon), compartilhado com a mesa (campo `rogue`):
@@ -13,10 +13,17 @@ export function useRogue(syncKey: string) {
         isEmpty: isRogueEmpty,
     })
 
-    const setPoison = useCallback((name: string) => setStored(() => ({ poison: name })), [setStored])
-    const clearPoison = useCallback(() => setStored((s) => (s.poison === null ? s : NO_ROGUE)), [setStored])
+    const setPoison = useCallback((name: string) => setStored((s) => ({ ...s, poison: name })), [setStored])
+    /** Aplica uma dose do veneno simples: a arma fica envenenada e a dose sai da conta do dia. */
+    const applySimple = useCallback(() => setStored((s) => ({ poison: SIMPLE_POISON, simpleUsed: s.simpleUsed + 1 })), [setStored])
+    const clearPoison = useCallback(() => setStored((s) => (s.poison === null ? s : { ...s, poison: null })), [setStored])
+    /** Preparação diária: as doses voltam (e o que sobrou expirou). */
+    const newDay = useCallback(() => setStored((s) => ({
+        poison: s.poison === SIMPLE_POISON ? null : s.poison,
+        simpleUsed: 0,
+    })), [setStored])
 
-    return useMemo(() => ({ stored, setPoison, clearPoison }), [stored, setPoison, clearPoison])
+    return useMemo(() => ({ stored, setPoison, applySimple, clearPoison, newDay }), [stored, setPoison, applySimple, clearPoison, newDay])
 }
 
 export type RogueApi = ReturnType<typeof useRogue>

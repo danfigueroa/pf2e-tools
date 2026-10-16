@@ -498,6 +498,7 @@ ok(!rogue.isApplicablePoison(null), 'Item sem entrada no AON não serve')
 eq(rogue.poisonNote('Fearweed', { dc: 30, save: 'fortitude' }), 'veneno: Fearweed (CD 30 Fortitude)', 'Nota do veneno com CD e salvaguarda')
 eq(rogue.poisonNote('Fearweed', null), 'veneno: Fearweed', 'Nota do veneno sem dados da AON')
 eq(rogue.sanitizeRogue('lixo'), rogue.NO_ROGUE, 'Estado inválido vira arma limpa')
+eq(JSON.stringify(rogue.sanitizeRogue({ poison: 'Fearweed' })), JSON.stringify({ poison: 'Fearweed', simpleUsed: 0 }), 'Estado antigo (só o nome) ganha as doses zeradas')
 eq(rogue.sanitizeRogue({ poison: 'Fearweed' }).poison, 'Fearweed', 'O veneno gravado sobrevive à releitura')
 ok(rogue.isRogueEmpty(rogue.NO_ROGUE) && !rogue.isRogueEmpty({ poison: 'x' }), 'Estado vazio só sem veneno')
 // A anotação da rolagem passa pelos DOIS sanitizadores, com o mesmo teto.
@@ -512,6 +513,22 @@ const crowded = rolls.spellstrikeRoll(ssWho, swordStrike, cascadePlan, null, und
 ok(crowded.damage.parts.length <= 8, 'Muitas parcelas de magia viram uma só, dentro do teto do feed')
 ok(table.sanitizeTableRoll(crowded) !== null && server.sanitizeRoll(crowded) !== null, 'A rolagem cheia ainda passa nos dois sanitizadores')
 
+
+
+// ── Veneno simples do Poison Weapon (o padrão do Eldarion) ───────────────────
+eq(rogue.simpleDoses(eld), 10, 'Doses por dia = nível')
+eq(rogue.simplePoisonDice(eld).count, 2, 'Eldarion tem o Improved Poison Weapon: 2d4')
+eq(rogue.simplePoisonDice({ ...eld, feats: eld.feats.filter((f) => f[0] !== 'Improved Poison Weapon') }).count, 1, 'Sem o Improved: 1d4')
+ok(rogue.isSimplePoison(rogue.SIMPLE_POISON) && !rogue.isSimplePoison('Fearweed'), 'O simples tem nome próprio, que o inventário não colide')
+eq(rogue.sanitizeRogue({ poison: null, simpleUsed: 99999 }).simpleUsed, 99, 'Doses usadas são limitadas')
+ok(!rogue.isRogueEmpty({ poison: null, simpleUsed: 3 }), 'Dose usada precisa subir para a mesa')
+const baseRoll = rolls.strikeRoll(ssWho, swordStrike, cascadePlan, null)
+const poisonedRoll = rolls.withSimplePoison(baseRoll, rogue.simplePoisonDice(eld))
+const venom = poisonedRoll.damage.parts[poisonedRoll.damage.parts.length - 1]
+ok(/veneno simples/.test(venom.label) && venom.dice.length === 2, 'A parcela do veneno simples tem 2d4')
+eq(poisonedRoll.damage.total, baseRoll.damage.total + venom.total, 'O veneno soma ao dano do Golpe')
+eq(poisonedRoll.damage.crit.total, baseRoll.damage.crit.total + venom.total, 'O veneno NÃO dobra no crítico')
+ok(table.sanitizeTableRoll(poisonedRoll) !== null && server.sanitizeRoll(poisonedRoll) !== null, 'A rolagem envenenada passa nos dois sanitizadores')
 
 // ── Guerreiro: Fearsome Brute, Exacting Strike, Reflexive Shield, Fiery Rebirth ─
 const gh = party.ghan

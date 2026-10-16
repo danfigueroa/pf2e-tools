@@ -7,7 +7,7 @@ import { fetchItemTraits, type ItemTraits } from '../../../services/itemTraits'
 import { actionsKeyFor, consumedKeyFor } from '../charId'
 import type { ConditionModifiers } from '../conditions'
 import { useActions } from './useActions'
-import { isApplicablePoison, poisonNote } from '../rogue'
+import { SIMPLE_POISON, hasImprovedPoisonWeapon, isApplicablePoison, isSimplePoison, poisonNote, simpleDoses, simplePoisonDice } from '../rogue'
 import { FeatureRow } from './FeatureRow'
 import { usePoisonDef } from './usePoison'
 import { useConsumables } from './useConsumables'
@@ -41,21 +41,42 @@ export const RogueBar = ({ build, rogue, mods }: Props) => {
     }, [names])
 
     // Só veneno de contato/injeção que ainda tem unidade.
-    const options = (build.equipment ?? [])
+    const inventory = (build.equipment ?? [])
         .filter(([name]) => isApplicablePoison(traits[name]))
         .map(([name, qty]) => ({ name, qty, left: consumables.remaining(name, qty) }))
         .filter((o) => o.left > 0)
 
+    // O veneno simples do talento é SEMPRE a primeira opção (e o padrão): é o que o
+    // personagem prepara todo dia, sem gastar item do inventário. O resto é opção.
+    const dose = simpleDoses(build)
+    const simpleLeft = Math.max(0, dose - rogue.stored.simpleUsed)
+    const dice = simplePoisonDice(build)
+    const options = [
+        { name: SIMPLE_POISON, label: `Veneno simples · ${dice.count}d${dice.faces} de veneno`, left: simpleLeft, of: dose },
+        ...inventory.map((o) => ({ name: o.name, label: o.name, left: o.left, of: o.qty })),
+    ]
+
     const loaded = rogue.stored.poison
-    const def = usePoisonDef(loaded)
-    const selected = options.find((o) => o.name === choice) ?? options[0] ?? null
+    const def = usePoisonDef(isSimplePoison(loaded) ? null : loaded)
+    // Padrão: o simples enquanto há dose; sem dose, o primeiro do inventário.
+    const fallback = options.find((o) => o.left > 0) ?? null
+    const selected = options.find((o) => o.name === choice && o.left > 0) ?? fallback
 
     const apply = () => {
         if (!selected) return
         actions.spend(1)
-        consumables.consume(selected.name, selected.qty)
-        rogue.setPoison(selected.name)
+        if (isSimplePoison(selected.name)) rogue.applySimple()
+        else {
+            const item = inventory.find((o) => o.name === selected.name)
+            if (!item) return
+            consumables.consume(item.name, item.qty)
+            rogue.setPoison(item.name)
+        }
     }
+
+    const loadedText = isSimplePoison(loaded)
+        ? `Veneno simples · ${dice.count}d${dice.faces} de veneno`
+        : loaded ? poisonNote(loaded, def).replace('veneno: ', '') : ''
 
     return (
         <Card sx={{ mb: 3, borderColor: loaded ? ROGUE_COLOR + '99' : undefined, borderWidth: loaded ? 2 : undefined }}>
@@ -69,18 +90,14 @@ export const RogueBar = ({ build, rogue, mods }: Props) => {
                     <FeatureRow title="Poison Weapon">
                         {loaded ? (
                             <>
-                                <Chip label={`Arma envenenada · ${poisonNote(loaded, def).replace('veneno: ', '')}`} size="small" sx={{ ...chipSx, bgcolor: ROGUE_COLOR, color: '#FFFFFF' }} />
+                                <Chip label={`Arma envenenada · ${loadedText}`} size="small" sx={{ ...chipSx, bgcolor: ROGUE_COLOR, color: '#FFFFFF' }} />
                                 <Typography variant="caption" color="text.secondary" sx={{ flex: 1, minWidth: 140 }}>
-                                    Fica na lâmina até um Golpe acertar.
+                                    Fica na lâmina até um Golpe acertar.{hasImprovedPoisonWeapon(build) ? ' Num erro crítico a dose não se perde.' : ''}
                                 </Typography>
                                 <Button size="small" variant="outlined" onClick={rogue.clearPoison}>
                                     Veneno usado
                                 </Button>
                             </>
-                        ) : options.length === 0 ? (
-                            <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
-                                Sem veneno de contato ou de injeção no inventário.
-                            </Typography>
                         ) : (
                             <>
                                 <Select
@@ -88,23 +105,33 @@ export const RogueBar = ({ build, rogue, mods }: Props) => {
                                     value={selected?.name ?? ''}
                                     onChange={(e) => setChoice(e.target.value)}
                                     inputProps={{ 'aria-label': 'Veneno' }}
-                                    sx={{ height: 32, fontSize: '0.85rem', minWidth: 140 }}
+                                    displayEmpty
+                                    sx={{ height: 32, fontSize: '0.85rem', minWidth: 190 }}
                                 >
                                     {options.map((o) => (
-                                        <MenuItem key={o.name} value={o.name}>{o.name} ×{o.left}</MenuItem>
+                                        <MenuItem key={o.name} value={o.name} disabled={o.left === 0}>
+                                            {o.label} · {isSimplePoison(o.name) ? `${o.left}/${o.of} por dia` : `×${o.left}`}
+                                        </MenuItem>
                                     ))}
                                 </Select>
                                 <Button
                                     size="small"
                                     variant="contained"
+                                    disabled={!selected}
                                     onClick={apply}
                                     sx={{ ml: 'auto', bgcolor: ROGUE_COLOR, '&:hover': { bgcolor: ROGUE_COLOR, filter: 'brightness(0.9)' } }}
                                 >
-                                    Aplicar · 1 ação
+                                    {selected ? 'Aplicar · 1 ação' : 'Sem veneno'}
                                 </Button>
                             </>
                         )}
                     </FeatureRow>
+                    {rogue.stored.simpleUsed > 0 && (
+                        <Typography variant="caption" color="text.secondary">
+                            Veneno simples: {simpleLeft} de {dose} doses hoje (sem salvaguarda; só você aplica direito, e expira na próxima preparação).{' '}
+                            <Button size="small" onClick={rogue.newDay} sx={{ minWidth: 0, p: 0, verticalAlign: 'baseline' }}>Nova preparação</Button>
+                        </Typography>
+                    )}
                 </Stack>
             </CardContent>
         </Card>

@@ -613,6 +613,14 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   Golpe acertou. O diálogo do Golpe mostra o chip "Arma envenenada · Fearweed (CD 30 Fortitude)" (CD e
   salvaguarda lidas da AON por `searchAfflictions`) e a rolagem leva isso na anotação; o dano e o efeito do
   veneno são do GM (aflição na Iniciativa), o app não rola nada.
+  - **O veneno SIMPLES é o padrão** (Special do Poison Weapon, Player Core pg. 171): na preparação diária o Ladino
+    prepara **tantas doses quanto o nível** de injeção que causam **1d4 de veneno, 2d4 com o Improved Poison
+    Weapon, sem salvaguarda**, e que expiram na próxima preparação. Vem SEMPRE como primeira opção do seletor, com
+    "N/10 por dia", e os venenos do inventário são as alternativas. Fica gravado como `poison: '@simple'`
+    (`SIMPLE_POISON`) e as doses usadas em `simpleUsed` (campo `rogue`); "Nova preparação" devolve as doses e
+    tira o veneno simples da lâmina. No Golpe, o dano é ROLADO junto (`withSimplePoison`) e **não dobra no
+    crítico** (é efeito da injeção, não dano do Golpe); vale se o Golpe acertar. O Improved Poison Weapon também
+    diz que a dose não se perde num erro crítico — o app só avisa, não sabe do erro.
   - **Debilitating Strike** (ação livre, nível 9): chips "Deslocamento −3 m" / "Enfraquecido 1" no diálogo
     do Golpe, também só como anotação da rolagem (precisa acertar um alvo desprevenido).
   - **`TableRoll.note`** (novo, até 300 caracteres) leva essas anotações: o `sub` é cortado em 80 e é para o

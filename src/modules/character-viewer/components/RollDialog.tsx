@@ -46,12 +46,12 @@ import {
     type StrikeOptions,
 } from '../strikes'
 import { damageComponents, formatValue, componentLabel, scaleSpell, type ScaledComponent } from '../heightening'
-import { checkRoll, mapLabel, rollerIdentity, spellRoll, spellstrikeRoll, strikeRoll, type SpellAttackInfo } from '../rolls'
+import { checkRoll, mapLabel, rollerIdentity, spellRoll, spellstrikeRoll, strikeRoll, withSimplePoison, type SpellAttackInfo } from '../rolls'
 import type { TableRoll } from '../../../dice/tableRoll'
 import { dialogEmbedProps, useEmbedContainer } from '../embedContext'
 import { CASCADE_TYPES, hasSpellstrike } from '../magus'
 import { FIRST_STRIKE_KEY, HUNTERS_AIM_KEY, gravityBonus } from '../ranger'
-import { DEBILITATIONS, hasDebilitatingStrike, poisonNote, type Debilitation } from '../rogue'
+import { DEBILITATIONS, hasDebilitatingStrike, isSimplePoison, poisonNote, simplePoisonDice, type Debilitation } from '../rogue'
 import { initiativeBonus } from '../initiative'
 import { actionCost, type ActionKind } from '../actions'
 import { useActions } from './useActions'
@@ -344,7 +344,9 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
     // rolagem — o app não sabe se o Golpe acertou, e o efeito é do GM.
     const rogue = useRogue(rogueKeyFor(build))
     const poisonName = weapon ? rogue.stored.poison : null
-    const poisonDef = usePoisonDef(poisonName)
+    const simplePoison = isSimplePoison(poisonName)
+    const simpleDice = simplePoisonDice(build)
+    const poisonDef = usePoisonDef(simplePoison ? null : poisonName)
     const [poisonOn, setPoisonOn] = useState(true)
     const canDebilitate = hasDebilitatingStrike(build)
     const [debil, setDebil] = useState<Debilitation | null>(null)
@@ -361,7 +363,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
     const lacking = actions.missing(actionCostNow, actionKind)
     const reactionUsed = asReaction && actions.stored.reacted
     const rollNote = [
-        poisonName && poisonOn ? poisonNote(poisonName, poisonDef) : null,
+        poisonName && poisonOn ? (simplePoison ? `veneno simples: ${simpleDice.count}d${simpleDice.faces} de veneno, sem salvaguarda` : poisonNote(poisonName, poisonDef)) : null,
         debil ? DEBILITATIONS.find((d) => d.id === debil)?.note : null,
         exacting ? 'Exacting Strike: se errar, não conta para a penalidade de ataques múltiplos' : null,
     ].filter(Boolean).join(' · ')
@@ -551,7 +553,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                     {poisonName && (
                         <Box>
                             <Chip
-                                label={`Arma envenenada · ${poisonNote(poisonName, poisonDef).replace('veneno: ', '')}`}
+                                label={simplePoison ? `Arma envenenada · veneno simples ${simpleDice.count}d${simpleDice.faces}` : `Arma envenenada · ${poisonNote(poisonName, poisonDef).replace('veneno: ', '')}`}
                                 color={poisonOn ? 'primary' : 'default'}
                                 variant={poisonOn ? 'filled' : 'outlined'}
                                 onClick={() => setPoisonOn(!poisonOn)}
@@ -559,7 +561,9 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                                 sx={{ minHeight: 32 }}
                             />
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                O veneno entra se o Golpe acertar; a rolagem diz qual é. Depois, "Veneno usado" na faixa do Ladino.
+                                {simplePoison
+                                    ? `Rola ${simpleDice.count}d${simpleDice.faces} de veneno junto, sem salvaguarda e sem dobrar no crítico — vale se o Golpe acertar. Depois, "Veneno usado" na faixa do Ladino.`
+                                    : 'O veneno entra se o Golpe acertar; a rolagem diz qual é. Depois, "Veneno usado" na faixa do Ladino.'}
                             </Typography>
                         </Box>
                     )}
@@ -661,7 +665,10 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                     if (asReaction) { if (!actions.stored.reacted) actions.toggleReaction() }
                     else actions.spend(actionCostNow, actionKind)
                     const mythicDelta = mythic ? plan.mythicDelta : null
-                    const noted = (r: TableRoll): TableRoll => (rollNote ? { ...r, note: rollNote } : r)
+                    const noted = (r: TableRoll): TableRoll => {
+                        const poisoned = simplePoison && poisonOn ? withSimplePoison(r, simpleDice) : r
+                        return rollNote ? { ...poisoned, note: rollNote } : poisoned
+                    }
                     if (!spellstriking || !ss.option || !ss.spell) {
                         send(noted(strikeRoll(who, strike, plan, mythicDelta, sub)), mythic)
                         return

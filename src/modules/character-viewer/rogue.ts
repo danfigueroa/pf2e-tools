@@ -21,17 +21,38 @@ import type { ItemTraits } from '../../services/itemTraits'
 export interface RogueStored {
     /** Nome (do Pathbuilder) do veneno que está na arma; `null` = arma limpa. */
     poison: string | null
+    /** Doses do veneno simples (o do talento) já usadas desde a última preparação diária. */
+    simpleUsed: number
 }
 
-export const NO_ROGUE: RogueStored = { poison: null }
+export const NO_ROGUE: RogueStored = { poison: null, simpleUsed: 0 }
+
+/**
+ * O veneno SIMPLES do Poison Weapon vai gravado em `poison` com este nome: um
+ * nome que nenhum item do Pathbuilder tem, para não colidir com o inventário.
+ */
+export const SIMPLE_POISON = '@simple'
 
 export function sanitizeRogue(raw: unknown): RogueStored {
     if (!raw || typeof raw !== 'object') return NO_ROGUE
-    const p = (raw as Partial<RogueStored>).poison
-    return typeof p === 'string' && p.trim() ? { poison: p.trim().slice(0, 120) } : NO_ROGUE
+    const r = raw as Partial<RogueStored>
+    const poison = typeof r.poison === 'string' && r.poison.trim() ? r.poison.trim().slice(0, 120) : null
+    const used = typeof r.simpleUsed === 'number' && Number.isFinite(r.simpleUsed) ? Math.min(99, Math.max(0, Math.floor(r.simpleUsed))) : 0
+    return poison === null && used === 0 ? NO_ROGUE : { poison, simpleUsed: used }
 }
 
-export const isRogueEmpty = (s: RogueStored) => s.poison === null
+export const isRogueEmpty = (s: RogueStored) => s.poison === null && s.simpleUsed === 0
+
+/** Doses do veneno simples por dia: o nível do personagem (preparadas na preparação diária). */
+export const simpleDoses = (build: BuildInfo): number => Math.max(0, build.level)
+
+export const hasImprovedPoisonWeapon = (b: BuildInfo) => (b.feats ?? []).some((f) => norm(parseFeatEntry(f).name) === 'improved poison weapon')
+
+/** Dano do veneno simples: 1d4 de veneno, 2d4 com o Improved Poison Weapon — sem salvaguarda. */
+export const simplePoisonDice = (b: BuildInfo): { count: number; faces: number } =>
+    ({ count: hasImprovedPoisonWeapon(b) ? 2 : 1, faces: 4 })
+
+export const isSimplePoison = (name: string | null) => name === SIMPLE_POISON
 
 const norm = (s: string) => s.trim().toLowerCase()
 export const hasPoisonWeapon = (b: BuildInfo) => (b.feats ?? []).some((f) => norm(parseFeatEntry(f).name) === 'poison weapon')
