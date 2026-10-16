@@ -42,7 +42,7 @@ import { ConditionsBar } from './components/ConditionsBar'
 import { AfflictionsBar } from './components/AfflictionsBar'
 import { PersistentDamageBar } from './components/PersistentDamageBar'
 import { MythicPointsBar } from './components/MythicPointsBar'
-import { afflictionsKeyFor, charSlugFromName, conditionsKeyFor, legacyCharKey, mythicKeyFor, noCharKey, persistentKeyFor, rageKeyFor, sizeKeyFor } from './charId'
+import { afflictionsKeyFor, charSlugFromName, conditionsKeyFor, legacyCharKey, mythicKeyFor, noCharKey, persistentKeyFor, psycheKeyFor, rageKeyFor, sizeKeyFor } from './charId'
 import { useConditions } from './components/useConditions'
 import { useAfflictions } from './components/useAfflictions'
 import { usePersistentDamage } from './components/usePersistentDamage'
@@ -50,6 +50,9 @@ import { useMythicPoints, type MythicPointsApi } from './components/useMythicPoi
 import { useSizeEffect, type SizeEffectApi } from './components/useSizeEffect'
 import { sizeEffectConditions, withSizeEffect } from './sizeEffects'
 import { useRage } from './components/useRage'
+import { usePsyche } from './components/usePsyche'
+import { PsycheBar } from './components/PsycheBar'
+import { STRAIN_SOURCE, withPsyche } from './psyche'
 import { RageBar } from './components/RageBar'
 import { TITAN_SOURCE, withRage } from './rage'
 import { isMythicCharacter, MYTHIC_POINTS_MAX } from './helpers'
@@ -193,6 +196,8 @@ export const CharacterViewerPage = () => {
     // Fúria do bárbaro: o dano viaja nos modificadores e o Desajeitado do Titan
     // Mauler é derivado, então também vem antes das condições.
     const rage = useRage(build ? rageKeyFor(build) : noCharKey('rage'), build)
+    // Unleash Psyche do Psíquico: o Estupefato da ressaca é derivado, como o Titan Mauler.
+    const psyche = usePsyche(build ? psycheKeyFor(build) : noCharKey('psyche'), build)
 
     // O que a ficha sofre sem ter marcado: estágio de aflição, o Desajeitado do
     // Enlarge e o do Titan Mauler. Em conflito vale o pior valor, como em
@@ -203,6 +208,7 @@ export const CharacterViewerPage = () => {
         const origins = [
             { conditions: fromSize, source: sizeSource },
             { conditions: rage.clumsy, source: TITAN_SOURCE },
+            { conditions: psyche.strain, source: STRAIN_SOURCE },
         ].filter((o) => Object.keys(o.conditions).length > 0)
         if (origins.length === 0) return { derived: afflictions.conditions, derivedSources: undefined }
         const merged = { ...afflictions.conditions }
@@ -216,7 +222,7 @@ export const CharacterViewerPage = () => {
             }
         }
         return { derived: merged, derivedSources: sources }
-    }, [afflictions.conditions, sizeEffect.effect, rage.clumsy])
+    }, [afflictions.conditions, sizeEffect.effect, rage.clumsy, psyche.strain])
 
     const conditions = useConditions(
         build ? conditionsKeyFor(build) : noCharKey('conditions'),
@@ -227,8 +233,8 @@ export const CharacterViewerPage = () => {
     )
     // O +4 de estado no corpo a corpo do Enlarge e a Fúria viajam junto dos modificadores.
     const mods = useMemo(
-        () => withRage(withSizeEffect(conditions.mods, sizeEffect.effect), rage.effect),
-        [conditions.mods, sizeEffect.effect, rage.effect],
+        () => withPsyche(withRage(withSizeEffect(conditions.mods, sizeEffect.effect), rage.effect), psyche.effect),
+        [conditions.mods, sizeEffect.effect, rage.effect, psyche.effect],
     )
 
     // Pontos Míticos: mesma história das condições — gastos de qualquer aba,
@@ -429,6 +435,7 @@ export const CharacterViewerPage = () => {
 
             <ConditionsBar conditions={conditions} />
             {rage.spec && <RageBar build={build} rage={rage} conditions={conditions} />}
+            {psyche.has && <PsycheBar psyche={psyche} />}
             <AfflictionsBar afflictions={afflictions.afflictions} onRemove={afflictions.remove} />
             <PersistentDamageBar
                 persistent={persistentDamage.persistent}
