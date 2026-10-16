@@ -605,7 +605,7 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     Vale só no primeiro acerto da rodada — a legenda avisa, o app não conta.
   - **Hunter's Aim** (talento, 2 ações): chip só em Golpe à distância/arremesso, +2 de circunstância no ataque.
   Quem tem cada coisa vem da ficha (`specials`/`feats`/`focus`). `check-rolls` cobre. A Iniciativa não lê `ranger`.
-- **Ladino** (`rogue.ts` + `components/useRogue.ts` + `RogueBar.tsx` + `usePoison.ts`): **Poison Weapon**
+- **Ladino** (`rogue.ts` + `components/useRogue.ts` + `usePoisonOptions.ts` + `usePoison.ts`) — **sem faixa no topo da ficha**: tudo vive no diálogo do Golpe (aplicar, "Veneno usado", "Nova preparação"); a faixa `RogueBar` foi removida a pedido: **Poison Weapon**
   (talento) escolhe, entre os itens do inventário com os traços `Poison` + `Contact`/`Injury` (via
   `fetchItemTraits`; veneno inalado como o Breath of the Mantis God NÃO serve), aplica 1 na arma e **gasta
   uma unidade** pelo mesmo contador dos consumíveis (`useConsumables`, campo `consumed`). Campo `rogue` da
@@ -621,12 +621,12 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     tira o veneno simples da lâmina. No Golpe, o dano é ROLADO junto (`withSimplePoison`) e **não dobra no
     crítico** (é efeito da injeção, não dano do Golpe); vale se o Golpe acertar. O Improved Poison Weapon também
     diz que a dose não se perde num erro crítico — o app só avisa, não sabe do erro.
-  - **Dá para aplicar o veneno NO diálogo do Golpe** (arma ainda limpa + talento Poison Weapon): o chip "Aplicar veneno
-    antes do Golpe · +1 ação" abre o mesmo seletor da faixa (`usePoisonOptions`, uma fonte só para a lista e o
-    gasto — simples primeiro, depois o inventário). Ao rolar: gasta a ação da aplicação (1, qualquer tipo, paga
+  - **O veneno se aplica NO diálogo do Golpe** (arma ainda limpa + talento Poison Weapon): o chip "Aplicar veneno
+    antes do Golpe · +1 ação" abre o seletor (`usePoisonOptions`, a lista e o gasto — simples primeiro, depois o inventário). Ao rolar: gasta a ação da aplicação (1, qualquer tipo, paga
     ANTES — o Golpe pode então usar a ação extra do Acelerado), gasta a dose/unidade, deixa a lâmina envenenada e
-    o Golpe já sai com o veneno. A falta de ações é a soma dos dois pagamentos em sequência. A faixa continua
-    aplicando sem atacar.
+    o Golpe já sai com o veneno. A falta de ações é a soma dos dois pagamentos em sequência. Com a arma envenenada o
+    diálogo mostra o chip e o botão "Veneno usado" (o app não sabe se o Golpe acertou); "Nova preparação" devolve as
+    doses do dia. Aplicar sem atacar não existe mais: a ficha não tem o botão.
   - **Debilitating Strike** (ação livre, nível 9): chips "Deslocamento −3 m" / "Enfraquecido 1" no diálogo
     do Golpe, também só como anotação da rolagem (precisa acertar um alvo desprevenido).
   - **`TableRoll.note`** (novo, até 300 caracteres) leva essas anotações: o `sub` é cortado em 80 e é para o

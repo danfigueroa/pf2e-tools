@@ -597,24 +597,37 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                                             ? 'Ao rolar: aplica (Interagir, 1 ação), gasta a dose e o Golpe já leva o veneno.'
                                             : 'Sem veneno para aplicar.'}
                                     </Typography>
+                                    {rogue.stored.simpleUsed > 0 && (
+                                        <Typography variant="caption" color="text.secondary">
+                                            Veneno simples: {po.simpleLeft} de {po.dose} doses hoje.{' '}
+                                            <Button size="small" onClick={rogue.newDay} sx={{ minWidth: 0, p: 0, verticalAlign: 'baseline' }}>
+                                                Nova preparação
+                                            </Button>
+                                        </Typography>
+                                    )}
                                 </Stack>
                             )}
                         </Box>
                     )}
                     {weapon && rogue.stored.poison && (
                         <Box>
-                            <Chip
-                                label={simplePoison ? `Arma envenenada · veneno simples ${simpleDice.count}d${simpleDice.faces}` : `Arma envenenada · ${poisonNote(rogue.stored.poison, poisonDef).replace('veneno: ', '')}`}
-                                color={poisonOn ? 'primary' : 'default'}
-                                variant={poisonOn ? 'filled' : 'outlined'}
-                                onClick={() => setPoisonOn(!poisonOn)}
-                                aria-pressed={poisonOn}
-                                sx={{ minHeight: 32 }}
-                            />
+                            <Stack direction="row" alignItems="center" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
+                                <Chip
+                                    label={simplePoison ? `Arma envenenada · veneno simples ${simpleDice.count}d${simpleDice.faces}` : `Arma envenenada · ${poisonNote(rogue.stored.poison, poisonDef).replace('veneno: ', '')}`}
+                                    color={poisonOn ? 'primary' : 'default'}
+                                    variant={poisonOn ? 'filled' : 'outlined'}
+                                    onClick={() => setPoisonOn(!poisonOn)}
+                                    aria-pressed={poisonOn}
+                                    sx={{ minHeight: 32 }}
+                                />
+                                <Button size="small" color="inherit" onClick={rogue.clearPoison}>
+                                    Veneno usado
+                                </Button>
+                            </Stack>
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
                                 {simplePoison
-                                    ? `Rola ${simpleDice.count}d${simpleDice.faces} de veneno junto, sem salvaguarda e sem dobrar no crítico — vale se o Golpe acertar. Depois, "Veneno usado" na faixa do Ladino.`
-                                    : 'O veneno entra se o Golpe acertar; a rolagem diz qual é. Depois, "Veneno usado" na faixa do Ladino.'}
+                                    ? `Rola ${simpleDice.count}d${simpleDice.faces} de veneno junto, sem salvaguarda e sem dobrar no crítico — vale se o Golpe acertar. Quando acertar, toque "Veneno usado".`
+                                    : 'O veneno entra se o Golpe acertar; a rolagem diz qual é. Quando acertar, toque "Veneno usado".'}
                             </Typography>
                         </Box>
                     )}
