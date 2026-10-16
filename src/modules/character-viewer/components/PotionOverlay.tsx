@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Box, Button, Chip, Dialog, DialogActions, DialogContent, Stack, Typography, useTheme } from '@mui/material'
+import { Box, Button, Chip, DialogActions, DialogContent, Stack, Typography, useTheme } from '@mui/material'
 import { LocalDrink as DrinkIcon } from '@mui/icons-material'
 import { HP_COLOR, status } from '../../../theme/palette'
 import { parseFormula, type RollDetail } from '../../initiative-tracker/dice'
@@ -7,6 +7,7 @@ import { DiceRoll } from '../../../motion/DiceRoll'
 import { bubble, floatUp, tilt, useReducedMotion } from '../../../motion/motion'
 import { useAnimatedNumber } from '../../../motion/useAnimatedNumber'
 import { hpBarColor } from './useHpTracker'
+import { EmbedDialog } from './EmbedDialog'
 
 /** O que a overlay mostra. A cura JÁ foi aplicada quando ela abre. */
 export interface DrinkEvent {
@@ -42,7 +43,7 @@ const BUBBLES = [
  * "Desfazer" continua no aviso que aparece depois.
  */
 export const PotionOverlay = ({ drink, onClose }: { drink: DrinkEvent | null; onClose: () => void }) => (
-    <Dialog
+    <EmbedDialog
         open={!!drink}
         onClose={onClose}
         maxWidth="xs"
@@ -51,7 +52,7 @@ export const PotionOverlay = ({ drink, onClose }: { drink: DrinkEvent | null; on
     >
         {/* Remonta a cada gole: as fases recomeçam do frasco. */}
         {drink && <PotionContent key={`${drink.name}-${drink.roll.total}-${drink.before}`} drink={drink} onClose={onClose} />}
-    </Dialog>
+    </EmbedDialog>
 )
 
 const PotionContent = ({ drink, onClose }: { drink: DrinkEvent; onClose: () => void }) => {

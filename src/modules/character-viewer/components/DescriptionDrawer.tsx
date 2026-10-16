@@ -40,6 +40,7 @@ import {
     type AppliedHeightened,
     type ScaledSpell,
 } from '../heightening'
+import { drawerEmbedProps, useEmbedContainer } from '../embedContext'
 
 export interface SpellCasterInfo {
     name: string
@@ -96,7 +97,9 @@ const TYPE_ACCENT: Record<DescriptionRequest['type'], string> = PALETTE_TYPE_ACC
 
 export const DescriptionDrawer = ({ request, onClose, onNavigate, onRoll }: Props) => {
     const theme = useTheme()
-    const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+    const embed = useEmbedContainer()
+    // Embutida num painel estreito, a gaveta sobe de baixo como no celular.
+    const isMobile = useMediaQuery(theme.breakpoints.down('md')) || !!embed
     const [state, setState] = useState<State>({ loading: false })
 
     useEffect(() => {
@@ -231,6 +234,7 @@ export const DescriptionDrawer = ({ request, onClose, onNavigate, onRoll }: Prop
 
     return (
         <Drawer
+            {...drawerEmbedProps(embed)}
             anchor={isMobile ? 'bottom' : 'right'}
             open={!!request}
             onClose={onClose}

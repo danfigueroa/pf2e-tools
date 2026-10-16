@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 import {
     Box,
     Button,
-    Dialog,
     DialogActions,
     DialogContent,
     DialogTitle,
@@ -25,6 +24,8 @@ import {
 import { CONDITION_COLOR } from '../../../theme'
 import { CONDITIONS, GROUP_LABELS, type ConditionDef, type ConditionGroup } from '../conditions'
 import type { ConditionState } from './useConditions'
+import { useEmbedContainer } from '../embedContext'
+import { EmbedDialog } from './EmbedDialog'
 
 interface Props {
     open: boolean
@@ -39,7 +40,9 @@ const GROUP_ORDER: ConditionGroup[] = ['debuff', 'movement', 'senses', 'death', 
 /** Catálogo completo de condições, com busca por nome pt-BR/inglês. */
 export const ConditionsDialog = ({ open, onClose, state, onToggle, onAdjust }: Props) => {
     const theme = useTheme()
-    const fullScreen = useMediaQuery(theme.breakpoints.down('sm'))
+    const embedded = !!useEmbedContainer()
+    const phone = useMediaQuery(theme.breakpoints.down('sm'))
+    const fullScreen = phone && !embedded
     const [query, setQuery] = useState('')
 
     const groups = useMemo(() => {
@@ -52,7 +55,7 @@ export const ConditionsDialog = ({ open, onClose, state, onToggle, onAdjust }: P
     }, [query])
 
     return (
-        <Dialog open={open} onClose={onClose} fullScreen={fullScreen} maxWidth="sm" fullWidth>
+        <EmbedDialog open={open} onClose={onClose} fullScreen={fullScreen} maxWidth="sm" fullWidth>
             <DialogTitle sx={{ fontWeight: 700 }}>Condições</DialogTitle>
             <DialogContent dividers sx={{ px: { xs: 1.5, sm: 3 } }}>
                 <TextField
@@ -103,7 +106,7 @@ export const ConditionsDialog = ({ open, onClose, state, onToggle, onAdjust }: P
             <DialogActions>
                 <Button onClick={onClose} variant="contained">Pronto</Button>
             </DialogActions>
-        </Dialog>
+        </EmbedDialog>
     )
 }
 

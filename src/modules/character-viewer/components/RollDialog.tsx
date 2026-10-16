@@ -46,6 +46,7 @@ import {
 import { damageComponents, formatValue, componentLabel, scaleSpell, type ScaledComponent } from '../heightening'
 import { checkRoll, mapLabel, rollerIdentity, spellRoll, strikeRoll, type SpellAttackInfo } from '../rolls'
 import type { TableRoll } from '../../../dice/tableRoll'
+import { dialogEmbedProps, useEmbedContainer } from '../embedContext'
 
 /** O que tocar na ficha pede para rolar. */
 export type RollRequest =
@@ -80,13 +81,14 @@ interface Props {
  * clique, junto com a rolagem, e o cartão aparece para todos pelo feed.
  */
 export const RollDialog = ({ request, build, mods, mythicPoints, onClose }: Props) => {
+    const embed = useEmbedContainer()
     if (!request) return null
     const key = request.kind === 'check' ? request.check.label
         : request.kind === 'weapon' ? request.weapon.name
             : request.kind === 'unarmed' ? request.attack.id
                 : request.name
     return (
-        <Dialog open onClose={onClose} fullWidth maxWidth="xs">
+        <Dialog {...dialogEmbedProps(embed)} open onClose={onClose} fullWidth maxWidth="xs">
             {/* A `key` zera o estado interno quando o pedido troca com o diálogo aberto. */}
             {request.kind === 'check' && <CheckBody key={key} request={request} build={build} mods={mods} mythicPoints={mythicPoints} onClose={onClose} />}
             {(request.kind === 'weapon' || request.kind === 'unarmed') && (

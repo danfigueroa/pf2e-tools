@@ -3,7 +3,6 @@ import {
     Button,
     Card,
     CardContent,
-    Dialog,
     DialogActions,
     DialogContent,
     DialogContentText,
@@ -15,6 +14,7 @@ import { AutoAwesome as MythicIcon, Restore as RestoreIcon } from '@mui/icons-ma
 import { MYTHIC_COLOR } from '../helpers'
 import { SlotPips, SlotCount } from './SlotPips'
 import type { MythicPointsApi } from './useMythicPoints'
+import { EmbedDialog } from './EmbedDialog'
 
 interface Props {
     points: MythicPointsApi
@@ -83,7 +83,7 @@ export const MythicPointsBar = ({ points }: Props) => {
                 </CardContent>
             </Card>
 
-            <Dialog open={confirmReset} onClose={() => setConfirmReset(false)}>
+            <EmbedDialog open={confirmReset} onClose={() => setConfirmReset(false)}>
                 <DialogTitle>Começar um novo dia?</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
@@ -100,7 +100,7 @@ export const MythicPointsBar = ({ points }: Props) => {
                         Novo dia
                     </Button>
                 </DialogActions>
-            </Dialog>
+            </EmbedDialog>
         </>
     )
 }

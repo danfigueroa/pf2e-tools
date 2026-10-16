@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material'
+import { Box, Button, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material'
 import { CloudDone as PublishedIcon, History as RestoreIcon } from '@mui/icons-material'
 import type { PublishedSheet } from '../../../services/sheets'
+import { EmbedDialog } from './EmbedDialog'
 
 const when = (ts: number) => new Date(ts).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
 
@@ -38,7 +39,7 @@ export const PublishedBar = ({ sheet, onRestore }: { sheet: PublishedSheet; onRe
                 </Button>
             )}
 
-            <Dialog open={confirming} onClose={() => setConfirming(false)}>
+            <EmbedDialog open={confirming} onClose={() => setConfirming(false)}>
                 <DialogTitle>Voltar à versão anterior?</DialogTitle>
                 <DialogContent>
                     <Typography>
@@ -53,7 +54,7 @@ export const PublishedBar = ({ sheet, onRestore }: { sheet: PublishedSheet; onRe
                         Restaurar
                     </Button>
                 </DialogActions>
-            </Dialog>
+            </EmbedDialog>
         </Box>
     )
 }

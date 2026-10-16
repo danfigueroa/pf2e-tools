@@ -5,7 +5,6 @@ import {
     Card,
     CardContent,
     Chip,
-    Dialog,
     DialogActions,
     DialogContent,
     DialogTitle,
@@ -27,6 +26,7 @@ import { crack, floatUp, lift, pulseAnimation, useArmed, useReducedMotion, type 
 import { useAnimatedNumber } from '../../../motion/useAnimatedNumber'
 import { useValueDeltas } from '../../../motion/useValueDeltas'
 import { FloatingDeltas } from '../../../motion/FloatingDeltas'
+import { EmbedDialog } from './EmbedDialog'
 
 const RANK_LABELS = ['destreinado', 'treinado', 'especialista', 'mestre', 'lendário']
 
@@ -421,7 +421,7 @@ const RepairDialog = ({ open, onClose, rank, destroyed, missing, onRepair }: {
     const crit = repairAmount(rank, true)
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+        <EmbedDialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
             <DialogTitle sx={{ fontWeight: 700 }}>Consertar escudo</DialogTitle>
             <DialogContent>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -464,6 +464,6 @@ const RepairDialog = ({ open, onClose, rank, destroyed, missing, onRepair }: {
                 <Button onClick={() => onRepair(missing)} color="inherit">Restaurar tudo</Button>
                 <Button onClick={onClose}>Fechar</Button>
             </DialogActions>
-        </Dialog>
+        </EmbedDialog>
     )
 }

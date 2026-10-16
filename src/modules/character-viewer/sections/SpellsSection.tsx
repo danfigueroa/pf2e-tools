@@ -1,5 +1,5 @@
 import { useMemo, useState, memo } from 'react'
-import { Box, Button, Card, CardContent, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Tooltip, Typography, Stack, Chip, Divider, LinearProgress } from '@mui/material'
+import { Box, Button, Card, CardContent, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Tooltip, Typography, Stack, Chip, Divider, LinearProgress } from '@mui/material'
 import {
     ChevronRight as ChevronIcon,
     CloudDownload as DownloadIcon,
@@ -22,6 +22,7 @@ import type { ConditionModifiers } from '../conditions'
 import type { MythicPointsApi } from '../components/useMythicPoints'
 import type { RollRequest } from '../components/RollDialog'
 import { casterAttack, focusAttack } from '../rolls'
+import { EmbedDialog } from '../components/EmbedDialog'
 
 interface Props {
     build: BuildInfo
@@ -82,7 +83,7 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
 
     return (
         <Stack spacing={2}>
-            <Dialog open={confirmNewDay} onClose={() => setConfirmNewDay(false)}>
+            <EmbedDialog open={confirmNewDay} onClose={() => setConfirmNewDay(false)}>
                 <DialogTitle>Começar um novo dia?</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
@@ -99,7 +100,7 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
                         Novo dia
                     </Button>
                 </DialogActions>
-            </Dialog>
+            </EmbedDialog>
 
             {hasTrackable && (
                 <Card>

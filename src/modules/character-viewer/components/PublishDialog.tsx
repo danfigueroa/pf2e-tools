@@ -4,7 +4,6 @@ import {
     Button,
     Chip,
     CircularProgress,
-    Dialog,
     DialogActions,
     DialogContent,
     DialogTitle,
@@ -13,6 +12,7 @@ import {
 } from '@mui/material'
 import type { BuildInfo } from '../../character-sheet/types'
 import { diffSheets } from '../sheetDiff'
+import { EmbedDialog } from './EmbedDialog'
 
 /** A versão contra a qual o JSON enviado é comparado. */
 export interface PublishBase {
@@ -47,7 +47,7 @@ export const PublishDialog = ({ open, incoming, base, busy, error, onViewOnly, o
         : 'a ficha da campanha'
 
     return (
-        <Dialog open={open} onClose={busy ? undefined : onCancel} fullWidth maxWidth="sm">
+        <EmbedDialog open={open} onClose={busy ? undefined : onCancel} fullWidth maxWidth="sm">
             <DialogTitle>{incoming.name}</DialogTitle>
             <DialogContent dividers>
                 {!base ? (
@@ -107,7 +107,7 @@ export const PublishDialog = ({ open, incoming, base, busy, error, onViewOnly, o
                     Publicar para a mesa
                 </Button>
             </DialogActions>
-        </Dialog>
+        </EmbedDialog>
     )
 }
 
