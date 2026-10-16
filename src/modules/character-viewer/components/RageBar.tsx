@@ -14,7 +14,8 @@ import { Whatshot as RageIcon } from '@mui/icons-material'
 import { RAGE_COLOR } from '../../../theme'
 import type { BuildInfo } from '../../character-sheet/types'
 import { characterMaxHp } from '../helpers'
-import { hpKeyFor, legacyCharKey } from '../charId'
+import { actionsKeyFor, hpKeyFor, legacyCharKey } from '../charId'
+import { useActions } from './useActions'
 import { RESIST_LABEL, rageGivesTempHp, type RageSpec } from '../rage'
 import { useHpTracker } from './useHpTracker'
 import type { ConditionsApi } from './useConditions'
@@ -46,6 +47,8 @@ export const RageBar = ({ build, rage, conditions }: Props) => {
     const { stored, spec, effect } = rage
     const hp = useHpTracker(hpKeyFor(build), characterMaxHp(build, conditions.mods.hpMaxDelta), legacyCharKey(build))
 
+    const actions = useActions(actionsKeyFor(build), conditions.mods)
+
     if (!spec) return null
     const active = !!effect
     const fatigued = (conditions.effective.fatigued ?? 0) > 0
@@ -56,6 +59,7 @@ export const RageBar = ({ build, rage, conditions }: Props) => {
         const gain = rageGivesTempHp(stored, Date.now()) ? spec.tempHp : 0
         const put = gain > hp.temp ? gain : 0
         if (put > 0) hp.setTemp(put)
+        actions.spend(1)
         rage.start(put)
     }
 

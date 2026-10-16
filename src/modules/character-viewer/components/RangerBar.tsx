@@ -10,7 +10,9 @@ import {
 import { Adjust as RangerIcon } from '@mui/icons-material'
 import { RANGER_COLOR } from '../../../theme'
 import type { BuildInfo } from '../../character-sheet/types'
-import { legacyCharKey, slotsKeyFor } from '../charId'
+import { actionsKeyFor, legacyCharKey, slotsKeyFor } from '../charId'
+import type { ConditionModifiers } from '../conditions'
+import { useActions } from './useActions'
 import { hasGravityWeapon, hasHuntPrey, hasPrecisionEdge } from '../ranger'
 import { FeatureRow } from './FeatureRow'
 import type { RangerApi } from './useRanger'
@@ -19,6 +21,7 @@ import { useSpellSlots } from './useSpellSlots'
 interface Props {
     build: BuildInfo
     ranger: RangerApi
+    mods: ConditionModifiers
 }
 
 const chipSx = { height: 24, fontSize: '0.75rem', fontWeight: 600 }
@@ -29,12 +32,14 @@ const solid = { bgcolor: RANGER_COLOR, '&:hover': { bgcolor: RANGER_COLOR, filte
  * do Magus, porque mudam o dano de qualquer Golpe. A Gravity Weapon gasta 1
  * Ponto de Foco (o mesmo contador da aba de Magias, que as instâncias dividem).
  */
-export const RangerBar = ({ build, ranger }: Props) => {
+export const RangerBar = ({ build, ranger, mods }: Props) => {
+    const actions = useActions(actionsKeyFor(build), mods)
     const { stored } = ranger
     const slots = useSpellSlots(slotsKeyFor(build), build.focusPoints ?? 0, legacyCharKey(build))
     const focusLeft = Math.max(0, slots.focusMax - slots.focusUsed)
 
     const activateGravity = () => {
+        actions.spend(1)
         slots.spendFocus()
         ranger.setGravity(true)
     }
@@ -67,7 +72,7 @@ export const RangerBar = ({ build, ranger }: Props) => {
                                     <Typography variant="body2" color="text.secondary" sx={{ flex: 1, minWidth: 160 }}>
                                         1 ação: marca uma criatura como presa.
                                     </Typography>
-                                    <Button size="small" variant="contained" onClick={() => ranger.setPrey(true)} sx={solid}>
+                                    <Button size="small" variant="contained" onClick={() => { actions.spend(1); ranger.setPrey(true) }} sx={solid}>
                                         Marcar a presa
                                     </Button>
                                 </>

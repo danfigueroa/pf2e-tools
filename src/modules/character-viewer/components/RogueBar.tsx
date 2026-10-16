@@ -4,7 +4,9 @@ import { Science as PoisonIcon } from '@mui/icons-material'
 import { ROGUE_COLOR } from '../../../theme'
 import type { BuildInfo } from '../../character-sheet/types'
 import { fetchItemTraits, type ItemTraits } from '../../../services/itemTraits'
-import { consumedKeyFor } from '../charId'
+import { actionsKeyFor, consumedKeyFor } from '../charId'
+import type { ConditionModifiers } from '../conditions'
+import { useActions } from './useActions'
 import { isApplicablePoison, poisonNote } from '../rogue'
 import { FeatureRow } from './FeatureRow'
 import { usePoisonDef } from './usePoison'
@@ -14,6 +16,7 @@ import type { RogueApi } from './useRogue'
 interface Props {
     build: BuildInfo
     rogue: RogueApi
+    mods: ConditionModifiers
 }
 
 const chipSx = { height: 24, fontSize: '0.75rem', fontWeight: 600 }
@@ -23,7 +26,8 @@ const chipSx = { height: 24, fontSize: '0.75rem', fontWeight: 600 }
  * inventário, gasta uma unidade e deixa a arma envenenada até alguém dizer que
  * o veneno foi usado. O app não sabe se o Golpe acertou, então o "limpar" é à mão.
  */
-export const RogueBar = ({ build, rogue }: Props) => {
+export const RogueBar = ({ build, rogue, mods }: Props) => {
+    const actions = useActions(actionsKeyFor(build), mods)
     const consumables = useConsumables(consumedKeyFor(build))
     const [traits, setTraits] = useState<Record<string, ItemTraits | null>>({})
     const [choice, setChoice] = useState('')
@@ -48,6 +52,7 @@ export const RogueBar = ({ build, rogue }: Props) => {
 
     const apply = () => {
         if (!selected) return
+        actions.spend(1)
         consumables.consume(selected.name, selected.qty)
         rogue.setPoison(selected.name)
     }

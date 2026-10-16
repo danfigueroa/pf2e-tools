@@ -247,6 +247,7 @@ export const InitiativePage = () => {
         action(drop)
         expireConditions(upcoming, drop)
         tickPartyAfflictions(upcoming)
+        if (upcoming?.kind === 'pc') party.startTurn(upcoming.slug)
         // Raise a Shield vale até o INÍCIO do próximo turno de quem ergueu.
         if (upcoming) viewsById.get(upcoming.id)?.setShieldRaised(false)
     }
@@ -367,7 +368,12 @@ export const InitiativePage = () => {
                 active={active}
                 next={next}
                 canStart={activeOrder(state).length > 0}
-                onStart={() => dispatch({ type: 'start' })}
+                onStart={() => {
+                    dispatch({ type: 'start' })
+                    // O primeiro da ordem começa o turno: se for personagem, as ações dele voltam.
+                    const first = activeOrder(state)[0]
+                    if (first?.kind === 'pc') party.startTurn(first.slug)
+                }}
                 onNext={handleNext}
                 onPrev={() => dispatch({ type: 'prevTurn' })}
                 onSort={() => dispatch({ type: 'sortByInitiative' })}

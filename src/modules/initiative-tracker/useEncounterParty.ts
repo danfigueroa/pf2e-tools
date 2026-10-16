@@ -23,6 +23,7 @@ import { syncFromAffliction, sanitizePersistent, type PersistentDamage } from '.
 import { sanitizeShield, type ShieldStored } from '../character-viewer/shield'
 import { NO_SIZE_EFFECT, sanitizeSizeEffect, type SizeEffectStored } from '../character-viewer/sizeEffects'
 import { NO_RAGE, sanitizeRage, type RageStored } from '../character-viewer/rage'
+import { newTurn } from '../character-viewer/actions'
 
 export interface PartySlice {
     /** `null` = ninguém mexeu ainda; resolve para PV cheio no render. */
@@ -232,6 +233,16 @@ export function useEncounterParty(slugs: string[]) {
          * amplificaria escrita a cada releitura — a mesma razão documentada
          * para as durações de condição.
          */
+        /**
+         * O turno do personagem começou: as ações voltam a 3 (e a reação volta).
+         * Escreve só o campo `actions` da mesa, e fica no handler — nunca num
+         * efeito, pela mesma razão das durações. O jogador vê pelo poll leve da
+         * faixa de ações da ficha.
+         */
+        startTurn(slug: string) {
+            saveField(slug, 'actions', newTurn())
+        },
+
         tickAfflictions(slug: string) {
             const current = partyRef.current[slug]?.afflictions ?? []
             if (current.length === 0) return

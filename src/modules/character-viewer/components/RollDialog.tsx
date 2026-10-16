@@ -53,10 +53,12 @@ import { CASCADE_TYPES, hasSpellstrike } from '../magus'
 import { FIRST_STRIKE_KEY, HUNTERS_AIM_KEY, gravityBonus } from '../ranger'
 import { DEBILITATIONS, hasDebilitatingStrike, poisonNote, type Debilitation } from '../rogue'
 import { initiativeBonus } from '../initiative'
+import { actionCost, type ActionKind } from '../actions'
+import { useActions } from './useActions'
 import { fearsomeBruteBonus, hasExactingStrike, hasFearsomeBrute } from '../fighter'
 import { useRogue } from './useRogue'
 import { usePoisonDef } from './usePoison'
-import { magusKeyFor, rogueKeyFor } from '../charId'
+import { actionsKeyFor, magusKeyFor, rogueKeyFor } from '../charId'
 import { useMagus } from './useMagus'
 import { useSpellstrike } from './useSpellstrike'
 import { SpellstrikePanel } from './SpellstrikePanel'
@@ -348,6 +350,16 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
     const [debil, setDebil] = useState<Debilitation | null>(null)
     // Guerreiro: Exacting Strike (anotação) e Fearsome Brute (entra na conta do dano, ver planStrike).
     const [exacting, setExacting] = useState(false)
+
+    // Ações do turno: um Golpe custa 1 (2 com Hunter's Aim ou Spellstrike). Reação (Reactive
+    // Strike) não gasta ação — gasta a reação da rodada.
+    const actions = useActions(actionsKeyFor(build), mods)
+    const [asReaction, setAsReaction] = useState(false)
+    const aiming = huntersAimApplies(build, strike, opts) && opts.extrasOn[HUNTERS_AIM_KEY] === true
+    const actionCostNow = asReaction ? 0 : spellstriking || aiming ? 2 : 1
+    const actionKind: ActionKind = spellstriking || aiming ? 'any' : 'move-attack'
+    const lacking = actions.missing(actionCostNow, actionKind)
+    const reactionUsed = asReaction && actions.stored.reacted
     const rollNote = [
         poisonName && poisonOn ? poisonNote(poisonName, poisonDef) : null,
         debil ? DEBILITATIONS.find((d) => d.id === debil)?.note : null,
@@ -431,6 +443,26 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                             <ToggleButton value="str">Ataque de FOR</ToggleButton>
                             <ToggleButton value="dex">Ataque de DES</ToggleButton>
                         </ToggleButtonGroup>
+                    )}
+
+                    <Box>
+                        <Chip
+                            label="É uma reação (Reactive Strike)"
+                            color={asReaction ? 'primary' : 'default'}
+                            variant={asReaction ? 'filled' : 'outlined'}
+                            onClick={() => setAsReaction(!asReaction)}
+                            aria-pressed={asReaction}
+                            size="small"
+                            sx={{ minHeight: 28 }}
+                        />
+                    </Box>
+                    {lacking > 0 && (
+                        <Alert severity="warning" sx={{ py: 0 }}>
+                            Você não tem ações suficientes neste turno (faltam {lacking}). Dá para rolar mesmo assim.
+                        </Alert>
+                    )}
+                    {reactionUsed && (
+                        <Alert severity="warning" sx={{ py: 0 }}>A reação desta rodada já foi usada.</Alert>
                     )}
 
                     {canSpellstrike && ss.options.length > 0 && <SpellstrikePanel ss={ss} magus={magus} />}
@@ -626,6 +658,8 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                 // precisa trocar por "Só o Golpe" — rolar sem ela em silêncio enganaria.
                 disabled={loading || (canSpellstrike && !!ss.option && !ss.ready)}
                 onRoll={(mythic) => {
+                    if (asReaction) { if (!actions.stored.reacted) actions.toggleReaction() }
+                    else actions.spend(actionCostNow, actionKind)
                     const mythicDelta = mythic ? plan.mythicDelta : null
                     const noted = (r: TableRoll): TableRoll => (rollNote ? { ...r, note: rollNote } : r)
                     if (!spellstriking || !ss.option || !ss.spell) {
@@ -639,6 +673,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                         const type = ss.chosen.flatMap((c) => c.types).find((t) => (CASCADE_TYPES as readonly string[]).includes(t))
                         magus.setCascadeType(type ?? 'force')
                         magus.setCascade(true)
+                        actions.spend(1)
                     }
                     const defense = !ss.usesAttack && ss.spell.defense ? `salvaguarda: ${ss.spell.defense}` : null
                     send(noted(spellstrikeRoll(who, strike, plan, mythicDelta, [sub, `rank ${ss.option.rank}`, defense].filter(Boolean).join(' · '), {
@@ -671,6 +706,10 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     // mexem no dano antes de qualquer outra coisa.
     const slots = useSpellSlots(slotsKeyFor(build), build.focusPoints ?? 0, legacyCharKey(build))
     const energy = useEnergy(energyKeyFor(build))
+    // Ações do turno: a magia custa o que a AON diz (reação, ação livre e "1 a 3" não gastam sozinhas).
+    const actions = useActions(actionsKeyFor(build), mods)
+    const spellActions = spell ? (actionCost(spell.actions) ?? 0) : 0
+    const lackingSpell = actions.missing(spellActions)
     const ampDef = request.psychic ? psiAmpFor(request.name) : null
     const focusLeft = Math.max(0, (build.focusPoints ?? 0) - slots.focusUsed)
     const [ampOn, setAmpOn] = useState(false)
@@ -872,6 +911,11 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                         <Alert severity="info" sx={{ py: 0 }}>Esta magia não tem ataque nem dano para rolar.</Alert>
                     )}
 
+                    {lackingSpell > 0 && (
+                        <Alert severity="warning" sx={{ py: 0 }}>
+                            Você não tem ações suficientes neste turno (faltam {lackingSpell}). Dá para rolar mesmo assim.
+                        </Alert>
+                    )}
                     {attackParts && <SituationalNotes mods={mods} />}
                     {attackParts && <AdjustField label="Ajuste no ataque" value={adjust} onChange={setAdjust} />}
                 </Stack>
@@ -885,6 +929,7 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                 onClose={onClose}
                 disabled={nothing}
                 onRoll={(mythic) => {
+                    actions.spend(spellActions)
                     if (ampOn && ampDef) slots.spendFocus()
                     if (mode) energy.record(mode)
                     send(spellRoll(who, {

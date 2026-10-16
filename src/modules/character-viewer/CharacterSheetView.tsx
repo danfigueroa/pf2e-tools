@@ -37,7 +37,7 @@ import { ConditionsBar } from './components/ConditionsBar'
 import { AfflictionsBar } from './components/AfflictionsBar'
 import { PersistentDamageBar } from './components/PersistentDamageBar'
 import { MythicPointsBar } from './components/MythicPointsBar'
-import { afflictionsKeyFor, conditionsKeyFor, energyKeyFor, legacyCharKey, magusKeyFor, mythicKeyFor, persistentKeyFor, psycheKeyFor, rageKeyFor, rangerKeyFor, rogueKeyFor, sizeKeyFor } from './charId'
+import { actionsKeyFor, afflictionsKeyFor, conditionsKeyFor, energyKeyFor, legacyCharKey, magusKeyFor, mythicKeyFor, persistentKeyFor, psycheKeyFor, rageKeyFor, rangerKeyFor, rogueKeyFor, sizeKeyFor } from './charId'
 import { useConditions } from './components/useConditions'
 import { useAfflictions } from './components/useAfflictions'
 import { usePersistentDamage } from './components/usePersistentDamage'
@@ -55,6 +55,8 @@ import { RageBar } from './components/RageBar'
 import { MagusBar } from './components/MagusBar'
 import { useMagus } from './components/useMagus'
 import { hasMagusFeatures, withCascade } from './magus'
+import { ActionsBar } from './components/ActionsBar'
+import { useActions } from './components/useActions'
 import { RangerBar } from './components/RangerBar'
 import { useRanger } from './components/useRanger'
 import { hasRangerFeatures, withRanger } from './ranger'
@@ -259,6 +261,9 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
         [conditions.mods, sizeEffect.effect, rage.effect, psyche.effect, magus.effect, ranger.effect, reflexShield],
     )
 
+    // Ações do turno: a faixa liga o poll leve (a Iniciativa zera do aparelho do mestre).
+    const actions = useActions(actionsKeyFor(build), mods, true)
+
     // Pontos Míticos: gastos de qualquer aba, então o hook mora aqui.
     const mythicPoints = useMythicPoints(mythicKeyFor(build), MYTHIC_POINTS_MAX)
 
@@ -311,10 +316,11 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
             {published && onRestore && <PublishedBar sheet={published} onRestore={onRestore} />}
 
             <ConditionsBar conditions={conditions} />
+            <ActionsBar actions={actions} />
             {rage.spec && <RageBar build={build} rage={rage} conditions={conditions} />}
             {psyche.has && <PsycheBar psyche={psyche} />}
-            {hasRangerFeatures(build) && <RangerBar build={build} ranger={ranger} />}
-            {hasPoisonWeapon(build) && <RogueBar build={build} rogue={rogue} />}
+            {hasRangerFeatures(build) && <RangerBar build={build} ranger={ranger} mods={mods} />}
+            {hasPoisonWeapon(build) && <RogueBar build={build} rogue={rogue} mods={mods} />}
             {hasMagusFeatures(build) && (
                 <MagusBar build={build} magus={magus} mythicPoints={mythicPoints} conditions={conditions} />
             )}

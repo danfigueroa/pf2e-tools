@@ -19,7 +19,8 @@ import { AutoFixHigh as MagusIcon } from '@mui/icons-material'
 import { MAGUS_COLOR } from '../../../theme'
 import type { BuildInfo } from '../../character-sheet/types'
 import { characterMaxHp } from '../helpers'
-import { hpKeyFor, legacyCharKey } from '../charId'
+import { actionsKeyFor, hpKeyFor, legacyCharKey } from '../charId'
+import { useActions } from './useActions'
 import { CASCADE_TYPES, cascadeDamage, divertDestinyHp, hasDivertDestiny, hasFieryRebirthFeat, hasSpellstrike, hasSummonMythicPower } from '../magus'
 import { classDc, fieryRebirthDamage, fieryRebirthHeal } from '../fighter'
 import { fieryRebirthRoll, rollerIdentity } from '../rolls'
@@ -53,6 +54,7 @@ const chipSx = { height: 24, fontSize: '0.75rem', fontWeight: 600 }
 export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
     const { stored, effect } = magus
     const hp = useHpTracker(hpKeyFor(build), characterMaxHp(build, conditions.mods.hpMaxDelta), legacyCharKey(build))
+    const actions = useActions(actionsKeyFor(build), conditions.mods)
     const [confirmDivert, setConfirmDivert] = useState(false)
     const [confirmRebirth, setConfirmRebirth] = useState(false)
 
@@ -80,6 +82,7 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
     }
 
     const summon = () => {
+        actions.spend(1)
         mythicPoints.setUsed(mythicPoints.used - 1)
         magus.markSummoned()
     }
@@ -129,7 +132,7 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
                                             <Button
                                                 size="small"
                                                 variant="contained"
-                                                onClick={() => magus.setCascade(true)}
+                                                onClick={() => { actions.spend(1); magus.setCascade(true) }}
                                                 sx={{ bgcolor: MAGUS_COLOR, '&:hover': { bgcolor: MAGUS_COLOR, filter: 'brightness(0.9)' } }}
                                             >
                                                 Entrar na postura
@@ -157,7 +160,7 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
                             <Box sx={{ ml: 'auto' }}>
                                 {stored.spent ? (
                                     <Tooltip title="Recarregar o Spellstrike custa 1 ação.">
-                                        <Button size="small" variant="contained" onClick={magus.rechargeSpellstrike}
+                                        <Button size="small" variant="contained" onClick={() => { actions.spend(1); magus.rechargeSpellstrike() }}
                                             sx={{ bgcolor: MAGUS_COLOR, '&:hover': { bgcolor: MAGUS_COLOR, filter: 'brightness(0.9)' } }}>
                                             Recarregar · 1 ação
                                         </Button>
