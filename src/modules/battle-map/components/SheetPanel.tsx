@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
-import { Box, CircularProgress, IconButton, MenuItem, Select, Tooltip, Typography } from '@mui/material'
+import { Box, ButtonBase, CircularProgress, IconButton, MenuItem, Select, Tooltip, Typography } from '@mui/material'
 import { ChevronRight as CollapseIcon } from '@mui/icons-material'
-import { green, gold, parchment } from '../../../theme'
+import { green, gold, parchment, displayFont } from '../../../theme'
 import { parseCharacterJson, type BuildInfo } from '../../character-sheet/types'
 import { CAMPAIGN_PRESETS, loadPresetJson } from '../../character-viewer/campaignPresets'
 import { charSlugFromName } from '../../character-viewer/charId'
@@ -10,6 +10,7 @@ import { usePublication } from '../../character-viewer/components/usePublication
 import { usePublishedSheets } from '../../character-viewer/usePublishedSheets'
 import { fetchPublished } from '../../../services/sheets'
 import { writeSheetChoice } from '../sheetChoice'
+import { TokenBadge } from './TokenBadge'
 
 // A ficha é um chunk à parte: só baixa quando o painel abre.
 const CharacterSheetView = lazy(() =>
@@ -27,7 +28,7 @@ interface Props {
 
 /** Ficha compacta ao lado do mapa: o jogador acompanha o mapa e rola sem trocar de aba. */
 export const SheetPanel = ({ slug, onSlugChange, onCollapse }: Props) => {
-    const { published: sheets } = usePublishedSheets()
+    const { published: sheets, levelOf } = usePublishedSheets()
     const publication = usePublication()
     const { attach } = publication
     const [build, setBuild] = useState<BuildInfo | null>(null)
@@ -68,12 +69,12 @@ export const SheetPanel = ({ slug, onSlugChange, onCollapse }: Props) => {
         onSlugChange(value)
     }, [onSlugChange])
 
-    // Presets primeiro, depois quem foi publicado e não é da campanha.
+    // Presets primeiro (com classe e nível), depois quem foi publicado e não é da campanha.
     const options = [
-        ...CAMPAIGN_PRESETS.map((p) => ({ slug: charSlugFromName(p.sheetName), label: p.name })),
+        ...CAMPAIGN_PRESETS.map((p) => ({ slug: charSlugFromName(p.sheetName), label: p.name, meta: `${p.class} · nível ${levelOf(p)}` })),
         ...sheets
             .filter((s) => !CAMPAIGN_PRESETS.some((p) => charSlugFromName(p.sheetName) === s.slug))
-            .map((s) => ({ slug: s.slug, label: s.name })),
+            .map((s) => ({ slug: s.slug, label: s.name, meta: s.level ? `Nível ${s.level}` : '' })),
     ]
 
     return (
@@ -115,28 +116,70 @@ export const SheetPanel = ({ slug, onSlugChange, onCollapse }: Props) => {
                     value={slug ?? ''}
                     onChange={(e) => choose(e.target.value)}
                     inputProps={{ 'aria-label': 'Personagem' }}
+                    renderValue={(value) => {
+                        const o = options.find((x) => x.slug === value)
+                        if (!o) return <Typography sx={{ opacity: 0.8 }}>Escolha o personagem…</Typography>
+                        return (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
+                                <TokenBadge slug={o.slug} name={o.label} size={32} />
+                                <Typography noWrap sx={{ fontWeight: 700, fontFamily: displayFont, letterSpacing: '0.04em' }}>
+                                    {o.label}
+                                </Typography>
+                            </Box>
+                        )
+                    }}
                     sx={{
                         flex: 1,
                         minWidth: 0,
                         color: parchment.page,
                         '& .MuiSelect-icon': { color: gold.bright },
                         '& fieldset': { borderColor: 'rgba(200, 169, 81, 0.5)' },
+                        '& .MuiSelect-select': { py: 0.75 },
                     }}
                 >
-                    <MenuItem value="">
-                        <em>Escolha o personagem…</em>
-                    </MenuItem>
                     {options.map((o) => (
-                        <MenuItem key={o.slug} value={o.slug}>{o.label}</MenuItem>
+                        <MenuItem key={o.slug} value={o.slug} sx={{ gap: 1.5, py: 1 }}>
+                            <TokenBadge slug={o.slug} name={o.label} size={40} />
+                            <Box sx={{ minWidth: 0 }}>
+                                <Typography sx={{ fontWeight: 700, lineHeight: 1.2 }}>{o.label}</Typography>
+                                {o.meta && <Typography variant="caption" color="text.secondary">{o.meta}</Typography>}
+                            </Box>
+                        </MenuItem>
                     ))}
                 </Select>
             </Box>
 
             <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 1.5 }}>
                 {!slug && (
-                    <Typography sx={{ color: 'text.secondary', textAlign: 'center', mt: 4 }}>
-                        Escolha seu personagem para ver a ficha ao lado do mapa.
-                    </Typography>
+                    <Box>
+                        <Typography sx={{ color: 'text.secondary', textAlign: 'center', mt: 1, mb: 2 }}>
+                            Quem é você? Toque no seu personagem para ver a ficha ao lado do mapa.
+                        </Typography>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(112px, 1fr))', gap: 1.25 }}>
+                            {options.map((o) => (
+                                <ButtonBase
+                                    key={o.slug}
+                                    onClick={() => choose(o.slug)}
+                                    aria-label={`Abrir a ficha de ${o.label}`}
+                                    sx={{
+                                        flexDirection: 'column',
+                                        gap: 0.75,
+                                        p: 1.25,
+                                        borderRadius: 2,
+                                        border: '1px solid',
+                                        borderColor: 'divider',
+                                        backgroundColor: 'background.paper',
+                                        transition: 'border-color 120ms, box-shadow 120ms',
+                                        '&:hover, &:focus-visible': { borderColor: gold.main, boxShadow: `0 0 0 2px ${gold.main}55` },
+                                    }}
+                                >
+                                    <TokenBadge slug={o.slug} name={o.label} size={64} />
+                                    <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', lineHeight: 1.2, textAlign: 'center' }}>{o.label}</Typography>
+                                    {o.meta && <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', lineHeight: 1.2 }}>{o.meta}</Typography>}
+                                </ButtonBase>
+                            ))}
+                        </Box>
+                    </Box>
                 )}
                 {slug && loading && (
                     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}><CircularProgress /></Box>
