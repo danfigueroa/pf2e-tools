@@ -31,6 +31,7 @@ import { abilityMod, ABILITY_LABELS, mythicProficiencyDelta, weaponProficiencyRa
 import { conditionParts, type CheckPart } from './checks'
 import type { ConditionModifiers } from './conditions'
 import { meleeBonusParts } from './rage'
+import { FIRST_STRIKE_KEY, HUNTERS_AIM_KEY, gravityBonus, hasHuntersAim } from './ranger'
 import type { UnarmedAttack } from './unarmed'
 import type { MagicWeaponRules } from './magicWeapons'
 import { runeCritEffects, specCritEffect, specSourceFor, type CritEffect, type SpecSource } from './critEffects'
@@ -262,8 +263,12 @@ export function specActive(s: Strike, mods: ConditionModifiers, on: Record<strin
     }
 }
 
-export const extraEnabled = (e: ExtraDamage, on: Record<string, boolean>) =>
-    on[e.key] ?? e.defaultOn
+/**
+ * Presa marcada com Hunter's Edge: Precision: o dano de precisão da arma vem
+ * ligado (a escolha do jogador, quando existe, vale sempre).
+ */
+export const extraEnabled = (e: ExtraDamage, on: Record<string, boolean>, mods?: ConditionModifiers) =>
+    on[e.key] ?? (e.defaultOn || (e.precision && !!mods?.ranger?.precisionOnPrey))
 
 export const mapPenalty = (agile: boolean, map: 0 | 1 | 2): number =>
     map === 0 ? 0 : (agile ? -4 : -5) * map
@@ -305,6 +310,14 @@ export interface StrikePlan {
     warnings: string[]
 }
 
+/** Gravity Weapon vale em Golpe com arma (não desarmado) enquanto ativa. */
+export const gravityApplies = (s: Strike, mods: ConditionModifiers): boolean =>
+    !!mods.ranger?.gravity && s.key.startsWith('w:')
+
+/** Hunter's Aim: só quem tem o talento, e só em Golpe à distância (ou arremessado). */
+export const huntersAimApplies = (build: BuildInfo, s: Strike, opts: Pick<StrikeOptions, 'mode'>): boolean =>
+    hasHuntersAim(build) && (s.traits.ranged || opts.mode === 'thrown')
+
 export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers, opts: StrikeOptions): StrikePlan {
     const { traits } = s
     const warnings: string[] = []
@@ -333,6 +346,10 @@ export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers
     }
     attackParts.push(...conditionParts(mods, ability === 'str' ? 'attackStr' : 'attackDex'))
     const map = mapPenalty(traits.agile, opts.map)
+    // Hunter's Aim: Golpe à distância contra a presa (2 ações), escolha do jogador.
+    if (huntersAimApplies(build, s, opts) && opts.extrasOn[HUNTERS_AIM_KEY] === true) {
+        attackParts.push({ label: "Hunter's Aim (circunstância)", value: 2, kind: 'other' })
+    }
     if (map) attackParts.push({ label: `${opts.map + 1}º ataque${traits.agile ? ' (ágil)' : ''}`, value: map, kind: 'map' })
     if (opts.attackAdjust) attackParts.push({ label: 'Ajuste', value: opts.attackAdjust, kind: 'other' })
     const attackTotal = attackParts.reduce((sum, p) => sum + p.value, 0)
@@ -348,6 +365,10 @@ export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers
         for (const b of meleeBonusParts(mods, { agile: traits.agile, name: s.name })) {
             damageParts.push({ label: b.from, value: b.value, kind: 'other' })
         }
+    }
+    // Gravity Weapon: status = 2 × dados da arma, no primeiro Golpe com ARMA da rodada.
+    if (gravityApplies(s, mods) && opts.extrasOn[FIRST_STRIKE_KEY] !== false) {
+        damageParts.push({ label: 'Gravity Weapon (status, 2 × dados)', value: gravityBonus(s.weaponDice.count), kind: 'other' })
     }
     if (opts.damageAdjust) damageParts.push({ label: 'Ajuste', value: opts.damageAdjust, kind: 'other' })
     const flat = damageParts.reduce((sum, p) => sum + p.value, 0)
@@ -365,7 +386,7 @@ export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers
         weapon: { groups: [s.weaponDice], flat },
         damageParts,
         extras: [
-            ...s.extras.filter((e) => extraEnabled(e, opts.extrasOn)),
+            ...s.extras.filter((e) => extraEnabled(e, opts.extrasOn, mods)),
             ...cascadeExtras(mods, traits.ranged || opts.mode === 'thrown'),
         ],
         deadly,

@@ -2,6 +2,7 @@ import type { AbilityKey } from './helpers'
 import type { RageEffect } from './rage'
 import type { PsycheEffect } from './psyche'
 import type { CascadeEffect } from './magus'
+import type { RangerEffect } from './ranger'
 
 /**
  * Condições do Pathfinder 2e Remaster (apêndice do Player Core) e o efeito
@@ -510,6 +511,8 @@ export interface ConditionModifiers {
     psyche?: PsycheEffect
     /** Arcane Cascade ligada: dano extra de força (ou do tipo escolhido) nos Golpes corpo a corpo. */
     cascade?: CascadeEffect
+    /** Presa marcada com Hunter's Edge: Precision e/ou Gravity Weapon ativa (`ranger.ts`). */
+    ranger?: RangerEffect
 }
 
 const emptyTargets = <T,>(make: () => T): Record<ModTarget, T> =>
