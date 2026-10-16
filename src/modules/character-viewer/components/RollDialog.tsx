@@ -287,7 +287,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
 
     return (
         <>
-            <DialogTitle sx={{ pb: 1 }}>Golpe — {strike.name}</DialogTitle>
+            <DialogTitle sx={{ pb: 1 }}>Golpe — {weapon ? (weapon.display || weapon.name) : strike.name}</DialogTitle>
             <DialogContent>
                 <Stack spacing={1.5} sx={{ pt: 0.5 }}>
                     {rules && rules.profiles.length > 0 && (
@@ -425,17 +425,20 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     const traits = (spell?.traits ?? []).map((t) => t.toLowerCase())
     // Sem descrição (o "Atq" do cartão do conjurador): é o ataque genérico.
     const hasAttack = !!attack && (!spell || traits.includes('attack'))
-    const basic = /basic/i.test(spell?.defense ?? '')
+    // A salvaguarda chega TRADUZIDA ("Reflexos básico") — casa as duas línguas.
+    const basic = /\bbasic\b|básic/i.test(spell?.defense ?? '')
 
     const scaled = spell && castRank != null ? scaleSpell(spell, castRank) : null
     const components = scaled ? damageComponents(scaled) : []
     // Dois componentes com a mesma fórmula e tipos diferentes costumam ser
     // ALTERNATIVAS (Gouging Claw: cortante OU perfurante): só o primeiro liga.
+    // Persistente começa desligado: em magia ele costuma ser de um grau só (o
+    // 5d4 da Ignition é do sucesso crítico), e a prosa diz qual.
     const [selected, setSelected] = useState<Set<number>>(() => {
         const on = new Set<number>()
         const formulas = new Set<string>()
         for (const c of components) {
-            if (c.uncertain) continue
+            if (c.uncertain || c.persistent) continue
             const f = formatValue(c.value)
             if (formulas.has(f)) continue
             formulas.add(f)
@@ -524,7 +527,7 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                             )}
                             {attackParts && chosen.length > 0 && (
                                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                    Crítico: dobra o rolado.
+                                    Crítico: dobra o rolado (o persistente entra à parte, como a magia mandar).
                                 </Typography>
                             )}
                         </Box>

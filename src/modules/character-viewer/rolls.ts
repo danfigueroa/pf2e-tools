@@ -177,11 +177,9 @@ export function spellRoll(
             toPart(componentLabel(c), rollGroups(c.value.count ? [{ count: c.value.count, faces: c.value.faces }] : [], c.value.flat), c.persistent))
         const total = Math.max(0, parts.filter((p) => !p.persistent).reduce((s, p) => s + p.total, 0))
         roll.damage = { parts, total }
-        if (input.attackParts) {
-            const persistent = parts.filter((p) => p.persistent)
-            const extra = persistent.length ? ` · persistente dobrado: ${persistent.map((p) => 2 * p.total).join(' + ')}` : ''
-            roll.damage.crit = { total: 2 * total, note: `2 × ${total} = ${2 * total}${extra}` }
-        }
+        // Persistente de magia fica fora do dobro: costuma ser de um grau só
+        // (o 5d4 da Ignition só existe no crítico), e a prosa decide.
+        if (input.attackParts) roll.damage.crit = { total: 2 * total, note: `2 × ${total} = ${2 * total}` }
         if (input.basic) roll.damage.basic = true
     }
     return roll

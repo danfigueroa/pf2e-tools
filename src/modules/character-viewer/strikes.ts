@@ -185,7 +185,9 @@ export function weaponStrike(
     const baseAbility = pathbuilderAbility(build, traits)
     return {
         key: `w:${w.name}:${profileIndex}`,
-        name: w.display || w.name,
+        // O nome base ("Warhammer"), não o do Pathbuilder com as runas todas —
+        // é o título do cartão na mesa, e as runas já aparecem no dano.
+        name: w.name,
         attack: w.attack + (profile?.attackDelta ?? 0),
         baseAbility,
         profRank: weaponRank(build, w, baseAbility),
