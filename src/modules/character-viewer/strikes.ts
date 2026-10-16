@@ -268,6 +268,24 @@ export const extraEnabled = (e: ExtraDamage, on: Record<string, boolean>) =>
 export const mapPenalty = (agile: boolean, map: 0 | 1 | 2): number =>
     map === 0 ? 0 : (agile ? -4 : -5) * map
 
+/**
+ * O dano da postura Arcane Cascade como parcela extra: só corpo a corpo, sempre
+ * ligada (a postura É a escolha) e dobrada no crítico como todo dano rolado.
+ */
+function cascadeExtras(mods: ConditionModifiers, ranged: boolean): ExtraDamage[] {
+    const c = mods.cascade
+    if (!c || ranged) return []
+    return [{
+        key: 'arcane-cascade',
+        expr: { groups: [], flat: c.damage },
+        text: `${c.damage} ${c.type}`,
+        type: c.type,
+        precision: false,
+        persistent: false,
+        defaultOn: true,
+    }]
+}
+
 /** A conta do Golpe antes de rolar: o que a prévia mostra e o que a rolagem usa. */
 export interface StrikePlan {
     ability: 'str' | 'dex'
@@ -346,7 +364,10 @@ export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers
         mythicDelta: s.profRank == null ? null : mythicProficiencyDelta(build.level, s.profRank),
         weapon: { groups: [s.weaponDice], flat },
         damageParts,
-        extras: s.extras.filter((e) => extraEnabled(e, opts.extrasOn)),
+        extras: [
+            ...s.extras.filter((e) => extraEnabled(e, opts.extrasOn)),
+            ...cascadeExtras(mods, traits.ranged || opts.mode === 'thrown'),
+        ],
         deadly,
         fatal: traits.fatal,
         critEffects: [...s.critEffects, ...(specActive(s, mods, opts.extrasOn) ? [s.spec!.effect] : [])],

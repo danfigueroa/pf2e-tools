@@ -51,6 +51,9 @@ export const rageKeyFor = (build: BuildInfo): string => rageKeyForSlug(charSlug(
 export const psycheKeyForSlug = (slug: string): string => `${slug}/psyche`
 export const energyKeyForSlug = (slug: string): string => `${slug}/energy`
 export const energyKeyFor = (build: BuildInfo): string => energyKeyForSlug(charSlug(build))
+/** Arcane Cascade, Spellstrike e Summon Mythic Power do Magus (`magus.ts`). */
+export const magusKeyForSlug = (slug: string): string => `${slug}/magus`
+export const magusKeyFor = (build: BuildInfo): string => magusKeyForSlug(charSlug(build))
 export const psycheKeyFor = (build: BuildInfo): string => psycheKeyForSlug(charSlug(build))
 
 /**

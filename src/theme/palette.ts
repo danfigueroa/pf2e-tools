@@ -78,6 +78,9 @@ export const RAGE_COLOR = '#A02A18'
 /** Psique liberada do Psíquico (a faixa da ficha). Violeta; 7,7:1 sobre `parchment.paper`. */
 export const PSYCHE_COLOR = '#5B3A8C'
 
+/** Arcane Cascade e a faixa do Magus. Azul-arcano; 7,3:1 sobre `parchment.paper`. */
+export const MAGUS_COLOR = '#2F4F8F'
+
 /**
  * Escudo (ShieldCard, cartão da Iniciativa) — aço azulado. É item, não
  * criatura: a barra de PV dele não pode ser confundida com a do personagem.
