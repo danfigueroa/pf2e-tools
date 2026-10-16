@@ -76,6 +76,15 @@ qualquer dispositivo — no desktop as áreas viram **abas**; no mobile viram **
     (gastar/devolver como os slots de magia, "Novo dia" para recuperar tudo) e o valor com
     **proficiência mítica** ao lado de cada salvaguarda, perícia e **ataque** — a proficiência
     mítica **substitui** a normal, não soma por cima.
+-   🎲 **Rolar pela ficha**: tocar numa salvaguarda, na Percepção, numa perícia ou Saber, no
+    **Rolar** de uma arma ou desarmado, no **Atq** do conjurador ou no botão da magia abre um
+    diálogo com a **conta parcela por parcela** ("Mestre +16 · CON +4 · Item +1 · Amedrontado 1
+    −1") e rola. O Golpe rola **ataque e dano juntos**, com o dano do **acerto e do crítico**
+    (deadly e fatal incluídos); dá para escolher o 1º/2º/3º ataque (MAP, −4/−8 se ágil), ligar ou
+    desligar cada dano extra (runas começam ligadas, precisão desligada) e somar um ajuste livre.
+    A magia rola no **rank conjurado**, e a salvaguarda básica mostra o dano de cada grau. Cada
+    rolagem pode ser **normal ou ✦ mítica** — a mítica gasta o Ponto Mítico sozinha. **Toda a mesa
+    vê a rolagem** (ver [Rolagens da Mesa](#-rolagens-da-mesa-implementado)).
 -   👥 **Estado compartilhado da mesa**: PV, PV de companheiros, slots de magia, pontos de foco,
     pontos míticos e condições são os **mesmos para todos os jogadores** — marcar 50 de dano no notebook aparece no
     celular de quem estiver na mesa. A sincronia é **sob demanda**: puxa ao abrir a ficha e no botão
@@ -95,7 +104,10 @@ qualquer dispositivo — no desktop as áreas viram **abas**; no mobile viram **
     **Consertar** devolve PV pelo rank de Ofício (sucesso ou crítico). Os números vêm da AON, com as
     runas de reforço somadas, e o estado é da mesa.
 -   ⚔️ Cálculos derivados (modificadores, PV, CA, salvamentos, ataques, dano de arma) via
-    helpers reutilizáveis (`helpers.ts`).
+    helpers reutilizáveis (`helpers.ts`). Salvaguardas, Percepção e perícias saem de uma fonte só
+    (`checks.ts`), que soma o **bônus de item** da ficha (runa resiliente, botas, anel) e a
+    **penalidade de armadura** quando a FOR não alcança a exigência. Os traços das armas (ágil,
+    acuidade, deadly, fatal…) vêm da AON, já que o Pathbuilder não os exporta.
 
 ### ⏸️ Ficha de Personagem em PDF (Implementado, desativado)
 
@@ -241,6 +253,8 @@ abre, mas não é o alvo.
     O deslocamento do personagem é o da ficha, somando os bônus e nunca reduzido
 -   **Ping**: clique duplo em qualquer ponto do mapa faz um anel dourado piscar ali, na tela de
     todos
+-   **Rolador de dados** (botão **Dados**, sem trocar a ferramenta): d4 a d100, até 100 dados,
+    bônus e cor. A rolagem vai para o feed da mesa, junto com as rolagens das fichas
 -   **Vários mapas por sessão**: o GM cria os mapas na gaveta "Mapas da sessão" e **leva a mesa**
     de um para outro; quem estiver em outro mapa recebe o aviso "A mesa está em outro mapa — Ir"
 -   **Os tokens vêm da Iniciativa**: cada encontro é ligado a um mapa e cada combatente vira um
@@ -257,6 +271,18 @@ desenhos).
 
 Todos veem o mesmo mapa: os aparelhos acompanham as mudanças a cada 1,5 s enquanto a aba está
 aberta, sem botão de atualizar.
+
+### ✅ Rolagens da Mesa (Implementado)
+
+Toda rolagem — da Ficha Virtual ou do rolador do Mapa — aparece **para todo mundo, em qualquer
+página** (Ficha, Iniciativa, Mapa…), num cartão com os dados animados, o resultado e a conta.
+
+-   Teste de d20 com **Natural 20/1** destacados; Golpe com ataque, dano e crítico no mesmo cartão;
+    salvaguarda básica com o dano de sucesso, falha e falha crítica
+-   **Histórico** das últimas 30 rolagens em "Rolagens da mesa" (sidebar; no celular, o dado da
+    barra do topo)
+-   As rolagens chegam aos outros em ~3 s (~1 s no Mapa), sem botão de atualizar. Com a aba
+    escondida o app não consulta nada
 
 ### 🚧 Em Desenvolvimento
 
@@ -449,6 +475,7 @@ pf2e-tools/
 ├── scripts/                      # Rodados à mão, fora do build
 │   ├── fetch-creature-tables.mjs # Gera creatureTables.ts a partir das tabelas do GM Core na AON
 │   ├── check-scaling.mjs         # Confere o motor de escala contra criaturas de verdade
+│   ├── check-rolls.mjs           # Confere a matemática das rolagens contra as fichas do grupo
 │   └── ts-loader.mjs             # Deixa o Node importar os .ts do src/ nos scripts acima
 ├── server/
 │   └── index.mjs                 # Servidor de API local (desenvolvimento)
@@ -551,6 +578,10 @@ Visualizador interativo da ficha. Reaproveita `parseCharacterJson`/`BuildInfo` d
 | `magicWeapons.ts`           | Armas cujos números mudam com a situação (Gloom Blade no escuro), casadas pelo nome |
 | `helpers.ts`                | Cálculos derivados: `abilityMod`, `totalHp`, `spellcasterStats`, `isMythicCharacter`, `mythicProficiencyDelta`, … |
 | `components/useMythicPoints` | Pool de 3 Pontos Míticos, compartilhado com a mesa (campo `mythic`)                 |
+| `checks.ts`                 | Totais de salvaguardas, Percepção, perícias e Saberes, com a conta parcela por parcela (item, armadura, condições) |
+| `strikes.ts`                | Conta do Golpe: atributo do ataque, MAP, dano, extras e crítico com deadly/fatal     |
+| `rolls.ts`                  | Monta a rolagem que vai para a mesa (teste, Golpe, magia) e a identidade de quem rola |
+| `components/RollDialog`     | Diálogo de rolagem: memorial, MAP, dano extra, ajuste, normal ou ✦ mítico          |
 | `sections/*`                | Uma área por aba: Overview, Combat, Skills, Feats, Specials, Spells, Pets, Inventory |
 | `components/UploadCard`     | Upload / colar JSON / escolher preset                                               |
 | `components/DescriptionDrawer` | Drawer que busca a descrição na AON e mostra traduzida                            |
@@ -650,7 +681,7 @@ encontro antigo, de antes dos mapas, virou o "Sem mapa".
 | `damage.ts` / `defenses.ts`   | Dano RAW e casamento de resistência/fraqueza/imunidade por tipo                    |
 | `afflictions.ts`              | Estágios de veneno/doença: salvaguarda, dano do estágio e duração máxima           |
 | `persistentDamage.ts`         | Dano persistente: entrada, teste plano de recuperação e vínculo com a aflição      |
-| `dice.ts`                     | Lê a fórmula de dano da prosa da AON e rola — o único ponto que rola dados         |
+| `dice.ts`                     | Lê a fórmula de dano da prosa da AON e rola — o único ponto do módulo que rola dados |
 | `importCharacter.ts`          | Ficha ou criatura da AON → combatente                                              |
 | `components/CombatantCard`    | Cartão único (personagem e monstro), com PV, condições e ações do combatente       |
 | `components/CombatantActions` | Os botões de condição, aflição, dano persistente e ficha, com contagem e pendência |
@@ -691,6 +722,7 @@ digitada, e salvaguarda, salvaguarda de estágio e teste plano são informados p
 O que o app rola são os dois danos que o RAW manda cair sem ninguém pedir — o do estágio de uma
 aflição e o persistente do fim do turno —, porque pedir esses dois viraria um clique por turno por
 combatente afligido. Cada aplicação automática mostra o memorial da rolagem e um **Desfazer**.
+O que os jogadores rolam pela Ficha Virtual aparece na tela da Iniciativa, pelo feed de rolagens.
 
 ---
 
@@ -710,6 +742,7 @@ Sem id na URL, abre o mapa para onde a mesa está. O módulo é o único carrega
 | PV e imagem de personagem      | estado da mesa (`hp`, `token`) — os mesmos da Ficha Virtual      |
 | Cada desenho                   | Redis, `drw:<id>` — um campo por desenho                         |
 | Ping                           | Redis, `ping:<id>` — apagado por quem pingou em 6 s              |
+| Rolagens de dados              | feed da mesa (`pf2e:rolls:v1`), o mesmo das fichas               |
 | Imagens                        | Vercel Blob: `tokens/` (permanente), `maps/` e `monsters/` (do mapa) |
 
 #### Arquivos
@@ -725,6 +758,7 @@ Sem id na URL, abre o mapa para onde a mesa está. O módulo é o único carrega
 | `components/MapListDrawer.tsx`  | Criar, renomear, levar a mesa e apagar mapas                              |
 | `components/AreaPanel.tsx`      | Forma, tamanho e cor da área de efeito                                    |
 | `components/PingLayer.tsx`      | O anel do clique duplo, mostrado uma vez por aparelho                     |
+| `components/DicePanel.tsx`      | Rolador de dados (quantidade, faces, bônus, cor); manda para o feed      |
 | `areas.ts`                      | Quadrados de explosão, emanação, cone e linha; criaturas dentro           |
 | `components/TokenPopover.tsx`   | Dano e cura no token                                                      |
 | `geometry.ts` / `drawing.ts`    | Distância PF2e, snap, tamanho do token; simplificação e validação do traço |
@@ -961,9 +995,12 @@ O servidor (`server/index.mjs`) fornece endpoints para buscar dados da Archives 
 | GET    | `/api/creature`  | `q`, `minLevel`, `maxLevel`, `limit` | Busca criaturas por nome e/ou faixa de nível — sem tradução |
 | GET    | `/api/creature`  | `name`     | Ficha completa de uma criatura, com o degrau de benchmark de cada estatística — sem tradução |
 | GET    | `/api/search`    | `affliction` | Venenos e doenças com estágios, salvaguarda e duração — sem tradução |
+| GET    | `/api/search`    | `gear`     | Traços das armas e penalidade das armaduras (`a\|b`), para as rolagens — sem tradução |
 | POST   | `/api/clear-cache` | —        | Limpa o cache de descrições                      |
 | GET    | `/api/state`     | `char`     | Estado de jogo compartilhado de um personagem    |
 | POST   | `/api/state`     | body       | Grava uma fatia (`{ char, field, data }`)        |
+| GET    | `/api/state`     | `rolls`, `rev` | Feed das últimas 30 rolagens (só o contador, se nada mudou) |
+| POST   | `/api/state`     | `{ action: 'roll-add', roll }` | Manda uma rolagem já sorteada para a mesa |
 
 As variantes **plurais** (`/api/feats`, `/api/searches`, `/api/spells`, `/api/companions`) aceitam
 uma lista de nomes para busca em lote. Todas as descrições são **traduzidas para pt-BR** via Groq
@@ -1110,6 +1147,9 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
     -   [x] Áreas: Combate, Perícias, Talentos, Habilidades, Magias, Companheiros, Inventário
     -   [x] Estado de jogo compartilhado entre os jogadores (PV, slots, foco, condições, pontos míticos)
     -   [x] Proficiência mítica em salvaguardas, perícias e ataques + pool de 3 Pontos Míticos
+    -   [x] Rolar salvaguardas, Percepção, perícias, Golpes (ataque + dano + crítico) e magias pela
+            ficha, normal ou ✦ mítico, com a conta à mostra
+    -   [x] Bônus de item e penalidade de armadura nos testes
 -   [x] **Módulo de Ficha de Personagem (PDF)** — _desativado na plataforma_
     -   [x] Upload e parsing de JSON
     -   [x] Geração de PDF completo
@@ -1135,6 +1175,8 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
     -   [x] Ping com clique duplo
     -   [x] Vários mapas por sessão, "levar a mesa" e apagar depois do jogo
     -   [x] Token do personagem permanente; o do monstro some com o mapa
+    -   [x] Rolador de dados
+-   [x] **Rolagens da mesa**: toda rolagem aparece para todos, em qualquer página, com histórico
 -   [x] **Módulo de Escalar Monstro (criatura da AON em outro nível)**
     -   [x] Tabelas de construção de criaturas do GM Core transcritas do índice da AON (níveis -1 a 24)
     -   [x] Motor que preserva a diferença da ficha em relação ao benchmark (reescalar para o
@@ -1269,6 +1311,16 @@ Ele confere quatro propriedades: **identidade** (reescalar para o próprio níve
 original), **monotonia** (subir de nível não baixa número), **ida e volta** (+4 níveis e de volta
 fecha) e **ajuste fino** (trocar o degrau move o número). Rode depois de qualquer mudança em
 `scaling.ts` ou nas tabelas.
+
+A matemática das rolagens tem o seu, que roda sem rede contra as fichas do grupo:
+
+```bash
+node scripts/check-rolls.mjs   # sai com código != 0 se algo falhar
+```
+
+Confere os totais de cada ficha (com o bônus de item), o mítico, o empilhamento de condições, o
+MAP, o crítico com deadly e fatal, o piso de 1 no dano e que cliente e servidor recusam a mesma
+rolagem inválida. Rode depois de mexer em `checks.ts`, `strikes.ts`, `rolls.ts` ou `src/dice/`.
 
 Para testar a Ficha Virtual manualmente:
 

@@ -761,8 +761,10 @@ cada fatia de estado mora**:
     para tipo físico (ou sem tipo). Em `computeDamage` o escudo entra **depois da resistência e
     antes dos temporários**; quem aplica refaz a conta por `view.blockDamage(blockFrom)` para
     gastar o escudo junto.
-- **O que o app rola e o que não rola** (`dice.ts` é o único ponto que rola): rolagem de quem está
-  jogando continua na mesa — a iniciativa é digitada, e salvaguarda, salvaguarda de estágio e teste
+- **O que o app rola e o que não rola** (`dice.ts` é o único ponto que rola NESTE módulo): rolagem
+  de quem está jogando continua com o jogador — que agora pode rolar pela Ficha Virtual e a
+  Iniciativa VÊ pelo feed de rolagens, mas nada disso preenche o tracker sozinho: a iniciativa é
+  digitada, e salvaguarda, salvaguarda de estágio e teste
   plano de dano persistente são informados pelo GM em botões. O app rola os dois danos que o RAW
   manda cair sem ninguém pedir: o do **estágio de uma aflição** e o **persistente do fim do turno**.
   Pedir esses dois ao GM seria um clique por turno por combatente afligido, que é o trabalho que o
