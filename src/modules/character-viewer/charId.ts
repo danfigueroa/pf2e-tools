@@ -60,6 +60,9 @@ export const rangerKeyFor = (build: BuildInfo): string => rangerKeyForSlug(charS
 /** Veneno na arma do Ladino (`rogue.ts`). */
 export const rogueKeyForSlug = (slug: string): string => `${slug}/rogue`
 export const rogueKeyFor = (build: BuildInfo): string => rogueKeyForSlug(charSlug(build))
+/** Ações do turno (`actions.ts`). */
+export const actionsKeyForSlug = (slug: string): string => `${slug}/actions`
+export const actionsKeyFor = (build: BuildInfo): string => actionsKeyForSlug(charSlug(build))
 export const psycheKeyFor = (build: BuildInfo): string => psycheKeyForSlug(charSlug(build))
 
 /**

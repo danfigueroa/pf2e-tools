@@ -18,6 +18,7 @@ import { handleRollRequest, isRollRequest } from '../api/_lib/roll-handler.js'
 import { hasTranslationKey } from '../api/_lib/aon.js'
 import {
   readCharacter,
+  readField,
   writeField,
   isValidSlug,
   isValidField,
@@ -563,6 +564,25 @@ const server = http.createServer(async (req, res) => {
       if (!isValidSlug(char)) {
         res.writeHead(400, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ error: 'Parâmetro "char" inválido' }))
+        return
+      }
+      // Uma fatia só (`?field=`), como no serverless: o poll leve das ações do turno.
+      const one = parsedUrl.searchParams.get('field')
+      if (one !== null) {
+        if (!isValidField(one)) {
+          res.writeHead(400, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ error: 'Parâmetro "field" inválido' }))
+          return
+        }
+        try {
+          const entry = await readField(char, one)
+          res.writeHead(200, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ char, field: one, data: entry ? entry.data : null, updatedAt: entry ? entry.updatedAt : 0 }))
+        } catch (e) {
+          console.error('[/api/state] Erro ao ler o campo:', e)
+          res.writeHead(500, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ error: 'Erro ao ler o estado da mesa' }))
+        }
         return
       }
       try {

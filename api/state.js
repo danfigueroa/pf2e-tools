@@ -6,6 +6,7 @@
 // maxDuration configurado.
 import {
   readCharacter,
+  readField,
   writeField,
   isValidSlug,
   isValidField,
@@ -63,6 +64,18 @@ export default async function handler(req, res) {
     const char = req.query?.char
     if (!isValidSlug(char)) {
       return res.status(400).json({ error: 'Parâmetro "char" inválido' })
+    }
+    // Uma fatia só (`?field=`): o poll leve do contador de ações do turno.
+    const one = req.query?.field
+    if (one !== undefined) {
+      if (!isValidField(one)) return res.status(400).json({ error: 'Parâmetro "field" inválido' })
+      try {
+        const entry = await readField(char, one)
+        return res.status(200).json({ char, field: one, data: entry ? entry.data : null, updatedAt: entry ? entry.updatedAt : 0 })
+      } catch (error) {
+        console.error('[/api/state] Erro ao ler o campo:', error)
+        return res.status(500).json({ error: 'Erro ao ler o estado da mesa' })
+      }
     }
     try {
       const fields = await readCharacter(char)

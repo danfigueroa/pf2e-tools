@@ -158,6 +158,35 @@ export function loadCharacter(slug: string, force = false): Promise<Snapshot> {
     return promise
 }
 
+/**
+ * Relê UMA fatia (1 comando no servidor) e a reaplica nos hooks abertos — o poll
+ * leve do contador de ações do turno, que o GM zera da Iniciativa em outro
+ * aparelho. Nunca atropela uma escrita local ainda na fila: o valor do servidor
+ * seria anterior a ela. Devolve se mudou.
+ */
+export async function pullField(slug: string, field: string): Promise<boolean> {
+    const id = `${slug}/${field}`
+    if (pending.has(id)) return false
+    try {
+        const r = await fetch(`/api/state?char=${encodeURIComponent(slug)}&field=${encodeURIComponent(field)}`)
+        if (!r.ok) return false
+        const body = await r.json() as { data?: unknown }
+        // Escreveram aqui enquanto a resposta vinha: a escrita local é a mais nova.
+        if (pending.has(id)) return false
+        const data = body.data
+        if (data === null || data === undefined) return false
+        const current = readLocal(slug, field)
+        if (JSON.stringify(current) === JSON.stringify(data)) return false
+        writeLocal(slug, field, data)
+        const snapshot = snapshots.get(slug)
+        if (snapshot) snapshot[field] = data
+        fieldListeners.get(id)?.forEach((l) => l(data))
+        return true
+    } catch {
+        return false
+    }
+}
+
 /** Botão "Atualizar": relê do servidor e reaplica em todos os hooks abertos. */
 export async function refresh(slug: string): Promise<void> {
     await loadCharacter(slug, true)

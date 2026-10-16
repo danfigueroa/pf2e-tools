@@ -34,7 +34,7 @@ const TTL_SECONDS = 180 * 24 * 60 * 60
 export const MAX_FIELD_BYTES = 8 * 1024
 
 const SLUG_RE = /^[a-z0-9-]{1,64}$/
-const FIELD_RE = /^(hp|slots|conditions|afflictions|persistent|mythic|consumed|shield|token|size|rage|psyche|energy|magus|ranger|rogue|pet:[a-z0-9:#-]{1,80})$/
+const FIELD_RE = /^(hp|slots|conditions|afflictions|persistent|mythic|consumed|shield|token|size|rage|psyche|energy|magus|ranger|rogue|actions|pet:[a-z0-9:#-]{1,80})$/
 
 // Contador global de escritas no estado dos personagens. O mapa de combate o
 // lê junto da própria revisão (um MGET) para saber que o PV de alguém mudou
@@ -109,6 +109,19 @@ export async function readCharacter(slug) {
         if (entry) fields[field] = { data: entry.data, updatedAt: entry.updatedAt ?? 0 }
     }
     return fields
+}
+
+/**
+ * UMA fatia de um personagem (HGET: 1 comando), para o que precisa chegar rápido
+ * sem reler o personagem inteiro — hoje, o contador de ações do turno.
+ * @returns {Promise<{data: unknown, updatedAt: number} | null>}
+ */
+export async function readField(slug, field) {
+    const key = KEY_PREFIX + slug
+    const r = redis()
+    const raw = r ? await r.hget(key, field) : memory.get(key)?.[field]
+    const entry = unwrap(raw)
+    return entry ? { data: entry.data, updatedAt: entry.updatedAt ?? 0 } : null
 }
 
 /**
