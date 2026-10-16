@@ -48,6 +48,8 @@ export interface SpellCasterInfo {
     tradition: string
     /** A conta do ataque de magia e o ✦ — o que o diálogo de rolagem usa. */
     attackInfo?: SpellAttackInfo | null
+    /** Conjuração de Psíquico: recebe o bônus da psique liberada (`psyche.ts`). */
+    psychic?: boolean
 }
 
 export type DescriptionRequest =
@@ -540,7 +542,7 @@ const SpellRollButton = ({ spell, caster, castRank, name, onRoll }: {
         <Button
             variant="contained"
             startIcon={<DiceIcon />}
-            onClick={() => onRoll({ kind: 'spell', name, attack: caster?.attackInfo ?? null, spell, castRank })}
+            onClick={() => onRoll({ kind: 'spell', name, attack: caster?.attackInfo ?? null, spell, castRank, psychic: caster?.psychic })}
             sx={{ mb: 2, minHeight: 40 }}
             fullWidth
         >

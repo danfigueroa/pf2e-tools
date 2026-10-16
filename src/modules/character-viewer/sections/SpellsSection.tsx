@@ -15,7 +15,8 @@ import { getCachedSpell, prefetchSpellDescriptions, useDescriptionCacheVersion }
 import { legacyCharKey, slotsKeyFor } from '../charId'
 import { slotKey, useSpellSlots, type SpellSlotsApi } from '../components/useSpellSlots'
 import { SlotPips, SlotCount } from '../components/SlotPips'
-import { gold } from '../../../theme'
+import { gold, PSYCHE_COLOR } from '../../../theme'
+import { psycheDamageBonus } from '../psyche'
 import { ConditionDelta } from '../components/ConditionDelta'
 import type { ConditionModifiers } from '../conditions'
 import type { MythicPointsApi } from '../components/useMythicPoints'
@@ -213,6 +214,7 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
                                     tooltip: 'Gastar 1 Ponto de Foco',
                                 } : undefined}
                                 dimmed={focusMax > 0 && slots.focusUsed >= focusMax}
+                                psycheOn={!!mods.psyche}
                             />
                         ))}
                         {focusMax > 0 && (
@@ -421,7 +423,7 @@ const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, o
                                             name,
                                             level: castRank,
                                             autoHeightened: spellLevel === 0,
-                                            caster: { name: caster.name, dc, attack, tradition: caster.magicTradition, attackInfo },
+                                            caster: { name: caster.name, dc, attack, tradition: caster.magicTradition, attackInfo, psychic: isPsychicCaster(build, caster) },
                                         }}
                                         onSelect={onSelect}
                                         pips={tracked ? {
@@ -432,6 +434,7 @@ const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, o
                                         } : undefined}
                                         spend={spontaneousSpend}
                                         dimmed={tracked ? used >= count : false}
+                                        psycheOn={!!mods.psyche}
                                     />
                                 )
                             })}
@@ -454,9 +457,11 @@ interface SpellRowProps {
     /** Botão de gastar um slot compartilhado (espontâneo), ponto de foco ou Ponto Mítico. */
     spend?: { onSpend: () => void; disabled: boolean; tooltip: string; emptyTooltip?: string }
     dimmed?: boolean
+    /** Psique liberada: a linha mostra o bônus de dano da conjuração de Psíquico. */
+    psycheOn?: boolean
 }
 
-const SpellRow = ({ name, count, accent, request, onSelect, pips, spend, dimmed }: SpellRowProps) => {
+const SpellRow = ({ name, count, accent, request, onSelect, pips, spend, dimmed, psycheOn }: SpellRowProps) => {
     const cached = getCachedSpell(name)
     // Dano já no nível do slot (request.level = rank efetivo de conjuração).
     const castRank = request.type === 'spell' ? request.level : undefined
@@ -476,6 +481,9 @@ const SpellRow = ({ name, count, accent, request, onSelect, pips, spend, dimmed 
             .join(' · ')
         : ''
     const actions = cached?.actions ? actionSymbol(cached.actions) : ''
+    const psycheBonus = psycheOn && request.type === 'spell' && request.caster?.psychic && castRank != null
+        && cached && dmg && !(cached.duration ?? '').trim()
+        ? psycheDamageBonus(castRank) : 0
 
     return (
         <Box
@@ -522,6 +530,17 @@ const SpellRow = ({ name, count, accent, request, onSelect, pips, spend, dimmed 
                                 }}
                             >
                                 ↑ {raisedTo}º
+                            </Typography>
+                        </Tooltip>
+                    )}
+                    {psycheBonus > 0 && (
+                        <Tooltip title="Unleash Psyche: bônus de status no dano inicial (o dobro do rank). Já entra na rolagem.">
+                            <Typography
+                                component="span"
+                                variant="caption"
+                                sx={{ ml: 0.75, px: 0.5, borderRadius: 0.75, border: `1px solid ${PSYCHE_COLOR}66`, color: PSYCHE_COLOR, fontWeight: 700, whiteSpace: 'nowrap' }}
+                            >
+                                +{psycheBonus} psique
                             </Typography>
                         </Tooltip>
                     )}
@@ -574,6 +593,9 @@ function dedupe(list: string[]): Array<{ name: string; count: number }> {
     return Array.from(counts.entries()).map(([name, count]) => ({ name, count }))
 }
 
+/** O bloco é a conjuração de Psíquico (e não a de uma herança ou de um arquétipo). */
+const isPsychicCaster = (build: BuildInfo, caster: SpellCaster) => build.class === 'Psychic' && caster.name === 'Psychic'
+
 interface FocusSpellEntry {
     name: string
     tradition: string
@@ -609,6 +631,8 @@ function focusCasterInfo(build: BuildInfo, entry: FocusSpellEntry, mods: Conditi
         attack,
         tradition: entry.tradition,
         attackInfo: focusAttack(build, entry.group, mods),
+        // Os psi cantrips do Psíquico são conjuração de Psíquico.
+        psychic: build.class === 'Psychic',
     }
 }
 

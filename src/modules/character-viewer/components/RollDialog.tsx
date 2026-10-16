@@ -16,8 +16,9 @@ import {
 } from '@mui/material'
 import { Casino as DiceIcon } from '@mui/icons-material'
 import type { BuildInfo, SpellDescription, Weapon } from '../../character-sheet/types'
-import { CONDITION_COLOR, MYTHIC_COLOR } from '../../../theme'
+import { CONDITION_COLOR, MYTHIC_COLOR, PSYCHE_COLOR } from '../../../theme'
 import { isMythicCharacter, signed } from '../helpers'
+import { psycheApplies, psycheDamageBonus } from '../psyche'
 import type { Check, CheckPart } from '../checks'
 import type { ConditionModifiers } from '../conditions'
 import type { MythicPointsApi } from './useMythicPoints'
@@ -54,6 +55,8 @@ export type RollRequest =
         /** A descrição da AON (traços, salvaguarda, dano por rank); ausente = só o ataque. */
         spell?: SpellDescription | null
         castRank?: number
+        /** Conjuração de Psíquico: a psique liberada soma ao dano. */
+        psychic?: boolean
     }
 
 interface Props {
@@ -510,10 +513,19 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     const chosen = components.filter((c) => selected.has(c.id) && !c.uncertain)
     const nothing = !attackParts && chosen.length === 0
 
+    // Psique liberada: bônus de status igual ao dobro do rank, uma vez só, no dano
+    // inicial (a primeira parcela imediata de dano) — nunca no persistente.
+    const psycheBonus = psycheApplies(mods, spell, request.psychic) && castRank != null ? psycheDamageBonus(castRank) : 0
+    const psycheTarget = psycheBonus ? chosen.find((c) => c.kind === 'damage' && !c.persistent) : undefined
+    const rolled = psycheTarget
+        ? chosen.map((c) => (c === psycheTarget ? { ...c, value: { ...c.value, flat: c.value.flat + psycheBonus } } : c))
+        : chosen
+
     const sub = [
         castRank != null ? `rank ${castRank}` : null,
         attackParts && map ? mapLabel(map) : null,
         basic && spell?.defense ? `salvaguarda: ${spell.defense}` : null,
+        psycheTarget ? `psique liberada +${psycheBonus}` : null,
     ].filter(Boolean).join(' · ')
 
     return (
@@ -585,6 +597,12 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                         </Box>
                     )}
 
+                    {psycheTarget && (
+                        <Typography variant="caption" sx={{ color: PSYCHE_COLOR, display: 'block' }}>
+                            Psique liberada: +{psycheBonus} de dano (status, o dobro do rank {castRank}) na primeira parcela de dano.
+                        </Typography>
+                    )}
+
                     {spell && castRank != null && !scaled && (
                         <Alert severity="info" sx={{ py: 0 }}>
                             O dano desta magia ainda não está no formato que dá para rolar. Feche e abra a magia de novo.
@@ -611,7 +629,7 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                     sub: sub || undefined,
                     attackParts,
                     mythicDelta: mythic && attackParts ? attack!.mythicDelta : null,
-                    components: chosen,
+                    components: rolled,
                     basic,
                 }), mythic && !!attackParts)}
             />
