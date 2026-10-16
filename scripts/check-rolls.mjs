@@ -28,6 +28,7 @@ const magus = await import('../src/modules/character-viewer/magus.ts')
 const spellstrike = await import('../src/modules/character-viewer/spellstrike.ts')
 const ranger = await import('../src/modules/character-viewer/ranger.ts')
 const rogue = await import('../src/modules/character-viewer/rogue.ts')
+const fighter = await import('../src/modules/character-viewer/fighter.ts')
 const { normalizeSpellCasters } = await import('../src/modules/character-sheet/types.ts')
 const dice = await import('../src/dice/roll.ts')
 const initRolls = await import('../src/modules/initiative-tracker/initiativeRolls.ts')
@@ -507,6 +508,35 @@ const manyComps = Array.from({ length: 9 }, (_, i) => ({ ...comp, id: i + 1 }))
 const crowded = rolls.spellstrikeRoll(ssWho, swordStrike, cascadePlan, null, undefined, { name: 'Ignition', components: manyComps, usesAttack: true })
 ok(crowded.damage.parts.length <= 8, 'Muitas parcelas de magia viram uma só, dentro do teto do feed')
 ok(table.sanitizeTableRoll(crowded) !== null && server.sanitizeRoll(crowded) !== null, 'A rolagem cheia ainda passa nos dois sanitizadores')
+
+
+// ── Guerreiro: Fearsome Brute, Exacting Strike, Reflexive Shield, Fiery Rebirth ─
+const gh = party.ghan
+ok(fighter.hasFearsomeBrute(gh) && fighter.hasExactingStrike(gh) && fighter.hasReflexiveShield(gh) && fighter.hasFieryRebirth(gh), 'Ghan Buri tem os quatro talentos')
+ok(!fighter.hasFearsomeBrute(party.ceros) && !fighter.hasFieryRebirth(nat), 'Quem não tem o talento não ganha o efeito')
+eq(fighter.fearsomeBruteBonus(gh, 0), 0, 'Sem medo, sem bônus')
+eq(fighter.fearsomeBruteBonus(gh, 2), 4, 'Treinado em Intimidação: 2 × o medo')
+eq(fighter.fearsomeBruteBonus({ ...gh, proficiencies: { ...gh.proficiencies, intimidation: 6 } }, 2), 6, 'Mestre em Intimidação: 3 × o medo')
+const hammer = gh.weapons[0]
+GEAR.Warhammer = GEAR.Warhammer ?? { kind: 'weapon', traits: ['Shove'], weaponType: 'melee' }
+const hammerStrike = strikes.weaponStrike(gh, hammer, GEAR.Warhammer)
+const hFlat = (o = {}) => strikes.planStrike(gh, hammerStrike, NO_MODIFIERS, opts(o)).weapon.flat
+eq(hFlat({ frightened: 2 }), hFlat() + 4, 'Alvo amedrontado 2: +4 no dano do Golpe')
+eq(hFlat({ frightened: 0 }), hFlat(), 'Alvo sem medo: dano da ficha')
+eq(strikes.planStrike(party.ceros, bowStrike, NO_MODIFIERS, opts({ frightened: 3 })).weapon.flat, strikes.planStrike(party.ceros, bowStrike, NO_MODIFIERS, opts()).weapon.flat, 'Sem o talento o medo do alvo não muda nada')
+eq(fighter.reflexShieldBonus(gh, 3), 3, 'Reflexive Shield: o bônus do escudo erguido')
+eq(fighter.reflexShieldBonus(gh, 0), 0, 'Escudo abaixado não dá bônus')
+eq(fighter.reflexShieldBonus(party.ceros, 3), 0, 'Sem o talento o escudo não vale nos Reflexos')
+const refBase = checks.saveCheck(gh, 'reflex', NO_MODIFIERS).total
+eq(checks.saveCheck(gh, 'reflex', fighter.withReflexShield(NO_MODIFIERS, 3)).total, refBase + 3, 'Reflexos com o escudo erguido soma o bônus')
+eq(checks.saveCheck(gh, 'fortitude', fighter.withReflexShield(NO_MODIFIERS, 3)).total, checks.saveCheck(gh, 'fortitude', NO_MODIFIERS).total, 'Só os Reflexos ganham')
+ok(checks.saveCheck(gh, 'reflex', fighter.withReflexShield(NO_MODIFIERS, 3)).parts.some((p) => /Reflexive Shield/.test(p.label)), 'O memorial mostra a parcela do escudo')
+eq(fighter.fieryRebirthHeal(10), 10, 'Fiery Rebirth cura o nível')
+eq(fighter.fieryRebirthDamage(10), 20, 'Fiery Rebirth explode 2 × nível')
+eq(fighter.classDc(gh), 27, 'CD de classe do Ghan Buri: 10 + 10 + 2 + FOR 5')
+const rebirth = rolls.fieryRebirthRoll(rolls.rollerIdentity(gh), 20, 27)
+ok(rebirth.damage.basic === true && rebirth.damage.total === 20, 'A explosão sai como dano básico de 20')
+ok(table.sanitizeTableRoll(rebirth) !== null && server.sanitizeRoll(rebirth) !== null, 'A explosão passa nos dois sanitizadores')
 
 console.log(`${passed} conferências ok, ${failures} falha(s).`)
 process.exit(failures ? 1 : 0)
