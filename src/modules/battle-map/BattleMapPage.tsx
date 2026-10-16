@@ -260,11 +260,9 @@ export const BattleMapPage = () => {
     return (
         <Box
             sx={{
-                // Sangra até a borda: o mapa é a página. Desfaz o padding do
-                // MainLayout e ocupa a altura toda abaixo da AppBar do celular.
-                mx: { xs: -1.5, sm: -3 },
-                my: { xs: -2, sm: -3 },
-                height: { xs: 'calc(100dvh - 56px)', sm: 'calc(100dvh - 64px)', md: '100dvh' },
+                // O MainLayout não põe moldura em /mapa (sem padding, sem
+                // AppBar): o mapa ocupa a tela inteira.
+                height: '100dvh',
                 position: 'relative',
                 overflow: 'hidden',
                 backgroundColor: green.deepest,

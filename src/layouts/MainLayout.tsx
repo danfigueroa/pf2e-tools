@@ -10,6 +10,7 @@ import {
   ListItemIcon,
   ListItemText,
   Toolbar,
+  Tooltip,
   Typography,
   useMediaQuery,
   useTheme,
@@ -90,6 +91,9 @@ export const MainLayout = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const location = useLocation();
+  // O mapa é a página: sem moldura, sem AppBar e sem sidebar fixa. O menu vira
+  // uma aba discreta na borda que abre a mesma gaveta temporária do celular.
+  const isMap = location.pathname === '/mapa' || location.pathname.startsWith('/mapa/');
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -97,7 +101,7 @@ export const MainLayout = () => {
 
   const handleNavigation = (path: string) => {
     navigate(path);
-    if (isMobile) {
+    if (isMobile || isMap) {
       setMobileOpen(false);
     }
   };
@@ -179,7 +183,7 @@ export const MainLayout = () => {
       {/* Rolagens da mesa: o cartão some em segundos, o histórico fica. */}
       <Box sx={{ px: 1.5, pb: 1 }}>
         <ListItemButton
-          onClick={() => { setHistoryOpen(true); if (isMobile) setMobileOpen(false); }}
+          onClick={() => { setHistoryOpen(true); if (isMobile || isMap) setMobileOpen(false); }}
           sx={{ borderRadius: 1, '&:hover': { backgroundColor: 'rgba(200, 169, 81, 0.08)' } }}
         >
           <ListItemIcon sx={{ minWidth: 40, color: CHROME_TEXT }}>
@@ -224,7 +228,7 @@ export const MainLayout = () => {
         sx={{
           width: { md: `calc(100% - ${drawerWidth}px)` },
           ml: { md: `${drawerWidth}px` },
-          display: { md: 'none' },
+          display: isMap ? 'none' : { md: 'none' },
         }}
       >
         <Toolbar>
@@ -264,16 +268,16 @@ export const MainLayout = () => {
       {/* Sidebar */}
       <Box
         component="nav"
-        sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
+        sx={{ width: isMap ? 0 : { md: drawerWidth }, flexShrink: { md: 0 } }}
       >
-        {/* Mobile Drawer */}
+        {/* Mobile Drawer (e o menu do mapa, em qualquer largura) */}
         <Drawer
           variant="temporary"
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{ keepMounted: true }}
           sx={{
-            display: { xs: 'block', md: 'none' },
+            display: isMap ? 'block' : { xs: 'block', md: 'none' },
             '& .MuiDrawer-paper': drawerPaperSx,
           }}
         >
@@ -281,24 +285,57 @@ export const MainLayout = () => {
         </Drawer>
 
         {/* Desktop Drawer */}
-        <Drawer
-          variant="permanent"
-          sx={{
-            display: { xs: 'none', md: 'block' },
-            '& .MuiDrawer-paper': drawerPaperSx,
-          }}
-          open
-        >
-          {drawer}
-        </Drawer>
+        {!isMap && (
+          <Drawer
+            variant="permanent"
+            sx={{
+              display: { xs: 'none', md: 'block' },
+              '& .MuiDrawer-paper': drawerPaperSx,
+            }}
+            open
+          >
+            {drawer}
+          </Drawer>
+        )}
       </Box>
+
+      {isMap && (
+        <Tooltip title="Menu" placement="right">
+          <IconButton
+            aria-label="abrir menu"
+            onClick={handleDrawerToggle}
+            size="small"
+            sx={{
+              position: 'fixed',
+              left: 0,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 5,
+              borderRadius: '0 8px 8px 0',
+              width: 20,
+              height: 56,
+              color: gold.bright,
+              backgroundColor: 'rgba(14, 36, 25, 0.55)',
+              opacity: 0.55,
+              transition: 'opacity 150ms, width 150ms',
+              '&:hover, &:focus-visible': {
+                opacity: 1,
+                width: 32,
+                backgroundColor: green.deepest,
+              },
+            }}
+          >
+            <MenuIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      )}
 
       {/* Main Content */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          width: { md: `calc(100% - ${drawerWidth}px)` },
+          width: isMap ? '100%' : { md: `calc(100% - ${drawerWidth}px)` },
           // Item flex tem `min-width: auto`: sem isto, um filho largo (linha de
           // stat block, nome comprido) empurra o main além da viewport.
           minWidth: 0,
@@ -307,13 +344,17 @@ export const MainLayout = () => {
         }}
       >
         {/* Spacer for mobile AppBar */}
-        <Toolbar sx={{ display: { md: 'none' } }} />
+        {!isMap && <Toolbar sx={{ display: { md: 'none' } }} />}
 
         {/* No celular a moldura do conteúdo encolhe: cada 8px aqui é 8px a
             mais para os números da ficha, que é o que se lê na mesa. */}
-        <Box sx={{ px: { xs: 1.5, sm: 3 }, py: { xs: 2, sm: 3 } }}>
+        {isMap ? (
           <Outlet />
-        </Box>
+        ) : (
+          <Box sx={{ px: { xs: 1.5, sm: 3 }, py: { xs: 2, sm: 3 } }}>
+            <Outlet />
+          </Box>
+        )}
       </Box>
 
       {/* Rolagens de qualquer aparelho, em qualquer página. */}
