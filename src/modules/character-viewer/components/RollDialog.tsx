@@ -52,6 +52,7 @@ import { dialogEmbedProps, useEmbedContainer } from '../embedContext'
 import { CASCADE_TYPES, hasSpellstrike } from '../magus'
 import { FIRST_STRIKE_KEY, HUNTERS_AIM_KEY, gravityBonus } from '../ranger'
 import { DEBILITATIONS, hasDebilitatingStrike, poisonNote, type Debilitation } from '../rogue'
+import { initiativeBonus } from '../initiative'
 import { fearsomeBruteBonus, hasExactingStrike, hasFearsomeBrute } from '../fighter'
 import { useRogue } from './useRogue'
 import { usePoisonDef } from './usePoison'
@@ -233,7 +234,14 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     const [initiative, setInitiative] = useState(false)
     const { check } = request
     const canInitiative = INITIATIVE_CHECKS.includes(check.en)
-    const parts = adjust ? [...check.parts, { label: 'Ajuste', value: adjust, kind: 'other' as const }] : check.parts
+    // Iniciativa: Incredible Initiative e afins (circunstância, não empilham) entram na conta
+    // só quando o teste está marcado como iniciativa — o memorial mostra de onde veio.
+    const iniBonus = initiative && canInitiative ? initiativeBonus(build, check.en) : null
+    const parts = [
+        ...check.parts,
+        ...(iniBonus && iniBonus.value ? [{ label: `Iniciativa: ${iniBonus.from.join(' / ')} (circunstância)`, value: iniBonus.value, kind: 'other' as const }] : []),
+        ...(adjust ? [{ label: 'Ajuste', value: adjust, kind: 'other' as const }] : []),
+    ]
     const total = sumParts(parts)
     const who = useMemo(() => rollerIdentity(build), [build])
     const send = useSend(mythicPoints, onClose)
@@ -258,6 +266,8 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                             />
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
                                 O total vira a sua iniciativa no encontro do mestre.
+                                {initiativeBonus(build, check.en)?.value ? ' Seus bônus de iniciativa entram na conta ao ligar.' : ''}
+                                {initiativeBonus(build, check.en)?.winsTies ? ' Elven Instincts: num empate com oponente, você age primeiro.' : ''}
                             </Typography>
                         </Box>
                     )}
