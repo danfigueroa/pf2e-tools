@@ -28,6 +28,7 @@ import { postRoll } from '../../../services/rolls'
 import {
     DEFAULT_STRIKE_OPTIONS,
     extraEnabled,
+    SPEC_KEY,
     extraLabel,
     planStrike,
     unarmedStrike,
@@ -277,7 +278,10 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
     const critExtras = [
         plan.deadly ? `deadly ${plan.deadly.count}d${plan.deadly.faces}` : null,
         plan.fatal ? `fatal: dados da arma em d${plan.fatal} e +1d${plan.fatal}` : null,
+        ...plan.critEffects.map((c) => c.label),
     ].filter(Boolean)
+    const spec = strike.critEffects.find((c) => c.source === 'spec')
+    const specOn = opts.extrasOn[SPEC_KEY] === true
 
     const sub = [
         mapLabel(opts.map, traits.agile),
@@ -390,6 +394,25 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                                     Precisão é condicional (Ataque Furtivo, Hunter's Edge…) e não afeta criatura imune a precisão.
                                 </Typography>
                             )}
+                        </Box>
+                    )}
+
+                    {spec && (
+                        <Box>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                                Se o golpe for crítico
+                            </Typography>
+                            <Chip
+                                label={`${spec.label}${spec.damage ? '' : ' (aviso)'}`}
+                                color={specOn ? 'primary' : 'default'}
+                                variant={specOn ? 'filled' : 'outlined'}
+                                onClick={() => toggleExtra(SPEC_KEY, !specOn)}
+                                aria-pressed={specOn}
+                                sx={{ minHeight: 32 }}
+                            />
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                Ligue só se você tem a especialização crítica desta arma (característica de classe).
+                            </Typography>
                         </Box>
                     )}
 
