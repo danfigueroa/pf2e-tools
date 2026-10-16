@@ -38,6 +38,8 @@ import {
     specActive,
     extraLabel,
     planStrike,
+    gravityApplies,
+    huntersAimApplies,
     unarmedStrike,
     weaponStrike,
     type AttackMode,
@@ -48,6 +50,7 @@ import { checkRoll, mapLabel, rollerIdentity, spellRoll, spellstrikeRoll, strike
 import type { TableRoll } from '../../../dice/tableRoll'
 import { dialogEmbedProps, useEmbedContainer } from '../embedContext'
 import { CASCADE_TYPES, hasSpellstrike } from '../magus'
+import { FIRST_STRIKE_KEY, HUNTERS_AIM_KEY, gravityBonus } from '../ranger'
 import { magusKeyFor } from '../charId'
 import { useMagus } from './useMagus'
 import { useSpellstrike } from './useSpellstrike'
@@ -305,6 +308,9 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
     const toggleExtra = (k: string, on: boolean) => {
         const extrasOn = { ...opts.extrasOn, [k]: on }
         setOpts({ ...opts, extrasOn })
+        // Primeiro Golpe da rodada e Hunter's Aim são da SITUAÇÃO, não da arma: lembrar
+        // um "desligado" derrubaria o dano do primeiro Golpe da rodada seguinte em silêncio.
+        if (k === FIRST_STRIKE_KEY || k === HUNTERS_AIM_KEY) return
         try { localStorage.setItem(storeKey, JSON.stringify(extrasOn)) } catch { /* cota cheia */ }
     }
 
@@ -423,7 +429,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                             </Typography>
                             <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
                                 {strike.extras.map((e) => {
-                                    const on = extraEnabled(e, opts.extrasOn)
+                                    const on = extraEnabled(e, opts.extrasOn, mods)
                                     return (
                                         <Chip
                                             key={e.key}
@@ -442,6 +448,37 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                                     Precisão é condicional (Ataque Furtivo, Hunter's Edge…) e não afeta criatura imune a precisão.
                                 </Typography>
                             )}
+                        </Box>
+                    )}
+
+                    {gravityApplies(strike, mods) && (
+                        <Box>
+                            <Chip
+                                label={`Primeiro Golpe da rodada · Gravity Weapon +${gravityBonus(strike.weaponDice.count)}`}
+                                color={opts.extrasOn[FIRST_STRIKE_KEY] !== false ? 'primary' : 'default'}
+                                variant={opts.extrasOn[FIRST_STRIKE_KEY] !== false ? 'filled' : 'outlined'}
+                                onClick={() => toggleExtra(FIRST_STRIKE_KEY, opts.extrasOn[FIRST_STRIKE_KEY] === false)}
+                                aria-pressed={opts.extrasOn[FIRST_STRIKE_KEY] !== false}
+                                sx={{ minHeight: 32 }}
+                            />
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                Bônus de status igual a 2 × os dados da arma, só no primeiro Golpe com arma de cada rodada. Desligue nos seguintes.
+                            </Typography>
+                        </Box>
+                    )}
+                    {huntersAimApplies(build, strike, opts) && (
+                        <Box>
+                            <Chip
+                                label="Hunter's Aim · +2 contra a presa (2 ações)"
+                                color={opts.extrasOn[HUNTERS_AIM_KEY] === true ? 'primary' : 'default'}
+                                variant={opts.extrasOn[HUNTERS_AIM_KEY] === true ? 'filled' : 'outlined'}
+                                onClick={() => toggleExtra(HUNTERS_AIM_KEY, opts.extrasOn[HUNTERS_AIM_KEY] !== true)}
+                                aria-pressed={opts.extrasOn[HUNTERS_AIM_KEY] === true}
+                                sx={{ minHeight: 32 }}
+                            />
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                +2 de circunstância no ataque contra a presa caçada; ignora escondido e cobertura leve.
+                            </Typography>
                         </Box>
                     )}
 

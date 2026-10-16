@@ -24,6 +24,7 @@ import { CASCADE_TYPES, cascadeDamage, divertDestinyHp, hasDivertDestiny, hasSpe
 import { translateDamageType } from '../../transformation-statblock/i18n'
 import { useHpTracker } from './useHpTracker'
 import { EmbedDialog } from './EmbedDialog'
+import { FeatureRow } from './FeatureRow'
 import type { ConditionsApi } from './useConditions'
 import type { MagusApi } from './useMagus'
 import type { MythicPointsApi } from './useMythicPoints'
@@ -36,14 +37,6 @@ interface Props {
 }
 
 const chipSx = { height: 24, fontSize: '0.75rem', fontWeight: 600 }
-
-/** Uma linha da faixa: nome da característica à esquerda, controles à direita. */
-const Row = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <Stack direction="row" alignItems="center" sx={{ flexWrap: 'wrap', gap: 1 }}>
-        <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', minWidth: 120 }}>{title}</Typography>
-        {children}
-    </Stack>
-)
 
 /**
  * O que o Magus liga, gasta e recarrega: Arcane Cascade, Spellstrike, Summon
@@ -90,7 +83,7 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
 
                     {magus.canCascade && (
                         <Box>
-                            <Row title="Arcane Cascade">
+                            <FeatureRow title="Arcane Cascade">
                                 {effect ? (
                                     <>
                                         <Chip
@@ -130,7 +123,7 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
                                         </Tooltip>
                                     </>
                                 )}
-                            </Row>
+                            </FeatureRow>
                             {effect && (
                                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
                                     Escolha o tipo da última magia que conjurou (força se ela não causava dano). Os Golpes ganham o traço arcane.
@@ -140,7 +133,7 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
                     )}
 
                     {hasSpellstrike(build) && (
-                        <Row title="Spellstrike">
+                        <FeatureRow title="Spellstrike">
                             <Chip
                                 label={stored.spent ? 'Gasto' : 'Carregado'}
                                 size="small"
@@ -163,11 +156,11 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
                                     </Tooltip>
                                 )}
                             </Box>
-                        </Row>
+                        </FeatureRow>
                     )}
 
                     {hasSummonMythicPower(build) && (
-                        <Row title="Summon Mythic Power">
+                        <FeatureRow title="Summon Mythic Power">
                             {stored.summoned ? (
                                 <>
                                     <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
@@ -190,11 +183,11 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
                                     </Button>
                                 </>
                             )}
-                        </Row>
+                        </FeatureRow>
                     )}
 
                     {hasDivertDestiny(build) && (
-                        <Row title="Divert Destiny">
+                        <FeatureRow title="Divert Destiny">
                             <Typography variant="body2" color="text.secondary" sx={{ flex: 1, minWidth: 160 }}>
                                 Reação: ao ir a 0 PV, gasta 1 Ponto Mítico e fica com {divertHp} PV.
                             </Typography>
@@ -207,7 +200,7 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
                             >
                                 {canSpend ? 'Usar' : 'Sem pontos'}
                             </Button>
-                        </Row>
+                        </FeatureRow>
                     )}
                 </Stack>
             </CardContent>
