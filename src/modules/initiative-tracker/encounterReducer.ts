@@ -159,8 +159,18 @@ export function encounterReducer(state: EncounterState, action: EncounterAction)
             // dele moram na mesa, pelo slug, e duas cópias dividiriam o mesmo
             // estado. O diálogo já filtra; isto é a trava para o que escapar dele.
             const slugs = new Set(state.combatants.flatMap((c) => (c.kind === 'pc' ? [c.slug] : [])))
+            // O mesmo vale para o companheiro de combate de um personagem: o dono entrou
+            // de novo, o companheiro dele não pode entrar em dobro.
+            const companions = new Set(state.combatants.flatMap((c) =>
+                (c.kind === 'npc' && c.companionOf && c.companionId ? [`${c.companionOf}/${c.companionId}`] : [])))
             const fresh = action.combatants.filter((c) => {
-                if (c.kind !== 'pc') return true
+                if (c.kind === 'npc') {
+                    if (!c.companionOf || !c.companionId) return true
+                    const key = `${c.companionOf}/${c.companionId}`
+                    if (companions.has(key)) return false
+                    companions.add(key)
+                    return true
+                }
                 if (slugs.has(c.slug)) return false
                 slugs.add(c.slug)
                 return true

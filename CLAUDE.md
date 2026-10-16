@@ -834,6 +834,25 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   memória na frente do `localStorage` (como `gear.ts`): sem ela, cada render da aba de Magias
   refazia um `JSON.parse` por linha.
 
+## Companheiros de combate (Animated Armor do Nathaniel)
+
+Criaturas da AON que entram no encontro (e no mapa) sozinhas quando o personagem entra — **não** são os
+`pets`/`familiars` do Pathbuilder (esses têm ficha própria na aba). Configuração do PERSONAGEM, da mesa:
+campo `companions` (`companions.ts`, até 6, `{ id, name, token? }`), editado no `CompanionsCard` da aba
+**Companheiros** (que agora aparece em toda ficha). O jogador digita o nome EXATO da AON (se não achar, a busca
+oferece os parecidos) e envia o token UMA vez.
+
+- **O token é permanente**, pasta `tokens/` do Blob, como o do personagem. Por isso o `setTokenImage` da Iniciativa
+  **nunca apaga** URL de `tokens/` ao trocar a imagem do cartão (antes apagaria), e o servidor já nunca apaga
+  `tokens/` ao apagar um mapa.
+- **Na Iniciativa** (`addWithCompanions`, `InitiativePage`): ao adicionar um PC — por qualquer aba do diálogo —,
+  relê a ficha da mesa com `loadCharacter(slug, true)` (FORÇADO: a lista pode ter mudado depois da última leitura
+  deste aparelho), busca cada criatura (`searchCreatures`, nome exato), monta o NPC com `npcFromCreature` e põe o
+  `tokenImage`, o `companionOf` (slug do dono) e o `companionId`. Criatura que a AON não acha vira aviso, e o
+  personagem entra do mesmo jeito. Entra na AON no nível base: escalar é à mão, pelo Escalar Monstro.
+- **Sem duplicar**: o reducer (`addCombatants`) descarta NPC cujo par `companionOf/companionId` já está no encontro —
+  mesma trava dos PCs por slug. O enquadramento do token no mapa (Modo GM) continua valendo para eles.
+
 ## Módulo initiative-tracker (Iniciativa)
 
 Gerenciador de turnos e combate em `/iniciativa`. A decisão que explica o módulo inteiro é **onde

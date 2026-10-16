@@ -32,6 +32,8 @@ const fighter = await import('../src/modules/character-viewer/fighter.ts')
 const initiative = await import('../src/modules/character-viewer/initiative.ts')
 const acts = await import('../src/modules/character-viewer/actions.ts')
 const tokenFit = await import('../src/modules/battle-map/tokenFit.ts')
+const companions = await import('../src/modules/character-viewer/companions.ts')
+const { encounterReducer } = await import('../src/modules/initiative-tracker/encounterReducer.ts')
 const { normalizeSpellCasters } = await import('../src/modules/character-sheet/types.ts')
 const dice = await import('../src/dice/roll.ts')
 const initRolls = await import('../src/modules/initiative-tracker/initiativeRolls.ts')
@@ -610,6 +612,27 @@ eq(acts.sanitizeActions('lixo'), acts.NO_ACTIONS, 'Estado inválido vira turno n
 eq(acts.sanitizeActions({ used: 99 }).used, 9, 'Gasto absurdo é limitado')
 ok(acts.isActionsEmpty(acts.NO_ACTIONS) && !acts.isActionsEmpty(acts.newTurn(5)), 'Turno novo carimbado não é "vazio" (precisa subir)')
 
+
+
+// ── Companheiros de combate (Animated Armor do Nathaniel) ────────────────────
+const sc = companions.sanitizeCompanions
+eq(sc('lixo').length, 0, 'Lista inválida vira vazia')
+eq(sc([{ id: 'ab12', name: ' Animated Armor ' }])[0].name, 'Animated Armor', 'O nome é aparado')
+eq(sc([{ id: 'ab12', name: 'A' }, { id: 'ab12', name: 'B' }]).length, 1, 'Id repetido entra uma vez')
+eq(sc([{ id: 'MAIUSCULA!', name: 'A' }, { id: 'ok', name: '' }]).length, 0, 'Id fora do padrão ou sem nome é descartado')
+eq(sc(Array.from({ length: 9 }, (_, i) => ({ id: `c${i}`, name: `N${i}` }))).length, companions.MAX_COMPANIONS, 'Há um teto de companheiros')
+eq(sc([{ id: 'ab12', name: 'A', token: { url: 'idb:x' } }])[0].token.url, 'idb:x', 'O token sobrevive à leitura')
+eq(sc([{ id: 'ab12', name: 'A', token: { url: 42 } }])[0].token, undefined, 'Token inválido some, a criatura fica')
+const npcBase = (extra) => ({ id: crypto.randomUUID(), kind: 'npc', name: 'Animated Armor', level: 2, initiative: 0, ac: 18, perception: 5, maxHp: 20, current: 20, temp: 0, conditions: {}, delayed: false, defeated: false, durations: {}, ...extra })
+const emptyEnc = { version: 1, round: 0, activeId: null, combatants: [] }
+const once = encounterReducer(emptyEnc, { type: 'addCombatants', combatants: [npcBase({ companionOf: 'nathaniel', companionId: 'ab12' })] })
+eq(once.combatants.length, 1, 'O companheiro entra')
+const twice = encounterReducer(once, { type: 'addCombatants', combatants: [npcBase({ companionOf: 'nathaniel', companionId: 'ab12' })] })
+eq(twice.combatants.length, 1, 'Adicionar o dono de novo não duplica o companheiro')
+const other = encounterReducer(once, { type: 'addCombatants', combatants: [npcBase({ companionOf: 'ceros', companionId: 'ab12' })] })
+eq(other.combatants.length, 2, 'Mesmo id em outro dono é outro companheiro')
+const plain = encounterReducer(once, { type: 'addCombatants', combatants: [npcBase({}), npcBase({})] })
+eq(plain.combatants.length, 3, 'Monstro comum (sem dono) pode repetir à vontade')
 
 // ── Enquadramento da imagem do token (Modo GM) ───────────────────────────────
 const tf = tokenFit

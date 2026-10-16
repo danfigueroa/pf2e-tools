@@ -149,6 +149,8 @@ function sanitizeCombatant(raw: unknown): Combatant | null {
             scaleOverrides: scaleOverrides(c.scaleOverrides),
             shield: npcShield(c.shield),
             tokenImage: typeof c.tokenImage === 'string' ? c.tokenImage : undefined,
+            companionOf: typeof c.companionOf === 'string' ? c.companionOf : undefined,
+            companionId: typeof c.companionId === 'string' ? c.companionId : undefined,
         }
         return npc
     }

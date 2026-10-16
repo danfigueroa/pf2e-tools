@@ -110,6 +110,13 @@ export interface NpcCombatant extends CombatantBase {
      * personagem não mora aqui: é da mesa, enviada na Ficha Virtual.
      */
     tokenImage?: string
+    /**
+     * Companheiro de combate de um personagem (`character-viewer/companions.ts`):
+     * o slug dele e o id do companheiro. Serve para a criatura não entrar duas
+     * vezes quando o personagem é adicionado de novo.
+     */
+    companionOf?: string
+    companionId?: string
 }
 
 export type Combatant = PcCombatant | NpcCombatant

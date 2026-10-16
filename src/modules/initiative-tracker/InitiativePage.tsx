@@ -23,6 +23,10 @@ import { useInitiativeRolls } from './useInitiativeRolls'
 import { useMapSync } from './useMapSync'
 import { EncounterMapPicker } from './components/EncounterMapPicker'
 import { deleteImage } from '../../services/images'
+import { loadCharacter } from '../../services/tableState'
+import { searchCreatures } from '../../services/creatures'
+import { sanitizeCompanions } from '../character-viewer/companions'
+import { npcFromCreature } from './importCharacter'
 import { useEncounterParty } from './useEncounterParty'
 import { useCombatantViews, rollDamage, type AutoDamage } from './useCombatantViews'
 import { useShieldCatalog } from './useShieldCatalog'
@@ -147,8 +151,39 @@ export const InitiativePage = () => {
                 stillUsed = true
             }
         }
-        // A antiga só sai do armazenamento se ninguém mais a usa.
-        if (old && !stillUsed) void deleteImage(old)
+        // A antiga só sai do armazenamento se ninguém mais a usa — e nunca a de `tokens/`, que é
+        // permanente (o token de um companheiro de combate de personagem mora lá).
+        if (old && !stillUsed && !old.includes('/tokens/')) void deleteImage(old)
+    }
+
+    /**
+     * Adiciona os combatentes e, junto de cada personagem, os companheiros de
+     * combate dele (a Animated Armor do Nathaniel…): a ficha lista, a AON dá os
+     * números, e o token vem da ficha. Quem falhar vira aviso — o personagem
+     * entra do mesmo jeito.
+     */
+    const addWithCompanions = async (combatants: Combatant[]) => {
+        const extra: Combatant[] = []
+        const missing: string[] = []
+        await Promise.all(combatants.map(async (c) => {
+            if (c.kind !== 'pc') return
+            // `force`: a lista pode ter sido mexida pelo jogador depois da última leitura deste aparelho.
+            const snapshot = await loadCharacter(c.slug, true)
+            for (const companion of sanitizeCompanions(snapshot.companions)) {
+                const { results } = await searchCreatures(companion.name, 6)
+                const creature = results.find((r) => r.name.toLowerCase() === companion.name.toLowerCase())
+                if (!creature) { missing.push(companion.name); continue }
+                extra.push({
+                    ...npcFromCreature(creature),
+                    tokenImage: companion.token?.url,
+                    companionOf: c.slug,
+                    companionId: companion.id,
+                })
+            }
+        }))
+        dispatch({ type: 'addCombatants', combatants: [...combatants, ...extra] })
+        if (extra.length > 0) setToast({ text: `Entraram com o personagem: ${extra.map((e) => e.name).join(', ')}.` })
+        if (missing.length > 0) setToast({ text: `Não achei na AON: ${missing.join(', ')}.` })
     }
 
     const viewsById = useMemo(
@@ -478,7 +513,7 @@ export const InitiativePage = () => {
             <AddCombatantDialog
                 open={dialog === 'add'}
                 onClose={() => setDialog(null)}
-                onAdd={(combatants) => dispatch({ type: 'addCombatants', combatants })}
+                onAdd={(combatants) => { void addWithCompanions(combatants) }}
                 existingSlugs={slugs}
             />
 

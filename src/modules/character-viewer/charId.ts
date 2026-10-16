@@ -63,6 +63,9 @@ export const rogueKeyFor = (build: BuildInfo): string => rogueKeyForSlug(charSlu
 /** Ações do turno (`actions.ts`). */
 export const actionsKeyForSlug = (slug: string): string => `${slug}/actions`
 export const actionsKeyFor = (build: BuildInfo): string => actionsKeyForSlug(charSlug(build))
+/** Companheiros de combate (`companions.ts`). */
+export const companionsKeyForSlug = (slug: string): string => `${slug}/companions`
+export const companionsKeyFor = (build: BuildInfo): string => companionsKeyForSlug(charSlug(build))
 export const psycheKeyFor = (build: BuildInfo): string => psycheKeyForSlug(charSlug(build))
 
 /**

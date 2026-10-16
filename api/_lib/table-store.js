@@ -34,7 +34,7 @@ const TTL_SECONDS = 180 * 24 * 60 * 60
 export const MAX_FIELD_BYTES = 8 * 1024
 
 const SLUG_RE = /^[a-z0-9-]{1,64}$/
-const FIELD_RE = /^(hp|slots|conditions|afflictions|persistent|mythic|consumed|shield|token|size|rage|psyche|energy|magus|ranger|rogue|actions|pet:[a-z0-9:#-]{1,80})$/
+const FIELD_RE = /^(hp|slots|conditions|afflictions|persistent|mythic|consumed|shield|token|size|rage|psyche|energy|magus|ranger|rogue|actions|companions|pet:[a-z0-9:#-]{1,80})$/
 
 // Contador global de escritas no estado dos personagens. O mapa de combate o
 // lê junto da própria revisão (um MGET) para saber que o PV de alguém mudou
