@@ -244,7 +244,7 @@ abrir o site entra na mesma mesa.
   Vercel e `UPSTASH_REDIS_REST_*` do console da Upstash). **Sem credenciais, cai num `Map` de
   processo** e o app segue funcionando; o indicador avisa "Só neste aparelho".
 - **Um HASH por personagem, um campo por fatia** (`hp`, `slots`, `conditions`, `afflictions`,
-  `persistent`, `mythic`, `consumed`, `shield`, `token`, `size`, `pet:<kind>:<slug>#<i>`). Campo novo precisa entrar no `FIELD_RE` de
+  `persistent`, `mythic`, `consumed`, `shield`, `token`, `size`, `rage`, `pet:<kind>:<slug>#<i>`). Campo novo precisa entrar no `FIELD_RE` de
   `table-store.js`, senão o POST volta "Campo inválido" e o estado fica só no `localStorage`.
   Documento único faria dois jogadores editando ao mesmo tempo se sobrescreverem — quem marcasse
   condição apagaria o dano do outro. `HSET` por campo dá atomicidade por fatia sem transação, e a
@@ -545,6 +545,39 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     Borda, brilho e anel são divididos pela escala do quadro: sem isso, um Grande → Miúdo
     começava com um disco dourado 8× maior cobrindo o mapa. A barra anima `left/right`, não
     `scaleX`, que esticava o "80/120". Nada anima no primeiro segundo do token montado.
+- **Fúria do bárbaro** (`rage.ts` + `components/useRage.ts` + `RageBar.tsx`): liga e desliga pela
+  faixa "Fúria", fora das abas, e a ficha inteira acompanha. Estado da mesa, campo `rage`
+  (`{ active, since, endedAt, granted, titan }`). Só aparece para quem tem a habilidade `Rage`.
+  - **É a regra do Remaster (Player Core 2), sem o −1 na CA do Core antigo.** Quem lembra desse
+    −1 está lendo a regra errada; foi conferido na AON. Entrar dá PV temporários = nível + CON
+    (14 no Brukuthur); +2 de dano em Golpe corpo a corpo, **metade se a arma é ágil** (o punho
+    leva +1); nada de ação com o traço concentrar. Dobra no crítico, porque soma ao dano.
+  - **O dano da Fúria depende da arma, então viaja como regra, não como número**:
+    `ConditionModifiers.rage` + `meleeBonusParts` (que também devolve o +4 do Enlarge) resolvem
+    golpe a golpe, em `planStrike` e na linha da aba de Combate. À distância e arremesso não levam.
+  - **Titan Mauler (Giant Instinct)**: com arma Grande, a Fúria vai a +6, +10 no nível 7 e +18 com
+    Greater Weapon Specialization, em troca de **Desajeitado 1 que não sai enquanto a empunha — com
+    Fúria ou sem**. É derivado, nunca gravado (como o do Enlarge), e baixa a CA e os Reflexos do
+    Brukuthur de forma permanente: foi decisão do usuário. O interruptor "Arma Grande em mãos"
+    (`titan`) é o escape para quem larga o machado. O Pathbuilder não exporta o tamanho da arma
+    nem a energia do Raging Resistance, então `GIANT_BARBARIANS` casa pelo NOME do personagem
+    (Brukuthur: Greataxe Grande, resistência a **fogo**), como `customRunes.ts`.
+  - **Raging Resistance** (3 + CON = 7, contundente e a energia escolhida) só vale em Fúria e só
+    para Giant com entrada no catálogo; outro instinto fica sem resistência, em vez de chutar.
+    A Visão Geral mostra "Em fúria: …" e a Iniciativa soma à defesa do PC
+    (`withRageResistance`: no mesmo tipo vale a MAIOR, não a soma).
+  - **PV temporários são do `RageBar`, não do `useRage`**: o hook entra antes das condições e o PV
+    precisa do corte de Drenado que sai delas. Ao entrar, temporários não empilham (vale o maior) e
+    `granted` guarda só o que a Fúria pôs; ao encerrar, tira-se **só isso** — se sobrou mais do
+    que ela deu, é de outra fonte (Renewed Vigor) e fica. Fúria dentro de 1 min da anterior não dá
+    temporários (`rageGivesTempHp`).
+  - **Não automatizado, de propósito**: o fim por inconsciência/fim do encontro (um efeito que lê
+    a mesa e escreve na mesa é o laço que a seção da Iniciativa proíbe) e o bloqueio de ações com
+    concentrar (vira aviso). "Encerrar Fúria" existe porque a mesa é quem sabe que acabou.
+  - A **Iniciativa só lê**: `PcCombatant.rage` (o `rageSpec`, gravado ao importar) + `PartySlice.rage`
+    dão o chip "Em fúria", a resistência e o Desajeitado. Encontro montado antes do campo: tirar e
+    pôr o personagem de novo, como o escudo. `check-rolls` cobre dano, ágil, Grande, resistência e
+    a janela de 1 minuto.
 - **Bastão abre com a lista de magias do degrau** (`StaffSpellList.tsx`): as magias vêm agrupadas
   por rank, com o custo em cargas ao lado (conjurar gasta cargas iguais ao rank; truque é de graça —
   GM Core p. 278) e etiqueta de degrau nas herdadas do bastão inferior. Quem filtra o degrau é o
