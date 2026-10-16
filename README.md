@@ -103,6 +103,53 @@ qualquer dispositivo — no desktop as áreas viram **abas**; no mobile viram **
     aplica o Bloqueio com Escudo (a Dureza segura, o resto vai para você e para o escudo);
     **Consertar** devolve PV pelo rank de Ofício (sucesso ou crítico). Os números vêm da AON, com as
     runas de reforço somadas, e o estado é da mesa.
+-   💥 **Efeitos do crítico**: além do dobro, deadly e fatal, as **runas** entram no cartão (Flaming
+    = 1d10 de fogo persistente, Shock repete o dano elétrico em até 2 criaturas, Corrosive; Frost e
+    Thundering viram aviso com a CD) e a **especialização crítica** é lida das características da
+    ficha — vale sempre para Guerreiro e Espadachim, em Fúria para o Bárbaro (Brutality), contra a
+    presa para o Patrulheiro, e é um chip para Ladino e Bardo. Nada disso dobra.
+-   ⚡ **Iniciativa pela ficha**: nos testes de Percepção, Furtividade, Atletismo e Acrobacia, o chip
+    **Usar como iniciativa** manda o total para a Iniciativa do mestre, que o aplica ao
+    personagem. O diálogo soma sozinho **Incredible Initiative**, **Elven Instincts** e
+    **Battlefield Surveyor** (bônus de circunstância: não empilham, vale o maior).
+-   ⏱️ **Ações do turno**: faixa fora das abas com os **3 pips de ação**, a **reação** e, com
+    **Acelerado (Haste)**, a ação extra que só paga **Golpe ou Andar**. **Lento** e **Atordoado**
+    tiram ações (os dois não somam). O Golpe, a magia (pelo custo da AON) e as ativações de 1 ação
+    descontam sozinhos; **Andar/Interagir/Sacar** têm botão. Ao zerar, a ficha avisa **"Sem ações
+    neste turno"** — e dá para rolar mesmo assim. A Iniciativa do mestre **zera as ações do
+    personagem quando o turno dele começa**.
+-   🔥 **Fúria do bárbaro**: um clique liga a Fúria — o dano dos Golpes corpo a corpo sobe (metade em
+    arma ágil), entram os **PV temporários**, a **Raging Resistance** e, no instinto Gigante, o
+    **Titan Mauler** com o Desajeitado que ele cobra.
+-   🧠 **Psíquico**: **Unleash Psyche** soma 2 × o rank ao dano das magias de conjuração de Psíquico
+    (com a ressaca em Estupefato 1), e os **psi cantrips** podem ser **amplificados** (1 Ponto de
+    Foco) com o dano do amp. **Conservation of Energy** converte o dano para fogo ou frio.
+-   🪄 **Magus**: **Arcane Cascade** (postura: dano extra de força, ou do tipo da última magia, nos
+    Golpes corpo a corpo), **Spellstrike** dentro do Golpe — o jogador escolhe a magia (de qualquer
+    bloco: Magus, arquétipo, inatas ou **Mythic Magic**), e **um clique** rola o Golpe e a magia,
+    gasta o slot (ou o Ponto Mítico) e marca o Spellstrike como gasto —, **Summon Mythic Power**,
+    **Divert Destiny** e **Fiery Rebirth**.
+-   🏹 **Patrulheiro**: **Hunt Prey** (a precisão do Hunter's Edge vem ligada), **Gravity Weapon**
+    (2 × os dados da arma no primeiro Golpe da rodada, gasta 1 Ponto de Foco) e **Hunter's Aim**.
+-   🗡️ **Ladino**: **Poison Weapon** aplicado **na hora do Golpe** — o **veneno simples** (1d4, 2d4
+    com o Improved; uma dose por nível por dia) é o padrão e os venenos do inventário são opção —,
+    com a ação descontada sozinha, e **Debilitating Strike** como anotação da rolagem.
+-   🛡️ **Guerreiro**: **Fearsome Brute** (o diálogo pergunta o medo do alvo), **Exacting Strike**,
+    **Reflexive Shield** (o escudo erguido soma nos Reflexos) e o **Fiery Rebirth** mítico.
+-   🪄 **Magias de ação variável** (Heal, Harm, Force Barrage, Blazing Bolt, Ki Blast, Disorienting
+    Flash, Concordant Choir, Rebuke Death…): o jogador **escolhe quantas ações gasta** e o dano, a
+    cura, os alvos, a área e os efeitos seguem a regra da magia. O **Blazing Bolt** de várias
+    ações rola **um ataque e um dano por raio, num cartão só**, com o total no fim. As magias fora
+    do catálogo ganham o seletor e o custo certo, sem número inventado.
+-   🐾 **Companheiros de combate** (aba **Inventário**): criaturas da AON que entram **sozinhas** no
+    combate junto com o personagem — a **Animated Armor** do Nathaniel. O jogador informa o nome da
+    AON, envia o **token** uma vez e **enquadra** a imagem (centro e ampliação); a Iniciativa
+    traz o token e o enquadramento, e o relê quando o encontro é aberto.
+-   📱 **Guia de Uso no celular**: no layout de acordeão (celular e painel do mapa) o guia vira uma
+    **aba que abre e fecha**, começando fechada — quem navega entre Combate, Perícias e Magias não
+    rola uma página de texto a cada vez.
+-   ⏩ **"Carregar todas" as magias** traduz o grupo inteiro numa chamada só (6 magias em ~3 s, eram
+    ~60 s): o limite do tier gratuito é por chamada, não por magia.
 -   ⚔️ Cálculos derivados (modificadores, PV, CA, salvamentos, ataques, dano de arma) via
     helpers reutilizáveis (`helpers.ts`). Salvaguardas, Percepção e perícias saem de uma fonte só
     (`checks.ts`), que soma o **bônus de item** da ficha (runa resiliente, botas, anel) e a
@@ -217,6 +264,16 @@ dano, cura e condições em **um ou vários alvos de uma vez**.
     PV do escudo, que quebra no BT. O escudo do personagem é o mesmo da Ficha Virtual; o do monstro
     vem da prosa da AON quando ela traz os números, ou é definido à mão
 
+-   **Companheiros de combate entram junto**: ao adicionar um personagem, as criaturas que a ficha dele
+    lista (a Animated Armor do Nathaniel) entram com a ficha da AON e o token — e não duplicam se o
+    personagem for adicionado de novo. O **Atualizar** do cabeçalho (e abrir a página) relê o token e o
+    enquadramento dos companheiros que já estão no encontro
+-   **Ações do turno**: passar o turno (ou **Iniciar**) devolve as 3 ações e a reação do personagem
+    que começa o turno, na ficha do jogador
+-   **Fúria à vista**: o cartão mostra "Em fúria", soma a Raging Resistance à defesa e aplica o
+    Desajeitado do Titan Mauler; a **iniciativa rolada pela ficha** é aplicada ao personagem (uma vez
+    por rolagem, sem desfazer o ajuste manual do mestre)
+
 O encontro fica só no aparelho do mestre — **um por mapa de combate** —; os personagens é que são
 compartilhados com a mesa.
 
@@ -265,6 +322,19 @@ abre, mas não é o alvo.
 -   **Apagar o mapa depois do jogo** leva junto a imagem, os tokens de monstro, as posições e os
     desenhos. O token dos personagens fica
 
+-   **Ficha ao lado do mapa**: um painel de ~420 px à direita mostra a **Ficha Virtual** (no layout
+    do celular) do personagem do jogador — **uma aba só** para o mapa e a ficha, com rolagens que
+    funcionam. Descrições, diálogos de rolagem e de condições abrem **dentro do painel**, sem cobrir
+    o mapa. O personagem se escolhe numa **grade de cartões com o token** (ou pelo seletor com
+    nome, classe e nível) e fica lembrado no aparelho; o painel se recolhe pela aba da borda, e
+    tocar num token de personagem oferece **Ver ficha**
+-   **Menu discreto**: em `/mapa` a barra lateral some e vira uma aba na borda esquerda — o mapa
+    ocupa a tela inteira, e reenquadra sozinho quando o painel abre ou fecha
+-   **Enquadrar e trocar a imagem do token** (Modo GM → "Imagem e enquadramento"): arraste a imagem
+    para escolher o que fica no **centro do círculo**, ajuste a **ampliação** (1–4×) e, para
+    monstros, **envie outra imagem** no mesmo diálogo. A imagem inteira aparece esmaecida atrás do
+    círculo; dá para aplicar às cópias com a mesma imagem e voltar à original
+
 **Modo GM** é só um interruptor de interface, sem senha (não há login no app): mostra a camada do
 mapa, os números de PV dos monstros e as ações coletivas (criar, levar a mesa, apagar, limpar
 desenhos).
@@ -279,6 +349,9 @@ página** (Ficha, Iniciativa, Mapa…), num cartão com os dados animados, o res
 
 -   Teste de d20 com **Natural 20/1** destacados; Golpe com ataque, dano e crítico no mesmo cartão;
     salvaguarda básica com o dano de sucesso, falha e falha crítica
+-   **Magia de vários raios** (Blazing Bolt de 2 ou 3 ações): um cartão só, com o ataque e o dano de
+    **cada raio**, o **total** dos raios e o total se todos forem críticos
+-   Anotações da rolagem (veneno na arma, Debilitating Strike, Exacting Strike) aparecem no cartão
 -   **Histórico** das últimas 30 rolagens em "Rolagens da mesa" (sidebar; no celular, o dado da
     barra do topo)
 -   As rolagens chegam aos outros em ~3 s (~1 s no Mapa), sem botão de atualizar. Com a aba
@@ -583,6 +656,15 @@ Visualizador interativo da ficha. Reaproveita `parseCharacterJson`/`BuildInfo` d
 | `rolls.ts`                  | Monta a rolagem que vai para a mesa (teste, Golpe, magia) e a identidade de quem rola |
 | `components/RollDialog`     | Diálogo de rolagem: memorial, MAP, dano extra, ajuste, normal ou ✦ mítico          |
 | `sections/*`                | Uma área por aba: Overview, Combat, Skills, Feats, Specials, Spells, Pets, Inventory |
+| `CharacterSheetView.tsx`    | O corpo da ficha (hooks, faixas, abas/acordeão), usado pela página e pelo painel do mapa (`compact`) |
+| `embedContext.ts` / `components/EmbedDialog` | Prendem gaveta e diálogos ao painel quando a ficha está embutida no mapa |
+| `actions.ts` / `actionVariants.ts` | Orçamento de ações (Lento, Atordoado, Acelerado) e o catálogo das magias de ação variável |
+| `rage.ts` / `psyche.ts` / `energy.ts` / `psiAmps.ts` | Fúria, Unleash Psyche, Conservation of Energy e os amps dos psi cantrips |
+| `magus.ts` / `spellstrike.ts` | Arcane Cascade e poder mítico; opções e regras do Spellstrike dentro do Golpe |
+| `ranger.ts` / `rogue.ts` / `fighter.ts` | Hunt Prey e Gravity Weapon; Poison Weapon; Fearsome Brute, Reflexive Shield e Fiery Rebirth |
+| `initiative.ts` / `critEffects.ts` | Bônus de iniciativa da ficha; runas e especialização crítica |
+| `companions.ts`             | Companheiros de combate do personagem (nome na AON, token, enquadramento)           |
+| `components/*Bar.tsx`       | Faixas fora das abas: Ações, Fúria, Psique, Energia, Magus, Patrulheiro, Míticos     |
 | `components/UploadCard`     | Upload / colar JSON / escolher preset                                               |
 | `components/DescriptionDrawer` | Drawer que busca a descrição na AON e mostra traduzida                            |
 | `components/GuideMarkdown`  | Render do markdown do guia de uso                                                    |
@@ -688,6 +770,7 @@ encontro antigo, de antes dos mapas, virou o "Sem mapa".
 | `components/CombatantSheet`   | A ficha completa do monstro da AON, aberta dentro do próprio cartão                |
 | `components/BulkDamageDialog` | Dano em área com resultado de salvaguarda por alvo                                 |
 | `components/AonCreatureSearch`| Busca de criaturas em `/api/creature`, com quantidade                              |
+| `InitiativePage.tsx` (companheiros) | `addWithCompanions` traz os companheiros de combate do personagem; `refreshCompanions` relê token e enquadramento |
 
 #### Regras que o módulo implementa
 
@@ -738,6 +821,7 @@ Sem id na URL, abre o mapa para onde a mesa está. O módulo é o único carrega
 | Mapa (nome, imagem, escala)    | Redis, campo `meta` do hash do mapa                              |
 | Quem é cada token              | Redis, `tok:<id>` — escrito só pela Iniciativa                   |
 | Onde está cada token           | Redis, `pos:<id>` — escrito só pelo mapa                         |
+| Como a imagem é enquadrada     | Redis, `fit:<id>` — centro, ampliação e (monstro) a imagem enviada no mapa |
 | PV de monstro                  | Redis, `hp:<id>` — Iniciativa e mapa, nos dois sentidos          |
 | PV e imagem de personagem      | estado da mesa (`hp`, `token`) — os mesmos da Ficha Virtual      |
 | Cada desenho                   | Redis, `drw:<id>` — um campo por desenho                         |
@@ -761,6 +845,9 @@ Sem id na URL, abre o mapa para onde a mesa está. O módulo é o único carrega
 | `components/DicePanel.tsx`      | Rolador de dados (quantidade, faces, bônus, cor); manda para o feed      |
 | `areas.ts`                      | Quadrados de explosão, emanação, cone e linha; criaturas dentro           |
 | `components/TokenPopover.tsx`   | Dano e cura no token                                                      |
+| `components/SheetPanel.tsx`     | Painel da Ficha Virtual ao lado do mapa (seletor com token, grade de cartões) |
+| `components/TokenBadge.tsx`     | O token do personagem, só para olhar (lê o mesmo campo da ficha)          |
+| `tokenFit.ts` / `components/TokenFit*.tsx` | Enquadramento da imagem do token (centro e ampliação), com envio de imagem |
 | `geometry.ts` / `drawing.ts`    | Distância PF2e, snap, tamanho do token; simplificação e validação do traço |
 | `services/maps.ts`              | Poll de revisão (1,5 s; pausa com a aba oculta) e escrita otimista        |
 | `services/images.ts`            | Redução no navegador e envio direto para o Blob                           |
@@ -999,6 +1086,7 @@ O servidor (`server/index.mjs`) fornece endpoints para buscar dados da Archives 
 | POST   | `/api/clear-cache` | —        | Limpa o cache de descrições                      |
 | GET    | `/api/state`     | `char`     | Estado de jogo compartilhado de um personagem    |
 | POST   | `/api/state`     | body       | Grava uma fatia (`{ char, field, data }`)        |
+| GET    | `/api/state`     | `char`, `field` | **Uma** fatia do estado (1 comando no Redis) — o poll leve das ações do turno |
 | GET    | `/api/state`     | `rolls`, `rev` | Feed das últimas 30 rolagens (só o contador, se nada mudou) |
 | POST   | `/api/state`     | `{ action: 'roll-add', roll }` | Manda uma rolagem já sorteada para a mesa |
 
@@ -1039,7 +1127,7 @@ O servidor mantém um cache em memória para evitar requisições repetidas à A
 ### Estado da mesa (`/api/state`)
 
 Único endpoint com estado. Guarda um **hash por personagem** no Redis, com um campo por fatia
-(`hp`, `slots`, `conditions`, `mythic`, `pet:…`) — assim dois jogadores editando coisas diferentes ao mesmo
+(`hp`, `slots`, `conditions`, `mythic`, `rage`, `psyche`, `energy`, `magus`, `ranger`, `rogue`, `actions`, `companions`, `shield`, `size`, `pet:…`) — assim dois jogadores editando coisas diferentes ao mesmo
 tempo não se sobrescrevem. O personagem é identificado por um **slug do nome** (`Ghan Buri` →
 `ghan-buri`), sem o nível, para que subir de nível não zere o estado da mesa.
 
@@ -1047,6 +1135,10 @@ tempo não se sobrescrevem. O personagem é identificado por um **slug do nome**
 curl "http://localhost:3001/api/state?char=ghan-buri"
 # {"char":"ghan-buri","fields":{"hp":{"data":{"current":42,"temp":7},"updatedAt":…}},"storeReady":true}
 ```
+
+A sincronia é **sob demanda** (ao abrir a ficha e no botão **Atualizar**), com **uma exceção**: o
+campo `actions` é relido a cada 5 s pela faixa de ações, porque o mestre zera o contador do aparelho
+dele no começo do turno e o jogador precisa ver sem apertar nada.
 
 Sem credenciais de Redis o servidor responde igual, mas guarda só em memória — o cliente avisa
 **"Só neste aparelho"** e mantém tudo no `localStorage`.

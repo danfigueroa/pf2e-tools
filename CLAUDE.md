@@ -163,7 +163,8 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   específico (Gloom Blade, Hero's Plate) segue o `base_item`. É o que as rolagens da ficha usam
   para o MAP de ágil, o atributo do ataque e o crítico. Mora em `api/search.js` pelo limite de 12
   funções.
-- `state` é o único endpoint com **estado**: guarda o jogo da mesa (ver a seção própria abaixo).
+- `state` é o único endpoint com **estado**: guarda o jogo da mesa (ver a seção própria abaixo). `GET ?char=&field=`
+  devolve UMA fatia (`readField`, 1 HGET) — hoje só o poll das ações do turno o usa.
   Fica em `api/state.js`, **um nível** — o glob `"api/*.js"` do `vercel.json` não pega subpastas,
   então `api/state/[char].js` perderia o `maxDuration`.
 - **O mesmo `state` serve as fichas publicadas** (`api/_lib/sheet-handler.js`, compartilhado com o
@@ -230,13 +231,20 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
 - Metadados em prosa (pré-requisitos, gatilho, requisitos…) são traduzidos junto com a descrição
   numa **única** chamada, via marcadores `<<N>>` (`translateSegments`). Uma chamada por item é o que
   mantém uma ficha inteira dentro do rate limit do tier gratuito.
+- **"Carregar todas" (magias) traduz o GRUPO numa chamada só** (`resolveSpells` em `api/_lib/spells-core.js`, usado por
+  `api/spells.js` e pelo dev server): busca no AON em paralelo, junta a prosa e as entradas de heightening que o dicionário
+  não resolve num único `translateSegments`, e só então monta cada payload. O gargalo era o espaço de 4,2 s entre
+  chamadas do Gemini com 1–2 chamadas por magia (~10 s cada; 6 magias = 60 s); agora 6 magias levam ~3 s. O grupo é
+  de 6 no servidor e no cliente (`PREFETCH_CHUNK_SIZE`): cabe no TPM do Groq (fallback) e no `maxDuration`. Falha de
+  tradução continua marcando `translationPending` (nada de cachear inglês) e o cliente refaz em até 3 passadas.
+  `resolveSpell` (uma só) usa o mesmo caminho.
 
 ## Estado compartilhado da mesa
 
 PV, PV de companheiros, slots de magia, pontos de foco, pontos míticos e condições são **da mesa,
 não do navegador**: os jogadores veem os mesmos números. A sincronia é **sob demanda** — puxa ao abrir a
-ficha e no botão "Atualizar" do cabeçalho. Não há polling, SSE nem WebSocket, e não há login: quem
-abrir o site entra na mesma mesa.
+ficha e no botão "Atualizar" do cabeçalho. Não há polling, SSE nem WebSocket — **com uma exceção, o campo
+`actions`** (ver "Ações do turno") — e não há login: quem abrir o site entra na mesma mesa.
 
 - **Backend**: `api/_lib/table-store.js` (núcleo, compartilhado com `server/index.mjs`) sobre
   **Upstash Redis** via REST — `@upstash/redis`, não `@vercel/kv`, porque o dev server é `node:http`
@@ -244,7 +252,8 @@ abrir o site entra na mesma mesa.
   Vercel e `UPSTASH_REDIS_REST_*` do console da Upstash). **Sem credenciais, cai num `Map` de
   processo** e o app segue funcionando; o indicador avisa "Só neste aparelho".
 - **Um HASH por personagem, um campo por fatia** (`hp`, `slots`, `conditions`, `afflictions`,
-  `persistent`, `mythic`, `consumed`, `shield`, `token`, `size`, `rage`, `pet:<kind>:<slug>#<i>`). Campo novo precisa entrar no `FIELD_RE` de
+  `persistent`, `mythic`, `consumed`, `shield`, `token`, `size`, `rage`, `psyche`, `energy`, `magus`, `ranger`, `rogue`,
+  `actions`, `companions`, `pet:<kind>:<slug>#<i>`). Campo novo precisa entrar no `FIELD_RE` de
   `table-store.js`, senão o POST volta "Campo inválido" e o estado fica só no `localStorage`.
   Documento único faria dois jogadores editando ao mesmo tempo se sobrescreverem — quem marcasse
   condição apagaria o dano do outro. `HSET` por campo dá atomicidade por fatia sem transação, e a
@@ -454,6 +463,13 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   automático. Os curados continuam valendo para quem abre o JSON "só neste aparelho" e servem de
   BASE para a primeira geração. A decisão de não usar IA foi revista quando os jogadores passaram a
   publicar a própria ficha: o guia curado seguia descrevendo o nível anterior.
+  - **No celular o guia é uma aba que abre e fecha**, começando fechada (`OverviewSection`, `compact` vem do
+    `SectionContext`): é o layout de acordeão — celular E painel estreito do mapa; de `sm` para cima fica aberto como
+    sempre. O texto só monta aberto (`Collapse` com `unmountOnExit`); fechado, os selos "gerado por IA"/"automático" e
+    "gerando…"/"não gerou" continuam no cabeçalho para o aviso não sumir.
+  - **O guia curado é só a BASE da primeira geração por IA**: a IA seguinte parte do guia ANTERIOR, então editar o
+    `combatGuides.ts` (o do Nathaniel ganhou a seção da Animated Armor) NÃO muda o guia gerado de uma ficha já publicada —
+    só o de quem abre o JSON "só neste aparelho" e o plano B. Para o guia gerado mudar, é preciso republicar a ficha.
 - **Publicar a ficha para a mesa** (`components/usePublication.ts`, `PublishDialog.tsx`,
   `PublishedBar.tsx`, `services/sheets.ts`): enviar um JSON abre um diálogo com o que muda
   (`sheetDiff.ts` — nível, talentos, habilidades, magias, itens) contra a versão da mesa (a
@@ -1255,6 +1271,12 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
     `DescriptionDrawer`, `RollDialog` e os demais diálogos (`EmbedDialog`) viram `position: absolute` dentro
     dele, sem trava de foco — o mapa segue usável. Diálogo novo na ficha usa `EmbedDialog`, não `Dialog`.
     O cartão de rolagem do feed continua `fixed` por cima de tudo.
+  - **O seletor de personagem mostra o token** (`TokenBadge`, só leitura, lê o campo `token` da mesa — o mesmo que o
+    `TokenAvatar` grava): sem personagem escolhido o painel é uma **grade de cartões** (token, nome, classe e nível);
+    escolhido, o cabeçalho é um `Select` com o token e o nome, e cada item do menu traz token, nome e "Classe · nível".
+    Quem ainda não enviou token aparece com as iniciais. Nível vem de `usePublishedSheets().levelOf`.
+  - **A gaveta de descrição ocupa a largura do painel** quando embutida (`DescriptionDrawer`: `width: 100%`,
+    `maxHeight: 88%`, sobe de baixo): os 520 px do desktop vazavam para fora do painel de 420 px e cortavam o texto.
   - **Menu lateral some em `/mapa`** (`MainLayout`): sem sidebar, AppBar nem padding; uma aba na borda
     esquerda abre a gaveta temporária. O `MapCanvas` tem `ResizeObserver`: câmera intocada reenquadra, câmera
     mexida mantém o centro.
