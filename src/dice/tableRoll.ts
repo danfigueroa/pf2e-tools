@@ -148,7 +148,7 @@ export function sanitizeTableRoll(raw: unknown): TableRoll | null {
         if (d.crit !== undefined) {
             const c = d.crit as Record<string, unknown>
             if (!c || typeof c !== 'object' || !isInt(c.total)) return null
-            out.damage.crit = { total: c.total as number, note: str(c.note, 200) }
+            out.damage.crit = { total: c.total as number, note: str(c.note, 500) }
         }
         if (d.basic === true) out.damage.basic = true
     }

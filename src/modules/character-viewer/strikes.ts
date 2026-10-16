@@ -16,7 +16,8 @@
 // - **Crítico**: dobra o que foi rolado (dados, fixo e extras, precisão
 //   incluída). Deadly soma 1/2/3 dados POR FORA do dobro (até striking /
 //   greater / major); fatal troca o dado da arma pelo do fatal e soma +1 dado
-//   fatal por fora.
+//   fatal por fora. Efeitos de runa (Flaming, Shock…) e a especialização
+//   crítica do grupo entram por fora também (`critEffects.ts`).
 //
 // Os traços vêm do AON (`services/gear.ts`). Sem eles a arma rola como corpo a
 // corpo sem ágil — e a página avisa. Ninguém inventa número em silêncio.
@@ -32,6 +33,7 @@ import type { ConditionModifiers } from './conditions'
 import { meleeBonusParts } from './rage'
 import type { UnarmedAttack } from './unarmed'
 import type { MagicWeaponRules } from './magicWeapons'
+import { runeCritEffects, specCritEffect, type CritEffect } from './critEffects'
 
 export interface WeaponTraits {
     agile: boolean
@@ -140,6 +142,8 @@ export interface Strike {
     damageType: string
     extras: ExtraDamage[]
     traits: WeaponTraits
+    /** Efeitos do crítico: runas (sempre) e especialização (chip, desligada). */
+    critEffects: CritEffect[]
 }
 
 const B_P_S: Record<string, string> = { B: 'contundente', P: 'perfurante', S: 'cortante' }
@@ -184,6 +188,7 @@ export function weaponStrike(
     const striking = profile?.striking ?? w.str
     const die = (w.increasedDice ? stepUpDie(w.die) : w.die).toLowerCase().replace(/^d?/, '')
     const baseAbility = pathbuilderAbility(build, traits)
+    const spec = specCritEffect(gear?.group, w.pot || 0)
     return {
         key: `w:${w.name}:${profileIndex}`,
         // O nome base ("Warhammer"), não o do Pathbuilder com as runas todas —
@@ -200,6 +205,7 @@ export function weaponStrike(
             ...parseExtraDamage(profile?.extraDamage, true, w.extraDamage?.length ?? 0),
         ],
         traits,
+        critEffects: [...runeCritEffects(w.runes), ...(spec ? [spec] : [])],
     }
 }
 
@@ -217,6 +223,7 @@ export function unarmedStrike(build: BuildInfo, u: UnarmedAttack): Strike {
         damageType: u.damageType,
         extras: parseExtraDamage(u.extraDamage),
         traits: { ...UNKNOWN_TRAITS, agile: u.agile, finesse: u.finesse, known: true },
+        critEffects: [],
     }
 }
 
@@ -235,6 +242,9 @@ export interface StrikeOptions {
 }
 
 export const DEFAULT_STRIKE_OPTIONS: StrikeOptions = { map: 0, mode: 'auto', extrasOn: {}, attackAdjust: 0, damageAdjust: 0 }
+
+/** A especialização crítica guarda a escolha junto com os chips de dano extra. */
+export const SPEC_KEY = 'crit-spec'
 
 export const extraEnabled = (e: ExtraDamage, on: Record<string, boolean>) =>
     on[e.key] ?? e.defaultOn
@@ -256,6 +266,8 @@ export interface StrikePlan {
     /** Dados extras do crítico, rolados por fora do dobro. */
     deadly: DiceGroup | null
     fatal: number | null
+    /** Runas e a especialização ligada; o que não está ligado fica de fora. */
+    critEffects: CritEffect[]
     warnings: string[]
 }
 
@@ -321,6 +333,7 @@ export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers
         extras: s.extras.filter((e) => extraEnabled(e, opts.extrasOn)),
         deadly,
         fatal: traits.fatal,
+        critEffects: s.critEffects.filter((c) => c.source === 'rune' || opts.extrasOn[SPEC_KEY] === true),
         warnings,
     }
 }
@@ -356,6 +369,10 @@ export function rollStrikeDamage(plan: StrikePlan, damageType: string): DamageRo
     const total = Math.max(1, plusTotal(immediate))
 
     const extra: DamagePartRoll[] = []
+    // O que soma ao dano imediato do alvo por fora do dobro.
+    let outside = 0
+    // Persistente do crítico e efeitos fora do alvo: aparecem na nota, não no total.
+    const aside: string[] = []
     let critBase = total
     let note = `2 × ${total}`
     if (plan.fatal) {
@@ -365,16 +382,44 @@ export function rollStrikeDamage(plan: StrikePlan, damageType: string): DamageRo
         note = `2 × ${critBase}`
         const plus = rollGroups([{ count: 1, faces: plan.fatal }])
         extra.push({ label: `fatal +1d${plan.fatal}`, rolled: plus, persistent: false })
+        outside += plus.total
         note += ` + fatal 1d${plan.fatal} (${plus.total})`
     }
     if (plan.deadly) {
         const d = rollGroups([plan.deadly])
         extra.push({ label: `deadly ${plan.deadly.count}d${plan.deadly.faces}`, rolled: d, persistent: false })
+        outside += d.total
         note += ` + deadly ${plan.deadly.count}d${plan.deadly.faces} (${d.total})`
     }
-    const outside = extra.filter((p) => !p.label.startsWith('fatal: ')).reduce((s, p) => s + p.rolled.total, 0)
+
+    const weaponDice = plan.weapon.groups.reduce((n, g) => n + g.count, 0)
+    for (const c of plan.critEffects) {
+        if (c.damage) {
+            const d = c.damage
+            const flat = d.expr.flat + (d.perDie ?? 0) * weaponDice
+            const rolled = rollGroups(d.expr.groups, flat)
+            const type = translateDamageType(d.type)
+            const label = `${c.label}: ${rolled.dice.length ? exprText({ groups: d.expr.groups, flat }) : flat} ${type}${d.persistent ? ' persistente' : ''}`
+            extra.push({ label, rolled, persistent: d.persistent })
+            if (d.to === 'armor') aside.push(`${c.label}: ${rolled.total} ${type} na armadura/escudo do alvo`)
+            else if (d.persistent) aside.push(`${c.label}: ${rolled.total} ${type} persistente`)
+            else { outside += rolled.total; note += ` + ${c.label} ${rolled.total}` }
+        }
+        if (c.mirrors) {
+            // Mesmo dano do extra do tipo, em outras criaturas: não soma ao alvo, não dobra.
+            const at = plan.extras.findIndex((e) => !e.persistent && e.type === c.mirrors)
+            const hit = at >= 0 ? parts[at + 1] : null
+            aside.push(hit
+                ? `${c.label}: ${hit.rolled.total} ${translateDamageType(c.mirrors)} em até 2 criaturas a 3 m do alvo`
+                : `${c.label}: mesmo dano ${translateDamageType(c.mirrors)} em até 2 criaturas a 3 m do alvo`)
+        }
+        if (c.note) aside.push(`${c.label}: ${c.note}`)
+    }
+
     const critTotal = 2 * critBase + outside
     const persistent = parts.filter((p) => p.persistent)
     if (persistent.length) note += ` · persistente dobrado: ${persistent.map((p) => 2 * p.rolled.total).join(' + ')}`
-    return { parts, total, crit: { total: critTotal, note: `${note} = ${critTotal}`, extra } }
+    note = `${note} = ${critTotal}`
+    if (aside.length) note += ` · ${aside.join(' · ')}`
+    return { parts, total, crit: { total: critTotal, note, extra } }
 }

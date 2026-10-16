@@ -101,7 +101,7 @@ export function sanitizeRoll(r) {
     out.damage = { parts, total: d.total }
     if (d.crit !== undefined) {
       if (!d.crit || typeof d.crit !== 'object' || !isInt(d.crit.total)) return null
-      out.damage.crit = { total: d.crit.total, note: str(d.crit.note, 200) }
+      out.damage.crit = { total: d.crit.total, note: str(d.crit.note, 500) }
     }
     if (d.basic === true) out.damage.basic = true
   }
