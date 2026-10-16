@@ -596,6 +596,21 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     rótulo curto. Como todo campo do feed, **duas validações** (`tableRoll.ts` e `roll-store.js`); o
     `check-rolls` confere as duas. O Spellstrike com muitas parcelas de dano junta as da magia numa só, porque
     o feed recusa a rolagem inteira com mais de 8.
+- **Guerreiro / Bastion** (`fighter.ts`): quatro talentos do Ghan Buri, todos descobertos pela ficha.
+  - **Fearsome Brute**: o diálogo do Golpe pergunta o medo do alvo (0–4; não é persistido) e `planStrike`
+    soma bônus de circunstância de **2 × medo** (3 × se mestre em Intimidação, rank 6). **Guardado pelo talento**
+    — já houve bug de somar sem checar a ficha, pego pelo `check-rolls`.
+  - **Exacting Strike**: chip no diálogo; vira anotação da rolagem ("se errar, não conta para o MAP") — o app
+    não sabe se errou.
+  - **Reflexive Shield**: com o escudo erguido e inteiro (estado da mesa, `useCharacterShield`), o bônus dele
+    entra nos Reflexos via `ConditionModifiers.reflexShield`, tratado em `buildCheck` (e NÃO por
+    `effectiveParts`, que só guarda a pior parcela de cada tipo — um bônus de circunstância sumiria ao lado
+    de uma penalidade de circunstância).
+  - **Fiery Rebirth** (talento mítico): linha na faixa mítica (`MagusBar`, que vira "Poder mítico" para quem não
+    é Magus). Confirmação, gasta 1 Ponto Mítico, +nível PV, tira Inconsciente e Morrendo e posta a explosão (fogo
+    2 × nível, Reflexos básico, CD de classe) no feed (`fieryRebirthRoll`). Lembra: não toca em Ferido.
+  - Não automatizado: Quick Shield Block, Shield Warden, Devoted Guardian, Quick Reversal e as reações
+    (Reactive Shield, Disarming Block) — dependem de turno, aliados e alvos que a ficha não vê.
 - **Mudança de tamanho** (`sizeEffects.ts` + `components/useSizeEffect.ts`): a runa do Brukuthur
   liga Enlarge 4º ou Shrink com um clique e desliga pelo "Voltar ao normal". Estado da mesa no
   campo `size` (`{ active, used, since }`; `used` trava a ativação 1×/dia até o "Novo dia").
