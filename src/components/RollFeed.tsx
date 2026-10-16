@@ -90,6 +90,7 @@ const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) =
                 // Vários raios fazem um cartão alto: rola por dentro em vez de passar da tela.
                 maxHeight: 'calc(100vh - 32px)',
                 overflowY: 'auto',
+                overflowX: 'hidden',
                 boxShadow: '0 6px 24px #00000080',
                 color: parchment.page,
                 pointerEvents: 'auto',
@@ -152,7 +153,9 @@ const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) =
             )}
 
             {/* Só o resultado vai para o leitor de tela; as bandejas são aria-hidden. */}
-            <Box component="span" sx={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }} role="status">
+            <Box component="span" // '1px', não 1: no `sx` do MUI o número 1 em width/height é 100% — esta caixa só-para-leitor-de-tela
+                // virava uma caixa do tamanho do cartão e criava uma área rolável vazia embaixo dele.
+                sx={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clip: 'rect(0 0 0 0)' }} role="status">
                 {rollSummaryText(roll)}
             </Box>
         </Box>

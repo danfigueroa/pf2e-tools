@@ -408,6 +408,14 @@ A plataforma é usada na mesa, no celular. Toda mudança de layout precisa passa
   Carregue a página num `<iframe>` da largura desejada (servido pelo próprio Vite, para o script da
   página hospedeira poder clicar dentro do app) e tire o print da página que hospeda o iframe.
 
+## Armadilha do `sx` do MUI: `width: 1` é 100%
+
+No `sx`, número entre 0 e 1 em `width`/`height` vira PORCENTAGEM (`1` = `100%`). Uma caixa "só para leitor de tela" escrita
+com `width: 1, height: 1` virou uma caixa do tamanho do cartão de rolagem: invisível, mas ela estendia a área rolável e o
+cartão (com `overflowY: auto`) mostrava uma barra levando a um espaço vazio. Para 1 pixel, `'1px'`. A `DiceTray` também
+não pode ter largura fixa maior que o cartão (`maxWidth: min(340px, 100%)`), senão aparece barra horizontal. O cartão
+só rola quando o conteúdo de fato passa da altura da tela (`maxHeight: calc(100vh - 32px)`).
+
 ## Animações
 
 Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem biblioteca nova).

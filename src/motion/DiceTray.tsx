@@ -112,7 +112,7 @@ export const DiceTray = ({ dice: rolls, flat, total, color, compact = false, onD
 
     return (
         <Box sx={{ textAlign: 'center' }}>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: size > 30 ? 1 : 0.5, maxWidth: 340, mx: 'auto' }} aria-hidden>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: size > 30 ? 1 : 0.5, maxWidth: 'min(340px, 100%)', mx: 'auto' }} aria-hidden>
                 {dice.map((d, i) => (
                     <Box
                         key={i}
