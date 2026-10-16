@@ -29,6 +29,7 @@ import {
     DEFAULT_STRIKE_OPTIONS,
     extraEnabled,
     SPEC_KEY,
+    specActive,
     extraLabel,
     planStrike,
     unarmedStrike,
@@ -280,8 +281,8 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
         plan.fatal ? `fatal: dados da arma em d${plan.fatal} e +1d${plan.fatal}` : null,
         ...plan.critEffects.map((c) => c.label),
     ].filter(Boolean)
-    const spec = strike.critEffects.find((c) => c.source === 'spec')
-    const specOn = opts.extrasOn[SPEC_KEY] === true
+    const spec = strike.spec
+    const specOn = specActive(strike, mods, opts.extrasOn)
 
     const sub = [
         mapLabel(opts.map, traits.agile),
@@ -397,13 +398,13 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                         </Box>
                     )}
 
-                    {spec && (
+                    {spec && (spec.source.kind === 'prey' || spec.source.kind === 'situational') && (
                         <Box>
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
                                 Se o golpe for crítico
                             </Typography>
                             <Chip
-                                label={`${spec.label}${spec.damage ? '' : ' (aviso)'}`}
+                                label={`${spec.effect.label}${spec.effect.damage ? '' : ' (aviso)'}`}
                                 color={specOn ? 'primary' : 'default'}
                                 variant={specOn ? 'filled' : 'outlined'}
                                 onClick={() => toggleExtra(SPEC_KEY, !specOn)}
@@ -411,9 +412,14 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                                 sx={{ minHeight: 32 }}
                             />
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                Ligue só se você tem a especialização crítica desta arma (característica de classe).
+                                {spec.source.reason}.
                             </Typography>
                         </Box>
+                    )}
+                    {spec && (spec.source.kind === 'always' || spec.source.kind === 'raging') && (
+                        <Typography variant="caption" color={specOn ? 'text.secondary' : 'warning.main'} sx={{ display: 'block' }}>
+                            {spec.effect.label}: {specOn ? 'vale neste golpe' : 'só vale em Fúria'} — {spec.source.reason}.
+                        </Typography>
                     )}
 
                     {plan.warnings.map((w) => <Alert key={w} severity="warning" sx={{ py: 0 }}>{w}</Alert>)}

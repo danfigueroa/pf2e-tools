@@ -118,3 +118,57 @@ export function specCritEffect(group: string | null | undefined, bonus: number):
     }
     return null
 }
+
+/**
+ * De onde a ficha tira a especialização crítica, lido das características de
+ * classe (`build.specials`) — para o jogador não ter de ligar o chip a cada golpe.
+ *
+ * - `always`: vale em todo golpe desta arma (Fighter Weapon Mastery, Swashbuckler).
+ * - `raging`: vale em Fúria (Brutality, corpo a corpo).
+ * - `prey`: vale contra a presa caçada (Ranger Weapon Expertise) — o caso comum,
+ *   então começa ligada, com o chip para desligar.
+ * - `situational`: depende do alvo ou de um efeito (Rogue contra desprevenido,
+ *   Bard com composição) que a ficha não vê — chip desligado.
+ * `null` = nada na ficha dá a especialização, e o chip nem aparece.
+ */
+export type SpecSource =
+    | { kind: 'always' | 'raging' | 'prey' | 'situational'; reason: string }
+
+export interface SpecContext {
+    group: string | null | undefined
+    ranged: boolean
+    thrown: boolean
+    agile: boolean
+    finesse: boolean
+}
+
+export function specSourceFor(
+    build: { class: string; specials: string[] },
+    ctx: SpecContext,
+): SpecSource | null {
+    const has = (name: string) => build.specials.some((x) => x.toLowerCase() === name.toLowerCase())
+    const cls = build.class.toLowerCase()
+    const group = (ctx.group || '').toLowerCase()
+    if (cls === 'fighter' && group && build.specials.some((x) => x.toLowerCase() === group)) {
+        return { kind: 'always', reason: `Fighter Weapon Mastery (${ctx.group})` }
+    }
+    if (cls === 'swashbuckler' && has('Weapon Expertise')) {
+        return { kind: 'always', reason: 'Weapon Expertise' }
+    }
+    if (cls === 'gunslinger' && has('Gunslinger Weapon Mastery') && ['firearm', 'crossbow'].includes(group)) {
+        return { kind: 'always', reason: 'Gunslinger Weapon Mastery' }
+    }
+    if (cls === 'barbarian' && has('Brutality') && !ctx.ranged && !ctx.thrown) {
+        return { kind: 'raging', reason: 'Brutality, em Fúria' }
+    }
+    if (cls === 'ranger' && has('Ranger Weapon Expertise')) {
+        return { kind: 'prey', reason: 'Ranger Weapon Expertise, contra a presa caçada' }
+    }
+    if (cls === 'rogue' && has('Weapon Tricks') && (ctx.agile || ctx.finesse)) {
+        return { kind: 'situational', reason: 'Weapon Tricks, contra alvo desprevenido' }
+    }
+    if (cls === 'bard' && has('Bard Weapon Expertise')) {
+        return { kind: 'situational', reason: 'Bard Weapon Expertise, com uma composição ativa' }
+    }
+    return null
+}

@@ -146,15 +146,15 @@ for (let i = 0; i < 200; i++) {
 }
 
 // Crítico: runas e especialização do grupo entram POR FORA do dobro.
-const gearOf = (name, group) => ({ kind: 'weapon', name, base: name, traits: [], weaponType: 'melee', group })
-const critOpts = (spec) => opts({ extrasOn: spec ? { [strikes.SPEC_KEY]: true } : {} })
-const critPlan = (weapon, group, spec) => strikes.planStrike(party.ghan, strikes.weaponStrike(party.ghan, weapon, gearOf(weapon.name, group)), NO_MODIFIERS, critOpts(spec))
+const gearOf = (name, group, traits = []) => ({ kind: 'weapon', name, base: name, traits, weaponType: 'melee', group })
+const critPlan = (build, weapon, group, extrasOn = {}, mods = NO_MODIFIERS, traits = []) =>
+    strikes.planStrike(build, strikes.weaponStrike(build, weapon, gearOf(weapon.name, group, traits)), mods, opts({ extrasOn }))
 {
-    // Warhammer do Ghan Buri: Shock espelha a eletricidade, Thundering vira aviso; martelo só com especialização.
-    const off = critPlan(warhammer, 'Hammer', false)
-    eq(off.critEffects.map((c) => c.label).join(','), 'Shock,Thundering', 'sem especialização, só as runas')
-    const on = critPlan(warhammer, 'Hammer', true)
-    eq(on.critEffects.length, 3, 'com especialização, runas + martelo')
+    // Warhammer do Ghan Buri: Fighter com "Hammer" nas características → especialização SEM chip.
+    const on = critPlan(party.ghan, warhammer, 'Hammer')
+    eq(on.critEffects.map((c) => c.label).join(','), 'Shock,Thundering,Especialização · Hammer', 'Fighter do grupo Hammer tem a especialização sozinha')
+    eq(strikes.weaponStrike(party.ghan, warhammer, gearOf('Warhammer', 'Hammer')).spec.source.kind, 'always', 'Fighter: sempre')
+    eq(critPlan(party.ghan, warhammer, 'Sword').critEffects.map((c) => c.label).join(','), 'Shock,Thundering', 'Fighter fora do grupo escolhido não tem')
     for (let i = 0; i < 100; i++) {
         const r = strikes.rollStrikeDamage(on, 'contundente')
         const elec = r.parts[1 + on.extras.findIndex((e) => e.type === 'electricity')]
@@ -165,22 +165,35 @@ const critPlan = (weapon, group, spec) => strikes.planStrike(party.ghan, strikes
     // Flaming: persistente por fora, nunca no total imediato; Greater sobe para 2d10.
     const flamingW = { ...warhammer, runes: ['Flaming'], extraDamage: [] }
     for (let i = 0; i < 100; i++) {
-        const r = strikes.rollStrikeDamage(critPlan(flamingW, 'Hammer', false), 'contundente')
+        const r = strikes.rollStrikeDamage(critPlan(party.ghan, flamingW, 'Sword'), 'contundente')
         const f = r.crit.extra.find((p) => p.persistent)
         ok(f && f.rolled.dice.length === 1 && f.rolled.dice[0].faces === 10, 'Flaming: 1d10 persistente de fogo')
         eq(r.crit.total, 2 * r.total, 'persistente do crítico não entra no total imediato')
         ok(r.crit.note.includes(`${f.rolled.total} fogo persistente`), 'persistente aparece na nota')
     }
     const greater = { ...flamingW, runes: ['Greater Flaming'] }
-    eq(strikes.rollStrikeDamage(critPlan(greater, 'Hammer', false), 'x').crit.extra[0].rolled.dice.length, 2, 'Greater Flaming = 2d10')
-    // Faca: 1d6 de sangramento + bônus de item; Pick: +2 por dado da arma, imediato.
+    eq(strikes.rollStrikeDamage(critPlan(party.ghan, greater, 'Sword'), 'x').crit.extra[0].rolled.dice.length, 2, 'Greater Flaming = 2d10')
+
+    // Ranger: contra a presa caçada, ligada por padrão; o chip desliga. Faca = sangramento + bônus de item.
     const knife = { ...warhammer, name: 'Dagger', runes: [], extraDamage: [], pot: 2, str: 'striking' }
-    const kr = strikes.rollStrikeDamage(critPlan(knife, 'Knife', true), 'perfurante')
-    const bleed = kr.crit.extra.find((p) => p.persistent)
-    eq(bleed.rolled.flat, 2, 'sangramento da faca soma o bônus de item')
-    eq(critPlan(knife, 'Knife', false).critEffects.length, 0, 'especialização desligada não rola')
+    const kr = strikes.rollStrikeDamage(critPlan(party.ceros, knife, 'Knife'), 'perfurante')
+    eq(kr.crit.extra.find((p) => p.persistent).rolled.flat, 2, 'sangramento da faca soma o bônus de item')
+    eq(critPlan(party.ceros, knife, 'Knife', { [strikes.SPEC_KEY]: false }).critEffects.length, 0, 'Ranger desliga pelo chip')
+    // Rogue: só situacional (desprevenido), desligado até o jogador ligar; arma sem ágil/acuidade nem oferece.
+    eq(critPlan(party.eldarion, knife, 'Knife', {}, NO_MODIFIERS, ['Agile']).critEffects.length, 0, 'Rogue: situacional começa desligada')
+    eq(critPlan(party.eldarion, knife, 'Knife', { [strikes.SPEC_KEY]: true }, NO_MODIFIERS, ['Agile']).critEffects.length, 1, 'Rogue liga pelo chip')
+    eq(strikes.weaponStrike(party.eldarion, knife, gearOf('Dagger', 'Knife')).spec, null, 'Rogue sem ágil/acuidade não tem')
+    // Quem não tem a característica nem vê a especialização (Magus).
+    eq(strikes.weaponStrike(party.nathaniel, knife, gearOf('Dagger', 'Knife', ['Agile'])).spec, null, 'Magus não tem especialização')
+    // Barbarian: Brutality só em Fúria, e só corpo a corpo.
+    const axe = { ...warhammer, name: 'Greataxe', runes: [], extraDamage: [] }
+    eq(critPlan(party.brukuthur, axe, 'Axe').critEffects.length, 0, 'Bárbaro sem Fúria: sem especialização')
+    const raging = { ...NO_MODIFIERS, rage: { base: 2 } }
+    eq(critPlan(party.brukuthur, axe, 'Axe', {}, raging).critEffects.length, 1, 'Bárbaro em Fúria: com especialização')
+    // Pick: +2 por dado da arma, por fora do dobro (Fighter que escolheu o grupo Pick).
+    const fighterPick = { ...party.ghan, specials: [...party.ghan.specials, 'Pick'] }
     const pickW = { ...warhammer, name: 'Pick', runes: [], extraDamage: [], str: 'greaterStriking' }
-    const pr = strikes.rollStrikeDamage(critPlan(pickW, 'Pick', true), 'perfurante')
+    const pr = strikes.rollStrikeDamage(critPlan(fighterPick, pickW, 'Pick'), 'perfurante')
     eq(pr.crit.total, 2 * pr.total + 2 * 3, 'Pick: +2 por dado da arma (3 dados), por fora do dobro')
 }
 

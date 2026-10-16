@@ -33,7 +33,7 @@ import type { ConditionModifiers } from './conditions'
 import { meleeBonusParts } from './rage'
 import type { UnarmedAttack } from './unarmed'
 import type { MagicWeaponRules } from './magicWeapons'
-import { runeCritEffects, specCritEffect, type CritEffect } from './critEffects'
+import { runeCritEffects, specCritEffect, specSourceFor, type CritEffect, type SpecSource } from './critEffects'
 
 export interface WeaponTraits {
     agile: boolean
@@ -142,8 +142,10 @@ export interface Strike {
     damageType: string
     extras: ExtraDamage[]
     traits: WeaponTraits
-    /** Efeitos do crítico: runas (sempre) e especialização (chip, desligada). */
+    /** Efeitos de runa do crítico: valem sempre. */
     critEffects: CritEffect[]
+    /** Especialização crítica do grupo e de onde a ficha a tira; `null` = a ficha não a tem. */
+    spec: { effect: CritEffect; source: SpecSource } | null
 }
 
 const B_P_S: Record<string, string> = { B: 'contundente', P: 'perfurante', S: 'cortante' }
@@ -188,7 +190,8 @@ export function weaponStrike(
     const striking = profile?.striking ?? w.str
     const die = (w.increasedDice ? stepUpDie(w.die) : w.die).toLowerCase().replace(/^d?/, '')
     const baseAbility = pathbuilderAbility(build, traits)
-    const spec = specCritEffect(gear?.group, w.pot || 0)
+    const effect = specCritEffect(gear?.group, w.pot || 0)
+    const source = effect ? specSourceFor(build, { group: gear?.group, ...traits }) : null
     return {
         key: `w:${w.name}:${profileIndex}`,
         // O nome base ("Warhammer"), não o do Pathbuilder com as runas todas —
@@ -205,7 +208,8 @@ export function weaponStrike(
             ...parseExtraDamage(profile?.extraDamage, true, w.extraDamage?.length ?? 0),
         ],
         traits,
-        critEffects: [...runeCritEffects(w.runes), ...(spec ? [spec] : [])],
+        critEffects: runeCritEffects(w.runes),
+        spec: effect && source ? { effect, source } : null,
     }
 }
 
@@ -224,6 +228,7 @@ export function unarmedStrike(build: BuildInfo, u: UnarmedAttack): Strike {
         extras: parseExtraDamage(u.extraDamage),
         traits: { ...UNKNOWN_TRAITS, agile: u.agile, finesse: u.finesse, known: true },
         critEffects: [],
+        spec: null,
     }
 }
 
@@ -243,8 +248,19 @@ export interface StrikeOptions {
 
 export const DEFAULT_STRIKE_OPTIONS: StrikeOptions = { map: 0, mode: 'auto', extrasOn: {}, attackAdjust: 0, damageAdjust: 0 }
 
-/** A especialização crítica guarda a escolha junto com os chips de dano extra. */
+/** A escolha do jogador sobre a especialização crítica, junto dos chips de dano extra. */
 export const SPEC_KEY = 'crit-spec'
+
+/** Vale neste golpe? A ficha decide; o chip só vence onde a situação é do jogador. */
+export function specActive(s: Strike, mods: ConditionModifiers, on: Record<string, boolean>): boolean {
+    if (!s.spec) return false
+    switch (s.spec.source.kind) {
+        case 'always': return true
+        case 'raging': return !!mods.rage
+        case 'prey': return on[SPEC_KEY] !== false
+        case 'situational': return on[SPEC_KEY] === true
+    }
+}
 
 export const extraEnabled = (e: ExtraDamage, on: Record<string, boolean>) =>
     on[e.key] ?? e.defaultOn
@@ -333,7 +349,7 @@ export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers
         extras: s.extras.filter((e) => extraEnabled(e, opts.extrasOn)),
         deadly,
         fatal: traits.fatal,
-        critEffects: s.critEffects.filter((c) => c.source === 'rune' || opts.extrasOn[SPEC_KEY] === true),
+        critEffects: [...s.critEffects, ...(specActive(s, mods, opts.extrasOn) ? [s.spec!.effect] : [])],
         warnings,
     }
 }
