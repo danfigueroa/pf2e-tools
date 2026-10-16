@@ -10,7 +10,10 @@ import type { FeatDescription, SpellDescription, CompanionStats } from '../modul
 // v12: bastões ganharam o bloco `staff` (magias do degrau) e a resolução por
 // nome deixou de descartar o qualificador — o que estava em cache aponta para o
 // item base ("Staff of Healing" no lugar do Greater) e precisa ser descartado.
-const CACHE_VERSION = 'v12'
+// v13: o AON parou de mandar o "---" no `text`; as magias chegavam sem entradas
+// de heightening e com o cabeçalho colado na prosa. Agora vêm do `markdown`, com
+// `scaling` (os números por rank) — o cache antigo não tem nem um nem outro.
+const CACHE_VERSION = 'v13'
 
 type Kind = 'feat' | 'spell' | 'special' | 'companion' | 'item'
 
