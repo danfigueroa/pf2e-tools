@@ -788,6 +788,10 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   cada rolagem vale UMA vez (ids tratados no `localStorage`), então o ajuste manual do GM depois não é
   desfeito. Escreve só no encontro local, nunca na mesa. Rolagem de até 10 min vale ao abrir a página
   ou ao PC entrar no encontro; mais velha é descartada. O `check-rolls` cobre.
+  **Bônus de iniciativa** (`initiative.ts`): ao ligar o chip, o diálogo soma sozinho o que a ficha tem —
+  Incredible Initiative (+2, qualquer perícia), Elven Instincts e Battlefield Surveyor (+2, só Percepção;
+  o Elven Instincts também vence empate). São de circunstância e **não empilham**: vale o maior, e o memorial
+  cita todas as fontes do mesmo +2. Scout's Warning de aliado e o Shadow Mark (que penaliza o ALVO) vão no ajuste livre.
 - Descrições da AON são buscadas **sob demanda** ao tocar num item (`DescriptionDrawer` →
   `services/descriptions.ts`); a última ficha fica em `sessionStorage`. O cache tem uma camada em
   memória na frente do `localStorage` (como `gear.ts`): sem ela, cada render da aba de Magias

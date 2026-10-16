@@ -29,6 +29,7 @@ const spellstrike = await import('../src/modules/character-viewer/spellstrike.ts
 const ranger = await import('../src/modules/character-viewer/ranger.ts')
 const rogue = await import('../src/modules/character-viewer/rogue.ts')
 const fighter = await import('../src/modules/character-viewer/fighter.ts')
+const initiative = await import('../src/modules/character-viewer/initiative.ts')
 const { normalizeSpellCasters } = await import('../src/modules/character-sheet/types.ts')
 const dice = await import('../src/dice/roll.ts')
 const initRolls = await import('../src/modules/initiative-tracker/initiativeRolls.ts')
@@ -537,6 +538,19 @@ eq(fighter.classDc(gh), 27, 'CD de classe do Ghan Buri: 10 + 10 + 2 + FOR 5')
 const rebirth = rolls.fieryRebirthRoll(rolls.rollerIdentity(gh), 20, 27)
 ok(rebirth.damage.basic === true && rebirth.damage.total === 20, 'A explosão sai como dano básico de 20')
 ok(table.sanitizeTableRoll(rebirth) !== null && server.sanitizeRoll(rebirth) !== null, 'A explosão passa nos dois sanitizadores')
+
+
+// ── Bônus de iniciativa: Incredible Initiative, Elven Instincts, Battlefield Surveyor ──
+const ib = initiative.initiativeBonus
+eq(ib(party.ceros, 'Perception')?.value, 2, 'Ceros (Incredible Initiative): +2 na Percepção')
+eq(ib(party.ceros, 'Stealth')?.value, 2, 'Incredible Initiative vale em qualquer perícia de iniciativa')
+eq(ib(party.eldarion, 'Perception')?.value, 2, 'Eldarion: circunstância não empilha (Incredible + Elven Instincts = +2)')
+ok(ib(party.eldarion, 'Perception').from.length === 2, 'O memorial cita as duas fontes do mesmo +2')
+eq(ib(party.eldarion, 'Perception').winsTies, true, 'Elven Instincts vence o empate')
+eq(ib(party.ghan, 'Perception')?.value, 2, 'Ghan Buri: Battlefield Surveyor dá +2 na Percepção')
+eq(ib(party.ghan, 'Athletics'), null, 'Battlefield Surveyor só vale com Percepção')
+eq(ib(party.brukuthur, 'Perception'), null, 'Sem talento nenhum, sem bônus')
+eq(ib(party.thalos, 'Acrobatics')?.value, 2, 'Thalos: Incredible Initiative em Acrobacia')
 
 console.log(`${passed} conferências ok, ${failures} falha(s).`)
 process.exit(failures ? 1 : 0)
