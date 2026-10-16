@@ -1053,6 +1053,22 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
 - A página sangra até a borda desfazendo o padding do `MainLayout`; barra e avisos ficam numa
   coluna só porque a barra quebra em duas linhas no celular.
 
+- **Tela dividida: mapa + ficha** (`components/SheetPanel.tsx`, `sheetChoice.ts`): painel de ~420px à
+  direita com a Ficha Virtual em modo `compact` (acordeão do celular, qualquer que seja a janela). Aberto
+  ou recolhido e o personagem escolhido ficam no `localStorage` (`pf2e:map:sheet-open`, `pf2e:map:sheet`) —
+  **chaves próprias**: `pf2e:viewer:lastBuild/lastPublished` são da Ficha Virtual e colidiriam. O
+  popover do token de PC tem "Ver ficha". A ficha é `React.lazy` (chunk `CharacterSheetView`), só baixa
+  com o painel aberto.
+  - **O corpo da ficha é `CharacterSheetView`** (character-viewer), usado pela página e pelo painel; a
+    página ficou só com upload, publicação e restore. Recebe o `usePublication()` de quem hospeda.
+  - **Overlays presos ao painel** (`embedContext.ts`): `EmbedContext` leva o elemento do painel;
+    `DescriptionDrawer`, `RollDialog` e os demais diálogos (`EmbedDialog`) viram `position: absolute` dentro
+    dele, sem trava de foco — o mapa segue usável. Diálogo novo na ficha usa `EmbedDialog`, não `Dialog`.
+    O cartão de rolagem do feed continua `fixed` por cima de tudo.
+  - **Menu lateral some em `/mapa`** (`MainLayout`): sem sidebar, AppBar nem padding; uma aba na borda
+    esquerda abre a gaveta temporária. O `MapCanvas` tem `ResizeObserver`: câmera intocada reenquadra, câmera
+    mexida mantém o centro.
+
 ### Ligação com a Iniciativa
 
 - **Um encontro por mapa** (`encounterStorage.ts`): chave `pf2e:initiative:v1:map:<id>`, e a
