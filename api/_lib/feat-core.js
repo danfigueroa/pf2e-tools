@@ -91,7 +91,7 @@ async function resolveEntry(rawName, categories, itemType, translationEnabled) {
   }
 
   const source = best._source
-  const parsed = parseAonText(source.text || '')
+  const parsed = parseAonText(source.text || '', source.markdown)
 
   // Bastão: o documento do AON guarda a FAMÍLIA inteira (base, Greater, Major,
   // True). O parse próprio isola o degrau que a ficha possui e acumula as
