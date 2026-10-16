@@ -11,11 +11,13 @@ interface Props {
     onReset: () => void
     /** Enlarge/Shrink ligado: o chip de tamanho mostra o tamanho de agora. */
     sizeEffect?: SizeEffectDef | null
+    /** Painel estreito (mapa): leiaute de celular, qualquer que seja a janela. */
+    compact?: boolean
 }
 
-export const CharacterHeader = ({ build, onReset, sizeEffect }: Props) => {
+export const CharacterHeader = ({ build, onReset, sizeEffect, compact = false }: Props) => {
     const theme = useTheme()
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm')) || compact
 
     return (
         <Card
@@ -28,9 +30,9 @@ export const CharacterHeader = ({ build, onReset, sizeEffect }: Props) => {
         >
             <CardContent sx={{ p: { xs: 2.5, md: 3 } }}>
                 <Stack
-                    direction={{ xs: 'column', sm: 'row' }}
+                    direction={compact ? 'column' : { xs: 'column', sm: 'row' }}
                     spacing={2}
-                    alignItems={{ xs: 'flex-start', sm: 'center' }}
+                    alignItems={compact ? 'flex-start' : { xs: 'flex-start', sm: 'center' }}
                     justifyContent="space-between"
                 >
                     <Box sx={{ flex: 1, minWidth: 0, display: 'flex', gap: 2, alignItems: 'center' }}>

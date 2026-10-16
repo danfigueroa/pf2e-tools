@@ -510,3 +510,9 @@ export function getCombatGuide(b: BuildInfo): { markdown: string; curated: boole
     if (found) return { markdown: found.markdown, curated: true }
     return { markdown: buildFallbackGuide(b), curated: false }
 }
+
+/** O guia curado que o app mostrava — base para a IA atualizar em vez de começar do zero. */
+export function curatedBase(b: BuildInfo): string | null {
+    const g = getCombatGuide(b)
+    return g.curated ? g.markdown : null
+}
