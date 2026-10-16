@@ -695,6 +695,13 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     Salvaguarda básica mostra os quatro graus (½ para baixo); a `defense` chega TRADUZIDA
     ("Reflexos básico"), por isso o regex casa as duas línguas. O bloco Mythic Magic já rola com a
     proficiência mítica e não oferece o ✦ (o ponto saiu ao conjurar).
+- **Iniciativa pela ficha**: no diálogo de Percepção, Furtividade, Atletismo ou Acrobacia o chip
+  "Usar como iniciativa" (desligado por padrão, por rolagem) marca o `TableRoll` com `initiative`.
+  A marca só sobrevive com um `check` de d20 — nos DOIS sanitizadores. A Iniciativa
+  (`useInitiativeRolls` + `initiativeRolls.ts`) lê o feed e dá `setInitiative` ao PC de mesmo slug;
+  cada rolagem vale UMA vez (ids tratados no `localStorage`), então o ajuste manual do GM depois não é
+  desfeito. Escreve só no encontro local, nunca na mesa. Rolagem de até 10 min vale ao abrir a página
+  ou ao PC entrar no encontro; mais velha é descartada. O `check-rolls` cobre.
 - Descrições da AON são buscadas **sob demanda** ao tocar num item (`DescriptionDrawer` →
   `services/descriptions.ts`); a última ficha fica em `sessionStorage`. O cache tem uma camada em
   memória na frente do `localStorage` (como `gear.ts`): sem ela, cada render da aba de Magias
