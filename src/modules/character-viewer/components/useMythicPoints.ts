@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useSharedState } from './useSharedState'
 
 /**
@@ -53,7 +53,12 @@ export function useMythicPoints(syncKey: string, max: number) {
     /** Início do dia: o pool volta cheio. */
     const resetAll = useCallback(() => setState(emptyState), [setState])
 
-    return { used, available, max, setUsed, spend, resetAll }
+    // Viaja até a aba de Magias, que é `memo`: identidade nova a cada render
+    // repintaria a aba inteira a cada clique em qualquer lugar da ficha.
+    return useMemo(
+        () => ({ used, available, max, setUsed, spend, resetAll }),
+        [used, available, max, setUsed, spend, resetAll],
+    )
 }
 
 export type MythicPointsApi = ReturnType<typeof useMythicPoints>

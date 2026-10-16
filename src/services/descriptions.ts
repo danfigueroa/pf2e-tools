@@ -2,6 +2,7 @@
 // Compartilhado entre módulos (PDF e Ficha Virtual). Cada função é uma
 // chamada batch de tamanho 1 — o backend já dedupa e cacheia em memória.
 
+import { useSyncExternalStore } from 'react'
 import type { FeatDescription, SpellDescription, CompanionStats } from '../modules/character-sheet/types'
 
 // v10: talentos/habilidades/itens passaram a ser objetos estruturados e param
@@ -54,9 +55,27 @@ function readCache<T>(kind: Kind, name: string): T | null {
     }
 }
 
+// Quem desenha a partir do cache (as linhas da aba de Magias) precisa saber
+// quando ele ganha uma entrada: a seção é `memo` e não repinta só porque o
+// drawer, que fez a busca, fechou.
+let cacheVersion = 0
+const cacheListeners = new Set<() => void>()
+
+function subscribeCache(listener: () => void) {
+    cacheListeners.add(listener)
+    return () => { cacheListeners.delete(listener) }
+}
+
+/** Muda a cada descrição gravada no cache — para re-renderizar quem lê dele. */
+export function useDescriptionCacheVersion(): number {
+    return useSyncExternalStore(subscribeCache, () => cacheVersion)
+}
+
 function writeCache(kind: Kind, name: string, value: unknown) {
     const k = key(kind, name)
     memory.set(k, value)
+    cacheVersion++
+    cacheListeners.forEach((l) => l())
     try {
         localStorage.setItem(k, JSON.stringify(value))
     } catch {

@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react'
 import { Alert, Box, Button, Card, CardContent, CircularProgress, Typography, Stack, Chip, useTheme } from '@mui/material'
 import { AutoAwesome as RegenerateIcon, MenuBook as GuideIcon } from '@mui/icons-material'
 import type { BuildInfo } from '../../character-sheet/types'
@@ -24,7 +25,7 @@ interface Props {
     onRoll: (req: RollRequest) => void
 }
 
-export const OverviewSection = ({ build, mods, guide: slot, onRoll }: Props) => {
+const OverviewSectionView = ({ build, mods, guide: slot, onRoll }: Props) => {
     const theme = useTheme()
     // Drenado corta PV máximos (valor × nível); nunca abaixo de 1.
     const hp = characterMaxHp(build, mods.hpMaxDelta)
@@ -43,7 +44,7 @@ export const OverviewSection = ({ build, mods, guide: slot, onRoll }: Props) => 
     // Ficha publicada com guia gerado: vale o gerado, que descreve ESTA versão.
     // Sem ele, o curado à mão (ou a heurística) continua aparecendo — com aviso
     // se a ficha é da mesa, porque aí ele pode estar descrevendo a anterior.
-    const fallback = getCombatGuide(build)
+    const fallback = useMemo(() => getCombatGuide(build), [build])
     const guide = slot.guide
         ? { markdown: slot.guide.markdown, curated: true, ai: true }
         : { ...fallback, ai: false }
@@ -328,3 +329,5 @@ const SectionTitle = ({ children }: { children: React.ReactNode }) => (
         {children}
     </Typography>
 )
+
+export const OverviewSection = memo(OverviewSectionView)

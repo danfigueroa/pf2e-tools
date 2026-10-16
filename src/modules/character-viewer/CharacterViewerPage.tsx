@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
     Alert,
     Snackbar,
@@ -189,7 +189,7 @@ export const CharacterViewerPage = () => {
     )
 
     const publication = usePublication()
-    const { attach } = publication
+    const { attach, generateGuide, published, guideStatus, guideError } = publication
     // Arquivo enviado aguardando a escolha entre publicar e só ver.
     const [pending, setPending] = useState<{ json: unknown; build: BuildInfo; base: PublishBase | null } | null>(null)
     const [publishBusy, setPublishBusy] = useState(false)
@@ -239,6 +239,18 @@ export const CharacterViewerPage = () => {
         })
         return () => { cancelled = true }
     }, [build, apiAvailable])
+
+    // As seções são `memo`: com objetos novos a cada render, abrir o drawer ou o
+    // diálogo de rolagem (estado desta página) repintaria a seção inteira.
+    const guide = useMemo<GuideSlot>(() => ({
+        published,
+        guide: published?.guide ?? null,
+        status: guideStatus,
+        error: guideError,
+        onGenerate: () => { if (published && build) void generateGuide(published, curatedBase(build)) },
+    }), [published, guideStatus, guideError, generateGuide, build])
+    const closeDrawer = useCallback(() => setDrawerReq(null), [])
+    const closeRoll = useCallback(() => setRollReq(null), [])
 
     /** Abre a ficha. `published` = é a versão da mesa (tem guia gerado). */
     const show = (b: BuildInfo, published: PublishedSheet | null) => {
@@ -358,14 +370,6 @@ export const CharacterViewerPage = () => {
     }
 
     const visibleSections = SECTIONS.filter(s => !s.visible || s.visible(build))
-    const published = publication.published
-    const guide: GuideSlot = {
-        published,
-        guide: published?.guide ?? null,
-        status: publication.guideStatus,
-        error: publication.guideError,
-        onGenerate: () => { if (published) void publication.generateGuide(published, curatedBase(build)) },
-    }
     const ctx: SectionContext = { build, onSelect: setDrawerReq, onRoll: setRollReq, mods: conditions.mods, mythicPoints, guide }
 
     return (
@@ -483,7 +487,7 @@ export const CharacterViewerPage = () => {
 
             <DescriptionDrawer
                 request={drawerReq}
-                onClose={() => setDrawerReq(null)}
+                onClose={closeDrawer}
                 onNavigate={setDrawerReq}
                 onRoll={setRollReq}
             />
@@ -492,7 +496,7 @@ export const CharacterViewerPage = () => {
                 build={build}
                 mods={conditions.mods}
                 mythicPoints={mythicPoints}
-                onClose={() => setRollReq(null)}
+                onClose={closeRoll}
             />
             {publishDialog}
             {publishSnackbar}

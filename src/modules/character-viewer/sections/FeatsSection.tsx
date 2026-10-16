@@ -1,6 +1,6 @@
 import { Box, Card, CardContent, Stack, Typography, Chip } from '@mui/material'
 import { ChevronRight as ChevronIcon } from '@mui/icons-material'
-import { useMemo } from 'react'
+import { useMemo, memo } from 'react'
 import { parseFeatEntry, type BuildInfo } from '../../character-sheet/types'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
 
@@ -9,7 +9,7 @@ interface Props {
     onSelect: (req: DescriptionRequest) => void
 }
 
-export const FeatsSection = ({ build, onSelect }: Props) => {
+const FeatsSectionView = ({ build, onSelect }: Props) => {
     const grouped = useMemo(() => {
         const map: Record<string, Array<{ name: string; level: number }>> = {}
         for (const entry of build.feats || []) {
@@ -97,3 +97,5 @@ const FeatRow = ({ name, level, onClick }: { name: string; level: number; onClic
         <ChevronIcon fontSize="small" sx={{ color: 'text.secondary', ml: 1, flexShrink: 0 }} />
     </Box>
 )
+
+export const FeatsSection = memo(FeatsSectionView)

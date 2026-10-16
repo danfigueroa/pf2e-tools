@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Box, Card, CardContent, Typography, Stack, Chip, Divider } from '@mui/material'
 import { green } from '../../../theme/palette'
 import type { BuildInfo, CompanionStats, Pet } from '../../character-sheet/types'
@@ -18,7 +19,7 @@ interface Props { build: BuildInfo }
 
 const ACCENT = green.main
 
-export const PetsSection = ({ build }: Props) => {
+const PetsSectionView = ({ build }: Props) => {
     const pets = build.pets || []
     const familiars = build.familiars || []
 
@@ -300,3 +301,5 @@ const Row = ({ label, children }: { label: string; children: React.ReactNode }) 
         {children}
     </Box>
 )
+
+export const PetsSection = memo(PetsSectionView)

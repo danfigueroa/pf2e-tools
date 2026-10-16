@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, memo } from 'react'
 import { Box, Button, Card, CardContent, Typography, Stack, Chip, Divider, Tooltip } from '@mui/material'
 import { Casino as DiceIcon } from '@mui/icons-material'
 import type { BuildInfo, Weapon } from '../../character-sheet/types'
@@ -27,7 +27,7 @@ interface Props {
     onRoll: (req: RollRequest) => void
 }
 
-export const CombatSection = ({ build, mods, onRoll }: Props) => {
+const CombatSectionView = ({ build, mods, onRoll }: Props) => {
     const weapons = useMemo(() => build.weapons ?? [], [build.weapons])
     // Traços das armas (AON): dizem o atributo do ataque, o MAP e o crítico.
     const gear = useGear(useMemo(() => weapons.map((w) => w.name), [weapons]))
@@ -473,3 +473,5 @@ function damageTypeLabel(type: string): string {
 function capitalize(s: string) {
     return s ? s[0].toUpperCase() + s.slice(1) : s
 }
+
+export const CombatSection = memo(CombatSectionView)

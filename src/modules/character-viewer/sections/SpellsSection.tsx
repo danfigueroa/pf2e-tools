@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, memo } from 'react'
 import { Box, Button, Card, CardContent, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Tooltip, Typography, Stack, Chip, Divider, LinearProgress } from '@mui/material'
 import {
     ChevronRight as ChevronIcon,
@@ -11,7 +11,7 @@ import type { BuildInfo, SpellCaster, FocusTradition, FocusAbility } from '../..
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
 import { actionSymbol, isMythicMagicCaster, MYTHIC_COLOR, signed, spellcasterStats, traditionColor, traditionLabel } from '../helpers'
 import { castRankForSlot, damageAtRank } from '../heightening'
-import { getCachedSpell, prefetchSpellDescriptions } from '../../../services/descriptions'
+import { getCachedSpell, prefetchSpellDescriptions, useDescriptionCacheVersion } from '../../../services/descriptions'
 import { legacyCharKey, slotsKeyFor } from '../charId'
 import { slotKey, useSpellSlots, type SpellSlotsApi } from '../components/useSpellSlots'
 import { SlotPips, SlotCount } from '../components/SlotPips'
@@ -30,12 +30,15 @@ interface Props {
     mythicPoints: MythicPointsApi
 }
 
-export const SpellsSection = ({ build, onSelect, onRoll, mods, mythicPoints }: Props) => {
+const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Props) => {
     const hasCasters = build.spellCasters?.some(c => c.spells.some(l => l.list.length > 0))
     const focusSpells = useMemo(() => collectFocusSpells(build), [build])
     const focusRank = castRankForSlot(0, build.level)
     const focusMax = build.focusPoints ?? 0
     const slots = useSpellSlots(slotsKeyFor(build), focusMax, legacyCharKey(build))
+    // As linhas leem o cache no render; magia aberta no drawer ou baixada pelo
+    // "Carregar todas" precisa repintar a lista com o resumo novo.
+    useDescriptionCacheVersion()
 
     const allNames = useMemo(() => {
         const names = new Set<string>()
@@ -608,3 +611,5 @@ function focusCasterInfo(build: BuildInfo, entry: FocusSpellEntry, mods: Conditi
         attackInfo: focusAttack(build, entry.group, mods),
     }
 }
+
+export const SpellsSection = memo(SpellsSectionView)

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, memo } from 'react'
 import { Box, Button, Card, CardContent, Typography, Stack, Chip, IconButton, Snackbar, Tooltip } from '@mui/material'
 import {
     Add as AddIcon,
@@ -78,7 +78,7 @@ interface UseNotice {
     healed: number
 }
 
-export const InventorySection = ({ build, onSelect, mods }: Props) => {
+const InventorySectionView = ({ build, onSelect, mods }: Props) => {
     const rows = inventoryRows(build)
     const money = build.money || { cp: 0, sp: 0, gp: 0, pp: 0 }
     const hasMoney = money.pp + money.gp + money.sp + money.cp > 0
@@ -357,3 +357,5 @@ const Coin = ({ label, value, accent }: { label: string; value: number; accent: 
         </Typography>
     </Box>
 )
+
+export const InventorySection = memo(InventorySectionView)

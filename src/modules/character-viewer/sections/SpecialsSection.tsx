@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Box, Card, CardContent, Stack, Typography } from '@mui/material'
 import { ChevronRight as ChevronIcon } from '@mui/icons-material'
 import type { BuildInfo } from '../../character-sheet/types'
@@ -8,7 +9,7 @@ interface Props {
     onSelect: (req: DescriptionRequest) => void
 }
 
-export const SpecialsSection = ({ build, onSelect }: Props) => {
+const SpecialsSectionView = ({ build, onSelect }: Props) => {
     if (!build.specials?.length) {
         return (
             <Card>
@@ -56,3 +57,5 @@ export const SpecialsSection = ({ build, onSelect }: Props) => {
         </Card>
     )
 }
+
+export const SpecialsSection = memo(SpecialsSectionView)

@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Box, Card, CardContent, Typography, Chip } from '@mui/material'
 import { RANK_COLORS } from '../../../theme/palette'
 import type { BuildInfo } from '../../character-sheet/types'
@@ -25,7 +26,7 @@ const ARMOR_NOTE = 'A penalidade de armadura não vale em ação com o traço at
 
 const RANK_COLOR: Record<number, string> = RANK_COLORS
 
-export const SkillsSection = ({ build, mods, onRoll }: Props) => {
+const SkillsSectionView = ({ build, mods, onRoll }: Props) => {
     const mythic = isMythicCharacter(build)
     const armor = useArmorPenalty(build)
     return (
@@ -127,3 +128,5 @@ export const SkillsSection = ({ build, mods, onRoll }: Props) => {
         </Card>
     )
 }
+
+export const SkillsSection = memo(SkillsSectionView)
