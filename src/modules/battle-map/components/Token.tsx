@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useEffect, useLayoutEffect, useRef, type RefObject } from 'react'
 import { useTheme } from '@mui/material'
 import { CELL_PX, initials } from '../geometry'
 import { hpBarColor } from '../../character-viewer/components/useHpTracker'
@@ -34,6 +34,126 @@ const Z_TOKEN = 1
 const Z_NAME = 2
 const Z_BAR = 3
 
+/** Duração da troca de tamanho (Enlarge/Shrink). */
+const RESIZE_MS = 900
+/** Antes disso o token só está se acomodando (cache, depois o servidor) — não anima. */
+const RESIZE_ARM_MS = 1000
+/** Fases: até `CHARGE` o token brilha no tamanho antigo; até `SETTLE` muda; depois assenta. */
+const CHARGE = 0.25
+const SETTLE = 0.7
+const EASE_CHANGE = 'cubic-bezier(0.3, 0, 0.2, 1)'
+
+interface Box { px: number; inset: number; border: number }
+
+/**
+ * Anima a troca de tamanho do token — o Enlarge/Shrink ligado na Ficha
+ * Virtual chega pelo poll e o token saltava de 1 para 4 quadrados num quadro.
+ *
+ * O tamanho novo já está no DOM quando a animação começa (o estado muda na
+ * hora; a animação só apresenta): cada peça parte do desenho ANTIGO e volta ao
+ * próprio estilo. O círculo brilha, muda passando um pouco do ponto e assenta,
+ * com uma onda dourada que se abre (cresce) ou se fecha (encolhe). Barra e
+ * nome acompanham, senão saltariam antes do círculo.
+ *
+ * O círculo vai por `transform` (escalar a imagem/iniciais junto), com a
+ * borda compensada para não engrossar 4× no Grande → Médio. A barra vai por
+ * `left/right`: escalada, o "80/120" esticava. `transform` só nas peças,
+ * nunca no contêiner — ver o comentário do `Token`; as peças já têm `zIndex`,
+ * então já são um contexto de empilhamento próprio e nada muda nas camadas.
+ * Web Animations em vez de keyframes do Emotion porque o ponto de partida
+ * depende dos dois tamanhos.
+ */
+function useResizeAnimation(
+    box: Box,
+    circle: RefObject<HTMLDivElement | null>,
+    bar: RefObject<HTMLDivElement | null>,
+    name: RefObject<HTMLDivElement | null>,
+) {
+    const prev = useRef<Box | null>(null)
+    const mountedAt = useRef(0)
+    const running = useRef<Animation[]>([])
+    const { px, inset, border } = box
+
+    useEffect(() => {
+        mountedAt.current = performance.now()
+        const list = running
+        return () => list.current.forEach((a) => a.cancel())
+    }, [])
+
+    useLayoutEffect(() => {
+        const old = prev.current
+        prev.current = { px, inset, border }
+        if (!old || (old.px === px && old.inset === inset)) return
+        if (performance.now() - mountedAt.current < RESIZE_ARM_MS) return
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+        running.current.forEach((a) => a.cancel())
+        running.current = []
+        const timing: KeyframeAnimationOptions = { duration: RESIZE_MS }
+
+        const oldD = old.px - 2 * old.inset
+        const newD = px - 2 * inset
+        const grows = newD > oldD
+        const from = oldD / newD
+        const over = grows ? 1.08 : 0.93
+        // Os dois círculos são concêntricos ao próprio quadrado, e o token
+        // cresce para a direita e para baixo: o centro anda meia diferença.
+        const shift = (old.px - px) / 2
+        const startTransform = `translate(${shift}px, ${shift}px) scale(${from})`
+        // Anel que se abre (cresce) ou se fecha sobre o token (encolhe), em px
+        // do mundo. Tudo que tem tamanho no quadro é dividido pela escala dele,
+        // senão o brilho de um Grande → Miúdo começaria 8× maior.
+        const wave = Math.max(old.px, px) * 0.4
+        const frame = (scale: number, halo: [number, number, string], ring: [number, string]) => ({
+            borderWidth: `${border / scale}px`,
+            boxShadow: `0 0 ${halo[0] / scale}px ${halo[1] / scale}px ${gold.bright}${halo[2]}`,
+            outlineStyle: 'solid',
+            outlineWidth: `${3 / scale}px`,
+            outlineOffset: `${ring[0] / scale}px`,
+            outlineColor: `${gold.bright}${ring[1]}`,
+        })
+
+        if (circle.current) {
+            running.current.push(circle.current.animate([
+                { transform: startTransform, ...frame(from, [0, 0, '00'], grows ? [0, '00'] : [wave, '00']) },
+                {
+                    offset: CHARGE,
+                    easing: EASE_CHANGE,
+                    transform: startTransform,
+                    ...frame(from, [20, 5, 'DD'], grows ? [0, 'DD'] : [wave, '55']),
+                },
+                {
+                    offset: SETTLE,
+                    easing: 'ease-in-out',
+                    transform: `scale(${over})`,
+                    ...frame(over, [26, 7, 'BB'], grows ? [wave * 0.6, '77'] : [0, 'DD']),
+                },
+                { transform: 'none', ...frame(1, [0, 0, '00'], grows ? [wave, '00'] : [0, '00']) },
+            ], timing))
+        }
+        if (bar.current) {
+            // A barra é `left/right: 8%` do contêiner, que já tem o tamanho novo:
+            // em px, o `right` antigo pode ser negativo (passa da borda), e vale.
+            const oldEdges = { left: `${0.08 * old.px}px`, right: `${px - 0.92 * old.px}px` }
+            running.current.push(bar.current.animate([
+                oldEdges,
+                { offset: CHARGE, easing: EASE_CHANGE, ...oldEdges },
+                { offset: SETTLE, left: '8%', right: '8%' },
+                { left: '8%', right: '8%' },
+            ], timing))
+        }
+        if (name.current) {
+            const oldPlace = `translate(calc(-50% + ${(old.px - px) / 2}px), ${old.px - px}px)`
+            running.current.push(name.current.animate([
+                { transform: oldPlace },
+                { offset: CHARGE, easing: EASE_CHANGE, transform: oldPlace },
+                { offset: SETTLE, transform: 'translateX(-50%)' },
+                { transform: 'translateX(-50%)' },
+            ], timing))
+        }
+    }, [px, inset, border, circle, bar, name])
+}
+
 export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, image, active }: Props) {
     const theme = useTheme()
     const src = useImageUrl(image)
@@ -47,6 +167,11 @@ export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, ima
     const dim = token.defeated ? 0.45 : 1
     // Miúdo ocupa o quadrado inteiro (alvo de toque), mas o círculo é metade.
     const inset = token.tiny ? px * 0.25 : 3
+    const circleRef = useRef<HTMLDivElement>(null)
+    const barRef = useRef<HTMLDivElement>(null)
+    const nameRef = useRef<HTMLDivElement>(null)
+    const border = active ? 4 : 3
+    useResizeAnimation({ px, inset, border }, circleRef, barRef, nameRef)
 
     return (
         <div
@@ -63,6 +188,7 @@ export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, ima
         >
             {hp && (
                 <div
+                    ref={barRef}
                     aria-hidden
                     style={{
                         position: 'absolute',
@@ -99,13 +225,14 @@ export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, ima
             )}
 
             <div
+                ref={circleRef}
                 style={{
                     position: 'absolute',
                     zIndex: Z_TOKEN,
                     inset,
                     opacity: dim,
                     borderRadius: '50%',
-                    border: `${active ? 4 : 3}px solid ${ring}`,
+                    border: `${border}px solid ${ring}`,
                     boxShadow: active
                         ? `0 0 0 2px ${mapChrome.outline}, 0 0 14px 4px ${gold.bright}`
                         : '0 2px 6px rgba(0, 0, 0, 0.6)',
@@ -140,6 +267,7 @@ export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, ima
             </div>
 
             <div
+                ref={nameRef}
                 style={{
                     position: 'absolute',
                     zIndex: Z_NAME,
