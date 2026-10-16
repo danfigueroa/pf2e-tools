@@ -21,6 +21,8 @@ const rolls = await import('../src/modules/character-viewer/rolls.ts')
 const { computeConditionModifiers, NO_MODIFIERS } = await import('../src/modules/character-viewer/conditions.ts')
 const { abilityMod } = await import('../src/modules/character-viewer/helpers.ts')
 const { unarmedAttacks } = await import('../src/modules/character-viewer/unarmed.ts')
+const amps = await import('../src/modules/character-viewer/psiAmps.ts')
+const energyMod = await import('../src/modules/character-viewer/energy.ts')
 const psyche = await import('../src/modules/character-viewer/psyche.ts')
 const dice = await import('../src/dice/roll.ts')
 const initRolls = await import('../src/modules/initiative-tracker/initiativeRolls.ts')
@@ -243,6 +245,31 @@ const critPlan = (build, weapon, group, extrasOn = {}, mods = NO_MODIFIERS, trai
     eq(JSON.stringify(psyche.strainConditions({ phase: 'strain' }, true)), '{"stupefied":1}', 'ressaca = Estupefato 1')
     eq(Object.keys(psyche.strainConditions({ phase: 'unleashed' }, true)).length, 0, 'liberada não é ressaca')
     eq(psyche.sanitizePsyche({ phase: 'lixo' }).phase, 'idle', 'fase desconhecida volta a idle')
+}
+
+// Amps dos psi cantrips (rank 1 = base; cada rank acima soma o "Amp Heightened (+1)") e Conservation of Energy.
+{
+    const f = (name, rank, melee = false) => amps.psiAmpFor(name).damage(rank, melee).map((a) => `${a.count}d${a.faces}${a.persistent ? 'p' : ''} ${a.type}`).join(' + ')
+    eq(amps.psiAmpFor('Frostbite (Amped)')?.name, 'Frostbite', 'a marca (Amped) do Pathbuilder some')
+    eq(f('Frostbite', 1), '3d4 cold', 'Frostbite amp rank 1 = 3d4')
+    eq(f('Frostbite', 5), '11d4 cold', 'Frostbite amp rank 5 = 3d4 + 4×2d4')
+    eq(f('Ignition', 5), '5d10 fire + 5d4p fire', 'Ignition amp rank 5 = 5d10 + persistente 5d4')
+    eq(f('Ignition', 5, true), '5d12 fire + 5d4p fire', 'Ignition amp corpo a corpo = d12')
+    eq(f('Redistribute Potential', 5), '14d6 cold + 14d6 fire', 'Redistribute amp rank 5 = 6d6 + 4×2d6, frio ou fogo')
+    ok(amps.psiAmpFor('Thermal Stasis').damage === undefined, 'Thermal Stasis amp não mexe no dano')
+    ok(amps.psiAmpFor('Shield') === null, 'cantrip sem amp catalogado')
+    eq(amps.psiAmpFor('Frostbite').notes(5, false).some((n) => n.includes('fraqueza 5')), true, 'fraqueza da falha crítica sobe 1 por rank')
+
+    ok(energyMod.hasConservation(party.thalos), 'Thalos tem a Oscillating Wave')
+    ok(!energyMod.hasConservation(party.ghan), 'Ghan Buri não tem')
+    ok(energyMod.isEnergySpell('Fireball') && energyMod.isEnergySpell('Frostbite (Amped)'), 'concedida e psi cantrip padrão')
+    ok(!energyMod.isEnergySpell('Ice Storm') && !energyMod.isEnergySpell('Entropic Wheel'), 'fora da lista: sem energia')
+    eq(energyMod.allowedModes({}).join(), 'add,remove', 'neutro: escolha livre')
+    eq(energyMod.allowedModes({ last: 'add' }).join(), 'remove', 'depois de adicionar, remove')
+    eq(energyMod.allowedModes({ last: 'remove' }).join(), 'add', 'depois de remover, adiciona')
+    eq(energyMod.convertTypes(['cold', 'sonic'], 'add').join(), 'fire', 'todo o dano vira fogo')
+    eq(energyMod.convertTypes([], 'add').length, 0, 'sem tipo, sem conversão')
+    eq(energyMod.sanitizeEnergy({ last: 'lixo' }).last, undefined, 'valor desconhecido volta ao neutro')
 }
 
 // Piso 1: penalidade que zera o dano ainda causa 1.
