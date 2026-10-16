@@ -525,6 +525,16 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   pelo tipo de item (armadura vestida ou arma por nome), como `magicWeapons.ts` — o JSON não é
   editado, e a runa sobrevive a export e publicação. `replaces` esconde a runa da AON que ela
   substituiu (a Size-Changing do Brukuthur) nos chips e no nome de exibição.
+- **Unleash Psyche** (`psyche.ts` + `components/usePsyche.ts` + `PsycheBar.tsx`): só aparece para quem
+  tem a característica. Estado da mesa, campo `psyche` (`idle` → `unleashed` → `strain`). Liberada, as
+  magias de dano da **conjuração de Psíquico** (bloco "Psychic" e os psi cantrips do `build.focus`;
+  Aeromancer não) ganham bônus de status de **2 × rank** — truque pelo rank em que é elevado — em magia
+  **sem duração**, uma vez só, na primeira parcela de dano imediato (nunca persistente; Psi Burst não é
+  magia). Viaja em `ConditionModifiers.psyche`, e o `SpellBody` do diálogo soma ao componente; a linha
+  da magia mostra o chip "+N psique". A ressaca (Estupefato 1) é DERIVADA, como o Titan Mauler. **O app
+  não conta rodadas da ficha**: as duas trocas de fase são botões ("As 2 rodadas passaram",
+  "Recuperada"). A Iniciativa ainda não lê o campo. Amps dos psi cantrips (gastar Ponto de Foco e trocar
+  os números) **não estão implementados**.
 - **Mudança de tamanho** (`sizeEffects.ts` + `components/useSizeEffect.ts`): a runa do Brukuthur
   liga Enlarge 4º ou Shrink com um clique e desliga pelo "Voltar ao normal". Estado da mesa no
   campo `size` (`{ active, used, since }`; `used` trava a ativação 1×/dia até o "Novo dia").
