@@ -141,10 +141,6 @@ export function withSizeEffect(mods: ConditionModifiers, effect: SizeEffectDef |
     return { ...mods, meleeDamage: [{ from, type: 'status', value: effect.meleeDamage }] }
 }
 
-/** Soma do bônus de dano corpo a corpo — o que o card mostra ao lado do dano. */
-export const meleeDamageBonus = (mods: ConditionModifiers): number =>
-    (mods.meleeDamage ?? []).reduce((s, b) => s + b.value, 0)
-
 /** Tamanho em inglês, o que o mapa entende (`sizeSquares`). */
 export function effectiveSizeEn(baseSize: string | null | undefined, effect: SizeEffectDef | null): string {
     return SIZE_EN[effect ? effect.size : sizeKey(baseSize)]

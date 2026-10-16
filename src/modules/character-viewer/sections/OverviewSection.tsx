@@ -9,7 +9,8 @@ import { GuideMarkdown } from '../components/GuideMarkdown'
 import { HpTracker } from '../components/HpTracker'
 import { ShieldCard } from '../components/ShieldCard'
 import { useCharacterShield } from '../components/useShield'
-import { gold } from '../../../theme/palette'
+import { RAGE_COLOR, gold } from '../../../theme/palette'
+import { RESIST_LABEL } from '../rage'
 import { pop, useArmed } from '../../../motion/motion'
 import { ConditionDelta } from '../components/ConditionDelta'
 import { MythicNote } from '../components/MythicNote'
@@ -29,6 +30,12 @@ const OverviewSectionView = ({ build, mods, guide: slot, onRoll }: Props) => {
     const theme = useTheme()
     // Drenado corta PV máximos (valor × nível); nunca abaixo de 1.
     const hp = characterMaxHp(build, mods.hpMaxDelta)
+
+    // Raging Resistance: só enquanto a Fúria está ligada (`rage.ts`).
+    const rageResist = useMemo(() => {
+        const entries = Object.entries(mods.rage?.resist ?? {})
+        return entries.length > 0 ? entries.map(([t, v]) => `${RESIST_LABEL[t] ?? t} ${v}`).join(', ') : null
+    }, [mods.rage])
 
     const baseAc = build.acTotal?.acTotal ?? 10
     // O escudo erguido soma na CA; o Pathbuilder exporta a CA sem ele.
@@ -177,19 +184,26 @@ const OverviewSectionView = ({ build, mods, guide: slot, onRoll }: Props) => {
             </Card>
 
             {/* Idiomas + Resistências */}
-            {(build.languages?.length || build.resistances?.length) && (
+            {(build.languages?.length || build.resistances?.length || rageResist) && (
                 <Card>
                     <CardContent>
                         {build.languages?.length > 0 && (
-                            <Box sx={{ mb: build.resistances?.length ? 2 : 0 }}>
+                            <Box sx={{ mb: build.resistances?.length || rageResist ? 2 : 0 }}>
                                 <SectionTitle>Idiomas</SectionTitle>
                                 <Typography>{build.languages.join(', ')}</Typography>
                             </Box>
                         )}
-                        {build.resistances && build.resistances.length > 0 && (
+                        {((build.resistances && build.resistances.length > 0) || rageResist) && (
                             <Box>
                                 <SectionTitle>Resistências</SectionTitle>
-                                <Typography>{build.resistances.join(', ')}</Typography>
+                                {build.resistances && build.resistances.length > 0 && (
+                                    <Typography>{build.resistances.join(', ')}</Typography>
+                                )}
+                                {rageResist && (
+                                    <Typography sx={{ color: RAGE_COLOR, fontWeight: 600 }}>
+                                        Em fúria: {rageResist}
+                                    </Typography>
+                                )}
                             </Box>
                         )}
                     </CardContent>

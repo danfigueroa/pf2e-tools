@@ -15,8 +15,9 @@ import { magicWeaponRules, type MagicWeaponRules } from '../magicWeapons'
 import { customRunesOf, itemDisplayName, itemRuneNames, type CustomRune } from '../customRunes'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
 import type { SizeEffectApi } from '../components/useSizeEffect'
-import { SIZE_EFFECTS, meleeDamageBonus, sizeEffectApplies, sizeLabel, type SizeEffectId } from '../sizeEffects'
-import { sharedMod, type ConditionModifiers } from '../conditions'
+import { SIZE_EFFECTS, sizeEffectApplies, sizeLabel, type SizeEffectId } from '../sizeEffects'
+import { meleeBonusParts } from '../rage'
+import { sharedMod, type AppliedMod, type ConditionModifiers } from '../conditions'
 import { ConditionDelta } from '../components/ConditionDelta'
 import { MythicNote } from '../components/MythicNote'
 import { CONDITION_COLOR } from '../../../theme'
@@ -52,8 +53,6 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect }: Props)
     // delta desconta o que já está embutido no ataque do Pathbuilder.
     const mythic = isMythicCharacter(build)
     const unarmedMythicDelta = mythicProficiencyDelta(build.level, build.proficiencies.unarmed ?? 0)
-    // +4 de estado do Enlarge: só nos Golpes corpo a corpo.
-    const meleeBonus = meleeDamageBonus(mods)
     const isEmpty = weapons.length === 0 && unarmed.length === 0 && armor.length === 0 && !build.acTotal
 
     if (isEmpty) {
@@ -98,7 +97,7 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect }: Props)
                                     : null}
                                 byAbility={known ? null : <ByAbilityHint str={extraStr} dex={extraDex} damage={mods.total.damageStr} />}
                                 damage={`${weaponDamageFormula(w)} ${damageTypeLabel(w.damageType)}`.trim()}
-                                damageBonus={strike.traits.ranged ? 0 : meleeBonus}
+                                bonuses={strike.traits.ranged ? [] : meleeBonusParts(mods, { agile: strike.traits.agile, name: w.name })}
                                 extra={w.extraDamage?.length ? w.extraDamage.map((d) => `+ ${d}`).join(' ') : undefined}
                                 onRoll={() => onRoll({ kind: 'weapon', weapon: w })}
                                 rollLabel={w.display || w.name}
@@ -160,7 +159,7 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect }: Props)
                                         attackHint={`MAP ${u.map}`}
                                         damage={`${u.damage} ${u.damageType}`}
                                         damageDelta={mods.total.damageStr}
-                                        damageBonus={meleeBonus}
+                                        bonuses={meleeBonusParts(mods, { agile: u.agile, name: u.name })}
                                         extra={u.extraDamage?.length ? u.extraDamage.map((d) => `+ ${d}`).join(' ') : undefined}
                                         onRoll={() => onRoll({ kind: 'unarmed', attack: u })}
                                         rollLabel={u.name}
@@ -494,7 +493,7 @@ function profileRows(weapon: Weapon, rules: MagicWeaponRules, conditionDelta: nu
 }
 
 /** Bloco ataque/dano à direita do card, igual para armas e desarmados. */
-const AttackStats = ({ attack, attackHint, attackDelta = 0, attackBase, mythicAttack, byAbility, damage, damageDelta = 0, damageBonus = 0, extra, onRoll, rollLabel }: {
+const AttackStats = ({ attack, attackHint, attackDelta = 0, attackBase, mythicAttack, byAbility, damage, damageDelta = 0, bonuses = [], extra, onRoll, rollLabel }: {
     /** Abre o diálogo de rolagem do golpe (ataque + dano). */
     onRoll: () => void
     rollLabel: string
@@ -508,8 +507,8 @@ const AttackStats = ({ attack, attackHint, attackDelta = 0, attackBase, mythicAt
     byAbility?: React.ReactNode
     damage: string
     damageDelta?: number
-    /** Bônus de efeito no dano (Enlarge), fora da fórmula do Pathbuilder. */
-    damageBonus?: number
+    /** Bônus de efeito no dano (Enlarge, Fúria), fora da fórmula do Pathbuilder. */
+    bonuses?: AppliedMod[]
     extra?: string
 }) => (
     <Box
@@ -542,11 +541,11 @@ const AttackStats = ({ attack, attackHint, attackDelta = 0, attackBase, mythicAt
                     {signed(damageDelta)} no dano de FOR
                 </Typography>
             )}
-            {damageBonus !== 0 && (
-                <Typography component="span" sx={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, color: 'primary.light' }}>
-                    {signed(damageBonus)} de estado (Enlarge)
+            {bonuses.map((b) => (
+                <Typography key={b.from} component="span" sx={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, color: 'primary.light' }}>
+                    {signed(b.value)} {b.from}
                 </Typography>
-            )}
+            ))}
             <Button
                 size="small"
                 variant="contained"

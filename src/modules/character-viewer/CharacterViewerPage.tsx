@@ -42,13 +42,16 @@ import { ConditionsBar } from './components/ConditionsBar'
 import { AfflictionsBar } from './components/AfflictionsBar'
 import { PersistentDamageBar } from './components/PersistentDamageBar'
 import { MythicPointsBar } from './components/MythicPointsBar'
-import { afflictionsKeyFor, charSlugFromName, conditionsKeyFor, legacyCharKey, mythicKeyFor, noCharKey, persistentKeyFor, sizeKeyFor } from './charId'
+import { afflictionsKeyFor, charSlugFromName, conditionsKeyFor, legacyCharKey, mythicKeyFor, noCharKey, persistentKeyFor, rageKeyFor, sizeKeyFor } from './charId'
 import { useConditions } from './components/useConditions'
 import { useAfflictions } from './components/useAfflictions'
 import { usePersistentDamage } from './components/usePersistentDamage'
 import { useMythicPoints, type MythicPointsApi } from './components/useMythicPoints'
 import { useSizeEffect, type SizeEffectApi } from './components/useSizeEffect'
 import { sizeEffectConditions, withSizeEffect } from './sizeEffects'
+import { useRage } from './components/useRage'
+import { RageBar } from './components/RageBar'
+import { TITAN_SOURCE, withRage } from './rage'
 import { isMythicCharacter, MYTHIC_POINTS_MAX } from './helpers'
 import type { ConditionModifiers } from './conditions'
 
@@ -187,21 +190,33 @@ export const CharacterViewerPage = () => {
         build?.sizeName,
     )
 
-    // O que a ficha sofre sem ter marcado: estágio de aflição e o Desajeitado
-    // do Enlarge. Em conflito vale o pior valor, como em `useConditions`.
+    // Fúria do bárbaro: o dano viaja nos modificadores e o Desajeitado do Titan
+    // Mauler é derivado, então também vem antes das condições.
+    const rage = useRage(build ? rageKeyFor(build) : noCharKey('rage'), build)
+
+    // O que a ficha sofre sem ter marcado: estágio de aflição, o Desajeitado do
+    // Enlarge e o do Titan Mauler. Em conflito vale o pior valor, como em
+    // `useConditions`.
     const { derived, derivedSources } = useMemo(() => {
         const fromSize = sizeEffectConditions(sizeEffect.effect)
-        if (Object.keys(fromSize).length === 0) return { derived: afflictions.conditions, derivedSources: undefined }
+        const sizeSource = sizeEffect.effect ? `${sizeEffect.effect.spell} ${sizeEffect.effect.rank}º` : ''
+        const origins = [
+            { conditions: fromSize, source: sizeSource },
+            { conditions: rage.clumsy, source: TITAN_SOURCE },
+        ].filter((o) => Object.keys(o.conditions).length > 0)
+        if (origins.length === 0) return { derived: afflictions.conditions, derivedSources: undefined }
         const merged = { ...afflictions.conditions }
         const sources: Record<string, string> = {}
-        for (const [id, value] of Object.entries(fromSize)) {
-            if ((merged[id] ?? 0) < value) {
-                merged[id] = value
-                sources[id] = `${sizeEffect.effect!.spell} ${sizeEffect.effect!.rank}º`
+        for (const { conditions: imposed, source } of origins) {
+            for (const [id, value] of Object.entries(imposed)) {
+                if ((merged[id] ?? 0) < value) {
+                    merged[id] = value
+                    sources[id] = source
+                }
             }
         }
         return { derived: merged, derivedSources: sources }
-    }, [afflictions.conditions, sizeEffect.effect])
+    }, [afflictions.conditions, sizeEffect.effect, rage.clumsy])
 
     const conditions = useConditions(
         build ? conditionsKeyFor(build) : noCharKey('conditions'),
@@ -210,8 +225,11 @@ export const CharacterViewerPage = () => {
         derived,
         derivedSources,
     )
-    // O +4 de estado no corpo a corpo do Enlarge viaja junto dos modificadores.
-    const mods = useMemo(() => withSizeEffect(conditions.mods, sizeEffect.effect), [conditions.mods, sizeEffect.effect])
+    // O +4 de estado no corpo a corpo do Enlarge e a Fúria viajam junto dos modificadores.
+    const mods = useMemo(
+        () => withRage(withSizeEffect(conditions.mods, sizeEffect.effect), rage.effect),
+        [conditions.mods, sizeEffect.effect, rage.effect],
+    )
 
     // Pontos Míticos: mesma história das condições — gastos de qualquer aba,
     // então o hook mora aqui e a chave também cai num placeholder sem ficha.
@@ -410,6 +428,7 @@ export const CharacterViewerPage = () => {
             {published && <PublishedBar sheet={published} onRestore={handleRestore} />}
 
             <ConditionsBar conditions={conditions} />
+            {rage.spec && <RageBar build={build} rage={rage} conditions={conditions} />}
             <AfflictionsBar afflictions={afflictions.afflictions} onRemove={afflictions.remove} />
             <PersistentDamageBar
                 persistent={persistentDamage.persistent}
