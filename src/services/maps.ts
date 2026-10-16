@@ -55,6 +55,8 @@ export interface MapData {
     drawings: Record<string, unknown>
     /** Pings em andamento (`{ x, y }` em quadrados) — quem pingou apaga em segundos. */
     pings: Record<string, unknown>
+    /** Rolagens do rolador de dados, efêmeras como os pings (ver `battle-map/dice.ts`). */
+    rolls: Record<string, unknown>
     turn: string | null
     pcs: Record<string, PcSlice>
     rev: number
@@ -193,7 +195,7 @@ function setSnapshot(entry: Entry, patch: Partial<MapSnapshot>) {
 }
 
 /** Prefixo do campo → onde ele mora no `MapData`. */
-const BAGS = { pos: 'pos', hp: 'hp', drw: 'drawings', ping: 'pings' } as const
+const BAGS = { pos: 'pos', hp: 'hp', drw: 'drawings', ping: 'pings', roll: 'rolls' } as const
 
 /** Aplica um campo (`meta`, `pos:<id>`, `hp:<id>`, `drw:<id>`) numa cópia do mapa. */
 function withField(data: MapData, field: string, value: unknown): MapData {

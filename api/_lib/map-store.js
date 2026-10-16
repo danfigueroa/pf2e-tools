@@ -10,6 +10,7 @@
 //     ├─ hp:<cid>      → …e o PV do monstro (Iniciativa e mapa, nos dois sentidos)
 //     ├─ imgs          → toda imagem de monstro que já passou por este mapa
 //     ├─ ping:<id>     → um ping (Alt+clique), que quem pingou apaga em segundos
+//     ├─ roll:<id>     → uma rolagem do rolador de dados, efêmera como o ping
 //     └─ drw:<id>      → um desenho (parede de fogo, área de magia) — um campo
 //                        por desenho, para apagar um sem tocar nos outros
 //
@@ -44,7 +45,7 @@ const MAX_MAPS = 50
 
 const ID_RE = /^[a-z0-9]{6,16}$/
 const TOKEN_ID_RE = /^[a-z0-9-]{1,64}$/
-const FIELD_RE = /^(meta|turn|(tok|pos|hp|drw|ping):[a-z0-9-]{1,64})$/
+const FIELD_RE = /^(meta|turn|(tok|pos|hp|drw|ping|roll):[a-z0-9-]{1,64})$/
 
 /** Teto de desenhos por mapa: o hash inteiro desce a cada mudança. */
 export const MAX_DRAWINGS = 300
@@ -236,6 +237,7 @@ export async function readMap(id) {
     const hp = {}
     const drawings = {}
     const pings = {}
+    const rolls = {}
     let turn = null
     for (const [field, value] of Object.entries(raw)) {
         const entry = unwrap(value)
@@ -248,6 +250,7 @@ export async function readMap(id) {
         else if (kind === 'hp') hp[tid] = { ...entry.data, updatedAt: entry.updatedAt }
         else if (kind === 'drw') drawings[tid] = entry.data
         else if (kind === 'ping') pings[tid] = entry.data
+        else if (kind === 'roll') rolls[tid] = entry.data
         else if (field === 'turn') turn = entry.data
     }
 
@@ -257,7 +260,7 @@ export async function readMap(id) {
     const pcs = await readPcs(slugs)
     const revs = await readRevs(id)
 
-    return { id, meta: metaEntry.data, tokens, pos, hp, drawings, pings, turn, pcs, ...revs }
+    return { id, meta: metaEntry.data, tokens, pos, hp, drawings, pings, rolls, turn, pcs, ...revs }
 }
 
 /** `hp` e `token` de cada personagem, do hash da mesa — um HMGET por slug, num pipeline. */
