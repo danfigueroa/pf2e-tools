@@ -1,4 +1,4 @@
-import { Alert, Box, Chip, FormControl, InputLabel, MenuItem, Select, Stack, Typography } from '@mui/material'
+import { Alert, Box, Chip, FormControl, InputLabel, MenuItem, Select, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 import { MAGUS_COLOR } from '../../../theme'
 import { componentLabel } from '../heightening'
 import type { MagusApi } from './useMagus'
@@ -52,6 +52,23 @@ export const SpellstrikePanel = ({ ss, magus }: Props) => {
 
                 {option && ss.spell && !ss.issue && (
                     <>
+                        {ss.actionLimit && ss.nActions != null && (
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">Ações da magia dentro do Spellstrike</Typography>
+                                <ToggleButtonGroup exclusive size="small" fullWidth value={ss.nActions} onChange={(_, v: number | null) => { if (v != null) ss.setNActions(v) }}>
+                                    {Array.from({ length: ss.actionLimit.max - ss.actionLimit.min + 1 }, (_, i) => ss.actionLimit!.min + i).map((n) => (
+                                        <ToggleButton key={n} value={n}>{n} {n === 1 ? 'ação' : 'ações'}</ToggleButton>
+                                    ))}
+                                </ToggleButtonGroup>
+                                {ss.variant && (
+                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                        {ss.variant.rays > 1
+                                            ? 'O Spellstrike entrega a magia num único Golpe: vale um raio só (o dano é o da versão com estas ações).'
+                                            : ss.variant.notes[0]}
+                                    </Typography>
+                                )}
+                            </Box>
+                        )}
                         {ss.components.length > 0 ? (
                             <Box>
                                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>

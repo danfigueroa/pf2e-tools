@@ -16,6 +16,7 @@ import type { BuildInfo, SpellCaster, SpellDescription } from '../character-shee
 import { slotKey } from './components/useSpellSlots'
 import { actionSymbol } from './helpers'
 import { castRankForSlot } from './heightening'
+import { actionRange } from './actionVariants'
 
 export interface SpellstrikeOption {
     /** Identidade estável na lista: `nível|nome`. */
@@ -67,7 +68,11 @@ export function spellstrikeOptions(build: BuildInfo, usedOf: (key: string) => nu
 export function spellstrikeIssue(spell: SpellDescription | null): string | null {
     if (!spell) return null
     const sym = actionSymbol(spell.actions)
-    if (spell.actions != null && sym !== '◆' && sym !== '◆◆') {
+    // Magia de ação variável (Blazing Bolt, 1 a 3) serve se puder ser conjurada com 1 ou 2 ações.
+    const range = actionRange(spell.actions)
+    if (range) {
+        if (range.min > 2) return 'Spellstrike só aceita magia de 1 ou 2 ações.'
+    } else if (spell.actions != null && sym !== '◆' && sym !== '◆◆') {
         return 'Spellstrike só aceita magia de 1 ou 2 ações.'
     }
     const traits = (spell.traits ?? []).map((t) => t.toLowerCase())

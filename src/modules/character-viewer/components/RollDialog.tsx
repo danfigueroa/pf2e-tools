@@ -56,6 +56,7 @@ import { FIRST_STRIKE_KEY, HUNTERS_AIM_KEY, gravityBonus } from '../ranger'
 import { DEBILITATIONS, hasDebilitatingStrike, hasPoisonWeapon, isSimplePoison, poisonNote, simplePoisonDice, type Debilitation } from '../rogue'
 import { initiativeBonus } from '../initiative'
 import { actionCost, applySpend, shortfall, type ActionKind } from '../actions'
+import { actionRange, variantFor } from '../actionVariants'
 import { usePoisonOptions } from './usePoisonOptions'
 import { useActions } from './useActions'
 import { fearsomeBruteBonus, hasExactingStrike, hasFearsomeBrute } from '../fighter'
@@ -780,7 +781,12 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     const energy = useEnergy(energyKeyFor(build))
     // Ações do turno: a magia custa o que a AON diz (reação, ação livre e "1 a 3" não gastam sozinhas).
     const actions = useActions(actionsKeyFor(build), mods)
-    const spellActions = spell ? (actionCost(spell.actions) ?? 0) : 0
+    // Magia de ação variável: o jogador escolhe quantas ações gasta, e o custo, o dano e o efeito seguem a escolha.
+    const range = spell ? actionRange(spell.actions) : null
+    const [chosenActions, setChosenActions] = useState<number | null>(null)
+    const nActions = range ? Math.min(range.max, Math.max(range.min, chosenActions ?? range.min)) : null
+    const variant = nActions != null && castRank != null ? variantFor(request.name, castRank, nActions) : null
+    const spellActions = range ? (nActions ?? range.min) : spell ? (actionCost(spell.actions) ?? 0) : 0
     const lackingSpell = actions.missing(spellActions)
     const ampDef = request.psychic ? psiAmpFor(request.name) : null
     const focusLeft = Math.max(0, (build.focusPoints ?? 0) - slots.focusUsed)
@@ -804,7 +810,7 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
             : baseComponents
         return mode ? swapped.map((c) => (c.kind === 'damage' ? { ...c, types: convertTypes(c.types, mode) } : c)) : swapped
     }
-    const components = buildComponents(ampOn)
+    const components = variant?.components ?? buildComponents(ampOn)
     // Dois componentes com a mesma fórmula e tipos diferentes costumam ser
     // ALTERNATIVAS (Gouging Claw: cortante OU perfurante): só o primeiro liga.
     // Persistente começa desligado: em magia ele costuma ser de um grau só (o
@@ -875,6 +881,36 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                         </>
                     )}
 
+                    {range && (
+                        <Box>
+                            <Typography variant="caption" color="text.secondary">Quantas ações você gasta nesta magia</Typography>
+                            <ToggleButtonGroup
+                                exclusive
+                                size="small"
+                                value={nActions}
+                                onChange={(_, v: number | null) => {
+                                    if (v == null) return
+                                    setChosenActions(v)
+                                    const next = castRank != null ? variantFor(request.name, castRank, v)?.components : null
+                                    if (next) setSelected(defaultSelection(next))
+                                }}
+                                fullWidth
+                            >
+                                {Array.from({ length: range.max - range.min + 1 }, (_, i) => range.min + i).map((n) => (
+                                    <ToggleButton key={n} value={n}>{n} {n === 1 ? 'ação' : 'ações'}</ToggleButton>
+                                ))}
+                            </ToggleButtonGroup>
+                            {variant ? (
+                                variant.notes.map((note) => (
+                                    <Typography key={note} variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>{note}</Typography>
+                                ))
+                            ) : (
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                    O efeito desta magia muda com as ações (alvos, área, dano). Os números aqui são os da descrição — confira o que o seu número de ações faz.
+                                </Typography>
+                            )}
+                        </Box>
+                    )}
                     {ampDef && castRank != null && (
                         <Box>
                             <Chip
@@ -1004,14 +1040,18 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                     actions.spend(spellActions)
                     if (ampOn && ampDef) slots.spendFocus()
                     if (mode) energy.record(mode)
-                    send(spellRoll(who, {
-                    name: request.name,
-                    sub: sub || undefined,
-                    attackParts,
-                    mythicDelta: mythic && attackParts ? attack!.mythicDelta : null,
-                    components: rolled,
-                    basic,
-                }), mythic && !!attackParts)
+                    // Um raio por ação (Blazing Bolt): cada um com o próprio ataque e dano, na mesa em sequência.
+                    const rays = attackParts ? (variant?.rays ?? 1) : 1
+                    const one = (i: number) => spellRoll(who, {
+                        name: request.name,
+                        sub: [sub, rays > 1 ? `raio ${i}/${rays}` : null].filter(Boolean).join(' · ') || undefined,
+                        attackParts,
+                        mythicDelta: mythic && attackParts ? attack!.mythicDelta : null,
+                        components: rolled,
+                        basic,
+                    })
+                    for (let i = 1; i < rays; i++) void postRoll(one(i))
+                    send(one(rays), mythic && !!attackParts)
                 }}
             />
         </>

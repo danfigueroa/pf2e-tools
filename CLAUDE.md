@@ -302,6 +302,28 @@ classificada não pode travar a ficha) e avisa — Alert no diálogo e, ao zerar
   local na fila** (seria um valor mais velho). Ordem de grandeza: 6 jogadores × 4 h ≈ 17 mil comandos.
 - Não lido pelo mapa nem pelo cartão da Iniciativa (o GM não vê as ações do jogador).
 
+## Magias de ação variável
+
+Magia que custa "1 a 3 ações" (Heal, Harm, Force Barrage, Blazing Bolt…): o diálogo da magia mostra **"Quantas ações
+você gasta"** e o custo no contador de ações, o dano/cura, os alvos e os efeitos seguem a escolha
+(`actionVariants.ts`; `actionRange` lê "Single Action to Three Actions", "…or Two Actions").
+
+- **As regras são um CATÁLOGO escrito à mão** (`CATALOG`), conferido contra o texto da AON, como `psiAmps.ts`: a AON
+  descreve cada magia de um jeito (lista por ação, "+1 projétil por ação", "dano sobe com 2+ ações"…) e ler isso com
+  segurança é inviável. Hoje: **Heal, Harm, Force Barrage/Magic Missile, Blazing Bolt/Scorching Ray, Ki Blast/Qi
+  Blast, Disorienting Flash, Concordant Choir, Rebuke Death**. Fora do catálogo a magia ganha só o seletor (e o custo
+  certo) com o aviso de que o efeito muda — nunca um número inventado. **Acrescentar magia = uma entrada nova em
+  `CATALOG` + os casos no `check-rolls`.**
+- As fórmulas são em função de (rank, ações): ex. Blazing Bolt = `rank`d6 com 1 ação e `2×rank`d6 com 2–3; Heal = `rank`d8
+  e +8×rank com 2 ações (cura de VIVO; contra morto-vivo é só o d8, e o Harm tem o inverso); Force Barrage = 1d4+1 por
+  projétil, `ações × (1 + ⌊(rank−1)/2⌋)` projéteis.
+- **Um raio por ação** no Blazing Bolt: cada raio sai com o PRÓPRIO ataque e dano, postados em sequência no feed
+  ("raio 1/3…"), com o MAP igual para todos (ele só sobe depois). O ✦ mítico gasta o ponto uma vez só.
+- **Spellstrike aceita magia de ação variável** (Blazing Bolt!) com 1 ou 2 ações — antes ela era recusada por "não ter
+  1 ou 2 ações". O Golpe é um só, então só um raio vale; o dano segue a escolha.
+- O `id` dos componentes vem da POSIÇÃO (9500+i), não de um contador: a seleção de chips do jogador tem de sobreviver
+  a cada render.
+
 ## Feed de rolagens da mesa
 
 Toda rolagem — da ficha, do rolador do mapa — vai para o feed (`services/rolls.ts` →

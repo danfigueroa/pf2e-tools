@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { fetchSpellDescription, getCachedSpell } from '../../../services/descriptions'
 import type { BuildInfo, SpellDescription } from '../../character-sheet/types'
 import { damageComponents, scaleSpell, type ScaledComponent } from '../heightening'
+import { actionRange, variantFor } from '../actionVariants'
 import { legacyCharKey, slotsKeyFor } from '../charId'
 import { spellstrikeIssue, spellstrikeOptions, spellstrikeUsesAttack, type SpellstrikeOption } from '../spellstrike'
 import { useSpellSlots } from './useSpellSlots'
@@ -52,14 +53,21 @@ export function useSpellstrike(build: BuildInfo, enabled: boolean) {
         : null
     const loading = !!name && !spell && fetched?.name !== name
 
+    // Magia de ação variável: no Spellstrike cabem 1 ou 2 ações, e o dano segue a escolha.
+    const range = spell ? actionRange(spell.actions) : null
+    const limit = range ? { min: range.min, max: Math.min(2, range.max) } : null
+    const [chosenActions, setChosenActions] = useState<number | null>(null)
+    const nActions = limit ? Math.min(limit.max, Math.max(limit.min, chosenActions ?? limit.min)) : null
+    const variant = option && nActions != null ? variantFor(option.name, option.rank, nActions) : null
+
     const scaled = spell && option ? scaleSpell(spell, option.rank) : null
     const components = useMemo(
-        () => (scaled ? damageComponents(scaled).filter((c) => c.kind === 'damage') : []),
-        [scaled],
+        () => variant?.components ?? (scaled ? damageComponents(scaled).filter((c) => c.kind === 'damage') : []),
+        [scaled, variant],
     )
 
     // O que o jogador ligou vale para ESTA magia neste rank; trocar de magia volta ao padrão.
-    const selectionKey = `${option?.id ?? ''}|${option?.rank ?? ''}|${spell ? 1 : 0}`
+    const selectionKey = `${option?.id ?? ''}|${option?.rank ?? ''}|${spell ? 1 : 0}|${nActions ?? ''}`
     const [picked, setPicked] = useState<{ key: string; on: Set<number> } | null>(null)
     const selected = picked?.key === selectionKey ? picked.on : defaultComponentSelection(components)
     const toggle = (id: number) => {
@@ -84,6 +92,8 @@ export function useSpellstrike(build: BuildInfo, enabled: boolean) {
         usesAttack: spell ? spellstrikeUsesAttack(spell) : false,
         components, selected, toggle, chosen,
         enterCascade, setEnterCascade,
+        /** Magia de ação variável: de quantas ações a escolha (limitada a 2) e o que a regra diz. */
+        actionLimit: limit, nActions, setNActions: setChosenActions, variant,
         /** Pronto para rolar junto do Golpe. */
         ready: !!option && !!spell && !issue && (option.left === null || option.left > 0),
         spend,
