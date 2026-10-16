@@ -279,6 +279,29 @@ abrir o site entra na mesma mesa.
   ficha publicada é a fonte da verdade do personagem —, teto de 64 KB, e guarda UMA versão
   anterior (`previous`), que é a salvaguarda de não haver login.
 
+## Ações do turno
+
+Faixa **Ações** (`actions.ts` + `components/useActions.ts` + `ActionsBar.tsx`), fora das abas, em TODA ficha:
+3 pips, a ação extra do Acelerado e a reação. Estado da mesa, campo `actions`
+(`{ used, quickUsed, reacted, turn }`). O app **só conta**: gastar além do que há é permitido (uma ação livre mal
+classificada não pode travar a ficha) e avisa — Alert no diálogo e, ao zerar, "Sem ações neste turno".
+
+- **Orçamento** (`actionBudget`): 3 − o MAIOR entre Lento e Atordoado (os dois não somam; o atordoado consome
+  primeiro). **Acelerado/Haste** dá +1 ação que só paga **Golpe ou Andar** de 1 ação (`ActionKind =
+  'move-attack'`) e é a PRIMEIRA a ser gasta; atividade de 2+ ações e Interagir/Sacar nunca a usam.
+- **Desconto automático**: Golpe = 1 (2 com Hunter's Aim ou Spellstrike; o chip "É uma reação" gasta a reação, não
+  ação), magia = o `actions` da AON (`actionCost`; reação, ação livre e "1 a 3" NÃO gastam sozinhas), ativar
+  Fúria/Gravity Weapon/Hunt Prey/Arcane Cascade/recarregar Spellstrike/Summon Mythic Power/aplicar veneno = 1.
+  Teste de perícia não gasta: não dá para saber se é uma ação. Andar, Interagir, Sacar e o resto: botões da faixa.
+  O escudo (Erguer) ainda NÃO desconta.
+- **Início do turno vem da Iniciativa** (`party.startTurn`, no handler de `passTurn` e no "Iniciar", nunca num efeito):
+  grava `newTurn()` no campo `actions` do PC que entra. Botão "Novo turno" na ficha para quem não usa a Iniciativa.
+- **Poll leve só deste campo** — exceção ao "sem polling" da mesa: o mestre zera do aparelho dele e o jogador precisa
+  ver sem apertar "Atualizar". `GET /api/state?char=&field=actions` (`readField`, 1 HGET) a cada 5 s, só com a aba
+  visível e só pela faixa (as outras instâncias do hook não ligam o `poll`). **`pullField` nunca atropela escrita
+  local na fila** (seria um valor mais velho). Ordem de grandeza: 6 jogadores × 4 h ≈ 17 mil comandos.
+- Não lido pelo mapa nem pelo cartão da Iniciativa (o GM não vê as ações do jogador).
+
 ## Feed de rolagens da mesa
 
 Toda rolagem — da ficha, do rolador do mapa — vai para o feed (`services/rolls.ts` →
