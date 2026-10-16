@@ -728,11 +728,28 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
   os dois). Num campo só, o GM renomeando um goblin devolveria o goblin ao quadrado de antes do
   arrasto. O `tokenId` é o id do combatente.
 - **Sincronia é poll de revisão** (`services/maps.ts`), porque a Vercel serverless não segura
-  conexão: `?mapRev=` lê três contadores num `MGET` (rev do mapa, `table:rev`, mapa ativo), e o
-  mapa inteiro só desce quando um muda — já com `hp`/`token` dos PCs presentes, num pipeline.
-  1,5 s com atividade recente, 4 s depois de 1 min parado, **parado com a aba oculta**. Ordem de
-  grandeza: 6 aparelhos × 4 h ≈ 40 mil comandos no Upstash (free: 500 mil/mês). `syncTokens` não
-  sobe a revisão quando nada mudou, senão todo aparelho rebaixaria o mapa à toa.
+  conexão e o usuário não quer serviço externo de tempo real (decisão do usuário): `?mapRev=` lê
+  três contadores num `MGET` (rev do mapa, `table:rev`, mapa ativo). O cliente manda junto o que já
+  tem (`&rev=&tableRev=`) e, se mudou, **o mapa vem na mesma resposta** — antes era um segundo
+  pedido, uma ida e volta inteira a mais até a tela. Os contadores são lidos ANTES dos dados em
+  `readMap`: na ordem inversa, uma escrita entre as duas leituras ficava invisível até a próxima.
+  - Três marchas: **rajada de 700 ms por 5 s** depois de qualquer mudança (daqui ou de fora — na
+    mesa uma ação puxa a seguinte), 1,5 s com atividade no último minuto, 4 s parado, **nada com a
+    aba oculta**. A rajada é o número a mexer com cuidado: cada poll é um comando no Upstash (free:
+    500 mil/mês), e em combate as mudanças vêm a cada poucos segundos. 600 ms com janela de 8 s
+    deixava os aparelhos na rajada o tempo todo, ~2,5× o gasto, e estourava a cota com uma sessão
+    por semana. Hoje, ordem de grandeza: 6 aparelhos × 4 h ≈ 60–90 mil comandos por sessão.
+  - Medido em localhost, do clique num aparelho até a tela do outro (antes → depois): rolagem e
+    token em sequência ~0,86 s → ~0,5 s; token depois de uma pausa ~1,1 s → ~0,4 s. Em produção
+    soma a rede, e a resposta única economiza ali uma ida e volta a mais.
+  - Rolagem, token solto e ping sobem **na hora** (`writeMapField(…, { now: true })`), sem os
+    150 ms de junção. Por isso as escritas saem **uma por vez** (`flushing`): dois arrastos
+    seguidos em dois pedidos simultâneos podiam chegar invertidos e o servidor ficar com a posição
+    de antes.
+  - `syncTokens` não sobe a revisão quando nada mudou, senão todo aparelho rebaixaria o mapa à toa.
+- **Token de outro aparelho desliza** até o quadrado novo (`TOKEN_GLIDE` no `MapCanvas`, 240 ms em
+  `left/top`) em vez de saltar — a posição chega de uma vez pelo poll. Quem arrasta não vê o
+  deslize (`data-dragging`, devolvido um quadro depois do encaixe), e movimento reduzido não desliza.
 - **Escrita otimista com override**: o campo escrito fica sobreposto até a escrita voltar, para um
   poll que chegue no meio não devolver o token ao quadrado de antes. O PV de PC mexido no mapa vai
   para o MESMO campo `hp` da mesa (`saveField`); como o `tableState` sobe com 600 ms de debounce,
