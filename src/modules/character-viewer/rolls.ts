@@ -104,6 +104,47 @@ export function strikeRoll(
     }
 }
 
+/** A magia que entra no Golpe do Spellstrike. */
+export interface SpellstrikeInput {
+    name: string
+    /** Dano escolhido, já no rank em que a magia entra. */
+    components: ScaledComponent[]
+    /** Ataque de magia: usa o resultado do Golpe e dobra no crítico. Salvaguarda: não dobra. */
+    usesAttack: boolean
+}
+
+/**
+ * Spellstrike: o Golpe e a magia numa rolagem só. O ataque é o do Golpe; o dano
+ * soma os dois (para resistências e fraquezas é um dano só). No crítico a magia
+ * de ATAQUE dobra junto; a de salvaguarda fica como está, porque o alvo faz a
+ * própria salvaguarda e o crítico do Golpe não a muda.
+ */
+export function spellstrikeRoll(
+    who: RollerIdentity,
+    strike: Strike,
+    plan: StrikePlan,
+    mythicDelta: number | null,
+    sub: string | undefined,
+    spell: SpellstrikeInput,
+): TableRoll {
+    const roll = strikeRoll(who, strike, plan, mythicDelta, sub)
+    roll.title = `Spellstrike — ${strike.name} + ${spell.name}`
+    const parts = spell.components.map((c) =>
+        toPart(componentLabel(c), rollGroups(c.value.count ? [{ count: c.value.count, faces: c.value.faces }] : [], c.value.flat), c.persistent))
+    const spellTotal = Math.max(0, parts.filter((p) => !p.persistent).reduce((n, p) => n + p.total, 0))
+    const dmg = roll.damage!
+    dmg.parts = [...dmg.parts, ...parts]
+    dmg.total += spellTotal
+    if (dmg.crit) {
+        const extra = spell.usesAttack ? 2 * spellTotal : spellTotal
+        dmg.crit = {
+            total: dmg.crit.total + extra,
+            note: `${dmg.crit.note} + magia ${spell.usesAttack ? `2 × ${spellTotal}` : spellTotal} = ${dmg.crit.total + extra}`,
+        }
+    }
+    return roll
+}
+
 // ── Magia ────────────────────────────────────────────────────────────────────
 
 /** O ataque de magia de um bloco de conjuração, com a conta e o ✦. */
