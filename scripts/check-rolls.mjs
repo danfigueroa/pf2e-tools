@@ -22,6 +22,7 @@ const { computeConditionModifiers, NO_MODIFIERS } = await import('../src/modules
 const { abilityMod } = await import('../src/modules/character-viewer/helpers.ts')
 const { unarmedAttacks } = await import('../src/modules/character-viewer/unarmed.ts')
 const dice = await import('../src/dice/roll.ts')
+const initRolls = await import('../src/modules/initiative-tracker/initiativeRolls.ts')
 const table = await import('../src/dice/tableRoll.ts')
 const server = await import('../api/_lib/roll-store.js')
 
@@ -195,6 +196,35 @@ const critPlan = (build, weapon, group, extrasOn = {}, mods = NO_MODIFIERS, trai
     const pickW = { ...warhammer, name: 'Pick', runes: [], extraDamage: [], str: 'greaterStriking' }
     const pr = strikes.rollStrikeDamage(critPlan(fighterPick, pickW, 'Pick'), 'perfurante')
     eq(pr.crit.total, 2 * pr.total + 2 * 3, 'Pick: +2 por dado da arma (3 dados), por fora do dobro')
+}
+
+// Iniciativa pela ficha: a marca viaja só com um teste de d20, nos DOIS sanitizadores,
+// e a Iniciativa aplica cada rolagem uma vez, ao PC certo.
+{
+    const who = { by: 'Eldarion', slug: 'eldarion', color: '#336699' }
+    const stealth = rolls.checkRoll(who, 'Furtividade', [{ label: 'Furt.', value: 20, kind: 'base' }], null, 'iniciativa', true)
+    ok(stealth.initiative === true, 'checkRoll marca a iniciativa')
+    ok(!rolls.checkRoll(who, 'Furtividade', [], null).initiative, 'sem marca por padrão')
+    ok(table.sanitizeTableRoll(stealth)?.initiative === true, 'cliente mantém a marca')
+    ok(server.sanitizeRoll(stealth)?.initiative === true, 'servidor mantém a marca')
+    const free = { ...stealth, check: undefined, free: { label: 'd6', dice: [{ faces: 6, value: 3 }], flat: 0, total: 3 } }
+    ok(!table.sanitizeTableRoll(free)?.initiative, 'cliente descarta a marca sem teste de d20')
+    ok(!server.sanitizeRoll(free)?.initiative, 'servidor descarta a marca sem teste de d20')
+
+    const now = Date.now()
+    const pcs = [{ id: 'c1', kind: 'pc', slug: 'eldarion', name: 'Eldarion' }, { id: 'c2', kind: 'npc', slug: 'eldarion', name: 'Imitador' }]
+    const at = (ms) => ({ ...stealth, id: `r${ms}`, at: now - ms })
+    const out = initRolls.pendingInitiativeUpdates([at(1000), at(5000)], pcs, new Set(), now)
+    eq(out.updates.length, 2, 'duas rolagens recentes')
+    eq(out.updates[1].rollId, 'r1000', 'a mais nova vem por último (e vence)')
+    eq(out.updates[0].combatantId, 'c1', 'aplica ao PC, nunca a adversário de mesmo slug')
+    eq(out.updates[0].value, stealth.check.total, 'o valor é o total do teste')
+    eq(initRolls.pendingInitiativeUpdates([at(1000)], pcs, new Set(['r1000']), now).updates.length, 0, 'rolagem já tratada não repete')
+    const gone = initRolls.pendingInitiativeUpdates([at(1000)], [], new Set(), now)
+    eq(gone.updates.length + gone.settled.length, 0, 'PC fora do encontro: espera, sem dar como tratada')
+    const old = initRolls.pendingInitiativeUpdates([at(11 * 60_000)], pcs, new Set(), now)
+    eq(old.updates.length, 0, 'rolagem velha demais não se aplica')
+    eq(old.settled.length, 1, 'e é dada como tratada')
 }
 
 // Piso 1: penalidade que zera o dano ainda causa 1.
