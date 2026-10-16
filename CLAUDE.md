@@ -1128,6 +1128,20 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
     por dado. Aqui giro e estouro são CSS com `animation-delay` por dado, e o número que passa durante
     o giro é UM `requestAnimationFrame` escrevendo `textContent` — só os 24 primeiros dados trocam de
     número. Total da animação ≤ ~1,3 s em qualquer quantidade. A camada fica fora do "mundo" do mapa.
+- **Enquadrar a imagem do token** (Modo GM — `tokenFit.ts`, `TokenFitDialog.tsx`, `TokenFitEditor.tsx`): no popover
+  do token com imagem, "Enquadrar a imagem" abre um diálogo onde o GM arrasta a imagem para escolher o ponto que
+  fica no CENTRO do círculo e ajusta a ampliação (1–4×). A imagem inteira aparece esmaecida atrás, para ver o que
+  fica de fora; "Centralizar" volta ao padrão e há um "aplicar às cópias com a mesma imagem".
+  - **É escolha de exibição, não do que o token É**: mora num campo próprio do mapa, `fit:<id>` (`{ x, y, z }`,
+    frações da imagem + ampliação), escrito pelo MAPA como o `pos:` — a Iniciativa (dona do `tok:`) nunca o
+    toca, e sobrevive a renomear. Sai junto do token em `syncTokens`. O padrão (centro, 1×) APAGA o campo.
+  - **Por isso o envio da imagem do monstro deixou de recortar no centro**: `NPC_TOKEN_MAX_SIDE` (512) guarda a
+    imagem INTEIRA, e o recorte é só no render (`Token` mede a proporção no `onLoad` e usa `fitStyle`; antes de
+    medir, o `cover` de sempre). Tokens enviados antes continuam quadrados 256 px — o ajuste funciona nelas só
+    com ampliação, porque o recorte já foi feito; reenviar a imagem recupera o resto. Token de PC (Ficha Virtual)
+    segue quadrado, mas aceita o enquadramento também.
+  - Geometria em `fitStyle`/`clampFit`: o ponto escolhido nunca deixa um canto do círculo sem imagem. O `Token`
+    recebe `fitX/fitY/fitZ` como números soltos (não um objeto), para o `memo` não repintar todo token a cada poll.
 - **Vida de cada imagem, pela pasta no Blob** (`ImageFolder` em `services/images.ts`):
   `tokens/` é token de PERSONAGEM, permanente (campo `token` da mesa, enviado na Ficha Virtual pelo
   `TokenAvatar`); `maps/` e `monsters/` são do mapa e somem quando ele é apagado. A trava mora no
