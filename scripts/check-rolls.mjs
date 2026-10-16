@@ -25,6 +25,8 @@ const amps = await import('../src/modules/character-viewer/psiAmps.ts')
 const energyMod = await import('../src/modules/character-viewer/energy.ts')
 const psyche = await import('../src/modules/character-viewer/psyche.ts')
 const magus = await import('../src/modules/character-viewer/magus.ts')
+const spellstrike = await import('../src/modules/character-viewer/spellstrike.ts')
+const { normalizeSpellCasters } = await import('../src/modules/character-sheet/types.ts')
 const dice = await import('../src/dice/roll.ts')
 const initRolls = await import('../src/modules/initiative-tracker/initiativeRolls.ts')
 const table = await import('../src/dice/tableRoll.ts')
@@ -421,6 +423,33 @@ eq(magus.sanitizeMagus({ cascade: true, cascadeType: 'lixo' }).cascadeType, 'for
 ok(magus.isMagusEmpty(magus.NO_MAGUS) && !magus.isMagusEmpty({ ...magus.NO_MAGUS, spent: true }), 'Estado vazio só sem nada gravado')
 eq(magus.divertDestinyHp(10, 100), 20, 'Divert Destiny: 10 + nível')
 eq(magus.divertDestinyHp(10, 15), 15, 'Divert Destiny nunca passa do PV máximo')
+
+
+// ── Spellstrike dentro do Golpe ──────────────────────────────────────────────
+// O Pathbuilder manda as magias do dia em `prepared`; o app lê `spells` (parseCharacterJson copia).
+const natN = normalizeSpellCasters(nat)
+const ssOpts = spellstrike.spellstrikeOptions(natN, () => 0)
+ok(ssOpts.length > 0 && ssOpts.every((o) => spellstrike.magusCaster(natN) !== null), 'Nathaniel tem opções de Spellstrike do bloco Magus')
+ok(ssOpts.some((o) => o.name === 'Ignition' && o.kind === 'cantrip' && o.slot === null && o.rank === 5), 'Truque entra no rank da metade do nível e sem slot')
+const banish = ssOpts.find((o) => o.name === 'Banishment')
+ok(banish && banish.kind === 'prepared' && banish.slot.total === 1 && banish.left === 1 && banish.rank === 5, 'Magia preparada: 1 slot do próprio rank')
+eq(spellstrike.spellstrikeOptions(natN, (k) => (k === banish.slot.key ? 1 : 0)).find((o) => o.name === 'Banishment').left, 0, 'Slot gasto zera o que resta')
+ok(!ssOpts.some((o) => o.name === '500 Toads' || o.name === 'Detect Magic'), 'Magia de arquétipo e de herança não entram')
+eq(spellstrike.spellstrikeOptions(party.ceros, () => 0).length, 0, 'Quem não é Magus não tem opções')
+eq(spellstrike.spellstrikeIssue({ name: 'Fireball', actions: '2', traits: ['fire'], defense: 'basic Reflex', description: 'x' }), null, 'Magia de salvaguarda de 2 ações serve')
+ok(spellstrike.spellstrikeIssue({ name: 'Fireball', actions: '3', traits: [], defense: 'Reflex', description: 'x' }) !== null, 'Magia de 3 ações não serve')
+ok(spellstrike.spellstrikeIssue({ name: 'Shield', actions: '1', traits: [], description: 'x' }) !== null, 'Magia sem ataque nem salvaguarda não serve')
+eq(spellstrike.spellstrikeIssue({ name: 'Ray', actions: '2', traits: ['attack'], description: 'x' }), null, 'Magia de ataque de 2 ações serve')
+// A rolagem combinada: parcela da magia soma ao total e, no crítico, dobra só se a magia é de ataque.
+const comp = { id: 1, kind: 'damage', formula: '', types: ['fire'], persistent: false, count: 0, faces: 0, flat: 7, nth: 0, occurrences: 1, value: { count: 0, faces: 0, flat: 7 }, changed: false, uncertain: false }
+const ssWho = rolls.rollerIdentity(nat)
+const strikeOnly = rolls.strikeRoll(ssWho, swordStrike, cascadePlan, null)
+const viaAttack = rolls.spellstrikeRoll(ssWho, swordStrike, cascadePlan, null, undefined, { name: 'Ignition', components: [comp], usesAttack: true })
+ok(viaAttack.damage.parts.length === strikeOnly.damage.parts.length + 1, 'A rolagem combinada traz a parcela da magia')
+ok(viaAttack.damage.total - 7 >= 1 && viaAttack.damage.crit.total >= 2 * 7, 'Magia de ataque: o crítico dobra a parte da magia')
+const viaSave = rolls.spellstrikeRoll(ssWho, swordStrike, cascadePlan, null, undefined, { name: 'Ignition', components: [comp], usesAttack: false })
+ok(viaSave.damage.crit.total - viaSave.damage.total >= 0 && /magia 7/.test(viaSave.damage.crit.note), 'Magia de salvaguarda entra no crítico sem dobrar')
+ok(table.sanitizeTableRoll(viaAttack) !== null, 'A rolagem combinada passa no sanitizador do feed')
 
 console.log(`${passed} conferências ok, ${failures} falha(s).`)
 process.exit(failures ? 1 : 0)
