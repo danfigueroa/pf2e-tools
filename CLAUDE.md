@@ -855,6 +855,12 @@ oferece os parecidos) e envia o token UMA vez.
   `NpcCombatant.tokenFit` → descriptor `fit` em `tok:` → o mapa o usa como padrão, e o `fit:<id>` do Modo GM, se
   existir, vale POR CIMA (apagá-lo — "Centralizar" no mapa — devolve o enquadramento do companheiro). Imagem nova
   zera o enquadramento.
+- **O token e o enquadramento são lidos da ficha quando o companheiro ENTRA — e relidos depois**: o jogador pode
+  mexer neles com o encontro já montado. A Iniciativa (`refreshCompanions`) relê a ficha dos donos (`loadCharacter` forçado)
+  ao ABRIR a página e no botão "Atualizar" do cabeçalho, e atualiza os companheiros que já estão no encontro
+  (só estado LOCAL; o mapa acompanha pelo `useMapSync` — não é o laço "efeito lê a mesa e escreve na mesa"). Só
+  sobrescreve o token se a ficha tem um, para não apagar a imagem que o GM pôs à mão no cartão. Não há push: sem a
+  Iniciativa aberta ou o "Atualizar", a mudança na ficha não chega ao mapa.
 - **Sem duplicar**: o reducer (`addCombatants`) descarta NPC cujo par `companionOf/companionId` já está no encontro —
   mesma trava dos PCs por slug. O enquadramento do token no mapa (Modo GM) continua valendo para eles.
 

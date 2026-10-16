@@ -157,6 +157,34 @@ export const InitiativePage = () => {
     }
 
     /**
+     * O token e o enquadramento do companheiro são lidos da ficha na hora em que ele ENTRA — e o
+     * jogador pode mexer neles depois. Relê a ficha dos donos e atualiza os companheiros que já
+     * estão no encontro. Só escreve no estado LOCAL (o mapa acompanha pelo `useMapSync`), então
+     * não é o laço "efeito lê a mesa e escreve na mesa". Só sobrescreve o token quando a ficha tem
+     * um — a imagem que o GM pôs à mão no cartão não some.
+     */
+    const stateRef = useRef(state)
+    stateRef.current = state
+    const refreshCompanions = useCallback(async () => {
+        const owners = new Set(stateRef.current.combatants.flatMap((c) => (c.kind === 'npc' && c.companionOf ? [c.companionOf] : [])))
+        for (const slug of owners) {
+            const snapshot = await loadCharacter(slug, true)
+            const list = sanitizeCompanions(snapshot.companions)
+            for (const c of stateRef.current.combatants) {
+                if (c.kind !== 'npc' || c.companionOf !== slug) continue
+                const companion = list.find((x) => x.id === c.companionId)
+                if (!companion) continue
+                const image = companion.token?.url ?? c.tokenImage
+                const sameFit = JSON.stringify(c.tokenFit ?? null) === JSON.stringify(companion.fit ?? null)
+                if (image === c.tokenImage && sameFit) continue
+                dispatch({ type: 'patch', id: c.id, patch: { tokenImage: image, tokenFit: companion.fit } })
+            }
+        }
+    }, [])
+    // Ao abrir a página: o encontro pode ter sido montado antes de o jogador enquadrar o token.
+    useEffect(() => { void refreshCompanions() }, [refreshCompanions])
+
+    /**
      * Adiciona os combatentes e, junto de cada personagem, os companheiros de
      * combate dele (a Animated Armor do Nathaniel…): a ficha lista, a AON dá os
      * números, e o token vem da ficha. Quem falhar vira aviso — o personagem
@@ -413,7 +441,7 @@ export const InitiativePage = () => {
                 onNext={handleNext}
                 onPrev={() => dispatch({ type: 'prevTurn' })}
                 onSort={() => dispatch({ type: 'sortByInitiative' })}
-                onRefresh={() => void party.refresh()}
+                onRefresh={() => { void party.refresh(); void refreshCompanions() }}
                 onEnd={() => setDialog('end')}
             />
 
