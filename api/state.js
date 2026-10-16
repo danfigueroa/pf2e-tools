@@ -14,6 +14,7 @@ import {
 } from './_lib/table-store.js'
 import { handleSheetRequest, isSheetRequest } from './_lib/sheet-handler.js'
 import { handleMapRequest, isMapRequest } from './_lib/map-handler.js'
+import { handleRollRequest, isRollRequest } from './_lib/roll-handler.js'
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -33,6 +34,17 @@ export default async function handler(req, res) {
     } catch (error) {
       console.error('[/api/state] Erro no mapa:', error)
       return res.status(500).json({ error: 'Erro ao tratar o mapa' })
+    }
+  }
+
+  // Feed de rolagens da mesa — também antes da ficha, pelo mesmo motivo.
+  if (isRollRequest(req.method, req.query || {}, req.body)) {
+    try {
+      const { status, body } = await handleRollRequest(req.method, req.query || {}, req.body || {})
+      return res.status(status).json(body)
+    } catch (error) {
+      console.error('[/api/state] Erro nas rolagens:', error)
+      return res.status(500).json({ error: 'Erro ao tratar as rolagens' })
     }
   }
 

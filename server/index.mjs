@@ -14,6 +14,7 @@ import { resolveRule } from '../api/_lib/rule-core.js'
 import { resolveItemTraits } from '../api/_lib/item-traits-core.js'
 import { handleSheetRequest, isSheetRequest } from '../api/_lib/sheet-handler.js'
 import { handleMapRequest, isMapRequest } from '../api/_lib/map-handler.js'
+import { handleRollRequest, isRollRequest } from '../api/_lib/roll-handler.js'
 import { hasTranslationKey } from '../api/_lib/aon.js'
 import {
   readCharacter,
@@ -513,6 +514,20 @@ const server = http.createServer(async (req, res) => {
         res.end(JSON.stringify(out.body))
       } catch (e) {
         console.error('[/api/state] Erro no mapa:', e)
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: e.message }))
+      }
+      return
+    }
+
+    // Feed de rolagens, também antes da ficha (mesmo motivo do mapa).
+    if (isRollRequest(req.method, query, body)) {
+      try {
+        const out = await handleRollRequest(req.method, query, body)
+        res.writeHead(out.status, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify(out.body))
+      } catch (e) {
+        console.error('[/api/state] Erro nas rolagens:', e)
         res.writeHead(500, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ error: e.message }))
       }

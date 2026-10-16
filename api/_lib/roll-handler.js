@@ -1,0 +1,34 @@
+// Rotas do feed de rolagens, compartilhadas por `api/state.js` (Vercel) e
+// `server/index.mjs` (dev). Moram no endpoint `state` pelo limite de 12 funções
+// serverless do plano Hobby (ver CLAUDE.md).
+//
+//   GET  ?rolls=1[&rev=N]               → o contador; com `rev` diferente (ou
+//                                          sem `rev`), as últimas 30 rolagens
+//   POST { action: 'roll-add', roll }   → grava uma rolagem já sorteada
+//
+// Vem ANTES da ficha publicada nos dois servidores: a rota da ficha aceita
+// qualquer POST com `action` e engoliria esta.
+
+import { isStoreConfigured } from './table-store.js'
+import { addRoll, readRolls, sanitizeRoll } from './roll-store.js'
+
+const ok = (body) => ({ status: 200, body: { ...body, storeReady: isStoreConfigured() } })
+const fail = (status, error) => ({ status, body: { error } })
+
+/** Falso quando a requisição não é do feed — aí segue para as outras rotas do `state`. */
+export function isRollRequest(method, query, body) {
+  if (method === 'GET') return !!query.rolls
+  if (method === 'POST') return body?.action === 'roll-add'
+  return false
+}
+
+export async function handleRollRequest(method, query, body) {
+  if (method === 'GET') {
+    const known = query.rev != null && query.rev !== '' ? Number(query.rev) : null
+    return ok(await readRolls(Number.isFinite(known) ? known : null))
+  }
+  const roll = sanitizeRoll(body?.roll)
+  if (!roll) return fail(400, 'Rolagem inválida')
+  const rev = await addRoll(roll)
+  return ok({ rev, roll })
+}
