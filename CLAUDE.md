@@ -546,6 +546,22 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   neutro). Nas magias concedidas e em Frostbite/Ignition o diálogo oferece Adicionar (fogo) / Remover
   (frio) — depois de uma, só a oposta —, converte TODO o dano para o tipo e registra ao rolar. Voltar ao
   neutro (Refocus) é um botão: a ficha não vê o fim do encontro.
+- **Magus e poder mítico** (`magus.ts` + `components/useMagus.ts` + `MagusBar.tsx`): faixa fora das abas
+  que só mostra o que a ficha tem (`specials`/`feats`, sem catálogo por nome). Estado da mesa, campo `magus`
+  (`{ cascade, cascadeType, spent, summoned }`, já no `FIELD_RE`).
+  - **Arcane Cascade** (Secrets of Magic pg. 38): postura ligada à mão — o app não sabe a última ação. Dano
+    extra nos Golpes corpo a corpo: +1, **+2 com Weapon Specialization**, +3 com a Greater. Viaja em
+    `ConditionModifiers.cascade` e `planStrike` o injeta como parcela extra (`key: 'arcane-cascade'`, sempre
+    ligada, dobra no crítico; arremesso e à distância não levam). **O tipo é escolha do jogador** (seletor na
+    faixa): a regra manda usar o da última magia que causava dano, e a ficha não vê isso; força é o padrão.
+  - **Spellstrike** é só indicador "Carregado/Gasto" + "Recarregar · 1 ação" (também recarrega ao conjurar
+    magia de conflux de 1+ ação). Não rola o Spellstrike: a rolagem combinada Golpe+magia ficou de fora.
+  - **Summon Mythic Power** (1×/dia, +1 Ponto Mítico) e **Divert Destiny** (reação: gasta 1 ponto, PV =
+    10 + nível limitado ao máximo, zera ferido e morrendo, não mexe em condenado, com confirmação) valem
+    para QUALQUER personagem mítico que tenha o talento — Brukuthur, Ghan Buri etc. também têm, e a faixa
+    vira "Poder mítico" quando não há nada de Magus. "Novo dia" da Summon é o botão ao lado dela; não
+    reseta sozinho com o do pool de pontos.
+  - A Iniciativa **não lê** o campo `magus`. `check-rolls` cobre a postura, o dano e o estado.
 - **Mudança de tamanho** (`sizeEffects.ts` + `components/useSizeEffect.ts`): a runa do Brukuthur
   liga Enlarge 4º ou Shrink com um clique e desliga pelo "Voltar ao normal". Estado da mesa no
   campo `size` (`{ active, used, since }`; `used` trava a ativação 1×/dia até o "Novo dia").
