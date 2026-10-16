@@ -533,8 +533,19 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   magia). Viaja em `ConditionModifiers.psyche`, e o `SpellBody` do diálogo soma ao componente; a linha
   da magia mostra o chip "+N psique". A ressaca (Estupefato 1) é DERIVADA, como o Titan Mauler. **O app
   não conta rodadas da ficha**: as duas trocas de fase são botões ("As 2 rodadas passaram",
-  "Recuperada"). A Iniciativa ainda não lê o campo. Amps dos psi cantrips (gastar Ponto de Foco e trocar
-  os números) **não estão implementados**.
+  "Recuperada"). A Iniciativa ainda não lê o campo.
+- **Amps dos psi cantrips** (`psiAmps.ts`): transcritos da AON e casados pelo NOME do truque
+  (o Pathbuilder só manda "Frostbite (Amped)"), rank base 1 com o "Amp Heightened (+1)" por rank
+  acima. No diálogo da magia, o chip "Amplificar · 1 Ponto de Foco" TROCA o dano normal pelo do amp
+  (Frostbite 3d4+2d4/rank, Ignition d10/d12 com o persistente do crítico, Redistribute 6d6+2d6/rank
+  em frio OU fogo) e o ponto sai ao rolar, da mesma fatia `slots` da aba (as instâncias se enxergam).
+  Efeito sem número (PV temporários, respingo, fraqueza, motes) vira nota. Só a Oscillating Wave está
+  catalogada; outro conscious mind é uma entrada nova.
+- **Conservation of Energy** (`energy.ts` + `components/useEnergy.ts` + `EnergyBar.tsx`), para quem tem
+  "The Oscillating Wave": campo `energy` da mesa guarda a ÚLTIMA escolha (`add`/`remove`, ausente =
+  neutro). Nas magias concedidas e em Frostbite/Ignition o diálogo oferece Adicionar (fogo) / Remover
+  (frio) — depois de uma, só a oposta —, converte TODO o dano para o tipo e registra ao rolar. Voltar ao
+  neutro (Refocus) é um botão: a ficha não vê o fim do encontro.
 - **Mudança de tamanho** (`sizeEffects.ts` + `components/useSizeEffect.ts`): a runa do Brukuthur
   liga Enlarge 4º ou Shrink com um clique e desliga pelo "Voltar ao normal". Estado da mesa no
   campo `size` (`{ active, used, since }`; `used` trava a ativação 1×/dia até o "Novo dia").
