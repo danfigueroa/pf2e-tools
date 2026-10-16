@@ -45,6 +45,8 @@ export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, ima
     // de propósito — é o que faz o mapa afastado não virar uma sopa de texto.
     const font = Math.max(12, Math.min(18, px * 0.2))
     const dim = token.defeated ? 0.45 : 1
+    // Miúdo ocupa o quadrado inteiro (alvo de toque), mas o círculo é metade.
+    const inset = token.tiny ? px * 0.25 : 3
 
     return (
         <div
@@ -100,7 +102,7 @@ export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, ima
                 style={{
                     position: 'absolute',
                     zIndex: Z_TOKEN,
-                    inset: 3,
+                    inset,
                     opacity: dim,
                     borderRadius: '50%',
                     border: `${active ? 4 : 3}px solid ${ring}`,
@@ -127,7 +129,7 @@ export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, ima
                         style={{
                             color: parchment.page,
                             fontWeight: 700,
-                            fontSize: px * 0.3,
+                            fontSize: (px - 2 * inset) * 0.32,
                             letterSpacing: '0.02em',
                             userSelect: 'none',
                         }}

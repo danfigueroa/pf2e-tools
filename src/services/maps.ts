@@ -14,7 +14,8 @@ import { useSyncExternalStore } from 'react'
 import { saveField } from './tableState'
 import { noteRollsRev } from './rolls'
 import type { HpStored } from '../modules/character-viewer/components/useHpTracker'
-import type { Cell, ImageRect } from '../modules/battle-map/geometry'
+import { sizeSquares, type Cell, type ImageRect } from '../modules/battle-map/geometry'
+import { activeSizeEffect, sanitizeSizeEffect } from '../modules/character-viewer/sizeEffects'
 
 export interface MapImage { url: string; w: number; h: number }
 
@@ -40,11 +41,21 @@ export interface TokenDescriptor {
     defeated?: boolean
     /** Deslocamento em pés — sem ele, o arrasto mostra só a distância. */
     speed?: number
+    /**
+     * Miúdo: ocupa 1 quadrado (alvo de toque) mas é desenhado menor. Só no
+     * cliente — sai de `withPcSizes`, nunca é gravado.
+     */
+    tiny?: boolean
 }
 
 export interface NpcHp { current: number; max: number; temp: number; updatedAt?: number }
 
-export interface PcSlice { hp: HpStored | null; token: { url: string } | null }
+export interface PcSlice {
+    hp: HpStored | null
+    token: { url: string } | null
+    /** Enlarge/Shrink ligado na Ficha Virtual — cru; `withPcSizes` interpreta. */
+    size?: unknown
+}
 
 export interface MapData {
     id: string
@@ -225,7 +236,7 @@ function withOverrides(entry: Entry, data: MapData): MapData {
     const now = Date.now()
     for (const [slug, o] of entry.pcOverrides) {
         if (o.until < now) { entry.pcOverrides.delete(slug); continue }
-        out = { ...out, pcs: { ...out.pcs, [slug]: { token: out.pcs[slug]?.token ?? null, hp: o.hp } } }
+        out = { ...out, pcs: { ...out.pcs, [slug]: { ...out.pcs[slug], token: out.pcs[slug]?.token ?? null, hp: o.hp } } }
     }
     return out
 }
@@ -441,7 +452,7 @@ export function writePcHp(id: string, slug: string, hp: HpStored): void {
     const data = entry.snapshot.data
     if (data) {
         setSnapshot(entry, {
-            data: { ...data, pcs: { ...data.pcs, [slug]: { token: data.pcs[slug]?.token ?? null, hp } } },
+            data: { ...data, pcs: { ...data.pcs, [slug]: { ...data.pcs[slug], token: data.pcs[slug]?.token ?? null, hp } } },
         })
     }
 }
@@ -467,4 +478,30 @@ export async function syncTokens(
         void loadMap(id)
     }
     return body.rev
+}
+
+const SIZE_BY_SQUARES = ['medium', 'medium', 'large', 'huge', 'gargantuan'] as const
+
+/**
+ * Tokens de personagem com o tamanho de AGORA: um Enlarge ligado na Ficha
+ * Virtual (campo `size` da mesa) faz o token crescer, um Shrink o encolhe.
+ * Fica no cliente e não no `tok:` porque o `tok:` é da Iniciativa — o tamanho
+ * original volta sozinho quando o efeito desliga, sem ninguém regravar nada.
+ *
+ * O token só sabe o lado em quadrados, então o tamanho base é deduzido dele
+ * (1 quadrado = Médio) — é o que basta para a regra de "sem efeito em quem já
+ * é Enorme".
+ */
+export function withPcSizes(data: MapData): MapData {
+    let tokens: Record<string, TokenDescriptor> | null = null
+    for (const [id, token] of Object.entries(data.tokens)) {
+        if (token.kind !== 'pc' || !token.slug) continue
+        const stored = sanitizeSizeEffect(data.pcs[token.slug]?.size)
+        const base = SIZE_BY_SQUARES[Math.min(4, Math.max(1, token.size))]
+        const effect = activeSizeEffect(stored, base)
+        if (!effect) continue
+        tokens ??= { ...data.tokens }
+        tokens[id] = { ...token, size: sizeSquares(effect.size), tiny: effect.size === 'tiny' }
+    }
+    return tokens ? { ...data, tokens } : data
 }

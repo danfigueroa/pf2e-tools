@@ -48,6 +48,7 @@ import {
     isMapStoreReady,
     listMaps,
     useMapData,
+    withPcSizes,
     writeMapField,
     writePcHp,
     type MapData,
@@ -153,7 +154,9 @@ export const BattleMapPage = () => {
         try { localStorage.setItem(DRAW_KEY, JSON.stringify(next)) } catch { /* só nesta aba */ }
     }
 
-    const { data, error, activeId } = useMapData(id)
+    const { data: rawData, error, activeId } = useMapData(id)
+    // Enlarge/Shrink ligado na Ficha Virtual muda o tamanho do token do personagem.
+    const data = useMemo(() => (rawData ? withPcSizes(rawData) : null), [rawData])
 
     // Sem mapa na URL: vai para onde a mesa está; sem mesa, abre a lista.
     useEffect(() => {
