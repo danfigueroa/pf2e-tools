@@ -49,6 +49,8 @@ export const rageKeyForSlug = (slug: string): string => `${slug}/rage`
 export const rageKeyFor = (build: BuildInfo): string => rageKeyForSlug(charSlug(build))
 /** Unleash Psyche do Psíquico (`psyche.ts`). */
 export const psycheKeyForSlug = (slug: string): string => `${slug}/psyche`
+export const energyKeyForSlug = (slug: string): string => `${slug}/energy`
+export const energyKeyFor = (build: BuildInfo): string => energyKeyForSlug(charSlug(build))
 export const psycheKeyFor = (build: BuildInfo): string => psycheKeyForSlug(charSlug(build))
 
 /**
