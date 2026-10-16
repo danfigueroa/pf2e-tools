@@ -70,6 +70,12 @@ export const MYTHIC_ON_DARK = '#F2A0B6'
 export const HP_COLOR = '#B4442A'
 
 /**
+ * Fúria do bárbaro (a faixa da ficha). Vermelho de braseiro, mais escuro que o
+ * `HP_COLOR` para não se confundir com a barra de PV; 6,6:1 sobre `parchment.paper`.
+ */
+export const RAGE_COLOR = '#A02A18'
+
+/**
  * Escudo (ShieldCard, cartão da Iniciativa) — aço azulado. É item, não
  * criatura: a barra de PV dele não pode ser confundida com a do personagem.
  * 5,5:1 sobre `parchment.paper`.
