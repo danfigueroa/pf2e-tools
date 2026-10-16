@@ -44,6 +44,9 @@ export const persistentKeyFor = (build: BuildInfo): string => persistentKeyForSl
 /** Enlarge/Shrink ligado (`sizeEffects.ts`) — o mapa lê o mesmo campo. */
 export const sizeKeyForSlug = (slug: string): string => `${slug}/size`
 export const sizeKeyFor = (build: BuildInfo): string => sizeKeyForSlug(charSlug(build))
+/** Fúria do bárbaro (`rage.ts`) — a Iniciativa lê o mesmo campo. */
+export const rageKeyForSlug = (slug: string): string => `${slug}/rage`
+export const rageKeyFor = (build: BuildInfo): string => rageKeyForSlug(charSlug(build))
 
 /**
  * Chave dos hooks que a página monta antes de haver ficha (são incondicionais).
