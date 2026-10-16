@@ -1,4 +1,5 @@
 import type { AbilityKey } from './helpers'
+import type { RageEffect } from './rage'
 
 /**
  * Condições do Pathfinder 2e Remaster (apêndice do Player Core) e o efeito
@@ -497,6 +498,12 @@ export interface ConditionModifiers {
      * porque `mods` já chega a todo lugar que monta um Golpe.
      */
     meleeDamage?: AppliedMod[]
+    /**
+     * Fúria ligada. Não é um número como o `meleeDamage`: o dano dela muda com a
+     * arma (ágil, Grande), então viaja como regra e `meleeBonusParts` resolve
+     * golpe a golpe.
+     */
+    rage?: RageEffect
 }
 
 const emptyTargets = <T,>(make: () => T): Record<ModTarget, T> =>

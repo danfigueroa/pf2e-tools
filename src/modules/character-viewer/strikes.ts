@@ -29,6 +29,7 @@ import { exprText, parseDiceExpr, rollGroups, type DiceExpr, type DiceGroup, typ
 import { abilityMod, ABILITY_LABELS, mythicProficiencyDelta, weaponProficiencyRank } from './helpers'
 import { conditionParts, type CheckPart } from './checks'
 import type { ConditionModifiers } from './conditions'
+import { meleeBonusParts } from './rage'
 import type { UnarmedAttack } from './unarmed'
 import type { MagicWeaponRules } from './magicWeapons'
 
@@ -296,9 +297,11 @@ export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers
     if (strInDamage && mods.total.damageStr) {
         damageParts.push(...conditionParts(mods, 'damageStr'))
     }
-    // Bônus de efeito no corpo a corpo (Enlarge). Arremesso é ataque à distância.
+    // Bônus de efeito no corpo a corpo (Enlarge) e a Fúria. Arremesso é ataque à distância.
     if (!traits.ranged && opts.mode !== 'thrown') {
-        for (const b of mods.meleeDamage ?? []) damageParts.push({ label: b.from, value: b.value, kind: 'other' })
+        for (const b of meleeBonusParts(mods, { agile: traits.agile, name: s.name })) {
+            damageParts.push({ label: b.from, value: b.value, kind: 'other' })
+        }
     }
     if (opts.damageAdjust) damageParts.push({ label: 'Ajuste', value: opts.damageAdjust, kind: 'other' })
     const flat = damageParts.reduce((sum, p) => sum + p.value, 0)

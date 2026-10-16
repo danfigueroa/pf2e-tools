@@ -15,6 +15,8 @@ register('./ts-loader.mjs', import.meta.url)
 
 const checks = await import('../src/modules/character-viewer/checks.ts')
 const strikes = await import('../src/modules/character-viewer/strikes.ts')
+const rage = await import('../src/modules/character-viewer/rage.ts')
+const { SIZE_EFFECTS, withSizeEffect } = await import('../src/modules/character-viewer/sizeEffects.ts')
 const rolls = await import('../src/modules/character-viewer/rolls.ts')
 const { computeConditionModifiers, NO_MODIFIERS } = await import('../src/modules/character-viewer/conditions.ts')
 const { abilityMod } = await import('../src/modules/character-viewer/helpers.ts')
@@ -151,6 +153,67 @@ for (let i = 0; i < 50; i++) eq(strikes.rollStrikeDamage(weakPlan, 'contundente'
 // Desarmado: o MAP ágil do punho.
 const fist = unarmedAttacks(party.ghan).find((u) => u.en === 'Fist')
 eq(strikes.planStrike(party.ghan, strikes.unarmedStrike(party.ghan, fist), NO_MODIFIERS, opts({ map: 1 })).attackTotal, fist.attack - 4, 'Punho ágil 2º ataque = −4')
+
+// ── 3b. Fúria (Remaster: sem o −1 na CA do Core antigo) ─────────────────────
+// Só o Brukuthur é bárbaro no grupo. Nível 10, CON 18 (+4), Giant Instinct.
+const spec = rage.rageSpec(party.brukuthur)
+eq(spec.tempHp, 14, 'Fúria dá nível + CON = 10 + 4 PV temporários')
+eq(spec.damage, 2, 'Fúria dá +2 de dano base')
+eq(spec.titan.damage, 10, 'Titan Mauler no nível 7+ = 10')
+eq(JSON.stringify(spec.titan.weapons), JSON.stringify(['Greataxe']), 'A arma Grande do Brukuthur é o Greataxe')
+eq(JSON.stringify(spec.resist), JSON.stringify({ bludgeoning: 7, fire: 7 }), 'Raging Resistance = 3 + CON em contundente e fogo')
+ok(spec.brutality && spec.quickTempered, 'Brutality e Quick-Tempered vêm das habilidades da ficha')
+for (const who of ['ceros', 'eldarion', 'ghan', 'nathaniel', 'thalos']) ok(rage.rageSpec(party[who]) === null, `${who} não é bárbaro: sem Fúria`)
+eq(rage.rageSpec({ ...party.brukuthur, level: 6 }).titan.damage, 6, 'Titan Mauler antes do nível 7 = 6')
+eq(rage.rageSpec({ ...party.brukuthur, specials: [...party.brukuthur.specials, 'Greater Weapon Specialization'] }).titan.damage, 18, 'Com Greater Weapon Specialization = 18')
+eq(Object.keys(rage.rageSpec({ ...party.brukuthur, specials: party.brukuthur.specials.filter((x) => x !== 'Raging Resistance') }).resist).length, 0, 'Sem Raging Resistance (antes do nível 9) não resiste')
+
+GEAR.Greataxe = { kind: 'weapon', traits: ['Sweep'], weaponType: 'melee' }
+const axe = party.brukuthur.weapons[0]
+const axeStrike = strikes.weaponStrike(party.brukuthur, axe, GEAR.Greataxe)
+const raging = (titan = true) => rage.withRage(NO_MODIFIERS, rage.activeRage({ active: true, titan }, spec))
+const flatOf = (strike, mods, o = {}) => strikes.planStrike(party.brukuthur, strike, mods, opts(o)).weapon.flat
+eq(flatOf(axeStrike, NO_MODIFIERS), axe.damageBonus, 'Sem Fúria o dano é o da ficha')
+eq(flatOf(axeStrike, raging()), axe.damageBonus + 10, 'Greataxe Grande em Fúria soma +10')
+eq(flatOf(axeStrike, raging(false)), axe.damageBonus + 2, 'Arma Grande guardada: a Fúria volta a +2')
+eq(flatOf(axeStrike, raging(), { mode: 'thrown' }), axe.damageBonus, 'Arremessada não é Golpe corpo a corpo: sem Fúria')
+const agileSword = { ...axe, name: 'Shortsword', extraDamage: [] }
+eq(flatOf(strikes.weaponStrike(party.brukuthur, agileSword, GEAR.Shortsword), raging()), axe.damageBonus + 1, 'Arma ágil leva metade da Fúria (+1)')
+eq(flatOf(strikes.weaponStrike(party.brukuthur, { ...axe, name: 'Warhammer' }, GEAR.Warhammer), raging()), axe.damageBonus + 2, 'Outra arma, não a Grande: +2')
+eq(flatOf(strikes.weaponStrike(party.ceros, bow, GEAR['Composite Longbow']), raging()), bow.damageBonus, 'Arma à distância não leva Fúria')
+const brukFist = unarmedAttacks(party.brukuthur).find((u) => u.en === 'Fist')
+eq(flatOf(strikes.unarmedStrike(party.brukuthur, brukFist), raging()), strikes.unarmedStrike(party.brukuthur, brukFist).damageFlat + 1, 'Punho ágil leva metade da Fúria')
+const both = rage.withRage(withSizeEffect(NO_MODIFIERS, SIZE_EFFECTS.enlarge), rage.activeRage({ active: true, titan: true }, spec))
+eq(flatOf(axeStrike, both), axe.damageBonus + 10 + 4, 'Fúria (10) e Enlarge (+4 de estado) somam')
+const ragePlan = strikes.planStrike(party.brukuthur, axeStrike, raging(), opts())
+ok(ragePlan.damageParts.some((p) => p.label === 'Fúria (arma Grande)' && p.value === 10), 'O memorial mostra a parcela da Fúria')
+for (let i = 0; i < 100; i++) {
+    const r = strikes.rollStrikeDamage(ragePlan, 'cortante')
+    ok(r.crit.total >= 2 * r.total, 'O crítico dobra o dano, Fúria inclusa')
+}
+eq(JSON.stringify(rage.titanConditions({ active: false, titan: true }, spec)), JSON.stringify({ clumsy: 1 }), 'Titan Mauler: Desajeitado 1 mesmo sem Fúria')
+eq(JSON.stringify(rage.titanConditions({ active: true, titan: false }, spec)), '{}', 'Arma guardada: sem Desajeitado')
+eq(JSON.stringify(rage.titanConditions({ active: true, titan: true }, rage.rageSpec(party.ceros))), '{}', 'Quem não é bárbaro não ganha Desajeitado')
+eq(rage.sanitizeRage('lixo'), rage.NO_RAGE, 'Estado da mesa inválido vira "sem Fúria"')
+const saved = { active: true, titan: false, since: 5, granted: 14 }
+eq(JSON.stringify(rage.sanitizeRage(saved)), JSON.stringify(saved), 'O estado válido sobrevive à releitura')
+eq(rage.sanitizeRage({ active: false, since: 5, granted: -3 }).granted, undefined, 'Concessão negativa é descartada')
+ok(rage.isRageEmpty(rage.NO_RAGE) && !rage.isRageEmpty({ active: true, titan: true }), 'Estado vazio só é vazio sem nada')
+const damageMod = await import('../src/modules/initiative-tracker/damage.ts')
+const defenseOf = (resistances) => ({ resistances, weaknesses: {}, immunities: [], current: 100, temp: 0 })
+const hit = (type, resistances) => damageMod.computeDamage({ amount: 20, type, outcome: 'none' }, defenseOf(resistances)).final
+eq(hit('bludgeoning', rage.withRageResistance({}, spec, false)), 20, 'Sem Fúria, 20 contundente entram inteiros')
+eq(hit('bludgeoning', rage.withRageResistance({}, spec, true)), 13, 'Em fúria, 20 contundente − 7 = 13')
+eq(hit('fire', rage.withRageResistance({}, spec, true)), 13, 'Em fúria, 20 de fogo − 7 = 13')
+eq(hit('cold', rage.withRageResistance({}, spec, true)), 20, 'Em fúria, frio não é resistido (a escolha foi fogo)')
+eq(JSON.stringify(rage.withRageResistance({}, spec, false)), '{}', 'Fúria desligada: sem resistência')
+eq(JSON.stringify(rage.withRageResistance({}, spec, true)), JSON.stringify({ bludgeoning: 7, fire: 7 }), 'Fúria ligada: resiste a contundente e fogo 7')
+eq(rage.withRageResistance({ fire: 10, cold: 5 }, spec, true).fire, 10, 'Resistência maior da ficha vence a da Fúria (não soma)')
+eq(rage.withRageResistance({ fire: 3 }, spec, true).fire, 7, 'Resistência menor da ficha cede à da Fúria')
+const t0 = 1_000_000
+ok(rage.rageGivesTempHp({ active: false, titan: true }, t0), 'Primeira Fúria dá PV temporários')
+ok(!rage.rageGivesTempHp({ active: false, titan: true, endedAt: t0 - 10_000 }, t0), 'Fúria 10 s depois da outra: sem PV temporários')
+ok(rage.rageGivesTempHp({ active: false, titan: true, endedAt: t0 - 61_000 }, t0), 'Fúria 61 s depois: dá de novo')
 
 // ── 4. A rolagem que vai à mesa ─────────────────────────────────────────────
 const who = rolls.rollerIdentity(party.ghan)
