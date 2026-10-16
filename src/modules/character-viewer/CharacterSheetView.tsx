@@ -37,7 +37,7 @@ import { ConditionsBar } from './components/ConditionsBar'
 import { AfflictionsBar } from './components/AfflictionsBar'
 import { PersistentDamageBar } from './components/PersistentDamageBar'
 import { MythicPointsBar } from './components/MythicPointsBar'
-import { afflictionsKeyFor, conditionsKeyFor, energyKeyFor, legacyCharKey, mythicKeyFor, persistentKeyFor, psycheKeyFor, rageKeyFor, sizeKeyFor } from './charId'
+import { afflictionsKeyFor, conditionsKeyFor, energyKeyFor, legacyCharKey, magusKeyFor, mythicKeyFor, persistentKeyFor, psycheKeyFor, rageKeyFor, sizeKeyFor } from './charId'
 import { useConditions } from './components/useConditions'
 import { useAfflictions } from './components/useAfflictions'
 import { usePersistentDamage } from './components/usePersistentDamage'
@@ -52,6 +52,9 @@ import { useEnergy } from './components/useEnergy'
 import { hasConservation } from './energy'
 import { STRAIN_SOURCE, withPsyche } from './psyche'
 import { RageBar } from './components/RageBar'
+import { MagusBar } from './components/MagusBar'
+import { useMagus } from './components/useMagus'
+import { hasMagusFeatures, withCascade } from './magus'
 import { TITAN_SOURCE, withRage } from './rage'
 import { isMythicCharacter, MYTHIC_POINTS_MAX } from './helpers'
 import type { ConditionModifiers } from './conditions'
@@ -201,6 +204,8 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
     // Unleash Psyche do Psíquico: o Estupefato da ressaca é derivado, como o Titan Mauler.
     const psyche = usePsyche(psycheKeyFor(build), build)
     const energy = useEnergy(energyKeyFor(build))
+    // Arcane Cascade do Magus: o dano extra viaja nos modificadores, como a Fúria.
+    const magus = useMagus(magusKeyFor(build), build)
 
     // O que a ficha sofre sem ter marcado: estágio de aflição, o Desajeitado do
     // Enlarge e o do Titan Mauler. Em conflito vale o pior valor, como em
@@ -236,8 +241,8 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
     )
     // O +4 de estado no corpo a corpo do Enlarge e a Fúria viajam junto dos modificadores.
     const mods = useMemo(
-        () => withPsyche(withRage(withSizeEffect(conditions.mods, sizeEffect.effect), rage.effect), psyche.effect),
-        [conditions.mods, sizeEffect.effect, rage.effect, psyche.effect],
+        () => withCascade(withPsyche(withRage(withSizeEffect(conditions.mods, sizeEffect.effect), rage.effect), psyche.effect), magus.effect),
+        [conditions.mods, sizeEffect.effect, rage.effect, psyche.effect, magus.effect],
     )
 
     // Pontos Míticos: gastos de qualquer aba, então o hook mora aqui.
@@ -294,6 +299,9 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
             <ConditionsBar conditions={conditions} />
             {rage.spec && <RageBar build={build} rage={rage} conditions={conditions} />}
             {psyche.has && <PsycheBar psyche={psyche} />}
+            {hasMagusFeatures(build) && (
+                <MagusBar build={build} magus={magus} mythicPoints={mythicPoints} conditions={conditions} />
+            )}
             {hasConservation(build) && <EnergyBar energy={energy} />}
             <AfflictionsBar afflictions={afflictions.afflictions} onRemove={afflictions.remove} />
             <PersistentDamageBar
