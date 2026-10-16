@@ -10,17 +10,22 @@ import {
 import type { ConditionModifiers } from '../conditions'
 import { loreCheck, skillCheck, SKILLS } from '../checks'
 import { useArmorPenalty } from '../components/useArmorPenalty'
+import type { RollRequest } from '../components/RollDialog'
+import { RollTrigger } from '../components/RollTrigger'
 import { ConditionDelta } from '../components/ConditionDelta'
 import { MythicNote } from '../components/MythicNote'
 
 interface Props {
     build: BuildInfo
     mods: ConditionModifiers
+    onRoll: (req: RollRequest) => void
 }
+
+const ARMOR_NOTE = 'A penalidade de armadura não vale em ação com o traço ataque (Agarrar, Empurrar, Derrubar…) — tire no ajuste.'
 
 const RANK_COLOR: Record<number, string> = RANK_COLORS
 
-export const SkillsSection = ({ build, mods }: Props) => {
+export const SkillsSection = ({ build, mods, onRoll }: Props) => {
     const mythic = isMythicCharacter(build)
     const armor = useArmorPenalty(build)
     return (
@@ -36,15 +41,19 @@ export const SkillsSection = ({ build, mods }: Props) => {
                         const check = skillCheck(build, s.key, mods, armor)
                         const { rank } = check
                         const color = RANK_COLOR[rank] || 'text.primary'
+                        const armorHit = check.parts.some((p) => p.kind === 'armor')
                         return (
-                            <Box
+                            <RollTrigger
                                 key={s.key}
+                                label={s.label}
+                                onClick={() => onRoll({ kind: 'check', check, note: armorHit ? ARMOR_NOTE : undefined })}
                                 sx={{
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'space-between',
                                     px: 2,
                                     py: 1.25,
+                                    borderRadius: 0,
                                     borderBottom: '1px solid',
                                     borderColor: 'divider',
                                     borderRight: { xs: 'none', sm: idx % 2 === 0 ? '1px solid' : 'none' },
@@ -78,7 +87,7 @@ export const SkillsSection = ({ build, mods }: Props) => {
                                         </Typography>
                                     )}
                                 </Box>
-                            </Box>
+                            </RollTrigger>
                         )
                     })}
                 </Box>
@@ -100,6 +109,9 @@ export const SkillsSection = ({ build, mods }: Props) => {
                                             ? `${loreName}: ${signed(loreTotal)} · ✦ ${signed(loreMythic)}`
                                             : `${loreName}: ${signed(loreTotal)}`}
                                         size="small"
+                                        onClick={() => onRoll({ kind: 'check', check })}
+                                        aria-label={`Rolar ${check.label}`}
+                                        sx={{ minHeight: 32 }}
                                     />
                                 )
                             })}

@@ -37,6 +37,7 @@ import { CAMPAIGN_PRESETS } from './campaignPresets'
 import { getCombatGuide } from './combatGuides'
 import { CharacterHeader } from './components/CharacterHeader'
 import { DescriptionDrawer, type DescriptionRequest } from './components/DescriptionDrawer'
+import { RollDialog, type RollRequest } from './components/RollDialog'
 import { ConditionsBar } from './components/ConditionsBar'
 import { AfflictionsBar } from './components/AfflictionsBar'
 import { PersistentDamageBar } from './components/PersistentDamageBar'
@@ -72,6 +73,8 @@ const curatedBase = (b: BuildInfo): string | null => {
 export interface SectionContext {
     build: BuildInfo
     onSelect: (req: DescriptionRequest) => void
+    /** Abre o diálogo de rolagem — a rolagem vai para a mesa inteira. */
+    onRoll: (req: RollRequest) => void
     mods: ConditionModifiers
     mythicPoints: MythicPointsApi
     guide: GuideSlot
@@ -90,7 +93,7 @@ const SECTIONS: SectionDef[] = [
         id: 'overview',
         label: 'Visão Geral',
         icon: <OverviewIcon />,
-        render: ({ build, mods, guide }) => <OverviewSection build={build} mods={mods} guide={guide} />,
+        render: ({ build, mods, guide, onRoll }) => <OverviewSection build={build} mods={mods} guide={guide} onRoll={onRoll} />,
     },
     {
         id: 'combat',
@@ -102,7 +105,7 @@ const SECTIONS: SectionDef[] = [
         id: 'skills',
         label: 'Perícias',
         icon: <SkillsIcon />,
-        render: ({ build, mods }) => <SkillsSection build={build} mods={mods} />,
+        render: ({ build, mods, onRoll }) => <SkillsSection build={build} mods={mods} onRoll={onRoll} />,
     },
     {
         id: 'feats',
@@ -156,6 +159,7 @@ export const CharacterViewerPage = () => {
     const [activeTab, setActiveTab] = useState(0)
     const [expanded, setExpanded] = useState<string | false>('overview')
     const [drawerReq, setDrawerReq] = useState<DescriptionRequest | null>(null)
+    const [rollReq, setRollReq] = useState<RollRequest | null>(null)
     const [apiAvailable, setApiAvailable] = useState<boolean | null>(null)
 
     // Condições ficam fora das abas: afetam a ficha inteira e precisam de um
@@ -362,7 +366,7 @@ export const CharacterViewerPage = () => {
         error: publication.guideError,
         onGenerate: () => { if (published) void publication.generateGuide(published, curatedBase(build)) },
     }
-    const ctx: SectionContext = { build, onSelect: setDrawerReq, mods: conditions.mods, mythicPoints, guide }
+    const ctx: SectionContext = { build, onSelect: setDrawerReq, onRoll: setRollReq, mods: conditions.mods, mythicPoints, guide }
 
     return (
         <Container maxWidth="lg" disableGutters sx={{ pb: 6 }}>
@@ -477,6 +481,13 @@ export const CharacterViewerPage = () => {
                 request={drawerReq}
                 onClose={() => setDrawerReq(null)}
                 onNavigate={setDrawerReq}
+            />
+            <RollDialog
+                request={rollReq}
+                build={build}
+                mods={conditions.mods}
+                mythicPoints={mythicPoints}
+                onClose={() => setRollReq(null)}
             />
             {publishDialog}
             {publishSnackbar}

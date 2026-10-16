@@ -14,14 +14,17 @@ import { ConditionDelta } from '../components/ConditionDelta'
 import { MythicNote } from '../components/MythicNote'
 import type { ConditionModifiers } from '../conditions'
 import type { GuideSlot } from '../components/usePublication'
+import type { RollRequest } from '../components/RollDialog'
+import { RollTrigger } from '../components/RollTrigger'
 
 interface Props {
     build: BuildInfo
     mods: ConditionModifiers
     guide: GuideSlot
+    onRoll: (req: RollRequest) => void
 }
 
-export const OverviewSection = ({ build, mods, guide: slot }: Props) => {
+export const OverviewSection = ({ build, mods, guide: slot, onRoll }: Props) => {
     const theme = useTheme()
     // Drenado corta PV máximos (valor × nível); nunca abaixo de 1.
     const hp = characterMaxHp(build, mods.hpMaxDelta)
@@ -80,6 +83,7 @@ export const OverviewSection = ({ build, mods, guide: slot }: Props) => {
                     value={signed(perception.total)}
                     delta={perception.conditionDelta}
                     base={perception.base}
+                    onRoll={() => onRoll({ kind: 'check', check: perception, note: 'Percepção também é a iniciativa padrão.' })}
                 />
                 <StatTile
                     label="Deslocamento"
@@ -104,7 +108,12 @@ export const OverviewSection = ({ build, mods, guide: slot }: Props) => {
                     >
                         {saves.map((s) => {
                             return (
-                                <Box key={s.label} sx={{ textAlign: 'center', px: 0.5, py: { xs: 0.5, sm: 0 } }}>
+                                <RollTrigger
+                                    key={s.label}
+                                    label={s.label}
+                                    onClick={() => onRoll({ kind: 'check', check: s })}
+                                    sx={{ textAlign: 'center', px: 0.5, py: 0.5, borderRadius: 0 }}
+                                >
                                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                                         {s.label}
                                     </Typography>
@@ -117,7 +126,7 @@ export const OverviewSection = ({ build, mods, guide: slot }: Props) => {
                                             ✦ {signed(s.total + s.mythicDelta)}
                                         </Typography>
                                     )}
-                                </Box>
+                                </RollTrigger>
                             )
                         })}
                     </Box>
@@ -251,7 +260,9 @@ export const OverviewSection = ({ build, mods, guide: slot }: Props) => {
     )
 }
 
-const StatTile = ({ label, value, accent, delta = 0, base, extra, valueKey, animate = false }: {
+const StatTile = ({ label, value, accent, delta = 0, base, extra, valueKey, animate = false, onRoll }: {
+    /** Torna o cartão tocável para rolar o teste. */
+    onRoll?: () => void
     label: string
     value: string | number
     accent?: string
@@ -263,6 +274,7 @@ const StatTile = ({ label, value, accent, delta = 0, base, extra, valueKey, anim
     animate?: boolean
 }) => (
     <Card sx={{ borderColor: accent ? accent + '60' : undefined, transition: 'border-color 300ms' }}>
+        <MaybeRoll label={label} onRoll={onRoll}>
         {/* "DESLOCAMENTO" é o rótulo mais longo e define o aperto: no celular
             a margem interna e a fonte encolhem para ele caber numa linha. */}
         <CardContent sx={{ textAlign: 'center', px: { xs: 1, sm: 2 }, py: 1.5, '&:last-child': { pb: 1.5 } }}>
@@ -295,8 +307,12 @@ const StatTile = ({ label, value, accent, delta = 0, base, extra, valueKey, anim
             <ConditionDelta delta={delta} base={base} />
             {extra}
         </CardContent>
+        </MaybeRoll>
     </Card>
 )
+
+const MaybeRoll = ({ label, onRoll, children }: { label: string; onRoll?: () => void; children: React.ReactNode }) =>
+    onRoll ? <RollTrigger label={label} onClick={onRoll} sx={{ borderRadius: 0 }}>{children}</RollTrigger> : <>{children}</>
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
     <Typography
