@@ -1,5 +1,6 @@
 import type { ConditionModifiers } from '../character-viewer/conditions'
 import type { ConditionState } from '../character-viewer/components/useConditions'
+import type { SizeEffectDef } from '../character-viewer/sizeEffects'
 import type { AfflictionState, SaveDegree } from './afflictions'
 import type { PersistentDamage } from './persistentDamage'
 import type { ScaleOverrides, SpellEdits } from '../monster-scaler/types'
@@ -130,6 +131,8 @@ export interface CombatantView {
     maxHpDelta: number
     conditions: ConditionState
     afflictions: AfflictionState[]
+    /** Enlarge/Shrink ligado no personagem (Ficha Virtual); `null` = tamanho normal. */
+    sizeEffect: SizeEffectDef | null
     persistent: PersistentDamage[]
     mods: ConditionModifiers
     defense: TargetDefense

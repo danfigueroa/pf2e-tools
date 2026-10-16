@@ -10,6 +10,7 @@ import {
 import { computeDamage } from './damage'
 import { rollFormula } from './dice'
 import { computeConditionModifiers } from '../character-viewer/conditions'
+import { activeSizeEffect, sizeEffectConditions } from '../character-viewer/sizeEffects'
 import type { PersistentDamage } from './persistentDamage'
 import type { EncounterAction } from './encounterReducer'
 import type { PartyApi } from './useEncounterParty'
@@ -120,7 +121,12 @@ function buildView(
     // senão desmarcar um Enfraquecido que veio do veneno gravaria uma remoção
     // de algo que nunca foi gravado.
     const stored = slice ? slice.conditions : (npc?.conditions ?? {})
-    const conditions = mergeAfflictionConditions(stored, afflictions)
+    // O Enlarge ligado pela Ficha Virtual impõe Desajeitado — derivado também.
+    const sizeEffect = slice ? activeSizeEffect(slice.size, combatant.size) : null
+    const conditions = { ...mergeAfflictionConditions(stored, afflictions) }
+    for (const [id, value] of Object.entries(sizeEffectConditions(sizeEffect))) {
+        conditions[id] = Math.max(conditions[id] ?? 0, value)
+    }
 
     const mods = computeConditionModifiers(conditions, combatant.level)
 
@@ -150,6 +156,7 @@ function buildView(
         maxHpDelta: mods.hpMaxDelta,
         conditions,
         afflictions,
+        sizeEffect,
         persistent,
         mods,
         defense,

@@ -21,6 +21,7 @@ import {
 } from './afflictions'
 import { syncFromAffliction, sanitizePersistent, type PersistentDamage } from './persistentDamage'
 import { sanitizeShield, type ShieldStored } from '../character-viewer/shield'
+import { NO_SIZE_EFFECT, sanitizeSizeEffect, type SizeEffectStored } from '../character-viewer/sizeEffects'
 
 export interface PartySlice {
     /** `null` = ninguém mexeu ainda; resolve para PV cheio no render. */
@@ -32,9 +33,11 @@ export interface PartySlice {
     persistent: PersistentDamage[]
     /** PV e "erguido" do escudo — o mesmo campo que a Ficha Virtual escreve. */
     shield: ShieldStored | null
+    /** Enlarge/Shrink ligado pela Ficha Virtual — só leitura aqui. */
+    size: SizeEffectStored
 }
 
-const EMPTY_SLICE: PartySlice = { hp: null, conditions: {}, afflictions: [], persistent: [], shield: null }
+const EMPTY_SLICE: PartySlice = { hp: null, conditions: {}, afflictions: [], persistent: [], shield: null, size: NO_SIZE_EFFECT }
 
 /**
  * PV e condições de TODOS os personagens do encontro, no estado da mesa.
@@ -73,6 +76,7 @@ export function useEncounterParty(slugs: string[]) {
         afflictions: sanitizeAfflictions(readLocal(slug, 'afflictions') ?? []),
         persistent: sanitizePersistent(readLocal(slug, 'persistent') ?? []),
         shield: sanitizeShield(readLocal(slug, 'shield')),
+        size: sanitizeSizeEffect(readLocal(slug, 'size')),
     }), [])
 
     useEffect(() => {
@@ -104,6 +108,9 @@ export function useEncounterParty(slugs: string[]) {
                     shield: snapshot.shield === undefined
                         ? (prev[slug]?.shield ?? null)
                         : sanitizeShield(snapshot.shield),
+                    size: snapshot.size === undefined
+                        ? (prev[slug]?.size ?? NO_SIZE_EFFECT)
+                        : sanitizeSizeEffect(snapshot.size),
                 },
             }))
         }

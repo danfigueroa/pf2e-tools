@@ -24,14 +24,20 @@ const TAP_ICON = { xs: '1.15rem', sm: '0.9rem' }
  * estiver marcada à mão, ela reaparece com botões quando a aflição sai.
  */
 export const CombatantConditions = ({ view }: { view: CombatantView }) => {
-    const { mods, combatant, afflictions, adjustCondition, toggleCondition, setDuration } = view
+    const { mods, combatant, afflictions, sizeEffect, adjustCondition, toggleCondition, setDuration } = view
     const durations = combatant.durations
     const armed = useArmed()
 
-    /** id da condição → nome da aflição que a impõe agora. */
+    /** id da condição → de onde ela vem agora ("do estágio de X", "do Enlarge 4º"). */
     const fromAffliction = new Map<string, string>()
     for (const a of afflictions) {
-        for (const id of Object.keys(stageConditions(a))) fromAffliction.set(id, a.def.name)
+        for (const id of Object.keys(stageConditions(a))) fromAffliction.set(id, `do estágio de ${a.def.name}`)
+    }
+    // O Desajeitado do Enlarge ligado na Ficha Virtual: derivado do mesmo jeito.
+    if (sizeEffect) {
+        for (const id of Object.keys(sizeEffect.conditions)) {
+            if (!fromAffliction.has(id)) fromAffliction.set(id, `do ${sizeEffect.spell} ${sizeEffect.rank}º`)
+        }
     }
 
     // Nada a dizer quando não há condição: o "Sem condições" existia como
@@ -53,7 +59,7 @@ export const CombatantConditions = ({ view }: { view: CombatantView }) => {
                         key={entry.id}
                         title={
                             viaAffliction
-                                ? `${def.summary} (do estágio de ${viaAffliction})`
+                                ? `${def.summary} (${viaAffliction})`
                                 : entry.via
                                     ? `${def.summary} (imposta por ${entry.via})`
                                     : def.summary

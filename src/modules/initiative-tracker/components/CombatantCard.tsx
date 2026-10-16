@@ -35,6 +35,7 @@ import { aonNameOf } from '../importCharacter'
 import { CombatantActions } from './CombatantActions'
 import { CombatantSheet } from './CombatantSheet'
 import { CombatantConditions } from './CombatantConditions'
+import { sizeLabel } from '../../character-viewer/sizeEffects'
 import { CombatantAfflictions } from './CombatantAfflictions'
 import { CombatantPersistent } from './CombatantPersistent'
 import { CombatantVitals, type ShieldBefore } from './CombatantVitals'
@@ -253,6 +254,13 @@ export const CombatantCard = ({
                                 <Typography variant="caption">
                                     {combatant.kind === 'pc' ? combatant.klass ?? 'Personagem' : 'Nível'} {combatant.level}
                                 </Typography>
+                                {view.sizeEffect && (
+                                    <Tooltip title={view.sizeEffect.summary}>
+                                        <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                                            {sizeLabel(view.sizeEffect.size)} ({view.sizeEffect.spell})
+                                        </Typography>
+                                    </Tooltip>
+                                )}
                                 <Tooltip title={shieldAc ? `CA com escudo erguido (+${shieldAc})` : 'CA'}>
                                     <Stack direction="row" alignItems="center" spacing={0.25} sx={{ color: shieldAc ? gold.deep : undefined }}>
                                         <AcIcon sx={{ fontSize: '0.8rem' }} />
