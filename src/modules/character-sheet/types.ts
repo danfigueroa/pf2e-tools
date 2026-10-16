@@ -145,12 +145,46 @@ export interface FeatDescription {
   translationPending?: boolean;  // ficou em EN por falha de tradução — não cachear
 }
 
+/** Um número da prosa de uma magia (`api/_lib/spell-scaling.js`), lido do EN canônico. */
+export interface SpellComponent {
+  id: number;
+  kind: 'damage' | 'healing' | 'healingExtra' | 'hardness' | 'resistance' | 'weakness' | 'tempHp';
+  /** Como está escrito na prosa ("2d4", "1d6+2", "5"). */
+  formula: string;
+  types: string[];         // tipos de dano em inglês canônico
+  persistent: boolean;
+  count: number;           // 0 = número fixo, sem dado
+  faces: number;
+  flat: number;
+  /** Posição desta fórmula entre as IGUAIS na prosa, e quantas há — é como o
+   *  cliente acha o mesmo número no texto traduzido. */
+  nth: number;
+  occurrences: number;
+}
+
+export interface SpellHeightenRule {
+  level: string;           // "+1", "+2", "4th"
+  adds: { id: number; mode: 'add' | 'set'; count: number; faces: number; flat: number }[];
+  /** Todo número da entrada achou dono — os `adds` valem. */
+  safe: boolean;
+  /** Além de `safe`, não sobrou efeito em texto — a entrada não precisa mais aparecer. */
+  resolved: boolean;
+}
+
+/** Números da magia e o que o heightening faz com cada um. */
+export interface SpellScaling {
+  components: SpellComponent[];
+  /** Mesma ordem de `heightenedEntries`. */
+  rules: SpellHeightenRule[];
+}
+
 export interface SpellDescription {
   name: string;
   level?: number | null;   // rank base da magia no AON (null quando não achada)
   heighten?: string[];     // padrão de heighten do AON, ex. ["+1"]
   sourceBook?: string;     // "Player Core, p. 341"
   heightenedEntries?: { level: string; text: string }[];  // estruturado do backend
+  scaling?: SpellScaling;  // números da prosa e regra de cada entrada (ver heightening.ts)
   translationPending?: boolean;  // ficou em EN por falha de tradução — não cachear
   actions?: string;        // "1", "2", "3", "reaction", "free", "1 to 3"
   traits?: string[];       // ["healing", "vitality"] — sem tradições

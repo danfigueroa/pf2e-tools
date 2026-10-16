@@ -440,10 +440,15 @@ const SpellRow = ({ name, count, accent, request, onSelect, pips, spend, dimmed 
     const cached = getCachedSpell(name)
     // Dano já no nível do slot (request.level = rank efetivo de conjuração).
     const castRank = request.type === 'spell' ? request.level : undefined
-    const dmg = cached && castRank != null ? damageAtRank(cached, castRank) : cached?.damage || null
+    // Já traz o tipo ("10d6 fogo", "3d8 contundente + 3d8 frio").
+    const dmg = cached && castRank != null
+        ? damageAtRank(cached, castRank)
+        : cached?.damage ? `${cached.damage}${cached.damageType ? ` ${cached.damageType}` : ''}` : null
+    // Elevada: o rank do slot (ou o automático do truque/foco) passa do rank base.
+    const raisedTo = cached?.level != null && castRank != null && castRank > cached.level ? castRank : null
     const summary = cached
         ? [
-            dmg ? `${dmg}${cached.damageType ? ` ${cached.damageType}` : ''}` : null,
+            dmg,
             cached.range || cached.area || null,
             cached.defense || cached.duration || null,
         ]
@@ -480,6 +485,25 @@ const SpellRow = ({ name, count, accent, request, onSelect, pips, spend, dimmed 
                         <Typography component="span" sx={{ ml: 0.75, color: accent, fontSize: '0.85em' }}>
                             {actions}
                         </Typography>
+                    )}
+                    {raisedTo != null && (
+                        <Tooltip title={`Elevada: rank base ${cached?.level}, conjurada no ${raisedTo}º — os números já estão no rank conjurado`}>
+                            <Typography
+                                component="span"
+                                variant="caption"
+                                sx={{
+                                    ml: 0.75,
+                                    px: 0.5,
+                                    borderRadius: 0.75,
+                                    border: `1px solid ${accent}66`,
+                                    color: accent,
+                                    fontWeight: 700,
+                                    whiteSpace: 'nowrap',
+                                }}
+                            >
+                                ↑ {raisedTo}º
+                            </Typography>
+                        </Tooltip>
                     )}
                     {count && count > 1 && !pips && (
                         <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>
