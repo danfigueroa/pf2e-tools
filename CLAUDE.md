@@ -569,6 +569,19 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     vira "Poder mítico" quando não há nada de Magus. "Novo dia" da Summon é o botão ao lado dela; não
     reseta sozinho com o do pool de pontos.
   - A Iniciativa **não lê** o campo `magus`. `check-rolls` cobre a postura, o dano e o estado.
+- **Patrulheiro** (`ranger.ts` + `components/useRanger.ts` + `RangerBar.tsx`): faixa fora das abas com
+  **Hunt Prey** (presa marcada sim/não — qual criatura é, é da mesa) e **Gravity Weapon** (gasta 1 Ponto de
+  Foco do MESMO contador da aba de Magias; dura 1 minuto, encerrada à mão). Campo `ranger` da mesa
+  (`{ prey, gravity }`), viaja em `ConditionModifiers.ranger`. O que muda nos Golpes (`planStrike`):
+  - **Gravity Weapon**: bônus de status = **2 × dados da arma** (com striking) no *primeiro* Golpe com ARMA
+    da rodada — desarmado não leva. O app não conta rodadas: o chip "Primeiro Golpe da rodada" vem
+    ligado e o jogador o desliga nos seguintes. **Chip não persiste** (nem o do Hunter's Aim): lembrar um
+    "desligado" tiraria o dano do primeiro Golpe da rodada seguinte em silêncio.
+  - **Hunt Prey + Hunter's Edge: Precision**: o `1d8 precision` da arma (que o Pathbuilder já manda como
+    chip desligado) vem LIGADO com a presa marcada (`extraEnabled(e, on, mods)`); a escolha do jogador vence.
+    Vale só no primeiro acerto da rodada — a legenda avisa, o app não conta.
+  - **Hunter's Aim** (talento, 2 ações): chip só em Golpe à distância/arremesso, +2 de circunstância no ataque.
+  Quem tem cada coisa vem da ficha (`specials`/`feats`/`focus`). `check-rolls` cobre. A Iniciativa não lê `ranger`.
 - **Mudança de tamanho** (`sizeEffects.ts` + `components/useSizeEffect.ts`): a runa do Brukuthur
   liga Enlarge 4º ou Shrink com um clique e desliga pelo "Voltar ao normal". Estado da mesa no
   campo `size` (`{ active, used, since }`; `used` trava a ativação 1×/dia até o "Novo dia").
