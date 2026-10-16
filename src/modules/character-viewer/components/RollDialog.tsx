@@ -52,6 +52,7 @@ import { dialogEmbedProps, useEmbedContainer } from '../embedContext'
 import { CASCADE_TYPES, hasSpellstrike } from '../magus'
 import { FIRST_STRIKE_KEY, HUNTERS_AIM_KEY, gravityBonus } from '../ranger'
 import { DEBILITATIONS, hasDebilitatingStrike, poisonNote, type Debilitation } from '../rogue'
+import { fearsomeBruteBonus, hasExactingStrike, hasFearsomeBrute } from '../fighter'
 import { useRogue } from './useRogue'
 import { usePoisonDef } from './usePoison'
 import { magusKeyFor, rogueKeyFor } from '../charId'
@@ -335,9 +336,12 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
     const [poisonOn, setPoisonOn] = useState(true)
     const canDebilitate = hasDebilitatingStrike(build)
     const [debil, setDebil] = useState<Debilitation | null>(null)
+    // Guerreiro: Exacting Strike (anotação) e Fearsome Brute (entra na conta do dano, ver planStrike).
+    const [exacting, setExacting] = useState(false)
     const rollNote = [
         poisonName && poisonOn ? poisonNote(poisonName, poisonDef) : null,
         debil ? DEBILITATIONS.find((d) => d.id === debil)?.note : null,
+        exacting ? 'Exacting Strike: se errar, não conta para a penalidade de ataques múltiplos' : null,
     ].filter(Boolean).join(' · ')
     const damageText = [
         `${formatValue({ count: plan.weapon.groups[0]?.count ?? 0, faces: plan.weapon.groups[0]?.faces ?? 0, flat: plan.weapon.flat })} ${strike.damageType}`,
@@ -467,6 +471,41 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                         </Box>
                     )}
 
+                    {hasFearsomeBrute(build) && (
+                        <Box>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                                Fearsome Brute — alvo amedrontado
+                            </Typography>
+                            <ToggleButtonGroup
+                                exclusive
+                                size="small"
+                                value={opts.frightened ?? 0}
+                                onChange={(_, v) => { if (v !== null) setOpts({ ...opts, frightened: v }) }}
+                                fullWidth
+                            >
+                                {[0, 1, 2, 3, 4].map((n) => (
+                                    <ToggleButton key={n} value={n}>
+                                        {n === 0 ? 'Não' : `${n} (+${fearsomeBruteBonus(build, n)})`}
+                                    </ToggleButton>
+                                ))}
+                            </ToggleButtonGroup>
+                        </Box>
+                    )}
+                    {hasExactingStrike(build) && (
+                        <Box>
+                            <Chip
+                                label="Exacting Strike · 1 ação (Pressionar)"
+                                color={exacting ? 'primary' : 'default'}
+                                variant={exacting ? 'filled' : 'outlined'}
+                                onClick={() => setExacting(!exacting)}
+                                aria-pressed={exacting}
+                                sx={{ minHeight: 32 }}
+                            />
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                Se este Golpe errar, ele não conta para a penalidade de ataques múltiplos — marque o próximo ataque de acordo.
+                            </Typography>
+                        </Box>
+                    )}
                     {poisonName && (
                         <Box>
                             <Chip

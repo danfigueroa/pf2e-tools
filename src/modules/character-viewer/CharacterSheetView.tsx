@@ -58,6 +58,8 @@ import { hasMagusFeatures, withCascade } from './magus'
 import { RangerBar } from './components/RangerBar'
 import { useRanger } from './components/useRanger'
 import { hasRangerFeatures, withRanger } from './ranger'
+import { reflexShieldBonus, withReflexShield } from './fighter'
+import { useCharacterShield } from './components/useShield'
 import { RogueBar } from './components/RogueBar'
 import { useRogue } from './components/useRogue'
 import { hasPoisonWeapon } from './rogue'
@@ -214,6 +216,8 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
     const magus = useMagus(magusKeyFor(build), build)
     // Hunt Prey e Gravity Weapon do Patrulheiro: também viajam nos modificadores.
     const ranger = useRanger(rangerKeyFor(build), build)
+    // Reflexive Shield: o escudo erguido (estado da mesa) também vale nos Reflexos.
+    const reflexShield = reflexShieldBonus(build, useCharacterShield(build).view?.acBonus ?? 0)
     // Veneno na arma do Ladino (Poison Weapon).
     const rogue = useRogue(rogueKeyFor(build))
 
@@ -251,8 +255,8 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
     )
     // O +4 de estado no corpo a corpo do Enlarge e a Fúria viajam junto dos modificadores.
     const mods = useMemo(
-        () => withRanger(withCascade(withPsyche(withRage(withSizeEffect(conditions.mods, sizeEffect.effect), rage.effect), psyche.effect), magus.effect), ranger.effect),
-        [conditions.mods, sizeEffect.effect, rage.effect, psyche.effect, magus.effect, ranger.effect],
+        () => withReflexShield(withRanger(withCascade(withPsyche(withRage(withSizeEffect(conditions.mods, sizeEffect.effect), rage.effect), psyche.effect), magus.effect), ranger.effect), reflexShield),
+        [conditions.mods, sizeEffect.effect, rage.effect, psyche.effect, magus.effect, ranger.effect, reflexShield],
     )
 
     // Pontos Míticos: gastos de qualquer aba, então o hook mora aqui.

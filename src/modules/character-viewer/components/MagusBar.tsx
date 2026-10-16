@@ -20,7 +20,10 @@ import { MAGUS_COLOR } from '../../../theme'
 import type { BuildInfo } from '../../character-sheet/types'
 import { characterMaxHp } from '../helpers'
 import { hpKeyFor, legacyCharKey } from '../charId'
-import { CASCADE_TYPES, cascadeDamage, divertDestinyHp, hasDivertDestiny, hasSpellstrike, hasSummonMythicPower } from '../magus'
+import { CASCADE_TYPES, cascadeDamage, divertDestinyHp, hasDivertDestiny, hasFieryRebirthFeat, hasSpellstrike, hasSummonMythicPower } from '../magus'
+import { classDc, fieryRebirthDamage, fieryRebirthHeal } from '../fighter'
+import { fieryRebirthRoll, rollerIdentity } from '../rolls'
+import { postRoll } from '../../../services/rolls'
 import { translateDamageType } from '../../transformation-statblock/i18n'
 import { useHpTracker } from './useHpTracker'
 import { EmbedDialog } from './EmbedDialog'
@@ -51,6 +54,7 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
     const { stored, effect } = magus
     const hp = useHpTracker(hpKeyFor(build), characterMaxHp(build, conditions.mods.hpMaxDelta), legacyCharKey(build))
     const [confirmDivert, setConfirmDivert] = useState(false)
+    const [confirmRebirth, setConfirmRebirth] = useState(false)
 
     const maxHp = characterMaxHp(build, conditions.mods.hpMaxDelta)
     const divertHp = divertDestinyHp(build.level, maxHp)
@@ -63,6 +67,16 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
         conditions.setCondition('dying', 0)
         conditions.setCondition('wounded', 0)
         setConfirmDivert(false)
+    }
+
+    const rebirth = () => {
+        mythicPoints.spend()
+        // Volta à consciência, de pé, com PV iguais ao nível por cima do que já tinha.
+        hp.restoreHp({ current: Math.min(maxHp, hp.current + fieryRebirthHeal(build.level)), temp: hp.temp })
+        conditions.setCondition('unconscious', 0)
+        conditions.setCondition('dying', 0)
+        void postRoll(fieryRebirthRoll(rollerIdentity(build), fieryRebirthDamage(build.level), classDc(build)))
+        setConfirmRebirth(false)
     }
 
     const summon = () => {
@@ -202,8 +216,33 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
                             </Button>
                         </FeatureRow>
                     )}
+                    {hasFieryRebirthFeat(build) && (
+                        <FeatureRow title="Fiery Rebirth">
+                            <Typography variant="body2" color="text.secondary" sx={{ flex: 1, minWidth: 160 }}>
+                                Ao escapar da morte: gasta 1 Ponto Mítico, volta de pé com +{fieryRebirthHeal(build.level)} PV e explode em fogo ({fieryRebirthDamage(build.level)}).
+                            </Typography>
+                            <Button size="small" variant="outlined" color="error" disabled={!canSpend} onClick={() => setConfirmRebirth(true)}>
+                                {canSpend ? 'Usar' : 'Sem pontos'}
+                            </Button>
+                        </FeatureRow>
+                    )}
                 </Stack>
             </CardContent>
+
+            <EmbedDialog open={confirmRebirth} onClose={() => setConfirmRebirth(false)}>
+                <DialogTitle>Fiery Rebirth</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Gasta 1 Ponto Mítico. {build.name} volta à consciência, de pé, e recupera {fieryRebirthHeal(build.level)} PV.
+                        Em seguida explode em fogo: {fieryRebirthDamage(build.level)} de dano em quem está adjacente (Reflexos básico,
+                        CD {classDc(build)}; falha crítica empurra 1,5 m). A rolagem vai para a mesa.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button color="inherit" onClick={() => setConfirmRebirth(false)}>Cancelar</Button>
+                    <Button variant="contained" color="error" onClick={rebirth}>Usar Fiery Rebirth</Button>
+                </DialogActions>
+            </EmbedDialog>
 
             <EmbedDialog open={confirmDivert} onClose={() => setConfirmDivert(false)}>
                 <DialogTitle>Divert Destiny</DialogTitle>
