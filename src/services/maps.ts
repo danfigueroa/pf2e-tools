@@ -163,6 +163,10 @@ interface Entry {
     pollTimer: ReturnType<typeof setTimeout> | null
     polling: boolean
     lastChange: number
+    /** Até quando o poll fica no ritmo de rajada (ver `BURST_MS`). */
+    burstUntil: number
+    /** Uma escrita no ar: a próxima espera, para não chegarem fora de ordem. */
+    flushing: boolean
     loading: Promise<void> | null
 }
 
@@ -182,6 +186,8 @@ function entryFor(id: string): Entry {
             pollTimer: null,
             polling: false,
             lastChange: Date.now(),
+            burstUntil: 0,
+            flushing: false,
             loading: null,
         }
         entries.set(id, entry)
@@ -221,6 +227,12 @@ function withOverrides(entry: Entry, data: MapData): MapData {
     return out
 }
 
+/** O mapa que chegou do servidor vira o snapshot, por baixo do que ainda não subiu daqui. */
+function applyMap(entry: Entry, map: MapData) {
+    entry.lastChange = Date.now()
+    setSnapshot(entry, { data: withOverrides(entry, map), error: null, activeId: map.activeId })
+}
+
 /** Baixa o mapa inteiro. Chamadas simultâneas dividem o mesmo pedido. */
 export function loadMap(id: string): Promise<void> {
     const entry = entryFor(id)
@@ -228,9 +240,7 @@ export function loadMap(id: string): Promise<void> {
     entry.loading = (async () => {
         try {
             const body = await getJson<{ map: MapData }>(`map=${encodeURIComponent(id)}`)
-            const data = withOverrides(entry, body.map)
-            entry.lastChange = Date.now()
-            setSnapshot(entry, { data, error: null, activeId: body.map.activeId })
+            applyMap(entry, body.map)
         } catch (error) {
             setSnapshot(entry, { error: error instanceof Error ? error.message : 'Erro ao abrir o mapa' })
         } finally {
@@ -242,10 +252,30 @@ export function loadMap(id: string): Promise<void> {
 
 // --- Poll ---------------------------------------------------------------------
 
-/** Ritmo do poll: rápido logo depois de uma mudança, mais lento quando a mesa para. */
+/**
+ * Ritmo do poll, em três marchas:
+ * - RAJADA (700 ms) por 5 s depois de qualquer mudança, daqui ou de fora: na
+ *   mesa uma ação puxa a seguinte (rola o ataque, move o token, aplica o dano),
+ *   e é nessa hora que a demora aparece;
+ * - RÁPIDO (1,5 s) enquanto houve mudança no último minuto;
+ * - LENTO (4 s) com a mesa parada.
+ *
+ * A rajada é curta DE PROPÓSITO, e é o número a mexer com cuidado: cada poll é
+ * um comando no Upstash (free: 500 mil/mês). Em combate as mudanças vêm a cada
+ * poucos segundos, e uma janela longa deixaria os aparelhos na rajada o tempo
+ * todo — 600 ms com janela de 8 s dava ~2,5× o gasto de antes e estourava a
+ * cota com uma sessão por semana. Com 700 ms/5 s a conta fica em ~1,5× (ver o
+ * CLAUDE.md).
+ */
+const BURST_MS = 700
+const BURST_WINDOW_MS = 5000
 const FAST_MS = 1500
 const SLOW_MS = 4000
 const QUIET_AFTER_MS = 60_000
+
+function burst(entry: Entry) {
+    entry.burstUntil = Date.now() + BURST_WINDOW_MS
+}
 
 function schedulePoll(entry: Entry, delay?: number) {
     if (entry.pollTimer) clearTimeout(entry.pollTimer)
@@ -253,7 +283,8 @@ function schedulePoll(entry: Entry, delay?: number) {
     // Aba escondida não pede nada: celular com a tela apagada não gasta bateria
     // nem a cota do Redis. O `visibilitychange` religa.
     if (entry.listeners.size === 0 || document.hidden) return
-    const wait = delay ?? (Date.now() - entry.lastChange < QUIET_AFTER_MS ? FAST_MS : SLOW_MS)
+    const now = Date.now()
+    const wait = delay ?? (now < entry.burstUntil ? BURST_MS : now - entry.lastChange < QUIET_AFTER_MS ? FAST_MS : SLOW_MS)
     entry.pollTimer = setTimeout(() => { void poll(entry) }, wait)
 }
 
@@ -261,12 +292,18 @@ async function poll(entry: Entry) {
     if (entry.polling) return
     entry.polling = true
     try {
-        const revs = await getJson<{ rev: number; tableRev: number; activeId: string | null }>(
-            `mapRev=${encodeURIComponent(entry.id)}`,
-        )
         const data = entry.snapshot.data
-        if (!data || revs.rev !== data.rev || revs.tableRev !== data.tableRev) {
+        // Diz ao servidor o que já tem: se mudou, o mapa vem nesta mesma resposta.
+        const known = data ? `&rev=${data.rev}&tableRev=${data.tableRev}` : ''
+        const revs = await getJson<{ rev: number; tableRev: number; activeId: string | null; map?: MapData }>(
+            `mapRev=${encodeURIComponent(entry.id)}${known}`,
+        )
+        if (revs.map) {
+            applyMap(entry, revs.map)
+            burst(entry)
+        } else if (!data || revs.rev !== data.rev || revs.tableRev !== data.tableRev) {
             await loadMap(entry.id)
+            burst(entry)
         } else if (revs.activeId !== entry.snapshot.activeId) {
             setSnapshot(entry, { activeId: revs.activeId })
         }
@@ -317,14 +354,15 @@ export function useMapData(id: string | null): MapSnapshot {
 
 // --- Escrita ------------------------------------------------------------------
 
-/** Junta os arrastos de um mesmo instante (soltar e logo arrastar outro). */
+/** Junta os arrastos de um mesmo instante (soltar e logo arrastar outro). Rolagem
+ *  e token solto não esperam: vão com `{ now: true }` (ver `writeMapField`). */
 const WRITE_DEBOUNCE_MS = 150
 
 /**
  * Grava `meta`, `pos:<id>` ou `hp:<id>` (`null` apaga). Otimista: a tela muda
  * agora e o campo fica como override até a escrita voltar.
  */
-export function writeMapField(id: string, field: string, value: unknown): void {
+export function writeMapField(id: string, field: string, value: unknown, opts: { now?: boolean } = {}): void {
     const entry = entryFor(id)
     entry.overrides.set(field, value)
     entry.pending.set(field, value)
@@ -332,14 +370,21 @@ export function writeMapField(id: string, field: string, value: unknown): void {
     if (entry.snapshot.data) setSnapshot(entry, { data: withField(entry.snapshot.data, field, value) })
 
     if (entry.writeTimer) clearTimeout(entry.writeTimer)
-    entry.writeTimer = setTimeout(() => { void flushWrites(entry) }, WRITE_DEBOUNCE_MS)
+    // `now`: o que os outros esperam ver na hora (a rolagem, o token solto).
+    // Ainda por `setTimeout(0)`, para juntar o que for escrito no mesmo instante.
+    entry.writeTimer = setTimeout(() => { void flushWrites(entry) }, opts.now ? 0 : WRITE_DEBOUNCE_MS)
     // Mudança feita aqui acelera o poll: a resposta dos outros vem logo atrás.
+    burst(entry)
     schedulePoll(entry)
 }
 
 async function flushWrites(entry: Entry) {
     entry.writeTimer = null
-    if (entry.pending.size === 0) return
+    // Uma escrita por vez: sem espera nenhuma, dois arrastos seguidos do mesmo
+    // token sairiam em dois pedidos que podem chegar invertidos — e o servidor
+    // ficaria com a posição de antes. Quem chega no meio sai quando esta voltar.
+    if (entry.flushing || entry.pending.size === 0) return
+    entry.flushing = true
     const fields = Object.fromEntries(entry.pending)
     entry.pending.clear()
     try {
@@ -357,6 +402,9 @@ async function flushWrites(entry: Entry) {
             if (!entry.pending.has(field)) entry.pending.set(field, value)
         }
         entry.writeTimer = setTimeout(() => { void flushWrites(entry) }, 3000)
+    } finally {
+        entry.flushing = false
+        if (entry.pending.size > 0 && !entry.writeTimer) void flushWrites(entry)
     }
 }
 
