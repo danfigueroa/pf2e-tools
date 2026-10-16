@@ -96,7 +96,6 @@ const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) =
 
             {roll.free && (
                 <Box sx={{ mt: 0.75 }}>
-                    <Caption>{partFormula(roll.free)}</Caption>
                     <DiceTray dice={roll.free.dice} flat={roll.free.flat} total={roll.free.total} color={roll.color} />
                 </Box>
             )}

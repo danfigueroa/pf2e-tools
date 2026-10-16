@@ -37,8 +37,8 @@ import { ImagePanel } from './components/ImagePanel'
 import { DrawPanel } from './components/DrawPanel'
 import { AreaPanel } from './components/AreaPanel'
 import { DicePanel } from './components/DicePanel'
-import { DiceResultLayer } from './components/DiceResultLayer'
-import { ROLL_LIFETIME_MS, type SharedRoll } from './dice'
+import { postRoll } from '../../services/rolls'
+import type { TableRoll } from '../../dice/tableRoll'
 import { AREA_FEET, type AreaStyle } from './areas'
 import { DRAW_WIDTHS, newDrawingId, type Drawing, type DrawStyle } from './drawing'
 import type { TokenHp } from './hp'
@@ -212,13 +212,8 @@ export const BattleMapPage = () => {
         setTimeout(() => writeMapField(id, field, null), PING_LIFETIME_MS)
     }, [id])
 
-    /** Rolagem: vai para a mesa como o ping — campo efêmero que quem rolou apaga. */
-    const onRoll = useCallback((roll: SharedRoll) => {
-        if (!id) return
-        const field = `roll:${newDrawingId()}`
-        writeMapField(id, field, roll, { now: true })
-        setTimeout(() => writeMapField(id, field, null), ROLL_LIFETIME_MS)
-    }, [id])
+    /** Rolagem: vai para o feed da mesa, o mesmo das rolagens da ficha. */
+    const onRoll = useCallback((roll: TableRoll) => { void postRoll(roll) }, [])
 
     const onErase = useCallback((drawingId: string) => {
         if (id) writeMapField(id, `drw:${drawingId}`, null)
@@ -479,7 +474,6 @@ export const BattleMapPage = () => {
 
             {gm && tool === 'image' && data && <ImagePanel meta={data.meta} onChange={onMeta} />}
             {data && id && diceOpen && <DicePanel onRoll={onRoll} />}
-            {data && <DiceResultLayer rolls={data.rolls ?? {}} />}
             {tool === 'area' && data && <AreaPanel style={areaStyle} onChange={changeAreaStyle} />}
             {tool === 'draw' && data && id && (
                 <DrawPanel

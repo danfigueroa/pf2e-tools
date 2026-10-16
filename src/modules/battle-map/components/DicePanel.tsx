@@ -11,8 +11,8 @@ import {
     formulaText,
     rollDice,
     type DieFaces,
-    type SharedRoll,
 } from '../dice'
+import type { TableRoll } from '../../../dice/tableRoll'
 import { ColorSwatches } from './ColorSwatches'
 
 const KEY = 'pf2e:map:dice'
@@ -37,7 +37,7 @@ function loadPrefs(): Prefs {
 }
 
 interface Props {
-    onRoll: (roll: SharedRoll) => void
+    onRoll: (roll: TableRoll) => void
 }
 
 /** Número inteiro com − / +, e rascunho só confirmado no blur/Enter (digitar "1" a caminho de "10"). */
