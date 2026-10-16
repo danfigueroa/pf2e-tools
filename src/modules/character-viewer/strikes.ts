@@ -1,0 +1,371 @@
+// Golpe: o número do ataque e o dano, com a conta à mostra — para a rolagem.
+//
+// O ponto de partida é o que o Pathbuilder já somou (`weapon.attack`, dados com
+// striking, `damageBonus` com FOR e especialização). Por cima entram as coisas
+// que a ficha NÃO sabe e que mudam o número na mesa, cada uma pela regra:
+//
+// - **Atributo do ataque.** À distância é DES; corpo a corpo é FOR, e com
+//   acuidade vale o melhor DEPOIS das condições (Desajeitado pode fazer a FOR
+//   valer mais). É o que decide se Desajeitado ou Enfraquecido pesa — antes a
+//   ficha só mostrava "FOR −2 · DES −1 a mais" como aviso.
+// - **MAP**: −5/−10, ou −4/−8 com ágil.
+// - **Enfraquecido no dano** só quando a arma soma FOR ao dano: corpo a corpo,
+//   arremesso e propulsiva. Arco curto não perde nada.
+// - **Piso 1** no dano: "if the combined penalties … would reduce the damage
+//   to 0 or below, you still deal 1 damage" (Player Core).
+// - **Crítico**: dobra o que foi rolado (dados, fixo e extras, precisão
+//   incluída). Deadly soma 1/2/3 dados POR FORA do dobro (até striking /
+//   greater / major); fatal troca o dado da arma pelo do fatal e soma +1 dado
+//   fatal por fora.
+//
+// Os traços vêm do AON (`services/gear.ts`). Sem eles a arma rola como corpo a
+// corpo sem ágil — e a página avisa. Ninguém inventa número em silêncio.
+
+import type { BuildInfo, Weapon } from '../character-sheet/types'
+import { strikingDice, stepUpDie } from '../character-sheet/weapon'
+import type { WeaponGear } from '../../services/gear'
+import { translateDamageType } from '../transformation-statblock/i18n'
+import { exprText, parseDiceExpr, rollGroups, type DiceExpr, type DiceGroup, type RolledExpr } from '../../dice/roll'
+import { abilityMod, ABILITY_LABELS, mythicProficiencyDelta, weaponProficiencyRank } from './helpers'
+import { conditionParts, type CheckPart } from './checks'
+import type { ConditionModifiers } from './conditions'
+import type { UnarmedAttack } from './unarmed'
+import type { MagicWeaponRules } from './magicWeapons'
+
+export interface WeaponTraits {
+    agile: boolean
+    finesse: boolean
+    ranged: boolean
+    thrown: boolean
+    propulsive: boolean
+    /** Faces do dado deadly ("Deadly d10" → 10). */
+    deadly: number | null
+    /** Faces do dado fatal ("Fatal d12" → 12). */
+    fatal: number | null
+    /** Os traços vieram do AON (ou da tabela de desarmados). */
+    known: boolean
+}
+
+export const UNKNOWN_TRAITS: WeaponTraits = {
+    agile: false, finesse: false, ranged: false, thrown: false, propulsive: false,
+    deadly: null, fatal: null, known: false,
+}
+
+/** Lê os traços como o AON os escreve: "Deadly d10", "Fatal 1d12", "Thrown 20 ft.". */
+export function parseWeaponTraits(gear: Pick<WeaponGear, 'traits' | 'weaponType'> | null | undefined): WeaponTraits {
+    if (!gear) return UNKNOWN_TRAITS
+    const t = gear.traits.map((x) => x.toLowerCase().trim())
+    const has = (name: string) => t.some((x) => x === name || x.startsWith(`${name} `))
+    const dieOf = (name: string) => {
+        for (const x of t) {
+            const m = new RegExp(`^${name}\\s+\\d*d(\\d+)`).exec(x)
+            if (m) return parseInt(m[1], 10)
+        }
+        return null
+    }
+    return {
+        agile: has('agile'),
+        finesse: has('finesse'),
+        ranged: gear.weaponType === 'ranged',
+        thrown: has('thrown'),
+        propulsive: has('propulsive'),
+        deadly: dieOf('deadly'),
+        fatal: dieOf('fatal'),
+        known: true,
+    }
+}
+
+/** Uma parcela de dano extra da ficha: "1d6 Electricity", "1d8 precision". */
+export interface ExtraDamage {
+    key: string
+    expr: DiceExpr
+    /** Como veio, para o rótulo: "1d6 Electricity". */
+    text: string
+    /** Tipo canônico em inglês, minúsculo. */
+    type: string
+    precision: boolean
+    persistent: boolean
+    /** Começa ligado: tudo menos precisão — que é condicional (Ataque Furtivo,
+     *  Hunter's Edge) —, a não ser que venha do perfil escolhido, que já É a
+     *  situação dele ("atacando quem não te detecta"). */
+    defaultOn: boolean
+}
+
+const EXTRA_RE = /^\s*(\d+\s*d\s*\d+(?:\s*[+-]\s*\d+)?|\d+)\s+(.+?)\s*$/i
+
+export function parseExtraDamage(list: string[] | undefined, fromProfile = false, offset = 0): ExtraDamage[] {
+    const out: ExtraDamage[] = []
+    for (const raw of list ?? []) {
+        const m = EXTRA_RE.exec(String(raw))
+        const expr = m ? parseDiceExpr(m[1].replace(/\s+/g, '')) : null
+        if (!m || !expr) continue
+        const words = m[2].toLowerCase().replace(/\bdamage\b/g, '').trim()
+        const persistent = /\bpersistent\b/.test(words)
+        const type = words.replace(/\bpersistent\b/, '').trim()
+        const precision = type === 'precision'
+        out.push({
+            key: `${raw}#${offset + out.length}`,
+            expr,
+            text: String(raw).trim(),
+            type,
+            precision,
+            persistent,
+            defaultOn: fromProfile || !precision,
+        })
+    }
+    return out
+}
+
+/** "1d6 elétrico", "1d8 precisão", "1d6 sangramento persistente". */
+export function extraLabel(e: ExtraDamage): string {
+    const type = translateDamageType(e.type)
+    return [exprText(e.expr), type, e.persistent ? 'persistente' : ''].filter(Boolean).join(' ')
+}
+
+/** Tudo que a rolagem precisa de UMA arma (ou desarmado, ou perfil situacional). */
+export interface Strike {
+    /** Chave estável — guarda as escolhas de dano extra. */
+    key: string
+    name: string
+    /** O total da ficha, sem condições. */
+    attack: number
+    /** Atributo que o `attack` da ficha já traz embutido. */
+    baseAbility: 'str' | 'dex'
+    /** Rank de proficiência que o `attack` traz; `null` = desconhecido (sem ✦). */
+    profRank: number | null
+    weaponDice: DiceGroup
+    damageFlat: number
+    /** "cortante", "contundente"… */
+    damageType: string
+    extras: ExtraDamage[]
+    traits: WeaponTraits
+}
+
+const B_P_S: Record<string, string> = { B: 'contundente', P: 'perfurante', S: 'cortante' }
+
+/**
+ * Rank de proficiência que o ataque da ficha de fato usa. O Pathbuilder exporta
+ * a CATEGORIA da arma, mas o guerreiro é Mestre no GRUPO (o Ghan Buri tem
+ * "martial: Especialista" e ataca com Mestre) — e o ✦ trocaria a proficiência
+ * errada. A conta de volta (ataque − nível − atributo − potência) acerta quando
+ * o número fecha num rank de verdade; senão vale a categoria.
+ */
+export function weaponRank(build: BuildInfo, w: Pick<Weapon, 'prof' | 'attack' | 'pot'>, baseAbility: 'str' | 'dex'): number | null {
+    const byCategory = weaponProficiencyRank(build, w.prof)
+    const implied = w.attack - build.level - abilityMod(build.abilities[baseAbility]) - (w.pot || 0)
+    if ([2, 4, 6, 8].includes(implied) && (byCategory == null || implied >= byCategory)) return implied
+    return byCategory
+}
+
+/** O atributo que o Pathbuilder pôs no ataque: o melhor, se a arma deixa escolher. */
+function pathbuilderAbility(build: BuildInfo, traits: WeaponTraits): 'str' | 'dex' {
+    if (traits.ranged) return 'dex'
+    const str = abilityMod(build.abilities.str)
+    const dex = abilityMod(build.abilities.dex)
+    if (traits.finesse) return dex > str ? 'dex' : 'str'
+    return 'str'
+}
+
+/**
+ * Arma da ficha → Golpe. `rules`/`profile` aplicam um perfil situacional de
+ * `magicWeapons.ts` (Gloom Blade no escuro): potência e striking do perfil e o
+ * dano extra dele.
+ */
+export function weaponStrike(
+    build: BuildInfo,
+    w: Weapon,
+    gear: WeaponGear | null | undefined,
+    rules?: MagicWeaponRules | null,
+    profileIndex = 0,
+): Strike {
+    const traits = parseWeaponTraits(gear)
+    const profile = profileIndex > 0 ? rules?.profiles[profileIndex - 1] : undefined
+    const striking = profile?.striking ?? w.str
+    const die = (w.increasedDice ? stepUpDie(w.die) : w.die).toLowerCase().replace(/^d?/, '')
+    const baseAbility = pathbuilderAbility(build, traits)
+    return {
+        key: `w:${w.name}:${profileIndex}`,
+        name: w.display || w.name,
+        attack: w.attack + (profile?.attackDelta ?? 0),
+        baseAbility,
+        profRank: weaponRank(build, w, baseAbility),
+        weaponDice: { count: strikingDice(striking), faces: parseInt(die, 10) || 4 },
+        damageFlat: w.damageBonus || 0,
+        damageType: B_P_S[(w.damageType || '').toUpperCase()] ?? translateDamageType(w.damageType || ''),
+        extras: [
+            ...parseExtraDamage(w.extraDamage),
+            ...parseExtraDamage(profile?.extraDamage, true, w.extraDamage?.length ?? 0),
+        ],
+        traits,
+    }
+}
+
+/** Desarmado → Golpe. Os traços são da tabela de `unarmed.ts`, então são conhecidos. */
+export function unarmedStrike(build: BuildInfo, u: UnarmedAttack): Strike {
+    const expr = parseDiceExpr(u.damage) ?? { groups: [{ count: 1, faces: 4 }], flat: 0 }
+    return {
+        key: `u:${u.en}`,
+        name: u.name,
+        attack: u.attack,
+        baseAbility: u.usesDex ? 'dex' : 'str',
+        profRank: build.proficiencies.unarmed ?? 0,
+        weaponDice: expr.groups[0] ?? { count: 1, faces: 4 },
+        damageFlat: expr.flat,
+        damageType: u.damageType,
+        extras: parseExtraDamage(u.extraDamage),
+        traits: { ...UNKNOWN_TRAITS, agile: u.agile, finesse: u.finesse, known: true },
+    }
+}
+
+export type AttackMode = 'auto' | 'str' | 'dex' | 'thrown'
+
+export interface StrikeOptions {
+    /** 0 = primeiro ataque, 1 = segundo, 2 = terceiro ou mais. */
+    map: 0 | 1 | 2
+    mode: AttackMode
+    /** Liga/desliga por `ExtraDamage.key`; ausente = o padrão (precisão desligada). */
+    extrasOn: Record<string, boolean>
+    /** Ajuste livre, cru — entra no ataque. */
+    attackAdjust: number
+    /** Ajuste livre, cru — entra no dano. */
+    damageAdjust: number
+}
+
+export const DEFAULT_STRIKE_OPTIONS: StrikeOptions = { map: 0, mode: 'auto', extrasOn: {}, attackAdjust: 0, damageAdjust: 0 }
+
+export const extraEnabled = (e: ExtraDamage, on: Record<string, boolean>) =>
+    on[e.key] ?? e.defaultOn
+
+export const mapPenalty = (agile: boolean, map: 0 | 1 | 2): number =>
+    map === 0 ? 0 : (agile ? -4 : -5) * map
+
+/** A conta do Golpe antes de rolar: o que a prévia mostra e o que a rolagem usa. */
+export interface StrikePlan {
+    ability: 'str' | 'dex'
+    attackParts: CheckPart[]
+    attackTotal: number
+    /** Somar para trocar a proficiência pela mítica; `null` = rank desconhecido. */
+    mythicDelta: number | null
+    /** Dados e fixo da arma (com Enfraquecido e ajuste). */
+    weapon: DiceExpr
+    damageParts: CheckPart[]
+    extras: ExtraDamage[]
+    /** Dados extras do crítico, rolados por fora do dobro. */
+    deadly: DiceGroup | null
+    fatal: number | null
+    warnings: string[]
+}
+
+export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers, opts: StrikeOptions): StrikePlan {
+    const { traits } = s
+    const warnings: string[] = []
+    const modOf = (a: 'str' | 'dex') => abilityMod(build.abilities[a])
+    const cond = (a: 'str' | 'dex') => mods.total[a === 'str' ? 'attackStr' : 'attackDex']
+
+    // Qual atributo vale neste ataque.
+    let ability: 'str' | 'dex' = s.baseAbility
+    if (opts.mode === 'str' || opts.mode === 'dex') ability = opts.mode
+    else if (opts.mode === 'thrown' || traits.ranged) ability = 'dex'
+    else if (traits.finesse) {
+        // Acuidade: o melhor DEPOIS das condições; empate fica com o da ficha.
+        const score = (a: 'str' | 'dex') => modOf(a) - modOf(s.baseAbility) + cond(a)
+        const other = s.baseAbility === 'str' ? 'dex' : 'str'
+        if (score(other) > score(s.baseAbility)) ability = other
+    }
+    if (!traits.known) warnings.push('Traços da arma não encontrados no AON: rolando como corpo a corpo, sem ágil e sem deadly/fatal.')
+
+    const attackParts: CheckPart[] = [{ label: 'Ficha', value: s.attack, kind: 'base' }]
+    if (ability !== s.baseAbility) {
+        attackParts.push({
+            label: `${ABILITY_LABELS[ability]} em vez de ${ABILITY_LABELS[s.baseAbility]}`,
+            value: modOf(ability) - modOf(s.baseAbility),
+            kind: 'ability',
+        })
+    }
+    attackParts.push(...conditionParts(mods, ability === 'str' ? 'attackStr' : 'attackDex'))
+    const map = mapPenalty(traits.agile, opts.map)
+    if (map) attackParts.push({ label: `${opts.map + 1}º ataque${traits.agile ? ' (ágil)' : ''}`, value: map, kind: 'map' })
+    if (opts.attackAdjust) attackParts.push({ label: 'Ajuste', value: opts.attackAdjust, kind: 'other' })
+    const attackTotal = attackParts.reduce((sum, p) => sum + p.value, 0)
+
+    // Dano da arma. Enfraquecido só pesa se a arma soma FOR ao dano.
+    const strInDamage = !traits.ranged || traits.propulsive || opts.mode === 'thrown'
+    const damageParts: CheckPart[] = [{ label: 'Ficha', value: s.damageFlat, kind: 'base' }]
+    if (strInDamage && mods.total.damageStr) {
+        damageParts.push(...conditionParts(mods, 'damageStr'))
+    }
+    if (opts.damageAdjust) damageParts.push({ label: 'Ajuste', value: opts.damageAdjust, kind: 'other' })
+    const flat = damageParts.reduce((sum, p) => sum + p.value, 0)
+
+    // Deadly: 1 dado; 2 com greater striking (3 dados de arma), 3 com major (4).
+    const deadly = traits.deadly
+        ? { count: Math.max(1, s.weaponDice.count - 1), faces: traits.deadly }
+        : null
+
+    return {
+        ability,
+        attackParts,
+        attackTotal,
+        mythicDelta: s.profRank == null ? null : mythicProficiencyDelta(build.level, s.profRank),
+        weapon: { groups: [s.weaponDice], flat },
+        damageParts,
+        extras: s.extras.filter((e) => extraEnabled(e, opts.extrasOn)),
+        deadly,
+        fatal: traits.fatal,
+        warnings,
+    }
+}
+
+/** Uma parcela do dano rolado, como aparece no memorial e na bandeja. */
+export interface DamagePartRoll {
+    label: string
+    rolled: RolledExpr
+    persistent: boolean
+}
+
+export interface DamageRoll {
+    parts: DamagePartRoll[]
+    /** Dano imediato (sem os persistentes), com piso 1. */
+    total: number
+    crit: { total: number; note: string; extra: DamagePartRoll[] }
+}
+
+const plusTotal = (parts: DamagePartRoll[]) => parts.reduce((s, p) => s + p.rolled.total, 0)
+
+/**
+ * Rola o dano de um Golpe e monta o crítico a partir do MESMO rolado. Fatal é a
+ * única exceção: o dado da arma muda de tamanho, então os dados da arma do
+ * crítico são rolados de novo no tamanho do fatal.
+ */
+export function rollStrikeDamage(plan: StrikePlan, damageType: string): DamageRoll {
+    const weapon = rollGroups(plan.weapon.groups, plan.weapon.flat)
+    const parts: DamagePartRoll[] = [{ label: damageType, rolled: weapon, persistent: false }]
+    for (const e of plan.extras) {
+        parts.push({ label: extraLabel(e), rolled: rollGroups(e.expr.groups, e.expr.flat), persistent: e.persistent })
+    }
+    const immediate = parts.filter((p) => !p.persistent)
+    const total = Math.max(1, plusTotal(immediate))
+
+    const extra: DamagePartRoll[] = []
+    let critBase = total
+    let note = `2 × ${total}`
+    if (plan.fatal) {
+        const fatalWeapon = rollGroups(plan.weapon.groups.map((g) => ({ ...g, faces: plan.fatal! })), plan.weapon.flat)
+        extra.push({ label: `fatal: arma em d${plan.fatal}`, rolled: fatalWeapon, persistent: false })
+        critBase = Math.max(1, fatalWeapon.total + plusTotal(immediate.slice(1)))
+        note = `2 × ${critBase}`
+        const plus = rollGroups([{ count: 1, faces: plan.fatal }])
+        extra.push({ label: `fatal +1d${plan.fatal}`, rolled: plus, persistent: false })
+        note += ` + fatal 1d${plan.fatal} (${plus.total})`
+    }
+    if (plan.deadly) {
+        const d = rollGroups([plan.deadly])
+        extra.push({ label: `deadly ${plan.deadly.count}d${plan.deadly.faces}`, rolled: d, persistent: false })
+        note += ` + deadly ${plan.deadly.count}d${plan.deadly.faces} (${d.total})`
+    }
+    const outside = extra.filter((p) => !p.label.startsWith('fatal: ')).reduce((s, p) => s + p.rolled.total, 0)
+    const critTotal = 2 * critBase + outside
+    const persistent = parts.filter((p) => p.persistent)
+    if (persistent.length) note += ` · persistente dobrado: ${persistent.map((p) => 2 * p.rolled.total).join(' + ')}`
+    return { parts, total, crit: { total: critTotal, note: `${note} = ${critTotal}`, extra } }
+}

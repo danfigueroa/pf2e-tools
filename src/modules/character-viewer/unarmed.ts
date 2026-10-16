@@ -33,6 +33,9 @@ export interface UnarmedAttack {
     choice?: boolean
     /** Ataque de Destreza (acuidade valendo a pena) — muda a condição que pesa. */
     usesDex: boolean
+    /** Traços que mudam a rolagem (MAP e atributo), fora da lista traduzida. */
+    agile: boolean
+    finesse: boolean
 }
 
 interface UnarmedBase {
@@ -204,6 +207,8 @@ export function unarmedAttacks(build: BuildInfo): UnarmedAttack[] {
             note: grant.note,
             choice: grant.choice,
             usesDex,
+            agile,
+            finesse,
         }
     })
 }
