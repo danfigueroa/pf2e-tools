@@ -1,6 +1,6 @@
-import { memo, useMemo } from 'react'
-import { Alert, Box, Button, Card, CardContent, CircularProgress, Typography, Stack, Chip, useTheme } from '@mui/material'
-import { AutoAwesome as RegenerateIcon, MenuBook as GuideIcon } from '@mui/icons-material'
+import { memo, useMemo, useState } from 'react'
+import { Alert, Box, ButtonBase, Button, Card, CardContent, CircularProgress, Collapse, Typography, Stack, Chip, useTheme } from '@mui/material'
+import { AutoAwesome as RegenerateIcon, ExpandMore as ExpandIcon, MenuBook as GuideIcon } from '@mui/icons-material'
 import type { BuildInfo } from '../../character-sheet/types'
 import { abilityMod, signed, ABILITY_LABELS, characterMaxHp, isMythicCharacter, MYTHIC_COLOR, type AbilityKey } from '../helpers'
 import { perceptionCheck, saveCheck, SAVES } from '../checks'
@@ -24,10 +24,15 @@ interface Props {
     mods: ConditionModifiers
     guide: GuideSlot
     onRoll: (req: RollRequest) => void
+    /** Celular ou painel estreito: o guia vira uma aba que abre e fecha. */
+    compact?: boolean
 }
 
-const OverviewSectionView = ({ build, mods, guide: slot, onRoll }: Props) => {
+const OverviewSectionView = ({ build, mods, guide: slot, onRoll, compact = false }: Props) => {
     const theme = useTheme()
+    // No celular o guia é longo e empurra as outras abas para longe: começa fechado.
+    const [guideOpen, setGuideOpen] = useState(false)
+    const showGuide = !compact || guideOpen
     // Drenado corta PV máximos (valor × nível); nunca abaixo de 1.
     const hp = characterMaxHp(build, mods.hpMaxDelta)
 
@@ -213,7 +218,22 @@ const OverviewSectionView = ({ build, mods, guide: slot, onRoll }: Props) => {
             {/* Guia de uso — como jogar em combate (último elemento) */}
             <Card sx={{ borderColor: theme.palette.primary.main + '55' }}>
                 <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5, flexWrap: 'wrap' }}>
+                    <Box
+                        component={compact ? ButtonBase : 'div'}
+                        {...(compact ? {
+                            onClick: () => setGuideOpen((o) => !o),
+                            'aria-expanded': guideOpen,
+                            'aria-controls': 'guide-body',
+                        } : {})}
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            mb: showGuide ? 1.5 : 0,
+                            flexWrap: 'wrap',
+                            ...(compact ? { width: '100%', textAlign: 'left', justifyContent: 'flex-start', borderRadius: 1 } : {}),
+                        }}
+                    >
                         <GuideIcon sx={{ color: 'primary.light' }} />
                         <Typography variant="h6" sx={{ fontWeight: 700 }}>
                             Guia de Uso — Como Jogar
@@ -224,8 +244,24 @@ const OverviewSectionView = ({ build, mods, guide: slot, onRoll }: Props) => {
                         {!guide.curated && (
                             <Chip label="automático" size="small" variant="outlined" sx={{ ml: 'auto' }} />
                         )}
+                        {compact && !guideOpen && slot.status === 'generating' && (
+                            <Chip label="gerando…" size="small" color="info" variant="outlined" />
+                        )}
+                        {compact && !guideOpen && slot.status === 'failed' && (
+                            <Chip label="não gerou" size="small" color="warning" variant="outlined" />
+                        )}
+                        {compact && (
+                            <ExpandIcon
+                                sx={{
+                                    ml: guide.ai || !guide.curated ? 0 : 'auto',
+                                    transition: 'transform 150ms',
+                                    transform: guideOpen ? 'rotate(180deg)' : 'none',
+                                }}
+                            />
+                        )}
                     </Box>
 
+                    <Collapse in={showGuide} timeout={compact ? 200 : 0} unmountOnExit id="guide-body">
                     {slot.status === 'generating' && (
                         <Alert severity="info" icon={<CircularProgress size={18} />} sx={{ mb: 2 }}>
                             Gerando o guia para a ficha publicada… leva até meio minuto.
@@ -269,6 +305,7 @@ const OverviewSectionView = ({ build, mods, guide: slot, onRoll }: Props) => {
                             </Button>
                         </Box>
                     )}
+                    </Collapse>
                 </CardContent>
             </Card>
         </Stack>

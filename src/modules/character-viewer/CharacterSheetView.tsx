@@ -89,6 +89,8 @@ export interface SectionContext {
     guide: GuideSlot
     /** Enlarge/Shrink ligado — a runa do Brukuthur liga e desliga pela aba de Combate. */
     sizeEffect: SizeEffectApi
+    /** Celular ou painel estreito (acordeão). */
+    compact: boolean
 }
 
 interface SectionDef {
@@ -104,7 +106,7 @@ const SECTIONS: SectionDef[] = [
         id: 'overview',
         label: 'Visão Geral',
         icon: <OverviewIcon />,
-        render: ({ build, mods, guide, onRoll }) => <OverviewSection build={build} mods={mods} guide={guide} onRoll={onRoll} />,
+        render: ({ build, mods, guide, onRoll, compact }) => <OverviewSection build={build} mods={mods} guide={guide} onRoll={onRoll} compact={compact} />,
     },
     {
         id: 'combat',
@@ -308,7 +310,7 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
     const closeRoll = useCallback(() => setRollReq(null), [])
 
     const visibleSections = SECTIONS.filter(s => !s.visible || s.visible(build))
-    const ctx: SectionContext = { build, onSelect: setDrawerReq, onRoll: setRollReq, mods, mythicPoints, guide, sizeEffect }
+    const ctx: SectionContext = { build, onSelect: setDrawerReq, onRoll: setRollReq, mods, mythicPoints, guide, sizeEffect, compact: isPhone }
 
     return (
         <Container maxWidth={compact ? false : 'lg'} disableGutters sx={{ pb: compact ? 2 : 6 }}>
