@@ -621,6 +621,12 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     tira o veneno simples da lâmina. No Golpe, o dano é ROLADO junto (`withSimplePoison`) e **não dobra no
     crítico** (é efeito da injeção, não dano do Golpe); vale se o Golpe acertar. O Improved Poison Weapon também
     diz que a dose não se perde num erro crítico — o app só avisa, não sabe do erro.
+  - **Dá para aplicar o veneno NO diálogo do Golpe** (arma ainda limpa + talento Poison Weapon): o chip "Aplicar veneno
+    antes do Golpe · +1 ação" abre o mesmo seletor da faixa (`usePoisonOptions`, uma fonte só para a lista e o
+    gasto — simples primeiro, depois o inventário). Ao rolar: gasta a ação da aplicação (1, qualquer tipo, paga
+    ANTES — o Golpe pode então usar a ação extra do Acelerado), gasta a dose/unidade, deixa a lâmina envenenada e
+    o Golpe já sai com o veneno. A falta de ações é a soma dos dois pagamentos em sequência. A faixa continua
+    aplicando sem atacar.
   - **Debilitating Strike** (ação livre, nível 9): chips "Deslocamento −3 m" / "Enfraquecido 1" no diálogo
     do Golpe, também só como anotação da rolagem (precisa acertar um alvo desprevenido).
   - **`TableRoll.note`** (novo, até 300 caracteres) leva essas anotações: o `sub` é cortado em 80 e é para o

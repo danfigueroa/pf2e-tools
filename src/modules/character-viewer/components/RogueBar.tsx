@@ -1,16 +1,14 @@
-import { useEffect, useMemo, useState } from 'react'
 import { Button, Card, CardContent, Chip, MenuItem, Select, Stack, Typography } from '@mui/material'
 import { Science as PoisonIcon } from '@mui/icons-material'
 import { ROGUE_COLOR } from '../../../theme'
 import type { BuildInfo } from '../../character-sheet/types'
-import { fetchItemTraits, type ItemTraits } from '../../../services/itemTraits'
-import { actionsKeyFor, consumedKeyFor } from '../charId'
+import { actionsKeyFor } from '../charId'
 import type { ConditionModifiers } from '../conditions'
 import { useActions } from './useActions'
-import { SIMPLE_POISON, hasImprovedPoisonWeapon, isApplicablePoison, isSimplePoison, poisonNote, simpleDoses, simplePoisonDice } from '../rogue'
+import { hasImprovedPoisonWeapon, isSimplePoison, poisonNote } from '../rogue'
 import { FeatureRow } from './FeatureRow'
 import { usePoisonDef } from './usePoison'
-import { useConsumables } from './useConsumables'
+import { usePoisonOptions } from './usePoisonOptions'
 import type { RogueApi } from './useRogue'
 
 interface Props {
@@ -28,50 +26,16 @@ const chipSx = { height: 24, fontSize: '0.75rem', fontWeight: 600 }
  */
 export const RogueBar = ({ build, rogue, mods }: Props) => {
     const actions = useActions(actionsKeyFor(build), mods)
-    const consumables = useConsumables(consumedKeyFor(build))
-    const [traits, setTraits] = useState<Record<string, ItemTraits | null>>({})
-    const [choice, setChoice] = useState('')
-
-    const names = useMemo(() => (build.equipment ?? []).map(([name]) => name), [build.equipment])
-    useEffect(() => {
-        if (names.length === 0) return
-        let cancelled = false
-        fetchItemTraits(names).then((t) => { if (!cancelled) setTraits(t) })
-        return () => { cancelled = true }
-    }, [names])
-
-    // Só veneno de contato/injeção que ainda tem unidade.
-    const inventory = (build.equipment ?? [])
-        .filter(([name]) => isApplicablePoison(traits[name]))
-        .map(([name, qty]) => ({ name, qty, left: consumables.remaining(name, qty) }))
-        .filter((o) => o.left > 0)
-
-    // O veneno simples do talento é SEMPRE a primeira opção (e o padrão): é o que o
-    // personagem prepara todo dia, sem gastar item do inventário. O resto é opção.
-    const dose = simpleDoses(build)
-    const simpleLeft = Math.max(0, dose - rogue.stored.simpleUsed)
-    const dice = simplePoisonDice(build)
-    const options = [
-        { name: SIMPLE_POISON, label: `Veneno simples · ${dice.count}d${dice.faces} de veneno`, left: simpleLeft, of: dose },
-        ...inventory.map((o) => ({ name: o.name, label: o.name, left: o.left, of: o.qty })),
-    ]
+    const po = usePoisonOptions(build, rogue)
+    const { options, selected, dose, simpleLeft, dice } = po
 
     const loaded = rogue.stored.poison
     const def = usePoisonDef(isSimplePoison(loaded) ? null : loaded)
-    // Padrão: o simples enquanto há dose; sem dose, o primeiro do inventário.
-    const fallback = options.find((o) => o.left > 0) ?? null
-    const selected = options.find((o) => o.name === choice && o.left > 0) ?? fallback
 
     const apply = () => {
         if (!selected) return
         actions.spend(1)
-        if (isSimplePoison(selected.name)) rogue.applySimple()
-        else {
-            const item = inventory.find((o) => o.name === selected.name)
-            if (!item) return
-            consumables.consume(item.name, item.qty)
-            rogue.setPoison(item.name)
-        }
+        po.applyChosen()
     }
 
     const loadedText = isSimplePoison(loaded)
@@ -103,7 +67,7 @@ export const RogueBar = ({ build, rogue, mods }: Props) => {
                                 <Select
                                     size="small"
                                     value={selected?.name ?? ''}
-                                    onChange={(e) => setChoice(e.target.value)}
+                                    onChange={(e) => po.setChoice(e.target.value)}
                                     inputProps={{ 'aria-label': 'Veneno' }}
                                     displayEmpty
                                     sx={{ height: 32, fontSize: '0.85rem', minWidth: 190 }}

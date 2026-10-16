@@ -8,6 +8,8 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
+    MenuItem,
+    Select,
     Stack,
     TextField,
     ToggleButton,
@@ -51,9 +53,10 @@ import type { TableRoll } from '../../../dice/tableRoll'
 import { dialogEmbedProps, useEmbedContainer } from '../embedContext'
 import { CASCADE_TYPES, hasSpellstrike } from '../magus'
 import { FIRST_STRIKE_KEY, HUNTERS_AIM_KEY, gravityBonus } from '../ranger'
-import { DEBILITATIONS, hasDebilitatingStrike, isSimplePoison, poisonNote, simplePoisonDice, type Debilitation } from '../rogue'
+import { DEBILITATIONS, hasDebilitatingStrike, hasPoisonWeapon, isSimplePoison, poisonNote, simplePoisonDice, type Debilitation } from '../rogue'
 import { initiativeBonus } from '../initiative'
-import { actionCost, type ActionKind } from '../actions'
+import { actionCost, applySpend, shortfall, type ActionKind } from '../actions'
+import { usePoisonOptions } from './usePoisonOptions'
 import { useActions } from './useActions'
 import { fearsomeBruteBonus, hasExactingStrike, hasFearsomeBrute } from '../fighter'
 import { useRogue } from './useRogue'
@@ -343,11 +346,20 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
     // Veneno na arma (Poison Weapon) e Debilitating Strike do Ladino: viram anotação da
     // rolagem — o app não sabe se o Golpe acertou, e o efeito é do GM.
     const rogue = useRogue(rogueKeyFor(build))
-    const poisonName = weapon ? rogue.stored.poison : null
+    // Arma ainda limpa e o personagem tem Poison Weapon: dá para aplicar o veneno AQUI, no
+    // mesmo clique do Golpe (e a ação da aplicação entra na conta sozinha).
+    const canApplyPoison = hasPoisonWeapon(build) && !!weapon && !rogue.stored.poison
+    const po = usePoisonOptions(build, rogue, canApplyPoison)
+    const [applyNow, setApplyNow] = useState(false)
+    const applying = canApplyPoison && applyNow && !!po.selected
+    // O veneno desta rolagem: o que já está na lâmina, ou o que vai ser aplicado agora.
+    const poisonName = weapon ? (rogue.stored.poison ?? (applying ? po.selected!.name : null)) : null
     const simplePoison = isSimplePoison(poisonName)
     const simpleDice = simplePoisonDice(build)
     const poisonDef = usePoisonDef(simplePoison ? null : poisonName)
     const [poisonOn, setPoisonOn] = useState(true)
+    // Aplicando agora, o veneno entra por definição; o chip liga/desliga só o que já estava na lâmina.
+    const poisonUsed = !!poisonName && (rogue.stored.poison ? poisonOn : true)
     const canDebilitate = hasDebilitatingStrike(build)
     const [debil, setDebil] = useState<Debilitation | null>(null)
     // Guerreiro: Exacting Strike (anotação) e Fearsome Brute (entra na conta do dano, ver planStrike).
@@ -360,10 +372,14 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
     const aiming = huntersAimApplies(build, strike, opts) && opts.extrasOn[HUNTERS_AIM_KEY] === true
     const actionCostNow = asReaction ? 0 : spellstriking || aiming ? 2 : 1
     const actionKind: ActionKind = spellstriking || aiming ? 'any' : 'move-attack'
-    const lacking = actions.missing(actionCostNow, actionKind)
+    // Aplicar o veneno custa 1 ação à parte (paga primeiro, de qualquer tipo); o Golpe vem depois.
+    const lacking = applying
+        ? actions.missing(1, 'any')
+            + shortfall(applySpend(actions.stored, actions.budget, 1, 'any'), actions.budget, actionCostNow, actionKind)
+        : actions.missing(actionCostNow, actionKind)
     const reactionUsed = asReaction && actions.stored.reacted
     const rollNote = [
-        poisonName && poisonOn ? (simplePoison ? `veneno simples: ${simpleDice.count}d${simpleDice.faces} de veneno, sem salvaguarda` : poisonNote(poisonName, poisonDef)) : null,
+        poisonName && poisonUsed ? (simplePoison ? `veneno simples: ${simpleDice.count}d${simpleDice.faces} de veneno, sem salvaguarda` : poisonNote(poisonName, poisonDef)) : null,
         debil ? DEBILITATIONS.find((d) => d.id === debil)?.note : null,
         exacting ? 'Exacting Strike: se errar, não conta para a penalidade de ataques múltiplos' : null,
     ].filter(Boolean).join(' · ')
@@ -550,10 +566,45 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                             </Typography>
                         </Box>
                     )}
-                    {poisonName && (
+                    {canApplyPoison && (
                         <Box>
                             <Chip
-                                label={simplePoison ? `Arma envenenada · veneno simples ${simpleDice.count}d${simpleDice.faces}` : `Arma envenenada · ${poisonNote(poisonName, poisonDef).replace('veneno: ', '')}`}
+                                label="Aplicar veneno antes do Golpe · +1 ação"
+                                color={applyNow ? 'primary' : 'default'}
+                                variant={applyNow ? 'filled' : 'outlined'}
+                                onClick={() => setApplyNow(!applyNow)}
+                                aria-pressed={applyNow}
+                                sx={{ minHeight: 32 }}
+                            />
+                            {applyNow && (
+                                <Stack spacing={0.5} sx={{ mt: 0.75 }}>
+                                    <Select
+                                        size="small"
+                                        value={po.selected?.name ?? ''}
+                                        onChange={(e) => po.setChoice(e.target.value)}
+                                        inputProps={{ 'aria-label': 'Veneno a aplicar' }}
+                                        displayEmpty
+                                        fullWidth
+                                    >
+                                        {po.options.map((o) => (
+                                            <MenuItem key={o.name} value={o.name} disabled={o.left === 0}>
+                                                {o.label} · {isSimplePoison(o.name) ? `${o.left}/${o.of} por dia` : `×${o.left}`}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                    <Typography variant="caption" color="text.secondary">
+                                        {po.selected
+                                            ? 'Ao rolar: aplica (Interagir, 1 ação), gasta a dose e o Golpe já leva o veneno.'
+                                            : 'Sem veneno para aplicar.'}
+                                    </Typography>
+                                </Stack>
+                            )}
+                        </Box>
+                    )}
+                    {weapon && rogue.stored.poison && (
+                        <Box>
+                            <Chip
+                                label={simplePoison ? `Arma envenenada · veneno simples ${simpleDice.count}d${simpleDice.faces}` : `Arma envenenada · ${poisonNote(rogue.stored.poison, poisonDef).replace('veneno: ', '')}`}
                                 color={poisonOn ? 'primary' : 'default'}
                                 variant={poisonOn ? 'filled' : 'outlined'}
                                 onClick={() => setPoisonOn(!poisonOn)}
@@ -662,11 +713,12 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                 // precisa trocar por "Só o Golpe" — rolar sem ela em silêncio enganaria.
                 disabled={loading || (canSpellstrike && !!ss.option && !ss.ready)}
                 onRoll={(mythic) => {
+                    if (applying) { actions.spend(1); po.applyChosen() }
                     if (asReaction) { if (!actions.stored.reacted) actions.toggleReaction() }
                     else actions.spend(actionCostNow, actionKind)
                     const mythicDelta = mythic ? plan.mythicDelta : null
                     const noted = (r: TableRoll): TableRoll => {
-                        const poisoned = simplePoison && poisonOn ? withSimplePoison(r, simpleDice) : r
+                        const poisoned = simplePoison && poisonUsed ? withSimplePoison(r, simpleDice) : r
                         return rollNote ? { ...poisoned, note: rollNote } : poisoned
                     }
                     if (!spellstriking || !ss.option || !ss.spell) {
