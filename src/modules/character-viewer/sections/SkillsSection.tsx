@@ -9,6 +9,7 @@ import {
 } from '../helpers'
 import type { ConditionModifiers } from '../conditions'
 import { loreCheck, skillCheck, SKILLS } from '../checks'
+import { useArmorPenalty } from '../components/useArmorPenalty'
 import { ConditionDelta } from '../components/ConditionDelta'
 import { MythicNote } from '../components/MythicNote'
 
@@ -21,6 +22,7 @@ const RANK_COLOR: Record<number, string> = RANK_COLORS
 
 export const SkillsSection = ({ build, mods }: Props) => {
     const mythic = isMythicCharacter(build)
+    const armor = useArmorPenalty(build)
     return (
         <Card>
             <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
@@ -31,7 +33,7 @@ export const SkillsSection = ({ build, mods }: Props) => {
                     }}
                 >
                     {SKILLS.map((s, idx) => {
-                        const check = skillCheck(build, s.key, mods)
+                        const check = skillCheck(build, s.key, mods, armor)
                         const { rank } = check
                         const color = RANK_COLOR[rank] || 'text.primary'
                         return (
