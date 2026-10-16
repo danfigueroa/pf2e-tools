@@ -6,6 +6,7 @@
 //   ?rule=       → a regra de um termo (condição, habilidade, traço, magia), SEM tradução
 //   ?items=a|b   → traços dos itens do inventário (consumível? cura?), SEM tradução
 //   ?shields=a|b → bônus, Dureza, PV e BT dos escudos, SEM tradução
+//   ?gear=a|b    → traços das armas e penalidade das armaduras (rolagens), SEM tradução
 //
 // O modo de aflição mora aqui porque o plano Hobby da Vercel permite 12 funções
 // serverless por deploy e `api/*.js` já está em 12 — arquivo novo passaria do
@@ -21,6 +22,7 @@ import { resolveSpellList } from './_lib/spell-list-core.js'
 import { resolveRule } from './_lib/rule-core.js'
 import { resolveItemTraits } from './_lib/item-traits-core.js'
 import { resolveShields } from './_lib/shield-core.js'
+import { resolveGear } from './_lib/gear-core.js'
 import { hasTranslationKey } from './_lib/aon.js'
 
 export default async function handler(req, res) {
@@ -65,6 +67,17 @@ export default async function handler(req, res) {
     } catch (error) {
       console.error('Item traits API error:', error)
       return res.status(500).json({ error: 'Erro ao buscar itens' })
+    }
+  }
+
+  // Modo equipamento: traços de arma e penalidade de armadura, para as rolagens.
+  const gear = req.query?.gear ? String(req.query.gear) : ''
+  if (gear) {
+    try {
+      return res.status(200).json({ gear: await resolveGear(gear.split('|')) })
+    } catch (error) {
+      console.error('Gear API error:', error)
+      return res.status(500).json({ error: 'Erro ao buscar equipamento' })
     }
   }
 

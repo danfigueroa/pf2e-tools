@@ -8,6 +8,7 @@ import { resolveCreatures } from '../api/_lib/creature-core.js'
 import { resolveMonster } from '../api/_lib/monster-core.js'
 import { resolveAfflictions } from '../api/_lib/affliction-core.js'
 import { resolveShields } from '../api/_lib/shield-core.js'
+import { resolveGear } from '../api/_lib/gear-core.js'
 import { resolveSpellList } from '../api/_lib/spell-list-core.js'
 import { resolveRule } from '../api/_lib/rule-core.js'
 import { resolveItemTraits } from '../api/_lib/item-traits-core.js'
@@ -181,6 +182,21 @@ const server = http.createServer(async (req, res) => {
         res.end(JSON.stringify(entry || { error: 'Regra não encontrada' }))
       } catch (e) {
         console.error('[/api/search?rule] Error:', e)
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: e.message }))
+      }
+      return
+    }
+
+    // Modo equipamento (?gear=a|b): traços de arma e penalidade de armadura. Sem tradução.
+    const gearNames = parsedUrl.searchParams.get('gear') || ''
+    if (gearNames) {
+      try {
+        const gear = await resolveGear(gearNames.split('|'))
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ gear }))
+      } catch (e) {
+        console.error('[/api/search?gear] Error:', e)
         res.writeHead(500, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ error: e.message }))
       }
