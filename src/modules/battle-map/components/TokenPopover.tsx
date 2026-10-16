@@ -118,7 +118,7 @@ export const TokenPopover = ({ anchor, token, hp, canEdit, onClose, onApply, onO
 
                     {onAdjustImage && (
                         <Button variant="outlined" onClick={onAdjustImage}>
-                            Enquadrar a imagem
+                            Imagem e enquadramento
                         </Button>
                     )}
 

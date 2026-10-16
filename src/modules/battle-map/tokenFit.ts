@@ -13,6 +13,12 @@ export interface TokenFit {
     x: number
     y: number
     z: number
+    /**
+     * Imagem enviada AQUI, no mapa, no lugar da que o encontro mandou. Mora junto do
+     * enquadramento porque os dois nascem do mesmo diálogo — e um enquadramento só
+     * faz sentido para a imagem a que ele foi feito. Só vale para monstro.
+     */
+    url?: string
 }
 
 export const DEFAULT_FIT: TokenFit = { x: 0.5, y: 0.5, z: 1 }
@@ -26,10 +32,11 @@ const num = (v: unknown, lo: number, hi: number, fallback: number) =>
 export function sanitizeFit(raw: unknown): TokenFit {
     if (!raw || typeof raw !== 'object') return DEFAULT_FIT
     const r = raw as Partial<TokenFit>
-    return { x: num(r.x, 0, 1, 0.5), y: num(r.y, 0, 1, 0.5), z: num(r.z, MIN_ZOOM, MAX_ZOOM, 1) }
+    const url = typeof r.url === 'string' && r.url.length > 0 && r.url.length < 600 ? r.url : undefined
+    return { x: num(r.x, 0, 1, 0.5), y: num(r.y, 0, 1, 0.5), z: num(r.z, MIN_ZOOM, MAX_ZOOM, 1), ...(url ? { url } : {}) }
 }
 
-export const isDefaultFit = (f: TokenFit) => f.x === 0.5 && f.y === 0.5 && f.z === 1
+export const isDefaultFit = (f: TokenFit) => f.x === 0.5 && f.y === 0.5 && f.z === 1 && !f.url
 
 /** Tamanho da imagem (em % do círculo) para cobri-lo com a ampliação `z`. */
 export function coverSize(aspect: number, z: number): { w: number; h: number } {
@@ -46,6 +53,7 @@ export function clampFit(fit: TokenFit, aspect: number): TokenFit {
         z: fit.z,
         x: Math.min(1 - mx, Math.max(mx, fit.x)),
         y: Math.min(1 - my, Math.max(my, fit.y)),
+        ...(fit.url ? { url: fit.url } : {}),
     }
 }
 

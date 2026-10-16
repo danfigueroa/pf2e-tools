@@ -115,7 +115,9 @@ function buildViews(data: MapData, gm: boolean): Map<string, TokenView> {
         } else {
             const raw = data.hp[id]
             const hp = raw ? { current: raw.current, max: raw.max, temp: raw.temp } : null
-            views.set(id, { id, hp, showNumbers: gm, image: token.image ?? null, fit: sanitizeFit(data.fit?.[id]) })
+            const fit = sanitizeFit(data.fit?.[id])
+            // A imagem enviada no mapa (Modo GM) vale por cima da que o encontro mandou.
+            views.set(id, { id, hp, showNumbers: gm, image: fit.url ?? token.image ?? null, fit })
         }
     }
     return views
@@ -545,7 +547,7 @@ export const BattleMapPage = () => {
                 canEdit={canEditTapped}
                 onClose={() => setTapped(null)}
                 onApply={applyHp}
-                onAdjustImage={gm && tappedView?.image ? () => { setFitFor(tapped?.id ?? null); setTapped(null) } : undefined}
+                onAdjustImage={gm && (tappedToken?.kind === 'npc' || tappedView?.image) ? () => { setFitFor(tapped?.id ?? null); setTapped(null) } : undefined}
                 onOpenSheet={(slug) => { setSheetSlug(slug); writeSheetChoice(slug); setSheetOpen(true); setTapped(null) }}
             />
 

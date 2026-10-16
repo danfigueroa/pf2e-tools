@@ -1149,6 +1149,12 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
   - **É escolha de exibição, não do que o token É**: mora num campo próprio do mapa, `fit:<id>` (`{ x, y, z }`,
     frações da imagem + ampliação), escrito pelo MAPA como o `pos:` — a Iniciativa (dona do `tok:`) nunca o
     toca, e sobrevive a renomear. Sai junto do token em `syncTokens`. O padrão (centro, 1×) APAGA o campo.
+  - **O mesmo diálogo envia a imagem** (só monstro): "Enviar outra imagem" sobe a imagem inteira para `monsters/` e
+    ela vale POR CIMA da que a Iniciativa mandou — grava-se em `fit:<id>.url`, nunca em `tok:` (da Iniciativa, que
+    reescreveria na próxima sincronia). "Usar a imagem original" a tira. Imagem nova zera o enquadramento (o de
+    antes era para a outra). O que sobe e não é salvo é apagado do Blob ao cancelar; a imagem própria que ficou
+    para trás também, se nenhum outro token a mostra. No servidor, o `deleteMap` apaga as dos `fit:` e o
+    `syncTokens` registra a do token que saiu em `imgs`, para não ficar órfã. Monstro sem imagem também abre o diálogo.
   - **Por isso o envio da imagem do monstro deixou de recortar no centro**: `NPC_TOKEN_MAX_SIDE` (512) guarda a
     imagem INTEIRA, e o recorte é só no render (`Token` mede a proporção no `onLoad` e usa `fitStyle`; antes de
     medir, o `cover` de sempre). Tokens enviados antes continuam quadrados 256 px — o ajuste funciona nelas só

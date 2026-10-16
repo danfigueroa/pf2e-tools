@@ -184,6 +184,8 @@ export async function deleteMap(id) {
         const data = unwrap(value)?.data
         if (field === 'meta' && data?.image?.url) urls.push(data.image.url)
         if (field.startsWith('tok:') && data?.kind === 'npc' && data.image) urls.push(data.image)
+        // Imagem enviada pelo GM no próprio mapa (enquadramento): é do mapa e some com ele.
+        if (field.startsWith('fit:') && typeof data?.url === 'string') urls.push(data.url)
         if (field === 'imgs' && Array.isArray(data)) urls.push(...data.filter((u) => typeof u === 'string'))
     }
 
@@ -360,6 +362,7 @@ export async function syncTokens(id, tokens, turn, hp) {
     const occupied = []
     const existing = new Set()
     const del = []
+    const leftUrls = []
 
     for (const [field, value] of Object.entries(raw)) {
         const at = field.indexOf(':')
@@ -367,7 +370,16 @@ export async function syncTokens(id, tokens, turn, hp) {
         const kind = field.slice(0, at)
         const tid = field.slice(at + 1)
         if (kind !== 'tok' && kind !== 'pos' && kind !== 'hp' && kind !== 'fit') continue
-        if (!keep.has(tid)) { del.push(field); continue }
+        if (!keep.has(tid)) {
+            del.push(field)
+            // A imagem que o GM enviou para este token não pode ficar órfã no Blob:
+            // vai para o registro do mapa, que é o que o `deleteMap` apaga.
+            if (kind === 'fit') {
+                const url = unwrap(value)?.data?.url
+                if (typeof url === 'string') leftUrls.push(url)
+            }
+            continue
+        }
         if (kind === 'pos') {
             const p = unwrap(value)?.data
             if (p) occupied.push({ x: p.x, y: p.y, size: unwrap(raw[`tok:${tid}`])?.data?.size || 1 })
@@ -397,6 +409,7 @@ export async function syncTokens(id, tokens, turn, hp) {
     const known = unwrap(raw.imgs)?.data
     const imgs = new Set(Array.isArray(known) ? known : [])
     for (const t of tokens) if (t.kind === 'npc' && typeof t.image === 'string') imgs.add(t.image)
+    for (const url of leftUrls) imgs.add(url)
     set.imgs = envelope([...imgs].slice(-500))
 
     // Nada mudou de fato? Não sobe a revisão: o poll de todo mundo ficaria

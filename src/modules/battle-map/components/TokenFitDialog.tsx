@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import {
+    Alert,
     Box,
     Button,
     Checkbox,
@@ -16,12 +17,18 @@ import { DEFAULT_FIT, MAX_ZOOM, MIN_ZOOM, clampFit, coverSize, fitStyle, type To
 
 interface Props {
     name: string
-    /** URL já resolvida da imagem (`useImageUrl`). */
-    src: string
+    /** URL já resolvida da imagem (`useImageUrl`); `null` = o token ainda não tem imagem. */
+    src: string | null
     initial: TokenFit
     /** Quantos outros tokens do mapa usam a mesma imagem (as "cópias"). */
     copies: number
     pc: boolean
+    /** Enviar uma imagem nova para o token (só monstro). Ausente = sem o botão. */
+    onUpload?: (file: File) => void
+    uploading?: boolean
+    uploadError?: string | null
+    /** A imagem atual foi enviada aqui: dá para voltar à que o encontro mandou. */
+    onRevert?: () => void
     onSave: (fit: TokenFit, applyToCopies: boolean) => void
     onClose: () => void
 }
@@ -38,7 +45,8 @@ const CIRCLE = SIZE * 0.8
  *
  * Só ao salvar vai para o mapa: arrastar não pode inundar a mesa de escritas.
  */
-export const TokenFitDialog = ({ name, src, initial, copies, pc, onSave, onClose }: Props) => {
+export const TokenFitDialog = ({ name, src, initial, copies, pc, onUpload, uploading = false, uploadError, onRevert, onSave, onClose }: Props) => {
+    const fileInput = useRef<HTMLInputElement>(null)
     const [fit, setFit] = useState<TokenFit>(initial)
     const [aspect, setAspect] = useState(1)
     const [applyToCopies, setApplyToCopies] = useState(true)
@@ -71,10 +79,14 @@ export const TokenFitDialog = ({ name, src, initial, copies, pc, onSave, onClose
         <Dialog open onClose={onClose} maxWidth="xs" fullWidth>
             <DialogTitle sx={{ pb: 1 }}>Enquadrar o token — {name}</DialogTitle>
             <DialogContent>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-                    Arraste a imagem para escolher o que fica no centro do círculo.
-                </Typography>
+                {src && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                        Arraste a imagem para escolher o que fica no centro do círculo.
+                    </Typography>
+                )}
 
+                {src ? (
+                    <>
                 <Box
                     onPointerDown={onDown}
                     onPointerMove={onMove}
@@ -126,6 +138,42 @@ export const TokenFitDialog = ({ name, src, initial, copies, pc, onSave, onClose
                     }} />
                 </Box>
 
+                    </>
+                ) : (
+                    <Box sx={{ width: SIZE, height: SIZE, maxWidth: '100%', mx: 'auto', borderRadius: 1, border: '2px dashed', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', px: 2 }}>
+                        <Typography color="text.secondary">Este token ainda não tem imagem. Envie uma para enquadrar.</Typography>
+                    </Box>
+                )}
+
+                {(onUpload || onRevert) && (
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center', mt: 1.5 }}>
+                        {onUpload && (
+                            <>
+                                <Button size="small" variant="outlined" disabled={uploading} onClick={() => fileInput.current?.click()}>
+                                    {uploading ? 'Enviando…' : 'Enviar outra imagem'}
+                                </Button>
+                                <input
+                                    ref={fileInput}
+                                    type="file"
+                                    accept="image/*"
+                                    hidden
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0]
+                                        if (file) onUpload(file)
+                                        e.target.value = ''
+                                    }}
+                                />
+                            </>
+                        )}
+                        {onRevert && (
+                            <Button size="small" color="inherit" onClick={onRevert}>Usar a imagem original</Button>
+                        )}
+                    </Box>
+                )}
+                {uploadError && <Alert severity="error" sx={{ mt: 1, py: 0 }}>{uploadError}</Alert>}
+
+                {src && (
+                    <>
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
                     Ampliação · {fit.z.toFixed(2)}×
                 </Typography>
@@ -138,6 +186,9 @@ export const TokenFitDialog = ({ name, src, initial, copies, pc, onSave, onClose
                     aria-label="Ampliação do token"
                 />
 
+                    </>
+                )}
+
                 {copies > 0 && (
                     <FormControlLabel
                         control={<Checkbox checked={applyToCopies} onChange={(e) => setApplyToCopies(e.target.checked)} />}
@@ -149,7 +200,7 @@ export const TokenFitDialog = ({ name, src, initial, copies, pc, onSave, onClose
                 <Button color="inherit" onClick={() => setFit(DEFAULT_FIT)}>Centralizar</Button>
                 <Box sx={{ flex: 1 }} />
                 <Button color="inherit" onClick={onClose}>Cancelar</Button>
-                <Button variant="contained" onClick={() => onSave(shown, applyToCopies && copies > 0)}>Salvar</Button>
+                <Button variant="contained" disabled={!src} onClick={() => onSave(shown, applyToCopies && copies > 0)}>Salvar</Button>
             </DialogActions>
         </Dialog>
     )
