@@ -239,13 +239,25 @@ export const DescriptionDrawer = ({ request, onClose, onNavigate, onRoll }: Prop
             open={!!request}
             onClose={onClose}
             PaperProps={{
-                sx: {
-                    width: { xs: '100%', md: 520 },
-                    maxHeight: { xs: '88vh', md: '100%' },
-                    borderTopLeftRadius: { xs: 16, md: 0 },
-                    borderTopRightRadius: { xs: 16, md: 0 },
-                    backgroundImage: 'none',
-                },
+                sx: embed
+                    // Preso ao painel estreito: ocupa a largura dele (os 520 px
+                    // do desktop vazavam para fora) e sobe de baixo como no celular.
+                    ? {
+                        width: '100%',
+                        maxWidth: '100%',
+                        boxSizing: 'border-box',
+                        maxHeight: '88%',
+                        borderTopLeftRadius: 16,
+                        borderTopRightRadius: 16,
+                        backgroundImage: 'none',
+                    }
+                    : {
+                        width: { xs: '100%', md: 520 },
+                        maxHeight: { xs: '88vh', md: '100%' },
+                        borderTopLeftRadius: { xs: 16, md: 0 },
+                        borderTopRightRadius: { xs: 16, md: 0 },
+                        backgroundImage: 'none',
+                    },
             }}
         >
             {request && (
