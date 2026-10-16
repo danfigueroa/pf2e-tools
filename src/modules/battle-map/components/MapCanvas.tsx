@@ -212,6 +212,8 @@ export const MapCanvas = memo(function MapCanvas({
     const bandRefs = [useRef<SVGPathElement>(null), useRef<SVGPathElement>(null), useRef<SVGPathElement>(null)]
 
     const tf = useRef<Transform>({ x: 0, y: 0, z: 1 })
+    /** Câmera do último enquadramento — igual a ela, ninguém mexeu e o resize pode reenquadrar. */
+    const lastFit = useRef<(Transform & { fill: number }) | null>(null)
     const frame = useRef<number | null>(null)
     const settle = useRef<ReturnType<typeof setTimeout> | null>(null)
     const pointers = useRef(new Map<number, { x: number; y: number }>())
@@ -326,6 +328,7 @@ export const MapCanvas = memo(function MapCanvas({
             x: (vp.clientWidth - w * z) / 2 - box.x * CELL_PX * z,
             y: (vp.clientHeight - h * z) / 2 - box.y * CELL_PX * z,
         }
+        lastFit.current = { ...tf.current, fill }
         schedule()
     }, [schedule])
 
@@ -340,6 +343,33 @@ export const MapCanvas = memo(function MapCanvas({
 
     // Enquadra ao abrir cada mapa (não a cada poll).
     useLayoutEffect(() => { fit() }, [data.id, fit])
+
+    // O contêiner muda de tamanho (painel da ficha abre/recolhe): quem não mexeu
+    // na câmera continua enquadrado; quem mexeu mantém o centro onde estava.
+    // Escreve direto no DOM via `schedule`, como qualquer gesto.
+    useEffect(() => {
+        const vp = viewportRef.current
+        if (!vp || typeof ResizeObserver === 'undefined') return
+        let w = vp.clientWidth
+        let h = vp.clientHeight
+        const ro = new ResizeObserver(() => {
+            const nw = vp.clientWidth
+            const nh = vp.clientHeight
+            if (nw === w && nh === h) return
+            const t = tf.current
+            const lf = lastFit.current
+            if (lf && lf.x === t.x && lf.y === t.y && lf.z === t.z) {
+                fit(lf.fill)
+            } else {
+                tf.current = { ...t, x: t.x + (nw - w) / 2, y: t.y + (nh - h) / 2 }
+                schedule()
+            }
+            w = nw
+            h = nh
+        })
+        ro.observe(vp)
+        return () => ro.disconnect()
+    }, [fit, schedule])
 
     // Roda do mouse. Listener nativo porque o do React é passivo e não deixa
     // impedir a rolagem da página.
