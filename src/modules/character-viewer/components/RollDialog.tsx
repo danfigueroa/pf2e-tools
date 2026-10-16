@@ -19,6 +19,11 @@ import type { BuildInfo, SpellDescription, Weapon } from '../../character-sheet/
 import { CONDITION_COLOR, MYTHIC_COLOR, PSYCHE_COLOR } from '../../../theme'
 import { isMythicCharacter, signed } from '../helpers'
 import { psycheApplies, psycheDamageBonus } from '../psyche'
+import { psiAmpFor } from '../psiAmps'
+import { convertTypes, hasConservation, isEnergySpell, type EnergyMode } from '../energy'
+import { energyKeyFor, legacyCharKey, slotsKeyFor } from '../charId'
+import { useEnergy } from './useEnergy'
+import { useSpellSlots } from './useSpellSlots'
 import type { Check, CheckPart } from '../checks'
 import type { ConditionModifiers } from '../conditions'
 import type { MythicPointsApi } from './useMythicPoints'
@@ -38,7 +43,7 @@ import {
     type AttackMode,
     type StrikeOptions,
 } from '../strikes'
-import { damageComponents, formatValue, componentLabel, scaleSpell } from '../heightening'
+import { damageComponents, formatValue, componentLabel, scaleSpell, type ScaledComponent } from '../heightening'
 import { checkRoll, mapLabel, rollerIdentity, spellRoll, strikeRoll, type SpellAttackInfo } from '../rolls'
 import type { TableRoll } from '../../../dice/tableRoll'
 
@@ -484,15 +489,43 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     const basic = /\bbasic\b|básic/i.test(spell?.defense ?? '')
 
     const scaled = spell && castRank != null ? scaleSpell(spell, castRank) : null
-    const components = scaled ? damageComponents(scaled) : []
+    const baseComponents = scaled ? damageComponents(scaled) : []
+
+    // Amp do psi cantrip (1 Ponto de Foco) e Conservation of Energy: os dois
+    // mexem no dano antes de qualquer outra coisa.
+    const slots = useSpellSlots(slotsKeyFor(build), build.focusPoints ?? 0, legacyCharKey(build))
+    const energy = useEnergy(energyKeyFor(build))
+    const ampDef = request.psychic ? psiAmpFor(request.name) : null
+    const focusLeft = Math.max(0, (build.focusPoints ?? 0) - slots.focusUsed)
+    const [ampOn, setAmpOn] = useState(false)
+    const [melee, setMelee] = useState(false)
+    const conserve = !!request.psychic && hasConservation(build) && isEnergySpell(request.name)
+    const [picked, setPicked] = useState<EnergyMode | null>(null)
+    const mode: EnergyMode | null = conserve ? (picked && energy.allowed.includes(picked) ? picked : energy.allowed[0]) : null
+
+    const buildComponents = (amped: boolean): ScaledComponent[] => {
+        const amp = amped && ampDef?.damage && castRank != null ? ampDef.damage(castRank, melee) : null
+        const swapped: ScaledComponent[] = amp
+            ? [
+                ...amp.map((a, i): ScaledComponent => ({
+                    id: 9000 + i, kind: 'damage', formula: '', types: [a.type], persistent: a.persistent,
+                    count: a.count, faces: a.faces, flat: a.flat, nth: 0, occurrences: 1,
+                    value: { count: a.count, faces: a.faces, flat: a.flat }, changed: true, uncertain: false,
+                })),
+                ...baseComponents.filter((c) => c.kind !== 'damage'),
+            ]
+            : baseComponents
+        return mode ? swapped.map((c) => (c.kind === 'damage' ? { ...c, types: convertTypes(c.types, mode) } : c)) : swapped
+    }
+    const components = buildComponents(ampOn)
     // Dois componentes com a mesma fórmula e tipos diferentes costumam ser
     // ALTERNATIVAS (Gouging Claw: cortante OU perfurante): só o primeiro liga.
     // Persistente começa desligado: em magia ele costuma ser de um grau só (o
     // 5d4 da Ignition é do sucesso crítico), e a prosa diz qual.
-    const [selected, setSelected] = useState<Set<number>>(() => {
+    const defaultSelection = (list: ScaledComponent[]) => {
         const on = new Set<number>()
         const formulas = new Set<string>()
-        for (const c of components) {
+        for (const c of list) {
             if (c.uncertain || c.persistent) continue
             const f = formatValue(c.value)
             if (formulas.has(f)) continue
@@ -500,7 +533,8 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
             on.add(c.id)
         }
         return on
-    })
+    }
+    const [selected, setSelected] = useState<Set<number>>(() => defaultSelection(components))
     const [map, setMap] = useState<0 | 1 | 2>(0)
     const [adjust, setAdjust] = useState(0)
 
@@ -525,6 +559,8 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
         castRank != null ? `rank ${castRank}` : null,
         attackParts && map ? mapLabel(map) : null,
         basic && spell?.defense ? `salvaguarda: ${spell.defense}` : null,
+        ampOn && ampDef ? 'amplificada' : null,
+        mode ? `energia: ${mode === 'add' ? 'adicionando (fogo)' : 'removendo (frio)'}` : null,
         psycheTarget ? `psique liberada +${psycheBonus}` : null,
     ].filter(Boolean).join(' · ')
 
@@ -550,6 +586,54 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                                 </Typography>
                             )}
                         </>
+                    )}
+
+                    {ampDef && castRank != null && (
+                        <Box>
+                            <Chip
+                                label={`Amplificar · 1 Ponto de Foco (${focusLeft} restante${focusLeft === 1 ? '' : 's'})`}
+                                color={ampOn ? 'primary' : 'default'}
+                                variant={ampOn ? 'filled' : 'outlined'}
+                                disabled={!ampOn && focusLeft === 0}
+                                aria-pressed={ampOn}
+                                onClick={() => {
+                                    const next = !ampOn
+                                    setAmpOn(next)
+                                    setSelected(defaultSelection(buildComponents(next)))
+                                }}
+                                sx={{ minHeight: 32 }}
+                            />
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                {ampDef.summary} O ponto é gasto ao rolar.
+                            </Typography>
+                            {ampOn && ampDef.meleeOption && (
+                                <Chip
+                                    size="small"
+                                    label="Ataque corpo a corpo (d12)"
+                                    color={melee ? 'primary' : 'default'}
+                                    variant={melee ? 'filled' : 'outlined'}
+                                    aria-pressed={melee}
+                                    onClick={() => setMelee(!melee)}
+                                    sx={{ mt: 0.5 }}
+                                />
+                            )}
+                            {ampOn && ampDef.notes(castRank, melee).map((n) => (
+                                <Typography key={n} variant="caption" sx={{ display: 'block', color: PSYCHE_COLOR }}>{n}</Typography>
+                            ))}
+                        </Box>
+                    )}
+
+                    {conserve && (
+                        <Box>
+                            <Typography variant="caption" color="text.secondary">Conservation of Energy</Typography>
+                            <ToggleButtonGroup exclusive size="small" value={mode} fullWidth onChange={(_, v: EnergyMode | null) => { if (v) setPicked(v) }}>
+                                <ToggleButton value="add" disabled={!energy.allowed.includes('add')} sx={{ textTransform: 'none' }}>Adicionar (fogo)</ToggleButton>
+                                <ToggleButton value="remove" disabled={!energy.allowed.includes('remove')} sx={{ textTransform: 'none' }}>Remover (frio)</ToggleButton>
+                            </ToggleButtonGroup>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                {energy.stored.last ? 'A última foi a oposta: esta tem de ser a outra.' : 'Neutro: a primeira escolha é livre.'} Rolar registra a escolha.
+                            </Typography>
+                        </Box>
                     )}
 
                     {components.length > 0 && (
@@ -624,14 +708,18 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                 mythicPoints={mythicPoints}
                 onClose={onClose}
                 disabled={nothing}
-                onRoll={(mythic) => send(spellRoll(who, {
+                onRoll={(mythic) => {
+                    if (ampOn && ampDef) slots.spendFocus()
+                    if (mode) energy.record(mode)
+                    send(spellRoll(who, {
                     name: request.name,
                     sub: sub || undefined,
                     attackParts,
                     mythicDelta: mythic && attackParts ? attack!.mythicDelta : null,
                     components: rolled,
                     basic,
-                }), mythic && !!attackParts)}
+                }), mythic && !!attackParts)
+                }}
             />
         </>
     )
