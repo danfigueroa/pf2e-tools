@@ -1,11 +1,12 @@
-import { Box, Card, CardContent, Typography, Stack, Chip, Divider, Tooltip } from '@mui/material'
+import { useMemo } from 'react'
+import { Box, Button, Card, CardContent, Typography, Stack, Chip, Divider, Tooltip } from '@mui/material'
+import { Casino as DiceIcon } from '@mui/icons-material'
 import type { BuildInfo, Weapon } from '../../character-sheet/types'
 import { weaponDamageFormula } from '../../character-sheet/weapon'
 import {
     signed,
     isMythicCharacter,
     mythicProficiencyDelta,
-    weaponProficiencyRank,
     MYTHIC_COLOR,
 } from '../helpers'
 import { unarmedAttacks } from '../unarmed'
@@ -16,14 +17,20 @@ import { MythicNote } from '../components/MythicNote'
 import { CONDITION_COLOR } from '../../../theme'
 
 import { useCharacterShield } from '../components/useShield'
+import { useGear } from '../../../services/gear'
+import { DEFAULT_STRIKE_OPTIONS, planStrike, weaponStrike } from '../strikes'
+import type { RollRequest } from '../components/RollDialog'
 
 interface Props {
     build: BuildInfo
     mods: ConditionModifiers
+    onRoll: (req: RollRequest) => void
 }
 
-export const CombatSection = ({ build, mods }: Props) => {
-    const weapons = build.weapons ?? []
+export const CombatSection = ({ build, mods, onRoll }: Props) => {
+    const weapons = useMemo(() => build.weapons ?? [], [build.weapons])
+    // Traços das armas (AON): dizem o atributo do ataque, o MAP e o crítico.
+    const gear = useGear(useMemo(() => weapons.map((w) => w.name), [weapons]))
     const unarmed = unarmedAttacks(build)
     const armor = build.armor ?? []
     const shieldAc = useCharacterShield(build).view?.acBonus ?? 0
@@ -44,7 +51,15 @@ export const CombatSection = ({ build, mods }: Props) => {
 
     return (
         <Stack spacing={1.5}>
-            {weapons.map((w, idx) => (
+            {weapons.map((w, idx) => {
+                const g = gear[w.name]
+                const strike = weaponStrike(build, w, g && g.kind === 'weapon' ? g : null)
+                // Com os traços, o ataque é o exato (atributo certo, condição certa);
+                // sem eles, só o que pesa nos dois atributos, e o resto vira aviso.
+                const known = strike.traits.known
+                const plan = known ? planStrike(build, strike, mods, DEFAULT_STRIKE_OPTIONS) : null
+                const shown = plan ? plan.attackTotal : w.attack + anyAttack
+                return (
                 <Card key={`${w.name}-${idx}`}>
                     <CardContent>
                         <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={1}>
@@ -61,19 +76,27 @@ export const CombatSection = ({ build, mods }: Props) => {
                                 </Stack>
                             </Box>
                             <AttackStats
-                                attack={signed(w.attack + anyAttack)}
-                                attackDelta={anyAttack}
+                                attack={signed(shown)}
+                                attackDelta={shown - w.attack}
                                 attackBase={w.attack}
-                                mythicAttack={mythicWeaponAttack(build, w, anyAttack, mythic)}
-                                byAbility={<ByAbilityHint str={extraStr} dex={extraDex} damage={mods.total.damageStr} />}
+                                attackHint={known ? `MAP ${strike.traits.agile ? '−4 / −8' : '−5 / −10'}` : undefined}
+                                // A proficiência mítica troca a do rank que o ataque DE FATO usa
+                                // (o guerreiro é Mestre no grupo, não na categoria).
+                                mythicAttack={mythic && strike.profRank != null
+                                    ? shown + mythicProficiencyDelta(build.level, strike.profRank)
+                                    : null}
+                                byAbility={known ? null : <ByAbilityHint str={extraStr} dex={extraDex} damage={mods.total.damageStr} />}
                                 damage={`${weaponDamageFormula(w)} ${damageTypeLabel(w.damageType)}`.trim()}
                                 extra={w.extraDamage?.length ? w.extraDamage.map((d) => `+ ${d}`).join(' ') : undefined}
+                                onRoll={() => onRoll({ kind: 'weapon', weapon: w })}
+                                rollLabel={w.display || w.name}
                             />
                         </Stack>
-                        <WeaponProfiles weapon={w} conditionDelta={anyAttack} />
+                        <WeaponProfiles weapon={w} conditionDelta={shown - w.attack} />
                     </CardContent>
                 </Card>
-            ))}
+                )
+            })}
 
             {unarmed.length > 0 && (
                 <Card>
@@ -123,6 +146,8 @@ export const CombatSection = ({ build, mods }: Props) => {
                                         damage={`${u.damage} ${u.damageType}`}
                                         damageDelta={mods.total.damageStr}
                                         extra={u.extraDamage?.length ? u.extraDamage.map((d) => `+ ${d}`).join(' ') : undefined}
+                                        onRoll={() => onRoll({ kind: 'unarmed', attack: u })}
+                                        rollLabel={u.name}
                                     />
                                 </Stack>
                             ))}
@@ -300,7 +325,10 @@ function profileRows(weapon: Weapon, rules: MagicWeaponRules, conditionDelta: nu
 }
 
 /** Bloco ataque/dano à direita do card, igual para armas e desarmados. */
-const AttackStats = ({ attack, attackHint, attackDelta = 0, attackBase, mythicAttack, byAbility, damage, damageDelta = 0, extra }: {
+const AttackStats = ({ attack, attackHint, attackDelta = 0, attackBase, mythicAttack, byAbility, damage, damageDelta = 0, extra, onRoll, rollLabel }: {
+    /** Abre o diálogo de rolagem do golpe (ataque + dano). */
+    onRoll: () => void
+    rollLabel: string
     attack: string
     attackHint?: string
     attackDelta?: number
@@ -343,6 +371,16 @@ const AttackStats = ({ attack, attackHint, attackDelta = 0, attackBase, mythicAt
                     {signed(damageDelta)} no dano de FOR
                 </Typography>
             )}
+            <Button
+                size="small"
+                variant="contained"
+                startIcon={<DiceIcon />}
+                onClick={onRoll}
+                aria-label={`Rolar golpe com ${rollLabel}`}
+                sx={{ mt: 1, minHeight: 36 }}
+            >
+                Rolar
+            </Button>
         </Box>
     </Box>
 )
@@ -400,24 +438,6 @@ const ByAbilityHint = ({ str, dex, damage }: { str: number; dex: number; damage:
             </Typography>
         </Tooltip>
     )
-}
-
-/**
- * Ataque da arma com a proficiência mítica no lugar da categoria dela. Devolve
- * `null` quando o personagem não é mítico ou quando a categoria da arma não
- * casa com nenhuma proficiência conhecida — melhor não mostrar número do que
- * mostrar um errado.
- */
-function mythicWeaponAttack(
-    build: BuildInfo,
-    weapon: { prof: string; attack: number },
-    conditionDelta: number,
-    mythic: boolean,
-): number | null {
-    if (!mythic) return null
-    const rank = weaponProficiencyRank(build, weapon.prof)
-    if (rank === null) return null
-    return weapon.attack + conditionDelta + mythicProficiencyDelta(build.level, rank)
 }
 
 /** Desarmado sempre é corpo-a-corpo; o atributo do ataque a gente conhece. */

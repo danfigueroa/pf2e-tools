@@ -99,7 +99,7 @@ const SECTIONS: SectionDef[] = [
         id: 'combat',
         label: 'Combate',
         icon: <CombatIcon />,
-        render: ({ build, mods }) => <CombatSection build={build} mods={mods} />,
+        render: ({ build, mods, onRoll }) => <CombatSection build={build} mods={mods} onRoll={onRoll} />,
     },
     {
         id: 'skills',
