@@ -203,9 +203,14 @@ function useSend(mythicPoints: MythicPointsApi, onClose: () => void) {
 
 // ── Teste (salvaguarda, Percepção, perícia) ──────────────────────────────────
 
+/** Os testes que o PF2e deixa servir de iniciativa (Percepção é o padrão; o GM aceita os outros). */
+const INITIATIVE_CHECKS = ['Perception', 'Stealth', 'Athletics', 'Acrobatics']
+
 const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Extract<RollRequest, { kind: 'check' }>>) => {
     const [adjust, setAdjust] = useState(0)
+    const [initiative, setInitiative] = useState(false)
     const { check } = request
+    const canInitiative = INITIATIVE_CHECKS.includes(check.en)
     const parts = adjust ? [...check.parts, { label: 'Ajuste', value: adjust, kind: 'other' as const }] : check.parts
     const total = sumParts(parts)
     const who = useMemo(() => rollerIdentity(build), [build])
@@ -219,6 +224,21 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                     {request.note && <Typography variant="caption" color="text.secondary">{request.note}</Typography>}
                     <SituationalNotes mods={mods} />
                     <AdjustField label="Outros bônus/penalidades" value={adjust} onChange={setAdjust} />
+                    {canInitiative && (
+                        <Box>
+                            <Chip
+                                label="Usar como iniciativa"
+                                color={initiative ? 'primary' : 'default'}
+                                variant={initiative ? 'filled' : 'outlined'}
+                                onClick={() => setInitiative(!initiative)}
+                                aria-pressed={initiative}
+                                sx={{ minHeight: 32 }}
+                            />
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                O total vira a sua iniciativa no encontro do mestre.
+                            </Typography>
+                        </Box>
+                    )}
                 </Stack>
             </DialogContent>
             <RollActions
@@ -227,7 +247,10 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                 mythicDelta={check.mythicDelta}
                 mythicPoints={mythicPoints}
                 onClose={onClose}
-                onRoll={(mythic) => send(checkRoll(who, check.label, parts, mythic ? check.mythicDelta : null), mythic)}
+                onRoll={(mythic) => send(
+                    checkRoll(who, check.label, parts, mythic ? check.mythicDelta : null, initiative && canInitiative ? 'iniciativa' : undefined, initiative && canInitiative),
+                    mythic,
+                )}
             />
         </>
     )
