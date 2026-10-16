@@ -664,6 +664,15 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     por fora (até striking/greater/major); fatal troca os dados da arma pelo dado fatal (rolados
     de novo) e soma +1 dado fatal por fora. O app não sabe a CA do alvo: o cartão mostra acerto e
     crítico juntos (decisão do usuário).
+  - **Efeitos do crítico além de deadly/fatal** (`critEffects.ts`): o Pathbuilder só exporta os
+    NOMES das runas, então a tabela é escrita à mão (GM Core pg. 237-239). **Runa vale sempre** no
+    crítico: Flaming = 1d10 persistente de fogo (2d10 Greater), Shock repete o dano elétrico ROLADO em
+    até 2 criaturas, Corrosive dana a armadura/escudo, Frost e Thundering viram aviso com a CD. A
+    **especialização crítica** vem do grupo da arma (`group` em `search?gear=`) e é um chip DESLIGADO
+    por padrão — é característica de classe, que a ficha não registra: Faca/Dardo/Besta = sangramento
+    persistente (+ bônus de item), Pick = +2 por dado da arma; o resto vira aviso. Nada disso é
+    dobrado; persistente e dano fora do alvo ficam na nota, não no total imediato. A nota do feed
+    subiu de 200 para 500 caracteres nos DOIS sanitizadores (`tableRoll.ts` e `roll-store.js`).
   - **Rank do ✦ da arma**: o Pathbuilder exporta a CATEGORIA (`martial`), mas o guerreiro é Mestre
     no GRUPO. `weaponRank` faz a conta de volta (ataque − nível − atributo − potência) e usa o
     rank quando fecha num rank de verdade; senão, a categoria. O ✦ do Ghan Buri saía 2 acima.
