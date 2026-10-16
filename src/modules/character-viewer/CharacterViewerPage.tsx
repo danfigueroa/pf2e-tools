@@ -42,7 +42,7 @@ import { ConditionsBar } from './components/ConditionsBar'
 import { AfflictionsBar } from './components/AfflictionsBar'
 import { PersistentDamageBar } from './components/PersistentDamageBar'
 import { MythicPointsBar } from './components/MythicPointsBar'
-import { afflictionsKeyFor, charSlugFromName, conditionsKeyFor, legacyCharKey, mythicKeyFor, noCharKey, persistentKeyFor, psycheKeyFor, rageKeyFor, sizeKeyFor } from './charId'
+import { afflictionsKeyFor, charSlugFromName, conditionsKeyFor, energyKeyFor, legacyCharKey, mythicKeyFor, noCharKey, persistentKeyFor, psycheKeyFor, rageKeyFor, sizeKeyFor } from './charId'
 import { useConditions } from './components/useConditions'
 import { useAfflictions } from './components/useAfflictions'
 import { usePersistentDamage } from './components/usePersistentDamage'
@@ -52,6 +52,9 @@ import { sizeEffectConditions, withSizeEffect } from './sizeEffects'
 import { useRage } from './components/useRage'
 import { usePsyche } from './components/usePsyche'
 import { PsycheBar } from './components/PsycheBar'
+import { EnergyBar } from './components/EnergyBar'
+import { useEnergy } from './components/useEnergy'
+import { hasConservation } from './energy'
 import { STRAIN_SOURCE, withPsyche } from './psyche'
 import { RageBar } from './components/RageBar'
 import { TITAN_SOURCE, withRage } from './rage'
@@ -198,6 +201,7 @@ export const CharacterViewerPage = () => {
     const rage = useRage(build ? rageKeyFor(build) : noCharKey('rage'), build)
     // Unleash Psyche do Psíquico: o Estupefato da ressaca é derivado, como o Titan Mauler.
     const psyche = usePsyche(build ? psycheKeyFor(build) : noCharKey('psyche'), build)
+    const energy = useEnergy(build ? energyKeyFor(build) : noCharKey('energy'))
 
     // O que a ficha sofre sem ter marcado: estágio de aflição, o Desajeitado do
     // Enlarge e o do Titan Mauler. Em conflito vale o pior valor, como em
@@ -436,6 +440,7 @@ export const CharacterViewerPage = () => {
             <ConditionsBar conditions={conditions} />
             {rage.spec && <RageBar build={build} rage={rage} conditions={conditions} />}
             {psyche.has && <PsycheBar psyche={psyche} />}
+            {hasConservation(build) && <EnergyBar energy={energy} />}
             <AfflictionsBar afflictions={afflictions.afflictions} onRemove={afflictions.remove} />
             <PersistentDamageBar
                 persistent={persistentDamage.persistent}
