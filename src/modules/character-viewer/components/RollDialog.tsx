@@ -48,7 +48,7 @@ import {
     type StrikeOptions,
 } from '../strikes'
 import { damageComponents, formatValue, componentLabel, scaleSpell, type ScaledComponent } from '../heightening'
-import { checkRoll, mapLabel, rollerIdentity, spellRoll, spellstrikeRoll, strikeRoll, withSimplePoison, type SpellAttackInfo } from '../rolls'
+import { checkRoll, mapLabel, raysRoll, rollerIdentity, spellRoll, spellstrikeRoll, strikeRoll, withSimplePoison, type SpellAttackInfo } from '../rolls'
 import type { TableRoll } from '../../../dice/tableRoll'
 import { dialogEmbedProps, useEmbedContainer } from '../embedContext'
 import { CASCADE_TYPES, hasSpellstrike } from '../magus'
@@ -1040,18 +1040,26 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                     actions.spend(spellActions)
                     if (ampOn && ampDef) slots.spendFocus()
                     if (mode) energy.record(mode)
-                    // Um raio por ação (Blazing Bolt): cada um com o próprio ataque e dano, na mesa em sequência.
+                    // Um raio por ação (Blazing Bolt): cada um com o próprio ataque e dano, mas numa
+                    // rolagem só — um cartão com os raios e o total, não um popup por raio.
                     const rays = attackParts ? (variant?.rays ?? 1) : 1
-                    const one = (i: number) => spellRoll(who, {
+                    if (attackParts && rays > 1) {
+                        send(raysRoll(who, {
+                            name: request.name,
+                            sub: sub || undefined,
+                            rays: Array.from({ length: rays }, () => ({ attackParts, mythicDelta: mythic ? attack!.mythicDelta : null })),
+                            components: rolled,
+                        }), mythic)
+                        return
+                    }
+                    send(spellRoll(who, {
                         name: request.name,
-                        sub: [sub, rays > 1 ? `raio ${i}/${rays}` : null].filter(Boolean).join(' · ') || undefined,
+                        sub: sub || undefined,
                         attackParts,
                         mythicDelta: mythic && attackParts ? attack!.mythicDelta : null,
                         components: rolled,
                         basic,
-                    })
-                    for (let i = 1; i < rays; i++) void postRoll(one(i))
-                    send(one(rays), mythic && !!attackParts)
+                    }), mythic && !!attackParts)
                 }}
             />
         </>

@@ -32,6 +32,14 @@ export interface RolledPart {
     persistent?: boolean
 }
 
+/** Um ataque com o seu dano (o que `check` e `damage` levam, repetido por raio). */
+export interface RollRay {
+    check: NonNullable<TableRoll['check']>
+    damage: NonNullable<TableRoll['damage']>
+}
+
+export const MAX_RAYS = 6
+
 export interface TableRoll {
     id: string
     /** Hora do servidor (ms). */
@@ -63,6 +71,12 @@ export interface TableRoll {
         /** Salvaguarda básica: a mesa vê ½ e ×2 junto. */
         basic?: boolean
     }
+    /**
+     * Magia que dispara VÁRIOS ataques (Blazing Bolt de 2–3 ações): um bloco por raio, cada um com
+     * o seu d20 e o seu dano, na MESMA rolagem — um cartão só, e o total dos raios no fim. Quando
+     * existe, `check` e `damage` do topo ficam ausentes.
+     */
+    rays?: RollRay[]
     /** Rolagem livre (rolador de dados do mapa). */
     free?: RolledPart
     /** O jogador marcou este teste como a iniciativa dele: a Iniciativa aplica o total. */
@@ -104,6 +118,44 @@ function sanitizePart(raw: unknown, budget: { left: number }): RolledPart | null
     }
 }
 
+function sanitizeCheck(raw: unknown): TableRoll['check'] | null {
+    const c = raw as Record<string, unknown>
+    if (!c || typeof c !== 'object') return null
+    if (!isInt(c.d20) || (c.d20 as number) < 1 || (c.d20 as number) > 20) return null
+    if (!isInt(c.mod, 999) || !isInt(c.total)) return null
+    if ((c.d20 as number) + (c.mod as number) !== c.total) return null
+    const parts = Array.isArray(c.parts) ? c.parts.slice(0, 12) : []
+    return {
+        d20: c.d20 as number,
+        mod: c.mod as number,
+        total: c.total as number,
+        mythic: c.mythic === true,
+        parts: parts
+            .filter((p): p is Record<string, unknown> => !!p && typeof p === 'object' && isInt((p as Record<string, unknown>).value, 999))
+            .map((p) => ({ label: str(p.label, 60), value: p.value as number })),
+    }
+}
+
+function sanitizeDamage(raw: unknown, budget: { left: number }): TableRoll['damage'] | null {
+    const d = raw as Record<string, unknown>
+    if (!d || typeof d !== 'object' || !Array.isArray(d.parts) || d.parts.length > 8) return null
+    const parts: RolledPart[] = []
+    for (const p of d.parts) {
+        const part = sanitizePart(p, budget)
+        if (!part) return null
+        parts.push(part)
+    }
+    if (!isInt(d.total)) return null
+    const out: NonNullable<TableRoll['damage']> = { parts, total: d.total as number }
+    if (d.crit !== undefined) {
+        const c = d.crit as Record<string, unknown>
+        if (!c || typeof c !== 'object' || !isInt(c.total)) return null
+        out.crit = { total: c.total as number, note: str(c.note, 500) }
+    }
+    if (d.basic === true) out.basic = true
+    return out
+}
+
 export function sanitizeTableRoll(raw: unknown): TableRoll | null {
     if (!raw || typeof raw !== 'object') return null
     const r = raw as Record<string, unknown>
@@ -122,40 +174,29 @@ export function sanitizeTableRoll(raw: unknown): TableRoll | null {
     if (typeof r.note === 'string' && r.note) out.note = str(r.note, 300)
 
     if (r.check !== undefined) {
-        const c = r.check as Record<string, unknown>
-        if (!c || typeof c !== 'object') return null
-        if (!isInt(c.d20) || (c.d20 as number) < 1 || (c.d20 as number) > 20) return null
-        if (!isInt(c.mod, 999) || !isInt(c.total)) return null
-        if ((c.d20 as number) + (c.mod as number) !== c.total) return null
-        const parts = Array.isArray(c.parts) ? c.parts.slice(0, 12) : []
-        out.check = {
-            d20: c.d20 as number,
-            mod: c.mod as number,
-            total: c.total as number,
-            mythic: c.mythic === true,
-            parts: parts
-                .filter((p): p is Record<string, unknown> => !!p && typeof p === 'object' && isInt((p as Record<string, unknown>).value, 999))
-                .map((p) => ({ label: str(p.label, 60), value: p.value as number })),
-        }
+        const check = sanitizeCheck(r.check)
+        if (!check) return null
+        out.check = check
     }
 
     if (r.damage !== undefined) {
-        const d = r.damage as Record<string, unknown>
-        if (!d || typeof d !== 'object' || !Array.isArray(d.parts) || d.parts.length > 8) return null
-        const parts: RolledPart[] = []
-        for (const p of d.parts) {
-            const part = sanitizePart(p, budget)
-            if (!part) return null
-            parts.push(part)
+        const damage = sanitizeDamage(r.damage, budget)
+        if (!damage) return null
+        out.damage = damage
+    }
+
+    if (r.rays !== undefined) {
+        if (!Array.isArray(r.rays) || r.rays.length === 0 || r.rays.length > MAX_RAYS) return null
+        const rays: RollRay[] = []
+        for (const ray of r.rays) {
+            const item = ray as Record<string, unknown>
+            if (!item || typeof item !== 'object') return null
+            const check = sanitizeCheck(item.check)
+            const damage = sanitizeDamage(item.damage, budget)
+            if (!check || !damage) return null
+            rays.push({ check, damage })
         }
-        if (!isInt(d.total)) return null
-        out.damage = { parts, total: d.total as number }
-        if (d.crit !== undefined) {
-            const c = d.crit as Record<string, unknown>
-            if (!c || typeof c !== 'object' || !isInt(c.total)) return null
-            out.damage.crit = { total: c.total as number, note: str(c.note, 500) }
-        }
-        if (d.basic === true) out.damage.basic = true
+        out.rays = rays
     }
 
     // Iniciativa é um teste de d20: sem `check` a marca não tem número para levar.
@@ -167,7 +208,7 @@ export function sanitizeTableRoll(raw: unknown): TableRoll | null {
         out.free = part
     }
 
-    if (!out.check && !out.damage && !out.free) return null
+    if (!out.check && !out.damage && !out.free && !out.rays) return null
     return out
 }
 
@@ -185,6 +226,12 @@ export function partFormula(part: Pick<RolledPart, 'dice' | 'flat'>): string {
     return dice ? `${dice}${sign}${Math.abs(part.flat)}` : String(part.flat)
 }
 
+/** O dano de todos os raios somado, se todos acertarem. */
+export const rayTotal = (rays: RollRay[]): number => rays.reduce((n, r) => n + r.damage.total, 0)
+
+/** O mesmo, com todos em acerto crítico (o crítico da magia de ataque dobra cada raio). */
+export const rayCritTotal = (rays: RollRay[]): number => rays.reduce((n, r) => n + (r.damage.crit?.total ?? r.damage.total), 0)
+
 /** Os quatro graus de uma salvaguarda básica sobre o dano rolado (½ arredondado para baixo). */
 export const basicSaveLine = (total: number): string =>
     `Falha ${total} · Sucesso ${Math.floor(total / 2)} · Falha crítica ${2 * total} · Sucesso crítico 0`
@@ -195,6 +242,10 @@ export function rollSummaryText(r: TableRoll): string {
     if (r.check) bits.push(`${r.check.total} (d20 ${r.check.d20} ${r.check.mod >= 0 ? '+' : '−'} ${Math.abs(r.check.mod)})`)
     if (r.damage) {
         bits.push(`dano ${r.damage.total}${r.damage.crit ? `, crítico ${r.damage.crit.total}` : ''}`)
+    }
+    if (r.rays) {
+        const hits = r.rays.map((ray, i) => `raio ${i + 1}: ${ray.check.total} para acertar, dano ${ray.damage.total}`)
+        bits.push(`${r.rays.length} raios (${hits.join('; ')}); total ${rayTotal(r.rays)}`)
     }
     if (r.free) bits.push(`${partFormula(r.free)} = ${r.free.total}`)
     return `${r.by || 'Alguém'} — ${r.title}: ${bits.join('; ')}`

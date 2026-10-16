@@ -663,6 +663,29 @@ eq(free.left, `${50 - 0.7 * 200}%`, 'O ponto escolhido cai no centro do círculo
 eq(free.top, `${50 - 0.3 * 200}%`, 'O ponto escolhido cai no centro do círculo (y)')
 
 
+
+// ── Vários raios numa rolagem só ─────────────────────────────────────────────
+const bolt = av.variantFor('Blazing Bolt', 5, 3)
+const atkParts = [{ label: 'Mítica', value: 20, kind: 'prof' }, { label: 'INT', value: 4, kind: 'ability' }]
+const threeRays = rolls.raysRoll(ssWho, { name: 'Blazing Bolt', sub: 'rank 5', rays: Array.from({ length: bolt.rays }, () => ({ attackParts: atkParts, mythicDelta: null })), components: bolt.components })
+eq(threeRays.rays.length, 3, 'Três ações: três raios na MESMA rolagem')
+ok(!threeRays.check && !threeRays.damage, 'Os raios não deixam check/damage soltos no topo')
+ok(threeRays.rays.every((ray) => ray.check.total === ray.check.d20 + 24 && ray.damage.parts[0].dice.length === 10), 'Cada raio tem o seu d20 e os seus 10d6')
+ok(threeRays.rays.every((ray) => ray.damage.crit.total === 2 * ray.damage.total), 'O crítico dobra cada raio')
+const rayTotalNow = threeRays.rays.reduce((n, r) => n + r.damage.total, 0)
+eq(table.rayTotal(threeRays.rays), rayTotalNow, 'O total soma o dano de todos os raios')
+eq(table.rayCritTotal(threeRays.rays), 2 * rayTotalNow, 'Todos críticos = o dobro do total')
+ok(table.sanitizeTableRoll(threeRays) !== null, 'O cliente aceita a rolagem de raios')
+ok(server.sanitizeRoll(threeRays) !== null, 'O servidor aceita a rolagem de raios (e cabe no teto de bytes)')
+eq(JSON.stringify(server.sanitizeRoll(threeRays).rays), JSON.stringify(table.sanitizeTableRoll(threeRays).rays), 'Os dois sanitizadores deixam os raios iguais')
+const cheat = JSON.parse(JSON.stringify(threeRays)); cheat.rays[1].check.total += 1
+ok(table.sanitizeTableRoll(cheat) === null && server.sanitizeRoll(cheat) === null, 'Raio com a conta errada é recusado nos dois')
+const emptyRays = { ...threeRays, rays: [] }
+ok(table.sanitizeTableRoll(emptyRays) === null && server.sanitizeRoll(emptyRays) === null, 'Lista de raios vazia é recusada')
+const manyRays = { ...threeRays, rays: Array.from({ length: 7 }, () => threeRays.rays[0]) }
+ok(table.sanitizeTableRoll(manyRays) === null && server.sanitizeRoll(manyRays) === null, 'Mais de 6 raios é recusado')
+ok(/3 raios/.test(table.rollSummaryText(threeRays)), 'O resumo para leitor de tela cita os raios')
+
 // ── Magias de ação variável (1 a 3 ações) ────────────────────────────────────
 const rg = av.actionRange
 eq(JSON.stringify(rg('Single Action to Three Actions')), JSON.stringify({ min: 1, max: 3 }), '"Single Action to Three Actions" = 1..3')

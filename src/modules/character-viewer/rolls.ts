@@ -261,15 +261,44 @@ export function spellRoll(
         const parts = input.mythicDelta != null ? [...input.attackParts, mythicPart(input.mythicDelta)] : input.attackParts
         roll.check = d20Check(parts, input.mythicDelta != null)
     }
-    if (input.components.length > 0) {
-        const parts = input.components.map((c) =>
-            toPart(componentLabel(c), rollGroups(c.value.count ? [{ count: c.value.count, faces: c.value.faces }] : [], c.value.flat), c.persistent))
-        const total = Math.max(0, parts.filter((p) => !p.persistent).reduce((s, p) => s + p.total, 0))
-        roll.damage = { parts, total }
-        // Persistente de magia fica fora do dobro: costuma ser de um grau só
-        // (o 5d4 da Ignition só existe no crítico), e a prosa decide.
-        if (input.attackParts) roll.damage.crit = { total: 2 * total, note: `2 × ${total} = ${2 * total}` }
-        if (input.basic) roll.damage.basic = true
-    }
+    if (input.components.length > 0) roll.damage = spellDamage(input.components, !!input.attackParts, input.basic)
+    return roll
+}
+
+/** O dano rolado dos componentes escolhidos; magia de ataque ganha o crítico (dobro). */
+function spellDamage(components: ScaledComponent[], withCrit: boolean, basic: boolean): NonNullable<TableRoll['damage']> {
+    const parts = components.map((c) =>
+        toPart(componentLabel(c), rollGroups(c.value.count ? [{ count: c.value.count, faces: c.value.faces }] : [], c.value.flat), c.persistent))
+    const total = Math.max(0, parts.filter((p) => !p.persistent).reduce((s, p) => s + p.total, 0))
+    const damage: NonNullable<TableRoll['damage']> = { parts, total }
+    // Persistente de magia fica fora do dobro: costuma ser de um grau só
+    // (o 5d4 da Ignition só existe no crítico), e a prosa decide.
+    if (withCrit) damage.crit = { total: 2 * total, note: `2 × ${total} = ${2 * total}` }
+    if (basic) damage.basic = true
+    return damage
+}
+
+/**
+ * Magia que dispara VÁRIOS raios (Blazing Bolt): um ataque e um dano por raio, todos
+ * numa rolagem só — o cartão da mesa mostra os raios e o total, em vez de um popup por raio.
+ */
+export function raysRoll(
+    who: RollerIdentity,
+    input: {
+        name: string
+        sub?: string
+        /** Um item por raio: o memorial do ataque (igual para todos) e o ✦, se houver. */
+        rays: Array<{ attackParts: CheckPart[]; mythicDelta: number | null }>
+        components: ScaledComponent[]
+    },
+): TableRoll {
+    const roll = base(who, input.name, input.sub)
+    roll.rays = input.rays.map((ray) => {
+        const parts = ray.mythicDelta != null ? [...ray.attackParts, mythicPart(ray.mythicDelta)] : ray.attackParts
+        return {
+            check: d20Check(parts, ray.mythicDelta != null),
+            damage: spellDamage(input.components, true, false),
+        }
+    })
     return roll
 }

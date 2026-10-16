@@ -22,7 +22,7 @@ export const ROLLS_REV_KEY = 'pf2e:rolls:rev'
 export const ROLL_HISTORY = 30
 /** Rolagem é coisa da sessão: um dia sem ninguém rolar e o feed some sozinho. */
 const TTL_SECONDS = 24 * 60 * 60
-export const MAX_ROLL_BYTES = 4096
+export const MAX_ROLL_BYTES = 8192
 
 let memoryRolls = []
 let memoryRev = 0
@@ -36,6 +36,7 @@ export const memoryRollsRev = () => memoryRev
 
 const DICE_FACES = [4, 6, 8, 10, 12, 20, 100]
 const MAX_ROLL_DICE = 120
+const MAX_RAYS = 6
 const HEX = /^#[0-9a-fA-F]{6}$/
 const ID_RE = /^[a-z0-9-]{1,64}$/
 const isInt = (v, max = 99999) => Number.isInteger(v) && Math.abs(v) <= max
@@ -62,6 +63,39 @@ function sanitizePart(p, budget) {
   return { label: str(p.label, 60), dice, flat: p.flat, total: p.total, ...(p.persistent === true ? { persistent: true } : {}) }
 }
 
+function sanitizeCheck(c) {
+  if (!c || typeof c !== 'object') return null
+  if (!isInt(c.d20) || c.d20 < 1 || c.d20 > 20 || !isInt(c.mod, 999) || !isInt(c.total)) return null
+  if (c.d20 + c.mod !== c.total) return null
+  const parts = Array.isArray(c.parts) ? c.parts.slice(0, 12) : []
+  return {
+    d20: c.d20,
+    mod: c.mod,
+    total: c.total,
+    mythic: c.mythic === true,
+    parts: parts.filter((p) => p && typeof p === 'object' && isInt(p.value, 999))
+      .map((p) => ({ label: str(p.label, 60), value: p.value })),
+  }
+}
+
+function sanitizeDamage(d, budget) {
+  if (!d || typeof d !== 'object' || !Array.isArray(d.parts) || d.parts.length > 8) return null
+  const parts = []
+  for (const p of d.parts) {
+    const part = sanitizePart(p, budget)
+    if (!part) return null
+    parts.push(part)
+  }
+  if (!isInt(d.total)) return null
+  const out = { parts, total: d.total }
+  if (d.crit !== undefined) {
+    if (!d.crit || typeof d.crit !== 'object' || !isInt(d.crit.total)) return null
+    out.crit = { total: d.crit.total, note: str(d.crit.note, 500) }
+  }
+  if (d.basic === true) out.basic = true
+  return out
+}
+
 /** A rolagem limpa, ou `null` se algo não confere. `at` é sempre o do servidor. */
 export function sanitizeRoll(r) {
   if (!r || typeof r !== 'object') return null
@@ -74,37 +108,28 @@ export function sanitizeRoll(r) {
   if (typeof r.note === 'string' && r.note) out.note = str(r.note, 300)
 
   if (r.check !== undefined) {
-    const c = r.check
-    if (!c || typeof c !== 'object') return null
-    if (!isInt(c.d20) || c.d20 < 1 || c.d20 > 20 || !isInt(c.mod, 999) || !isInt(c.total)) return null
-    if (c.d20 + c.mod !== c.total) return null
-    const parts = Array.isArray(c.parts) ? c.parts.slice(0, 12) : []
-    out.check = {
-      d20: c.d20,
-      mod: c.mod,
-      total: c.total,
-      mythic: c.mythic === true,
-      parts: parts.filter((p) => p && typeof p === 'object' && isInt(p.value, 999))
-        .map((p) => ({ label: str(p.label, 60), value: p.value })),
-    }
+    const check = sanitizeCheck(r.check)
+    if (!check) return null
+    out.check = check
   }
 
   if (r.damage !== undefined) {
-    const d = r.damage
-    if (!d || typeof d !== 'object' || !Array.isArray(d.parts) || d.parts.length > 8) return null
-    const parts = []
-    for (const p of d.parts) {
-      const part = sanitizePart(p, budget)
-      if (!part) return null
-      parts.push(part)
+    const damage = sanitizeDamage(r.damage, budget)
+    if (!damage) return null
+    out.damage = damage
+  }
+
+  if (r.rays !== undefined) {
+    if (!Array.isArray(r.rays) || r.rays.length === 0 || r.rays.length > MAX_RAYS) return null
+    const rays = []
+    for (const ray of r.rays) {
+      if (!ray || typeof ray !== 'object') return null
+      const check = sanitizeCheck(ray.check)
+      const damage = sanitizeDamage(ray.damage, budget)
+      if (!check || !damage) return null
+      rays.push({ check, damage })
     }
-    if (!isInt(d.total)) return null
-    out.damage = { parts, total: d.total }
-    if (d.crit !== undefined) {
-      if (!d.crit || typeof d.crit !== 'object' || !isInt(d.crit.total)) return null
-      out.damage.crit = { total: d.crit.total, note: str(d.crit.note, 500) }
-    }
-    if (d.basic === true) out.damage.basic = true
+    out.rays = rays
   }
 
   if (r.initiative === true && out.check) out.initiative = true
@@ -115,7 +140,7 @@ export function sanitizeRoll(r) {
     out.free = part
   }
 
-  if (!out.check && !out.damage && !out.free) return null
+  if (!out.check && !out.damage && !out.free && !out.rays) return null
   if (JSON.stringify(out).length > MAX_ROLL_BYTES) return null
   return out
 }

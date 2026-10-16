@@ -317,8 +317,11 @@ você gasta"** e o custo no contador de ações, o dano/cura, os alvos e os efei
 - As fórmulas são em função de (rank, ações): ex. Blazing Bolt = `rank`d6 com 1 ação e `2×rank`d6 com 2–3; Heal = `rank`d8
   e +8×rank com 2 ações (cura de VIVO; contra morto-vivo é só o d8, e o Harm tem o inverso); Force Barrage = 1d4+1 por
   projétil, `ações × (1 + ⌊(rank−1)/2⌋)` projéteis.
-- **Um raio por ação** no Blazing Bolt: cada raio sai com o PRÓPRIO ataque e dano, postados em sequência no feed
-  ("raio 1/3…"), com o MAP igual para todos (ele só sobe depois). O ✦ mítico gasta o ponto uma vez só.
+- **Um raio por ação** no Blazing Bolt: cada raio tem o PRÓPRIO ataque e dano (MAP igual para todos; ele só sobe depois),
+  mas tudo vai numa rolagem SÓ — `TableRoll.rays` (`RollRay { check, damage }`, até 6): um cartão com os raios e, no fim, o
+  total e o "se todos forem críticos" (`rayTotal`/`rayCritTotal`). Com `rays`, o `check`/`damage` do topo ficam ausentes.
+  Mexeu no formato, mexa nos DOIS sanitizadores (`tableRoll.ts` e `roll-store.js`); o teto de bytes do servidor subiu de
+  4 → 8 KB por causa deles. O ✦ mítico gasta o ponto uma vez só.
 - **Spellstrike aceita magia de ação variável** (Blazing Bolt!) com 1 ou 2 ações — antes ela era recusada por "não ter
   1 ou 2 ações". O Golpe é um só, então só um raio vale; o dano segue a escolha.
 - O `id` dos componentes vem da POSIÇÃO (9500+i), não de um contador: a seleção de chips do jogador tem de sobreviver

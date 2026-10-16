@@ -4,7 +4,7 @@ import { Close as CloseIcon } from '@mui/icons-material'
 import { DiceTray } from '../motion/DiceTray'
 import { gold, mapChrome, MYTHIC_COLOR, MYTHIC_ON_DARK, parchment } from '../theme'
 import { isOwnRoll, useTableRolls } from '../services/rolls'
-import { basicSaveLine, partFormula, rollSummaryText, type RolledPart, type TableRoll } from '../dice/tableRoll'
+import { basicSaveLine, partFormula, rayCritTotal, rayTotal, rollSummaryText, type RolledPart, type RollRay, type TableRoll } from '../dice/tableRoll'
 
 // Rolagens da mesa, para todo mundo, em qualquer página — montado UMA vez no
 // `MainLayout`. Por ficar no layout, trocar de rota não refaz o "já visto".
@@ -44,6 +44,35 @@ const Caption = ({ children, color }: { children: React.ReactNode; color?: strin
     </Typography>
 )
 
+/** Vários raios na mesma rolagem: cada um com o ataque e o dano, e o total dos raios no fim. */
+const RaysBlock = ({ rays, color }: { rays: RollRay[]; color: string }) => (
+    <Box sx={{ mt: 0.75 }}>
+        {rays.map((ray, i) => {
+            const dmg = damageDice(ray.damage.parts)
+            return (
+                <Box key={i} sx={{ mt: 0.75 }}>
+                    <Divider sx={{ borderColor: `${gold.main}55`, mb: 0.5 }} />
+                    <Caption color={gold.bright}>Raio {i + 1} de {rays.length}</Caption>
+                    <DiceTray dice={[{ faces: 20, value: ray.check.d20 }]} flat={ray.check.mod} total={ray.check.total} color={color} compact />
+                    {ray.check.mythic && <Caption color={MYTHIC_ON_DARK}>✦ proficiência mítica</Caption>}
+                    <Caption color={gold.bright}>Dano se acertar</Caption>
+                    <DiceTray dice={dmg.dice} flat={dmg.flat} total={ray.damage.total} color={color} compact />
+                    <Caption>{ray.damage.parts.filter((p) => !p.persistent).map((p) => `${p.label} ${p.total}`).join(' · ')}</Caption>
+                    {ray.damage.crit && <Caption color={gold.bright}><b>Crítico: {ray.damage.crit.total}</b></Caption>}
+                </Box>
+            )
+        })}
+        <Divider sx={{ borderColor: `${gold.main}99`, my: 0.75 }} />
+        <Typography sx={{ textAlign: 'center', fontWeight: 800, fontSize: '1.15rem' }}>
+            Total dos {rays.length} raios: {rayTotal(rays)}
+        </Typography>
+        <Caption color={gold.bright}>
+            <b>Se todos forem críticos: {rayCritTotal(rays)}</b>
+        </Caption>
+        <Caption>Some só os raios que acertarem.</Caption>
+    </Box>
+)
+
 /** O cartão de uma rolagem, com a bandeja animada. */
 const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) => {
     const dmg = roll.damage ? damageDice(roll.damage.parts) : null
@@ -57,7 +86,10 @@ const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) =
                 width: 'min(360px, calc(100vw - 32px))',
                 borderRadius: 2,
                 backgroundColor: `${mapChrome.label}F2`,
-                border: `2px solid ${roll.check?.mythic ? MYTHIC_ON_DARK : gold.main}`,
+                border: `2px solid ${roll.check?.mythic || roll.rays?.[0]?.check.mythic ? MYTHIC_ON_DARK : gold.main}`,
+                // Vários raios fazem um cartão alto: rola por dentro em vez de passar da tela.
+                maxHeight: 'calc(100vh - 32px)',
+                overflowY: 'auto',
                 boxShadow: '0 6px 24px #00000080',
                 color: parchment.page,
                 pointerEvents: 'auto',
@@ -110,6 +142,8 @@ const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) =
                     {roll.damage.basic && <Caption>{basicSaveLine(roll.damage.total)}</Caption>}
                 </Box>
             )}
+
+            {roll.rays && <RaysBlock rays={roll.rays} color={roll.color} />}
 
             {roll.free && (
                 <Box sx={{ mt: 0.75 }}>
@@ -222,6 +256,17 @@ const HistoryRow = ({ roll }: { roll: TableRoll }) => (
                 {roll.damage.basic && (
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{basicSaveLine(roll.damage.total)}</Typography>
                 )}
+            </Box>
+        )}
+        {roll.rays && (
+            <Box sx={{ mt: 0.5 }}>
+                {roll.rays.map((ray, i) => (
+                    <Typography key={i} variant="body2">
+                        <b>Raio {i + 1}:</b> ataque {ray.check.total} (d20 {ray.check.d20} {signed(ray.check.mod)}) · dano {ray.damage.total}
+                        {ray.damage.crit ? ` · crítico ${ray.damage.crit.total}` : ''}
+                    </Typography>
+                ))}
+                <Typography variant="body2"><b>Total {rayTotal(roll.rays)}</b> · todos críticos {rayCritTotal(roll.rays)}</Typography>
             </Box>
         )}
         {roll.free && (
