@@ -15,6 +15,7 @@ import { characterMaxHp } from '../helpers'
 import { itemDisplayName } from '../customRunes'
 import { consumedKeyFor, hpKeyFor, legacyCharKey } from '../charId'
 import { useConsumables } from '../components/useConsumables'
+import { CompanionsCard } from '../components/CompanionsCard'
 import { useHpTracker } from '../components/useHpTracker'
 import { fetchItemTraits, isConsumable, type ItemTraits } from '../../../services/itemTraits'
 import { rollFormulaDetailed, rollMemorial } from '../../initiative-tracker/dice'
@@ -333,6 +334,8 @@ const InventorySectionView = ({ build, onSelect, mods }: Props) => {
                     </Button>
                 ) : undefined}
             />
+            {/* Criaturas que entram no combate junto com o personagem (Animated Armor…). */}
+            <CompanionsCard build={build} />
         </Stack>
     )
 }

@@ -38,6 +38,8 @@ export interface TokenDescriptor {
     maxHp?: number
     /** Imagem do monstro. A do personagem é da mesa (`pcs[slug].token`). */
     image?: string
+    /** Enquadramento que veio do companheiro de combate; o `fit:<id>` do mapa vale por cima. */
+    fit?: { x: number; y: number; z: number }
     defeated?: boolean
     /** Deslocamento em pés — sem ele, o arrasto mostra só a distância. */
     speed?: number

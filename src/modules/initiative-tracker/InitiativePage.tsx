@@ -176,6 +176,7 @@ export const InitiativePage = () => {
                 extra.push({
                     ...npcFromCreature(creature),
                     tokenImage: companion.token?.url,
+                    tokenFit: companion.fit,
                     companionOf: c.slug,
                     companionId: companion.id,
                 })

@@ -14,6 +14,7 @@ import { emptyEncounter } from './encounterReducer'
 import type { ScaleOverrides } from '../monster-scaler/types'
 import type { Combatant, EncounterState, NpcCombatant, NpcShield, PcCombatant } from './types'
 import type { ShieldItem } from '../character-viewer/shield'
+import { sanitizeFit } from '../battle-map/tokenFit'
 
 const STORAGE_KEY = 'pf2e:initiative:v1'
 const MAP_KEY_PREFIX = 'pf2e:initiative:v1:map:'
@@ -151,6 +152,7 @@ function sanitizeCombatant(raw: unknown): Combatant | null {
             tokenImage: typeof c.tokenImage === 'string' ? c.tokenImage : undefined,
             companionOf: typeof c.companionOf === 'string' ? c.companionOf : undefined,
             companionId: typeof c.companionId === 'string' ? c.companionId : undefined,
+            tokenFit: c.tokenFit && typeof c.tokenFit === 'object' ? (({ x, y, z }) => ({ x, y, z }))(sanitizeFit(c.tokenFit)) : undefined,
         }
         return npc
     }

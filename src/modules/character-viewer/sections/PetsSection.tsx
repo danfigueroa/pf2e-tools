@@ -14,7 +14,6 @@ import {
 import { translateSize, translateDamageType, translateAttackName, translateTrait } from '../../transformation-statblock/i18n'
 import { CompanionHpBar } from '../components/CompanionHpBar'
 import { legacyPetKey, petKeyFor } from '../charId'
-import { CompanionsCard } from '../components/CompanionsCard'
 
 interface Props { build: BuildInfo }
 
@@ -26,22 +25,18 @@ const PetsSectionView = ({ build }: Props) => {
 
     if (pets.length === 0 && familiars.length === 0) {
         return (
-            <Stack spacing={2}>
-                <Card>
-                    <CardContent>
-                        <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                            Sem companheiros ou familiares.
-                        </Typography>
-                    </CardContent>
-                </Card>
-                <CompanionsCard build={build} />
-            </Stack>
+            <Card>
+                <CardContent>
+                    <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                        Sem companheiros ou familiares.
+                    </Typography>
+                </CardContent>
+            </Card>
         )
     }
 
     return (
         <Stack spacing={2}>
-            <CompanionsCard build={build} />
             {pets.map((pet, idx) => (
                 <PetCard
                     key={`${pet.name}-${idx}`}

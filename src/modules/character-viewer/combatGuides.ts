@@ -319,6 +319,15 @@ const NATHANIEL = `## 🎯 Papel em Combate
 - 💍 **Ring of Wizardry (Type I):** **+1 em Arcanismo** e **dois slots de 1º rank arcanos a mais** por dia. Escolha no preparo diário a qual fonte arcana eles vão (Magus ou o arquétipo de Mago) e prepare magias de 1º do grimório. Tirar o anel, por qualquer motivo, faz perder os slots extras.
 - 🔮 **3 pontos de foco** para *Shielding Strike*, *Runic Impression* e *Hand of the Apprentice* — refocus entre lutas.
 
+## 🤖 Companheiro: Animated Armor
+- 🧩 **Entra sozinha no combate.** Ao adicionar o Nathaniel na Iniciativa, a **Animated Armor** (criatura de nível 2 da AON) vem junto, com token próprio, e aparece no mapa. Ela é um combatente **à parte**: tem a iniciativa, os PV e o turno dela — não gasta as suas ações.
+- 📊 **Números:** **CA 17 · 20 PV · Dureza 9** · Percepção +6 · Atletismo +9 · Fort +10, Ref +3, Von +4 · velocidade 6 m.
+- ⚔️ **Ataques:** **glaive +10** (1d8+4 cortante, *deadly d8*, *forceful*, **alcance 3 m**) e **gauntlet +9** (1d6+4 contundente, ágil). O alcance longo faz dela uma **flanqueadora**: ao flanquear com você, o inimigo fica *off-guard* — bom para o Spellstrike e para o **Eldarion** (Ataque Furtivo) e o **Ceros**.
+- 🧱 **Quebra fácil:** com **menos da metade dos PV** (abaixo de 10), ou ao **sofrer um acerto crítico**, a armadura se parte: **perde a Dureza e a CA cai para 13**. Tire-a da linha de frente antes disso.
+- 🧪 **Imune a quase tudo que você poderia lançar nela:** veneno, **mental**, **vazio** e **vitality** — e a cura. **Não dá para curá-la com magia de cura** (para recuperar PV, o caminho é **reparar**, com Artesanato; combine com o mestre). 
+- 🌪️ **Combo com *Ancestral Winds*:** a magia é **vazio + mental**, e a armadura é imune aos dois — ela pode ficar **dentro da explosão** sem sofrer nada (e sem o *amedrontado*), enquanto os inimigos ao redor sofrem. Já ***Cave Fangs*** (perfurante) e o que for físico **a atingem**; a Dureza 9 segura parte.
+- 📍 **No mapa:** o token dela é o que você enviou na aba **Inventário → Companheiros de combate** da ficha, já enquadrado.
+
 ## 🛡️ Defesa & Sobrevivência
 - ❤️ **CA 28 → 30 com o escudo erguido · ~138 PV.**
 - 🧠 **Twofold Will:** Vontade **mestre (~+19)** e **sucesso vira crítico** — medo e controle mental raramente te pegam.
@@ -331,6 +340,7 @@ const NATHANIEL = `## 🎯 Papel em Combate
 - ❌ **Expansive Spellstrike com explosão grande:** *Ancestral Winds* e *Cave Fangs* centrados no alvo colado em você **te atingem**.
 - ❌ **Mythic Magic no Spellstrike:** a proficiência mítica só vale quando **você** rola o ataque de magia — lance essas diretamente.
 - ❌ **Gastar os Pontos Míticos em Mythic Magic sem pensar:** é o mesmo estoque de 3 do Divert Destiny, a sua rede de segurança.
+- ❌ **Esquecer da Animated Armor:** ela tem turno próprio na Iniciativa — decida o que ela faz (flanquear, travar o corredor) assim que a vez dela chegar, e não a deixe tomar um crítico à toa.
 - ❌ **Deixar o escudo abaixado:** CA 28 contra 30, e sem escudo erguido o Sparkling Targe não protege as salvaguardas.`
 
 // ---------------------------------------------------------------------------

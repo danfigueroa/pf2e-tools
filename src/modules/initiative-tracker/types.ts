@@ -117,6 +117,8 @@ export interface NpcCombatant extends CombatantBase {
      */
     companionOf?: string
     companionId?: string
+    /** Enquadramento do token (o do companheiro de combate); o GM ajusta por cima, no mapa. */
+    tokenFit?: { x: number; y: number; z: number }
 }
 
 export type Combatant = PcCombatant | NpcCombatant

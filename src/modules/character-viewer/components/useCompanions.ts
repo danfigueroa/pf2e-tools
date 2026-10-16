@@ -23,13 +23,25 @@ export function useCompanions(syncKey: string) {
     const setToken = useCallback((id: string, url: string | null) => {
         setList((l) => l.map((c) => {
             if (c.id !== id) return c
-            const { token: _drop, ...rest } = c
+            // Imagem nova: o enquadramento de antes era para a outra.
+            const { token: _drop, fit: _fit, ...rest } = c
             void _drop
+            void _fit
             return url ? { ...rest, token: { url } } : rest
         }))
     }, [setList])
 
-    return useMemo(() => ({ list, add, remove, setToken }), [list, add, remove, setToken])
+    /** Enquadramento do token; o padrão (centro, 1×) apaga o campo. */
+    const setFit = useCallback((id: string, fit: { x: number; y: number; z: number } | null) => {
+        setList((l) => l.map((c) => {
+            if (c.id !== id) return c
+            const { fit: _drop, ...rest } = c
+            void _drop
+            return fit ? { ...rest, fit } : rest
+        }))
+    }, [setList])
+
+    return useMemo(() => ({ list, add, remove, setToken, setFit }), [list, add, remove, setToken, setFit])
 }
 
 export type CompanionsApi = ReturnType<typeof useCompanions>

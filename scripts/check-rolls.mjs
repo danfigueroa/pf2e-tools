@@ -623,6 +623,9 @@ eq(sc([{ id: 'MAIUSCULA!', name: 'A' }, { id: 'ok', name: '' }]).length, 0, 'Id 
 eq(sc(Array.from({ length: 9 }, (_, i) => ({ id: `c${i}`, name: `N${i}` }))).length, companions.MAX_COMPANIONS, 'Há um teto de companheiros')
 eq(sc([{ id: 'ab12', name: 'A', token: { url: 'idb:x' } }])[0].token.url, 'idb:x', 'O token sobrevive à leitura')
 eq(sc([{ id: 'ab12', name: 'A', token: { url: 42 } }])[0].token, undefined, 'Token inválido some, a criatura fica')
+eq(JSON.stringify(sc([{ id: 'ab12', name: 'A', fit: { x: 0.3, y: 0.6, z: 2 } }])[0].fit), JSON.stringify({ x: 0.3, y: 0.6, z: 2 }), 'O enquadramento do companheiro sobrevive à leitura')
+eq(sc([{ id: 'ab12', name: 'A', fit: { x: 0.5, y: 0.5, z: 1 } }])[0].fit, undefined, 'Enquadramento padrão não é guardado')
+eq(sc([{ id: 'ab12', name: 'A', fit: { x: 9, y: -1, z: 99 } }])[0].fit.z, 4, 'Enquadramento fora da faixa é limitado')
 const npcBase = (extra) => ({ id: crypto.randomUUID(), kind: 'npc', name: 'Animated Armor', level: 2, initiative: 0, ac: 18, perception: 5, maxHp: 20, current: 20, temp: 0, conditions: {}, delayed: false, defeated: false, durations: {}, ...extra })
 const emptyEnc = { version: 1, round: 0, activeId: null, combatants: [] }
 const once = encounterReducer(emptyEnc, { type: 'addCombatants', combatants: [npcBase({ companionOf: 'nathaniel', companionId: 'ab12' })] })

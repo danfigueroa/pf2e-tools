@@ -10,6 +10,8 @@
  * personagem — apagar um mapa nunca o leva junto.
  */
 
+import { isDefaultFit, sanitizeFit } from '../battle-map/tokenFit'
+
 export interface Companion {
     /** Identidade estável (a mesma criatura não entra duas vezes no mesmo encontro). */
     id: string
@@ -17,6 +19,11 @@ export interface Companion {
     name: string
     /** Token do mapa (Blob, ou `idb:` sem Blob). */
     token?: { url: string }
+    /**
+     * Enquadramento do token (centro e ampliação — `battle-map/tokenFit.ts`). Vai junto
+     * da criatura para o mapa, onde o GM ainda pode ajustar só aquele token.
+     */
+    fit?: { x: number; y: number; z: number }
 }
 
 export const MAX_COMPANIONS = 6
@@ -33,7 +40,13 @@ export function sanitizeCompanions(raw: unknown): Companion[] {
         if (!id || !name || seen.has(id)) continue
         seen.add(id)
         const url = c.token && typeof c.token.url === 'string' && c.token.url.length > 0 && c.token.url.length < 600 ? c.token.url : null
-        out.push({ id, name, ...(url ? { token: { url } } : {}) })
+        const fit = c.fit ? sanitizeFit(c.fit) : null
+        out.push({
+            id,
+            name,
+            ...(url ? { token: { url } } : {}),
+            ...(fit && !isDefaultFit(fit) ? { fit: { x: fit.x, y: fit.y, z: fit.z } } : {}),
+        })
         if (out.length >= MAX_COMPANIONS) break
     }
     return out

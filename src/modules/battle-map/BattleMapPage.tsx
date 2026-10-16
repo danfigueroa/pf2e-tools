@@ -115,7 +115,8 @@ function buildViews(data: MapData, gm: boolean): Map<string, TokenView> {
         } else {
             const raw = data.hp[id]
             const hp = raw ? { current: raw.current, max: raw.max, temp: raw.temp } : null
-            const fit = sanitizeFit(data.fit?.[id])
+            // O `fit:` do GM no mapa vale por cima do que veio com o companheiro de combate.
+            const fit = sanitizeFit(data.fit?.[id] ?? token.fit)
             // A imagem enviada no mapa (Modo GM) vale por cima da que o encontro mandou.
             views.set(id, { id, hp, showNumbers: gm, image: fit.url ?? token.image ?? null, fit })
         }

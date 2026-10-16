@@ -1,28 +1,39 @@
 import { useRef, useState } from 'react'
 import { Alert, Box, Button, ButtonBase, Card, CardContent, Chip, CircularProgress, IconButton, Stack, TextField, Tooltip, Typography } from '@mui/material'
-import { Add as AddIcon, Close as RemoveIcon, PhotoCamera as CameraIcon } from '@mui/icons-material'
+import { Add as AddIcon, Close as RemoveIcon, Crop as CropIcon, PhotoCamera as CameraIcon } from '@mui/icons-material'
 import type { BuildInfo } from '../../character-sheet/types'
-import { TOKEN_MAX_SIDE, deleteImage, imageErrorText, shrinkImage, uploadImage, useImageUrl } from '../../../services/images'
+import { NPC_TOKEN_MAX_SIDE, deleteImage, imageErrorText, shrinkImage, uploadImage, useImageUrl } from '../../../services/images'
 import { searchCreatures } from '../../../services/creatures'
 import { initials } from '../../battle-map/geometry'
 import { MAP_BACKDROP, TOKEN_NPC, parchment } from '../../../theme'
 import { MAX_COMPANIONS, type Companion } from '../companions'
+import { DEFAULT_FIT, fitStyle, isDefaultFit, sanitizeFit, type TokenFit } from '../../battle-map/tokenFit'
+import { TokenFitDialog } from '../../battle-map/components/TokenFitDialog'
 import { charSlug, companionsKeyFor } from '../charId'
 import { useCompanions } from './useCompanions'
 
-/** O token da criatura: toque para enviar ou trocar a imagem (permanente, pasta `tokens/`). */
-const CompanionToken = ({ slug, companion, onChange }: { slug: string; companion: Companion; onChange: (url: string | null) => void }) => {
+/** O token da criatura: toque para enviar ou trocar a imagem (permanente, pasta `tokens/`); o lápis enquadra. */
+const CompanionToken = ({ slug, companion, onChange, onFit }: {
+    slug: string
+    companion: Companion
+    onChange: (url: string | null) => void
+    onFit: (fit: TokenFit | null) => void
+}) => {
     const src = useImageUrl(companion.token?.url)
     const input = useRef<HTMLInputElement>(null)
     const [busy, setBusy] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [fitting, setFitting] = useState(false)
+    const [aspect, setAspect] = useState<{ src: string; value: number } | null>(null)
+    const known = src && aspect?.src === src ? aspect.value : null
+    const fit = companion.fit ? sanitizeFit(companion.fit) : DEFAULT_FIT
 
     const upload = async (file: File) => {
         setBusy(true)
         setError(null)
         try {
-            // Recorte quadrado do centro, como o token do personagem; o GM ainda pode enquadrar no mapa.
-            const { blob } = await shrinkImage(file, TOKEN_MAX_SIDE, true)
+            // A imagem inteira: o recorte é só o enquadramento, e dá para mudá-lo depois.
+            const { blob } = await shrinkImage(file, NPC_TOKEN_MAX_SIDE, false)
             const url = await uploadImage(blob, 'tokens', `${slug}-${companion.name}`)
             const old = companion.token?.url
             onChange(url)
@@ -36,7 +47,7 @@ const CompanionToken = ({ slug, companion, onChange }: { slug: string; companion
     }
 
     return (
-        <Box sx={{ flexShrink: 0 }}>
+        <Box sx={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
             <Tooltip title={companion.token ? 'Trocar o token' : 'Enviar o token'}>
                 <ButtonBase
                     onClick={() => input.current?.click()}
@@ -56,7 +67,20 @@ const CompanionToken = ({ slug, companion, onChange }: { slug: string; companion
                     }}
                 >
                     {src
-                        ? <Box component="img" src={src} alt="" sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ? (
+                            <Box
+                                component="img"
+                                src={src}
+                                alt=""
+                                onLoad={(e) => {
+                                    const { naturalWidth: w, naturalHeight: h } = e.currentTarget
+                                    if (w > 0 && h > 0) setAspect({ src, value: w / h })
+                                }}
+                                sx={known === null
+                                    ? { width: '100%', height: '100%', objectFit: 'cover' }
+                                    : { position: 'absolute', maxWidth: 'none', ...fitStyle(fit, known) }}
+                            />
+                        )
                         : initials(companion.name)}
                     <Box sx={{
                         position: 'absolute', right: 0, bottom: 0, width: 22, height: 22, borderRadius: '50%',
@@ -66,6 +90,11 @@ const CompanionToken = ({ slug, companion, onChange }: { slug: string; companion
                     </Box>
                 </ButtonBase>
             </Tooltip>
+            {src && (
+                <Button size="small" startIcon={<CropIcon sx={{ fontSize: 14 }} />} onClick={() => setFitting(true)} sx={{ minWidth: 0, py: 0, fontSize: '0.7rem' }}>
+                    Enquadrar
+                </Button>
+            )}
             <input
                 ref={input}
                 type="file"
@@ -74,6 +103,17 @@ const CompanionToken = ({ slug, companion, onChange }: { slug: string; companion
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(f) }}
             />
             {error && <Typography variant="caption" color="error" sx={{ display: 'block', maxWidth: 90 }}>{error}</Typography>}
+            {fitting && src && (
+                <TokenFitDialog
+                    name={companion.name}
+                    src={src}
+                    initial={fit}
+                    copies={0}
+                    pc={false}
+                    onSave={(next) => { onFit(isDefaultFit(next) ? null : { x: next.x, y: next.y, z: next.z }); setFitting(false) }}
+                    onClose={() => setFitting(false)}
+                />
+            )}
         </Box>
     )
 }
@@ -121,13 +161,13 @@ export const CompanionsCard = ({ build }: Props) => {
                     Companheiros de combate
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-                    Criaturas da AON que entram no encontro (e no mapa) sozinhas quando {build.name} entra. O token é enviado uma vez só.
+                    Criaturas da AON que entram no encontro (e no mapa) sozinhas quando {build.name} entra. O token e o enquadramento dele são feitos uma vez só.
                 </Typography>
 
                 <Stack spacing={1.25}>
                     {companions.list.map((c) => (
                         <Box key={c.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                            <CompanionToken slug={slug} companion={c} onChange={(url) => companions.setToken(c.id, url)} />
+                            <CompanionToken slug={slug} companion={c} onChange={(url) => companions.setToken(c.id, url)} onFit={(f) => companions.setFit(c.id, f)} />
                             <Typography sx={{ flex: 1, fontWeight: 700, minWidth: 0 }}>{c.name}</Typography>
                             <Tooltip title="Remover">
                                 <IconButton

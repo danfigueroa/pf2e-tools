@@ -30,6 +30,7 @@ function descriptors(state: EncounterState, views: CombatantView[]): Array<Token
             name: c.name,
             size: sizeSquares(c.size),
             image: c.tokenImage,
+            fit: c.tokenFit,
             defeated: c.defeated || undefined,
             speed: c.speed,
         })
