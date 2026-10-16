@@ -13,6 +13,8 @@ interface Props {
     canEdit: boolean
     onClose: () => void
     onApply: (next: TokenHp) => void
+    /** Personagem com ficha: abre-a no painel ao lado do mapa. */
+    onOpenSheet?: (slug: string) => void
 }
 
 /**
@@ -28,7 +30,7 @@ function woundLabel(hp: TokenHp): string {
     return 'À beira da morte'
 }
 
-export const TokenPopover = ({ anchor, token, hp, canEdit, onClose, onApply }: Props) => {
+export const TokenPopover = ({ anchor, token, hp, canEdit, onClose, onApply, onOpenSheet }: Props) => {
     const theme = useTheme()
     const [value, setValue] = useState('')
     const amount = Math.max(0, Math.floor(Number(value) || 0))
@@ -104,6 +106,12 @@ export const TokenPopover = ({ anchor, token, hp, canEdit, onClose, onApply }: P
                                 </Button>
                             </Box>
                         </>
+                    )}
+
+                    {token.kind === 'pc' && token.slug && onOpenSheet && (
+                        <Button variant="outlined" onClick={() => onOpenSheet(token.slug!)}>
+                            Ver ficha
+                        </Button>
                     )}
 
                     {hp && !canEdit && (

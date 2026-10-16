@@ -29,10 +29,13 @@ import {
     Close as CloseIcon,
     TouchApp as PingIcon,
     Casino as DiceIcon,
+    Description as SheetIcon,
 } from '@mui/icons-material'
 import { MapCanvas, type CanvasApi, type MapTool, type TokenView } from './components/MapCanvas'
 import { MapListDrawer } from './components/MapListDrawer'
 import { TokenPopover } from './components/TokenPopover'
+import { SheetPanel } from './components/SheetPanel'
+import { readSheetChoice, SHEET_OPEN_KEY, writeSheetChoice } from './sheetChoice'
 import { ImagePanel } from './components/ImagePanel'
 import { DrawPanel } from './components/DrawPanel'
 import { AreaPanel } from './components/AreaPanel'
@@ -135,6 +138,15 @@ export const BattleMapPage = () => {
     const [diceOpen, setDiceOpen] = useState(false)
     const [zoom, setZoom] = useState(1)
     const [drawer, setDrawer] = useState(false)
+    // Ficha ao lado do mapa: aberta/recolhida e o personagem lembrados neste aparelho.
+    const [sheetOpen, setSheetOpenState] = useState(() => {
+        try { return localStorage.getItem(SHEET_OPEN_KEY) !== '0' } catch { return true }
+    })
+    const setSheetOpen = useCallback((open: boolean) => {
+        setSheetOpenState(open)
+        try { localStorage.setItem(SHEET_OPEN_KEY, open ? '1' : '0') } catch { /* noop */ }
+    }, [])
+    const [sheetSlug, setSheetSlug] = useState<string | null>(readSheetChoice)
     const [tapped, setTapped] = useState<{ id: string; anchor: HTMLElement } | null>(null)
     const [resolving, setResolving] = useState(!routeId)
     // O aviso "os tokens vêm da Iniciativa" cobre metade do mapa no celular:
@@ -258,11 +270,14 @@ export const BattleMapPage = () => {
     const tokenCount = data ? Object.keys(data.tokens).length : 0
 
     return (
+        <Box sx={{ display: 'flex', height: '100dvh' }}>
         <Box
             sx={{
                 // O MainLayout não põe moldura em /mapa (sem padding, sem
-                // AppBar): o mapa ocupa a tela inteira.
-                height: '100dvh',
+                // AppBar): o mapa ocupa a tela inteira, menos o painel da ficha.
+                flex: 1,
+                minWidth: 0,
+                height: '100%',
                 position: 'relative',
                 overflow: 'hidden',
                 backgroundColor: green.deepest,
@@ -526,7 +541,42 @@ export const BattleMapPage = () => {
                 canEdit={canEditTapped}
                 onClose={() => setTapped(null)}
                 onApply={applyHp}
+                onOpenSheet={(slug) => { setSheetSlug(slug); writeSheetChoice(slug); setSheetOpen(true); setTapped(null) }}
             />
+
+            {!sheetOpen && (
+                <Tooltip title="Abrir a ficha" placement="left">
+                    <IconButton
+                        aria-label="Abrir a ficha"
+                        onClick={() => setSheetOpen(true)}
+                        size="small"
+                        sx={{
+                            position: 'absolute',
+                            right: 0,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            zIndex: 2,
+                            width: 24,
+                            height: 64,
+                            borderRadius: '8px 0 0 8px',
+                            color: gold.bright,
+                            backgroundColor: 'rgba(14, 36, 25, 0.7)',
+                            '&:hover': { backgroundColor: green.deepest },
+                        }}
+                    >
+                        <SheetIcon fontSize="small" />
+                    </IconButton>
+                </Tooltip>
+            )}
+        </Box>
+
+        {sheetOpen && (
+            <SheetPanel
+                slug={sheetSlug}
+                onSlugChange={setSheetSlug}
+                onCollapse={() => setSheetOpen(false)}
+            />
+        )}
         </Box>
     )
 }
