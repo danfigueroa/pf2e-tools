@@ -31,6 +31,7 @@ import { abilityMod, ABILITY_LABELS, mythicProficiencyDelta, weaponProficiencyRa
 import { conditionParts, type CheckPart } from './checks'
 import type { ConditionModifiers } from './conditions'
 import { meleeBonusParts } from './rage'
+import { fearsomeBruteBonus, hasFearsomeBrute } from './fighter'
 import { FIRST_STRIKE_KEY, HUNTERS_AIM_KEY, gravityBonus, hasHuntersAim } from './ranger'
 import type { UnarmedAttack } from './unarmed'
 import type { MagicWeaponRules } from './magicWeapons'
@@ -245,6 +246,8 @@ export interface StrikeOptions {
     attackAdjust: number
     /** Ajuste livre, cru — entra no dano. */
     damageAdjust: number
+    /** Valor de amedrontado do alvo — só o Fearsome Brute usa. */
+    frightened?: number
 }
 
 export const DEFAULT_STRIKE_OPTIONS: StrikeOptions = { map: 0, mode: 'auto', extrasOn: {}, attackAdjust: 0, damageAdjust: 0 }
@@ -370,6 +373,9 @@ export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers
     if (gravityApplies(s, mods) && opts.extrasOn[FIRST_STRIKE_KEY] !== false) {
         damageParts.push({ label: 'Gravity Weapon (status, 2 × dados)', value: gravityBonus(s.weaponDice.count), kind: 'other' })
     }
+    // Fearsome Brute: circunstância, 2 × (3 × se mestre em Intimidação) o medo do alvo.
+    const brute = hasFearsomeBrute(build) ? fearsomeBruteBonus(build, opts.frightened ?? 0) : 0
+    if (brute) damageParts.push({ label: `Fearsome Brute (amedrontado ${opts.frightened})`, value: brute, kind: 'other' })
     if (opts.damageAdjust) damageParts.push({ label: 'Ajuste', value: opts.damageAdjust, kind: 'other' })
     const flat = damageParts.reduce((sum, p) => sum + p.value, 0)
 

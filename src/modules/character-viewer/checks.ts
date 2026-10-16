@@ -154,6 +154,11 @@ function buildCheck(build: BuildInfo, mods: ConditionModifiers, input: CheckInpu
 
     const base = sum(parts)
     const cond = conditionParts(mods, input.target)
+    // Reflexive Shield: o bônus do escudo erguido é de circunstância e SOMA aos
+    // penalizadores (só a pior penalidade do tipo entra em `conditionParts`).
+    if (input.target === 'reflex' && mods.reflexShield) {
+        cond.push({ label: 'Reflexive Shield (escudo erguido)', value: mods.reflexShield, kind: 'condition' })
+    }
     const conditionDelta = sum(cond)
     return {
         label: input.label,

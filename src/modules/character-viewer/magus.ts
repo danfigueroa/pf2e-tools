@@ -65,10 +65,11 @@ export const hasArcaneCascade = (build: BuildInfo) => hasSpecial(build, 'Arcane 
 export const hasSpellstrike = (build: BuildInfo) => hasSpecial(build, 'Spellstrike')
 export const hasSummonMythicPower = (build: BuildInfo) => hasFeat(build, 'Summon Mythic Power')
 export const hasDivertDestiny = (build: BuildInfo) => hasFeat(build, 'Divert Destiny')
+export const hasFieryRebirthFeat = (build: BuildInfo) => hasFeat(build, 'Fiery Rebirth')
 
-/** Quem tem ao menos uma das quatro: é quando a faixa do Magus aparece. */
+/** Quem tem ao menos uma das características: é quando a faixa (Magus ou poder mítico) aparece. */
 export const hasMagusFeatures = (build: BuildInfo) =>
-    hasArcaneCascade(build) || hasSpellstrike(build) || hasSummonMythicPower(build) || hasDivertDestiny(build)
+    hasArcaneCascade(build) || hasSpellstrike(build) || hasSummonMythicPower(build) || hasDivertDestiny(build) || hasFieryRebirthFeat(build)
 
 /** O dano extra da postura: 1; 2 com Weapon Specialization; 3 com a Greater. */
 export function cascadeDamage(build: BuildInfo): number {

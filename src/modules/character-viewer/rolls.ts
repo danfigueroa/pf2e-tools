@@ -104,6 +104,20 @@ export function strikeRoll(
     }
 }
 
+/**
+ * A explosão do Fiery Rebirth: fogo em quem está adjacente, Reflexos básico
+ * contra a CD de classe. Dano fixo (2 × nível), então não há dado a rolar.
+ */
+export function fieryRebirthRoll(who: RollerIdentity, damage: number, dc: number): TableRoll {
+    const roll = base(who, 'Fiery Rebirth', `Reflexos básico · CD ${dc}`)
+    roll.damage = {
+        parts: [{ label: 'fogo (adjacentes)', dice: [], flat: damage, total: damage }],
+        total: damage,
+        basic: true,
+    }
+    return roll
+}
+
 /** A magia que entra no Golpe do Spellstrike. */
 export interface SpellstrikeInput {
     name: string

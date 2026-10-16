@@ -513,6 +513,8 @@ export interface ConditionModifiers {
     cascade?: CascadeEffect
     /** Presa marcada com Hunter's Edge: Precision e/ou Gravity Weapon ativa (`ranger.ts`). */
     ranger?: RangerEffect
+    /** Escudo erguido com Reflexive Shield: o bônus dele vale nos Reflexos (`fighter.ts`). */
+    reflexShield?: number
 }
 
 const emptyTargets = <T,>(make: () => T): Record<ModTarget, T> =>
