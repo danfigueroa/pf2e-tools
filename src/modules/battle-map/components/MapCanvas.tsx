@@ -122,6 +122,18 @@ function visibleGrid(rect: ImageRect | null, editing: boolean, cols: number, row
     }
 }
 
+/**
+ * Token movido por OUTRO aparelho desliza até o quadrado novo em vez de saltar:
+ * com o poll, a posição chega de uma vez, e o salto de três quadrados num
+ * instante é difícil de acompanhar. `left/top` (ver `Token`) custa layout por
+ * quadro, mas só do token que se moveu e por 240 ms. Quem arrasta não vê o
+ * deslize (`data-dragging`), e com movimento reduzido não há deslize.
+ */
+const TOKEN_GLIDE = `
+[data-token-id]:not([data-dragging]) { transition: left 240ms ease-out, top 240ms ease-out; }
+@media (prefers-reduced-motion: reduce) { [data-token-id] { transition: none !important; } }
+`
+
 /** Posição do token, em px do mundo — `left/top`, como o `Token` desenha (ver lá o porquê). */
 function placeToken(el: HTMLElement, left: number, top: number) {
     el.style.left = `${left}px`
@@ -541,6 +553,9 @@ export const MapCanvas = memo(function MapCanvas({
         if (tokenEl && id && pos) {
             const size = d.tokens[id]?.size ?? 1
             clearOverlay()
+            // Sem o deslize (ver TOKEN_GLIDE) enquanto o dedo arrasta: o token
+            // ficaria atrás do ponteiro.
+            tokenEl.dataset.dragging = ''
             gesture.current = {
                 kind: 'token', id, el: tokenEl, size, from: pos, to: pos,
                 ox: w.x - pos.x * CELL_PX, oy: w.y - pos.y * CELL_PX,
@@ -682,6 +697,11 @@ export const MapCanvas = memo(function MapCanvas({
         }
         if (pointers.current.size > 0) return
         gesture.current = null
+        // Devolve o deslize no quadro seguinte — depois de o token encaixar no
+        // quadrado, que não deve deslizar. Pela busca e não pelo `g`: uma pinça
+        // no meio do arrasto troca o gesto e o `g` já não é o do token.
+        const dragged = viewportRef.current?.querySelectorAll<HTMLElement>('[data-dragging]')
+        if (dragged?.length) requestAnimationFrame(() => dragged.forEach((el) => { delete el.dataset.dragging }))
         if (!g) return
 
         if (g.kind === 'token') {
@@ -767,6 +787,7 @@ export const MapCanvas = memo(function MapCanvas({
                     || tool === 'area' ? 'crosshair' : 'default',
             }}
         >
+            <style>{TOKEN_GLIDE}</style>
             <div
                 ref={worldRef}
                 data-erasing={erasing || undefined}
