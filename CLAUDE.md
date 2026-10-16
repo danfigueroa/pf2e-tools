@@ -582,6 +582,20 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     Vale só no primeiro acerto da rodada — a legenda avisa, o app não conta.
   - **Hunter's Aim** (talento, 2 ações): chip só em Golpe à distância/arremesso, +2 de circunstância no ataque.
   Quem tem cada coisa vem da ficha (`specials`/`feats`/`focus`). `check-rolls` cobre. A Iniciativa não lê `ranger`.
+- **Ladino** (`rogue.ts` + `components/useRogue.ts` + `RogueBar.tsx` + `usePoison.ts`): **Poison Weapon**
+  (talento) escolhe, entre os itens do inventário com os traços `Poison` + `Contact`/`Injury` (via
+  `fetchItemTraits`; veneno inalado como o Breath of the Mantis God NÃO serve), aplica 1 na arma e **gasta
+  uma unidade** pelo mesmo contador dos consumíveis (`useConsumables`, campo `consumed`). Campo `rogue` da
+  mesa (`{ poison }`). A lâmina fica envenenada **até alguém clicar "Veneno usado"** — o app não sabe se o
+  Golpe acertou. O diálogo do Golpe mostra o chip "Arma envenenada · Fearweed (CD 30 Fortitude)" (CD e
+  salvaguarda lidas da AON por `searchAfflictions`) e a rolagem leva isso na anotação; o dano e o efeito do
+  veneno são do GM (aflição na Iniciativa), o app não rola nada.
+  - **Debilitating Strike** (ação livre, nível 9): chips "Deslocamento −3 m" / "Enfraquecido 1" no diálogo
+    do Golpe, também só como anotação da rolagem (precisa acertar um alvo desprevenido).
+  - **`TableRoll.note`** (novo, até 300 caracteres) leva essas anotações: o `sub` é cortado em 80 e é para o
+    rótulo curto. Como todo campo do feed, **duas validações** (`tableRoll.ts` e `roll-store.js`); o
+    `check-rolls` confere as duas. O Spellstrike com muitas parcelas de dano junta as da magia numa só, porque
+    o feed recusa a rolagem inteira com mais de 8.
 - **Mudança de tamanho** (`sizeEffects.ts` + `components/useSizeEffect.ts`): a runa do Brukuthur
   liga Enlarge 4º ou Shrink com um clique e desliga pelo "Voltar ao normal". Estado da mesa no
   campo `size` (`{ active, used, since }`; `used` trava a ativação 1×/dia até o "Novo dia").
