@@ -37,9 +37,14 @@ export const SpellstrikePanel = ({ ss, magus }: Props) => {
                         onChange={(e) => ss.setChoice(e.target.value || null)}
                     >
                         <MenuItem value=""><em>Só o Golpe (sem magia)</em></MenuItem>
-                        {[...ss.options].sort((a, b) => b.rank - a.rank || a.name.localeCompare(b.name)).map((o) => (
+                        {[...ss.options].sort((a, b) => a.caster.localeCompare(b.caster) || b.rank - a.rank || a.name.localeCompare(b.name)).map((o) => (
                             <MenuItem key={o.id} value={o.id} disabled={o.left === 0}>
-                                {o.name} · {o.kind === 'cantrip' ? `truque (rank ${o.rank})` : `rank ${o.rank} · ${o.left} slot${o.left === 1 ? '' : 's'}`}
+                                {o.name} · {o.kind === 'cantrip'
+                                    ? `truque (rank ${o.rank})`
+                                    : o.kind === 'mythic'
+                                        ? `rank ${o.rank} · 1 Ponto Mítico (${o.left} disponível)`
+                                        : `rank ${o.rank} · ${o.left} slot${o.left === 1 ? '' : 's'}`}
+                                {ss.options.some((x) => x.caster !== o.caster) ? ` — ${o.caster}` : ''}
                             </MenuItem>
                         ))}
                     </Select>
@@ -103,7 +108,7 @@ export const SpellstrikePanel = ({ ss, magus }: Props) => {
                                 ? 'Magia de ataque: usa o resultado do Golpe e dobra no crítico.'
                                 : `Salvaguarda${ss.spell.defense ? ` (${ss.spell.defense})` : ''}: o alvo rola a dele; o dano da magia não dobra com o crítico do Golpe.`}
                             {' '}
-                            {option.kind === 'cantrip' ? 'Truque: não gasta slot.' : `Ao rolar, gasta 1 slot de rank ${option.spellLevel}.`}
+                            {option.kind === 'cantrip' ? 'Truque: não gasta slot.' : option.kind === 'mythic' ? 'Mythic Magic: gasta 1 Ponto Mítico, e o ataque é o do Golpe (sem a proficiência mítica da magia).' : `Ao rolar, gasta 1 slot de rank ${option.spellLevel}.`}
                             {' '}Conta como dois ataques para a penalidade (aplicada depois).
                         </Typography>
 

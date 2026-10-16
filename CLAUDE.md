@@ -606,8 +606,10 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     magia de conflux de 1+ ação), E vive dentro do diálogo do Golpe (`SpellstrikePanel` + `useSpellstrike` +
     `spellstrike.ts`): o Magus escolhe a magia, e UM clique rola Golpe + magia, gasta o slot (truque não
     gasta), marca o Spellstrike como gasto e, se o chip estiver ligado, entra na Arcane Cascade com o tipo
-    da magia. Só entram magias do bloco "Magus" (não as de herança/arquétipo) de 1–2 ações com ataque ou
-    salvaguarda (`spellstrikeIssue`). Magia de ATAQUE usa o resultado do Golpe e dobra no crítico; de
+    da magia. Entram as magias de **QUALQUER bloco** da ficha (Magus, arquétipo de Mago, inatas e **Mythic Magic** — esta gasta 1 Ponto
+    Mítico em vez de slot, e o ataque é o do Golpe, sem a proficiência mítica da magia) de 1–2 ações com ataque ou
+    salvaguarda (`spellstrikeIssue`); a característica Spellstrike é que liga a seção. Houve um bug: só o bloco "Magus"
+    entrava, e o Blazing Bolt (que está no Mythic Magic) nunca aparecia. Magia de ATAQUE usa o resultado do Golpe e dobra no crítico; de
     SALVAGUARDA não dobra (o alvo rola a dele). `spellstrikeRoll` (`rolls.ts`) soma as parcelas num `TableRoll`
     só. Escolhida a magia e ainda não pronta (buscando, sem slot), o botão de rolar fica desabilitado:
     rolar sem ela em silêncio enganaria. Só vale em Golpe corpo a corpo.

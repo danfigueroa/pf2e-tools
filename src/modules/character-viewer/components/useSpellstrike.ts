@@ -30,11 +30,11 @@ export function defaultComponentSelection(list: ScaledComponent[]): Set<number> 
  * opções (com os slots que restam), a descrição (buscada ao escolher), o dano no
  * rank certo e o gasto do slot. `enabled` = a ficha tem Spellstrike.
  */
-export function useSpellstrike(build: BuildInfo, enabled: boolean) {
+export function useSpellstrike(build: BuildInfo, enabled: boolean, mythicPoints?: { available: number; spend: () => void }) {
     const slots = useSpellSlots(slotsKeyFor(build), build.focusPoints ?? 0, legacyCharKey(build))
     const options = useMemo(
-        () => (enabled ? spellstrikeOptions(build, slots.usedOf) : []),
-        [enabled, build, slots.usedOf],
+        () => (enabled ? spellstrikeOptions(build, slots.usedOf, mythicPoints?.available ?? 0) : []),
+        [enabled, build, slots.usedOf, mythicPoints?.available],
     )
 
     const [choice, setChoice] = useState<string | null>(null)
@@ -81,9 +81,10 @@ export function useSpellstrike(build: BuildInfo, enabled: boolean) {
     const issue = spellstrikeIssue(spell)
     const [enterCascade, setEnterCascade] = useState(true)
 
-    /** Truque não gasta; o resto tira 1 slot do grupo da magia. */
+    /** Truque não gasta; Mythic Magic gasta 1 Ponto Mítico; o resto tira 1 slot do grupo da magia. */
     const spend = () => {
-        if (option?.slot) slots.spendOne(option.slot.key, option.slot.total)
+        if (option?.kind === 'mythic') mythicPoints?.spend()
+        else if (option?.slot) slots.spendOne(option.slot.key, option.slot.total)
     }
 
     return {

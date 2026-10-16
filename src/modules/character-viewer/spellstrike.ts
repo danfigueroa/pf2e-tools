@@ -14,21 +14,24 @@
  */
 import type { BuildInfo, SpellCaster, SpellDescription } from '../character-sheet/types'
 import { slotKey } from './components/useSpellSlots'
-import { actionSymbol } from './helpers'
+import { actionSymbol, isMythicMagicCaster } from './helpers'
 import { castRankForSlot } from './heightening'
 import { actionRange } from './actionVariants'
 
 export interface SpellstrikeOption {
-    /** Identidade estável na lista: `nível|nome`. */
+    /** Identidade estável na lista: `bloco|nível|nome` (a mesma magia pode estar em dois blocos). */
     id: string
     name: string
+    /** O bloco de conjuração de onde ela vem ("Magus", "Archetype Wizard", "Mythic Magic"…). */
+    caster: string
     spellLevel: number
     /** Rank em que a magia entra no Golpe (truque = metade do nível, arredondada para cima). */
     rank: number
-    kind: 'cantrip' | 'prepared' | 'spontaneous'
-    /** Chave do grupo de slots e quantos há — `null` para truque. */
+    /** `mythic` = Mythic Magic: não gasta slot, gasta 1 Ponto Mítico. */
+    kind: 'cantrip' | 'prepared' | 'spontaneous' | 'mythic'
+    /** Chave do grupo de slots e quantos há — `null` para truque e Mythic Magic. */
     slot: { key: string; total: number } | null
-    /** Slots que ainda restam (`null` = à vontade). */
+    /** O que ainda resta (slots, ou Pontos Míticos); `null` = à vontade. */
     left: number | null
 }
 
@@ -38,29 +41,41 @@ export function magusCaster(build: BuildInfo): { caster: SpellCaster; index: num
     return index >= 0 ? { caster: build.spellCasters[index], index } : null
 }
 
-export function spellstrikeOptions(build: BuildInfo, usedOf: (key: string) => number): SpellstrikeOption[] {
-    const found = magusCaster(build)
-    if (!found) return []
-    const { caster, index } = found
-    const spontaneous = caster.spellcastingType === 'spontaneous'
+/**
+ * As magias que podem ir no Golpe: as de QUALQUER bloco de conjuração da ficha — o Spellstrike só
+ * pede que você conjure uma magia de 1 ou 2 ações com ataque ou salvaguarda, venha de onde vier
+ * (o Live Wire do arquétipo de Mago e o Blazing Bolt do Mythic Magic entram). Só dá para ter
+ * Spellstrike se a ficha tem a característica; quem a chama checa.
+ *
+ * O Mythic Magic não tem slot: cada conjuração gasta 1 Ponto Mítico (`mythicLeft`). O ataque
+ * continua sendo o do Golpe — a proficiência mítica da magia não entra, porque quem rola é o Strike.
+ */
+export function spellstrikeOptions(build: BuildInfo, usedOf: (key: string) => number, mythicLeft = 0): SpellstrikeOption[] {
     const out: SpellstrikeOption[] = []
-    for (const level of caster.spells) {
-        const counts = new Map<string, number>()
-        for (const n of level.list) counts.set(n, (counts.get(n) ?? 0) + 1)
-        for (const [name, count] of counts) {
-            const rank = castRankForSlot(level.spellLevel, build.level)
-            if (level.spellLevel === 0) {
-                out.push({ id: `0|${name}`, name, spellLevel: 0, rank, kind: 'cantrip', slot: null, left: null })
-            } else if (spontaneous) {
-                const total = caster.perDay?.[level.spellLevel] ?? 0
-                const key = slotKey(index, caster.name, level.spellLevel)
-                out.push({ id: `${level.spellLevel}|${name}`, name, spellLevel: level.spellLevel, rank, kind: 'spontaneous', slot: { key, total }, left: Math.max(0, total - usedOf(key)) })
-            } else {
-                const key = slotKey(index, caster.name, level.spellLevel, name)
-                out.push({ id: `${level.spellLevel}|${name}`, name, spellLevel: level.spellLevel, rank, kind: 'prepared', slot: { key, total: count }, left: Math.max(0, count - usedOf(key)) })
+    ;(build.spellCasters ?? []).forEach((caster, index) => {
+        const mythicMagic = isMythicMagicCaster(caster)
+        const spontaneous = caster.spellcastingType === 'spontaneous'
+        for (const level of caster.spells) {
+            const counts = new Map<string, number>()
+            for (const n of level.list) counts.set(n, (counts.get(n) ?? 0) + 1)
+            for (const [name, count] of counts) {
+                const rank = castRankForSlot(level.spellLevel, build.level)
+                const base = { id: `${index}|${level.spellLevel}|${name}`, name, caster: caster.name, spellLevel: level.spellLevel, rank }
+                if (mythicMagic) {
+                    out.push({ ...base, kind: 'mythic', slot: null, left: mythicLeft })
+                } else if (level.spellLevel === 0) {
+                    out.push({ ...base, kind: 'cantrip', slot: null, left: null })
+                } else if (spontaneous) {
+                    const total = caster.perDay?.[level.spellLevel] ?? 0
+                    const key = slotKey(index, caster.name, level.spellLevel)
+                    out.push({ ...base, kind: 'spontaneous', slot: { key, total }, left: Math.max(0, total - usedOf(key)) })
+                } else {
+                    const key = slotKey(index, caster.name, level.spellLevel, name)
+                    out.push({ ...base, kind: 'prepared', slot: { key, total: count }, left: Math.max(0, count - usedOf(key)) })
+                }
             }
         }
-    }
+    })
     return out
 }
 

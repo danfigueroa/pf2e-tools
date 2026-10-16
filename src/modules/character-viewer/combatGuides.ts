@@ -305,7 +305,7 @@ const NATHANIEL = `## 🎯 Papel em Combate
 - 🕊️ **Aeromancer:** *Fly* de 4º rank, inata, **1×/dia**.
 
 ## ⚡ Poderes Míticos
-- 🔥 **Mythic Magic:** gaste um Ponto Mítico para lançar *Blazing Bolt*, *Vanish Weapon* ou *Horizon Thunder Sphere* **no 5º rank** com **proficiência mítica** (ataque de magia ~**+24** em vez de +18). O ⚡ ao lado de cada uma, na aba de Magias, **gasta o Ponto Mítico** direto. E **não as use no Spellstrike**: lá quem rola é o Strike, e a proficiência mítica se perde.
+- 🔥 **Mythic Magic:** gaste um Ponto Mítico para lançar *Blazing Bolt*, *Vanish Weapon* ou *Horizon Thunder Sphere* **no 5º rank** com **proficiência mítica** (ataque de magia ~**+24** em vez de +18). O ⚡ ao lado de cada uma, na aba de Magias, **gasta o Ponto Mítico** direto. No **Spellstrike** elas entram (a lista de magias do Golpe inclui o Mythic Magic: gasta **1 Ponto Mítico** em vez de slot), mas quem rola é o Strike — a proficiência mítica da magia **se perde**. Vale pelo dano do *Blazing Bolt* de 5º rank (10d6 com 2 ações), não pelo ataque.
 - 🗡️ **Vanish Weapon (reação, via Mythic Magic):** um inimigo **acerta ou erra** (sem crítico) um golpe corpo a corpo com arma em você → tente **Desarmá-lo** com ataque de magia mítico, sem precisar de mão livre. No sucesso a arma some numa bolsa extradimensional sua.
 - 💀 **Divert Destiny (livre):** ao cair a 0 PV ou morrer, gaste um Ponto Mítico e fique **de pé com 10 + nível PV**, sem Ferido nem Morrendo.
 - 💨 **Godspeed (1 ação):** 1 minuto de **+3 m** de velocidade e *quickened* para Stride, Step ou Leap.

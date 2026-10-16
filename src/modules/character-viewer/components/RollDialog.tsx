@@ -341,7 +341,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
     // clique que rola o Golpe, gasta o slot e marca o Spellstrike como gasto.
     const magus = useMagus(magusKeyFor(build), build)
     const canSpellstrike = hasSpellstrike(build) && !traits.ranged && opts.mode !== 'thrown'
-    const ss = useSpellstrike(build, canSpellstrike)
+    const ss = useSpellstrike(build, canSpellstrike, mythicPoints)
     const spellstriking = canSpellstrike && ss.ready
 
     // Veneno na arma (Poison Weapon) e Debilitating Strike do Ladino: viram anotação da
