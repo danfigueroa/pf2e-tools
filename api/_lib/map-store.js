@@ -272,24 +272,31 @@ export async function readMap(id, knownRevs) {
     return { id, meta: metaEntry.data, tokens, pos, hp, drawings, pings, rolls, turn, pcs, ...revs }
 }
 
-/** `hp` e `token` de cada personagem, do hash da mesa — um HMGET por slug, num pipeline. */
+/**
+ * `hp`, `token` e `size` (Enlarge/Shrink ligado) de cada personagem, do hash da
+ * mesa — um HMGET por slug, num pipeline.
+ */
 async function readPcs(slugs) {
     if (slugs.length === 0) return {}
     const r = redis()
     const out = {}
     if (r) {
         const p = r.pipeline()
-        slugs.forEach((slug) => p.hmget(TABLE_PREFIX + slug, 'hp', 'token'))
+        slugs.forEach((slug) => p.hmget(TABLE_PREFIX + slug, 'hp', 'token', 'size'))
         const rows = await p.exec()
         slugs.forEach((slug, i) => {
             const row = rows[i] || {}
-            out[slug] = { hp: unwrap(row.hp)?.data ?? null, token: unwrap(row.token)?.data ?? null }
+            out[slug] = {
+                hp: unwrap(row.hp)?.data ?? null,
+                token: unwrap(row.token)?.data ?? null,
+                size: unwrap(row.size)?.data ?? null,
+            }
         })
         return out
     }
     for (const slug of slugs) {
         const fields = await readCharacter(slug)
-        out[slug] = { hp: fields.hp?.data ?? null, token: fields.token?.data ?? null }
+        out[slug] = { hp: fields.hp?.data ?? null, token: fields.token?.data ?? null, size: fields.size?.data ?? null }
     }
     return out
 }
