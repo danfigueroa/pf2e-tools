@@ -40,7 +40,7 @@ import { CombatantAfflictions } from './CombatantAfflictions'
 import { CombatantPersistent } from './CombatantPersistent'
 import { CombatantVitals, type ShieldBefore } from './CombatantVitals'
 import { NpcShieldDialog } from './NpcShieldDialog'
-import { TOKEN_MAX_SIDE, imageErrorText, shrinkImage, uploadImage } from '../../../services/images'
+import { NPC_TOKEN_MAX_SIDE, imageErrorText, shrinkImage, uploadImage } from '../../../services/images'
 import type { BlockResult } from '../../character-viewer/shield'
 import type { CombatantView, NpcShield } from '../types'
 import { pop, pulseAnimation, useArmed, useReducedMotion, type Pulse } from '../../../motion/motion'
@@ -134,7 +134,8 @@ export const CombatantCard = ({
     const uploadToken = async (file: File) => {
         setTokenBusy(true)
         try {
-            const { blob } = await shrinkImage(file, TOKEN_MAX_SIDE, true)
+            // A imagem inteira (sem recortar no centro): o GM escolhe o enquadramento depois, no mapa.
+            const { blob } = await shrinkImage(file, NPC_TOKEN_MAX_SIDE, false)
             onTokenImage(await uploadImage(blob, 'monsters', combatant.name))
         } catch (error) {
             onTokenError(imageErrorText(error))

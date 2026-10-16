@@ -15,6 +15,8 @@ interface Props {
     onApply: (next: TokenHp) => void
     /** Personagem com ficha: abre-a no painel ao lado do mapa. */
     onOpenSheet?: (slug: string) => void
+    /** Modo GM com imagem no token: abre o enquadramento (centro e ampliação). */
+    onAdjustImage?: () => void
 }
 
 /**
@@ -30,7 +32,7 @@ function woundLabel(hp: TokenHp): string {
     return 'À beira da morte'
 }
 
-export const TokenPopover = ({ anchor, token, hp, canEdit, onClose, onApply, onOpenSheet }: Props) => {
+export const TokenPopover = ({ anchor, token, hp, canEdit, onClose, onApply, onOpenSheet, onAdjustImage }: Props) => {
     const theme = useTheme()
     const [value, setValue] = useState('')
     const amount = Math.max(0, Math.floor(Number(value) || 0))
@@ -111,6 +113,12 @@ export const TokenPopover = ({ anchor, token, hp, canEdit, onClose, onApply, onO
                     {token.kind === 'pc' && token.slug && onOpenSheet && (
                         <Button variant="outlined" onClick={() => onOpenSheet(token.slug!)}>
                             Ver ficha
+                        </Button>
+                    )}
+
+                    {onAdjustImage && (
+                        <Button variant="outlined" onClick={onAdjustImage}>
+                            Enquadrar a imagem
                         </Button>
                     )}
 
