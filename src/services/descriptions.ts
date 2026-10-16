@@ -33,22 +33,34 @@ function key(kind: Kind, name: string) {
     return `pf2e:${CACHE_VERSION}:${kind}:${name}`
 }
 
-function readCache<T>(kind: Kind, name: string, parse = false): T | null {
+// Parse em memória na frente do localStorage, como em `gear.ts`. A lista de
+// magias lê o cache de cada linha a cada render; sem isto, gastar um slot ou
+// abrir o drawer refazia dezenas de `JSON.parse` de payloads de vários KB. De
+// quebra, a mesma magia devolve sempre o mesmo objeto. Só guarda acerto: a
+// ausência continua sendo conferida no localStorage, que é barato.
+const memory = new Map<string, unknown>()
+
+function readCache<T>(kind: Kind, name: string): T | null {
+    const k = key(kind, name)
+    if (memory.has(k)) return memory.get(k) as T
     try {
-        const raw = localStorage.getItem(key(kind, name))
+        const raw = localStorage.getItem(k)
         if (!raw) return null
-        return parse ? (JSON.parse(raw) as T) : (raw as unknown as T)
+        const value = JSON.parse(raw) as T
+        memory.set(k, value)
+        return value
     } catch {
         return null
     }
 }
 
 function writeCache(kind: Kind, name: string, value: unknown) {
+    const k = key(kind, name)
+    memory.set(k, value)
     try {
-        const v = typeof value === 'string' ? value : JSON.stringify(value)
-        localStorage.setItem(key(kind, name), v)
+        localStorage.setItem(k, JSON.stringify(value))
     } catch {
-        // quota exceeded — silently ignore
+        // quota exceeded — a memória segura a sessão
     }
 }
 
@@ -101,7 +113,7 @@ async function fetchEntry(
     endpoint: string,
     name: string,
 ): Promise<FeatDescription | null> {
-    const cached = readCache<FeatDescription>(kind, name, true)
+    const cached = readCache<FeatDescription>(kind, name)
     if (cached) return cached
 
     const result = await fetchOne<FeatDescription>(endpoint, name, (data) => {
@@ -123,7 +135,7 @@ export function fetchSpecialDescription(name: string) {
 }
 
 export async function fetchSpellDescription(name: string): Promise<SpellDescription | null> {
-    const cached = readCache<SpellDescription>('spell', name, true)
+    const cached = readCache<SpellDescription>('spell', name)
     if (cached) return cached
 
     const result = await fetchOne<SpellDescription>('/api/spells', name, (data) => {
@@ -153,7 +165,7 @@ export async function prefetchSpellDescriptions(
 ): Promise<void> {
     const unique = Array.from(new Set(names))
     const notCached = () =>
-        unique.filter((n) => !readCache<SpellDescription>('spell', n, true))
+        unique.filter((n) => !readCache<SpellDescription>('spell', n))
 
     let pending = notCached()
     const total = pending.length
@@ -197,7 +209,7 @@ export function fetchItemDescription(name: string) {
 }
 
 export async function fetchCompanionStats(name: string): Promise<CompanionStats | null> {
-    const cached = readCache<CompanionStats>('companion', name, true)
+    const cached = readCache<CompanionStats>('companion', name)
     if (cached) return cached
 
     const result = await fetchOne<CompanionStats>('/api/companions', name, (data) => {
@@ -210,11 +222,11 @@ export async function fetchCompanionStats(name: string): Promise<CompanionStats 
 }
 
 export function getCachedFeat(name: string) {
-    return readCache<FeatDescription>('feat', name, true)
+    return readCache<FeatDescription>('feat', name)
 }
 export function getCachedSpecial(name: string) {
-    return readCache<FeatDescription>('special', name, true)
+    return readCache<FeatDescription>('special', name)
 }
 export function getCachedSpell(name: string) {
-    return readCache<SpellDescription>('spell', name, true)
+    return readCache<SpellDescription>('spell', name)
 }
