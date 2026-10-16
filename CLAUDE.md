@@ -42,6 +42,7 @@ Scripts avulsos, rodados à mão (não entram no build):
 node scripts/fetch-creature-tables.mjs  # regera as tabelas do GM Core (confira o diff!)
 node scripts/check-scaling.mjs 200      # confere o motor de escala contra criaturas de verdade
 node scripts/check-heightening.mjs      # confere o heightening das magias contra o índice inteiro
+node scripts/check-rolls.mjs            # confere a matemática das rolagens contra as fichas do grupo
 ```
 
 Depois de mexer em `monster-scaler/scaling.ts` ou nas tabelas, rode o `check-scaling` — ele sai com
@@ -150,6 +151,12 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   monstro traz "shield (Hardness 5, HP 20, BT 10)" — só com "shield" logo antes, senão a dureza
   do PRÓPRIO constructo viraria escudo. ~53% dos monstros com Shield Block têm os números; o resto
   o GM define à mão. Mora em `api/search.js` pelo limite de 12 funções.
+- **`search?gear=a|b`** devolve os **traços das armas** (`trait_raw`: "Deadly d10", "Fatal 1d10",
+  "Thrown 10 ft." e `weapon_type` Melee/Ranged) e a **penalidade das armaduras** (`check_penalty`,
+  `strength`), que o Pathbuilder não exporta, **sem tradução** (`api/_lib/gear-core.js`). Item
+  específico (Gloom Blade, Hero's Plate) segue o `base_item`. É o que as rolagens da ficha usam
+  para o MAP de ágil, o atributo do ataque e o crítico. Mora em `api/search.js` pelo limite de 12
+  funções.
 - `state` é o único endpoint com **estado**: guarda o jogo da mesa (ver a seção própria abaixo).
   Fica em `api/state.js`, **um nível** — o glob `"api/*.js"` do `vercel.json` não pega subpastas,
   então `api/state/[char].js` perderia o `maxDuration`.
@@ -169,6 +176,15 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   - O guia só é gravado se a ficha ainda for a que o gerou (`publishedAt`): duas publicações
     seguidas não terminam com o guia da primeira na segunda. `tidy` tira itálico e lista `*`/`1.`,
     que o `GuideMarkdown` não entende e mostrava crus.
+- **O mesmo `state` serve o feed de rolagens** (`api/_lib/roll-handler.js` + `roll-store.js`):
+  `GET ?rolls=1&rev=N` e `POST { action: 'roll-add', roll }`. Uma LISTA no Redis com as últimas
+  30 rolagens (`LPUSH`+`LTRIM`+`EXPIRE` 1 dia+`INCR pf2e:rolls:rev` = 4 comandos por rolagem) e o
+  contador que o poll lê (1 comando; 2 quando mudou). `isRollRequest` vem **antes** de
+  `isSheetRequest` nos dois servidores, pelo mesmo motivo do mapa. O `at` é do servidor.
+  - **A validação existe duas vezes**: `sanitizeTableRoll` em `src/dice/tableRoll.ts` e
+    `sanitizeRoll` em `roll-store.js` (o servidor é JS puro e não importa o TS). Mudou uma, muda a
+    outra — o `check-rolls` confere as duas com os mesmos casos. A soma tem de fechar (`d20 + mod =
+    total`, dados + fixo = total da parcela): número que não confere não vai à mesa.
 - **O mesmo `state` serve o Mapa de Combate** (`api/_lib/map-handler.js` + `map-store.js`):
   `GET ?maps=1`, `?map=<id>`, `?mapRev=<id>` (o poll), `POST` com `action: 'map-*'` e
   `blob-delete`, e `POST ?blob=1` (token de upload do Vercel Blob). Mora aqui pelo limite de 12
@@ -253,6 +269,27 @@ abrir o site entra na mesma mesa.
   "Atualizar", e arrastar 8 KB de ficha e 7 KB de guia toda vez seria desperdício. Sem TTL — uma
   ficha publicada é a fonte da verdade do personagem —, teto de 64 KB, e guarda UMA versão
   anterior (`previous`), que é a salvaguarda de não haver login.
+
+## Feed de rolagens da mesa
+
+Toda rolagem — da ficha, do rolador do mapa — vai para o feed (`services/rolls.ts` →
+`api/_lib/roll-store.js`) e aparece para **todo mundo, em qualquer página**: o `RollFeedLayer` é
+montado UMA vez no `MainLayout` (trocar de rota não refaz o "já visto"), e o histórico das últimas
+30 abre pelo item "Rolagens da mesa" da sidebar ou pelo dado da AppBar no celular.
+
+- **A rolagem vem sorteada** (`TableRoll`, `src/dice/tableRoll.ts`): quem recebe só apresenta, com o
+  memorial junto para a mesa conferir. `DiceTray` aceita dados de tamanhos diferentes na mesma
+  bandeja (o d8 da arma e o d6 da runa).
+- **Cada id aparece uma vez por aparelho**; o que já estava no feed ao abrir conta como visto,
+  menos o que saiu DESTE aparelho (`isOwnRoll`) — a otimista pode chegar antes da primeira leitura.
+- **Poll leve, decisão do usuário**: 3 s com a aba visível, rajada de 1 s por 5 s depois de uma
+  rolagem, nada com a aba oculta. Cada poll é 1 comando no Upstash (~6 aparelhos × 4 h ≈ 30 mil
+  por sessão). **Com o Mapa aberto o feed não faz poll próprio**: o contador vai de carona como 4ª
+  chave do MGET do `readRevs` (um MGET custa um comando com 3 ou 4 chaves), `maps.ts` repassa por
+  `noteRollsRev`, e o poll próprio volta sozinho 6 s depois que o mapa para de avisar. O `rollsRev`
+  NÃO entra na conta de "o mapa mudou" — rolagem não baixa o mapa.
+- O cartão é clicável para fechar (some sozinho em 8 s) e fica acima da AppBar e das gavetas
+  (`zIndex` 1250), abaixo dos diálogos.
 
 ## Tema (verde/pergaminho/ouro)
 
@@ -523,6 +560,48 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   no gerenciador de Iniciativa; aqui só se vê e se remove. As condições do estágio entram em
   `useConditions` pelo parâmetro `derived`: contam nos modificadores (o veneno baixa os números de
   verdade) mas nunca no estado gravado.
+- **Totais dos testes têm UMA fonte** (`checks.ts`): salvaguardas, Percepção, perícias e Saberes
+  saem de `saveCheck`/`perceptionCheck`/`skillCheck`/`loreCheck`, com a conta parcela por parcela
+  (`parts`). A Visão Geral, as Perícias, a Iniciativa (`pcFromBuild`), o guia automático e a
+  rolagem leem daqui — duas contas para o mesmo número sairiam de sincronia.
+  - **O bônus de item vem do `build.mods`** do Pathbuilder (`{"Fortitude": {"Item Bonus": 1}}`,
+    "Stealth", "Arcana"…). Antes ficava de fora e o grupo inteiro aparecia com as salvaguardas 1
+    abaixo do real (runa resiliente).
+  - **Penalidade de armadura** nas perícias de FOR/DES, com os números do AON (`search?gear=`,
+    `useArmorPenalty`), só quando a FOR não alcança a exigência. Hoje ninguém do grupo é afetado.
+    Não vale em ação com o traço ataque — o diálogo avisa, a ficha não tem como saber.
+  - O ✦ é `total + mythicDelta`, que TROCA a proficiência (`mythicProficiencyDelta`), nunca +10
+    por cima.
+- **Rolagens** (`rolls.ts`, `strikes.ts`, `components/RollDialog.tsx`, `RollTrigger.tsx`): tocar
+  num save, na Percepção, numa perícia/Saber, no "Rolar" de uma arma ou desarmado, no "Atq" do
+  conjurador ou no botão do drawer de uma magia abre o diálogo com o **memorial** (a conta que
+  soma o modificador), o MAP, os chips de dano extra, um ajuste livre (cru — o diálogo avisa que
+  não aplica a regra de empilhamento) e dois botões: normal e **✦ mítico**, que gasta o Ponto
+  Mítico no MESMO clique (`mythicPoints.spend`). A rolagem vai para a mesa inteira (feed).
+  - **Golpe** (`strikes.ts`): parte do `weapon.attack` do Pathbuilder e acrescenta só o que ele
+    não sabe. À distância é DES; corpo a corpo FOR; com acuidade vale o melhor DEPOIS das
+    condições (Desajeitado 3 faz o Ceros atacar de FOR). MAP −5/−10, ágil −4/−8. Enfraquecido no
+    dano só se a arma soma FOR (corpo a corpo, arremesso, propulsiva). Piso 1 no dano.
+  - **Crítico**: dobra o ROLADO (dados, fixo e extras, precisão inclusa); deadly soma 1/2/3 dados
+    por fora (até striking/greater/major); fatal troca os dados da arma pelo dado fatal (rolados
+    de novo) e soma +1 dado fatal por fora. O app não sabe a CA do alvo: o cartão mostra acerto e
+    crítico juntos (decisão do usuário).
+  - **Rank do ✦ da arma**: o Pathbuilder exporta a CATEGORIA (`martial`), mas o guerreiro é Mestre
+    no GRUPO. `weaponRank` faz a conta de volta (ataque − nível − atributo − potência) e usa o
+    rank quando fecha num rank de verdade; senão, a categoria. O ✦ do Ghan Buri saía 2 acima.
+  - **Dano extra é chip liga/desliga** (decisão do usuário), lembrado por arma no `localStorage`:
+    runa de energia começa ligada, **precisão desligada** (Ataque Furtivo, Hunter's Edge são
+    condicionais), e o dano extra de um perfil situacional (`magicWeapons.ts`) começa ligado — o
+    perfil escolhido já É a situação dele.
+  - Sem traços no AON (arma caseira), rola como corpo a corpo sem ágil, com aviso e um seletor
+    FOR/DES. O título do cartão usa o nome base (`Warhammer`), não o do Pathbuilder com as runas.
+  - **Magia**: o dano é o de `scaleSpell` no rank conjurado — o mesmo da linha e do drawer —, um
+    chip por componente, porque às vezes somam e às vezes são alternativas (mesma fórmula com tipo
+    diferente: só o primeiro começa ligado). `uncertain` não rola. **Persistente começa desligado e
+    não dobra no crítico**: o 5d4 da Ignition só existe no sucesso crítico, e a prosa decide.
+    Salvaguarda básica mostra os quatro graus (½ para baixo); a `defense` chega TRADUZIDA
+    ("Reflexos básico"), por isso o regex casa as duas línguas. O bloco Mythic Magic já rola com a
+    proficiência mítica e não oferece o ✦ (o ponto saiu ao conjurar).
 - Descrições da AON são buscadas **sob demanda** ao tocar num item (`DescriptionDrawer` →
   `services/descriptions.ts`); a última ficha fica em `sessionStorage`.
 
@@ -820,14 +899,14 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
   clique brigaria com o início do arrasto, da régua e do traço. Campo `ping:<id>` que quem pingou apaga em 6 s. Quem
   recebe decide se pisca **pelo id, não pelo relógio** (`PingLayer`): o que já existia quando o
   mapa abriu conta como visto. Chega aos outros em ~2 s; aba escondida não recebe (o poll pausa).
-- **Rolador de dados** (`dice.ts`, `DicePanel.tsx`, `DiceResultLayer.tsx`, `motion/DiceTray.tsx`): botão
+- **Rolador de dados** (`dice.ts`, `DicePanel.tsx`, `motion/DiceTray.tsx`): botão
   "Dados" na barra, **fora** do seletor de ferramentas — abre um painel sem trocar a ferramenta ativa,
-  para rolar com a régua na mão. d4–d100, 1–**100** dados (mesmo teto de `parseFormula`; também mantém
-  o campo dentro dos 8 KB), bônus ±999, cor de `DRAW_COLORS`. O sorteio é `rollFormulaDetailed`.
-  - **A rolagem vai para a mesa como o ping**: campo `roll:<id>`, que quem rolou apaga em 8 s;
-    `DiceResultLayer` mostra cada id UMA vez por aparelho e as que já existiam ao abrir contam como
-    vistas. Quem rolou também a vê por esse caminho — `writeMapField` sobrepõe o campo na hora. O
-    payload da rede passa por `sanitizeRoll`. Sem nome (não há login), vale o campo livre do painel.
+  para rolar com a régua na mão. d4–d100, 1–**100** dados, bônus ±999, cor de `DRAW_COLORS`. O
+  sorteio é `rollGroups` (`src/dice/roll.ts`), sem piso: `1d20−2` pode dar negativo.
+  - **A rolagem vai para o feed da mesa** (`postRoll`), o mesmo das rolagens da Ficha Virtual, e
+    aparece pelo `RollFeedLayer` do layout em qualquer página. O campo `roll:<id>` do mapa e o
+    `DiceResultLayer` eram o caminho antigo; o `roll:` continua no `FIELD_RE`, sem quem o escreva.
+    Sem nome (não há login), vale o campo livre do painel.
   - **`DiceTray` não reusa `DiceRoll`** (que é do diálogo de poção): aquele re-renderiza o React ~14×/s
     por dado. Aqui giro e estouro são CSS com `animation-delay` por dado, e o número que passa durante
     o giro é UM `requestAnimationFrame` escrevendo `textContent` — só os 24 primeiros dados trocam de
