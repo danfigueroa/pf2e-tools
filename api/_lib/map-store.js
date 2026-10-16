@@ -227,7 +227,12 @@ export async function readRevs(id) {
  * uma mudança de PV feita na Ficha Virtual desce no MESMO pedido, em vez de um
  * pedido por personagem por aparelho.
  */
-export async function readMap(id) {
+export async function readMap(id, knownRevs) {
+    // Contadores ANTES dos dados: uma escrita que caia entre as duas leituras
+    // deixa o contador velho e os dados novos, e o próximo poll baixa de novo.
+    // Na ordem inversa (como era), o contador já incluía a escrita que os dados
+    // não tinham — e o poll achava que estava em dia até a mudança seguinte.
+    const revs = knownRevs ?? await readRevs(id)
     const raw = await hgetall(MAP_PREFIX + id)
     const metaEntry = unwrap(raw.meta)
     if (!metaEntry) return null
@@ -258,7 +263,6 @@ export async function readMap(id) {
         .filter((t) => t?.kind === 'pc' && typeof t.slug === 'string')
         .map((t) => t.slug))]
     const pcs = await readPcs(slugs)
-    const revs = await readRevs(id)
 
     return { id, meta: metaEntry.data, tokens, pos, hp, drawings, pings, rolls, turn, pcs, ...revs }
 }
