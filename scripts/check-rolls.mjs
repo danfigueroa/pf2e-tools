@@ -21,6 +21,7 @@ const rolls = await import('../src/modules/character-viewer/rolls.ts')
 const { computeConditionModifiers, NO_MODIFIERS } = await import('../src/modules/character-viewer/conditions.ts')
 const { abilityMod } = await import('../src/modules/character-viewer/helpers.ts')
 const { unarmedAttacks } = await import('../src/modules/character-viewer/unarmed.ts')
+const psyche = await import('../src/modules/character-viewer/psyche.ts')
 const dice = await import('../src/dice/roll.ts')
 const initRolls = await import('../src/modules/initiative-tracker/initiativeRolls.ts')
 const table = await import('../src/dice/tableRoll.ts')
@@ -225,6 +226,23 @@ const critPlan = (build, weapon, group, extrasOn = {}, mods = NO_MODIFIERS, trai
     const old = initRolls.pendingInitiativeUpdates([at(11 * 60_000)], pcs, new Set(), now)
     eq(old.updates.length, 0, 'rolagem velha demais não se aplica')
     eq(old.settled.length, 1, 'e é dada como tratada')
+}
+
+// Unleash Psyche: só o Psíquico tem; bônus é o dobro do rank, em magia sem duração da conjuração de Psíquico.
+{
+    ok(psyche.hasUnleashPsyche(party.thalos), 'Thalos tem Unleash Psyche')
+    ok(!psyche.hasUnleashPsyche(party.ghan), 'Ghan Buri não tem')
+    eq(psyche.psycheDamageBonus(5), 10, 'truque no 5º rank: +10')
+    eq(psyche.psycheDamageBonus(3), 6, 'Fireball no 3º rank: +6')
+    const on = { ...NO_MODIFIERS, psyche: psyche.activePsyche({ phase: 'unleashed' }, true) }
+    ok(psyche.psycheApplies(on, { duration: '' }, true), 'magia instantânea da conjuração de Psíquico recebe')
+    ok(!psyche.psycheApplies(on, { duration: '1 minute' }, true), 'magia com duração não recebe')
+    ok(!psyche.psycheApplies(on, { duration: '' }, false), 'outra conjuração (Aeromancer) não recebe')
+    ok(!psyche.psycheApplies(NO_MODIFIERS, { duration: '' }, true), 'sem a psique liberada não recebe')
+    ok(psyche.activePsyche({ phase: 'strain' }, true) === null, 'na ressaca não há bônus')
+    eq(JSON.stringify(psyche.strainConditions({ phase: 'strain' }, true)), '{"stupefied":1}', 'ressaca = Estupefato 1')
+    eq(Object.keys(psyche.strainConditions({ phase: 'unleashed' }, true)).length, 0, 'liberada não é ressaca')
+    eq(psyche.sanitizePsyche({ phase: 'lixo' }).phase, 'idle', 'fase desconhecida volta a idle')
 }
 
 // Piso 1: penalidade que zera o dano ainda causa 1.
