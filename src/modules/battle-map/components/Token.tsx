@@ -1,4 +1,4 @@
-import { memo, useEffect, useLayoutEffect, useRef, type RefObject } from 'react'
+import { memo, useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react'
 import { useTheme } from '@mui/material'
 import { CELL_PX, initials } from '../geometry'
 import { hpBarColor } from '../../character-viewer/components/useHpTracker'
@@ -6,6 +6,7 @@ import { useImageUrl } from '../../../services/images'
 import { MAP_BACKDROP, TOKEN_NPC, TOKEN_PC, gold, mapChrome, parchment } from '../../../theme'
 import type { TokenDescriptor } from '../../../services/maps'
 import type { TokenHp } from '../hp'
+import { fitStyle } from '../tokenFit'
 
 interface Props {
     id: string
@@ -16,6 +17,10 @@ interface Props {
     /** Mostra "42/64" — no monstro, só no Modo GM. */
     showNumbers: boolean
     image: string | null
+    /** Enquadramento da imagem (centro e ampliação), em números soltos para o `memo` comparar. */
+    fitX: number
+    fitY: number
+    fitZ: number
     active: boolean
 }
 
@@ -154,9 +159,12 @@ function useResizeAnimation(
     }, [px, inset, border, circle, bar, name])
 }
 
-export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, image, active }: Props) {
+export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, image, fitX, fitY, fitZ, active }: Props) {
     const theme = useTheme()
     const src = useImageUrl(image)
+    // Sem saber a proporção da imagem (ainda carregando) vale o `cover` de sempre.
+    const [aspect, setAspect] = useState<{ src: string; value: number } | null>(null)
+    const known = src && aspect?.src === src ? aspect.value : null
     const px = token.size * CELL_PX
     const ring = active ? gold.bright : token.kind === 'pc' ? TOKEN_PC : TOKEN_NPC
     const ratio = hp && hp.max > 0 ? Math.min(1, hp.current / hp.max) : 0
@@ -249,7 +257,13 @@ export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, ima
                         alt=""
                         draggable={false}
                         decoding="async"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }}
+                        onLoad={(e) => {
+                            const { naturalWidth: w, naturalHeight: h } = e.currentTarget
+                            if (w > 0 && h > 0) setAspect({ src, value: w / h })
+                        }}
+                        style={known === null
+                            ? { width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }
+                            : { position: 'absolute', ...fitStyle({ x: fitX, y: fitY, z: fitZ }, known), maxWidth: 'none', pointerEvents: 'none' }}
                     />
                 ) : (
                     <span

@@ -63,6 +63,8 @@ export interface MapData {
     tokens: Record<string, TokenDescriptor>
     pos: Record<string, Cell>
     hp: Record<string, NpcHp>
+    /** Enquadramento da imagem de cada token (centro e ampliação), cru — quem usa valida com `sanitizeFit`. */
+    fit: Record<string, unknown>
     /** Desenhos crus do servidor — quem desenha valida com `sanitizeDrawing`. */
     drawings: Record<string, unknown>
     /** Pings em andamento (`{ x, y }` em quadrados) — quem pingou apaga em segundos. */
@@ -215,7 +217,7 @@ function setSnapshot(entry: Entry, patch: Partial<MapSnapshot>) {
 }
 
 /** Prefixo do campo → onde ele mora no `MapData`. */
-const BAGS = { pos: 'pos', hp: 'hp', drw: 'drawings', ping: 'pings', roll: 'rolls' } as const
+const BAGS = { pos: 'pos', hp: 'hp', fit: 'fit', drw: 'drawings', ping: 'pings', roll: 'rolls' } as const
 
 /** Aplica um campo (`meta`, `pos:<id>`, `hp:<id>`, `drw:<id>`) numa cópia do mapa. */
 function withField(data: MapData, field: string, value: unknown): MapData {

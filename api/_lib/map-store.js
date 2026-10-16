@@ -7,6 +7,7 @@
 //     ├─ turn          → id do combatente que está agindo (vem da Iniciativa)
 //     ├─ tok:<cid>     → o que o token É (nome, tipo, tamanho, imagem)…
 //     ├─ pos:<cid>     → …onde ele ESTÁ (quem escreve é o mapa)…
+//     ├─ fit:<cid>     → …como a imagem do token é enquadrada (centro e ampliação — escolha do GM no mapa)…
 //     ├─ hp:<cid>      → …e o PV do monstro (Iniciativa e mapa, nos dois sentidos)
 //     ├─ imgs          → toda imagem de monstro que já passou por este mapa
 //     ├─ ping:<id>     → um ping (Alt+clique), que quem pingou apaga em segundos
@@ -46,7 +47,7 @@ const MAX_MAPS = 50
 
 const ID_RE = /^[a-z0-9]{6,16}$/
 const TOKEN_ID_RE = /^[a-z0-9-]{1,64}$/
-const FIELD_RE = /^(meta|turn|(tok|pos|hp|drw|ping|roll):[a-z0-9-]{1,64})$/
+const FIELD_RE = /^(meta|turn|(tok|pos|hp|fit|drw|ping|roll):[a-z0-9-]{1,64})$/
 
 /** Teto de desenhos por mapa: o hash inteiro desce a cada mudança. */
 export const MAX_DRAWINGS = 300
@@ -245,6 +246,7 @@ export async function readMap(id, knownRevs) {
     const tokens = {}
     const pos = {}
     const hp = {}
+    const fit = {}
     const drawings = {}
     const pings = {}
     const rolls = {}
@@ -258,6 +260,7 @@ export async function readMap(id, knownRevs) {
         if (kind === 'tok') tokens[tid] = entry.data
         else if (kind === 'pos') pos[tid] = entry.data
         else if (kind === 'hp') hp[tid] = { ...entry.data, updatedAt: entry.updatedAt }
+        else if (kind === 'fit') fit[tid] = entry.data
         else if (kind === 'drw') drawings[tid] = entry.data
         else if (kind === 'ping') pings[tid] = entry.data
         else if (kind === 'roll') rolls[tid] = entry.data
@@ -269,7 +272,7 @@ export async function readMap(id, knownRevs) {
         .map((t) => t.slug))]
     const pcs = await readPcs(slugs)
 
-    return { id, meta: metaEntry.data, tokens, pos, hp, drawings, pings, rolls, turn, pcs, ...revs }
+    return { id, meta: metaEntry.data, tokens, pos, hp, fit, drawings, pings, rolls, turn, pcs, ...revs }
 }
 
 /**
@@ -363,7 +366,7 @@ export async function syncTokens(id, tokens, turn, hp) {
         if (at < 0) continue
         const kind = field.slice(0, at)
         const tid = field.slice(at + 1)
-        if (kind !== 'tok' && kind !== 'pos' && kind !== 'hp') continue
+        if (kind !== 'tok' && kind !== 'pos' && kind !== 'hp' && kind !== 'fit') continue
         if (!keep.has(tid)) { del.push(field); continue }
         if (kind === 'pos') {
             const p = unwrap(value)?.data

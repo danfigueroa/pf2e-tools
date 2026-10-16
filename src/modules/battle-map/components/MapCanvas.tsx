@@ -15,6 +15,7 @@ import {
     type ImageRect,
 } from '../geometry'
 import { Token } from './Token'
+import type { TokenFit } from '../tokenFit'
 import { DrawingLayer, EraseBadgeLayer } from './DrawingLayer'
 import { PingLayer } from './PingLayer'
 import { finishStroke, snapHalf, type DrawStyle, type Drawing } from '../drawing'
@@ -37,6 +38,8 @@ export interface TokenView {
     hp: TokenHp | null
     showNumbers: boolean
     image: string | null
+    /** Enquadramento da imagem no círculo (escolha do GM). */
+    fit: TokenFit
 }
 
 interface Props {
@@ -930,6 +933,9 @@ export const MapCanvas = memo(function MapCanvas({
                             hp={view?.hp ?? null}
                             showNumbers={view?.showNumbers ?? false}
                             image={view?.image ?? null}
+                            fitX={view?.fit.x ?? 0.5}
+                            fitY={view?.fit.y ?? 0.5}
+                            fitZ={view?.fit.z ?? 1}
                             active={data.turn === id}
                         />
                     )

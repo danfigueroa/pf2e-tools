@@ -15,6 +15,8 @@ import { deleteBlobImage, isBlobReady } from './maps'
 
 export const MAP_MAX_SIDE = 4096
 export const TOKEN_MAX_SIDE = 256
+/** Token de monstro: a imagem INTEIRA (o círculo é enquadrado depois), então um pouco maior para aguentar a ampliação. */
+export const NPC_TOKEN_MAX_SIDE = 512
 
 export interface ShrunkImage {
     blob: Blob

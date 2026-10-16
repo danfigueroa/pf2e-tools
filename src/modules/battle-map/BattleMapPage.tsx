@@ -35,6 +35,8 @@ import { MapCanvas, type CanvasApi, type MapTool, type TokenView } from './compo
 import { MapListDrawer } from './components/MapListDrawer'
 import { TokenPopover } from './components/TokenPopover'
 import { SheetPanel } from './components/SheetPanel'
+import { TokenFitEditor } from './components/TokenFitEditor'
+import { sanitizeFit } from './tokenFit'
 import { readSheetChoice, SHEET_OPEN_KEY, writeSheetChoice } from './sheetChoice'
 import { ImagePanel } from './components/ImagePanel'
 import { DrawPanel } from './components/DrawPanel'
@@ -109,11 +111,11 @@ function buildViews(data: MapData, gm: boolean): Map<string, TokenView> {
                 max,
                 temp: Math.max(0, pc?.hp?.temp ?? 0),
             }
-            views.set(id, { id, hp, showNumbers: true, image: pc?.token?.url ?? null })
+            views.set(id, { id, hp, showNumbers: true, image: pc?.token?.url ?? null, fit: sanitizeFit(data.fit?.[id]) })
         } else {
             const raw = data.hp[id]
             const hp = raw ? { current: raw.current, max: raw.max, temp: raw.temp } : null
-            views.set(id, { id, hp, showNumbers: gm, image: token.image ?? null })
+            views.set(id, { id, hp, showNumbers: gm, image: token.image ?? null, fit: sanitizeFit(data.fit?.[id]) })
         }
     }
     return views
@@ -147,6 +149,8 @@ export const BattleMapPage = () => {
         try { localStorage.setItem(SHEET_OPEN_KEY, open ? '1' : '0') } catch { /* noop */ }
     }, [])
     const [sheetSlug, setSheetSlug] = useState<string | null>(readSheetChoice)
+    // Modo GM: o token cuja imagem está sendo enquadrada.
+    const [fitFor, setFitFor] = useState<string | null>(null)
     const [tapped, setTapped] = useState<{ id: string; anchor: HTMLElement } | null>(null)
     const [resolving, setResolving] = useState(!routeId)
     // O aviso "os tokens vêm da Iniciativa" cobre metade do mapa no celular:
@@ -541,8 +545,13 @@ export const BattleMapPage = () => {
                 canEdit={canEditTapped}
                 onClose={() => setTapped(null)}
                 onApply={applyHp}
+                onAdjustImage={gm && tappedView?.image ? () => { setFitFor(tapped?.id ?? null); setTapped(null) } : undefined}
                 onOpenSheet={(slug) => { setSheetSlug(slug); writeSheetChoice(slug); setSheetOpen(true); setTapped(null) }}
             />
+
+            {gm && fitFor && id && data && (
+                <TokenFitEditor mapId={id} tokenId={fitFor} data={data} views={views} onClose={() => setFitFor(null)} />
+            )}
 
             {!sheetOpen && (
                 <Tooltip title="Abrir a ficha" placement="left">
