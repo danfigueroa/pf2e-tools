@@ -12,6 +12,7 @@
 
 import { useSyncExternalStore } from 'react'
 import { saveField } from './tableState'
+import { noteRollsRev } from './rolls'
 import type { HpStored } from '../modules/character-viewer/components/useHpTracker'
 import type { Cell, ImageRect } from '../modules/battle-map/geometry'
 
@@ -62,6 +63,8 @@ export interface MapData {
     rev: number
     tableRev: number
     activeId: string | null
+    /** Contador do feed de rolagens, de carona no MGET (ver `services/rolls.ts`). */
+    rollsRev?: number
 }
 
 export interface MapSummary { id: string; name: string; createdAt: number; hasImage: boolean }
@@ -295,9 +298,11 @@ async function poll(entry: Entry) {
         const data = entry.snapshot.data
         // Diz ao servidor o que já tem: se mudou, o mapa vem nesta mesma resposta.
         const known = data ? `&rev=${data.rev}&tableRev=${data.tableRev}` : ''
-        const revs = await getJson<{ rev: number; tableRev: number; activeId: string | null; map?: MapData }>(
+        const revs = await getJson<{ rev: number; tableRev: number; activeId: string | null; rollsRev?: number; map?: MapData }>(
             `mapRev=${encodeURIComponent(entry.id)}${known}`,
         )
+        // O feed de rolagens lê o contador daqui e pausa o poll próprio.
+        noteRollsRev(revs.rollsRev)
         if (revs.map) {
             applyMap(entry, revs.map)
             burst(entry)
