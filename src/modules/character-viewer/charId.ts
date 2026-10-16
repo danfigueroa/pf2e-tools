@@ -41,6 +41,9 @@ export const shieldKeyFor = (build: BuildInfo): string => shieldKeyForSlug(charS
 export const conditionsKeyFor = (build: BuildInfo): string => conditionsKeyForSlug(charSlug(build))
 export const afflictionsKeyFor = (build: BuildInfo): string => afflictionsKeyForSlug(charSlug(build))
 export const persistentKeyFor = (build: BuildInfo): string => persistentKeyForSlug(charSlug(build))
+/** Enlarge/Shrink ligado (`sizeEffects.ts`) — o mapa lê o mesmo campo. */
+export const sizeKeyForSlug = (slug: string): string => `${slug}/size`
+export const sizeKeyFor = (build: BuildInfo): string => sizeKeyForSlug(charSlug(build))
 
 /**
  * Chave dos hooks que a página monta antes de haver ficha (são incondicionais).

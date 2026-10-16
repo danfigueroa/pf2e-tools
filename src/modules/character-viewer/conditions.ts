@@ -491,6 +491,12 @@ export interface ConditionModifiers {
     hpMaxDelta: number
     /** Quantas condições o jogador marcou (sem contar as impostas). */
     count: number
+    /**
+     * Bônus no dano dos Golpes corpo a corpo vindos de um EFEITO, não de
+     * condição (o +4 de estado do Enlarge 4º, em `sizeEffects.ts`). Viaja aqui
+     * porque `mods` já chega a todo lugar que monta um Golpe.
+     */
+    meleeDamage?: AppliedMod[]
 }
 
 const emptyTargets = <T,>(make: () => T): Record<ModTarget, T> =>

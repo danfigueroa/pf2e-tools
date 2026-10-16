@@ -28,13 +28,16 @@ export function sanitizeConditions(raw: unknown): ConditionState {
 
 const isEmpty = (s: ConditionState) => Object.keys(s).length === 0
 
+const NO_SOURCES: Record<string, string> = {}
+
 /**
  * Condições ativas + os modificadores que elas produzem, compartilhadas com a mesa.
  *
  * `derived` são condições que a ficha NÃO guarda e apenas sofre — hoje, as que
- * o estágio de uma aflição impõe. Elas entram no cálculo dos modificadores (o
- * veneno tem que baixar os números de verdade) mas nunca no estado gravado, que
- * segue sendo só o que o jogador marcou. Em conflito vale o pior valor:
+ * o estágio de uma aflição impõe e o Desajeitado de um Enlarge ligado
+ * (`sizeEffects.ts`). Elas entram no cálculo dos modificadores (o veneno tem
+ * que baixar os números de verdade) mas nunca no estado gravado, que segue
+ * sendo só o que o jogador marcou. Em conflito vale o pior valor:
  * condição de mesmo nome não empilha no PF2e.
  */
 export function useConditions(
@@ -42,6 +45,8 @@ export function useConditions(
     level: number,
     legacyKey?: string,
     derived?: ConditionState,
+    /** De onde vem cada derivada ("Enlarge 4º") — sem entrada, é de aflição. */
+    derivedSources?: Record<string, string>,
 ) {
     const [state, setState] = useSharedState<ConditionState>(syncKey, {
         empty: () => ({}),
@@ -106,7 +111,7 @@ export function useConditions(
         [effective, level],
     )
 
-    return { state, effective, derived: derived ?? {}, mods, setCondition, toggle, adjust, clear }
+    return { state, effective, derived: derived ?? {}, derivedSources: derivedSources ?? NO_SOURCES, mods, setCondition, toggle, adjust, clear }
 }
 
 export type ConditionsApi = ReturnType<typeof useConditions>

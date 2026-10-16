@@ -296,6 +296,10 @@ export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers
     if (strInDamage && mods.total.damageStr) {
         damageParts.push(...conditionParts(mods, 'damageStr'))
     }
+    // Bônus de efeito no corpo a corpo (Enlarge). Arremesso é ataque à distância.
+    if (!traits.ranged && opts.mode !== 'thrown') {
+        for (const b of mods.meleeDamage ?? []) damageParts.push({ label: b.from, value: b.value, kind: 'other' })
+    }
     if (opts.damageAdjust) damageParts.push({ label: 'Ajuste', value: opts.damageAdjust, kind: 'other' })
     const flat = damageParts.reduce((sum, p) => sum + p.value, 0)
 

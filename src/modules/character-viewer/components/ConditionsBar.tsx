@@ -101,7 +101,7 @@ export const ConditionsBar = ({ conditions }: Props) => {
                                         key={entry.id}
                                         title={
                                             fromAffliction
-                                                ? `${def.summary} (imposta por uma aflição ativa)`
+                                                ? `${def.summary} (imposta por ${conditions.derivedSources[entry.id] ?? 'uma aflição ativa'})`
                                                 : entry.via
                                                     ? `${def.summary} (imposta por ${entry.via})`
                                                     : def.summary
