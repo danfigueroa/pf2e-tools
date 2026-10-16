@@ -244,7 +244,7 @@ abrir o site entra na mesma mesa.
   Vercel e `UPSTASH_REDIS_REST_*` do console da Upstash). **Sem credenciais, cai num `Map` de
   processo** e o app segue funcionando; o indicador avisa "Só neste aparelho".
 - **Um HASH por personagem, um campo por fatia** (`hp`, `slots`, `conditions`, `afflictions`,
-  `persistent`, `mythic`, `consumed`, `shield`, `token`, `pet:<kind>:<slug>#<i>`). Campo novo precisa entrar no `FIELD_RE` de
+  `persistent`, `mythic`, `consumed`, `shield`, `token`, `size`, `pet:<kind>:<slug>#<i>`). Campo novo precisa entrar no `FIELD_RE` de
   `table-store.js`, senão o POST volta "Campo inválido" e o estado fica só no `localStorage`.
   Documento único faria dois jogadores editando ao mesmo tempo se sobrescreverem — quem marcasse
   condição apagaria o dano do outro. `HSET` por campo dá atomicidade por fatia sem transação, e a
@@ -521,6 +521,23 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     o jogador informa o grau. Destruído não se conserta; "Restaurar tudo" é o escudo novo.
   - A barra é própria (não `LinearProgress`): precisa da marca do BT e da rachadura, que é
     desenhada só no trecho preenchido. Cor `SHIELD_COLOR` — item, não criatura.
+- **Runas homebrew** (`customRunes.ts`): sem entrada na AON, casadas pelo NOME do personagem e
+  pelo tipo de item (armadura vestida ou arma por nome), como `magicWeapons.ts` — o JSON não é
+  editado, e a runa sobrevive a export e publicação. `replaces` esconde a runa da AON que ela
+  substituiu (a Size-Changing do Brukuthur) nos chips e no nome de exibição.
+- **Mudança de tamanho** (`sizeEffects.ts` + `components/useSizeEffect.ts`): a runa do Brukuthur
+  liga Enlarge 4º ou Shrink com um clique e desliga pelo "Voltar ao normal". Estado da mesa no
+  campo `size` (`{ active, used, since }`; `used` trava a ativação 1×/dia até o "Novo dia").
+  - O Desajeitado 1 do Enlarge é **derivado**, como o de aflição (`useConditions` recebe as duas
+    origens juntas, com `derivedSources` para o tooltip). O +4 de estado no corpo a corpo viaja em
+    `ConditionModifiers.meleeDamage` (`withSizeEffect`), que é o que já chega ao `planStrike` — e
+    só entra em Golpe corpo a corpo (nem à distância, nem arremesso).
+  - A Iniciativa LÊ o campo (`PartySlice.size`) e deriva o mesmo Desajeitado; não liga nem
+    desliga. O mapa lê o campo no `readPcs` e `withPcSizes` (cliente) troca o tamanho do token na
+    renderização — o `tok:` é da Iniciativa, e desligar volta ao original sem regravar nada.
+    Miúdo ocupa 1 quadrado (alvo de toque) mas é desenhado com metade do tamanho (`tiny`).
+  - O token cresce para a direita e para baixo (a posição é o canto superior esquerdo): deslocar
+    a posição só na tela faria o arrasto gravar a posição deslocada.
 - **Bastão abre com a lista de magias do degrau** (`StaffSpellList.tsx`): as magias vêm agrupadas
   por rank, com o custo em cargas ao lado (conjurar gasta cargas iguais ao rank; truque é de graça —
   GM Core p. 278) e etiqueta de degrau nas herdadas do bastão inferior. Quem filtra o degrau é o
