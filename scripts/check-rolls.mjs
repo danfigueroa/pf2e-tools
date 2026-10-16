@@ -145,6 +145,45 @@ for (let i = 0; i < 200; i++) {
     eq(r.crit.total, 2 * Math.max(1, fatalWeapon.rolled.total) + plus.rolled.total, 'crítico fatal = 2 × (arma em d10) + 1d10')
 }
 
+// Crítico: runas e especialização do grupo entram POR FORA do dobro.
+const gearOf = (name, group) => ({ kind: 'weapon', name, base: name, traits: [], weaponType: 'melee', group })
+const critOpts = (spec) => opts({ extrasOn: spec ? { [strikes.SPEC_KEY]: true } : {} })
+const critPlan = (weapon, group, spec) => strikes.planStrike(party.ghan, strikes.weaponStrike(party.ghan, weapon, gearOf(weapon.name, group)), NO_MODIFIERS, critOpts(spec))
+{
+    // Warhammer do Ghan Buri: Shock espelha a eletricidade, Thundering vira aviso; martelo só com especialização.
+    const off = critPlan(warhammer, 'Hammer', false)
+    eq(off.critEffects.map((c) => c.label).join(','), 'Shock,Thundering', 'sem especialização, só as runas')
+    const on = critPlan(warhammer, 'Hammer', true)
+    eq(on.critEffects.length, 3, 'com especialização, runas + martelo')
+    for (let i = 0; i < 100; i++) {
+        const r = strikes.rollStrikeDamage(on, 'contundente')
+        const elec = r.parts[1 + on.extras.findIndex((e) => e.type === 'electricity')]
+        ok(r.crit.note.includes(`Shock: ${elec.rolled.total} `), 'Shock repete o dano elétrico rolado em outras criaturas')
+        eq(r.crit.total, 2 * r.total, 'Shock/Thundering/martelo não somam ao alvo')
+        ok(r.crit.note.includes('Thundering: Fortitude CD 24'), 'Thundering avisa a salvaguarda')
+    }
+    // Flaming: persistente por fora, nunca no total imediato; Greater sobe para 2d10.
+    const flamingW = { ...warhammer, runes: ['Flaming'], extraDamage: [] }
+    for (let i = 0; i < 100; i++) {
+        const r = strikes.rollStrikeDamage(critPlan(flamingW, 'Hammer', false), 'contundente')
+        const f = r.crit.extra.find((p) => p.persistent)
+        ok(f && f.rolled.dice.length === 1 && f.rolled.dice[0].faces === 10, 'Flaming: 1d10 persistente de fogo')
+        eq(r.crit.total, 2 * r.total, 'persistente do crítico não entra no total imediato')
+        ok(r.crit.note.includes(`${f.rolled.total} fogo persistente`), 'persistente aparece na nota')
+    }
+    const greater = { ...flamingW, runes: ['Greater Flaming'] }
+    eq(strikes.rollStrikeDamage(critPlan(greater, 'Hammer', false), 'x').crit.extra[0].rolled.dice.length, 2, 'Greater Flaming = 2d10')
+    // Faca: 1d6 de sangramento + bônus de item; Pick: +2 por dado da arma, imediato.
+    const knife = { ...warhammer, name: 'Dagger', runes: [], extraDamage: [], pot: 2, str: 'striking' }
+    const kr = strikes.rollStrikeDamage(critPlan(knife, 'Knife', true), 'perfurante')
+    const bleed = kr.crit.extra.find((p) => p.persistent)
+    eq(bleed.rolled.flat, 2, 'sangramento da faca soma o bônus de item')
+    eq(critPlan(knife, 'Knife', false).critEffects.length, 0, 'especialização desligada não rola')
+    const pickW = { ...warhammer, name: 'Pick', runes: [], extraDamage: [], str: 'greaterStriking' }
+    const pr = strikes.rollStrikeDamage(critPlan(pickW, 'Pick', true), 'perfurante')
+    eq(pr.crit.total, 2 * pr.total + 2 * 3, 'Pick: +2 por dado da arma (3 dados), por fora do dobro')
+}
+
 // Piso 1: penalidade que zera o dano ainda causa 1.
 const weak = { ...warhammer, damageBonus: -20, extraDamage: [], str: '' }
 const weakPlan = strikes.planStrike(party.ghan, strikes.weaponStrike(party.ghan, weak, GEAR.Warhammer), NO_MODIFIERS, opts())
