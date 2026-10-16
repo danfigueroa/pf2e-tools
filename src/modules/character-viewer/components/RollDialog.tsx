@@ -51,7 +51,10 @@ import type { TableRoll } from '../../../dice/tableRoll'
 import { dialogEmbedProps, useEmbedContainer } from '../embedContext'
 import { CASCADE_TYPES, hasSpellstrike } from '../magus'
 import { FIRST_STRIKE_KEY, HUNTERS_AIM_KEY, gravityBonus } from '../ranger'
-import { magusKeyFor } from '../charId'
+import { DEBILITATIONS, hasDebilitatingStrike, poisonNote, type Debilitation } from '../rogue'
+import { useRogue } from './useRogue'
+import { usePoisonDef } from './usePoison'
+import { magusKeyFor, rogueKeyFor } from '../charId'
 import { useMagus } from './useMagus'
 import { useSpellstrike } from './useSpellstrike'
 import { SpellstrikePanel } from './SpellstrikePanel'
@@ -323,6 +326,19 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
     const canSpellstrike = hasSpellstrike(build) && !traits.ranged && opts.mode !== 'thrown'
     const ss = useSpellstrike(build, canSpellstrike)
     const spellstriking = canSpellstrike && ss.ready
+
+    // Veneno na arma (Poison Weapon) e Debilitating Strike do Ladino: viram anotação da
+    // rolagem — o app não sabe se o Golpe acertou, e o efeito é do GM.
+    const rogue = useRogue(rogueKeyFor(build))
+    const poisonName = weapon ? rogue.stored.poison : null
+    const poisonDef = usePoisonDef(poisonName)
+    const [poisonOn, setPoisonOn] = useState(true)
+    const canDebilitate = hasDebilitatingStrike(build)
+    const [debil, setDebil] = useState<Debilitation | null>(null)
+    const rollNote = [
+        poisonName && poisonOn ? poisonNote(poisonName, poisonDef) : null,
+        debil ? DEBILITATIONS.find((d) => d.id === debil)?.note : null,
+    ].filter(Boolean).join(' · ')
     const damageText = [
         `${formatValue({ count: plan.weapon.groups[0]?.count ?? 0, faces: plan.weapon.groups[0]?.faces ?? 0, flat: plan.weapon.flat })} ${strike.damageType}`,
         ...plan.extras.map(extraLabel),
@@ -451,6 +467,41 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                         </Box>
                     )}
 
+                    {poisonName && (
+                        <Box>
+                            <Chip
+                                label={`Arma envenenada · ${poisonNote(poisonName, poisonDef).replace('veneno: ', '')}`}
+                                color={poisonOn ? 'primary' : 'default'}
+                                variant={poisonOn ? 'filled' : 'outlined'}
+                                onClick={() => setPoisonOn(!poisonOn)}
+                                aria-pressed={poisonOn}
+                                sx={{ minHeight: 32 }}
+                            />
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                O veneno entra se o Golpe acertar; a rolagem diz qual é. Depois, "Veneno usado" na faixa do Ladino.
+                            </Typography>
+                        </Box>
+                    )}
+                    {canDebilitate && (
+                        <Box>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                                Debilitating Strike — se acertar um alvo desprevenido (ação livre)
+                            </Typography>
+                            <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
+                                {DEBILITATIONS.map((d) => (
+                                    <Chip
+                                        key={d.id}
+                                        label={d.label}
+                                        color={debil === d.id ? 'primary' : 'default'}
+                                        variant={debil === d.id ? 'filled' : 'outlined'}
+                                        onClick={() => setDebil(debil === d.id ? null : d.id)}
+                                        aria-pressed={debil === d.id}
+                                        sx={{ minHeight: 32 }}
+                                    />
+                                ))}
+                            </Stack>
+                        </Box>
+                    )}
                     {gravityApplies(strike, mods) && (
                         <Box>
                             <Chip
@@ -527,8 +578,9 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                 disabled={loading || (canSpellstrike && !!ss.option && !ss.ready)}
                 onRoll={(mythic) => {
                     const mythicDelta = mythic ? plan.mythicDelta : null
+                    const noted = (r: TableRoll): TableRoll => (rollNote ? { ...r, note: rollNote } : r)
                     if (!spellstriking || !ss.option || !ss.spell) {
-                        send(strikeRoll(who, strike, plan, mythicDelta, sub), mythic)
+                        send(noted(strikeRoll(who, strike, plan, mythicDelta, sub)), mythic)
                         return
                     }
                     ss.spend()
@@ -540,11 +592,11 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                         magus.setCascade(true)
                     }
                     const defense = !ss.usesAttack && ss.spell.defense ? `salvaguarda: ${ss.spell.defense}` : null
-                    send(spellstrikeRoll(who, strike, plan, mythicDelta, [sub, `rank ${ss.option.rank}`, defense].filter(Boolean).join(' · '), {
+                    send(noted(spellstrikeRoll(who, strike, plan, mythicDelta, [sub, `rank ${ss.option.rank}`, defense].filter(Boolean).join(' · '), {
                         name: ss.option.name,
                         components: ss.chosen,
                         usesAttack: ss.usesAttack,
-                    }), mythic)
+                    })), mythic)
                 }}
             />
         </>

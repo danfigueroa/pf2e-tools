@@ -37,7 +37,7 @@ import { ConditionsBar } from './components/ConditionsBar'
 import { AfflictionsBar } from './components/AfflictionsBar'
 import { PersistentDamageBar } from './components/PersistentDamageBar'
 import { MythicPointsBar } from './components/MythicPointsBar'
-import { afflictionsKeyFor, conditionsKeyFor, energyKeyFor, legacyCharKey, magusKeyFor, mythicKeyFor, persistentKeyFor, psycheKeyFor, rageKeyFor, rangerKeyFor, sizeKeyFor } from './charId'
+import { afflictionsKeyFor, conditionsKeyFor, energyKeyFor, legacyCharKey, magusKeyFor, mythicKeyFor, persistentKeyFor, psycheKeyFor, rageKeyFor, rangerKeyFor, rogueKeyFor, sizeKeyFor } from './charId'
 import { useConditions } from './components/useConditions'
 import { useAfflictions } from './components/useAfflictions'
 import { usePersistentDamage } from './components/usePersistentDamage'
@@ -58,6 +58,9 @@ import { hasMagusFeatures, withCascade } from './magus'
 import { RangerBar } from './components/RangerBar'
 import { useRanger } from './components/useRanger'
 import { hasRangerFeatures, withRanger } from './ranger'
+import { RogueBar } from './components/RogueBar'
+import { useRogue } from './components/useRogue'
+import { hasPoisonWeapon } from './rogue'
 import { TITAN_SOURCE, withRage } from './rage'
 import { isMythicCharacter, MYTHIC_POINTS_MAX } from './helpers'
 import type { ConditionModifiers } from './conditions'
@@ -211,6 +214,8 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
     const magus = useMagus(magusKeyFor(build), build)
     // Hunt Prey e Gravity Weapon do Patrulheiro: também viajam nos modificadores.
     const ranger = useRanger(rangerKeyFor(build), build)
+    // Veneno na arma do Ladino (Poison Weapon).
+    const rogue = useRogue(rogueKeyFor(build))
 
     // O que a ficha sofre sem ter marcado: estágio de aflição, o Desajeitado do
     // Enlarge e o do Titan Mauler. Em conflito vale o pior valor, como em
@@ -305,6 +310,7 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
             {rage.spec && <RageBar build={build} rage={rage} conditions={conditions} />}
             {psyche.has && <PsycheBar psyche={psyche} />}
             {hasRangerFeatures(build) && <RangerBar build={build} ranger={ranger} />}
+            {hasPoisonWeapon(build) && <RogueBar build={build} rogue={rogue} />}
             {hasMagusFeatures(build) && (
                 <MagusBar build={build} magus={magus} mythicPoints={mythicPoints} conditions={conditions} />
             )}
