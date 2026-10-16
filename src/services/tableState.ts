@@ -92,9 +92,10 @@ function publishSnapshot(slug: string, snapshot: Snapshot) {
 // --- Edições locais por fatia ----------------------------------------------
 
 // Duas instâncias do mesmo hook sobre a mesma fatia (o PV na Visão Geral e o
-// Inventário que cura com uma poção, montados juntos nos acordeões do celular)
-// não se enxergavam: `saveField` só gravava. Este canal avisa as outras
-// instâncias da mesma fatia de cada edição feita neste aparelho.
+// Inventário que cura com uma poção) não se enxergavam: `saveField` só gravava.
+// Este canal avisa as outras instâncias da mesma fatia de cada edição feita
+// neste aparelho. Os acordeões do celular hoje montam só o aberto, mas as duas
+// seções ainda coexistem durante a animação de trocar de acordeão.
 const fieldListeners = new Map<string, Set<(data: unknown) => void>>()
 
 export function subscribeField(slug: string, field: string, listener: (data: unknown) => void): () => void {

@@ -396,6 +396,10 @@ export const CharacterViewerPage = () => {
                             key={s.id}
                             expanded={expanded === s.id}
                             onChange={(_, isOpen) => setExpanded(isOpen ? s.id : false)}
+                            // O MUI monta o conteúdo recolhido por padrão: as oito
+                            // seções (hooks, buscas na AON) subiam juntas e cada
+                            // render da página repintava todas. Só o aberto existe.
+                            slotProps={{ transition: { unmountOnExit: true } }}
                             sx={{
                                 '&:before': { display: 'none' },
                                 mb: 1,
