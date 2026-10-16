@@ -15,7 +15,13 @@ Cinco módulos ativos (rotas em `src/App.tsx`):
 - `/escalar-monstro` → `src/modules/monster-scaler/` — adapta a ficha de uma criatura da AON
   para outro nível, pelas tabelas de construção de criaturas do GM Core.
 - `/mapa/:id?` → `src/modules/battle-map/` — mapa de combate (VTT): grid de 5 ft, imagem, tokens
-  com barra de PV e régua. Único módulo carregado com `React.lazy`.
+  com barra de PV e régua.
+
+**Todo módulo é `React.lazy`** (`App.tsx`); só a Início e o `MainLayout` vão no bundle principal.
+Num bundle único (1,7 MB, 520 kB gzip), quem abria a Ficha Virtual no celular baixava o
+html2canvas e o jsPDF das exportações, a Iniciativa e o Escalar Monstro. Hoje o caminho da ficha é
+~880 kB (285 kB gzip). Import estático de um módulo pesado dentro da ficha desfaz isso: confira a
+lista de chunks do `npm run build`.
 
 **`src/modules/character-sheet/` (Ficha em PDF) está DESATIVADO** — fora da rota, do menu e da home.
 O código continua no repositório e `types.ts` (`parseCharacterJson`, `BuildInfo`) **segue sendo usado
@@ -258,8 +264,11 @@ abrir o site entra na mesma mesa.
   confirmação. O mesmo raciocínio vale para qualquer reset novo.
 - **Duas instâncias da mesma fatia se enxergam** (`subscribeField` em `tableState.ts`): `saveField`
   avisa os outros hooks do mesmo `slug/campo` neste aparelho. Sem isso, a cura de uma poção no
-  Inventário não aparecia no `HpTracker` da Visão Geral — no celular os acordeões ficam montados
-  juntos, cada um com seu `useHpTracker`.
+  Inventário não aparecia no `HpTracker` da Visão Geral — no celular os acordeões ficavam montados
+  juntos, cada um com seu `useHpTracker`. Hoje montam só o aberto, mas os dois coexistem durante a
+  animação de troca, e o canal continua.
+- **Chave sem ficha** (`noCharKey` em `charId.ts`): os hooks que a página monta antes de haver
+  ficha usam slug vazio, que nenhum nome gera, e `useSharedState` não vai à rede com ele.
 - Sendo público, o endpoint valida slug/campo por regex e limita a escrita a 8 KB.
 - **`writeField` sobe o contador `pf2e:table:rev`** (no mesmo pipeline do HSET). É o que deixa o
   Mapa de Combate saber que o PV de alguém mudou pela Ficha ou pela Iniciativa lendo um número só,
@@ -379,6 +388,16 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
 - Visualizador interativo em `/ficha-virtual`. Reusa `parseCharacterJson`/`BuildInfo` do
   `character-sheet`. Layout: **abas no desktop, acordeões no mobile**; áreas em `sections/*`
   (Overview, Combat, Skills, Feats, Specials, Spells, Pets, Inventory) — as vazias somem sozinhas.
+- **Desempenho da página** (a ficha roda no celular, na mesa):
+  - O acordeão monta **só a seção aberta** (`unmountOnExit`). O padrão do MUI montava as oito
+    recolhidas — hooks e buscas na AON de todas ao abrir a ficha.
+  - As seções são `memo`, e o que a página passa a elas tem identidade estável (`guide` em
+    `useMemo`, retorno de `useMythicPoints` em `useMemo`, setters de estado). Abrir o drawer ou o
+    diálogo de rolagem não repinta a aba. Prop nova numa seção precisa ser estável, senão o `memo`
+    vira enfeite.
+  - **Quem desenha a partir de um cache precisa assiná-lo.** A aba de Magias lê o resumo da linha
+    de `getCachedSpell` no render; antes, o resumo aparecia porque fechar o drawer repintava a
+    página inteira. Com `memo`, ela assina `useDescriptionCacheVersion`.
 - **Guia "Como Jogar"** (Visão Geral), em ordem de precedência: (1) o **gerado por IA** da ficha
   publicada, quando a ficha aberta É a da mesa; (2) o curado à mão em `combatGuides.ts`, casado
   **por nome** (`byName`, `curated: true`); (3) `buildFallbackGuide()`, heurístico e marcado como
@@ -603,7 +622,9 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     ("Reflexos básico"), por isso o regex casa as duas línguas. O bloco Mythic Magic já rola com a
     proficiência mítica e não oferece o ✦ (o ponto saiu ao conjurar).
 - Descrições da AON são buscadas **sob demanda** ao tocar num item (`DescriptionDrawer` →
-  `services/descriptions.ts`); a última ficha fica em `sessionStorage`.
+  `services/descriptions.ts`); a última ficha fica em `sessionStorage`. O cache tem uma camada em
+  memória na frente do `localStorage` (como `gear.ts`): sem ela, cada render da aba de Magias
+  refazia um `JSON.parse` por linha.
 
 ## Módulo initiative-tracker (Iniciativa)
 
