@@ -282,7 +282,7 @@ const NATHANIEL = `## 🎯 Papel em Combate
 
 ## 🔁 Rotina de Turno
 - 🌀 **1 ação — Arcane Cascade (postura):** seus golpes corpo a corpo ganham **+2 de dano** de força e você ganha **resistência 2 a dano de magias**. Se você **lançou uma magia neste turno antes** de entrar na postura, o dano extra pode virar qualquer tipo que aquela magia cause — bom contra fraqueza. Entre nela no 1º turno e não saia.
-- ⚡ **2 ações — Spellstrike:** lance uma magia de 1 ou 2 ações que peça **ataque de magia ou salvaguarda** e entregue-a num **Strike com a Zarroc Sheilvean (+18, 2d8+6)**. Magia de ataque usa o **resultado do Strike** (acertou, acertou os dois); magia de salvaguarda faz o alvo rolar **mesmo se o Strike errar** — só a falha crítica do Strike desperdiça a magia. Conta como **dois ataques** para o MAP, mas o MAP só entra depois.
+- ⚡ **2 ações — Spellstrike:** lance uma magia de 1 ou 2 ações que peça **ataque de magia ou salvaguarda** e entregue-a num **Strike com a Zarroc Sheilvean (+19, 2d8+6)**. Magia de ataque usa o **resultado do Strike** (acertou, acertou os dois); magia de salvaguarda faz o alvo rolar **mesmo se o Strike errar** — só a falha crítica do Strike desperdiça a magia. Conta como **dois ataques** para o MAP, mas o MAP só entra depois.
 - 🔄 **Recarregar o Spellstrike:** depois de usá-lo, ele fica descarregado. Recarrega com **1 ação** (*concentrate*) **ou lançando uma magia de confluência** — e é aí que entra o **Shielding Strike**.
 - 🛡️ **Shielding Strike (1 ação, foco):** **ergue o escudo e faz um Strike** numa ação só, **e recarrega o Spellstrike**. O ciclo ideal de um turno depois do primeiro: *Shielding Strike* (1) + *Spellstrike* (2).
 
@@ -314,7 +314,7 @@ const NATHANIEL = `## 🎯 Papel em Combate
 - 🎲 **Rewrite Fate (livre):** rerrole uma perícia ou salvaguarda com proficiência mítica.
 
 ## 🎒 Itens & Recursos
-- 🗡️ **Zarroc Sheilvean** (*+1 Striking Longsword*): 2d8+6 cortante, +18.
+- 🗡️ **Zarroc Sheilvean** (*+1 Striking Longsword*): 2d8+6 cortante, +19.
 - 🛡️ **Clockwork Shield** + **Breastplate +1 Resilient de Ferro Frio** — o ferro frio pesa contra feéricos e demônios **na armadura**, não na espada.
 - 💍 **Ring of Wizardry (Type I):** **+1 em Arcanismo** e **dois slots de 1º rank arcanos a mais** por dia. Escolha no preparo diário a qual fonte arcana eles vão (Magus ou o arquétipo de Mago) e prepare magias de 1º do grimório. Tirar o anel, por qualquer motivo, faz perder os slots extras.
 - 🔮 **3 pontos de foco** para *Shielding Strike*, *Runic Impression* e *Hand of the Apprentice* — refocus entre lutas.

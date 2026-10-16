@@ -522,6 +522,13 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   (`MYTHIC_POINTS_MAX`), compartilhado com a mesa no campo `mythic`, com a mesma mecânica de pips
   dos slots. A barra fica **fora das abas**, ao lado das condições, porque o ponto é gasto de
   qualquer aba. A legenda do ✦ é uma só (`MythicNote`), usada nas três seções.
+- **Export do Pathbuilder com o ataque 1 abaixo** (`fixWeaponExports`, em `character-sheet/types.ts`, chamada por
+  `normalizeBuild` no `parseCharacterJson` e no restore da sessão): a Zarroc Sheilvean do Nathaniel (+1 striking) vem com
+  +18 — 10 + Perito 4 + FOR 4, SEM o +1 de potência; todas as outras armas do grupo batem com a conta. O app corrige para
+  **+19** pelo nome do personagem e da arma, **só se o número exportado for exatamente 1 abaixo da conta** (nível +
+  proficiência + FOR + potência): se o jogador reexportar já certo, a correção deixa de agir em vez de somar o +1 duas
+  vezes. Efeito colateral bom: `weaponRank` (rank do ✦) volta a fechar em Perito. Armas novas com o mesmo defeito entram
+  em `WEAPON_EXPORT_FIXES`. O ideal continua sendo corrigir na origem (Pathbuilder).
 - **Armas que mudam de número conforme a situação** (`magicWeapons.ts`): o Pathbuilder exporta um
   conjunto de números só por arma, o do caso padrão — a Gloom Blade do Eldarion no escuro vira um
   `+2 striking shortsword` e isso não aparecia em lugar nenhum. O catálogo casa **pelo nome** da

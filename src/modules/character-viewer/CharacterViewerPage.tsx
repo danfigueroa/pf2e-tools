@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Snackbar } from '@mui/material'
 
-import { normalizeSpellCasters, parseCharacterJson, type BuildInfo } from '../character-sheet/types'
+import { normalizeBuild, parseCharacterJson, type BuildInfo } from '../character-sheet/types'
 import { UploadCard, type JsonOrigin } from './components/UploadCard'
 import { PublishDialog, type PublishBase } from './components/PublishDialog'
 import { usePublication } from './components/usePublication'
@@ -35,7 +35,7 @@ export const CharacterViewerPage = () => {
         try {
             const raw = sessionStorage.getItem(SESSION_KEY)
             // Normaliza de novo: a ficha salva antes da correção do `prepared` ainda vem sem ele.
-            if (raw) setBuild(normalizeSpellCasters(JSON.parse(raw) as BuildInfo))
+            if (raw) setBuild(normalizeBuild(JSON.parse(raw) as BuildInfo))
             const slug = sessionStorage.getItem(SESSION_PUBLISHED_KEY)
             if (slug) {
                 fetchPublished(slug).then((sheet) => {

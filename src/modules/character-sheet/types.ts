@@ -369,7 +369,7 @@ export function parseCharacterJson(json: unknown): BuildInfo {
   if (!obj || !obj.success || !obj.build) {
     throw new Error('JSON de personagem inválido: campo "build" ausente.');
   }
-  return normalizeSpellCasters(obj.build);
+  return normalizeBuild(obj.build);
 }
 
 const hasSpells = (lists: SpellListByLevel[] | undefined) =>
@@ -391,6 +391,42 @@ export function normalizeSpellCasters(build: BuildInfo): BuildInfo {
       hasSpells(c.prepared) ? { ...c, spells: c.prepared } : c,
     ),
   };
+}
+
+/**
+ * Armas cujo ataque o Pathbuilder exporta SEM o bônus de potência, e que o jogador não
+ * corrigiu na origem. Casa pelo nome do personagem e da arma (o `display`, que é o nome
+ * dado pelo jogador) — como `magicWeapons.ts` e `customRunes.ts`.
+ *
+ * Só corrige quando o número exportado é EXATAMENTE 1 abaixo da conta da ficha
+ * (nível + proficiência + atributo + potência): se o jogador reexportar com o valor
+ * certo, a conta fecha e a correção deixa de agir, em vez de somar o +1 duas vezes.
+ */
+const WEAPON_EXPORT_FIXES: Array<{ character: RegExp; weapon: string }> = [
+  // Longsword +1 striking do Nathaniel: o export dá 18 (10 + Perito 4 + FOR 4); o certo é 19.
+  { character: /^nathaniel/i, weapon: 'zarroc sheilvean' },
+];
+
+export function fixWeaponExports(build: BuildInfo): BuildInfo {
+  const fixes = WEAPON_EXPORT_FIXES.filter((f) => f.character.test(build.name ?? ''));
+  if (fixes.length === 0 || !Array.isArray(build.weapons)) return build;
+  let changed = false;
+  const weapons = build.weapons.map((w) => {
+    const label = (w.display || w.name || '').trim().toLowerCase();
+    if (!fixes.some((f) => f.weapon === label)) return w;
+    const prof = (build.proficiencies as unknown as Record<string, number>)[w.prof] ?? 0;
+    const str = Math.floor(((build.abilities?.str ?? 10) - 10) / 2);
+    const expected = build.level + (prof > 0 ? prof : 0) + str + (w.pot || 0);
+    if (w.attack !== expected - 1) return w;
+    changed = true;
+    return { ...w, attack: expected };
+  });
+  return changed ? { ...build, weapons } : build;
+}
+
+/** Tudo que se acerta na ficha logo depois de ler o JSON do Pathbuilder (e ao restaurar a da sessão). */
+export function normalizeBuild(build: BuildInfo): BuildInfo {
+  return fixWeaponExports(normalizeSpellCasters(build));
 }
 
 export function formatAbilityScore(name: string, value: number) {

@@ -36,7 +36,7 @@ const tokenFit = await import('../src/modules/battle-map/tokenFit.ts')
 const av = await import('../src/modules/character-viewer/actionVariants.ts')
 const companions = await import('../src/modules/character-viewer/companions.ts')
 const { encounterReducer } = await import('../src/modules/initiative-tracker/encounterReducer.ts')
-const { normalizeSpellCasters } = await import('../src/modules/character-sheet/types.ts')
+const { normalizeSpellCasters, normalizeBuild, fixWeaponExports } = await import('../src/modules/character-sheet/types.ts')
 const dice = await import('../src/dice/roll.ts')
 const initRolls = await import('../src/modules/initiative-tracker/initiativeRolls.ts')
 const table = await import('../src/dice/tableRoll.ts')
@@ -694,6 +694,21 @@ ok(table.sanitizeTableRoll(emptyRays) === null && server.sanitizeRoll(emptyRays)
 const manyRays = { ...threeRays, rays: Array.from({ length: 7 }, () => threeRays.rays[0]) }
 ok(table.sanitizeTableRoll(manyRays) === null && server.sanitizeRoll(manyRays) === null, 'Mais de 6 raios é recusado')
 ok(/3 raios/.test(table.rollSummaryText(threeRays)), 'O resumo para leitor de tela cita os raios')
+
+
+// ── Correção do export do Pathbuilder: a Longsword do Nathaniel ──────────────
+eq(nat.weapons[0].attack, 18, 'O JSON bruto do Nathaniel traz +18 (sem a potência)')
+eq(normalizeBuild(nat).weapons[0].attack, 19, 'A ficha corrige para 10 + Perito 4 + FOR 4 + potência 1 = 19')
+eq(normalizeBuild(normalizeBuild(nat)).weapons[0].attack, 19, 'Rodar de novo não soma o +1 outra vez')
+eq(fixWeaponExports({ ...nat, weapons: [{ ...nat.weapons[0], attack: 19 }] }).weapons[0].attack, 19, 'Export já certo (19): a correção não age')
+eq(fixWeaponExports({ ...nat, weapons: [{ ...nat.weapons[0], attack: 17 }] }).weapons[0].attack, 17, 'Só corrige quando falta EXATAMENTE 1')
+eq(fixWeaponExports({ ...nat, weapons: [{ ...nat.weapons[0], display: 'Outra Espada' }] }).weapons[0].attack, 18, 'Só vale para a arma pelo nome')
+eq(fixWeaponExports({ ...nat, name: 'Ghan Buri' }).weapons[0].attack, 18, 'Só vale para o personagem pelo nome')
+for (const who of ['ceros', 'eldarion', 'ghan', 'brukuthur', 'thalos']) {
+    eq(JSON.stringify(normalizeBuild(party[who]).weapons), JSON.stringify(normalizeSpellCasters(party[who]).weapons), `${who}: as armas ficam como o Pathbuilder mandou`)
+}
+const fixedSwing = strikes.weaponStrike(normalizeBuild(nat), normalizeBuild(nat).weapons[0], { kind: 'weapon', traits: ['Versatile P'], weaponType: 'melee' })
+eq(strikes.planStrike(normalizeBuild(nat), fixedSwing, NO_MODIFIERS, opts()).attackTotal, 19, 'O Golpe do Nathaniel sai com +19')
 
 // ── Magias de ação variável (1 a 3 ações) ────────────────────────────────────
 const rg = av.actionRange
