@@ -71,9 +71,16 @@ const base = (who: RollerIdentity, title: string, sub?: string): TableRoll => ({
  * memorial já com o ajuste; `mythicDelta` (quando rolado no mítico) entra como
  * mais uma parcela.
  */
-export function checkRoll(who: RollerIdentity, title: string, parts: CheckPart[], mythicDelta: number | null, sub?: string): TableRoll {
+export function checkRoll(
+    who: RollerIdentity,
+    title: string,
+    parts: CheckPart[],
+    mythicDelta: number | null,
+    sub?: string,
+    initiative = false,
+): TableRoll {
     const all = mythicDelta != null ? [...parts, mythicPart(mythicDelta)] : parts
-    return { ...base(who, title, sub), check: d20Check(all, mythicDelta != null) }
+    return { ...base(who, title, sub), check: d20Check(all, mythicDelta != null), ...(initiative ? { initiative: true as const } : {}) }
 }
 
 /** Golpe: o ataque e o dano saem juntos, com o crítico já montado. */

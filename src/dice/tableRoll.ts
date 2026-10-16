@@ -63,6 +63,8 @@ export interface TableRoll {
     }
     /** Rolagem livre (rolador de dados do mapa). */
     free?: RolledPart
+    /** O jogador marcou este teste como a iniciativa dele: a Iniciativa aplica o total. */
+    initiative?: true
 }
 
 const HEX = /^#[0-9a-fA-F]{6}$/
@@ -152,6 +154,9 @@ export function sanitizeTableRoll(raw: unknown): TableRoll | null {
         }
         if (d.basic === true) out.damage.basic = true
     }
+
+    // Iniciativa é um teste de d20: sem `check` a marca não tem número para levar.
+    if (r.initiative === true && out.check) out.initiative = true
 
     if (r.free !== undefined) {
         const part = sanitizePart(r.free, budget)

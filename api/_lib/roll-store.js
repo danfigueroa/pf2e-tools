@@ -106,6 +106,8 @@ export function sanitizeRoll(r) {
     if (d.basic === true) out.damage.basic = true
   }
 
+  if (r.initiative === true && out.check) out.initiative = true
+
   if (r.free !== undefined) {
     const part = sanitizePart(r.free, budget)
     if (!part) return null
