@@ -12,6 +12,7 @@ import type { BuildInfo } from '../../character-sheet/types'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
 import type { ConditionModifiers } from '../conditions'
 import { characterMaxHp } from '../helpers'
+import { itemDisplayName } from '../customRunes'
 import { consumedKeyFor, hpKeyFor, legacyCharKey } from '../charId'
 import { useConsumables } from '../components/useConsumables'
 import { useHpTracker } from '../components/useHpTracker'
@@ -46,14 +47,15 @@ interface ItemRow {
  */
 function inventoryRows(build: BuildInfo): ItemRow[] {
     const weapons = (build.weapons ?? []).map((w) => ({
-        label: w.display || w.name,
+        label: itemDisplayName(build, w, 'weapon'),
         name: w.name,
         qty: w.qty,
         tags: ['Arma'],
         equipment: false,
     }))
     const armor = (build.armor ?? []).map((a) => ({
-        label: a.display || a.name,
+        // Runa homebrew (`customRunes.ts`) no lugar da que ela substituiu.
+        label: itemDisplayName(build, a, 'armor'),
         name: a.name,
         qty: a.qty,
         tags: a.worn ? ['Armadura', 'Vestida'] : ['Armadura'],

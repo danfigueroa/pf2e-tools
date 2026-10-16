@@ -4,13 +4,16 @@ import { SyncStatus } from './SyncStatus'
 import { TokenAvatar } from './TokenAvatar'
 import { charSlug } from '../charId'
 import type { BuildInfo } from '../../character-sheet/types'
+import { sizeLabel, type SizeEffectDef } from '../sizeEffects'
 
 interface Props {
     build: BuildInfo
     onReset: () => void
+    /** Enlarge/Shrink ligado: o chip de tamanho mostra o tamanho de agora. */
+    sizeEffect?: SizeEffectDef | null
 }
 
-export const CharacterHeader = ({ build, onReset }: Props) => {
+export const CharacterHeader = ({ build, onReset, sizeEffect }: Props) => {
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
@@ -72,7 +75,13 @@ export const CharacterHeader = ({ build, onReset }: Props) => {
                                 {build.alignment && (
                                     <Chip label={build.alignment} size="small" variant="outlined" />
                                 )}
-                                {build.sizeName && (
+                                {sizeEffect ? (
+                                    <Chip
+                                        label={`${sizeLabel(sizeEffect.size)} (${sizeEffect.spell})`}
+                                        size="small"
+                                        color="primary"
+                                    />
+                                ) : build.sizeName && (
                                     <Chip label={build.sizeName} size="small" variant="outlined" />
                                 )}
                             </Stack>

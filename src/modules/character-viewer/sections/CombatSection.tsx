@@ -1,9 +1,10 @@
 import { useMemo, memo } from 'react'
-import { Box, Button, Card, CardContent, Typography, Stack, Chip, Divider, Tooltip } from '@mui/material'
+import { Box, Button, Card, CardContent, Typography, Stack, Chip, Divider, Link, Tooltip } from '@mui/material'
 import { Casino as DiceIcon } from '@mui/icons-material'
 import type { BuildInfo, Weapon } from '../../character-sheet/types'
 import { weaponDamageFormula } from '../../character-sheet/weapon'
 import {
+    actionSymbol,
     signed,
     isMythicCharacter,
     mythicProficiencyDelta,
@@ -11,6 +12,10 @@ import {
 } from '../helpers'
 import { unarmedAttacks } from '../unarmed'
 import { magicWeaponRules, type MagicWeaponRules } from '../magicWeapons'
+import { customRunesOf, itemDisplayName, itemRuneNames, type CustomRune } from '../customRunes'
+import type { DescriptionRequest } from '../components/DescriptionDrawer'
+import type { SizeEffectApi } from '../components/useSizeEffect'
+import { SIZE_EFFECTS, meleeDamageBonus, sizeEffectApplies, sizeLabel, type SizeEffectId } from '../sizeEffects'
 import { sharedMod, type ConditionModifiers } from '../conditions'
 import { ConditionDelta } from '../components/ConditionDelta'
 import { MythicNote } from '../components/MythicNote'
@@ -25,9 +30,13 @@ interface Props {
     build: BuildInfo
     mods: ConditionModifiers
     onRoll: (req: RollRequest) => void
+    /** Abre a magia que a ativação de uma runa homebrew imita. */
+    onSelect: (req: DescriptionRequest) => void
+    /** Enlarge/Shrink da runa — o botão mora no card da armadura. */
+    sizeEffect: SizeEffectApi
 }
 
-const CombatSectionView = ({ build, mods, onRoll }: Props) => {
+const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect }: Props) => {
     const weapons = useMemo(() => build.weapons ?? [], [build.weapons])
     // Traços das armas (AON): dizem o atributo do ataque, o MAP e o crítico.
     const gear = useGear(useMemo(() => weapons.map((w) => w.name), [weapons]))
@@ -43,6 +52,8 @@ const CombatSectionView = ({ build, mods, onRoll }: Props) => {
     // delta desconta o que já está embutido no ataque do Pathbuilder.
     const mythic = isMythicCharacter(build)
     const unarmedMythicDelta = mythicProficiencyDelta(build.level, build.proficiencies.unarmed ?? 0)
+    // +4 de estado do Enlarge: só nos Golpes corpo a corpo.
+    const meleeBonus = meleeDamageBonus(mods)
     const isEmpty = weapons.length === 0 && unarmed.length === 0 && armor.length === 0 && !build.acTotal
 
     if (isEmpty) {
@@ -65,12 +76,12 @@ const CombatSectionView = ({ build, mods, onRoll }: Props) => {
                         <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={1}>
                             <Box sx={{ flex: 1, minWidth: 0 }}>
                                 <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-                                    {w.display || w.name}
+                                    {itemDisplayName(build, w, 'weapon')}
                                 </Typography>
                                 <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.75 }}>
                                     <Chip label={`Proficiência: ${capitalize(w.prof)}`} size="small" variant="outlined" />
                                     {w.qty > 1 && <Chip label={`x${w.qty}`} size="small" variant="outlined" />}
-                                    {w.runes?.map((r) => (
+                                    {itemRuneNames(build, w, 'weapon').map((r) => (
                                         <Chip key={r} label={r} size="small" sx={{ textTransform: 'capitalize' }} />
                                     ))}
                                 </Stack>
@@ -87,12 +98,16 @@ const CombatSectionView = ({ build, mods, onRoll }: Props) => {
                                     : null}
                                 byAbility={known ? null : <ByAbilityHint str={extraStr} dex={extraDex} damage={mods.total.damageStr} />}
                                 damage={`${weaponDamageFormula(w)} ${damageTypeLabel(w.damageType)}`.trim()}
+                                damageBonus={strike.traits.ranged ? 0 : meleeBonus}
                                 extra={w.extraDamage?.length ? w.extraDamage.map((d) => `+ ${d}`).join(' ') : undefined}
                                 onRoll={() => onRoll({ kind: 'weapon', weapon: w })}
                                 rollLabel={w.display || w.name}
                             />
                         </Stack>
                         <WeaponProfiles weapon={w} conditionDelta={shown - w.attack} />
+                        {customRunesOf(build, w, 'weapon').map((r) => (
+                            <CustomRuneBox key={r.name} rune={r} build={build} sizeEffect={sizeEffect} onSelect={onSelect} />
+                        ))}
                     </CardContent>
                 </Card>
                 )
@@ -145,6 +160,7 @@ const CombatSectionView = ({ build, mods, onRoll }: Props) => {
                                         attackHint={`MAP ${u.map}`}
                                         damage={`${u.damage} ${u.damageType}`}
                                         damageDelta={mods.total.damageStr}
+                                        damageBonus={meleeBonus}
                                         extra={u.extraDamage?.length ? u.extraDamage.map((d) => `+ ${d}`).join(' ') : undefined}
                                         onRoll={() => onRoll({ kind: 'unarmed', attack: u })}
                                         rollLabel={u.name}
@@ -176,16 +192,19 @@ const CombatSectionView = ({ build, mods, onRoll }: Props) => {
                                 {armor.map((a, idx) => (
                                     <Box key={`${a.name}-${idx}`}>
                                         <Typography sx={{ fontWeight: 600 }}>
-                                            {a.display || a.name}
+                                            {itemDisplayName(build, a, 'armor')}
                                         </Typography>
                                         <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
                                             <Chip label={capitalize(a.prof)} size="small" variant="outlined" />
                                             {a.pot > 0 && <Chip label={`+${a.pot} potência`} size="small" variant="outlined" />}
                                             {a.worn && <Chip label="Vestida" size="small" color="primary" />}
-                                            {a.runes?.map((r) => (
+                                            {itemRuneNames(build, a, 'armor').map((r) => (
                                                 <Chip key={r} label={r} size="small" sx={{ textTransform: 'capitalize' }} />
                                             ))}
                                         </Stack>
+                                        {customRunesOf(build, a, 'armor').map((r) => (
+                                            <CustomRuneBox key={r.name} rune={r} build={build} sizeEffect={sizeEffect} onSelect={onSelect} />
+                                        ))}
                                     </Box>
                                 ))}
                             </Stack>
@@ -301,6 +320,156 @@ const WeaponProfiles = ({ weapon, conditionDelta }: { weapon: Weapon; conditionD
     )
 }
 
+/**
+ * Runa homebrew (`customRunes.ts`): não tem entrada na AON, então o texto
+ * inteiro mora aqui. A ativação de mudar de tamanho é um liga/desliga: ligar
+ * aplica o efeito na ficha (Desajeitado, dano), na Iniciativa e no token do
+ * mapa; desligar volta tudo ao normal. As magias abrem no drawer no rank certo.
+ */
+const CustomRuneBox = ({ rune, build, sizeEffect, onSelect }: {
+    rune: CustomRune
+    build: BuildInfo
+    sizeEffect: SizeEffectApi
+    onSelect: (req: DescriptionRequest) => void
+}) => (
+    <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
+        <Typography variant="overline" sx={{ fontWeight: 700, letterSpacing: '0.06em', color: 'primary.light' }}>
+            Runa {rune.name} · Item {rune.level}
+        </Typography>
+        <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+            {rune.traits.map((t) => (
+                <Chip key={t} label={t} size="small" variant="outlined" sx={{ height: 22, fontSize: '0.7rem' }} />
+            ))}
+            <Chip label="Homebrew" size="small" sx={{ height: 22, fontSize: '0.7rem' }} />
+        </Stack>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+            {rune.source} · {rune.price} · {rune.usage}
+        </Typography>
+        <Typography variant="body2" sx={{ mt: 1 }}>
+            {rune.description}
+        </Typography>
+
+        {rune.activations.map((act) => (
+            <Box
+                key={act.name}
+                sx={{ mt: 1.25, px: 1.25, py: 1, borderRadius: 1, border: '1px solid', borderColor: 'divider', backgroundColor: 'action.hover' }}
+            >
+                <Typography variant="body2">
+                    <Box component="span" sx={{ fontWeight: 700 }}>
+                        Ativar — {act.name} {actionSymbol(act.actions)}
+                    </Box>
+                    {' '}({act.traits.join(', ')})
+                    {act.frequency && <>; <Box component="span" sx={{ fontWeight: 700 }}>Frequência</Box> {act.frequency}</>}
+                    ; <Box component="span" sx={{ fontWeight: 700 }}>Efeito</Box> {act.effect}
+                </Typography>
+                {act.sizeEffects && (
+                    <SizeToggle ids={act.sizeEffects} build={build} api={sizeEffect} onSelect={onSelect} />
+                )}
+            </Box>
+        ))}
+
+        {rune.notes?.map((n) => (
+            <Typography key={n} variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, fontStyle: 'italic' }}>
+                {n}
+            </Typography>
+        ))}
+    </Box>
+)
+
+const sinceText = (ms?: number) =>
+    ms ? ` desde ${new Date(ms).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : ''
+
+/**
+ * Os botões da ativação. Ligado, mostra o que vale agora e o "Voltar ao
+ * normal"; desligado, um botão por efeito — travados depois do uso do dia.
+ */
+const SizeToggle = ({ ids, build, api, onSelect }: {
+    ids: SizeEffectId[]
+    build: BuildInfo
+    api: SizeEffectApi
+    onSelect: (req: DescriptionRequest) => void
+}) => {
+    const { stored, effect } = api
+    const base = build.sizeName
+
+    if (effect) {
+        return (
+            <Box
+                sx={{
+                    mt: 1.25,
+                    px: 1.25,
+                    py: 1,
+                    borderRadius: 1,
+                    border: '2px solid',
+                    borderColor: 'primary.main',
+                    backgroundColor: 'background.paper',
+                }}
+            >
+                <Typography sx={{ fontWeight: 700 }}>
+                    Ativo: {effect.label} — {sizeLabel(effect.size)}{sinceText(stored.since)}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
+                    {effect.summary}
+                </Typography>
+                <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                    <Button size="small" variant="contained" onClick={api.deactivate}>
+                        Voltar ao normal
+                    </Button>
+                    <Button size="small" onClick={() => onSelect({ type: 'spell', name: effect.spell, level: effect.rank })}>
+                        Ver {effect.spell}
+                    </Button>
+                </Stack>
+            </Box>
+        )
+    }
+
+    return (
+        <Box sx={{ mt: 1.25 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 1 }}>
+                {ids.map((id) => {
+                    const def = SIZE_EFFECTS[id]
+                    const applies = sizeEffectApplies(id, base)
+                    return (
+                        <Box key={id}>
+                            <Button
+                                fullWidth
+                                variant="contained"
+                                disabled={stored.used || !applies}
+                                onClick={() => api.activate(id)}
+                                aria-label={`Ativar ${def.label} (${def.spell})`}
+                            >
+                                {def.label} · {def.spell}{def.rank > 2 ? ` ${def.rank}º` : ''}
+                            </Button>
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                {applies ? def.summary : `Sem efeito: você já é ${sizeLabel(base)}.`}
+                                {' '}
+                                <Link
+                                    component="button"
+                                    variant="body2"
+                                    onClick={() => onSelect({ type: 'spell', name: def.spell, level: def.rank })}
+                                    sx={{ verticalAlign: 'baseline' }}
+                                >
+                                    Ver magia
+                                </Link>
+                            </Typography>
+                        </Box>
+                    )
+                })}
+            </Box>
+            {stored.used && (
+                <Stack direction="row" alignItems="center" sx={{ flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                    <Typography variant="body2" color="text.secondary">
+                        Ativação de hoje já usada.
+                    </Typography>
+                    <Button size="small" onClick={api.recharge}>
+                        Novo dia
+                    </Button>
+                </Stack>
+            )}
+        </Box>
+    )
+}
+
 /** Uma linha por perfil, começando pelo que a ficha já mostra. */
 function profileRows(weapon: Weapon, rules: MagicWeaponRules, conditionDelta: number) {
     const base = weapon.extraDamage ?? []
@@ -325,7 +494,7 @@ function profileRows(weapon: Weapon, rules: MagicWeaponRules, conditionDelta: nu
 }
 
 /** Bloco ataque/dano à direita do card, igual para armas e desarmados. */
-const AttackStats = ({ attack, attackHint, attackDelta = 0, attackBase, mythicAttack, byAbility, damage, damageDelta = 0, extra, onRoll, rollLabel }: {
+const AttackStats = ({ attack, attackHint, attackDelta = 0, attackBase, mythicAttack, byAbility, damage, damageDelta = 0, damageBonus = 0, extra, onRoll, rollLabel }: {
     /** Abre o diálogo de rolagem do golpe (ataque + dano). */
     onRoll: () => void
     rollLabel: string
@@ -339,6 +508,8 @@ const AttackStats = ({ attack, attackHint, attackDelta = 0, attackBase, mythicAt
     byAbility?: React.ReactNode
     damage: string
     damageDelta?: number
+    /** Bônus de efeito no dano (Enlarge), fora da fórmula do Pathbuilder. */
+    damageBonus?: number
     extra?: string
 }) => (
     <Box
@@ -369,6 +540,11 @@ const AttackStats = ({ attack, attackHint, attackDelta = 0, attackBase, mythicAt
                     sx={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, color: CONDITION_COLOR }}
                 >
                     {signed(damageDelta)} no dano de FOR
+                </Typography>
+            )}
+            {damageBonus !== 0 && (
+                <Typography component="span" sx={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, color: 'primary.light' }}>
+                    {signed(damageBonus)} de estado (Enlarge)
                 </Typography>
             )}
             <Button

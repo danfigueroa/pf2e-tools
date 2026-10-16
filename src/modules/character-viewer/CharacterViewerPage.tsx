@@ -42,11 +42,13 @@ import { ConditionsBar } from './components/ConditionsBar'
 import { AfflictionsBar } from './components/AfflictionsBar'
 import { PersistentDamageBar } from './components/PersistentDamageBar'
 import { MythicPointsBar } from './components/MythicPointsBar'
-import { afflictionsKeyFor, charSlugFromName, conditionsKeyFor, legacyCharKey, mythicKeyFor, noCharKey, persistentKeyFor } from './charId'
+import { afflictionsKeyFor, charSlugFromName, conditionsKeyFor, legacyCharKey, mythicKeyFor, noCharKey, persistentKeyFor, sizeKeyFor } from './charId'
 import { useConditions } from './components/useConditions'
 import { useAfflictions } from './components/useAfflictions'
 import { usePersistentDamage } from './components/usePersistentDamage'
 import { useMythicPoints, type MythicPointsApi } from './components/useMythicPoints'
+import { useSizeEffect, type SizeEffectApi } from './components/useSizeEffect'
+import { sizeEffectConditions, withSizeEffect } from './sizeEffects'
 import { isMythicCharacter, MYTHIC_POINTS_MAX } from './helpers'
 import type { ConditionModifiers } from './conditions'
 
@@ -78,6 +80,8 @@ export interface SectionContext {
     mods: ConditionModifiers
     mythicPoints: MythicPointsApi
     guide: GuideSlot
+    /** Enlarge/Shrink ligado — a runa do Brukuthur liga e desliga pela aba de Combate. */
+    sizeEffect: SizeEffectApi
 }
 
 interface SectionDef {
@@ -99,7 +103,9 @@ const SECTIONS: SectionDef[] = [
         id: 'combat',
         label: 'Combate',
         icon: <CombatIcon />,
-        render: ({ build, mods, onRoll }) => <CombatSection build={build} mods={mods} onRoll={onRoll} />,
+        render: ({ build, mods, onRoll, onSelect, sizeEffect }) => (
+            <CombatSection build={build} mods={mods} onRoll={onRoll} onSelect={onSelect} sizeEffect={sizeEffect} />
+        ),
     },
     {
         id: 'skills',
@@ -174,12 +180,38 @@ export const CharacterViewerPage = () => {
         build ? persistentKeyFor(build) : noCharKey('persistent'),
     )
 
+    // Mudança de tamanho (Enlarge/Shrink): impõe condição e bônus de dano, então
+    // vem antes das condições, como as aflições.
+    const sizeEffect = useSizeEffect(
+        build ? sizeKeyFor(build) : noCharKey('size'),
+        build?.sizeName,
+    )
+
+    // O que a ficha sofre sem ter marcado: estágio de aflição e o Desajeitado
+    // do Enlarge. Em conflito vale o pior valor, como em `useConditions`.
+    const { derived, derivedSources } = useMemo(() => {
+        const fromSize = sizeEffectConditions(sizeEffect.effect)
+        if (Object.keys(fromSize).length === 0) return { derived: afflictions.conditions, derivedSources: undefined }
+        const merged = { ...afflictions.conditions }
+        const sources: Record<string, string> = {}
+        for (const [id, value] of Object.entries(fromSize)) {
+            if ((merged[id] ?? 0) < value) {
+                merged[id] = value
+                sources[id] = `${sizeEffect.effect!.spell} ${sizeEffect.effect!.rank}º`
+            }
+        }
+        return { derived: merged, derivedSources: sources }
+    }, [afflictions.conditions, sizeEffect.effect])
+
     const conditions = useConditions(
         build ? conditionsKeyFor(build) : noCharKey('conditions'),
         build?.level ?? 1,
         build ? legacyCharKey(build) : undefined,
-        afflictions.conditions,
+        derived,
+        derivedSources,
     )
+    // O +4 de estado no corpo a corpo do Enlarge viaja junto dos modificadores.
+    const mods = useMemo(() => withSizeEffect(conditions.mods, sizeEffect.effect), [conditions.mods, sizeEffect.effect])
 
     // Pontos Míticos: mesma história das condições — gastos de qualquer aba,
     // então o hook mora aqui e a chave também cai num placeholder sem ficha.
@@ -370,11 +402,11 @@ export const CharacterViewerPage = () => {
     }
 
     const visibleSections = SECTIONS.filter(s => !s.visible || s.visible(build))
-    const ctx: SectionContext = { build, onSelect: setDrawerReq, onRoll: setRollReq, mods: conditions.mods, mythicPoints, guide }
+    const ctx: SectionContext = { build, onSelect: setDrawerReq, onRoll: setRollReq, mods, mythicPoints, guide, sizeEffect }
 
     return (
         <Container maxWidth="lg" disableGutters sx={{ pb: 6 }}>
-            <CharacterHeader build={build} onReset={handleReset} />
+            <CharacterHeader build={build} onReset={handleReset} sizeEffect={sizeEffect.effect} />
             {published && <PublishedBar sheet={published} onRestore={handleRestore} />}
 
             <ConditionsBar conditions={conditions} />
@@ -494,7 +526,7 @@ export const CharacterViewerPage = () => {
             <RollDialog
                 request={rollReq}
                 build={build}
-                mods={conditions.mods}
+                mods={mods}
                 mythicPoints={mythicPoints}
                 onClose={closeRoll}
             />
