@@ -18,7 +18,20 @@ const CACHE_VERSION = 'v13'
 
 type Kind = 'feat' | 'spell' | 'special' | 'companion' | 'item'
 
-export async function checkApiAvailable(): Promise<boolean> {
+// Backend que respondeu uma vez continua lá: a ficha não precisa perguntar de
+// novo a cada vez que a página monta. Falha não é lembrada — o servidor pode
+// subir depois (`npm run dev:api`) e a próxima montagem descobre.
+let apiAvailable: Promise<boolean> | null = null
+
+export function checkApiAvailable(): Promise<boolean> {
+    if (!apiAvailable) {
+        apiAvailable = probeApi()
+        apiAvailable.then((ok) => { if (!ok) apiAvailable = null })
+    }
+    return apiAvailable
+}
+
+async function probeApi(): Promise<boolean> {
     try {
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 2000)
