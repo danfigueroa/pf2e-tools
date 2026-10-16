@@ -26,10 +26,16 @@ import { parseDescription, type DescriptionPart, type HeightenedEntry } from '..
 import { StaffSpellList } from './StaffSpellList'
 import {
     applyHeightening,
+    componentLabel,
     computeHeightenedDamage,
+    damageComponents,
+    formatValue,
     isPureDamageEntry,
+    namedLabel,
+    scaleSpell,
     spellHeightenedEntries,
     type AppliedHeightened,
+    type ScaledSpell,
 } from '../heightening'
 
 export interface SpellCasterInfo {
@@ -164,17 +170,35 @@ export const DescriptionDrawer = ({ request, onClose, onNavigate }: Props) => {
         return merged.map((e) => ({ ...e, applies: false, times: 0 }))
     }, [request, state.spell, parsed])
 
-    const heightenedDamage = useMemo(() => {
-        if (!levelAware || !state.spell) return null
-        return computeHeightenedDamage(state.spell, heightenedEntries)
-    }, [levelAware, state.spell, heightenedEntries])
+    // Os números no rank conjurado, pelo `scaling` que o backend leu do EN.
+    // Sem ele (cache antigo), o caminho antigo de um dado só.
+    const scaled = useMemo<ScaledSpell | null>(() => {
+        if (!levelAware || !state.spell || request?.type !== 'spell' || request.level == null) return null
+        return scaleSpell(state.spell, request.level)
+    }, [levelAware, state.spell, request])
 
-    // Substituição do dado base pelo elevado dentro da prosa (destacado).
-    const damageSub = useMemo(() => {
-        if (!levelAware || !heightenedDamage || !state.spell?.damage) return null
-        if (heightenedDamage === state.spell.damage) return null
-        return { from: state.spell.damage, to: heightenedDamage }
-    }, [levelAware, heightenedDamage, state.spell])
+    const heightenedDamage = useMemo(() => {
+        if (!levelAware || !state.spell || scaled) return null
+        return computeHeightenedDamage(state.spell, heightenedEntries)
+    }, [levelAware, state.spell, heightenedEntries, scaled])
+
+    // Dados elevados trocados dentro da prosa (destacados). A k-ésima "2d4" do
+    // inglês é a k-ésima "2d4" da tradução — os dados sobrevivem ao LLM.
+    const diceSubs = useMemo<DiceSub[]>(() => {
+        if (scaled) {
+            return scaled.components
+                .filter((c) => c.changed && c.count > 0)
+                .map((c) => ({
+                    from: c.formula,
+                    to: formatValue(c.value),
+                    nth: c.nth,
+                    occurrences: c.occurrences,
+                }))
+        }
+        if (!levelAware || !heightenedDamage || !state.spell?.damage) return []
+        if (heightenedDamage === state.spell.damage) return []
+        return [{ from: state.spell.damage, to: heightenedDamage, nth: 0 }]
+    }, [scaled, levelAware, heightenedDamage, state.spell])
 
     // Bloco de heightening exibido:
     // - nível-ciente: só as entradas que se APLICAM neste rank, e ainda oculta
@@ -186,11 +210,15 @@ export const DescriptionDrawer = ({ request, onClose, onNavigate }: Props) => {
         if (!levelAware) {
             return { title: 'CONJURADA COM NÍVEL MAIS ALTO', entries: heightenedEntries, levelAware: false }
         }
-        const applied = heightenedEntries.filter((e) => e.applies)
-        const visible = heightenedDamage ? applied.filter((e) => !isPureDamageEntry(e.text)) : applied
+        // Com `scaling`, só sobra o que não virou número (Fly 7º, área maior…).
+        const visible = scaled
+            ? scaled.entries.filter((e) => !e.resolved)
+            : heightenedEntries
+                .filter((e) => e.applies)
+                .filter((e) => !heightenedDamage || !isPureDamageEntry(e.text))
         if (visible.length === 0) return null
-        return { title: `NESTE NÍVEL (${request?.type === 'spell' ? request.level : ''})`, entries: visible, levelAware: true }
-    }, [heightenedEntries, levelAware, heightenedDamage, request])
+        return { title: `NESTE RANK (${request?.type === 'spell' ? request.level : ''})`, entries: visible, levelAware: true }
+    }, [heightenedEntries, levelAware, heightenedDamage, request, scaled])
 
     return (
         <Drawer
@@ -348,6 +376,7 @@ export const DescriptionDrawer = ({ request, onClose, onNavigate }: Props) => {
                                 accent={accent}
                                 caster={request.caster}
                                 heightenedDamage={heightenedDamage}
+                                scaled={scaled}
                                 castLevel={request.level}
                             />
                         )}
@@ -373,7 +402,7 @@ export const DescriptionDrawer = ({ request, onClose, onNavigate }: Props) => {
                             <DescriptionBody
                                 parts={parsed?.parts ?? []}
                                 heightenedBlock={heightenedBlock}
-                                damageSub={damageSub}
+                                diceSubs={diceSubs}
                                 accent={accent}
                             />
                         )}
@@ -481,14 +510,20 @@ const SpellMetadata = ({
     accent,
     caster,
     heightenedDamage,
+    scaled,
     castLevel,
 }: {
     spell: SpellDescription
     accent: string
     caster?: SpellCasterInfo
     heightenedDamage?: string | null
+    scaled?: ScaledSpell | null
     castLevel?: number
-}) => (
+}) => {
+    const dmg = scaled ? damageComponents(scaled) : []
+    const named = scaled ? scaled.components.filter((c) => !dmg.includes(c)) : []
+    const hasNumbers = scaled ? dmg.length + named.length > 0 : Boolean(spell.damage || heightenedDamage)
+    return (
     <Box sx={{ mb: 2.5 }}>
         {spell.traits && spell.traits.length > 0 && (
             <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.5, mb: 1.5 }}>
@@ -509,7 +544,7 @@ const SpellMetadata = ({
                 ))}
             </Stack>
         )}
-        {(caster || spell.traditions?.length || spell.castComponents || spell.range || spell.area || spell.targets || spell.duration || spell.defense || spell.damage || heightenedDamage) && (
+        {(caster || spell.traditions?.length || spell.castComponents || spell.range || spell.area || spell.targets || spell.duration || spell.defense || hasNumbers) && (
             <Box
                 sx={{
                     display: 'grid',
@@ -540,23 +575,46 @@ const SpellMetadata = ({
                 {spell.targets && <MetaRow label="Alvos" value={spell.targets} />}
                 {spell.duration && <MetaRow label="Duração" value={spell.duration} />}
                 {spell.defense && <MetaRow label="Defesa" value={spell.defense} />}
-                {spell.damage && (
-                    <MetaRow
-                        label="Dano"
-                        value={`${spell.damage}${spell.damageType ? ` ${spell.damageType}` : ''}`}
-                    />
-                )}
-                {heightenedDamage && (
-                    <MetaRow
-                        label={castLevel != null ? `Dano (nível ${castLevel})` : 'Dano elevado'}
-                        value={`${heightenedDamage}${spell.damageType ? ` ${spell.damageType}` : ''}`}
-                        accent={accent}
-                    />
+                {scaled ? (
+                    <>
+                        {dmg.length > 0 && (
+                            <MetaRow
+                                label={scaled.heightened && castLevel != null ? `Dano (rank ${castLevel})` : 'Dano'}
+                                value={dmg.map(componentLabel).join(', ')}
+                                accent={scaled.heightened ? accent : undefined}
+                            />
+                        )}
+                        {named.map((c) => (
+                            <MetaRow
+                                key={c.id}
+                                label={namedLabel(c)}
+                                value={c.uncertain ? `${c.formula} (?)` : c.changed ? `${formatValue(c.value)} (base ${c.formula})` : formatValue(c.value)}
+                                accent={c.changed ? accent : undefined}
+                            />
+                        ))}
+                    </>
+                ) : (
+                    <>
+                        {spell.damage && (
+                            <MetaRow
+                                label="Dano"
+                                value={`${spell.damage}${spell.damageType ? ` ${spell.damageType}` : ''}`}
+                            />
+                        )}
+                        {heightenedDamage && (
+                            <MetaRow
+                                label={castLevel != null ? `Dano (rank ${castLevel})` : 'Dano elevado'}
+                                value={`${heightenedDamage}${spell.damageType ? ` ${spell.damageType}` : ''}`}
+                                accent={accent}
+                            />
+                        )}
+                    </>
                 )}
             </Box>
         )}
     </Box>
-)
+    )
+}
 
 const MetaRow = ({ label, value, accent }: { label: string; value: string; accent?: string }) => (
     <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'baseline', minWidth: 0 }}>
@@ -599,25 +657,66 @@ function mergeHeightened(
     return parsed || []
 }
 
-// Renderiza o texto de um parágrafo substituindo a primeira ocorrência do dado
-// base pelo dano elevado (destacado) quando `sub` é fornecido.
-const PartText = ({ text, sub, accent }: { text: string; sub: { from: string; to: string } | null; accent: string }) => {
-    if (!sub) return <>{text}</>
-    const idx = text.indexOf(sub.from)
-    if (idx === -1) return <>{text}</>
-    return (
-        <>
-            {text.slice(0, idx)}
+/** Um dado da prosa trocado pelo valor no rank conjurado. */
+interface DiceSub {
+    from: string
+    to: string
+    /** Qual ocorrência de `from` (entre as iguais) é esta. */
+    nth: number
+    /** Quantas há no inglês; se a tradução tiver outra contagem, não troca nada. */
+    occurrences?: number
+}
+
+interface Hit { start: number; end: number; sub: DiceSub }
+
+const escapeRe = (t: string) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+const diceRe = (formula: string) => new RegExp(`(?<![\\dd])${escapeRe(formula)}(?![\\d])`, 'g')
+
+/**
+ * Onde cada troca cai, parte a parte. A contagem de ocorrências é GLOBAL (a
+ * prosa inteira), como no inglês de onde veio o `nth`.
+ */
+function locateSubs(texts: string[], subs: DiceSub[]): Hit[][] {
+    const out: Hit[][] = texts.map(() => [])
+    const byFormula = new Map<string, DiceSub[]>()
+    for (const sub of subs) byFormula.set(sub.from, [...(byFormula.get(sub.from) ?? []), sub])
+    for (const [formula, list] of byFormula) {
+        const found: { part: number; start: number }[] = []
+        texts.forEach((t, part) => {
+            for (const m of t.matchAll(diceRe(formula))) found.push({ part, start: m.index ?? 0 })
+        })
+        for (const sub of list) {
+            if (sub.occurrences != null && found.length !== sub.occurrences) continue
+            const at = found[sub.nth]
+            if (at) out[at.part].push({ start: at.start, end: at.start + formula.length, sub })
+        }
+    }
+    out.forEach((hits) => hits.sort((x, y) => x.start - y.start))
+    return out
+}
+
+// Renderiza o texto de um parágrafo com os dados elevados destacados.
+const PartText = ({ text, hits, accent }: { text: string; hits: Hit[]; accent: string }) => {
+    if (hits.length === 0) return <>{text}</>
+    const nodes: React.ReactNode[] = []
+    let cursor = 0
+    hits.forEach((h, i) => {
+        if (h.start < cursor) return
+        nodes.push(text.slice(cursor, h.start))
+        nodes.push(
             <Box
+                key={i}
                 component="span"
-                title={`Dado base ${sub.from}, elevado para o nível conjurado`}
+                title={`${h.sub.from} no rank base — elevado para o rank conjurado`}
                 sx={{ color: accent, fontWeight: 700 }}
             >
-                {sub.to}
-            </Box>
-            {text.slice(idx + sub.from.length)}
-        </>
-    )
+                {h.sub.to}
+            </Box>,
+        )
+        cursor = h.end
+    })
+    nodes.push(text.slice(cursor))
+    return <>{nodes}</>
 }
 
 interface HeightenedBlockData {
@@ -629,12 +728,12 @@ interface HeightenedBlockData {
 const DescriptionBody = ({
     parts,
     heightenedBlock,
-    damageSub,
+    diceSubs,
     accent,
 }: {
     parts: DescriptionPart[]
     heightenedBlock: HeightenedBlockData | null
-    damageSub: { from: string; to: string } | null
+    diceSubs: DiceSub[]
     accent: string
 }) => {
     if (parts.length === 0 && !heightenedBlock) {
@@ -645,8 +744,7 @@ const DescriptionBody = ({
         )
     }
 
-    // A substituição de dano vale só para a primeira parte que contém o dado base.
-    const subPartIdx = damageSub ? parts.findIndex((p) => p.text.includes(damageSub.from)) : -1
+    const hits = locateSubs(parts.map((p) => p.text), diceSubs)
 
     return (
         <Box sx={{ '& > * + *': { mt: 1.5 } }}>
@@ -666,7 +764,7 @@ const DescriptionBody = ({
                 </Typography>
             )}
             {parts.map((p, idx) => {
-                const sub = idx === subPartIdx ? damageSub : null
+                const partHits = hits[idx]
                 return p.kind === 'labeled' ? (
                     <Box key={idx}>
                         <Typography
@@ -680,12 +778,12 @@ const DescriptionBody = ({
                             {p.label}.
                         </Typography>
                         <Typography component="span" sx={{ lineHeight: 1.7 }}>
-                            <PartText text={p.text} sub={sub} accent={accent} />
+                            <PartText text={p.text} hits={partHits} accent={accent} />
                         </Typography>
                     </Box>
                 ) : (
                     <Typography key={idx} sx={{ lineHeight: 1.7 }}>
-                        <PartText text={p.text} sub={sub} accent={accent} />
+                        <PartText text={p.text} hits={partHits} accent={accent} />
                     </Typography>
                 )
             })}
