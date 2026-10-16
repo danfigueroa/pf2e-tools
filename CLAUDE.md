@@ -371,8 +371,8 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   números da animação são exatamente os do memorial no aviso.
 - Onde há animação: poção (frasco → dados → barra enchendo), PV da Ficha, do companheiro e do
   cartão da Iniciativa (conta, treme no dano, brilha na cura — inclusive o dano automático do fim
-  do turno), pips de slot/foco/míticos, chips de condição novos, troca de turno e de rodada, e o escudo
-  (erguer, bloquear, quebrar com rachadura, consertar).
+  do turno), pips de slot/foco/míticos, chips de condição novos, troca de turno e de rodada, o escudo
+  (erguer, bloquear, quebrar com rachadura, consertar) e o token que muda de tamanho no mapa.
   Nada disso fica no subtree do `html2canvas`.
 
 ## Convenções
@@ -538,6 +538,13 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     Miúdo ocupa 1 quadrado (alvo de toque) mas é desenhado com metade do tamanho (`tiny`).
   - O token cresce para a direita e para baixo (a posição é o canto superior esquerdo): deslocar
     a posição só na tela faria o arrasto gravar a posição deslocada.
+  - **A troca de tamanho é animada no mapa** (`useResizeAnimation` em `Token.tsx`): o token
+    brilha no tamanho antigo, cresce ou encolhe passando um pouco do ponto, com um anel dourado
+    que se abre ou se fecha; barra e nome acompanham. O tamanho novo já está no DOM — cada peça
+    parte do desenho antigo (Web Animations, porque o ponto de partida depende dos dois tamanhos).
+    Borda, brilho e anel são divididos pela escala do quadro: sem isso, um Grande → Miúdo
+    começava com um disco dourado 8× maior cobrindo o mapa. A barra anima `left/right`, não
+    `scaleX`, que esticava o "80/120". Nada anima no primeiro segundo do token montado.
 - **Bastão abre com a lista de magias do degrau** (`StaffSpellList.tsx`): as magias vêm agrupadas
   por rank, com o custo em cargas ao lado (conjurar gasta cargas iguais ao rank; truque é de graça —
   GM Core p. 278) e etiqueta de degrau nas herdadas do bastão inferior. Quem filtra o degrau é o
