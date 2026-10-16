@@ -4,7 +4,9 @@
 //
 //   GET  ?maps=1                          → lista + mapa ativo
 //   GET  ?map=<id>                        → o mapa inteiro (com PV/token dos PCs)
-//   GET  ?mapRev=<id>                     → só os contadores — é o poll
+//   GET  ?mapRev=<id>[&rev=N&tableRev=M]  → os contadores — é o poll; com o
+//                                           que o cliente já tem, o mapa vem
+//                                           junto quando mudou
 //   POST { action: 'map-create', name }
 //   POST { action: 'map-rename', id, name }
 //   POST { action: 'map-activate', id|null }
@@ -88,7 +90,17 @@ export async function handleMapRequest(method, query, body, request) {
         if (query.maps) return ok(await listMaps())
         const id = String(query.map || query.mapRev)
         if (!isValidMapId(id)) return fail(400, 'Parâmetro "map" inválido')
-        if (query.mapRev) return ok(await readRevs(id))
+        if (query.mapRev) {
+            // O poll diz o que já tem (`rev`, `tableRev`). Se mudou, o mapa vem
+            // NA MESMA resposta — antes eram dois pedidos, e o segundo era uma
+            // ida e volta inteira a mais até a tela de quem estava olhando.
+            const revs = await readRevs(id)
+            const known = query.rev != null && query.tableRev != null
+            const stale = known && (String(revs.rev) !== String(query.rev) || String(revs.tableRev) !== String(query.tableRev))
+            if (!stale) return ok(revs)
+            const map = await readMap(id, revs)
+            return ok(map ? { ...revs, map } : revs)
+        }
         const map = await readMap(id)
         if (!map) return fail(404, 'Mapa não encontrado')
         return ok({ map })
