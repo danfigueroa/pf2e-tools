@@ -24,6 +24,7 @@ const { unarmedAttacks } = await import('../src/modules/character-viewer/unarmed
 const amps = await import('../src/modules/character-viewer/psiAmps.ts')
 const energyMod = await import('../src/modules/character-viewer/energy.ts')
 const psyche = await import('../src/modules/character-viewer/psyche.ts')
+const magus = await import('../src/modules/character-viewer/magus.ts')
 const dice = await import('../src/dice/roll.ts')
 const initRolls = await import('../src/modules/initiative-tracker/initiativeRolls.ts')
 const table = await import('../src/dice/tableRoll.ts')
@@ -391,6 +392,35 @@ for (let i = 0; i < N; i++) {
 }
 const mean = total / N
 ok(Math.abs(mean - dice.exprAverage(expr)) < 0.15, `média de 2d8+1d6+4 = ${mean.toFixed(3)} (esperado 16,5)`)
+
+
+// ── Magus: Arcane Cascade, Spellstrike, Summon Mythic Power, Divert Destiny ──
+const nat = party.nathaniel
+ok(magus.hasArcaneCascade(nat) && magus.hasSpellstrike(nat), 'Nathaniel tem Arcane Cascade e Spellstrike')
+ok(magus.hasSummonMythicPower(nat) && magus.hasDivertDestiny(nat), 'Nathaniel tem Summon Mythic Power e Divert Destiny')
+for (const who of ['brukuthur', 'ceros', 'eldarion', 'ghan', 'thalos']) ok(!magus.hasArcaneCascade(party[who]) && !magus.hasSpellstrike(party[who]), `${who} não é Magus: sem postura nem Spellstrike`)
+eq(magus.cascadeDamage(nat), 2, 'Weapon Specialization: a postura dá +2')
+eq(magus.cascadeDamage({ ...nat, specials: [...nat.specials, 'Greater Weapon Specialization'] }), 3, 'Greater Weapon Specialization: +3')
+eq(magus.cascadeDamage({ ...nat, specials: nat.specials.filter((x) => x !== 'Weapon Specialization') }), 1, 'Sem especialização: +1')
+const on = { ...magus.NO_MAGUS, cascade: true, cascadeType: 'fire' }
+const cascadeMods = magus.withCascade(NO_MODIFIERS, magus.activeCascade(on, nat))
+ok(magus.activeCascade(magus.NO_MAGUS, nat) === null, 'Fora da postura não há efeito')
+ok(magus.activeCascade(on, party.ceros) === null, 'Quem não tem Arcane Cascade não ganha a postura')
+const sword = nat.weapons[0]
+GEAR.Longsword = { kind: 'weapon', traits: ['Versatile P'], weaponType: 'melee' }
+const swordStrike = strikes.weaponStrike(nat, sword, GEAR.Longsword)
+const cascadePlan = strikes.planStrike(nat, swordStrike, cascadeMods, opts())
+const cascadeExtra = cascadePlan.extras.find((e) => e.key === 'arcane-cascade')
+ok(cascadeExtra && cascadeExtra.expr.flat === 2 && cascadeExtra.type === 'fire', 'Golpe corpo a corpo ganha +2 de fogo da postura')
+eq(strikes.planStrike(nat, swordStrike, NO_MODIFIERS, opts()).extras.some((e) => e.key === 'arcane-cascade'), false, 'Sem a postura não há parcela extra')
+eq(strikes.planStrike(nat, swordStrike, cascadeMods, opts({ mode: 'thrown' })).extras.some((e) => e.key === 'arcane-cascade'), false, 'Arremesso não leva a postura')
+const cascadeRoll = strikes.rollStrikeDamage(cascadePlan, 'cortante')
+ok(cascadeRoll.parts.some((p) => p.rolled.total === 2 && /fogo/.test(p.label)), 'A parcela da postura rola 2 e diz o tipo')
+eq(magus.sanitizeMagus('lixo'), magus.NO_MAGUS, 'Estado da mesa inválido vira "sem nada"')
+eq(magus.sanitizeMagus({ cascade: true, cascadeType: 'lixo' }).cascadeType, 'force', 'Tipo desconhecido volta a força')
+ok(magus.isMagusEmpty(magus.NO_MAGUS) && !magus.isMagusEmpty({ ...magus.NO_MAGUS, spent: true }), 'Estado vazio só sem nada gravado')
+eq(magus.divertDestinyHp(10, 100), 20, 'Divert Destiny: 10 + nível')
+eq(magus.divertDestinyHp(10, 15), 15, 'Divert Destiny nunca passa do PV máximo')
 
 console.log(`${passed} conferências ok, ${failures} falha(s).`)
 process.exit(failures ? 1 : 0)
