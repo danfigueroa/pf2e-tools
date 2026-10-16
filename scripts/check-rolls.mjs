@@ -27,6 +27,7 @@ const psyche = await import('../src/modules/character-viewer/psyche.ts')
 const magus = await import('../src/modules/character-viewer/magus.ts')
 const spellstrike = await import('../src/modules/character-viewer/spellstrike.ts')
 const ranger = await import('../src/modules/character-viewer/ranger.ts')
+const rogue = await import('../src/modules/character-viewer/rogue.ts')
 const { normalizeSpellCasters } = await import('../src/modules/character-sheet/types.ts')
 const dice = await import('../src/dice/roll.ts')
 const initRolls = await import('../src/modules/initiative-tracker/initiativeRolls.ts')
@@ -478,6 +479,34 @@ const swordCe = strikes.weaponStrike(cer, cer.weapons[1], { kind: 'weapon', trai
 eq(strikes.planStrike(cer, swordCe, NO_MODIFIERS, opts({ extrasOn: { [ranger.HUNTERS_AIM_KEY]: true } })).attackTotal, strikes.planStrike(cer, swordCe, NO_MODIFIERS, opts()).attackTotal, "Hunter's Aim não vale corpo a corpo")
 eq(ranger.sanitizeRanger('lixo'), ranger.NO_RANGER, 'Estado inválido vira "sem nada"')
 ok(ranger.isRangerEmpty(ranger.NO_RANGER) && !ranger.isRangerEmpty({ prey: true, gravity: false }), 'Estado vazio só sem nada gravado')
+
+
+// ── Ladino: Poison Weapon e Debilitating Strike ──────────────────────────────
+const eld = party.eldarion
+ok(rogue.hasPoisonWeapon(eld) && rogue.hasDebilitatingStrike(eld), 'Eldarion tem Poison Weapon e Debilitating Strike')
+ok(!rogue.hasPoisonWeapon(party.ghan) && !rogue.hasPoisonWeapon(nat), 'Quem não tem o talento não ganha a faixa do Ladino')
+const T = (traits) => ({ name: 'x', level: 1, traits, subcategory: null, consumable: true, healing: null })
+ok(rogue.isApplicablePoison(T(['Consumable', 'Contact', 'Poison'])), 'Veneno de contato serve')
+ok(rogue.isApplicablePoison(T(['Consumable', 'Injury', 'Poison'])), 'Veneno de injeção serve')
+ok(!rogue.isApplicablePoison(T(['Consumable', 'Inhaled', 'Poison'])), 'Veneno inalado não serve (Breath of the Mantis God)')
+ok(!rogue.isApplicablePoison(T(['Consumable', 'Contact'])), 'Contato sem ser veneno não serve')
+ok(!rogue.isApplicablePoison(null), 'Item sem entrada no AON não serve')
+eq(rogue.poisonNote('Fearweed', { dc: 30, save: 'fortitude' }), 'veneno: Fearweed (CD 30 Fortitude)', 'Nota do veneno com CD e salvaguarda')
+eq(rogue.poisonNote('Fearweed', null), 'veneno: Fearweed', 'Nota do veneno sem dados da AON')
+eq(rogue.sanitizeRogue('lixo'), rogue.NO_ROGUE, 'Estado inválido vira arma limpa')
+eq(rogue.sanitizeRogue({ poison: 'Fearweed' }).poison, 'Fearweed', 'O veneno gravado sobrevive à releitura')
+ok(rogue.isRogueEmpty(rogue.NO_ROGUE) && !rogue.isRogueEmpty({ poison: 'x' }), 'Estado vazio só sem veneno')
+// A anotação da rolagem passa pelos DOIS sanitizadores, com o mesmo teto.
+const noted = { ...strikeOnly, note: 'veneno: Fearweed (CD 30 Fortitude) · Debilitating Strike: Enfraquecido 1 até o fim do próximo turno' }
+eq(table.sanitizeTableRoll(noted)?.note, noted.note, 'cliente mantém a anotação')
+eq(server.sanitizeRoll(noted)?.note, noted.note, 'servidor mantém a anotação')
+eq(table.sanitizeTableRoll({ ...strikeOnly, note: 'a'.repeat(400) })?.note.length, 300, 'cliente corta a anotação em 300')
+eq(server.sanitizeRoll({ ...strikeOnly, note: 'a'.repeat(400) })?.note.length, 300, 'servidor corta a anotação em 300')
+// Spellstrike com muitas parcelas continua dentro do teto de 8 do feed.
+const manyComps = Array.from({ length: 9 }, (_, i) => ({ ...comp, id: i + 1 }))
+const crowded = rolls.spellstrikeRoll(ssWho, swordStrike, cascadePlan, null, undefined, { name: 'Ignition', components: manyComps, usesAttack: true })
+ok(crowded.damage.parts.length <= 8, 'Muitas parcelas de magia viram uma só, dentro do teto do feed')
+ok(table.sanitizeTableRoll(crowded) !== null && server.sanitizeRoll(crowded) !== null, 'A rolagem cheia ainda passa nos dois sanitizadores')
 
 console.log(`${passed} conferências ok, ${failures} falha(s).`)
 process.exit(failures ? 1 : 0)
