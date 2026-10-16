@@ -116,8 +116,10 @@ export function casterAttack(build: BuildInfo, caster: SpellCaster, mods: Condit
     const parts: CheckPart[] = [
         mythicMagic
             ? { label: 'Mítica', value: build.level + MYTHIC_PROFICIENCY_BONUS, kind: 'prof' }
-            : { label: proficiencyLabel(rank), value: rank > 0 ? build.level + rank : 0, kind: 'prof' },
-        { label: ABILITY_LABELS[ability] ?? ability.toUpperCase(), value: abilityMod(build.abilities[ability] ?? 10), kind: 'ability' },
+            // Mesma conta de `spellcasterStats` (o "Atq" do cartão): bloco de
+            // conjuração nunca é destreinado, e os dois números têm de bater.
+            : { label: proficiencyLabel(rank), value: build.level + rank, kind: 'prof' },
+        { label: ABILITY_LABELS[ability] ?? ability.toUpperCase(), value: abilityMod(build.abilities[ability] || 10), kind: 'ability' },
         ...conditionParts(mods, 'attackSpell'),
     ]
     return {

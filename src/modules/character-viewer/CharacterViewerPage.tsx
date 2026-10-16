@@ -124,8 +124,8 @@ const SECTIONS: SectionDef[] = [
         id: 'spells',
         label: 'Magias',
         icon: <SpellsIcon />,
-        render: ({ build, onSelect, mods, mythicPoints }) => (
-            <SpellsSection build={build} onSelect={onSelect} mods={mods} mythicPoints={mythicPoints} />
+        render: ({ build, onSelect, onRoll, mods, mythicPoints }) => (
+            <SpellsSection build={build} onSelect={onSelect} onRoll={onRoll} mods={mods} mythicPoints={mythicPoints} />
         ),
         visible: (b) => {
             const hasCasters = b.spellCasters?.some(c => c.spells.some(l => l.list.length > 0))
@@ -481,6 +481,7 @@ export const CharacterViewerPage = () => {
                 request={drawerReq}
                 onClose={() => setDrawerReq(null)}
                 onNavigate={setDrawerReq}
+                onRoll={setRollReq}
             />
             <RollDialog
                 request={rollReq}

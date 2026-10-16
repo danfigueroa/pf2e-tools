@@ -5,6 +5,7 @@ import {
     CloudDownload as DownloadIcon,
     Restore as RestoreIcon,
     Bolt as SpendIcon,
+    Casino as DiceIcon,
 } from '@mui/icons-material'
 import type { BuildInfo, SpellCaster, FocusTradition, FocusAbility } from '../../character-sheet/types'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
@@ -18,15 +19,18 @@ import { gold } from '../../../theme'
 import { ConditionDelta } from '../components/ConditionDelta'
 import type { ConditionModifiers } from '../conditions'
 import type { MythicPointsApi } from '../components/useMythicPoints'
+import type { RollRequest } from '../components/RollDialog'
+import { casterAttack, focusAttack } from '../rolls'
 
 interface Props {
     build: BuildInfo
     onSelect: (req: DescriptionRequest) => void
+    onRoll: (req: RollRequest) => void
     mods: ConditionModifiers
     mythicPoints: MythicPointsApi
 }
 
-export const SpellsSection = ({ build, onSelect, mods, mythicPoints }: Props) => {
+export const SpellsSection = ({ build, onSelect, onRoll, mods, mythicPoints }: Props) => {
     const hasCasters = build.spellCasters?.some(c => c.spells.some(l => l.list.length > 0))
     const focusSpells = useMemo(() => collectFocusSpells(build), [build])
     const focusRank = castRankForSlot(0, build.level)
@@ -157,6 +161,7 @@ export const SpellsSection = ({ build, onSelect, mods, mythicPoints }: Props) =>
                         slots={slots}
                         mythicPoints={mythicPoints}
                         onSelect={onSelect}
+                        onRoll={onRoll}
                         mods={mods}
                     />
                 ))}
@@ -228,11 +233,14 @@ interface CasterProps {
     slots: SpellSlotsApi
     mythicPoints: MythicPointsApi
     onSelect: Props['onSelect']
+    onRoll: Props['onRoll']
     mods: ConditionModifiers
 }
 
-const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, mods }: CasterProps) => {
+const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, onRoll, mods }: CasterProps) => {
     const base = spellcasterStats(build, caster)
+    // A conta do ataque de magia, para a rolagem (mesmo total do "Atq" abaixo).
+    const attackInfo = casterAttack(build, caster, mods)
     // Estupefato pesa em CD e ataque de magia (testes de INT/SAB/CAR).
     const dc = base.dc + mods.total.spellDc
     const attack = base.attack + mods.total.attackSpell
@@ -301,9 +309,18 @@ const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, m
                         </Box>
                         <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                                CD {dc} · Atq {signed(attack)}
+                                CD {dc}
                             </Typography>
                             <ConditionDelta delta={mods.total.spellDc} base={base.dc} align="right" />
+                            <Button
+                                size="small"
+                                startIcon={<DiceIcon />}
+                                onClick={() => onRoll({ kind: 'spell', name: `Ataque de magia — ${caster.name}`, attack: attackInfo })}
+                                aria-label={`Rolar ataque de magia de ${caster.name}`}
+                                sx={{ mt: 0.25, minHeight: 32, px: 1 }}
+                            >
+                                Atq {signed(attack)}
+                            </Button>
                         </Box>
                     </Stack>
                     {isMythicMagic && (
@@ -401,7 +418,7 @@ const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, m
                                             name,
                                             level: castRank,
                                             autoHeightened: spellLevel === 0,
-                                            caster: { name: caster.name, dc, attack, tradition: caster.magicTradition },
+                                            caster: { name: caster.name, dc, attack, tradition: caster.magicTradition, attackInfo },
                                         }}
                                         onSelect={onSelect}
                                         pips={tracked ? {
@@ -583,5 +600,11 @@ function focusCasterInfo(build: BuildInfo, entry: FocusSpellEntry, mods: Conditi
     if (proficiency == null || abilityBonus == null) return undefined
     const base = build.level + proficiency + abilityBonus + (itemBonus ?? 0)
     const attack = base + mods.total.attackSpell
-    return { name: 'Magias de Foco', dc: 10 + base + mods.total.spellDc, attack, tradition: entry.tradition }
+    return {
+        name: 'Magias de Foco',
+        dc: 10 + base + mods.total.spellDc,
+        attack,
+        tradition: entry.tradition,
+        attackInfo: focusAttack(build, entry.group, mods),
+    }
 }

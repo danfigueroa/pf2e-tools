@@ -3,6 +3,7 @@ import { TYPE_ACCENT as PALETTE_TYPE_ACCENT } from '../../../theme/palette'
 import {
     Drawer,
     Box,
+    Button,
     Typography,
     IconButton,
     Skeleton,
@@ -13,7 +14,7 @@ import {
     useTheme,
     useMediaQuery,
 } from '@mui/material'
-import { Close as CloseIcon, OpenInNew as ExternalIcon, MenuBook as BookIcon } from '@mui/icons-material'
+import { Close as CloseIcon, OpenInNew as ExternalIcon, MenuBook as BookIcon, Casino as DiceIcon } from '@mui/icons-material'
 import {
     fetchFeatDescription,
     fetchSpecialDescription,
@@ -24,6 +25,8 @@ import type { FeatDescription, SpellDescription } from '../../character-sheet/ty
 import { actionSymbol, getAonSearchUrl, signed, traditionColor } from '../helpers'
 import { parseDescription, type DescriptionPart, type HeightenedEntry } from '../format-description'
 import { StaffSpellList } from './StaffSpellList'
+import type { RollRequest } from './RollDialog'
+import type { SpellAttackInfo } from '../rolls'
 import {
     applyHeightening,
     componentLabel,
@@ -43,6 +46,8 @@ export interface SpellCasterInfo {
     dc: number
     attack: number
     tradition: string
+    /** A conta do ataque de magia e o ✦ — o que o diálogo de rolagem usa. */
+    attackInfo?: SpellAttackInfo | null
 }
 
 export type DescriptionRequest =
@@ -61,6 +66,8 @@ export type DescriptionRequest =
 interface Props {
     request: DescriptionRequest | null
     onClose: () => void
+    /** Abre a rolagem da magia (ataque e dano no rank conjurado). */
+    onRoll?: (req: RollRequest) => void
     /**
      * Troca o conteúdo do drawer sem fechá-lo — as magias de um bastão abrem a
      * própria descrição por aqui. O efeito de carga já reage a `request`, então
@@ -85,7 +92,7 @@ const TYPE_LABEL: Record<DescriptionRequest['type'], string> = {
 // Acentos por tipo (o de magia é sobrescrito pela tradição quando há).
 const TYPE_ACCENT: Record<DescriptionRequest['type'], string> = PALETTE_TYPE_ACCENT
 
-export const DescriptionDrawer = ({ request, onClose, onNavigate }: Props) => {
+export const DescriptionDrawer = ({ request, onClose, onNavigate, onRoll }: Props) => {
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down('md'))
     const [state, setState] = useState<State>({ loading: false })
@@ -381,6 +388,17 @@ export const DescriptionDrawer = ({ request, onClose, onNavigate }: Props) => {
                             />
                         )}
 
+                        {/* Rolar: ataque (traço ataque) e dano no rank conjurado */}
+                        {request.type === 'spell' && state.spell && !state.loading && onRoll && (
+                            <SpellRollButton
+                                spell={state.spell}
+                                caster={request.caster}
+                                castRank={request.level ?? state.spell.level ?? undefined}
+                                name={request.name}
+                                onRoll={onRoll}
+                            />
+                        )}
+
                         {/* Bastão: magias do degrau que a ficha possui (só elas) */}
                         {request.type !== 'spell' && state.entry?.staff && !state.loading && (
                             <StaffSpellList
@@ -502,6 +520,32 @@ const EntryMetadata = ({ entry, accent }: { entry: FeatDescription; accent: stri
                 </Box>
             )}
         </Box>
+    )
+}
+
+/** Botão de rolar a magia — só aparece quando há ataque ou dano legível. */
+const SpellRollButton = ({ spell, caster, castRank, name, onRoll }: {
+    spell: SpellDescription
+    caster?: SpellCasterInfo
+    castRank?: number
+    name: string
+    onRoll: (req: RollRequest) => void
+}) => {
+    const hasAttack = !!caster?.attackInfo && (spell.traits ?? []).some((t) => t.toLowerCase() === 'attack')
+    const scaled = castRank != null ? scaleSpell(spell, castRank) : null
+    const hasDamage = !!scaled && damageComponents(scaled).length > 0
+    if (!hasAttack && !hasDamage) return null
+    const label = hasAttack && hasDamage ? 'Rolar ataque e dano' : hasAttack ? 'Rolar ataque' : 'Rolar dano'
+    return (
+        <Button
+            variant="contained"
+            startIcon={<DiceIcon />}
+            onClick={() => onRoll({ kind: 'spell', name, attack: caster?.attackInfo ?? null, spell, castRank })}
+            sx={{ mb: 2, minHeight: 40 }}
+            fullWidth
+        >
+            {label}
+        </Button>
     )
 }
 
