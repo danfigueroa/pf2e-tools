@@ -14,8 +14,11 @@ import { basicSaveLine, partFormula, rollSummaryText, type RolledPart, type Tabl
 // vistas, menos as que saíram DESTE aparelho (a otimista pode chegar antes da
 // primeira leitura do feed).
 
-/** Quanto a rolagem fica na tela: animação (~1,3 s) + tempo de ler a conta. */
-const SHOW_MS = 8000
+/**
+ * Quanto a rolagem fica na tela. Com 8 s sumia antes de a mesa terminar de ler a
+ * conta; quem já leu fecha pelo ×.
+ */
+const SHOW_MS = 30_000
 const MAX_SHOWN = 2
 
 const signed = (n: number) => (n >= 0 ? `+${n}` : `−${Math.abs(n)}`)
@@ -47,7 +50,6 @@ const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) =
     const persistent = roll.damage?.parts.filter((p) => p.persistent) ?? []
     return (
         <Box
-            onClick={onClose}
             sx={{
                 position: 'relative',
                 px: 2,
@@ -59,10 +61,24 @@ const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) =
                 boxShadow: '0 6px 24px #00000080',
                 color: parchment.page,
                 pointerEvents: 'auto',
-                cursor: 'pointer',
             }}
         >
-            <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: gold.bright, fontWeight: 700 }}>
+            <IconButton
+                size="small"
+                aria-label="Fechar rolagem"
+                onClick={onClose}
+                sx={{
+                    position: 'absolute',
+                    top: 2,
+                    right: 2,
+                    color: `${parchment.page}CC`,
+                    '&:hover': { color: parchment.page, backgroundColor: `${parchment.page}1A` },
+                }}
+            >
+                <CloseIcon fontSize="small" />
+            </IconButton>
+            {/* Recuo dos dois lados para o título centrado não passar por baixo do ×. */}
+            <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: gold.bright, fontWeight: 700, px: 3.5 }}>
                 {roll.by || 'Alguém'} · {roll.title}
             </Typography>
             {roll.sub && <Caption>{roll.sub}</Caption>}
