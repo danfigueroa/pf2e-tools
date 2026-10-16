@@ -774,6 +774,18 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
   clique brigaria com o início do arrasto, da régua e do traço. Campo `ping:<id>` que quem pingou apaga em 6 s. Quem
   recebe decide se pisca **pelo id, não pelo relógio** (`PingLayer`): o que já existia quando o
   mapa abriu conta como visto. Chega aos outros em ~2 s; aba escondida não recebe (o poll pausa).
+- **Rolador de dados** (`dice.ts`, `DicePanel.tsx`, `DiceResultLayer.tsx`, `motion/DiceTray.tsx`): botão
+  "Dados" na barra, **fora** do seletor de ferramentas — abre um painel sem trocar a ferramenta ativa,
+  para rolar com a régua na mão. d4–d100, 1–**100** dados (mesmo teto de `parseFormula`; também mantém
+  o campo dentro dos 8 KB), bônus ±999, cor de `DRAW_COLORS`. O sorteio é `rollFormulaDetailed`.
+  - **A rolagem vai para a mesa como o ping**: campo `roll:<id>`, que quem rolou apaga em 8 s;
+    `DiceResultLayer` mostra cada id UMA vez por aparelho e as que já existiam ao abrir contam como
+    vistas. Quem rolou também a vê por esse caminho — `writeMapField` sobrepõe o campo na hora. O
+    payload da rede passa por `sanitizeRoll`. Sem nome (não há login), vale o campo livre do painel.
+  - **`DiceTray` não reusa `DiceRoll`** (que é do diálogo de poção): aquele re-renderiza o React ~14×/s
+    por dado. Aqui giro e estouro são CSS com `animation-delay` por dado, e o número que passa durante
+    o giro é UM `requestAnimationFrame` escrevendo `textContent` — só os 24 primeiros dados trocam de
+    número. Total da animação ≤ ~1,3 s em qualquer quantidade. A camada fica fora do "mundo" do mapa.
 - **Vida de cada imagem, pela pasta no Blob** (`ImageFolder` em `services/images.ts`):
   `tokens/` é token de PERSONAGEM, permanente (campo `token` da mesa, enviado na Ficha Virtual pelo
   `TokenAvatar`); `maps/` e `monsters/` são do mapa e somem quando ele é apagado. A trava mora no
