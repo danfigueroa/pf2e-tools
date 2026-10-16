@@ -3,15 +3,7 @@ import { Box, Stack, Typography } from '@mui/material'
 import type { RollDetail } from '../modules/initiative-tracker/dice'
 import { ink } from '../theme/palette'
 import { pop, tumble, useReducedMotion } from './motion'
-
-/** Silhueta de cada dado, em `clip-path`. O d6 é um quadrado arredondado. */
-const SHAPE: Record<number, string | undefined> = {
-    4: 'polygon(50% 2%, 100% 96%, 0% 96%)',
-    8: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
-    10: 'polygon(50% 0%, 100% 42%, 50% 100%, 0% 42%)',
-    12: 'polygon(50% 0%, 100% 36%, 82% 100%, 18% 100%, 0% 36%)',
-    20: 'polygon(25% 2%, 75% 2%, 100% 50%, 75% 98%, 25% 98%, 0% 50%)',
-}
+import { DICE_SHAPE } from './diceShapes'
 
 /** Troca de face enquanto rola. */
 const FACE_MS = 70
@@ -79,7 +71,7 @@ export const DiceRoll = ({ roll, faces, color, skip = false, onDone }: Props) =>
     }, [done, instant])
 
     const tick = Math.floor(elapsed / FACE_MS)
-    const shape = SHAPE[faces]
+    const shape = DICE_SHAPE[faces]
     const size = count > 6 ? 34 : 42
 
     return (
