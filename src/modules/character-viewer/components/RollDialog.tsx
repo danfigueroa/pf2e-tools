@@ -44,9 +44,14 @@ import {
     type StrikeOptions,
 } from '../strikes'
 import { damageComponents, formatValue, componentLabel, scaleSpell, type ScaledComponent } from '../heightening'
-import { checkRoll, mapLabel, rollerIdentity, spellRoll, strikeRoll, type SpellAttackInfo } from '../rolls'
+import { checkRoll, mapLabel, rollerIdentity, spellRoll, spellstrikeRoll, strikeRoll, type SpellAttackInfo } from '../rolls'
 import type { TableRoll } from '../../../dice/tableRoll'
 import { dialogEmbedProps, useEmbedContainer } from '../embedContext'
+import { CASCADE_TYPES, hasSpellstrike } from '../magus'
+import { magusKeyFor } from '../charId'
+import { useMagus } from './useMagus'
+import { useSpellstrike } from './useSpellstrike'
+import { SpellstrikePanel } from './SpellstrikePanel'
 
 /** O que tocar na ficha pede para rolar. */
 export type RollRequest =
@@ -305,6 +310,13 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
 
     const plan = planStrike(build, strike, mods, opts)
     const { traits } = strike
+
+    // Spellstrike: só em Golpe corpo a corpo. A magia escolhida entra no mesmo
+    // clique que rola o Golpe, gasta o slot e marca o Spellstrike como gasto.
+    const magus = useMagus(magusKeyFor(build), build)
+    const canSpellstrike = hasSpellstrike(build) && !traits.ranged && opts.mode !== 'thrown'
+    const ss = useSpellstrike(build, canSpellstrike)
+    const spellstriking = canSpellstrike && ss.ready
     const damageText = [
         `${formatValue({ count: plan.weapon.groups[0]?.count ?? 0, faces: plan.weapon.groups[0]?.faces ?? 0, flat: plan.weapon.flat })} ${strike.damageType}`,
         ...plan.extras.map(extraLabel),
@@ -384,6 +396,8 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                             <ToggleButton value="dex">Ataque de DES</ToggleButton>
                         </ToggleButtonGroup>
                     )}
+
+                    {canSpellstrike && ss.options.length > 0 && <SpellstrikePanel ss={ss} magus={magus} />}
 
                     <Memorial title="Ataque" parts={plan.attackParts} total={plan.attackTotal} />
 
@@ -471,8 +485,30 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                 mythicDelta={plan.mythicDelta}
                 mythicPoints={mythicPoints}
                 onClose={onClose}
-                disabled={loading}
-                onRoll={(mythic) => send(strikeRoll(who, strike, plan, mythic ? plan.mythicDelta : null, sub), mythic)}
+                // Magia escolhida e ainda não pronta (buscando, sem slot, regra): o jogador
+                // precisa trocar por "Só o Golpe" — rolar sem ela em silêncio enganaria.
+                disabled={loading || (canSpellstrike && !!ss.option && !ss.ready)}
+                onRoll={(mythic) => {
+                    const mythicDelta = mythic ? plan.mythicDelta : null
+                    if (!spellstriking || !ss.option || !ss.spell) {
+                        send(strikeRoll(who, strike, plan, mythicDelta, sub), mythic)
+                        return
+                    }
+                    ss.spend()
+                    magus.spendSpellstrike()
+                    if (ss.enterCascade && magus.canCascade && !magus.stored.cascade) {
+                        // O tipo da postura é o da última magia: a primeira parcela de dano ligada.
+                        const type = ss.chosen.flatMap((c) => c.types).find((t) => (CASCADE_TYPES as readonly string[]).includes(t))
+                        magus.setCascadeType(type ?? 'force')
+                        magus.setCascade(true)
+                    }
+                    const defense = !ss.usesAttack && ss.spell.defense ? `salvaguarda: ${ss.spell.defense}` : null
+                    send(spellstrikeRoll(who, strike, plan, mythicDelta, [sub, `rank ${ss.option.rank}`, defense].filter(Boolean).join(' · '), {
+                        name: ss.option.name,
+                        components: ss.chosen,
+                        usesAttack: ss.usesAttack,
+                    }), mythic)
+                }}
             />
         </>
     )
