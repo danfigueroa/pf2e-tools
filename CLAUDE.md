@@ -41,6 +41,7 @@ Scripts avulsos, rodados à mão (não entram no build):
 ```bash
 node scripts/fetch-creature-tables.mjs  # regera as tabelas do GM Core (confira o diff!)
 node scripts/check-scaling.mjs 200      # confere o motor de escala contra criaturas de verdade
+node scripts/check-heightening.mjs      # confere o heightening das magias contra o índice inteiro
 ```
 
 Depois de mexer em `monster-scaler/scaling.ts` ou nas tabelas, rode o `check-scaling` — ele sai com
@@ -54,6 +55,12 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
 - Núcleo compartilhado: `api/_lib/` — `aon.js` (busca no Elasticsearch da AON + tradução via Groq),
   `aon-parse.js` (escolha do hit remaster-aware e split do texto), `spells-core.js` (magias),
   `feat-core.js` (talentos, features de classe, heritages, ações, itens).
+- **O AON parou de mandar o `---` no campo `text`** (out/2026): o texto passou a vir corrido, com o
+  cabeçalho ("Spell 3 Fireball Two Actions … Deities …") colado na prosa e o "Heightened (+1)" no
+  fim. Toda magia chegava sem entradas de heightening — o dano nunca era recalculado — e os
+  talentos caíam no strip heurístico. `parseAonText(text, markdown)` usa o `markdown` (que ainda
+  tem o separador) quando o `text` não tem estrutura. Se descrição voltar com cabeçalho colado,
+  suspeite da marcação do AON antes do parse.
 - Requer `GEMINI_API_KEY` e/ou `GROQ_API_KEY` no `.env` (tradução das descrições da AON).
 - Endpoints: `feat`, `search`, `spell`, `companion`, `health`, `clear-cache`, mais as variantes
   plurais (`feats`, `searches`, `spells`, `companions`) para busca em lote. Cliente no frontend:
@@ -466,6 +473,28 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
 - **Nome de magia fica em inglês** na lista do bastão, como no resto do módulo: é a chave de busca
   na AON. Já preço e rótulo de rank são vocabulário mecânico e são traduzidos no render
   (`formatPrice`, "470 gp" → "470 po").
+- **Magia no rank em que está** (`api/_lib/spell-scaling.js` + `heightening.ts`): a linha e o drawer
+  mostram os números do rank conjurado — slot preparado, ou ⌈nível/2⌉ para truque e foco — com o
+  chip "↑ 5º" quando elevada. O backend lê do INGLÊS, antes da tradução, os números da prosa
+  (dado de dano, dano fixo, cura, Dureza, resistência, fraqueza, PV temporários) e, para cada
+  entrada de heightening, para qual número vai cada valor (`scaling`); o cliente aplica no rank.
+  - **Conservador de propósito.** Uma entrada só vira conta quando TODO número dela acha dono sem
+    dúvida (`safe`), e é tudo ou nada: meia conta certa ao lado de meia errada não tem como ser
+    distinguida por quem lê. O que não fecha aparece como texto em "Neste rank". `resolved` é
+    `safe` sem efeito sobrando ("…, and the attack ignores cover"): a conta entra E o texto some.
+  - As armadilhas que a amostra pegou, todas no `check-heightening`: "by 1d12 electricity and 1d4
+    sonic" são DOIS valores; "by 10 on a failure, or 5 on a success" tem número sem dono;
+    "initial damage by 2d6, and the secondary damage by 1d6" com os dois do mesmo tipo é a mesma
+    regra pegando o mesmo número duas vezes; "the maximum damage from the scale explosion" é um
+    sujeito qualificado que fala de UM dos danos — só sujeito genérico ("The damage") vale para
+    todos. "X damage and persistent Y damage each" pega os dois.
+  - Rank fixo SUBSTITUI o anterior. Se a entrada fixa que vale não foi lida, o número fica marcado
+    `uncertain` ("7d10 (?)") em vez de voltar ao da prosa — que seria mentir.
+  - Na prosa traduzida, os dados elevados são trocados no lugar: a k-ésima "2d4" do inglês é a
+    k-ésima da tradução (dados sobrevivem ao LLM), e só troca quando a contagem bate nos dois.
+    Número solto (Dureza 5) não é trocado na prosa — vai para as linhas de metadado.
+  - Cobertura medida: ~71% das entradas "+N" do índice viram conta; todas as magias de dano do
+    grupo. `computeHeightenedDamage` (um dado só) ficou como caminho para payload sem `scaling`.
 - **Slots de magia** (`useSpellSlots.ts` + `SlotPips.tsx`): estado do dia compartilhado com a mesa
   (ver "Estado compartilhado"), na mesma chave por personagem do PV (`slotsKeyFor`). Guarda **contagem** de gastos, nunca índice de slot —
   assim sobrevive a um re-upload em que a ordem da lista mudou. Preparado/inato: cada cópia
