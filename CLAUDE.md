@@ -255,11 +255,18 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
     TTL como a ficha), que o servidor mantém sozinho — o level-up chega pela publicação, e depender de
     alguém rodar o script não funciona na mesa. `GET ?sheetDescriptions=<slug>` devolve tudo num
     comando; `POST { action: 'sheet-descriptions', char, names, version }` resolve SÓ o que falta.
-    Quem dispara é o cliente (`loadSheetDescriptions`, pela `CharacterSheetView` quando a ficha aberta
-    é a da mesa): lê o pacote e, se falta algo da lista, pede ao servidor e recebe o novo na resposta.
-    Na prática, quem publica (a ficha abre logo depois) já completa o pacote; os próximos aparelhos
-    fazem um GET só. Medido em dev: 25 magias com o cache vazio numa chamada (~44 s); o segundo
-    aparelho, zero chamadas à API, magia nova do level-up incluída.
+    **Comportamento padrão: o pacote fica pronto NA PUBLICAÇÃO, antes de qualquer jogador abrir.** O
+    "Publicar" (e o "Restaurar") dispara `loadSheetDescriptions` na hora (`CharacterViewerPage`), e a
+    faixa da ficha publicada mostra "Preparando as descrições…" → "Descrições prontas"
+    (`useSheetDescriptionsStatus`). A mesma função roda ao abrir a ficha da mesa
+    (`CharacterSheetView`), como rede de segurança: se quem publicou fechou a aba no meio, o próximo a
+    abrir completa. Os demais aparelhos fazem um GET só.
+  - **A primeira montagem parte do pacote ESTÁTICO do personagem**, que o `vercel.json` empacota junto
+    das funções (`includeFiles: public/descriptions/**`; se faltar no disco, busca no domínio de
+    produção por `VERCEL_PROJECT_PRODUCTION_URL`). Num level-up quase tudo já está lá: medido em dev,
+    publicar o Thalos nível 11 com uma magia nova deixou as 74 descrições prontas em **10 s** (antes,
+    do zero, 101 s em 3 rodadas); o jogador abriu a ficha com zero chamadas à API. Personagem novo,
+    sem pacote estático, monta do zero em algumas rodadas (~30 s cada).
   - **A lista é uma só** (`characterDescriptionNames` em `descriptionNames.ts`), com as MESMAS funções
     das abas (`characterSpellNames`, `parseFeatEntry`, `inventoryRows` de `inventory.ts`); o script a
     importa via `ts-loader`, e o servidor a recebe do cliente — reescrevê-la em JS seria cópia.
