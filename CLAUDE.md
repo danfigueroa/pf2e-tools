@@ -515,6 +515,11 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
 - **O Ardagar saiu da campanha**: preset e JSON removidos. O guia curado (`ARDAGAR`) e a entrada
   de `CHARACTER_ANIMALS` em `unarmed.ts` ficaram, porque casam por nome e servem a quem carregar o
   JSON à mão. `public/character-example.json` (do módulo de PDF desativado) ainda é o Ardagar.
+- **Magias de assinatura** (`signatureSpells.ts`): o Pathbuilder não as exporta, então o catálogo casa pelo
+  NOME do personagem e pelo bloco de conjuração (hoje só o bloco "Psychic" do Thalos: Breathe Fire, Blazing
+  Bolt, Fireball, Ice Storm, Howling Blizzard). Só **espontâneo**. A aba de Magias mostra a magia com o chip
+  "assinatura" no rank do repertório e a REPETE, já elevada, em cada rank acima que tenha slot (`perDay > 0`);
+  o botão de gastar usa o slot daquele rank. Personagem novo = uma entrada no catálogo + caso no `check-rolls`.
 - **Conjurador de grimório** (magus, mago, arquétipo de mago) chega do Pathbuilder com as magias do
   dia em `prepared` e o grimório em `spells` — que vem vazio quando o jogador não o preenche. Tudo no
   app lê `spells`, e o bloco inteiro sumia da aba de Magias (foi o caso do Nathaniel).
