@@ -713,6 +713,8 @@ o mesmo personagem entraria duas vezes, dividindo o mesmo PV.
   Charge, Steal Time); o Psychic Duelist foi trocado. Idiomas, Crafting treinado, Fast Recovery e
   duas poções (Annulment, Resistance) entraram. **Pendente no Pathbuilder:** não vem talento de classe
   de 1º nível (Psi Burst é do 2º) e as magias de assinatura não são exportadas.
+- **Magias de assinatura do Thalos** (Breathe Fire, Blazing Bolt, Fireball, Ice Storm, Howling Blizzard) vêm de
+  `signatureSpells.ts`, não do Pathbuilder: a aba de Magias as repete elevadas nos ranks acima do delas.
 - **Os venenos do Eldarion vêm como "Invested"** do Pathbuilder, mas são consumíveis — o guia avisa.
 - **Mythic Magic gasta Ponto Mítico, não slot** (Ceros e Nathaniel). O Pathbuilder exporta o talento
   como conjurador espontâneo com 5 slots de 5º rank, que não existem. A aba de Magias reconhece o
