@@ -14,7 +14,9 @@ import type { FeatDescription, SpellDescription, CompanionStats } from '../modul
 // v13: o AON parou de mandar o "---" no `text`; as magias chegavam sem entradas
 // de heightening e com o cabeçalho colado na prosa. Agora vêm do `markdown`, com
 // `scaling` (os números por rank) — o cache antigo não tem nem um nem outro.
-const CACHE_VERSION = 'v13'
+// O pacote pré-traduzido (`public/spells/`) carrega a versão com que foi gerado:
+// subir esta constante faz o app ignorar os pacotes até alguém os regerar.
+export const CACHE_VERSION = 'v13'
 
 type Kind = 'feat' | 'spell' | 'special' | 'companion' | 'item'
 
@@ -261,4 +263,54 @@ export function getCachedSpecial(name: string) {
 }
 export function getCachedSpell(name: string) {
     return readCache<SpellDescription>('spell', name)
+}
+
+// --- Pacote pré-traduzido ------------------------------------------------------
+//
+// As magias dos personagens da campanha mudam pouco, então são resolvidas e
+// traduzidas UMA vez, por `scripts/build-spell-bundle.mjs`, e servidas como
+// arquivo estático (`/spells/<slug>.json`, pelo CDN). Ao abrir a ficha o pacote
+// entra no cache em memória — o mesmo que as linhas, o drawer e o Spellstrike
+// leem —, então ninguém mais precisa saber de onde a magia veio. Fica só na
+// memória: o arquivo já tem o cache HTTP, e copiá-lo para o localStorage
+// gastaria a cota à toa.
+//
+// Pacote ausente, de outra versão ou quebrado é ignorado em silêncio: a magia
+// segue pela API, como antes.
+
+const bundles = new Map<string, Promise<void>>()
+
+/** Carrega (uma vez por sessão) as magias pré-traduzidas do personagem. */
+export function loadSpellBundle(slug: string): Promise<void> {
+    if (!slug) return Promise.resolve()
+    let loading = bundles.get(slug)
+    if (!loading) {
+        loading = fetchSpellBundle(slug)
+        bundles.set(slug, loading)
+    }
+    return loading
+}
+
+async function fetchSpellBundle(slug: string): Promise<void> {
+    try {
+        const r = await fetch(`/spells/${encodeURIComponent(slug)}.json`)
+        // Sem o arquivo, o servidor devolve o index.html do SPA: o `json()` falha e cai no catch.
+        if (!r.ok) return
+        const body = (await r.json()) as { version?: unknown; spells?: Record<string, SpellDescription | undefined> }
+        if (body.version !== CACHE_VERSION || !body.spells || typeof body.spells !== 'object') return
+        let added = false
+        for (const [name, spell] of Object.entries(body.spells)) {
+            if (!spell || !isValidString(spell.description) || spell.translationPending) continue
+            const k = key('spell', name)
+            if (memory.has(k)) continue
+            memory.set(k, spell)
+            added = true
+        }
+        if (added) {
+            cacheVersion++
+            cacheListeners.forEach((l) => l())
+        }
+    } catch {
+        // Pacote é atalho, nunca requisito.
+    }
 }

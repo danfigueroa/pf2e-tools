@@ -13,7 +13,7 @@ import {
     useMediaQuery,
 } from '@mui/material'
 import { ExpandMore as ExpandIcon } from '@mui/icons-material'
-import { checkApiAvailable, fetchCompanionStats } from '../../services/descriptions'
+import { checkApiAvailable, fetchCompanionStats, loadSpellBundle } from '../../services/descriptions'
 import {
     Shield as OverviewIcon,
     LocalFireDepartment as CombatIcon,
@@ -37,7 +37,7 @@ import { ConditionsBar } from './components/ConditionsBar'
 import { AfflictionsBar } from './components/AfflictionsBar'
 import { PersistentDamageBar } from './components/PersistentDamageBar'
 import { MythicPointsBar } from './components/MythicPointsBar'
-import { actionsKeyFor, afflictionsKeyFor, conditionsKeyFor, energyKeyFor, legacyCharKey, magusKeyFor, mythicKeyFor, persistentKeyFor, psycheKeyFor, rageKeyFor, rangerKeyFor, sizeKeyFor } from './charId'
+import { actionsKeyFor, afflictionsKeyFor, charSlug, conditionsKeyFor, energyKeyFor, legacyCharKey, magusKeyFor, mythicKeyFor, persistentKeyFor, psycheKeyFor, rageKeyFor, rangerKeyFor, sizeKeyFor } from './charId'
 import { useConditions } from './components/useConditions'
 import { useAfflictions } from './components/useAfflictions'
 import { usePersistentDamage } from './components/usePersistentDamage'
@@ -272,6 +272,12 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
         checkApiAvailable().then((ok) => { if (!cancelled) setApiAvailable(ok) })
         return () => { cancelled = true }
     }, [])
+
+    // Magias já traduzidas, num arquivo estático do CDN (`public/spells/`): as do
+    // personagem aparecem sem passar pela AON nem pelo tradutor. O que o pacote
+    // não tem (magia nova de um level-up publicado) segue pela API, como antes.
+    const slug = charSlug(build)
+    useEffect(() => { void loadSpellBundle(slug) }, [slug])
 
     // Pré-busca stats de companheiros animais (só 1-2 fetches, vale eager)
     useEffect(() => {
