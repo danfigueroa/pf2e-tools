@@ -379,7 +379,7 @@ const THALOS = `## 🎯 Papel em Combate
 - 💣 **3º — Fireball** (2 ações, 150 m): explosão de 6 m, **6d6 fogo**, Reflexo básico. **Hypercognition** (1 ação): até 6 Recordar Conhecimento de uma vez — no começo da luta contra o desconhecido. **Dream Message** é recado.
 - 🔆 **2º — Blazing Bolt** (1 a 3 ações, 18 m): um raio por ação, cada um num alvo diferente, **4d6 fogo** com 2+ ações. **Invisibility** (no 2º rank acaba ao atacar) e **Cleanse Affliction** (baixa 1 estágio de veneno/doença).
 - 😴 **1º — Breathe Fire** (cone de 4,5 m, 2d6 — fraco neste rank), **Sleep** (incapacitação: no 1º rank só derruba criatura de nível baixo) e **Alarm**.
-- ✍️ **Magias de assinatura:** uma por rank pode ser **elevada livremente** a qualquer slot. O Pathbuilder não exporta quais são — confira no seu. Fireball no 5º vira **10d6**, Blazing Bolt no 5º vira **10d6 por raio** (até 3 alvos).
+- ✍️ **Magias de assinatura:** **Breathe Fire, Blazing Bolt, Fireball, Ice Storm e Howling Blizzard** — a aba de Magias as repete em cada rank acima do delas (com o chip "assinatura" e já elevadas), porque o Pathbuilder não exporta isso. Fireball no 5º vira **10d6**, Blazing Bolt no 5º vira **10d6 por raio** (até 3 alvos), Breathe Fire no 5º vira **10d6**. Num slot de rank mais alto o mesmo feitiço bate mais forte — **escolha o slot pelo tamanho da luta**.
 - 🌊 As concedidas pela Onda (Breathe Fire, Blazing Bolt, Fireball, Ice Storm, Howling Blizzard) **também alternam**: uma Fireball pode sair congelada.
 - 🕊️ **Shory Aeromancer:** Fly de 4º rank, inata, **1×/dia**, só em você.
 
