@@ -30,6 +30,7 @@ import {
     TouchApp as PingIcon,
     Casino as DiceIcon,
     Description as SheetIcon,
+    VisibilityOff as HiddenIcon,
 } from '@mui/icons-material'
 import { MapCanvas, type CanvasApi, type MapTool, type TokenView } from './components/MapCanvas'
 import { MapListDrawer } from './components/MapListDrawer'
@@ -52,6 +53,7 @@ import {
     clearDrawings,
     isMapStoreReady,
     listMaps,
+    setMapVisibility,
     useMapData,
     withPcSizes,
     writeMapField,
@@ -173,7 +175,14 @@ export const BattleMapPage = () => {
         try { localStorage.setItem(DRAW_KEY, JSON.stringify(next)) } catch { /* só nesta aba */ }
     }
 
-    const { data: rawData, error, activeId } = useMapData(id)
+    // Fora do Modo GM, mapa privado chega como `hidden` — o servidor nem o entrega.
+    const { data: rawData, error, activeId, hidden } = useMapData(id, gm)
+    const [revealing, setRevealing] = useState(false)
+    const reveal = () => {
+        if (!id) return
+        setRevealing(true)
+        setMapVisibility(id, false).catch(() => {}).finally(() => setRevealing(false))
+    }
     // Enlarge/Shrink ligado na Ficha Virtual muda o tamanho do token do personagem.
     const data = useMemo(() => (rawData ? withPcSizes(rawData) : null), [rawData])
 
@@ -432,6 +441,20 @@ export const BattleMapPage = () => {
                     />
                 </Paper>
 
+                {data?.private && gm && (
+                    <Alert
+                        severity="warning"
+                        icon={<HiddenIcon fontSize="inherit" />}
+                        sx={{ width: 'min(520px, 100%)' }}
+                        action={(
+                            <Button color="inherit" size="small" disabled={revealing} onClick={reveal} sx={{ whiteSpace: 'nowrap' }}>
+                                Revelar à mesa
+                            </Button>
+                        )}
+                    >
+                        Mapa privado: só quem está no Modo GM vê.
+                    </Alert>
+                )}
                 {data && activeId && activeId !== id && (
                     <Alert
                         severity="info"
@@ -508,22 +531,24 @@ export const BattleMapPage = () => {
             )}
 
             {/* Estados vazios */}
-            {(resolving || (id && !data && !error)) && (
+            {(resolving || (id && !data && !error && !hidden)) && (
                 <Box sx={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center' }}>
                     <CircularProgress sx={{ color: gold.bright }} />
                 </Box>
             )}
-            {!resolving && (!id || error) && (
+            {!resolving && (!id || error || hidden) && (
                 <Box sx={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', p: 2 }}>
                     <Card sx={{ maxWidth: 420 }}>
                         <CardContent sx={{ textAlign: 'center' }}>
                             <Typography variant="h5" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
-                                {error ? 'Mapa não encontrado' : 'Mapa de Combate'}
+                                {hidden ? 'Mapa ainda não revelado' : error ? 'Mapa não encontrado' : 'Mapa de Combate'}
                             </Typography>
                             <Typography sx={{ color: ink.secondary, mb: 2 }}>
-                                {error
-                                    ? 'Ele pode ter sido apagado depois do jogo.'
-                                    : 'Nenhum mapa aberto. Escolha um da sessão ou, no Modo GM, crie um novo.'}
+                                {hidden
+                                    ? 'O GM ainda está preparando este mapa. Ele aparece aqui sozinho quando for revelado.'
+                                    : error
+                                        ? 'Ele pode ter sido apagado depois do jogo.'
+                                        : 'Nenhum mapa aberto. Escolha um da sessão ou, no Modo GM, crie um novo.'}
                             </Typography>
                             <Button variant="contained" startIcon={<MapsIcon />} onClick={() => setDrawer(true)}>
                                 Mapas da sessão

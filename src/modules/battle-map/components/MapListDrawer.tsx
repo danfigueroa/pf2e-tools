@@ -24,8 +24,18 @@ import {
     Campaign as ActivateIcon,
     Delete as DeleteIcon,
     Edit as EditIcon,
+    Visibility as RevealIcon,
+    VisibilityOff as HideIcon,
 } from '@mui/icons-material'
-import { activateMap, createMap, deleteMap, listMaps, renameMap, type MapSummary } from '../../../services/maps'
+import {
+    activateMap,
+    createMap,
+    deleteMap,
+    listMaps,
+    renameMap,
+    setMapVisibility,
+    type MapSummary,
+} from '../../../services/maps'
 import { gold, ink } from '../../../theme'
 
 interface Props {
@@ -39,6 +49,9 @@ interface Props {
 /**
  * Os mapas da sessão. Abrir é de cada um; "Levar a mesa" e apagar são
  * coletivos — apagar leva junto a imagem e os tokens, por isso confirma.
+ *
+ * Mapa novo nasce privado: só o Modo GM o vê (o servidor nem o entrega aos
+ * outros) até ser revelado aqui ou levado à mesa, que revela junto.
  */
 export const MapListDrawer = ({ open, currentId, gm, onClose, onOpenMap }: Props) => {
     const [maps, setMaps] = useState<MapSummary[] | null>(null)
@@ -52,7 +65,7 @@ export const MapListDrawer = ({ open, currentId, gm, onClose, onOpenMap }: Props
 
     const reload = async () => {
         try {
-            const body = await listMaps()
+            const body = await listMaps({ gm })
             setMaps(body.maps)
             setActiveId(body.activeId)
             setError(null)
@@ -61,7 +74,8 @@ export const MapListDrawer = ({ open, currentId, gm, onClose, onOpenMap }: Props
         }
     }
 
-    useEffect(() => { if (open) void reload() }, [open])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `reload` lê o `gm` desta renderização
+    useEffect(() => { if (open) void reload() }, [open, gm])
 
     const run = async (work: () => Promise<void>) => {
         setBusy(true)
@@ -115,7 +129,7 @@ export const MapListDrawer = ({ open, currentId, gm, onClose, onOpenMap }: Props
                 <List disablePadding sx={{ flex: 1, overflow: 'auto' }}>
                     {maps?.length === 0 && (
                         <Typography variant="body2" sx={{ color: ink.secondary, py: 2 }}>
-                            Nenhum mapa ainda.{gm ? '' : ' Ative o Modo GM para criar um.'}
+                            {gm ? 'Nenhum mapa ainda.' : 'Nenhum mapa revelado ainda. Ative o Modo GM para criar um.'}
                         </Typography>
                     )}
                     {maps?.map((map) => (
@@ -124,17 +138,31 @@ export const MapListDrawer = ({ open, currentId, gm, onClose, onOpenMap }: Props
                             disablePadding
                             secondaryAction={gm && (
                                 <Box sx={{ display: 'flex' }}>
-                                    <Tooltip title="Levar a mesa para este mapa">
+                                    <Tooltip title={map.private ? 'Revelar e levar a mesa para este mapa' : 'Levar a mesa para este mapa'}>
                                         <span>
                                             <IconButton
                                                 aria-label={`Levar a mesa para ${map.name}`}
                                                 disabled={busy || activeId === map.id}
                                                 onClick={() => run(async () => {
                                                     await activateMap(map.id)
-                                                    setActiveId(map.id)
+                                                    await reload()
                                                 })}
                                             >
                                                 <ActivateIcon />
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>
+                                    <Tooltip title={map.private ? 'Revelar à mesa' : 'Esconder da mesa'}>
+                                        <span>
+                                            <IconButton
+                                                aria-label={map.private ? `Revelar ${map.name} à mesa` : `Esconder ${map.name} da mesa`}
+                                                disabled={busy}
+                                                onClick={() => run(async () => {
+                                                    await setMapVisibility(map.id, !map.private)
+                                                    await reload()
+                                                })}
+                                            >
+                                                {map.private ? <HideIcon /> : <RevealIcon />}
                                             </IconButton>
                                         </span>
                                     </Tooltip>
@@ -152,7 +180,7 @@ export const MapListDrawer = ({ open, currentId, gm, onClose, onOpenMap }: Props
                                     </IconButton>
                                 </Box>
                             )}
-                            sx={{ '& .MuiListItemButton-root': { pr: gm ? 17 : 2 } }}
+                            sx={{ '& .MuiListItemButton-root': { pr: gm ? 22 : 2 } }}
                         >
                             <ListItemButton
                                 selected={map.id === currentId}
@@ -161,7 +189,12 @@ export const MapListDrawer = ({ open, currentId, gm, onClose, onOpenMap }: Props
                             >
                                 <ListItemText
                                     primary={map.name}
-                                    secondary={activeId === map.id ? <Chip label="A mesa está aqui" size="small" color="primary" component="span" /> : null}
+                                    secondary={(activeId === map.id || map.private) ? (
+                                        <Box component="span" sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.25 }}>
+                                            {activeId === map.id && <Chip label="A mesa está aqui" size="small" color="primary" component="span" />}
+                                            {map.private && <Chip label="Privado" size="small" color="warning" icon={<HideIcon />} component="span" />}
+                                        </Box>
+                                    ) : null}
                                     slotProps={{ primary: { sx: { fontWeight: 600 } }, secondary: { component: 'span' } }}
                                 />
                             </ListItemButton>
