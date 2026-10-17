@@ -10,6 +10,7 @@ import {
     Dialog,
     DialogContent,
     DialogTitle,
+    MenuItem,
     Stack,
     Tab,
     Tabs,
@@ -25,6 +26,7 @@ import { usePublishedSheets } from '../../character-viewer/usePublishedSheets'
 import { charSlugFromName } from '../../character-viewer/charId'
 import { parseCharacterJson } from '../../character-sheet/types'
 import { npcFromManual, pcFromBuild } from '../importCharacter'
+import { CREATURE_SIZES, type CreatureSize } from '../../battle-map/geometry'
 import { AonCreatureSearch } from './AonCreatureSearch'
 import type { Combatant } from '../types'
 
@@ -298,6 +300,7 @@ const ManualTab = ({ onAdd }: { onAdd: (c: Combatant[]) => void }) => {
     const [level, setLevel] = useState('')
     const [initiative, setInitiative] = useState('')
     const [quantity, setQuantity] = useState('1')
+    const [size, setSize] = useState<CreatureSize>('Medium')
 
     const digits = (v: string) => v.replace(/\D/g, '')
     const valid = name.trim().length > 0 && parseInt(hp, 10) > 0
@@ -311,6 +314,7 @@ const ManualTab = ({ onAdd }: { onAdd: (c: Combatant[]) => void }) => {
             ac: parseInt(ac, 10) || 10,
             level: parseInt(level, 10) || 0,
             initiative: parseInt(initiative, 10) || 0,
+            size,
         }
         onAdd(Array.from({ length: count }, (_, i) =>
             npcFromManual({ ...base, name: count > 1 ? `${base.name} ${i + 1}` : base.name }),
@@ -347,6 +351,26 @@ const ManualTab = ({ onAdd }: { onAdd: (c: Combatant[]) => void }) => {
                         onChange={(e) => setQuantity(digits(e.target.value))}
                         inputProps={{ inputMode: 'numeric' }} />
                 </Box>
+                {/* O token no mapa ocupa o espaço do tamanho, como o de um monstro da AON. */}
+                <TextField
+                    select
+                    fullWidth
+                    label="Tamanho"
+                    value={size}
+                    onChange={(e) => setSize(e.target.value as CreatureSize)}
+                    helperText={`Espaço no mapa: ${CREATURE_SIZES.find((s) => s.value === size)?.space}`}
+                >
+                    {CREATURE_SIZES.map((s) => (
+                        <MenuItem key={s.value} value={s.value}>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 1 }}>
+                                <span>{s.label}</span>
+                                <Typography component="span" variant="caption" sx={{ color: ink.secondary }}>
+                                    {s.space}
+                                </Typography>
+                            </Box>
+                        </MenuItem>
+                    ))}
+                </TextField>
                 <Typography variant="caption" sx={{ color: ink.secondary }}>
                     Resistências e fraquezas podem ser ajustadas depois, no cartão do combatente.
                 </Typography>

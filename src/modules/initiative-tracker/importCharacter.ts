@@ -136,6 +136,8 @@ export function npcFromManual(input: {
     level: number
     initiative: number
     perception?: number
+    /** Em inglês, como a AON manda ("Large") — vira a pegada do token no mapa. */
+    size?: string
 }): NpcCombatant {
     const maxHp = Math.max(1, Math.floor(input.maxHp))
     return {
@@ -157,6 +159,7 @@ export function npcFromManual(input: {
         weaknesses: {},
         immunities: [],
         defenseNotes: [],
+        size: input.size,
     }
 }
 
