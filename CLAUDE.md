@@ -1389,7 +1389,12 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
     a da última escrita (`waitRev`), não desce nada — senão um poll atrasado desfazia o dano que o
     GM acabou de dar.
 - `CombatantBase.size` (inglês, da AON/Pathbuilder) vira a pegada do token; Ghan Buri é Large,
-  2×2. `NpcCombatant.tokenImage`: trocar a imagem de um monstro troca a das cópias dele que tinham
+  2×2. O **monstro digitado à mão** escolhe o tamanho na aba "Monstro" do "Adicionar combatente"
+  (`CREATURE_SIZES` em `battle-map/geometry.ts`: os seis do Player Core, com o espaço de cada um),
+  gravado no mesmo formato da AON — os dois caminhos chegam iguais ao mapa.
+- **Minúsculo ocupa 1 quadrado mas é desenhado menor** (`tiny` no `tok:`): a Iniciativa marca a
+  criatura que É minúscula (`isTinySize`, no `useMapSync`), da AON ou digitada; o Shrink de um
+  personagem continua sendo aplicado só no cliente, por `withPcSizes`. `NpcCombatant.tokenImage`: trocar a imagem de um monstro troca a das cópias dele que tinham
   a antiga (ou nenhuma), e a antiga só sai do Blob se ninguém mais a usa.
 
 ## Módulo transformation-statblock (contexto que se perde fácil)
