@@ -7,7 +7,6 @@ import {
     CardContent,
     CircularProgress,
     Divider,
-    Stack,
     Typography,
     Alert,
 } from '@mui/material'
@@ -101,17 +100,23 @@ export const UploadCard = ({ onJson, error }: Props) => {
                     Fichas da Campanha
                 </Typography>
 
-                <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap sx={{ mb: 3 }}>
+                <Box
+                    sx={{
+                        display: 'grid',
+                        gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', sm: 'repeat(3, minmax(0, 1fr))' },
+                        gap: 1.5,
+                        mb: 3,
+                    }}
+                >
                     {CAMPAIGN_PRESETS.map((preset) => (
                         <Card
                             key={preset.filename}
                             variant="outlined"
-                            sx={{ flex: '1 1 140px', minWidth: 130 }}
                         >
                             <CardActionArea
                                 onClick={() => handlePreset(preset)}
                                 disabled={loadingPreset !== null}
-                                sx={{ p: 1.5, textAlign: 'center' }}
+                                sx={{ p: 1.5, textAlign: 'center', height: '100%' }}
                             >
                                 <CardToken
                                     loading={loadingPreset === preset.filename}
@@ -133,11 +138,11 @@ export const UploadCard = ({ onJson, error }: Props) => {
                         </Card>
                     ))}
                     {extras.map((sheet) => (
-                        <Card key={sheet.slug} variant="outlined" sx={{ flex: '1 1 140px', minWidth: 130 }}>
+                        <Card key={sheet.slug} variant="outlined">
                             <CardActionArea
                                 onClick={() => handlePublished(sheet.slug)}
                                 disabled={loadingPreset !== null}
-                                sx={{ p: 1.5, textAlign: 'center' }}
+                                sx={{ p: 1.5, textAlign: 'center', height: '100%' }}
                             >
                                 <CardToken loading={loadingPreset === sheet.slug} slug={sheet.slug} name={sheet.name} />
                                 <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2, overflowWrap: 'anywhere' }}>
@@ -152,7 +157,7 @@ export const UploadCard = ({ onJson, error }: Props) => {
                             </CardActionArea>
                         </Card>
                     ))}
-                </Stack>
+                </Box>
 
                 <Divider sx={{ mb: 3 }}>
                     <Typography variant="caption" color="text.secondary">
