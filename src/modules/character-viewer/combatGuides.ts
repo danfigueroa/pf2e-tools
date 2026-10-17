@@ -392,14 +392,18 @@ const THALOS = `## 🎯 Papel em Combate
 - 💭 **Dreamer's Calling:** Recordar Conhecimento de Arcanismo, Natureza, Religião ou Ocultismo com **proficiência mítica** por um Ponto Mítico — boa para achar a fraqueza do chefe.
 
 ## 🧭 Arquétipos
-- 🕰️ **Chronoskimmer (dedicação):** a escolha de iniciativa acima (estabilizar ou desestabilizar são efeitos de **fortuna**) e **vence empate** com inimigo. As habilidades futuras do arquétipo usam a **CD de chronoskimmer** — a maior entre classe e magia: **29**.
-- 🤺 **Psychic Duelist (dedicação):** só vale **dentro de um duelo psíquico** (+2 na iniciativa do duelo e, a cada duelo, Mind Mace ou Psychic Fist). Em combate comum não muda nada.
-- ⚠️ **O export traz só os talentos de arquétipo livre dos níveis 2 e 4** — os do 6, 8 e 10 vieram vazios. E pela regra de dedicação, a segunda só entra depois de **dois talentos** da primeira: confira com o GM.
+- 🕰️ **Chronoskimmer (dedicação):** a escolha de iniciativa acima (estabilizar ou desestabilizar são efeitos de **fortuna**) e **vence empate** com inimigo. Os talentos do arquétipo usam a **CD de chronoskimmer** — a maior entre classe e magia: **29**.
+- ⏪ **Turn Back the Clock (reação, 1×/dia):** você **falha** num teste de perícia ou salvaguarda → rerrole com **+1 de circunstância**, e vale o novo resultado, mesmo pior. Disputa a reação com Entropic Wheel e Shield Block — e é a sua segunda chance numa salvaguarda de Reflexos.
+- 🧭 **Guide the Timeline (1 ação, 1×/dia):** escolha um **aliado** (próximo ataque ou teste de perícia dele na rodada, **rola 2× e fica o melhor**) ou um **inimigo** (rola 2× e fica o **pior**, a menos que passe em Vontade contra a CD **29**). O alvo fica imune por 24 h.
+- 💥 **Reversing Charge (2 ações):** Ande até a sua Velocidade, dê **um Golpe corpo a corpo** se terminar ao alcance de um inimigo e **teleporte de volta** ao quadrado de origem. Você não tem arma — o Golpe é desarmado, então é um último recurso, não um plano.
+- 🐌 **Steal Time (2 ações, 1×/hora):** criatura a até 9 m faz **Fortitude contra a CD 29** e sofre os efeitos de *Slow*: falha = **lento 1 por 1 minuto**, falha crítica = lento 2, sucesso = lento 1 por 1 rodada, sucesso crítico = nada. É um controle de alto valor num chefe — mas só **uma vez por hora**, então escolha o alvo.
+- ⚠️ **Os dois estão presos à mesma reação/ação que você quer usar na luta:** Turn Back the Clock disputa a reação; Guide the Timeline e Steal Time custam ação que seria de um cantrip. Use quando a mudança de resultado vale mais que o dano.
 
 ## 🎒 Itens & Recursos
 - 🔮 **3 Pontos de Foco** (amps) e ⭐ **3 Pontos Míticos** (todos os poderes míticos disputam o mesmo estoque).
 - 🧠 **Mentalist's Staff (Greater):** **5 cargas por dia** (o seu rank mais alto). **Daze** de graça (**3d6 mental**, Vontade básica, atordoado 1 na falha crítica); **Phantom Pain** no 1º ou no 3º (**6d4 mental + 3d4 persistente** e enjoado 1), **Paranoia** (2º), **Hypercognition** (3º), Mindlink (1º). Como espontâneo, você pode pagar **1 carga + um slot** do mesmo rank em vez das cargas todas. +2 para identificar magia mental.
 - 💎 **Crystal Lattice** (+2 resilient, raiment): a CA 24 e o +1 nas salvaguardas vêm dele. **Crystal Exoskeleton** (2 ações, 1×/dia): **20 PV temporários por 1 hora**. PV temporários não somam com os do Frostbite ampliado — fica o maior.
+- 🧪 **Poções (nível 10):** **Resistance (Moderate)** — **resistência 10** a um tipo de energia (a que a ficha de combate pedir; boa contra fogo e frio quando o inimigo não é seu). **Annulment (Lesser)** — desfaz um **pacto sobrenatural** (contrato infernal, barganha de bruxa, geas) com counteract **+17**; é de roleplay, não de combate.
 - 📦 **Box of Unspoiling (Type II):** guarda 50 de Volume e conserva comida por um ano. Precisa das duas mãos.
 - 🌊 **Wavetouched Paragon:** deslocamento de **natação 4,5 m**.
 - 🌟 **Saoc Astrology (1 ação, 3×/dia):** 1d8 antes da próxima perícia — até **+2** (num 1, −1). Bom antes do Disturbing Knowledge.
@@ -431,7 +435,7 @@ export const COMBAT_GUIDES: CombatGuide[] = [
     { match: byName('Cerosqualhanthallas'), markdown: CEROSQUALHANTHALLAS, curated: true },
     // O Pathbuilder exporta "Nathaniel o Magus"; casa pelo começo, como o Brukuthur.
     { match: (b) => (b.name || '').trim().toLowerCase().startsWith('nathaniel'), markdown: NATHANIEL, curated: true },
-    { match: byName('Thalos'), markdown: THALOS, curated: true },
+    { match: (b) => (b.name || '').trim().toLowerCase().startsWith('thalos'), markdown: THALOS, curated: true },
 ]
 
 // ---------------------------------------------------------------------------
