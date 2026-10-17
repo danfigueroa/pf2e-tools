@@ -11,10 +11,12 @@ import {
     Typography,
     Alert,
 } from '@mui/material'
-import { CloudUpload as UploadIcon, Person as PersonIcon } from '@mui/icons-material'
+import { CloudUpload as UploadIcon } from '@mui/icons-material'
 import { CAMPAIGN_PRESETS, loadPresetJson, type CharacterPreset } from '../campaignPresets'
 import { usePublishedSheets } from '../usePublishedSheets'
 import { fetchPublished, type PublishedSheet } from '../../../services/sheets'
+import { charSlugFromName } from '../charId'
+import { TokenBadge } from '../../battle-map/components/TokenBadge'
 
 /** De onde veio o JSON: arquivo enviado agora abre o diálogo de publicar. */
 export type JsonOrigin =
@@ -25,6 +27,26 @@ interface Props {
     onJson: (data: unknown, origin: JsonOrigin) => void
     error: string | null
 }
+
+const TOKEN_SIZE = 56
+
+/**
+ * O token do personagem no cartão — o mesmo que o jogador enviou na ficha e que
+ * vai para o mapa (iniciais enquanto não há imagem). Carregando, o círculo
+ * gira por cima em vez de sumir, para o cartão não pular.
+ */
+const CardToken = ({ loading, slug, name }: { loading: boolean; slug: string; name: string }) => (
+    <Box sx={{ position: 'relative', width: TOKEN_SIZE, height: TOKEN_SIZE, mx: 'auto', mb: 0.75 }}>
+        <TokenBadge slug={slug} name={name} size={TOKEN_SIZE} />
+        {loading && (
+            <CircularProgress
+                size={TOKEN_SIZE + 8}
+                thickness={2.5}
+                sx={{ position: 'absolute', top: -4, left: -4 }}
+            />
+        )}
+    </Box>
+)
 
 export const UploadCard = ({ onJson, error }: Props) => {
     const inputRef = useRef<HTMLInputElement>(null)
@@ -91,11 +113,11 @@ export const UploadCard = ({ onJson, error }: Props) => {
                                 disabled={loadingPreset !== null}
                                 sx={{ p: 1.5, textAlign: 'center' }}
                             >
-                                {loadingPreset === preset.filename ? (
-                                    <CircularProgress size={28} sx={{ mb: 0.5 }} />
-                                ) : (
-                                    <PersonIcon sx={{ fontSize: 28, color: 'primary.main', mb: 0.5 }} />
-                                )}
+                                <CardToken
+                                    loading={loadingPreset === preset.filename}
+                                    slug={charSlugFromName(preset.sheetName)}
+                                    name={preset.name}
+                                />
                                 <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2, overflowWrap: 'anywhere' }}>
                                     {preset.name}
                                 </Typography>
@@ -117,11 +139,7 @@ export const UploadCard = ({ onJson, error }: Props) => {
                                 disabled={loadingPreset !== null}
                                 sx={{ p: 1.5, textAlign: 'center' }}
                             >
-                                {loadingPreset === sheet.slug ? (
-                                    <CircularProgress size={28} sx={{ mb: 0.5 }} />
-                                ) : (
-                                    <PersonIcon sx={{ fontSize: 28, color: 'primary.main', mb: 0.5 }} />
-                                )}
+                                <CardToken loading={loadingPreset === sheet.slug} slug={sheet.slug} name={sheet.name} />
                                 <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2, overflowWrap: 'anywhere' }}>
                                     {sheet.name}
                                 </Typography>
