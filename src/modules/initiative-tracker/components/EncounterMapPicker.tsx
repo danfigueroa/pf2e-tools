@@ -19,7 +19,9 @@ export const EncounterMapPicker = ({ mapId, onChange }: Props) => {
     const navigate = useNavigate()
     const [maps, setMaps] = useState<MapSummary[]>([])
 
-    const reload = () => { listMaps().then((b) => setMaps(b.maps)).catch(() => {}) }
+    // Com os privados: o mapa recém-criado nasce privado, e sem ele aqui o
+    // encontro montado para ele pareceria de um mapa apagado.
+    const reload = () => { listMaps({ gm: true }).then((b) => setMaps(b.maps)).catch(() => {}) }
     useEffect(reload, [])
 
     // Mapa apagado depois do jogo: o encontro dele ainda está neste aparelho,
@@ -38,7 +40,7 @@ export const EncounterMapPicker = ({ mapId, onChange }: Props) => {
                     onChange={(e) => onChange(e.target.value === NONE ? null : String(e.target.value))}
                 >
                     <MenuItem value={NONE}>Sem mapa</MenuItem>
-                    {maps.map((m) => <MenuItem key={m.id} value={m.id}>{m.name}</MenuItem>)}
+                    {maps.map((m) => <MenuItem key={m.id} value={m.id}>{m.private ? `${m.name} · privado` : m.name}</MenuItem>)}
                     {missing && <MenuItem value={mapId}>Mapa apagado</MenuItem>}
                 </Select>
             </FormControl>

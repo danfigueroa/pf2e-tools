@@ -64,7 +64,8 @@ export function useMapSync(
     views: CombatantView[],
     dispatch: Dispatch<EncounterAction>,
 ): void {
-    const { data } = useMapData(mapId)
+    // A Iniciativa é ferramenta do GM: lê o mapa mesmo privado (é ali que se monta o encontro escondido).
+    const { data } = useMapData(mapId, true)
 
     /** Último PV enviado (ou recebido) por monstro. */
     const lastHp = useRef(new Map<string, string>())
