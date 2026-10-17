@@ -21,8 +21,20 @@ const slugify = (value: string): string =>
         .replace(/^-+|-+$/g, '')
         .slice(0, 64)
 
+/**
+ * Personagem que mudou de nome no Pathbuilder mantém a identidade antiga: o
+ * token, o PV e a ficha publicada moram no slug de antes. Espelha
+ * `SLUG_ALIASES` em `api/_lib/sheet-store.js` — mexeu num, mexe no outro.
+ */
+const SLUG_ALIASES: Record<string, string> = {
+    'thalos-alba': 'thalos',
+}
+
 /** Slug a partir do nome cru — o gerenciador de iniciativa guarda só o nome. */
-export const charSlugFromName = (name: string): string => slugify(name || '') || 'sem-nome'
+export const charSlugFromName = (name: string): string => {
+    const slug = slugify(name || '') || 'sem-nome'
+    return SLUG_ALIASES[slug] ?? slug
+}
 
 /** Slug do personagem: `Ghan Buri` → `ghan-buri`. */
 export const charSlug = (build: BuildInfo): string => charSlugFromName(build.name)

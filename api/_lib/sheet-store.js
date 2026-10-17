@@ -29,6 +29,10 @@ export const MAX_GUIDE_BYTES = 16 * 1024
 
 // Mesmo algoritmo de `charSlugFromName` em `src/modules/character-viewer/charId.ts`:
 // é a MESMA identidade do estado da mesa, então os dois têm de concordar.
+// Personagem renomeado no Pathbuilder mantém o slug antigo (token, PV e ficha publicada moram nele).
+// Espelha `SLUG_ALIASES` de `charId.ts`.
+const SLUG_ALIASES = { 'thalos-alba': 'thalos' }
+
 export function slugFromName(name) {
   const slug = String(name || '')
     .normalize('NFD')
@@ -37,7 +41,8 @@ export function slugFromName(name) {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 64)
-  return slug || 'sem-nome'
+  const final = slug || 'sem-nome'
+  return SLUG_ALIASES[final] || final
 }
 
 /** Um export do Pathbuilder tem `build` com nome, classe e nível. */
