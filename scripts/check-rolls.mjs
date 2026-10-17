@@ -751,5 +751,17 @@ ok(vf('Heal', 2, 2).components[0].id === 9500, 'O id vem da posição (a seleç�
 eq(spellstrike.spellstrikeIssue({ name: 'Blazing Bolt', actions: 'Single Action to Three Actions', traits: ['attack', 'fire'], description: 'x' }), null, 'Blazing Bolt serve no Spellstrike (1 ou 2 ações)')
 ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Actions', traits: ['attack'], description: 'x' }) !== null || av.actionRange('Two Actions to Three Actions').min === 2, 'Faixa 2 a 3 ainda cabe com 2 ações')
 
+// Magias de assinatura: o Pathbuilder não as exporta, o catálogo casa pelo nome do personagem.
+{
+    const { signatureSpellsFor } = await import('../src/modules/character-viewer/signatureSpells.ts')
+    const psychic = party.thalos.spellCasters.find((c) => c.name === 'Psychic')
+    const aero = party.thalos.spellCasters.find((c) => c.name === 'Aeromancer')
+    eq(JSON.stringify(signatureSpellsFor(party.thalos, psychic)), JSON.stringify(['Breathe Fire', 'Blazing Bolt', 'Fireball', 'Ice Storm', 'Howling Blizzard']), 'Thalos: cinco magias de assinatura')
+    eq(signatureSpellsFor(party.thalos, aero).length, 0, 'Bloco inato não tem assinatura')
+    eq(signatureSpellsFor(party.ghan, party.ghan.spellCasters?.[0] ?? { name: 'x', spellcastingType: 'spontaneous' }).length, 0, 'Outro personagem não herda a lista')
+    const known = new Set(psychic.spells.flatMap((l) => l.list))
+    ok(signatureSpellsFor(party.thalos, psychic).every((n) => known.has(n)), 'Toda assinatura está no repertório do Thalos')
+}
+
 console.log(`${passed} conferências ok, ${failures} falha(s).`)
 process.exit(failures ? 1 : 0)

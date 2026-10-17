@@ -17,6 +17,7 @@ import { slotKey, useSpellSlots, type SpellSlotsApi } from '../components/useSpe
 import { SlotPips, SlotCount } from '../components/SlotPips'
 import { gold, PSYCHE_COLOR } from '../../../theme'
 import { psycheDamageBonus } from '../psyche'
+import { signatureSpellsFor } from '../signatureSpells'
 import { ConditionDelta } from '../components/ConditionDelta'
 import type { ConditionModifiers } from '../conditions'
 import type { MythicPointsApi } from '../components/useMythicPoints'
@@ -258,12 +259,33 @@ const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, o
     // conjuração sai do pool de Pontos Míticos da barra do topo.
     const isMythicMagic = isMythicMagicCaster(caster)
 
-    const levels = useMemo(
-        () => caster.spells
-            .filter(l => l.list.length > 0)
-            .map(l => ({ spellLevel: l.spellLevel, entries: dedupe(l.list) })),
-        [caster],
-    )
+    // Assinatura: a magia aparece no rank que o repertório a guarda e, elevada,
+    // em todo rank acima que tenha slot (`signatureSpells.ts`).
+    const signature = useMemo(() => signatureSpellsFor(build, caster), [build, caster])
+    const levels = useMemo(() => {
+        const known = new Map<number, string[]>()
+        for (const l of caster.spells) if (l.list.length > 0) known.set(l.spellLevel, l.list)
+        const baseRank = new Map<string, number>()
+        for (const name of signature) {
+            const rank = [...known.entries()].find(([lvl, list]) => lvl > 0 && list.includes(name))?.[0]
+            if (rank != null) baseRank.set(name, rank)
+        }
+        const ranks = new Set<number>(known.keys())
+        for (const [lvl, total] of (caster.perDay ?? []).entries()) {
+            if (lvl > 0 && total > 0 && [...baseRank.values()].some((r) => r < lvl)) ranks.add(lvl)
+        }
+        return [...ranks].sort((a, b) => a - b).map((spellLevel) => {
+            const entries: Array<{ name: string; count: number; signature?: 'base' | 'raised' }> =
+                dedupe(known.get(spellLevel) ?? []).map((e) => ({
+                    ...e,
+                    signature: baseRank.get(e.name) === spellLevel ? 'base' : undefined,
+                }))
+            for (const [name, rank] of baseRank) {
+                if (rank < spellLevel) entries.push({ name, count: 1, signature: 'raised' })
+            }
+            return { spellLevel, entries }
+        })
+    }, [caster, signature])
 
     const levelKey = (spellLevel: number, name?: string) => slotKey(casterIdx, caster.name, spellLevel, name)
 
@@ -395,7 +417,7 @@ const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, o
                                     />
                                 )}
                             </Box>
-                            {entries.map(({ name, count }) => {
+                            {entries.map(({ name, count, signature: sig }) => {
                                 const rowKey = levelKey(spellLevel, name)
                                 const used = Math.min(count, slots.usedOf(rowKey))
                                 const tracked = spellLevel > 0 && !isSpontaneous && !isMythicMagic
@@ -436,6 +458,7 @@ const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, o
                                         spend={spontaneousSpend}
                                         dimmed={tracked ? used >= count : false}
                                         psycheOn={!!mods.psyche}
+                                        signature={sig}
                                     />
                                 )
                             })}
@@ -460,9 +483,11 @@ interface SpellRowProps {
     dimmed?: boolean
     /** Psique liberada: a linha mostra o bônus de dano da conjuração de Psíquico. */
     psycheOn?: boolean
+    /** Magia de assinatura: `base` no rank do repertório, `raised` repetida num rank acima. */
+    signature?: 'base' | 'raised'
 }
 
-const SpellRow = ({ name, count, accent, request, onSelect, pips, spend, dimmed, psycheOn }: SpellRowProps) => {
+const SpellRow = ({ name, count, accent, request, onSelect, pips, spend, dimmed, psycheOn, signature }: SpellRowProps) => {
     const cached = getCachedSpell(name)
     // Dano já no nível do slot (request.level = rank efetivo de conjuração).
     const castRank = request.type === 'spell' ? request.level : undefined
@@ -531,6 +556,17 @@ const SpellRow = ({ name, count, accent, request, onSelect, pips, spend, dimmed,
                                 }}
                             >
                                 ↑ {raisedTo}º
+                            </Typography>
+                        </Tooltip>
+                    )}
+                    {signature && (
+                        <Tooltip title="Magia de assinatura: pode ser conjurada em qualquer slot de rank igual ou maior, sem aprender de novo.">
+                            <Typography
+                                component="span"
+                                variant="caption"
+                                sx={{ ml: 0.75, px: 0.5, borderRadius: 0.75, border: `1px solid ${accent}66`, color: accent, fontWeight: 700, whiteSpace: 'nowrap' }}
+                            >
+                                assinatura
                             </Typography>
                         </Tooltip>
                     )}
