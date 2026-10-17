@@ -7,7 +7,7 @@ import {
     Bolt as SpendIcon,
     Casino as DiceIcon,
 } from '@mui/icons-material'
-import type { BuildInfo, SpellCaster, FocusTradition, FocusAbility } from '../../character-sheet/types'
+import type { BuildInfo, SpellCaster } from '../../character-sheet/types'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
 import { actionSymbol, isMythicMagicCaster, MYTHIC_COLOR, signed, spellcasterStats, traditionColor, traditionLabel } from '../helpers'
 import { castRankForSlot, damageAtRank } from '../heightening'
@@ -18,6 +18,7 @@ import { SlotPips, SlotCount } from '../components/SlotPips'
 import { gold, PSYCHE_COLOR } from '../../../theme'
 import { psycheDamageBonus } from '../psyche'
 import { signatureSpellsFor } from '../signatureSpells'
+import { characterSpellNames, collectFocusSpells, type FocusSpellEntry } from '../spellNames'
 import { ConditionDelta } from '../components/ConditionDelta'
 import type { ConditionModifiers } from '../conditions'
 import type { MythicPointsApi } from '../components/useMythicPoints'
@@ -43,12 +44,7 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
     // "Carregar todas" precisa repintar a lista com o resumo novo.
     useDescriptionCacheVersion()
 
-    const allNames = useMemo(() => {
-        const names = new Set<string>()
-        build.spellCasters?.forEach(c => c.spells.forEach(l => l.list.forEach(n => names.add(n))))
-        focusSpells.forEach(f => names.add(f.name))
-        return Array.from(names)
-    }, [build, focusSpells])
+    const allNames = useMemo(() => characterSpellNames(build, focusSpells), [build, focusSpells])
 
     // Progresso do "Carregar todas"; cada atualização re-renderiza e as linhas
     // releem o cache — é assim que os resumos aparecem progressivamente.
@@ -632,28 +628,6 @@ function dedupe(list: string[]): Array<{ name: string; count: number }> {
 
 /** O bloco é a conjuração de Psíquico (e não a de uma herança ou de um arquétipo). */
 const isPsychicCaster = (build: BuildInfo, caster: SpellCaster) => build.class === 'Psychic' && caster.name === 'Psychic'
-
-interface FocusSpellEntry {
-    name: string
-    tradition: string
-    group: FocusAbility
-}
-
-function collectFocusSpells(build: BuildInfo): FocusSpellEntry[] {
-    const out: FocusSpellEntry[] = []
-    const seen = new Set<string>()
-    if (!build.focus) return out
-    Object.entries(build.focus).forEach(([tradition, abilities]: [string, FocusTradition]) => {
-        Object.values(abilities).forEach((group: FocusAbility) => {
-            for (const name of [...(group.focusCantrips ?? []), ...(group.focusSpells ?? [])]) {
-                if (seen.has(name)) continue
-                seen.add(name)
-                out.push({ name, tradition, group })
-            }
-        })
-    })
-    return out
-}
 
 // CD/ataque de focus spells a partir de build.focus; omitido quando o JSON
 // não traz proficiência/atributo para o grupo.
