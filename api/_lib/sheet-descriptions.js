@@ -24,6 +24,10 @@
 //   outra? Recomeça do zero, como o localStorage faria.
 // - Cabe no `maxDuration`: para de começar grupos depois de `BUDGET_MS` e
 //   devolve quantos faltam; o cliente chama de novo.
+// - A PRIMEIRA montagem parte do pacote estático do personagem
+//   (`public/descriptions/<slug>.json`, que o `vercel.json` empacota junto da
+//   função): num level-up quase tudo já está lá, e só o que é novo vai à AON e
+//   ao LLM — a ficha publicada fica pronta em segundos, não em minutos.
 // - Nunca grava inglês: payload com `translationPending` fica de fora e é
 //   tentado na próxima chamada.
 // - O que a AON não resolve (nome caseiro, grafia do Pathbuilder) vai para
@@ -31,6 +35,8 @@
 //   abertura da ficha pediria o mesmo nome inexistente à AON (e ao LLM, que
 //   tenta descrevê-lo). Falha de TRADUÇÃO não conta como miss — é passageira.
 
+import { readFile } from 'node:fs/promises'
+import { join } from 'node:path'
 import { redis } from './table-store.js'
 import { resolveSpells } from './spells-core.js'
 import { resolveFeats, resolveSpecials } from './feat-core.js'
@@ -117,6 +123,26 @@ async function unlock(slug) {
   else memoryLocks.delete(slug)
 }
 
+/**
+ * O pacote estático do personagem (o mesmo que o CDN serve), base da primeira
+ * montagem. Do disco: em dev é o repositório, na Vercel o `includeFiles` do
+ * `vercel.json`. Se o disco não tiver (configuração mudou), pede ao domínio de
+ * produção. Sem nenhum dos dois, a montagem só fica mais lenta.
+ */
+async function staticBundle(slug) {
+  try {
+    return JSON.parse(await readFile(join(process.cwd(), 'public', 'descriptions', `${slug}.json`), 'utf8'))
+  } catch { /* segue para o CDN */ }
+  const host = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  if (!host) return null
+  try {
+    const r = await fetch(`https://${host}/descriptions/${encodeURIComponent(slug)}.json`)
+    return r.ok ? await r.json() : null
+  } catch {
+    return null
+  }
+}
+
 /** Mesmo critério do cliente para guardar uma descrição no cache. */
 const usable = (entry) =>
   !!entry && typeof entry.description === 'string' && entry.description.trim().length > 0 && !entry.translationPending
@@ -134,6 +160,16 @@ export async function buildSheetDescriptions(slug, names, version) {
     const sameVersion = current?.version === version
     const entries = sameVersion ? bagsFrom(structuredClone(current.entries)) : emptyBags()
     const misses = sameVersion ? bagsFrom(structuredClone(current.misses)) : emptyBags()
+    if (!sameVersion) {
+      const base = await staticBundle(slug)
+      if (base?.version === version) {
+        for (const kind of DESCRIPTION_KINDS) {
+          for (const [name, entry] of Object.entries(base.entries?.[kind] ?? {})) {
+            if (usable(entry)) entries[kind][name] = entry
+          }
+        }
+      }
+    }
     const recentMiss = (kind, n) => typeof misses[kind][n] === 'number' && started - misses[kind][n] < MISS_RETRY_MS
     const pending = (kind) => names[kind].filter((n) => !usable(entries[kind][n]) && !recentMiss(kind, n))
 
