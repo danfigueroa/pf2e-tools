@@ -13,8 +13,8 @@ import {
     useMediaQuery,
 } from '@mui/material'
 import { ExpandMore as ExpandIcon } from '@mui/icons-material'
-import { checkApiAvailable, fetchCompanionStats, loadSheetSpells, loadSpellBundle } from '../../services/descriptions'
-import { characterSpellNames } from './spellNames'
+import { checkApiAvailable, fetchCompanionStats, loadDescriptionBundle, loadSheetDescriptions } from '../../services/descriptions'
+import { characterDescriptionNames } from './descriptionNames'
 import {
     Shield as OverviewIcon,
     LocalFireDepartment as CombatIcon,
@@ -274,17 +274,17 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
         return () => { cancelled = true }
     }, [])
 
-    // Magias já traduzidas: as do arquivo estático do CDN (`public/spells/`, dos
-    // presets) e, quando a ficha aberta É a da mesa, as guardadas junto da
-    // publicação — é por ela que chega um level-up. O que nenhum dos dois tem
-    // segue pela API, como antes.
+    // Tudo o que a ficha descreve, já traduzido: o arquivo estático do CDN
+    // (`public/descriptions/`, dos presets) e, quando a ficha aberta É a da
+    // mesa, o pacote guardado junto da publicação — é por ela que chega um
+    // level-up. O que nenhum dos dois tem segue pela API, como antes.
     const slug = charSlug(build)
-    const spellNames = useMemo(() => characterSpellNames(build), [build])
+    const descriptionNames = useMemo(() => characterDescriptionNames(build), [build])
     const isPublished = !!published
-    useEffect(() => { void loadSpellBundle(slug) }, [slug])
+    useEffect(() => { void loadDescriptionBundle(slug) }, [slug])
     useEffect(() => {
-        if (isPublished) void loadSheetSpells(slug, spellNames)
-    }, [slug, spellNames, isPublished])
+        if (isPublished) void loadSheetDescriptions(slug, descriptionNames)
+    }, [slug, descriptionNames, isPublished])
 
     // Pré-busca stats de companheiros animais (só 1-2 fetches, vale eager)
     useEffect(() => {

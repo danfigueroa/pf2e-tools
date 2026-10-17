@@ -14,7 +14,7 @@ import type { FeatDescription, SpellDescription, CompanionStats } from '../modul
 // v13: o AON parou de mandar o "---" no `text`; as magias chegavam sem entradas
 // de heightening e com o cabeçalho colado na prosa. Agora vêm do `markdown`, com
 // `scaling` (os números por rank) — o cache antigo não tem nem um nem outro.
-// O pacote pré-traduzido (`public/spells/`) carrega a versão com que foi gerado:
+// Os pacotes pré-traduzidos (`public/descriptions/`, e o da ficha publicada) carregam a versão com que foram gerados:
 // subir esta constante faz o app ignorar os pacotes até alguém os regerar.
 export const CACHE_VERSION = 'v13'
 
@@ -265,120 +265,142 @@ export function getCachedSpell(name: string) {
     return readCache<SpellDescription>('spell', name)
 }
 
-// --- Pacote pré-traduzido ------------------------------------------------------
+// --- Pacotes pré-traduzidos ---------------------------------------------------
 //
-// As magias dos personagens da campanha mudam pouco, então são resolvidas e
-// traduzidas UMA vez, por `scripts/build-spell-bundle.mjs`, e servidas como
-// arquivo estático (`/spells/<slug>.json`, pelo CDN). Ao abrir a ficha o pacote
-// entra no cache em memória — o mesmo que as linhas, o drawer e o Spellstrike
-// leem —, então ninguém mais precisa saber de onde a magia veio. Fica só na
-// memória: o arquivo já tem o cache HTTP, e copiá-lo para o localStorage
-// gastaria a cota à toa.
+// O elenco é pequeno e o que cada ficha descreve (magias, talentos,
+// habilidades, itens) muda pouco, então tudo é resolvido e traduzido UMA vez e
+// entregue pronto, por dois caminhos:
+//   - estático (`/descriptions/<slug>.json`, CDN), gerado por
+//     `scripts/build-description-bundle.mjs` para os presets do repositório;
+//   - o da ficha PUBLICADA (`api/_lib/sheet-descriptions.js`, Redis), que o
+//     servidor mantém sozinho — é por ela que chega um level-up.
+// Os dois entram no cache em memória — o mesmo que as abas, o drawer e o
+// Spellstrike leem —, então ninguém mais precisa saber de onde a descrição
+// veio. Só na memória: o arquivo já tem o cache HTTP, e copiar centenas de
+// entradas para o localStorage gastaria a cota à toa.
 //
-// Pacote ausente, de outra versão ou quebrado é ignorado em silêncio: a magia
-// segue pela API, como antes.
+// Pacote ausente, de outra versão ou quebrado é ignorado em silêncio: a
+// descrição segue pela API, como antes.
+
+type BundleKind = Extract<Kind, 'spell' | 'feat' | 'special' | 'item'>
+const BUNDLE_KINDS: BundleKind[] = ['spell', 'feat', 'special', 'item']
+
+type Entries = Partial<Record<BundleKind, Record<string, { description?: unknown; translationPending?: boolean } | undefined>>>
+
+/** Põe descrições prontas no cache em memória (sem sobrescrever) e avisa quem desenha dele. */
+function seedEntries(entries: Entries | undefined): number {
+    if (!entries || typeof entries !== 'object') return 0
+    let added = 0
+    for (const kind of BUNDLE_KINDS) {
+        const bag = entries[kind]
+        if (!bag || typeof bag !== 'object') continue
+        for (const [name, entry] of Object.entries(bag)) {
+            if (!entry || !isValidString(entry.description) || entry.translationPending) continue
+            const k = key(kind, name)
+            if (memory.has(k)) continue
+            memory.set(k, entry)
+            added++
+        }
+    }
+    if (added > 0) {
+        cacheVersion++
+        cacheListeners.forEach((l) => l())
+    }
+    return added
+}
 
 const bundles = new Map<string, Promise<void>>()
 
-/** Carrega (uma vez por sessão) as magias pré-traduzidas do personagem. */
-export function loadSpellBundle(slug: string): Promise<void> {
+/** Carrega (uma vez por sessão) o pacote estático do personagem. */
+export function loadDescriptionBundle(slug: string): Promise<void> {
     if (!slug) return Promise.resolve()
     let loading = bundles.get(slug)
     if (!loading) {
-        loading = fetchSpellBundle(slug)
+        loading = fetchDescriptionBundle(slug)
         bundles.set(slug, loading)
     }
     return loading
 }
 
-async function fetchSpellBundle(slug: string): Promise<void> {
+async function fetchDescriptionBundle(slug: string): Promise<void> {
     try {
-        const r = await fetch(`/spells/${encodeURIComponent(slug)}.json`)
+        const r = await fetch(`/descriptions/${encodeURIComponent(slug)}.json`)
         // Sem o arquivo, o servidor devolve o index.html do SPA: o `json()` falha e cai no catch.
         if (!r.ok) return
-        const body = (await r.json()) as { version?: unknown; spells?: Record<string, SpellDescription | undefined> }
-        if (body.version !== CACHE_VERSION || !body.spells || typeof body.spells !== 'object') return
-        seedSpells(body.spells)
+        const body = (await r.json()) as { version?: unknown; entries?: Entries }
+        if (body.version === CACHE_VERSION) seedEntries(body.entries)
     } catch {
         // Pacote é atalho, nunca requisito.
     }
 }
 
-/** Põe magias prontas no cache em memória (sem sobrescrever) e avisa quem desenha dele. */
-function seedSpells(spells: Record<string, SpellDescription | undefined>) {
-    let added = false
-    for (const [name, spell] of Object.entries(spells)) {
-        if (!spell || !isValidString(spell.description) || spell.translationPending) continue
-        const k = key('spell', name)
-        if (memory.has(k)) continue
-        memory.set(k, spell)
-        added = true
-    }
-    if (added) {
-        cacheVersion++
-        cacheListeners.forEach((l) => l())
-    }
-}
-
-// --- Magias da ficha PUBLICADA (Redis) --------------------------------------------
+// --- Da ficha PUBLICADA (Redis) ---------------------------------------------------
 //
-// O par automático do pacote estático: um level-up chega pela publicação, e o
-// servidor guarda junto da ficha publicada as magias já traduzidas
-// (`api/_lib/sheet-spells.js`). Abrir a ficha lê tudo num GET só. Se faltar
-// alguma — ficha recém-publicada, magia nova do nível 11 —, este aparelho pede
-// ao servidor que complete (só as que faltam vão à AON e ao LLM; com trava, um
-// aparelho por vez) e recebe as novas na resposta. Os próximos já as acham lá.
+// Abrir a ficha lê tudo num GET só. Se faltar algo — ficha recém-publicada,
+// talento ou magia nova do nível 11 —, este aparelho pede ao servidor que
+// complete (só o que falta vai à AON e ao LLM; com trava, um aparelho por vez)
+// e recebe o novo na resposta. Os próximos já acham tudo lá.
 
-interface SheetSpellsBundle {
+export type DescriptionNameLists = Record<BundleKind, string[]>
+
+interface SheetBundle {
     version?: unknown
-    spells?: Record<string, SpellDescription | undefined>
-    misses?: Record<string, unknown>
+    entries?: Entries
+    misses?: Partial<Record<BundleKind, Record<string, unknown>>>
 }
 
-/** Rodadas de "completa o que falta": cada uma cabe no `maxDuration` da função. */
-const SHEET_SPELLS_ROUNDS = 4
-const sheetSpells = new Map<string, Promise<void>>()
+/**
+ * Rodadas de "completa o que falta", cada uma dentro do `maxDuration` da
+ * função (~30 s de trabalho). A primeira montagem de uma ficha inteira (~100
+ * descrições) leva algumas; o laço para sozinho quando uma rodada não avança.
+ */
+const SHEET_ROUNDS = 12
+const sheetBundles = new Map<string, Promise<void>>()
 
-/** Lê (e, se faltar algo, completa) as magias traduzidas da ficha publicada `slug`. */
-export function loadSheetSpells(slug: string, names: string[]): Promise<void> {
-    if (!slug || names.length === 0) return Promise.resolve()
+/** Lê (e, se faltar algo, completa) as descrições traduzidas da ficha publicada `slug`. */
+export function loadSheetDescriptions(slug: string, names: DescriptionNameLists): Promise<void> {
+    const total = BUNDLE_KINDS.reduce((sum, kind) => sum + names[kind].length, 0)
+    if (!slug || total === 0) return Promise.resolve()
     // A lista entra na chave: publicar o nível 11 no meio da sessão pede de novo.
-    const flight = `${slug}\n${[...names].sort().join('\n')}`
-    let loading = sheetSpells.get(flight)
+    const flight = `${slug}\n${BUNDLE_KINDS.map((kind) => [...names[kind]].sort().join('|')).join('\n')}`
+    let loading = sheetBundles.get(flight)
     if (!loading) {
-        loading = syncSheetSpells(slug, names)
-        sheetSpells.set(flight, loading)
+        loading = syncSheetDescriptions(slug, names)
+        sheetBundles.set(flight, loading)
     }
     return loading
 }
 
-async function syncSheetSpells(slug: string, names: string[]): Promise<void> {
+async function syncSheetDescriptions(slug: string, names: DescriptionNameLists): Promise<void> {
     try {
-        const r = await fetch(`/api/state?sheetSpells=${encodeURIComponent(slug)}`)
+        const r = await fetch(`/api/state?sheetDescriptions=${encodeURIComponent(slug)}`)
         if (!r.ok) return
-        const { bundle } = (await r.json()) as { bundle: SheetSpellsBundle | null }
+        const { bundle } = (await r.json()) as { bundle: SheetBundle | null }
         const current = bundle?.version === CACHE_VERSION ? bundle : null
-        if (current?.spells) seedSpells(current.spells)
+        seedEntries(current?.entries)
 
         // O que o servidor ainda não tem (ou não achou há pouco, `misses`, e desistiu por um dia).
-        const known = (n: string) => !!current?.spells?.[n] || current?.misses?.[n] != null
-        if (names.every(known)) return
+        const known = (kind: BundleKind, n: string) => !!current?.entries?.[kind]?.[n] || current?.misses?.[kind]?.[n] != null
+        if (BUNDLE_KINDS.every((kind) => names[kind].every((n) => known(kind, n)))) return
 
-        for (let round = 0; round < SHEET_SPELLS_ROUNDS; round++) {
+        for (let round = 0; round < SHEET_ROUNDS; round++) {
             const res = await fetch('/api/state', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'sheet-spells', char: slug, names, version: CACHE_VERSION }),
+                body: JSON.stringify({ action: 'sheet-descriptions', char: slug, names, version: CACHE_VERSION }),
             })
             if (!res.ok) return
-            const out = (await res.json()) as { busy?: boolean; added?: Record<string, SpellDescription>; remaining?: number }
-            // Outro aparelho já está completando: as dele chegam a quem abrir depois.
+            const out = (await res.json()) as { busy?: boolean; added?: Entries; remaining?: number }
+            // Outro aparelho já está completando: o dele chega a quem abrir depois.
             if (out.busy) return
-            if (out.added) seedSpells(out.added)
+            const added = out.added
+                ? BUNDLE_KINDS.reduce((sum, kind) => sum + Object.keys(out.added?.[kind] ?? {}).length, 0)
+                : 0
+            seedEntries(out.added)
             // Sem progresso (tradutor fora do ar): para, e a próxima abertura tenta de novo.
-            if (!out.remaining || !out.added || Object.keys(out.added).length === 0) return
+            if (!out.remaining || added === 0) return
         }
     } catch {
-        // Atalho, nunca requisito: a magia segue pela API.
+        // Atalho, nunca requisito: a descrição segue pela API.
     }
 }
