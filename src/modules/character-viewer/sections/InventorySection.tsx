@@ -12,7 +12,7 @@ import type { BuildInfo } from '../../character-sheet/types'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
 import type { ConditionModifiers } from '../conditions'
 import { characterMaxHp } from '../helpers'
-import { itemDisplayName } from '../customRunes'
+import { inventoryRows, type ItemRow } from '../inventory'
 import { consumedKeyFor, hpKeyFor, legacyCharKey } from '../charId'
 import { useConsumables } from '../components/useConsumables'
 import { CompanionsCard } from '../components/CompanionsCard'
@@ -26,50 +26,6 @@ interface Props {
     build: BuildInfo
     onSelect: (req: DescriptionRequest) => void
     mods: ConditionModifiers
-}
-
-/** Uma linha do inventário, já normalizada venha de onde vier. */
-interface ItemRow {
-    /** Como aparece na lista (pode trazer runas: "+2 Striking Warhammer"). */
-    label: string
-    /** Nome canônico, o que se busca na AON. */
-    name: string
-    qty: number
-    /** Chips à direita: "Invested", "Vestida", "Arma"… */
-    tags: string[]
-    /** Só o equipamento pode ser consumível — arma e armadura nunca são. */
-    equipment: boolean
-}
-
-/**
- * Armas e armaduras são inventário como qualquer outro item, mas o Pathbuilder
- * as exporta em listas próprias (`weapons`/`armor`, usadas na aba de Combate) —
- * então elas sumiam daqui. A lista junta as três, sem tocar no JSON da ficha.
- */
-function inventoryRows(build: BuildInfo): ItemRow[] {
-    const weapons = (build.weapons ?? []).map((w) => ({
-        label: itemDisplayName(build, w, 'weapon'),
-        name: w.name,
-        qty: w.qty,
-        tags: ['Arma'],
-        equipment: false,
-    }))
-    const armor = (build.armor ?? []).map((a) => ({
-        // Runa homebrew (`customRunes.ts`) no lugar da que ela substituiu.
-        label: itemDisplayName(build, a, 'armor'),
-        name: a.name,
-        qty: a.qty,
-        tags: a.worn ? ['Armadura', 'Vestida'] : ['Armadura'],
-        equipment: false,
-    }))
-    const equipment = (build.equipment ?? []).map(([name, qty, status]) => ({
-        label: name,
-        name,
-        qty,
-        tags: status ? [status] : [],
-        equipment: true,
-    }))
-    return [...weapons, ...armor, ...equipment]
 }
 
 /** O aviso do último uso, com o que é preciso para desfazê-lo. */
