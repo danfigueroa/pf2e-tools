@@ -1,5 +1,8 @@
 // Funções compartilhadas para busca no Archives of Nethys
 
+import { createHash } from 'node:crypto'
+import { redis } from './table-store.js'
+
 // Cache em memória (nota: cada invocação serverless pode ter seu próprio cache)
 const cache = new Map()
 
@@ -402,6 +405,9 @@ export async function translateToPortuguese(text, translationEnabled) {
 // Devolve um array do mesmo tamanho da entrada: a tradução de cada trecho ou
 // `null` quando o marcador não voltou / veio curto demais. Nunca devolve
 // tradução parcial de um trecho — na dúvida, null e o chamador mantém o EN.
+//
+// Passa antes pelo cache compartilhado (ver `readTranslations`): só o que
+// nenhum aparelho da mesa traduziu ainda vai para o LLM.
 export async function translateSegments(segments, translationEnabled) {
   const out = segments.map(() => null)
   if (!translationEnabled) return out
@@ -411,11 +417,35 @@ export async function translateSegments(segments, translationEnabled) {
     .filter(x => x.en.length > 0)
   if (present.length === 0) return out
 
+  const keys = present.map(x => translationKey(x.en))
+  const cached = await readTranslations(keys)
+  const missing = []
+  present.forEach((x, n) => {
+    if (cached[n]) out[x.i] = cached[n]
+    else missing.push({ ...x, key: keys[n] })
+  })
+  if (missing.length === 0) return out
+
+  const fresh = await translateFresh(missing)
+  const toSave = []
+  missing.forEach((x, n) => {
+    if (!fresh[n]) return
+    out[x.i] = fresh[n]
+    toSave.push([x.key, fresh[n]])
+  })
+  await writeTranslations(toSave)
+  return out
+}
+
+/** A chamada ao LLM de `translateSegments`, só com o que faltou no cache. Alinhado a `present`. */
+async function translateFresh(present) {
+  const out = present.map(() => null)
+
   if (present.length === 1) {
-    const { i, en } = present[0]
-    const translated = await translateToPortuguese(en, translationEnabled)
+    const { en } = present[0]
+    const translated = await translateToPortuguese(en, true)
     if (translated && translated !== en && translated.trim().length >= en.length * 0.4) {
-      out[i] = translated.trim()
+      out[0] = translated.trim()
     }
     return out
   }
@@ -432,9 +462,72 @@ export async function translateSegments(segments, translationEnabled) {
   const parts = splitMarkers(raw, present.length)
   present.forEach((x, n) => {
     const t = parts[n]
-    if (t && t.length >= x.en.length * 0.4) out[x.i] = t
+    if (t && t.length >= x.en.length * 0.4) out[n] = t
   })
   return out
+}
+
+// --- Cache compartilhado de traduções -----------------------------------------
+//
+// O cache em memória morre com a função serverless e o `localStorage` é de um
+// aparelho só: cada jogador, em cada aparelho novo, pagava de novo a tradução
+// das mesmas magias — no tempo (4,2 s entre chamadas do Gemini free) e na cota
+// da mesa inteira. Aqui a tradução fica no Redis do estado da mesa, e só a
+// primeira pessoa espera pelo LLM.
+//
+// A chave é o hash do TEXTO em inglês, não o nome do item: se o AON mudar a
+// prosa, a chave muda junto e nada velho é servido; e a parte barata (parse,
+// heightening, números da magia) continua sendo refeita a cada pedido — só o
+// LLM é poupado. O preâmbulo entra no hash, então mexer no prompt invalida
+// tudo sozinho. Mudou o `cleanTranslation` ou o formato da saída? Suba a
+// `TRANSLATION_CACHE_VERSION`.
+//
+// Só entra aqui o que passou na validação de `translateFresh` (tradução
+// completa): falha devolve null, o chamador marca `translationPending`, e nada
+// em inglês é gravado. Custo: 1 MGET por chamada; os SETs só quando o LLM rodou.
+
+const TRANSLATION_CACHE_VERSION = 1
+const TRANSLATION_PREFIX = 'pf2e:tr:'
+const TRANSLATION_TTL_SECONDS = 180 * 24 * 60 * 60
+const translationMemory = new Map()
+
+function translationKey(en) {
+  const hash = createHash('sha1')
+    .update(`${TRANSLATION_CACHE_VERSION}\n${TRANSLATION_PREAMBLE}\n${en}`)
+    .digest('hex')
+  return TRANSLATION_PREFIX + hash
+}
+
+/** Traduções já feitas, na ordem de `keys` (null = ninguém traduziu ainda). */
+async function readTranslations(keys) {
+  const r = redis()
+  if (!r) return keys.map(k => translationMemory.get(k) ?? null)
+  try {
+    const rows = await r.mget(...keys)
+    // Gravado como `{ t }`: string pura passaria pela desserialização automática
+    // do Upstash, e um texto que parecesse JSON voltaria como outra coisa.
+    return rows.map(v => (v && typeof v.t === 'string' ? v.t : null))
+  } catch (error) {
+    // Cache fora do ar não pode impedir a tradução: vira só um miss.
+    console.error('[translation-cache] Falha ao ler:', error)
+    return keys.map(() => null)
+  }
+}
+
+async function writeTranslations(entries) {
+  if (entries.length === 0) return
+  const r = redis()
+  if (!r) {
+    for (const [key, t] of entries) translationMemory.set(key, t)
+    return
+  }
+  try {
+    const p = r.pipeline()
+    for (const [key, t] of entries) p.set(key, { t }, { ex: TRANSLATION_TTL_SECONDS })
+    await p.exec()
+  } catch (error) {
+    console.error('[translation-cache] Falha ao gravar:', error)
+  }
 }
 
 function markerHits(text, count) {
@@ -486,5 +579,7 @@ export function getCache() {
 
 export function clearCache() {
   cache.clear()
+  // O do Redis não: é da mesa inteira. Para jogá-lo fora, suba a TRANSLATION_CACHE_VERSION.
+  translationMemory.clear()
 }
 
