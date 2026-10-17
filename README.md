@@ -698,7 +698,7 @@ o mesmo personagem entraria duas vezes, dividindo o mesmo PV.
 | Eldarion              | Ladino (Thief) + Swashbuckler       | `Eldarion`                           | Venenos Fearweed, Toxic Effluence e Breath of the Mantis God.      |
 | Ghan Buri             | Guerreiro (Bastion), Jotunborn      | `Ghan Buri`                          | —                                                                  |
 | Nathaniel             | Magus (Sparkling Targe), Aiuvarin   | `Nathaniel o Magus`                  | Guia casa pelo começo do nome. **Anel corrigido à mão** (abaixo).  |
-| Thalos                | Psíquico (Oscillating Wave), Humano | `Thalos`                             | Arquétipo livre **só até o nível 4** no export (abaixo).           |
+| Thalos                | Psíquico (Oscillating Wave), Humano | `Thalos Alba`                        | Chronoskimmer completo (4/6/8/10). Nome do export mudou (abaixo).  |
 
 - **O JSON do Nathaniel tem uma edição à mão**: o jogador marcou o *Winder's Ring* por engano, e o
   anel de nível 7 certo é o **Ring of Wizardry (Type I)**
@@ -706,11 +706,13 @@ o mesmo personagem entraria duas vezes, dividindo o mesmo PV.
   arcanos de 1º rank a mais. A troca está no `equipment` e o +1 no `mods.Arcana`. Os slots extras
   **não** foram lançados em `perDay`: são preparados no dia, e a ficha não inventa magia pelo
   jogador. **Um novo export do Pathbuilder desfaz a troca** se o anel não for corrigido lá.
-- **O export do Thalos tem só dois talentos de arquétipo livre**: Chronoskimmer Dedication (2) e
-  Psychic Duelist Dedication (4); os espaços do 6, 8 e 10 vêm vazios. A segunda dedicação também
-  fura a regra de dois talentos do arquétipo anterior. A ficha **não** foi completada à mão — quem
-  escolhe é o jogador, no Pathbuilder — e o guia avisa. O primeiro export (sem repertório nem
-  inventário) foi substituído; o Pathbuilder também não diz quais são as magias de assinatura.
+- **O Thalos virou `Thalos Alba` no export V3** (setembro→outubro/2026): o slug da mesa passa de
+  `thalos` a `thalos-alba`, então PV, slots e condições anotados antes ficam órfãos no Redis e a
+  ficha começa limpa. O guia casa pelo começo do nome (`startsWith('thalos')`). O arquétipo livre
+  agora é **Chronoskimmer inteiro** (Dedication, Turn Back the Clock, Guide the Timeline, Reversing
+  Charge, Steal Time); o Psychic Duelist foi trocado. Idiomas, Crafting treinado, Fast Recovery e
+  duas poções (Annulment, Resistance) entraram. **Pendente no Pathbuilder:** não vem talento de classe
+  de 1º nível (Psi Burst é do 2º) e as magias de assinatura não são exportadas.
 - **Os venenos do Eldarion vêm como "Invested"** do Pathbuilder, mas são consumíveis — o guia avisa.
 - **Mythic Magic gasta Ponto Mítico, não slot** (Ceros e Nathaniel). O Pathbuilder exporta o talento
   como conjurador espontâneo com 5 slots de 5º rank, que não existem. A aba de Magias reconhece o
