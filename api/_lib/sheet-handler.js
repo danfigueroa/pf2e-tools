@@ -7,8 +7,9 @@
 //   POST { action: 'publish', sheet }     → publica um JSON do Pathbuilder
 //   POST { action: 'guide', char, baseGuide? } → gera o guia da versão atual
 //   POST { action: 'restore', char }      → volta à versão anterior
-//   GET  ?sheetSpells=<slug>              → as magias já resolvidas e traduzidas da ficha
-//   POST { action: 'sheet-spells', char, names, version } → resolve as que faltam
+//   GET  ?sheetDescriptions=<slug>        → magias, talentos, habilidades e itens já traduzidos
+//   POST { action: 'sheet-descriptions', char, names: { spell, feat, special, item }, version }
+//                                         → resolve o que falta (ver sheet-descriptions.js)
 
 import { hasTranslationKey } from './aon.js'
 import { isStoreConfigured, isValidSlug } from './table-store.js'
@@ -25,14 +26,19 @@ import {
   slugFromName,
 } from './sheet-store.js'
 import { generateGuide } from './guide-core.js'
-import { buildSheetSpells, cleanSpellNames, isValidSpellVersion, readSheetSpells } from './sheet-spells.js'
+import {
+  buildSheetDescriptions,
+  cleanDescriptionNames,
+  isValidDescriptionVersion,
+  readSheetDescriptions,
+} from './sheet-descriptions.js'
 
 const ok = (body) => ({ status: 200, body: { ...body, storeReady: isStoreConfigured() } })
 const fail = (status, error) => ({ status, body: { error } })
 
 /** Falso quando a requisição não é de ficha — aí segue a rota do estado. */
 export function isSheetRequest(method, query, body) {
-  if (method === 'GET') return !!(query.sheets || query.sheet || query.sheetSpells)
+  if (method === 'GET') return !!(query.sheets || query.sheet || query.sheetDescriptions)
   if (method === 'POST') return typeof body?.action === 'string'
   return false
 }
@@ -40,10 +46,10 @@ export function isSheetRequest(method, query, body) {
 export async function handleSheetRequest(method, query, body) {
   if (method === 'GET') {
     if (query.sheets) return ok({ sheets: await listSheets() })
-    if (query.sheetSpells) {
-      const slug = String(query.sheetSpells)
-      if (!isValidSlug(slug)) return fail(400, 'Parâmetro "sheetSpells" inválido')
-      return ok({ bundle: await readSheetSpells(slug) })
+    if (query.sheetDescriptions) {
+      const slug = String(query.sheetDescriptions)
+      if (!isValidSlug(slug)) return fail(400, 'Parâmetro "sheetDescriptions" inválido')
+      return ok({ bundle: await readSheetDescriptions(slug) })
     }
     const slug = String(query.sheet)
     if (!isValidSlug(slug)) return fail(400, 'Parâmetro "sheet" inválido')
@@ -83,14 +89,14 @@ export async function handleSheetRequest(method, query, body) {
     return ok({ sheet })
   }
 
-  if (action === 'sheet-spells') {
+  if (action === 'sheet-descriptions') {
     if (!hasTranslationKey()) return fail(503, 'Sem chave de IA configurada no servidor')
-    const names = cleanSpellNames(body.names)
+    const names = cleanDescriptionNames(body.names)
     if (!names) return fail(400, 'Campo "names" inválido')
-    if (!isValidSpellVersion(body.version)) return fail(400, 'Campo "version" inválido')
+    if (!isValidDescriptionVersion(body.version)) return fail(400, 'Campo "version" inválido')
     // Só de ficha publicada: os presets que ninguém publicou têm o pacote estático.
     if (!(await readSheet(slug))) return fail(404, 'Ficha não publicada')
-    return ok(await buildSheetSpells(slug, names, body.version))
+    return ok(await buildSheetDescriptions(slug, names, body.version))
   }
 
   if (action === 'restore') {
