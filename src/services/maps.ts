@@ -10,7 +10,7 @@
 // e o valor fica como "override" até o servidor confirmar, para um poll que
 // chegue no meio não devolver o token ao quadrado de antes.
 
-import { useSyncExternalStore } from 'react'
+import { useCallback, useSyncExternalStore } from 'react'
 import { saveField } from './tableState'
 import { noteRollsRev } from './rolls'
 import type { HpStored } from '../modules/character-viewer/components/useHpTracker'
@@ -62,6 +62,8 @@ export interface PcSlice {
 export interface MapData {
     id: string
     meta: MapMeta
+    /** Só o Modo GM vê — quem não está nele nem recebe o mapa. */
+    private?: boolean
     tokens: Record<string, TokenDescriptor>
     pos: Record<string, Cell>
     hp: Record<string, NpcHp>
@@ -82,11 +84,13 @@ export interface MapData {
     rollsRev?: number
 }
 
-export interface MapSummary { id: string; name: string; createdAt: number; hasImage: boolean }
+export interface MapSummary { id: string; name: string; createdAt: number; hasImage: boolean; private: boolean }
 
 export interface MapSnapshot {
     data: MapData | null
     error: string | null
+    /** O mapa existe, mas é privado e quem olha não está no Modo GM. */
+    hidden: boolean
     /** Mapa para onde a mesa deve ir — muda pelo poll. */
     activeId: string | null
 }
@@ -114,10 +118,19 @@ export async function isBlobReady(): Promise<boolean> {
     return blobReady === true
 }
 
+/** Erro de resposta com o corpo junto — o 403 do mapa privado traz os contadores. */
+class ApiError extends Error {
+    readonly body: Record<string, unknown>
+    constructor(message: string, body: Record<string, unknown>) {
+        super(message)
+        this.body = body
+    }
+}
+
 async function getJson<T>(query: string): Promise<T> {
     const r = await fetch(`${API}?${query}`)
     const body = await r.json().catch(() => ({}))
-    if (!r.ok) throw new Error(body.error || `Erro ${r.status}`)
+    if (!r.ok) throw new ApiError(body.error || `Erro ${r.status}`, body)
     noteCaps(body)
     return body as T
 }
@@ -136,8 +149,9 @@ async function post<T>(payload: unknown): Promise<T> {
 
 // --- Lista ------------------------------------------------------------------
 
-export async function listMaps(): Promise<{ maps: MapSummary[]; activeId: string | null }> {
-    return getJson('maps=1')
+/** `gm`: inclui os mapas privados (Modo GM, Iniciativa). */
+export async function listMaps(opts: { gm?: boolean } = {}): Promise<{ maps: MapSummary[]; activeId: string | null }> {
+    return getJson(opts.gm ? 'maps=1&gm=1' : 'maps=1')
 }
 
 export async function createMap(name: string): Promise<MapSummary> {
@@ -150,10 +164,17 @@ export async function renameMap(id: string, name: string): Promise<void> {
     void loadMap(id)
 }
 
-/** Manda a mesa para este mapa (`null` = nenhum). */
+/** Esconde o mapa da mesa (só o Modo GM vê) ou o revela. */
+export async function setMapVisibility(id: string, isPrivate: boolean): Promise<void> {
+    await post({ action: 'map-visibility', id, private: isPrivate })
+    if (entries.has(id)) void loadMap(id)
+}
+
+/** Manda a mesa para este mapa (`null` = nenhum). O servidor revela o mapa junto. */
 export async function activateMap(id: string | null): Promise<void> {
     await post({ action: 'map-activate', id })
     for (const entry of entries.values()) setSnapshot(entry, { activeId: id })
+    if (id && entries.has(id)) void loadMap(id)
 }
 
 export async function deleteMap(id: string): Promise<void> {
@@ -186,6 +207,14 @@ interface Entry {
     /** Uma escrita no ar: a próxima espera, para não chegarem fora de ordem. */
     flushing: boolean
     loading: Promise<void> | null
+    /** Lê como o Modo GM (`&gm=1`): enxerga o mapa mesmo privado. */
+    gm: boolean
+    /**
+     * Contadores do mapa privado que este aparelho não pode ver. Com eles o poll
+     * de quem espera a revelação segue sendo só o MGET; sem, cada volta baixaria
+     * o hash inteiro para ouvir "privado" de novo.
+     */
+    hiddenRevs: { rev: number; tableRev: number } | null
 }
 
 const entries = new Map<string, Entry>()
@@ -195,7 +224,7 @@ function entryFor(id: string): Entry {
     if (!entry) {
         entry = {
             id,
-            snapshot: { data: null, error: null, activeId: null },
+            snapshot: { data: null, error: null, activeId: null, hidden: false },
             listeners: new Set(),
             overrides: new Map(),
             pcOverrides: new Map(),
@@ -207,6 +236,8 @@ function entryFor(id: string): Entry {
             burstUntil: 0,
             flushing: false,
             loading: null,
+            gm: false,
+            hiddenRevs: null,
         }
         entries.set(id, entry)
     }
@@ -248,8 +279,17 @@ function withOverrides(entry: Entry, data: MapData): MapData {
 /** O mapa que chegou do servidor vira o snapshot, por baixo do que ainda não subiu daqui. */
 function applyMap(entry: Entry, map: MapData) {
     entry.lastChange = Date.now()
-    setSnapshot(entry, { data: withOverrides(entry, map), error: null, activeId: map.activeId })
+    entry.hiddenRevs = null
+    setSnapshot(entry, { data: withOverrides(entry, map), error: null, activeId: map.activeId, hidden: false })
 }
+
+/** O mapa ficou (ou continua) privado para este aparelho: some da tela. */
+function applyHidden(entry: Entry, revs: { rev: number; tableRev: number }) {
+    entry.hiddenRevs = { rev: revs.rev, tableRev: revs.tableRev }
+    setSnapshot(entry, { data: null, error: null, hidden: true })
+}
+
+const gmParam = (entry: Entry) => (entry.gm ? '&gm=1' : '')
 
 /** Baixa o mapa inteiro. Chamadas simultâneas dividem o mesmo pedido. */
 export function loadMap(id: string): Promise<void> {
@@ -257,9 +297,13 @@ export function loadMap(id: string): Promise<void> {
     if (entry.loading) return entry.loading
     entry.loading = (async () => {
         try {
-            const body = await getJson<{ map: MapData }>(`map=${encodeURIComponent(id)}`)
+            const body = await getJson<{ map: MapData }>(`map=${encodeURIComponent(id)}${gmParam(entry)}`)
             applyMap(entry, body.map)
         } catch (error) {
+            if (error instanceof ApiError && error.body.private === true) {
+                applyHidden(entry, { rev: Number(error.body.rev) || 0, tableRev: Number(error.body.tableRev) || 0 })
+                return
+            }
             setSnapshot(entry, { error: error instanceof Error ? error.message : 'Erro ao abrir o mapa' })
         } finally {
             entry.loading = null
@@ -312,16 +356,21 @@ async function poll(entry: Entry) {
     try {
         const data = entry.snapshot.data
         // Diz ao servidor o que já tem: se mudou, o mapa vem nesta mesma resposta.
-        const known = data ? `&rev=${data.rev}&tableRev=${data.tableRev}` : ''
-        const revs = await getJson<{ rev: number; tableRev: number; activeId: string | null; rollsRev?: number; map?: MapData }>(
-            `mapRev=${encodeURIComponent(entry.id)}${known}`,
-        )
+        const have = data ?? entry.hiddenRevs
+        const known = have ? `&rev=${have.rev}&tableRev=${have.tableRev}` : ''
+        const revs = await getJson<{
+            rev: number; tableRev: number; activeId: string | null; rollsRev?: number; map?: MapData; hidden?: boolean
+        }>(`mapRev=${encodeURIComponent(entry.id)}${known}${gmParam(entry)}`)
         // O feed de rolagens lê o contador daqui e pausa o poll próprio.
         noteRollsRev(revs.rollsRev)
         if (revs.map) {
             applyMap(entry, revs.map)
             burst(entry)
-        } else if (!data || revs.rev !== data.rev || revs.tableRev !== data.tableRev) {
+        } else if (revs.hidden) {
+            // O GM escondeu o mapa (ou mexeu nele, ainda privado).
+            applyHidden(entry, revs)
+            setSnapshot(entry, { activeId: revs.activeId })
+        } else if (!have || revs.rev !== have.rev || revs.tableRev !== have.tableRev) {
             await loadMap(entry.id)
             burst(entry)
         } else if (revs.activeId !== entry.snapshot.activeId) {
@@ -345,28 +394,46 @@ if (typeof document !== 'undefined') {
     })
 }
 
-function subscribe(id: string, listener: () => void): () => void {
+function subscribe(id: string, gm: boolean, listener: () => void): () => void {
     const entry = entryFor(id)
     entry.listeners.add(listener)
+    if (entry.gm !== gm) {
+        // Ligar o Modo GM sobre um mapa escondido o mostra; desligar sobre um
+        // privado o esconde — nos dois casos o que está na tela não vale mais.
+        entry.gm = gm
+        if (entry.snapshot.data || entry.snapshot.hidden) {
+            void loadMap(id).then(() => schedulePoll(entry))
+            return () => unsubscribe(entry, listener)
+        }
+    }
     if (entry.listeners.size === 1) {
         if (!entry.snapshot.data) void loadMap(id).then(() => schedulePoll(entry))
         else schedulePoll(entry, 0)
     }
-    return () => {
-        entry.listeners.delete(listener)
-        if (entry.listeners.size === 0 && entry.pollTimer) {
-            clearTimeout(entry.pollTimer)
-            entry.pollTimer = null
-        }
+    return () => unsubscribe(entry, listener)
+}
+
+function unsubscribe(entry: Entry, listener: () => void) {
+    entry.listeners.delete(listener)
+    if (entry.listeners.size === 0 && entry.pollTimer) {
+        clearTimeout(entry.pollTimer)
+        entry.pollTimer = null
     }
 }
 
-const EMPTY: MapSnapshot = { data: null, error: null, activeId: null }
+const EMPTY: MapSnapshot = { data: null, error: null, activeId: null, hidden: false }
 
-/** O mapa, acompanhado pelo poll enquanto algum componente o estiver usando. */
-export function useMapData(id: string | null): MapSnapshot {
+/**
+ * O mapa, acompanhado pelo poll enquanto algum componente o estiver usando.
+ * `gm`: lê como o Modo GM — sem ele, mapa privado chega como `hidden`.
+ */
+export function useMapData(id: string | null, gm = false): MapSnapshot {
+    const sub = useCallback(
+        (listener: () => void) => (id ? subscribe(id, gm, listener) : () => {}),
+        [id, gm],
+    )
     return useSyncExternalStore(
-        (listener) => (id ? subscribe(id, listener) : () => {}),
+        sub,
         () => (id ? entryFor(id).snapshot : EMPTY),
         () => EMPTY,
     )
