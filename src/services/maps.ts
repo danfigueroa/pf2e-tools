@@ -44,8 +44,9 @@ export interface TokenDescriptor {
     /** Deslocamento em pés — sem ele, o arrasto mostra só a distância. */
     speed?: number
     /**
-     * Miúdo: ocupa 1 quadrado (alvo de toque) mas é desenhado menor. Só no
-     * cliente — sai de `withPcSizes`, nunca é gravado.
+     * Minúsculo: ocupa 1 quadrado (alvo de toque) mas é desenhado menor. A
+     * Iniciativa grava o da criatura que É minúscula (`isTinySize`); o Shrink
+     * de um personagem é aplicado só no cliente, por `withPcSizes`.
      */
     tiny?: boolean
 }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type Dispatch } from 'react'
 import { syncTokens, useMapData, type NpcHp, type TokenDescriptor } from '../../services/maps'
-import { sizeSquares } from '../battle-map/geometry'
+import { isTinySize, sizeSquares } from '../battle-map/geometry'
 import type { EncounterAction } from './encounterReducer'
 import type { CombatantView, EncounterState } from './types'
 
@@ -20,6 +20,7 @@ function descriptors(state: EncounterState, views: CombatantView[]): Array<Token
             name: c.name,
             slug: c.slug,
             size: sizeSquares(c.size),
+            tiny: isTinySize(c.size) || undefined,
             maxHp: maxById.get(c.id) ?? c.baseMaxHp,
             defeated: c.defeated || undefined,
             speed: c.speed,
@@ -29,6 +30,8 @@ function descriptors(state: EncounterState, views: CombatantView[]): Array<Token
             kind: 'npc',
             name: c.name,
             size: sizeSquares(c.size),
+            // Minúsculo ocupa o quadrado (alvo de toque) mas é desenhado menor.
+            tiny: isTinySize(c.size) || undefined,
             image: c.tokenImage,
             fit: c.tokenFit,
             defeated: c.defeated || undefined,

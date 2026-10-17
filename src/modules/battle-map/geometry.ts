@@ -56,6 +56,25 @@ export function sizeSquares(size: string | null | undefined): number {
     }
 }
 
+/** Minúsculo: ocupa 1 quadrado no mapa (alvo de toque), mas o token é desenhado menor. */
+export const isTinySize = (size: string | null | undefined): boolean => (size ?? '').toLowerCase() === 'tiny'
+
+/**
+ * Os tamanhos do Player Core (Remaster, pg. 25), com o espaço de cada um. O
+ * valor é o nome em inglês, o mesmo que a AON manda no `size` da criatura — um
+ * monstro digitado à mão fica igual a um buscado na AON.
+ */
+export const CREATURE_SIZES = [
+    { value: 'Tiny', label: 'Minúsculo', space: '2,5 ft · menos de 1 quadrado' },
+    { value: 'Small', label: 'Pequeno', space: '5 ft · 1 quadrado' },
+    { value: 'Medium', label: 'Médio', space: '5 ft · 1 quadrado' },
+    { value: 'Large', label: 'Grande', space: '10 ft · 2×2 quadrados' },
+    { value: 'Huge', label: 'Enorme', space: '15 ft · 3×3 quadrados' },
+    { value: 'Gargantuan', label: 'Imenso', space: '20 ft ou mais · 4×4 quadrados' },
+] as const
+
+export type CreatureSize = (typeof CREATURE_SIZES)[number]['value']
+
 export const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n))
 
 /** Quadrado sob um ponto do mundo (px). */
