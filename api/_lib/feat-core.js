@@ -64,7 +64,8 @@ function emptyEntry(name, description, itemType) {
   }
 }
 
-async function resolveEntry(rawName, categories, itemType, translationEnabled) {
+/** Busca no AON e parseia em EN — a parte barata, sem LLM. Ver `resolveEntries`. */
+async function prepareEntry(rawName, categories, itemType, translationEnabled) {
   const fullName = String(rawName || '').trim()
   const searchName = cleanSearchName(rawName) || fullName
   const isExact = (hit, name) => hit?._source?.name?.toLowerCase() === String(name).toLowerCase()
@@ -87,7 +88,7 @@ async function resolveEntry(rawName, categories, itemType, translationEnabled) {
 
   if (!best) {
     const fallback = await generateFallbackDescription(searchName, itemType, translationEnabled)
-    return emptyEntry(rawName, fallback, itemType)
+    return { done: emptyEntry(rawName, fallback, itemType) }
   }
 
   const source = best._source
@@ -135,9 +136,12 @@ async function resolveEntry(rawName, categories, itemType, translationEnabled) {
   const staffEffectIdx = segmentsEN.length
   if (staff?.effect) segmentsEN.push(staff.effect)
 
-  const translated = translationEnabled
-    ? await translateSegments(segmentsEN, translationEnabled)
-    : segmentsEN.map(() => null)
+  return { rawName, searchName, itemType, source, parsed, staff, segmentsEN, staffEffectIdx }
+}
+
+/** Monta o payload a partir do que `prepareEntry` achou e das traduções (na ordem de `segmentsEN`). */
+async function finishEntry(prep, translated, translationEnabled) {
+  const { rawName, searchName, itemType, source, parsed, staff, segmentsEN, staffEffectIdx } = prep
 
   let translationPending = false
   // Mantém o EN completo quando a tradução falhou — nunca truncar, nunca
@@ -198,12 +202,47 @@ async function resolveEntry(rawName, categories, itemType, translationEnabled) {
   }
 }
 
-export function resolveFeat(name, translationEnabled) {
-  return resolveEntry(name, FEAT_CATEGORIES, 'feat', translationEnabled)
+/**
+ * Vários itens de uma vez, como `resolveSpells`: a busca no AON roda em
+ * paralelo e a tradução de TODOS vai numa chamada só (marcadores <<N>>). Uma
+ * chamada por item servia ao drawer, que abre um de cada vez; para montar o
+ * pacote de uma ficha inteira (~100 talentos, habilidades e itens) seriam cem
+ * chamadas a 4,2 s de distância no Gemini free. Devolve na ordem de `names`.
+ */
+async function resolveEntries(names, categories, itemType, translationEnabled) {
+  const preps = await Promise.all(names.map((n) => prepareEntry(n, categories, itemType, translationEnabled)))
+  const owners = []
+  const segments = []
+  preps.forEach((prep, i) => {
+    if (prep.done) return
+    prep.segmentsEN.forEach((seg, k) => { owners.push([i, k]); segments.push(seg) })
+  })
+  const translated = translationEnabled && segments.length > 0
+    ? await translateSegments(segments, translationEnabled)
+    : segments.map(() => null)
+  const perEntry = preps.map((prep) => (prep.done ? [] : prep.segmentsEN.map(() => null)))
+  translated.forEach((t, j) => { const [i, k] = owners[j]; perEntry[i][k] = t })
+  return Promise.all(preps.map((prep, i) =>
+    prep.done ? prep.done : finishEntry(prep, perEntry[i], translationEnabled)))
 }
 
-export function resolveSpecial(name, translationEnabled) {
-  return resolveEntry(name, SPECIAL_CATEGORIES, 'special', translationEnabled)
+export function resolveFeats(names, translationEnabled) {
+  return resolveEntries(names, FEAT_CATEGORIES, 'feat', translationEnabled)
+}
+
+/** Habilidades especiais E itens do inventário (mesmo endpoint, `/api/searches`). */
+export function resolveSpecials(names, translationEnabled) {
+  return resolveEntries(names, SPECIAL_CATEGORIES, 'special', translationEnabled)
+}
+
+export async function resolveFeat(name, translationEnabled) {
+  const [entry] = await resolveFeats([name], translationEnabled)
+  return entry
+}
+
+export async function resolveSpecial(name, translationEnabled) {
+  const [entry] = await resolveSpecials([name], translationEnabled)
+  return entry
 }
 
 // Executa vários nomes com concorrência limitada, chaveando o resultado pelo
