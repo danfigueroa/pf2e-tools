@@ -9,6 +9,7 @@
 //     ├─ pos:<cid>     → …onde ele ESTÁ (quem escreve é o mapa)…
 //     ├─ fit:<cid>     → …como a imagem do token é enquadrada (centro e ampliação — escolha do GM no mapa)…
 //     ├─ hp:<cid>      → …e o PV do monstro (Iniciativa e mapa, nos dois sentidos)
+//     ├─ private       → presente = só o Modo GM vê o mapa (ausente = público)
 //     ├─ imgs          → toda imagem de monstro que já passou por este mapa
 //     ├─ ping:<id>     → um ping (Alt+clique), que quem pingou apaga em segundos
 //     ├─ roll:<id>     → uma rolagem do rolador de dados, efêmera como o ping
@@ -20,6 +21,11 @@
 // jogador arrasta o `pos`, e o `hp` do monstro é tocado pelos dois lados.
 // Num campo só, o GM renomeando um goblin devolveria o goblin ao quadrado de
 // antes do arrasto.
+//
+// `private` também é campo próprio, e não um flag dentro do `meta`, pelo mesmo
+// motivo: o cliente regrava o `meta` inteiro com a cópia que tem (imagem,
+// alinhamento, nome), e um ajuste logo depois de revelar o mapa o esconderia de
+// novo. Fica fora do `FIELD_RE` — só a ação `map-visibility` mexe nele.
 //
 //   pf2e:maps:v1         SET com os ids
 //   pf2e:maps:active     o mapa para onde a mesa deve ir
@@ -115,27 +121,36 @@ async function writeRaw(id, set, del = []) {
 
 // --- Lista e mapa ativo -----------------------------------------------------
 
-export async function listMaps() {
+/**
+ * Os mapas da sessão. Sem `includePrivate` (quem não está no Modo GM), os
+ * privados nem saem daqui — e o `activeId` também não aponta para um deles.
+ */
+export async function listMaps(includePrivate = false) {
     const r = redis()
     const ids = r ? await r.smembers(INDEX_KEY) : [...memSet]
     const active = r ? await r.get(ACTIVE_KEY) : memStrings.get(ACTIVE_KEY) ?? null
 
-    let metas
+    let rows
     if (r && ids.length > 0) {
         const p = r.pipeline()
-        ids.forEach((id) => p.hget(MAP_PREFIX + id, 'meta'))
-        metas = await p.exec()
+        ids.forEach((id) => p.hmget(MAP_PREFIX + id, 'meta', 'private'))
+        rows = await p.exec()
     } else {
-        metas = ids.map((id) => memHashes.get(MAP_PREFIX + id)?.meta ?? null)
+        rows = ids.map((id) => {
+            const hash = memHashes.get(MAP_PREFIX + id)
+            return { meta: hash?.meta ?? null, private: hash?.private ?? null }
+        })
     }
 
     const maps = []
     const orphans = []
     ids.forEach((id, i) => {
-        const meta = unwrap(metas[i])?.data
+        const meta = unwrap(rows[i]?.meta)?.data
         // Mapa que expirou pelo TTL some do hash mas fica no SET: limpa aqui.
         if (!meta) { orphans.push(id); return }
-        maps.push({ id, name: meta.name, createdAt: meta.createdAt ?? 0, hasImage: !!meta.image })
+        const isPrivate = !!unwrap(rows[i]?.private)?.data
+        if (isPrivate && !includePrivate) return
+        maps.push({ id, name: meta.name, createdAt: meta.createdAt ?? 0, hasImage: !!meta.image, private: isPrivate })
     })
     if (orphans.length > 0) {
         if (r) await r.srem(INDEX_KEY, ...orphans)
@@ -156,8 +171,28 @@ export async function createMap(name) {
     const r = redis()
     if (r) await r.sadd(INDEX_KEY, id)
     else memSet.add(id)
-    await writeRaw(id, { meta: envelope(meta) })
-    return { id, name, createdAt: meta.createdAt, hasImage: false }
+    // Nasce privado: o GM monta o mapa escondido e revela quando a mesa chegar lá.
+    await writeRaw(id, { meta: envelope(meta), private: envelope(true) })
+    return { id, name, createdAt: meta.createdAt, hasImage: false, private: true }
+}
+
+/**
+ * Esconde ou revela o mapa. Sobe a revisão — é assim que o poll de quem está
+ * olhando percebe. Esconder o mapa onde a mesa está tira a mesa dele.
+ * @returns {Promise<number|null>} a nova revisão, ou null se o mapa não existe.
+ */
+export async function setMapPrivate(id, on) {
+    if (!(await mapExists(id))) return null
+    const r = redis()
+    if (on) {
+        const active = r ? await r.get(ACTIVE_KEY) : memStrings.get(ACTIVE_KEY) ?? null
+        if (active === id) await setActiveMap(null)
+    }
+    // Já está como pedido (o caso comum de "Levar a mesa"): não sobe a revisão,
+    // senão todo aparelho rebaixaria o mapa à toa.
+    const current = r ? await r.hget(MAP_PREFIX + id, 'private') : memHashes.get(MAP_PREFIX + id)?.private
+    if (!!current === on) return (await readRevs(id)).rev
+    return on ? writeRaw(id, { private: envelope(true) }) : writeRaw(id, {}, ['private'])
 }
 
 export async function setActiveMap(id) {
@@ -253,6 +288,7 @@ export async function readMap(id, knownRevs) {
     const pings = {}
     const rolls = {}
     let turn = null
+    let isPrivate = false
     for (const [field, value] of Object.entries(raw)) {
         const entry = unwrap(value)
         if (!entry) continue
@@ -267,6 +303,7 @@ export async function readMap(id, knownRevs) {
         else if (kind === 'ping') pings[tid] = entry.data
         else if (kind === 'roll') rolls[tid] = entry.data
         else if (field === 'turn') turn = entry.data
+        else if (field === 'private') isPrivate = !!entry.data
     }
 
     const slugs = [...new Set(Object.values(tokens)
@@ -274,7 +311,7 @@ export async function readMap(id, knownRevs) {
         .map((t) => t.slug))]
     const pcs = await readPcs(slugs)
 
-    return { id, meta: metaEntry.data, tokens, pos, hp, fit, drawings, pings, rolls, turn, pcs, ...revs }
+    return { id, meta: metaEntry.data, private: isPrivate, tokens, pos, hp, fit, drawings, pings, rolls, turn, pcs, ...revs }
 }
 
 /**

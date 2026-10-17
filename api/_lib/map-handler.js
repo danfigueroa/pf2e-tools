@@ -7,9 +7,11 @@
 //   GET  ?mapRev=<id>[&rev=N&tableRev=M]  → os contadores — é o poll; com o
 //                                           que o cliente já tem, o mapa vem
 //                                           junto quando mudou
-//   POST { action: 'map-create', name }
+//        …&gm=1 nos três                  → inclui os mapas privados (Modo GM)
+//   POST { action: 'map-create', name }   → nasce privado
 //   POST { action: 'map-rename', id, name }
-//   POST { action: 'map-activate', id|null }
+//   POST { action: 'map-visibility', id, private } → esconde/revela à mesa
+//   POST { action: 'map-activate', id|null } → leva a mesa (e revela o mapa)
 //   POST { action: 'map-delete', id }      → apaga também as imagens do Blob
 //   POST { action: 'map-write', id, fields: { meta|pos:*|hp:*|drw:*: data|null } }
 //   POST { action: 'map-sync', id, tokens, turn, hp } → a Iniciativa manda quem está no mapa
@@ -33,6 +35,7 @@ import {
     readMap,
     readRevs,
     setActiveMap,
+    setMapPrivate,
     syncTokens,
     writeMapFields,
 } from './map-store.js'
@@ -43,7 +46,7 @@ const fail = (status, error) => ({ status, body: { error } })
 const isBlobConfigured = () => !!process.env.BLOB_READ_WRITE_TOKEN
 
 const MAP_ACTIONS = new Set([
-    'map-create', 'map-rename', 'map-activate', 'map-delete', 'map-write', 'map-sync',
+    'map-create', 'map-rename', 'map-visibility', 'map-activate', 'map-delete', 'map-write', 'map-sync',
     'map-clear-drawings', 'blob-delete',
 ])
 
@@ -87,7 +90,10 @@ async function deleteBlobs(urls) {
  */
 export async function handleMapRequest(method, query, body, request) {
     if (method === 'GET') {
-        if (query.maps) return ok(await listMaps())
+        // Mapa privado só sai para o Modo GM. Sem senha, como o resto do app —
+        // mas quem não ligou o modo não recebe nome, imagem nem tokens.
+        const gm = query.gm === '1'
+        if (query.maps) return ok(await listMaps(gm))
         const id = String(query.map || query.mapRev)
         if (!isValidMapId(id)) return fail(400, 'Parâmetro "map" inválido')
         if (query.mapRev) {
@@ -99,10 +105,16 @@ export async function handleMapRequest(method, query, body, request) {
             const stale = known && (String(revs.rev) !== String(query.rev) || String(revs.tableRev) !== String(query.tableRev))
             if (!stale) return ok(revs)
             const map = await readMap(id, revs)
+            if (map?.private && !gm) return ok({ ...revs, hidden: true })
             return ok(map ? { ...revs, map } : revs)
         }
         const map = await readMap(id)
         if (!map) return fail(404, 'Mapa não encontrado')
+        if (map.private && !gm) {
+            // Os contadores vão junto: com eles o poll de quem espera a revelação
+            // continua sendo só o MGET, sem baixar o hash a cada volta.
+            return { status: 403, body: { error: 'Mapa privado', private: true, rev: map.rev, tableRev: map.tableRev } }
+        }
         return ok({ map })
     }
 
@@ -153,8 +165,16 @@ export async function handleMapRequest(method, query, body, request) {
     if (!isValidMapId(id)) return fail(400, 'Campo "id" inválido')
 
     if (action === 'map-activate') {
+        // Levar a mesa a um mapa que ela não pode ver não faz sentido: revela junto.
+        if ((await setMapPrivate(id, false)) === null) return fail(404, 'Mapa não encontrado')
         await setActiveMap(id)
         return ok({})
+    }
+
+    if (action === 'map-visibility') {
+        const rev = await setMapPrivate(id, body.private === true)
+        if (rev === null) return fail(404, 'Mapa não encontrado')
+        return ok({ rev })
     }
 
     if (action === 'map-delete') {
