@@ -7,6 +7,8 @@
 //   POST { action: 'publish', sheet }     → publica um JSON do Pathbuilder
 //   POST { action: 'guide', char, baseGuide? } → gera o guia da versão atual
 //   POST { action: 'restore', char }      → volta à versão anterior
+//   GET  ?sheetSpells=<slug>              → as magias já resolvidas e traduzidas da ficha
+//   POST { action: 'sheet-spells', char, names, version } → resolve as que faltam
 
 import { hasTranslationKey } from './aon.js'
 import { isStoreConfigured, isValidSlug } from './table-store.js'
@@ -23,13 +25,14 @@ import {
   slugFromName,
 } from './sheet-store.js'
 import { generateGuide } from './guide-core.js'
+import { buildSheetSpells, cleanSpellNames, isValidSpellVersion, readSheetSpells } from './sheet-spells.js'
 
 const ok = (body) => ({ status: 200, body: { ...body, storeReady: isStoreConfigured() } })
 const fail = (status, error) => ({ status, body: { error } })
 
 /** Falso quando a requisição não é de ficha — aí segue a rota do estado. */
 export function isSheetRequest(method, query, body) {
-  if (method === 'GET') return !!(query.sheets || query.sheet)
+  if (method === 'GET') return !!(query.sheets || query.sheet || query.sheetSpells)
   if (method === 'POST') return typeof body?.action === 'string'
   return false
 }
@@ -37,6 +40,11 @@ export function isSheetRequest(method, query, body) {
 export async function handleSheetRequest(method, query, body) {
   if (method === 'GET') {
     if (query.sheets) return ok({ sheets: await listSheets() })
+    if (query.sheetSpells) {
+      const slug = String(query.sheetSpells)
+      if (!isValidSlug(slug)) return fail(400, 'Parâmetro "sheetSpells" inválido')
+      return ok({ bundle: await readSheetSpells(slug) })
+    }
     const slug = String(query.sheet)
     if (!isValidSlug(slug)) return fail(400, 'Parâmetro "sheet" inválido')
     const sheet = await readSheet(slug)
@@ -73,6 +81,16 @@ export async function handleSheetRequest(method, query, body) {
     const sheet = await saveGuide(slug, current.publishedAt, markdown)
     if (!sheet) return fail(409, 'A ficha mudou enquanto o guia era gerado')
     return ok({ sheet })
+  }
+
+  if (action === 'sheet-spells') {
+    if (!hasTranslationKey()) return fail(503, 'Sem chave de IA configurada no servidor')
+    const names = cleanSpellNames(body.names)
+    if (!names) return fail(400, 'Campo "names" inválido')
+    if (!isValidSpellVersion(body.version)) return fail(400, 'Campo "version" inválido')
+    // Só de ficha publicada: os presets que ninguém publicou têm o pacote estático.
+    if (!(await readSheet(slug))) return fail(404, 'Ficha não publicada')
+    return ok(await buildSheetSpells(slug, names, body.version))
   }
 
   if (action === 'restore') {
