@@ -298,19 +298,87 @@ async function fetchSpellBundle(slug: string): Promise<void> {
         if (!r.ok) return
         const body = (await r.json()) as { version?: unknown; spells?: Record<string, SpellDescription | undefined> }
         if (body.version !== CACHE_VERSION || !body.spells || typeof body.spells !== 'object') return
-        let added = false
-        for (const [name, spell] of Object.entries(body.spells)) {
-            if (!spell || !isValidString(spell.description) || spell.translationPending) continue
-            const k = key('spell', name)
-            if (memory.has(k)) continue
-            memory.set(k, spell)
-            added = true
-        }
-        if (added) {
-            cacheVersion++
-            cacheListeners.forEach((l) => l())
-        }
+        seedSpells(body.spells)
     } catch {
         // Pacote é atalho, nunca requisito.
+    }
+}
+
+/** Põe magias prontas no cache em memória (sem sobrescrever) e avisa quem desenha dele. */
+function seedSpells(spells: Record<string, SpellDescription | undefined>) {
+    let added = false
+    for (const [name, spell] of Object.entries(spells)) {
+        if (!spell || !isValidString(spell.description) || spell.translationPending) continue
+        const k = key('spell', name)
+        if (memory.has(k)) continue
+        memory.set(k, spell)
+        added = true
+    }
+    if (added) {
+        cacheVersion++
+        cacheListeners.forEach((l) => l())
+    }
+}
+
+// --- Magias da ficha PUBLICADA (Redis) --------------------------------------------
+//
+// O par automático do pacote estático: um level-up chega pela publicação, e o
+// servidor guarda junto da ficha publicada as magias já traduzidas
+// (`api/_lib/sheet-spells.js`). Abrir a ficha lê tudo num GET só. Se faltar
+// alguma — ficha recém-publicada, magia nova do nível 11 —, este aparelho pede
+// ao servidor que complete (só as que faltam vão à AON e ao LLM; com trava, um
+// aparelho por vez) e recebe as novas na resposta. Os próximos já as acham lá.
+
+interface SheetSpellsBundle {
+    version?: unknown
+    spells?: Record<string, SpellDescription | undefined>
+    misses?: Record<string, unknown>
+}
+
+/** Rodadas de "completa o que falta": cada uma cabe no `maxDuration` da função. */
+const SHEET_SPELLS_ROUNDS = 4
+const sheetSpells = new Map<string, Promise<void>>()
+
+/** Lê (e, se faltar algo, completa) as magias traduzidas da ficha publicada `slug`. */
+export function loadSheetSpells(slug: string, names: string[]): Promise<void> {
+    if (!slug || names.length === 0) return Promise.resolve()
+    // A lista entra na chave: publicar o nível 11 no meio da sessão pede de novo.
+    const flight = `${slug}\n${[...names].sort().join('\n')}`
+    let loading = sheetSpells.get(flight)
+    if (!loading) {
+        loading = syncSheetSpells(slug, names)
+        sheetSpells.set(flight, loading)
+    }
+    return loading
+}
+
+async function syncSheetSpells(slug: string, names: string[]): Promise<void> {
+    try {
+        const r = await fetch(`/api/state?sheetSpells=${encodeURIComponent(slug)}`)
+        if (!r.ok) return
+        const { bundle } = (await r.json()) as { bundle: SheetSpellsBundle | null }
+        const current = bundle?.version === CACHE_VERSION ? bundle : null
+        if (current?.spells) seedSpells(current.spells)
+
+        // O que o servidor ainda não tem (ou não achou há pouco, `misses`, e desistiu por um dia).
+        const known = (n: string) => !!current?.spells?.[n] || current?.misses?.[n] != null
+        if (names.every(known)) return
+
+        for (let round = 0; round < SHEET_SPELLS_ROUNDS; round++) {
+            const res = await fetch('/api/state', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'sheet-spells', char: slug, names, version: CACHE_VERSION }),
+            })
+            if (!res.ok) return
+            const out = (await res.json()) as { busy?: boolean; added?: Record<string, SpellDescription>; remaining?: number }
+            // Outro aparelho já está completando: as dele chegam a quem abrir depois.
+            if (out.busy) return
+            if (out.added) seedSpells(out.added)
+            // Sem progresso (tradutor fora do ar): para, e a próxima abertura tenta de novo.
+            if (!out.remaining || !out.added || Object.keys(out.added).length === 0) return
+        }
+    } catch {
+        // Atalho, nunca requisito: a magia segue pela API.
     }
 }
