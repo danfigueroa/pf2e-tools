@@ -6,7 +6,7 @@
 // publicada guarda as magias já resolvidas (payload da API, com tradução e
 // `scaling`), e quem abrir a ficha num aparelho novo recebe tudo num GET só.
 //
-//   pf2e:sheet:spells:v1:<slug> → { version, spells: { <nome>: payload } }
+//   pf2e:sheet:spells:v1:<slug> → { version, spells: { <nome>: payload }, misses: { <nome>: quando } }
 //   pf2e:sheet:spells:lock:<slug> → trava de geração (SET NX, expira sozinha)
 //
 // - INCREMENTAL e ACUMULATIVO: só as magias que faltam passam pela AON e pelo
@@ -22,6 +22,10 @@
 //   devolve quantas faltam; o cliente chama de novo.
 // - Nunca grava inglês: payload com `translationPending` fica de fora e é
 //   tentado na próxima chamada.
+// - Magia que a AON não resolve (nome caseiro, grafia do Pathbuilder) vai para
+//   `misses` e só é tentada de novo depois de `MISS_RETRY_MS`: sem isso, cada
+//   abertura da ficha pediria a mesma magia inexistente à AON (e ao LLM, que
+//   tenta descrevê-la). Falha de TRADUÇÃO não conta como miss — é passageira.
 
 import { redis } from './table-store.js'
 import { resolveSpells } from './spells-core.js'
@@ -34,8 +38,10 @@ export const MAX_NAMES = 150
 const MAX_STORED = 300
 const MAX_NAME_LENGTH = 120
 const GROUP = 6
-// O `maxDuration` é 60 s e um grupo frio leva até ~20 s: não começa outro depois disto.
-const BUDGET_MS = 35_000
+// O `maxDuration` é 60 s e um grupo frio leva até ~20 s (medido: 25 magias com
+// o cache vazio, 44 s numa chamada): não começa outro grupo depois disto.
+const BUDGET_MS = 30_000
+const MISS_RETRY_MS = 24 * 60 * 60 * 1000
 
 const VERSION_RE = /^v\d{1,4}$/
 
@@ -57,7 +63,8 @@ export async function readSheetSpells(slug) {
   const r = redis()
   const raw = r ? await r.get(KEY_PREFIX + slug) : memory.get(slug) ?? null
   if (!raw || typeof raw !== 'object' || !raw.spells || typeof raw.spells !== 'object') return null
-  return { version: raw.version, spells: raw.spells }
+  const misses = raw.misses && typeof raw.misses === 'object' ? raw.misses : {}
+  return { version: raw.version, spells: raw.spells, misses }
 }
 
 async function writeSheetSpells(slug, bundle) {
@@ -94,21 +101,31 @@ export async function buildSheetSpells(slug, names, version) {
   try {
     const started = Date.now()
     const current = await readSheetSpells(slug)
-    const spells = current && current.version === version ? { ...current.spells } : {}
-    const missing = names.filter((n) => !usable(spells[n]))
+    const sameVersion = current?.version === version
+    const spells = sameVersion ? { ...current.spells } : {}
+    const misses = sameVersion ? { ...current.misses } : {}
+    const recentMiss = (n) => typeof misses[n] === 'number' && started - misses[n] < MISS_RETRY_MS
+    const missing = names.filter((n) => !usable(spells[n]) && !recentMiss(n))
     const added = {}
+    let missed = false
 
     for (let i = 0; i < missing.length && Date.now() - started < BUDGET_MS; i += GROUP) {
       const group = missing.slice(i, i + GROUP)
       const resolved = await resolveSpells(group, true)
       resolved.forEach((spell, k) => {
-        if (!usable(spell)) return
-        spells[group[k]] = spell
-        added[group[k]] = spell
+        const name = group[k]
+        if (usable(spell)) {
+          spells[name] = spell
+          added[name] = spell
+          delete misses[name]
+        } else if (!spell?.translationPending) {
+          misses[name] = Date.now()
+          missed = true
+        }
       })
     }
 
-    if (Object.keys(added).length > 0 || current?.version !== version) {
+    if (Object.keys(added).length > 0 || missed || !sameVersion) {
       // Teto: some primeiro o que a ficha atual não usa mais (as mais velhas).
       const keys = Object.keys(spells)
       if (keys.length > MAX_STORED) {
@@ -116,10 +133,11 @@ export async function buildSheetSpells(slug, names, version) {
         const drop = keys.filter((n) => !wanted.has(n)).slice(0, keys.length - MAX_STORED)
         for (const n of drop) delete spells[n]
       }
-      await writeSheetSpells(slug, { version, spells })
+      for (const n of Object.keys(misses)) if (!recentMiss(n) && !names.includes(n)) delete misses[n]
+      await writeSheetSpells(slug, { version, spells, misses })
     }
 
-    const remaining = names.filter((n) => !usable(spells[n])).length
+    const remaining = names.filter((n) => !usable(spells[n]) && !recentMiss(n)).length
     return { added, remaining }
   } finally {
     await unlock(slug)
