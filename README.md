@@ -711,8 +711,8 @@ o mesmo personagem entraria duas vezes, dividindo o mesmo PV.
   Renomear outro personagem é uma linha nas duas tabelas. O guia casa pelo começo do nome (`startsWith('thalos')`). O arquétipo livre
   agora é **Chronoskimmer inteiro** (Dedication, Turn Back the Clock, Guide the Timeline, Reversing
   Charge, Steal Time); o Psychic Duelist foi trocado. Idiomas, Crafting treinado, Fast Recovery e
-  duas poções (Annulment, Resistance) entraram. **Pendente no Pathbuilder:** não vem talento de classe
-  de 1º nível (Psi Burst é do 2º) e as magias de assinatura não são exportadas.
+  duas poções (Annulment, Resistance) entraram. As magias de assinatura não são
+  exportadas (ver abaixo). Não falta talento de classe de 1º nível: o Psíquico só ganha o primeiro no 2º.
 - **Magias de assinatura do Thalos** (Breathe Fire, Blazing Bolt, Fireball, Ice Storm, Howling Blizzard) vêm de
   `signatureSpells.ts`, não do Pathbuilder: a aba de Magias as repete elevadas nos ranks acima do delas.
 - **Os venenos do Eldarion vêm como "Invested"** do Pathbuilder, mas são consumíveis — o guia avisa.
