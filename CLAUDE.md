@@ -49,6 +49,8 @@ node scripts/fetch-creature-tables.mjs  # regera as tabelas do GM Core (confira 
 node scripts/check-scaling.mjs 200      # confere o motor de escala contra criaturas de verdade
 node scripts/check-heightening.mjs      # confere o heightening das magias contra o índice inteiro
 node scripts/check-rolls.mjs            # confere a matemática das rolagens contra as fichas do grupo
+node --env-file=.env scripts/build-spell-bundle.mjs [--published <url>] [--all]
+                                        # regera public/spells/ (magias pré-traduzidas) — ver abaixo
 ```
 
 Depois de mexer em `monster-scaler/scaling.ts` ou nas tabelas, rode o `check-scaling` — ele sai com
@@ -241,6 +243,22 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
     antes. Redis fora do ar é só um miss. Custo: 1 MGET por chamada; os SETs só quando o LLM rodou.
   - Mudou `cleanTranslation` ou o formato da saída? Suba a `TRANSLATION_CACHE_VERSION` — o
     `clear-cache` limpa só a memória, não o Redis (é da mesa inteira).
+- **Magias pré-traduzidas da campanha** (`public/spells/<slug>.json`, gerados por
+  `scripts/build-spell-bundle.mjs`): o elenco é pequeno e as magias mudam pouco, então são resolvidas
+  e traduzidas UMA vez e servidas como arquivo estático pelo CDN. Ao abrir a ficha,
+  `loadSpellBundle` (`descriptions.ts`) põe o pacote no cache em memória — o mesmo que linhas,
+  drawer e Spellstrike leem —, e a aba de Magias abre pronta, sem "Carregar todas". O que o pacote
+  não tem (magia de um level-up publicado depois) segue pela API, como sempre.
+  - Payload IDÊNTICO ao da API (`resolveSpells`) e nomes da MESMA função do "Carregar todas"
+    (`characterSpellNames` em `spellNames.ts`, importada pelo script via `ts-loader`).
+  - O pacote leva a `CACHE_VERSION` do cliente: subiu a versão, o app ignora os pacotes até o script
+    rodar de novo (sem `--all` ele percebe e refaz tudo). **Mudou o payload de magia (parse,
+    `scaling`, heightening)? Suba a versão E regere os pacotes**, senão a mesa volta a esperar a API.
+  - Incremental: magia já no pacote fica como está, para o diff mostrar só as novas — retraduzir
+    tudo trocaria palavras ao acaso a cada rodada. `--published <url>` usa a ficha publicada pela mesa
+    (é por ela que chega o level-up) e inclui os publicados que não são preset.
+  - Nunca grava inglês: o que ficou `translationPending` depois de 3 passadas fica de fora e o
+    script sai com código 1. **Depois de um level-up publicado, rode com `--published`.**
 - Metadados em prosa (pré-requisitos, gatilho, requisitos…) são traduzidos junto com a descrição
   numa **única** chamada, via marcadores `<<N>>` (`translateSegments`). Uma chamada por item é o que
   mantém uma ficha inteira dentro do rate limit do tier gratuito.
@@ -505,7 +523,7 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   aparece na tela inicial como "publicada pela mesa", com guia gerado. Para virar preset fixo:
   (1) copiar o JSON para `public/characters/`; (2) registrar em `campaignPresets.ts`, com
   `sheetName` igual ao `build.name` do JSON; (3) opcionalmente, um guia curado em
-  `combatGuides.ts` casando pelo nome.
+  `combatGuides.ts` casando pelo nome; (4) se tiver magias, rodar o `build-spell-bundle`.
 - **Os presets alimentam três módulos**: Ficha Virtual, diálogo de personagens da Iniciativa e
   gerador de Transformação (que aceita qualquer personagem, não só conjurador). Tirar uma ficha de
   `campaignPresets.ts` tira dos três. Elenco atual: Brukuthur, Ceros (Cerosqualhanthallas),
