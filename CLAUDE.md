@@ -228,6 +228,19 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   e ninguém cacheia (nem o cache em memória do backend, nem o `localStorage` do cliente) — a próxima
   consulta retraduz e o drawer troca o texto sozinho. Ao mexer no cache, bump da `CACHE_VERSION`
   em `src/services/descriptions.ts` (e `DESC_CACHE_VERSION` no módulo de PDF).
+- **Cache de traduções compartilhado** (`translateSegments` → `readTranslations`/`writeTranslations`
+  em `aon.js`): a tradução de cada trecho fica no Redis da mesa (`pf2e:tr:<sha1>`, TTL 180 dias), e
+  só a primeira pessoa espera pelo LLM. Antes, o cache em memória morria com a função serverless e o
+  `localStorage` era de um aparelho só: cada jogador, em cada aparelho, retraduzia as mesmas magias
+  e gastava a cota da mesa. Medido no núcleo: 6 magias, 18,7 s com o cache vazio → 3 ms com ele quente
+  (em produção ainda soma a busca no AON, ~1 s).
+  - A chave é o hash do **texto em inglês** (com o preâmbulo do prompt e a versão), não o nome: o AON
+    mudar a prosa ou alguém mexer no prompt muda a chave sozinho. Parse, heightening e números
+    continuam refeitos a cada pedido — só o LLM é poupado.
+  - Só grava o que passou na validação (nada de inglês); falha vira null e `translationPending`, como
+    antes. Redis fora do ar é só um miss. Custo: 1 MGET por chamada; os SETs só quando o LLM rodou.
+  - Mudou `cleanTranslation` ou o formato da saída? Suba a `TRANSLATION_CACHE_VERSION` — o
+    `clear-cache` limpa só a memória, não o Redis (é da mesa inteira).
 - Metadados em prosa (pré-requisitos, gatilho, requisitos…) são traduzidos junto com a descrição
   numa **única** chamada, via marcadores `<<N>>` (`translateSegments`). Uma chamada por item é o que
   mantém uma ficha inteira dentro do rate limit do tier gratuito.
