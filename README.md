@@ -706,9 +706,9 @@ o mesmo personagem entraria duas vezes, dividindo o mesmo PV.
   arcanos de 1º rank a mais. A troca está no `equipment` e o +1 no `mods.Arcana`. Os slots extras
   **não** foram lançados em `perDay`: são preparados no dia, e a ficha não inventa magia pelo
   jogador. **Um novo export do Pathbuilder desfaz a troca** se o anel não for corrigido lá.
-- **O Thalos virou `Thalos Alba` no export V3** (setembro→outubro/2026): o slug da mesa passa de
-  `thalos` a `thalos-alba`, então PV, slots e condições anotados antes ficam órfãos no Redis e a
-  ficha começa limpa. O guia casa pelo começo do nome (`startsWith('thalos')`). O arquétipo livre
+- **O Thalos virou `Thalos Alba` no export V3**, mas mantém o slug `thalos` (`SLUG_ALIASES` em
+  `charId.ts` e `sheet-store.js`, espelhados): token, PV, slots e ficha publicada seguem valendo.
+  Renomear outro personagem é uma linha nas duas tabelas. O guia casa pelo começo do nome (`startsWith('thalos')`). O arquétipo livre
   agora é **Chronoskimmer inteiro** (Dedication, Turn Back the Clock, Guide the Timeline, Reversing
   Charge, Steal Time); o Psychic Duelist foi trocado. Idiomas, Crafting treinado, Fast Recovery e
   duas poções (Annulment, Resistance) entraram. **Pendente no Pathbuilder:** não vem talento de classe
