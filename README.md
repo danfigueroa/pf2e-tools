@@ -314,6 +314,10 @@ abre, mas não é o alvo.
     bônus e cor. A rolagem vai para o feed da mesa, junto com as rolagens das fichas
 -   **Vários mapas por sessão**: o GM cria os mapas na gaveta "Mapas da sessão" e **leva a mesa**
     de um para outro; quem estiver em outro mapa recebe o aviso "A mesa está em outro mapa — Ir"
+-   **Mapas privados**: mapa novo nasce **escondido da mesa** — só quem está no Modo GM o vê na
+    lista ou consegue abri-lo. O GM o prepara (imagem, encontro) e o **revela** pelo olho na lista
+    ou pelo aviso no topo do mapa; levar a mesa para ele também revela. Quem estiver com o link
+    aberto vê "Mapa ainda não revelado" e o mapa aparece sozinho na revelação
 -   **Os tokens vêm da Iniciativa**: cada encontro é ligado a um mapa e cada combatente vira um
     token. O botão **Montar encontro** abre a Iniciativa já no encontro daquele mapa
 -   **Imagem do token**: a do personagem é enviada no círculo do cabeçalho da Ficha Virtual e é
@@ -336,8 +340,8 @@ abre, mas não é o alvo.
     círculo; dá para aplicar às cópias com a mesma imagem e voltar à original
 
 **Modo GM** é só um interruptor de interface, sem senha (não há login no app): mostra a camada do
-mapa, os números de PV dos monstros e as ações coletivas (criar, levar a mesa, apagar, limpar
-desenhos).
+mapa, os números de PV dos monstros, os mapas privados e as ações coletivas (criar, revelar,
+levar a mesa, apagar, limpar desenhos).
 
 Todos veem o mesmo mapa: os aparelhos acompanham as mudanças a cada 1,5 s enquanto a aba está
 aberta, sem botão de atualizar.

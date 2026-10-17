@@ -1163,6 +1163,23 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
 - **Quem vê número**: PC sempre; monstro só a barra, com "Ferido/Muito ferido…" no popover, e os
   números no Modo GM. O Modo GM é só interface (sem senha — "todos podem tudo", decisão do usuário)
   e mostra também a camada do mapa (enviar e dimensionar a imagem) e criar/apagar/ativar mapas.
+- **Mapas privados** (decisão do usuário): mapa novo **nasce privado** e só o Modo GM o vê, até ser
+  revelado (olho na lista, ou "Revelar à mesa" no aviso do próprio mapa). Mapa antigo, sem o
+  campo, é público.
+  - **O servidor não entrega** o privado a quem não manda `gm=1` (`?maps=`, `?map=`, `?mapRev=`):
+    nem nome, nem imagem, nem tokens. Continua sem senha — quem liga o Modo GM vê, como o resto.
+  - Campo **`private` à parte do `meta`**, fora do `FIELD_RE` (só `map-visibility` mexe): o cliente
+    regrava o `meta` inteiro com a cópia que tem (imagem, alinhamento, nome), e um ajuste logo
+    depois de revelar esconderia o mapa de novo.
+  - **"Levar a mesa" revela junto** (`map-activate`), e esconder o mapa onde a mesa está tira a
+    mesa dele — o `activeId` nunca aponta para um privado. `setMapPrivate` não sobe a revisão
+    quando nada muda, senão cada "Levar a mesa" faria todo aparelho rebaixar o mapa.
+  - Quem está num privado vê "Mapa ainda não revelado" e continua no poll: o 403 do `?map=` traz
+    `rev`/`tableRev` (`hiddenRevs` no cliente), então a espera segue custando só o MGET, e o
+    `?mapRev=` responde `hidden: true` quando o GM esconde o mapa com alguém olhando.
+  - O acesso GM é **por entrada** do store (`useMapData(id, gm)`): trocar o Modo GM recarrega o
+    mapa. A **Iniciativa sempre lê como GM** (`useMapSync`, `EncounterMapPicker`, com "· privado")
+    — é lá que se monta o encontro do mapa escondido.
 - A imagem do mapa supõe **70 px por quadrado** ao chegar (padrão do Roll20); o GM ajusta pelas
   quatro alças (proporção travada, canto oposto parado) ou digitando largura/altura em quadrados.
   As alças têm **36 px na tela em qualquer zoom** (`--inv-zoom`, escrita no `apply`): presas à
