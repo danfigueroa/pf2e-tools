@@ -357,6 +357,32 @@ interface SheetBundle {
 const SHEET_ROUNDS = 12
 const sheetBundles = new Map<string, Promise<void>>()
 
+/**
+ * Andamento da montagem neste aparelho, para a faixa da ficha publicada avisar
+ * "preparando…" e "prontas". Só existe quando ESTE aparelho completou algo —
+ * abrir uma ficha já pronta não mostra nada.
+ */
+export type SheetDescriptionsStatus =
+    | { state: 'building'; remaining: number | null }
+    | { state: 'done' }
+    | { state: 'incomplete'; remaining: number }
+
+const sheetStatus = new Map<string, SheetDescriptionsStatus>()
+const sheetStatusListeners = new Set<() => void>()
+
+function setSheetStatus(slug: string, status: SheetDescriptionsStatus | null) {
+    if (status) sheetStatus.set(slug, status)
+    else sheetStatus.delete(slug)
+    sheetStatusListeners.forEach((l) => l())
+}
+
+export function useSheetDescriptionsStatus(slug: string | null): SheetDescriptionsStatus | null {
+    return useSyncExternalStore(
+        (listener) => { sheetStatusListeners.add(listener); return () => { sheetStatusListeners.delete(listener) } },
+        () => (slug ? sheetStatus.get(slug) ?? null : null),
+    )
+}
+
 /** Lê (e, se faltar algo, completa) as descrições traduzidas da ficha publicada `slug`. */
 export function loadSheetDescriptions(slug: string, names: DescriptionNameLists): Promise<void> {
     const total = BUNDLE_KINDS.reduce((sum, kind) => sum + names[kind].length, 0)
@@ -383,24 +409,30 @@ async function syncSheetDescriptions(slug: string, names: DescriptionNameLists):
         const known = (kind: BundleKind, n: string) => !!current?.entries?.[kind]?.[n] || current?.misses?.[kind]?.[n] != null
         if (BUNDLE_KINDS.every((kind) => names[kind].every((n) => known(kind, n)))) return
 
+        setSheetStatus(slug, { state: 'building', remaining: null })
         for (let round = 0; round < SHEET_ROUNDS; round++) {
             const res = await fetch('/api/state', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'sheet-descriptions', char: slug, names, version: CACHE_VERSION }),
             })
-            if (!res.ok) return
+            if (!res.ok) break
             const out = (await res.json()) as { busy?: boolean; added?: Entries; remaining?: number }
             // Outro aparelho já está completando: o dele chega a quem abrir depois.
-            if (out.busy) return
+            if (out.busy) { setSheetStatus(slug, null); return }
             const added = out.added
                 ? BUNDLE_KINDS.reduce((sum, kind) => sum + Object.keys(out.added?.[kind] ?? {}).length, 0)
                 : 0
             seedEntries(out.added)
+            const remaining = out.remaining ?? 0
+            if (remaining === 0) { setSheetStatus(slug, { state: 'done' }); return }
             // Sem progresso (tradutor fora do ar): para, e a próxima abertura tenta de novo.
-            if (!out.remaining || added === 0) return
+            if (added === 0) { setSheetStatus(slug, { state: 'incomplete', remaining }); return }
+            setSheetStatus(slug, { state: 'building', remaining })
         }
+        if (sheetStatus.get(slug)?.state === 'building') setSheetStatus(slug, null)
     } catch {
         // Atalho, nunca requisito: a descrição segue pela API.
+        if (sheetStatus.get(slug)?.state === 'building') setSheetStatus(slug, null)
     }
 }

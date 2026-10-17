@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Box, Button, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material'
-import { CloudDone as PublishedIcon, History as RestoreIcon } from '@mui/icons-material'
+import { Box, Button, CircularProgress, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material'
+import { CheckCircle as ReadyIcon, CloudDone as PublishedIcon, History as RestoreIcon } from '@mui/icons-material'
 import type { PublishedSheet } from '../../../services/sheets'
+import { useSheetDescriptionsStatus, type SheetDescriptionsStatus } from '../../../services/descriptions'
 import { EmbedDialog } from './EmbedDialog'
 
 const when = (ts: number) => new Date(ts).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
@@ -14,6 +15,7 @@ const when = (ts: number) => new Date(ts).toLocaleString('pt-BR', { dateStyle: '
 export const PublishedBar = ({ sheet, onRestore }: { sheet: PublishedSheet; onRestore: () => void }) => {
     const [confirming, setConfirming] = useState(false)
     const prev = sheet.previous
+    const descriptions = useSheetDescriptionsStatus(sheet.slug)
 
     return (
         <Box
@@ -33,6 +35,7 @@ export const PublishedBar = ({ sheet, onRestore }: { sheet: PublishedSheet; onRe
                     Ficha da mesa · publicada em {when(sheet.publishedAt)}
                 </Typography>
             </Box>
+            {descriptions && <DescriptionsStatus status={descriptions} />}
             {prev && (
                 <Button size="small" startIcon={<RestoreIcon />} onClick={() => setConfirming(true)}>
                     Versão anterior
@@ -58,3 +61,25 @@ export const PublishedBar = ({ sheet, onRestore }: { sheet: PublishedSheet; onRe
         </Box>
     )
 }
+
+/**
+ * A montagem das descrições traduzidas da ficha publicada (`loadSheetDescriptions`):
+ * acontece logo depois de publicar, e o aviso diz quando a mesa já pode abrir
+ * qualquer talento, magia ou item sem esperar.
+ */
+const DescriptionsStatus = ({ status }: { status: SheetDescriptionsStatus }) => (
+    <Box
+        role="status"
+        sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexBasis: '100%', color: 'text.secondary' }}
+    >
+        {status.state === 'building' && <CircularProgress size={14} thickness={5} />}
+        {status.state === 'done' && <ReadyIcon fontSize="small" sx={{ color: 'primary.main' }} />}
+        <Typography variant="caption">
+            {status.state === 'building'
+                ? `Preparando as descrições para a mesa${status.remaining ? ` · faltam ${status.remaining}` : '…'}`
+                : status.state === 'done'
+                    ? 'Descrições prontas: magias, talentos e itens abrem na hora para a mesa'
+                    : `${status.remaining} descrições ficaram para depois — abrem pela internet até lá`}
+        </Typography>
+    </Box>
+)
