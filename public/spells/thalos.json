@@ -1,0 +1,1269 @@
+{
+ "version": "v13",
+ "character": "Thalos Alba",
+ "spells": {
+  "Alarm": {
+   "name": "Alarm",
+   "level": 1,
+   "heighten": [
+    "3rd"
+   ],
+   "sourceBook": "Player Core, p. 314",
+   "actions": "10 minutes",
+   "traits": [
+    "Concentrate",
+    "Manipulate"
+   ],
+   "traditions": [
+    "Arcane",
+    "Divine",
+    "Occult",
+    "Primal"
+   ],
+   "castComponents": "",
+   "range": "toque",
+   "area": "estouro de 20 pés",
+   "targets": "",
+   "duration": "8 horas",
+   "defense": "",
+   "description": "Você protege uma área para alertá-lo quando criaturas entrarem sem sua permissão. Ao conjurar alarm, selecione uma senha. Sempre que uma criatura corpórea de tamanho Pequeno ou maior entrar na área da magia sem dizer a senha, alarm envia sua escolha de um alerta mental (caso em que a magia ganha o traço mental) ou um alarme audível com o som e o volume de uma sineta de mão (caso em que a magia ganha o traço auditivo). Qualquer uma das opções o desperta automaticamente, e o sino permite que cada criatura na área tente um teste de Percepção CD 15 para acordar. Uma criatura ciente do alarme deve ter sucesso em um teste de Furtividade contra a CD da magia ou acionará a magia ao se mover para dentro da área.",
+   "damage": "",
+   "damageType": "",
+   "heightened": {},
+   "heightenedEntries": [
+    {
+     "level": "3rd",
+     "text": "Você pode especificar um gatilho para quais tipos de criaturas disparam a magia alarm, conforme descrito em Definindo Gatilhos na página 303."
+    }
+   ]
+  },
+  "Blazing Bolt": {
+   "name": "Blazing Bolt",
+   "level": 2,
+   "heighten": [
+    "+1"
+   ],
+   "sourceBook": "Player Core, p. 318",
+   "actions": "Single Action to Three Actions",
+   "traits": [
+    "Attack",
+    "Concentrate",
+    "Fire",
+    "Manipulate"
+   ],
+   "traditions": [
+    "Arcane",
+    "Primal"
+   ],
+   "castComponents": "",
+   "range": "60 pés",
+   "area": "",
+   "targets": "1 ou more criaturas",
+   "duration": "",
+   "defense": "CA",
+   "description": "Você dispara um raio de calor e chamas. Faça um teste de ataque de magia contra uma única criatura. Em um acerto, o alvo sofre 2d6 de dano de fogo, e em um acerto crítico, o alvo sofre o dobro do dano. Para cada ação adicional que você usar ao conjurar a magia, você pode disparar um raio adicional em um alvo diferente, até um máximo de três raios mirando em três alvos diferentes por 3 ações. Estes ataques aumentam sua penalidade por ataques múltiplos, mas você não aumenta sua penalidade por ataques múltiplos até depois de realizar todos os testes de ataque de magia para blazing bolt. Se você gastar 2 ou mais ações ao conjurar a magia, o dano aumenta para 4d6 de dano de fogo em um acerto, e ele ainda causa o dobro do dano em um acerto crítico.",
+   "damage": "2d6",
+   "damageType": "fogo",
+   "heightened": {},
+   "heightenedEntries": [
+    {
+     "level": "+1",
+     "text": "O dano a cada alvo aumenta em 1d6 para a versão de 1 ação, ou em 2d6 para as versões de 2 e 3 ações."
+    }
+   ],
+   "scaling": {
+    "components": [
+     {
+      "id": 0,
+      "formula": "2d6",
+      "kind": "damage",
+      "types": [
+       "fire"
+      ],
+      "persistent": false,
+      "count": 2,
+      "faces": 6,
+      "flat": 0,
+      "nth": 0,
+      "occurrences": 1
+     },
+     {
+      "id": 1,
+      "formula": "4d6",
+      "kind": "damage",
+      "types": [
+       "fire"
+      ],
+      "persistent": false,
+      "count": 4,
+      "faces": 6,
+      "flat": 0,
+      "nth": 0,
+      "occurrences": 1
+     }
+    ],
+    "rules": [
+     {
+      "level": "+1",
+      "adds": [
+       {
+        "id": 0,
+        "mode": "add",
+        "count": 1,
+        "faces": 6,
+        "flat": 0
+       },
+       {
+        "id": 1,
+        "mode": "add",
+        "count": 2,
+        "faces": 6,
+        "flat": 0
+       }
+      ],
+      "safe": true,
+      "resolved": true
+     }
+    ]
+   }
+  },
+  "Breathe Fire": {
+   "name": "Breathe Fire",
+   "level": 1,
+   "heighten": [
+    "+1"
+   ],
+   "sourceBook": "Player Core, p. 319",
+   "actions": "Two Actions",
+   "traits": [
+    "Concentrate",
+    "Fire",
+    "Manipulate"
+   ],
+   "traditions": [
+    "Arcane",
+    "Primal"
+   ],
+   "castComponents": "",
+   "range": "",
+   "area": "cone de 15 pés",
+   "targets": "",
+   "duration": "",
+   "defense": "Reflexos básico",
+   "description": "Um jato de chamas é expelido de sua boca. Você causa 2d6 de dano de fogo a criaturas na área com um teste básico de Reflexos.",
+   "damage": "2d6",
+   "damageType": "fogo",
+   "heightened": {},
+   "heightenedEntries": [
+    {
+     "level": "+1",
+     "text": "O dano aumenta em 2d6."
+    }
+   ],
+   "scaling": {
+    "components": [
+     {
+      "id": 0,
+      "formula": "2d6",
+      "kind": "damage",
+      "types": [
+       "fire"
+      ],
+      "persistent": false,
+      "count": 2,
+      "faces": 6,
+      "flat": 0,
+      "nth": 0,
+      "occurrences": 1
+     }
+    ],
+    "rules": [
+     {
+      "level": "+1",
+      "adds": [
+       {
+        "id": 0,
+        "mode": "add",
+        "count": 2,
+        "faces": 6,
+        "flat": 0
+       }
+      ],
+      "safe": true,
+      "resolved": true
+     }
+    ]
+   }
+  },
+  "Clairvoyance": {
+   "name": "Clairvoyance",
+   "level": 4,
+   "sourceBook": "Player Core, p. 320",
+   "actions": "1 minute",
+   "traits": [
+    "Concentrate",
+    "Manipulate",
+    "Scrying"
+   ],
+   "traditions": [
+    "Arcane",
+    "Occult"
+   ],
+   "castComponents": "",
+   "range": "500 pés",
+   "area": "",
+   "targets": "",
+   "duration": "10 minutos",
+   "defense": "",
+   "description": "Você cria um olho flutuante invisível em um local dentro do alcance (mesmo que esteja fora de sua linha de visão ou linha de efeito). O olho não pode se mover, mas você pode ver em todas as direções a partir daquele ponto como se estivesse usando seus sentidos visuais normais.",
+   "damage": "",
+   "damageType": "",
+   "heightened": {},
+   "heightenedEntries": []
+  },
+  "Cleanse Affliction": {
+   "name": "Cleanse Affliction",
+   "level": 2,
+   "heighten": [
+    "3rd",
+    "4th"
+   ],
+   "sourceBook": "Player Core, p. 320",
+   "actions": "Two Actions",
+   "traits": [
+    "Concentrate",
+    "Healing",
+    "Manipulate"
+   ],
+   "traditions": [
+    "Divine",
+    "Occult",
+    "Primal"
+   ],
+   "castComponents": "",
+   "range": "toque",
+   "area": "",
+   "targets": "1 criatura disposta",
+   "duration": "",
+   "defense": "",
+   "description": "Magia restauradora suave repele os efeitos de toxinas e enfermidades mais complexas. Escolha uma aflição no alvo, como uma maldição, doença ou veneno. Se ela tiver avançado além do estágio um, reduza o estágio em um. Essa redução pode ser aplicada apenas uma vez a um determinado caso de uma aflição, com o caso terminando quando estiver completamente curado. Embora a redução não possa ocorrer novamente, versões aprimoradas desta magia tentam neutralizar a cada conjuração.",
+   "damage": "",
+   "damageType": "",
+   "heightened": {},
+   "heightenedEntries": [
+    {
+     "level": "3rd",
+     "text": "Tente neutralizar a aflição se for uma doença ou veneno."
+    },
+    {
+     "level": "4th",
+     "text": "Tente neutralizar a aflição se for uma maldição, doença ou veneno."
+    }
+   ]
+  },
+  "Dream Message": {
+   "name": "Dream Message",
+   "level": 3,
+   "heighten": [
+    "4th"
+   ],
+   "sourceBook": "Player Core, p. 326",
+   "actions": "10 minutes",
+   "traits": [
+    "Concentrate",
+    "Manipulate",
+    "Mental"
+   ],
+   "traditions": [
+    "Arcane",
+    "Divine",
+    "Occult"
+   ],
+   "castComponents": "",
+   "range": "planetário",
+   "area": "",
+   "targets": "1 criatura você know by name e have met in person",
+   "duration": "até suas próximas preparações diárias",
+   "defense": "",
+   "description": "Você envia uma mensagem para o sonho do seu alvo. A mensagem é de mão única, com até 1 minuto de fala (aproximadamente 150 palavras). Se o alvo estiver dormindo, ele recebe a mensagem instantaneamente. Se não, ele a recebe na próxima vez que dormir. Assim que a recebe, a magia termina e você sabe que a mensagem foi enviada.",
+   "damage": "",
+   "damageType": "",
+   "heightened": {},
+   "heightenedEntries": [
+    {
+     "level": "4th",
+     "text": "Você pode escolher como alvo até 10 criaturas que você conhece pelo nome e que encontrou pessoalmente. Você deve enviar a mesma mensagem para todas elas; a magia termina para cada criatura individualmente."
+    }
+   ]
+  },
+  "Entropic Wheel": {
+   "name": "Entropic Wheel",
+   "level": 3,
+   "sourceBook": "Dark Archive (Remastered), p. 20",
+   "actions": "Reaction",
+   "traits": [
+    "Cantrip",
+    "Cold",
+    "Concentrate",
+    "Fire",
+    "Psychic",
+    "Uncommon"
+   ],
+   "castComponents": "",
+   "range": "",
+   "area": "",
+   "targets": "",
+   "duration": "1 minuto",
+   "defense": "",
+   "description": "Você acumula energia térmica em um constructo mágico semelhante a uma roda que permite queimar oponentes com frio ou congelar seus corpos com calor. Quando você conjura a magia, a roda tem um fragmento de energia térmica, e quando você usa um efeito de frio ou fogo ou causa dano de frio ou fogo, a roda gira, drenando um pouco de energia e ganhando outro fragmento. A roda não pode ganhar fragmentos mais de uma vez em um determinado turno, e o número máximo de fragmentos é igual ao nível de entropic wheel. Quando você conjura uma magia que causa dano de fogo, o alvo também sofre dano de frio igual ao número de fragmentos na entropic wheel. Quando você conjura uma magia que causa dano de frio, o alvo também sofre dano de fogo igual ao número de fragmentos na entropic wheel. Isso se aplica apenas ao dano inicial da magia, não a qualquer dano persistente ou efeitos contínuos. Amp Você ganha dois fragmentos em vez de um quando conjura a magia e cada vez que a roda ganha outro fragmento.",
+   "damage": "",
+   "damageType": "",
+   "heightened": {},
+   "heightenedEntries": []
+  },
+  "Fireball": {
+   "name": "Fireball",
+   "level": 3,
+   "heighten": [
+    "+1"
+   ],
+   "sourceBook": "Player Core, p. 331",
+   "actions": "Two Actions",
+   "traits": [
+    "Concentrate",
+    "Fire",
+    "Manipulate"
+   ],
+   "traditions": [
+    "Arcane",
+    "Primal"
+   ],
+   "castComponents": "",
+   "range": "500 pés",
+   "area": "estouro de 20 pés",
+   "targets": "",
+   "duration": "",
+   "defense": "Reflexos básico",
+   "description": "Uma explosão estrondosa de fogo detona em um ponto que você designar, causando 6d6 de dano de fogo.",
+   "damage": "6d6",
+   "damageType": "fogo",
+   "heightened": {},
+   "heightenedEntries": [
+    {
+     "level": "+1",
+     "text": "O dano aumenta em 2d6."
+    }
+   ],
+   "scaling": {
+    "components": [
+     {
+      "id": 0,
+      "formula": "6d6",
+      "kind": "damage",
+      "types": [
+       "fire"
+      ],
+      "persistent": false,
+      "count": 6,
+      "faces": 6,
+      "flat": 0,
+      "nth": 0,
+      "occurrences": 1
+     }
+    ],
+    "rules": [
+     {
+      "level": "+1",
+      "adds": [
+       {
+        "id": 0,
+        "mode": "add",
+        "count": 2,
+        "faces": 6,
+        "flat": 0
+       }
+      ],
+      "safe": true,
+      "resolved": true
+     }
+    ]
+   }
+  },
+  "Fly": {
+   "name": "Fly",
+   "level": 4,
+   "heighten": [
+    "7th"
+   ],
+   "sourceBook": "Player Core, p. 332",
+   "actions": "Two Actions",
+   "traits": [
+    "Concentrate",
+    "Manipulate"
+   ],
+   "traditions": [
+    "Arcane",
+    "Divine",
+    "Occult",
+    "Primal",
+    "Elemental"
+   ],
+   "castComponents": "",
+   "range": "toque",
+   "area": "",
+   "targets": "1 criatura",
+   "duration": "5 minutos",
+   "defense": "",
+   "description": "O alvo pode planar pelo ar, ganhando um Deslocamento de voo igual ao seu Deslocamento ou 6 metros, o que for maior.",
+   "damage": "",
+   "damageType": "",
+   "heightened": {},
+   "heightenedEntries": [
+    {
+     "level": "7th",
+     "text": "A duração aumenta para 1 hora."
+    }
+   ]
+  },
+  "Frostbite (Amped)": {
+   "name": "Ray of Frost",
+   "level": 1,
+   "heighten": [
+    "+1"
+   ],
+   "sourceBook": "Core Rulebook, p. 362",
+   "actions": "Two Actions",
+   "traits": [
+    "Attack",
+    "Cantrip",
+    "Cold",
+    "Evocation"
+   ],
+   "traditions": [
+    "Arcane",
+    "Primal"
+   ],
+   "castComponents": "",
+   "range": "120 pés",
+   "area": "",
+   "targets": "1 criatura",
+   "duration": "",
+   "defense": "",
+   "description": "Você dispara um raio gelado. Faça um teste de ataque de magia. O raio causa 2d4 de dano de frio. Sucesso Crítico O alvo sofre o dobro de dano e recebe uma penalidade de status de -3 metros (10 pés) em seus Deslocamentos por 1 rodada. Sucesso O alvo sofre o dano normal.",
+   "damage": "2d4",
+   "damageType": "frio",
+   "heightened": {},
+   "heightenedEntries": [
+    {
+     "level": "+1",
+     "text": "O dano aumenta em 1d4."
+    }
+   ],
+   "scaling": {
+    "components": [
+     {
+      "id": 0,
+      "formula": "2d4",
+      "kind": "damage",
+      "types": [
+       "cold"
+      ],
+      "persistent": false,
+      "count": 2,
+      "faces": 4,
+      "flat": 0,
+      "nth": 0,
+      "occurrences": 1
+     }
+    ],
+    "rules": [
+     {
+      "level": "+1",
+      "adds": [
+       {
+        "id": 0,
+        "mode": "add",
+        "count": 1,
+        "faces": 4,
+        "flat": 0
+       }
+      ],
+      "safe": true,
+      "resolved": true
+     }
+    ]
+   }
+  },
+  "Howling Blizzard": {
+   "name": "Howling Blizzard",
+   "level": 5,
+   "heighten": [
+    "+1"
+   ],
+   "sourceBook": "Player Core, p. 335",
+   "actions": "Two Actions or Three Actions",
+   "traits": [
+    "Air",
+    "Cold",
+    "Concentrate",
+    "Manipulate"
+   ],
+   "traditions": [
+    "Arcane",
+    "Primal"
+   ],
+   "castComponents": "",
+   "range": "",
+   "area": "varia",
+   "targets": "",
+   "duration": "",
+   "defense": "Reflexos básico",
+   "description": "Ventos congelantes se estendem de suas mãos, empurrando para longe de você com grande força. Se você conjurar esta magia com 2 ações, ela tem uma área de um cone de 18 metros (60 pés); se você conjurar esta magia com 3 ações, ela tem um alcance de 150 metros (500 pés) e uma área de uma explosão de 9 metros (30 pés). Cada criatura na área sofre 10d6 de dano de frio com um teste básico de Reflexos. Montes de neve e vendavais gelados preenchem a área até o início do seu próximo turno, tornando a área terreno difícil.",
+   "damage": "10d6",
+   "damageType": "frio",
+   "heightened": {},
+   "heightenedEntries": [
+    {
+     "level": "+1",
+     "text": "O dano aumenta em 2d6."
+    }
+   ],
+   "scaling": {
+    "components": [
+     {
+      "id": 0,
+      "formula": "10d6",
+      "kind": "damage",
+      "types": [
+       "cold"
+      ],
+      "persistent": false,
+      "count": 10,
+      "faces": 6,
+      "flat": 0,
+      "nth": 0,
+      "occurrences": 1
+     }
+    ],
+    "rules": [
+     {
+      "level": "+1",
+      "adds": [
+       {
+        "id": 0,
+        "mode": "add",
+        "count": 2,
+        "faces": 6,
+        "flat": 0
+       }
+      ],
+      "safe": true,
+      "resolved": true
+     }
+    ]
+   }
+  },
+  "Hypercognition": {
+   "name": "Hypercognition",
+   "level": 3,
+   "sourceBook": "Player Core, p. 336",
+   "actions": "Single Action",
+   "traits": [
+    "Concentrate"
+   ],
+   "traditions": [
+    "Occult"
+   ],
+   "castComponents": "",
+   "range": "",
+   "area": "",
+   "targets": "",
+   "duration": "",
+   "defense": "",
+   "description": "Você cataloga e compila rapidamente informações relevantes para sua situação atual. Você pode usar instantaneamente até 6 ações de Recall Knowledge como parte da conjuração desta magia. Para essas ações, você não pode usar quaisquer habilidades especiais, reações ou ações livres que sejam ativadas quando você usa Recall Knowledge.",
+   "damage": "",
+   "damageType": "",
+   "heightened": {},
+   "heightenedEntries": []
+  },
+  "Ice Storm": {
+   "name": "Ice Storm",
+   "level": 4,
+   "heighten": [
+    "+2"
+   ],
+   "sourceBook": "Player Core 2, p. 247",
+   "actions": "Three Actions",
+   "traits": [
+    "Cold",
+    "Concentrate",
+    "Manipulate"
+   ],
+   "traditions": [
+    "Arcane",
+    "Primal"
+   ],
+   "castComponents": "",
+   "range": "120 pés",
+   "area": "estouro de 20 pés",
+   "targets": "",
+   "duration": "sustentada até 1 minuto",
+   "defense": "Reflexos básico",
+   "description": "Você cria uma nuvem de tempestade cinzenta que atinge criaturas com um dilúvio gelado. Quando você conjura a magia, uma explosão de granizo mágico causa 2d8 de dano de concussão e 2d8 de dano de frio a cada criatura na área abaixo da nuvem (teste básico de Reflexos). Neve e granizo continuam a cair na área pelo restante da duração da magia, tornando a área terreno difícil. Qualquer criatura que termine seu turno na tempestade sofre 2 de dano de frio. Se você conjurar esta magia ao ar livre, você pode criar duas nuvens que não se sobrepõem em vez de uma. Como de costume, se uma criatura Grande ou maior estiver em ambas as nuvens, ela ainda sofre apenas o dano inicial uma vez e o dano contínuo uma vez por turno.",
+   "damage": "2d8",
+   "damageType": "contundente",
+   "heightened": {},
+   "heightenedEntries": [
+    {
+     "level": "+2",
+     "text": "O dano inicial de concussão e o dano de frio aumentam em 1d8 cada, e o dano de frio que as criaturas sofrem no final de seus turnos aumenta em 1."
+    }
+   ],
+   "scaling": {
+    "components": [
+     {
+      "id": 0,
+      "formula": "2d8",
+      "kind": "damage",
+      "types": [
+       "bludgeoning"
+      ],
+      "persistent": false,
+      "count": 2,
+      "faces": 8,
+      "flat": 0,
+      "nth": 0,
+      "occurrences": 2
+     },
+     {
+      "id": 1,
+      "formula": "2d8",
+      "kind": "damage",
+      "types": [
+       "cold"
+      ],
+      "persistent": false,
+      "count": 2,
+      "faces": 8,
+      "flat": 0,
+      "nth": 1,
+      "occurrences": 2
+     },
+     {
+      "id": 2,
+      "formula": "2",
+      "kind": "damage",
+      "types": [
+       "cold"
+      ],
+      "persistent": false,
+      "count": 0,
+      "faces": 0,
+      "flat": 2,
+      "nth": 0,
+      "occurrences": 1
+     }
+    ],
+    "rules": [
+     {
+      "level": "+2",
+      "adds": [
+       {
+        "id": 0,
+        "mode": "add",
+        "count": 1,
+        "faces": 8,
+        "flat": 0
+       },
+       {
+        "id": 1,
+        "mode": "add",
+        "count": 1,
+        "faces": 8,
+        "flat": 0
+       },
+       {
+        "id": 2,
+        "mode": "add",
+        "count": 0,
+        "faces": 0,
+        "flat": 1
+       }
+      ],
+      "safe": true,
+      "resolved": true
+     }
+    ]
+   }
+  },
+  "Ignition (Amped)": {
+   "name": "Produce Flame",
+   "level": 1,
+   "heighten": [
+    "+1"
+   ],
+   "sourceBook": "Core Rulebook, p. 360",
+   "actions": "Two Actions",
+   "traits": [
+    "Attack",
+    "Cantrip",
+    "Evocation",
+    "Fire"
+   ],
+   "traditions": [
+    "Arcane",
+    "Primal"
+   ],
+   "castComponents": "",
+   "range": "30 pés",
+   "area": "",
+   "targets": "1 criatura",
+   "duration": "",
+   "defense": "",
+   "description": "Uma pequena bola de chamas aparece na palma da sua mão, e você ataca com ela, seja em combate corpo a corpo ou à distância. Faça um teste de ataque de magia contra a CA do seu alvo. Este é normalmente um ataque à distância, mas você também pode fazer um ataque corpo a corpo contra uma criatura ao seu alcance desarmado. A chama causa 2d4 de dano de fogo. Sucesso Crítico O alvo sofre o dobro de dano e 1d4 de dano de fogo persistente. Sucesso O alvo sofre o dano total.",
+   "damage": "2d4",
+   "damageType": "fogo",
+   "heightened": {},
+   "heightenedEntries": [
+    {
+     "level": "+1",
+     "text": "Aumente o dano em 1d4 e o dano persistente em um acerto crítico em 1d4."
+    }
+   ],
+   "scaling": {
+    "components": [
+     {
+      "id": 0,
+      "formula": "2d4",
+      "kind": "damage",
+      "types": [
+       "fire"
+      ],
+      "persistent": false,
+      "count": 2,
+      "faces": 4,
+      "flat": 0,
+      "nth": 0,
+      "occurrences": 1
+     },
+     {
+      "id": 1,
+      "formula": "1d4",
+      "kind": "damage",
+      "types": [
+       "fire"
+      ],
+      "persistent": true,
+      "count": 1,
+      "faces": 4,
+      "flat": 0,
+      "nth": 0,
+      "occurrences": 1
+     }
+    ],
+    "rules": [
+     {
+      "level": "+1",
+      "adds": [
+       {
+        "id": 0,
+        "mode": "add",
+        "count": 1,
+        "faces": 4,
+        "flat": 0
+       },
+       {
+        "id": 1,
+        "mode": "add",
+        "count": 1,
+        "faces": 4,
+        "flat": 0
+       }
+      ],
+      "safe": true,
+      "resolved": true
+     }
+    ]
+   }
+  },
+  "Illuminate": {
+   "name": "Illuminate",
+   "level": 1,
+   "heighten": [
+    "+1"
+   ],
+   "sourceBook": "Rage of Elements, p. 120",
+   "actions": "Single Action",
+   "traits": [
+    "Cantrip",
+    "Fire",
+    "Manipulate"
+   ],
+   "traditions": [
+    "Arcane",
+    "Divine",
+    "Occult",
+    "Primal"
+   ],
+   "castComponents": "",
+   "range": "",
+   "area": "emanação de 30 pés (ver texto)",
+   "targets": "",
+   "duration": "",
+   "defense": "",
+   "description": "Você acende todas as fontes de luz não mágicas na área que utilizam fogo para fornecer sua luz, como velas, lamparinas e tocheiros. Você pode escolher tornar a emanação menor que seu máximo, para qualquer distância de sua escolha. Se uma fonte de luz estiver sendo carregada por uma criatura relutante, essa criatura pode tentar um teste de Reflexos para apagar a luz antes que ela se torne perceptível.",
+   "damage": "",
+   "damageType": "",
+   "heightened": {},
+   "heightenedEntries": [
+    {
+     "level": "+1",
+     "text": "A área máxima aumenta em 10 pés."
+    }
+   ]
+  },
+  "Invisibility": {
+   "name": "Invisibility",
+   "level": 2,
+   "heighten": [
+    "4th"
+   ],
+   "sourceBook": "Player Core, p. 339",
+   "actions": "Two Actions",
+   "traits": [
+    "Illusion",
+    "Manipulate",
+    "Subtle"
+   ],
+   "traditions": [
+    "Arcane",
+    "Occult"
+   ],
+   "castComponents": "",
+   "range": "toque",
+   "area": "",
+   "targets": "1 criatura",
+   "duration": "10 minutos",
+   "defense": "",
+   "description": "Ilusões curvam a luz ao redor do alvo, tornando-o invisível. Isso o torna undetected para todas as criaturas, embora as criaturas possam tentar encontrar o alvo, tornando-o hidden para elas em vez disso. Se o alvo usar uma ação hostil, a magia termina após a conclusão dessa ação hostil. Esclarecimento da Paizo: Invisibility segue as regras da condição invisible. A segunda frase as resume, mas não cobre todos os casos, como você estar hidden para criaturas que o observam quando você se torna invisível, em vez de estar undetected para elas.",
+   "damage": "",
+   "damageType": "",
+   "heightened": {},
+   "heightenedEntries": [
+    {
+     "level": "4th",
+     "text": "A magia dura 1 minuto, mas não termina se o alvo usar uma ação hostil."
+    }
+   ]
+  },
+  "Mind Probe": {
+   "name": "Mind Probe",
+   "level": 5,
+   "sourceBook": "Player Core, p. 343",
+   "actions": "1 minute",
+   "traits": [
+    "Concentrate",
+    "Linguistic",
+    "Manipulate",
+    "Mental",
+    "Uncommon"
+   ],
+   "traditions": [
+    "Arcane",
+    "Occult"
+   ],
+   "castComponents": "",
+   "range": "30 pés",
+   "area": "",
+   "targets": "1 criatura",
+   "duration": "sustentada até 1 minuto",
+   "defense": "Vontade",
+   "description": "Você projeta seus pensamentos através da mente de uma criatura, vasculhando em busca de informações. Você acessa as memórias e o conhecimento do alvo, a menos que ele se defenda com um teste de Vontade. Sucesso: O alvo não é afetado. Falha: A cada rodada da duração da magia, você pode Sustain a magia para fazer uma pergunta diferente e tentar descobrir a resposta. Para cada pergunta, o alvo pode tentar um teste de Deception contra a CD da sua magia; se o alvo obtiver sucesso, você não descobre a resposta, e em um sucesso crítico, o alvo lhe dá uma resposta falsa que você acredita ser verdadeira. Uma vez que você tenha feito uma determinada pergunta ao alvo, perguntá-la novamente, mesmo com uma conjuração separada de mind probe, produz o mesmo resultado. Falha Crítica: Como na falha, e o alvo sofre uma penalidade de circunstância de –4 nos testes de Deception contra suas perguntas.",
+   "damage": "",
+   "damageType": "",
+   "heightened": {},
+   "heightenedEntries": []
+  },
+  "Read Omens": {
+   "name": "Read Omens",
+   "level": 4,
+   "sourceBook": "Player Core, p. 352",
+   "actions": "10 minutes",
+   "traits": [
+    "Concentrate",
+    "Manipulate",
+    "Prediction",
+    "Uncommon"
+   ],
+   "traditions": [
+    "Divine",
+    "Occult"
+   ],
+   "castComponents": "",
+   "range": "",
+   "area": "",
+   "targets": "",
+   "duration": "",
+   "defense": "",
+   "description": "Você espreita o futuro. Escolha um objetivo ou atividade específica em que planeja se envolver dentro de 1 semana, ou um evento que você espera que possa acontecer dentro de 1 semana. Você aprende uma pista enigmática ou um conselho que pode ajudar com o evento escolhido, muitas vezes na forma de uma rima ou presságio.",
+   "damage": "",
+   "damageType": "",
+   "heightened": {},
+   "heightenedEntries": []
+  },
+  "Redistribute Potential": {
+   "name": "Redistribute Potential",
+   "level": 5,
+   "heighten": [
+    "+1"
+   ],
+   "sourceBook": "Dark Archive (Remastered), p. 20",
+   "actions": "Two Actions",
+   "traits": [
+    "Cantrip",
+    "Cold",
+    "Concentrate",
+    "Fire",
+    "Manipulate",
+    "Psychic",
+    "Uncommon"
+   ],
+   "castComponents": "",
+   "range": "60 pés",
+   "area": "2 adjacent quadrados de 5 pés",
+   "targets": "",
+   "duration": "",
+   "defense": "Fortitude básico",
+   "description": "A energia tenta se equilibrar, mas com sua magia, você pode desviar toda a energia de uma área para outra. Criaturas em qualquer uma das áreas sofrem 4d4 de dano com um teste básico de Fortitude. Escolha um dos quadrados para roubar calor, causando dano de frio, e o outro para concentrar o calor roubado, causando dano de fogo. Uma criatura que falha em seu teste também fica clumsy 1 devido à dormência se estiver na área de calor roubado, ou enfeebled 1 devido à insolação se estiver na área de calor concentrado; essas condições duram até o início do seu próximo turno. Se uma criatura for grande o suficiente para estar em ambos os quadrados, você escolhe apenas uma das áreas para ela tentar seu teste; ela não é afetada pela outra área. Amp: Você pode afetar o fluxo de energia em uma escala muito maior. Em vez de dois quadrados de 5 pés, você cria duas explosões de 10 pés. Elas ainda devem estar adjacentes uma à outra e podem se sobrepor. Uma criatura em ambas as áreas ainda pode ser afetada por apenas uma de sua escolha. O dano da magia aumenta para 6d6. As condições duram por 1 minuto. Amp Aprimorada (+1): Aumente o dano em 2d6 em vez de 1d4.",
+   "damage": "",
+   "damageType": "",
+   "heightened": {},
+   "heightenedEntries": [
+    {
+     "level": "+1",
+     "text": "O dano aumenta em 1d4."
+    }
+   ],
+   "scaling": {
+    "components": [
+     {
+      "id": 0,
+      "formula": "4d4",
+      "kind": "damage",
+      "types": [],
+      "persistent": false,
+      "count": 4,
+      "faces": 4,
+      "flat": 0,
+      "nth": 0,
+      "occurrences": 1
+     }
+    ],
+    "rules": [
+     {
+      "level": "+1",
+      "adds": [
+       {
+        "id": 0,
+        "mode": "add",
+        "count": 1,
+        "faces": 4,
+        "flat": 0
+       }
+      ],
+      "safe": true,
+      "resolved": true
+     }
+    ]
+   }
+  },
+  "Shield": {
+   "name": "Shield",
+   "level": 1,
+   "heighten": [
+    "+2"
+   ],
+   "sourceBook": "Player Core, p. 356",
+   "actions": "Single Action",
+   "traits": [
+    "Cantrip",
+    "Concentrate",
+    "Force"
+   ],
+   "traditions": [
+    "Arcane",
+    "Divine",
+    "Occult",
+    "Elemental"
+   ],
+   "castComponents": "",
+   "range": "",
+   "area": "",
+   "targets": "",
+   "duration": "até o início de seu próximo turno",
+   "defense": "",
+   "description": "Você ergue um escudo mágico de força. Isso conta como usar a ação Raise a Shield, concedendo a você um bônus de circunstância de +1 na CA até o início do seu próximo turno, mas não requer uma mão para ser usado. Enquanto a magia estiver em efeito, você pode usar a reação Shield Block com seu escudo mágico. O escudo tem Dureza 5. Você pode usar a reação da magia para reduzir o dano de qualquer magia ou efeito mágico, mesmo que não cause dano físico. Após usar Shield Block, a magia termina e você não pode conjurá-la novamente por 10 minutos.",
+   "damage": "",
+   "damageType": "",
+   "heightened": {},
+   "heightenedEntries": [
+    {
+     "level": "+2",
+     "text": "A Dureza do escudo aumenta em 5."
+    }
+   ],
+   "scaling": {
+    "components": [
+     {
+      "id": 0,
+      "formula": "5",
+      "kind": "hardness",
+      "types": [],
+      "persistent": false,
+      "count": 0,
+      "faces": 0,
+      "flat": 5,
+      "nth": 0,
+      "occurrences": 1
+     }
+    ],
+    "rules": [
+     {
+      "level": "+2",
+      "adds": [
+       {
+        "id": 0,
+        "mode": "add",
+        "count": 0,
+        "faces": 0,
+        "flat": 5
+       }
+      ],
+      "safe": true,
+      "resolved": true
+     }
+    ]
+   }
+  },
+  "Sleep": {
+   "name": "Sleep",
+   "level": 1,
+   "heighten": [
+    "4th"
+   ],
+   "sourceBook": "Player Core, p. 357",
+   "actions": "Two Actions",
+   "traits": [
+    "Concentrate",
+    "Incapacitation",
+    "Manipulate",
+    "Mental",
+    "Sleep"
+   ],
+   "traditions": [
+    "Arcane",
+    "Occult"
+   ],
+   "castComponents": "",
+   "range": "30 pés",
+   "area": "estouro de 5 pés",
+   "targets": "",
+   "duration": "",
+   "defense": "Vontade",
+   "description": "Cada criatura na área fica sonolenta, possivelmente cochilando. Uma criatura que cai inconsciente devido a esta magia não cai prone nem solta o que está segurando. Esta magia não impede que as criaturas acordem devido a um teste de Perception bem-sucedido, limitando sua utilidade em combate. Sucesso Crítico: A criatura não é afetada. Sucesso: A criatura sofre uma penalidade de status de –1 em testes de Perception por 1 rodada. Falha: A criatura cai inconsciente. Se ela ainda estiver inconsciente após 1 minuto, ela acorda automaticamente. Falha Crítica: A criatura cai inconsciente. Se ela ainda estiver inconsciente após 1 hora, ela acorda automaticamente.",
+   "damage": "",
+   "damageType": "",
+   "heightened": {},
+   "heightenedEntries": [
+    {
+     "level": "4th",
+     "text": "As criaturas caem inconscientes por 1 rodada em uma falha ou 1 minuto em uma falha crítica. Elas caem prone e soltam o que estão segurando, e não podem tentar testes de Perception para acordar. Quando a duração termina, a criatura está dormindo normalmente em vez de acordar automaticamente."
+    }
+   ]
+  },
+  "Summon Entity": {
+   "name": "Summon Entity",
+   "level": 5,
+   "heighten": [
+    "6th",
+    "7th",
+    "8th",
+    "9th",
+    "10th"
+   ],
+   "sourceBook": "Player Core, p. 360",
+   "actions": "Three Actions",
+   "traits": [
+    "Concentrate",
+    "Manipulate",
+    "Summon"
+   ],
+   "traditions": [
+    "Occult"
+   ],
+   "castComponents": "",
+   "range": "30 pés",
+   "area": "",
+   "targets": "",
+   "duration": "sustentada até 1 minuto",
+   "defense": "",
+   "description": "Você invoca uma criatura que possua o traço aberration e cujo nível seja 5 ou inferior para lutar por você.",
+   "damage": "",
+   "damageType": "",
+   "heightened": {},
+   "heightenedEntries": [
+    {
+     "level": "6th",
+     "text": "Nível 7."
+    },
+    {
+     "level": "7th",
+     "text": "Nível 9."
+    },
+    {
+     "level": "8th",
+     "text": "Nível 11."
+    },
+    {
+     "level": "9th",
+     "text": "Nível 13."
+    },
+    {
+     "level": "10th",
+     "text": "Nível 15."
+    }
+   ]
+  },
+  "Telekinetic Hand": {
+   "name": "Telekinetic Hand",
+   "level": 1,
+   "heighten": [
+    "3rd",
+    "5th",
+    "7th"
+   ],
+   "sourceBook": "Player Core, p. 362",
+   "actions": "Two Actions",
+   "traits": [
+    "Cantrip",
+    "Concentrate",
+    "Manipulate"
+   ],
+   "traditions": [
+    "Arcane",
+    "Occult",
+    "Elemental"
+   ],
+   "castComponents": "",
+   "range": "30 pés",
+   "area": "",
+   "targets": "1 objeto desacompanhado of Light bulk ou less",
+   "duration": "sustentada",
+   "defense": "",
+   "description": "Você cria uma mão mágica flutuante, invisível ou fantasmagórica, que agarra o objeto alvo e o levita lentamente em até 20 pés em qualquer direção. Quando você Sustain a magia, você pode mover o objeto por mais 20 pés. Se o objeto estiver no ar quando a magia terminar, o objeto cai.",
+   "damage": "",
+   "damageType": "",
+   "heightened": {},
+   "heightenedEntries": [
+    {
+     "level": "3rd",
+     "text": "Você pode escolher como alvo um objeto desacompanhado com um Bulk de 1 ou menos."
+    },
+    {
+     "level": "5th",
+     "text": "O alcance aumenta para 60 pés, e você pode escolher como alvo um objeto desacompanhado com um Bulk de 1 ou menos."
+    },
+    {
+     "level": "7th",
+     "text": "O alcance aumenta para 60 pés, e você pode escolher como alvo um objeto desacompanhado com um Bulk de 2 ou menos."
+    }
+   ]
+  },
+  "Thermal Stasis": {
+   "name": "Thermal Stasis",
+   "level": 1,
+   "heighten": [
+    "+1"
+   ],
+   "sourceBook": "Dark Archive (Remastered), p. 20",
+   "actions": "Single Action",
+   "traits": [
+    "Cantrip",
+    "Concentrate",
+    "Psychic",
+    "Uncommon"
+   ],
+   "castComponents": "",
+   "range": "60 pés",
+   "area": "",
+   "targets": "1 criatura",
+   "duration": "até o início de seu próximo turno",
+   "defense": "",
+   "description": "As mesmas habilidades que permitem que você aumente ou diminua a energia térmica também permitem que você a mantenha em um nível médio seguro. O alvo ganha resistência 2 contra dano de fogo e resistência 2 contra dano de frio. Amp A duração da magia torna-se 1 minuto.",
+   "damage": "",
+   "damageType": "",
+   "heightened": {},
+   "heightenedEntries": [
+    {
+     "level": "+1",
+     "text": "Cada resistência aumenta em 2."
+    }
+   ],
+   "scaling": {
+    "components": [
+     {
+      "id": 0,
+      "formula": "2",
+      "kind": "resistance",
+      "types": [
+       "fire"
+      ],
+      "persistent": false,
+      "count": 0,
+      "faces": 0,
+      "flat": 2,
+      "nth": 0,
+      "occurrences": 2
+     },
+     {
+      "id": 1,
+      "formula": "2",
+      "kind": "resistance",
+      "types": [
+       "cold"
+      ],
+      "persistent": false,
+      "count": 0,
+      "faces": 0,
+      "flat": 2,
+      "nth": 1,
+      "occurrences": 2
+     }
+    ],
+    "rules": [
+     {
+      "level": "+1",
+      "adds": [
+       {
+        "id": 0,
+        "mode": "add",
+        "count": 0,
+        "faces": 0,
+        "flat": 2
+       },
+       {
+        "id": 1,
+        "mode": "add",
+        "count": 0,
+        "faces": 0,
+        "flat": 2
+       }
+      ],
+      "safe": true,
+      "resolved": true
+     }
+    ]
+   }
+  }
+ }
+}
