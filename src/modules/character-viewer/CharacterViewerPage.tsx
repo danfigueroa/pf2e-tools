@@ -10,6 +10,8 @@ import { CAMPAIGN_PRESETS } from './campaignPresets'
 import { charSlugFromName } from './charId'
 import { CharacterSheetView } from './CharacterSheetView'
 import { curatedBase } from './combatGuides'
+import { characterDescriptionNames } from './descriptionNames'
+import { loadSheetDescriptions } from '../../services/descriptions'
 
 const SESSION_KEY = 'pf2e:viewer:lastBuild'
 /** Slug da ficha publicada aberta — ao recarregar, relê a versão da mesa. */
@@ -97,10 +99,14 @@ export const CharacterViewerPage = () => {
         const base = curatedBase(pending.build)
         try {
             const sheet = await publication.publish(pending.json)
-            show(parseCharacterJson(sheet.json), sheet)
+            const published = parseCharacterJson(sheet.json)
+            show(published, sheet)
             setPending(null)
             setPublishedNotice(`${sheet.name} publicada para a mesa.`)
             void publication.generateGuide(sheet, base)
+            // Já, antes de qualquer jogador abrir: a mesa encontra todas as descrições
+            // traduzidas. Num level-up quase tudo vem do pacote estático e só o novo é traduzido.
+            void loadSheetDescriptions(sheet.slug, characterDescriptionNames(published))
         } catch (e) {
             setPublishError(e instanceof Error ? e.message : 'Falha ao publicar')
         } finally {
@@ -113,7 +119,9 @@ export const CharacterViewerPage = () => {
         if (!slug) return
         try {
             const sheet = await publication.restore(slug)
-            show(parseCharacterJson(sheet.json), sheet)
+            const restored = parseCharacterJson(sheet.json)
+            show(restored, sheet)
+            void loadSheetDescriptions(sheet.slug, characterDescriptionNames(restored))
             setPublishedNotice('Versão anterior restaurada.')
         } catch (e) {
             setPublishedNotice(e instanceof Error ? e.message : 'Falha ao restaurar')
