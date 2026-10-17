@@ -1,0 +1,680 @@
+{
+ "version": "v13",
+ "character": "Brukuthur, The Barbarian Android",
+ "entries": {
+  "spell": {
+   "Sure Strike": {
+    "name": "Sure Strike",
+    "level": 1,
+    "sourceBook": "Player Core, p. 361",
+    "actions": "Single Action",
+    "traits": [
+     "Concentrate",
+     "Fortune"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "até o fim de seu turno",
+    "defense": "",
+    "description": "Na próxima vez que você realizar um teste de ataque antes do final do seu turno, role-o duas vezes e use o melhor resultado. O ataque ignora penalidades de circunstância ao teste de ataque e qualquer teste simples exigido devido ao alvo estar oculto ou escondido. Você fica então temporariamente imune a sure strike por 10 minutos.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   }
+  },
+  "feat": {
+   "Adopted Ancestry": {
+    "name": "Adopted Ancestry",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "description": "Você está totalmente imerso na cultura e nas tradições de outra ancestralidade, seja por ter nascido nelas, conquistado através de um rito de passagem ou vinculado por uma amizade profunda ou romance. Escolha uma ancestralidade comum ou outra ancestralidade à qual você tenha acesso. Você pode selecionar talentos de ancestralidade da ancestralidade que escolheu, além da ancestralidade do seu próprio personagem, desde que os talentos de ancestralidade não exijam qualquer característica fisiológica que você não possua, conforme determinado pelo GM."
+   },
+   "Advanced Maneuver": {
+    "name": "Advanced Maneuver",
+    "level": 6,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Fighter"
+    ],
+    "sourceBook": "Player Core, p. 219",
+    "prerequisites": "Manobra Básica",
+    "description": "Você ganha um talento de fighter. Para fins de cumprir seus pré-requisitos, seu nível de fighter é igual à metade do nível do seu personagem. Especial Você pode selecionar este talento mais de uma vez. Cada vez que o selecionar, você ganha outro talento de fighter."
+   },
+   "Advanced Targeting System": {
+    "name": "Advanced Targeting System",
+    "level": 5,
+    "actions": "",
+    "traits": [
+     "Android"
+    ],
+    "category": "feat",
+    "sourceBook": "Ancestry Guide, p. 72",
+    "description": "Seus processadores oculares são aprimorados com sistemas de mira avançados, que permitem que você identifique seu inimigo com mais facilidade e leia seus movimentos. Você pode conjurar true strike uma vez por dia como uma magia inata arcana de 1º nível."
+   },
+   "Alchemical Crafting": {
+    "name": "Alchemical Crafting",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "prerequisites": "Treinado em Crafting",
+    "description": "Você pode usar a atividade Craft para criar itens alquímicos. Ao selecionar este talento, você adiciona imediatamente as fórmulas de quatro itens alquímicos comuns de 1º nível ao seu livro de fórmulas."
+   },
+   "Arcane Propulsion": {
+    "name": "Arcane Propulsion",
+    "level": 9,
+    "actions": "Two Actions",
+    "traits": [
+     "Arcane",
+     "Automaton"
+    ],
+    "category": "feat",
+    "sourceBook": "Guns &amp; Gears (Remastered), p. 41",
+    "frequency": "uma vez por dia",
+    "description": "Você redireciona energia do seu núcleo para portas em suas costas ou pés, permitindo que você voe por um curto período. Você pode manter essa energia redirecionada por 5 minutos. Você ganha um deslocamento de voo igual ao seu deslocamento enquanto redireciona a energia. Aprimoramento Você pode manter seu voo por mais tempo. Você pode redirecionar sua energia o tempo todo, permitindo que você voe sempre que quiser, em vez de apenas uma vez por dia por 5 minutos."
+   },
+   "Artisan Android": {
+    "name": "Artisan Android",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Ancestry Guide, p. 71",
+    "description": "Heritage Artisan Android Seu corpo foi originalmente projetado para criar obras de arte, ferramentas complexas ou manter maquinário avançado. Você se torna treinado em Crafting (ou outra perícia se você já for treinado em Crafting), e você ganha o talento de perícia Specialty Crafting em uma especialidade de sua escolha."
+   },
+   "Assurance": {
+    "name": "Assurance",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Fortune",
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "prerequisites": "treinado em pelo menos uma perícia",
+    "description": "Mesmo nas piores circunstâncias, você consegue realizar tarefas básicas. Escolha uma perícia na qual você seja treinado. Você pode abrir mão de rolar um teste de perícia para essa perícia para, em vez disso, receber um resultado de 10 + seu bônus de proficiência (não aplique quaisquer outros bônus, penalidades ou modificadores). Esclarecimento da Paizo: O que acontece com habilidades que dependem da sua rolagem quando você define seu dado para um certo resultado em vez de rolar de fato? Tipicamente, ainda conta como uma rolagem para habilidades que são ativadas pela sua rolagem. Por exemplo, se você usou Assurance para obter automaticamente um resultado de 10 + seu bônus de proficiência e isso resultaria em um sucesso, uma habilidade que se aplica a essa perícia e diz \"quando você rolar um sucesso, você obtém um sucesso crítico em vez disso\" ainda elevaria seu resultado para um sucesso crítico. Embora essa regra geral deva se aplicar na maior parte do tempo, um Mestre pode decidir de outra forma em certas circunstâncias com base nas habilidades específicas e seus temas. Especial: Você pode selecionar este talento múltiplas vezes. A cada vez, escolha uma perícia diferente e obtenha os benefícios para essa perícia."
+   },
+   "Basic Maneuver": {
+    "name": "Basic Maneuver",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Fighter"
+    ],
+    "sourceBook": "Player Core, p. 219",
+    "prerequisites": "Fighter Dedication",
+    "description": "Você ganha um talento de lutador de 1º ou 2º nível."
+   },
+   "Correct the Story": {
+    "name": "Correct The Story",
+    "level": 6,
+    "actions": "Reaction",
+    "traits": [
+     "Misfortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "trigger": "Um inimigo obtém um sucesso crítico em um teste de ataque ou salvaguarda.",
+    "description": "Você conhece bem a história da sua jornada e pode corrigi-la quando seu inimigo a conta incorretamente. Gaste um Mythic Point. O inimigo deve rolar novamente o teste de ataque ou salvaguarda que causou a ativação e ficar com o novo resultado."
+   },
+   "Divert Destiny": {
+    "name": "Divert Destiny",
+    "level": 6,
+    "actions": "Free Action",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "trigger": "Um ataque ou efeito reduziria você a 0 Pontos de Vida ou o mataria instantaneamente.",
+    "description": "Você desafia o destino à sua frente, recorrendo a fontes de vitalidade mítica para sustentar sua vida e permitir que você persevere. Você gasta 1 Mythic Point e sobrevive ao ataque ou efeito que causou a ativação, perde as condições wounded ou dying inteiramente, não aumenta sua condição doomed, e permanece consciente e de pé com um número de Pontos de Vida igual a 10 + seu nível, independentemente de quantos Pontos de Vida você tinha antes."
+   },
+   "Ears that Hear the Truth": {
+    "name": "Ears that Hear the Truth",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 81",
+    "description": "Você tem uma compreensão aguçada dos ritmos dos seres vivos, e nunca perde o tremor que trai uma mentira falada. Quando você tenta Sense Motive, ou quando você rola Perception para iniciativa, você pode gastar um Mythic Point para tentar o teste ou rolagem com proficiência mítica."
+   },
+   "Fighter Dedication": {
+    "name": "Fighter Dedication",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Archetype",
+     "Dedication",
+     "Multiclass"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Fighter"
+    ],
+    "sourceBook": "Player Core, p. 219",
+    "prerequisites": "Força +2; Destreza +2",
+    "description": "Você se torna treinado em armas marciais. Você se torna treinado em sua escolha de Acrobatics ou Athletics; se você já for treinado em ambas as perícias, você se torna treinado em uma perícia de sua escolha. Você se torna treinado na CD de classe de lutador."
+   },
+   "Flip": {
+    "name": "Farabellus Flip",
+    "level": 4,
+    "actions": "Reaction",
+    "traits": [
+     "Barbarian",
+     "Fighter",
+     "Ranger",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "PFS Guide, p. 119",
+    "prerequisites": "Treinado em Acrobacia; treinado em armadura média",
+    "trigger": "Um inimigo tem você como alvo de um Strike corpo a corpo.",
+    "access": "Membro da Pathfinder Society.",
+    "description": "Surpreendentemente ágil mesmo usando uma couraça e carregando uma mochila cheia, Marcos Farabellus desenvolveu esta manobra evasiva durante uma de suas muitas aventuras. Lançando seu corpo em uma cambalhota giratória, você ganha um bônus de circunstância de +2 na sua CA contra o ataque que desencadeou a ação. Se o ataque ainda assim lhe atingir, você pode usar Step para um espaço livre que ainda esteja dentro do alcance do inimigo que desencadeou a ação, transformando o impacto do golpe em impulso. Swords Training Fonte PFS Guide pág. 119 Marcos Farabellus (Lost Omens Pathfinder Society Guide página 50) é um espadachim talentoso e provavelmente o mais amado dos três reitores da Sociedade. Além de ensinar seus alunos sobre os perigos de explorar ruínas através de palestras enérgicas e performáticas, Farabellus também ensina a seus alunos favoritos algumas das técnicas marciais que ele desenvolveu ao longo de sua ilustre carreira. O Farabellus Flip é um talento de classe para bárbaros, guerreiros ou patrulheiros. Quando você seleciona o talento, ele perde os traços das outras classes. Talentos Relacionados: Discerning Strike"
+   },
+   "Giant's Stature": {
+    "name": "Giant's Stature",
+    "level": 6,
+    "actions": "Single Action",
+    "traits": [
+     "Barbarian",
+     "Polymorph",
+     "Primal",
+     "Rage"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 79",
+    "prerequisites": "Giant instinct",
+    "requirements": "Você é Médio ou menor.",
+    "description": "Você cresce para um tamanho incrível. Você se torna Grande, aumentando seu alcance em 1,5 metros e ganhando a condição clumsy 1 até que você pare de entrar em fúria. Seu equipamento cresce com você."
+   },
+   "Godspeed": {
+    "name": "Godspeed",
+    "level": 4,
+    "actions": "Single Action",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "description": "O poder mítico lhe concede velocidade para rivalizar com bestas e semideuses. Gaste um Ponto Mítico; pelo próximo minuto, você ganha um bônus de status de 3 metros em todos os seus Deslocamentos e fica quickened. Você pode usar a ação extra a cada rodada para Stride, Step ou Leap."
+   },
+   "Intimidating Glare": {
+    "name": "Intimidating Glare",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 257",
+    "prerequisites": "Treinado em Intimidação",
+    "description": "Você pode usar Demoralize com um simples olhar. Quando o faz, Demoralize perde o traço auditivo e ganha o traço visual, e você não sofre penalidade se a criatura não entender seu idioma."
+   },
+   "Inventor": {
+    "name": "Inventor",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Downtime",
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 257",
+    "prerequisites": "Perito em Crafting",
+    "description": "Você é um gênio em Crafting, capaz de determinar facilmente como as coisas são feitas e criar novas invenções. Você pode gastar tempo de inatividade para inventar uma fórmula comum que você não conhece. Isso funciona exatamente como a atividade Craft: você gasta metade do Preço da fórmula adiantado, tenta um teste de Crafting e, em um sucesso, termina a fórmula pagando a diferença ou trabalha por mais tempo para diminuir o Preço. A diferença é que você gasta o tempo adicional em pesquisa, design e desenvolvimento, em vez de criar um item. Assim que estiver completo, você adiciona a nova fórmula que inventou ao seu livro de fórmulas. O Mestre pode permitir que você invente fórmulas incomuns ou raras, geralmente com uma CD aumentada. Você precisa do talento Alchemical Crafting para inventar fórmulas alquímicas e do talento Magical Crafting para inventar fórmulas mágicas."
+   },
+   "Magical Crafting": {
+    "name": "Magical Crafting",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 258",
+    "prerequisites": "Perito em Crafting",
+    "description": "Você pode usar Craft para itens mágicos, embora alguns tenham outros requisitos, conforme listado em GM Core. Quando você seleciona este talento, você ganha fórmulas para quatro itens mágicos comuns de 2º nível ou inferior."
+   },
+   "No Escape": {
+    "name": "No Escape",
+    "level": 2,
+    "actions": "Reaction",
+    "traits": [
+     "Barbarian",
+     "Rage"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 77",
+    "trigger": "Um inimigo ao seu alcance tenta se afastar de você.",
+    "description": "Você mantém o ritmo com um inimigo em retirada. Use Stride até o seu Deslocamento, seguindo o inimigo e mantendo-o ao seu alcance durante todo o movimento dele até que ele pare de se mover ou você tenha percorrido todo o seu Deslocamento. Você pode usar No Escape para Burrow, Climb, Fly ou Swim em vez de Stride se possuir o tipo de movimento correspondente."
+   },
+   "Quick Jump": {
+    "name": "Quick Jump",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 260",
+    "prerequisites": "Treinado em Athletics",
+    "description": "Você pode usar High Jump e Long Jump como uma única ação em vez de 2 ações. Se o fizer, você não realiza o Stride inicial (nem falha se não percorrer 3 metros com o Stride)."
+   },
+   "Quick Reversal": {
+    "name": "Quick Reversal",
+    "level": 4,
+    "actions": "Single Action",
+    "traits": [
+     "Fighter",
+     "Flourish",
+     "Press"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 143",
+    "requirements": "Você está flanqueado por pelo menos dois inimigos",
+    "description": "Você volta o flanking de seus inimigos contra eles com uma reversão rápida. Realize um Strike corpo a corpo contra um dos inimigos que está flanqueando você e realize um segundo Strike com a mesma arma ou ataque desarmado contra um inimigo diferente que também está flanqueando você. Este segundo Strike possui a mesma penalidade de ataque múltiplo do ataque inicial e não conta para a sua penalidade de ataque múltiplo."
+   },
+   "Radiant Circuitry": {
+    "name": "Radiant Circuitry",
+    "level": 1,
+    "actions": "Single Action",
+    "traits": [
+     "Android",
+     "Concentrate",
+     "Light"
+    ],
+    "category": "feat",
+    "sourceBook": "Ancestry Guide, p. 72",
+    "description": "Seus circuitos biológicos emitem luz como uma tocha, emitindo luz plena em um raio de 6 metros (e luz tenue pelos próximos 6 metros). A luz se apaga quando você usa esta ação novamente ou fica inconsciente."
+   },
+   "Reactive Striker": {
+    "name": "Reactive Striker",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Fighter",
+     "Eagle Knight",
+     "Blackjacket",
+     "Ulfen Guard"
+    ],
+    "sourceBook": "Player Core, p. 219",
+    "prerequisites": "Fighter Dedication ou Blackjacket Dedication",
+    "description": "Você ganha a reação Reactive Strike."
+   },
+   "Renewed Vigor": {
+    "name": "Renewed Vigor",
+    "level": 8,
+    "actions": "Single Action",
+    "traits": [
+     "Barbarian",
+     "Concentrate",
+     "Rage"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 81",
+    "description": "Através da névoa da batalha, você recupera rapidamente seu vigor de fúria. Você ganha Pontos de Vida temporários iguais à metade do seu nível mais o seu modificador de Constituição. Se você realizou uma ação de ataque neste turno, aumente o número de Pontos de Vida temporários para o seu nível mais o seu modificador de Constituição. Esses Pontos de Vida temporários duram até o fim da sua fúria."
+   },
+   "Slam Down": {
+    "name": "Slam Down",
+    "level": 4,
+    "actions": "Two Actions",
+    "traits": [
+     "Fighter",
+     "Flourish"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Mauler",
+     "Thlipit Contestant",
+     "Rivethun Invoker"
+    ],
+    "sourceBook": "Player Core, p. 143",
+    "prerequisites": "Treinado em Athletics",
+    "description": "Você faz um ataque para desequilibrar um oponente e, em seguida, segue imediatamente com uma varredura para derrubá-lo. Faça um Strike corpo a corpo. Se acertar e causar dano, você pode tentar um teste de Atletismo para Trip a criatura que você atingiu. Se estiver empunhando uma arma corpo a corpo de duas mãos, você pode ignorar o requisito de Trip de ter uma mão livre. Ambos os ataques contam para sua penalidade de ataques múltiplos, mas a penalidade não aumenta até que você tenha realizado ambos."
+   },
+   "Specialty Crafting": {
+    "name": "Specialty Crafting",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 262",
+    "prerequisites": "Treinado em Crafting",
+    "description": "Seu treinamento focou em Crafting um tipo específico de item. Selecione uma das especialidades listadas abaixo; você ganha um bônus de circunstância de +1 em testes de Crafting para Craft itens desse tipo. Se você for mestre em Crafting, esse bônus aumenta para +2. Se não estiver claro se a especialidade se aplica, o GM decide. Algumas especialidades podem se aplicar apenas parcialmente. Por exemplo, se você estivesse fazendo uma morningstar e tivesse especialidade em marcenaria, o GM poderia lhe dar metade do seu bônus porque o item requer tanto ferraria quanto marcenaria. ## Specialty Crafting Specialty Itens Aplicáveis Alchemy* Itens alquímicos, como elixires Artistry Belas artes, incluindo joias Blacksmithing Bens de metal duráveis, incluindo armaduras de metal Bookmaking Livros e papel Glassmaking Vidro, incluindo artigos de vidro e janelas Leatherworking Bens de couro, incluindo armaduras de couro Pottery Bens de cerâmica Shipbuilding Navios e barcos Stonemasonry Bens e estruturas de pedra Tailoring Vestuário Weaving Tecidos, cestas e tapetes Woodworking Bens e estruturas de madeira * Requer Alchemical Crafting para Craft."
+   },
+   "Sudden Charge": {
+    "name": "Sudden Charge",
+    "level": 1,
+    "actions": "Two Actions",
+    "traits": [
+     "Barbarian",
+     "Fighter",
+     "Flourish"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 141",
+    "description": "Com uma arrancada rápida, você corre até seu oponente e desfere um golpe. Stride duas vezes. Se você terminar seu movimento dentro do alcance corpo a corpo de pelo menos um inimigo, você pode fazer um Strike corpo a corpo contra esse inimigo. Você pode usar Sudden Charge enquanto estiver Burrowing, Climbing, Flying ou Swimming em vez de Stride se você tiver o tipo de movimento correspondente."
+   },
+   "Summon Mythic Power": {
+    "name": "Summon Mythic Power",
+    "level": 8,
+    "actions": "Single Action",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 83",
+    "frequency": "uma vez por dia",
+    "description": "Você invoca o destino, a divindade ou qualquer outro poder que o trouxe até aqui, exigindo que ele o leve um pouco mais longe. Você recupera 1 Mythic Point."
+   },
+   "Terrifying Howl": {
+    "name": "Terrifying Howl",
+    "level": 10,
+    "actions": "Single Action",
+    "traits": [
+     "Auditory",
+     "Barbarian",
+     "Rage"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 82",
+    "description": "Você solta um uivo aterrorizante. Tente testes de Intimidação para Demoralize cada inimigo em um raio de 30 pés: você não sofre penalidade se a criatura não entender seu idioma. Independentemente dos resultados de seus testes, cada alvo fica temporariamente imune a Terrifying Howl por 1 minuto."
+   },
+   "Toughness": {
+    "name": "Toughness",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 263",
+    "description": "Seu corpo pode suportar mais punição do que a maioria antes de sucumbir. Aumente seus Pontos de Vida máximos pelo seu nível. Você reduz a CD dos testes de recuperação em 1."
+   },
+   "Vicious Swing": {
+    "name": "Vicious Swing",
+    "level": 1,
+    "actions": "Two Actions",
+    "traits": [
+     "Fighter",
+     "Flourish"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Mauler",
+     "Battle Harbinger"
+    ],
+    "sourceBook": "Player Core, p. 141",
+    "description": "Você desfere um ataque particularmente poderoso que golpeia seu inimigo, mas o deixa um pouco instável. Realize um Strike corpo a corpo. Isso conta como dois ataques ao calcular sua penalidade de ataque múltiplo. Se este Strike atingir, você causa um dado extra de dano de arma. Se você for pelo menos de 10º nível, aumente isso para dois dados extras, e se você for pelo menos de 18º nível, aumente para três dados extras."
+   }
+  },
+  "special": {
+   "Artisan Android": {
+    "name": "Artisan Android",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Ancestry Guide, p. 71",
+    "description": "Heritage Artisan Android Seu corpo foi originalmente projetado para criar obras de arte, ferramentas complexas ou manter maquinário avançado. Você se torna treinado em Crafting (ou outra perícia se você já for treinado em Crafting), e você ganha o talento de perícia Specialty Crafting em uma especialidade de sua escolha."
+   },
+   "Brutality": {
+    "name": "Brutality",
+    "level": 5,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Barbarian",
+    "sourceBook": "Player Core 2, p. 70",
+    "description": "Sua fúria torna suas armas letais. Seus graus de proficiência para armas simples, armas marciais e ataques desarmados aumentam para perito. Enquanto estiver em fúria, você possui os benefícios de especialização crítica para armas corpo a corpo e ataques desarmados."
+   },
+   "Constructed (Android)": {
+    "name": "Constructed",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "familiar-ability",
+    "sourceBook": "Grand Bazaar, p. 23",
+    "description": "Habilidade de Familiar Habilidade Construída Tipo de Familiar Específico - Clockwork Familiar Seu Clockwork Familiar é feito de metal em vez de carne e osso, embora ainda seja delicado o suficiente em certos lugares para ser vulnerável à violência da mesma maneira que uma criatura viva. Ele é imune a sangramento, efeitos de morte, doença, doomed, drained, fatigado, cura, necromancia, ataques não letais, paralisado, veneno, sickened e inconsciente. Ele pode recuperar Pontos de Vida apenas através da ação Repair e outros métodos que consertam itens, não de qualquer forma de cura de Pontos de Vida. Ele é destruído com 0 Pontos de Vida."
+   },
+   "Emotionally Unaware": {
+    "name": "Master Strike",
+    "level": 19,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Rogue",
+    "sourceBook": "Core Rulebook, p. 178",
+    "description": "Você pode incapacitar um inimigo desatento com um único Strike. Seu grau de proficiência para a CD de classe de ladino aumenta para mestre. Você ganha a ação livre Master Strike."
+   },
+   "Furious Footfalls": {
+    "name": "Furious Footfalls",
+    "level": 3,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Barbarian",
+    "sourceBook": "Player Core 2, p. 70",
+    "description": "O impulso de lutar leva você sempre adiante. Você ganha um bônus de status de +1,5 metros à sua Velocidade. Este bônus aumenta para +3 metros enquanto você estiver em fúria."
+   },
+   "Giant Instinct": {
+    "name": "Instinct",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Barbarian",
+    "sourceBook": "Core Rulebook, p. 82",
+    "description": "Sua fúria brota de um instinto dominante — um que você aprendeu de uma tradição ou que vem naturalmente para você. Seu instinto lhe concede uma habilidade, exige que você evite certos comportamentos, concede a você aumento de dano e resistências em níveis mais altos e permite que você selecione talentos ligados ao seu instinto. Instintos podem ser encontrados aqui."
+   },
+   "Giant Instinct Raging Resistance": {
+    "name": "Raging Resistance",
+    "level": 9,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Barbarian",
+    "sourceBook": "Core Rulebook, p. 82",
+    "description": "Exposição repetida e pele calejada permitem que você se defenda de danos. Enquanto estiver em Rage, você ganha resistência igual a 3 + seu modificador de Constituição a tipos de dano baseados no seu instinct. Veja os instincts específicos para mais informações."
+   },
+   "Giant Instinct Specialization Ability": {
+    "name": "Instinct",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Barbarian",
+    "sourceBook": "Core Rulebook, p. 82",
+    "description": "Sua fúria brota de um instinto dominante — um que você aprendeu de uma tradição ou que vem naturalmente para você. Seu instinto lhe concede uma habilidade, exige que você evite certos comportamentos, concede a você aumento de dano e resistências em níveis mais altos e permite que você selecione talentos ligados ao seu instinto. Instintos podem ser encontrados aqui."
+   },
+   "Guardian's Calling": {
+    "name": "Guardian's Calling",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Calling",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "mythic-calling",
+    "sourceBook": "War of Immortals, p. 80",
+    "description": "Edictos coloque-se em perigo para proteger seus aliados ou criaturas inocentes sob ameaça Anátema recuar de uma batalha enquanto seus aliados ou espectadores inocentes estiverem em perigo sem fazer todos os esforços razoáveis para resgatá-los primeiro"
+   },
+   "Juggernaut": {
+    "name": "Juggernaut",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Barbarian",
+    "sourceBook": "Player Core 2, p. 70",
+    "description": "Seu corpo está acostumado a dificuldades físicas e é resistente a doenças. Sua graduação de proficiência para testes de Fortitude aumenta para mestre. Quando você rolar um sucesso em um teste de Fortitude, você obtém um sucesso crítico em vez disso."
+   },
+   "Low-Light Vision": {
+    "name": "Low-Light Vision",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "rules",
+    "sourceBook": "Player Core, p. 433",
+    "description": "Regras Low-Light Vision Uma criatura com Low-Light Vision pode enxergar na penumbra como se fosse luz plena, portanto ela ignora a condição concealed devido à penumbra."
+   },
+   "Quick-Tempered": {
+    "name": "Quick-Tempered",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Barbarian",
+    "sourceBook": "Player Core 2, p. 70",
+    "description": "Você ganha a ação livre Quick-Tempered, que permite que você use Rage à menor provocação."
+   },
+   "Rage": {
+    "name": "Rage",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Barbarian",
+    "sourceBook": "Player Core 2, p. 70",
+    "description": "Você ganha a ação Rage, que permite que você entre em um frenesi."
+   },
+   "Raging Resistance": {
+    "name": "Raging Resistance",
+    "level": 9,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Barbarian",
+    "sourceBook": "Player Core 2, p. 70",
+    "description": "A exposição repetida e a pele calejada permitem que você se defenda de danos. Enquanto estiver em Rage, você ganha resistência igual a 3 + seu modificador de Constituição contra tipos de dano baseados no seu instinto."
+   },
+   "Reactive Strike": {
+    "name": "Reactive Strike",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Fighter",
+    "sourceBook": "Player Core, p. 136",
+    "description": "Sempre atento a fraquezas, você pode atacar rapidamente inimigos que deixam uma abertura em suas defesas. Você ganha a reação Reactive Strike."
+   },
+   "Reflex Expertise": {
+    "name": "Reflex Expertise",
+    "level": 3,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Bard",
+    "sourceBook": "Player Core, p. 94",
+    "description": "Você desenvolveu um talento para desviar do perigo. Sua graduação de proficiência para testes de Reflexo aumenta para perito."
+   },
+   "Rewrite Fate": {
+    "name": "Rewrite Fate",
+    "level": null,
+    "actions": "Free Action",
+    "traits": [
+     "Fortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "action",
+    "sourceBook": "War of Immortals, p. 78",
+    "trigger": "Você rola um teste de perícia ou uma salvaguarda e não gosta do resultado.",
+    "description": "O destino, a sorte ou alguma outra força se curva ao seu redor à medida que seu poder mítico aumenta, manifestando-se em um clarão de luz ou em uma onda visível de energia emanando de seu corpo enquanto você se livra das correntes do destino. Você gasta um Mythic Point e rola novamente o teste ou salvaguarda com proficiência mítica, assumindo o novo resultado."
+   },
+   "Weapon Specialization": {
+    "name": "Weapon Specialization",
+    "level": 13,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Alchemist",
+    "sourceBook": "Core Rulebook, p. 66",
+    "description": "Você aprendeu como infligir ferimentos maiores com as armas que conhece melhor. Você causa 2 de dano adicional com armas e ataques desarmados nos quais você é perito. Esse dano aumenta para 3 se você for mestre, e para 4 se você for lendário."
+   }
+  },
+  "item": {
+   "Elixir of Life (Lesser)": {
+    "name": "Elixir of Life (Lesser)",
+    "level": 5,
+    "actions": "Single Action",
+    "traits": [
+     "Alchemical",
+     "Consumable",
+     "Elixir",
+     "Healing"
+    ],
+    "category": "equipment",
+    "sourceBook": "Player Core 2, p. 288",
+    "description": "Elixires da vida aceleram os processos de cura natural e o sistema imunológico de uma criatura viva. Ao beber este elixir, você recupera o número listado de Pontos de Vida e ganha um bônus de item em testes de resistência contra doenças e venenos por 10 minutos. Elixir of Life (Minor) Fonte Player Core 2 pg. 288, GM Core pg. 247, Core Rulebook pg. 548 Preço 3 po Volume L O elixir restaura 1d6 Pontos de Vida, e o bônus é +1. Elixir of Life (Lesser) Fonte Player Core 2 pg. 288, GM Core pg. 247, Core Rulebook pg. 548 Preço 30 po Volume L O elixir restaura 3d6+6 Pontos de Vida, e o bônus é +1. Elixir of Life (Moderate) Fonte Player Core 2 pg. 288, GM Core pg. 247, Core Rulebook pg. 548 Preço 150 po Volume L O elixir restaura 5d6+12 Pontos de Vida, e o bônus é +2. Elixir of Life (Greater) Fonte Player Core 2 pg. 288, GM Core pg. 247, Core Rulebook pg. 548 Preço 600 po Volume L O elixir restaura 7d6+18 Pontos de Vida, e o bônus é +2. Elixir of Life (Major) Fonte Player Core 2 pg. 288, GM Core pg. 247, Core Rulebook pg. 548 Preço 1.300 po Volume L O elixir restaura 8d6+21 Pontos de Vida, e o bônus é +3. Elixir of Life (True) Fonte Player Core 2 pg. 288, GM Core pg. 247, Core Rulebook pg. 548 Preço 8.000 po Volume L O elixir restaura 10d6+27 Pontos de Vida, e o bônus é +4."
+   },
+   "Greataxe": {
+    "name": "Greataxe",
+    "level": 0,
+    "actions": "",
+    "traits": [
+     "Sweep"
+    ],
+    "category": "weapon",
+    "sourceBook": "Player Core, p. 278",
+    "description": "Este machado de batalha grande é pesado demais para ser empunhado com apenas uma mão. Muitos machados grandes incorporam duas lâminas, e eles são frequentemente \"barbudos\", possuindo um gancho na parte inferior para aumentar a força de seu poder de corte. Critical Specialization Effects Fonte Core Rulebook pg. 283 Certos talentos, características de classe, runas de arma e outros efeitos podem conceder a você benefícios adicionais quando você realiza um Strike com certas armas e obtém um sucesso crítico. Isso é chamado de efeito de especialização crítica. O efeito exato depende de qual grupo de arma sua arma pertence, conforme listado abaixo. Você sempre pode decidir não adicionar o efeito de especialização crítica da sua arma. Clique aqui para as regras completas sobre Critical Specialization Effects. Specific Magic Weapons Blackaxe, Jorngarl's Harm, Kithrender, Retribution Axe"
+   },
+   "Studded Leather Armor": {
+    "name": "Studded Leather Armor",
+    "level": 0,
+    "actions": "",
+    "traits": [],
+    "category": "armor",
+    "sourceBook": "Player Core, p. 273",
+    "description": "Esta armadura de couro é reforçada com tachas de metal e, às vezes, pequenas placas de metal, proporcionando a maior parte da flexibilidade da armadura de couro com uma proteção mais robusta. Armor Specialization Effects Fonte Core Rulebook pg. 275 Certas características de classe podem conceder a você benefícios adicionais com certas armaduras. Isso é chamado de efeito de especialização de armadura. O efeito exato depende de qual grupo de armadura sua armadura pertence, conforme listado abaixo. Apenas armaduras médias e pesadas possuem efeitos de especialização de armadura. Clique aqui para as regras completas sobre Armor Specialization Effects. Specific Magic Armor Autoload Leathers, Devil's Bargain, Grisly Brigandine, Hodag Leather, Locust Leather, Umbral Armor, Wasp Guard, Winged Terror"
+   }
+  }
+ }
+}

@@ -1,0 +1,608 @@
+{
+ "version": "v13",
+ "character": "Ghan Buri",
+ "entries": {
+  "spell": {},
+  "feat": {
+   "Bastion Dedication": {
+    "name": "Bastion Dedication",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Archetype",
+     "Dedication"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Bastion"
+    ],
+    "sourceBook": "Player Core 2, p. 187",
+    "prerequisites": "Shield Block",
+    "description": "Você é particularmente habilidoso em usar um escudo para se proteger em combate. Você ganha o talento de guerreiro Reactive Shield."
+   },
+   "Battle Medicine": {
+    "name": "Battle Medicine",
+    "level": 1,
+    "actions": "Single Action",
+    "traits": [
+     "General",
+     "Healing",
+     "Manipulate",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 253",
+    "prerequisites": "Treinado em Medicine",
+    "requirements": "Você está segurando ou usando um healer's toolkit.",
+    "description": "Você pode tratar ferimentos, mesmo em combate. Tente um teste de Medicine com a mesma CD de Treat Wounds e restaure a quantidade correspondente de PV; isso não remove a condição wounded. Assim como em Treat Wounds, você pode tentar testes contra CDs mais altas se tiver o grau de proficiência mínimo. O alvo fica então imune ao seu Battle Medicine por 1 dia. Isso não o torna imune a, ou conta de outra forma como, Treat Wounds."
+   },
+   "Blind-Fight": {
+    "name": "Blind-Fight",
+    "level": 8,
+    "actions": "",
+    "traits": [
+     "Fighter",
+     "Investigator",
+     "Ranger",
+     "Rogue"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Horizon Walker",
+     "Exorcist",
+     "Eagle Knight",
+     "Hellbreaker"
+    ],
+    "sourceBook": "Player Core, p. 145",
+    "prerequisites": "mestre em Percepção",
+    "description": "Seus instintos de batalha tornam você mais atento a oponentes ocultos e invisíveis. Você não precisa ter sucesso em um teste simples para alvejar criaturas ocultas. Você não fica off-guard para criaturas que estão escondidas de você (a menos que você esteja off-guard para elas por motivos além da condição hidden), e você precisa apenas de um teste simples de CD 5 bem-sucedido para alvejar uma criatura escondida. Enquanto você estiver adjacente a uma criatura não detectada de seu nível ou inferior, ela passa a estar apenas escondida de você."
+   },
+   "Cognitive Crossover": {
+    "name": "Kreighton's Cognitive Crossover",
+    "level": 4,
+    "actions": "Reaction",
+    "traits": [
+     "General",
+     "Skill",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "PFS Guide, p. 119",
+    "trigger": "Você não obtém nenhuma informação de um teste de Record Knowledge (geralmente porque você falhou no teste secreto) usando uma das duas perícias que você escolheu para este talento.",
+    "access": "Membro da Pathfinder Society.",
+    "description": "Kreighton ensina a seus estudantes que uma mente ágil pode colher pistas que levam à verdade, mesmo das fontes mais improváveis. Você tenta novamente o teste que desencadeou a ação usando a outra perícia escolhida. Especial: Quando você ganha este talento, escolha duas das seguintes perícias: Arcanismo, Ofício, Conhecimento (qualquer um), Medicina, Natureza, Ocultismo, Religião ou Sociedade. Scrolls Training Fonte: PFS Guide pág. 119. O Mestre dos Pergaminhos da Sociedade, Kreighton Shaine (Lost Omens Pathfinder Society Guide página 42), pode ser considerado estranho e distraído por seus pares, mas o capitão de empreitada elfo leva seus deveres muito a sério. Habilidoso em pesquisar assuntos obscuros e desvendar segredos inescrutáveis, Kreighton ensina a seus estudantes o valor de uma mente inquisitiva. Talentos Relacionados:"
+   },
+   "Correct the Story": {
+    "name": "Correct The Story",
+    "level": 6,
+    "actions": "Reaction",
+    "traits": [
+     "Misfortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "trigger": "Um inimigo obtém um sucesso crítico em um teste de ataque ou salvaguarda.",
+    "description": "Você conhece bem a história da sua jornada e pode corrigi-la quando seu inimigo a conta incorretamente. Gaste um Mythic Point. O inimigo deve rolar novamente o teste de ataque ou salvaguarda que causou a ativação e ficar com o novo resultado."
+   },
+   "Destructive Block": {
+    "name": "Destructive Block",
+    "level": 10,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Bastion"
+    ],
+    "sourceBook": "Player Core 2, p. 187",
+    "prerequisites": "Bastion Dedication",
+    "description": "Você pode se proteger de forma mais eficaz, às custas do seu escudo. Quando você usa Shield Block, você pode reduzir o dano sofrido pelo dobro da Dureza do escudo, mas se o fizer, o escudo recebe o dobro da quantidade normal de dano que teria recebido (antes de aplicar sua Dureza). Você não pode usar Destructive Block se seu escudo normalmente não puder ser quebrado ou destruído, como se você estiver usando um escudo indestrutível."
+   },
+   "Devoted Guardian": {
+    "name": "Devoted Guardian",
+    "level": 2,
+    "actions": "Single Action",
+    "traits": [
+     "Champion",
+     "Fighter",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "Knights of Lastwall, p. 82",
+    "requirements": "Sua última ação foi Raise a Shield.",
+    "access": "Cavaleiros de Lastwall têm acesso a este talento.",
+    "description": "Você adota uma postura ampla, pronto para defender tanto a si mesmo quanto seu protegido escolhido. Selecione uma criatura adjacente. Contanto que seu escudo esteja erguido e a criatura permaneça adjacente a você, a criatura ganha um bônus de circunstância de +1 na sua CA, ou um bônus de circunstância de +2 se o escudo que você ergueu for um escudo de torre."
+   },
+   "Disarming Block": {
+    "name": "Disarming Block",
+    "level": 4,
+    "actions": "Free Action",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Bastion"
+    ],
+    "sourceBook": "Player Core 2, p. 187",
+    "prerequisites": "Bastion Dedication; treinado em Atletismo",
+    "trigger": "Você usa Shield Block contra um Strike corpo a corpo feito com uma arma empunhada.",
+    "description": "Com um movimento ágil e praticado, você bloqueia em um ângulo para potencialmente deslocar a arma. Você tenta um Disarm contra a criatura cujo ataque você bloqueou, visando a arma com a qual ela o atacou. Você pode fazer isso mesmo se não tiver uma mão livre."
+   },
+   "Ears that Hear the Truth": {
+    "name": "Ears that Hear the Truth",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 81",
+    "description": "Você tem uma compreensão aguçada dos ritmos dos seres vivos, e nunca perde o tremor que trai uma mentira falada. Quando você tenta Sense Motive, ou quando você rola Perception para iniciativa, você pode gastar um Mythic Point para tentar o teste ou rolagem com proficiência mítica."
+   },
+   "Exacting Strike": {
+    "name": "Exacting Strike",
+    "level": 1,
+    "actions": "Single Action",
+    "traits": [
+     "Fighter",
+     "Press"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 140",
+    "description": "Você faz um ataque de acompanhamento controlado, levando em conta totalmente seu momento. Faça um Strike. O Strike ganha o seguinte efeito de falha. Falha Este ataque não conta para sua penalidade de ataques múltiplos."
+   },
+   "Fearsome Brute": {
+    "name": "Fearsome Brute",
+    "level": 10,
+    "actions": "",
+    "traits": [
+     "Fighter"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Hellknight"
+    ],
+    "sourceBook": "Player Core, p. 147",
+    "description": "O medo torna seus inimigos fracos e mais vulneráveis aos seus ataques. Você ganha um bônus de circunstância em rolagens de dano para Strikes contra criaturas frightened. O bônus é igual ao dobro do valor de frightened do alvo. Se você for mestre em Intimidação, aumente o bônus para o triplo do valor de frightened do alvo."
+   },
+   "Fiery Rebirth": {
+    "name": "Fiery Rebirth",
+    "level": 4,
+    "actions": "Free Action",
+    "traits": [
+     "Fire",
+     "Healing",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "Pathfinder #216: The Acropolis Pyre, p. 82",
+    "trigger": "Você recupera Pontos de Vida enquanto está inconsciente.",
+    "description": "Quando você escapa da morte, você retorna à vida com um fogo retributivo que queima aqueles que lhe causaram dano. Você gasta 1 Mythic Point, retorna à consciência, usa a ação Stand e recupera Pontos de Vida adicionais iguais ao seu nível. Você então entra em combustão, causando dano de fogo igual ao dobro do seu nível a inimigos adjacentes, com um teste básico de Reflexos contra a sua CD de classe. Inimigos que falharem criticamente no teste também são empurrados 5 pés para longe de você."
+   },
+   "Fleet": {
+    "name": "Fleet",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 256",
+    "description": "Você se move mais rapidamente a pé. Seu Deslocamento aumenta em 5 pés."
+   },
+   "Impeccable Crafting": {
+    "name": "Impeccable Crafting",
+    "level": 7,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 256",
+    "prerequisites": "Mestre em Crafting; Specialty Crafting",
+    "description": "Você cria obras impecáveis com grande eficiência. Sempre que você rolar um sucesso em um teste de Crafting para fabricar um item do tipo que você escolheu com Specialty Crafting, você obtém um sucesso crítico em vez disso."
+   },
+   "Intimidating Glare": {
+    "name": "Intimidating Glare",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 257",
+    "prerequisites": "Treinado em Intimidação",
+    "description": "Você pode usar Demoralize com um simples olhar. Quando o faz, Demoralize perde o traço auditivo e ganha o traço visual, e você não sofre penalidade se a criatura não entender seu idioma."
+   },
+   "Jotunborn Weapon Familiarity": {
+    "name": "Jotunborn Weapon Familiarity",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Jotunborn"
+    ],
+    "category": "feat",
+    "sourceBook": "Battlecry!, p. 13",
+    "description": "Você ganha acesso a todas as armas incomuns com o traço jotunborn. Você tem familiaridade com armas com o traço jotunborn mais a bola, greataxe, halberd, maul, longspear e war flail — para fins de proficiência, você trata qualquer uma dessas que sejam armas marciais como armas simples e qualquer uma que seja uma arma avançada como arma marcial."
+   },
+   "Mythic Strike": {
+    "name": "Mythic Strike",
+    "level": 10,
+    "actions": "Single Action",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 84",
+    "description": "Você infunde sua arma ou ataque desarmado com poder mítico antes de desferir um golpe contra um inimigo com força devastadora. Gaste um Mythic Point e então realize um Strike contra uma criatura com uma arma que você esteja empunhando ou um ataque desarmado que você tenha disponível. Este Strike é feito com proficiência mítica, e a arma ou ataque desarmado conta como uma arma mítica para fins de superar resistência mítica ou imunidade mítica."
+   },
+   "Planar Resilience": {
+    "name": "Planar Resilience",
+    "level": 5,
+    "actions": "",
+    "traits": [
+     "Jotunborn"
+    ],
+    "category": "feat",
+    "sourceBook": "Battlecry!, p. 14",
+    "description": "Seu corpo se adaptou à variedade de climas rigorosos que você encontra em suas viagens. Você trata efeitos ambientais baseados em temperatura como se fossem um grau menos extremos (frio ou calor incrível torna-se extremo, frio ou calor extremo torna-se severo, e assim por diante). Adicionalmente, as energias planares que fluem através de você permitem que você adapte ainda mais seu corpo com alguma concentração e esforço. Durante suas preparações diárias, escolha frio ou fogo. Você ganha resistência a esse dano igual à metade do seu nível (mínimo 1)."
+   },
+   "Plane Step": {
+    "name": "Plane Step",
+    "level": 9,
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Jotunborn",
+     "Move",
+     "Occult",
+     "Teleportation"
+    ],
+    "category": "feat",
+    "sourceBook": "Battlecry!, p. 14",
+    "description": "Você se move temporariamente para além do limite do plano atual, garantindo a si mesmo ocultamento até o final do seu próximo turno. Você permanece claramente visível enquanto pisa fora de um plano desta maneira e você não pode usar este ocultamento para Hide ou Sneak."
+   },
+   "Quick Repair": {
+    "name": "Quick Repair",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 260",
+    "prerequisites": "Treinado em Crafting",
+    "description": "Para você, a atividade Repair perde o traço de exploração e leva 1 minuto em vez de 10 minutos. Se você for mestre em Crafting, ela leva 3 ações. Se você for lendário, ela leva 1 ação."
+   },
+   "Quick Reversal": {
+    "name": "Quick Reversal",
+    "level": 4,
+    "actions": "Single Action",
+    "traits": [
+     "Fighter",
+     "Flourish",
+     "Press"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 143",
+    "requirements": "Você está flanqueado por pelo menos dois inimigos",
+    "description": "Você volta o flanking de seus inimigos contra eles com uma reversão rápida. Realize um Strike corpo a corpo contra um dos inimigos que está flanqueando você e realize um segundo Strike com a mesma arma ou ataque desarmado contra um inimigo diferente que também está flanqueando você. Este segundo Strike possui a mesma penalidade de ataque múltiplo do ataque inicial e não conta para a sua penalidade de ataque múltiplo."
+   },
+   "Quick Shield Block": {
+    "name": "Quick Shield Block",
+    "level": 8,
+    "actions": "",
+    "traits": [
+     "Champion",
+     "Fighter"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Bastion",
+     "Viking"
+    ],
+    "sourceBook": "Player Core, p. 147",
+    "prerequisites": "Shield Block",
+    "description": "Você consegue colocar seu escudo em posição quase sem pensar. No início de cada um dos seus turnos, você ganha uma reação adicional que pode usar apenas para Shield Block."
+   },
+   "Reactive Shield": {
+    "name": "Reactive Shield",
+    "level": 1,
+    "actions": "Reaction",
+    "traits": [
+     "Fighter",
+     "Guardian"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Viking"
+    ],
+    "sourceBook": "Player Core, p. 140",
+    "trigger": "Um inimigo acerta você com um Strike corpo a corpo",
+    "requirements": "Você está empunhando um escudo",
+    "description": "Você consegue colocar seu escudo em posição exatamente quando receberia um golpe, evitando o acerto no último segundo. Você usa imediatamente a ação Raise a Shield e ganha o bônus do seu escudo na CA. O bônus de circunstância do escudo se aplica à sua CA quando você estiver determinando o resultado do ataque que serviu como gatilho."
+   },
+   "Reflexive Shield": {
+    "name": "Reflexive Shield",
+    "level": 6,
+    "actions": "",
+    "traits": [
+     "Fighter",
+     "Guardian"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Bastion",
+     "Golden Legionnaire"
+    ],
+    "sourceBook": "Player Core, p. 145",
+    "description": "Você pode usar seu escudo para se defender de explosões e similares. Quando você usa Raise a Shield, você ganha o bônus de circunstância do seu escudo em testes de Reflexos. Especial: Se você tiver a reação Shield Block, o dano que você sofrer como resultado de um teste de Reflexos pode ativar essa reação, mesmo que o dano não seja dano físico."
+   },
+   "Robust Health": {
+    "name": "Robust Health",
+    "level": 3,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 233",
+    "description": "Sua fisiologia responde bem aos primeiros socorros. Você ganha um bônus de circunstância no número de Pontos de Vida que recupera igual ao seu nível a partir de uma tentativa bem-sucedida de Treat Wounds ou usar Battle Medicine em você. Após você ou um aliado usar Battle Medicine em você, você se torna temporariamente imune àquele Battle Medicine por apenas 1 hora, em vez de 1 dia."
+   },
+   "Shield Block": {
+    "name": "Shield Block",
+    "level": 1,
+    "actions": "Reaction",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 262",
+    "trigger": "Enquanto você estiver com seu escudo erguido, você receberia dano físico (concussão, perfuração ou corte) de um ataque.",
+    "description": "Você coloca seu escudo no lugar para aparar um golpe. Seu escudo impede que você receba uma quantidade de dano até a Dureza do escudo. Você e o escudo recebem qualquer dano restante, possivelmente quebrando ou destruindo o escudo."
+   },
+   "Shield Warden": {
+    "name": "Shield Warden",
+    "level": 6,
+    "actions": "",
+    "traits": [
+     "Champion",
+     "Commander",
+     "Fighter"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Knight Vigilant",
+     "Bastion",
+     "Ulfen Guard",
+     "Golden Legionnaire"
+    ],
+    "sourceBook": "Player Core, p. 145",
+    "prerequisites": "Shield Block",
+    "description": "Quando você estiver com um escudo erguido, você pode usar sua reação Shield Block quando um ataque for feito contra um aliado adjacente a você. Se você fizer isso, o escudo impede que aquele aliado receba dano em vez de impedir que você receba dano, seguindo as regras normais para Shield Block."
+   },
+   "Shielded Stride": {
+    "name": "Shielded Stride",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Fighter"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Bastion",
+     "Viking"
+    ],
+    "sourceBook": "Player Core, p. 143",
+    "description": "Quando seu escudo está erguido, os golpes de seus inimigos não podem tocar você. Quando você estiver com seu escudo erguido, você pode usar Stride para se mover metade do seu Deslocamento sem desencadear reações que são desencadeadas pelo seu movimento (como Reactive Strikes). Você pode usar Shielded Stride enquanto estiver Voando ou Nadando em vez de usar Stride se você possuir o tipo de movimento correspondente."
+   },
+   "Specialty Crafting": {
+    "name": "Specialty Crafting",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 262",
+    "prerequisites": "Treinado em Crafting",
+    "description": "Seu treinamento focou em Crafting um tipo específico de item. Selecione uma das especialidades listadas abaixo; você ganha um bônus de circunstância de +1 em testes de Crafting para Craft itens desse tipo. Se você for mestre em Crafting, esse bônus aumenta para +2. Se não estiver claro se a especialidade se aplica, o GM decide. Algumas especialidades podem se aplicar apenas parcialmente. Por exemplo, se você estivesse fazendo uma morningstar e tivesse especialidade em marcenaria, o GM poderia lhe dar metade do seu bônus porque o item requer tanto ferraria quanto marcenaria. ## Specialty Crafting Specialty Itens Aplicáveis Alchemy* Itens alquímicos, como elixires Artistry Belas artes, incluindo joias Blacksmithing Bens de metal duráveis, incluindo armaduras de metal Bookmaking Livros e papel Glassmaking Vidro, incluindo artigos de vidro e janelas Leatherworking Bens de couro, incluindo armaduras de couro Pottery Bens de cerâmica Shipbuilding Navios e barcos Stonemasonry Bens e estruturas de pedra Tailoring Vestuário Weaving Tecidos, cestas e tapetes Woodworking Bens e estruturas de madeira * Requer Alchemical Crafting para Craft."
+   },
+   "Summon Mythic Power": {
+    "name": "Summon Mythic Power",
+    "level": 8,
+    "actions": "Single Action",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 83",
+    "frequency": "uma vez por dia",
+    "description": "Você invoca o destino, a divindade ou qualquer outro poder que o trouxe até aqui, exigindo que ele o leve um pouco mais longe. Você recupera 1 Mythic Point."
+   },
+   "Warrior Jotunborn": {
+    "name": "Warrior Jotunborn",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Battlecry!, p. 12",
+    "description": "Heritage Warrior Jotunborn Seu corpo mais resistente fez de você um recruta perfeito para o combate. O dado de dano para seu punho aumenta para 1d6. Você não sofre penalidade ao realizar um ataque letal com seu punho. Talentos que requerem Warrior Jotunborn. Pounding Leap"
+   }
+  },
+  "special": {
+   "Artisan's Calling": {
+    "name": "Artisan's Calling",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Calling",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "mythic-calling",
+    "sourceBook": "War of Immortals, p. 79",
+    "description": "Edictos seja o primeiro a testar um item ou arma criado com suas próprias mãos, busque ou inove fórmulas para criações cada vez mais complexas Anátema destruir as criações de outros artesãos, recusar um pedido sincero para consertar algo que foi quebrado, usar uma arma ou item criado por outra pessoa, exceto com o propósito de aprender sua função para que você possa entender como criá-lo você mesmo"
+   },
+   "Battle Hardened": {
+    "name": "Battle Hardened",
+    "level": 9,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Fighter",
+    "sourceBook": "Player Core, p. 136",
+    "description": "Sua experiência em batalha ajuda a protegê-lo tanto contra magia quanto contra toxinas. Seu grau de proficiência para testes de Fortitude aumenta para mestre. Quando você rola um sucesso em um teste de Fortitude, você obtém um sucesso crítico em vez disso."
+   },
+   "Battlefield Surveyor": {
+    "name": "Battlefield Surveyor",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Fighter",
+    "sourceBook": "Player Core, p. 136",
+    "description": "Seja avaliando um exército inimigo ou simplesmente montando guarda, você se destaca em observar seus oponentes. Seu grau de proficiência para Percepção aumenta para mestre. Além disso, você ganha um bônus de circunstância de +2 em testes de Percepção para iniciativa, tornando-o mais rápido para reagir durante o combate."
+   },
+   "Bravery": {
+    "name": "Bravery",
+    "level": 3,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Fighter",
+    "sourceBook": "Player Core, p. 136",
+    "description": "Tendo enfrentado incontáveis inimigos e o caos da batalha, você aprendeu como se manter firme diante do medo. Seu grau de proficiência para testes de Vontade aumenta para perito. Quando você rola um sucesso em um teste de Vontade contra um efeito de medo, você obtém um sucesso crítico em vez disso. Além disso, sempre que você ganhar a condição frightened, reduza seu valor em 1."
+   },
+   "Combat Flexibility": {
+    "name": "Combat Flexibility",
+    "level": 9,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Fighter",
+    "sourceBook": "Player Core, p. 136",
+    "description": "Você pode preparar suas táticas para se adequar a diferentes situações. Quando você realiza suas preparações diárias, você ganha um talento de fighter de 8º nível ou inferior para o qual você atenda aos pré-requisitos e que você ainda não possua. Você pode usar esse talento até suas próximas preparações diárias."
+   },
+   "Hammer": {
+    "name": "Hammer",
+    "level": 0,
+    "actions": "",
+    "traits": [],
+    "category": "equipment",
+    "sourceBook": "Player Core, p. 288",
+    "description": "Item 0 Hammer Preço 1 sp Mãos 1 Volume L"
+   },
+   "Iivlar Weaving": {
+    "name": "Guardian's Armor",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Guardian",
+    "sourceBook": "Battlecry!, p. 37",
+    "description": "Mesmo quando você é atingido, sua armadura o protege de parte do dano. Enquanto estiver vestindo armadura média ou pesada, você ganha resistência a dano físico igual a 1 + metade do seu nível. Além disso, você pode descansar normalmente enquanto estiver vestindo armadura média ou pesada."
+   },
+   "Low-Light Vision": {
+    "name": "Low-Light Vision",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "rules",
+    "sourceBook": "Player Core, p. 433",
+    "description": "Regras Low-Light Vision Uma criatura com Low-Light Vision pode enxergar na penumbra como se fosse luz plena, portanto ela ignora a condição concealed devido à penumbra."
+   },
+   "Reactive Strike": {
+    "name": "Reactive Strike",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Fighter",
+    "sourceBook": "Player Core, p. 136",
+    "description": "Sempre atento a fraquezas, você pode atacar rapidamente inimigos que deixam uma abertura em suas defesas. Você ganha a reação Reactive Strike."
+   },
+   "Rewrite Fate": {
+    "name": "Rewrite Fate",
+    "level": null,
+    "actions": "Free Action",
+    "traits": [
+     "Fortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "action",
+    "sourceBook": "War of Immortals, p. 78",
+    "trigger": "Você rola um teste de perícia ou uma salvaguarda e não gosta do resultado.",
+    "description": "O destino, a sorte ou alguma outra força se curva ao seu redor à medida que seu poder mítico aumenta, manifestando-se em um clarão de luz ou em uma onda visível de energia emanando de seu corpo enquanto você se livra das correntes do destino. Você gasta um Mythic Point e rola novamente o teste ou salvaguarda com proficiência mítica, assumindo o novo resultado."
+   },
+   "Warrior Jotunborn": {
+    "name": "Warrior Jotunborn",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Battlecry!, p. 12",
+    "description": "Heritage Warrior Jotunborn Seu corpo mais resistente fez de você um recruta perfeito para o combate. O dado de dano para seu punho aumenta para 1d6. Você não sofre penalidade ao realizar um ataque letal com seu punho. Talentos que requerem Warrior Jotunborn. Pounding Leap"
+   },
+   "Weapon Specialization": {
+    "name": "Weapon Specialization",
+    "level": 13,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Alchemist",
+    "sourceBook": "Core Rulebook, p. 66",
+    "description": "Você aprendeu como infligir ferimentos maiores com as armas que conhece melhor. Você causa 2 de dano adicional com armas e ataques desarmados nos quais você é perito. Esse dano aumenta para 3 se você for mestre, e para 4 se você for lendário."
+   }
+  },
+  "item": {
+   "Fortress Shield": {
+    "name": "Fortress Shield",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Hefty"
+    ],
+    "category": "shield",
+    "sourceBook": "Treasure Vault (Remastered), p. 20",
+    "description": "Também conhecidos como muros portáteis, esses escudos grossos e pesados são ligeiramente maiores que os tower shields. Assim como os tower shields, eles são tipicamente feitos de madeira reforçada com metal, mas muitos são feitos com quantidades maiores de metal ou até mesmo pedra. Obter o bônus mais alto para um fortress shield requer usar a ação Take Cover enquanto o escudo estiver erguido."
+   },
+   "Hero's Plate": {
+    "name": "Hero's Plate",
+    "level": 10,
+    "actions": "",
+    "traits": [
+     "Magical",
+     "Rare"
+    ],
+    "category": "equipment",
+    "sourceBook": "Pathfinder #202: Severed at the Root, p. 77",
+    "description": "Imagens douradas de feitos heroicos decoram as placas negras desta +1 resilient full plate. Você ganha resistência 5 a dano mental e um bônus de status de +1 em testes de resistência contra medo. Ativar—Personal Legend Ação Única: (concentrar) Frequência uma vez por dia; Efeito As cenas retratadas em sua armadura se movem e mudam, abrindo espaço para acomodar seus feitos heroicos atuais. Você conjura heroism em si mesmo. Hero’s Plate Fonte Pathfinder #202: Severed at the Root pg. 77 Preço 1.000 po Greater Hero’s Plate Fonte Pathfinder #202: Severed at the Root pg. 77 Preço 22.500 po A armadura é uma +2 greater resilient full plate, a resistência aumenta para 10, o bônus de status aumenta para +2, e heroism é ampliada para o 6º círculo."
+   },
+   "Warhammer": {
+    "name": "Warhammer",
+    "level": 0,
+    "actions": "",
+    "traits": [
+     "Shove"
+    ],
+    "category": "weapon",
+    "sourceBook": "Player Core, p. 278",
+    "description": "Esta arma possui um cabo de madeira que termina em uma cabeça de metal grande e pesada. A cabeça do martelo pode ser de face única ou dupla, mas é sempre capaz de desferir poderosos golpes de concussão. Critical Specialization Effects Fonte Core Rulebook pg. 283 Certos talentos, características de classe, runas de arma e outros efeitos podem conceder a você benefícios adicionais quando você faz um Strike com certas armas e obtém um sucesso crítico. Isso é chamado de efeito de especialização crítica. O efeito exato depende de qual grupo de arma sua arma pertence, conforme listado abaixo. Você sempre pode decidir não adicionar o efeito de especialização crítica da sua arma. Clique aqui para as regras completas sobre Critical Specialization Effects. Armas Mágicas Específicas Blessed Reformer, Chimera's Claw, Draddeth's Edge, Sky Hammer, Storm Hammer"
+   }
+  }
+ }
+}

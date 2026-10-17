@@ -1,0 +1,1486 @@
+{
+ "version": "v13",
+ "character": "Cerosqualhanthallas",
+ "entries": {
+  "spell": {
+   "Darkvision": {
+    "name": "Darkvision",
+    "level": 2,
+    "heighten": [
+     "3rd",
+     "5th"
+    ],
+    "sourceBook": "Player Core, p. 322",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Primal",
+     "Elemental"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "1 hora",
+    "defense": "",
+    "description": "Você concede a si mesmo visão sobrenatural em áreas de escuridão. Você ganha darkvision.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "3rd",
+      "text": "O alcance da magia é toque e ela tem como alvo 1 criatura disposta."
+     },
+     {
+      "level": "5th",
+      "text": "O alcance da magia é toque e ela tem como alvo 1 criatura disposta. A duração é até suas próximas preparações diárias."
+     }
+    ]
+   },
+   "Electric Arc": {
+    "name": "Electric Arc",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 328",
+    "actions": "Two Actions",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Electricity",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "30 pés",
+    "area": "",
+    "targets": "1 ou 2 criaturas",
+    "duration": "",
+    "defense": "Reflexos básico",
+    "description": "Um arco de eletricidade salta de um alvo para outro. Cada alvo sofre 2d4 de dano de eletricidade com um teste básico de Reflexos.",
+    "damage": "2d4",
+    "damageType": "eletricidade",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "O dano aumenta em 1d4."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "2d4",
+       "kind": "damage",
+       "types": [
+        "electricity"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 4,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 4,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Fleet Step": {
+    "name": "Fleet Step",
+    "level": 1,
+    "sourceBook": "Player Core, p. 332",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "1 minuto",
+    "defense": "",
+    "description": "Você ganha um bônus de status de +30 pés ao seu Deslocamento.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Gravity Weapon": {
+    "name": "Gravity Weapon",
+    "level": 1,
+    "sourceBook": "Player Core, p. 383",
+    "actions": "Single Action",
+    "traits": [
+     "Focus",
+     "Ranger",
+     "Uncommon"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "1 minuto",
+    "defense": "",
+    "description": "Você acumula força gravitacional e a canaliza em seus golpes, levando a ataques mais poderosos tanto com lâmina quanto com arco. Em seu primeiro Strike com arma a cada rodada, você ganha um bônus de status ao dano igual ao dobro do número de dados de dano da arma.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Guidance": {
+    "name": "Guidance",
+    "level": 1,
+    "sourceBook": "Player Core, p. 334",
+    "actions": "Single Action",
+    "traits": [
+     "Cantrip",
+     "Concentrate"
+    ],
+    "traditions": [
+     "Divine",
+     "Occult",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "30 pés",
+    "area": "",
+    "targets": "1 criatura",
+    "duration": "até o início de seu próximo turno",
+    "defense": "",
+    "description": "Você pede a orientação de entidades sobrenaturais, concedendo ao alvo um bônus de status de +1 em um teste de ataque, teste de Percepção, teste de resistência ou teste de perícia que o alvo tente antes que a duração termine. O alvo escolhe em qual teste usar o bônus antes de rolar. Se o alvo usar o bônus, a magia termina. De qualquer forma, o alvo fica temporariamente imune por 1 hora.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Haste": {
+    "name": "Haste",
+    "level": 3,
+    "heighten": [
+     "7th"
+    ],
+    "sourceBook": "Player Core, p. 335",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "30 pés",
+    "area": "",
+    "targets": "1 criatura",
+    "duration": "1 minuto",
+    "defense": "",
+    "description": "A magia capacita o alvo a agir mais rápido. Ele ganha a condição quickened e pode usar a ação extra a cada rodada apenas para ações de Strike e Stride.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "7th",
+      "text": "Você pode ter como alvo até 6 criaturas."
+     }
+    ]
+   },
+   "Heal": {
+    "name": "Heal",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 335",
+    "actions": "Single Action to Three Actions",
+    "traits": [
+     "Healing",
+     "Manipulate",
+     "Vitality",
+     "Positive"
+    ],
+    "traditions": [
+     "Divine",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "varia",
+    "area": "",
+    "targets": "1 criatura viva disposta ou 1 criatura morta-viva",
+    "duration": "",
+    "defense": "",
+    "description": "Você canaliza energia vital para curar os vivos ou causar dano aos mortos-vivos. Se o alvo for uma criatura viva disposta, você restaura 1d8 Pontos de Vida. Se o alvo for um morto-vivo, você causa essa quantidade de dano de vitalidade a ele, e ele recebe um teste de Fortitude básico. O número de ações que você gasta ao conjurar esta magia determina seus alvos, alcance, área e outros parâmetros. Ação Única: A magia tem alcance de toque. Duas Ações: (concentrar) A magia tem alcance de 9 metros. Se você estiver curando uma criatura viva, aumente os Pontos de Vida restaurados em 8. Três Ações: (concentrar) Você dispersa energia vital em uma emanação de 9 metros. Isso tem como alvo todas as criaturas vivas e mortas-vivas na explosão.",
+    "damage": "1d8",
+    "damageType": "cura",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "A quantidade de cura ou dano aumenta em 1d8, e a cura extra para a versão de 2 ações aumenta em 8."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "1d8",
+       "kind": "healing",
+       "types": [],
+       "persistent": false,
+       "count": 1,
+       "faces": 8,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      },
+      {
+       "id": 1,
+       "formula": "8",
+       "kind": "healingExtra",
+       "types": [],
+       "persistent": false,
+       "count": 0,
+       "faces": 0,
+       "flat": 8,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 8,
+         "flat": 0
+        },
+        {
+         "id": 1,
+         "mode": "add",
+         "count": 0,
+         "faces": 0,
+         "flat": 8
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Holy Light": {
+    "name": "Holy Light",
+    "level": 3,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 335",
+    "actions": "Two Actions",
+    "traits": [
+     "Attack",
+     "Concentrate",
+     "Fire",
+     "Holy",
+     "Light",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Divine",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "120 pés",
+    "area": "",
+    "targets": "1 criatura",
+    "duration": "",
+    "defense": "CA",
+    "description": "Você brilha um raio flamejante de luz tingido com energia sagrada. Faça um teste de ataque de magia à distância. O raio causa 5d6 de dano de fogo. Se o alvo tiver o traço profano, você causa 5d6 de dano de espírito extra. Sucesso Crítico O alvo sofre dano dobrado. Sucesso O alvo sofre dano total. Se a luz passar por uma área de escuridão mágica ou tiver como alvo uma criatura afetada por escuridão mágica, a luz sagrada tenta anular a escuridão. Se você precisar determinar se a luz passa por uma área de escuridão, trace uma linha entre você e o alvo da magia.",
+    "damage": "5d6",
+    "damageType": "fogo",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "O dano de fogo aumenta em 2d6, e o dano de espírito contra criaturas profanas aumenta em 2d6."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "5d6",
+       "kind": "damage",
+       "types": [
+        "fire"
+       ],
+       "persistent": false,
+       "count": 5,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 2
+      },
+      {
+       "id": 1,
+       "formula": "5d6",
+       "kind": "damage",
+       "types": [
+        "spirit"
+       ],
+       "persistent": false,
+       "count": 5,
+       "faces": 6,
+       "flat": 0,
+       "nth": 1,
+       "occurrences": 2
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 2,
+         "faces": 6,
+         "flat": 0
+        },
+        {
+         "id": 1,
+         "mode": "add",
+         "count": 2,
+         "faces": 6,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Scorching Ray": {
+    "name": "Scorching Ray",
+    "level": 2,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Secrets of Magic, p. 127",
+    "actions": "Single Action to Three Actions",
+    "traits": [
+     "Attack",
+     "Evocation",
+     "Fire"
+    ],
+    "traditions": [
+     "Arcane",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "60 pés",
+    "area": "",
+    "targets": "1 ou more criaturas",
+    "duration": "",
+    "defense": "",
+    "description": "Você dispara um raio de calor e chama. Faça um teste de ataque de magia contra uma única criatura. Em um acerto, o alvo sofre 2d6 de dano de fogo, e em um acerto crítico, o alvo sofre dano dobrado. Para cada ação adicional que você usar ao conjurar a magia, você pode disparar um raio adicional em um alvo diferente, até um máximo de três raios visando três alvos diferentes por 3 ações. Cada um desses ataques aumenta sua penalidade de ataque múltiplo, mas você não aumenta sua penalidade de ataque múltiplo até depois de realizar todos os testes de ataque de magia para scorching ray. Se você gastar 2 ou mais ações conjurando a magia, o dano aumenta para 4d6 de dano de fogo em um acerto, e ele ainda causa dano dobrado em um acerto crítico.",
+    "damage": "2d6",
+    "damageType": "fogo",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "O dano a cada alvo aumenta em 1d6 para a versão de 1 ação, ou em 2d6 para as versões de 2 ações e 3 ações."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "2d6",
+       "kind": "damage",
+       "types": [
+        "fire"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      },
+      {
+       "id": 1,
+       "formula": "4d6",
+       "kind": "damage",
+       "types": [
+        "fire"
+       ],
+       "persistent": false,
+       "count": 4,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 6,
+         "flat": 0
+        },
+        {
+         "id": 1,
+         "mode": "add",
+         "count": 2,
+         "faces": 6,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Soothing Mist": {
+    "name": "Soothing Mist",
+    "level": 2,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 383",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Focus",
+     "Healing",
+     "Manipulate",
+     "Ranger",
+     "Uncommon",
+     "Vitality",
+     "Positive"
+    ],
+    "castComponents": "",
+    "range": "30 pés",
+    "area": "",
+    "targets": "1 criatura viva disposta ou 1 criatura morta-viva",
+    "duration": "",
+    "defense": "",
+    "description": "Você invoca uma névoa mágica que envolve uma criatura. A névoa restaura 2d8 Pontos de Vida a uma criatura viva alvo e encerra uma fonte de dano persistente de ácido, sangramento, fogo, veneno ou vazio que a esteja afetando. Se a criatura estiver sofrendo dano persistente de múltiplas fontes, você seleciona qual delas é removida. Contra um alvo morto-vivo, você causa 2d8 de dano de vitalidade (teste de Fortitude básico); se ele falhar no teste, ele também sofre 2 de dano de vitalidade persistente.",
+    "damage": "2d8",
+    "damageType": "vitalidade",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "A quantidade de cura (ou dano a um alvo morto-vivo) aumenta em 1d8, e o dano de vitalidade persistente a uma criatura morta-viva aumenta em 1."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "2d8",
+       "kind": "healing",
+       "types": [],
+       "persistent": false,
+       "count": 2,
+       "faces": 8,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 2
+      },
+      {
+       "id": 1,
+       "formula": "2d8",
+       "kind": "damage",
+       "types": [
+        "vitality"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 8,
+       "flat": 0,
+       "nth": 1,
+       "occurrences": 2
+      },
+      {
+       "id": 2,
+       "formula": "2",
+       "kind": "damage",
+       "types": [
+        "vitality"
+       ],
+       "persistent": true,
+       "count": 0,
+       "faces": 0,
+       "flat": 2,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 8,
+         "flat": 0
+        },
+        {
+         "id": 1,
+         "mode": "add",
+         "count": 1,
+         "faces": 8,
+         "flat": 0
+        },
+        {
+         "id": 2,
+         "mode": "add",
+         "count": 0,
+         "faces": 0,
+         "flat": 1
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Summon Elemental": {
+    "name": "Summon Elemental",
+    "level": 2,
+    "heighten": [
+     "3rd",
+     "4th",
+     "5th",
+     "6th",
+     "7th",
+     "8th",
+     "9th",
+     "10th"
+    ],
+    "sourceBook": "Player Core, p. 360",
+    "actions": "Three Actions",
+    "traits": [
+     "Concentrate",
+     "Manipulate",
+     "Summon"
+    ],
+    "traditions": [
+     "Arcane",
+     "Primal",
+     "Elemental"
+    ],
+    "castComponents": "",
+    "range": "30 pés",
+    "area": "",
+    "targets": "",
+    "duration": "sustentada até 1 minuto",
+    "defense": "",
+    "description": "Você invoca uma criatura que possui o traço elemental e cujo nível seja 1 ou inferior para lutar por você.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "3rd",
+      "text": "Nível 2."
+     },
+     {
+      "level": "4th",
+      "text": "Nível 3."
+     },
+     {
+      "level": "5th",
+      "text": "Nível 5."
+     },
+     {
+      "level": "6th",
+      "text": "Nível 7."
+     },
+     {
+      "level": "7th",
+      "text": "Nível 9."
+     },
+     {
+      "level": "8th",
+      "text": "Nível 11."
+     },
+     {
+      "level": "9th",
+      "text": "Nível 13."
+     },
+     {
+      "level": "10th",
+      "text": "Nível 15."
+     }
+    ]
+   },
+   "Tempest Surge": {
+    "name": "Tempest Surge",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 382",
+    "actions": "Two Actions",
+    "traits": [
+     "Air",
+     "Concentrate",
+     "Druid",
+     "Electricity",
+     "Focus",
+     "Manipulate",
+     "Uncommon"
+    ],
+    "castComponents": "",
+    "range": "30 pés",
+    "area": "",
+    "targets": "1 criatura",
+    "duration": "",
+    "defense": "Reflexos básico",
+    "description": "Você cerca um inimigo em uma tempestade rodopiante de ventos violentos, nuvens agitadas e relâmpagos estalantes. A tempestade causa 1d12 de dano de eletricidade ao alvo com um teste de Reflexos básico. Em uma falha, o alvo também fica clumsy 2 por 1 rodada.",
+    "damage": "1d12",
+    "damageType": "eletricidade",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "O dano inicial aumenta em 1d12."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "1d12",
+       "kind": "damage",
+       "types": [
+        "electricity"
+       ],
+       "persistent": false,
+       "count": 1,
+       "faces": 12,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 12,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Terrain Transposition": {
+    "name": "Terrain Transposition",
+    "level": 5,
+    "sourceBook": "Player Core, p. 384",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Focus",
+     "Manipulate",
+     "Ranger",
+     "Teleportation",
+     "Uncommon"
+    ],
+    "castComponents": "",
+    "range": "90 pés",
+    "area": "",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "Você transpõe misticamente sua localização atual com outra. Enquanto estiver em um ambiente de natureza selvagem, você transporta a si mesmo e os itens que estiver segurando para um espaço livre que você possa ver dentro do alcance. Se você possuir Favored Terrain e tanto sua posição inicial quanto a final estiverem em seu terreno favorecido, o alcance aumenta para 180 pés. Se você possuir um animal companion e ele estiver adjacente a você, você pode transportá-lo junto com você para um espaço aberto adjacente, mas se esta magia trouxer qualquer outra criatura com você, mesmo em um recipiente extradimensional, a magia é perdida.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   }
+  },
+  "feat": {
+   "Additional Lore": {
+    "name": "Additional Lore",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "description": "Seu conhecimento se expandiu para abranger um novo campo. Escolha uma subcategoria de perícia Lore. Você se torna treinado nela. Nos níveis 3, 7 e 15, você ganha um aumento de perícia adicional que pode aplicar apenas à subcategoria de Lore escolhida. Especial Você pode selecionar este talento mais de uma vez. A cada vez, você deve selecionar uma nova subcategoria de Lore e ganha os aumentos de perícia adicionais para essa subcategoria nos níveis listados."
+   },
+   "Additional Recollection": {
+    "name": "Additional Recollection",
+    "level": 6,
+    "actions": "Free Action",
+    "traits": [
+     "Ranger"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 159",
+    "trigger": "Você obtém sucesso ou sucesso crítico em um teste para Recall Knowledge sobre sua hunted prey.",
+    "description": "Você examina o campo de batalha rapidamente, lembrando-se de detalhes críticos sobre múltiplos oponentes que enfrenta. Você tenta imediatamente um teste para Recall Knowledge sobre uma criatura diferente que você consegue perceber."
+   },
+   "Advanced Warden": {
+    "name": "Advanced Warden",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Ranger"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Beastmaster"
+    ],
+    "sourceBook": "Player Core, p. 159",
+    "prerequisites": "Initiate Warden",
+    "description": "Você desbloqueia magias primais mais poderosas. Você ganha sua escolha de uma warden spell das advanced warden spells (ou outra a qual você tenha acesso). Especial Você pode pegar este talento múltiplas vezes, escolhendo uma advanced warden spell diferente a cada vez."
+   },
+   "Advanced Wilding": {
+    "name": "Advanced Wilding",
+    "level": 6,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Druid"
+    ],
+    "sourceBook": "Player Core, p. 218",
+    "prerequisites": "Basic Wilding",
+    "description": "Você ganha um talento de druida. Para fins de cumprir seus pré-requisitos, seu nível de druida é igual à metade do seu nível de personagem. Especial Você pode selecionar este talento mais de uma vez. A cada vez que você o seleciona, você ganha outro talento de druida."
+   },
+   "Aiuvarin": {
+    "name": "Aiuvarin",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Player Core, p. 82",
+    "description": "Heritage Aiuvarin Você tem elfos, ou possivelmente outros aiuvarins, em sua árvore genealógica. Você tem orelhas pontudas e outros sinais reveladores de herança élfica. Você ganha o traço elf, o traço aiuvarin e visão na penumbra. Além disso, quando você ganha um talento de ancestralidade, você pode escolher entre talentos de aiuvarin e elf além daqueles da sua ancestralidade."
+   },
+   "Ancestral Paragon": {
+    "name": "Ancestral Paragon",
+    "level": 3,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "description": "Seja por instinto, estudo ou magia, você sente uma conexão mais profunda com sua ancestralidade. Você ganha um talento de ancestralidade de 1º nível."
+   },
+   "Ancestral Suspicion": {
+    "name": "Ancestral Suspicion",
+    "level": 5,
+    "actions": "",
+    "traits": [
+     "Elf"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 48",
+    "description": "Elfos de vida longa viram civilizações ascenderem e caírem, frequentemente pelas mãos de forças externas. Como resultado, eles desenvolveram uma cautela em relação a outros que poderiam tentar influenciá-los ou controlá-los. Você foi treinado para resistir a tal manipulação, ganhando um bônus de circunstância de +2 em testes de resistência contra efeitos que o tornariam controlado, como dominate, e em testes de Percepção para Sense Motive ao tentar determinar se uma criatura está sob a influência de tal efeito. Quando você rola um sucesso em um teste de resistência contra tal efeito, você obtém um sucesso crítico em vez disso."
+   },
+   "Arms that Cut the Waves": {
+    "name": "Arms that Cut the Waves",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 81",
+    "description": "Rio, lago, mar ou oceano, a água chama por você, e você não teme suas profundezas. Quando você tenta um teste de Atletismo para Swim, você pode gastar um Mythic Point para tentar o teste com proficiência mítica. Quando você estiver prestes a ficar sem ar e começar a sufocar, você pode, em vez disso, gastar um Mythic Point para prender a respiração por mais 10 rodadas."
+   },
+   "Basic Druid Spellcasting": {
+    "name": "Basic Druid Spellcasting",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Druid"
+    ],
+    "sourceBook": "Player Core, p. 218",
+    "prerequisites": "Druid Dedication",
+    "description": "Você ganha os benefícios básicos de conjuração."
+   },
+   "Basic Wilding": {
+    "name": "Basic Wilding",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Druid"
+    ],
+    "sourceBook": "Player Core, p. 218",
+    "prerequisites": "Druid Dedication",
+    "description": "Você ganha um talento de druida de 1º ou 2º nível."
+   },
+   "Correct the Story": {
+    "name": "Correct The Story",
+    "level": 6,
+    "actions": "Reaction",
+    "traits": [
+     "Misfortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "trigger": "Um inimigo obtém um sucesso crítico em um teste de ataque ou salvaguarda.",
+    "description": "Você conhece bem a história da sua jornada e pode corrigi-la quando seu inimigo a conta incorretamente. Gaste um Mythic Point. O inimigo deve rolar novamente o teste de ataque ou salvaguarda que causou a ativação e ficar com o novo resultado."
+   },
+   "Deadly Aim": {
+    "name": "Deadly Aim",
+    "level": 8,
+    "actions": "Single Action",
+    "traits": [
+     "Flourish",
+     "Ranger"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 161",
+    "prerequisites": "weapon specialization",
+    "description": "Você mira nos pontos fracos da sua presa, tornando seu disparo mais desafiador, mas causando mais dano se você acertar. Faça um Strike à distância contra sua presa caçada com uma penalidade de -2. Você ganha um bônus de circunstância de +4 no dano desse Strike. Este bônus aumenta para +6 no 11º nível e +8 no 15º nível."
+   },
+   "Druid Dedication": {
+    "name": "Druid Dedication",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Archetype",
+     "Dedication",
+     "Multiclass"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Druid"
+    ],
+    "sourceBook": "Player Core, p. 218",
+    "prerequisites": "Sabedoria +2",
+    "description": "Você conjura magias como um druida. Você ganha a ação Cast a Spell. Você pode preparar dois truques comuns a cada dia da lista de magias primais ou quaisquer outros truques primais que você aprender ou descobrir. Você é treinado no modificador de ataque mágico e nas estatísticas de CD de magia. Seu atributo chave de conjuração para magias de arquétipo de druida é Sabedoria, e elas são magias primais de druida. Você aprende o idioma Wildsong, e você está vinculado ao anátema do druida. Escolha uma ordem druídica. Você se torna um membro dessa ordem e também está vinculado ao seu anátema específico, permitindo que você escolha os talentos da ordem. Você se torna treinado em Natureza e na perícia associada à sua ordem; para cada uma dessas perícias nas quais você já era treinado, você se torna treinado em uma perícia de sua escolha. Você não ganha nenhuma outra habilidade da sua escolha de ordem."
+   },
+   "Forager": {
+    "name": "Forager",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 256",
+    "prerequisites": "Treinado em Sobrevivência",
+    "description": "Ao usar Sobrevivência para Subsistir, se você rolar qualquer resultado pior que um sucesso, você obtém um sucesso. Em um sucesso, você pode prover uma vida de subsistência para si mesmo e quatro criaturas adicionais, e em um sucesso crítico, você pode cuidar do dobro de criaturas adicionais. Você pode optar por sustentar metade do número de criaturas com uma vida confortável. Aumente o número de criaturas adicionais que você alimenta em um sucesso para oito se você for perito em Sobrevivência, 16 se for mestre e 32 se for lendário."
+   },
+   "General Training": {
+    "name": "General Training",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Human"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 64",
+    "description": "Sua adaptabilidade se manifesta em seu domínio de uma gama de habilidades úteis. Você ganha um talento geral de 1º nível. Você deve atender aos pré-requisitos do talento, mas se você selecionar este talento durante a criação de personagem, você pode selecionar o talento mais tarde no processo para determinar quais pré-requisitos você atende. Especial Você pode selecionar este talento múltiplas vezes, escolhendo um talento diferente a cada vez."
+   },
+   "Godspeed": {
+    "name": "Godspeed",
+    "level": 4,
+    "actions": "Single Action",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "description": "O poder mítico lhe concede velocidade para rivalizar com bestas e semideuses. Gaste um Ponto Mítico; pelo próximo minuto, você ganha um bônus de status de 3 metros em todos os seus Deslocamentos e fica quickened. Você pode usar a ação extra a cada rodada para Stride, Step ou Leap."
+   },
+   "Hunter's Aim": {
+    "name": "Hunter's Aim",
+    "level": 2,
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Ranger"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Game Hunter"
+    ],
+    "sourceBook": "Player Core, p. 158",
+    "description": "Quando você se concentra em mirar, seu ataque se torna particularmente preciso. Faça um Strike com arma à distância contra sua hunted prey. Neste Strike, você ganha um bônus de circunstância de +2 no teste de ataque e ignora a condição concealed e qualquer lesser cover da sua presa."
+   },
+   "Incredible Initiative": {
+    "name": "Incredible Initiative",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 256",
+    "description": "Você reage mais rapidamente do que os outros conseguem. Você ganha um bônus de circunstância de +2 em testes de iniciativa."
+   },
+   "Initiate Warden": {
+    "name": "Initiate Warden",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Ranger"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Beastmaster"
+    ],
+    "sourceBook": "Player Core, p. 157",
+    "description": "Você treinou com uma das seitas de ranger conhecidas como wardens, que praticam um tipo especializado de magia primal. Você ganha sua escolha de uma warden spell dentre as warden spells iniciais (ou outra a qual você tenha acesso). Especial Você pode pegar este talento múltiplas vezes, escolhendo uma warden spell inicial diferente a cada vez."
+   },
+   "Multilingual": {
+    "name": "Multilingual",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 258",
+    "prerequisites": "Treinado em Sociedade",
+    "description": "Você aprende novos idiomas facilmente. Você aprende dois novos idiomas, escolhidos dentre idiomas comuns, idiomas incomuns e quaisquer outros aos quais você tenha acesso. Você aprende um idioma adicional se for ou se tornar mestre em Sociedade e novamente se for ou se tornar lendário. Especial Você pode selecionar este talento múltiplas vezes. Cada vez, você aprende idiomas adicionais."
+   },
+   "Mythic Magic": {
+    "name": "Mythic Magic",
+    "level": 8,
+    "actions": "",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 83",
+    "description": "Você converte seu poder mítico em um efeito mágico. Quando você ganha este talento, escolha até três magias de 1º ou 2º círculo que levem no máximo 3 ações para serem conjuradas e que sejam instantâneas ou tenham uma duração de 10 minutos ou menos. Você pode gastar um Mythic Point para conjurar qualquer uma dessas magias pelo seu custo normal de ações e usar a proficiência mítica para determinar seus testes de ataque de magia e CDs de magia, e as magias são automaticamente aprimoradas para um círculo igual à metade do seu nível (arredondado para cima). Se você normalmente não possui a habilidade de conjurar magias, você usa Carisma como seu modificador de atributo de conjuração; caso contrário, você usa a habilidade de conjuração associada à sua classe conjuradora. Você ganha a atividade Cast a Spell apenas para magias conjuradas com este talento; você não ganha, de outra forma, os benefícios típicos de ser um conjurador. Especial No 14º nível, adicione uma magia de 3º círculo para você conjurar usando esta habilidade. No 20º nível, adicione uma magia de 4º círculo."
+   },
+   "Mythic Strike": {
+    "name": "Mythic Strike",
+    "level": 10,
+    "actions": "Single Action",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 84",
+    "description": "Você infunde sua arma ou ataque desarmado com poder mítico antes de desferir um golpe contra um inimigo com força devastadora. Gaste um Mythic Point e então realize um Strike contra uma criatura com uma arma que você esteja empunhando ou um ataque desarmado que você tenha disponível. Este Strike é feito com proficiência mítica, e a arma ou ataque desarmado conta como uma arma mítica para fins de superar resistência mítica ou imunidade mítica."
+   },
+   "Natural Medicine": {
+    "name": "Natural Medicine",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 258",
+    "prerequisites": "Treinado em Natureza",
+    "description": "Você pode aplicar curas naturais para curar seus aliados. Você pode usar Natureza em vez de Medicina para Treat Wounds, incluindo o fato de que uma proficiência maior em Natureza permite que você tente testes mais difíceis. Isso não substitui Medicina para usos da perícia que não sejam Treat Wounds ou para pré-requisitos de talentos. Se você estiver na natureza selvagem, você pode ter acesso mais fácil a ingredientes frescos, permitindo que você ganhe um bônus de circunstância de +2 no seu teste para Treat Wounds usando Natureza, sujeito à determinação do GM."
+   },
+   "Natural Skill": {
+    "name": "Natural Skill",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Human"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 64",
+    "description": "Sua engenhosidade permite que você aprenda uma ampla variedade de perícias. Você ganha a graduação de proficiência treinado em duas perícias à sua escolha."
+   },
+   "Order Spell": {
+    "name": "Order Spell",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Druid"
+    ],
+    "sourceBook": "Player Core, p. 218",
+    "prerequisites": "Druid Dedication",
+    "description": "Você ganha a magia de ordem inicial da sua ordem. Esta é uma magia de foco, concedendo-lhe uma reserva de foco ou expandindo essa reserva. Você pode Refocus sendo um com a natureza. (Para mais sobre magias de foco, veja a página 298.)"
+   },
+   "Peerless Warden": {
+    "name": "Peerless Warden",
+    "level": 10,
+    "actions": "",
+    "traits": [
+     "Ranger"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 161",
+    "prerequisites": "Initiate Warden",
+    "description": "Seu domínio da magia primal lhe deu acesso aos maiores segredos da magia de guardião. Você ganha, à sua escolha, uma magia de guardião dentre as peerless warden spells (ou outra a qual você tenha acesso). Especial Você pode escolher este talento múltiplas vezes, escolhendo uma peerless warden spell diferente a cada vez."
+   },
+   "Pinch Time": {
+    "name": "Pinch Time",
+    "level": 9,
+    "actions": "",
+    "traits": [
+     "Half-Elf",
+     "Aiuvarin"
+    ],
+    "category": "feat",
+    "sourceBook": "Advanced Player's Guide, p. 47",
+    "description": "Um de seus pais tem uma expectativa de vida humana e o outro uma expectativa de vida élfica, com a sua própria em algum lugar entre as duas. Como resultado, você tem uma perspectiva incomum sobre o tempo, a qual aprendeu a manifestar para ajudar a si mesmo em momentos de estresse. Você ganha haste como uma magia inata arcana de 3º nível, embora você possa ter como alvo apenas a si mesmo. Você pode conjurar esta magia uma vez por dia."
+   },
+   "Robust Health": {
+    "name": "Robust Health",
+    "level": 3,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 233",
+    "description": "Sua fisiologia responde bem aos primeiros socorros. Você ganha um bônus de circunstância no número de Pontos de Vida que recupera igual ao seu nível a partir de uma tentativa bem-sucedida de Treat Wounds ou usar Battle Medicine em você. Após você ou um aliado usar Battle Medicine em você, você se torna temporariamente imune àquele Battle Medicine por apenas 1 hora, em vez de 1 dia."
+   },
+   "Snowdrift Spell": {
+    "name": "Snowdrift Spell",
+    "level": 4,
+    "actions": "Single Action",
+    "traits": [
+     "Cold",
+     "Druid",
+     "Manipulate",
+     "Spellshape",
+     "Metamagic"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 131",
+    "prerequisites": "storm order",
+    "description": "O vento uivante e a precipitação da sua magia se transformam em neve espessa. Se sua próxima ação for conjurar uma magia que possua o traço ar, água ou frio, e que não possua o traço fogo, selecione uma criatura afetada pela magia no solo. Cada quadrado no solo sob ou adjacente à criatura se enche com neve na altura do tornozelo. Esses quadrados são terreno difícil até o início do seu próximo turno. Uma criatura pode usar Interact para limpar um quadrado de neve, e a neve em um quadrado derrete se aquele quadrado for exposto a um efeito de fogo."
+   },
+   "Storm Born": {
+    "name": "Storm Born",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Druid"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 128",
+    "prerequisites": "storm order",
+    "description": "Você se sente em casa ao ar livre, deleitando-se com o poder da natureza desencadeada. Você não sofre penalidades de circunstância em ataques de magia à distância ou testes de Percepção causados pelo clima, e suas magias alvo não exigem um teste simples para ter sucesso contra um alvo oculto pelo clima (como neblina)."
+   },
+   "Terrain Expertise": {
+    "name": "Terrain Expertise",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 263",
+    "prerequisites": "Treinado em Sobrevivência",
+    "description": "Sua experiência em navegar por um certo tipo de terreno torna você supremamente confiante ao fazê-lo. Você ganha um bônus de circunstância de +1 em testes de Survival em um dos seguintes tipos de terreno, escolhido quando você seleciona este talento: aquático, ártico, deserto, floresta, montanha, planícies, céu, pântano ou subterrâneo. Especial: Você pode selecionar este talento mais de uma vez, escolhendo um tipo de terreno diferente a cada vez."
+   }
+  },
+  "special": {
+   "Aiuvarin": {
+    "name": "Aiuvarin",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Player Core, p. 82",
+    "description": "Heritage Aiuvarin Você tem elfos, ou possivelmente outros aiuvarins, em sua árvore genealógica. Você tem orelhas pontudas e outros sinais reveladores de herança élfica. Você ganha o traço elf, o traço aiuvarin e visão na penumbra. Além disso, quando você ganha um talento de ancestralidade, você pode escolher entre talentos de aiuvarin e elf além daqueles da sua ancestralidade."
+   },
+   "Forest": {
+    "name": "Forest",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "draconic-exemplar",
+    "sourceBook": "Draconic Codex, p. 206",
+    "description": "Exemplar Dracônico da Floresta"
+   },
+   "Gravity Weapon": {
+    "name": "Gravity Weapon",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Ranger"
+    ],
+    "category": "feat",
+    "sourceBook": "Advanced Player's Guide, p. 132",
+    "description": "Sua perícia com suas armas e seu compromisso em eliminar seus alvos lhe conferem poder mágico. Você ganha a magia de guardião gravity weapon e uma reserva de foco de 1 Ponto de Foco."
+   },
+   "Hunt Prey": {
+    "name": "Hunt Prey",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Ranger",
+    "sourceBook": "Player Core, p. 152",
+    "description": "Quando você foca sua atenção em um único inimigo, você se torna imparável em sua perseguição. Você ganha a ação Hunt Prey."
+   },
+   "Hunter's Calling": {
+    "name": "Hunter's Calling",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Calling",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "mythic-calling",
+    "sourceBook": "War of Immortals, p. 80",
+    "description": "Éditos: ser o primeiro em um grupo a explorar uma área desconhecida e potencialmente perigosa, procurar criaturas que estão causando desequilíbrios no mundo natural e corrigir o desequilíbrio. Anátema: deixar um animal ou besta que você feriu livre para causar danos futuros, recusar um pedido para caçar um animal ou besta perigoso."
+   },
+   "Hunter's Edge: Precision": {
+    "name": "Hunter's Edge",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Ranger",
+    "sourceBook": "Core Rulebook, p. 166",
+    "description": "Você treinou por incontáveis horas para se tornar um caçador e rastreador mais habilidoso, ganhando um benefício adicional ao usar Hunt Prey dependendo do foco do seu treinamento. Escolha uma hunter’s edge. As hunter’s edges podem ser encontradas aqui."
+   },
+   "Intimidation": {
+    "name": "Intimidation",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "skill",
+    "sourceBook": "Player Core, p. 240",
+    "description": "Perícia Intimidação Você dobra os outros à sua vontade usando ameaças. Diferente de Enganação ou Diplomacia, Intimidação é tipicamente um instrumento contundente com pouco espaço para nuances ou cuidado. Bônus de Item para Intimidação Bônus de Item Nível Categoria Consumível Nota Feather of the Unfounded Bravado +1 2 Itens Empunhados Não Bônus de item para Demoralize Marshal's Baton +1 3 Itens Empunhados Não Bônus de item para Intimidação contra tropas, soldados individuais e líderes militares Spider Lily Tattoo +1 3 Tatuagens Não Bônus de item para Intimidação Essence Charm +1 4 Outros Itens Vestidos Não Bônus de item para um teste à escolha do criador Killer’s Belt +1 4 Itens Vestidos Não Bônus de item para Intimidação Cape of Justice +1 4 Outros Itens Vestidos Não Bônus de item para Demoralize Deravon's Helm +1 4 Outros Itens Vestidos Não Bônus de item para testes de Intimidação feitos para Demoralize. Trudd's Strength +1 5 Filigranas de Adaga de Clã Não Bônus de item para testes de Intimidação para Coerce Graverose Garland +1 5 Outros Itens Vestidos Não contra mortos-vivos Stormshard +1 6 Itens Empunhados Não bônus de item para testes de intimidação para influenciar mortos-vivos Security Badge +1 7 Outros Itens Vestidos Não Bônus de item para testes de Intimidação Draconic Verge +1 7 Itens Empunhados Não Bônus de item para Demoralize Ring of Fair Assessment +1 7 Outros Itens Vestidos Não Coerce para convencer outros da justiça ou precisão de seus julgamentos. Crown of Witchcraft +1 10 Itens Vestidos Não Silver Tongue +2 8 Corações de Magia Não Bônus de item para testes de Intimidação para Demoralize até o final do seu turno. Guise of the Smirking Devil +2 9 Itens Vestidos Não Greater Killer’s Belt +2 9 Itens Vestidos Não Bônus de item para Intimidação Admiral's Bicorne +2 10 Outros Itens Vestidos Não Bônus de item para Intimidação Entertainer's Cincture +2 10 Itens Vestidos Não Bônus de item para Intimidação se selecionado Greater Trudd's Strength +2 11 Filigranas de Adaga de Clã Não Bônus de item para testes de Intimidação para Coerce Helm of Zeal +2 11 Itens Vestidos Não Bônus de item da Perícia Divina da Divindade associada Gasping Lament +2 12 Coda Não testes de Intimidação para Demoralize Greater Stormshard +2 12 Itens Empunhados Não bônus de item para testes de intimidação para influenciar mortos-vivos Dragon Pearl +2 16 Outros Itens Vestidos Não Bônus de item para testes de Intimidação Dragon Pearl +2 16 Outros Itens Vestidos Não Bônus de item para testes de Intimidação Crown of Witchcraft (Greater) +2 18 Itens Vestidos Não Mask of Allure +2 18 Itens de Ápice Não Bônus de item enquanto estiver usando a máscara. Greater Gasping Lament +3 17 Coda Não testes de Intimidação para Demoralize Jaws of the Grogrisant +3 17 Itens de Ápice Não Bônus de item para testes de Intimidação Entertainer's Cincture (Greater) +3 17 Itens Vestidos Não Bônus de item para Intimidação se selecionado Major Stormshard +3 18 Itens Empunhados Não bônus de item para testes de intimidação para influenciar mortos-vivos Helm of Zeal (Greater) +3 18 Itens Vestidos Não Bônus de item da Perícia Divina da Divindade associada Guise of the Smirking Devil (Greater) +3 19 Itens Vestidos Não Talentos Relacionados Para ver uma lista de Talentos relacionados a Intimidação, clique aqui. Intimidação Ações Sem Treinamento Ação Coerce Auditivo Concentração Emoção Exploração Linguístico Mental Com ameaças veladas ou explícitas, você tenta intimidar uma criatura para que ela faça o que você quer. Você deve gastar pelo menos 1 minuto de conversa com a criatura. Ao final da conversa, tente um teste de Intimidação contra a CD de Vontade do alvo, modificada por quaisquer circunstâncias que o Mestre determinar. (As atitudes referenciadas nos efeitos abaixo estão resumidas na barra lateral Mudando Atitudes e descritas na íntegra no Apêndice de Condições.) Sucesso Crítico O O No entanto, o Sucesso Como sucesso crítico, mas uma vez o Falha O Falha Crítica O Ação Demoralize Ação Única Auditivo Concentração Emoção Medo Mental Com um grito repentino, uma provocação bem cronometrada ou um insulto cortante, você pode abalar a determinação de um inimigo. Escolha uma criatura a até 9 metros de você da qual você esteja ciente. Tente um teste de Intimidação contra a CD de Vontade desse alvo. Se o Independentemente do seu resultado, o Sucesso Crítico O Sucesso O"
+   },
+   "Low-Light Vision": {
+    "name": "Low-Light Vision",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "rules",
+    "sourceBook": "Player Core, p. 433",
+    "description": "Regras Low-Light Vision Uma criatura com Low-Light Vision pode enxergar na penumbra como se fosse luz plena, portanto ela ignora a condição concealed devido à penumbra."
+   },
+   "Natural Reflexes": {
+    "name": "Natural Reflexes",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Ranger",
+    "sourceBook": "Player Core, p. 152",
+    "description": "Você aprimorou seus reflexos desviando de árvores caindo e granizo forte. Sua graduação de proficiência para testes de Reflexos aumenta para mestre. Quando você rola um sucesso em um teste de Reflexos, você obtém um sucesso crítico em vez disso."
+   },
+   "Nature's Edge": {
+    "name": "Nature's Edge",
+    "level": 9,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Ranger",
+    "sourceBook": "Player Core, p. 152",
+    "description": "Você sempre encontra os pontos fracos nas defesas de seus inimigos quando eles estão em terreno desfavorável. Inimigos ficam off-guard para você se estiverem em terreno difícil."
+   },
+   "Perception Mastery": {
+    "name": "Perception Mastery",
+    "level": 11,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Bard",
+    "sourceBook": "Player Core, p. 94",
+    "description": "Você desenvolveu uma percepção aguçada e atenção aos detalhes. Sua graduação de proficiência para Percepção aumenta para mestre."
+   },
+   "Ranger Expertise": {
+    "name": "Ranger Expertise",
+    "level": 9,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Ranger",
+    "sourceBook": "Player Core, p. 152",
+    "description": "Você adquiriu técnicas que melhoram sua astúcia e perícia. Sua graduação de proficiência para sua CD de ranger aumenta para perito. Se você possui magias de guardião, sua graduação de proficiência para ataques mágicos e CDs de magia aumenta para perito."
+   },
+   "Ranger Weapon Expertise": {
+    "name": "Ranger Weapon Expertise",
+    "level": 5,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Ranger",
+    "sourceBook": "Player Core, p. 152",
+    "description": "Você ganha todas as vantagens de suas armas. Sua graduação de proficiência para armas marciais, armas simples e ataques desarmados aumenta para perito. Você ganha acesso aos efeitos de especialização crítica de todas essas armas e ataques desarmados ao atacar sua presa caçada."
+   },
+   "Rewrite Fate": {
+    "name": "Rewrite Fate",
+    "level": null,
+    "actions": "Free Action",
+    "traits": [
+     "Fortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "action",
+    "sourceBook": "War of Immortals, p. 78",
+    "trigger": "Você rola um teste de perícia ou uma salvaguarda e não gosta do resultado.",
+    "description": "O destino, a sorte ou alguma outra força se curva ao seu redor à medida que seu poder mítico aumenta, manifestando-se em um clarão de luz ou em uma onda visível de energia emanando de seu corpo enquanto você se livra das correntes do destino. Você gasta um Mythic Point e rola novamente o teste ou salvaguarda com proficiência mítica, assumindo o novo resultado."
+   },
+   "Society": {
+    "name": "Society",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "skill",
+    "sourceBook": "Player Core, p. 244",
+    "description": "Perícia Sociedade Você entende as pessoas e os sistemas que fazem a civilização funcionar, e conhece os eventos históricos que tornam as sociedades o que são hoje. Além disso, você pode usar esse conhecimento para navegar pelos complexos funcionamentos físicos, sociais e econômicos dos assentamentos. Sociedade Destreinado Ações Gerais - Recordar Conhecimento sobre história local, personalidades importantes, instituições legais, estrutura social e culturas humanoides. O Mestre pode permitir que Sociedade se aplique a outras criaturas que sejam elementos importantes da sociedade em sua região, como a nobreza dracônica em um reino de humanos governado por dragões. - Subsistir em um assentamento encontrando abrigo, vasculhando ou pedindo comida. Sociedade Treinado Ações Gerais - Decifrar Escrita que seja uma mensagem codificada, texto escrito em uma forma incompleta ou arcaica, ou em alguns casos, texto em um idioma que você não conhece. Bônus de Item para Sociedade Bônus de Item Nível Categoria Consumível Nota Essence Charm +1 4 Outros Itens Vestidos Não Bônus de item para um teste à escolha do artífice Kols's Oath +1 5 Filigranas de Adaga de Clã Não Bônus de item para testes de Sociedade Pristine Epaulets +1 5 Outros Itens Vestidos Não Bônus de item para Sociedade Cognitive Mutagen (Lesser) +1 1 Elixires Alquímicos Sim Humbug Pocket +2 9 Itens Vestidos Não Greater Kols's Oath +2 11 Filigranas de Adaga de Clã Não Bônus de item para testes de Sociedade Helm of Zeal +2 11 Itens Vestidos Não Bônus de item da Perícia Divina da Divindade associada Cognitive Mutagen (Moderate) +2 3 Elixires Alquímicos Sim Humbug Pocket (Greater) +3 17 Itens Vestidos Não Testes para Ocultar um Objeto Helm of Zeal (Greater) +3 18 Itens Vestidos Não Bônus de item da Perícia Divina da Divindade associada Draconal Mask +3 19 Itens de Ápice Não Bônus de item para testes de Sociedade Cognitive Mutagen (Greater) +3 11 Elixires Alquímicos Sim Cognitive Mutagen (Major) +4 17 Elixires Alquímicos Sim Talentos Relacionados Para ver uma lista de Talentos relacionados a Sociedade, clique aqui. Sociedade Treinado Ações Ação Criar Falsificação Tempo de Inatividade Secreto Requisitos Você fornece os materiais de escrita adequados para sua falsificação. Você cria um documento falsificado, geralmente ao longo de um dia ou uma semana. O Mestre rola um teste secreto de Sociedade CD 20. Se você precisar falsificar a caligrafia de uma pessoa específica, você precisa de uma amostra da caligrafia dessa pessoa. Caso contrário, você só precisa ter visto um documento semelhante, e você ganha um bônus de circunstância de até +4 no teste (o Mestre determina o bônus). Sucesso A falsificação tem qualidade suficiente para que observadores passivos não consigam notar que é falsa (mas veja Examinando Falsificações). Falha A falsificação tem alguns sinais óbvios de ser falsa, permitindo potencialmente que observadores passivos a detectem. Cada vez que um observador passivo vê o documento, o Mestre compara o resultado do seu teste com a CD de Percepção ou CD de Sociedade do observador, o que for maior. Se o seu resultado não exceder a CD de um observador passivo, esse observador sabe que o documento é uma falsificação."
+   },
+   "Soothing Mist": {
+    "name": "Soothing Mist",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Ranger"
+    ],
+    "category": "feat",
+    "sourceBook": "Advanced Player's Guide, p. 132",
+    "prerequisites": "magias de guardião",
+    "description": "Você tem uma conexão com as propriedades curativas da natureza e pode produzir uma névoa mágica para curar dano e parar queimaduras ou sangramentos. Você ganha a magia de guardião soothing mist. Aumente o número de Pontos de Foco em sua reserva de foco em 1."
+   },
+   "Storm Order": {
+    "name": "Druidic Order",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Druid",
+    "sourceBook": "Core Rulebook, p. 128",
+    "description": "Ao se tornar um druida, você se alinha a uma ordem druídica, o que lhe concede um talento de classe, uma magia de ordem (veja abaixo) e uma perícia treinada adicional vinculada à sua ordem. Embora você sempre seja um membro da sua ordem inicial, não é inédito que um druida peça para estudar com outras ordens em busca de uma compreensão maior do mundo natural, e druidas personagens jogadores estão entre os mais propensos a combinar os poderes de diferentes ordens. Magias de ordem são um tipo de magia de foco. Custa 1 Ponto de Foco conjurar uma magia de foco, e você começa com uma reserva de foco de 1 Ponto de Foco. Você reabastece sua reserva de foco durante suas preparações diárias, e você pode recuperar 1 Ponto de Foco gastando 10 minutos usando a atividade Refocar para comungar com espíritos locais da natureza ou cuidar da natureza selvagem de uma maneira condizente com sua ordem. Magias de foco são automaticamente intensificadas para metade do seu nível arredondado para cima, assim como truques. Magias de foco não exigem espaços de magia para serem conjuradas, e você não pode conjurá-las usando espaços de magia. Selecionar talentos de druida pode lhe dar mais magias de foco e aumentar o tamanho da sua reserva de foco, embora sua reserva de foco nunca possa conter mais de 3 pontos. As regras completas para magias de foco são encontradas aqui. Ordens podem ser encontradas aqui."
+   },
+   "Terrain Transposition": {
+    "name": "Terrain Transposition",
+    "level": 10,
+    "actions": "",
+    "traits": [
+     "Ranger"
+    ],
+    "category": "feat",
+    "sourceBook": "Advanced Player's Guide, p. 133",
+    "prerequisites": "magias de guardião",
+    "description": "Você está tão conectado à natureza selvagem que pode magicamente saltar de um lugar para outro dentro dela. Você ganha a magia de guardião terrain transposition. Aumente o número de Pontos de Foco em sua reserva de foco em 1."
+   },
+   "Trackless Journey": {
+    "name": "Trackless Journey",
+    "level": 5,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Ranger",
+    "sourceBook": "Player Core, p. 152",
+    "description": "Quando você se move através de terrenos naturais, é difícil rastreá-lo. Você sempre ganha os benefícios da ação Cobrir Rastros nesses terrenos, sem se mover com metade do seu Deslocamento."
+   },
+   "Weapon Specialization": {
+    "name": "Weapon Specialization",
+    "level": 13,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Alchemist",
+    "sourceBook": "Core Rulebook, p. 66",
+    "description": "Você aprendeu como infligir ferimentos maiores com as armas que conhece melhor. Você causa 2 de dano adicional com armas e ataques desarmados nos quais você é perito. Esse dano aumenta para 3 se você for mestre, e para 4 se você for lendário."
+   },
+   "Will Expertise": {
+    "name": "Will Expertise",
+    "level": 3,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Ranger",
+    "sourceBook": "Player Core, p. 152",
+    "description": "Suas defesas mentais tornam-se mais fortes. Sua graduação de proficiência para testes de Vontade aumenta para perito."
+   },
+   "Wisdom": {
+    "name": "Wisdom",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "rules",
+    "sourceBook": "Core Rulebook, p. 19",
+    "description": "Sabedoria Sabedoria mede o senso comum, a percepção e a intuição do seu personagem. Seu modificador de Sabedoria é adicionado aos seus testes de Percepção e aos seus testes de resistência de Vontade."
+   }
+  },
+  "item": {
+   "Bag of Holding (Type II)": {
+    "name": "Bag of Holding (Type II)",
+    "level": 7,
+    "actions": "",
+    "traits": [
+     "Conjuration",
+     "Extradimensional",
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "Core Rulebook, p. 572",
+    "description": "Embora pareça um saco de pano decorado com painéis de seda de cores ricas ou bordados estilosos, uma Bag of Holding abre-se para um espaço extradimensional maior do que suas dimensões externas. O Bulk contido dentro da bolsa não altera o Bulk da própria Bag of Holding. A quantidade de Bulk que o espaço extradimensional da bolsa pode conter depende de seu tipo. Você pode Interact com a Bag of Holding para guardar itens nela ou removê-los exatamente como faria com um saco comum. Embora a bolsa possa conter uma grande quantidade de material, um objeto ainda precisa ser capaz de passar pela abertura do saco para ser armazenado dentro. Se a bolsa for sobrecarregada ou quebrada, ela se rompe e é arruinada, fazendo com que os itens dentro sejam perdidos para sempre. Se for virada do avesso, os itens dentro caem ilesos, mas a bolsa deve ser colocada na posição correta antes que possa ser usada novamente. Uma criatura viva colocada dentro da bolsa tem ar suficiente por 10 minutos antes de começar a sufocar, e pode tentar um Escape contra uma CD de 13. Um item dentro da bolsa não fornece benefícios a menos que seja recuperado primeiro. Um item na bolsa não pode ser detectado por magia que detecta apenas coisas no mesmo plano. Bag of Holding (Type I) Fonte Core Rulebook pg. 572 Preço 75 po Capacidade 25 Bulk Bag of Holding (Type II) Fonte Core Rulebook pg. 572 Preço 300 po Capacidade 50 Bulk Bag of Holding (Type III) Fonte Core Rulebook pg. 572 Preço 1.200 po Capacidade 100 Bulk Bag of Holding (Type IV) Fonte Core Rulebook pg. 572 Preço 2.400 po Capacidade 150 Bulk"
+   },
+   "Bands of Force": {
+    "name": "Bands of Force",
+    "level": 8,
+    "actions": "",
+    "traits": [
+     "Force",
+     "Invested",
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 286",
+    "description": "Decoradas com pedras preciosas claras, estas grossas faixas de metal espalham uma camada inflexível de força sobre seu corpo. A força concede a você um bônus de item de +1 na CA e em testes de resistência, e um modificador máximo de Destreza de +5 como armadura. Você pode afixar talismãs às faixas como se fossem armaduras leves. Activate—Return Force Reaction: (força, manipular) Gatilho Uma criatura falha criticamente em um Strike corpo a corpo contra você.; Efeito Você Shove a criatura usando o modificador de Athletics das faixas de +14. Bands of Force Fonte GM Core pg. 286 Preço 500 po Bands of Force (Greater) Fonte GM Core pg. 286 Preço 4.500 po O bônus de item na CA e nos testes de resistência é +2. O modificador de Athletics das faixas é +21. Bands of Force (Major) Fonte GM Core pg. 286 Preço 70.000 po O bônus de item na CA e nos testes de resistência é +3. O modificador de Athletics das faixas é +33."
+   },
+   "Cloak of Illusions (Greater)": {
+    "name": "Cloak of Illusions (Greater)",
+    "level": 12,
+    "actions": "",
+    "traits": [
+     "Invested",
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 287",
+    "description": "Esta capa flui, cobrindo e ocultando o corpo de quem a usa. A capa permite que você conjure figment como um truque inato oculto. Embora naturalmente de um cinza opaco, enquanto investida, a capa assume cores e padrões de seus arredores, concedendo um bônus de item de +1 em testes de Stealth. Activate—Draw Hood Duas Ações: (manipular) Frequência uma vez por dia; Efeito Você levanta o capuz e ganha os efeitos de invisibility, com a duração normal da magia ou até que você abaixe o capuz novamente, o que ocorrer primeiro. Cloak of Illusions Fonte GM Core pg. 287 Preço 360 po Cloak of Illusions (Greater) Fonte GM Core pg. 287 Preço 1.750 po A capa concede um bônus de item de +2 e os efeitos de invisibility de 4º nível."
+   },
+   "Composite Longbow": {
+    "name": "Composite Longbow",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Deadly",
+     "Propulsive",
+     "Volley"
+    ],
+    "category": "weapon",
+    "sourceBook": "Tian Xia Character Guide, p. 128",
+    "description": "Esta arma de projétil é feita de chifre, madeira e tendões laminados juntos para aumentar o poder de sua tração e a força de seu projétil. Como todos os longbows, seu tamanho grande também aumenta o alcance e o poder do arco. Você deve usar as duas mãos para dispará-lo, e ele não pode ser usado enquanto montado. Sempre que uma habilidade for especificamente restrita a um longbow, como a arma favorita de Erastil, ela também se aplica a composite longbows, a menos que declarado o contrário. Critical Specialization Effects Fonte Core Rulebook pg. 283 Certos talentos, características de classe, runas de arma e outros efeitos podem conceder a você benefícios adicionais quando você faz um Strike com certas armas e obtém um sucesso crítico. Isso é chamado de efeito de especialização crítica. O efeito exato depende de qual grupo de arma sua arma pertence, conforme listado abaixo. Você sempre pode decidir não adicionar o efeito de especialização crítica de sua arma. Clique aqui para as regras completas sobre Critical Specialization Effects."
+   },
+   "Dagger": {
+    "name": "Dagger",
+    "level": 0,
+    "actions": "",
+    "traits": [
+     "Agile",
+     "Finesse",
+     "Thrown",
+     "Versatile"
+    ],
+    "category": "weapon",
+    "sourceBook": "Player Core, p. 277",
+    "description": "Esta pequena arma com lâmina é segurada em uma mão e usada para esfaquear uma criatura em combate próximo. Ela também pode ser arremessada. Critical Specialization Effects Fonte Core Rulebook pg. 283 Certos talentos, características de classe, runas de arma e outros efeitos podem conceder a você benefícios adicionais quando você faz um Strike com certas armas e obtém um sucesso crítico. Isso é chamado de efeito de especialização crítica. O efeito exato depende de qual grupo de arma sua arma pertence, conforme listado abaixo. Você sempre pode decidir não adicionar o efeito de especialização crítica de sua arma. Clique aqui para as regras completas sobre Critical Specialization Effects. Specific Magic Weapons Apotheosis Knife, Bloody Fang, Dog-Bone Knife, Fiend's Hunger, Ghast Stiletto, Gloaming Shard, Poisonous Dagger, Serpent Dagger, Shadefield Knife, Shard of Self-Destruction, Undead Scourge"
+   },
+   "Ring of Sustenance": {
+    "name": "Ring of Sustenance",
+    "level": 7,
+    "actions": "",
+    "traits": [
+     "Invested",
+     "Magical",
+     "Uncommon"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 294",
+    "description": "Este anel de madeira polida refresca constantemente seu corpo e mente. Você não precisa comer ou beber enquanto o usa, e precisa de apenas 2 horas de sono por dia para obter os benefícios de 8 horas de sono. Um ring of sustenance não funciona até que tenha sido usado e investido continuamente por uma semana. Removê-lo redefine este intervalo."
+   },
+   "Shortsword": {
+    "name": "Shortsword",
+    "level": 0,
+    "actions": "",
+    "traits": [
+     "Agile",
+     "Finesse",
+     "Versatile"
+    ],
+    "category": "weapon",
+    "sourceBook": "Player Core, p. 278",
+    "description": "Essas lâminas vêm em uma variedade de formatos e estilos, mas tipicamente possuem 60 centímetros de comprimento. Efeitos de Especialização Crítica Fonte Core Rulebook pg. 283 Certos talentos, características de classe, runas de arma e outros efeitos podem conceder a você benefícios adicionais quando você realiza um Strike com certas armas e obtém um sucesso crítico. Isso é chamado de efeito de especialização crítica. O efeito exato depende de qual grupo de arma sua arma pertence, conforme listado abaixo. Você sempre pode decidir não adicionar o efeito de especialização crítica da sua arma. Clique aqui para as regras completas sobre Efeitos de Especialização Crítica. Armas Mágicas Específicas Blade of Four Energies, Celestial Peachwood Sword, Gloom Blade, Radiant Victory"
+   }
+  }
+ }
+}

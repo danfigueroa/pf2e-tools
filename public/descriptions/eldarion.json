@@ -1,0 +1,754 @@
+{
+ "version": "v13",
+ "character": "Eldarion",
+ "entries": {
+  "spell": {},
+  "feat": {
+   "Aerobatics Mastery": {
+    "name": "Aerobatics Mastery",
+    "level": 7,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 226",
+    "prerequisites": "Mestre em Acrobatics",
+    "description": "Você se move com graça durante o voo e pode realizar acrobacias aéreas impressionantes. Você recebe um bônus de circunstância de +2 em testes de Acrobatics para Maneuver in Flight e pode combinar duas manobras em uma única ação, como mudar de direção enquanto faz uma subida ou descida íngreme ou pairar em ventos com força de vendaval. A CD do teste de Acrobatics é igual à CD da manobra mais difícil + 5. Se você for lendário em Acrobatics, você pode combinar três dessas manobras em uma única ação; a CD do teste de Acrobatics é igual à CD da manobra mais difícil + 10. Independentemente da combinação, essas manobras raramente permitem que você se mova além do seu deslocamento de voo."
+   },
+   "Alchemical Crafting": {
+    "name": "Alchemical Crafting",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "prerequisites": "Treinado em Crafting",
+    "description": "Você pode usar a atividade Craft para criar itens alquímicos. Ao selecionar este talento, você adiciona imediatamente as fórmulas de quatro itens alquímicos comuns de 1º nível ao seu livro de fórmulas."
+   },
+   "Armored Stealth": {
+    "name": "Armored Stealth",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 227",
+    "prerequisites": "Perito em Stealth",
+    "description": "Você aprendeu técnicas para ajustar e modificar sua armadura e seus movimentos para reduzir o ruído que você faz. Quando você usa uma armadura não ruidosa com a qual você é treinado, sua penalidade em testes de Stealth é reduzida em 1 (para uma penalidade mínima de 0). Se você for mestre em Stealth, reduza a penalidade em 2, e se você for lendário, reduza a penalidade em 3. Se sua armadura tiver o traço noisy, em vez de reduzir a penalidade em testes de Stealth, você ignora os efeitos do traço noisy, permitindo que você remova a penalidade com um valor de Strength suficiente, como de costume."
+   },
+   "Basic Flair": {
+    "name": "Basic Flair",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Swashbuckler"
+    ],
+    "sourceBook": "Player Core 2, p. 182",
+    "prerequisites": "Swashbuckler Dedication",
+    "description": "Você ganha um talento de swashbuckler de 1º ou 2º nível à sua escolha."
+   },
+   "Battle Medicine": {
+    "name": "Battle Medicine",
+    "level": 1,
+    "actions": "Single Action",
+    "traits": [
+     "General",
+     "Healing",
+     "Manipulate",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 253",
+    "prerequisites": "Treinado em Medicine",
+    "requirements": "Você está segurando ou usando um healer's toolkit.",
+    "description": "Você pode tratar ferimentos, mesmo em combate. Tente um teste de Medicine com a mesma CD de Treat Wounds e restaure a quantidade correspondente de PV; isso não remove a condição wounded. Assim como em Treat Wounds, você pode tentar testes contra CDs mais altas se tiver o grau de proficiência mínimo. O alvo fica então imune ao seu Battle Medicine por 1 dia. Isso não o torna imune a, ou conta de outra forma como, Treat Wounds."
+   },
+   "Card Sharp's Escape": {
+    "name": "Fane's Escape",
+    "level": 4,
+    "actions": "Two Actions",
+    "traits": [
+     "General",
+     "Skill",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "PFS Guide, p. 118",
+    "prerequisites": "Perito em Stealth",
+    "requirements": "Você tem um baralho de cartas de jogar em sua posse.",
+    "access": "Membro da Pathfinder Society.",
+    "description": "Uma boa fuga requer uma boa distração. Você usa Interact para sacar um baralho de cartas e lançá-lo em uma explosão esvoaçante, fazendo com que você fique brevemente hidden para todas as outras criaturas que usam a visão como sentido preciso, e então você usa Sneak. Você tem cobertura suficiente para usar Sneak até o final do seu turno. Isso deixa todas as cartas do baralho espalhadas pela sala; recolhê-las em um baralho novamente leva vários minutos. Perilous Larceny Fonte PFS Guide pág. 118 A capitã pirata Stella Fane (humana CN, corsária; Lost Omens Character Guide 119) juntou-se à Pathfinder Society como capitã de empreitada como parte de um acordo para ajudar a Sociedade a passar pelos bloqueios navais fortemente armados dos Free Captains de Port Peril. Astuta e competitiva, a maior fraqueza de Stella como líder da Sociedade é seu ódio inabalável pelo governo de Chelaxian. Aqueles que conseguirem evitar acabar afundados ou executados pelos comandantes navais de Chelaxian enquanto ajudam Stella podem sair com alguns truques a mais do que tinham antes de ver a pirata habilidosa em ação. Fane's Fourberie e Stella's Stab and Snag, abaixo, são talentos de classe que ladinos ou swashbucklers podem selecionar. Quando você seleciona qualquer um dos talentos, ele perde o traço da outra classe. Talentos Relacionados: Fane's Fourberie, Stella's Stab and Snag"
+   },
+   "Divert Destiny": {
+    "name": "Divert Destiny",
+    "level": 6,
+    "actions": "Free Action",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "trigger": "Um ataque ou efeito reduziria você a 0 Pontos de Vida ou o mataria instantaneamente.",
+    "description": "Você desafia o destino à sua frente, recorrendo a fontes de vitalidade mítica para sustentar sua vida e permitir que você persevere. Você gasta 1 Mythic Point e sobrevive ao ataque ou efeito que causou a ativação, perde as condições wounded ou dying inteiramente, não aumenta sua condição doomed, e permanece consciente e de pé com um número de Pontos de Vida igual a 10 + seu nível, independentemente de quantos Pontos de Vida você tinha antes."
+   },
+   "Elf Step": {
+    "name": "Elf Step",
+    "level": 9,
+    "actions": "Single Action",
+    "traits": [
+     "Elf"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 48",
+    "description": "Você se move em uma dança graciosa, e até mesmo seus passos são amplos. Você usa Step 5 pés duas vezes."
+   },
+   "Elven Instincts": {
+    "name": "Elven Instincts",
+    "level": 5,
+    "actions": "",
+    "traits": [
+     "Elf"
+    ],
+    "category": "feat",
+    "sourceBook": "Character Guide, p. 27",
+    "description": "Seus sentidos permitem que você reaja rapidamente. Você recebe um bônus de circunstância de +2 em testes de Percepção feitos como rolagens de iniciativa. Adicionalmente, se o resultado da sua rolagem de iniciativa empatar com o de um oponente, você age primeiro, independentemente de ter rolado Percepção ou não."
+   },
+   "Elven Weapon Familiarity": {
+    "name": "Elven Weapon Familiarity",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Elf"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 48",
+    "description": "Você prefere arcos e outras armas elegantes. Você ganha acesso a todas as armas incomuns com o traço elfo. Você tem familiaridade com armas com o traço elfo, além de arcos longos, arcos longos compostos, rapieiras, arcos curtos e arcos curtos compostos — para fins de proficiência, você trata qualquer uma dessas que seja uma arma marcial como uma arma simples e qualquer uma que seja uma arma avançada como uma arma marcial. No 5º nível, sempre que você obtiver um acerto crítico com uma dessas armas, você recebe seu efeito de especialização crítica."
+   },
+   "Feet that Stride the Sky": {
+    "name": "Feet that Stride the Sky",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 81",
+    "prerequisites": "Acrobat's Calling",
+    "description": "Você sente o chamado do céu, ou talvez um desejo desesperado de testar os limites do controle da terra sobre você. Quando você ou uma criatura na qual você está montado tenta um High Jump ou Long Jump, você pode gastar um Mythic Point para permitir que você ou a montaria tente o teste com proficiência mítica; determine a CD usando as CDs de Long Jump e aumente sua distância máxima para o dobro do seu Deslocamento."
+   },
+   "Finishing Precision": {
+    "name": "Finishing Precision",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Swashbuckler"
+    ],
+    "sourceBook": "Player Core 2, p. 182",
+    "prerequisites": "Swashbuckler Dedication",
+    "description": "Você aprendeu como desferir golpes ousados quando tem panache. Você ganha a característica de classe precise strike, mas você causa 1 de dano de precisão adicional em um acerto e 1d6 de dano de precisão em um finisher. Esse dano não aumenta conforme você ganha níveis. Além disso, você ganha a ação Basic Finisher. Basic Finisher Ação Única: (Finisher, Swashbuckler) Você faz um ataque gracioso e mortal. Tente um Strike; se você acertar e sua arma se qualificar para precise strike, você causa o total de 1d6 de dano do precise strike."
+   },
+   "Foil Senses": {
+    "name": "Foil Senses",
+    "level": 7,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 256",
+    "prerequisites": "Mestre em Furtividade",
+    "description": "Você é adepto em frustrar os sentidos especiais das criaturas e cauteloso o suficiente para se proteger contra eles o tempo todo. Sempre que você usa as ações Avoid Notice, Hide ou Sneak, você é sempre considerado como estando tomando precauções contra sentidos especiais."
+   },
+   "Gang Up": {
+    "name": "Gang Up",
+    "level": 6,
+    "actions": "",
+    "traits": [
+     "Rogue"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Red Mantis Assassin",
+     "Bellflower Tiller"
+    ],
+    "sourceBook": "Player Core, p. 172",
+    "description": "Você e seus aliados atormentam um oponente em conjunto. Você pode aplicar flanking em um inimigo se ele estiver ao alcance tanto de você quanto de um aliado — você e seu aliado não precisam estar em lados opostos. Isso beneficia seus aliados assim como você, mas apenas se eles estiverem aplicando flanking com você, não um com o outro. Os outros requisitos para flanking ainda devem ser atendidos."
+   },
+   "Godspeed": {
+    "name": "Godspeed",
+    "level": 4,
+    "actions": "Single Action",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "description": "O poder mítico lhe concede velocidade para rivalizar com bestas e semideuses. Gaste um Ponto Mítico; pelo próximo minuto, você ganha um bônus de status de 3 metros em todos os seus Deslocamentos e fica quickened. Você pode usar a ação extra a cada rodada para Stride, Step ou Leap."
+   },
+   "Improved Poison Weapon": {
+    "name": "Improved Poison Weapon",
+    "level": 8,
+    "actions": "",
+    "traits": [
+     "Rogue"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Assassin",
+     "Poisoner"
+    ],
+    "sourceBook": "Player Core, p. 173",
+    "prerequisites": "Poison Weapon",
+    "description": "Você administra venenos de maneiras que maximizam seus efeitos nocivos. Quando você aplica um veneno simples com Poison Weapon, o veneno causa 2d4 de dano de veneno em vez de 1d4 de dano de veneno. Você não desperdiça um veneno que aplica com Poison Weapon em um resultado de teste de ataque com falha crítica."
+   },
+   "Incredible Initiative": {
+    "name": "Incredible Initiative",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 256",
+    "description": "Você reage mais rapidamente do que os outros conseguem. Você ganha um bônus de circunstância de +2 em testes de iniciativa."
+   },
+   "Kip Up": {
+    "name": "Kip Up",
+    "level": 7,
+    "actions": "Free Action",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 257",
+    "prerequisites": "Mestre em Acrobatics",
+    "description": "Você se levanta. Este movimento não desencadeia reações."
+   },
+   "Mythic Strike": {
+    "name": "Mythic Strike",
+    "level": 10,
+    "actions": "Single Action",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 84",
+    "description": "Você infunde sua arma ou ataque desarmado com poder mítico antes de desferir um golpe contra um inimigo com força devastadora. Gaste um Mythic Point e então realize um Strike contra uma criatura com uma arma que você esteja empunhando ou um ataque desarmado que você tenha disponível. Este Strike é feito com proficiência mítica, e a arma ou ataque desarmado conta como uma arma mítica para fins de superar resistência mítica ou imunidade mítica."
+   },
+   "Nimble Dodge": {
+    "name": "Nimble Dodge",
+    "level": 1,
+    "actions": "Reaction",
+    "traits": [
+     "Rogue"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 169",
+    "trigger": "Uma criatura tem você como alvo de um ataque e você consegue ver o atacante",
+    "requirements": "Você não está sobrecarregado",
+    "description": "Você esquiva-se habilmente do caminho, ganhando um bônus de circunstância de +2 na CA contra o ataque desencadeador."
+   },
+   "Pickpocket": {
+    "name": "Pickpocket",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 259",
+    "prerequisites": "Treinado em Thievery",
+    "description": "Você pode Steal ou Palm um objeto que esteja sendo guardado de perto, como em um bolso, sem sofrer a penalidade de –5. Você não pode roubar objetos que seriam extremamente perceptíveis ou demorados para remover (como sapatos ou armaduras vestidas ou objetos empunhados ativamente). Se você for mestre em Thievery, você pode tentar Steal de uma criatura em combate ou que esteja em alerta. Ao fazer isso, Steal requer 2 ações em vez de 1, e você sofre uma penalidade de –5."
+   },
+   "Poison Weapon": {
+    "name": "Poison Weapon",
+    "level": 4,
+    "actions": "Single Action",
+    "traits": [
+     "Manipulate",
+     "Rogue"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Assassin",
+     "Poisoner",
+     "Drow Shootist",
+     "Red Mantis Assassin"
+    ],
+    "sourceBook": "Player Core, p. 171",
+    "requirements": "Você está empunhando uma arma.",
+    "description": "Você aplica um veneno de contato ou veneno de ferimento na arma necessária; se você tiver uma mão livre, pode usar Interact para sacar um veneno como parte desta ação. Este veneno pode ser um dos venenos de ferimento simples que você pode criar devido a este talento (veja Especial), ou outro veneno de contato ou de ferimento que você tenha adquirido (como aqueles no GM Core). Especial: Durante suas preparações diárias, você pode preparar um número de venenos de ferimento simples igual ao seu nível. Eles seguem as regras para venenos de ferimento (GM Core, página 248), exceto que eles causam 1d4 de dano de veneno sem teste de resistência. Apenas você pode aplicar esses venenos corretamente, e eles expiram na próxima vez que você se preparar."
+   },
+   "Quick Draw": {
+    "name": "Quick Draw",
+    "level": 2,
+    "actions": "Single Action",
+    "traits": [
+     "Gunslinger",
+     "Ranger",
+     "Rogue"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Vigilante",
+     "Butterfly Blade",
+     "Alkenstar Agent",
+     "Dual-Weapon Warrior",
+     "Red Mantis Assassin",
+     "Eagle Knight",
+     "Rose Warden"
+    ],
+    "sourceBook": "Player Core, p. 159",
+    "description": "Você saca sua arma e ataca com o mesmo movimento. Você usa Interact para sacar uma arma, então usa Strike com essa arma."
+   },
+   "Retreating Finisher": {
+    "name": "Retreating Finisher",
+    "level": 2,
+    "actions": "Single Action",
+    "traits": [
+     "Finisher",
+     "Swashbuckler"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 165",
+    "description": "Você faz um ataque calculado sem baixar sua guarda. Faça um Strike corpo a corpo com o seguinte efeito de falha. Falha Você usa Step como uma ação livre."
+   },
+   "Shadow Mark": {
+    "name": "Shadow Mark",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 233",
+    "prerequisites": "Perito em Stealth",
+    "description": "Você aprendeu truques especiais que o ajudam a seguir indivíduos sem que eles notem você. Quando você tenta um teste de Stealth para Avoid Notice enquanto segue um alvo específico, o alvo sofre uma penalidade de circunstância de –2 na sua CD de Perception. Se você tiver proficiência mestre em Stealth, a penalidade é de –3, ou –4 se você for lendário. Se você iniciar um encontro com o alvo enquanto o persegue, o alvo sofre essa penalidade em sua rolagem de iniciativa e em sua CD de Perception para determinar se eles notam você, como é normal para Sneak."
+   },
+   "Slippery Prey": {
+    "name": "Slippery Prey",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 234",
+    "prerequisites": "Treinado em Athletics ou Treinado em Acrobatics",
+    "description": "Você é capaz de escapar de amarras mais facilmente do que os outros. Quando você tenta um Escape usando Acrobatics ou Athletics, você reduz a penalidade de ataques múltiplos para tentativas repetidas para –4 e –8 se você for treinado na perícia. A penalidade torna-se –3 e –6 se você for mestre na perícia apropriada. Se você for lendário na perícia, você não sofre penalidades por tentativas múltiplas de Escape no mesmo turno. Independentemente do seu treinamento, suas tentativas de Escape ainda possuem o traço de ataque e incorrem em uma penalidade de ataques múltiplos com outras ações."
+   },
+   "Sneak Adept": {
+    "name": "Sneak Adept",
+    "level": 10,
+    "actions": "",
+    "traits": [
+     "Rogue"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Knight Reclaimant",
+     "Verduran Shadow"
+    ],
+    "sourceBook": "Player Core, p. 175",
+    "prerequisites": "Mestre em Furtividade",
+    "description": "É quase impossível notar você. Quando você rola uma falha em uma ação de Sneak, você obtém um sucesso em vez disso. Você ainda pode falhar criticamente."
+   },
+   "Summon Mythic Power": {
+    "name": "Summon Mythic Power",
+    "level": 8,
+    "actions": "Single Action",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 83",
+    "frequency": "uma vez por dia",
+    "description": "Você invoca o destino, a divindade ou qualquer outro poder que o trouxe até aqui, exigindo que ele o leve um pouco mais longe. Você recupera 1 Mythic Point."
+   },
+   "Swashbuckler Dedication": {
+    "name": "Swashbuckler Dedication",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Archetype",
+     "Dedication",
+     "Multiclass"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Swashbuckler"
+    ],
+    "sourceBook": "Player Core 2, p. 182",
+    "prerequisites": "Carisma +2; Destreza +2",
+    "description": "Escolha um estilo de swashbuckler. Você ganha as características de classe panache e stylish combatant, e você aplica o traço bravado a Tumble Through e a quaisquer ações indicadas no seu estilo de swashbuckler, permitindo que você ganhe panache. Você se torna treinado em Acrobatics ou na perícia associada ao seu estilo. Se você já era treinado em ambas as perícias, você se torna treinado em uma perícia de sua escolha. Você também se torna treinado na CD de classe de swashbuckler. Você não ganha quaisquer outros efeitos do seu estilo escolhido."
+   },
+   "Swashbuckler's Riposte": {
+    "name": "Swashbuckler's Riposte",
+    "level": 6,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Swashbuckler"
+    ],
+    "sourceBook": "Player Core 2, p. 182",
+    "prerequisites": "Swashbuckler Dedication",
+    "description": "Você aprendeu a contra-atacar investidas mal planejadas. Você ganha a reação Opportune Riposte."
+   },
+   "Swashbuckler's Speed": {
+    "name": "Swashbuckler's Speed",
+    "level": 8,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Swashbuckler"
+    ],
+    "sourceBook": "Player Core 2, p. 182",
+    "prerequisites": "Swashbuckler Dedication",
+    "description": "Você se move com a velocidade e graça de um swashbuckler. Você recebe um bônus de status de +1,5 metros aos seus Deslocamentos; isso aumenta para um bônus de status de +3 metros enquanto você tiver panache."
+   },
+   "Swift Sneak": {
+    "name": "Swift Sneak",
+    "level": 7,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 263",
+    "prerequisites": "Mestre em Furtividade",
+    "description": "Você pode se mover com seu Deslocamento total ao usar Sneak. Você pode usar Swift Sneak enquanto estiver Burrowing, Climbing, Flying ou Swimming em vez de Striding, caso possua o tipo de movimento correspondente."
+   },
+   "Tumbling Theft": {
+    "name": "Tumbling Theft",
+    "level": 7,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 235",
+    "prerequisites": "Perito em Acrobatics; Perito em Thievery",
+    "description": "Você tenta alcançar um item de um oponente enquanto passa por um inimigo. Se você obtiver um sucesso crítico no seu teste para Tumble Through o espaço de um inimigo, você pode tentar Steal algo do inimigo como uma reação. Você recebe um bônus de circunstância de +1 no seu teste de Thievery para Steal, já que sua acrobacia torna difícil para seu inimigo acompanhar seu movimento. Você pode Steal qualquer item imediatamente acessível de volume leve ou desprezível que esteja com o inimigo, como uma poção ou uma bolsa de moedas pendurada no cinto, mas não algo dentro de um recipiente ou algo que o inimigo esteja segurando. O Mestre tem a palavra final sobre o que você pode Steal."
+   },
+   "Whisper Elf": {
+    "name": "Whisper Elf",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Player Core, p. 47",
+    "description": "Heritage Whisper Elf Suas orelhas são finamente sintonizadas, capazes de detectar até os mais leves sussurros de som. Você recebe um bônus de circunstância de +2 ao usar a ação Seek para encontrar criaturas escondidas ou não detectadas a até 9 metros de você. Este benefício não se aplica se você não puder ouvir ou se a criatura for incapaz de produzir som (por exemplo, se ela estiver afetada por uma magia silence)."
+   }
+  },
+  "special": {
+   "Acrobat's Calling": {
+    "name": "Acrobat's Calling",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Calling",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "mythic-calling",
+    "sourceBook": "War of Immortals, p. 79",
+    "description": "Editos saltam sem ter certeza de que pousarão ilesos, teste seus reflexos ao manobrar pelos espaços de inimigos significativamente mais poderosos. Anathema manobrar ao redor de um inimigo quando rolar através do seu espaço é uma opção viável, use medidas de segurança para tentar acrobacias."
+   },
+   "Basic Finisher": {
+    "name": "Exemplary Finisher",
+    "level": 9,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Swashbuckler",
+    "sourceBook": "Advanced Player's Guide, p. 82",
+    "description": "Você executa seus movimentos finais com um estilo espetacular, adicionando efeitos especiais aos seus finalizadores. Se um Strike que você fizer como parte de um finalizador acertar um inimigo, você adiciona um dos seguintes efeitos ao Strike, dependendo do estilo do seu swashbuckler. Uma lista de todos os estilos de swashbuckler pode ser encontrada here."
+   },
+   "Debilitating Strike": {
+    "name": "Debilitating Strike",
+    "level": 9,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Rogue",
+    "sourceBook": "Player Core, p. 164",
+    "description": "Ao aproveitar uma abertura, você tanto impede quanto fere seu inimigo. Você ganha a ação livre Debilitating Strike."
+   },
+   "Deny Advantage": {
+    "name": "Deny Advantage",
+    "level": 3,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Rogue",
+    "sourceBook": "Player Core, p. 164",
+    "description": "Como alguém que aproveita aberturas, você tem cuidado para não deixar tais lacunas você mesmo. Você não está off-guard contra criaturas ocultas, não detectadas ou flanking de seu nível ou inferior, ou criaturas de seu nível ou inferior usando ataque surpresa. No entanto, elas ainda podem ajudar seus aliados a flanquear."
+   },
+   "Evasive Reflexes": {
+    "name": "Evasive Reflexes",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Rogue",
+    "sourceBook": "Player Core, p. 164",
+    "description": "Você aprendeu a mover-se rapidamente para evitar explosões, sopro de dragões e coisas piores. Seu grau de proficiência em testes de Reflexo aumenta para mestre. Quando você obtém um sucesso em um teste de Reflexo, você obtém um sucesso crítico em vez disso."
+   },
+   "Low-Light Vision": {
+    "name": "Low-Light Vision",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "rules",
+    "sourceBook": "Player Core, p. 433",
+    "description": "Regras Low-Light Vision Uma criatura com Low-Light Vision pode enxergar na penumbra como se fosse luz plena, portanto ela ignora a condição concealed devido à penumbra."
+   },
+   "Opportune Riposte": {
+    "name": "Opportune Riposte",
+    "level": 3,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Swashbuckler",
+    "sourceBook": "Player Core 2, p. 158",
+    "description": "Você inverte a situação contra inimigos que vacilam, capitalizando seu erro. Você ganha a reação Opportune Riposte."
+   },
+   "Perception Mastery": {
+    "name": "Perception Mastery",
+    "level": 11,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Bard",
+    "sourceBook": "Player Core, p. 94",
+    "description": "Você desenvolveu uma percepção aguçada e atenção aos detalhes. Sua graduação de proficiência para Percepção aumenta para mestre."
+   },
+   "Precise Strike": {
+    "name": "Precise Strike",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Swashbuckler",
+    "sourceBook": "Player Core 2, p. 158",
+    "description": "Quando você faz um Strike com uma arma corpo a corpo agile ou finesse ou um ataque desarmado agile ou finesse, você causa 2 de dano de precisão adicional. Se o Strike for parte de um finisher, o dano adicional é 2d6 de dano de precisão em vez disso. Conforme seu nível de swashbuckler aumenta, o mesmo acontece com seu dano adicional para precise strike. No 5º, 9º, 13º e 17º nível, aumente a quantidade de dano adicional em um Strike em 1 e o dano adicional em um finisher em 1d6."
+   },
+   "Rascal": {
+    "name": "Rascal",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "style",
+    "sourceBook": "Player Core 2, p. 161",
+    "description": "Estilo de Swashbuckler Rascal Você não tem medo de usar táticas desonestas para obter vantagem sobre seus oponentes. Você é treinado em Thievery e ganha o talento geral Dirty Trick. Quando você usa Dirty Trick, a ação ganha o traço bravado. 9º Exemplary Finisher O inimigo recebe uma penalidade de circunstância de 10 em seu deslocamento até o início do seu próximo turno."
+   },
+   "Rewrite Fate": {
+    "name": "Rewrite Fate",
+    "level": null,
+    "actions": "Free Action",
+    "traits": [
+     "Fortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "action",
+    "sourceBook": "War of Immortals, p. 78",
+    "trigger": "Você rola um teste de perícia ou uma salvaguarda e não gosta do resultado.",
+    "description": "O destino, a sorte ou alguma outra força se curva ao seu redor à medida que seu poder mítico aumenta, manifestando-se em um clarão de luz ou em uma onda visível de energia emanando de seu corpo enquanto você se livra das correntes do destino. Você gasta um Mythic Point e rola novamente o teste ou salvaguarda com proficiência mítica, assumindo o novo resultado."
+   },
+   "Rogue Resilience": {
+    "name": "Rogue Resilience",
+    "level": 9,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Rogue",
+    "sourceBook": "Player Core, p. 164",
+    "description": "Seu físico é incrivelmente resistente. Sua graduação de proficiência para testes de Fortitude aumenta para perito. Quando você rola um sucesso em um teste de Fortitude, você obtém um sucesso crítico em vez disso."
+   },
+   "Sneak Attack": {
+    "name": "Sneak Attack",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Rogue",
+    "sourceBook": "Player Core, p. 164",
+    "description": "Quando seu inimigo não consegue se defender adequadamente, você aproveita para causar dano extra. Se você fizer um Strike contra uma criatura que esteja com a condição off-guard com uma arma corpo a corpo agile ou finesse, um ataque desarmado agile ou finesse, um ataque de arma à distância ou um ataque desarmado à distância, você causa 1d6 de dano de precisão extra. Para um ataque à distância com uma arma corpo a corpo de arremesso, essa arma também deve ser agile ou finesse. Conforme seu nível de rogue aumenta, o mesmo acontece com o número de dados de dano para seu sneak attack. Aumente o número de dados em um no 5º, 11º e 17º níveis."
+   },
+   "Stylish Combatant": {
+    "name": "Stylish Combatant",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Swashbuckler",
+    "sourceBook": "Player Core 2, p. 158",
+    "description": "Você ganha um bônus de circunstância de +1 em testes de perícia com o traço bravado enquanto estiver em um encontro de combate. Enquanto você tiver panache, você ganha um bônus de status de +5 pés aos seus deslocamentos."
+   },
+   "Surprise Attack": {
+    "name": "Surprise Attack",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Rogue",
+    "sourceBook": "Player Core, p. 164",
+    "description": "Você salta para o combate mais rápido do que os inimigos conseguem reagir. Na primeira rodada de combate, se você rolar Deception ou Stealth para iniciativa, criaturas que ainda não agiram estão off-guard para você."
+   },
+   "Thief Racket": {
+    "name": "Rogue's Racket",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Rogue",
+    "sourceBook": "Core Rulebook, p. 178",
+    "description": "Ao iniciar no caminho do ladino, você começou a desenvolver seu próprio estilo para perseguir suas atividades ilícitas. Seu racket molda suas técnicas de ladino e a maneira como você aborda um trabalho, enquanto constrói sua reputação no submundo do crime para um certo tipo de serviço. Um cliente com bolsos cheios pode até contratar uma equipe de ladinos para um assalto específico, cada um especializado em um racket diferente, a fim de cobrir todas as frentes. Escolha um racket de ladino. Rackets podem ser encontrados aqui"
+   },
+   "Weapon Specialization": {
+    "name": "Weapon Specialization",
+    "level": 13,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Alchemist",
+    "sourceBook": "Core Rulebook, p. 66",
+    "description": "Você aprendeu como infligir ferimentos maiores com as armas que conhece melhor. Você causa 2 de dano adicional com armas e ataques desarmados nos quais você é perito. Esse dano aumenta para 3 se você for mestre, e para 4 se você for lendário."
+   },
+   "Weapon Tricks": {
+    "name": "Weapon Tricks",
+    "level": 5,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Rogue",
+    "sourceBook": "Player Core, p. 164",
+    "description": "Você ganha proficiência perito em armas simples, armas marciais e ataques desarmados. Quando você obtém um sucesso crítico em um teste de ataque contra uma criatura off-guard enquanto usa uma arma ágil ou com finesse ou um ataque desarmado ágil ou com finesse, você aplica o efeito de especialização crítica para aquela arma ou ataque desarmado."
+   },
+   "Whisper Elf": {
+    "name": "Whisper Elf",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Player Core, p. 47",
+    "description": "Heritage Whisper Elf Suas orelhas são finamente sintonizadas, capazes de detectar até os mais leves sussurros de som. Você recebe um bônus de circunstância de +2 ao usar a ação Seek para encontrar criaturas escondidas ou não detectadas a até 9 metros de você. Este benefício não se aplica se você não puder ouvir ou se a criatura for incapaz de produzir som (por exemplo, se ela estiver afetada por uma magia silence)."
+   }
+  },
+  "item": {
+   "Breath of the Mantis God": {
+    "name": "Breath of the Mantis God",
+    "level": 10,
+    "actions": "Single Action",
+    "traits": [
+     "Alchemical",
+     "Consumable",
+     "Inhaled",
+     "Poison",
+     "Uncommon",
+     "Virulent"
+    ],
+    "category": "equipment",
+    "sourceBook": "Prey for Death, p. 103",
+    "description": "Para evitar que uma de suas vítimas seja trazida de volta à vida, os assassinos do Red Mantis frequentemente envenenam alvos com o breath of the mantis god. Depois que uma criatura é envenenada por essa mistura, hemorragias internas frequentemente resultam em sangue saindo da boca da criatura — uma condição referida pelos assassinos como ter o \"hálito do deus louva-a-deus\". Embora uma criatura possa tentar se recuperar normalmente do dano de sangramento persistente causado pelo breath of the mantis god, o dano de sangramento persistente retornará se a duração do veneno ainda estiver em curso. Se uma criatura morrer devido aos efeitos do veneno, a toxina permanece tenazmente na carne da criatura por 1 ano. Durante esse período, se for feita uma tentativa de trazer tal criatura morta de volta à vida que não crie um novo corpo para o falecido (como com um ritual resurrect de 7º nível), os efeitos persistentes do breath of the mantis god tentam anular a ressurreição (modificador de anulação +17, nível de anulação 5). Uma magia como extract poison pode ser usada para descontaminar um cadáver para uma ressurreição mais fácil, mas magias mais simples como cleanse cuisine não podem. Um cleanse affliction de 5º nível ou superior também pode tentar anular o breath of the mantis god persistente. Teste de Resistência Fortitude CD 29; Duração Máxima 6 minutos; Estágio 1 3d6 de sangramento persistente e drained 1 (1 minuto); Estágio 2 3d8 de sangramento persistente e drained 1 (1 minuto); Estágio 3 3d10 de sangramento persistente e drained 2 (1 minuto)"
+   },
+   "Fearweed": {
+    "name": "Fearweed",
+    "level": 10,
+    "actions": "Single Action",
+    "traits": [
+     "Consumable",
+     "Contact",
+     "Divine",
+     "Poison",
+     "Uncommon"
+    ],
+    "category": "equipment",
+    "sourceBook": "Pathfinder #160: Assault on Hunting Lodge Seven, p. 66",
+    "description": "Cultivada ao amassar e fermentar ervas daninhas tóxicas encontradas em cemitérios solitários, a fearweed é uma pasta esverdeada magicamente infundida com horror psíquico. A condição frightened causada pela fearweed não pode ser removida enquanto o veneno durar. Teste de Resistência Fortitude CD 30; Início 1 minuto; Duração Máxima 6 minutos; Estágio 1 7d6 de dano de veneno e frightened 1 (1 minuto); Estágio 2 8d6 de dano de veneno e frightened 2 (1 minuto); Estágio 3 9d6 de dano de veneno e frightened 3 (1 minuto) Requisitos de Criação Fornecer uma conjuração de fear de 4º nível."
+   },
+   "Gloom Blade": {
+    "name": "Gloom Blade",
+    "level": 9,
+    "actions": "",
+    "traits": [
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 242",
+    "description": "Tão negra quanto carvão, esta lâmina torna-se mais potente na escuridão. Enquanto estiver sob luz plena, ela funciona como uma shortsword +1 e não parece irradiar uma aura mágica para detect magic ou magias similares, a menos que as magias sejam de 4º nível ou superior. Em luz fraca ou escuridão, a gloom blade torna-se uma shortsword +2 striking. Sempre que você usa a gloom blade para atacar uma criatura de quem você não foi detectado, você causa 1d6 de dano de precisão adicional. Para aprimorar as runas fundamentais da gloom blade, comece com a shortsword +1 base, mas se você a melhorar além de uma shortsword +2 striking, as runas se aplicam em luz fraca ou escuridão também."
+   },
+   "Ring of Climbing": {
+    "name": "Ring of Climbing",
+    "level": 12,
+    "actions": "",
+    "traits": [
+     "Invested",
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 294",
+    "description": "Pontas semelhantes a garras nesta grossa faixa dourada se estendem para cavar profundamente em superfícies verticais quando você está realizando a ação Climb. Este anel concede a você um deslocamento de escalada igual à metade do seu deslocamento terrestre. Penalidades ao seu deslocamento (incluindo aquelas provenientes de sua armadura) aplicam-se antes da divisão pela metade."
+   },
+   "Shadow Weaver": {
+    "name": "Reactive Strike",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Fighter",
+    "sourceBook": "Player Core, p. 136",
+    "description": "Sempre atento a fraquezas, você pode atacar rapidamente inimigos que deixam uma abertura em suas defesas. Você ganha a reação Reactive Strike."
+   },
+   "Toxic Effluence": {
+    "name": "Toxic Effluence",
+    "level": 10,
+    "actions": "Two Actions",
+    "traits": [
+     "Alchemical",
+     "Consumable",
+     "Contact",
+     "Poison",
+     "Rare"
+    ],
+    "category": "equipment",
+    "sourceBook": "Pathfinder #195: Heavy is the Crown, p. 80",
+    "description": "Esta lama verde-escura tem um odor cáustico e textura arenosa. Capaz de entrar no corpo através do contato com a pele, o toxic effluence torna-se prejudicial assim que atinge a corrente sanguínea, onde causa queimaduras químicas internas, dor intensa e espasmos musculares. Teste de Resistência Fortitude CD 29; Duração Máxima 6 rodadas; Estágio 1 3d6 de dano de veneno, 3d6 de dano de fogo, clumsy 1 e enfeebled 1 (1 rodada); Estágio 2 4d6 de dano de veneno, 4d6 de dano de fogo, clumsy 2 e enfeebled 2 (1 rodada); Estágio 3 5d6 de dano de veneno, 5d6 de dano de fogo, clumsy 3 e enfeebled 3 (1 rodada)"
+   }
+  }
+ }
+}
