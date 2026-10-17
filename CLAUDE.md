@@ -49,8 +49,8 @@ node scripts/fetch-creature-tables.mjs  # regera as tabelas do GM Core (confira 
 node scripts/check-scaling.mjs 200      # confere o motor de escala contra criaturas de verdade
 node scripts/check-heightening.mjs      # confere o heightening das magias contra o índice inteiro
 node scripts/check-rolls.mjs            # confere a matemática das rolagens contra as fichas do grupo
-node --env-file=.env scripts/build-spell-bundle.mjs [--published <url>] [--all]
-                                        # regera public/spells/ (magias pré-traduzidas) — ver abaixo
+node --env-file=.env scripts/build-description-bundle.mjs [--published <url>] [--all]
+                                        # regera public/descriptions/ (descrições pré-traduzidas) — ver abaixo
 ```
 
 Depois de mexer em `monster-scaler/scaling.ts` ou nas tabelas, rode o `check-scaling` — ele sai com
@@ -243,43 +243,43 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
     antes. Redis fora do ar é só um miss. Custo: 1 MGET por chamada; os SETs só quando o LLM rodou.
   - Mudou `cleanTranslation` ou o formato da saída? Suba a `TRANSLATION_CACHE_VERSION` — o
     `clear-cache` limpa só a memória, não o Redis (é da mesa inteira).
-- **Magias pré-traduzidas da campanha** (`public/spells/<slug>.json`, gerados por
-  `scripts/build-spell-bundle.mjs`): o elenco é pequeno e as magias mudam pouco, então são resolvidas
-  e traduzidas UMA vez e servidas como arquivo estático pelo CDN. Ao abrir a ficha,
-  `loadSpellBundle` (`descriptions.ts`) põe o pacote no cache em memória — o mesmo que linhas,
-  drawer e Spellstrike leem —, e a aba de Magias abre pronta, sem "Carregar todas". O que nenhum
-  pacote tem segue pela API, como sempre. **Para a ficha publicada, o par automático é o de baixo** —
-  o script só cobre os arquivos do repositório.
-  - Payload IDÊNTICO ao da API (`resolveSpells`) e nomes da MESMA função do "Carregar todas"
-    (`characterSpellNames` em `spellNames.ts`, importada pelo script via `ts-loader`).
-  - O pacote leva a `CACHE_VERSION` do cliente: subiu a versão, o app ignora os pacotes até o script
-    rodar de novo (sem `--all` ele percebe e refaz tudo). **Mudou o payload de magia (parse,
-    `scaling`, heightening)? Suba a versão E regere os pacotes**, senão a mesa volta a esperar a API.
-  - Incremental: magia já no pacote fica como está, para o diff mostrar só as novas — retraduzir
-    tudo trocaria palavras ao acaso a cada rodada. `--published <url>` usa a ficha publicada pela mesa
-    (é por ela que chega o level-up) e inclui os publicados que não são preset.
-  - Nunca grava inglês: o que ficou `translationPending` depois de 3 passadas fica de fora e o
-    script sai com código 1.
-- **Magias traduzidas da ficha PUBLICADA** (`api/_lib/sheet-spells.js`, Redis
-  `pf2e:sheet:spells:v1:<slug>`, sem TTL como a ficha): o level-up chega pela publicação, e depender de
-  alguém rodar o script não funciona na mesa. `GET ?sheetSpells=<slug>` devolve tudo num comando;
-  `POST { action: 'sheet-spells', char, names, version }` resolve SÓ o que falta e grava junto.
-  - Quem dispara é o cliente (`loadSheetSpells`, montado pela `CharacterSheetView` quando a ficha
-    aberta é a da mesa): lê o pacote e, se falta alguma magia da lista, pede ao servidor e recebe as
-    novas na resposta. Na prática, quem publica (a ficha abre logo depois) já completa o pacote; os
-    próximos aparelhos fazem um GET só. Medido em dev: 25 magias com o cache vazio numa chamada (~44 s);
-    o segundo aparelho, zero chamadas ao `/api/spells`, magia nova do level-up incluída.
-  - **Incremental e acumulativo**: o nível 11 só traduz o que é novo, e as antigas ficam (o
-    "Restaurar" continua coberto). Teto de 300 magias; ao passar, saem as que a lista atual não usa.
-  - A lista vem do cliente (`characterSpellNames`, com o `normalizeSpellCasters` do grimório) —
-    reescrevê-la em JS seria cópia. Só para slug publicado; endpoint público como o resto.
-  - **Trava** (`SET NX`, 70 s): dois aparelhos abrindo juntos não traduzem duas vezes; o segundo
-    recebe `busy` e desiste (a magia segue pela API para ele).
-  - **Cabe no `maxDuration`**: não começa grupo depois de 30 s e devolve `remaining`; o cliente chama
-    de novo, até 4 rodadas, e para se uma rodada não avançou (tradutor fora do ar).
-  - Magia que a AON não resolve vai para `misses` e só é tentada de novo em 24 h — senão cada
-    abertura pediria a mesma magia inexistente à AON e ao LLM. Falha de tradução (429) NÃO é miss.
-  - Leva a `CACHE_VERSION` do cliente como os estáticos: versão nova recomeça o pacote do zero.
+- **Descrições pré-traduzidas** — magias, talentos, habilidades e itens de cada personagem, prontos
+  antes de alguém tocar. O elenco é pequeno e o que cada ficha descreve muda pouco, então tudo é
+  resolvido e traduzido UMA vez; ao abrir a ficha o pacote entra no cache em memória
+  (`seedEntries` em `descriptions.ts`) — o mesmo que as abas, o drawer e o Spellstrike leem —, e
+  todo toque é instantâneo, sem "Carregar todas". O que nenhum pacote tem segue pela API, como sempre.
+  Dois caminhos, mesmo formato (`{ version, entries: { spell, feat, special, item } }`):
+  - **Estático** (`public/descriptions/<slug>.json`, CDN), gerado por
+    `scripts/build-description-bundle.mjs` para os presets do repositório (`loadDescriptionBundle`).
+  - **Da ficha PUBLICADA** (`api/_lib/sheet-descriptions.js`, Redis `pf2e:sheet:desc:v1:<slug>`, sem
+    TTL como a ficha), que o servidor mantém sozinho — o level-up chega pela publicação, e depender de
+    alguém rodar o script não funciona na mesa. `GET ?sheetDescriptions=<slug>` devolve tudo num
+    comando; `POST { action: 'sheet-descriptions', char, names, version }` resolve SÓ o que falta.
+    Quem dispara é o cliente (`loadSheetDescriptions`, pela `CharacterSheetView` quando a ficha aberta
+    é a da mesa): lê o pacote e, se falta algo da lista, pede ao servidor e recebe o novo na resposta.
+    Na prática, quem publica (a ficha abre logo depois) já completa o pacote; os próximos aparelhos
+    fazem um GET só. Medido em dev: 25 magias com o cache vazio numa chamada (~44 s); o segundo
+    aparelho, zero chamadas à API, magia nova do level-up incluída.
+  - **A lista é uma só** (`characterDescriptionNames` em `descriptionNames.ts`), com as MESMAS funções
+    das abas (`characterSpellNames`, `parseFeatEntry`, `inventoryRows` de `inventory.ts`); o script a
+    importa via `ts-loader`, e o servidor a recebe do cliente — reescrevê-la em JS seria cópia.
+  - Payload IDÊNTICO ao da API (`resolveSpells`, `resolveFeats`, `resolveSpecials`). Talentos,
+    habilidades e itens passaram a ser traduzidos **em grupo** como as magias (`resolveEntries` em
+    `feat-core.js`, 6 por chamada): uma chamada por item servia ao drawer, mas montar ~100 descrições
+    por ficha seriam cem chamadas a 4,2 s de distância no Gemini free.
+  - Os dois levam a `CACHE_VERSION` do cliente: subiu a versão, o app ignora os pacotes até o script
+    rodar de novo (sem `--all` ele percebe e refaz tudo), e o da ficha publicada recomeça do zero.
+    **Mudou o payload (parse, `scaling`, heightening, bastão)? Suba a versão E regere os estáticos.**
+  - **Incrementais**: o que já está no pacote fica, para o diff mostrar só o novo (retraduzir tudo
+    trocaria palavras ao acaso a cada rodada) e para o nível 11 traduzir só o que é novo. O da ficha
+    publicada é também **acumulativo** (o "Restaurar" continua coberto), com teto de 300 por tipo.
+  - **Nunca gravam inglês**: `translationPending` fica de fora (o script sai com código 1; o servidor
+    tenta de novo na próxima abertura).
+  - No servidor: **trava** (`SET NX`, 70 s) para dois aparelhos não traduzirem a mesma ficha juntos (o
+    segundo recebe `busy` e segue pela API); **cabe no `maxDuration`** (não começa grupo depois de
+    30 s, devolve `remaining`, o cliente chama de novo — até 12 rodadas, parando se uma não avançou);
+    nome que a AON não resolve vai para `misses` e só é tentado de novo em 24 h (falha de tradução, 429,
+    NÃO é miss). Só para slug publicado; endpoint público como o resto.
 - Metadados em prosa (pré-requisitos, gatilho, requisitos…) são traduzidos junto com a descrição
   numa **única** chamada, via marcadores `<<N>>` (`translateSegments`). Uma chamada por item é o que
   mantém uma ficha inteira dentro do rate limit do tier gratuito.
@@ -534,8 +534,8 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   `PublishedBar.tsx`, `services/sheets.ts`): enviar um JSON abre um diálogo com o que muda
   (`sheetDiff.ts` — nível, talentos, habilidades, magias, itens) contra a versão da mesa (a
   publicada, senão o arquivo fixo). "Só ver neste aparelho" é o comportamento antigo; "Publicar"
-  grava, pede o guia e abre a ficha (que completa as magias traduzidas da mesa — ver "Magias
-  traduzidas da ficha PUBLICADA"). Sem login, **qualquer pessoa publica** — decisão do usuário —,
+  grava, pede o guia e abre a ficha (que completa as descrições traduzidas da mesa — ver "Descrições
+  pré-traduzidas"). Sem login, **qualquer pessoa publica** — decisão do usuário —,
   então a diferença à vista e o "Versão anterior" da faixa sob o cabeçalho são a salvaguarda.
   PV, condições e slots não mudam: a identidade é o slug do nome, igual antes.
   - `published` só existe quando a ficha na tela é a da mesa. Quem abriu "só neste aparelho" não
@@ -545,7 +545,7 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   aparece na tela inicial como "publicada pela mesa", com guia gerado. Para virar preset fixo:
   (1) copiar o JSON para `public/characters/`; (2) registrar em `campaignPresets.ts`, com
   `sheetName` igual ao `build.name` do JSON; (3) opcionalmente, um guia curado em
-  `combatGuides.ts` casando pelo nome; (4) se tiver magias, rodar o `build-spell-bundle` (a versão
+  `combatGuides.ts` casando pelo nome; (4) rodar o `build-description-bundle` (a versão
   PUBLICADA não precisa: o servidor traduz sozinho).
 - **Os presets alimentam três módulos**: Ficha Virtual, diálogo de personagens da Iniciativa e
   gerador de Transformação (que aceita qualquer personagem, não só conjurador). Tirar uma ficha de
