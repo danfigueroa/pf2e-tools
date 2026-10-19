@@ -62,7 +62,7 @@ import { useActions } from './components/useActions'
 import { RangerBar } from './components/RangerBar'
 import { useRanger } from './components/useRanger'
 import { hasRangerFeatures, withRanger } from './ranger'
-import { reflexShieldBonus, withReflexShield } from './fighter'
+import { hasQuickShieldBlock, reflexShieldBonus, withReflexShield } from './fighter'
 import { useCharacterShield } from './components/useShield'
 import { TITAN_SOURCE, withRage } from './rage'
 import { isMythicCharacter, MYTHIC_POINTS_MAX } from './helpers'
@@ -327,7 +327,7 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
             {published && onRestore && <PublishedBar sheet={published} onRestore={onRestore} />}
 
             <ConditionsBar conditions={conditions} />
-            <ActionsBar actions={actions} />
+            <ActionsBar actions={actions} shieldReaction={hasQuickShieldBlock(build)} />
             <DiceBar build={build} />
             {rage.spec && <RageBar build={build} rage={rage} conditions={conditions} />}
             {psyche.has && <PsycheBar psyche={psyche} />}

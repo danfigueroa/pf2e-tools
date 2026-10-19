@@ -68,7 +68,7 @@ const OverviewSectionView = ({ build, mods, guide: slot, onRoll, compact = false
             <HpTracker build={build} maxHp={hp} maxHpDelta={mods.hpMaxDelta} />
 
             {/* Escudo vestido: PV de item, Dureza, erguer/bloquear/consertar. */}
-            <ShieldCard build={build} shield={shield} hpMaxDelta={mods.hpMaxDelta} />
+            <ShieldCard build={build} shield={shield} mods={mods} />
 
             {/* Stat tiles */}
             <Box sx={{

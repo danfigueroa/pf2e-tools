@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { Alert, Button, ButtonBase, Card, CardContent, Chip, Snackbar, Stack, Tooltip, Typography } from '@mui/material'
-import { gold, green, MAGUS_COLOR } from '../../../theme'
+import { gold, green, MAGUS_COLOR, SHIELD_COLOR } from '../../../theme'
 import type { ActionsApi } from './useActions'
 
 interface Props {
     actions: ActionsApi
+    /** Quick Shield Block: a reação extra, só para Shield Block, ganha o próprio pip. */
+    shieldReaction?: boolean
 }
 
 const PIP = 30
@@ -53,7 +55,7 @@ const Pip = ({ state, label, color, onClick, glyph }: {
  * Ao zerar, avisa. O aviso só dispara por mudança depois da primeira pintura: o
  * contador chega do cache e do servidor, e isso não é "acabaram as ações".
  */
-export const ActionsBar = ({ actions }: Props) => {
+export const ActionsBar = ({ actions, shieldReaction }: Props) => {
     const { stored, budget, left } = actions
     const [notice, setNotice] = useState(false)
     const previous = useRef<number | null>(null)
@@ -112,6 +114,17 @@ export const ActionsBar = ({ actions }: Props) => {
                             onClick={actions.toggleReaction}
                             glyph="⤴"
                         />
+                        {shieldReaction && (
+                            <Pip
+                                state={stored.shieldReacted ? 'spent' : 'free'}
+                                color={SHIELD_COLOR}
+                                label={stored.shieldReacted
+                                    ? 'Reação extra do Quick Shield Block usada — toque para devolver'
+                                    : 'Reação extra do Quick Shield Block: só para Shield Block'}
+                                onClick={actions.toggleShieldReaction}
+                                glyph="🛡"
+                            />
+                        )}
 
                         {out && <Chip label="Sem ações neste turno" color="error" size="small" sx={{ fontWeight: 700 }} />}
                     </Stack>

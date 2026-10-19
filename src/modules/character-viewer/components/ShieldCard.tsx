@@ -18,7 +18,11 @@ import { Build as RepairIcon, Shield as ShieldIcon } from '@mui/icons-material'
 import { gold, SHIELD_COLOR, status } from '../../../theme/palette'
 import type { BuildInfo } from '../../character-sheet/types'
 import { characterMaxHp } from '../helpers'
-import { hpKeyFor, legacyCharKey } from '../charId'
+import { actionsKeyFor, hpKeyFor, legacyCharKey } from '../charId'
+import type { ConditionModifiers } from '../conditions'
+import type { BlockReaction } from '../actions'
+import { hasQuickShieldBlock, hasReactiveShield } from '../fighter'
+import { useActions } from './useActions'
 import { blockSplit, craftingRank, isBroken, repairAmount, type ShieldStored } from '../shield'
 import type { CharacterShield } from './useShield'
 import { useHpTracker } from './useHpTracker'
@@ -33,8 +37,8 @@ const RANK_LABELS = ['destreinado', 'treinado', 'especialista', 'mestre', 'lend�
 interface Props {
     build: BuildInfo
     shield: CharacterShield
-    /** Corte de Drenado no PV máximo — o dano que passa do escudo cai no PV. */
-    hpMaxDelta: number
+    /** `hpMaxDelta`: corte de Drenado no PV máximo (o dano que passa do escudo cai no PV); o resto alimenta as ações. */
+    mods: ConditionModifiers
 }
 
 /** O aviso do último bloqueio, com o que é preciso para desfazê-lo. */
@@ -42,6 +46,8 @@ interface BlockNotice {
     text: string
     shield: ShieldStored
     hp: { current: number; temp: number }
+    /** De qual reação o bloqueio saiu — o Desfazer a devolve. */
+    reaction: BlockReaction
 }
 
 let flashSeq = 0
@@ -51,7 +57,11 @@ let flashSeq = 0
  * na barra, Quebrado/Destruído, e as três ações — Erguer, Bloquear e Consertar.
  * O estado é da mesa: o GM vê na Iniciativa o escudo que o jogador ergueu aqui.
  */
-export const ShieldCard = ({ build, shield, hpMaxDelta }: Props) => {
+export const ShieldCard = ({ build, shield, mods }: Props) => {
+    const hpMaxDelta = mods.hpMaxDelta
+    // Shield Block é REAÇÃO: com o Quick Shield Block, a reação extra (só dele) vai primeiro.
+    const actions = useActions(actionsKeyFor(build), mods)
+    const quickBlock = hasQuickShieldBlock(build)
     const { view, item, loading, setRaised, block, repair, restore } = shield
     const hp = useHpTracker(hpKeyFor(build), characterMaxHp(build, hpMaxDelta), legacyCharKey(build))
     const armed = useArmed()
@@ -113,6 +123,7 @@ export const ShieldCard = ({ build, shield, hpMaxDelta }: Props) => {
         const before = { shield: { hp: view.hp, raised: view.raised }, hp: { current: hp.current, temp: hp.temp } }
         const result = block(value, destructive)
         if (!result) return
+        const reaction = actions.spendBlock(quickBlock)
         if (result.toCreature > 0) hp.applyDamage(result.toCreature)
         setAmount('')
         const id = ++flashSeq
@@ -122,7 +133,11 @@ export const ShieldCard = ({ build, shield, hpMaxDelta }: Props) => {
             ? ' · Escudo DESTRUÍDO'
             : result.broke ? ' · Escudo QUEBRADO' : ''
         setNotice({
-            text: `${result.destructive ? 'Bloqueio Destrutivo' : 'Bloqueio'}: Dureza segurou ${result.absorbed} · escudo −${result.toShield} · você −${result.toCreature}${tail}`,
+            text: `${result.destructive ? 'Bloqueio Destrutivo' : 'Bloqueio'}: Dureza segurou ${result.absorbed} · escudo −${result.toShield} · você −${result.toCreature}${tail}`
+                + (reaction === 'shield' ? ' · usou a reação extra do Quick Shield Block'
+                    : reaction === 'normal' ? ' · usou a sua reação'
+                        : ' · ATENÇÃO: sem reação disponível nesta rodada'),
+            reaction,
             ...before,
         })
     }
@@ -130,6 +145,7 @@ export const ShieldCard = ({ build, shield, hpMaxDelta }: Props) => {
     const undo = (n: BlockNotice) => {
         restore(n.shield)
         hp.restoreHp(n.hp)
+        actions.refundBlock(n.reaction)
     }
 
     const animation = pulseAnimation(manualPulse) ?? pulseAnimation(deltas.pulse)
@@ -278,6 +294,21 @@ export const ShieldCard = ({ build, shield, hpMaxDelta }: Props) => {
                             </Button>
                         </span>
                     </Tooltip>
+                    {hasReactiveShield(build) && !raised && !broken && (
+                        <Tooltip title="Reactive Shield: ergue o escudo como reação quando um inimigo o acerta com um Golpe corpo a corpo. Gasta a sua reação normal (não a extra do Quick Shield Block).">
+                            <span style={{ flex: '1 1 140px', display: 'flex' }}>
+                                <Button
+                                    fullWidth
+                                    variant="outlined"
+                                    startIcon={<ShieldIcon />}
+                                    onClick={() => { if (!actions.stored.reacted) actions.spendReaction(); setRaised(true) }}
+                                    sx={{ fontWeight: 700 }}
+                                >
+                                    Erguer como reação{actions.stored.reacted ? ' (já reagiu)' : ''}
+                                </Button>
+                            </span>
+                        </Tooltip>
+                    )}
                     <Button
                         variant="outlined"
                         startIcon={<RepairIcon />}
