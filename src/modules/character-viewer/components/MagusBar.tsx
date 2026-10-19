@@ -29,6 +29,7 @@ import { translateDamageType } from '../../transformation-statblock/i18n'
 import { useHpTracker } from './useHpTracker'
 import { EmbedDialog } from './EmbedDialog'
 import { FeatureRow } from './FeatureRow'
+import { MythicFeatsRows } from './MythicFeatsRows'
 import type { ConditionsApi } from './useConditions'
 import type { MagusApi } from './useMagus'
 import type { MythicPointsApi } from './useMythicPoints'
@@ -219,6 +220,7 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
                             </Button>
                         </FeatureRow>
                     )}
+                    <MythicFeatsRows build={build} magus={magus} mythicPoints={mythicPoints} conditions={conditions} />
                     {hasFieryRebirthFeat(build) && (
                         <FeatureRow title="Fiery Rebirth">
                             <Typography variant="body2" color="text.secondary" sx={{ flex: 1, minWidth: 160 }}>

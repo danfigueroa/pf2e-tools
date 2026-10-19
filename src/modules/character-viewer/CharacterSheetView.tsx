@@ -39,6 +39,7 @@ import { AfflictionsBar } from './components/AfflictionsBar'
 import { PersistentDamageBar } from './components/PersistentDamageBar'
 import { MythicPointsBar } from './components/MythicPointsBar'
 import { useUses } from './components/useUses'
+import { GODSPEED_SOURCE, godspeedConditions, withGodspeed } from './mythicFeats'
 import { usesKeyFor, actionsKeyFor, afflictionsKeyFor, charSlug, conditionsKeyFor, energyKeyFor, legacyCharKey, magusKeyFor, mythicKeyFor, persistentKeyFor, psycheKeyFor, rageKeyFor, rangerKeyFor, sizeKeyFor } from './charId'
 import { useConditions } from './components/useConditions'
 import { useAfflictions } from './components/useAfflictions'
@@ -233,6 +234,7 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
             { conditions: fromSize, source: sizeSource },
             { conditions: rage.clumsy, source: TITAN_SOURCE },
             { conditions: psyche.strain, source: STRAIN_SOURCE },
+            { conditions: godspeedConditions(magus.stored.godspeed), source: GODSPEED_SOURCE },
         ].filter((o) => Object.keys(o.conditions).length > 0)
         if (origins.length === 0) return { derived: afflictions.conditions, derivedSources: undefined }
         const merged = { ...afflictions.conditions }
@@ -246,7 +248,7 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
             }
         }
         return { derived: merged, derivedSources: sources }
-    }, [afflictions.conditions, sizeEffect.effect, rage.clumsy, psyche.strain])
+    }, [afflictions.conditions, sizeEffect.effect, rage.clumsy, psyche.strain, magus.stored.godspeed])
 
     const conditions = useConditions(
         conditionsKeyFor(build),
@@ -257,8 +259,8 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
     )
     // O +4 de estado no corpo a corpo do Enlarge e a Fúria viajam junto dos modificadores.
     const mods = useMemo(
-        () => withReflexShield(withRanger(withCascade(withPsyche(withRage(withSizeEffect(conditions.mods, sizeEffect.effect), rage.effect), psyche.effect), magus.effect), ranger.effect), reflexShield),
-        [conditions.mods, sizeEffect.effect, rage.effect, psyche.effect, magus.effect, ranger.effect, reflexShield],
+        () => withGodspeed(withReflexShield(withRanger(withCascade(withPsyche(withRage(withSizeEffect(conditions.mods, sizeEffect.effect), rage.effect), psyche.effect), magus.effect), ranger.effect), reflexShield), magus.stored.godspeed),
+        [conditions.mods, sizeEffect.effect, rage.effect, psyche.effect, magus.effect, ranger.effect, reflexShield, magus.stored.godspeed],
     )
 
     // Ações do turno: a faixa liga o poll leve (a Iniciativa zera do aparelho do mestre).
