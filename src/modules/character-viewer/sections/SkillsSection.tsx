@@ -15,6 +15,7 @@ import type { RollRequest } from '../components/RollDialog'
 import { RollTrigger } from '../components/RollTrigger'
 import { ConditionDelta } from '../components/ConditionDelta'
 import { MythicNote } from '../components/MythicNote'
+import { TreatWoundsCard } from '../components/TreatWoundsCard'
 
 interface Props {
     build: BuildInfo
@@ -30,6 +31,7 @@ const SkillsSectionView = ({ build, mods, onRoll }: Props) => {
     const mythic = isMythicCharacter(build)
     const armor = useArmorPenalty(build)
     return (
+        <>
         <Card>
             <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
                 <Box
@@ -126,6 +128,8 @@ const SkillsSectionView = ({ build, mods, onRoll }: Props) => {
                 )}
             </CardContent>
         </Card>
+        <TreatWoundsCard build={build} mods={mods} />
+        </>
     )
 }
 
