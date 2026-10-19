@@ -30,6 +30,9 @@ const hasFeat = (b: BuildInfo, name: string) => (b.feats ?? []).some((f) => norm
 export const hasFearsomeBrute = (b: BuildInfo) => hasFeat(b, 'Fearsome Brute')
 export const hasExactingStrike = (b: BuildInfo) => hasFeat(b, 'Exacting Strike')
 export const hasReflexiveShield = (b: BuildInfo) => hasFeat(b, 'Reflexive Shield')
+export const hasShieldBlock = (b: BuildInfo) => hasFeat(b, 'Shield Block')
+export const hasQuickShieldBlock = (b: BuildInfo) => hasFeat(b, 'Quick Shield Block')
+export const hasReactiveShield = (b: BuildInfo) => hasFeat(b, 'Reactive Shield')
 export const hasFieryRebirth = (b: BuildInfo) => hasFeat(b, 'Fiery Rebirth')
 
 /** Mestre em Intimidação (rank 6 no Pathbuilder, que guarda 2 × rank). */

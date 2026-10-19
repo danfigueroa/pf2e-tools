@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useSharedState } from './useSharedState'
 import { pullField, splitSyncKey } from '../../../services/tableState'
 import type { ConditionModifiers } from '../conditions'
@@ -7,6 +7,8 @@ import {
     actionBudget,
     actionsLeft,
     applySpend,
+    spendBlockReaction,
+    type BlockReaction,
     isActionsEmpty,
     newTurn,
     sanitizeActions,
@@ -54,6 +56,26 @@ export function useActions(syncKey: string, mods: ConditionModifiers, poll = fal
     /** Gasta a reação da rodada (idempotente: quem já reagiu continua tendo reagido). */
     const spendReaction = useCallback(() => setStored((s) => (s.reacted ? s : { ...s, reacted: true })), [setStored])
 
+    /**
+     * Gasta a reação de um Shield Block (a extra do Quick Shield Block primeiro). Devolve de qual saiu,
+     * lendo o estado de agora — o `ref` evita decidir sobre um render velho.
+     */
+    const storedRef = useRef(stored)
+    storedRef.current = stored
+    const spendBlock = useCallback((hasQuick: boolean): BlockReaction => {
+        const { stored: next, source } = spendBlockReaction(storedRef.current, hasQuick)
+        if (source !== 'none') setStored(() => next)
+        return source
+    }, [setStored])
+
+    /** Devolve a reação de um bloqueio desfeito. */
+    const refundBlock = useCallback((source: BlockReaction) => {
+        if (source === 'shield') setStored((s) => ({ ...s, shieldReacted: false }))
+        else if (source === 'normal') setStored((s) => ({ ...s, reacted: false }))
+    }, [setStored])
+
+    const toggleShieldReaction = useCallback(() => setStored((s) => ({ ...s, shieldReacted: !s.shieldReacted })), [setStored])
+
     const toggleQuick = useCallback(() => setStored((s) => ({ ...s, quickUsed: !s.quickUsed })), [setStored])
 
     useEffect(() => {
@@ -66,8 +88,8 @@ export function useActions(syncKey: string, mods: ConditionModifiers, poll = fal
     }, [poll, syncKey])
 
     return useMemo(
-        () => ({ stored, budget, left, spend, missing, startTurn, toggleReaction, spendReaction, setUsed, toggleQuick }),
-        [stored, budget, left, spend, missing, startTurn, toggleReaction, spendReaction, setUsed, toggleQuick],
+        () => ({ stored, budget, left, spend, missing, startTurn, toggleReaction, spendReaction, spendBlock, refundBlock, toggleShieldReaction, setUsed, toggleQuick }),
+        [stored, budget, left, spend, missing, startTurn, toggleReaction, spendReaction, spendBlock, refundBlock, toggleShieldReaction, setUsed, toggleQuick],
     )
 }
 

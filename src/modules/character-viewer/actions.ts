@@ -25,11 +25,13 @@ export interface ActionsStored {
     quickUsed: boolean
     /** A reação da rodada já foi usada. */
     reacted: boolean
+    /** A reação EXTRA do Quick Shield Block (só vale para Shield Block) já foi usada. */
+    shieldReacted: boolean
     /** Carimbo do último "novo turno" (ms): a Iniciativa e o botão o atualizam. */
     turn: number
 }
 
-export const NO_ACTIONS: ActionsStored = { used: 0, quickUsed: false, reacted: false, turn: 0 }
+export const NO_ACTIONS: ActionsStored = { used: 0, quickUsed: false, reacted: false, shieldReacted: false, turn: 0 }
 
 const finite = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n)
 
@@ -40,14 +42,15 @@ export function sanitizeActions(raw: unknown): ActionsStored {
         used: finite(r.used) ? Math.min(9, Math.max(0, Math.floor(r.used))) : 0,
         quickUsed: !!r.quickUsed,
         reacted: !!r.reacted,
+        shieldReacted: !!r.shieldReacted,
         turn: finite(r.turn) && r.turn > 0 ? r.turn : 0,
     }
 }
 
-export const isActionsEmpty = (s: ActionsStored) => s.used === 0 && !s.quickUsed && !s.reacted && s.turn === 0
+export const isActionsEmpty = (s: ActionsStored) => s.used === 0 && !s.quickUsed && !s.reacted && !s.shieldReacted && s.turn === 0
 
 /** Um turno novo: tudo volta, e o carimbo marca quando. */
-export const newTurn = (now = Date.now()): ActionsStored => ({ used: 0, quickUsed: false, reacted: false, turn: now })
+export const newTurn = (now = Date.now()): ActionsStored => ({ used: 0, quickUsed: false, reacted: false, shieldReacted: false, turn: now })
 
 export interface ActionBudget {
     /** Ações gerais do turno depois de Lento/Atordoado. */
@@ -117,4 +120,26 @@ export function actionCost(actions: string | number | undefined | null): number 
     if (s === '2' || s === 'twoactions' || s === 'two') return 2
     if (s === '3' || s === 'threeactions' || s === 'three') return 3
     return null
+}
+
+/**
+ * Qual reação um Shield Block gasta. O **Quick Shield Block** dá, no início de cada
+ * turno, uma reação ADICIONAL que só serve para Shield Block: ela vai primeiro (a
+ * normal fica para Reactive Strike, Reactive Shield…). Sem o talento, ou com a extra
+ * já gasta, sai da normal. `none` = nenhuma sobrou — o app avisa, mas não impede.
+ */
+export type BlockReaction = 'shield' | 'normal' | 'none'
+
+export function blockReactionSource(stored: ActionsStored, hasQuickShieldBlock: boolean): BlockReaction {
+    if (hasQuickShieldBlock && !stored.shieldReacted) return 'shield'
+    if (!stored.reacted) return 'normal'
+    return 'none'
+}
+
+/** Gasta a reação do Shield Block e diz de qual das duas saiu. */
+export function spendBlockReaction(stored: ActionsStored, hasQuickShieldBlock: boolean): { stored: ActionsStored; source: BlockReaction } {
+    const source = blockReactionSource(stored, hasQuickShieldBlock)
+    if (source === 'shield') return { stored: { ...stored, shieldReacted: true }, source }
+    if (source === 'normal') return { stored: { ...stored, reacted: true }, source }
+    return { stored, source }
 }

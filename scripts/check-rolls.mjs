@@ -845,5 +845,23 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
     sc.resetCastLedger()
 }
 
+// Reações do Shield Block: com o Quick Shield Block a extra (só dele) vai primeiro.
+{
+    const none = acts.NO_ACTIONS
+    eq(acts.blockReactionSource(none, true), 'shield', 'Quick Shield Block: a reação extra paga o primeiro bloqueio')
+    const first = acts.spendBlockReaction(none, true)
+    ok(first.stored.shieldReacted && !first.stored.reacted, 'O primeiro bloqueio não toca a reação normal')
+    const second = acts.spendBlockReaction(first.stored, true)
+    eq(second.source, 'normal', 'O segundo bloqueio sai da reação normal')
+    ok(second.stored.reacted && second.stored.shieldReacted, 'Depois dos dois bloqueios, as duas estão gastas')
+    eq(acts.spendBlockReaction(second.stored, true).source, 'none', 'Sem reação sobrando: avisa, não impede')
+    eq(acts.blockReactionSource(none, false), 'normal', 'Sem o talento, o bloqueio gasta a reação normal')
+    eq(acts.blockReactionSource({ ...none, reacted: true }, false), 'none', 'Sem o talento e já reagiu: nenhuma')
+    eq(acts.blockReactionSource({ ...none, reacted: true }, true), 'shield', 'Reagiu em outra coisa: a extra ainda cobre o bloqueio')
+    ok(!acts.newTurn(1).shieldReacted && !acts.newTurn(1).reacted, 'Turno novo devolve as duas reações')
+    ok(acts.sanitizeActions({ used: 1, shieldReacted: true }).shieldReacted, 'A reação extra sobrevive à mesa')
+    ok(!acts.isActionsEmpty({ ...none, shieldReacted: true }), 'Reação extra gasta não é estado vazio')
+}
+
 console.log(`${passed} conferências ok, ${failures} falha(s).`)
 process.exit(failures ? 1 : 0)
