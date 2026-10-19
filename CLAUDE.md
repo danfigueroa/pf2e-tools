@@ -395,6 +395,28 @@ você gasta"** e o custo no contador de ações, o dano/cura, os alvos e os efei
 - O `id` dos componentes vem da POSIÇÃO (9500+i), não de um contador: a seleção de chips do jogador tem de sobreviver
   a cada render.
 
+## Economia de uma conjuração (ações, slot, foco, Ponto Mítico)
+
+Conjurar custa **ações (ou a reação) E um recurso**, e antes só a rolagem do diálogo pagava as ações — a magia sem
+dano (Guidance, Bless…) só tinha o pip do slot, que não contava ação alguma, e o Ponto Mítico do Mythic Magic só saía no
+botão da lista. Hoje (`spellCast.ts` + `components/useSpellCast.ts`) toda conjuração é UM evento que paga os dois:
+- **Tempo** (`castTimeOf`, do campo `actions` da AON): `Single/Two/Three Actions` gastam 1/2/3; `Reaction` gasta a
+  **reação** (`spendReaction`, idempotente); `Free Action` e minutos/rodadas/horas não gastam; "1 a 3" usa a escolha do
+  diálogo (ou o mínimo, com aviso, na marcação à mão); sem descrição baixada vira aviso, nunca número chutado.
+- **Recurso** (`CastResource`, montado por linha em `SpellsSection` e levado no `DescriptionRequest.cast` → `RollRequest.cast`):
+  preparado = a cópia preparada (`slot`), espontâneo = o slot do nível, foco = 1 ponto, **Mythic Magic = 1 Ponto Mítico**,
+  truque = nada. Sem slot/ponto disponível o app avisa e não desconta (nunca trava a conjuração).
+- **Dois caminhos, uma cobrança**: a **rolagem** do diálogo (`via: 'roll'`) e a **marcação à mão** na lista — pip do slot
+  preparado, botão de gastar do espontâneo/foco/Mythic Magic (`via: 'mark'`). `pairCast` casa um com o outro (mesma magia,
+  até 90 s): rolar e depois marcar o slot, ou o contrário, paga UMA vez; duas conjurações pagam duas. O pip de um slot
+  que a rolagem já gastou é ignorado (e o aviso diz isso); recuperar um slot continua sendo só desfazer, sem devolver ação.
+- **Magia sem ataque nem dano** ganha o botão **Conjurar** no drawer/diálogo (só magia da ficha, com conjurador): registra
+  o gasto sem rolagem no feed. Magia de bastão/consulta não tem conjurador e segue sem ele.
+- O Spellstrike já paga a magia (slot/ponto, e as 2 ações são do Golpe) e registra o crédito, então marcar o slot depois não
+  duplica. O psi cantrip (Amplificar) paga o ponto de foco só ao amplificar. Truque não tem marcação: o botão do drawer é
+  o único caminho. Os pips do CABEÇALHO do espontâneo continuam sendo bookkeeping (não sabem qual magia foi).
+- `check-rolls` cobre `castTimeOf` e o casamento.
+
 ## Feed de rolagens da mesa
 
 Toda rolagem — da ficha, do rolador do mapa — vai para o feed (`services/rolls.ts` →
