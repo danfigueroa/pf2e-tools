@@ -2,8 +2,8 @@ import { useCallback, useMemo } from 'react'
 import type { BuildInfo } from '../../character-sheet/types'
 import type { ConditionModifiers } from '../conditions'
 import { actionsKeyFor } from '../charId'
-import { castTimeOf, pairCast, type CastResource } from '../spellCast'
-import { useActions } from './useActions'
+import { castTimeOf, pairCast, type CastResource, type CastTime } from '../spellCast'
+import { useActions, type ActionsApi } from './useActions'
 import type { MythicPointsApi } from './useMythicPoints'
 import type { SpellSlotsApi } from './useSpellSlots'
 
@@ -25,6 +25,37 @@ export interface CastReport {
     spent: string[]
     /** O que não deu para contar ou faltou — o jogador precisa saber. */
     warnings: string[]
+}
+
+/**
+ * Paga o TEMPO de uma atividade: N ações, a reação, ou nada (ação livre, conjuração longa).
+ * Compartilhado pelas magias e pelos talentos ativáveis (`useActivity`): um só jeito de contar,
+ * avisando em vez de impedir.
+ */
+export function payTime(
+    actions: ActionsApi,
+    time: CastTime,
+    chosen: number | null | undefined,
+    spent: string[],
+    warnings: string[],
+): void {
+    const pay = (n: number) => {
+        const lacking = actions.missing(n, 'any')
+        actions.spend(n, 'any')
+        spent.push(`${n} ${n === 1 ? 'ação' : 'ações'}`)
+        if (lacking > 0) warnings.push(`faltaram ${lacking} ação(ões) neste turno`)
+    }
+    if (time.kind === 'actions') pay(time.n)
+    else if (time.kind === 'variable') {
+        if (chosen == null) warnings.push(`ação variável: contei ${time.min}; ajuste na faixa de Ações se gastou mais`)
+        pay(chosen ?? time.min)
+    } else if (time.kind === 'reaction') {
+        if (actions.stored.reacted) warnings.push('a reação desta rodada já tinha sido usada')
+        actions.spendReaction()
+        spent.push('a reação')
+    } else if (time.kind === 'unknown') {
+        warnings.push('não sei quantas ações custa (abra a descrição); gaste na faixa de Ações')
+    }
 }
 
 /**
@@ -52,24 +83,7 @@ export function useSpellCast(build: BuildInfo, mods: ConditionModifiers, mythicP
             else { mythicPoints.spend(); spent.push('1 Ponto Mítico') }
         }
 
-        const time = castTimeOf(input.actionsText)
-        const pay = (n: number) => {
-            const lacking = actions.missing(n, 'any')
-            actions.spend(n, 'any')
-            spent.push(`${n} ${n === 1 ? 'ação' : 'ações'}`)
-            if (lacking > 0) warnings.push(`faltaram ${lacking} ação(ões) neste turno`)
-        }
-        if (time.kind === 'actions') pay(time.n)
-        else if (time.kind === 'variable') {
-            if (input.chosenActions == null) warnings.push(`ação variável: contei ${time.min}; ajuste na faixa de Ações se gastou mais`)
-            pay(input.chosenActions ?? time.min)
-        } else if (time.kind === 'reaction') {
-            if (actions.stored.reacted) warnings.push('a reação desta rodada já tinha sido usada')
-            actions.spendReaction()
-            spent.push('a reação')
-        } else if (time.kind === 'unknown') {
-            warnings.push('não sei quantas ações custa (abra a descrição da magia); gaste na faixa de Ações')
-        }
+        payTime(actions, castTimeOf(input.actionsText), input.chosenActions, spent, warnings)
         return { paired: false, spent, warnings }
     }, [actions, slots, mythicPoints])
 

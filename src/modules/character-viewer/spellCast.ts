@@ -80,5 +80,30 @@ export function pairCast(name: string, side: Side, now = Date.now()): boolean {
     return false
 }
 
+// ── O Golpe que a atividade já pagou ───────────────────────────────────────────
+
+/**
+ * Sudden Charge, Vicious Swing, Quick Reversal… são atividades que INCLUEM um Golpe: o custo
+ * delas (2 ações, p. ex.) já paga o Golpe. Quem usa a atividade e depois rola o Golpe no diálogo
+ * não pode pagar a ação duas vezes, então a atividade deixa um "Golpe pago" que o PRÓXIMO Golpe
+ * consome. Só nesta direção (o Golpe avulso não deixa crédito para atividade nenhuma).
+ */
+const prepaidStrikes: number[] = []
+
+export function prepayStrike(now = Date.now()): void {
+    prepaidStrikes.push(now)
+}
+
+/** Há um Golpe pago esperando (sem consumir) — o diálogo do Golpe não deve avisar falta de ação. */
+export function hasPrepaidStrike(now = Date.now()): boolean {
+    return prepaidStrikes.some((t) => now - t < PAIR_TTL_MS)
+}
+
+/** Consome um Golpe pago (dos últimos 90 s); `true` = este Golpe não gasta ação. */
+export function takePrepaidStrike(now = Date.now()): boolean {
+    while (prepaidStrikes.length && now - prepaidStrikes[0] >= PAIR_TTL_MS) prepaidStrikes.shift()
+    return prepaidStrikes.shift() !== undefined
+}
+
 /** Só para o `check-rolls`: esquece tudo. */
-export const resetCastLedger = () => credits.clear()
+export const resetCastLedger = () => { credits.clear(); prepaidStrikes.length = 0 }
