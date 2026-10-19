@@ -16,6 +16,7 @@ import { rollDie, rollGroups, type RolledExpr } from '../../dice/roll'
 import { newRollId, type RolledPart, type TableRoll } from '../../dice/tableRoll'
 import { rollStrikeDamage, type Strike, type StrikePlan } from './strikes'
 import { componentLabel, type ScaledComponent } from './heightening'
+import { DEGREE_LABEL, treatWoundsOutcome, type Degree, type TreatWoundsOption } from './treatWounds'
 
 /** Quem rola: o nome curto da mesa, o slug e a cor dos dados. */
 export interface RollerIdentity {
@@ -301,4 +302,27 @@ export function raysRoll(
         }
     })
     return roll
+}
+
+/**
+ * Tratar Ferimentos: o teste de Medicina contra a CD escolhida e, conforme o
+ * grau, a cura (`free`, 2d8 ou 4d8 + bônus da CD) ou 1d8 de dano na falha
+ * crítica. `delta` é quanto o PV de quem foi tratado muda (negativo = dano).
+ */
+export function treatWoundsRoll(
+    who: RollerIdentity,
+    parts: CheckPart[],
+    option: TreatWoundsOption,
+): { roll: TableRoll; degree: Degree; delta: number } {
+    const roll = checkRoll(who, 'Tratar Ferimentos', parts, null, `Medicina · CD ${option.dc}`)
+    const check = roll.check!
+    const out = treatWoundsOutcome({ total: check.mod }, check.d20, option)
+    let delta = 0
+    if (out.dice) {
+        const rolled = rollGroups([{ count: out.dice.count, faces: 8 }], out.flat)
+        roll.free = toPart(out.dice.heals ? 'Cura' : 'Dano', rolled)
+        delta = out.dice.heals ? rolled.total : -rolled.total
+    }
+    roll.note = `${DEGREE_LABEL[out.degree]}${delta === 0 ? ' — nenhuma cura' : ''}. O alvo fica imune a Tratar Ferimentos por 1 hora.`
+    return { roll, degree: out.degree, delta }
 }

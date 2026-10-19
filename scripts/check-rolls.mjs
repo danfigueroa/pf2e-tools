@@ -763,5 +763,36 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
     ok(signatureSpellsFor(party.thalos, psychic).every((n) => known.has(n)), 'Toda assinatura está no repertório do Thalos')
 }
 
+// Tratar Ferimentos: CDs por proficiência, graus de sucesso e a cura de cada um.
+{
+    const tw = await import('../src/modules/character-viewer/treatWounds.ts')
+    eq(tw.availableOptions(0).length, 0, 'Destreinado em Medicina não trata ferimentos')
+    eq(tw.availableOptions(2).map((o) => o.dc).join(','), '15', 'Treinado: só CD 15')
+    eq(tw.availableOptions(6).map((o) => o.dc).join(','), '15,20,30', 'Mestre: CD 15, 20 e 30')
+    eq(tw.availableOptions(8).map((o) => `${o.dc}+${o.bonus}`).join(','), '15+0,20+10,30+30,40+50', 'Lendário: bônus 0/10/30/50')
+    eq(tw.degreeOf(10, 20, 20), 'success', 'Igual à CD é sucesso')
+    eq(tw.degreeOf(10, 30, 20), 'critSuccess', 'CD+10 é sucesso crítico')
+    eq(tw.degreeOf(10, 19, 20), 'failure', 'Um abaixo da CD é falha')
+    eq(tw.degreeOf(10, 10, 20), 'critFailure', 'CD−10 é falha crítica')
+    eq(tw.degreeOf(20, 19, 20), 'success', 'd20 natural 20 sobe um grau')
+    eq(tw.degreeOf(1, 20, 20), 'failure', 'd20 natural 1 desce um grau')
+    const opt20 = tw.TREAT_WOUNDS_OPTIONS[1]
+    const good = tw.treatWoundsOutcome({ total: 12 }, 10, opt20)
+    ok(good.degree === 'success' && good.dice.count === 2 && good.flat === 10, 'Sucesso na CD 20: 2d8 + 10')
+    const crit = tw.treatWoundsOutcome({ total: 12 }, 18, opt20)
+    ok(crit.degree === 'critSuccess' && crit.dice.count === 4 && crit.flat === 10, 'Crítico: 4d8 + 10')
+    const bad = tw.treatWoundsOutcome({ total: 0 }, 5, opt20)
+    ok(bad.degree === 'critFailure' && !bad.dice.heals && bad.flat === 0, 'Falha crítica: 1d8 de dano, sem bônus')
+    eq(tw.treatWoundsOutcome({ total: 12 }, 5, opt20).dice, null, 'Falha simples: nada')
+    const who = { by: 'T', slug: 't', color: '#E0531F' }
+    for (let i = 0; i < 200; i++) {
+        const r = rolls.treatWoundsRoll(who, [{ label: 'Medicina', value: 12, kind: 'prof' }], opt20)
+        if (!r.roll.free) continue
+        const k = r.roll.free.dice.length
+        if (r.delta > 0) ok(r.delta === r.roll.free.total && r.roll.free.flat === 10 && (k === 2 || k === 4), 'Cura rolada fecha com o delta')
+        else ok(r.delta === -r.roll.free.total && k === 1 && r.roll.free.flat === 0, 'Dano da falha crítica fecha com o delta')
+    }
+}
+
 console.log(`${passed} conferências ok, ${failures} falha(s).`)
 process.exit(failures ? 1 : 0)
