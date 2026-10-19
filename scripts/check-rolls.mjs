@@ -900,5 +900,33 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
     sc.resetCastLedger()
 }
 
+// ✦ estrito: cada contexto só oferece o ponto se um talento da ficha permitir.
+{
+    const mu = await import('../src/modules/character-viewer/mythicUse.ts')
+    const sk = await import('../src/modules/character-viewer/skillActions.ts')
+    const opt = (who, ctx) => mu.mythicOptionFor(party[who], ctx)?.feat ?? null
+    // Golpe: só com Mythic Strike (Ceros, Eldarion, Ghan).
+    for (const who of ['ceros', 'eldarion', 'ghan']) eq(opt(who, 'strike'), 'Mythic Strike', `${who}: ✦ no Golpe pelo Mythic Strike`)
+    for (const who of ['brukuthur', 'nathaniel', 'thalos']) eq(opt(who, 'strike'), null, `${who}: sem Mythic Strike, sem ✦ no Golpe`)
+    // Ataque de magia nunca (Mythic Magic já é mítico).
+    for (const who of Object.keys(party)) eq(opt(who, 'spell-attack'), null, `${who}: sem ✦ no ataque de magia`)
+    // Perícia e salvaguarda: Rewrite Fate, todo mundo tem.
+    for (const who of Object.keys(party)) eq(opt(who, 'check'), 'Rewrite Fate', `${who}: ✦ nos testes pelo Rewrite Fate`)
+    // Iniciativa e Sense Motive: Ears (Brukuthur, Ghan, Nathaniel), os outros caem no Rewrite Fate.
+    for (const who of ['brukuthur', 'ghan', 'nathaniel']) eq(opt(who, 'initiative'), 'Ears that Hear the Truth', `${who}: ✦ da Percepção de iniciativa é o Ears`)
+    for (const who of ['ceros', 'eldarion', 'thalos']) eq(opt(who, 'initiative'), 'Rewrite Fate', `${who}: sem Ears, a iniciativa cai no Rewrite Fate`)
+    eq(opt('eldarion', 'jump'), 'Feet that Stride the Sky', 'Eldarion: ✦ no salto pelo Feet')
+    eq(opt('ceros', 'swim'), 'Arms that Cut the Waves', 'Ceros: ✦ na natação pelo Arms')
+    eq(opt('ghan', 'jump'), 'Rewrite Fate', 'Ghan: salto sem Feet cai no Rewrite Fate')
+    // Seletor de ação de perícia.
+    const find = (en, id) => sk.skillActionsFor(en).find((a) => a.id === id)
+    eq(find('Intimidation', 'demoralize')?.actions, 1, 'Demoralize: 1 ação')
+    eq(find('Athletics', 'high-jump')?.actions, 2, 'High Jump: 2 ações')
+    eq(find('Athletics', 'high-jump')?.mythic, 'jump', 'High Jump libera o ✦ do salto')
+    eq(find('Thievery', 'lock')?.actions, 2, 'Pick a Lock: 2 ações')
+    eq(sk.skillActionsFor('Warfare Lore').map((a) => a.id).join(), 'recall', 'Saber: Recall Knowledge')
+    eq(sk.skillActionsFor('Fortitude').length, 0, 'Salvaguarda não é ação de perícia')
+}
+
 console.log(`${passed} conferências ok, ${failures} falha(s).`)
 process.exit(failures ? 1 : 0)
