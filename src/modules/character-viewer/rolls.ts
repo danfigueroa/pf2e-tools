@@ -313,8 +313,9 @@ export function treatWoundsRoll(
     who: RollerIdentity,
     parts: CheckPart[],
     option: TreatWoundsOption,
+    mythicDelta: number | null = null,
 ): { roll: TableRoll; degree: Degree; delta: number } {
-    const roll = checkRoll(who, 'Tratar Ferimentos', parts, null, `Medicina · CD ${option.dc}`)
+    const roll = checkRoll(who, 'Tratar Ferimentos', parts, mythicDelta, `Medicina · CD ${option.dc}`)
     const check = roll.check!
     const out = treatWoundsOutcome({ total: check.mod }, check.d20, option)
     let delta = 0

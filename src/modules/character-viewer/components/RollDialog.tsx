@@ -8,9 +8,11 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
+    FormControlLabel,
     MenuItem,
     Select,
     Stack,
+    Switch,
     TextField,
     ToggleButton,
     ToggleButtonGroup,
@@ -19,7 +21,7 @@ import {
 import { Casino as DiceIcon } from '@mui/icons-material'
 import type { BuildInfo, SpellDescription, Weapon } from '../../character-sheet/types'
 import { CONDITION_COLOR, MYTHIC_COLOR, PSYCHE_COLOR } from '../../../theme'
-import { isMythicCharacter, signed, spellcasterStats } from '../helpers'
+import { characterMaxHp, isMythicCharacter, signed, spellcasterStats } from '../helpers'
 import { psycheApplies, psycheDamageBonus } from '../psyche'
 import { psiAmpFor } from '../psiAmps'
 import { convertTypes, hasConservation, isEnergySpell, type EnergyMode } from '../energy'
@@ -48,13 +50,15 @@ import {
     type StrikeOptions,
 } from '../strikes'
 import { damageComponents, formatValue, componentLabel, scaleSpell, type ScaledComponent } from '../heightening'
-import { checkRoll, mapLabel, raysRoll, rollerIdentity, spellRoll, spellstrikeRoll, strikeRoll, withSimplePoison, type SpellAttackInfo } from '../rolls'
+import { checkRoll, mapLabel, raysRoll, rollerIdentity, treatWoundsRoll, spellRoll, spellstrikeRoll, strikeRoll, withSimplePoison, type SpellAttackInfo } from '../rolls'
 import type { TableRoll } from '../../../dice/tableRoll'
 import { dialogEmbedProps, useEmbedContainer } from '../embedContext'
 import { CASCADE_TYPES, hasSpellstrike } from '../magus'
 import { FIRST_STRIKE_KEY, HUNTERS_AIM_KEY, gravityBonus } from '../ranger'
 import { DEBILITATIONS, hasDebilitatingStrike, hasPoisonWeapon, isSimplePoison, poisonNote, simplePoisonDice, type Debilitation } from '../rogue'
 import { initiativeBonus } from '../initiative'
+import { availableOptions, healingDice } from '../treatWounds'
+import { useHpTracker } from './useHpTracker'
 import { actionCost, applySpend, shortfall, type ActionKind } from '../actions'
 import { actionRange, variantFor } from '../actionVariants'
 import { usePoisonOptions } from './usePoisonOptions'
@@ -62,7 +66,7 @@ import { useActions } from './useActions'
 import { fearsomeBruteBonus, hasExactingStrike, hasFearsomeBrute } from '../fighter'
 import { useRogue } from './useRogue'
 import { usePoisonDef } from './usePoison'
-import { actionsKeyFor, magusKeyFor, rogueKeyFor } from '../charId'
+import { actionsKeyFor, hpKeyFor, magusKeyFor, rogueKeyFor } from '../charId'
 import { useMagus } from './useMagus'
 import { useSpellstrike } from './useSpellstrike'
 import { SpellstrikePanel } from './SpellstrikePanel'
@@ -238,7 +242,16 @@ const INITIATIVE_CHECKS = ['Perception', 'Stealth', 'Athletics', 'Acrobatics']
 const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Extract<RollRequest, { kind: 'check' }>>) => {
     const [adjust, setAdjust] = useState(0)
     const [initiative, setInitiative] = useState(false)
+    const [treat, setTreat] = useState(false)
+    const [treatDc, setTreatDc] = useState<number | null>(null)
+    const [onSelf, setOnSelf] = useState(true)
     const { check } = request
+    const hp = useHpTracker(hpKeyFor(build), characterMaxHp(build, mods.hpMaxDelta), legacyCharKey(build))
+    // Tratar Ferimentos: Medicina Treinada ou melhor. A CD que a proficiência
+    // permite é escolha do jogador; a mais alta vem marcada.
+    const treatOptions = check.en === 'Medicine' ? availableOptions(check.rank) : []
+    const canTreat = treatOptions.length > 0
+    const treatOption = treatOptions.find((o) => o.dc === treatDc) ?? treatOptions[treatOptions.length - 1]
     const canInitiative = INITIATIVE_CHECKS.includes(check.en)
     // Iniciativa: Incredible Initiative e afins (circunstância, não empilham) entram na conta
     // só quando o teste está marcado como iniciativa — o memorial mostra de onde veio.
@@ -260,6 +273,48 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                     {request.note && <Typography variant="caption" color="text.secondary">{request.note}</Typography>}
                     <SituationalNotes mods={mods} />
                     <AdjustField label="Outros bônus/penalidades" value={adjust} onChange={setAdjust} />
+                    {canTreat && (
+                        <Box>
+                            <Chip
+                                label="Usar para Tratar Ferimentos"
+                                color={treat ? 'primary' : 'default'}
+                                variant={treat ? 'filled' : 'outlined'}
+                                onClick={() => setTreat(!treat)}
+                                aria-pressed={treat}
+                                sx={{ minHeight: 32 }}
+                            />
+                            {treat ? (
+                                <Stack spacing={1} sx={{ mt: 1 }}>
+                                    <ToggleButtonGroup
+                                        size="small"
+                                        exclusive
+                                        fullWidth
+                                        value={treatOption.dc}
+                                        onChange={(_, v: number | null) => { if (v) setTreatDc(v) }}
+                                    >
+                                        {treatOptions.map((o) => (
+                                            <ToggleButton key={o.dc} value={o.dc} sx={{ flexDirection: 'column', textTransform: 'none', lineHeight: 1.2, py: 0.75 }}>
+                                                <b>CD {o.dc}</b>
+                                                <span style={{ fontSize: '0.7rem' }}>2d8{o.bonus ? `+${o.bonus}` : ''}</span>
+                                            </ToggleButton>
+                                        ))}
+                                    </ToggleButtonGroup>
+                                    <FormControlLabel
+                                        control={<Switch size="small" checked={onSelf} onChange={(e) => setOnSelf(e.target.checked)} />}
+                                        label="Em mim mesmo (soma ao meu PV)"
+                                    />
+                                    <Typography variant="caption" color="text.secondary">
+                                        Sucesso: 2d8{treatOption.bonus ? ` + ${treatOption.bonus}` : ''} PV · crítico: 4d8{treatOption.bonus ? ` + ${treatOption.bonus}` : ''} · falha crítica: 1d8 de dano.
+                                        A cura rola junto e entra no PV sozinha. O alvo fica imune por 1 hora.
+                                    </Typography>
+                                </Stack>
+                            ) : (
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                    Escolhe a CD, rola a cura e soma ao PV (10 minutos).
+                                </Typography>
+                            )}
+                        </Box>
+                    )}
                     {canInitiative && (
                         <Box>
                             <Chip
@@ -285,10 +340,19 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                 mythicDelta={check.mythicDelta}
                 mythicPoints={mythicPoints}
                 onClose={onClose}
-                onRoll={(mythic) => send(
+                onRoll={(mythic) => {
+                    if (treat && canTreat) {
+                        const out = treatWoundsRoll(who, parts, treatOption, mythic ? check.mythicDelta : null)
+                        if (onSelf && out.delta > 0) hp.applyHealing(out.delta)
+                        else if (onSelf && out.delta < 0 && healingDice(out.degree)) hp.applyDamage(-out.delta)
+                        send(out.roll, mythic)
+                        return
+                    }
+                    send(
                     checkRoll(who, check.label, parts, mythic ? check.mythicDelta : null, initiative && canInitiative ? 'iniciativa' : undefined, initiative && canInitiative),
                     mythic,
-                )}
+                    )
+                }}
             />
         </>
     )
