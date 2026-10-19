@@ -942,14 +942,22 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     Salvaguarda básica mostra os quatro graus (½ para baixo); a `defense` chega TRADUZIDA
     ("Reflexos básico"), por isso o regex casa as duas línguas. O bloco Mythic Magic já rola com a
     proficiência mítica e não oferece o ✦ (o ponto saiu ao conjurar).
-- **Tratar Ferimentos** (`treatWounds.ts` + `CheckBody` do `RollDialog`): vive DENTRO do diálogo de Medicina, como o
-  "Usar como iniciativa" — chip "Usar para Tratar Ferimentos", só com Medicina Treinado ou melhor. Ligado, o jogador
-  escolhe a CD que o rank permite (15/20/30/40, bônus de cura +0/+10/+30/+50; a mais alta vem marcada) e o botão Rolar
-  faz o teste E a cura (`treatWoundsRoll`, um `TableRoll` com `check` + `free`): sucesso 2d8+bônus, crítico 4d8+bônus,
-  falha crítica 1d8 de **dano** (sem bônus). Soma ao PV da mesa (fatia `hp`); o interruptor "Em mim mesmo" desliga isso
-  quando o tratado é outro. O memorial usa as parcelas do diálogo (ajuste livre, ✦ mítico). **Sem "Desfazer"**: o
-  diálogo fecha ao rolar, o cartão do feed mostra o resultado e o PV se corrige na Visão Geral. **Não automatizado**:
-  imunidade de 1 hora do alvo e talentos que mexem na cura (Ward Medic, Continual Recovery…). `check-rolls` cobre.
+- **Tratar Ferimentos e Battle Medicine** (`treatWounds.ts` + `CheckBody` do `RollDialog`): vivem DENTRO do diálogo de
+  Medicina, como o "Usar como iniciativa", só com Medicina Treinado ou melhor. Regras conferidas na AON (Player Core
+  pg. 242 e 253); os dois dividem a tabela de CD e cura (15/20/30/40, bônus +0/+10/+30/+50; sucesso 2d8, crítico 4d8,
+  falha crítica 1d8 de **dano** sem bônus), a CD é escolha do jogador (a mais alta do rank vem marcada), e a rolagem
+  faz teste E cura juntos (`treatWoundsRoll`, `TableRoll` com `check` + `free`), somando ao PV da mesa ("Em mim mesmo").
+  - **Contabilidade de ações — a diferença que importa:** **Tratar Ferimentos é exploração de 10 minutos, NÃO gasta
+    ação** e tira **Ferido** (sucesso e crítico; some o valor guardado em `conditions`). **Battle Medicine** (chip só com o
+    talento) custa **1 ação** (`healActionCost`, `actions.spend(1, 'any')` ao rolar, com o aviso de falta de ações como
+    no Golpe), **não tira Ferido** e deixa o alvo imune ao *seu* Battle Medicine por 1 dia — sem afetar o Tratar
+    Ferimentos. A ação extra do Acelerado NÃO paga Battle Medicine (só Golpe/Andar).
+  - Só no Tratar Ferimentos: "1 hora" dobra a cura (a parcela `free` leva o fixo ajustado para o total fechar, o
+    sanitizador exige `dados + fixo = total`); **Risky Surgery** (talento) dá +2 de circunstância no teste, sucesso vira
+    crítico e o paciente toma 1d8 cortante ANTES da cura (vai em `damage` da rolagem). Dano e cura entram numa escrita só
+    de PV (`restoreHp`): duas escritas seguidas no hook partem do PV de antes do clique e se atropelariam.
+  - **Só avisa, não automatiza**: imunidade do alvo (1 h, 10 min com Continual Recovery, 1 dia no Battle Medicine),
+    Ward Medic (quantos alvos), kit de curandeiro. `check-rolls` cobre graus, ações, Ferido, dobro e Risky Surgery.
 - **Iniciativa pela ficha**: no diálogo de Percepção, Furtividade, Atletismo ou Acrobacia o chip
   "Usar como iniciativa" (desligado por padrão, por rolagem) marca o `TableRoll` com `initiative`.
   A marca só sobrevive com um `check` de d20 — nos DOIS sanitizadores. A Iniciativa
