@@ -368,6 +368,12 @@ classificada não pode travar a ficha) e avisa — Alert no diálogo e, ao zerar
   ver sem apertar "Atualizar". `GET /api/state?char=&field=actions` (`readField`, 1 HGET) a cada 5 s, só com a aba
   visível e só pela faixa (as outras instâncias do hook não ligam o `poll`). **`pullField` nunca atropela escrita
   local na fila** (seria um valor mais velho). Ordem de grandeza: 6 jogadores × 4 h ≈ 17 mil comandos.
+- **Reações do Shield Block** (`blockReactionSource`/`spendBlockReaction`): o **Quick Shield Block** (Fighter 8) dá, no
+  início de cada turno, uma reação ADICIONAL que só serve para Shield Block — campo `shieldReacted`, pip próprio na faixa
+  (só com o talento, `hasQuickShieldBlock`) e devolvida em `newTurn`. O bloqueio do `ShieldCard` gasta a extra PRIMEIRO e
+  depois a normal (que fica para Reactive Strike, Reactive Shield e magia de reação); sem nenhuma, o aviso diz e o bloqueio
+  vale mesmo assim, como todo gasto de ação. O Desfazer do bloqueio devolve a reação de onde ela saiu. **Reactive Shield**
+  (botão "Erguer como reação" no cartão) ergue o escudo gastando a reação NORMAL. Shield Warden usa o mesmo bloqueio.
 - Não lido pelo mapa nem pelo cartão da Iniciativa (o GM não vê as ações do jogador).
 
 ## Magias de ação variável
@@ -792,8 +798,8 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   - **Fiery Rebirth** (talento mítico): linha na faixa mítica (`MagusBar`, que vira "Poder mítico" para quem não
     é Magus). Confirmação, gasta 1 Ponto Mítico, +nível PV, tira Inconsciente e Morrendo e posta a explosão (fogo
     2 × nível, Reflexos básico, CD de classe) no feed (`fieryRebirthRoll`). Lembra: não toca em Ferido.
-  - Não automatizado: Quick Shield Block, Shield Warden, Devoted Guardian, Quick Reversal e as reações
-    (Reactive Shield, Disarming Block) — dependem de turno, aliados e alvos que a ficha não vê.
+  - Não automatizado: Devoted Guardian, Quick Reversal e as reações que dependem do alvo
+    (Disarming Block; o Quick Shield Block e o Reactive Shield só contam a reação) — dependem de turno, aliados e alvos que a ficha não vê.
 - **Mudança de tamanho** (`sizeEffects.ts` + `components/useSizeEffect.ts`): a runa do Brukuthur
   liga Enlarge 4º ou Shrink com um clique e desliga pelo "Voltar ao normal". Estado da mesa no
   campo `size` (`{ active, used, since }`; `used` trava a ativação 1×/dia até o "Novo dia").
