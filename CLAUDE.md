@@ -942,12 +942,14 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     Salvaguarda básica mostra os quatro graus (½ para baixo); a `defense` chega TRADUZIDA
     ("Reflexos básico"), por isso o regex casa as duas línguas. O bloco Mythic Magic já rola com a
     proficiência mítica e não oferece o ✦ (o ponto saiu ao conjurar).
-- **Tratar Ferimentos** (`treatWounds.ts` + `components/TreatWoundsCard.tsx`, no fim da aba Perícias): só aparece com
-  Medicina Treinado ou melhor. O jogador escolhe a CD que o rank permite (15/20/30/40, bônus de cura +0/+10/+30/+50) e um
-  clique rola o teste E a cura juntos (`treatWoundsRoll`, num `TableRoll` com `check` + `free`): sucesso 2d8+bônus,
-  crítico 4d8+bônus, falha crítica 1d8 de **dano** (sem bônus). Soma ao PV da mesa (mesma fatia `hp`), com "Desfazer";
-  o interruptor "Em mim mesmo" desliga isso quando o tratado é outro. **Não automatizado**: imunidade de 1 hora do alvo e
-  talentos que mexem na cura (Ward Medic, Continual Recovery…). `check-rolls` cobre graus e cura.
+- **Tratar Ferimentos** (`treatWounds.ts` + `CheckBody` do `RollDialog`): vive DENTRO do diálogo de Medicina, como o
+  "Usar como iniciativa" — chip "Usar para Tratar Ferimentos", só com Medicina Treinado ou melhor. Ligado, o jogador
+  escolhe a CD que o rank permite (15/20/30/40, bônus de cura +0/+10/+30/+50; a mais alta vem marcada) e o botão Rolar
+  faz o teste E a cura (`treatWoundsRoll`, um `TableRoll` com `check` + `free`): sucesso 2d8+bônus, crítico 4d8+bônus,
+  falha crítica 1d8 de **dano** (sem bônus). Soma ao PV da mesa (fatia `hp`); o interruptor "Em mim mesmo" desliga isso
+  quando o tratado é outro. O memorial usa as parcelas do diálogo (ajuste livre, ✦ mítico). **Sem "Desfazer"**: o
+  diálogo fecha ao rolar, o cartão do feed mostra o resultado e o PV se corrige na Visão Geral. **Não automatizado**:
+  imunidade de 1 hora do alvo e talentos que mexem na cura (Ward Medic, Continual Recovery…). `check-rolls` cobre.
 - **Iniciativa pela ficha**: no diálogo de Percepção, Furtividade, Atletismo ou Acrobacia o chip
   "Usar como iniciativa" (desligado por padrão, por rolagem) marca o `TableRoll` com `initiative`.
   A marca só sobrevive com um `check` de d20 — nos DOIS sanitizadores. A Iniciativa
