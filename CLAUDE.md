@@ -49,6 +49,7 @@ node scripts/fetch-creature-tables.mjs  # regera as tabelas do GM Core (confira 
 node scripts/check-scaling.mjs 200      # confere o motor de escala contra criaturas de verdade
 node scripts/check-heightening.mjs      # confere o heightening das magias contra o índice inteiro
 node scripts/check-rolls.mjs            # confere a matemática das rolagens contra as fichas do grupo
+node scripts/check-economy.mjs          # confere que todo talento/item do elenco que custa ação, reação ou Ponto Mítico tem caminho
 node --env-file=.env scripts/build-description-bundle.mjs [--published <url>] [--all]
                                         # regera public/descriptions/ (descrições pré-traduzidas) — ver abaixo
 ```
@@ -360,8 +361,8 @@ classificada não pode travar a ficha) e avisa — Alert no diálogo e, ao zerar
 - **Desconto automático**: Golpe = 1 (2 com Hunter's Aim ou Spellstrike; o chip "É uma reação" gasta a reação, não
   ação), magia = o `actions` da AON (`actionCost`; reação, ação livre e "1 a 3" NÃO gastam sozinhas), ativar
   Fúria/Gravity Weapon/Hunt Prey/Arcane Cascade/recarregar Spellstrike/Summon Mythic Power/aplicar veneno = 1.
-  Teste de perícia não gasta: não dá para saber se é uma ação. Andar, Interagir, Sacar e o resto: botões da faixa.
-  O escudo (Erguer) ainda NÃO desconta.
+  Teste de perícia só gasta quando o jogador marca a ação no diálogo (ver "Atividades, reações e Pontos Míticos"); Andar, Interagir,
+  Sacar e o resto: botões da faixa. Erguer o escudo gasta 1 ação (o Reactive Shield ergue por REAÇÃO).
 - **Início do turno vem da Iniciativa** (`party.startTurn`, no handler de `passTurn` e no "Iniciar", nunca num efeito):
   grava `newTurn()` no campo `actions` do PC que entra. Botão "Novo turno" na ficha para quem não usa a Iniciativa.
 - **Poll leve só deste campo** — exceção ao "sem polling" da mesa: o mestre zera do aparelho dele e o jogador precisa
@@ -422,6 +423,37 @@ botão da lista. Hoje (`spellCast.ts` + `components/useSpellCast.ts`) toda conju
   duplica. O psi cantrip (Amplificar) paga o ponto de foco só ao amplificar. Truque não tem marcação: o botão do drawer é
   o único caminho. Os pips do CABEÇALHO do espontâneo continuam sendo bookkeeping (não sabem qual magia foi).
 - `check-rolls` cobre `castTimeOf` e o casamento.
+
+## Atividades, reações e Pontos Míticos
+
+Varredura nas 6 fichas do grupo (talentos, habilidades e itens do `public/descriptions/*.json` contra o código) achou dezenas de
+ativáveis que não gastavam nada. Hoje o custo vem da PRÓPRIA AON — o pacote já traz `actions`, `traits`, `trigger` e
+`frequency`, e o texto traduzido ainda diz "Gaste um Ponto Mítico" — e `scripts/check-economy.mjs` falha se algum item do
+elenco ficar sem caminho (rode depois de publicar um personagem novo ou regerar pacote).
+- **"Usar" genérico** (`activities.ts` + `components/useActivity.ts` + `ActivityButton`, nas abas Talentos e Habilidades):
+  `activityOf` devolve o custo (`castTimeOf` de `spellCast.ts`: N ações, **reação**, ação livre só se gasta ponto ou tem limite
+  diário, "1 a 3") e se gasta **Ponto Mítico** (traço `Mythic` + o texto manda gastar). Avisa falta de ação/reação/ponto e não
+  impede. **`DEDICATED`** lista o que tem caminho próprio (Rage, Hunt Prey, Shield Block, Battle Medicine, Divert Destiny,
+  Summon, Rewrite Fate…) — nesses o botão genérico NÃO aparece, para não cobrar em dobro. Descrição ainda não baixada = sem botão.
+- **"Uma vez por dia"**: campo da mesa `uses` (`{ nome: vezes }`, no `FIELD_RE`); o botão vira "Usada hoje ↺" (toque devolve) e
+  o **Novo dia** (aba Magias e faixa dos Pontos Míticos) zera. O Summon Mythic Power segue com o `magus.summoned` dele.
+- **Atividade que inclui um Golpe** (Sudden Charge, Vicious Swing, Slam Down, Quick Reversal… — só em ação, nunca reação):
+  o custo da atividade já paga o Golpe, então ela deixa um "Golpe pago" (`prepayStrike`, 90 s) que o PRÓXIMO Golpe do diálogo
+  consome (`takePrepaidStrike`) sem gastar ação. Metamagia (Reach Spell, Snowdrift Spell) é só 1 ação à parte, antes da magia.
+- **Itens**: "Usar/Beber" gasta a ação que a AON diz (`actions` em `search?items=`, cache `v2`); o Desfazer devolve a ação.
+- **✦ estrito** (`mythicUse.ts`): o botão só aparece onde um talento da ficha permite, com o nome dele: **Rewrite Fate** em
+  teste de perícia/salvaguarda/Percepção (todos têm), **Mythic Strike** no Golpe (Ceros, Eldarion e Ghan; Brukuthur, Nathaniel e
+  Thalos NÃO têm → sem ✦), **Ears that Hear the Truth** na Percepção de iniciativa e no Sense Motive, **Feet that Stride the
+  Sky** / **Arms that Cut the Waves** em salto e natação (cai no Rewrite Fate sem eles), **nenhum** em ataque de magia (o Mythic
+  Magic já é mítico). O ✦ continua trocando a proficiência na rolagem, sem ser um reroll de um resultado anterior.
+- **Ação de perícia** (`skillActions.ts`): chip opcional no diálogo da perícia (Demoralize, Trip, Seek, Pick a Lock…, Saberes =
+  Recall Knowledge), desligado por padrão; paga as ações dela. Salto/natação/Sense Motive escolhem o ✦ do talento certo.
+- **Talentos míticos do turno** (`mythicFeats.ts` + `components/MythicFeatsRows.tsx`, na faixa do `MagusBar`): Godspeed (1 ação +
+  ponto; liga o **Acelerado** derivado e +3 m de Deslocamento na Visão Geral — NÃO chega ao mapa/Iniciativa; o jogador encerra),
+  Correct the Story e Arc of Destruction (reação + ponto), Become Destiny (livre + ponto, escolhe uma condição marcada para
+  tirar), We've Met Before (1 ação + ponto). O custo escrito lá é conferido contra a AON pelo `check-economy`.
+- **Não automatizado**: cargas do cajado (Mentalist's Staff), imunidade de alvo, Hydra's Bond, Sparkling Targe, efeitos dentro
+  das atividades (o Deadly Aim cobra a ação, mas o Golpe dele é rolado à mão no diálogo).
 
 ## Feed de rolagens da mesa
 
