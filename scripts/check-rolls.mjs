@@ -792,6 +792,26 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
         if (r.delta > 0) ok(r.delta === r.roll.free.total && r.roll.free.flat === 10 && (k === 2 || k === 4), 'Cura rolada fecha com o delta')
         else ok(r.delta === -r.roll.free.total && k === 1 && r.roll.free.flat === 0, 'Dano da falha crítica fecha com o delta')
     }
+        const o20 = tw.TREAT_WOUNDS_OPTIONS[1]
+        const who2 = { by: 'T', slug: 't', color: '#E0531F' }
+        eq(tw.healActionCost('battle'), 1, 'Battle Medicine custa 1 ação')
+        eq(tw.healActionCost('treat'), 0, 'Tratar Ferimentos não gasta ação (10 minutos)')
+        const bm = tw.treatWoundsOutcome({ total: 12 }, 10, o20, { mode: 'battle' })
+        ok(bm.dice.heals && !bm.removesWounded, 'Battle Medicine cura mas NÃO tira Ferido')
+        const tr = tw.treatWoundsOutcome({ total: 12 }, 10, o20, { mode: 'treat' })
+        ok(tr.removesWounded, 'Tratar Ferimentos tira Ferido no sucesso')
+        eq(tw.treatWoundsOutcome({ total: 0 }, 5, o20, { mode: 'treat' }).removesWounded, false, 'Falha crítica não tira Ferido')
+        eq(tw.treatWoundsOutcome({ total: 12 }, 10, o20, { mode: 'treat', risky: true }).degree, 'critSuccess', 'Risky Surgery: sucesso vira crítico')
+        eq(tw.treatWoundsOutcome({ total: 12 }, 10, o20, { mode: 'battle', risky: true }).degree, 'success', 'Risky Surgery não vale no Battle Medicine')
+        eq(tw.treatWoundsOutcome({ total: 0 }, 12, o20, { mode: 'treat', risky: true }).degree, 'failure', 'Risky Surgery não salva falha')
+        for (let i = 0; i < 200; i++) {
+            const r = rolls.treatWoundsRoll(who2, [{ label: 'Medicina', value: 12, kind: 'prof' }], o20, null, { mode: 'treat', hour: true, risky: true })
+            const f = r.roll.free
+            if (f) ok(f.dice.reduce((n, d) => n + d.value, f.flat) === f.total, 'Parcela em dobro fecha (dados + fixo = total)')
+            if (f && r.delta > 0) ok(r.delta === 2 * f.dice.reduce((n, d) => n + d.value, 0) + 20 && r.delta === f.total, 'Cura de 1 hora é o dobro de dados + bônus')
+            ok(r.selfDamage >= 1 && r.selfDamage <= 8 && r.roll.damage.total === r.selfDamage, 'Risky Surgery rola 1d8 cortante')
+            ok(r.roll.note.length <= 300, 'Nota cabe no feed')
+        }
 }
 
 console.log(`${passed} conferências ok, ${failures} falha(s).`)

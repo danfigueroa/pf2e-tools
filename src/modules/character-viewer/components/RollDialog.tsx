@@ -57,7 +57,8 @@ import { CASCADE_TYPES, hasSpellstrike } from '../magus'
 import { FIRST_STRIKE_KEY, HUNTERS_AIM_KEY, gravityBonus } from '../ranger'
 import { DEBILITATIONS, hasDebilitatingStrike, hasPoisonWeapon, isSimplePoison, poisonNote, simplePoisonDice, type Debilitation } from '../rogue'
 import { initiativeBonus } from '../initiative'
-import { availableOptions, healingDice } from '../treatWounds'
+import { availableOptions, hasBattleMedicine, hasContinualRecovery, hasRiskySurgery, healActionCost, wardMedicTargets, type HealMode } from '../treatWounds'
+import { useConditions } from './useConditions'
 import { useHpTracker } from './useHpTracker'
 import { actionCost, applySpend, shortfall, type ActionKind } from '../actions'
 import { actionRange, variantFor } from '../actionVariants'
@@ -66,7 +67,7 @@ import { useActions } from './useActions'
 import { fearsomeBruteBonus, hasExactingStrike, hasFearsomeBrute } from '../fighter'
 import { useRogue } from './useRogue'
 import { usePoisonDef } from './usePoison'
-import { actionsKeyFor, hpKeyFor, magusKeyFor, rogueKeyFor } from '../charId'
+import { actionsKeyFor, conditionsKeyFor, hpKeyFor, magusKeyFor, rogueKeyFor } from '../charId'
 import { useMagus } from './useMagus'
 import { useSpellstrike } from './useSpellstrike'
 import { SpellstrikePanel } from './SpellstrikePanel'
@@ -242,16 +243,27 @@ const INITIATIVE_CHECKS = ['Perception', 'Stealth', 'Athletics', 'Acrobatics']
 const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Extract<RollRequest, { kind: 'check' }>>) => {
     const [adjust, setAdjust] = useState(0)
     const [initiative, setInitiative] = useState(false)
-    const [treat, setTreat] = useState(false)
+    // Cura com Medicina: Tratar Ferimentos (10 min, sem ações) ou Battle Medicine (1 ação).
+    const [healMode, setHealMode] = useState<HealMode | null>(null)
     const [treatDc, setTreatDc] = useState<number | null>(null)
     const [onSelf, setOnSelf] = useState(true)
+    const [hour, setHour] = useState(false)
+    const [risky, setRisky] = useState(false)
     const { check } = request
     const hp = useHpTracker(hpKeyFor(build), characterMaxHp(build, mods.hpMaxDelta), legacyCharKey(build))
+    const conditions = useConditions(conditionsKeyFor(build), build.level ?? 1, legacyCharKey(build))
+    const actions = useActions(actionsKeyFor(build), mods)
     // Tratar Ferimentos: Medicina Treinada ou melhor. A CD que a proficiência
     // permite é escolha do jogador; a mais alta vem marcada.
     const treatOptions = check.en === 'Medicine' ? availableOptions(check.rank) : []
     const canTreat = treatOptions.length > 0
     const treatOption = treatOptions.find((o) => o.dc === treatDc) ?? treatOptions[treatOptions.length - 1]
+    const canBattle = canTreat && hasBattleMedicine(build)
+    const canRisky = canTreat && hasRiskySurgery(build)
+    const riskyOn = healMode === 'treat' && canRisky && risky
+    const wounded = mods.active.find((c) => c.id === 'wounded')?.value ?? 0
+    const healCost = healMode ? healActionCost(healMode) : 0
+    const healLacking = healCost > 0 ? actions.missing(healCost, 'any') : 0
     const canInitiative = INITIATIVE_CHECKS.includes(check.en)
     // Iniciativa: Incredible Initiative e afins (circunstância, não empilham) entram na conta
     // só quando o teste está marcado como iniciativa — o memorial mostra de onde veio.
@@ -259,6 +271,7 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     const parts = [
         ...check.parts,
         ...(iniBonus && iniBonus.value ? [{ label: `Iniciativa: ${iniBonus.from.join(' / ')} (circunstância)`, value: iniBonus.value, kind: 'other' as const }] : []),
+        ...(riskyOn ? [{ label: 'Risky Surgery (circunstância)', value: 2, kind: 'other' as const }] : []),
         ...(adjust ? [{ label: 'Ajuste', value: adjust, kind: 'other' as const }] : []),
     ]
     const total = sumParts(parts)
@@ -275,15 +288,27 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                     <AdjustField label="Outros bônus/penalidades" value={adjust} onChange={setAdjust} />
                     {canTreat && (
                         <Box>
-                            <Chip
-                                label="Usar para Tratar Ferimentos"
-                                color={treat ? 'primary' : 'default'}
-                                variant={treat ? 'filled' : 'outlined'}
-                                onClick={() => setTreat(!treat)}
-                                aria-pressed={treat}
-                                sx={{ minHeight: 32 }}
-                            />
-                            {treat ? (
+                            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                                <Chip
+                                    label="Tratar Ferimentos · 10 min"
+                                    color={healMode === 'treat' ? 'primary' : 'default'}
+                                    variant={healMode === 'treat' ? 'filled' : 'outlined'}
+                                    onClick={() => setHealMode(healMode === 'treat' ? null : 'treat')}
+                                    aria-pressed={healMode === 'treat'}
+                                    sx={{ minHeight: 32 }}
+                                />
+                                {canBattle && (
+                                    <Chip
+                                        label="Battle Medicine · 1 ação"
+                                        color={healMode === 'battle' ? 'primary' : 'default'}
+                                        variant={healMode === 'battle' ? 'filled' : 'outlined'}
+                                        onClick={() => setHealMode(healMode === 'battle' ? null : 'battle')}
+                                        aria-pressed={healMode === 'battle'}
+                                        sx={{ minHeight: 32 }}
+                                    />
+                                )}
+                            </Box>
+                            {healMode ? (
                                 <Stack spacing={1} sx={{ mt: 1 }}>
                                     <ToggleButtonGroup
                                         size="small"
@@ -299,18 +324,49 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                                             </ToggleButton>
                                         ))}
                                     </ToggleButtonGroup>
+                                    {healMode === 'treat' && (
+                                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                                            <Chip
+                                                size="small"
+                                                label="Tratar por 1 hora · cura em dobro"
+                                                color={hour ? 'primary' : 'default'}
+                                                variant={hour ? 'filled' : 'outlined'}
+                                                onClick={() => setHour(!hour)}
+                                                aria-pressed={hour}
+                                            />
+                                            {canRisky && (
+                                                <Chip
+                                                    size="small"
+                                                    label="Risky Surgery"
+                                                    color={risky ? 'primary' : 'default'}
+                                                    variant={risky ? 'filled' : 'outlined'}
+                                                    onClick={() => setRisky(!risky)}
+                                                    aria-pressed={risky}
+                                                />
+                                            )}
+                                        </Box>
+                                    )}
                                     <FormControlLabel
                                         control={<Switch size="small" checked={onSelf} onChange={(e) => setOnSelf(e.target.checked)} />}
                                         label="Em mim mesmo (soma ao meu PV)"
                                     />
+                                    {healLacking > 0 && (
+                                        <Alert severity="warning" sx={{ py: 0 }}>
+                                            Você não tem ações suficientes neste turno (faltam {healLacking}). Dá para rolar mesmo assim.
+                                        </Alert>
+                                    )}
                                     <Typography variant="caption" color="text.secondary">
                                         Sucesso: 2d8{treatOption.bonus ? ` + ${treatOption.bonus}` : ''} PV · crítico: 4d8{treatOption.bonus ? ` + ${treatOption.bonus}` : ''} · falha crítica: 1d8 de dano.
-                                        A cura rola junto e entra no PV sozinha. O alvo fica imune por 1 hora.
+                                        {healMode === 'battle'
+                                            ? ' Gasta 1 ação (manipular, exige o kit de curandeiro). Não tira Ferido. O alvo fica imune ao seu Battle Medicine por 1 dia — não ao Tratar Ferimentos.'
+                                            : ` Sem custo em ações (são 10 minutos, fora do combate). Sucesso tira Ferido${wounded ? ` (você tem Ferido ${wounded})` : ''}. O alvo fica imune a Tratar Ferimentos por ${hasContinualRecovery(build) ? '10 minutos (Continual Recovery)' : '1 hora'}.`}
+                                        {healMode === 'treat' && wardMedicTargets(build, check.rank) > 1 ? ` Ward Medic: até ${wardMedicTargets(build, check.rank)} alvos com a mesma rolagem.` : ''}
+                                        {riskyOn ? ' Risky Surgery: +2 no teste, sucesso vira crítico e o paciente toma 1d8 cortante antes da cura.' : ''}
                                     </Typography>
                                 </Stack>
                             ) : (
                                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                    Escolhe a CD, rola a cura e soma ao PV (10 minutos).
+                                    Escolhe a CD, rola a cura e soma ao PV.
                                 </Typography>
                             )}
                         </Box>
@@ -341,10 +397,22 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                 mythicPoints={mythicPoints}
                 onClose={onClose}
                 onRoll={(mythic) => {
-                    if (treat && canTreat) {
-                        const out = treatWoundsRoll(who, parts, treatOption, mythic ? check.mythicDelta : null)
-                        if (onSelf && out.delta > 0) hp.applyHealing(out.delta)
-                        else if (onSelf && out.delta < 0 && healingDice(out.degree)) hp.applyDamage(-out.delta)
+                    if (healMode && canTreat) {
+                        const out = treatWoundsRoll(who, parts, treatOption, mythic ? check.mythicDelta : null, { mode: healMode, hour, risky: riskyOn })
+                        if (healCost > 0) actions.spend(healCost, 'any')
+                        if (onSelf) {
+                            // Risky Surgery corta ANTES da cura, e o PV temporário absorve o corte. Duas
+                            // escritas seguidas no hook se atropelariam (cada uma parte do PV de antes do
+                            // clique), então a conta inteira vai numa só.
+                            let { current, temp } = hp
+                            const cut = out.selfDamage + Math.max(0, -out.delta)
+                            const absorbed = Math.min(temp, cut)
+                            temp -= absorbed
+                            current = Math.max(0, current - (cut - absorbed))
+                            if (out.delta > 0) current = Math.min(characterMaxHp(build, mods.hpMaxDelta), current + out.delta)
+                            if (current !== hp.current || temp !== hp.temp) hp.restoreHp({ current, temp })
+                            if (out.removesWounded && wounded > 0) conditions.setCondition('wounded', 0)
+                        }
                         send(out.roll, mythic)
                         return
                     }

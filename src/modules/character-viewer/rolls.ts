@@ -16,7 +16,7 @@ import { rollDie, rollGroups, type RolledExpr } from '../../dice/roll'
 import { newRollId, type RolledPart, type TableRoll } from '../../dice/tableRoll'
 import { rollStrikeDamage, type Strike, type StrikePlan } from './strikes'
 import { componentLabel, type ScaledComponent } from './heightening'
-import { DEGREE_LABEL, treatWoundsOutcome, type Degree, type TreatWoundsOption } from './treatWounds'
+import { DEGREE_LABEL, treatWoundsOutcome, type Degree, type TreatVariant, type TreatWoundsOption } from './treatWounds'
 
 /** Quem rola: o nome curto da mesa, o slug e a cor dos dados. */
 export interface RollerIdentity {
@@ -305,25 +305,46 @@ export function raysRoll(
 }
 
 /**
- * Tratar Ferimentos: o teste de Medicina contra a CD escolhida e, conforme o
- * grau, a cura (`free`, 2d8 ou 4d8 + bônus da CD) ou 1d8 de dano na falha
- * crítica. `delta` é quanto o PV de quem foi tratado muda (negativo = dano).
+ * Tratar Ferimentos ou Battle Medicine: o teste de Medicina contra a CD escolhida
+ * e, conforme o grau, a cura (`free`, 2d8 ou 4d8 + bônus da CD) ou 1d8 de dano na
+ * falha crítica. `delta` é quanto o PV de quem foi tratado muda (negativo = dano);
+ * `selfDamage` é o 1d8 cortante da Risky Surgery, que cai ANTES da cura.
  */
 export function treatWoundsRoll(
     who: RollerIdentity,
     parts: CheckPart[],
     option: TreatWoundsOption,
     mythicDelta: number | null = null,
-): { roll: TableRoll; degree: Degree; delta: number } {
-    const roll = checkRoll(who, 'Tratar Ferimentos', parts, mythicDelta, `Medicina · CD ${option.dc}`)
+    variant: TreatVariant = { mode: 'treat' },
+): { roll: TableRoll; degree: Degree; delta: number; selfDamage: number; removesWounded: boolean } {
+    const battle = variant.mode === 'battle'
+    const sub = [`Medicina · CD ${option.dc}`, variant.hour && !battle ? '1 hora' : null, variant.risky && !battle ? 'Risky Surgery' : null]
+        .filter(Boolean).join(' · ')
+    const roll = checkRoll(who, battle ? 'Battle Medicine' : 'Tratar Ferimentos', parts, mythicDelta, sub)
     const check = roll.check!
-    const out = treatWoundsOutcome({ total: check.mod }, check.d20, option)
+    const out = treatWoundsOutcome({ total: check.mod }, check.d20, option, variant)
     let delta = 0
     if (out.dice) {
         const rolled = rollGroups([{ count: out.dice.count, faces: 8 }], out.flat)
-        roll.free = toPart(out.dice.heals ? 'Cura' : 'Dano', rolled)
+        if (out.doubled) {
+            // A cura em dobro cabe numa parcela só: o fixo leva o que falta (dados + 2×bônus), e o total fecha.
+            const sumDice = rolled.dice.reduce((n, d) => n + d.value, 0)
+            rolled.flat = 2 * out.flat + sumDice
+            rolled.total = 2 * sumDice + 2 * out.flat
+        }
+        roll.free = toPart(out.dice.heals ? (out.doubled ? 'Cura em dobro (1 h)' : 'Cura') : 'Dano', rolled)
         delta = out.dice.heals ? rolled.total : -rolled.total
     }
-    roll.note = `${DEGREE_LABEL[out.degree]}${delta === 0 ? ' — nenhuma cura' : ''}. O alvo fica imune a Tratar Ferimentos por 1 hora.`
-    return { roll, degree: out.degree, delta }
+    let selfDamage = 0
+    if (variant.risky && !battle) {
+        const cut = rollGroups([{ count: 1, faces: 8 }], 0)
+        selfDamage = cut.total
+        roll.damage = { parts: [toPart('Risky Surgery (cortante)', cut)], total: cut.total }
+    }
+    roll.note = [
+        DEGREE_LABEL[out.degree] + (delta === 0 ? ' — nenhuma cura' : ''),
+        out.removesWounded ? 'tira Ferido' : null,
+        battle ? 'Alvo imune ao seu Battle Medicine por 1 dia' : 'Alvo imune a Tratar Ferimentos por 1 hora',
+    ].filter(Boolean).join('. ') + '.'
+    return { roll, degree: out.degree, delta, selfDamage, removesWounded: out.removesWounded }
 }
