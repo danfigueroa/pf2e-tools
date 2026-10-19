@@ -59,7 +59,7 @@ import { DEBILITATIONS, hasDebilitatingStrike, hasPoisonWeapon, isSimplePoison, 
 import { initiativeBonus } from '../initiative'
 import { availableOptions, hasBattleMedicine, hasContinualRecovery, hasRiskySurgery, healActionCost, wardMedicTargets, type HealMode } from '../treatWounds'
 import { useConditions } from './useConditions'
-import { castTimeOf, NO_RESOURCE, pairCast, type CastResource } from '../spellCast'
+import { castTimeOf, hasPrepaidStrike, NO_RESOURCE, pairCast, takePrepaidStrike, type CastResource } from '../spellCast'
 import { useSpellCast } from './useSpellCast'
 import { useHpTracker } from './useHpTracker'
 import { actionCost, applySpend, shortfall, type ActionKind } from '../actions'
@@ -512,10 +512,14 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
     const actionCostNow = asReaction ? 0 : spellstriking || aiming ? 2 : 1
     const actionKind: ActionKind = spellstriking || aiming ? 'any' : 'move-attack'
     // Aplicar o veneno custa 1 ação à parte (paga primeiro, de qualquer tipo); o Golpe vem depois.
-    const lacking = applying
-        ? actions.missing(1, 'any')
-            + shortfall(applySpend(actions.stored, actions.budget, 1, 'any'), actions.budget, actionCostNow, actionKind)
-        : actions.missing(actionCostNow, actionKind)
+    // Uma atividade que inclui o Golpe (Sudden Charge, Vicious Swing…) já o pagou: este Golpe não cobra.
+    const strikePaid = !asReaction && hasPrepaidStrike()
+    const lacking = strikePaid
+        ? (applying ? actions.missing(1, 'any') : 0)
+        : applying
+            ? actions.missing(1, 'any')
+                + shortfall(applySpend(actions.stored, actions.budget, 1, 'any'), actions.budget, actionCostNow, actionKind)
+            : actions.missing(actionCostNow, actionKind)
     const reactionUsed = asReaction && actions.stored.reacted
     const rollNote = [
         poisonName && poisonUsed ? (simplePoison ? `veneno simples: ${simpleDice.count}d${simpleDice.faces} de veneno, sem salvaguarda` : poisonNote(poisonName, poisonDef)) : null,
@@ -867,7 +871,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                 onRoll={(mythic) => {
                     if (applying) { actions.spend(1); po.applyChosen() }
                     if (asReaction) { if (!actions.stored.reacted) actions.toggleReaction() }
-                    else actions.spend(actionCostNow, actionKind)
+                    else if (!takePrepaidStrike()) actions.spend(actionCostNow, actionKind)
                     const mythicDelta = mythic ? plan.mythicDelta : null
                     const noted = (r: TableRoll): TableRoll => {
                         const poisoned = simplePoison && poisonUsed ? withSimplePoison(r, simpleDice) : r

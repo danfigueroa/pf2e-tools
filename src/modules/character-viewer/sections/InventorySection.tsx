@@ -21,6 +21,10 @@ import { fetchItemTraits, isConsumable, type ItemTraits } from '../../../service
 import { rollFormulaDetailed, rollMemorial } from '../../initiative-tracker/dice'
 import { PotionOverlay, type DrinkEvent } from '../components/PotionOverlay'
 import { pop, useArmed } from '../../../motion/motion'
+import { actionsKeyFor } from '../charId'
+import { castTimeOf } from '../spellCast'
+import { useActions } from '../components/useActions'
+import { payTime } from '../components/useSpellCast'
 
 interface Props {
     build: BuildInfo
@@ -35,6 +39,8 @@ interface UseNotice {
     qty: number
     /** PV que a cura de fato devolveu — o Desfazer tira exatamente isso. */
     healed: number
+    /** Ações gerais que o uso gastou — o Desfazer devolve. */
+    actionsSpent: number
 }
 
 const InventorySectionView = ({ build, onSelect, mods }: Props) => {
@@ -44,6 +50,8 @@ const InventorySectionView = ({ build, onSelect, mods }: Props) => {
     const hasEquipment = rows.length > 0
 
     const consumables = useConsumables(consumedKeyFor(build))
+    // Usar/beber custa a ação que a AON diz (poção, elixir e veneno: 1 ação de Interagir).
+    const actions = useActions(actionsKeyFor(build), mods)
     // Cura de poção vai no PV do próprio personagem (quem bebe). É a mesma fatia
     // da Visão Geral, e o `maxHp` sai do mesmo helper para o teto não divergir.
     const hp = useHpTracker(hpKeyFor(build), characterMaxHp(build, mods.hpMaxDelta), legacyCharKey(build))
@@ -77,10 +85,20 @@ const InventorySectionView = ({ build, onSelect, mods }: Props) => {
 
     const use = (row: ItemRow) => {
         consumables.consume(row.name, row.qty)
+        const time = castTimeOf(traits[row.name]?.actions)
+        const spentText: string[] = []
+        const warnings: string[] = []
+        payTime(actions, time, undefined, spentText, warnings)
+        // Sem custo conhecido (item sem `actions`) não chuta: o aviso do `payTime` diz para gastar à mão.
+        const costNote = [
+            spentText.length ? `gastou ${spentText.join(' e ')}` : null,
+            warnings.length ? `atenção: ${warnings.join('; ')}` : null,
+        ].filter(Boolean).join(' · ')
+        const actionsSpent = time.kind === 'actions' ? time.n : 0
         const formula = traits[row.name]?.healing
         const roll = formula ? rollFormulaDetailed(formula) : null
         if (!formula || !roll) {
-            setNotice({ text: `${row.name} usado.`, name: row.name, qty: row.qty, healed: 0 })
+            setNotice({ text: `${row.name} usado${costNote ? ` · ${costNote}` : ''}.`, name: row.name, qty: row.qty, healed: 0, actionsSpent })
             return
         }
         const before = hp.current
@@ -90,10 +108,11 @@ const InventorySectionView = ({ build, onSelect, mods }: Props) => {
         setDrink({
             event: { name: row.name, formula, roll, before, after: before + healed, max: characterMaxHp(build, mods.hpMaxDelta) },
             notice: {
-                text: `${row.name}: ${formula} → ${rollMemorial(roll)} · +${healed} PV${capped}`,
+                text: `${row.name}: ${formula} → ${rollMemorial(roll)} · +${healed} PV${capped}${costNote ? ` · ${costNote}` : ''}`,
                 name: row.name,
                 qty: row.qty,
                 healed,
+                actionsSpent,
             },
         })
     }
@@ -102,6 +121,7 @@ const InventorySectionView = ({ build, onSelect, mods }: Props) => {
     // o PV de AGORA — se alguém mexeu no PV nesse meio-tempo, isso fica.
     const undo = (n: UseNotice) => {
         consumables.restore(n.name, n.qty)
+        if (n.actionsSpent > 0) actions.setUsed(Math.max(0, actions.stored.used - n.actionsSpent))
         if (n.healed > 0) hp.restoreHp({ current: Math.max(0, hp.current - n.healed), temp: hp.temp })
     }
 

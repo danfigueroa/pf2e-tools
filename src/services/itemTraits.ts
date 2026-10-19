@@ -15,9 +15,11 @@ export interface ItemTraits {
     consumable: boolean
     /** Fórmula de cura ("3d6+6") dos itens com o traço Healing, lida do AON. */
     healing: string | null
+    /** Custo de usar o item, do AON ("Single Action", "Two Actions"); `null` = não diz. */
+    actions: string | null
 }
 
-const CACHE_VERSION = 'v1'
+const CACHE_VERSION = 'v2'
 const storageKey = (name: string) => `pf2e:item:${CACHE_VERSION}:${name.toLowerCase()}`
 
 const memory = new Map<string, ItemTraits | null>()

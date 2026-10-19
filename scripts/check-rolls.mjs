@@ -863,5 +863,42 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
     ok(!acts.isActionsEmpty({ ...none, shieldReacted: true }), 'Reação extra gasta não é estado vazio')
 }
 
+// Atividades de talentos: o custo vem da AON (pacotes de descrição), não de catálogo.
+{
+    const act = await import('../src/modules/character-viewer/activities.ts')
+    const sc = await import('../src/modules/character-viewer/spellCast.ts')
+    const bundle = (slug) => JSON.parse(readFileSync(new URL(`../public/descriptions/${slug}.json`, import.meta.url), 'utf8')).entries
+    const bruk = bundle('brukuthur-the-barbarian-android')
+    const info = (entries, name) => act.activityOf(name, entries.feat[name] ?? entries.special[name])
+    const lbl = (i) => (i ? act.costLabel(i) : null)
+    eq(lbl(info(bruk, 'Sudden Charge')), '2 ações', 'Sudden Charge: 2 ações')
+    ok(info(bruk, 'Sudden Charge').includesStrike, 'Sudden Charge inclui um Golpe')
+    eq(lbl(info(bruk, 'Terrifying Howl')), '1 ação', 'Terrifying Howl: 1 ação')
+    ok(!info(bruk, 'Terrifying Howl').includesStrike, 'Terrifying Howl não inclui Golpe')
+    eq(lbl(info(bruk, 'Quick Reversal')), '1 ação', 'Quick Reversal: 1 ação (inclui 2 Golpes)')
+    eq(info(bruk, 'Rage'), null, 'Rage tem caminho próprio (RageBar)')
+    eq(info(bruk, 'Rewrite Fate'), null, 'Rewrite Fate é o ✦ dos diálogos')
+    eq(info(bruk, 'Divert Destiny'), null, 'Divert Destiny tem caminho próprio')
+    eq(info(bruk, 'Toughness'), null, 'Talento passivo não ganha botão')
+    eq(info(bruk, 'Godspeed'), null, 'Godspeed tem a faixa mítica própria')
+    eq(act.activityOf('Nimble Dodge', { actions: 'Reaction', traits: ['Rogue'], description: 'x' }).time.kind, 'reaction', 'Nimble Dodge gasta a reação')
+    eq(act.activityOf('Kip Up', { actions: 'Free Action', traits: [], description: 'x' }), null, 'Ação livre sem ponto nem limite não ganha botão')
+    ok(act.activityOf('Ex', { actions: 'Free Action', traits: [], description: 'x', frequency: 'uma vez por dia' }).daily, 'Ação livre diária ganha botão')
+    ok(act.spendsMythicPoint({ traits: ['Mythic'], description: 'Gaste um Ponto Mítico; ...' }), 'Reconhece "Gaste um Ponto Mítico"')
+    ok(act.spendsMythicPoint({ traits: ['Mythic'], description: 'Spend a Mythic Point to cast' }), 'Reconhece "Spend a Mythic Point"')
+    ok(!act.spendsMythicPoint({ traits: ['Fighter'], description: 'Gaste um Ponto Mítico' }), 'Sem o traço Mythic não é talento mítico')
+    // O Golpe que a atividade pagou: só o PRÓXIMO Golpe não cobra, e o crédito expira.
+    sc.resetCastLedger()
+    const T0 = 5_000_000
+    eq(sc.takePrepaidStrike(T0), false, 'Sem atividade, o Golpe cobra')
+    sc.prepayStrike(T0)
+    ok(sc.hasPrepaidStrike(T0 + 1000), 'Há um Golpe pago')
+    eq(sc.takePrepaidStrike(T0 + 1000), true, 'O primeiro Golpe depois da atividade não cobra')
+    eq(sc.takePrepaidStrike(T0 + 2000), false, 'O segundo já cobra')
+    sc.prepayStrike(T0)
+    eq(sc.takePrepaidStrike(T0 + 120_000), false, 'O Golpe pago expira em 90 s')
+    sc.resetCastLedger()
+}
+
 console.log(`${passed} conferências ok, ${failures} falha(s).`)
 process.exit(failures ? 1 : 0)

@@ -73,6 +73,8 @@ export async function resolveItemTraits(names) {
       subcategory: s.item_subcategory || null,
       consumable: traits.some((t) => norm(t) === 'consumable'),
       healing: healingFormula(s, traits),
+      // Custo de ativar/usar ("Single Action", "Two Actions"): é o que o Inventário cobra do turno.
+      actions: typeof s.actions === 'string' && s.actions ? s.actions : null,
     }
   }
   return out
