@@ -27,6 +27,7 @@ import { parseDescription, type DescriptionPart, type HeightenedEntry } from '..
 import { StaffSpellList } from './StaffSpellList'
 import type { RollRequest } from './RollDialog'
 import type { SpellAttackInfo } from '../rolls'
+import type { CastResource } from '../spellCast'
 import {
     applyHeightening,
     componentLabel,
@@ -63,6 +64,8 @@ export type DescriptionRequest =
         autoHeightened?: boolean  // truque/foco: elevada automaticamente
         caster?: SpellCasterInfo
         cached?: SpellDescription
+        /** De onde sai o que a conjuração gasta (slot, foco, Ponto Mítico) — a rolagem paga junto. */
+        cast?: CastResource
     }
     | { type: 'item'; name: string }
 
@@ -413,6 +416,7 @@ export const DescriptionDrawer = ({ request, onClose, onNavigate, onRoll }: Prop
                                 caster={request.caster}
                                 castRank={request.level ?? state.spell.level ?? undefined}
                                 name={request.name}
+                                cast={request.cast}
                                 onRoll={onRoll}
                             />
                         )}
@@ -542,23 +546,26 @@ const EntryMetadata = ({ entry, accent }: { entry: FeatDescription; accent: stri
 }
 
 /** Botão de rolar a magia — só aparece quando há ataque ou dano legível. */
-const SpellRollButton = ({ spell, caster, castRank, name, onRoll }: {
+const SpellRollButton = ({ spell, caster, castRank, name, cast, onRoll }: {
     spell: SpellDescription
     caster?: SpellCasterInfo
     castRank?: number
     name: string
+    cast?: CastResource
     onRoll: (req: RollRequest) => void
 }) => {
     const hasAttack = !!caster?.attackInfo && (spell.traits ?? []).some((t) => t.toLowerCase() === 'attack')
     const scaled = castRank != null ? scaleSpell(spell, castRank) : null
     const hasDamage = !!scaled && damageComponents(scaled).length > 0
-    if (!hasAttack && !hasDamage) return null
-    const label = hasAttack && hasDamage ? 'Rolar ataque e dano' : hasAttack ? 'Rolar ataque' : 'Rolar dano'
+    // Magia da ficha sem nada para rolar (Guidance, Bless…) ainda se CONJURA: o botão gasta as
+    // ações e o slot. Magia fora da ficha (bastão, consulta) não tem conjurador e não ganha o botão.
+    if (!hasAttack && !hasDamage && !caster) return null
+    const label = hasAttack && hasDamage ? 'Rolar ataque e dano' : hasAttack ? 'Rolar ataque' : hasDamage ? 'Rolar dano' : 'Conjurar'
     return (
         <Button
             variant="contained"
             startIcon={<DiceIcon />}
-            onClick={() => onRoll({ kind: 'spell', name, attack: caster?.attackInfo ?? null, spell, castRank, psychic: caster?.psychic })}
+            onClick={() => onRoll({ kind: 'spell', name, attack: caster?.attackInfo ?? null, spell, castRank, psychic: caster?.psychic, cast })}
             sx={{ mb: 2, minHeight: 40 }}
             fullWidth
         >

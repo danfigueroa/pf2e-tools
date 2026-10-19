@@ -59,6 +59,8 @@ import { DEBILITATIONS, hasDebilitatingStrike, hasPoisonWeapon, isSimplePoison, 
 import { initiativeBonus } from '../initiative'
 import { availableOptions, hasBattleMedicine, hasContinualRecovery, hasRiskySurgery, healActionCost, wardMedicTargets, type HealMode } from '../treatWounds'
 import { useConditions } from './useConditions'
+import { castTimeOf, NO_RESOURCE, pairCast, type CastResource } from '../spellCast'
+import { useSpellCast } from './useSpellCast'
 import { useHpTracker } from './useHpTracker'
 import { actionCost, applySpend, shortfall, type ActionKind } from '../actions'
 import { actionRange, variantFor } from '../actionVariants'
@@ -87,6 +89,8 @@ export type RollRequest =
         castRank?: number
         /** Conjuração de Psíquico: a psique liberada soma ao dano. */
         psychic?: boolean
+        /** De onde sai o que a conjuração gasta: o roll paga ações e recurso (ver `spellCast.ts`). */
+        cast?: CastResource
     }
 
 interface Props {
@@ -193,7 +197,7 @@ const SituationalNotes = ({ mods }: { mods: ConditionModifiers }) =>
  * Os dois botões de rolar. O mítico só existe para personagem mítico, e fica
  * desabilitado sem ponto: gastar é parte do clique, não um passo à parte.
  */
-const RollActions = ({ build, total, mythicDelta, mythicPoints, alreadyMythic, onRoll, onClose, disabled }: {
+const RollActions = ({ build, total, mythicDelta, mythicPoints, alreadyMythic, onRoll, onClose, disabled, label }: {
     build: BuildInfo
     total: number | null
     mythicDelta: number | null
@@ -202,6 +206,8 @@ const RollActions = ({ build, total, mythicDelta, mythicPoints, alreadyMythic, o
     onRoll: (mythic: boolean) => void
     onClose: () => void
     disabled?: boolean
+    /** Texto do botão principal quando não há número a rolar ('Conjurar'). */
+    label?: string
 }) => {
     const mythic = isMythicCharacter(build) && mythicDelta != null && total != null && !alreadyMythic
     const none = mythicPoints.available === 0
@@ -220,7 +226,7 @@ const RollActions = ({ build, total, mythicDelta, mythicPoints, alreadyMythic, o
                 </Button>
             )}
             <Button variant="contained" startIcon={<DiceIcon />} disabled={disabled} onClick={() => onRoll(false)}>
-                {total != null ? `Rolar ${signed(total)}` : 'Rolar'}
+                {label ?? (total != null ? `Rolar ${signed(total)}` : 'Rolar')}
             </Button>
         </DialogActions>
     )
@@ -872,6 +878,8 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                         return
                     }
                     ss.spend()
+                    // A magia do Spellstrike já saiu do slot: marcar o slot na lista depois não conta de novo.
+                    pairCast(ss.option.name, 'roll')
                     magus.spendSpellstrike()
                     if (ss.enterCascade && magus.canCascade && !magus.stored.cascade) {
                         // O tipo da postura é o da última magia: a primeira parcela de dano ligada.
@@ -923,6 +931,25 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     const variant = nActions != null && castRank != null ? variantFor(request.name, castRank, nActions) : null
     const spellActions = range ? (nActions ?? range.min) : spell ? (actionCost(spell.actions) ?? 0) : 0
     const lackingSpell = actions.missing(spellActions)
+    // Rolar também CONJURA: paga as ações e o recurso (slot, foco, Ponto Mítico). Marcar o slot
+    // à mão depois da rolagem não paga de novo — `pairCast` casa as duas (ver `spellCast.ts`).
+    const spellCast = useSpellCast(build, mods, mythicPoints, slots)
+    const resource: CastResource = spell ? (request.cast ?? NO_RESOURCE) : NO_RESOURCE
+    const castTime = spell ? castTimeOf(spell.actions) : null
+    const resourceLacking =
+        resource.kind === 'slot' || resource.kind === 'spontaneous' ? slots.usedOf(resource.key) >= resource.total
+            : resource.kind === 'focus' ? slots.focusUsed >= slots.focusMax
+                : resource.kind === 'mythic' ? mythicPoints.available <= 0
+                    : false
+    const resourceText =
+        resource.kind === 'slot' || resource.kind === 'spontaneous' ? `1 slot de rank ${castRank ?? '?'}`
+            : resource.kind === 'focus' ? '1 ponto de foco'
+                : resource.kind === 'mythic' ? '1 Ponto Mítico (Mythic Magic)'
+                    : null
+    const costText = [
+        castTime?.kind === 'reaction' ? 'a reação' : spellActions > 0 ? `${spellActions} ${spellActions === 1 ? 'ação' : 'ações'}` : null,
+        resourceText,
+    ].filter(Boolean).join(' e ')
     const ampDef = request.psychic ? psiAmpFor(request.name) : null
     const focusLeft = Math.max(0, (build.focusPoints ?? 0) - slots.focusUsed)
     const [ampOn, setAmpOn] = useState(false)
@@ -973,7 +1000,9 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     ] : null
     const total = attackParts ? sumParts(attackParts) : null
     const chosen = components.filter((c) => selected.has(c.id) && !c.uncertain)
+    // Sem ataque nem dano (Guidance, Bless…): não há o que rolar, mas ainda se conjura.
     const nothing = !attackParts && chosen.length === 0
+    const castOnly = nothing && !!spell
 
     // Psique liberada: bônus de status igual ao dobro do rank, uma vez só, no dano
     // inicial (a primeira parcela imediata de dano) — nunca no persistente.
@@ -1151,7 +1180,17 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                         </Alert>
                     )}
                     {spell && components.length === 0 && scaled && !attackParts && (
-                        <Alert severity="info" sx={{ py: 0 }}>Esta magia não tem ataque nem dano para rolar.</Alert>
+                        <Alert severity="info" sx={{ py: 0 }}>Esta magia não tem ataque nem dano para rolar: "Conjurar" só registra o gasto.</Alert>
+                    )}
+                    {spell && costText && (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                            {castOnly ? 'Conjurar' : 'Rolar'} gasta {costText}.{resourceText ? ' Se você já marcou o slot na lista, não conta de novo.' : ''}
+                        </Typography>
+                    )}
+                    {spell && resourceLacking && (
+                        <Alert severity="warning" sx={{ py: 0 }}>
+                            {resource.kind === 'mythic' ? 'Você não tem Pontos Míticos.' : resource.kind === 'focus' ? 'Você não tem pontos de foco.' : 'Não há slot disponível deste rank.'} Dá para conjurar mesmo assim, mas nada é descontado.
+                        </Alert>
                     )}
 
                     {lackingSpell > 0 && (
@@ -1170,9 +1209,15 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                 alreadyMythic={attack?.alreadyMythic}
                 mythicPoints={mythicPoints}
                 onClose={onClose}
-                disabled={nothing}
+                disabled={nothing && !castOnly}
+                label={castOnly ? 'Conjurar' : undefined}
                 onRoll={(mythic) => {
-                    actions.spend(spellActions)
+                    if (spell) {
+                        spellCast.cast({ name: request.name, actionsText: spell.actions, resource, via: 'roll', chosenActions: range ? nActions : undefined })
+                    } else {
+                        actions.spend(spellActions)
+                    }
+                    if (castOnly) { onClose(); return }
                     if (ampOn && ampDef) slots.spendFocus()
                     if (mode) energy.record(mode)
                     // Um raio por ação (Blazing Bolt): cada um com o próprio ataque e dano, mas numa

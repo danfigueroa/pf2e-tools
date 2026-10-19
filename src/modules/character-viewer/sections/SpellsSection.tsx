@@ -1,5 +1,5 @@
-import { useMemo, useState, memo } from 'react'
-import { Box, Button, Card, CardContent, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Tooltip, Typography, Stack, Chip, Divider, LinearProgress } from '@mui/material'
+import { useCallback, useMemo, useState, memo } from 'react'
+import { Alert, Box, Button, Card, CardContent, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Snackbar, Tooltip, Typography, Stack, Chip, Divider, LinearProgress } from '@mui/material'
 import {
     ChevronRight as ChevronIcon,
     CloudDownload as DownloadIcon,
@@ -25,6 +25,9 @@ import type { MythicPointsApi } from '../components/useMythicPoints'
 import type { RollRequest } from '../components/RollDialog'
 import { casterAttack, focusAttack } from '../rolls'
 import { EmbedDialog } from '../components/EmbedDialog'
+import { castMessage, useSpellCast, type CastReport } from '../components/useSpellCast'
+import { NO_RESOURCE, type CastResource } from '../spellCast'
+import { psiAmpFor } from '../psiAmps'
 
 interface Props {
     build: BuildInfo
@@ -52,6 +55,17 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
     // "Novo dia" agora devolve os slots para a mesa inteira, não só para quem
     // clicou — deixou de ser um clique sem consequência.
     const [confirmNewDay, setConfirmNewDay] = useState(false)
+
+    // Marcar o slot, o foco ou o Ponto Mítico na lista É conjurar: paga também as ações da magia
+    // (e a reação, se for o caso). Quem já rolou a magia no diálogo não paga de novo.
+    const spellCast = useSpellCast(build, mods, mythicPoints, slots)
+    const [castNote, setCastNote] = useState<{ text: string; warn: boolean } | null>(null)
+    const markCast = useCallback((name: string, resource: CastResource): CastReport => {
+        const cached = getCachedSpell(name)
+        const report = spellCast.cast({ name, actionsText: cached?.actions, resource, via: 'mark' })
+        setCastNote({ text: castMessage(name, report), warn: report.warnings.length > 0 })
+        return report
+    }, [spellCast])
     const allCached = allNames.every(n => getCachedSpell(n) != null)
 
     const loadAll = async () => {
@@ -165,6 +179,7 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
                         onSelect={onSelect}
                         onRoll={onRoll}
                         mods={mods}
+                        markCast={markCast}
                     />
                 ))}
 
@@ -204,10 +219,12 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
                                     level: focusRank,
                                     autoHeightened: true,
                                     caster: focusCasterInfo(build, s, mods),
+                                    // Psi cantrip é truque: conjurar é de graça, o ponto só sai ao Amplificar (no diálogo).
+                                    cast: focusMax > 0 && !(build.class === 'Psychic' && psiAmpFor(s.name)) ? { kind: 'focus' } : NO_RESOURCE,
                                 }}
                                 onSelect={onSelect}
                                 spend={focusMax > 0 ? {
-                                    onSpend: slots.spendFocus,
+                                    onSpend: () => { markCast(s.name, { kind: 'focus' }) },
                                     disabled: slots.focusUsed >= focusMax,
                                     tooltip: 'Gastar 1 Ponto de Foco',
                                 } : undefined}
@@ -225,6 +242,18 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
                     </CardContent>
                 </Card>
             )}
+            <Snackbar
+                open={!!castNote}
+                autoHideDuration={7000}
+                onClose={(_, reason) => { if (reason !== 'clickaway') setCastNote(null) }}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                {castNote ? (
+                    <Alert severity={castNote.warn ? 'warning' : 'success'} onClose={() => setCastNote(null)}>
+                        {castNote.text}
+                    </Alert>
+                ) : undefined}
+            </Snackbar>
         </Stack>
     )
 }
@@ -238,9 +267,10 @@ interface CasterProps {
     onSelect: Props['onSelect']
     onRoll: Props['onRoll']
     mods: ConditionModifiers
+    markCast: (name: string, resource: CastResource) => CastReport
 }
 
-const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, onRoll, mods }: CasterProps) => {
+const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, onRoll, mods, markCast }: CasterProps) => {
     const base = spellcasterStats(build, caster)
     // A conta do ataque de magia, para a rolagem (mesmo total do "Atq" abaixo).
     const attackInfo = casterAttack(build, caster, mods)
@@ -417,16 +447,21 @@ const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, o
                                 const rowKey = levelKey(spellLevel, name)
                                 const used = Math.min(count, slots.usedOf(rowKey))
                                 const tracked = spellLevel > 0 && !isSpontaneous && !isMythicMagic
+                                // O que conjurar esta linha gasta: o diálogo da magia e a marcação à mão usam o mesmo.
+                                const resource: CastResource = isMythicMagic ? { kind: 'mythic' }
+                                    : spellLevel === 0 ? NO_RESOURCE
+                                        : isSpontaneous ? (summary ? { kind: 'spontaneous', key, total: summary.total } : NO_RESOURCE)
+                                            : tracked ? { kind: 'slot', key: rowKey, total: count } : NO_RESOURCE
                                 const spontaneousSpend = isMythicMagic
                                     ? {
-                                        onSpend: mythicPoints.spend,
+                                        onSpend: () => { markCast(name, resource) },
                                         disabled: mythicPoints.available === 0,
                                         tooltip: 'Gastar 1 Ponto Mítico',
                                         emptyTooltip: 'Sem Pontos Míticos disponíveis',
                                     }
                                     : isSpontaneous && summary
                                     ? {
-                                        onSpend: () => slots.spendOne(key, summary.total),
+                                        onSpend: () => { markCast(name, resource) },
                                         disabled: summary.used >= summary.total,
                                         tooltip: `Gastar 1 slot de nível ${spellLevel}`,
                                     }
@@ -443,12 +478,17 @@ const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, o
                                             level: castRank,
                                             autoHeightened: spellLevel === 0,
                                             caster: { name: caster.name, dc, attack, tradition: caster.magicTradition, attackInfo, psychic: isPsychicCaster(build, caster) },
+                                            cast: resource,
                                         }}
                                         onSelect={onSelect}
                                         pips={tracked ? {
                                             total: count,
                                             used,
-                                            onChange: (next: number) => slots.setUsed(rowKey, next, count),
+                                            onChange: (next: number) => {
+                                                // Gastar um slot é conjurar (paga as ações); recuperar é só desfazer.
+                                                if (next > used && markCast(name, resource).paired) return
+                                                slots.setUsed(rowKey, next, count)
+                                            },
                                             label: `Slot de ${name}`,
                                         } : undefined}
                                         spend={spontaneousSpend}
