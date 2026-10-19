@@ -38,6 +38,12 @@ function loadPrefs(): Prefs {
 
 interface Props {
     onRoll: (roll: TableRoll) => void
+    /**
+     * Quem rola, quando já se sabe (a Ficha Virtual): o nome e a cor do personagem
+     * valem, e os campos de nome e cor somem. O painel também deixa de flutuar
+     * sobre o mapa e ocupa o fluxo da página.
+     */
+    identity?: { by: string; color: string }
 }
 
 /** Número inteiro com − / +, e rascunho só confirmado no blur/Enter (digitar "1" a caminho de "10"). */
@@ -83,14 +89,20 @@ const Stepper = ({ label, value, min, max, onChange }: {
  * e não troca a ferramenta ativa, para poder rolar com a régua na mão.
  * O que se rola vai para a mesa inteira (`roll:<id>`, como o ping).
  */
-export const DicePanel = ({ onRoll }: Props) => {
+export const DicePanel = ({ onRoll, identity }: Props) => {
     const [prefs, setPrefs] = useState<Prefs>(loadPrefs)
     const patch = (p: Partial<Prefs>) => {
         const next = { ...prefs, ...p }
         setPrefs(next)
         try { localStorage.setItem(KEY, JSON.stringify(next)) } catch { /* só nesta aba */ }
     }
-    const roll = () => onRoll(rollDice(prefs.count, prefs.faces, prefs.bonus, prefs.name.trim() || 'Jogador', prefs.color))
+    const roll = () => onRoll(rollDice(
+        prefs.count,
+        prefs.faces,
+        prefs.bonus,
+        identity?.by ?? (prefs.name.trim() || 'Jogador'),
+        identity?.color ?? prefs.color,
+    ))
 
     return (
         <Paper
@@ -98,15 +110,13 @@ export const DicePanel = ({ onRoll }: Props) => {
             onPointerDown={(e) => e.stopPropagation()}
             onDoubleClick={(e) => e.stopPropagation()}
             sx={{
-                position: 'absolute',
-                right: 76,
-                bottom: 12,
+                ...(identity
+                    ? { mb: 2, maxWidth: 340 }
+                    : { position: 'absolute', right: 76, bottom: 12, width: 340, zIndex: 3 }),
                 p: 1.5,
-                width: 340,
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 1.25,
-                zIndex: 3,
             }}
         >
             <ToggleButtonGroup
@@ -128,18 +138,22 @@ export const DicePanel = ({ onRoll }: Props) => {
                 <Stepper label="Bônus" value={prefs.bonus} min={-MAX_BONUS} max={MAX_BONUS} onChange={(bonus) => patch({ bonus })} />
             </Box>
 
-            <Box>
-                <Typography variant="caption" sx={{ color: ink.secondary }}>Cor dos dados</Typography>
-                <ColorSwatches value={prefs.color} onChange={(color) => patch({ color })} />
-            </Box>
+            {!identity && (
+                <>
+                    <Box>
+                        <Typography variant="caption" sx={{ color: ink.secondary }}>Cor dos dados</Typography>
+                        <ColorSwatches value={prefs.color} onChange={(color) => patch({ color })} />
+                    </Box>
 
-            <TextField
-                size="small"
-                label="Seu nome (aparece para a mesa)"
-                value={prefs.name}
-                onChange={(e) => patch({ name: e.target.value.slice(0, 24) })}
-                onKeyDown={(e) => { if (e.key === 'Enter') roll() }}
-            />
+                    <TextField
+                        size="small"
+                        label="Seu nome (aparece para a mesa)"
+                        value={prefs.name}
+                        onChange={(e) => patch({ name: e.target.value.slice(0, 24) })}
+                        onKeyDown={(e) => { if (e.key === 'Enter') roll() }}
+                    />
+                </>
+            )}
 
             <Button variant="contained" startIcon={<DiceIcon />} onClick={roll} sx={{ fontWeight: 700 }}>
                 Rolar {formulaText(prefs.count, prefs.faces, prefs.bonus)}
