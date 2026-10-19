@@ -22,6 +22,7 @@
  */
 import { parseFeatEntry, type BuildInfo } from '../character-sheet/types'
 import type { ConditionModifiers } from './conditions'
+import { mythicFeatsOf } from './mythicFeats'
 
 /** O que fica gravado na mesa. */
 export interface MagusStored {
@@ -33,11 +34,13 @@ export interface MagusStored {
     spent: boolean
     /** Summon Mythic Power já usada hoje. */
     summoned: boolean
+    /** Godspeed ativo (1 minuto — o app não conta o tempo, o jogador encerra). */
+    godspeed: boolean
 }
 
 export const DEFAULT_CASCADE_TYPE = 'force'
 
-export const NO_MAGUS: MagusStored = { cascade: false, cascadeType: DEFAULT_CASCADE_TYPE, spent: false, summoned: false }
+export const NO_MAGUS: MagusStored = { cascade: false, cascadeType: DEFAULT_CASCADE_TYPE, spent: false, summoned: false, godspeed: false }
 
 /** Tipos que o jogador pode escolher para a postura (os da última magia). */
 export const CASCADE_TYPES = [
@@ -50,10 +53,10 @@ export function sanitizeMagus(raw: unknown): MagusStored {
     const type = typeof r.cascadeType === 'string' && (CASCADE_TYPES as readonly string[]).includes(r.cascadeType)
         ? r.cascadeType
         : DEFAULT_CASCADE_TYPE
-    return { cascade: !!r.cascade, cascadeType: type, spent: !!r.spent, summoned: !!r.summoned }
+    return { cascade: !!r.cascade, cascadeType: type, spent: !!r.spent, summoned: !!r.summoned, godspeed: !!r.godspeed }
 }
 
-export const isMagusEmpty = (s: MagusStored) => !s.cascade && !s.spent && !s.summoned && s.cascadeType === DEFAULT_CASCADE_TYPE
+export const isMagusEmpty = (s: MagusStored) => !s.cascade && !s.spent && !s.summoned && !s.godspeed && s.cascadeType === DEFAULT_CASCADE_TYPE
 
 const norm = (s: string) => s.trim().toLowerCase()
 
@@ -70,6 +73,7 @@ export const hasFieryRebirthFeat = (build: BuildInfo) => hasFeat(build, 'Fiery R
 /** Quem tem ao menos uma das características: é quando a faixa (Magus ou poder mítico) aparece. */
 export const hasMagusFeatures = (build: BuildInfo) =>
     hasArcaneCascade(build) || hasSpellstrike(build) || hasSummonMythicPower(build) || hasDivertDestiny(build) || hasFieryRebirthFeat(build)
+    || mythicFeatsOf(build).length > 0
 
 /** O dano extra da postura: 1; 2 com Weapon Specialization; 3 com a Greater. */
 export function cascadeDamage(build: BuildInfo): number {

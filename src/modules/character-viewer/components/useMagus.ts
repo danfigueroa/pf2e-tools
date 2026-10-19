@@ -50,15 +50,20 @@ export function useMagus(syncKey: string, build: BuildInfo | null) {
         setStored((s) => (s.summoned ? s : { ...s, summoned: true }))
     }, [setStored])
 
+    /** Liga/desliga o Godspeed (o minuto dele é do jogador, como a Fúria). */
+    const setGodspeed = useCallback((on: boolean) => {
+        setStored((s) => (s.godspeed === on ? s : { ...s, godspeed: on }))
+    }, [setStored])
+
     /** Novo dia: a Summon Mythic Power volta; o Spellstrike volta carregado; a postura acaba. */
     const newDay = useCallback(() => {
-        setStored((s) => ({ ...s, summoned: false, spent: false, cascade: false }))
+        setStored((s) => ({ ...s, summoned: false, spent: false, cascade: false, godspeed: false }))
     }, [setStored])
 
     // Viaja até a aba de Combate, que é `memo`.
     return useMemo(
-        () => ({ stored, effect, canCascade, setCascade, setCascadeType, spendSpellstrike, rechargeSpellstrike, markSummoned, newDay }),
-        [stored, effect, canCascade, setCascade, setCascadeType, spendSpellstrike, rechargeSpellstrike, markSummoned, newDay],
+        () => ({ stored, effect, canCascade, setCascade, setCascadeType, spendSpellstrike, rechargeSpellstrike, markSummoned, setGodspeed, newDay }),
+        [stored, effect, canCascade, setCascade, setCascadeType, spendSpellstrike, rechargeSpellstrike, markSummoned, setGodspeed, newDay],
     )
 }
 

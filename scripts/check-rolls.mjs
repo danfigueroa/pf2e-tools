@@ -928,5 +928,22 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
     eq(sk.skillActionsFor('Fortitude').length, 0, 'Salvaguarda não é ação de perícia')
 }
 
+// Talentos míticos do turno: quem tem o quê, e o Godspeed (Acelerado + 3 m).
+{
+    const mf = await import('../src/modules/character-viewer/mythicFeats.ts')
+    const names = (who) => mf.mythicFeatsOf(party[who]).map((f) => f.id).join(',')
+    eq(names('thalos'), 'correct-the-story,arc-of-destruction,become-destiny,weve-met-before', 'Thalos: Correct, Arc, Become Destiny e We\'ve Met Before')
+    eq(names('nathaniel'), 'godspeed', 'Nathaniel: só o Godspeed')
+    eq(names('brukuthur'), 'godspeed,correct-the-story', 'Brukuthur: Godspeed e Correct the Story')
+    eq(names('ghan'), 'correct-the-story', 'Ghan: Correct the Story')
+    const base = computeConditionModifiers({}, 10)
+    eq(mf.withGodspeed(base, true).total.speed - base.total.speed, 10, 'Godspeed soma 10 pés de status')
+    eq(mf.withGodspeed(base, false), base, 'Godspeed desligado não mexe nos modificadores')
+    const quick = computeConditionModifiers(mf.godspeedConditions(true), 10)
+    ok(acts.actionBudget(quick).quick, 'Godspeed liga o Acelerado: a faixa de Ações ganha a ação extra')
+    ok(!acts.actionBudget(base).quick, 'Sem Godspeed, sem ação extra')
+    eq(JSON.stringify(mf.MYTHIC_FEATS.find((f) => f.id === 'correct-the-story').info.time), '{"kind":"reaction"}', 'Correct the Story gasta a reação')
+}
+
 console.log(`${passed} conferências ok, ${failures} falha(s).`)
 process.exit(failures ? 1 : 0)
