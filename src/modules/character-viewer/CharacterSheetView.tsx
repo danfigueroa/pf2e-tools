@@ -57,6 +57,7 @@ import { MagusBar } from './components/MagusBar'
 import { useMagus } from './components/useMagus'
 import { hasMagusFeatures, withCascade } from './magus'
 import { ActionsBar } from './components/ActionsBar'
+import { DiceBar } from './components/DiceBar'
 import { useActions } from './components/useActions'
 import { RangerBar } from './components/RangerBar'
 import { useRanger } from './components/useRanger'
@@ -327,6 +328,7 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
 
             <ConditionsBar conditions={conditions} />
             <ActionsBar actions={actions} />
+            <DiceBar build={build} />
             {rage.spec && <RageBar build={build} rage={rage} conditions={conditions} />}
             {psyche.has && <PsycheBar psyche={psyche} />}
             {hasRangerFeatures(build) && <RangerBar build={build} ranger={ranger} mods={mods} />}
