@@ -278,14 +278,18 @@ export const ShieldCard = ({ build, shield, mods }: Props) => {
                 </Typography>
 
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.25 }}>
-                    <Tooltip title={broken ? 'Escudo quebrado não pode ser erguido.' : raised ? 'Vale até o início do seu próximo turno.' : ''}>
+                    <Tooltip title={broken ? 'Escudo quebrado não pode ser erguido.' : raised ? 'Vale até o início do seu próximo turno.' : actions.missing(1, 'any') > 0 ? 'Erguer gasta 1 ação — você não tem ações neste turno (dá para erguer mesmo assim).' : 'Erguer o escudo (Raise a Shield) gasta 1 ação.'}>
                         <span style={{ flex: '1 1 140px', display: 'flex' }}>
                             <Button
                                 fullWidth
                                 variant={raised ? 'outlined' : 'contained'}
                                 startIcon={<ShieldIcon />}
                                 disabled={broken && !raised}
-                                onClick={() => setRaised(!raised)}
+                                onClick={() => {
+                                    // Raise a Shield é 1 ação; abaixar não custa nada. Reactive Shield erguer por reação é o botão ao lado.
+                                    if (!raised) actions.spend(1, 'any')
+                                    setRaised(!raised)
+                                }}
                                 sx={raised
                                     ? { fontWeight: 700, color: gold.deep, borderColor: gold.main }
                                     : { fontWeight: 700, backgroundColor: SHIELD_COLOR, '&:hover': { backgroundColor: SHIELD_COLOR, filter: 'brightness(0.9)' } }}
