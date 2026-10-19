@@ -51,6 +51,9 @@ export function useActions(syncKey: string, mods: ConditionModifiers, poll = fal
         setStored((s) => (s.used === used ? s : { ...s, used: Math.max(0, Math.min(9, used)) }))
     }, [setStored])
 
+    /** Gasta a reação da rodada (idempotente: quem já reagiu continua tendo reagido). */
+    const spendReaction = useCallback(() => setStored((s) => (s.reacted ? s : { ...s, reacted: true })), [setStored])
+
     const toggleQuick = useCallback(() => setStored((s) => ({ ...s, quickUsed: !s.quickUsed })), [setStored])
 
     useEffect(() => {
@@ -63,8 +66,8 @@ export function useActions(syncKey: string, mods: ConditionModifiers, poll = fal
     }, [poll, syncKey])
 
     return useMemo(
-        () => ({ stored, budget, left, spend, missing, startTurn, toggleReaction, setUsed, toggleQuick }),
-        [stored, budget, left, spend, missing, startTurn, toggleReaction, setUsed, toggleQuick],
+        () => ({ stored, budget, left, spend, missing, startTurn, toggleReaction, spendReaction, setUsed, toggleQuick }),
+        [stored, budget, left, spend, missing, startTurn, toggleReaction, spendReaction, setUsed, toggleQuick],
     )
 }
 

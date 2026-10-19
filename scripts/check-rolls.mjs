@@ -814,5 +814,36 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
         }
 }
 
+// Economia de uma conjuração: tempo de conjuração e o casamento entre rolar e marcar o slot.
+{
+    const sc = await import('../src/modules/character-viewer/spellCast.ts')
+    const t = (x) => JSON.stringify(sc.castTimeOf(x))
+    eq(t('Single Action'), '{"kind":"actions","n":1}', 'Single Action = 1 ação')
+    eq(t('Two Actions'), '{"kind":"actions","n":2}', 'Two Actions = 2 ações')
+    eq(t('Three Actions'), '{"kind":"actions","n":3}', 'Three Actions = 3 ações')
+    eq(t('Reaction'), '{"kind":"reaction"}', 'Reaction gasta a reação')
+    eq(t('Free Action'), '{"kind":"free"}', 'Ação livre não gasta')
+    eq(t('Single Action to Three Actions'), '{"kind":"variable","min":1,"max":3}', 'Ação variável 1 a 3')
+    eq(t('Two Actions or Three Actions'), '{"kind":"variable","min":2,"max":3}', 'Ação variável 2 ou 3')
+    eq(t('10 minutes'), '{"kind":"long"}', '10 minutos não cabe no turno')
+    eq(t('Two Actions to 2 rounds'), '{"kind":"long"}', 'Ação + rodadas é conjuração longa')
+    eq(t(undefined), '{"kind":"unknown"}', 'Sem descrição: desconhecido')
+
+    sc.resetCastLedger()
+    const T = 1_000_000
+    eq(sc.pairCast('Heal', 'roll', T), false, 'Rolar sem marcação paga')
+    eq(sc.pairCast('heal', 'mark', T + 5000), true, 'Marcar o slot logo depois é a mesma conjuração (sem repetir)')
+    eq(sc.pairCast('Heal', 'mark', T + 6000), false, 'Uma segunda marcação já é outra conjuração')
+    eq(sc.pairCast('Heal', 'roll', T + 7000), true, 'Rolar depois de marcar é a mesma conjuração')
+    // Duas conjurações rolando e marcando: paga duas, nunca quatro.
+    sc.resetCastLedger()
+    const paid = [sc.pairCast('Fireball', 'roll', T), sc.pairCast('Fireball', 'roll', T + 1), sc.pairCast('Fireball', 'mark', T + 2), sc.pairCast('Fireball', 'mark', T + 3)].filter((x) => !x).length
+    eq(paid, 2, 'Duas conjurações = duas cobranças (rolar+marcar não duplica)')
+    sc.resetCastLedger()
+    sc.pairCast('Guidance', 'mark', T)
+    eq(sc.pairCast('Guidance', 'roll', T + 91_000), false, 'Crédito velho expira e não engole a próxima conjuração')
+    sc.resetCastLedger()
+}
+
 console.log(`${passed} conferências ok, ${failures} falha(s).`)
 process.exit(failures ? 1 : 0)
