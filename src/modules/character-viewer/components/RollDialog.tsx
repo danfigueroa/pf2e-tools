@@ -21,7 +21,7 @@ import {
 import { Casino as DiceIcon } from '@mui/icons-material'
 import type { BuildInfo, SpellDescription, Weapon } from '../../character-sheet/types'
 import { CONDITION_COLOR, MYTHIC_COLOR, PSYCHE_COLOR } from '../../../theme'
-import { characterMaxHp, isMythicCharacter, signed, spellcasterStats } from '../helpers'
+import { characterMaxHp, signed, spellcasterStats } from '../helpers'
 import { psycheApplies, psycheDamageBonus } from '../psyche'
 import { psiAmpFor } from '../psiAmps'
 import { convertTypes, hasConservation, isEnergySpell, type EnergyMode } from '../energy'
@@ -59,6 +59,9 @@ import { DEBILITATIONS, hasDebilitatingStrike, hasPoisonWeapon, isSimplePoison, 
 import { initiativeBonus } from '../initiative'
 import { availableOptions, hasBattleMedicine, hasContinualRecovery, hasRiskySurgery, healActionCost, wardMedicTargets, type HealMode } from '../treatWounds'
 import { useConditions } from './useConditions'
+import { mythicOptionFor, type MythicContext, type MythicOption } from '../mythicUse'
+import { skillActionsFor } from '../skillActions'
+import { payTime } from './useSpellCast'
 import { castTimeOf, hasPrepaidStrike, NO_RESOURCE, pairCast, takePrepaidStrike, type CastResource } from '../spellCast'
 import { useSpellCast } from './useSpellCast'
 import { useHpTracker } from './useHpTracker'
@@ -197,8 +200,9 @@ const SituationalNotes = ({ mods }: { mods: ConditionModifiers }) =>
  * Os dois botões de rolar. O mítico só existe para personagem mítico, e fica
  * desabilitado sem ponto: gastar é parte do clique, não um passo à parte.
  */
-const RollActions = ({ build, total, mythicDelta, mythicPoints, alreadyMythic, onRoll, onClose, disabled, label }: {
-    build: BuildInfo
+const RollActions = ({ mythicOption, total, mythicDelta, mythicPoints, alreadyMythic, onRoll, onClose, disabled, label }: {
+    /** O ✦ que a ficha permite NESTA rolagem (`mythicUse.ts`); `null` = o botão nem aparece. */
+    mythicOption: MythicOption | null
     total: number | null
     mythicDelta: number | null
     mythicPoints: MythicPointsApi
@@ -209,7 +213,7 @@ const RollActions = ({ build, total, mythicDelta, mythicPoints, alreadyMythic, o
     /** Texto do botão principal quando não há número a rolar ('Conjurar'). */
     label?: string
 }) => {
-    const mythic = isMythicCharacter(build) && mythicDelta != null && total != null && !alreadyMythic
+    const mythic = !!mythicOption && mythicDelta != null && total != null && !alreadyMythic
     const none = mythicPoints.available === 0
     return (
         <DialogActions sx={{ flexWrap: 'wrap', gap: 1, px: 3, pb: 2 }}>
@@ -220,9 +224,9 @@ const RollActions = ({ build, total, mythicDelta, mythicPoints, alreadyMythic, o
                     disabled={none || disabled}
                     onClick={() => onRoll(true)}
                     sx={{ color: MYTHIC_COLOR, borderColor: MYTHIC_COLOR }}
-                    title="Troca a proficiência pela mítica (nível + 10) e gasta 1 Ponto Mítico"
+                    title={`${mythicOption?.feat}: troca a proficiência pela mítica (nível + 10) e gasta 1 Ponto Mítico`}
                 >
-                    {none ? '✦ Sem Pontos Míticos' : `✦ Mítico ${signed(total! + mythicDelta!)} · ${mythicPoints.available} pt`}
+                    {none ? `${mythicOption?.label} · sem Pontos Míticos` : `${mythicOption?.label} ${signed(total! + mythicDelta!)} · ${mythicPoints.available} pt`}
                 </Button>
             )}
             <Button variant="contained" startIcon={<DiceIcon />} disabled={disabled} onClick={() => onRoll(false)}>
@@ -255,6 +259,8 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     const [onSelf, setOnSelf] = useState(true)
     const [hour, setHour] = useState(false)
     const [risky, setRisky] = useState(false)
+    // Perícia que é uma AÇÃO (Demoralize, Trip, Seek…): gasta as ações dela. Desligado por padrão.
+    const [skillActionId, setSkillActionId] = useState<string | null>(null)
     const { check } = request
     const hp = useHpTracker(hpKeyFor(build), characterMaxHp(build, mods.hpMaxDelta), legacyCharKey(build))
     const conditions = useConditions(conditionsKeyFor(build), build.level ?? 1, legacyCharKey(build))
@@ -264,6 +270,9 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     const treatOptions = check.en === 'Medicine' ? availableOptions(check.rank) : []
     const canTreat = treatOptions.length > 0
     const treatOption = treatOptions.find((o) => o.dc === treatDc) ?? treatOptions[treatOptions.length - 1]
+    const skillActionList = skillActionsFor(check.en)
+    const skillAction = skillActionList.find((a) => a.id === skillActionId) ?? null
+    const skillLacking = skillAction && !healMode ? actions.missing(skillAction.actions, 'any') : 0
     const canBattle = canTreat && hasBattleMedicine(build)
     const canRisky = canTreat && hasRiskySurgery(build)
     const riskyOn = healMode === 'treat' && canRisky && risky
@@ -283,6 +292,11 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     const total = sumParts(parts)
     const who = useMemo(() => rollerIdentity(build), [build])
     const send = useSend(mythicPoints, onClose)
+    // Qual talento libera o ✦ desta rolagem: Ears na Percepção de iniciativa e no Sense Motive,
+    // Feet/Arms no salto e na natação, Rewrite Fate nos demais testes.
+    const mythicContext: MythicContext = healMode ? 'check'
+        : skillAction?.mythic ?? (initiative && canInitiative && check.en === 'Perception' ? 'initiative' : 'check')
+    const mythicOption = mythicOptionFor(build, mythicContext)
     return (
         <>
             <DialogTitle sx={{ pb: 1 }}>Rolar {check.label}</DialogTitle>
@@ -377,6 +391,30 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                             )}
                         </Box>
                     )}
+                    {skillActionList.length > 0 && !healMode && (
+                        <Box>
+                            <Typography variant="caption" color="text.secondary">Esta rolagem é uma ação de perícia?</Typography>
+                            <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', mt: 0.5 }}>
+                                {skillActionList.map((a) => (
+                                    <Chip
+                                        key={a.id}
+                                        size="small"
+                                        label={`${a.label} · ${a.actions} ${a.actions === 1 ? 'ação' : 'ações'}`}
+                                        color={skillActionId === a.id ? 'primary' : 'default'}
+                                        variant={skillActionId === a.id ? 'filled' : 'outlined'}
+                                        onClick={() => setSkillActionId(skillActionId === a.id ? null : a.id)}
+                                        aria-pressed={skillActionId === a.id}
+                                        sx={{ minHeight: 28 }}
+                                    />
+                                ))}
+                            </Box>
+                            {skillLacking > 0 && (
+                                <Alert severity="warning" sx={{ py: 0, mt: 0.75 }}>
+                                    Você não tem ações suficientes neste turno (faltam {skillLacking}). Dá para rolar mesmo assim.
+                                </Alert>
+                            )}
+                        </Box>
+                    )}
                     {canInitiative && (
                         <Box>
                             <Chip
@@ -397,7 +435,7 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                 </Stack>
             </DialogContent>
             <RollActions
-                build={build}
+                mythicOption={mythicOption}
                 total={total}
                 mythicDelta={check.mythicDelta}
                 mythicPoints={mythicPoints}
@@ -422,8 +460,10 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                         send(out.roll, mythic)
                         return
                     }
+                    if (skillAction) payTime(actions, { kind: 'actions', n: skillAction.actions }, undefined, [], [])
+                    const sub = [skillAction?.label, initiative && canInitiative ? 'iniciativa' : null].filter(Boolean).join(' · ') || undefined
                     send(
-                    checkRoll(who, check.label, parts, mythic ? check.mythicDelta : null, initiative && canInitiative ? 'iniciativa' : undefined, initiative && canInitiative),
+                    checkRoll(who, check.label, parts, mythic ? check.mythicDelta : null, sub, initiative && canInitiative),
                     mythic,
                     )
                 }}
@@ -860,7 +900,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                 </Stack>
             </DialogContent>
             <RollActions
-                build={build}
+                mythicOption={mythicOptionFor(build, 'strike')}
                 total={plan.attackTotal}
                 mythicDelta={plan.mythicDelta}
                 mythicPoints={mythicPoints}
@@ -1207,7 +1247,7 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                 </Stack>
             </DialogContent>
             <RollActions
-                build={build}
+                mythicOption={mythicOptionFor(build, 'spell-attack')}
                 total={total}
                 mythicDelta={attack?.mythicDelta ?? null}
                 alreadyMythic={attack?.alreadyMythic}
