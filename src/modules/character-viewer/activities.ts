@@ -85,7 +85,7 @@ export function activityOf(name: string, desc: ActivitySource | null | undefined
         time,
         mythicPoint,
         daily,
-        includesStrike: charges && /\bStrike\b/.test(desc.description ?? '') && !(desc.traits ?? []).some((t) => t.toLowerCase() === 'metamagic'),
+        includesStrike: time.kind === 'actions' && /\bStrike\b/.test(desc.description ?? '') && !(desc.traits ?? []).some((t) => t.toLowerCase() === 'metamagic'),
         trigger: desc.trigger || undefined,
     }
 }

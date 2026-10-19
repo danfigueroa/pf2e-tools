@@ -876,6 +876,7 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
     eq(lbl(info(bruk, 'Terrifying Howl')), '1 ação', 'Terrifying Howl: 1 ação')
     ok(!info(bruk, 'Terrifying Howl').includesStrike, 'Terrifying Howl não inclui Golpe')
     eq(lbl(info(bruk, 'Quick Reversal')), '1 ação', 'Quick Reversal: 1 ação (inclui 2 Golpes)')
+    ok(!info(bruk, 'Flip').includesStrike, 'Reação com Golpe não deixa Golpe pago (o Golpe da reação é outro caminho)')
     eq(info(bruk, 'Rage'), null, 'Rage tem caminho próprio (RageBar)')
     eq(info(bruk, 'Rewrite Fate'), null, 'Rewrite Fate é o ✦ dos diálogos')
     eq(info(bruk, 'Divert Destiny'), null, 'Divert Destiny tem caminho próprio')
