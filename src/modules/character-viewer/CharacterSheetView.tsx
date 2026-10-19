@@ -38,7 +38,8 @@ import { ConditionsBar } from './components/ConditionsBar'
 import { AfflictionsBar } from './components/AfflictionsBar'
 import { PersistentDamageBar } from './components/PersistentDamageBar'
 import { MythicPointsBar } from './components/MythicPointsBar'
-import { actionsKeyFor, afflictionsKeyFor, charSlug, conditionsKeyFor, energyKeyFor, legacyCharKey, magusKeyFor, mythicKeyFor, persistentKeyFor, psycheKeyFor, rageKeyFor, rangerKeyFor, sizeKeyFor } from './charId'
+import { useUses } from './components/useUses'
+import { usesKeyFor, actionsKeyFor, afflictionsKeyFor, charSlug, conditionsKeyFor, energyKeyFor, legacyCharKey, magusKeyFor, mythicKeyFor, persistentKeyFor, psycheKeyFor, rageKeyFor, rangerKeyFor, sizeKeyFor } from './charId'
 import { useConditions } from './components/useConditions'
 import { useAfflictions } from './components/useAfflictions'
 import { usePersistentDamage } from './components/usePersistentDamage'
@@ -125,13 +126,13 @@ const SECTIONS: SectionDef[] = [
         id: 'feats',
         label: 'Talentos',
         icon: <FeatsIcon />,
-        render: ({ build, onSelect }) => <FeatsSection build={build} onSelect={onSelect} />,
+        render: ({ build, onSelect, mods, mythicPoints }) => <FeatsSection build={build} onSelect={onSelect} mods={mods} mythicPoints={mythicPoints} />,
     },
     {
         id: 'specials',
         label: 'Habilidades',
         icon: <SpecialsIcon />,
-        render: ({ build, onSelect }) => <SpecialsSection build={build} onSelect={onSelect} />,
+        render: ({ build, onSelect, mods, mythicPoints }) => <SpecialsSection build={build} onSelect={onSelect} mods={mods} mythicPoints={mythicPoints} />,
         visible: (b) => (b.specials?.length ?? 0) > 0,
     },
     {
@@ -262,6 +263,7 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
 
     // Ações do turno: a faixa liga o poll leve (a Iniciativa zera do aparelho do mestre).
     const actions = useActions(actionsKeyFor(build), mods, true)
+    const uses = useUses(usesKeyFor(build))
 
     // Pontos Míticos: gastos de qualquer aba, então o hook mora aqui.
     const mythicPoints = useMythicPoints(mythicKeyFor(build), MYTHIC_POINTS_MAX)
@@ -342,7 +344,7 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
                 onRemove={persistentDamage.remove}
             />
 
-            {isMythicCharacter(build) && <MythicPointsBar points={mythicPoints} />}
+            {isMythicCharacter(build) && <MythicPointsBar points={mythicPoints} onNewDay={uses.resetAll} />}
 
             {apiAvailable === false && (
                 <Alert severity="warning" sx={{ mb: 2 }}>

@@ -12,7 +12,8 @@ import type { DescriptionRequest } from '../components/DescriptionDrawer'
 import { actionSymbol, isMythicMagicCaster, MYTHIC_COLOR, signed, spellcasterStats, traditionColor, traditionLabel } from '../helpers'
 import { castRankForSlot, damageAtRank } from '../heightening'
 import { getCachedSpell, prefetchSpellDescriptions, useDescriptionCacheVersion } from '../../../services/descriptions'
-import { legacyCharKey, slotsKeyFor } from '../charId'
+import { legacyCharKey, slotsKeyFor, usesKeyFor } from '../charId'
+import { useUses } from '../components/useUses'
 import { slotKey, useSpellSlots, type SpellSlotsApi } from '../components/useSpellSlots'
 import { SlotPips, SlotCount } from '../components/SlotPips'
 import { gold, PSYCHE_COLOR } from '../../../theme'
@@ -59,6 +60,8 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
     // Marcar o slot, o foco ou o Ponto Mítico na lista É conjurar: paga também as ações da magia
     // (e a reação, se for o caso). Quem já rolou a magia no diálogo não paga de novo.
     const spellCast = useSpellCast(build, mods, mythicPoints, slots)
+    // O Novo dia devolve também as atividades de uso diário ("uma vez por dia").
+    const uses = useUses(usesKeyFor(build))
     const [castNote, setCastNote] = useState<{ text: string; warn: boolean } | null>(null)
     const markCast = useCallback((name: string, resource: CastResource): CastReport => {
         const cached = getCachedSpell(name)
@@ -106,7 +109,7 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
                     <Button color="inherit" onClick={() => setConfirmNewDay(false)}>Cancelar</Button>
                     <Button
                         variant="contained"
-                        onClick={() => { slots.resetAll(); setConfirmNewDay(false) }}
+                        onClick={() => { slots.resetAll(); uses.resetAll(); setConfirmNewDay(false) }}
                     >
                         Novo dia
                     </Button>

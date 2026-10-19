@@ -3,13 +3,20 @@ import { Box, Card, CardContent, Stack, Typography } from '@mui/material'
 import { ChevronRight as ChevronIcon } from '@mui/icons-material'
 import type { BuildInfo } from '../../character-sheet/types'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
+import type { ConditionModifiers } from '../conditions'
+import type { MythicPointsApi } from '../components/useMythicPoints'
+import { ActivityButton } from '../components/ActivityButton'
+import { getCachedSpecial, useDescriptionCacheVersion } from '../../../services/descriptions'
 
 interface Props {
     build: BuildInfo
     onSelect: (req: DescriptionRequest) => void
+    mods: ConditionModifiers
+    mythicPoints: MythicPointsApi
 }
 
-const SpecialsSectionView = ({ build, onSelect }: Props) => {
+const SpecialsSectionView = ({ build, onSelect, mods, mythicPoints }: Props) => {
+    useDescriptionCacheVersion()
     if (!build.specials?.length) {
         return (
             <Card>
@@ -48,7 +55,10 @@ const SpecialsSectionView = ({ build, onSelect }: Props) => {
                                 }}
                             >
                                 <Typography sx={{ fontWeight: 500 }}>{name}</Typography>
-                                <ChevronIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <ActivityButton build={build} mods={mods} mythicPoints={mythicPoints} name={name} desc={getCachedSpecial(name)} />
+                                    <ChevronIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+                                </Box>
                             </Box>
                         )
                     })}

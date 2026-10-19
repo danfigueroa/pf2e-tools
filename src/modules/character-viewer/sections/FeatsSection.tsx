@@ -3,13 +3,21 @@ import { ChevronRight as ChevronIcon } from '@mui/icons-material'
 import { useMemo, memo } from 'react'
 import { parseFeatEntry, type BuildInfo } from '../../character-sheet/types'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
+import type { ConditionModifiers } from '../conditions'
+import type { MythicPointsApi } from '../components/useMythicPoints'
+import { ActivityButton } from '../components/ActivityButton'
+import { getCachedFeat, useDescriptionCacheVersion } from '../../../services/descriptions'
 
 interface Props {
     build: BuildInfo
     onSelect: (req: DescriptionRequest) => void
+    mods: ConditionModifiers
+    mythicPoints: MythicPointsApi
 }
 
-const FeatsSectionView = ({ build, onSelect }: Props) => {
+const FeatsSectionView = ({ build, onSelect, mods, mythicPoints }: Props) => {
+    // As linhas leem o cache no render (o custo do talento vem da descrição): baixar uma repinta.
+    useDescriptionCacheVersion()
     const grouped = useMemo(() => {
         const map: Record<string, Array<{ name: string; level: number }>> = {}
         for (const entry of build.feats || []) {
@@ -56,6 +64,7 @@ const FeatsSectionView = ({ build, onSelect }: Props) => {
                                 name={f.name}
                                 level={f.level}
                                 onClick={() => onSelect({ type: 'feat', name: f.name, level: f.level })}
+                                action={<ActivityButton build={build} mods={mods} mythicPoints={mythicPoints} name={f.name} desc={getCachedFeat(f.name)} />}
                             />
                         ))}
                     </CardContent>
@@ -65,7 +74,7 @@ const FeatsSectionView = ({ build, onSelect }: Props) => {
     )
 }
 
-const FeatRow = ({ name, level, onClick }: { name: string; level: number; onClick: () => void }) => (
+const FeatRow = ({ name, level, onClick, action }: { name: string; level: number; onClick: () => void; action?: React.ReactNode }) => (
     <Box
         role="button"
         tabIndex={0}
@@ -94,6 +103,7 @@ const FeatRow = ({ name, level, onClick }: { name: string; level: number; onClic
             </Typography>
             <Chip label={`Nv ${level}`} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.7rem', flexShrink: 0 }} />
         </Stack>
+        {action && <Box sx={{ ml: 1, display: 'flex', flexShrink: 0 }}>{action}</Box>}
         <ChevronIcon fontSize="small" sx={{ color: 'text.secondary', ml: 1, flexShrink: 0 }} />
     </Box>
 )

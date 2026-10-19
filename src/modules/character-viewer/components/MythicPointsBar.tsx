@@ -18,6 +18,8 @@ import { EmbedDialog } from './EmbedDialog'
 
 interface Props {
     points: MythicPointsApi
+    /** Novo dia também devolve as atividades de uso diário (`useUses`). */
+    onNewDay?: () => void
 }
 
 /**
@@ -28,7 +30,7 @@ interface Props {
  * Os pips funcionam como os de slot de magia: tocar num disponível gasta,
  * tocar num gasto devolve.
  */
-export const MythicPointsBar = ({ points }: Props) => {
+export const MythicPointsBar = ({ points, onNewDay }: Props) => {
     const [confirmReset, setConfirmReset] = useState(false)
 
     return (
@@ -95,7 +97,7 @@ export const MythicPointsBar = ({ points }: Props) => {
                     <Button color="inherit" onClick={() => setConfirmReset(false)}>Cancelar</Button>
                     <Button
                         variant="contained"
-                        onClick={() => { points.resetAll(); setConfirmReset(false) }}
+                        onClick={() => { points.resetAll(); onNewDay?.(); setConfirmReset(false) }}
                     >
                         Novo dia
                     </Button>
