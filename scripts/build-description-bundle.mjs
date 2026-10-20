@@ -22,8 +22,10 @@
 // - Incremental por padrão: o que já está no pacote (na versão certa) fica como
 //   está. Rodar de novo depois de um level-up traduz só o novo, e o diff mostra
 //   só isso — retraduzir tudo trocaria palavras ao acaso a cada rodada.
+// - Os presets de TODAS as mesas (`PRESETS_BY_MESA`): o pacote é do personagem,
+//   não da mesa.
 // - `--published` usa a ficha PUBLICADA pela mesa quando houver e inclui os
-//   personagens publicados que não são preset.
+//   personagens publicados que não são preset — de cada mesa.
 // - Nunca grava inglês: o que ficou com `translationPending` depois de três
 //   passadas fica de fora (o app busca pela API) e o script sai com código 1.
 
@@ -41,7 +43,8 @@ const LEGACY_SPELLS_DIR = join(ROOT, 'public', 'spells')
 
 const { parseCharacterJson } = await import('../src/modules/character-sheet/types.ts')
 const { characterDescriptionNames } = await import('../src/modules/character-viewer/descriptionNames.ts')
-const { CAMPAIGN_PRESETS } = await import('../src/modules/character-viewer/campaignPresets.ts')
+const { PRESETS_BY_MESA } = await import('../src/modules/character-viewer/campaignPresets.ts')
+const { MESAS } = await import('../src/services/mesa.ts')
 const { charSlugFromName } = await import('../src/modules/character-viewer/charId.ts')
 const { CACHE_VERSION } = await import('../src/services/descriptions.ts')
 const { resolveSpells } = await import('../api/_lib/spells-core.js')
@@ -79,18 +82,22 @@ async function getJson(url) {
 /** `[{ slug, name, json }]`: presets do repositório, trocados pela versão publicada quando pedida. */
 async function characters() {
   const out = new Map()
-  for (const preset of CAMPAIGN_PRESETS) {
+  for (const preset of Object.values(PRESETS_BY_MESA).flat()) {
     const json = JSON.parse(readFileSync(join(ROOT, 'public', 'characters', preset.filename), 'utf8'))
     out.set(charSlugFromName(preset.sheetName), { name: preset.name, json, from: preset.filename })
   }
   if (publishedAt) {
     const base = publishedAt.replace(/\/$/, '')
-    const { sheets } = await getJson(`${base}/api/state?sheets=1`)
-    for (const summary of sheets ?? []) {
-      const { sheet } = await getJson(`${base}/api/state?sheet=${encodeURIComponent(summary.slug)}`)
-      if (!sheet?.json) continue
-      const known = out.get(summary.slug)
-      out.set(summary.slug, { name: known?.name ?? summary.name, json: sheet.json, from: 'publicada' })
+    for (const mesa of MESAS) {
+      // A legada vai sem `mesa=`, como o app manda (ver `stateApi`).
+      const scope = mesa.legacy ? '' : `&mesa=${encodeURIComponent(mesa.id)}`
+      const { sheets } = await getJson(`${base}/api/state?sheets=1${scope}`)
+      for (const summary of sheets ?? []) {
+        const { sheet } = await getJson(`${base}/api/state?sheet=${encodeURIComponent(summary.slug)}${scope}`)
+        if (!sheet?.json) continue
+        const known = out.get(summary.slug)
+        out.set(summary.slug, { name: known?.name ?? summary.name, json: sheet.json, from: `publicada (${mesa.nome})` })
+      }
     }
   }
   return [...out].map(([slug, c]) => ({ slug, ...c }))
