@@ -4,11 +4,14 @@
 // Chaves:
 //   pf2e:rolls:v1    LISTA, a mais nova primeiro (LPUSH + LTRIM)
 //   pf2e:rolls:rev   contador — sobe a cada rolagem, é o que o poll lê
+//   pf2e:shares:v1   LISTA das regras compartilhadas com a mesa (talento, magia…),
+//                    que sobem o MESMO contador: o poll ocioso continua 1 GET
 //
 // Custo no Upstash (cada comando conta, inclusive dentro de pipeline):
 //   rolar           LPUSH + LTRIM + EXPIRE + INCR = 4
 //   poll sem nada   GET = 1
-//   poll com novas  GET + LRANGE = 2
+//   compartilhar    LPUSH + LTRIM + EXPIRE + INCR = 4
+//   poll com novas  GET + LRANGE + LRANGE = 3
 // E no Mapa o contador entra como 4ª chave do MGET que o poll do mapa já faz
 // (map-store.js `readRevs`): lá o feed sai sem comando a mais.
 //
@@ -24,7 +27,13 @@ export const ROLL_HISTORY = 30
 const TTL_SECONDS = 24 * 60 * 60
 export const MAX_ROLL_BYTES = 8192
 
+const SHARES_KEY = 'pf2e:shares:v1'
+/** Não há histórico de compartilhamentos: a lista só serve para o poll achar o novo. */
+const SHARE_HISTORY = 5
+const SHARE_TTL_SECONDS = 60 * 60
+
 let memoryRolls = []
+let memoryShares = []
 let memoryRev = 0
 
 /** O contador quando não há Redis (lido por map-store.js). */
@@ -145,6 +154,40 @@ export function sanitizeRoll(r) {
   return out
 }
 
+// ── Regra compartilhada ──────────────────────────────────────────────────────
+// ESPELHO de `src/services/tableShare.ts` (`sanitizeTableShare`). Viaja só a
+// REFERÊNCIA (tipo, nome, rank): quem recebe busca a descrição traduzida como o
+// drawer da ficha busca, então não há prosa para validar aqui.
+
+const SHARE_TYPES = ['feat', 'special', 'item', 'spell']
+const SHARE_NAME_RE = /^[^\u0000-\u001f]{1,120}$/
+
+function sanitizeCaster(c) {
+  if (!c || typeof c !== 'object') return null
+  if (!isInt(c.dc, 99) || c.dc < 0 || !isInt(c.attack, 99)) return null
+  const name = str(c.name, 40)
+  if (!name) return null
+  return { name, dc: c.dc, attack: c.attack, tradition: str(c.tradition, 20) }
+}
+
+/** O compartilhamento limpo, ou `null`. `at` é sempre o do servidor. */
+export function sanitizeShare(s) {
+  if (!s || typeof s !== 'object') return null
+  if (typeof s.id !== 'string' || !ID_RE.test(s.id)) return null
+  if (typeof s.color !== 'string' || !HEX.test(s.color)) return null
+  if (!SHARE_TYPES.includes(s.type)) return null
+  if (typeof s.name !== 'string' || !SHARE_NAME_RE.test(s.name) || !s.name.trim()) return null
+  const out = { id: s.id, at: Date.now(), by: str(s.by, 40), color: s.color, type: s.type, name: s.name }
+  if (typeof s.slug === 'string' && ID_RE.test(s.slug)) out.slug = s.slug
+  // Só talento e magia têm nível no pedido de descrição.
+  if ((s.type === 'feat' || s.type === 'spell') && isInt(s.level, 30) && s.level >= 0) out.level = s.level
+  if (s.type === 'spell') {
+    const caster = sanitizeCaster(s.caster)
+    if (caster) out.caster = caster
+  }
+  return out
+}
+
 // ── Leitura e escrita ────────────────────────────────────────────────────────
 
 const parse = (raw) => {
@@ -169,15 +212,43 @@ export async function addRoll(roll) {
   return memoryRev
 }
 
+/** Grava o compartilhamento (já validado). Devolve a revisão nova. */
+export async function addShare(share) {
+  const r = redis()
+  if (r) {
+    const p = r.pipeline()
+    p.lpush(SHARES_KEY, JSON.stringify(share))
+    p.ltrim(SHARES_KEY, 0, SHARE_HISTORY - 1)
+    p.expire(SHARES_KEY, SHARE_TTL_SECONDS)
+    p.incr(ROLLS_REV_KEY)
+    const results = await p.exec()
+    return Number(results[3]) || 0
+  }
+  memoryShares = [share, ...memoryShares].slice(0, SHARE_HISTORY)
+  memoryRev += 1
+  return memoryRev
+}
+
 /**
  * O feed, se mudou desde `knownRev`. Com o mesmo número, só o contador — é o
  * caso comum do poll, e custa um GET.
- * @returns {Promise<{rev: number, rolls?: object[]}>}
+ * @returns {Promise<{rev: number, rolls?: object[], shares?: object[]}>}
  */
 export async function readRolls(knownRev) {
   const r = redis()
   const rev = r ? Number(await r.get(ROLLS_REV_KEY)) || 0 : memoryRev
   if (knownRev != null && knownRev === rev) return { rev }
-  const raw = r ? await r.lrange(LIST_KEY, 0, ROLL_HISTORY - 1) : memoryRolls
-  return { rev, rolls: (raw || []).map(parse).filter(Boolean) }
+  let rolls = memoryRolls
+  let shares = memoryShares
+  if (r) {
+    const p = r.pipeline()
+    p.lrange(LIST_KEY, 0, ROLL_HISTORY - 1)
+    p.lrange(SHARES_KEY, 0, SHARE_HISTORY - 1)
+    ;[rolls, shares] = await p.exec()
+  }
+  return {
+    rev,
+    rolls: (rolls || []).map(parse).filter(Boolean),
+    shares: (shares || []).map(parse).filter(Boolean),
+  }
 }

@@ -5,12 +5,14 @@
 //   GET  ?rolls=1[&rev=N]               → o contador; com `rev` diferente (ou
 //                                          sem `rev`), as últimas 30 rolagens
 //   POST { action: 'roll-add', roll }   → grava uma rolagem já sorteada
+//   POST { action: 'share-add', share } → compartilha uma regra (talento, magia…)
+//                                          com a mesa; o GET a devolve em `shares`
 //
 // Vem ANTES da ficha publicada nos dois servidores: a rota da ficha aceita
 // qualquer POST com `action` e engoliria esta.
 
 import { isStoreConfigured } from './table-store.js'
-import { addRoll, readRolls, sanitizeRoll } from './roll-store.js'
+import { addRoll, addShare, readRolls, sanitizeRoll, sanitizeShare } from './roll-store.js'
 
 const ok = (body) => ({ status: 200, body: { ...body, storeReady: isStoreConfigured() } })
 const fail = (status, error) => ({ status, body: { error } })
@@ -18,7 +20,7 @@ const fail = (status, error) => ({ status, body: { error } })
 /** Falso quando a requisição não é do feed — aí segue para as outras rotas do `state`. */
 export function isRollRequest(method, query, body) {
   if (method === 'GET') return !!query.rolls
-  if (method === 'POST') return body?.action === 'roll-add'
+  if (method === 'POST') return body?.action === 'roll-add' || body?.action === 'share-add'
   return false
 }
 
@@ -26,6 +28,12 @@ export async function handleRollRequest(method, query, body) {
   if (method === 'GET') {
     const known = query.rev != null && query.rev !== '' ? Number(query.rev) : null
     return ok(await readRolls(Number.isFinite(known) ? known : null))
+  }
+  if (body?.action === 'share-add') {
+    const share = sanitizeShare(body?.share)
+    if (!share) return fail(400, 'Compartilhamento inválido')
+    const rev = await addShare(share)
+    return ok({ rev, share })
   }
   const roll = sanitizeRoll(body?.roll)
   if (!roll) return fail(400, 'Rolagem inválida')
