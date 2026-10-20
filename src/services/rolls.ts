@@ -27,7 +27,7 @@ const API = '/api/state'
 const IDLE_MS = 1500
 const BURST_MS = 1000
 const BURST_WINDOW_MS = 5000
-/** Sem aviso do mapa há mais que isso, o poll próprio retoma (o lento do mapa é 4 s). */
+/** Sem aviso do mapa há mais que isso, o poll próprio retoma (o lento do mapa é 2 s). */
 const EXTERNAL_GRACE_MS = 6000
 
 export interface RollsSnapshot {

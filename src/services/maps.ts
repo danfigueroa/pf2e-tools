@@ -321,7 +321,8 @@ export function loadMap(id: string): Promise<void> {
  *   mesa uma ação puxa a seguinte (rola o ataque, move o token, aplica o dano),
  *   e é nessa hora que a demora aparece;
  * - RÁPIDO (1,5 s) enquanto houve mudança no último minuto;
- * - LENTO (4 s) com a mesa parada.
+ * - LENTO (2 s) com a mesa parada. Era 4 s; a mesa joga 1–2 vezes por mês e a
+ *   cota tem folga, e o primeiro movimento depois de uma pausa demorava.
  *
  * A rajada é curta DE PROPÓSITO, e é o número a mexer com cuidado: cada poll é
  * um comando no Upstash (free: 500 mil/mês). Em combate as mudanças vêm a cada
@@ -333,7 +334,7 @@ export function loadMap(id: string): Promise<void> {
 const BURST_MS = 700
 const BURST_WINDOW_MS = 5000
 const FAST_MS = 1500
-const SLOW_MS = 4000
+const SLOW_MS = 2000
 const QUIET_AFTER_MS = 60_000
 
 function burst(entry: Entry) {
