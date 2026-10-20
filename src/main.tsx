@@ -1,3 +1,6 @@
+// Antes de tudo: o `?mesa=` do link vira a escolha do aparelho e sai da URL
+// antes de o roteador ler a localização.
+import './services/mesa'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
