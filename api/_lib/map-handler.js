@@ -88,27 +88,27 @@ async function deleteBlobs(urls) {
  * @param request a requisição original (IncomingMessage) — o `handleUpload`
  *   precisa dela para validar a assinatura do aviso de upload concluído.
  */
-export async function handleMapRequest(method, query, body, request) {
+export async function handleMapRequest(mesa, method, query, body, request) {
     if (method === 'GET') {
         // Mapa privado só sai para o Modo GM. Sem senha, como o resto do app —
         // mas quem não ligou o modo não recebe nome, imagem nem tokens.
         const gm = query.gm === '1'
-        if (query.maps) return ok(await listMaps(gm))
+        if (query.maps) return ok(await listMaps(mesa, gm))
         const id = String(query.map || query.mapRev)
         if (!isValidMapId(id)) return fail(400, 'Parâmetro "map" inválido')
         if (query.mapRev) {
             // O poll diz o que já tem (`rev`, `tableRev`). Se mudou, o mapa vem
             // NA MESMA resposta — antes eram dois pedidos, e o segundo era uma
             // ida e volta inteira a mais até a tela de quem estava olhando.
-            const revs = await readRevs(id)
+            const revs = await readRevs(mesa, id)
             const known = query.rev != null && query.tableRev != null
             const stale = known && (String(revs.rev) !== String(query.rev) || String(revs.tableRev) !== String(query.tableRev))
             if (!stale) return ok(revs)
-            const map = await readMap(id, revs)
+            const map = await readMap(mesa, id, revs)
             if (map?.private && !gm) return ok({ ...revs, hidden: true })
             return ok(map ? { ...revs, map } : revs)
         }
-        const map = await readMap(id)
+        const map = await readMap(mesa, id)
         if (!map) return fail(404, 'Mapa não encontrado')
         if (map.private && !gm) {
             // Os contadores vão junto: com eles o poll de quem espera a revelação
@@ -146,7 +146,7 @@ export async function handleMapRequest(method, query, body, request) {
 
     if (action === 'map-create') {
         const name = cleanName(body.name) || 'Mapa sem nome'
-        const map = await createMap(name)
+        const map = await createMap(mesa, name)
         if (!map) return fail(400, 'Mapas demais — apague os que já foram jogados')
         return ok({ map })
     }
@@ -157,7 +157,7 @@ export async function handleMapRequest(method, query, body, request) {
     }
 
     if (action === 'map-activate' && body.id === null) {
-        await setActiveMap(null)
+        await setActiveMap(mesa, null)
         return ok({})
     }
 
@@ -166,19 +166,19 @@ export async function handleMapRequest(method, query, body, request) {
 
     if (action === 'map-activate') {
         // Levar a mesa a um mapa que ela não pode ver não faz sentido: revela junto.
-        if ((await setMapPrivate(id, false)) === null) return fail(404, 'Mapa não encontrado')
-        await setActiveMap(id)
+        if ((await setMapPrivate(mesa, id, false)) === null) return fail(404, 'Mapa não encontrado')
+        await setActiveMap(mesa, id)
         return ok({})
     }
 
     if (action === 'map-visibility') {
-        const rev = await setMapPrivate(id, body.private === true)
+        const rev = await setMapPrivate(mesa, id, body.private === true)
         if (rev === null) return fail(404, 'Mapa não encontrado')
         return ok({ rev })
     }
 
     if (action === 'map-delete') {
-        const urls = await deleteMap(id)
+        const urls = await deleteMap(mesa, id)
         await deleteBlobs(urls.filter(isMapOwnedUrl))
         return ok({})
     }
@@ -186,9 +186,9 @@ export async function handleMapRequest(method, query, body, request) {
     if (action === 'map-rename') {
         const name = cleanName(body.name)
         if (!name) return fail(400, 'Nome vazio')
-        const map = await readMap(id)
+        const map = await readMap(mesa, id)
         if (!map) return fail(404, 'Mapa não encontrado')
-        const rev = await writeMapFields(id, { meta: { ...map.meta, name } })
+        const rev = await writeMapFields(mesa, id, { meta: { ...map.meta, name } })
         return ok({ rev })
     }
 
@@ -203,14 +203,14 @@ export async function handleMapRequest(method, query, body, request) {
             }
             if (JSON.stringify(data).length > MAX_MAP_FIELD_BYTES) return fail(400, 'Campo grande demais')
         }
-        const rev = await writeMapFields(id, fields)
+        const rev = await writeMapFields(mesa, id, fields)
         if (rev === null) return fail(404, 'Mapa não encontrado')
         if (rev === -1) return fail(400, 'Desenhos demais neste mapa — apague alguns')
         return ok({ rev })
     }
 
     if (action === 'map-clear-drawings') {
-        const rev = await clearDrawings(id)
+        const rev = await clearDrawings(mesa, id)
         if (rev === null) return fail(404, 'Mapa não encontrado')
         return ok({ rev })
     }
@@ -225,7 +225,7 @@ export async function handleMapRequest(method, query, body, request) {
         const hp = body.hp && typeof body.hp === 'object' ? body.hp : {}
         if (Object.keys(hp).some((tid) => !isValidTokenId(tid))) return fail(400, 'PV inválido')
         const turn = isValidTokenId(body.turn) ? body.turn : null
-        const rev = await syncTokens(id, tokens, turn, hp)
+        const rev = await syncTokens(mesa, id, tokens, turn, hp)
         if (rev === null) return fail(404, 'Mapa não encontrado')
         return ok({ rev })
     }

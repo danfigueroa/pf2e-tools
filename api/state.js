@@ -16,6 +16,7 @@ import {
 import { handleSheetRequest, isSheetRequest } from './_lib/sheet-handler.js'
 import { handleMapRequest, isMapRequest } from './_lib/map-handler.js'
 import { handleRollRequest, isRollRequest } from './_lib/roll-handler.js'
+import { mesaFrom } from './_lib/mesas.js'
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -26,11 +27,15 @@ export default async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end()
 
+  // A mesa vale para tudo abaixo (ver _lib/mesas.js). Vai na query também no POST.
+  const mesa = mesaFrom(req.query || {})
+  if (!mesa) return res.status(400).json({ error: 'Parâmetro "mesa" inválido' })
+
   // Mapa de combate. Antes da ficha: as duas rotas usam `action` no POST, e a
   // da ficha aceita qualquer `action`.
   if (isMapRequest(req.method, req.query || {}, req.body)) {
     try {
-      const { status, body } = await handleMapRequest(req.method, req.query || {}, req.body || {}, req)
+      const { status, body } = await handleMapRequest(mesa, req.method, req.query || {}, req.body || {}, req)
       return res.status(status).json(body)
     } catch (error) {
       console.error('[/api/state] Erro no mapa:', error)
@@ -41,7 +46,7 @@ export default async function handler(req, res) {
   // Feed de rolagens da mesa — também antes da ficha, pelo mesmo motivo.
   if (isRollRequest(req.method, req.query || {}, req.body)) {
     try {
-      const { status, body } = await handleRollRequest(req.method, req.query || {}, req.body || {})
+      const { status, body } = await handleRollRequest(mesa, req.method, req.query || {}, req.body || {})
       return res.status(status).json(body)
     } catch (error) {
       console.error('[/api/state] Erro nas rolagens:', error)
@@ -52,7 +57,7 @@ export default async function handler(req, res) {
   // Fichas publicadas (e o guia gerado): mesmas rotas do dev server.
   if (isSheetRequest(req.method, req.query || {}, req.body)) {
     try {
-      const { status, body } = await handleSheetRequest(req.method, req.query || {}, req.body || {})
+      const { status, body } = await handleSheetRequest(mesa, req.method, req.query || {}, req.body || {})
       return res.status(status).json(body)
     } catch (error) {
       console.error('[/api/state] Erro na ficha publicada:', error)
@@ -70,7 +75,7 @@ export default async function handler(req, res) {
     if (one !== undefined) {
       if (!isValidField(one)) return res.status(400).json({ error: 'Parâmetro "field" inválido' })
       try {
-        const entry = await readField(char, one)
+        const entry = await readField(mesa, char, one)
         return res.status(200).json({ char, field: one, data: entry ? entry.data : null, updatedAt: entry ? entry.updatedAt : 0 })
       } catch (error) {
         console.error('[/api/state] Erro ao ler o campo:', error)
@@ -78,7 +83,7 @@ export default async function handler(req, res) {
       }
     }
     try {
-      const fields = await readCharacter(char)
+      const fields = await readCharacter(mesa, char)
       // Personagem sem estado ainda não é erro — devolve o mapa vazio.
       return res.status(200).json({ char, fields, storeReady: isStoreConfigured() })
     } catch (error) {
@@ -103,7 +108,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Estado grande demais' })
     }
     try {
-      const updatedAt = await writeField(char, field, data)
+      const updatedAt = await writeField(mesa, char, field, data)
       return res.status(200).json({ ok: true, updatedAt, storeReady: isStoreConfigured() })
     } catch (error) {
       console.error('[/api/state] Erro ao gravar:', error)

@@ -10,6 +10,8 @@
 //   GET  ?sheetDescriptions=<slug>        → magias, talentos, habilidades e itens já traduzidos
 //   POST { action: 'sheet-descriptions', char, names: { spell, feat, special, item }, version }
 //                                         → resolve o que falta (ver sheet-descriptions.js)
+//
+// Tudo dentro da mesa do pedido (`mesa`, ver mesas.js).
 
 import { hasTranslationKey } from './aon.js'
 import { isStoreConfigured, isValidSlug } from './table-store.js'
@@ -43,17 +45,17 @@ export function isSheetRequest(method, query, body) {
   return false
 }
 
-export async function handleSheetRequest(method, query, body) {
+export async function handleSheetRequest(mesa, method, query, body) {
   if (method === 'GET') {
-    if (query.sheets) return ok({ sheets: await listSheets() })
+    if (query.sheets) return ok({ sheets: await listSheets(mesa) })
     if (query.sheetDescriptions) {
       const slug = String(query.sheetDescriptions)
       if (!isValidSlug(slug)) return fail(400, 'Parâmetro "sheetDescriptions" inválido')
-      return ok({ bundle: await readSheetDescriptions(slug) })
+      return ok({ bundle: await readSheetDescriptions(mesa, slug) })
     }
     const slug = String(query.sheet)
     if (!isValidSlug(slug)) return fail(400, 'Parâmetro "sheet" inválido')
-    const sheet = await readSheet(slug)
+    const sheet = await readSheet(mesa, slug)
     return ok({ sheet })
   }
 
@@ -67,7 +69,7 @@ export async function handleSheetRequest(method, query, body) {
     // O slug sai do nome da própria ficha, nunca do que o cliente disser: é a
     // mesma identidade do estado da mesa, e uma ficha publicada no slug de
     // outro personagem sobrescreveria alguém.
-    const sheet = await publishSheet(slugFromName(info.name), json)
+    const sheet = await publishSheet(mesa, slugFromName(info.name), json)
     return ok({ sheet })
   }
 
@@ -76,7 +78,7 @@ export async function handleSheetRequest(method, query, body) {
 
   if (action === 'guide') {
     if (!hasTranslationKey()) return fail(503, 'Sem chave de IA configurada no servidor')
-    const current = await readForGuide(slug)
+    const current = await readForGuide(mesa, slug)
     if (!current) return fail(404, 'Ficha não publicada')
     // Base do guia novo: o gerado para a versão anterior; senão, o que o
     // cliente mostrava (o curado à mão em `combatGuides.ts`, que só o
@@ -84,7 +86,7 @@ export async function handleSheetRequest(method, query, body) {
     const clientBase = typeof body.baseGuide === 'string' ? body.baseGuide.slice(0, MAX_GUIDE_BYTES) : null
     const markdown = await generateGuide(current.json, current.previousGuide ?? clientBase)
     if (!markdown) return fail(502, 'A IA não devolveu um guia válido — tente de novo')
-    const sheet = await saveGuide(slug, current.publishedAt, markdown)
+    const sheet = await saveGuide(mesa, slug, current.publishedAt, markdown)
     if (!sheet) return fail(409, 'A ficha mudou enquanto o guia era gerado')
     return ok({ sheet })
   }
@@ -95,12 +97,12 @@ export async function handleSheetRequest(method, query, body) {
     if (!names) return fail(400, 'Campo "names" inválido')
     if (!isValidDescriptionVersion(body.version)) return fail(400, 'Campo "version" inválido')
     // Só de ficha publicada: os presets que ninguém publicou têm o pacote estático.
-    if (!(await readSheet(slug))) return fail(404, 'Ficha não publicada')
-    return ok(await buildSheetDescriptions(slug, names, body.version))
+    if (!(await readSheet(mesa, slug))) return fail(404, 'Ficha não publicada')
+    return ok(await buildSheetDescriptions(mesa, slug, names, body.version))
   }
 
   if (action === 'restore') {
-    const sheet = await restorePrevious(slug)
+    const sheet = await restorePrevious(mesa, slug)
     if (!sheet) return fail(404, 'Não há versão anterior')
     return ok({ sheet })
   }

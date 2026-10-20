@@ -15,12 +15,16 @@
 // E no Mapa o contador entra como 4ª chave do MGET que o poll do mapa já faz
 // (map-store.js `readRevs`): lá o feed sai sem comando a mais.
 //
+// As três chaves são da mesa (`scoped`, ver mesas.js): cada mesa vê só o feed dela.
+//
 // Sem credenciais, cai num array em memória do processo, como o table-store.
 
 import { redis } from './table-store.js'
+import { scoped } from './mesas.js'
 
 const LIST_KEY = 'pf2e:rolls:v1'
-export const ROLLS_REV_KEY = 'pf2e:rolls:rev'
+const ROLLS_REV_KEY = 'pf2e:rolls:rev'
+export const rollsRevKey = (mesa) => scoped(mesa, ROLLS_REV_KEY)
 
 export const ROLL_HISTORY = 30
 /** Rolagem é coisa da sessão: um dia sem ninguém rolar e o feed some sozinho. */
@@ -32,12 +36,16 @@ const SHARES_KEY = 'pf2e:shares:v1'
 const SHARE_HISTORY = 5
 const SHARE_TTL_SECONDS = 60 * 60
 
-let memoryRolls = []
-let memoryShares = []
-let memoryRev = 0
+// Sem Redis, um feed em memória por mesa.
+const memoryFeeds = new Map()
+function memoryFeed(mesa) {
+  const key = rollsRevKey(mesa)
+  if (!memoryFeeds.has(key)) memoryFeeds.set(key, { rolls: [], shares: [], rev: 0 })
+  return memoryFeeds.get(key)
+}
 
 /** O contador quando não há Redis (lido por map-store.js). */
-export const memoryRollsRev = () => memoryRev
+export const memoryRollsRev = (mesa) => memoryFeed(mesa).rev
 
 // ── Validação ────────────────────────────────────────────────────────────────
 // ESPELHO de `src/dice/tableRoll.ts` (`sanitizeTableRoll`): o servidor é JS
@@ -198,37 +206,41 @@ const parse = (raw) => {
 }
 
 /** Grava a rolagem (já validada). Devolve a revisão nova. */
-export async function addRoll(roll) {
+export async function addRoll(mesa, roll) {
   const r = redis()
   if (r) {
+    const list = scoped(mesa, LIST_KEY)
     const p = r.pipeline()
-    p.lpush(LIST_KEY, JSON.stringify(roll))
-    p.ltrim(LIST_KEY, 0, ROLL_HISTORY - 1)
-    p.expire(LIST_KEY, TTL_SECONDS)
-    p.incr(ROLLS_REV_KEY)
+    p.lpush(list, JSON.stringify(roll))
+    p.ltrim(list, 0, ROLL_HISTORY - 1)
+    p.expire(list, TTL_SECONDS)
+    p.incr(rollsRevKey(mesa))
     const results = await p.exec()
     return Number(results[3]) || 0
   }
-  memoryRolls = [roll, ...memoryRolls].slice(0, ROLL_HISTORY)
-  memoryRev += 1
-  return memoryRev
+  const feed = memoryFeed(mesa)
+  feed.rolls = [roll, ...feed.rolls].slice(0, ROLL_HISTORY)
+  feed.rev += 1
+  return feed.rev
 }
 
 /** Grava o compartilhamento (já validado). Devolve a revisão nova. */
-export async function addShare(share) {
+export async function addShare(mesa, share) {
   const r = redis()
   if (r) {
+    const list = scoped(mesa, SHARES_KEY)
     const p = r.pipeline()
-    p.lpush(SHARES_KEY, JSON.stringify(share))
-    p.ltrim(SHARES_KEY, 0, SHARE_HISTORY - 1)
-    p.expire(SHARES_KEY, SHARE_TTL_SECONDS)
-    p.incr(ROLLS_REV_KEY)
+    p.lpush(list, JSON.stringify(share))
+    p.ltrim(list, 0, SHARE_HISTORY - 1)
+    p.expire(list, SHARE_TTL_SECONDS)
+    p.incr(rollsRevKey(mesa))
     const results = await p.exec()
     return Number(results[3]) || 0
   }
-  memoryShares = [share, ...memoryShares].slice(0, SHARE_HISTORY)
-  memoryRev += 1
-  return memoryRev
+  const feed = memoryFeed(mesa)
+  feed.shares = [share, ...feed.shares].slice(0, SHARE_HISTORY)
+  feed.rev += 1
+  return feed.rev
 }
 
 /**
@@ -236,16 +248,15 @@ export async function addShare(share) {
  * caso comum do poll, e custa um GET.
  * @returns {Promise<{rev: number, rolls?: object[], shares?: object[]}>}
  */
-export async function readRolls(knownRev) {
+export async function readRolls(mesa, knownRev) {
   const r = redis()
-  const rev = r ? Number(await r.get(ROLLS_REV_KEY)) || 0 : memoryRev
+  const rev = r ? Number(await r.get(rollsRevKey(mesa))) || 0 : memoryRollsRev(mesa)
   if (knownRev != null && knownRev === rev) return { rev }
-  let rolls = memoryRolls
-  let shares = memoryShares
+  let { rolls, shares } = memoryFeed(mesa)
   if (r) {
     const p = r.pipeline()
-    p.lrange(LIST_KEY, 0, ROLL_HISTORY - 1)
-    p.lrange(SHARES_KEY, 0, SHARE_HISTORY - 1)
+    p.lrange(scoped(mesa, LIST_KEY), 0, ROLL_HISTORY - 1)
+    p.lrange(scoped(mesa, SHARES_KEY), 0, SHARE_HISTORY - 1)
     ;[rolls, shares] = await p.exec()
   }
   return {

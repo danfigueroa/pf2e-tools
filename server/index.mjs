@@ -16,6 +16,7 @@ import { handleSheetRequest, isSheetRequest } from '../api/_lib/sheet-handler.js
 import { handleMapRequest, isMapRequest } from '../api/_lib/map-handler.js'
 import { handleRollRequest, isRollRequest } from '../api/_lib/roll-handler.js'
 import { hasTranslationKey } from '../api/_lib/aon.js'
+import { mesaFrom } from '../api/_lib/mesas.js'
 import {
   readCharacter,
   readField,
@@ -515,11 +516,18 @@ const server = http.createServer(async (req, res) => {
     // repassado à rota do estado abaixo.
     const query = Object.fromEntries(parsedUrl.searchParams)
     const body = req.method === 'POST' ? await readBody(req).catch(() => ({})) : {}
+    // A mesa vale para tudo abaixo (ver api/_lib/mesas.js).
+    const mesa = mesaFrom(query)
+    if (!mesa) {
+      res.writeHead(400, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: 'Parâmetro "mesa" inválido' }))
+      return
+    }
     // Mapa de combate antes da ficha: as duas rotas usam `action` no POST, e a
     // da ficha aceita qualquer `action`.
     if (isMapRequest(req.method, query, body)) {
       try {
-        const out = await handleMapRequest(req.method, query, body, req)
+        const out = await handleMapRequest(mesa, req.method, query, body, req)
         res.writeHead(out.status, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify(out.body))
       } catch (e) {
@@ -533,7 +541,7 @@ const server = http.createServer(async (req, res) => {
     // Feed de rolagens, também antes da ficha (mesmo motivo do mapa).
     if (isRollRequest(req.method, query, body)) {
       try {
-        const out = await handleRollRequest(req.method, query, body)
+        const out = await handleRollRequest(mesa, req.method, query, body)
         res.writeHead(out.status, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify(out.body))
       } catch (e) {
@@ -546,7 +554,7 @@ const server = http.createServer(async (req, res) => {
 
     if (isSheetRequest(req.method, query, body)) {
       try {
-        const out = await handleSheetRequest(req.method, query, body)
+        const out = await handleSheetRequest(mesa, req.method, query, body)
         res.writeHead(out.status, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify(out.body))
       } catch (e) {
@@ -573,7 +581,7 @@ const server = http.createServer(async (req, res) => {
           return
         }
         try {
-          const entry = await readField(char, one)
+          const entry = await readField(mesa, char, one)
           res.writeHead(200, { 'Content-Type': 'application/json' })
           res.end(JSON.stringify({ char, field: one, data: entry ? entry.data : null, updatedAt: entry ? entry.updatedAt : 0 }))
         } catch (e) {
@@ -584,7 +592,7 @@ const server = http.createServer(async (req, res) => {
         return
       }
       try {
-        const fields = await readCharacter(char)
+        const fields = await readCharacter(mesa, char)
         res.writeHead(200, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ char, fields, storeReady: isStoreConfigured() }))
       } catch (e) {
@@ -618,7 +626,7 @@ const server = http.createServer(async (req, res) => {
         return
       }
       try {
-        const updatedAt = await writeField(char, field, data)
+        const updatedAt = await writeField(mesa, char, field, data)
         res.writeHead(200, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ ok: true, updatedAt, storeReady: isStoreConfigured() }))
       } catch (e) {

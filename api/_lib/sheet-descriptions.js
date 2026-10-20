@@ -38,6 +38,7 @@
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { redis } from './table-store.js'
+import { scoped } from './mesas.js'
 import { resolveSpells } from './spells-core.js'
 import { resolveFeats, resolveSpecials } from './feat-core.js'
 
@@ -95,32 +96,39 @@ const bagsFrom = (raw) => Object.fromEntries(DESCRIPTION_KINDS.map((k) => {
   return [k, bag && typeof bag === 'object' ? bag : {}]
 }))
 
-export async function readSheetDescriptions(slug) {
+// O pacote e a trava são da mesa, como a ficha publicada que os originou; o
+// estático (`staticBundle`) é do personagem e vale para todas.
+const descKey = (mesa, slug) => scoped(mesa, KEY_PREFIX + slug)
+const lockKey = (mesa, slug) => scoped(mesa, LOCK_PREFIX + slug)
+
+export async function readSheetDescriptions(mesa, slug) {
   const r = redis()
-  const raw = r ? await r.get(KEY_PREFIX + slug) : memory.get(slug) ?? null
+  const raw = r ? await r.get(descKey(mesa, slug)) : memory.get(descKey(mesa, slug)) ?? null
   if (!raw || typeof raw !== 'object' || !raw.entries || typeof raw.entries !== 'object') return null
   return { version: raw.version, entries: bagsFrom(raw.entries), misses: bagsFrom(raw.misses) }
 }
 
-async function writeSheetDescriptions(slug, bundle) {
+async function writeSheetDescriptions(mesa, slug, bundle) {
   const r = redis()
-  if (r) await r.set(KEY_PREFIX + slug, bundle)
-  else memory.set(slug, bundle)
+  if (r) await r.set(descKey(mesa, slug), bundle)
+  else memory.set(descKey(mesa, slug), bundle)
 }
 
-async function lock(slug) {
+async function lock(mesa, slug) {
+  const key = lockKey(mesa, slug)
   const r = redis()
-  if (r) return (await r.set(LOCK_PREFIX + slug, 1, { nx: true, ex: LOCK_SECONDS })) === 'OK'
-  const until = memoryLocks.get(slug) ?? 0
+  if (r) return (await r.set(key, 1, { nx: true, ex: LOCK_SECONDS })) === 'OK'
+  const until = memoryLocks.get(key) ?? 0
   if (until > Date.now()) return false
-  memoryLocks.set(slug, Date.now() + LOCK_SECONDS * 1000)
+  memoryLocks.set(key, Date.now() + LOCK_SECONDS * 1000)
   return true
 }
 
-async function unlock(slug) {
+async function unlock(mesa, slug) {
+  const key = lockKey(mesa, slug)
   const r = redis()
-  if (r) await r.del(LOCK_PREFIX + slug)
-  else memoryLocks.delete(slug)
+  if (r) await r.del(key)
+  else memoryLocks.delete(key)
 }
 
 /**
@@ -152,11 +160,11 @@ const usable = (entry) =>
  * @returns `{ busy: true }` se outro aparelho já está gerando, senão
  *   `{ added: { tipo: { nome: payload } }, remaining }` — `remaining > 0` = chame de novo.
  */
-export async function buildSheetDescriptions(slug, names, version) {
-  if (!(await lock(slug))) return { busy: true }
+export async function buildSheetDescriptions(mesa, slug, names, version) {
+  if (!(await lock(mesa, slug))) return { busy: true }
   try {
     const started = Date.now()
-    const current = await readSheetDescriptions(slug)
+    const current = await readSheetDescriptions(mesa, slug)
     const sameVersion = current?.version === version
     const entries = sameVersion ? bagsFrom(structuredClone(current.entries)) : emptyBags()
     const misses = sameVersion ? bagsFrom(structuredClone(current.misses)) : emptyBags()
@@ -209,12 +217,12 @@ export async function buildSheetDescriptions(slug, names, version) {
         }
         for (const n of Object.keys(misses[kind])) if (!recentMiss(kind, n) && !wanted.has(n)) delete misses[kind][n]
       }
-      await writeSheetDescriptions(slug, { version, entries, misses })
+      await writeSheetDescriptions(mesa, slug, { version, entries, misses })
     }
 
     const remaining = DESCRIPTION_KINDS.reduce((sum, kind) => sum + pending(kind).length, 0)
     return { added, remaining }
   } finally {
-    await unlock(slug)
+    await unlock(mesa, slug)
   }
 }

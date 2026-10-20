@@ -34,15 +34,23 @@
 //
 // O poll lê só os contadores (um MGET); o mapa inteiro só desce quando um
 // deles mudou.
+//
+// Todas as chaves são da mesa (`scoped`, ver mesas.js): cada mesa tem a lista,
+// o mapa ativo e os contadores dela, e por isso toda função recebe `mesa`.
 
-import { memoryTableRev, readCharacter, redis, TABLE_REV_KEY } from './table-store.js'
-import { memoryRollsRev, ROLLS_REV_KEY } from './roll-store.js'
+import { characterKey, memoryTableRev, readCharacter, redis, tableRevKey } from './table-store.js'
+import { memoryRollsRev, rollsRevKey } from './roll-store.js'
+import { scoped } from './mesas.js'
 
 const MAP_PREFIX = 'pf2e:map:v1:'
 const REV_PREFIX = 'pf2e:map:rev:'
 const INDEX_KEY = 'pf2e:maps:v1'
 const ACTIVE_KEY = 'pf2e:maps:active'
-const TABLE_PREFIX = 'pf2e:table:v1:'
+
+const mapKey = (mesa, id) => scoped(mesa, MAP_PREFIX + id)
+const revKey = (mesa, id) => scoped(mesa, REV_PREFIX + id)
+const indexKey = (mesa) => scoped(mesa, INDEX_KEY)
+const activeKey = (mesa) => scoped(mesa, ACTIVE_KEY)
 
 // Rede de segurança: o caminho normal é o GM apagar o mapa depois do jogo.
 const TTL_SECONDS = 30 * 24 * 60 * 60
@@ -66,7 +74,12 @@ export const isValidMapField = (field) => typeof field === 'string' && FIELD_RE.
 
 const memHashes = new Map()
 const memStrings = new Map()
-const memSet = new Set()
+const memSets = new Map()
+function memIndex(mesa) {
+    const key = indexKey(mesa)
+    if (!memSets.has(key)) memSets.set(key, new Set())
+    return memSets.get(key)
+}
 
 const safeParse = (raw) => {
     if (typeof raw !== 'string') return raw ?? null
@@ -88,21 +101,21 @@ async function hgetall(key) {
     return { ...(memHashes.get(key) || {}) }
 }
 
-async function bump(id) {
+async function bump(mesa, id) {
     const r = redis()
     if (r) {
-        const rev = await r.incr(REV_PREFIX + id)
-        await r.expire(REV_PREFIX + id, TTL_SECONDS)
+        const rev = await r.incr(revKey(mesa, id))
+        await r.expire(revKey(mesa, id), TTL_SECONDS)
         return rev
     }
-    const rev = (memStrings.get(REV_PREFIX + id) || 0) + 1
-    memStrings.set(REV_PREFIX + id, rev)
+    const rev = (memStrings.get(revKey(mesa, id)) || 0) + 1
+    memStrings.set(revKey(mesa, id), rev)
     return rev
 }
 
 /** Grava e apaga campos de um mapa e sobe a revisão — uma escrita só. */
-async function writeRaw(id, set, del = []) {
-    const key = MAP_PREFIX + id
+async function writeRaw(mesa, id, set, del = []) {
+    const key = mapKey(mesa, id)
     const r = redis()
     if (r) {
         const p = r.pipeline()
@@ -116,7 +129,7 @@ async function writeRaw(id, set, del = []) {
         for (const f of del) delete hash[f]
         memHashes.set(key, hash)
     }
-    return bump(id)
+    return bump(mesa, id)
 }
 
 // --- Lista e mapa ativo -----------------------------------------------------
@@ -125,19 +138,19 @@ async function writeRaw(id, set, del = []) {
  * Os mapas da sessão. Sem `includePrivate` (quem não está no Modo GM), os
  * privados nem saem daqui — e o `activeId` também não aponta para um deles.
  */
-export async function listMaps(includePrivate = false) {
+export async function listMaps(mesa, includePrivate = false) {
     const r = redis()
-    const ids = r ? await r.smembers(INDEX_KEY) : [...memSet]
-    const active = r ? await r.get(ACTIVE_KEY) : memStrings.get(ACTIVE_KEY) ?? null
+    const ids = r ? await r.smembers(indexKey(mesa)) : [...memIndex(mesa)]
+    const active = r ? await r.get(activeKey(mesa)) : memStrings.get(activeKey(mesa)) ?? null
 
     let rows
     if (r && ids.length > 0) {
         const p = r.pipeline()
-        ids.forEach((id) => p.hmget(MAP_PREFIX + id, 'meta', 'private'))
+        ids.forEach((id) => p.hmget(mapKey(mesa, id), 'meta', 'private'))
         rows = await p.exec()
     } else {
         rows = ids.map((id) => {
-            const hash = memHashes.get(MAP_PREFIX + id)
+            const hash = memHashes.get(mapKey(mesa, id))
             return { meta: hash?.meta ?? null, private: hash?.private ?? null }
         })
     }
@@ -153,8 +166,8 @@ export async function listMaps(includePrivate = false) {
         maps.push({ id, name: meta.name, createdAt: meta.createdAt ?? 0, hasImage: !!meta.image, private: isPrivate })
     })
     if (orphans.length > 0) {
-        if (r) await r.srem(INDEX_KEY, ...orphans)
-        else orphans.forEach((id) => memSet.delete(id))
+        if (r) await r.srem(indexKey(mesa), ...orphans)
+        else orphans.forEach((id) => memIndex(mesa).delete(id))
     }
 
     maps.sort((a, b) => a.createdAt - b.createdAt)
@@ -163,16 +176,16 @@ export async function listMaps(includePrivate = false) {
 
 const newId = () => Math.random().toString(36).slice(2, 10).padEnd(8, '0')
 
-export async function createMap(name) {
-    const { maps } = await listMaps()
+export async function createMap(mesa, name) {
+    const { maps } = await listMaps(mesa)
     if (maps.length >= MAX_MAPS) return null
     const id = newId()
     const meta = { name, image: null, imageRect: null, createdAt: Date.now() }
     const r = redis()
-    if (r) await r.sadd(INDEX_KEY, id)
-    else memSet.add(id)
+    if (r) await r.sadd(indexKey(mesa), id)
+    else memIndex(mesa).add(id)
     // Nasce privado: o GM monta o mapa escondido e revela quando a mesa chegar lá.
-    await writeRaw(id, { meta: envelope(meta), private: envelope(true) })
+    await writeRaw(mesa, id, { meta: envelope(meta), private: envelope(true) })
     return { id, name, createdAt: meta.createdAt, hasImage: false, private: true }
 }
 
@@ -181,29 +194,29 @@ export async function createMap(name) {
  * olhando percebe. Esconder o mapa onde a mesa está tira a mesa dele.
  * @returns {Promise<number|null>} a nova revisão, ou null se o mapa não existe.
  */
-export async function setMapPrivate(id, on) {
-    if (!(await mapExists(id))) return null
+export async function setMapPrivate(mesa, id, on) {
+    if (!(await mapExists(mesa, id))) return null
     const r = redis()
     if (on) {
-        const active = r ? await r.get(ACTIVE_KEY) : memStrings.get(ACTIVE_KEY) ?? null
-        if (active === id) await setActiveMap(null)
+        const active = r ? await r.get(activeKey(mesa)) : memStrings.get(activeKey(mesa)) ?? null
+        if (active === id) await setActiveMap(mesa, null)
     }
     // Já está como pedido (o caso comum de "Levar a mesa"): não sobe a revisão,
     // senão todo aparelho rebaixaria o mapa à toa.
-    const current = r ? await r.hget(MAP_PREFIX + id, 'private') : memHashes.get(MAP_PREFIX + id)?.private
-    if (!!current === on) return (await readRevs(id)).rev
-    return on ? writeRaw(id, { private: envelope(true) }) : writeRaw(id, {}, ['private'])
+    const current = r ? await r.hget(mapKey(mesa, id), 'private') : memHashes.get(mapKey(mesa, id))?.private
+    if (!!current === on) return (await readRevs(mesa, id)).rev
+    return on ? writeRaw(mesa, id, { private: envelope(true) }) : writeRaw(mesa, id, {}, ['private'])
 }
 
-export async function setActiveMap(id) {
+export async function setActiveMap(mesa, id) {
     const r = redis()
     if (id === null) {
-        if (r) await r.del(ACTIVE_KEY)
-        else memStrings.delete(ACTIVE_KEY)
+        if (r) await r.del(activeKey(mesa))
+        else memStrings.delete(activeKey(mesa))
         return
     }
-    if (r) await r.set(ACTIVE_KEY, id)
-    else memStrings.set(ACTIVE_KEY, id)
+    if (r) await r.set(activeKey(mesa), id)
+    else memStrings.set(activeKey(mesa), id)
 }
 
 /**
@@ -211,8 +224,8 @@ export async function setActiveMap(id) {
  * dos tokens de monstro. O token do personagem é da mesa (campo `token` do
  * hash dele) e sobrevive.
  */
-export async function deleteMap(id) {
-    const key = MAP_PREFIX + id
+export async function deleteMap(mesa, id) {
+    const key = mapKey(mesa, id)
     const raw = await hgetall(key)
     const urls = []
     for (const [field, value] of Object.entries(raw)) {
@@ -228,15 +241,15 @@ export async function deleteMap(id) {
     if (r) {
         const p = r.pipeline()
         p.del(key)
-        p.del(REV_PREFIX + id)
-        p.srem(INDEX_KEY, id)
+        p.del(revKey(mesa, id))
+        p.srem(indexKey(mesa), id)
         await p.exec()
-        if ((await r.get(ACTIVE_KEY)) === id) await r.del(ACTIVE_KEY)
+        if ((await r.get(activeKey(mesa))) === id) await r.del(activeKey(mesa))
     } else {
         memHashes.delete(key)
-        memStrings.delete(REV_PREFIX + id)
-        memSet.delete(id)
-        if (memStrings.get(ACTIVE_KEY) === id) memStrings.delete(ACTIVE_KEY)
+        memStrings.delete(revKey(mesa, id))
+        memIndex(mesa).delete(id)
+        if (memStrings.get(activeKey(mesa)) === id) memStrings.delete(activeKey(mesa))
     }
     // A mesma imagem pode estar em dois tokens (o "Duplicar" reaproveita).
     return [...new Set(urls)]
@@ -251,17 +264,17 @@ export async function deleteMap(id) {
  * está no mapa vê as rolagens da mesa sem poll próprio. Ele NÃO entra na conta
  * de "o mapa mudou" — rolagem não baixa o mapa.
  */
-export async function readRevs(id) {
+export async function readRevs(mesa, id) {
     const r = redis()
     if (r) {
-        const [rev, tableRev, active, rollsRev] = await r.mget(REV_PREFIX + id, TABLE_REV_KEY, ACTIVE_KEY, ROLLS_REV_KEY)
+        const [rev, tableRev, active, rollsRev] = await r.mget(revKey(mesa, id), tableRevKey(mesa), activeKey(mesa), rollsRevKey(mesa))
         return { rev: Number(rev) || 0, tableRev: Number(tableRev) || 0, activeId: active ?? null, rollsRev: Number(rollsRev) || 0 }
     }
     return {
-        rev: memStrings.get(REV_PREFIX + id) || 0,
-        tableRev: memoryTableRev(),
-        activeId: memStrings.get(ACTIVE_KEY) ?? null,
-        rollsRev: memoryRollsRev(),
+        rev: memStrings.get(revKey(mesa, id)) || 0,
+        tableRev: memoryTableRev(mesa),
+        activeId: memStrings.get(activeKey(mesa)) ?? null,
+        rollsRev: memoryRollsRev(mesa),
     }
 }
 
@@ -270,13 +283,13 @@ export async function readRevs(id) {
  * uma mudança de PV feita na Ficha Virtual desce no MESMO pedido, em vez de um
  * pedido por personagem por aparelho.
  */
-export async function readMap(id, knownRevs) {
+export async function readMap(mesa, id, knownRevs) {
     // Contadores ANTES dos dados: uma escrita que caia entre as duas leituras
     // deixa o contador velho e os dados novos, e o próximo poll baixa de novo.
     // Na ordem inversa (como era), o contador já incluía a escrita que os dados
     // não tinham — e o poll achava que estava em dia até a mudança seguinte.
-    const revs = knownRevs ?? await readRevs(id)
-    const raw = await hgetall(MAP_PREFIX + id)
+    const revs = knownRevs ?? await readRevs(mesa, id)
+    const raw = await hgetall(mapKey(mesa, id))
     const metaEntry = unwrap(raw.meta)
     if (!metaEntry) return null
 
@@ -309,7 +322,7 @@ export async function readMap(id, knownRevs) {
     const slugs = [...new Set(Object.values(tokens)
         .filter((t) => t?.kind === 'pc' && typeof t.slug === 'string')
         .map((t) => t.slug))]
-    const pcs = await readPcs(slugs)
+    const pcs = await readPcs(mesa, slugs)
 
     return { id, meta: metaEntry.data, private: isPrivate, tokens, pos, hp, fit, drawings, pings, rolls, turn, pcs, ...revs }
 }
@@ -318,13 +331,13 @@ export async function readMap(id, knownRevs) {
  * `hp`, `token` e `size` (Enlarge/Shrink ligado) de cada personagem, do hash da
  * mesa — um HMGET por slug, num pipeline.
  */
-async function readPcs(slugs) {
+async function readPcs(mesa, slugs) {
     if (slugs.length === 0) return {}
     const r = redis()
     const out = {}
     if (r) {
         const p = r.pipeline()
-        slugs.forEach((slug) => p.hmget(TABLE_PREFIX + slug, 'hp', 'token', 'size'))
+        slugs.forEach((slug) => p.hmget(characterKey(mesa, slug), 'hp', 'token', 'size'))
         const rows = await p.exec()
         slugs.forEach((slug, i) => {
             const row = rows[i] || {}
@@ -337,7 +350,7 @@ async function readPcs(slugs) {
         return out
     }
     for (const slug of slugs) {
-        const fields = await readCharacter(slug)
+        const fields = await readCharacter(mesa, slug)
         out[slug] = { hp: fields.hp?.data ?? null, token: fields.token?.data ?? null, size: fields.size?.data ?? null }
     }
     return out
@@ -349,11 +362,11 @@ async function readPcs(slugs) {
  * Escrita genérica de campos (`meta`, `pos:*`, `hp:*`). `null` apaga o campo.
  * @returns {Promise<number|null>} a nova revisão, ou null se o mapa não existe.
  */
-export async function writeMapFields(id, fields) {
-    const exists = await mapExists(id)
+export async function writeMapFields(mesa, id, fields) {
+    const exists = await mapExists(mesa, id)
     if (!exists) return null
     if (Object.entries(fields).some(([f, d]) => f.startsWith('drw:') && d !== null)) {
-        const raw = await hgetall(MAP_PREFIX + id)
+        const raw = await hgetall(mapKey(mesa, id))
         const count = Object.keys(raw).filter((f) => f.startsWith('drw:')).length
         if (count >= MAX_DRAWINGS) return -1
     }
@@ -363,22 +376,22 @@ export async function writeMapFields(id, fields) {
         if (data === null) del.push(field)
         else set[field] = envelope(data)
     }
-    return writeRaw(id, set, del)
+    return writeRaw(mesa, id, set, del)
 }
 
 /** Apaga todos os desenhos de uma vez — o fim do combate. */
-export async function clearDrawings(id) {
-    const raw = await hgetall(MAP_PREFIX + id)
+export async function clearDrawings(mesa, id) {
+    const raw = await hgetall(mapKey(mesa, id))
     if (!unwrap(raw.meta)) return null
     const fields = Object.keys(raw).filter((f) => f.startsWith('drw:'))
-    if (fields.length === 0) return (await readRevs(id)).rev
-    return writeRaw(id, {}, fields)
+    if (fields.length === 0) return (await readRevs(mesa, id)).rev
+    return writeRaw(mesa, id, {}, fields)
 }
 
-async function mapExists(id) {
+async function mapExists(mesa, id) {
     const r = redis()
-    if (r) return (await r.hexists(MAP_PREFIX + id, 'meta')) === 1
-    return !!memHashes.get(MAP_PREFIX + id)?.meta
+    if (r) return (await r.hexists(mapKey(mesa, id), 'meta')) === 1
+    return !!memHashes.get(mapKey(mesa, id))?.meta
 }
 
 /**
@@ -391,8 +404,8 @@ async function mapExists(id) {
  * envio — mandar todos a cada sincronia apagaria um dano dado no mapa que a
  * Iniciativa ainda não leu.
  */
-export async function syncTokens(id, tokens, turn, hp) {
-    const raw = await hgetall(MAP_PREFIX + id)
+export async function syncTokens(mesa, id, tokens, turn, hp) {
+    const raw = await hgetall(mapKey(mesa, id))
     if (!unwrap(raw.meta)) return null
 
     const keep = new Set(tokens.map((t) => t.id))
@@ -453,9 +466,9 @@ export async function syncTokens(id, tokens, turn, hp) {
     // baixando o mapa inteiro sem motivo.
     const changed = del.length > 0 || Object.entries(set).some(([field, value]) =>
         JSON.stringify(unwrap(raw[field])?.data ?? null) !== JSON.stringify(unwrap(value).data))
-    if (!changed) return (await readRevs(id)).rev
+    if (!changed) return (await readRevs(mesa, id)).rev
 
-    return writeRaw(id, set, del)
+    return writeRaw(mesa, id, set, del)
 }
 
 /**

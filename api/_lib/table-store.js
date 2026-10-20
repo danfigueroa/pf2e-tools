@@ -20,6 +20,7 @@
 // continua sendo um HGETALL só.
 
 import { Redis } from '@upstash/redis'
+import { scoped } from './mesas.js'
 
 const KEY_PREFIX = 'pf2e:table:v1:'
 export const STATE_VERSION = 1
@@ -36,10 +37,13 @@ export const MAX_FIELD_BYTES = 8 * 1024
 const SLUG_RE = /^[a-z0-9-]{1,64}$/
 const FIELD_RE = /^(hp|slots|conditions|afflictions|persistent|mythic|consumed|shield|token|size|rage|psyche|energy|magus|ranger|rogue|actions|uses|companions|pet:[a-z0-9:#-]{1,80})$/
 
-// Contador global de escritas no estado dos personagens. O mapa de combate o
-// lê junto da própria revisão (um MGET) para saber que o PV de alguém mudou
+// Contador de escritas no estado dos personagens, um por mesa. O mapa de combate
+// o lê junto da própria revisão (um MGET) para saber que o PV de alguém mudou
 // pela Ficha Virtual ou pela Iniciativa sem perguntar personagem a personagem.
-export const TABLE_REV_KEY = 'pf2e:table:rev'
+const TABLE_REV_KEY = 'pf2e:table:rev'
+export const tableRevKey = (mesa) => scoped(mesa, TABLE_REV_KEY)
+/** A chave do hash de um personagem na mesa (lida também por map-store.js). */
+export const characterKey = (mesa, slug) => scoped(mesa, KEY_PREFIX + slug)
 
 export const isValidSlug = (slug) => typeof slug === 'string' && SLUG_RE.test(slug)
 export const isValidField = (field) => typeof field === 'string' && FIELD_RE.test(field)
@@ -71,10 +75,10 @@ export function redis() {
 // some entre invocações — é justamente por isso que o cliente também mantém
 // cache em localStorage.
 const memory = new Map()
-let memoryRev = 0
+const memoryRevs = new Map()
 
 /** O contador acima quando não há Redis (lido por map-store.js). */
-export const memoryTableRev = () => memoryRev
+export const memoryTableRev = (mesa) => memoryRevs.get(tableRevKey(mesa)) || 0
 
 /** Envelope gravado em cada campo. */
 const envelope = (data) => ({ v: STATE_VERSION, data, updatedAt: Date.now() })
@@ -96,8 +100,8 @@ function safeParse(raw) {
  * @returns {Promise<Record<string, {data: unknown, updatedAt: number}>>}
  *          Mapa vazio quando o personagem ainda não tem estado (não é erro).
  */
-export async function readCharacter(slug) {
-    const key = KEY_PREFIX + slug
+export async function readCharacter(mesa, slug) {
+    const key = characterKey(mesa, slug)
     const r = redis()
 
     const raw = r ? await r.hgetall(key) : memory.get(key)
@@ -116,8 +120,8 @@ export async function readCharacter(slug) {
  * sem reler o personagem inteiro — hoje, o contador de ações do turno.
  * @returns {Promise<{data: unknown, updatedAt: number} | null>}
  */
-export async function readField(slug, field) {
-    const key = KEY_PREFIX + slug
+export async function readField(mesa, slug, field) {
+    const key = characterKey(mesa, slug)
     const r = redis()
     const raw = r ? await r.hget(key, field) : memory.get(key)?.[field]
     const entry = unwrap(raw)
@@ -129,8 +133,8 @@ export async function readField(slug, field) {
  * personagem não correm risco de serem sobrescritas.
  * @returns {Promise<number>} updatedAt gravado.
  */
-export async function writeField(slug, field, data) {
-    const key = KEY_PREFIX + slug
+export async function writeField(mesa, slug, field, data) {
+    const key = characterKey(mesa, slug)
     const value = envelope(data)
     const r = redis()
 
@@ -138,14 +142,14 @@ export async function writeField(slug, field, data) {
         const current = memory.get(key) || {}
         current[field] = JSON.stringify(value)
         memory.set(key, current)
-        memoryRev += 1
+        memoryRevs.set(tableRevKey(mesa), memoryTableRev(mesa) + 1)
         return value.updatedAt
     }
 
     const p = r.pipeline()
     p.hset(key, { [field]: JSON.stringify(value) })
     p.expire(key, TTL_SECONDS)
-    p.incr(TABLE_REV_KEY)
+    p.incr(tableRevKey(mesa))
     await p.exec()
     return value.updatedAt
 }

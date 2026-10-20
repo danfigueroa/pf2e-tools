@@ -24,19 +24,19 @@ export function isRollRequest(method, query, body) {
   return false
 }
 
-export async function handleRollRequest(method, query, body) {
+export async function handleRollRequest(mesa, method, query, body) {
   if (method === 'GET') {
     const known = query.rev != null && query.rev !== '' ? Number(query.rev) : null
-    return ok(await readRolls(Number.isFinite(known) ? known : null))
+    return ok(await readRolls(mesa, Number.isFinite(known) ? known : null))
   }
   if (body?.action === 'share-add') {
     const share = sanitizeShare(body?.share)
     if (!share) return fail(400, 'Compartilhamento inválido')
-    const rev = await addShare(share)
+    const rev = await addShare(mesa, share)
     return ok({ rev, share })
   }
   const roll = sanitizeRoll(body?.roll)
   if (!roll) return fail(400, 'Rolagem inválida')
-  const rev = await addRoll(roll)
+  const rev = await addRoll(mesa, roll)
   return ok({ rev, roll })
 }
