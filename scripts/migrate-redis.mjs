@@ -6,9 +6,10 @@
 //   node --env-file=.env scripts/migrate-redis.mjs --domain translations [--dry-run]
 //   node --env-file=.env scripts/migrate-redis.mjs --domain descriptions [--dry-run]
 //
-// Precisa das credenciais do Redis de PRODUÇÃO no .env (KV_REST_API_URL e
-// KV_REST_API_TOKEN — na Vercel elas são sensíveis e não saem pelo `env pull`;
-// copie da aba .env.local da store no painel da Upstash/Vercel) e das do Supabase.
+// Precisa das credenciais do Redis de PRODUÇÃO no .env — KV_REST_API_URL e, de
+// preferência, KV_REST_API_READ_ONLY_TOKEN (o script só lê; o KV_REST_API_TOKEN
+// também serve). Na Vercel elas são sensíveis e não saem pelo `env pull`: copie
+// da aba .env.local da store no painel. E as do Supabase.
 //
 // Mapeamento das chaves (a mesa legada não tem prefixo — ver api/_lib/mesas.js):
 //   pf2e:tr:<sha1>                       → translations (global)
@@ -28,9 +29,10 @@ if (!DOMAINS.includes(domain)) {
 }
 
 const redisUrl = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL
-const redisToken = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN
+const redisToken = process.env.KV_REST_API_READ_ONLY_TOKEN
+    || process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN
 if (!redisUrl || !redisToken) {
-    console.error('Faltam as credenciais do Redis (KV_REST_API_URL/KV_REST_API_TOKEN) no .env.')
+    console.error('Faltam as credenciais do Redis (KV_REST_API_URL e KV_REST_API_READ_ONLY_TOKEN) no .env.')
     process.exit(2)
 }
 if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SECRET_KEY) {
