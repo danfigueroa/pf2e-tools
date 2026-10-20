@@ -317,10 +317,12 @@ caminho quente, e as duas pontas longe uma da outra seriam o pior caso).
   estaticamente.
 - **Permissões são explícitas**: o projeto foi criado SEM "expose new tables" e COM RLS automático (`ensure_rls`), então
   tabela nova não dá privilégio a ninguém — nem ao `service_role`. Toda migration faz os `grant` do que usa.
-- **Migrations vão sozinhas para produção**: a integração com o GitHub aplica `supabase/migrations/` no push da
-  `main`. Não há Docker no projeto (decisão do usuário) nem branch de preview no plano gratuito, então antes do commit
-  rode `node --env-file=.env scripts/check-migrations.mjs`, que executa as PENDENTES no banco de produção dentro de
-  `BEGIN … ROLLBACK`. **Nunca edite uma migration já aplicada** — crie outra. Crie com `npx supabase migration new <nome>`.
+- **Migrations**: crie com `npx supabase migration new <nome>`. Não há Docker no projeto (decisão do usuário) nem branch
+  de preview no plano gratuito, então antes do commit rode `node --env-file=.env scripts/check-migrations.mjs`, que
+  executa as PENDENTES no banco de produção dentro de `BEGIN … ROLLBACK`. A integração com o GitHub devia aplicá-las no
+  push da `main`, mas **no primeiro push não aplicou** (ficou pendente por minutos): depois do push, confira com
+  `npx supabase migration list` e, se seguir pendente, `npx supabase db push` (com o `.env` carregado). **Nunca edite
+  uma migration já aplicada** — crie outra.
 - **Pausa por inatividade**: o plano gratuito pausa o projeto depois de 7 dias parado, e a mesa joga 1–2 vezes por mês.
   O cron do `vercel.json` chama `/api/health` todo dia, e o `health` faz uma consulta (`pingDatabase`).
 - **Backup**: `.github/workflows/backup-supabase.yml`, semanal, artefato de 90 dias. O repositório é PÚBLICO e artefato
