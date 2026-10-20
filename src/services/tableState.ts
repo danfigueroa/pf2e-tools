@@ -9,9 +9,9 @@
 // A sincronia é sob demanda: puxa ao abrir a ficha e no botão "Atualizar".
 // Não há polling nem conexão persistente.
 
-import { stateApi } from './mesa'
+import { mesaKey, stateApi } from './mesa'
 
-const CACHE_PREFIX = 'pf2e:table:v1:'
+const CACHE_PREFIX = mesaKey('pf2e:table:v1:')
 
 /** Espera entre a última edição e a subida — agrupa cliques repetidos num pip. */
 const SAVE_DEBOUNCE_MS = 600

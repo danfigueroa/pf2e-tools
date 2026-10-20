@@ -1,5 +1,10 @@
-/** Própria do mapa: a da Ficha Virtual (`pf2e:viewer:*`) guarda OUTRA escolha. */
-const STORAGE_KEY = 'pf2e:map:sheet'
+import { mesaKey } from '../../services/mesa'
+
+/**
+ * Própria do mapa: a da Ficha Virtual (`pf2e:viewer:*`) guarda OUTRA escolha.
+ * E da mesa: o personagem escolhido numa não existe na outra.
+ */
+const STORAGE_KEY = mesaKey('pf2e:map:sheet')
 export const SHEET_OPEN_KEY = 'pf2e:map:sheet-open'
 
 export const readSheetChoice = (): string | null => {

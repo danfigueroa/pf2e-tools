@@ -12,10 +12,12 @@ import { CharacterSheetView } from './CharacterSheetView'
 import { curatedBase } from './combatGuides'
 import { characterDescriptionNames } from './descriptionNames'
 import { loadSheetDescriptions } from '../../services/descriptions'
+import { mesaKey } from '../../services/mesa'
 
-const SESSION_KEY = 'pf2e:viewer:lastBuild'
+// Da mesa: trocar de mesa recarrega a página, e a ficha aberta da outra não pode voltar.
+const SESSION_KEY = mesaKey('pf2e:viewer:lastBuild')
 /** Slug da ficha publicada aberta — ao recarregar, relê a versão da mesa. */
-const SESSION_PUBLISHED_KEY = 'pf2e:viewer:lastPublished'
+const SESSION_PUBLISHED_KEY = mesaKey('pf2e:viewer:lastPublished')
 
 export const CharacterViewerPage = () => {
     const [build, setBuild] = useState<BuildInfo | null>(null)

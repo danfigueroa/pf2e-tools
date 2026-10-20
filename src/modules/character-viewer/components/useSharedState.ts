@@ -7,6 +7,7 @@ import {
     subscribeField,
     subscribeSnapshot,
 } from '../../../services/tableState'
+import { currentMesa } from '../../../services/mesa'
 
 export interface SharedStateOptions<T> {
     /** Valor quando ninguém na mesa mexeu nesta fatia ainda. */
@@ -116,5 +117,7 @@ function fromCache<T>(slug: string, field: string, options: SharedStateOptions<T
 function fromCacheOrLegacy<T>(slug: string, field: string, options: SharedStateOptions<T>): T | null {
     const raw = readLocal(slug, field)
     if (raw !== null) return options.sanitize(raw)
-    return options.legacy?.() ?? null
+    // O que a versão local-only gravou é da mesa de antes das mesas: migrar numa
+    // outra levaria o PV de lá para um personagem de mesmo nome aqui.
+    return currentMesa.legacy ? options.legacy?.() ?? null : null
 }

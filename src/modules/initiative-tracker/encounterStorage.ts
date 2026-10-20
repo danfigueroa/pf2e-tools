@@ -6,6 +6,9 @@
 // da sessão, e trocar de mapa na Iniciativa troca o encontro. A chave antiga
 // (sem mapa) continua sendo o encontro "Sem mapa" — nada do que já estava
 // guardado se perde.
+//
+// As três chaves são da mesa (`mesaKey`): o encontro "Sem mapa" e o mapa aberto
+// de uma mesa não aparecem na outra, mesmo com o GM no mesmo navegador.
 
 import { CONDITIONS_BY_ID } from '../character-viewer/conditions'
 import { sanitizeAfflictions } from './afflictions'
@@ -15,10 +18,11 @@ import type { ScaleOverrides } from '../monster-scaler/types'
 import type { Combatant, EncounterState, NpcCombatant, NpcShield, PcCombatant } from './types'
 import type { ShieldItem } from '../character-viewer/shield'
 import { sanitizeFit } from '../battle-map/tokenFit'
+import { mesaKey } from '../../services/mesa'
 
-const STORAGE_KEY = 'pf2e:initiative:v1'
-const MAP_KEY_PREFIX = 'pf2e:initiative:v1:map:'
-const CURRENT_MAP_KEY = 'pf2e:initiative:map'
+const STORAGE_KEY = mesaKey('pf2e:initiative:v1')
+const MAP_KEY_PREFIX = mesaKey('pf2e:initiative:v1:map:')
+const CURRENT_MAP_KEY = mesaKey('pf2e:initiative:map')
 
 const keyFor = (mapId: string | null) => (mapId ? MAP_KEY_PREFIX + mapId : STORAGE_KEY)
 
