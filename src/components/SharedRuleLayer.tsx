@@ -12,12 +12,28 @@ import type { TableShare } from '../services/tableShare'
 // app não aparece, e o que saiu deste aparelho também não — quem compartilhou
 // já está com a descrição aberta.
 
-const SharedRuleCard = lazy(() => import('./SharedRuleCard'))
+const loadCard = () => import('./SharedRuleCard')
+const SharedRuleCard = lazy(loadCard)
+
+/**
+ * Baixa o cartão com o app ocioso (~18 kB gzip; na Ficha Virtual quase tudo já
+ * veio com o drawer). Sem isso, o primeiro compartilhamento da sessão esperava
+ * o código chegar e só DEPOIS começava a ler os pacotes de descrições.
+ */
+function prefetchCard() {
+    const run = () => { void loadCard().catch(() => { /* o lazy tenta de novo quando precisar */ }) }
+    if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(run, { timeout: 5000 })
+    else setTimeout(run, 2000)
+}
 
 export const SharedRuleLayer = memo(function SharedRuleLayer() {
     const { shares, ready } = useTableShares()
     const seen = useRef<Set<string> | null>(null)
     const [shown, setShown] = useState<TableShare | null>(null)
+
+    useEffect(() => {
+        if (ready) prefetchCard()
+    }, [ready])
 
     useEffect(() => {
         if (!ready) return
