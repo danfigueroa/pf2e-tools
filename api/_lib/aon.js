@@ -1,7 +1,7 @@
 // Funções compartilhadas para busca no Archives of Nethys
 
 import { createHash } from 'node:crypto'
-import { redis } from './table-store.js'
+import { supabase } from './supabase.js'
 
 // Cache em memória (nota: cada invocação serverless pode ter seu próprio cache)
 const cache = new Map()
@@ -431,7 +431,7 @@ export async function translateSegments(segments, translationEnabled) {
   missing.forEach((x, n) => {
     if (!fresh[n]) return
     out[x.i] = fresh[n]
-    toSave.push([x.key, fresh[n]])
+    toSave.push({ key: x.key, en: x.en, pt: fresh[n] })
   })
   await writeTranslations(toSave)
   return out
@@ -472,8 +472,9 @@ async function translateFresh(present) {
 // O cache em memória morre com a função serverless e o `localStorage` é de um
 // aparelho só: cada jogador, em cada aparelho novo, pagava de novo a tradução
 // das mesmas magias — no tempo (4,2 s entre chamadas do Gemini free) e na cota
-// da mesa inteira. Aqui a tradução fica no Redis do estado da mesa, e só a
-// primeira pessoa espera pelo LLM.
+// da mesa inteira. Aqui a tradução fica no Postgres (tabela `translations`, sem
+// prazo de validade — no Redis eram 180 dias), e só a primeira pessoa espera
+// pelo LLM. É global de propósito: vale para todas as mesas.
 //
 // A chave é o hash do TEXTO em inglês, não o nome do item: se o AON mudar a
 // prosa, a chave muda junto e nada velho é servido; e a parte barata (parse,
@@ -484,29 +485,38 @@ async function translateFresh(present) {
 //
 // Só entra aqui o que passou na validação de `translateFresh` (tradução
 // completa): falha devolve null, o chamador marca `translationPending`, e nada
-// em inglês é gravado. Custo: 1 MGET por chamada; os SETs só quando o LLM rodou.
+// em inglês é gravado. Custo: 1 SELECT por chamada; o UPSERT só quando o LLM rodou.
+//
+// A gravação NUNCA sobrescreve (`ignoreDuplicates`): uma tradução corrigida à
+// mão (`source = 'human'`) não pode ser trocada pela do LLM numa corrida.
 
 const TRANSLATION_CACHE_VERSION = 1
-const TRANSLATION_PREFIX = 'pf2e:tr:'
-const TRANSLATION_TTL_SECONDS = 180 * 24 * 60 * 60
 const translationMemory = new Map()
+// Cada chave tem 40 caracteres, e a lista vai na URL do PostgREST.
+const TRANSLATION_READ_CHUNK = 100
 
+/** O sha1 em hex — a chave da tabela `translations` (no Redis tinha o prefixo `pf2e:tr:`). */
 function translationKey(en) {
-  const hash = createHash('sha1')
+  return createHash('sha1')
     .update(`${TRANSLATION_CACHE_VERSION}\n${TRANSLATION_PREAMBLE}\n${en}`)
     .digest('hex')
-  return TRANSLATION_PREFIX + hash
 }
 
 /** Traduções já feitas, na ordem de `keys` (null = ninguém traduziu ainda). */
 async function readTranslations(keys) {
-  const r = redis()
-  if (!r) return keys.map(k => translationMemory.get(k) ?? null)
+  const db = supabase()
+  if (!db) return keys.map(k => translationMemory.get(k) ?? null)
   try {
-    const rows = await r.mget(...keys)
-    // Gravado como `{ t }`: string pura passaria pela desserialização automática
-    // do Upstash, e um texto que parecesse JSON voltaria como outra coisa.
-    return rows.map(v => (v && typeof v.t === 'string' ? v.t : null))
+    const found = new Map()
+    for (let i = 0; i < keys.length; i += TRANSLATION_READ_CHUNK) {
+      const { data, error } = await db
+        .from('translations')
+        .select('key, pt')
+        .in('key', keys.slice(i, i + TRANSLATION_READ_CHUNK))
+      if (error) throw error
+      for (const row of data) found.set(row.key, row.pt)
+    }
+    return keys.map(k => found.get(k) ?? null)
   } catch (error) {
     // Cache fora do ar não pode impedir a tradução: vira só um miss.
     console.error('[translation-cache] Falha ao ler:', error)
@@ -514,20 +524,16 @@ async function readTranslations(keys) {
   }
 }
 
-async function writeTranslations(entries) {
-  if (entries.length === 0) return
-  const r = redis()
-  if (!r) {
-    for (const [key, t] of entries) translationMemory.set(key, t)
+/** `rows`: `{ key, en, pt }`. */
+async function writeTranslations(rows) {
+  if (rows.length === 0) return
+  const db = supabase()
+  if (!db) {
+    for (const { key, pt } of rows) translationMemory.set(key, pt)
     return
   }
-  try {
-    const p = r.pipeline()
-    for (const [key, t] of entries) p.set(key, { t }, { ex: TRANSLATION_TTL_SECONDS })
-    await p.exec()
-  } catch (error) {
-    console.error('[translation-cache] Falha ao gravar:', error)
-  }
+  const { error } = await db.from('translations').upsert(rows, { onConflict: 'key', ignoreDuplicates: true })
+  if (error) console.error('[translation-cache] Falha ao gravar:', error)
 }
 
 function markerHits(text, count) {
@@ -579,7 +585,7 @@ export function getCache() {
 
 export function clearCache() {
   cache.clear()
-  // O do Redis não: é da mesa inteira. Para jogá-lo fora, suba a TRANSLATION_CACHE_VERSION.
+  // O do banco não: é de todas as mesas. Para jogá-lo fora, suba a TRANSLATION_CACHE_VERSION.
   translationMemory.clear()
 }
 
