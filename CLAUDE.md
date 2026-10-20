@@ -478,6 +478,25 @@ montado UMA vez no `MainLayout` (trocar de rota não refaz o "já visto"), e o h
   leitura. Fica acima da AppBar e das gavetas (`zIndex` 1250), abaixo dos diálogos. Vale para
   toda rolagem, da ficha ou do mapa: as duas passam pelo mesmo `RollFeedLayer`.
 
+## Regra compartilhada com a mesa
+
+No drawer de descrição da ficha (talento, habilidade, item, magia), o ícone de compartilhar ao lado do × manda a regra
+para a tela de todo mundo, em qualquer página, para a mesa ler o mesmo texto e chegar a um consenso.
+
+- **Viaja a REFERÊNCIA, não o texto** (`TableShare` em `services/tableShare.ts`: tipo, nome, rank e, na magia, CD e
+  ataque de quem conjura). Quem recebe busca a descrição pelos `fetch*Description` de sempre — sem prosa na rede, a
+  validação é pequena. Mesma regra das rolagens: **duas validações** (`sanitizeTableShare` e `sanitizeShare` em
+  `roll-store.js`), o `check-rolls` confere as duas.
+- **Anda no feed de rolagens**: POST `{ action: 'share-add' }`, lista própria `pf2e:shares:v1` (5 itens, 1 h) que sobe o
+  MESMO `pf2e:rolls:rev`. O GET devolve `shares` junto quando o contador muda: o poll ocioso continua 1 GET, e o carona
+  no MGET do mapa vale para ela sem mudar nada lá. Sem histórico na interface (decisão do usuário).
+- **O cartão desenha o mesmo `DescriptionContent` do drawer** (o corpo foi extraído do `DescriptionDrawer`, que hoje é
+  só a gaveta). A camada (`SharedRuleLayer`, no `MainLayout`) só assina `useTableShares`; o cartão é `React.lazy` e só
+  baixa quando chega um compartilhamento — não importe o `DescriptionContent` estaticamente fora da ficha.
+- Um cartão por vez (o novo substitui), **fica até o ×** — discutir uma regra leva mais que os 30 s de uma rolagem. O
+  que já estava na mesa ao abrir não aparece, e quem compartilhou não vê o próprio cartão (`isOwnRoll`).
+- O botão só aparece depois de a descrição carregar: nome que a AON não resolve chegaria vazio à mesa.
+
 ## Tema (verde/pergaminho/ouro)
 
 Identidade da linha **Remaster**: verde profundo, bege pergaminho e ouro/latão — não o
