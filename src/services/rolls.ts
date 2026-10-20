@@ -5,7 +5,7 @@
 // e o usuário não quer serviço externo de tempo real — a mesma decisão do Mapa.
 // O poll lê só UM contador (`GET pf2e:rolls:rev`, 1 comando no Upstash) e a lista
 // só desce quando ele muda. Ritmo:
-// - 3 s com a aba visível; nada com a aba oculta;
+// - 1,5 s com a aba visível; nada com a aba oculta;
 // - rajada de 1 s por 5 s depois de uma rolagem, daqui ou de fora (quem rolou
 //   espera a resposta da mesa — o dano depois do ataque, a salvaguarda do alvo).
 //
@@ -24,7 +24,7 @@ import { sanitizeTableShare, type TableShare } from './tableShare'
 
 const API = '/api/state'
 
-const IDLE_MS = 3000
+const IDLE_MS = 1500
 const BURST_MS = 1000
 const BURST_WINDOW_MS = 5000
 /** Sem aviso do mapa há mais que isso, o poll próprio retoma (o lento do mapa é 4 s). */
