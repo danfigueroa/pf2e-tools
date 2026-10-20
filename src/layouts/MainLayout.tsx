@@ -29,6 +29,7 @@ import {
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { green, gold, parchment } from '../theme';
 import { RollFeedLayer, RollHistoryDrawer } from '../components/RollFeed';
+import { SharedRuleLayer } from '../components/SharedRuleLayer';
 
 const drawerWidth = 260;
 
@@ -359,6 +360,8 @@ export const MainLayout = () => {
 
       {/* Rolagens de qualquer aparelho, em qualquer página. */}
       <RollFeedLayer />
+      {/* Regra (talento, magia…) que alguém compartilhou pela ficha. */}
+      <SharedRuleLayer />
       <RollHistoryDrawer open={historyOpen} onClose={() => setHistoryOpen(false)} />
     </Box>
   );
