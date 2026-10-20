@@ -160,7 +160,9 @@ export function sanitizeRoll(r) {
 // drawer da ficha busca, então não há prosa para validar aqui.
 
 const SHARE_TYPES = ['feat', 'special', 'item', 'spell']
-const SHARE_NAME_RE = /^[^\u0000-\u001f]{1,120}$/
+/** Até 120 caracteres, sem quebra de linha nem outro caractere de controle. */
+const validName = (v) =>
+  typeof v === 'string' && v.length <= 120 && !!v.trim() && ![...v].some((c) => c.charCodeAt(0) < 32)
 
 function sanitizeCaster(c) {
   if (!c || typeof c !== 'object') return null
@@ -176,7 +178,7 @@ export function sanitizeShare(s) {
   if (typeof s.id !== 'string' || !ID_RE.test(s.id)) return null
   if (typeof s.color !== 'string' || !HEX.test(s.color)) return null
   if (!SHARE_TYPES.includes(s.type)) return null
-  if (typeof s.name !== 'string' || !SHARE_NAME_RE.test(s.name) || !s.name.trim()) return null
+  if (!validName(s.name)) return null
   const out = { id: s.id, at: Date.now(), by: str(s.by, 40), color: s.color, type: s.type, name: s.name }
   if (typeof s.slug === 'string' && ID_RE.test(s.slug)) out.slug = s.slug
   // Só talento e magia têm nível no pedido de descrição.

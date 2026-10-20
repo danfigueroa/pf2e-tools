@@ -14,9 +14,13 @@
 // `noteRollsRev`; o feed só busca a lista quando o número muda. Mapa e
 // Iniciativa ligada a mapa não custam nada a mais. Se o mapa parar de avisar
 // (a página fechou), o poll próprio volta sozinho.
+//
+// **Regras compartilhadas** (`tableShare.ts`) andam no mesmo contador e na
+// mesma resposta (`shares`): compartilhar um talento não custa poll a mais.
 
 import { useSyncExternalStore } from 'react'
 import { ROLL_HISTORY, sanitizeTableRoll, type TableRoll } from '../dice/tableRoll'
+import { sanitizeTableShare, type TableShare } from './tableShare'
 
 const API = '/api/state'
 
@@ -29,15 +33,17 @@ const EXTERNAL_GRACE_MS = 6000
 export interface RollsSnapshot {
     /** A mais nova primeiro. */
     rolls: TableRoll[]
+    /** Regras compartilhadas com a mesa, a mais nova primeiro. */
+    shares: TableShare[]
     /** A primeira leitura já voltou — o que estava lá antes conta como "visto". */
     ready: boolean
 }
 
-let snapshot: RollsSnapshot = { rolls: [], ready: false }
+let snapshot: RollsSnapshot = { rolls: [], shares: [], ready: false }
 let rev: number | null = null
 /** Rolagens daqui que o servidor ainda não devolveu. */
 const pending = new Map<string, TableRoll>()
-/** Toda rolagem que saiu DESTE aparelho na sessão. */
+/** Toda rolagem (e todo compartilhamento) que saiu DESTE aparelho na sessão. */
 const own = new Set<string>()
 
 /** A rolagem saiu deste aparelho — o feed a mostra mesmo se chegou antes da primeira leitura. */
@@ -54,7 +60,12 @@ function publish(server: TableRoll[] | null) {
     const rolls = [...pending.values(), ...base]
         .sort((a, b) => b.at - a.at)
         .slice(0, ROLL_HISTORY)
-    snapshot = { rolls, ready: snapshot.ready || server !== null }
+    snapshot = { ...snapshot, rolls, ready: snapshot.ready || server !== null }
+    listeners.forEach((l) => l())
+}
+
+function publishShares(list: TableShare[]) {
+    snapshot = { ...snapshot, shares: list }
     listeners.forEach((l) => l())
 }
 
@@ -65,7 +76,14 @@ async function fetchRolls(): Promise<void> {
             const known = rev == null ? '' : `&rev=${rev}`
             const r = await fetch(`${API}?rolls=1${known}`)
             if (!r.ok) return
-            const body = await r.json() as { rev?: number; rolls?: unknown[] }
+            const body = await r.json() as { rev?: number; rolls?: unknown[]; shares?: unknown[] }
+            if (body.shares) {
+                const list = body.shares.map(sanitizeTableShare).filter((x): x is TableShare => x !== null)
+                if (list.some((x) => !snapshot.shares.some((o) => o.id === x.id))) {
+                    if (snapshot.ready) burst()
+                    publishShares(list)
+                }
+            }
             if (body.rolls) {
                 const list = body.rolls.map(sanitizeTableRoll).filter((x): x is TableRoll => x !== null)
                 // Rolagem nova de fora: a mesa está ativa, acelera.
@@ -146,6 +164,26 @@ export async function postRoll(roll: TableRoll): Promise<void> {
     }
 }
 
+/**
+ * Compartilha uma regra com a mesa. Sem cópia otimista: quem compartilhou já
+ * está com a descrição aberta, e o cartão não aparece no aparelho de origem.
+ */
+export async function postShare(share: TableShare): Promise<boolean> {
+    own.add(share.id)
+    burst()
+    schedule()
+    try {
+        const r = await fetch(API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'share-add', share }),
+        })
+        return r.ok
+    } catch {
+        return false
+    }
+}
+
 function subscribe(listener: () => void): () => void {
     listeners.add(listener)
     if (listeners.size === 1) {
@@ -160,9 +198,19 @@ function subscribe(listener: () => void): () => void {
     }
 }
 
-const SERVER: RollsSnapshot = { rolls: [], ready: false }
+const SERVER: RollsSnapshot = { rolls: [], shares: [], ready: false }
 
 /** O feed, acompanhado pelo poll enquanto algum componente o estiver usando. */
 export function useTableRolls(): RollsSnapshot {
     return useSyncExternalStore(subscribe, () => snapshot, () => SERVER)
+}
+
+const getShares = () => snapshot.shares
+const NO_SHARES: TableShare[] = []
+
+/** As regras compartilhadas — repinta só quando elas mudam, não a cada rolagem. */
+export function useTableShares(): { shares: TableShare[]; ready: boolean } {
+    const shares = useSyncExternalStore(subscribe, getShares, () => NO_SHARES)
+    const ready = useSyncExternalStore(subscribe, () => snapshot.ready, () => false)
+    return { shares, ready }
 }

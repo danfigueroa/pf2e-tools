@@ -946,5 +946,38 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
     eq(JSON.stringify(mf.MYTHIC_FEATS.find((f) => f.id === 'correct-the-story').info.time), '{"kind":"reaction"}', 'Correct the Story gasta a reação')
 }
 
+// Regra compartilhada com a mesa: os DOIS sanitizadores aceitam e recusam o mesmo.
+{
+    const shares = await import('../src/services/tableShare.ts')
+    const good = {
+        id: 'abc-123', at: 1, by: 'Thalos', slug: 'thalos', color: '#336699', type: 'spell', name: 'Fireball', level: 5,
+        caster: { name: 'Psychic', dc: 29, attack: 19, tradition: 'occult' },
+    }
+    const both = (s) => [shares.sanitizeTableShare(s), server.sanitizeShare(s)]
+    for (const out of both(good)) {
+        eq(out?.level, 5, 'compartilhamento: rank da magia')
+        eq(out?.caster?.dc, 29, 'compartilhamento: CD de quem conjura')
+    }
+    for (const out of both({ ...good, type: 'item' })) {
+        ok(out && out.level === undefined && out.caster === undefined, 'item não leva rank nem conjurador')
+    }
+    for (const out of both({ ...good, caster: { name: 'X', dc: 500, attack: 1 } })) {
+        ok(out && out.caster === undefined, 'conjurador inválido sai, o compartilhamento fica')
+    }
+    for (const out of both({ ...good, level: 31 })) ok(out && out.level === undefined, 'rank fora da faixa sai')
+    const badShares = [
+        ['tipo desconhecido', { ...good, type: 'weapon' }],
+        ['nome vazio', { ...good, name: '  ' }],
+        ['nome com quebra de linha', { ...good, name: 'Fire\nball' }],
+        ['nome com 121 caracteres', { ...good, name: 'x'.repeat(121) }],
+        ['cor que não é hex', { ...good, color: 'red' }],
+        ['id com maiúscula', { ...good, id: 'ABC' }],
+    ]
+    for (const [why, s] of badShares) {
+        ok(shares.sanitizeTableShare(s) === null, `cliente recusa o compartilhamento: ${why}`)
+        ok(server.sanitizeShare(s) === null, `servidor recusa o compartilhamento: ${why}`)
+    }
+}
+
 console.log(`${passed} conferências ok, ${failures} falha(s).`)
 process.exit(failures ? 1 : 0)
