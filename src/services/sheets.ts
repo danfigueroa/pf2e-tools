@@ -7,6 +7,8 @@
 // propósito: a ficha publicada muda justamente quando alguém a atualiza, e o
 // clique no personagem é o momento de buscar a versão da mesa.
 
+import { stateApi } from './mesa'
+
 export interface PublishedGuide {
     markdown: string
     generatedAt: number
@@ -34,7 +36,7 @@ export interface PublishedSummary {
 }
 
 async function call<T>(init: RequestInit | null, query = ''): Promise<T> {
-    const r = await fetch(`/api/state${query}`, init ?? undefined)
+    const r = await fetch(stateApi(query), init ?? undefined)
     const body = await r.json().catch(() => ({}))
     if (!r.ok) throw new Error((body as { error?: string }).error || `Erro ${r.status}`)
     return body as T

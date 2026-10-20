@@ -21,8 +21,7 @@
 import { useSyncExternalStore } from 'react'
 import { ROLL_HISTORY, sanitizeTableRoll, type TableRoll } from '../dice/tableRoll'
 import { sanitizeTableShare, type TableShare } from './tableShare'
-
-const API = '/api/state'
+import { stateApi } from './mesa'
 
 const IDLE_MS = 1500
 const BURST_MS = 1000
@@ -74,7 +73,7 @@ async function fetchRolls(): Promise<void> {
     inflight = (async () => {
         try {
             const known = rev == null ? '' : `&rev=${rev}`
-            const r = await fetch(`${API}?rolls=1${known}`)
+            const r = await fetch(stateApi(`?rolls=1${known}`))
             if (!r.ok) return
             const body = await r.json() as { rev?: number; rolls?: unknown[]; shares?: unknown[] }
             if (body.shares) {
@@ -145,7 +144,7 @@ export async function postRoll(roll: TableRoll): Promise<void> {
     burst()
     schedule()
     try {
-        const r = await fetch(API, {
+        const r = await fetch(stateApi(), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'roll-add', roll }),
@@ -173,7 +172,7 @@ export async function postShare(share: TableShare): Promise<boolean> {
     burst()
     schedule()
     try {
-        const r = await fetch(API, {
+        const r = await fetch(stateApi(), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'share-add', share }),

@@ -12,6 +12,7 @@
 
 import { useEffect, useState } from 'react'
 import { deleteBlobImage, isBlobReady } from './maps'
+import { stateApi } from './mesa'
 
 export const MAP_MAX_SIDE = 4096
 export const TOKEN_MAX_SIDE = 256
@@ -125,7 +126,7 @@ export async function uploadImage(blob: Blob, folder: ImageFolder, name: string)
     try {
         const result = await upload(`${folder}/${slugify(name)}.${extOf(blob.type)}`, blob, {
             access: 'public',
-            handleUploadUrl: '/api/state?blob=1',
+            handleUploadUrl: stateApi('?blob=1'),
             contentType: blob.type,
         })
         return result.url

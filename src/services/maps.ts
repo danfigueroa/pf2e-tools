@@ -16,6 +16,7 @@ import { noteRollsRev } from './rolls'
 import type { HpStored } from '../modules/character-viewer/components/useHpTracker'
 import { sizeSquares, type Cell, type ImageRect } from '../modules/battle-map/geometry'
 import { activeSizeEffect, sanitizeSizeEffect } from '../modules/character-viewer/sizeEffects'
+import { stateApi } from './mesa'
 
 export interface MapImage { url: string; w: number; h: number }
 
@@ -96,7 +97,6 @@ export interface MapSnapshot {
     activeId: string | null
 }
 
-const API = '/api/state'
 
 // --- Capacidades do servidor ------------------------------------------------
 
@@ -129,7 +129,7 @@ class ApiError extends Error {
 }
 
 async function getJson<T>(query: string): Promise<T> {
-    const r = await fetch(`${API}?${query}`)
+    const r = await fetch(stateApi(`?${query}`))
     const body = await r.json().catch(() => ({}))
     if (!r.ok) throw new ApiError(body.error || `Erro ${r.status}`, body)
     noteCaps(body)
@@ -137,7 +137,7 @@ async function getJson<T>(query: string): Promise<T> {
 }
 
 async function post<T>(payload: unknown): Promise<T> {
-    const r = await fetch(API, {
+    const r = await fetch(stateApi(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

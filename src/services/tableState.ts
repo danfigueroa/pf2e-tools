@@ -9,6 +9,8 @@
 // A sincronia é sob demanda: puxa ao abrir a ficha e no botão "Atualizar".
 // Não há polling nem conexão persistente.
 
+import { stateApi } from './mesa'
+
 const CACHE_PREFIX = 'pf2e:table:v1:'
 
 /** Espera entre a última edição e a subida — agrupa cliques repetidos num pip. */
@@ -128,7 +130,7 @@ export function loadCharacter(slug: string, force = false): Promise<Snapshot> {
 
     const promise = (async (): Promise<Snapshot> => {
         try {
-            const r = await fetch(`/api/state?char=${encodeURIComponent(slug)}`)
+            const r = await fetch(stateApi(`?char=${encodeURIComponent(slug)}`))
             if (!r.ok) throw new Error(String(r.status))
             const body = await r.json() as {
                 fields?: Record<string, { data: unknown }>
@@ -168,7 +170,7 @@ export async function pullField(slug: string, field: string): Promise<boolean> {
     const id = `${slug}/${field}`
     if (pending.has(id)) return false
     try {
-        const r = await fetch(`/api/state?char=${encodeURIComponent(slug)}&field=${encodeURIComponent(field)}`)
+        const r = await fetch(stateApi(`?char=${encodeURIComponent(slug)}&field=${encodeURIComponent(field)}`))
         if (!r.ok) return false
         const body = await r.json() as { data?: unknown }
         // Escreveram aqui enquanto a resposta vinha: a escrita local é a mais nova.
@@ -227,7 +229,7 @@ async function flush(id: string): Promise<void> {
 
     setStatus({ phase: 'saving' })
     try {
-        const r = await fetch('/api/state', {
+        const r = await fetch(stateApi(), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ char: entry.slug, field: entry.field, data: entry.data }),

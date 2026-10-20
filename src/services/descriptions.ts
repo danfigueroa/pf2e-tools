@@ -4,6 +4,7 @@
 
 import { useSyncExternalStore } from 'react'
 import type { FeatDescription, SpellDescription, CompanionStats } from '../modules/character-sheet/types'
+import { stateApi } from './mesa'
 
 // v10: talentos/habilidades/itens passaram a ser objetos estruturados e param
 // de ser cacheados quando a tradução falha (translationPending). A troca de
@@ -406,7 +407,7 @@ export function loadSheetDescriptions(slug: string, names: DescriptionNameLists)
  * de outra versão), `undefined` se o pedido falhou.
  */
 async function fetchSheetBundle(slug: string): Promise<SheetBundle | null | undefined> {
-    const r = await fetch(`/api/state?sheetDescriptions=${encodeURIComponent(slug)}`)
+    const r = await fetch(stateApi(`?sheetDescriptions=${encodeURIComponent(slug)}`))
     if (!r.ok) return undefined
     const { bundle } = (await r.json()) as { bundle: SheetBundle | null }
     const current = bundle?.version === CACHE_VERSION ? bundle : null
@@ -443,7 +444,7 @@ async function syncSheetDescriptions(slug: string, names: DescriptionNameLists):
 
         setSheetStatus(slug, { state: 'building', remaining: null })
         for (let round = 0; round < SHEET_ROUNDS; round++) {
-            const res = await fetch('/api/state', {
+            const res = await fetch(stateApi(), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'sheet-descriptions', char: slug, names, version: CACHE_VERSION }),
