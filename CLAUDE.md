@@ -485,7 +485,12 @@ para a tela de todo mundo, em qualquer página, para a mesa ler o mesmo texto e 
 
 - **Viaja a REFERÊNCIA, não o texto** (`TableShare` em `services/tableShare.ts`: tipo, nome, rank e, na magia, CD e
   ataque de quem conjura). Quem recebe busca a descrição pelos `fetch*Description` de sempre — sem prosa na rede, a
-  validação é pequena. Mesma regra das rolagens: **duas validações** (`sanitizeTableShare` e `sanitizeShare` em
+  validação é pequena.
+- **Antes de buscar, o cartão lê os pacotes já traduzidos de quem compartilhou** (`share.slug`): o estático
+  (`loadDescriptionBundle`) e o da ficha publicada (`readSheetDescriptions` — só o GET, sem completar o que falta; relê
+  depois de 5 min), com teto de 4 s de espera. Sem isso, quem não estava com aquela ficha aberta caía na API — AON +
+  LLM do zero, porque as traduções dos pacotes não estão no cache de traduções do Redis — e o texto demorava dezenas de
+  segundos. Medido em dev: texto junto com o cartão, zero chamadas à API de descrições. Mesma regra das rolagens: **duas validações** (`sanitizeTableShare` e `sanitizeShare` em
   `roll-store.js`), o `check-rolls` confere as duas.
 - **Anda no feed de rolagens**: POST `{ action: 'share-add' }`, lista própria `pf2e:shares:v1` (5 itens, 1 h) que sobe o
   MESMO `pf2e:rolls:rev`. O GET devolve `shares` junto quando o contador muda: o poll ocioso continua 1 GET, e o carona
