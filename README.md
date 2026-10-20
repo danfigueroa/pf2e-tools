@@ -57,8 +57,8 @@ O toolkit expõe as ferramentas abaixo (rotas em `src/App.tsx`), listadas na pá
 O site atende mais de uma mesa de jogo. Cada mesa vê só o que é dela: fichas, presets, PV e condições,
 mapas, encontro da Iniciativa, rolagens e regras compartilhadas. A mesa é escolhida no seletor **Mesa** da
 barra lateral (fica lembrada no aparelho), ou por um link que já entra nela — `https://<app>/?mesa=<id>`,
-copiado pelo item "Copiar link da mesa" do próprio seletor. Quem nunca escolheu uma mesa fica na mesa
-principal, como antes.
+copiado pelo item "Copiar link da mesa" do próprio seletor. Hoje são duas: **Casa do Gordo Online** e **Arton 1515**.
+Quem nunca escolheu uma mesa fica na Casa do Gordo Online, como antes.
 
 ### ✅ Ficha Virtual (Implementado)
 

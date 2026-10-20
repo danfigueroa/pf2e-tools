@@ -9,8 +9,8 @@
 // A lista existe duas vezes: aqui e em `src/services/mesa.ts` (o servidor é JS
 // puro e não importa o TS). Mudou uma, muda a outra.
 
-export const LEGACY_MESA = 'principal'
-export const MESA_IDS = [LEGACY_MESA, 'mesa-2']
+export const LEGACY_MESA = 'casa-do-gordo'
+export const MESA_IDS = [LEGACY_MESA, 'arton-1515']
 
 /**
  * A mesa do pedido, pelo `?mesa=` da query (também no POST). Ausente é a

@@ -18,8 +18,8 @@ export interface Mesa {
 }
 
 export const MESAS: Mesa[] = [
-    { id: 'principal', nome: 'Mesa principal', legacy: true },
-    { id: 'mesa-2', nome: 'Mesa 2' },
+    { id: 'casa-do-gordo', nome: 'Casa do Gordo Online', legacy: true },
+    { id: 'arton-1515', nome: 'Arton 1515' },
 ]
 
 const LEGACY = MESAS.find((m) => m.legacy)!

@@ -306,7 +306,7 @@ personagens, mapas e mapa ativo, encontro da Iniciativa, feed de rolagens e regr
 
 - **É um namespace de chave**, com a mesma regra no servidor (`api/_lib/mesas.js`, `scoped`) e no cliente
   (`src/services/mesa.ts`, `mesaKey`/`stateApi`): `pf2e:<resto>` vira `pf2e:m:<mesa>:<resto>`. **A mesa legada (a
-  `principal`, a de antes das mesas) fica SEM prefixo**, com as chaves de sempre, e o pedido dela vai sem `?mesa=`:
+  Casa do Gordo Online, `casa-do-gordo`, a de antes das mesas) fica SEM prefixo**, com as chaves de sempre, e o pedido dela vai sem `?mesa=`:
   nada migrou, e aparelho que nunca escolheu mesa continua nela. Não "normalize" a legada para ter prefixo — seria
   uma migração do Redis inteiro.
 - **A lista de mesas existe duas vezes** (`MESA_IDS` em `mesas.js` e `MESAS` em `mesa.ts`) — mudou uma, muda a outra.
@@ -326,7 +326,9 @@ personagens, mapas e mapa ativo, encontro da Iniciativa, feed de rolagens e regr
   preferência de interface (Modo GM, ferramenta, extras de rolagem) é do aparelho.
 - A migração do `localStorage` antigo (`legacy` do `useSharedState`) só roda na mesa legada: em outra, levaria o PV de
   lá para um personagem de mesmo nome.
-- Mesa nova = uma entrada nas duas listas + `PRESETS_BY_MESA[<id>]` (pode começar vazia).
+- Mesas hoje: **Casa do Gordo Online** (`casa-do-gordo`, legada, os 6 personagens) e **Arton 1515** (`arton-1515`,
+  4 jogadores, ainda sem presets — os JSONs vêm depois). Mesa nova = uma entrada nas duas listas +
+  `PRESETS_BY_MESA[<id>]` (pode começar vazia).
 
 ## Estado compartilhado da mesa
 
@@ -675,7 +677,7 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   PUBLICADA não precisa: o servidor traduz sozinho).
 - **Os presets alimentam três módulos**: Ficha Virtual, diálogo de personagens da Iniciativa e
   gerador de Transformação (que aceita qualquer personagem, não só conjurador). Tirar uma ficha de
-  `campaignPresets.ts` tira dos três. Elenco atual da mesa `principal`: Brukuthur, Ceros (Cerosqualhanthallas),
+  `campaignPresets.ts` tira dos três. Elenco atual da Casa do Gordo Online: Brukuthur, Ceros (Cerosqualhanthallas),
   Eldarion, Ghan Buri, Nathaniel e Thalos, todos nível 10 — tabela e observações no README.
 - **Os três carregam o preset por `loadPresetJson`**: a versão publicada pela mesa, se houver,
   senão o arquivo fixo. O `level` de `CAMPAIGN_PRESETS` é o do arquivo, então os cards leem o nível
