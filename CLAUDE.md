@@ -52,6 +52,8 @@ node scripts/check-rolls.mjs            # confere a matemática das rolagens con
 node scripts/check-economy.mjs          # confere que todo talento/item do elenco que custa ação, reação ou Ponto Mítico tem caminho
 node --env-file=.env scripts/check-migrations.mjs
                                         # roda as migrations pendentes em produção dentro de BEGIN…ROLLBACK (antes do push!)
+node --env-file=.env scripts/migrate-redis.mjs --domain <d> [--dry-run]
+                                        # copia do Redis o que já migrou para o Supabase (ver a seção Supabase)
 node --env-file=.env scripts/build-description-bundle.mjs [--published <url>] [--all]
                                         # regera public/descriptions/ (descrições pré-traduzidas) — ver abaixo
 ```
@@ -234,8 +236,8 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   consulta retraduz e o drawer troca o texto sozinho. Ao mexer no cache, bump da `CACHE_VERSION`
   em `src/services/descriptions.ts` (e `DESC_CACHE_VERSION` no módulo de PDF).
 - **Cache de traduções compartilhado** (`translateSegments` → `readTranslations`/`writeTranslations`
-  em `aon.js`): a tradução de cada trecho fica no Redis da mesa (`pf2e:tr:<sha1>`, TTL 180 dias), e
-  só a primeira pessoa espera pelo LLM. Antes, o cache em memória morria com a função serverless e o
+  em `aon.js`): a tradução de cada trecho fica no Postgres (tabela `translations`, chave = o sha1, SEM prazo de
+  validade — no Redis eram 180 dias), global para todas as mesas, e só a primeira pessoa espera pelo LLM. Antes, o cache em memória morria com a função serverless e o
   `localStorage` era de um aparelho só: cada jogador, em cada aparelho, retraduzia as mesmas magias
   e gastava a cota da mesa. Medido no núcleo: 6 magias, 18,7 s com o cache vazio → 3 ms com ele quente
   (em produção ainda soma a busca no AON, ~1 s).
@@ -243,9 +245,11 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
     mudar a prosa ou alguém mexer no prompt muda a chave sozinho. Parse, heightening e números
     continuam refeitos a cada pedido — só o LLM é poupado.
   - Só grava o que passou na validação (nada de inglês); falha vira null e `translationPending`, como
-    antes. Redis fora do ar é só um miss. Custo: 1 MGET por chamada; os SETs só quando o LLM rodou.
+    antes. Banco fora do ar é só um miss. Custo: 1 SELECT por chamada; o UPSERT só quando o LLM rodou, e ele
+    **nunca sobrescreve** (`ignoreDuplicates`) — uma correção à mão (`source = 'human'`) não pode ser trocada pelo LLM.
+    A tabela guarda o inglês (`en`) junto, menos no que veio do Redis, que só tinha o português.
   - Mudou `cleanTranslation` ou o formato da saída? Suba a `TRANSLATION_CACHE_VERSION` — o
-    `clear-cache` limpa só a memória, não o Redis (é da mesa inteira).
+    `clear-cache` limpa só a memória, não o banco (é de todas as mesas).
 - **Descrições pré-traduzidas** — magias, talentos, habilidades e itens de cada personagem, prontos
   antes de alguém tocar. O elenco é pequeno e o que cada ficha descreve muda pouco, então tudo é
   resolvido e traduzido UMA vez; ao abrir a ficha o pacote entra no cache em memória
@@ -254,10 +258,11 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   Dois caminhos, mesmo formato (`{ version, entries: { spell, feat, special, item } }`):
   - **Estático** (`public/descriptions/<slug>.json`, CDN), gerado por
     `scripts/build-description-bundle.mjs` para os presets do repositório (`loadDescriptionBundle`).
-  - **Da ficha PUBLICADA** (`api/_lib/sheet-descriptions.js`, Redis `pf2e:sheet:desc:v1:<slug>`, sem
-    TTL como a ficha), que o servidor mantém sozinho — o level-up chega pela publicação, e depender de
-    alguém rodar o script não funciona na mesa. `GET ?sheetDescriptions=<slug>` devolve tudo num
-    comando; `POST { action: 'sheet-descriptions', char, names, version }` resolve SÓ o que falta.
+  - **Da ficha PUBLICADA** (`api/_lib/sheet-descriptions.js`, no Postgres), que o servidor mantém sozinho — o level-up chega pela publicação, e depender de
+    alguém rodar o script não funciona na mesa. As descrições são **globais** (`descriptions`, por versão, tipo e
+    nome: a Heal do Thalos serve ao Ghan Buri e à outra mesa), e cada ficha guarda só a LISTA de nomes que descreve
+    (`sheet_description_sets`). `GET ?sheetDescriptions=<slug>` monta o pacote no banco numa chamada (função
+    `sheet_descriptions`, no formato que o Redis guardava); `POST { action: 'sheet-descriptions', char, names, version }` resolve SÓ o que falta.
     **Comportamento padrão: o pacote fica pronto NA PUBLICAÇÃO, antes de qualquer jogador abrir.** O
     "Publicar" (e o "Restaurar") dispara `loadSheetDescriptions` na hora (`CharacterViewerPage`), e a
     faixa da ficha publicada mostra "Preparando as descrições…" → "Descrições prontas"
@@ -285,10 +290,10 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
     publicada é também **acumulativo** (o "Restaurar" continua coberto), com teto de 300 por tipo.
   - **Nunca gravam inglês**: `translationPending` fica de fora (o script sai com código 1; o servidor
     tenta de novo na próxima abertura).
-  - No servidor: **trava** (`SET NX`, 70 s) para dois aparelhos não traduzirem a mesma ficha juntos (o
+  - No servidor: **trava** (`try_lock`, tabela `locks`, 70 s) para dois aparelhos não traduzirem a mesma ficha juntos (o
     segundo recebe `busy` e segue pela API); **cabe no `maxDuration`** (não começa grupo depois de
     30 s, devolve `remaining`, o cliente chama de novo — até 12 rodadas, parando se uma não avançou);
-    nome que a AON não resolve vai para `misses` e só é tentado de novo em 24 h (falha de tradução, 429,
+    nome que a AON não resolve vai para `description_misses` (global) e só é tentado de novo em 24 h (falha de tradução, 429,
     NÃO é miss). Só para slug publicado; endpoint público como o resto.
 - Metadados em prosa (pré-requisitos, gatilho, requisitos…) são traduzidos junto com a descrição
   numa **única** chamada, via marcadores `<<N>>` (`translateSegments`). Uma chamada por item é o que
@@ -305,7 +310,7 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
 
 O Upstash Redis e o Vercel Blob estão sendo trocados pelo Supabase (Postgres + Realtime + Storage), domínio a domínio,
 sem mudar o contrato das rotas: cada store do servidor ganha a versão Supabase com as mesmas funções exportadas. Ordem:
-fundação (feito) → traduções/descrições → fichas com histórico → estado da mesa em tempo real → rolagens → mapa →
+fundação (feito) → traduções/descrições (feito) → fichas com histórico → estado da mesa em tempo real → rolagens → mapa →
 imagens → desligar Upstash e Blob. Projeto `htgrzvdzxepbbgbaqkir`, em **São Paulo** (`sa-east-1`) porque a mesa é toda
 brasileira; as funções da Vercel vão para `gru1` junto com a fase do estado da mesa (antes disso o Upstash ainda está no
 caminho quente, e as duas pontas longe uma da outra seriam o pior caso).
@@ -331,7 +336,11 @@ caminho quente, e as duas pontas longe uma da outra seriam o pior caso).
 - **Conexão direta ao banco**: o host `db.<ref>.supabase.co` só tem IPv6; fora daqui (GitHub Actions) use o pooler em modo
   sessão, `aws-1-sa-east-1.pooler.supabase.com:5432` (o `aws-0` recusa). A CLI dá a chave secreta MASCARADA sem
   `--reveal`.
-- `pg_cron` limpa os usuários anônimos sem atividade há 180 dias.
+- `pg_cron` limpa os usuários anônimos sem atividade há 180 dias, as travas vencidas e os misses velhos.
+- **Copiar do Redis** o que já existia antes da troca de um domínio: `scripts/migrate-redis.mjs --domain <d> [--dry-run]`
+  (só lê do Redis; tudo é upsert). Precisa das credenciais do Redis de PRODUÇÃO no `.env`, que na Vercel são
+  sensíveis e não saem pelo `env pull`. Rode ANTES do deploy que troca o domínio, senão a primeira abertura refaz o
+  trabalho (tradução paga de novo na cota do LLM).
 
 ## Mesas
 
@@ -354,7 +363,8 @@ personagens, mapas e mapa ativo, encontro da Iniciativa, feed de rolagens e regr
   em memória dos serviços (`tableState`, o store do mapa, os ids vistos do feed) e os consumidores dos presets não
   precisam saber de mesa. O `?mesa=<id>` do link vira a escolha do aparelho (`localStorage` `pf2e:mesa`, global) e sai da
   URL; o seletor fica na sidebar (`MesaSwitcher`), com "Copiar link da mesa".
-- **Fica global de propósito**: cache de traduções (`pf2e:tr:`), caches da AON no cliente, pacotes estáticos
+- **Fica global de propósito**: cache de traduções e descrições resolvidas (tabelas `translations` e `descriptions`),
+  caches da AON no cliente, pacotes estáticos
   `public/descriptions/<slug>.json` (são do personagem) e as pastas do Blob (nomes aleatórios). No `localStorage`, só o
   que é da mesa ganhou `mesaKey` (cache do estado, encontro da Iniciativa, ficha aberta, personagem do painel do mapa);
   preferência de interface (Modo GM, ferramenta, extras de rolagem) é do aparelho.
