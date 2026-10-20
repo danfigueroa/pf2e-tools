@@ -96,9 +96,12 @@ export const UploadCard = ({ onJson, error }: Props) => {
                     Selecione um personagem da campanha ou carregue seu próprio arquivo JSON.
                 </Typography>
 
-                <Typography variant="overline" sx={{ color: 'text.secondary', display: 'block', mb: 1.5 }}>
-                    Fichas da Campanha
-                </Typography>
+                {/* Mesa nova, sem preset nem ficha publicada ainda: sem o título de uma lista vazia. */}
+                {CAMPAIGN_PRESETS.length + extras.length > 0 && (
+                    <Typography variant="overline" sx={{ color: 'text.secondary', display: 'block', mb: 1.5 }}>
+                        Fichas da Campanha
+                    </Typography>
+                )}
 
                 <Box
                     sx={{
