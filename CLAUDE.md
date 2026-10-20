@@ -50,6 +50,8 @@ node scripts/check-scaling.mjs 200      # confere o motor de escala contra criat
 node scripts/check-heightening.mjs      # confere o heightening das magias contra o índice inteiro
 node scripts/check-rolls.mjs            # confere a matemática das rolagens contra as fichas do grupo
 node scripts/check-economy.mjs          # confere que todo talento/item do elenco que custa ação, reação ou Ponto Mítico tem caminho
+node --env-file=.env scripts/check-migrations.mjs
+                                        # roda as migrations pendentes em produção dentro de BEGIN…ROLLBACK (antes do push!)
 node --env-file=.env scripts/build-description-bundle.mjs [--published <url>] [--all]
                                         # regera public/descriptions/ (descrições pré-traduzidas) — ver abaixo
 ```
@@ -298,6 +300,36 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   de 6 no servidor e no cliente (`PREFETCH_CHUNK_SIZE`): cabe no TPM do Groq (fallback) e no `maxDuration`. Falha de
   tradução continua marcando `translationPending` (nada de cachear inglês) e o cliente refaz em até 3 passadas.
   `resolveSpell` (uma só) usa o mesmo caminho.
+
+## Supabase (em migração)
+
+O Upstash Redis e o Vercel Blob estão sendo trocados pelo Supabase (Postgres + Realtime + Storage), domínio a domínio,
+sem mudar o contrato das rotas: cada store do servidor ganha a versão Supabase com as mesmas funções exportadas. Ordem:
+fundação (feito) → traduções/descrições → fichas com histórico → estado da mesa em tempo real → rolagens → mapa →
+imagens → desligar Upstash e Blob. Projeto `htgrzvdzxepbbgbaqkir`, em **São Paulo** (`sa-east-1`) porque a mesa é toda
+brasileira; as funções da Vercel vão para `gru1` junto com a fase do estado da mesa (antes disso o Upstash ainda está no
+caminho quente, e as duas pontas longe uma da outra seriam o pior caso).
+
+- **Só o servidor escreve** (`api/_lib/supabase.js`, chave `SUPABASE_SECRET_KEY`, que passa por cima do RLS). O
+  navegador (`src/services/supabase.ts`, chave publicável) abre uma **sessão anônima** por aparelho
+  (`signInAnonymously`, sem tela de login) e se registra em `mesa_members` — a única escrita do cliente, limitada pelo
+  RLS à própria sessão. O SDK é `import()` com o app ocioso, num chunk próprio (~60 kB gzip): não o importe
+  estaticamente.
+- **Permissões são explícitas**: o projeto foi criado SEM "expose new tables" e COM RLS automático (`ensure_rls`), então
+  tabela nova não dá privilégio a ninguém — nem ao `service_role`. Toda migration faz os `grant` do que usa.
+- **Migrations vão sozinhas para produção**: a integração com o GitHub aplica `supabase/migrations/` no push da
+  `main`. Não há Docker no projeto (decisão do usuário) nem branch de preview no plano gratuito, então antes do commit
+  rode `node --env-file=.env scripts/check-migrations.mjs`, que executa as PENDENTES no banco de produção dentro de
+  `BEGIN … ROLLBACK`. **Nunca edite uma migration já aplicada** — crie outra. Crie com `npx supabase migration new <nome>`.
+- **Pausa por inatividade**: o plano gratuito pausa o projeto depois de 7 dias parado, e a mesa joga 1–2 vezes por mês.
+  O cron do `vercel.json` chama `/api/health` todo dia, e o `health` faz uma consulta (`pingDatabase`).
+- **Backup**: `.github/workflows/backup-supabase.yml`, semanal, artefato de 90 dias. O repositório é PÚBLICO e artefato
+  de repositório público é baixável por qualquer pessoa logada, então o dump sai **criptografado** (segredos
+  `SUPABASE_DB_URL` e `BACKUP_PASSPHRASE`); sem a senha o workflow falha em vez de publicar aberto.
+- **Conexão direta ao banco**: o host `db.<ref>.supabase.co` só tem IPv6; fora daqui (GitHub Actions) use o pooler em modo
+  sessão, `aws-1-sa-east-1.pooler.supabase.com:5432` (o `aws-0` recusa). A CLI dá a chave secreta MASCARADA sem
+  `--reveal`.
+- `pg_cron` limpa os usuários anônimos sem atividade há 180 dias.
 
 ## Mesas
 
