@@ -417,25 +417,15 @@ const server = http.createServer(async (req, res) => {
       return
     }
     try {
-      // Mesmo caminho do serverless: um grupo traduz numa chamada só. O cache
-      // em memória atende o que já veio; só o resto vai ao núcleo.
-      const GROUP = 6
+      const CONCURRENCY = 3
       const results = {}
-      const missing = []
-      for (const n of names) {
-        const hit = CACHE.get(`spell:${n}`)
-        if (hit) results[n] = hit
-        else missing.push(n)
-      }
-      for (let i = 0; i < missing.length; i += GROUP) {
-        const group = missing.slice(i, i + GROUP)
-        const resolved = await resolveSpells(group, TRANSLATION_ENABLED)
-        resolved.forEach((r, idx) => {
-          // Tradução pendente não é cacheada: retenta na próxima.
-          if (r && !r.translationPending) CACHE.set(`spell:${group[idx]}`, r)
-          // Chavear pelo nome de INPUT (não pelo nome do AON), como no serverless.
-          results[group[idx]] = r || { name: group[idx], description: null }
-        })
+      for (let i = 0; i < names.length; i += CONCURRENCY) {
+        const chunk = names.slice(i, i + CONCURRENCY)
+        const resolved = await Promise.all(chunk.map(async n => {
+          return (await resolveEntryCached(n, 'feat')) || { name: n, description: null }
+        }))
+        // Chavear pelo nome de INPUT (não pelo nome do AON), como no serverless.
+        resolved.forEach((r, idx) => { results[chunk[idx]] = r })
       }
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify(results))
@@ -486,17 +476,25 @@ const server = http.createServer(async (req, res) => {
       return
     }
     try {
-      const CONCURRENCY = 3
+      // Mesmo caminho do serverless: um grupo traduz numa chamada só. O cache
+      // em memória atende o que já veio; só o resto vai ao núcleo.
+      const GROUP = 6
       const results = {}
-      for (let i = 0; i < names.length; i += CONCURRENCY) {
-        const chunk = names.slice(i, i + CONCURRENCY)
-        const resolved = await Promise.all(chunk.map(async n => {
-          const spellData = await resolveSpellCached(n)
-          return spellData || { name: n, description: null }
-        }))
-        // Chavear pelo nome de INPUT (não pelo nome do AON), como no serverless —
-        // senão o frontend não encontra magias cujo nome o AON normalizou.
-        resolved.forEach((r, idx) => { results[chunk[idx]] = r })
+      const missing = []
+      for (const n of names) {
+        const hit = CACHE.get(`spell:${n}`)
+        if (hit) results[n] = hit
+        else missing.push(n)
+      }
+      for (let i = 0; i < missing.length; i += GROUP) {
+        const group = missing.slice(i, i + GROUP)
+        const resolved = await resolveSpells(group, TRANSLATION_ENABLED)
+        resolved.forEach((r, idx) => {
+          // Tradução pendente não é cacheada: retenta na próxima.
+          if (r && !r.translationPending) CACHE.set(`spell:${group[idx]}`, r)
+          // Chavear pelo nome de INPUT (não pelo nome do AON), como no serverless.
+          results[group[idx]] = r || { name: group[idx], description: null }
+        })
       }
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify(results))
