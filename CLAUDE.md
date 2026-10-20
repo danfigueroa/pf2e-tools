@@ -299,12 +299,41 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   tradução continua marcando `translationPending` (nada de cachear inglês) e o cliente refaz em até 3 passadas.
   `resolveSpell` (uma só) usa o mesmo caminho.
 
+## Mesas
+
+Duas (ou mais) mesas de jogo no mesmo site, cada uma vendo só o que é dela: fichas publicadas, presets, estado dos
+personagens, mapas e mapa ativo, encontro da Iniciativa, feed de rolagens e regras compartilhadas.
+
+- **É um namespace de chave**, com a mesma regra no servidor (`api/_lib/mesas.js`, `scoped`) e no cliente
+  (`src/services/mesa.ts`, `mesaKey`/`stateApi`): `pf2e:<resto>` vira `pf2e:m:<mesa>:<resto>`. **A mesa legada (a
+  `principal`, a de antes das mesas) fica SEM prefixo**, com as chaves de sempre, e o pedido dela vai sem `?mesa=`:
+  nada migrou, e aparelho que nunca escolheu mesa continua nela. Não "normalize" a legada para ter prefixo — seria
+  uma migração do Redis inteiro.
+- **A lista de mesas existe duas vezes** (`MESA_IDS` em `mesas.js` e `MESAS` em `mesa.ts`) — mudou uma, muda a outra.
+  O servidor recusa id desconhecido (400), para um link digitado errado não criar uma mesa fantasma.
+- **A mesa vai na query, também no POST** (`?mesa=`), e `api/state.js`/`server/index.mjs` a resolvem UMA vez e a
+  repassam: todo store recebe `mesa` como **primeiro parâmetro explícito** (`readCharacter(mesa, slug)`,
+  `listMaps(mesa, gm)`…), de propósito no lugar de `AsyncLocalStorage` — uma chamada esquecida aparece no grep. O
+  fallback em memória (sem Redis) também é por mesa.
+- **Trocar de mesa recarrega a página** (`switchMesa`). Por isso `currentMesa` é uma constante lida no boot
+  (`main.tsx` importa `services/mesa` antes de tudo) e `CAMPAIGN_PRESETS = PRESETS_BY_MESA[currentMesa.id]`: os caches
+  em memória dos serviços (`tableState`, o store do mapa, os ids vistos do feed) e os consumidores dos presets não
+  precisam saber de mesa. O `?mesa=<id>` do link vira a escolha do aparelho (`localStorage` `pf2e:mesa`, global) e sai da
+  URL; o seletor fica na sidebar (`MesaSwitcher`), com "Copiar link da mesa".
+- **Fica global de propósito**: cache de traduções (`pf2e:tr:`), caches da AON no cliente, pacotes estáticos
+  `public/descriptions/<slug>.json` (são do personagem) e as pastas do Blob (nomes aleatórios). No `localStorage`, só o
+  que é da mesa ganhou `mesaKey` (cache do estado, encontro da Iniciativa, ficha aberta, personagem do painel do mapa);
+  preferência de interface (Modo GM, ferramenta, extras de rolagem) é do aparelho.
+- A migração do `localStorage` antigo (`legacy` do `useSharedState`) só roda na mesa legada: em outra, levaria o PV de
+  lá para um personagem de mesmo nome.
+- Mesa nova = uma entrada nas duas listas + `PRESETS_BY_MESA[<id>]` (pode começar vazia).
+
 ## Estado compartilhado da mesa
 
 PV, PV de companheiros, slots de magia, pontos de foco, pontos míticos e condições são **da mesa,
 não do navegador**: os jogadores veem os mesmos números. A sincronia é **sob demanda** — puxa ao abrir a
 ficha e no botão "Atualizar" do cabeçalho. Não há polling, SSE nem WebSocket — **com uma exceção, o campo
-`actions`** (ver "Ações do turno") — e não há login: quem abrir o site entra na mesma mesa.
+`actions`** (ver "Ações do turno") — e não há login: quem abrir o site entra na mesma mesa (a do aparelho — ver "Mesas").
 
 - **Backend**: `api/_lib/table-store.js` (núcleo, compartilhado com `server/index.mjs`) sobre
   **Upstash Redis** via REST — `@upstash/redis`, não `@vercel/kv`, porque o dev server é `node:http`
@@ -640,13 +669,13 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     página reler a versão da mesa (alguém pode ter publicado outra no meio-tempo).
 - **Ao adicionar uma ficha nova**: o caminho do dia a dia é o jogador PUBLICAR pelo upload — ela
   aparece na tela inicial como "publicada pela mesa", com guia gerado. Para virar preset fixo:
-  (1) copiar o JSON para `public/characters/`; (2) registrar em `campaignPresets.ts`, com
-  `sheetName` igual ao `build.name` do JSON; (3) opcionalmente, um guia curado em
+  (1) copiar o JSON para `public/characters/`; (2) registrar em `PRESETS_BY_MESA` (`campaignPresets.ts`),
+  na lista da MESA do personagem, com `sheetName` igual ao `build.name` do JSON; (3) opcionalmente, um guia curado em
   `combatGuides.ts` casando pelo nome; (4) rodar o `build-description-bundle` (a versão
   PUBLICADA não precisa: o servidor traduz sozinho).
 - **Os presets alimentam três módulos**: Ficha Virtual, diálogo de personagens da Iniciativa e
   gerador de Transformação (que aceita qualquer personagem, não só conjurador). Tirar uma ficha de
-  `campaignPresets.ts` tira dos três. Elenco atual: Brukuthur, Ceros (Cerosqualhanthallas),
+  `campaignPresets.ts` tira dos três. Elenco atual da mesa `principal`: Brukuthur, Ceros (Cerosqualhanthallas),
   Eldarion, Ghan Buri, Nathaniel e Thalos, todos nível 10 — tabela e observações no README.
 - **Os três carregam o preset por `loadPresetJson`**: a versão publicada pela mesa, se houver,
   senão o arquivo fixo. O `level` de `CAMPAIGN_PRESETS` é o do arquivo, então os cards leem o nível
@@ -1263,7 +1292,7 @@ cada fatia de estado mora**:
 
 ## Módulo battle-map (Mapa de Combate)
 
-VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:maps:active`).
+VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:maps:active`, um por mesa — ver "Mesas").
 
 - **Exclusivamente desktop** (decisão do usuário): a regra dos 320px da seção de Responsividade
   NÃO vale para este módulo. Não gaste esforço com layout de celular aqui; o que já existe de toque
