@@ -1,0 +1,57 @@
+# Backup semanal do banco do Supabase.
+#
+# O plano gratuito não tem backup que se possa baixar, e a ficha publicada é a
+# fonte da verdade de cada personagem. O dump fica como artefato do workflow por
+# 90 dias (Actions → Backup do Supabase → o run → Artifacts).
+#
+# O REPOSITÓRIO É PÚBLICO, e artefato de repositório público pode ser baixado por
+# qualquer pessoa logada no GitHub: o dump sai CRIPTOGRAFADO (AES-256, gpg
+# simétrico). Para abrir:
+#   gpg --decrypt supabase-backup.tar.gz.gpg | tar xz
+#
+# Segredos do repositório (Settings → Secrets and variables → Actions):
+# - SUPABASE_DB_URL: a string de conexão do POOLER em modo sessão
+#   (aws-1-sa-east-1.pooler.supabase.com:5432). O host direto
+#   (db.<ref>.supabase.co) só tem IPv6, que os runners do GitHub não têm.
+# - BACKUP_PASSPHRASE: a senha da criptografia. Sem ela o workflow FALHA em vez
+#   de publicar o dump aberto.
+#
+# O `supabase db dump` roda o pg_dump num contêiner — o Docker é o do runner,
+# o projeto em si continua sem Docker.
+
+name: Backup do Supabase
+
+on:
+  schedule:
+    - cron: '41 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.121.0
+
+      - name: Dump do esquema, dos papéis e dos dados, criptografado
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          test -n "$BACKUP_PASSPHRASE" || { echo "Falta o segredo BACKUP_PASSPHRASE"; exit 1; }
+          mkdir dump
+          supabase db dump --db-url "$SUPABASE_DB_URL" --role-only -f dump/roles.sql
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f dump/schema.sql
+          supabase db dump --db-url "$SUPABASE_DB_URL" --data-only --use-copy -f dump/data.sql
+          mkdir out
+          tar czf - dump | gpg --batch --yes --pinentry-mode loopback --symmetric --cipher-algo AES256 \
+            --passphrase-fd 3 -o out/supabase-backup.tar.gz.gpg 3<<<"$BACKUP_PASSPHRASE"
+          rm -rf dump
+          ls -lh out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: supabase-${{ github.run_number }}
+          path: out/
+          retention-days: 90
