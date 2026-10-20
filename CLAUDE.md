@@ -469,9 +469,10 @@ montado UMA vez no `MainLayout` (trocar de rota não refaz o "já visto"), e o h
   bandeja (o d8 da arma e o d6 da runa).
 - **Cada id aparece uma vez por aparelho**; o que já estava no feed ao abrir conta como visto,
   menos o que saiu DESTE aparelho (`isOwnRoll`) — a otimista pode chegar antes da primeira leitura.
-- **Poll leve, decisão do usuário**: 3 s com a aba visível, rajada de 1 s por 5 s depois de uma
-  rolagem, nada com a aba oculta. Cada poll é 1 comando no Upstash (~6 aparelhos × 4 h ≈ 30 mil
-  por sessão). **Com o Mapa aberto o feed não faz poll próprio**: o contador vai de carona como 4ª
+- **Poll leve, decisão do usuário**: 1,5 s com a aba visível, rajada de 1 s por 5 s depois de uma
+  rolagem, nada com a aba oculta. Cada poll é 1 comando no Upstash (~6 aparelhos × 4 h ≈ 58 mil
+  por sessão). Era 3 s; caiu para a metade porque a mesa joga 1–2 vezes por mês e a cota grátis
+  (500 mil/mês) tem folga — a regra compartilhada esperava até 3 s para aparecer. **Com o Mapa aberto o feed não faz poll próprio**: o contador vai de carona como 4ª
   chave do MGET do `readRevs` (um MGET custa um comando com 3 ou 4 chaves), `maps.ts` repassa por
   `noteRollsRev`, e o poll próprio volta sozinho 6 s depois que o mapa para de avisar. O `rollsRev`
   NÃO entra na conta de "o mapa mudou" — rolagem não baixa o mapa.
@@ -490,7 +491,8 @@ para a tela de todo mundo, em qualquer página, para a mesa ler o mesmo texto e 
   validação é pequena.
 - **Antes de buscar, o cartão lê os pacotes já traduzidos de quem compartilhou** (`share.slug`): o estático
   (`loadDescriptionBundle`) e o da ficha publicada (`readSheetDescriptions` — só o GET, sem completar o que falta; relê
-  depois de 5 min), com teto de 4 s de espera. Sem isso, quem não estava com aquela ficha aberta caía na API — AON +
+  depois de 5 min), com teto de 4 s de espera. Basta o PRIMEIRO pacote que trouxer a descrição (o outro termina em
+  segundo plano), e se ela já está no cache deste aparelho o cartão nem espera. Sem isso, quem não estava com aquela ficha aberta caía na API — AON +
   LLM do zero, porque as traduções dos pacotes não estão no cache de traduções do Redis — e o texto demorava dezenas de
   segundos. Medido em dev: texto junto com o cartão, zero chamadas à API de descrições. Mesma regra das rolagens: **duas validações** (`sanitizeTableShare` e `sanitizeShare` em
   `roll-store.js`), o `check-rolls` confere as duas.
@@ -498,8 +500,10 @@ para a tela de todo mundo, em qualquer página, para a mesa ler o mesmo texto e 
   MESMO `pf2e:rolls:rev`. O GET devolve `shares` junto quando o contador muda: o poll ocioso continua 1 GET, e o carona
   no MGET do mapa vale para ela sem mudar nada lá. Sem histórico na interface (decisão do usuário).
 - **O cartão desenha o mesmo `DescriptionContent` do drawer** (o corpo foi extraído do `DescriptionDrawer`, que hoje é
-  só a gaveta). A camada (`SharedRuleLayer`, no `MainLayout`) só assina `useTableShares`; o cartão é `React.lazy` e só
-  baixa quando chega um compartilhamento — não importe o `DescriptionContent` estaticamente fora da ficha.
+  só a gaveta). A camada (`SharedRuleLayer`, no `MainLayout`) só assina `useTableShares`; o cartão é `React.lazy` e é baixado
+  com o app ocioso depois da primeira leitura do feed (`prefetchCard`, ~18 kB gzip; na ficha quase tudo já veio com o
+  drawer) — antes, o primeiro compartilhamento da sessão esperava o código e só então lia os pacotes. Não importe o
+  `DescriptionContent` estaticamente fora da ficha.
 - Um cartão por vez (o novo substitui), **fica até o ×** — discutir uma regra leva mais que os 30 s de uma rolagem. O
   que já estava na mesa ao abrir não aparece, e quem compartilhou não vê o próprio cartão (`isOwnRoll`).
 - O botão só aparece depois de a descrição carregar: nome que a AON não resolve chegaria vazio à mesa.
