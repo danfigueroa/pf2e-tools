@@ -264,6 +264,10 @@ export function getCachedSpecial(name: string) {
 export function getCachedSpell(name: string) {
     return readCache<SpellDescription>('spell', name)
 }
+/** A descrição já está pronta neste aparelho (memória ou `localStorage`)? */
+export function hasCachedDescription(kind: 'feat' | 'spell' | 'special' | 'item', name: string): boolean {
+    return readCache(kind, name) !== null
+}
 
 // --- Pacotes pré-traduzidos ---------------------------------------------------
 //

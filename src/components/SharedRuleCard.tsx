@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Box, Skeleton, Stack, Typography } from '@mui/material'
 import { DescriptionContent, type DescriptionRequest } from '../modules/character-viewer/components/DescriptionContent'
-import { loadDescriptionBundle, readSheetDescriptions } from '../services/descriptions'
+import { hasCachedDescription, loadDescriptionBundle, readSheetDescriptions } from '../services/descriptions'
 import { gold, green, parchment } from '../theme'
 import type { TableShare } from '../services/tableShare'
 
@@ -28,18 +28,24 @@ function requestOf(s: TableShare): DescriptionRequest {
 export default function SharedRuleCard({ share, onClose }: { share: TableShare; onClose: () => void }) {
     // As magias de um bastão trocam o conteúdo do próprio cartão, como no drawer.
     const [request, setRequest] = useState<DescriptionRequest>(() => requestOf(share))
-    const [seeded, setSeeded] = useState(!share.slug)
+    // Já no cache deste aparelho (a ficha de quem compartilhou estava aberta aqui): nada a esperar.
+    const [seeded, setSeeded] = useState(() => !share.slug || hasCachedDescription(share.type, share.name))
     const who = share.by || 'Alguém'
 
     useEffect(() => {
         const slug = share.slug
-        if (!slug) return
+        if (!slug || seeded) return
         let alive = true
-        const packs = Promise.allSettled([loadDescriptionBundle(slug), readSheetDescriptions(slug)])
+        const done = () => { if (alive) setSeeded(true) }
+        // O primeiro pacote que trouxer a descrição já basta; o outro termina em segundo plano.
+        const packs = [loadDescriptionBundle(slug), readSheetDescriptions(slug)]
+        packs.forEach((p) => void p.then(() => { if (hasCachedDescription(share.type, share.name)) done() }))
         const timeout = new Promise((resolve) => setTimeout(resolve, SEED_TIMEOUT_MS))
-        void Promise.race([packs, timeout]).then(() => { if (alive) setSeeded(true) })
+        void Promise.race([Promise.allSettled(packs), timeout]).then(done)
         return () => { alive = false }
-    }, [share.slug])
+        // `seeded` só vale na montagem: virar `true` é o fim da espera, não um novo pedido.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [share.slug, share.type, share.name])
 
     return (
         <Box
