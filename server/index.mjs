@@ -17,6 +17,7 @@ import { handleMapRequest, isMapRequest } from '../api/_lib/map-handler.js'
 import { handleRollRequest, isRollRequest } from '../api/_lib/roll-handler.js'
 import { hasTranslationKey } from '../api/_lib/aon.js'
 import { mesaFrom } from '../api/_lib/mesas.js'
+import { pingDatabase } from '../api/_lib/supabase.js'
 import {
   readCharacter,
   readField,
@@ -118,11 +119,13 @@ const server = http.createServer(async (req, res) => {
   
   // Health check
   if (pathname === '/api/health') {
+    const database = await pingDatabase()
     res.writeHead(200, { 'Content-Type': 'application/json' })
-    res.end(JSON.stringify({ 
-      status: 'ok', 
+    res.end(JSON.stringify({
+      status: 'ok',
       hasApiKey: TRANSLATION_ENABLED,
-      cacheSize: CACHE.size
+      cacheSize: CACHE.size,
+      database
     }))
     return
   }

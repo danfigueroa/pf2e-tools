@@ -6,6 +6,9 @@
   "functions": {
     "api/*.js": { "maxDuration": 60, "includeFiles": "public/descriptions/**" }
   },
+  "crons": [
+    { "path": "/api/health", "schedule": "17 9 * * *" }
+  ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
