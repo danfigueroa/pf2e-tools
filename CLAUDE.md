@@ -435,6 +435,8 @@ elenco ficar sem caminho (rode depois de publicar um personagem novo ou regerar 
   diário, "1 a 3") e se gasta **Ponto Mítico** (traço `Mythic` + o texto manda gastar). Avisa falta de ação/reação/ponto e não
   impede. **`DEDICATED`** lista o que tem caminho próprio (Rage, Hunt Prey, Shield Block, Battle Medicine, Divert Destiny,
   Summon, Rewrite Fate…) — nesses o botão genérico NÃO aparece, para não cobrar em dobro. Descrição ainda não baixada = sem botão.
+  O mesmo botão aparece **dentro do drawer** do talento/habilidade (`renderActions` do `DescriptionContent`, ligado pelo
+  `CharacterSheetView`), para quem foi ler a regra usar dali; o cartão da regra compartilhada não o recebe.
 - **"Uma vez por dia"**: campo da mesa `uses` (`{ nome: vezes }`, no `FIELD_RE`); o botão vira "Usada hoje ↺" (toque devolve) e
   o **Novo dia** (aba Magias e faixa dos Pontos Míticos) zera. O Summon Mythic Power segue com o `magus.summoned` dele.
 - **Atividade que inclui um Golpe** (Sudden Charge, Vicious Swing, Slam Down, Quick Reversal… — só em ação, nunca reação):
