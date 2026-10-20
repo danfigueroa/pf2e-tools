@@ -14,9 +14,11 @@ interface Props {
     name: string
     /** A descrição em cache; sem ela (ainda não baixada) não há custo para cobrar. */
     desc: FeatDescription | null | undefined
+    /** Botão largo, como o "Rolar" do drawer de descrição. */
+    fullWidth?: boolean
 }
 
-const Body = ({ build, mods, mythicPoints, name, info }: Omit<Props, 'desc'> & { info: ActivityInfo }) => {
+const Body = ({ build, mods, mythicPoints, name, info, fullWidth }: Omit<Props, 'desc'> & { info: ActivityInfo }) => {
     const { activate, uses } = useActivity(build, mods, mythicPoints)
     const [note, setNote] = useState<{ text: string; warn: boolean } | null>(null)
     const usedToday = info.daily && uses.usedOf(name) > 0
@@ -39,7 +41,13 @@ const Body = ({ build, mods, mythicPoints, name, info }: Omit<Props, 'desc'> & {
                 onKeyDown={(e) => e.stopPropagation()}
                 aria-label={usedToday ? `${name} já usada hoje — devolver` : `Usar ${name}`}
                 title={info.trigger ? `Gatilho: ${info.trigger}` : usedToday ? 'Já usada hoje — toque para devolver' : undefined}
-                sx={{ flexShrink: 0, minHeight: 30, px: 1.25, fontWeight: 700, fontSize: '0.75rem', ...(usedToday ? { color: gold.deep, borderColor: gold.main } : {}) }}
+                fullWidth={fullWidth}
+                sx={{
+                    flexShrink: 0,
+                    fontWeight: 700,
+                    ...(fullWidth ? { mb: 2, minHeight: 40 } : { minHeight: 30, px: 1.25, fontSize: '0.75rem' }),
+                    ...(usedToday ? { color: gold.deep, borderColor: gold.main } : {}),
+                }}
             >
                 {usedToday ? 'Usada hoje ↺' : `Usar · ${costLabel(info)}`}
             </Button>

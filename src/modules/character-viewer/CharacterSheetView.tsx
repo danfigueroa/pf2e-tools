@@ -27,12 +27,13 @@ import {
 } from '@mui/icons-material'
 
 import { green, gold, parchment, displayFont } from '../../theme'
-import type { BuildInfo } from '../character-sheet/types'
+import type { BuildInfo, FeatDescription } from '../character-sheet/types'
 import { PublishedBar } from './components/PublishedBar'
 import type { GuideSlot, PublicationApi } from './components/usePublication'
 import { curatedBase } from './combatGuides'
 import { CharacterHeader } from './components/CharacterHeader'
 import { DescriptionDrawer, type DescriptionRequest } from './components/DescriptionDrawer'
+import { ActivityButton } from './components/ActivityButton'
 import { postShare } from '../../services/rolls'
 import { rollerIdentity, shareRule } from './rolls'
 import { RollDialog, type RollRequest } from './components/RollDialog'
@@ -322,6 +323,15 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
         onGenerate: () => { if (published) void generateGuide(published, curatedBase(build)) },
     }), [published, guideStatus, guideError, generateGuide, build])
     const closeDrawer = useCallback(() => setDrawerReq(null), [])
+    // O "Usar" das abas Talentos e Habilidades também dentro do drawer: quem foi ler a
+    // regra usa dali. Os dois botões leem a mesma fatia da mesa (ações, usos do dia).
+    const drawerActions = useCallback(
+        (req: DescriptionRequest, entry: FeatDescription) =>
+            req.type === 'feat' || req.type === 'special'
+                ? <ActivityButton build={build} mods={mods} mythicPoints={mythicPoints} name={req.name} desc={entry} fullWidth />
+                : null,
+        [build, mods, mythicPoints],
+    )
     const shareDrawer = useCallback(
         (req: DescriptionRequest) => postShare(shareRule(rollerIdentity(build), req)),
         [build],
@@ -459,6 +469,7 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
                 onNavigate={setDrawerReq}
                 onRoll={setRollReq}
                 onShare={shareDrawer}
+                renderActions={drawerActions}
             />
             <RollDialog
                 request={rollReq}

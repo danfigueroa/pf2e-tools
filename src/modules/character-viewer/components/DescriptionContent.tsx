@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { TYPE_ACCENT as PALETTE_TYPE_ACCENT } from '../../../theme/palette'
 import {
     Box,
@@ -86,6 +86,11 @@ export interface DescriptionContentProps {
     onNavigate?: (req: DescriptionRequest) => void
     /** Compartilha a regra com a mesa; `false` quando não deu. */
     onShare?: (req: DescriptionRequest) => Promise<boolean>
+    /**
+     * Ações de quem tem a ficha aberta para o talento/habilidade/item já carregado
+     * (o "Usar" das abas). Fora da ficha — o cartão compartilhado — não há.
+     */
+    renderActions?: (req: DescriptionRequest, entry: FeatDescription) => ReactNode
 }
 
 interface State {
@@ -108,7 +113,7 @@ const TYPE_ACCENT: Record<DescriptionRequest['type'], string> = PALETTE_TYPE_ACC
  * O conteúdo da descrição (carga, heightening e o texto), sem a gaveta: o
  * drawer da ficha e o cartão da regra compartilhada com a mesa desenham o mesmo.
  */
-export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onShare }: DescriptionContentProps) => {
+export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onShare, renderActions }: DescriptionContentProps) => {
     const [state, setState] = useState<State>({ loading: false })
 
     useEffect(() => {
@@ -404,6 +409,9 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                         onRoll={onRoll}
                     />
                 )}
+
+                {/* Usar: o mesmo botão da linha do talento/habilidade, para quem foi consultar */}
+                {request.type !== 'spell' && state.entry && !state.loading && renderActions?.(request, state.entry)}
 
                 {/* Bastão: magias do degrau que a ficha possui (só elas) */}
                 {request.type !== 'spell' && state.entry?.staff && !state.loading && (
