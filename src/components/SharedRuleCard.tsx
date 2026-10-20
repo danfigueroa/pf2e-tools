@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import { Box, Typography } from '@mui/material'
+import { useEffect, useState } from 'react'
+import { Box, Skeleton, Stack, Typography } from '@mui/material'
 import { DescriptionContent, type DescriptionRequest } from '../modules/character-viewer/components/DescriptionContent'
+import { loadDescriptionBundle, readSheetDescriptions } from '../services/descriptions'
 import { gold, green, parchment } from '../theme'
 import type { TableShare } from '../services/tableShare'
 
@@ -8,6 +9,15 @@ import type { TableShare } from '../services/tableShare'
 // buscado aqui pela referência que chegou da mesa. Carregado sob demanda
 // (`SharedRuleLayer`): o drawer, o heightening e o cliente de descrições não
 // entram no bundle principal.
+//
+// Antes de buscar, lê as descrições JÁ TRADUZIDAS do personagem que
+// compartilhou — o pacote estático e o da ficha publicada, os mesmos que a
+// ficha dele carrega. Sem isso, quem não estava com aquela ficha aberta caía na
+// API: busca na AON e tradução pelo LLM do zero, dezenas de segundos para um
+// texto que a mesa já tem pronto.
+
+/** Teto da espera pelos pacotes: com a rede ruim, segue pela API como antes. */
+const SEED_TIMEOUT_MS = 4000
 
 function requestOf(s: TableShare): DescriptionRequest {
     if (s.type === 'spell') return { type: 'spell', name: s.name, level: s.level, caster: s.caster }
@@ -18,7 +28,18 @@ function requestOf(s: TableShare): DescriptionRequest {
 export default function SharedRuleCard({ share, onClose }: { share: TableShare; onClose: () => void }) {
     // As magias de um bastão trocam o conteúdo do próprio cartão, como no drawer.
     const [request, setRequest] = useState<DescriptionRequest>(() => requestOf(share))
+    const [seeded, setSeeded] = useState(!share.slug)
     const who = share.by || 'Alguém'
+
+    useEffect(() => {
+        const slug = share.slug
+        if (!slug) return
+        let alive = true
+        const packs = Promise.allSettled([loadDescriptionBundle(slug), readSheetDescriptions(slug)])
+        const timeout = new Promise((resolve) => setTimeout(resolve, SEED_TIMEOUT_MS))
+        void Promise.race([packs, timeout]).then(() => { if (alive) setSeeded(true) })
+        return () => { alive = false }
+    }, [share.slug])
 
     return (
         <Box
@@ -61,7 +82,16 @@ export default function SharedRuleCard({ share, onClose }: { share: TableShare; 
                 </Typography>
             </Box>
             <Box sx={{ flex: '1 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-                <DescriptionContent request={request} onClose={onClose} onNavigate={setRequest} />
+                {seeded ? (
+                    <DescriptionContent request={request} onClose={onClose} onNavigate={setRequest} />
+                ) : (
+                    <Stack spacing={1.5} sx={{ p: { xs: 2.5, md: 3 } }}>
+                        <Skeleton variant="text" width="40%" height={32} />
+                        <Skeleton variant="text" width="92%" />
+                        <Skeleton variant="text" width="88%" />
+                        <Skeleton variant="text" width="60%" />
+                    </Stack>
+                )}
             </Box>
         </Box>
     )

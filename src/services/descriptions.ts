@@ -397,13 +397,41 @@ export function loadSheetDescriptions(slug: string, names: DescriptionNameLists)
     return loading
 }
 
+/**
+ * O pacote da ficha publicada, já semeado no cache: `null` se ainda não há (ou é
+ * de outra versão), `undefined` se o pedido falhou.
+ */
+async function fetchSheetBundle(slug: string): Promise<SheetBundle | null | undefined> {
+    const r = await fetch(`/api/state?sheetDescriptions=${encodeURIComponent(slug)}`)
+    if (!r.ok) return undefined
+    const { bundle } = (await r.json()) as { bundle: SheetBundle | null }
+    const current = bundle?.version === CACHE_VERSION ? bundle : null
+    seedEntries(current?.entries)
+    return current
+}
+
+/** Releitura do pacote publicado: um level-up no meio da sessão traz descrições novas. */
+const SHEET_READ_TTL_MS = 5 * 60_000
+const sheetReads = new Map<string, { at: number; reading: Promise<void> }>()
+
+/**
+ * Só LÊ (um GET) as descrições prontas da ficha publicada `slug`, sem completar
+ * o que falta — para quem não está com a ficha aberta, como o cartão da regra
+ * que outro jogador compartilhou. Quem completa é a ficha.
+ */
+export function readSheetDescriptions(slug: string): Promise<void> {
+    if (!slug) return Promise.resolve()
+    const last = sheetReads.get(slug)
+    if (last && Date.now() - last.at < SHEET_READ_TTL_MS) return last.reading
+    const reading = fetchSheetBundle(slug).then(() => undefined, () => undefined)
+    sheetReads.set(slug, { at: Date.now(), reading })
+    return reading
+}
+
 async function syncSheetDescriptions(slug: string, names: DescriptionNameLists): Promise<void> {
     try {
-        const r = await fetch(`/api/state?sheetDescriptions=${encodeURIComponent(slug)}`)
-        if (!r.ok) return
-        const { bundle } = (await r.json()) as { bundle: SheetBundle | null }
-        const current = bundle?.version === CACHE_VERSION ? bundle : null
-        seedEntries(current?.entries)
+        const current = await fetchSheetBundle(slug)
+        if (current === undefined) return
 
         // O que o servidor ainda não tem (ou não achou há pouco, `misses`, e desistiu por um dia).
         const known = (kind: BundleKind, n: string) => !!current?.entries?.[kind]?.[n] || current?.misses?.[kind]?.[n] != null
