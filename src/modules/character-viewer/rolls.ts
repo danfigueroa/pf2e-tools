@@ -12,6 +12,8 @@ import { charSlug } from './charId'
 import { abilityMod, ABILITY_LABELS, isMythicMagicCaster, MYTHIC_PROFICIENCY_BONUS, mythicProficiencyDelta, proficiencyLabel, type AbilityKey } from './helpers'
 import { conditionParts, type CheckPart } from './checks'
 import type { ConditionModifiers } from './conditions'
+import type { DescriptionRequest } from './components/DescriptionContent'
+import type { TableShare } from '../../services/tableShare'
 import { rollDie, rollGroups, type RolledExpr } from '../../dice/roll'
 import { newRollId, type RolledPart, type TableRoll } from '../../dice/tableRoll'
 import { rollStrikeDamage, type Strike, type StrikePlan } from './strikes'
@@ -36,6 +38,28 @@ export function rollerIdentity(build: BuildInfo): RollerIdentity {
     let hash = 0
     for (const ch of slug) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0
     return { by, slug, color: DIE_COLORS[hash % DIE_COLORS.length] }
+}
+
+/**
+ * A regra aberta no drawer, como referência para a mesa (`services/tableShare.ts`):
+ * tipo, nome e rank. Da magia vai a CD e o ataque de quem conjura, sem a conta.
+ */
+export function shareRule(who: RollerIdentity, req: DescriptionRequest): TableShare {
+    const share: TableShare = {
+        id: newRollId(),
+        at: Date.now(),
+        by: who.by,
+        slug: who.slug,
+        color: who.color,
+        type: req.type,
+        name: req.name,
+    }
+    if ((req.type === 'feat' || req.type === 'spell') && req.level != null) share.level = req.level
+    if (req.type === 'spell' && req.caster) {
+        const { name, dc, attack, tradition } = req.caster
+        share.caster = { name, dc, attack, tradition }
+    }
+    return share
 }
 
 const sum = (parts: CheckPart[]) => parts.reduce((s, p) => s + p.value, 0)

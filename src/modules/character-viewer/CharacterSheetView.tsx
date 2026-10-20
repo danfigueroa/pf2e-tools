@@ -33,6 +33,8 @@ import type { GuideSlot, PublicationApi } from './components/usePublication'
 import { curatedBase } from './combatGuides'
 import { CharacterHeader } from './components/CharacterHeader'
 import { DescriptionDrawer, type DescriptionRequest } from './components/DescriptionDrawer'
+import { postShare } from '../../services/rolls'
+import { rollerIdentity, shareRule } from './rolls'
 import { RollDialog, type RollRequest } from './components/RollDialog'
 import { ConditionsBar } from './components/ConditionsBar'
 import { AfflictionsBar } from './components/AfflictionsBar'
@@ -320,6 +322,10 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
         onGenerate: () => { if (published) void generateGuide(published, curatedBase(build)) },
     }), [published, guideStatus, guideError, generateGuide, build])
     const closeDrawer = useCallback(() => setDrawerReq(null), [])
+    const shareDrawer = useCallback(
+        (req: DescriptionRequest) => postShare(shareRule(rollerIdentity(build), req)),
+        [build],
+    )
     const closeRoll = useCallback(() => setRollReq(null), [])
 
     const visibleSections = SECTIONS.filter(s => !s.visible || s.visible(build))
@@ -452,6 +458,7 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
                 onClose={closeDrawer}
                 onNavigate={setDrawerReq}
                 onRoll={setRollReq}
+                onShare={shareDrawer}
             />
             <RollDialog
                 request={rollReq}

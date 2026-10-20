@@ -10,8 +10,16 @@ import {
     Link,
     Stack,
     Divider,
+    Tooltip,
 } from '@mui/material'
-import { Close as CloseIcon, OpenInNew as ExternalIcon, MenuBook as BookIcon, Casino as DiceIcon } from '@mui/icons-material'
+import {
+    Close as CloseIcon,
+    OpenInNew as ExternalIcon,
+    MenuBook as BookIcon,
+    Casino as DiceIcon,
+    Share as ShareIcon,
+    Check as CheckIcon,
+} from '@mui/icons-material'
 import {
     fetchFeatDescription,
     fetchSpecialDescription,
@@ -76,6 +84,8 @@ export interface DescriptionContentProps {
      * a página só precisa reapontar o estado.
      */
     onNavigate?: (req: DescriptionRequest) => void
+    /** Compartilha a regra com a mesa; `false` quando não deu. */
+    onShare?: (req: DescriptionRequest) => Promise<boolean>
 }
 
 interface State {
@@ -98,7 +108,7 @@ const TYPE_ACCENT: Record<DescriptionRequest['type'], string> = PALETTE_TYPE_ACC
  * O conteúdo da descrição (carga, heightening e o texto), sem a gaveta: o
  * drawer da ficha e o cartão da regra compartilhada com a mesa desenham o mesmo.
  */
-export const DescriptionContent = ({ request, onClose, onNavigate, onRoll }: DescriptionContentProps) => {
+export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onShare }: DescriptionContentProps) => {
     const [state, setState] = useState<State>({ loading: false })
 
     useEffect(() => {
@@ -264,9 +274,15 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll }: Des
                             )}
                         </Typography>
                     </Box>
-                    <IconButton onClick={onClose} size="small">
-                        <CloseIcon />
-                    </IconButton>
+                    <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
+                        {/* Só o que a AON resolveu: um nome sem descrição chegaria vazio à mesa. */}
+                        {onShare && !state.loading && (state.spell || state.entry) && (
+                            <ShareButton key={request.name} onShare={() => onShare(request)} />
+                        )}
+                        <IconButton onClick={onClose} size="small" aria-label="Fechar">
+                            <CloseIcon />
+                        </IconButton>
+                    </Stack>
                 </Stack>
 
                 {/* Bloco de fonte */}
@@ -434,6 +450,43 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll }: Des
                 </Link>
             </Box>
         </Box>
+    )
+}
+
+type ShareStatus = 'idle' | 'sending' | 'done' | 'failed'
+
+const SHARE_LABEL: Record<ShareStatus, string> = {
+    idle: 'Compartilhar com a mesa',
+    sending: 'Compartilhando…',
+    done: 'Compartilhado com a mesa',
+    failed: 'Não deu para compartilhar — tente de novo',
+}
+
+// O ✓ fica uns segundos: confirma, e segura o toque duplo que mandaria duas vezes.
+const ShareButton = ({ onShare }: { onShare: () => Promise<boolean> }) => {
+    const [status, setStatus] = useState<ShareStatus>('idle')
+    useEffect(() => {
+        if (status !== 'done' && status !== 'failed') return
+        const t = setTimeout(() => setStatus('idle'), 3000)
+        return () => clearTimeout(t)
+    }, [status])
+    const label = SHARE_LABEL[status]
+    return (
+        <Tooltip title={label}>
+            <span>
+                <IconButton
+                    size="small"
+                    aria-label={label}
+                    disabled={status === 'sending' || status === 'done'}
+                    onClick={async () => {
+                        setStatus('sending')
+                        setStatus((await onShare()) ? 'done' : 'failed')
+                    }}
+                >
+                    {status === 'done' ? <CheckIcon color="success" /> : <ShareIcon color={status === 'failed' ? 'error' : 'inherit'} />}
+                </IconButton>
+            </span>
+        </Tooltip>
     )
 }
 
