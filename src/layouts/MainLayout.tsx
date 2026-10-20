@@ -30,6 +30,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { green, gold, parchment } from '../theme';
 import { RollFeedLayer, RollHistoryDrawer } from '../components/RollFeed';
 import { SharedRuleLayer } from '../components/SharedRuleLayer';
+import { MesaSwitcher } from '../components/MesaSwitcher';
 
 const drawerWidth = 260;
 
@@ -131,6 +132,7 @@ export const MainLayout = () => {
             opacity: 0.7,
           }}
         />
+        <MesaSwitcher />
       </Box>
 
       {/* Navegação */}
