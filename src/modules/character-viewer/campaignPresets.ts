@@ -1,5 +1,6 @@
 import { fetchPublished, type PublishedSheet } from '../../services/sheets'
 import { charSlugFromName } from './charId'
+import { currentMesa } from '../../services/mesa'
 
 export interface CharacterPreset {
     /** Rótulo curto dos cards e botões — e o nome do combatente na Iniciativa. */
@@ -15,14 +16,25 @@ export interface CharacterPreset {
     filename: string
 }
 
-export const CAMPAIGN_PRESETS: CharacterPreset[] = [
+/**
+ * Os personagens fixos de cada mesa (`services/mesa.ts`). Trocar de mesa
+ * recarrega a página, então `CAMPAIGN_PRESETS` já é a lista da mesa aberta e
+ * quem a lê (Ficha Virtual, Iniciativa, Transformação, painel do mapa) não
+ * precisa saber de mesa nenhuma.
+ */
+export const PRESETS_BY_MESA: Record<string, CharacterPreset[]> = {
+  principal: [
     { name: 'Brukuthur', sheetName: 'Brukuthur, The Barbarian Android', class: 'Bárbaro',     level: 10, filename: 'brukuthur10.json'           },
     { name: 'Ceros',     sheetName: 'Cerosqualhanthallas',              class: 'Patrulheiro', level: 10, filename: 'cerosqualhanthallas10.json' },
     { name: 'Eldarion',  sheetName: 'Eldarion',                         class: 'Ladino',      level: 10, filename: 'eldarion10.json'            },
     { name: 'Ghan Buri', sheetName: 'Ghan Buri',                        class: 'Guerreiro',   level: 10, filename: 'ghanburi10.json'            },
     { name: 'Nathaniel', sheetName: 'Nathaniel o Magus',                class: 'Magus',       level: 10, filename: 'nathaniel10.json'           },
     { name: 'Thalos',    sheetName: 'Thalos Alba',                      class: 'Psíquico',    level: 10, filename: 'thalos10.json'              },
-]
+  ],
+  'mesa-2': [],
+}
+
+export const CAMPAIGN_PRESETS: CharacterPreset[] = PRESETS_BY_MESA[currentMesa.id] ?? []
 
 /**
  * O JSON do personagem da campanha: a versão PUBLICADA pela mesa, se alguém já
