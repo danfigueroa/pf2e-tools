@@ -1304,11 +1304,15 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
   pedido, uma ida e volta inteira a mais até a tela. Os contadores são lidos ANTES dos dados em
   `readMap`: na ordem inversa, uma escrita entre as duas leituras ficava invisível até a próxima.
   - Três marchas: **rajada de 700 ms por 5 s** depois de qualquer mudança (daqui ou de fora — na
-    mesa uma ação puxa a seguinte), 1,5 s com atividade no último minuto, 4 s parado, **nada com a
-    aba oculta**. A rajada é o número a mexer com cuidado: cada poll é um comando no Upstash (free:
+    mesa uma ação puxa a seguinte), 1,5 s com atividade no último minuto, 2 s parado, **nada com a
+    aba oculta**. Rolagem ou regra compartilhada nova (o `rollsRev` que vem de carona) também conta
+    como atividade — põe na marcha de 1,5 s, sem rajada e sem baixar o mapa —, senão quem estava no
+    mapa via o cartão até 4 s depois de quem estava na ficha. O parado era 4 s e caiu para 2 s porque
+    a mesa joga 1–2 vezes por mês e a cota tem folga (decisão do usuário). A rajada é o número a mexer com cuidado: cada poll é um comando no Upstash (free:
     500 mil/mês), e em combate as mudanças vêm a cada poucos segundos. 600 ms com janela de 8 s
     deixava os aparelhos na rajada o tempo todo, ~2,5× o gasto, e estourava a cota com uma sessão
-    por semana. Hoje, ordem de grandeza: 6 aparelhos × 4 h ≈ 60–90 mil comandos por sessão.
+    por semana. Hoje, ordem de grandeza: 6 aparelhos × 4 h ≈ 80–130 mil comandos por sessão — na
+    prática o mapa é desktop e fica em 1–2 aparelhos, e quem está nele não faz o poll do feed.
   - Medido em localhost, do clique num aparelho até a tela do outro (antes → depois): rolagem e
     token em sequência ~0,86 s → ~0,5 s; token depois de uma pausa ~1,1 s → ~0,4 s. Em produção
     soma a rede, e a resposta única economiza ali uma ida e volta a mais.
