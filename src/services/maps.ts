@@ -216,6 +216,8 @@ interface Entry {
      * o hash inteiro para ouvir "privado" de novo.
      */
     hiddenRevs: { rev: number; tableRev: number } | null
+    /** Último contador do feed de rolagens visto aqui (vem de carona no `mapRev`). */
+    rollsRev: number | null
 }
 
 const entries = new Map<string, Entry>()
@@ -239,6 +241,7 @@ function entryFor(id: string): Entry {
             loading: null,
             gm: false,
             hiddenRevs: null,
+            rollsRev: null,
         }
         entries.set(id, entry)
     }
@@ -320,7 +323,9 @@ export function loadMap(id: string): Promise<void> {
  * - RAJADA (700 ms) por 5 s depois de qualquer mudança, daqui ou de fora: na
  *   mesa uma ação puxa a seguinte (rola o ataque, move o token, aplica o dano),
  *   e é nessa hora que a demora aparece;
- * - RÁPIDO (1,5 s) enquanto houve mudança no último minuto;
+ * - RÁPIDO (1,5 s) enquanto houve mudança no último minuto — inclusive rolagem
+ *   ou regra compartilhada nova, que não baixa o mapa mas é a mesa em ação: sem
+ *   isso, quem está no mapa via o cartão até 4 s depois dos outros;
  * - LENTO (2 s) com a mesa parada. Era 4 s; a mesa joga 1–2 vezes por mês e a
  *   cota tem folga, e o primeiro movimento depois de uma pausa demorava.
  *
@@ -365,6 +370,11 @@ async function poll(entry: Entry) {
         }>(`mapRev=${encodeURIComponent(entry.id)}${known}${gmParam(entry)}`)
         // O feed de rolagens lê o contador daqui e pausa o poll próprio.
         noteRollsRev(revs.rollsRev)
+        if (typeof revs.rollsRev === 'number') {
+            // Rolagem nova: marcha rápida, sem rajada nem download do mapa.
+            if (entry.rollsRev !== null && revs.rollsRev !== entry.rollsRev) entry.lastChange = Date.now()
+            entry.rollsRev = revs.rollsRev
+        }
         if (revs.map) {
             applyMap(entry, revs.map)
             burst(entry)
