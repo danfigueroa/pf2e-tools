@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { announceSheet } from '../../services/presence'
 import {
     Alert,
     Box,
@@ -290,6 +291,8 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
     const descriptionNames = useMemo(() => characterDescriptionNames(build), [build])
     const isPublished = !!published
     useEffect(() => { void loadDescriptionBundle(slug) }, [slug])
+    // Quem está na mesa vê que esta ficha está aberta (sidebar).
+    useEffect(() => announceSheet(slug, build.name), [slug, build.name])
     useEffect(() => {
         if (isPublished) void loadSheetDescriptions(slug, descriptionNames)
     }, [slug, descriptionNames, isPublished])
