@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useSharedState } from './useSharedState'
-import { pullField, splitSyncKey } from '../../../services/tableState'
+import { isLive, pullField, splitSyncKey } from '../../../services/tableState'
 import type { ConditionModifiers } from '../conditions'
 import {
     NO_ACTIONS,
@@ -17,7 +17,10 @@ import {
     type ActionsStored,
 } from '../actions'
 
-/** O poll leve do `actions`: 1 comando no servidor a cada tanto, só com a aba visível. */
+/**
+ * O poll leve do `actions`: 1 consulta no servidor a cada tanto, só com a aba
+ * visível — e só com o Realtime fora do ar, que de resto entrega a mudança sozinho.
+ */
 const POLL_MS = 5000
 
 /**
@@ -82,7 +85,7 @@ export function useActions(syncKey: string, mods: ConditionModifiers, poll = fal
         if (!poll) return
         const { slug } = splitSyncKey(syncKey)
         if (!slug) return
-        const tick = () => { if (document.visibilityState === 'visible') void pullField(slug, 'actions') }
+        const tick = () => { if (document.visibilityState === 'visible' && !isLive()) void pullField(slug, 'actions') }
         const id = setInterval(tick, POLL_MS)
         return () => clearInterval(id)
     }, [poll, syncKey])

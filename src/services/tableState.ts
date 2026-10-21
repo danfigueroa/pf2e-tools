@@ -2,14 +2,20 @@
 //
 // O backend (`/api/state`) é a fonte da verdade; o `localStorage` fica como
 // cache — pinta a ficha instantaneamente e mantém tudo funcionando quando não
-// há Redis configurado ou a rede cai. Um personagem é lido de uma vez só
-// (HGETALL) e gravado fatia a fatia, para dois jogadores editando coisas
-// diferentes não se sobrescreverem.
+// há banco configurado ou a rede cai. Um personagem é lido de uma vez só e
+// gravado fatia a fatia, para dois jogadores editando coisas diferentes não se
+// sobrescreverem.
 //
-// A sincronia é sob demanda: puxa ao abrir a ficha e no botão "Atualizar".
-// Não há polling nem conexão persistente.
+// Leitura ao abrir a ficha e, depois, EM TEMPO REAL: cada escrita no banco é
+// transmitida pelo Realtime do Supabase (canal privado `mesa:<mesa>:state`, por
+// um trigger) e chega aqui já com o valor novo — o dano que o GM dá na
+// Iniciativa aparece na ficha do jogador sozinho. Escrever continua sendo pelo
+// `/api/state`: o servidor é o único que grava, com as validações de sempre.
+// Sem Supabase (ou com o canal caído) o app volta ao de antes: sob demanda, com
+// o botão "Atualizar".
 
-import { mesaKey, stateApi } from './mesa'
+import { currentMesa, mesaKey, stateApi } from './mesa'
+import { authHeaderNow, currentUserId, getSupabase } from './supabase'
 
 const CACHE_PREFIX = mesaKey('pf2e:table:v1:')
 
@@ -22,8 +28,10 @@ export interface SyncStatus {
     phase: SyncPhase
     /** Última leitura bem-sucedida do servidor. */
     lastSyncedAt: number | null
-    /** false = backend sem Redis: o estado não sai deste aparelho. */
+    /** false = backend sem banco: o estado não sai deste aparelho. */
     storeReady: boolean
+    /** O canal do Realtime está aberto: a mesa chega sozinha, sem "Atualizar". */
+    live: boolean
 }
 
 /** Divide `"<slug>/<campo>"`. O campo pode conter `/`? Não — corta no primeiro. */
@@ -56,7 +64,7 @@ export function writeLocal(slug: string, field: string, data: unknown): void {
 
 // --- Status ----------------------------------------------------------------
 
-let status: SyncStatus = { phase: 'idle', lastSyncedAt: null, storeReady: true }
+let status: SyncStatus = { phase: 'idle', lastSyncedAt: null, storeReady: true, live: false }
 const statusListeners = new Set<(s: SyncStatus) => void>()
 
 export const getStatus = (): SyncStatus => status
@@ -127,19 +135,27 @@ export function loadCharacter(slug: string, force = false): Promise<Snapshot> {
     }
 
     setStatus({ phase: 'loading' })
+    startRealtime()
 
     const promise = (async (): Promise<Snapshot> => {
         try {
             const r = await fetch(stateApi(`?char=${encodeURIComponent(slug)}`))
             if (!r.ok) throw new Error(String(r.status))
             const body = await r.json() as {
-                fields?: Record<string, { data: unknown }>
+                fields?: Record<string, { data: unknown; updatedAt?: number }>
                 storeReady?: boolean
             }
             const snapshot: Snapshot = {}
             Object.entries(body.fields ?? {}).forEach(([field, entry]) => {
                 snapshot[field] = entry?.data
+                noteSeen(`${slug}/${field}`, entry?.updatedAt)
             })
+            // O que este aparelho editou e ainda não subiu é mais novo que o
+            // servidor: sem isso, uma releitura no meio da edição (a reconexão
+            // do Realtime, o "Atualizar") desfaria na tela o que vai ser gravado.
+            for (const entry of pending.values()) {
+                if (entry.slug === slug) snapshot[entry.field] = entry.data
+            }
             publishSnapshot(slug, snapshot)
             setStatus({
                 phase: 'idle',
@@ -231,11 +247,14 @@ async function flush(id: string): Promise<void> {
     try {
         const r = await fetch(stateApi(), {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaderNow() },
             body: JSON.stringify({ char: entry.slug, field: entry.field, data: entry.data }),
         })
         if (!r.ok) throw new Error(String(r.status))
-        const body = await r.json() as { storeReady?: boolean }
+        const body = await r.json() as { storeReady?: boolean; updatedAt?: number }
+        // A transmissão desta escrita (ou de uma anterior, atrasada) não pode
+        // voltar a tela para trás.
+        noteSeen(id, body.updatedAt)
         // Só descarta o pendente se ainda for o valor que subiu: uma edição
         // durante a requisição precisa continuar na fila.
         if (pending.get(id) === entry) pending.delete(id)
@@ -253,4 +272,78 @@ async function flush(id: string): Promise<void> {
 /** Reenvia o que ficou pendente por falha de rede. */
 export async function flushPending(): Promise<void> {
     await Promise.all(Array.from(pending.keys()).map((id) => flush(id)))
+}
+
+// --- Tempo real ------------------------------------------------------------
+
+/** O `updatedAt` mais novo conhecido de cada fatia (`slug/campo`). */
+const lastSeen = new Map<string, number>()
+
+function noteSeen(id: string, updatedAt: number | undefined) {
+    if (typeof updatedAt === 'number' && updatedAt > (lastSeen.get(id) ?? 0)) lastSeen.set(id, updatedAt)
+}
+
+/** O canal está aberto — quem faz poll (as ações do turno) pode parar. */
+export const isLive = (): boolean => status.live
+
+interface StateMessage { slug?: unknown; field?: unknown; data?: unknown; updatedAt?: unknown; by?: unknown }
+
+/**
+ * Uma escrita de outro aparelho, como o banco a transmitiu. Mesmas regras do
+ * `pullField`: nunca atropela uma escrita local na fila, e nada mais velho que o
+ * que já se tem entra.
+ */
+function applyRemote(msg: StateMessage) {
+    const { slug, field, data, updatedAt, by } = msg
+    if (typeof slug !== 'string' || typeof field !== 'string' || typeof updatedAt !== 'number') return
+    if (data === undefined || data === null) return
+    // O eco da própria escrita: a tela já mostra isso (e talvez algo mais novo).
+    if (typeof by === 'string' && by === currentUserId()) return
+    const id = `${slug}/${field}`
+    if (pending.has(id)) return
+    if (updatedAt <= (lastSeen.get(id) ?? 0)) return
+    lastSeen.set(id, updatedAt)
+    if (JSON.stringify(readLocal(slug, field)) === JSON.stringify(data)) return
+    writeLocal(slug, field, data)
+    const snapshot = snapshots.get(slug)
+    if (snapshot) snapshot[field] = data
+    // Um snapshot PARCIAL: os hooks de cada fatia ignoram os campos ausentes.
+    snapshotListeners.get(slug)?.forEach((l) => l({ [field]: data }))
+}
+
+/** Relê os personagens abertos — o que mudou enquanto o canal estava fechado. */
+function resync() {
+    for (const slug of snapshots.keys()) void loadCharacter(slug, true)
+}
+
+let realtimeStarted = false
+let hiddenSince: number | null = null
+
+/**
+ * Abre o canal da mesa uma vez, na primeira leitura de personagem. A cada
+ * SUBSCRIBED — o primeiro e cada reconexão — relê os abertos (um GET por
+ * personagem): transmissão perdida com o canal fechado não volta sozinha.
+ */
+function startRealtime() {
+    if (realtimeStarted || typeof window === 'undefined') return
+    realtimeStarted = true
+    void getSupabase().then((client) => {
+        if (!client) { realtimeStarted = false; return }
+        client
+            .channel(`mesa:${currentMesa.id}:state`, { config: { private: true } })
+            .on('broadcast', { event: 'state' }, ({ payload }) => applyRemote(payload as StateMessage))
+            .subscribe((state) => {
+                const live = state === 'SUBSCRIBED'
+                if (live !== status.live) setStatus({ live })
+                // Inclusive a primeira: no celular o SDK pode chegar segundos
+                // depois da leitura, e o que mudou nesse meio não seria visto.
+                if (live) resync()
+            })
+    })
+    // Celular que volta do bolso: o socket pode ter morrido sem avisar ainda.
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') { hiddenSince = Date.now(); return }
+        if (hiddenSince !== null && Date.now() - hiddenSince > 10_000) resync()
+        hiddenSince = null
+    })
 }

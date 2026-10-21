@@ -6,7 +6,7 @@ import { getStatus, refresh, subscribeStatus } from '../../../services/tableStat
 import { charSlug } from '../charId'
 import type { BuildInfo } from '../../character-sheet/types'
 
-/** Estado da sincronia com a mesa, sem polling de rede. */
+/** Estado da sincronia com a mesa (o Realtime avisa; nada de polling aqui). */
 const useSyncStatus = () => useSyncExternalStore(subscribeStatus, getStatus, getStatus)
 
 /** "agora", "há 2 min", "há 1 h" — sem dependência de biblioteca de datas. */
@@ -23,8 +23,9 @@ interface Props {
 }
 
 /**
- * Botão "Atualizar" + indicador. A sincronia é sob demanda: puxa ao abrir a
- * ficha e aqui — nada de polling nem conexão persistente.
+ * Indicador da sincronia + botão "Atualizar". Com o Realtime aberto ("Ao vivo")
+ * a mesa chega sozinha e o botão some; sem ele, a sincronia volta a ser sob
+ * demanda — ao abrir a ficha e aqui.
  */
 export const SyncStatus = ({ build }: Props) => {
     const sync = useSyncStatus()
@@ -67,6 +68,10 @@ export const SyncStatus = ({ build }: Props) => {
         label = 'Salvando…'
         tone = gold.deep
         hint = 'Enviando a alteração para a mesa.'
+    } else if (sync.live) {
+        label = 'Ao vivo'
+        tone = statusColor.success
+        hint = 'PV, slots e condições são os mesmos para todos os jogadores, e o que mudar em outro aparelho aparece aqui na hora.'
     } else if (sync.lastSyncedAt) {
         label = `Sincronizado ${agoLabel(sync.lastSyncedAt, now)}`
         tone = gold.deep
@@ -79,16 +84,18 @@ export const SyncStatus = ({ build }: Props) => {
 
     return (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-            <Button
-                variant="outlined"
-                size="small"
-                startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <SyncIcon />}
-                onClick={handleRefresh}
-                disabled={loading}
-                sx={{ flexShrink: 0 }}
-            >
-                Atualizar
-            </Button>
+            {!sync.live && (
+                <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <SyncIcon />}
+                    onClick={handleRefresh}
+                    disabled={loading}
+                    sx={{ flexShrink: 0 }}
+                >
+                    Atualizar
+                </Button>
+            )}
             <Tooltip title={hint} enterDelay={400}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
                     {(offline || !sync.storeReady) && (
