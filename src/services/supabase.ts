@@ -12,8 +12,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { currentMesa } from './mesa'
 
-const URL = import.meta.env.VITE_SUPABASE_URL as string | undefined
-const KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined
+// Fora do Vite (os scripts de conferência carregam estes módulos no Node) não
+// há `import.meta.env`: aí o Supabase simplesmente não está configurado.
+const env = (import.meta.env ?? {}) as Partial<ImportMetaEnv>
+const URL = env.VITE_SUPABASE_URL as string | undefined
+const KEY = env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined
 
 /** Sem as variáveis o app segue como antes: sem sessão, sem tempo real. */
 export const isSupabaseConfigured = Boolean(URL && KEY)
