@@ -42,6 +42,7 @@
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { supabase } from './supabase.js'
+import { sameJson } from './json.js'
 import { resolveSpells } from './spells-core.js'
 import { resolveFeats, resolveSpecials } from './feat-core.js'
 
@@ -320,7 +321,7 @@ export async function buildSheetDescriptions(mesa, slug, names, version) {
       }
     }
 
-    if (!sameVersion || JSON.stringify(set.names) !== JSON.stringify(nextNames)) {
+    if (!sameVersion || !sameJson(set.names, nextNames)) {
       await db.writeSet(mesa, slug, version, nextNames)
     }
 
