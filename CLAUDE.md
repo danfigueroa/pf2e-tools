@@ -573,7 +573,15 @@ botão da lista. Hoje (`spellCast.ts` + `components/useSpellCast.ts`) toda conju
 - O Spellstrike já paga a magia (slot/ponto, e as 2 ações são do Golpe) e registra o crédito, então marcar o slot depois não
   duplica. O psi cantrip (Amplificar) paga o ponto de foco só ao amplificar. Truque não tem marcação: o botão do drawer é
   o único caminho. Os pips do CABEÇALHO do espontâneo continuam sendo bookkeeping (não sabem qual magia foi).
-- `check-rolls` cobre `castTimeOf` e o casamento.
+- **O que a conjuração faz na economia do Magus** (`useSpellCast`, nos dois caminhos — rolar e marcar):
+  - **Magia de confluência** (traços Focus + Magus: Dimensional Assault, Force Fang, Shielding Strike, Runic Impression)
+    com 1 ação ou mais **recarrega o Spellstrike**; magia de foco de outro tipo (Hand of the Apprentice) não.
+  - **Magia que inclui um Golpe** (`STRIKE_SPELLS`: Dimensional Assault, Shielding Strike — texto conferido na AON) deixa
+    o Golpe pago (`prepayStrike`), como as atividades do "Usar": rolar esse Golpe na aba de Combate não cobra ação.
+  - **Magia estudiosa** (`isStudiousSpell`, pelos `specials` "Studious Spell: Blur"): o diálogo da magia oferece entrar na
+    **Arcane Cascade como ação livre** (chip ligado por padrão); fora dele, a postura custa 1 ação.
+  - Auditado com navegador nas magias do Loki (ações, slot, foco e Spellstrike lidos do banco depois de cada conjuração).
+- `check-rolls` cobre `castTimeOf`, o casamento e a economia do Magus acima.
 
 ## Atividades, reações e Pontos Míticos
 
@@ -962,8 +970,16 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   acima. No diálogo da magia, o chip "Amplificar · 1 Ponto de Foco" TROCA o dano normal pelo do amp
   (Frostbite 3d4+2d4/rank, Ignition d10/d12 com o persistente do crítico, Redistribute 6d6+2d6/rank
   em frio OU fogo) e o ponto sai ao rolar, da mesma fatia `slots` da aba (as instâncias se enxergam).
-  Efeito sem número (PV temporários, respingo, fraqueza, motes) vira nota. Só a Oscillating Wave está
-  catalogada; outro conscious mind é uma entrada nova.
+  Efeito sem número (PV temporários, respingo, fraqueza, motes) vira nota. Catalogados: a Oscillating Wave (Thalos) e, da
+  The Tangible Dream, o **Imaginary Weapon** (2d6 por rank amplificado: 8d6 no 4º) e o **Shield** (camadas; Dureza ×1,5 e
+  ×2 ao quebrar duas ou três). Outro conscious mind é uma entrada nova; "Shield (Archetype)" casa com "Shield".
+  - **Quem amplifica** (`canAmpPsiCantrips`): o Psíquico, e o arquétipo com o **Psi Development** — no Dark Archive
+    (Remastered) a dedicação dá o truque SEM o amp. Os psi cantrips do arquétipo são "occult psychic spells", então o
+    `focusCasterInfo` os marca `psychic` (o Loki); a psique e a Conservation of Energy continuam exigindo o que exigiam.
+  - **Truque de foco não gasta Ponto de Foco ao conjurar** (`FocusSpellEntry.cantrip`, de `focusCantrips`); só o amp gasta.
+    Antes, todo item de foco cobrava o ponto, menos os psi cantrips catalogados do Psíquico — o Imaginary Weapon do Loki
+    cobrava a cada conjuração. No "Conjurar" (o Shield não tem o que rolar), o ponto do amp sai ANTES de o diálogo fechar:
+    também já foi bug.
 - **Conservation of Energy** (`energy.ts` + `components/useEnergy.ts` + `EnergyBar.tsx`), para quem tem
   "The Oscillating Wave": campo `energy` da mesa guarda a ÚLTIMA escolha (`add`/`remove`, ausente =
   neutro). Nas magias concedidas e em Frostbite/Ignition o diálogo oferece Adicionar (fogo) / Remover
@@ -988,6 +1004,13 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     SALVAGUARDA não dobra (o alvo rola a dele). `spellstrikeRoll` (`rolls.ts`) soma as parcelas num `TableRoll`
     só. Escolhida a magia e ainda não pronta (buscando, sem slot), o botão de rolar fica desabilitado:
     rolar sem ela em silêncio enganaria. Só vale em Golpe corpo a corpo.
+    Entram também os **truques de foco** (`build.focus`, fora dos blocos — o Imaginary Weapon do arquétipo de Psíquico),
+    em "Truques de foco", com a CD do grupo de foco (`option.focus.dc`, `casterIndex` −1); psi cantrip que dá para
+    amplificar ganha o chip "Amplificar · 1 Ponto de Foco", que troca o dano pelo do amp (só no alvo do Golpe) e gasta
+    o ponto ao rolar.
+  - **Laughing Shadow** (`hasLaughingShadow`/`withLaughingShadow`): em Arcane Cascade, o chip do diálogo do Golpe "alvo
+    desprevenido, outra mão livre" leva o dano da postura a 3 / **5 com Weapon Specialization** / 7 com a Greater
+    (Impossible Magic pg. 13). O app não sabe do alvo nem da mão, e o chip não fica lembrado (é da situação).
   - **Summon Mythic Power** (1×/dia, +1 Ponto Mítico) e **Divert Destiny** (reação: gasta 1 ponto, PV =
     10 + nível limitado ao máximo, zera ferido e morrendo, não mexe em condenado, com confirmação) valem
     para QUALQUER personagem mítico que tenha o talento — Brukuthur, Ghan Buri etc. também têm, e a faixa
