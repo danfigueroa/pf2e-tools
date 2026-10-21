@@ -31,8 +31,10 @@ export const PRESETS_BY_MESA: Record<string, CharacterPreset[]> = {
     { name: 'Nathaniel', sheetName: 'Nathaniel o Magus',                class: 'Magus',       level: 10, filename: 'nathaniel10.json'           },
     { name: 'Thalos',    sheetName: 'Thalos Alba',                      class: 'Psíquico',    level: 10, filename: 'thalos10.json'              },
   ],
-  // Os JSONs dos personagens ainda vão chegar; até lá, só as fichas publicadas pela mesa.
-  'arton-1515': [],
+  // Os outros JSONs ainda vão chegar; até lá, também as fichas publicadas pela mesa.
+  'arton-1515': [
+    { name: 'Loki', sheetName: 'Loki', class: 'Magus', level: 7, filename: 'loki7.json' },
+  ],
 }
 
 export const CAMPAIGN_PRESETS: CharacterPreset[] = PRESETS_BY_MESA[currentMesa.id] ?? []
