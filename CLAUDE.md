@@ -495,7 +495,7 @@ abrir o site entra na mesma mesa (a do aparelho — ver "Mesas").
   personagem —, teto de 64 KB, e o **histórico** (até 30 versões por ficha, cada uma com o guia dela) é a salvaguarda
   de não haver login. Publicar e restaurar são funções do banco (`publish_sheet`, `restore_sheet`) com a linha
   travada; restaurar tira a versão do histórico e põe a atual no lugar, então restaurar de novo desfaz. O cliente
-  ainda só mostra a versão anterior (`previous`); a linha do tempo inteira é a fase das funcionalidades novas.
+  mostra só a versão anterior (`previous`), de propósito: a linha do tempo completa foi descartada (decisão do usuário).
 
 ## Ações do turno
 
