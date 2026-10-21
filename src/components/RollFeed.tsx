@@ -1,5 +1,6 @@
 import { memo, useEffect, useRef, useState } from 'react'
-import { Box, Chip, Divider, Drawer, IconButton, Stack, Typography } from '@mui/material'
+import { Box, Button, Chip, Divider, Drawer, IconButton, Stack, Typography } from '@mui/material'
+import { useNavigate } from 'react-router-dom'
 import { Close as CloseIcon } from '@mui/icons-material'
 import { DiceTray } from '../motion/DiceTray'
 import { gold, mapChrome, MYTHIC_COLOR, MYTHIC_ON_DARK, parchment } from '../theme'
@@ -218,8 +219,8 @@ export const RollFeedLayer = memo(function RollFeedLayer() {
 const timeOf = (at: number) =>
     at ? new Date(at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : ''
 
-/** Uma linha do histórico: sem animação, com a conta inteira. */
-const HistoryRow = ({ roll }: { roll: TableRoll }) => (
+/** Uma linha do histórico: sem animação, com a conta inteira. Também a do diário da sessão. */
+export const HistoryRow = ({ roll }: { roll: TableRoll }) => (
     <Box sx={{ py: 1.25 }}>
         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, flexWrap: 'wrap' }}>
             <Typography sx={{ fontWeight: 700 }}>{roll.by || 'Alguém'}</Typography>
@@ -283,6 +284,7 @@ const HistoryRow = ({ roll }: { roll: TableRoll }) => (
 /** As últimas rolagens da mesa, para conferir depois que o cartão sumiu. */
 export const RollHistoryDrawer = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
     const { rolls, ready } = useTableRolls()
+    const navigate = useNavigate()
     return (
         <Drawer anchor="right" open={open} onClose={onClose} PaperProps={{ sx: { width: 'min(400px, 100vw)' } }}>
             <Box sx={{ display: 'flex', alignItems: 'center', px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
@@ -299,6 +301,9 @@ export const RollHistoryDrawer = ({ open, onClose }: { open: boolean; onClose: (
                         {rolls.map((r) => <HistoryRow key={r.id} roll={r} />)}
                     </Stack>
                 )}
+                <Button fullWidth sx={{ my: 1.5 }} onClick={() => { onClose(); navigate('/diario') }}>
+                    Ver o diário da sessão
+                </Button>
             </Box>
         </Drawer>
     )

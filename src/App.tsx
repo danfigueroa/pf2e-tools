@@ -21,6 +21,8 @@ const TransformationPage = lazy(() =>
 const MonsterScalerPage = lazy(() =>
   import('./modules/monster-scaler/MonsterScalerPage').then((m) => ({ default: m.MonsterScalerPage })));
 const BattleMapPage = lazy(() => import('./modules/battle-map/BattleMapPage'));
+const SessionDiaryPage = lazy(() =>
+  import('./modules/session-diary/SessionDiaryPage').then((m) => ({ default: m.SessionDiaryPage })));
 
 const page = (element: React.ReactNode) => <Suspense fallback={null}>{element}</Suspense>;
 
@@ -40,6 +42,7 @@ function App() {
             <Route path="transformation" element={page(<TransformationPage />)} />
             <Route path="escalar-monstro" element={page(<MonsterScalerPage />)} />
             <Route path="mapa/:id?" element={page(<BattleMapPage />)} />
+            <Route path="diario" element={page(<SessionDiaryPage />)} />
           </Route>
         </Routes>
       </Router>
