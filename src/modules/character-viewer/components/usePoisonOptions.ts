@@ -4,6 +4,7 @@ import { fetchItemTraits, type ItemTraits } from '../../../services/itemTraits'
 import { consumedKeyFor } from '../charId'
 import { SIMPLE_POISON, isApplicablePoison, isSimplePoison, simpleDoses, simplePoisonDice } from '../rogue'
 import { useConsumables } from './useConsumables'
+import { useGifts } from './useGifts'
 import type { RogueApi } from './useRogue'
 
 export interface PoisonOption {
@@ -21,10 +22,13 @@ export interface PoisonOption {
  */
 export function usePoisonOptions(build: BuildInfo, rogue: RogueApi, enabled = true) {
     const consumables = useConsumables(consumedKeyFor(build))
+    // O veneno que um colega passou também serve (e o que foi passado adiante, não).
+    const { rows } = useGifts(build)
     const [traits, setTraits] = useState<Record<string, ItemTraits | null>>({})
     const [choice, setChoice] = useState('')
 
-    const names = useMemo(() => (build.equipment ?? []).map(([name]) => name), [build.equipment])
+    const equipment = useMemo(() => rows.filter((r) => r.equipment), [rows])
+    const names = useMemo(() => equipment.map((r) => r.name), [equipment])
     useEffect(() => {
         if (!enabled || names.length === 0) return
         let cancelled = false
@@ -32,9 +36,15 @@ export function usePoisonOptions(build: BuildInfo, rogue: RogueApi, enabled = tr
         return () => { cancelled = true }
     }, [enabled, names])
 
-    const inventory = (build.equipment ?? [])
-        .filter(([name]) => isApplicablePoison(traits[name]))
-        .map(([name, qty]) => ({ name, qty, left: consumables.remaining(name, qty) }))
+    const inventory = equipment
+        .filter((r) => isApplicablePoison(traits[r.name]))
+        .map((r) => ({
+            name: r.name,
+            sheetQty: r.sheetQty,
+            extra: r.qty - r.sheetQty,
+            qty: r.qty,
+            left: consumables.remaining(r.name, r.sheetQty, r.qty - r.sheetQty),
+        }))
         .filter((o) => o.left > 0)
 
     const dose = simpleDoses(build)
@@ -58,7 +68,7 @@ export function usePoisonOptions(build: BuildInfo, rogue: RogueApi, enabled = tr
         }
         const item = inventory.find((o) => o.name === selected.name)
         if (!item) return null
-        consumables.consume(item.name, item.qty)
+        consumables.consume(item.name, item.sheetQty, item.extra)
         rogue.setPoison(item.name)
         return item.name
     }

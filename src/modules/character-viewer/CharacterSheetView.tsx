@@ -31,6 +31,7 @@ import { green, gold, parchment, displayFont } from '../../theme'
 import type { BuildInfo, FeatDescription } from '../character-sheet/types'
 import { PublishedBar } from './components/PublishedBar'
 import { NewVersionBar } from './components/NewVersionBar'
+import { GiftArrivalNotice } from './components/GiftArrivalNotice'
 import type { PublishedSheet } from '../../services/sheets'
 import type { GuideSlot, PublicationApi } from './components/usePublication'
 import { curatedBase } from './combatGuides'
@@ -354,6 +355,7 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
     return (
         <Container maxWidth={compact ? false : 'lg'} disableGutters sx={{ pb: compact ? 2 : 6 }}>
             <CharacterHeader build={build} onReset={onReset} sizeEffect={sizeEffect.effect} compact={compact} />
+            <GiftArrivalNotice build={build} />
             {onOpenPublished && (
                 <NewVersionBar slug={slug} published={published} onOpen={onOpenPublished} onGuide={attach} />
             )}

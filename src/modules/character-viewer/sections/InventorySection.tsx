@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, memo } from 'react'
 import { Box, Button, Card, CardContent, Typography, Stack, Chip, IconButton, Snackbar, Tooltip } from '@mui/material'
 import {
     Add as AddIcon,
+    Send as SendIcon,
     ChevronRight as ChevronIcon,
     LocalDrink as DrinkIcon,
     TouchApp as UseIcon,
@@ -12,10 +13,14 @@ import type { BuildInfo } from '../../character-sheet/types'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
 import type { ConditionModifiers } from '../conditions'
 import { characterMaxHp } from '../helpers'
-import { inventoryRows, type ItemRow } from '../inventory'
+import type { ItemRow } from '../inventory'
 import { consumedKeyFor, hpKeyFor, legacyCharKey } from '../charId'
 import { useConsumables } from '../components/useConsumables'
 import { CompanionsCard } from '../components/CompanionsCard'
+import { GiveItemDialog } from '../components/GiveItemDialog'
+import { useGifts } from '../components/useGifts'
+import { useRoster } from '../useRoster'
+import { charSlug } from '../charId'
 import { useHpTracker } from '../components/useHpTracker'
 import { fetchItemTraits, isConsumable, type ItemTraits } from '../../../services/itemTraits'
 import { rollFormulaDetailed, rollMemorial } from '../../initiative-tracker/dice'
@@ -36,6 +41,7 @@ interface Props {
 interface UseNotice {
     text: string
     name: string
+    /** A quantidade da ficha: a chave do contador de uso. */
     qty: number
     /** PV que a cura de fato devolveu — o Desfazer tira exatamente isso. */
     healed: number
@@ -43,8 +49,22 @@ interface UseNotice {
     actionsSpent: number
 }
 
+/** O aviso da última passagem, com o que é preciso para desfazê-la. */
+interface GiveNotice {
+    text: string
+    to: string
+    name: string
+    n: number
+}
+
 const InventorySectionView = ({ build, onSelect, mods }: Props) => {
-    const rows = inventoryRows(build)
+    // As linhas já levam o que foi passado entre os personagens (`gifts.ts`).
+    const gifts = useGifts(build)
+    const rows = gifts.rows
+    const roster = useRoster()
+    const me = charSlug(build)
+    const [giving, setGiving] = useState<{ name: string; max: number; sheetQty: number } | null>(null)
+    const [giveNotice, setGiveNotice] = useState<GiveNotice | null>(null)
     const money = build.money || { cp: 0, sp: 0, gp: 0, pp: 0 }
     const hasMoney = money.pp + money.gp + money.sp + money.cp > 0
     const hasEquipment = rows.length > 0
@@ -71,8 +91,8 @@ const InventorySectionView = ({ build, onSelect, mods }: Props) => {
     const armed = useArmed()
 
     const equipmentNames = useMemo(
-        () => (build.equipment ?? []).map(([name]) => name).join('|'),
-        [build.equipment],
+        () => rows.filter((r) => r.equipment).map((r) => r.name).join('|'),
+        [rows],
     )
     useEffect(() => {
         if (!equipmentNames) return
@@ -84,7 +104,7 @@ const InventorySectionView = ({ build, onSelect, mods }: Props) => {
     }, [equipmentNames])
 
     const use = (row: ItemRow) => {
-        consumables.consume(row.name, row.qty)
+        consumables.consume(row.name, row.sheetQty, row.qty - row.sheetQty)
         const time = castTimeOf(traits[row.name]?.actions)
         const spentText: string[] = []
         const warnings: string[] = []
@@ -98,7 +118,7 @@ const InventorySectionView = ({ build, onSelect, mods }: Props) => {
         const formula = traits[row.name]?.healing
         const roll = formula ? rollFormulaDetailed(formula) : null
         if (!formula || !roll) {
-            setNotice({ text: `${row.name} usado${costNote ? ` · ${costNote}` : ''}.`, name: row.name, qty: row.qty, healed: 0, actionsSpent })
+            setNotice({ text: `${row.name} usado${costNote ? ` · ${costNote}` : ''}.`, name: row.name, qty: row.sheetQty, healed: 0, actionsSpent })
             return
         }
         const before = hp.current
@@ -110,7 +130,7 @@ const InventorySectionView = ({ build, onSelect, mods }: Props) => {
             notice: {
                 text: `${row.name}: ${formula} → ${rollMemorial(roll)} · +${healed} PV${capped}${costNote ? ` · ${costNote}` : ''}`,
                 name: row.name,
-                qty: row.qty,
+                qty: row.sheetQty,
                 healed,
                 actionsSpent,
             },
@@ -168,7 +188,7 @@ const InventorySectionView = ({ build, onSelect, mods }: Props) => {
                             {rows.map((row, idx) => {
                                 const info = traits[row.name]
                                 const consumable = row.equipment && isConsumable(row.name, info)
-                                const remaining = consumable ? consumables.remaining(row.name, row.qty) : row.qty
+                                const remaining = consumable ? consumables.remaining(row.name, row.sheetQty, row.qty - row.sheetQty) : row.qty
                                 const spent = consumable && remaining === 0
                                 const healing = consumable && !!info?.healing
                                 // O Pathbuilder exporta poção e veneno como "Invested",
@@ -254,7 +274,7 @@ const InventorySectionView = ({ build, onSelect, mods }: Props) => {
                                                         <IconButton
                                                             size="small"
                                                             aria-label={`Devolver 1 ${row.name}`}
-                                                            onClick={() => consumables.restore(row.name, row.qty)}
+                                                            onClick={() => consumables.restore(row.name, row.sheetQty)}
                                                             sx={{
                                                                 border: '1px solid',
                                                                 borderColor: 'divider',
@@ -262,6 +282,23 @@ const InventorySectionView = ({ build, onSelect, mods }: Props) => {
                                                             }}
                                                         >
                                                             <AddIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                )}
+                                                {/* Passar a um colega: o item sai daqui e entra no inventário dele. */}
+                                                {!spent && (
+                                                    <Tooltip title="Passar a um colega">
+                                                        <IconButton
+                                                            size="small"
+                                                            aria-label={`Passar ${row.name}`}
+                                                            onClick={() => setGiving({ name: row.name, max: remaining, sheetQty: row.sheetQty })}
+                                                            sx={{
+                                                                border: '1px solid',
+                                                                borderColor: 'divider',
+                                                                '@media (pointer: coarse)': { width: 40, height: 40 },
+                                                            }}
+                                                        >
+                                                            <SendIcon fontSize="small" />
                                                         </IconButton>
                                                     </Tooltip>
                                                 )}
@@ -292,6 +329,36 @@ const InventorySectionView = ({ build, onSelect, mods }: Props) => {
                 </Card>
             )}
 
+            <GiveItemDialog
+                item={giving}
+                roster={roster.filter((r) => r.slug !== me)}
+                holders={giving ? gifts.holders(giving.name) : []}
+                onClose={() => setGiving(null)}
+                onConfirm={(target, n) => {
+                    if (!giving) return
+                    const ok = gifts.give(target.slug, giving.name, n)
+                    setGiving(null)
+                    setGiveNotice(ok
+                        ? { text: `${n}× ${giving.name} passou para ${target.label}.`, to: target.slug, name: giving.name, n }
+                        : { text: 'Não deu para registrar: muitos itens passados a esse colega.', to: '', name: '', n: 0 })
+                }}
+            />
+            <Snackbar
+                open={!!giveNotice}
+                autoHideDuration={10000}
+                onClose={(_, reason) => { if (reason !== 'clickaway') setGiveNotice(null) }}
+                message={giveNotice?.text}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                action={giveNotice && giveNotice.n > 0 ? (
+                    <Button
+                        size="small"
+                        sx={{ color: gold.bright }}
+                        onClick={() => { gifts.give(giveNotice.to, giveNotice.name, -giveNotice.n); setGiveNotice(null) }}
+                    >
+                        Desfazer
+                    </Button>
+                ) : undefined}
+            />
             <PotionOverlay drink={drink?.event ?? null} onClose={closeDrink} />
 
             <Snackbar
