@@ -30,6 +30,8 @@ import {
 import { green, gold, parchment, displayFont } from '../../theme'
 import type { BuildInfo, FeatDescription } from '../character-sheet/types'
 import { PublishedBar } from './components/PublishedBar'
+import { NewVersionBar } from './components/NewVersionBar'
+import type { PublishedSheet } from '../../services/sheets'
 import type { GuideSlot, PublicationApi } from './components/usePublication'
 import { curatedBase } from './combatGuides'
 import { CharacterHeader } from './components/CharacterHeader'
@@ -181,9 +183,14 @@ interface Props {
      * 420px dentro de um monitor largo escolheria as abas.
      */
     compact?: boolean
+    /**
+     * Abre a versão nova quando a mesa publica outra desta ficha (faixa "Nova versão publicada"). Sem ele a
+     * faixa não aparece — quem hospeda é que sabe trocar a ficha aberta.
+     */
+    onOpenPublished?: (sheet: PublishedSheet) => void
 }
 
-export const CharacterSheetView = ({ build: source, publication, onReset, onRestore, compact = false }: Props) => {
+export const CharacterSheetView = ({ build: source, publication, onReset, onRestore, compact = false, onOpenPublished }: Props) => {
     const theme = useTheme()
     // Acordeão só no celular. Do tablet para cima as abas roláveis cabem e
     // poupam a rolagem vertical enorme que 8 seções empilhadas produzem.
@@ -274,7 +281,7 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
     // Pontos Míticos: gastos de qualquer aba, então o hook mora aqui.
     const mythicPoints = useMythicPoints(mythicKeyFor(build), MYTHIC_POINTS_MAX)
 
-    const { generateGuide, published, guideStatus, guideError } = publication
+    const { generateGuide, published, guideStatus, guideError, attach } = publication
 
     // Verifica se o backend está disponível ao montar
     useEffect(() => {
@@ -347,6 +354,9 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
     return (
         <Container maxWidth={compact ? false : 'lg'} disableGutters sx={{ pb: compact ? 2 : 6 }}>
             <CharacterHeader build={build} onReset={onReset} sizeEffect={sizeEffect.effect} compact={compact} />
+            {onOpenPublished && (
+                <NewVersionBar slug={slug} published={published} onOpen={onOpenPublished} onGuide={attach} />
+            )}
             {published && onRestore && <PublishedBar sheet={published} onRestore={onRestore} />}
 
             <ConditionsBar conditions={conditions} />

@@ -172,6 +172,7 @@ export const CharacterViewerPage = () => {
                     publication={publication}
                     onReset={handleReset}
                     onRestore={handleRestore}
+                    onOpenPublished={(sheet) => show(parseCharacterJson(sheet.json), sheet)}
                 />
             ) : (
                 <UploadCard onJson={handleJson} error={error} />

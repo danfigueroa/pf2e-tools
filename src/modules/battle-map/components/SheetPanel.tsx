@@ -198,6 +198,7 @@ export const SheetPanel = ({ slug, onSlugChange, onCollapse }: Props) => {
                                 publication={publication}
                                 onReset={() => choose('')}
                                 compact
+                                onOpenPublished={(sheet) => { setBuild(parseCharacterJson(sheet.json)); attach(sheet) }}
                             />
                         </Suspense>
                     </EmbedContext.Provider>
