@@ -7,6 +7,7 @@
 //   node --env-file=.env scripts/migrate-redis.mjs --domain descriptions [--dry-run]
 //   node --env-file=.env scripts/migrate-redis.mjs --domain state [--dry-run]
 //   node --env-file=.env scripts/migrate-redis.mjs --domain rolls [--dry-run]
+//   node --env-file=.env scripts/migrate-redis.mjs --domain maps [--dry-run]
 //
 // Precisa das credenciais do Redis de PRODUÇÃO no .env — KV_REST_API_URL e, de
 // preferência, KV_REST_API_READ_ONLY_TOKEN (o script só lê; o KV_REST_API_TOKEN
@@ -22,6 +23,8 @@
 //                                           pode rodar antes e depois do deploy)
 //   pf2e:rolls:v1                        → rolls (a lista das últimas 30; as que já
 //   pf2e:m:<mesa>:rolls:v1                 estão no banco ficam como estão)
+//   pf2e:maps:v1 + pf2e:map:v1:<id>      → maps + map_fields (campo a campo) e o mapa
+//   pf2e:maps:active                       ativo; mapa que já está no banco é pulado
 
 import { Redis } from '@upstash/redis'
 import { createClient } from '@supabase/supabase-js'
@@ -29,7 +32,7 @@ import { createClient } from '@supabase/supabase-js'
 const args = process.argv.slice(2)
 const domain = args.includes('--domain') ? args[args.indexOf('--domain') + 1] : null
 const dryRun = args.includes('--dry-run')
-const DOMAINS = ['translations', 'descriptions', 'state', 'rolls']
+const DOMAINS = ['translations', 'descriptions', 'state', 'rolls', 'maps']
 if (!DOMAINS.includes(domain)) {
     console.error(`Uso: --domain ${DOMAINS.join('|')} [--dry-run]`)
     process.exit(2)
@@ -202,5 +205,45 @@ async function migrateRolls() {
     if (!dryRun) await upsert('rolls', rows, { onConflict: 'id', ignoreDuplicates: true })
 }
 
-await ({ translations: migrateTranslations, descriptions: migrateDescriptions, state: migrateState, rolls: migrateRolls })[domain]()
+const MAP_FIELD_RE = /^(meta|turn|imgs|(tok|pos|hp|fit|drw|ping|roll):[a-z0-9-]{1,64})$/
+
+async function migrateMaps() {
+    const indexes = [...await scan('pf2e:maps:v1'), ...await scan('pf2e:m:*:maps:v1')]
+    const { data: inDb } = await db.from('maps').select('id')
+    const existing = new Set((inDb ?? []).map((m) => m.id))
+    for (const index of indexes) {
+        const mesa = index.match(/^pf2e:m:([a-z0-9-]+):maps:v1$/)?.[1] ?? LEGACY_MESA
+        const prefix = mesa === LEGACY_MESA ? 'pf2e:' : `pf2e:m:${mesa}:`
+        const ids = (await redis.smembers(index)) ?? []
+        const active = await redis.get(`${prefix}maps:active`)
+        for (const id of ids) {
+            const hash = (await redis.hgetall(`${prefix}map:v1:${id}`)) ?? {}
+            const rev = Number(await redis.get(`${prefix}map:rev:${id}`)) || 0
+            const fields = []
+            let isPrivate = false
+            for (const [field, raw] of Object.entries(hash)) {
+                let entry = raw
+                if (typeof raw === 'string') { try { entry = JSON.parse(raw) } catch { entry = null } }
+                if (!entry || !('data' in entry)) continue
+                if (field === 'private') { isPrivate = !!entry.data; continue }
+                // Ping e rolagem do rolador antigo eram efêmeros: não vale levar. Campo
+                // nulo (o `turn` sem ninguém agindo) é o mesmo que ausente.
+                if (!MAP_FIELD_RE.test(field) || /^(ping|roll):/.test(field) || entry.data == null) continue
+                fields.push({ map_id: id, mesa, field, value: entry.data, updated_at: Number(entry.updatedAt) || Date.now() })
+            }
+            const meta = fields.find((f) => f.field === 'meta')?.value
+            console.log(`${mesa}/${id} "${meta?.name ?? '?'}": ${fields.length} campo(s), rev ${rev}${isPrivate ? ', privado' : ''}${id === active ? ', ATIVO' : ''}${existing.has(id) ? ' — já no banco, pulado' : ''}`)
+            if (dryRun || existing.has(id) || !meta) continue
+            const { error } = await db.from('maps').insert({ id, mesa, private: isPrivate, rev })
+            if (error) throw new Error(`maps: ${error.message}`)
+            await upsert('map_fields', fields)
+        }
+        if (!dryRun && active && ids.includes(active)) {
+            const { error } = await db.from('mesas').update({ active_map_id: active }).eq('id', mesa)
+            if (error) throw new Error(`mesas: ${error.message}`)
+        }
+    }
+}
+
+await ({ translations: migrateTranslations, descriptions: migrateDescriptions, state: migrateState, rolls: migrateRolls, maps: migrateMaps })[domain]()
 console.log(dryRun ? 'Dry-run: nada foi gravado.' : 'Feito.')
