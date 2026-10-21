@@ -16,10 +16,8 @@
 // mapa recebe o PV dos personagens pelo mesmo canal; no poll de reserva dele, o
 // "contador da mesa" é a escrita mais recente (`table_rev`, no banco).
 
-import { scoped } from './mesas.js'
 import { supabase } from './supabase.js'
 
-const KEY_PREFIX = 'pf2e:table:v1:'
 export const STATE_VERSION = 1
 
 // 180 dias sem escrita e o personagem sai do banco (pg_cron): ficha de teste não
@@ -35,7 +33,7 @@ const SLUG_RE = /^[a-z0-9-]{1,64}$/
 const FIELD_RE = /^(hp|slots|conditions|afflictions|persistent|mythic|consumed|shield|token|size|rage|psyche|energy|magus|ranger|rogue|actions|uses|companions|pet:[a-z0-9:#-]{1,80})$/
 
 /** A chave do personagem no cache em memória (sem banco). */
-const characterKey = (mesa, slug) => scoped(mesa, KEY_PREFIX + slug)
+const characterKey = (mesa, slug) => `${mesa}|${slug}`
 
 export const isValidSlug = (slug) => typeof slug === 'string' && SLUG_RE.test(slug)
 export const isValidField = (field) => typeof field === 'string' && FIELD_RE.test(field)
