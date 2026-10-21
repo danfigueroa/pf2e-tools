@@ -204,7 +204,7 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
     outra — o `check-rolls` confere as duas com os mesmos casos. A soma tem de fechar (`d20 + mod =
     total`, dados + fixo = total da parcela): número que não confere não vai à mesa.
 - **O mesmo `state` serve o Mapa de Combate** (`api/_lib/map-handler.js` + `map-store.js`):
-  `GET ?maps=1`, `?map=<id>`, `?mapRev=<id>` (o poll), `POST` com `action: 'map-*'` e
+  `GET ?maps=1`, `?map=<id>`, `?mapRev=<id>` (o poll de reserva), `POST` com `action: 'map-*'` e
   `blob-delete`, e `POST ?blob=1` (token de upload do Vercel Blob). Mora aqui pelo limite de 12
   funções. **`isMapRequest` vem ANTES de `isSheetRequest`** nos dois servidores: a rota da ficha
   aceita qualquer POST com `action` e engoliria as do mapa.
@@ -315,10 +315,10 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
 O Upstash Redis e o Vercel Blob estão sendo trocados pelo Supabase (Postgres + Realtime + Storage), domínio a domínio,
 sem mudar o contrato das rotas: cada store do servidor ganha a versão Supabase com as mesmas funções exportadas. Ordem:
 fundação (feito) → traduções/descrições (feito) → fichas com histórico (feito) → estado da mesa em tempo real (feito) →
-rolagens (feito) → mapa →
+rolagens (feito) → mapa (feito) →
 imagens → desligar Upstash e Blob. Projeto `htgrzvdzxepbbgbaqkir`, em **São Paulo** (`sa-east-1`) porque a mesa é toda
-brasileira; as funções da Vercel vão para `gru1` quando o mapa e o feed saírem do Redis — até lá os dois polls ainda
-passam pelo Upstash, e mudar a região antes só trocaria qual caminho fica longe.
+brasileira, e as funções da Vercel também (`"regions": ["gru1"]` no `vercel.json`): foram para lá quando o mapa e o
+feed saíram do Redis, o último caminho quente fora do Brasil.
 
 - **Só o servidor escreve** (`api/_lib/supabase.js`, chave `SUPABASE_SECRET_KEY`, que passa por cima do RLS). O
   navegador (`src/services/supabase.ts`, chave publicável) abre uma **sessão anônima** por aparelho
@@ -389,7 +389,7 @@ abrir o site entra na mesma mesa (a do aparelho — ver "Mesas").
 
 - **Backend**: `api/_lib/table-store.js` (núcleo, compartilhado com `server/index.mjs`) sobre o **Postgres do
   Supabase**, tabela `character_state`. **Sem credenciais, cai num `Map` de processo** e o app segue funcionando; o
-  indicador avisa "Só neste aparelho". O Redis continua no arquivo só pelo mapa e pelo feed, que ainda moram nele.
+  indicador avisa "Só neste aparelho".
 - **Tempo real** (`startRealtime`/`applyRemote` em `services/tableState.ts`): um trigger do banco transmite cada
   escrita no canal PRIVADO `mesa:<mesa>:state`, já com `{ slug, field, data, updatedAt, by }`. Só quem está em
   `mesa_members` ouve (RLS em `realtime.messages`); ninguém transmite por ele além do banco. Quem recebe aplica como um
@@ -428,9 +428,9 @@ abrir o site entra na mesma mesa (a do aparelho — ver "Mesas").
 - **Chave sem ficha** (`noCharKey` em `charId.ts`): os hooks que a página monta antes de haver
   ficha usam slug vazio, que nenhum nome gera, e `useSharedState` não vai à rede com ele.
 - Sendo público, o endpoint valida slug/campo por regex e limita a escrita a 8 KB.
-- **`writeField` ainda sobe o contador `pf2e:table:rev` no Redis** (transição, até o mapa migrar): é o que deixa o
-  Mapa de Combate saber que o PV de alguém mudou pela Ficha ou pela Iniciativa lendo um número só. O mapa lê `hp`,
-  `token` e `size` dos PCs do Postgres, numa consulta (`readCharacterSlices`).
+- **O mapa recebe o PV dos PCs pelo mesmo canal** (`onStateChange`, que avisa toda fatia mudada, daqui ou de fora —
+  antes da comparação com o cache local, porque o mapa pode estar com um valor mais velho). No poll de reserva dele,
+  o "contador da mesa" é a escrita mais recente no estado (`table_rev`, no banco).
 - **A ficha publicada NÃO mora no estado da mesa** (`api/_lib/sheet-store.js`, tabelas `sheets` e
   `sheet_versions` no Supabase): o estado é lido inteiro a cada abertura e a cada "Atualizar", e arrastar 8 KB de
   ficha e 7 KB de guia toda vez seria desperdício. Sem prazo de validade — uma ficha publicada é a fonte da verdade do
@@ -1193,7 +1193,7 @@ cada fatia de estado mora**:
 | Fatia | Onde vive |
 | --- | --- |
 | Combatentes, rodada, turno, durações, defesas | `useReducer` + `localStorage` (`pf2e:initiative:v1`) |
-| PV e condições de **personagem** | estado da mesa (Redis), **as mesmas chaves da Ficha Virtual** |
+| PV e condições de **personagem** | estado da mesa (Supabase), **as mesmas chaves da Ficha Virtual** |
 | PV e condições de **monstro** | dentro do encontro (reducer) |
 | Aflições e dano persistente de **personagem** | estado da mesa (`afflictions`, `persistent`) |
 | Aflições e dano persistente de **monstro** | dentro do encontro (reducer) |
@@ -1201,7 +1201,7 @@ cada fatia de estado mora**:
 - **O encontro é do GM, o personagem é da mesa.** Dois GMs veem encontros diferentes, mas o dano que
   qualquer um aplicar num personagem aparece na Ficha Virtual de quem estiver jogando, e vice-versa.
   O dano em PC usa os campos `hp`/`conditions` que a Ficha Virtual já tinha, e **monstro nenhum
-  encosta no Redis** — as fatias de monstro vivem inteiras no reducer. De `table-store.js` o módulo
+  encosta no banco** — as fatias de monstro vivem inteiras no reducer. De `table-store.js` o módulo
   só precisou de dois campos novos no `FIELD_RE`, `afflictions` e `persistent`.
 - **`useEncounterParty` levanta o estado compartilhado para a página**, em vez de chamar
   `useHpTracker`/`useConditions` num componente por combatente (como faz `PetsSection`). O diálogo
@@ -1384,39 +1384,45 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
   usa as diagonais alternadas do Player Core (`squaresBetween`: 5-10-5). Token de tamanho N ocupa
   N×N (`sizeSquares`; Minúsculo ocupa 1, para não ficar menor que o dedo) e encaixa nas LINHAS do
   grid (`snapToken` usa o centro do token, não o canto).
-- **Um hash por mapa, campos com donos diferentes** (`map-store.js`): `tok:<id>` (o que o token É —
-  só a Iniciativa escreve), `pos:<id>` (onde ESTÁ — só o mapa escreve), `hp:<id>` (PV do monstro —
-  os dois). Num campo só, o GM renomeando um goblin devolveria o goblin ao quadrado de antes do
-  arrasto. O `tokenId` é o id do combatente.
-- **Sincronia é poll de revisão** (`services/maps.ts`), porque a Vercel serverless não segura
-  conexão e o usuário não quer serviço externo de tempo real (decisão do usuário): `?mapRev=` lê
-  três contadores num `MGET` (rev do mapa, `table:rev`, mapa ativo). O cliente manda junto o que já
-  tem (`&rev=&tableRev=`) e, se mudou, **o mapa vem na mesma resposta** — antes era um segundo
-  pedido, uma ida e volta inteira a mais até a tela. Os contadores são lidos ANTES dos dados em
-  `readMap`: na ordem inversa, uma escrita entre as duas leituras ficava invisível até a próxima.
+- **Uma linha por campo, campos com donos diferentes** (`map-store.js`, tabela `map_fields`, migration `mapas`):
+  `tok:<id>` (o que o token É — só a Iniciativa escreve), `pos:<id>` (onde ESTÁ — só o mapa escreve), `hp:<id>` (PV do
+  monstro — os dois). Num campo só, o GM renomeando um goblin devolveria o goblin ao quadrado de antes do arrasto. O
+  `tokenId` é o id do combatente. `private` é coluna de `maps`; o mapa ativo é `mesas.active_map_id`.
+- **Sincronia é em tempo real** (`services/maps.ts`; antes era poll, e a mesa passou a usar o Supabase — decisão do
+  usuário). Toda escrita é uma função do banco (`map_write`, `map_clear_drawings`, `map_set_private`) que sobe a
+  revisão e grava numa transação; um trigger transmite cada campo MUDADO no canal privado `mesa:<mesa>:map:<id>` (evento
+  `field`, com valor e a revisão daquela escrita; `private` quando esconde ou revela). A lista e o mapa ativo vão pelo
+  `mesa:<mesa>:maps` (`changed`, que o `MapListDrawer` assina), e o PV/token/tamanho dos PCs chega pelo canal do
+  estado da mesa (`onStateChange` do `tableState`). O mapa inteiro só desce na abertura e a cada (re)conexão
+  (`read_map`: uma consulta, coerente, já com os PCs). Medido com o `maps.ts` real: token movido em outro aparelho
+  na tela junto com a resposta do POST; zero polls em 6 s com o canal aberto.
+  - **As travas do cliente**, todas necessárias: transmissão com revisão ≤ a da última leitura inteira ou ≤ a do
+    campo (`fieldRev`, que a resposta do próprio POST também alimenta) é descartada — o eco atrasado de dois arrastos
+    seguidos devolveria o token ao quadrado anterior; campo ainda na fila ou sobreposto (`overrides`) não é tocado; e
+    uma leitura inteira que saiu ANTES de uma transmissão e chegou depois não a desfaz (`recent`, reaplicado por cima).
+  - **Campo igual não é regravado nem transmitido** (o `map_write` compara no banco), e o `syncTokens` não sobe a
+    revisão quando nada mudou — com `sameJson` (`api/_lib/json.js`), porque o `jsonb` reordena as chaves e o
+    `JSON.stringify` acusaria mudança em toda sincronia da Iniciativa.
+  - Mapa privado: o servidor não o entrega a quem não pede como GM, como antes; o canal do mapa é o de qualquer
+    membro da mesa — sem login de verdade, "GM" é interface (o `gm=1` de antes também era).
+- **Poll de reserva, sem canal** (sem Supabase, rede ruim): o de antes. `?mapRev=` lê os contadores numa consulta
+  (`map_revs`: rev do mapa, a escrita mais recente no estado da mesa, mapa ativo). O cliente manda junto o que já
+  tem (`&rev=&tableRev=`) e, se mudou, **o mapa vem na mesma resposta**.
   - Três marchas: **rajada de 700 ms por 5 s** depois de qualquer mudança (daqui ou de fora — na
     mesa uma ação puxa a seguinte), 1,5 s com atividade no último minuto, 2 s parado, **nada com a
     aba oculta**. Rolagem ou regra compartilhada nova (`onFeedActivity`, de `services/rolls.ts`) também conta
     como atividade — põe na marcha de 1,5 s, sem rajada e sem baixar o mapa —, senão quem estava no
     mapa via o cartão até 4 s depois de quem estava na ficha. O parado era 4 s e caiu para 2 s porque
-    a mesa joga 1–2 vezes por mês e a cota tem folga (decisão do usuário). A rajada é o número a mexer com cuidado: cada poll é um comando no Upstash (free:
-    500 mil/mês), e em combate as mudanças vêm a cada poucos segundos. 600 ms com janela de 8 s
-    deixava os aparelhos na rajada o tempo todo, ~2,5× o gasto, e estourava a cota com uma sessão
-    por semana. Hoje, ordem de grandeza: 6 aparelhos × 4 h ≈ 80–130 mil comandos por sessão — na
-    prática o mapa é desktop e fica em 1–2 aparelhos, e quem está nele não faz o poll do feed.
-  - Medido em localhost, do clique num aparelho até a tela do outro (antes → depois): rolagem e
-    token em sequência ~0,86 s → ~0,5 s; token depois de uma pausa ~1,1 s → ~0,4 s. Em produção
-    soma a rede, e a resposta única economiza ali uma ida e volta a mais.
+    a mesa joga 1–2 vezes por mês e a cota tem folga (decisão do usuário).
   - Rolagem, token solto e ping sobem **na hora** (`writeMapField(…, { now: true })`), sem os
     150 ms de junção. Por isso as escritas saem **uma por vez** (`flushing`): dois arrastos
     seguidos em dois pedidos simultâneos podiam chegar invertidos e o servidor ficar com a posição
     de antes.
-  - `syncTokens` não sobe a revisão quando nada mudou, senão todo aparelho rebaixaria o mapa à toa.
 - **Token de outro aparelho desliza** até o quadrado novo (`TOKEN_GLIDE` no `MapCanvas`, 240 ms em
-  `left/top`) em vez de saltar — a posição chega de uma vez pelo poll. Quem arrasta não vê o
+  `left/top`) em vez de saltar — a posição chega de uma vez pela transmissão. Quem arrasta não vê o
   deslize (`data-dragging`, devolvido um quadro depois do encaixe), e movimento reduzido não desliza.
-- **Escrita otimista com override**: o campo escrito fica sobreposto até a escrita voltar, para um
-  poll que chegue no meio não devolver o token ao quadrado de antes. O PV de PC mexido no mapa vai
+- **Escrita otimista com override**: o campo escrito fica sobreposto até a escrita voltar, para uma
+  transmissão ou um poll que cheguem no meio não devolverem o token ao quadrado de antes. O PV de PC mexido no mapa vai
   para o MESMO campo `hp` da mesa (`saveField`); como o `tableState` sobe com 600 ms de debounce,
   o override dele dura 5 s.
 - **O mapa não cria token.** Quem está no mapa é o encontro da Iniciativa ligado a ele; o mapa
@@ -1501,7 +1507,9 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
   dano). Foi Alt+clique na primeira versão: ninguém achava a dica nem sabia a tecla, e segurar o
   clique brigaria com o início do arrasto, da régua e do traço. Campo `ping:<id>` que quem pingou apaga em 6 s. Quem
   recebe decide se pisca **pelo id, não pelo relógio** (`PingLayer`): o que já existia quando o
-  mapa abriu conta como visto. Chega aos outros em ~2 s; aba escondida não recebe (o poll pausa).
+  mapa abriu conta como visto. Chega aos outros pela transmissão do campo, como qualquer escrita. (Um ping sem
+  passar pelo banco — Broadcast entre aparelhos — exige liberar a transmissão pelos clientes no RLS do Realtime: fica
+  para depois, junto da prévia do arrasto ao vivo.)
 - **Rolador de dados** (`dice.ts`, `DicePanel.tsx`, `motion/DiceTray.tsx`): botão
   "Dados" na barra, **fora** do seletor de ferramentas — abre um painel sem trocar a ferramenta ativa,
   para rolar com a régua na mão. d4–d100, 1–**100** dados, bônus ±999, cor de `DRAW_COLORS`. O
