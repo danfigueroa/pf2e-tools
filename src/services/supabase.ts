@@ -23,6 +23,9 @@ export const isSupabaseConfigured = Boolean(URL && KEY)
 
 let clientPromise: Promise<SupabaseClient | null> | null = null
 let userId: string | null = null
+// O JWT de agora, renovado pelo próprio SDK: as escritas do estado da mesa o
+// mandam sem esperar nada (`authHeaderNow`).
+let accessToken: string | null = null
 
 /** O id da sessão anônima deste aparelho, quando ela já existe. */
 export const currentUserId = (): string | null => userId
@@ -50,15 +53,20 @@ async function connect(): Promise<SupabaseClient | null> {
         const client = createClient(URL!, KEY!, {
             auth: { persistSession: true, autoRefreshToken: true, storageKey: 'pf2e:supabase:auth' },
         })
+        client.auth.onAuthStateChange((_event, session) => { accessToken = session?.access_token ?? null })
         const { data } = await client.auth.getSession()
-        let id = data.session?.user.id ?? null
-        if (!id) {
+        let session = data.session
+        if (!session) {
             const { data: created, error } = await client.auth.signInAnonymously()
             if (error) throw error
-            id = created.user?.id ?? null
+            session = created.session
         }
+        const id = session?.user.id ?? null
         if (!id) return null
         userId = id
+        accessToken = session?.access_token ?? null
+        // Os canais privados do Realtime conferem o JWT na entrada.
+        await client.realtime.setAuth(accessToken)
         await joinMesa(client, id)
         return client
     } catch (error) {
@@ -74,6 +82,10 @@ async function joinMesa(client: SupabaseClient, id: string) {
         .upsert({ mesa: currentMesa.id, user_id: id, last_seen: new Date().toISOString() })
     if (error) console.warn('[supabase] Não registrou o aparelho na mesa:', error.message)
 }
+
+/** Como `authHeaders`, mas sem esperar: vazio se a sessão ainda não abriu. */
+export const authHeaderNow = (): Record<string, string> =>
+    accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
 
 /**
  * `Authorization` com o JWT da sessão anônima, para o servidor saber QUEM fez o
