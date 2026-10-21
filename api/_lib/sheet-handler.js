@@ -6,18 +6,22 @@
 //   GET  ?sheet=<slug>                    → a ficha publicada (com o guia)
 //   POST { action: 'publish', sheet }     → publica um JSON do Pathbuilder
 //   POST { action: 'guide', char, baseGuide? } → gera o guia da versão atual
-//   POST { action: 'restore', char }      → volta à versão anterior
+//   POST { action: 'restore', char, version? } → volta a uma versão do histórico (a anterior sem `version`)
+//   GET  ?sheetVersions=<slug>            → o histórico da ficha (sem o JSON de cada versão)
 //   GET  ?sheetDescriptions=<slug>        → magias, talentos, habilidades e itens já traduzidos
 //   POST { action: 'sheet-descriptions', char, names: { spell, feat, special, item }, version }
 //                                         → resolve o que falta (ver sheet-descriptions.js)
 //
-// Tudo dentro da mesa do pedido (`mesa`, ver mesas.js).
+// Tudo dentro da mesa do pedido (`mesa`, ver mesas.js). `ctx.userId` é a sessão
+// anônima de quem pediu (`requestUserId`), gravada como autor ao publicar.
 
 import { hasTranslationKey } from './aon.js'
-import { isStoreConfigured, isValidSlug } from './table-store.js'
+import { isValidSlug } from './table-store.js'
+import { isSupabaseConfigured } from './supabase.js'
 import {
   MAX_GUIDE_BYTES,
   MAX_SHEET_BYTES,
+  listSheetVersions,
   listSheets,
   publishSheet,
   readForGuide,
@@ -35,19 +39,25 @@ import {
   readSheetDescriptions,
 } from './sheet-descriptions.js'
 
-const ok = (body) => ({ status: 200, body: { ...body, storeReady: isStoreConfigured() } })
+// Fichas e descrições moram no Supabase; sem ele, num Map de processo.
+const ok = (body) => ({ status: 200, body: { ...body, storeReady: isSupabaseConfigured() } })
 const fail = (status, error) => ({ status, body: { error } })
 
 /** Falso quando a requisição não é de ficha — aí segue a rota do estado. */
 export function isSheetRequest(method, query, body) {
-  if (method === 'GET') return !!(query.sheets || query.sheet || query.sheetDescriptions)
+  if (method === 'GET') return !!(query.sheets || query.sheet || query.sheetDescriptions || query.sheetVersions)
   if (method === 'POST') return typeof body?.action === 'string'
   return false
 }
 
-export async function handleSheetRequest(mesa, method, query, body) {
+export async function handleSheetRequest(mesa, method, query, body, ctx = {}) {
   if (method === 'GET') {
     if (query.sheets) return ok({ sheets: await listSheets(mesa) })
+    if (query.sheetVersions) {
+      const slug = String(query.sheetVersions)
+      if (!isValidSlug(slug)) return fail(400, 'Parâmetro "sheetVersions" inválido')
+      return ok({ versions: await listSheetVersions(mesa, slug) })
+    }
     if (query.sheetDescriptions) {
       const slug = String(query.sheetDescriptions)
       if (!isValidSlug(slug)) return fail(400, 'Parâmetro "sheetDescriptions" inválido')
@@ -69,7 +79,7 @@ export async function handleSheetRequest(mesa, method, query, body) {
     // O slug sai do nome da própria ficha, nunca do que o cliente disser: é a
     // mesma identidade do estado da mesa, e uma ficha publicada no slug de
     // outro personagem sobrescreveria alguém.
-    const sheet = await publishSheet(mesa, slugFromName(info.name), json)
+    const sheet = await publishSheet(mesa, slugFromName(info.name), json, ctx.userId ?? null)
     return ok({ sheet })
   }
 
@@ -102,8 +112,10 @@ export async function handleSheetRequest(mesa, method, query, body) {
   }
 
   if (action === 'restore') {
-    const sheet = await restorePrevious(mesa, slug)
-    if (!sheet) return fail(404, 'Não há versão anterior')
+    const version = body.version == null ? null : Number(body.version)
+    if (version !== null && !Number.isSafeInteger(version)) return fail(400, 'Campo "version" inválido')
+    const sheet = await restorePrevious(mesa, slug, version, ctx.userId ?? null)
+    if (!sheet) return fail(404, version === null ? 'Não há versão anterior' : 'Versão não encontrada')
     return ok({ sheet })
   }
 

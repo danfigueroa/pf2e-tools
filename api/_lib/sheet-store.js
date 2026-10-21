@@ -1,30 +1,27 @@
 // Fichas publicadas pela mesa: o JSON do Pathbuilder que um jogador subiu
 // depois de atualizar o personagem, mais o guia "Como Jogar" gerado para ela.
 //
-// Fica FORA do hash do estado da mesa (`table-store.js`) de propósito: aquele
-// hash é lido inteiro (HGETALL) a cada abertura de ficha e a cada "Atualizar",
-// e carregar junto 8 KB de ficha e 7 KB de guia toda vez seria desperdício. A
-// ficha muda no level-up; o PV muda a cada golpe.
+// No Postgres (migration `fichas_publicadas`), FORA do estado da mesa
+// (`table-store.js`) de propósito: o estado é lido inteiro a cada abertura de
+// ficha, e carregar junto 8 KB de ficha e 7 KB de guia toda vez seria
+// desperdício. A ficha muda no level-up; o PV muda a cada golpe.
 //
-//   pf2e:sheet:v1:<slug> → { json, name, className, level, publishedAt,
-//                            guide: { markdown, generatedAt } | null,
-//                            previous: { json, publishedAt, guide } | null }
-//   pf2e:sheets:v1       → SET com os slugs publicados (para a lista)
+//   sheets          (mesa, slug) → json, nome, classe, nível, publishedAt, guia, quem publicou
+//   sheet_versions  o HISTÓRICO: cada versão substituída (até 30 por ficha), com o guia dela
 //
-// As duas chaves são da mesa (`scoped`, ver mesas.js): a mesma pessoa pode ter
-// um personagem de mesmo nome em duas mesas, e a lista de uma não mostra a outra.
+// Publicar e restaurar são funções do banco (`publish_sheet`, `restore_sheet`),
+// numa transação com a linha travada: duas publicações ao mesmo tempo não
+// arquivam a mesma versão duas vezes.
 //
-// Sem TTL: ao contrário do PV, uma ficha publicada é a fonte da verdade do
-// personagem, e sumir em seis meses seria perder o level-up de alguém.
+// As fichas são da mesa: a mesma pessoa pode ter um personagem de mesmo nome em
+// duas mesas, e a lista de uma não mostra a outra. Sem prazo de validade: uma
+// ficha publicada é a fonte da verdade do personagem.
 //
-// Não há login — qualquer pessoa da mesa publica. A salvaguarda é a versão
-// anterior guardada (`previous`), que volta com um clique.
+// Não há login — qualquer pessoa da mesa publica. A salvaguarda é o histórico,
+// que volta com um clique; `published_by` guarda a sessão anônima de quem
+// publicou, quando o aparelho mandou uma.
 
-import { redis } from './table-store.js'
-import { scoped } from './mesas.js'
-
-const KEY_PREFIX = 'pf2e:sheet:v1:'
-const INDEX_KEY = 'pf2e:sheets:v1'
+import { supabase } from './supabase.js'
 
 /** Teto do JSON publicado. A maior ficha real (Nathaniel) tem 8,2 KB. */
 export const MAX_SHEET_BYTES = 64 * 1024
@@ -58,32 +55,112 @@ export function sheetInfo(json) {
   return { name: b.name.trim(), className: String(b.class || ''), level: b.level }
 }
 
-// Sem Redis, um Map de processo por mesa — mesma política do estado da mesa.
-const memories = new Map()
-function memory(mesa) {
-  const key = scoped(mesa, INDEX_KEY)
-  if (!memories.has(key)) memories.set(key, new Map())
-  return memories.get(key)
+// --- Armazenamento ------------------------------------------------------------
+//
+// O Postgres e, sem credenciais, Maps de processo por mesa (mesma política do
+// estado da mesa). Erro do banco sobe: o handler responde 500.
+
+const fromRow = (row) => row && {
+  json: row.json,
+  name: row.name,
+  className: row.class_name,
+  level: row.level,
+  publishedAt: Number(row.published_at),
+  guide: row.guide ?? null,
 }
 
-async function readRaw(mesa, slug) {
-  const r = redis()
-  const raw = r ? await r.get(scoped(mesa, KEY_PREFIX + slug)) : memory(mesa).get(slug)
-  if (!raw) return null
-  if (typeof raw === 'object') return raw
-  try { return JSON.parse(raw) } catch { return null }
+const fromVersionRow = (row) => row && {
+  id: Number(row.id),
+  level: row.level,
+  publishedAt: Number(row.published_at),
+  archivedAt: Date.parse(row.archived_at),
+  guide: row.guide ?? null,
 }
 
-async function writeRaw(mesa, slug, record) {
-  const r = redis()
-  if (!r) { memory(mesa).set(slug, JSON.stringify(record)); return }
-  await r.set(scoped(mesa, KEY_PREFIX + slug), JSON.stringify(record))
-  await r.sadd(scoped(mesa, INDEX_KEY), slug)
+const dbStore = (db) => {
+  const check = ({ data, error }) => {
+    if (error) throw error
+    return data
+  }
+  const SHEET_COLUMNS = 'json, name, class_name, level, published_at, guide'
+  return {
+    current: async (mesa, slug) => fromRow(check(await db.from('sheets').select(SHEET_COLUMNS)
+      .eq('mesa', mesa).eq('slug', slug).maybeSingle())),
+    /** As versões do histórico, a mais recente primeiro. `withGuide` traz o markdown junto. */
+    versions: async (mesa, slug, limit, withGuide = false) =>
+      check(await db.from('sheet_versions')
+        .select(withGuide ? 'id, level, published_at, archived_at, guide' : 'id, level, published_at, archived_at, has_guide:guide->generatedAt')
+        .eq('mesa', mesa).eq('slug', slug).order('id', { ascending: false }).limit(limit))
+        .map((row) => ({ ...fromVersionRow(row), hasGuide: withGuide ? !!row.guide : row.has_guide != null })),
+    list: async (mesa) => check(await db.from('sheets')
+      .select('slug, name, class_name, level, published_at, guide_at:guide->generatedAt').eq('mesa', mesa))
+      .map((row) => ({ slug: row.slug, ...fromRow(row), hasGuide: row.guide_at != null })),
+    publish: async (mesa, slug, json, info, by) => fromRow(check(await db.rpc('publish_sheet', {
+      p_mesa: mesa, p_slug: slug, p_json: json, p_name: info.name, p_class: info.className, p_level: info.level, p_by: by,
+    }))),
+    saveGuide: async (mesa, slug, publishedAt, guide) => fromRow(check(await db.from('sheets').update({ guide })
+      .eq('mesa', mesa).eq('slug', slug).eq('published_at', publishedAt).select(SHEET_COLUMNS).maybeSingle())),
+    restore: async (mesa, slug, version, by) => fromRow(check(await db.rpc('restore_sheet', {
+      p_mesa: mesa, p_slug: slug, p_version: version, p_by: by,
+    }))),
+  }
 }
 
-/** O registro sem o JSON da versão anterior — que só interessa ao restaurar. */
-function publicView(slug, record) {
+const MAX_VERSIONS = 30
+
+const memoryStore = (() => {
+  const sheets = new Map()
+  const history = new Map()
+  let nextId = 1
+  const key = (mesa, slug) => `${mesa}|${slug}`
+  const archive = (mesa, slug) => {
+    const cur = sheets.get(key(mesa, slug))
+    if (!cur) return
+    const list = history.get(key(mesa, slug)) ?? []
+    list.unshift({ ...cur, id: nextId++, archivedAt: Date.now() })
+    history.set(key(mesa, slug), list.slice(0, MAX_VERSIONS))
+  }
+  return {
+    current: async (mesa, slug) => sheets.get(key(mesa, slug)) ?? null,
+    versions: async (mesa, slug, limit) => (history.get(key(mesa, slug)) ?? []).slice(0, limit)
+      .map((v) => ({ id: v.id, level: v.level, publishedAt: v.publishedAt, archivedAt: v.archivedAt, guide: v.guide, hasGuide: !!v.guide })),
+    list: async (mesa) => [...sheets.entries()]
+      .filter(([k]) => k.startsWith(`${mesa}|`))
+      .map(([k, rec]) => ({ slug: k.slice(mesa.length + 1), ...rec, hasGuide: !!rec.guide })),
+    publish: async (mesa, slug, json, info) => {
+      archive(mesa, slug)
+      const rec = { json, ...info, publishedAt: Date.now(), guide: null }
+      sheets.set(key(mesa, slug), rec)
+      return rec
+    },
+    saveGuide: async (mesa, slug, publishedAt, guide) => {
+      const cur = sheets.get(key(mesa, slug))
+      if (!cur || cur.publishedAt !== publishedAt) return null
+      cur.guide = guide
+      return cur
+    },
+    restore: async (mesa, slug, version) => {
+      const list = history.get(key(mesa, slug)) ?? []
+      const i = version == null ? 0 : list.findIndex((v) => v.id === version)
+      if (!sheets.has(key(mesa, slug)) || i < 0 || !list[i]) return null
+      const [target] = list.splice(i, 1)
+      archive(mesa, slug)
+      const rec = { json: target.json, name: target.name, className: target.className, level: target.level, publishedAt: Date.now(), guide: target.guide }
+      sheets.set(key(mesa, slug), rec)
+      return rec
+    },
+  }
+})()
+
+const store = () => {
+  const db = supabase()
+  return db ? dbStore(db) : memoryStore
+}
+
+/** O registro como o cliente o conhece, com a versão anterior resumida (`previous`). */
+async function publicView(db, mesa, slug, record) {
   if (!record) return null
+  const [previous] = await db.versions(mesa, slug, 1)
   return {
     slug,
     json: record.json,
@@ -92,53 +169,37 @@ function publicView(slug, record) {
     level: record.level,
     publishedAt: record.publishedAt,
     guide: record.guide ?? null,
-    previous: record.previous
-      ? { publishedAt: record.previous.publishedAt, level: record.previous.level ?? null }
-      : null,
+    previous: previous ? { publishedAt: previous.publishedAt, level: previous.level ?? null } : null,
   }
 }
 
 export async function readSheet(mesa, slug) {
-  return publicView(slug, await readRaw(mesa, slug))
+  const db = store()
+  return publicView(db, mesa, slug, await db.current(mesa, slug))
 }
 
 /** A lista, sem o JSON de cada ficha — é o que os cards da tela inicial precisam. */
 export async function listSheets(mesa) {
-  const r = redis()
-  const slugs = r ? await r.smembers(scoped(mesa, INDEX_KEY)) : [...memory(mesa).keys()]
-  const records = await Promise.all(slugs.map(async (slug) => [slug, await readRaw(mesa, slug)]))
-  return records
-    .filter(([, rec]) => rec)
-    .map(([slug, rec]) => ({
-      slug,
-      name: rec.name,
-      className: rec.className,
-      level: rec.level,
-      publishedAt: rec.publishedAt,
-      hasGuide: !!rec.guide,
-    }))
+  const rows = await store().list(mesa)
+  return rows
+    .map(({ slug, name, className, level, publishedAt, hasGuide }) => ({ slug, name, className, level, publishedAt, hasGuide }))
     .sort((a, b) => a.name.localeCompare(b.name))
 }
 
+/** O histórico da ficha, a mais recente primeiro, sem o JSON (só o que uma lista mostra). */
+export async function listSheetVersions(mesa, slug) {
+  const versions = await store().versions(mesa, slug, MAX_VERSIONS)
+  return versions.map(({ id, level, publishedAt, archivedAt, hasGuide }) => ({ id, level, publishedAt, archivedAt, hasGuide }))
+}
+
 /**
- * Publica uma versão nova. A atual vira `previous` (só uma, não histórico), e o
- * guia recomeça vazio: o guia da ficha antiga não descreve a nova, e quem
- * publicou pede a geração logo em seguida.
+ * Publica uma versão nova. A atual vai para o histórico, e o guia recomeça
+ * vazio: o guia da ficha antiga não descreve a nova, e quem publicou pede a
+ * geração logo em seguida. `by` = a sessão anônima de quem publicou (ou null).
  */
-export async function publishSheet(mesa, slug, json) {
-  const info = sheetInfo(json)
-  const current = await readRaw(mesa, slug)
-  const record = {
-    json,
-    ...info,
-    publishedAt: Date.now(),
-    guide: null,
-    previous: current
-      ? { json: current.json, level: current.level, publishedAt: current.publishedAt, guide: current.guide ?? null }
-      : null,
-  }
-  await writeRaw(mesa, slug, record)
-  return publicView(slug, record)
+export async function publishSheet(mesa, slug, json, by = null) {
+  const db = store()
+  return publicView(db, mesa, slug, await db.publish(mesa, slug, json, sheetInfo(json), by))
 }
 
 /**
@@ -146,33 +207,24 @@ export async function publishSheet(mesa, slug, json) {
  * publicações seguidas não podem terminar com o guia da primeira na segunda.
  */
 export async function saveGuide(mesa, slug, publishedAt, markdown) {
-  const current = await readRaw(mesa, slug)
-  if (!current || current.publishedAt !== publishedAt) return null
-  current.guide = { markdown, generatedAt: Date.now() }
-  await writeRaw(mesa, slug, current)
-  return publicView(slug, current)
+  const db = store()
+  const saved = await db.saveGuide(mesa, slug, publishedAt, { markdown, generatedAt: Date.now() })
+  return publicView(db, mesa, slug, saved)
 }
 
-/** Troca a versão atual pela anterior (e vice-versa: desfazer o desfazer). */
-export async function restorePrevious(mesa, slug) {
-  const current = await readRaw(mesa, slug)
-  if (!current?.previous) return null
-  const prev = current.previous
-  const info = sheetInfo(prev.json)
-  const record = {
-    json: prev.json,
-    ...info,
-    publishedAt: Date.now(),
-    guide: prev.guide ?? null,
-    previous: { json: current.json, level: current.level, publishedAt: current.publishedAt, guide: current.guide ?? null },
-  }
-  await writeRaw(mesa, slug, record)
-  return publicView(slug, record)
+/**
+ * Volta a uma versão do histórico — a mais recente quando `version` é null. A
+ * atual vai para o histórico, então restaurar de novo desfaz o desfazer.
+ */
+export async function restorePrevious(mesa, slug, version = null, by = null) {
+  const db = store()
+  return publicView(db, mesa, slug, await db.restore(mesa, slug, version, by))
 }
 
 /** Só para a geração do guia: o JSON atual e o guia da versão anterior. */
 export async function readForGuide(mesa, slug) {
-  const rec = await readRaw(mesa, slug)
+  const db = store()
+  const [rec, [previous]] = await Promise.all([db.current(mesa, slug), db.versions(mesa, slug, 1, true)])
   if (!rec) return null
-  return { json: rec.json, publishedAt: rec.publishedAt, previousGuide: rec.previous?.guide?.markdown ?? null }
+  return { json: rec.json, publishedAt: rec.publishedAt, previousGuide: previous?.guide?.markdown ?? null }
 }
