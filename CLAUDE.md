@@ -379,7 +379,7 @@ das rotas (cada store do servidor manteve as funções exportadas). O Redis e o 
 - `pg_cron` limpa os usuários anônimos sem atividade há 180 dias, as travas vencidas, os misses velhos, os
   compartilhamentos de mais de um dia e o estado de personagem parado há 180 dias.
 - **Tempo real é sempre do banco**: um trigger chama `realtime.send` no canal PRIVADO `mesa:<mesa>:<nome>` (`state`,
-  `rolls`, `map:<id>`, `maps`, `encounters`, `fixes`), e só quem está em `mesa_members` ouve (RLS em `realtime.messages`). Nenhum cliente
+  `rolls`, `map:<id>`, `maps`, `encounters`, `fixes`, `sheets`), e só quem está em `mesa_members` ouve (RLS em `realtime.messages`). Nenhum cliente
   transmite — a única exceção é a presença (abaixo). No cliente, `listenMesaChannel` (`services/supabase.ts`) é o único jeito de ouvir; a cada SUBSCRIBED
   (inclusive reconexão) quem ouve relê o que pode ter perdido. O Realtime põe um `id` próprio no payload quando ele
   não tem um — não use `id` como campo da mensagem.
@@ -784,6 +784,15 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   pré-traduzidas"). Sem login, **qualquer pessoa publica** — decisão do usuário —,
   então a diferença à vista e o "Versão anterior" da faixa sob o cabeçalho são a salvaguarda.
   PV, condições e slots não mudam: a identidade é o slug do nome, igual antes.
+  - **"Nova versão publicada"** (`components/NewVersionBar.tsx` + `services/sheetNotices.ts`, migration
+    `aviso_de_ficha_publicada`): um trigger em `sheets` avisa no canal `mesa:<mesa>:sheets` — `published` quando o
+    `published_at` muda (publicar e restaurar: o `restore_sheet` grava a hora de agora) e `guide` quando o guia da MESMA
+    versão fica pronto. Quem está com a ficha aberta numa versão mais velha (ou com o JSON "só neste aparelho") vê a
+    faixa com "Abrir a nova versão"; nada troca sozinho, para a ficha não mudar embaixo do dedo no meio do turno. Quem
+    hospeda a ficha troca (`onOpenPublished`, na página e no painel do mapa); sem ele a faixa não aparece. O guia que
+    chega depois entra sem aviso (`attach`), e os cards de nível (`usePublishedSheets`) releem a lista a cada publicação.
+    O aviso da publicação feita por ESTE aparelho é ignorado (`by`), senão piscaria antes de a resposta chegar.
+    Medido: 160 ms da publicação à faixa no outro aparelho.
   - `published` só existe quando a ficha na tela é a da mesa. Quem abriu "só neste aparelho" não
     vê o guia gerado para outra versão. Ao recarregar, o slug publicado no `sessionStorage` faz a
     página reler a versão da mesa (alguém pode ter publicado outra no meio-tempo).

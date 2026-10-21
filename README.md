@@ -1296,6 +1296,8 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
 -   [x] **Quem está na mesa**: a sidebar mostra quem está com o app aberto, com o nome do aparelho, a
         ficha aberta e a página; no mapa, o token do personagem com a ficha aberta ganha um ponto verde
 -   [x] **Encontros da Iniciativa na nuvem**, abertos igual em qualquer aparelho
+-   [x] **Aviso de nova versão da ficha**: quem está com a ficha aberta vê na hora que a mesa publicou
+        outra (um level-up), com o botão para abrir a nova
 -   [x] **Correção de tradução pela mesa**, para todos os aparelhos e mesas
 -   [x] **Módulo de Escalar Monstro (criatura da AON em outro nível)**
     -   [x] Tabelas de construção de criaturas do GM Core transcritas do índice da AON (níveis -1 a 24)
