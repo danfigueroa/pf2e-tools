@@ -20,6 +20,8 @@ import {
     Share as ShareIcon,
     Check as CheckIcon,
 } from '@mui/icons-material'
+import { applyFix, useFixesVersion } from '../../../services/translationFixes'
+import { TranslationFix } from './TranslationFix'
 import {
     fetchFeatDescription,
     fetchSpecialDescription,
@@ -163,50 +165,57 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
         return () => { cancelled = true }
     }, [request])
 
+    // A correção de tradução da mesa por cima, reaplicada quando chega uma nova (ou é desfeita).
+    const fixesVersion = useFixesVersion()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fixesVersion: a correção mora fora do React
+    const entry = useMemo(() => (state.entry ? applyFix(request.type, request.name, state.entry) : undefined), [state.entry, request, fixesVersion])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- idem
+    const spell = useMemo(() => (state.spell ? applyFix('spell', request.name, state.spell) : undefined), [state.spell, request, fixesVersion])
+
     const accent = useMemo(() => {
         if (!request) return TYPE_ACCENT.feat
-        if (request.type === 'spell' && state.spell?.traits?.length) {
-            const tradition = state.spell.traits.find(t => ['arcane','divine','occult','primal'].includes(t.toLowerCase()))
+        if (request.type === 'spell' && spell?.traits?.length) {
+            const tradition = spell.traits.find(t => ['arcane','divine','occult','primal'].includes(t.toLowerCase()))
             if (tradition) return traditionColor(tradition)
         }
         return TYPE_ACCENT[request.type]
-    }, [request, state.spell])
+    }, [request, spell])
 
     const parsed = useMemo(() => {
         if (!request) return null
-        const raw = state.spell?.description ?? state.entry?.description ?? undefined
+        const raw = spell?.description ?? entry?.description ?? undefined
         // Tudo chega com prosa limpa do backend (v10+) — sem strip heurístico,
         // que comia a primeira oração de descrições começando por "Você …".
         return parseDescription(raw, request.name, { stripMetadata: false })
-    }, [request, state.entry, state.spell])
+    }, [request, entry, spell])
 
     // Modo "nível-ciente": sabemos o rank conjurado (request.level) e o rank
     // base da magia (spell.level, do AON) — a magia é exibida já elevada.
     const levelAware =
-        request?.type === 'spell' && request.level != null && state.spell?.level != null
+        request?.type === 'spell' && request.level != null && spell?.level != null
 
     const heightenedEntries = useMemo<AppliedHeightened[]>(() => {
         const merged = spellHeightenedEntries(
-            state.spell,
-            mergeHeightened(state.spell?.heightened, parsed?.heightened),
+            spell,
+            mergeHeightened(spell?.heightened, parsed?.heightened),
         )
         if (request?.type === 'spell' && request.level != null) {
-            return applyHeightening(merged, state.spell?.level, request.level)
+            return applyHeightening(merged, spell?.level, request.level)
         }
         return merged.map((e) => ({ ...e, applies: false, times: 0 }))
-    }, [request, state.spell, parsed])
+    }, [request, spell, parsed])
 
     // Os números no rank conjurado, pelo `scaling` que o backend leu do EN.
     // Sem ele (cache antigo), o caminho antigo de um dado só.
     const scaled = useMemo<ScaledSpell | null>(() => {
-        if (!levelAware || !state.spell || request?.type !== 'spell' || request.level == null) return null
-        return scaleSpell(state.spell, request.level)
-    }, [levelAware, state.spell, request])
+        if (!levelAware || !spell || request?.type !== 'spell' || request.level == null) return null
+        return scaleSpell(spell, request.level)
+    }, [levelAware, spell, request])
 
     const heightenedDamage = useMemo(() => {
-        if (!levelAware || !state.spell || scaled) return null
-        return computeHeightenedDamage(state.spell, heightenedEntries)
-    }, [levelAware, state.spell, heightenedEntries, scaled])
+        if (!levelAware || !spell || scaled) return null
+        return computeHeightenedDamage(spell, heightenedEntries)
+    }, [levelAware, spell, heightenedEntries, scaled])
 
     // Dados elevados trocados dentro da prosa (destacados). A k-ésima "2d4" do
     // inglês é a k-ésima "2d4" da tradução — os dados sobrevivem ao LLM.
@@ -221,10 +230,10 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                     occurrences: c.occurrences,
                 }))
         }
-        if (!levelAware || !heightenedDamage || !state.spell?.damage) return []
-        if (heightenedDamage === state.spell.damage) return []
-        return [{ from: state.spell.damage, to: heightenedDamage, nth: 0 }]
-    }, [scaled, levelAware, heightenedDamage, state.spell])
+        if (!levelAware || !heightenedDamage || !spell?.damage) return []
+        if (heightenedDamage === spell.damage) return []
+        return [{ from: spell.damage, to: heightenedDamage, nth: 0 }]
+    }, [scaled, levelAware, heightenedDamage, spell])
 
     // Bloco de heightening exibido:
     // - nível-ciente: só as entradas que se APLICAM neste rank, e ainda oculta
@@ -272,16 +281,16 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                         />
                         <Typography variant="h5" sx={{ fontWeight: 700, lineHeight: 1.2, wordBreak: 'break-word' }}>
                             {request.name}
-                            {(state.spell?.actions || state.entry?.actions) && (
+                            {(spell?.actions || entry?.actions) && (
                                 <Box component="span" sx={{ ml: 1, color: accent, fontSize: '0.85em' }}>
-                                    {actionSymbol(state.spell?.actions || state.entry?.actions)}
+                                    {actionSymbol(spell?.actions || entry?.actions)}
                                 </Box>
                             )}
                         </Typography>
                     </Box>
                     <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
                         {/* Só o que a AON resolveu: um nome sem descrição chegaria vazio à mesa. */}
-                        {onShare && !state.loading && (state.spell || state.entry) && (
+                        {onShare && !state.loading && (spell || entry) && (
                             <ShareButton key={request.name} onShare={() => onShare(request)} />
                         )}
                         <IconButton onClick={onClose} size="small" aria-label="Fechar">
@@ -291,7 +300,7 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                 </Stack>
 
                 {/* Bloco de fonte */}
-                {(state.spell?.sourceBook || state.entry?.sourceBook || parsed?.source) && (
+                {(spell?.sourceBook || entry?.sourceBook || parsed?.source) && (
                     <Box
                         sx={{
                             display: 'flex',
@@ -322,14 +331,14 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                                 FONTE
                             </Typography>
                             <Typography variant="body2" sx={{ lineHeight: 1.3, mt: 0.25 }}>
-                                {state.spell?.sourceBook || state.entry?.sourceBook || parsed?.source}
+                                {spell?.sourceBook || entry?.sourceBook || parsed?.source}
                             </Typography>
                         </Box>
                     </Box>
                 )}
 
                 {/* Tradução pendente (o effect retenta sozinho em segundos) */}
-                {(state.spell?.translationPending || state.entry?.translationPending) && (
+                {(spell?.translationPending || entry?.translationPending) && (
                     <Typography
                         variant="caption"
                         color="text.secondary"
@@ -340,7 +349,7 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                 )}
 
                 {/* Bloco de nível de conjuração */}
-                {request.type === 'spell' && request.level != null && !state.loading && state.spell && (
+                {request.type === 'spell' && request.level != null && !state.loading && spell && (
                     <Box
                         sx={{
                             display: 'flex',
@@ -357,13 +366,13 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                         }}
                     >
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            {state.spell.level != null && `Nível base ${state.spell.level} · `}
+                            {spell.level != null && `Nível base ${spell.level} · `}
                             Conjurada no nível {request.level}
                         </Typography>
-                        {state.spell.level != null && request.level > state.spell.level && (
+                        {spell.level != null && request.level > spell.level && (
                             <Chip
                                 size="small"
-                                label={`Elevada +${request.level - state.spell.level}`}
+                                label={`Elevada +${request.level - spell.level}`}
                                 sx={{
                                     backgroundColor: accent + '25',
                                     color: accent,
@@ -382,14 +391,14 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                 )}
 
                 {/* Metadata de talento / habilidade / item */}
-                {request.type !== 'spell' && state.entry && (
-                    <EntryMetadata entry={state.entry} accent={accent} />
+                {request.type !== 'spell' && entry && (
+                    <EntryMetadata entry={entry} accent={accent} />
                 )}
 
                 {/* Metadata da magia */}
-                {request.type === 'spell' && state.spell && (
+                {request.type === 'spell' && spell && (
                     <SpellMetadata
-                        spell={state.spell}
+                        spell={spell}
                         accent={accent}
                         caster={request.caster}
                         heightenedDamage={heightenedDamage}
@@ -399,11 +408,11 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                 )}
 
                 {/* Rolar: ataque (traço ataque) e dano no rank conjurado */}
-                {request.type === 'spell' && state.spell && !state.loading && onRoll && (
+                {request.type === 'spell' && spell && !state.loading && onRoll && (
                     <SpellRollButton
-                        spell={state.spell}
+                        spell={spell}
                         caster={request.caster}
-                        castRank={request.level ?? state.spell.level ?? undefined}
+                        castRank={request.level ?? spell.level ?? undefined}
                         name={request.name}
                         cast={request.cast}
                         onRoll={onRoll}
@@ -411,12 +420,12 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                 )}
 
                 {/* Usar: o mesmo botão da linha do talento/habilidade, para quem foi consultar */}
-                {request.type !== 'spell' && state.entry && !state.loading && renderActions?.(request, state.entry)}
+                {request.type !== 'spell' && entry && !state.loading && renderActions?.(request, entry)}
 
                 {/* Bastão: magias do degrau que a ficha possui (só elas) */}
-                {request.type !== 'spell' && state.entry?.staff && !state.loading && (
+                {request.type !== 'spell' && entry?.staff && !state.loading && (
                     <StaffSpellList
-                        staff={state.entry.staff}
+                        staff={entry.staff}
                         accent={accent}
                         onNavigate={onNavigate}
                     />
@@ -437,6 +446,11 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                         diceSubs={diceSubs}
                         accent={accent}
                     />
+                )}
+
+                {/* Corrigir a tradução: só do que já veio traduzido (inglês pendente se resolve sozinho) */}
+                {!state.loading && (spell || entry) && !(spell ?? entry)?.translationPending && (
+                    <TranslationFix kind={request.type} name={request.name} payload={(spell ?? entry)!} />
                 )}
 
                 <Divider sx={{ my: 3 }} />
