@@ -52,8 +52,6 @@ node scripts/check-rolls.mjs            # confere a matemática das rolagens con
 node scripts/check-economy.mjs          # confere que todo talento/item do elenco que custa ação, reação ou Ponto Mítico tem caminho
 node --env-file=.env scripts/check-migrations.mjs
                                         # roda as migrations pendentes em produção dentro de BEGIN…ROLLBACK (antes do push!)
-node --env-file=.env scripts/migrate-redis.mjs --domain <d> [--dry-run]
-                                        # copia do Redis o que já migrou para o Supabase (ver a seção Supabase)
 node --env-file=.env scripts/build-description-bundle.mjs [--published <url>] [--all]
                                         # regera public/descriptions/ (descrições pré-traduzidas) — ver abaixo
 ```
@@ -311,15 +309,19 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   tradução continua marcando `translationPending` (nada de cachear inglês) e o cliente refaz em até 3 passadas.
   `resolveSpell` (uma só) usa o mesmo caminho.
 
-## Supabase (em migração)
+## Supabase
 
-O Upstash Redis e o Vercel Blob estão sendo trocados pelo Supabase (Postgres + Realtime + Storage), domínio a domínio,
-sem mudar o contrato das rotas: cada store do servidor ganha a versão Supabase com as mesmas funções exportadas. Ordem:
-fundação (feito) → traduções/descrições (feito) → fichas com histórico (feito) → estado da mesa em tempo real (feito) →
-rolagens (feito) → mapa (feito) →
-imagens (feito) → desligar Upstash e Blob. Projeto `htgrzvdzxepbbgbaqkir`, em **São Paulo** (`sa-east-1`) porque a mesa é toda
-brasileira, e as funções da Vercel também (`"regions": ["gru1"]` no `vercel.json`): foram para lá quando o mapa e o
-feed saíram do Redis, o último caminho quente fora do Brasil.
+Toda a persistência é o Supabase: **Postgres** (estado da mesa, fichas publicadas com histórico, descrições e
+traduções, feed de rolagens, mapas), **Realtime** (o tempo real do estado, do feed e do mapa) e **Storage** (imagens).
+Até out/2026 eram o Upstash Redis e o Vercel Blob, com polling; a troca foi domínio a domínio, sem mudar o contrato
+das rotas (cada store do servidor manteve as funções exportadas). O Redis e o Blob saíram do código. Projeto
+`htgrzvdzxepbbgbaqkir`, em **São Paulo** (`sa-east-1`) porque a mesa é toda brasileira, e as funções da Vercel também
+(`"regions": ["gru1"]` no `vercel.json`): do clique à tela do outro aparelho, ~0,1 s.
+
+- **Cada store tem um fallback em memória** (Maps de processo), como na época do Redis: sem as credenciais o app
+  funciona, só que nada sai do aparelho. Em dev, **o `.env` tem as chaves do projeto de PRODUÇÃO** — o `dev:api` lê e
+  grava no banco real (não há projeto de dev: a organização já usa os 2 projetos do plano gratuito). Teste na mesa
+  `arton-1515` com slugs `teste-*` e apague no fim.
 
 - **Só o servidor escreve** (`api/_lib/supabase.js`, chave `SUPABASE_SECRET_KEY`, que passa por cima do RLS). O
   navegador (`src/services/supabase.ts`, chave publicável) abre uma **sessão anônima** por aparelho
@@ -342,28 +344,36 @@ feed saíram do Redis, o último caminho quente fora do Brasil.
 - **Conexão direta ao banco**: o host `db.<ref>.supabase.co` só tem IPv6; fora daqui (GitHub Actions) use o pooler em modo
   sessão, `aws-1-sa-east-1.pooler.supabase.com:5432` (o `aws-0` recusa). A CLI dá a chave secreta MASCARADA sem
   `--reveal`.
-- `pg_cron` limpa os usuários anônimos sem atividade há 180 dias, as travas vencidas e os misses velhos.
-- **Copiar do Redis** o que já existia antes da troca de um domínio: `scripts/migrate-redis.mjs --domain <d> [--dry-run]`
-  (só lê do Redis; tudo é upsert). Precisa das credenciais do Redis de PRODUÇÃO no `.env`, que na Vercel são
-  sensíveis e não saem pelo `env pull`. Rode ANTES do deploy que troca o domínio, senão a primeira abertura refaz o
-  trabalho (tradução paga de novo na cota do LLM).
+- `pg_cron` limpa os usuários anônimos sem atividade há 180 dias, as travas vencidas, os misses velhos, os
+  compartilhamentos de mais de um dia e o estado de personagem parado há 180 dias.
+- **Tempo real é sempre do banco**: um trigger chama `realtime.send` no canal PRIVADO `mesa:<mesa>:<nome>` (`state`,
+  `rolls`, `map:<id>`, `maps`), e só quem está em `mesa_members` ouve (RLS em `realtime.messages`). Nenhum cliente
+  transmite. No cliente, `listenMesaChannel` (`services/supabase.ts`) é o único jeito de ouvir; a cada SUBSCRIBED
+  (inclusive reconexão) quem ouve relê o que pode ter perdido. O Realtime põe um `id` próprio no payload quando ele
+  não tem um — não use `id` como campo da mensagem.
+- **O `jsonb` reordena as chaves dos objetos**: comparar valor do banco com `JSON.stringify` acusa mudança onde não
+  há. No servidor use `sameJson` (`api/_lib/json.js`).
+- O script que copiou o Redis e o Blob para cá (`scripts/migrate-redis.mjs`) cumpriu o papel e saiu; está no
+  histórico do git, se um dia for preciso.
 
 ## Mesas
 
 Duas (ou mais) mesas de jogo no mesmo site, cada uma vendo só o que é dela: fichas publicadas, presets, estado dos
 personagens, mapas e mapa ativo, encontro da Iniciativa, feed de rolagens e regras compartilhadas.
 
-- **É um namespace de chave**, com a mesma regra no servidor (`api/_lib/mesas.js`, `scoped`) e no cliente
-  (`src/services/mesa.ts`, `mesaKey`/`stateApi`): `pf2e:<resto>` vira `pf2e:m:<mesa>:<resto>`. **A mesa legada (a
-  Casa do Gordo Online, `casa-do-gordo`, a de antes das mesas) fica SEM prefixo**, com as chaves de sempre, e o pedido dela vai sem `?mesa=`:
-  nada migrou, e aparelho que nunca escolheu mesa continua nela. Não "normalize" a legada para ter prefixo — seria
-  uma migração do Redis inteiro.
-- **A lista de mesas existe duas vezes** (`MESA_IDS` em `mesas.js` e `MESAS` em `mesa.ts`) — mudou uma, muda a outra.
-  O servidor recusa id desconhecido (400), para um link digitado errado não criar uma mesa fantasma.
+- **No banco é a coluna `mesa`** de cada tabela (chave estrangeira para `mesas`), e os canais do Realtime são
+  `mesa:<mesa>:…`. **A mesa legada (a Casa do Gordo Online, `casa-do-gordo`, a de antes das mesas) é a padrão**: o
+  pedido dela vai sem `?mesa=`, e aparelho que nunca escolheu mesa continua nela.
+- **No `localStorage` é um namespace de chave** (`mesaKey` em `src/services/mesa.ts`): `pf2e:<resto>` vira
+  `pf2e:m:<mesa>:<resto>`, e a legada fica SEM prefixo, com as chaves de sempre. Não "normalize" a legada para ter
+  prefixo — o cache de todo aparelho da mesa se perderia.
+- **A lista de mesas existe três vezes** (`MESA_IDS` em `mesas.js`, `MESAS` em `mesa.ts` e a tabela `mesas`, que as
+  chaves estrangeiras exigem) — mudou uma, muda as outras, e mesa nova é também uma migration (`insert into
+  public.mesas`). O servidor recusa id desconhecido (400), para um link digitado errado não criar uma mesa fantasma.
 - **A mesa vai na query, também no POST** (`?mesa=`), e `api/state.js`/`server/index.mjs` a resolvem UMA vez e a
   repassam: todo store recebe `mesa` como **primeiro parâmetro explícito** (`readCharacter(mesa, slug)`,
   `listMaps(mesa, gm)`…), de propósito no lugar de `AsyncLocalStorage` — uma chamada esquecida aparece no grep. O
-  fallback em memória (sem Redis) também é por mesa.
+  fallback em memória (sem banco) também é por mesa.
 - **Trocar de mesa recarrega a página** (`switchMesa`). Por isso `currentMesa` é uma constante lida no boot
   (`main.tsx` importa `services/mesa` antes de tudo) e `CAMPAIGN_PRESETS = PRESETS_BY_MESA[currentMesa.id]`: os caches
   em memória dos serviços (`tableState`, o store do mapa, os ids vistos do feed) e os consumidores dos presets não
@@ -377,8 +387,8 @@ personagens, mapas e mapa ativo, encontro da Iniciativa, feed de rolagens e regr
 - A migração do `localStorage` antigo (`legacy` do `useSharedState`) só roda na mesa legada: em outra, levaria o PV de
   lá para um personagem de mesmo nome.
 - Mesas hoje: **Casa do Gordo Online** (`casa-do-gordo`, legada, os 6 personagens) e **Arton 1515** (`arton-1515`,
-  4 jogadores, ainda sem presets — os JSONs vêm depois). Mesa nova = uma entrada nas duas listas +
-  `PRESETS_BY_MESA[<id>]` (pode começar vazia).
+  4 jogadores, ainda sem presets — os JSONs vêm depois). Mesa nova = uma entrada nas duas listas + a migration com a
+  linha em `mesas` + `PRESETS_BY_MESA[<id>]` (pode começar vazia).
 
 ## Estado compartilhado da mesa
 
@@ -586,7 +596,7 @@ para a tela de todo mundo, em qualquer página, para a mesa ler o mesmo texto e 
   (`loadDescriptionBundle`) e o da ficha publicada (`readSheetDescriptions` — só o GET, sem completar o que falta; relê
   depois de 5 min), com teto de 4 s de espera. Basta o PRIMEIRO pacote que trouxer a descrição (o outro termina em
   segundo plano), e se ela já está no cache deste aparelho o cartão nem espera. Sem isso, quem não estava com aquela ficha aberta caía na API — AON +
-  LLM do zero, porque as traduções dos pacotes não estão no cache de traduções do Redis — e o texto demorava dezenas de
+  LLM do zero, porque as traduções dos pacotes estáticos não estão no cache de traduções do banco — e o texto demorava dezenas de
   segundos. Medido em dev: texto junto com o cartão, zero chamadas à API de descrições. Mesma regra das rolagens: **duas validações** (`sanitizeTableShare` e `sanitizeShare` em
   `roll-store.js`), o `check-rolls` confere as duas.
 - **Anda no feed de rolagens**: POST `{ action: 'share-add' }`, tabela `shares` (o GET devolve as da última hora, até 5;
