@@ -33,6 +33,7 @@ import {
     deleteMap,
     listMaps,
     renameMap,
+    onMapsChanged,
     setMapVisibility,
     type MapSummary,
 } from '../../../services/maps'
@@ -76,6 +77,10 @@ export const MapListDrawer = ({ open, currentId, gm, onClose, onOpenMap }: Props
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `reload` lê o `gm` desta renderização
     useEffect(() => { if (open) void reload() }, [open, gm])
+
+    // Aberta, a lista acompanha o que outro aparelho cria, renomeia, esconde ou apaga.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- idem
+    useEffect(() => (open ? onMapsChanged(() => { void reload() }) : undefined), [open, gm])
 
     const run = async (work: () => Promise<void>) => {
         setBusy(true)

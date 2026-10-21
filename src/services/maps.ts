@@ -1,17 +1,22 @@
 // Cliente do mapa de combate (`/api/state?map…`).
 //
-// Diferente do resto do estado da mesa, o mapa é ACOMPANHADO: quem arrasta um
-// token espera que os outros vejam o movimento sem apertar "Atualizar". Em vez
-// de conexão persistente (a Vercel serverless não segura uma), um poll lê só
-// os contadores de revisão — um MGET no Redis — e o mapa inteiro só desce
-// quando um deles mudou.
+// O mapa é ACOMPANHADO: quem arrasta um token espera que os outros vejam o
+// movimento na hora. Cada campo que muda no banco é transmitido pelo Realtime
+// no canal privado `mesa:<mesa>:map:<id>`, já com o valor e a REVISÃO da escrita
+// que o mudou; o mapa inteiro só desce ao abrir e a cada (re)conexão. O PV, o
+// token e o tamanho dos PCs chegam pelo canal do estado da mesa
+// (`onStateChange`), e a lista e o mapa ativo pelo `mesa:<mesa>:maps`.
+//
+// Sem canal (sem Supabase, rede ruim), volta o poll de antes: lê só os
+// contadores de revisão, e o mapa inteiro desce quando um deles mudou.
 //
 // Escrita é otimista e por campo, como em `tableState.ts`: a tela muda na hora
-// e o valor fica como "override" até o servidor confirmar, para um poll que
-// chegue no meio não devolver o token ao quadrado de antes.
+// e o valor fica como "override" até o servidor confirmar, para uma transmissão
+// ou um poll que cheguem no meio não devolverem o token ao quadrado de antes.
 
 import { useCallback, useSyncExternalStore } from 'react'
-import { saveField } from './tableState'
+import { ensureStateLive, onStateChange, saveField } from './tableState'
+import { listenMesaChannel } from './supabase'
 import { onFeedActivity } from './rolls'
 import type { HpStored } from '../modules/character-viewer/components/useHpTracker'
 import { sizeSquares, type Cell, type ImageRect } from '../modules/battle-map/geometry'
@@ -214,6 +219,20 @@ interface Entry {
      * o hash inteiro para ouvir "privado" de novo.
      */
     hiddenRevs: { rev: number; tableRev: number } | null
+    /** O canal do mapa está aberto: nada de poll. */
+    live: boolean
+    /** Sai do canal (quando ninguém mais olha o mapa). */
+    stopLive: (() => void) | null
+    /** Revisão da última leitura inteira: transmissão até ela já estava dentro. */
+    loadedRev: number
+    /** A revisão mais nova aplicada em cada campo — transmissão mais velha é descartada. */
+    fieldRev: Map<string, number>
+    /**
+     * Campos transmitidos depois da última leitura inteira. Uma leitura que saiu
+     * ANTES deles e chegou depois (a da reconexão, a da aba que voltou) não pode
+     * desfazê-los: são reaplicados por cima dela.
+     */
+    recent: Map<string, { rev: number; value: unknown }>
 }
 
 const entries = new Map<string, Entry>()
@@ -241,6 +260,11 @@ function entryFor(id: string): Entry {
             loading: null,
             gm: false,
             hiddenRevs: null,
+            live: false,
+            stopLive: null,
+            loadedRev: 0,
+            fieldRev: new Map(),
+            recent: new Map(),
         }
         entries.set(id, entry)
     }
@@ -255,9 +279,16 @@ function setSnapshot(entry: Entry, patch: Partial<MapSnapshot>) {
 /** Prefixo do campo → onde ele mora no `MapData`. */
 const BAGS = { pos: 'pos', hp: 'hp', fit: 'fit', drw: 'drawings', ping: 'pings', roll: 'rolls' } as const
 
-/** Aplica um campo (`meta`, `pos:<id>`, `hp:<id>`, `drw:<id>`) numa cópia do mapa. */
+/** Aplica um campo (`meta`, `turn`, `tok:<id>`, `pos:<id>`, `hp:<id>`, `drw:<id>`…) numa cópia do mapa. */
 function withField(data: MapData, field: string, value: unknown): MapData {
-    if (field === 'meta') return { ...data, meta: value as MapMeta }
+    if (field === 'meta') return value === null ? data : { ...data, meta: value as MapMeta }
+    if (field === 'turn') return { ...data, turn: (value as string | null) ?? null }
+    if (field.startsWith('tok:')) {
+        const tokens = { ...data.tokens }
+        if (value === null) delete tokens[field.slice(4)]
+        else tokens[field.slice(4)] = value as TokenDescriptor
+        return { ...data, tokens }
+    }
     const at = field.indexOf(':')
     const prop = BAGS[field.slice(0, at) as keyof typeof BAGS]
     if (!prop) return data
@@ -283,7 +314,13 @@ function withOverrides(entry: Entry, data: MapData): MapData {
 function applyMap(entry: Entry, map: MapData) {
     entry.lastChange = Date.now()
     entry.hiddenRevs = null
-    setSnapshot(entry, { data: withOverrides(entry, map), error: null, activeId: map.activeId, hidden: false })
+    entry.loadedRev = Math.max(entry.loadedRev, map.rev)
+    let data = map
+    for (const [field, { rev, value }] of entry.recent) {
+        if (rev > map.rev) data = { ...withField(data, field, value), rev: Math.max(data.rev, rev) }
+        else entry.recent.delete(field)
+    }
+    setSnapshot(entry, { data: withOverrides(entry, data), error: null, activeId: map.activeId, hidden: false })
 }
 
 /** O mapa ficou (ou continua) privado para este aparelho: some da tela. */
@@ -348,9 +385,9 @@ function burst(entry: Entry) {
 function schedulePoll(entry: Entry, delay?: number) {
     if (entry.pollTimer) clearTimeout(entry.pollTimer)
     entry.pollTimer = null
-    // Aba escondida não pede nada: celular com a tela apagada não gasta bateria
-    // nem a cota do Redis. O `visibilitychange` religa.
-    if (entry.listeners.size === 0 || document.hidden) return
+    // Com o canal aberto não há poll. Aba escondida não pede nada: celular com a
+    // tela apagada não gasta bateria. O `visibilitychange` religa.
+    if (entry.live || entry.listeners.size === 0 || document.hidden) return
     const now = Date.now()
     const wait = delay ?? (now < entry.burstUntil ? BURST_MS : now - entry.lastChange < QUIET_AFTER_MS ? FAST_MS : SLOW_MS)
     entry.pollTimer = setTimeout(() => { void poll(entry) }, wait)
@@ -393,9 +430,130 @@ if (typeof document !== 'undefined') {
     document.addEventListener('visibilitychange', () => {
         if (document.hidden) return
         for (const entry of entries.values()) {
-            if (entry.listeners.size > 0) schedulePoll(entry, 0)
+            if (entry.listeners.size === 0) continue
+            // Com o canal: relê uma vez (o socket pode ter morrido sem avisar).
+            if (entry.live) void loadMap(entry.id)
+            else schedulePoll(entry, 0)
         }
     })
+}
+
+// --- Tempo real -----------------------------------------------------------------
+
+interface FieldMessage { field?: unknown; value?: unknown; updatedAt?: unknown; rev?: unknown }
+
+/**
+ * Um campo que o banco transmitiu. Fica de fora o que este aparelho ainda está
+ * gravando (o override é mais novo) e o que for mais velho que o que já se tem —
+ * o eco atrasado de um arrasto não devolve o token ao quadrado anterior.
+ */
+function applyRemoteField(entry: Entry, msg: FieldMessage) {
+    const { field, rev } = msg
+    const data = entry.snapshot.data
+    if (!data || typeof field !== 'string' || typeof rev !== 'number') return
+    if (rev <= entry.loadedRev || rev <= (entry.fieldRev.get(field) ?? 0)) return
+    entry.fieldRev.set(field, rev)
+    if (entry.overrides.has(field) || entry.pending.has(field)) return
+    if (field === 'imgs' || field === 'private') return
+    let value = msg.value ?? null
+    // O PV do monstro leva o `updatedAt` junto, como na leitura inteira.
+    if (field.startsWith('hp:') && value && typeof value === 'object' && typeof msg.updatedAt === 'number') {
+        value = { ...(value as object), updatedAt: msg.updatedAt }
+    }
+    entry.lastChange = Date.now()
+    entry.recent.set(field, { rev, value })
+    setSnapshot(entry, { data: { ...withField(data, field, value), rev: Math.max(data.rev, rev) } })
+    // Personagem que acabou de entrar no mapa: o PV e o token dele vêm na leitura inteira.
+    const token = value as TokenDescriptor | null
+    if (field.startsWith('tok:') && token?.kind === 'pc' && token.slug && !(token.slug in data.pcs)) void loadMap(entry.id)
+}
+
+function applyRemotePrivate(entry: Entry, msg: { private?: unknown; rev?: unknown }) {
+    if (typeof msg.private !== 'boolean') return
+    const data = entry.snapshot.data
+    if (msg.private && !entry.gm) {
+        applyHidden(entry, { rev: Number(msg.rev) || 0, tableRev: data?.tableRev ?? 0 })
+    } else if (!msg.private && entry.snapshot.hidden) {
+        void loadMap(entry.id)
+    } else if (data) {
+        setSnapshot(entry, { data: { ...data, private: msg.private } })
+    }
+}
+
+function startLive(entry: Entry) {
+    if (entry.stopLive) return
+    // Marca antes da promessa: duas montagens seguidas não abrem dois canais.
+    entry.stopLive = () => {}
+    startMesaMaps()
+    void listenMesaChannel(
+        `map:${entry.id}`,
+        {
+            field: (p) => applyRemoteField(entry, p as FieldMessage),
+            private: (p) => applyRemotePrivate(entry, p as { private?: unknown; rev?: unknown }),
+        },
+        (live) => {
+            entry.live = live
+            // A cada (re)conexão, o mapa inteiro: o que mudou com o canal fechado.
+            if (live && entry.listeners.size > 0) void loadMap(entry.id)
+            schedulePoll(entry)
+        },
+    ).then((stop) => {
+        if (!stop) { entry.stopLive = null; return }
+        // Saíram do mapa enquanto o canal abria.
+        if (entry.listeners.size === 0) { stop(); entry.stopLive = null; entry.live = false; return }
+        entry.stopLive = () => { stop(); entry.live = false }
+    })
+}
+
+function stopLive(entry: Entry) {
+    entry.stopLive?.()
+    entry.stopLive = null
+    entry.live = false
+}
+
+let mesaMapsStarted = false
+
+/**
+ * O canal da lista (`mesa:<mesa>:maps`): o mapa ativo ("Levar a mesa") e as
+ * mudanças na lista. E o do estado da mesa, por onde chegam o PV, o token e o
+ * tamanho dos personagens que estão nos mapas abertos.
+ */
+function startMesaMaps() {
+    if (mesaMapsStarted) return
+    mesaMapsStarted = true
+    ensureStateLive()
+    void listenMesaChannel('maps', {
+        changed: (p) => {
+            const payload = p as { activeId?: unknown }
+            if ('activeId' in payload) {
+                const activeId = typeof payload.activeId === 'string' ? payload.activeId : null
+                for (const entry of entries.values()) setSnapshot(entry, { activeId })
+            }
+            mapsListeners.forEach((l) => l())
+        },
+    }, () => {}).then((stop) => { if (!stop) mesaMapsStarted = false })
+}
+
+const PC_FIELDS = new Set(['hp', 'token', 'size'])
+
+onStateChange((slug, field, value) => {
+    if (!PC_FIELDS.has(field)) return
+    for (const entry of entries.values()) {
+        const data = entry.snapshot.data
+        if (!data || !(slug in data.pcs)) continue
+        // O PV que este mapa acabou de mexer já está na tela (e é o mais novo).
+        if (field === 'hp' && entry.pcOverrides.has(slug)) continue
+        const pc = data.pcs[slug]
+        setSnapshot(entry, { data: { ...data, pcs: { ...data.pcs, [slug]: { ...pc, [field]: value } } } })
+    }
+})
+
+const mapsListeners = new Set<() => void>()
+
+/** A lista de mapas mudou (criado, apagado, renomeado, escondido) — quem mostra a lista relê. */
+export function onMapsChanged(listener: () => void): () => void {
+    mapsListeners.add(listener)
+    return () => { mapsListeners.delete(listener) }
 }
 
 function subscribe(id: string, gm: boolean, listener: () => void): () => void {
@@ -411,6 +569,7 @@ function subscribe(id: string, gm: boolean, listener: () => void): () => void {
         }
     }
     if (entry.listeners.size === 1) {
+        startLive(entry)
         if (!entry.snapshot.data) void loadMap(id).then(() => schedulePoll(entry))
         else schedulePoll(entry, 0)
     }
@@ -419,10 +578,12 @@ function subscribe(id: string, gm: boolean, listener: () => void): () => void {
 
 function unsubscribe(entry: Entry, listener: () => void) {
     entry.listeners.delete(listener)
-    if (entry.listeners.size === 0 && entry.pollTimer) {
+    if (entry.listeners.size > 0) return
+    if (entry.pollTimer) {
         clearTimeout(entry.pollTimer)
         entry.pollTimer = null
     }
+    stopLive(entry)
 }
 
 const EMPTY: MapSnapshot = { data: null, error: null, activeId: null, hidden: false }
@@ -480,9 +641,11 @@ async function flushWrites(entry: Entry) {
     entry.pending.clear()
     try {
         const body = await post<{ rev: number }>({ action: 'map-write', id: entry.id, fields })
-        // Só solta o override se ainda for o valor que subiu.
+        // Só solta o override se ainda for o valor que subiu. E a transmissão
+        // desta escrita (ou de uma anterior, atrasada) não volta a tela para trás.
         for (const [field, value] of Object.entries(fields)) {
             if (entry.overrides.get(field) === value) entry.overrides.delete(field)
+            if (typeof body.rev === 'number') entry.fieldRev.set(field, Math.max(entry.fieldRev.get(field) ?? 0, body.rev))
         }
         // A revisão só andou por causa desta escrita: não há o que baixar.
         const data = entry.snapshot.data
