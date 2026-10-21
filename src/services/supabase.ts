@@ -102,6 +102,28 @@ export async function authHeaders(): Promise<Record<string, string>> {
     }
 }
 
+/**
+ * Ouve um canal PRIVADO da mesa aberta (`mesa:<mesa>:<nome>`), por onde o banco
+ * transmite o que mudou (triggers). Só quem se registrou na mesa entra (RLS em
+ * `realtime.messages`). `onLive` avisa a cada troca: aberto (SUBSCRIBED,
+ * inclusive em cada reconexão — hora de reler o que pode ter passado) ou não.
+ * Devolve `false` quando não há Supabase: quem chamou segue sem tempo real.
+ */
+export async function listenMesaChannel(
+    name: string,
+    handlers: Record<string, (payload: unknown) => void>,
+    onLive: (live: boolean) => void,
+): Promise<boolean> {
+    const client = await getSupabase()
+    if (!client) return false
+    const channel = client.channel(`mesa:${currentMesa.id}:${name}`, { config: { private: true } })
+    for (const [event, handler] of Object.entries(handlers)) {
+        channel.on('broadcast', { event }, ({ payload }) => handler(payload))
+    }
+    channel.subscribe((state) => onLive(state === 'SUBSCRIBED'))
+    return true
+}
+
 /** Abre a sessão com o app ocioso — chamado uma vez no boot (`main.tsx`). */
 export function startSupabase() {
     if (!isSupabaseConfigured || typeof window === 'undefined') return

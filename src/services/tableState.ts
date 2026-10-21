@@ -14,8 +14,8 @@
 // Sem Supabase (ou com o canal caído) o app volta ao de antes: sob demanda, com
 // o botão "Atualizar".
 
-import { currentMesa, mesaKey, stateApi } from './mesa'
-import { authHeaderNow, currentUserId, getSupabase } from './supabase'
+import { mesaKey, stateApi } from './mesa'
+import { authHeaderNow, currentUserId, listenMesaChannel } from './supabase'
 
 const CACHE_PREFIX = mesaKey('pf2e:table:v1:')
 
@@ -327,23 +327,23 @@ let hiddenSince: number | null = null
 function startRealtime() {
     if (realtimeStarted || typeof window === 'undefined') return
     realtimeStarted = true
-    void getSupabase().then((client) => {
-        if (!client) { realtimeStarted = false; return }
-        client
-            .channel(`mesa:${currentMesa.id}:state`, { config: { private: true } })
-            .on('broadcast', { event: 'state' }, ({ payload }) => applyRemote(payload as StateMessage))
-            .subscribe((state) => {
-                const live = state === 'SUBSCRIBED'
-                if (live !== status.live) setStatus({ live })
-                // Inclusive a primeira: no celular o SDK pode chegar segundos
-                // depois da leitura, e o que mudou nesse meio não seria visto.
-                if (live) resync()
-            })
-    })
-    // Celular que volta do bolso: o socket pode ter morrido sem avisar ainda.
+    void listenMesaChannel(
+        'state',
+        { state: (payload) => applyRemote(payload as StateMessage) },
+        (live) => {
+            if (live !== status.live) setStatus({ live })
+            // Inclusive a primeira: no celular o SDK pode chegar segundos
+            // depois da leitura, e o que mudou nesse meio não seria visto.
+            if (live) resync()
+        },
+    ).then((ok) => { if (!ok) realtimeStarted = false })
+}
+
+// Celular que volta do bolso: o socket pode ter morrido sem avisar ainda.
+if (typeof document !== 'undefined') {
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') { hiddenSince = Date.now(); return }
-        if (hiddenSince !== null && Date.now() - hiddenSince > 10_000) resync()
+        if (status.live && hiddenSince !== null && Date.now() - hiddenSince > 10_000) resync()
         hiddenSince = null
     })
 }
