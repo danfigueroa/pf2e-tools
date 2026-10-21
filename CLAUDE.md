@@ -7,7 +7,7 @@ Orientações para o Claude Code trabalhar neste repositório. Para detalhes de 
 **PF2e Toolkit** — SPA (React 19 + TypeScript + Vite + MUI 7) com ferramentas para Pathfinder 2e
 Remaster. Textos de UI em **português (pt-BR)**.
 
-Cinco módulos ativos (rotas em `src/App.tsx`):
+Seis módulos ativos (rotas em `src/App.tsx`):
 - `/ficha-virtual` → `src/modules/character-viewer/` — visualizador de ficha (JSON Pathbuilder) com
   descrições da AON traduzidas sob demanda.
 - `/iniciativa` → `src/modules/initiative-tracker/` — gerenciador de iniciativa e combate.
@@ -16,6 +16,8 @@ Cinco módulos ativos (rotas em `src/App.tsx`):
   para outro nível, pelas tabelas de construção de criaturas do GM Core.
 - `/mapa/:id?` → `src/modules/battle-map/` — mapa de combate (VTT): grid de 5 ft, imagem, tokens
   com barra de PV e régua.
+- `/diario` → `src/modules/session-diary/` — diário da sessão: as rolagens de cada dia de jogo, com
+  estatísticas por personagem e destaques.
 
 **Todo módulo é `React.lazy`** (`App.tsx`); só a Início e o `MainLayout` vão no bundle principal.
 Num bundle único (1,7 MB, 520 kB gzip), quem abria a Ficha Virtual no celular baixava o
@@ -630,6 +632,25 @@ montado UMA vez no `MainLayout` (trocar de rota não refaz o "já visto"), e o h
   **×** — só por ele: com o cartão inteiro clicável, um toque perdido o fechava no meio da
   leitura. Fica acima da AppBar e das gavetas (`zIndex` 1250), abaixo dos diálogos. Vale para
   toda rolagem, da ficha ou do mapa: as duas passam pelo mesmo `RollFeedLayer`.
+
+## Diário da sessão
+
+`/diario` (`modules/session-diary/` + `services/diary.ts`): as rolagens de um dia de jogo, para o resumo do fim da
+sessão e para conferir o que rolou. O banco guarda toda rolagem (`rolls`, ver "Feed de rolagens"); aqui só se agrupa.
+
+- **O dia de jogo vai das 6h às 6h no horário de Brasília** (`diary_day` no banco, migration `diario_da_sessao`, com
+  índice): a mesa joga à noite, e uma sessão que passa da meia-noite continua sendo uma só. `diaryDayOf` (cliente) e o
+  fallback em memória do servidor fazem a mesma conta — o `check-rolls` confere a fronteira.
+- `GET ?diary=days` (dias com rolagem, quantas, de quantos) e `GET ?diary=<YYYY-MM-DD>` (as rolagens do dia, em
+  ordem, até 3000), no `roll-handler` — mesmo endpoint do feed.
+- **As contas são puras** (`stats.ts`, cobertas pelo `check-rolls`): por personagem (slug; sem slug, o nome livre do
+  rolador do mapa, sem caixa nem espaços), testes de d20 (**cada raio do Blazing Bolt conta como um**), média do d20,
+  20 e 1 naturais, ✦ (**um por rolagem**, não por raio), maior teste e dano. **"Dano rolado", nunca "dano causado"**: o
+  app não sabe a CA do alvo e o cartão mostra acerto e crítico juntos, então soma-se o dano do ACERTO; persistente fica
+  de fora (já fica do `damage.total`). Destaque com EMPATE não elege ninguém.
+- Aberto durante a sessão, o dia de hoje relê sozinho a cada rolagem nova (`onFeedActivity`, com 1,2 s de junção —
+  uma rodada rola muito). Medido: ~1,4 s da rolagem à recontagem.
+- A lista usa a `HistoryRow` do histórico da sidebar (`components/RollFeed.tsx`), que ganhou "Ver o diário da sessão".
 
 ## Regra compartilhada com a mesa
 
