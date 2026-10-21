@@ -42,7 +42,9 @@ function App() {
             <Route path="transformation" element={page(<TransformationPage />)} />
             <Route path="escalar-monstro" element={page(<MonsterScalerPage />)} />
             <Route path="mapa/:id?" element={page(<BattleMapPage />)} />
-            <Route path="diario" element={page(<SessionDiaryPage />)} />
+            <Route path="historico" element={page(<SessionDiaryPage />)} />
+            {/* O nome antigo ("Diário da Sessão") parecia um diário escrito; o link salvo continua valendo. */}
+            <Route path="diario" element={<Navigate to="/historico" replace />} />
           </Route>
         </Routes>
       </Router>

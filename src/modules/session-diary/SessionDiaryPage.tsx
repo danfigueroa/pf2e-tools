@@ -27,7 +27,7 @@ const dayLabel = (day: string) =>
 const timeLabel = (at: number) => new Date(at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 
 /**
- * Diário da sessão (`/diario`): as rolagens de um dia de jogo, com o resumo de cada
+ * Histórico de rolagens (`/historico`; era o "Diário da sessão", em `/diario`): as rolagens de um dia de jogo, com o resumo de cada
  * personagem e os destaques — para o fim da sessão e para conferir o que rolou.
  * O banco guarda toda rolagem; o dia de jogo vai das 6h às 6h (`services/diary`).
  * Aberto durante a sessão, o dia de hoje acompanha as rolagens novas.
@@ -96,7 +96,7 @@ export const SessionDiaryPage = () => {
     return (
         <Container maxWidth="lg" disableGutters sx={{ pb: 4 }}>
             <Typography variant="h3" component="h1" sx={{ fontWeight: 700, mb: 0.5 }}>
-                Diário da sessão
+                Histórico de rolagens
             </Typography>
             <Box sx={{ height: 2, width: { xs: 120, sm: 180 }, backgroundColor: gold.main, mb: 2 }} />
 
@@ -104,7 +104,7 @@ export const SessionDiaryPage = () => {
                 <Skeleton variant="rounded" height={40} sx={{ maxWidth: 420 }} />
             ) : days.length === 0 ? (
                 <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                    {failed ? 'Não deu para ler o diário. Confira a conexão e recarregue.' : 'Nenhuma rolagem na mesa ainda. As da próxima sessão aparecem aqui.'}
+                    {failed ? 'Não deu para ler o histórico. Confira a conexão e recarregue.' : 'Nenhuma rolagem na mesa ainda. As da próxima sessão aparecem aqui.'}
                 </Typography>
             ) : (
                 <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap', mb: 2.5 }}>

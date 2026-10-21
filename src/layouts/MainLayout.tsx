@@ -25,7 +25,7 @@ import {
   Whatshot as ScalerIcon,
   Map as MapIcon,
   Casino as DiceIcon,
-  AutoStories as DiaryIcon,
+  History as HistoryIcon,
 } from '@mui/icons-material';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { green, gold, parchment } from '../theme';
@@ -80,9 +80,9 @@ const navigationItems: NavigationItem[] = [
     path: '/mapa',
   },
   {
-    text: 'Diário da Sessão',
-    icon: <DiaryIcon />,
-    path: '/diario',
+    text: 'Histórico de Rolagens',
+    icon: <HistoryIcon />,
+    path: '/historico',
   },
   // Desativado — Ficha em PDF (ver App.tsx).
   // {
@@ -205,7 +205,7 @@ export const MainLayout = () => {
         </List>
       </Box>
 
-      {/* Rolagens da mesa: o cartão some em segundos, o histórico fica. */}
+      {/* Últimas rolagens: o cartão some em segundos, as 30 últimas ficam aqui. */}
       <Box sx={{ px: 1.5, pb: 1 }}>
         <ListItemButton
           onClick={() => { setHistoryOpen(true); if (isMobile || isMap) setMobileOpen(false); }}
@@ -215,7 +215,7 @@ export const MainLayout = () => {
             <DiceIcon />
           </ListItemIcon>
           <ListItemText
-            primary="Rolagens da mesa"
+            primary="Últimas rolagens"
             primaryTypographyProps={{ fontSize: '0.9rem', color: CHROME_TEXT }}
           />
         </ListItemButton>
@@ -281,7 +281,7 @@ export const MainLayout = () => {
           </Typography>
           <IconButton
             color="inherit"
-            aria-label="Rolagens da mesa"
+            aria-label="Últimas rolagens"
             onClick={() => setHistoryOpen(true)}
             sx={{ ml: 'auto' }}
           >

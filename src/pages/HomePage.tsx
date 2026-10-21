@@ -15,7 +15,7 @@ import {
   Whatshot as ScalerIcon,
   Map as MapIcon,
   ArrowForward as ArrowIcon,
-  AutoStories as DiaryIcon,
+  History as HistoryIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { green, gold, parchment } from '../theme';
@@ -66,10 +66,10 @@ const tools: ToolCard[] = [
     ],
   },
   {
-    title: 'Diário da Sessão',
+    title: 'Histórico de Rolagens',
     description: 'Todas as rolagens de cada noite de jogo, com o resumo de cada personagem: 20 e 1 naturais, média do dado, dano rolado e os destaques da sessão.',
-    icon: <DiaryIcon sx={{ fontSize: 32 }} />,
-    path: '/diario',
+    icon: <HistoryIcon sx={{ fontSize: 32 }} />,
+    path: '/historico',
     features: [
       'Uma página por sessão',
       'Estatísticas por personagem',

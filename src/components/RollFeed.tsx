@@ -7,7 +7,7 @@ import { gold, mapChrome, MYTHIC_COLOR, MYTHIC_ON_DARK, parchment } from '../the
 import { isOwnRoll, useTableRolls } from '../services/rolls'
 import { basicSaveLine, partFormula, rayCritTotal, rayTotal, rollSummaryText, type RolledPart, type RollRay, type TableRoll } from '../dice/tableRoll'
 
-// Rolagens da mesa, para todo mundo, em qualquer página — montado UMA vez no
+// Rolagens da mesa (as últimas, na sidebar), para todo mundo, em qualquer página — montado UMA vez no
 // `MainLayout`. Por ficar no layout, trocar de rota não refaz o "já visto".
 //
 // Mesma regra do `PingLayer` do mapa: cada rolagem aparece UMA vez por aparelho,
@@ -219,7 +219,7 @@ export const RollFeedLayer = memo(function RollFeedLayer() {
 const timeOf = (at: number) =>
     at ? new Date(at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : ''
 
-/** Uma linha do histórico: sem animação, com a conta inteira. Também a do diário da sessão. */
+/** Uma linha das últimas rolagens: sem animação, com a conta inteira. Também a do histórico de rolagens. */
 export const HistoryRow = ({ roll }: { roll: TableRoll }) => (
     <Box sx={{ py: 1.25 }}>
         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, flexWrap: 'wrap' }}>
@@ -288,7 +288,7 @@ export const RollHistoryDrawer = ({ open, onClose }: { open: boolean; onClose: (
     return (
         <Drawer anchor="right" open={open} onClose={onClose} PaperProps={{ sx: { width: 'min(400px, 100vw)' } }}>
             <Box sx={{ display: 'flex', alignItems: 'center', px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
-                <Typography variant="h6" sx={{ flex: 1, fontWeight: 700 }}>Rolagens da mesa</Typography>
+                <Typography variant="h6" sx={{ flex: 1, fontWeight: 700 }}>Últimas rolagens</Typography>
                 <IconButton aria-label="Fechar" onClick={onClose}><CloseIcon /></IconButton>
             </Box>
             <Box sx={{ px: 2, overflowY: 'auto' }}>
@@ -301,8 +301,8 @@ export const RollHistoryDrawer = ({ open, onClose }: { open: boolean; onClose: (
                         {rolls.map((r) => <HistoryRow key={r.id} roll={r} />)}
                     </Stack>
                 )}
-                <Button fullWidth sx={{ my: 1.5 }} onClick={() => { onClose(); navigate('/diario') }}>
-                    Ver o diário da sessão
+                <Button fullWidth sx={{ my: 1.5 }} onClick={() => { onClose(); navigate('/historico') }}>
+                    Ver o histórico completo
                 </Button>
             </Box>
         </Drawer>
