@@ -484,7 +484,7 @@ Três Pontos Míticos por dia, na faixa ao lado das condições.
 - 🛡️ **Bands of Force:** +1 de item na CA e nas salvaguardas (já somado aqui) e a reação **Return Force**.
 - 🧥 **Cloak of Illusions:** *Figment* como truque inato, **+1 em Furtividade** e, **1×/dia (2 ações)**, invisibilidade ao puxar o capuz.
 - ❤️ **Loki's Heart:** item da campanha, sem entrada na AON. Confira o efeito com o mestre.
-- 🔮 **Pontos de Foco:** a ficha exporta **3**, para *Dimensional Assault*, *Force Fang* e os amps dos truques psíquicos. Pelas regras revisadas, o teto é o número de magias de foco (aqui, duas): confirme com o mestre se são 2 ou 3. Refocus em 10 minutos.
+- 🔮 **2 Pontos de Foco**, um por magia de foco (*Dimensional Assault* e *Force Fang*), e é deles que saem também os amps dos truques psíquicos. O Pathbuilder exporta 3 pela regra antiga; o app usa a revisada. Refocus em 10 minutos.
 
 ## 🛡️ Defesa & Sobrevivência
 - ❤️ **CA 24 (25 com Parry ou Shield) · 87 PV.**

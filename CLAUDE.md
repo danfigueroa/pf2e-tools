@@ -905,6 +905,10 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   `specials` — o do Loki veio assim —, e na AON "Medium" é a **classe** do médium espiritual: a aba Habilidades mostrava a
   descrição dela e o pacote de descrições a traduzia. `normalizeBuild` (`dropSizeSpecials`) tira os seis tamanhos de
   `specials`; o tamanho continua no `sizeName`. O `check-rolls` confere.
+- **Pool de foco pela regra do Remaster** (`fixFocusPool`, no `normalizeBuild`): o Pathbuilder ainda conta uma fonte a
+  mais, e o Loki saía com 3 Pontos de Foco. No Remaster o pool é o número de magias de foco, até 3 (Player Core pg. 298;
+  truque de foco não conta, e o Psi Development só dá 1 ponto a quem não tem pool) — o Loki tem 2. Só reduz, nunca
+  aumenta, e não toca no Psíquico, cujo pool vem da classe (o Thalos tem só truques de foco). O `check-rolls` confere o elenco.
 - **Armas que mudam de número conforme a situação** (`magicWeapons.ts`): o Pathbuilder exporta um
   conjunto de números só por arma, o do caso padrão — a Gloom Blade do Eldarion no escuro vira um
   `+2 striking shortsword` e isso não aparecia em lugar nenhum. O catálogo casa **pelo nome** da
