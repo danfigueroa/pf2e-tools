@@ -65,7 +65,7 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
     const [castNote, setCastNote] = useState<{ text: string; warn: boolean } | null>(null)
     const markCast = useCallback((name: string, resource: CastResource): CastReport => {
         const cached = getCachedSpell(name)
-        const report = spellCast.cast({ name, actionsText: cached?.actions, resource, via: 'mark' })
+        const report = spellCast.cast({ name, actionsText: cached?.actions, resource, via: 'mark', traits: cached?.traits })
         setCastNote({ text: castMessage(name, report), warn: report.warnings.length > 0 })
         return report
     }, [spellCast])

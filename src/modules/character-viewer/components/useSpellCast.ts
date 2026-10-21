@@ -1,9 +1,11 @@
 import { useCallback, useMemo } from 'react'
 import type { BuildInfo } from '../../character-sheet/types'
 import type { ConditionModifiers } from '../conditions'
-import { actionsKeyFor } from '../charId'
-import { castTimeOf, pairCast, type CastResource, type CastTime } from '../spellCast'
+import { actionsKeyFor, magusKeyFor } from '../charId'
+import { castTimeOf, isConfluxSpell, pairCast, prepayStrike, spellIncludesStrike, type CastResource, type CastTime } from '../spellCast'
+import { hasSpellstrike } from '../magus'
 import { useActions, type ActionsApi } from './useActions'
+import { useMagus } from './useMagus'
 import type { MythicPointsApi } from './useMythicPoints'
 import type { SpellSlotsApi } from './useSpellSlots'
 
@@ -16,6 +18,8 @@ export interface CastInput {
     via: 'roll' | 'mark'
     /** Magia de ação variável: quantas o jogador escolheu (senão vale o mínimo e o aviso). */
     chosenActions?: number | null
+    /** Os traços da AON (em inglês): a magia de confluência (Focus + Magus) recarrega o Spellstrike. */
+    traits?: readonly string[]
 }
 
 export interface CastReport {
@@ -62,9 +66,14 @@ export function payTime(
  * Registra uma conjuração inteira: as ações (ou a reação) e o recurso — slot,
  * ponto de foco ou Ponto Mítico. O app só CONTA: faltar ação ou slot é avisado,
  * nunca impede (uma magia mal classificada não pode travar a ficha).
+ *
+ * E o que a conjuração faz na economia do Magus: a magia de confluência recarrega
+ * o Spellstrike, e a que inclui um Golpe (Dimensional Assault) deixa esse Golpe
+ * pago — sem isso, rolar o Golpe na aba de Combate cobraria a ação duas vezes.
  */
 export function useSpellCast(build: BuildInfo, mods: ConditionModifiers, mythicPoints: MythicPointsApi, slots: SpellSlotsApi) {
     const actions = useActions(actionsKeyFor(build), mods)
+    const magus = useMagus(magusKeyFor(build), build)
 
     const cast = useCallback((input: CastInput): CastReport => {
         if (pairCast(input.name, input.via)) return { paired: true, spent: [], warnings: [] }
@@ -83,9 +92,18 @@ export function useSpellCast(build: BuildInfo, mods: ConditionModifiers, mythicP
             else { mythicPoints.spend(); spent.push('1 Ponto Mítico') }
         }
 
-        payTime(actions, castTimeOf(input.actionsText), input.chosenActions, spent, warnings)
+        const time = castTimeOf(input.actionsText)
+        payTime(actions, time, input.chosenActions, spent, warnings)
+        if (isConfluxSpell(input.traits) && (time.kind === 'actions' || time.kind === 'variable') && hasSpellstrike(build) && magus.stored.spent) {
+            magus.rechargeSpellstrike()
+            spent.push('recarregou o Spellstrike')
+        }
+        if (spellIncludesStrike(input.name)) {
+            prepayStrike()
+            spent.push('o Golpe da magia (role-o na aba de Combate, sem gastar ação)')
+        }
         return { paired: false, spent, warnings }
-    }, [actions, slots, mythicPoints])
+    }, [actions, slots, mythicPoints, magus, build])
 
     return useMemo(() => ({ cast }), [cast])
 }

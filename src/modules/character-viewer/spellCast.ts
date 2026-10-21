@@ -48,6 +48,26 @@ export function castTimeOf(actions: string | number | undefined | null): CastTim
     return { kind: 'unknown' }
 }
 
+// ── Magias com efeito na economia do Magus ────────────────────────────────────
+
+/**
+ * Magias que INCLUEM um Golpe: o tempo da magia já paga o Golpe, que o jogador rola pela aba de Combate.
+ * Texto conferido na AON (Impossible Magic pg. 179): o Dimensional Assault teleporta e "make a melee Strike";
+ * o Shielding Strike ergue o escudo "Then, make a melee Strike". Magia nova assim = uma entrada aqui.
+ */
+const STRIKE_SPELLS = new Set(['dimensional assault', 'shielding strike'])
+
+export const spellIncludesStrike = (name: string): boolean => STRIKE_SPELLS.has(name.trim().toLowerCase())
+
+/**
+ * Magia de confluência: a magia de foco do Magus (traços Focus e Magus). Conjurá-la com 1 ação ou mais
+ * recarrega o Spellstrike (Impossible Magic pg. 11); magia de foco de outro tipo não recarrega.
+ */
+export function isConfluxSpell(traits: readonly string[] | undefined): boolean {
+    const t = (traits ?? []).map((x) => x.toLowerCase())
+    return t.includes('focus') && t.includes('magus')
+}
+
 // ── O casamento entre rolar e marcar ──────────────────────────────────────────
 
 /** Curto de propósito: o par é "rolei e marquei o slot", segundos. Longo demais, uma rolagem antiga engoliria a conjuração seguinte. */
