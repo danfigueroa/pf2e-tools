@@ -5,6 +5,7 @@
 import { useSyncExternalStore } from 'react'
 import type { FeatDescription, SpellDescription, CompanionStats } from '../modules/character-sheet/types'
 import { stateApi } from './mesa'
+import { applyFix, subscribeFixes, type FixKind } from './translationFixes'
 
 // v10: talentos/habilidades/itens passaram a ser objetos estruturados e param
 // de ser cacheados quando a tradução falha (translationPending). A troca de
@@ -57,7 +58,18 @@ function key(kind: Kind, name: string) {
 // ausência continua sendo conferida no localStorage, que é barato.
 const memory = new Map<string, unknown>()
 
+const isFixKind = (kind: Kind): kind is FixKind => kind !== 'companion'
+
+/** A descrição com a correção de tradução da mesa por cima, quando há. */
+function fixed<T>(kind: Kind, name: string, value: T | null): T | null {
+    return value && isFixKind(kind) ? applyFix(kind, name, value as object) as T : value
+}
+
 function readCache<T>(kind: Kind, name: string): T | null {
+    return fixed(kind, name, readRaw<T>(kind, name))
+}
+
+function readRaw<T>(kind: Kind, name: string): T | null {
     const k = key(kind, name)
     if (memory.has(k)) return memory.get(k) as T
     try {
@@ -82,7 +94,13 @@ function subscribeCache(listener: () => void) {
     return () => { cacheListeners.delete(listener) }
 }
 
-/** Muda a cada descrição gravada no cache — para re-renderizar quem lê dele. */
+// Correção de tradução nova (daqui ou de outro aparelho) muda o que o cache devolve.
+subscribeFixes(() => {
+    cacheVersion++
+    cacheListeners.forEach((l) => l())
+})
+
+/** Muda a cada descrição gravada no cache (ou correção de tradução) — para re-renderizar quem lê dele. */
 export function useDescriptionCacheVersion(): number {
     return useSyncExternalStore(subscribeCache, () => cacheVersion)
 }
@@ -158,7 +176,7 @@ async function fetchEntry(
     })
 
     if (result && !result.translationPending) writeCache(kind, name, result)
-    return result
+    return fixed(kind, name, result)
 }
 
 export function fetchFeatDescription(name: string) {
@@ -182,7 +200,7 @@ export async function fetchSpellDescription(name: string): Promise<SpellDescript
     // translationPending = ficou em EN por falha transitória de tradução;
     // exibe mas não cacheia, para retraduzir na próxima consulta.
     if (result && !result.translationPending) writeCache('spell', name, result)
-    return result
+    return fixed('spell', name, result)
 }
 
 // Pré-carrega todas as magias do personagem em chunks pequenos e sequenciais:
@@ -200,7 +218,7 @@ export async function prefetchSpellDescriptions(
 ): Promise<void> {
     const unique = Array.from(new Set(names))
     const notCached = () =>
-        unique.filter((n) => !readCache<SpellDescription>('spell', n))
+        unique.filter((n) => !readRaw<SpellDescription>('spell', n))
 
     let pending = notCached()
     const total = pending.length
@@ -267,7 +285,7 @@ export function getCachedSpell(name: string) {
 }
 /** A descrição já está pronta neste aparelho (memória ou `localStorage`)? */
 export function hasCachedDescription(kind: 'feat' | 'spell' | 'special' | 'item', name: string): boolean {
-    return readCache(kind, name) !== null
+    return readRaw(kind, name) !== null
 }
 
 // --- Pacotes pré-traduzidos ---------------------------------------------------
