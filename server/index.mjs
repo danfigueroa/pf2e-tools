@@ -16,6 +16,7 @@ import { handleSheetRequest, isSheetRequest } from '../api/_lib/sheet-handler.js
 import { handleMapRequest, isMapRequest } from '../api/_lib/map-handler.js'
 import { handleRollRequest, isRollRequest } from '../api/_lib/roll-handler.js'
 import { handleEncounterRequest, isEncounterRequest } from '../api/_lib/encounter-handler.js'
+import { handleFixRequest, isFixRequest } from '../api/_lib/fix-handler.js'
 import { hasTranslationKey } from '../api/_lib/aon.js'
 import { mesaFrom } from '../api/_lib/mesas.js'
 import { pingDatabase, requestUserId } from '../api/_lib/supabase.js'
@@ -551,6 +552,21 @@ const server = http.createServer(async (req, res) => {
         res.end(JSON.stringify(out.body))
       } catch (e) {
         console.error('[/api/state] Erro nas rolagens:', e)
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: e.message }))
+      }
+      return
+    }
+
+    // Correções de tradução da mesa (globais), também antes da ficha.
+    if (isFixRequest(req.method, query, body)) {
+      try {
+        const userId = req.method === 'POST' ? await requestUserId(req) : null
+        const out = await handleFixRequest(req.method, query, body, { userId })
+        res.writeHead(out.status, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify(out.body))
+      } catch (e) {
+        console.error('[/api/state] Erro na correção de tradução:', e)
         res.writeHead(500, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ error: e.message }))
       }

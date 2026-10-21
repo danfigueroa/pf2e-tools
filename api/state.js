@@ -17,6 +17,7 @@ import { handleSheetRequest, isSheetRequest } from './_lib/sheet-handler.js'
 import { handleMapRequest, isMapRequest } from './_lib/map-handler.js'
 import { handleRollRequest, isRollRequest } from './_lib/roll-handler.js'
 import { handleEncounterRequest, isEncounterRequest } from './_lib/encounter-handler.js'
+import { handleFixRequest, isFixRequest } from './_lib/fix-handler.js'
 import { mesaFrom } from './_lib/mesas.js'
 import { requestUserId } from './_lib/supabase.js'
 
@@ -54,6 +55,18 @@ export default async function handler(req, res) {
     } catch (error) {
       console.error('[/api/state] Erro nas rolagens:', error)
       return res.status(500).json({ error: 'Erro ao tratar as rolagens' })
+    }
+  }
+
+  // Correções de tradução da mesa (globais) — também antes da ficha.
+  if (isFixRequest(req.method, req.query || {}, req.body)) {
+    try {
+      const userId = req.method === 'POST' ? await requestUserId(req) : null
+      const { status, body } = await handleFixRequest(req.method, req.query || {}, req.body || {}, { userId })
+      return res.status(status).json(body)
+    } catch (error) {
+      console.error('[/api/state] Erro na correção de tradução:', error)
+      return res.status(500).json({ error: 'Erro ao tratar a correção de tradução' })
     }
   }
 
