@@ -101,6 +101,18 @@ export function withLaughingShadow(mods: ConditionModifiers, build: BuildInfo, o
     return { ...mods, cascade: { ...mods.cascade, damage: laughingShadowDamage(build) } }
 }
 
+/**
+ * Magia estudiosa (Studious Spell, nível 7): ao conjurá-la, a Arcane Cascade pode ser a PRÓXIMA ação, como
+ * ação livre. O Pathbuilder lista cada uma em `specials` ("Studious Spell: Blur").
+ */
+export function isStudiousSpell(build: BuildInfo, spellName: string): boolean {
+    const target = norm(spellName)
+    return (build.specials ?? []).some((s) => {
+        const m = String(s).match(/^studious spell:\s*(.+)$/i)
+        return !!m && norm(m[1]) === target
+    })
+}
+
 /** O que viaja nos modificadores: a postura está ligada. */
 export interface CascadeEffect {
     damage: number

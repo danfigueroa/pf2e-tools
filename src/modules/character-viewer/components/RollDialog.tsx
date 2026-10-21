@@ -53,7 +53,7 @@ import { damageComponents, formatValue, componentLabel, scaleSpell, type ScaledC
 import { checkRoll, mapLabel, raysRoll, rollerIdentity, treatWoundsRoll, spellRoll, spellstrikeRoll, strikeRoll, withSimplePoison, type SpellAttackInfo } from '../rolls'
 import type { TableRoll } from '../../../dice/tableRoll'
 import { dialogEmbedProps, useEmbedContainer } from '../embedContext'
-import { CASCADE_TYPES, hasLaughingShadow, hasSpellstrike, laughingShadowDamage, withLaughingShadow } from '../magus'
+import { CASCADE_TYPES, hasLaughingShadow, hasSpellstrike, isStudiousSpell, laughingShadowDamage, withLaughingShadow } from '../magus'
 import { FIRST_STRIKE_KEY, HUNTERS_AIM_KEY, gravityBonus } from '../ranger'
 import { DEBILITATIONS, hasDebilitatingStrike, hasPoisonWeapon, isSimplePoison, poisonNote, simplePoisonDice, type Debilitation } from '../rogue'
 import { initiativeBonus } from '../initiative'
@@ -1000,6 +1000,10 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     // Rolar também CONJURA: paga as ações e o recurso (slot, foco, Ponto Mítico). Marcar o slot
     // à mão depois da rolagem não paga de novo — `pairCast` casa as duas (ver `spellCast.ts`).
     const spellCast = useSpellCast(build, mods, mythicPoints, slots)
+    // Magia estudiosa: a Arcane Cascade pode vir logo depois, como ação livre (em vez da ação de sempre).
+    const magus = useMagus(magusKeyFor(build), build)
+    const studious = !!spell && magus.canCascade && !magus.stored.cascade && isStudiousSpell(build, request.name)
+    const [studiousCascade, setStudiousCascade] = useState(true)
     const resource: CastResource = spell ? (request.cast ?? NO_RESOURCE) : NO_RESOURCE
     const castTime = spell ? castTimeOf(spell.actions) : null
     const resourceLacking =
@@ -1257,6 +1261,16 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                             Você não tem ações suficientes neste turno (faltam {lackingSpell}). Dá para rolar mesmo assim.
                         </Alert>
                     )}
+                    {studious && (
+                        <Chip
+                            label="Magia estudiosa: entrar na Arcane Cascade como ação livre"
+                            color={studiousCascade ? 'primary' : 'default'}
+                            variant={studiousCascade ? 'filled' : 'outlined'}
+                            aria-pressed={studiousCascade}
+                            onClick={() => setStudiousCascade(!studiousCascade)}
+                            sx={{ minHeight: 32, height: 'auto', alignSelf: 'flex-start', '& .MuiChip-label': { whiteSpace: 'normal' } }}
+                        />
+                    )}
                     {attackParts && <SituationalNotes mods={mods} />}
                     {attackParts && <AdjustField label="Ajuste no ataque" value={adjust} onChange={setAdjust} />}
                 </Stack>
@@ -1272,12 +1286,19 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                 label={castOnly ? 'Conjurar' : undefined}
                 onRoll={(mythic) => {
                     if (spell) {
-                        spellCast.cast({ name: request.name, actionsText: spell.actions, resource, via: 'roll', chosenActions: range ? nActions : undefined })
+                        spellCast.cast({ name: request.name, actionsText: spell.actions, resource, via: 'roll', chosenActions: range ? nActions : undefined, traits: spell.traits })
                     } else {
                         actions.spend(spellActions)
                     }
-                    if (castOnly) { onClose(); return }
+                    // Antes do "Conjurar" fechar: o Shield amplificado não tem o que rolar, mas gasta o ponto.
                     if (ampOn && ampDef) slots.spendFocus()
+                    if (studious && studiousCascade) {
+                        // A postura pega o tipo de dano da magia; magia estudiosa sem dano (Blur) deixa a de força.
+                        const type = chosen.flatMap((c) => c.types).find((t) => (CASCADE_TYPES as readonly string[]).includes(t))
+                        magus.setCascadeType(type ?? 'force')
+                        magus.setCascade(true)
+                    }
+                    if (castOnly) { onClose(); return }
                     if (mode) energy.record(mode)
                     // Um raio por ação (Blazing Bolt): cada um com o próprio ataque e dano, mas numa
                     // rolagem só — um cartão com os raios e o total, não um popup por raio.
