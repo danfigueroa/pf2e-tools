@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { listPublished, type PublishedSummary } from '../../services/sheets'
+import { onSheetNotice } from '../../services/sheetNotices'
 import { charSlugFromName } from './charId'
 import { CAMPAIGN_PRESETS, type CharacterPreset } from './campaignPresets'
 
@@ -15,8 +16,11 @@ export function usePublishedSheets() {
 
     useEffect(() => {
         let cancelled = false
-        listPublished().then((list) => { if (!cancelled) setPublished(list) })
-        return () => { cancelled = true }
+        const load = () => { listPublished().then((list) => { if (!cancelled) setPublished(list) }) }
+        load()
+        // Publicação ou restauração em outro aparelho: o nível dos cards acompanha.
+        const stop = onSheetNotice((notice) => { if (notice.kind === 'published') load() })
+        return () => { cancelled = true; stop() }
     }, [])
 
     const find = useCallback(
