@@ -19,6 +19,7 @@ import { gold, ink } from '../../theme'
 import { ConditionsDialog } from '../character-viewer/components/ConditionsDialog'
 import { encounterReducer, activeOrder, peekNext } from './encounterReducer'
 import { currentMapId, loadEncounter, saveEncounter, setCurrentMapId } from './encounterStorage'
+import { useEncounterCloud } from './useEncounterCloud'
 import { useInitiativeRolls } from './useInitiativeRolls'
 import { useMapSync } from './useMapSync'
 import { EncounterMapPicker } from './components/EncounterMapPicker'
@@ -42,7 +43,7 @@ import { BulkConditionDialog } from './components/BulkConditionDialog'
 import { AddCombatantDialog } from './components/AddCombatantDialog'
 import { AfflictionDialog } from './components/AfflictionDialog'
 import { PersistentDamageDialog } from './components/PersistentDamageDialog'
-import type { Combatant, CombatantView, NpcCombatant } from './types'
+import type { Combatant, CombatantView, EncounterState, NpcCombatant } from './types'
 
 type OpenDialog = 'add' | 'damage' | 'heal' | 'condition' | 'end' | null
 
@@ -110,8 +111,9 @@ export const InitiativePage = () => {
         setToast({ text: `${u.name}: iniciativa ${u.value} (${u.skill}).` })
     }, []))
 
-    // O encontro fica só neste aparelho — PV e condições dos personagens é que
-    // são da mesa (ver useEncounterParty).
+    // O `localStorage` pinta a página e segura o encontro sem rede; a nuvem o leva
+    // aos outros aparelhos do GM (`useEncounterCloud`). PV e condições dos
+    // personagens não moram aqui: são da mesa (ver useEncounterParty).
     useEffect(() => {
         const timer = setTimeout(() => saveEncounter(state, mapId), 300)
         return () => clearTimeout(timer)
@@ -120,6 +122,17 @@ export const InitiativePage = () => {
     // Os combatentes viram os tokens do mapa ligado; o PV dos monstros anda nos
     // dois sentidos.
     useMapSync(mapId, state, views, dispatch)
+
+    // Encontro daqui com mudanças que a nuvem venceu: fica a um "Desfazer" de distância.
+    const mapIdRef = useRef(mapId)
+    mapIdRef.current = mapId
+    const cloud = useEncounterCloud(mapId, state, dispatch, useCallback((previous: EncounterState, from: string | null) => {
+        setToast({
+            text: 'Abri a versão deste encontro que está na nuvem. A deste aparelho era diferente.',
+            label: 'Desfazer',
+            action: () => { if (mapIdRef.current === from) dispatch({ type: 'hydrate', state: previous }) },
+        })
+    }, []))
 
     /** Cada mapa tem o seu encontro: guarda o atual e abre o do outro. */
     const switchMap = (next: string | null) => {
@@ -425,7 +438,7 @@ export const InitiativePage = () => {
             </Typography>
             <Box sx={{ height: 2, width: { xs: 120, sm: 180 }, backgroundColor: gold.main, mb: 2 }} />
 
-            <EncounterMapPicker mapId={mapId} onChange={switchMap} />
+            <EncounterMapPicker mapId={mapId} onChange={switchMap} cloud={cloud} />
 
             <EncounterToolbar
                 round={state.round}
@@ -510,9 +523,10 @@ export const InitiativePage = () => {
             )}
 
             <Alert severity="info" sx={{ mt: 2 }}>
-                O encontro fica só neste aparelho, um por mapa de combate. Os PV e as condições dos
-                personagens são da mesa: aparecem na Ficha Virtual de quem estiver jogando, nos dois
-                sentidos. Com um mapa escolhido, cada combatente vira um token nele.
+                Um encontro por mapa de combate, salvo na nuvem: abre igual em qualquer aparelho da
+                mesa. Os PV e as condições dos personagens também são da mesa: aparecem na Ficha
+                Virtual de quem estiver jogando, nos dois sentidos. Com um mapa escolhido, cada
+                combatente vira um token nele.
             </Alert>
 
             {selected.size > 0 && (
