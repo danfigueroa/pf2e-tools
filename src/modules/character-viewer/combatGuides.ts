@@ -446,7 +446,7 @@ const LOKI = `## 🎯 Papel em Combate
 
 ## ⭐ Nunca Esqueça
 - ✋ **Mão livre vale +3 de dano:** o bônus do Laughing Shadow (5 no lugar de 2) só vale com a **outra mão completamente vazia** e contra alvo **desprevenido**. Nada de tocha, poção ou escudo nela. Além da Finta, flanquear com um aliado e estar invisível ou escondido também deixam o alvo desprevenido.
-- 📱 **No app:** o diálogo do Golpe soma os **+2** da postura; os **+3 a mais** contra alvo desprevenido são por sua conta (o app não sabe do alvo).
+- 📱 **No app:** em Arcane Cascade, o diálogo do Golpe tem o chip **Laughing Shadow · alvo desprevenido, outra mão livre**, que leva a postura de 2 para 5 (o app não sabe do alvo: ligue quando valer).
 - 📚 **Magias estudiosas (*Gecko Grip* e *Blur*):** ao lançar uma delas, a **Arcane Cascade sai como ação livre** logo em seguida. *Blur* (2 ações, ocultação por 1 minuto) e a postura de graça é a melhor abertura de luta. Elas **não dão slot próprio** (era a regra antiga): saem dos slots normais.
 - 🔁 **Uma reação por rodada, vários candidatos:** *Reactive Strike* (inimigo ao seu alcance manipula, se move, ataca à distância ou sai de um quadrado), **Shield Block** com o truque *Shield*, e **Return Force** das Bands of Force (alguém **erra você criticamente** num Golpe corpo a corpo: você o Empurra com Atletismo +14). Decida pela ameaça da rodada.
 - 🧳 **Spirit Sheath:** a espada fica numa bainha extradimensional na roupa (+2 em Furtividade para escondê-la), e **no Spellstrike você a saca antes de conjurar**. Desmaiar expulsa a arma da bainha.
@@ -455,7 +455,7 @@ const LOKI = `## 🎯 Papel em Combate
 
 ## ✨ Magias-Chave
 Truques e magias de foco saem no **4º rank**. CD 21 e ataque +11 nas de Magus (INT); CD 22 e ataque +12 nas psíquicas (CAR).
-- 🧠 **Imaginary Weapon (truque psíquico, 2 ações):** ataque de magia corpo a corpo, **5d6 de força**; no crítico, dobra e pode empurrar o alvo 3 m. **Amplificado (1 Ponto de Foco): 8d6**, e fora do Spellstrike pega **dois alvos**, um ataque em cada (a penalidade só sobe depois dos dois). **No Spellstrike é a melhor do arsenal:** usa o seu Golpe (+16) e soma ao dano da arma; amplificada, dá os 8d6 no alvo do Golpe. ⚠️ **No app**, ela ainda não aparece na lista do Spellstrike e o amp não é calculado: role o Golpe pela aba de Combate e o dano da magia pelo diálogo dela, ignorando o ataque dela.
+- 🧠 **Imaginary Weapon (truque psíquico, 2 ações):** ataque de magia corpo a corpo, **5d6 de força**; no crítico, dobra e pode empurrar o alvo 3 m. **Amplificado (1 Ponto de Foco): 8d6**, e fora do Spellstrike pega **dois alvos**, um ataque em cada (a penalidade só sobe depois dos dois). **No Spellstrike é a melhor do arsenal:** usa o seu Golpe (+16) e soma ao dano da arma; amplificada, dá os 8d6 no alvo do Golpe. **No app**, ela aparece na lista do Spellstrike (em "Truques de foco"), com o chip **Amplificar** que gasta o Ponto de Foco e troca o dano para 8d6.
 - 🪡 **Needle Darts (truque):** 18 m de alcance, **6d4 perfurante**; no crítico, 4 de sangramento persistente. As agulhas saem de um metal que você carrega, e a sua espada é de **prata**: as agulhas também são.
 - 🔥 **Ignition (truque):** colado no alvo (no Spellstrike, sempre está), os dados viram d6: **5d6 de fogo** e, no crítico, 4d6 de fogo persistente.
 - ⚡ **Electric Arc (truque):** 5d4 elétrico, Reflexos básico, em **até dois alvos**. No Spellstrike, só o do Golpe.

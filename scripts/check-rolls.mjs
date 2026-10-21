@@ -270,7 +270,7 @@ const critPlan = (build, weapon, group, extrasOn = {}, mods = NO_MODIFIERS, trai
     eq(f('Ignition', 5, true), '5d12 fire + 5d4p fire', 'Ignition amp corpo a corpo = d12')
     eq(f('Redistribute Potential', 5), '14d6 cold + 14d6 fire', 'Redistribute amp rank 5 = 6d6 + 4×2d6, frio ou fogo')
     ok(amps.psiAmpFor('Thermal Stasis').damage === undefined, 'Thermal Stasis amp não mexe no dano')
-    ok(amps.psiAmpFor('Shield') === null, 'cantrip sem amp catalogado')
+    ok(amps.psiAmpFor('Daze') === null, 'cantrip sem amp catalogado')
     eq(amps.psiAmpFor('Frostbite').notes(5, false).some((n) => n.includes('fraqueza 5')), true, 'fraqueza da falha crítica sobe 1 por rank')
 
     ok(energyMod.hasConservation(party.thalos), 'Thalos tem a Oscillating Wave')
@@ -993,6 +993,45 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
 {
     const base = normalizeBuild({ name: 'T', level: 1, specials: ['Medium', 'Spellstrike', 'Large'], spellCasters: [], weapons: [] })
     eq(base.specials.join(','), 'Spellstrike', 'tamanho ("Medium", "Large") sai das habilidades — na AON, "Medium" é a classe do médium')
+}
+
+// ── Loki (Arton 1515): psi cantrips do arquétipo, Spellstrike com eles e Laughing Shadow ──
+{
+    const loki = load('loki7')
+    const { collectFocusSpells } = await import('../src/modules/character-viewer/spellNames.ts')
+    const magusMod = await import('../src/modules/character-viewer/magus.ts')
+    // Quem amplifica: o Psíquico e quem tem o Psi Development (o Loki); a dedicação sozinha não dá o amp.
+    ok(amps.canAmpPsiCantrips(loki), 'Loki amplifica (Psi Development)')
+    ok(amps.canAmpPsiCantrips(party.thalos), 'Thalos amplifica (Psíquico)')
+    ok(!amps.canAmpPsiCantrips(party.nathaniel), 'Nathaniel não amplifica')
+    // Truque de foco é truque: conjurar não gasta ponto. Magia de foco gasta.
+    const focus = Object.fromEntries(collectFocusSpells(loki).map((e) => [e.name, e.cantrip]))
+    eq(focus['Imaginary Weapon'], true, 'Imaginary Weapon é truque de foco')
+    eq(focus['Dimensional Assault'], false, 'Dimensional Assault é magia de foco')
+    ok(collectFocusSpells(party.thalos).every((e) => e.cantrip), 'os psi cantrips do Thalos são todos truques')
+    // Amps da The Tangible Dream, no rank 4 (nível 7).
+    const f = (name, rank) => amps.psiAmpFor(name).damage(rank, true).map((a) => `${a.count}d${a.faces} ${a.type}`).join(' + ')
+    eq(f('Imaginary Weapon', 4), '8d6 force', 'Imaginary Weapon amplificada no rank 4: 2d6 + 2d6 por rank acima')
+    eq(f('Imaginary Weapon', 1), '2d6 force', 'Imaginary Weapon amplificada no rank 1')
+    eq(amps.psiAmpFor('Shield (Archetype)')?.name, 'Shield', 'a marca (Archetype) do Pathbuilder some')
+    ok(amps.psiAmpFor('Shield').notes(4).some((n) => n.includes('Dureza 15') && n.includes('Dureza 20') && n.includes('normal é 10')), 'Shield amplificado no rank 4: Dureza 10, 15 com duas camadas, 20 com três')
+    // Spellstrike: os truques de foco entram, com a CD do grupo de foco (10 + nível 7 + treinado 2 + CAR 3 = 22).
+    const opts = spellstrike.spellstrikeOptions(loki, () => 0)
+    const iw = opts.find((o) => o.name === 'Imaginary Weapon')
+    eq(iw?.kind, 'cantrip', 'Imaginary Weapon entra no Spellstrike como truque')
+    eq(iw?.rank, 4, 'no rank 4')
+    eq(iw?.focus?.dc, 22, 'com a CD do grupo de foco')
+    eq(iw?.focus?.psychic, true, 'e marcado como psi cantrip (dá o amp)')
+    ok(!opts.some((o) => o.name === 'Dimensional Assault'), 'magia de foco não entra pela lista de truques')
+    ok(opts.some((o) => o.name === 'Needle Darts' && o.caster === 'Magus'), 'os truques do bloco do Magus seguem lá')
+    ok(!spellstrike.spellstrikeOptions(party.nathaniel, () => 0).some((o) => o.focus), 'Nathaniel: nenhum truque de foco a mais')
+    // Laughing Shadow: dano da postura 5 com Weapon Specialization, só em Arcane Cascade e com o chip.
+    eq(magusMod.laughingShadowDamage(loki), 5, 'Laughing Shadow com Weapon Specialization: 5')
+    const cascading = { ...NO_MODIFIERS, cascade: { damage: 2, type: 'force' } }
+    eq(magusMod.withLaughingShadow(cascading, loki, true).cascade.damage, 5, 'alvo desprevenido e mão livre: postura vai a 5')
+    eq(magusMod.withLaughingShadow(cascading, loki, false).cascade.damage, 2, 'sem o chip, os 2 de sempre')
+    ok(magusMod.withLaughingShadow(NO_MODIFIERS, loki, true).cascade === undefined || !magusMod.withLaughingShadow(NO_MODIFIERS, loki, true).cascade, 'fora da postura, nada')
+    eq(magusMod.withLaughingShadow(cascading, party.nathaniel, true).cascade.damage, 2, 'Nathaniel (Sparkling Targe) não tem o bônus')
 }
 
 // ── Diário da sessão: as contas por personagem e os destaques ─────────────────
