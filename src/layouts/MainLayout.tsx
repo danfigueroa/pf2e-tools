@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import {
   AppBar,
   Box,
@@ -31,6 +31,16 @@ import { green, gold, parchment } from '../theme';
 import { RollFeedLayer, RollHistoryDrawer } from '../components/RollFeed';
 import { SharedRuleLayer } from '../components/SharedRuleLayer';
 import { MesaSwitcher } from '../components/MesaSwitcher';
+import { setPresencePage, startPresence, usePresence } from '../services/presence';
+
+// A lista mostra o token de cada ficha aberta, e o `TokenBadge` traz o estado da mesa junto: fora do chunk
+// principal, baixada só quando há alguém para mostrar.
+const PresenceList = lazy(() => import('../components/PresenceList').then((m) => ({ default: m.PresenceList })));
+
+const PresenceSlot = () => {
+  const someone = usePresence().length > 0;
+  return someone ? <Suspense fallback={null}><PresenceList /></Suspense> : null;
+};
 
 const drawerWidth = 260;
 
@@ -97,6 +107,10 @@ export const MainLayout = () => {
   // uma aba discreta na borda que abre a mesma gaveta temporária do celular.
   const isMap = location.pathname === '/mapa' || location.pathname.startsWith('/mapa/');
 
+  // Quem está na mesa (sidebar): este aparelho anuncia a página em que está.
+  useEffect(() => { startPresence(); }, []);
+  useEffect(() => { setPresencePage(location.pathname); }, [location.pathname]);
+
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
@@ -134,6 +148,8 @@ export const MainLayout = () => {
         />
         <MesaSwitcher />
       </Box>
+
+      <PresenceSlot />
 
       {/* Navegação */}
       <Box sx={{ overflow: 'auto', flex: 1, py: 1 }}>
