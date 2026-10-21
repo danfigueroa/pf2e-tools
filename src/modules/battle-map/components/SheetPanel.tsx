@@ -7,7 +7,7 @@ import { CAMPAIGN_PRESETS, loadPresetJson } from '../../character-viewer/campaig
 import { charSlugFromName } from '../../character-viewer/charId'
 import { EmbedContext } from '../../character-viewer/embedContext'
 import { usePublication } from '../../character-viewer/components/usePublication'
-import { usePublishedSheets } from '../../character-viewer/usePublishedSheets'
+import { useRoster } from '../../character-viewer/useRoster'
 import { fetchPublished } from '../../../services/sheets'
 import { writeSheetChoice } from '../sheetChoice'
 import { TokenBadge } from './TokenBadge'
@@ -28,7 +28,6 @@ interface Props {
 
 /** Ficha compacta ao lado do mapa: o jogador acompanha o mapa e rola sem trocar de aba. */
 export const SheetPanel = ({ slug, onSlugChange, onCollapse }: Props) => {
-    const { published: sheets, levelOf } = usePublishedSheets()
     const publication = usePublication()
     const { attach } = publication
     const [build, setBuild] = useState<BuildInfo | null>(null)
@@ -70,12 +69,7 @@ export const SheetPanel = ({ slug, onSlugChange, onCollapse }: Props) => {
     }, [onSlugChange])
 
     // Presets primeiro (com classe e nível), depois quem foi publicado e não é da campanha.
-    const options = [
-        ...CAMPAIGN_PRESETS.map((p) => ({ slug: charSlugFromName(p.sheetName), label: p.name, meta: `${p.class} · nível ${levelOf(p)}` })),
-        ...sheets
-            .filter((s) => !CAMPAIGN_PRESETS.some((p) => charSlugFromName(p.sheetName) === s.slug))
-            .map((s) => ({ slug: s.slug, label: s.name, meta: s.level ? `Nível ${s.level}` : '' })),
-    ]
+    const options = useRoster()
 
     return (
         <Box
