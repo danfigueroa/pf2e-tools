@@ -175,9 +175,11 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   Fica em `api/state.js`, **um nível** — o glob `"api/*.js"` do `vercel.json` não pega subpastas,
   então `api/state/[char].js` perderia o `maxDuration`.
 - **O mesmo `state` serve as fichas publicadas** (`api/_lib/sheet-handler.js`, compartilhado com o
-  dev server): `GET ?sheets=1` (lista), `GET ?sheet=<slug>`, e `POST` com `action` — `publish`,
-  `guide` e `restore`. POST sem `action` continua sendo a escrita de fatia do estado. Mora aqui
-  pelo limite de 12 funções.
+  dev server): `GET ?sheets=1` (lista), `GET ?sheet=<slug>`, `GET ?sheetVersions=<slug>` (o histórico), e `POST`
+  com `action` — `publish`, `guide` e `restore` (com `version` opcional: volta a qualquer versão do histórico). POST
+  sem `action` continua sendo a escrita de fatia do estado. Mora aqui pelo limite de 12 funções.
+  - **Autoria**: o cliente manda o JWT da sessão anônima (`authHeaders` em `services/supabase.ts`) e o servidor o
+    confere localmente (`requestUserId`) e grava em `published_by`. Só registra — sem sessão, publica igual.
   - O slug da ficha publicada sai do `build.name` do PRÓPRIO JSON, nunca do cliente: é a mesma
     identidade do estado da mesa, e deixar o cliente escolher permitiria publicar por cima de outro.
   - **`guide` gera o "Como Jogar" pela cadeia de IA** (`api/_lib/guide-core.js`, 5–30 s), numa
@@ -310,7 +312,7 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
 
 O Upstash Redis e o Vercel Blob estão sendo trocados pelo Supabase (Postgres + Realtime + Storage), domínio a domínio,
 sem mudar o contrato das rotas: cada store do servidor ganha a versão Supabase com as mesmas funções exportadas. Ordem:
-fundação (feito) → traduções/descrições (feito) → fichas com histórico → estado da mesa em tempo real → rolagens → mapa →
+fundação (feito) → traduções/descrições (feito) → fichas (feito) com histórico → estado da mesa em tempo real → rolagens → mapa →
 imagens → desligar Upstash e Blob. Projeto `htgrzvdzxepbbgbaqkir`, em **São Paulo** (`sa-east-1`) porque a mesa é toda
 brasileira; as funções da Vercel vão para `gru1` junto com a fase do estado da mesa (antes disso o Upstash ainda está no
 caminho quente, e as duas pontas longe uma da outra seriam o pior caso).
@@ -417,11 +419,13 @@ ficha e no botão "Atualizar" do cabeçalho. Não há polling, SSE nem WebSocket
 - **`writeField` sobe o contador `pf2e:table:rev`** (no mesmo pipeline do HSET). É o que deixa o
   Mapa de Combate saber que o PV de alguém mudou pela Ficha ou pela Iniciativa lendo um número só,
   em vez de perguntar personagem a personagem.
-- **A ficha publicada NÃO mora no hash do estado** (`api/_lib/sheet-store.js`, chave
-  `pf2e:sheet:v1:<slug>` + um SET com os slugs): o hash é lido inteiro a cada abertura e a cada
-  "Atualizar", e arrastar 8 KB de ficha e 7 KB de guia toda vez seria desperdício. Sem TTL — uma
-  ficha publicada é a fonte da verdade do personagem —, teto de 64 KB, e guarda UMA versão
-  anterior (`previous`), que é a salvaguarda de não haver login.
+- **A ficha publicada NÃO mora no estado da mesa** (`api/_lib/sheet-store.js`, tabelas `sheets` e
+  `sheet_versions` no Supabase): o estado é lido inteiro a cada abertura e a cada "Atualizar", e arrastar 8 KB de
+  ficha e 7 KB de guia toda vez seria desperdício. Sem prazo de validade — uma ficha publicada é a fonte da verdade do
+  personagem —, teto de 64 KB, e o **histórico** (até 30 versões por ficha, cada uma com o guia dela) é a salvaguarda
+  de não haver login. Publicar e restaurar são funções do banco (`publish_sheet`, `restore_sheet`) com a linha
+  travada; restaurar tira a versão do histórico e põe a atual no lugar, então restaurar de novo desfaz. O cliente
+  ainda só mostra a versão anterior (`previous`); a linha do tempo inteira é a fase das funcionalidades novas.
 
 ## Ações do turno
 
