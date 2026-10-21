@@ -21,7 +21,7 @@
 
 import { handleUpload } from '@vercel/blob/client'
 import { del } from '@vercel/blob'
-import { isRedisConfigured } from './table-store.js'
+import { isSupabaseConfigured } from './supabase.js'
 import {
     MAX_MAP_FIELD_BYTES,
     MAX_TOKENS,
@@ -40,7 +40,7 @@ import {
     writeMapFields,
 } from './map-store.js'
 
-const ok = (body) => ({ status: 200, body: { ...body, storeReady: isRedisConfigured(), blobReady: isBlobConfigured() } })
+const ok = (body) => ({ status: 200, body: { ...body, storeReady: isSupabaseConfigured(), blobReady: isBlobConfigured() } })
 const fail = (status, error) => ({ status, body: { error } })
 
 const isBlobConfigured = () => !!process.env.BLOB_READ_WRITE_TOKEN
@@ -104,7 +104,7 @@ export async function handleMapRequest(mesa, method, query, body, request) {
             const known = query.rev != null && query.tableRev != null
             const stale = known && (String(revs.rev) !== String(query.rev) || String(revs.tableRev) !== String(query.tableRev))
             if (!stale) return ok(revs)
-            const map = await readMap(mesa, id, revs)
+            const map = await readMap(mesa, id)
             if (map?.private && !gm) return ok({ ...revs, hidden: true })
             return ok(map ? { ...revs, map } : revs)
         }
