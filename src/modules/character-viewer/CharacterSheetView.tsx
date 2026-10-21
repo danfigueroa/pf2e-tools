@@ -382,10 +382,11 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
 
             {isMythicCharacter(build) && <MythicPointsBar points={mythicPoints} onNewDay={uses.resetAll} />}
 
-            {apiAvailable === false && (
+            {/* Dica só de quem desenvolve: na mesa as descrições vêm dos pacotes já traduzidos. */}
+            {import.meta.env.DEV && apiAvailable === false && (
                 <Alert severity="warning" sx={{ mb: 2 }}>
                     Servidor de descrições offline. Os textos do AON não serão carregados.
-                    Para ativar a busca + tradução, rode <code>yarn dev:full</code> (em vez de <code>yarn dev</code>).
+                    Para ativar a busca + tradução, rode <code>npm run dev:full</code> (em vez de <code>npm run dev</code>).
                 </Alert>
             )}
 
