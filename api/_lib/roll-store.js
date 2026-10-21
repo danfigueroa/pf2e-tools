@@ -233,3 +233,43 @@ export async function readRolls(mesa, knownRev) {
   const out = check(await db.rpc('read_feed', { p_mesa: mesa, p_known: knownRev }))
   return { ...out, rev: Number(out.rev) || 0 }
 }
+
+// ── Diário da sessão ─────────────────────────────────────────────────────────
+// O DIA DE JOGO vai das 6h às 6h no horário de Brasília (`diary_day` no banco):
+// uma sessão que passa da meia-noite continua sendo uma só.
+
+export const DAY_RE = /^\d{4}-\d{2}-\d{2}$/
+
+const DAY_FMT = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' })
+/** O mesmo `diary_day` do banco, para o fallback em memória. */
+const diaryDay = (at) => DAY_FMT.format(new Date(at - 6 * 60 * 60 * 1000))
+
+/** Os dias de jogo com rolagem, o mais recente primeiro: `{ day, count, first, last, people }`. */
+export async function readDiaryDays(mesa) {
+  const db = supabase()
+  if (!db) {
+    const days = new Map()
+    for (const roll of memoryFeed(mesa).rolls) {
+      const day = diaryDay(roll.at)
+      const d = days.get(day) ?? { day, count: 0, first: roll.at, last: roll.at, who: new Set() }
+      d.count++
+      d.first = Math.min(d.first, roll.at)
+      d.last = Math.max(d.last, roll.at)
+      d.who.add(roll.slug ?? roll.by)
+      days.set(day, d)
+    }
+    return [...days.values()].sort((a, b) => (a.day < b.day ? 1 : -1))
+      .map(({ who, ...d }) => ({ ...d, people: who.size }))
+  }
+  return check(await db.rpc('diary_days', { p_mesa: mesa })).map((d) => ({
+    day: d.day, count: Number(d.count), first: Number(d.first), last: Number(d.last), people: Number(d.people),
+  }))
+}
+
+/** As rolagens de um dia de jogo (`YYYY-MM-DD`), na ordem em que aconteceram. */
+export async function readDiaryRolls(mesa, day) {
+  const db = supabase()
+  if (!db) return memoryFeed(mesa).rolls.filter((r) => diaryDay(r.at) === day).sort((a, b) => a.at - b.at)
+  return check(await db.rpc('diary_rolls', { p_mesa: mesa, p_day: day }))
+}
+

@@ -6,6 +6,8 @@
 //                                          sem `rev`), as últimas 30 rolagens. Com o
 //                                          Realtime aberto, só a leitura inicial e a
 //                                          de cada reconexão — o resto chega pelo canal
+//   GET  ?diary=days                    → os dias de jogo com rolagem (diário da sessão)
+//   GET  ?diary=<YYYY-MM-DD>            → as rolagens daquele dia de jogo, em ordem
 //   POST { action: 'roll-add', roll }   → grava uma rolagem já sorteada
 //   POST { action: 'share-add', share } → compartilha uma regra (talento, magia…)
 //                                          com a mesa; o GET a devolve em `shares`
@@ -14,20 +16,25 @@
 // qualquer POST com `action` e engoliria esta.
 
 import { isSupabaseConfigured } from './supabase.js'
-import { addRoll, addShare, readRolls, sanitizeRoll, sanitizeShare } from './roll-store.js'
+import { DAY_RE, addRoll, addShare, readDiaryDays, readDiaryRolls, readRolls, sanitizeRoll, sanitizeShare } from './roll-store.js'
 
 const ok = (body) => ({ status: 200, body: { ...body, storeReady: isSupabaseConfigured() } })
 const fail = (status, error) => ({ status, body: { error } })
 
 /** Falso quando a requisição não é do feed — aí segue para as outras rotas do `state`. */
 export function isRollRequest(method, query, body) {
-  if (method === 'GET') return !!query.rolls
+  if (method === 'GET') return !!query.rolls || !!query.diary
   if (method === 'POST') return body?.action === 'roll-add' || body?.action === 'share-add'
   return false
 }
 
 /** `ctx.userId`: a sessão anônima de quem rolou (ver `requestUserId`), gravada como autor. */
 export async function handleRollRequest(mesa, method, query, body, ctx = {}) {
+  if (method === 'GET' && query.diary) {
+    if (query.diary === 'days') return ok({ days: await readDiaryDays(mesa) })
+    if (!DAY_RE.test(String(query.diary))) return fail(400, 'Dia inválido')
+    return ok({ day: query.diary, rolls: await readDiaryRolls(mesa, String(query.diary)) })
+  }
   if (method === 'GET') {
     const known = query.rev != null && query.rev !== '' ? Number(query.rev) : null
     return ok(await readRolls(mesa, Number.isFinite(known) ? known : null))
