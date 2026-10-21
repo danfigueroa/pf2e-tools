@@ -9,14 +9,17 @@
  * - O dano dos dois soma para resistências e fraquezas.
  * - Truque não gasta slot; as outras gastam o slot da magia preparada.
  *
- * Só entram as magias do bloco de conjuração do próprio Magus — as de herança e
- * de arquétipo não são "do Spellstrike".
+ * Entram as magias de qualquer bloco de conjuração (ver `spellstrikeOptions`) e
+ * os truques de foco — os psi cantrips do arquétipo de Psíquico (o Imaginary
+ * Weapon do Loki), que o Pathbuilder manda em `build.focus`, fora dos blocos.
  */
 import type { BuildInfo, SpellCaster, SpellDescription } from '../character-sheet/types'
 import { slotKey } from './components/useSpellSlots'
 import { actionSymbol, isMythicMagicCaster } from './helpers'
 import { castRankForSlot } from './heightening'
 import { actionRange } from './actionVariants'
+import { collectFocusSpells } from './spellNames'
+import { hasPsychicArchetype } from './psiAmps'
 
 export interface SpellstrikeOption {
     /** Identidade estável na lista: `bloco|nível|nome` (a mesma magia pode estar em dois blocos). */
@@ -35,6 +38,11 @@ export interface SpellstrikeOption {
     slot: { key: string; total: number } | null
     /** O que ainda resta (slots, ou Pontos Míticos); `null` = à vontade. */
     left: number | null
+    /**
+     * Truque de foco (fora dos blocos de conjuração): a CD sai do grupo de foco, não de um bloco
+     * (`casterIndex` é −1), e `psychic` diz se é psi cantrip — o que dá o amp no Golpe.
+     */
+    focus?: { dc: number | null; psychic: boolean }
 }
 
 /** O bloco de conjuração do Magus, com o índice que as chaves de slot usam. */
@@ -78,6 +86,18 @@ export function spellstrikeOptions(build: BuildInfo, usedOf: (key: string) => nu
             }
         }
     })
+    // Truques de foco: à vontade, como os outros truques. O que já veio de um bloco não repete.
+    const known = new Set(out.map((o) => o.name))
+    for (const entry of collectFocusSpells(build)) {
+        if (!entry.cantrip || known.has(entry.name)) continue
+        const { proficiency, abilityBonus, itemBonus } = entry.group
+        const dc = proficiency != null && abilityBonus != null ? 10 + build.level + proficiency + abilityBonus + (itemBonus ?? 0) : null
+        const psychic = build.class === 'Psychic' || (entry.tradition === 'occult' && hasPsychicArchetype(build))
+        out.push({
+            id: `foco|${entry.tradition}|${entry.name}`, name: entry.name, caster: 'Truques de foco', casterIndex: -1,
+            spellLevel: 0, rank: castRankForSlot(0, build.level), kind: 'cantrip', slot: null, left: null, focus: { dc, psychic },
+        })
+    }
     return out
 }
 

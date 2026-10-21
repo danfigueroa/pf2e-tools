@@ -82,6 +82,25 @@ export function cascadeDamage(build: BuildInfo): number {
     return 1
 }
 
+/**
+ * Laughing Shadow (Impossible Magic pg. 13): em Arcane Cascade, com a outra mão COMPLETAMENTE livre, o Golpe
+ * contra criatura desprevenida tem o dano da postura em 3 — 5 com Weapon Specialization, 7 com a Greater.
+ * O app não sabe do alvo nem da mão: é um chip do diálogo do Golpe.
+ */
+export const hasLaughingShadow = (build: BuildInfo) => hasSpecial(build, 'Laughing Shadow')
+
+export function laughingShadowDamage(build: BuildInfo): number {
+    if (hasSpecial(build, 'Greater Weapon Specialization')) return 7
+    if (hasSpecial(build, 'Weapon Specialization')) return 5
+    return 3
+}
+
+/** A postura com o dano do Laughing Shadow, quando o chip vale; senão os modificadores como estão. */
+export function withLaughingShadow(mods: ConditionModifiers, build: BuildInfo, on: boolean): ConditionModifiers {
+    if (!on || !mods.cascade || !hasLaughingShadow(build)) return mods
+    return { ...mods, cascade: { ...mods.cascade, damage: laughingShadowDamage(build) } }
+}
+
 /** O que viaja nos modificadores: a postura está ligada. */
 export interface CascadeEffect {
     damage: number

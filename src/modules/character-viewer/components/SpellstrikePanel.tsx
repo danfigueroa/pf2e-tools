@@ -74,6 +74,24 @@ export const SpellstrikePanel = ({ ss, magus }: Props) => {
                                 )}
                             </Box>
                         )}
+                        {ss.amp && (
+                            <Box>
+                                <Chip
+                                    label={`Amplificar · 1 Ponto de Foco (${ss.focusLeft} disponível${ss.focusLeft === 1 ? '' : 'is'})`}
+                                    color={ss.ampOn ? 'primary' : 'default'}
+                                    variant={ss.ampOn ? 'filled' : 'outlined'}
+                                    disabled={!ss.ampOn && ss.focusLeft === 0}
+                                    aria-pressed={ss.ampOn}
+                                    onClick={() => ss.setAmpOn(!ss.ampOn)}
+                                    sx={{ minHeight: 32 }}
+                                />
+                                {ss.ampOn && (
+                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                        {ss.amp.summary} No Spellstrike, só o alvo do Golpe recebe.
+                                    </Typography>
+                                )}
+                            </Box>
+                        )}
                         {ss.components.length > 0 ? (
                             <Box>
                                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
@@ -108,7 +126,7 @@ export const SpellstrikePanel = ({ ss, magus }: Props) => {
                                 ? 'Magia de ataque: usa o resultado do Golpe e dobra no crítico.'
                                 : `Salvaguarda${ss.spell.defense ? ` (${ss.spell.defense})` : ''}: o alvo rola a dele; o dano da magia não dobra com o crítico do Golpe.`}
                             {' '}
-                            {option.kind === 'cantrip' ? 'Truque: não gasta slot.' : option.kind === 'mythic' ? 'Mythic Magic: gasta 1 Ponto Mítico, e o ataque é o do Golpe (sem a proficiência mítica da magia).' : `Ao rolar, gasta 1 slot de rank ${option.spellLevel}.`}
+                            {option.kind === 'cantrip' ? (ss.ampOn ? 'Truque amplificado: gasta 1 Ponto de Foco ao rolar.' : 'Truque: não gasta slot.') : option.kind === 'mythic' ? 'Mythic Magic: gasta 1 Ponto Mítico, e o ataque é o do Golpe (sem a proficiência mítica da magia).' : `Ao rolar, gasta 1 slot de rank ${option.spellLevel}.`}
                             {' '}Conta como dois ataques para a penalidade (aplicada depois).
                         </Typography>
 

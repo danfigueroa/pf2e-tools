@@ -23,7 +23,7 @@ import type { BuildInfo, SpellDescription, Weapon } from '../../character-sheet/
 import { CONDITION_COLOR, MYTHIC_COLOR, PSYCHE_COLOR } from '../../../theme'
 import { characterMaxHp, signed, spellcasterStats } from '../helpers'
 import { psycheApplies, psycheDamageBonus } from '../psyche'
-import { psiAmpFor } from '../psiAmps'
+import { ampComponents, canAmpPsiCantrips, psiAmpFor } from '../psiAmps'
 import { convertTypes, hasConservation, isEnergySpell, type EnergyMode } from '../energy'
 import { energyKeyFor, legacyCharKey, slotsKeyFor } from '../charId'
 import { useEnergy } from './useEnergy'
@@ -53,7 +53,7 @@ import { damageComponents, formatValue, componentLabel, scaleSpell, type ScaledC
 import { checkRoll, mapLabel, raysRoll, rollerIdentity, treatWoundsRoll, spellRoll, spellstrikeRoll, strikeRoll, withSimplePoison, type SpellAttackInfo } from '../rolls'
 import type { TableRoll } from '../../../dice/tableRoll'
 import { dialogEmbedProps, useEmbedContainer } from '../embedContext'
-import { CASCADE_TYPES, hasSpellstrike } from '../magus'
+import { CASCADE_TYPES, hasLaughingShadow, hasSpellstrike, laughingShadowDamage, withLaughingShadow } from '../magus'
 import { FIRST_STRIKE_KEY, HUNTERS_AIM_KEY, gravityBonus } from '../ranger'
 import { DEBILITATIONS, hasDebilitatingStrike, hasPoisonWeapon, isSimplePoison, poisonNote, simplePoisonDice, type Debilitation } from '../rogue'
 import { initiativeBonus } from '../initiative'
@@ -512,7 +512,11 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
         try { localStorage.setItem(storeKey, JSON.stringify(extrasOn)) } catch { /* cota cheia */ }
     }
 
-    const plan = planStrike(build, strike, mods, opts)
+    // Laughing Shadow: alvo desprevenido e a outra mão livre sobem o dano da postura (2 → 5). É da SITUAÇÃO,
+    // como o Hunter's Aim: não fica lembrado de um Golpe para o outro.
+    const [laughing, setLaughing] = useState(false)
+    const laughingApplies = hasLaughingShadow(build) && !!mods.cascade && !strike.traits.ranged && opts.mode !== 'thrown'
+    const plan = planStrike(build, strike, withLaughingShadow(mods, build, laughing && laughingApplies), opts)
     const { traits } = strike
 
     // Spellstrike: só em Golpe corpo a corpo. A magia escolhida entra no mesmo
@@ -734,6 +738,21 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                             </ToggleButtonGroup>
                         </Box>
                     )}
+                    {laughingApplies && (
+                        <Box>
+                            <Chip
+                                label={`Laughing Shadow · alvo desprevenido, outra mão livre (${laughingShadowDamage(build)} de dano da postura)`}
+                                color={laughing ? 'primary' : 'default'}
+                                variant={laughing ? 'filled' : 'outlined'}
+                                onClick={() => setLaughing(!laughing)}
+                                aria-pressed={laughing}
+                                sx={{ minHeight: 32, height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal' } }}
+                            />
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                Só com a outra mão completamente vazia (nada de arma de mão livre ou item nela) e contra alvo desprevenido — Finta, flanco, invisibilidade.
+                            </Typography>
+                        </Box>
+                    )}
                     {hasExactingStrike(build) && (
                         <Box>
                             <Chip
@@ -932,11 +951,14 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                         magus.setCascade(true)
                         actions.spend(1)
                     }
-                    // Magia de salvaguarda: a CD é a do BLOCO de onde ela vem (a do Mythic Magic é a mítica); a de ataque usa o Golpe.
+                    // Magia de salvaguarda: a CD é a do BLOCO de onde ela vem (a do Mythic Magic é a mítica), ou a do
+                    // grupo de foco no truque de foco; a de ataque usa o Golpe.
                     const caster = build.spellCasters?.[ss.option.casterIndex]
-                    const dc = caster ? spellcasterStats(build, caster).dc + mods.total.spellDc : null
+                    const baseDc = ss.option.focus ? ss.option.focus.dc : caster ? spellcasterStats(build, caster).dc : null
+                    const dc = baseDc != null ? baseDc + mods.total.spellDc : null
                     const defense = !ss.usesAttack && ss.spell.defense ? `salvaguarda: ${ss.spell.defense}${dc ? ` (CD ${dc})` : ''}` : null
-                    send(noted(spellstrikeRoll(who, strike, plan, mythicDelta, [sub, `rank ${ss.option.rank}`, defense].filter(Boolean).join(' · '), {
+                    const amped = ss.ampOn ? 'amplificada' : null
+                    send(noted(spellstrikeRoll(who, strike, plan, mythicDelta, [sub, `rank ${ss.option.rank}`, amped, defense].filter(Boolean).join(' · '), {
                         name: ss.option.name,
                         components: ss.chosen,
                         usesAttack: ss.usesAttack,
@@ -994,7 +1016,7 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
         castTime?.kind === 'reaction' ? 'a reação' : spellActions > 0 ? `${spellActions} ${spellActions === 1 ? 'ação' : 'ações'}` : null,
         resourceText,
     ].filter(Boolean).join(' e ')
-    const ampDef = request.psychic ? psiAmpFor(request.name) : null
+    const ampDef = request.psychic && canAmpPsiCantrips(build) ? psiAmpFor(request.name) : null
     const focusLeft = Math.max(0, (build.focusPoints ?? 0) - slots.focusUsed)
     const [ampOn, setAmpOn] = useState(false)
     const [melee, setMelee] = useState(false)
@@ -1005,14 +1027,7 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     const buildComponents = (amped: boolean): ScaledComponent[] => {
         const amp = amped && ampDef?.damage && castRank != null ? ampDef.damage(castRank, melee) : null
         const swapped: ScaledComponent[] = amp
-            ? [
-                ...amp.map((a, i): ScaledComponent => ({
-                    id: 9000 + i, kind: 'damage', formula: '', types: [a.type], persistent: a.persistent,
-                    count: a.count, faces: a.faces, flat: a.flat, nth: 0, occurrences: 1,
-                    value: { count: a.count, faces: a.faces, flat: a.flat }, changed: true, uncertain: false,
-                })),
-                ...baseComponents.filter((c) => c.kind !== 'damage'),
-            ]
+            ? [...ampComponents(amp), ...baseComponents.filter((c) => c.kind !== 'damage')]
             : baseComponents
         return mode ? swapped.map((c) => (c.kind === 'damage' ? { ...c, types: convertTypes(c.types, mode) } : c)) : swapped
     }

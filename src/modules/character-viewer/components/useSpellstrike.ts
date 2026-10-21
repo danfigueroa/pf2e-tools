@@ -6,6 +6,7 @@ import { actionRange, variantFor } from '../actionVariants'
 import { legacyCharKey, slotsKeyFor } from '../charId'
 import { spellstrikeIssue, spellstrikeOptions, spellstrikeUsesAttack, type SpellstrikeOption } from '../spellstrike'
 import { useSpellSlots } from './useSpellSlots'
+import { ampComponents, canAmpPsiCantrips, psiAmpFor } from '../psiAmps'
 
 /**
  * Dano padrão: ligado o que não é persistente nem incerto, e de componentes com
@@ -60,14 +61,24 @@ export function useSpellstrike(build: BuildInfo, enabled: boolean, mythicPoints?
     const nActions = limit ? Math.min(limit.max, Math.max(limit.min, chosenActions ?? limit.min)) : null
     const variant = option && nActions != null ? variantFor(option.name, option.rank, nActions) : null
 
+    // Psi cantrip amplificado (1 Ponto de Foco): o dano do amp entra no lugar do normal. No Spellstrike
+    // a magia pega só o alvo do Golpe, sempre corpo a corpo — o Imaginary Weapon de dois alvos vira um.
+    const ampDef = option?.focus?.psychic && canAmpPsiCantrips(build) ? psiAmpFor(option.name) : null
+    const focusLeft = Math.max(0, (build.focusPoints ?? 0) - slots.focusUsed)
+    const [ampPick, setAmpPick] = useState<{ id: string; on: boolean } | null>(null)
+    const ampOn = !!ampDef?.damage && !!option && ampPick?.id === option.id && ampPick.on
+    const setAmpOn = (on: boolean) => { if (option) setAmpPick({ id: option.id, on }) }
+
     const scaled = spell && option ? scaleSpell(spell, option.rank) : null
     const components = useMemo(
-        () => variant?.components ?? (scaled ? damageComponents(scaled).filter((c) => c.kind === 'damage') : []),
-        [scaled, variant],
+        () => variant?.components
+            ?? (ampOn && ampDef?.damage && option ? ampComponents(ampDef.damage(option.rank, true))
+                : scaled ? damageComponents(scaled).filter((c) => c.kind === 'damage') : []),
+        [scaled, variant, ampOn, ampDef, option],
     )
 
     // O que o jogador ligou vale para ESTA magia neste rank; trocar de magia volta ao padrão.
-    const selectionKey = `${option?.id ?? ''}|${option?.rank ?? ''}|${spell ? 1 : 0}|${nActions ?? ''}`
+    const selectionKey = `${option?.id ?? ''}|${option?.rank ?? ''}|${spell ? 1 : 0}|${nActions ?? ''}|${ampOn ? 'amp' : ''}`
     const [picked, setPicked] = useState<{ key: string; on: Set<number> } | null>(null)
     const selected = picked?.key === selectionKey ? picked.on : defaultComponentSelection(components)
     const toggle = (id: number) => {
@@ -81,10 +92,11 @@ export function useSpellstrike(build: BuildInfo, enabled: boolean, mythicPoints?
     const issue = spellstrikeIssue(spell)
     const [enterCascade, setEnterCascade] = useState(true)
 
-    /** Truque não gasta; Mythic Magic gasta 1 Ponto Mítico; o resto tira 1 slot do grupo da magia. */
+    /** Truque não gasta (amplificado, 1 Ponto de Foco); Mythic Magic gasta 1 Ponto Mítico; o resto tira 1 slot do grupo da magia. */
     const spend = () => {
         if (option?.kind === 'mythic') mythicPoints?.spend()
         else if (option?.slot) slots.spendOne(option.slot.key, option.slot.total)
+        if (ampOn) slots.spendFocus()
     }
 
     return {
@@ -95,8 +107,10 @@ export function useSpellstrike(build: BuildInfo, enabled: boolean, mythicPoints?
         enterCascade, setEnterCascade,
         /** Magia de ação variável: de quantas ações a escolha (limitada a 2) e o que a regra diz. */
         actionLimit: limit, nActions, setNActions: setChosenActions, variant,
+        /** Amp do psi cantrip (só o que muda o dano tem o que fazer no Golpe). */
+        amp: ampDef?.damage ? ampDef : null, ampOn, setAmpOn, focusLeft,
         /** Pronto para rolar junto do Golpe. */
-        ready: !!option && !!spell && !issue && (option.left === null || option.left > 0),
+        ready: !!option && !!spell && !issue && (option.left === null || option.left > 0) && (!ampOn || focusLeft > 0),
         spend,
     }
 }

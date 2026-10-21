@@ -5,11 +5,18 @@
  * O Pathbuilder só marca o nome ("Frostbite (Amped)"); os números do amp, que
  * têm a PRÓPRIA entrada de heightening, vêm da AON e são transcritos aqui, como
  * `unarmed.ts` e `magicWeapons.ts`, e casam pelo NOME do truque. Cobre os psi
- * cantrips da Oscillating Wave; outro conscious mind é acrescentar uma entrada.
+ * cantrips da Oscillating Wave (Thalos) e os da The Tangible Dream que o Loki tem
+ * (Imaginary Weapon e Shield); outro conscious mind é acrescentar uma entrada.
+ *
+ * Quem amplifica: o Psíquico, e quem tem o arquétipo com o Psi Development — no
+ * Dark Archive (Remastered) a dedicação dá o truque SEM o amp, e é o Psi
+ * Development que o concede (`canAmpPsiCantrips`).
  *
  * Rank base de todos é 1, e cada rank acima soma o "Amp Heightened (+1)".
  * Texto em pt-BR; nomes de magia e tipos de dano canônicos em inglês.
  */
+import { parseFeatEntry, type BuildInfo } from '../character-sheet/types'
+import type { ScaledComponent } from './heightening'
 
 /** Uma parcela de dano que o amp põe no lugar do dano normal. */
 export interface AmpDamage {
@@ -70,6 +77,27 @@ const AMPS: PsiAmp[] = [
         ],
     },
     {
+        name: 'Imaginary Weapon',
+        summary: 'Várias armas de força: dois alvos, um ataque em cada, 2d6 de força por rank.',
+        damage: (rank) => [d(2 * rank, 6, 'force')],
+        notes: () => [
+            'Fora do Spellstrike, ataca DOIS alvos diferentes; a penalidade de ataques múltiplos só sobe depois dos dois.',
+            'No Spellstrike a magia pega só o alvo do Golpe — com o dano amplificado.',
+        ],
+    },
+    {
+        name: 'Shield',
+        summary: 'Três camadas de escudo, sustentadas por até 1 minuto.',
+        notes: (rank) => {
+            const hardness = 5 + 5 * Math.floor((rank - 1) / 2)
+            return [
+                'Cada Shield Block quebra uma camada e tira o bônus na CA, mas a magia continua; erga de novo ao Sustentar. Quebrada a última, nada de Shield por 10 minutos.',
+                `Quebrar duas camadas num bloqueio: Dureza ${Math.floor(hardness * 1.5)}; as três: Dureza ${hardness * 2} (a normal é ${hardness}).`,
+                'Mental Balm (se você tiver o talento) pode ser usado no lugar: +2 de status em Vontade contra emoção por 1 minuto e uma tentativa de contra-atacar o amedrontado.',
+            ]
+        },
+    },
+    {
         name: 'Entropic Wheel',
         summary: 'A roda ganha 2 motes em vez de 1, a cada vez que ganha um.',
         notes: () => ['Cada mote soma 1 de dano do tipo oposto em magias de frio e fogo (só o dano inicial).'],
@@ -81,7 +109,8 @@ const AMPS: PsiAmp[] = [
     },
 ]
 
-const norm = (name: string) => name.replace(/\s*\((amped|amplificad[oa])\)\s*/gi, '').trim().toLowerCase()
+// "Frostbite (Amped)" e "Shield (Archetype)" são o mesmo truque do catálogo.
+const norm = (name: string) => name.replace(/\s*\((amped|amplificad[oa]|archetype)\)\s*/gi, '').trim().toLowerCase()
 
 /** O nome da magia sem a marca "(Amped)" do Pathbuilder. */
 export const baseSpellName = (name: string): string => name.replace(/\s*\((amped|amplificad[oa])\)\s*/gi, '').trim()
@@ -89,4 +118,23 @@ export const baseSpellName = (name: string): string => name.replace(/\s*\((amped
 export function psiAmpFor(name: string): PsiAmp | null {
     const key = norm(name)
     return AMPS.find((a) => a.name.toLowerCase() === key) ?? null
+}
+
+/** Pode amplificar psi cantrips: o Psíquico, ou o arquétipo com o Psi Development. */
+export function canAmpPsiCantrips(build: BuildInfo): boolean {
+    if (build.class === 'Psychic') return true
+    return (build.feats ?? []).some((f) => parseFeatEntry(f).name.trim().toLowerCase() === 'psi development')
+}
+
+/** Os psi cantrips do arquétipo são "occult psychic spells" (Psychic Dedication). */
+export const hasPsychicArchetype = (build: BuildInfo): boolean =>
+    (build.feats ?? []).some((f) => parseFeatEntry(f).name.trim().toLowerCase() === 'psychic dedication')
+
+/** O dano do amp como componentes de magia, no formato que os diálogos rolam. */
+export function ampComponents(list: AmpDamage[]): ScaledComponent[] {
+    return list.map((a, i): ScaledComponent => ({
+        id: 9000 + i, kind: 'damage', formula: '', types: [a.type], persistent: a.persistent,
+        count: a.count, faces: a.faces, flat: a.flat, nth: 0, occurrences: 1,
+        value: { count: a.count, faces: a.faces, flat: a.flat }, changed: true, uncertain: false,
+    }))
 }
