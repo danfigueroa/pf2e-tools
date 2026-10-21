@@ -108,6 +108,18 @@ function publishSnapshot(slug: string, snapshot: Snapshot) {
 // seções ainda coexistem durante a animação de trocar de acordeão.
 const fieldListeners = new Map<string, Set<(data: unknown) => void>>()
 
+// Qualquer fatia de qualquer personagem que mudou, daqui ou de outro aparelho.
+// É o que o mapa assina: ele mostra o PV, o token e o tamanho dos PCs sem ter
+// um hook por personagem.
+const changeListeners = new Set<(slug: string, field: string, data: unknown) => void>()
+
+export function onStateChange(listener: (slug: string, field: string, data: unknown) => void): () => void {
+    changeListeners.add(listener)
+    return () => { changeListeners.delete(listener) }
+}
+
+const noteChange = (slug: string, field: string, data: unknown) => changeListeners.forEach((l) => l(slug, field, data))
+
 export function subscribeField(slug: string, field: string, listener: (data: unknown) => void): () => void {
     const id = `${slug}/${field}`
     let set = fieldListeners.get(id)
@@ -231,6 +243,7 @@ export function saveField(slug: string, field: string, data: unknown): void {
 
     const id = `${slug}/${field}`
     fieldListeners.get(id)?.forEach((l) => l(data))
+    noteChange(slug, field, data)
     pending.set(id, { slug, field, data })
 
     const existing = timers.get(id)
@@ -303,6 +316,9 @@ function applyRemote(msg: StateMessage) {
     if (pending.has(id)) return
     if (updatedAt <= (lastSeen.get(id) ?? 0)) return
     lastSeen.set(id, updatedAt)
+    // Antes da comparação com o cache: o mapa pode estar com um valor mais velho
+    // que o deste aparelho (ele lê os PCs por conta própria).
+    noteChange(slug, field, data)
     if (JSON.stringify(readLocal(slug, field)) === JSON.stringify(data)) return
     writeLocal(slug, field, data)
     const snapshot = snapshots.get(slug)
@@ -310,6 +326,9 @@ function applyRemote(msg: StateMessage) {
     // Um snapshot PARCIAL: os hooks de cada fatia ignoram os campos ausentes.
     snapshotListeners.get(slug)?.forEach((l) => l({ [field]: data }))
 }
+
+/** Abre o canal do estado sem ler personagem nenhum — o mapa, que lê os PCs por conta própria. */
+export const ensureStateLive = (): void => startRealtime()
 
 /** Relê os personagens abertos — o que mudou enquanto o canal estava fechado. */
 function resync() {
@@ -336,7 +355,7 @@ function startRealtime() {
             // depois da leitura, e o que mudou nesse meio não seria visto.
             if (live) resync()
         },
-    ).then((ok) => { if (!ok) realtimeStarted = false })
+    ).then((stop) => { if (!stop) realtimeStarted = false })
 }
 
 // Celular que volta do bolso: o socket pode ter morrido sem avisar ainda.

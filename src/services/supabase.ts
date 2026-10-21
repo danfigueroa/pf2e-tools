@@ -107,21 +107,22 @@ export async function authHeaders(): Promise<Record<string, string>> {
  * transmite o que mudou (triggers). Só quem se registrou na mesa entra (RLS em
  * `realtime.messages`). `onLive` avisa a cada troca: aberto (SUBSCRIBED,
  * inclusive em cada reconexão — hora de reler o que pode ter passado) ou não.
- * Devolve `false` quando não há Supabase: quem chamou segue sem tempo real.
+ * Devolve a função que SAI do canal, ou `null` quando não há Supabase (quem
+ * chamou segue sem tempo real).
  */
 export async function listenMesaChannel(
     name: string,
     handlers: Record<string, (payload: unknown) => void>,
     onLive: (live: boolean) => void,
-): Promise<boolean> {
+): Promise<(() => void) | null> {
     const client = await getSupabase()
-    if (!client) return false
+    if (!client) return null
     const channel = client.channel(`mesa:${currentMesa.id}:${name}`, { config: { private: true } })
     for (const [event, handler] of Object.entries(handlers)) {
         channel.on('broadcast', { event }, ({ payload }) => handler(payload))
     }
     channel.subscribe((state) => onLive(state === 'SUBSCRIBED'))
-    return true
+    return () => { void client.removeChannel(channel) }
 }
 
 /** Abre a sessão com o app ocioso — chamado uma vez no boot (`main.tsx`). */

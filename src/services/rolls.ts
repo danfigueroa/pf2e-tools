@@ -164,7 +164,7 @@ function startRealtime() {
         live = open
         // A cada (re)conexão, o que passou com o canal fechado. Sem canal, o poll volta.
         void fetchRolls().then(() => schedule())
-    }).then((ok) => { if (!ok) realtimeStarted = false })
+    }).then((stop) => { if (!stop) realtimeStarted = false })
 }
 
 /** Manda uma rolagem à mesa. Otimista: aparece aqui na hora. */
