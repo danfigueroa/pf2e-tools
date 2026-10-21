@@ -5,6 +5,7 @@
 //
 //   node --env-file=.env scripts/migrate-redis.mjs --domain translations [--dry-run]
 //   node --env-file=.env scripts/migrate-redis.mjs --domain descriptions [--dry-run]
+//   node --env-file=.env scripts/migrate-redis.mjs --domain state [--dry-run]
 //
 // Precisa das credenciais do Redis de PRODUÇÃO no .env — KV_REST_API_URL e, de
 // preferência, KV_REST_API_READ_ONLY_TOKEN (o script só lê; o KV_REST_API_TOKEN
@@ -15,6 +16,9 @@
 //   pf2e:tr:<sha1>                       → translations (global)
 //   pf2e:sheet:desc:v1:<slug>            → descriptions + description_misses (globais)
 //   pf2e:m:<mesa>:sheet:desc:v1:<slug>     + sheet_description_sets (da mesa)
+//   pf2e:table:v1:<slug>                 → character_state, uma linha por campo do hash
+//   pf2e:m:<mesa>:table:v1:<slug>          (só entra o que for MAIS NOVO que o banco:
+//                                           pode rodar antes e depois do deploy)
 
 import { Redis } from '@upstash/redis'
 import { createClient } from '@supabase/supabase-js'
@@ -22,7 +26,7 @@ import { createClient } from '@supabase/supabase-js'
 const args = process.argv.slice(2)
 const domain = args.includes('--domain') ? args[args.indexOf('--domain') + 1] : null
 const dryRun = args.includes('--dry-run')
-const DOMAINS = ['translations', 'descriptions']
+const DOMAINS = ['translations', 'descriptions', 'state']
 if (!DOMAINS.includes(domain)) {
     console.error(`Uso: --domain ${DOMAINS.join('|')} [--dry-run]`)
     process.exit(2)
@@ -135,5 +139,44 @@ async function migrateDescriptions() {
     await upsert('sheet_description_sets', sets.filter((s) => valid.has(s.mesa)))
 }
 
-await (domain === 'translations' ? migrateTranslations() : migrateDescriptions())
+const FIELD_RE = /^(hp|slots|conditions|afflictions|persistent|mythic|consumed|shield|token|size|rage|psyche|energy|magus|ranger|rogue|actions|uses|companions|pet:[a-z0-9:#-]{1,80})$/
+
+function characterFromKey(key) {
+    const scoped = key.match(/^pf2e:m:([a-z0-9-]+):table:v1:([a-z0-9-]+)$/)
+    if (scoped) return { mesa: scoped[1], slug: scoped[2] }
+    const legacy = key.match(/^pf2e:table:v1:([a-z0-9-]+)$/)
+    return legacy ? { mesa: LEGACY_MESA, slug: legacy[1] } : null
+}
+
+async function migrateState() {
+    const keys = [...await scan('pf2e:table:v1:*'), ...await scan('pf2e:m:*:table:v1:*')]
+    const rows = []
+    for (const key of keys) {
+        const who = characterFromKey(key)
+        if (!who) continue
+        const hash = (await redis.hgetall(key)) ?? {}
+        for (const [field, raw] of Object.entries(hash)) {
+            // Cada campo é `{ v, data, updatedAt }`, às vezes já desserializado pelo SDK.
+            let entry = raw
+            if (typeof raw === 'string') { try { entry = JSON.parse(raw) } catch { entry = null } }
+            if (!FIELD_RE.test(field) || !entry || entry.data == null) continue
+            if (JSON.stringify(entry.data).length > 8 * 1024) continue
+            rows.push({ ...who, field, data: entry.data, updated_at: Number(entry.updatedAt) || 0 })
+        }
+    }
+    // O mais novo vence: uma escrita que já chegou ao banco pelo código novo não é desfeita.
+    const { data: existing, error } = await db.from('character_state').select('mesa, slug, field, updated_at')
+    if (error) throw new Error(`character_state: ${error.message}`)
+    const inDb = new Map(existing.map((r) => [`${r.mesa}|${r.slug}|${r.field}`, Number(r.updated_at)]))
+    const newer = rows.filter((r) => r.updated_at > (inDb.get(`${r.mesa}|${r.slug}|${r.field}`) ?? -1))
+    const bySlug = {}
+    for (const r of rows) bySlug[`${r.mesa}/${r.slug}`] = (bySlug[`${r.mesa}/${r.slug}`] ?? 0) + 1
+    for (const [who, n] of Object.entries(bySlug)) console.log(`${who}: ${n} campo(s)`)
+    console.log(`Personagens: ${keys.length}; campos: ${rows.length}; mais novos que o banco: ${newer.length}`)
+    const { data: mesas } = await db.from('mesas').select('id')
+    const valid = new Set((mesas ?? []).map((m) => m.id))
+    if (!dryRun) await upsert('character_state', newer.filter((r) => valid.has(r.mesa)))
+}
+
+await ({ translations: migrateTranslations, descriptions: migrateDescriptions, state: migrateState })[domain]()
 console.log(dryRun ? 'Dry-run: nada foi gravado.' : 'Feito.')
