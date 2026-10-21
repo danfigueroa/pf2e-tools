@@ -95,10 +95,9 @@ qualquer dispositivo — no desktop as áreas viram **abas**; no mobile viram **
     vê a rolagem** (ver [Rolagens da Mesa](#-rolagens-da-mesa-implementado)).
 -   👥 **Estado compartilhado da mesa**: PV, PV de companheiros, slots de magia, pontos de foco,
     pontos míticos e condições são os **mesmos para todos os jogadores** — marcar 50 de dano no notebook aparece no
-    celular de quem estiver na mesa. A sincronia é **sob demanda**: puxa ao abrir a ficha e no botão
-    **Atualizar** do cabeçalho, que também mostra se o que você vê está compartilhado.
-    Requer um Redis configurado (ver [Instalação](#-instalação-e-execução)); **sem ele o app funciona
-    igual**, só que o estado fica no aparelho, como antes.
+    celular de quem estiver na mesa **na hora**, pelo Realtime do Supabase (o cabeçalho mostra
+    **Ao vivo**). Requer o Supabase configurado (ver [Instalação](#-instalação-e-execução)); **sem ele o
+    app funciona igual**, só que o estado fica no aparelho e a sincronia volta a ser pelo botão **Atualizar**.
 -   🌑 **Perfis situacionais de arma**: itens que ficam mais fortes em certas condições (a
     _Gloom Blade_ na penumbra, e mais forte ainda contra quem não te detecta) mostram ataque e dano
     de cada situação na aba de Combate — escritos à mão em `magicWeapons.ts`, calculados a partir
@@ -456,9 +455,10 @@ npm run dev:full
 -   Frontend: `http://localhost:5173`
 -   API: `http://localhost:3001`
 -   Busca descrições automaticamente da Archives of Nethys
--   Para testar o **estado compartilhado da mesa** entre dois navegadores, preencha
-    `KV_REST_API_URL` e `KV_REST_API_TOKEN` no `.env` (ver `.env.example`). Sem elas o servidor
-    guarda só em memória — o que já serve para um teste local, mas não sobrevive a um restart
+-   Para testar o **estado compartilhado da mesa** entre dois navegadores, preencha as variáveis do
+    Supabase no `.env` (ver `.env.example`). Sem elas o servidor guarda só em memória — o que já serve
+    para um teste local, mas não sobrevive a um restart. **Atenção:** com as chaves do projeto de
+    produção, o `dev:api` local lê e grava no banco de verdade
 
 #### Build de Produção
 
@@ -493,27 +493,20 @@ O projeto está configurado para deploy automático na Vercel.
     - As duas são opcionais, mas com as duas configuradas a tradução continua funcionando quando
       um dos provedores fica indisponível ou esgota a cota diária
 
-4. **Ligue o estado compartilhado da mesa** (opcional)
+4. **Ligue o Supabase** (opcional — estado da mesa, fichas publicadas, feed, mapas, imagens e o
+   cache de traduções)
 
-    - Vá em "Storage" > "Upstash Redis" (o plano gratuito basta) e conecte ao projeto
-    - A integração injeta `KV_REST_API_URL` e `KV_REST_API_TOKEN` sozinha — não é preciso colar nada
-    - Sem isso o app funciona igual, mas PV, slots e condições ficam no aparelho de cada jogador
-      em vez de serem compartilhados
+    - Crie um projeto gratuito em [supabase.com](https://supabase.com), na região mais perto da mesa
+      (a nossa é São Paulo, `sa-east-1`, com as funções da Vercel em `gru1`)
+    - Em *Authentication → Sign In / Providers*, ligue **Anonymous Sign-Ins** (cada aparelho ganha
+      uma sessão sem tela de login)
+    - Aplique as migrations: `npx supabase link --project-ref <ref>` e `npx supabase db push`
+    - Na Vercel, crie `SUPABASE_URL`, `SUPABASE_SECRET_KEY` (só servidor), `VITE_SUPABASE_URL` e
+      `VITE_SUPABASE_PUBLISHABLE_KEY` (Project Settings → API Keys, as chaves novas)
+    - Sem isso o app funciona igual, mas PV, slots e condições ficam no aparelho de cada jogador e
+      as imagens do mapa ficam no aparelho de quem as enviou
 
-5. **Ligue o armazenamento de imagens do Mapa de Combate** (opcional)
-
-    - Vá em "Storage" > "Blob" > "Create" (o plano Hobby basta) e conecte ao projeto
-    - **Access: Public.** O app grava as imagens como públicas para todos na mesa enxergarem; numa
-      store Private o envio falha, e o acesso não muda depois de criada
-    - **Marque "Add a read-write token env var to this connection".** A Vercel hoje conecta por
-      OIDC e, sem essa caixa, só cria `BLOB_STORE_ID` e `BLOB_WEBHOOK_PUBLIC_KEY` — mas o envio
-      direto do navegador precisa de `BLOB_READ_WRITE_TOKEN`. Se esqueceu, copie o token da aba
-      `.env.local` da store e crie a variável à mão (tipo Secret, Production e Preview). Não clique
-      em "Revoke Token"
-    - Faça um **Redeploy** depois: a variável só vale em deploys novos
-    - Sem isso o mapa funciona, mas cada imagem fica só no aparelho de quem a enviou
-
-6. **Deploy**
+5. **Deploy**
     - Clique em "Deploy"
     - Aguarde o build finalizar
     - Seu app estará disponível em `https://seu-projeto.vercel.app`
@@ -536,9 +529,10 @@ api/
 └── clear-cache.js          # POST /api/clear-cache
 ```
 
-> `_lib/table-store.js`, `sheet-store.js` e `map-store.js` são os módulos com persistência
-> (Upstash Redis via REST); as imagens do mapa vão para o Vercel Blob. Todos os outros endpoints
-> são stateless. O mapa mora dentro de `state.js` pelo limite de 12 funções do plano Hobby.
+> `_lib/table-store.js`, `sheet-store.js`, `sheet-descriptions.js`, `roll-store.js` e `map-store.js`
+> são os módulos com persistência (Postgres do Supabase); as imagens vão para o Supabase Storage, e
+> o tempo real é o Realtime do Supabase, transmitido por triggers do banco. Todos os outros
+> endpoints são stateless. O mapa mora dentro de `state.js` pelo limite de 12 funções do plano Hobby.
 
 
 ---
@@ -618,9 +612,10 @@ pf2e-tools/
 │   │   ├── monster.ts            # Cliente da ficha completa de uma criatura
 │   │   ├── spellList.ts          # Cliente da lista de magias (tradição + rank)
 │   │   ├── rules.ts              # Cliente da regra de um termo (inglês, cacheado)
-│   │   ├── tableState.ts         # Sincronia do estado compartilhado da mesa
-│   │   ├── maps.ts               # Mapa de combate: poll de revisão + escrita otimista
-│   │   └── images.ts             # Redução e envio de imagens (Vercel Blob, IndexedDB de reserva)
+│   │   ├── supabase.ts           # Sessão anônima do aparelho e os canais do Realtime
+│   │   ├── tableState.ts         # Estado compartilhado da mesa, em tempo real
+│   │   ├── maps.ts               # Mapa de combate: tempo real + escrita otimista
+│   │   └── images.ts             # Redução e envio de imagens (Supabase Storage, IndexedDB de reserva)
 │   ├── types/
 │   │   └── index.ts              # Tipos globais
 │   ├── App.tsx                   # Componente raiz + rotas
@@ -834,16 +829,16 @@ Sem id na URL, abre o mapa para onde a mesa está. O módulo é o único carrega
 
 | Fatia                          | Onde vive                                                        |
 | ------------------------------ | ---------------------------------------------------------------- |
-| Mapa (nome, imagem, escala)    | Redis, campo `meta` do hash do mapa                              |
-| Quem é cada token              | Redis, `tok:<id>` — escrito só pela Iniciativa                   |
-| Onde está cada token           | Redis, `pos:<id>` — escrito só pelo mapa                         |
-| Como a imagem é enquadrada     | Redis, `fit:<id>` — centro, ampliação e (monstro) a imagem enviada no mapa |
-| PV de monstro                  | Redis, `hp:<id>` — Iniciativa e mapa, nos dois sentidos          |
+| Mapa (nome, imagem, escala)    | `map_fields`, campo `meta`                                       |
+| Quem é cada token              | `map_fields`, `tok:<id>` — escrito só pela Iniciativa            |
+| Onde está cada token           | `map_fields`, `pos:<id>` — escrito só pelo mapa                  |
+| Como a imagem é enquadrada     | `map_fields`, `fit:<id>` — centro, ampliação e (monstro) a imagem enviada no mapa |
+| PV de monstro                  | `map_fields`, `hp:<id>` — Iniciativa e mapa, nos dois sentidos   |
 | PV e imagem de personagem      | estado da mesa (`hp`, `token`) — os mesmos da Ficha Virtual      |
-| Cada desenho                   | Redis, `drw:<id>` — um campo por desenho                         |
-| Ping                           | Redis, `ping:<id>` — apagado por quem pingou em 6 s              |
-| Rolagens de dados              | feed da mesa (`pf2e:rolls:v1`), o mesmo das fichas               |
-| Imagens                        | Vercel Blob: `tokens/` (permanente), `maps/` e `monsters/` (do mapa) |
+| Cada desenho                   | `map_fields`, `drw:<id>` — uma linha por desenho                 |
+| Ping                           | `map_fields`, `ping:<id>` — apagado por quem pingou em 6 s       |
+| Rolagens de dados              | feed da mesa (tabela `rolls`), o mesmo das fichas                |
+| Imagens                        | Supabase Storage: `tokens/` (permanente), `maps/` e `monsters/` (do mapa) |
 
 #### Arquivos
 
@@ -865,10 +860,10 @@ Sem id na URL, abre o mapa para onde a mesa está. O módulo é o único carrega
 | `components/TokenBadge.tsx`     | O token do personagem, só para olhar (lê o mesmo campo da ficha)          |
 | `tokenFit.ts` / `components/TokenFit*.tsx` | Enquadramento da imagem do token (centro e ampliação), com envio de imagem |
 | `geometry.ts` / `drawing.ts`    | Distância PF2e, snap, tamanho do token; simplificação e validação do traço |
-| `services/maps.ts`              | Poll de revisão (1,5 s; pausa com a aba oculta) e escrita otimista        |
-| `services/images.ts`            | Redução no navegador e envio direto para o Blob                           |
-| `api/_lib/map-store.js`         | Hash por mapa, contadores de revisão, posição livre para token novo       |
-| `api/_lib/map-handler.js`       | Rotas do mapa dentro de `/api/state` e assinatura do envio ao Blob        |
+| `services/maps.ts`              | Tempo real (canal do mapa, com a revisão de cada escrita), poll de reserva e escrita otimista |
+| `services/images.ts`            | Redução no navegador e envio direto para o Supabase Storage               |
+| `api/_lib/map-store.js`         | Uma linha por campo, revisão, posição livre para token novo               |
+| `api/_lib/map-handler.js`       | Rotas do mapa dentro de `/api/state`                                      |
 
 #### Desempenho
 
@@ -1102,7 +1097,7 @@ O servidor (`server/index.mjs`) fornece endpoints para buscar dados da Archives 
 | POST   | `/api/clear-cache` | —        | Limpa o cache de descrições                      |
 | GET    | `/api/state`     | `char`     | Estado de jogo compartilhado de um personagem    |
 | POST   | `/api/state`     | body       | Grava uma fatia (`{ char, field, data }`)        |
-| GET    | `/api/state`     | `char`, `field` | **Uma** fatia do estado (1 comando no Redis) — o poll leve das ações do turno |
+| GET    | `/api/state`     | `char`, `field` | **Uma** fatia do estado — o poll das ações do turno quando não há tempo real |
 | GET    | `/api/state`     | `rolls`, `rev` | Feed das últimas 30 rolagens (só o contador, se nada mudou) |
 | POST   | `/api/state`     | `{ action: 'roll-add', roll }` | Manda uma rolagem já sorteada para a mesa |
 
@@ -1142,8 +1137,8 @@ O servidor mantém um cache em memória para evitar requisições repetidas à A
 
 ### Estado da mesa (`/api/state`)
 
-Único endpoint com estado. Guarda um **hash por personagem** no Redis, com um campo por fatia
-(`hp`, `slots`, `conditions`, `mythic`, `rage`, `psyche`, `energy`, `magus`, `ranger`, `rogue`, `actions`, `companions`, `shield`, `size`, `pet:…`) — assim dois jogadores editando coisas diferentes ao mesmo
+Único endpoint com estado. Guarda **uma linha por fatia** de cada personagem no Postgres
+(`character_state`: `hp`, `slots`, `conditions`, `mythic`, `rage`, `psyche`, `energy`, `magus`, `ranger`, `rogue`, `actions`, `companions`, `shield`, `size`, `pet:…`) — assim dois jogadores editando coisas diferentes ao mesmo
 tempo não se sobrescrevem. O personagem é identificado por um **slug do nome** (`Ghan Buri` →
 `ghan-buri`), sem o nível, para que subir de nível não zere o estado da mesa.
 
@@ -1152,11 +1147,11 @@ curl "http://localhost:3001/api/state?char=ghan-buri"
 # {"char":"ghan-buri","fields":{"hp":{"data":{"current":42,"temp":7},"updatedAt":…}},"storeReady":true}
 ```
 
-A sincronia é **sob demanda** (ao abrir a ficha e no botão **Atualizar**), com **uma exceção**: o
-campo `actions` é relido a cada 5 s pela faixa de ações, porque o mestre zera o contador do aparelho
-dele no começo do turno e o jogador precisa ver sem apertar nada.
+Cada escrita é transmitida pelo **Realtime do Supabase** (um trigger do banco, no canal privado
+`mesa:<mesa>:state`), e quem está com a ficha aberta recebe na hora — o cabeçalho mostra **Ao vivo**.
+Sem o canal, a sincronia volta a ser sob demanda (ao abrir a ficha e no botão **Atualizar**).
 
-Sem credenciais de Redis o servidor responde igual, mas guarda só em memória — o cliente avisa
+Sem as credenciais do Supabase o servidor responde igual, mas guarda só em memória — o cliente avisa
 **"Só neste aparelho"** e mantém tudo no `localStorage`.
 
 ---
