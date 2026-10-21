@@ -530,7 +530,7 @@ const server = http.createServer(async (req, res) => {
     // da ficha aceita qualquer `action`.
     if (isMapRequest(req.method, query, body)) {
       try {
-        const out = await handleMapRequest(mesa, req.method, query, body, req)
+        const out = await handleMapRequest(mesa, req.method, query, body)
         res.writeHead(out.status, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify(out.body))
       } catch (e) {

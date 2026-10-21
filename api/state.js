@@ -36,7 +36,7 @@ export default async function handler(req, res) {
   // da ficha aceita qualquer `action`.
   if (isMapRequest(req.method, req.query || {}, req.body)) {
     try {
-      const { status, body } = await handleMapRequest(mesa, req.method, req.query || {}, req.body || {}, req)
+      const { status, body } = await handleMapRequest(mesa, req.method, req.query || {}, req.body || {})
       return res.status(status).json(body)
     } catch (error) {
       console.error('[/api/state] Erro no mapa:', error)

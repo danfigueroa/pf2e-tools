@@ -12,16 +12,18 @@
 //   POST { action: 'map-rename', id, name }
 //   POST { action: 'map-visibility', id, private } → esconde/revela à mesa
 //   POST { action: 'map-activate', id|null } → leva a mesa (e revela o mapa)
-//   POST { action: 'map-delete', id }      → apaga também as imagens do Blob
+//   POST { action: 'map-delete', id }      → apaga também as imagens dele (maps/, monsters/)
 //   POST { action: 'map-write', id, fields: { meta|pos:*|hp:*|drw:*: data|null } }
 //   POST { action: 'map-sync', id, tokens, turn, hp } → a Iniciativa manda quem está no mapa
 //   POST { action: 'map-clear-drawings', id } → apaga todos os desenhos
-//   POST { action: 'blob-delete', url }    → imagem trocada (token do PC, do monstro)
-//   POST ?blob=1  (corpo do @vercel/blob) → token de upload direto do navegador
+//   POST { action: 'image-delete', url }   → imagem trocada (token do PC, do monstro)
+//                                            (`blob-delete`: o nome antigo, aceito igual)
+//
+// O ENVIO das imagens não passa por aqui: o navegador sobe direto para o
+// Supabase Storage (ver api/_lib/images.js e services/images.ts).
 
-import { handleUpload } from '@vercel/blob/client'
-import { del } from '@vercel/blob'
 import { isSupabaseConfigured } from './supabase.js'
+import { deleteImages, isMapOwnedImage } from './images.js'
 import {
     MAX_MAP_FIELD_BYTES,
     MAX_TOKENS,
@@ -40,55 +42,24 @@ import {
     writeMapFields,
 } from './map-store.js'
 
-const ok = (body) => ({ status: 200, body: { ...body, storeReady: isSupabaseConfigured(), blobReady: isBlobConfigured() } })
+const ok = (body) => ({ status: 200, body: { ...body, storeReady: isSupabaseConfigured() } })
 const fail = (status, error) => ({ status, body: { error } })
-
-const isBlobConfigured = () => !!process.env.BLOB_READ_WRITE_TOKEN
 
 const MAP_ACTIONS = new Set([
     'map-create', 'map-rename', 'map-visibility', 'map-activate', 'map-delete', 'map-write', 'map-sync',
-    'map-clear-drawings', 'blob-delete',
+    'map-clear-drawings', 'image-delete', 'blob-delete',
 ])
 
 /** Falso quando a requisição não é de mapa — aí segue para as outras rotas do `state`. */
 export function isMapRequest(method, query, body) {
     if (method === 'GET') return !!(query.maps || query.map || query.mapRev)
-    if (method === 'POST') return !!query.blob || MAP_ACTIONS.has(body?.action)
+    if (method === 'POST') return MAP_ACTIONS.has(body?.action)
     return false
 }
 
 const cleanName = (name) => String(name ?? '').trim().slice(0, 60)
 
-/**
- * Só apaga o que é do NOSSO Blob: o endpoint é público, e um `url` qualquer
- * mandado aqui não pode virar um DELETE autenticado em outra coisa.
- */
-const isBlobUrl = (url) => typeof url === 'string' && /^https:\/\/[a-z0-9]+\.public\.blob\.vercel-storage\.com\//.test(url)
-
-/**
- * Imagens que pertencem a um MAPA: a dele e as dos monstros. O token de
- * personagem (`tokens/`) é permanente e nunca sai junto com um mapa — a trava
- * fica aqui, no servidor, para valer mesmo se um token de PC aparecer por
- * engano na lista do mapa.
- */
-const isMapOwnedUrl = (url) => isBlobUrl(url) && /\/(maps|monsters)\//.test(new URL(url).pathname)
-
-async function deleteBlobs(urls) {
-    const ours = urls.filter(isBlobUrl)
-    if (ours.length === 0 || !isBlobConfigured()) return
-    try {
-        await del(ours)
-    } catch (error) {
-        // Imagem órfã no Blob não pode impedir o mapa de sumir da lista.
-        console.error('[map] Falha ao apagar imagens do Blob:', error)
-    }
-}
-
-/**
- * @param request a requisição original (IncomingMessage) — o `handleUpload`
- *   precisa dela para validar a assinatura do aviso de upload concluído.
- */
-export async function handleMapRequest(mesa, method, query, body, request) {
+export async function handleMapRequest(mesa, method, query, body) {
     if (method === 'GET') {
         // Mapa privado só sai para o Modo GM. Sem senha, como o resto do app —
         // mas quem não ligou o modo não recebe nome, imagem nem tokens.
@@ -118,30 +89,6 @@ export async function handleMapRequest(mesa, method, query, body, request) {
         return ok({ map })
     }
 
-    if (query.blob) {
-        if (!isBlobConfigured()) return fail(503, 'Armazenamento de imagens não configurado')
-        const result = await handleUpload({
-            body,
-            request,
-            onBeforeGenerateToken: async (pathname) => {
-                // Pastas fixas: nada de o cliente escolher onde gravar.
-                // tokens/ = personagem (permanente); maps/ e monsters/ = do mapa.
-                if (!/^(maps|tokens|monsters)\/[a-z0-9-]{1,80}\.(webp|png|jpe?g)$/.test(pathname)) {
-                    throw new Error('Caminho inválido')
-                }
-                return {
-                    allowedContentTypes: ['image/webp', 'image/png', 'image/jpeg'],
-                    maximumSizeInBytes: 8 * 1024 * 1024,
-                    addRandomSuffix: true,
-                }
-            },
-            // Nada a fazer: quem grava a URL no mapa é o próprio cliente, que já a
-            // tem na mão. (Em dev o aviso nem chegaria — localhost não é público.)
-            onUploadCompleted: async () => {},
-        })
-        return { status: 200, body: result }
-    }
-
     const action = body.action
 
     if (action === 'map-create') {
@@ -151,8 +98,8 @@ export async function handleMapRequest(mesa, method, query, body, request) {
         return ok({ map })
     }
 
-    if (action === 'blob-delete') {
-        await deleteBlobs([body.url])
+    if (action === 'image-delete' || action === 'blob-delete') {
+        await deleteImages([body.url])
         return ok({})
     }
 
@@ -179,7 +126,7 @@ export async function handleMapRequest(mesa, method, query, body, request) {
 
     if (action === 'map-delete') {
         const urls = await deleteMap(mesa, id)
-        await deleteBlobs(urls.filter(isMapOwnedUrl))
+        await deleteImages(urls.filter(isMapOwnedImage))
         return ok({})
     }
 
