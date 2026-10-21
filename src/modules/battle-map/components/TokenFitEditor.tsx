@@ -27,7 +27,7 @@ export const TokenFitEditor = ({ mapId, tokenId, data, views, onClose }: Props) 
     const token = data.tokens[tokenId]
     // `undefined` = a imagem não mudou; `null` = voltar à original; texto = a que acabou de subir.
     const [pending, setPending] = useState<string | null | undefined>(undefined)
-    // Tudo que subiu nesta sessão: o que não for gravado é apagado do Blob.
+    // Tudo que subiu nesta sessão: o que não for gravado é apagado do armazenamento.
     const [uploaded, setUploaded] = useState<string[]>([])
     const [busy, setBusy] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -58,7 +58,7 @@ export const TokenFitEditor = ({ mapId, tokenId, data, views, onClose }: Props) 
         }
     }
 
-    /** Sai do diálogo; o que subiu e não foi gravado não pode ficar órfão no Blob. */
+    /** Sai do diálogo; o que subiu e não foi gravado não pode ficar órfão no armazenamento. */
     const finish = (keep: string | null) => {
         for (const url of uploaded) if (url !== keep) void deleteImage(url)
         onClose()
@@ -70,7 +70,7 @@ export const TokenFitEditor = ({ mapId, tokenId, data, views, onClose }: Props) 
         const value: TokenFit = { x: fit.x, y: fit.y, z: fit.z, ...(nextUrl ? { url: nextUrl } : {}) }
         for (const id of targets) writeMapField(mapId, `fit:${id}`, isDefaultFit(value) ? null : value)
 
-        // A imagem própria que ficou para trás só sai do Blob se ninguém mais a mostra.
+        // A imagem própria que ficou para trás só sai do armazenamento se ninguém mais a mostra.
         const stillShown = new Set<string>()
         for (const v of views.values()) if (!targets.includes(v.id) && v.image) stillShown.add(v.image)
         if (nextUrl) stillShown.add(nextUrl)

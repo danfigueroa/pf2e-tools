@@ -4,15 +4,20 @@
 // outro VTT chega fácil a 20 MB de PNG; reduzido para 4096 px em WebP fica na
 // casa de 1–2 MB, que é o que cada jogador baixa no celular ao abrir o mapa.
 //
-// A subida vai direto do navegador para o Vercel Blob (o servidor só assina o
-// pedido): passar o arquivo pela função esbarraria no limite de 4,5 MB do corpo.
-// Sem Blob configurado a imagem fica no IndexedDB deste aparelho, com uma URL
-// `idb:<chave>` — os outros veem o grid e as iniciais, como o resto do app
-// funciona sem Redis.
+// A subida vai direto do navegador para o Supabase Storage (bucket público
+// `images`), com a sessão anônima do aparelho — passar o arquivo pela função
+// esbarraria no limite de 4,5 MB do corpo. Quem apaga é o servidor. Sem
+// Supabase a imagem fica no IndexedDB deste aparelho, com uma URL `idb:<chave>`
+// — os outros veem o grid e as iniciais, como o resto do app funciona sem banco.
+//
+// As imagens vieram do Vercel Blob no MESMO caminho (`tokens/…`, `maps/…`,
+// `monsters/…`). URL antiga do Blob — gravada antes, ou guardada no
+// `localStorage` de um encontro da Iniciativa — é traduzida na hora de desenhar
+// (`useImageUrl` → `displayUrl`), sem tabela de tradução.
 
 import { useEffect, useState } from 'react'
-import { deleteBlobImage, isBlobReady } from './maps'
-import { stateApi } from './mesa'
+import { deleteStoredImage } from './maps'
+import { getSupabase, isSupabaseConfigured } from './supabase'
 
 export const MAP_MAX_SIDE = 4096
 export const TOKEN_MAX_SIDE = 256
@@ -108,34 +113,44 @@ const slugify = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '')
     .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'imagem'
 
 /**
- * Onde cada imagem mora no Blob, pelo tempo que ela vive:
+ * Onde cada imagem mora no bucket, pelo tempo que ela vive:
  * - `tokens/`   — token de PERSONAGEM: permanente, vale em todos os mapas;
  * - `maps/`     — a imagem de um mapa: some quando o mapa é apagado;
  * - `monsters/` — token de monstro: é do encontro de um mapa e some com ele.
  */
 export type ImageFolder = 'tokens' | 'maps' | 'monsters'
 
+const BUCKET = 'images'
+const SUPABASE_URL = ((import.meta.env ?? {}) as Partial<ImportMetaEnv>).VITE_SUPABASE_URL as string | undefined
+const PUBLIC_PREFIX = SUPABASE_URL ? `${SUPABASE_URL.replace(/\/$/, '')}/storage/v1/object/public/${BUCKET}/` : null
+const BLOB_URL_RE = /^https:\/\/[a-z0-9]+\.public\.blob\.vercel-storage\.com\/(.+)$/
+
+/** A URL de uma imagem do Vercel Blob traduzida para a do Storage (o mesmo caminho); as outras, iguais. */
+export function displayUrl(url: string): string {
+    const path = PUBLIC_PREFIX ? url.match(BLOB_URL_RE)?.[1] : null
+    return path ? PUBLIC_PREFIX + path : url
+}
+
+/** Sufixo aleatório: o nome não colide, e a URL nunca muda de conteúdo (pode ficar em cache por um ano). */
+const randomSuffix = () => crypto.randomUUID().replace(/-/g, '').slice(0, 12)
+
 /**
- * Sobe a imagem já reduzida e devolve a URL pública (ou `idb:` sem Blob).
- * O servidor só aceita as três pastas acima.
+ * Sobe a imagem já reduzida e devolve a URL pública (ou `idb:` sem Supabase).
+ * O bucket só aceita as três pastas acima, de quem está registrado numa mesa.
  */
 export async function uploadImage(blob: Blob, folder: ImageFolder, name: string): Promise<string> {
-    if (!(await isBlobReady())) return saveLocal(blob)
-    // Import dinâmico: o cliente do Blob só pesa para quem de fato envia imagem.
-    const { upload } = await import('@vercel/blob/client')
-    try {
-        const result = await upload(`${folder}/${slugify(name)}.${extOf(blob.type)}`, blob, {
-            access: 'public',
-            handleUploadUrl: stateApi('?blob=1'),
-            contentType: blob.type,
-        })
-        return result.url
-    } catch (error) {
-        // A mensagem crua do SDK vai junto: é ela que diz se foi o token, a
-        // rede ou o tipo do arquivo.
-        const detail = error instanceof Error ? error.message : String(error)
-        throw new ImageError(`O envio falhou: ${detail}`)
-    }
+    if (!isSupabaseConfigured) return saveLocal(blob)
+    const client = await getSupabase()
+    if (!client) throw new ImageError('Sem conexão com o armazenamento de imagens. Tente de novo em instantes.')
+    const path = `${folder}/${slugify(name)}-${randomSuffix()}.${extOf(blob.type)}`
+    const { error } = await client.storage.from(BUCKET).upload(path, blob, {
+        contentType: blob.type,
+        cacheControl: '31536000',
+        upsert: false,
+    })
+    // A mensagem crua vai junto: é ela que diz se foi a rede, o tamanho ou o tipo do arquivo.
+    if (error) throw new ImageError(`O envio falhou: ${error.message}`)
+    return client.storage.from(BUCKET).getPublicUrl(path).data.publicUrl
 }
 
 /** Texto do erro para mostrar a quem enviou. */
@@ -146,12 +161,12 @@ export const imageErrorText = (error: unknown) =>
 export async function deleteImage(url: string | null | undefined): Promise<void> {
     if (!url) return
     if (url.startsWith('idb:')) return deleteLocal(url.slice(4))
-    await deleteBlobImage(url)
+    await deleteStoredImage(url)
 }
 
 export const isLocalImage = (url: string | null | undefined) => !!url?.startsWith('idb:')
 
-// --- IndexedDB (sem Blob) -----------------------------------------------------
+// --- IndexedDB (sem Supabase) ---------------------------------------------------
 
 const DB_NAME = 'pf2e-images'
 const STORE = 'images'
@@ -216,6 +231,6 @@ export function useImageUrl(url: string | null | undefined): string | null {
     }, [local])
 
     if (!url) return null
-    if (!local) return url
+    if (!local) return displayUrl(url)
     return resolved?.key === local ? resolved.url : null
 }

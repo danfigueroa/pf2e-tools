@@ -103,24 +103,14 @@ export interface MapSnapshot {
 
 // --- Capacidades do servidor ------------------------------------------------
 
-let blobReady: boolean | null = null
 let storeReady = true
 
-function noteCaps(body: { blobReady?: boolean; storeReady?: boolean }) {
-    if (typeof body.blobReady === 'boolean') blobReady = body.blobReady
+function noteCaps(body: { storeReady?: boolean }) {
     if (typeof body.storeReady === 'boolean') storeReady = body.storeReady
 }
 
-/** false = sem Redis: o mapa só existe neste processo do servidor. */
+/** false = sem banco: o mapa só existe neste processo do servidor. */
 export const isMapStoreReady = () => storeReady
-
-/** Se o servidor tem Blob configurado. Pergunta uma vez e guarda. */
-export async function isBlobReady(): Promise<boolean> {
-    if (blobReady === null) {
-        try { await listMaps() } catch { blobReady = false }
-    }
-    return blobReady === true
-}
 
 /** Erro de resposta com o corpo junto — o 403 do mapa privado traz os contadores. */
 class ApiError extends Error {
@@ -186,9 +176,9 @@ export async function deleteMap(id: string): Promise<void> {
     entries.delete(id)
 }
 
-/** Apaga uma imagem do Blob que deixou de ser usada (troca de token). */
-export async function deleteBlobImage(url: string): Promise<void> {
-    await post({ action: 'blob-delete', url }).catch(() => {})
+/** Apaga uma imagem que deixou de ser usada (troca de token). Quem apaga é o servidor. */
+export async function deleteStoredImage(url: string): Promise<void> {
+    await post({ action: 'image-delete', url }).catch(() => {})
 }
 
 // --- Store por mapa ---------------------------------------------------------
