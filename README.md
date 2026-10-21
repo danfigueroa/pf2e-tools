@@ -1293,6 +1293,10 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
     -   [x] Token do personagem permanente; o do monstro some com o mapa
     -   [x] Rolador de dados
 -   [x] **Rolagens da mesa**: toda rolagem aparece para todos, em qualquer página, com histórico
+-   [x] **Quem está na mesa**: a sidebar mostra quem está com o app aberto, com o nome do aparelho, a
+        ficha aberta e a página; no mapa, o token do personagem com a ficha aberta ganha um ponto verde
+-   [x] **Encontros da Iniciativa na nuvem**, abertos igual em qualquer aparelho
+-   [x] **Correção de tradução pela mesa**, para todos os aparelhos e mesas
 -   [x] **Módulo de Escalar Monstro (criatura da AON em outro nível)**
     -   [x] Tabelas de construção de criaturas do GM Core transcritas do índice da AON (níveis -1 a 24)
     -   [x] Motor que preserva a diferença da ficha em relação ao benchmark (reescalar para o

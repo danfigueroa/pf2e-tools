@@ -380,9 +380,24 @@ das rotas (cada store do servidor manteve as funções exportadas). O Redis e o 
   compartilhamentos de mais de um dia e o estado de personagem parado há 180 dias.
 - **Tempo real é sempre do banco**: um trigger chama `realtime.send` no canal PRIVADO `mesa:<mesa>:<nome>` (`state`,
   `rolls`, `map:<id>`, `maps`, `encounters`, `fixes`), e só quem está em `mesa_members` ouve (RLS em `realtime.messages`). Nenhum cliente
-  transmite. No cliente, `listenMesaChannel` (`services/supabase.ts`) é o único jeito de ouvir; a cada SUBSCRIBED
+  transmite — a única exceção é a presença (abaixo). No cliente, `listenMesaChannel` (`services/supabase.ts`) é o único jeito de ouvir; a cada SUBSCRIBED
   (inclusive reconexão) quem ouve relê o que pode ter perdido. O Realtime põe um `id` próprio no payload quando ele
   não tem um — não use `id` como campo da mensagem.
+- **Presença** (`services/presence.ts` + `components/PresenceList.tsx`, migration `presenca`): quem está com o app aberto
+  na mesa, na sidebar ("Na mesa agora"), com o nome do aparelho, a ficha aberta e a página. Usa o Presence do Realtime no
+  canal `mesa:<mesa>:presence`, e é o ÚNICO lugar onde o cliente manda algo pelo Realtime: a política de insert em
+  `realtime.messages` libera só a extensão `presence`, e só nesse tópico. Transmitir (`broadcast`) pelo cliente continua
+  recusado — conferido: o `send` volta `error` e ninguém recebe.
+  - Sem login, a pessoa é o APARELHO (sessão anônima, `presence.key`); duas abas são uma linha (vale a visível mais
+    recente). O nome é opcional, do aparelho (`pf2e:device-name`, global, editado no próprio item da lista); sem ele,
+    vale o personagem da ficha aberta. A ficha se anuncia por `announceSheet` (`CharacterSheetView`, página e painel do
+    mapa); a página, pelo `MainLayout`.
+  - Medido: a troca de página chega ao outro em 1,5–3 s, e quem fecha a aba some em 0,2–3 s. É presença, não estado —
+    nada disso vai ao banco.
+  - **A lista é `React.lazy`** (`PresenceSlot` no `MainLayout`), baixada só quando há alguém: ela mostra o token da ficha
+    pelo `TokenBadge`, que traz o estado da mesa junto, e o chunk principal crescia 12 kB gzip.
+  - No mapa, token de PC com a ficha aberta em OUTRO aparelho ganha o ponto verde (`online` no `Token`, um booleano —
+    o `memo` continua comparando primitivos).
 - **O `jsonb` reordena as chaves dos objetos**: comparar valor do banco com `JSON.stringify` acusa mudança onde não
   há. No servidor use `sameJson` (`api/_lib/json.js`).
 - O script que copiou o Redis e o Blob para cá (`scripts/migrate-redis.mjs`) cumpriu o papel e saiu; está no
