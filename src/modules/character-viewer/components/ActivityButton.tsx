@@ -18,16 +18,20 @@ interface Props {
     fullWidth?: boolean
 }
 
-const Body = ({ build, mods, mythicPoints, name, info, fullWidth }: Omit<Props, 'desc'> & { info: ActivityInfo }) => {
+/**
+ * O botão para uma atividade cujo custo já é conhecido — a relíquia (`relics.ts`) declara o
+ * dela à mão. `usedKey` é a chave do contador "uma vez por dia" (`uses`); por padrão, o nome.
+ */
+export const ActivityBody = ({ build, mods, mythicPoints, name, info, fullWidth, usedKey = name }: Omit<Props, 'desc'> & { info: ActivityInfo; usedKey?: string }) => {
     const { activate, uses } = useActivity(build, mods, mythicPoints)
     const [note, setNote] = useState<{ text: string; warn: boolean } | null>(null)
-    const usedToday = info.daily && uses.usedOf(name) > 0
+    const usedToday = info.daily && uses.usedOf(usedKey) > 0
 
     const click = (e: React.MouseEvent) => {
         // A linha inteira abre a descrição: o botão não pode abri-la junto.
         e.stopPropagation()
-        if (usedToday) { uses.unmark(name); return }
-        const r = activate(name, info)
+        if (usedToday) { uses.unmark(usedKey); return }
+        const r = activate(usedKey, info)
         const spent = r.spent.length ? `gastou ${r.spent.join(' e ')}` : 'nada a gastar'
         setNote({ text: `${name}: ${spent}${r.warnings.length ? ` — atenção: ${r.warnings.join('; ')}` : ''}.`, warn: r.warnings.length > 0 })
     }
@@ -67,5 +71,5 @@ const Body = ({ build, mods, mythicPoints, name, info, fullWidth }: Omit<Props, 
 export const ActivityButton = ({ desc, ...rest }: Props) => {
     const info = activityOf(rest.name, desc)
     if (!info) return null
-    return <Body {...rest} info={info} />
+    return <ActivityBody {...rest} info={info} />
 }

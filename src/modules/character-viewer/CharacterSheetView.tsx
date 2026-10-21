@@ -31,6 +31,7 @@ import { green, gold, parchment, displayFont } from '../../theme'
 import type { BuildInfo, FeatDescription } from '../character-sheet/types'
 import { PublishedBar } from './components/PublishedBar'
 import { NewVersionBar } from './components/NewVersionBar'
+import { withRelicRunes } from './relics'
 import { GiftArrivalNotice } from './components/GiftArrivalNotice'
 import type { PublishedSheet } from '../../services/sheets'
 import type { GuideSlot, PublicationApi } from './components/usePublication'
@@ -167,7 +168,7 @@ const SECTIONS: SectionDef[] = [
         id: 'inventory',
         label: 'Inventário',
         icon: <InventoryIcon />,
-        render: ({ build, onSelect, mods }) => <InventorySection build={build} onSelect={onSelect} mods={mods} />,
+        render: ({ build, onSelect, mods, mythicPoints }) => <InventorySection build={build} onSelect={onSelect} mods={mods} mythicPoints={mythicPoints} />,
     },
 ]
 
@@ -201,8 +202,10 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
     // Stats dos companheiros animais chegam da AON depois: ficam por cima da
     // ficha recebida em vez de reescrever o estado de quem hospeda.
     const [petStats, setPetStats] = useState<NonNullable<BuildInfo['petDescriptions']>>({})
+    // As runas das dádivas da relíquia entram na arma aqui (`relics.ts`), num ponto só:
+    // o Combate, a rolagem e o inventário leem a mesma ficha já com elas.
     const build = useMemo<BuildInfo>(
-        () => (Object.keys(petStats).length === 0
+        () => withRelicRunes(Object.keys(petStats).length === 0
             ? source
             : { ...source, petDescriptions: { ...source.petDescriptions, ...petStats } }),
         [source, petStats],

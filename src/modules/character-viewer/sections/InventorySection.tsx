@@ -17,6 +17,9 @@ import type { ItemRow } from '../inventory'
 import { consumedKeyFor, hpKeyFor, legacyCharKey } from '../charId'
 import { useConsumables } from '../components/useConsumables'
 import { CompanionsCard } from '../components/CompanionsCard'
+import { RelicsCard } from '../components/RelicsCard'
+import { relicsOf } from '../relics'
+import type { MythicPointsApi } from '../components/useMythicPoints'
 import { GiveItemDialog } from '../components/GiveItemDialog'
 import { useGifts } from '../components/useGifts'
 import { useRoster } from '../useRoster'
@@ -35,6 +38,7 @@ interface Props {
     build: BuildInfo
     onSelect: (req: DescriptionRequest) => void
     mods: ConditionModifiers
+    mythicPoints: MythicPointsApi
 }
 
 /** O aviso do último uso, com o que é preciso para desfazê-lo. */
@@ -57,7 +61,7 @@ interface GiveNotice {
     n: number
 }
 
-const InventorySectionView = ({ build, onSelect, mods }: Props) => {
+const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) => {
     // As linhas já levam o que foi passado entre os personagens (`gifts.ts`).
     const gifts = useGifts(build)
     const rows = gifts.rows
@@ -68,6 +72,7 @@ const InventorySectionView = ({ build, onSelect, mods }: Props) => {
     const money = build.money || { cp: 0, sp: 0, gp: 0, pp: 0 }
     const hasMoney = money.pp + money.gp + money.sp + money.cp > 0
     const hasEquipment = rows.length > 0
+    const hasRelics = relicsOf(build).length > 0
 
     const consumables = useConsumables(consumedKeyFor(build))
     // Usar/beber custa a ação que a AON diz (poção, elixir e veneno: 1 ação de Interagir).
@@ -145,7 +150,7 @@ const InventorySectionView = ({ build, onSelect, mods }: Props) => {
         if (n.healed > 0) hp.restoreHp({ current: Math.max(0, hp.current - n.healed), temp: hp.temp })
     }
 
-    if (!hasMoney && !hasEquipment) {
+    if (!hasMoney && !hasEquipment && !hasRelics) {
         return (
             <Card>
                 <CardContent>
@@ -377,6 +382,8 @@ const InventorySectionView = ({ build, onSelect, mods }: Props) => {
                     </Button>
                 ) : undefined}
             />
+            {/* A relíquia (se tiver) fica fora do retorno antecipado do inventário vazio. */}
+            <RelicsCard build={build} mods={mods} mythicPoints={mythicPoints} onSelect={onSelect} />
             {/* Criaturas que entram no combate junto com o personagem (Animated Armor…). */}
             <CompanionsCard build={build} />
         </Stack>
