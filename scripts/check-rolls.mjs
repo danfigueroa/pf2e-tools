@@ -1032,6 +1032,19 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
     eq(magusMod.withLaughingShadow(cascading, loki, false).cascade.damage, 2, 'sem o chip, os 2 de sempre')
     ok(magusMod.withLaughingShadow(NO_MODIFIERS, loki, true).cascade === undefined || !magusMod.withLaughingShadow(NO_MODIFIERS, loki, true).cascade, 'fora da postura, nada')
     eq(magusMod.withLaughingShadow(cascading, party.nathaniel, true).cascade.damage, 2, 'Nathaniel (Sparkling Targe) não tem o bônus')
+    // Economia do Magus na conjuração: confluência recarrega o Spellstrike; a que inclui um Golpe o deixa pago.
+    const sc = await import('../src/modules/character-viewer/spellCast.ts')
+    const bundle = (slug) => JSON.parse(readFileSync(new URL(`../public/descriptions/${slug}.json`, import.meta.url))).entries.spell
+    const lokiSpells = bundle('loki'), natSpells = bundle('nathaniel-o-magus')
+    for (const n of ['Dimensional Assault', 'Force Fang']) ok(sc.isConfluxSpell(lokiSpells[n].traits), `${n} é confluência (recarrega o Spellstrike)`)
+    for (const n of ['Shielding Strike', 'Runic Impression']) ok(sc.isConfluxSpell(natSpells[n].traits), `${n} é confluência`)
+    ok(!sc.isConfluxSpell(natSpells['Hand of the Apprentice'].traits), 'Hand of the Apprentice (foco de Mago) não recarrega')
+    ok(!sc.isConfluxSpell(lokiSpells['Imaginary Weapon'].traits), 'psi cantrip não é confluência')
+    ok(sc.spellIncludesStrike('Dimensional Assault') && sc.spellIncludesStrike('Shielding Strike'), 'Dimensional Assault e Shielding Strike incluem o Golpe')
+    ok(!sc.spellIncludesStrike('Force Fang'), 'Force Fang não inclui Golpe (o dano é automático)')
+    ok(magusMod.isStudiousSpell(loki, 'Blur') && magusMod.isStudiousSpell(loki, 'Gecko Grip'), 'Loki: Blur e Gecko Grip são estudiosas')
+    ok(magusMod.isStudiousSpell(party.nathaniel, 'Resist Energy'), 'Nathaniel: Resist Energy é estudiosa')
+    ok(!magusMod.isStudiousSpell(loki, 'Haste'), 'Haste só vira estudiosa no nível 11')
 }
 
 // ── Diário da sessão: as contas por personagem e os destaques ─────────────────
