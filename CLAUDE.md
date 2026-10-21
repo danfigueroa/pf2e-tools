@@ -1787,6 +1787,11 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
     token com a Iniciativa fechada). Enquanto há envio pendente ou a revisão lida é mais velha que
     a da última escrita (`waitRev`), não desce nada — senão um poll atrasado desfazia o dano que o
     GM acabou de dar.
+- **Ordem de turnos no mapa** (`components/TurnOrder.tsx`): lista só de leitura no canto superior esquerdo (nomes, número,
+  turno ativo em destaque, derrotado riscado; recolhe, `pf2e:map:turns-open`). A ordem viaja como `order` (índice em
+  `combatants`) dentro do `tok:<id>` — o mapa guarda os tokens num dicionário e perderia a sequência —, e o turno ativo é o
+  `turn` que já existia. Sem campo novo no servidor. Mapa sincronizado antes do campo mostra os tokens por nome até a
+  Iniciativa sincronizar de novo.
 - `CombatantBase.size` (inglês, da AON/Pathbuilder) vira a pegada do token; Ghan Buri é Large,
   2×2. O **monstro digitado à mão** escolhe o tamanho na aba "Monstro" do "Adicionar combatente"
   (`CREATURE_SIZES` em `battle-map/geometry.ts`: os seis do Player Core, com o espaço de cada um),

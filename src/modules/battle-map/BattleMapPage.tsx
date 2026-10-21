@@ -43,6 +43,7 @@ import { ImagePanel } from './components/ImagePanel'
 import { DrawPanel } from './components/DrawPanel'
 import { AreaPanel } from './components/AreaPanel'
 import { DicePanel } from './components/DicePanel'
+import { TurnOrder } from './components/TurnOrder'
 import { postRoll } from '../../services/rolls'
 import type { TableRoll } from '../../dice/tableRoll'
 import { AREA_FEET, type AreaStyle } from './areas'
@@ -490,6 +491,8 @@ export const BattleMapPage = () => {
                     </Alert>
                 )}
             </Box>
+
+            {data && <TurnOrder tokens={data.tokens} turn={data.turn} />}
 
             {/* Zoom */}
             {data && (

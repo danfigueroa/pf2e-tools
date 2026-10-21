@@ -55,6 +55,8 @@ export interface TokenDescriptor {
      * de um personagem é aplicado só no cliente, por `withPcSizes`.
      */
     tiny?: boolean
+    /** Posição do combatente na ordem de turnos da Iniciativa (0 = primeiro). */
+    order?: number
 }
 
 export interface NpcHp { current: number; max: number; temp: number; updatedAt?: number }

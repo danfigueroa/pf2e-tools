@@ -13,9 +13,10 @@ const hpKey = (hp: HpPayload) => `${hp.current}/${hp.temp}/${hp.max}`
 
 function descriptors(state: EncounterState, views: CombatantView[]): Array<TokenDescriptor & { id: string }> {
     const maxById = new Map(views.map((v) => [v.combatant.id, v.maxHp]))
-    return state.combatants.map((c) => c.kind === 'pc'
+    return state.combatants.map((c, order) => c.kind === 'pc'
         ? {
             id: c.id,
+            order,
             kind: 'pc',
             name: c.name,
             slug: c.slug,
@@ -27,6 +28,7 @@ function descriptors(state: EncounterState, views: CombatantView[]): Array<Token
         }
         : {
             id: c.id,
+            order,
             kind: 'npc',
             name: c.name,
             size: sizeSquares(c.size),
