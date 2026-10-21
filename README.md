@@ -79,6 +79,9 @@ qualquer dispositivo — no desktop as áreas viram **abas**; no mobile viram **
 -   🌐 **Descrições sob demanda**: toque em um talento, habilidade, magia ou item e um _drawer_
     abre com a descrição completa buscada da **Archives of Nethys** e **traduzida para pt-BR**
     (requer o backend rodando; ver [API do Servidor](#-api-do-servidor)).
+-   ✏️ **Correção de tradução pela mesa**: no pé da descrição, "Corrigir tradução" abre o texto para
+    editar. A correção vale na hora para todos os aparelhos e as duas mesas, e a tradução automática
+    nunca a desfaz. "Desfazer última correção" e "Voltar à tradução automática" estão a um toque.
 -   🐾 **Companheiros e familiares**: stats de companheiros animais são pré-carregados do backend.
 -   ✦ **Míticos**: personagens com talento mítico ganham o **pool de 3 Pontos Míticos**
     (gastar/devolver como os slots de magia, "Novo dia" para recuperar tudo) e o valor com
@@ -736,6 +739,10 @@ o mesmo personagem entraria duas vezes, dividindo o mesmo PV.
 Ao tocar em um item (talento, habilidade, magia, equipamento), o `DescriptionDrawer` chama o
 backend via `src/services/descriptions.ts`, que busca na AON e devolve o texto traduzido (com
 cache). Sem o backend rodando, um _alert_ avisa e a ficha continua utilizável sem as descrições.
+
+A **correção de tradução** feita pela mesa (`services/translationFixes.ts`, tabela `description_fixes`)
+é uma camada por cima, aplicada na leitura: vale para a descrição venha ela do pacote pré-traduzido,
+da API ou do cache do aparelho.
 
 ---
 

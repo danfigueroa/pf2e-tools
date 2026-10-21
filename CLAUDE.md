@@ -219,6 +219,9 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
     Iniciativa, por exemplo — é traduzida na hora de desenhar (`displayUrl`, dentro do `useImageUrl`), e o servidor a
     apaga do Storage do mesmo jeito. Toda imagem do app passa pelo `useImageUrl`: `<img>` novo também tem de passar.
 
+- **O mesmo `state` serve as correções de tradução** (`api/_lib/fix-handler.js` + `fix-store.js`): `GET ?fixes=1` e
+  `POST { action: 'fix-save', kind, name, fields }`, globais (a mesa do pedido não muda nada). Antes de `isSheetRequest`.
+  Ver "Correção de tradução pela mesa" em Tradução.
 - **O mesmo `state` serve os encontros da Iniciativa** (`api/_lib/encounter-handler.js` + `encounter-store.js`):
   `GET ?encounter=<mapId|none>` e `POST { action: 'encounter-save', map, state }` (`map` null = "Sem mapa"). Vem
   antes de `isSheetRequest` nos dois servidores, pelo mesmo motivo do mapa. Ver "O encontro vai para a nuvem" na
@@ -303,6 +306,27 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
     30 s, devolve `remaining`, o cliente chama de novo — até 12 rodadas, parando se uma não avançou);
     nome que a AON não resolve vai para `description_misses` (global) e só é tentado de novo em 24 h (falha de tradução, 429,
     NÃO é miss). Só para slug publicado; endpoint público como o resto.
+- **Correção de tradução pela mesa** (`services/translationFixes.ts` + `components/TranslationFix.tsx` →
+  `api/_lib/fix-store.js`, tabela `description_fixes`, migration `correcoes_de_traducao`): "Corrigir tradução" no pé da
+  descrição. **É uma CAMADA por cima, por (tipo, nome), aplicada na LEITURA** — `readCache` e o retorno das buscas em
+  `descriptions.ts` passam por `applyFix`, e o `DescriptionContent` reaplica a cada correção nova. Corrigir a tabela
+  `translations` não bastaria: a descrição também chega pelo pacote estático (arquivo do repositório), pelo da ficha
+  publicada e pelo cache de cada aparelho. A camada vale para tudo o que lê o texto, inclusive `activities.ts` (que procura
+  "Ponto Mítico"/"Mythic Point" nas duas línguas).
+  - Global, como as traduções; lista inteira no `localStorage` (`pf2e:fixes:v1`, primeira pintura já corrigida), relida
+    uma vez por sessão e a cada reconexão, e o aviso de outro aparelho chega pelo canal `fixes` de CADA mesa (o trigger
+    manda para todas). Medido: 0,2–0,7 s do "Salvar" à tela do outro.
+  - Campos: só prosa — `description` e, em talento/habilidade/item, pré-requisitos, gatilho, requisitos, frequência,
+    custo, acesso (`FIX_FIELDS`, igual no servidor). Grava só o que difere da tradução automática. Número, traço e o
+    `defense` da magia (que a rolagem lê) ficam de fora; na magia o diálogo avisa para manter os dados, que é por onde a
+    prosa é elevada.
+  - Sem login, qualquer um corrige: `previous` guarda o estado de antes da última mudança ("Desfazer última correção";
+    na primeira correção, desfazer é voltar à automática) e `fields: {}` é "Voltar à tradução automática".
+  - **`applyFix` lembra o original de cada objeto corrigido** (`originals`): o drawer guarda o objeto já corrigido no
+    estado, e uma correção desfeita tem de devolver o texto da tradução, não o corrigido.
+  - **Os campos do editor NÃO são controlados** (`defaultValue` + ref, lidos ao salvar): com o valor no estado, digitar
+    rápido fazia o textarea do MUI repintar e remedir em laço até "Maximum update depth exceeded" — pego pelo teste com
+    navegador, que digita tudo de uma vez.
 - Metadados em prosa (pré-requisitos, gatilho, requisitos…) são traduzidos junto com a descrição
   numa **única** chamada, via marcadores `<<N>>` (`translateSegments`). Uma chamada por item é o que
   mantém uma ficha inteira dentro do rate limit do tier gratuito.
@@ -317,7 +341,7 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
 ## Supabase
 
 Toda a persistência é o Supabase: **Postgres** (estado da mesa, fichas publicadas com histórico, descrições e
-traduções, feed de rolagens, mapas, encontros da Iniciativa), **Realtime** (o tempo real do estado, do feed e do mapa) e **Storage** (imagens).
+traduções e as correções delas, feed de rolagens, mapas, encontros da Iniciativa), **Realtime** (o tempo real do estado, do feed e do mapa) e **Storage** (imagens).
 Até out/2026 eram o Upstash Redis e o Vercel Blob, com polling; a troca foi domínio a domínio, sem mudar o contrato
 das rotas (cada store do servidor manteve as funções exportadas). O Redis e o Blob saíram do código. Projeto
 `htgrzvdzxepbbgbaqkir`, em **São Paulo** (`sa-east-1`) porque a mesa é toda brasileira, e as funções da Vercel também
@@ -352,7 +376,7 @@ das rotas (cada store do servidor manteve as funções exportadas). O Redis e o 
 - `pg_cron` limpa os usuários anônimos sem atividade há 180 dias, as travas vencidas, os misses velhos, os
   compartilhamentos de mais de um dia e o estado de personagem parado há 180 dias.
 - **Tempo real é sempre do banco**: um trigger chama `realtime.send` no canal PRIVADO `mesa:<mesa>:<nome>` (`state`,
-  `rolls`, `map:<id>`, `maps`, `encounters`), e só quem está em `mesa_members` ouve (RLS em `realtime.messages`). Nenhum cliente
+  `rolls`, `map:<id>`, `maps`, `encounters`, `fixes`), e só quem está em `mesa_members` ouve (RLS em `realtime.messages`). Nenhum cliente
   transmite. No cliente, `listenMesaChannel` (`services/supabase.ts`) é o único jeito de ouvir; a cada SUBSCRIBED
   (inclusive reconexão) quem ouve relê o que pode ter perdido. O Realtime põe um `id` próprio no payload quando ele
   não tem um — não use `id` como campo da mensagem.
