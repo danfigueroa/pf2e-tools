@@ -15,6 +15,7 @@ import {
   Whatshot as ScalerIcon,
   Map as MapIcon,
   ArrowForward as ArrowIcon,
+  AutoStories as DiaryIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { green, gold, parchment } from '../theme';
@@ -62,6 +63,18 @@ const tools: ToolCard[] = [
       'Tokens com barra de PV',
       'Régua com diagonal 5-10-5',
       'Vários mapas por sessão',
+    ],
+  },
+  {
+    title: 'Diário da Sessão',
+    description: 'Todas as rolagens de cada noite de jogo, com o resumo de cada personagem: 20 e 1 naturais, média do dado, dano rolado e os destaques da sessão.',
+    icon: <DiaryIcon sx={{ fontSize: 32 }} />,
+    path: '/diario',
+    features: [
+      'Uma página por sessão',
+      'Estatísticas por personagem',
+      'Destaques da noite',
+      'Ao vivo durante o jogo',
     ],
   },
   // Desativado — Ficha em PDF (ver App.tsx).

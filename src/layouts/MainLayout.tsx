@@ -25,6 +25,7 @@ import {
   Whatshot as ScalerIcon,
   Map as MapIcon,
   Casino as DiceIcon,
+  AutoStories as DiaryIcon,
 } from '@mui/icons-material';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { green, gold, parchment } from '../theme';
@@ -77,6 +78,11 @@ const navigationItems: NavigationItem[] = [
     text: 'Mapa de Combate',
     icon: <MapIcon />,
     path: '/mapa',
+  },
+  {
+    text: 'Diário da Sessão',
+    icon: <DiaryIcon />,
+    path: '/diario',
   },
   // Desativado — Ficha em PDF (ver App.tsx).
   // {
