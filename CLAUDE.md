@@ -314,8 +314,11 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   publicada e pelo cache de cada aparelho. A camada vale para tudo o que lê o texto, inclusive `activities.ts` (que procura
   "Ponto Mítico"/"Mythic Point" nas duas línguas).
   - Global, como as traduções; lista inteira no `localStorage` (`pf2e:fixes:v1`, primeira pintura já corrigida), relida
-    uma vez por sessão e a cada reconexão, e o aviso de outro aparelho chega pelo canal `fixes` de CADA mesa (o trigger
-    manda para todas). Medido: 0,2–0,7 s do "Salvar" à tela do outro.
+    uma vez por sessão (na primeira leitura de descrição) e a cada reconexão, e o aviso de outro aparelho chega pelo canal
+    `fixes` de CADA mesa (o trigger manda para todas). Medido: 0,2–0,7 s do "Salvar" à tela do outro.
+  - **A releitura troca a lista local pela do servidor**: o que sumiu dele (linha apagada à mão no banco, que não gera
+    aviso) sai do aparelho também — antes ficaria para sempre no `localStorage` de quem estava aberto. Só sobrevive o que
+    chegou com o pedido em andamento (`arrivedDuringRefresh`, sem comparar relógios de aparelho e servidor).
   - Campos: só prosa — `description` e, em talento/habilidade/item, pré-requisitos, gatilho, requisitos, frequência,
     custo, acesso (`FIX_FIELDS`, igual no servidor). Grava só o que difere da tradução automática. Número, traço e o
     `defense` da magia (que a rolagem lê) ficam de fora; na magia o diálogo avisa para manter os dados, que é por onde a
