@@ -1767,8 +1767,10 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
     Quem ainda não enviou token aparece com as iniciais. Nível vem de `usePublishedSheets().levelOf`.
   - **A gaveta de descrição ocupa a largura do painel** quando embutida (`DescriptionDrawer`: `width: 100%`,
     `maxHeight: 88%`, sobe de baixo): os 520 px do desktop vazavam para fora do painel de 420 px e cortavam o texto.
-  - **Menu lateral some em `/mapa`** (`MainLayout`): sem sidebar, AppBar nem padding; uma aba na borda
-    esquerda abre a gaveta temporária. O `MapCanvas` tem `ResizeObserver`: câmera intocada reenquadra, câmera
+  - **Menu lateral some em `/mapa`** (`MainLayout`): sem sidebar, AppBar nem padding; o botão dourado
+    "Menu", primeiro item da barra do mapa, abre a gaveta temporária (o layout entrega `openMenu` pelo `<Outlet context>`,
+    lido por `useLayoutMenu`). Os itens da navegação são `<Link>` de verdade (botão direito e Ctrl/⌘+clique funcionam):
+    não volte a usar `onClick` + `navigate`. O `MapCanvas` tem `ResizeObserver`: câmera intocada reenquadra, câmera
     mexida mantém o centro.
 
 ### Ligação com a Iniciativa

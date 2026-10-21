@@ -31,6 +31,7 @@ import {
     Casino as DiceIcon,
     Description as SheetIcon,
     VisibilityOff as HiddenIcon,
+    Menu as MenuIcon,
 } from '@mui/icons-material'
 import { MapCanvas, type CanvasApi, type MapTool, type TokenView } from './components/MapCanvas'
 import { MapListDrawer } from './components/MapListDrawer'
@@ -44,6 +45,7 @@ import { DrawPanel } from './components/DrawPanel'
 import { AreaPanel } from './components/AreaPanel'
 import { DicePanel } from './components/DicePanel'
 import { TurnOrder } from './components/TurnOrder'
+import { useLayoutMenu } from '../../layouts/menuContext'
 import { postRoll } from '../../services/rolls'
 import type { TableRoll } from '../../dice/tableRoll'
 import { AREA_FEET, type AreaStyle } from './areas'
@@ -139,6 +141,7 @@ export const BattleMapPage = () => {
     const navigate = useNavigate()
     const id = routeId ?? null
 
+    const menu = useLayoutMenu()
     const [gm, setGm] = useState(() => {
         try { return localStorage.getItem(GM_KEY) === '1' } catch { return false }
     })
@@ -350,6 +353,23 @@ export const BattleMapPage = () => {
                         borderBottom: `2px solid ${gold.main}`,
                     }}
                 >
+                    {menu && (
+                        <Button
+                            variant="contained"
+                            onClick={menu.openMenu}
+                            startIcon={<MenuIcon />}
+                            aria-label="Abrir o menu de navegação"
+                            sx={{
+                                flex: '0 0 auto',
+                                fontWeight: 700,
+                                color: green.deepest,
+                                backgroundColor: gold.bright,
+                                '&:hover': { backgroundColor: gold.main },
+                            }}
+                        >
+                            Menu
+                        </Button>
+                    )}
                     <Button
                         onClick={() => setDrawer(true)}
                         startIcon={<MapsIcon />}

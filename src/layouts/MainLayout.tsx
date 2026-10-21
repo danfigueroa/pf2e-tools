@@ -10,7 +10,6 @@ import {
   ListItemIcon,
   ListItemText,
   Toolbar,
-  Tooltip,
   Typography,
   useMediaQuery,
   useTheme,
@@ -26,7 +25,8 @@ import {
   Casino as DiceIcon,
   History as HistoryIcon,
 } from '@mui/icons-material';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
+import type { LayoutContext } from './menuContext';
 import { green, gold, parchment } from '../theme';
 import logoHorizontal from '../assets/covil-logo-horizontal-fundo-escuro.svg';
 import logoSymbol from '../assets/covil-simbolo.svg';
@@ -102,7 +102,6 @@ export const MainLayout = () => {
   const [historyOpen, setHistoryOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const navigate = useNavigate();
   const location = useLocation();
   // O mapa é a página: sem moldura, sem AppBar e sem sidebar fixa. O menu vira
   // uma aba discreta na borda que abre a mesma gaveta temporária do celular.
@@ -116,12 +115,12 @@ export const MainLayout = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  const handleNavigation = (path: string) => {
-    navigate(path);
-    if (isMobile || isMap) {
-      setMobileOpen(false);
-    }
+  /** Escolher um destino fecha a gaveta temporária (celular e mapa); a fixa do desktop fica. */
+  const closeTemporary = () => {
+    if (isMobile || isMap) setMobileOpen(false);
   };
+
+  const layoutContext: LayoutContext = { openMenu: () => setMobileOpen(true) };
 
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -153,9 +152,13 @@ export const MainLayout = () => {
             const isActive = isCurrent(location.pathname, item.path);
             return (
               <ListItem key={item.text} disablePadding sx={{ px: 1.5, py: 0.25 }}>
+                {/* Link de verdade (<a href>): botão direito, "abrir em nova aba" e Ctrl/⌘+clique funcionam. */}
                 <ListItemButton
+                  component={Link}
+                  to={item.path}
                   selected={isActive}
-                  onClick={() => handleNavigation(item.path)}
+                  aria-current={isActive ? 'page' : undefined}
+                  onClick={closeTemporary}
                   sx={{
                     borderRadius: 1,
                     borderLeft: '3px solid',
@@ -325,37 +328,6 @@ export const MainLayout = () => {
         )}
       </Box>
 
-      {isMap && (
-        <Tooltip title="Menu" placement="right">
-          <IconButton
-            aria-label="abrir menu"
-            onClick={handleDrawerToggle}
-            size="small"
-            sx={{
-              position: 'fixed',
-              left: 0,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              zIndex: 5,
-              borderRadius: '0 8px 8px 0',
-              width: 20,
-              height: 56,
-              color: gold.bright,
-              backgroundColor: 'rgba(14, 36, 25, 0.55)',
-              opacity: 0.55,
-              transition: 'opacity 150ms, width 150ms',
-              '&:hover, &:focus-visible': {
-                opacity: 1,
-                width: 32,
-                backgroundColor: green.deepest,
-              },
-            }}
-          >
-            <MenuIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      )}
-
       {/* Main Content */}
       <Box
         component="main"
@@ -375,10 +347,10 @@ export const MainLayout = () => {
         {/* No celular a moldura do conteúdo encolhe: cada 8px aqui é 8px a
             mais para os números da ficha, que é o que se lê na mesa. */}
         {isMap ? (
-          <Outlet />
+          <Outlet context={layoutContext} />
         ) : (
           <Box sx={{ px: { xs: 1.5, sm: 3 }, py: { xs: 2, sm: 3 } }}>
-            <Outlet />
+            <Outlet context={layoutContext} />
           </Box>
         )}
       </Box>
