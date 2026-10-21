@@ -312,10 +312,11 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
 
 O Upstash Redis e o Vercel Blob estão sendo trocados pelo Supabase (Postgres + Realtime + Storage), domínio a domínio,
 sem mudar o contrato das rotas: cada store do servidor ganha a versão Supabase com as mesmas funções exportadas. Ordem:
-fundação (feito) → traduções/descrições (feito) → fichas (feito) com histórico → estado da mesa em tempo real → rolagens → mapa →
+fundação (feito) → traduções/descrições (feito) → fichas com histórico (feito) → estado da mesa em tempo real (feito) →
+rolagens → mapa →
 imagens → desligar Upstash e Blob. Projeto `htgrzvdzxepbbgbaqkir`, em **São Paulo** (`sa-east-1`) porque a mesa é toda
-brasileira; as funções da Vercel vão para `gru1` junto com a fase do estado da mesa (antes disso o Upstash ainda está no
-caminho quente, e as duas pontas longe uma da outra seriam o pior caso).
+brasileira; as funções da Vercel vão para `gru1` quando o mapa e o feed saírem do Redis — até lá os dois polls ainda
+passam pelo Upstash, e mudar a região antes só trocaria qual caminho fica longe.
 
 - **Só o servidor escreve** (`api/_lib/supabase.js`, chave `SUPABASE_SECRET_KEY`, que passa por cima do RLS). O
   navegador (`src/services/supabase.ts`, chave publicável) abre uma **sessão anônima** por aparelho
@@ -379,22 +380,31 @@ personagens, mapas e mapa ativo, encontro da Iniciativa, feed de rolagens e regr
 ## Estado compartilhado da mesa
 
 PV, PV de companheiros, slots de magia, pontos de foco, pontos míticos e condições são **da mesa,
-não do navegador**: os jogadores veem os mesmos números. A sincronia é **sob demanda** — puxa ao abrir a
-ficha e no botão "Atualizar" do cabeçalho. Não há polling, SSE nem WebSocket — **com uma exceção, o campo
-`actions`** (ver "Ações do turno") — e não há login: quem abrir o site entra na mesma mesa (a do aparelho — ver "Mesas").
+não do navegador**: os jogadores veem os mesmos números. A sincronia é **em tempo real**: lê ao abrir a ficha e,
+depois, cada escrita chega sozinha pelo Realtime do Supabase (o indicador diz "Ao vivo" e o "Atualizar" some). Sem
+Supabase, ou com o canal fechado, volta a ser **sob demanda** — ao abrir e no botão "Atualizar". Não há login: quem
+abrir o site entra na mesma mesa (a do aparelho — ver "Mesas").
 
-- **Backend**: `api/_lib/table-store.js` (núcleo, compartilhado com `server/index.mjs`) sobre
-  **Upstash Redis** via REST — `@upstash/redis`, não `@vercel/kv`, porque o dev server é `node:http`
-  puro e precisa do mesmo store. Aceita os dois pares de env (`KV_REST_API_*` da integração da
-  Vercel e `UPSTASH_REDIS_REST_*` do console da Upstash). **Sem credenciais, cai num `Map` de
-  processo** e o app segue funcionando; o indicador avisa "Só neste aparelho".
-- **Um HASH por personagem, um campo por fatia** (`hp`, `slots`, `conditions`, `afflictions`,
+- **Backend**: `api/_lib/table-store.js` (núcleo, compartilhado com `server/index.mjs`) sobre o **Postgres do
+  Supabase**, tabela `character_state`. **Sem credenciais, cai num `Map` de processo** e o app segue funcionando; o
+  indicador avisa "Só neste aparelho". O Redis continua no arquivo só pelo mapa e pelo feed, que ainda moram nele.
+- **Tempo real** (`startRealtime`/`applyRemote` em `services/tableState.ts`): um trigger do banco transmite cada
+  escrita no canal PRIVADO `mesa:<mesa>:state`, já com `{ slug, field, data, updatedAt, by }`. Só quem está em
+  `mesa_members` ouve (RLS em `realtime.messages`); ninguém transmite por ele além do banco. Quem recebe aplica como um
+  snapshot PARCIAL (`{ [campo]: data }`), que `useSharedState` e `useEncounterParty` já sabem ler. Três travas, todas
+  necessárias: **nunca atropela escrita local na fila** (`pending`), **ignora o eco da própria escrita** (`by` = a
+  sessão deste aparelho, que o servidor grava em `updated_by`) e **descarta o que for mais velho** que o `updatedAt`
+  conhecido (`lastSeen`, alimentado pela leitura e pela resposta do POST). A cada SUBSCRIBED (inclusive a primeira) e
+  ao voltar de mais de 10 s com a aba oculta, os personagens abertos são relidos — transmissão perdida não volta
+  sozinha. A releitura também sobrepõe o que está na fila, para não desfazer na tela uma edição ainda não gravada.
+- **Uma LINHA por fatia** (`hp`, `slots`, `conditions`, `afflictions`,
   `persistent`, `mythic`, `consumed`, `shield`, `token`, `size`, `rage`, `psyche`, `energy`, `magus`, `ranger`, `rogue`,
   `actions`, `companions`, `pet:<kind>:<slug>#<i>`). Campo novo precisa entrar no `FIELD_RE` de
   `table-store.js`, senão o POST volta "Campo inválido" e o estado fica só no `localStorage`.
-  Documento único faria dois jogadores editando ao mesmo tempo se sobrescreverem — quem marcasse
-  condição apagaria o dano do outro. `HSET` por campo dá atomicidade por fatia sem transação, e a
-  leitura continua sendo um `HGETALL` só. Dentro da **mesma** fatia a última escrita ainda vence.
+  A mesma lista está no CHECK da tabela (migration `estado_da_mesa`) — mudou um, muda o outro, e campo novo é
+  migration nova. Documento único faria dois jogadores editando ao mesmo tempo se sobrescreverem — quem marcasse
+  condição apagaria o dano do outro. O upsert por linha dá atomicidade por fatia sem transação, e a leitura continua
+  sendo uma consulta só. Dentro da **mesma** fatia a última escrita ainda vence.
 - **Identidade em `charId.ts`**: o slug é só o **nome** normalizado (`Ghan Buri` → `ghan-buri`). O
   Pathbuilder não exporta id nenhum, e a chave antiga incluía o nível — qualquer level-up órfãva o
   estado. As chaves entregues aos hooks são `"<slug>/<campo>"`; o serviço corta no primeiro `/`.
@@ -416,9 +426,9 @@ ficha e no botão "Atualizar" do cabeçalho. Não há polling, SSE nem WebSocket
 - **Chave sem ficha** (`noCharKey` em `charId.ts`): os hooks que a página monta antes de haver
   ficha usam slug vazio, que nenhum nome gera, e `useSharedState` não vai à rede com ele.
 - Sendo público, o endpoint valida slug/campo por regex e limita a escrita a 8 KB.
-- **`writeField` sobe o contador `pf2e:table:rev`** (no mesmo pipeline do HSET). É o que deixa o
-  Mapa de Combate saber que o PV de alguém mudou pela Ficha ou pela Iniciativa lendo um número só,
-  em vez de perguntar personagem a personagem.
+- **`writeField` ainda sobe o contador `pf2e:table:rev` no Redis** (transição, até o mapa migrar): é o que deixa o
+  Mapa de Combate saber que o PV de alguém mudou pela Ficha ou pela Iniciativa lendo um número só. O mapa lê `hp`,
+  `token` e `size` dos PCs do Postgres, numa consulta (`readCharacterSlices`).
 - **A ficha publicada NÃO mora no estado da mesa** (`api/_lib/sheet-store.js`, tabelas `sheets` e
   `sheet_versions` no Supabase): o estado é lido inteiro a cada abertura e a cada "Atualizar", e arrastar 8 KB de
   ficha e 7 KB de guia toda vez seria desperdício. Sem prazo de validade — uma ficha publicada é a fonte da verdade do
@@ -444,9 +454,9 @@ classificada não pode travar a ficha) e avisa — Alert no diálogo e, ao zerar
   Sacar e o resto: botões da faixa. Erguer o escudo gasta 1 ação (o Reactive Shield ergue por REAÇÃO).
 - **Início do turno vem da Iniciativa** (`party.startTurn`, no handler de `passTurn` e no "Iniciar", nunca num efeito):
   grava `newTurn()` no campo `actions` do PC que entra. Botão "Novo turno" na ficha para quem não usa a Iniciativa.
-- **Poll leve só deste campo** — exceção ao "sem polling" da mesa: o mestre zera do aparelho dele e o jogador precisa
-  ver sem apertar "Atualizar". `GET /api/state?char=&field=actions` (`readField`, 1 HGET) a cada 5 s, só com a aba
-  visível e só pela faixa (as outras instâncias do hook não ligam o `poll`). **`pullField` nunca atropela escrita
+- **O mestre zera do aparelho dele e o jogador vê na hora**, pelo Realtime como o resto do estado. O poll antigo
+  ficou só como plano B, quando o canal não está aberto (`isLive()`): `GET /api/state?char=&field=actions`
+  (`readField`) a cada 5 s, só com a aba visível e só pela faixa (as outras instâncias do hook não ligam o `poll`). **`pullField` nunca atropela escrita
   local na fila** (seria um valor mais velho). Ordem de grandeza: 6 jogadores × 4 h ≈ 17 mil comandos.
 - **Reações do Shield Block** (`blockReactionSource`/`spendBlockReaction`): o **Quick Shield Block** (Fighter 8) dá, no
   início de cada turno, uma reação ADICIONAL que só serve para Shield Block — campo `shieldReacted`, pip próprio na faixa
