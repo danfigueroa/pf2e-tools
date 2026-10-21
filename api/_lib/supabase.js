@@ -8,8 +8,8 @@
 
 import { createClient } from '@supabase/supabase-js'
 
-// Mesmo espírito do `redis()` em table-store.js: as credenciais são lidas do env
-// na hora do uso, e sem elas o app segue funcionando com o que já tinha.
+// As credenciais são lidas do env na hora do uso, e sem elas o app segue
+// funcionando com o que já tinha (cada store cai num Map de processo).
 function credentials() {
     const url = process.env.SUPABASE_URL
     const key = process.env.SUPABASE_SECRET_KEY
