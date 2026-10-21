@@ -72,6 +72,21 @@ async function joinMesa(client: SupabaseClient, id: string) {
     if (error) console.warn('[supabase] Não registrou o aparelho na mesa:', error.message)
 }
 
+/**
+ * `Authorization` com o JWT da sessão anônima, para o servidor saber QUEM fez o
+ * pedido (autoria de uma publicação). Vazio sem sessão — nunca impede o pedido.
+ * Na primeira chamada pode baixar o SDK, então só vale para ações raras.
+ */
+export async function authHeaders(): Promise<Record<string, string>> {
+    try {
+        const client = await getSupabase()
+        const token = client ? (await client.auth.getSession()).data.session?.access_token : null
+        return token ? { Authorization: `Bearer ${token}` } : {}
+    } catch {
+        return {}
+    }
+}
+
 /** Abre a sessão com o app ocioso — chamado uma vez no boot (`main.tsx`). */
 export function startSupabase() {
     if (!isSupabaseConfigured || typeof window === 'undefined') return

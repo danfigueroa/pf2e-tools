@@ -8,6 +8,7 @@
 // clique no personagem é o momento de buscar a versão da mesa.
 
 import { stateApi } from './mesa'
+import { authHeaders } from './supabase'
 
 export interface PublishedGuide {
     markdown: string
@@ -42,8 +43,13 @@ async function call<T>(init: RequestInit | null, query = ''): Promise<T> {
     return body as T
 }
 
-const post = <T>(payload: Record<string, unknown>) =>
-    call<T>({ method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+// A sessão anônima vai junto para o servidor registrar quem publicou ou restaurou.
+const post = async <T>(payload: Record<string, unknown>) =>
+    call<T>({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+        body: JSON.stringify(payload),
+    })
 
 export async function listPublished(): Promise<PublishedSummary[]> {
     try {
