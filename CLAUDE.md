@@ -25,12 +25,10 @@ html2canvas e o jsPDF das exportações, a Iniciativa e o Escalar Monstro. Hoje 
 ~880 kB (285 kB gzip). Import estático de um módulo pesado dentro da ficha desfaz isso: confira a
 lista de chunks do `npm run build`.
 
-**`src/modules/character-sheet/` (Ficha em PDF) está DESATIVADO** — fora da rota, do menu e da home.
-O código continua no repositório e `types.ts` (`parseCharacterJson`, `BuildInfo`) **segue sendo usado
-pelos outros módulos**, então não apague a pasta. Para reativar, descomente os três pontos marcados
-com `Desativado`: o import e a rota em `App.tsx`, o item em `layouts/MainLayout.tsx` e o card em
-`pages/HomePage.tsx` (o import de `SheetIcon` está comentado junto em cada um). `/character-sheet`
-hoje redireciona para a Início.
+**A Ficha em PDF foi REMOVIDA** (módulo `character-sheet`, com o `pdf.ts` e a página). Os tipos do Pathbuilder e
+o `parseCharacterJson`/`normalizeBuild` (`BuildInfo`) moraram nela e hoje vivem em `src/pathbuilder/` — usados por
+todos os módulos. O `jspdf` continua nas dependências: é o `ExportOptions` do gerador de Transformação que o usa.
+`/character-sheet` ainda redireciona para a Início, para quem tiver o link salvo.
 
 ## Marca
 
@@ -724,7 +722,6 @@ Source Sans 3 (ambas num único `<link>` no `index.html`).
 - `StatBlockGenerator.tsx` mantém hex literais de propósito — é justamente o subtree que o
   `html2canvas` captura. Ao mexer nele, acompanhe a folha de impressão escrita à mão em
   `ExportOptions.tsx`, que replica classes do MUI e desanda em silêncio.
-- Fora do tema: `character-sheet/pdf.ts` tem paleta própria monocromática para o jsPDF.
 
 ## Responsividade
 
@@ -787,15 +784,15 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
 - Um módulo por funcionalidade em `src/modules/`. Padrão: `*Page.tsx` (UI/estado), lógica em
   arquivos próprios, tipos em `types.ts`/`src/types/index.ts`.
 - Tipos globais em `src/types/index.ts`. Tipos do formato Pathbuilder e `parseCharacterJson` em
-  `src/modules/character-sheet/types.ts` (reutilizados por outros módulos).
+  `src/pathbuilder/types.ts` (reutilizados por todos os módulos).
 - Helpers reutilizáveis do viewer: `src/modules/character-viewer/helpers.ts` (`abilityMod`, `totalHp`, …).
 - Fichas de exemplo (formato Pathbuilder, campo `build`) em `public/characters/*.json`; presets em
   `src/modules/character-viewer/campaignPresets.ts`.
 
 ## Módulo character-viewer (Ficha Virtual)
 
-- Visualizador interativo em `/ficha-virtual`. Reusa `parseCharacterJson`/`BuildInfo` do
-  `character-sheet`. Layout: **abas no desktop, acordeões no mobile**; áreas em `sections/*`
+- Visualizador interativo em `/ficha-virtual`. Reusa `parseCharacterJson`/`BuildInfo` de
+  `src/pathbuilder/`. Layout: **abas no desktop, acordeões no mobile**; áreas em `sections/*`
   (Overview, Combat, Skills, Feats, Specials, Spells, Pets, Inventory) — as vazias somem sozinhas.
 - **Desempenho da página** (a ficha roda no celular, na mesa):
   - O acordeão monta **só a seção aberta** (`unmountOnExit`). O padrão do MUI montava as oito
@@ -870,7 +867,7 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   novo do Nathaniel, confira se o anel já vem certo antes de sobrescrever.
 - **O Ardagar saiu da campanha**: preset e JSON removidos. O guia curado (`ARDAGAR`) e a entrada
   de `CHARACTER_ANIMALS` em `unarmed.ts` ficaram, porque casam por nome e servem a quem carregar o
-  JSON à mão. `public/character-example.json` (do módulo de PDF desativado) ainda é o Ardagar.
+  JSON à mão.
 - **Magias de assinatura** (`signatureSpells.ts`): o Pathbuilder não as exporta, então o catálogo casa pelo
   NOME do personagem e pelo bloco de conjuração (hoje só o bloco "Psychic" do Thalos: Breathe Fire, Blazing
   Bolt, Fireball, Ice Storm, Howling Blizzard). Só **espontâneo**. A aba de Magias mostra a magia com o chip
@@ -907,7 +904,7 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   (`MYTHIC_POINTS_MAX`), compartilhado com a mesa no campo `mythic`, com a mesma mecânica de pips
   dos slots. A barra fica **fora das abas**, ao lado das condições, porque o ponto é gasto de
   qualquer aba. A legenda do ✦ é uma só (`MythicNote`), usada nas três seções.
-- **Export do Pathbuilder com o ataque 1 abaixo** (`fixWeaponExports`, em `character-sheet/types.ts`, chamada por
+- **Export do Pathbuilder com o ataque 1 abaixo** (`fixWeaponExports`, em `pathbuilder/types.ts`, chamada por
   `normalizeBuild` no `parseCharacterJson` e no restore da sessão): a Zarroc Sheilvean do Nathaniel (+1 striking) vem com
   +18 — 10 + Perito 4 + FOR 4, SEM o +1 de potência; todas as outras armas do grupo batem com a conta. O app corrige para
   **+19** pelo nome do personagem e da arma, **só se o número exportado for exatamente 1 abaixo da conta** (nível +

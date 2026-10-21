@@ -48,11 +48,6 @@ O toolkit expõe as ferramentas abaixo (rotas em `src/App.tsx`), listadas na pá
 | **Stat Block de Transformação** | `/transformation` | `src/modules/transformation-statblock/` | Gera o stat block de qualquer _battle form_ do Remaster              |
 | **Escalar Monstro**           | `/escalar-monstro` | `src/modules/monster-scaler/`        | Adapta uma criatura da AON para outro nível                            |
 
-> ⏸️ **Ficha em PDF (`/character-sheet`) está desativada.** O código continua em
-> `src/modules/character-sheet/` — e o `types.ts` dele ainda é usado pelos outros módulos —, mas a
-> ferramenta está fora da rota, do menu e da página inicial. `/character-sheet` redireciona para a
-> Início. Para reativar, veja os pontos marcados com `Desativado` no `CLAUDE.md`.
-
 ### 🪑 Mesas
 
 O site atende mais de uma mesa de jogo. Cada mesa vê só o que é dela: fichas, presets, PV e condições,
@@ -166,28 +161,6 @@ qualquer dispositivo — no desktop as áreas viram **abas**; no mobile viram **
     (`checks.ts`), que soma o **bônus de item** da ficha (runa resiliente, botas, anel) e a
     **penalidade de armadura** quando a FOR não alcança a exigência. Os traços das armas (ágil,
     acuidade, deadly, fatal…) vêm da AON, já que o Pathbuilder não os exporta.
-
-### ⏸️ Ficha de Personagem em PDF (Implementado, desativado)
-
-Gera uma ficha de personagem completa, profissional e pronta para impressão.
-
-**Características:**
-
--   📄 Layout moderno, limpo e **print-friendly** (preto, cinza e branco)
--   🔗 Links clicáveis para a Archives of Nethys em cada item
--   📊 Exibição de bônus finais + bônus míticos para perícias e salvamentos
--   ⚔️ Seção detalhada de ataques com armas (nome completo, bônus, dano, traits)
--   🧙 Seção completa de magias com:
-    -   Número de ações (1 ação, 2 ações, reação, etc.)
-    -   Traits da magia
-    -   Alcance, área, alvos, duração, defesa
-    -   Dano base e tipo
-    -   Informações de Heightened
-    -   Descrição resumida
--   📚 Talentos (Feats) com nome e descrição
--   ⭐ Habilidades Especiais com nome e descrição
--   🎒 Equipamentos, armaduras e dinheiro
--   📖 Conhecimentos (Lores) com bônus calculados
 
 ### ✅ Gerador de Stat Block de Transformação (Implementado)
 
@@ -587,10 +560,6 @@ pf2e-tools/
 │   │   │   ├── drawing.ts               # Desenhos: simplificação do traço, validação
 │   │   │   ├── hp.ts                    # Dano/cura no token
 │   │   │   └── components/              # MapCanvas, Token, DrawingLayer, DrawPanel, ImagePanel, MapListDrawer, TokenPopover
-│   │   ├── character-sheet/      # Módulo de Ficha em PDF
-│   │   │   ├── CharacterSheetPage.tsx  # Página principal
-│   │   │   ├── pdf.ts                  # Geração do PDF
-│   │   │   └── types.ts                # Interfaces + parseCharacterJson (reusado pelos módulos)
 │   │   ├── transformation-statblock/   # Módulo de Stat Blocks
 │   │   │   ├── TransformationPage.tsx   # Fluxo em steps
 │   │   │   ├── i18n.ts                  # Tradução pt-BR (vocabulário mecânico + nomes)
@@ -620,6 +589,7 @@ pf2e-tools/
 │   │   ├── tableState.ts         # Estado compartilhado da mesa, em tempo real
 │   │   ├── maps.ts               # Mapa de combate: tempo real + escrita otimista
 │   │   └── images.ts             # Redução e envio de imagens (Supabase Storage, IndexedDB de reserva)
+│   ├── pathbuilder/                # Tipos do JSON do Pathbuilder, parse/normalização e dados de arma (usados por todos os módulos)
 │   ├── types/
 │   │   └── index.ts              # Tipos globais
 │   ├── App.tsx                   # Componente raiz + rotas
@@ -636,7 +606,7 @@ pf2e-tools/
 1. **Arquitetura Modular**: Cada funcionalidade é um módulo independente em `src/modules/`
 2. **Separação de Responsabilidades**:
     - `*Page.tsx` = UI e estado
-    - `pdf.ts` = lógica de geração
+    - arquivos próprios (`rolls.ts`, `scaling.ts`…) = lógica pura
     - `types.ts` = definições de tipos
 3. **Componentes Reutilizáveis**: Em `src/components/`
 4. **Tipagem Forte**: TypeScript em todo o projeto
@@ -649,8 +619,7 @@ pf2e-tools/
 
 **Localização:** `src/modules/character-viewer/`
 
-Visualizador interativo da ficha. Reaproveita `parseCharacterJson`/`BuildInfo` do módulo
-`character-sheet`, então aceita o mesmo formato de JSON Pathbuilder.
+Visualizador interativo da ficha. Usa `parseCharacterJson`/`BuildInfo` de `src/pathbuilder/`, então aceita o JSON do Pathbuilder.
 
 #### Arquivos
 
@@ -892,109 +861,6 @@ não renderiza nada durante o gesto. O grid é um único `<svg>` com `<pattern>`
 tokens sobre uma imagem de 4096 px: 60 fps e nenhuma mutação de DOM nos tokens durante o gesto.
 
 ---
-
-### Módulo: Character Sheet (Ficha de Personagem)
-
-**Localização:** `src/modules/character-sheet/`
-
-#### Arquivos
-
-| Arquivo                  | Responsabilidade                                                             |
-| ------------------------ | ---------------------------------------------------------------------------- |
-| `CharacterSheetPage.tsx` | UI, upload de JSON, enriquecimento de dados, preview                         |
-| `pdf.ts`                 | Geração completa do PDF usando jsPDF                                         |
-| `types.ts`               | Interfaces `BuildInfo`, `Weapon`, `Armor`, `SpellCaster`, `SpellDescription` |
-
-#### Fluxo de Dados
-
-```
-1. Usuário faz upload do JSON
-   ↓
-2. parseCharacterJson() converte para BuildInfo
-   ↓
-3. enrichDescriptions() busca descrições da API:
-   - enrichFeatDescriptions() → /api/feat
-   - enrichSpecialDescriptions() → /api/search
-   - enrichSpellDescriptions() → /api/spell
-   ↓
-4. generateCharacterPdf() cria o PDF:
-   - Cabeçalho (nome, classe, nível)
-   - Atributos (grid 3x2)
-   - Defesas (CA, Salvamentos)
-   - Percepção
-   - Ataques (armas)
-   - Perícias (4 colunas)
-   - Habilidades Especiais
-   - Talentos (Feats)
-   - Conhecimentos (Lores)
-   - Armadura e Equipamentos
-   - Magias (por spellcaster)
-   - Magias de Foco
-   ↓
-5. PDF baixado automaticamente
-```
-
-#### Interfaces Principais
-
-```typescript
-interface BuildInfo {
-    name: string
-    class: string
-    level: number
-    ancestry: string
-    heritage: string
-    background: string
-    alignment?: string
-    deity?: string
-    sizeName: string
-    keyability: string
-    languages: string[]
-    abilities: {
-        str: number
-        dex: number
-        con: number
-        int: number
-        wis: number
-        cha: number
-    }
-    proficiencies: { [key: string]: number }
-    feats: any[]
-    featDescriptions?: Record<string, string>
-    specials: string[]
-    specialDescriptions?: Record<string, string>
-    spellDescriptions?: Record<string, SpellDescription>
-    lores: [string, number][]
-    equipment: [string, number, string?][]
-    weapons: Weapon[]
-    armor: Armor[]
-    money: { pp: number; gp: number; sp: number; cp: number }
-    spellCasters: SpellCaster[]
-    focus?: Record<string, any>
-    focusPoints?: number
-    acTotal?: {
-        acProfBonus: number
-        acAbilityBonus: number
-        acItemBonus: number
-        acTotal: number
-        shieldBonus?: number
-    }
-}
-
-interface SpellDescription {
-    name: string
-    actions?: string // "1", "2", "3", "reaction", "free", "1 to 3"
-    traits?: string[] // ["divine", "healing", "vitality"]
-    range?: string // "30 feet", "touch"
-    area?: string // "15-foot emanation"
-    targets?: string // "1 creature"
-    duration?: string // "1 minute"
-    defense?: string // "basic Fortitude"
-    description: string
-    damage?: string // "1d8"
-    damageType?: string // "vitality", "fire"
-    heightened?: Record<string, string>
-}
-```
 
 ---
 
@@ -1273,15 +1139,6 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
     -   [x] Rolar salvaguardas, Percepção, perícias, Golpes (ataque + dano + crítico) e magias pela
             ficha, normal ou ✦ mítico, com a conta à mostra
     -   [x] Bônus de item e penalidade de armadura nos testes
--   [x] **Módulo de Ficha de Personagem (PDF)** — _desativado na plataforma_
-    -   [x] Upload e parsing de JSON
-    -   [x] Geração de PDF completo
-    -   [x] Layout profissional print-friendly
-    -   [x] Seção de Ataques detalhada
-    -   [x] Seção de Magias com informações completas
-    -   [x] Bônus míticos em perícias e salvamentos
-    -   [x] Integração com AON (feats, specials, spells)
-    -   [x] Links clicáveis para referência
 -   [x] **Módulo de Iniciativa (gerenciador de combate)**
     -   [x] Importação de personagens da campanha e busca de monstros na AON (nome e/ou nível)
     -   [x] PV e condições dos personagens compartilhados com a Ficha Virtual
@@ -1412,8 +1269,7 @@ const spellAttack = proficiencyRank + level + keyAbilityMod
 | Ficha Virtual (viewer) | `src/modules/character-viewer/CharacterViewerPage.tsx`     |
 | Guias "Como Jogar"     | `src/modules/character-viewer/combatGuides.ts`             |
 | Presets de campanha    | `src/modules/character-viewer/campaignPresets.ts`          |
-| Layout do PDF          | `src/modules/character-sheet/pdf.ts`                       |
-| Tipos + parse do JSON  | `src/modules/character-sheet/types.ts`                     |
+| Tipos + parse do JSON  | `src/pathbuilder/types.ts`                                 |
 | Stat block (battle forms) | `src/modules/transformation-statblock/`                 |
 | Motor de escala de monstro | `src/modules/monster-scaler/scaling.ts`                |
 | Tabelas do GM Core (geradas) | `scripts/fetch-creature-tables.mjs` → `src/modules/monster-scaler/data/creatureTables.ts` |
