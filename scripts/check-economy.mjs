@@ -23,6 +23,7 @@ const act = await import('../src/modules/character-viewer/activities.ts')
 const sc = await import('../src/modules/character-viewer/spellCast.ts')
 const mf = await import('../src/modules/character-viewer/mythicFeats.ts')
 const mu = await import('../src/modules/character-viewer/mythicUse.ts')
+const relics = await import('../src/modules/character-viewer/relics.ts')
 
 /** Talentos que gastam ponto numa rolagem (✦) — o `mythicUse.ts` os oferece no diálogo. */
 const MYTHIC_ROLL_FEATS = new Set(['Ears that Hear the Truth', 'Feet that Stride the Sky', 'Arms that Cut the Waves', 'Unbelievably Believable'])
@@ -94,6 +95,27 @@ for (const file of readdirSync(new URL('characters/', dir)).filter((f) => f.ends
 
     console.log(`${build.name.padEnd(34)} usar ${String(tally.generic).padStart(2)} · próprio ${String(tally.dedicated).padStart(2)} · ✦ ${tally.roll} · itens ${tally.items} · sem custo ${String(tally.free).padStart(2)}`)
 }
+
+// Relíquias (`relics.ts`): o catálogo é à mão, então confere a forma — id único, dádiva com custo vira
+// botão (ou é ação livre sem limite, que não cobra), runa tem o que aplicar, tier válido.
+const relicIds = new Set()
+for (const relic of relics.RELICS) {
+    if (relicIds.has(relic.id)) fail(`relíquia "${relic.id}" repetida`)
+    relicIds.add(relic.id)
+    const giftIds = new Set()
+    for (const gift of relic.gifts) {
+        const where = `relíquia ${relic.name}: "${gift.name}"`
+        if (giftIds.has(gift.id)) fail(`${where}: id repetido`)
+        giftIds.add(gift.id)
+        if (!['minor', 'major', 'grand'].includes(gift.tier)) fail(`${where}: tier inválido`)
+        if (gift.kind === 'rune' && !gift.rune) fail(`${where}: é runa e não diz o que aplica`)
+        if (gift.kind === 'power' && gift.rune) fail(`${where}: é poder mas traz runa`)
+        if (gift.activation && !relics.giftActivity(gift) && !(gift.activation.cost === 'free' && !gift.activation.limited)) fail(`${where}: a ativação não gera botão`)
+        if (gift.activation?.limited && !gift.activation.frequency) fail(`${where}: limitada sem a frequência escrita`)
+        if (gift.kind === 'rune' && gift.activation) fail(`${where}: runa não tem ativação`)
+    }
+}
+if (relics.RELICS.length) console.log(`Relíquias: ${relics.RELICS.length} conferida(s).`)
 
 console.log(failures ? `${failures} lacuna(s).` : 'Elenco inteiro coberto.')
 process.exit(failures ? 1 : 0)

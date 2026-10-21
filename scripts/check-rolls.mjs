@@ -36,6 +36,7 @@ const tokenFit = await import('../src/modules/battle-map/tokenFit.ts')
 const av = await import('../src/modules/character-viewer/actionVariants.ts')
 const companions = await import('../src/modules/character-viewer/companions.ts')
 const gifts = await import('../src/modules/character-viewer/gifts.ts')
+const relics = await import('../src/modules/character-viewer/relics.ts')
 const tableStore = await import('../api/_lib/table-store.js')
 const { encounterReducer } = await import('../src/modules/initiative-tracker/encounterReducer.ts')
 const { normalizeSpellCasters, normalizeBuild, fixWeaponExports, parseCharacterJson } = await import('../src/modules/character-sheet/types.ts')
@@ -698,6 +699,56 @@ eq(plain.combatants.length, 3, 'Monstro comum (sem dono) pode repetir à vontade
         eq(inc.ceros?.[potion], 1, 'gifts: readIncoming traz o que o Ceros me passou')
         eq(Object.keys(inc).length, 2, 'gifts: readIncoming ignora o que aponta para outros e para mim mesmo')
     }
+}
+
+// ── Relíquias ────────────────────────────────────────────────────────────────
+{
+    // Catálogo de teste (o real entra quando o jogador informa a relíquia).
+    const base = party.eldarion
+    const w0 = base.weapons[0]
+    const entry = (gifts, extra = {}) => ({
+        id: 'teste', character: (b) => b.name === base.name, name: 'Relíquia de teste',
+        on: { kind: 'weapon', weapon: w0.name.toUpperCase() }, gifts, ...extra,
+    })
+    const rune = (id, tier, r, extra = {}) => ({ id, name: id, tier, kind: 'rune', rune: r, ...extra })
+    const power = (id, tier, activation, extra = {}) => ({ id, name: id, tier, kind: 'power', activation, ...extra })
+
+    eq(relics.relicLevel(base), base.level, 'relíquia: o nível dela é o do dono')
+    eq(relics.relicsOf(base, []).length, 0, 'relíquia: sem catálogo, nada aparece')
+    eq(relics.relicsOf(party.ghan, [entry([])]).length, 0, 'relíquia: casa pelo nome do personagem')
+
+    // Nível mínimo: Tabela 2–22 (1, 5, 9, 13, 17), ou o da própria dádiva.
+    const g = (n) => power(`g${n}`, 'minor', undefined)
+    eq(relics.giftMinLevel(g(0), 0), 1, 'relíquia: 1ª dádiva libera no 1º nível')
+    eq(relics.giftMinLevel(g(1), 1), 5, 'relíquia: 2ª no 5º')
+    eq(relics.giftMinLevel(g(4), 4), 17, 'relíquia: 5ª no 17º')
+    eq(relics.giftMinLevel(g(9), 9), 17, 'relíquia: além da 5ª vale o último degrau')
+    eq(relics.giftMinLevel(power('x', 'major', undefined, { minLevel: 7 }), 0), 7, 'relíquia: a dádiva pode declarar o próprio nível')
+    ok(relics.giftUnlocked(g(1), 1, 5) && !relics.giftUnlocked(g(1), 1, 4), 'relíquia: libera exatamente no nível')
+
+    // Ativação → economia de atividades.
+    eq(relics.giftActivity(power('a', 'minor', undefined)), null, 'relíquia: sem ativação, sem botão')
+    const two = relics.giftActivity(power('a', 'minor', { cost: 2, frequency: 'uma vez por dia', limited: true }))
+    ok(two && two.time.kind === 'actions' && two.time.n === 2 && two.daily && !two.mythicPoint, 'relíquia: 2 ações, limitada')
+    eq(relics.giftActivity(power('a', 'minor', { cost: 'reaction', trigger: 'x' })).time.kind, 'reaction', 'relíquia: reação')
+    eq(relics.giftActivity(power('a', 'minor', { cost: 'free' })), null, 'relíquia: ação livre sem limite não ganha botão')
+    ok(relics.giftActivity(power('a', 'minor', { cost: 'free', limited: true }))?.daily, 'relíquia: ação livre com limite ganha botão')
+    eq(relics.giftUseKey({ id: 'r' }, { id: 'p' }), 'relic:r:p', 'relíquia: chave do "usada" é única por relíquia e dádiva')
+
+    // Runas na arma: pelo maior, nunca somando.
+    const cat = (gifts) => [entry(gifts)]
+    const plain = { ...base, level: 20, weapons: [{ ...w0, pot: 1, str: null, runes: [], attack: 20 }] }
+    const out = relics.withRelicRunes(plain, cat([rune('a', 'minor', { potency: 2, striking: 'striking', property: ['Flaming'] })])).weapons[0]
+    ok(out.pot === 2 && out.attack === 21 && out.str === 'striking' && out.runes.join() === 'Flaming', 'relíquia: potência +1 sobe o ataque em 1, striking e propriedade entram')
+    const same = relics.withRelicRunes({ ...plain, weapons: [{ ...plain.weapons[0], pot: 2, attack: 21, str: 'Greater Striking', runes: ['flaming'] }] },
+        cat([rune('a', 'minor', { potency: 2, striking: 'striking', property: ['Flaming'] })]))
+    ok(same.weapons[0].pot === 2 && same.weapons[0].attack === 21 && same.weapons[0].str === 'Greater Striking' && same.weapons[0].runes.length === 1, 'relíquia: runa que a ficha já tem (ou maior) não soma de novo')
+    eq(relics.withRelicRunes({ ...plain, level: 4 }, cat([g(0), rune('b', 'minor', { potency: 3 })])).weapons[0].pot, 1, 'relíquia: runa na 2ª posição só vale a partir do 5º nível')
+    eq(relics.withRelicRunes(plain, cat([g(0), rune('b', 'minor', { potency: 3 })])).weapons[0].pot, 3, 'relíquia: liberada no nível, a runa vale')
+    eq(relics.withRelicRunes(plain, cat([rune('a', 'minor', { striking: 'greater striking' })])).weapons[0].str, 'greater striking', 'relíquia: greater striking')
+    eq(relics.withRelicRunes({ ...plain, weapons: [{ ...plain.weapons[0], name: 'Outra' }] }, cat([rune('a', 'minor', { potency: 2 })])).weapons[0].pot, 1, 'relíquia: só a arma que a relíquia nomeia')
+    ok(relics.withRelicRunes(plain, []) === plain, 'relíquia: sem relíquia a ficha é a mesma (identidade)')
+    ok(relics.withRelicRunes(plain, cat([power('p', 'minor', undefined)])) === plain, 'relíquia: poder não mexe na arma')
 }
 
 // ── Enquadramento da imagem do token (Modo GM) ───────────────────────────────

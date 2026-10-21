@@ -49,7 +49,7 @@ interface CustomRuneEntry {
     rune: CustomRune
 }
 
-const nameStarts = (prefix: string) => (b: BuildInfo) =>
+export const nameStarts = (prefix: string) => (b: BuildInfo) =>
     (b.name || '').trim().toLowerCase().startsWith(prefix)
 
 const CUSTOM_RUNES: CustomRuneEntry[] = [
