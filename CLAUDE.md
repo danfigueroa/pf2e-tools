@@ -4,7 +4,7 @@ Orientações para o Claude Code trabalhar neste repositório. Para detalhes de 
 
 ## O que é
 
-**PF2e Toolkit** — SPA (React 19 + TypeScript + Vite + MUI 7) com ferramentas para Pathfinder 2e
+**Covil de Dados** (antes "PF2e Toolkit"; o repositório e o pacote seguem `pf2e-tools`) — SPA (React 19 + TypeScript + Vite + MUI 7) com ferramentas para Pathfinder 2e
 Remaster. Textos de UI em **português (pt-BR)**.
 
 Seis módulos ativos (rotas em `src/App.tsx`):

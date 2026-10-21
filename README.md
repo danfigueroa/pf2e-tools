@@ -1,4 +1,4 @@
-# PF2e Toolkit 🎲
+# Covil de Dados 🎲
 
 **Ferramentas essenciais para jogadores e mestres de Pathfinder 2e Remaster**
 
@@ -24,7 +24,7 @@ Um sistema web moderno e modular que oferece diversas ferramentas para automatiz
 
 ## 🎯 Sobre o Projeto
 
-O **PF2e Toolkit** é uma aplicação web projetada para auxiliar jogadores e mestres de **Pathfinder 2nd Edition (Remaster)**. O sistema oferece ferramentas que automatizam cálculos, geram documentos e facilitam a gestão de personagens e encontros.
+O **Covil de Dados** (antes PF2e Toolkit) é uma aplicação web projetada para auxiliar jogadores e mestres de **Pathfinder 2nd Edition (Remaster)**. O sistema oferece ferramentas que automatizam cálculos, geram documentos e facilitam a gestão de personagens e encontros.
 
 ### Principais Objetivos
 
