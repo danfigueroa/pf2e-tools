@@ -1,7 +1,7 @@
 import { Box, Chip, Typography } from '@mui/material'
 import { ChevronRight as ChevronIcon } from '@mui/icons-material'
 import { gold, ink, parchment, rule } from '../../../theme'
-import type { StaffInfo } from '../../character-sheet/types'
+import type { StaffInfo } from '../../../pathbuilder/types'
 import type { DescriptionRequest } from './DescriptionDrawer'
 
 interface Props {

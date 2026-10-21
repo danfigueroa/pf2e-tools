@@ -3,7 +3,7 @@ import { SwapHoriz as SwapIcon } from '@mui/icons-material'
 import { SyncStatus } from './SyncStatus'
 import { TokenAvatar } from './TokenAvatar'
 import { charSlug } from '../charId'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 import { sizeLabel, type SizeEffectDef } from '../sizeEffects'
 
 interface Props {

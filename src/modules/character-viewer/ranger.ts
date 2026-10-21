@@ -18,7 +18,7 @@
  * Quem tem o quê vem da ficha (`specials`/`feats`/`focus`), sem catálogo por
  * nome de personagem. O estado é da MESA (campo `ranger`), como a Fúria.
  */
-import { parseFeatEntry, type BuildInfo } from '../character-sheet/types'
+import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
 import type { ConditionModifiers } from './conditions'
 
 export interface RangerStored {

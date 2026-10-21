@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { fetchSpellDescription, getCachedSpell } from '../../../services/descriptions'
-import type { BuildInfo, SpellDescription } from '../../character-sheet/types'
+import type { BuildInfo, SpellDescription } from '../../../pathbuilder/types'
 import { damageComponents, scaleSpell, type ScaledComponent } from '../heightening'
 import { actionRange, variantFor } from '../actionVariants'
 import { legacyCharKey, slotsKeyFor } from '../charId'

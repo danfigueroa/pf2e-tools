@@ -25,7 +25,7 @@
  * Iniciativa lê a resistência e o Desajeitado daqui. Como o Enlarge, o
  * Desajeitado do Titan Mauler é DERIVADO, nunca gravado.
  */
-import type { BuildInfo } from '../character-sheet/types'
+import type { BuildInfo } from '../../pathbuilder/types'
 import type { ConditionState } from './components/useConditions'
 import type { AppliedMod, ConditionModifiers } from './conditions'
 import { abilityMod } from './helpers'

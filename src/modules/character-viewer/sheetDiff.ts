@@ -1,4 +1,4 @@
-import { parseFeatEntry, type BuildInfo } from '../character-sheet/types'
+import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
 
 /**
  * O que muda entre a ficha da mesa e o JSON que alguém quer publicar — é o que

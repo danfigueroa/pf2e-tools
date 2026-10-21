@@ -16,7 +16,7 @@ import {
 } from '@mui/material'
 import { Build as RepairIcon, Shield as ShieldIcon } from '@mui/icons-material'
 import { gold, SHIELD_COLOR, status } from '../../../theme/palette'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 import { characterMaxHp } from '../helpers'
 import { actionsKeyFor, hpKeyFor, legacyCharKey } from '../charId'
 import type { ConditionModifiers } from '../conditions'

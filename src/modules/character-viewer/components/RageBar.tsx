@@ -12,7 +12,7 @@ import {
 } from '@mui/material'
 import { Whatshot as RageIcon } from '@mui/icons-material'
 import { RAGE_COLOR } from '../../../theme'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 import { characterMaxHp } from '../helpers'
 import { actionsKeyFor, hpKeyFor, legacyCharKey } from '../charId'
 import { useActions } from './useActions'

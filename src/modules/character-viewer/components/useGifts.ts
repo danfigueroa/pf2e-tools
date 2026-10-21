@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from 'react'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 import { gaveKeyFor, charSlug } from '../charId'
 import { addGave, canGave, holdersOf, isGaveEmpty, sanitizeGave, withGifts, type Gave } from '../gifts'
 import { inventoryRows } from '../inventory'

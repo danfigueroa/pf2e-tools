@@ -16,7 +16,7 @@ import {
     HealthAndSafety as TempIcon,
     Restore as RestoreIcon,
 } from '@mui/icons-material'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 import { hpBarColor, useHpTracker } from './useHpTracker'
 import { hpKeyFor, legacyCharKey } from '../charId'
 import { useHpFeedback } from '../../../motion/useHpFeedback'

@@ -13,7 +13,7 @@
  * os três valem 2. O que a ficha não vê — o Scout's Warning de um aliado, ou o
  * Shadow Mark que penaliza o ALVO — o jogador soma no ajuste livre.
  */
-import { parseFeatEntry, type BuildInfo } from '../character-sheet/types'
+import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
 
 const norm = (s: string) => s.trim().toLowerCase()
 const hasFeat = (b: BuildInfo, name: string) => (b.feats ?? []).some((f) => norm(parseFeatEntry(f).name) === norm(name))

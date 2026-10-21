@@ -17,7 +17,7 @@
 // O Pathbuilder exporta o escudo sem Dureza nem PV; esses vêm da AON
 // (`services/shields.ts`) e as runas de reforço são somadas aqui.
 
-import { parseFeatEntry, type BuildInfo } from '../character-sheet/types'
+import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
 
 /** O escudo como a ficha descreve — serializável, viaja no combatente da Iniciativa. */
 export interface ShieldItem {

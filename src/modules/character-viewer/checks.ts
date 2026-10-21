@@ -16,7 +16,7 @@
 //                 não alcança a exigência da armadura (números do AON)
 //   condições     `effectiveParts`, que já resolve "o mesmo tipo não empilha"
 
-import type { BuildInfo, Proficiencies } from '../character-sheet/types'
+import type { BuildInfo, Proficiencies } from '../../pathbuilder/types'
 import { abilityMod, ABILITY_LABELS, mythicProficiencyDelta, proficiencyLabel, type AbilityKey } from './helpers'
 import { effectiveParts, SKILL_TARGET, type ConditionModifiers, type ModTarget } from './conditions'
 

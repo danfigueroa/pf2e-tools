@@ -1,4 +1,4 @@
-import type { BuildInfo } from '../character-sheet/types'
+import type { BuildInfo } from '../../pathbuilder/types'
 import { charSlugFromName } from '../character-viewer/charId'
 import { totalHp } from '../character-viewer/helpers'
 import { perceptionCheck } from '../character-viewer/checks'

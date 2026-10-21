@@ -14,7 +14,7 @@
 //   Medicine por 1 dia (sem afetar o Tratar Ferimentos).
 
 import type { Check } from './checks'
-import { parseFeatEntry, type BuildInfo } from '../character-sheet/types'
+import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
 
 export interface TreatWoundsOption {
     dc: number

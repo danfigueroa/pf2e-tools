@@ -2,7 +2,7 @@
 // descrições pré-traduzidas (`descriptionNames.ts`) precisa dos MESMOS nomes que
 // a aba busca na AON ao tocar num item.
 
-import type { BuildInfo } from '../character-sheet/types'
+import type { BuildInfo } from '../../pathbuilder/types'
 import { itemDisplayName } from './customRunes'
 
 /** Uma linha do inventário, já normalizada venha de onde vier. */

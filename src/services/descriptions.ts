@@ -3,7 +3,7 @@
 // chamada batch de tamanho 1 — o backend já dedupa e cacheia em memória.
 
 import { useSyncExternalStore } from 'react'
-import type { FeatDescription, SpellDescription, CompanionStats } from '../modules/character-sheet/types'
+import type { FeatDescription, SpellDescription, CompanionStats } from '../pathbuilder/types'
 import { stateApi } from './mesa'
 import { applyFix, subscribeFixes, type FixKind } from './translationFixes'
 

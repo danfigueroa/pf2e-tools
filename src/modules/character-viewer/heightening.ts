@@ -4,7 +4,7 @@
 // que preserva expressões de dado ("2d6") mesmo após a tradução.
 
 import type { HeightenedEntry } from './format-description'
-import type { SpellComponent, SpellDescription } from '../character-sheet/types'
+import type { SpellComponent, SpellDescription } from '../../pathbuilder/types'
 import { translateDamageType } from '../transformation-statblock/i18n'
 
 /** Rank efetivo de conjuração: truques e focus spells (slot 0) elevam

@@ -1,6 +1,6 @@
 import type { PlayerCharacter } from '../../../types';
-import type { BuildInfo, Proficiencies } from '../../character-sheet/types';
-import { parseCharacterJson } from '../../character-sheet/types';
+import type { BuildInfo, Proficiencies } from '../../../pathbuilder/types';
+import { parseCharacterJson } from '../../../pathbuilder/types';
 import { abilityMod, totalHp } from '../../character-viewer/helpers';
 
 // Pathbuilder stores each proficiency as its bonus (2 × rank): 0 untrained,

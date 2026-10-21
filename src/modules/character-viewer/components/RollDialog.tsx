@@ -19,7 +19,7 @@ import {
     Typography,
 } from '@mui/material'
 import { Casino as DiceIcon } from '@mui/icons-material'
-import type { BuildInfo, SpellDescription, Weapon } from '../../character-sheet/types'
+import type { BuildInfo, SpellDescription, Weapon } from '../../../pathbuilder/types'
 import { CONDITION_COLOR, MYTHIC_COLOR, PSYCHE_COLOR } from '../../../theme'
 import { characterMaxHp, signed, spellcasterStats } from '../helpers'
 import { psycheApplies, psycheDamageBonus } from '../psyche'

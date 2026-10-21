@@ -10,7 +10,7 @@
  * Golpe), e um segundo botão geraria cobrança em dobro: ficam em `DEDICATED`, que o
  * `check-economy.mjs` confere.
  */
-import type { FeatDescription } from '../character-sheet/types'
+import type { FeatDescription } from '../../pathbuilder/types'
 import { castTimeOf, type CastTime } from './spellCast'
 
 export interface ActivityInfo {

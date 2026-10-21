@@ -6,7 +6,7 @@
 // todas" pede: uma cópia escrita à mão no script envelheceria em silêncio, e a
 // magia que faltasse cairia na rede sem ninguém perceber.
 
-import type { BuildInfo, FocusAbility, FocusTradition } from '../character-sheet/types'
+import type { BuildInfo, FocusAbility, FocusTradition } from '../../pathbuilder/types'
 
 export interface FocusSpellEntry {
     name: string

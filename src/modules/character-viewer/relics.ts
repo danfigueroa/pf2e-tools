@@ -15,8 +15,8 @@
 // sempre) a menos que a entrada traga `description`; o que o app não sabe ler da AON —
 // custo e frequência da ativação — é escrito aqui, conferido contra o texto dela.
 
-import type { BuildInfo, Weapon } from '../character-sheet/types'
-import { strikingDice } from '../character-sheet/weapon'
+import type { BuildInfo, Weapon } from '../../pathbuilder/types'
+import { strikingDice } from '../../pathbuilder/weapon'
 import { nameStarts } from './customRunes'
 import type { ActivityInfo } from './activities'
 import type { CastTime } from './spellCast'

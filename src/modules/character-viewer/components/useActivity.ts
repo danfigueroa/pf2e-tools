@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 import type { ConditionModifiers } from '../conditions'
 import { actionsKeyFor, usesKeyFor } from '../charId'
 import type { ActivityInfo } from '../activities'

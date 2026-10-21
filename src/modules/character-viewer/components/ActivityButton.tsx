@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Alert, Button, Snackbar } from '@mui/material'
 import { gold } from '../../../theme'
-import type { BuildInfo, FeatDescription } from '../../character-sheet/types'
+import type { BuildInfo, FeatDescription } from '../../../pathbuilder/types'
 import type { ConditionModifiers } from '../conditions'
 import { activityOf, costLabel, type ActivityInfo } from '../activities'
 import { useActivity } from './useActivity'

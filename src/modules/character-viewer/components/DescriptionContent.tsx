@@ -28,7 +28,7 @@ import {
     fetchSpellDescription,
     fetchItemDescription,
 } from '../../../services/descriptions'
-import type { FeatDescription, SpellDescription } from '../../character-sheet/types'
+import type { FeatDescription, SpellDescription } from '../../../pathbuilder/types'
 import { actionSymbol, getAonSearchUrl, signed, traditionColor } from '../helpers'
 import { parseDescription, type DescriptionPart, type HeightenedEntry } from '../format-description'
 import { StaffSpellList } from './StaffSpellList'

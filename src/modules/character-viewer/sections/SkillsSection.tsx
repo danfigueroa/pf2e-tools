@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import { Box, Card, CardContent, Typography, Chip } from '@mui/material'
 import { RANK_COLORS } from '../../../theme/palette'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 import {
     signed,
     proficiencyLabel,

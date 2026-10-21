@@ -15,7 +15,7 @@ import {
     type ShieldStored,
 } from '../shield'
 import { useSharedState } from './useSharedState'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 import { shieldItemOf } from '../shield'
 import { shieldKeyFor } from '../charId'
 

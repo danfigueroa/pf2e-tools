@@ -1,8 +1,8 @@
 import { useMemo, memo } from 'react'
 import { Box, Button, Card, CardContent, Typography, Stack, Chip, Divider, Link, Tooltip } from '@mui/material'
 import { Casino as DiceIcon } from '@mui/icons-material'
-import type { BuildInfo, Weapon } from '../../character-sheet/types'
-import { weaponDamageFormula } from '../../character-sheet/weapon'
+import type { BuildInfo, Weapon } from '../../../pathbuilder/types'
+import { weaponDamageFormula } from '../../../pathbuilder/weapon'
 import {
     actionSymbol,
     signed,

@@ -9,7 +9,7 @@ import {
 } from '@mui/material'
 import { Adjust as RangerIcon } from '@mui/icons-material'
 import { RANGER_COLOR } from '../../../theme'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 import { actionsKeyFor, legacyCharKey, slotsKeyFor } from '../charId'
 import type { ConditionModifiers } from '../conditions'
 import { useActions } from './useActions'

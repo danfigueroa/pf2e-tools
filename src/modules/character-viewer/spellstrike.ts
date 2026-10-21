@@ -13,7 +13,7 @@
  * os truques de foco — os psi cantrips do arquétipo de Psíquico (o Imaginary
  * Weapon do Loki), que o Pathbuilder manda em `build.focus`, fora dos blocos.
  */
-import type { BuildInfo, SpellCaster, SpellDescription } from '../character-sheet/types'
+import type { BuildInfo, SpellCaster, SpellDescription } from '../../pathbuilder/types'
 import { slotKey } from './components/useSpellSlots'
 import { actionSymbol, isMythicMagicCaster } from './helpers'
 import { castRankForSlot } from './heightening'

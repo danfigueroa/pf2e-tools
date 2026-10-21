@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { Alert, Box, Button, ButtonBase, Card, CardContent, Chip, CircularProgress, IconButton, Stack, TextField, Tooltip, Typography } from '@mui/material'
 import { Add as AddIcon, Close as RemoveIcon, Crop as CropIcon, PhotoCamera as CameraIcon } from '@mui/icons-material'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 import { NPC_TOKEN_MAX_SIDE, deleteImage, imageErrorText, shrinkImage, uploadImage, useImageUrl } from '../../../services/images'
 import { searchCreatures } from '../../../services/creatures'
 import { initials } from '../../battle-map/geometry'

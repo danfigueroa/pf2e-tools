@@ -22,8 +22,8 @@
 // Os traços vêm do AON (`services/gear.ts`). Sem eles a arma rola como corpo a
 // corpo sem ágil — e a página avisa. Ninguém inventa número em silêncio.
 
-import type { BuildInfo, Weapon } from '../character-sheet/types'
-import { strikingDice, stepUpDie } from '../character-sheet/weapon'
+import type { BuildInfo, Weapon } from '../../pathbuilder/types'
+import { strikingDice, stepUpDie } from '../../pathbuilder/weapon'
 import type { WeaponGear } from '../../services/gear'
 import { translateDamageType } from '../transformation-statblock/i18n'
 import { exprText, parseDiceExpr, rollGroups, type DiceExpr, type DiceGroup, type RolledExpr } from '../../dice/roll'

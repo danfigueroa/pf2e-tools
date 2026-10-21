@@ -1,7 +1,7 @@
 import { memo, useMemo, useState } from 'react'
 import { Alert, Box, ButtonBase, Button, Card, CardContent, CircularProgress, Collapse, Typography, Stack, Chip, useTheme } from '@mui/material'
 import { AutoAwesome as RegenerateIcon, ExpandMore as ExpandIcon, MenuBook as GuideIcon } from '@mui/icons-material'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 import { abilityMod, signed, ABILITY_LABELS, characterMaxHp, isMythicCharacter, MYTHIC_COLOR, type AbilityKey } from '../helpers'
 import { perceptionCheck, saveCheck, SAVES } from '../checks'
 import { getCombatGuide } from '../combatGuides'

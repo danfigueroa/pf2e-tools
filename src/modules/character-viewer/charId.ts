@@ -1,4 +1,4 @@
-import type { BuildInfo } from '../character-sheet/types'
+import type { BuildInfo } from '../../pathbuilder/types'
 
 /**
  * Identidade do personagem para o estado compartilhado da mesa.

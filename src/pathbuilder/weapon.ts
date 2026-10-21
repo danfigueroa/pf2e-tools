@@ -1,4 +1,4 @@
-// Cálculo dos dados de dano de uma arma (compartilhado entre a ficha virtual e o PDF).
+// Cálculo dos dados de dano de uma arma (compartilhado entre a ficha virtual e as rolagens).
 
 export interface WeaponDamageInput {
   die: string;

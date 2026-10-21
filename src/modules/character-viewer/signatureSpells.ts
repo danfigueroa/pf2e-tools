@@ -10,7 +10,7 @@
  *
  * Nomes de magia ficam em inglês (chave de busca na AON).
  */
-import type { BuildInfo, SpellCaster } from '../character-sheet/types'
+import type { BuildInfo, SpellCaster } from '../../pathbuilder/types'
 
 interface SignatureEntry {
     /** Casa pelo nome do personagem (`build.name` em minúsculas). */

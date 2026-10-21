@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Alert, Button, Chip, DialogActions, DialogContent, DialogContentText, DialogTitle, Snackbar, Typography } from '@mui/material'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 import { CONDITIONS_BY_ID } from '../conditions'
 import { costLabel } from '../activities'
 import { mythicFeatsOf, type MythicFeatDef } from '../mythicFeats'

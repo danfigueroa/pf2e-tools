@@ -1,4 +1,4 @@
-import type { BuildInfo } from '../character-sheet/types'
+import type { BuildInfo } from '../../pathbuilder/types'
 import { totalHp } from './helpers'
 import { saveCheck, SAVES } from './checks'
 import { NO_MODIFIERS } from './conditions'

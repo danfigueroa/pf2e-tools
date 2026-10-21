@@ -9,7 +9,7 @@ import {
 } from '@mui/icons-material'
 import { COIN_COLORS, HP_COLOR } from '../../../theme/palette'
 import { gold } from '../../../theme'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
 import type { ConditionModifiers } from '../conditions'
 import { characterMaxHp } from '../helpers'

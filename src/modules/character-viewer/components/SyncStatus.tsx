@@ -4,7 +4,7 @@ import { Sync as SyncIcon, CloudOff as OfflineIcon } from '@mui/icons-material'
 import { gold, status as statusColor } from '../../../theme/palette'
 import { getStatus, refresh, subscribeStatus } from '../../../services/tableState'
 import { charSlug } from '../charId'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 
 /** Estado da sincronia com a mesa (o Realtime avisa; nada de polling aqui). */
 const useSyncStatus = () => useSyncExternalStore(subscribeStatus, getStatus, getStatus)

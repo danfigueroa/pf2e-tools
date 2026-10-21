@@ -20,7 +20,7 @@
  * descoberto pela ficha, sem catálogo por nome de personagem. O estado é da MESA
  * (campo `magus`), como a Fúria e a psique.
  */
-import { parseFeatEntry, type BuildInfo } from '../character-sheet/types'
+import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
 import type { ConditionModifiers } from './conditions'
 import { mythicFeatsOf } from './mythicFeats'
 

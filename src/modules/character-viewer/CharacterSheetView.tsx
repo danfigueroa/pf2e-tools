@@ -28,7 +28,7 @@ import {
 } from '@mui/icons-material'
 
 import { green, gold, parchment, displayFont } from '../../theme'
-import type { BuildInfo, FeatDescription } from '../character-sheet/types'
+import type { BuildInfo, FeatDescription } from '../../pathbuilder/types'
 import { PublishedBar } from './components/PublishedBar'
 import { NewVersionBar } from './components/NewVersionBar'
 import { withRelicRunes } from './relics'

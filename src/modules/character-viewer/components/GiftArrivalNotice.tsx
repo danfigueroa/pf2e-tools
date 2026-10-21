@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Snackbar } from '@mui/material'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 import { charSlug } from '../charId'
 import { onArrival, trackIncoming } from '../../../services/gifts'
 import { useRoster } from '../useRoster'

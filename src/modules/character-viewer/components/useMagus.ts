@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import { useSharedState } from './useSharedState'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 import {
     CASCADE_TYPES,
     NO_MAGUS,

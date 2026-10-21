@@ -15,7 +15,7 @@
  * Rank base de todos é 1, e cada rank acima soma o "Amp Heightened (+1)".
  * Texto em pt-BR; nomes de magia e tipos de dano canônicos em inglês.
  */
-import { parseFeatEntry, type BuildInfo } from '../character-sheet/types'
+import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
 import type { ScaledComponent } from './heightening'
 
 /** Uma parcela de dano que o amp põe no lugar do dano normal. */

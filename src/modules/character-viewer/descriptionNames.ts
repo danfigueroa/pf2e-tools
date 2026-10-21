@@ -7,7 +7,7 @@
 // cópia aqui envelheceria em silêncio, e o item que faltasse cairia na rede
 // sem ninguém perceber.
 
-import { parseFeatEntry, type BuildInfo } from '../character-sheet/types'
+import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
 import { characterSpellNames } from './spellNames'
 import { inventoryRows } from './inventory'
 

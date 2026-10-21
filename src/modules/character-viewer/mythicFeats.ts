@@ -7,7 +7,7 @@
  * Cada um paga o tempo (ação, reação ou livre) E o ponto pelo mesmo `useActivity`; o custo
  * conferido na AON mora aqui, e o `check-economy` confere contra o pacote de descrições.
  */
-import { parseFeatEntry, type BuildInfo } from '../character-sheet/types'
+import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
 import type { ActivityInfo } from './activities'
 import type { ConditionModifiers } from './conditions'
 

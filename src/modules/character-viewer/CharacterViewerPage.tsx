@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Snackbar } from '@mui/material'
 
-import { normalizeBuild, parseCharacterJson, type BuildInfo } from '../character-sheet/types'
+import { normalizeBuild, parseCharacterJson, type BuildInfo } from '../../pathbuilder/types'
 import { UploadCard, type JsonOrigin } from './components/UploadCard'
 import { PublishDialog, type PublishBase } from './components/PublishDialog'
 import { usePublication } from './components/usePublication'

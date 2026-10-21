@@ -1,7 +1,7 @@
 import { Box, Card, CardContent, Stack, Typography, Chip } from '@mui/material'
 import { ChevronRight as ChevronIcon } from '@mui/icons-material'
 import { useMemo, memo } from 'react'
-import { parseFeatEntry, type BuildInfo } from '../../character-sheet/types'
+import { parseFeatEntry, type BuildInfo } from '../../../pathbuilder/types'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
 import type { ConditionModifiers } from '../conditions'
 import type { MythicPointsApi } from '../components/useMythicPoints'

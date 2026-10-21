@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import { useSharedState } from './useSharedState'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 import { NO_RANGER, activeRanger, isRangerEmpty, sanitizeRanger, type RangerStored } from '../ranger'
 
 /**

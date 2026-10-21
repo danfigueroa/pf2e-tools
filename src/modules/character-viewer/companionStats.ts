@@ -18,7 +18,7 @@
 //   Atletismo → perito; +3 de dano; ataques mágicos.
 //   (Só o savage cresce de tamanho nesta etapa — o nimble não.)
 
-import type { CompanionStats, Pet } from '../character-sheet/types'
+import type { CompanionStats, Pet } from '../../pathbuilder/types'
 
 // Ranks de proficiência: o bônus é 2 × rank, e só soma o nível se proficiente.
 export const UNTRAINED = 0

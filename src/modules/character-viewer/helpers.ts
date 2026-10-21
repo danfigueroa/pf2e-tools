@@ -1,5 +1,5 @@
 import { TRADITION_COLORS, ink } from '../../theme/palette'
-import { parseFeatEntry, type Abilities, type BuildInfo, type SpellCaster } from '../character-sheet/types'
+import { parseFeatEntry, type Abilities, type BuildInfo, type SpellCaster } from '../../pathbuilder/types'
 
 export type AbilityKey = keyof Pick<Abilities, 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'>
 

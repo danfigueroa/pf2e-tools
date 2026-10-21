@@ -17,7 +17,7 @@ import {
 } from '@mui/material'
 import { AutoFixHigh as MagusIcon } from '@mui/icons-material'
 import { MAGUS_COLOR } from '../../../theme'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 import { characterMaxHp } from '../helpers'
 import { actionsKeyFor, hpKeyFor, legacyCharKey } from '../charId'
 import { useActions } from './useActions'

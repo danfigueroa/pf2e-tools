@@ -12,7 +12,7 @@
  * Escreve só a tradição de uma ficha, por NOME de característica
  * ("The Oscillating Wave" nas `specials`), como `rage.ts` e `customRunes.ts`.
  */
-import type { BuildInfo } from '../character-sheet/types'
+import type { BuildInfo } from '../../pathbuilder/types'
 import { baseSpellName } from './psiAmps'
 
 export type EnergyMode = 'add' | 'remove'

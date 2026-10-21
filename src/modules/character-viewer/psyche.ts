@@ -13,7 +13,7 @@
  * da MESA (campo `psyche`) e o Estupefato da ressaca é DERIVADO, nunca gravado
  * (mesma política do Desajeitado do Enlarge e do Titan Mauler).
  */
-import type { BuildInfo } from '../character-sheet/types'
+import type { BuildInfo } from '../../pathbuilder/types'
 import type { ConditionState } from './components/useConditions'
 import type { ConditionModifiers } from './conditions'
 

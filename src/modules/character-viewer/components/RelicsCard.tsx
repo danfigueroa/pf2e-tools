@@ -1,5 +1,5 @@
 import { Box, Button, Card, CardContent, Chip, Stack, Typography } from '@mui/material'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 import type { ConditionModifiers } from '../conditions'
 import { costLabel } from '../activities'
 import {

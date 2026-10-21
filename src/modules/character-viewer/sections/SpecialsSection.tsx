@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import { Box, Card, CardContent, Stack, Typography } from '@mui/material'
 import { ChevronRight as ChevronIcon } from '@mui/icons-material'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
 import type { ConditionModifiers } from '../conditions'
 import type { MythicPointsApi } from '../components/useMythicPoints'

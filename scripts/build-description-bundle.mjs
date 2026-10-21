@@ -41,7 +41,7 @@ const OUT_DIR = join(ROOT, 'public', 'descriptions')
 // Pacotes da primeira versão (só magias): reaproveitados para não retraduzir.
 const LEGACY_SPELLS_DIR = join(ROOT, 'public', 'spells')
 
-const { parseCharacterJson } = await import('../src/modules/character-sheet/types.ts')
+const { parseCharacterJson } = await import('../src/pathbuilder/types.ts')
 const { characterDescriptionNames } = await import('../src/modules/character-viewer/descriptionNames.ts')
 const { PRESETS_BY_MESA } = await import('../src/modules/character-viewer/campaignPresets.ts')
 const { MESAS } = await import('../src/services/mesa.ts')

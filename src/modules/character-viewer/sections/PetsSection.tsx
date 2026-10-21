@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import { Box, Card, CardContent, Typography, Stack, Chip, Divider } from '@mui/material'
 import { green } from '../../../theme/palette'
-import type { BuildInfo, CompanionStats, Pet } from '../../character-sheet/types'
+import type { BuildInfo, CompanionStats, Pet } from '../../../pathbuilder/types'
 import { signed } from '../helpers'
 import {
     computeCompanion,

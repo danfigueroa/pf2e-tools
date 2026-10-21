@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 import type { ConditionModifiers } from '../conditions'
 import { actionsKeyFor, magusKeyFor } from '../charId'
 import { castTimeOf, isConfluxSpell, pairCast, prepayStrike, spellIncludesStrike, type CastResource, type CastTime } from '../spellCast'

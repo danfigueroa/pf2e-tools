@@ -15,7 +15,7 @@
  * CD e a salvaguarda e deixa a rolagem dizer qual veneno entrou. Quem tem cada
  * coisa vem da ficha. Estado da MESA (campo `rogue`).
  */
-import { parseFeatEntry, type BuildInfo } from '../character-sheet/types'
+import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
 import type { ItemTraits } from '../../services/itemTraits'
 
 export interface RogueStored {

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 import { useGear } from '../../../services/gear'
 import type { ArmorPenalty } from '../checks'
 

@@ -7,7 +7,7 @@ import {
     Bolt as SpendIcon,
     Casino as DiceIcon,
 } from '@mui/icons-material'
-import type { BuildInfo, SpellCaster } from '../../character-sheet/types'
+import type { BuildInfo, SpellCaster } from '../../../pathbuilder/types'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
 import { actionSymbol, isMythicMagicCaster, MYTHIC_COLOR, signed, spellcasterStats, traditionColor, traditionLabel } from '../helpers'
 import { castRankForSlot, damageAtRank } from '../heightening'

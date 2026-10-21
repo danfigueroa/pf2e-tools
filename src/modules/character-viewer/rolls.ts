@@ -6,7 +6,7 @@
 // todas: o memorial (`check.parts`) soma EXATAMENTE o modificador rolado — a
 // mesa confere a conta parcela por parcela.
 
-import type { BuildInfo, SpellCaster } from '../character-sheet/types'
+import type { BuildInfo, SpellCaster } from '../../pathbuilder/types'
 import { CAMPAIGN_PRESETS } from './campaignPresets'
 import { charSlug } from './charId'
 import { abilityMod, ABILITY_LABELS, isMythicMagicCaster, MYTHIC_PROFICIENCY_BONUS, mythicProficiencyDelta, proficiencyLabel, type AbilityKey } from './helpers'

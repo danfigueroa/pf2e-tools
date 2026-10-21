@@ -15,7 +15,7 @@
  * Quem não tem o talento do contexto não vê o botão. Onde dois valem (Percepção de iniciativa:
  * Ears OU Rewrite Fate), vence o mais específico.
  */
-import { parseFeatEntry, type BuildInfo } from '../character-sheet/types'
+import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
 
 export type MythicContext = 'check' | 'strike' | 'spell-attack' | 'initiative' | 'sense-motive' | 'jump' | 'swim' | 'influence'
 

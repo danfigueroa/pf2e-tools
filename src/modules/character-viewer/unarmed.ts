@@ -1,5 +1,5 @@
-import type { BuildInfo } from '../character-sheet/types'
-import { strikingDice } from '../character-sheet/weapon'
+import type { BuildInfo } from '../../pathbuilder/types'
+import { strikingDice } from '../../pathbuilder/weapon'
 import { abilityMod } from './helpers'
 
 /**

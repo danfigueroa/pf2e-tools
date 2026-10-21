@@ -9,7 +9,7 @@
  * Nomes de item e de magia ficam canônicos em inglês (é a chave de busca na
  * AON); a prosa é pt-BR.
  */
-import type { Armor, BuildInfo, Weapon } from '../character-sheet/types'
+import type { Armor, BuildInfo, Weapon } from '../../pathbuilder/types'
 import type { SizeEffectId } from './sizeEffects'
 
 /** Uma ativação da runa: o que ela faz e quais magias ela imita. */

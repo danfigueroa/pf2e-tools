@@ -20,7 +20,7 @@
  *
  * Quem tem cada talento vem da ficha (`feats`).
  */
-import { parseFeatEntry, type BuildInfo } from '../character-sheet/types'
+import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
 import { abilityMod } from './helpers'
 import type { ConditionModifiers } from './conditions'
 

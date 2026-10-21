@@ -10,7 +10,7 @@ import {
     Stack,
     Typography,
 } from '@mui/material'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 import { diffSheets } from '../sheetDiff'
 import { EmbedDialog } from './EmbedDialog'
 

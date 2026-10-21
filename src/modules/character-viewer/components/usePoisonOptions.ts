@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { BuildInfo } from '../../character-sheet/types'
+import type { BuildInfo } from '../../../pathbuilder/types'
 import { fetchItemTraits, type ItemTraits } from '../../../services/itemTraits'
 import { consumedKeyFor } from '../charId'
 import { SIMPLE_POISON, isApplicablePoison, isSimplePoison, simpleDoses, simplePoisonDice } from '../rogue'
