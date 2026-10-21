@@ -47,7 +47,8 @@ export default async function handler(req, res) {
   // Feed de rolagens da mesa — também antes da ficha, pelo mesmo motivo.
   if (isRollRequest(req.method, req.query || {}, req.body)) {
     try {
-      const { status, body } = await handleRollRequest(mesa, req.method, req.query || {}, req.body || {})
+      const userId = req.method === 'POST' ? await requestUserId(req) : null
+      const { status, body } = await handleRollRequest(mesa, req.method, req.query || {}, req.body || {}, { userId })
       return res.status(status).json(body)
     } catch (error) {
       console.error('[/api/state] Erro nas rolagens:', error)

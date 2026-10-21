@@ -1,51 +1,31 @@
-// Feed de rolagens da mesa: as últimas 30 rolagens de qualquer aparelho, para
-// todo mundo ver — no Mapa, numa ficha, na Iniciativa.
+// Feed de rolagens da mesa: toda rolagem de qualquer aparelho, para todo mundo
+// ver — no Mapa, numa ficha, na Iniciativa.
 //
-// Chaves:
-//   pf2e:rolls:v1    LISTA, a mais nova primeiro (LPUSH + LTRIM)
-//   pf2e:rolls:rev   contador — sobe a cada rolagem, é o que o poll lê
-//   pf2e:shares:v1   LISTA das regras compartilhadas com a mesa (talento, magia…),
-//                    que sobem o MESMO contador: o poll ocioso continua 1 GET
+// No Postgres (migration `feed_de_rolagens`):
+//   rolls    cada rolagem, PARA SEMPRE (é o histórico do diário da sessão); o GET
+//            devolve as últimas 30, como a lista do Redis devolvia
+//   shares   as regras compartilhadas com a mesa (talento, magia…); o GET devolve
+//            as da última hora, até 5
+// Cada inserção é transmitida pelo Realtime no canal privado `mesa:<mesa>:rolls`
+// (eventos `roll` e `share`), por trigger: quem está com o app aberto recebe sem
+// pedir. O `rev` (o maior `seq` das duas tabelas, que dividem uma sequência)
+// sobrevive só para o poll de reserva, quando o Realtime não está aberto.
 //
-// Custo no Upstash (cada comando conta, inclusive dentro de pipeline):
-//   rolar           LPUSH + LTRIM + EXPIRE + INCR = 4
-//   poll sem nada   GET = 1
-//   compartilhar    LPUSH + LTRIM + EXPIRE + INCR = 4
-//   poll com novas  GET + LRANGE + LRANGE = 3
-// E no Mapa o contador entra como 4ª chave do MGET que o poll do mapa já faz
-// (map-store.js `readRevs`): lá o feed sai sem comando a mais.
-//
-// As três chaves são da mesa (`scoped`, ver mesas.js): cada mesa vê só o feed dela.
-//
-// Sem credenciais, cai num array em memória do processo, como o table-store.
+// Sem banco, cai num array em memória do processo, como o table-store.
 
-import { redis } from './table-store.js'
-import { scoped } from './mesas.js'
-
-const LIST_KEY = 'pf2e:rolls:v1'
-const ROLLS_REV_KEY = 'pf2e:rolls:rev'
-export const rollsRevKey = (mesa) => scoped(mesa, ROLLS_REV_KEY)
+import { supabase } from './supabase.js'
 
 export const ROLL_HISTORY = 30
-/** Rolagem é coisa da sessão: um dia sem ninguém rolar e o feed some sozinho. */
-const TTL_SECONDS = 24 * 60 * 60
 export const MAX_ROLL_BYTES = 8192
-
-const SHARES_KEY = 'pf2e:shares:v1'
-/** Não há histórico de compartilhamentos: a lista só serve para o poll achar o novo. */
 const SHARE_HISTORY = 5
-const SHARE_TTL_SECONDS = 60 * 60
+const SHARE_WINDOW_MS = 60 * 60 * 1000
 
-// Sem Redis, um feed em memória por mesa.
+// Sem banco, um feed em memória por mesa.
 const memoryFeeds = new Map()
 function memoryFeed(mesa) {
-  const key = rollsRevKey(mesa)
-  if (!memoryFeeds.has(key)) memoryFeeds.set(key, { rolls: [], shares: [], rev: 0 })
-  return memoryFeeds.get(key)
+  if (!memoryFeeds.has(mesa)) memoryFeeds.set(mesa, { rolls: [], shares: [], rev: 0 })
+  return memoryFeeds.get(mesa)
 }
-
-/** O contador quando não há Redis (lido por map-store.js). */
-export const memoryRollsRev = (mesa) => memoryFeed(mesa).rev
 
 // ── Validação ────────────────────────────────────────────────────────────────
 // ESPELHO de `src/dice/tableRoll.ts` (`sanitizeTableRoll`): o servidor é JS
@@ -200,68 +180,56 @@ export function sanitizeShare(s) {
 
 // ── Leitura e escrita ────────────────────────────────────────────────────────
 
-const parse = (raw) => {
-  if (raw && typeof raw === 'object') return raw
-  try { return JSON.parse(raw) } catch { return null }
+const check = ({ data, error }) => {
+  if (error) throw error
+  return data
 }
 
-/** Grava a rolagem (já validada). Devolve a revisão nova. */
-export async function addRoll(mesa, roll) {
-  const r = redis()
-  if (r) {
-    const list = scoped(mesa, LIST_KEY)
-    const p = r.pipeline()
-    p.lpush(list, JSON.stringify(roll))
-    p.ltrim(list, 0, ROLL_HISTORY - 1)
-    p.expire(list, TTL_SECONDS)
-    p.incr(rollsRevKey(mesa))
-    const results = await p.exec()
-    return Number(results[3]) || 0
-  }
-  const feed = memoryFeed(mesa)
-  feed.rolls = [roll, ...feed.rolls].slice(0, ROLL_HISTORY)
-  feed.rev += 1
-  return feed.rev
-}
-
-/** Grava o compartilhamento (já validado). Devolve a revisão nova. */
-export async function addShare(mesa, share) {
-  const r = redis()
-  if (r) {
-    const list = scoped(mesa, SHARES_KEY)
-    const p = r.pipeline()
-    p.lpush(list, JSON.stringify(share))
-    p.ltrim(list, 0, SHARE_HISTORY - 1)
-    p.expire(list, SHARE_TTL_SECONDS)
-    p.incr(rollsRevKey(mesa))
-    const results = await p.exec()
-    return Number(results[3]) || 0
-  }
-  const feed = memoryFeed(mesa)
-  feed.shares = [share, ...feed.shares].slice(0, SHARE_HISTORY)
-  feed.rev += 1
-  return feed.rev
+/** O contador atual (o caminho lento: só quando a inserção não devolveu o `seq`). */
+async function currentRev(db, mesa) {
+  return Number(check(await db.rpc('read_feed', { p_mesa: mesa, p_known: -1 }))?.rev) || 0
 }
 
 /**
+ * Grava uma linha do feed (rolagem ou compartilhamento, já validado) e devolve
+ * a revisão nova. Mandar a mesma de novo (um reenvio) não duplica.
+ */
+async function addToFeed(mesa, table, column, item, author) {
+  const db = supabase()
+  if (!db) {
+    const feed = memoryFeed(mesa)
+    if (table === 'rolls') feed.rolls = [item, ...feed.rolls].slice(0, ROLL_HISTORY)
+    else feed.shares = [item, ...feed.shares].slice(0, SHARE_HISTORY)
+    feed.rev += 1
+    return feed.rev
+  }
+  const row = { id: item.id, mesa, at: item.at, author, [column]: item }
+  if (table === 'rolls' && item.slug) row.slug = item.slug
+  const { data, error } = await db.from(table).insert(row).select('seq').single()
+  if (error?.code === '23505') return currentRev(db, mesa)
+  if (error) throw error
+  return Number(data.seq)
+}
+
+/** Grava a rolagem (já validada). Devolve a revisão nova. */
+export const addRoll = (mesa, roll, author = null) => addToFeed(mesa, 'rolls', 'roll', roll, author)
+
+/** Grava o compartilhamento (já validado). Devolve a revisão nova. */
+export const addShare = (mesa, share, author = null) => addToFeed(mesa, 'shares', 'share', share, author)
+
+/**
  * O feed, se mudou desde `knownRev`. Com o mesmo número, só o contador — é o
- * caso comum do poll, e custa um GET.
+ * caso comum do poll de reserva. Uma consulta (`read_feed`).
  * @returns {Promise<{rev: number, rolls?: object[], shares?: object[]}>}
  */
 export async function readRolls(mesa, knownRev) {
-  const r = redis()
-  const rev = r ? Number(await r.get(rollsRevKey(mesa))) || 0 : memoryRollsRev(mesa)
-  if (knownRev != null && knownRev === rev) return { rev }
-  let { rolls, shares } = memoryFeed(mesa)
-  if (r) {
-    const p = r.pipeline()
-    p.lrange(scoped(mesa, LIST_KEY), 0, ROLL_HISTORY - 1)
-    p.lrange(scoped(mesa, SHARES_KEY), 0, SHARE_HISTORY - 1)
-    ;[rolls, shares] = await p.exec()
+  const db = supabase()
+  if (!db) {
+    const feed = memoryFeed(mesa)
+    if (knownRev != null && knownRev === feed.rev) return { rev: feed.rev }
+    const since = Date.now() - SHARE_WINDOW_MS
+    return { rev: feed.rev, rolls: feed.rolls, shares: feed.shares.filter((x) => x.at > since) }
   }
-  return {
-    rev,
-    rolls: (rolls || []).map(parse).filter(Boolean),
-    shares: (shares || []).map(parse).filter(Boolean),
-  }
+  const out = check(await db.rpc('read_feed', { p_mesa: mesa, p_known: knownRev }))
+  return { ...out, rev: Number(out.rev) || 0 }
 }

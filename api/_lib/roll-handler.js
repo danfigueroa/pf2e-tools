@@ -3,7 +3,9 @@
 // serverless do plano Hobby (ver CLAUDE.md).
 //
 //   GET  ?rolls=1[&rev=N]               → o contador; com `rev` diferente (ou
-//                                          sem `rev`), as últimas 30 rolagens
+//                                          sem `rev`), as últimas 30 rolagens. Com o
+//                                          Realtime aberto, só a leitura inicial e a
+//                                          de cada reconexão — o resto chega pelo canal
 //   POST { action: 'roll-add', roll }   → grava uma rolagem já sorteada
 //   POST { action: 'share-add', share } → compartilha uma regra (talento, magia…)
 //                                          com a mesa; o GET a devolve em `shares`
@@ -11,10 +13,10 @@
 // Vem ANTES da ficha publicada nos dois servidores: a rota da ficha aceita
 // qualquer POST com `action` e engoliria esta.
 
-import { isRedisConfigured } from './table-store.js'
+import { isSupabaseConfigured } from './supabase.js'
 import { addRoll, addShare, readRolls, sanitizeRoll, sanitizeShare } from './roll-store.js'
 
-const ok = (body) => ({ status: 200, body: { ...body, storeReady: isRedisConfigured() } })
+const ok = (body) => ({ status: 200, body: { ...body, storeReady: isSupabaseConfigured() } })
 const fail = (status, error) => ({ status, body: { error } })
 
 /** Falso quando a requisição não é do feed — aí segue para as outras rotas do `state`. */
@@ -24,7 +26,8 @@ export function isRollRequest(method, query, body) {
   return false
 }
 
-export async function handleRollRequest(mesa, method, query, body) {
+/** `ctx.userId`: a sessão anônima de quem rolou (ver `requestUserId`), gravada como autor. */
+export async function handleRollRequest(mesa, method, query, body, ctx = {}) {
   if (method === 'GET') {
     const known = query.rev != null && query.rev !== '' ? Number(query.rev) : null
     return ok(await readRolls(mesa, Number.isFinite(known) ? known : null))
@@ -32,11 +35,11 @@ export async function handleRollRequest(mesa, method, query, body) {
   if (body?.action === 'share-add') {
     const share = sanitizeShare(body?.share)
     if (!share) return fail(400, 'Compartilhamento inválido')
-    const rev = await addShare(mesa, share)
+    const rev = await addShare(mesa, share, ctx.userId ?? null)
     return ok({ rev, share })
   }
   const roll = sanitizeRoll(body?.roll)
   if (!roll) return fail(400, 'Rolagem inválida')
-  const rev = await addRoll(mesa, roll)
+  const rev = await addRoll(mesa, roll, ctx.userId ?? null)
   return ok({ rev, roll })
 }

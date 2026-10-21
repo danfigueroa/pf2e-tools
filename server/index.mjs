@@ -544,7 +544,8 @@ const server = http.createServer(async (req, res) => {
     // Feed de rolagens, também antes da ficha (mesmo motivo do mapa).
     if (isRollRequest(req.method, query, body)) {
       try {
-        const out = await handleRollRequest(mesa, req.method, query, body)
+        const userId = req.method === 'POST' ? await requestUserId(req) : null
+        const out = await handleRollRequest(mesa, req.method, query, body, { userId })
         res.writeHead(out.status, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify(out.body))
       } catch (e) {

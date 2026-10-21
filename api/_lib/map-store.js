@@ -39,7 +39,6 @@
 // o mapa ativo e os contadores dela, e por isso toda função recebe `mesa`.
 
 import { memoryTableRev, readCharacterSlices, redis, tableRevKey } from './table-store.js'
-import { memoryRollsRev, rollsRevKey } from './roll-store.js'
 import { scoped } from './mesas.js'
 
 const MAP_PREFIX = 'pf2e:map:v1:'
@@ -259,22 +258,19 @@ export async function deleteMap(mesa, id) {
 
 /**
  * Os contadores numa ida só. É o que o poll pede a cada segundo e meio, então
- * tem de custar UM comando no Redis. O do feed de rolagens (`rollsRev`) vem de
- * carona: um MGET custa um comando com três chaves ou com quatro, e assim quem
- * está no mapa vê as rolagens da mesa sem poll próprio. Ele NÃO entra na conta
- * de "o mapa mudou" — rolagem não baixa o mapa.
+ * tem de custar UM comando no Redis. (O feed de rolagens ia de carona aqui; hoje
+ * ele chega pelo Realtime.)
  */
 export async function readRevs(mesa, id) {
     const r = redis()
     if (r) {
-        const [rev, tableRev, active, rollsRev] = await r.mget(revKey(mesa, id), tableRevKey(mesa), activeKey(mesa), rollsRevKey(mesa))
-        return { rev: Number(rev) || 0, tableRev: Number(tableRev) || 0, activeId: active ?? null, rollsRev: Number(rollsRev) || 0 }
+        const [rev, tableRev, active] = await r.mget(revKey(mesa, id), tableRevKey(mesa), activeKey(mesa))
+        return { rev: Number(rev) || 0, tableRev: Number(tableRev) || 0, activeId: active ?? null }
     }
     return {
         rev: memStrings.get(revKey(mesa, id)) || 0,
         tableRev: memoryTableRev(mesa),
         activeId: memStrings.get(activeKey(mesa)) ?? null,
-        rollsRev: memoryRollsRev(mesa),
     }
 }
 
