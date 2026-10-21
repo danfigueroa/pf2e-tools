@@ -12,14 +12,10 @@
 // mesma ideia.)
 //
 // Cada escrita é transmitida pelo Realtime no canal `mesa:<mesa>:state`, por um
-// trigger do banco (migration `estado_da_mesa`): o cliente recebe sem pedir.
-//
-// O Redis continua aqui por TRANSIÇÃO: o mapa de combate e o feed de rolagens
-// ainda moram nele (`redis()`), e o mapa descobre que o PV de alguém mudou pelo
-// contador `pf2e:table:rev`, que `writeField` segue subindo. Os dois saem quando
-// o mapa migrar.
+// trigger do banco (migration `estado_da_mesa`): o cliente recebe sem pedir. O
+// mapa recebe o PV dos personagens pelo mesmo canal; no poll de reserva dele, o
+// "contador da mesa" é a escrita mais recente (`table_rev`, no banco).
 
-import { Redis } from '@upstash/redis'
 import { scoped } from './mesas.js'
 import { supabase } from './supabase.js'
 
@@ -38,42 +34,14 @@ const SLUG_RE = /^[a-z0-9-]{1,64}$/
 // A mesma lista do CHECK de `character_state` (migration `estado_da_mesa`).
 const FIELD_RE = /^(hp|slots|conditions|afflictions|persistent|mythic|consumed|shield|token|size|rage|psyche|energy|magus|ranger|rogue|actions|uses|companions|pet:[a-z0-9:#-]{1,80})$/
 
-// Contador de escritas no estado dos personagens, um por mesa. O mapa de combate
-// o lê junto da própria revisão (um MGET) para saber que o PV de alguém mudou
-// pela Ficha Virtual ou pela Iniciativa sem perguntar personagem a personagem.
-const TABLE_REV_KEY = 'pf2e:table:rev'
-export const tableRevKey = (mesa) => scoped(mesa, TABLE_REV_KEY)
 /** A chave do personagem no cache em memória (sem banco). */
 const characterKey = (mesa, slug) => scoped(mesa, KEY_PREFIX + slug)
 
 export const isValidSlug = (slug) => typeof slug === 'string' && SLUG_RE.test(slug)
 export const isValidField = (field) => typeof field === 'string' && FIELD_RE.test(field)
 
-// As duas nomenclaturas em circulação: a integração Upstash do marketplace da
-// Vercel injeta KV_REST_API_*, o console da Upstash entrega UPSTASH_REDIS_REST_*.
-function credentials() {
-    const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL
-    const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN
-    return url && token ? { url, token } : null
-}
-
-/** Redis configurado — o que o mapa e o feed de rolagens ainda usam. */
-export const isRedisConfigured = () => credentials() !== null
-
 /** Onde o estado dos personagens mora: o Supabase. */
 export const isStoreConfigured = () => supabase() !== null
-
-// Client preguiçoso, no mesmo espírito de `callChat` em aon.js: as credenciais
-// são lidas do env na hora do uso, não capturadas na carga do módulo.
-let client = null
-export function redis() {
-    if (!client) {
-        const creds = credentials()
-        if (!creds) return null
-        client = new Redis(creds)
-    }
-    return client
-}
 
 // Sem banco configurado o app não pode quebrar: cai num Map de processo. Em
 // dev isso persiste enquanto o `npm run dev:api` estiver de pé; em serverless
@@ -82,8 +50,8 @@ export function redis() {
 const memory = new Map()
 const memoryRevs = new Map()
 
-/** O contador acima quando não há Redis (lido por map-store.js). */
-export const memoryTableRev = (mesa) => memoryRevs.get(tableRevKey(mesa)) || 0
+/** Sem banco, o "contador da mesa" do poll de reserva do mapa (lido por map-store.js). */
+export const memoryTableRev = (mesa) => memoryRevs.get(mesa) || 0
 
 /** Envelope gravado em cada campo do cache em memória. */
 const envelope = (data) => ({ v: STATE_VERSION, data, updatedAt: Date.now() })
@@ -178,20 +146,11 @@ export async function writeField(mesa, slug, field, data, by = null) {
         const current = memory.get(key) || {}
         current[field] = JSON.stringify({ ...envelope(data), updatedAt })
         memory.set(key, current)
-        memoryRevs.set(tableRevKey(mesa), memoryTableRev(mesa) + 1)
+        memoryRevs.set(mesa, memoryTableRev(mesa) + 1)
         return updatedAt
     }
 
     check(await db.from('character_state')
         .upsert({ mesa, slug, field, data, updated_at: updatedAt, updated_by: by }))
-    // Transição: o mapa ainda descobre a mudança pelo contador do Redis.
-    const r = redis()
-    if (r) {
-        try {
-            await r.incr(tableRevKey(mesa))
-        } catch (error) {
-            console.error('[table-store] Falha ao subir o contador do mapa:', error)
-        }
-    }
     return updatedAt
 }
