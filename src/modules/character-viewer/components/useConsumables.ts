@@ -10,6 +10,10 @@ import { useSharedState } from './useSharedState'
  * `of` é a quantidade que a ficha tinha quando o uso foi marcado: se um export
  * novo chegar com outra quantidade, o jogador já atualizou o Pathbuilder e o
  * gasto contaria duas vezes — o contador daquele item recomeça do zero.
+ *
+ * Item que o personagem só RECEBEU de um colega (`gifts.ts`) não está na ficha:
+ * `of` é 0. O que vale para o contador é sempre a quantidade da FICHA; o que foi
+ * passado entra como `extra` (a variação líquida), que só alarga o teto de uso.
  */
 export interface ConsumedEntry {
     used: number
@@ -17,6 +21,9 @@ export interface ConsumedEntry {
 }
 
 export type ConsumedState = Record<string, ConsumedEntry>
+
+// Teto de sanidade: o total real (ficha + recebido) quem limita é `consume`.
+const MAX_USED = 999
 
 const emptyState = (): ConsumedState => ({})
 
@@ -28,7 +35,7 @@ function sanitize(raw: unknown): ConsumedState {
         const v = value as Partial<ConsumedEntry>
         const used = Math.max(0, Math.floor(Number(v.used) || 0))
         const of = Math.max(0, Math.floor(Number(v.of) || 0))
-        if (used > 0 && of > 0) out[name] = { used: Math.min(used, of), of }
+        if (used > 0) out[name] = { used: Math.min(used, MAX_USED), of }
     })
     return out
 }
@@ -43,31 +50,32 @@ export function useConsumables(syncKey: string) {
     })
 
     /** Quantos usados valem para a quantidade que a ficha tem AGORA. */
-    const usedOf = useCallback((name: string, qty: number): number => {
+    const usedOf = useCallback((name: string, sheetQty: number): number => {
         const entry = state[name]
-        return entry && entry.of === qty ? Math.min(entry.used, qty) : 0
+        return entry && entry.of === sheetQty ? entry.used : 0
     }, [state])
 
-    const remaining = useCallback((name: string, qty: number): number =>
-        Math.max(0, qty - usedOf(name, qty)), [usedOf])
+    /** `extra` = o que o personagem recebeu menos o que passou. */
+    const remaining = useCallback((name: string, sheetQty: number, extra = 0): number =>
+        Math.max(0, sheetQty + extra - usedOf(name, sheetQty)), [usedOf])
 
     /** Gasta uma unidade; ignora se já não houver nenhuma. */
-    const consume = useCallback((name: string, qty: number) => {
+    const consume = useCallback((name: string, sheetQty: number, extra = 0) => {
         setState((s) => {
-            const prev = s[name]?.of === qty ? s[name].used : 0
-            if (prev >= qty) return s
-            return { ...s, [name]: { used: prev + 1, of: qty } }
+            const prev = s[name]?.of === sheetQty ? s[name].used : 0
+            if (prev >= sheetQty + extra) return s
+            return { ...s, [name]: { used: prev + 1, of: sheetQty } }
         })
     }, [setState])
 
     /** Devolve uma unidade — o "Desfazer" e o "Devolver" de um item esgotado. */
-    const restore = useCallback((name: string, qty: number) => {
+    const restore = useCallback((name: string, sheetQty: number) => {
         setState((s) => {
-            const prev = s[name]?.of === qty ? s[name].used : 0
+            const prev = s[name]?.of === sheetQty ? s[name].used : 0
             if (prev <= 0) return s
             const next = { ...s }
             if (prev === 1) delete next[name]
-            else next[name] = { used: prev - 1, of: qty }
+            else next[name] = { used: prev - 1, of: sheetQty }
             return next
         })
     }, [setState])

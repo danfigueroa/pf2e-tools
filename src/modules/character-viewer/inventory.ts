@@ -11,7 +11,10 @@ export interface ItemRow {
     label: string
     /** Nome canônico, o que se busca na AON. */
     name: string
+    /** Quantidade que a pessoa tem AGORA: a da ficha mais o que recebeu menos o que passou (`gifts.ts`). */
     qty: number
+    /** A quantidade da ficha, que é a chave do contador de uso (`consumed.of`). */
+    sheetQty: number
     /** Chips à direita: "Invested", "Vestida", "Arma"… */
     tags: string[]
     /** Só o equipamento pode ser consumível — arma e armadura nunca são. */
@@ -28,6 +31,7 @@ export function inventoryRows(build: BuildInfo): ItemRow[] {
         label: itemDisplayName(build, w, 'weapon'),
         name: w.name,
         qty: w.qty,
+        sheetQty: w.qty,
         tags: ['Arma'],
         equipment: false,
     }))
@@ -36,6 +40,7 @@ export function inventoryRows(build: BuildInfo): ItemRow[] {
         label: itemDisplayName(build, a, 'armor'),
         name: a.name,
         qty: a.qty,
+        sheetQty: a.qty,
         tags: a.worn ? ['Armadura', 'Vestida'] : ['Armadura'],
         equipment: false,
     }))
@@ -43,6 +48,7 @@ export function inventoryRows(build: BuildInfo): ItemRow[] {
         label: name,
         name,
         qty,
+        sheetQty: qty,
         tags: status ? [status] : [],
         equipment: true,
     }))

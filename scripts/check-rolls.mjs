@@ -35,6 +35,8 @@ const acts = await import('../src/modules/character-viewer/actions.ts')
 const tokenFit = await import('../src/modules/battle-map/tokenFit.ts')
 const av = await import('../src/modules/character-viewer/actionVariants.ts')
 const companions = await import('../src/modules/character-viewer/companions.ts')
+const gifts = await import('../src/modules/character-viewer/gifts.ts')
+const tableStore = await import('../api/_lib/table-store.js')
 const { encounterReducer } = await import('../src/modules/initiative-tracker/encounterReducer.ts')
 const { normalizeSpellCasters, normalizeBuild, fixWeaponExports, parseCharacterJson } = await import('../src/modules/character-sheet/types.ts')
 const dice = await import('../src/dice/roll.ts')
@@ -646,6 +648,57 @@ const other = encounterReducer(once, { type: 'addCombatants', combatants: [npcBa
 eq(other.combatants.length, 2, 'Mesmo id em outro dono é outro companheiro')
 const plain = encounterReducer(once, { type: 'addCombatants', combatants: [npcBase({}), npcBase({})] })
 eq(plain.combatants.length, 3, 'Monstro comum (sem dono) pode repetir à vontade')
+
+// ── Passar item entre jogadores ──────────────────────────────────────────────
+{
+    const row = (name, qty, equipment = true) => ({ label: name, name, qty, sheetQty: qty, tags: [], equipment })
+    const potion = 'Healing Potion (Lesser)'
+    // Thalos passa 2 de 3 poções ao Loki; o Loki recebe 2 do Thalos.
+    const thalosGave = gifts.addGave({}, 'loki', potion, 2)
+    const lokiIncoming = { thalos: { [potion]: 2 } }
+    const thalosRows = gifts.withGifts([row(potion, 3), row('Rope', 1)], thalosGave, {})
+    eq(thalosRows.find((r) => r.name === potion).qty, 1, 'gifts: quem passou fica com ficha − passado')
+    eq(thalosRows.find((r) => r.name === potion).sheetQty, 3, 'gifts: a quantidade da ficha (chave do contador de uso) não muda')
+    const lokiRows = gifts.withGifts([row('Rope', 1)], {}, lokiIncoming)
+    const got = lokiRows.find((r) => r.name === potion)
+    ok(got && got.qty === 2 && got.sheetQty === 0 && got.tags.includes('Recebido'), 'gifts: o que só foi recebido vira linha nova, marcada "Recebido"')
+    eq(gifts.withGifts([row(potion, 3)], gifts.addGave({}, 'loki', potion, 3), {}).length, 0, 'gifts: passou tudo, a linha some')
+    // Devolução: o Loki devolve 1; cada um escreve só na própria fatia.
+    const lokiGave = gifts.addGave({}, 'thalos', potion, 1)
+    eq(gifts.deltaOf(potion, lokiGave, lokiIncoming), 1, 'gifts: recebido 2 − devolvido 1 = 1')
+    eq(gifts.heldFrom('thalos', potion, lokiGave, lokiIncoming), 1, 'gifts: líquido que o Loki ainda tem do Thalos')
+    eq(gifts.deltaOf(potion, thalosGave, { loki: { [potion]: 1 } }), -1, 'gifts: o Thalos vê o que o Loki devolveu')
+    eq(gifts.holdersOf(potion, lokiGave, lokiIncoming).map((h) => `${h.slug}:${h.n}`).join(), 'thalos:1', 'gifts: quem passou o item a mim, para devolver')
+    eq(gifts.holdersOf(potion, gifts.addGave({}, 'thalos', potion, 2), lokiIncoming).length, 0, 'gifts: devolvido tudo, não sobra a quem devolver')
+    // Desfazer (-n) apaga a entrada em vez de deixar 0.
+    eq(Object.keys(gifts.addGave(thalosGave, 'loki', potion, -2)).length, 0, 'gifts: desfazer zera e remove a entrada')
+    eq(gifts.addGave({}, 'loki', potion, -1).loki, undefined, 'gifts: desfazer sem nada passado não cria entrada negativa')
+    // Só equipamento recebe a variação: arma e armadura nunca.
+    eq(gifts.withGifts([row(potion, 3, false)], thalosGave, {})[0].qty, 3, 'gifts: arma/armadura não recebem variação')
+    // Sanitize.
+    eq(Object.keys(gifts.sanitizeGave('lixo')).length, 0, 'gifts: fatia inválida vira vazia')
+    eq(Object.keys(gifts.sanitizeGave({ 'MAIUSCULA!': { a: 1 }, ok: { a: 0, b: -2, c: 'x' } })).length, 0, 'gifts: slug fora do padrão e quantidade ≤ 0 são descartados')
+    eq(gifts.sanitizeGave({ ok: { a: 500 } }).ok.a, 99, 'gifts: quantidade é limitada')
+    eq(Object.keys(gifts.sanitizeGave(Object.fromEntries(Array.from({ length: 20 }, (_, i) => [`c${i}`, { a: 1 }])))).length, gifts.MAX_GAVE_TARGETS, 'gifts: há um teto de destinatários')
+    ok(!gifts.canGave(Object.fromEntries(Array.from({ length: gifts.MAX_GAVE_TARGETS }, (_, i) => [`c${i}`, { a: 1 }])), 'novo', 'a'), 'gifts: sem espaço para mais um destinatário')
+    ok(gifts.canGave({ loki: { [potion]: 1 } }, 'loki', potion), 'gifts: quem já tem entrada sempre cabe')
+    // Aviso de chegada.
+    eq(gifts.arrivals({}, lokiIncoming).map((a) => `${a.from}:${a.name}:${a.n}`).join(), `thalos:${potion}:2`, 'gifts: o que chegou aparece no aviso')
+    eq(gifts.arrivals(lokiIncoming, lokiIncoming).length, 0, 'gifts: nada novo, nada de aviso')
+    eq(gifts.arrivals({ thalos: { [potion]: 3 } }, lokiIncoming).length, 0, 'gifts: devolução a menos não é aviso')
+    // Servidor: o campo existe e a leitura do que me passaram funciona (fallback em memória).
+    ok(tableStore.isValidField('gave'), 'gifts: o servidor aceita o campo gave')
+    if (!tableStore.isStoreConfigured()) {
+        const mesa = 'casa-do-gordo'
+        await tableStore.writeField(mesa, 'thalos', 'gave', { loki: { [potion]: 2 }, ceros: { Rope: 1 } })
+        await tableStore.writeField(mesa, 'ceros', 'gave', { loki: { [potion]: 1 } })
+        await tableStore.writeField(mesa, 'loki', 'gave', { loki: { auto: 9 } })
+        const inc = await tableStore.readIncoming(mesa, 'loki')
+        eq(inc.thalos?.[potion], 2, 'gifts: readIncoming traz o que o Thalos me passou')
+        eq(inc.ceros?.[potion], 1, 'gifts: readIncoming traz o que o Ceros me passou')
+        eq(Object.keys(inc).length, 2, 'gifts: readIncoming ignora o que aponta para outros e para mim mesmo')
+    }
+}
 
 // ── Enquadramento da imagem do token (Modo GM) ───────────────────────────────
 const tf = tokenFit

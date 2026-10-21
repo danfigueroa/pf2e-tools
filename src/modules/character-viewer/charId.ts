@@ -81,6 +81,9 @@ export const usesKeyFor = (build: BuildInfo): string => usesKeyForSlug(charSlug(
 /** Companheiros de combate (`companions.ts`). */
 export const companionsKeyForSlug = (slug: string): string => `${slug}/companions`
 export const companionsKeyFor = (build: BuildInfo): string => companionsKeyForSlug(charSlug(build))
+/** O que o personagem já passou a cada colega (`gifts.ts`). */
+export const gaveKeyForSlug = (slug: string): string => `${slug}/gave`
+export const gaveKeyFor = (build: BuildInfo): string => gaveKeyForSlug(charSlug(build))
 export const psycheKeyFor = (build: BuildInfo): string => psycheKeyForSlug(charSlug(build))
 
 /**
