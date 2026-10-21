@@ -1,0 +1,1455 @@
+{
+ "version": "v13",
+ "character": "Loki",
+ "entries": {
+  "spell": {
+   "Blur": {
+    "name": "Blur",
+    "level": 2,
+    "sourceBook": "Player Core, p. 318",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Illusion",
+     "Manipulate",
+     "Visual"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "toque",
+    "area": "",
+    "targets": "1 criatura",
+    "duration": "1 minuto",
+    "defense": "",
+    "description": "A forma do alvo parece borrada. Ele se torna oculto. Como a natureza deste efeito ainda deixa a localização do alvo óbvia, o alvo não pode usar essa ocultação para Hide ou Sneak.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Detect Magic": {
+    "name": "Detect Magic",
+    "level": 1,
+    "heighten": [
+     "3rd",
+     "4th"
+    ],
+    "sourceBook": "Player Core, p. 323",
+    "actions": "Two Actions",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Detection",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Primal",
+     "Elemental"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "emanação de 30 pés",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "Você emite um pulso que registra a presença de magia. Você não recebe nenhuma informação além da presença ou ausência de magia. Você pode optar por ignorar magias das quais você está totalmente ciente, como os itens mágicos e magias em curso suas e de seus aliados. Você detecta magia de ilusão apenas se o efeito dessa magia tiver uma graduação menor que a graduação da sua magia detect magic. No entanto, itens que possuem uma aura de ilusão, mas não são enganosos em aparência (como uma poção de invisibilidade), normalmente são detectados normalmente.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "3rd",
+      "text": "Você aprende a graduação ou nível do efeito mágico mais poderoso que a magia detecta, conforme determinado pelo Mestre."
+     },
+     {
+      "level": "4th",
+      "text": "Como na 3ª graduação, mas você também localiza a fonte da magia de graduação mais alta. Como para um sentido impreciso, você não aprende a localização exata, mas pode restringir a fonte a um cubo de 1,5 metros (ou o mais próximo, se for maior que isso)."
+     }
+    ]
+   },
+   "Dimensional Assault": {
+    "name": "Dimensional Assault",
+    "level": 1,
+    "heighten": [
+     "5th"
+    ],
+    "sourceBook": "Impossible Magic, p. 179",
+    "actions": "Single Action",
+    "traits": [
+     "Concentrate",
+     "Focus",
+     "Magus",
+     "Teleportation",
+     "Uncommon"
+    ],
+    "castComponents": "",
+    "range": "half seu Speed",
+    "area": "",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "Você atravessa uma pequena fenda no próprio espaço, realizando um curto salto dimensional para se posicionar melhor para um ataque surpresa devastador. Teleporte-se para qualquer espaço dentro do alcance que você possa ver e que esteja ao alcance de um inimigo, e então faça um Strike corpo a corpo contra esse inimigo. Se você tentar levar outra criatura com você ao se teleportar — mesmo que esteja carregando-a em um recipiente extradimensional — a magia é interrompida.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "5th",
+      "text": "O alcance é igual ao seu Deslocamento."
+     }
+    ]
+   },
+   "Electric Arc": {
+    "name": "Electric Arc",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 328",
+    "actions": "Two Actions",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Electricity",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "30 pés",
+    "area": "",
+    "targets": "1 ou 2 criaturas",
+    "duration": "",
+    "defense": "Reflexos básico",
+    "description": "Um arco de eletricidade salta de um alvo para outro. Cada alvo sofre 2d4 de dano de eletricidade com um teste básico de Reflexos.",
+    "damage": "2d4",
+    "damageType": "eletricidade",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "O dano aumenta em 1d4."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "2d4",
+       "kind": "damage",
+       "types": [
+        "electricity"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 4,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 4,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Exchange Image": {
+    "name": "Exchange Image",
+    "level": 1,
+    "sourceBook": "Pathfinder #147: Tomorrow Must Burn, p. 73",
+    "actions": "Two Actions",
+    "traits": [
+     "Illusion",
+     "Uncommon",
+     "Visual"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "toque",
+    "area": "",
+    "targets": "você e 1 other humanoid",
+    "duration": "varia",
+    "defense": "Vontade",
+    "description": "Para enganar perseguidores, o Lacunafex desenvolveu meios de trocar de aparência. Você troca de aparência com o alvo, com os efeitos dependendo do resultado do teste de resistência de Vontade do alvo. Alvos dispostos e inconscientes falham automaticamente de forma crítica neste teste de resistência. Sucesso Crítico Nenhum efeito. Sucesso Você assume a aparência do alvo, e ele assume a sua. Isso tem os mesmos efeitos de uma magia illusory disguise de 1º nível, exceto que o alvo não pode Dismiss o disfarce. A duração é de 1 minuto ou até ser Dismissed. Falha Como no sucesso, mas a duração é de 1 hora ou até ser Dismissed. Falha Crítica Como no sucesso, mas a duração é de 24 horas.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Figment": {
+    "name": "Figment",
+    "level": 1,
+    "sourceBook": "Player Core, p. 331",
+    "actions": "Two Actions",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Illusion",
+     "Manipulate",
+     "Subtle"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "30 pés",
+    "area": "",
+    "targets": "",
+    "duration": "sustentada",
+    "defense": "",
+    "description": "Você cria um som ou visão ilusória simples. Um som adiciona o traço auditivo à magia e o som não pode incluir palavras inteligíveis ou música elaborada. Uma visão adiciona o traço visual, não pode ser maior que um cubo de 1,5 metros e é claramente rudimentar e sem detalhes se vista a menos de 4,5 metros. Quando você Cast ou Sustain a magia, você pode tentar Create a Diversion com a ilusão, ganhando um bônus de circunstância de +2 no seu teste de Deception. Se a tentativa falhar contra uma criatura, essa criatura desacredita da ilusão.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Force Fang": {
+    "name": "Force Fang",
+    "level": 1,
+    "heighten": [
+     "+2"
+    ],
+    "sourceBook": "Impossible Magic, p. 179",
+    "actions": "Single Action",
+    "traits": [
+     "Focus",
+     "Force",
+     "Magus",
+     "Manipulate",
+     "Uncommon"
+    ],
+    "castComponents": "",
+    "range": "varia",
+    "area": "",
+    "targets": "1 criatura",
+    "duration": "",
+    "defense": "",
+    "description": "Você transforma brevemente seu ataque em pura energia de força para contornar as defesas do seu oponente. Você magicamente transforma sua arma ou ataque desarmado em um espinho de pura força que causa 1d4+1 de dano de força a um alvo dentro do seu alcance corpo a corpo. Se você puder usar Spellstrike com uma arma de ataque à distância (com o estudo híbrido starlit span, por exemplo), você pode, em vez disso, alvejar uma criatura no primeiro incremento de alcance da sua arma de ataque à distância.",
+    "damage": "1d4+1",
+    "damageType": "força",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+2",
+      "text": "O dano aumenta em 1d4+1."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "1d4+1",
+       "kind": "damage",
+       "types": [
+        "force"
+       ],
+       "persistent": false,
+       "count": 1,
+       "faces": 4,
+       "flat": 1,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+2",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 4,
+         "flat": 1
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Haste": {
+    "name": "Haste",
+    "level": 3,
+    "heighten": [
+     "7th"
+    ],
+    "sourceBook": "Player Core, p. 335",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "30 pés",
+    "area": "",
+    "targets": "1 criatura",
+    "duration": "1 minuto",
+    "defense": "",
+    "description": "A magia capacita o alvo a agir mais rápido. Ele ganha a condição quickened e pode usar a ação extra a cada rodada apenas para ações de Strike e Stride.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "7th",
+      "text": "Você pode ter como alvo até 6 criaturas."
+     }
+    ]
+   },
+   "Ignition": {
+    "name": "Ignition",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 336",
+    "actions": "Two Actions",
+    "traits": [
+     "Attack",
+     "Cantrip",
+     "Concentrate",
+     "Fire",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "30 pés",
+    "area": "",
+    "targets": "1 criatura",
+    "duration": "",
+    "defense": "CA",
+    "description": "Você estala os dedos e aponta para um alvo, que começa a fumegar. Faça um teste de ataque de magia contra a CA do alvo, causando 2d4 de dano de fogo em um acerto. Se o alvo estiver dentro do seu alcance corpo a corpo, você pode escolher fazer um ataque de magia corpo a corpo com a chama em vez de um ataque de magia à distância, o que aumenta todos os dados de dano da magia para d6s. Sucesso Crítico: O alvo sofre o dobro de dano e 1d4 de dano de fogo persistente. Sucesso: O alvo sofre o dano total.",
+    "damage": "2d4",
+    "damageType": "fogo",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "O dano inicial aumenta em 1d4 e o dano de fogo persistente em um acerto crítico aumenta em 1d4."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "2d4",
+       "kind": "damage",
+       "types": [
+        "fire"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 4,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      },
+      {
+       "id": 1,
+       "formula": "1d4",
+       "kind": "damage",
+       "types": [
+        "fire"
+       ],
+       "persistent": true,
+       "count": 1,
+       "faces": 4,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 4,
+         "flat": 0
+        },
+        {
+         "id": 1,
+         "mode": "add",
+         "count": 1,
+         "faces": 4,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Imaginary Weapon": {
+    "name": "Imaginary Weapon",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Dark Archive (Remastered), p. 22",
+    "actions": "Two Actions",
+    "traits": [
+     "Attack",
+     "Cantrip",
+     "Concentrate",
+     "Force",
+     "Manipulate",
+     "Psychic",
+     "Uncommon"
+    ],
+    "castComponents": "",
+    "range": "toque",
+    "area": "",
+    "targets": "1 criatura",
+    "duration": "",
+    "defense": "CA",
+    "description": "Você cria uma arma simples de força e desfere um golpe, seu arco seguindo sua mão. Faça um teste de ataque de magia corpo a corpo contra a CA do seu alvo. Se você acertar, você causa 2d6 de dano de força. Em um sucesso crítico, você causa dano dobrado e pode escolher detonar sua arma para empurrar o alvo 3 metros para longe de você. Amp Você forma múltiplas armas de força para atacar múltiplos inimigos. Você pode alvejar duas criaturas, fazendo um ataque contra cada uma. Esses ataques aumentam sua penalidade de ataque múltiplo, mas você não aumenta sua penalidade de ataque múltiplo até depois de realizar todos os testes de ataque de magia. Amp Aprimorada (+1) O dano aumenta em 2d6 em vez de 1d6.",
+    "damage": "2d6",
+    "damageType": "força",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "O dano aumenta em 1d6."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "2d6",
+       "kind": "damage",
+       "types": [
+        "force"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 6,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Invisibility": {
+    "name": "Invisibility",
+    "level": 2,
+    "heighten": [
+     "4th"
+    ],
+    "sourceBook": "Player Core, p. 339",
+    "actions": "Two Actions",
+    "traits": [
+     "Illusion",
+     "Manipulate",
+     "Subtle"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "toque",
+    "area": "",
+    "targets": "1 criatura",
+    "duration": "10 minutos",
+    "defense": "",
+    "description": "Ilusões curvam a luz ao redor do alvo, tornando-o invisível. Isso o torna undetected para todas as criaturas, embora as criaturas possam tentar encontrar o alvo, tornando-o hidden para elas em vez disso. Se o alvo usar uma ação hostil, a magia termina após a conclusão dessa ação hostil. Esclarecimento da Paizo: Invisibility segue as regras da condição invisible. A segunda frase as resume, mas não cobre todos os casos, como você estar hidden para criaturas que o observam quando você se torna invisível, em vez de estar undetected para elas.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "4th",
+      "text": "A magia dura 1 minuto, mas não termina se o alvo usar uma ação hostil."
+     }
+    ]
+   },
+   "Needle Darts": {
+    "name": "Needle Darts",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Rage of Elements, p. 144",
+    "actions": "Two Actions",
+    "traits": [
+     "Attack",
+     "Cantrip",
+     "Concentrate",
+     "Manipulate",
+     "Metal"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "60 pés",
+    "area": "",
+    "targets": "1 criatura",
+    "duration": "",
+    "defense": "CA",
+    "description": "Você molda três agulhas a partir de um pedaço de metal que possui e as envia voando em um grupo apertado em direção a um alvo. Faça uma rolagem de ataque de magia contra a CA do alvo. As agulhas causam 3d4 de dano perfurante e podem causar sangramento. As agulhas conferem quaisquer propriedades especiais do metal que as forma; por exemplo, agulhas de ferro frio causam dano adicional a criaturas com fraqueza a ferro frio. Todas as agulhas são feitas do mesmo metal, e o metal retorna a você após o ataque. Sucesso Crítico O alvo recebe dano dobrado e 1 de dano persistente de sangramento. Sucesso O alvo recebe o dano total.",
+    "damage": "3d4",
+    "damageType": "perfurante",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "Você envia mais uma agulha, aumentando o dano normal em 1d4 e aumentando o dano persistente de sangramento em um ponto em um acerto crítico."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "3d4",
+       "kind": "damage",
+       "types": [
+        "piercing"
+       ],
+       "persistent": false,
+       "count": 3,
+       "faces": 4,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      },
+      {
+       "id": 1,
+       "formula": "1",
+       "kind": "damage",
+       "types": [
+        "bleed"
+       ],
+       "persistent": true,
+       "count": 0,
+       "faces": 0,
+       "flat": 1,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [],
+       "safe": false,
+       "resolved": false
+      }
+     ]
+    }
+   },
+   "Shield (Archetype)": {
+    "name": "Shield",
+    "level": 1,
+    "heighten": [
+     "3rd",
+     "5th",
+     "7th",
+     "9th"
+    ],
+    "sourceBook": "Core Rulebook, p. 368",
+    "actions": "Single Action",
+    "traits": [
+     "Abjuration",
+     "Cantrip",
+     "Force"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Elemental"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "até o início de seu próximo turno",
+    "defense": "",
+    "description": "Você levanta um escudo mágico de força. Isso conta como usar a ação Raise a Shield, concedendo-lhe um bônus circunstancial de +1 à CA até o início do seu próximo turno, mas não requer uma mão para usar. Enquanto a magia está em efeito, você pode usar a reação Shield Block com seu escudo mágico. O escudo tem Dureza 5. Depois de usar Shield Block, a magia termina e você não pode lançá‑la novamente por 10 minutos. Diferente de um Shield Block normal, você pode usar a reação da magia contra a magia magic missile. Aumentar a magia aumenta a Dureza do escudo.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "3rd",
+      "text": "O escudo tem Dureza 10."
+     },
+     {
+      "level": "5th",
+      "text": "O escudo tem Dureza 15."
+     },
+     {
+      "level": "7th",
+      "text": "O escudo tem Dureza 20."
+     },
+     {
+      "level": "9th",
+      "text": "O escudo tem Dureza 25."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "5",
+       "kind": "hardness",
+       "types": [],
+       "persistent": false,
+       "count": 0,
+       "faces": 0,
+       "flat": 5,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "3rd",
+       "adds": [],
+       "safe": false,
+       "resolved": false
+      },
+      {
+       "level": "5th",
+       "adds": [],
+       "safe": false,
+       "resolved": false
+      },
+      {
+       "level": "7th",
+       "adds": [],
+       "safe": false,
+       "resolved": false
+      },
+      {
+       "level": "9th",
+       "adds": [],
+       "safe": false,
+       "resolved": false
+      }
+     ]
+    }
+   },
+   "Slow": {
+    "name": "Slow",
+    "level": 3,
+    "heighten": [
+     "6th"
+    ],
+    "sourceBook": "Player Core, p. 357",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "30 pés",
+    "area": "",
+    "targets": "1 criatura",
+    "duration": "varia",
+    "defense": "Fortitude",
+    "description": "Você dilata o fluxo do tempo ao redor do alvo, retardando suas ações. Sucesso Crítico O alvo não é afetado. Sucesso O alvo fica retardado 1 por 1 rodada. Falha O alvo fica retardado 1 por 1 minuto. Falha Crítica O alvo fica retardado 2 por 1 minuto.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "6th",
+      "text": "Você pode atingir até 10 criaturas."
+     }
+    ]
+   },
+   "Sure Strike": {
+    "name": "Sure Strike",
+    "level": 1,
+    "sourceBook": "Player Core, p. 361",
+    "actions": "Single Action",
+    "traits": [
+     "Concentrate",
+     "Fortune"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "até o fim de seu turno",
+    "defense": "",
+    "description": "Na próxima vez que você realizar um teste de ataque antes do final do seu turno, role-o duas vezes e use o melhor resultado. O ataque ignora penalidades de circunstância ao teste de ataque e qualquer teste simples exigido devido ao alvo estar oculto ou escondido. Você fica então temporariamente imune a sure strike por 10 minutos.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Telekinetic Hand": {
+    "name": "Telekinetic Hand",
+    "level": 1,
+    "heighten": [
+     "3rd",
+     "5th",
+     "7th"
+    ],
+    "sourceBook": "Player Core, p. 362",
+    "actions": "Two Actions",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult",
+     "Elemental"
+    ],
+    "castComponents": "",
+    "range": "30 pés",
+    "area": "",
+    "targets": "1 objeto desacompanhado of Light bulk ou less",
+    "duration": "sustentada",
+    "defense": "",
+    "description": "Você cria uma mão mágica flutuante, invisível ou fantasmagórica, que agarra o objeto alvo e o levita lentamente em até 20 pés em qualquer direção. Quando você Sustain a magia, você pode mover o objeto por mais 20 pés. Se o objeto estiver no ar quando a magia terminar, o objeto cai.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "3rd",
+      "text": "Você pode escolher como alvo um objeto desacompanhado com um Bulk de 1 ou menos."
+     },
+     {
+      "level": "5th",
+      "text": "O alcance aumenta para 60 pés, e você pode escolher como alvo um objeto desacompanhado com um Bulk de 1 ou menos."
+     },
+     {
+      "level": "7th",
+      "text": "O alcance aumenta para 60 pés, e você pode escolher como alvo um objeto desacompanhado com um Bulk de 2 ou menos."
+     }
+    ]
+   },
+   "Vision of Death": {
+    "name": "Vision of Death",
+    "level": 4,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 366",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Death",
+     "Emotion",
+     "Fear",
+     "Manipulate",
+     "Mental"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "120 pés",
+    "area": "",
+    "targets": "1 criatura viva",
+    "duration": "",
+    "defense": "Vontade",
+    "description": "Você força o alvo a ver uma visão de sua própria morte. Ele recebe 8d6 de dano mental com um teste de Vontade. Se o alvo for reduzido a 0 PV por esta magia, sua visão torna‑se realidade e o mata instantaneamente. Sucesso Crítico O alvo não é afetado. Sucesso O alvo recebe metade do dano e fica frightened 1. Falha O alvo recebe o dano total e fica frightened 2. Falha Crítica O alvo recebe dano dobrado, fica frightened 4 e está fugindo enquanto estiver frightened.",
+    "damage": "8d6",
+    "damageType": "mental",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "O dano aumenta em 2d6."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "8d6",
+       "kind": "damage",
+       "types": [
+        "mental"
+       ],
+       "persistent": false,
+       "count": 8,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 2,
+         "faces": 6,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   }
+  },
+  "feat": {
+   "Assurance": {
+    "name": "Assurance",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Fortune",
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "prerequisites": "treinado em pelo menos uma perícia",
+    "description": "Mesmo nas piores circunstâncias, você consegue realizar tarefas básicas. Escolha uma perícia na qual você seja treinado. Você pode abrir mão de rolar um teste de perícia para essa perícia para, em vez disso, receber um resultado de 10 + seu bônus de proficiência (não aplique quaisquer outros bônus, penalidades ou modificadores). Esclarecimento da Paizo: O que acontece com habilidades que dependem da sua rolagem quando você define seu dado para um certo resultado em vez de rolar de fato? Tipicamente, ainda conta como uma rolagem para habilidades que são ativadas pela sua rolagem. Por exemplo, se você usou Assurance para obter automaticamente um resultado de 10 + seu bônus de proficiência e isso resultaria em um sucesso, uma habilidade que se aplica a essa perícia e diz \"quando você rolar um sucesso, você obtém um sucesso crítico em vez disso\" ainda elevaria seu resultado para um sucesso crítico. Embora essa regra geral deva se aplicar na maior parte do tempo, um Mestre pode decidir de outra forma em certas circunstâncias com base nas habilidades específicas e seus temas. Especial: Você pode selecionar este talento múltiplas vezes. A cada vez, escolha uma perícia diferente e obtenha os benefícios para essa perícia."
+   },
+   "Basic Thoughtform": {
+    "name": "Basic Thoughtform",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Psychic"
+    ],
+    "sourceBook": "Dark Archive (Remastered), p. 48",
+    "prerequisites": "Psychic Dedication",
+    "description": "Você ganha um talento de psíquico de 1º ou 2º nível à sua escolha."
+   },
+   "Cognitive Crossover": {
+    "name": "Kreighton's Cognitive Crossover",
+    "level": 4,
+    "actions": "Reaction",
+    "traits": [
+     "General",
+     "Skill",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "PFS Guide, p. 119",
+    "trigger": "Você não obtém nenhuma informação de um teste de Record Knowledge (geralmente porque você falhou no teste secreto) usando uma das duas perícias que você escolheu para este talento.",
+    "access": "Membro da Pathfinder Society.",
+    "description": "Kreighton ensina a seus estudantes que uma mente ágil pode colher pistas que levam à verdade, mesmo das fontes mais improváveis. Você tenta novamente o teste que desencadeou a ação usando a outra perícia escolhida. Especial: Quando você ganha este talento, escolha duas das seguintes perícias: Arcanismo, Ofício, Conhecimento (qualquer um), Medicina, Natureza, Ocultismo, Religião ou Sociedade. Scrolls Training Fonte: PFS Guide pág. 119. O Mestre dos Pergaminhos da Sociedade, Kreighton Shaine (Lost Omens Pathfinder Society Guide página 42), pode ser considerado estranho e distraído por seus pares, mas o capitão de empreitada elfo leva seus deveres muito a sério. Habilidoso em pesquisar assuntos obscuros e desvendar segredos inescrutáveis, Kreighton ensina a seus estudantes o valor de uma mente inquisitiva. Talentos Relacionados:"
+   },
+   "Divert Destiny": {
+    "name": "Divert Destiny",
+    "level": 6,
+    "actions": "Free Action",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "trigger": "Um ataque ou efeito reduziria você a 0 Pontos de Vida ou o mataria instantaneamente.",
+    "description": "Você desafia o destino à sua frente, recorrendo a fontes de vitalidade mítica para sustentar sua vida e permitir que você persevere. Você gasta 1 Mythic Point e sobrevive ao ataque ou efeito que causou a ativação, perde as condições wounded ou dying inteiramente, não aumenta sua condição doomed, e permanece consciente e de pé com um número de Pontos de Vida igual a 10 + seu nível, independentemente de quantos Pontos de Vida você tinha antes."
+   },
+   "Ears that Hear the Truth": {
+    "name": "Ears that Hear the Truth",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 81",
+    "description": "Você tem uma compreensão aguçada dos ritmos dos seres vivos, e nunca perde o tremor que trai uma mentira falada. Quando você tenta Sense Motive, ou quando você rola Perception para iniciativa, você pode gastar um Mythic Point para tentar o teste ou rolagem com proficiência mítica."
+   },
+   "Force Fang": {
+    "name": "Force Fang",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Magus"
+    ],
+    "category": "feat",
+    "sourceBook": "Impossible Magic, p. 18",
+    "description": "Você pode transformar seu ataque em um borrão infalível de força. Você aprende a magia conflux force fang."
+   },
+   "Mental Balm": {
+    "name": "Mental Balm",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Amp",
+     "Emotion",
+     "Mental",
+     "Psychic"
+    ],
+    "category": "feat",
+    "sourceBook": "Dark Archive (Remastered), p. 24",
+    "description": "Suas magias liberam ondas mentais calmantes. Use este amp no lugar da entrada de amp normal de um psi cantrip. Você só pode usar este amp em um psi cantrip que tenha como alvo ou afete você ou um ou mais de seus aliados e não tenha como alvo ou afete nenhum inimigo. Amp Você ou um aliado a até 9 metros ganha um bônus de status de +2 em testes de Vontade contra efeitos de emoção por 1 minuto. Você também pode fazer com que o psi cantrip amplificado tente anular um efeito que imponha a condição frightened em você ou no aliado escolhido, ou um efeito que imponha a condição stupefied que tenha uma duração de 1 hora ou menos. Se você anular o efeito com sucesso, você remove apenas as condições frightened e stupefied, e nenhuma outra parte do efeito."
+   },
+   "Oddity Identification": {
+    "name": "Oddity Identification",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 259",
+    "prerequisites": "Treinado em Ocultismo",
+    "description": "Quando você percebe um efeito mágico ou vê uma magia sendo conjurada, você pode determinar imediatamente se ela distorce mentes (com o traço mental), luta contra a sorte (com o traço sorte ou azar), ou revela segredos (com os traços detecção, predição, revelação ou escrutínio). A critério do Mestre, efeitos similares também podem se enquadrar nessas categorias. Quando você usa Identify Magic ou Recall Knowledge para aprender mais sobre esses efeitos, você sempre pode usar Ocultismo sem penalidade e ganha um bônus de circunstância de +2."
+   },
+   "Pickpocket": {
+    "name": "Pickpocket",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 259",
+    "prerequisites": "Treinado em Thievery",
+    "description": "Você pode Steal ou Palm um objeto que esteja sendo guardado de perto, como em um bolso, sem sofrer a penalidade de –5. Você não pode roubar objetos que seriam extremamente perceptíveis ou demorados para remover (como sapatos ou armaduras vestidas ou objetos empunhados ativamente). Se você for mestre em Thievery, você pode tentar Steal de uma criatura em combate ou que esteja em alerta. Ao fazer isso, Steal requer 2 ações em vez de 1, e você sofre uma penalidade de –5."
+   },
+   "Psi Development": {
+    "name": "Psi Development",
+    "level": 6,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Psychic"
+    ],
+    "sourceBook": "Dark Archive (Remastered), p. 48",
+    "prerequisites": "Psychic Dedication",
+    "description": "Você encontrou uma nova forma mental. Você ganha outro psi cantrip da sua mente consciente: ou o cantrip padrão que você não escolheu com Psychic Dedication, ou o psi cantrip de superfície único. Você ganha os benefícios psíquicos para este segundo psi cantrip. Você ganha a habilidade de usar amp em seus psi cantrips. Se você não tiver uma, você ganha uma reserva de foco de 1 Ponto de Foco, que você pode usar para usar amp em seus psi cantrips, e você pode Refocus meditando sobre seus novos poderes."
+   },
+   "Psychic Dedication": {
+    "name": "Psychic Dedication",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Archetype",
+     "Dedication",
+     "Multiclass"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Psychic"
+    ],
+    "sourceBook": "Dark Archive (Remastered), p. 48",
+    "prerequisites": "Inteligência +2 ou Carisma +2",
+    "description": "Você sente algo despertar dentro da sua mente. Você se torna treinado em Ocultismo; se você já era treinado em Ocultismo, você se torna treinado em uma perícia à sua escolha. Você conjura magias como um psíquico e ganha a atividade Cast a Spell; como você não possui a característica de classe mente subconsciente, suas formas de pensamento são intenções simples. Escolha uma mente consciente. Você ganha um repertório de magias com um psi cantrip padrão à sua escolha da sua mente consciente, que você conjura como um psi cantrip. Você ganha os benefícios normais para este psi cantrip, mas não quaisquer outros benefícios da mente consciente. Você é treinado nas estatísticas de modificador de ataque de magia e CD de magia. Seu atributo chave de conjuração para magias de arquétipo psíquico é o atributo que você usou para se qualificar para o arquétipo, e elas são magias psíquicas ocultas."
+   },
+   "Reactive Strike": {
+    "name": "Reactive Strike",
+    "level": 6,
+    "actions": "Reaction",
+    "traits": [
+     "Barbarian",
+     "Champion",
+     "Commander",
+     "Exemplar",
+     "Guardian",
+     "Magus",
+     "Swashbuckler"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Marshal",
+     "Golden Legionnaire"
+    ],
+    "sourceBook": "Player Core 2, p. 80",
+    "trigger": "Uma criatura dentro do seu alcance usa uma ação de manipular ou uma ação de movimento, realiza um ataque à distância, ou deixa um quadrado durante uma ação de movimento que ela esteja usando.",
+    "description": "Você desfere um golpe contra um inimigo que deixa uma abertura. Realize um Strike corpo a corpo contra a criatura que provocou a reação. Se seu ataque for um acerto crítico e o gatilho foi uma ação de manipular, você interrompe essa ação. Este Strike não conta para sua penalidade de ataques múltiplos, e sua penalidade de ataques múltiplos não se aplica a este Strike."
+   },
+   "Read Psychometric Resonance": {
+    "name": "Read Psychometric Resonance",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Concentrate",
+     "Emotion",
+     "Exploration",
+     "General",
+     "Mental",
+     "Occult",
+     "Skill",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "Dark Archive (Remastered), p. 79",
+    "prerequisites": "Treinado em Ocultismo",
+    "description": "Com um toque, você pode ler as impressões psíquicas deixadas nos objetos por seus proprietários anteriores. Esta atividade de exploração funciona de forma semelhante a Detect Magic, pois você se move a metade da sua velocidade de viagem ou mais devagar enquanto procura por ressonância psicométrica. Você deve passar as mãos nuas sobre quaisquer objetos que cruzar enquanto faz isso. Isso detecta objetos com ressonância emocional significativa anexada a eles, como a alegria do ursinho de pelúcia amado de uma criança, a tristeza do anel de casamento de um viúvo, ou o medo da arma de assassinato de uma vítima. Se você está procurando um tipo particular de ressonância emocional, pode escolher ignorar outras emoções. Se encontrar um item com essa ressonância, pode explorar essa ressonância com a ação a seguir. Psychometric Assessment (concentrate, emotion, exploration, mental, occult) Requisitos Suas mãos nuas estão tocando um objeto no qual você detectou ressonância psicométrica; Efeito Você gasta 1 minuto concentrando-se no objeto para obter uma visão do rosto da pessoa que imbuíu o item com tal emoção originalmente. Se a emoção associada for dolorosamente negativa, você pode sofrer 1d6 de dano psíquico, conforme determinado pelo GM."
+   },
+   "Reincarnation Feat": {
+    "name": "Feast",
+    "level": 4,
+    "actions": "Two Actions",
+    "traits": [
+     "Archetype",
+     "Manipulate"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Zombie"
+    ],
+    "sourceBook": "Book of the Dead, p. 60",
+    "prerequisites": "Zombie Dedication",
+    "requirements": "Você está adjacente a uma criatura restrita ou inconsciente, ou a uma criatura morta que morreu na última hora.",
+    "description": "Você se alimenta de uma criatura adjacente restrita ou inconsciente, ou de uma criatura morta que morreu na última hora. Se a criatura estiver viva, você causa dano igual ao dano das suas mandíbulas. Viva ou morta, você ganha um número de Pontos de Vida temporários igual à metade do seu nível, que duram 1 minuto. Você pode, ao invés disso, escolher ganhar Pontos de Vida temporários iguais ao dobro do seu nível, mas se fizer isso, deve ter sucesso em um teste plano de CD 6 ou seu corpo se deteriora."
+   },
+   "Spirit Sheath": {
+    "name": "Spirit Sheath",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Arcane",
+     "Extradimensional",
+     "Magus"
+    ],
+    "category": "feat",
+    "sourceBook": "Impossible Magic, p. 18",
+    "description": "Você construiu magicamente uma bainha extradimensional para sua arma que você acessa através de sua roupa, tipicamente através de um bolso, manga ou costura. Essa bainha é difícil de notar, concedendo um bônus circunstancial de +2 aos seus testes de Stealth para Conceal an Item dentro dela. Uma bainha espiritual pode conter até 1 de Volume de armas. Durante um Spellstrike, você pode Interact para retirar uma arma da bainha antes de Cast the Spell. Você pode retirar ou devolver uma arma a uma bainha espiritual como uma ação Interact, assim como qualquer outra pessoa que esteja segurando ou vestindo a roupa que contém a bainha. Uma magia dispel magic ou efeito similar pode ser usado contra a bainha espiritual para expulsar a arma. O teste de counteract é feito contra seu spell DC e o rank de counteract é metade do seu nível arredondado para cima. A arma também é expulsa se você ficar unconscious."
+   },
+   "Surgewise Fleshwarp": {
+    "name": "Surgewise Fleshwarp",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Impossible Lands, p. 28",
+    "description": "Heritage Surgewise Fleshwarp\nAs ondulações dos cílios do seu corpo são hiper‑sintonizadas com fontes de magia; elas vibram e ressoam com percepções sobre energias ocultas, e suas vibrações alertam você para a presença de segredos. Você ganha a proficiência treinado em Ocultismo. Se você já for treinado em Ocultismo, ao invés disso torna‑se treinado em outra perícia de sua escolha. Você também ganha o feito de perícia Oddity Identification."
+   },
+   "Toughness": {
+    "name": "Toughness",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 263",
+    "description": "Seu corpo pode suportar mais punição do que a maioria antes de sucumbir. Aumente seus Pontos de Vida máximos pelo seu nível. Você reduz a CD dos testes de recuperação em 1."
+   },
+   "Unbelievably Believable": {
+    "name": "Unbelievably Believable",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "description": "Suas palavras ecoam com poder tranquilizador e convincente. Quando você tenta um teste para Coletar Informação, Fazer uma Impressão, Solicitar ou Mentir, pode gastar um Ponto Mítico para tentar o teste com proficiência mítica."
+   },
+   "Uncanny Awareness": {
+    "name": "Uncanny Awareness",
+    "level": 5,
+    "actions": "",
+    "traits": [
+     "Fleshwarp"
+    ],
+    "category": "feat",
+    "sourceBook": "Ancestry Guide, p. 93",
+    "description": "Você tem um senso aguçado de movimento ao seu redor. Você ganha sentido de movimento como um sentido impreciso até 30 pés. O sentido de movimento permite que você detecte movimento próximo através de vibração e movimento do ar."
+   },
+   "Untrained Improvisation": {
+    "name": "Untrained Improvisation",
+    "level": 3,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 264",
+    "description": "Você aprendeu como lidar com situações em que está fora da sua zona de conforto. Seu bônus de proficiência em testes de perícia não treinado é igual ao seu nível –2. Isso melhora para o seu nível –1 no 5º nível e para o seu nível total no 7º nível. Isso não permite que você use as ações de perícia que exigem ser treinado."
+   },
+   "Weight of Experience": {
+    "name": "Weight of Experience",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Rare",
+     "Reincarnated",
+     "Universal Ancestry"
+    ],
+    "category": "feat",
+    "sourceBook": "Season of Ghosts (Hardcover), p. 319",
+    "description": "A experiência que você acumulou ao longo de múltiplas vidas envolve você como um cobertor pesado, proporcionando conforto e conferindo confiança sob pressão. Você ganha a graduação de proficiência treinado em uma perícia à sua escolha e o talento de perícia Assurance nessa perícia como um talento bônus."
+   }
+  },
+  "special": {
+   "Arcane Cascade": {
+    "name": "Arcane Cascade",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Magus",
+    "sourceBook": "Impossible Magic, p. 9",
+    "description": "Você pode entrar em uma postura especial para mesclar magia aos seus ataques e se defender contra magias."
+   },
+   "Charisma": {
+    "name": "Charisma",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "rules",
+    "sourceBook": "Core Rulebook, p. 19",
+    "description": "Regras Carisma Carisma mede o magnetismo pessoal e a força de personalidade do seu personagem. Um valor de Carisma alto ajuda você a influenciar os pensamentos e humores dos outros."
+   },
+   "Conflux Spells": {
+    "name": "Conflux Spells",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Magus",
+    "sourceBook": "Impossible Magic, p. 9",
+    "description": "Você aprende uma conflux spell do seu hybrid study, e pode conjurar conflux spells adicionais ao selecionar certos talentos. Conflux spells são magias específicas de magus criadas para combate e são um tipo de focus spell. Custa 1 Focus Point para conjurar uma focus spell, e você começa com uma reserva de foco de 1 Focus Point. Você reabastece sua reserva de foco durante suas preparações diárias, e pode recuperar 1 Focus Point gastando 10 minutos usando a atividade Refocus para estudar seu grimório e realizar um regime físico. Focus spells são automaticamente aprimoradas para metade do seu nível arredondado para cima, assim como truques. Focus spells não exigem espaços de magia, e você não pode conjurá-las usando espaços de magia. Certos talentos concedem a você mais focus spells. O máximo de Focus Points que sua reserva de foco pode conter é igual ao número de focus spells que você possui, mas nunca pode ser superior a 3 pontos. As regras completas para focus spells aparecem aqui."
+   },
+   "Laughing Shadow": {
+    "name": "Laughing Shadow",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "hybrid-study",
+    "sourceBook": "Impossible Magic, p. 13",
+    "description": "Magus Estudo Híbrido Laughing Shadow A magia é libertadora, um meio para seus fins, e você pode usá-la para ir aonde quiser, fazer o que bem entender e evitar as consequências. Você é uma sombra risonha de magia e lâmina, sempre um passo à frente de seus inimigos, sempre com um truque na manga. Enquanto estiver na postura Arcane Cascade, você ganha um bônus de status de +1,5 metros aos seus Deslocamentos, ou um bônus de +3 metros se estiver sem armadura. Se você realizar um Strike contra uma criatura off-guard enquanto estiver na postura e tiver uma mão livre, o dano extra desse Strike proveniente de Arcane Cascade é aumentado para 3. O dano extra aumentado é 5 se você possuir especialização em armas, ou 7 se possuir especialização maior em armas. Você deve estar com a outra mão completamente livre; o dano extra não se aplica se você tiver uma arma de mão livre ou outro item nessa mão, mesmo que normalmente fosse capaz de usar a mão para outras coisas. Conflux Spell Dimensional Assault Studious Spell (7º) Blur Studious Spell (11º) Ghostly Weapon Studious Spell (13º) Translocate"
+   },
+   "Low-Light Vision": {
+    "name": "Low-Light Vision",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "rules",
+    "sourceBook": "Player Core, p. 433",
+    "description": "Regras Low-Light Vision Uma criatura com Low-Light Vision pode enxergar na penumbra como se fosse luz plena, portanto ela ignora a condição concealed devido à penumbra."
+   },
+   "Magus Spellcasting": {
+    "name": "Magus Spellcasting",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Magus",
+    "sourceBook": "Impossible Magic, p. 9",
+    "description": "Você estuda magias para que possa combiná-las com seus ataques ou resolver problemas que a força das armas sozinha não consegue lidar. Você é um conjurador, e pode conjurar magias da tradição arcana usando a atividade Cast a Spell. Como um magus, quando você conjura magias, você pode desenhar sigilos com sua arma ou uma mão livre e gritar palavras mágicas de poder como gritos de guerra. No 1º nível, você pode preparar uma magia de 1º grau e cinco truques a cada manhã a partir das magias em seu grimório (veja abaixo). Magias preparadas permanecem disponíveis para você até que você as conjure ou até que você prepare suas magias novamente. O número de magias que você pode preparar é chamado de seus espaços de magia. À medida que você aumenta de nível como magus, o número de magias que você pode preparar por dia aumenta, assim como o grau mais alto de magia que você pode conjurar, conforme mostrado na tabela Magus Spells per Day. Algumas de suas magias exigem que você tente um ataque mágico para ver quão eficazes elas são, ou que seus inimigos rolem contra sua DC de magia (tipicamente tentando um teste de resistência). Seu modificador de ataque mágico e DC de magia são calculados usando seu modificador de Inteligência. Aprimorando Magias Quando você obtém espaços de magia de 2º grau e superior, você pode preencher esses espaços com versões mais fortes de magias de grau inferior. Isso aumenta o grau da magia, aprimorando-a para corresponder ao espaço de magia. Muitas magias possuem melhorias específicas quando são aprimoradas para certos graus. Truques Algumas de suas magias são truques. Um truque é um tipo especial de magia que não usa espaços de magia. Você pode conjurar um truque à vontade, qualquer número de vezes por dia. Um truque é sempre automaticamente aprimorado para metade do seu nível arredondado para cima — isso geralmente é igual ao grau mais alto de espaço de magia de magus que você possui. Por exemplo, como um magus de 1º nível, seus truques são magias de 1º grau, e como um magus de 5º nível, seus truques são magias de 3º grau. Grimório Toda magia arcana tem uma versão escrita, que você registra em seu livro de magias personalizado. Você começa com um grimório que vale 10 sp ou menos, que você recebe gratuitamente e deve estudar a cada dia para preparar suas magias. A forma e o nome do seu grimório dependem de você. Pode ser qualquer coisa, desde um livro resistente com uma trava segura intitulado Teses sobre os Estratagemas da Guerra Sobrenatural até uma coleção esfarrapada de panfletos de treinamento com seu nome rabiscado na capa. O grimório contém sua escolha de oito truques arcanos e cinco magias arcanas de 1º grau. Você escolhe essas a partir das magias comuns na lista de magias arcanas ou de outras magias arcanas às quais você ganha acesso. Cada vez que você ganha um nível, você adiciona duas magias arcanas ao seu grimório, de qualquer grau de magia para o qual você tenha espaços de magia, escolhidas a partir de magias comuns da sua tradição ou outras às quais você ganha acesso. Você também pode adicionar magias ao seu grimório com a atividade Learn a Spell. Se você tiver um grimório de múltiplas fontes (como ser um magus com o talento Wizard Dedication), você pode usar o mesmo grimório para todas as suas magias."
+   },
+   "Reflex Expertise": {
+    "name": "Reflex Expertise",
+    "level": 3,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Bard",
+    "sourceBook": "Player Core, p. 94",
+    "description": "Você desenvolveu um talento para desviar do perigo. Sua graduação de proficiência para testes de Reflexo aumenta para perito."
+   },
+   "Rewrite Fate": {
+    "name": "Rewrite Fate",
+    "level": null,
+    "actions": "Free Action",
+    "traits": [
+     "Fortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "action",
+    "sourceBook": "War of Immortals, p. 78",
+    "trigger": "Você rola um teste de perícia ou uma salvaguarda e não gosta do resultado.",
+    "description": "O destino, a sorte ou alguma outra força se curva ao seu redor à medida que seu poder mítico aumenta, manifestando-se em um clarão de luz ou em uma onda visível de energia emanando de seu corpo enquanto você se livra das correntes do destino. Você gasta um Mythic Point e rola novamente o teste ou salvaguarda com proficiência mítica, assumindo o novo resultado."
+   },
+   "Runelord's Calling": {
+    "name": "Runelord's Calling",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Calling",
+     "Mythic",
+     "Rare"
+    ],
+    "category": "mythic-calling",
+    "sourceBook": "Revenge of the Runelords Player's Guide, p. 18",
+    "description": "Editos buscar magias e itens mágicos raros da antiga Thassilon, aprender conhecimentos sobre Thassilon que foram esquecidos Anátema destruir voluntariamente textos antigos ou outras formas de conhecimento escrito sem antes preservar esse saber de alguma maneira, tratar as convicções ou crenças de outra pessoa como fantasia ou ilusão"
+   },
+   "Spellbook": {
+    "name": "Magus Spellcasting",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Magus",
+    "sourceBook": "Impossible Magic, p. 9",
+    "description": "Você estuda magias para que possa combiná-las com seus ataques ou resolver problemas que a força das armas sozinha não consegue lidar. Você é um conjurador, e pode conjurar magias da tradição arcana usando a atividade Cast a Spell. Como um magus, quando você conjura magias, você pode desenhar sigilos com sua arma ou uma mão livre e gritar palavras mágicas de poder como gritos de guerra. No 1º nível, você pode preparar uma magia de 1º grau e cinco truques a cada manhã a partir das magias em seu grimório (veja abaixo). Magias preparadas permanecem disponíveis para você até que você as conjure ou até que você prepare suas magias novamente. O número de magias que você pode preparar é chamado de seus espaços de magia. À medida que você aumenta de nível como magus, o número de magias que você pode preparar por dia aumenta, assim como o grau mais alto de magia que você pode conjurar, conforme mostrado na tabela Magus Spells per Day. Algumas de suas magias exigem que você tente um ataque mágico para ver quão eficazes elas são, ou que seus inimigos rolem contra sua DC de magia (tipicamente tentando um teste de resistência). Seu modificador de ataque mágico e DC de magia são calculados usando seu modificador de Inteligência. Aprimorando Magias Quando você obtém espaços de magia de 2º grau e superior, você pode preencher esses espaços com versões mais fortes de magias de grau inferior. Isso aumenta o grau da magia, aprimorando-a para corresponder ao espaço de magia. Muitas magias possuem melhorias específicas quando são aprimoradas para certos graus. Truques Algumas de suas magias são truques. Um truque é um tipo especial de magia que não usa espaços de magia. Você pode conjurar um truque à vontade, qualquer número de vezes por dia. Um truque é sempre automaticamente aprimorado para metade do seu nível arredondado para cima — isso geralmente é igual ao grau mais alto de espaço de magia de magus que você possui. Por exemplo, como um magus de 1º nível, seus truques são magias de 1º grau, e como um magus de 5º nível, seus truques são magias de 3º grau. Grimório Toda magia arcana tem uma versão escrita, que você registra em seu livro de magias personalizado. Você começa com um grimório que vale 10 sp ou menos, que você recebe gratuitamente e deve estudar a cada dia para preparar suas magias. A forma e o nome do seu grimório dependem de você. Pode ser qualquer coisa, desde um livro resistente com uma trava segura intitulado Teses sobre os Estratagemas da Guerra Sobrenatural até uma coleção esfarrapada de panfletos de treinamento com seu nome rabiscado na capa. O grimório contém sua escolha de oito truques arcanos e cinco magias arcanas de 1º grau. Você escolhe essas a partir das magias comuns na lista de magias arcanas ou de outras magias arcanas às quais você ganha acesso. Cada vez que você ganha um nível, você adiciona duas magias arcanas ao seu grimório, de qualquer grau de magia para o qual você tenha espaços de magia, escolhidas a partir de magias comuns da sua tradição ou outras às quais você ganha acesso. Você também pode adicionar magias ao seu grimório com a atividade Learn a Spell. Se você tiver um grimório de múltiplas fontes (como ser um magus com o talento Wizard Dedication), você pode usar o mesmo grimório para todas as suas magias."
+   },
+   "Spellstrike": {
+    "name": "Spellstrike",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Magus",
+    "sourceBook": "Impossible Magic, p. 9",
+    "description": "Você aprendeu a técnica fundamental de mago que permite combinar ataques mágicos e físicos. Você ganha a atividade Spellstrike. Detalhes do Spellstrike Embora as regras básicas de Spellstrike cubram a maioria dos feitiços, várias modificações se aplicam a feitiços mais complicados quando carregados em seu punho, lâmina ou outro ataque. Um Alvo: O feitiço tem como alvo apenas o alvo do seu Strike, mesmo que normalmente permita mais alvos. Isso inclui feitiços de área, contra os quais apenas o alvo faz um teste de resistência. Qualquer efeito contínuo da área, como o difficult terrain de scatter scree, afeta apenas o espaço do alvo. Alguns talentos permitem que você afete mais criaturas. Alcance: O feitiço acoplado afeta o alvo usando o alcance da arma ou ataque desarmado que você usa para seu Spellstrike. Por exemplo, gouging claw afetaria uma criatura além do alcance da sua mão se você usasse uma arma com alcance, e frostbite afetaria apenas uma criatura dentro do alcance da sua arma, ainda que o alcance do feitiço seja maior. Efeitos Ancilares: Seu feitiço ainda tem quaisquer efeitos não‑direcionados que possam afetar criaturas além do alvo, bem como quaisquer efeitos contínuos a partir do momento em que você acerta com o Strike. Por exemplo, scatter scree ainda criaria difficult terrain no espaço do alvo (como mencionado acima), e a penalidade circunstancial de tangle vine duraria seu tempo normal. O feitiço tem efeito após o Strike causar dano; se o Strike tiver outros efeitos especiais, o GM determina se eles ocorrem antes ou depois do feitiço. Alvo Inválido ou Imune: Se o alvo que você acertou não seria um alvo válido para o feitiço, o feitiço ainda é consumido, mas não afeta o alvo. Se o alvo for imune ao seu ataque mas não ao feitiço, ele ainda pode ser afetado pelo feitiço. Ações Variáveis: Alguns feitiços têm efeitos diferentes com base no número de ações que você gasta para lançá‑los. Você escolhe usar os efeitos da versão de 1 ou 2 ações do feitiço quando usa Spellstrike. Um feitiço deve levar exatamente 1 ou 2 ações; você não pode usar Spellstrike com um feitiço que leva uma ação livre, reaction, ou 3 ou mais ações. Spellshape: Mesmo que você ganhe uma ação spellshape de fora da classe magus, como de um talento multiclass ou de um item, normalmente não pode usar spellshape com Spellstrike. Ações spellshape exigem que a próxima ação que você tome seja Cast a Spell, e Spellstrike é uma atividade combinada que não se qualifica."
+   },
+   "Spellstrike Specifics": {
+    "name": "Spellstrike",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Magus",
+    "sourceBook": "Secrets of Magic, p. 35",
+    "description": "Você aprendeu a técnica fundamental de mago que permite combinar ataques mágicos e físicos. Você ganha a atividade Spellstrike."
+   },
+   "Standard Cantrip: Shield (Archetype)": {
+    "name": "Shield Block",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Champion",
+    "sourceBook": "Core Rulebook, p. 104",
+    "description": "Você ganha o talento geral Shield Block, uma reação que permite que você reduza o dano com seu escudo."
+   },
+   "Studious Spell: Blur": {
+    "name": "Studious Spell",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Magus",
+    "sourceBook": "Impossible Magic, p. 9",
+    "description": "Você estudou profundamente certas magias benéficas para entrar rapidamente em Arcane Cascade quando as conjura. Quando você conjura uma studious spell, você pode usar Arcane Cascade como uma ação livre como sua próxima ação neste turno. Adicione qualquer studious spell que você ganhar ao seu grimório se você ainda não a conhecer. Suas studious spells são gecko grip e uma magia adicional dependendo do seu estudo híbrido, listada na entrada do estudo híbrido. No 11º nível, adicione haste e uma magia adicional dependendo do seu estudo híbrido às suas studious spells. No 13º nível, adicione fly e uma magia adicional dependendo do seu estudo híbrido às suas studious spells."
+   },
+   "Studious Spell: Gecko Grip": {
+    "name": "Studious Spell",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Magus",
+    "sourceBook": "Impossible Magic, p. 9",
+    "description": "Você estudou profundamente certas magias benéficas para entrar rapidamente em Arcane Cascade ao conjurá-las. Quando você conjura uma studious spell, você pode usar Arcane Cascade como uma ação livre como sua próxima ação neste turno. Adicione qualquer studious spell que você ganhar ao seu grimório se você ainda não a conhecer. Suas studious spells são gecko grip e uma magia adicional dependendo do seu hybrid study, listada na entrada do hybrid study. No nível 11, adicione haste e uma magia adicional dependendo do seu hybrid study às suas studious spells. No nível 13, adicione fly e uma magia adicional dependendo do seu hybrid study às suas studious spells."
+   },
+   "Studious Spells": {
+    "name": "Studious Spells",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Magus",
+    "sourceBook": "Secrets of Magic, p. 35",
+    "description": "Seu hybrid study concede a você magias adicionais que podem aprimorar seu poder em combate. Você ganha dois espaços de magia de studious spell de 2º nível especiais, que podem ser usados para preparar gecko grip, sure strike, water breathing e uma magia adicional dependendo do seu hybrid study. Você adiciona quaisquer magias desta característica de classe ao seu grimório. No nível 11, os espaços extras aumentam para o 3º nível e você adiciona haste e uma magia adicional dependendo do seu hybrid study. No nível 13, os espaços extras aumentam para o 4º nível e você adiciona fly e uma magia adicional dependendo do seu hybrid study. Veja os hybrid studies específicos para mais informações."
+   },
+   "Surgewise Fleshwarp": {
+    "name": "Surgewise Fleshwarp",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Impossible Lands, p. 28",
+    "description": "Heritage Surgewise Fleshwarp\nAs ondulações dos cílios do seu corpo são hiper‑sintonizadas com fontes de magia; elas vibram e ressoam com percepções sobre energias ocultas, e suas vibrações alertam você para a presença de segredos. Você ganha a proficiência treinado em Ocultismo. Se você já for treinado em Ocultismo, ao invés disso torna‑se treinado em outra perícia de sua escolha. Você também ganha o feito de perícia Oddity Identification."
+   },
+   "The Tangible Dream": {
+    "name": "The Tangible Dream",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "conscious-mind",
+    "sourceBook": "Dark Archive (Remastered), p. 21",
+    "description": "Mente Consciente Psíquica O Sonho Tangível Você puxa cores e formas das profundezas da sua mente, projetando criações impossíveis no mundo como tapeçarias de fios astrais ou esculturas de força e luz. Magias Concedidas - 1º Dizzying Colors - 2º Invisibility - 3º Sea of Thought - 4º Containment - 5º Etheric Shards - 6º Scintillating Safeguard - 7º Project Image - 8º Confusing Colors - 9º Resplendent Mansion Psi Truques Figment e Shield Psi Truque de Superfície Imaginary Weapon Psi Truque Profundo (Nível 6) Astral Rain Psi Truque Mais Profundo (Nível 10) Hologram Cage Figment Suas ilusões menores mudam e dançam de uma forma que atrai o olhar. Quando você Sustenta a magia, você pode mover o som ou visão aparente em até 15 pés. Você pode então tentar um Create a Diversion como de costume. Aquelas criaturas que não acreditaram na ilusão não são afetadas por essa distração. Seu figment também ganha o seguinte amp. Amp Quando você usa amp na magia, você pode criar uma ilusão particularmente distrativa como parte de seus efeitos normais. Escolha um quadrado desocupado dentro do alcance da magia. A ilusão naquele quadrado fornece flanking para um único ataque corpo a corpo feito antes do início do seu próximo turno. Se você Sustentar a magia, os detalhes da ilusão mudam e se deslocam para manter seus inimigos inquietos; a ilusão de flanking não pode fornecer seu benefício contra qualquer criatura que não tenha acreditado no figment. Shield Sua magia shield pode ser utilizada em favor de outros. A opção de realizar um Shield Block com a magia cabe a você e usa sua reação, não a do alvo. Seu escudo também ganha o seguinte amp. Amp Você cria uma barreira em camadas de três escudos para melhorar suas defesas. O escudo ainda abaixa no início de cada um dos seus turnos, mas você pode levantá-lo novamente quando Sustentar a Magia. Quando você realiza um Shield Block com esta magia, uma das três camadas quebra e você deixa de ganhar o bônus na CA, mas a magia não termina. Você pode continuar usando a magia até que a camada final quebre; uma vez que isso aconteça, a magia termina e você não pode. Você pode escolher quebrar camadas adicionais ao realizar um Shield Block com esta magia para melhorar suas defesas. Se você quebrar duas camadas em vez de uma, aumente a Dureza para 1-1/2 vezes o valor normal (7 no 1º círculo, 15 no 3º círculo, 22 no 5º círculo, 30 no 7º círculo e 37 no 9º círculo). Se você quebrar todas as três camadas, aumente a Dureza para o dobro do valor normal."
+   },
+   "Unique Cantrip: Imaginary Weapon": {
+    "name": "Psi Cantrips and Amps",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Psychic",
+    "sourceBook": "Dark Archive, p. 8",
+    "description": "A magia da sua mente se manifesta como psi truques, que você pode modificar gastando Pontos de Foco. Como outros truques, você pode conjurar psi truques tão frequentemente quanto quiser, e eles são automaticamente amplificados para metade do seu nível arredondado para cima. Seus psi truques são um adicional aos truques que você escolhe da lista oculta como parte da sua conjuração psíquica. Geralmente, apenas talentos podem lhe dar mais psi truques. Diferente de outros truques, você não pode trocar psi truques ganhos de talentos psíquicos em um nível posterior, a menos que troque o talento específico via retreinamento. No 1º nível, você aprende três psi truques determinados pela sua escolha de mente consciente; um é um psi truque único e dois são truques comuns, tipicamente da tradição de conjuração oculta, que você sempre conjura como psi truques. Você ganha automaticamente mais psi truques conforme progride em sua carreira como psíquico. Você começa com uma reserva de foco de 2 Pontos de Foco. No entanto, diferente de outros conjuradores, você não ganha magias de foco que custam Pontos de Foco para conjurar. Em vez disso, você usa seus Pontos de Foco para impulsionar ou modificar seus psi truques aplicando amps—formas de pensamento especializadas que alteram a expressão do seu poder psíquico. Cada um dos seus psi truques tem um cabeçalho de amp especial. Sempre que você conjura um psi truque, você pode usar amp nele gastando 1 Ponto de Foco para adicionar o efeito de amp. Você também pode ganhar amps adicionais através de talentos, permitindo que você substitua o efeito de amp normal de um psi truque por outro. Você escolhe qual amp usar, se escolher usar algum, cada vez que conjura um psi truque. A menos que indicado de outra forma, você pode aplicar apenas um amp a um determinado psi truque. Você reabastece sua reserva de foco durante suas preparações diárias, e você pode recuperar Pontos de Foco gastando 10 minutos usando a atividade Refocus para explorar sua mente, seja via meditação, praticando um ofício ou atividade que lhe dê o espaço mental para autorreflexão, ou conversando sobre seus pensamentos e sentimentos consigo mesmo ou com outra pessoa. Se você gastou Pontos de Foco apenas para usar amp em psi truques ou alimentar habilidades psíquicas desde a última vez que você usou Refocus, você recupera 2 Pontos de Foco em vez de 1. Se você gastou Pontos de Foco em magias de foco ou habilidades que não sejam da classe psíquica (por exemplo, para conjurar uma magia de foco que você ganhou de um arquétipo), você recupera apenas 1 Ponto de Foco."
+   },
+   "Unusual Anatomy": {
+    "name": "Unusual Anatomy",
+    "level": 5,
+    "actions": "Single Action",
+    "traits": [
+     "Focus",
+     "Manipulate",
+     "Polymorph",
+     "Sorcerer",
+     "Uncommon"
+    ],
+    "category": "spell",
+    "sourceBook": "Player Core 2, p. 262",
+    "description": "Você transforma sua carne e órgãos em um amálgama bizarro de pele brilhante, escamas ásperas, tufos de cabelo e protuberâncias tumorais. Isso tem os seguintes efeitos. Você ganha resistência 10 a dano de precisão e resistência 10 a dano extra de acertos críticos. Se a resistência for maior que o dano extra, ela reduz o dano extra a 0, mas não reduz o dano normal do ataque. Você ganha visão no escuro. Ácido escorre da sua pele. Qualquer criatura que lhe acerte com um ataque desarmado ou com uma arma corpo a corpo sem alcance sofre 2d6 de dano de ácido."
+   },
+   "Weapon Expertise": {
+    "name": "Weapon Expertise",
+    "level": 11,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Druid",
+    "sourceBook": "Player Core, p. 122",
+    "description": "Você aprimorou sua perícia em combate. Sua graduação de proficiência para armas simples e ataques desarmados aumenta para perito."
+   },
+   "Weapon Specialization": {
+    "name": "Weapon Specialization",
+    "level": 13,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Alchemist",
+    "sourceBook": "Core Rulebook, p. 66",
+    "description": "Você aprendeu como infligir ferimentos maiores com as armas que conhece melhor. Você causa 2 de dano adicional com armas e ataques desarmados nos quais você é perito. Esse dano aumenta para 3 se você for mestre, e para 4 se você for lendário."
+   },
+   "Wish for Luck": {
+    "name": "Instant Manifestation",
+    "level": 19,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Summoner",
+    "sourceBook": "Secrets of Magic, p. 51",
+    "description": "Você pode manifestar seu eidolon com velocidade incrível. Você pode usar Manifest Eidolon como uma ação única, em vez de uma atividade de três ações."
+   }
+  },
+  "item": {
+   "Bands of Force": {
+    "name": "Bands of Force",
+    "level": 8,
+    "actions": "",
+    "traits": [
+     "Force",
+     "Invested",
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 286",
+    "description": "Decoradas com pedras preciosas claras, estas grossas faixas de metal espalham uma camada inflexível de força sobre seu corpo. A força concede a você um bônus de item de +1 na CA e em testes de resistência, e um modificador máximo de Destreza de +5 como armadura. Você pode afixar talismãs às faixas como se fossem armaduras leves. Activate—Return Force Reaction: (força, manipular) Gatilho Uma criatura falha criticamente em um Strike corpo a corpo contra você.; Efeito Você Shove a criatura usando o modificador de Athletics das faixas de +14. Bands of Force Fonte GM Core pg. 286 Preço 500 po Bands of Force (Greater) Fonte GM Core pg. 286 Preço 4.500 po O bônus de item na CA e nos testes de resistência é +2. O modificador de Athletics das faixas é +21. Bands of Force (Major) Fonte GM Core pg. 286 Preço 70.000 po O bônus de item na CA e nos testes de resistência é +3. O modificador de Athletics das faixas é +33."
+   },
+   "Cloak of Illusions": {
+    "name": "Cloak of Illusions",
+    "level": 7,
+    "actions": "",
+    "traits": [
+     "Invested",
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 287",
+    "description": "Esta capa flui, cobrindo e ocultando o corpo de quem a veste. A capa permite que você conjure figment como um truque inato oculto. Embora naturalmente de um cinza opaco, enquanto investida, a capa assume cores e padrões de seus arredores, concedendo um bônus de item de +1 em testes de Stealth. Ativar—Draw Hood Duas Ações: (manipular) Frequência uma vez por dia; Efeito Você puxa o capuz para cima e ganha os efeitos de invisibility, com a duração normal da magia ou até que você abaixe o capuz, o que ocorrer primeiro. Cloak of Illusions Fonte GM Core pág. 287 Preço 360 po Cloak of Illusions (Greater) Fonte GM Core pág. 287 Preço 1.750 po A capa concede um bônus de item de +2 e os efeitos de invisibility de 4º nível."
+   },
+   "Exquisite Sword Cane": {
+    "name": "Exquisite Sword Cane",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Agile",
+     "Concealable",
+     "Finesse",
+     "Parry",
+     "Twin"
+    ],
+    "category": "weapon",
+    "sourceBook": "Pathfinder #157: Devil at the Dreaming Palace, p. 80",
+    "description": "Uma requintada sword cane é uma espada embainhada dentro de uma bengala oca, que por si só pode ser usada como uma arma de contusão com ou sem a espada embainhada dentro. Critical Specialization Effects Fonte Core Rulebook pág. 283 Certos talentos, características de classe, runas de arma e outros efeitos podem conceder a você benefícios adicionais quando você realiza um Strike com certas armas e obtém um sucesso crítico. Isso é chamado de efeito de especialização crítica. O efeito exato depende de qual grupo de arma sua arma pertence, conforme listado abaixo. Você sempre pode decidir não adicionar o efeito de especialização crítica da sua arma. Clique aqui para as regras completas sobre Critical Specialization Effects. Specific Magic Weapons Reaper's Lancet"
+   },
+   "Loki's Heart": {
+    "name": "Performer's Heart",
+    "level": 9,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Bard",
+    "sourceBook": "Player Core, p. 94",
+    "description": "As maiores apresentações exigem uma compreensão da sua própria mente e uma concentração impecável. Sua graduação de proficiência para testes de Vontade aumenta para mestre. Quando você rola um sucesso em um teste de Vontade, você obtém um sucesso crítico em vez disso."
+   }
+  }
+ }
+}
