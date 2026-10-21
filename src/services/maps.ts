@@ -12,7 +12,7 @@
 
 import { useCallback, useSyncExternalStore } from 'react'
 import { saveField } from './tableState'
-import { noteRollsRev } from './rolls'
+import { onFeedActivity } from './rolls'
 import type { HpStored } from '../modules/character-viewer/components/useHpTracker'
 import { sizeSquares, type Cell, type ImageRect } from '../modules/battle-map/geometry'
 import { activeSizeEffect, sanitizeSizeEffect } from '../modules/character-viewer/sizeEffects'
@@ -82,8 +82,6 @@ export interface MapData {
     rev: number
     tableRev: number
     activeId: string | null
-    /** Contador do feed de rolagens, de carona no MGET (ver `services/rolls.ts`). */
-    rollsRev?: number
 }
 
 export interface MapSummary { id: string; name: string; createdAt: number; hasImage: boolean; private: boolean }
@@ -216,11 +214,13 @@ interface Entry {
      * o hash inteiro para ouvir "privado" de novo.
      */
     hiddenRevs: { rev: number; tableRev: number } | null
-    /** Último contador do feed de rolagens visto aqui (vem de carona no `mapRev`). */
-    rollsRev: number | null
 }
 
 const entries = new Map<string, Entry>()
+
+// Rolagem ou regra compartilhada nova na mesa: marcha rápida, sem rajada nem
+// download do mapa — a mesa está ativa, e a próxima ação costuma vir logo.
+onFeedActivity(() => { for (const entry of entries.values()) entry.lastChange = Date.now() })
 
 function entryFor(id: string): Entry {
     let entry = entries.get(id)
@@ -241,7 +241,6 @@ function entryFor(id: string): Entry {
             loading: null,
             gm: false,
             hiddenRevs: null,
-            rollsRev: null,
         }
         entries.set(id, entry)
     }
@@ -366,15 +365,8 @@ async function poll(entry: Entry) {
         const have = data ?? entry.hiddenRevs
         const known = have ? `&rev=${have.rev}&tableRev=${have.tableRev}` : ''
         const revs = await getJson<{
-            rev: number; tableRev: number; activeId: string | null; rollsRev?: number; map?: MapData; hidden?: boolean
+            rev: number; tableRev: number; activeId: string | null; map?: MapData; hidden?: boolean
         }>(`mapRev=${encodeURIComponent(entry.id)}${known}${gmParam(entry)}`)
-        // O feed de rolagens lê o contador daqui e pausa o poll próprio.
-        noteRollsRev(revs.rollsRev)
-        if (typeof revs.rollsRev === 'number') {
-            // Rolagem nova: marcha rápida, sem rajada nem download do mapa.
-            if (entry.rollsRev !== null && revs.rollsRev !== entry.rollsRev) entry.lastChange = Date.now()
-            entry.rollsRev = revs.rollsRev
-        }
         if (revs.map) {
             applyMap(entry, revs.map)
             burst(entry)

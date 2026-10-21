@@ -1,33 +1,31 @@
-// Feed de rolagens da mesa, no cliente: as últimas 30 rolagens de qualquer
-// aparelho (`api/_lib/roll-store.js`), acompanhadas por poll.
+// Feed de rolagens da mesa, no cliente: as últimas rolagens de qualquer aparelho
+// (`api/_lib/roll-store.js`), em TEMPO REAL.
 //
-// **Por que poll, e por que tão leve.** A Vercel serverless não segura conexão,
-// e o usuário não quer serviço externo de tempo real — a mesma decisão do Mapa.
-// O poll lê só UM contador (`GET pf2e:rolls:rev`, 1 comando no Upstash) e a lista
-// só desce quando ele muda. Ritmo:
+// **Realtime.** Cada rolagem (e cada regra compartilhada) que o servidor grava
+// é transmitida pelo banco no canal privado `mesa:<mesa>:rolls`, já com o
+// conteúdo: com o canal aberto não há poll nenhum. A lista inteira só é lida na
+// abertura e a cada (re)conexão — com o `rev` de antes, o servidor devolve só o
+// número quando nada mudou.
+//
+// **Poll de reserva, quando não há canal** (sem Supabase, rede ruim): lê só o
+// contador e a lista desce quando ele muda. Ritmo:
 // - 1,5 s com a aba visível; nada com a aba oculta;
 // - rajada de 1 s por 5 s depois de uma rolagem, daqui ou de fora (quem rolou
 //   espera a resposta da mesa — o dano depois do ataque, a salvaguarda do alvo).
 //
-// **Com o Mapa aberto, o feed não faz poll próprio.** O poll do mapa já lê o
-// contador como 4ª chave do MGET dele (sem comando a mais) e avisa por
-// `noteRollsRev`; o feed só busca a lista quando o número muda. Mapa e
-// Iniciativa ligada a mapa não custam nada a mais. Se o mapa parar de avisar
-// (a página fechou), o poll próprio volta sozinho.
-//
-// **Regras compartilhadas** (`tableShare.ts`) andam no mesmo contador e na
-// mesma resposta (`shares`): compartilhar um talento não custa poll a mais.
+// **Regras compartilhadas** (`tableShare.ts`) andam no mesmo canal e na mesma
+// resposta (`shares`).
 
 import { useSyncExternalStore } from 'react'
 import { ROLL_HISTORY, sanitizeTableRoll, type TableRoll } from '../dice/tableRoll'
 import { sanitizeTableShare, type TableShare } from './tableShare'
 import { stateApi } from './mesa'
+import { authHeaderNow, listenMesaChannel } from './supabase'
 
 const IDLE_MS = 1500
 const BURST_MS = 1000
 const BURST_WINDOW_MS = 5000
-/** Sem aviso do mapa há mais que isso, o poll próprio retoma (o lento do mapa é 2 s). */
-const EXTERNAL_GRACE_MS = 6000
+const SHARE_HISTORY = 5
 
 export interface RollsSnapshot {
     /** A mais nova primeiro. */
@@ -51,7 +49,17 @@ const listeners = new Set<() => void>()
 let timer: ReturnType<typeof setTimeout> | null = null
 let inflight: Promise<void> | null = null
 let burstUntil = 0
-let externalAt = 0
+/** O canal do Realtime está aberto: nada de poll. */
+let live = false
+let realtimeStarted = false
+
+/** Quem quer saber que a mesa rolou algo (o mapa acelera o próprio poll). */
+const activityListeners = new Set<() => void>()
+export function onFeedActivity(listener: () => void): () => void {
+    activityListeners.add(listener)
+    return () => { activityListeners.delete(listener) }
+}
+const noteActivity = () => activityListeners.forEach((l) => l())
 
 function publish(server: TableRoll[] | null) {
     const base = server ?? snapshot.rolls.filter((r) => !pending.has(r.id))
@@ -79,14 +87,17 @@ async function fetchRolls(): Promise<void> {
             if (body.shares) {
                 const list = body.shares.map(sanitizeTableShare).filter((x): x is TableShare => x !== null)
                 if (list.some((x) => !snapshot.shares.some((o) => o.id === x.id))) {
-                    if (snapshot.ready) burst()
+                    if (snapshot.ready) { burst(); noteActivity() }
                     publishShares(list)
                 }
             }
             if (body.rolls) {
                 const list = body.rolls.map(sanitizeTableRoll).filter((x): x is TableRoll => x !== null)
                 // Rolagem nova de fora: a mesa está ativa, acelera.
-                if (snapshot.ready && list.some((x) => !snapshot.rolls.some((o) => o.id === x.id))) burst()
+                if (snapshot.ready && list.some((x) => !snapshot.rolls.some((o) => o.id === x.id))) {
+                    burst()
+                    noteActivity()
+                }
                 publish(list)
             } else if (!snapshot.ready) {
                 publish([])
@@ -108,32 +119,52 @@ function burst() {
 function schedule(delay?: number) {
     if (timer) clearTimeout(timer)
     timer = null
-    if (listeners.size === 0 || (typeof document !== 'undefined' && document.hidden)) return
+    if (live || listeners.size === 0 || (typeof document !== 'undefined' && document.hidden)) return
     const wait = delay ?? (Date.now() < burstUntil ? BURST_MS : IDLE_MS)
     timer = setTimeout(tick, wait)
 }
 
 async function tick() {
     timer = null
-    // O mapa está lendo o contador por nós: só confere de novo mais tarde.
-    if (Date.now() - externalAt > EXTERNAL_GRACE_MS) await fetchRolls()
+    await fetchRolls()
     schedule()
 }
 
 if (typeof document !== 'undefined') {
     document.addEventListener('visibilitychange', () => {
-        if (!document.hidden && listeners.size > 0) schedule(0)
+        if (document.hidden || listeners.size === 0) return
+        // Com o canal: confere uma vez (o socket pode ter morrido no bolso), e
+        // com o `rev` de antes isso custa só o número. Sem: o poll volta.
+        if (live) void fetchRolls()
+        else schedule(0)
     })
 }
 
-/**
- * O poll do mapa leu o contador do feed (4ª chave do MGET dele). Se mudou,
- * busca a lista — e o poll próprio fica em pausa enquanto esses avisos vierem.
- */
-export function noteRollsRev(next: number | undefined): void {
-    if (typeof next !== 'number') return
-    externalAt = Date.now()
-    if (rev === null || next !== rev) void fetchRolls()
+/** Uma rolagem que o banco transmitiu (a daqui também volta por aqui, e é casada pelo id). */
+function receiveRoll(payload: unknown) {
+    const roll = sanitizeTableRoll((payload as { roll?: unknown })?.roll)
+    if (!roll) return
+    const known = snapshot.rolls.some((x) => x.id === roll.id && !pending.has(x.id))
+    pending.delete(roll.id)
+    publish([roll, ...snapshot.rolls.filter((x) => x.id !== roll.id && !pending.has(x.id))])
+    if (!known && !own.has(roll.id)) noteActivity()
+}
+
+function receiveShare(payload: unknown) {
+    const share = sanitizeTableShare((payload as { share?: unknown })?.share)
+    if (!share || snapshot.shares.some((x) => x.id === share.id)) return
+    publishShares([share, ...snapshot.shares].slice(0, SHARE_HISTORY))
+    if (!own.has(share.id)) noteActivity()
+}
+
+function startRealtime() {
+    if (realtimeStarted) return
+    realtimeStarted = true
+    void listenMesaChannel('rolls', { roll: receiveRoll, share: receiveShare }, (open) => {
+        live = open
+        // A cada (re)conexão, o que passou com o canal fechado. Sem canal, o poll volta.
+        void fetchRolls().then(() => schedule())
+    }).then((ok) => { if (!ok) realtimeStarted = false })
 }
 
 /** Manda uma rolagem à mesa. Otimista: aparece aqui na hora. */
@@ -146,7 +177,7 @@ export async function postRoll(roll: TableRoll): Promise<void> {
     try {
         const r = await fetch(stateApi(), {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaderNow() },
             body: JSON.stringify({ action: 'roll-add', roll }),
         })
         if (!r.ok) return
@@ -174,7 +205,7 @@ export async function postShare(share: TableShare): Promise<boolean> {
     try {
         const r = await fetch(stateApi(), {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaderNow() },
             body: JSON.stringify({ action: 'share-add', share }),
         })
         return r.ok
@@ -186,6 +217,7 @@ export async function postShare(share: TableShare): Promise<boolean> {
 function subscribe(listener: () => void): () => void {
     listeners.add(listener)
     if (listeners.size === 1) {
+        startRealtime()
         void fetchRolls().then(() => schedule())
     }
     return () => {
@@ -199,7 +231,7 @@ function subscribe(listener: () => void): () => void {
 
 const SERVER: RollsSnapshot = { rolls: [], shares: [], ready: false }
 
-/** O feed, acompanhado pelo poll enquanto algum componente o estiver usando. */
+/** O feed, acompanhado (canal ou poll) enquanto algum componente o estiver usando. */
 export function useTableRolls(): RollsSnapshot {
     return useSyncExternalStore(subscribe, () => snapshot, () => SERVER)
 }
