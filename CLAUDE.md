@@ -205,20 +205,21 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
     total`, dados + fixo = total da parcela): número que não confere não vai à mesa.
 - **O mesmo `state` serve o Mapa de Combate** (`api/_lib/map-handler.js` + `map-store.js`):
   `GET ?maps=1`, `?map=<id>`, `?mapRev=<id>` (o poll de reserva), `POST` com `action: 'map-*'` e
-  `blob-delete`, e `POST ?blob=1` (token de upload do Vercel Blob). Mora aqui pelo limite de 12
+  `image-delete` (`blob-delete`, o nome antigo, aceito igual). Mora aqui pelo limite de 12
   funções. **`isMapRequest` vem ANTES de `isSheetRequest`** nos dois servidores: a rota da ficha
   aceita qualquer POST com `action` e engoliria as do mapa.
-  - Imagens (mapa e tokens) vão **direto do navegador para o Blob** (`@vercel/blob/client`); o
-    servidor só assina, limitado às pastas `maps/` e `tokens/`. Passar pela função esbarraria no
-    limite de 4,5 MB do corpo. `blob-delete` só apaga URL do `*.public.blob.vercel-storage.com` —
-    o endpoint é público. Sem `BLOB_READ_WRITE_TOKEN`, a imagem fica no IndexedDB de quem enviou
-    (URL `idb:<chave>`) e os outros veem as iniciais.
-  - **Configuração do Blob na Vercel, duas armadilhas** (as duas aconteceram): a store precisa ser
-    **Public** (o app grava `access: 'public'`, e o acesso não muda depois); e a Vercel conecta
-    por OIDC, criando só `BLOB_STORE_ID`/`BLOB_WEBHOOK_PUBLIC_KEY`. O `handleUpload` do SDK exige
-    o token de leitura e escrita — sem a caixa "Add a read-write token env var" marcada, o token
-    tem que ser copiado da aba `.env.local` da store e criado à mão. Não revogar o token enquanto
-    o envio não migrar para o fluxo presigned (`handleUploadPresigned`, que funciona com OIDC).
+  - Imagens (mapa e tokens) vão **direto do navegador para o Supabase Storage** (bucket público `images`, migration
+    `imagens`), com a sessão anônima: a política de insert só aceita as pastas `tokens/`, `maps/` e `monsters/`, nome
+    `[a-z0-9-]` com extensão de imagem, de quem está em `mesa_members`, e só arquivo NOVO — sem política de update nem
+    de delete, ninguém sobrescreve nem apaga a imagem de outro. O bucket barra mais de 8 MB e tipo que não seja
+    WebP/PNG/JPEG. Passar pela função esbarraria no limite de 4,5 MB do corpo. Nome com sufixo aleatório e
+    `cacheControl` de um ano: a URL nunca muda de conteúdo. **Apagar é do servidor** (`api/_lib/images.js`, chave
+    secreta), e `imagePath` só aceita URL NOSSA — o endpoint é público. Sem Supabase, a imagem fica no IndexedDB de
+    quem enviou (URL `idb:<chave>`) e os outros veem as iniciais.
+  - **As imagens vieram do Vercel Blob no MESMO caminho** (`migrate-redis --domain images`, que copiou as 16 que o
+    banco citava e reescreveu as URLs). URL antiga do Blob que ainda apareça — no `localStorage` de um encontro da
+    Iniciativa, por exemplo — é traduzida na hora de desenhar (`displayUrl`, dentro do `useImageUrl`), e o servidor a
+    apaga do Storage do mesmo jeito. Toda imagem do app passa pelo `useImageUrl`: `<img>` novo também tem de passar.
 
 ### Tradução (o ponto que mais quebra)
 
@@ -316,7 +317,7 @@ O Upstash Redis e o Vercel Blob estão sendo trocados pelo Supabase (Postgres + 
 sem mudar o contrato das rotas: cada store do servidor ganha a versão Supabase com as mesmas funções exportadas. Ordem:
 fundação (feito) → traduções/descrições (feito) → fichas com histórico (feito) → estado da mesa em tempo real (feito) →
 rolagens (feito) → mapa (feito) →
-imagens → desligar Upstash e Blob. Projeto `htgrzvdzxepbbgbaqkir`, em **São Paulo** (`sa-east-1`) porque a mesa é toda
+imagens (feito) → desligar Upstash e Blob. Projeto `htgrzvdzxepbbgbaqkir`, em **São Paulo** (`sa-east-1`) porque a mesa é toda
 brasileira, e as funções da Vercel também (`"regions": ["gru1"]` no `vercel.json`): foram para lá quando o mapa e o
 feed saíram do Redis, o último caminho quente fora do Brasil.
 
@@ -370,7 +371,7 @@ personagens, mapas e mapa ativo, encontro da Iniciativa, feed de rolagens e regr
   URL; o seletor fica na sidebar (`MesaSwitcher`), com "Copiar link da mesa".
 - **Fica global de propósito**: cache de traduções e descrições resolvidas (tabelas `translations` e `descriptions`),
   caches da AON no cliente, pacotes estáticos
-  `public/descriptions/<slug>.json` (são do personagem) e as pastas do Blob (nomes aleatórios). No `localStorage`, só o
+  `public/descriptions/<slug>.json` (são do personagem) e as pastas do bucket de imagens (nomes aleatórios). No `localStorage`, só o
   que é da mesa ganhou `mesaKey` (cache do estado, encontro da Iniciativa, ficha aberta, personagem do painel do mapa);
   preferência de interface (Modo GM, ferramenta, extras de rolagem) é do aparelho.
 - A migração do `localStorage` antigo (`legacy` do `useSharedState`) só roda na mesa legada: em outra, levaria o PV de
@@ -1163,7 +1164,7 @@ campo `companions` (`companions.ts`, até 6, `{ id, name, token? }`), editado no
 **Inventário** (no fim; a aba Companheiros continua só para pets/familiares do Pathbuilder). O jogador digita o nome EXATO da AON (se não achar, a busca
 oferece os parecidos) e envia o token UMA vez.
 
-- **O token é permanente**, pasta `tokens/` do Blob, como o do personagem. Por isso o `setTokenImage` da Iniciativa
+- **O token é permanente**, pasta `tokens/` do bucket, como o do personagem. Por isso o `setTokenImage` da Iniciativa
   **nunca apaga** URL de `tokens/` ao trocar a imagem do cartão (antes apagaria), e o servidor já nunca apaga
   `tokens/` ao apagar um mapa.
 - **Na Iniciativa** (`addWithCompanions`, `InitiativePage`): ao adicionar um PC — por qualquer aba do diálogo —,
@@ -1532,7 +1533,7 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
   - **O mesmo diálogo envia a imagem** (só monstro): "Enviar outra imagem" sobe a imagem inteira para `monsters/` e
     ela vale POR CIMA da que a Iniciativa mandou — grava-se em `fit:<id>.url`, nunca em `tok:` (da Iniciativa, que
     reescreveria na próxima sincronia). "Usar a imagem original" a tira. Imagem nova zera o enquadramento (o de
-    antes era para a outra). O que sobe e não é salvo é apagado do Blob ao cancelar; a imagem própria que ficou
+    antes era para a outra). O que sobe e não é salvo é apagado do armazenamento ao cancelar; a imagem própria que ficou
     para trás também, se nenhum outro token a mostra. No servidor, o `deleteMap` apaga as dos `fit:` e o
     `syncTokens` registra a do token que saiu em `imgs`, para não ficar órfã. Monstro sem imagem também abre o diálogo.
   - **Por isso o envio da imagem do monstro deixou de recortar no centro**: `NPC_TOKEN_MAX_SIDE` (512) guarda a
@@ -1542,18 +1543,18 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
     segue quadrado, mas aceita o enquadramento também.
   - Geometria em `fitStyle`/`clampFit`: o ponto escolhido nunca deixa um canto do círculo sem imagem. O `Token`
     recebe `fitX/fitY/fitZ` como números soltos (não um objeto), para o `memo` não repintar todo token a cada poll.
-- **Vida de cada imagem, pela pasta no Blob** (`ImageFolder` em `services/images.ts`):
+- **Vida de cada imagem, pela pasta no bucket** (`ImageFolder` em `services/images.ts`):
   `tokens/` é token de PERSONAGEM, permanente (campo `token` da mesa, enviado na Ficha Virtual pelo
   `TokenAvatar`); `maps/` e `monsters/` são do mapa e somem quando ele é apagado. A trava mora no
-  servidor (`isMapOwnedUrl`): apagar um mapa nunca apaga nada de `tokens/`, mesmo que uma URL de
+  servidor (`isMapOwnedImage`): apagar um mapa nunca apaga nada de `tokens/`, mesmo que uma URL de
   lá apareça por engano na lista.
   - O mapa guarda em `imgs` TODA imagem de monstro que já passou por ele (`syncTokens` acrescenta,
     nunca tira). Sem isso, o monstro que saiu do encontro antes de o mapa ser apagado levava a
-    referência junto e a imagem ficava órfã no Blob.
+    referência junto e a imagem ficava órfã no armazenamento.
   - Imagem de monstro só com o encontro ligado a um mapa: sem mapa ela não teria dono nem hora de
     ser apagada, então o item do menu fica desabilitado ("escolha um mapa").
   - Erro de envio aparece com o motivo (`ImageError` / `imageErrorText`, com a mensagem crua do
-    SDK do Blob). A primeira versão engolia o erro e o envio "não fazia nada".
+    Storage). A primeira versão engolia o erro e o envio "não fazia nada".
   - `shrinkImage` tenta `createImageBitmap` e cai para `<img>` + `decode()` quando o navegador o
     recusa (PNG enorme no Safari, perfil de cor exótico).
 - A página sangra até a borda desfazendo o padding do `MainLayout`; barra e avisos ficam numa
@@ -1604,7 +1605,7 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
 - **Minúsculo ocupa 1 quadrado mas é desenhado menor** (`tiny` no `tok:`): a Iniciativa marca a
   criatura que É minúscula (`isTinySize`, no `useMapSync`), da AON ou digitada; o Shrink de um
   personagem continua sendo aplicado só no cliente, por `withPcSizes`. `NpcCombatant.tokenImage`: trocar a imagem de um monstro troca a das cópias dele que tinham
-  a antiga (ou nenhuma), e a antiga só sai do Blob se ninguém mais a usa.
+  a antiga (ou nenhuma), e a antiga só sai do armazenamento se ninguém mais a usa.
 
 ## Módulo transformation-statblock (contexto que se perde fácil)
 
