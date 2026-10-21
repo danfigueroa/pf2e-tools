@@ -746,7 +746,8 @@ eq(plain.combatants.length, 3, 'Monstro comum (sem dono) pode repetir à vontade
     eq(relics.withRelicRunes({ ...plain, level: 4 }, cat([g(0), rune('b', 'minor', { potency: 3 })])).weapons[0].pot, 1, 'relíquia: runa na 2ª posição só vale a partir do 5º nível')
     eq(relics.withRelicRunes(plain, cat([g(0), rune('b', 'minor', { potency: 3 })])).weapons[0].pot, 3, 'relíquia: liberada no nível, a runa vale')
     eq(relics.withRelicRunes(plain, cat([rune('a', 'minor', { striking: 'greater striking' })])).weapons[0].str, 'greater striking', 'relíquia: greater striking')
-    eq(relics.withRelicRunes({ ...plain, weapons: [{ ...plain.weapons[0], name: 'Outra' }] }, cat([rune('a', 'minor', { potency: 2 })])).weapons[0].pot, 1, 'relíquia: só a arma que a relíquia nomeia')
+    eq(relics.withRelicRunes({ ...plain, weapons: [{ ...plain.weapons[0], name: 'Outra', display: w0.name }] }, cat([rune('a', 'minor', { potency: 2 })])).weapons[0].pot, 2, 'relíquia: casa também pelo nome de exibição (display) do Pathbuilder')
+    eq(relics.withRelicRunes({ ...plain, weapons: [{ ...plain.weapons[0], name: 'Outra', display: 'Outra' }] }, cat([rune('a', 'minor', { potency: 2 })])).weapons[0].pot, 1, 'relíquia: só a arma que a relíquia nomeia')
     ok(relics.withRelicRunes(plain, []) === plain, 'relíquia: sem relíquia a ficha é a mesma (identidade)')
     ok(relics.withRelicRunes(plain, cat([power('p', 'minor', undefined)])) === plain, 'relíquia: poder não mexe na arma')
 }

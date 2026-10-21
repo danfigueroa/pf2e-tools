@@ -13,7 +13,9 @@ export const GiftArrivalNotice = ({ build }: { build: BuildInfo }) => {
 
     useEffect(() => { trackIncoming(me) }, [me])
     useEffect(() => onArrival((list) => {
-        const label = (slug: string) => roster.find((r) => r.slug === slug)?.label ?? slug
+        // Quem não está na lista (ficha só neste aparelho): o slug com cara de nome.
+        const label = (slug: string) => roster.find((r) => r.slug === slug)?.label
+            ?? slug.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
         setText(list.map((a) => `${label(a.from)} te enviou ${a.n}× ${a.name}`).join(' · '))
     }), [roster])
 

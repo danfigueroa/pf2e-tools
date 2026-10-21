@@ -68,7 +68,7 @@ export interface RelicEntry {
     id: string
     character: (b: BuildInfo) => boolean
     name: string
-    /** O item da ficha em que a relíquia mora; ausente = item avulso, só do app. */
+    /** O item da ficha em que a relíquia mora (pelo nome base ou pelo de exibição do Pathbuilder); ausente = item avulso, só do app. */
     on?: RelicBase
     aspects?: string[]
     description?: string
@@ -129,7 +129,8 @@ export function withRelicRunes(build: BuildInfo, catalog: RelicEntry[] = RELICS)
     const weapons = build.weapons.map((w): Weapon => {
         let next = w
         for (const relic of relics) {
-            if (relic.on?.kind !== 'weapon' || !sameRune(relic.on.weapon, w.name)) continue
+            // O Pathbuilder guarda o item base em `name` e o nome da arma específica em `display`.
+            if (relic.on?.kind !== 'weapon' || !(sameRune(relic.on.weapon, w.name) || sameRune(relic.on.weapon, w.display ?? ''))) continue
             relic.gifts.forEach((gift, idx) => {
                 if (gift.kind !== 'rune' || !gift.rune || !giftUnlocked(gift, idx, level)) return
                 const { potency, striking, property } = gift.rune
