@@ -12,6 +12,8 @@ export interface FocusSpellEntry {
     name: string
     tradition: string
     group: FocusAbility
+    /** Truque de foco (psi cantrip, composição): conjurar não gasta ponto — só o amp gasta. */
+    cantrip: boolean
 }
 
 export function collectFocusSpells(build: BuildInfo): FocusSpellEntry[] {
@@ -20,10 +22,11 @@ export function collectFocusSpells(build: BuildInfo): FocusSpellEntry[] {
     if (!build.focus) return out
     Object.entries(build.focus).forEach(([tradition, abilities]: [string, FocusTradition]) => {
         Object.values(abilities).forEach((group: FocusAbility) => {
-            for (const name of [...(group.focusCantrips ?? []), ...(group.focusSpells ?? [])]) {
+            const cantrips = new Set(group.focusCantrips ?? [])
+            for (const name of [...cantrips, ...(group.focusSpells ?? [])]) {
                 if (seen.has(name)) continue
                 seen.add(name)
-                out.push({ name, tradition, group })
+                out.push({ name, tradition, group, cantrip: cantrips.has(name) })
             }
         })
     })

@@ -28,7 +28,7 @@ import { casterAttack, focusAttack } from '../rolls'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { castMessage, useSpellCast, type CastReport } from '../components/useSpellCast'
 import { NO_RESOURCE, type CastResource } from '../spellCast'
-import { psiAmpFor } from '../psiAmps'
+import { hasPsychicArchetype } from '../psiAmps'
 
 interface Props {
     build: BuildInfo
@@ -222,8 +222,8 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
                                     level: focusRank,
                                     autoHeightened: true,
                                     caster: focusCasterInfo(build, s, mods),
-                                    // Psi cantrip é truque: conjurar é de graça, o ponto só sai ao Amplificar (no diálogo).
-                                    cast: focusMax > 0 && !(build.class === 'Psychic' && psiAmpFor(s.name)) ? { kind: 'focus' } : NO_RESOURCE,
+                                    // Truque de foco (psi cantrip) é truque: conjurar é de graça, o ponto só sai ao Amplificar (no diálogo).
+                                    cast: focusMax > 0 && !s.cantrip ? { kind: 'focus' } : NO_RESOURCE,
                                 }}
                                 onSelect={onSelect}
                                 spend={focusMax > 0 ? {
@@ -685,8 +685,8 @@ function focusCasterInfo(build: BuildInfo, entry: FocusSpellEntry, mods: Conditi
         attack,
         tradition: entry.tradition,
         attackInfo: focusAttack(build, entry.group, mods),
-        // Os psi cantrips do Psíquico são conjuração de Psíquico.
-        psychic: build.class === 'Psychic',
+        // Os psi cantrips do Psíquico são conjuração de Psíquico — e os do arquétipo também ("occult psychic spells").
+        psychic: build.class === 'Psychic' || (entry.cantrip && entry.tradition === 'occult' && hasPsychicArchetype(build)),
     }
 }
 
