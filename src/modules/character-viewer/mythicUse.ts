@@ -9,6 +9,7 @@
  *   Nathaniel e Thalos não têm.
  * - **Ears that Hear the Truth**: Sense Motive e a Percepção da iniciativa.
  * - **Feet that Stride the Sky** / **Arms that Cut the Waves**: salto e natação.
+ * - **Unbelievably Believable**: Mentir, Causar Impressão, Pedir e Coletar Informações (o Loki).
  * - Ataque de magia: nenhum — o Mythic Magic já conjura com proficiência mítica.
  *
  * Quem não tem o talento do contexto não vê o botão. Onde dois valem (Percepção de iniciativa:
@@ -16,7 +17,7 @@
  */
 import { parseFeatEntry, type BuildInfo } from '../character-sheet/types'
 
-export type MythicContext = 'check' | 'strike' | 'spell-attack' | 'initiative' | 'sense-motive' | 'jump' | 'swim'
+export type MythicContext = 'check' | 'strike' | 'spell-attack' | 'initiative' | 'sense-motive' | 'jump' | 'swim' | 'influence'
 
 export interface MythicOption {
     /** O talento que permite. */
@@ -40,10 +41,11 @@ const SPECIFIC: Partial<Record<MythicContext, string>> = {
     'sense-motive': 'Ears that Hear the Truth',
     'jump': 'Feet that Stride the Sky',
     'swim': 'Arms that Cut the Waves',
+    'influence': 'Unbelievably Believable',
 }
 
 /** Contextos que também são teste de perícia, onde o Rewrite Fate serve de reserva. */
-const SKILL_CONTEXTS: ReadonlySet<MythicContext> = new Set(['check', 'initiative', 'sense-motive', 'jump', 'swim'])
+const SKILL_CONTEXTS: ReadonlySet<MythicContext> = new Set(['check', 'initiative', 'sense-motive', 'jump', 'swim', 'influence'])
 
 export function mythicOptionFor(build: BuildInfo, context: MythicContext): MythicOption | null {
     const specific = SPECIFIC[context]

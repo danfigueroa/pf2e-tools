@@ -399,7 +399,7 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                                     <Chip
                                         key={a.id}
                                         size="small"
-                                        label={`${a.label} · ${a.actions} ${a.actions === 1 ? 'ação' : 'ações'}`}
+                                        label={`${a.label} · ${a.time ?? `${a.actions} ${a.actions === 1 ? 'ação' : 'ações'}`}`}
                                         color={skillActionId === a.id ? 'primary' : 'default'}
                                         variant={skillActionId === a.id ? 'filled' : 'outlined'}
                                         onClick={() => setSkillActionId(skillActionId === a.id ? null : a.id)}
@@ -460,7 +460,7 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                         send(out.roll, mythic)
                         return
                     }
-                    if (skillAction) payTime(actions, { kind: 'actions', n: skillAction.actions }, undefined, [], [])
+                    if (skillAction && skillAction.actions > 0) payTime(actions, { kind: 'actions', n: skillAction.actions }, undefined, [], [])
                     const sub = [skillAction?.label, initiative && canInitiative ? 'iniciativa' : null].filter(Boolean).join(' · ') || undefined
                     send(
                     checkRoll(who, check.label, parts, mythic ? check.mythicDelta : null, sub, initiative && canInitiative),

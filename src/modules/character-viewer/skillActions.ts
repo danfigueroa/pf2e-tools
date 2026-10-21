@@ -4,7 +4,9 @@
  * opcional — desligado por padrão, então teste fora de combate continua como era.
  *
  * Só entra o que cabe no turno (1–3 ações). Atividade de minutos ou de exploração (Impersonate,
- * Gather Information, Craft, Repair, Track…) não tem custo em ações e fica de fora.
+ * Craft, Repair, Track…) não tem custo em ações e fica de fora — com uma exceção: as que um talento
+ * mítico deixa rolar com ✦ (Mentir, Causar Impressão, Coletar Informações, pelo Unbelievably
+ * Believable) entram com `actions: 0` e a duração em `time`, só para escolher o ✦. Não gastam ação.
  */
 import type { MythicContext } from './mythicUse'
 
@@ -15,6 +17,8 @@ export interface SkillAction {
     actions: number
     /** O ✦ de talento específico que esta ação libera (salto, natação, Sense Motive). */
     mythic?: MythicContext
+    /** Quanto leva, para a que não gasta ação (`actions: 0`): "1 minuto", "2 horas". */
+    time?: string
 }
 
 const recall: SkillAction = { id: 'recall', label: 'Recall Knowledge', actions: 1 }
@@ -45,11 +49,14 @@ export const SKILL_ACTIONS: Readonly<Record<string, ReadonlyArray<SkillAction>>>
     Deception: [
         { id: 'diversion', label: 'Create a Diversion', actions: 1 },
         { id: 'feint', label: 'Feint', actions: 1 },
+        { id: 'lie', label: 'Lie', actions: 0, time: 'conversa', mythic: 'influence' },
     ],
     Intimidation: [{ id: 'demoralize', label: 'Demoralize', actions: 1 }],
     Diplomacy: [
         { id: 'bon-mot', label: 'Bon Mot', actions: 1 },
-        { id: 'request', label: 'Request', actions: 1 },
+        { id: 'request', label: 'Request', actions: 1, mythic: 'influence' },
+        { id: 'make-impression', label: 'Make an Impression', actions: 0, time: '1 minuto', mythic: 'influence' },
+        { id: 'gather-information', label: 'Gather Information', actions: 0, time: '2 horas', mythic: 'influence' },
     ],
     Performance: [{ id: 'perform', label: 'Perform', actions: 1 }],
     Perception: [
