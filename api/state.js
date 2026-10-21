@@ -7,6 +7,7 @@
 import {
   readCharacter,
   readField,
+  readIncoming,
   writeField,
   isValidSlug,
   isValidField,
@@ -91,6 +92,18 @@ export default async function handler(req, res) {
     } catch (error) {
       console.error('[/api/state] Erro na ficha publicada:', error)
       return res.status(500).json({ error: 'Erro ao tratar a ficha publicada' })
+    }
+  }
+
+  if (req.method === 'GET' && req.query?.incoming !== undefined) {
+    // O que os colegas me passaram (`gave` de cada um que aponta para mim).
+    const to = req.query.incoming
+    if (!isValidSlug(to)) return res.status(400).json({ error: 'Parâmetro "incoming" inválido' })
+    try {
+      return res.status(200).json({ char: to, incoming: await readIncoming(mesa, to) })
+    } catch (error) {
+      console.error('[/api/state] Erro ao ler o que me passaram:', error)
+      return res.status(500).json({ error: 'Erro ao ler o estado da mesa' })
     }
   }
 

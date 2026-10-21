@@ -26,6 +26,7 @@ import {
   writeField,
   isValidSlug,
   isValidField,
+  readIncoming,
   isStoreConfigured,
   MAX_FIELD_BYTES,
 } from '../api/_lib/table-store.js'
@@ -598,6 +599,25 @@ const server = http.createServer(async (req, res) => {
         console.error('[/api/state] Erro na ficha publicada:', e)
         res.writeHead(500, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ error: e.message }))
+      }
+      return
+    }
+
+    if (req.method === 'GET' && parsedUrl.searchParams.get('incoming') !== null) {
+      // O que os colegas me passaram, como no serverless.
+      const to = parsedUrl.searchParams.get('incoming')
+      if (!isValidSlug(to)) {
+        res.writeHead(400, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: 'Parâmetro "incoming" inválido' }))
+        return
+      }
+      try {
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ char: to, incoming: await readIncoming(mesa, to) }))
+      } catch (e) {
+        console.error('[/api/state] Erro ao ler o que me passaram:', e)
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: 'Erro ao ler o estado da mesa' }))
       }
       return
     }

@@ -30,7 +30,7 @@ export const MAX_FIELD_BYTES = 8 * 1024
 
 const SLUG_RE = /^[a-z0-9-]{1,64}$/
 // A mesma lista do CHECK de `character_state` (migration `estado_da_mesa`).
-const FIELD_RE = /^(hp|slots|conditions|afflictions|persistent|mythic|consumed|shield|token|size|rage|psyche|energy|magus|ranger|rogue|actions|uses|companions|pet:[a-z0-9:#-]{1,80})$/
+const FIELD_RE = /^(hp|slots|conditions|afflictions|persistent|mythic|consumed|shield|token|size|rage|psyche|energy|magus|ranger|rogue|actions|uses|companions|gave|pet:[a-z0-9:#-]{1,80})$/
 
 /** A chave do personagem no cache em memória (sem banco). */
 const characterKey = (mesa, slug) => `${mesa}|${slug}`
@@ -109,6 +109,34 @@ export async function readCharacterSlices(mesa, slugs, fields) {
     const rows = check(await db.from('character_state').select('slug, field, data')
         .eq('mesa', mesa).in('slug', slugs).in('field', fields))
     for (const r of rows) out[r.slug][r.field] = r.data
+    return out
+}
+
+/**
+ * O que os colegas já passaram a `slug` (campo `gave` de cada um). Cada remetente
+ * escreve só na própria fatia — `{ destinatário: { item: n } }` —, então quem recebe
+ * soma o que aponta para ele. A tabela da mesa tem meia dúzia de linhas `gave`.
+ * @returns {Promise<Record<string, Record<string, number>>>} remetente → item → n
+ */
+export async function readIncoming(mesa, slug) {
+    const out = {}
+    const take = (from, data) => {
+        const mine = data && typeof data === 'object' ? data[slug] : null
+        if (mine && typeof mine === 'object' && from !== slug) out[from] = mine
+    }
+    const db = supabase()
+    if (!db) {
+        const prefix = `${mesa}|`
+        for (const [key, fields] of memory) {
+            if (!key.startsWith(prefix)) continue
+            const entry = unwrap(fields.gave)
+            if (entry) take(key.slice(prefix.length), entry.data)
+        }
+        return out
+    }
+    const rows = check(await db.from('character_state').select('slug, data')
+        .eq('mesa', mesa).eq('field', 'gave'))
+    for (const r of rows) take(r.slug, r.data)
     return out
 }
 
