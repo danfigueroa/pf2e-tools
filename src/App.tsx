@@ -4,13 +4,8 @@ import { ThemeProvider, CssBaseline } from '@mui/material';
 import { pathfinderTheme } from './theme';
 import { MainLayout } from './layouts/MainLayout';
 import { HomePage } from './pages/HomePage';
-// MÓDULO DESATIVADO — Ficha em PDF. O código segue em src/modules/character-sheet/
-// (e `types.ts` continua sendo usado pelos outros módulos). Para reativar:
-// descomente o import e a rota abaixo, e as entradas em MainLayout.tsx e HomePage.tsx.
-// const CharacterSheetPage = lazy(() => import('./modules/character-sheet/CharacterSheetPage').then((m) => ({ default: m.CharacterSheetPage })));
-
 // Todo módulo é carregado sob demanda. Num bundle só, quem abria a Ficha
-// Virtual no celular baixava o html2canvas e o jsPDF das exportações, a
+// Virtual no celular baixava o html2canvas das exportações, a
 // Iniciativa e o Escalar Monstro — mais da metade do JavaScript do site.
 const CharacterViewerPage = lazy(() =>
   import('./modules/character-viewer/CharacterViewerPage').then((m) => ({ default: m.CharacterViewerPage })));
@@ -34,8 +29,8 @@ function App() {
         <Routes>
           <Route path="/" element={<MainLayout />}>
             <Route index element={<HomePage />} />
-            {/* Desativado: manda para a Início em vez de deixar a tela em branco
-                para quem tiver o link antigo salvo. */}
+            {/* A Ficha em PDF foi removida: manda para a Início em vez de deixar a
+                tela em branco para quem tiver o link antigo salvo. */}
             <Route path="character-sheet" element={<Navigate to="/" replace />} />
             <Route path="ficha-virtual" element={page(<CharacterViewerPage />)} />
             <Route path="iniciativa" element={page(<InitiativePage />)} />

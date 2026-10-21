@@ -18,7 +18,6 @@ import {
 import {
   Menu as MenuIcon,
   Home as HomeIcon,
-  // Description as SheetIcon, // desativado junto com a Ficha em PDF
   PhoneIphone as ViewerIcon,
   FormatListNumbered as InitiativeIcon,
   Transform as TransformIcon,
@@ -86,12 +85,6 @@ const navigationItems: NavigationItem[] = [
     icon: <HistoryIcon />,
     path: '/historico',
   },
-  // Desativado — Ficha em PDF (ver App.tsx).
-  // {
-  //   text: 'Ficha em PDF',
-  //   icon: <SheetIcon />,
-  //   path: '/character-sheet',
-  // },
   {
     text: 'Stat Block de Transformação',
     icon: <TransformIcon />,
