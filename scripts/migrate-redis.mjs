@@ -6,6 +6,7 @@
 //   node --env-file=.env scripts/migrate-redis.mjs --domain translations [--dry-run]
 //   node --env-file=.env scripts/migrate-redis.mjs --domain descriptions [--dry-run]
 //   node --env-file=.env scripts/migrate-redis.mjs --domain state [--dry-run]
+//   node --env-file=.env scripts/migrate-redis.mjs --domain rolls [--dry-run]
 //
 // Precisa das credenciais do Redis de PRODUÇÃO no .env — KV_REST_API_URL e, de
 // preferência, KV_REST_API_READ_ONLY_TOKEN (o script só lê; o KV_REST_API_TOKEN
@@ -19,6 +20,8 @@
 //   pf2e:table:v1:<slug>                 → character_state, uma linha por campo do hash
 //   pf2e:m:<mesa>:table:v1:<slug>          (só entra o que for MAIS NOVO que o banco:
 //                                           pode rodar antes e depois do deploy)
+//   pf2e:rolls:v1                        → rolls (a lista das últimas 30; as que já
+//   pf2e:m:<mesa>:rolls:v1                 estão no banco ficam como estão)
 
 import { Redis } from '@upstash/redis'
 import { createClient } from '@supabase/supabase-js'
@@ -26,7 +29,7 @@ import { createClient } from '@supabase/supabase-js'
 const args = process.argv.slice(2)
 const domain = args.includes('--domain') ? args[args.indexOf('--domain') + 1] : null
 const dryRun = args.includes('--dry-run')
-const DOMAINS = ['translations', 'descriptions', 'state']
+const DOMAINS = ['translations', 'descriptions', 'state', 'rolls']
 if (!DOMAINS.includes(domain)) {
     console.error(`Uso: --domain ${DOMAINS.join('|')} [--dry-run]`)
     process.exit(2)
@@ -178,5 +181,26 @@ async function migrateState() {
     if (!dryRun) await upsert('character_state', newer.filter((r) => valid.has(r.mesa)))
 }
 
-await ({ translations: migrateTranslations, descriptions: migrateDescriptions, state: migrateState })[domain]()
+async function migrateRolls() {
+    const keys = [...await scan('pf2e:rolls:v1'), ...await scan('pf2e:m:*:rolls:v1')]
+    const rows = []
+    for (const key of keys) {
+        const mesa = key.match(/^pf2e:m:([a-z0-9-]+):rolls:v1$/)?.[1] ?? LEGACY_MESA
+        const list = (await redis.lrange(key, 0, -1)) ?? []
+        for (const raw of list) {
+            let roll = raw
+            if (typeof raw === 'string') { try { roll = JSON.parse(raw) } catch { roll = null } }
+            // Já validadas na entrada (`sanitizeRoll`); aqui só o mínimo da tabela.
+            if (!roll || !/^[a-z0-9-]{1,64}$/.test(roll.id ?? '') || typeof roll.at !== 'number') continue
+            rows.push({ id: roll.id, mesa, at: roll.at, slug: roll.slug ?? null, roll })
+        }
+        console.log(`${mesa}: ${list.length} rolagem(ns)`)
+    }
+    // Na ordem em que foram feitas: o `seq` da sequência segue a ordem de inserção.
+    rows.sort((a, b) => a.at - b.at)
+    console.log(`Rolagens: ${rows.length}`)
+    if (!dryRun) await upsert('rolls', rows, { onConflict: 'id', ignoreDuplicates: true })
+}
+
+await ({ translations: migrateTranslations, descriptions: migrateDescriptions, state: migrateState, rolls: migrateRolls })[domain]()
 console.log(dryRun ? 'Dry-run: nada foi gravado.' : 'Feito.')
