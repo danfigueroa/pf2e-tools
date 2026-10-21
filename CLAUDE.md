@@ -32,6 +32,15 @@ com `Desativado`: o import e a rota em `App.tsx`, o item em `layouts/MainLayout.
 `pages/HomePage.tsx` (o import de `SheetIcon` está comentado junto em cada um). `/character-sheet`
 hoje redireciona para a Início.
 
+## Marca
+
+Nome **Covil de Dados**, kit em `brand/covil-de-dados/` (`LEIA-ME.md` tem cores, fontes e qual arquivo usar). No app:
+logo horizontal no cabeçalho da sidebar e na Início, símbolo no AppBar do celular (`src/assets/`); ícones, manifest e
+`og-image` em `public/`. **Não recolora nem estica os SVGs** (texto já em curvas) e, sobre foto ou textura, use as
+versões `-1cor-`. Abaixo de 48 px, o símbolo é o `covil-simbolo-reduzido`. A `og:image` usa o domínio de produção por
+URL absoluta (`index.html`) — troque junto se o domínio mudar. O aviso "Ferramenta de fã, não oficial" fica no rodapé
+da sidebar e da Início. Nome de pacote, rotas, chaves de storage e tabelas continuam com o nome antigo, de propósito.
+
 ## Comandos
 
 ```bash
