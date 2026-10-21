@@ -193,10 +193,12 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
     seguidas não terminam com o guia da primeira na segunda. `tidy` tira itálico e lista `*`/`1.`,
     que o `GuideMarkdown` não entende e mostrava crus.
 - **O mesmo `state` serve o feed de rolagens** (`api/_lib/roll-handler.js` + `roll-store.js`):
-  `GET ?rolls=1&rev=N` e `POST { action: 'roll-add', roll }`. Uma LISTA no Redis com as últimas
-  30 rolagens (`LPUSH`+`LTRIM`+`EXPIRE` 1 dia+`INCR pf2e:rolls:rev` = 4 comandos por rolagem) e o
-  contador que o poll lê (1 comando; 2 quando mudou). `isRollRequest` vem **antes** de
-  `isSheetRequest` nos dois servidores, pelo mesmo motivo do mapa. O `at` é do servidor.
+  `GET ?rolls=1&rev=N` e `POST { action: 'roll-add', roll }`. No Postgres (tabelas `rolls` e `shares`, migration
+  `feed_de_rolagens`): **toda rolagem fica** (é o histórico do diário da sessão), com `author` = a sessão de quem
+  rolou; o GET devolve as últimas 30 numa consulta (`read_feed`), e só o `rev` quando nada mudou. As duas tabelas
+  tiram o `seq` da MESMA sequência, e o `rev` é o maior `seq` da mesa: com sequências separadas, um compartilhamento
+  abaixo da última rolagem não mudaria o máximo. `isRollRequest` vem **antes** de `isSheetRequest` nos dois
+  servidores, pelo mesmo motivo do mapa. O `at` é do servidor.
   - **A validação existe duas vezes**: `sanitizeTableRoll` em `src/dice/tableRoll.ts` e
     `sanitizeRoll` em `roll-store.js` (o servidor é JS puro e não importa o TS). Mudou uma, muda a
     outra — o `check-rolls` confere as duas com os mesmos casos. A soma tem de fechar (`d20 + mod =
@@ -313,7 +315,7 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
 O Upstash Redis e o Vercel Blob estão sendo trocados pelo Supabase (Postgres + Realtime + Storage), domínio a domínio,
 sem mudar o contrato das rotas: cada store do servidor ganha a versão Supabase com as mesmas funções exportadas. Ordem:
 fundação (feito) → traduções/descrições (feito) → fichas com histórico (feito) → estado da mesa em tempo real (feito) →
-rolagens → mapa →
+rolagens (feito) → mapa →
 imagens → desligar Upstash e Blob. Projeto `htgrzvdzxepbbgbaqkir`, em **São Paulo** (`sa-east-1`) porque a mesa é toda
 brasileira; as funções da Vercel vão para `gru1` quando o mapa e o feed saírem do Redis — até lá os dois polls ainda
 passam pelo Upstash, e mudar a região antes só trocaria qual caminho fica longe.
@@ -551,20 +553,21 @@ elenco ficar sem caminho (rode depois de publicar um personagem novo ou regerar 
 Toda rolagem — da ficha, do rolador do mapa — vai para o feed (`services/rolls.ts` →
 `api/_lib/roll-store.js`) e aparece para **todo mundo, em qualquer página**: o `RollFeedLayer` é
 montado UMA vez no `MainLayout` (trocar de rota não refaz o "já visto"), e o histórico das últimas
-30 abre pelo item "Rolagens da mesa" da sidebar ou pelo dado da AppBar no celular.
+30 abre pelo item "Rolagens da mesa" da sidebar ou pelo dado da AppBar no celular. O banco guarda todas.
 
 - **A rolagem vem sorteada** (`TableRoll`, `src/dice/tableRoll.ts`): quem recebe só apresenta, com o
   memorial junto para a mesa conferir. `DiceTray` aceita dados de tamanhos diferentes na mesma
   bandeja (o d8 da arma e o d6 da runa).
 - **Cada id aparece uma vez por aparelho**; o que já estava no feed ao abrir conta como visto,
   menos o que saiu DESTE aparelho (`isOwnRoll`) — a otimista pode chegar antes da primeira leitura.
-- **Poll leve, decisão do usuário**: 1,5 s com a aba visível, rajada de 1 s por 5 s depois de uma
-  rolagem, nada com a aba oculta. Cada poll é 1 comando no Upstash (~6 aparelhos × 4 h ≈ 58 mil
-  por sessão). Era 3 s; caiu para a metade porque a mesa joga 1–2 vezes por mês e a cota grátis
-  (500 mil/mês) tem folga — a regra compartilhada esperava até 3 s para aparecer. **Com o Mapa aberto o feed não faz poll próprio**: o contador vai de carona como 4ª
-  chave do MGET do `readRevs` (um MGET custa um comando com 3 ou 4 chaves), `maps.ts` repassa por
-  `noteRollsRev`, e o poll próprio volta sozinho 6 s depois que o mapa para de avisar. O `rollsRev`
-  NÃO entra na conta de "o mapa mudou" — rolagem não baixa o mapa.
+- **Tempo real**: cada inserção em `rolls`/`shares` é transmitida pelo banco (trigger) no canal privado
+  `mesa:<mesa>:rolls`, eventos `roll` e `share`, já com o conteúdo (`listenMesaChannel` em `services/supabase.ts`).
+  Com o canal aberto **não há poll nenhum**: a lista só é lida na abertura e a cada (re)conexão (com o `rev` de antes,
+  o servidor devolve só o número se nada mudou) e ao voltar a aba visível. Medido: rolagem de outro aparelho em ~80 ms,
+  regra compartilhada em ~125 ms, zero GETs em 6 s com o canal aberto.
+- **Poll de reserva, sem canal** (sem Supabase, rede ruim): o de antes — 1,5 s com a aba visível, rajada de 1 s por
+  5 s depois de uma rolagem, nada com a aba oculta. A carona no MGET do mapa (`rollsRev`, `noteRollsRev`) saiu: o
+  mapa só quer saber que a mesa rolou algo para acelerar o próprio poll, e assina `onFeedActivity`.
 - O cartão fica **30 s** na tela (com 8 s sumia antes de a mesa ler a conta) e fecha antes pelo
   **×** — só por ele: com o cartão inteiro clicável, um toque perdido o fechava no meio da
   leitura. Fica acima da AppBar e das gavetas (`zIndex` 1250), abaixo dos diálogos. Vale para
@@ -585,9 +588,8 @@ para a tela de todo mundo, em qualquer página, para a mesa ler o mesmo texto e 
   LLM do zero, porque as traduções dos pacotes não estão no cache de traduções do Redis — e o texto demorava dezenas de
   segundos. Medido em dev: texto junto com o cartão, zero chamadas à API de descrições. Mesma regra das rolagens: **duas validações** (`sanitizeTableShare` e `sanitizeShare` em
   `roll-store.js`), o `check-rolls` confere as duas.
-- **Anda no feed de rolagens**: POST `{ action: 'share-add' }`, lista própria `pf2e:shares:v1` (5 itens, 1 h) que sobe o
-  MESMO `pf2e:rolls:rev`. O GET devolve `shares` junto quando o contador muda: o poll ocioso continua 1 GET, e o carona
-  no MGET do mapa vale para ela sem mudar nada lá. Sem histórico na interface (decisão do usuário).
+- **Anda no feed de rolagens**: POST `{ action: 'share-add' }`, tabela `shares` (o GET devolve as da última hora, até 5;
+  pg_cron apaga as de mais de um dia), mesmo canal (`share`) e mesmo `rev`. Sem histórico na interface (decisão do usuário).
 - **O cartão desenha o mesmo `DescriptionContent` do drawer** (o corpo foi extraído do `DescriptionDrawer`, que hoje é
   só a gaveta). A camada (`SharedRuleLayer`, no `MainLayout`) só assina `useTableShares`; o cartão é `React.lazy` e é baixado
   com o app ocioso depois da primeira leitura do feed (`prefetchCard`, ~18 kB gzip; na ficha quase tudo já veio com o
@@ -1394,7 +1396,7 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
   `readMap`: na ordem inversa, uma escrita entre as duas leituras ficava invisível até a próxima.
   - Três marchas: **rajada de 700 ms por 5 s** depois de qualquer mudança (daqui ou de fora — na
     mesa uma ação puxa a seguinte), 1,5 s com atividade no último minuto, 2 s parado, **nada com a
-    aba oculta**. Rolagem ou regra compartilhada nova (o `rollsRev` que vem de carona) também conta
+    aba oculta**. Rolagem ou regra compartilhada nova (`onFeedActivity`, de `services/rolls.ts`) também conta
     como atividade — põe na marcha de 1,5 s, sem rajada e sem baixar o mapa —, senão quem estava no
     mapa via o cartão até 4 s depois de quem estava na ficha. O parado era 4 s e caiu para 2 s porque
     a mesa joga 1–2 vezes por mês e a cota tem folga (decisão do usuário). A rajada é o número a mexer com cuidado: cada poll é um comando no Upstash (free:
