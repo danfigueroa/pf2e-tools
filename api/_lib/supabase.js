@@ -43,3 +43,23 @@ export async function pingDatabase() {
     if (error) console.error('[supabase] Ping falhou:', error.message)
     return !error
 }
+
+/**
+ * A sessão anônima de quem fez o pedido (`Authorization: Bearer <jwt>`), ou
+ * `null`. O JWT é conferido LOCALMENTE, contra as chaves públicas do projeto
+ * (ES256, guardadas em cache pelo SDK) — nenhuma ida ao Auth por pedido. Serve
+ * para registrar autoria; nunca para barrar alguém: sem sessão o pedido segue,
+ * como antes de haver sessão.
+ */
+export async function requestUserId(req) {
+    const header = req?.headers?.authorization
+    const token = typeof header === 'string' ? header.match(/^Bearer\s+(\S+)$/)?.[1] : null
+    const db = token ? supabase() : null
+    if (!db) return null
+    try {
+        const { data, error } = await db.auth.getClaims(token)
+        return error ? null : (data?.claims?.sub ?? null)
+    } catch {
+        return null
+    }
+}

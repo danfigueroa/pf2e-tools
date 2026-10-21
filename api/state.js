@@ -17,11 +17,12 @@ import { handleSheetRequest, isSheetRequest } from './_lib/sheet-handler.js'
 import { handleMapRequest, isMapRequest } from './_lib/map-handler.js'
 import { handleRollRequest, isRollRequest } from './_lib/roll-handler.js'
 import { mesaFrom } from './_lib/mesas.js'
+import { requestUserId } from './_lib/supabase.js'
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   // Estado de jogo muda a todo momento: nunca servir de cache de borda.
   res.setHeader('Cache-Control', 'no-store')
 
@@ -57,7 +58,8 @@ export default async function handler(req, res) {
   // Fichas publicadas (e o guia gerado): mesmas rotas do dev server.
   if (isSheetRequest(req.method, req.query || {}, req.body)) {
     try {
-      const { status, body } = await handleSheetRequest(mesa, req.method, req.query || {}, req.body || {})
+      const userId = req.method === 'POST' ? await requestUserId(req) : null
+      const { status, body } = await handleSheetRequest(mesa, req.method, req.query || {}, req.body || {}, { userId })
       return res.status(status).json(body)
     } catch (error) {
       console.error('[/api/state] Erro na ficha publicada:', error)

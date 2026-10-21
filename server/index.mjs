@@ -17,7 +17,7 @@ import { handleMapRequest, isMapRequest } from '../api/_lib/map-handler.js'
 import { handleRollRequest, isRollRequest } from '../api/_lib/roll-handler.js'
 import { hasTranslationKey } from '../api/_lib/aon.js'
 import { mesaFrom } from '../api/_lib/mesas.js'
-import { pingDatabase } from '../api/_lib/supabase.js'
+import { pingDatabase, requestUserId } from '../api/_lib/supabase.js'
 import {
   readCharacter,
   readField,
@@ -106,7 +106,7 @@ const server = http.createServer(async (req, res) => {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   
   if (req.method === 'OPTIONS') {
     res.writeHead(204)
@@ -557,7 +557,8 @@ const server = http.createServer(async (req, res) => {
 
     if (isSheetRequest(req.method, query, body)) {
       try {
-        const out = await handleSheetRequest(mesa, req.method, query, body)
+        const userId = req.method === 'POST' ? await requestUserId(req) : null
+        const out = await handleSheetRequest(mesa, req.method, query, body, { userId })
         res.writeHead(out.status, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify(out.body))
       } catch (e) {
