@@ -38,7 +38,7 @@
 // Todas as chaves são da mesa (`scoped`, ver mesas.js): cada mesa tem a lista,
 // o mapa ativo e os contadores dela, e por isso toda função recebe `mesa`.
 
-import { characterKey, memoryTableRev, readCharacter, redis, tableRevKey } from './table-store.js'
+import { memoryTableRev, readCharacterSlices, redis, tableRevKey } from './table-store.js'
 import { memoryRollsRev, rollsRevKey } from './roll-store.js'
 import { scoped } from './mesas.js'
 
@@ -328,32 +328,16 @@ export async function readMap(mesa, id, knownRevs) {
 }
 
 /**
- * `hp`, `token` e `size` (Enlarge/Shrink ligado) de cada personagem, do hash da
- * mesa — um HMGET por slug, num pipeline.
+ * `hp`, `token` e `size` (Enlarge/Shrink ligado) de cada personagem, do estado
+ * da mesa (Postgres) — uma consulta para todos.
  */
 async function readPcs(mesa, slugs) {
-    if (slugs.length === 0) return {}
-    const r = redis()
-    const out = {}
-    if (r) {
-        const p = r.pipeline()
-        slugs.forEach((slug) => p.hmget(characterKey(mesa, slug), 'hp', 'token', 'size'))
-        const rows = await p.exec()
-        slugs.forEach((slug, i) => {
-            const row = rows[i] || {}
-            out[slug] = {
-                hp: unwrap(row.hp)?.data ?? null,
-                token: unwrap(row.token)?.data ?? null,
-                size: unwrap(row.size)?.data ?? null,
-            }
-        })
-        return out
-    }
-    for (const slug of slugs) {
-        const fields = await readCharacter(mesa, slug)
-        out[slug] = { hp: fields.hp?.data ?? null, token: fields.token?.data ?? null, size: fields.size?.data ?? null }
-    }
-    return out
+    const slices = await readCharacterSlices(mesa, slugs, ['hp', 'token', 'size'])
+    return Object.fromEntries(slugs.map((slug) => [slug, {
+        hp: slices[slug]?.hp ?? null,
+        token: slices[slug]?.token ?? null,
+        size: slices[slug]?.size ?? null,
+    }]))
 }
 
 // --- Escrita -----------------------------------------------------------------

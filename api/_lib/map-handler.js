@@ -21,7 +21,7 @@
 
 import { handleUpload } from '@vercel/blob/client'
 import { del } from '@vercel/blob'
-import { isStoreConfigured } from './table-store.js'
+import { isRedisConfigured } from './table-store.js'
 import {
     MAX_MAP_FIELD_BYTES,
     MAX_TOKENS,
@@ -40,7 +40,7 @@ import {
     writeMapFields,
 } from './map-store.js'
 
-const ok = (body) => ({ status: 200, body: { ...body, storeReady: isStoreConfigured(), blobReady: isBlobConfigured() } })
+const ok = (body) => ({ status: 200, body: { ...body, storeReady: isRedisConfigured(), blobReady: isBlobConfigured() } })
 const fail = (status, error) => ({ status, body: { error } })
 
 const isBlobConfigured = () => !!process.env.BLOB_READ_WRITE_TOKEN

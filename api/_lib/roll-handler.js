@@ -11,10 +11,10 @@
 // Vem ANTES da ficha publicada nos dois servidores: a rota da ficha aceita
 // qualquer POST com `action` e engoliria esta.
 
-import { isStoreConfigured } from './table-store.js'
+import { isRedisConfigured } from './table-store.js'
 import { addRoll, addShare, readRolls, sanitizeRoll, sanitizeShare } from './roll-store.js'
 
-const ok = (body) => ({ status: 200, body: { ...body, storeReady: isStoreConfigured() } })
+const ok = (body) => ({ status: 200, body: { ...body, storeReady: isRedisConfigured() } })
 const fail = (status, error) => ({ status, body: { error } })
 
 /** Falso quando a requisição não é do feed — aí segue para as outras rotas do `state`. */

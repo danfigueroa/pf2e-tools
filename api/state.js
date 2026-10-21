@@ -105,12 +105,12 @@ export default async function handler(req, res) {
     if (data === undefined) {
       return res.status(400).json({ error: 'Campo "data" ausente' })
     }
-    // O endpoint é público: um teto por escrita evita encher o Redis.
+    // O endpoint é público: um teto por escrita evita encher o banco.
     if (JSON.stringify(data).length > MAX_FIELD_BYTES) {
       return res.status(400).json({ error: 'Estado grande demais' })
     }
     try {
-      const updatedAt = await writeField(mesa, char, field, data)
+      const updatedAt = await writeField(mesa, char, field, data, await requestUserId(req))
       return res.status(200).json({ ok: true, updatedAt, storeReady: isStoreConfigured() })
     } catch (error) {
       console.error('[/api/state] Erro ao gravar:', error)

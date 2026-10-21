@@ -630,7 +630,7 @@ const server = http.createServer(async (req, res) => {
         return
       }
       try {
-        const updatedAt = await writeField(mesa, char, field, data)
+        const updatedAt = await writeField(mesa, char, field, data, await requestUserId(req))
         res.writeHead(200, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ ok: true, updatedAt, storeReady: isStoreConfigured() }))
       } catch (e) {
