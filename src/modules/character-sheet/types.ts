@@ -425,8 +425,18 @@ export function fixWeaponExports(build: BuildInfo): BuildInfo {
 }
 
 /** Tudo que se acerta na ficha logo depois de ler o JSON do Pathbuilder (e ao restaurar a da sessão). */
+// O Pathbuilder passou a listar o TAMANHO entre as características ("Medium" no `specials` do Loki), e na
+// AON "Medium" é a classe do médium espiritual: a aba Habilidades mostraria a descrição errada. O tamanho
+// já vem no campo próprio (`sizeName`).
+const SIZE_SPECIALS = new Set(['Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan']);
+
+function dropSizeSpecials(build: BuildInfo): BuildInfo {
+  if (!build.specials?.some((s) => SIZE_SPECIALS.has(s))) return build;
+  return { ...build, specials: build.specials.filter((s) => !SIZE_SPECIALS.has(s)) };
+}
+
 export function normalizeBuild(build: BuildInfo): BuildInfo {
-  return fixWeaponExports(normalizeSpellCasters(build));
+  return dropSizeSpecials(fixWeaponExports(normalizeSpellCasters(build)));
 }
 
 export function formatAbilityScore(name: string, value: number) {
