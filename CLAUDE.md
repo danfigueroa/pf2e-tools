@@ -436,7 +436,7 @@ personagens, mapas e mapa ativo, encontro da Iniciativa, feed de rolagens e regr
 - A migração do `localStorage` antigo (`legacy` do `useSharedState`) só roda na mesa legada: em outra, levaria o PV de
   lá para um personagem de mesmo nome.
 - Mesas hoje: **Casa do Gordo Online** (`casa-do-gordo`, legada, os 6 personagens) e **Arton 1515** (`arton-1515`,
-  4 jogadores, ainda sem presets — os JSONs vêm depois). Mesa nova = uma entrada nas duas listas + a migration com a
+  4 jogadores; o primeiro preset é o **Loki**, os outros JSONs vêm depois). Mesa nova = uma entrada nas duas listas + a migration com a
   linha em `mesas` + `PRESETS_BY_MESA[<id>]` (pode começar vazia).
 
 ## Estado compartilhado da mesa
@@ -596,7 +596,9 @@ elenco ficar sem caminho (rode depois de publicar um personagem novo ou regerar 
 - **Itens**: "Usar/Beber" gasta a ação que a AON diz (`actions` em `search?items=`, cache `v2`); o Desfazer devolve a ação.
 - **✦ estrito** (`mythicUse.ts`): o botão só aparece onde um talento da ficha permite, com o nome dele: **Rewrite Fate** em
   teste de perícia/salvaguarda/Percepção (todos têm), **Mythic Strike** no Golpe (Ceros, Eldarion e Ghan; Brukuthur, Nathaniel e
-  Thalos NÃO têm → sem ✦), **Ears that Hear the Truth** na Percepção de iniciativa e no Sense Motive, **Feet that Stride the
+  Thalos NÃO têm → sem ✦), **Ears that Hear the Truth** na Percepção de iniciativa e no Sense Motive, **Unbelievably Believable** (Loki) em Lie,
+  Make an Impression, Request e Gather Information (contexto `influence`; as três que não cabem no turno entram no seletor
+  com `actions: 0` e a duração em `time`, só para escolher o ✦ — não gastam ação), **Feet that Stride the
   Sky** / **Arms that Cut the Waves** em salto e natação (cai no Rewrite Fate sem eles), **nenhum** em ataque de magia (o Mythic
   Magic já é mítico). O ✦ continua trocando a proficiência na rolagem, sem ser um reroll de um resultado anterior.
 - **Ação de perícia** (`skillActions.ts`): chip opcional no diálogo da perícia (Demoralize, Trip, Seek, Pick a Lock…, Saberes =
@@ -826,7 +828,10 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
 - **Os presets alimentam três módulos**: Ficha Virtual, diálogo de personagens da Iniciativa e
   gerador de Transformação (que aceita qualquer personagem, não só conjurador). Tirar uma ficha de
   `campaignPresets.ts` tira dos três. Elenco atual da Casa do Gordo Online: Brukuthur, Ceros (Cerosqualhanthallas),
-  Eldarion, Ghan Buri, Nathaniel e Thalos, todos nível 10 — tabela e observações no README.
+  Eldarion, Ghan Buri, Nathaniel e Thalos, todos nível 10; da Arton 1515: Loki (Magus 7) — tabela e observações no
+  README. **O guia do Loki segue o Remaster do Magus (Impossible Magic, jul/2026)**: Arcane Cascade sem requisito e com
+  resistência a magia, Laughing Shadow com o dano extra contra desprevenido, *Force Fang* sem ataque (só recarrega). A AON
+  guarda as duas versões; a revisada é a que tem `legacy_id`.
 - **Os três carregam o preset por `loadPresetJson`**: a versão publicada pela mesa, se houver,
   senão o arquivo fixo. O `level` de `CAMPAIGN_PRESETS` é o do arquivo, então os cards leem o nível
   por `usePublishedSheets().levelOf` — senão mostrariam "10" depois de um level-up publicado.
@@ -888,6 +893,10 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   proficiência + FOR + potência): se o jogador reexportar já certo, a correção deixa de agir em vez de somar o +1 duas
   vezes. Efeito colateral bom: `weaponRank` (rank do ✦) volta a fechar em Perito. Armas novas com o mesmo defeito entram
   em `WEAPON_EXPORT_FIXES`. O ideal continua sendo corrigir na origem (Pathbuilder).
+- **Tamanho listado entre as características**: exports mais novos do Pathbuilder põem "Medium" (o tamanho) em
+  `specials` — o do Loki veio assim —, e na AON "Medium" é a **classe** do médium espiritual: a aba Habilidades mostrava a
+  descrição dela e o pacote de descrições a traduzia. `normalizeBuild` (`dropSizeSpecials`) tira os seis tamanhos de
+  `specials`; o tamanho continua no `sizeName`. O `check-rolls` confere.
 - **Armas que mudam de número conforme a situação** (`magicWeapons.ts`): o Pathbuilder exporta um
   conjunto de números só por arma, o do caso padrão — a Gloom Blade do Eldarion no escuro vira um
   `+2 striking shortsword` e isso não aparecia em lugar nenhum. O catálogo casa **pelo nome** da

@@ -711,6 +711,12 @@ o mesmo personagem entraria duas vezes, dividindo o mesmo PV.
 | Nathaniel             | Magus (Sparkling Targe), Aiuvarin   | `Nathaniel o Magus`                  | Guia casa pelo começo do nome. **Anel corrigido à mão** (abaixo).  |
 | Thalos                | Psíquico (Oscillating Wave), Humano | `Thalos Alba`                        | Chronoskimmer completo (4/6/8/10). Nome do export mudou (abaixo).  |
 
+Na **Arton 1515**:
+
+| Preset                | Classe                              | Nome na ficha (casa o guia)          | Observações                                                        |
+| --------------------- | ----------------------------------- | ------------------------------------ | ------------------------------------------------------------------ |
+| Loki                  | Magus 7 (Laughing Shadow), Fleshwarp | `Loki`                              | Arquétipo de Psíquico (The Tangible Dream). Guia pelo Remaster do Magus. |
+
 - **O JSON do Nathaniel tem uma edição à mão**: o jogador marcou o *Winder's Ring* por engano, e o
   anel de nível 7 certo é o **Ring of Wizardry (Type I)**
   ([AON 462](https://2e.aonprd.com/Equipment.aspx?ID=462)) — +1 de item em Arcanismo e dois slots
