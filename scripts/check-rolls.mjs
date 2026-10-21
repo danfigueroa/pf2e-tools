@@ -36,7 +36,7 @@ const tokenFit = await import('../src/modules/battle-map/tokenFit.ts')
 const av = await import('../src/modules/character-viewer/actionVariants.ts')
 const companions = await import('../src/modules/character-viewer/companions.ts')
 const { encounterReducer } = await import('../src/modules/initiative-tracker/encounterReducer.ts')
-const { normalizeSpellCasters, normalizeBuild, fixWeaponExports } = await import('../src/modules/character-sheet/types.ts')
+const { normalizeSpellCasters, normalizeBuild, fixWeaponExports, parseCharacterJson } = await import('../src/modules/character-sheet/types.ts')
 const dice = await import('../src/dice/roll.ts')
 const initRolls = await import('../src/modules/initiative-tracker/initiativeRolls.ts')
 const table = await import('../src/dice/tableRoll.ts')
@@ -927,6 +927,16 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
     eq(find('Thievery', 'lock')?.actions, 2, 'Pick a Lock: 2 ações')
     eq(sk.skillActionsFor('Warfare Lore').map((a) => a.id).join(), 'recall', 'Saber: Recall Knowledge')
     eq(sk.skillActionsFor('Fortitude').length, 0, 'Salvaguarda não é ação de perícia')
+    // Unbelievably Believable (Loki, Arton 1515): ✦ em Mentir, Causar Impressão, Pedir e Coletar Informações.
+    const loki = parseCharacterJson(JSON.parse(readFileSync(new URL('../public/characters/loki7.json', import.meta.url))))
+    eq(mu.mythicOptionFor(loki, 'influence')?.feat, 'Unbelievably Believable', 'Loki: ✦ de influência pelo Unbelievably Believable')
+    eq(mu.mythicOptionFor(loki, 'initiative')?.feat, 'Ears that Hear the Truth', 'Loki: ✦ da iniciativa pelo Ears')
+    eq(opt('thalos', 'influence'), 'Rewrite Fate', 'Thalos: sem o talento, influência cai no Rewrite Fate')
+    for (const [en, id] of [['Deception', 'lie'], ['Diplomacy', 'request'], ['Diplomacy', 'make-impression'], ['Diplomacy', 'gather-information']]) {
+        eq(find(en, id)?.mythic, 'influence', `${id} libera o ✦ de influência`)
+    }
+    eq(find('Diplomacy', 'make-impression')?.actions, 0, 'Make an Impression não gasta ação (1 minuto)')
+    eq(find('Diplomacy', 'request')?.actions, 1, 'Request continua custando 1 ação')
 }
 
 // Talentos míticos do turno: quem tem o quê, e o Godspeed (Acelerado + 3 m).
@@ -977,6 +987,12 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
         ok(shares.sanitizeTableShare(s) === null, `cliente recusa o compartilhamento: ${why}`)
         ok(server.sanitizeShare(s) === null, `servidor recusa o compartilhamento: ${why}`)
     }
+}
+
+// ── O tamanho que o Pathbuilder lista entre as características não vira habilidade ──
+{
+    const base = normalizeBuild({ name: 'T', level: 1, specials: ['Medium', 'Spellstrike', 'Large'], spellCasters: [], weapons: [] })
+    eq(base.specials.join(','), 'Spellstrike', 'tamanho ("Medium", "Large") sai das habilidades — na AON, "Medium" é a classe do médium')
 }
 
 // ── Diário da sessão: as contas por personagem e os destaques ─────────────────

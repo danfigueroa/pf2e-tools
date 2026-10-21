@@ -25,7 +25,7 @@ const mf = await import('../src/modules/character-viewer/mythicFeats.ts')
 const mu = await import('../src/modules/character-viewer/mythicUse.ts')
 
 /** Talentos que gastam ponto numa rolagem (✦) — o `mythicUse.ts` os oferece no diálogo. */
-const MYTHIC_ROLL_FEATS = new Set(['Ears that Hear the Truth', 'Feet that Stride the Sky', 'Arms that Cut the Waves'])
+const MYTHIC_ROLL_FEATS = new Set(['Ears that Hear the Truth', 'Feet that Stride the Sky', 'Arms that Cut the Waves', 'Unbelievably Believable'])
 /** Gasta ponto fora do turno / sem efeito que a ficha acompanhe: só informativo. */
 const MYTHIC_INFO_ONLY = new Set(["Hydra's Bond"])
 
@@ -37,6 +37,7 @@ const slugOf = {
     'ghanburi10': 'ghan-buri',
     'nathaniel10': 'nathaniel-o-magus',
     'thalos10': 'thalos',
+    'loki7': 'loki',
 }
 
 let failures = 0
@@ -75,7 +76,7 @@ for (const file of readdirSync(new URL('characters/', dir)).filter((f) => f.ends
     // O ✦ de cada talento de rolagem que a ficha tem precisa ser oferecido em algum contexto.
     for (const feat of MYTHIC_ROLL_FEATS) {
         if (!owned.some((o) => o.name === feat)) continue
-        const ctx = { 'Ears that Hear the Truth': 'initiative', 'Feet that Stride the Sky': 'jump', 'Arms that Cut the Waves': 'swim' }[feat]
+        const ctx = { 'Ears that Hear the Truth': 'initiative', 'Feet that Stride the Sky': 'jump', 'Arms that Cut the Waves': 'swim', 'Unbelievably Believable': 'influence' }[feat]
         if (mu.mythicOptionFor(build, ctx)?.feat !== feat) fail(`${build.name}: ${feat} não é oferecido no contexto ${ctx}`)
     }
     // O Mythic Strike vira ✦ no Golpe, e só com o talento.
