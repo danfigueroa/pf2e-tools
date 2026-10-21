@@ -427,6 +427,89 @@ const THALOS = `## 🎯 Papel em Combate
 - ❌ **Ignition corpo a corpo por ganância:** o d12 é tentador, mas com CA 24 você não quer um brutamontes adjacente. Ao menos use os **3 m** de alcance.
 - ❌ **Gastar a reação à toa:** Entropic Wheel, Shield Block, Mental Static, Correct the Story, Arc of Destruction e Cognitive Crossover disputam **uma** reação por rodada. No turno 1, ela é da roda.`
 
+// ---------------------------------------------------------------------------
+// LOKI — Magus 7 (Laughing Shadow), Fleshwarp Surgewise, arquétipo de Psíquico
+// (The Tangible Dream). Mesa Arton 1515. Regras do Magus pelo Impossible Magic
+// (o Remaster da classe) e do Psíquico pelo Dark Archive (Remastered).
+// ---------------------------------------------------------------------------
+const LOKI = `## 🎯 Papel em Combate
+**Magus do Laughing Shadow (Sombra Risonha)**: duelista móvel, espada numa mão e a **outra livre**. Chega de onde ninguém espera (*Dimensional Assault*), descarrega uma magia inteira dentro do golpe (*Spellstrike*) e cobra caro de quem está **desprevenido**. DES 19 no ataque e na CA, INT 14 nas magias de Magus e CAR 16 nas psíquicas e na **Enganação de mestre**. **CA 24 · 87 PV**: não é tanque. Escolha a briga, bata e saia dela.
+
+## 🔁 Rotina de Turno
+- 🌀 **Arcane Cascade (1 ação, postura):** golpes corpo a corpo com **+2 de dano de força** e **resistência 2 a dano de magias**. No Laughing Shadow, também **+3 m de Deslocamento**, porque você luta sem armadura (as Bands of Force não são armadura): **10,5 m**. Se lançou uma magia antes, no mesmo turno, o dano da postura pode ser do tipo dela.
+- ⚡ **Spellstrike (2 ações):** lance uma magia de 1 ou 2 ações que peça **ataque de magia ou salvaguarda** e entregue-a num Golpe com a **Mirage Edge (+16, 2d6+2 perfurante + 1d6 espírito)**. Magia de ataque usa o **resultado do Golpe**, ou seja, **+16 no lugar do seu ataque de magia (+11 ou +12)**. Magia de salvaguarda faz o alvo rolar **mesmo se o Golpe errar**; só a falha crítica desperdiça a magia. A magia pega **só o alvo do Golpe**, no alcance da arma. Conta como dois ataques para a penalidade, que só entra depois.
+- 🎭 **Finta (1 ação, Enganação +16):** no sucesso, o alvo fica **desprevenido contra o seu próximo ataque corpo a corpo** neste turno, e o Spellstrike é um ataque só. **Finta + Spellstrike** usa as 3 ações: CA −2 para o Golpe e a magia, e o **dano da postura sobe de 2 para 5** (Laughing Shadow). A Finta não tem o traço ataque, então não sobe a penalidade.
+- 🔄 **Recarregar o Spellstrike:** 1 ação (concentrar) **ou uma magia de confluência**. *Dimensional Assault* e *Force Fang* recarregam de graça.
+- 🌌 **Dimensional Assault (1 ação, foco):** teletransporte até **metade do Deslocamento** (4,5 m em postura) para um espaço que você veja, ao alcance de um inimigo, e Golpe nele; recarrega o Spellstrike. Teletransporte não é movimento: **não provoca Reactive Strike**. Levar outra criatura junto desfaz a magia.
+- 🗡️ **Force Fang (1 ação, foco):** **2d4+2 de força automáticos** (sem ataque, sem salvaguarda) num alvo ao seu alcance, e recarrega o Spellstrike. Não entra no Spellstrike, justamente por não ter ataque nem salvaguarda. É o fecho de turno quando o terceiro ataque erraria.
+- 🧭 **Ordem do turno:** o Spellstrike vem **primeiro** (ou logo depois da Finta), porque é o que mais depende do d20. Longe do alvo: **Andar (10,5 m) + Spellstrike**. Já colado: **Spellstrike + Force Fang**; o *Force Fang* não liga para a penalidade e deixa o Spellstrike carregado para o próximo turno.
+
+## ⭐ Nunca Esqueça
+- ✋ **Mão livre vale +3 de dano:** o bônus do Laughing Shadow (5 no lugar de 2) só vale com a **outra mão completamente vazia** e contra alvo **desprevenido**. Nada de tocha, poção ou escudo nela. Além da Finta, flanquear com um aliado e estar invisível ou escondido também deixam o alvo desprevenido.
+- 📱 **No app:** o diálogo do Golpe soma os **+2** da postura; os **+3 a mais** contra alvo desprevenido são por sua conta (o app não sabe do alvo).
+- 📚 **Magias estudiosas (*Gecko Grip* e *Blur*):** ao lançar uma delas, a **Arcane Cascade sai como ação livre** logo em seguida. *Blur* (2 ações, ocultação por 1 minuto) e a postura de graça é a melhor abertura de luta. Elas **não dão slot próprio** (era a regra antiga): saem dos slots normais.
+- 🔁 **Uma reação por rodada, vários candidatos:** *Reactive Strike* (inimigo ao seu alcance manipula, se move, ataca à distância ou sai de um quadrado), **Shield Block** com o truque *Shield*, e **Return Force** das Bands of Force (alguém **erra você criticamente** num Golpe corpo a corpo: você o Empurra com Atletismo +14). Decida pela ameaça da rodada.
+- 🧳 **Spirit Sheath:** a espada fica numa bainha extradimensional na roupa (+2 em Furtividade para escondê-la), e **no Spellstrike você a saca antes de conjurar**. Desmaiar expulsa a arma da bainha.
+- 🪙 **Prata e espírito:** a lâmina é de **prata** (baixa qualidade), o que pesa contra diabos e lobisomens, e a runa **Astral** dá **+1d6 de espírito** e funciona como *ghost touch* contra incorpóreos.
+- 🛡️ **Parry ou Shield, não os dois:** a espada tem *parry* (1 ação, +1 de circunstância na CA até o seu próximo turno), mas o truque *Shield* também é circunstância. Não somam.
+
+## ✨ Magias-Chave
+Truques e magias de foco saem no **4º rank**. CD 21 e ataque +11 nas de Magus (INT); CD 22 e ataque +12 nas psíquicas (CAR).
+- 🧠 **Imaginary Weapon (truque psíquico, 2 ações):** ataque de magia corpo a corpo, **5d6 de força**; no crítico, dobra e pode empurrar o alvo 3 m. **Amplificado (1 Ponto de Foco): 8d6**, e fora do Spellstrike pega **dois alvos**, um ataque em cada (a penalidade só sobe depois dos dois). **No Spellstrike é a melhor do arsenal:** usa o seu Golpe (+16) e soma ao dano da arma; amplificada, dá os 8d6 no alvo do Golpe. ⚠️ **No app**, ela ainda não aparece na lista do Spellstrike e o amp não é calculado: role o Golpe pela aba de Combate e o dano da magia pelo diálogo dela, ignorando o ataque dela.
+- 🪡 **Needle Darts (truque):** 18 m de alcance, **6d4 perfurante**; no crítico, 4 de sangramento persistente. As agulhas saem de um metal que você carrega, e a sua espada é de **prata**: as agulhas também são.
+- 🔥 **Ignition (truque):** colado no alvo (no Spellstrike, sempre está), os dados viram d6: **5d6 de fogo** e, no crítico, 4d6 de fogo persistente.
+- ⚡ **Electric Arc (truque):** 5d4 elétrico, Reflexos básico, em **até dois alvos**. No Spellstrike, só o do Golpe.
+- 💀 **Vision of Death (4º):** **8d6 mental**, Vontade, e amedrontado 1 a 4; quem cai a 0 PV por ela **morre**. Só em criatura viva. No Spellstrike, o alvo salva mesmo se o Golpe errar.
+- 🐢 **Slow (3º):** Fortitude; **lento 1** (1 rodada no sucesso, 1 minuto na falha), **lento 2** na falha crítica. O melhor controle contra o chefe, e entra no Spellstrike.
+- 🏃 **Haste (3º):** acelerado por 1 minuto; a ação extra só serve para **Golpe ou Andar**.
+- 🎯 **Sure Strike (1º, 1 ação):** o próximo ataque do turno **rola duas vezes**, ignora penalidades de circunstância e o teste de ocultação. **Sure Strike + Spellstrike com Imaginary Weapon amplificada** é o turno de 3 ações que mais causa dano.
+- 🌫️ **Blur (2º, estudiosa):** ocultação por 1 minuto; não serve para Esconder-se.
+- 👻 **Invisibility (2º):** invisível por 10 minutos, até um ato hostil. Bom para chegar sem ser visto: o primeiro alvo fica desprevenido.
+- 🪞 **Exchange Image (1º):** troca de aparência com outro humanoide (Vontade; quem aceita falha criticamente e a troca dura 24 h). Infiltração pura.
+- 🛡️ **Shield (truque psíquico, 1 ação):** +1 na CA e Shield Block com **Dureza 10**. Pela The Tangible Dream, pode proteger **um aliado a até 9 m** (o bloqueio gasta a **sua** reação). **Amplificado (1 PF):** três camadas sustentadas por 1 minuto, e cada bloqueio quebra uma; quebrar duas de uma vez dá Dureza 15, as três, Dureza 20.
+- 💚 **Mental Balm:** amp alternativo para truque psíquico que só afeta você e aliados, como o *Shield*: **+2 de status em Vontade contra emoção** por 1 minuto e uma tentativa de **contra-atacar o amedrontado** (ou um estupefato de até 1 hora).
+- 🎈 **Figment (truque, também pela Cloak of Illusions):** ao conjurar ou sustentar, **Criar uma Distração** com +2. Se der certo, você fica escondido e o próximo Golpe pega o alvo desprevenido. Custa 2 ações; contra um alvo só, a Finta (1 ação) é melhor.
+
+## ⚡ Poderes Míticos
+Três Pontos Míticos por dia, na faixa ao lado das condições.
+- 💀 **Divert Destiny (livre):** ao cair a 0 PV ou morrer, gaste 1 ponto e fique **de pé com 17 PV** (10 + nível), sem Ferido nem Morrendo.
+- 🎲 **Rewrite Fate (livre):** rerrole uma perícia ou salvaguarda com **proficiência mítica** (nível + 10 no lugar da sua proficiência).
+- 👂 **Ears that Hear the Truth:** iniciativa (Percepção) ou Sentir Motivação com proficiência mítica: **+18** no lugar de +10.
+- 🗣️ **Unbelievably Believable:** Mentir, Causar Impressão, Pedir ou Coletar Informações com proficiência mítica: **+20** (Enganação ou Diplomacia). No app, marque a ação no diálogo da perícia (*Lie*, *Make an Impression*, *Request*, *Gather Information*) e o botão ✦ aparece com o nome do talento.
+- 📜 **Runelord's Calling:** Identificar Magia, Aprender uma Magia e rituais com proficiência mítica. O **primeiro sucesso crítico do dia** em Identificar Magia (Arcanismo, Natureza, Ocultismo ou Religião) **devolve 1 Ponto Mítico**. Com a *Oddity Identification*, o Ocultismo ganha +2 para identificar efeitos mentais, de sorte e de revelação: identifique toda magia estranha que aparecer.
+- 🍀 **Wish for Luck (1×/dia, livre, do antecedente Genie-Blessed):** antes de rolar ataque, salvaguarda ou perícia, role duas vezes e fique com o melhor. Não é mítico e não gasta ponto. É efeito de **fortuna**: não soma com *Sure Strike* nem com *Rewrite Fate* na mesma rolagem.
+
+## 🎒 Itens & Recursos
+- 🗡️ **Mirage Edge** (*Exquisite Sword Cane +1 striking*, prata de baixa qualidade, runa Astral): **+16 / +12 / +8** (ágil), 2d6+2 perfurante + 1d6 espírito; acuidade, ágil, ocultável e *parry*.
+- 🛡️ **Bands of Force:** +1 de item na CA e nas salvaguardas (já somado aqui) e a reação **Return Force**.
+- 🧥 **Cloak of Illusions:** *Figment* como truque inato, **+1 em Furtividade** e, **1×/dia (2 ações)**, invisibilidade ao puxar o capuz.
+- ❤️ **Loki's Heart:** item da campanha, sem entrada na AON. Confira o efeito com o mestre.
+- 🔮 **Pontos de Foco:** a ficha exporta **3**, para *Dimensional Assault*, *Force Fang* e os amps dos truques psíquicos. Pelas regras revisadas, o teto é o número de magias de foco (aqui, duas): confirme com o mestre se são 2 ou 3. Refocus em 10 minutos.
+
+## 🛡️ Defesa & Sobrevivência
+- ❤️ **CA 24 (25 com Parry ou Shield) · 87 PV.**
+- 🎯 **Reflexos +16** (a melhor), Fortitude +14 e **Vontade +13 (a pior)**: medo e controle mental te pegam. O *Mental Balm* no *Shield* ajuda contra o amedrontado.
+- 🧙 **Resistência 2 a dano de magias** enquanto estiver em Arcane Cascade.
+- 🧪 **Unusual Anatomy (Fleshwarp):** +1 de circunstância nas salvaguardas contra doença e veneno.
+- 👁️ **Uncanny Awareness:** sentido de movimento impreciso a 9 m (sabe onde está quem se mexe, mesmo invisível ou no escuro), além de visão na penumbra.
+- 🏃 **Não deixe te cercarem:** o *Dimensional Assault* te tira do meio dos inimigos sem provocar *Reactive Strike*, e com 10,5 m em postura você escolhe onde lutar.
+
+## 🗝️ Fora do Combate
+- 🎭 **Enganação de mestre (+16)** com **Assurance**: um **23** garantido para Mentir sem rolar.
+- 🖐️ **Pickpocket** com Ladroagem +15: furte de bolsos sem a penalidade de −5.
+- 🔍 **Read Psychometric Resonance** (ver o rosto de quem marcou um objeto com emoção forte) e **Kreighton's Cognitive Crossover** (reação: um Recordar Conhecimento que não trouxe nada é repetido com a outra perícia escolhida).
+- 🃏 **Untrained Improvisation:** em perícia sem treino você soma o **nível inteiro**. A ficha mostra Atletismo +0, mas o teste de verdade é **+7**.
+
+## ⚠️ Erros Comuns
+- ❌ **Segurar algo na outra mão:** perde os +3 do Laughing Shadow.
+- ❌ **Spellstrike depois de outro ataque:** a magia de ataque leva a penalidade junto. Spellstrike primeiro, ou logo depois da Finta.
+- ❌ **Esquecer de recarregar:** sem a ação de recarga ou uma magia de confluência, não há próximo Spellstrike. Feche o turno com *Force Fang* ou *Dimensional Assault*.
+- ❌ **Magia de vários alvos no Spellstrike:** *Electric Arc* e o amp do *Imaginary Weapon* pegam só o alvo do Golpe. Para dois alvos, lance direto.
+- ❌ **Somar Parry e Shield:** os dois são circunstância; vale um.
+- ❌ **Gastar os 3 Pontos Míticos em Rewrite Fate:** é o mesmo estoque do Divert Destiny, a sua rede de segurança.
+- ❌ **Ficar parado ao alcance de vários inimigos:** 87 PV e CA 24 não seguram a linha de frente.
+- ❌ **Sure Strike com Wish for Luck:** dois efeitos de fortuna na mesma rolagem; vale um só.`
+
 export const COMBAT_GUIDES: CombatGuide[] = [
     { match: byName('Ardagar'), markdown: ARDAGAR, curated: true },
     { match: byName('Eldarion'), markdown: ELDARION, curated: true },
@@ -436,6 +519,7 @@ export const COMBAT_GUIDES: CombatGuide[] = [
     // O Pathbuilder exporta "Nathaniel o Magus"; casa pelo começo, como o Brukuthur.
     { match: (b) => (b.name || '').trim().toLowerCase().startsWith('nathaniel'), markdown: NATHANIEL, curated: true },
     { match: (b) => (b.name || '').trim().toLowerCase().startsWith('thalos'), markdown: THALOS, curated: true },
+    { match: byName('Loki'), markdown: LOKI, curated: true },
 ]
 
 // ---------------------------------------------------------------------------
