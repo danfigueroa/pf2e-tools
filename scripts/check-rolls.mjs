@@ -995,6 +995,15 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
     eq(base.specials.join(','), 'Spellstrike', 'tamanho ("Medium", "Large") sai das habilidades — na AON, "Medium" é a classe do médium')
 }
 
+// ── Pool de foco pela regra do Remaster: uma magia de foco = um ponto, até 3; truque de foco não conta ──
+{
+    const pool = (file) => normalizeBuild(load(file)).focusPoints
+    eq(pool('loki7'), 2, 'Loki: 2 Pontos de Foco (Force Fang e Dimensional Assault; o Pathbuilder exporta 3)')
+    eq(pool('nathaniel10'), 3, 'Nathaniel: 3 Pontos de Foco (três magias de foco)')
+    eq(pool('cerosqualhanthallas10'), 3, 'Ceros: 3 Pontos de Foco (quatro magias, teto 3)')
+    eq(pool('thalos10'), 3, 'Thalos: o pool do Psíquico vem da classe e fica como exportado')
+}
+
 // ── Loki (Arton 1515): psi cantrips do arquétipo, Spellstrike com eles e Laughing Shadow ──
 {
     const loki = load('loki7')

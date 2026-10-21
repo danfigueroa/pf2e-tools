@@ -424,7 +424,6 @@ export function fixWeaponExports(build: BuildInfo): BuildInfo {
   return changed ? { ...build, weapons } : build;
 }
 
-/** Tudo que se acerta na ficha logo depois de ler o JSON do Pathbuilder (e ao restaurar a da sessão). */
 // O Pathbuilder passou a listar o TAMANHO entre as características ("Medium" no `specials` do Loki), e na
 // AON "Medium" é a classe do médium espiritual: a aba Habilidades mostraria a descrição errada. O tamanho
 // já vem no campo próprio (`sizeName`).
@@ -435,8 +434,24 @@ function dropSizeSpecials(build: BuildInfo): BuildInfo {
   return { ...build, specials: build.specials.filter((s) => !SIZE_SPECIALS.has(s)) };
 }
 
+// O Pathbuilder ainda conta o Ponto de Foco pela regra antiga, uma fonte a mais: o Loki (Magus 7 com o
+// arquétipo de Psíquico) sai com 3. No Remaster o pool é o número de magias de foco, até 3 (Player Core
+// pg. 298) — truque de foco não conta —, e o Psi Development só dá 1 ponto a quem não tem pool nenhum.
+// O Psíquico fica de fora: o pool dele vem da classe, com só truques de foco na lista.
+function fixFocusPool(build: BuildInfo): BuildInfo {
+  if (!build.focusPoints || /^psychic$/i.test(build.class ?? '')) return build;
+  let spells = 0;
+  for (const byAttr of Object.values(build.focus ?? {})) {
+    for (const group of Object.values(byAttr ?? {})) spells += group?.focusSpells?.length ?? 0;
+  }
+  const pool = Math.min(3, spells);
+  if (spells === 0 || build.focusPoints <= pool) return build;
+  return { ...build, focusPoints: pool };
+}
+
+/** Tudo que se acerta na ficha logo depois de ler o JSON do Pathbuilder (e ao restaurar a da sessão). */
 export function normalizeBuild(build: BuildInfo): BuildInfo {
-  return dropSizeSpecials(fixWeaponExports(normalizeSpellCasters(build)));
+  return fixFocusPool(dropSizeSpecials(fixWeaponExports(normalizeSpellCasters(build))));
 }
 
 export function formatAbilityScore(name: string, value: number) {
