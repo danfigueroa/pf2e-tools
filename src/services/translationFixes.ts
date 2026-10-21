@@ -95,17 +95,37 @@ try {
 
 let started = false
 
+/**
+ * Relê a lista inteira. O servidor é a referência: o que sumiu dele (uma linha apagada
+ * à mão no banco) sai daqui também — senão ficaria para sempre no `localStorage` de
+ * quem estava aberto quando ela foi transmitida. Só fica o que chegou (pelo canal ou
+ * pela própria gravação) com o pedido em andamento, que a resposta pode não ter visto.
+ */
+// O que chegou pelo canal durante a releitura em andamento (sem relógio: o do aparelho não é o do servidor).
+let arrivedDuringRefresh: Set<string> | null = null
+
 async function refresh() {
+    const arrived = new Set<string>()
+    arrivedDuringRefresh = arrived
     try {
         const r = await fetch(stateApi('?fixes=1'))
         if (!r.ok) return
         const body = await r.json() as { fixes?: unknown[]; storeReady?: boolean }
         if (!body.storeReady || !Array.isArray(body.fixes)) return
-        let changed = false
-        for (const item of body.fixes) { const fix = sanitizeFix(item); if (fix && put(fix)) changed = true }
-        if (changed) { persist(); notify() }
+        const before = JSON.stringify([...fixes.entries()])
+        const fresh = new Set<string>()
+        for (const item of body.fixes) {
+            const fix = sanitizeFix(item)
+            if (!fix) continue
+            fresh.add(fixKey(fix.kind, fix.name))
+            put(fix)
+        }
+        for (const k of [...fixes.keys()]) if (!fresh.has(k) && !arrived.has(k)) fixes.delete(k)
+        if (JSON.stringify([...fixes.entries()]) !== before) { persist(); notify() }
     } catch {
         // sem rede: fica a lista guardada
+    } finally {
+        if (arrivedDuringRefresh === arrived) arrivedDuringRefresh = null
     }
 }
 
@@ -117,6 +137,7 @@ function start() {
     void listenMesaChannel('fixes', {
         fix: (payload) => {
             const fix = sanitizeFix(payload)
+            if (fix) arrivedDuringRefresh?.add(fixKey(fix.kind, fix.name))
             if (fix && put(fix)) { persist(); notify() }
         },
     }, (live) => { if (live) void refresh() })
@@ -192,6 +213,7 @@ export async function saveFix(kind: FixKind, name: string, fields: FixFields): P
         const body = await r.json() as { fix?: unknown; storeReady?: boolean }
         const fix = sanitizeFix(body.fix)
         if (!fix || !body.storeReady) return null
+        arrivedDuringRefresh?.add(fixKey(fix.kind, fix.name))
         if (put(fix)) { persist(); notify() }
         return fix
     } catch {
