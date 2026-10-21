@@ -219,6 +219,11 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
     Iniciativa, por exemplo — é traduzida na hora de desenhar (`displayUrl`, dentro do `useImageUrl`), e o servidor a
     apaga do Storage do mesmo jeito. Toda imagem do app passa pelo `useImageUrl`: `<img>` novo também tem de passar.
 
+- **O mesmo `state` serve os encontros da Iniciativa** (`api/_lib/encounter-handler.js` + `encounter-store.js`):
+  `GET ?encounter=<mapId|none>` e `POST { action: 'encounter-save', map, state }` (`map` null = "Sem mapa"). Vem
+  antes de `isSheetRequest` nos dois servidores, pelo mesmo motivo do mapa. Ver "O encontro vai para a nuvem" na
+  seção da Iniciativa.
+
 ### Tradução (o ponto que mais quebra)
 
 - **Cadeia de provedores** em `TRANSLATION_CHAIN` (`api/_lib/aon.js`): Gemini
@@ -312,7 +317,7 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
 ## Supabase
 
 Toda a persistência é o Supabase: **Postgres** (estado da mesa, fichas publicadas com histórico, descrições e
-traduções, feed de rolagens, mapas), **Realtime** (o tempo real do estado, do feed e do mapa) e **Storage** (imagens).
+traduções, feed de rolagens, mapas, encontros da Iniciativa), **Realtime** (o tempo real do estado, do feed e do mapa) e **Storage** (imagens).
 Até out/2026 eram o Upstash Redis e o Vercel Blob, com polling; a troca foi domínio a domínio, sem mudar o contrato
 das rotas (cada store do servidor manteve as funções exportadas). O Redis e o Blob saíram do código. Projeto
 `htgrzvdzxepbbgbaqkir`, em **São Paulo** (`sa-east-1`) porque a mesa é toda brasileira, e as funções da Vercel também
@@ -347,7 +352,7 @@ das rotas (cada store do servidor manteve as funções exportadas). O Redis e o 
 - `pg_cron` limpa os usuários anônimos sem atividade há 180 dias, as travas vencidas, os misses velhos, os
   compartilhamentos de mais de um dia e o estado de personagem parado há 180 dias.
 - **Tempo real é sempre do banco**: um trigger chama `realtime.send` no canal PRIVADO `mesa:<mesa>:<nome>` (`state`,
-  `rolls`, `map:<id>`, `maps`), e só quem está em `mesa_members` ouve (RLS em `realtime.messages`). Nenhum cliente
+  `rolls`, `map:<id>`, `maps`, `encounters`), e só quem está em `mesa_members` ouve (RLS em `realtime.messages`). Nenhum cliente
   transmite. No cliente, `listenMesaChannel` (`services/supabase.ts`) é o único jeito de ouvir; a cada SUBSCRIBED
   (inclusive reconexão) quem ouve relê o que pode ter perdido. O Realtime põe um `id` próprio no payload quando ele
   não tem um — não use `id` como campo da mensagem.
@@ -1203,17 +1208,39 @@ cada fatia de estado mora**:
 
 | Fatia | Onde vive |
 | --- | --- |
-| Combatentes, rodada, turno, durações, defesas | `useReducer` + `localStorage` (`pf2e:initiative:v1`) |
+| Combatentes, rodada, turno, durações, defesas | `useReducer` + `localStorage` (`pf2e:initiative:v1`) + nuvem (tabela `encounters`) |
 | PV e condições de **personagem** | estado da mesa (Supabase), **as mesmas chaves da Ficha Virtual** |
 | PV e condições de **monstro** | dentro do encontro (reducer) |
 | Aflições e dano persistente de **personagem** | estado da mesa (`afflictions`, `persistent`) |
 | Aflições e dano persistente de **monstro** | dentro do encontro (reducer) |
 
-- **O encontro é do GM, o personagem é da mesa.** Dois GMs veem encontros diferentes, mas o dano que
-  qualquer um aplicar num personagem aparece na Ficha Virtual de quem estiver jogando, e vice-versa.
-  O dano em PC usa os campos `hp`/`conditions` que a Ficha Virtual já tinha, e **monstro nenhum
-  encosta no banco** — as fatias de monstro vivem inteiras no reducer. De `table-store.js` o módulo
-  só precisou de dois campos novos no `FIELD_RE`, `afflictions` e `persistent`.
+- **O encontro é do GM, o personagem é da mesa.** O dano que o GM aplicar num personagem aparece na Ficha Virtual
+  de quem estiver jogando, e vice-versa. O dano em PC usa os campos `hp`/`conditions` que a Ficha Virtual já tinha, e
+  **monstro nenhum entra no estado da mesa** — as fatias de monstro vivem inteiras no reducer, e viajam DENTRO do
+  documento do encontro. De `table-store.js` o módulo só precisou de dois campos novos no `FIELD_RE`, `afflictions` e
+  `persistent`.
+- **O encontro vai para a nuvem** (`useEncounterCloud` + `services/encounters.ts` → `api/_lib/encounter-store.js`,
+  tabela `encounters`, migration `encontros`): o GM monta no computador e abre no tablet. Um documento por (mesa,
+  mapa) — `map_key` '' é o "Sem mapa" —, o mesmo `EncounterState` do `localStorage`, e a última escrita vence: quebrar
+  em campos, como o mapa, só serviria a dois GMs editando juntos. Por isso, **dois GMs na mesma mesa veem o MESMO
+  encontro** (antes cada aparelho tinha o seu). O `localStorage` continua sendo a primeira pintura e o encontro sem rede.
+  - **Quem vence não depende de relógio de aparelho**: cada encontro guarda no `localStorage`
+    (`pf2e:initiative:sync:<mapa>`, `EncounterSync`) o `updatedAt` da nuvem que este aparelho viu por último e se ele
+    mexeu desde então. Nuvem vazia recebe o daqui; nuvem igual à vista + mexido sobe; nuvem mudou + não mexido baixa;
+    **nuvem mudou E mexido**: baixa a da nuvem e o aviso oferece "Desfazer" com a daqui. O encontro guardado antes da
+    nuvem não tem registro e conta como mexido — no primeiro aparelho que abrir, sobe; num segundo, cai no "Desfazer".
+  - **A marca "igual à nuvem" é gravada junto do encontro** (`saveEncounter` dentro do hook, sem a junção de 300 ms da
+    página): um recarregar no meio deixaria o `localStorage` com o encontro velho marcado como sincronizado, e ninguém
+    mais o atualizaria. Foi bug, pego pelo teste com dois navegadores.
+  - Sobe com 800 ms de junção (e na hora, ao esconder a aba). O aviso do banco leva só `{ map, updatedAt, by }` — um
+    encontro grande passaria do tamanho de uma mensagem do Realtime —, e quem está com aquele encontro aberto o relê pela
+    API. Edição daqui ainda na fila vence o aviso, como no estado da mesa. Medido: ~1 s do clique ao outro aparelho.
+  - **O canal é um só, aberto no módulo e nunca fechado** (`listenEncounters`): sair e entrar no mesmo tópico em seguida
+    (o StrictMode faz isso a cada montagem) devolvia o canal que estava saindo, e o aparelho parava de ouvir.
+  - O servidor só confere forma e tamanho (256 KB, 80 combatentes); o conteúdo passa por `sanitizeEncounter`, o mesmo do
+    `localStorage`. Apagar o mapa apaga o encontro dele (trigger), e o `writeEncounter` recusa mapa que não existe — o
+    encontro de um mapa apagado continua neste aparelho e mostra "Não subiu". `appendCombatants` (o escalar monstro)
+    marca o encontro como mexido, senão o monstro novo perderia para a nuvem.
 - **`useEncounterParty` levanta o estado compartilhado para a página**, em vez de chamar
   `useHpTracker`/`useConditions` num componente por combatente (como faz `PetsSection`). O diálogo
   de dano em área precisa **ler** PV, PV temporário e resistência de todos os alvos para montar a

@@ -747,7 +747,7 @@ Gerenciador de turnos e combate. A decisão central do módulo é **onde cada fa
 
 | Fatia                                        | Onde vive                                              |
 | -------------------------------------------- | ------------------------------------------------------ |
-| Combatentes, rodada, turno, durações, defesas | `useReducer` + `localStorage` (só neste aparelho)      |
+| Combatentes, rodada, turno, durações, defesas | `useReducer` + `localStorage` + nuvem (abre em qualquer aparelho) |
 | PV e condições de **personagem**              | estado da mesa — **as mesmas chaves da Ficha Virtual** |
 | PV e condições de **monstro**                 | dentro do encontro                                     |
 | Aflições e dano persistente de **personagem** | estado da mesa (aparecem na Ficha Virtual)             |
@@ -760,6 +760,12 @@ Virtual de quem estiver jogando, e o dano que o jogador marcar na ficha aparece 
 prepara o do Mapa X e o do Mapa Y antes da sessão. Com um mapa escolhido, cada combatente vira um
 token nele (`useMapSync.ts`), e o PV dos monstros anda nos dois sentidos entre o cartão e o token. O
 encontro antigo, de antes dos mapas, virou o "Sem mapa".
+
+**Encontro salvo na nuvem.** Cada encontro sobe sozinho e abre igual em qualquer aparelho da mesa: o
+mestre monta no computador antes da sessão e joga no tablet. O que mudar num aparelho aparece no
+outro em cerca de 1 s. O indicador ao lado do seletor de mapa diz "Na nuvem", "Salvando…" ou "Não
+subiu". Se um aparelho tinha uma versão própria diferente da nuvem, abre a da nuvem e oferece
+"Desfazer" para voltar à dele.
 
 #### Arquivos
 
