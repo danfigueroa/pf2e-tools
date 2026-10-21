@@ -1,6 +1,7 @@
-// Persistência do encontro. Fica SÓ neste aparelho, de propósito: o encontro é
-// do GM, enquanto PV e condições dos personagens são da mesa (Redis) e chegam
-// pelo `useEncounterParty`.
+// Persistência do encontro neste aparelho. O `localStorage` pinta a página na
+// hora e segura o encontro sem rede; a cópia da NUVEM (`useEncounterCloud`) é a
+// que leva o encontro a outro aparelho do GM. PV e condições dos personagens não
+// moram aqui: são da mesa e chegam pelo `useEncounterParty`.
 //
 // Um encontro POR MAPA de combate: o GM prepara o do Mapa X e o do Mapa Y antes
 // da sessão, e trocar de mapa na Iniciativa troca o encontro. A chave antiga
@@ -23,6 +24,7 @@ import { mesaKey } from '../../services/mesa'
 const STORAGE_KEY = mesaKey('pf2e:initiative:v1')
 const MAP_KEY_PREFIX = mesaKey('pf2e:initiative:v1:map:')
 const CURRENT_MAP_KEY = mesaKey('pf2e:initiative:map')
+const SYNC_KEY_PREFIX = mesaKey('pf2e:initiative:sync:')
 
 const keyFor = (mapId: string | null) => (mapId ? MAP_KEY_PREFIX + mapId : STORAGE_KEY)
 
@@ -174,29 +176,67 @@ function sanitizeCombatant(raw: unknown): Combatant | null {
     return pc
 }
 
+/**
+ * Um encontro lido de fora — do `localStorage` ou da nuvem — no formato que o
+ * reducer espera. Vale para os dois caminhos: o banco só confere forma e
+ * tamanho, então combatente estranho cai aqui, como sempre caiu.
+ */
+export function sanitizeEncounter(raw: unknown): EncounterState {
+    const parsed = raw as Record<string, unknown> | null
+    if (!parsed || typeof parsed !== 'object' || parsed.version !== 1) return emptyEncounter()
+
+    const combatants = (Array.isArray(parsed.combatants) ? parsed.combatants : [])
+        .map(sanitizeCombatant)
+        .filter((c): c is Combatant => c !== null)
+
+    const activeId = typeof parsed.activeId === 'string' ? parsed.activeId : null
+
+    return {
+        version: 1,
+        round: Math.max(0, num(parsed.round)),
+        // Um `activeId` que não existe mais deixaria o encontro sem turno ativo
+        // e sem forma de avançar.
+        activeId: combatants.some((c) => c.id === activeId) ? activeId : null,
+        combatants,
+    }
+}
+
 export function loadEncounter(mapId: string | null = currentMapId()): EncounterState {
     try {
         const raw = localStorage.getItem(keyFor(mapId))
-        if (!raw) return emptyEncounter()
-        const parsed = JSON.parse(raw) as Record<string, unknown>
-        if (parsed?.version !== 1) return emptyEncounter()
-
-        const combatants = (Array.isArray(parsed.combatants) ? parsed.combatants : [])
-            .map(sanitizeCombatant)
-            .filter((c): c is Combatant => c !== null)
-
-        const activeId = typeof parsed.activeId === 'string' ? parsed.activeId : null
-
-        return {
-            version: 1,
-            round: Math.max(0, num(parsed.round)),
-            // Um `activeId` que não existe mais deixaria o encontro sem turno ativo
-            // e sem forma de avançar.
-            activeId: combatants.some((c) => c.id === activeId) ? activeId : null,
-            combatants,
-        }
+        return raw ? sanitizeEncounter(JSON.parse(raw)) : emptyEncounter()
     } catch {
         return emptyEncounter()
+    }
+}
+
+/**
+ * O que este aparelho sabe da cópia na nuvem de um encontro: o `updatedAt` (do
+ * servidor) da última versão que ele subiu ou baixou, e se mexeu desde então.
+ * Sem relógio de aparelho na conta: quem decide é "a nuvem mudou desde a última
+ * vez que eu a vi?" e "eu mudei?". Encontro guardado antes da nuvem não tem
+ * registro e conta como mexido — ainda não subiu.
+ */
+export interface EncounterSync {
+    cloudAt: number
+    dirty: boolean
+}
+
+export function loadEncounterSync(mapId: string | null): EncounterSync {
+    try {
+        const raw = JSON.parse(localStorage.getItem(SYNC_KEY_PREFIX + (mapId ?? 'none')) ?? 'null') as Partial<EncounterSync> | null
+        if (raw && typeof raw.cloudAt === 'number') return { cloudAt: raw.cloudAt, dirty: raw.dirty === true }
+    } catch {
+        // sem storage: tudo conta como ainda não sincronizado
+    }
+    return { cloudAt: 0, dirty: true }
+}
+
+export function saveEncounterSync(mapId: string | null, sync: EncounterSync): void {
+    try {
+        localStorage.setItem(SYNC_KEY_PREFIX + (mapId ?? 'none'), JSON.stringify(sync))
+    } catch {
+        // sem storage
     }
 }
 
@@ -223,6 +263,9 @@ export function saveEncounter(state: EncounterState, mapId: string | null = curr
  */
 export function appendCombatants(combatants: Combatant[]): void {
     if (combatants.length === 0) return
-    const current = loadEncounter()
-    saveEncounter({ ...current, combatants: [...current.combatants, ...combatants] })
+    const mapId = currentMapId()
+    const current = loadEncounter(mapId)
+    saveEncounter({ ...current, combatants: [...current.combatants, ...combatants] }, mapId)
+    // A Iniciativa sobe o encontro ao abrir: o monstro novo não pode perder para a nuvem.
+    saveEncounterSync(mapId, { ...loadEncounterSync(mapId), dirty: true })
 }
