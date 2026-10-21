@@ -170,6 +170,8 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   específico (Gloom Blade, Hero's Plate) segue o `base_item`. É o que as rolagens da ficha usam
   para o MAP de ágil, o atributo do ataque e o crítico. Mora em `api/search.js` pelo limite de 12
   funções.
+- `state` também responde `GET ?incoming=<slug>`: o que os colegas passaram àquele personagem (`readIncoming`, uma
+  consulta nas linhas `gave` da mesa). Ver "Passar item entre jogadores" no módulo character-viewer.
 - `state` é o único endpoint com **estado**: guarda o jogo da mesa (ver a seção própria abaixo). `GET ?char=&field=`
   devolve UMA fatia (`readField`, 1 HGET) — hoje só o poll das ações do turno o usa.
   Fica em `api/state.js`, **um nível** — o glob `"api/*.js"` do `vercel.json` não pega subpastas,
@@ -461,7 +463,7 @@ abrir o site entra na mesma mesa (a do aparelho — ver "Mesas").
   sozinha. A releitura também sobrepõe o que está na fila, para não desfazer na tela uma edição ainda não gravada.
 - **Uma LINHA por fatia** (`hp`, `slots`, `conditions`, `afflictions`,
   `persistent`, `mythic`, `consumed`, `shield`, `token`, `size`, `rage`, `psyche`, `energy`, `magus`, `ranger`, `rogue`,
-  `actions`, `companions`, `pet:<kind>:<slug>#<i>`). Campo novo precisa entrar no `FIELD_RE` de
+  `actions`, `uses`, `companions`, `gave`, `pet:<kind>:<slug>#<i>`). Campo novo precisa entrar no `FIELD_RE` de
   `table-store.js`, senão o POST volta "Campo inválido" e o estado fica só no `localStorage`.
   A mesma lista está no CHECK da tabela (migration `estado_da_mesa`) — mudou um, muda o outro, e campo novo é
   migration nova. Documento único faria dois jogadores editando ao mesmo tempo se sobrescreverem — quem marcasse
@@ -936,6 +938,40 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     do `initiative-tracker/dice.ts` — mesma política do dano automático da Iniciativa: memorial da
     rolagem e "Desfazer", que devolve o item e tira **só o que a cura somou**, sobre o PV de agora.
     O teto da cura sai de `characterMaxHp`, o mesmo helper da Visão Geral.
+- **Passar item entre jogadores** (`gifts.ts` + `components/useGifts.ts` + `GiveItemDialog.tsx` +
+  `services/gifts.ts`, migration `gave_no_estado_da_mesa`): botão **Passar** no consumível do Inventário (poção, elixir,
+  pergaminho, veneno, talismã… — só `row.equipment && isConsumable`; arma, armadura e permanentes ficam de fora). Direto,
+  sem aceite; o destinatário vê "Fulano te enviou 2× X" em qualquer aba e pode **devolver** (é só passar de volta).
+  - **Cada jogador escreve só na PRÓPRIA fatia.** Estado da mesa é "última escrita vence" por (slug, campo): dois
+    remetentes gravando no mesmo destinatário se atropelariam. O campo `gave` guarda no REMETENTE
+    `{ destinatário: { item: n cumulativo } }`; quem recebe soma o que aponta para ele (`GET ?incoming=`, depois o
+    `onStateChange` do Realtime). Não há lógica de devolução: devolver é o outro `gave` apontando de volta.
+  - **A quantidade é DERIVADA**: ficha + recebido − passado − usado (`withGifts`, `deltaOf`), piso 0. O JSON do
+    Pathbuilder não é editado. Item só recebido vira linha extra "Recebido"; quem passou tudo perde a linha.
+  - **`consumed.of` continua sendo a quantidade DA FICHA** (`ItemRow.sheetQty`), e o que foi passado entra como `extra`
+    em `remaining`/`consume` — senão passar um item zeraria o contador de uso pela regra anti-contagem-dupla. Para item
+    só recebido `of = 0` (o sanitize aceita). Quem lê `build.equipment` à mão não vê o item recebido: use
+    `useGifts().rows` (o veneno do Ladino, `usePoisonOptions`, já usa).
+  - **O primeiro retrato do `incoming` nunca avisa**, mas compara com o "visto" guardado no `localStorage`: o que chegou
+    com o app fechado aparece como aviso na volta. Reler: ao abrir, ao reconectar o canal e ao voltar a aba.
+  - Fora do escopo, de propósito: histórico de transferências; a descrição do item recebido vem da API (o pacote
+    pré-traduzido de quem recebeu não o conhece). Teto de 12 destinatários × 40 itens por fatia.
+- **Relíquias** (`relics.ts` + `components/RelicsCard.tsx`, no Inventário): catálogo À MÃO por nome de personagem
+  (`RELICS`, hoje vazio — cada relíquia entra quando o jogador informa o que ela é e que dádivas tem), como
+  `customRunes.ts`. Regras do GM Core, Advancing a Relic (pg. 309): o **nível da relíquia é o do dono**; a Tabela 2–22
+  dá o nível típico de cada dádiva pela posição (1º, 5º, 9º, 13º, 17º — `GIFT_LEVELS`, `minLevel` sobrepõe); o jogador
+  pode ter trocado uma dádiva por **runa** ("Runes as Gifts").
+  - **A descrição vem da AON pelo nome** (categoria `relic`, o `/api/searches` já resolve pela rede de segurança e
+    traduz); só vai texto à mão em `description` quando a AON não serve. O que a AON não entrega estruturado — custo e
+    frequência da "Activate" — é escrito no catálogo (`activation`), conferido contra o texto dela.
+  - **Usar** = `ActivityBody` (exportado de `ActivityButton`) com o `ActivityInfo` de `giftActivity`: paga ações/reação
+    por `useActivity`, "uso limitado" marca no campo `uses` (chave `relic:<relíquia>:<dádiva>`, zerada pelo Novo dia). O
+    app não conta o tempo: "uma vez por minuto" também vira "Usada ↺" devolvido à mão. **Sem campo novo da mesa.**
+  - **Runas de arma** entram no `build` UMA vez, no `useMemo` do `CharacterSheetView` (`withRelicRunes`): o Combate, a
+    rolagem e o inventário leem a mesma ficha. Potência e Striking valem pelo MAIOR (não empilham, e fica idempotente se o
+    Pathbuilder já exportou a runa); o ataque sobe pela diferença de potência. Runa de propriedade só rende efeito de
+    crítico se o nome estiver em `critEffects.ts`. Runas de armadura/avulsas são texto, sem automação de CA/salvaguarda.
+  - O cartão fica FORA do "Inventário vazio" (relíquia em ficha sem itens aparece). `check-rolls` e `check-economy` cobrem.
 - **Escudo** (`shield.ts` + `components/useShield.ts` + `ShieldCard.tsx`, Visão Geral): o
   Pathbuilder manda o escudo em `build.armor` com `prof: 'shield'`, runas e `acTotal.shieldBonus`
   — a CA exportada **não** inclui o escudo. Dureza/PV/BT vêm da AON (`services/shields.ts`, com
