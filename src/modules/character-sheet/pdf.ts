@@ -1083,7 +1083,7 @@ function drawFooter(doc: jsPDF) {
         setColor(doc, COLORS.gray)
         doc.setFont('helvetica', 'italic')
         doc.setFontSize(7)
-        doc.text('PF2e Toolkit — Descrições: https://2e.aonprd.com', LAYOUT.pageMargin, pageHeight - 5)
+        doc.text('Covil de Dados — Descrições: https://2e.aonprd.com', LAYOUT.pageMargin, pageHeight - 5)
         doc.text(`Página ${i}/${pageCount}`, pageWidth - LAYOUT.pageMargin, pageHeight - 5, { align: 'right' })
     }
 }
