@@ -8,6 +8,7 @@
 //   node --env-file=.env scripts/migrate-redis.mjs --domain state [--dry-run]
 //   node --env-file=.env scripts/migrate-redis.mjs --domain rolls [--dry-run]
 //   node --env-file=.env scripts/migrate-redis.mjs --domain maps [--dry-run]
+//   node --env-file=.env scripts/migrate-redis.mjs --domain images [--dry-run]
 //
 // Precisa das credenciais do Redis de PRODUÇÃO no .env — KV_REST_API_URL e, de
 // preferência, KV_REST_API_READ_ONLY_TOKEN (o script só lê; o KV_REST_API_TOKEN
@@ -25,6 +26,12 @@
 //   pf2e:m:<mesa>:rolls:v1                 estão no banco ficam como estão)
 //   pf2e:maps:v1 + pf2e:map:v1:<id>      → maps + map_fields (campo a campo) e o mapa
 //   pf2e:maps:active                       ativo; mapa que já está no banco é pulado
+//
+// `images` não lê o Redis: copia do Vercel Blob para o Supabase Storage (bucket
+// `images`, MESMO caminho) toda imagem que o banco referencia — token de PC e de
+// companheiro (estado da mesa), imagem do mapa, monstros e enquadramentos (campos
+// do mapa) — e só então troca a URL nas linhas cujas imagens TODAS copiaram.
+// Baixa pela URL pública: não precisa do token do Blob.
 
 import { Redis } from '@upstash/redis'
 import { createClient } from '@supabase/supabase-js'
@@ -32,7 +39,7 @@ import { createClient } from '@supabase/supabase-js'
 const args = process.argv.slice(2)
 const domain = args.includes('--domain') ? args[args.indexOf('--domain') + 1] : null
 const dryRun = args.includes('--dry-run')
-const DOMAINS = ['translations', 'descriptions', 'state', 'rolls', 'maps']
+const DOMAINS = ['translations', 'descriptions', 'state', 'rolls', 'maps', 'images']
 if (!DOMAINS.includes(domain)) {
     console.error(`Uso: --domain ${DOMAINS.join('|')} [--dry-run]`)
     process.exit(2)
@@ -41,7 +48,7 @@ if (!DOMAINS.includes(domain)) {
 const redisUrl = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL
 const redisToken = process.env.KV_REST_API_READ_ONLY_TOKEN
     || process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN
-if (!redisUrl || !redisToken) {
+if (domain !== 'images' && (!redisUrl || !redisToken)) {
     console.error('Faltam as credenciais do Redis (KV_REST_API_URL e KV_REST_API_READ_ONLY_TOKEN) no .env.')
     process.exit(2)
 }
@@ -50,7 +57,7 @@ if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SECRET_KEY) {
     process.exit(2)
 }
 
-const redis = new Redis({ url: redisUrl, token: redisToken })
+const redis = domain === 'images' ? null : new Redis({ url: redisUrl, token: redisToken })
 const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SECRET_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
 })
@@ -245,5 +252,65 @@ async function migrateMaps() {
     }
 }
 
-await ({ translations: migrateTranslations, descriptions: migrateDescriptions, state: migrateState, rolls: migrateRolls, maps: migrateMaps })[domain]()
+const BLOB_URL_RE = /https:\/\/[a-z0-9]+\.public\.blob\.vercel-storage\.com\/((?:tokens|maps|monsters)\/[A-Za-z0-9._-]+)/g
+const STORAGE_PREFIX = `${process.env.SUPABASE_URL.replace(/\/$/, '')}/storage/v1/object/public/images/`
+
+async function migrateImages() {
+    // As linhas que citam alguma URL do Blob, com o JSON inteiro (a URL pode estar fundo no valor).
+    const rows = []
+    const { data: state, error: e1 } = await db.from('character_state').select('mesa, slug, field, data').in('field', ['token', 'companions'])
+    if (e1) throw new Error(`character_state: ${e1.message}`)
+    for (const r of state) rows.push({ table: 'character_state', key: { mesa: r.mesa, slug: r.slug, field: r.field }, column: 'data', value: r.data })
+    const { data: fields, error: e2 } = await db.from('map_fields').select('map_id, field, value')
+    if (e2) throw new Error(`map_fields: ${e2.message}`)
+    for (const r of fields) rows.push({ table: 'map_fields', key: { map_id: r.map_id, field: r.field }, column: 'value', value: r.value })
+
+    const urls = new Map()
+    const cited = rows.filter((row) => {
+        const found = [...JSON.stringify(row.value).matchAll(BLOB_URL_RE)]
+        for (const m of found) urls.set(m[0], m[1])
+        row.paths = found.map((m) => m[1])
+        return found.length > 0
+    })
+    console.log(`Linhas com imagem do Blob: ${cited.length}; imagens distintas: ${urls.size}`)
+    if (dryRun) {
+        for (const [url, path] of urls) console.log(`  ${path}  ←  ${url.slice(0, 60)}…`)
+        return
+    }
+
+    const copied = new Set()
+    for (const [url, path] of urls) {
+        try {
+            const res = await fetch(url)
+            if (!res.ok) throw new Error(`HTTP ${res.status}`)
+            const body = new Uint8Array(await res.arrayBuffer())
+            const { error } = await db.storage.from('images').upload(path, body, {
+                contentType: res.headers.get('content-type') || 'image/webp',
+                cacheControl: '31536000',
+                upsert: true,
+            })
+            if (error) throw new Error(error.message)
+            copied.add(path)
+            console.log(`  copiada: ${path} (${Math.round(body.length / 1024)} KB)`)
+        } catch (error) {
+            console.warn(`  FALHOU: ${path} — ${error.message}`)
+        }
+    }
+
+    // Só troca a URL onde TODAS as imagens da linha copiaram: meia linha trocada
+    // seria pior que nenhuma (o cliente traduz a URL antiga na hora de desenhar).
+    let rewritten = 0
+    for (const row of cited) {
+        if (!row.paths.every((p) => copied.has(p))) continue
+        const next = JSON.parse(JSON.stringify(row.value).replace(BLOB_URL_RE, (_, path) => STORAGE_PREFIX + path))
+        let q = db.from(row.table).update({ [row.column]: next })
+        for (const [k, v] of Object.entries(row.key)) q = q.eq(k, v)
+        const { error } = await q
+        if (error) console.warn(`  não regravou ${row.table} ${JSON.stringify(row.key)}: ${error.message}`)
+        else rewritten++
+    }
+    console.log(`Imagens copiadas: ${copied.size}/${urls.size}; linhas com a URL nova: ${rewritten}/${cited.length}`)
+}
+
+await ({ translations: migrateTranslations, descriptions: migrateDescriptions, state: migrateState, rolls: migrateRolls, maps: migrateMaps, images: migrateImages })[domain]()
 console.log(dryRun ? 'Dry-run: nada foi gravado.' : 'Feito.')
