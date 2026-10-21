@@ -25,6 +25,7 @@ import type { TokenHp } from '../hp'
 import { useImageUrl } from '../../../services/images'
 import { MAP_BACKDROP, gold, mapChrome, status } from '../../../theme'
 import type { MapData } from '../../../services/maps'
+import { usePresence } from '../../../services/presence'
 
 export type MapTool = 'select' | 'ruler' | 'draw' | 'area' | 'image'
 
@@ -189,6 +190,9 @@ const TAP_SLOP_PX = 6
 export const MapCanvas = memo(function MapCanvas({
     data, tool, views, onMove, onImageRect, onTokenTap, onZoomChange, drawStyle, areaStyle, onDraw, onErase, onPing, apiRef,
 }: Props) {
+    // Personagens com a ficha aberta em OUTRO aparelho: o ponto verde do token.
+    const peers = usePresence()
+    const online = useMemo(() => new Set(peers.flatMap((p) => (!p.self && p.visible && p.slug ? [p.slug] : []))), [peers])
     const viewportRef = useRef<HTMLDivElement>(null)
     const worldRef = useRef<HTMLDivElement>(null)
     const gridRef = useRef<SVGSVGElement>(null)
@@ -937,6 +941,7 @@ export const MapCanvas = memo(function MapCanvas({
                             fitY={view?.fit.y ?? 0.5}
                             fitZ={view?.fit.z ?? 1}
                             active={data.turn === id}
+                            online={token.kind === 'pc' && !!token.slug && online.has(token.slug)}
                         />
                     )
                 })}

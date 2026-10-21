@@ -3,7 +3,7 @@ import { useTheme } from '@mui/material'
 import { CELL_PX, initials } from '../geometry'
 import { hpBarColor } from '../../character-viewer/components/useHpTracker'
 import { useImageUrl } from '../../../services/images'
-import { MAP_BACKDROP, TOKEN_NPC, TOKEN_PC, gold, mapChrome, parchment } from '../../../theme'
+import { MAP_BACKDROP, TOKEN_NPC, TOKEN_PC, gold, mapChrome, parchment, status } from '../../../theme'
 import type { TokenDescriptor } from '../../../services/maps'
 import type { TokenHp } from '../hp'
 import { fitStyle } from '../tokenFit'
@@ -22,6 +22,8 @@ interface Props {
     fitY: number
     fitZ: number
     active: boolean
+    /** Alguém (em outro aparelho) está com a ficha deste personagem aberta (`services/presence`). */
+    online: boolean
 }
 
 /**
@@ -159,7 +161,7 @@ function useResizeAnimation(
     }, [px, inset, border, circle, bar, name])
 }
 
-export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, image, fitX, fitY, fitZ, active }: Props) {
+export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, image, fitX, fitY, fitZ, active, online }: Props) {
     const theme = useTheme()
     const src = useImageUrl(image)
     // Sem saber a proporção da imagem (ainda carregando) vale o `cover` de sempre.
@@ -194,6 +196,23 @@ export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, ima
                 touchAction: 'none',
             }}
         >
+            {online && (
+                // O ponto verde da sidebar: o jogador deste personagem está com a ficha aberta.
+                <div
+                    aria-hidden
+                    style={{
+                        position: 'absolute',
+                        zIndex: Z_NAME,
+                        right: inset,
+                        top: inset,
+                        width: Math.max(10, px * 0.16),
+                        height: Math.max(10, px * 0.16),
+                        borderRadius: '50%',
+                        background: status.success,
+                        border: `2px solid ${mapChrome.outline}`,
+                    }}
+                />
+            )}
             {hp && (
                 <div
                     ref={barRef}
