@@ -19,7 +19,6 @@
         "@mui/x-data-grid": "^8.9.1",
         "@supabase/supabase-js": "^2.118.0",
         "@upstash/redis": "^1.38.2",
-        "@vercel/blob": "^2.8.1",
         "cheerio": "1.0.0-rc.12",
         "dotenv": "^17.2.3",
         "html2canvas": "^1.4.1",
