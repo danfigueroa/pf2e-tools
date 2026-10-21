@@ -16,8 +16,8 @@ Seis módulos ativos (rotas em `src/App.tsx`):
   para outro nível, pelas tabelas de construção de criaturas do GM Core.
 - `/mapa/:id?` → `src/modules/battle-map/` — mapa de combate (VTT): grid de 5 ft, imagem, tokens
   com barra de PV e régua.
-- `/diario` → `src/modules/session-diary/` — diário da sessão: as rolagens de cada dia de jogo, com
-  estatísticas por personagem e destaques.
+- `/historico` → `src/modules/session-diary/` — Histórico de Rolagens: as rolagens de cada dia de jogo, com
+  estatísticas por personagem e destaques (`/diario`, o nome antigo, redireciona).
 
 **Todo módulo é `React.lazy`** (`App.tsx`); só a Início e o `MainLayout` vão no bundle principal.
 Num bundle único (1,7 MB, 520 kB gzip), quem abria a Ficha Virtual no celular baixava o
@@ -194,7 +194,7 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
     que o `GuideMarkdown` não entende e mostrava crus.
 - **O mesmo `state` serve o feed de rolagens** (`api/_lib/roll-handler.js` + `roll-store.js`):
   `GET ?rolls=1&rev=N` e `POST { action: 'roll-add', roll }`. No Postgres (tabelas `rolls` e `shares`, migration
-  `feed_de_rolagens`): **toda rolagem fica** (é o histórico do diário da sessão), com `author` = a sessão de quem
+  `feed_de_rolagens`): **toda rolagem fica** (é o Histórico de Rolagens), com `author` = a sessão de quem
   rolou; o GET devolve as últimas 30 numa consulta (`read_feed`), e só o `rev` quando nada mudou. As duas tabelas
   tiram o `seq` da MESMA sequência, e o `rev` é o maior `seq` da mesa: com sequências separadas, um compartilhamento
   abaixo da última rolagem não mudaria o máximo. `isRollRequest` vem **antes** de `isSheetRequest` nos dois
@@ -623,7 +623,7 @@ elenco ficar sem caminho (rode depois de publicar um personagem novo ou regerar 
 Toda rolagem — da ficha, do rolador do mapa — vai para o feed (`services/rolls.ts` →
 `api/_lib/roll-store.js`) e aparece para **todo mundo, em qualquer página**: o `RollFeedLayer` é
 montado UMA vez no `MainLayout` (trocar de rota não refaz o "já visto"), e o histórico das últimas
-30 abre pelo item "Rolagens da mesa" da sidebar ou pelo dado da AppBar no celular. O banco guarda todas.
+30 abre pelo item "Últimas rolagens" da sidebar ou pelo dado da AppBar no celular. O banco guarda todas.
 
 - **A rolagem vem sorteada** (`TableRoll`, `src/dice/tableRoll.ts`): quem recebe só apresenta, com o
   memorial junto para a mesa conferir. `DiceTray` aceita dados de tamanhos diferentes na mesma
@@ -643,10 +643,11 @@ montado UMA vez no `MainLayout` (trocar de rota não refaz o "já visto"), e o h
   leitura. Fica acima da AppBar e das gavetas (`zIndex` 1250), abaixo dos diálogos. Vale para
   toda rolagem, da ficha ou do mapa: as duas passam pelo mesmo `RollFeedLayer`.
 
-## Diário da sessão
+## Histórico de Rolagens
 
-`/diario` (`modules/session-diary/` + `services/diary.ts`): as rolagens de um dia de jogo, para o resumo do fim da
-sessão e para conferir o que rolou. O banco guarda toda rolagem (`rolls`, ver "Feed de rolagens"); aqui só se agrupa.
+`/historico` (`modules/session-diary/` + `services/diary.ts`): as rolagens de um dia de jogo, para o resumo do fim da
+sessão e para conferir o que rolou. **Chamava-se "Diário da Sessão"** (rota `/diario`, que redireciona), e o nome
+fazia pensar num diário escrito; o código e o endpoint (`?diary=`) mantêm o nome antigo. O banco guarda toda rolagem (`rolls`, ver "Feed de rolagens"); aqui só se agrupa.
 
 - **O dia de jogo vai das 6h às 6h no horário de Brasília** (`diary_day` no banco, migration `diario_da_sessao`, com
   índice): a mesa joga à noite, e uma sessão que passa da meia-noite continua sendo uma só. `diaryDayOf` (cliente) e o
@@ -660,7 +661,8 @@ sessão e para conferir o que rolou. O banco guarda toda rolagem (`rolls`, ver "
   de fora (já fica do `damage.total`). Destaque com EMPATE não elege ninguém.
 - Aberto durante a sessão, o dia de hoje relê sozinho a cada rolagem nova (`onFeedActivity`, com 1,2 s de junção —
   uma rodada rola muito). Medido: ~1,4 s da rolagem à recontagem.
-- A lista usa a `HistoryRow` do histórico da sidebar (`components/RollFeed.tsx`), que ganhou "Ver o diário da sessão".
+- A lista usa a `HistoryRow` das "Últimas rolagens" da sidebar (`components/RollFeed.tsx`), que ganhou "Ver o histórico
+  completo". A sidebar chamava essa gaveta de "Rolagens da mesa"; virou "Últimas rolagens" para não parecer o mesmo item.
 
 ## Regra compartilhada com a mesa
 
