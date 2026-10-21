@@ -979,5 +979,50 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
     }
 }
 
+// ── Diário da sessão: as contas por personagem e os destaques ─────────────────
+{
+    const diary = await import('../src/modules/session-diary/stats.ts')
+    const { diaryDayOf } = await import('../src/services/diary.ts')
+    const server = await import('../api/_lib/roll-store.js')
+    const check = (d20, mod, mythic = false) => ({ d20, mod, total: d20 + mod, mythic, parts: [] })
+    const dmg = (total) => ({ parts: [{ label: 'x', dice: [], flat: total, total }], total })
+    const roll = (id, by, slug, extra) => ({ id, at: 1, by, slug, color: '#2F7D46', title: `T${id}`, ...extra })
+    const rolls = [
+        roll('a', 'Thalos Alba', 'thalos', { check: check(20, 12), damage: dmg(30) }),
+        roll('b', 'Thalos Alba', 'thalos', { check: check(1, 12, true) }),
+        // Blazing Bolt de 3 raios: três testes, um ✦ só, o dano somado.
+        roll('c', 'Thalos Alba', 'thalos', { rays: [
+            { check: check(20, 15, true), damage: dmg(10) },
+            { check: check(5, 15, true), damage: dmg(12) },
+            { check: check(20, 15, true), damage: dmg(8) },
+        ] }),
+        roll('d', 'Ghan Buri', 'ghan-buri', { check: check(14, 20), damage: dmg(45) }),
+        roll('e', 'Mestre', undefined, { free: { label: '1d20', dice: [{ faces: 20, value: 1 }], flat: 0, total: 1 } }),
+        roll('f', ' mestre ', undefined, { check: check(1, 0) }),
+    ]
+    const people = diary.personStats(rolls)
+    const thalos = people.find((p) => p.key === 'thalos')
+    eq(people.length, 3, 'diário: Thalos, Ghan Buri e o Mestre (o nome livre ignora caixa e espaços)')
+    eq(thalos.rolls, 3, 'diário: 3 rolagens do Thalos')
+    eq(thalos.checks, 5, 'diário: cada raio conta como um teste')
+    eq(thalos.nat20, 3, 'diário: 20 naturais do Thalos (um no teste, dois nos raios)')
+    eq(thalos.nat1, 1, 'diário: 1 natural do Thalos')
+    eq(thalos.mythic, 2, 'diário: ✦ é um por rolagem, não por raio')
+    eq(thalos.damage, 60, 'diário: dano rolado = 30 + raios 10+12+8')
+    eq(thalos.biggestHit.total, 30, 'diário: o maior dano do Thalos é o golpe, não um raio')
+    eq(diary.d20Average(thalos), 13.2, 'diário: média do d20 do Thalos (20+1+20+5+20)/5')
+    eq(people.find((p) => p.name === 'Mestre').checks, 1, 'diário: a rolagem livre não é teste de d20')
+    const best = diary.highlights(people)
+    eq(best.mostNat20?.name, 'Thalos Alba', 'diário: mais 20 naturais')
+    eq(best.mostNat1, null, 'diário: empate em 1 naturais (Thalos 1 × Mestre 1) não elege ninguém')
+    eq(best.biggestHit?.total, 45, 'diário: maior dano é o do Ghan Buri')
+    eq(best.bestCheck?.total, 35, 'diário: maior teste é o raio de 20+15')
+    // O dia de jogo vai das 6h às 6h em Brasília — igual no cliente e no servidor (fallback em memória).
+    const at = (iso) => Date.parse(iso)
+    eq(diaryDayOf(at('2026-10-18T02:30:00-03:00')), '2026-10-17', 'diário: 2h30 da madrugada ainda é a sessão da noite anterior')
+    eq(diaryDayOf(at('2026-10-18T06:30:00-03:00')), '2026-10-18', 'diário: 6h30 já é outro dia')
+    ok(server.DAY_RE.test('2026-10-17') && !server.DAY_RE.test('17/10/2026'), 'diário: o servidor só aceita YYYY-MM-DD')
+}
+
 console.log(`${passed} conferências ok, ${failures} falha(s).`)
 process.exit(failures ? 1 : 0)
