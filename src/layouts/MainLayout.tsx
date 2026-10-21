@@ -29,6 +29,8 @@ import {
 } from '@mui/icons-material';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { green, gold, parchment } from '../theme';
+import logoHorizontal from '../assets/covil-logo-horizontal-fundo-escuro.svg';
+import logoSymbol from '../assets/covil-simbolo.svg';
 import { RollFeedLayer, RollHistoryDrawer } from '../components/RollFeed';
 import { SharedRuleLayer } from '../components/SharedRuleLayer';
 import { MesaSwitcher } from '../components/MesaSwitcher';
@@ -132,18 +134,12 @@ export const MainLayout = () => {
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Marca */}
       <Box sx={{ px: 2.5, pt: 2.5, pb: 2 }}>
-        <Typography
-          variant="h3"
-          component="div"
-          sx={{
-            fontSize: '1.25rem',
-            color: gold.bright,
-            letterSpacing: '0.08em',
-            lineHeight: 1.2,
-          }}
-        >
-          PF2e Tools
-        </Typography>
+        <Box
+          component="img"
+          src={logoHorizontal}
+          alt="Covil de Dados"
+          sx={{ display: 'block', height: 44, width: 'auto', maxWidth: '100%' }}
+        />
         <Box
           sx={{
             mt: 1,
@@ -229,8 +225,14 @@ export const MainLayout = () => {
           borderColor: 'rgba(200, 169, 81, 0.25)',
         }}
       >
-        <Typography variant="caption" sx={{ color: CHROME_TEXT }}>
+        <Typography variant="caption" sx={{ color: CHROME_TEXT, display: 'block' }}>
           Pathfinder 2e Remaster
+        </Typography>
+        <Typography
+          variant="caption"
+          sx={{ color: CHROME_TEXT, display: 'block', mt: 0.5, opacity: 0.75, lineHeight: 1.35 }}
+        >
+          Ferramenta de fã, gratuita e não oficial. Pathfinder é marca registrada da Paizo Inc.
         </Typography>
       </Box>
     </Box>
@@ -267,6 +269,12 @@ export const MainLayout = () => {
             <MenuIcon />
           </IconButton>
 
+          <Box
+            component="img"
+            src={logoSymbol}
+            alt="Covil de Dados"
+            sx={{ height: 32, width: 32, mr: 1.25, flexShrink: 0 }}
+          />
           <Typography
             variant="h3"
             noWrap
@@ -277,7 +285,7 @@ export const MainLayout = () => {
               color: gold.bright,
             }}
           >
-            {navigationItems.find(item => isCurrent(location.pathname, item.path))?.text || 'PF2e Tools'}
+            {navigationItems.find(item => isCurrent(location.pathname, item.path))?.text || 'Covil de Dados'}
           </Typography>
           <IconButton
             color="inherit"

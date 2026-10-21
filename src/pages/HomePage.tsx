@@ -19,6 +19,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { green, gold, parchment } from '../theme';
+import logoHorizontal from '../assets/covil-logo-horizontal-fundo-claro.svg';
 
 interface ToolCard {
   title: string;
@@ -125,13 +126,14 @@ export const HomePage = () => {
     <Container maxWidth="md" disableGutters>
       {/* Cabeçalho */}
       <Box sx={{ textAlign: 'center', mb: { xs: 4, sm: 6 }, pt: 2 }}>
-        <Typography
-          variant="h1"
-          component="h1"
-          sx={{ color: green.main, mb: 1.5 }}
-        >
-          PF2e Tools
-        </Typography>
+        <Box component="h1" sx={{ m: 0, mb: 1.5, lineHeight: 0 }}>
+          <Box
+            component="img"
+            src={logoHorizontal}
+            alt="Covil de Dados"
+            sx={{ height: { xs: 64, sm: 88 }, width: 'auto', maxWidth: '100%' }}
+          />
+        </Box>
 
         {/* Filete dourado, como os cabeçalhos dos livros */}
         <Box
@@ -253,6 +255,9 @@ export const HomePage = () => {
       <Box sx={{ mt: { xs: 4, sm: 6 }, textAlign: 'center', pb: 2 }}>
         <Typography variant="body2" color="text.secondary">
           Feito para a comunidade Pathfinder 2e
+        </Typography>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+          Ferramenta de fã, gratuita e não oficial. Pathfinder é marca registrada da Paizo Inc.
         </Typography>
       </Box>
     </Container>
