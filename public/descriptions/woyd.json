@@ -1,0 +1,1428 @@
+{
+ "version": "v13",
+ "character": "Woyd",
+ "entries": {
+  "spell": {
+   "Banishing Touch": {
+    "name": "Banishing Touch",
+    "level": 2,
+    "heighten": [
+     "4th",
+     "6th",
+     "8th"
+    ],
+    "sourceBook": "War of Immortals, p. 154",
+    "actions": "Single Action to Three Actions",
+    "traits": [
+     "Attack",
+     "Concentrate",
+     "Manipulate",
+     "Mythic",
+     "Rare"
+    ],
+    "castComponents": "",
+    "range": "toque",
+    "area": "",
+    "targets": "1 criatura",
+    "duration": "",
+    "defense": "CA",
+    "description": "Seu toque projeta uma onda de magia que lança seu alvo para longe com segurança. Faça um ataque de magia corpo a corpo com proficiência mítica contra a CA do alvo. Se acertar, você causa 1d6 de dano contundente e lança o alvo ao ar e para longe de você; o alvo recebe dano de queda normalmente. O número de ações que você gasta ao lançar a magia determina o dano causado pelo seu toque e a distância que o alvo é lançado. Ação única: O alvo é lançado 10 pés no ar e empurrado 10 pés. Duas ações: Seu toque causa 2d6 de dano contundente. O alvo é lançado 20 pés no ar e empurrado 10 pés. Três ações: Seu toque causa 2d6 de dano contundente. O alvo é lançado 30 pés no ar e empurrado 20 pés.",
+    "damage": "1d6",
+    "damageType": "contundente",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "4th",
+      "text": "O dano inicial aumenta em 1d6, e todas as distâncias aumentam em 10 pés para a versão de 1 ação ou 20 pés para as versões de 2 e 3 ações."
+     },
+     {
+      "level": "6th",
+      "text": "O dano inicial aumenta em 2d6, e todas as distâncias aumentam em 20 pés para a versão de 1 ação ou 60 pés para as versões de 2 e 3 ações."
+     },
+     {
+      "level": "8th",
+      "text": "O dano inicial aumenta em 3d6, e todas as distâncias aumentam em 30 pés para a versão de 1 ação ou 100 pés para as versões de 2 e 3 ações."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "1d6",
+       "kind": "damage",
+       "types": [
+        "bludgeoning"
+       ],
+       "persistent": false,
+       "count": 1,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      },
+      {
+       "id": 1,
+       "formula": "2d6",
+       "kind": "damage",
+       "types": [
+        "bludgeoning"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 2
+      },
+      {
+       "id": 2,
+       "formula": "2d6",
+       "kind": "damage",
+       "types": [
+        "bludgeoning"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 6,
+       "flat": 0,
+       "nth": 1,
+       "occurrences": 2
+      }
+     ],
+     "rules": [
+      {
+       "level": "4th",
+       "adds": [],
+       "safe": false,
+       "resolved": false
+      },
+      {
+       "level": "6th",
+       "adds": [],
+       "safe": false,
+       "resolved": false
+      },
+      {
+       "level": "8th",
+       "adds": [],
+       "safe": false,
+       "resolved": false
+      }
+     ]
+    }
+   },
+   "Detect Magic": {
+    "name": "Detect Magic",
+    "level": 1,
+    "heighten": [
+     "3rd",
+     "4th"
+    ],
+    "sourceBook": "Player Core, p. 323",
+    "actions": "Two Actions",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Detection",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Primal",
+     "Elemental"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "emanação de 30 pés",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "Você emite um pulso que registra a presença de magia. Você não recebe nenhuma informação além da presença ou ausência de magia. Você pode optar por ignorar magias das quais você está totalmente ciente, como os itens mágicos e magias em curso suas e de seus aliados. Você detecta magia de ilusão apenas se o efeito dessa magia tiver uma graduação menor que a graduação da sua magia detect magic. No entanto, itens que possuem uma aura de ilusão, mas não são enganosos em aparência (como uma poção de invisibilidade), normalmente são detectados normalmente.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "3rd",
+      "text": "Você aprende a graduação ou nível do efeito mágico mais poderoso que a magia detecta, conforme determinado pelo Mestre."
+     },
+     {
+      "level": "4th",
+      "text": "Como na 3ª graduação, mas você também localiza a fonte da magia de graduação mais alta. Como para um sentido impreciso, você não aprende a localização exata, mas pode restringir a fonte a um cubo de 1,5 metros (ou o mais próximo, se for maior que isso)."
+     }
+    ]
+   },
+   "Dispel Magic": {
+    "name": "Dispel Magic",
+    "level": 2,
+    "sourceBook": "Player Core, p. 325",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Primal",
+     "Elemental"
+    ],
+    "castComponents": "",
+    "range": "120 pés",
+    "area": "",
+    "targets": "1 magia effect ou unattended magic item",
+    "duration": "",
+    "defense": "",
+    "description": "Você desfaz a magia por trás de uma magia ou efeito. Tente um teste de counteract contra o alvo. Se você neutralizar com sucesso um item mágico, ele se torna um item mundano do seu tipo por 10 minutos. Isso não altera as propriedades não mágicas do item. Se o alvo for um artefato ou item similar, você falha automaticamente.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Divine Wrath": {
+    "name": "Divine Wrath",
+    "level": 4,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 326",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Manipulate",
+     "Sanctified",
+     "Spirit"
+    ],
+    "traditions": [
+     "Divine"
+    ],
+    "castComponents": "",
+    "range": "120 pés",
+    "area": "estouro de 20 pés",
+    "targets": "",
+    "duration": "",
+    "defense": "Fortitude",
+    "description": "Você canaliza a fúria da divindade contra seus inimigos. Você causa 4d10 de dano espiritual aos inimigos na área, dependendo do teste de resistência de Fortitude deles. Sucesso crítico: A criatura não é afetada. Sucesso: A criatura recebe metade do dano. Falha: A criatura recebe o dano total e fica enfraquecida 1. Falha crítica: A criatura recebe o dano total e fica enfraquecida 2; enquanto está enfraquecida, também fica lentificada 1.",
+    "damage": "4d10",
+    "damageType": "espiritual",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "O dano aumenta em 1d10."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "4d10",
+       "kind": "damage",
+       "types": [
+        "spirit"
+       ],
+       "persistent": false,
+       "count": 4,
+       "faces": 10,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 10,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Empty Inside": {
+    "name": "Empty Inside",
+    "level": 1,
+    "heighten": [
+     "5th"
+    ],
+    "sourceBook": "Divine Mysteries, p. 268",
+    "actions": "Single Action",
+    "traits": [
+     "Cleric",
+     "Concentrate",
+     "Focus",
+     "Mental",
+     "Uncommon"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "Você injeta um fragmento do vazio em sua mente, remodelando-a momentaneamente em um lugar sombrio e vazio. Faça um teste de contracção contra um efeito de emoção que esteja afetando você.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "5th",
+      "text": "Você pode fazer testes de contracção contra qualquer número de efeitos de emoção que estejam afetando você."
+     }
+    ]
+   },
+   "Enfeeble": {
+    "name": "Enfeeble",
+    "level": 1,
+    "sourceBook": "Player Core, p. 329",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "30 pés",
+    "area": "",
+    "targets": "1 criatura",
+    "duration": "varia",
+    "defense": "Fortitude",
+    "description": "Você drena a força do alvo, dependendo do teste de resistência de Fortitude dele. Sucesso crítico: O alvo não é afetado. Sucesso: O alvo fica enfraquecido 1 até o início do seu próximo turno. Falha: O alvo fica enfraquecido 2 por 1 minuto. Falha crítica: O alvo fica enfraquecido 3 por 1 minuto.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Forbidding Ward": {
+    "name": "Forbidding Ward",
+    "level": 1,
+    "heighten": [
+     "6th"
+    ],
+    "sourceBook": "Player Core, p. 332",
+    "actions": "Two Actions",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Divine",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "30 pés",
+    "area": "",
+    "targets": "1 aliado e 1 inimigo",
+    "duration": "sustentada até 1 minuto",
+    "defense": "",
+    "description": "Você protege um aliado contra os ataques e magias hostis do inimigo alvo. O aliado alvo ganha um bônus de status +1 à Classe de Armadura e aos testes de resistência contra os ataques, magias e outros efeitos do inimigo alvo.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "6th",
+      "text": "O bônus de status aumenta para +2."
+     }
+    ]
+   },
+   "Heal": {
+    "name": "Heal",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 335",
+    "actions": "Single Action to Three Actions",
+    "traits": [
+     "Healing",
+     "Manipulate",
+     "Vitality",
+     "Positive"
+    ],
+    "traditions": [
+     "Divine",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "varia",
+    "area": "",
+    "targets": "1 criatura viva disposta ou 1 criatura morta-viva",
+    "duration": "",
+    "defense": "",
+    "description": "Você canaliza energia vital para curar os vivos ou causar dano aos mortos-vivos. Se o alvo for uma criatura viva disposta, você restaura 1d8 Pontos de Vida. Se o alvo for um morto-vivo, você causa essa quantidade de dano de vitalidade a ele, e ele recebe um teste de Fortitude básico. O número de ações que você gasta ao conjurar esta magia determina seus alvos, alcance, área e outros parâmetros. Ação Única: A magia tem alcance de toque. Duas Ações: (concentrar) A magia tem alcance de 9 metros. Se você estiver curando uma criatura viva, aumente os Pontos de Vida restaurados em 8. Três Ações: (concentrar) Você dispersa energia vital em uma emanação de 9 metros. Isso tem como alvo todas as criaturas vivas e mortas-vivas na explosão.",
+    "damage": "1d8",
+    "damageType": "cura",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "A quantidade de cura ou dano aumenta em 1d8, e a cura extra para a versão de 2 ações aumenta em 8."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "1d8",
+       "kind": "healing",
+       "types": [],
+       "persistent": false,
+       "count": 1,
+       "faces": 8,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      },
+      {
+       "id": 1,
+       "formula": "8",
+       "kind": "healingExtra",
+       "types": [],
+       "persistent": false,
+       "count": 0,
+       "faces": 0,
+       "flat": 8,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 8,
+         "flat": 0
+        },
+        {
+         "id": 1,
+         "mode": "add",
+         "count": 0,
+         "faces": 0,
+         "flat": 8
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Holy Light": {
+    "name": "Holy Light",
+    "level": 3,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 335",
+    "actions": "Two Actions",
+    "traits": [
+     "Attack",
+     "Concentrate",
+     "Fire",
+     "Holy",
+     "Light",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Divine",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "120 pés",
+    "area": "",
+    "targets": "1 criatura",
+    "duration": "",
+    "defense": "CA",
+    "description": "Você brilha um raio flamejante de luz tingido com energia sagrada. Faça um teste de ataque de magia à distância. O raio causa 5d6 de dano de fogo. Se o alvo tiver o traço profano, você causa 5d6 de dano de espírito extra. Sucesso Crítico O alvo sofre dano dobrado. Sucesso O alvo sofre dano total. Se a luz passar por uma área de escuridão mágica ou tiver como alvo uma criatura afetada por escuridão mágica, a luz sagrada tenta anular a escuridão. Se você precisar determinar se a luz passa por uma área de escuridão, trace uma linha entre você e o alvo da magia.",
+    "damage": "5d6",
+    "damageType": "fogo",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "O dano de fogo aumenta em 2d6, e o dano de espírito contra criaturas profanas aumenta em 2d6."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "5d6",
+       "kind": "damage",
+       "types": [
+        "fire"
+       ],
+       "persistent": false,
+       "count": 5,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 2
+      },
+      {
+       "id": 1,
+       "formula": "5d6",
+       "kind": "damage",
+       "types": [
+        "spirit"
+       ],
+       "persistent": false,
+       "count": 5,
+       "faces": 6,
+       "flat": 0,
+       "nth": 1,
+       "occurrences": 2
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 2,
+         "faces": 6,
+         "flat": 0
+        },
+        {
+         "id": 1,
+         "mode": "add",
+         "count": 2,
+         "faces": 6,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Illuminate": {
+    "name": "Illuminate",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Rage of Elements, p. 120",
+    "actions": "Single Action",
+    "traits": [
+     "Cantrip",
+     "Fire",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "emanação de 30 pés (ver texto)",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "Você acende todas as fontes de luz não mágicas na área que utilizam fogo para fornecer sua luz, como velas, lamparinas e tocheiros. Você pode escolher tornar a emanação menor que seu máximo, para qualquer distância de sua escolha. Se uma fonte de luz estiver sendo carregada por uma criatura relutante, essa criatura pode tentar um teste de Reflexos para apagar a luz antes que ela se torne perceptível.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "A área máxima aumenta em 10 pés."
+     }
+    ]
+   },
+   "Impending Doom": {
+    "name": "Impending Doom",
+    "level": 3,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Secrets of Magic, p. 110",
+    "actions": "Two Actions",
+    "traits": [
+     "Divination",
+     "Emotion",
+     "Fear",
+     "Incapacitation",
+     "Mental",
+     "Prediction"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "30 pés",
+    "area": "",
+    "targets": "1 criatura viva",
+    "duration": "3 rodadas",
+    "defense": "Vontade",
+    "description": "Você examina inúmeros futuros potenciais, captura um momento em que o alvo encontra um fim particularmente horrível e fatal, e então lhe mostra uma visão de sua morte iminente. A intensa visão mental se torna cada vez mais aterrorizante para o alvo à medida que o destino se aproxima, e leva 3 rodadas para chegar ao seu desfecho. O alvo deve fazer um teste de resistência de Vontade para determinar os efeitos. Ao final da duração da magia, se o alvo foi afetado, ele testemunha sua morte e recebe 6d6 de dano mental. Sucesso crítico: A criatura não é afetada. Sucesso: A criatura não é afetada por 1 rodada. Na segunda rodada, ela fica flat-footed. Finalmente, na terceira rodada, ela fica frightened 1. Ao final da terceira rodada, ela recebe metade do dano. Falha: A criatura fica flat-footed imediatamente. Na segunda rodada, ela fica frightened 2. Finalmente, na terceira rodada, ela também fica atordoada 1. Ao final da terceira rodada, a criatura recebe o dano total. Falha crítica: A criatura fica flat-footed e frightened 3 imediatamente. Na segunda rodada, ela fica atordoada 1. Finalmente, na terceira rodada, ela também fica paralisada. Ao final da terceira rodada, a criatura recebe o dobro do dano.",
+    "damage": "6d6",
+    "damageType": "mental",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "O dano aumenta em 2d6."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "6d6",
+       "kind": "damage",
+       "types": [
+        "mental"
+       ],
+       "persistent": false,
+       "count": 6,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 2,
+         "faces": 6,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Mystic Armor": {
+    "name": "Mystic Armor",
+    "level": 1,
+    "heighten": [
+     "4th",
+     "6th",
+     "8th",
+     "10th"
+    ],
+    "sourceBook": "Player Core, p. 346",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Primal",
+     "Elemental"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "até suas próximas preparações diárias",
+    "defense": "",
+    "description": "Você se protege com energia mágica cintilante, ganhando um bônus de item +1 na CA e um modificador máximo de Destreza de +5. Enquanto estiver usando armadura mística, você usa sua proficiência sem armadura para calcular sua CA.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "4th",
+      "text": "Você ganha um bônus de item +1 nos testes de resistência."
+     },
+     {
+      "level": "6th",
+      "text": "O bônus de item na CA aumenta para +2, e você ganha um bônus de item +1 nos testes de resistência."
+     },
+     {
+      "level": "8th",
+      "text": "O bônus de item na CA aumenta para +2, e você ganha um bônus de item +2 nos testes de resistência."
+     },
+     {
+      "level": "10th",
+      "text": "O bônus de item na CA aumenta para +3, e você ganha um bônus de item +3 nos testes de resistência."
+     }
+    ]
+   },
+   "Radiant Field": {
+    "name": "Radiant Field",
+    "level": 2,
+    "heighten": [
+     "4th"
+    ],
+    "sourceBook": "Divine Mysteries, p. 259",
+    "actions": "Three Actions",
+    "traits": [
+     "Concentrate",
+     "Light",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "120 pés",
+    "area": "20-pé {{rules 2385 \"estouro\"}}",
+    "targets": "",
+    "duration": "1 minuto",
+    "defense": "Fortitude",
+    "description": "Você cria uma área de luz brilhante. Criaturas com cegueira à luz que são cegadas pelo radiant field e permanecem na área devem fazer um teste de Fortitude no início de seus turnos. Em caso de falha, a criatura permanece cegada por 1 rodada; isso é um efeito de incapacitação. Esta magia também suprime a escuridão mágica de nível igual ou inferior ao nível da sua magia radiant field.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "4th",
+      "text": "Criaturas vistas através da área ficam ocultas para criaturas fora da área. Criaturas com cegueira à luz podem continuar cegas pelo campo enquanto o campo for visível, mesmo estando fora do campo."
+     }
+    ]
+   },
+   "Ring of Truth": {
+    "name": "Ring of Truth",
+    "level": 3,
+    "sourceBook": "Player Core, p. 354",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Detection",
+     "Manipulate",
+     "Mental",
+     "Uncommon"
+    ],
+    "traditions": [
+     "Divine",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "30 pés",
+    "area": "estouro de 20 pés",
+    "targets": "",
+    "duration": "10 minutos",
+    "defense": "Vontade",
+    "description": "Você designa uma área na qual mentiras são reveladas. Criaturas na área também recebem uma penalidade de status –2 nos testes de Enganação. Cada vez que uma criatura na área pronuncia uma afirmação verdadeira, um suave toque de sino soa na área. As criaturas estão cientes da magia; portanto, podem evitar responder perguntas às quais normalmente responderiam com mentira, ou podem ser evasivas enquanto permanecerem dentro dos limites da verdade. Se uma criatura está na área quando a magia é lançada ou entra na área posteriormente, essa criatura faz um teste de Vontade. Ela usa o resultado desse teste inicial se sair e reentrar na área. Sucesso Crítico O alvo é tão convincente que o sino toca mesmo que ele minta. Sucesso Se o alvo mente e obtém sucesso no seu teste de Enganação contra todos os alvos, o sino ainda toca. Falha O sino vê claramente através da enganação e nunca tocará se eles mentirem.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Stabilize": {
+    "name": "Stabilize",
+    "level": 1,
+    "sourceBook": "Player Core, p. 359",
+    "actions": "Two Actions",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Healing",
+     "Manipulate",
+     "Vitality",
+     "Positive"
+    ],
+    "traditions": [
+     "Divine",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "30 pés",
+    "area": "",
+    "targets": "1 criatura morrendo",
+    "duration": "",
+    "defense": "",
+    "description": "A energia da vida fecha a porta da morte. O alvo perde a condição moribundo, embora permaneça inconsciente com 0 Pontos de Vida.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Vital Beacon": {
+    "name": "Vital Beacon",
+    "level": 4,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 366",
+    "actions": "1 minute",
+    "traits": [
+     "Concentrate",
+     "Healing",
+     "Manipulate",
+     "Vitality",
+     "Positive"
+    ],
+    "traditions": [
+     "Divine",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "até suas próximas preparações diárias",
+    "defense": "",
+    "description": "A vitalidade irradia para fora de você, permitindo que outros supliquem e recebam cura. Uma vez por rodada, você ou um aliado pode usar a ação Interact para suplicar e colocar as mãos sobre você para recuperar Pontos de Vida. Cada vez que o farol cura alguém, ele diminui em força. Ele restaura 4d10 Pontos de Vida para a primeira criatura, 4d8 Pontos de Vida para a segunda, 4d6 Pontos de Vida para a terceira e 4d4 Pontos de Vida para a quarta, após o que a magia termina. Você pode ter apenas um farol vital ativo por vez.",
+    "damage": "4d10",
+    "damageType": "cura",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "O farol restaura um dado adicional de PV a cada vez que cura, usando o tamanho de dado normal para essa etapa."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "4d10",
+       "kind": "healing",
+       "types": [],
+       "persistent": false,
+       "count": 4,
+       "faces": 10,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      },
+      {
+       "id": 1,
+       "formula": "4d8",
+       "kind": "healing",
+       "types": [],
+       "persistent": false,
+       "count": 4,
+       "faces": 8,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      },
+      {
+       "id": 2,
+       "formula": "4d6",
+       "kind": "healing",
+       "types": [],
+       "persistent": false,
+       "count": 4,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      },
+      {
+       "id": 3,
+       "formula": "4d4",
+       "kind": "healing",
+       "types": [],
+       "persistent": false,
+       "count": 4,
+       "faces": 4,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [],
+       "safe": false,
+       "resolved": false
+      }
+     ]
+    }
+   },
+   "Void Warp": {
+    "name": "Void Warp",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 366",
+    "actions": "Two Actions",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Manipulate",
+     "Void",
+     "Negative"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "30 pés",
+    "area": "",
+    "targets": "1 criatura viva",
+    "duration": "",
+    "defense": "Fortitude básico",
+    "description": "Você invoca o Void para prejudicar a força vital. O alvo recebe 2d4 dano void com um teste básico de Fortitude. Em caso de falha crítica, o alvo também fica enfraquecido 1 até o início do seu próximo turno.",
+    "damage": "2d4",
+    "damageType": "vácuo",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "O dano aumenta em 1d4."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "2d4",
+       "kind": "damage",
+       "types": [
+        "void"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 4,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 4,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   }
+  },
+  "feat": {
+   "Additional Lore": {
+    "name": "Additional Lore",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "description": "Seu conhecimento se expandiu para abranger um novo campo. Escolha uma subcategoria de perícia Lore. Você se torna treinado nela. Nos níveis 3, 7 e 15, você ganha um aumento de perícia adicional que pode aplicar apenas à subcategoria de Lore escolhida. Especial Você pode selecionar este talento mais de uma vez. A cada vez, você deve selecionar uma nova subcategoria de Lore e ganha os aumentos de perícia adicionais para essa subcategoria nos níveis listados."
+   },
+   "Ancestral Paragon": {
+    "name": "Ancestral Paragon",
+    "level": 3,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "description": "Seja por instinto, estudo ou magia, você sente uma conexão mais profunda com sua ancestralidade. Você ganha um talento de ancestralidade de 1º nível."
+   },
+   "Clever Improviser": {
+    "name": "Clever Improviser",
+    "level": 5,
+    "actions": "",
+    "traits": [
+     "Human"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 64",
+    "description": "Você aprendeu como lidar com situações em que está fora da sua zona de conforto. Você ganha o talento geral Untrained Improvisation. Além disso, você pode tentar ações de perícia que normalmente exigem que você seja treinado, mesmo que você não seja treinado."
+   },
+   "Cognitive Crossover": {
+    "name": "Kreighton's Cognitive Crossover",
+    "level": 4,
+    "actions": "Reaction",
+    "traits": [
+     "General",
+     "Skill",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "PFS Guide, p. 119",
+    "trigger": "Você não obtém nenhuma informação de um teste de Record Knowledge (geralmente porque você falhou no teste secreto) usando uma das duas perícias que você escolheu para este talento.",
+    "access": "Membro da Pathfinder Society.",
+    "description": "Kreighton ensina a seus estudantes que uma mente ágil pode colher pistas que levam à verdade, mesmo das fontes mais improváveis. Você tenta novamente o teste que desencadeou a ação usando a outra perícia escolhida. Especial: Quando você ganha este talento, escolha duas das seguintes perícias: Arcanismo, Ofício, Conhecimento (qualquer um), Medicina, Natureza, Ocultismo, Religião ou Sociedade. Scrolls Training Fonte: PFS Guide pág. 119. O Mestre dos Pergaminhos da Sociedade, Kreighton Shaine (Lost Omens Pathfinder Society Guide página 42), pode ser considerado estranho e distraído por seus pares, mas o capitão de empreitada elfo leva seus deveres muito a sério. Habilidoso em pesquisar assuntos obscuros e desvendar segredos inescrutáveis, Kreighton ensina a seus estudantes o valor de uma mente inquisitiva. Talentos Relacionados:"
+   },
+   "Correct the Story": {
+    "name": "Correct The Story",
+    "level": 6,
+    "actions": "Reaction",
+    "traits": [
+     "Misfortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "trigger": "Um inimigo obtém um sucesso crítico em um teste de ataque ou salvaguarda.",
+    "description": "Você conhece bem a história da sua jornada e pode corrigi-la quando seu inimigo a conta incorretamente. Gaste um Mythic Point. O inimigo deve rolar novamente o teste de ataque ou salvaguarda que causou a ativação e ficar com o novo resultado."
+   },
+   "Domain Initiate": {
+    "name": "Domain Initiate",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Cleric"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Soul Warden",
+     "Vindicator"
+    ],
+    "sourceBook": "Player Core, p. 113",
+    "description": "Sua divindade concede uma magia especial relacionada aos seus poderes. Selecione um domínio — um assunto de interesse particular para você dentro de sua religião — da lista de sua divindade. Você ganha uma magia de domínio inicial para esse domínio, uma magia única do domínio e não disponível para outros clérigos. Magias de domínio são um tipo de magia de foco. Custa 1 Ponto de Foco para conjurar uma magia de foco, e você começa com uma reserva de foco de 1 Ponto de Foco. Você recarrega sua reserva de foco durante suas preparações diárias, e pode recuperar 1 Ponto de Foco gastando 10 minutos usando a atividade Refocus para rezar para sua divindade ou prestar serviço às causas dela. Magias de foco são automaticamente aprimoradas para metade do seu nível arredondado para cima, assim como truques. Magias de foco não requerem espaços de magia e não podem ser conjuradas usando espaços de magia. Sua reserva de foco pode conter um Ponto de Foco para cada magia de foco que você tiver, até o limite de 3 pontos. As regras completas para magias de foco aparecem aqui. Especial Você pode selecionar este talento várias vezes, selecionando um domínio diferente a cada vez e ganhando sua magia de domínio."
+   },
+   "Ears that Hear the Truth": {
+    "name": "Ears that Hear the Truth",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 81",
+    "description": "Você tem uma compreensão aguçada dos ritmos dos seres vivos, e nunca perde o tremor que trai uma mentira falada. Quando você tenta Sense Motive, ou quando você rola Perception para iniciativa, você pode gastar um Mythic Point para tentar o teste ou rolagem com proficiência mítica."
+   },
+   "Haughty Obstinacy": {
+    "name": "Haughty Obstinacy",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Human"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 64",
+    "description": "Seu ego poderoso torna mais difícil para os outros lhe darem ordens. Se você rolar um sucesso em um teste de resistência contra um efeito mental que tente controlar diretamente suas ações, você obtém um sucesso crítico em vez disso. Se uma criatura rolar uma falha em um teste para Coerce você usando Intimidação, ela obtém uma falha crítica em vez disso (portanto, ela não pode tentar Coerce você novamente por 1 semana)."
+   },
+   "Healing Hands": {
+    "name": "Healing Hands",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Cleric"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 114",
+    "prerequisites": "fonte curativa",
+    "description": "Sua vitalidade está ainda mais vibrante e restauradora. Quando você lança heal, rola d10 ao invés de d8."
+   },
+   "Multilingual": {
+    "name": "Multilingual",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 258",
+    "prerequisites": "Treinado em Sociedade",
+    "description": "Você aprende novos idiomas facilmente. Você aprende dois novos idiomas, escolhidos dentre idiomas comuns, idiomas incomuns e quaisquer outros aos quais você tenha acesso. Você aprende um idioma adicional se for ou se tornar mestre em Sociedade e novamente se for ou se tornar lendário. Especial Você pode selecionar este talento múltiplas vezes. Cada vez, você aprende idiomas adicionais."
+   },
+   "Natural Ambition": {
+    "name": "Natural Ambition",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Human"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 64",
+    "description": "Você foi criado para ser ambicioso e sempre alcançar as estrelas, o que o leva a progredir rapidamente em sua área escolhida. Você ganha um talento de classe de 1º nível para sua classe. Você deve atender aos pré-requisitos, mas pode selecionar o talento mais tarde no processo de criação de personagem para determinar quais pré-requisitos você cumpre."
+   },
+   "Prescience": {
+    "name": "Prescience",
+    "level": 4,
+    "actions": "Free Action",
+    "traits": [
+     "Mythic",
+     "Prediction",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "trigger": "Você está prestes a rolar iniciativa.",
+    "description": "Um poder mítico inunda sua mente, preenchendo-o com visões de futuros possíveis, eventos que podem ou não acontecer, e avisos de coisas que podem ser. Gaste um Mythic Point e role seu teste de iniciativa usando mythic proficiency. Até o final do seu primeiro turno, você tem um bônus de status de +1 na CA e em todas as salvaguardas."
+   },
+   "Rapid Response": {
+    "name": "Rapid Response",
+    "level": 2,
+    "actions": "Reaction",
+    "traits": [
+     "Cleric"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 115",
+    "trigger": "Um aliado é reduzido a 0 Pontos de Vida",
+    "description": "Você age rapidamente em emergências. Você Stride em direção ao aliado que desencadeou. Você ganha um bônus de circunstância de +10 pés à sua Velocidade durante esse movimento."
+   },
+   "Sacred Ground": {
+    "name": "Sacred Ground",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Cleric",
+     "Consecration",
+     "Divine",
+     "Exploration"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 116",
+    "prerequisites": "fonte nociva ou fonte curativa",
+    "frequency": "uma vez a cada 10 minutos",
+    "description": "Você ora continuamente por 1 minuto para invocar uma sombra sutil do reino de sua divindade sobre uma explosão de 30 pés centrada em você. Ela dura 10 minutos, e uma criatura que permanecer na área durante os 10 minutos completos recupera Pontos de Vida iguais ao seu nível. Se você possuir uma fonte curativa, esta atividade tem as características de cura e vitalidade e cura criaturas vivas. Se você possuir uma fonte nociva, esta atividade tem as características de cura e vazio e cura criaturas mortas-vivas (ou outras criaturas com cura de vazio). Clérigos com Versatile Font podem escolher uma ou ambas. Ela não pode causar dano a criaturas em nenhum caso."
+   },
+   "Schooled in Secrets": {
+    "name": "Schooled in Secrets",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 262",
+    "prerequisites": "Treinado em Ocultismo",
+    "description": "Você percebe os sinais e símbolos que membros de cultos de mistério e outras sociedades secretas usam para declarar sua afiliação a outros membros. Você pode usar Ocultismo em vez de Diplomacia para Obter Informações sobre tais grupos e em vez de Enganação para se Disfarçar como um membro desses grupos. Se você pertence a um culto secreto, loja, seita ou organização similar, você reconhece automaticamente os membros do seu grupo, a menos que eles estejam especificamente tentando ocultar a presença deles de você. Eles também reconhecem sua posição, a menos que você esteja especificamente ocultando-a."
+   },
+   "Selective Energy": {
+    "name": "Selective Energy",
+    "level": 6,
+    "actions": "",
+    "traits": [
+     "Cleric"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 117",
+    "description": "Ao invocar poder divino, você pode impedir que alguns inimigos se beneficiem ou que alguns aliados sejam feridos. Quando você conjura uma versão de harm ou heal que possui uma área, você pode designar até 5 criaturas na área. Elas não são alvos da magia."
+   },
+   "Thorough Search": {
+    "name": "Thorough Search",
+    "level": 3,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 234",
+    "prerequisites": "Perito em Percepção",
+    "description": "Você dedica tempo ao procurar para garantir que encontre tudo. Ao usar a ação Seek, você pode levar o dobro do tempo para procurar. Normalmente, isso significa que você usa a ação Seek a até um quarto do seu Deslocamento, até um máximo de 45 metros por minuto para verificar tudo, ou 22,5 metros por minuto para verificar tudo antes de entrar em uma área. Se você fizer isso e o Mestre rolar seu teste secreto de Seek para notar algo, você recebe um bônus de circunstância de +2 nesse teste de Percepção e, se obtiver sucesso, você consegue um sucesso crítico em vez disso."
+   },
+   "Toughness": {
+    "name": "Toughness",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 263",
+    "description": "Seu corpo pode suportar mais punição do que a maioria antes de sucumbir. Aumente seus Pontos de Vida máximos pelo seu nível. Você reduz a CD dos testes de recuperação em 1."
+   },
+   "Untrained Improvisation": {
+    "name": "Untrained Improvisation",
+    "level": 3,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 264",
+    "description": "Você aprendeu como lidar com situações em que está fora da sua zona de conforto. Seu bônus de proficiência em testes de perícia não treinado é igual ao seu nível –2. Isso melhora para o seu nível –1 no 5º nível e para o seu nível total no 7º nível. Isso não permite que você use as ações de perícia que exigem ser treinado."
+   },
+   "Versatile Human": {
+    "name": "Versatile Human",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Player Core, p. 63",
+    "description": "Herança Humano Versátil A versatilidade e a ambição da humanidade impulsionaram sua ascensão para ser a ancestralidade mais comum na maioria das nações ao redor do mundo. Selecione um talento geral de sua escolha para o qual você cumpra os"
+   }
+  },
+  "special": {
+   "Absorb Injury": {
+    "name": "Absorb Injury",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Necromancy"
+    ],
+    "category": "relic",
+    "sourceBook": "Secrets of Magic, p. 231",
+    "description": "Activate Reaction: envision; Frequência uma vez por dia; Gatilho um aliado a até 30 pés sofre dano; Efeito Você forja um conduto para a alma do seu aliado e absorve o ferimento para protegê-lo. Você recebe o dano em vez do seu aliado; você também sofre quaisquer efeitos adicionais associados ao dano transferido, como veneno na lâmina, condições ou dano de fogo persistente de um acerto crítico com uma runa flamejante."
+   },
+   "Anathema": {
+    "name": "Anathema",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Cleric",
+    "sourceBook": "Player Core, p. 108",
+    "description": "Atos fundamentalmente opostos aos ideais da sua divindade são anátema para a sua fé. Aprender ou conjurar magias, cometer atos e usar itens que sejam anátema para a sua divindade tiram você das graças dela. Conjurar magias com o traço unholy é quase sempre anátema para divindades holy, e conjurar magias holy é anátema para divindades unholy. Se você realizar esses atos repetidamente, perde as habilidades mágicas que vêm da classe clérigo — a conjuração de magias divinas e os benefícios da sua doutrina — e só as recupera demonstrando arrependimento com um ritual atone. Os anátemas específicos são os da sua divindade."
+   },
+   "Cleric Spellcasting": {
+    "name": "Cleric Spellcasting",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Cleric",
+    "sourceBook": "Player Core, p. 108",
+    "description": "Sua divindade lhe concede o poder de conjurar magias divinas. Você é um conjurador e pode conjurar magias da tradição divina usando a ação Cast a Spell. Como um clérigo, seus cânticos geralmente invocam sua divindade e seus servos poderosos pelo nome ou título, enquanto seus gestos são acompanhados por símbolos sagrados ou outras representações de sua divindade. No 1º nível, você pode preparar duas magias de 1º círculo e cinco truques a cada manhã a partir das magias comuns na lista de magias divinas ou de outras magias divinas às quais você ganha acesso e aprende via Learn a Spell. Magias preparadas permanecem disponíveis para você até que você as conjure ou até que você prepare suas magias novamente. O número de magias que você pode preparar a cada dia é chamado de seus espaços de magia. À medida que você aumenta de nível como clérigo, o número de magias que você pode preparar a cada dia aumenta, assim como o círculo mais alto de magia que você pode conjurar, conforme mostrado na tabela Magias de Clérigo por Dia acima. Algumas de suas magias exigem que você tente um teste de ataque de magia para ver quão eficazes elas são ou que seus inimigos rolem contra a sua CD de magia (tipicamente tentando um teste de resistência). Como seu atributo chave é Sabedoria, seu modificador de ataque de magia e CD de magia usam seu modificador de Sabedoria. Ampliar Magias: Quando você obtém espaços de magia de 2º círculo ou superior, você pode preencher esses espaços com versões mais fortes de magias de círculo inferior. Isso aumenta o círculo da magia, ampliando-a para corresponder ao espaço de magia. Muitas magias têm melhorias específicas quando são ampliadas para certos círculos. Truques: Algumas de suas magias são truques. Um truque é um tipo especial de magia que não usa espaços de magia. Você pode conjurar um truque à vontade, qualquer número de vezes por dia. Um truque é sempre automaticamente ampliado para metade do seu nível arredondado para cima — isso geralmente é igual ao círculo mais alto de espaço de magia de clérigo que você possui. Por exemplo, como um clérigo de 1º nível, seus truques são magias de 1º círculo, e como um clérigo de 5º nível, seus truques são magias de 3º círculo."
+   },
+   "Cloistered Cleric": {
+    "name": "Cloistered Cleric",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "doctrine",
+    "sourceBook": "Player Core, p. 112",
+    "description": "Doutrina de Clérigo: Clérigo Enclausurado. Você é um clérigo do clero, focando em magia divina e em sua conexão com os domínios da sua divindade. - Primeira Doutrina (1º) Você ganha o talento de clérigo Domain Initiate. - Segunda Doutrina (3º) Sua graduação de proficiência para testes de Fortitude aumenta para perito. - Terceira Doutrina (7º) Suas graduações de proficiência para as estatísticas de modificador de ataque de magia e CD de magia aumentam para perito. - Quarta Doutrina (11º) Você ganha proficiência de perito com a arma favorecida da sua divindade, armas simples e ataques desarmados. Quando você obtém um sucesso crítico em um teste de ataque usando a arma favorecida da sua divindade, você aplica o efeito de especialização crítica da arma; use sua CD de magia no lugar da sua CD de classe. - Quinta Doutrina (15º) Suas graduações de proficiência para as estatísticas de modificador de ataque de magia e CD de magia aumentam para mestre. - Doutrina Final (19º) Suas graduações de proficiência para as estatísticas de modificador de ataque de magia e CD de magia aumentam para lendário."
+   },
+   "Deity": {
+    "name": "Deity",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Cleric",
+    "sourceBook": "Player Core, p. 108",
+    "description": "Como um clérigo, você é um servidor mortal de uma divindade que você reverencia acima de todas as outras. As divindades mais comuns em Pathfinder possuem éditos, áreas de interesse e os benefícios que você recebe por ser um clérigo daquela divindade. Sua divindade lhe concede a graduação de proficiência treinado em uma perícia e com a arma favorecida da divindade. Se a arma favorecida for incomum, você também ganha acesso a essa arma. Sua divindade também adiciona magias à sua lista de magias. Você pode prepará-las exatamente como faria com qualquer magia na lista de magias divinas, uma vez que você possa preparar magias do círculo delas como um clérigo. Quaisquer dessas magias que não estejam normalmente na lista divina ainda são magias divinas se você as preparar desta forma. Santificação: Dependendo da sua divindade, a santificação dela pode torná-lo sagrado ou profano. Isso lhe dá o traço sagrado ou profano, o que o compromete a um lado de uma luta sobre as almas dos planos e pode ser referenciado em outras habilidades. Se você \"pode ser\" sagrado ou profano de acordo com sua divindade, você faz essa escolha, e se você \"deve ser\" sagrado ou profano, você ganha o traço automaticamente. Se você ganhar o traço oposto de alguma forma, você perde o traço anterior até completar um ritual atone. Anátema: Atos fundamentalmente opostos aos ideais da sua divindade são anátema para sua fé. Aprender ou conjurar magias, cometer atos e usar itens que são anátema para sua divindade removem você das boas graças da sua divindade. Conjurar magias com o traço profano é quase sempre anátema para divindades que não permitem santificação profana, e conjurar magias sagradas é igualmente anátema para aquelas que não permitem santificação sagrada. Da mesma forma, conjurar magias que são anátema aos dogmas ou objetivos da sua fé pode interferir na sua conexão com sua divindade. Por exemplo, conjurar uma magia para criar mortos-vivos seria anátema para Pharasma, a deusa da morte. Muitas ações que são anátema não aparecem na lista formal de nenhuma divindade. Para casos limítrofes, você e seu Mestre determinam quais atos são anátema. Se você realizar atos suficientes que são anátema para sua divindade, você perde as habilidades mágicas que vêm da sua conexão com sua divindade. As características de classe que você perde são determinadas pelo Mestre, mas provavelmente incluem sua fonte divina e toda a sua conjuração de magias de clérigo. Essas habilidades só podem ser recuperadas se você se arrepender conduzindo um ritual atone."
+   },
+   "Domain: Void": {
+    "name": "Void",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "domain",
+    "sourceBook": "Gods & Magic, p. 119",
+    "description": "Domínio do Vazio: você tira poder do vazio. Magia de domínio: Empty Inside (1 Ponto de Foco: neutraliza um efeito de emoção que afeta você). Magia de domínio avançada: Door to Beyond (com o talento Advanced Domain)."
+   },
+   "Emotion Surge": {
+    "name": "Emotion Surge",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Emotion",
+     "Mental"
+    ],
+    "category": "relic",
+    "sourceBook": "Treasure Vault (Remastered), p. 199",
+    "description": "Activate Single Action: (concentrate) Frequência uma vez por hora; Efeito Uma onda de emoção emana da sua relíquia, concedendo um bônus de status de +1 em testes de perícia determinados pela emoção da relíquia. Este bônus dura 1 minuto. Raiva testes de Athletics; Admiração testes de Performance; Dedicação testes para Recall Knowledge; Medo testes de Stealth; Ódio testes de Intimidation; Alegria testes de Diplomacy; Amor testes de Medicine; Miséria testes de Survival; Orgulho testes de Society; Remorso testes de Deception"
+   },
+   "Healing Font": {
+    "name": "Divine Font",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Cleric",
+    "sourceBook": "Player Core, p. 108",
+    "description": "Pela bênção da sua divindade, você ganha magias adicionais que canalizam a força vital chamada vitalidade ou sua contraforça, o vazio. Ao preparar suas magias a cada dia, você pode preparar magias heal ou harm adicionais, conforme a sua divindade. Uma vez feita a escolha, não pode mudá-la sem intervenção divina. Healing Font: você ganha 4 espaços de magia adicionais por dia no seu rank mais alto de espaços de magia de clérigo, e só pode preparar heal neles. No 5º nível passam a 5, e no 15º, a 6."
+   },
+   "Holy": {
+    "name": "Holy",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Holy"
+    ],
+    "category": "class-feature",
+    "className": "Cleric",
+    "sourceBook": "Player Core, p. 108",
+    "description": "Santificação: conforme a divindade, a santificação dela pode tornar você holy ou unholy. Você é HOLY: ganha o traço holy, o que o compromete com um lado da luta pelas almas dos planos e pode ser citado por outras habilidades. As suas magias santificadas (como Divine Wrath) ganham o traço holy, e efeitos holy costumam ser mais fortes contra criaturas unholy. Se você ganhar o traço oposto de algum modo, perde o atual até completar um ritual atone."
+   },
+   "Perception Expertise": {
+    "name": "Perception Expertise",
+    "level": 5,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Cleric",
+    "sourceBook": "Player Core, p. 108",
+    "description": "Você permanece alerta às ameaças ao seu redor. Seu grau de proficiência em Percepção aumenta para perito."
+   },
+   "Rewrite Fate": {
+    "name": "Rewrite Fate",
+    "level": null,
+    "actions": "Free Action",
+    "traits": [
+     "Fortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "action",
+    "sourceBook": "War of Immortals, p. 78",
+    "trigger": "Você rola um teste de perícia ou uma salvaguarda e não gosta do resultado.",
+    "description": "O destino, a sorte ou alguma outra força se curva ao seu redor à medida que seu poder mítico aumenta, manifestando-se em um clarão de luz ou em uma onda visível de energia emanando de seu corpo enquanto você se livra das correntes do destino. Você gasta um Mythic Point e rola novamente o teste ou salvaguarda com proficiência mítica, assumindo o novo resultado."
+   },
+   "Sage's Calling": {
+    "name": "Sage's Calling",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Calling",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "mythic-calling",
+    "sourceBook": "War of Immortals, p. 80",
+    "description": "Edictos preservem seu conhecimento para gerações futuras, busquem conhecimento perdido em lugares perigosos ou esquecidos Anátema destruam livros ou outros repositórios de conhecimento, mintam para esconder o conhecimento do mundo"
+   },
+   "Second Doctrine": {
+    "name": "Doctrine",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Cleric",
+    "sourceBook": "Core Rulebook, p. 116",
+    "description": "Mesmo entre seguidores da mesma divindade, existem inúmeras doutrinas e crenças, que às vezes variam drasticamente entre clérigos. No 1º nível, você seleciona uma doutrina e ganha os benefícios de sua primeira doutrina. As doutrinas apresentadas neste livro são cloistered cleric e warpriest. Cada doutrina concede a você benefícios iniciais no 1º nível. Nos níveis 3, 7, 11, 15 e 19, você ganha os benefícios concedidos pela segunda, terceira, quarta, quinta e última doutrinas da sua doutrina, respectivamente. As doutrinas podem ser encontradas aqui."
+   },
+   "Third Doctrine": {
+    "name": "Doctrine",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Cleric",
+    "sourceBook": "Core Rulebook, p. 116",
+    "description": "Mesmo entre seguidores da mesma divindade, existem inúmeras doutrinas e crenças, que às vezes variam drasticamente entre clérigos. No 1º nível, você seleciona uma doutrina e ganha os benefícios de sua primeira doutrina. As doutrinas apresentadas neste livro são cloistered cleric e warpriest. Cada doutrina concede a você benefícios iniciais no 1º nível. Nos níveis 3, 7, 11, 15 e 19, você ganha os benefícios concedidos pela segunda, terceira, quarta, quinta e última doutrinas da sua doutrina, respectivamente. As doutrinas podem ser encontradas aqui."
+   },
+   "Versatile Human": {
+    "name": "Versatile Human",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Player Core, p. 63",
+    "description": "Herança Humano Versátil A versatilidade e a ambição da humanidade impulsionaram sua ascensão para ser a ancestralidade mais comum na maioria das nações ao redor do mundo. Selecione um talento geral de sua escolha para o qual você cumpra os"
+   }
+  },
+  "item": {
+   "Healer's Toolkit": {
+    "name": "Healer's Toolkit",
+    "level": 0,
+    "actions": "",
+    "traits": [],
+    "category": "equipment",
+    "sourceBook": "Player Core, p. 288",
+    "description": "Este kit de curativos, ervas e ferramentas de sutura é necessário para testes de Medicina para Administrar Primeiros Socorros, Tratar Doença, Tratar Veneno ou Tratar Ferimentos. Se você usar seu Healer's Toolkit, pode retirar e recolocá‑los como parte da ação que os utiliza. Você pode usar um toolkit com 1 mão se estiver usando‑o ou 2 se estiver segurando‑o. Veja aqui para detalhes. Healer's Toolkit Source Player Core pg. 288 Price 5 gp Bulk 1 Healer's Toolkit (Expanded) Source Player Core pg. 288 Price 50 gp Bulk 1 Os kits de curandeiro expandidos concedem um bônus de item +1 a tais testes."
+   },
+   "Healing Potion (Lesser)": {
+    "name": "Healing Potion (Lesser)",
+    "level": 3,
+    "actions": "Single Action",
+    "traits": [
+     "Consumable",
+     "Healing",
+     "Magical",
+     "Potion",
+     "Vitality",
+     "Positive"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 259",
+    "description": "Uma Healing Potion é um frasco de um líquido vermelho‑rubi que provoca uma sensação de formigamento enquanto as feridas do bebedor curam rapidamente. Quando você bebe uma Healing Potion, recupera o número de Pontos de Vida indicado. Healing Potion (Minor) Source GM Core pg. 259, Core Rulebook pg. 563 Price 4 gp A poção restaura 1d8 Pontos de Vida. Healing Potion (Lesser) Source GM Core pg. 259, Core Rulebook pg. 563 Price 12 gp A poção restaura 2d8+5 Pontos de Vida. Healing Potion (Moderate) Source GM Core pg. 259, Core Rulebook pg. 563 Price 50 gp A poção restaura 3d8+10 Pontos de Vida. Healing Potion (Greater) Source GM Core pg. 259, Core Rulebook pg. 563 Price 400 gp A poção restaura 6d8+20 Pontos de Vida. Healing Potion (Major) Source GM Core pg. 259, Core Rulebook pg. 563 Price 5,000 gp A poção restaura 8d8+30 Pontos de Vida."
+   },
+   "Invisibility Potion": {
+    "name": "Invisibility Potion",
+    "level": 4,
+    "actions": "Single Action",
+    "traits": [
+     "Consumable",
+     "Illusion",
+     "Magical",
+     "Potion",
+     "Uncommon"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 259",
+    "description": "Uma invisibility potion é incolor e estranhamente leve. Ao bebê‑la, você ganha os efeitos de um feitiço de invisibilidade de 2º nível."
+   },
+   "Rapier": {
+    "name": "Rapier",
+    "level": 0,
+    "actions": "",
+    "traits": [
+     "Deadly",
+     "Disarm",
+     "Finesse"
+    ],
+    "category": "weapon",
+    "sourceBook": "Player Core, p. 278",
+    "description": "O rapier é uma lâmina longa e fina de perfuração com uma empunhadura tipo cesta. É valorizado por muitos como arma de duelo. Efeitos de Especialização Crítica Source Core Rulebook pg. 283 Certas façanhas, recursos de classe, runas de arma e outros efeitos podem conceder benefícios adicionais quando você faz um Strike com determinadas armas e obtém um sucesso crítico. Isso é chamado de efeito de especialização crítica. O efeito exato depende de qual grupo de armas sua arma pertence, conforme listado abaixo. Você pode sempre decidir não aplicar o efeito de especialização crítica da sua arma. Clique aqui para as regras completas sobre Efeitos de Especialização Crítica. Armas Mágicas Específicas Final Stand, Protector's Final Gift, Rime Foil, Soulpiercer, Storm Flash, Viper Rapier"
+   },
+   "Religious Symbol (Silver)": {
+    "name": "Religious Symbol (Silver)",
+    "level": 0,
+    "actions": "",
+    "traits": [],
+    "category": "equipment",
+    "sourceBook": "Player Core, p. 290",
+    "description": "Esta peça de madeira ou prata está gravada com uma imagem que representa uma divindade. Alguns conjuradores divinos, como clérigos, podem usar um Religious Symbol para usar certas habilidades. Um Religious Symbol pode ser usado no corpo em uma corrente ou alfinete, ou pode ser segurado. Religious Symbol (Wooden) Source Player Core pg. 290, Core Rulebook pg. 291 Price 1 sp Mãos 1 Bulk L Religious Symbol (Silver) Source Player Core pg. 290, Core Rulebook pg. 291 Price 2 gp Mãos 1 Bulk L"
+   },
+   "Scroll Robes": {
+    "name": "Scroll Robes",
+    "level": 0,
+    "actions": "",
+    "traits": [
+     "Inscribed"
+    ],
+    "category": "armor",
+    "sourceBook": "Treasure Vault (Remastered), p. 11",
+    "description": "Túnica feita de papel tratado alquimicamente para ganhar resistência e flexibilidade. Uma estrutura em camadas impede cortes e rasgos e, para calcular dano, a túnica conta como tecido. O papel aceita todo tipo de decoração, inclusive escrita mágica (traço inscribed). Categoria sem armadura, grupo tecido: bônus de CA +0, limite de Destreza +5, sem penalidade de teste nem de Deslocamento. Por ter limite de Destreza, aceita runas fundamentais e de propriedade — a do Woyd tem +1 de potência."
+   }
+  }
+ }
+}
