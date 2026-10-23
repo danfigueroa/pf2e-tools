@@ -84,6 +84,9 @@ export const ROGUE_COLOR = '#6A3F7A'
 /** Hunt Prey e Gravity Weapon (a faixa do Patrulheiro). Verde-floresta; 6,5:1 sobre `parchment.paper`. */
 export const RANGER_COLOR = '#3A6B35'
 
+/** Investigações e estratagemas da faixa do Investigador. Verde-azulado; 5,9:1 sobre `parchment.paper`. */
+export const INVESTIGATOR_COLOR = '#1F6A73'
+
 /** Arcane Cascade e a faixa do Magus. Azul-arcano; 7,3:1 sobre `parchment.paper`. */
 export const MAGUS_COLOR = '#2F4F8F'
 

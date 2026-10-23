@@ -30,7 +30,7 @@ export const MAX_FIELD_BYTES = 8 * 1024
 
 const SLUG_RE = /^[a-z0-9-]{1,64}$/
 // A mesma lista do CHECK de `character_state` (migration `estado_da_mesa`).
-const FIELD_RE = /^(hp|slots|conditions|afflictions|persistent|mythic|consumed|shield|token|size|rage|psyche|energy|magus|ranger|rogue|actions|uses|companions|gave|pet:[a-z0-9:#-]{1,80})$/
+const FIELD_RE = /^(hp|slots|conditions|afflictions|persistent|mythic|consumed|shield|token|size|rage|psyche|energy|magus|ranger|rogue|investigator|actions|uses|companions|gave|pet:[a-z0-9:#-]{1,80})$/
 
 /** A chave do personagem no cache em memória (sem banco). */
 const characterKey = (mesa, slug) => `${mesa}|${slug}`

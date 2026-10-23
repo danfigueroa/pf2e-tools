@@ -48,7 +48,7 @@ import { PersistentDamageBar } from './components/PersistentDamageBar'
 import { MythicPointsBar } from './components/MythicPointsBar'
 import { useUses } from './components/useUses'
 import { GODSPEED_SOURCE, godspeedConditions, withGodspeed } from './mythicFeats'
-import { usesKeyFor, actionsKeyFor, afflictionsKeyFor, charSlug, conditionsKeyFor, energyKeyFor, legacyCharKey, magusKeyFor, mythicKeyFor, persistentKeyFor, psycheKeyFor, rageKeyFor, rangerKeyFor, sizeKeyFor } from './charId'
+import { usesKeyFor, actionsKeyFor, afflictionsKeyFor, charSlug, conditionsKeyFor, energyKeyFor, investigatorKeyFor, legacyCharKey, magusKeyFor, mythicKeyFor, persistentKeyFor, psycheKeyFor, rageKeyFor, rangerKeyFor, sizeKeyFor } from './charId'
 import { useConditions } from './components/useConditions'
 import { useAfflictions } from './components/useAfflictions'
 import { usePersistentDamage } from './components/usePersistentDamage'
@@ -70,6 +70,9 @@ import { ActionsBar } from './components/ActionsBar'
 import { DiceBar } from './components/DiceBar'
 import { useActions } from './components/useActions'
 import { RangerBar } from './components/RangerBar'
+import { InvestigatorBar } from './components/InvestigatorBar'
+import { useInvestigator } from './components/useInvestigator'
+import { hasInvestigatorFeatures } from './investigator'
 import { useRanger } from './components/useRanger'
 import { hasRangerFeatures, withRanger } from './ranger'
 import { hasQuickShieldBlock, reflexShieldBonus, withReflexShield } from './fighter'
@@ -236,6 +239,8 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
     const magus = useMagus(magusKeyFor(build), build)
     // Hunt Prey e Gravity Weapon do Patrulheiro: também viajam nos modificadores.
     const ranger = useRanger(rangerKeyFor(build), build)
+    // Investigações do Investigador: o +1 entra nos testes pelo diálogo, que lê o mesmo estado da mesa.
+    const investigator = useInvestigator(investigatorKeyFor(build))
     // Reflexive Shield: o escudo erguido (estado da mesa) também vale nos Reflexos.
     const reflexShield = reflexShieldBonus(build, useCharacterShield(build).view?.acBonus ?? 0)
 
@@ -370,6 +375,7 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
             {rage.spec && <RageBar build={build} rage={rage} conditions={conditions} />}
             {psyche.has && <PsycheBar psyche={psyche} />}
             {hasRangerFeatures(build) && <RangerBar build={build} ranger={ranger} mods={mods} />}
+            {hasInvestigatorFeatures(build) && <InvestigatorBar build={build} investigator={investigator} mods={mods} />}
             {hasMagusFeatures(build) && (
                 <MagusBar build={build} magus={magus} mythicPoints={mythicPoints} conditions={conditions} />
             )}
