@@ -24,6 +24,7 @@ import { CONDITION_COLOR } from '../../../theme'
 
 import { useCharacterShield } from '../components/useShield'
 import { useGear } from '../../../services/gear'
+import { homebrewGear } from '../homebrewGear'
 import { DEFAULT_STRIKE_OPTIONS, planStrike, weaponStrike } from '../strikes'
 import type { RollRequest } from '../components/RollDialog'
 
@@ -40,7 +41,8 @@ interface Props {
 const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect }: Props) => {
     const weapons = useMemo(() => build.weapons ?? [], [build.weapons])
     // Traços das armas (AON): dizem o atributo do ataque, o MAP e o crítico.
-    const gear = useGear(useMemo(() => weapons.map((w) => w.name), [weapons]))
+    // Arma caseira (o braço da relíquia): os traços vêm do catálogo, não da AON.
+    const gear = useGear(useMemo(() => weapons.filter((w) => !homebrewGear(build, w.name)).map((w) => w.name), [weapons, build]))
     const unarmed = unarmedAttacks(build)
     const armor = build.armor ?? []
     const shieldAc = useCharacterShield(build).view?.acBonus ?? 0
@@ -62,7 +64,7 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect }: Props)
     return (
         <Stack spacing={1.5}>
             {weapons.map((w, idx) => {
-                const g = gear[w.name]
+                const g = homebrewGear(build, w.name) ?? gear[w.name]
                 const strike = weaponStrike(build, w, g && g.kind === 'weapon' ? g : null)
                 // Com os traços, o ataque é o exato (atributo certo, condição certa);
                 // sem eles, só o que pesa nos dois atributos, e o resto vira aviso.

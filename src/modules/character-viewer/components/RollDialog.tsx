@@ -34,6 +34,7 @@ import type { MythicPointsApi } from './useMythicPoints'
 import type { UnarmedAttack } from '../unarmed'
 import { magicWeaponRules } from '../magicWeapons'
 import { useGear } from '../../../services/gear'
+import { homebrewGear } from '../homebrewGear'
 import { postRoll } from '../../../services/rolls'
 import {
     DEFAULT_STRIKE_OPTIONS,
@@ -590,12 +591,13 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
     const who = useMemo(() => rollerIdentity(build), [build])
     const send = useSend(mythicPoints, onClose)
     const weapon = request.kind === 'weapon' ? request.weapon : null
-    const gearNames = useMemo(() => (weapon ? [weapon.name] : []), [weapon])
+    const homebrew = weapon ? homebrewGear(build, weapon.name) : null
+    const gearNames = useMemo(() => (weapon && !homebrew ? [weapon.name] : []), [weapon, homebrew])
     const gear = useGear(gearNames)
     const rules = weapon ? magicWeaponRules(weapon.name) : null
     const [profile, setProfile] = useState(0)
 
-    const entry = weapon ? gear[weapon.name] : null
+    const entry = weapon ? (homebrew ?? gear[weapon.name]) : null
     const loading = !!weapon && entry === undefined
     const strike = weapon
         ? weaponStrike(build, weapon, entry && entry.kind === 'weapon' ? entry : null, rules, profile)
