@@ -33,7 +33,8 @@ export const PRESETS_BY_MESA: Record<string, CharacterPreset[]> = {
   ],
   // Os outros JSONs ainda vão chegar; até lá, também as fichas publicadas pela mesa.
   'arton-1515': [
-    { name: 'Loki', sheetName: 'Loki', class: 'Magus', level: 7, filename: 'loki7.json' },
+    { name: 'Loki',    sheetName: 'Loki',              class: 'Magus',        level: 7, filename: 'loki7.json'    },
+    { name: 'Miranda', sheetName: 'Miranda Stormblade', class: 'Investigadora', level: 7, filename: 'miranda7.json' },
   ],
 }
 

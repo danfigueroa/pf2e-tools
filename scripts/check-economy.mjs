@@ -39,6 +39,7 @@ const slugOf = {
     'nathaniel10': 'nathaniel-o-magus',
     'thalos10': 'thalos',
     'loki7': 'loki',
+    'miranda7': 'miranda-stormblade',
 }
 
 let failures = 0
