@@ -69,6 +69,7 @@ import { initiativeBonus } from '../initiative'
 import { availableOptions, hasBattleMedicine, hasContinualRecovery, hasGodlessHealing, hasRiskySurgery, healActionCost, wardMedicTargets, type HealMode } from '../treatWounds'
 import { useConditions } from './useConditions'
 import { mythicOptionFor, type MythicContext, type MythicOption } from '../mythicUse'
+import { emotionSurgeFor } from '../relics'
 import { skillActionsFor } from '../skillActions'
 import { payTime } from './useSpellCast'
 import { castTimeOf, hasPrepaidStrike, NO_RESOURCE, pairCast, takePrepaidStrike, type CastResource } from '../spellCast'
@@ -314,6 +315,9 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     const stratagemSkill = canSkillStrat && skillStrat
     const stratagemPay = stratagemSkill && !stratFree ? 1 : 0
     const keen = skillAction?.id === 'recall' ? keenRecollectionBonus(build, check.rank) : 0
+    // Emotion Surge da relíquia (+1 de status por 1 minuto nos testes da emoção dela): chip, não lembrado — o app não conta o minuto.
+    const surge = emotionSurgeFor(build, check.en, skillAction?.id === 'recall')
+    const [surgeOn, setSurgeOn] = useState(false)
     const assur = assuranceResult(build, check.en, check.rank)
     const assuranceOn = !!assur && assurance
     const parts = assuranceOn
@@ -322,6 +326,7 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
         ...check.parts,
         ...investigationParts(investigating, stratagemSkill),
         ...(keen ? [{ label: 'Keen Recollection (nível, destreinada)', value: keen, kind: 'other' as const }] : []),
+        ...(surge && surgeOn ? [{ label: `Emotion Surge · ${surge.emotion} (status)`, value: 1, kind: 'other' as const }] : []),
         ...(iniBonus && iniBonus.value ? [{ label: `Iniciativa: ${iniBonus.from.join(' / ')} (circunstância)`, value: iniBonus.value, kind: 'other' as const }] : []),
         ...(riskyOn ? [{ label: 'Risky Surgery (circunstância)', value: 2, kind: 'other' as const }] : []),
         ...(adjust ? [{ label: 'Ajuste', value: adjust, kind: 'other' as const }] : []),
@@ -429,6 +434,23 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                                     Escolhe a CD, rola a cura e soma ao PV.
                                 </Typography>
                             )}
+                        </Box>
+                    )}
+                    {surge && !assuranceOn && (
+                        <Box>
+                            <Typography variant="caption" color="text.secondary">Relíquia</Typography>
+                            <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', mt: 0.5 }}>
+                                <Chip
+                                    size="small"
+                                    label={`Emotion Surge ativa (${surge.emotion}) · +1`}
+                                    color={surgeOn ? 'primary' : 'default'}
+                                    variant={surgeOn ? 'filled' : 'outlined'}
+                                    onClick={() => setSurgeOn(!surgeOn)}
+                                    aria-pressed={surgeOn}
+                                    sx={{ minHeight: 28 }}
+                                    title="Ligue no minuto depois de ativar a dádiva no cartão da Relíquia (Inventário)"
+                                />
+                            </Box>
                         </Box>
                     )}
                     {(canInvestigate || canSkillStrat || assur) && (

@@ -59,10 +59,31 @@ export interface RelicGift {
     activation?: RelicActivation
     rune?: RelicRune
     /** Dádiva com caminho próprio no app (rola ataque e dano, ou muda o Golpe): o botão genérico não cobra. */
-    special?: 'scrap-shot' | 'dragon-strike' | 'healing-wave' | 'word-of-faith'
+    special?: 'scrap-shot' | 'dragon-strike' | 'healing-wave' | 'word-of-faith' | 'emotion-surge'
+    /** Emotion Surge: a emoção da relíquia, que decide em que teste vale o +1. */
+    emotion?: RelicEmotion
     /** Números que dependem do nível da relíquia (o do dono), mostrados no cartão: "7d4 PV", "rank de counteract 4". */
     facts?: (level: number) => string
 }
+
+/**
+ * Emotion Surge (Treasure Vault Remastered pg. 199): +1 de status por 1 minuto nos testes da emoção da relíquia.
+ * `skill` é o `check.en` da perícia; Dedication vale no Recall Knowledge de qualquer perícia.
+ */
+export const EMOTION_SURGE = {
+    Anger: { skill: 'Athletics' },
+    Awe: { skill: 'Performance' },
+    Dedication: { recall: true },
+    Fear: { skill: 'Stealth' },
+    Hatred: { skill: 'Intimidation' },
+    Joy: { skill: 'Diplomacy' },
+    Love: { skill: 'Medicine' },
+    Misery: { skill: 'Survival' },
+    Pride: { skill: 'Society' },
+    Remorse: { skill: 'Deception' },
+} as const satisfies Record<string, { skill?: string; recall?: boolean }>
+
+export type RelicEmotion = keyof typeof EMOTION_SURGE
 
 export type RelicBase =
     | { kind: 'weapon'; weapon: string }
@@ -238,14 +259,17 @@ export const RELICS: RelicEntry[] = [
                 facts: () => 'você recebe o dano no lugar do aliado, com os efeitos que vêm junto',
             },
             // Treasure Vault (Remastered) pg. 199: 1 ação (concentrar), 1× por hora, aspecto Emotion. +1 de status
-            // por 1 minuto num tipo de teste que depende da EMOÇÃO da relíquia — ainda não informada pelo jogador.
+            // por 1 minuto num tipo de teste que depende da EMOÇÃO da relíquia: Pride (informada pelo jogador) = Sociedade.
+            // O botão cobra a ação; o +1 é o chip do diálogo de Sociedade (o app não conta o minuto).
             {
                 id: 'emotion-surge',
                 name: 'Emotion Surge',
                 tier: 'minor',
                 kind: 'power',
+                special: 'emotion-surge',
+                emotion: 'Pride',
                 activation: { cost: 1, frequency: 'uma vez por hora', limited: true },
-                facts: () => '+1 de status por 1 minuto nos testes da emoção da relíquia (a emoção ainda não foi definida)',
+                facts: () => 'emoção Pride (orgulho): +1 de status em testes de Sociedade por 1 minuto',
             },
         ],
     },
@@ -287,6 +311,14 @@ export function relicHealActivity(build: BuildInfo, relic: RelicEntry, gift: Rel
         }
     }
     return null
+}
+
+/** O Emotion Surge que vale neste teste (perícia em inglês, e se é Recall Knowledge), se a ficha tem um. */
+export function emotionSurgeFor(build: BuildInfo, checkEn: string, recall: boolean): { gift: RelicGift; emotion: RelicEmotion } | null {
+    const gift = relicGift(build, 'emotion-surge')
+    if (!gift?.emotion) return null
+    const rule: { skill?: string; recall?: boolean } = EMOTION_SURGE[gift.emotion]
+    return (rule.skill === checkEn || (rule.recall && recall)) ? { gift, emotion: gift.emotion } : null
 }
 
 /** O nome da arma da ficha em que a relíquia mora (o braço), se ela mora numa arma. */
