@@ -76,6 +76,7 @@ import { useSpellCast } from './useSpellCast'
 import { useHpTracker } from './useHpTracker'
 import { actionCost, applySpend, shortfall, type ActionKind } from '../actions'
 import { actionRange, variantFor } from '../actionVariants'
+import { variantOptionsFor } from '../cleric'
 import { usePoisonOptions } from './usePoisonOptions'
 import { useActions } from './useActions'
 import { classDc, fearsomeBruteBonus, hasExactingStrike, hasFearsomeBrute } from '../fighter'
@@ -1286,7 +1287,8 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     const range = spell ? actionRange(spell.actions) : null
     const [chosenActions, setChosenActions] = useState<number | null>(null)
     const nActions = range ? Math.min(range.max, Math.max(range.min, chosenActions ?? range.min)) : null
-    const variant = nActions != null && castRank != null ? variantFor(request.name, castRank, nActions) : null
+    const variantOpts = useMemo(() => variantOptionsFor(build), [build])
+    const variant = nActions != null && castRank != null ? variantFor(request.name, castRank, nActions, variantOpts) : null
     const spellActions = range ? (nActions ?? range.min) : spell ? (actionCost(spell.actions) ?? 0) : 0
     const lackingSpell = actions.missing(spellActions)
     // Rolar também CONJURA: paga as ações e o recurso (slot, foco, Ponto Mítico). Marcar o slot
@@ -1410,7 +1412,7 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                                 onChange={(_, v: number | null) => {
                                     if (v == null) return
                                     setChosenActions(v)
-                                    const next = castRank != null ? variantFor(request.name, castRank, v)?.components : null
+                                    const next = castRank != null ? variantFor(request.name, castRank, v, variantOpts)?.components : null
                                     if (next) setSelected(defaultSelection(next))
                                 }}
                                 fullWidth

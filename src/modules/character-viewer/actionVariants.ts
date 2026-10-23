@@ -69,28 +69,46 @@ const component = (kind: 'damage' | 'healing', types: string[], count: number, f
 const dmg = (type: string, count: number, faces: number, flat = 0) => component('damage', [type], count, faces, flat)
 const heal = (count: number, faces: number, flat = 0) => component('healing', [], count, faces, flat)
 
-type Maker = (rank: number, n: number) => Variant
+/** O que a ficha muda nas regras do catálogo. */
+export interface VariantOptions {
+    /** Healing Hands (Clérigo 1, Player Core pg. 114): o Heal rola d10 em vez de d8. */
+    healingHands?: boolean
+    /** Selective Energy (Clérigo 6, Player Core pg. 117): no Heal/Harm em área, até 5 criaturas ficam de fora. */
+    selectiveEnergy?: boolean
+}
+
+const selective = (n: number, opts: VariantOptions): string[] =>
+    n === 3 && opts.selectiveEnergy ? ['Selective Energy: escolha até 5 criaturas na área que NÃO são alvo.'] : []
+
+type Maker = (rank: number, n: number, opts: VariantOptions) => Variant
 const variant = (components: ScaledComponent[], notes: string[], rays = 1): Variant => ({ components, notes, rays })
 
 /** Nome canônico → regra. Cada fórmula foi conferida contra o texto da AON. */
 const CATALOG: Record<string, { base: number; make: Maker }> = {
     // Heal: 1d8 por rank; com 2 ações, +8 por rank ao curar criatura viva. 1 ação toque, 2 ações 9 m, 3 ações emanação de 9 m.
+    // Healing Hands troca os d8 por d10 (o +8 por rank continua).
     heal: {
         base: 1,
-        make: (r, n) => variant(
-            [heal(r, 8, n === 2 ? 8 * r : 0)],
-            [
-                n === 1 ? 'Alcance de toque.' : n === 2 ? `Alcance de 9 m. +${8 * r} de cura em criatura VIVA (contra morto-vivo o dano é só ${r}d8).` : 'Emanação de 9 m: todos os vivos e mortos-vivos na área.',
-            ],
-        ),
+        make: (r, n, opts) => {
+            const faces = opts.healingHands ? 10 : 8
+            return variant(
+                [heal(r, faces, n === 2 ? 8 * r : 0)],
+                [
+                    n === 1 ? 'Alcance de toque.' : n === 2 ? `Alcance de 9 m. +${8 * r} de cura em criatura VIVA (contra morto-vivo o dano é só ${r}d${faces}).` : 'Emanação de 9 m: todos os vivos e mortos-vivos na área.',
+                    ...(opts.healingHands ? ['Healing Hands: d10 em vez de d8.'] : []),
+                    ...selective(n, opts),
+                ],
+            )
+        },
     },
     // Harm: 1d8 por rank de dano em criatura viva; com 2 ações, +8 por rank só ao CURAR um morto-vivo disposto.
     harm: {
         base: 1,
-        make: (r, n) => variant(
+        make: (r, n, opts) => variant(
             [dmg('void', r, 8)],
             [
                 n === 1 ? 'Alcance de toque. Salvaguarda de Fortitude básica.' : n === 2 ? `Alcance de 9 m. Curando morto-vivo disposto: ${r}d8 + ${8 * r}.` : 'Emanação de 9 m: todos os vivos e mortos-vivos na área.',
+                ...selective(n, opts),
             ],
         ),
     },
@@ -142,6 +160,23 @@ const CATALOG: Record<string, { base: number; make: Maker }> = {
             [n === 1 ? 'Um inimigo.' : n === 2 ? 'Explosão de 3 m.' : 'Emanação de 9 m.', 'Fortitude básica.'],
         ),
     },
+    // Banishing Touch (War of Immortals pg. 154, rank 2): toque, ataque de magia corpo a corpo com proficiência mítica.
+    // 1d6 contundente com 1 ação, 2d6 com 2 ou 3; Heightened (4th) +1d6, (6th) +2d6, (8th) +3d6 (rank fixo: vale a maior).
+    // Lança o alvo: 1 ação 3 m para cima e 3 m para trás; 2 ações 6 m e 3 m; 3 ações 9 m e 6 m; as distâncias crescem com o rank.
+    'banishing touch': {
+        base: 2,
+        make: (r, n) => {
+            const tier = r >= 8 ? 3 : r >= 6 ? 2 : r >= 4 ? 1 : 0
+            // Em pés, somados às duas distâncias (para o alto e para trás).
+            const far = n === 1 ? [0, 10, 20, 30][tier] : [0, 20, 60, 100][tier]
+            const base = n === 1 ? [10, 10] : n === 2 ? [20, 10] : [30, 20]
+            const m = (ft: number) => String(Math.round(ft * 0.3 * 10) / 10).replace('.', ',')
+            return variant(
+                [dmg('bludgeoning', (n === 1 ? 1 : 2) + tier, 6)],
+                [`Se acertar: o alvo é lançado ${m(base[0] + far)} m para o alto e ${m(base[1] + far)} m para trás, e sofre o dano de queda normal.`],
+            )
+        },
+    },
     // Rebuke Death: (rank − 1)d6 de cura em cada alvo; um alvo por ação.
     'rebuke death': {
         base: 4,
@@ -167,9 +202,9 @@ const canonical = (name: string): string => {
 export const hasVariantRules = (name: string): boolean => canonical(name) in CATALOG
 
 /** Quantidade de ações entre 1 e 3 que a regra aceita para esta magia (o que a AON diz, ou o catálogo). */
-export function variantFor(name: string, rank: number, actions: number): Variant | null {
+export function variantFor(name: string, rank: number, actions: number, opts: VariantOptions = {}): Variant | null {
     const entry = CATALOG[canonical(name)]
     if (!entry) return null
-    const made = entry.make(Math.max(entry.base, rank), actions)
+    const made = entry.make(Math.max(entry.base, rank), actions, opts)
     return made.components ? { ...made, components: made.components.map((c, i) => ({ ...c, id: 9500 + i })) } : made
 }
