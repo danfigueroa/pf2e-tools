@@ -35,6 +35,8 @@ const treatWoundsMod = await import('../src/modules/character-viewer/treatWounds
 const healActs = await import('../src/modules/character-viewer/healActivities.ts')
 const itemActs = await import('../src/modules/character-viewer/itemActivities.ts')
 const skillActs = await import('../src/modules/character-viewer/skillActions.ts')
+const homebrew = await import('../src/modules/character-viewer/homebrewGear.ts')
+const innate = await import('../src/modules/character-viewer/innateSpells.ts')
 const initiative = await import('../src/modules/character-viewer/initiative.ts')
 const acts = await import('../src/modules/character-viewer/actions.ts')
 const tokenFit = await import('../src/modules/battle-map/tokenFit.ts')
@@ -1330,7 +1332,25 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
     const armBefore = miranda.weapons.find((w) => w.name === 'Braço Sônico')
     const armAfter = relics.withRelicRunes(miranda).weapons.find((w) => w.name === 'Braço Sônico')
     ok(armAfter.pot === armBefore.pot && armAfter.str === armBefore.str && armAfter.attack === armBefore.attack, 'As runas do braço ficam como o Pathbuilder exportou')
-    const armStrike = strikes.weaponStrike(miranda, armBefore, { kind: 'weapon', traits: ['Agile', 'Finesse'], weaponType: 'melee' })
+    // O braço tem acuidade (informado pelo jogador) e NÃO é ágil: MAP −5/−10, e o estratagema soma INT.
+    const armGear = homebrew.homebrewGear(miranda, 'Braço Sônico')
+    ok(armGear && armGear.traits.join() === 'Finesse' && armGear.weaponType === 'melee', 'O Braço Sônico tem acuidade, sem ágil')
+    eq(homebrew.homebrewGear(party.ghan, 'Braço Sônico'), null, 'A arma caseira é só da Miranda')
+    eq(homebrew.homebrewGear(miranda, 'Sword Cane'), null, 'Arma da AON não é caseira')
+    const armStrike = strikes.weaponStrike(miranda, armBefore, armGear)
+    ok(armStrike.traits.finesse && !armStrike.traits.agile && armStrike.traits.known, 'Os traços do braço chegam ao Golpe')
+    eq(strikes.planStrike(miranda, armStrike, NO_MODIFIERS, opts({ map: 1 })).attackTotal, armBefore.attack - 5, 'Braço: segundo ataque −5 (não é ágil)')
+    const armStratagem = strikes.planStrike(miranda, armStrike, NO_MODIFIERS, opts({ extrasOn: { [investigator.STRATAGEM_KEY]: true } }))
+    ok(armStratagem.stratagem?.dice === 2 && armStratagem.warnings.length === 0, 'Estratagema no braço: INT e Strategic Strike 2d6, sem aviso')
+    // Scrap Shot: 2 ações (AON, Rage of Elements pg. 148); Dragon Strike: 1 ação.
+    eq(relics.relicGift(miranda, 'scrap-shot').activation.cost, 2, 'Scrap Shot custa 2 ações')
+    eq(relics.relicGift(miranda, 'dragon-strike').activation.cost, 1, 'Dragon Strike custa 1 ação')
+    // Arcane Sense: Detect Magic em 1º rank (3º com Arcanismo mestre, 4º com lendário), não o rank automático do truque.
+    const senseCaster = miranda.spellCasters[0]
+    eq(innate.fixedInnateRank(miranda, senseCaster), 1, 'Arcane Sense: Detect Magic de 1º rank com Arcanismo treinado')
+    eq(innate.fixedInnateRank({ ...miranda, proficiencies: { ...miranda.proficiencies, arcana: 6 } }, senseCaster), 3, 'Arcanismo mestre: 3º rank')
+    eq(innate.fixedInnateRank({ ...miranda, proficiencies: { ...miranda.proficiencies, arcana: 8 } }, senseCaster), 4, 'Arcanismo lendário: 4º rank')
+    eq(innate.fixedInnateRank(party.thalos, party.thalos.spellCasters[0]), null, 'Outro conjurador segue o rank normal do truque')
     const dragonOn = { [strikes.DRAGON_STRIKE_KEY]: true }
     const armPlain = strikes.planStrike(miranda, armStrike, NO_MODIFIERS, opts())
     const armDragon = strikes.planStrike(miranda, armStrike, NO_MODIFIERS, opts({ extrasOn: dragonOn }))
