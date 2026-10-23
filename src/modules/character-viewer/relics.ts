@@ -214,6 +214,41 @@ export const RELICS: RelicEntry[] = [
             },
         ],
     },
+    {
+        // Brasão da Família, a relíquia do Woyd (aspectos Soul e Emotion), item avulso — não está no export.
+        id: 'brasao-da-familia',
+        character: nameStarts('woyd'),
+        name: 'Brasão da Família',
+        aspects: ['Soul', 'Emotion'],
+        description: 'A relíquia do Woyd: o brasão da família dele. O nível da relíquia é o do personagem. As dádivas são da AON: Absorb Injury e Emotion Surge.',
+        gifts: [
+            // Secrets of Magic pg. 231: reação (envision), 1× por dia, aspecto Soul. Você recebe o dano do aliado,
+            // com os efeitos que vêm junto (veneno, condições, persistente) — quanto é, é do mestre.
+            {
+                id: 'absorb-injury',
+                name: 'Absorb Injury',
+                tier: 'minor',
+                kind: 'power',
+                activation: {
+                    cost: 'reaction',
+                    frequency: 'uma vez por dia',
+                    limited: true,
+                    trigger: 'um aliado a até 9 m sofre dano',
+                },
+                facts: () => 'você recebe o dano no lugar do aliado, com os efeitos que vêm junto',
+            },
+            // Treasure Vault (Remastered) pg. 199: 1 ação (concentrar), 1× por hora, aspecto Emotion. +1 de status
+            // por 1 minuto num tipo de teste que depende da EMOÇÃO da relíquia — ainda não informada pelo jogador.
+            {
+                id: 'emotion-surge',
+                name: 'Emotion Surge',
+                tier: 'minor',
+                kind: 'power',
+                activation: { cost: 1, frequency: 'uma vez por hora', limited: true },
+                facts: () => '+1 de status por 1 minuto nos testes da emoção da relíquia (a emoção ainda não foi definida)',
+            },
+        ],
+    },
 ]
 
 export { nameStarts }
