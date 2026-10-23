@@ -1,0 +1,676 @@
+{
+ "version": "v13",
+ "character": "Miranda Stormblade",
+ "entries": {
+  "spell": {
+   "Detect Magic": {
+    "name": "Detect Magic",
+    "level": 1,
+    "heighten": [
+     "3rd",
+     "4th"
+    ],
+    "sourceBook": "Player Core, p. 323",
+    "actions": "Two Actions",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Detection",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Primal",
+     "Elemental"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "emanação de 30 pés",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "Você emite um pulso que registra a presença de magia. Você não recebe nenhuma informação além da presença ou ausência de magia. Você pode optar por ignorar magias das quais você está totalmente ciente, como os itens mágicos e magias em curso suas e de seus aliados. Você detecta magia de ilusão apenas se o efeito dessa magia tiver uma graduação menor que a graduação da sua magia detect magic. No entanto, itens que possuem uma aura de ilusão, mas não são enganosos em aparência (como uma poção de invisibilidade), normalmente são detectados normalmente.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "3rd",
+      "text": "Você aprende a graduação ou nível do efeito mágico mais poderoso que a magia detecta, conforme determinado pelo Mestre."
+     },
+     {
+      "level": "4th",
+      "text": "Como na 3ª graduação, mas você também localiza a fonte da magia de graduação mais alta. Como para um sentido impreciso, você não aprende a localização exata, mas pode restringir a fonte a um cubo de 1,5 metros (ou o mais próximo, se for maior que isso)."
+     }
+    ]
+   }
+  },
+  "feat": {
+   "Additional Lore": {
+    "name": "Additional Lore",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "description": "Seu conhecimento se expandiu para abranger um novo campo. Escolha uma subcategoria de perícia Lore. Você se torna treinado nela. Nos níveis 3, 7 e 15, você ganha um aumento de perícia adicional que pode aplicar apenas à subcategoria de Lore escolhida. Especial Você pode selecionar este talento mais de uma vez. A cada vez, você deve selecionar uma nova subcategoria de Lore e ganha os aumentos de perícia adicionais para essa subcategoria nos níveis listados."
+   },
+   "Advanced Breakthrough": {
+    "name": "Advanced Breakthrough",
+    "level": 6,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Inventor"
+    ],
+    "sourceBook": "Guns &amp; Gears (Remastered), p. 49",
+    "prerequisites": "Basic Breakthrough",
+    "description": "Você ganha um talento de inventor. Para fins de cumprir seus pré-requisitos, seu nível de inventor é igual à metade do seu nível de personagem. Especial: Você pode selecionar este talento mais de uma vez. Cada vez que o selecionar, você ganha outro talento de inventor."
+   },
+   "Alchemical Crafting": {
+    "name": "Alchemical Crafting",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "prerequisites": "Treinado em Crafting",
+    "description": "Você pode usar a atividade Craft para criar itens alquímicos. Ao selecionar este talento, você adiciona imediatamente as fórmulas de quatro itens alquímicos comuns de 1º nível ao seu livro de fórmulas."
+   },
+   "Arcane Sense": {
+    "name": "Arcane Sense",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "prerequisites": "Treinado em Arcana",
+    "description": "Seus estudos de magia permitem que você sinta instintivamente a presença dela. Você pode conjurar detect magic de 1º nível à vontade como uma magia arcana inata. Se você for mestre em Arcana, a magia é amplificada para o 3º nível; se você for lendário, ela é amplificada para o 4º nível."
+   },
+   "Assurance": {
+    "name": "Assurance",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Fortune",
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "prerequisites": "treinado em pelo menos uma perícia",
+    "description": "Mesmo nas piores circunstâncias, você consegue realizar tarefas básicas. Escolha uma perícia na qual você seja treinado. Você pode abrir mão de rolar um teste de perícia para essa perícia para, em vez disso, receber um resultado de 10 + seu bônus de proficiência (não aplique quaisquer outros bônus, penalidades ou modificadores). Esclarecimento da Paizo: O que acontece com habilidades que dependem da sua rolagem quando você define seu dado para um certo resultado em vez de rolar de fato? Tipicamente, ainda conta como uma rolagem para habilidades que são ativadas pela sua rolagem. Por exemplo, se você usou Assurance para obter automaticamente um resultado de 10 + seu bônus de proficiência e isso resultaria em um sucesso, uma habilidade que se aplica a essa perícia e diz \"quando você rolar um sucesso, você obtém um sucesso crítico em vez disso\" ainda elevaria seu resultado para um sucesso crítico. Embora essa regra geral deva se aplicar na maior parte do tempo, um Mestre pode decidir de outra forma em certas circunstâncias com base nas habilidades específicas e seus temas. Especial: Você pode selecionar este talento múltiplas vezes. A cada vez, escolha uma perícia diferente e obtenha os benefícios para essa perícia."
+   },
+   "Basic Breakthrough": {
+    "name": "Basic Breakthrough",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Inventor"
+    ],
+    "sourceBook": "Guns &amp; Gears (Remastered), p. 49",
+    "prerequisites": "Inventor Dedication",
+    "description": "Você ganha um talento de inventor de 1º ou 2º nível de sua escolha."
+   },
+   "Battle Medicine": {
+    "name": "Battle Medicine",
+    "level": 1,
+    "actions": "Single Action",
+    "traits": [
+     "General",
+     "Healing",
+     "Manipulate",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 253",
+    "prerequisites": "Treinado em Medicine",
+    "requirements": "Você está segurando ou usando um healer's toolkit.",
+    "description": "Você pode tratar ferimentos, mesmo em combate. Tente um teste de Medicine com a mesma CD de Treat Wounds e restaure a quantidade correspondente de PV; isso não remove a condição wounded. Assim como em Treat Wounds, você pode tentar testes contra CDs mais altas se tiver o grau de proficiência mínimo. O alvo fica então imune ao seu Battle Medicine por 1 dia. Isso não o torna imune a, ou conta de outra forma como, Treat Wounds."
+   },
+   "Canny Acumen": {
+    "name": "Canny Acumen",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 253",
+    "description": "Sua esquiva ou observação está além da compreensão da maioria em sua profissão. Escolha testes de Fortitude, testes de Reflexos, testes de Vontade ou Percepção. Você se torna perito na sua escolha. No 17º nível, você se torna mestre na sua escolha."
+   },
+   "Correct the Story": {
+    "name": "Correct The Story",
+    "level": 6,
+    "actions": "Reaction",
+    "traits": [
+     "Misfortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "trigger": "Um inimigo obtém um sucesso crítico em um teste de ataque ou salvaguarda.",
+    "description": "Você conhece bem a história da sua jornada e pode corrigi-la quando seu inimigo a conta incorretamente. Gaste um Mythic Point. O inimigo deve rolar novamente o teste de ataque ou salvaguarda que causou a ativação e ficar com o novo resultado."
+   },
+   "Detective's Readiness": {
+    "name": "Detective's Readiness",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Investigator"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 108",
+    "description": "Quando você está em um caso, você permanece vigilante e resoluto para evitar truques que seu suspeito possa usar. Você ganha seu bônus de investigação de Pursue a Lead em testes de resistência (e suas CDs, como normal) contra criaturas ou efeitos relacionados à questão central de uma investigação aberta, e você pode usar Clue In para auxiliar no teste de resistência de um aliado contra essa criatura ou efeito."
+   },
+   "Ears that Hear the Truth": {
+    "name": "Ears that Hear the Truth",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 81",
+    "description": "Você tem uma compreensão aguçada dos ritmos dos seres vivos, e nunca perde o tremor que trai uma mentira falada. Quando você tenta Sense Motive, ou quando você rola Perception para iniciativa, você pode gastar um Mythic Point para tentar o teste ou rolagem com proficiência mítica."
+   },
+   "General Training": {
+    "name": "General Training",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Human"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 64",
+    "description": "Sua adaptabilidade se manifesta em seu domínio de uma gama de habilidades úteis. Você ganha um talento geral de 1º nível. Você deve atender aos pré-requisitos do talento, mas se você selecionar este talento durante a criação de personagem, você pode selecionar o talento mais tarde no processo para determinar quais pré-requisitos você atende. Especial Você pode selecionar este talento múltiplas vezes, escolhendo um talento diferente a cada vez."
+   },
+   "Godless Healing": {
+    "name": "Godless Healing",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Pure Legion Enforcer"
+    ],
+    "sourceBook": "Hellfire Dispatches, p. 60",
+    "prerequisites": "Battle Medicine; não pode ter uma divindade patrona",
+    "description": "Você recupera 5 Pontos de Vida adicionais de uma tentativa bem-sucedida de Treat your Wounds ou usar Battle Medicine em você. Após você ou um aliado usar Battle Medicine em você, você se torna temporariamente imune a esse Battle Medicine por apenas 1 hora, em vez de 1 dia."
+   },
+   "Hobnobber": {
+    "name": "Hobnobber",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 256",
+    "prerequisites": "Treinado em Diplomacia",
+    "description": "Você é habilidoso em obter informações através de conversas. A atividade de exploração Gather Information leva metade do tempo normal para você (tipicamente reduzindo o tempo para 1 hora). Se você for mestre em Diplomacia e rolar uma falha crítica para Gather Information, você obtém uma falha em vez disso. Ainda não há garantia de que um boato que você aprenda com Gather Information seja preciso."
+   },
+   "Inventor": {
+    "name": "Inventor",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Downtime",
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 257",
+    "prerequisites": "Perito em Crafting",
+    "description": "Você é um gênio em Crafting, capaz de determinar facilmente como as coisas são feitas e criar novas invenções. Você pode gastar tempo de inatividade para inventar uma fórmula comum que você não conhece. Isso funciona exatamente como a atividade Craft: você gasta metade do Preço da fórmula adiantado, tenta um teste de Crafting e, em um sucesso, termina a fórmula pagando a diferença ou trabalha por mais tempo para diminuir o Preço. A diferença é que você gasta o tempo adicional em pesquisa, design e desenvolvimento, em vez de criar um item. Assim que estiver completo, você adiciona a nova fórmula que inventou ao seu livro de fórmulas. O Mestre pode permitir que você invente fórmulas incomuns ou raras, geralmente com uma CD aumentada. Você precisa do talento Alchemical Crafting para inventar fórmulas alquímicas e do talento Magical Crafting para inventar fórmulas mágicas."
+   },
+   "Inventor Dedication": {
+    "name": "Inventor Dedication",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Archetype",
+     "Dedication",
+     "Multiclass",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Inventor"
+    ],
+    "sourceBook": "Guns &amp; Gears (Remastered), p. 49",
+    "prerequisites": "Inteligência +2",
+    "description": "Você se torna treinado em Ofício e na CD de classe de inventor. Você ganha o talento de perícia Inventor, mesmo que não cumpra os pré-requisitos do talento de perícia. Escolha uma inovação. Você ganha essa inovação, embora não ganhe nenhuma outra habilidade que modifique ou use essa inovação, como modificações ou Explode."
+   },
+   "Known Weaknesses": {
+    "name": "Known Weaknesses",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Investigator"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 106",
+    "description": "Sempre que você Devise a Stratagem, você também pode tentar um teste para Record Knowledge como parte dessa ação antes de rolar o d20. Se você obtiver um sucesso crítico no teste de Record Knowledge, você percebe uma fraqueza e pode transmitir a informação aos aliados para conceder a cada um deles um bônus de circunstância de +1 na próxima jogada de ataque contra o alvo, contanto que o ataque deles seja feito antes do início do seu próximo turno. Se você escolher um estratagema de ataque, esse bônus se aplica a essa jogada de ataque também."
+   },
+   "Natural Skill": {
+    "name": "Natural Skill",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Human"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 64",
+    "description": "Sua engenhosidade permite que você aprenda uma ampla variedade de perícias. Você ganha a graduação de proficiência treinado em duas perícias à sua escolha."
+   },
+   "Searing Restoration": {
+    "name": "Searing Restoration",
+    "level": 2,
+    "actions": "Single Action",
+    "traits": [
+     "Fire",
+     "Healing",
+     "Inventor",
+     "Manipulate",
+     "Unstable"
+    ],
+    "category": "feat",
+    "sourceBook": "Guns &amp; Gears (Remastered), p. 26",
+    "description": "Eles lhe disseram que não havia como explosões curarem pessoas, mas eles eram tolos... Tolos que não entendiam sua genialidade! Você cria uma pequena explosão a partir de sua inovação, alterando a combustão para cauterizar feridas usando ervas medicinais vaporizadas. Você ou uma criatura viva adjacente a você recupera 1d10 Pontos de Vida. Além disso, a criatura que você curar pode tentar um flat check imediato para se recuperar de uma única fonte de dano de sangramento persistente, com a redução da CD por assistência apropriada. No 3º nível, e a cada 2 níveis subsequentes, aumente a cura em 1d10. Especial: Se sua inovação for um lacaio, ela pode realizar esta ação em vez de você, embora, por não ser uma criatura viva, ela não possa usar a habilidade em si mesma."
+   },
+   "Shared Stratagem": {
+    "name": "Shared Stratagem",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Investigator"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 107",
+    "description": "Os planos que você faz incluem seus aliados, assim como você mesmo. Quando você atinge uma criatura com um ataque no qual você substituiu sua jogada de ataque devido ao Devise a Stratagem, designe um aliado. A criatura que você atingiu fica off-guard para esse aliado no próximo ataque que esse aliado fizer contra essa criatura antes do início do seu próximo turno."
+   },
+   "Skilled Human": {
+    "name": "Skilled Human",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Player Core, p. 63",
+    "description": "Herança Humano Habilidoso Sua engenhosidade permite que você treine em uma ampla variedade de perícias. Você se torna treinado em uma perícia de sua escolha. No 5º nível, você se torna perito na perícia escolhida."
+   },
+   "Tamper": {
+    "name": "Tamper",
+    "level": 1,
+    "actions": "Single Action",
+    "traits": [
+     "Inventor",
+     "Manipulate"
+    ],
+    "category": "feat",
+    "sourceBook": "Guns &amp; Gears (Remastered), p. 25",
+    "description": "Você mexe na arma ou armadura de um oponente, usando uma mão livre. Escolha uma arma empunhada por um inimigo ao seu alcance ou uma armadura vestida por um inimigo ao seu alcance. Tente um teste de Ofício contra a CD de Reflexos do inimigo. Sucesso Crítico: Sua interferência é incrivelmente eficaz. Se você mexeu em uma arma, o inimigo sofre uma penalidade de circunstância de -2 nas jogadas de ataque e jogadas de dano com essa arma. Se você mexeu em uma armadura, a armadura atrapalha o movimento do inimigo, deixando o inimigo flat-footed e infligindo uma penalidade de -3 metros (10 pés) aos seus Deslocamentos. O efeito dura até que o inimigo use Interact para removê-lo, independentemente de qual você usou. Sucesso: Sua interferência é temporariamente eficaz. Como no sucesso crítico, mas o efeito termina no início do seu próximo turno, mesmo que o inimigo não use Interact para encerrá-lo. Falha Crítica: Sua interferência sai pela culatra dramaticamente, criando uma pequena explosão a partir de suas próprias ferramentas ou equipamentos. Você sofre dano de fogo igual ao seu nível."
+   },
+   "That's Odd": {
+    "name": "That's Odd",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Investigator"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 107",
+    "description": "Ao entrar em um novo local, como uma sala ou corredor, você nota imediatamente algo fora do comum. O GM determina o que é, ou se não há nada razoável para notar, ignorando pistas óbvias que podem ser facilmente percebidas sem um teste ou sem procurar especificamente por elas. Você aprende apenas que uma área ou objeto é suspeito, mas não o porquê de ser suspeito. Por exemplo, se você entrasse em um escritório com uma grande mancha de sangue no chão, a mancha de sangue é tão obviamente suspeita que já é evidente para você, então o GM pode notar que há algo suspeito na gaveta da mesa em vez disso. Você precisaria então investigar a gaveta mais a fundo para descobrir o que especificamente está fora do comum. Se desejar, você pode Pursue a Lead referente a esse detalhe, mesmo que tenha feito um Pursue a Lead há menos de 10 minutos. That's Odd não revela se criaturas são suspeitas. Você normalmente não recebe nenhum benefício ao sair e retornar a um local, embora, se uma grande mudança tiver ocorrido lá e o tempo tiver passado, o GM possa determinar que você receba."
+   },
+   "Thorough Research": {
+    "name": "Thorough Research",
+    "level": 6,
+    "actions": "",
+    "traits": [
+     "Investigator"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Vindicator"
+    ],
+    "sourceBook": "Player Core 2, p. 109",
+    "description": "Você possui conhecimento abrangente em suas áreas de interesse. Quando você obtém sucesso em um teste de Recall Knowledge, você ganha informações ou contexto adicionais. Quando você obtém um sucesso crítico em um teste de Recall Knowledge, você obtém informações ou contexto adicionais ou pode fazer uma pergunta de acompanhamento adicional (o GM escolhe qual)."
+   },
+   "Toughness": {
+    "name": "Toughness",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 263",
+    "description": "Seu corpo pode suportar mais punição do que a maioria antes de sucumbir. Aumente seus Pontos de Vida máximos pelo seu nível. Você reduz a CD dos testes de recuperação em 1."
+   },
+   "Ward Medic": {
+    "name": "Ward Medic",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 265",
+    "prerequisites": "Perito em Medicina",
+    "description": "Você estudou em grandes alas médicas, tratando vários pacientes ao mesmo tempo e atendendo a todas as suas necessidades. Quando você usa Treat Disease ou Treat Wounds, você pode tratar até dois alvos. Se você for mestre em Medicina, você pode tratar até quatro alvos, e se você for lendário, você pode tratar até oito alvos."
+   },
+   "We've Met Before": {
+    "name": "We've Met Before",
+    "level": 2,
+    "actions": "Single Action",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 81",
+    "requirements": "Você passou pelo menos 1 minuto em conversa mútua com uma criatura.",
+    "description": "Sua habilidade de discernir informações sobre aqueles com quem você interage não tem igual. Gaste um Ponto Mítico para ganhar uma perícia de Conhecimento específica para a criatura necessária pelas próximas 24 horas; você tem proficiência mítica com essa perícia e pode usá-la para Recordar Conhecimento sobre a criatura, Decifrar Escritos criados pela criatura, Obter Renda ou Subsistir em áreas governadas pela criatura, ou realizar outras tarefas apropriadas conforme determinado pelo Mestre."
+   }
+  },
+  "special": {
+   "Bookkeeper's Calling": {
+    "name": "Bookkeeper's Calling",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Calling",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "mythic-calling",
+    "sourceBook": "War of Immortals, p. 79",
+    "description": "Editos educar outros, registrar novo conhecimento para que outros possam compartilhar suas descobertas. Anátema destruir livros, pergaminhos ou outros instrumentos usados para registrar informações; recusar uma oportunidade de compartilhar seu conhecimento com um buscador de conhecimento sincero."
+   },
+   "Clue In": {
+    "name": "Clue In",
+    "level": null,
+    "actions": "Reaction",
+    "traits": [
+     "Concentrate",
+     "Investigator"
+    ],
+    "category": "action",
+    "sourceBook": "Player Core 2, p. 102",
+    "trigger": "Outra criatura tenta um teste que poderia ajudar a deixá-lo mais perto de responder à pergunta no centro de uma de suas investigações ativas.",
+    "frequency": "uma vez a cada 10 minutos",
+    "description": "Você compartilha informações com a criatura que desencadeou a reação. Ela recebe um bônus de circunstância em seu teste igual ao seu bônus de investigação de Pursue a Lead. O Mestre pode adicionar quaisquer traços relevantes a esta reação dependendo da situação, como auditivo e linguístico se você estiver transmitindo informações verbalmente."
+   },
+   "Devise a Stratagem": {
+    "name": "Devise a Stratagem",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Investigator",
+    "sourceBook": "Player Core 2, p. 100",
+    "description": "Você pode simular uma batalha em sua mente, usando o cérebro em vez de força bruta para executar um Strike."
+   },
+   "Empiricism Methodology": {
+    "name": "Methodology",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Investigator",
+    "sourceBook": "Advanced Player's Guide, p. 54",
+    "description": "Seus estudos o tornaram experiente em muitas áreas, mas uma em particular atraiu seu interesse intenso. Escolha uma metodologia. Metodologias podem ser encontradas aqui."
+   },
+   "Empiricism Selected Skill: Occultism": {
+    "name": "Skill Feats",
+    "level": 2,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Alchemist",
+    "sourceBook": "Core Rulebook, p. 66",
+    "description": "No 2º nível e a cada 2 níveis subsequentes, você ganha um talento de perícia. Talentos de perícia podem ser encontrados no Capítulo 5 e possuem o traço de perícia. Você deve ser treinado ou superior na perícia correspondente para selecionar um talento de perícia."
+   },
+   "Expeditious Inspection": {
+    "name": "Expeditious Inspection",
+    "level": null,
+    "actions": "Free Action",
+    "traits": [
+     "Investigator"
+    ],
+    "category": "action",
+    "sourceBook": "Player Core 2, p. 104",
+    "frequency": "uma vez a cada 10 minutos",
+    "description": "Você observa e avalia seus arredores com grande velocidade. Você realiza Recall Knowledge, Seek ou Sense Motive."
+   },
+   "Keen Recollection": {
+    "name": "Keen Recollection",
+    "level": 3,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Investigator",
+    "sourceBook": "Player Core 2, p. 100",
+    "description": "Você pode recordar fatos pertinentes sobre tópicos que não são sua especialidade. Seu bônus de proficiência em testes de perícia não treinados para Record Knowledge é igual ao seu nível em vez de +0."
+   },
+   "Pursue a Lead": {
+    "name": "Pursue a Lead",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Concentrate",
+     "Exploration",
+     "Investigator"
+    ],
+    "category": "action",
+    "sourceBook": "Player Core 2, p. 102",
+    "description": "Você nomeia um detalhe que identificou e que acredita ser parte de um mistério maior, então gasta 1 minuto examinando-o. O detalhe é tipicamente óbvio ou algo que você já descobriu usando Record Knowledge, Sense Motive, Gather Information ou uma ação similar. Após o minuto passar, o GM confirma se há um mistério maior ou lhe diz que não há mais nada a aprender (o detalhe é inconsequente ou você já sabe todas as informações). Se houver de fato um mistério maior em jogo, você não pode usar Pursue a Lead novamente por 10 minutos, mas pode escolher abrir uma investigação. Para fazer isso, defina a questão no centro do mistério, como Onde a inestimável obra de arte que deveria estar pendurada aqui foi levada? ou Quem ou o que matou este sacerdote?. Trabalhe com seu GM para refinar a questão, se necessário. Você também pode dar um nome à sua investigação para melhor acompanhá-la (como O Caso do Goblin Enganado ou Os Assassinatos de Skinsaw). Bônus de Investigação Sempre que você tentar um teste de Perception ou teste de perícia para tentar chegar mais perto de responder à questão no centro de uma investigação ativa, você ganha um bônus de circunstância de +1 no teste. Os testes exatos aos quais isso se aplica dependem das ações que você usa para investigar e são determinados pelo GM, mas testes para investigar são tipicamente testes de Perception ou testes de perícia que usam Inteligência, Sabedoria ou Carisma. Investigações Ativas Você pode manter duas investigações ativas por vez. Se você usar Pursue a Lead em outra pista depois disso, o caso deve ser diferente de qualquer uma de suas investigações atuais (até onde você sabe), e você desiste de uma investigação atual de sua escolha. Uma vez que você desistiu de perseguir uma investigação, você não pode usar Pursue a Lead nela novamente até depois da próxima vez que fizer suas preparações diárias. Resolvendo uma Investigação Se você responder à questão no centro de sua investigação, o GM lhe diz que você o fez. Você não perde o bônus ou outros benefícios até que escolha encerrar a investigação usando Pursue a Lead novamente ou voluntariamente dispensá-la. Se o que você descobrir apontar para um mistério ainda maior, você pode trabalhar com o GM para adaptar a questão e o nome da investigação para a nova informação."
+   },
+   "Religion": {
+    "name": "Religion",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "rules",
+    "sourceBook": "Player Core, p. 35",
+    "description": "Regras Religião A seleção de uma divindade é crítica para clérigos, mas a maioria dos personagens presta respeito a pelo menos uma divindade para encontrar um foco na vida e guiar suas escolhas, especialmente em tempos de dificuldade ou necessidade. Algumas pessoas, em vez disso, adoram um grupo de divindades organizado em um panteão, seguem uma religião não deífica como a Green Faith, ou aderem a uma filosofia específica. Note que muito mais divindades, religiões e filosofias existem em qualquer mundo, Golarion incluído, do que aquelas detalhadas abaixo."
+   },
+   "Rewrite Fate": {
+    "name": "Rewrite Fate",
+    "level": null,
+    "actions": "Free Action",
+    "traits": [
+     "Fortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "action",
+    "sourceBook": "War of Immortals, p. 78",
+    "trigger": "Você rola um teste de perícia ou uma salvaguarda e não gosta do resultado.",
+    "description": "O destino, a sorte ou alguma outra força se curva ao seu redor à medida que seu poder mítico aumenta, manifestando-se em um clarão de luz ou em uma onda visível de energia emanando de seu corpo enquanto você se livra das correntes do destino. Você gasta um Mythic Point e rola novamente o teste ou salvaguarda com proficiência mítica, assumindo o novo resultado."
+   },
+   "Skilled Human": {
+    "name": "Skilled Human",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Player Core, p. 63",
+    "description": "Herança Humano Habilidoso Sua engenhosidade permite que você treine em uma ampla variedade de perícias. Você se torna treinado em uma perícia de sua escolha. No 5º nível, você se torna perito na perícia escolhida."
+   },
+   "Skillful Lessons": {
+    "name": "Skillful Lessons",
+    "level": 3,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Investigator",
+    "sourceBook": "Player Core 2, p. 100",
+    "description": "No 3º nível e a cada nível ímpar subsequente, você ganha um talento de perícia. Este talento deve ser para uma perícia baseada em Inteligência, Sabedoria ou Carisma, ou para a perícia que você ganhou de sua metodologia."
+   },
+   "Strategic Strike": {
+    "name": "Strategic Strike",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Investigator",
+    "sourceBook": "Player Core 2, p. 100",
+    "description": "Quando você faz um Strike cuidadosamente e com premeditação, você desfere um golpe revelador. Ao fazer um Strike que adiciona seu modificador de Inteligência à sua rolagem de ataque devido a Devising a Stratagem, você causa 1d6 de dano de precisão adicional. À medida que seu nível de investigador aumenta, também aumenta a letalidade do seu golpe estratégico. Aumente o número de dados em um nos níveis 5, 9, 13 e 17."
+   },
+   "Survival": {
+    "name": "Survival",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "skill",
+    "sourceBook": "Player Core, p. 246",
+    "description": "Perícia Survival Você é adepto a viver na natureza, forragear por comida e construir abrigo, e com treinamento você descobre os segredos de rastrear e esconder seu rastro. Survival Não treinado Ações Gerais - Subsistir na natureza forrageando por comida e construindo abrigo. Bônus de Item para Survival Bônus de Item Nível Categoria Consumível Nota Staff of Providence +1 0 Cajados Não Testes de Survival para Sense Direction ou Subsist Astrolabe +1 2 Equipamento de Aventura Não Bônus de item para testes para identificar corpos celestes Aromatic Ammunition +1 2 Munição Alquímica Não Bônus de item para Track a criatura afetada enquanto ela tiver o odor. Emperor's Peak Quartz Bracelet +1 3 Outros Itens Vestidos Não Bônus de item para testes de Survival para Sense Direction. +3 se em terreno montanhoso Emperor's Peak Quartz Bracelet +1 3 Outros Itens Vestidos Não Bônus de item para testes de Survival para Subsist. +3 se em terreno montanhoso Tracker's Goggles +1 3 Itens Vestidos Não Testes de Survival para Sense Direction e Track Mariner's Astrolabe +1 3 Equipamento de Aventura Não Bônus de item para testes para identificar corpos celestes Hongrui's Gratitude +1 3 Itens Empunhados Não Bônus de item temporário para Survival Hoax-Hunter's Kit +1 3 Equipamento de Aventura Não Track uma criatura que você está estudando Mantle of Far Horizons +1 3 Outros Itens Vestidos Não Bônus de item para testes de Survival feitos para Sense Direction. Essence Charm +1 4 Outros Itens Vestidos Não Bônus de item para um teste à escolha do artífice Mark Of The Torrent +1 5 Outros Itens Vestidos Não para Gather Information sobre uma pessoa desaparecida. Atlas Arcane +1 7 Itens Empunhados Não Bônus de item para Survival Lesser Mariner's Mien +1 8 Itens Vestidos Não Bônus de item para testes de Survival. Eyes Of The Moonwarden +1 9 Outros Itens Vestidos Não Bônus de item para testes de Survival Tracker's Goggles (Greater) +2 9 Itens Vestidos Não Testes de Survival para Sense Direction e Track Needle of Undeath +2 10 Itens Empunhados Não Bônus de item para sense direction ao usar as estrelas para se orientar Helm of Zeal +2 11 Itens Vestidos Não Bônus de item da Perícia Divina da Divindade associada Bloodstride Blade +2 13 Armas Mágicas Específicas Não Bônus de item para Seek ou Track criaturas que possuem sangue. Moderate Mariner's Mien +2 15 Itens Vestidos Não Bônus de item para testes de Survival. Helm of Zeal (Greater) +3 18 Itens Vestidos Não Bônus de item da Perícia Divina da Divindade associada Talentos Relacionados Para ver uma lista de Talentos relacionados a Survival, clique aqui. Survival Ações Não treinadas Ação Sense Direction Exploração Secreto Usando as estrelas, a posição do sol, traços da geografia ou flora, ou o comportamento da fauna, você consegue se manter orientado na natureza. Tipicamente, você tenta um teste de Survival apenas uma vez por dia, mas alguns ambientes ou mudanças podem exigir rolar com mais frequência. O GM determina a CD e quanto tempo esta atividade leva (geralmente apenas um minuto ou mais). Locais mais incomuns ou aqueles com os quais você não está familiarizado podem exigir que você tenha um grau de proficiência mínimo para Sense Direction. Sem uma bússola, você sofre uma penalidade de -2 de item em testes para Sense Direction. Sucesso Crítico Você obtém um excelente senso de onde você está. Se você estiver em um ambiente com direções cardeais, você as conhece exatamente. Sucesso Você ganha orientação suficiente para evitar ficar irremediavelmente perdido. Se você estiver em um ambiente com direções cardeais, você tem um senso dessas direções. Exemplos de Tarefas de Sense Direction Não treinado determinar uma direção cardeal usando o sol Treinado encontrar um caminho coberto de vegetação em uma floresta Perito navegar um labirinto de sebes Mestre navegar um labirinto bizantino ou deserto relativamente sem características Lendário navegar um reino dos sonhos em constante mudança Survival Ações Treinadas Ação Cover Tracks Concentração Exploração Mover Você cobre seus rastros, movendo-se até metade do seu Deslocamento de viagem. Você não precisa tentar um teste de Survival para cobrir seus rastros, mas qualquer um rastreando você deve ter sucesso em um teste de Survival contra sua CD de Survival se ela for maior que a CD normal para Track. Em alguns casos, você pode Cover Tracks em um encontro. Neste caso, Cover Tracks é uma única ação e não tem a exploração..."
+   },
+   "Thievery": {
+    "name": "Thievery",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "skill",
+    "sourceBook": "Player Core, p. 246",
+    "description": "Perícia Thievery Você é treinado em um conjunto específico de habilidades favorecidas por ladrões e malfeitores. Bônus de Item para Thievery Bônus de Item Nível Categoria Consumível Nota Charlatan's Gloves +1 3 Itens Vestidos Não Thieves' Toolkit (Infiltrator) +1 3 Equipamento de Aventura Não Testes de Thievery para Pick Locks e Disable Devices Keymaking Tools +1 3 Itens Empunhados Não Bônus de item para Thievery para Pick a Lock. Essence Charm +1 4 Outros Itens Vestidos Não Bônus de item para um teste à escolha do artífice Shacklebreaker +1 4 Outros Itens Vestidos Não Illusionist's Hat +1 8 Outros Itens Vestidos Não para Palm an Object Quicksilver Mutagen +1 0 Elixires Alquímicos Sim Shacklebreaker +2 4 Outros Itens Vestidos Não Charlatan's Gloves (Greater) +2 9 Itens Vestidos Não Gloves of Precision +2 10 Itens Vestidos Não Bônus de item para Disable a Device e Pick a Lock Ring of Maniacal Devices +2 11 Itens Vestidos Não Testes de Thievery para Disable a Device e para Pick a Lock Helm of Zeal +2 11 Itens Vestidos Não Bônus de item da Perícia Divina da Divindade associada Quicksilver Mutagen +2 0 Elixires Alquímicos Sim Ring of Maniacal Devices (Greater) +3 18 Itens Vestidos Não Testes de Thievery para Disable a Device e para Pick a Lock Helm of Zeal (Greater) +3 18 Itens Vestidos Não Bônus de item da Perícia Divina da Divindade associada Greater Gloves of Precision +3 18 Itens Vestidos Não Bônus de item para Disable a Device e Pick a Lock Quicksilver Mutagen +3 0 Elixires Alquímicos Sim Quicksilver Mutagen +4 0 Elixires Alquímicos Sim Talentos Relacionados Para ver uma lista de Talentos relacionados a Thievery, clique aqui. Thievery Ações Não treinadas Ação Palm an Object Ação Única Manipular Você pega um objeto pequeno e desacompanhado e tenta não ser notado. Role um único teste de Thievery contra as CDs de Percepção de todas as criaturas que estão observando você no momento. Você tipicamente só pode Palm Objects de Volume desprezível, embora o GM possa determinar o contrário dependendo da situação. Sucesso A criatura não nota você Palming the Object. Falha A criatura nota você Palming the Object. Ação Steal Ação Única Manipular Você tenta pegar um objeto pequeno de outra criatura sem ser notado. Tipicamente, você pode Steal apenas um objeto de Volume desprezível, você deve ter uma mão livre, e você falha automaticamente se a criatura que possui o objeto estiver em combate ou em guarda. Tente um teste de Thievery para determinar se você consegue Steal o objeto com sucesso. A CD é geralmente a CD de Percepção da criatura que está usando o objeto. É mais fácil roubar um objeto que está sendo usado, mas não está sendo guardado de perto (como uma bolsa carregada frouxamente cheia de moedas, ou um objeto dentro de tal bolsa). O GM pode aumentar a CD se o objeto estiver protegido ou se a natureza do objeto o tornar mais difícil de roubar (como um item muito pequeno em uma mochila grande, ou uma folha de pergaminho misturada com outros documentos). Por exemplo, a CD é tipicamente 5 maior se o objeto estiver em um bolso, segurado na mão de uma criatura, ou similarmente protegido. Você também pode precisar comparar o resultado do seu teste de Thievery contra as CDs de Percepção de observadores além da pessoa que está usando o objeto. O GM pode impor uma penalidade de circunstância às CDs de observadores que estiverem distraídos. Sucesso Você rouba o item sem que o portador note, ou um observador não vê você pegar ou tentar pegar o item. Falha O portador do item nota sua tentativa antes que você possa pegar o objeto, ou um observador vê você pegar ou tentar pegar o item. O GM determina a resposta de qualquer criatura que note seu roubo. Thievery Ações Treinadas Ação Disable a Device Duas Ações Manipular Esta ação permite que você desarme uma armadilha ou outro dispositivo complexo. Frequentemente, um dispositivo requer inúmeros sucessos antes de ser desativado, dependendo de sua construção e complexidade. Um thieves' toolkit é útil e às vezes até necessário para Disable a Device, conforme determinado pelo GM, e às vezes um dispositivo requer um grau de proficiência mais alto em Thievery para ser desativado. O resultado do seu teste de Thievery determina seu progresso. Sucesso Crítico Você desativa o dispositivo, ou você..."
+   },
+   "Vigilant Senses": {
+    "name": "Vigilant Senses",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Investigator",
+    "sourceBook": "Player Core 2, p. 100",
+    "description": "Através de suas aventuras, você desenvolveu uma percepção aguçada e atenção aos detalhes. Seu grau de proficiência em Perception aumenta para mestre."
+   },
+   "Weapon Expertise": {
+    "name": "Weapon Expertise",
+    "level": 11,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Druid",
+    "sourceBook": "Player Core, p. 122",
+    "description": "Você aprimorou sua perícia em combate. Sua graduação de proficiência para armas simples e ataques desarmados aumenta para perito."
+   },
+   "Weapon Innovation": {
+    "name": "Innovation",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Inventor",
+    "sourceBook": "Guns &amp; Gears (Remastered), p. 15",
+    "description": "Embora você esteja sempre criando invenções, há uma que representa seu trabalho proeminente, aquela que você espera — com refinamento — que possa mudar o mundo. Escolha uma innovation. O nível da sua innovation é igual ao seu nível. Se sua innovation for destruída, você pode gastar 1 dia de tempo de inatividade e tentar um teste de Crafting com uma CD alta para o seu nível; em um sucesso, você a reconstrói. Uma innovation só funciona devido à sua manutenção e ajustes constantes e, portanto, não tem Preço de mercado. Innovations podem ser encontradas aqui."
+   },
+   "Weapon Specialization": {
+    "name": "Weapon Specialization",
+    "level": 13,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Alchemist",
+    "sourceBook": "Core Rulebook, p. 66",
+    "description": "Você aprendeu como infligir ferimentos maiores com as armas que conhece melhor. Você causa 2 de dano adicional com armas e ataques desarmados nos quais você é perito. Esse dano aumenta para 3 se você for mestre, e para 4 se você for lendário."
+   }
+  },
+  "item": {
+   "Arachnid Harness": {
+    "name": "Arachnid Harness",
+    "level": 7,
+    "actions": "",
+    "traits": [
+     "Invested",
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "Treasure Vault (Remastered), p. 14",
+    "description": "Esta armadura de couro +1 possui quatro nervuras com nós que envolvem o torso. A armadura concede a você resistência 2 a dano de veneno. Ativar Single Action: (concentrar) Frequência uma vez por dia; Efeito As nervuras da armadura se expandem em membros funcionais de aranha. Por 1 minuto, você ganha um Deslocamento de escalar igual à metade do seu Deslocamento terrestre e mantém seus membros livres enquanto escala. Se você usar todos os seus membros livres para ajudar a Escalar, seu Deslocamento de escalar é igual ao seu Deslocamento terrestre. Arachnid Harness Fonte Treasure Vault (Remastered) pg. 14 Preço 360 po Volume 1 Requisitos de Ofício Os materiais brutos iniciais devem incluir quatro pernas intactas de uma tarântula gigante. Arachnid Harness (Greater) Fonte Treasure Vault (Remastered) pg. 14 Preço 700 po Volume 1 A armadura é uma armadura de couro resiliente +1, a resistência é 5 e o arnês pode ser ativado uma vez a cada 10 minutos. Requisitos de Ofício Os materiais brutos iniciais devem incluir quatro pernas intactas de uma aranha golias."
+   },
+   "Braço Sônico": {
+    "name": "Reverberate",
+    "level": 12,
+    "actions": "Reaction",
+    "traits": [
+     "Bard"
+    ],
+    "category": "feat",
+    "sourceBook": "Advanced Player's Guide, p. 114",
+    "trigger": "Você sofreria dano sônico de uma magia.",
+    "description": "Você pode manipular a acústica ao seu redor para desviar dano sônico de volta para sua fonte. Tente um teste de Performance contra a CD de magia da criatura que conjurou a magia desencadeadora. Sucesso Crítico Você reduz o dano desencadeador em um valor de até quatro vezes o seu nível. O conjurador sofre dano sônico igual ao valor de dano que você reduziu desta forma. Sucesso Como no sucesso crítico, mas você reduz o dano desencadeador em um valor de até duas vezes o seu nível. Falha Crítica Você redireciona as ondas sônicas para si mesmo, sofrendo o dobro do dano desencadeador."
+   },
+   "Healer's Gloves": {
+    "name": "Healer's Gloves",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Invested",
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 290",
+    "description": "Estas luvas brancas e limpas nunca mostram sinais de sangue, mesmo depois de serem usadas para suturar ferimentos ou tratar outras enfermidades. Elas concedem a você um bônus de item de +1 em testes de Medicina. Ativar—Healer's Touch Single Action: (manipular) Frequência uma vez por dia; Efeito Você acalma os ferimentos de uma criatura viva, adjacente e disposta, restaurando 2d6+7 Pontos de Vida a essa criatura. Este é um efeito de vitalidade de cura. Você não pode causar dano a mortos-vivos com esta cura. Healer's Gloves Fonte GM Core pg. 290, Core Rulebook pg. 612 Preço 80 po Healer's Gloves (Greater) Fonte GM Core pg. 290, Core Rulebook pg. 612 Preço 700 po As luvas fornecem um bônus de +2 e restauram 4d6+15 Pontos de Vida."
+   },
+   "Miranda's Arm": {
+    "name": "Guardian's Armor",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Guardian",
+    "sourceBook": "Battlecry!, p. 37",
+    "description": "Mesmo quando você é atingido, sua armadura o protege de alguns danos. Enquanto estiver usando armadura média ou pesada, você ganha resistência a dano físico igual a 1 + metade do seu nível. Além disso, você pode descansar normalmente enquanto estiver usando armadura média e pesada."
+   },
+   "Steel Shield": {
+    "name": "Steel Shield",
+    "level": 0,
+    "actions": "",
+    "traits": [],
+    "category": "shield",
+    "sourceBook": "Player Core, p. 274",
+    "description": "Como os escudos de madeira, os escudos de aço vêm em uma variedade de formas e tamanhos. Embora mais caros que os escudos de madeira, eles são muito mais duráveis. Escudos Mágicos Específicos Clockwork Shield, Coward's Shield, Dragon Shield, Dragonslayer's Shield, Emergency Escape Shield, Energized Shield, Force Shield, Forge Warden, Imposing Shield, Indestructible Shield, Lion's Shield, Magnetic Shield, Magnetic Shield, Martyr's Shield, Martyr's Shield, Medusa's Scream, Sensei's Parasol, Shield of Endurance, Shield of the Bear, Spellguard Shield, Spellshock Shield, Spined Shield, Stifling Shield, Sturdy Shield"
+   },
+   "Sword Cane": {
+    "name": "Sword Cane",
+    "level": 0,
+    "actions": "",
+    "traits": [
+     "Agile",
+     "Concealable",
+     "Finesse"
+    ],
+    "category": "weapon",
+    "sourceBook": "Tian Xia Character Guide, p. 127",
+    "description": "Esta espada esguia, semelhante a um florete, está oculta dentro de uma bengala de madeira ou metal que serve como bainha, tornando-a uma arma discreta fácil de passar por inspeções ou levar para eventos da alta sociedade. Uma sword cane tem tipicamente 1,2 metros de comprimento quando embainhada, e seu punho é geralmente coberto com uma decoração de madeira ou metal. Efeitos de Especialização Crítica Fonte Core Rulebook pg. 283 Certos talentos, características de classe, runas de arma e outros efeitos podem conceder a você benefícios adicionais quando você realiza um Strike com certas armas e obtém um sucesso crítico. Isso é chamado de efeito de especialização crítica. O efeito exato depende de qual grupo de arma sua arma pertence, conforme listado abaixo. Você sempre pode decidir não adicionar o efeito de especialização crítica da sua arma. Clique aqui para as regras completas sobre Efeitos de Especialização Crítica. Armas Mágicas Específicas Infiltrator's Accessory"
+   }
+  }
+ }
+}
