@@ -58,6 +58,7 @@ export const DEDICATED: Readonly<Record<string, string>> = {
     'clue in': 'InvestigatorBar',
     'expeditious inspection': 'InvestigatorBar',
     'mythic strike': '✦ do diálogo do Golpe',
+    'prescience': '✦ do diálogo de iniciativa',
     'mythic magic': 'conjuração',
     'godspeed': 'MythicFeatsBar',
     'correct the story': 'MythicFeatsBar',

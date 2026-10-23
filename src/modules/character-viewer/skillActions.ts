@@ -24,7 +24,7 @@ export interface SkillAction {
     feat?: string
 }
 
-const recall: SkillAction = { id: 'recall', label: 'Recall Knowledge', actions: 1 }
+const recall: SkillAction = { id: 'recall', label: 'Recall Knowledge', actions: 1, mythic: 'recall' }
 
 /** Por `check.en` (o nome em inglês da perícia). */
 export const SKILL_ACTIONS: Readonly<Record<string, ReadonlyArray<SkillAction>>> = {

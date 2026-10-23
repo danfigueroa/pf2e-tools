@@ -330,9 +330,10 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     const who = useMemo(() => rollerIdentity(build), [build])
     const send = useSend(mythicPoints, onClose)
     // Qual talento libera o ✦ desta rolagem: Ears na Percepção de iniciativa e no Sense Motive,
-    // Feet/Arms no salto e na natação, Rewrite Fate nos demais testes.
+    // Feet/Arms no salto e na natação, Prescience na iniciativa, Sage's Calling no Recall Knowledge,
+    // Rewrite Fate nos demais testes.
     const mythicContext: MythicContext = healMode ? 'check'
-        : skillAction?.mythic ?? (initiative && canInitiative && check.en === 'Perception' ? 'initiative' : 'check')
+        : skillAction?.mythic ?? (initiative && canInitiative ? (check.en === 'Perception' ? 'initiative' : 'initiative-skill') : 'check')
     // Assurance não rola: não há o que o ✦ refazer.
     const mythicOption = assuranceOn ? null : mythicOptionFor(build, mythicContext)
     return (
@@ -568,7 +569,10 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                     send(
                         assuranceOn
                             ? assuranceRoll(who, check.label, assur.proficiency, [sub, 'Assurance'].filter(Boolean).join(' · '))
-                            : checkRoll(who, check.label, parts, mythic ? check.mythicDelta : null, sub, initiative && canInitiative),
+                            : {
+                                ...checkRoll(who, check.label, parts, mythic ? check.mythicDelta : null, sub, initiative && canInitiative),
+                                ...(mythic && mythicOption?.note ? { note: mythicOption.note } : {}),
+                            },
                         mythic,
                     )
                 }}
