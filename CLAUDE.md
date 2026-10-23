@@ -1078,6 +1078,23 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     Vale só no primeiro acerto da rodada — a legenda avisa, o app não conta.
   - **Hunter's Aim** (talento, 2 ações): chip só em Golpe à distância/arremesso, +2 de circunstância no ataque.
   Quem tem cada coisa vem da ficha (`specials`/`feats`/`focus`). `check-rolls` cobre. A Iniciativa não lê `ranger`.
+- **Investigador** (`investigator.ts`, sem campo da mesa nem faixa): tudo vive no diálogo do Golpe. **Devise a Stratagem** (Player Core 2
+  pg. 103) é o chip "Devise a Stratagem · +1 ação · 1× por rodada" (`STRATAGEM_KEY` em `extrasOn`, **não lembrado** de um Golpe para
+  o outro, como o Hunter's Aim): cobra a ação **antes** do Golpe pelo mesmo `prepay` do veneno (de qualquer tipo; a ação extra do
+  Acelerado fica para o Golpe), troca FOR/DES por INT no ataque e soma o **Strategic Strike** (`1d6 precision`, +1 dado nos níveis 5, 9,
+  13 e 17) como parcela extra, dobrada no crítico. O d20 não é rolado à parte: Golpe e estratagema saem no mesmo clique, então o d20 da
+  rolagem JÁ É o do estratagema (`note` diz "fortune"). O chip "Investigação ativa sobre o alvo" (`LEAD_KEY`) zera o custo (ação livre).
+  - **A arma tem de poder somar INT** (`stratagemQualifies`): ágil, acuidade ou à distância; sem traços da AON (arma caseira) o app
+    **não afirma** e avisa. O Strategic Strike vale mesmo com INT = DES (a regra é "somar INT pelo estratagema"). Condição que mexe em INT
+    (Estupefato) entra por `skillInt`, no lugar das de FOR/DES.
+  - **Known Weaknesses** e **Shared Stratagem** são chips que viram só anotação da rolagem (dependem do alvo e do aliado). Não há
+    contador de "uma vez por rodada": o app **não conta**.
+  - **Não automatizado ainda**: Pursue a Lead e as duas investigações ativas (+1 de circunstância nos testes, Clue In,
+    Detective's Readiness — pediria um campo novo da mesa), o estratagema de perícia, Expeditious Inspection, Assurance, Searing
+    Restoration e a cura das Healer's Gloves. `check-rolls` cobre dados por nível, INT, arma sem ágil e a aceitação pelo servidor.
+- **Godless Healing** (`hasGodlessHealing`, `treatWounds.ts`): +5 PV quando o Tratar Ferimentos ou o Battle Medicine é **em si mesmo**
+  (`TreatVariant.godless`, ligado por `onSelf`), somado ao FIXO da parcela de cura para os dados + fixo continuarem fechando no servidor;
+  no Battle Medicine em si, a nota diz que a imunidade cai de 1 dia para 1 hora.
 - **Ladino** (`rogue.ts` + `components/useRogue.ts` + `usePoisonOptions.ts` + `usePoison.ts`) — **sem faixa no topo da ficha**: tudo vive no diálogo do Golpe (aplicar, "Veneno usado", "Nova preparação"); a faixa `RogueBar` foi removida a pedido: **Poison Weapon**
   (talento) escolhe, entre os itens do inventário com os traços `Poison` + `Contact`/`Injury` (via
   `fetchItemTraits`; veneno inalado como o Breath of the Mantis God NÃO serve), aplica 1 na arma e **gasta
