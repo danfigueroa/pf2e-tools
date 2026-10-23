@@ -1113,14 +1113,16 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   por "Reajustei a inovação" — **o app não conta os 10 minutos**), na falha crítica há fogo igual à metade do nível, aplicado junto da
   cura numa escrita só de PV. O app não sabe qual é a inovação nem se está em uso. `ActivityButton` delega ao
   `HealActivityButton` antes do "Usar" genérico; o Healer's Touch fica na linha da luva, no Inventário.
-- **Miranda's Arm** (entrada de `RELICS`, texto de terceiros passado pelo jogador, fora da AON): a relíquia É o **Braço Sônico** da
-  ficha (`on: { kind: 'weapon', weapon: 'Braço Sônico' }`), e as runas dele (+1, striking, Shock) já vêm no export — não há dádiva de
-  runa, `withRelicRunes` não muda nada. **Scrap Shot** (`ScrapShotButton`, dádiva `special: 'scrap-shot'`): ataque de magia com o
-  MAIOR ataque de magia da ficha (a relíquia não declara outro), `max(1, ⌊nível/2⌋)`d6 perfurante, dobrado no crítico, +1 de
-  circunstância e Desajeitado 1 em alvo de metal (chip), MAP, e o metal da relíquia (`weapon.mat`) vai na nota. **Dragon Strike**
-  (`special: 'dragon-strike'`): o botão do cartão só cobra a ação e marca "1× por hora" (o app não conta a hora nem o minuto); o dano é o
-  chip "Dragon Strike ativa" no Golpe (`DRAGON_STRIKE_KEY`, 1d6 cortante, não lembrado), no Punho e no braço — se o braço conta como
-  desarmado é do mestre. **O texto original não traz o ícone de ações das duas ativações: o custo (1 ação) é SUPOSIÇÃO** a confirmar.
+- **Miranda's Arm** (entrada de `RELICS`): é só o **nome que a Miranda deu à relíquia dela**, que é o **Braço Sônico** da ficha
+  (`on: { kind: 'weapon', weapon: 'Braço Sônico' }`); as runas (+1, striking, Shock) já vêm no export — não há dádiva de runa e
+  `withRelicRunes` não muda nada. As dádivas são da AON (descrição de lá, sem texto à mão): **Scrap Shot** (Rage of Elements pg. 148,
+  **2 ações**, `ScrapShotButton`): ataque de magia com o MAIOR ataque de magia da ficha (a relíquia não declara outro),
+  `max(1, ⌊nível/2⌋)`d6 perfurante dobrado no crítico, +1 de circunstância e Desajeitado 1 em alvo de metal (chip), MAP, e o metal da
+  relíquia (`weapon.mat`) vai na nota. **Dragon Strike** (Secrets of Magic pg. 230, **1 ação**, comando, 1×/hora): o botão do cartão
+  cobra a ação e marca "usada" (o app não conta a hora nem o minuto); o dano é o chip "Dragon Strike ativa" no Golpe
+  (`DRAGON_STRIKE_KEY`, 1d6 cortante, não lembrado), no Punho e no braço — se o braço conta como desarmado é do mestre.
+- **Arma que a AON não tem** (`homebrewGear.ts`): os traços vêm do jogador e são casados por personagem + nome da arma. O **Braço
+  Sônico** tem **acuidade** (e não é ágil), então o Devise a Stratagem soma INT nele. Sem entrada, a arma segue "sem traços".
 - **Itens que o Pathbuilder não exporta**: `addItemResistances` (no `normalizeBuild`) acrescenta a resistência de item VESTIDO a
   `build.resistances` ("poison 2" do Arachnid Harness), que a Visão Geral e a Iniciativa já leem; `itemActivities.ts` dá o botão de
   ativação diária (Arachnid Harness: 1 ação, 1×/dia) na linha do Inventário. Item novo = uma entrada em cada catálogo.

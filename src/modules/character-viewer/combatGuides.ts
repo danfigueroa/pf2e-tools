@@ -513,7 +513,7 @@ Três Pontos Míticos por dia, na faixa ao lado das condições.
 // ---------------------------------------------------------------------------
 // MIRANDA STORMBLADE — Investigadora 7 (Empiricism), Humana (Skilled Human), arquétipo de
 // Inventor. Mesa Arton 1515. Regras do Investigador pelo Player Core 2 (Remaster).
-// O Miranda's Arm é a relíquia dela (texto de terceiros, fora da AON) e é também o Braço Sônico: o braço, com as runas.
+// Miranda's Arm é o nome que ela deu à relíquia dela, que é o Braço Sônico (o braço, com as runas). As dádivas são da AON: Scrap Shot e Dragon Strike.
 // ---------------------------------------------------------------------------
 const MIRANDA = `## 🎯 Papel em Combate
 **Investigadora de Empiricism**: a cabeça do grupo. Estuda o alvo (Devise a Stratagem), bate uma vez com precisão (Strategic Strike, **2d6 de precisão**) e passa a vantagem aos aliados. Medicina de **mestre (+16)** faz dela a curandeira de reserva, e a Percepção de mestre (+15) a vigia do grupo. **CA 25 (27 com o escudo erguido) · 85 PV**: leve e sem Shield Block, então age de longe ou ao lado de quem segura a linha de frente.
@@ -523,7 +523,7 @@ const MIRANDA = `## 🎯 Papel em Combate
 - 🗡️ **Strategic Strike:** no Golpe que soma INT pelo estratagema, **+2d6 de dano de precisão** (1d6, mais 1 dado no nível 5; sobe de novo nos níveis 9, 13 e 17). Dobra no crítico. Não vale contra criatura imune a precisão.
 - 🪄 **Ação livre quando há pista:** se a criatura é parte de uma **investigação ativa** (Pursue a Lead), o Devise a Stratagem não custa ação. Abra a investigação fora do combate.
 - 🗡️ **Sword Cane (+15, 1d6+2 perfurante, ágil, acuidade):** a arma que **sempre** serve para o estratagema. Segundo ataque −4, terceiro −8.
-- 🦾 **Miranda's Arm / Braço Sônico (+16, 2d6+2 sonoro + 1d6 elétrico da runa Shock):** o braço dela é a relíquia, e as runas (+1, striking, Shock) continuam nele. É o ataque mais forte da ficha, mas o app não achou os traços dele na AON: se ele for ágil ou de acuidade, o estratagema vale como na Sword Cane; se não, só o d20 do estratagema se aplica (sem INT e sem Strategic Strike). Confirme com o mestre.
+- 🦾 **Miranda's Arm / Braço Sônico (+16, 2d6+2 sonoro + 1d6 elétrico da runa Shock):** o braço dela é a relíquia, e as runas (+1, striking, Shock) continuam nele. É o ataque mais forte da ficha e tem **acuidade** (não é ágil: segundo ataque −5, terceiro −10), então o estratagema soma INT e o Strategic Strike vale nele como na Sword Cane.
 - 🧭 **Ordem típica:** Devise a Stratagem → Golpe (com o estratagema) → terceira ação para Battle Medicine, Tamper ou erguer o escudo. Contra um alvo que o grupo já está cercando, o Golpe com o estratagema primeiro.
 
 ## ⭐ Nunca Esqueça
@@ -563,7 +563,7 @@ Três Pontos Míticos por dia, na faixa ao lado das condições.
 
 ## 🎒 Itens & Recursos
 - 🗡️ **Sword Cane** (ferro frio de baixa qualidade): +15, ágil, acuidade, ocultável.
-- 🦾 **Miranda's Arm (relíquia, nível 7 como ela):** o Braço Sônico em ferro frio de baixa qualidade, com as runas mantidas. **Scrap Shot:** ataque de magia com a relíquia (+10, o seu de magia) a até 9 m, **3d6 perfurante** (1d6 a cada 2 níveis); em alvo de metal ou armadura de metal, **+1** no ataque e **Desajeitado 1** até o próximo turno, e o disparo é de **ferro frio** (ignora resistências conforme o metal). **Dragon Strike:** 1×/hora (a cada 10 minutos no 11º nível), por 1 minuto **+1d6 cortante** nos Golpes corpo a corpo desarmados. No app: faixa **Relíquia** no Inventário (botões **Atacar** e **Usar**) e o chip **Dragon Strike ativa** no diálogo do Golpe do braço e do Punho. As ações das duas ativações não vieram no texto: o app cobra 1 ação, a confirmar com o mestre.
+- 🦾 **Miranda's Arm (o nome que ela deu à relíquia; nível 7 como ela):** o Braço Sônico em ferro frio de baixa qualidade, com as runas mantidas. **Scrap Shot (2 ações):** ataque de magia com a relíquia (+10, o seu de magia) a até 9 m, **3d6 perfurante** (1d6 a cada 2 níveis); em alvo de metal ou armadura de metal, **+1** no ataque e **Desajeitado 1** até o próximo turno, e o disparo é de **ferro frio** (ignora resistências conforme o metal).  **Dragon Strike (1 ação, comando):** 1×/hora (a cada 10 minutos no 11º nível), por 1 minuto **+1d6 cortante** nos Golpes corpo a corpo desarmados. No app: faixa **Relíquia** no Inventário (botões **Atacar** e **Usar**) e o chip **Dragon Strike ativa** no diálogo do Golpe do braço e do Punho.
 - 🧤 **Healer's Gloves:** +1 de item em Medicina e a cura do dia (acima).
 - 🕸️ **Arachnid Harness:** couro +1, resistência 2 a veneno (já na Visão Geral e na Iniciativa) e escalada 1×/dia (botão **Usar** na linha do Inventário).
 - 🛡️ **Steel Shield:** Dureza 5, PV 20, BT 10 (+2 na CA erguido).

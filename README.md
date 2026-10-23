@@ -685,7 +685,7 @@ Na **Arton 1515**:
 | Preset                | Classe                              | Nome na ficha (casa o guia)          | Observações                                                        |
 | --------------------- | ----------------------------------- | ------------------------------------ | ------------------------------------------------------------------ |
 | Loki                  | Magus 7 (Laughing Shadow), Fleshwarp | `Loki`                              | Arquétipo de Psíquico (The Tangible Dream). Guia pelo Remaster do Magus. |
-| Miranda               | Investigadora 7 (Empiricism), Humana | `Miranda Stormblade`                | Arquétipo de Inventor. Guia curado (`MIRANDA`). Relíquia **Miranda's Arm** (o Braço Sônico; Scrap Shot e Dragon Strike no cartão do Inventário). |
+| Miranda               | Investigadora 7 (Empiricism), Humana | `Miranda Stormblade`                | Arquétipo de Inventor. Guia curado (`MIRANDA`). Relíquia batizada de **Miranda's Arm** (o Braço Sônico, com acuidade; dádivas Scrap Shot e Dragon Strike da AON). |
 
 - **O JSON do Nathaniel tem uma edição à mão**: o jogador marcou o *Winder's Ring* por engano, e o
   anel de nível 7 certo é o **Ring of Wizardry (Type I)**
