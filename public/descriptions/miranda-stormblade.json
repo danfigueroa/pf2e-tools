@@ -616,16 +616,11 @@
     "description": "Esta armadura de couro +1 possui quatro nervuras com nós que envolvem o torso. A armadura concede a você resistência 2 a dano de veneno. Ativar Single Action: (concentrar) Frequência uma vez por dia; Efeito As nervuras da armadura se expandem em membros funcionais de aranha. Por 1 minuto, você ganha um Deslocamento de escalar igual à metade do seu Deslocamento terrestre e mantém seus membros livres enquanto escala. Se você usar todos os seus membros livres para ajudar a Escalar, seu Deslocamento de escalar é igual ao seu Deslocamento terrestre. Arachnid Harness Fonte Treasure Vault (Remastered) pg. 14 Preço 360 po Volume 1 Requisitos de Ofício Os materiais brutos iniciais devem incluir quatro pernas intactas de uma tarântula gigante. Arachnid Harness (Greater) Fonte Treasure Vault (Remastered) pg. 14 Preço 700 po Volume 1 A armadura é uma armadura de couro resiliente +1, a resistência é 5 e o arnês pode ser ativado uma vez a cada 10 minutos. Requisitos de Ofício Os materiais brutos iniciais devem incluir quatro pernas intactas de uma aranha golias."
    },
    "Braço Sônico": {
-    "name": "Reverberate",
-    "level": 12,
-    "actions": "Reaction",
-    "traits": [
-     "Bard"
-    ],
-    "category": "feat",
-    "sourceBook": "Advanced Player's Guide, p. 114",
-    "trigger": "Você sofreria dano sônico de uma magia.",
-    "description": "Você pode manipular a acústica ao seu redor para desviar dano sônico de volta para sua fonte. Tente um teste de Performance contra a CD de magia da criatura que conjurou a magia desencadeadora. Sucesso Crítico Você reduz o dano desencadeador em um valor de até quatro vezes o seu nível. O conjurador sofre dano sônico igual ao valor de dano que você reduziu desta forma. Sucesso Como no sucesso crítico, mas você reduz o dano desencadeador em um valor de até duas vezes o seu nível. Falha Crítica Você redireciona as ondas sônicas para si mesmo, sofrendo o dobro do dano desencadeador."
+    "name": "Braço Sônico",
+    "actions": "",
+    "traits": [],
+    "category": "equipment",
+    "description": "Item da campanha, sem entrada na AON. Confira o efeito com o mestre."
    },
    "Healer's Gloves": {
     "name": "Healer's Gloves",
@@ -640,14 +635,11 @@
     "description": "Estas luvas brancas e limpas nunca mostram sinais de sangue, mesmo depois de serem usadas para suturar ferimentos ou tratar outras enfermidades. Elas concedem a você um bônus de item de +1 em testes de Medicina. Ativar—Healer's Touch Single Action: (manipular) Frequência uma vez por dia; Efeito Você acalma os ferimentos de uma criatura viva, adjacente e disposta, restaurando 2d6+7 Pontos de Vida a essa criatura. Este é um efeito de vitalidade de cura. Você não pode causar dano a mortos-vivos com esta cura. Healer's Gloves Fonte GM Core pg. 290, Core Rulebook pg. 612 Preço 80 po Healer's Gloves (Greater) Fonte GM Core pg. 290, Core Rulebook pg. 612 Preço 700 po As luvas fornecem um bônus de +2 e restauram 4d6+15 Pontos de Vida."
    },
    "Miranda's Arm": {
-    "name": "Guardian's Armor",
-    "level": 1,
+    "name": "Miranda's Arm",
     "actions": "",
     "traits": [],
-    "category": "class-feature",
-    "className": "Guardian",
-    "sourceBook": "Battlecry!, p. 37",
-    "description": "Mesmo quando você é atingido, sua armadura o protege de alguns danos. Enquanto estiver usando armadura média ou pesada, você ganha resistência a dano físico igual a 1 + metade do seu nível. Além disso, você pode descansar normalmente enquanto estiver usando armadura média e pesada."
+    "category": "equipment",
+    "description": "Item da campanha, sem entrada na AON. Confira o efeito com o mestre."
    },
    "Steel Shield": {
     "name": "Steel Shield",
