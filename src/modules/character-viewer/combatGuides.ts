@@ -659,6 +659,85 @@ Três Pontos Míticos por dia, na faixa ao lado das condições.
 - ❌ **Stunning Blows em dois alvos:** só vale quando os dois Golpes do Flurry são **na mesma criatura**.
 - ❌ **Contar com Perfect Strike no arco:** ele só refaz Golpe **desarmado**.`
 
+// ---------------------------------------------------------------------------
+// WOYD — Clérigo 7 (doutrina Clérigo Enclausurado), Humano Versátil, antecedente Reborn Soul, divindade Ordem
+// (holy). Mesa Arton 1515. Regras do Clérigo pelo Player Core (Remaster); talentos míticos pelo War of Immortals.
+// A relíquia (Brasão da Família, Soul/Emotion) tem dádivas da AON: Absorb Injury e Emotion Surge.
+// ---------------------------------------------------------------------------
+const WOYD = `## 🎯 Papel em Combate
+**Curandeiro e conjurador divino de apoio**: mantém o grupo de pé com a **Healing Font** (cinco *Heal* de 4º rank por dia, em d10 pelo Healing Hands) e pune à distância com *Divine Wrath*, *Holy Light* e *Void Warp*. **CA 23 · 92 PV · Deslocamento 7,5 m**, Fortitude **+14**, Reflexos **+12**, Vontade **+15**. **CD de magia 25, ataque de magia +15.** Fica atrás da linha de frente: a reação **Rapid Response** é o que o leva até quem caiu.
+
+## 🔁 Rotina de Turno
+- 💚 **Heal (1 a 3 ações, Healing Font: 5 por dia no 4º rank):** com o **Healing Hands** os dados são **d10**.
+  - **1 ação:** toque, **4d10** PV.
+  - **2 ações:** até 9 m, **4d10+32** PV numa criatura viva. É a cura forte: use em quem está muito ferido.
+  - **3 ações:** **emanação de 9 m**, **4d10** em cada vivo e dano igual em morto-vivo. Com o **Selective Energy**, até **5 criaturas** na área **não** são afetadas (deixe os inimigos vivos e os aliados mortos-vivos de fora).
+  - No app, o diálogo da magia pergunta quantas ações você gasta e já rola em d10; o slot da Healing Font sai junto.
+- ⚖️ **Divine Wrath (2 ações, 4º rank, holy):** explosão de 6 m a até 36 m, **4d10 de espírito** só nos **inimigos**, Fortitude contra CD 25: sucesso ½; falha cheio e **enjoado 1**; falha crítica cheio, **enjoado 2** e, enquanto enjoado, **lento 1**.
+- ☀️ **Holy Light (2 ações, 3º rank):** raio a até 36 m, ataque de magia **+15**, **5d6 de fogo**, mais **5d6 de espírito** se o alvo for **unholy** (o chip do diálogo). Crítico dobra. Atravessando escuridão mágica, tenta neutralizá-la.
+- 🌑 **Void Warp (truque, 2 ações):** **5d4 de vazio** (já no 4º rank), Fortitude básica contra CD 25; na falha crítica, **enfraquecido 1** até o início do seu próximo turno. Não afeta morto-vivo nem construto.
+- 🛡️ **Forbidding Ward (truque, 2 ações, sustentado):** um aliado ganha **+1 de status na CA e nas salvaguardas** contra um inimigo escolhido. Ótimo no primeiro turno, ao lado do tanque.
+- 🌀 **Banishing Touch (1 a 3 ações, 2º rank, mítica):** toque com ataque de magia **com proficiência mítica (+21)**. 1 ação **1d6**, 2 ou 3 ações **2d6** contundente, e o alvo é **lançado para o alto e para trás** (2 ações: 6 m para cima e 3 m para trás; 3 ações: 9 m e 6 m), sofrendo o dano da queda. Tira inimigo de perto de um aliado caído. O app já soma a proficiência mítica.
+- 🧭 **Ordem típica:** primeiro turno **Forbidding Ward** no tanque (ou *Divine Wrath* num grupo); depois, *Heal* de 2 ações em quem precisa e uma ação para Andar ou erguer a postura. Sem ninguém precisando de cura, *Holy Light* ou *Void Warp*.
+
+## ⭐ Nunca Esqueça
+- 🏃 **Rapid Response (reação):** um aliado cai a **0 PV**: você **Anda** na direção dele com **+3 m de Deslocamento** nesse movimento. Chega no turno seguinte já no toque do *Heal* de 1 ação. No app, botão **Usar** da aba Talentos (gasta a reação).
+- 💛 **Uma reação por rodada:** Rapid Response, **Correct the Story**, **Absorb Injury** (relíquia) e **Cognitive Crossover** disputam a mesma. Guarde para o aliado caído, se o combate estiver feio.
+- 🙏 **Healing Font conta à parte:** os 5 *Heal* do 4º rank ficam no bloco **Cleric Font** da aba Magias; os seus outros slots continuam livres para *Divine Wrath*, *Holy Light* etc.
+- 🕊️ **Holy (santificação):** você tem o traço **holy**, e as suas magias santificadas (*Divine Wrath*) também. Conjurar magia **unholy** é anátema.
+- 📱 **Ponto de Foco:** 1 por dia (*Empty Inside*). **Refocus** (10 minutos) devolve.
+
+## ✨ Magias Preparadas (CD 25, ataque +15)
+- **Truques (5):** Detect Magic, Illuminate, Stabilize, *Void Warp*, *Forbidding Ward*.
+- **1º rank (3):** *Heal*, *Enfeeble* (Fortitude: sucesso **enfraquecido 1** até o seu próximo turno; falha enfraquecido 2 por 1 minuto; falha crítica enfraquecido 3), *Mystic Armor*.
+- **2º rank (3):** *Radiant Field* (explosão de 6 m de luz plena por 1 minuto; suprime escuridão mágica de rank igual ou menor), *Banishing Touch*, *Dispel Magic*.
+- **3º rank (3):** *Holy Light*, *Ring of Truth* (área de 6 m por 10 minutos: −2 de status em Enganação, e um sino toca a cada verdade dita), *Impending Doom* (Vontade, incapacitação: uma visão da própria morte que aterroriza o alvo por 3 rodadas).
+- **4º rank (2):** *Vital Beacon* (1 minuto para conjurar, dura até a próxima preparação: uma vez por rodada você ou um aliado gasta uma Interação para curar **4d10**, depois 4d8, 4d6 e 4d4 — conjure **antes** da luta) e *Divine Wrath*.
+- **Healing Font:** 5 × *Heal* no 4º rank.
+- **Magia de domínio (Vazio):** *Empty Inside* (1 ação, 1 Ponto de Foco): tenta neutralizar **um efeito de emoção** que afeta você (medo, fúria, confusão emocional).
+
+## ⚡ Poderes Míticos
+Três Pontos Míticos por dia, na faixa ao lado das condições.
+- 🔮 **Prescience (livre, ao rolar iniciativa):** gaste 1 ponto e role a iniciativa com **proficiência mítica** (Percepção **+21** no lugar de +15) e ganhe **+1 de status na CA e em todas as salvaguardas** até o fim do seu primeiro turno. No app, é o **✦ Prescience** do diálogo de Percepção com "Usar como iniciativa" ligado (vale também se a iniciativa for por outra perícia).
+- 👂 **Ears that Hear the Truth:** Sentir Motivação (e a Percepção da iniciativa) com proficiência mítica. Na iniciativa o Prescience rende mais pelo mesmo ponto, então o app oferece ele.
+- 📚 **Sage's Calling (vocação mítica):** ao **Recordar Conhecimento**, gaste 1 ponto para rolar com proficiência mítica (Religião **+21**, Saberes **+19**). A **primeira vez por dia** que você tirar **sucesso crítico** em Recordar Conhecimento contra uma criatura inimiga, **recupera 1 Ponto Mítico** (devolva na faixa: o app não sabe o resultado do mestre). No app, ligue a ação **Recall Knowledge** no diálogo da perícia e use o **✦ Sage's Calling**. **Dogma:** preservar conhecimento para as gerações futuras e buscar saber perdido. **Anátema:** destruir livros ou repositórios de conhecimento, ou mentir para esconder conhecimento do mundo.
+- 🎲 **Rewrite Fate (livre):** rerrole uma perícia ou salvaguarda com proficiência mítica.
+- 🪞 **Correct the Story (reação):** um inimigo tirou **sucesso crítico** num ataque ou salvaguarda: gaste 1 ponto e ele **rerrola**, ficando com o novo resultado. Na faixa mítica.
+
+## 🛡️ Relíquia: Brasão da Família (nível 7, o do personagem)
+Aspectos **Soul** e **Emotion**. No app, o cartão **Relíquia** no Inventário cobra a ação ou a reação e marca "usada" (o app não conta a hora).
+- 🤝 **Absorb Injury (reação, 1×/dia):** um aliado a até 9 m **sofre dano**: você o recebe **no lugar dele**, com os efeitos que vêm junto (veneno da lâmina, condições, fogo persistente de um crítico com runa flaming). Salva quem está quase caindo — mas o dano é seu, então olhe o seu PV.
+- 💫 **Emotion Surge (1 ação, concentrar, 1×/hora):** a relíquia dá **+1 de status** por 1 minuto num tipo de teste que depende da **emoção** dela (ainda não definida na mesa: Orgulho = Sociedade, Dedicação = Recordar Conhecimento, Amor = Medicina, Alegria = Diplomacia…).
+
+## 🎒 Itens & Recursos
+- 🗡️ **Rapier** (arma favorecida, treinado): **+12**, **1d6+1 perfurante**, com **acuidade**, **deadly d8** e **desarmar**. É o último recurso: o seu dano está nas magias.
+- 👘 **+1 Scroll Robes** (sem armadura, limite de DES +5): é de onde vem a CA 23.
+- 🧪 **5 Healing Potion (Lesser)** (2d8+5, 1 ação) e **1 Invisibility Potion**. No Inventário, "Beber" rola e soma ao PV; "Passar" entrega a um colega.
+- 🩹 **Healer's Toolkit** e **símbolo religioso de prata** (foco divino).
+
+## 🛡️ Defesa & Sobrevivência
+- ❤️ **CA 23 · 92 PV** (com o Toughness: +7 PV e CD 9 + Morrendo nos testes de recuperação, em vez de 10).
+- 🎯 **Fortitude +14, Reflexos +12 (o ponto fraco), Vontade +15**, Percepção **+15** (perito).
+- 😤 **Haughty Obstinacy:** sucesso numa salvaguarda contra efeito **mental que controla suas ações** vira **sucesso crítico**; quem falhar em **Coagir** você com Intimidação tem falha crítica (não tenta de novo por 1 semana).
+- 💊 **Empty Inside** derruba um efeito de emoção sobre você; **Mystic Armor** **não** soma à CA da túnica (os dois são bônus de **item**: vale um só) — só no 4º rank ela também dá +1 nas salvaguardas.
+
+## 🗝️ Fora do Combate
+- ⛪ **Religião de mestre (+17)** e **Medicina de perito (+15)**: Tratar Ferimentos até a CD 20 (**+10 PV** na cura). O diálogo de Medicina rola teste e cura juntos.
+- 🌳 **Sacred Ground (exploração, 1 minuto, 1× a cada 10 minutos):** explosão de 9 m por 10 minutos; quem fica lá os 10 minutos inteiros recupera **7 PV** (o seu nível). Somado ao Tratar Ferimentos, é cura de graça entre lutas. No app, o botão **Curar** do talento soma ao seu PV e marca "usada".
+- 🧠 **Saberes de mestre:** Cosmos e Tinder **+15** (do Reborn Soul: o mestre pode dar +1 de circunstância quando a situação lembra a vida passada). Arcanismo, Ocultismo e Sociedade **+11**, Furtividade **+12**.
+- 🎭 **Untrained Improvisation (Clever Improviser):** perícia destreinada soma o **nível inteiro**: Natureza e Sobrevivência **+11**, Acrobacia e Roubo **+10**, Ofício **+9**, Atletismo **+8**, Enganação, Diplomacia, Intimidação e Performance **+7**. E você pode tentar ações que exigem treino.
+- 🔁 **Cognitive Crossover (reação):** um Recordar Conhecimento não trouxe nada? Tente de novo **na hora** com a outra perícia escolhida no talento.
+- 🔍 **Thorough Search:** procurando com o dobro do tempo, **+2 de circunstância** na Percepção e o sucesso vira crítico. **Schooled in Secrets:** Ocultismo no lugar de Diplomacia/Enganação com cultos e sociedades secretas.
+- 🗣️ **Multilingual:** nove idiomas — comum, ctônico, diabólico, dracônico, élfico, empíreo, goblin, halfling e jotun.
+
+## ⚠️ Erros Comuns
+- ❌ **Heal de 1 ação longe do alvo:** a de 1 ação é de **toque**. A distância (9 m) é a de **2 ações** — e é ela que soma os +32.
+- ❌ **Heal de 3 ações curando o inimigo vivo:** marque-o no **Selective Energy** (até 5 criaturas ficam de fora).
+- ❌ **Gastar a reação cedo:** Rapid Response, Absorb Injury e Correct the Story disputam a mesma reação.
+- ❌ **Esquecer o Prescience:** o +1 na CA e nas salvaguardas vale **só até o fim do primeiro turno**, e o ponto é gasto ao rolar a iniciativa, não depois.
+- ❌ **Conjurar *Vital Beacon* no meio da luta:** leva **1 minuto**. Conjure antes, e lembre que a cura cai a cada uso (4d10 → 4d8 → 4d6 → 4d4).
+- ❌ **Contar com *Mystic Armor* para subir a CA:** com a túnica +1, não muda nada até o 4º rank.`
+
 export const COMBAT_GUIDES: CombatGuide[] = [
     { match: byName('Ardagar'), markdown: ARDAGAR, curated: true },
     { match: byName('Eldarion'), markdown: ELDARION, curated: true },
@@ -671,6 +750,7 @@ export const COMBAT_GUIDES: CombatGuide[] = [
     { match: byName('Loki'), markdown: LOKI, curated: true },
     { match: (b) => (b.name || '').trim().toLowerCase().startsWith('miranda'), markdown: MIRANDA, curated: true },
     { match: (b) => (b.name || '').trim().toLowerCase().startsWith('hearts'), markdown: HEARTS_FOLLY, curated: true },
+    { match: byName('Woyd'), markdown: WOYD, curated: true },
 ]
 
 // ---------------------------------------------------------------------------
