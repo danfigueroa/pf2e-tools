@@ -450,8 +450,26 @@ function fixFocusPool(build: BuildInfo): BuildInfo {
 }
 
 /** Tudo que se acerta na ficha logo depois de ler o JSON do Pathbuilder (e ao restaurar a da sessão). */
+/**
+ * Resistências que o ITEM dá e o Pathbuilder não exporta (`resistances` vem vazio): conferidas na
+ * AON e casadas pelo nome do item VESTIDO. Entram em `resistances` no formato "tipo valor", que a
+ * Visão Geral mostra e a Iniciativa lê. Idempotente — se o export já trouxer, não duplica.
+ */
+const ITEM_RESISTANCES: Record<string, string> = {
+  'arachnid harness': 'poison 2', // Treasure Vault (Remastered) pg. 14
+};
+
+export function addItemResistances(build: BuildInfo): BuildInfo {
+  const have = new Set((build.resistances ?? []).map((r) => String(r).trim().toLowerCase()));
+  const add = (build.armor ?? [])
+    .filter((a) => a.worn)
+    .map((a) => ITEM_RESISTANCES[String(a.name ?? '').trim().toLowerCase()])
+    .filter((r): r is string => !!r && !have.has(r));
+  return add.length ? { ...build, resistances: [...(build.resistances ?? []), ...add] } : build;
+}
+
 export function normalizeBuild(build: BuildInfo): BuildInfo {
-  return fixFocusPool(dropSizeSpecials(fixWeaponExports(normalizeSpellCasters(build))));
+  return addItemResistances(fixFocusPool(dropSizeSpecials(fixWeaponExports(normalizeSpellCasters(build)))));
 }
 
 export function formatAbilityScore(name: string, value: number) {

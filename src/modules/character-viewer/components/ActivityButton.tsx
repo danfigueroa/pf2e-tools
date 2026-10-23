@@ -4,6 +4,8 @@ import { gold } from '../../../theme'
 import type { BuildInfo, FeatDescription } from '../../../pathbuilder/types'
 import type { ConditionModifiers } from '../conditions'
 import { activityOf, costLabel, type ActivityInfo } from '../activities'
+import { featHeal } from '../healActivities'
+import { HealActivityButton } from './HealActivityButton'
 import { useActivity } from './useActivity'
 import type { MythicPointsApi } from './useMythicPoints'
 
@@ -69,6 +71,9 @@ export const ActivityBody = ({ build, mods, mythicPoints, name, info, fullWidth,
 
 /** O botão "Usar" de um talento/habilidade com custo no turno; nada quando é passivo ou tem caminho próprio. */
 export const ActivityButton = ({ desc, ...rest }: Props) => {
+    // Searing Restoration: cura com dado próprio (e o teste do Unstable), não só a cobrança da ação.
+    const heal = featHeal(rest.build, rest.name)
+    if (heal) return <HealActivityButton build={rest.build} mods={rest.mods} activity={heal} fullWidth={rest.fullWidth} />
     const info = activityOf(rest.name, desc)
     if (!info) return null
     return <ActivityBody {...rest} info={info} />

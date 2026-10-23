@@ -18,6 +18,10 @@ import { consumedKeyFor, hpKeyFor, legacyCharKey } from '../charId'
 import { useConsumables } from '../components/useConsumables'
 import { CompanionsCard } from '../components/CompanionsCard'
 import { RelicsCard } from '../components/RelicsCard'
+import { ActivityBody } from '../components/ActivityButton'
+import { HealActivityButton } from '../components/HealActivityButton'
+import { itemHeal } from '../healActivities'
+import { itemActivityOf } from '../itemActivities'
 import { relicsOf } from '../relics'
 import type { MythicPointsApi } from '../components/useMythicPoints'
 import { GiveItemDialog } from '../components/GiveItemDialog'
@@ -201,6 +205,9 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
                                 // chip só confundiria.
                                 const tags = consumable && info ? row.tags.filter((t) => t !== 'Invested') : row.tags
                                 const open = () => onSelect({ type: 'item', name: row.name })
+                                // Ativações do item: cura com dado (Healer's Touch) ou só a ação e o uso do dia (Arachnid Harness).
+                                const heal = row.equipment ? itemHeal(row.name) : null
+                                const activation = !heal && !consumable ? itemActivityOf(row.name) : null
 
                                 return (
                                     // O botão de usar fica FORA da área clicável: dentro de um
@@ -269,6 +276,14 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
                                                 <ChevronIcon fontSize="small" sx={{ color: 'text.secondary' }} />
                                             </Stack>
                                         </Box>
+                                        {(heal || activation) && (
+                                            <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flex: '0 0 auto', mr: 2 }}>
+                                                {heal && <HealActivityButton build={build} mods={mods} activity={heal} />}
+                                                {activation && (
+                                                    <ActivityBody build={build} mods={mods} mythicPoints={mythicPoints} name={row.name} info={activation} />
+                                                )}
+                                            </Stack>
+                                        )}
                                         {consumable && (
                                             <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flex: '0 0 auto', mr: 2 }}>
                                                 {/* Devolve 1 ao inventário — para a poção bebida sem querer, fora
