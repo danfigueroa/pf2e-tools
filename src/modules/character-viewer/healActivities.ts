@@ -8,6 +8,9 @@
  *   uma fonte de sangramento persistente. Tem o traço **Unstable** (abaixo).
  * - Healer's Touch: 1 ação, 1× por dia, **2d6+7** (a Greater, 4d6+15) em criatura viva, disposta e
  *   adjacente; vitalidade, não machuca morto-vivo.
+ * - **Sacred Ground** (Clérigo 4, Player Core pg. 116): exploração, reza por 1 minuto, uma vez a cada 10 minutos.
+ *   Quem fica os 10 minutos inteiros na explosão de 9 m recupera PV iguais ao nível do clérigo — número fixo,
+ *   sem dado. Não gasta ação (é exploração); o botão marca "usada" até o jogador devolver.
  * - **Unstable** (Guns & Gears Remastered pg. 236): logo depois de aplicar o efeito, teste simples
  *   **CD 15** (13 se lendário em Ofício). Na falha, a inovação pifa e não faz mais ações Unstable até
  *   10 minutos de reajuste; na falha crítica, também **dano de fogo igual à metade do nível**.
@@ -34,6 +37,8 @@ export interface HealActivity {
     reducesFrightened?: boolean
     /** Como a AON escreve a frequência ("uma vez por hora"); sem ela, `daily` diz "1× por dia". */
     frequency?: string
+    /** Atividade fora do turno (`actions: 0`): quanto leva, para o botão ("1 minuto"). */
+    time?: string
 }
 
 /** Marca em `uses`: a inovação pifou e não faz ação Unstable até o reajuste (10 minutos). */
@@ -42,12 +47,27 @@ export const UNSTABLE_BROKEN = 'unstable:broken'
 const norm = (s: string) => s.trim().toLowerCase()
 const hasFeat = (b: BuildInfo, name: string) => (b.feats ?? []).some((f) => norm(parseFeatEntry(f).name) === name)
 
-const formulaOf = (count: number, faces: number, flat: number) => `${count}d${faces}${flat ? `+${flat}` : ''}`
+const formulaOf = (count: number, faces: number, flat: number) => (count ? `${count}d${faces}${flat ? `+${flat}` : ''}` : String(flat))
 
 /** Searing Restoration: 1d10 + 1d10 no 3º nível e a cada 2 níveis seguintes (3, 5, 7…). */
 export const searingRestorationDice = (level: number): number => 1 + Math.max(0, Math.floor((Math.max(1, level) - 1) / 2))
 
 export function featHeal(build: BuildInfo, name: string): HealActivity | null {
+    if (norm(name) === 'sacred ground' && hasFeat(build, 'sacred ground')) {
+        const level = build.level ?? 1
+        return {
+            key: 'Sacred Ground',
+            name: 'Sacred Ground',
+            actions: 0,
+            time: '1 minuto',
+            daily: true,
+            frequency: 'uma vez a cada 10 minutos',
+            unstable: false,
+            count: 0, faces: 1, flat: level,
+            formula: formulaOf(0, 1, level),
+            note: 'Explosão de 9 m centrada em você, por 10 minutos: quem ficar na área os 10 minutos inteiros recupera esse PV (criaturas vivas; efeito de vitalidade). Não causa dano.',
+        }
+    }
     if (norm(name) !== 'searing restoration' || !hasFeat(build, 'searing restoration')) return null
     const count = searingRestorationDice(build.level ?? 1)
     return {

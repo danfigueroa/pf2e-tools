@@ -53,9 +53,10 @@ export const HealActivityButton = ({ build, mods, activity, fullWidth }: Props) 
     const broken = activity.unstable && uses.usedOf(UNSTABLE_BROKEN) > 0
     const lacking = actions.missing(activity.actions, 'any')
     const dc = unstableDc(build)
+    const costLabel = activity.time ?? `${activity.actions} ${activity.actions === 1 ? 'ação' : 'ações'}`
 
     const roll = () => {
-        actions.spend(activity.actions, 'any')
+        if (activity.actions > 0) actions.spend(activity.actions, 'any')
         if (activity.daily) uses.mark(activity.key)
         const rolled = rollGroups([{ count: activity.count, faces: activity.faces }], activity.flat)
         const lines = [activity.note]
@@ -130,14 +131,14 @@ export const HealActivityButton = ({ build, mods, activity, fullWidth }: Props) 
                     ...(usedToday ? { color: gold.deep, borderColor: gold.main } : {}),
                 }}
             >
-                {usedToday ? 'Usada ↺' : `Curar · ${activity.actions} ${activity.actions === 1 ? 'ação' : 'ações'}`}
+                {usedToday ? 'Usada ↺' : `Curar · ${costLabel}`}
             </Button>
             <EmbedDialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="xs" onClick={(e) => e.stopPropagation()}>
                 <DialogTitle sx={{ pb: 1 }}>{activity.name}</DialogTitle>
                 <DialogContent>
                     <Stack spacing={1.25} sx={{ pt: 0.5 }}>
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            Cura {activity.formula} PV · {activity.actions} {activity.actions === 1 ? 'ação' : 'ações'}{activity.frequency ? ` · ${activity.frequency}` : activity.daily ? ' · 1× por dia' : ''}
+                            Cura {activity.formula} PV · {costLabel}{activity.frequency ? ` · ${activity.frequency}` : activity.daily ? ' · 1× por dia' : ''}
                         </Typography>
                         <FormControlLabel
                             control={<Switch size="small" checked={onSelf} onChange={(e) => setOnSelf(e.target.checked)} />}
