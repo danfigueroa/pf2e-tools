@@ -28,7 +28,6 @@ interface Props {
     base: PublishBase | null
     busy: boolean
     error: string | null
-    onViewOnly: () => void
     onPublish: () => void
     onCancel: () => void
 }
@@ -40,8 +39,10 @@ const MAX_NAMES = 12
  * qualquer pessoa publica — então a diferença à vista (e a versão anterior
  * guardada no servidor) é o que impede um JSON errado de passar despercebido.
  */
-export const PublishDialog = ({ open, incoming, base, busy, error, onViewOnly, onPublish, onCancel }: Props) => {
+export const PublishDialog = ({ open, incoming, base, busy, error, onPublish, onCancel }: Props) => {
     const diff = base ? diffSheets(base.build, incoming) : null
+    // Só a ficha JÁ publicada dispensa publicar de novo; o arquivo fixo da campanha ainda não está no banco.
+    const alreadyPublished = !!diff?.identical && base?.from === 'published'
     const baseLabel = base?.from === 'published'
         ? `a ficha publicada${base.publishedAt ? ` em ${new Date(base.publishedAt).toLocaleDateString('pt-BR')}` : ''}`
         : 'a ficha da campanha'
@@ -55,8 +56,12 @@ export const PublishDialog = ({ open, incoming, base, busy, error, onViewOnly, o
                         Personagem novo na mesa. Publicar faz ele aparecer para todos — na Ficha Virtual,
                         na Iniciativa e na Transformação.
                     </Typography>
-                ) : diff?.identical ? (
+                ) : alreadyPublished ? (
                     <Typography sx={{ mb: 1 }}>Igual a {baseLabel}. Não há o que atualizar.</Typography>
+                ) : diff?.identical ? (
+                    <Typography sx={{ mb: 1 }}>
+                        Igual a {baseLabel}, que ainda não está no banco da mesa. Publicar guarda a ficha lá, sempre disponível.
+                    </Typography>
                 ) : (
                     <>
                         <Typography sx={{ mb: 1.5 }}>
@@ -89,7 +94,7 @@ export const PublishDialog = ({ open, incoming, base, busy, error, onViewOnly, o
                 )}
 
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                    Ao publicar, a ficha passa a valer para toda a mesa e um guia de como jogar é gerado
+                    Toda ficha enviada é guardada no banco da mesa. Ao publicar, a ficha passa a valer para toda a mesa e um guia de como jogar é gerado
                     por IA para a versão nova. A versão anterior fica guardada e pode ser restaurada.
                     PV, condições e slots não mudam.
                 </Typography>
@@ -97,11 +102,11 @@ export const PublishDialog = ({ open, incoming, base, busy, error, onViewOnly, o
                 {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
             </DialogContent>
             <DialogActions sx={{ flexWrap: 'wrap', gap: 1 }}>
-                <Button onClick={onViewOnly} disabled={busy}>Só ver neste aparelho</Button>
+                <Button onClick={onCancel} disabled={busy}>Cancelar</Button>
                 <Button
                     variant="contained"
                     onClick={onPublish}
-                    disabled={busy || !!diff?.identical}
+                    disabled={busy || alreadyPublished}
                     startIcon={busy ? <CircularProgress size={16} color="inherit" /> : undefined}
                 >
                     Publicar para a mesa

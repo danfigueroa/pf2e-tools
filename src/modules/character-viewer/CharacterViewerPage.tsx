@@ -74,6 +74,9 @@ export const CharacterViewerPage = () => {
         }
         if (origin.kind === 'preset') {
             show(b, origin.published)
+            // Toda ficha fica no banco: o preset que ainda só existe como arquivo é publicado ao ser aberto
+            // (guia e descrições seguem em segundo plano, como numa publicação normal).
+            if (!origin.published) void publishPreset(json, b)
             return
         }
         // Arquivo enviado: compara com a versão que a mesa usa hoje (a
@@ -91,6 +94,17 @@ export const CharacterViewerPage = () => {
             }
         } catch { /* sem base: o diálogo trata como personagem novo */ }
         setPending({ json, build: b, base })
+    }
+
+    const publishPreset = async (json: unknown, b: BuildInfo) => {
+        const base = curatedBase(b)
+        try {
+            const sheet = await publication.publish(json)
+            const published = parseCharacterJson(sheet.json)
+            try { sessionStorage.setItem(SESSION_PUBLISHED_KEY, sheet.slug) } catch { /* noop */ }
+            void publication.generateGuide(sheet, base)
+            void loadSheetDescriptions(sheet.slug, characterDescriptionNames(published))
+        } catch { /* sem rede: a ficha segue aberta e tenta de novo na próxima abertura */ }
     }
 
     const handlePublish = async () => {
@@ -147,7 +161,6 @@ export const CharacterViewerPage = () => {
             base={pending.base}
             busy={publishBusy}
             error={publishError}
-            onViewOnly={() => { show(pending.build, null); setPending(null) }}
             onPublish={handlePublish}
             onCancel={() => setPending(null)}
         />
