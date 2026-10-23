@@ -1441,14 +1441,14 @@
     "description": "Uma requintada sword cane é uma espada embainhada dentro de uma bengala oca, que por si só pode ser usada como uma arma de contusão com ou sem a espada embainhada dentro. Critical Specialization Effects Fonte Core Rulebook pág. 283 Certos talentos, características de classe, runas de arma e outros efeitos podem conceder a você benefícios adicionais quando você realiza um Strike com certas armas e obtém um sucesso crítico. Isso é chamado de efeito de especialização crítica. O efeito exato depende de qual grupo de arma sua arma pertence, conforme listado abaixo. Você sempre pode decidir não adicionar o efeito de especialização crítica da sua arma. Clique aqui para as regras completas sobre Critical Specialization Effects. Specific Magic Weapons Reaper's Lancet"
    },
    "Loki's Heart": {
-    "name": "Performer's Heart",
-    "level": 9,
+    "name": "Loki's Heart",
     "actions": "",
-    "traits": [],
-    "category": "class-feature",
-    "className": "Bard",
-    "sourceBook": "Player Core, p. 94",
-    "description": "As maiores apresentações exigem uma compreensão da sua própria mente e uma concentração impecável. Sua graduação de proficiência para testes de Vontade aumenta para mestre. Quando você rola um sucesso em um teste de Vontade, você obtém um sucesso crítico em vez disso."
+    "traits": [
+     "Magical",
+     "Relic"
+    ],
+    "category": "equipment",
+    "description": "A relíquia do Loki, vestida. O nível dela é o dele, e as dádivas são da AON: Sands of the Hourglass (2 ações, uma vez por hora: o alvo faz Fortitude e fica desajeitado e enfraquecido) e Whammy (reação, uma vez por dia: um inimigo que acertou rerrola e fica com o pior resultado). Ficam no cartão da relíquia, no Inventário."
    }
   }
  }

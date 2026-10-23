@@ -114,6 +114,39 @@ export const RELICS: RelicEntry[] = [
             },
         ],
     },
+    {
+        id: 'loki-heart',
+        character: nameStarts('loki'),
+        name: "Loki's Heart",
+        on: { kind: 'item', name: "Loki's Heart" },
+        aspects: ['Time', 'Luck'],
+        description: "A relíquia do Loki (Loki's Heart, item vestido na ficha). O nível dela é o dele. As dádivas são da AON: Sands of the Hourglass e Whammy.",
+        gifts: [
+            // Treasure Vault (Remastered) pg. 200: 2 ações (concentrar, manipular), 1× por hora, aspecto Time;
+            // pré-requisito: relíquia de 5º nível ou mais. O alvo faz Fortitude — a AON NÃO dá a CD, é do mestre.
+            {
+                id: 'sands-of-the-hourglass',
+                name: 'Sands of the Hourglass',
+                tier: 'minor',
+                kind: 'power',
+                minLevel: 5,
+                activation: { cost: 2, frequency: 'uma vez por hora', limited: true },
+            },
+            // Treasure Vault (Remastered) pg. 199: reação (concentrar), 1× por dia, aspecto Luck, traço Misfortune.
+            {
+                id: 'whammy',
+                name: 'Whammy',
+                tier: 'minor',
+                kind: 'power',
+                activation: {
+                    cost: 'reaction',
+                    frequency: 'uma vez por dia',
+                    limited: true,
+                    trigger: 'um inimigo a até 9 m tira um sucesso em ataque, salvaguarda ou teste de perícia',
+                },
+            },
+        ],
+    },
 ]
 
 export { nameStarts }
