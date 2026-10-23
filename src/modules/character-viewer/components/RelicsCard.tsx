@@ -3,11 +3,12 @@ import type { BuildInfo } from '../../../pathbuilder/types'
 import type { ConditionModifiers } from '../conditions'
 import { costLabel } from '../activities'
 import {
-    giftActivity, giftMinLevel, giftUnlocked, giftUseKey, relicLevel, relicsOf,
+    giftActivity, giftMinLevel, giftUnlocked, giftUseKey, relicHealActivity, relicLevel, relicsOf,
     type RelicEntry, type RelicGift, type RelicTier,
 } from '../relics'
 import { ActivityBody } from './ActivityButton'
 import { ScrapShotButton } from './ScrapShotButton'
+import { HealActivityButton } from './HealActivityButton'
 import type { DescriptionRequest } from './DescriptionDrawer'
 import type { MythicPointsApi } from './useMythicPoints'
 
@@ -31,6 +32,7 @@ const Gift = ({ relic, gift, index, build, mods, mythicPoints, onSelect }: Props
     const unlocked = giftUnlocked(gift, index, level)
     const info = unlocked ? giftActivity(gift) : null
     const act = gift.activation
+    const heal = unlocked ? relicHealActivity(build, relic, gift) : null
 
     return (
         <Box sx={{ py: 1.25, opacity: unlocked ? 1 : 0.55 }}>
@@ -49,6 +51,9 @@ const Gift = ({ relic, gift, index, build, mods, mythicPoints, onSelect }: Props
                     ].filter(Boolean).join(' · ')}
                 </Typography>
             )}
+            {gift.facts && unlocked && (
+                <Typography variant="body2" sx={{ mt: 0.5, fontWeight: 600 }}>{gift.facts(level)}</Typography>
+            )}
             {gift.description && (
                 <Typography variant="body2" sx={{ mt: 0.75, whiteSpace: 'pre-line' }}>{gift.description}</Typography>
             )}
@@ -63,7 +68,8 @@ const Gift = ({ relic, gift, index, build, mods, mythicPoints, onSelect }: Props
                     </Button>
                 )}
                 {info && gift.special === 'scrap-shot' && <ScrapShotButton build={build} mods={mods} relic={relic} gift={gift} />}
-                {info && gift.special !== 'scrap-shot' && (
+                {heal && <HealActivityButton build={build} mods={mods} activity={heal} />}
+                {info && !heal && gift.special !== 'scrap-shot' && (
                     <ActivityBody
                         build={build}
                         mods={mods}

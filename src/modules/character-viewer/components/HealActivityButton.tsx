@@ -6,7 +6,7 @@ import { gold } from '../../../theme'
 import type { BuildInfo } from '../../../pathbuilder/types'
 import { postRoll } from '../../../services/rolls'
 import { rollDie, rollGroups } from '../../../dice/roll'
-import { actionsKeyFor, hpKeyFor, legacyCharKey, usesKeyFor } from '../charId'
+import { actionsKeyFor, conditionsKeyFor, hpKeyFor, legacyCharKey, usesKeyFor } from '../charId'
 import type { ConditionModifiers } from '../conditions'
 import { characterMaxHp } from '../helpers'
 import {
@@ -17,6 +17,7 @@ import { EmbedDialog } from './EmbedDialog'
 import { useActions } from './useActions'
 import { useHpTracker } from './useHpTracker'
 import { useUses } from './useUses'
+import { useConditions } from './useConditions'
 
 interface Props {
     build: BuildInfo
@@ -42,6 +43,7 @@ export const HealActivityButton = ({ build, mods, activity, fullWidth }: Props) 
     const uses = useUses(usesKeyFor(build))
     const maxHp = characterMaxHp(build, mods.hpMaxDelta)
     const hp = useHpTracker(hpKeyFor(build), maxHp, legacyCharKey(build))
+    const conditions = useConditions(conditionsKeyFor(build), build.level ?? 1, legacyCharKey(build))
     const who = useMemo(() => rollerIdentity(build), [build])
     const [open, setOpen] = useState(false)
     const [onSelf, setOnSelf] = useState(true)
@@ -74,6 +76,16 @@ export const HealActivityButton = ({ build, mods, activity, fullWidth }: Props) 
             }
         } else if (activity.unstable) {
             lines.push('A inovação estava pifada: a cura vale, mas sem o efeito Unstable do talento.')
+        }
+        // Word of Faith: quem recebe a cura reduz o Amedrontado em 1 (aqui, só quando é você).
+        const frightened = mods.active.find((c) => c.id === 'frightened')?.value ?? 0
+        if (activity.reducesFrightened) {
+            if (onSelf && frightened > 0) {
+                conditions.setCondition('frightened', frightened - 1)
+                lines.push(`Amedrontado ${frightened} → ${frightened - 1}.`)
+            } else if (!onSelf) {
+                lines.push('O aliado reduz o Amedrontado dele em 1.')
+            }
         }
         void postRoll(healRoll(who, activity.name, `Cura ${activity.formula}`, rolled, onSelf ? 'em si mesma' : 'em um aliado adjacente', lines.join(' ').slice(0, 480)))
         // Cura e queimadura numa escrita só de PV: duas seguidas partiriam do PV de antes do clique.
@@ -118,14 +130,14 @@ export const HealActivityButton = ({ build, mods, activity, fullWidth }: Props) 
                     ...(usedToday ? { color: gold.deep, borderColor: gold.main } : {}),
                 }}
             >
-                {usedToday ? 'Usada hoje ↺' : `Curar · ${activity.actions} ${activity.actions === 1 ? 'ação' : 'ações'}`}
+                {usedToday ? 'Usada ↺' : `Curar · ${activity.actions} ${activity.actions === 1 ? 'ação' : 'ações'}`}
             </Button>
             <EmbedDialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="xs" onClick={(e) => e.stopPropagation()}>
                 <DialogTitle sx={{ pb: 1 }}>{activity.name}</DialogTitle>
                 <DialogContent>
                     <Stack spacing={1.25} sx={{ pt: 0.5 }}>
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            Cura {activity.formula} PV · {activity.actions} ação{activity.daily ? ' · 1× por dia' : ''}
+                            Cura {activity.formula} PV · {activity.actions} {activity.actions === 1 ? 'ação' : 'ações'}{activity.frequency ? ` · ${activity.frequency}` : activity.daily ? ' · 1× por dia' : ''}
                         </Typography>
                         <FormControlLabel
                             control={<Switch size="small" checked={onSelf} onChange={(e) => setOnSelf(e.target.checked)} />}

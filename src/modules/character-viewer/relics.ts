@@ -19,6 +19,7 @@ import type { BuildInfo, Weapon } from '../../pathbuilder/types'
 import { strikingDice } from '../../pathbuilder/weapon'
 import { nameStarts } from './customRunes'
 import type { ActivityInfo } from './activities'
+import type { HealActivity } from './healActivities'
 import type { CastTime } from './spellCast'
 
 export type RelicTier = 'minor' | 'major' | 'grand'
@@ -58,7 +59,9 @@ export interface RelicGift {
     activation?: RelicActivation
     rune?: RelicRune
     /** Dádiva com caminho próprio no app (rola ataque e dano, ou muda o Golpe): o botão genérico não cobra. */
-    special?: 'scrap-shot' | 'dragon-strike'
+    special?: 'scrap-shot' | 'dragon-strike' | 'healing-wave' | 'word-of-faith'
+    /** Números que dependem do nível da relíquia (o do dono), mostrados no cartão: "7d4 PV", "rank de counteract 4". */
+    facts?: (level: number) => string
 }
 
 export type RelicBase =
@@ -94,7 +97,7 @@ export const RELICS: RelicEntry[] = [
         name: "Miranda's Arm",
         on: { kind: 'weapon', weapon: 'Braço Sônico' },
         aspects: ['Metal', 'Dragon'],
-        description: "Miranda's Arm é o nome que ela deu à relíquia: o braço dela, que também é o Braço Sônico da ficha. As runas dele continuam: +1 de potência, striking e Shock (já no ataque da aba Combate). O nível da relíquia é o dela.",
+        description: "Miranda's Arm é o nome que ela deu à relíquia: o braço dela, que também é o Braço Sônico da ficha. As runas dele continuam: +1 de potência, striking e Shock (já no ataque da aba Combate). O nível da relíquia é o do personagem.",
         gifts: [
             {
                 id: 'scrap-shot',
@@ -103,6 +106,7 @@ export const RELICS: RelicEntry[] = [
                 kind: 'power',
                 special: 'scrap-shot',
                 activation: { cost: 2 },
+                facts: (level) => `${scrapShotDice(level)}d6 perfurante, ataque de magia, até 9 m`,
             },
             {
                 id: 'dragon-strike',
@@ -111,6 +115,7 @@ export const RELICS: RelicEntry[] = [
                 kind: 'power',
                 special: 'dragon-strike',
                 activation: { cost: 1, frequency: 'uma vez por hora (a cada 10 minutos a partir do 11º nível)', limited: true },
+                facts: (level) => `${level >= 11 ? 'uma vez a cada 10 minutos' : 'uma vez por hora'}; +1d6 cortante por 1 minuto`,
             },
         ],
     },
@@ -147,6 +152,68 @@ export const RELICS: RelicEntry[] = [
             },
         ],
     },
+    {
+        // Redenção Pelas Cinzas: luvas sem dedos de couro ressecado e cinza, que soltam cinzas sem parar (descrição da jogadora).
+        // Dádivas projetadas: nível 1 (Life) Healing Wave e nível 5 (Celestial) Word of Faith — as duas da AON, GM Core pg. 315 e 311.
+        id: 'redencao-pelas-cinzas',
+        character: nameStarts('hearts'),
+        name: 'Redenção Pelas Cinzas',
+        aspects: ['Life', 'Celestial'],
+        description: 'Um par de luvas sem dedos (a direita ainda tem o anelar e o mindinho, estilo luva de artista), de couro ressecado por anos de uso e de um cinza sem cor, como se tivessem perdido toda a saturação. Flocos de cinza se soltam delas o tempo todo e somem no ar. O nível da relíquia é o do personagem.',
+        gifts: [
+            {
+                id: 'healing-wave',
+                name: 'Healing Wave',
+                tier: 'minor',
+                kind: 'power',
+                special: 'healing-wave',
+                activation: { cost: 2, frequency: 'uma vez por hora', limited: true },
+                facts: (level) => `${level}d4 PV para você e cada criatura viva no cone de 4,5 m`,
+            },
+            {
+                id: 'word-of-faith',
+                name: 'Word of Faith',
+                tier: 'minor',
+                kind: 'power',
+                special: 'word-of-faith',
+                activation: { cost: 2, frequency: 'uma vez por hora', limited: true },
+                facts: (level) => `${level}d8 PV em você ou num aliado, e o Amedrontado dele cai 1`,
+            },
+        ],
+    },
+    {
+        // Afinco do Artista, a relíquia da alma (relíquia de antecedente): sobretudo de couro marrom manchado de tinta colorida.
+        // Dádivas projetadas: nível 1 (Emotion) Dominant Emotion e nível 5 (Life) Bestow Life — GM Core pg. 315 e Treasure Vault Remastered pg. 198.
+        id: 'afinco-do-artista',
+        character: nameStarts('hearts'),
+        name: 'Afinco do Artista',
+        aspects: ['Life', 'Emotion'],
+        description: 'A relíquia da alma do personagem: um sobretudo de couro marrom, simples e gasto pelo uso, igual a tantos outros — salvo pelas manchas de tinta multicoloridas nas lapelas e mangas, que exalam vida e, sob a luz certa, às vezes cintilam em cor. O nível da relíquia é o do personagem.',
+        gifts: [
+            {
+                id: 'dominant-emotion',
+                name: 'Dominant Emotion',
+                tier: 'minor',
+                kind: 'power',
+                activation: {
+                    cost: 'reaction',
+                    frequency: 'uma vez por hora',
+                    limited: true,
+                    trigger: 'você seria afetado negativamente por um efeito de emoção',
+                },
+                // O texto manda "tentar um teste de counteract"; sem modificador na relíquia, o número é do mestre.
+                facts: (level) => `counteract de rank ${Math.ceil(level / 2)} (metade do nível, arredondada para cima); o modificador a AON não dá`,
+            },
+            {
+                id: 'bestow-life',
+                name: 'Bestow Life',
+                tier: 'minor',
+                kind: 'power',
+                activation: { cost: 2, frequency: 'uma vez por dia', limited: true },
+                facts: (level) => `objeto animado de nível ${Math.floor(level / 2)}, por 1 hora, numa tarefa simples sem combate`,
+            },
+        ],
+    },
 ]
 
 export { nameStarts }
@@ -157,6 +224,32 @@ export function relicGift(build: BuildInfo, special: NonNullable<RelicGift['spec
     for (const relic of relicsOf(build, catalog)) {
         const idx = relic.gifts.findIndex((g) => g.special === special)
         if (idx >= 0 && giftUnlocked(relic.gifts[idx], idx, level)) return relic.gifts[idx]
+    }
+    return null
+}
+
+/**
+ * As curas das relíquias, no formato de `healActivities.ts`: **Healing Wave** (GM Core pg. 315: 2 ações, 1×/hora,
+ * cone de 15 pés, você e cada criatura viva recuperam 1d4 PV por nível da relíquia) e **Word of Faith** (pg. 311:
+ * 2 ações, 1×/hora, você ou um aliado recupera 1d8 PV por nível do item e reduz o Amedrontado em 1).
+ * O nível da relíquia é o do dono.
+ */
+export function relicHealActivity(build: BuildInfo, relic: RelicEntry, gift: RelicGift): HealActivity | null {
+    const level = relicLevel(build)
+    if (gift.special === 'healing-wave') {
+        return {
+            key: giftUseKey(relic, gift), name: gift.name, actions: 2, daily: true, unstable: false, frequency: 'uma vez por hora',
+            count: level, faces: 4, flat: 0, formula: `${level}d4`,
+            note: 'Cone de 4,5 m: você e cada criatura viva na área recuperam o mesmo valor (uma rolagem só). Efeito de vitalidade.',
+        }
+    }
+    if (gift.special === 'word-of-faith') {
+        return {
+            key: giftUseKey(relic, gift), name: gift.name, actions: 2, daily: true, unstable: false, frequency: 'uma vez por hora',
+            count: level, faces: 8, flat: 0, formula: `${level}d8`,
+            note: 'Mão sobre você ou um aliado: ele recupera esse PV e reduz o Amedrontado em 1. Efeito de vitalidade, sagrado.',
+            reducesFrightened: true,
+        }
     }
     return null
 }

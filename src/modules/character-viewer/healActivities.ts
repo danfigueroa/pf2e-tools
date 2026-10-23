@@ -30,6 +30,10 @@ export interface HealActivity {
     formula: string
     /** O que a regra acrescenta e o app não automatiza. */
     note: string
+    /** Word of Faith: quem recebe a cura reduz o Amedrontado em 1 (aplicado quando a cura é em si mesmo). */
+    reducesFrightened?: boolean
+    /** Como a AON escreve a frequência ("uma vez por hora"); sem ela, `daily` diz "1× por dia". */
+    frequency?: string
 }
 
 /** Marca em `uses`: a inovação pifou e não faz ação Unstable até o reajuste (10 minutos). */
