@@ -1121,6 +1121,10 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   relíquia (`weapon.mat`) vai na nota. **Dragon Strike** (Secrets of Magic pg. 230, **1 ação**, comando, 1×/hora): o botão do cartão
   cobra a ação e marca "usada" (o app não conta a hora nem o minuto); o dano é o chip "Dragon Strike ativa" no Golpe
   (`DRAGON_STRIKE_KEY`, 1d6 cortante, não lembrado), no Punho e no braço — se o braço conta como desarmado é do mestre.
+- **Loki's Heart** (entrada de `RELICS`, `on: { kind: 'item' }`): a relíquia do Loki, vestida na ficha. Duas dádivas menores da AON, custo e texto de
+  lá: **Sands of the Hourglass** (Treasure Vault Remastered pg. 200, **2 ações**, 1×/hora, `minLevel: 5` — o pré-requisito "relíquia de 5º nível ou
+  mais") e **Whammy** (pg. 199, **reação**, 1×/dia). Os dois usam o botão genérico (`ActivityBody`): o app cobra a ação ou a reação e marca "usada",
+  e o resto é do mestre — **a AON não dá a CD** do Fortitude do Sands, então o app não rola nem inventa nada.
 - **Arma que a AON não tem** (`homebrewGear.ts`): os traços vêm do jogador e são casados por personagem + nome da arma. O **Braço
   Sônico** tem **acuidade** (e não é ágil), então o Devise a Stratagem soma INT nele. Sem entrada, a arma segue "sem traços".
 - **Itens que o Pathbuilder não exporta**: `addItemResistances` (no `normalizeBuild`) acrescenta a resistência de item VESTIDO a

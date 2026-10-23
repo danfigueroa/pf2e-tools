@@ -483,7 +483,7 @@ Três Pontos Míticos por dia, na faixa ao lado das condições.
 - 🗡️ **Mirage Edge** (*Exquisite Sword Cane +1 striking*, prata de baixa qualidade, runa Astral): **+16 / +12 / +8** (ágil), 2d6+2 perfurante + 1d6 espírito; acuidade, ágil, ocultável e *parry*.
 - 🛡️ **Bands of Force:** +1 de item na CA e nas salvaguardas (já somado aqui) e a reação **Return Force**.
 - 🧥 **Cloak of Illusions:** *Figment* como truque inato, **+1 em Furtividade** e, **1×/dia (2 ações)**, invisibilidade ao puxar o capuz.
-- ❤️ **Loki's Heart:** item da campanha, sem entrada na AON. Confira o efeito com o mestre.
+- ❤️ **Loki's Heart (a relíquia dele, nível 7 como ele; aspectos Time e Luck):** duas dádivas menores da AON. **Sands of the Hourglass (2 ações, 1×/hora, alcance 9 m):** o alvo faz **Fortitude**; sucesso: desajeitado 1 e enfraquecido 1; falha: desajeitado 2, enfraquecido 2 e **drenado 1**; falha crítica: 3, 3 e drenado 2; sucesso crítico: nada. Dura 1 minuto, e a AON não dá a CD, então o mestre define. **Whammy (reação, 1×/dia):** um inimigo a até 9 m tira um sucesso em ataque, salvaguarda ou teste de perícia, e rerrola ficando com o **pior** resultado. No app, o cartão **Relíquia** no Inventário cobra a ação ou a reação e marca "usada". Whammy disputa a **mesma reação** com *Reactive Strike*, Shield Block, Return Force e Correct the Story.
 - 🔮 **2 Pontos de Foco**, um por magia de foco (*Dimensional Assault* e *Force Fang*), e é deles que saem também os amps dos truques psíquicos. O Pathbuilder exporta 3 pela regra antiga; o app usa a revisada. Refocus em 10 minutos.
 
 ## 🛡️ Defesa & Sobrevivência
