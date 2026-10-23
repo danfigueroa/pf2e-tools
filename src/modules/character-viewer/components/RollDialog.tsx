@@ -25,7 +25,7 @@ import { characterMaxHp, signed, spellcasterStats } from '../helpers'
 import { psycheApplies, psycheDamageBonus } from '../psyche'
 import { ampComponents, canAmpPsiCantrips, psiAmpFor } from '../psiAmps'
 import { convertTypes, hasConservation, isEnergySpell, type EnergyMode } from '../energy'
-import { energyKeyFor, legacyCharKey, slotsKeyFor } from '../charId'
+import { energyKeyFor, legacyCharKey, slotsKeyFor, usesKeyFor } from '../charId'
 import { useEnergy } from './useEnergy'
 import { useSpellSlots } from './useSpellSlots'
 import { SKILLS, type Check, type CheckPart } from '../checks'
@@ -53,7 +53,7 @@ import {
     type StrikeOptions,
 } from '../strikes'
 import { damageComponents, formatValue, componentLabel, scaleSpell, type ScaledComponent } from '../heightening'
-import { assuranceRoll, checkRoll, mapLabel, raysRoll, rollerIdentity, treatWoundsRoll, spellRoll, spellstrikeRoll, strikeRoll, withSimplePoison, type SpellAttackInfo } from '../rolls'
+import { assuranceRoll, checkRoll, flurryRoll, mapLabel, raysRoll, rollerIdentity, treatWoundsRoll, spellRoll, spellstrikeRoll, strikeRoll, withSimplePoison, type SpellAttackInfo } from '../rolls'
 import type { TableRoll } from '../../../dice/tableRoll'
 import { dialogEmbedProps, useEmbedContainer } from '../embedContext'
 import { CASCADE_TYPES, hasLaughingShadow, hasSpellstrike, isStudiousSpell, laughingShadowDamage, withLaughingShadow } from '../magus'
@@ -78,7 +78,12 @@ import { actionCost, applySpend, shortfall, type ActionKind } from '../actions'
 import { actionRange, variantFor } from '../actionVariants'
 import { usePoisonOptions } from './usePoisonOptions'
 import { useActions } from './useActions'
-import { fearsomeBruteBonus, hasExactingStrike, hasFearsomeBrute } from '../fighter'
+import { classDc, fearsomeBruteBonus, hasExactingStrike, hasFearsomeBrute } from '../fighter'
+import {
+    FLURRY_KEY, KI_KEY, KI_TYPES, KI_TYPE_LABEL, STANCE_USE_KEY, STUNNING_KEY,
+    flurryCheck, hasStunningBlows, kiStrikeApplies, kiStrikeDice, kiTypeKey, kiTypeOf, perfectStrikeApplies, stunningBlowsNote,
+} from '../monk'
+import { useUses } from './useUses'
 import { useRogue } from './useRogue'
 import { usePoisonDef } from './usePoison'
 import { actionsKeyFor, conditionsKeyFor, hpKeyFor, investigatorKeyFor, magusKeyFor, rogueKeyFor } from '../charId'
@@ -585,7 +590,7 @@ function loadExtras(key: string): Record<string, boolean> {
 }
 
 // O estratagema do Investigador e o que vem com ele são da rodada, não da arma: nada disso fica lembrado.
-const SITUATIONAL_KEYS = [STRATAGEM_KEY, LEAD_KEY, KNOWN_WEAKNESSES_KEY, SHARED_STRATAGEM_KEY, DRAGON_STRIKE_KEY]
+const SITUATIONAL_KEYS = [STRATAGEM_KEY, LEAD_KEY, KNOWN_WEAKNESSES_KEY, SHARED_STRATAGEM_KEY, DRAGON_STRIKE_KEY, FLURRY_KEY, KI_KEY, STUNNING_KEY, ...KI_TYPES.map(kiTypeKey)]
 
 const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Extract<RollRequest, { kind: 'weapon' | 'unarmed' }>>) => {
     const who = useMemo(() => rollerIdentity(build), [build])
@@ -621,6 +626,21 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
     const laughingApplies = hasLaughingShadow(build) && !!mods.cascade && !strike.traits.ranged && opts.mode !== 'thrown'
     const plan = planStrike(build, strike, withLaughingShadow(mods, build, laughing && laughingApplies), opts)
     const { traits } = strike
+
+    // Monge: Flurry of Blows, Ki Strike / Inner Upheaval, Stunning Blows, Perfect Strike e a postura do arqueiro.
+    const monkUses = useUses(usesKeyFor(build))
+    const monkSlots = useSpellSlots(slotsKeyFor(build), build.focusPoints ?? 0, legacyCharKey(build))
+    const stanceOn = monkUses.usedOf(STANCE_USE_KEY) > 0
+    const flurryOk = flurryCheck(build, strike, stanceOn)
+    const flurrying = flurryOk.ok && opts.extrasOn[FLURRY_KEY] === true
+    const kiAvailable = kiStrikeApplies(build, strike)
+    const kiOn = kiAvailable && opts.extrasOn[KI_KEY] === true
+    const focusLeft = Math.max(0, monkSlots.focusMax - monkSlots.focusUsed)
+    const stunning = flurrying && hasStunningBlows(build) && opts.extrasOn[STUNNING_KEY] === true
+    // O 2º Golpe do Flurry leva a penalidade de ataques múltiplos um degrau acima do 1º.
+    const secondPlan = flurrying
+        ? planStrike(build, strike, withLaughingShadow(mods, build, laughing && laughingApplies), { ...opts, map: Math.min(2, opts.map + 1) as 0 | 1 | 2 })
+        : null
 
     // Spellstrike: só em Golpe corpo a corpo. A magia escolhida entra no mesmo
     // clique que rola o Golpe, gasta o slot e marca o Spellstrike como gasto.
@@ -660,7 +680,8 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
     const devising = stratagemOn(build, opts.extrasOn)
     const deviseCost = devising ? stratagemCost(opts.extrasOn) : 0
     const actionCostNow = asReaction ? 0 : spellstriking || aiming ? 2 : 1
-    const actionKind: ActionKind = spellstriking || aiming ? 'any' : 'move-attack'
+    // O Flurry e o Ki Strike são ações próprias (não são "Golpe ou Andar"): a ação extra do Acelerado não os paga.
+    const actionKind: ActionKind = spellstriking || aiming || flurrying || kiOn ? 'any' : 'move-attack'
     // Aplicar o veneno custa 1 ação à parte (paga primeiro, de qualquer tipo); o Golpe vem depois.
     // Uma atividade que inclui o Golpe (Sudden Charge, Vicious Swing…) já o pagou: este Golpe não cobra.
     const strikePaid = !asReaction && hasPrepaidStrike()
@@ -677,6 +698,8 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
         poisonName && poisonUsed ? (simplePoison ? `veneno simples: ${simpleDice.count}d${simpleDice.faces} de veneno, sem salvaguarda` : poisonNote(poisonName, poisonDef)) : null,
         debil ? DEBILITATIONS.find((d) => d.id === debil)?.note : null,
         exacting ? 'Exacting Strike: se errar, não conta para a penalidade de ataques múltiplos' : null,
+        flurrying ? 'Flurry of Blows: se os dois Golpes acertarem a mesma criatura, o dano se combina para resistências e fraquezas' : null,
+        stunning ? stunningBlowsNote(classDc(build)) : null,
         devising ? `Devise a Stratagem (fortune): o d20 é o do estratagema${plan.stratagem ? `; Strategic Strike ${plan.stratagem.dice}d6 de precisão` : ''}` : null,
         devising && opts.extrasOn[KNOWN_WEAKNESSES_KEY] === true ? 'Known Weaknesses: Recall Knowledge antes do d20 — no crítico, aliados têm +1 de circunstância no ataque contra o alvo até o próximo turno' : null,
         devising && opts.extrasOn[SHARED_STRATAGEM_KEY] === true ? 'Shared Stratagem: se acertar, o alvo fica desprevenido para o próximo ataque de um aliado, até o próximo turno' : null,
@@ -694,6 +717,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
     const specOn = specActive(strike, mods, opts.extrasOn)
 
     const sub = [
+        flurrying ? 'Flurry of Blows' : null,
         mapLabel(opts.map, traits.agile),
         profile > 0 && rules ? rules.profiles[profile - 1].when : null,
         opts.mode === 'thrown' ? 'arremesso' : null,
@@ -763,7 +787,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
 
                     <Box>
                         <Chip
-                            label="É uma reação (Reactive Strike)"
+                            label="É uma reação (Reactive Strike, Stand Still…)"
                             color={asReaction ? 'primary' : 'default'}
                             variant={asReaction ? 'filled' : 'outlined'}
                             onClick={() => setAsReaction(!asReaction)}
@@ -926,6 +950,73 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                             </Typography>
                         </Box>
                     )}
+                    {(flurryOk.ok || flurryOk.reason) && (
+                        <Box>
+                            <Chip
+                                label="Flurry of Blows · 1 ação · 2 Golpes"
+                                color={flurrying ? 'primary' : 'default'}
+                                variant={flurrying ? 'filled' : 'outlined'}
+                                disabled={!flurryOk.ok}
+                                onClick={() => toggleExtra(FLURRY_KEY, !flurrying)}
+                                aria-pressed={flurrying}
+                                sx={{ minHeight: 32 }}
+                            />
+                            {flurryOk.reason && (
+                                <Typography variant="caption" color="warning.main" sx={{ display: 'block', mt: 0.5 }}>{flurryOk.reason}</Typography>
+                            )}
+                            {flurrying && (
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                    Os dois Golpes saem juntos; o 2º já leva a penalidade de ataques múltiplos de um degrau acima. É flourish: uma vez por turno.
+                                    {stanceOn && !strike.unarmed ? ' Com arco, vale dentro de metade do incremento de distância.' : ''}
+                                </Typography>
+                            )}
+                            {flurrying && hasStunningBlows(build) && (
+                                <Chip
+                                    label={`Stunning Blows · mesma criatura (CD ${classDc(build)})`}
+                                    color={stunning ? 'primary' : 'default'}
+                                    variant={stunning ? 'filled' : 'outlined'}
+                                    onClick={() => toggleExtra(STUNNING_KEY, !stunning)}
+                                    aria-pressed={stunning}
+                                    size="small"
+                                    sx={{ mt: 0.75, minHeight: 28 }}
+                                />
+                            )}
+                        </Box>
+                    )}
+                    {kiAvailable && (
+                        <Box>
+                            <Chip
+                                label={`Ki Strike / Inner Upheaval · 1 ponto de foco · +1 ataque · +${kiStrikeDice(build.level)}d6`}
+                                color={kiOn ? 'primary' : 'default'}
+                                variant={kiOn ? 'filled' : 'outlined'}
+                                onClick={() => toggleExtra(KI_KEY, !kiOn)}
+                                aria-pressed={kiOn}
+                                sx={{ minHeight: 32, height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal' } }}
+                            />
+                            {kiOn && (
+                                <ToggleButtonGroup
+                                    exclusive
+                                    size="small"
+                                    fullWidth
+                                    value={kiTypeOf(opts.extrasOn)}
+                                    onChange={(_, v) => {
+                                        if (!v) return
+                                        const extrasOn = { ...opts.extrasOn }
+                                        KI_TYPES.forEach((t) => { extrasOn[kiTypeKey(t)] = t === v })
+                                        setOpts({ ...opts, extrasOn })
+                                    }}
+                                    sx={{ mt: 0.75 }}
+                                >
+                                    {KI_TYPES.map((t) => <ToggleButton key={t} value={t}>{KI_TYPE_LABEL[t]}</ToggleButton>)}
+                                </ToggleButtonGroup>
+                            )}
+                            <Typography variant="caption" color={kiOn && focusLeft === 0 ? 'warning.main' : 'text.secondary'} sx={{ display: 'block', mt: 0.5 }}>
+                                {kiOn && focusLeft === 0
+                                    ? 'Sem Pontos de Foco: dá para rolar mesmo assim.'
+                                    : `A ação é a do próprio Golpe ou Flurry. Gasta 1 Ponto de Foco (${focusLeft} restante${focusLeft === 1 ? '' : 's'}); o tipo do dano extra é à escolha a cada Golpe.`}
+                            </Typography>
+                        </Box>
+                    )}
                     {hasExactingStrike(build) && (
                         <Box>
                             <Chip
@@ -1084,6 +1175,28 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                     {plan.warnings.map((w) => <Alert key={w} severity="warning" sx={{ py: 0 }}>{w}</Alert>)}
                     {loading && <Typography variant="caption" color="text.secondary">Buscando os traços da arma no AON…</Typography>}
                     <SituationalNotes mods={mods} />
+                    {stanceOn && strike.unarmed && (
+                        <Alert severity="warning" sx={{ py: 0 }}>Na Monastic Archer Stance os únicos Golpes possíveis são os de arco: desligue a postura na faixa do Monge para atacar desarmado.</Alert>
+                    )}
+                    {perfectStrikeApplies(build, strike) && (
+                        <Box>
+                            <Button
+                                size="small"
+                                variant="outlined"
+                                onClick={() => {
+                                    actions.spendReaction()
+                                    monkSlots.spendFocus()
+                                    send(checkRoll(who, `Perfect Strike — ${strike.name}`, plan.attackParts, null, 'rerrola o ataque que errou (fortuna): vale o novo resultado'), false)
+                                }}
+                            >
+                                Perfect Strike · rerrolar o ataque que errou (reação + 1 ponto de foco)
+                            </Button>
+                            <Typography variant="caption" color={focusLeft === 0 || actions.stored.reacted ? 'warning.main' : 'text.secondary'} sx={{ display: 'block', mt: 0.5 }}>
+                                {focusLeft === 0 ? 'Sem Pontos de Foco. ' : ''}{actions.stored.reacted ? 'A reação desta rodada já foi usada. ' : ''}
+                                Rola o ataque de novo com a mesma conta acima (MAP incluído) e vale o novo resultado. O dano é rolado à parte, se acertar.
+                            </Typography>
+                        </Box>
+                    )}
 
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
                         <AdjustField label="Ajuste no ataque" value={opts.attackAdjust} onChange={(n) => setOpts({ ...opts, attackAdjust: n })} />
@@ -1109,6 +1222,11 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                     const noted = (r: TableRoll): TableRoll => {
                         const poisoned = simplePoison && poisonUsed ? withSimplePoison(r, simpleDice) : r
                         return rollNote ? { ...poisoned, note: rollNote } : poisoned
+                    }
+                    if (kiOn) monkSlots.spendFocus()
+                    if (flurrying && secondPlan) {
+                        send(noted(flurryRoll(who, strike, [plan, secondPlan], sub)), false)
+                        return
                     }
                     if (!spellstriking || !ss.option || !ss.spell) {
                         send(noted(strikeRoll(who, strike, plan, mythicDelta, sub)), mythic)

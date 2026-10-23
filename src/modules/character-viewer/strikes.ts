@@ -34,6 +34,7 @@ import { meleeBonusParts } from './rage'
 import { fearsomeBruteBonus, hasFearsomeBrute } from './fighter'
 import { FIRST_STRIKE_KEY, HUNTERS_AIM_KEY, gravityBonus, hasHuntersAim } from './ranger'
 import { relicGift, relicWeaponName } from './relics'
+import { KI_KEY, kiStrikeApplies, kiStrikeDice, kiTypeOf } from './monk'
 import { hasStrategicStrike, stratagemOn, stratagemQualifies, strategicStrikeDice } from './investigator'
 import type { UnarmedAttack } from './unarmed'
 import type { MagicWeaponRules } from './magicWeapons'
@@ -150,9 +151,20 @@ export interface Strike {
     critEffects: CritEffect[]
     /** Especialização crítica do grupo e de onde a ficha a tira; `null` = a ficha não a tem. */
     spec: { effect: CritEffect; source: SpecSource } | null
+    /** Ataque desarmado (o punho, ou a arma que o Pathbuilder marca `unarmed`): o Flurry of Blows e o Perfect Strike pedem isso. */
+    unarmed?: boolean
+    /** Grupo da arma na AON ("Bow", "Brawling"). */
+    group?: string | null
 }
 
 const B_P_S: Record<string, string> = { B: 'contundente', P: 'perfurante', S: 'cortante' }
+
+/** "P" → perfurante; "B, P or S" (ataque à escolha do dano, como o do Monge) → os três tipos. */
+function damageTypeOf(raw: string | undefined): string {
+    const text = (raw || '').trim()
+    if (/^[bps]\s*(,|or|ou)\s*[bps]/i.test(text)) return 'contundente, perfurante ou cortante'
+    return B_P_S[text.toUpperCase()] ?? translateDamageType(text)
+}
 
 /**
  * Rank de proficiência que o ataque da ficha de fato usa. O Pathbuilder exporta
@@ -206,7 +218,7 @@ export function weaponStrike(
         profRank: weaponRank(build, w, baseAbility),
         weaponDice: { count: strikingDice(striking), faces: parseInt(die, 10) || 4 },
         damageFlat: w.damageBonus || 0,
-        damageType: B_P_S[(w.damageType || '').toUpperCase()] ?? translateDamageType(w.damageType || ''),
+        damageType: damageTypeOf(w.damageType),
         extras: [
             ...parseExtraDamage(w.extraDamage),
             ...parseExtraDamage(profile?.extraDamage, true, w.extraDamage?.length ?? 0),
@@ -214,12 +226,16 @@ export function weaponStrike(
         traits,
         critEffects: runeCritEffects(w.runes),
         spec: effect && source ? { effect, source } : null,
+        unarmed: (w.prof || '').toLowerCase() === 'unarmed',
+        group: gear?.group ?? null,
     }
 }
 
 /** Desarmado → Golpe. Os traços são da tabela de `unarmed.ts`, então são conhecidos. */
 export function unarmedStrike(build: BuildInfo, u: UnarmedAttack): Strike {
     const expr = parseDiceExpr(u.damage) ?? { groups: [{ count: 1, faces: 4 }], flat: 0 }
+    const brawling = specCritEffect('Brawling', 0)
+    const brawlingSource = brawling ? specSourceFor(build, { group: 'Brawling', ranged: false, thrown: false, agile: u.agile, finesse: u.finesse }) : null
     return {
         key: `u:${u.en}`,
         name: u.name,
@@ -232,7 +248,10 @@ export function unarmedStrike(build: BuildInfo, u: UnarmedAttack): Strike {
         extras: parseExtraDamage(u.extraDamage),
         traits: { ...UNKNOWN_TRAITS, agile: u.agile, finesse: u.finesse, known: true },
         critEffects: [],
-        spec: null,
+        // Todo ataque desarmado da tabela é do grupo brawling: o Monge perito (Expert Strikes) ganha a especialização.
+        spec: brawling && brawlingSource ? { effect: brawling, source: brawlingSource } : null,
+        unarmed: true,
+        group: 'Brawling',
     }
 }
 
@@ -318,6 +337,20 @@ function dragonStrikeExtras(on: boolean): ExtraDamage[] {
         expr: { groups: [{ count: 1, faces: 6 }], flat: 0 },
         text: '1d6 slashing',
         type: 'slashing',
+        precision: false,
+        persistent: false,
+        defaultOn: true,
+    }]
+}
+
+/** Ki Strike: +Nd6 do tipo escolhido (força, espírito, vitalidade ou vazio), dobrado no crítico como todo dano rolado. */
+function kiStrikeExtras(ki: { dice: number; type: string } | null): ExtraDamage[] {
+    if (!ki) return []
+    return [{
+        key: 'ki-strike',
+        expr: { groups: [{ count: ki.dice, faces: 6 }], flat: 0 },
+        text: `${ki.dice}d6 ${ki.type}`,
+        type: ki.type,
         precision: false,
         persistent: false,
         defaultOn: true,
@@ -416,6 +449,9 @@ export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers
     if (huntersAimApplies(build, s, opts) && opts.extrasOn[HUNTERS_AIM_KEY] === true) {
         attackParts.push({ label: "Hunter's Aim (circunstância)", value: 2, kind: 'other' })
     }
+    // Ki Strike / Inner Upheaval: +1 de status no ataque.
+    const ki = kiStrikeApplies(build, s) && opts.extrasOn[KI_KEY] === true
+    if (ki) attackParts.push({ label: 'Ki Strike (estado)', value: 1, kind: 'other' })
     if (map) attackParts.push({ label: `${opts.map + 1}º ataque${traits.agile ? ' (ágil)' : ''}`, value: map, kind: 'map' })
     if (opts.attackAdjust) attackParts.push({ label: 'Ajuste', value: opts.attackAdjust, kind: 'other' })
     const attackTotal = attackParts.reduce((sum, p) => sum + p.value, 0)
@@ -461,6 +497,7 @@ export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers
             ...cascadeExtras(mods, traits.ranged || opts.mode === 'thrown'),
             ...strategicStrikeExtras(stratagem),
             ...dragonStrikeExtras(dragonStrikeApplies(build, s, opts) && opts.extrasOn[DRAGON_STRIKE_KEY] === true),
+            ...kiStrikeExtras(ki ? { dice: kiStrikeDice(build.level), type: kiTypeOf(opts.extrasOn) } : null),
         ],
         deadly,
         fatal: traits.fatal,

@@ -644,6 +644,8 @@ const DAMAGE_TYPES: Record<string, string> = {
 }
 
 function damageTypeLabel(type: string): string {
+    // "B, P or S": ataque com o tipo de dano à escolha de quem bate (o desarmado do Monge).
+    if (/^[bps]\s*(,|or|ou)\s*[bps]/i.test((type || '').trim())) return 'contundente, perfurante ou cortante'
     return DAMAGE_TYPES[(type || '').toUpperCase()] ?? type
 }
 

@@ -11,6 +11,7 @@ import {
     Stack,
     Divider,
     Tooltip,
+    Alert,
 } from '@mui/material'
 import {
     Close as CloseIcon,
@@ -32,6 +33,7 @@ import type { FeatDescription, SpellDescription } from '../../../pathbuilder/typ
 import { actionSymbol, getAonSearchUrl, signed, traditionColor } from '../helpers'
 import { parseDescription, type DescriptionPart, type HeightenedEntry } from '../format-description'
 import { StaffSpellList } from './StaffSpellList'
+import { isStrikeFocusSpell } from '../monk'
 import type { RollRequest } from './RollDialog'
 import type { SpellAttackInfo } from '../rolls'
 import type { CastResource } from '../spellCast'
@@ -595,6 +597,15 @@ const SpellRollButton = ({ spell, caster, castRank, name, cast, onRoll }: {
     cast?: CastResource
     onRoll: (req: RollRequest) => void
 }) => {
+    // Ki Strike, Inner Upheaval e Perfect Strike vivem no diálogo do Golpe: lá o gasto do ponto de foco, o +1 de
+    // ataque, o dano extra e a reação saem juntos, e um "Conjurar" aqui cobraria tudo em dobro.
+    if (isStrikeFocusSpell(name)) {
+        return (
+            <Alert severity="info" sx={{ mb: 2 }}>
+                Esta magia se usa no diálogo do Golpe (aba Combate, "Rolar" no ataque desarmado): o chip dela gasta o Ponto de Foco e soma o que a magia dá.
+            </Alert>
+        )
+    }
     const hasAttack = !!caster?.attackInfo && (spell.traits ?? []).some((t) => t.toLowerCase() === 'attack')
     const scaled = castRank != null ? scaleSpell(spell, castRank) : null
     const hasDamage = !!scaled && damageComponents(scaled).length > 0

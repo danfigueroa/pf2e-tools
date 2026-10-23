@@ -127,6 +127,25 @@ export function scrapShotRoll(who: RollerIdentity, title: string, attackParts: C
     }
 }
 
+/**
+ * Flurry of Blows: dois Golpes numa rolagem só (um bloco por Golpe, cada um com o d20 e o dano), no
+ * formato `rays`. O 2º plano já vem com o MAP um degrau acima. A mesa vê o total dos dois no fim.
+ */
+export function flurryRoll(who: RollerIdentity, strike: Strike, plans: [StrikePlan, StrikePlan], sub?: string, note?: string): TableRoll {
+    const rays = plans.map((plan) => {
+        const dmg = rollStrikeDamage(plan, strike.damageType)
+        return {
+            check: d20Check(plan.attackParts, false),
+            damage: {
+                parts: dmg.parts.map((p) => toPart(p.label, p.rolled, p.persistent)),
+                total: dmg.total,
+                crit: { total: dmg.crit.total, note: dmg.crit.note },
+            },
+        }
+    })
+    return { ...base(who, `Flurry of Blows — ${strike.name}`, sub), rays, ...(note ? { note } : {}) }
+}
+
 /** Uma cura que é ação do personagem (Searing Restoration, Healer's Touch): dados rolados, sem teste de d20. */
 export function healRoll(who: RollerIdentity, title: string, label: string, rolled: RolledExpr, sub?: string, note?: string): TableRoll {
     return { ...base(who, title, sub), free: toPart(label, rolled), ...(note ? { note } : {}) }

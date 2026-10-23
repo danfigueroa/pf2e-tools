@@ -84,6 +84,9 @@ export const ROGUE_COLOR = '#6A3F7A'
 /** Hunt Prey e Gravity Weapon (a faixa do Patrulheiro). Verde-floresta; 6,5:1 sobre `parchment.paper`. */
 export const RANGER_COLOR = '#3A6B35'
 
+/** A faixa do Monge (postura, Flurry, Ki Strike). Bronze; 5,0:1 sobre `parchment.paper`. */
+export const MONK_COLOR = '#8A5A1E'
+
 /** Investigações e estratagemas da faixa do Investigador. Verde-azulado; 5,9:1 sobre `parchment.paper`. */
 export const INVESTIGATOR_COLOR = '#1F6A73'
 

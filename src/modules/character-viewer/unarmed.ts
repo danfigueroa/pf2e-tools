@@ -173,6 +173,21 @@ function collectGrants(build: BuildInfo): Grant[] {
     return grants
 }
 
+const hasSpecial = (b: BuildInfo, name: string) => (b.specials ?? []).some((s) => s.trim().toLowerCase() === name.toLowerCase())
+
+/**
+ * Weapon Specialization (Player Core): dano a mais com armas e ataques desarmados em que o personagem é
+ * perito (+2), mestre (+3) ou lendário (+4); a Greater Weapon Specialization dobra (4, 6, 8). O Pathbuilder já
+ * soma isso nas ARMAS (`damageBonus`), mas não existe ataque desarmado no export — a conta é daqui.
+ */
+export function weaponSpecializationBonus(build: BuildInfo, rank: number): number {
+    if (rank < 4) return 0
+    const greater = hasSpecial(build, 'Greater Weapon Specialization')
+    if (!greater && !hasSpecial(build, 'Weapon Specialization')) return 0
+    const step = rank >= 8 ? 2 : rank >= 6 ? 1 : 0
+    return (greater ? [4, 6, 8] : [2, 3, 4])[step]
+}
+
 /** Ataques desarmados do personagem, com ataque e dano já calculados. */
 export function unarmedAttacks(build: BuildInfo): UnarmedAttack[] {
     const runes = handwrapRunes(build)
@@ -181,6 +196,9 @@ export function unarmedAttacks(build: BuildInfo): UnarmedAttack[] {
     const profBonus = build.proficiencies?.unarmed ?? 0
     // Destreinado não soma o nível (PF2e Remaster).
     const profMod = profBonus > 0 ? build.level + profBonus : 0
+    const specBonus = weaponSpecializationBonus(build, profBonus)
+    // Powerful Fist (Monge, Player Core 2 pg. 114): o punho passa de 1d4 para 1d6.
+    const powerfulFist = hasSpecial(build, 'Powerful Fist')
 
     return collectGrants(build).map((grant, idx) => {
         const b = grant.base
@@ -190,8 +208,10 @@ export function unarmedAttacks(build: BuildInfo): UnarmedAttack[] {
         // a corpo continua sendo Força.
         const usesDex = finesse && dexMod > strMod
         const attackMod = usesDex ? dexMod : strMod
-        const dice = `${strikingDice(runes.striking)}${b.die}`
-        const damage = strMod === 0 ? dice : `${dice}${strMod > 0 ? '+' : ''}${strMod}`
+        const die = powerfulFist && b.en === 'Fist' ? 'd6' : b.die
+        const dice = `${strikingDice(runes.striking)}${die}`
+        const flat = strMod + specBonus
+        const damage = flat === 0 ? dice : `${dice}${flat > 0 ? '+' : ''}${flat}`
 
         return {
             id: `${b.en}-${idx}`,

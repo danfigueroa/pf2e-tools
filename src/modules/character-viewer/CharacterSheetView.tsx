@@ -71,6 +71,8 @@ import { DiceBar } from './components/DiceBar'
 import { useActions } from './components/useActions'
 import { RangerBar } from './components/RangerBar'
 import { InvestigatorBar } from './components/InvestigatorBar'
+import { MonkBar } from './components/MonkBar'
+import { hasMonasticArcherStance } from './monk'
 import { useInvestigator } from './components/useInvestigator'
 import { hasInvestigatorFeatures } from './investigator'
 import { useRanger } from './components/useRanger'
@@ -376,6 +378,7 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
             {psyche.has && <PsycheBar psyche={psyche} />}
             {hasRangerFeatures(build) && <RangerBar build={build} ranger={ranger} mods={mods} />}
             {hasInvestigatorFeatures(build) && <InvestigatorBar build={build} investigator={investigator} mods={mods} />}
+            {hasMonasticArcherStance(build) && <MonkBar build={build} mods={mods} />}
             {hasMagusFeatures(build) && (
                 <MagusBar build={build} magus={magus} mythicPoints={mythicPoints} conditions={conditions} />
             )}

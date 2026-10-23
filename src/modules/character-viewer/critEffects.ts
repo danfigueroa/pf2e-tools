@@ -72,6 +72,13 @@ export function runeCritEffects(runes: string[] | undefined): CritEffect[] {
             case 'shock':
                 out.push({ key, source: 'rune', label: 'Shock', mirrors: 'electricity' })
                 break
+            case 'decaying':
+                // GM Core pg. 237: no crítico, 2d4 de vazio persistente (4d4 na Greater); com escudo erguido, ele toma o mesmo.
+                out.push({
+                    key, source: 'rune', label: 'Decaying',
+                    damage: { expr: dice(greater ? '4d4' : '2d4'), type: 'void', persistent: true, to: 'target' },
+                })
+                break
             case 'frost':
                 out.push({ key, source: 'rune', label: 'Frost', note: `Fortitude CD ${dc} ou lento 1 até o fim do seu próximo turno` })
                 break
@@ -160,6 +167,9 @@ export function specSourceFor(
     }
     if (cls === 'barbarian' && has('Brutality') && !ctx.ranged && !ctx.thrown) {
         return { kind: 'raging', reason: 'Brutality, em Fúria' }
+    }
+    if (cls === 'monk' && has('Expert Strikes') && group === 'brawling') {
+        return { kind: 'always', reason: 'Expert Strikes (ataque desarmado do grupo brawling)' }
     }
     if (cls === 'ranger' && has('Ranger Weapon Expertise')) {
         return { kind: 'prey', reason: 'Ranger Weapon Expertise, contra a presa caçada' }
