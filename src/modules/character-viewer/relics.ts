@@ -57,6 +57,8 @@ export interface RelicGift {
     description?: string
     activation?: RelicActivation
     rune?: RelicRune
+    /** Dádiva com caminho próprio no app (rola ataque e dano, ou muda o Golpe): o botão genérico não cobra. */
+    special?: 'scrap-shot' | 'dragon-strike'
 }
 
 export type RelicBase =
@@ -75,10 +77,67 @@ export interface RelicEntry {
     gifts: RelicGift[]
 }
 
-/** As relíquias do grupo. Cada uma entra quando o jogador informa o que ela é e que dádivas tem. */
-export const RELICS: RelicEntry[] = []
+/**
+ * As relíquias do grupo. Cada uma entra quando o jogador informa o que ela é e que dádivas tem.
+ *
+ * **Miranda's Arm** (3rd party, texto passado pelo jogador — não está na AON): o braço da Miranda,
+ * que é também o "Braço Sônico" da ficha. As runas dele (+1 striking, Shock) já vêm no export do
+ * Pathbuilder e ficam como estão. O texto original NÃO traz o ícone de ações das duas ativações:
+ * o custo abaixo (1 ação) é suposição a confirmar com o mestre, e o app só conta — nunca trava.
+ */
+export const RELICS: RelicEntry[] = [
+    {
+        id: 'miranda-arm',
+        character: nameStarts('miranda'),
+        name: "Miranda's Arm",
+        on: { kind: 'weapon', weapon: 'Braço Sônico' },
+        aspects: ['Terceiros', 'Mágica'],
+        description: "O braço da Miranda, que também é o Braço Sônico da ficha. As runas dele continuam: +1 de potência, striking e Shock (já no ataque da aba Combate). O nível da relíquia é o dela.",
+        gifts: [
+            {
+                id: 'scrap-shot',
+                name: 'Scrap Shot',
+                tier: 'minor',
+                kind: 'power',
+                minLevel: 1,
+                special: 'scrap-shot',
+                activation: { cost: 1 },
+                description: 'Ativar (concentrar, manipular). Repulsão magnética lança um pedaço afiado de sucata da relíquia. Faça um ataque de magia com a relíquia contra um alvo a até 9 m. O pedaço causa 1d6 de dano perfurante para cada 2 níveis da relíquia (mínimo 1d6). Se o alvo veste armadura de metal ou é feito de metal, você ganha +1 de circunstância no ataque e o alvo fica desajeitado 1 até o início do seu próximo turno, porque a sucata gruda nele. Se a relíquia é de metal precioso, o disparo também é desse metal (ou revestido dele) e ignora resistências e afins. A sucata que sobra enferruja ou se desfaz rápido e não vale nada se vendida.',
+            },
+            {
+                id: 'dragon-strike',
+                name: 'Dragon Strike',
+                tier: 'minor',
+                kind: 'power',
+                minLevel: 1,
+                special: 'dragon-strike',
+                activation: { cost: 1, frequency: 'uma vez por hora (a cada 10 minutos a partir do 11º nível)', limited: true },
+                description: 'Ativar (comando); frequência: uma vez por hora. Imagens fantasmagóricas de garras de dragão se formam em volta das suas mãos e ficam no ar quando você ataca. Por 1 minuto, quando você acerta um Golpe corpo a corpo desarmado, causa 1d6 de dano cortante adicional. A partir do 11º nível, uma vez a cada 10 minutos.',
+            },
+        ],
+    },
+]
 
 export { nameStarts }
+
+/** A dádiva liberada de uma relíquia do personagem, pelo `special` ou pelo id. */
+export function relicGift(build: BuildInfo, special: NonNullable<RelicGift['special']>, catalog: RelicEntry[] = RELICS): RelicGift | null {
+    const level = relicLevel(build)
+    for (const relic of relicsOf(build, catalog)) {
+        const idx = relic.gifts.findIndex((g) => g.special === special)
+        if (idx >= 0 && giftUnlocked(relic.gifts[idx], idx, level)) return relic.gifts[idx]
+    }
+    return null
+}
+
+/** O nome da arma da ficha em que a relíquia mora (o braço), se ela mora numa arma. */
+export function relicWeaponName(build: BuildInfo, catalog: RelicEntry[] = RELICS): string | null {
+    const on = relicsOf(build, catalog).map((r) => r.on).find((o) => o?.kind === 'weapon')
+    return on?.kind === 'weapon' ? on.weapon : null
+}
+
+/** Scrap Shot: 1d6 para cada 2 níveis da relíquia (o do dono), no mínimo 1d6. */
+export const scrapShotDice = (level: number): number => Math.max(1, Math.floor(level / 2))
 
 /** O nível da relíquia é sempre o do dono. */
 export const relicLevel = (build: BuildInfo): number => build.level

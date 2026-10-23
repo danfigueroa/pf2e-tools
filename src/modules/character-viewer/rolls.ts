@@ -108,6 +108,25 @@ export function checkRoll(
     return { ...base(who, title, sub), check: d20Check(all, mythicDelta != null), ...(initiative ? { initiative: true as const } : {}) }
 }
 
+/**
+ * Scrap Shot (Miranda's Arm): ataque de magia com a relíquia + `dice`d6 perfurante. Dobra no crítico,
+ * como todo dano rolado. `attackParts` já leva o ataque de magia, o +1 contra metal e o MAP.
+ */
+export function scrapShotRoll(who: RollerIdentity, title: string, attackParts: CheckPart[], dice: number, sub?: string, note?: string): TableRoll {
+    const rolled = rollGroups([{ count: dice, faces: 6 }], 0)
+    const total = Math.max(1, rolled.total)
+    return {
+        ...base(who, title, sub),
+        check: d20Check(attackParts, false),
+        damage: {
+            parts: [toPart('perfurante', rolled)],
+            total,
+            crit: { total: 2 * total, note: `2 × ${total} = ${2 * total}` },
+        },
+        ...(note ? { note } : {}),
+    }
+}
+
 /** Uma cura que é ação do personagem (Searing Restoration, Healer's Touch): dados rolados, sem teste de d20. */
 export function healRoll(who: RollerIdentity, title: string, label: string, rolled: RolledExpr, sub?: string, note?: string): TableRoll {
     return { ...base(who, title, sub), free: toPart(label, rolled), ...(note ? { note } : {}) }

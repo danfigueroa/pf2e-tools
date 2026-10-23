@@ -7,6 +7,7 @@ import {
     type RelicEntry, type RelicGift, type RelicTier,
 } from '../relics'
 import { ActivityBody } from './ActivityButton'
+import { ScrapShotButton } from './ScrapShotButton'
 import type { DescriptionRequest } from './DescriptionDrawer'
 import type { MythicPointsApi } from './useMythicPoints'
 
@@ -61,7 +62,8 @@ const Gift = ({ relic, gift, index, build, mods, mythicPoints, onSelect }: Props
                         Ver descrição
                     </Button>
                 )}
-                {info && (
+                {info && gift.special === 'scrap-shot' && <ScrapShotButton build={build} mods={mods} relic={relic} gift={gift} />}
+                {info && gift.special !== 'scrap-shot' && (
                     <ActivityBody
                         build={build}
                         mods={mods}
