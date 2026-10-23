@@ -18,7 +18,7 @@ import { rollDie, rollGroups, type RolledExpr } from '../../dice/roll'
 import { newRollId, type RolledPart, type TableRoll } from '../../dice/tableRoll'
 import { rollStrikeDamage, type Strike, type StrikePlan } from './strikes'
 import { componentLabel, type ScaledComponent } from './heightening'
-import { DEGREE_LABEL, treatWoundsOutcome, type Degree, type TreatVariant, type TreatWoundsOption } from './treatWounds'
+import { DEGREE_LABEL, GODLESS_HEALING_BONUS, treatWoundsOutcome, type Degree, type TreatVariant, type TreatWoundsOption } from './treatWounds'
 
 /** Quem rola: o nome curto da mesa, o slug e a cor dos dados. */
 export interface RollerIdentity {
@@ -356,7 +356,13 @@ export function treatWoundsRoll(
             rolled.flat = 2 * out.flat + sumDice
             rolled.total = 2 * sumDice + 2 * out.flat
         }
-        roll.free = toPart(out.dice.heals ? (out.doubled ? 'Cura em dobro (1 h)' : 'Cura') : 'Dano', rolled)
+        const godless = !!variant.godless && out.dice.heals
+        if (godless) {
+            // O +5 entra no fixo da mesma parcela: dados + fixo = total, como o servidor confere.
+            rolled.flat += GODLESS_HEALING_BONUS
+            rolled.total += GODLESS_HEALING_BONUS
+        }
+        roll.free = toPart(out.dice.heals ? `${out.doubled ? 'Cura em dobro (1 h)' : 'Cura'}${godless ? ' + Godless Healing' : ''}` : 'Dano', rolled)
         delta = out.dice.heals ? rolled.total : -rolled.total
     }
     let selfDamage = 0
@@ -368,7 +374,7 @@ export function treatWoundsRoll(
     roll.note = [
         DEGREE_LABEL[out.degree] + (delta === 0 ? ' — nenhuma cura' : ''),
         out.removesWounded ? 'tira Ferido' : null,
-        battle ? 'Alvo imune ao seu Battle Medicine por 1 dia' : 'Alvo imune a Tratar Ferimentos por 1 hora',
+        battle ? (variant.godless ? 'Imune ao Battle Medicine por 1 hora (Godless Healing)' : 'Alvo imune ao seu Battle Medicine por 1 dia') : 'Alvo imune a Tratar Ferimentos por 1 hora',
     ].filter(Boolean).join('. ') + '.'
     return { roll, degree: out.degree, delta, selfDamage, removesWounded: out.removesWounded }
 }

@@ -33,6 +33,7 @@ import type { ConditionModifiers } from './conditions'
 import { meleeBonusParts } from './rage'
 import { fearsomeBruteBonus, hasFearsomeBrute } from './fighter'
 import { FIRST_STRIKE_KEY, HUNTERS_AIM_KEY, gravityBonus, hasHuntersAim } from './ranger'
+import { hasStrategicStrike, stratagemOn, stratagemQualifies, strategicStrikeDice } from './investigator'
 import type { UnarmedAttack } from './unarmed'
 import type { MagicWeaponRules } from './magicWeapons'
 import { runeCritEffects, specCritEffect, specSourceFor, type CritEffect, type SpecSource } from './critEffects'
@@ -294,6 +295,20 @@ function cascadeExtras(mods: ConditionModifiers, ranged: boolean): ExtraDamage[]
     }]
 }
 
+/** Strategic Strike: precisão sempre ligada (o estratagema É a escolha), dobrada no crítico. */
+function strategicStrikeExtras(stratagem: { dice: number } | null): ExtraDamage[] {
+    if (!stratagem) return []
+    return [{
+        key: 'strategic-strike',
+        expr: { groups: [{ count: stratagem.dice, faces: 6 }], flat: 0 },
+        text: `${stratagem.dice}d6 precision`,
+        type: 'precision',
+        precision: true,
+        persistent: false,
+        defaultOn: true,
+    }]
+}
+
 /** A conta do Golpe antes de rolar: o que a prévia mostra e o que a rolagem usa. */
 export interface StrikePlan {
     ability: 'str' | 'dex'
@@ -311,6 +326,8 @@ export interface StrikePlan {
     /** Runas e a especialização ligada; o que não está ligado fica de fora. */
     critEffects: CritEffect[]
     warnings: string[]
+    /** Estratagema de ataque (Investigador): o Golpe soma INT e leva o Strategic Strike. */
+    stratagem: { dice: number } | null
 }
 
 /** Gravity Weapon vale em Golpe com arma (não desarmado) enquanto ativa. */
@@ -339,15 +356,34 @@ export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers
     }
     if (!traits.known) warnings.push('Traços da arma não encontrados no AON: rolando como corpo a corpo, sem ágil e sem deadly/fatal.')
 
+    // Devise a Stratagem (ataque): com arma que pode somar INT, vale INT no lugar de FOR/DES.
+    // Strategic Strike vem junto, mesmo que INT e DES empatem — a regra é "somar INT por causa do estratagema".
+    const devising = stratagemOn(build, opts.extrasOn)
+    const stratagemInt = devising && stratagemQualifies(traits)
+    if (devising && !stratagemInt) {
+        warnings.push(traits.known
+            ? 'Devise a Stratagem: esta arma não é ágil nem de acuidade (e não é à distância), então não soma INT nem leva o Strategic Strike. O d20 do estratagema vale do mesmo jeito.'
+            : 'Devise a Stratagem: sem os traços da arma não dá para saber se ela soma INT. Se somar, use o ajuste no ataque e acrescente o Strategic Strike à mão.')
+    }
+
     const attackParts: CheckPart[] = [{ label: 'Ficha', value: s.attack, kind: 'base' }]
-    if (ability !== s.baseAbility) {
+    if (stratagemInt) {
         attackParts.push({
-            label: `${ABILITY_LABELS[ability]} em vez de ${ABILITY_LABELS[s.baseAbility]}`,
-            value: modOf(ability) - modOf(s.baseAbility),
+            label: `${ABILITY_LABELS.int} em vez de ${ABILITY_LABELS[s.baseAbility]} (estratagema)`,
+            value: abilityMod(build.abilities.int) - modOf(s.baseAbility),
             kind: 'ability',
         })
+        attackParts.push(...conditionParts(mods, 'skillInt'))
+    } else {
+        if (ability !== s.baseAbility) {
+            attackParts.push({
+                label: `${ABILITY_LABELS[ability]} em vez de ${ABILITY_LABELS[s.baseAbility]}`,
+                value: modOf(ability) - modOf(s.baseAbility),
+                kind: 'ability',
+            })
+        }
+        attackParts.push(...conditionParts(mods, ability === 'str' ? 'attackStr' : 'attackDex'))
     }
-    attackParts.push(...conditionParts(mods, ability === 'str' ? 'attackStr' : 'attackDex'))
     const map = mapPenalty(traits.agile, opts.map)
     // Hunter's Aim: Golpe à distância contra a presa (2 ações), escolha do jogador.
     if (huntersAimApplies(build, s, opts) && opts.extrasOn[HUNTERS_AIM_KEY] === true) {
@@ -379,6 +415,8 @@ export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers
     if (opts.damageAdjust) damageParts.push({ label: 'Ajuste', value: opts.damageAdjust, kind: 'other' })
     const flat = damageParts.reduce((sum, p) => sum + p.value, 0)
 
+    const stratagem = stratagemInt && hasStrategicStrike(build) ? { dice: strategicStrikeDice(build.level) } : null
+
     // Deadly: 1 dado; 2 com greater striking (3 dados de arma), 3 com major (4).
     const deadly = traits.deadly
         ? { count: Math.max(1, s.weaponDice.count - 1), faces: traits.deadly }
@@ -394,11 +432,13 @@ export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers
         extras: [
             ...s.extras.filter((e) => extraEnabled(e, opts.extrasOn, mods)),
             ...cascadeExtras(mods, traits.ranged || opts.mode === 'thrown'),
+            ...strategicStrikeExtras(stratagem),
         ],
         deadly,
         fatal: traits.fatal,
         critEffects: [...s.critEffects, ...(specActive(s, mods, opts.extrasOn) ? [s.spec!.effect] : [])],
         warnings,
+        stratagem,
     }
 }
 

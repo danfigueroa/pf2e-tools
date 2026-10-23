@@ -33,6 +33,10 @@ const hasFeat = (b: BuildInfo, name: string) =>
 export const hasBattleMedicine = (b: BuildInfo) => hasFeat(b, 'battle medicine')
 export const hasRiskySurgery = (b: BuildInfo) => hasFeat(b, 'risky surgery')
 export const hasContinualRecovery = (b: BuildInfo) => hasFeat(b, 'continual recovery')
+/** Godless Healing: +5 PV quando a cura (Tratar Ferimentos ou Battle Medicine) é EM VOCÊ; o Battle Medicine em você só imuniza por 1 hora. */
+export const hasGodlessHealing = (b: BuildInfo) => hasFeat(b, 'godless healing')
+/** O PV a mais do Godless Healing. */
+export const GODLESS_HEALING_BONUS = 5
 
 /** Quantas ações o modo custa: Battle Medicine 1, Tratar Ferimentos nenhuma (são 10 minutos). */
 export const healActionCost = (mode: HealMode): number => (mode === 'battle' ? 1 : 0)
@@ -85,6 +89,8 @@ export interface TreatVariant {
     hour?: boolean
     /** Risky Surgery (só Tratar Ferimentos): sucesso vira crítico. */
     risky?: boolean
+    /** Godless Healing: o paciente é quem cura e tem o talento — +5 PV quando a cura funciona. */
+    godless?: boolean
 }
 
 /** A conta inteira de um tratamento, a partir de um d20 já sorteado. */

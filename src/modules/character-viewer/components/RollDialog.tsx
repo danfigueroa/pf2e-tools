@@ -55,9 +55,13 @@ import type { TableRoll } from '../../../dice/tableRoll'
 import { dialogEmbedProps, useEmbedContainer } from '../embedContext'
 import { CASCADE_TYPES, hasLaughingShadow, hasSpellstrike, isStudiousSpell, laughingShadowDamage, withLaughingShadow } from '../magus'
 import { FIRST_STRIKE_KEY, HUNTERS_AIM_KEY, gravityBonus } from '../ranger'
+import {
+    KNOWN_WEAKNESSES_KEY, LEAD_KEY, SHARED_STRATAGEM_KEY, STRATAGEM_KEY,
+    hasDeviseAStratagem, hasKnownWeaknesses, hasSharedStratagem, stratagemCost, stratagemOn,
+} from '../investigator'
 import { DEBILITATIONS, hasDebilitatingStrike, hasPoisonWeapon, isSimplePoison, poisonNote, simplePoisonDice, type Debilitation } from '../rogue'
 import { initiativeBonus } from '../initiative'
-import { availableOptions, hasBattleMedicine, hasContinualRecovery, hasRiskySurgery, healActionCost, wardMedicTargets, type HealMode } from '../treatWounds'
+import { availableOptions, hasBattleMedicine, hasContinualRecovery, hasGodlessHealing, hasRiskySurgery, healActionCost, wardMedicTargets, type HealMode } from '../treatWounds'
 import { useConditions } from './useConditions'
 import { mythicOptionFor, type MythicContext, type MythicOption } from '../mythicUse'
 import { skillActionsFor } from '../skillActions'
@@ -381,6 +385,7 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                                             ? ' Gasta 1 ação (manipular, exige o kit de curandeiro). Não tira Ferido. O alvo fica imune ao seu Battle Medicine por 1 dia — não ao Tratar Ferimentos.'
                                             : ` Sem custo em ações (são 10 minutos, fora do combate). Sucesso tira Ferido${wounded ? ` (você tem Ferido ${wounded})` : ''}. O alvo fica imune a Tratar Ferimentos por ${hasContinualRecovery(build) ? '10 minutos (Continual Recovery)' : '1 hora'}.`}
                                         {healMode === 'treat' && wardMedicTargets(build, check.rank) > 1 ? ` Ward Medic: até ${wardMedicTargets(build, check.rank)} alvos com a mesma rolagem.` : ''}
+                                        {onSelf && hasGodlessHealing(build) ? ' Godless Healing: +5 PV quando a cura funciona em você' + (healMode === 'battle' ? ' e a imunidade ao Battle Medicine cai para 1 hora.' : '.') : ''}
                                         {riskyOn ? ' Risky Surgery: +2 no teste, sucesso vira crítico e o paciente toma 1d8 cortante antes da cura.' : ''}
                                     </Typography>
                                 </Stack>
@@ -442,7 +447,7 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                 onClose={onClose}
                 onRoll={(mythic) => {
                     if (healMode && canTreat) {
-                        const out = treatWoundsRoll(who, parts, treatOption, mythic ? check.mythicDelta : null, { mode: healMode, hour, risky: riskyOn })
+                        const out = treatWoundsRoll(who, parts, treatOption, mythic ? check.mythicDelta : null, { mode: healMode, hour, risky: riskyOn, godless: onSelf && hasGodlessHealing(build) })
                         if (healCost > 0) actions.spend(healCost, 'any')
                         if (onSelf) {
                             // Risky Surgery corta ANTES da cura, e o PV temporário absorve o corte. Duas
@@ -485,6 +490,9 @@ function loadExtras(key: string): Record<string, boolean> {
     }
 }
 
+// O estratagema do Investigador e o que vem com ele são da rodada, não da arma: nada disso fica lembrado.
+const SITUATIONAL_KEYS = [STRATAGEM_KEY, LEAD_KEY, KNOWN_WEAKNESSES_KEY, SHARED_STRATAGEM_KEY]
+
 const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Extract<RollRequest, { kind: 'weapon' | 'unarmed' }>>) => {
     const who = useMemo(() => rollerIdentity(build), [build])
     const send = useSend(mythicPoints, onClose)
@@ -508,7 +516,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
         setOpts({ ...opts, extrasOn })
         // Primeiro Golpe da rodada e Hunter's Aim são da SITUAÇÃO, não da arma: lembrar
         // um "desligado" derrubaria o dano do primeiro Golpe da rodada seguinte em silêncio.
-        if (k === FIRST_STRIKE_KEY || k === HUNTERS_AIM_KEY) return
+        if (k === FIRST_STRIKE_KEY || k === HUNTERS_AIM_KEY || SITUATIONAL_KEYS.includes(k)) return
         try { localStorage.setItem(storeKey, JSON.stringify(extrasOn)) } catch { /* cota cheia */ }
     }
 
@@ -553,22 +561,30 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
     const actions = useActions(actionsKeyFor(build), mods)
     const [asReaction, setAsReaction] = useState(false)
     const aiming = huntersAimApplies(build, strike, opts) && opts.extrasOn[HUNTERS_AIM_KEY] === true
+    // Devise a Stratagem: 1 ação à parte (paga antes do Golpe), ou livre com uma investigação sobre a criatura.
+    const devising = stratagemOn(build, opts.extrasOn)
+    const deviseCost = devising ? stratagemCost(opts.extrasOn) : 0
     const actionCostNow = asReaction ? 0 : spellstriking || aiming ? 2 : 1
     const actionKind: ActionKind = spellstriking || aiming ? 'any' : 'move-attack'
     // Aplicar o veneno custa 1 ação à parte (paga primeiro, de qualquer tipo); o Golpe vem depois.
     // Uma atividade que inclui o Golpe (Sudden Charge, Vicious Swing…) já o pagou: este Golpe não cobra.
     const strikePaid = !asReaction && hasPrepaidStrike()
+    // O veneno e o estratagema são pagos antes, de qualquer tipo; o Golpe vem depois.
+    const prepay = (applying ? 1 : 0) + deviseCost
     const lacking = strikePaid
-        ? (applying ? actions.missing(1, 'any') : 0)
-        : applying
-            ? actions.missing(1, 'any')
-                + shortfall(applySpend(actions.stored, actions.budget, 1, 'any'), actions.budget, actionCostNow, actionKind)
+        ? (prepay ? actions.missing(prepay, 'any') : 0)
+        : prepay
+            ? actions.missing(prepay, 'any')
+                + shortfall(applySpend(actions.stored, actions.budget, prepay, 'any'), actions.budget, actionCostNow, actionKind)
             : actions.missing(actionCostNow, actionKind)
     const reactionUsed = asReaction && actions.stored.reacted
     const rollNote = [
         poisonName && poisonUsed ? (simplePoison ? `veneno simples: ${simpleDice.count}d${simpleDice.faces} de veneno, sem salvaguarda` : poisonNote(poisonName, poisonDef)) : null,
         debil ? DEBILITATIONS.find((d) => d.id === debil)?.note : null,
         exacting ? 'Exacting Strike: se errar, não conta para a penalidade de ataques múltiplos' : null,
+        devising ? `Devise a Stratagem (fortune): o d20 é o do estratagema${plan.stratagem ? `; Strategic Strike ${plan.stratagem.dice}d6 de precisão` : ''}` : null,
+        devising && opts.extrasOn[KNOWN_WEAKNESSES_KEY] === true ? 'Known Weaknesses: Recall Knowledge antes do d20 — no crítico, aliados têm +1 de circunstância no ataque contra o alvo até o próximo turno' : null,
+        devising && opts.extrasOn[SHARED_STRATAGEM_KEY] === true ? 'Shared Stratagem: se acertar, o alvo fica desprevenido para o próximo ataque de um aliado, até o próximo turno' : null,
     ].filter(Boolean).join(' · ')
     const damageText = [
         `${formatValue({ count: plan.weapon.groups[0]?.count ?? 0, faces: plan.weapon.groups[0]?.faces ?? 0, flat: plan.weapon.flat })} ${strike.damageType}`,
@@ -753,6 +769,53 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                             </Typography>
                         </Box>
                     )}
+                    {hasDeviseAStratagem(build) && (
+                        <Box>
+                            <Chip
+                                label={`Devise a Stratagem · ${stratagemCost(opts.extrasOn) === 0 && devising ? 'ação livre' : '+1 ação'} · 1× por rodada`}
+                                color={devising ? 'primary' : 'default'}
+                                variant={devising ? 'filled' : 'outlined'}
+                                onClick={() => toggleExtra(STRATAGEM_KEY, !devising)}
+                                aria-pressed={devising}
+                                sx={{ minHeight: 32 }}
+                            />
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                O d20 desta rolagem é o do estratagema (fortune) e, com arma ágil, de acuidade ou à distância, soma INT e leva o Strategic Strike. Vale só no primeiro Golpe na criatura escolhida, até o seu próximo turno.
+                            </Typography>
+                            {devising && (
+                                <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75, mt: 0.75 }}>
+                                    <Chip
+                                        label="Investigação ativa sobre o alvo · ação livre"
+                                        color={opts.extrasOn[LEAD_KEY] === true ? 'primary' : 'default'}
+                                        variant={opts.extrasOn[LEAD_KEY] === true ? 'filled' : 'outlined'}
+                                        onClick={() => toggleExtra(LEAD_KEY, opts.extrasOn[LEAD_KEY] !== true)}
+                                        aria-pressed={opts.extrasOn[LEAD_KEY] === true}
+                                        sx={{ minHeight: 32 }}
+                                    />
+                                    {hasKnownWeaknesses(build) && (
+                                        <Chip
+                                            label="Known Weaknesses · Recall Knowledge antes"
+                                            color={opts.extrasOn[KNOWN_WEAKNESSES_KEY] === true ? 'primary' : 'default'}
+                                            variant={opts.extrasOn[KNOWN_WEAKNESSES_KEY] === true ? 'filled' : 'outlined'}
+                                            onClick={() => toggleExtra(KNOWN_WEAKNESSES_KEY, opts.extrasOn[KNOWN_WEAKNESSES_KEY] !== true)}
+                                            aria-pressed={opts.extrasOn[KNOWN_WEAKNESSES_KEY] === true}
+                                            sx={{ minHeight: 32 }}
+                                        />
+                                    )}
+                                    {hasSharedStratagem(build) && (
+                                        <Chip
+                                            label="Shared Stratagem · aliado aproveita"
+                                            color={opts.extrasOn[SHARED_STRATAGEM_KEY] === true ? 'primary' : 'default'}
+                                            variant={opts.extrasOn[SHARED_STRATAGEM_KEY] === true ? 'filled' : 'outlined'}
+                                            onClick={() => toggleExtra(SHARED_STRATAGEM_KEY, opts.extrasOn[SHARED_STRATAGEM_KEY] !== true)}
+                                            aria-pressed={opts.extrasOn[SHARED_STRATAGEM_KEY] === true}
+                                            sx={{ minHeight: 32 }}
+                                        />
+                                    )}
+                                </Stack>
+                            )}
+                        </Box>
+                    )}
                     {hasExactingStrike(build) && (
                         <Box>
                             <Chip
@@ -928,7 +991,8 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                 // precisa trocar por "Só o Golpe" — rolar sem ela em silêncio enganaria.
                 disabled={loading || (canSpellstrike && !!ss.option && !ss.ready)}
                 onRoll={(mythic) => {
-                    if (applying) { actions.spend(1); po.applyChosen() }
+                    if (prepay) actions.spend(prepay)
+                    if (applying) po.applyChosen()
                     if (asReaction) { if (!actions.stored.reacted) actions.toggleReaction() }
                     else if (!takePrepaidStrike()) actions.spend(actionCostNow, actionKind)
                     const mythicDelta = mythic ? plan.mythicDelta : null

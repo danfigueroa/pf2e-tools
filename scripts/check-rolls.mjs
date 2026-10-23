@@ -30,6 +30,8 @@ const hasSpellstrikeFn = magusHas => magusHas && magus.hasSpellstrike(magusHas)
 const ranger = await import('../src/modules/character-viewer/ranger.ts')
 const rogue = await import('../src/modules/character-viewer/rogue.ts')
 const fighter = await import('../src/modules/character-viewer/fighter.ts')
+const investigator = await import('../src/modules/character-viewer/investigator.ts')
+const treatWoundsMod = await import('../src/modules/character-viewer/treatWounds.ts')
 const initiative = await import('../src/modules/character-viewer/initiative.ts')
 const acts = await import('../src/modules/character-viewer/actions.ts')
 const tokenFit = await import('../src/modules/battle-map/tokenFit.ts')
@@ -1204,6 +1206,63 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
     eq(diaryDayOf(at('2026-10-18T02:30:00-03:00')), '2026-10-17', 'diário: 2h30 da madrugada ainda é a sessão da noite anterior')
     eq(diaryDayOf(at('2026-10-18T06:30:00-03:00')), '2026-10-18', 'diário: 6h30 já é outro dia')
     ok(server.DAY_RE.test('2026-10-17') && !server.DAY_RE.test('17/10/2026'), 'diário: o servidor só aceita YYYY-MM-DD')
+}
+
+// ── Investigador: Devise a Stratagem e Strategic Strike ─────────────────────
+{
+    const miranda = load('miranda7')
+    const cane = miranda.weapons.find((w) => w.name === 'Sword Cane')
+    const caneGear = { kind: 'weapon', traits: ['Agile', 'Concealable', 'Finesse'], weaponType: 'melee' }
+    const caneStrike = strikes.weaponStrike(miranda, cane, caneGear)
+    const stratagem = { [investigator.STRATAGEM_KEY]: true }
+    const off = strikes.planStrike(miranda, caneStrike, NO_MODIFIERS, opts())
+    const onPlan = strikes.planStrike(miranda, caneStrike, NO_MODIFIERS, opts({ extrasOn: stratagem }))
+    eq([1, 4, 5, 8, 9, 13, 17, 20].map(investigator.strategicStrikeDice).join(','), '1,1,2,2,3,4,5,5', 'Strategic Strike: +1 dado nos níveis 5, 9, 13 e 17')
+    ok(off.stratagem === null && !off.extras.some((e) => e.key === 'strategic-strike'), 'Sem o estratagema não há Strategic Strike')
+    eq(onPlan.stratagem?.dice, 2, 'Miranda (nível 7) rola 2d6 de Strategic Strike')
+    const strike = onPlan.extras.find((e) => e.key === 'strategic-strike')
+    ok(strike && strike.precision && strike.expr.groups[0].count === 2 && strike.expr.groups[0].faces === 6, 'Strategic Strike é precisão 2d6')
+    eq(onPlan.attackTotal, off.attackTotal, 'INT = DES na Miranda: o ataque do estratagema fecha com a ficha (15)')
+    eq(off.attackTotal, cane.attack, 'Sword Cane: o ataque sem estratagema é o do Pathbuilder')
+    const critRoll = strikes.rollStrikeDamage(onPlan, 'perfurante')
+    const sneak = critRoll.parts.find((p) => /precis/i.test(p.label))
+    ok(sneak && sneak.rolled.dice.length === 2, 'A precisão do estratagema rola 2 dados')
+    // INT mais alta que a DES: o estratagema passa a valer INT.
+    const smarter = { ...miranda, abilities: { ...miranda.abilities, int: 20 } }
+    const smarterStrike = strikes.weaponStrike(smarter, cane, caneGear)
+    eq(strikes.planStrike(smarter, smarterStrike, NO_MODIFIERS, opts({ extrasOn: stratagem })).attackTotal,
+        strikes.planStrike(smarter, smarterStrike, NO_MODIFIERS, opts()).attackTotal + 1, 'INT 20 (+5) contra DES 18 (+4): +1 no estratagema')
+    // Arma sem ágil nem acuidade: o d20 vale, mas sem INT nem Strategic Strike.
+    const heavyStrike = strikes.weaponStrike(miranda, cane, { kind: 'weapon', traits: ['Shove'], weaponType: 'melee' })
+    const heavy = strikes.planStrike(miranda, heavyStrike, NO_MODIFIERS, opts({ extrasOn: stratagem }))
+    ok(heavy.stratagem === null && heavy.warnings.some((w) => /Devise a Stratagem/.test(w)), 'Arma pesada: sem INT, sem Strategic Strike e com aviso')
+    // À distância qualquer arma serve; sem traços conhecidos não dá para afirmar.
+    ok(investigator.stratagemQualifies({ known: true, ranged: true, agile: false, finesse: false }), 'Arma à distância soma INT')
+    ok(!investigator.stratagemQualifies({ known: false, ranged: false, agile: false, finesse: false }), 'Sem traços da AON, não afirma')
+    // Quem não é Investigador não ganha nada, mesmo com a chave ligada.
+    const ghanPlan = strikes.planStrike(party.ghan, ghanStrike, NO_MODIFIERS, opts({ extrasOn: stratagem }))
+    ok(ghanPlan.stratagem === null && ghanPlan.warnings.length === 0, 'Ghan Buri não tem Devise a Stratagem')
+    eq(investigator.stratagemCost({}), 1, 'Devise a Stratagem custa 1 ação')
+    eq(investigator.stratagemCost({ [investigator.LEAD_KEY]: true }), 0, 'Com investigação ativa sobre o alvo é ação livre')
+    // Godless Healing: +5 PV na cura EM SI MESMA, e a soma fecha para o servidor.
+    const medicine = checks.skillCheck(miranda, 'medicine', NO_MODIFIERS)
+    const wholeOpt = { dc: 30, minRank: 6, bonus: 30, label: 'Mestre' }
+    const heal = (godless) => {
+        for (let i = 0; i < 40; i++) {
+            const out = rolls.treatWoundsRoll(rolls.rollerIdentity(miranda), medicine.parts, wholeOpt, null, { mode: 'battle', godless })
+            if (out.delta > 0) return out
+        }
+        return null
+    }
+    const plain = heal(false), godly = heal(true)
+    ok(plain && godly && godly.roll.free.label.includes('Godless') && !plain.roll.free.label.includes('Godless'), 'Godless Healing aparece só quando vale')
+    ok(godly && godly.roll.free.total === godly.roll.free.dice.reduce((n, d) => n + d.value, 0) + godly.roll.free.flat, 'Godless Healing: dados + fixo = total')
+    ok(godly && godly.roll.free.flat >= 30 + 5, 'Godless Healing soma 5 ao fixo (30 + 5)')
+    ok(godly && table.sanitizeTableRoll(godly.roll) !== null && server.sanitizeRoll(godly.roll) !== null, 'Godless Healing: cliente e servidor aceitam a rolagem')
+    const stratRoll = rolls.strikeRoll(rolls.rollerIdentity(miranda), caneStrike, onPlan, null)
+    ok(table.sanitizeTableRoll(stratRoll) !== null && server.sanitizeRoll(stratRoll) !== null, 'Golpe com Strategic Strike: cliente e servidor aceitam')
+    ok(treatWoundsMod.hasGodlessHealing(miranda) && !treatWoundsMod.hasGodlessHealing(party.ghan), 'Só a Miranda tem Godless Healing')
+    ok(investigator.hasKnownWeaknesses(miranda) && investigator.hasSharedStratagem(miranda), 'Miranda tem Known Weaknesses e Shared Stratagem')
 }
 
 console.log(`${passed} conferências ok, ${failures} falha(s).`)
