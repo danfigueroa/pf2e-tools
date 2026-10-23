@@ -13,6 +13,7 @@
 // Não passa pela tradução, pelo mesmo motivo de `item-traits-core.js`.
 
 import { searchAonRaw } from './aon.js'
+import { cachedLookup } from './lookup-cache.js'
 import { isLegacy, toArray } from './creature-core.js'
 import { parseShieldStats } from './shield-parse.js'
 
@@ -70,7 +71,7 @@ function baseItemName(s) {
  * @param {string[]} names
  * @returns {Promise<Record<string, {name: string, bonus: number, hardness: number, hp: number, bt: number, specific: boolean}>>}
  */
-export async function resolveShields(names) {
+async function resolveShieldsUncached(names) {
   const wanted = [...new Set(names.map((n) => String(n || '').trim()).filter(Boolean))]
     .slice(0, MAX_SHIELD_NAMES)
   if (wanted.length === 0) return {}
@@ -102,3 +103,6 @@ export async function resolveShields(names) {
   }
   return out
 }
+
+/** Cada nome vai à AON uma vez só: o resto sai do banco (`lookup-cache.js`). Subiu o formato? Suba a versão. */
+export const resolveShields = (names) => cachedLookup('shield:v1', names, resolveShieldsUncached)

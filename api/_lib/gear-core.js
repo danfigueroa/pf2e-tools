@@ -17,6 +17,7 @@
 // palavras de regra, lidas por código, não por gente.
 
 import { searchAonRaw } from './aon.js'
+import { cachedLookup } from './lookup-cache.js'
 import { isLegacy, toArray } from './creature-core.js'
 
 export const MAX_GEAR_NAMES = 20
@@ -94,7 +95,7 @@ function armorEntry(name, base) {
  * @param {string[]} names
  * @returns {Promise<Record<string, object>>}
  */
-export async function resolveGear(names) {
+async function resolveGearUncached(names) {
   const wanted = [...new Set(names.map((n) => String(n || '').trim()).filter(Boolean))]
     .slice(0, MAX_GEAR_NAMES)
   if (wanted.length === 0) return {}
@@ -129,3 +130,6 @@ export async function resolveGear(names) {
   }
   return out
 }
+
+/** Cada nome vai à AON uma vez só: o resto sai do banco (`lookup-cache.js`). Subiu o formato? Suba a versão. */
+export const resolveGear = (names) => cachedLookup('gear:v1', names, resolveGearUncached)

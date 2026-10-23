@@ -10,6 +10,7 @@
 // se ele é consumível. O inglês aqui é o resultado pretendido.
 
 import { searchAonRaw } from './aon.js'
+import { cachedLookup } from './lookup-cache.js'
 import { isLegacy, toArray } from './creature-core.js'
 
 /** Teto por requisição: um inventário de verdade não chega perto disso. */
@@ -40,7 +41,7 @@ function healingFormula(source, traits) {
  * @param {string[]} names
  * @returns {Promise<Record<string, object>>} chaveado pelo nome de ENTRADA
  */
-export async function resolveItemTraits(names) {
+async function resolveItemTraitsUncached(names) {
   const wanted = [...new Set(names.map((n) => String(n || '').trim()).filter(Boolean))]
     .slice(0, MAX_ITEM_NAMES)
   if (wanted.length === 0) return {}
@@ -79,3 +80,6 @@ export async function resolveItemTraits(names) {
   }
   return out
 }
+
+/** Cada nome vai à AON uma vez só: o resto sai do banco (`lookup-cache.js`). Subiu o formato? Suba a versão. */
+export const resolveItemTraits = (names) => cachedLookup('items:v1', names, resolveItemTraitsUncached)
