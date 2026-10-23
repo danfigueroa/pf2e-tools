@@ -1401,6 +1401,15 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
     ok(!strikes.unarmedStrike(party.ghan, unarmedMod.unarmedAttacks(party.ghan)[0]).spec, 'Quem não é Monge perito não ganha a especialização do Punho')
     const hfSp = hf.weapons.find((w) => w.name.startsWith('Special Unarmed'))
     const hfSpStrike = strikes.weaponStrike(hf, hfSp, null)
+    // O jogador mandou tratar o desarmado caseiro como o Punho: ágil, acuidade, grupo brawling.
+    const spGear = homebrew.homebrewGear(hf, 'Special Unarmed (1d6)')
+    ok(spGear && spGear.traits.includes('Agile') && spGear.traits.includes('Finesse') && spGear.group === 'Brawling', 'O desarmado caseiro tem os traços do Punho')
+    const spKnown = strikes.weaponStrike(hf, hfSp, spGear)
+    ok(spKnown.traits.agile && spKnown.traits.finesse && spKnown.traits.known, 'Os traços chegam ao Golpe')
+    eq(strikes.planStrike(hf, spKnown, NO_MODIFIERS, opts({ map: 1 })).attackTotal, hfSp.attack - 4, 'Special Unarmed: segundo ataque −4 (ágil)')
+    ok(spKnown.spec?.source.kind === 'always', 'Special Unarmed: especialização crítica do grupo brawling (Expert Strikes)')
+    ok(monk.flurryCheck(hf, spKnown, false).ok, 'Flurry vale no Special Unarmed')
+    eq(homebrew.homebrewGear(miranda, 'Special Unarmed (1d6)'), null, 'O desarmado caseiro é só da Hearts Folly')
     ok(hfSpStrike.unarmed && hfSpStrike.damageType === 'contundente, perfurante ou cortante', 'O desarmado caseiro é desarmado e traduz o tipo "B, P or S"')
     ok(critFx.runeCritEffects(['Decaying'])[0].damage.type === 'void' && critFx.runeCritEffects(['Decaying'])[0].damage.persistent, 'Decaying: vazio persistente no crítico')
     // Flurry of Blows, Ki Strike / Inner Upheaval, Stunning Blows, Perfect Strike e a postura.
