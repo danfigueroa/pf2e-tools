@@ -707,7 +707,7 @@ Três Pontos Míticos por dia, na faixa ao lado das condições.
 ## 🛡️ Relíquia: Brasão da Família (nível 7, o do personagem)
 Aspectos **Soul** e **Emotion**. No app, o cartão **Relíquia** no Inventário cobra a ação ou a reação e marca "usada" (o app não conta a hora).
 - 🤝 **Absorb Injury (reação, 1×/dia):** um aliado a até 9 m **sofre dano**: você o recebe **no lugar dele**, com os efeitos que vêm junto (veneno da lâmina, condições, fogo persistente de um crítico com runa flaming). Salva quem está quase caindo — mas o dano é seu, então olhe o seu PV.
-- 💫 **Emotion Surge (1 ação, concentrar, 1×/hora):** a relíquia dá **+1 de status** por 1 minuto num tipo de teste que depende da **emoção** dela (ainda não definida na mesa: Orgulho = Sociedade, Dedicação = Recordar Conhecimento, Amor = Medicina, Alegria = Diplomacia…).
+- 💫 **Emotion Surge (1 ação, concentrar, 1×/hora):** a emoção do brasão é o **Orgulho (Pride)**: **+1 de status em testes de Sociedade** por 1 minuto (Sociedade **+12**). No app, ative no cartão da Relíquia e ligue o chip **Emotion Surge ativa** no diálogo de Sociedade enquanto durar o minuto.
 
 ## 🎒 Itens & Recursos
 - 🗡️ **Rapier** (arma favorecida, treinado): **+12**, **1d6+1 perfurante**, com **acuidade**, **deadly d8** e **desarmar**. É o último recurso: o seu dano está nas magias.
