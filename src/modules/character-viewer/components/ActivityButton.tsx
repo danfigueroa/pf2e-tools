@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Alert, Button, Snackbar } from '@mui/material'
 import { gold } from '../../../theme'
 import type { BuildInfo, FeatDescription } from '../../../pathbuilder/types'
@@ -9,6 +9,8 @@ import { HealActivityButton } from './HealActivityButton'
 import { ORC_FEROCITY, OrcFerocityButton } from './OrcFerocityButton'
 import { useActivity } from './useActivity'
 import type { MythicPointsApi } from './useMythicPoints'
+import { postRoll } from '../../../services/rolls'
+import { rollerIdentity, powerUseRoll } from '../rolls'
 
 interface Props {
     build: BuildInfo
@@ -25,7 +27,13 @@ interface Props {
  * O botão para uma atividade cujo custo já é conhecido — a relíquia (`relics.ts`) declara o
  * dela à mão. `usedKey` é a chave do contador "uma vez por dia" (`uses`); por padrão, o nome.
  */
-export const ActivityBody = ({ build, mods, mythicPoints, name, info, fullWidth, usedKey = name }: Omit<Props, 'desc'> & { info: ActivityInfo; usedKey?: string }) => {
+export const ActivityBody = ({ build, mods, mythicPoints, name, info, fullWidth, usedKey = name, announce }: Omit<Props, 'desc'> & {
+    info: ActivityInfo
+    usedKey?: string
+    /** Posta um cartão na mesa ao usar (dádiva de relíquia): `title` é o poder, `sub` de onde vem. */
+    announce?: { title: string; sub?: string }
+}) => {
+    const who = useMemo(() => rollerIdentity(build), [build])
     const { activate, uses } = useActivity(build, mods, mythicPoints)
     const [note, setNote] = useState<{ text: string; warn: boolean } | null>(null)
     const usedToday = info.daily && uses.usedOf(usedKey) > 0
@@ -36,6 +44,10 @@ export const ActivityBody = ({ build, mods, mythicPoints, name, info, fullWidth,
         if (usedToday) { uses.unmark(usedKey); return }
         const r = activate(usedKey, info)
         const spent = r.spent.length ? `gastou ${r.spent.join(' e ')}` : 'nada a gastar'
+        if (announce) {
+            const detail = [r.spent.length ? `Gastou ${r.spent.join(' e ')}` : '', info.trigger ? `Gatilho: ${info.trigger}` : '', ...r.warnings.map((w) => `Atenção: ${w}`)]
+            void postRoll(powerUseRoll(who, announce.title.slice(0, 60), `Usou · ${costLabel(info)}`, announce.sub, detail.filter(Boolean).join(' · ').slice(0, 290)))
+        }
         setNote({ text: `${name}: ${spent}${r.warnings.length ? ` — atenção: ${r.warnings.join('; ')}` : ''}.`, warn: r.warnings.length > 0 })
     }
 

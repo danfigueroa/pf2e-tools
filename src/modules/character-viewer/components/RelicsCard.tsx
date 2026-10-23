@@ -77,6 +77,7 @@ const Gift = ({ relic, gift, index, build, mods, mythicPoints, onSelect }: Props
                         name={`${relic.name}: ${gift.name}`}
                         usedKey={giftUseKey(relic, gift)}
                         info={info}
+                        announce={{ title: gift.name, sub: relic.name }}
                     />
                 )}
             </Stack>
