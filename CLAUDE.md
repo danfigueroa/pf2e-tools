@@ -824,6 +824,11 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   grava, pede o guia e abre a ficha (que completa as descrições traduzidas da mesa — ver "Descrições
   pré-traduzidas"). Sem login, **qualquer pessoa publica** — decisão do usuário —,
   então a diferença à vista e o "Versão anterior" da faixa sob o cabeçalho são a salvaguarda.
+  - **Toda ficha vai para o banco, SEMPRE** (decisão do usuário): o diálogo não tem mais "Só ver neste aparelho" — só
+    Publicar ou Cancelar —, e só a ficha igual a uma JÁ publicada dispensa publicar (igual ao arquivo fixo ainda precisa).
+    Preset aberto que ainda não está publicado é publicado sozinho (`publishPreset`). `scripts/seed-presets.mjs` publica de
+    uma vez os que faltam, sem nunca sobrescrever (rode depois de registrar um preset novo). Em 2026-10-23 os 9 presets foram semeados.
+  - As dádivas de relíquia sem texto no catálogo entram em `characterDescriptionNames` (poder = habilidade, runa = item).
   PV, condições e slots não mudam: a identidade é o slug do nome, igual antes.
   - **"Nova versão publicada"** (`components/NewVersionBar.tsx` + `services/sheetNotices.ts`, migration
     `aviso_de_ficha_publicada`): um trigger em `sheets` avisa no canal `mesa:<mesa>:sheets` — `published` quando o
