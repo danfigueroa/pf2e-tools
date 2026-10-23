@@ -1364,6 +1364,18 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
     const scrap = rolls.scrapShotRoll(rolls.rollerIdentity(miranda), "Miranda's Arm — Scrap Shot", [{ label: 'Ataque de magia', value: 10, kind: 'base' }, { label: 'Alvo de metal', value: 1, kind: 'other' }], 3, undefined, 'nota')
     ok(scrap.damage.parts[0].dice.length === 3 && scrap.damage.crit.total === 2 * scrap.damage.total, 'Scrap Shot rola 3d6 e dobra no crítico')
     ok(table.sanitizeTableRoll(scrap) !== null && server.sanitizeRoll(scrap) !== null, 'Scrap Shot passa nos dois validadores')
+    // Loki's Heart: custo e pré-requisito pela AON (Treasure Vault Remastered pg. 199-200).
+    const loki = load('loki7')
+    const lokiRelic = relics.relicsOf(loki)
+    eq(lokiRelic.length, 1, 'O Loki tem a relíquia Loki\'s Heart')
+    const sands = lokiRelic[0].gifts.find((g) => g.id === 'sands-of-the-hourglass')
+    const whammy = lokiRelic[0].gifts.find((g) => g.id === 'whammy')
+    ok(sands.activation.cost === 2 && sands.activation.limited && relics.giftUnlocked(sands, 0, 7), 'Sands of the Hourglass: 2 ações, 1×/hora, liberada no nível 7')
+    ok(!relics.giftUnlocked(sands, 0, 4) && relics.giftUnlocked(sands, 0, 5), 'Sands exige relíquia de 5º nível ou mais (pré-requisito da AON)')
+    ok(whammy.activation.cost === 'reaction' && whammy.activation.limited, 'Whammy: reação, 1×/dia')
+    ok(relics.giftActivity(whammy).time.kind === 'reaction' && relics.giftActivity(sands).time.n === 2, 'O botão cobra a reação e as 2 ações')
+    ok(lokiRelic[0].aspects.join() === 'Time,Luck', 'Aspectos Time e Luck')
+    eq(relics.relicsOf(miranda).some((r) => r.id === 'loki-heart'), false, 'A relíquia do Loki não vai para a Miranda')
     ok(investigator.hasKnownWeaknesses(miranda) && investigator.hasSharedStratagem(miranda), 'Miranda tem Known Weaknesses e Shared Stratagem')
 }
 
