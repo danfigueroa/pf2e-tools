@@ -620,7 +620,7 @@
     "actions": "",
     "traits": [],
     "category": "equipment",
-    "description": "O braço da Miranda, que é também a relíquia Miranda's Arm: +1 de potência, striking e a runa Shock, em ferro frio de baixa qualidade. Dano sônico. Os poderes dele (Scrap Shot e Dragon Strike) ficam na relíquia, no Inventário."
+    "description": "O braço da Miranda, a relíquia que ela batizou de Miranda's Arm: +1 de potência, striking e a runa Shock, em ferro frio de baixa qualidade. Dano sônico e acuidade. Os poderes (Scrap Shot e Dragon Strike) ficam no cartão da relíquia, no Inventário."
    },
    "Healer's Gloves": {
     "name": "Healer's Gloves",
@@ -642,7 +642,7 @@
      "Relic"
     ],
     "category": "equipment",
-    "description": "Relíquia de terceiros (sem entrada na AON): o braço da Miranda, o mesmo Braço Sônico da ficha. Cresce com ela e guarda as runas do braço (+1 striking, Shock). Poderes: Scrap Shot (ataque de magia com a relíquia, 1d6 perfurante a cada 2 níveis, a até 9 m; alvo de metal ganha +1 e fica desajeitado 1) e Dragon Strike (por 1 minuto, +1d6 cortante nos Golpes corpo a corpo desarmados; uma vez por hora, a cada 10 minutos a partir do 11º nível)."
+    "description": "O nome que a Miranda deu à relíquia dela: o braço, o mesmo Braço Sônico da ficha, com as runas mantidas (+1 striking, Shock). Os poderes são dádivas da AON: Scrap Shot (2 ações) e Dragon Strike (1 ação, uma vez por hora). Ficam no cartão da relíquia, no Inventário."
    },
    "Steel Shield": {
     "name": "Steel Shield",

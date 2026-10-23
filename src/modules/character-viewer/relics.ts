@@ -80,10 +80,12 @@ export interface RelicEntry {
 /**
  * As relíquias do grupo. Cada uma entra quando o jogador informa o que ela é e que dádivas tem.
  *
- * **Miranda's Arm** (3rd party, texto passado pelo jogador — não está na AON): o braço da Miranda,
- * que é também o "Braço Sônico" da ficha. As runas dele (+1 striking, Shock) já vêm no export do
- * Pathbuilder e ficam como estão. O texto original NÃO traz o ícone de ações das duas ativações:
- * o custo abaixo (1 ação) é suposição a confirmar com o mestre, e o app só conta — nunca trava.
+ * **Miranda's Arm** é só o NOME que a Miranda deu à relíquia dela (informado pelo jogador, 2026-10-23): o
+ * braço, que é também o "Braço Sônico" da ficha. As runas dele (+1 striking, Shock) já vêm no export do
+ * Pathbuilder e ficam como estão. As duas dádivas SÃO da AON — a descrição vem de lá — e o custo também:
+ * **Scrap Shot** (Rage of Elements pg. 148, aspecto Metal, dádiva menor) é de **2 ações**;
+ * **Dragon Strike** (Secrets of Magic pg. 230, aspecto Dragon, dádiva menor) é de **1 ação**,
+ * comando, uma vez por hora (uma vez a cada 10 minutos a partir do 11º nível).
  */
 export const RELICS: RelicEntry[] = [
     {
@@ -91,28 +93,24 @@ export const RELICS: RelicEntry[] = [
         character: nameStarts('miranda'),
         name: "Miranda's Arm",
         on: { kind: 'weapon', weapon: 'Braço Sônico' },
-        aspects: ['Terceiros', 'Mágica'],
-        description: "O braço da Miranda, que também é o Braço Sônico da ficha. As runas dele continuam: +1 de potência, striking e Shock (já no ataque da aba Combate). O nível da relíquia é o dela.",
+        aspects: ['Metal', 'Dragon'],
+        description: "Miranda's Arm é o nome que ela deu à relíquia: o braço dela, que também é o Braço Sônico da ficha. As runas dele continuam: +1 de potência, striking e Shock (já no ataque da aba Combate). O nível da relíquia é o dela.",
         gifts: [
             {
                 id: 'scrap-shot',
                 name: 'Scrap Shot',
                 tier: 'minor',
                 kind: 'power',
-                minLevel: 1,
                 special: 'scrap-shot',
-                activation: { cost: 1 },
-                description: 'Ativar (concentrar, manipular). Repulsão magnética lança um pedaço afiado de sucata da relíquia. Faça um ataque de magia com a relíquia contra um alvo a até 9 m. O pedaço causa 1d6 de dano perfurante para cada 2 níveis da relíquia (mínimo 1d6). Se o alvo veste armadura de metal ou é feito de metal, você ganha +1 de circunstância no ataque e o alvo fica desajeitado 1 até o início do seu próximo turno, porque a sucata gruda nele. Se a relíquia é de metal precioso, o disparo também é desse metal (ou revestido dele) e ignora resistências e afins. A sucata que sobra enferruja ou se desfaz rápido e não vale nada se vendida.',
+                activation: { cost: 2 },
             },
             {
                 id: 'dragon-strike',
                 name: 'Dragon Strike',
                 tier: 'minor',
                 kind: 'power',
-                minLevel: 1,
                 special: 'dragon-strike',
                 activation: { cost: 1, frequency: 'uma vez por hora (a cada 10 minutos a partir do 11º nível)', limited: true },
-                description: 'Ativar (comando); frequência: uma vez por hora. Imagens fantasmagóricas de garras de dragão se formam em volta das suas mãos e ficam no ar quando você ataca. Por 1 minuto, quando você acerta um Golpe corpo a corpo desarmado, causa 1d6 de dano cortante adicional. A partir do 11º nível, uma vez a cada 10 minutos.',
             },
         ],
     },
