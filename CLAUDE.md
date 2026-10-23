@@ -470,7 +470,7 @@ abrir o site entra na mesma mesa (a do aparelho — ver "Mesas").
   sozinha. A releitura também sobrepõe o que está na fila, para não desfazer na tela uma edição ainda não gravada.
 - **Uma LINHA por fatia** (`hp`, `slots`, `conditions`, `afflictions`,
   `persistent`, `mythic`, `consumed`, `shield`, `token`, `size`, `rage`, `psyche`, `energy`, `magus`, `ranger`, `rogue`,
-  `actions`, `uses`, `companions`, `gave`, `pet:<kind>:<slug>#<i>`). Campo novo precisa entrar no `FIELD_RE` de
+  `investigator`, `actions`, `uses`, `companions`, `gave`, `pet:<kind>:<slug>#<i>`). Campo novo precisa entrar no `FIELD_RE` de
   `table-store.js`, senão o POST volta "Campo inválido" e o estado fica só no `localStorage`.
   A mesma lista está no CHECK da tabela (migration `estado_da_mesa`) — mudou um, muda o outro, e campo novo é
   migration nova. Documento único faria dois jogadores editando ao mesmo tempo se sobrescreverem — quem marcasse
@@ -1078,7 +1078,7 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     Vale só no primeiro acerto da rodada — a legenda avisa, o app não conta.
   - **Hunter's Aim** (talento, 2 ações): chip só em Golpe à distância/arremesso, +2 de circunstância no ataque.
   Quem tem cada coisa vem da ficha (`specials`/`feats`/`focus`). `check-rolls` cobre. A Iniciativa não lê `ranger`.
-- **Investigador** (`investigator.ts`, sem campo da mesa nem faixa): tudo vive no diálogo do Golpe. **Devise a Stratagem** (Player Core 2
+- **Investigador** (`investigator.ts`): o estratagema de ataque vive no diálogo do Golpe; investigações, relógios e o +1 nos testes, abaixo. **Devise a Stratagem** (Player Core 2
   pg. 103) é o chip "Devise a Stratagem · +1 ação · 1× por rodada" (`STRATAGEM_KEY` em `extrasOn`, **não lembrado** de um Golpe para
   o outro, como o Hunter's Aim): cobra a ação **antes** do Golpe pelo mesmo `prepay` do veneno (de qualquer tipo; a ação extra do
   Acelerado fica para o Golpe), troca FOR/DES por INT no ataque e soma o **Strategic Strike** (`1d6 precision`, +1 dado nos níveis 5, 9,
@@ -1089,9 +1089,33 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     (Estupefato) entra por `skillInt`, no lugar das de FOR/DES.
   - **Known Weaknesses** e **Shared Stratagem** são chips que viram só anotação da rolagem (dependem do alvo e do aliado). Não há
     contador de "uma vez por rodada": o app **não conta**.
-  - **Não automatizado ainda**: Pursue a Lead e as duas investigações ativas (+1 de circunstância nos testes, Clue In,
-    Detective's Readiness — pediria um campo novo da mesa), o estratagema de perícia, Expeditious Inspection, Assurance, Searing
-    Restoration e a cura das Healer's Gloves. `check-rolls` cobre dados por nível, INT, arma sem ágil e a aceitação pelo servidor.
+  - **Investigações** (`investigator.ts` + `useInvestigator` + `InvestigatorBar`, campo da mesa `investigator`, migration
+    `investigator_no_estado_da_mesa`): faixa fora das abas com até **duas** investigações (Pursue a Lead), as abandonadas do dia
+    (`dropped`: abrir uma terceira exige escolher qual abandonar, e a abandonada não volta até a "Nova preparação") e os relógios
+    de **10 minutos** de Pursue a Lead, Clue In (gasta a reação) e Expeditious Inspection. **O relógio só mostra**; o app não
+    conta o tempo da regra e o jogador devolve com "Já passou". `pursue a lead`, `clue in`, `expeditious inspection` e
+    `devise a stratagem` estão em `DEDICATED` (senão o "Usar" genérico cobraria em dobro).
+  - **No diálogo de teste** (`CheckBody`): chip "Investigação ativa · +1" (Percepção, perícias de INT/SAB/CAR e Saberes; nas
+    salvaguardas vira "Detective's Readiness", só com o talento), "Estratagema de perícia" (+1 ação, ou livre com o chip da
+    criatura da investigação; com a investigação ligada o bônus dela SOBE 1, então a soma é +2) e **Assurance**. Nada fica lembrado.
+  - **Assurance** (`assuranceResult`): 10 + proficiência (nível + rank), **sem nenhum outro bônus**, só em perícia treinada
+    escolhida no talento (`feats[i][1]`). A rolagem é um `check` com d20 = 10 e `mod` = proficiência, para dado + mod = total fechar
+    nos dois validadores; sem ✦ e sem 20/1 natural. Vale também no Tratar Ferimentos e no Battle Medicine (`TreatVariant.assurance`).
+  - **Keen Recollection**: quem tem o talento ganha Recall Knowledge em QUALQUER perícia (`skillActionsFor(en, build)`), e a
+    destreinada soma o nível. **Tamper** é ação de perícia de Ofício, só para quem tem o talento (`SkillAction.feat`).
+  - **Não automatizado**: o contador de "1× por rodada" do estratagema, a CD de Reflexos do Tamper (é do mestre) e a escolha da
+    criatura do estratagema. `check-rolls` cobre dados por nível, INT, arma sem ágil, investigações, Assurance e a aceitação
+    pelo servidor.
+- **Curas que são ação** (`healActivities.ts` + `HealActivityButton`): **Searing Restoration** (1d10 + 1d10 no 3º nível e a cada 2
+  depois: 4d10 no nível 7) e **Healer's Touch** (2d6+7; 4d6+15 na Greater; 1×/dia, `uses`). O botão "Curar" rola, posta no feed
+  (`healRoll`, uma parcela `free`) e soma ao PV de quem usa ("Em mim mesmo"). O traço **Unstable** (Guns & Gears Remastered pg. 236)
+  faz um teste simples CD 15 (13 com Ofício lendário) no mesmo clique: na falha a inovação "pifa" (`uses['unstable:broken']`, devolvido
+  por "Reajustei a inovação" — **o app não conta os 10 minutos**), na falha crítica há fogo igual à metade do nível, aplicado junto da
+  cura numa escrita só de PV. O app não sabe qual é a inovação nem se está em uso. `ActivityButton` delega ao
+  `HealActivityButton` antes do "Usar" genérico; o Healer's Touch fica na linha da luva, no Inventário.
+- **Itens que o Pathbuilder não exporta**: `addItemResistances` (no `normalizeBuild`) acrescenta a resistência de item VESTIDO a
+  `build.resistances` ("poison 2" do Arachnid Harness), que a Visão Geral e a Iniciativa já leem; `itemActivities.ts` dá o botão de
+  ativação diária (Arachnid Harness: 1 ação, 1×/dia) na linha do Inventário. Item novo = uma entrada em cada catálogo.
 - **Godless Healing** (`hasGodlessHealing`, `treatWounds.ts`): +5 PV quando o Tratar Ferimentos ou o Battle Medicine é **em si mesmo**
   (`TreatVariant.godless`, ligado por `onSelf`), somado ao FIXO da parcela de cura para os dados + fixo continuarem fechando no servidor;
   no Battle Medicine em si, a nota diz que a imunidade cai de 1 dia para 1 hora.
