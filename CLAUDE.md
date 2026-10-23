@@ -846,7 +846,7 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
 - **Os presets alimentam três módulos**: Ficha Virtual, diálogo de personagens da Iniciativa e
   gerador de Transformação (que aceita qualquer personagem, não só conjurador). Tirar uma ficha de
   `campaignPresets.ts` tira dos três. Elenco atual da Casa do Gordo Online: Brukuthur, Ceros (Cerosqualhanthallas),
-  Eldarion, Ghan Buri, Nathaniel e Thalos, todos nível 10; da Arton 1515: Loki (Magus 7) — tabela e observações no
+  Eldarion, Ghan Buri, Nathaniel e Thalos, todos nível 10; da Arton 1515: Loki (Magus 7), Miranda (Investigadora 7) e Hearts Folly (Monge 7) — tabela e observações no
   README. **O guia do Loki segue o Remaster do Magus (Impossible Magic, jul/2026)**: Arcane Cascade sem requisito e com
   resistência a magia, Laughing Shadow com o dano extra contra desprevenido, *Force Fang* sem ataque (só recarrega). A AON
   guarda as duas versões; a revisada é a que tem `legacy_id`.
@@ -1133,6 +1133,30 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
 - **Godless Healing** (`hasGodlessHealing`, `treatWounds.ts`): +5 PV quando o Tratar Ferimentos ou o Battle Medicine é **em si mesmo**
   (`TreatVariant.godless`, ligado por `onSelf`), somado ao FIXO da parcela de cura para os dados + fixo continuarem fechando no servidor;
   no Battle Medicine em si, a nota diz que a imunidade cai de 1 dia para 1 hora.
+- **Monge** (`monk.ts` + `MonkBar` + diálogo do Golpe; sem campo novo da mesa): **Flurry of Blows** (1 ação, 2 Golpes, 1×/turno), **Ki Strike /
+  Inner Upheaval** (+1 de status no ataque, `kiStrikeDice` = 1d6 + 1d6 a cada +4 ranks, tipo à escolha) e **Perfect Strike** (reação + 1 Ponto de
+  Foco, rerrola o ataque desarmado) são chips/botão do diálogo do Golpe (`FLURRY_KEY`, `KI_KEY`… em `extrasOn`, **não lembrados**). O Flurry sai num
+  `TableRoll` de `rays` (`flurryRoll`: um bloco por Golpe, cada um com d20 e dano; o 2º plano é `planStrike` com o MAP um degrau acima). O Ki Strike
+  gasta o ponto de foco no MESMO contador da aba Magias (`useSpellSlots`), e a ação é a do Golpe/Flurry — **por isso a gaveta de Ki Strike, Inner
+  Upheaval e Perfect Strike não oferece "Conjurar"** (`isStrikeFocusSpell`): um segundo caminho cobraria em dobro. Unfolding Wind Rush segue pelo
+  "Conjurar". **Stunning Blows** é chip do Flurry e vira anotação (Fortitude contra a CD de classe, `classDc`).
+  - **Monastic Archer Stance** (Player Core 2 pg. 118): faixa `MonkBar`, marcada à mão em `uses['stance:monastic-archer']`. Libera o Flurry com
+    arco (`flurryCheck`: grupo Bow + postura) e avisa que, na postura, só dá para atacar com arco. Sem armadura (a faixa avisa se há armadura vestida).
+  - **O Punho agora soma o que o Pathbuilder não exporta**: Powerful Fist (d6) e **Weapon Specialization** (`weaponSpecializationBonus`: +2/+3/+4;
+    Greater 4/6/8) em `unarmedAttacks`, e a **especialização crítica do grupo brawling** para o Monge perito (Expert Strikes, `specSourceFor`).
+    A arma que o Pathbuilder marca `prof: 'unarmed'` (o "Special Unarmed (1d6)" da Hearts Folly) é desarmada (`Strike.unarmed`) e o tipo "B, P or S"
+    é traduzido. **Os traços dessa arma (ágil?) não foram informados** — rola como sem traços até o jogador dizer.
+  - Runa **Decaying** (GM Core pg. 237): 1d4 de vazio no acerto (já no `extraDamage`) e **2d4 de vazio persistente no crítico** (`runeCritEffects`).
+- **Untrained Improvisation** (`untrainedImprovisation` em `checks.ts`, Player Core pg. 264; a Clever Improviser a concede): em PERÍCIA destreinada o
+  bônus de proficiência é o nível −2 (−1 do 5º, inteiro do 7º) no lugar de +0; salvaguarda e Percepção não mudam, e o ✦ desconta o que já está embutido.
+- **Orc Ferocity** (`OrcFerocityButton`, delegado pelo `ActivityButton`; reação, 1×/dia, Player Core pg. 72): confirma, paga a reação, põe o PV em 1
+  e sobe o Ferido em 1. O app não sabe quando o dano zeraria o PV: o jogador toca quando o mestre disser.
+- **Relíquias da Hearts Folly**: **Redenção Pelas Cinzas** (Life/Celestial: **Healing Wave** — GM Core pg. 315, 2 ações, 1×/hora, cone de 15 pés, 1d4 PV por
+  nível da relíquia, a ela e a cada criatura viva; **Word of Faith** — pg. 311, 2 ações, 1×/hora, 1d8 PV por nível e Amedrontado −1) e **Afinco do
+  Artista** (Life/Emotion: **Dominant Emotion** — Treasure Vault Remastered pg. 198, reação, 1×/hora, counteract; **Bestow Life** — pg. 315, 2 ações,
+  1×/dia, objeto animado de nível = metade do nível). As curas usam o `HealActivityButton` (`relicHealActivity`; a Word of Faith baixa o Amedrontado de
+  quem usa); as outras duas, o botão genérico. `RelicGift.facts` mostra os números que dependem do nível ("7d4 PV", "counteract de rank 4"). **A AON não
+  dá o modificador do counteract da Dominant Emotion** — fica com o mestre, e o app não inventa. As relíquias não estão no export (item avulso).
 - **Ladino** (`rogue.ts` + `components/useRogue.ts` + `usePoisonOptions.ts` + `usePoison.ts`) — **sem faixa no topo da ficha**: tudo vive no diálogo do Golpe (aplicar, "Veneno usado", "Nova preparação"); a faixa `RogueBar` foi removida a pedido: **Poison Weapon**
   (talento) escolhe, entre os itens do inventário com os traços `Poison` + `Contact`/`Injury` (via
   `fetchItemTraits`; veneno inalado como o Breath of the Mantis God NÃO serve), aplica 1 na arma e **gasta

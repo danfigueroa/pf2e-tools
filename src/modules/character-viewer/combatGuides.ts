@@ -586,6 +586,79 @@ Três Pontos Míticos por dia, na faixa ao lado das condições.
 - ❌ **Curar no meio da luta sem o kit de curandeiro:** o Battle Medicine exige o healer's toolkit.
 - ❌ **Contar com o escudo para bloquear:** ela não tem Shield Block.`
 
+// ---------------------------------------------------------------------------
+// HEARTS FOLLY — Monge 7, Humana (herança Dromaar), antecedente Artista, arquétipo Student of Perfection
+// (Unfolding Wind). Mesa Arton 1515. Regras do Monge pelo Player Core 2 (Remaster) e do Student of Perfection
+// pelo World Guide. As relíquias (Redenção Pelas Cinzas e Afinco do Artista) têm dádivas da AON.
+// ---------------------------------------------------------------------------
+const HEARTS_FOLLY = `## 🎯 Papel em Combate
+**Monge de punhos e arco**: combatente móvel e resistente, sem armadura. Entra na luta com o **Flurry of Blows** (dois Golpes por 1 ação), canaliza o ki no ataque (**Ki Strike / Inner Upheaval**) e refaz o que errou (**Perfect Strike**). **CA 25 · 106 PV · Deslocamento 13,5 m**, com Reflexos, Fortitude e Vontade em **+15**. Aguenta pancada, move o campo (**Unfolding Wind Rush**) e ainda cura o grupo com as relíquias.
+
+## 🔁 Rotina de Turno
+- 👊 **Flurry of Blows (1 ação, flourish, 1× por turno):** **dois Golpes desarmados**. O 2º já leva a penalidade de ataques múltiplos do 1º, e se os dois acertam a mesma criatura o dano se **combina** para resistências e fraquezas. No app, é o chip do diálogo do Golpe, e a rolagem sai com os dois ataques no mesmo cartão.
+- ✨ **Ki Strike / Inner Upheaval (1 ação, 1 Ponto de Foco):** um Golpe desarmado **ou um Flurry** com **+1 de status no ataque** e **+1d6 de dano extra** à escolha a cada Golpe: **força, espírito, vitalidade ou vazio**. A ação é a do próprio Golpe ou Flurry; só o ponto de foco é extra. As duas magias fazem o mesmo, então use a que tiver ponto.
+- 🌀 **Stunning Blows:** no Flurry contra **uma criatura só**, se um Golpe acertar e causar dano, ela faz **Fortitude contra a sua CD de classe (22)** ou fica **atordoada 1** (atordoada 3 na falha crítica). É efeito de incapacitação.
+- 🏹 **Monastic Archer Stance (1 ação, postura):** sem armadura e com um arco, os **únicos Golpes** passam a ser de arco, e o **Flurry vale com o arco**. Os talentos de Monge que pedem ataque desarmado também valem com o arco, dentro de **metade do incremento de distância** (15 m no longbow). No app, a faixa **Monge** liga e desliga a postura.
+- 🎲 **Perfect Strike (reação, 1 Ponto de Foco, fortuna):** errou um Golpe **desarmado**? Rerrole o ataque e fique com o novo resultado. No app, é o botão do diálogo do Golpe desarmado, que rola o ataque de novo com a mesma conta.
+- 💨 **Unfolding Wind Rush (1 ação, 1 Ponto de Foco):** **dois movimentos** (dois Andares, dois Passos ou um de cada), podendo subir em ângulo de até 45°; deixa uma **parede de vento** por 1 rodada nos espaços que você largou. Cai se terminar no ar depois de uma ação.
+- 🧭 **Ordem típica:** Flurry com Ki Strike (1 ação + 1 foco) → mais duas ações para Andar ou o segundo Golpe, ou Unfolding Wind Rush para sair de cerco. Contra um alvo que não dá para alcançar, ligue a **postura do arqueiro** e atire.
+
+## ⭐ Nunca Esqueça
+- 🔮 **Mystic Strikes:** seus ataques desarmados são **mágicos** e passam por resistência a ataque não mágico. A runa **Decaying** do ataque especial soma **1d4 de vazio** em todo acerto e, no **crítico**, **2d4 de vazio persistente** (o escudo erguido toma o mesmo); esse vazio corrói objetos e construtos.
+- 🥋 **Especialização crítica do Punho (Expert Strikes):** ataque desarmado do grupo brawling que acerta crítico: o alvo faz **Fortitude contra a CD de classe (22)** ou fica **lento 1** até o fim do seu próximo turno.
+- ⚔️ **Weapon Specialization:** **+2 de dano** em ataques em que você é perito. Já vem no Punho do app (**1d6+5**: Powerful Fist d6, FOR +3 e +2).
+- 🧱 **Reações, uma por rodada:** **Stand Still** (uma criatura ao alcance usa uma ação de movimento ou sai de um quadrado: Golpe corpo a corpo nela, e um **crítico interrompe** a ação de movimento), **Deflect Projectile** (você é alvo de ataque físico à distância, com uma mão livre e sem estar desprevenido contra ele: **+4 de circunstância na CA** contra ele; se errar, você o desviou), **Perfect Strike**, **Correct the Story** e **Dominant Emotion** disputam a **mesma** reação. Decida pela ameaça da rodada.
+- 🐗 **Orc Ferocity (reação, 1×/dia):** ia cair a 0 PV sem morrer na hora? Fica com **1 PV** e o **Ferido sobe 1**. No app, o botão da aba Talentos faz isso, com confirmação.
+- 📱 **Ponto de Foco:** 3 por dia (Ki Strike, Perfect Strike, Unfolding Wind Rush e Inner Upheaval gastam 1 cada). **Refocus** (10 minutos) devolve 1.
+
+## ✨ Magias de Foco
+Elas aparecem na aba Magias como magias de foco do Monge (qi, atributo SAB, tradição oculta). **Ki Strike**, **Inner Upheaval** e **Perfect Strike** se usam no **diálogo do Golpe** (a gaveta avisa); **Unfolding Wind Rush** se conjura pela gaveta (1 ação + 1 ponto).
+
+## ⚡ Poderes Míticos
+Três Pontos Míticos por dia, na faixa ao lado das condições.
+- 🎲 **Rewrite Fate (livre):** rerrole uma perícia ou salvaguarda com **proficiência mítica** (nível + 10 no lugar da sua).
+- 👂 **Ears that Hear the Truth:** Sentir Motivação ou Percepção na iniciativa com proficiência mítica: **+19** no lugar de +13.
+- 🪞 **Correct the Story (reação):** um inimigo tirou um sucesso crítico em ataque ou salvaguarda; gaste 1 ponto e ele **rerrola** e fica com o novo resultado.
+- 🐉 **Hydra's Bond:** na preparação diária, escolha até **3 criaturas dispostas** (metade do nível) para o vínculo: elas sempre sabem se outra do vínculo diz a verdade. Quando uma delas faz uma salvaguarda contra um efeito que a faria agir contra os aliados (confusão, dominação e afins), você pode **gastar 1 Ponto Mítico** para a salvaguarda ser feita com **proficiência mítica**. Falhando, os outros sabem que a criatura está controlada. Todos do vínculo ganham **+2 de circunstância** para neutralizar (counteract) o efeito.
+- 🛡️ **Guardian's Calling (vocação mítica):** **dogma:** colocar-se em perigo para proteger aliados ou inocentes sob ameaça. **Anátema:** recuar de uma batalha enquanto aliados ou inocentes correm perigo, sem antes fazer todos os esforços razoáveis para resgatá-los.
+
+## 🔥 Relíquias (nível 7, o do personagem)
+- 🧤 **Redenção Pelas Cinzas** (luvas sem dedos de couro ressecado e cinza; aspectos **Life** e **Celestial**):
+  - **Healing Wave (2 ações, 1×/hora):** onda de vitalidade num **cone de 4,5 m**: você e cada criatura viva na área recuperam **7d4 PV** (1d4 por nível da relíquia).
+  - **Word of Faith (2 ações, 1×/hora):** mão em você ou num aliado: ele recupera **7d8 PV** e reduz o **Amedrontado em 1**.
+- 🧥 **Afinco do Artista** (a relíquia da alma do personagem: sobretudo de couro marrom manchado de tinta colorida; aspectos **Life** e **Emotion**):
+  - **Dominant Emotion (reação, 1×/hora):** você seria afetado negativamente por um efeito de **emoção**: a relíquia tenta neutralizá-lo com um **teste de counteract** (de **rank 4**, metade do nível arredondada para cima). Se passar, o efeito não pega em você. A AON não dá o modificador do teste: o mestre define.
+  - **Bestow Life (2 ações, 1×/dia):** anima um objeto inanimado adjacente como um **objeto animado de nível 3** (metade do nível) por **1 hora**, para **uma tarefa simples sem combate**. O objeto não tem mente e segue só aquela tarefa.
+- 📱 No app, as duas ficam no cartão **Relíquia**, no Inventário: os botões **Curar** rolam e somam ao seu PV (a Word of Faith também baixa o Amedrontado), e os de **Usar** cobram a ação ou a reação e marcam "usada" (o app não conta a hora).
+
+## 🎒 Itens & Recursos
+- 👊 **Ataque desarmado especial (+1 striking Decaying, ferro frio de baixa qualidade):** +16, **2d6+5** (contundente, perfurante ou cortante, à escolha) **+1d4 de vazio**. É o ataque forte da ficha, com o Flurry e o Ki Strike.
+- 🏹 **Striking Astral Longbow:** +15, **2d8+2 perfurante + 1d6 espírito** (a runa Astral, que também funciona como ghost touch: acerta incorpóreos). Especialização crítica do arco: no crítico, o alvo fica preso a uma superfície adjacente.
+- 😶 **Mask of the Cursed Eye (invested):** a **primeira vez por dia** que uma criatura que você **não percebe** te alvejar com magia de **detecção, predição, revelação ou vidência**, ela faz **Vontade CD 24**. Falha: **enjoada 1 e ofuscada 1 minuto**; falha crítica: enjoada 2, ofuscada 10 minutos **e a magia é interrompida**. Sucesso: ela não é afetada, mas você sabe que foi alvo. É automático.
+- 💰 15 po.
+
+## 🛡️ Defesa & Sobrevivência
+- ❤️ **CA 25 · 106 PV.**
+- 🎯 **Fortitude +15, Reflexos +15, Vontade +15** e Percepção **+13** (perito).
+- 🏃 **Deslocamento 13,5 m:** Incredible Movement (+4,5 m de status, sem armadura) e Fleet (+1,5 m).
+- 🌑 **Darkvision** (Orc Sight) e visão na penumbra: enxerga bem no escuro, em preto e branco.
+- 🛡️ **Deflect Projectile** e **Orc Ferocity** são as saídas defensivas; os 3 pontos míticos cobrem o resto.
+
+## 🗝️ Fora do Combate
+- 💪 **Atletismo de mestre (+16):** **Titan Wrestler** deixa Desarmar, Agarrar, Reposicionar, Empurrar e Derrubar criaturas até **dois tamanhos maiores**. **Underwater Marauder:** na água você não fica desprevenida nem sofre as penalidades de arma contundente ou cortante.
+- 🎭 **Untrained Improvisation:** em perícia destreinada você soma o **nível inteiro** (nível 7). Por isso Arcanismo, Diplomacia, Intimidação, Ocultismo, Performance e Sociedade saem em **+8**, e Medicina, Natureza, Religião e Sobrevivência em **+9**. **Clever Improviser** ainda deixa tentar ações que exigem treino, mesmo sem treino. Acrobacia +13, Furtividade +15, Roubo +13, Ofício +10; Saberes (Warfare, Art, Streetwise) +10.
+- 📦 **Experienced Smuggler:** quando o mestre rola a sua Furtividade contra observador passivo para um item pequeno escondido, vale o dado ou 10, o maior. **Specialty Crafting:** +1 de circunstância em Ofício para fabricar um tipo de item.
+- 🗣️ Idiomas: comum, feérico e orc.
+
+## ⚠️ Erros Comuns
+- ❌ **Esquecer que o Flurry é flourish:** só **uma vez por turno**. O segundo Golpe é o do Flurry, não o de um segundo Flurry.
+- ❌ **Ligar o Ki Strike sem ponto de foco:** ele gasta 1 ponto por Flurry ou Golpe. Sem foco, é só o Flurry normal.
+- ❌ **Atacar sem armas em postura de arqueiro:** na Monastic Archer Stance só dá para atacar com arco. Saia da postura na faixa Monge.
+- ❌ **Flurry com arco fora da postura ou longe:** exige a postura e **dentro de metade do incremento de distância**.
+- ❌ **Gastar a reação em Perfect Strike e depois não ter para Stand Still ou Deflect Projectile:** é uma por rodada.
+- ❌ **Stunning Blows em dois alvos:** só vale quando os dois Golpes do Flurry são **na mesma criatura**.
+- ❌ **Contar com Perfect Strike no arco:** ele só refaz Golpe **desarmado**.`
+
 export const COMBAT_GUIDES: CombatGuide[] = [
     { match: byName('Ardagar'), markdown: ARDAGAR, curated: true },
     { match: byName('Eldarion'), markdown: ELDARION, curated: true },
@@ -597,6 +670,7 @@ export const COMBAT_GUIDES: CombatGuide[] = [
     { match: (b) => (b.name || '').trim().toLowerCase().startsWith('thalos'), markdown: THALOS, curated: true },
     { match: byName('Loki'), markdown: LOKI, curated: true },
     { match: (b) => (b.name || '').trim().toLowerCase().startsWith('miranda'), markdown: MIRANDA, curated: true },
+    { match: (b) => (b.name || '').trim().toLowerCase().startsWith('hearts'), markdown: HEARTS_FOLLY, curated: true },
 ]
 
 // ---------------------------------------------------------------------------
