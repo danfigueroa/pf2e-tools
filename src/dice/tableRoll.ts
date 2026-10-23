@@ -81,6 +81,8 @@ export interface TableRoll {
     free?: RolledPart
     /** O jogador marcou este teste como a iniciativa dele: a Iniciativa aplica o total. */
     initiative?: true
+    /** Uso de um poder sem dado (dádiva de relíquia, ativação): o cartão mostra só este texto, no mesmo quadro das rolagens. */
+    use?: { text: string }
 }
 
 const HEX = /^#[0-9a-fA-F]{6}$/
@@ -208,7 +210,14 @@ export function sanitizeTableRoll(raw: unknown): TableRoll | null {
         out.free = part
     }
 
-    if (!out.check && !out.damage && !out.free && !out.rays) return null
+    if (r.use !== undefined) {
+        const u = r.use as Record<string, unknown>
+        const text = u && typeof u === 'object' ? str(u.text, 120).trim() : ''
+        if (!text) return null
+        out.use = { text }
+    }
+
+    if (!out.check && !out.damage && !out.free && !out.rays && !out.use) return null
     return out
 }
 
@@ -248,5 +257,6 @@ export function rollSummaryText(r: TableRoll): string {
         bits.push(`${r.rays.length} raios (${hits.join('; ')}); total ${rayTotal(r.rays)}`)
     }
     if (r.free) bits.push(`${partFormula(r.free)} = ${r.free.total}`)
+    if (r.use) bits.push(r.use.text)
     return `${r.by || 'Alguém'} — ${r.title}: ${bits.join('; ')}`
 }

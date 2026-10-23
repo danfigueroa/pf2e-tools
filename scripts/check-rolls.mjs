@@ -1451,5 +1451,16 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
     ok(investigator.hasKnownWeaknesses(miranda) && investigator.hasSharedStratagem(miranda), 'Miranda tem Known Weaknesses e Shared Stratagem')
 }
 
+// ── Uso de poder sem dado (dádiva de relíquia) ──
+{
+  const base = { id: 'abc-1', color: '#336699', by: 'Miranda', title: 'Dragon Strike' }
+  const used = { ...base, use: { text: 'Usou · 1 ação' } }
+  ok(table.sanitizeTableRoll(used)?.use?.text === 'Usou · 1 ação', 'cliente aceita o uso de poder')
+  ok(server.sanitizeRoll(used)?.use?.text === 'Usou · 1 ação', 'servidor aceita o uso de poder')
+  ok(table.sanitizeTableRoll({ ...base, use: { text: '  ' } }) === null, 'cliente recusa uso vazio')
+  ok(server.sanitizeRoll({ ...base, use: { text: '' } }) === null, 'servidor recusa uso vazio')
+  ok(table.sanitizeTableRoll(base) === null && server.sanitizeRoll(base) === null, 'sem nada para mostrar continua recusado')
+}
+
 console.log(`${passed} conferências ok, ${failures} falha(s).`)
 process.exit(failures ? 1 : 0)

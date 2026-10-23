@@ -137,7 +137,13 @@ export function sanitizeRoll(r) {
     out.free = part
   }
 
-  if (!out.check && !out.damage && !out.free && !out.rays) return null
+  if (r.use !== undefined) {
+    const text = r.use && typeof r.use === 'object' ? str(r.use.text, 120).trim() : ''
+    if (!text) return null
+    out.use = { text }
+  }
+
+  if (!out.check && !out.damage && !out.free && !out.rays && !out.use) return null
   if (JSON.stringify(out).length > MAX_ROLL_BYTES) return null
   return out
 }

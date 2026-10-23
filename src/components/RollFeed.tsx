@@ -147,6 +147,12 @@ const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) =
 
             {roll.rays && <RaysBlock rays={roll.rays} color={roll.color} />}
 
+            {roll.use && (
+                <Typography sx={{ mt: 0.75, textAlign: 'center', fontWeight: 800, fontSize: '1.15rem' }}>
+                    {roll.use.text}
+                </Typography>
+            )}
+
             {roll.free && (
                 <Box sx={{ mt: 0.75 }}>
                     <DiceTray dice={roll.free.dice} flat={roll.free.flat} total={roll.free.total} color={roll.color} />
@@ -273,6 +279,7 @@ export const HistoryRow = ({ roll }: { roll: TableRoll }) => (
                 <Typography variant="body2"><b>Total {rayTotal(roll.rays)}</b> · todos críticos {rayCritTotal(roll.rays)}</Typography>
             </Box>
         )}
+        {roll.use && <Typography variant="body2" sx={{ mt: 0.5 }}><b>{roll.use.text}</b></Typography>}
         {roll.free && (
             <Typography variant="body2" sx={{ mt: 0.5 }}>
                 <b>{roll.free.total}</b> — {partFormula(roll.free)} [{roll.free.dice.map((d) => d.value).join(', ')}]

@@ -146,6 +146,11 @@ export function flurryRoll(who: RollerIdentity, strike: Strike, plans: [StrikePl
     return { ...base(who, `Flurry of Blows — ${strike.name}`, sub), rays, ...(note ? { note } : {}) }
 }
 
+/** Uso de um poder que não rola nada (dádiva de relíquia): o cartão da mesa mostra o que foi usado e o que custou. */
+export function powerUseRoll(who: RollerIdentity, title: string, text: string, sub?: string, note?: string): TableRoll {
+    return { ...base(who, title, sub), use: { text }, ...(note ? { note } : {}) }
+}
+
 /** Uma cura que é ação do personagem (Searing Restoration, Healer's Touch): dados rolados, sem teste de d20. */
 export function healRoll(who: RollerIdentity, title: string, label: string, rolled: RolledExpr, sub?: string, note?: string): TableRoll {
     return { ...base(who, title, sub), free: toPart(label, rolled), ...(note ? { note } : {}) }
