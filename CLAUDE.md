@@ -391,13 +391,13 @@ das rotas (cada store do servidor manteve as funções exportadas). O Redis e o 
   compartilhamentos de mais de um dia e o estado de personagem parado há 180 dias.
 - **Tempo real é sempre do banco**: um trigger chama `realtime.send` no canal PRIVADO `mesa:<mesa>:<nome>` (`state`,
   `rolls`, `map:<id>`, `maps`, `encounters`, `fixes`, `sheets`), e só quem está em `mesa_members` ouve (RLS em `realtime.messages`). Nenhum cliente
-  transmite — a única exceção é a presença (abaixo). No cliente, `listenMesaChannel` (`services/supabase.ts`) é o único jeito de ouvir; a cada SUBSCRIBED
+  transmite — as exceções são a presença (abaixo) e os gestos do mapa (`mesa:<mesa>:live:<mapa>`, ver "Mapa ao vivo"). No cliente, `listenMesaChannel` (`services/supabase.ts`) é o único jeito de ouvir; a cada SUBSCRIBED
   (inclusive reconexão) quem ouve relê o que pode ter perdido. O Realtime põe um `id` próprio no payload quando ele
   não tem um — não use `id` como campo da mensagem.
 - **Presença** (`services/presence.ts` + `components/PresenceList.tsx`, migration `presenca`): quem está com o app aberto
   na mesa, na sidebar ("Na mesa agora"), com o nome do aparelho, a ficha aberta e a página. Usa o Presence do Realtime no
-  canal `mesa:<mesa>:presence`, e é o ÚNICO lugar onde o cliente manda algo pelo Realtime: a política de insert em
-  `realtime.messages` libera só a extensão `presence`, e só nesse tópico. Transmitir (`broadcast`) pelo cliente continua
+  canal `mesa:<mesa>:presence`, e é um dos DOIS lugares onde o cliente manda algo pelo Realtime (o outro é o "Mapa ao vivo"): a política de
+  insert em `realtime.messages` libera só a extensão `presence`, e só nesse tópico. Transmitir (`broadcast`) pelo cliente continua
   recusado — conferido: o `send` volta `error` e ninguém recebe.
   - Sem login, a pessoa é o APARELHO (sessão anônima, `presence.key`); duas abas são uma linha (vale a visível mais
     recente). O nome é opcional, do aparelho (`pf2e:device-name`, global, editado no próprio item da lista); sem ele,
@@ -1756,8 +1756,8 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
   - Dois dedos (pinça) e o botão do meio do mouse movem o mapa em qualquer ferramenta — no
     Desenhar o arrasto de um dedo é o traço.
 - **Áreas de efeito** (`areas.ts`, `AreaPanel.tsx`, ferramenta Área — para todos): explosão,
-  emanação, cone e linha. **São CONSULTA, como a régua** (decisão do usuário): a área aparece só
-  para quem mede, fica parada depois do clique (`areaPinned`) até o próximo clique ou a troca de
+  emanação, cone e linha. **São CONSULTA, como a régua** (decisão do usuário): a área nunca é gravada
+  (os outros a veem ao vivo, ver "Mapa ao vivo", e ela some com o gesto), fica parada depois do clique (`areaPinned`) até o próximo clique ou a troca de
   ferramenta, e **nunca é gravada**. A primeira versão gravava cada área num `drw:` e o usuário
   não queria isso — áreas gravadas nessa época ainda são desenhadas pelo `DrawingLayer` (ramo
   `type: 'area'`) e saem pelo Apagar/Limpar do Desenhar.
@@ -1789,8 +1789,23 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
   clique brigaria com o início do arrasto, da régua e do traço. Campo `ping:<id>` que quem pingou apaga em 6 s. Quem
   recebe decide se pisca **pelo id, não pelo relógio** (`PingLayer`): o que já existia quando o
   mapa abriu conta como visto. Chega aos outros pela transmissão do campo, como qualquer escrita. (Um ping sem
-  passar pelo banco — Broadcast entre aparelhos — exige liberar a transmissão pelos clientes no RLS do Realtime: fica
-  para depois, junto da prévia do arrasto ao vivo.)
+  passar pelo banco — pelo canal do "Mapa ao vivo" — ficou para depois.)
+- **Mapa ao vivo** (`services/mapLive.ts` + `components/LiveLayer.tsx`, migration `mapa_ao_vivo`): a régua, a área de
+  efeito (com a contagem de criaturas) e o arrasto de token (destino, linha, faixas de alcance e ações) de cada pessoa
+  aparecem na tela de todos no mesmo mapa, com o nome dela (`selfLabel` da presença: nome do aparelho, senão o
+  personagem da ficha aberta) e uma cor por aba (a área usa a cor dela). É Broadcast do Realtime DIRETO entre
+  aparelhos, no canal privado `mesa:<mesa>:live:<mapa>` — a política libera ao cliente só a extensão `broadcast` e só
+  esse tópico; os tópicos do banco continuam fechados (conferido: transmitir em `rolls` não chega a ninguém). **Nada
+  vai ao banco nem ao servidor**: o arrasto só vira escrita no soltar, como sempre.
+  - O `MapCanvas` chama `sendLive` onde já desenhava o próprio gesto (`drawLine`/`drawArea`/arrasto) e `null` no
+    `clearOverlay`. Repetido não sai (comparação do JSON — a régua encaixa no quadrado, então quase nada sai), o resto
+    sai no máximo a cada 100 ms com o último estado, e apagar sai na hora. Gesto parado (régua solta, área fixada) é
+    reenviado a cada 3 s e some de quem vê depois de 8 s sem batimento (aba fechada, oculta ou sem rede).
+  - Do lado de quem vê é React, não DOM direto: só a `LiveLayer` assina o canal (`useMapLive`) e repinta. A emanação é
+    resolvida pelas posições DESTE aparelho. Cada ABA é um remetente (`tabId`), então duas abas se enxergam. O canal é
+    por mapa, com contagem de uso e 3 s de folga para fechar (o StrictMode sai e entra no mesmo tópico em seguida).
+  - Medido com dois navegadores: régua na tela do outro ~15 ms depois do movimento. Rascunho do Desenhar não é
+    transmitido (o traço já chega pelo `drw:` ao soltar).
 - **Rolador de dados** (`dice.ts`, `DicePanel.tsx`, `motion/DiceTray.tsx`): botão
   "Dados" na barra, **fora** do seletor de ferramentas — abre um painel sem trocar a ferramenta ativa,
   para rolar com a régua na mão. d4–d100, 1–**100** dados, bônus ±999, cor de `DRAW_COLORS`. O
