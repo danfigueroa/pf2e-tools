@@ -516,33 +516,33 @@ Três Pontos Míticos por dia, na faixa ao lado das condições.
 // O Braço Sônico e o Miranda's Arm não têm entrada na AON: o guia só diz o que a ficha exporta.
 // ---------------------------------------------------------------------------
 const MIRANDA = `## 🎯 Papel em Combate
-**Investigadora de Empiricism**: a cabeça do grupo. Estuda o alvo (*Devise a Stratagem*), bate uma vez com precisão (*Strategic Strike*, **2d6 de precisão**) e passa a vantagem aos aliados. Medicina de **mestre (+16)** faz dela a curandeira de reserva, e a Percepção de mestre (+15) a vigia do grupo. **CA 25 (27 com o escudo erguido) · 85 PV**: leve e sem Shield Block, então age de longe ou ao lado de quem segura a linha de frente.
+**Investigadora de Empiricism**: a cabeça do grupo. Estuda o alvo (Devise a Stratagem), bate uma vez com precisão (Strategic Strike, **2d6 de precisão**) e passa a vantagem aos aliados. Medicina de **mestre (+16)** faz dela a curandeira de reserva, e a Percepção de mestre (+15) a vigia do grupo. **CA 25 (27 com o escudo erguido) · 85 PV**: leve e sem Shield Block, então age de longe ou ao lado de quem segura a linha de frente.
 
 ## 🔁 Rotina de Turno
-- 🧠 **Devise a Stratagem (1 ação, ou ação livre, 1× por rodada):** escolha uma criatura que você vê e rolle um d20. **O primeiro Golpe nela até o seu próximo turno usa esse d20 no lugar da rolagem** (traço *fortune*) e pode somar **INT** em vez de FOR/DES, desde que a arma seja **ágil ou de acuidade** (ou à distância). Seu INT e sua DES são os dois +4, então o número do ataque não muda: o que muda é o **Strategic Strike**.
+- 🧠 **Devise a Stratagem (1 ação, ou ação livre, 1× por rodada):** escolha uma criatura que você vê e rolle um d20. **O primeiro Golpe nela até o seu próximo turno usa esse d20 no lugar da rolagem** (traço fortune) e pode somar **INT** em vez de FOR/DES, desde que a arma seja **ágil ou de acuidade** (ou à distância). Seu INT e sua DES são os dois +4, então o número do ataque não muda: o que muda é o **Strategic Strike**.
 - 🗡️ **Strategic Strike:** no Golpe que soma INT pelo estratagema, **+2d6 de dano de precisão** (1d6, mais 1 dado no nível 5; sobe de novo nos níveis 9, 13 e 17). Dobra no crítico. Não vale contra criatura imune a precisão.
-- 🪄 **Ação livre quando há pista:** se a criatura é parte de uma **investigação ativa** (*Pursue a Lead*), o Devise a Stratagem não custa ação. Abra a investigação fora do combate.
+- 🪄 **Ação livre quando há pista:** se a criatura é parte de uma **investigação ativa** (Pursue a Lead), o Devise a Stratagem não custa ação. Abra a investigação fora do combate.
 - 🗡️ **Sword Cane (+15, 1d6+2 perfurante, ágil, acuidade):** a arma que **sempre** serve para o estratagema. Segundo ataque −4, terceiro −8.
 - 🔊 **Braço Sônico (+16, 2d6+2 sonoro + 1d6 elétrico da runa Shock):** o ataque mais forte da ficha, mas o app não achou os traços dele na AON. Se ele for ágil ou de acuidade, o estratagema vale como na Sword Cane; se não, só o d20 do estratagema se aplica (sem INT e sem Strategic Strike). Confirme com o mestre.
-- 🧭 **Ordem típica:** *Devise a Stratagem* → Golpe (com o estratagema) → terceira ação para *Battle Medicine*, *Tamper* ou erguer o escudo. Contra um alvo que o grupo já está cercando, o Golpe com o estratagema primeiro.
+- 🧭 **Ordem típica:** Devise a Stratagem → Golpe (com o estratagema) → terceira ação para Battle Medicine, Tamper ou erguer o escudo. Contra um alvo que o grupo já está cercando, o Golpe com o estratagema primeiro.
 
 ## ⭐ Nunca Esqueça
-- 📱 **No app:** no diálogo do Golpe, o chip **Devise a Stratagem** cobra a ação, troca para INT, soma o Strategic Strike e põe a anotação *fortune* na rolagem. O chip **Investigação ativa sobre o alvo** deixa o estratagema livre. O app não conta "1× por rodada": é você.
+- 📱 **No app:** no diálogo do Golpe, o chip **Devise a Stratagem** cobra a ação, troca para INT, soma o Strategic Strike e põe a anotação fortune na rolagem. O chip **Investigação ativa sobre o alvo** deixa o estratagema livre. O app não conta "1× por rodada": é você. **Nos testes de perícia**, o mesmo talento aparece como **Estratagema de perícia** (+1 no teste de INT, SAB, CAR ou Percepção sobre o alvo, e você não ataca essa criatura até o próximo turno).
 - 🎲 **O d20 do estratagema é o do ataque:** não role de novo. A fortuna não soma com outro efeito de fortuna na mesma rolagem.
 - 🔍 **Known Weaknesses:** ao Devise a Stratagem, você pode fazer um **Recall Knowledge antes do d20**. No sucesso crítico, você percebe uma fraqueza e cada aliado ganha **+1 de circunstância** no ataque contra o alvo até o seu próximo turno (o seu também).
 - 🤝 **Shared Stratagem:** se o Golpe com o estratagema acertar, **designe um aliado**: o alvo fica **desprevenido** contra o próximo ataque dele antes do seu próximo turno. Combina bem com o ladino ou o guerreiro do grupo.
 - 🛡️ **Escudo de aço (+2 na CA erguido):** custa uma ação para erguer e **não bloqueia** (ela não tem Shield Block). Só vale quando você vai ficar na linha de fogo.
-- 🧪 **Armadura leve:** a *Arachnid Harness* (couro +1) dá **resistência 2 a veneno**, e a ativação (1×/dia, 1 ação, concentrar) abre membros de aranha: 1 minuto de **Deslocamento de escalar** igual à metade do terrestre, sem soltar as mãos.
+- 🧪 **Armadura leve:** a Arachnid Harness (couro +1) dá **resistência 2 a veneno**, e a ativação (1×/dia, 1 ação, concentrar) abre membros de aranha: 1 minuto de **Deslocamento de escalar** igual à metade do terrestre, sem soltar as mãos.
 
 ## 🩺 Cura e Suporte
-Medicina **+16** (mestre, bônus de item +1 das *Healer's Gloves*).
+Medicina **+16** (mestre, bônus de item +1 das Healer's Gloves).
 - ⚔️ **Battle Medicine (1 ação, manipular, kit de curandeiro):** CD 15/20/30/40, curando 2d8 (sucesso) ou 4d8 (crítico), com **+0/+10/+30/+50** conforme a CD. Como mestre, ela mira a **CD 30** (2d8+30). Não tira Ferido; o alvo fica imune ao seu Battle Medicine por 1 dia.
 - 💚 **Godless Healing:** +5 PV quando a cura é **em você**, e o Battle Medicine em você só imuniza por **1 hora**. No app, aparece sozinho na opção "Em mim mesmo".
 - 🏕️ **Treat Wounds (10 minutos, sem ação):** a mesma tabela; sucesso tira Ferido. **Ward Medic** atende **4 pacientes** na mesma rolagem (mestre em Medicina). Tratar por 1 hora dobra a cura.
-- 🎯 **Assurance (Medicina):** abre mão de rolar para ter **23** (10 + 7 de nível + 6 de mestre). Bom para a CD 15 e a 20 sem arriscar; **o app ainda não tem Assurance**, então combine com o mestre.
-- 🔥 **Searing Restoration (1 ação, manipular, Unstable):** cura você ou uma criatura viva adjacente em **1d10, mais 1d10 nos níveis 3, 5 e 7** (conte os dados no texto da AON), e quem foi curado faz um teste simples imediato contra **sangramento persistente**. O traço *Unstable* tem consequência de falha: leia o texto antes de usar em batalha. Vem da dedicação de Inventor.
-- 🧤 **Healer's Touch (Healer's Gloves, 1×/dia, 1 ação):** **2d6+7** PV em uma criatura viva adjacente, efeito de vitalidade (não machuca morto-vivo).
-- 🔧 **Tamper (1 ação, Ofício +15 contra a CD de Reflexos):** escolha a arma ou a armadura do inimigo ao seu alcance. No **sucesso crítico**, a arma dá **−2** no ataque e no dano dele; na armadura, ele fica desprevenido e perde **3 m** de Deslocamento. O efeito dura até ele usar Interagir para tirá-lo. No **sucesso**, o mesmo, mas só até o início do seu próximo turno. **Falha crítica:** você toma dano de fogo igual ao seu nível.
+- 🎯 **Assurance (Medicina):** abre mão de rolar para ter **23** (10 + 7 de nível + 6 de mestre), sem somar nenhum outro bônus. Bom para a CD 15 e a 20 sem arriscar. No app, o chip **Assurance** do diálogo de Medicina (e do Tratar Ferimentos e do Battle Medicine) usa o 23 sem rolar e sem ✦.
+- 🔥 **Searing Restoration (1 ação, manipular, Unstable):** cura você ou uma criatura viva adjacente em **4d10** (1d10, mais 1d10 nos níveis 3, 5 e 7), e quem foi curado faz um teste simples imediato contra **sangramento persistente**. O traço **Unstable** pede um **teste simples CD 15** logo depois: na falha, a inovação **pifa** e não faz mais ações Unstable até 10 minutos de reajuste; na falha crítica, você também toma **3 de fogo** (metade do nível). No app, o botão **Curar** na aba Talentos rola tudo isso e soma ao seu PV; "Reajustei a inovação" devolve o efeito depois dos 10 minutos.
+- 🧤 **Healer's Touch (Healer's Gloves, 1×/dia, 1 ação):** **2d6+7** PV em uma criatura viva adjacente, efeito de vitalidade (não machuca morto-vivo). No app, o botão **Curar** na linha da luva, no Inventário, rola e marca "usada hoje".
+- 🔧 **Tamper (1 ação, Ofício +15 contra a CD de Reflexos):** escolha a arma ou a armadura do inimigo ao seu alcance. No **sucesso crítico**, a arma dá **−2** no ataque e no dano dele; na armadura, ele fica desprevenido e perde **3 m** de Deslocamento. O efeito dura até ele usar Interagir para tirá-lo. No **sucesso**, o mesmo, mas só até o início do seu próximo turno. **Falha crítica:** você toma dano de fogo igual ao seu nível. No app, é a ação de perícia **Tamper** no diálogo de Ofício (cobra a ação; a CD de Reflexos é do mestre).
 
 ## ⚡ Poderes Míticos
 Três Pontos Míticos por dia, na faixa ao lado das condições.
@@ -553,20 +553,20 @@ Três Pontos Míticos por dia, na faixa ao lado das condições.
 - 📖 **Bookkeeper's Calling:** anátema destruir livros ou registros, ou negar conhecimento a quem o busca sinceramente. O mestre decide a consequência.
 
 ## 🕵️ Fora do Combate
-- 🔦 **Pursue a Lead (1 minuto):** nomeie um detalhe; o mestre confirma se há um mistério maior. Se houver, abra uma **investigação** e dê um nome. Você mantém **duas** ativas, e o bônus é **+1 de circunstância** em Percepção e perícias para responder à questão. Depois de usar, **10 minutos** até a próxima.
-- 📣 **Clue In (reação, 1× a cada 10 minutos):** quando outro faz um teste que o aproxima da resposta de uma investigação, ele ganha o seu bônus de investigação.
-- 🛡️ **Detective's Readiness:** o bônus da investigação vale também nas **salvaguardas** contra a criatura ou o efeito ligado a ela, e o Clue In ajuda a salvaguarda de um aliado.
-- 👁️ **Expeditious Inspection (ação livre, 1× a cada 10 minutos):** Recall Knowledge, Seek ou Sense Motive de graça. **That's Odd** avisa que algo na sala está fora do lugar (o mestre decide o quê).
-- 📚 **Thorough Research:** sucesso em Recall Knowledge dá informação extra; sucesso crítico, extra ou uma pergunta a mais. **Keen Recollection:** em Recall Knowledge, perícia destreinada soma o nível (7) em vez de 0.
+- 🔦 **Pursue a Lead (1 minuto):** nomeie um detalhe; o mestre confirma se há um mistério maior. Se houver, abra uma **investigação** e dê um nome. Você mantém **duas** ativas, e o bônus é **+1 de circunstância** em Percepção e perícias para responder à questão. Depois de usar, **10 minutos** até a próxima. No app, a faixa **Investigações** (fora das abas) guarda as duas, mostra o relógio de 10 minutos e lembra as abandonadas do dia; nos diálogos de teste aparece o chip **Investigação ativa · +1**.
+- 📣 **Clue In (reação, 1× a cada 10 minutos):** quando outro faz um teste que o aproxima da resposta de uma investigação, ele ganha o seu bônus de investigação. O botão fica na faixa Investigações, gasta a reação e liga o relógio.
+- 🛡️ **Detective's Readiness:** o bônus da investigação vale também nas **salvaguardas** contra a criatura ou o efeito ligado a ela, e o Clue In ajuda a salvaguarda de um aliado. No app, o chip aparece nos diálogos de Fortitude, Reflexos e Vontade quando há investigação aberta.
+- 👁️ **Expeditious Inspection (ação livre, 1× a cada 10 minutos):** Recall Knowledge, Seek ou Sense Motive de graça (botão e relógio na faixa Investigações). **That's Odd** avisa que algo na sala está fora do lugar (o mestre decide o quê).
+- 📚 **Thorough Research:** sucesso em Recall Knowledge dá informação extra; sucesso crítico, extra ou uma pergunta a mais. **Keen Recollection:** em Recall Knowledge, perícia destreinada soma o nível (7) em vez de 0. No app, qualquer diálogo de perícia oferece a ação **Recall Knowledge**, e com ela a destreinada soma o nível.
 - 🗣️ **Hobnobber:** Gather Information leva metade do tempo.
-- 🔮 **Arcane Sense:** *Detect Magic* à vontade (arcano inato, CAR). Alchemical Crafting, Inventor e Additional Lore completam a ficha de pesquisadora: Crafting +15, Heraldry, Planar e uma Lore de mestre.
+- 🔮 **Arcane Sense:** Detect Magic à vontade (arcano inato, CAR). Alchemical Crafting, Inventor e Additional Lore completam a ficha de pesquisadora: Crafting +15, Heraldry, Planar e uma Lore de mestre.
 
 ## 🎒 Itens & Recursos
 - 🗡️ **Sword Cane** (ferro frio de baixa qualidade): +15, ágil, acuidade, ocultável.
 - 🔊 **Braço Sônico:** item da campanha (+1 striking Shock, ferro frio): sem entrada na AON. Confira o efeito com o mestre.
 - 🦾 **Miranda's Arm:** item da campanha, investido: sem entrada na AON. Confira o efeito com o mestre.
 - 🧤 **Healer's Gloves:** +1 de item em Medicina e a cura do dia (acima).
-- 🕸️ **Arachnid Harness:** couro +1, resistência 2 a veneno e escalada 1×/dia.
+- 🕸️ **Arachnid Harness:** couro +1, resistência 2 a veneno (já na Visão Geral e na Iniciativa) e escalada 1×/dia (botão **Usar** na linha do Inventário).
 - 🛡️ **Steel Shield:** Dureza 5, PV 20, BT 10 (+2 na CA erguido).
 - ⚗️ **Alchemical Crafting:** fórmulas de itens alquímicos comuns de 1º nível; com Crafting +15, ela fabrica o próprio estoque.
 
@@ -584,7 +584,7 @@ Três Pontos Míticos por dia, na faixa ao lado das condições.
 - ❌ **Devise a Stratagem duas vezes por rodada:** só uma, e vale para o **primeiro** Golpe na criatura escolhida.
 - ❌ **Esquecer a ação livre:** com investigação ativa sobre o alvo, o estratagema não custa nada.
 - ❌ **Gastar os 3 Pontos Míticos cedo:** o Correct the Story salva uma rodada ruim, e o We've Met Before só vale se o alvo for importante.
-- ❌ **Curar no meio da luta sem o kit de curandeiro:** o Battle Medicine exige o *healer's toolkit*.
+- ❌ **Curar no meio da luta sem o kit de curandeiro:** o Battle Medicine exige o healer's toolkit.
 - ❌ **Contar com o escudo para bloquear:** ela não tem Shield Block.`
 
 export const COMBAT_GUIDES: CombatGuide[] = [
