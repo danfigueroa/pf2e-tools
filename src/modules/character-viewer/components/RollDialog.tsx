@@ -53,7 +53,7 @@ import {
     type StrikeOptions,
 } from '../strikes'
 import { damageComponents, formatValue, componentLabel, scaleSpell, type ScaledComponent } from '../heightening'
-import { assuranceRoll, checkRoll, flurryRoll, mapLabel, raysRoll, rollerIdentity, treatWoundsRoll, spellRoll, spellstrikeRoll, strikeRoll, withSimplePoison, type SpellAttackInfo } from '../rolls'
+import { assuranceRoll, checkRoll, flurryRoll, isMythicAttackSpell, mapLabel, mythicSpellAttack, raysRoll, rollerIdentity, treatWoundsRoll, spellRoll, spellstrikeRoll, strikeRoll, withSimplePoison, type SpellAttackInfo } from '../rolls'
 import type { TableRoll } from '../../../dice/tableRoll'
 import { dialogEmbedProps, useEmbedContainer } from '../embedContext'
 import { CASCADE_TYPES, hasLaughingShadow, hasSpellstrike, isStudiousSpell, laughingShadowDamage, withLaughingShadow } from '../magus'
@@ -1271,7 +1271,12 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
 const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Extract<RollRequest, { kind: 'spell' }>>) => {
     const who = useMemo(() => rollerIdentity(build), [build])
     const send = useSend(mythicPoints, onClose)
-    const { spell, castRank, attack } = request
+    const { spell, castRank } = request
+    // Magia mítica que manda atacar com proficiência mítica (Banishing Touch): o bloco não sabe disso.
+    const attack = useMemo(
+        () => (request.attack && isMythicAttackSpell(request.name) ? mythicSpellAttack(build, request.attack) : request.attack),
+        [build, request.attack, request.name],
+    )
     const traits = (spell?.traits ?? []).map((t) => t.toLowerCase())
     // Sem descrição (o "Atq" do cartão do conjurador): é o ataque genérico.
     const hasAttack = !!attack && (!spell || traits.includes('attack'))
@@ -1398,6 +1403,11 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                                 </ToggleButtonGroup>
                             </Box>
                             <Memorial title="Ataque de magia" parts={attackParts} total={total!} />
+                            {isMythicAttackSpell(request.name) && !attack!.alreadyMythic && (
+                                <Typography variant="caption" sx={{ color: MYTHIC_COLOR }}>
+                                    Magia mítica: o ataque usa a proficiência mítica (nível + 10), como a AON manda.
+                                </Typography>
+                            )}
                             {attack!.alreadyMythic && (
                                 <Typography variant="caption" sx={{ color: MYTHIC_COLOR }}>
                                     Mythic Magic: o ataque já usa a proficiência mítica, e o Ponto Mítico sai ao conjurar.

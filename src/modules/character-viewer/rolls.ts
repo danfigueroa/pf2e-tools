@@ -305,6 +305,21 @@ export function casterAttack(build: BuildInfo, caster: SpellCaster, mods: Condit
     }
 }
 
+/**
+ * Magias MÍTICAS cujo ataque a própria AON manda fazer "at mythic proficiency", fora do bloco Mythic Magic:
+ * Banishing Touch (War of Immortals pg. 154). Conferidas uma a uma — o traço Mythic sozinho não diz isso.
+ */
+const MYTHIC_ATTACK_SPELLS = new Set(['banishing touch'])
+
+export const isMythicAttackSpell = (name: string) => MYTHIC_ATTACK_SPELLS.has(name.trim().toLowerCase())
+
+/** O ataque de magia com a proficiência mítica no lugar da do bloco (o ✦ não se aplica: já é mítico). */
+export function mythicSpellAttack(build: BuildInfo, attack: SpellAttackInfo): SpellAttackInfo {
+    if (attack.alreadyMythic) return attack
+    const parts = attack.parts.map((p): CheckPart => (p.kind === 'prof' ? { label: 'Mítica', value: build.level + MYTHIC_PROFICIENCY_BONUS, kind: 'prof' } : p))
+    return { parts, total: sum(parts), mythicDelta: null, alreadyMythic: false }
+}
+
 /** Ataque das magias de foco, pelos números que o Pathbuilder dá no `build.focus`. */
 export function focusAttack(
     build: BuildInfo,
