@@ -487,12 +487,38 @@
     "sourceBook": "Player Core, p. 234",
     "description": "Perícia Athletics Athletics permite que você realize feitos de proeza física. A maioria das ações de Athletics permite que você se mova pelo ambiente (Climb, High Jump, Long Jump, Swim) ou controle o movimento do seu oponente em combate (Grapple, Reposition, Shove, Trip e Disarm). Escape: Quando você usa a ação básica Escape, você pode usar seu modificador de Athletics em vez do seu modificador de ataque desarmado. Ataques Múltiplos com Athletics Diversas ações de Athletics possuem o traço attack, o que significa que usá-las mais de uma vez no mesmo turno as torna menos precisas. Como essas ações usam sua mão livre, você usa os traços do seu ataque de soco para determinar a penalidade de ataque múltiplo, então o traço agile do seu soco se aplica. Portanto, você recebe uma penalidade de 4 se a ação for seu segundo ataque do turno, ou de 8 se for o terceiro. Alguns traços de arma permitem que você realize essas ações usando uma arma, caso em que a penalidade pode ser 5 ou 10 se a arma não possuir o traço agile. Alguns personagens podem obter ataques desarmados sem o traço agile também. Se não estiver claro qual penalidade usar, o GM decide. Bônus de Item para Athletics Bônus de Item Nível Categoria Consumível Nota Beastmaster's Sigil +1 0 Spellhearts Não Bônus de item em testes de Athletics para Trip Medal of Gorilla’s Might +1 3 Worn Items Não Bônus de item em testes de Athletics para Climb, Force Open, High Jump e Long Jump. Crowbar (Levered) +1 3 Adventuring Gear Não para Force Open qualquer coisa que possa ser aberta com alavanca. Bracelet Of Buoyancy +1 3 Other Worn Items Não para Swim Essence Charm +1 4 Other Worn Items Não Bônus de item em um teste à escolha do artífice Grippy Gloves +1 4 Other Worn Items Não Bônus de item em teste de Athletics para Climb, Grapple e Reposition. Sailor’s Collar +1 4 Worn Items Não Bônus de item em testes de Athletics para Climb, Force Open, High Jump e Long Jump. Coral Aspect +1 4 Other Worn Items Não Bônus de item para Swim Mariner's Splint +1 5 Armor Não testes de Athletics para Climb ou Swim Trudd's Strength +1 5 Clan Dagger Filigrees Não Bônus de item em testes de Athletics Injigo's Loving Embrace +1 9 Held Items Não Bônus de item em teste de Athletics para Grapple com a rede. Kinburi's Sandals of Bounding +1 9 Other Worn Items Não Bônus de item em testes de Athletics para High Jump e Long Jump Dread Ampoule (Greater) +1 11 Alchemical Bombs Não Bônus de item em testes de Athletics para Force Open Bestial Mutagen (Lesser) +1 1 Alchemical Elixirs Sim Bônus de item em testes de Athletics Bronze Bull Pendant +1 2 Talismans Sim Athletics para Shove Monkey Pin +1 2 Talismans Sim Athletics para Climb Savior Spike +1 2 Talismans Sim Athletics para Grab an Edge Energizing Tea +1 4 Tea Sim Bônus de item em Athletics Mantis Embrace +2 0 Other Worn Items Não testes de Athletics para Grapple ou Shove Zarothrask's Contract +2 9 Other Contracts Não Disarm itens manufaturados e para Grapple Kinburi's Sandals of Bounding +2 9 Other Worn Items Não Bônus de item em testes de Athletics para High Jump e Long Jump quando ativado Fire-Jump Ring +2 10 Other Worn Items Não Sash of Prowess +2 10 Worn Items Não Greater Sailor’s Collar +2 10 Worn Items Não Bônus de item em testes de Athletics para Climb, Force Open, High Jump e Long Jump. Gloves of Precision +2 10 Worn Items Não Bônus de item para Climb Kinetic Wraps of Strength +2 10 Worn Items Não Bônus de item para Force Open, Reposition e Shove Greater Trudd's Strength +2 11 Clan Dagger Filigrees Não Bônus de item em testes de Athletics Helm of Zeal +2 11 Worn Items Não Bônus de item da Perícia Divina da divindade associada Helm of the Tides +2 11 Other Worn Items Não Bônus de item para Swim Stampede Medallion +2 12 Eidolon Items Não Bônus de item em testes de Athletics para Shove ou Trip. Greater Stampede Medallion +2 15 Eidolon Items Não Bônus de item em testes de Athletics para Shove ou Trip. Bestial Mutagen (Moderate) +2 3 Alchemical Elixirs Sim Bônus de item em testes de Athletics Sash of Prowess (Greater) +3 17 Worn Items Não Jaws of the Grogrisant +3 17 Apex Items Não Bônus de item em testes de Perception para Athletics Helm of Zeal (Greater) +3 18 Worn Items Não Bônus de item da Divina..."
    },
+   "Bestow Life": {
+    "name": "Bestow Life",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Vitality",
+     "Positive"
+    ],
+    "category": "relic",
+    "sourceBook": "GM Core, p. 315",
+    "description": "Ativar Duas Ações: (concentrate) Frequência uma vez por dia; Efeito Uma infusão de energia de vitalidade da sua relíquia pode animar temporariamente um objeto não vivo. Você transforma um objeto inanimado adjacente em um objeto animado com um nível igual à metade do nível da relíquia e apropriado ao objeto (então uma vassoura se tornaria uma vassoura animada). O objeto persegue uma única tarefa simples de não combate que você declara quando usa Bestow Life, ignorando quaisquer comandos subsequentes. O objeto é irracional e persegue a tarefa de forma obstinada e não criativa. O objeto permanece animado por 1 hora."
+   },
    "Darkvision": {
     "name": "Darkvision",
+    "level": null,
     "actions": "",
     "traits": [],
-    "category": "rules",
-    "description": "Você enxerga na escuridão e na penumbra tão bem quanto na luz plena, mas só em preto e branco no escuro. Vem do talento Orc Sight."
+    "category": "familiar-ability",
+    "sourceBook": "Player Core, p. 259",
+    "description": "Habilidade de Familiar Darkvision Tipo de Habilidade Familiar Seu familiar ganha darkvision."
+   },
+   "Dominant Emotion": {
+    "name": "Dominant Emotion",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Emotion",
+     "Mental"
+    ],
+    "category": "relic",
+    "sourceBook": "Treasure Vault (Remastered), p. 198",
+    "description": "Ativar Reaction: (concentrate) Frequência uma vez por hora; Gatilho Você seria afetado adversamente por um efeito de emoção; Efeito A relíquia tenta neutralizar o efeito desencadeador com sua própria emoção, tentando um teste de anular. Se o teste for bem-sucedido, você sente uma onda repentina da emoção da relíquia e o efeito anulado não se mantém em você."
    },
    "Dromaar": {
     "name": "Dromaar",
@@ -535,6 +561,19 @@
     "category": "mythic-calling",
     "sourceBook": "War of Immortals, p. 80",
     "description": "Edictos coloque-se em perigo para proteger seus aliados ou criaturas inocentes sob ameaça Anátema recuar de uma batalha enquanto seus aliados ou espectadores inocentes estiverem em perigo sem fazer todos os esforços razoáveis para resgatá-los primeiro"
+   },
+   "Healing Wave": {
+    "name": "Healing Wave",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Healing",
+     "Vitality",
+     "Positive"
+    ],
+    "category": "relic",
+    "sourceBook": "GM Core, p. 315",
+    "description": "Ativar Duas Ações: (concentrate) Frequência uma vez por hora; Efeito Você libera uma onda de energia de vitalidade em um cone de 4,5 metros. Você e cada alvo vivo na área recuperam 1d4 PV por nível da relíquia."
    },
    "Incredible Movement": {
     "name": "Incredible Movement",
@@ -656,6 +695,20 @@
     "className": "Alchemist",
     "sourceBook": "Core Rulebook, p. 66",
     "description": "Suas defesas mentais são uma fortaleza de ferro. Sua graduação de proficiência para testes de Vontade aumenta para perito."
+   },
+   "Word of Faith": {
+    "name": "Word of Faith",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Healing",
+     "Holy",
+     "Vitality",
+     "Positive"
+    ],
+    "category": "relic",
+    "sourceBook": "GM Core, p. 311",
+    "description": "Ativar Duas Ações: (concentrate, manipulate) Frequência uma vez por hora; Efeito Colocando sua mão em si mesmo ou em um aliado, você cura os ferimentos dele e fortalece seu espírito. O alvo recupera 1d8 PV por nível do item e reduz seu valor de frightened em 1."
    }
   },
   "item": {

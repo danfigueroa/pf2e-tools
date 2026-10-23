@@ -436,6 +436,17 @@
     "sourceBook": "Player Core 2, p. 100",
     "description": "Você pode simular uma batalha em sua mente, usando o cérebro em vez de força bruta para executar um Strike."
    },
+   "Dragon Strike": {
+    "name": "Dragon Strike",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Evocation"
+    ],
+    "category": "relic",
+    "sourceBook": "Secrets of Magic, p. 230",
+    "description": "Ativar Ação Única: command; Frequência uma vez por hora; Efeito Imagens fantasmagóricas de garras dracônicas se formam ao redor de suas mãos e permanecem no ar quando você ataca. Por 1 minuto, quando você realizar um Strike corpo a corpo desarmado bem-sucedido, você causa 1d6 de dano cortante adicional. No 11º nível, você pode usar a habilidade uma vez a cada 10 minutos em vez de uma vez por hora."
+   },
    "Empiricism Methodology": {
     "name": "Methodology",
     "level": 1,
@@ -513,6 +524,17 @@
     "sourceBook": "War of Immortals, p. 78",
     "trigger": "Você rola um teste de perícia ou uma salvaguarda e não gosta do resultado.",
     "description": "O destino, a sorte ou alguma outra força se curva ao seu redor à medida que seu poder mítico aumenta, manifestando-se em um clarão de luz ou em uma onda visível de energia emanando de seu corpo enquanto você se livra das correntes do destino. Você gasta um Mythic Point e rola novamente o teste ou salvaguarda com proficiência mítica, assumindo o novo resultado."
+   },
+   "Scrap Shot": {
+    "name": "Scrap Shot",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Metal"
+    ],
+    "category": "relic",
+    "sourceBook": "Rage of Elements, p. 148",
+    "description": "Ativar Duas Ações: (concentrate, manipulate) Efeito Repulsão magnética faz com que um pedaço afiado de sucata metálica voe de sua relíquia. Faça um teste de ataque de magia com sua relíquia contra um alvo a até 30 pés. O pedaço causa 1d6 de dano perfurante para cada 2 níveis que a relíquia possuir (mínimo de 1d6). Se o alvo estiver vestindo armadura de metal ou for feito de metal, você ganha um bônus de circunstância de +1 no seu teste de ataque de magia, e o alvo fica clumsy 1 até o início do seu próximo turno conforme a sucata adere ao alvo. Se sua relíquia for feita de um metal precioso, o disparo também é feito ou revestido desse metal, ignorando resistências e similares de acordo. A sucata deixada para trás pelo disparo enferruja ou esfarela rapidamente e não vale nada se vendida."
    },
    "Skilled Human": {
     "name": "Skilled Human",

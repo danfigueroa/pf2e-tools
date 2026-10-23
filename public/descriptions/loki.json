@@ -1255,6 +1255,16 @@
     "sourceBook": "Revenge of the Runelords Player's Guide, p. 18",
     "description": "Editos buscar magias e itens mágicos raros da antiga Thassilon, aprender conhecimentos sobre Thassilon que foram esquecidos Anátema destruir voluntariamente textos antigos ou outras formas de conhecimento escrito sem antes preservar esse saber de alguma maneira, tratar as convicções ou crenças de outra pessoa como fantasia ou ilusão"
    },
+   "Sands of the Hourglass": {
+    "name": "Sands of the Hourglass",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "relic",
+    "sourceBook": "Treasure Vault (Remastered), p. 200",
+    "prerequisites": "A relíquia é de nível 5 ou superior.",
+    "description": "Ativar Duas Ações: (concentrate, manipulate) Frequência uma vez por hora; Efeito Você tem como alvo uma criatura a até 30 pés, impondo temporariamente a decrepitude do tempo sobre ela. O alvo deve tentar um teste de Fortitude. As condições clumsy e enfeebled duram 1 minuto. Sucesso Crítico O alvo não é afetado. Sucesso O alvo fica clumsy 1 e enfeebled 1. Falha O alvo fica clumsy 2, enfeebled 2 e drained 1. Falha Crítica O alvo fica clumsy 3, enfeebled 3 e drained 2."
+   },
    "Spellbook": {
     "name": "Magus Spellcasting",
     "level": 1,
@@ -1387,6 +1397,17 @@
     "className": "Alchemist",
     "sourceBook": "Core Rulebook, p. 66",
     "description": "Você aprendeu como infligir ferimentos maiores com as armas que conhece melhor. Você causa 2 de dano adicional com armas e ataques desarmados nos quais você é perito. Esse dano aumenta para 3 se você for mestre, e para 4 se você for lendário."
+   },
+   "Whammy": {
+    "name": "Whammy",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Misfortune"
+    ],
+    "category": "relic",
+    "sourceBook": "Treasure Vault (Remastered), p. 199",
+    "description": "Ativar Reação: (concentrar) Frequência uma vez por dia; Gatilho Um inimigo a até 30 pés rola um sucesso em um teste de ataque, teste de resistência ou teste de perícia; Efeito Sua relíquia envia uma onda de má sorte, forçando a criatura a rolar novamente e ficar com o pior resultado."
    },
    "Wish for Luck": {
     "name": "Instant Manifestation",
