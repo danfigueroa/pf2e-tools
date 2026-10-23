@@ -963,7 +963,7 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   - Fora do escopo, de propósito: histórico de transferências; a descrição do item recebido vem da API (o pacote
     pré-traduzido de quem recebeu não o conhece). Teto de 12 destinatários × 40 itens por fatia.
 - **Relíquias** (`relics.ts` + `components/RelicsCard.tsx`, no Inventário): catálogo À MÃO por nome de personagem
-  (`RELICS`, hoje vazio — cada relíquia entra quando o jogador informa o que ela é e que dádivas tem), como
+  (`RELICS`: cada relíquia entra quando o jogador informa o que ela é e que dádivas tem; hoje só o **Miranda's Arm**), como
   `customRunes.ts`. Regras do GM Core, Advancing a Relic (pg. 309): o **nível da relíquia é o do dono**; a Tabela 2–22
   dá o nível típico de cada dádiva pela posição (1º, 5º, 9º, 13º, 17º — `GIFT_LEVELS`, `minLevel` sobrepõe); o jogador
   pode ter trocado uma dádiva por **runa** ("Runes as Gifts").
@@ -1113,6 +1113,14 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   por "Reajustei a inovação" — **o app não conta os 10 minutos**), na falha crítica há fogo igual à metade do nível, aplicado junto da
   cura numa escrita só de PV. O app não sabe qual é a inovação nem se está em uso. `ActivityButton` delega ao
   `HealActivityButton` antes do "Usar" genérico; o Healer's Touch fica na linha da luva, no Inventário.
+- **Miranda's Arm** (entrada de `RELICS`, texto de terceiros passado pelo jogador, fora da AON): a relíquia É o **Braço Sônico** da
+  ficha (`on: { kind: 'weapon', weapon: 'Braço Sônico' }`), e as runas dele (+1, striking, Shock) já vêm no export — não há dádiva de
+  runa, `withRelicRunes` não muda nada. **Scrap Shot** (`ScrapShotButton`, dádiva `special: 'scrap-shot'`): ataque de magia com o
+  MAIOR ataque de magia da ficha (a relíquia não declara outro), `max(1, ⌊nível/2⌋)`d6 perfurante, dobrado no crítico, +1 de
+  circunstância e Desajeitado 1 em alvo de metal (chip), MAP, e o metal da relíquia (`weapon.mat`) vai na nota. **Dragon Strike**
+  (`special: 'dragon-strike'`): o botão do cartão só cobra a ação e marca "1× por hora" (o app não conta a hora nem o minuto); o dano é o
+  chip "Dragon Strike ativa" no Golpe (`DRAGON_STRIKE_KEY`, 1d6 cortante, não lembrado), no Punho e no braço — se o braço conta como
+  desarmado é do mestre. **O texto original não traz o ícone de ações das duas ativações: o custo (1 ação) é SUPOSIÇÃO** a confirmar.
 - **Itens que o Pathbuilder não exporta**: `addItemResistances` (no `normalizeBuild`) acrescenta a resistência de item VESTIDO a
   `build.resistances` ("poison 2" do Arachnid Harness), que a Visão Geral e a Iniciativa já leem; `itemActivities.ts` dá o botão de
   ativação diária (Arachnid Harness: 1 ação, 1×/dia) na linha do Inventário. Item novo = uma entrada em cada catálogo.
