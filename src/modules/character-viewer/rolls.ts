@@ -108,6 +108,24 @@ export function checkRoll(
     return { ...base(who, title, sub), check: d20Check(all, mythicDelta != null), ...(initiative ? { initiative: true as const } : {}) }
 }
 
+/** Uma cura que é ação do personagem (Searing Restoration, Healer's Touch): dados rolados, sem teste de d20. */
+export function healRoll(who: RollerIdentity, title: string, label: string, rolled: RolledExpr, sub?: string, note?: string): TableRoll {
+    return { ...base(who, title, sub), free: toPart(label, rolled), ...(note ? { note } : {}) }
+}
+
+/**
+ * Assurance: o jogador abre mão de rolar e fica com 10 + proficiência, sem nenhum outro bônus.
+ * O d20 é o 10 fixo e o modificador é só a proficiência, então dado + modificador = total fecha
+ * como em qualquer teste (e o servidor aceita). Não há natural 20 nem 1, e o ✦ não se aplica.
+ */
+export function assuranceRoll(who: RollerIdentity, title: string, proficiency: number, sub?: string): TableRoll {
+    const parts = [{ label: 'Assurance: 10 + proficiência', value: proficiency }]
+    return {
+        ...base(who, title, sub),
+        check: { d20: 10, mod: proficiency, total: 10 + proficiency, mythic: false, parts },
+    }
+}
+
 /** Golpe: o ataque e o dano saem juntos, com o crítico já montado. */
 export function strikeRoll(
     who: RollerIdentity,
@@ -344,7 +362,10 @@ export function treatWoundsRoll(
     const battle = variant.mode === 'battle'
     const sub = [`Medicina · CD ${option.dc}`, variant.hour && !battle ? '1 hora' : null, variant.risky && !battle ? 'Risky Surgery' : null]
         .filter(Boolean).join(' · ')
-    const roll = checkRoll(who, battle ? 'Battle Medicine' : 'Tratar Ferimentos', parts, mythicDelta, sub)
+    const title = battle ? 'Battle Medicine' : 'Tratar Ferimentos'
+    const roll = variant.assurance != null
+        ? assuranceRoll(who, title, variant.assurance, [sub, 'Assurance'].join(' · '))
+        : checkRoll(who, title, parts, mythicDelta, sub)
     const check = roll.check!
     const out = treatWoundsOutcome({ total: check.mod }, check.d20, option, variant)
     let delta = 0

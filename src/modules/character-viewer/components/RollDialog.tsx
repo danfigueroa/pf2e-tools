@@ -28,7 +28,7 @@ import { convertTypes, hasConservation, isEnergySpell, type EnergyMode } from '.
 import { energyKeyFor, legacyCharKey, slotsKeyFor } from '../charId'
 import { useEnergy } from './useEnergy'
 import { useSpellSlots } from './useSpellSlots'
-import type { Check, CheckPart } from '../checks'
+import { SKILLS, type Check, type CheckPart } from '../checks'
 import type { ConditionModifiers } from '../conditions'
 import type { MythicPointsApi } from './useMythicPoints'
 import type { UnarmedAttack } from '../unarmed'
@@ -50,15 +50,17 @@ import {
     type StrikeOptions,
 } from '../strikes'
 import { damageComponents, formatValue, componentLabel, scaleSpell, type ScaledComponent } from '../heightening'
-import { checkRoll, mapLabel, raysRoll, rollerIdentity, treatWoundsRoll, spellRoll, spellstrikeRoll, strikeRoll, withSimplePoison, type SpellAttackInfo } from '../rolls'
+import { assuranceRoll, checkRoll, mapLabel, raysRoll, rollerIdentity, treatWoundsRoll, spellRoll, spellstrikeRoll, strikeRoll, withSimplePoison, type SpellAttackInfo } from '../rolls'
 import type { TableRoll } from '../../../dice/tableRoll'
 import { dialogEmbedProps, useEmbedContainer } from '../embedContext'
 import { CASCADE_TYPES, hasLaughingShadow, hasSpellstrike, isStudiousSpell, laughingShadowDamage, withLaughingShadow } from '../magus'
 import { FIRST_STRIKE_KEY, HUNTERS_AIM_KEY, gravityBonus } from '../ranger'
 import {
     KNOWN_WEAKNESSES_KEY, LEAD_KEY, SHARED_STRATAGEM_KEY, STRATAGEM_KEY,
-    hasDeviseAStratagem, hasKnownWeaknesses, hasSharedStratagem, stratagemCost, stratagemOn,
+    assuranceResult, hasDeviseAStratagem, hasKnownWeaknesses, hasSharedStratagem, investigationEligible, investigationParts,
+    keenRecollectionBonus, readinessApplies, stratagemCost, stratagemOn,
 } from '../investigator'
+import { useInvestigator } from './useInvestigator'
 import { DEBILITATIONS, hasDebilitatingStrike, hasPoisonWeapon, isSimplePoison, poisonNote, simplePoisonDice, type Debilitation } from '../rogue'
 import { initiativeBonus } from '../initiative'
 import { availableOptions, hasBattleMedicine, hasContinualRecovery, hasGodlessHealing, hasRiskySurgery, healActionCost, wardMedicTargets, type HealMode } from '../treatWounds'
@@ -76,7 +78,7 @@ import { useActions } from './useActions'
 import { fearsomeBruteBonus, hasExactingStrike, hasFearsomeBrute } from '../fighter'
 import { useRogue } from './useRogue'
 import { usePoisonDef } from './usePoison'
-import { actionsKeyFor, conditionsKeyFor, hpKeyFor, magusKeyFor, rogueKeyFor } from '../charId'
+import { actionsKeyFor, conditionsKeyFor, hpKeyFor, investigatorKeyFor, magusKeyFor, rogueKeyFor } from '../charId'
 import { useMagus } from './useMagus'
 import { useSpellstrike } from './useSpellstrike'
 import { SpellstrikePanel } from './SpellstrikePanel'
@@ -274,7 +276,7 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     const treatOptions = check.en === 'Medicine' ? availableOptions(check.rank) : []
     const canTreat = treatOptions.length > 0
     const treatOption = treatOptions.find((o) => o.dc === treatDc) ?? treatOptions[treatOptions.length - 1]
-    const skillActionList = skillActionsFor(check.en)
+    const skillActionList = skillActionsFor(check.en, build)
     const skillAction = skillActionList.find((a) => a.id === skillActionId) ?? null
     const skillLacking = skillAction && !healMode ? actions.missing(skillAction.actions, 'any') : 0
     const canBattle = canTreat && hasBattleMedicine(build)
@@ -287,8 +289,30 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     // Iniciativa: Incredible Initiative e afins (circunstância, não empilham) entram na conta
     // só quando o teste está marcado como iniciativa — o memorial mostra de onde veio.
     const iniBonus = initiative && canInitiative ? initiativeBonus(build, check.en) : null
-    const parts = [
+    // Investigador: o +1 da investigação ativa, o estratagema de perícia, Assurance e Keen Recollection.
+    const investigator = useInvestigator(investigatorKeyFor(build))
+    const [investigate, setInvestigate] = useState(false)
+    const [skillStrat, setSkillStrat] = useState(false)
+    const [stratFree, setStratFree] = useState(false)
+    const [assurance, setAssurance] = useState(false)
+    const hasLeads = investigator.stored.leads.length > 0
+    const isSave = check.en === 'Fortitude' || check.en === 'Reflex' || check.en === 'Will'
+    const skillAbility = SKILLS.find((k) => k.en === check.en)?.ability ?? null
+    const eligible = investigationEligible(check.en, skillAbility)
+    const canInvestigate = hasLeads && (eligible || readinessApplies(build, isSave))
+    const canSkillStrat = hasDeviseAStratagem(build) && eligible
+    const investigating = canInvestigate && investigate
+    const stratagemSkill = canSkillStrat && skillStrat
+    const stratagemPay = stratagemSkill && !stratFree ? 1 : 0
+    const keen = skillAction?.id === 'recall' ? keenRecollectionBonus(build, check.rank) : 0
+    const assur = assuranceResult(build, check.en, check.rank)
+    const assuranceOn = !!assur && assurance
+    const parts = assuranceOn
+        ? [{ label: `Assurance: 10 + proficiência (${assur.proficiency})`, value: assur.total, kind: 'base' as const }]
+        : [
         ...check.parts,
+        ...investigationParts(investigating, stratagemSkill),
+        ...(keen ? [{ label: 'Keen Recollection (nível, destreinada)', value: keen, kind: 'other' as const }] : []),
         ...(iniBonus && iniBonus.value ? [{ label: `Iniciativa: ${iniBonus.from.join(' / ')} (circunstância)`, value: iniBonus.value, kind: 'other' as const }] : []),
         ...(riskyOn ? [{ label: 'Risky Surgery (circunstância)', value: 2, kind: 'other' as const }] : []),
         ...(adjust ? [{ label: 'Ajuste', value: adjust, kind: 'other' as const }] : []),
@@ -300,7 +324,8 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     // Feet/Arms no salto e na natação, Rewrite Fate nos demais testes.
     const mythicContext: MythicContext = healMode ? 'check'
         : skillAction?.mythic ?? (initiative && canInitiative && check.en === 'Perception' ? 'initiative' : 'check')
-    const mythicOption = mythicOptionFor(build, mythicContext)
+    // Assurance não rola: não há o que o ✦ refazer.
+    const mythicOption = assuranceOn ? null : mythicOptionFor(build, mythicContext)
     return (
         <>
             <DialogTitle sx={{ pb: 1 }}>Rolar {check.label}</DialogTitle>
@@ -396,6 +421,68 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                             )}
                         </Box>
                     )}
+                    {(canInvestigate || canSkillStrat || assur) && (
+                        <Box>
+                            <Typography variant="caption" color="text.secondary">Investigador</Typography>
+                            <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', mt: 0.5 }}>
+                                {canInvestigate && (
+                                    <Chip
+                                        size="small"
+                                        label={isSave ? 'Detective\'s Readiness · +1 (contra o alvo da investigação)' : 'Investigação ativa · +1'}
+                                        color={investigating ? 'primary' : 'default'}
+                                        variant={investigating ? 'filled' : 'outlined'}
+                                        onClick={() => setInvestigate(!investigate)}
+                                        aria-pressed={investigating}
+                                        sx={{ minHeight: 28 }}
+                                        title={`Aberta: ${investigator.stored.leads.map((l) => l.name).join(' · ')}`}
+                                    />
+                                )}
+                                {canSkillStrat && (
+                                    <Chip
+                                        size="small"
+                                        label={`Estratagema de perícia · ${stratagemSkill && stratFree ? 'ação livre' : '+1 ação'} · +1`}
+                                        color={stratagemSkill ? 'primary' : 'default'}
+                                        variant={stratagemSkill ? 'filled' : 'outlined'}
+                                        onClick={() => setSkillStrat(!skillStrat)}
+                                        aria-pressed={stratagemSkill}
+                                        sx={{ minHeight: 28 }}
+                                    />
+                                )}
+                                {stratagemSkill && (
+                                    <Chip
+                                        size="small"
+                                        label="Criatura da investigação · ação livre"
+                                        color={stratFree ? 'primary' : 'default'}
+                                        variant={stratFree ? 'filled' : 'outlined'}
+                                        onClick={() => setStratFree(!stratFree)}
+                                        aria-pressed={stratFree}
+                                        sx={{ minHeight: 28 }}
+                                    />
+                                )}
+                                {assur && (
+                                    <Chip
+                                        size="small"
+                                        label={`Assurance · resultado fixo ${assur.total} (sem rolar)`}
+                                        color={assuranceOn ? 'primary' : 'default'}
+                                        variant={assuranceOn ? 'filled' : 'outlined'}
+                                        onClick={() => setAssurance(!assurance)}
+                                        aria-pressed={assuranceOn}
+                                        sx={{ minHeight: 28 }}
+                                    />
+                                )}
+                            </Box>
+                            {stratagemSkill && (
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                    Estratagema de perícia: +1 no teste de INT, SAB, CAR ou Percepção sobre a criatura escolhida (com a investigação, o bônus dela sobe 1). Você não pode atacar essa criatura até o início do seu próximo turno. Vale uma vez por rodada.
+                                </Typography>
+                            )}
+                            {assuranceOn && (
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                    Assurance: 10 + a proficiência, sem nenhum outro bônus ou penalidade. Não há d20, então não há 20 nem 1 natural nem ✦.
+                                </Typography>
+                            )}
+                        </Box>
+                    )}
                     {skillActionList.length > 0 && !healMode && (
                         <Box>
                             <Typography variant="caption" color="text.secondary">Esta rolagem é uma ação de perícia?</Typography>
@@ -445,9 +532,11 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                 mythicDelta={check.mythicDelta}
                 mythicPoints={mythicPoints}
                 onClose={onClose}
+                label={assuranceOn ? `Usar Assurance · ${assur.total}` : undefined}
                 onRoll={(mythic) => {
+                    if (stratagemPay > 0) actions.spend(stratagemPay, 'any')
                     if (healMode && canTreat) {
-                        const out = treatWoundsRoll(who, parts, treatOption, mythic ? check.mythicDelta : null, { mode: healMode, hour, risky: riskyOn, godless: onSelf && hasGodlessHealing(build) })
+                        const out = treatWoundsRoll(who, parts, treatOption, mythic ? check.mythicDelta : null, { mode: healMode, hour, risky: riskyOn, godless: onSelf && hasGodlessHealing(build), assurance: assuranceOn ? assur.proficiency : undefined })
                         if (healCost > 0) actions.spend(healCost, 'any')
                         if (onSelf) {
                             // Risky Surgery corta ANTES da cura, e o PV temporário absorve o corte. Duas
@@ -468,8 +557,10 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                     if (skillAction && skillAction.actions > 0) payTime(actions, { kind: 'actions', n: skillAction.actions }, undefined, [], [])
                     const sub = [skillAction?.label, initiative && canInitiative ? 'iniciativa' : null].filter(Boolean).join(' · ') || undefined
                     send(
-                    checkRoll(who, check.label, parts, mythic ? check.mythicDelta : null, sub, initiative && canInitiative),
-                    mythic,
+                        assuranceOn
+                            ? assuranceRoll(who, check.label, assur.proficiency, [sub, 'Assurance'].filter(Boolean).join(' · '))
+                            : checkRoll(who, check.label, parts, mythic ? check.mythicDelta : null, sub, initiative && canInitiative),
+                        mythic,
                     )
                 }}
             />

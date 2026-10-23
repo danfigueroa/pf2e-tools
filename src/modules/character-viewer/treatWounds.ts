@@ -89,6 +89,8 @@ export interface TreatVariant {
     hour?: boolean
     /** Risky Surgery (só Tratar Ferimentos): sucesso vira crítico. */
     risky?: boolean
+    /** Assurance em Medicina: a proficiência (nível + rank); o teste vale 10 + isso, sem rolar. */
+    assurance?: number
     /** Godless Healing: o paciente é quem cura e tem o talento — +5 PV quando a cura funciona. */
     godless?: boolean
 }

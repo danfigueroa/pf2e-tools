@@ -8,6 +8,7 @@
  * mítico deixa rolar com ✦ (Mentir, Causar Impressão, Coletar Informações, pelo Unbelievably
  * Believable) entram com `actions: 0` e a duração em `time`, só para escolher o ✦. Não gastam ação.
  */
+import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
 import type { MythicContext } from './mythicUse'
 
 export interface SkillAction {
@@ -19,6 +20,8 @@ export interface SkillAction {
     mythic?: MythicContext
     /** Quanto leva, para a que não gasta ação (`actions: 0`): "1 minuto", "2 horas". */
     time?: string
+    /** Só aparece para quem tem este talento (Tamper, do arquétipo de Inventor). */
+    feat?: string
 }
 
 const recall: SkillAction = { id: 'recall', label: 'Recall Knowledge', actions: 1 }
@@ -78,12 +81,17 @@ export const SKILL_ACTIONS: Readonly<Record<string, ReadonlyArray<SkillAction>>>
     Occultism: [recall],
     Religion: [recall],
     Society: [recall],
-    Crafting: [recall],
+    Crafting: [recall, { id: 'tamper', label: 'Tamper (contra a CD de Reflexos)', actions: 1, feat: 'Tamper' }],
     Survival: [],
 }
 
 /** As ações da perícia (e dos Saberes, que são todos Recall Knowledge); vazio = o seletor nem aparece. */
-export function skillActionsFor(en: string): ReadonlyArray<SkillAction> {
-    if (SKILL_ACTIONS[en]) return SKILL_ACTIONS[en]
-    return /\bLore\b/i.test(en) ? [recall] : []
+export function skillActionsFor(en: string, build?: BuildInfo): ReadonlyArray<SkillAction> {
+    const all = SKILL_ACTIONS[en] ?? (/\bLore\b/i.test(en) ? [recall] : [])
+    const has = (name: string) => (build?.feats ?? []).some((f) => parseFeatEntry(f).name.trim().toLowerCase() === name.toLowerCase())
+    const list = all.filter((a) => !a.feat || has(a.feat))
+    // Keen Recollection: Recall Knowledge com QUALQUER perícia (o assunto fora da sua especialidade),
+    // e a destreinada soma o nível em vez de +0 (`investigator.ts`).
+    const keen = (build?.specials ?? []).some((n) => n.trim().toLowerCase() === 'keen recollection')
+    return keen && !list.some((x) => x.id === 'recall') ? [...list, recall] : list
 }
