@@ -140,7 +140,8 @@ export function sanitizeRoll(r) {
   if (r.use !== undefined) {
     const text = r.use && typeof r.use === 'object' ? str(r.use.text, 120).trim() : ''
     if (!text) return null
-    out.use = { text }
+    const desc = typeof r.use.desc === 'string' ? str(r.use.desc, 700).trim() : ''
+    out.use = { text, ...(desc ? { desc } : {}) }
   }
 
   if (!out.check && !out.damage && !out.free && !out.rays && !out.use) return null

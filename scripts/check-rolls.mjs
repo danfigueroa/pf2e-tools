@@ -1457,6 +1457,8 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
   const used = { ...base, use: { text: 'Usou · 1 ação' } }
   ok(table.sanitizeTableRoll(used)?.use?.text === 'Usou · 1 ação', 'cliente aceita o uso de poder')
   ok(server.sanitizeRoll(used)?.use?.text === 'Usou · 1 ação', 'servidor aceita o uso de poder')
+  const withDesc = { ...base, use: { text: 'Usou', desc: 'x'.repeat(900) } }
+  ok(table.sanitizeTableRoll(withDesc)?.use?.desc.length === 700 && server.sanitizeRoll(withDesc)?.use?.desc.length === 700, 'a regra do poder é cortada em 700 nos dois')
   ok(table.sanitizeTableRoll({ ...base, use: { text: '  ' } }) === null, 'cliente recusa uso vazio')
   ok(server.sanitizeRoll({ ...base, use: { text: '' } }) === null, 'servidor recusa uso vazio')
   ok(table.sanitizeTableRoll(base) === null && server.sanitizeRoll(base) === null, 'sem nada para mostrar continua recusado')

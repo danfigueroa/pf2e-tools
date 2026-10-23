@@ -82,7 +82,7 @@ export interface TableRoll {
     /** O jogador marcou este teste como a iniciativa dele: a Iniciativa aplica o total. */
     initiative?: true
     /** Uso de um poder sem dado (dádiva de relíquia, ativação): o cartão mostra só este texto, no mesmo quadro das rolagens. */
-    use?: { text: string }
+    use?: { text: string; /** A regra do poder (até 700 caracteres). */ desc?: string }
 }
 
 const HEX = /^#[0-9a-fA-F]{6}$/
@@ -214,7 +214,8 @@ export function sanitizeTableRoll(raw: unknown): TableRoll | null {
         const u = r.use as Record<string, unknown>
         const text = u && typeof u === 'object' ? str(u.text, 120).trim() : ''
         if (!text) return null
-        out.use = { text }
+        const desc = typeof (r.use as Record<string, unknown>).desc === 'string' ? str((r.use as Record<string, unknown>).desc, 700).trim() : ''
+        out.use = { text, ...(desc ? { desc } : {}) }
     }
 
     if (!out.check && !out.damage && !out.free && !out.rays && !out.use) return null

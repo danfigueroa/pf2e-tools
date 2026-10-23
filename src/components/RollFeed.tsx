@@ -152,6 +152,11 @@ const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) =
                     {roll.use.text}
                 </Typography>
             )}
+            {roll.use?.desc && (
+                <Typography variant="body2" sx={{ mt: 0.75, whiteSpace: 'pre-line', fontSize: '0.8rem', lineHeight: 1.4, color: `${parchment.page}E6` }}>
+                    {roll.use.desc}
+                </Typography>
+            )}
 
             {roll.free && (
                 <Box sx={{ mt: 0.75 }}>
@@ -280,6 +285,7 @@ export const HistoryRow = ({ roll }: { roll: TableRoll }) => (
             </Box>
         )}
         {roll.use && <Typography variant="body2" sx={{ mt: 0.5 }}><b>{roll.use.text}</b></Typography>}
+        {roll.use?.desc && <Typography variant="caption" color="text.secondary" sx={{ display: 'block', whiteSpace: 'pre-line' }}>{roll.use.desc}</Typography>}
         {roll.free && (
             <Typography variant="body2" sx={{ mt: 0.5 }}>
                 <b>{roll.free.total}</b> — {partFormula(roll.free)} [{roll.free.dice.map((d) => d.value).join(', ')}]
