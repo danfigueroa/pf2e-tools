@@ -1451,6 +1451,53 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
     ok(investigator.hasKnownWeaknesses(miranda) && investigator.hasSharedStratagem(miranda), 'Miranda tem Known Weaknesses e Shared Stratagem')
 }
 
+// ── Woyd (Clérigo 7, Arton 1515) ──
+{
+    const woyd = load('woyd7')
+    const cl = await import('../src/modules/character-viewer/cleric.ts')
+    const mu = await import('../src/modules/character-viewer/mythicUse.ts')
+    const sk = await import('../src/modules/character-viewer/skillActions.ts')
+    const opts = cl.variantOptionsFor(woyd)
+    ok(opts.healingHands && opts.selectiveEnergy, 'Woyd tem Healing Hands e Selective Energy')
+    ok(!cl.variantOptionsFor(party.ghan).healingHands, 'Quem não tem o talento não ganha o d10')
+    const heal = (n, o) => av.variantFor('Heal', 4, n, o).components[0]
+    eq(heal(1, opts).faces, 10, 'Healing Hands: Heal com d10')
+    eq(heal(1, {}).faces, 8, 'Sem Healing Hands: d8')
+    ok(heal(2, opts).count === 4 && heal(2, opts).flat === 32, 'Heal 4º com 2 ações: 4d10+32')
+    ok(av.variantFor('Heal', 4, 3, opts).notes.some((n) => /Selective Energy/.test(n)), 'Selective Energy avisa na emanação')
+    ok(!av.variantFor('Heal', 4, 2, opts).notes.some((n) => /Selective Energy/.test(n)), 'Selective Energy não vale fora da área')
+    // Banishing Touch: 1d6 (1 ação) / 2d6 (2–3); +1d6 no 4º, +2d6 no 6º, +3d6 no 8º.
+    const bt = (r, n) => av.variantFor('Banishing Touch', r, n).components[0]
+    eq([bt(2, 1), bt(2, 2), bt(2, 3), bt(4, 1), bt(6, 2), bt(8, 3)].map((c) => c.count).join(), '1,2,2,2,4,5', 'Banishing Touch: dados por ações e rank')
+    ok(bt(2, 1).faces === 6 && bt(2, 1).types[0] === 'bludgeoning', 'Banishing Touch: contundente em d6')
+    ok(/6 m para o alto e 3 m/.test(av.variantFor('Banishing Touch', 2, 2).notes[0]), 'Banishing Touch: 2 ações lança 6 m para o alto e 3 m para trás')
+    ok(rolls.isMythicAttackSpell('Banishing Touch') && !rolls.isMythicAttackSpell('Holy Light'), 'Só a Banishing Touch ataca com proficiência mítica')
+    const atk = { parts: [{ label: 'Perito', value: 11, kind: 'prof' }, { label: 'SAB', value: 4, kind: 'ability' }], total: 15, mythicDelta: 6, alreadyMythic: false }
+    const myth = rolls.mythicSpellAttack(woyd, atk)
+    ok(myth.total === 21 && myth.mythicDelta === null, 'Banishing Touch do Woyd: +21 (nível 7 + 10 + SAB 4), sem ✦ por cima')
+    // ✦: Prescience na iniciativa (vence o Ears), Sage's Calling no Recall Knowledge.
+    eq(mu.mythicOptionFor(woyd, 'initiative')?.feat, 'Prescience', 'Woyd: ✦ da Percepção de iniciativa é o Prescience')
+    ok(/\+1 de status na CA/.test(mu.mythicOptionFor(woyd, 'initiative')?.note ?? ''), 'Prescience anota o +1 na CA e nas salvaguardas')
+    eq(mu.mythicOptionFor(woyd, 'initiative-skill')?.feat, 'Prescience', 'Woyd: Prescience vale na iniciativa por perícia')
+    eq(mu.mythicOptionFor(party.ghan, 'initiative-skill')?.feat, 'Rewrite Fate', 'Sem Prescience, iniciativa por perícia cai no Rewrite Fate')
+    eq(mu.mythicOptionFor(woyd, 'recall')?.feat, "Sage's Calling", "Woyd: ✦ do Recall Knowledge é o Sage's Calling")
+    eq(mu.mythicOptionFor(party.ghan, 'recall')?.feat, 'Rewrite Fate', "Sem Sage's Calling, Recall Knowledge cai no Rewrite Fate")
+    eq(sk.skillActionsFor('Religion').find((a) => a.id === 'recall')?.mythic, 'recall', 'Recall Knowledge libera o ✦ de Recall')
+    // Sacred Ground: cura fixa = nível, sem ação; a rolagem fecha nos dois validadores.
+    const sg = healActs.featHeal(woyd, 'Sacred Ground')
+    ok(sg && sg.actions === 0 && sg.formula === '7' && sg.time === '1 minuto' && sg.daily, 'Sacred Ground: 7 PV, 1 minuto, marca usada')
+    eq(healActs.featHeal(party.ghan, 'Sacred Ground'), null, 'Sacred Ground só com o talento')
+    const sgRoll = rolls.healRoll(rolls.rollerIdentity(woyd), 'Sacred Ground', 'Cura 7', dice.rollGroups([], 7))
+    ok(table.sanitizeTableRoll(sgRoll)?.free?.total === 7 && server.sanitizeRoll(sgRoll)?.free?.total === 7, 'Cura fixa sem dado: os dois validadores aceitam')
+    // Relíquia: Brasão da Família (Soul/Emotion) — Absorb Injury (reação, 1×/dia) e Emotion Surge (1 ação, 1×/hora).
+    const [brasao] = relics.relicsOf(woyd)
+    eq(brasao?.id, 'brasao-da-familia', 'O Woyd tem o Brasão da Família')
+    const [absorb, surge] = brasao.gifts
+    ok(absorb.activation.cost === 'reaction' && absorb.activation.limited && surge.activation.cost === 1 && surge.activation.limited, 'Custos da AON: reação 1×/dia e 1 ação 1×/hora')
+    ok(relics.giftUnlocked(absorb, 0, 7) && relics.giftUnlocked(surge, 1, 7), 'As duas dádivas liberadas no nível 7')
+    eq(relics.giftActivity(absorb).time.kind, 'reaction', 'Absorb Injury gasta a reação')
+}
+
 // ── Uso de poder sem dado (dádiva de relíquia) ──
 {
   const base = { id: 'abc-1', color: '#336699', by: 'Miranda', title: 'Dragon Strike' }
