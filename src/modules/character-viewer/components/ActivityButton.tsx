@@ -31,14 +31,14 @@ export const ActivityBody = ({ build, mods, mythicPoints, name, info, fullWidth,
     info: ActivityInfo
     usedKey?: string
     /** Posta um cartão na mesa ao usar (dádiva de relíquia): `title` é o poder, `sub` de onde vem. */
-    announce?: { title: string; sub?: string }
+    announce?: { title: string; sub?: string; /** A regra do poder: texto pronto ou busca (cache/AON). */ describe?: () => Promise<string | null> | string | null }
 }) => {
     const who = useMemo(() => rollerIdentity(build), [build])
     const { activate, uses } = useActivity(build, mods, mythicPoints)
     const [note, setNote] = useState<{ text: string; warn: boolean } | null>(null)
     const usedToday = info.daily && uses.usedOf(usedKey) > 0
 
-    const click = (e: React.MouseEvent) => {
+    const click = async (e: React.MouseEvent) => {
         // A linha inteira abre a descrição: o botão não pode abri-la junto.
         e.stopPropagation()
         if (usedToday) { uses.unmark(usedKey); return }
@@ -46,7 +46,12 @@ export const ActivityBody = ({ build, mods, mythicPoints, name, info, fullWidth,
         const spent = r.spent.length ? `gastou ${r.spent.join(' e ')}` : 'nada a gastar'
         if (announce) {
             const detail = [r.spent.length ? `Gastou ${r.spent.join(' e ')}` : '', info.trigger ? `Gatilho: ${info.trigger}` : '', ...r.warnings.map((w) => `Atenção: ${w}`)]
-            void postRoll(powerUseRoll(who, announce.title.slice(0, 60), `Usou · ${costLabel(info)}`, announce.sub, detail.filter(Boolean).join(' · ').slice(0, 290)))
+            let desc: string | null = null
+            try {
+                // Nunca segura o cartão por mais de 4 s: sem a regra, ele sai do mesmo jeito.
+                desc = await Promise.race([Promise.resolve(announce.describe?.() ?? null), new Promise<null>((res) => setTimeout(() => res(null), 4000))])
+            } catch { desc = null }
+            void postRoll(powerUseRoll(who, announce.title.slice(0, 60), `Usou · ${costLabel(info)}`, announce.sub, detail.filter(Boolean).join(' · ').slice(0, 290), desc?.trim() || undefined))
         }
         setNote({ text: `${name}: ${spent}${r.warnings.length ? ` — atenção: ${r.warnings.join('; ')}` : ''}.`, warn: r.warnings.length > 0 })
     }

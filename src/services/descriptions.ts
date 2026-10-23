@@ -280,6 +280,9 @@ export function getCachedFeat(name: string) {
 export function getCachedSpecial(name: string) {
     return readCache<FeatDescription>('special', name)
 }
+export function getCachedItem(name: string) {
+    return readCache<FeatDescription>('item', name)
+}
 export function getCachedSpell(name: string) {
     return readCache<SpellDescription>('spell', name)
 }

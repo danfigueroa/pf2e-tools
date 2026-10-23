@@ -9,6 +9,7 @@ import {
 import { ActivityBody } from './ActivityButton'
 import { ScrapShotButton } from './ScrapShotButton'
 import { HealActivityButton } from './HealActivityButton'
+import { fetchItemDescription, fetchSpecialDescription, getCachedItem, getCachedSpecial } from '../../../services/descriptions'
 import type { DescriptionRequest } from './DescriptionDrawer'
 import type { MythicPointsApi } from './useMythicPoints'
 
@@ -17,6 +18,16 @@ interface Props {
     mods: ConditionModifiers
     mythicPoints: MythicPointsApi
     onSelect: (req: DescriptionRequest) => void
+}
+
+/** A regra do poder para o cartão da mesa: o texto do catálogo, ou a descrição da AON (traduzida) do poder. */
+const giftRule = async (gift: RelicGift): Promise<string | null> => {
+    if (gift.description) return gift.description
+    const d = gift.kind === 'rune'
+        ? (getCachedItem(gift.name) ?? await fetchItemDescription(gift.name))
+        : (getCachedSpecial(gift.name) ?? await fetchSpecialDescription(gift.name))
+    if (!d?.description || d.translationPending) return null
+    return [d.requirements && `Requisitos: ${d.requirements}`, d.trigger && `Gatilho: ${d.trigger}`, d.description].filter(Boolean).join('\n')
 }
 
 const TIER_LABEL: Record<RelicTier, string> = { minor: 'Dádiva menor', major: 'Dádiva maior', grand: 'Dádiva grandiosa' }
@@ -77,7 +88,7 @@ const Gift = ({ relic, gift, index, build, mods, mythicPoints, onSelect }: Props
                         name={`${relic.name}: ${gift.name}`}
                         usedKey={giftUseKey(relic, gift)}
                         info={info}
-                        announce={{ title: gift.name, sub: relic.name }}
+                        announce={{ title: gift.name, sub: relic.name, describe: () => giftRule(gift) }}
                     />
                 )}
             </Stack>
