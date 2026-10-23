@@ -15,6 +15,7 @@
 // Tudo dentro da mesa do pedido (`mesa`, ver mesas.js). `ctx.userId` é a sessão
 // anônima de quem pediu (`requestUserId`), gravada como autor ao publicar.
 
+import { warmSheetLookups } from './sheet-warm.js'
 import { hasTranslationKey } from './aon.js'
 import { isValidSlug } from './table-store.js'
 import { isSupabaseConfigured } from './supabase.js'
@@ -80,6 +81,8 @@ export async function handleSheetRequest(mesa, method, query, body, ctx = {}) {
     // mesma identidade do estado da mesa, e uma ficha publicada no slug de
     // outro personagem sobrescreveria alguém.
     const sheet = await publishSheet(mesa, slugFromName(info.name), json, ctx.userId ?? null)
+    // As consultas da ficha à AON ficam no banco já na publicação (não segura a resposta mais que alguns segundos).
+    await Promise.race([warmSheetLookups(json).catch(() => {}), new Promise((r) => setTimeout(r, 8000))])
     return ok({ sheet })
   }
 
