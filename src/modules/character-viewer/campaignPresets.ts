@@ -36,6 +36,7 @@ export const PRESETS_BY_MESA: Record<string, CharacterPreset[]> = {
     { name: 'Loki',    sheetName: 'Loki',              class: 'Magus',        level: 7, filename: 'loki7.json'    },
     { name: 'Miranda', sheetName: 'Miranda Stormblade', class: 'Investigadora', level: 7, filename: 'miranda7.json' },
     { name: 'Hearts Folly', sheetName: 'Hearts folly', class: 'Monge', level: 7, filename: 'heartsfolly7.json' },
+    { name: 'Woyd', sheetName: 'Woyd', class: 'Clérigo', level: 7, filename: 'woyd7.json' },
   ],
 }
 
