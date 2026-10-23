@@ -40,6 +40,7 @@ const slugOf = {
     'thalos10': 'thalos',
     'loki7': 'loki',
     'miranda7': 'miranda-stormblade',
+    'heartsfolly7': 'hearts-folly',
 }
 
 let failures = 0
