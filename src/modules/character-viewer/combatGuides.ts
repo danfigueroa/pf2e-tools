@@ -632,7 +632,7 @@ Três Pontos Míticos por dia, na faixa ao lado das condições.
 - 📱 No app, as duas ficam no cartão **Relíquia**, no Inventário: os botões **Curar** rolam e somam ao seu PV (a Word of Faith também baixa o Amedrontado), e os de **Usar** cobram a ação ou a reação e marcam "usada" (o app não conta a hora).
 
 ## 🎒 Itens & Recursos
-- 👊 **Ataque desarmado especial (+1 striking Decaying, ferro frio de baixa qualidade):** +16, **2d6+5** (contundente, perfurante ou cortante, à escolha) **+1d4 de vazio**. É o ataque forte da ficha, com o Flurry e o Ki Strike.
+- 👊 **Ataque desarmado especial (+1 striking Decaying, ferro frio de baixa qualidade):** +16, **2d6+5** (contundente, perfurante ou cortante, à escolha) **+1d4 de vazio**. É o ataque forte da ficha, com o Flurry e o Ki Strike. Conta como o Punho: **ágil e de acuidade** (segundo ataque −4, terceiro −8) e do grupo brawling (especialização crítica do Punho).
 - 🏹 **Striking Astral Longbow:** +15, **2d8+2 perfurante + 1d6 espírito** (a runa Astral, que também funciona como ghost touch: acerta incorpóreos). Especialização crítica do arco: no crítico, o alvo fica preso a uma superfície adjacente.
 - 😶 **Mask of the Cursed Eye (invested):** a **primeira vez por dia** que uma criatura que você **não percebe** te alvejar com magia de **detecção, predição, revelação ou vidência**, ela faz **Vontade CD 24**. Falha: **enjoada 1 e ofuscada 1 minuto**; falha crítica: enjoada 2, ofuscada 10 minutos **e a magia é interrompida**. Sucesso: ela não é afetada, mas você sabe que foi alvo. É automático.
 - 💰 15 po.

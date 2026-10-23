@@ -1145,7 +1145,8 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   - **O Punho agora soma o que o Pathbuilder não exporta**: Powerful Fist (d6) e **Weapon Specialization** (`weaponSpecializationBonus`: +2/+3/+4;
     Greater 4/6/8) em `unarmedAttacks`, e a **especialização crítica do grupo brawling** para o Monge perito (Expert Strikes, `specSourceFor`).
     A arma que o Pathbuilder marca `prof: 'unarmed'` (o "Special Unarmed (1d6)" da Hearts Folly) é desarmada (`Strike.unarmed`) e o tipo "B, P or S"
-    é traduzido. **Os traços dessa arma (ágil?) não foram informados** — rola como sem traços até o jogador dizer.
+    é traduzido. **Os traços dessa arma vêm do jogador** (`homebrewGear.ts`): "como o Punho normal", ou seja, os do Fist da AON — ágil, de
+    acuidade, não letal, grupo brawling (MAP −4/−8 e a especialização crítica do Monge).
   - Runa **Decaying** (GM Core pg. 237): 1d4 de vazio no acerto (já no `extraDamage`) e **2d4 de vazio persistente no crítico** (`runeCritEffects`).
 - **Untrained Improvisation** (`untrainedImprovisation` em `checks.ts`, Player Core pg. 264; a Clever Improviser a concede): em PERÍCIA destreinada o
   bônus de proficiência é o nível −2 (−1 do 5º, inteiro do 7º) no lugar de +0; salvaguarda e Percepção não mudam, e o ✦ desconta o que já está embutido.
