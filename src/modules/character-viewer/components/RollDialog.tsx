@@ -44,6 +44,8 @@ import {
     planStrike,
     gravityApplies,
     huntersAimApplies,
+    dragonStrikeApplies,
+    DRAGON_STRIKE_KEY,
     unarmedStrike,
     weaponStrike,
     type AttackMode,
@@ -582,7 +584,7 @@ function loadExtras(key: string): Record<string, boolean> {
 }
 
 // O estratagema do Investigador e o que vem com ele são da rodada, não da arma: nada disso fica lembrado.
-const SITUATIONAL_KEYS = [STRATAGEM_KEY, LEAD_KEY, KNOWN_WEAKNESSES_KEY, SHARED_STRATAGEM_KEY]
+const SITUATIONAL_KEYS = [STRATAGEM_KEY, LEAD_KEY, KNOWN_WEAKNESSES_KEY, SHARED_STRATAGEM_KEY, DRAGON_STRIKE_KEY]
 
 const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Extract<RollRequest, { kind: 'weapon' | 'unarmed' }>>) => {
     const who = useMemo(() => rollerIdentity(build), [build])
@@ -905,6 +907,21 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                                     )}
                                 </Stack>
                             )}
+                        </Box>
+                    )}
+                    {dragonStrikeApplies(build, strike, opts) && (
+                        <Box>
+                            <Chip
+                                label="Dragon Strike ativa · +1d6 cortante"
+                                color={opts.extrasOn[DRAGON_STRIKE_KEY] === true ? 'primary' : 'default'}
+                                variant={opts.extrasOn[DRAGON_STRIKE_KEY] === true ? 'filled' : 'outlined'}
+                                onClick={() => toggleExtra(DRAGON_STRIKE_KEY, opts.extrasOn[DRAGON_STRIKE_KEY] !== true)}
+                                aria-pressed={opts.extrasOn[DRAGON_STRIKE_KEY] === true}
+                                sx={{ minHeight: 32 }}
+                            />
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                Miranda's Arm: por 1 minuto depois de ativar na aba Inventário, Golpe corpo a corpo desarmado acertado soma 1d6 cortante. O app não conta o minuto; se o braço conta como desarmado, o mestre decide.
+                            </Typography>
                         </Box>
                     )}
                     {hasExactingStrike(build) && (

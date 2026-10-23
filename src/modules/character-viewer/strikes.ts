@@ -33,6 +33,7 @@ import type { ConditionModifiers } from './conditions'
 import { meleeBonusParts } from './rage'
 import { fearsomeBruteBonus, hasFearsomeBrute } from './fighter'
 import { FIRST_STRIKE_KEY, HUNTERS_AIM_KEY, gravityBonus, hasHuntersAim } from './ranger'
+import { relicGift, relicWeaponName } from './relics'
 import { hasStrategicStrike, stratagemOn, stratagemQualifies, strategicStrikeDice } from './investigator'
 import type { UnarmedAttack } from './unarmed'
 import type { MagicWeaponRules } from './magicWeapons'
@@ -309,6 +310,20 @@ function strategicStrikeExtras(stratagem: { dice: number } | null): ExtraDamage[
     }]
 }
 
+/** Dragon Strike: 1d6 cortante, sempre ligado enquanto o chip está (a escolha É a ativação), dobrado no crítico. */
+function dragonStrikeExtras(on: boolean): ExtraDamage[] {
+    if (!on) return []
+    return [{
+        key: 'dragon-strike',
+        expr: { groups: [{ count: 1, faces: 6 }], flat: 0 },
+        text: '1d6 slashing',
+        type: 'slashing',
+        precision: false,
+        persistent: false,
+        defaultOn: true,
+    }]
+}
+
 /** A conta do Golpe antes de rolar: o que a prévia mostra e o que a rolagem usa. */
 export interface StrikePlan {
     ability: 'str' | 'dex'
@@ -333,6 +348,18 @@ export interface StrikePlan {
 /** Gravity Weapon vale em Golpe com arma (não desarmado) enquanto ativa. */
 export const gravityApplies = (s: Strike, mods: ConditionModifiers): boolean =>
     !!mods.ranger?.gravity && s.key.startsWith('w:')
+
+/** Escolha por Golpe do Dragon Strike (Miranda's Arm); não fica lembrada. */
+export const DRAGON_STRIKE_KEY = 'dragon-strike'
+
+/**
+ * Dragon Strike: +1d6 cortante no Golpe corpo a corpo DESARMADO (1 minuto depois de ativar). O braço
+ * da relíquia também entra: a ficha o lista como arma, mas é o braço dela — se conta como desarmado
+ * é decisão do mestre, e o chip é do jogador.
+ */
+export const dragonStrikeApplies = (build: BuildInfo, s: Strike, opts: Pick<StrikeOptions, 'mode'>): boolean =>
+    !!relicGift(build, 'dragon-strike') && !s.traits.ranged && opts.mode !== 'thrown'
+        && (!s.key.startsWith('w:') || s.name === relicWeaponName(build))
 
 /** Hunter's Aim: só quem tem o talento, e só em Golpe à distância (ou arremessado). */
 export const huntersAimApplies = (build: BuildInfo, s: Strike, opts: Pick<StrikeOptions, 'mode'>): boolean =>
@@ -433,6 +460,7 @@ export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers
             ...s.extras.filter((e) => extraEnabled(e, opts.extrasOn, mods)),
             ...cascadeExtras(mods, traits.ranged || opts.mode === 'thrown'),
             ...strategicStrikeExtras(stratagem),
+            ...dragonStrikeExtras(dragonStrikeApplies(build, s, opts) && opts.extrasOn[DRAGON_STRIKE_KEY] === true),
         ],
         deadly,
         fatal: traits.fatal,
