@@ -11,6 +11,7 @@ import type { BuildInfo, SpellCaster } from '../../../pathbuilder/types'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
 import { actionSymbol, isMythicMagicCaster, MYTHIC_COLOR, signed, spellcasterStats, traditionColor, traditionLabel } from '../helpers'
 import { castRankForSlot, damageAtRank } from '../heightening'
+import { fixedInnateRank } from '../innateSpells'
 import { getCachedSpell, prefetchSpellDescriptions, useDescriptionCacheVersion } from '../../../services/descriptions'
 import { legacyCharKey, slotsKeyFor, usesKeyFor } from '../charId'
 import { useUses } from '../components/useUses'
@@ -417,7 +418,9 @@ const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, o
                 <Divider />
 
                 {levels.map(({ spellLevel, entries }) => {
-                    const castRank = castRankForSlot(spellLevel, build.level)
+                    // Arcane Sense: o rank é o do texto do talento (1º, ou 3º/4º com Arcanismo mestre/lendário), não o automático do truque.
+                    const fixedRank = spellLevel === 0 ? fixedInnateRank(build, caster) : null
+                    const castRank = fixedRank ?? castRankForSlot(spellLevel, build.level)
                     const summary = levelSummary(spellLevel, entries)
                     const key = levelKey(spellLevel)
                     return (
@@ -479,7 +482,7 @@ const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, o
                                             type: 'spell',
                                             name,
                                             level: castRank,
-                                            autoHeightened: spellLevel === 0,
+                                            autoHeightened: spellLevel === 0 && fixedRank == null,
                                             caster: { name: caster.name, dc, attack, tradition: caster.magicTradition, attackInfo, psychic: isPsychicCaster(build, caster) },
                                             cast: resource,
                                         }}
