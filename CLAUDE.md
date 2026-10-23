@@ -445,7 +445,7 @@ personagens, mapas e mapa ativo, encontro da Iniciativa, feed de rolagens e regr
 - A migração do `localStorage` antigo (`legacy` do `useSharedState`) só roda na mesa legada: em outra, levaria o PV de
   lá para um personagem de mesmo nome.
 - Mesas hoje: **Casa do Gordo Online** (`casa-do-gordo`, legada, os 6 personagens) e **Arton 1515** (`arton-1515`,
-  4 jogadores; o primeiro preset é o **Loki**, os outros JSONs vêm depois). Mesa nova = uma entrada nas duas listas + a migration com a
+  4 jogadores: Loki, Miranda, Hearts Folly e Woyd). Mesa nova = uma entrada nas duas listas + a migration com a
   linha em `mesas` + `PRESETS_BY_MESA[<id>]` (pode começar vazia).
 
 ## Estado compartilhado da mesa
@@ -857,7 +857,7 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
 - **Os presets alimentam três módulos**: Ficha Virtual, diálogo de personagens da Iniciativa e
   gerador de Transformação (que aceita qualquer personagem, não só conjurador). Tirar uma ficha de
   `campaignPresets.ts` tira dos três. Elenco atual da Casa do Gordo Online: Brukuthur, Ceros (Cerosqualhanthallas),
-  Eldarion, Ghan Buri, Nathaniel e Thalos, todos nível 10; da Arton 1515: Loki (Magus 7), Miranda (Investigadora 7) e Hearts Folly (Monge 7) — tabela e observações no
+  Eldarion, Ghan Buri, Nathaniel e Thalos, todos nível 10; da Arton 1515: Loki (Magus 7), Miranda (Investigadora 7), Hearts Folly (Monge 7) e Woyd (Clérigo 7) — tabela e observações no
   README. **O guia do Loki segue o Remaster do Magus (Impossible Magic, jul/2026)**: Arcane Cascade sem requisito e com
   resistência a magia, Laughing Shadow com o dano extra contra desprevenido, *Force Fang* sem ataque (só recarrega). A AON
   guarda as duas versões; a revisada é a que tem `legacy_id`.
@@ -1169,6 +1169,18 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   1×/dia, objeto animado de nível = metade do nível). As curas usam o `HealActivityButton` (`relicHealActivity`; a Word of Faith baixa o Amedrontado de
   quem usa); as outras duas, o botão genérico. `RelicGift.facts` mostra os números que dependem do nível ("7d4 PV", "counteract de rank 4"). **A AON não
   dá o modificador do counteract da Dominant Emotion** — fica com o mestre, e o app não inventa. As relíquias não estão no export (item avulso).
+- **Clérigo** (`cleric.ts`, o Woyd; textos conferidos na AON): **Healing Hands** troca os d8 do Heal por **d10** no catálogo de
+  ação variável (`variantFor(…, variantOptionsFor(build))`, só no diálogo da magia — a prosa do drawer continua dizendo d8) e o
+  **Selective Energy** vira aviso no Heal/Harm de 3 ações. **Sacred Ground** é cura FIXA (= nível, sem dado) pelo `HealActivityButton`
+  (`actions: 0`, `time: '1 minuto'`; a rolagem `free` sem dado fecha nos dois validadores). **Banishing Touch** (mítica) ataca com
+  proficiência mítica (`MYTHIC_ATTACK_SPELLS` em `rolls.ts`, lista conferida uma a uma: o traço Mythic sozinho não diz isso) e está no
+  `CATALOG`. ✦: **Prescience** na iniciativa por qualquer perícia (contexto `initiative-skill`; na Percepção vence o Ears, o mesmo ponto
+  rende o +1 na CA/salvaguardas, anotado na rolagem) e **Sage's Calling** no Recall Knowledge (contexto `recall`). O ponto que o Sage's
+  Calling devolve no crítico é à mão. A relíquia **Brasão da Família** (Soul/Emotion) usa o botão genérico; a **emoção** do Emotion Surge
+  ainda não foi informada, então o +1 não é automatizado.
+  - **Descrições que a AON resolveu errado** (o pacote estático foi corrigido à mão ANTES de semear, e a montagem no banco parte
+    dele): `Anathema` vinha do druida, `Holy` como a runa de arma, `Domain: Void` como uma característica do Necromancer,
+    `Healing Font` com o texto pré-Remaster e o item `Scroll Robes` como a Defensive Robes do feiticeiro.
 - **Ladino** (`rogue.ts` + `components/useRogue.ts` + `usePoisonOptions.ts` + `usePoison.ts`) — **sem faixa no topo da ficha**: tudo vive no diálogo do Golpe (aplicar, "Veneno usado", "Nova preparação"); a faixa `RogueBar` foi removida a pedido: **Poison Weapon**
   (talento) escolhe, entre os itens do inventário com os traços `Poison` + `Contact`/`Injury` (via
   `fetchItemTraits`; veneno inalado como o Breath of the Mantis God NÃO serve), aplica 1 na arma e **gasta
