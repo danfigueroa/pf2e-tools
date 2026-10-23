@@ -16,8 +16,8 @@
 //                 não alcança a exigência da armadura (números do AON)
 //   condições     `effectiveParts`, que já resolve "o mesmo tipo não empilha"
 
-import type { BuildInfo, Proficiencies } from '../../pathbuilder/types'
-import { abilityMod, ABILITY_LABELS, mythicProficiencyDelta, proficiencyLabel, type AbilityKey } from './helpers'
+import { parseFeatEntry, type BuildInfo, type Proficiencies } from '../../pathbuilder/types'
+import { abilityMod, ABILITY_LABELS, MYTHIC_PROFICIENCY_BONUS, mythicProficiencyDelta, proficiencyLabel, type AbilityKey } from './helpers'
 import { effectiveParts, SKILL_TARGET, type ConditionModifiers, type ModTarget } from './conditions'
 
 export type CheckPartKind = 'prof' | 'ability' | 'item' | 'armor' | 'condition' | 'base' | 'map' | 'other' | 'mythic'
@@ -129,6 +129,19 @@ export function conditionParts(mods: ConditionModifiers, target: ModTarget): Che
 
 const sum = (parts: CheckPart[]) => parts.reduce((s, p) => s + p.value, 0)
 
+/**
+ * Untrained Improvisation (Player Core pg. 264) e Clever Improviser, que a concede: o bônus de proficiência
+ * em teste de PERÍCIA destreinada é o nível −2, o nível −1 a partir do 5º e o nível inteiro a partir do 7º
+ * (no lugar do +0). Não vale para salvaguarda nem Percepção, e não libera as ações só para treinados
+ * (a Clever Improviser, sim). `null` = o personagem não tem o talento.
+ */
+export function untrainedImprovisation(build: BuildInfo): number | null {
+    const has = (name: string) => (build.feats ?? []).some((f) => parseFeatEntry(f).name.trim().toLowerCase() === name)
+    if (!has('untrained improvisation') && !has('clever improviser')) return null
+    const level = build.level ?? 1
+    return level >= 7 ? level : level >= 5 ? level - 1 : Math.max(0, level - 2)
+}
+
 interface CheckInput {
     label: string
     en: string
@@ -138,14 +151,18 @@ interface CheckInput {
     ability: AbilityKey
     target: ModTarget
     armor?: ArmorPenalty | null
+    /** Perícia: o destreinado ganha o bônus da Untrained Improvisation. */
+    improvise?: boolean
 }
 
 function buildCheck(build: BuildInfo, mods: ConditionModifiers, input: CheckInput): Check {
     const { level } = build
     const { rank, ability } = input
+    // Destreinado não soma o nível no Remaster — salvo a Untrained Improvisation, que o devolve (parcial até o 7º).
+    const improv = input.improvise && rank === 0 ? untrainedImprovisation(build) : null
+    const profValue = improv != null ? improv : rank > 0 ? level + rank : 0
     const parts: CheckPart[] = [
-        // Destreinado não soma o nível no Remaster.
-        { label: proficiencyLabel(rank), value: rank > 0 ? level + rank : 0, kind: 'prof' },
+        { label: improv != null ? 'Improvisação (destreinada)' : proficiencyLabel(rank), value: profValue, kind: 'prof' },
         { label: ABILITY_LABELS[ability], value: abilityMod(build.abilities[ability]), kind: 'ability' },
         ...pathbuilderBonuses(build, input.modNames),
     ]
@@ -168,7 +185,8 @@ function buildCheck(build: BuildInfo, mods: ConditionModifiers, input: CheckInpu
         base,
         conditionDelta,
         parts: [...parts, ...cond],
-        mythicDelta: mythicProficiencyDelta(level, rank),
+        // O ✦ TROCA a proficiência: desconta o que já está embutido (inclusive a improvisação).
+        mythicDelta: improv != null ? level + MYTHIC_PROFICIENCY_BONUS - improv : mythicProficiencyDelta(level, rank),
     }
 }
 
@@ -222,6 +240,7 @@ export function skillCheck(
         ability: def.ability,
         target: SKILL_TARGET[def.ability],
         armor,
+        improvise: true,
     })
 }
 
