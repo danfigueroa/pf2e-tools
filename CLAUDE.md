@@ -829,6 +829,12 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     Preset aberto que ainda não está publicado é publicado sozinho (`publishPreset`). `scripts/seed-presets.mjs` publica de
     uma vez os que faltam, sem nunca sobrescrever (rode depois de registrar um preset novo). Em 2026-10-23 os 9 presets foram semeados.
   - As dádivas de relíquia sem texto no catálogo entram em `characterDescriptionNames` (poder = habilidade, runa = item).
+  - **O trabalho com a AON/tradução é feito UMA vez, na publicação** (decisão do usuário). Além das descrições, as consultas
+    por nome de `search?gear=`/`items=`/`shields=` são lidas-através do Postgres (`api/_lib/lookup-cache.js`, tabela global
+    `aon_lookups`, `kind` versionado como `gear:v1` — mudou o formato, suba a versão): só o que falta vai à AON, e só o que a AON
+    achou é gravado. O `publish` do `sheet-handler` as aquece (`sheet-warm.js`, até 8 s, nunca impede a publicação).
+    `scripts/prepare-sheets.mjs [mesa] [slug]` faz o mesmo (descrições + consultas) para fichas já publicadas, incremental.
+    Ainda ao vivo, de propósito: busca de criatura/magia por nome, regras do stat block, aflições, companheiros.
   PV, condições e slots não mudam: a identidade é o slug do nome, igual antes.
   - **"Nova versão publicada"** (`components/NewVersionBar.tsx` + `services/sheetNotices.ts`, migration
     `aviso_de_ficha_publicada`): um trigger em `sheets` avisa no canal `mesa:<mesa>:sheets` — `published` quando o
