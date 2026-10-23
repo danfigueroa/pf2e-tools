@@ -1176,8 +1176,9 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   proficiência mítica (`MYTHIC_ATTACK_SPELLS` em `rolls.ts`, lista conferida uma a uma: o traço Mythic sozinho não diz isso) e está no
   `CATALOG`. ✦: **Prescience** na iniciativa por qualquer perícia (contexto `initiative-skill`; na Percepção vence o Ears, o mesmo ponto
   rende o +1 na CA/salvaguardas, anotado na rolagem) e **Sage's Calling** no Recall Knowledge (contexto `recall`). O ponto que o Sage's
-  Calling devolve no crítico é à mão. A relíquia **Brasão da Família** (Soul/Emotion) usa o botão genérico; a **emoção** do Emotion Surge
-  ainda não foi informada, então o +1 não é automatizado.
+  Calling devolve no crítico é à mão. A relíquia **Brasão da Família** (Soul/Emotion) usa o botão genérico; a emoção é **Pride** (informada pelo jogador):
+  o Emotion Surge dá +1 de status em Sociedade, que é o chip "Emotion Surge ativa" no diálogo da perícia (`emotionSurgeFor`, tabela
+  `EMOTION_SURGE` com as dez emoções; não lembrado — o app não conta o minuto).
   - **Descrições que a AON resolveu errado** (o pacote estático foi corrigido à mão ANTES de semear, e a montagem no banco parte
     dele): `Anathema` vinha do druida, `Holy` como a runa de arma, `Domain: Void` como uma característica do Necromancer,
     `Healing Font` com o texto pré-Remaster e o item `Scroll Robes` como a Defensive Robes do feiticeiro.

@@ -687,7 +687,7 @@ Na **Arton 1515**:
 | Loki                  | Magus 7 (Laughing Shadow), Fleshwarp | `Loki`                              | Arquétipo de Psíquico (The Tangible Dream). Guia pelo Remaster do Magus. |
 | Miranda               | Investigadora 7 (Empiricism), Humana | `Miranda Stormblade`                | Arquétipo de Inventor. Guia curado (`MIRANDA`). Relíquia batizada de **Miranda's Arm** (o Braço Sônico, com acuidade; dádivas Scrap Shot e Dragon Strike da AON). |
 | Hearts Folly          | Monge 7 (Student of Perfection), Humana Dromaar | `Hearts folly`                  | Duas relíquias (Redenção Pelas Cinzas e Afinco do Artista). Flurry, Ki Strike e a postura do arqueiro no app. O desarmado "Special Unarmed (1d6)" é caseiro, tratado como o Punho (ágil, acuidade). |
-| Woyd                  | Clérigo 7 (Enclausurado, Void), Humano Versátil | `Woyd`                          | Relíquia Brasão da Família (Absorb Injury e Emotion Surge; a emoção ainda não foi definida). Heal em d10 (Healing Hands), Banishing Touch com proficiência mítica, ✦ do Prescience e do Sage's Calling, Sacred Ground pelo Curar. |
+| Woyd                  | Clérigo 7 (Enclausurado, Void), Humano Versátil | `Woyd`                          | Relíquia Brasão da Família (Absorb Injury e Emotion Surge, emoção Pride: +1 em Sociedade). Heal em d10 (Healing Hands), Banishing Touch com proficiência mítica, ✦ do Prescience e do Sage's Calling, Sacred Ground pelo Curar. |
 
 - **O JSON do Nathaniel tem uma edição à mão**: o jogador marcou o *Winder's Ring* por engano, e o
   anel de nível 7 certo é o **Ring of Wizardry (Type I)**
