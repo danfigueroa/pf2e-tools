@@ -156,6 +156,11 @@ export function announceSheet(slug: string, character: string): () => void {
 
 export const getDeviceName = () => deviceName
 
+/** Como a lista mostra este aparelho: o nome dele, senão o personagem da ficha aberta. */
+export function selfLabel(): string {
+    return deviceName || openSheets[openSheets.length - 1]?.character || ''
+}
+
 export function setDeviceName(name: string) {
     deviceName = name.trim().slice(0, 40)
     try {
