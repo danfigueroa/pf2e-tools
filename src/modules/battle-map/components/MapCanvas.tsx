@@ -23,9 +23,12 @@ import { AREA_LABELS, areaSquares, cellsPath, snapAngle45, tokensIn, type Area, 
 import type { TokenSpace } from './DrawingLayer'
 import type { TokenHp } from '../hp'
 import { useImageUrl } from '../../../services/images'
-import { MAP_BACKDROP, gold, mapChrome, status } from '../../../theme'
+import { MAP_BACKDROP, gold, mapChrome } from '../../../theme'
 import type { MapData } from '../../../services/maps'
 import { usePresence } from '../../../services/presence'
+import { sendLive, type LiveGesture } from '../../../services/mapLive'
+import { BAND_COLORS, movementBands, moveLabel } from '../movement'
+import { LiveLayer } from './LiveLayer'
 
 export type MapTool = 'select' | 'ruler' | 'draw' | 'area' | 'image'
 
@@ -142,33 +145,6 @@ const TOKEN_GLIDE = `
 function placeToken(el: HTMLElement, left: number, top: number) {
     el.style.left = `${left}px`
     el.style.top = `${top}px`
-}
-
-/** Cores das faixas de 1, 2 e 3 Andares. */
-const BAND_COLORS = [status.success, status.warning, status.error]
-
-/**
- * Faixas de alcance de um token: as posições onde ele pode parar com 1, 2 e 3
- * Andares, pela distância PF2e (5-10-5) a partir de onde estava. Cada faixa é
- * um anel — o que a anterior não alcançava —, desenhado na posição do CENTRO
- * do token (um token Grande cai meio quadrado deslocado, como ele mesmo).
- * Sem terreno difícil nem condições: o mapa não sabe de parede nem de Lento.
- */
-function movementBands(from: Cell, size: number, speedFeet: number): string[] {
-    const reach = Math.floor(speedFeet / 5)
-    const out = ['', '', '']
-    if (reach <= 0) return out
-    const max = reach * 3
-    const off = (size - 1) / 2
-    for (let y = Math.max(0, from.y - max); y <= from.y + max; y++) {
-        for (let x = Math.max(0, from.x - max); x <= from.x + max; x++) {
-            const d = squaresBetween(from, { x, y })
-            if (d === 0 || d > max) continue
-            const band = Math.ceil(d / reach) - 1
-            out[band] += `M${(x + off) * CELL_PX} ${(y + off) * CELL_PX}h${CELL_PX}v${CELL_PX}h${-CELL_PX}z`
-        }
-    }
-    return out
 }
 
 /** Arrasto menor que isto é toque (abre o token), não movimento. */
@@ -437,7 +413,11 @@ export const MapCanvas = memo(function MapCanvas({
         g.style.display = 'block'
     }
 
+    /** O gesto vai também para a tela de quem está no mesmo mapa (`services/mapLive.ts`). */
+    const live = (g: LiveGesture | null) => sendLive(dataRef.current.id, g)
+
     const clearOverlay = () => {
+        live(null)
         if (pathRef.current) pathRef.current.style.display = 'none'
         if (liveRef.current) liveRef.current.setAttribute('d', '')
         if (areaRef.current) areaRef.current.setAttribute('d', '')
@@ -454,6 +434,7 @@ export const MapCanvas = memo(function MapCanvas({
      * sai uma emanação não entra na contagem.
      */
     const drawArea = (area: Area) => {
+        live({ kind: 'area', area })
         const space = area.tokenId ? spacesRef.current.get(area.tokenId) : undefined
         const hit = areaSquares(area, space)
         const el = areaRef.current
@@ -642,7 +623,9 @@ export const MapCanvas = memo(function MapCanvas({
         const w = toWorld(p)
 
         if (g.kind === 'ruler') {
-            drawLine(g.from, cellAt(w.x, w.y), 1)
+            const to = cellAt(w.x, w.y)
+            drawLine(g.from, to, 1)
+            live({ kind: 'ruler', from: g.from, to })
             return
         }
 
@@ -701,11 +684,8 @@ export const MapCanvas = memo(function MapCanvas({
             g.to = { x: Math.max(0, snapped.x), y: Math.max(0, snapped.y) }
             drawGhost(g.to, g.size)
             drawLine(g.from, g.to, g.size)
-            if (g.speed && labelRef.current) {
-                const steps = Math.ceil((squaresBetween(g.from, g.to) * 5) / g.speed)
-                const actions = steps === 0 ? '' : steps > 3 ? ' · fora de alcance' : ` · ${steps} ${steps === 1 ? 'ação' : 'ações'}`
-                labelRef.current.textContent += actions
-            }
+            if (labelRef.current) labelRef.current.textContent = moveLabel(g.from, g.to, g.speed)
+            live({ kind: 'move', tokenId: g.id, from: g.from, to: g.to })
             return
         }
 
@@ -961,6 +941,8 @@ export const MapCanvas = memo(function MapCanvas({
                 )}
 
                 <PingLayer pings={data.pings ?? {}} />
+
+                <LiveLayer data={data} spaces={spaces} width={cols * CELL_PX} height={rows * CELL_PX} />
 
                 <svg
                     width={cols * CELL_PX}
