@@ -1496,6 +1496,11 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
     ok(absorb.activation.cost === 'reaction' && absorb.activation.limited && surge.activation.cost === 1 && surge.activation.limited, 'Custos da AON: reação 1×/dia e 1 ação 1×/hora')
     ok(relics.giftUnlocked(absorb, 0, 7) && relics.giftUnlocked(surge, 1, 7), 'As duas dádivas liberadas no nível 7')
     eq(relics.giftActivity(absorb).time.kind, 'reaction', 'Absorb Injury gasta a reação')
+    eq(surge.emotion, 'Pride', 'Emotion Surge do Brasão: emoção Pride')
+    eq(relics.emotionSurgeFor(woyd, 'Society', false)?.emotion, 'Pride', 'Pride vale em Sociedade')
+    eq(relics.emotionSurgeFor(woyd, 'Religion', true), null, 'Pride não vale no Recall Knowledge de outra perícia')
+    eq(relics.emotionSurgeFor(party.ghan, 'Society', false), null, 'Sem a relíquia, sem Emotion Surge')
+    eq(relics.EMOTION_SURGE.Dedication.recall, true, 'Dedication vale no Recall Knowledge')
 }
 
 // ── Uso de poder sem dado (dádiva de relíquia) ──
