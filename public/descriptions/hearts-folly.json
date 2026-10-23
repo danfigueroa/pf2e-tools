@@ -1,0 +1,696 @@
+{
+ "version": "v13",
+ "character": "Hearts folly",
+ "entries": {
+  "spell": {
+   "Inner Upheaval": {
+    "name": "Inner Upheaval",
+    "level": 1,
+    "heighten": [
+     "+4"
+    ],
+    "sourceBook": "Player Core 2, p. 256",
+    "actions": "Single Action",
+    "traits": [
+     "Concentrate",
+     "Focus",
+     "Monk",
+     "Uncommon"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "Você concentra seu qi em ataques mágicos devastadores. Realize um Strike desarmado ou Flurry of Blows (isso não altera o limite de usar apenas um floreio por turno). Você recebe um bônus de status de +1 em seus testes de ataque com os Strikes, e os Strikes causam 1d6 de dano extra. Esse dano pode ser de qualquer um dos seguintes tipos à sua escolha, definido a cada vez que você realizar um Strike: força, espírito, vitalidade ou vazio.",
+    "damage": "1d6",
+    "damageType": "extra",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+4",
+      "text": "O dano extra aumenta em 1d6."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "1d6",
+       "kind": "damage",
+       "types": [],
+       "persistent": false,
+       "count": 1,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+4",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 6,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Ki Strike": {
+    "name": "Ki Strike",
+    "level": 1,
+    "heighten": [
+     "+4"
+    ],
+    "sourceBook": "Core Rulebook, p. 401",
+    "actions": "Single Action",
+    "traits": [
+     "Monk",
+     "Transmutation",
+     "Uncommon",
+     "Focus"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "Você concentra seu ki em ataques mágicos. Realize um Strike desarmado ou Flurry of Blows (isso não altera o limite de usar apenas um floreio por turno). Você recebe um bônus de status de +1 em seus testes de ataque com os Strikes, e os Strikes causam 1d6 de dano extra. Esse dano pode ser de qualquer um dos seguintes tipos à sua escolha, definido a cada vez que você realizar um Strike: força, espírito, vitalidade ou vazio.",
+    "damage": "1d6",
+    "damageType": "extra",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+4",
+      "text": "O dano extra aumenta em 1d6."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "1d6",
+       "kind": "damage",
+       "types": [],
+       "persistent": false,
+       "count": 1,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+4",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 6,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Perfect Strike": {
+    "name": "Perfect Strike",
+    "level": 2,
+    "sourceBook": "World Guide, p. 83",
+    "actions": "Reaction",
+    "traits": [
+     "Divination",
+     "Fortune",
+     "Uncommon",
+     "Focus"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "Você recorre à percepção do seu treinamento para recuperar a precisão. Role novamente o teste de ataque que errou e mantenha o novo resultado.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Unfolding Wind Rush": {
+    "name": "Unfolding Wind Rush",
+    "level": 3,
+    "heighten": [
+     "5th"
+    ],
+    "sourceBook": "World Guide, p. 83",
+    "actions": "Single Action",
+    "traits": [
+     "Evocation",
+     "Uncommon",
+     "Focus"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "Você viaja sobre um vento impetuoso. Mova-se duas vezes: dois Strides, dois Steps, ou um Stride e um Step (em qualquer ordem). Você pode usar Stride ou Step para o ar durante esse movimento, movendo-se para cima em um ângulo de no máximo 45 graus; se você terminar seu movimento no ar, você cai após realizar uma ação ou quando seu turno terminar, o que ocorrer primeiro. Uma parede de vento aparece em todos os espaços que você deixou durante esse movimento, durando por 1 rodada.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "5th",
+      "text": "A parede de vento dura 3 rodadas."
+     }
+    ]
+   }
+  },
+  "feat": {
+   "Ancestral Paragon": {
+    "name": "Ancestral Paragon",
+    "level": 3,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "description": "Seja por instinto, estudo ou magia, você sente uma conexão mais profunda com sua ancestralidade. Você ganha um talento de ancestralidade de 1º nível."
+   },
+   "Clever Improviser": {
+    "name": "Clever Improviser",
+    "level": 5,
+    "actions": "",
+    "traits": [
+     "Human"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 64",
+    "description": "Você aprendeu como lidar com situações em que está fora da sua zona de conforto. Você ganha o talento geral Untrained Improvisation. Além disso, você pode tentar ações de perícia que normalmente exigem que você seja treinado, mesmo que você não seja treinado."
+   },
+   "Correct the Story": {
+    "name": "Correct The Story",
+    "level": 6,
+    "actions": "Reaction",
+    "traits": [
+     "Misfortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "trigger": "Um inimigo obtém um sucesso crítico em um teste de ataque ou salvaguarda.",
+    "description": "Você conhece bem a história da sua jornada e pode corrigi-la quando seu inimigo a conta incorretamente. Gaste um Mythic Point. O inimigo deve rolar novamente o teste de ataque ou salvaguarda que causou a ativação e ficar com o novo resultado."
+   },
+   "Deflect Projectile": {
+    "name": "Deflect Projectile",
+    "level": 4,
+    "actions": "Reaction",
+    "traits": [
+     "Monk"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 121",
+    "trigger": "Você é o alvo de um ataque físico à distância.",
+    "requirements": "Você está ciente do ataque, não está off-guard contra ele e tem uma mão livre.",
+    "description": "Você ganha um bônus de circunstância de +4 na CA contra o ataque desencadeador. Se o ataque errar, você o desviou. Você não pode usar este talento para desviar de projéteis à distância incomumente massivos (como pedregulhos ou virotes de balista)."
+   },
+   "Dromaar": {
+    "name": "Dromaar",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Player Core, p. 83",
+    "description": "Herança Dromaar A força Orc fortalece sua linhagem. Você tem um tom esverdeado na pele e outros indicadores de herança orc. Você ganha o traço orc, o traço dromaar e visão na penumbra. Quando você ganha um talento de ancestralidade, você pode escolher entre talentos de dromaar e orc, além daqueles da sua ancestralidade."
+   },
+   "Ears that Hear the Truth": {
+    "name": "Ears that Hear the Truth",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 81",
+    "description": "Você tem uma compreensão aguçada dos ritmos dos seres vivos, e nunca perde o tremor que trai uma mentira falada. Quando você tenta Sense Motive, ou quando você rola Perception para iniciativa, você pode gastar um Mythic Point para tentar o teste ou rolagem com proficiência mítica."
+   },
+   "Experienced Smuggler": {
+    "name": "Experienced Smuggler",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 255",
+    "prerequisites": "Treinado em Stealth",
+    "description": "Você frequentemente contrabandeia itens passando pelas autoridades. Quando o Mestre rolar seu teste de Stealth para ver se um observador passivo nota um item pequeno que você escondeu, o Mestre usa o número rolado ou 10 — o que for maior — como o resultado da sua rolagem de dado, adicionando-o ao seu modificador de Stealth para determinar o resultado do seu teste de Stealth. Se você for mestre em Stealth, o Mestre usa o número rolado ou 15, e se você for lendário em Stealth, você automaticamente obtém sucesso ao esconder um item pequeno de observadores passivos. Isso não oferece benefícios quando uma criatura tenta um teste de Perception enquanto procura ativamente por itens escondidos em você."
+   },
+   "Fleet": {
+    "name": "Fleet",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 256",
+    "description": "Você se move mais rapidamente a pé. Seu Deslocamento aumenta em 5 pés."
+   },
+   "Hydra's Bond": {
+    "name": "Hydra's Bond",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Mythic",
+     "Rare"
+    ],
+    "category": "feat",
+    "sourceBook": "Pathfinder #218: Titanbane, p. 68",
+    "description": "Quando os deuses-heróis construíram Pol-Sylirica e seus sete exércitos, eles temiam a traição interna. Eles se inspiraram na hidra de várias cabeças e uniram os sete exércitos com laços sobrenaturais para fazê-los agir como se compartilhassem um único corpo. Seguindo essas táticas, durante as preparações diárias, você pode selecionar um número de criaturas dispostas igual à metade do seu nível para fazer parte do seu laço da hidra. Membros do mesmo laço da hidra sempre sabem se outro membro está dizendo a verdade. Quando um membro do laço da hidra resiste a um efeito que o faria agir contra seus aliados (como a condição confused, uma magia dominate ou outros efeitos mentais que dariam a um aliado a condição controlled), você pode gastar um Mythic Point para permitir que esse personagem tente o teste de resistência com proficiência mítica. Se um membro do laço da hidra falhar em um teste de resistência contra tal efeito, os outros membros sabem automaticamente que o alvo está controlado ou sob a influência de um efeito mental. Além disso, todos os membros do laço da hidra ganham um bônus de circunstância de +2 em qualquer jogada feita para anular esse efeito."
+   },
+   "Ki Strike": {
+    "name": "Ki Strike",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Monk"
+    ],
+    "category": "feat",
+    "sourceBook": "Core Rulebook, p. 158",
+    "description": "Seu estudo do fluxo de energia mística permite que você a canalize em seus ataques físicos. Você ganha a magia de ki ki strike e uma reserva de foco de 1 Ponto de Foco. As regras para magias de ki estão resumidas na seção Termos-Chave na página da classe monge, e as regras completas para magias de foco aparecem aqui."
+   },
+   "Monastic Archer Stance": {
+    "name": "Monastic Archer Stance",
+    "level": 1,
+    "actions": "Single Action",
+    "traits": [
+     "Monk",
+     "Stance"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 118",
+    "requirements": "Você está sem armadura e empunhando um arco longo, um arco curto ou um arco com o traço Monk.",
+    "description": "Você entra em uma postura especializada para uma arte marcial única centrada no uso de um arco. Enquanto estiver nesta postura, os únicos Strike que você pode realizar são aqueles usando arcos longos, arcos curtos ou arcos com o traço monge. Você pode usar Flurry of Blows com esses arcos. Você pode usar seus outros talentos de monge ou habilidades de monge que normalmente exigem ataques desarmados com esses arcos ao atacar dentro da metade do primeiro incremento de alcance (normalmente 15 metros para um arco longo e 9 metros para um arco curto), desde que o talento ou habilidade não exija um único Strike específico. Especial Quando você seleciona este talento, você se torna treinado em arco longo, arco curto e quaisquer arcos simples e marciais com o traço monge. Se você ganhar a característica de classe expert strikes, sua graduação de proficiência para essas armas aumenta para perito, e se você ganhar a característica de classe master strikes, sua graduação de proficiência para essas armas aumenta para mestre."
+   },
+   "Orc Ferocity": {
+    "name": "Orc Ferocity",
+    "level": 1,
+    "actions": "Reaction",
+    "traits": [
+     "Orc"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 72",
+    "trigger": "Você seria reduzido a 0 Pontos de Vida, mas não seria morto imediatamente",
+    "frequency": "uma vez por dia",
+    "description": "A ferocidade em batalha corre pelo seu sangue, e você se recusa a cair devido aos seus ferimentos, não importa quão terríveis eles sejam. Você evita ficar inconsciente e permanece com 1 Ponto de Vida, e sua condição wounded aumenta em 1."
+   },
+   "Orc Sight": {
+    "name": "Orc Sight",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Dromaar",
+     "Half-Orc"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 83",
+    "prerequisites": "low-light vision",
+    "description": "Seu sangue orc concede a você a visão aguçada de seus ancestrais. Você ganha darkvision, permitindo que você veja na escuridão e na penumbra tão bem quanto na luz plena. No entanto, na escuridão, você vê apenas em preto e branco. Especial Você pode escolher este talento apenas no 1º nível, e você não pode retreinar para sair deste talento ou entrar neste talento."
+   },
+   "Perfect Ki Adept": {
+    "name": "Perfect Ki Adept",
+    "level": 6,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Student of Perfection"
+    ],
+    "sourceBook": "World Guide, p. 83",
+    "prerequisites": "Student of Perfection Dedication",
+    "description": "Você ganha a magia de ki apropriada para sua Escola de Perfeição: unblinking flame revelation para Unblinking Flame, unbreaking wave advance para Unbreaking Waves, unfolding wind rush para Unfolding Wind, ou untwisting iron buffer para Untwisting Iron. Aumente o número de Pontos de Foco em sua reserva de foco em 1."
+   },
+   "Perfect Strike": {
+    "name": "Perfect Strike",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Student of Perfection"
+    ],
+    "sourceBook": "World Guide, p. 83",
+    "prerequisites": "Student of Perfection Dedication",
+    "description": "Você ganha a magia de ki perfect strike. Aumente o número de Pontos de Foco em sua reserva de foco em 1."
+   },
+   "Qi Spells": {
+    "name": "Qi Spells",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Monk"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Bullet Dancer"
+    ],
+    "sourceBook": "Player Core 2, p. 119",
+    "description": "Você cultivou seu qi para produzir efeitos mágicos. Você ganha inner upheaval, qi rush, ou outra magia de qi de monge de 1º círculo a qual você tenha acesso. Especial Você pode selecionar este talento mais de uma vez, escolhendo uma magia diferente a cada vez."
+   },
+   "Specialty Crafting": {
+    "name": "Specialty Crafting",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 262",
+    "prerequisites": "Treinado em Crafting",
+    "description": "Seu treinamento focou em Crafting um tipo específico de item. Selecione uma das especialidades listadas abaixo; você ganha um bônus de circunstância de +1 em testes de Crafting para Craft itens desse tipo. Se você for mestre em Crafting, esse bônus aumenta para +2. Se não estiver claro se a especialidade se aplica, o GM decide. Algumas especialidades podem se aplicar apenas parcialmente. Por exemplo, se você estivesse fazendo uma morningstar e tivesse especialidade em marcenaria, o GM poderia lhe dar metade do seu bônus porque o item requer tanto ferraria quanto marcenaria. ## Specialty Crafting Specialty Itens Aplicáveis Alchemy* Itens alquímicos, como elixires Artistry Belas artes, incluindo joias Blacksmithing Bens de metal duráveis, incluindo armaduras de metal Bookmaking Livros e papel Glassmaking Vidro, incluindo artigos de vidro e janelas Leatherworking Bens de couro, incluindo armaduras de couro Pottery Bens de cerâmica Shipbuilding Navios e barcos Stonemasonry Bens e estruturas de pedra Tailoring Vestuário Weaving Tecidos, cestas e tapetes Woodworking Bens e estruturas de madeira * Requer Alchemical Crafting para Craft."
+   },
+   "Stand Still": {
+    "name": "Stand Still",
+    "level": 4,
+    "actions": "Reaction",
+    "traits": [
+     "Monk"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 121",
+    "trigger": "Uma criatura dentro do seu alcance usa uma ação de movimento ou deixa um quadrado durante uma ação de movimento que ela está usando.",
+    "description": "Você desfere um golpe quando seu inimigo tenta fugir. Realize um Strike corpo a corpo contra a criatura que desencadeou a ação. Se o ataque for um acerto crítico e o gatilho foi uma ação de movimento, você interrompe essa ação."
+   },
+   "Student of Perfection Dedication": {
+    "name": "Student of Perfection Dedication",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Archetype",
+     "Dedication",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Student of Perfection"
+    ],
+    "sourceBook": "World Guide, p. 83",
+    "prerequisites": "punho poderoso ou perito em ataques desarmados; membro de uma Casa da Perfeição",
+    "access": "Você é de Jalmeray.",
+    "description": "Você aprendeu as técnicas de artes marciais da sua Casa da Perfeição. Você se torna treinado à sua escolha em Acrobacia ou Atletismo e em Conhecimento de Guerra; se você já era treinado, você se torna perito em vez disso. Você ganha o talento de classe de monge Ki Strike, que lhe concede a magia de ki ki strike e uma reserva de foco de 1 Ponto de Foco que você pode recuperar usando a atividade Refocus como um monge faz. Suas magias de ki de Student of Perfection são magias ocultas. Especial Você não pode selecionar outro talento de dedicação até ter ganhado dois outros talentos do arquétipo student of perfection."
+   },
+   "Stunning Blows": {
+    "name": "Stunning Blows",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Monk"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 121",
+    "prerequisites": "flurry of blows",
+    "description": "O poder concentrado da sua rajada ameaça sobrepujar seu oponente. Quando você alveja a mesma criatura com dois Strikes do seu Flurry of Blows, você pode tentar atordoar a criatura. Se qualquer um dos Strikes atingir e causar dano, o alvo deve ter sucesso em um teste de Fortitude contra a CD de classe ou ficar stunned 1 (ou stunned 3 em uma falha crítica). Este é um efeito de incapacitação."
+   },
+   "Titan Wrestler": {
+    "name": "Titan Wrestler",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 263",
+    "prerequisites": "Treinado em Athletics",
+    "description": "Você pode tentar Disarm, Grapple, Reposition, Shove ou Trip em criaturas até dois tamanhos maiores que você, ou até três tamanhos maiores que você se você for lendário em Atletismo."
+   },
+   "Underwater Marauder": {
+    "name": "Underwater Marauder",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 264",
+    "prerequisites": "Treinado em Athletics",
+    "description": "Você aprendeu a lutar debaixo d'água. Você não fica off-guard enquanto estiver na água, e você não sofre as penalidades usuais por usar uma arma corpo a corpo de concussão ou corte na água."
+   },
+   "Untrained Improvisation": {
+    "name": "Untrained Improvisation",
+    "level": 3,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 264",
+    "description": "Você aprendeu como lidar com situações em que está fora da sua zona de conforto. Seu bônus de proficiência em testes de perícia não treinado é igual ao seu nível –2. Isso melhora para o seu nível –1 no 5º nível e para o seu nível total no 7º nível. Isso não permite que você use as ações de perícia que exigem ser treinado."
+   }
+  },
+  "special": {
+   "Athletics": {
+    "name": "Athletics",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "skill",
+    "sourceBook": "Player Core, p. 234",
+    "description": "Perícia Athletics Athletics permite que você realize feitos de proeza física. A maioria das ações de Athletics permite que você se mova pelo ambiente (Climb, High Jump, Long Jump, Swim) ou controle o movimento do seu oponente em combate (Grapple, Reposition, Shove, Trip e Disarm). Escape: Quando você usa a ação básica Escape, você pode usar seu modificador de Athletics em vez do seu modificador de ataque desarmado. Ataques Múltiplos com Athletics Diversas ações de Athletics possuem o traço attack, o que significa que usá-las mais de uma vez no mesmo turno as torna menos precisas. Como essas ações usam sua mão livre, você usa os traços do seu ataque de soco para determinar a penalidade de ataque múltiplo, então o traço agile do seu soco se aplica. Portanto, você recebe uma penalidade de 4 se a ação for seu segundo ataque do turno, ou de 8 se for o terceiro. Alguns traços de arma permitem que você realize essas ações usando uma arma, caso em que a penalidade pode ser 5 ou 10 se a arma não possuir o traço agile. Alguns personagens podem obter ataques desarmados sem o traço agile também. Se não estiver claro qual penalidade usar, o GM decide. Bônus de Item para Athletics Bônus de Item Nível Categoria Consumível Nota Beastmaster's Sigil +1 0 Spellhearts Não Bônus de item em testes de Athletics para Trip Medal of Gorilla’s Might +1 3 Worn Items Não Bônus de item em testes de Athletics para Climb, Force Open, High Jump e Long Jump. Crowbar (Levered) +1 3 Adventuring Gear Não para Force Open qualquer coisa que possa ser aberta com alavanca. Bracelet Of Buoyancy +1 3 Other Worn Items Não para Swim Essence Charm +1 4 Other Worn Items Não Bônus de item em um teste à escolha do artífice Grippy Gloves +1 4 Other Worn Items Não Bônus de item em teste de Athletics para Climb, Grapple e Reposition. Sailor’s Collar +1 4 Worn Items Não Bônus de item em testes de Athletics para Climb, Force Open, High Jump e Long Jump. Coral Aspect +1 4 Other Worn Items Não Bônus de item para Swim Mariner's Splint +1 5 Armor Não testes de Athletics para Climb ou Swim Trudd's Strength +1 5 Clan Dagger Filigrees Não Bônus de item em testes de Athletics Injigo's Loving Embrace +1 9 Held Items Não Bônus de item em teste de Athletics para Grapple com a rede. Kinburi's Sandals of Bounding +1 9 Other Worn Items Não Bônus de item em testes de Athletics para High Jump e Long Jump Dread Ampoule (Greater) +1 11 Alchemical Bombs Não Bônus de item em testes de Athletics para Force Open Bestial Mutagen (Lesser) +1 1 Alchemical Elixirs Sim Bônus de item em testes de Athletics Bronze Bull Pendant +1 2 Talismans Sim Athletics para Shove Monkey Pin +1 2 Talismans Sim Athletics para Climb Savior Spike +1 2 Talismans Sim Athletics para Grab an Edge Energizing Tea +1 4 Tea Sim Bônus de item em Athletics Mantis Embrace +2 0 Other Worn Items Não testes de Athletics para Grapple ou Shove Zarothrask's Contract +2 9 Other Contracts Não Disarm itens manufaturados e para Grapple Kinburi's Sandals of Bounding +2 9 Other Worn Items Não Bônus de item em testes de Athletics para High Jump e Long Jump quando ativado Fire-Jump Ring +2 10 Other Worn Items Não Sash of Prowess +2 10 Worn Items Não Greater Sailor’s Collar +2 10 Worn Items Não Bônus de item em testes de Athletics para Climb, Force Open, High Jump e Long Jump. Gloves of Precision +2 10 Worn Items Não Bônus de item para Climb Kinetic Wraps of Strength +2 10 Worn Items Não Bônus de item para Force Open, Reposition e Shove Greater Trudd's Strength +2 11 Clan Dagger Filigrees Não Bônus de item em testes de Athletics Helm of Zeal +2 11 Worn Items Não Bônus de item da Perícia Divina da divindade associada Helm of the Tides +2 11 Other Worn Items Não Bônus de item para Swim Stampede Medallion +2 12 Eidolon Items Não Bônus de item em testes de Athletics para Shove ou Trip. Greater Stampede Medallion +2 15 Eidolon Items Não Bônus de item em testes de Athletics para Shove ou Trip. Bestial Mutagen (Moderate) +2 3 Alchemical Elixirs Sim Bônus de item em testes de Athletics Sash of Prowess (Greater) +3 17 Worn Items Não Jaws of the Grogrisant +3 17 Apex Items Não Bônus de item em testes de Perception para Athletics Helm of Zeal (Greater) +3 18 Worn Items Não Bônus de item da Divina..."
+   },
+   "Darkvision": {
+    "name": "Darkvision",
+    "actions": "",
+    "traits": [],
+    "category": "rules",
+    "description": "Você enxerga na escuridão e na penumbra tão bem quanto na luz plena, mas só em preto e branco no escuro. Vem do talento Orc Sight."
+   },
+   "Dromaar": {
+    "name": "Dromaar",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Player Core, p. 83",
+    "description": "Herança Dromaar A força Orc fortalece sua linhagem. Você tem um tom esverdeado na pele e outros indicadores de herança orc. Você ganha o traço orc, o traço dromaar e visão na penumbra. Quando você ganha um talento de ancestralidade, você pode escolher entre talentos de dromaar e orc, além daqueles da sua ancestralidade."
+   },
+   "Expert Strikes": {
+    "name": "Expert Strikes",
+    "level": 5,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Monk",
+    "sourceBook": "Player Core 2, p. 114",
+    "description": "Você praticou artes marciais e agora superou sua antiga perícia. Seus graus de proficiência para ataques desarmados e armas simples aumentam para expert. Quando você obtém um acerto crítico com um ataque desarmado no grupo brawling, você obtém seu efeito de especialização crítica."
+   },
+   "Flurry of Blows": {
+    "name": "Flurry of Blows",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Monk",
+    "sourceBook": "Player Core 2, p. 114",
+    "description": "Você pode atacar rapidamente com a ação Flurry of Blows."
+   },
+   "Guardian's Calling": {
+    "name": "Guardian's Calling",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Calling",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "mythic-calling",
+    "sourceBook": "War of Immortals, p. 80",
+    "description": "Edictos coloque-se em perigo para proteger seus aliados ou criaturas inocentes sob ameaça Anátema recuar de uma batalha enquanto seus aliados ou espectadores inocentes estiverem em perigo sem fazer todos os esforços razoáveis para resgatá-los primeiro"
+   },
+   "Incredible Movement": {
+    "name": "Incredible Movement",
+    "level": 3,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Monk",
+    "sourceBook": "Player Core 2, p. 114",
+    "description": "Você se move como o vento. Você ganha um bônus de status de +3 metros (10 pés) ao seu Speed sempre que não estiver vestindo armadura. O bônus aumenta em 1,5 metros (5 pés) para cada 4 níveis que você tiver acima do 3º."
+   },
+   "Inner Upheaval": {
+    "name": "Inner Upheaval",
+    "level": 1,
+    "actions": "Single Action",
+    "traits": [
+     "Concentrate",
+     "Focus",
+     "Monk",
+     "Uncommon"
+    ],
+    "category": "spell",
+    "sourceBook": "Player Core 2, p. 256",
+    "description": "Você concentra seu qi em ataques mágicos devastadores. Realize um Strike desarmado ou Flurry of Blows (isso não altera o limite de usar apenas um floreio por turno). Você recebe um bônus de status de +1 em seus testes de ataque com os Strikes, e os Strikes causam 1d6 de dano extra. Esse dano pode ser de qualquer um dos seguintes tipos à sua escolha, definido a cada vez que você realizar um Strike: força, espírito, vitalidade ou vazio."
+   },
+   "Low-Light Vision": {
+    "name": "Low-Light Vision",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "rules",
+    "sourceBook": "Player Core, p. 433",
+    "description": "Regras Low-Light Vision Uma criatura com Low-Light Vision pode enxergar na penumbra como se fosse luz plena, portanto ela ignora a condição concealed devido à penumbra."
+   },
+   "Mystic Strikes": {
+    "name": "Mystic Strikes",
+    "level": 3,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Monk",
+    "sourceBook": "Player Core 2, p. 114",
+    "description": "Focar sua vontade em seus ataques físicos os imbuem com energia mística. Seus ataques desarmados tornam-se mágicos, permitindo que eles superem resistências a ataques não mágicos. No entanto, você ainda precisa de um item, como handwraps of mighty blows, para ganhar um bônus de item em testes de ataque ou aumentar os dados de dano de arma de seus ataques."
+   },
+   "Occult": {
+    "name": "Occult",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Occult"
+    ],
+    "category": "trait",
+    "sourceBook": "Player Core, p. 459",
+    "description": "Traço Oculto Esta magia vem da tradição oculta, invocando mistérios bizarros e efêmeros. Qualquer coisa com este traço é mágica. Uma criatura com este traço é constituída principalmente de ou tem uma forte conexão com magia oculta."
+   },
+   "Perception Expertise": {
+    "name": "Perception Expertise",
+    "level": 5,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Cleric",
+    "sourceBook": "Player Core, p. 108",
+    "description": "Você permanece alerta às ameaças ao seu redor. Seu grau de proficiência em Percepção aumenta para perito."
+   },
+   "Powerful Fist": {
+    "name": "Powerful Fist",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Monk",
+    "sourceBook": "Player Core 2, p. 114",
+    "description": "Seus punhos são armas mortais. O dado de dano para seu punho aumenta para 1d6 em vez de 1d4. Você não sofre a penalidade de circunstância normal de –2 ao realizar um ataque letal com seu punho ou quaisquer outros ataques desarmados."
+   },
+   "Rewrite Fate": {
+    "name": "Rewrite Fate",
+    "level": null,
+    "actions": "Free Action",
+    "traits": [
+     "Fortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "action",
+    "sourceBook": "War of Immortals, p. 78",
+    "trigger": "Você rola um teste de perícia ou uma salvaguarda e não gosta do resultado.",
+    "description": "O destino, a sorte ou alguma outra força se curva ao seu redor à medida que seu poder mítico aumenta, manifestando-se em um clarão de luz ou em uma onda visível de energia emanando de seu corpo enquanto você se livra das correntes do destino. Você gasta um Mythic Point e rola novamente o teste ou salvaguarda com proficiência mítica, assumindo o novo resultado."
+   },
+   "Unfolding Wind Rush": {
+    "name": "Unfolding Wind Rush",
+    "level": 3,
+    "actions": "Single Action",
+    "traits": [
+     "Evocation",
+     "Uncommon",
+     "Focus"
+    ],
+    "category": "spell",
+    "sourceBook": "World Guide, p. 83",
+    "description": "Você viaja sobre um vento impetuoso. Mova-se duas vezes: dois Strides, dois Steps, ou um Stride e um Step (em qualquer ordem). Você pode usar Stride ou Step para o ar durante esse movimento, movendo-se para cima em um ângulo de no máximo 45 graus; se você terminar seu movimento no ar, você cai após realizar uma ação ou quando seu turno terminar, o que ocorrer primeiro. Uma parede de vento aparece em todos os espaços que você deixou durante esse movimento, durando por 1 rodada."
+   },
+   "Weapon Specialization": {
+    "name": "Weapon Specialization",
+    "level": 13,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Alchemist",
+    "sourceBook": "Core Rulebook, p. 66",
+    "description": "Você aprendeu como infligir ferimentos maiores com as armas que conhece melhor. Você causa 2 de dano adicional com armas e ataques desarmados nos quais você é perito. Esse dano aumenta para 3 se você for mestre, e para 4 se você for lendário."
+   },
+   "Will": {
+    "name": "Iron Will",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Alchemist",
+    "sourceBook": "Core Rulebook, p. 66",
+    "description": "Suas defesas mentais são uma fortaleza de ferro. Sua graduação de proficiência para testes de Vontade aumenta para perito."
+   }
+  },
+  "item": {
+   "Longbow": {
+    "name": "Longbow",
+    "level": 0,
+    "actions": "",
+    "traits": [
+     "Deadly",
+     "Volley"
+    ],
+    "category": "weapon",
+    "sourceBook": "Player Core, p. 280",
+    "description": "Este arco de 1,5 metro de altura, geralmente feito de uma única peça de olmo, nogueira ou teixo, possui uma puxada poderosa e é excelente para impulsionar flechas com grande força e a uma distância extrema. Você deve usar as duas mãos para disparar um longbow, e ele não pode ser usado enquanto montado. Efeitos de Especialização Crítica Fonte Core Rulebook pg. 283 Certos talentos, características de classe, runas de arma e outros efeitos podem conceder a você benefícios adicionais quando você realiza um Strike com certas armas e obtém um sucesso crítico. Isso é chamado de efeito de especialização crítica. O efeito exato depende de qual grupo de arma sua arma pertence, conforme listado abaixo. Você sempre pode decidir não adicionar o efeito de especialização crítica da sua arma. Clique aqui para as regras completas sobre Efeitos de Especialização Crítica. Armas Mágicas Específicas Horselord's Longbow, Hunter's Anthem, Splithead Bow"
+   },
+   "Mask of the Cursed Eye": {
+    "name": "Mask of the Cursed Eye",
+    "level": 8,
+    "actions": "",
+    "traits": [
+     "Invested",
+     "Magical",
+     "Uncommon"
+    ],
+    "category": "equipment",
+    "sourceBook": "Treasure Vault (Remastered), p. 155",
+    "description": "Uma mask of the cursed eye é decorada com pelo menos um olho largo e fixo. Na primeira vez a cada dia em que você for alvo de uma magia de detecção, predição, revelação ou vidência por uma criatura em seu plano que você não consegue perceber, a criatura que o tem como alvo deve tentar um teste de Vontade CD 24. Este efeito é automático e não requer que você Ative o item. Sucesso Crítico A criatura não é afetada. Sucesso A criatura não é afetada, mas você sabe que foi alvo de uma magia que possui um desses traços. Falha A criatura fica sickened 1 e dazzled por 1 minuto. Você sabe que foi alvo de uma magia que possui um desses traços. Falha Crítica A criatura fica sickened 2 e dazzled por 10 minutos, e a magia é interrompida. Você obtém um breve vislumbre mental da criatura que desencadeou o efeito e descobre sua distância e direção aproximadas."
+   },
+   "Special Unarmed (1d6)": {
+    "name": "Special Unarmed (1d6)",
+    "actions": "",
+    "traits": [],
+    "category": "equipment",
+    "description": "O ataque desarmado dela, criado à mão no Pathbuilder: 1d6 (Powerful Fist), +1 de potência, striking e a runa Decaying (1d4 de vazio), em ferro frio de baixa qualidade. Dano contundente, perfurante ou cortante, à escolha."
+   }
+  }
+ }
+}
