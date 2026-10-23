@@ -117,6 +117,8 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
                 </DialogActions>
             </EmbedDialog>
 
+            <SlotsOverview build={build} slots={slots} focusMax={focusMax} hasFocusSpells={focusSpells.length > 0} mythicPoints={mythicPoints} />
+
             {hasTrackable && (
                 <Card>
                     <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
@@ -663,6 +665,107 @@ const SpellRow = ({ name, count, accent, request, onSelect, pips, spend, dimmed,
                 <ChevronIcon fontSize="small" sx={{ color: 'text.secondary' }} />
             </Stack>
         </Box>
+    )
+}
+
+interface OverviewProps {
+    build: BuildInfo
+    slots: SpellSlotsApi
+    focusMax: number
+    hasFocusSpells: boolean
+    mythicPoints: MythicPointsApi
+}
+
+/**
+ * Quadro-resumo do dia: slots disponíveis por rank de cada conjurador e os pontos de foco, num lugar só.
+ * Só lê — gastar e recuperar continua nos pips da lista. Mythic Magic não tem slot: entra como Pontos Míticos.
+ */
+const SlotsOverview = ({ build, slots, focusMax, hasFocusSpells, mythicPoints }: OverviewProps) => {
+    const rows = (build.spellCasters ?? []).flatMap((caster, idx) => {
+        if (isMythicMagicCaster(caster)) return []
+        const spontaneous = caster.spellcastingType === 'spontaneous'
+        const ranks = caster.spells
+            .filter((l) => l.spellLevel > 0 && l.list.length > 0)
+            .map((l) => {
+                if (spontaneous) {
+                    const total = caster.perDay?.[l.spellLevel] ?? 0
+                    return { rank: l.spellLevel, total, used: Math.min(total, slots.usedOf(slotKey(idx, caster.name, l.spellLevel))) }
+                }
+                let total = 0
+                let used = 0
+                for (const e of dedupe(l.list)) {
+                    total += e.count
+                    used += Math.min(e.count, slots.usedOf(slotKey(idx, caster.name, l.spellLevel, e.name)))
+                }
+                return { rank: l.spellLevel, total, used }
+            })
+            .filter((r) => r.total > 0)
+            .sort((a, b) => a.rank - b.rank)
+        return ranks.length > 0 ? [{ caster, idx, ranks }] : []
+    })
+    const showFocus = hasFocusSpells && focusMax > 0
+    const showMythic = (build.spellCasters ?? []).some(isMythicMagicCaster) && mythicPoints.max > 0
+    if (rows.length === 0 && !showFocus && !showMythic) return null
+
+    const Cell = ({ label, total, used, color }: { label: string; total: number; used: number; color: string }) => {
+        const left = Math.max(0, total - used)
+        const empty = left === 0
+        return (
+            <Box sx={{
+                minWidth: 56, px: 1, py: 0.5, textAlign: 'center', borderRadius: 1,
+                border: '1px solid', borderColor: empty ? 'divider' : color + '88',
+                backgroundColor: empty ? 'action.hover' : color + '14',
+                opacity: empty ? 0.6 : 1,
+            }}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.2 }}>{label}</Typography>
+                <Typography sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums', lineHeight: 1.3 }}>
+                    {left}<Box component="span" sx={{ fontWeight: 400, color: 'text.secondary' }}>/{total}</Box>
+                </Typography>
+            </Box>
+        )
+    }
+
+    return (
+        <Card>
+            <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                <Typography variant="overline" sx={{ fontWeight: 700, color: 'primary.light', display: 'block', lineHeight: 1.6 }}>
+                    Recursos de hoje
+                </Typography>
+                <Stack spacing={1.25} sx={{ mt: 0.5 }}>
+                    {rows.map(({ caster, idx, ranks }) => (
+                        <Box key={`${caster.name}-${idx}`}>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                                {caster.name} · {caster.spellcastingType === 'prepared' ? 'preparadas' : 'slots'}
+                            </Typography>
+                            <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
+                                {ranks.map((r) => (
+                                    <Cell key={r.rank} label={`${r.rank}º`} total={r.total} used={r.used} color={traditionColor(caster.magicTradition)} />
+                                ))}
+                            </Stack>
+                        </Box>
+                    ))}
+                    {showMythic && (
+                        <Box>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                                Mythic Magic · cada conjuração gasta 1 ponto
+                            </Typography>
+                            <Cell label="Míticos" total={mythicPoints.max} used={mythicPoints.max - mythicPoints.available} color={MYTHIC_COLOR} />
+                        </Box>
+                    )}
+                    {showFocus && (
+                        <Box>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                                Pontos de foco
+                            </Typography>
+                            <Stack direction="row" spacing={1.5} alignItems="center">
+                                <Cell label="Foco" total={focusMax} used={slots.focusUsed} color={gold.deep} />
+                                <Typography variant="caption" color="text.secondary">Refocus (10 min) devolve 1.</Typography>
+                            </Stack>
+                        </Box>
+                    )}
+                </Stack>
+            </CardContent>
+        </Card>
     )
 }
 
