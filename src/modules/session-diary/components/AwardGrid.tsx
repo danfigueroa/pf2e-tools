@@ -1,7 +1,7 @@
 import { memo, useEffect, useRef, useState, type ReactElement } from 'react'
 import { Box, ButtonBase, Paper, Typography } from '@mui/material'
 import {
-    AcUnit, AutoAwesome, Balance, Celebration, EmojiEvents, FlashOn,
+    AcUnit, AutoAwesome, Celebration, EmojiEvents, FlashOn,
     LocalFireDepartment, SentimentVeryDissatisfied, Speed, Stars, Thunderstorm, TrendingDown, Whatshot,
 } from '@mui/icons-material'
 import { useInView } from '../../../motion/useInView'
@@ -14,7 +14,7 @@ import { reveal, TONE } from './style'
 const ICONS: Record<string, ReactElement> = {
     blessed: <AutoAwesome />, cursed: <SentimentVeryDissatisfied />, hot: <Whatshot />, cold: <AcUnit />,
     legend: <EmojiEvents />, stumble: <TrendingDown />, smash: <FlashOn />, engine: <LocalFireDepartment />,
-    karma: <Balance />, gunner: <Speed />, mythic: <Stars />, glory: <Celebration />, doom: <Thunderstorm />,
+    gunner: <Speed />, mythic: <Stars />, glory: <Celebration />, doom: <Thunderstorm />,
 }
 
 /** Os dois primeiros ganham cartão maior: são o "quem tirou mais 20" e "o mais azarado". */
@@ -113,17 +113,17 @@ const AwardCard = memo(({ award: a, big, shown, index, onOpenDay }: CardProps) =
                     </Box>
                     {a.runnerUp && (
                         <Typography variant="caption" sx={{ display: 'block', mt: 1, color: ink.secondary }} noWrap>
-                            Vice: {a.runnerUp.person.name} · {a.runnerUp.label}
+                            2º lugar: {a.runnerUp.person.name} ({a.runnerUp.label})
                         </Typography>
                     )}
                 </>
             ) : a.tie ? (
                 <Typography variant="body2" sx={{ color: ink.secondary }}>
-                    <b>Empate</b> em {a.tie.label}: {joinNames(a.tie.names)}. Ninguém leva sozinho.
+                    <b>Empate</b> entre {joinNames(a.tie.names)}, com {a.tie.label} cada.
                 </Typography>
             ) : (
                 <Typography variant="body2" sx={{ color: ink.secondary, fontStyle: 'italic' }}>
-                    Ninguém ainda.
+                    Ninguém ainda: falta rolar mais.
                 </Typography>
             )}
         </Paper>

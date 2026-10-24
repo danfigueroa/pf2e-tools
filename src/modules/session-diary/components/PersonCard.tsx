@@ -47,10 +47,10 @@ export const PersonCard = memo(({ person: p, index }: { person: PersonStats; ind
             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 1 }}>
                 <Stat label="Rolagens" value={p.rolls} shown={shown} />
                 <Stat label="Testes" value={p.checks} shown={shown} />
-                <Stat label="Média d20" value={d20Average(p)} decimals={1} shown={shown} />
-                <Stat label="20 naturais" value={p.nat20} tone={p.nat20 ? gold.deep : undefined} shown={shown} />
-                <Stat label="1 naturais" value={p.nat1} tone={p.nat1 ? status.error : undefined} shown={shown} />
-                <Stat label="✦ míticos" value={p.mythic} tone={p.mythic ? MYTHIC_COLOR : undefined} shown={shown} />
+                <Stat label="Média no d20" value={d20Average(p)} decimals={1} shown={shown} />
+                <Stat label="Tirou 20" value={p.nat20} tone={p.nat20 ? gold.deep : undefined} shown={shown} />
+                <Stat label="Tirou 1" value={p.nat1} tone={p.nat1 ? status.error : undefined} shown={shown} />
+                <Stat label="Pontos Míticos" value={p.mythic} tone={p.mythic ? MYTHIC_COLOR : undefined} shown={shown} />
             </Box>
             {(p.damage > 0 || p.best) && (
                 <Box sx={{ mt: 1, display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 1 }}>

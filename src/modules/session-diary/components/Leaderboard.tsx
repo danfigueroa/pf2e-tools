@@ -73,7 +73,7 @@ export const Leaderboard = memo(({ people, scope }: Props) => {
             </Stack>
             {rows.length === 0 ? (
                 <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                    {metric.id === 'avg' ? 'Ninguém fez testes suficientes para entrar na média.' : 'Nada para mostrar ainda.'}
+                    {metric.id === 'avg' ? `Ninguém fez ${MIN_CHECKS[scope]} testes ainda.` : 'Ninguém ainda.'}
                 </Typography>
             ) : (
                 <Box sx={{ display: 'grid', gap: 0.75 }}>
@@ -112,7 +112,7 @@ export const Leaderboard = memo(({ people, scope }: Props) => {
             )}
             {metric.id === 'avg' && (
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                    Só entra quem tem {MIN_CHECKS[scope]} testes de d20 ou mais.
+                    Só aparece quem fez pelo menos {MIN_CHECKS[scope]} testes de d20: com poucos testes, a média não diz nada.
                 </Typography>
             )}
         </Box>

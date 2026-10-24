@@ -40,9 +40,9 @@ const PAGE = 50
 
 /**
  * Histórico de rolagens (`/historico`; era o "Diário da sessão", em `/diario`). Duas visões:
- * - **Toda a mesa**: os troféus, o ranking, o d20 e a linha do tempo de TODAS as sessões, a partir do
+ * - **Todas as sessões**: os troféus, o ranking, o d20 e a linha do tempo de TODAS as sessões, a partir do
  *   resumo por (dia, pessoa) que o banco monta (`diary_summary`) — as rolagens em si não descem.
- * - **Sessão**: um dia de jogo (6h às 6h, `services/diary`), com os troféus da noite, cada personagem e
+ * - **Uma sessão**: um dia de jogo (6h às 6h, `services/diary`), com os troféus da noite, cada personagem e
  *   a lista de rolagens.
  * Aberta durante a sessão, a página acompanha as rolagens novas.
  */
@@ -107,7 +107,7 @@ export const SessionDiaryPage = () => {
         return () => { stop(); if (timer) clearTimeout(timer) }
     }, [])
 
-    // Toda a mesa.
+    // Todas as sessões.
     const tablePeople = useMemo(() => mergePeople(summary ?? []), [summary])
     const tableAwards = useMemo(() => computeAwards(tablePeople, 'table'), [tablePeople])
     const tableSum = useMemo(() => tableTotals(summary ?? []), [summary])
@@ -152,8 +152,8 @@ export const SessionDiaryPage = () => {
                         onChange={(_, v: Scope | null) => { if (v) setScope(v) }}
                         aria-label="O que ver"
                     >
-                        <ToggleButton value="table" sx={{ px: 2 }}>Toda a mesa</ToggleButton>
-                        <ToggleButton value="session" sx={{ px: 2 }}>Sessão</ToggleButton>
+                        <ToggleButton value="table" sx={{ px: 2 }}>Todas as sessões</ToggleButton>
+                        <ToggleButton value="session" sx={{ px: 2 }}>Uma sessão</ToggleButton>
                     </ToggleButtonGroup>
                     {scope === 'session' && (
                         <>
@@ -180,13 +180,13 @@ export const SessionDiaryPage = () => {
             {scope === 'table' && (summary === null ? <Skeleton variant="rounded" height={220} /> : summary.length > 0 && (
                 <Stack spacing={3.5}>
                     <StatCounters totals={tableSum} scope="table" />
-                    <Section title="Hall da fama" hint="Desde a primeira rolagem da mesa.">
+                    <Section title="Hall da fama" hint="Somando todas as sessões da mesa.">
                         <AwardGrid awards={tableAwards} onOpenDay={openDay} />
                     </Section>
-                    <Section title="Ranking">
+                    <Section title="Ranking" hint="Escolha o que comparar.">
                         <Leaderboard people={tablePeople} scope="table" />
                     </Section>
-                    <Section title="O d20 é honesto?">
+                    <Section title="O d20 é justo?">
                         <D20Histogram people={tablePeople} tableHist={tableSum.hist} />
                     </Section>
                     <Section title="Sessão a sessão">
@@ -250,6 +250,6 @@ const Section = ({ title, hint, children }: { title: string; hint?: string; chil
 
 const DamageNote = () => (
     <Typography variant="caption" color="text.secondary">
-        Dano rolado no acerto: o app não sabe se o golpe acertou nem se foi crítico. Persistente fica de fora.
+        O dano soma tudo o que foi rolado, mesmo quando o golpe errou: o app não sabe se acertou. Dano persistente não entra.
     </Typography>
 )

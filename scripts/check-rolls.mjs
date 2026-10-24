@@ -1216,7 +1216,6 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
     eq(award(sessionAwards, 'legend').winner?.value, 35, 'histórico: maior teste é o raio de 20+15')
     eq(award(sessionAwards, 'stumble').winner?.value, 1, 'histórico: tropeço épico é o 1+0 do Mestre')
     eq(award(sessionAwards, 'hot').winner, null, 'histórico: média com 5 testes não concorre na sessão (mínimo 8)')
-    eq(award(sessionAwards, 'karma').winner?.label, '+2', 'histórico: karma do Thalos = 3 − 1')
     ok(!award(sessionAwards, 'glory'), 'histórico: "noite de glória" é só da mesa inteira')
     eq(thalos.worst.total, 13, 'histórico: o menor teste do Thalos é o 1+12')
     eq(thalos.hist[19], 3, 'histórico: três 20 no histograma do Thalos')

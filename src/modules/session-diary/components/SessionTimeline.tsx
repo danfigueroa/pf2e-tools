@@ -77,7 +77,8 @@ export const SessionTimeline = memo(({ series, onOpenDay }: Props) => {
                 ))}
             </Box>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                Altura: quanto a mesa rolou. Cor: a média do d20 da noite (vermelho azarado, ouro abençoado). Toque para abrir a sessão.
+                Cada coluna é uma noite de jogo: quanto mais alta, mais a mesa rolou. O número em cima é a média no d20 da noite,
+                e a cor diz como foi: vermelho é noite de azar, dourado é noite de sorte. Toque numa coluna para ver a noite.
                 {series.length > MAX_SESSIONS && ` Mostrando as últimas ${MAX_SESSIONS}.`}
             </Typography>
         </Box>

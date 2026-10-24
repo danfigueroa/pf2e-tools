@@ -39,13 +39,13 @@ export const D20Histogram = memo(({ people, tableHist }: Props) => {
             <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap', mb: 1 }}>
                 <FormControl size="small" sx={{ minWidth: 0, flex: '0 1 260px' }}>
                     <Select value={who} onChange={(e) => setWho(String(e.target.value))} displayEmpty inputProps={{ 'aria-label': 'De quem' }}>
-                        <MenuItem value="">Toda a mesa</MenuItem>
+                        <MenuItem value="">Todo mundo</MenuItem>
                         {rolled.map((p) => <MenuItem key={p.key} value={p.key}>{p.name}</MenuItem>)}
                     </Select>
                 </FormControl>
                 <Typography variant="body2" color="text.secondary">
                     {f.checks.toLocaleString('pt-BR')} {f.checks === 1 ? 'teste' : 'testes'}
-                    {f.hot !== null && f.checks >= 20 && <> · mais saiu: <b>{f.hot}</b> · menos saiu: <b>{f.cold}</b></>}
+                    {f.hot !== null && f.checks >= 20 && <> · o número que mais saiu foi o <b>{f.hot}</b>, e o que menos saiu, o <b>{f.cold}</b></>}
                 </Typography>
             </Box>
 
@@ -85,8 +85,8 @@ export const D20Histogram = memo(({ people, tableHist }: Props) => {
                 {VERDICT_TEXT[f.verdict]}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-                A linha tracejada é o esperado de um dado honesto (5% para cada face).
-                {f.chi2 !== null && ` Qui-quadrado ${f.chi2.toLocaleString('pt-BR')} (acima de 30,1 é suspeito).`}
+                Cada barra mostra quantas vezes aquele número saiu no d20. A linha tracejada é quantas vezes cada número
+                deveria ter saído num dado justo.
             </Typography>
         </Box>
     )

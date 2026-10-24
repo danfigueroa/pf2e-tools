@@ -1163,8 +1163,8 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
 -   [x] **Rolagens da mesa**: toda rolagem aparece para todos, em qualquer página, com histórico
 -   [x] **Histórico de Rolagens** (era "Diário da sessão"): as rolagens de cada noite de jogo, com 20 e 1 naturais, média do d20,
         dano rolado por personagem e os destaques da sessão
-    -   [x] **Toda a mesa**: troféus de todas as sessões (Abençoado pelos dados, Amaldiçoado, Golpe do século, Noite do
-            apocalipse…), ranking por métrica, "o d20 é honesto?" (qui-quadrado) e a linha do tempo das sessões, com animação
+    -   [x] **Todas as sessões**: troféus somando todas as noites (Abençoado pelos dados, Amaldiçoado, Golpe do século, Noite do
+            apocalipse…), ranking por métrica, "o d20 é justo?" e a linha do tempo das sessões, com animação
 -   [x] **Quem está na mesa**: a sidebar mostra quem está com o app aberto, com o nome do aparelho, a
         ficha aberta e a página; no mapa, o token do personagem com a ficha aberta ganha um ponto verde
 -   [x] **Encontros da Iniciativa na nuvem**, abertos igual em qualquer aparelho

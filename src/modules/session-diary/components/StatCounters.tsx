@@ -25,14 +25,14 @@ export const StatCounters = memo(({ totals: t, scope }: Props) => {
     const [ref, shown] = useInView<HTMLDivElement>()
     const avg = d20Average(t)
     const tiles: Tile[] = [
-        scope === 'table' ? { label: 'Sessões', value: t.sessions } : { label: 'Quem rolou', value: t.people },
+        scope === 'table' ? { label: 'Sessões', value: t.sessions } : { label: 'Pessoas que rolaram', value: t.people },
         { label: 'Rolagens', value: t.rolls },
         { label: 'Testes de d20', value: t.checks },
-        { label: '20 naturais', value: t.nat20, tone: 'gold' },
-        { label: '1 naturais', value: t.nat1, tone: 'bad' },
-        ...(avg !== null ? [{ label: 'Média do d20', value: avg, decimals: 1 }] : []),
+        { label: 'Vezes que saiu 20', value: t.nat20, tone: 'gold' },
+        { label: 'Vezes que saiu 1', value: t.nat1, tone: 'bad' },
+        ...(avg !== null ? [{ label: 'Média no d20', value: avg, decimals: 1 }] : []),
         { label: 'Dano rolado', value: t.damage, tone: 'green' },
-        ...(t.mythic > 0 ? [{ label: '✦ míticos', value: t.mythic, tone: 'mythic' as const }] : []),
+        ...(t.mythic > 0 ? [{ label: 'Pontos Míticos gastos', value: t.mythic, tone: 'mythic' as const }] : []),
     ]
     return (
         <Box

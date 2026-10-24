@@ -38,8 +38,8 @@ export function fairness(hist: number[]): Fairness {
 }
 
 export const VERDICT_TEXT: Record<Verdict, string> = {
-    few: 'Poucos testes para julgar o dado — role mais (a partir de 100).',
-    fair: 'O dado é honesto. A culpa é de quem rola.',
-    suspicious: 'Hmm… o dado anda suspeito. Nada que um bom interrogatório não resolva.',
-    loaded: 'Esse dado está viciado — ou o destino tem favoritos.',
+    few: 'Ainda não dá para saber: são precisos pelo menos 100 testes.',
+    fair: 'O dado é justo: cada número está saindo mais ou menos as mesmas vezes. A culpa é de quem rola.',
+    suspicious: 'Estranho: alguns números estão saindo bem mais que outros. Pode ser só azar.',
+    loaded: 'Parece viciado: alguns números estão saindo muito mais que outros, mais do que o azar explica.',
 }
