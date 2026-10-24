@@ -58,6 +58,8 @@ node scripts/fetch-creature-tables.mjs  # regera as tabelas do GM Core (confira 
 node scripts/check-scaling.mjs 200      # confere o motor de escala contra criaturas de verdade
 node scripts/check-heightening.mjs      # confere o heightening das magias contra o índice inteiro
 node scripts/check-rolls.mjs            # confere a matemática das rolagens contra as fichas do grupo
+node --env-file=.env scripts/check-diary.mjs
+                                        # confere o resumo do histórico da mesa (SQL) contra a conta do cliente, dia a dia
 node scripts/check-economy.mjs          # confere que todo talento/item do elenco que custa ação, reação ou Ponto Mítico tem caminho
 node --env-file=.env scripts/check-migrations.mjs
                                         # roda as migrations pendentes em produção dentro de BEGIN…ROLLBACK (antes do push!)
@@ -665,11 +667,31 @@ fazia pensar num diário escrito; o código e o endpoint (`?diary=`) mantêm o n
   ordem, até 3000), no `roll-handler` — mesmo endpoint do feed.
 - **As contas são puras** (`stats.ts`, cobertas pelo `check-rolls`): por personagem (slug; sem slug, o nome livre do
   rolador do mapa, sem caixa nem espaços), testes de d20 (**cada raio do Blazing Bolt conta como um**), média do d20,
-  20 e 1 naturais, ✦ (**um por rolagem**, não por raio), maior teste e dano. **"Dano rolado", nunca "dano causado"**: o
+  20 e 1 naturais, ✦ (**um por rolagem**, não por raio), maior e menor teste e dano. **"Dano rolado", nunca "dano causado"**: o
   app não sabe a CA do alvo e o cartão mostra acerto e crítico juntos, então soma-se o dano do ACERTO; persistente fica
   de fora (já fica do `damage.total`). Destaque com EMPATE não elege ninguém.
 - Aberto durante a sessão, o dia de hoje relê sozinho a cada rolagem nova (`onFeedActivity`, com 1,2 s de junção —
   uma rodada rola muito). Medido: ~1,4 s da rolagem à recontagem.
+- **Duas visões**: **Toda a mesa** (todas as sessões) e **Sessão** (um dia). Abre na sessão quando há rolagem hoje.
+- **O histórico da mesa NÃO baixa as rolagens**: `GET ?diary=summary` devolve um resumo por (dia de jogo, pessoa)
+  (`DaySummary`: contagens, `hist` das 20 faces do d20, maior/menor teste, maior dano), montado no banco por
+  `diary_summary` (migration `historico_da_mesa`), e o cliente soma os dias (`mergePeople`). Medido: 20 mil rolagens
+  sintéticas em ~0,46 s no banco, ~110 KB de resposta.
+  - **A conta existe TRÊS vezes**: `summarize` (`stats.ts`), o SQL e `summarizeRolls` (fallback em memória do
+    `roll-store.js`). A sessão aberta passa pelo `summarize` do cliente, a mesa pelo SQL — mudou uma, muda as outras.
+    `check-rolls` confere JS × TS; `check-diary` confere SQL × TS em todo dia real do banco. O `jsonb` reordena as
+    chaves (`best`, `worst`…): o servidor as remonta em `summaryMark`.
+- **Troféus** (`awards.ts`, lista declarativa `AWARDS`): 20 e 1 naturais, maior/menor média do d20 (mínimo de 8 testes
+  na sessão, 20 na mesa — `MIN_CHECKS`), maior e menor teste, maior dano numa rolagem e somado, karma (20 − 1), mais
+  rolagens, mais ✦ e, só na mesa, a melhor e a pior noite (mínimo 10 testes; o cartão abre a sessão). Empate segue não
+  elegendo ninguém, mas o cartão diz quem empatou. "Presença" foi descartado: num grupo fixo, sempre empata.
+- **"O d20 é honesto?"** (`fairness.ts`): qui-quadrado das 20 faces (19 g.l.; ≥30,1 suspeito, ≥36,2 viciado), só com
+  100 testes ou mais.
+- **Animação sem biblioteca** (`session-diary/components/`): `useInView` (`src/motion/`, UM `IntersectionObserver`
+  compartilhado) dispara a entrada só quando o bloco aparece; contadores pelo `useAnimatedNumber`; barras e entrada só
+  com `transform`/`opacity` (`style.ts`: `reveal`, `grow`); o ranking reordena por FLIP (`Leaderboard`); o troféu que
+  troca de dono com a página aberta brilha (`pulseAnimation`). Movimento reduzido: tudo direto. A lista de rolagens
+  desenha 50 por vez ("Mostrar mais") — uma noite passa de mil.
 - A lista usa a `HistoryRow` das "Últimas rolagens" da sidebar (`components/RollFeed.tsx`), que ganhou "Ver o histórico
   completo". A sidebar chamava essa gaveta de "Rolagens da mesa"; virou "Últimas rolagens" para não parecer o mesmo item.
 

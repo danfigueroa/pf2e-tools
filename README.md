@@ -44,7 +44,7 @@ O toolkit expõe as ferramentas abaixo (rotas em `src/App.tsx`), listadas na pá
 | **Ficha Virtual**             | `/ficha-virtual`  | `src/modules/character-viewer/`       | Visualizador interativo da ficha, com descrições da AON traduzidas     |
 | **Iniciativa**                | `/iniciativa`     | `src/modules/initiative-tracker/`     | Ordem de turnos, dano em área, condições e aflições                    |
 | **Mapa de Combate**           | `/mapa`           | `src/modules/battle-map/`             | Grid de 5 ft com imagem, tokens com barra de PV e régua                |
-| **Histórico de Rolagens**     | `/historico`      | `src/modules/session-diary/`          | Rolagens de cada noite de jogo, com estatísticas e destaques           |
+| **Histórico de Rolagens**     | `/historico`      | `src/modules/session-diary/`          | Troféus, ranking e o d20 da mesa em todas as sessões; cada noite também |
 | **Stat Block de Transformação** | `/transformation` | `src/modules/transformation-statblock/` | Gera o stat block de qualquer _battle form_ do Remaster              |
 | **Escalar Monstro**           | `/escalar-monstro` | `src/modules/monster-scaler/`        | Adapta uma criatura da AON para outro nível                            |
 
@@ -532,6 +532,7 @@ pf2e-tools/
 │   ├── fetch-creature-tables.mjs # Gera creatureTables.ts a partir das tabelas do GM Core na AON
 │   ├── check-scaling.mjs         # Confere o motor de escala contra criaturas de verdade
 │   ├── check-rolls.mjs           # Confere a matemática das rolagens contra as fichas do grupo
+│   ├── check-diary.mjs           # Confere o resumo do histórico (SQL) contra a conta do cliente
 │   └── ts-loader.mjs             # Deixa o Node importar os .ts do src/ nos scripts acima
 ├── server/
 │   └── index.mjs                 # Servidor de API local (desenvolvimento)
@@ -1162,6 +1163,8 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
 -   [x] **Rolagens da mesa**: toda rolagem aparece para todos, em qualquer página, com histórico
 -   [x] **Histórico de Rolagens** (era "Diário da sessão"): as rolagens de cada noite de jogo, com 20 e 1 naturais, média do d20,
         dano rolado por personagem e os destaques da sessão
+    -   [x] **Toda a mesa**: troféus de todas as sessões (Abençoado pelos dados, Amaldiçoado, Golpe do século, Noite do
+            apocalipse…), ranking por métrica, "o d20 é honesto?" (qui-quadrado) e a linha do tempo das sessões, com animação
 -   [x] **Quem está na mesa**: a sidebar mostra quem está com o app aberto, com o nome do aparelho, a
         ficha aberta e a página; no mapa, o token do personagem com a ficha aberta ganha um ponto verde
 -   [x] **Encontros da Iniciativa na nuvem**, abertos igual em qualquer aparelho
