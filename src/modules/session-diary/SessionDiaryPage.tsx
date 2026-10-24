@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import {
     Box,
+    Button,
     Chip,
     Container,
     Divider,
@@ -11,33 +12,49 @@ import {
     Select,
     Skeleton,
     Stack,
+    ToggleButton,
+    ToggleButtonGroup,
     Typography,
 } from '@mui/material'
 import { HistoryRow } from '../../components/RollFeed'
-import { TokenBadge } from '../battle-map/components/TokenBadge'
-import { diaryDayOf, fetchDiaryDays, fetchDiaryRolls, type DiaryDay } from '../../services/diary'
+import { diaryDayOf, fetchDiaryDays, fetchDiaryRolls, fetchDiarySummary, type DiaryDay } from '../../services/diary'
 import { onFeedActivity } from '../../services/rolls'
 import type { TableRoll } from '../../dice/tableRoll'
-import { gold, MYTHIC_COLOR, status as statusColor } from '../../theme'
-import { d20Average, highlights, personStats, type PersonStats } from './stats'
+import { gold } from '../../theme'
+import { computeAwards, type Scope } from './awards'
+import { keyOf, mergePeople, sessionSeries, summarize, tableTotals, type DaySummary } from './stats'
+import { AwardGrid } from './components/AwardGrid'
+import { D20Histogram } from './components/D20Histogram'
+import { Leaderboard } from './components/Leaderboard'
+import { PersonCard } from './components/PersonCard'
+import { SessionTimeline } from './components/SessionTimeline'
+import { StatCounters } from './components/StatCounters'
 
 const dayLabel = (day: string) =>
     new Date(`${day}T12:00:00-03:00`).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })
 
 const timeLabel = (at: number) => new Date(at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 
+/** Quantas rolagens a lista desenha de cada vez: uma noite longa passa de mil. */
+const PAGE = 50
+
 /**
- * Histórico de rolagens (`/historico`; era o "Diário da sessão", em `/diario`): as rolagens de um dia de jogo, com o resumo de cada
- * personagem e os destaques — para o fim da sessão e para conferir o que rolou.
- * O banco guarda toda rolagem; o dia de jogo vai das 6h às 6h (`services/diary`).
- * Aberto durante a sessão, o dia de hoje acompanha as rolagens novas.
+ * Histórico de rolagens (`/historico`; era o "Diário da sessão", em `/diario`). Duas visões:
+ * - **Toda a mesa**: os troféus, o ranking, o d20 e a linha do tempo de TODAS as sessões, a partir do
+ *   resumo por (dia, pessoa) que o banco monta (`diary_summary`) — as rolagens em si não descem.
+ * - **Sessão**: um dia de jogo (6h às 6h, `services/diary`), com os troféus da noite, cada personagem e
+ *   a lista de rolagens.
+ * Aberta durante a sessão, a página acompanha as rolagens novas.
  */
 export const SessionDiaryPage = () => {
     const [days, setDays] = useState<DiaryDay[] | null>(null)
+    const [summary, setSummary] = useState<DaySummary[] | null>(null)
+    const [scope, setScope] = useState<Scope | null>(null)
     const [day, setDay] = useState<string | null>(null)
     const [rolls, setRolls] = useState<TableRoll[] | null>(null)
     const [failed, setFailed] = useState(false)
     const [who, setWho] = useState<string | null>(null)
+    const [visible, setVisible] = useState(PAGE)
 
     useEffect(() => {
         let cancelled = false
@@ -46,26 +63,32 @@ export const SessionDiaryPage = () => {
             if (!list) { setFailed(true); setDays([]); return }
             setDays(list)
             setDay((current) => current ?? list[0]?.day ?? null)
+            // Com rolagem hoje, a mesa está jogando: abre na sessão. Senão, no histórico da mesa.
+            setScope((current) => current ?? (list[0]?.day === diaryDayOf(Date.now()) ? 'session' : 'table'))
         })
+        void fetchDiarySummary().then((rows) => { if (!cancelled) setSummary(rows ?? []) })
         return () => { cancelled = true }
     }, [])
 
     const dayRef = useRef(day)
     dayRef.current = day
+    const sessionOpen = scope === 'session'
     useEffect(() => {
-        if (!day) return
+        if (!day || !sessionOpen) return
         let cancelled = false
         setRolls(null)
         setWho(null)
+        setVisible(PAGE)
         void fetchDiaryRolls(day).then((list) => {
             if (cancelled) return
             if (!list) setFailed(true)
             setRolls(list ?? [])
         })
         return () => { cancelled = true }
-    }, [day])
+    }, [day, sessionOpen])
 
-    // Rolagem nova na mesa: se é a sessão de hoje que está aberta, relê (com junção — uma rodada rola muito).
+    // Rolagem nova na mesa: relê os dias e o resumo e, se é a sessão de hoje que está aberta, as rolagens
+    // (com junção — uma rodada rola muito).
     useEffect(() => {
         let timer: ReturnType<typeof setTimeout> | null = null
         const stop = onFeedActivity(() => {
@@ -73,6 +96,7 @@ export const SessionDiaryPage = () => {
             timer = setTimeout(() => {
                 const today = diaryDayOf(Date.now())
                 void fetchDiaryDays().then((list) => { if (list) setDays(list) })
+                void fetchDiarySummary().then((rows) => { if (rows) setSummary(rows) })
                 if (dayRef.current === today) {
                     void fetchDiaryRolls(today).then((list) => { if (list && dayRef.current === today) setRolls(list) })
                 } else if (dayRef.current === null) {
@@ -83,15 +107,30 @@ export const SessionDiaryPage = () => {
         return () => { stop(); if (timer) clearTimeout(timer) }
     }, [])
 
-    const people = useMemo(() => personStats(rolls ?? []), [rolls])
-    const best = useMemo(() => highlights(people), [people])
-    const shown = useMemo(() => {
+    // Toda a mesa.
+    const tablePeople = useMemo(() => mergePeople(summary ?? []), [summary])
+    const tableAwards = useMemo(() => computeAwards(tablePeople, 'table'), [tablePeople])
+    const tableSum = useMemo(() => tableTotals(summary ?? []), [summary])
+    const series = useMemo(() => sessionSeries(summary ?? []), [summary])
+
+    // A sessão aberta.
+    const sessionRows = useMemo(() => summarize(rolls ?? []), [rolls])
+    const people = useMemo(() => mergePeople(sessionRows), [sessionRows])
+    const sessionAwards = useMemo(() => computeAwards(people, 'session'), [people])
+    const sessionSum = useMemo(() => tableTotals(sessionRows), [sessionRows])
+    const filtered = useMemo(() => {
         const list = rolls ?? []
-        const filtered = who ? list.filter((r) => (r.slug || `nome:${(r.by || 'Alguém').trim().toLowerCase()}`) === who) : list
+        const mine = who ? list.filter((r) => keyOf(r) === who) : list
         // A mais recente primeiro: no meio da sessão, é a que se quer conferir.
-        return [...filtered].reverse()
+        return [...mine].reverse()
     }, [rolls, who])
     const info = days?.find((d) => d.day === day) ?? null
+
+    const openDay = useCallback((d: string) => {
+        setDay(d)
+        setScope('session')
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+    }, [])
 
     return (
         <Container maxWidth="lg" disableGutters sx={{ pb: 4 }}>
@@ -108,110 +147,109 @@ export const SessionDiaryPage = () => {
                 </Typography>
             ) : (
                 <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap', mb: 2.5 }}>
-                    <FormControl size="small" sx={{ flex: '1 1 240px', maxWidth: 420 }}>
-                        <InputLabel id="diary-day">Sessão</InputLabel>
-                        <Select labelId="diary-day" label="Sessão" value={day ?? ''} onChange={(e) => setDay(String(e.target.value))}>
-                            {days.map((d) => (
-                                <MenuItem key={d.day} value={d.day}>
-                                    {dayLabel(d.day)} · {d.count} {d.count === 1 ? 'rolagem' : 'rolagens'}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    {info && (
-                        <Typography variant="body2" color="text.secondary">
-                            {timeLabel(info.first)}–{timeLabel(info.last)} · {info.people} {info.people === 1 ? 'pessoa rolou' : 'pessoas rolaram'}
-                        </Typography>
+                    <ToggleButtonGroup
+                        exclusive size="small" color="primary" value={scope}
+                        onChange={(_, v: Scope | null) => { if (v) setScope(v) }}
+                        aria-label="O que ver"
+                    >
+                        <ToggleButton value="table" sx={{ px: 2 }}>Toda a mesa</ToggleButton>
+                        <ToggleButton value="session" sx={{ px: 2 }}>Sessão</ToggleButton>
+                    </ToggleButtonGroup>
+                    {scope === 'session' && (
+                        <>
+                            <FormControl size="small" sx={{ flex: '1 1 240px', maxWidth: 420 }}>
+                                <InputLabel id="diary-day">Sessão</InputLabel>
+                                <Select labelId="diary-day" label="Sessão" value={day ?? ''} onChange={(e) => setDay(String(e.target.value))}>
+                                    {days.map((d) => (
+                                        <MenuItem key={d.day} value={d.day}>
+                                            {dayLabel(d.day)} · {d.count} {d.count === 1 ? 'rolagem' : 'rolagens'}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                            {info && (
+                                <Typography variant="body2" color="text.secondary">
+                                    {timeLabel(info.first)}–{timeLabel(info.last)} · {info.people} {info.people === 1 ? 'pessoa rolou' : 'pessoas rolaram'}
+                                </Typography>
+                            )}
+                        </>
                     )}
                 </Box>
             )}
 
-            {day && rolls === null && <Skeleton variant="rounded" height={160} />}
+            {scope === 'table' && (summary === null ? <Skeleton variant="rounded" height={220} /> : summary.length > 0 && (
+                <Stack spacing={3.5}>
+                    <StatCounters totals={tableSum} scope="table" />
+                    <Section title="Hall da fama" hint="Desde a primeira rolagem da mesa.">
+                        <AwardGrid awards={tableAwards} onOpenDay={openDay} />
+                    </Section>
+                    <Section title="Ranking">
+                        <Leaderboard people={tablePeople} scope="table" />
+                    </Section>
+                    <Section title="O d20 é honesto?">
+                        <D20Histogram people={tablePeople} tableHist={tableSum.hist} />
+                    </Section>
+                    <Section title="Sessão a sessão">
+                        <SessionTimeline series={series} onOpenDay={openDay} />
+                    </Section>
+                    <DamageNote />
+                </Stack>
+            ))}
 
-            {rolls && rolls.length > 0 && (
-                <>
-                    <Highlights best={best} />
+            {scope === 'session' && day && rolls === null && <Skeleton variant="rounded" height={220} />}
 
-                    <Typography variant="h5" component="h2" sx={{ fontWeight: 700, mt: 3, mb: 1.5 }}>Por personagem</Typography>
-                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 1.5 }}>
-                        {people.map((p) => <PersonCard key={p.key} person={p} />)}
-                    </Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                        Dano rolado no acerto: o app não sabe se o golpe acertou nem se foi crítico. Persistente fica de fora.
-                    </Typography>
-
-                    <Typography variant="h5" component="h2" sx={{ fontWeight: 700, mt: 3, mb: 1 }}>Rolagens</Typography>
-                    <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75, mb: 1 }}>
-                        <Chip label={`Todos · ${rolls.length}`} onClick={() => setWho(null)} color={who === null ? 'primary' : 'default'} variant={who === null ? 'filled' : 'outlined'} />
-                        {people.map((p) => (
-                            <Chip key={p.key} label={`${p.name} · ${p.rolls}`} onClick={() => setWho(p.key)}
-                                color={who === p.key ? 'primary' : 'default'} variant={who === p.key ? 'filled' : 'outlined'} />
-                        ))}
-                    </Stack>
-                    <Paper variant="outlined" sx={{ px: 2 }}>
-                        <Stack divider={<Divider flexItem />}>
-                            {shown.map((r) => <HistoryRow key={r.id} roll={r} />)}
+            {scope === 'session' && rolls && rolls.length > 0 && (
+                <Stack spacing={3.5}>
+                    <StatCounters totals={sessionSum} scope="session" />
+                    <Section title="Destaques da noite">
+                        <AwardGrid awards={sessionAwards} />
+                    </Section>
+                    <Section title="Por personagem">
+                        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 1.5 }}>
+                            {people.map((p, i) => <PersonCard key={p.key} person={p} index={i} />)}
+                        </Box>
+                    </Section>
+                    <Section title="O d20 da noite">
+                        <D20Histogram people={people} tableHist={sessionSum.hist} />
+                    </Section>
+                    <Section title="Rolagens">
+                        <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75, mb: 1 }}>
+                            <Chip label={`Todos · ${rolls.length}`} onClick={() => { setWho(null); setVisible(PAGE) }} color={who === null ? 'primary' : 'default'} variant={who === null ? 'filled' : 'outlined'} />
+                            {people.map((p) => (
+                                <Chip key={p.key} label={`${p.name} · ${p.rolls}`} onClick={() => { setWho(p.key); setVisible(PAGE) }}
+                                    color={who === p.key ? 'primary' : 'default'} variant={who === p.key ? 'filled' : 'outlined'} />
+                            ))}
                         </Stack>
-                    </Paper>
-                </>
+                        <Paper variant="outlined" sx={{ px: 2 }}>
+                            <Stack divider={<Divider flexItem />}>
+                                {filtered.slice(0, visible).map((r) => <HistoryRow key={r.id} roll={r} />)}
+                            </Stack>
+                        </Paper>
+                        {filtered.length > visible && (
+                            <Button onClick={() => setVisible((v) => v + PAGE)} sx={{ mt: 1 }}>
+                                Mostrar mais ({filtered.length - visible} restantes)
+                            </Button>
+                        )}
+                    </Section>
+                    <DamageNote />
+                </Stack>
             )}
         </Container>
     )
 }
 
-const Highlights = ({ best }: { best: ReturnType<typeof highlights> }) => {
-    const items = [
-        best.mostNat20 && { label: 'Mais 20 naturais', who: best.mostNat20.name, value: `${best.mostNat20.nat20}×`, tone: gold.deep },
-        best.mostNat1 && { label: 'Mais 1 naturais', who: best.mostNat1.name, value: `${best.mostNat1.nat1}×`, tone: statusColor.error },
-        best.biggestHit && { label: 'Maior dano rolado', who: best.biggestHit.person.name, value: String(best.biggestHit.total), detail: best.biggestHit.title },
-        best.bestCheck && { label: 'Maior teste', who: best.bestCheck.person.name, value: String(best.bestCheck.total), detail: best.bestCheck.title },
-    ].filter(Boolean) as { label: string; who: string; value: string; detail?: string; tone?: string }[]
-    if (items.length === 0) return null
-    return (
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 1.5 }}>
-            {items.map((h) => (
-                <Paper key={h.label} variant="outlined" sx={{ p: 1.5, borderTop: `3px solid ${h.tone ?? gold.main}` }}>
-                    <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1.4, display: 'block' }}>{h.label}</Typography>
-                    <Typography sx={{ fontWeight: 800, fontSize: '1.5rem', lineHeight: 1.1, color: h.tone }}>{h.value}</Typography>
-                    <Typography sx={{ fontWeight: 600 }}>{h.who}</Typography>
-                    {h.detail && <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }} noWrap>{h.detail}</Typography>}
-                </Paper>
-            ))}
+const Section = ({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) => (
+    <Box component="section">
+        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, flexWrap: 'wrap', mb: 1.5 }}>
+            <Typography variant="h5" component="h2" sx={{ fontWeight: 700 }}>{title}</Typography>
+            {hint && <Typography variant="caption" color="text.secondary">{hint}</Typography>}
         </Box>
-    )
-}
-
-const Stat = ({ label, value, tone }: { label: string; value: string | number; tone?: string }) => (
-    <Box sx={{ minWidth: 0 }}>
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.2 }}>{label}</Typography>
-        <Typography sx={{ fontWeight: 700, color: tone }}>{value}</Typography>
+        {children}
     </Box>
 )
 
-const PersonCard = ({ person: p }: { person: PersonStats }) => {
-    const avg = d20Average(p)
-    return (
-        <Paper variant="outlined" sx={{ p: 1.5 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.25, minWidth: 0 }}>
-                {p.slug
-                    ? <TokenBadge slug={p.slug} name={p.name} size={32} />
-                    : <Box sx={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: p.color, flexShrink: 0 }} />}
-                <Typography sx={{ fontWeight: 700, minWidth: 0 }} noWrap>{p.name}</Typography>
-            </Box>
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 1 }}>
-                <Stat label="Rolagens" value={p.rolls} />
-                <Stat label="Testes" value={p.checks} />
-                <Stat label="Média d20" value={avg ?? '—'} />
-                <Stat label="20 naturais" value={p.nat20} tone={p.nat20 ? gold.deep : undefined} />
-                <Stat label="1 naturais" value={p.nat1} tone={p.nat1 ? statusColor.error : undefined} />
-                <Stat label="✦ míticos" value={p.mythic} tone={p.mythic ? MYTHIC_COLOR : undefined} />
-            </Box>
-            {(p.damage > 0 || p.best) && (
-                <Box sx={{ mt: 1, display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 1 }}>
-                    {p.damage > 0 && <Stat label="Dano rolado" value={p.damage} />}
-                    {p.biggestHit && <Stat label="Maior dano" value={p.biggestHit.total} />}
-                </Box>
-            )}
-        </Paper>
-    )
-}
+const DamageNote = () => (
+    <Typography variant="caption" color="text.secondary">
+        Dano rolado no acerto: o app não sabe se o golpe acertou nem se foi crítico. Persistente fica de fora.
+    </Typography>
+)

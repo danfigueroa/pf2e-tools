@@ -1192,6 +1192,7 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
         roll('e', 'Mestre', undefined, { free: { label: '1d20', dice: [{ faces: 20, value: 1 }], flat: 0, total: 1 } }),
         roll('f', ' mestre ', undefined, { check: check(1, 0) }),
     ]
+    const at = (iso) => Date.parse(iso)
     const people = diary.personStats(rolls)
     const thalos = people.find((p) => p.key === 'thalos')
     eq(people.length, 3, 'diário: Thalos, Ghan Buri e o Mestre (o nome livre ignora caixa e espaços)')
@@ -1204,13 +1205,51 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
     eq(thalos.biggestHit.total, 30, 'diário: o maior dano do Thalos é o golpe, não um raio')
     eq(diary.d20Average(thalos), 13.2, 'diário: média do d20 do Thalos (20+1+20+5+20)/5')
     eq(people.find((p) => p.name === 'Mestre').checks, 1, 'diário: a rolagem livre não é teste de d20')
-    const best = diary.highlights(people)
-    eq(best.mostNat20?.name, 'Thalos Alba', 'diário: mais 20 naturais')
-    eq(best.mostNat1, null, 'diário: empate em 1 naturais (Thalos 1 × Mestre 1) não elege ninguém')
-    eq(best.biggestHit?.total, 45, 'diário: maior dano é o do Ghan Buri')
-    eq(best.bestCheck?.total, 35, 'diário: maior teste é o raio de 20+15')
+    const awardsMod = await import('../src/modules/session-diary/awards.ts')
+    const award = (list, id) => list.find((a) => a.id === id)
+    const sessionAwards = awardsMod.computeAwards(people, 'session')
+    eq(award(sessionAwards, 'blessed').winner?.person.name, 'Thalos Alba', 'histórico: mais 20 naturais')
+    eq(award(sessionAwards, 'cursed').winner, null, 'histórico: empate em 1 naturais (Thalos 1 × Mestre 1) não elege ninguém')
+    eq(award(sessionAwards, 'cursed').tie?.names.join(), 'Thalos Alba,Mestre', 'histórico: o empate diz quem empatou')
+    eq(award(sessionAwards, 'smash').winner?.value, 45, 'histórico: maior dano é o do Ghan Buri')
+    eq(award(sessionAwards, 'smash').runnerUp?.value, 30, 'histórico: o vice do maior dano é o golpe do Thalos')
+    eq(award(sessionAwards, 'legend').winner?.value, 35, 'histórico: maior teste é o raio de 20+15')
+    eq(award(sessionAwards, 'stumble').winner?.value, 1, 'histórico: tropeço épico é o 1+0 do Mestre')
+    eq(award(sessionAwards, 'hot').winner, null, 'histórico: média com 5 testes não concorre na sessão (mínimo 8)')
+    eq(award(sessionAwards, 'karma').winner?.label, '+2', 'histórico: karma do Thalos = 3 − 1')
+    ok(!award(sessionAwards, 'glory'), 'histórico: "noite de glória" é só da mesa inteira')
+    eq(thalos.worst.total, 13, 'histórico: o menor teste do Thalos é o 1+12')
+    eq(thalos.hist[19], 3, 'histórico: três 20 no histograma do Thalos')
+    eq(thalos.hist[0], 1, 'histórico: um 1 no histograma do Thalos')
+
+    // Várias noites: o resumo por dia soma igual e a noite vira troféu.
+    const night = (day, d20s) => d20s.map((d, i) => ({ ...roll(`${day}-${i}`, 'Ghan Buri', 'ghan-buri', { check: check(d, 5) }), at: at(`${day}T21:00:00-03:00`) + i }))
+    const many = [...night('2026-10-10', [20, 18, 19, 17, 20, 16, 15, 20, 19, 18]), ...night('2026-10-17', [1, 2, 3, 1, 4, 2, 5, 1, 3, 2])]
+    const rows = diary.summarize(many)
+    eq(rows.length, 2, 'histórico: um resumo por (dia, pessoa)')
+    const ghan = diary.mergePeople(rows)[0]
+    eq(ghan.checks, 20, 'histórico: os dias somam')
+    eq(ghan.nights.length, 2, 'histórico: duas noites do Ghan')
+    const tableAwards = awardsMod.computeAwards(diary.mergePeople(rows), 'table')
+    eq(award(tableAwards, 'glory').winner?.day, '2026-10-10', 'histórico: noite de glória é a do dia 10')
+    eq(award(tableAwards, 'glory').winner?.value, 18.2, 'histórico: média da noite de glória')
+    eq(diary.tableTotals(rows).sessions, 2, 'histórico: totais da mesa contam sessões')
+    eq(diary.sessionSeries(rows).map((d) => d.day).join(), '2026-10-10,2026-10-17', 'histórico: linha do tempo em ordem')
+
+    // O fallback do servidor (JS) resume igual ao cliente (TS): é a mesma conta do SQL.
+    const mixed = [...rolls.map((r, i) => ({ ...r, at: at('2026-10-17T21:00:00-03:00') + i })), ...many]
+    eq(JSON.stringify(server.summarizeRolls(mixed)), JSON.stringify(diary.summarize(mixed)),
+        'histórico: summarizeRolls (servidor) = summarize (cliente)')
+
+    // O d20 é honesto?
+    const fair = await import('../src/modules/session-diary/fairness.ts')
+    eq(fair.fairness(new Array(20).fill(4)).verdict, 'few', 'honestidade: 80 testes ainda é pouco')
+    eq(fair.fairness(new Array(20).fill(10)).verdict, 'fair', 'honestidade: distribuição plana é honesta')
+    eq(fair.fairness(new Array(20).fill(10)).chi2, 0, 'honestidade: qui-quadrado zero na plana')
+    const loaded = new Array(20).fill(8); loaded[19] = 48
+    eq(fair.fairness(loaded).verdict, 'loaded', 'honestidade: 20 saindo seis vezes mais é viciado')
+    eq(fair.fairness(loaded).hot, 20, 'honestidade: a face quente é o 20')
     // O dia de jogo vai das 6h às 6h em Brasília — igual no cliente e no servidor (fallback em memória).
-    const at = (iso) => Date.parse(iso)
     eq(diaryDayOf(at('2026-10-18T02:30:00-03:00')), '2026-10-17', 'diário: 2h30 da madrugada ainda é a sessão da noite anterior')
     eq(diaryDayOf(at('2026-10-18T06:30:00-03:00')), '2026-10-18', 'diário: 6h30 já é outro dia')
     ok(server.DAY_RE.test('2026-10-17') && !server.DAY_RE.test('17/10/2026'), 'diário: o servidor só aceita YYYY-MM-DD')

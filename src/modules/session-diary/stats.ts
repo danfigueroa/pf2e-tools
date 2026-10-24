@@ -1,17 +1,33 @@
-// As contas do diário da sessão, a partir das rolagens do dia (`TableRoll`).
+// As contas do histórico de rolagens, a partir das rolagens (`TableRoll`).
 //
 // O app NÃO sabe a CA do alvo nem se o golpe acertou: o cartão mostra acerto e
 // crítico juntos (decisão do usuário). Por isso "dano" aqui é o dano ROLADO no
 // acerto — o que o jogador teria causado se acertasse —, nunca "dano causado".
 // Persistente fica de fora (já fica de fora do `damage.total`).
+//
+// Duas camadas: `summarize` resume as rolagens por (dia de jogo, pessoa) —
+// `DaySummary`, o mesmo formato que o banco devolve para o histórico inteiro
+// (`diary_summary`, e `summarizeRolls` no fallback de `roll-store.js`) — e
+// `mergePeople` soma os dias numa linha por pessoa. A sessão aberta e a mesa
+// inteira passam pelas MESMAS contas; só muda de onde vêm os resumos.
 
 import { rayTotal, type TableRoll } from '../../dice/tableRoll'
+import { diaryDayOf } from '../../services/diary'
 
-export interface PersonStats {
-    /** O slug quando a rolagem veio de uma ficha; senão o nome livre do rolador do mapa. */
+/** Uma rolagem marcante: o total, o título ("Golpe — Warhammer") e quando foi. */
+export interface Mark {
+    total: number
+    title: string
+    at: number
+}
+
+/** O que uma pessoa rolou num dia de jogo. */
+export interface DaySummary {
+    /** `YYYY-MM-DD`, o dia de jogo (6h às 6h em Brasília). */
+    day: string
+    /** O slug quando a rolagem veio de uma ficha; senão `nome:` + o nome livre do rolador do mapa. */
     key: string
     name: string
-    slug: string | null
     color: string
     rolls: number
     /** Testes de d20 (cada raio de um Blazing Bolt conta como um). */
@@ -20,18 +36,44 @@ export interface PersonStats {
     nat20: number
     nat1: number
     mythic: number
-    /** O maior total de um teste, e qual foi. */
-    best: { total: number; title: string } | null
-    /** Dano rolado no acerto, somado, e a maior rolagem de dano. */
+    /** Dano rolado no acerto, somado. */
     damage: number
-    biggestHit: { total: number; title: string } | null
+    /** Quantas vezes cada face do d20 saiu (`hist[0]` é o 1). */
+    hist: number[]
+    best: Mark | null
+    worst: Mark | null
+    biggestHit: Mark | null
 }
 
-export interface DiaryHighlights {
-    mostNat20: PersonStats | null
-    mostNat1: PersonStats | null
-    biggestHit: { person: PersonStats; total: number; title: string } | null
-    bestCheck: { person: PersonStats; total: number; title: string } | null
+/** Uma noite de alguém, para os troféus de sessão ("a noite mais azarada"). */
+export interface Night {
+    day: string
+    rolls: number
+    checks: number
+    d20Sum: number
+    nat20: number
+    nat1: number
+}
+
+export interface PersonStats {
+    key: string
+    name: string
+    slug: string | null
+    color: string
+    rolls: number
+    checks: number
+    d20Sum: number
+    nat20: number
+    nat1: number
+    mythic: number
+    damage: number
+    hist: number[]
+    /** O maior e o menor total de um teste, e o maior dano numa rolagem. */
+    best: Mark | null
+    worst: Mark | null
+    biggestHit: Mark | null
+    /** As noites em que rolou, da mais antiga para a mais nova. */
+    nights: Night[]
 }
 
 /** Os testes de d20 de uma rolagem: o do topo, ou um por raio. */
@@ -46,56 +88,155 @@ export function damageOf(roll: TableRoll): number {
     return roll.damage?.total ?? 0
 }
 
-const keyOf = (roll: TableRoll) => roll.slug || `nome:${(roll.by || 'Alguém').trim().toLowerCase()}`
+export const keyOf = (roll: TableRoll) => roll.slug || `nome:${(roll.by || 'Alguém').trim().toLowerCase()}`
 
-export function personStats(rolls: TableRoll[]): PersonStats[] {
-    const people = new Map<string, PersonStats>()
+const slugOf = (key: string) => (key.startsWith('nome:') ? null : key)
+
+const emptyHist = () => new Array<number>(20).fill(0)
+
+/** As rolagens (em ordem) resumidas por (dia, pessoa), ordenadas por dia e chave — como o banco. */
+export function summarize(rolls: TableRoll[]): DaySummary[] {
+    const rows = new Map<string, DaySummary>()
     for (const roll of rolls) {
+        const day = diaryDayOf(roll.at)
         const key = keyOf(roll)
-        let p = people.get(key)
-        if (!p) {
-            p = {
-                key, name: roll.by || 'Alguém', slug: roll.slug ?? null, color: roll.color,
-                rolls: 0, checks: 0, d20Sum: 0, nat20: 0, nat1: 0, mythic: 0, best: null, damage: 0, biggestHit: null,
+        const id = `${day}|${key}`
+        let s = rows.get(id)
+        if (!s) {
+            s = {
+                day, key, name: roll.by || 'Alguém', color: roll.color,
+                rolls: 0, damage: 0, checks: 0, d20Sum: 0, nat20: 0, nat1: 0, mythic: 0,
+                hist: emptyHist(), best: null, worst: null, biggestHit: null,
             }
-            people.set(key, p)
+            rows.set(id, s)
         }
-        p.rolls++
-        for (const c of checksOf(roll)) {
-            p.checks++
-            p.d20Sum += c.d20
-            if (c.d20 === 20) p.nat20++
-            if (c.d20 === 1) p.nat1++
-            if (!p.best || c.total > p.best.total) p.best = { total: c.total, title: roll.title }
+        s.rolls++
+        const checks = checksOf(roll)
+        for (const c of checks) {
+            s.checks++
+            s.d20Sum += c.d20
+            s.hist[c.d20 - 1]++
+            if (c.d20 === 20) s.nat20++
+            if (c.d20 === 1) s.nat1++
+            if (!s.best || c.total > s.best.total) s.best = { total: c.total, title: roll.title, at: roll.at }
+            if (!s.worst || c.total < s.worst.total) s.worst = { total: c.total, title: roll.title, at: roll.at }
         }
         // O ✦ é um gasto por rolagem, mesmo com vários raios.
-        if (checksOf(roll).some((c) => c.mythic)) p.mythic++
+        if (checks.some((c) => c.mythic)) s.mythic++
         const dmg = damageOf(roll)
         if (dmg > 0) {
-            p.damage += dmg
-            if (!p.biggestHit || dmg > p.biggestHit.total) p.biggestHit = { total: dmg, title: roll.title }
+            s.damage += dmg
+            if (!s.biggestHit || dmg > s.biggestHit.total) s.biggestHit = { total: dmg, title: roll.title, at: roll.at }
         }
     }
-    // Quem mais rolou primeiro.
+    return [...rows.values()].sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : a.key < b.key ? -1 : a.key > b.key ? 1 : 0))
+}
+
+const higher = (a: Mark | null, b: Mark | null) => (b && (!a || b.total > a.total) ? b : a)
+const lower = (a: Mark | null, b: Mark | null) => (b && (!a || b.total < a.total) ? b : a)
+
+/**
+ * Os dias somados numa linha por pessoa, quem mais rolou primeiro. Nome e cor
+ * são os da noite mais recente; em empate, a rolagem marcante é a mais antiga.
+ */
+export function mergePeople(rows: DaySummary[]): PersonStats[] {
+    const people = new Map<string, PersonStats>()
+    const ordered = [...rows].sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : 0))
+    for (const s of ordered) {
+        let p = people.get(s.key)
+        if (!p) {
+            p = {
+                key: s.key, name: s.name, slug: slugOf(s.key), color: s.color,
+                rolls: 0, checks: 0, d20Sum: 0, nat20: 0, nat1: 0, mythic: 0, damage: 0,
+                hist: emptyHist(), best: null, worst: null, biggestHit: null, nights: [],
+            }
+            people.set(s.key, p)
+        }
+        p.name = s.name
+        p.color = s.color
+        p.rolls += s.rolls
+        p.checks += s.checks
+        p.d20Sum += s.d20Sum
+        p.nat20 += s.nat20
+        p.nat1 += s.nat1
+        p.mythic += s.mythic
+        p.damage += s.damage
+        s.hist.forEach((n, i) => { p.hist[i] += n })
+        p.best = higher(p.best, s.best)
+        p.worst = lower(p.worst, s.worst)
+        p.biggestHit = higher(p.biggestHit, s.biggestHit)
+        p.nights.push({ day: s.day, rolls: s.rolls, checks: s.checks, d20Sum: s.d20Sum, nat20: s.nat20, nat1: s.nat1 })
+    }
     return [...people.values()].sort((a, b) => b.rolls - a.rolls || a.name.localeCompare(b.name))
 }
 
-/** Destaques do dia. Empate não elege ninguém: "o mais azarado" com 1 a 1 não é destaque. */
-export function highlights(people: PersonStats[]): DiaryHighlights {
-    const top = (pick: (p: PersonStats) => number): PersonStats | null => {
-        const sorted = people.filter((p) => pick(p) > 0).sort((a, b) => pick(b) - pick(a))
-        if (sorted.length === 0) return null
-        if (sorted.length > 1 && pick(sorted[0]) === pick(sorted[1])) return null
-        return sorted[0]
-    }
-    let biggestHit: DiaryHighlights['biggestHit'] = null
-    let bestCheck: DiaryHighlights['bestCheck'] = null
-    for (const p of people) {
-        if (p.biggestHit && (!biggestHit || p.biggestHit.total > biggestHit.total)) biggestHit = { person: p, ...p.biggestHit }
-        if (p.best && (!bestCheck || p.best.total > bestCheck.total)) bestCheck = { person: p, ...p.best }
-    }
-    return { mostNat20: top((p) => p.nat20), mostNat1: top((p) => p.nat1), biggestHit, bestCheck }
-}
+/** O resumo de cada pessoa num conjunto de rolagens (a sessão aberta). */
+export const personStats = (rolls: TableRoll[]): PersonStats[] => mergePeople(summarize(rolls))
 
 /** Média do d20, com uma casa: o número que a mesa usa para dizer que o dado está viciado. */
-export const d20Average = (p: PersonStats) => (p.checks > 0 ? Math.round((p.d20Sum / p.checks) * 10) / 10 : null)
+export const d20Average = (p: { checks: number; d20Sum: number }) =>
+    (p.checks > 0 ? Math.round((p.d20Sum / p.checks) * 10) / 10 : null)
+
+export interface TableTotals {
+    sessions: number
+    people: number
+    rolls: number
+    checks: number
+    d20Sum: number
+    nat20: number
+    nat1: number
+    mythic: number
+    damage: number
+    hist: number[]
+}
+
+/** Os números da mesa inteira no conjunto de resumos. */
+export function tableTotals(rows: DaySummary[]): TableTotals {
+    const t: TableTotals = { sessions: 0, people: 0, rolls: 0, checks: 0, d20Sum: 0, nat20: 0, nat1: 0, mythic: 0, damage: 0, hist: emptyHist() }
+    const days = new Set<string>()
+    const keys = new Set<string>()
+    for (const s of rows) {
+        days.add(s.day)
+        keys.add(s.key)
+        t.rolls += s.rolls
+        t.checks += s.checks
+        t.d20Sum += s.d20Sum
+        t.nat20 += s.nat20
+        t.nat1 += s.nat1
+        t.mythic += s.mythic
+        t.damage += s.damage
+        s.hist.forEach((n, i) => { t.hist[i] += n })
+    }
+    t.sessions = days.size
+    t.people = keys.size
+    return t
+}
+
+export interface SessionPoint {
+    day: string
+    rolls: number
+    checks: number
+    d20Sum: number
+    nat20: number
+    nat1: number
+    people: number
+}
+
+/** Uma linha por sessão, da mais antiga para a mais nova (a linha do tempo). */
+export function sessionSeries(rows: DaySummary[]): SessionPoint[] {
+    const days = new Map<string, SessionPoint>()
+    for (const s of rows) {
+        let d = days.get(s.day)
+        if (!d) {
+            d = { day: s.day, rolls: 0, checks: 0, d20Sum: 0, nat20: 0, nat1: 0, people: 0 }
+            days.set(s.day, d)
+        }
+        d.rolls += s.rolls
+        d.checks += s.checks
+        d.d20Sum += s.d20Sum
+        d.nat20 += s.nat20
+        d.nat1 += s.nat1
+        d.people++
+    }
+    return [...days.values()].sort((a, b) => (a.day < b.day ? -1 : 1))
+}
