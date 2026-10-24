@@ -8,6 +8,7 @@
 //                                          de cada reconexão — o resto chega pelo canal
 //   GET  ?diary=days                    → os dias de jogo com rolagem (diário da sessão)
 //   GET  ?diary=<YYYY-MM-DD>            → as rolagens daquele dia de jogo, em ordem
+//   GET  ?diary=summary                 → o resumo por (dia, pessoa) de todos os dias (histórico da mesa)
 //   POST { action: 'roll-add', roll }   → grava uma rolagem já sorteada
 //   POST { action: 'share-add', share } → compartilha uma regra (talento, magia…)
 //                                          com a mesa; o GET a devolve em `shares`
@@ -16,7 +17,7 @@
 // qualquer POST com `action` e engoliria esta.
 
 import { isSupabaseConfigured } from './supabase.js'
-import { DAY_RE, addRoll, addShare, readDiaryDays, readDiaryRolls, readRolls, sanitizeRoll, sanitizeShare } from './roll-store.js'
+import { DAY_RE, addRoll, addShare, readDiaryDays, readDiaryRolls, readDiarySummary, readRolls, sanitizeRoll, sanitizeShare } from './roll-store.js'
 
 const ok = (body) => ({ status: 200, body: { ...body, storeReady: isSupabaseConfigured() } })
 const fail = (status, error) => ({ status, body: { error } })
@@ -32,6 +33,7 @@ export function isRollRequest(method, query, body) {
 export async function handleRollRequest(mesa, method, query, body, ctx = {}) {
   if (method === 'GET' && query.diary) {
     if (query.diary === 'days') return ok({ days: await readDiaryDays(mesa) })
+    if (query.diary === 'summary') return ok({ summary: await readDiarySummary(mesa) })
     if (!DAY_RE.test(String(query.diary))) return fail(400, 'Dia inválido')
     return ok({ day: query.diary, rolls: await readDiaryRolls(mesa, String(query.diary)) })
   }

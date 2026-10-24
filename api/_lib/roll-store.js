@@ -280,3 +280,66 @@ export async function readDiaryRolls(mesa, day) {
   return check(await db.rpc('diary_rolls', { p_mesa: mesa, p_day: day }))
 }
 
+
+// ── Histórico da mesa ────────────────────────────────────────────────────────
+// O resumo de cada pessoa em cada dia de jogo (`diary_summary` no banco), que o
+// cliente soma para os troféus de todas as sessões. ESPELHO de `summarize` em
+// `src/modules/session-diary/stats.ts` — o `check-rolls` confere os dois com os
+// mesmos casos, e o `check-diary` confere o SQL contra o cliente.
+
+const summaryKey = (roll) => roll.slug || `nome:${(roll.by || 'Alguém').trim().toLowerCase()}`
+const checksOfRoll = (roll) => (roll.rays ? roll.rays.map((r) => r.check) : roll.check ? [roll.check] : [])
+const damageOfRoll = (roll) => (roll.rays ? roll.rays.reduce((n, r) => n + r.damage.total, 0) : roll.damage?.total ?? 0)
+
+/** As rolagens (em ordem) resumidas por (dia, pessoa), ordenadas por dia e chave. */
+export function summarizeRolls(rolls) {
+  const rows = new Map()
+  for (const roll of rolls) {
+    const day = diaryDay(roll.at)
+    const key = summaryKey(roll)
+    const id = `${day}|${key}`
+    let s = rows.get(id)
+    if (!s) {
+      s = {
+        day, key, name: roll.by || 'Alguém', color: roll.color,
+        rolls: 0, damage: 0, checks: 0, d20Sum: 0, nat20: 0, nat1: 0, mythic: 0,
+        hist: new Array(20).fill(0), best: null, worst: null, biggestHit: null,
+      }
+      rows.set(id, s)
+    }
+    s.rolls++
+    const checks = checksOfRoll(roll)
+    for (const c of checks) {
+      s.checks++
+      s.d20Sum += c.d20
+      s.hist[c.d20 - 1]++
+      if (c.d20 === 20) s.nat20++
+      if (c.d20 === 1) s.nat1++
+      if (!s.best || c.total > s.best.total) s.best = { total: c.total, title: roll.title, at: roll.at }
+      if (!s.worst || c.total < s.worst.total) s.worst = { total: c.total, title: roll.title, at: roll.at }
+    }
+    if (checks.some((c) => c.mythic)) s.mythic++
+    const dmg = damageOfRoll(roll)
+    if (dmg > 0) {
+      s.damage += dmg
+      if (!s.biggestHit || dmg > s.biggestHit.total) s.biggestHit = { total: dmg, title: roll.title, at: roll.at }
+    }
+  }
+  return [...rows.values()].sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : a.key < b.key ? -1 : a.key > b.key ? 1 : 0))
+}
+
+const summaryMark = (m) => (m && typeof m === 'object' ? { total: Number(m.total), title: String(m.title ?? ''), at: Number(m.at) } : null)
+
+/** O resumo de todos os dias de jogo da mesa (o mais antigo primeiro). */
+export async function readDiarySummary(mesa) {
+  const db = supabase()
+  if (!db) return summarizeRolls([...memoryFeed(mesa).rolls].sort((a, b) => a.at - b.at))
+  return check(await db.rpc('diary_summary', { p_mesa: mesa })).map((s) => ({
+    day: s.day, key: s.key, name: s.name, color: s.color,
+    rolls: Number(s.rolls), damage: Number(s.damage), checks: Number(s.checks), d20Sum: Number(s.d20Sum),
+    nat20: Number(s.nat20), nat1: Number(s.nat1), mythic: Number(s.mythic),
+    // O banco manda `{ "20": 3 }`; aqui vira a contagem das 20 faces.
+    hist: Array.from({ length: 20 }, (_, i) => Number(s.hist?.[String(i + 1)] ?? 0)),
+    best: summaryMark(s.best), worst: summaryMark(s.worst), biggestHit: summaryMark(s.biggestHit),
+  }))
+}
