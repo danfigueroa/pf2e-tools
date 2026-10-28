@@ -59,6 +59,8 @@ async function makeUser(name, { anonymous = false } = {}) {
 const sheetJson = (name) => ({ build: { name, class: 'Teste', level: 1 } })
 
 async function cleanup() {
+    // Rolagens de teste entram no Histórico de Rolagens da mesa: saem todas.
+    await db.from('rolls').delete().eq('mesa', MESA).like('id', `teste-auth-${stamp}%`)
     for (const id of createdMaps) await db.from('maps').delete().eq('mesa', MESA).eq('id', id)
     for (const slug of slugs) {
         await db.from('character_state').delete().eq('mesa', MESA).eq('slug', slug)
@@ -180,7 +182,7 @@ try {
     expect('jogador não cria mapa', (await call({ token: users.a.token, method: 'POST', body: { action: 'map-create', name: 'x' } })).status, 403)
     if (mapId) {
         const write = (token, field) => call({ token, method: 'POST', body: { action: 'map-write', id: mapId, fields: { [field]: { x: 1, y: 1 } } } })
-        expect('jogador move token (pos:) → 200', (await write(users.a.token, 'pos:abc')).status, 200)
+        expect('jogador move token que não é dele (pos:) → 403', (await write(users.a.token, 'pos:abc')).status, 403)
         expect('jogador grava meta → 403', (await write(users.a.token, 'meta')).status, 403)
         expect('jogador grava PV de monstro → 403', (await write(users.a.token, 'hp:abc')).status, 403)
         expect('mapa privado: jogador → 403', (await call({ token: users.a.token, query: { map: mapId } })).status, 403)
@@ -190,9 +192,50 @@ try {
         expect('jogador não apaga', (await call({ token: users.a.token, method: 'POST', body: { action: 'map-delete', id: mapId } })).status, 403)
     }
 
+    console.log('Rolagem por personagem')
+    let rollN = 0
+    const roll = (token, slug) => call({
+        token, method: 'POST',
+        body: { action: 'roll-add', roll: {
+            id: `teste-auth-${stamp}-${(rollN += 1)}`, color: '#336699', by: 'Teste', title: 'Teste',
+            ...(slug ? { slug } : {}), check: { d20: 10, mod: 5, total: 15, parts: [] },
+        } },
+    })
+    expect('dono rola pela própria ficha → 200', (await roll(users.a.token, slugs[0])).status, 200)
+    expect('B rola pela ficha de A → 403', (await roll(users.b.token, slugs[0])).status, 403)
+    expect('GM rola por qualquer ficha → 200', (await roll(users.gm.token, slugs[0])).status, 200)
+    expect('rolagem livre (sem personagem) → 200', (await roll(users.b.token, null)).status, 200)
+
+    console.log('Tokens: cada um move o seu')
+    const board = await call({ token: users.gm.token, method: 'POST', body: { action: 'map-create', name: 'Teste tokens' } })
+    const boardId = board.body.map?.id
+    if (boardId) {
+        createdMaps.push(boardId)
+        const sync = await call({ token: users.gm.token, method: 'POST', body: { action: 'map-sync', id: boardId, turn: null, hp: {}, tokens: [
+            { id: 'tok-a', kind: 'pc', name: 'A', slug: slugs[0], size: 1 },
+            { id: 'tok-u', kind: 'pc', name: 'U', slug: slugs[1], size: 1 },
+            { id: 'tok-arm', kind: 'npc', name: 'Armadura', companionOf: slugs[0], size: 1 },
+            { id: 'tok-mon', kind: 'npc', name: 'Goblin', size: 1 },
+        ] } })
+        expect('GM põe os tokens no mapa → 200', sync.status, 200)
+        const move = (token, tid) => call({ token, method: 'POST', body: { action: 'map-write', id: boardId, fields: { [`pos:${tid}`]: { x: 5, y: 5 } } } })
+        expect('A move o próprio token → 200', (await move(users.a.token, 'tok-a')).status, 200)
+        expect('A move o companheiro dele → 200', (await move(users.a.token, 'tok-arm')).status, 200)
+        expect('B move o token de A → 403', (await move(users.b.token, 'tok-a')).status, 403)
+        expect('B move o companheiro de A → 403', (await move(users.b.token, 'tok-arm')).status, 403)
+        expect('jogador move monstro → 403', (await move(users.a.token, 'tok-mon')).status, 403)
+        expect('GM move qualquer token → 200', (await move(users.gm.token, 'tok-mon')).status, 200)
+    }
+
     console.log('Iniciativa e papéis')
     expect('jogador não grava encontro', (await call({ token: users.a.token, method: 'POST', body: { action: 'encounter-save', map: null, state: {} } })).status, 403)
-    expect('último GM não se rebaixa → 409', (await call({ token: users.gm.token, method: 'POST', body: { action: 'member-set-role', user: users.gm.id, role: 'player' } })).status, 409)
+    // A mesa de teste é real e pode ter outros GMs (o dono do projeto): aí a trava não se aplica.
+    const { count: gms } = await db.from('mesa_members').select('user_id', { count: 'exact', head: true }).eq('mesa', MESA).eq('role', 'gm')
+    if (gms === 1) {
+        expect('último GM não se rebaixa → 409', (await call({ token: users.gm.token, method: 'POST', body: { action: 'member-set-role', user: users.gm.id, role: 'player' } })).status, 409)
+    } else {
+        console.log(`  --   último GM não se rebaixa: pulado (a mesa tem ${gms} GMs de verdade)`)
+    }
     expect('GM promove A → 200', (await call({ token: users.gm.token, method: 'POST', body: { action: 'member-set-role', user: users.a.id, role: 'gm' } })).status, 200)
     expect('agora o GM pode se rebaixar → 200', (await call({ token: users.gm.token, method: 'POST', body: { action: 'member-set-role', user: users.gm.id, role: 'player' } })).status, 200)
     expect('ex-GM perde o poder (cache invalidado) → 403', (await call({ token: users.gm.token, method: 'POST', body: { action: 'invite-create' } })).status, 403)
