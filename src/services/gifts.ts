@@ -44,6 +44,8 @@ function setIncoming(next: Incoming, first: boolean) {
 }
 
 export const getIncoming = (): Incoming => incoming
+/** O personagem acompanhado agora (o da ficha aberta), a quem os avisos de `onArrival` se referem. */
+export const trackedSlug = (): string | null => me
 export const isIncomingLoaded = (): boolean => loaded
 
 export function subscribeIncoming(listener: () => void): () => void {
