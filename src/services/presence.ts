@@ -11,6 +11,7 @@ import { useSyncExternalStore } from 'react'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { currentMesa } from './mesa'
 import { getSupabase, currentUserId } from './supabase'
+import { getAuthState, roleOf } from './auth'
 
 export interface Peer {
     /** A sessão anônima do aparelho. */
@@ -158,7 +159,7 @@ export const getDeviceName = () => deviceName
 
 /** Como a lista mostra este aparelho: o nome dele, senão o personagem da ficha aberta. */
 export function selfLabel(): string {
-    return deviceName || openSheets[openSheets.length - 1]?.character || ''
+    return deviceName || roleOf(getAuthState()).displayName || openSheets[openSheets.length - 1]?.character || ''
 }
 
 export function setDeviceName(name: string) {

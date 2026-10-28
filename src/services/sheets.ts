@@ -24,6 +24,8 @@ export interface PublishedSheet {
     level: number
     publishedAt: number
     guide: PublishedGuide | null
+    /** Quem é dono da ficha (só ele e o GM alteram); `null` = sem dono, só o GM. */
+    ownerId: string | null
     previous: { publishedAt: number; level: number | null } | null
 }
 
@@ -34,6 +36,7 @@ export interface PublishedSummary {
     level: number
     publishedAt: number
     hasGuide: boolean
+    ownerId: string | null
 }
 
 async function call<T>(init: RequestInit | null, query = ''): Promise<T> {
