@@ -208,9 +208,10 @@ export const RollFeedLayer = memo(function RollFeedLayer() {
         <Box
             sx={{
                 position: 'fixed',
-                // Abaixo da AppBar do celular; no desktop, centrado no conteúdo (fora da sidebar).
-                top: { xs: 64, md: 16 },
-                left: { xs: '50%', md: 'calc(50% + 130px)' },
+                // Abaixo do cabeçalho do celular; no desktop, centrado no conteúdo (fora da sidebar,
+                // aberta ou recolhida: `--sidebar-w` vem do MainLayout).
+                top: { xs: 72, md: 16 },
+                left: { xs: '50%', md: 'calc(50% + var(--sidebar-w, 0px) / 2)' },
                 transform: 'translateX(-50%)',
                 zIndex: 1250,
                 display: 'flex',

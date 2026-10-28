@@ -54,10 +54,10 @@ export default function SharedRuleCard({ share, onClose }: { share: TableShare; 
             sx={{
                 position: 'fixed',
                 zIndex: 1240,
-                // Celular: preso embaixo, sem cobrir o cartão de rolagem do topo.
+                // Celular: preso embaixo (acima da barra de abas), sem cobrir o cartão de rolagem do topo.
                 left: { xs: 8, md: 'auto' },
                 right: { xs: 8, md: 16 },
-                bottom: { xs: 8, md: 'auto' },
+                bottom: { xs: 'calc(var(--tabbar-h, 0px) + 8px)', md: 'auto' },
                 top: { xs: 'auto', md: 16 },
                 width: { md: 'min(460px, calc(100vw - 32px))' },
                 maxHeight: { xs: '70vh', md: 'calc(100vh - 32px)' },

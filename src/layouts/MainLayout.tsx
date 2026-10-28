@@ -1,392 +1,155 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
-import {
-  AppBar,
-  Box,
-  Drawer,
-  IconButton,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Toolbar,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
-import {
-  Menu as MenuIcon,
-  Home as HomeIcon,
-  PhoneIphone as ViewerIcon,
-  FormatListNumbered as InitiativeIcon,
-  Transform as TransformIcon,
-  Whatshot as ScalerIcon,
-  Map as MapIcon,
-  Casino as DiceIcon,
-  History as HistoryIcon,
-  Groups as MembersIcon,
-  Logout as LogoutIcon,
-  Key as KeyIcon,
-} from '@mui/icons-material';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { Box, Drawer, useMediaQuery, useTheme } from '@mui/material';
+import { Outlet, useLocation } from 'react-router-dom';
 import type { LayoutContext } from './menuContext';
-import { green, gold, parchment } from '../theme';
-import { signOut, useRole } from '../services/auth';
-import logoHorizontal from '../assets/covil-logo-horizontal-fundo-escuro.svg';
-import logoSymbol from '../assets/covil-simbolo.svg';
+import { gold, green } from '../theme';
 import { RollFeedLayer, RollHistoryDrawer } from '../components/RollFeed';
 import { SharedRuleLayer } from '../components/SharedRuleLayer';
-import { MesaSwitcher } from '../components/MesaSwitcher';
-import { setPresencePage, startPresence, usePresence } from '../services/presence';
+import { setPresencePage, startPresence } from '../services/presence';
+import { startNotifications } from '../services/notifications';
+import { Sidebar } from './sidebar/Sidebar';
+import { MobileHeader, MobileTabBar } from './MobileChrome';
+import { MOBILE_HEADER_HEIGHT, SIDEBAR_RAIL, SIDEBAR_WIDTH, TAB_BAR_HEIGHT } from './navigation';
 
-// A lista mostra o token de cada ficha aberta, e o `TokenBadge` traz o estado da mesa junto: fora do chunk
-// principal, baixada só quando há alguém para mostrar.
-const PresenceList = lazy(() => import('../components/PresenceList').then((m) => ({ default: m.PresenceList })));
 // Só baixado quando alguém abre "Trocar senha".
 const ChangePasswordDialog = lazy(() =>
   import('../modules/account/ChangePasswordDialog').then((m) => ({ default: m.ChangePasswordDialog })));
+// Só baixada no primeiro ⌘K (ou toque na busca).
+const CommandPalette = lazy(() => import('../components/CommandPalette'));
 
-const PresenceSlot = () => {
-  const someone = usePresence().length > 0;
-  return someone ? <Suspense fallback={null}><PresenceList /></Suspense> : null;
+/** Recolher a sidebar é preferência do aparelho (vale em todas as mesas). */
+const COLLAPSED_KEY = 'pf2e:sidebar-collapsed';
+const readCollapsed = () => {
+  try { return localStorage.getItem(COLLAPSED_KEY) === '1'; } catch { return false; }
 };
 
-const drawerWidth = 260;
-
-/** `/mapa/abc123` ainda é o item "Mapa de Combate". */
-const isCurrent = (pathname: string, path: string) =>
-  path === '/' ? pathname === '/' : pathname === path || pathname.startsWith(`${path}/`);
-
-/** Tinta clara sobre a moldura verde (pergaminho esmaecido). */
-const CHROME_TEXT = 'rgba(237, 227, 204, 0.78)';
-
-interface NavigationItem {
-  text: string;
-  icon: React.ReactElement;
-  path: string;
-  /** Só o GM da mesa vê (o servidor também confere). */
-  gmOnly?: boolean;
-}
-
-const navigationItems: NavigationItem[] = [
-  {
-    text: 'Início',
-    icon: <HomeIcon />,
-    path: '/',
-  },
-  {
-    text: 'Ficha Virtual',
-    icon: <ViewerIcon />,
-    path: '/ficha-virtual',
-  },
-  {
-    text: 'Iniciativa',
-    icon: <InitiativeIcon />,
-    path: '/iniciativa',
-  },
-  {
-    text: 'Mapa de Combate',
-    icon: <MapIcon />,
-    path: '/mapa',
-  },
-  {
-    text: 'Histórico de Rolagens',
-    icon: <HistoryIcon />,
-    path: '/historico',
-  },
-  {
-    text: 'Stat Block de Transformação',
-    icon: <TransformIcon />,
-    path: '/transformation',
-  },
-  {
-    text: 'Escalar Monstro',
-    icon: <ScalerIcon />,
-    path: '/escalar-monstro',
-  },
-  {
-    text: 'Membros',
-    icon: <MembersIcon />,
-    path: '/membros',
-    gmOnly: true,
-  },
-];
-
 export const MainLayout = () => {
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const theme = useTheme();
-  const account = useRole();
   const [passwordOpen, setPasswordOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(readCollapsed);
+  const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
-  // O mapa é a página: sem moldura, sem AppBar e sem sidebar fixa. O menu vira
-  // uma aba discreta na borda que abre a mesma gaveta temporária do celular.
+  // O mapa é a página: sem moldura, sem cabeçalho, sem barra de abas e sem sidebar fixa. O
+  // botão "Menu" da barra do mapa abre a mesma gaveta temporária do celular.
   const isMap = location.pathname === '/mapa' || location.pathname.startsWith('/mapa/');
+  const temporary = isMobile || isMap;
+  const sidebarWidth = isMap ? 0 : collapsed ? SIDEBAR_RAIL : SIDEBAR_WIDTH;
 
   // Quem está na mesa (sidebar): este aparelho anuncia a página em que está.
-  useEffect(() => { startPresence(); }, []);
+  useEffect(() => { startPresence(); startNotifications(); }, []);
   useEffect(() => { setPresencePage(location.pathname); }, [location.pathname]);
 
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
+  // ⌘K / Ctrl+K em qualquer página; o campo do topo da Início e a lupa do celular mandam o evento.
+  useEffect(() => {
+    const open = () => setSearchOpen(true);
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearchOpen((v) => !v);
+      }
+    };
+    window.addEventListener('pf2e:open-search', open);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('pf2e:open-search', open);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, []);
+
+  const toggleCollapsed = useCallback(() => {
+    setCollapsed((v) => {
+      try { localStorage.setItem(COLLAPSED_KEY, v ? '0' : '1'); } catch { /* sem storage: vale nesta carga */ }
+      return !v;
+    });
+  }, []);
 
   /** Escolher um destino fecha a gaveta temporária (celular e mapa); a fixa do desktop fica. */
-  const closeTemporary = () => {
-    if (isMobile || isMap) setMobileOpen(false);
+  const closeTemporary = () => { if (temporary) setDrawerOpen(false); };
+
+  const layoutContext: LayoutContext = { openMenu: () => setDrawerOpen(true) };
+
+  const sidebarProps = {
+    onNavigate: closeTemporary,
+    onOpenHistory: () => { setHistoryOpen(true); closeTemporary(); },
+    onOpenPassword: () => { setPasswordOpen(true); closeTemporary(); },
   };
 
-  const layoutContext: LayoutContext = { openMenu: () => setMobileOpen(true) };
-
-  const drawer = (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Marca */}
-      <Box sx={{ px: 2.5, pt: 2.5, pb: 2 }}>
-        <Box
-          component="img"
-          src={logoHorizontal}
-          alt="Covil de Dados"
-          sx={{ display: 'block', height: 44, width: 'auto', maxWidth: '100%' }}
-        />
-        <Box
-          sx={{
-            mt: 1,
-            height: 2,
-            backgroundColor: gold.main,
-            opacity: 0.7,
-          }}
-        />
-        <MesaSwitcher />
-      </Box>
-
-      <PresenceSlot />
-
-      {/* Navegação */}
-      <Box sx={{ overflow: 'auto', flex: 1, py: 1 }}>
-        <List disablePadding>
-          {navigationItems.filter((item) => !item.gmOnly || account.isGm).map((item) => {
-            const isActive = isCurrent(location.pathname, item.path);
-            return (
-              <ListItem key={item.text} disablePadding sx={{ px: 1.5, py: 0.25 }}>
-                {/* Link de verdade (<a href>): botão direito, "abrir em nova aba" e Ctrl/⌘+clique funcionam. */}
-                <ListItemButton
-                  component={Link}
-                  to={item.path}
-                  selected={isActive}
-                  aria-current={isActive ? 'page' : undefined}
-                  onClick={closeTemporary}
-                  sx={{
-                    borderRadius: 1,
-                    borderLeft: '3px solid',
-                    borderLeftColor: isActive ? gold.bright : 'transparent',
-                    '&.Mui-selected': {
-                      backgroundColor: 'rgba(200, 169, 81, 0.14)',
-                      '&:hover': {
-                        backgroundColor: 'rgba(200, 169, 81, 0.2)',
-                      },
-                    },
-                    '&:hover': {
-                      backgroundColor: 'rgba(200, 169, 81, 0.08)',
-                    },
-                  }}
-                >
-                  <ListItemIcon
-                    sx={{
-                      minWidth: 40,
-                      color: isActive ? gold.bright : CHROME_TEXT,
-                    }}
-                  >
-                    {item.icon}
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={item.text}
-                    primaryTypographyProps={{
-                      fontSize: '0.9rem',
-                      fontWeight: isActive ? 600 : 400,
-                      color: isActive ? parchment.page : CHROME_TEXT,
-                    }}
-                  />
-                </ListItemButton>
-              </ListItem>
-            );
-          })}
-        </List>
-      </Box>
-
-      {/* Últimas rolagens: o cartão some em segundos, as 30 últimas ficam aqui. */}
-      <Box sx={{ px: 1.5, pb: 1 }}>
-        <ListItemButton
-          onClick={() => { setHistoryOpen(true); if (isMobile || isMap) setMobileOpen(false); }}
-          sx={{ borderRadius: 1, '&:hover': { backgroundColor: 'rgba(200, 169, 81, 0.08)' } }}
-        >
-          <ListItemIcon sx={{ minWidth: 40, color: CHROME_TEXT }}>
-            <DiceIcon />
-          </ListItemIcon>
-          <ListItemText
-            primary="Últimas rolagens"
-            primaryTypographyProps={{ fontSize: '0.9rem', color: CHROME_TEXT }}
-          />
-        </ListItemButton>
-      </Box>
-
-      {/* Conta: quem está logado e o papel dele nesta mesa. */}
-      {account.userId && (
-        <Box sx={{ px: 2.5, pb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography noWrap sx={{ fontSize: '0.85rem', color: parchment.page }}>
-              {account.displayName ?? account.username ?? 'Sua conta'}
-            </Typography>
-            <Typography variant="caption" sx={{ color: CHROME_TEXT }}>
-              {account.isGm ? 'GM' : 'Jogador'}
-            </Typography>
-          </Box>
-          <IconButton size="small" aria-label="Trocar senha" onClick={() => setPasswordOpen(true)} sx={{ color: CHROME_TEXT }}>
-            <KeyIcon fontSize="small" />
-          </IconButton>
-          <IconButton size="small" aria-label="Sair da conta" onClick={() => void signOut()} sx={{ color: CHROME_TEXT }}>
-            <LogoutIcon fontSize="small" />
-          </IconButton>
-        </Box>
-      )}
-
-      {/* Rodapé */}
-      <Box
-        sx={{
-          p: 2,
-          borderTop: '1px solid',
-          borderColor: 'rgba(200, 169, 81, 0.25)',
-        }}
-      >
-        <Typography variant="caption" sx={{ color: CHROME_TEXT, display: 'block' }}>
-          Pathfinder 2e Remaster
-        </Typography>
-        <Typography
-          variant="caption"
-          sx={{ color: CHROME_TEXT, display: 'block', mt: 0.5, opacity: 0.75, lineHeight: 1.35 }}
-        >
-          Ferramenta de fã, gratuita e não oficial. Pathfinder é marca registrada da Paizo Inc.
-        </Typography>
-      </Box>
-    </Box>
-  );
-
-  const drawerPaperSx = {
+  const paperSx = {
     boxSizing: 'border-box' as const,
-    width: drawerWidth,
     backgroundColor: green.deepest,
     backgroundImage: 'none',
     borderRight: `2px solid ${gold.main}`,
-    color: parchment.page,
+    overflow: 'hidden',
   };
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      {/* AppBar (Mobile) */}
-      <AppBar
-        position="fixed"
-        sx={{
-          width: { md: `calc(100% - ${drawerWidth}px)` },
-          ml: { md: `${drawerWidth}px` },
-          display: isMap ? 'none' : { md: 'none' },
-        }}
+    <Box
+      sx={{
+        display: 'flex',
+        minHeight: '100vh',
+        // Para o que fica `fixed` por cima de tudo se alinhar à moldura: o cartão de rolagem
+        // centra no conteúdo (fora da sidebar), e o cartão de regra fica acima da barra de abas.
+        '--sidebar-w': { xs: '0px', md: `${sidebarWidth}px` },
+        '--tabbar-h': isMap ? '0px' : { xs: `calc(${TAB_BAR_HEIGHT}px + env(safe-area-inset-bottom))`, md: '0px' },
+      }}
+    >
+      {!isMap && isMobile && (
+        <>
+          <MobileHeader onOpenPassword={() => setPasswordOpen(true)} />
+          <MobileTabBar onMore={() => setDrawerOpen(true)} />
+        </>
+      )}
+
+      {/* Gaveta temporária: o "Mais" do celular e o "Menu" do mapa, em qualquer largura. */}
+      <Drawer
+        variant="temporary"
+        open={drawerOpen && temporary}
+        onClose={() => setDrawerOpen(false)}
+        ModalProps={{ keepMounted: true }}
+        sx={{ '& .MuiDrawer-paper': { ...paperSx, width: SIDEBAR_WIDTH, maxWidth: '88vw' } }}
       >
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="abrir menu"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2 }}
-          >
-            <MenuIcon />
-          </IconButton>
+        <Sidebar collapsed={false} {...sidebarProps} />
+      </Drawer>
 
-          <Box
-            component="img"
-            src={logoSymbol}
-            alt="Covil de Dados"
-            sx={{ height: 32, width: 32, mr: 1.25, flexShrink: 0 }}
-          />
-          <Typography
-            variant="h3"
-            noWrap
-            component="div"
-            sx={{
-              fontSize: { xs: '0.95rem', sm: '1.1rem' },
-              letterSpacing: '0.05em',
-              color: gold.bright,
-            }}
-          >
-            {navigationItems.find(item => isCurrent(location.pathname, item.path))?.text || 'Covil de Dados'}
-          </Typography>
-          <IconButton
-            color="inherit"
-            aria-label="Últimas rolagens"
-            onClick={() => setHistoryOpen(true)}
-            sx={{ ml: 'auto' }}
-          >
-            <DiceIcon />
-          </IconButton>
-        </Toolbar>
-      </AppBar>
-
-      {/* Sidebar */}
-      <Box
-        component="nav"
-        sx={{ width: isMap ? 0 : { md: drawerWidth }, flexShrink: { md: 0 } }}
-      >
-        {/* Mobile Drawer (e o menu do mapa, em qualquer largura) */}
-        <Drawer
-          variant="temporary"
-          open={mobileOpen}
-          onClose={handleDrawerToggle}
-          ModalProps={{ keepMounted: true }}
-          sx={{
-            display: isMap ? 'block' : { xs: 'block', md: 'none' },
-            '& .MuiDrawer-paper': drawerPaperSx,
-          }}
-        >
-          {drawer}
-        </Drawer>
-
-        {/* Desktop Drawer */}
-        {!isMap && (
+      {/* Sidebar fixa do desktop. */}
+      {!temporary && (
+        <Box component="aside" sx={{ width: sidebarWidth, flexShrink: 0, transition: 'width 160ms ease' }}>
           <Drawer
             variant="permanent"
-            sx={{
-              display: { xs: 'none', md: 'block' },
-              '& .MuiDrawer-paper': drawerPaperSx,
-            }}
             open
+            sx={{ '& .MuiDrawer-paper': { ...paperSx, width: sidebarWidth, transition: 'width 160ms ease' } }}
           >
-            {drawer}
+            <Sidebar collapsed={collapsed} onToggleCollapse={toggleCollapsed} {...sidebarProps} />
           </Drawer>
-        )}
-      </Box>
+        </Box>
+      )}
 
-      {/* Main Content */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          width: isMap ? '100%' : { md: `calc(100% - ${drawerWidth}px)` },
-          // Item flex tem `min-width: auto`: sem isto, um filho largo (linha de
-          // stat block, nome comprido) empurra o main além da viewport.
+          // Item flex tem `min-width: auto`: sem isto, um filho largo (linha de stat block,
+          // nome comprido) empurra o main além da viewport.
           minWidth: 0,
           minHeight: '100vh',
           backgroundColor: 'background.default',
         }}
       >
-        {/* Spacer for mobile AppBar */}
-        {!isMap && <Toolbar sx={{ display: { md: 'none' } }} />}
-
-        {/* No celular a moldura do conteúdo encolhe: cada 8px aqui é 8px a
-            mais para os números da ficha, que é o que se lê na mesa. */}
         {isMap ? (
           <Outlet context={layoutContext} />
         ) : (
-          <Box sx={{ px: { xs: 1.5, sm: 3 }, py: { xs: 2, sm: 3 } }}>
+          // No celular a moldura do conteúdo encolhe: cada 8px aqui é 8px a mais para os
+          // números da ficha, que é o que se lê na mesa. Embaixo, o espaço da barra de abas.
+          <Box
+            sx={{
+              px: { xs: 1.5, sm: 3 },
+              pt: { xs: `${MOBILE_HEADER_HEIGHT + 16}px`, sm: `${MOBILE_HEADER_HEIGHT + 24}px`, md: 3 },
+              pb: { xs: 'calc(var(--tabbar-h) + 16px)', md: 3 },
+            }}
+          >
             <Outlet context={layoutContext} />
           </Box>
         )}
@@ -400,6 +163,11 @@ export const MainLayout = () => {
       {passwordOpen && (
         <Suspense fallback={null}>
           <ChangePasswordDialog open onClose={() => setPasswordOpen(false)} />
+        </Suspense>
+      )}
+      {searchOpen && (
+        <Suspense fallback={null}>
+          <CommandPalette onClose={() => setSearchOpen(false)} />
         </Suspense>
       )}
     </Box>

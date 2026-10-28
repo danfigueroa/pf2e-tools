@@ -24,7 +24,8 @@ export const BulkActionBar = ({ count, onDamage, onHeal, onCondition, onClear }:
     <Box
         sx={{
             position: 'sticky',
-            bottom: 0,
+            // Acima da barra de abas do celular (`--tabbar-h`, do MainLayout).
+            bottom: 'var(--tabbar-h, 0px)',
             zIndex: 5,
             mt: 2,
             mx: { xs: -1.5, sm: -3 },

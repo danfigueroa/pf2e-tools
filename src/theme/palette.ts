@@ -76,6 +76,8 @@ export const chrome = {
     label: '#8FA096',
     /** Ponto de "online" sobre a moldura. */
     online: '#6FCF8E',
+    /** Iniciais sobre a cor de um personagem (as cores das rolagens são todas escuras o bastante). */
+    onAccent: '#FFFFFF',
 } as const
 
 /** Selo "N online" sobre o pergaminho. */

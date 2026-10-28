@@ -44,7 +44,7 @@ export const PresenceList = () => {
 };
 
 const PeerRow = ({ peer }: { peer: Peer }) => {
-  const title = peer.name || peer.character || (peer.self ? 'Este aparelho' : 'Sem nome');
+  const title = peer.name || peer.who || peer.character || (peer.self ? 'Este aparelho' : 'Sem nome');
   const where = [peer.name && peer.character ? peer.character : null, pageLabel(peer.page), peer.visible ? null : 'em segundo plano']
     .filter(Boolean)
     .join(' · ');
