@@ -23,7 +23,7 @@
 // Supabase Storage (ver api/_lib/images.js e services/images.ts).
 
 import { isSupabaseConfigured } from './supabase.js'
-import { forbidden, isGm } from './access.js'
+import { canEditSheet, forbidden, isGm } from './access.js'
 import { deleteImages, isMapOwnedImage } from './images.js'
 import {
     MAX_MAP_FIELD_BYTES,
@@ -67,6 +67,26 @@ const cleanName = (name) => String(name ?? '').trim().slice(0, 60)
 // O que um jogador (não-GM) pode escrever no mapa: mover token, desenhar, pingar, rolar.
 // O resto — `meta` (imagem, alinhamento, nome), PV de monstro e enquadramento — é do GM.
 const PLAYER_FIELD = /^(pos|drw|ping|roll):/
+
+/**
+ * O personagem dono de um token: o próprio PC, ou o PC de quem o companheiro é (Animated
+ * Armor do Nathaniel — `companionOf` no `tok:`). Monstro do GM não tem dono.
+ */
+const tokenOwnerSlug = (token) =>
+    token?.kind === 'pc' && typeof token.slug === 'string' ? token.slug
+        : typeof token?.companionOf === 'string' ? token.companionOf : null
+
+/** Jogador só move o próprio token (ou o companheiro dele); o GM move todos. */
+async function canMoveTokens(mesa, id, tokenIds, access) {
+    if (tokenIds.length === 0) return true
+    const map = await readMap(mesa, id)
+    if (!map) return true // o write devolve 404 logo adiante
+    for (const tid of tokenIds) {
+        const slug = tokenOwnerSlug(map.tokens[tid])
+        if (!slug || !(await canEditSheet(access, mesa, slug))) return false
+    }
+    return true
+}
 
 /**
  * `ctx.access` (ver access.js) traz o papel real. Com a cobrança desligada vale o `gm=1`
@@ -165,6 +185,10 @@ export async function handleMapRequest(mesa, method, query, body, ctx = {}) {
             }
             if (JSON.stringify(data).length > MAX_MAP_FIELD_BYTES) return fail(400, 'Campo grande demais')
             if (ctx.access?.enforce && !gm && !PLAYER_FIELD.test(field)) return forbidden()
+        }
+        if (ctx.access?.enforce && !gm) {
+            const moved = entries.filter(([field]) => field.startsWith('pos:')).map(([field]) => field.slice(4))
+            if (!(await canMoveTokens(mesa, id, moved, ctx.access))) return forbidden('Você só move o seu próprio token')
         }
         const rev = await writeMapFields(mesa, id, fields)
         if (rev === null) return fail(404, 'Mapa não encontrado')
