@@ -34,5 +34,11 @@ export function usePublishedSheets() {
     /** Publicadas que não são presets da campanha (personagem novo na mesa). */
     const extras = published.filter((p) => !CAMPAIGN_SLUGS.has(p.slug))
 
-    return { published, find, levelOf, extras }
+    /** Dono da ficha publicada (`null` = sem dono ou não publicada): quem, além do GM, pode mexer nela. */
+    const ownerOf = useCallback(
+        (slug: string) => published.find((p) => p.slug === slug)?.ownerId ?? null,
+        [published],
+    )
+
+    return { published, find, levelOf, extras, ownerOf }
 }

@@ -63,10 +63,12 @@ import {
     writePcHp,
     type MapData,
     type MapMeta,
+    type TokenDescriptor,
 } from '../../services/maps'
 import { DRAW_COLORS, gold, green, ink, parchment } from '../../theme'
 import { setCurrentMapId } from '../initiative-tracker/encounterStorage'
 import { useRole } from '../../services/auth'
+import { usePublishedSheets } from '../character-viewer/usePublishedSheets'
 
 const GM_KEY = 'pf2e:map:gm'
 
@@ -104,10 +106,11 @@ function loadDrawStyle(): DrawStyle {
     }
 }
 
-/** PV de cada token, já com a regra de quem vê número. */
-function buildViews(data: MapData, gm: boolean): Map<string, TokenView> {
+/** PV de cada token, já com a regra de quem vê número e de quem pode arrastar. */
+function buildViews(data: MapData, gm: boolean, canMove: (token: TokenDescriptor) => boolean): Map<string, TokenView> {
     const views = new Map<string, TokenView>()
     for (const [id, token] of Object.entries(data.tokens)) {
+        const movable = canMove(token)
         if (token.kind === 'pc' && token.slug) {
             const pc = data.pcs[token.slug]
             const max = Math.max(1, token.maxHp ?? 1)
@@ -117,14 +120,14 @@ function buildViews(data: MapData, gm: boolean): Map<string, TokenView> {
                 max,
                 temp: Math.max(0, pc?.hp?.temp ?? 0),
             }
-            views.set(id, { id, hp, showNumbers: true, image: pc?.token?.url ?? null, fit: sanitizeFit(data.fit?.[id]) })
+            views.set(id, { id, hp, showNumbers: true, image: pc?.token?.url ?? null, fit: sanitizeFit(data.fit?.[id]), movable })
         } else {
             const raw = data.hp[id]
             const hp = raw ? { current: raw.current, max: raw.max, temp: raw.temp } : null
             // O `fit:` do GM no mapa vale por cima do que veio com o companheiro de combate.
             const fit = sanitizeFit(data.fit?.[id] ?? token.fit)
             // A imagem enviada no mapa (Modo GM) vale por cima da que o encontro mandou.
-            views.set(id, { id, hp, showNumbers: gm, image: fit.url ?? token.image ?? null, fit })
+            views.set(id, { id, hp, showNumbers: gm, image: fit.url ?? token.image ?? null, fit, movable })
         }
     }
     return views
@@ -145,7 +148,7 @@ export const BattleMapPage = () => {
     const menu = useLayoutMenu()
     // O papel vem da conta (membro GM da mesa); o interruptor "Modo GM" só liga ou desliga a
     // VISÃO de GM de quem já é GM — jogador não o vê, e o servidor decide pelo papel, nunca por ele.
-    const { isGm } = useRole()
+    const { isGm, userId } = useRole()
     const [gmView, setGmView] = useState(() => {
         try { return localStorage.getItem(GM_KEY) !== '0' } catch { return true }
     })
@@ -217,7 +220,17 @@ export const BattleMapPage = () => {
         try { localStorage.setItem(GM_KEY, on ? '1' : '0') } catch { /* sem storage, só nesta aba */ }
     }
 
-    const views = useMemo(() => (data ? buildViews(data, gm) : new Map<string, TokenView>()), [data, gm])
+    // Arrastar é do PAPEL, não da visão: o GM move todos mesmo com o "Modo GM" desligado. O servidor confere de novo.
+    const { ownerOf } = usePublishedSheets()
+    const canMove = useCallback((token: TokenDescriptor) => {
+        if (isGm) return true
+        const slug = token.kind === 'pc' ? token.slug : token.companionOf
+        return !!slug && !!userId && ownerOf(slug) === userId
+    }, [isGm, userId, ownerOf])
+    const views = useMemo(
+        () => (data ? buildViews(data, gm, canMove) : new Map<string, TokenView>()),
+        [data, gm, canMove],
+    )
 
     // Callbacks estáveis: o MapCanvas é memoizado e não pode repintar por causa
     // de uma função nova a cada render.
@@ -265,7 +278,8 @@ export const BattleMapPage = () => {
 
     const tappedToken = tapped && data ? data.tokens[tapped.id] ?? null : null
     const tappedView = tapped ? views.get(tapped.id) : undefined
-    const canEditTapped = !!tappedToken && (tappedToken.kind === 'pc' || gm)
+    // PV de PC: o dono e o GM (o mesmo `movable`); de monstro, a visão de GM.
+    const canEditTapped = !!tappedToken && (tappedToken.kind === 'pc' ? !!tappedView?.movable : gm)
 
     const applyHp = (next: TokenHp) => {
         if (!id || !tapped || !tappedToken) return

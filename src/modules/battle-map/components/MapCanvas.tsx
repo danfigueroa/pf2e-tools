@@ -44,6 +44,8 @@ export interface TokenView {
     image: string | null
     /** Enquadramento da imagem no círculo (escolha do GM). */
     fit: TokenFit
+    /** Quem está olhando pode arrastar? Jogador só o próprio token (e o companheiro dele); o GM, todos. */
+    movable: boolean
 }
 
 interface Props {
@@ -77,6 +79,8 @@ type Gesture =
         ox: number; oy: number; sx: number; sy: number; moved: boolean; to: Cell
         /** Deslocamento em pés, quando o token sabe o dele. */
         speed?: number
+        /** Token de outra pessoa: o toque abre o painel, mas o arrasto não move. */
+        locked: boolean
     }
     | { kind: 'ruler'; from: Cell }
     | { kind: 'draw'; line: boolean; pts: Array<[number, number]>; d: string }
@@ -208,6 +212,8 @@ export const MapCanvas = memo(function MapCanvas({
     // não muda nada e só faria o React trocar listeners.
     const dataRef = useRef(data)
     dataRef.current = data
+    const viewsRef = useRef(views)
+    viewsRef.current = views
     const toolRef = useRef(tool)
     toolRef.current = tool
     const cb = useRef({ onMove, onImageRect, onTokenTap, onZoomChange, onDraw, onErase, onPing })
@@ -578,6 +584,7 @@ export const MapCanvas = memo(function MapCanvas({
                 kind: 'token', id, el: tokenEl, size, from: pos, to: pos,
                 ox: w.x - pos.x * CELL_PX, oy: w.y - pos.y * CELL_PX,
                 sx: p.x, sy: p.y, moved: false, speed: d.tokens[id]?.speed,
+                locked: viewsRef.current.get(id)?.movable === false,
             }
             return
         }
@@ -669,6 +676,7 @@ export const MapCanvas = memo(function MapCanvas({
         }
 
         if (g.kind === 'token') {
+            if (g.locked) return
             if (!g.moved && Math.hypot(p.x - g.sx, p.y - g.sy) < TAP_SLOP_PX) return
             if (!g.moved && g.speed) {
                 // Calculadas UMA vez, no começo do arrasto: o resto do gesto só
