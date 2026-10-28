@@ -14,8 +14,10 @@ import { getSupabase, currentUserId } from './supabase'
 import { getAuthState, roleOf } from './auth'
 
 export interface Peer {
-    /** A sessão anônima do aparelho. */
+    /** A conta (a chave do Presence é a sessão logada; antes do login era o aparelho). */
     id: string
+    /** Nome da pessoa na mesa (ou o usuário), para as iniciais dos avatares. */
+    who: string
     /** O nome que a pessoa deu a este aparelho (pode faltar). */
     name: string
     /** A ficha aberta: slug e nome do personagem. */
@@ -29,6 +31,7 @@ export interface Peer {
 }
 
 interface Meta {
+    who?: unknown
     name?: unknown
     slug?: unknown
     character?: unknown
@@ -61,7 +64,9 @@ const str = (v: unknown, max = 60) => (typeof v === 'string' ? v.slice(0, max) :
 
 function payload() {
     const sheet = openSheets[openSheets.length - 1]
+    const role = roleOf(getAuthState())
     return {
+        who: role.displayName || role.username || '',
         name: deviceName,
         slug: sheet?.slug ?? null,
         character: sheet?.character ?? null,
@@ -81,6 +86,7 @@ function readPeers(state: Record<string, Meta[]>): Peer[] {
         if (!best) continue
         out.push({
             id,
+            who: str(best.who, 40),
             name: str(best.name, 40),
             slug: str(best.slug, 64) || null,
             character: str(best.character) || null,
