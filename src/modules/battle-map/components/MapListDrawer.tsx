@@ -134,7 +134,7 @@ export const MapListDrawer = ({ open, currentId, gm, onClose, onOpenMap }: Props
                 <List disablePadding sx={{ flex: 1, overflow: 'auto' }}>
                     {maps?.length === 0 && (
                         <Typography variant="body2" sx={{ color: ink.secondary, py: 2 }}>
-                            {gm ? 'Nenhum mapa ainda.' : 'Nenhum mapa revelado ainda. Ative o Modo GM para criar um.'}
+                            {gm ? 'Nenhum mapa ainda.' : 'Nenhum mapa revelado ainda. O GM cria e revela os mapas.'}
                         </Typography>
                     )}
                     {maps?.map((map) => (

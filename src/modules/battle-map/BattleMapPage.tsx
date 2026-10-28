@@ -578,7 +578,9 @@ export const BattleMapPage = () => {
                                     ? 'O GM ainda está preparando este mapa. Ele aparece aqui sozinho quando for revelado.'
                                     : error
                                         ? 'Ele pode ter sido apagado depois do jogo.'
-                                        : 'Nenhum mapa aberto. Escolha um da sessão ou, no Modo GM, crie um novo.'}
+                                        : isGm
+                                            ? 'Nenhum mapa aberto. Escolha um da sessão ou, no Modo GM, crie um novo.'
+                                            : 'Nenhum mapa aberto. Escolha um da sessão — o GM cria e revela os mapas.'}
                             </Typography>
                             <Button variant="contained" startIcon={<MapsIcon />} onClick={() => setDrawer(true)}>
                                 Mapas da sessão
