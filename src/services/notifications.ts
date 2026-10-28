@@ -108,10 +108,19 @@ async function fetchEvents() {
     } catch { /* offline: fica a lista que já se tinha */ }
 }
 
+const eventListeners = new Set<(kind: NotificationKind) => void>()
+
+/** Avisa cada evento da mesa que chega ao vivo (mesmo os que o sino não mostra a esta pessoa). */
+export function onTableEvent(listener: (kind: NotificationKind) => void): () => void {
+    eventListeners.add(listener)
+    return () => { eventListeners.delete(listener) }
+}
+
 function onEvent(payload: unknown) {
     const p = payload as { id?: unknown; kind?: unknown; data?: unknown; at?: unknown; target?: unknown }
     const id = Number(p.id)
     if (!Number.isSafeInteger(id) || typeof p.kind !== 'string' || server.some((e) => e.id === id)) return
+    eventListeners.forEach((l) => l(p.kind as NotificationKind))
     server = [
         {
             id,
