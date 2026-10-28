@@ -142,7 +142,9 @@ export function GroupStrip() {
       {ready && members.length === 0 ? (
         <Typography variant="body2" color="text.secondary">Nenhuma ficha publicada ainda.</Typography>
       ) : (
-        <Box sx={{ display: 'grid', gridAutoFlow: 'column', gridAutoColumns: 'minmax(76px, 1fr)', gap: 1.25, overflowX: 'auto', pb: 0.5, mx: -0.25, px: 0.25 }}>
+        <Box sx={{ display: 'grid', gridAutoFlow: 'column', gridAutoColumns: 'minmax(76px, 1fr)', gap: 1.25, overflowX: 'auto', pb: 0.5, mx: -0.25, px: 0.25,
+          // Rola de lado com o dedo; a barra de rolagem só sujava a fileira.
+          scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
           {(ready ? members : []).map((m) => (
             <ButtonBase key={m.slug} component={Link} to={sheetLink(m.slug)} sx={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75, py: 1.5, px: 0.5,

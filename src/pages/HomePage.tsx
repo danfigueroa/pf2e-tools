@@ -150,7 +150,9 @@ export const HomePage = () => {
             justifyContent: 'flex-start', color: ink.secondary,
           }}>
             <SearchIcon fontSize="small" />
-            <Box component="span" sx={{ flex: 1, textAlign: 'left', fontSize: '0.95rem' }}>Ir para… (página ou ferramenta)</Box>
+            <Box component="span" sx={{ flex: 1, minWidth: 0, textAlign: 'left', fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              Ir para uma página…
+            </Box>
             <Box component="kbd" sx={{ fontFamily: 'inherit', fontSize: '0.75rem', fontWeight: 600, px: 0.875, py: 0.25, borderRadius: 0.75, border: `1px solid ${rule}` }}>
               {isMac ? '⌘K' : 'Ctrl K'}
             </Box>
@@ -183,15 +185,15 @@ export const HomePage = () => {
           <Typography sx={{ display: { xs: 'none', sm: 'block' }, fontSize: '1.125rem', lineHeight: 1.55, maxWidth: 520 }}>
             Fichas, iniciativa, mapa e rolagens sincronizados em tempo real em todos os aparelhos. Cada jogador cuida da própria ficha; o GM conduz o resto.
           </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 0.5, position: 'relative' }}>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, flexWrap: 'wrap', gap: { xs: 1.25, sm: 1.5 }, mt: 0.5, position: 'relative' }}>
             <Button component={Link} to={primary.to} variant="contained" endIcon={<ArrowIcon />} sx={{
-              flex: { xs: 1, sm: 'none' }, height: { xs: 48, sm: 52 }, px: 2.75, borderRadius: 1.75, fontWeight: 700, fontSize: '1rem',
+              height: { xs: 48, sm: 52 }, px: 2.75, borderRadius: 1.75, fontWeight: 700, fontSize: '1rem', whiteSpace: 'nowrap',
               bgcolor: gold.bright, color: green.deepest, '&:hover': { bgcolor: gold.main },
             }}>
               {primary.text}
             </Button>
             <Button component={Link} to={secondary.to} variant="outlined" startIcon={secondary.icon} sx={{
-              height: { xs: 48, sm: 52 }, px: 2.75, borderRadius: 1.75, fontWeight: 600, fontSize: '1rem',
+              height: { xs: 48, sm: 52 }, px: 2.75, borderRadius: 1.75, fontWeight: 600, fontSize: '1rem', whiteSpace: 'nowrap',
               borderColor: chrome.lineStrong, color: chrome.text, '&:hover': { borderColor: gold.bright, bgcolor: 'transparent' },
             }}>
               {secondary.text}
