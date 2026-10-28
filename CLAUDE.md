@@ -61,6 +61,10 @@ node scripts/check-rolls.mjs            # confere a matemática das rolagens con
 node --env-file=.env scripts/check-diary.mjs
                                         # confere o resumo do histórico da mesa (SQL) contra a conta do cliente, dia a dia
 node scripts/check-economy.mjs          # confere que todo talento/item do elenco que custa ação, reação ou Ponto Mítico tem caminho
+node --env-file=.env scripts/check-auth.mjs
+                                        # matriz de acesso (login, papéis, convites, dono de ficha) contra o banco real; cria e apaga usuários de teste
+node --env-file=.env scripts/grant-gm.mjs <mesa> [--email a@b.c]
+                                        # bootstrap do primeiro GM de uma mesa (convite de GM, ou promove quem já tem conta)
 node --env-file=.env scripts/check-migrations.mjs
                                         # roda as migrations pendentes em produção dentro de BEGIN…ROLLBACK (antes do push!)
 node --env-file=.env scripts/build-description-bundle.mjs [--published <url>] [--all]
@@ -189,8 +193,9 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   dev server): `GET ?sheets=1` (lista), `GET ?sheet=<slug>`, `GET ?sheetVersions=<slug>` (o histórico), e `POST`
   com `action` — `publish`, `guide` e `restore` (com `version` opcional: volta a qualquer versão do histórico). POST
   sem `action` continua sendo a escrita de fatia do estado. Mora aqui pelo limite de 12 funções.
-  - **Autoria**: o cliente manda o JWT da sessão anônima (`authHeaders` em `services/supabase.ts`) e o servidor o
-    confere localmente (`requestUserId`) e grava em `published_by`. Só registra — sem sessão, publica igual.
+  - **Autoria e dono**: o JWT de quem está logado vai em todo pedido (`installApiAuth`), o servidor o confere
+    localmente (`requestIdentity`) e grava em `published_by` (quem publicou POR ÚLTIMO). Quem manda é o `owner_id` —
+    ver "Login, papéis e donos de ficha".
   - O slug da ficha publicada sai do `build.name` do PRÓPRIO JSON, nunca do cliente: é a mesma
     identidade do estado da mesa, e deixar o cliente escolher permitiria publicar por cima de outro.
   - **`guide` gera o "Como Jogar" pela cadeia de IA** (`api/_lib/guide-core.js`, 5–30 s), numa
@@ -369,10 +374,9 @@ das rotas (cada store do servidor manteve as funções exportadas). O Redis e o 
   `arton-1515` com slugs `teste-*` e apague no fim.
 
 - **Só o servidor escreve** (`api/_lib/supabase.js`, chave `SUPABASE_SECRET_KEY`, que passa por cima do RLS). O
-  navegador (`src/services/supabase.ts`, chave publicável) abre uma **sessão anônima** por aparelho
-  (`signInAnonymously`, sem tela de login) e se registra em `mesa_members` — a única escrita do cliente, limitada pelo
-  RLS à própria sessão. O SDK é `import()` com o app ocioso, num chunk próprio (~60 kB gzip): não o importe
-  estaticamente.
+  navegador (`src/services/supabase.ts`, chave publicável) tem a sessão de quem entrou por e-mail (ver "Login, papéis e
+  donos de ficha"; a sessão anônima de antes do login não vale mais) e NÃO escreve nada: entrar numa mesa é o servidor
+  quem faz, ao resgatar um convite. O SDK é `import()` num chunk próprio (~60 kB gzip): não o importe estaticamente.
 - **Permissões são explícitas**: o projeto foi criado SEM "expose new tables" e COM RLS automático (`ensure_rls`), então
   tabela nova não dá privilégio a ninguém — nem ao `service_role`. Toda migration faz os `grant` do que usa.
 - **Migrations**: crie com `npx supabase migration new <nome>`. Não há Docker no projeto (decisão do usuário) nem branch
@@ -415,6 +419,45 @@ das rotas (cada store do servidor manteve as funções exportadas). O Redis e o 
   há. No servidor use `sameJson` (`api/_lib/json.js`).
 - O script que copiou o Redis e o Blob para cá (`scripts/migrate-redis.mjs`) cumpriu o papel e saiu; está no
   histórico do git, se um dia for preciso.
+
+## Login, papéis e donos de ficha
+
+Desde out/2026 o app exige **login por e-mail** (código de 6 dígitos ou link, sem senha — `signInWithOtp`/`verifyOtp`) e
+**fazer parte da mesa**. Antes era uma sessão anônima por aparelho e o servidor nunca recusava ninguém.
+
+- **Papéis por mesa** (`mesa_members.role`: `player` | `gm`). Só o servidor escreve `role` (o grant de coluna a tira do
+  cliente — senão qualquer um se promoveria). Entrar na mesa = **convite** (`mesa_invites`: código de 12 caracteres, papel,
+  validade, usos; `accept_invite` é atômica e quem já é membro não consome o convite). O GM gera/revoga em `/membros`; o
+  link é `/convite/<código>` e o código fica em `localStorage` (`pf2e:invite`, não `sessionStorage`: o link do e-mail de
+  login abre OUTRA aba). **Convite vale para a mesa em que foi criado**, não a do `?mesa=` do pedido. A mesa nunca fica
+  sem GM (409 ao rebaixar/remover o último).
+- **Ficha tem dono** (`sheets.owner_id`): quem a publica pela primeira vez; só o dono e o GM publicam por cima, pedem o
+  guia, restauram e **escrevem o estado do personagem** (PV, slots, condições…). Ficha sem dono (as publicadas antes do
+  login) é só do GM até ele atribuir em `/membros` (`sheet-assign`). Ler é de qualquer membro. `published_by` continua
+  sendo só autoria do último publicador.
+- **A autorização mora no servidor, num lugar só**: `api/_lib/state-router.js` (despacho do `/api/state`, usado pela Vercel
+  E pelo dev server — antes eram duas cópias) → `access.js` (`resolveAccess`: identidade + papel, cache de 30 s;
+  `gate`: 401 sem sessão, 403 fora da mesa) → cada handler decide por `ctx.access`. A conta (`auth-handler.js`: `?me=1`,
+  membros, convites) vem ANTES do portão, para quem ainda não é membro poder resgatar o convite. **Sem arquivo novo em
+  `api/`** (limite de 12 funções).
+  - GM-only: criar/renomear/revelar/ativar/apagar mapa, limpar desenhos, `map-sync` (é a Iniciativa), campos `meta`/`hp:`/`fit:`
+    do mapa, gravar o encontro. Jogador: mover token (`pos:`), desenhar, pingar, rolar.
+  - `AUTH_REQUIRED=1` liga a cobrança; desligada, o servidor se comporta como antes (rede de segurança do rollout). Sem
+    Supabase também não cobra (não há como autenticar), e o cliente entra em modo `local` com todas as permissões.
+- **Cliente**: `services/auth.ts` (estado, `useRole`, `canEditSheet`, e o wrapper de `fetch` que põe o JWT em TODO
+  `/api/*` — eram 30+ pontos de chamada, a maioria GET sem cabeçalho), `AuthGate` (login → convite → app; a tela de entrada
+  é um chunk à parte). Entrar, sair e resgatar convite **recarregam a página**, como `switchMesa`: os serviços abrem no
+  boot com a sessão que existir. O servidor recusar por papel volta como `pf2e:forbidden` (aviso na tela); 401 relê o login.
+  **A UI só esconde botões** — o que vale é o servidor. Sessão anônima antiga é descartada no boot.
+- **Rollout em passos (a ordem importa)**: (1) migration aditiva + servidor com a flag DESLIGADA; (2) cliente novo;
+  (3) Supabase Auth: e-mail OTP, `site_url`/redirects e **SMTP próprio** (o padrão do Supabase manda poucos e-mails por hora —
+  não serve para a mesa logar numa noite) e o template com `{{ .Token }}`; (4) `grant-gm.mjs` por mesa; (5) o GM convida e
+  atribui as fichas; (6) **cutover**: `AUTH_REQUIRED=1`, apagar `mesa_members` dos usuários `is_anonymous`, desligar
+  `enable_anonymous_sign_ins` e uma migration que tira o `insert`/`update` direto de `mesa_members` do `authenticated`
+  (hoje ainda liberado para o cliente ANTIGO não perder o Realtime — sem fechar isso, qualquer logado se auto-inscreve).
+- **Não coberto ainda**: os endpoints da AON (`feat`, `search`, `spell`…) seguem abertos (`gateLogin` existe em `access.js`,
+  falta aplicá-lo em cada `api/*.js` e no dev server); descrições/traduções/correções são globais (qualquer membro de
+  qualquer mesa). `check-auth` cobre a matriz; o navegador foi conferido com sessões injetadas (login, convite, jogador, GM).
 
 ## Mesas
 
@@ -1724,7 +1767,8 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
     revisão quando nada mudou — com `sameJson` (`api/_lib/json.js`), porque o `jsonb` reordena as chaves e o
     `JSON.stringify` acusaria mudança em toda sincronia da Iniciativa.
   - Mapa privado: o servidor não o entrega a quem não pede como GM, como antes; o canal do mapa é o de qualquer
-    membro da mesa — sem login de verdade, "GM" é interface (o `gm=1` de antes também era).
+    membro da mesa (privado impede LER o conteúdo, não ouvir o canal). Com `AUTH_REQUIRED` o servidor decide o GM pelo
+    PAPEL, e o `gm=1` da query é ignorado (era só interface antes do login).
 - **Poll de reserva, sem canal** (sem Supabase, rede ruim): o de antes. `?mapRev=` lê os contadores numa consulta
   (`map_revs`: rev do mapa, a escrita mais recente no estado da mesa, mapa ativo). O cliente manda junto o que já
   tem (`&rev=&tableRev=`) e, se mudou, **o mapa vem na mesma resposta**.
@@ -1749,8 +1793,8 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
   posiciona, move e aplica dano. Token novo nasce no primeiro quadrado livre da faixa de cima
   (`freeSpot`, no servidor, que é quem conhece as posições de todo mundo).
 - **Quem vê número**: PC sempre; monstro só a barra, com "Ferido/Muito ferido…" no popover, e os
-  números no Modo GM. O Modo GM é só interface (sem senha — "todos podem tudo", decisão do usuário)
-  e mostra também a camada do mapa (enviar e dimensionar a imagem) e criar/apagar/ativar mapas.
+  números no Modo GM. **Quem é GM vem da conta** (`useRole`, papel na mesa); o interruptor "Modo GM" só liga ou desliga a
+  VISÃO de quem já é GM (jogador nem o vê) e mostra a camada do mapa (enviar e dimensionar a imagem) e criar/apagar/ativar mapas.
 - **Mapas privados** (decisão do usuário): mapa novo **nasce privado** e só o Modo GM o vê, até ser
   revelado (olho na lista, ou "Revelar à mesa" no aviso do próprio mapa). Mapa antigo, sem o
   campo, é público.
