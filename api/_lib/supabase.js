@@ -45,11 +45,10 @@ export async function pingDatabase() {
 }
 
 /**
- * A sessão anônima de quem fez o pedido (`Authorization: Bearer <jwt>`), ou
- * `null`. O JWT é conferido LOCALMENTE, contra as chaves públicas do projeto
- * (ES256, guardadas em cache pelo SDK) — nenhuma ida ao Auth por pedido. Serve
- * para registrar autoria; nunca para barrar alguém: sem sessão o pedido segue,
- * como antes de haver sessão.
+ * O id de quem fez o pedido (`Authorization: Bearer <jwt>`), ou `null`. O JWT é
+ * conferido LOCALMENTE, contra as chaves públicas do projeto (ES256, guardadas em
+ * cache pelo SDK) — nenhuma ida ao Auth por pedido. Esta função só IDENTIFICA: quem
+ * barra (401/403) é `access.js`, e só com `AUTH_REQUIRED=1`.
  */
 export async function requestUserId(req) {
     return (await requestIdentity(req))?.userId ?? null
