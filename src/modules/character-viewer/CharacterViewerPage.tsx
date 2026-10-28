@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Snackbar } from '@mui/material'
+import { useSearchParams } from 'react-router-dom'
 
 import { normalizeBuild, parseCharacterJson, type BuildInfo } from '../../pathbuilder/types'
 import { UploadCard, type JsonOrigin } from './components/UploadCard'
@@ -33,9 +34,15 @@ export const CharacterViewerPage = () => {
     // Cada ficha aberta começa na Visão Geral: a chave remonta o corpo.
     const [viewKey, setViewKey] = useState(0)
 
+    // `?ficha=<slug>`: abrir uma ficha publicada vindo de outro lugar (o grupo na Início, uma
+    // notificação). Vale uma vez e sai da URL, como o `?mesa=`.
+    const [params, setParams] = useSearchParams()
+    const linked = params.get('ficha')
+
     // Restaurar ficha da sessão ao recarregar. Se era a ficha da mesa, relê a
     // versão publicada — alguém pode ter publicado outra enquanto isso.
     useEffect(() => {
+        if (linked) return
         try {
             const raw = sessionStorage.getItem(SESSION_KEY)
             // Normaliza de novo: a ficha salva antes da correção do `prepared` ainda vem sem ele.
@@ -49,6 +56,8 @@ export const CharacterViewerPage = () => {
                 })
             }
         } catch { /* noop */ }
+        // Só na montagem: o `linked` que some da URL depois não deve reabrir a da sessão.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [attach])
 
     /** Abre a ficha. `published` = é a versão da mesa (tem guia gerado). */
@@ -63,6 +72,19 @@ export const CharacterViewerPage = () => {
             else sessionStorage.removeItem(SESSION_PUBLISHED_KEY)
         } catch { /* noop */ }
     }
+
+    useEffect(() => {
+        if (!linked) return
+        // Sem cancelar na limpeza: tirar o `?ficha=` da URL muda o `linked` e cancelaria a leitura.
+        void fetchPublished(linked).then((sheet) => {
+            if (sheet) {
+                try { show(parseCharacterJson(sheet.json), sheet) } catch { /* JSON da mesa inválido: fica onde está */ }
+            }
+            setParams((p) => { p.delete('ficha'); return p }, { replace: true })
+        })
+        // `show` muda a cada render; o pedido é pelo slug do link.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [linked])
 
     const handleJson = async (json: unknown, origin: JsonOrigin) => {
         let b: BuildInfo
