@@ -24,10 +24,13 @@ import {
   Map as MapIcon,
   Casino as DiceIcon,
   History as HistoryIcon,
+  Groups as MembersIcon,
+  Logout as LogoutIcon,
 } from '@mui/icons-material';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import type { LayoutContext } from './menuContext';
 import { green, gold, parchment } from '../theme';
+import { signOut, useRole } from '../services/auth';
 import logoHorizontal from '../assets/covil-logo-horizontal-fundo-escuro.svg';
 import logoSymbol from '../assets/covil-simbolo.svg';
 import { RollFeedLayer, RollHistoryDrawer } from '../components/RollFeed';
@@ -57,6 +60,8 @@ interface NavigationItem {
   text: string;
   icon: React.ReactElement;
   path: string;
+  /** Só o GM da mesa vê (o servidor também confere). */
+  gmOnly?: boolean;
 }
 
 const navigationItems: NavigationItem[] = [
@@ -95,12 +100,19 @@ const navigationItems: NavigationItem[] = [
     icon: <ScalerIcon />,
     path: '/escalar-monstro',
   },
+  {
+    text: 'Membros',
+    icon: <MembersIcon />,
+    path: '/membros',
+    gmOnly: true,
+  },
 ];
 
 export const MainLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const theme = useTheme();
+  const account = useRole();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
   // O mapa é a página: sem moldura, sem AppBar e sem sidebar fixa. O menu vira
@@ -148,7 +160,7 @@ export const MainLayout = () => {
       {/* Navegação */}
       <Box sx={{ overflow: 'auto', flex: 1, py: 1 }}>
         <List disablePadding>
-          {navigationItems.map((item) => {
+          {navigationItems.filter((item) => !item.gmOnly || account.isGm).map((item) => {
             const isActive = isCurrent(location.pathname, item.path);
             return (
               <ListItem key={item.text} disablePadding sx={{ px: 1.5, py: 0.25 }}>
@@ -212,6 +224,23 @@ export const MainLayout = () => {
           />
         </ListItemButton>
       </Box>
+
+      {/* Conta: quem está logado e o papel dele nesta mesa. */}
+      {account.userId && (
+        <Box sx={{ px: 2.5, pb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography noWrap sx={{ fontSize: '0.85rem', color: parchment.page }}>
+              {account.displayName ?? account.email ?? 'Sua conta'}
+            </Typography>
+            <Typography variant="caption" sx={{ color: CHROME_TEXT }}>
+              {account.isGm ? 'GM' : 'Jogador'}
+            </Typography>
+          </Box>
+          <IconButton size="small" aria-label="Sair da conta" onClick={() => void signOut()} sx={{ color: CHROME_TEXT }}>
+            <LogoutIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      )}
 
       {/* Rodapé */}
       <Box
