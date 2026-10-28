@@ -23,6 +23,7 @@
 // Supabase Storage (ver api/_lib/images.js e services/images.ts).
 
 import { isSupabaseConfigured } from './supabase.js'
+import { forbidden, isGm } from './access.js'
 import { deleteImages, isMapOwnedImage } from './images.js'
 import {
     MAX_MAP_FIELD_BYTES,
@@ -50,6 +51,10 @@ const MAP_ACTIONS = new Set([
     'map-clear-drawings', 'image-delete', 'blob-delete',
 ])
 
+const ADMIN_ACTIONS = new Set([
+    'map-create', 'map-rename', 'map-visibility', 'map-activate', 'map-delete', 'map-clear-drawings', 'map-sync',
+])
+
 /** Falso quando a requisição não é de mapa — aí segue para as outras rotas do `state`. */
 export function isMapRequest(method, query, body) {
     if (method === 'GET') return !!(query.maps || query.map || query.mapRev)
@@ -59,11 +64,18 @@ export function isMapRequest(method, query, body) {
 
 const cleanName = (name) => String(name ?? '').trim().slice(0, 60)
 
-export async function handleMapRequest(mesa, method, query, body) {
+// O que um jogador (não-GM) pode escrever no mapa: mover token, desenhar, pingar, rolar.
+// O resto — `meta` (imagem, alinhamento, nome), PV de monstro e enquadramento — é do GM.
+const PLAYER_FIELD = /^(pos|drw|ping|roll):/
+
+/**
+ * `ctx.access` (ver access.js) traz o papel real. Com a cobrança desligada vale o `gm=1`
+ * da query, como antes do login — era só interface, e o servidor confiava nele.
+ */
+export async function handleMapRequest(mesa, method, query, body, ctx = {}) {
+    const gm = isGm(ctx.access, query.gm === '1')
     if (method === 'GET') {
-        // Mapa privado só sai para o Modo GM. Sem senha, como o resto do app —
-        // mas quem não ligou o modo não recebe nome, imagem nem tokens.
-        const gm = query.gm === '1'
+        // Mapa privado só sai para o GM: quem não é não recebe nome, imagem nem tokens.
         if (query.maps) return ok(await listMaps(mesa, gm))
         const id = String(query.map || query.mapRev)
         if (!isValidMapId(id)) return fail(400, 'Parâmetro "map" inválido')
@@ -90,6 +102,9 @@ export async function handleMapRequest(mesa, method, query, body) {
     }
 
     const action = body.action
+
+    // Administrar mapas e a mesa é do GM. A Iniciativa (`map-sync`) também: é o GM quem monta o encontro.
+    if (ADMIN_ACTIONS.has(action) && !gm && ctx.access?.enforce) return forbidden()
 
     if (action === 'map-create') {
         const name = cleanName(body.name) || 'Mapa sem nome'
@@ -149,6 +164,7 @@ export async function handleMapRequest(mesa, method, query, body) {
                 return fail(400, `Campo "${field}" inválido`)
             }
             if (JSON.stringify(data).length > MAX_MAP_FIELD_BYTES) return fail(400, 'Campo grande demais')
+            if (ctx.access?.enforce && !gm && !PLAYER_FIELD.test(field)) return forbidden()
         }
         const rev = await writeMapFields(mesa, id, fields)
         if (rev === null) return fail(404, 'Mapa não encontrado')

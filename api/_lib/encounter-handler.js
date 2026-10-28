@@ -9,6 +9,7 @@
 // qualquer POST com `action` e engoliria esta.
 
 import { isSupabaseConfigured } from './supabase.js'
+import { forbidden } from './access.js'
 import { encounterKey, isValidEncounter, readEncounter, writeEncounter } from './encounter-store.js'
 
 const ok = (body) => ({ status: 200, body: { ...body, storeReady: isSupabaseConfigured() } })
@@ -21,11 +22,15 @@ export function isEncounterRequest(method, query, body) {
     return false
 }
 
-/** `ctx.userId`: a sessão anônima de quem gravou, que volta no aviso do Realtime (eco). */
+/**
+ * `ctx.userId`: quem gravou, que volta no aviso do Realtime (eco). Montar o encontro é do GM:
+ * com a cobrança ligada (`ctx.access.enforce`), jogador só lê.
+ */
 export async function handleEncounterRequest(mesa, method, query, body, ctx = {}) {
     const key = encounterKey(method === 'GET' ? query.encounter : body?.map)
     if (key === null) return fail(400, 'Mapa inválido')
     if (method === 'GET') return ok({ encounter: await readEncounter(mesa, key) })
+    if (ctx.access?.enforce && ctx.access.role !== 'gm') return forbidden('Só o GM monta o encontro')
     if (!isValidEncounter(body?.state)) return fail(400, 'Encontro inválido')
     const updatedAt = await writeEncounter(mesa, key, body.state, ctx.userId ?? null)
     if (updatedAt === null) return fail(404, 'Mapa não encontrado')
