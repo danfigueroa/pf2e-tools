@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Box, ButtonBase, Stack, Tooltip } from '@mui/material'
 import { RECOVER, RIPPLE, SPEND, useArmed, useReducedMotion } from '../../../motion/motion'
+import { useSheetReadOnly } from '../sheetAccess'
 
 interface Props {
     /** Quantidade de slots do grupo. */
@@ -24,6 +25,8 @@ export const SlotPips = ({ total, used, color, onChange, label, size = 14 }: Pro
     // Os pips que acabaram de mudar: gastos encolhem soltando um anel na cor da
     // tradição, recuperados estouram de volta. Vale também para mudança vinda
     // da mesa (outro jogador, "Novo dia") — é justamente a que ninguém viu.
+    // Ficha de outra pessoa: os pips mostram o que foi gasto, sem gastar nada.
+    const readOnly = useSheetReadOnly()
     const armed = useArmed()
     const reduced = useReducedMotion()
     const prev = useRef(used)
@@ -46,6 +49,7 @@ export const SlotPips = ({ total, used, color, onChange, label, size = 14 }: Pro
                 return (
                     <Tooltip key={i} title={spent ? 'Recuperar' : 'Gastar'} enterDelay={400}>
                         <ButtonBase
+                            disabled={readOnly}
                             aria-label={`${label} ${i + 1}: ${spent ? 'gasto' : 'disponível'}`}
                             onClick={(e) => {
                                 e.stopPropagation()

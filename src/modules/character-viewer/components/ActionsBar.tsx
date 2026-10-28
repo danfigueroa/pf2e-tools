@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Alert, Button, ButtonBase, Card, CardContent, Chip, Snackbar, Stack, Tooltip, Typography } from '@mui/material'
 import { gold, green, MAGUS_COLOR, SHIELD_COLOR } from '../../../theme'
 import type { ActionsApi } from './useActions'
+import { useSheetReadOnly } from '../sheetAccess'
 
 interface Props {
     actions: ActionsApi
@@ -18,11 +19,14 @@ const Pip = ({ state, label, color, onClick, glyph }: {
     color: string
     onClick?: () => void
     glyph?: string
-}) => (
+}) => {
+    // Ficha de outra pessoa: os pips mostram as ações do turno, sem gastar nenhuma.
+    const readOnly = useSheetReadOnly()
+    return (
     <Tooltip title={label}>
         <span>
             <ButtonBase
-                disabled={!onClick || state === 'lost'}
+                disabled={!onClick || state === 'lost' || readOnly}
                 onClick={onClick}
                 aria-label={label}
                 aria-pressed={state === 'spent'}
@@ -44,7 +48,8 @@ const Pip = ({ state, label, color, onClick, glyph }: {
             </ButtonBase>
         </span>
     </Tooltip>
-)
+    )
+}
 
 /**
  * As ações do turno: 3 pips (menos o que Lento/Atordoado tiram), a ação extra do

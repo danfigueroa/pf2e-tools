@@ -5,6 +5,7 @@ import { useSharedState } from './useSharedState'
 import { TOKEN_MAX_SIDE, deleteImage, imageErrorText, shrinkImage, uploadImage, useImageUrl } from '../../../services/images'
 import { initials } from '../../battle-map/geometry'
 import { MAP_BACKDROP, TOKEN_PC, gold, parchment } from '../../../theme'
+import { useSheetReadOnly } from '../sheetAccess'
 
 interface TokenStored { url: string }
 
@@ -36,6 +37,9 @@ export const TokenAvatar = ({ slug, name }: Props) => {
     const input = useRef<HTMLInputElement>(null)
     const [busy, setBusy] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    // Ficha de outra pessoa: o token só aparece. Enviar subiria a imagem ao Storage antes de a
+    // mesa recusar a escrita — uma imagem órfã no bucket.
+    const readOnly = useSheetReadOnly()
 
     const upload = async (file: File) => {
         setBusy(true)
@@ -58,10 +62,10 @@ export const TokenAvatar = ({ slug, name }: Props) => {
 
     return (
         <>
-            <Tooltip title={token ? 'Trocar o token do mapa' : 'Enviar o token do mapa'}>
+            <Tooltip title={readOnly ? '' : token ? 'Trocar o token do mapa' : 'Enviar o token do mapa'}>
                 <ButtonBase
                     onClick={() => input.current?.click()}
-                    disabled={busy}
+                    disabled={busy || readOnly}
                     aria-label={token ? `Trocar o token de ${name}` : `Enviar o token de ${name}`}
                     sx={{
                         position: 'relative',
@@ -86,7 +90,7 @@ export const TokenAvatar = ({ slug, name }: Props) => {
                     )}
                     {/* Com imagem, a câmera cobre o token só no hover; sem imagem,
                         fica como selo no canto para não embaralhar as iniciais. */}
-                    <Box
+                    {!readOnly && <Box
                         className="token-camera"
                         sx={src || busy ? {
                             position: 'absolute',
@@ -113,7 +117,7 @@ export const TokenAvatar = ({ slug, name }: Props) => {
                         {busy
                             ? <CircularProgress size={22} sx={{ color: gold.bright }} />
                             : <CameraIcon sx={{ fontSize: src ? 20 : 14 }} />}
-                    </Box>
+                    </Box>}
                     <input
                         ref={input}
                         type="file"

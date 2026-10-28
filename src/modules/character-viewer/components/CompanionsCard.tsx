@@ -11,6 +11,7 @@ import { DEFAULT_FIT, fitStyle, isDefaultFit, sanitizeFit, type TokenFit } from 
 import { TokenFitDialog } from '../../battle-map/components/TokenFitDialog'
 import { charSlug, companionsKeyFor } from '../charId'
 import { useCompanions } from './useCompanions'
+import { useSheetReadOnly } from '../sheetAccess'
 
 /** O token da criatura: toque para enviar ou trocar a imagem (permanente, pasta `tokens/`); o lápis enquadra. */
 const CompanionToken = ({ slug, companion, onChange, onFit }: {
@@ -21,6 +22,7 @@ const CompanionToken = ({ slug, companion, onChange, onFit }: {
 }) => {
     const src = useImageUrl(companion.token?.url)
     const input = useRef<HTMLInputElement>(null)
+    const readOnly = useSheetReadOnly()
     const [busy, setBusy] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [fitting, setFitting] = useState(false)
@@ -51,7 +53,8 @@ const CompanionToken = ({ slug, companion, onChange, onFit }: {
             <Tooltip title={companion.token ? 'Trocar o token' : 'Enviar o token'}>
                 <ButtonBase
                     onClick={() => input.current?.click()}
-                    disabled={busy}
+                    // Ficha alheia: enviar subiria a imagem ao Storage antes de a mesa recusar a escrita.
+                    disabled={busy || readOnly}
                     aria-label={`${companion.token ? 'Trocar' : 'Enviar'} o token de ${companion.name}`}
                     sx={{
                         position: 'relative',
