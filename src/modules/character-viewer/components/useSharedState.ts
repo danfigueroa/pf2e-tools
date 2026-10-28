@@ -8,6 +8,7 @@ import {
     subscribeSnapshot,
 } from '../../../services/tableState'
 import { currentMesa } from '../../../services/mesa'
+import { useSheetReadOnly } from '../sheetAccess'
 
 export interface SharedStateOptions<T> {
     /** Valor quando ninguém na mesa mexeu nesta fatia ainda. */
@@ -35,6 +36,11 @@ export function useSharedState<T>(
     options: SharedStateOptions<T>,
 ): [T, (updater: (prev: T) => T) => void] {
     const { slug, field } = splitSyncKey(syncKey)
+    // Ficha de outra pessoa (ver sheetAccess.tsx): lê e acompanha a mesa, mas não escreve
+    // nada — nem a edição na tela, nem a subida do cache antigo, que o servidor recusaria.
+    const readOnly = useSheetReadOnly()
+    const readOnlyRef = useRef(readOnly)
+    readOnlyRef.current = readOnly
 
     // As opções vêm inline do componente e mudam de identidade a cada render;
     // guardá-las num ref mantém os efeitos presos só a `slug`/`field`.
@@ -74,7 +80,7 @@ export function useSharedState<T>(
             // vez de ser descartado — ninguém perde o dano já marcado.
             const local = fromCacheOrLegacy(slug, field, opts)
             const isEmpty = opts.isEmpty ?? DEFAULT_IS_EMPTY
-            if (local !== null && !isEmpty(local)) {
+            if (local !== null && !isEmpty(local) && !readOnlyRef.current) {
                 setState(local)
                 saveField(slug, field, local)
             }
@@ -99,6 +105,7 @@ export function useSharedState<T>(
     }), [slug, field])
 
     const update = useCallback((updater: (prev: T) => T) => {
+        if (readOnlyRef.current) return
         const next = updater(stateRef.current)
         if (Object.is(next, stateRef.current)) return
         stateRef.current = next

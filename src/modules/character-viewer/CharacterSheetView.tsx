@@ -13,7 +13,7 @@ import {
     useTheme,
     useMediaQuery,
 } from '@mui/material'
-import { ExpandMore as ExpandIcon } from '@mui/icons-material'
+import { ExpandMore as ExpandIcon, Lock as LockIcon } from '@mui/icons-material'
 import { checkApiAvailable, fetchCompanionStats, loadDescriptionBundle, loadSheetDescriptions } from '../../services/descriptions'
 import { characterDescriptionNames } from './descriptionNames'
 import {
@@ -30,6 +30,10 @@ import {
 import { green, gold, parchment, displayFont } from '../../theme'
 import type { BuildInfo, FeatDescription } from '../../pathbuilder/types'
 import { PublishedBar } from './components/PublishedBar'
+import { canEditSheet, useRole } from '../../services/auth'
+import { usePublishedSheets } from './usePublishedSheets'
+import { SheetReadOnlyProvider } from './sheetAccess'
+import { ReadOnlyTheme } from './components/ReadOnlyTheme'
 import { NewVersionBar } from './components/NewVersionBar'
 import { withRelicRunes } from './relics'
 import { GiftArrivalNotice } from './components/GiftArrivalNotice'
@@ -197,7 +201,33 @@ interface Props {
     onOpenPublished?: (sheet: PublishedSheet) => void
 }
 
-export const CharacterSheetView = ({ build: source, publication, onReset, onRestore, compact = false, onOpenPublished }: Props) => {
+/**
+ * A ficha, decidindo antes de tudo se é de quem está olhando. Ficha de outra pessoa abre em
+ * SOMENTE LEITURA (ver sheetAccess.tsx): o contexto e o tema travado ficam ACIMA do corpo
+ * porque os hooks do estado da mesa (`useHpTracker`, `useConditions`…) são chamados lá dentro
+ * e precisam enxergar o modo já na primeira leitura.
+ */
+export const CharacterSheetView = (props: Props) => {
+    const role = useRole()
+    const { ownerOf } = usePublishedSheets()
+    const slug = charSlug(props.build)
+    const published = props.publication.published
+    // O dono vem da ficha aberta, quando ela é a da mesa; senão, da lista de publicadas.
+    const ownerId = published?.slug === slug ? published.ownerId : ownerOf(slug)
+    const readOnly = !canEditSheet(role, ownerId)
+    return (
+        <SheetReadOnlyProvider value={readOnly}>
+            <ReadOnlyTheme on={readOnly}>
+                <SheetBody {...props} readOnly={readOnly} ownerless={ownerId === null} />
+            </ReadOnlyTheme>
+        </SheetReadOnlyProvider>
+    )
+}
+
+const SheetBody = ({ build: source, publication, onReset, onRestore, compact = false, onOpenPublished, readOnly, ownerless }: Props & {
+    readOnly: boolean
+    ownerless: boolean
+}) => {
     const theme = useTheme()
     // Acordeão só no celular. Do tablet para cima as abas roláveis cabem e
     // poupam a rolagem vertical enorme que 8 seções empilhadas produzem.
@@ -348,19 +378,21 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
     // regra usa dali. Os dois botões leem a mesma fatia da mesa (ações, usos do dia).
     const drawerActions = useCallback(
         (req: DescriptionRequest, entry: FeatDescription) =>
-            req.type === 'feat' || req.type === 'special'
+            !readOnly && (req.type === 'feat' || req.type === 'special')
                 ? <ActivityButton build={build} mods={mods} mythicPoints={mythicPoints} name={req.name} desc={entry} fullWidth />
                 : null,
-        [build, mods, mythicPoints],
+        [build, mods, mythicPoints, readOnly],
     )
     const shareDrawer = useCallback(
         (req: DescriptionRequest) => postShare(shareRule(rollerIdentity(build), req)),
         [build],
     )
     const closeRoll = useCallback(() => setRollReq(null), [])
+    // Ficha alheia: nenhum caminho abre o diálogo de rolagem (número, drawer da magia, "Atq").
+    const openRoll = useMemo(() => (readOnly ? () => {} : setRollReq), [readOnly])
 
     const visibleSections = SECTIONS.filter(s => !s.visible || s.visible(build))
-    const ctx: SectionContext = { build, onSelect: setDrawerReq, onRoll: setRollReq, mods, mythicPoints, guide, sizeEffect, compact: isPhone }
+    const ctx: SectionContext = { build, onSelect: setDrawerReq, onRoll: openRoll, mods, mythicPoints, guide, sizeEffect, compact: isPhone }
 
     return (
         <Container maxWidth={compact ? false : 'lg'} disableGutters sx={{ pb: compact ? 2 : 6 }}>
@@ -370,6 +402,13 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
                 <NewVersionBar slug={slug} published={published} onOpen={onOpenPublished} onGuide={attach} />
             )}
             {published && onRestore && <PublishedBar sheet={published} onRestore={onRestore} />}
+            {readOnly && (
+                <Alert severity="info" icon={<LockIcon fontSize="inherit" />} sx={{ mb: 2 }}>
+                    {ownerless
+                        ? 'Esta ficha ainda não tem dono — só o GM mexe nela. Dá para ler tudo, mas rolar, gastar e marcar fica com o GM até ele atribuí-la.'
+                        : 'Ficha de outra pessoa: dá para ler tudo, mas rolar, gastar e marcar é só do dono e do GM.'}
+                </Alert>
+            )}
 
             <ConditionsBar conditions={conditions} />
             <ActionsBar actions={actions} shieldReaction={hasQuickShieldBlock(build)} />
@@ -495,17 +534,17 @@ export const CharacterSheetView = ({ build: source, publication, onReset, onRest
                 request={drawerReq}
                 onClose={closeDrawer}
                 onNavigate={setDrawerReq}
-                onRoll={setRollReq}
+                onRoll={openRoll}
                 onShare={shareDrawer}
                 renderActions={drawerActions}
             />
-            <RollDialog
+            {!readOnly && <RollDialog
                 request={rollReq}
                 build={build}
                 mods={mods}
                 mythicPoints={mythicPoints}
                 onClose={closeRoll}
-            />
+            />}
         </Container>
     )
 }

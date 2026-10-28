@@ -1,4 +1,5 @@
-import { ButtonBase, type SxProps, type Theme } from '@mui/material'
+import { Box, ButtonBase, type SxProps, type Theme } from '@mui/material'
+import { useSheetReadOnly } from '../sheetAccess'
 
 /**
  * Torna um número da ficha tocável para rolar. O número continua sendo o
@@ -10,7 +11,17 @@ export const RollTrigger = ({ label, onClick, children, sx }: {
     onClick: () => void
     children: React.ReactNode
     sx?: SxProps<Theme>
-}) => (
+}) => {
+    // Na ficha de outra pessoa o número é só para ler: sem botão, sem foco, sem hover.
+    const readOnly = useSheetReadOnly()
+    if (readOnly) {
+        return (
+            <Box sx={[{ display: 'block', width: '100%', minHeight: 40 }, ...(Array.isArray(sx) ? sx : [sx])]}>
+                {children}
+            </Box>
+        )
+    }
+    return (
     <ButtonBase
         onClick={onClick}
         aria-label={`Rolar ${label}`}
@@ -34,4 +45,5 @@ export const RollTrigger = ({ label, onClick, children, sx }: {
     >
         {children}
     </ButtonBase>
-)
+    )
+}

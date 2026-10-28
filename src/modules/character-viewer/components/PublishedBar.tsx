@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Box, Button, CircularProgress, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material'
-import { CheckCircle as ReadyIcon, CloudDone as PublishedIcon, History as RestoreIcon, Lock as LockIcon } from '@mui/icons-material'
+import { CheckCircle as ReadyIcon, CloudDone as PublishedIcon, History as RestoreIcon } from '@mui/icons-material'
 import type { PublishedSheet } from '../../../services/sheets'
 import { useSheetDescriptionsStatus, type SheetDescriptionsStatus } from '../../../services/descriptions'
 import { canEditSheet, useRole } from '../../../services/auth'
@@ -17,7 +17,7 @@ export const PublishedBar = ({ sheet, onRestore }: { sheet: PublishedSheet; onRe
     const [confirming, setConfirming] = useState(false)
     const prev = sheet.previous
     const descriptions = useSheetDescriptionsStatus(sheet.slug)
-    // Só o dono da ficha e o GM alteram (o servidor também confere): para os outros, é só leitura.
+    // Restaurar altera a ficha: só o dono e o GM (o aviso de somente leitura fica no CharacterSheetView).
     const editable = canEditSheet(useRole(), sheet.ownerId)
 
     return (
@@ -38,16 +38,6 @@ export const PublishedBar = ({ sheet, onRestore }: { sheet: PublishedSheet; onRe
                     Ficha da mesa · publicada em {when(sheet.publishedAt)}
                 </Typography>
             </Box>
-            {!editable && (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexBasis: '100%', color: 'text.secondary' }}>
-                    <LockIcon fontSize="small" />
-                    <Typography variant="caption">
-                        {sheet.ownerId === null
-                            ? 'Ficha sem dono ainda — só o GM altera. Peça a ele para atribuí-la a você.'
-                            : 'Ficha de outra pessoa — você pode ver, mas só o dono e o GM alteram.'}
-                    </Typography>
-                </Box>
-            )}
             {descriptions && <DescriptionsStatus status={descriptions} />}
             {prev && editable && (
                 <Button size="small" startIcon={<RestoreIcon />} onClick={() => setConfirming(true)}>
