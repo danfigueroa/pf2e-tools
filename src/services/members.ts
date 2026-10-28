@@ -7,6 +7,7 @@ import type { Role } from './auth'
 export interface MemberRow {
     userId: string
     email: string | null
+    username: string | null
     role: Role
     displayName: string | null
     joinedAt: string
@@ -60,6 +61,9 @@ export const revokeInvite = (code: string) => post({ action: 'invite-revoke', co
 export const setMemberRole = (user: string, role: Role) => post({ action: 'member-set-role', user, role })
 export const removeMember = (user: string) => post({ action: 'member-remove', user })
 export const setMemberName = (name: string, user?: string) => post({ action: 'member-set-name', name, user })
+/** Gera uma senha provisória para quem esqueceu a dele; o GM a passa adiante. */
+export const resetPassword = (user: string) => post<{ password: string }>({ action: 'member-reset-password', user })
+
 export const assignSheet = (char: string, user: string | null) => post({ action: 'sheet-assign', char, user })
 
 export const inviteLink = (code: string) => `${window.location.origin}/convite/${code}`

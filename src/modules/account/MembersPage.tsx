@@ -5,7 +5,7 @@ import {
 import { ContentCopy as CopyIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { useRole, type Role } from '../../services/auth';
 import {
-  assignSheet, createInvite, fetchMembers, inviteLink, removeMember, revokeInvite, setMemberName, setMemberRole,
+  assignSheet, createInvite, fetchMembers, inviteLink, removeMember, resetPassword, revokeInvite, setMemberName, setMemberRole,
   type MembersData,
 } from '../../services/members';
 import { currentMesa } from '../../services/mesa';
@@ -20,7 +20,8 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
   </Paper>
 );
 
-const label = (m: { displayName: string | null; email: string | null }) => m.displayName ?? m.email ?? 'Sem nome';
+const label = (m: { displayName: string | null; username: string | null; email: string | null }) =>
+  m.displayName ?? m.username ?? m.email ?? 'Sem nome';
 
 /**
  * A tela do GM: quem está na mesa, convites e a quem pertence cada ficha. As fichas que já
@@ -34,6 +35,8 @@ export const MembersPage = () => {
   const [inviteRole, setInviteRole] = useState<Role>('player');
   const [uses, setUses] = useState(1);
   const [days, setDays] = useState(7);
+  // A senha provisória gerada agora: aparece uma vez, para o GM passar à pessoa.
+  const [newPassword, setNewPassword] = useState<{ who: string; password: string } | null>(null);
 
   const load = useCallback(async () => {
     const result = await fetchMembers();
@@ -68,6 +71,13 @@ export const MembersPage = () => {
       <Typography color="text.secondary" sx={{ mb: 2.5 }}>Mesa {currentMesa.nome}</Typography>
 
       {error && <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 2 }}>{error}</Alert>}
+      {newPassword && (
+        <Alert severity="success" onClose={() => setNewPassword(null)} sx={{ mb: 2 }}>
+          Senha nova de <strong>{newPassword.who}</strong>:{' '}
+          <Box component="span" sx={{ fontFamily: 'monospace', fontSize: '1.1rem', fontWeight: 700 }}>{newPassword.password}</Box>
+          {' '}— passe para a pessoa. Ela pode trocar depois, no menu da conta. Esta senha não aparece de novo.
+        </Alert>
+      )}
 
       <Section title="Convidar">
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 2 }} alignItems={{ sm: 'center' }}>
@@ -116,7 +126,9 @@ export const MembersPage = () => {
               <Box key={m.userId} sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                 <Box sx={{ flex: 1, minWidth: 160 }}>
                   <Typography sx={{ fontWeight: 600 }} noWrap>{label(m)}{m.userId === userId ? ' (você)' : ''}</Typography>
-                  {m.displayName && <Typography variant="caption" color="text.secondary" noWrap>{m.email}</Typography>}
+                  {m.displayName && (m.username || m.email) && (
+                    <Typography variant="caption" color="text.secondary" noWrap>{m.username ?? m.email}</Typography>
+                  )}
                 </Box>
                 <Tooltip title="Nome exibido na mesa">
                   <Button
@@ -127,6 +139,20 @@ export const MembersPage = () => {
                     }}
                   >
                     Renomear
+                  </Button>
+                </Tooltip>
+                <Tooltip title="Para quem esqueceu a senha">
+                  <Button
+                    size="small"
+                    onClick={async () => {
+                      if (!window.confirm(`Gerar uma senha nova para ${label(m)}? A atual deixa de valer.`)) return;
+                      setError(null);
+                      const result = await resetPassword(m.userId);
+                      if (result.ok) setNewPassword({ who: label(m), password: result.data.password });
+                      else setError(result.error);
+                    }}
+                  >
+                    Nova senha
                   </Button>
                 </Tooltip>
                 <Select
