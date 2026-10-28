@@ -12,24 +12,9 @@ import { resolveGear } from '../api/_lib/gear-core.js'
 import { resolveSpellList } from '../api/_lib/spell-list-core.js'
 import { resolveRule } from '../api/_lib/rule-core.js'
 import { resolveItemTraits } from '../api/_lib/item-traits-core.js'
-import { handleSheetRequest, isSheetRequest } from '../api/_lib/sheet-handler.js'
-import { handleMapRequest, isMapRequest } from '../api/_lib/map-handler.js'
-import { handleRollRequest, isRollRequest } from '../api/_lib/roll-handler.js'
-import { handleEncounterRequest, isEncounterRequest } from '../api/_lib/encounter-handler.js'
-import { handleFixRequest, isFixRequest } from '../api/_lib/fix-handler.js'
 import { hasTranslationKey } from '../api/_lib/aon.js'
-import { mesaFrom } from '../api/_lib/mesas.js'
-import { pingDatabase, requestUserId } from '../api/_lib/supabase.js'
-import {
-  readCharacter,
-  readField,
-  writeField,
-  isValidSlug,
-  isValidField,
-  readIncoming,
-  isStoreConfigured,
-  MAX_FIELD_BYTES,
-} from '../api/_lib/table-store.js'
+import { pingDatabase } from '../api/_lib/supabase.js'
+import { routeState } from '../api/_lib/state-router.js'
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3001
 // Gate de tradução: as chaves em si (GEMINI_API_KEY / GROQ_API_KEY) são lidas
@@ -512,190 +497,17 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
-  // Estado compartilhado da mesa (PV, slots, foco, condições).
-  // Mesma persistência do serverless (api/_lib/table-store.js) — aqui só entra
-  // o roteamento.
+  // Estado compartilhado da mesa (PV, slots, foco, condições), fichas, mapas, rolagens,
+  // conta e convites. O despacho — e a regra de quem pode o quê — é o mesmo do
+  // serverless (api/_lib/state-router.js); aqui só se lê a requisição e escreve a resposta.
   if (pathname === '/api/state') {
     res.setHeader('Cache-Control', 'no-store')
-
-    // Fichas publicadas: o body só pode ser lido uma vez, então é lido aqui e
-    // repassado à rota do estado abaixo.
+    // O body só pode ser lido uma vez.
     const query = Object.fromEntries(parsedUrl.searchParams)
     const body = req.method === 'POST' ? await readBody(req).catch(() => ({})) : {}
-    // A mesa vale para tudo abaixo (ver api/_lib/mesas.js).
-    const mesa = mesaFrom(query)
-    if (!mesa) {
-      res.writeHead(400, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify({ error: 'Parâmetro "mesa" inválido' }))
-      return
-    }
-    // Mapa de combate antes da ficha: as duas rotas usam `action` no POST, e a
-    // da ficha aceita qualquer `action`.
-    if (isMapRequest(req.method, query, body)) {
-      try {
-        const out = await handleMapRequest(mesa, req.method, query, body)
-        res.writeHead(out.status, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify(out.body))
-      } catch (e) {
-        console.error('[/api/state] Erro no mapa:', e)
-        res.writeHead(500, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ error: e.message }))
-      }
-      return
-    }
-
-    // Feed de rolagens, também antes da ficha (mesmo motivo do mapa).
-    if (isRollRequest(req.method, query, body)) {
-      try {
-        const userId = req.method === 'POST' ? await requestUserId(req) : null
-        const out = await handleRollRequest(mesa, req.method, query, body, { userId })
-        res.writeHead(out.status, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify(out.body))
-      } catch (e) {
-        console.error('[/api/state] Erro nas rolagens:', e)
-        res.writeHead(500, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ error: e.message }))
-      }
-      return
-    }
-
-    // Correções de tradução da mesa (globais), também antes da ficha.
-    if (isFixRequest(req.method, query, body)) {
-      try {
-        const userId = req.method === 'POST' ? await requestUserId(req) : null
-        const out = await handleFixRequest(req.method, query, body, { userId })
-        res.writeHead(out.status, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify(out.body))
-      } catch (e) {
-        console.error('[/api/state] Erro na correção de tradução:', e)
-        res.writeHead(500, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ error: e.message }))
-      }
-      return
-    }
-
-    // Encontros da Iniciativa na nuvem, também antes da ficha.
-    if (isEncounterRequest(req.method, query, body)) {
-      try {
-        const userId = req.method === 'POST' ? await requestUserId(req) : null
-        const out = await handleEncounterRequest(mesa, req.method, query, body, { userId })
-        res.writeHead(out.status, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify(out.body))
-      } catch (e) {
-        console.error('[/api/state] Erro no encontro:', e)
-        res.writeHead(500, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ error: e.message }))
-      }
-      return
-    }
-
-    if (isSheetRequest(req.method, query, body)) {
-      try {
-        const userId = req.method === 'POST' ? await requestUserId(req) : null
-        const out = await handleSheetRequest(mesa, req.method, query, body, { userId })
-        res.writeHead(out.status, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify(out.body))
-      } catch (e) {
-        console.error('[/api/state] Erro na ficha publicada:', e)
-        res.writeHead(500, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ error: e.message }))
-      }
-      return
-    }
-
-    if (req.method === 'GET' && parsedUrl.searchParams.get('incoming') !== null) {
-      // O que os colegas me passaram, como no serverless.
-      const to = parsedUrl.searchParams.get('incoming')
-      if (!isValidSlug(to)) {
-        res.writeHead(400, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ error: 'Parâmetro "incoming" inválido' }))
-        return
-      }
-      try {
-        res.writeHead(200, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ char: to, incoming: await readIncoming(mesa, to) }))
-      } catch (e) {
-        console.error('[/api/state] Erro ao ler o que me passaram:', e)
-        res.writeHead(500, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ error: 'Erro ao ler o estado da mesa' }))
-      }
-      return
-    }
-
-    if (req.method === 'GET') {
-      const char = parsedUrl.searchParams.get('char')
-      if (!isValidSlug(char)) {
-        res.writeHead(400, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ error: 'Parâmetro "char" inválido' }))
-        return
-      }
-      // Uma fatia só (`?field=`), como no serverless: o poll leve das ações do turno.
-      const one = parsedUrl.searchParams.get('field')
-      if (one !== null) {
-        if (!isValidField(one)) {
-          res.writeHead(400, { 'Content-Type': 'application/json' })
-          res.end(JSON.stringify({ error: 'Parâmetro "field" inválido' }))
-          return
-        }
-        try {
-          const entry = await readField(mesa, char, one)
-          res.writeHead(200, { 'Content-Type': 'application/json' })
-          res.end(JSON.stringify({ char, field: one, data: entry ? entry.data : null, updatedAt: entry ? entry.updatedAt : 0 }))
-        } catch (e) {
-          console.error('[/api/state] Erro ao ler o campo:', e)
-          res.writeHead(500, { 'Content-Type': 'application/json' })
-          res.end(JSON.stringify({ error: 'Erro ao ler o estado da mesa' }))
-        }
-        return
-      }
-      try {
-        const fields = await readCharacter(mesa, char)
-        res.writeHead(200, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ char, fields, storeReady: isStoreConfigured() }))
-      } catch (e) {
-        console.error('[/api/state] Erro ao ler:', e)
-        res.writeHead(500, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ error: 'Erro ao ler o estado da mesa' }))
-      }
-      return
-    }
-
-    if (req.method === 'POST') {
-      const { char, field, data } = body
-      if (!isValidSlug(char)) {
-        res.writeHead(400, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ error: 'Campo "char" inválido' }))
-        return
-      }
-      if (!isValidField(field)) {
-        res.writeHead(400, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ error: 'Campo "field" inválido' }))
-        return
-      }
-      if (data === undefined) {
-        res.writeHead(400, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ error: 'Campo "data" ausente' }))
-        return
-      }
-      if (JSON.stringify(data).length > MAX_FIELD_BYTES) {
-        res.writeHead(400, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ error: 'Estado grande demais' }))
-        return
-      }
-      try {
-        const updatedAt = await writeField(mesa, char, field, data, await requestUserId(req))
-        res.writeHead(200, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ ok: true, updatedAt, storeReady: isStoreConfigured() }))
-      } catch (e) {
-        console.error('[/api/state] Erro ao gravar:', e)
-        res.writeHead(500, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ error: 'Erro ao gravar o estado da mesa' }))
-      }
-      return
-    }
-
-    res.writeHead(405, { 'Content-Type': 'application/json' })
-    res.end(JSON.stringify({ error: 'Method not allowed' }))
+    const out = await routeState({ req, method: req.method, query, body })
+    res.writeHead(out.status, { 'Content-Type': 'application/json' })
+    res.end(JSON.stringify(out.body))
     return
   }
 
