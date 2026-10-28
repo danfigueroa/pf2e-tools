@@ -1,13 +1,13 @@
-// Cliente do Supabase no navegador: a sessão anônima deste aparelho e, nas
-// próximas fases, o Realtime que substitui o polling.
+// Cliente do Supabase no navegador: a sessão de quem entrou (e-mail, sem senha) e o
+// Realtime que mantém a mesa em sincronia.
 //
-// Só LÊ: quem escreve no banco continuam sendo as funções da Vercel, com a chave
-// secreta e as validações de sempre. A única escrita daqui é o registro deste
-// aparelho na mesa (`mesa_members`), que o RLS limita à própria sessão.
+// Só LÊ: quem escreve no banco são as funções da Vercel, com a chave secreta e as
+// validações de sempre. Entrar numa mesa também não passa por aqui: é o servidor que
+// registra o membro, quando ele resgata um convite (`auth.ts` → `invite-accept`).
 //
-// O supabase-js (~60 kB gzip, chunk próprio) entra por `import()` com o app OCIOSO, como o
-// cartão de regra compartilhada: o chunk principal não cresce, e quem só abre
-// a ficha no celular não espera por ele para ver a primeira tela.
+// O supabase-js (~60 kB gzip, chunk próprio) entra por `import()`: o chunk principal
+// não cresce. Antes ele esperava o app ocioso; com login obrigatório a primeira tela
+// já depende da sessão, então hoje ele é pedido logo no boot.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { currentMesa } from './mesa'
@@ -18,56 +18,79 @@ const env = (import.meta.env ?? {}) as Partial<ImportMetaEnv>
 const URL = env.VITE_SUPABASE_URL as string | undefined
 const KEY = env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined
 
-/** Sem as variáveis o app segue como antes: sem sessão, sem tempo real. */
+/** Sem as variáveis o app segue como antes: sem login, sem tempo real. */
 export const isSupabaseConfigured = Boolean(URL && KEY)
 
-let clientPromise: Promise<SupabaseClient | null> | null = null
+let authClientPromise: Promise<SupabaseClient | null> | null = null
+let readyPromise: Promise<SupabaseClient | null> | null = null
 let userId: string | null = null
 // O JWT de agora, renovado pelo próprio SDK: as escritas do estado da mesa o
 // mandam sem esperar nada (`authHeaderNow`).
 let accessToken: string | null = null
 
-/** O id da sessão anônima deste aparelho, quando ela já existe. */
+/** O id de quem está logado neste aparelho, quando a sessão já abriu. */
 export const currentUserId = (): string | null => userId
 
 /**
- * O cliente, com a sessão anônima pronta e o aparelho registrado na mesa. A
- * primeira chamada baixa o SDK; as seguintes devolvem a mesma promessa. Falha
- * de rede ou de login vira `null` (e a próxima chamada tenta de novo) — nada no
- * app pode depender disso para funcionar.
+ * O cliente do Supabase, com ou sem sessão — é o que a tela de login usa para pedir
+ * o código. A primeira chamada baixa o SDK. Falha ao carregar vira `null` (e a próxima
+ * chamada tenta de novo).
  */
-export function getSupabase(): Promise<SupabaseClient | null> {
+export function getAuthClient(): Promise<SupabaseClient | null> {
     if (!isSupabaseConfigured) return Promise.resolve(null)
-    if (!clientPromise) {
-        clientPromise = connect().then((client) => {
-            if (!client) clientPromise = null
+    if (!authClientPromise) {
+        authClientPromise = createAuthClient().then((client) => {
+            if (!client) authClientPromise = null
             return client
         })
     }
-    return clientPromise
+    return authClientPromise
 }
 
-async function connect(): Promise<SupabaseClient | null> {
+async function createAuthClient(): Promise<SupabaseClient | null> {
     try {
         const { createClient } = await import('@supabase/supabase-js')
         const client = createClient(URL!, KEY!, {
             auth: { persistSession: true, autoRefreshToken: true, storageKey: 'pf2e:supabase:auth' },
         })
-        client.auth.onAuthStateChange((_event, session) => { accessToken = session?.access_token ?? null })
+        client.auth.onAuthStateChange((_event, session) => {
+            accessToken = session?.access_token ?? null
+            userId = session?.user.id ?? null
+        })
+        return client
+    } catch (error) {
+        console.warn('[supabase] Não carregou o SDK:', error)
+        return null
+    }
+}
+
+/**
+ * O cliente, com a sessão de quem entrou pronta. `null` sem login (ou com a sessão
+ * anônima de antes do login, que não vale mais): quem chamou segue sem tempo real, e a
+ * tela de login é que leva a pessoa a entrar. Com sessão, a promessa é guardada.
+ */
+export function getSupabase(): Promise<SupabaseClient | null> {
+    if (!isSupabaseConfigured) return Promise.resolve(null)
+    if (!readyPromise) {
+        readyPromise = openSession().then((client) => {
+            if (!client) readyPromise = null
+            return client
+        })
+    }
+    return readyPromise
+}
+
+async function openSession(): Promise<SupabaseClient | null> {
+    const client = await getAuthClient()
+    if (!client) return null
+    try {
         const { data } = await client.auth.getSession()
-        let session = data.session
-        if (!session) {
-            const { data: created, error } = await client.auth.signInAnonymously()
-            if (error) throw error
-            session = created.session
-        }
-        const id = session?.user.id ?? null
-        if (!id) return null
-        userId = id
-        accessToken = session?.access_token ?? null
+        const session = data.session
+        if (!session || session.user.is_anonymous) return null
+        userId = session.user.id
+        accessToken = session.access_token
         // Os canais privados do Realtime conferem o JWT na entrada.
         await client.realtime.setAuth(accessToken)
-        await joinMesa(client, id)
         return client
     } catch (error) {
         console.warn('[supabase] Sem sessão neste aparelho:', error)
@@ -75,22 +98,14 @@ async function connect(): Promise<SupabaseClient | null> {
     }
 }
 
-/** Registra (ou renova o `last_seen` de) este aparelho na mesa aberta. */
-async function joinMesa(client: SupabaseClient, id: string) {
-    const { error } = await client
-        .from('mesa_members')
-        .upsert({ mesa: currentMesa.id, user_id: id, last_seen: new Date().toISOString() })
-    if (error) console.warn('[supabase] Não registrou o aparelho na mesa:', error.message)
-}
-
 /** Como `authHeaders`, mas sem esperar: vazio se a sessão ainda não abriu. */
 export const authHeaderNow = (): Record<string, string> =>
     accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
 
 /**
- * `Authorization` com o JWT da sessão anônima, para o servidor saber QUEM fez o
- * pedido (autoria de uma publicação). Vazio sem sessão — nunca impede o pedido.
- * Na primeira chamada pode baixar o SDK, então só vale para ações raras.
+ * `Authorization` com o JWT de quem está logado, para o servidor saber QUEM fez o
+ * pedido (e o que ele pode). Vazio sem sessão — o servidor responde 401 e a tela de
+ * login assume. Na primeira chamada pode baixar o SDK.
  */
 export async function authHeaders(): Promise<Record<string, string>> {
     try {
@@ -104,10 +119,10 @@ export async function authHeaders(): Promise<Record<string, string>> {
 
 /**
  * Ouve um canal PRIVADO da mesa aberta (`mesa:<mesa>:<nome>`), por onde o banco
- * transmite o que mudou (triggers). Só quem se registrou na mesa entra (RLS em
+ * transmite o que mudou (triggers). Só quem é membro da mesa entra (RLS em
  * `realtime.messages`). `onLive` avisa a cada troca: aberto (SUBSCRIBED,
  * inclusive em cada reconexão — hora de reler o que pode ter passado) ou não.
- * Devolve a função que SAI do canal, ou `null` quando não há Supabase (quem
+ * Devolve a função que SAI do canal, ou `null` quando não há sessão (quem
  * chamou segue sem tempo real).
  */
 export async function listenMesaChannel(
@@ -125,10 +140,8 @@ export async function listenMesaChannel(
     return () => { void client.removeChannel(channel) }
 }
 
-/** Abre a sessão com o app ocioso — chamado uma vez no boot (`main.tsx`). */
+/** Abre a sessão no boot (`main.tsx`) para o Realtime já estar de pé quando a tela pedir. */
 export function startSupabase() {
     if (!isSupabaseConfigured || typeof window === 'undefined') return
-    const run = () => { void getSupabase() }
-    if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(run, { timeout: 5000 })
-    else setTimeout(run, 2000)
+    void getSupabase()
 }

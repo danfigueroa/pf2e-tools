@@ -6,6 +6,10 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import { startSupabase } from './services/supabase'
+import { installApiAuth } from './services/auth'
+
+// Antes de qualquer chamada: todo fetch('/api/…') passa a levar a sessão de quem entrou.
+installApiAuth()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
