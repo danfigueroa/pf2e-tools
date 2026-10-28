@@ -62,7 +62,7 @@ export const AuthGate = ({ children }: { children: ReactNode }) => {
   if (auth.status === 'in' && !auth.mesas.some((m) => m.id === currentMesa.id)) {
     return (
       <Suspense fallback={<Splash />}>
-        <JoinPage email={auth.user.email} mesas={auth.mesas} notice={auth.notice} />
+        <JoinPage username={auth.user.username} mesas={auth.mesas} notice={auth.notice} />
       </Suspense>
     );
   }

@@ -1,112 +1,149 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Alert, Box, Button, Link, TextField, Typography } from '@mui/material';
-import { requestCode, verifyCode } from '../../services/auth';
+import { USERNAME_RE, cleanUsername, pendingInvite, register, signIn } from '../../services/auth';
 import { AuthShell } from './AuthShell';
 
-const RESEND_SECONDS = 60;
+type Mode = 'login' | 'register';
 
 /**
- * Entrar pelo e-mail, sem senha: o Supabase manda um código de 6 dígitos (e um link, para
- * quem prefere). O código evita sair do app no celular; o link serve de plano B.
+ * Entrar com usuário e senha, ou criar a conta com um convite — sem e-mail nenhum. Quem
+ * chega pelo link do convite (`/convite/<código>`) já cai em "criar conta" com o código
+ * preenchido; quem já tem conta entra, e o convite é resgatado sozinho depois (`initAuth`).
  */
 export const LoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
-  const [sent, setSent] = useState(false);
+  const invite = pendingInvite();
+  const [mode, setMode] = useState<Mode>(invite ? 'register' : 'login');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [code, setCode] = useState(invite ?? '');
+  const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [wait, setWait] = useState(0);
 
-  useEffect(() => {
-    if (wait <= 0) return;
-    const timer = window.setTimeout(() => setWait((w) => w - 1), 1000);
-    return () => window.clearTimeout(timer);
-  }, [wait]);
-
-  const send = async () => {
-    setBusy(true);
+  const switchTo = (next: Mode) => {
+    setMode(next);
     setError(null);
-    const problem = await requestCode(email);
-    setBusy(false);
-    if (problem) return setError(problem);
-    setSent(true);
-    setWait(RESEND_SECONDS);
+    setPassword('');
+    setConfirm('');
   };
 
-  const confirm = async () => {
+  const run = async (action: () => Promise<string | null>) => {
     setBusy(true);
     setError(null);
-    const problem = await verifyCode(email, code);
-    // Com sucesso a página recarrega; só chega aqui quando deu errado.
+    // Com sucesso a página recarrega; só volta aqui quando deu errado.
+    const problem = await action();
     setBusy(false);
     if (problem) setError(problem);
   };
 
-  const validEmail = /^\S+@\S+\.\S+$/.test(email.trim());
+  const validUser = USERNAME_RE.test(cleanUsername(username));
 
+  if (mode === 'login') {
+    const ready = username.trim().length > 0 && password.length > 0 && !busy;
+    return (
+      <AuthShell title="Entrar na mesa">
+        <Box
+          component="form"
+          onSubmit={(e) => { e.preventDefault(); if (ready) void run(() => signIn(username, password)); }}
+          sx={{ display: 'grid', gap: 2 }}
+        >
+          {invite && (
+            <Alert severity="info">Você tem um convite. Entre na sua conta e ele vale sozinho — ou crie uma conta nova.</Alert>
+          )}
+          <TextField
+            label="Usuário"
+            autoComplete="username"
+            autoCapitalize="none"
+            autoFocus
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+          <TextField
+            label="Senha"
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          {error && <Alert severity="error">{error}</Alert>}
+          <Button type="submit" variant="contained" disabled={!ready}>
+            {busy ? 'Entrando…' : 'Entrar'}
+          </Button>
+          <Typography variant="caption" color="text.secondary">
+            Esqueceu a senha? Peça ao GM da mesa para gerar uma nova.
+          </Typography>
+          <Link component="button" type="button" variant="body2" onClick={() => switchTo('register')} sx={{ justifySelf: 'start' }}>
+            Primeira vez? Criar conta com um convite
+          </Link>
+        </Box>
+      </AuthShell>
+    );
+  }
+
+  const mismatch = confirm.length > 0 && confirm !== password;
+  const ready = code.trim().length >= 8 && validUser && password.length >= 6 && confirm === password && !busy;
   return (
-    <AuthShell title="Entrar na mesa">
-      {!sent ? (
-        <Box
-          component="form"
-          onSubmit={(e) => { e.preventDefault(); if (validEmail && !busy) void send(); }}
-          sx={{ display: 'grid', gap: 2 }}
-        >
-          <Typography variant="body2" color="text.secondary">
-            Digite seu e-mail. Enviamos um código para você entrar — sem senha.
-          </Typography>
-          <TextField
-            label="E-mail"
-            type="email"
-            autoComplete="email"
-            autoFocus
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            inputProps={{ inputMode: 'email' }}
-          />
-          {error && <Alert severity="error">{error}</Alert>}
-          <Button type="submit" variant="contained" disabled={!validEmail || busy}>
-            {busy ? 'Enviando…' : 'Enviar código'}
-          </Button>
-        </Box>
-      ) : (
-        <Box
-          component="form"
-          onSubmit={(e) => { e.preventDefault(); if (code.trim().length >= 6 && !busy) void confirm(); }}
-          sx={{ display: 'grid', gap: 2 }}
-        >
-          <Typography variant="body2" color="text.secondary">
-            Enviamos um e-mail para <strong>{email.trim()}</strong>. Digite o código dele aqui — ou toque no link do e-mail.
-          </Typography>
-          <TextField
-            label="Código"
-            autoComplete="one-time-code"
-            autoFocus
-            value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
-            inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', style: { letterSpacing: '0.3em', fontSize: '1.3rem' } }}
-          />
-          {error && <Alert severity="error">{error}</Alert>}
-          <Button type="submit" variant="contained" disabled={code.trim().length < 6 || busy}>
-            {busy ? 'Conferindo…' : 'Entrar'}
-          </Button>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
-            <Link component="button" type="button" variant="body2" onClick={() => { setSent(false); setCode(''); setError(null); }}>
-              Trocar o e-mail
-            </Link>
-            <Link
-              component="button"
-              type="button"
-              variant="body2"
-              disabled={wait > 0 || busy}
-              onClick={() => void send()}
-              sx={{ opacity: wait > 0 ? 0.5 : 1 }}
-            >
-              {wait > 0 ? `Reenviar em ${wait}s` : 'Reenviar o código'}
-            </Link>
-          </Box>
-        </Box>
-      )}
+    <AuthShell title="Criar conta">
+      <Box
+        component="form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (ready) void run(() => register({ code, username, password, name }));
+        }}
+        sx={{ display: 'grid', gap: 2 }}
+      >
+        <Typography variant="body2" color="text.secondary">
+          Use o convite que o GM mandou. Você escolhe um usuário e uma senha — não precisa de e-mail.
+        </Typography>
+        <TextField
+          label="Código do convite"
+          value={code}
+          onChange={(e) => setCode(e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 32))}
+          inputProps={{ style: { letterSpacing: '0.15em', fontFamily: 'monospace' } }}
+        />
+        <TextField
+          label="Seu nome na mesa"
+          helperText="Opcional — é como os outros veem você"
+          value={name}
+          onChange={(e) => setName(e.target.value.slice(0, 40))}
+        />
+        <TextField
+          label="Usuário"
+          autoComplete="username"
+          autoCapitalize="none"
+          autoFocus={!!invite}
+          value={username}
+          onChange={(e) => setUsername(e.target.value.slice(0, 30))}
+          error={username.length > 0 && !validUser}
+          helperText="De 3 a 30: letras minúsculas, números, ponto, hífen ou sublinhado"
+        />
+        <TextField
+          label="Senha"
+          type="password"
+          autoComplete="new-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          error={password.length > 0 && password.length < 6}
+          helperText="Pelo menos 6 caracteres"
+        />
+        <TextField
+          label="Repita a senha"
+          type="password"
+          autoComplete="new-password"
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          error={mismatch}
+          helperText={mismatch ? 'As senhas não são iguais' : ' '}
+        />
+        {error && <Alert severity="error">{error}</Alert>}
+        <Button type="submit" variant="contained" disabled={!ready}>
+          {busy ? 'Criando…' : 'Criar conta e entrar'}
+        </Button>
+        <Link component="button" type="button" variant="body2" onClick={() => switchTo('login')} sx={{ justifySelf: 'start' }}>
+          Já tenho conta — entrar
+        </Link>
+      </Box>
     </AuthShell>
   );
 };

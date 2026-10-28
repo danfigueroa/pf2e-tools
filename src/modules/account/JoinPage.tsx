@@ -5,7 +5,7 @@ import { currentMesa, MESAS, switchMesa } from '../../services/mesa';
 import { AuthShell } from './AuthShell';
 
 interface Props {
-  email: string | null;
+  username: string | null;
   mesas: Membership[];
   /** Por que o convite do link falhou, quando falhou. */
   notice: string | null;
@@ -16,7 +16,7 @@ interface Props {
  * resgata sozinho ao abrir) ou um código, que a pessoa digita aqui. Quem faz parte de
  * outra mesa pode ir para ela.
  */
-export const JoinPage = ({ email, mesas, notice }: Props) => {
+export const JoinPage = ({ username, mesas, notice }: Props) => {
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(notice);
@@ -72,7 +72,7 @@ export const JoinPage = ({ email, mesas, notice }: Props) => {
       )}
 
       <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-        <Typography variant="caption" color="text.secondary" sx={{ minWidth: 0 }} noWrap>{email}</Typography>
+        <Typography variant="caption" color="text.secondary" sx={{ minWidth: 0 }} noWrap>{username}</Typography>
         <Button size="small" onClick={() => void signOut()}>Sair</Button>
       </Box>
     </AuthShell>

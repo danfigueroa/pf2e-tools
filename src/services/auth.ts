@@ -1,5 +1,6 @@
-// Quem está usando o app: login por e-mail (código de 6 dígitos ou link, sem senha),
-// as mesas de que a pessoa faz parte e o papel dela em cada uma.
+// Quem está usando o app: login por USUÁRIO + SENHA (sem e-mail nenhum — decisão do
+// usuário: nada de serviço externo), as mesas de que a pessoa faz parte e o papel dela.
+// A conta nasce no resgate do primeiro convite (`register`); senha esquecida, o GM gera outra.
 //
 // Isto só DECIDE O QUE MOSTRAR. Quem barra de verdade é o servidor (`api/_lib/access.js`):
 // esconder um botão aqui não protege nada, e um 403 do servidor volta como aviso
@@ -30,7 +31,7 @@ export type AuthState =
     | { status: 'error' }
     | {
           status: 'in'
-          user: { id: string; email: string | null }
+          user: { id: string; email: string | null; username: string | null }
           mesas: Membership[]
           /** Por que o convite do link não valeu, quando não valeu. */
           notice: string | null
@@ -80,6 +81,16 @@ if (typeof window !== 'undefined') {
     }
 }
 
+// --- Conta -----------------------------------------------------------------------
+//
+// O Supabase Auth exige um e-mail, então cada conta tem um endereço fictício que nunca
+// recebe mensagem. Mesmo valor de `USER_DOMAIN` em api/_lib/auth-handler.js.
+
+export const USER_DOMAIN = 'covil.local'
+export const USERNAME_RE = /^[a-z0-9][a-z0-9._-]{2,29}$/
+export const cleanUsername = (raw: string) => raw.trim().toLowerCase()
+const emailOf = (username: string) => `${cleanUsername(username)}@${USER_DOMAIN}`
+
 // --- Chamadas ao servidor --------------------------------------------------------
 
 async function post(body: Record<string, unknown>): Promise<{ ok: boolean; data: Record<string, unknown> }> {
@@ -106,7 +117,7 @@ export async function acceptInvite(code: string): Promise<{ mesa: string; role: 
     return { mesa: String(data.mesa), role: data.role === 'gm' ? 'gm' : 'player' }
 }
 
-async function fetchMe(): Promise<{ user: { id: string; email: string | null }; mesas: Membership[] } | null> {
+async function fetchMe(): Promise<{ user: { id: string; email: string | null; username: string | null }; mesas: Membership[] } | null> {
     try {
         const res = await fetch(stateApi('?me=1'))
         if (!res.ok) return null
@@ -171,26 +182,47 @@ async function load(): Promise<void> {
     setState({ status: 'in', user: me.user, mesas: me.mesas, notice })
 }
 
-/** Pede o código/link por e-mail. Devolve o erro, ou `null` se saiu. */
-export async function requestCode(email: string): Promise<string | null> {
+/** Entra com usuário e senha. Devolve o erro, ou recarrega a página já logado. */
+export async function signIn(username: string, password: string, { reload = true } = {}): Promise<string | null> {
     const client = await getAuthClient()
     if (!client) return 'Não foi possível falar com o servidor de login'
-    const { error } = await client.auth.signInWithOtp({
-        email: email.trim(),
-        options: { shouldCreateUser: true, emailRedirectTo: `${window.location.origin}/` },
-    })
-    if (!error) return null
-    return error.status === 429 ? 'Muitos pedidos seguidos — espere um minuto e tente de novo' : 'Não foi possível enviar o e-mail'
+    const { error } = await client.auth.signInWithPassword({ email: emailOf(username), password })
+    if (error) {
+        return error.status === 429 ? 'Muitas tentativas seguidas — espere um minuto' : 'Usuário ou senha incorretos'
+    }
+    if (reload) window.location.reload()
+    return null
 }
 
-/** Confere o código. Em caso de sucesso recarrega a página já logado. */
-export async function verifyCode(email: string, code: string): Promise<string | null> {
+/**
+ * Cria a conta com um convite e já entra. O convite pode ser de outra mesa: aí o app abre
+ * nela. Devolve o erro (usuário já existe, convite vencido…) ou recarrega a página.
+ */
+export async function register(input: { code: string; username: string; password: string; name: string }): Promise<string | null> {
+    const { ok, data } = await post({
+        action: 'register',
+        code: input.code.trim().toUpperCase(),
+        username: cleanUsername(input.username),
+        password: input.password,
+        name: input.name.trim(),
+    })
+    if (!ok) return errorOf(data, 'Não foi possível criar a conta')
+    setPendingInvite(null)
+    const problem = await signIn(input.username, input.password, { reload: false })
+    if (problem) return problem
+    const mesa = String(data.mesa)
+    if (mesa !== currentMesa.id) switchMesa(mesa)
+    else window.location.reload()
+    return null
+}
+
+/** Troca a senha de quem está logado. Devolve o erro, ou `null`. */
+export async function changePassword(password: string): Promise<string | null> {
     const client = await getAuthClient()
     if (!client) return 'Não foi possível falar com o servidor de login'
-    const { error } = await client.auth.verifyOtp({ email: email.trim(), token: code.trim(), type: 'email' })
-    if (error) return 'Código inválido ou vencido'
-    window.location.reload()
-    return null
+    const { error } = await client.auth.updateUser({ password })
+    if (!error) return null
+    return error.code === 'same_password' ? 'A senha nova é igual à atual' : 'Não foi possível trocar a senha'
 }
 
 export async function signOut(): Promise<void> {
@@ -206,19 +238,21 @@ export interface RoleInfo {
     isGm: boolean
     userId: string | null
     email: string | null
+    username: string | null
     displayName: string | null
 }
 
 export function roleOf(auth: AuthState): RoleInfo {
     // Sem Supabase não há quem barre: dev local fica com todas as permissões.
-    if (auth.status === 'local') return { role: 'gm', isGm: true, userId: null, email: null, displayName: null }
-    if (auth.status !== 'in') return { role: null, isGm: false, userId: null, email: null, displayName: null }
+    if (auth.status === 'local') return { role: 'gm', isGm: true, userId: null, email: null, username: null, displayName: null }
+    if (auth.status !== 'in') return { role: null, isGm: false, userId: null, email: null, username: null, displayName: null }
     const member = auth.mesas.find((m) => m.id === currentMesa.id)
     return {
         role: member?.role ?? null,
         isGm: member?.role === 'gm',
         userId: auth.user.id,
         email: auth.user.email,
+        username: auth.user.username,
         displayName: member?.displayName ?? null,
     }
 }
