@@ -340,8 +340,8 @@ página** (Ficha, Iniciativa, Mapa…), num cartão com os dados animados, o res
 -   **Magia de vários raios** (Blazing Bolt de 2 ou 3 ações): um cartão só, com o ataque e o dano de
     **cada raio**, o **total** dos raios e o total se todos forem críticos
 -   Anotações da rolagem (veneno na arma, Debilitating Strike, Exacting Strike) aparecem no cartão
--   **Histórico** das últimas 30 rolagens em "Últimas rolagens" (sidebar; no celular, o dado da
-    barra do topo)
+-   **Histórico** das últimas 30 rolagens em "Últimas rolagens" (sidebar; no celular, pelo "Mais"
+    da barra de abas)
 -   As rolagens chegam aos outros em ~3 s (~1 s no Mapa), sem botão de atualizar. Com a aba
     escondida o app não consulta nada
 
@@ -579,7 +579,8 @@ pf2e-tools/
 │   ├── hooks/
 │   │   └── useCreatureSearch.ts  # Busca de criaturas (debounce, faixa, paginação) — Iniciativa + Escalar Monstro
 │   ├── pages/
-│   │   └── HomePage.tsx          # Página inicial (cards das ferramentas)
+│   │   ├── HomePage.tsx          # Página inicial: herói, o grupo e as prévias das ferramentas
+│   │   └── home/                 # As partes vivas da Início (grupo, ficha, combate, mapa, histórico)
 │   ├── services/
 │   │   ├── descriptions.ts       # Cliente do backend (busca + cache das descrições AON)
 │   │   ├── creatures.ts          # Cliente da busca de criaturas na AON
@@ -1165,8 +1166,16 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
         dano rolado por personagem e os destaques da sessão
     -   [x] **Todas as sessões**: troféus somando todas as noites (Abençoado pelos dados, Amaldiçoado, Golpe do século, Noite do
             apocalipse…), ranking por métrica, "o d20 é justo?" e a linha do tempo das sessões, com animação
--   [x] **Quem está na mesa**: a sidebar mostra quem está com o app aberto, com o nome do aparelho, a
-        ficha aberta e a página; no mapa, o token do personagem com a ficha aberta ganha um ponto verde
+-   [x] **Quem está na mesa**: o cartão da mesa na sidebar mostra quem está com o app aberto (e, tocando,
+        o nome do aparelho, a ficha aberta e a página); no mapa, o token do personagem com a ficha aberta ganha um ponto verde
+-   [x] **Início viva**: o grupo com PV, condições e quem está online, e as prévias das ferramentas com a
+        mesa real (a sua ficha, a ordem do combate, o mapa onde a mesa está, o d20 da última sessão)
+-   [x] **Sidebar em seções** (Jogo, Bastidores do GM, Mesa), que recolhe para um trilho de ícones, e
+        **barra de abas no celular**
+-   [x] **Notificações** (o sino): ficha publicada ou atribuída a você, item recebido, mapa ativado ou
+        revelado, combate começou e regra compartilhada; o lido vale em todos os aparelhos
+-   [x] **Busca ⌘K** para ir a qualquer página ou ferramenta pelo teclado
+-   [x] **Configurações da mesa** (GM): nome, sessão em andamento e próxima sessão
 -   [x] **Encontros da Iniciativa na nuvem**, abertos igual em qualquer aparelho
 -   [x] **Aviso de nova versão da ficha**: quem está com a ficha aberta vê na hora que a mesa publicou
         outra (um level-up), com o botão para abrir a nova
