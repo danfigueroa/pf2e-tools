@@ -9,7 +9,8 @@
 // outra (`member-reset-password`).
 //
 //   POST { action: 'register', code, username, password, name? } → { mesa, role, username }  (SEM sessão)
-//   GET  ?me=1                                    → { user, mesas: [{ id, name, role, displayName }] }
+//   GET  ?me=1                                    → { user, mesas: [{ id, name, role, displayName,
+//                                                     sessionStartedAt, nextSessionAt, members }] }
 //   GET  ?members=1                               → { members: [...], invites: [...] }   (GM)
 //   POST { action: 'invite-create', role?, maxUses?, days? } → { invite }               (GM)
 //   POST { action: 'invite-revoke', code }                   → { ok }                  (GM)
@@ -19,6 +20,8 @@
 //   POST { action: 'member-set-name', name, user? }          → { ok }   (a própria / GM)
 //   POST { action: 'member-reset-password', user }           → { password }            (GM)
 //   POST { action: 'sheet-assign', char, user|null }         → { ok }                  (GM)
+//   POST { action: 'mesa-settings', name?, session?: 'start'|'end', nextSessionAt?: ISO|null }
+//                                                             → { name, sessionStartedAt, nextSessionAt } (GM)
 //
 // O convite vale para a mesa EM QUE FOI CRIADO, não para a `?mesa=` do pedido: quem abre
 // o link de outra mesa entra nela.
@@ -41,6 +44,7 @@ const ACTIONS = new Set([
     'member-remove',
     'member-set-name',
     'sheet-assign',
+    'mesa-settings',
 ])
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -142,8 +146,12 @@ async function readMe(db, access) {
     const rows = check(
         await db
             .from('mesa_members')
-            .select('mesa, role, display_name, mesas(name)')
+            .select('mesa, role, display_name, mesas(name, session_started_at, next_session_at)')
             .eq('user_id', access.userId),
+    )
+    const counts = new Map(
+        (check(await db.rpc('mesa_account_counts', { p_user: access.userId })) ?? [])
+            .map((c) => [c.o_mesa, Number(c.o_accounts)]),
     )
     return {
         user: { id: access.userId, email: access.email, username: usernameOf(access.email) },
@@ -152,6 +160,9 @@ async function readMe(db, access) {
             name: r.mesas?.name ?? r.mesa,
             role: r.role,
             displayName: r.display_name ?? null,
+            sessionStartedAt: r.mesas?.session_started_at ?? null,
+            nextSessionAt: r.mesas?.next_session_at ?? null,
+            members: counts.get(r.mesa) ?? null,
         })),
     }
 }
@@ -307,6 +318,38 @@ export async function handleAuthRequest(mesa, method, query, body, access) {
         const { error } = await db.auth.admin.updateUserById(user, { password })
         if (error) throw new Error(error.message)
         return ok({ password })
+    }
+
+    if (action === 'mesa-settings') {
+        const patch = {}
+        if (body.name !== undefined) {
+            const name = String(body.name ?? '').trim()
+            if (name.length < 2 || name.length > 40) return fail(400, 'O nome da mesa precisa ter de 2 a 40 caracteres')
+            patch.name = name
+        }
+        if (body.session !== undefined) {
+            if (body.session === 'start') patch.session_started_at = new Date().toISOString()
+            else if (body.session === 'end') patch.session_started_at = null
+            else return fail(400, 'Campo "session" inválido')
+        }
+        if (body.nextSessionAt !== undefined) {
+            if (body.nextSessionAt === null) patch.next_session_at = null
+            else {
+                const at = Date.parse(String(body.nextSessionAt))
+                if (!Number.isFinite(at)) return fail(400, 'Campo "nextSessionAt" inválido')
+                patch.next_session_at = new Date(at).toISOString()
+            }
+        }
+        if (Object.keys(patch).length === 0) return fail(400, 'Nada para mudar')
+        const rows = check(
+            await db.from('mesas').update(patch).eq('id', mesa).select('name, session_started_at, next_session_at'),
+        )
+        const row = rows?.[0]
+        return ok({
+            name: row?.name ?? null,
+            sessionStartedAt: row?.session_started_at ?? null,
+            nextSessionAt: row?.next_session_at ?? null,
+        })
     }
 
     if (action === 'sheet-assign') {
