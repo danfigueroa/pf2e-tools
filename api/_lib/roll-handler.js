@@ -16,6 +16,7 @@
 // Vem ANTES da ficha publicada nos dois servidores: a rota da ficha aceita
 // qualquer POST com `action` e engoliria esta.
 
+import { canEditSheet, forbidden } from './access.js'
 import { isSupabaseConfigured } from './supabase.js'
 import { DAY_RE, addRoll, addShare, readDiaryDays, readDiaryRolls, readDiarySummary, readRolls, sanitizeRoll, sanitizeShare } from './roll-store.js'
 
@@ -48,6 +49,11 @@ export async function handleRollRequest(mesa, method, query, body, ctx = {}) {
     return ok({ rev, share })
   }
   const roll = sanitizeRoll(body?.roll)
+  // Rolar EM NOME de um personagem (a rolagem leva o slug dele) é do dono da ficha e do GM.
+  // Rolagem sem personagem — o rolador livre do mapa — é de qualquer membro.
+  if (roll?.slug && !(await canEditSheet(ctx.access, mesa, roll.slug))) {
+    return forbidden('Só o dono da ficha ou o GM rola por este personagem')
+  }
   if (!roll) return fail(400, 'Rolagem inválida')
   const rev = await addRoll(mesa, roll, ctx.userId ?? null)
   return ok({ rev, roll })
