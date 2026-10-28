@@ -8,6 +8,8 @@ export interface MemberRow {
     userId: string
     email: string | null
     username: string | null
+    /** Aparelho do app de antes do login (sessão anônima, sem conta). */
+    anonymous: boolean
     role: Role
     displayName: string | null
     joinedAt: string

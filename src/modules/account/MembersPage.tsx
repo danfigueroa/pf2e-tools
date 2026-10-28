@@ -64,6 +64,10 @@ export const MembersPage = () => {
   };
 
   const activeInvites = data?.invites.filter((i) => !i.revoked && new Date(i.expiresAt) > new Date() && i.uses < i.maxUses) ?? [];
+  // Os aparelhos do app antigo (sessão anônima) ainda estão em `mesa_members` até o cutover: sem
+  // nome nem conta, eram ~100 linhas em branco na lista e no seletor de dono, acima das contas.
+  const accounts = data?.members.filter((m) => !m.anonymous) ?? [];
+  const legacyDevices = (data?.members.length ?? 0) - accounts.length;
 
   return (
     <Box sx={{ maxWidth: 820, mx: 'auto' }}>
@@ -122,7 +126,7 @@ export const MembersPage = () => {
       <Section title="Quem está na mesa">
         {!data ? <Typography color="text.secondary">Carregando…</Typography> : (
           <Stack spacing={1.25} divider={<Box sx={{ borderTop: `1px solid ${ink.disabled}33` }} />}>
-            {data.members.map((m) => (
+            {accounts.map((m) => (
               <Box key={m.userId} sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                 <Box sx={{ flex: 1, minWidth: 160 }}>
                   <Typography sx={{ fontWeight: 600 }} noWrap>{label(m)}{m.userId === userId ? ' (você)' : ''}</Typography>
@@ -174,6 +178,12 @@ export const MembersPage = () => {
             ))}
           </Stack>
         )}
+        {legacyDevices > 0 && (
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
+            Mais {legacyDevices} aparelho{legacyDevices === 1 ? '' : 's'} do app de antes do login, sem conta. Não entram
+            em nada e somem quando o login passar a ser obrigatório.
+          </Typography>
+        )}
       </Section>
 
       <Section title="Dono de cada ficha">
@@ -193,7 +203,14 @@ export const MembersPage = () => {
                   onChange={(e) => void act(() => assignSheet(sheet.slug, e.target.value || null))}
                 >
                   <MenuItem value=""><em>Sem dono (só o GM)</em></MenuItem>
-                  {data.members.map((m) => <MenuItem key={m.userId} value={m.userId}>{label(m)}</MenuItem>)}
+                  {accounts.map((m) => (
+                    <MenuItem key={m.userId} value={m.userId}>
+                      {label(m)}
+                      {m.displayName && m.username && (
+                        <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>{m.username}</Typography>
+                      )}
+                    </MenuItem>
+                  ))}
                 </Select>
               </Box>
             ))}
