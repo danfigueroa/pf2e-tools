@@ -55,6 +55,8 @@ export interface TokenDescriptor {
      * de um personagem é aplicado só no cliente, por `withPcSizes`.
      */
     tiny?: boolean
+    /** Companheiro de combate (Animated Armor): o slug do PC dono — quem pode movê-lo, além do GM. */
+    companionOf?: string
     /** Posição do combatente na ordem de turnos da Iniciativa (0 = primeiro). */
     order?: number
 }

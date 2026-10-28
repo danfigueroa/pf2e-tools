@@ -36,6 +36,7 @@ function descriptors(state: EncounterState, views: CombatantView[]): Array<Token
             tiny: isTinySize(c.size) || undefined,
             image: c.tokenImage,
             fit: c.tokenFit,
+            companionOf: c.companionOf,
             defeated: c.defeated || undefined,
             speed: c.speed,
         })
