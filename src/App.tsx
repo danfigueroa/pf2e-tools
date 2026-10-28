@@ -22,6 +22,8 @@ const SessionDiaryPage = lazy(() =>
 
 const MembersPage = lazy(() =>
   import('./modules/account/MembersPage').then((m) => ({ default: m.MembersPage })));
+const MesaSettingsPage = lazy(() =>
+  import('./modules/account/MesaSettingsPage').then((m) => ({ default: m.MesaSettingsPage })));
 
 const page = (element: React.ReactNode) => <Suspense fallback={null}>{element}</Suspense>;
 
@@ -44,6 +46,7 @@ function App() {
               <Route path="mapa/:id?" element={page(<BattleMapPage />)} />
               <Route path="historico" element={page(<SessionDiaryPage />)} />
               <Route path="membros" element={page(<MembersPage />)} />
+              <Route path="mesa" element={page(<MesaSettingsPage />)} />
               {/* O nome antigo ("Diário da Sessão") parecia um diário escrito; o link salvo continua valendo. */}
               <Route path="diario" element={<Navigate to="/historico" replace />} />
             </Route>

@@ -2,7 +2,7 @@
 // Fala com as ações de `api/_lib/auth-handler.js`; o servidor confere que quem pede é GM.
 
 import { stateApi } from './mesa'
-import type { Role } from './auth'
+import { applyMesaSettings, type Role } from './auth'
 
 export interface MemberRow {
     userId: string
@@ -69,3 +69,12 @@ export const resetPassword = (user: string) => post<{ password: string }>({ acti
 export const assignSheet = (char: string, user: string | null) => post({ action: 'sheet-assign', char, user })
 
 export const inviteLink = (code: string) => `${window.location.origin}/convite/${code}`
+
+export interface MesaSettingsResult { name: string; sessionStartedAt: string | null; nextSessionAt: string | null }
+
+/** Nome, sessão em andamento e próxima sessão da mesa (GM). A resposta já entra no estado da conta. */
+export async function saveMesaSettings(patch: { name?: string; session?: 'start' | 'end'; nextSessionAt?: string | null }) {
+    const result = await post<MesaSettingsResult>({ action: 'mesa-settings', ...patch })
+    if (result.ok) applyMesaSettings(result.data)
+    return result
+}

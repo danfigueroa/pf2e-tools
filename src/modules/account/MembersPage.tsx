@@ -3,12 +3,11 @@ import {
   Alert, Box, Button, Chip, IconButton, MenuItem, Paper, Select, Stack, TextField, Tooltip, Typography,
 } from '@mui/material';
 import { ContentCopy as CopyIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import { useRole, type Role } from '../../services/auth';
+import { useMesaInfo, useRole, type Role } from '../../services/auth';
 import {
   assignSheet, createInvite, fetchMembers, inviteLink, removeMember, resetPassword, revokeInvite, setMemberName, setMemberRole,
   type MembersData,
 } from '../../services/members';
-import { currentMesa } from '../../services/mesa';
 import { displayFont, ink } from '../../theme';
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
@@ -29,6 +28,7 @@ const label = (m: { displayName: string | null; username: string | null; email: 
  */
 export const MembersPage = () => {
   const { isGm, userId } = useRole();
+  const mesa = useMesaInfo();
   const [data, setData] = useState<MembersData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
@@ -72,7 +72,7 @@ export const MembersPage = () => {
   return (
     <Box sx={{ maxWidth: 820, mx: 'auto' }}>
       <Typography component="h1" variant="h4" sx={{ mb: 0.5 }}>Membros</Typography>
-      <Typography color="text.secondary" sx={{ mb: 2.5 }}>Mesa {currentMesa.nome}</Typography>
+      <Typography color="text.secondary" sx={{ mb: 2.5 }}>Mesa {mesa.name}</Typography>
 
       {error && <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 2 }}>{error}</Alert>}
       {newPassword && (
