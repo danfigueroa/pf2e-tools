@@ -171,6 +171,15 @@ try {
     forgetOwner(MESA, slugs[1])
     expect('ficha sem dono: A escreve → 403', (await hp(users.a.token, slugs[1])).status, 403)
     expect('jogador não atribui', (await call({ token: users.a.token, method: 'POST', body: { action: 'sheet-assign', char: slugs[1], user: users.a.id } })).status, 403)
+    // Aparelho do app antigo (anônimo) que ficou em `mesa_members` não pode ser dono.
+    await db.from('mesa_members').insert({ mesa: MESA, user_id: users.anon.id })
+    forgetMember(MESA, users.anon.id)
+    expect('GM atribui a um anônimo → 400', (await call({ token: users.gm.token, method: 'POST', body: { action: 'sheet-assign', char: slugs[1], user: users.anon.id } })).status, 400)
+    const listed = (await call({ token: users.gm.token, query: { members: '1' } })).body.members ?? []
+    expect('lista marca o anônimo', listed.find((m) => m.userId === users.anon.id)?.anonymous, true)
+    expect('lista não marca a conta', listed.find((m) => m.userId === users.a.id)?.anonymous, false)
+    await db.from('mesa_members').delete().eq('mesa', MESA).eq('user_id', users.anon.id)
+    forgetMember(MESA, users.anon.id)
     expect('GM atribui a A → 200', (await call({ token: users.gm.token, method: 'POST', body: { action: 'sheet-assign', char: slugs[1], user: users.a.id } })).status, 200)
     expect('depois de atribuída, A escreve → 200', (await hp(users.a.token, slugs[1])).status, 200)
 

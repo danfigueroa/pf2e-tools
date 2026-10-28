@@ -164,10 +164,15 @@ async function readMembers(db, mesa) {
             .eq('mesa', mesa)
             .order('joined_at'),
     )
-    // O e-mail mora no Auth, não em `mesa_members`. A mesa é pequena: uma listagem só.
-    const emails = new Map()
-    const { data } = await db.auth.admin.listUsers({ page: 1, perPage: 200 })
-    for (const u of data?.users ?? []) emails.set(u.id, u.email ?? null)
+    // O e-mail mora no Auth, não em `mesa_members`. Paginado: as sessões anônimas de antes do
+    // login são centenas, e a primeira página deixava de fora justamente as contas novas.
+    const users = new Map()
+    for (let page = 1; page <= 20; page += 1) {
+        const { data, error } = await db.auth.admin.listUsers({ page, perPage: 1000 })
+        if (error) throw new Error(error.message)
+        for (const u of data?.users ?? []) users.set(u.id, u)
+        if ((data?.users?.length ?? 0) < 1000) break
+    }
 
     const sheets = check(await db.from('sheets').select('slug, name, owner_id').eq('mesa', mesa)) ?? []
     const invites = check(
@@ -181,8 +186,10 @@ async function readMembers(db, mesa) {
     return {
         members: (rows ?? []).map((r) => ({
             userId: r.user_id,
-            email: emails.get(r.user_id) ?? null,
-            username: usernameOf(emails.get(r.user_id)),
+            email: users.get(r.user_id)?.email || null,
+            username: usernameOf(users.get(r.user_id)?.email),
+            // Aparelho do app antigo (sessão anônima, sem conta): sai no cutover.
+            anonymous: users.get(r.user_id)?.is_anonymous === true,
             role: r.role,
             displayName: r.display_name ?? null,
             joinedAt: r.joined_at,
@@ -309,6 +316,8 @@ export async function handleAuthRequest(mesa, method, query, body, access) {
         if (user !== null) {
             if (!UUID.test(String(user))) return fail(400, 'Campo "user" inválido')
             if (!(await memberRole(mesa, user))) return fail(404, 'Essa pessoa não está na mesa')
+            const { data: found } = await db.auth.admin.getUserById(user)
+            if (!found?.user || found.user.is_anonymous) return fail(400, 'Dono de ficha precisa ter conta')
         }
         const rows = check(
             await db.from('sheets').update({ owner_id: user }).eq('mesa', mesa).eq('slug', slug).select('slug'),
