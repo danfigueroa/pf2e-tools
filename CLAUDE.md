@@ -374,7 +374,7 @@ das rotas (cada store do servidor manteve as funções exportadas). O Redis e o 
   `arton-1515` com slugs `teste-*` e apague no fim.
 
 - **Só o servidor escreve** (`api/_lib/supabase.js`, chave `SUPABASE_SECRET_KEY`, que passa por cima do RLS). O
-  navegador (`src/services/supabase.ts`, chave publicável) tem a sessão de quem entrou por e-mail (ver "Login, papéis e
+  navegador (`src/services/supabase.ts`, chave publicável) tem a sessão de quem entrou com usuário e senha (ver "Login, papéis e
   donos de ficha"; a sessão anônima de antes do login não vale mais) e NÃO escreve nada: entrar numa mesa é o servidor
   quem faz, ao resgatar um convite. O SDK é `import()` num chunk próprio (~60 kB gzip): não o importe estaticamente.
 - **Permissões são explícitas**: o projeto foi criado SEM "expose new tables" e COM RLS automático (`ensure_rls`), então
@@ -422,14 +422,22 @@ das rotas (cada store do servidor manteve as funções exportadas). O Redis e o 
 
 ## Login, papéis e donos de ficha
 
-Desde out/2026 o app exige **login por e-mail** (código de 6 dígitos ou link, sem senha — `signInWithOtp`/`verifyOtp`) e
-**fazer parte da mesa**. Antes era uma sessão anônima por aparelho e o servidor nunca recusava ninguém.
+Desde out/2026 o app exige **login por usuário e senha** e **fazer parte da mesa**. Antes era uma sessão anônima por
+aparelho e o servidor nunca recusava ninguém.
+
+- **Sem e-mail, sem serviço externo** (decisão do usuário: nada de Resend/SMTP). O Supabase Auth exige um e-mail, então
+  cada conta tem um endereço fictício `<usuário>@covil.local` (`USER_DOMAIN`, em `auth-handler.js` E em `services/auth.ts`)
+  que nunca recebe mensagem. A conta é criada pelo SERVIDOR (chave secreta, `email_confirm: true`) no resgate do convite
+  (`register`, o único pedido sem sessão — o convite é a credencial; se o resgate falhar no meio, a conta recém-criada é
+  apagada). Login: `signInWithPassword`. **Esqueceu a senha: o GM gera uma provisória** em `/membros`
+  (`member-reset-password`, mostrada uma vez) e a pessoa troca pelo menu da conta (`updateUser`). Usuário: 3–30 de
+  `[a-z0-9._-]`; senha ≥ 6.
 
 - **Papéis por mesa** (`mesa_members.role`: `player` | `gm`). Só o servidor escreve `role` (o grant de coluna a tira do
   cliente — senão qualquer um se promoveria). Entrar na mesa = **convite** (`mesa_invites`: código de 12 caracteres, papel,
   validade, usos; `accept_invite` é atômica e quem já é membro não consome o convite). O GM gera/revoga em `/membros`; o
-  link é `/convite/<código>` e o código fica em `localStorage` (`pf2e:invite`, não `sessionStorage`: o link do e-mail de
-  login abre OUTRA aba). **Convite vale para a mesa em que foi criado**, não a do `?mesa=` do pedido. A mesa nunca fica
+  link é `/convite/<código>` (abre "Criar conta" com o código preenchido; quem já tem conta entra e o convite vale
+  sozinho) e o código fica em `localStorage` (`pf2e:invite`). **Convite vale para a mesa em que foi criado**, não a do `?mesa=` do pedido. A mesa nunca fica
   sem GM (409 ao rebaixar/remover o último).
 - **Ficha tem dono** (`sheets.owner_id`): quem a publica pela primeira vez; só o dono e o GM publicam por cima, pedem o
   guia, restauram e **escrevem o estado do personagem** (PV, slots, condições…). Ficha sem dono (as publicadas antes do
@@ -437,7 +445,9 @@ Desde out/2026 o app exige **login por e-mail** (código de 6 dígitos ou link, 
   sendo só autoria do último publicador.
 - **A autorização mora no servidor, num lugar só**: `api/_lib/state-router.js` (despacho do `/api/state`, usado pela Vercel
   E pelo dev server — antes eram duas cópias) → `access.js` (`resolveAccess`: identidade + papel, cache de 30 s;
-  `gate`: 401 sem sessão, 403 fora da mesa) → cada handler decide por `ctx.access`. A conta (`auth-handler.js`: `?me=1`,
+  `gate`: 401 sem sessão, 403 fora da mesa) → cada handler decide por `ctx.access`. **A gestão de conta (membros, papéis,
+  senha, convites) exige GM de verdade SEMPRE, mesmo com a flag desligada** — liberar ali deixaria qualquer um se promover
+  antes do cutover (já foi bug). A conta (`auth-handler.js`: `?me=1`,
   membros, convites) vem ANTES do portão, para quem ainda não é membro poder resgatar o convite. **Sem arquivo novo em
   `api/`** (limite de 12 funções).
   - GM-only: criar/renomear/revelar/ativar/apagar mapa, limpar desenhos, `map-sync` (é a Iniciativa), campos `meta`/`hp:`/`fit:`
@@ -449,15 +459,15 @@ Desde out/2026 o app exige **login por e-mail** (código de 6 dígitos ou link, 
   é um chunk à parte). Entrar, sair e resgatar convite **recarregam a página**, como `switchMesa`: os serviços abrem no
   boot com a sessão que existir. O servidor recusar por papel volta como `pf2e:forbidden` (aviso na tela); 401 relê o login.
   **A UI só esconde botões** — o que vale é o servidor. Sessão anônima antiga é descartada no boot.
-- **Rollout em passos (a ordem importa)**: (1) migration aditiva + servidor com a flag DESLIGADA; (2) cliente novo;
-  (3) Supabase Auth: e-mail OTP, `site_url`/redirects e **SMTP próprio** (o padrão do Supabase manda poucos e-mails por hora —
-  não serve para a mesa logar numa noite) e o template com `{{ .Token }}`; (4) `grant-gm.mjs` por mesa; (5) o GM convida e
-  atribui as fichas; (6) **cutover**: `AUTH_REQUIRED=1`, apagar `mesa_members` dos usuários `is_anonymous`, desligar
+- **Rollout em passos (a ordem importa)**: (1) migration aditiva + servidor com a flag DESLIGADA; (2) deploy do cliente
+  novo; (3) `grant-gm.mjs <mesa>` (imprime o link em `https://pathfinder.danielfigueroa.dev/convite/…`) e o GM cria a conta
+  por ele; (4) o GM convida e atribui as fichas; (5) **cutover**: `AUTH_REQUIRED=1`, apagar `mesa_members` dos usuários `is_anonymous`, desligar
   `enable_anonymous_sign_ins` e uma migration que tira o `insert`/`update` direto de `mesa_members` do `authenticated`
   (hoje ainda liberado para o cliente ANTIGO não perder o Realtime — sem fechar isso, qualquer logado se auto-inscreve).
 - **Não coberto ainda**: os endpoints da AON (`feat`, `search`, `spell`…) seguem abertos (`gateLogin` existe em `access.js`,
   falta aplicá-lo em cada `api/*.js` e no dev server); descrições/traduções/correções são globais (qualquer membro de
-  qualquer mesa). `check-auth` cobre a matriz; o navegador foi conferido com sessões injetadas (login, convite, jogador, GM).
+  qualquer mesa). `check-auth` cobre a matriz; o navegador foi conferido criando a conta pelo formulário do convite, saindo e
+  entrando de novo (e com sessões injetadas para jogador e GM).
 
 ## Mesas
 
