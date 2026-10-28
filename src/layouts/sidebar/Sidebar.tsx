@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from 'react';
-import { Box, ButtonBase, IconButton, Popover, Tooltip, Typography } from '@mui/material';
+import { Box, ButtonBase, IconButton, Popover, Typography } from '@mui/material';
 import {
   Casino as DiceIcon,
   Key as KeyIcon,
@@ -97,11 +97,9 @@ export const Sidebar = ({ collapsed, onToggleCollapse, onNavigate, onOpenHistory
       </Box>
 
       {collapsed ? (
-        <Tooltip title="Últimas rolagens" placement="right">
-          <IconButton aria-label="Últimas rolagens" onClick={onOpenHistory} sx={{ alignSelf: 'center', color: chrome.textMuted }}>
-            <DiceIcon />
-          </IconButton>
-        </Tooltip>
+        <IconButton aria-label="Últimas rolagens" title="Últimas rolagens" onClick={onOpenHistory} sx={{ alignSelf: 'center', color: chrome.textMuted }}>
+          <DiceIcon />
+        </IconButton>
       ) : (
         <RecentRolls onOpenHistory={onOpenHistory} />
       )}
@@ -119,18 +117,17 @@ const Brand = ({ collapsed, onToggleCollapse }: { collapsed: boolean; onToggleCo
       <Box component="img" src={logoHorizontal} alt="Covil de Dados" sx={{ display: 'block', height: 42, width: 'auto', maxWidth: 180 }} />
     )}
     {onToggleCollapse && (
-      <Tooltip title={collapsed ? 'Abrir menu' : 'Recolher menu'} placement="right">
-        <IconButton
-          aria-label={collapsed ? 'Abrir menu' : 'Recolher menu'}
-          onClick={onToggleCollapse}
-          sx={{
-            width: 44, height: 44, borderRadius: 1.5, border: `1px solid ${chrome.line}`, color: chrome.textMuted,
-            transform: collapsed ? 'scaleX(-1)' : undefined,
-          }}
-        >
-          <CollapseIcon fontSize="small" />
-        </IconButton>
-      </Tooltip>
+      <IconButton
+        aria-label={collapsed ? 'Abrir menu' : 'Recolher menu'}
+        title={collapsed ? 'Abrir menu' : 'Recolher menu'}
+        onClick={onToggleCollapse}
+        sx={{
+          width: 44, height: 44, borderRadius: 1.5, border: `1px solid ${chrome.line}`, color: chrome.textMuted,
+          transform: collapsed ? 'scaleX(-1)' : undefined,
+        }}
+      >
+        <CollapseIcon fontSize="small" />
+      </IconButton>
     )}
   </Box>
 );
@@ -165,15 +162,18 @@ const MesaCard = ({ collapsed }: { collapsed: boolean }) => {
   if (collapsed) {
     return (
       <>
-        <Tooltip title={`${mesa.name} · trocar de mesa`} placement="right">
-          <ButtonBase aria-label={`Mesa: ${mesa.name}. Trocar de mesa`} aria-haspopup="menu" onClick={(e) => setMenu(e.currentTarget)}
-            sx={{ alignSelf: 'center', borderRadius: 1.5, position: 'relative' }}>
-            {badge}
-            {session?.live && (
-              <Box sx={{ position: 'absolute', right: -2, bottom: -2, width: 12, height: 12, borderRadius: '50%', bgcolor: chrome.online, border: `2px solid ${green.deepest}` }} />
-            )}
-          </ButtonBase>
-        </Tooltip>
+        <ButtonBase
+          aria-label={`Mesa: ${mesa.name}. Trocar de mesa`}
+          title={`${mesa.name} · trocar de mesa`}
+          aria-haspopup="menu"
+          onClick={(e) => setMenu(e.currentTarget)}
+          sx={{ alignSelf: 'center', borderRadius: 1.5, position: 'relative' }}
+        >
+          {badge}
+          {session?.live && (
+            <Box sx={{ position: 'absolute', right: -2, bottom: -2, width: 12, height: 12, borderRadius: '50%', bgcolor: chrome.online, border: `2px solid ${green.deepest}` }} />
+          )}
+        </ButtonBase>
         <MesaMenu anchor={menu} onClose={() => setMenu(null)} />
       </>
     );
@@ -253,6 +253,7 @@ const NavLink = ({ item, collapsed, onNavigate }: { item: NavItem; collapsed: bo
       onClick={onNavigate}
       aria-current={active ? 'page' : undefined}
       aria-label={collapsed ? item.text : undefined}
+      title={collapsed ? (round ? `${item.text} · rodada ${round}` : item.text) : undefined}
       sx={{
         display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'flex-start', gap: 1.5,
         minHeight: 48, pl: collapsed ? 0 : 0.75, pr: collapsed ? 0 : 1.5, borderRadius: 1.75,
@@ -291,9 +292,7 @@ const NavLink = ({ item, collapsed, onNavigate }: { item: NavItem; collapsed: bo
     </ButtonBase>
   );
 
-  return collapsed
-    ? <Tooltip title={round ? `${item.text} · rodada ${round}` : item.text} placement="right">{link}</Tooltip>
-    : link;
+  return link;
 };
 
 /** As três rolagens mais recentes da mesa; "Ver todas" abre as 30 do feed. */
@@ -351,10 +350,8 @@ const Profile = ({ collapsed, onOpenPassword }: { collapsed: boolean; onOpenPass
   if (collapsed) {
     return (
       <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, pt: 2, borderTop: `1px solid ${chrome.active}` }}>
-        <Tooltip title={`${name} · ${roleText}`} placement="right"><Box><Initials name={name} size={40} ring /></Box></Tooltip>
-        <Tooltip title="Sair da conta" placement="right">
-          <IconButton aria-label="Sair da conta" onClick={() => void signOut()} sx={{ color: chrome.textMuted }}><LogoutIcon fontSize="small" /></IconButton>
-        </Tooltip>
+        <Box title={`${name} · ${roleText}`}><Initials name={name} size={40} ring /></Box>
+        <IconButton aria-label="Sair da conta" title="Sair da conta" onClick={() => void signOut()} sx={{ color: chrome.textMuted }}><LogoutIcon fontSize="small" /></IconButton>
       </Box>
     );
   }
@@ -366,12 +363,8 @@ const Profile = ({ collapsed, onOpenPassword }: { collapsed: boolean; onOpenPass
           <Typography noWrap sx={{ fontSize: '0.95rem', fontWeight: 600, color: chrome.text }}>{name}</Typography>
           <Typography noWrap sx={{ fontSize: '0.75rem', color: chrome.textMuted }}>{roleText}</Typography>
         </Box>
-        <Tooltip title="Trocar senha">
-          <IconButton aria-label="Trocar senha" onClick={onOpenPassword} sx={{ color: chrome.textMuted }}><KeyIcon fontSize="small" /></IconButton>
-        </Tooltip>
-        <Tooltip title="Sair da conta">
-          <IconButton aria-label="Sair da conta" onClick={() => void signOut()} sx={{ color: chrome.textMuted }}><LogoutIcon fontSize="small" /></IconButton>
-        </Tooltip>
+        <IconButton aria-label="Trocar senha" title="Trocar senha" onClick={onOpenPassword} sx={{ color: chrome.textMuted }}><KeyIcon fontSize="small" /></IconButton>
+        <IconButton aria-label="Sair da conta" title="Sair da conta" onClick={() => void signOut()} sx={{ color: chrome.textMuted }}><LogoutIcon fontSize="small" /></IconButton>
       </Box>
       <Disclaimer />
     </Box>
