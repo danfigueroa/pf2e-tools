@@ -4,7 +4,7 @@
 //
 // Devolve sempre `{ status, body }`; quem chama só escreve a resposta.
 //
-// Ordem das rotas (importa): conta → [portão] → mapa → rolagens → correções → encontro
+// Ordem das rotas (importa): conta → [portão] → notificações → mapa → rolagens → correções → encontro
 // → ficha → estado. A rota da ficha aceita qualquer POST com `action` e engoliria as
 // anteriores, e a da conta vem antes do portão porque quem ainda não é membro precisa
 // poder resgatar o convite que o torna um.
@@ -25,6 +25,7 @@ import { handleRollRequest, isRollRequest } from './roll-handler.js'
 import { handleEncounterRequest, isEncounterRequest } from './encounter-handler.js'
 import { handleFixRequest, isFixRequest } from './fix-handler.js'
 import { handleAuthRequest, isAuthRequest } from './auth-handler.js'
+import { handleEventRequest, isEventRequest } from './event-handler.js'
 import { mesaFrom } from './mesas.js'
 import { canEditSheet, forbidden, gate, resolveAccess } from './access.js'
 
@@ -61,6 +62,10 @@ export async function routeState({ req, method, query, body }) {
     if (denied) return denied
     const ctx = { userId: access.userId, access }
 
+    if (isEventRequest(method, query, body)) {
+        return run('Erro nas notificações', 'Erro ao tratar as notificações', () =>
+            handleEventRequest(mesa, method, query, body, ctx))
+    }
     if (isMapRequest(method, query, body)) {
         return run('Erro no mapa', 'Erro ao tratar o mapa', () => handleMapRequest(mesa, method, query, body, ctx))
     }
