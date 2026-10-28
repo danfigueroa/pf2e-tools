@@ -74,7 +74,12 @@ export const Sidebar = ({ collapsed, onToggleCollapse, onNavigate, onOpenHistory
       sx={{
         height: '100%', display: 'flex', flexDirection: 'column', gap: 2.5,
         px: collapsed ? 1.25 : 2, pt: 2.75, pb: 2.5, overflowY: 'auto', overflowX: 'hidden',
+        // A do GM passa da altura da tela: barra fina, para não comer a largura dos textos.
+        scrollbarWidth: 'thin', scrollbarColor: `${chrome.line} transparent`,
         bgcolor: green.deepest, color: chrome.text,
+        // A coluna rola quando não cabe: sem isto os itens encolhem no lugar de rolar, e o cartão
+        // da mesa (com `overflow: hidden`) sumia, espremido a zero de altura.
+        '& > *': { flexShrink: 0 },
       }}
     >
       <Brand collapsed={collapsed} onToggleCollapse={onToggleCollapse} />
@@ -190,7 +195,7 @@ const MesaCard = ({ collapsed }: { collapsed: boolean }) => {
         {badge}
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography noWrap sx={{ fontSize: '0.95rem', fontWeight: 600, color: chrome.text }}>{mesa.name}</Typography>
-          <Typography noWrap sx={{ fontSize: '0.75rem', color: chrome.textMuted }}>{subtitle}</Typography>
+          <Typography sx={{ fontSize: '0.75rem', lineHeight: 1.35, color: chrome.textMuted }}>{subtitle}</Typography>
         </Box>
         <UnfoldIcon sx={{ color: chrome.textMuted, fontSize: 20 }} />
       </ButtonBase>
@@ -301,11 +306,11 @@ const RecentRolls = ({ onOpenHistory }: { onOpenHistory: () => void }) => {
   const recent = rolls.slice(0, 3);
   return (
     <Box sx={{ borderRadius: 2.25, bgcolor: chrome.raised, p: 1.75, display: 'flex', flexDirection: 'column', gap: 1.25, mt: 0.5 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography sx={{ ...sectionLabelSx, display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+        <Typography noWrap sx={{ ...sectionLabelSx, display: 'flex', alignItems: 'center', gap: 1 }}>
           <DiceIcon sx={{ fontSize: 14, color: gold.bright }} /> Últimas rolagens
         </Typography>
-        <ButtonBase onClick={onOpenHistory} sx={{ fontSize: '0.75rem', fontWeight: 600, color: gold.bright, px: 0.5, py: 0.5, borderRadius: 1 }}>
+        <ButtonBase onClick={onOpenHistory} sx={{ fontSize: '0.75rem', fontWeight: 600, color: gold.bright, px: 0.5, py: 0.5, borderRadius: 1, whiteSpace: 'nowrap', flexShrink: 0 }}>
           Ver todas
         </ButtonBase>
       </Box>
@@ -357,14 +362,14 @@ const Profile = ({ collapsed, onOpenPassword }: { collapsed: boolean; onOpenPass
   }
   return (
     <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', gap: 1.75, pt: 2, borderTop: `1px solid ${chrome.active}` }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 0.5 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 0.5 }}>
         <Initials name={name} size={40} ring />
-        <Box sx={{ flex: 1, minWidth: 0, pl: 0.5 }}>
+        <Box sx={{ flex: 1, minWidth: 0, pl: 1 }}>
           <Typography noWrap sx={{ fontSize: '0.95rem', fontWeight: 600, color: chrome.text }}>{name}</Typography>
           <Typography noWrap sx={{ fontSize: '0.75rem', color: chrome.textMuted }}>{roleText}</Typography>
         </Box>
-        <IconButton aria-label="Trocar senha" title="Trocar senha" onClick={onOpenPassword} sx={{ color: chrome.textMuted }}><KeyIcon fontSize="small" /></IconButton>
-        <IconButton aria-label="Sair da conta" title="Sair da conta" onClick={() => void signOut()} sx={{ color: chrome.textMuted }}><LogoutIcon fontSize="small" /></IconButton>
+        <IconButton size="small" aria-label="Trocar senha" title="Trocar senha" onClick={onOpenPassword} sx={{ color: chrome.textMuted }}><KeyIcon fontSize="small" /></IconButton>
+        <IconButton size="small" aria-label="Sair da conta" title="Sair da conta" onClick={() => void signOut()} sx={{ color: chrome.textMuted }}><LogoutIcon fontSize="small" /></IconButton>
       </Box>
       <Disclaimer />
     </Box>
