@@ -52,13 +52,28 @@ export async function pingDatabase() {
  * como antes de haver sessão.
  */
 export async function requestUserId(req) {
+    return (await requestIdentity(req))?.userId ?? null
+}
+
+/**
+ * Quem fez o pedido, com o que a autorização precisa saber além do id: se a sessão
+ * é anônima (a de antes do login, que o servidor com `AUTH_REQUIRED` recusa) e o
+ * e-mail. Mesma conferência local do JWT de `requestUserId`.
+ */
+export async function requestIdentity(req) {
     const header = req?.headers?.authorization
     const token = typeof header === 'string' ? header.match(/^Bearer\s+(\S+)$/)?.[1] : null
     const db = token ? supabase() : null
     if (!db) return null
     try {
         const { data, error } = await db.auth.getClaims(token)
-        return error ? null : (data?.claims?.sub ?? null)
+        const claims = error ? null : data?.claims
+        if (!claims?.sub) return null
+        return {
+            userId: claims.sub,
+            anonymous: claims.is_anonymous === true,
+            email: typeof claims.email === 'string' ? claims.email : null,
+        }
     } catch {
         return null
     }
