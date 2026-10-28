@@ -52,6 +52,35 @@ export const status = {
     info: '#2B5FA8',
 } as const
 
+/**
+ * A moldura verde da sidebar, do cabeçalho do celular e dos blocos escuros da Início (herói,
+ * prévias). O fundo é o `green.deepest`; estes são os degraus por cima dele e as tintas que
+ * leem sobre ele (todas ≥4,5:1 sobre `green.deepest`, os rótulos inclusive).
+ */
+export const chrome = {
+    /** Bloco escuro destacado (herói da Início). */
+    hero: '#16291F',
+    /** Cartão sobre a moldura (mesa, últimas rolagens, prévias). */
+    raised: '#1A3027',
+    /** Rodapé de um cartão elevado. */
+    raisedDeep: '#172B22',
+    /** Item ativo da navegação. */
+    active: '#23402F',
+    line: '#2C4A3B',
+    lineStrong: '#3A5A49',
+    /** Título e número sobre a moldura. */
+    text: '#F3E6C4',
+    textSoft: '#C9D2CB',
+    textMuted: '#A9B5AD',
+    /** Rótulo de seção ("JOGO", "MESA"), 5,5:1. */
+    label: '#8FA096',
+    /** Ponto de "online" sobre a moldura. */
+    online: '#6FCF8E',
+} as const
+
+/** Selo "N online" sobre o pergaminho. */
+export const ONLINE_BADGE = { bg: '#E3F0E6', text: '#22603A', dot: '#2F8A52' } as const
+
 // --- Acentos semânticos do PF2e ---
 
 /** Tradições de magia. */
