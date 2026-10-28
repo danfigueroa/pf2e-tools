@@ -66,6 +66,7 @@ import {
 } from '../../services/maps'
 import { DRAW_COLORS, gold, green, ink, parchment } from '../../theme'
 import { setCurrentMapId } from '../initiative-tracker/encounterStorage'
+import { useRole } from '../../services/auth'
 
 const GM_KEY = 'pf2e:map:gm'
 
@@ -142,9 +143,13 @@ export const BattleMapPage = () => {
     const id = routeId ?? null
 
     const menu = useLayoutMenu()
-    const [gm, setGm] = useState(() => {
-        try { return localStorage.getItem(GM_KEY) === '1' } catch { return false }
+    // O papel vem da conta (membro GM da mesa); o interruptor "Modo GM" só liga ou desliga a
+    // VISÃO de GM de quem já é GM — jogador não o vê, e o servidor decide pelo papel, nunca por ele.
+    const { isGm } = useRole()
+    const [gmView, setGmView] = useState(() => {
+        try { return localStorage.getItem(GM_KEY) !== '0' } catch { return true }
     })
+    const gm = isGm && gmView
     const [tool, setTool] = useState<MapTool>('select')
     const [diceOpen, setDiceOpen] = useState(false)
     const [zoom, setZoom] = useState(1)
@@ -207,7 +212,7 @@ export const BattleMapPage = () => {
     }, [routeId, navigate])
 
     const toggleGm = (on: boolean) => {
-        setGm(on)
+        setGmView(on)
         if (!on && tool === 'image') setTool('select')
         try { localStorage.setItem(GM_KEY, on ? '1' : '0') } catch { /* sem storage, só nesta aba */ }
     }
@@ -455,11 +460,13 @@ export const BattleMapPage = () => {
 
                     <Box sx={{ flex: 1 }} />
 
-                    <FormControlLabel
-                        control={<Switch size="small" checked={gm} onChange={(e) => toggleGm(e.target.checked)} color="warning" />}
-                        label="Modo GM"
-                        sx={{ mr: 0.5, '& .MuiFormControlLabel-label': { fontSize: '0.85rem' } }}
-                    />
+                    {isGm && (
+                        <FormControlLabel
+                            control={<Switch size="small" checked={gm} onChange={(e) => toggleGm(e.target.checked)} color="warning" />}
+                            label="Modo GM"
+                            sx={{ mr: 0.5, '& .MuiFormControlLabel-label': { fontSize: '0.85rem' } }}
+                        />
+                    )}
                 </Paper>
 
                 {data?.private && gm && (
