@@ -451,7 +451,10 @@ aparelho e o servidor nunca recusava ninguém.
   membros, convites) vem ANTES do portão, para quem ainda não é membro poder resgatar o convite. **Sem arquivo novo em
   `api/`** (limite de 12 funções).
   - GM-only: criar/renomear/revelar/ativar/apagar mapa, limpar desenhos, `map-sync` (é a Iniciativa), campos `meta`/`hp:`/`fit:`
-    do mapa, gravar o encontro. Jogador: mover token (`pos:`), desenhar, pingar, rolar.
+    do mapa, gravar o encontro. Jogador: desenhar, pingar, rolar livre e **mover só o PRÓPRIO token** (`pos:`) — o PC cujo
+    `slug` é dele ou o companheiro com `companionOf` dele (o `tok:` leva os dois); o GM move todos.
+  - **Rolar por um personagem** (rolagem com `slug`) é do dono e do GM (`roll-handler`); rolagem sem personagem (rolador
+    do mapa) é de qualquer membro.
   - `AUTH_REQUIRED=1` liga a cobrança; desligada, o servidor se comporta como antes (rede de segurança do rollout). Sem
     Supabase também não cobra (não há como autenticar), e o cliente entra em modo `local` com todas as permissões.
 - **Cliente**: `services/auth.ts` (estado, `useRole`, `canEditSheet`, e o wrapper de `fetch` que põe o JWT em TODO
@@ -459,6 +462,16 @@ aparelho e o servidor nunca recusava ninguém.
   é um chunk à parte). Entrar, sair e resgatar convite **recarregam a página**, como `switchMesa`: os serviços abrem no
   boot com a sessão que existir. O servidor recusar por papel volta como `pf2e:forbidden` (aviso na tela); 401 relê o login.
   **A UI só esconde botões** — o que vale é o servidor. Sessão anônima antiga é descartada no boot.
+- **Ficha de outra pessoa abre em SOMENTE LEITURA** (decisão do usuário: ver tudo, não rolar nem gastar nada).
+  `CharacterSheetView` virou um invólucro que decide (`canEditSheet` com o `ownerId` da ficha) e fornece o contexto
+  (`sheetAccess.ts`) ACIMA do corpo (`SheetBody`), porque os hooks do estado da mesa são chamados no corpo. Três camadas:
+  `useSharedState` não escreve nada (nem a subida do cache antigo, que viraria um aviso de 403 a cada fatia);
+  `RollTrigger` vira texto e o `RollDialog` não monta; e o tema aninhado (`components/ReadOnlyTheme.tsx`) tira o clique de
+  todo `Button`/`IconButton`/`Switch`/`Checkbox`… — por ESTILO, não por `disabled`, porque muitos botões passam
+  `disabled={…}` explícito e escapariam do padrão. Vale nos diálogos e na gaveta (portais). **Botão novo nasce travado**;
+  botão de VER leva `{...VIEW_OK}` (`data-view`: Trocar ficha, Atualizar, fechar/compartilhar a descrição, Carregar todas,
+  Corrigir tradução). `ButtonBase` não é pego pelo tema: pips (`SlotPips`, `ActionsBar`) e envio de token (`TokenAvatar`,
+  `CompanionsCard` — que subiria a imagem ao Storage antes de a mesa recusar) leem `useSheetReadOnly()` à mão.
 - **Rollout em passos (a ordem importa)**: (1) migration aditiva + servidor com a flag DESLIGADA; (2) deploy do cliente
   novo; (3) `grant-gm.mjs <mesa>` (imprime o link em `https://pathfinder.danielfigueroa.dev/convite/…`) e o GM cria a conta
   por ele; (4) o GM convida e atribui as fichas; (5) **cutover**: `AUTH_REQUIRED=1`, apagar `mesa_members` dos usuários `is_anonymous`, desligar
