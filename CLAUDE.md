@@ -33,7 +33,7 @@ todos os módulos. O `jspdf` continua nas dependências: é o `ExportOptions` do
 ## Marca
 
 Nome **Covil de Dados**, kit em `brand/covil-de-dados/` (`LEIA-ME.md` tem cores, fontes e qual arquivo usar). No app:
-logo horizontal no cabeçalho da sidebar e na Início, símbolo no AppBar do celular (`src/assets/`); ícones, manifest e
+logo horizontal no cabeçalho da sidebar (o símbolo na sidebar recolhida), símbolo no cabeçalho do celular (`src/assets/`); ícones, manifest e
 `og-image` em `public/`. **Não recolora nem estica os SVGs** (texto já em curvas) e, sobre foto ou textura, use as
 versões `-1cor-`. Abaixo de 48 px, o símbolo é o `covil-simbolo-reduzido`. A `og:image` usa o domínio de produção por
 URL absoluta (`index.html`) — troque junto se o domínio mudar. O aviso "Ferramenta de fã, não oficial" fica no rodapé
@@ -62,8 +62,9 @@ node --env-file=.env scripts/check-diary.mjs
                                         # confere o resumo do histórico da mesa (SQL) contra a conta do cliente, dia a dia
 node scripts/check-economy.mjs          # confere que todo talento/item do elenco que custa ação, reação ou Ponto Mítico tem caminho
 node --env-file=.env scripts/check-auth.mjs
-                                        # matriz de acesso (login, papéis, convites, dono de ficha) contra o banco real; cria e apaga usuários de teste
-node --env-file=.env scripts/grant-gm.mjs <mesa> [--email a@b.c]
+                                        # matriz de acesso (login, papéis, convites, dono de ficha, notificações, configurações da mesa)
+                                        # contra o banco real; cria e apaga usuários e eventos de teste
+node --env-file=.env scripts/grant-gm.mjs <mesa> [--user <usuário>]
                                         # bootstrap do primeiro GM de uma mesa (convite de GM, ou promove quem já tem conta)
 node --env-file=.env scripts/check-migrations.mjs
                                         # roda as migrations pendentes em produção dentro de BEGIN…ROLLBACK (antes do push!)
@@ -482,6 +483,48 @@ aparelho e o servidor nunca recusava ninguém.
   qualquer mesa). `check-auth` cobre a matriz; o navegador foi conferido criando a conta pelo formulário do convite, saindo e
   entrando de novo (e com sessões injetadas para jogador e GM).
 
+## Início, sidebar e notificações
+
+Redesign do usuário (out/2026, artefato de design "Covil de Dados — Nova Home"): a Início deixou de ser uma grade de cartões
+estáticos e passou a mostrar a mesa VIVA; a sidebar ganhou seções; o celular, barra de abas.
+
+- **Navegação numa lista só** (`layouts/navigation.tsx`, `NAV_ITEMS`): a sidebar (seções JOGO / BASTIDORES DO GM / MESA), a
+  barra de abas e a busca leem dela — destino novo entra nos três. Jogador não vê BASTIDORES nem MESA, mas Escalar Monstro e
+  Transformações vão para JOGO (`visibleNav`): a Transformação é dos druidas do grupo.
+- **Sidebar** (`layouts/sidebar/Sidebar.tsx`): cartão da mesa (nome do servidor, "N membros", sessão em andamento ou próxima
+  sessão, avatares de quem está na mesa — tocar abre a `PresenceList`), navegação com o selo "Rodada N" na Iniciativa
+  (`services/combatStatus.ts`), as 3 últimas rolagens e o perfil. **Recolhe** para um trilho de ícones (preferência do aparelho,
+  `pf2e:sidebar-collapsed`). Os filhos da coluna têm `flexShrink: 0`: sem isso, a coluna da sidebar do GM (mais alta que a tela)
+  encolhia os itens em vez de rolar, e o cartão da mesa (`overflow: hidden`) sumia — já foi bug.
+- **Celular (todo o app, menos o mapa)** (`layouts/MobileChrome.tsx`): cabeçalho sobre o pergaminho (símbolo, mesa, sino, busca,
+  conta) e barra de abas verde embaixo (Início, Ficha, Iniciativa, Mapa, **Mais** = a gaveta com a sidebar inteira). O
+  `MainLayout` publica `--tabbar-h` e `--sidebar-w` como variáveis CSS: o que é `fixed`/`sticky` e precisa da moldura as usa (o
+  cartão de rolagem centra fora da sidebar, o cartão de regra e a barra em lote da Iniciativa ficam acima da barra de abas).
+  **Elemento novo preso embaixo no celular precisa somar `var(--tabbar-h)`.**
+- **Busca ⌘K / Ctrl+K** (`components/CommandPalette.tsx`, chunk próprio): SÓ páginas e ferramentas (decisão do usuário), sem
+  acento, por sinônimos (`keywords`). Quem quer abrir dispara `openSearch()` (evento `pf2e:open-search`).
+- **Notificações** (`services/notifications.ts` + o sino `NotificationsButton`, lista em chunk próprio `NotificationsList`):
+  quem REGISTRA são triggers do banco (migration `inicio_e_notificacoes`, tabela `mesa_events`): ficha publicada, ficha atribuída
+  (só para o dono novo, `target_user`), mapa ativado/revelado, combate iniciado (rodada 0→1), regra compartilhada. Lista em
+  `GET ?events=1` (`api/_lib/event-handler.js`), aviso ao vivo no canal `mesa:<mesa>:events`; o lido é da CONTA
+  (`mesa_members.events_seen`, só anda para a frente). Não notifica a própria publicação, a regra compartilhada por este
+  aparelho, nem ao GM mapa/combate (só ele faz). Item recebido é notificação LOCAL do aparelho (`onArrival` de `gifts.ts`, só para
+  ficha que a conta possui). Tocar leva ao lugar: `?ficha=<slug>` na Ficha Virtual, `/mapa/<id>`, `/iniciativa`, ou reabre o
+  cartão da regra (evento `pf2e:show-share`). Eventos de mais de 30 dias saem pelo `pg_cron`.
+- **Configurações da mesa** (`/mesa`, `MesaSettingsPage`, GM de verdade sempre): nome, iniciar/encerrar sessão e próxima sessão
+  (`mesa-settings` no `auth-handler`; colunas `session_started_at`/`next_session_at` em `mesas`). O `?me` traz nome, sessão,
+  próxima sessão e o número de CONTAS (`mesa_account_counts`, sem as sessões anônimas); a mudança chega a todos pelo `settings`
+  do canal de eventos (`applyMesaSettings`).
+- **Início** (`pages/HomePage.tsx` = casca no chunk principal; `pages/home/previews.tsx` + `party.ts` = chunk vivo): herói com as
+  ações do papel (GM: começar combate, convidar; jogador: a própria ficha, o mapa), "O grupo" (fichas publicadas com PV —
+  máximo por `characterMaxHp` sobre a ficha publicada —, condições e online = alguém com a ficha aberta ou o dono no app), e
+  prévias com a mesa real: a ficha da pessoa + a última rolagem dela, a ordem do combate do mapa ativo, o mapa ativo com os
+  tokens, o d20 e os troféus da última sessão. Toda prévia tem estado vazio. **Sem botão "Rolar dado"** fora do mapa e da ficha
+  (decisão do usuário). Celular: grupo em fileira e ferramentas em grade 2×2.
+- **Bundle**: a moldura nova custou ~9 kB gzip no chunk principal. O `Tooltip` do MUI puxa o popper.js (~7 kB gzip) — na
+  moldura use `title` nativo; a lista do sino, a busca e as prévias são chunks.
+- `?ficha=<slug>` em `/ficha-virtual` abre aquela ficha publicada (e sai da URL) — é como o grupo e as notificações levam à ficha.
+
 ## Mesas
 
 Duas (ou mais) mesas de jogo no mesmo site, cada uma vendo só o que é dela: fichas publicadas, presets, estado dos
@@ -504,7 +547,9 @@ personagens, mapas e mapa ativo, encontro da Iniciativa, feed de rolagens e regr
   (`main.tsx` importa `services/mesa` antes de tudo) e `CAMPAIGN_PRESETS = PRESETS_BY_MESA[currentMesa.id]`: os caches
   em memória dos serviços (`tableState`, o store do mapa, os ids vistos do feed) e os consumidores dos presets não
   precisam saber de mesa. O `?mesa=<id>` do link vira a escolha do aparelho (`localStorage` `pf2e:mesa`, global) e sai da
-  URL; o seletor fica na sidebar (`MesaSwitcher`), com "Copiar link da mesa".
+  URL; o seletor é o `MesaMenu` (`components/MesaSwitcher.tsx`), aberto pelo cartão da mesa da sidebar e pelo botão da mesa
+  do cabeçalho do celular, com "Copiar link da mesa". O NOME que aparece vem do servidor (`mesas.name`, o GM o muda em
+  `/mesa`); o `nome` de `MESAS` é só a reserva antes do `?me` carregar.
 - **Fica global de propósito**: cache de traduções e descrições resolvidas (tabelas `translations` e `descriptions`),
   caches da AON no cliente, pacotes estáticos
   `public/descriptions/<slug>.json` (são do personagem) e as pastas do bucket de imagens (nomes aleatórios). No `localStorage`, só o
@@ -700,7 +745,7 @@ elenco ficar sem caminho (rode depois de publicar um personagem novo ou regerar 
 Toda rolagem — da ficha, do rolador do mapa — vai para o feed (`services/rolls.ts` →
 `api/_lib/roll-store.js`) e aparece para **todo mundo, em qualquer página**: o `RollFeedLayer` é
 montado UMA vez no `MainLayout` (trocar de rota não refaz o "já visto"), e o histórico das últimas
-30 abre pelo item "Últimas rolagens" da sidebar ou pelo dado da AppBar no celular. O banco guarda todas.
+30 abre pelo "Ver todas" do bloco Últimas rolagens da sidebar (no celular, pelo "Mais"). O banco guarda todas.
 
 - **A rolagem vem sorteada** (`TableRoll`, `src/dice/tableRoll.ts`): quem recebe só apresenta, com o
   memorial junto para a mesa conferir. `DiceTray` aceita dados de tamanhos diferentes na mesma
@@ -717,7 +762,7 @@ montado UMA vez no `MainLayout` (trocar de rota não refaz o "já visto"), e o h
   mapa só quer saber que a mesa rolou algo para acelerar o próprio poll, e assina `onFeedActivity`.
 - O cartão fica **30 s** na tela (com 8 s sumia antes de a mesa ler a conta) e fecha antes pelo
   **×** — só por ele: com o cartão inteiro clicável, um toque perdido o fechava no meio da
-  leitura. Fica acima da AppBar e das gavetas (`zIndex` 1250), abaixo dos diálogos. Vale para
+  leitura. Fica acima do cabeçalho do celular e das gavetas (`zIndex` 1250), abaixo dos diálogos. Vale para
   toda rolagem, da ficha ou do mapa: as duas passam pelo mesmo `RollFeedLayer`.
 
 ## Histórico de Rolagens
@@ -794,7 +839,7 @@ para a tela de todo mundo, em qualquer página, para a mesa ler o mesmo texto e 
 ## Tema (verde/pergaminho/ouro)
 
 Identidade da linha **Remaster**: verde profundo, bege pergaminho e ouro/latão — não o
-vermelho/carmesim do Pathfinder antigo. Estrutura: **moldura verde** (sidebar, AppBar, cabeçalhos de
+vermelho/carmesim do Pathfinder antigo. Estrutura: **moldura verde** (sidebar, barra de abas do celular, cabeçalhos de
 seção com filete dourado) e **conteúdo em pergaminho** com tinta escura. Títulos em Cinzel, corpo em
 Source Sans 3 (ambas num único `<link>` no `index.html`).
 
@@ -1979,7 +2024,7 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
     Quem ainda não enviou token aparece com as iniciais. Nível vem de `usePublishedSheets().levelOf`.
   - **A gaveta de descrição ocupa a largura do painel** quando embutida (`DescriptionDrawer`: `width: 100%`,
     `maxHeight: 88%`, sobe de baixo): os 520 px do desktop vazavam para fora do painel de 420 px e cortavam o texto.
-  - **Menu lateral some em `/mapa`** (`MainLayout`): sem sidebar, AppBar nem padding; o botão dourado
+  - **Menu lateral some em `/mapa`** (`MainLayout`): sem sidebar, cabeçalho, barra de abas nem padding; o botão dourado
     "Menu", primeiro item da barra do mapa, abre a gaveta temporária (o layout entrega `openMenu` pelo `<Outlet context>`,
     lido por `useLayoutMenu`). Os itens da navegação são `<Link>` de verdade (botão direito e Ctrl/⌘+clique funcionam):
     não volte a usar `onClick` + `navigate`. O `MapCanvas` tem `ResizeObserver`: câmera intocada reenquadra, câmera
