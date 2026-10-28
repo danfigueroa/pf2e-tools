@@ -62,6 +62,9 @@ async function cleanup() {
     // Rolagens de teste entram no Histórico de Rolagens da mesa: saem todas.
     await db.from('rolls').delete().eq('mesa', MESA).like('id', `teste-auth-${stamp}%`)
     for (const id of createdMaps) await db.from('maps').delete().eq('mesa', MESA).eq('id', id)
+    // As notificações que as fichas e os mapas de teste geraram (os triggers não sabem que é teste).
+    await db.from('mesa_events').delete().eq('mesa', MESA).in('data->>slug', slugs)
+    if (createdMaps.length) await db.from('mesa_events').delete().eq('mesa', MESA).in('data->>map', createdMaps)
     for (const slug of slugs) {
         await db.from('character_state').delete().eq('mesa', MESA).eq('slug', slug)
         await db.from('sheet_versions').delete().eq('mesa', MESA).eq('slug', slug)
@@ -235,6 +238,35 @@ try {
         expect('jogador move monstro → 403', (await move(users.a.token, 'tok-mon')).status, 403)
         expect('GM move qualquer token → 200', (await move(users.gm.token, 'tok-mon')).status, 200)
     }
+
+    console.log('Notificações')
+    const eventsOf = async (token) => (await call({ token, query: { events: '1' } })).body
+    const assigned = (list) => (list.events ?? []).find((e) => e.kind === 'sheet-assigned' && e.data?.slug === slugs[1])
+    const forA = await eventsOf(users.a.token)
+    expect('A vê a ficha atribuída a ele', !!assigned(forA), true)
+    expect('B não vê a ficha atribuída a A', !!assigned(await eventsOf(users.b.token)), false)
+    const published = (forA.events ?? []).find((e) => e.kind === 'sheet-published' && e.data?.slug === slugs[0])
+    expect('publicação vira notificação da mesa', !!published, true)
+    const top = Math.max(0, ...(forA.events ?? []).map((e) => e.id))
+    const seen = (token, upTo) => call({ token, method: 'POST', body: { action: 'events-seen', upTo } })
+    expect('marcar como lido → seen', (await seen(users.a.token, top)).body.seen, top)
+    expect('lido não anda para trás', (await seen(users.a.token, 1)).body.seen, top)
+    expect('lido é da conta: B segue sem ler', (await eventsOf(users.b.token)).seen < top, true)
+    expect('quem não é membro não lê → 403', (await call({ token: users.out.token, query: { events: '1' } })).status, 403)
+
+    console.log('Configurações da mesa')
+    // A mesa de teste é real: manda os MESMOS valores de agora, então nada muda para quem está nela.
+    const { data: mesaRow } = await db.from('mesas').select('name, next_session_at').eq('id', MESA).single()
+    const settings = (token, extra) => call({ token, method: 'POST', body: { action: 'mesa-settings', ...extra } })
+    expect('jogador não muda a mesa → 403', (await settings(users.a.token, { name: mesaRow.name })).status, 403)
+    expect('nome curto demais → 400', (await settings(users.gm.token, { name: 'x' })).status, 400)
+    expect('data inválida → 400', (await settings(users.gm.token, { nextSessionAt: 'amanhã' })).status, 400)
+    const saved = await settings(users.gm.token, { name: mesaRow.name, nextSessionAt: mesaRow.next_session_at })
+    expect('GM grava → 200', saved.status, 200)
+    expect('volta o nome gravado', saved.body.name, mesaRow.name)
+    const mine = (await call({ token: users.a.token, query: { me: '1' } })).body.mesas?.find((m) => m.id === MESA)
+    expect('?me traz o nome da mesa', mine?.name, mesaRow.name)
+    expect('?me conta as contas da mesa', typeof mine?.members === 'number' && mine.members >= 3, true)
 
     console.log('Iniciativa e papéis')
     expect('jogador não grava encontro', (await call({ token: users.a.token, method: 'POST', body: { action: 'encounter-save', map: null, state: {} } })).status, 403)
