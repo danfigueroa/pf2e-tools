@@ -5,6 +5,7 @@ import { TokenAvatar } from './TokenAvatar'
 import { charSlug } from '../charId'
 import type { BuildInfo } from '../../../pathbuilder/types'
 import { sizeLabel, type SizeEffectDef } from '../sizeEffects'
+import { VIEW_OK } from '../sheetAccess'
 
 interface Props {
     build: BuildInfo
@@ -103,6 +104,7 @@ export const CharacterHeader = ({ build, onReset, sizeEffect, compact = false }:
                             startIcon={<SwapIcon />}
                             onClick={onReset}
                             sx={{ flexShrink: 0 }}
+                            {...VIEW_OK}
                         >
                             Trocar ficha
                         </Button>

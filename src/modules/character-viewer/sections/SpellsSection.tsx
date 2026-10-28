@@ -30,6 +30,7 @@ import { EmbedDialog } from '../components/EmbedDialog'
 import { castMessage, useSpellCast, type CastReport } from '../components/useSpellCast'
 import { NO_RESOURCE, type CastResource } from '../spellCast'
 import { hasPsychicArchetype } from '../psiAmps'
+import { VIEW_OK } from '../sheetAccess'
 
 interface Props {
     build: BuildInfo
@@ -162,7 +163,7 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
                                 <Typography variant="caption" color="text.secondary" sx={{ flex: 1 }}>
                                     Baixe todas as descrições de uma vez para consultar na mesa sem espera.
                                 </Typography>
-                                <Button size="small" variant="outlined" startIcon={<DownloadIcon />} onClick={loadAll}>
+                                <Button size="small" variant="outlined" startIcon={<DownloadIcon />} onClick={loadAll} {...VIEW_OK}>
                                     Carregar todas
                                 </Button>
                             </Stack>

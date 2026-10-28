@@ -3,6 +3,7 @@ import { Alert, Button, CircularProgress } from '@mui/material'
 import { fetchPublished, type PublishedSheet } from '../../../services/sheets'
 import { onSheetNotice, useLatestPublished } from '../../../services/sheetNotices'
 import { currentUserId } from '../../../services/supabase'
+import { VIEW_OK } from '../sheetAccess'
 
 interface Props {
     slug: string
@@ -52,7 +53,7 @@ export const NewVersionBar = ({ slug, published, onOpen, onGuide }: Props) => {
             severity="info"
             sx={{ mb: 2 }}
             action={(
-                <Button color="inherit" size="small" onClick={open} disabled={busy}
+                <Button color="inherit" size="small" onClick={open} disabled={busy} {...VIEW_OK}
                     startIcon={busy ? <CircularProgress size={14} color="inherit" /> : undefined}>
                     Abrir a nova versão
                 </Button>

@@ -50,6 +50,7 @@ import {
     type AppliedHeightened,
     type ScaledSpell,
 } from '../heightening'
+import { VIEW_OK } from '../sheetAccess'
 
 export interface SpellCasterInfo {
     name: string
@@ -295,7 +296,7 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                         {onShare && !state.loading && (spell || entry) && (
                             <ShareButton key={request.name} onShare={() => onShare(request)} />
                         )}
-                        <IconButton onClick={onClose} size="small" aria-label="Fechar">
+                        <IconButton onClick={onClose} size="small" aria-label="Fechar" {...VIEW_OK}>
                             <CloseIcon />
                         </IconButton>
                     </Stack>
@@ -502,6 +503,7 @@ const ShareButton = ({ onShare }: { onShare: () => Promise<boolean> }) => {
                     size="small"
                     aria-label={label}
                     disabled={status === 'sending' || status === 'done'}
+                    {...VIEW_OK}
                     onClick={async () => {
                         setStatus('sending')
                         setStatus((await onShare()) ? 'done' : 'failed')

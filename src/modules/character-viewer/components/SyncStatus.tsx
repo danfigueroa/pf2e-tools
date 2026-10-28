@@ -5,6 +5,7 @@ import { gold, status as statusColor } from '../../../theme/palette'
 import { getStatus, refresh, subscribeStatus } from '../../../services/tableState'
 import { charSlug } from '../charId'
 import type { BuildInfo } from '../../../pathbuilder/types'
+import { VIEW_OK } from '../sheetAccess'
 
 /** Estado da sincronia com a mesa (o Realtime avisa; nada de polling aqui). */
 const useSyncStatus = () => useSyncExternalStore(subscribeStatus, getStatus, getStatus)
@@ -92,6 +93,7 @@ export const SyncStatus = ({ build }: Props) => {
                     onClick={handleRefresh}
                     disabled={loading}
                     sx={{ flexShrink: 0 }}
+                    {...VIEW_OK}
                 >
                     Atualizar
                 </Button>

@@ -23,6 +23,7 @@ import {
     type FixKind,
 } from '../../../services/translationFixes'
 import { status as statusColor } from '../../../theme/palette'
+import { VIEW_OK } from '../sheetAccess'
 
 const FIELD_LABEL: Record<string, string> = {
     description: 'Descrição',
@@ -77,12 +78,12 @@ export const TranslationFix = ({ kind, name, payload }: Props) => {
                 </Typography>
             )}
             <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
-                <Button size="small" startIcon={<EditIcon />} onClick={() => { setFailed(false); setOpen(true) }}>
+                <Button {...VIEW_OK} size="small" startIcon={<EditIcon />} onClick={() => { setFailed(false); setOpen(true) }}>
                     Corrigir tradução
                 </Button>
                 {/* A primeira correção não tem anterior: desfazê-la é voltar à tradução automática. */}
                 {record && (active || record.previous) && (
-                    <Button size="small" startIcon={busy ? <CircularProgress size={14} /> : <UndoIcon />} disabled={busy}
+                    <Button {...VIEW_OK} size="small" startIcon={busy ? <CircularProgress size={14} /> : <UndoIcon />} disabled={busy}
                         onClick={() => { void run(record.previous ?? {}) }}>
                         Desfazer última correção
                     </Button>
@@ -167,12 +168,12 @@ const FixDialog = ({ kind, name, payload, active, busy, failed, onSave, onClose 
             </DialogContent>
             <DialogActions sx={{ flexWrap: 'wrap', gap: 1 }}>
                 {active && (
-                    <Button color="inherit" disabled={busy} onClick={() => onSave({})} sx={{ mr: 'auto' }}>
+                    <Button {...VIEW_OK} color="inherit" disabled={busy} onClick={() => onSave({})} sx={{ mr: 'auto' }}>
                         Voltar à tradução automática
                     </Button>
                 )}
-                <Button onClick={onClose} disabled={busy}>Cancelar</Button>
-                <Button variant="contained" disabled={busy} onClick={() => onSave(changes())}
+                <Button {...VIEW_OK} onClick={onClose} disabled={busy}>Cancelar</Button>
+                <Button {...VIEW_OK} variant="contained" disabled={busy} onClick={() => onSave(changes())}
                     startIcon={busy ? <CircularProgress size={16} color="inherit" /> : undefined}>
                     Salvar para a mesa
                 </Button>
