@@ -112,6 +112,39 @@ try {
     const me = await call({ token: users.a.token, query: { me: '1' } })
     expect('me lista a mesa com papel player', me.body.mesas?.find((m) => m.id === MESA)?.role, 'player')
 
+    console.log('Conta por convite (usuário + senha, sem e-mail)')
+    const pub2 = createClient(url, publishable, { auth: { persistSession: false, autoRefreshToken: false } })
+    const login = async (username, pass) => !(await pub2.auth.signInWithPassword({ email: `${username}@covil.local`, password: pass })).error
+    const findUser = async (username) =>
+        (await db.auth.admin.listUsers({ page: 1, perPage: 200 })).data.users.filter((u) => u.email === `${username}@covil.local`)
+    const uname = `teste-${stamp}`.slice(0, 30)
+    const reg = (code, username, pass = 'senha-123') =>
+        call({ method: 'POST', body: { action: 'register', code, username, password: pass, name: 'Teste Cadastro' } })
+
+    const regInv = await call({ token: users.gm.token, method: 'POST', body: { action: 'invite-create', maxUses: 2 } })
+    const regCode = regInv.body.invite.code
+    expect('usuário inválido → 400', (await reg(regCode, 'A B')).status, 400)
+    expect('senha curta → 400', (await reg(regCode, uname, '123')).status, 400)
+    expect('cria conta SEM sessão → 200', (await reg(regCode, uname)).status, 200)
+    const [created] = await findUser(uname)
+    if (created) users.reg = { id: created.id }
+    expect('entra com usuário e senha', await login(uname, 'senha-123'), true)
+    expect('virou membro com o nome escolhido',
+        (await db.from('mesa_members').select('display_name').eq('mesa', MESA).eq('user_id', created?.id).maybeSingle()).data?.display_name,
+        'Teste Cadastro')
+    expect('mesmo usuário de novo → 409', (await reg(regCode, uname)).status, 409)
+
+    const spent = await call({ token: users.gm.token, method: 'POST', body: { action: 'invite-create', maxUses: 1 } })
+    await db.from('mesa_invites').update({ uses: 1 }).eq('code', spent.body.invite.code)
+    expect('convite esgotado → 404', (await reg(spent.body.invite.code, `${uname}x`.slice(0, 30))).status, 404)
+    expect('convite esgotado não deixa conta órfã', (await findUser(`${uname}x`.slice(0, 30))).length, 0)
+
+    expect('jogador não gera senha nova', (await call({ token: users.a.token, method: 'POST', body: { action: 'member-reset-password', user: created?.id } })).status, 403)
+    const reset = await call({ token: users.gm.token, method: 'POST', body: { action: 'member-reset-password', user: created?.id } })
+    expect('GM gera senha nova → 200', reset.status, 200)
+    expect('a senha antiga deixa de valer', await login(uname, 'senha-123'), false)
+    expect('a provisória entra', await login(uname, reset.body.password), true)
+
     console.log('Fichas')
     const pub = (token, name) => call({ token, method: 'POST', body: { action: 'publish', sheet: sheetJson(name) } })
     expect('A publica ficha nova → 200', (await pub(users.a.token, `Teste Auth A ${stamp}`)).status, 200)
@@ -168,6 +201,10 @@ try {
     process.env.AUTH_REQUIRED = '0'
     expect('sem token passa → 200', (await call({ query: { char: slugs[0] } })).status, 200)
     expect('escrita sem dono passa → 200', (await hp(users.out.token, slugs[0])).status, 200)
+    // A gestão de conta NÃO afrouxa com a flag: senão qualquer um se promoveria antes do cutover.
+    expect('jogador não se promove a GM', (await call({ token: users.b.token, method: 'POST', body: { action: 'member-set-role', user: users.b.id, role: 'gm' } })).status, 403)
+    expect('jogador não troca a senha de outro', (await call({ token: users.b.token, method: 'POST', body: { action: 'member-reset-password', user: users.a.id } })).status, 403)
+    expect('quem não é membro não lista membros', (await call({ token: users.out.token, query: { members: '1' } })).status, 403)
 } catch (error) {
     failures += 1
     console.error('Erro inesperado:', error)
