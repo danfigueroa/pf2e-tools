@@ -1,7 +1,7 @@
 import { lazy, memo, Suspense, useEffect, useRef, useState } from 'react'
 import { Box } from '@mui/material'
 import { isOwnRoll, useTableShares } from '../services/rolls'
-import type { TableShare } from '../services/tableShare'
+import { sanitizeTableShare, type TableShare } from '../services/tableShare'
 
 // Regras compartilhadas com a mesa (`services/tableShare.ts`), em qualquer
 // página — montado UMA vez no `MainLayout`, como o feed de rolagens.
@@ -34,6 +34,16 @@ export const SharedRuleLayer = memo(function SharedRuleLayer() {
     useEffect(() => {
         if (ready) prefetchCard()
     }, [ready])
+
+    // A notificação de regra compartilhada (o sino) reabre o cartão — já fechado, ou de quando o app estava fechado.
+    useEffect(() => {
+        const reopen = (e: Event) => {
+            const share = sanitizeTableShare((e as CustomEvent).detail)
+            if (share) setShown(share)
+        }
+        window.addEventListener('pf2e:show-share', reopen)
+        return () => window.removeEventListener('pf2e:show-share', reopen)
+    }, [])
 
     useEffect(() => {
         if (!ready) return
