@@ -2,6 +2,13 @@
 // serverless do plano Hobby (ver CLAUDE.md) e vem ANTES do portão geral: quem ainda
 // não é membro precisa conseguir resgatar o convite que o torna um.
 //
+// Login é USUÁRIO + SENHA, sem e-mail nenhum (decisão do usuário: nada de serviço externo).
+// O Supabase Auth exige um e-mail, então cada conta tem um endereço fictício
+// `<usuário>@covil.local` que nunca recebe mensagem. A conta é criada AQUI, com a chave
+// secreta e já confirmada, no resgate do convite (`register`); esqueceu a senha, o GM gera
+// outra (`member-reset-password`).
+//
+//   POST { action: 'register', code, username, password, name? } → { mesa, role, username }  (SEM sessão)
 //   GET  ?me=1                                    → { user, mesas: [{ id, name, role, displayName }] }
 //   GET  ?members=1                               → { members: [...], invites: [...] }   (GM)
 //   POST { action: 'invite-create', role?, maxUses?, days? } → { invite }               (GM)
@@ -10,6 +17,7 @@
 //   POST { action: 'member-set-role', user, role }           → { ok }                  (GM)
 //   POST { action: 'member-remove', user }                   → { ok }                  (GM)
 //   POST { action: 'member-set-name', name, user? }          → { ok }   (a própria / GM)
+//   POST { action: 'member-reset-password', user }           → { password }            (GM)
 //   POST { action: 'sheet-assign', char, user|null }         → { ok }                  (GM)
 //
 // O convite vale para a mesa EM QUE FOI CRIADO, não para a `?mesa=` do pedido: quem abre
@@ -17,13 +25,15 @@
 
 import { randomInt } from 'node:crypto'
 import { supabase, isSupabaseConfigured } from './supabase.js'
-import { forbidden, forgetMember, forgetOwner, isGm, memberRole } from './access.js'
+import { forbidden, forgetMember, forgetOwner, memberRole } from './access.js'
 import { isValidSlug } from './table-store.js'
 
 const ok = (body = {}) => ({ status: 200, body: { ok: true, ...body, storeReady: isSupabaseConfigured() } })
 const fail = (status, error) => ({ status, body: { error } })
 
 const ACTIONS = new Set([
+    'register',
+    'member-reset-password',
     'invite-create',
     'invite-revoke',
     'invite-accept',
@@ -38,16 +48,78 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
 const ROLES = new Set(['player', 'gm'])
 
+// O "e-mail" de cada conta. Mesmo valor de `USER_DOMAIN` em src/services/auth.ts.
+export const USER_DOMAIN = 'covil.local'
+const USERNAME = /^[a-z0-9][a-z0-9._-]{2,29}$/
+const emailOf = (username) => `${username}@${USER_DOMAIN}`
+/** O nome de usuário de uma conta, a partir do e-mail fictício (`null` se não for um). */
+export const usernameOf = (email) =>
+    typeof email === 'string' && email.endsWith(`@${USER_DOMAIN}`) ? email.slice(0, -USER_DOMAIN.length - 1) : null
+
 export function isAuthRequest(method, query, body) {
     if (method === 'GET') return !!query.me || !!query.members
     if (method === 'POST') return ACTIONS.has(body?.action)
     return false
 }
 
-function newCode() {
-    let code = ''
-    for (let i = 0; i < 12; i += 1) code += CODE_ALPHABET[randomInt(CODE_ALPHABET.length)]
-    return code
+function randomText(length) {
+    let out = ''
+    for (let i = 0; i < length; i += 1) out += CODE_ALPHABET[randomInt(CODE_ALPHABET.length)]
+    return out
+}
+
+const newCode = () => randomText(12)
+// Senha provisória que o GM passa à pessoa: fácil de ditar na mesa, sem 0/O/1/I/L.
+const newPassword = () => `${randomText(4)}-${randomText(4)}`.toLowerCase()
+
+const cleanCode = (code) => String(code ?? '').trim().toUpperCase()
+const validPassword = (password) => typeof password === 'string' && password.length >= 6 && password.length <= 72
+
+/**
+ * Cria a conta a partir de um convite: confere o convite (sem consumir), cria o usuário já
+ * confirmado e só então o resgata — o consumo é atômico no `accept_invite`. Se o resgate
+ * falhar no meio (outro usou a última vaga), a conta recém-criada é apagada: nada de conta
+ * órfã sem mesa.
+ */
+async function register(db, body) {
+    const code = cleanCode(body.code)
+    if (!/^[A-Z0-9]{8,32}$/.test(code)) return fail(400, 'Convite inválido')
+    const username = String(body.username ?? '').trim().toLowerCase()
+    if (!USERNAME.test(username)) {
+        return fail(400, 'Usuário: de 3 a 30 caracteres, só letras minúsculas, números, ponto, hífen ou sublinhado')
+    }
+    if (!validPassword(body.password)) return fail(400, 'A senha precisa ter pelo menos 6 caracteres')
+    const name = String(body.name ?? '').trim().slice(0, 40)
+
+    const invite = check(
+        await db.from('mesa_invites').select('expires_at, max_uses, uses, revoked').eq('code', code).maybeSingle(),
+    )
+    if (!invite || invite.revoked || new Date(invite.expires_at) < new Date() || invite.uses >= invite.max_uses) {
+        return fail(404, 'Convite inválido, vencido ou já usado')
+    }
+
+    const created = await db.auth.admin.createUser({
+        email: emailOf(username),
+        password: body.password,
+        email_confirm: true,
+        user_metadata: { username },
+    })
+    if (created.error) {
+        if (created.error.code === 'email_exists') return fail(409, 'Esse nome de usuário já existe — escolha outro')
+        throw new Error(created.error.message)
+    }
+    const userId = created.data.user.id
+
+    const rows = check(await db.rpc('accept_invite', { p_code: code, p_user: userId }))
+    const joined = Array.isArray(rows) ? rows[0] : rows
+    if (!joined) {
+        await db.auth.admin.deleteUser(userId)
+        return fail(404, 'Convite inválido, vencido ou já usado')
+    }
+    if (name) {
+        check(await db.from('mesa_members').update({ display_name: name }).eq('mesa', joined.o_mesa).eq('user_id', userId))
+    }
+    return ok({ mesa: joined.o_mesa, role: joined.o_role, username })
 }
 
 function check(result) {
@@ -74,7 +146,7 @@ async function readMe(db, access) {
             .eq('user_id', access.userId),
     )
     return {
-        user: { id: access.userId, email: access.email },
+        user: { id: access.userId, email: access.email, username: usernameOf(access.email) },
         mesas: (rows ?? []).map((r) => ({
             id: r.mesa,
             name: r.mesas?.name ?? r.mesa,
@@ -110,6 +182,7 @@ async function readMembers(db, mesa) {
         members: (rows ?? []).map((r) => ({
             userId: r.user_id,
             email: emails.get(r.user_id) ?? null,
+            username: usernameOf(emails.get(r.user_id)),
             role: r.role,
             displayName: r.display_name ?? null,
             joinedAt: r.joined_at,
@@ -132,19 +205,24 @@ async function readMembers(db, mesa) {
 export async function handleAuthRequest(mesa, method, query, body, access) {
     const db = supabase()
     if (!db) return fail(503, 'O login precisa do Supabase configurado no servidor')
+    // Criar a conta é o único pedido sem sessão: o convite é a credencial.
+    if (method === 'POST' && body.action === 'register') return register(db, body)
     if (!access.userId) return fail(401, 'Entre na sua conta para continuar')
+    // Gestão de conta exige GM DE VERDADE mesmo com a cobrança desligada: ali `access.role` vem
+    // nulo, e liberar geral deixaria qualquer um se promover ou trocar a senha de um GM antes do
+    // cutover. Por isso o papel é lido aqui, e não pelo `isGm(access, legado)` dos outros handlers.
+    const gm = (access.role ?? (await memberRole(mesa, access.userId))) === 'gm'
 
     if (method === 'GET') {
         if (query.me) return ok(await readMe(db, access))
-        // Lista de membros: GM da mesa (ou qualquer um, com a cobrança desligada — o ensaio do rollout).
-        if (!isGm(access, true)) return forbidden()
+        if (!gm) return forbidden()
         return ok(await readMembers(db, mesa))
     }
 
     const { action } = body
 
     if (action === 'invite-accept') {
-        const code = String(body.code ?? '').trim().toUpperCase()
+        const code = cleanCode(body.code)
         if (!/^[A-Z0-9]{8,32}$/.test(code)) return fail(400, 'Convite inválido')
         const rows = check(await db.rpc('accept_invite', { p_code: code, p_user: access.userId }))
         const joined = Array.isArray(rows) ? rows[0] : rows
@@ -157,7 +235,7 @@ export async function handleAuthRequest(mesa, method, query, body, access) {
         const target = body.user ?? access.userId
         if (!UUID.test(String(target))) return fail(400, 'Campo "user" inválido')
         const self = target === access.userId
-        if (!self && !isGm(access, true)) return forbidden()
+        if (!self && !gm) return forbidden()
         const name = String(body.name ?? '').trim()
         if (name.length < 1 || name.length > 40) return fail(400, 'O nome precisa ter de 1 a 40 caracteres')
         check(await db.from('mesa_members').update({ display_name: name }).eq('mesa', mesa).eq('user_id', target))
@@ -165,7 +243,7 @@ export async function handleAuthRequest(mesa, method, query, body, access) {
     }
 
     // Daqui em diante é tudo do GM.
-    if (!isGm(access, true)) return forbidden()
+    if (!gm) return forbidden()
 
     if (action === 'invite-create') {
         const role = body.role ?? 'player'
@@ -212,6 +290,16 @@ export async function handleAuthRequest(mesa, method, query, body, access) {
         }
         forgetMember(mesa, user)
         return ok()
+    }
+
+    if (action === 'member-reset-password') {
+        const user = String(body.user ?? '')
+        if (!UUID.test(user)) return fail(400, 'Campo "user" inválido')
+        if (!(await memberRole(mesa, user))) return fail(404, 'Essa pessoa não está na mesa')
+        const password = newPassword()
+        const { error } = await db.auth.admin.updateUserById(user, { password })
+        if (error) throw new Error(error.message)
+        return ok({ password })
     }
 
     if (action === 'sheet-assign') {
