@@ -26,6 +26,7 @@ import {
   History as HistoryIcon,
   Groups as MembersIcon,
   Logout as LogoutIcon,
+  Key as KeyIcon,
 } from '@mui/icons-material';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import type { LayoutContext } from './menuContext';
@@ -41,6 +42,9 @@ import { setPresencePage, startPresence, usePresence } from '../services/presenc
 // A lista mostra o token de cada ficha aberta, e o `TokenBadge` traz o estado da mesa junto: fora do chunk
 // principal, baixada só quando há alguém para mostrar.
 const PresenceList = lazy(() => import('../components/PresenceList').then((m) => ({ default: m.PresenceList })));
+// Só baixado quando alguém abre "Trocar senha".
+const ChangePasswordDialog = lazy(() =>
+  import('../modules/account/ChangePasswordDialog').then((m) => ({ default: m.ChangePasswordDialog })));
 
 const PresenceSlot = () => {
   const someone = usePresence().length > 0;
@@ -113,6 +117,7 @@ export const MainLayout = () => {
   const [historyOpen, setHistoryOpen] = useState(false);
   const theme = useTheme();
   const account = useRole();
+  const [passwordOpen, setPasswordOpen] = useState(false);
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
   // O mapa é a página: sem moldura, sem AppBar e sem sidebar fixa. O menu vira
@@ -230,12 +235,15 @@ export const MainLayout = () => {
         <Box sx={{ px: 2.5, pb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography noWrap sx={{ fontSize: '0.85rem', color: parchment.page }}>
-              {account.displayName ?? account.email ?? 'Sua conta'}
+              {account.displayName ?? account.username ?? 'Sua conta'}
             </Typography>
             <Typography variant="caption" sx={{ color: CHROME_TEXT }}>
               {account.isGm ? 'GM' : 'Jogador'}
             </Typography>
           </Box>
+          <IconButton size="small" aria-label="Trocar senha" onClick={() => setPasswordOpen(true)} sx={{ color: CHROME_TEXT }}>
+            <KeyIcon fontSize="small" />
+          </IconButton>
           <IconButton size="small" aria-label="Sair da conta" onClick={() => void signOut()} sx={{ color: CHROME_TEXT }}>
             <LogoutIcon fontSize="small" />
           </IconButton>
@@ -389,6 +397,11 @@ export const MainLayout = () => {
       {/* Regra (talento, magia…) que alguém compartilhou pela ficha. */}
       <SharedRuleLayer />
       <RollHistoryDrawer open={historyOpen} onClose={() => setHistoryOpen(false)} />
+      {passwordOpen && (
+        <Suspense fallback={null}>
+          <ChangePasswordDialog open onClose={() => setPasswordOpen(false)} />
+        </Suspense>
+      )}
     </Box>
   );
 };
