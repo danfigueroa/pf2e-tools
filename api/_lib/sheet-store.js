@@ -67,6 +67,7 @@ const fromRow = (row) => row && {
   level: row.level,
   publishedAt: Number(row.published_at),
   guide: row.guide ?? null,
+  ownerId: row.owner_id ?? null,
 }
 
 const fromVersionRow = (row) => row && {
@@ -82,7 +83,7 @@ const dbStore = (db) => {
     if (error) throw error
     return data
   }
-  const SHEET_COLUMNS = 'json, name, class_name, level, published_at, guide'
+  const SHEET_COLUMNS = 'json, name, class_name, level, published_at, guide, owner_id'
   return {
     current: async (mesa, slug) => fromRow(check(await db.from('sheets').select(SHEET_COLUMNS)
       .eq('mesa', mesa).eq('slug', slug).maybeSingle())),
@@ -93,7 +94,7 @@ const dbStore = (db) => {
         .eq('mesa', mesa).eq('slug', slug).order('id', { ascending: false }).limit(limit))
         .map((row) => ({ ...fromVersionRow(row), hasGuide: withGuide ? !!row.guide : row.has_guide != null })),
     list: async (mesa) => check(await db.from('sheets')
-      .select('slug, name, class_name, level, published_at, guide_at:guide->generatedAt').eq('mesa', mesa))
+      .select('slug, name, class_name, level, published_at, owner_id, guide_at:guide->generatedAt').eq('mesa', mesa))
       .map((row) => ({ slug: row.slug, ...fromRow(row), hasGuide: row.guide_at != null })),
     publish: async (mesa, slug, json, info, by) => fromRow(check(await db.rpc('publish_sheet', {
       p_mesa: mesa, p_slug: slug, p_json: json, p_name: info.name, p_class: info.className, p_level: info.level, p_by: by,
@@ -169,6 +170,7 @@ async function publicView(db, mesa, slug, record) {
     level: record.level,
     publishedAt: record.publishedAt,
     guide: record.guide ?? null,
+    ownerId: record.ownerId ?? null,
     previous: previous ? { publishedAt: previous.publishedAt, level: previous.level ?? null } : null,
   }
 }
@@ -182,7 +184,7 @@ export async function readSheet(mesa, slug) {
 export async function listSheets(mesa) {
   const rows = await store().list(mesa)
   return rows
-    .map(({ slug, name, className, level, publishedAt, hasGuide }) => ({ slug, name, className, level, publishedAt, hasGuide }))
+    .map(({ slug, name, className, level, publishedAt, hasGuide, ownerId }) => ({ slug, name, className, level, publishedAt, hasGuide, ownerId: ownerId ?? null }))
     .sort((a, b) => a.name.localeCompare(b.name))
 }
 
@@ -227,4 +229,17 @@ export async function readForGuide(mesa, slug) {
   const [rec, [previous]] = await Promise.all([db.current(mesa, slug), db.versions(mesa, slug, 1, true)])
   if (!rec) return null
   return { json: rec.json, publishedAt: rec.publishedAt, previousGuide: previous?.guide?.markdown ?? null }
+}
+
+/**
+ * Faz de `userId` o dono da ficha — só se ela ainda não tem um. Roda logo depois da
+ * PRIMEIRA publicação, e o `is null` impede que uma segunda chamada tome a ficha de
+ * quem já a tem. Sem Supabase não há dono.
+ */
+export async function claimSheet(mesa, slug, userId) {
+  const db = supabase()
+  if (!db || !userId) return
+  const { error } = await db.from('sheets').update({ owner_id: userId })
+    .eq('mesa', mesa).eq('slug', slug).is('owner_id', null)
+  if (error) throw error
 }

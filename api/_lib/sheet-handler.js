@@ -12,13 +12,18 @@
 //   POST { action: 'sheet-descriptions', char, names: { spell, feat, special, item }, version }
 //                                         → resolve o que falta (ver sheet-descriptions.js)
 //
-// Tudo dentro da mesa do pedido (`mesa`, ver mesas.js). `ctx.userId` é a sessão
-// anônima de quem pediu (`requestUserId`), gravada como autor ao publicar.
+// Tudo dentro da mesa do pedido (`mesa`, ver mesas.js). `ctx.userId` é quem pediu,
+// gravado como autor ao publicar; `ctx.access` (ver access.js) diz o papel dele na mesa.
+//
+// Com a cobrança ligada (`AUTH_REQUIRED`), a ficha tem DONO: quem a publica pela primeira
+// vez é o dono, e só o dono e o GM publicam por cima, pedem o guia ou restauram. Ficha sem
+// dono (as publicadas antes do login) é só do GM até ele atribuí-la.
 
 import { warmSheetLookups } from './sheet-warm.js'
 import { hasTranslationKey } from './aon.js'
 import { isValidSlug } from './table-store.js'
 import { isSupabaseConfigured } from './supabase.js'
+import { canEditSheet, forbidden, forgetOwner, sheetOwner } from './access.js'
 import {
   MAX_GUIDE_BYTES,
   MAX_SHEET_BYTES,
@@ -26,6 +31,7 @@ import {
   listSheets,
   publishSheet,
   readForGuide,
+  claimSheet,
   readSheet,
   restorePrevious,
   saveGuide,
@@ -80,7 +86,18 @@ export async function handleSheetRequest(mesa, method, query, body, ctx = {}) {
     // O slug sai do nome da própria ficha, nunca do que o cliente disser: é a
     // mesma identidade do estado da mesa, e uma ficha publicada no slug de
     // outro personagem sobrescreveria alguém.
-    const sheet = await publishSheet(mesa, slugFromName(info.name), json, ctx.userId ?? null)
+    const publishSlug = slugFromName(info.name)
+    const { access } = ctx
+    const existed = access?.enforce ? (await sheetOwner(mesa, publishSlug)).exists : true
+    if (existed && !(await canEditSheet(access, mesa, publishSlug))) {
+      return forbidden('Esta ficha é de outra pessoa — só o dono ou o GM publica por cima')
+    }
+    const sheet = await publishSheet(mesa, publishSlug, json, ctx.userId ?? null)
+    if (access?.enforce && !existed) {
+      await claimSheet(mesa, publishSlug, ctx.userId)
+      forgetOwner(mesa, publishSlug)
+      sheet.ownerId = ctx.userId
+    }
     // As consultas da ficha à AON ficam no banco já na publicação (não segura a resposta mais que alguns segundos).
     await Promise.race([warmSheetLookups(json).catch(() => {}), new Promise((r) => setTimeout(r, 8000))])
     return ok({ sheet })
@@ -88,6 +105,12 @@ export async function handleSheetRequest(mesa, method, query, body, ctx = {}) {
 
   const slug = String(body.char || '')
   if (!isValidSlug(slug)) return fail(400, 'Campo "char" inválido')
+
+  // Gerar o guia e restaurar alteram a ficha: dono ou GM. As descrições (abaixo) não —
+  // abrir a ficha de outra pessoa completa o pacote dela, e isso é de todos.
+  if ((action === 'guide' || action === 'restore') && !(await canEditSheet(ctx.access, mesa, slug))) {
+    return forbidden('Esta ficha é de outra pessoa — só o dono ou o GM faz isso')
+  }
 
   if (action === 'guide') {
     if (!hasTranslationKey()) return fail(503, 'Sem chave de IA configurada no servidor')
