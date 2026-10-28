@@ -20,6 +20,12 @@ export interface Membership {
     name: string
     role: Role
     displayName: string | null
+    /** ISO; nulo = sem sessão em andamento (o GM inicia e encerra em /mesa). */
+    sessionStartedAt: string | null
+    /** ISO da próxima sessão marcada, ou nulo. */
+    nextSessionAt: string | null
+    /** Quantas contas a mesa tem (sem as sessões anônimas de antes do login). */
+    members: number | null
 }
 
 export type AuthState =
@@ -263,6 +269,48 @@ export const useRole = (): RoleInfo => roleOf(useAuth())
 /** Pode mexer na ficha? O GM sempre; o dono da ficha publicada; ninguém mais. */
 export const canEditSheet = (info: RoleInfo, ownerId: string | null | undefined): boolean =>
     info.isGm || (info.userId !== null && ownerId === info.userId)
+
+// --- A mesa aberta ------------------------------------------------------------------
+
+export interface MesaInfo {
+    id: string
+    name: string
+    sessionStartedAt: string | null
+    nextSessionAt: string | null
+    members: number | null
+}
+
+export type MesaSettings = Pick<MesaInfo, 'name' | 'sessionStartedAt' | 'nextSessionAt'>
+
+/** Nome, sessão e contagem da mesa aberta. Antes do `?me` (ou sem login), o nome fixo do código. */
+export function mesaInfoOf(auth: AuthState): MesaInfo {
+    const member = auth.status === 'in' ? auth.mesas.find((m) => m.id === currentMesa.id) : undefined
+    return {
+        id: currentMesa.id,
+        name: member?.name ?? currentMesa.nome,
+        sessionStartedAt: member?.sessionStartedAt ?? null,
+        nextSessionAt: member?.nextSessionAt ?? null,
+        members: member?.members ?? null,
+    }
+}
+
+export const useMesaInfo = (): MesaInfo => mesaInfoOf(useAuth())
+
+/** Nome de qualquer mesa da pessoa (o seletor), com o fixo do código como reserva. */
+export const mesaName = (auth: AuthState, id: string, fallback: string): string =>
+    (auth.status === 'in' ? auth.mesas.find((m) => m.id === id)?.name : undefined) ?? fallback
+
+/**
+ * Aplica nome/sessão novos da mesa aberta: a resposta do `mesa-settings` e o aviso
+ * `settings` do canal de eventos (o GM mudou em outro aparelho).
+ */
+export function applyMesaSettings(next: Partial<MesaSettings>) {
+    if (state.status !== 'in') return
+    setState({
+        ...state,
+        mesas: state.mesas.map((m) => (m.id === currentMesa.id ? { ...m, ...next } : m)),
+    })
+}
 
 // --- fetch com a sessão ----------------------------------------------------------------
 
