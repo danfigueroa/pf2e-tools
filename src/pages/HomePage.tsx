@@ -22,7 +22,7 @@ import { chrome, displayFont, gold, green, ink, parchment, rule } from '../theme
 import { useMesaInfo, useRole } from '../services/auth';
 import { listPublished } from '../services/sheets';
 import { NotificationsButton } from '../components/NotificationsButton';
-import { greeting, longDate, sessionDate, sessionSince } from '../layouts/format';
+import { greeting, longDate, sessionDay, sessionSince, sessionTime, untilSession } from '../layouts/format';
 import { openSearch } from '../layouts/navigation';
 
 // A Início: a casca (topo, herói, cartões das ferramentas, bastidores do GM) vai no bundle
@@ -95,6 +95,38 @@ const ToolCard = ({ title, icon, description, footnote, to, linkText, stage, pre
   </Box>
 );
 
+/**
+ * A sessão em destaque no herói: a em andamento (desde quando) ou a próxima marcada pelo GM em
+ * /mesa (dia, hora e quanto falta). Sem nenhuma das duas, o herói mostra o selo de sempre.
+ */
+const SessionHighlight = ({ live, next }: { live: string | null; next: string | null }) => (
+  <Box sx={{
+    alignSelf: 'flex-start', maxWidth: '100%', boxSizing: 'border-box', position: 'relative',
+    display: 'flex', alignItems: 'center', gap: 1.5, px: 1.75, py: 1.25, borderRadius: 2,
+    border: `1px solid ${gold.bright}66`, bgcolor: `${gold.bright}14`,
+  }}>
+    <Box sx={{
+      width: 40, height: 40, borderRadius: 1.5, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      bgcolor: live ? chrome.online : gold.bright, color: green.deepest,
+    }}>
+      {live ? <SyncIcon fontSize="small" /> : <EventIcon fontSize="small" />}
+    </Box>
+    <Box sx={{ minWidth: 0 }}>
+      <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.14em', color: live ? chrome.online : gold.bright }}>
+        {live ? 'SESSÃO EM ANDAMENTO' : 'PRÓXIMA SESSÃO'}
+      </Typography>
+      {live ? (
+        <Typography sx={{ fontWeight: 600, color: chrome.text }}>Começou {sessionSince(live).replace('desde', 'às')}</Typography>
+      ) : next && (
+        <Box sx={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', columnGap: 1.25 }}>
+          <Typography sx={{ fontWeight: 600, color: chrome.text }}>{sessionDay(next)} · {sessionTime(next)}</Typography>
+          <Typography sx={{ fontSize: '0.8125rem', color: chrome.textSoft }}>{untilSession(next)}</Typography>
+        </Box>
+      )}
+    </Box>
+  </Box>
+);
+
 const ToolRow = ({ to, title, text, badge }: { to: string; title: string; text: string; badge: ReactNode }) => (
   <ButtonBase component={Link} to={to} sx={{
     flex: '1 1 340px', minWidth: 0, display: 'flex', alignItems: 'center', gap: 2.5, p: { xs: 2, sm: 2.75 },
@@ -118,13 +150,9 @@ export const HomePage = () => {
   const firstName = (role.displayName ?? role.username ?? '').split(' ')[0];
   const hello = firstName ? `${greeting()}, ${firstName}` : greeting();
 
-  const session = mesa.sessionStartedAt
-    ? { icon: <SyncIcon sx={{ fontSize: 16 }} />, text: `Sessão em andamento, ${sessionSince(mesa.sessionStartedAt)}` }
-    : mesa.nextSessionAt && Date.parse(mesa.nextSessionAt) > Date.now()
-      ? { icon: <EventIcon sx={{ fontSize: 16 }} />, text: `Próxima sessão: ${sessionDate(mesa.nextSessionAt)}` }
-      : null;
+  const next = mesa.nextSessionAt && Date.parse(mesa.nextSessionAt) > Date.now() ? mesa.nextSessionAt : null;
   const facts = [
-    session ?? { icon: <SyncIcon sx={{ fontSize: 16 }} />, text: 'Sincronizado ao vivo' },
+    { icon: <SyncIcon sx={{ fontSize: 16 }} />, text: 'Sincronizado ao vivo' },
     { icon: <LockIcon sx={{ fontSize: 16 }} />, text: 'Só entra quem o GM convida' },
     { icon: <RulesIcon sx={{ fontSize: 16 }} />, text: 'Regras oficiais traduzidas' },
   ];
@@ -172,13 +200,17 @@ export const HomePage = () => {
             <path d="M26 86L60 30l34 56zM8 34l52 52 52-52M60 86v44M8 100l18-14M112 100L94 86M60 4v26" fill="none" stroke={gold.bright} strokeWidth="1" />
           </Box>
           <Typography sx={{ display: { xs: 'block', md: 'none' }, fontSize: '0.875rem' }}>{hello}</Typography>
-          <Box component="span" sx={{
-            display: { xs: 'none', sm: 'flex' }, alignSelf: 'flex-start', alignItems: 'center', gap: 1, fontSize: '0.8125rem', fontWeight: 600,
-            letterSpacing: '0.03em', px: 1.5, py: 0.75, borderRadius: 99, border: `1px solid ${chrome.lineStrong}`, color: chrome.text,
-          }}>
-            <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: chrome.online, boxShadow: `0 0 0 4px ${chrome.online}2E` }} />
-            Pathfinder 2e Remaster · em português
-          </Box>
+          {mesa.sessionStartedAt || next ? (
+            <SessionHighlight live={mesa.sessionStartedAt} next={next} />
+          ) : (
+            <Box component="span" sx={{
+              display: { xs: 'none', sm: 'flex' }, alignSelf: 'flex-start', alignItems: 'center', gap: 1, fontSize: '0.8125rem', fontWeight: 600,
+              letterSpacing: '0.03em', px: 1.5, py: 0.75, borderRadius: 99, border: `1px solid ${chrome.lineStrong}`, color: chrome.text,
+            }}>
+              <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: chrome.online, boxShadow: `0 0 0 4px ${chrome.online}2E` }} />
+              Pathfinder 2e Remaster · em português
+            </Box>
+          )}
           <Typography component="h2" sx={{ fontFamily: displayFont, fontWeight: 600, fontSize: { xs: '1.625rem', sm: '2.75rem' }, lineHeight: 1.12, color: chrome.text, maxWidth: 560, position: 'relative' }}>
             Tudo o que a mesa usa, num lugar só.
           </Typography>

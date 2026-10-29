@@ -35,6 +35,25 @@ export function sessionDate(iso: string): string {
   return `${day} às ${time}`;
 }
 
+/** "Sábado, 14 de novembro" — a próxima sessão em destaque. */
+export function sessionDay(iso: string): string {
+  const text = new Date(iso).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** "14:00". */
+export const sessionTime = (iso: string): string =>
+  new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+/** "hoje", "amanhã", "em 16 dias" — pelo calendário (meia-noite local), não por 24 h corridas. */
+export function untilSession(iso: string, now = new Date()): string {
+  const day = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const days = Math.round((day(new Date(iso)) - day(now)) / 86_400_000);
+  if (days <= 0) return 'hoje';
+  if (days === 1) return 'amanhã';
+  return `em ${days} dias`;
+}
+
 /** "desde 20:15" — a sessão em andamento. */
 export const sessionSince = (iso: string): string =>
   `desde ${new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
