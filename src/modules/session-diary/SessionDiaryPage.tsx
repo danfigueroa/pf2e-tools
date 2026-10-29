@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import {
+    Alert,
     Box,
     Button,
     Chip,
@@ -21,6 +22,9 @@ import { diaryDayOf, fetchDiaryDays, fetchDiaryRolls, fetchDiarySummary, type Di
 import { onFeedActivity } from '../../services/rolls'
 import type { TableRoll } from '../../dice/tableRoll'
 import { gold } from '../../theme'
+import { useMesaInfo, useRole } from '../../services/auth'
+import { sessionSince } from '../../layouts/format'
+import { Link } from 'react-router-dom'
 import { computeAwards, type Scope } from './awards'
 import { keyOf, mergePeople, sessionSeries, summarize, tableTotals, type DaySummary } from './stats'
 import { AwardGrid } from './components/AwardGrid'
@@ -138,6 +142,7 @@ export const SessionDiaryPage = () => {
                 Histórico de rolagens
             </Typography>
             <Box sx={{ height: 2, width: { xs: 120, sm: 180 }, backgroundColor: gold.main, mb: 2 }} />
+            <SessionNotice />
 
             {days === null ? (
                 <Skeleton variant="rounded" height={40} sx={{ maxWidth: 420 }} />
@@ -253,3 +258,29 @@ const DamageNote = () => (
         O dano soma tudo o que foi rolado, mesmo quando o golpe errou: o app não sabe se acertou. Dano persistente não entra.
     </Typography>
 )
+
+/**
+ * Só conta o que foi rolado com a sessão iniciada (o banco marca cada rolagem; ver a migration
+ * `rolagens_da_sessao`). O aviso diz isso, para ninguém estranhar a rolagem de teste que não entrou.
+ */
+const SessionNotice = () => {
+    const mesa = useMesaInfo()
+    const { isGm } = useRole()
+    if (mesa.sessionStartedAt) {
+        return (
+            <Alert severity="success" sx={{ mb: 2.5, maxWidth: 720 }}>
+                Sessão em andamento, {sessionSince(mesa.sessionStartedAt)}: as rolagens de agora entram no histórico.
+            </Alert>
+        )
+    }
+    return (
+        <Alert
+            severity="info"
+            sx={{ mb: 2.5, maxWidth: 720 }}
+            action={isGm ? <Button component={Link} to="/mesa" color="inherit" size="small" sx={{ whiteSpace: 'nowrap' }}>Iniciar sessão</Button> : undefined}
+        >
+            Só entram aqui as rolagens feitas com a sessão iniciada. Fora dela (testando a ficha, por exemplo), a rolagem
+            aparece para a mesa, mas não conta nas estatísticas.
+        </Alert>
+    )
+}
