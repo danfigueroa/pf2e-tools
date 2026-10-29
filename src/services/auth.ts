@@ -188,15 +188,26 @@ async function load(): Promise<void> {
     setState({ status: 'in', user: me.user, mesas: me.mesas, notice })
 }
 
+interface EnterOptions {
+    /** Roda antes de recarregar — a tela de entrada mostra o "Bem-vindo" enquanto isso. */
+    beforeReload?: () => Promise<void>
+}
+
 /** Entra com usuário e senha. Devolve o erro, ou recarrega a página já logado. */
-export async function signIn(username: string, password: string, { reload = true } = {}): Promise<string | null> {
+export async function signIn(
+    username: string,
+    password: string,
+    { reload = true, beforeReload }: EnterOptions & { reload?: boolean } = {},
+): Promise<string | null> {
     const client = await getAuthClient()
     if (!client) return 'Não foi possível falar com o servidor de login'
     const { error } = await client.auth.signInWithPassword({ email: emailOf(username), password })
     if (error) {
         return error.status === 429 ? 'Muitas tentativas seguidas — espere um minuto' : 'Usuário ou senha incorretos'
     }
-    if (reload) window.location.reload()
+    if (!reload) return null
+    await beforeReload?.()
+    window.location.reload()
     return null
 }
 
@@ -204,7 +215,10 @@ export async function signIn(username: string, password: string, { reload = true
  * Cria a conta com um convite e já entra. O convite pode ser de outra mesa: aí o app abre
  * nela. Devolve o erro (usuário já existe, convite vencido…) ou recarrega a página.
  */
-export async function register(input: { code: string; username: string; password: string; name: string }): Promise<string | null> {
+export async function register(
+    input: { code: string; username: string; password: string; name: string },
+    { beforeReload }: EnterOptions = {},
+): Promise<string | null> {
     const { ok, data } = await post({
         action: 'register',
         code: input.code.trim().toUpperCase(),
@@ -217,6 +231,7 @@ export async function register(input: { code: string; username: string; password
     const problem = await signIn(input.username, input.password, { reload: false })
     if (problem) return problem
     const mesa = String(data.mesa)
+    await beforeReload?.()
     if (mesa !== currentMesa.id) switchMesa(mesa)
     else window.location.reload()
     return null
