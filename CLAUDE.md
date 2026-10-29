@@ -7,7 +7,7 @@ Orientações para o Claude Code trabalhar neste repositório. Para detalhes de 
 **Covil de Dados** (antes "PF2e Toolkit"; o repositório e o pacote seguem `pf2e-tools`) — SPA (React 19 + TypeScript + Vite + MUI 7) com ferramentas para Pathfinder 2e
 Remaster. Textos de UI em **português (pt-BR)**.
 
-Seis módulos ativos (rotas em `src/App.tsx`):
+Sete módulos ativos (rotas em `src/App.tsx`):
 - `/ficha-virtual` → `src/modules/character-viewer/` — visualizador de ficha (JSON Pathbuilder) com
   descrições da AON traduzidas sob demanda.
 - `/iniciativa` → `src/modules/initiative-tracker/` — gerenciador de iniciativa e combate.
@@ -18,6 +18,8 @@ Seis módulos ativos (rotas em `src/App.tsx`):
   com barra de PV e régua.
 - `/historico` → `src/modules/session-diary/` — Histórico de Rolagens: as rolagens de cada dia de jogo, com
   estatísticas por personagem e destaques (`/diario`, o nome antigo, redireciona).
+- `/diario-campanha/:id?` → `src/modules/campaign-journal/` — Diário de Campanha, **só do GM**: preparação das
+  sessões em Markdown, catálogo de NPCs/locais/itens, ganchos, encontros com XP e o "Mostrar à mesa".
 
 **Todo módulo é `React.lazy`** (`App.tsx`); só a Início e o `MainLayout` vão no bundle principal.
 Num bundle único (1,7 MB, 520 kB gzip), quem abria a Ficha Virtual no celular baixava o
@@ -226,7 +228,7 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   funções. **`isMapRequest` vem ANTES de `isSheetRequest`** nos dois servidores: a rota da ficha
   aceita qualquer POST com `action` e engoliria as do mapa.
   - Imagens (mapa e tokens) vão **direto do navegador para o Supabase Storage** (bucket público `images`, migration
-    `imagens`), com a sessão de quem está logado: a política de insert só aceita as pastas `tokens/`, `maps/` e `monsters/`, nome
+    `imagens`), com a sessão de quem está logado: a política de insert só aceita as pastas `tokens/`, `maps/` e `monsters/` (mais `journal/`, só do GM — Diário de Campanha), nome
     `[a-z0-9-]` com extensão de imagem, de quem está em `mesa_members`, e só arquivo NOVO — sem política de update nem
     de delete, ninguém sobrescreve nem apaga a imagem de outro. O bucket barra mais de 8 MB e tipo que não seja
     WebP/PNG/JPEG. Passar pela função esbarraria no limite de 4,5 MB do corpo. Nome com sufixo aleatório e
@@ -241,6 +243,9 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
 - **O mesmo `state` serve as correções de tradução** (`api/_lib/fix-handler.js` + `fix-store.js`): `GET ?fixes=1` e
   `POST { action: 'fix-save', kind, name, fields }`, globais (a mesa do pedido não muda nada). Antes de `isSheetRequest`.
   Ver "Correção de tradução pela mesa" em Tradução.
+- **O mesmo `state` serve o Diário de Campanha** (`api/_lib/journal-handler.js` + `journal-store.js`): `GET ?journal=list`,
+  `?journal=<id>`, `?reveal=<id>` e `POST` com `journal-save`/`journal-delete`/`journal-reveal`. Antes de `isSheetRequest`.
+  Ver a seção do módulo.
 - **O mesmo `state` serve os encontros da Iniciativa** (`api/_lib/encounter-handler.js` + `encounter-store.js`):
   `GET ?encounter=<mapId|none>` e `POST { action: 'encounter-save', map, state }` (`map` null = "Sem mapa"). Vem
   antes de `isSheetRequest` nos dois servidores, pelo mesmo motivo do mapa. Ver "O encontro vai para a nuvem" na
@@ -398,7 +403,7 @@ das rotas (cada store do servidor manteve as funções exportadas). O Redis e o 
   compartilhamentos de mais de um dia, o estado de personagem parado há 180 dias e os eventos da mesa (notificações) de
   mais de 30 dias.
 - **Tempo real é sempre do banco**: um trigger chama `realtime.send` no canal PRIVADO `mesa:<mesa>:<nome>` (`state`,
-  `rolls`, `map:<id>`, `maps`, `encounters`, `fixes`, `sheets`, `events`), e só quem está em `mesa_members` ouve (RLS em `realtime.messages`). Nenhum cliente
+  `rolls`, `map:<id>`, `maps`, `encounters`, `fixes`, `sheets`, `events`, `journal`), e só quem está em `mesa_members` ouve (RLS em `realtime.messages`). Nenhum cliente
   transmite — as exceções são a presença (abaixo) e os gestos do mapa (`mesa:<mesa>:live:<mapa>`, ver "Mapa ao vivo"). No cliente, `listenMesaChannel` (`services/supabase.ts`) é o único jeito de ouvir; a cada SUBSCRIBED
   (inclusive reconexão) quem ouve relê o que pode ter perdido. O Realtime põe um `id` próprio no payload quando ele
   não tem um — não use `id` como campo da mensagem.
@@ -491,7 +496,8 @@ Redesign do usuário (out/2026, artefato de design "Covil de Dados — Nova Home
 estáticos e passou a mostrar a mesa VIVA; a sidebar ganhou seções; o celular, barra de abas.
 
 - **Navegação numa lista só** (`layouts/navigation.tsx`, `NAV_ITEMS`): a sidebar (seções JOGO / BASTIDORES DO GM / MESA), a
-  barra de abas e a busca leem dela — destino novo entra nos três. **Transformações é de JOGO para todos** (decisão do
+  barra de abas e a busca leem dela — destino novo entra nos três. **`section: 'gm'` NÃO esconde do jogador** (o item vai
+  para JOGO, como o Escalar Monstro); o que é só do GM leva `gmOnly: true` (o Diário de Campanha). **Transformações é de JOGO para todos** (decisão do
   usuário: a forma de batalha é do personagem), na sidebar e na Início (linha abaixo dos cartões; no celular, um bloco
   largo na grade). Jogador não vê BASTIDORES nem MESA, mas o Escalar Monstro vai para JOGO (`visibleNav`; a rota é aberta).
 - **Sidebar** (`layouts/sidebar/Sidebar.tsx`): cartão da mesa (nome do servidor, "N membros", sessão em andamento ou próxima
@@ -830,6 +836,10 @@ fazia pensar num diário escrito; o código e o endpoint (`?diary=`) mantêm o n
 No drawer de descrição da ficha (talento, habilidade, item, magia), o ícone de compartilhar ao lado do × manda a regra
 para a tela de todo mundo, em qualquer página, para a mesa ler o mesmo texto e chegar a um consenso.
 
+- **O tipo `handout` é o "Mostrar à mesa" do Diário de Campanha**: `name` é o título e `ref` o id em `journal_reveals`; o
+  `SharedRuleLayer` desvia para o `HandoutCard` (lazy, com o Markdown), que lê `?reveal=`. Só o `journal-reveal` (GM) o
+  cria — o `share-add` do cliente recusa —, e o trigger `share_events` o registra como `handout-shared` no sino.
+  `RuleShare`/`isRuleShare` separam os dois no cliente.
 - **Viaja a REFERÊNCIA, não o texto** (`TableShare` em `services/tableShare.ts`: tipo, nome, rank e, na magia, CD e
   ataque de quem conjura). Quem recebe busca a descrição pelos `fetch*Description` de sempre — sem prosa na rede, a
   validação é pequena.
@@ -2076,6 +2086,54 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
   criatura que É minúscula (`isTinySize`, no `useMapSync`), da AON ou digitada; o Shrink de um
   personagem continua sendo aplicado só no cliente, por `withPcSizes`. `NpcCombatant.tokenImage`: trocar a imagem de um monstro troca a das cópias dele que tinham
   a antiga (ou nenhuma), e a antiga só sai do armazenamento se ninguém mais a usa.
+
+## Módulo campaign-journal (Diário de Campanha)
+
+A preparação da campanha, só do GM (decisão do usuário: uma página por sessão, com espaço próprio para preparação, NPCs,
+itens, locais…). Tabelas `journal_docs` e `journal_reveals` (migration `diario_de_campanha`).
+
+- **Três tipos de documento** (`doc.ts`): **sessão** (abas Preparação, Cenas, Encontros, Elenco, Registro, Resumo, mais o
+  painel de ganchos), **ficha do catálogo** (`npc`/`location`/`item`/`faction`/`other`: imagem, etiquetas, Markdown) e
+  **gancho** (`thread`: aberto → revelado → resolvido). O catálogo é DA CAMPANHA (decisão do usuário): a sessão só liga
+  ids em `links`, e um NPC serve a várias sessões. O `?journal=list` traz os `links` de cada sessão — é o que responde
+  "aparece nas sessões" sem baixar todas.
+- **Só o GM, SEMPRE**: o servidor (`isRealGm` em `journal-handler.js`) exige o papel `gm` mesmo com `AUTH_REQUIRED`
+  desligado, como a gestão de conta — o diário tem segredos. O único GET aberto a membros é o `?reveal=` (o que JÁ foi
+  mostrado). O aviso do Realtime (`mesa:<mesa>:journal`) leva só id e `updatedAt`, **sem título**: qualquer membro ouve
+  os canais da mesa. Imagens na pasta `journal/` do bucket, com política de insert só para `mm.role = 'gm'` (permanentes,
+  como `tokens/`; fora do `isMapOwnedImage`).
+- **Escrita condicional**: `journal-save` leva o `updatedAt` que o aparelho viu (`base`; `null` = documento novo) e o
+  servidor só grava se ainda for aquele (409 com o documento atual). `useJournalDoc` salva 1,5 s depois da última mudança
+  (e ao esconder a aba/sair), guarda um **rascunho** no `localStorage` (`pf2e:journal:draft:<id>`, por mesa) até o
+  servidor confirmar, e no conflito oferece "Usar a do outro aparelho" / "Manter a minha". **Rascunho igual ao do
+  servidor é descartado** (`sameContent`): a gravação chega e a resposta se perde quando a aba recarrega no meio — virava
+  um conflito falso, pego pelo teste com navegador. O aviso de outro aparelho relê o documento se não há mudança daqui
+  na fila; o eco da própria escrita é reconhecido pelo `updatedAt` (as duas abas do GM são a MESMA conta, então `by` não serve).
+- **Markdown** (`components/markdown/`): `react-markdown` + `remark-gfm`, sem HTML cru, só em chunks lazy (o do diário,
+  que o `HandoutCard` divide; ~53 kB gzip). Duas marcas próprias, resolvidas antes em `blocks.ts` (puro, no `check-rolls`):
+  `:::jogadores Título … :::` (trecho para a mesa, com o botão "Mostrar à mesa" na prévia; dentro de bloco de código não
+  conta) e `[[Nome]]` (link para a ficha do catálogo, ou "criar"). Toda imagem passa pelo `useImageUrl`, e o `urlTransform`
+  deixa passar `idb:`.
+- **Editor** (`MarkdownEditor`): campo NÃO controlado (`defaultValue` + ref, a lição do `TranslationFix`); texto que chega
+  de fora remonta o editor pela `key` (`version` do `useJournalDoc`). Barra com negrito, título, listas, `[[ ]]`, bloco
+  para os jogadores, imagem (envio direto ao Storage) e **Modelo** (`templates.ts`). Editar = editor + prévia lado a lado no
+  desktop, só o editor no celular; Ver = só a prévia.
+- **"Mostrar à mesa"** abre uma prévia de confirmação (`RevealDialog`) com exatamente o que vai — o resto da página é
+  segredo e um toque perdido não pode revelá-lo. Vai `forPlayers(texto)` (sem as marcas `[[ ]]`). Ver "Regra compartilhada".
+- **Planejador de encontros** (`EncounterPlanner` + `xp.ts`): a busca de criaturas da Iniciativa (`AonCreatureSearch`
+  com `onPick`, que devolve a `AonCreature`), o orçamento do GM Core pg. 75-76 (Table 10-1 e 10-2, conferidas na AON) com
+  o ajuste por personagem, e "Enviar para a Iniciativa" (`npcFromCreature` × quantidade → `appendCombatants`, como o
+  Escalar Monstro). O grupo padrão sai das fichas publicadas (`partyFromLevels`: o nível mais comum); o GM ajusta por
+  sessão (`party`). Criatura a mais de 4 níveis do grupo não está na tabela: aviso, sem XP — nunca um número chutado. A
+  ameaça é a maior cujo orçamento o total alcança (80 XP para 6 personagens é Trivial: o Baixo é 100).
+- **Registro** (`SessionLog`): anotações com hora e etiqueta. "Começar a sessão" liga a sessão da mesa
+  (`saveMesaSettings`, a mesma do `/mesa`) e grava o `playedOn` (dia de jogo de `diaryDayOf`); "Rolagens deste dia" abre
+  `/historico?dia=`.
+- **Não há histórico de sessões no banco** (só `mesas.session_started_at`): a sessão do diário é do GM, ligada ao dia de
+  jogo pelo `playedOn`.
+- Testes: `check-rolls` (XP e `blocks.ts`), `check-auth` (seção "Diário de Campanha": papéis, flag desligada, 409,
+  `journal/` do bucket). O navegador foi conferido com GM e jogador em dois Brave headless (criar, salvar, mostrar à mesa
+  em outra página, `[[ ]]`, elenco, registro, ganchos, encontro → Iniciativa, aviso e conflito de outro aparelho, 360 px).
 
 ## Módulo transformation-statblock (contexto que se perde fácil)
 
