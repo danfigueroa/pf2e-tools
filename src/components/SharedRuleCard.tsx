@@ -3,7 +3,7 @@ import { Box, Skeleton, Stack, Typography } from '@mui/material'
 import { DescriptionContent, type DescriptionRequest } from '../modules/character-viewer/components/DescriptionContent'
 import { hasCachedDescription, loadDescriptionBundle, readSheetDescriptions } from '../services/descriptions'
 import { gold, green, parchment } from '../theme'
-import type { TableShare } from '../services/tableShare'
+import type { RuleShare } from '../services/tableShare'
 
 // O cartão de uma regra compartilhada: o mesmo conteúdo do drawer da ficha,
 // buscado aqui pela referência que chegou da mesa. Carregado sob demanda
@@ -19,13 +19,13 @@ import type { TableShare } from '../services/tableShare'
 /** Teto da espera pelos pacotes: com a rede ruim, segue pela API como antes. */
 const SEED_TIMEOUT_MS = 4000
 
-function requestOf(s: TableShare): DescriptionRequest {
+function requestOf(s: RuleShare): DescriptionRequest {
     if (s.type === 'spell') return { type: 'spell', name: s.name, level: s.level, caster: s.caster }
     if (s.type === 'feat') return { type: 'feat', name: s.name, level: s.level }
     return { type: s.type, name: s.name }
 }
 
-export default function SharedRuleCard({ share, onClose }: { share: TableShare; onClose: () => void }) {
+export default function SharedRuleCard({ share, onClose }: { share: RuleShare; onClose: () => void }) {
     // As magias de um bastão trocam o conteúdo do próprio cartão, como no drawer.
     const [request, setRequest] = useState<DescriptionRequest>(() => requestOf(share))
     // Já no cache deste aparelho (a ficha de quem compartilhou estava aberta aqui): nada a esperar.

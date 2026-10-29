@@ -9,10 +9,14 @@
 //
 // O backend tem a MESMA validação em `api/_lib/roll-store.js` (`sanitizeShare`)
 // — espelhada à mão porque o servidor é JS puro; mudou aqui, muda lá.
+//
+// `handout` é o que o GM mostra pelo Diário de Campanha: `name` é o título e
+// `ref` o id do que foi mostrado (`?reveal=`), de onde o cartão lê o texto e a
+// imagem. Só o servidor o cria (`journal-reveal`).
 
-export type ShareType = 'feat' | 'special' | 'item' | 'spell'
+export type ShareType = 'feat' | 'special' | 'item' | 'spell' | 'handout'
 
-const SHARE_TYPES: readonly ShareType[] = ['feat', 'special', 'item', 'spell']
+const SHARE_TYPES: readonly ShareType[] = ['feat', 'special', 'item', 'spell', 'handout']
 
 export interface TableShare {
     id: string
@@ -30,7 +34,14 @@ export interface TableShare {
     level?: number
     /** CD e ataque de quem conjura — só magia. */
     caster?: { name: string; dc: number; attack: number; tradition: string }
+    /** Só `handout`: o id do que o GM mostrou. */
+    ref?: string
 }
+
+/** Uma regra (talento, habilidade, item, magia): o cartão busca a descrição pela AON. */
+export type RuleShare = TableShare & { type: Exclude<ShareType, 'handout'> }
+
+export const isRuleShare = (s: TableShare): s is RuleShare => s.type !== 'handout'
 
 const HEX = /^#[0-9a-fA-F]{6}$/
 const ID_RE = /^[a-z0-9-]{1,64}$/
@@ -70,6 +81,10 @@ export function sanitizeTableShare(raw: unknown): TableShare | null {
     if (out.type === 'spell') {
         const caster = sanitizeCaster(s.caster)
         if (caster) out.caster = caster
+    }
+    if (out.type === 'handout') {
+        if (typeof s.ref !== 'string' || !ID_RE.test(s.ref)) return null
+        out.ref = s.ref
     }
     return out
 }

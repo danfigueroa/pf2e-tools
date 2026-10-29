@@ -1102,6 +1102,15 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
         ok(shares.sanitizeTableShare(s) === null, `cliente recusa o compartilhamento: ${why}`)
         ok(server.sanitizeShare(s) === null, `servidor recusa o compartilhamento: ${why}`)
     }
+    // O que o GM mostra pelo diário: a referência é obrigatória.
+    const handout = { id: 'h-1', at: 1, by: 'GM', color: '#7e611d', type: 'handout', name: 'Carta do barão', ref: 'h-1' }
+    for (const out of both(handout)) eq(out?.ref, 'h-1', 'handout leva a referência do que foi mostrado')
+    for (const out of both({ ...handout, ref: undefined })) ok(out === null, 'handout sem referência é recusado')
+    for (const out of both({ ...handout, ref: 'X/Y' })) ok(out === null, 'handout com referência inválida é recusado')
+    for (const out of both({ ...good, ref: 'h-1' })) ok(out && out.ref === undefined, 'só o handout leva referência')
+    const handler = await import('../api/_lib/roll-handler.js')
+    const posted = await handler.handleRollRequest('casa-do-gordo', 'POST', {}, { action: 'share-add', share: handout }, {})
+    eq(posted.status, 400, 'o share-add do cliente não cria handout (só o journal-reveal, que confere o GM)')
 }
 
 // ── O tamanho que o Pathbuilder lista entre as características não vira habilidade ──
