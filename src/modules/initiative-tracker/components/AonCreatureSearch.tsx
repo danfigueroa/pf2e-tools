@@ -19,7 +19,12 @@ import { npcFromCreature } from '../importCharacter'
 import type { NpcCombatant } from '../types'
 
 interface Props {
-    onAdd: (npcs: NpcCombatant[]) => void
+    onAdd?: (npcs: NpcCombatant[]) => void
+    /**
+     * A criatura da AON e quantas, no lugar dos combatentes prontos — o planejador de encontros
+     * do Diário de Campanha guarda a criatura e só monta os combatentes ao enviar para a Iniciativa.
+     */
+    onPick?: (creature: AonCreature, count: number) => void
 }
 
 /** A raridade vem da AON como texto livre; o mapa do tema só cobre as quatro conhecidas. */
@@ -27,7 +32,7 @@ const rarityColor = (rarity: string): string =>
     (RARITY_COLORS as Record<string, string>)[rarity] ?? ink.secondary
 
 /** Busca criaturas na AON por nome, por faixa de nível, ou pelos dois. */
-export const AonCreatureSearch = ({ onAdd }: Props) => {
+export const AonCreatureSearch = ({ onAdd, onPick }: Props) => {
     const {
         query, setQuery, minLevel, setMinLevel, maxLevel, setMaxLevel,
         results, total, hasMore, loading, loadingMore, searched, loadMore,
@@ -37,7 +42,8 @@ export const AonCreatureSearch = ({ onAdd }: Props) => {
     const count = useMemo(() => Math.min(20, Math.max(1, parseInt(quantity, 10) || 1)), [quantity])
 
     const handleAdd = (creature: AonCreature) => {
-        onAdd(Array.from({ length: count }, (_, i) => npcFromCreature(creature, count > 1 ? i : 0)))
+        if (onPick) onPick(creature, count)
+        onAdd?.(Array.from({ length: count }, (_, i) => npcFromCreature(creature, count > 1 ? i : 0)))
     }
 
     return (
