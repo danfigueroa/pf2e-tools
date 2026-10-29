@@ -226,7 +226,7 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   funções. **`isMapRequest` vem ANTES de `isSheetRequest`** nos dois servidores: a rota da ficha
   aceita qualquer POST com `action` e engoliria as do mapa.
   - Imagens (mapa e tokens) vão **direto do navegador para o Supabase Storage** (bucket público `images`, migration
-    `imagens`), com a sessão anônima: a política de insert só aceita as pastas `tokens/`, `maps/` e `monsters/`, nome
+    `imagens`), com a sessão de quem está logado: a política de insert só aceita as pastas `tokens/`, `maps/` e `monsters/`, nome
     `[a-z0-9-]` com extensão de imagem, de quem está em `mesa_members`, e só arquivo NOVO — sem política de update nem
     de delete, ninguém sobrescreve nem apaga a imagem de outro. O bucket barra mais de 8 MB e tipo que não seja
     WebP/PNG/JPEG. Passar pela função esbarraria no limite de 4,5 MB do corpo. Nome com sufixo aleatório e
@@ -342,7 +342,7 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
     custo, acesso (`FIX_FIELDS`, igual no servidor). Grava só o que difere da tradução automática. Número, traço e o
     `defense` da magia (que a rolagem lê) ficam de fora; na magia o diálogo avisa para manter os dados, que é por onde a
     prosa é elevada.
-  - Sem login, qualquer um corrige: `previous` guarda o estado de antes da última mudança ("Desfazer última correção";
+  - Qualquer membro de qualquer mesa corrige (a correção é global, como a tradução): `previous` guarda o estado de antes da última mudança ("Desfazer última correção";
     na primeira correção, desfazer é voltar à automática) e `fields: {}` é "Voltar à tradução automática".
   - **`applyFix` lembra o original de cada objeto corrigido** (`originals`): o drawer guarda o objeto já corrigido no
     estado, e uma correção desfeita tem de devolver o texto da tradução, não o corrigido.
@@ -395,19 +395,21 @@ das rotas (cada store do servidor manteve as funções exportadas). O Redis e o 
   sessão, `aws-1-sa-east-1.pooler.supabase.com:5432` (o `aws-0` recusa). A CLI dá a chave secreta MASCARADA sem
   `--reveal`.
 - `pg_cron` limpa os usuários anônimos sem atividade há 180 dias, as travas vencidas, os misses velhos, os
-  compartilhamentos de mais de um dia e o estado de personagem parado há 180 dias.
+  compartilhamentos de mais de um dia, o estado de personagem parado há 180 dias e os eventos da mesa (notificações) de
+  mais de 30 dias.
 - **Tempo real é sempre do banco**: um trigger chama `realtime.send` no canal PRIVADO `mesa:<mesa>:<nome>` (`state`,
-  `rolls`, `map:<id>`, `maps`, `encounters`, `fixes`, `sheets`), e só quem está em `mesa_members` ouve (RLS em `realtime.messages`). Nenhum cliente
+  `rolls`, `map:<id>`, `maps`, `encounters`, `fixes`, `sheets`, `events`), e só quem está em `mesa_members` ouve (RLS em `realtime.messages`). Nenhum cliente
   transmite — as exceções são a presença (abaixo) e os gestos do mapa (`mesa:<mesa>:live:<mapa>`, ver "Mapa ao vivo"). No cliente, `listenMesaChannel` (`services/supabase.ts`) é o único jeito de ouvir; a cada SUBSCRIBED
   (inclusive reconexão) quem ouve relê o que pode ter perdido. O Realtime põe um `id` próprio no payload quando ele
   não tem um — não use `id` como campo da mensagem.
 - **Presença** (`services/presence.ts` + `components/PresenceList.tsx`, migration `presenca`): quem está com o app aberto
-  na mesa, na sidebar ("Na mesa agora"), com o nome do aparelho, a ficha aberta e a página. Usa o Presence do Realtime no
+  na mesa: os avatares no cartão da mesa da sidebar ("N na mesa agora"; tocar abre a lista com o nome do aparelho, a
+  ficha aberta e a página). A Início usa a mesma presença para o "online" do grupo. Usa o Presence do Realtime no
   canal `mesa:<mesa>:presence`, e é um dos DOIS lugares onde o cliente manda algo pelo Realtime (o outro é o "Mapa ao vivo"): a política de
   insert em `realtime.messages` libera só a extensão `presence`, e só nesse tópico. Transmitir (`broadcast`) pelo cliente continua
   recusado — conferido: o `send` volta `error` e ninguém recebe.
-  - Sem login, a pessoa é o APARELHO (sessão anônima, `presence.key`); duas abas são uma linha (vale a visível mais
-    recente). O nome é opcional, do aparelho (`pf2e:device-name`, global, editado no próprio item da lista); sem ele,
+  - A chave do Presence é a CONTA logada (`presence.key`; antes do login era o aparelho); duas abas são uma linha (vale a
+    visível mais recente). Cada um anuncia também o nome da pessoa (`who`), para as iniciais dos avatares. O nome é opcional, do aparelho (`pf2e:device-name`, global, editado no próprio item da lista); sem ele,
     vale o personagem da ficha aberta. A ficha se anuncia por `announceSheet` (`CharacterSheetView`, página e painel do
     mapa); a página, pelo `MainLayout`.
   - Medido: a troca de página chega ao outro em 1,5–3 s, e quem fecha a aba some em 0,2–3 s. É presença, não estado —
@@ -566,8 +568,8 @@ personagens, mapas e mapa ativo, encontro da Iniciativa, feed de rolagens e regr
 PV, PV de companheiros, slots de magia, pontos de foco, pontos míticos e condições são **da mesa,
 não do navegador**: os jogadores veem os mesmos números. A sincronia é **em tempo real**: lê ao abrir a ficha e,
 depois, cada escrita chega sozinha pelo Realtime do Supabase (o indicador diz "Ao vivo" e o "Atualizar" some). Sem
-Supabase, ou com o canal fechado, volta a ser **sob demanda** — ao abrir e no botão "Atualizar". Não há login: quem
-abrir o site entra na mesma mesa (a do aparelho — ver "Mesas").
+Supabase, ou com o canal fechado, volta a ser **sob demanda** — ao abrir e no botão "Atualizar". Ler é de qualquer
+membro da mesa; escrever, só do dono da ficha e do GM (ver "Login, papéis e donos de ficha").
 
 - **Backend**: `api/_lib/table-store.js` (núcleo, compartilhado com `server/index.mjs`) sobre o **Postgres do
   Supabase**, tabela `character_state`. **Sem credenciais, cai num `Map` de processo** e o app segue funcionando; o
@@ -959,8 +961,8 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   (`sheetDiff.ts` — nível, talentos, habilidades, magias, itens) contra a versão da mesa (a
   publicada, senão o arquivo fixo). "Só ver neste aparelho" é o comportamento antigo; "Publicar"
   grava, pede o guia e abre a ficha (que completa as descrições traduzidas da mesa — ver "Descrições
-  pré-traduzidas"). Sem login, **qualquer pessoa publica** — decisão do usuário —,
-  então a diferença à vista e o "Versão anterior" da faixa sob o cabeçalho são a salvaguarda.
+  pré-traduzidas"). Ficha NOVA qualquer membro publica (vira dono); por cima de uma existente, só o dono e o GM
+  (ver "Login, papéis e donos de ficha"). A diferença à vista e o "Versão anterior" continuam sendo a salvaguarda.
   - **Toda ficha vai para o banco, SEMPRE** (decisão do usuário): o diálogo não tem mais "Só ver neste aparelho" — só
     Publicar ou Cancelar —, e só a ficha igual a uma JÁ publicada dispensa publicar (igual ao arquivo fixo ainda precisa).
     Preset aberto que ainda não está publicado é publicado sozinho (`publishPreset`). `scripts/seed-presets.mjs` publica de
@@ -1867,7 +1869,8 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
   revelado (olho na lista, ou "Revelar à mesa" no aviso do próprio mapa). Mapa antigo, sem o
   campo, é público.
   - **O servidor não entrega** o privado a quem não manda `gm=1` (`?maps=`, `?map=`, `?mapRev=`):
-    nem nome, nem imagem, nem tokens. Continua sem senha — quem liga o Modo GM vê, como o resto.
+    nem nome, nem imagem, nem tokens. Com `AUTH_REQUIRED`, o servidor decide pelo PAPEL (o `gm=1` da query não vale);
+    antes do cutover, ainda vale o `gm=1`.
   - Campo **`private` à parte do `meta`**, fora do `FIELD_RE` (só `map-visibility` mexe): o cliente
     regrava o `meta` inteiro com a cópia que tem (imagem, alinhamento, nome), e um ajuste logo
     depois de revelar esconderia o mapa de novo.

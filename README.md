@@ -578,6 +578,11 @@ pf2e-tools/
 │   │       └── data/creatureTables.ts   # GERADO por scripts/fetch-creature-tables.mjs
 │   ├── hooks/
 │   │   └── useCreatureSearch.ts  # Busca de criaturas (debounce, faixa, paginação) — Iniciativa + Escalar Monstro
+│   ├── layouts/
+│   │   ├── MainLayout.tsx        # Moldura: sidebar fixa (recolhível), gaveta, atalho ⌘K
+│   │   ├── sidebar/Sidebar.tsx   # Cartão da mesa, navegação em seções, últimas rolagens, perfil
+│   │   ├── MobileChrome.tsx      # Cabeçalho e barra de abas do celular
+│   │   └── navigation.tsx        # A lista única de destinos (sidebar, abas e busca)
 │   ├── pages/
 │   │   ├── HomePage.tsx          # Página inicial: herói, o grupo e as prévias das ferramentas
 │   │   └── home/                 # As partes vivas da Início (grupo, ficha, combate, mapa, histórico)
@@ -587,7 +592,10 @@ pf2e-tools/
 │   │   ├── monster.ts            # Cliente da ficha completa de uma criatura
 │   │   ├── spellList.ts          # Cliente da lista de magias (tradição + rank)
 │   │   ├── rules.ts              # Cliente da regra de um termo (inglês, cacheado)
-│   │   ├── supabase.ts           # Sessão anônima do aparelho e os canais do Realtime
+│   │   ├── supabase.ts           # Sessão de quem está logado e os canais do Realtime
+│   │   ├── auth.ts               # Login, papel na mesa, dados da mesa e o JWT em todo /api/*
+│   │   ├── notifications.ts      # O sino: eventos da mesa e o que a conta já leu
+│   │   ├── combatStatus.ts       # Rodada e vez de quem, só leitura (sidebar e Início)
 │   │   ├── tableState.ts         # Estado compartilhado da mesa, em tempo real
 │   │   ├── maps.ts               # Mapa de combate: tempo real + escrita otimista
 │   │   └── images.ts             # Redução e envio de imagens (Supabase Storage, IndexedDB de reserva)
