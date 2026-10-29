@@ -6,6 +6,7 @@ import {
   Description as SheetIcon,
   Map as MapIcon,
   MenuBook as RuleIcon,
+  Campaign as HandoutIcon,
   SportsKabaddi as CombatIcon,
   Visibility as RevealIcon,
 } from '@mui/icons-material';
@@ -21,6 +22,7 @@ const ICONS: Record<NotificationKind, ReactElement> = {
   'map-revealed': <RevealIcon fontSize="small" />,
   'combat-started': <CombatIcon fontSize="small" />,
   'rule-shared': <RuleIcon fontSize="small" />,
+  'handout-shared': <HandoutIcon fontSize="small" />,
   gift: <GiftIcon fontSize="small" />,
 };
 
@@ -43,6 +45,8 @@ function textOf(n: TableNotification): string {
       return 'O combate começou';
     case 'rule-shared':
       return `${str(d.by) || 'Alguém'} compartilhou ${str(d.name) || 'uma regra'}`;
+    case 'handout-shared':
+      return `${str(d.by) || 'O GM'} mostrou à mesa: ${str(d.name) || 'sem título'}`;
     case 'gift':
       return `${fromSlug(str(d.from)) || 'Alguém'} te enviou ${typeof d.n === 'number' ? d.n : 1}× ${str(d.name)}`;
   }
@@ -56,7 +60,7 @@ export default function NotificationsList({ anchor, fresh, onClose }: { anchor: 
   const go = (n: TableNotification) => {
     onClose();
     const d = n.data;
-    if (n.kind === 'rule-shared') {
+    if (n.kind === 'rule-shared' || n.kind === 'handout-shared') {
       window.dispatchEvent(new CustomEvent('pf2e:show-share', { detail: d }));
     } else if (n.kind === 'map-active' || n.kind === 'map-revealed') {
       navigate(str(d.map) ? `/mapa/${str(d.map)}` : '/mapa');
@@ -81,7 +85,7 @@ export default function NotificationsList({ anchor, fresh, onClose }: { anchor: 
       </Typography>
       {items.length === 0 ? (
         <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
-          Nada novo por aqui. Fichas publicadas, mapas, combates, regras compartilhadas e itens recebidos aparecem aqui.
+          Nada novo por aqui. Fichas publicadas, mapas, combates, regras compartilhadas, o que o GM mostra e itens recebidos aparecem aqui.
         </Typography>
       ) : (
         <Box component="ul" sx={{ listStyle: 'none', m: 0, p: 0, overflowY: 'auto' }}>

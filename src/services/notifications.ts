@@ -24,6 +24,7 @@ export type NotificationKind =
     | 'map-revealed'
     | 'combat-started'
     | 'rule-shared'
+    | 'handout-shared'
     | 'gift'
 
 export interface TableNotification {
@@ -74,7 +75,7 @@ function relevant(e: ServerEvent): boolean {
     const me = auth.status === 'in' ? auth.user.id : null
     if (e.target && e.target !== me) return false
     if (e.kind === 'sheet-published' && me && e.data.by === me) return false
-    if (e.kind === 'rule-shared' && typeof e.data.id === 'string' && isOwnRoll(e.data.id)) return false
+    if ((e.kind === 'rule-shared' || e.kind === 'handout-shared') && typeof e.data.id === 'string' && isOwnRoll(e.data.id)) return false
     if (roleOf(auth).isGm && (e.kind === 'map-active' || e.kind === 'map-revealed' || e.kind === 'combat-started')) {
         return false
     }

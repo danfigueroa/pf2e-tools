@@ -14,6 +14,9 @@ import { isRuleShare, sanitizeTableShare, type TableShare } from '../services/ta
 
 const loadCard = () => import('./SharedRuleCard')
 const SharedRuleCard = lazy(loadCard)
+// O que o GM mostra pelo Diário de Campanha: cartão próprio (traz o Markdown, ~40 kB gzip).
+const loadHandout = () => import('./HandoutCard')
+const HandoutCard = lazy(loadHandout)
 
 /**
  * Baixa o cartão com o app ocioso (~18 kB gzip; na Ficha Virtual quase tudo já
@@ -21,7 +24,10 @@ const SharedRuleCard = lazy(loadCard)
  * o código chegar e só DEPOIS começava a ler os pacotes de descrições.
  */
 function prefetchCard() {
-    const run = () => { void loadCard().catch(() => { /* o lazy tenta de novo quando precisar */ }) }
+    const run = () => {
+        void loadCard().catch(() => { /* o lazy tenta de novo quando precisar */ })
+        void loadHandout().catch(() => {})
+    }
     if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(run, { timeout: 5000 })
     else setTimeout(run, 2000)
 }
@@ -57,15 +63,17 @@ export const SharedRuleLayer = memo(function SharedRuleLayer() {
         if (fresh) setShown(fresh)
     }, [shares, ready])
 
-    if (!shown || !isRuleShare(shown)) return null
+    if (!shown) return null
     return (
         <Suspense fallback={null}>
-            <SharedRuleCard key={shown.id} share={shown} onClose={() => setShown(null)} />
+            {isRuleShare(shown)
+                ? <SharedRuleCard key={shown.id} share={shown} onClose={() => setShown(null)} />
+                : <HandoutCard key={shown.id} share={shown} onClose={() => setShown(null)} />}
             <Box
                 role="status"
                 sx={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clipPath: 'inset(50%)' }}
             >
-                {`${shown.by || 'Alguém'} compartilhou ${shown.name}`}
+                {isRuleShare(shown) ? `${shown.by || 'Alguém'} compartilhou ${shown.name}` : `${shown.by || 'O GM'} mostrou à mesa: ${shown.name}`}
             </Box>
         </Suspense>
     )
