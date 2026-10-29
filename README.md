@@ -47,6 +47,7 @@ O toolkit expõe as ferramentas abaixo (rotas em `src/App.tsx`), listadas na pá
 | **Histórico de Rolagens**     | `/historico`      | `src/modules/session-diary/`          | Troféus, ranking e o d20 da mesa em todas as sessões; cada noite também |
 | **Stat Block de Transformação** | `/transformation` | `src/modules/transformation-statblock/` | Gera o stat block de qualquer _battle form_ do Remaster              |
 | **Escalar Monstro**           | `/escalar-monstro` | `src/modules/monster-scaler/`        | Adapta uma criatura da AON para outro nível                            |
+| **Diário de Campanha** (GM)   | `/diario-campanha` | `src/modules/campaign-journal/`      | Preparação das sessões em Markdown, catálogo de NPCs/locais/itens, ganchos, encontros com XP e o que mostrar à mesa |
 
 ### 🪑 Mesas
 
@@ -345,10 +346,30 @@ página** (Ficha, Iniciativa, Mapa…), num cartão com os dados animados, o res
 -   As rolagens chegam aos outros em ~3 s (~1 s no Mapa), sem botão de atualizar. Com a aba
     escondida o app não consulta nada
 
+### ✅ Diário de Campanha (Implementado, só o GM)
+
+A preparação da campanha, escrita em **Markdown**, que só o GM vê (o servidor recusa o jogador):
+
+-   **Uma página por sessão**, com abas: **Preparação** (com modelo: onde paramos, objetivo, começo forte,
+    segredos e pistas, recompensas), **Cenas** (feita/pulada, na ordem), **Encontros**, **Elenco**, **Registro**
+    e **Resumo**
+-   **Catálogo da campanha**: NPCs, locais, itens, facções e outros, com imagem, etiquetas e texto, reaproveitados
+    entre sessões. `[[Nome]]` no texto vira link para a ficha (ou oferece criá-la), e o Elenco sugere quem foi
+    citado
+-   **Ganchos e pendências**: pistas e segredos em aberto → revelado → resolvido, ao lado da sessão
+-   **Planejador de encontros**: criaturas da AON, o **orçamento de XP do GM Core** (trivial a extremo, ajustado
+    ao tamanho do grupo das fichas publicadas) e **Enviar para a Iniciativa** com um clique
+-   **Registro durante o jogo**: anotações rápidas com hora e etiqueta (combate, saque, decisão, NPC, pista);
+    "Começar a sessão" liga a sessão da mesa e leva às rolagens daquele dia no Histórico
+-   **Mostrar à mesa**: o trecho marcado com `:::jogadores Título … :::` ou uma imagem aparece na tela de todos
+    os jogadores, em qualquer página (e no sino) — o resto da página continua secreto. Uma prévia confirma
+    exatamente o que vai
+-   Barra de formatação, envio de imagem, prévia ao lado (no celular, Editar/Ver), salvamento automático,
+    rascunho no aparelho sem rede e aviso quando o mesmo documento é editado em outro aparelho
+
 ### 🚧 Em Desenvolvimento
 
 -   Calculadora de Magias
--   Gerador de Encontros
 
 ---
 
@@ -1196,6 +1217,8 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
     -   [x] Avisos do que não foi ajustado (prosa, lista de magias, dano extra)
     -   [x] Exportação em PNG e envio direto para a Iniciativa
 -   [x] Servidor de scraping da AON
+-   [x] **Diário de Campanha (só o GM)**: sessões, catálogo, ganchos, registro, planejador de encontros com o XP do
+        GM Core e "Mostrar à mesa"
 
 ### 🚧 Em Progresso
 
@@ -1210,7 +1233,7 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
 ### 📅 Planejado
 
 -   [ ] Calculadora de Magias
--   [ ] Gerador de Encontros
+-   [ ] Gerador de Encontros aleatórios (o planejador do Diário de Campanha monta à mão)
 -   [ ] Suporte a múltiplos idiomas
 -   [ ] Temas customizáveis para PDF
 -   [ ] PWA (Progressive Web App)
