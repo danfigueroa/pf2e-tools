@@ -42,24 +42,28 @@ interface Props {
 
 function XpBar({ total, budgets }: { total: number; budgets: Record<Threat, number> }) {
     const max = Math.max(budgets.extreme * 1.15, total)
+    const marks = THREATS.filter((t) => t !== 'trivial')
     return (
-        <Box sx={{ position: 'relative', height: 26, mt: 1, mb: 2.5 }}>
-            <Box sx={{ position: 'absolute', inset: '8px 0', bgcolor: parchment.sunken, borderRadius: 1 }} />
-            <Box sx={{
-                position: 'absolute', top: 8, bottom: 8, left: 0, width: `${(Math.min(total, max) / max) * 100}%`,
-                bgcolor: green.mid, borderRadius: 1, transition: 'width 200ms ease',
-            }} />
-            {THREATS.filter((t) => t !== 'trivial').map((t) => (
-                <Box key={t} sx={{ position: 'absolute', left: `${(budgets[t] / max) * 100}%`, top: 0, bottom: 0 }}>
-                    <Box sx={{ width: '2px', height: '100%', bgcolor: THREAT_COLOR[t] }} />
-                    <Typography
-                        variant="caption"
-                        sx={{ position: 'absolute', top: 26, transform: 'translateX(-50%)', whiteSpace: 'nowrap', color: THREAT_COLOR[t], fontSize: '0.68rem' }}
-                    >
+        <Box sx={{ mt: 1, mb: 1.5 }}>
+            <Box sx={{ position: 'relative', height: 18 }}>
+                <Box sx={{ position: 'absolute', inset: '4px 0', bgcolor: parchment.sunken, borderRadius: 1 }} />
+                <Box sx={{
+                    position: 'absolute', top: 4, bottom: 4, left: 0, width: `${(Math.min(total, max) / max) * 100}%`,
+                    bgcolor: green.mid, borderRadius: 1, transition: 'width 200ms ease',
+                }} />
+                {marks.map((t) => (
+                    <Box key={t} sx={{ position: 'absolute', left: `${(budgets[t] / max) * 100}%`, top: 0, bottom: 0, width: '2px', bgcolor: THREAT_COLOR[t] }} />
+                ))}
+            </Box>
+            {/* Legenda em linha, não sobre a barra: Baixa e Moderada ficam a 20 XP uma da outra. */}
+            <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
+                {marks.map((t) => (
+                    <Typography key={t} variant="caption" sx={{ color: THREAT_COLOR[t], display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Box component="span" sx={{ width: 8, height: 8, bgcolor: THREAT_COLOR[t], display: 'inline-block' }} />
                         {THREAT_LABEL[t]} {budgets[t]}
                     </Typography>
-                </Box>
-            ))}
+                ))}
+            </Stack>
         </Box>
     )
 }

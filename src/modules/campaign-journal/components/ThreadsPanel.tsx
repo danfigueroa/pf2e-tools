@@ -70,7 +70,7 @@ export const ThreadsPanel = memo(function ThreadsPanel({ docs, linked, onOpen, o
     }
 
     return (
-        <Paper variant="outlined" sx={{ p: 1.5, bgcolor: parchment.paper, position: { lg: 'sticky' }, top: { lg: 16 } }}>
+        <Paper variant="outlined" sx={{ p: 1.5, bgcolor: parchment.paper, position: { xl: 'sticky' }, top: { xl: 16 } }}>
             <Typography sx={{ fontFamily: displayFont, fontWeight: 700, color: green.main, mb: 1 }}>Ganchos</Typography>
             <Typography variant="caption" color="text.secondary">Nesta sessão</Typography>
             {here.length === 0 && <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', py: 0.5 }}>Nenhum.</Typography>}

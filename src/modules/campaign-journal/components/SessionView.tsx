@@ -1,7 +1,7 @@
 import { memo, useCallback, useMemo, useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import {
-    Alert, Autocomplete, Avatar, Badge, Box, Button, Chip, IconButton, Paper, Stack, Tab, Tabs, TextField,
+    Alert, Autocomplete, Avatar, Box, Button, Chip, IconButton, Paper, Stack, Tab, Tabs, TextField,
     ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material'
 import {
@@ -12,7 +12,7 @@ import { useMesaInfo } from '../../../services/auth'
 import { saveMesaSettings } from '../../../services/members'
 import { diaryDayOf } from '../../../services/diary'
 import { useImageUrl } from '../../../services/images'
-import { displayFont, gold, green, parchment, rule } from '../../../theme'
+import { bodyFont, displayFont, gold, green, parchment, rule } from '../../../theme'
 import { wikiNames } from '../../../components/markdown/blocks'
 import {
     CATALOG_KINDS, KIND_LABEL, newId, type CatalogKind, type DocKind, type JournalSummary, type PlannedEncounter,
@@ -287,8 +287,8 @@ export const SessionView = memo(function SessionView({ doc, version, update, doc
                 />
                 <Chip
                     label={data.status === 'played' ? `Jogada${data.playedOn ? ` em ${data.playedOn.split('-').reverse().join('/')}` : ''}` : 'Planejada'}
-                    sx={data.status === 'played' ? { bgcolor: green.mid, color: parchment.paper } : undefined}
                     onDelete={data.status === 'played' ? () => setData({ status: 'planned', playedOn: null }) : undefined}
+                    sx={{ alignSelf: { xs: 'flex-start', sm: 'center' }, ...(data.status === 'played' ? { bgcolor: green.mid, color: parchment.paper } : {}) }}
                 />
                 <Box sx={{ flex: 1 }} />
                 {mesa.sessionStartedAt && data.playedOn === today ? (
@@ -308,7 +308,7 @@ export const SessionView = memo(function SessionView({ doc, version, update, doc
             </Stack>
             {error && <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 2 }}>{error}</Alert>}
 
-            <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, 1fr) 300px' }, alignItems: 'start' }}>
+            <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', xl: 'minmax(0, 1fr) 300px' }, alignItems: 'start' }}>
                 <Box sx={{ minWidth: 0 }}>
                     <Tabs
                         value={tab}
@@ -323,9 +323,16 @@ export const SessionView = memo(function SessionView({ doc, version, update, doc
                                 key={t.key}
                                 value={t.key}
                                 sx={{ textTransform: 'none', minWidth: 0, px: 1.5 }}
-                                label={t.count
-                                    ? <Badge badgeContent={t.key === 'scenes' ? `${doneScenes}/${t.count}` : t.count} color="secondary" sx={{ '& .MuiBadge-badge': { right: -14, bgcolor: gold.deep, color: parchment.paper } }}>{t.label}</Badge>
-                                    : t.label}
+                                label={(
+                                    <Box component="span">
+                                        {t.label}
+                                        {!!t.count && (
+                                            <Box component="span" sx={{ ml: 0.75, color: gold.deep, fontWeight: 700, fontSize: '0.8em', fontFamily: bodyFont }}>
+                                                {t.key === 'scenes' ? `${doneScenes}/${t.count}` : t.count}
+                                            </Box>
+                                        )}
+                                    </Box>
+                                )}
                             />
                         ))}
                     </Tabs>
