@@ -19,6 +19,9 @@ const LIST_DELAY_MS = 400
 
 const draftKey = (id: string) => mesaKey(`pf2e:journal:draft:${id}`)
 
+/** Os dois passaram pelo `sanitizeDoc`, que monta as chaves sempre na mesma ordem (o `jsonb` não). */
+const sameContent = (a: JournalDoc, b: JournalDoc) => JSON.stringify(wireDoc(a)) === JSON.stringify(wireDoc(b))
+
 interface Draft { doc: unknown; base: number | null }
 
 function readDraft(id: string): Draft | null {
@@ -171,6 +174,15 @@ export function useJournalDoc(id: string | null, onSaved?: (doc: JournalDoc) => 
         const server = raw ? sanitizeDoc(raw) : null
         if (!server) { if (!draftDoc) setStatus('missing'); return }
         baseRef.current = server.updatedAt
+        // A gravação chegou ao servidor, mas a resposta não voltou (aba recarregada no meio):
+        // o rascunho é igual ao que está lá, e não há conflito nenhum.
+        if (draftDoc && sameContent(draftDoc, server)) {
+            writeDraft(docId, null)
+            dirty.current = false
+            show(server, true)
+            setStatus('saved')
+            return
+        }
         if (draftDoc && draft!.base === server.updatedAt) {
             // Mudança daqui que não chegou ao servidor (aba fechada sem rede): manda agora.
             dirty.current = true
