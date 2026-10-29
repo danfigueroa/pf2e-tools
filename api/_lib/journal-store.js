@@ -65,6 +65,7 @@ const summaryOf = (doc) => ({
     updatedAt: doc.updatedAt,
     image: typeof doc.data?.image === 'string' ? doc.data.image : null,
     status: typeof doc.data?.status === 'string' ? doc.data.status : null,
+    links: Array.isArray(doc.data?.links) ? doc.data.links : null,
 })
 
 const dbStore = (db) => {
@@ -75,11 +76,12 @@ const dbStore = (db) => {
     return {
         list: async (mesa) => {
             const rows = check(await db.from('journal_docs')
-                .select('id, kind, title, sort, updated_at, image:data->>image, status:data->>status')
+                .select('id, kind, title, sort, updated_at, image:data->>image, status:data->>status, links:data->links')
                 .eq('mesa', mesa))
             return rows.map((r) => ({
                 id: r.id, kind: r.kind, title: r.title, sort: r.sort,
                 updatedAt: Number(r.updated_at), image: r.image ?? null, status: r.status ?? null,
+                links: Array.isArray(r.links) ? r.links : null,
             }))
         },
         read: async (mesa, id) => {
@@ -145,7 +147,10 @@ const store = () => {
     return db ? dbStore(db) : memoryStore
 }
 
-/** O resumo de todos os documentos da mesa (sem o `data`): a lista do diário. */
+/**
+ * O resumo de todos os documentos da mesa (sem o `data`): a lista do diário. As sessões levam os
+ * `links` (ids do catálogo), para a ficha dizer em que sessões aparece sem baixar todas.
+ */
 export const listDocs = (mesa) => store().list(mesa)
 
 /** `{ id, kind, title, sort, data, updatedAt }`, ou `null`. */
