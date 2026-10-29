@@ -3,7 +3,7 @@ import ReactMarkdown, { defaultUrlTransform, type Components } from 'react-markd
 import remarkGfm from 'remark-gfm'
 import { Box, Button, IconButton, Link, Typography } from '@mui/material'
 import { Campaign as ShareIcon } from '@mui/icons-material'
-import { gold, green, ink, parchment, rule } from '../../theme'
+import { displayFont, gold, green, ink, parchment, rule } from '../../theme'
 import { useImageUrl } from '../../services/images'
 import { splitSegments, WIKI_HREF, withWikiLinks } from './blocks'
 
@@ -103,7 +103,7 @@ const bodySx = (dense: boolean) => ({
     '& > :first-of-type': { mt: 0 },
     '& > :last-child': { mb: 0 },
     '& h1, & h2, & h3, & h4': {
-        fontFamily: '"Cinzel", serif', color: green.main, lineHeight: 1.25, mt: 2.5, mb: 1,
+        fontFamily: displayFont, color: green.main, lineHeight: 1.25, mt: 2.5, mb: 1,
     },
     '& h1': { fontSize: '1.5rem', borderBottom: `2px solid ${gold.main}`, pb: 0.5 },
     '& h2': { fontSize: '1.25rem', borderBottom: `1px solid ${rule}`, pb: 0.25 },
