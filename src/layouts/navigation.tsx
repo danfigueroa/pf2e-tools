@@ -9,6 +9,7 @@ import {
   History as HistoryIcon,
   Groups as MembersIcon,
   Tune as SettingsIcon,
+  MenuBook as JournalIcon,
 } from '@mui/icons-material';
 
 // A navegação do app inteiro numa lista só: a sidebar (em seções), a barra de abas do
@@ -35,6 +36,8 @@ export interface NavItem {
   section: NavSection;
   /** Outras palavras pelas quais a busca acha o destino (sem acento, minúsculas). */
   keywords: string[];
+  /** Só o GM vê (o servidor também confere). Sem isso, um item de BASTIDORES vai para JOGO no jogador. */
+  gmOnly?: boolean;
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -65,6 +68,11 @@ export const NAV_ITEMS: NavItem[] = [
     keywords: ['monstro', 'criatura', 'nivel', 'gm core', 'aon', 'stat block'],
   },
   {
+    // Tem os segredos da campanha: o jogador não vê, e o servidor recusa.
+    text: 'Diário de Campanha', icon: <JournalIcon />, path: '/diario-campanha', section: 'gm', gmOnly: true,
+    keywords: ['diario', 'campanha', 'preparacao', 'sessao', 'npc', 'notas', 'cenas', 'ganchos', 'handout'],
+  },
+  {
     text: 'Membros e convites', icon: <MembersIcon />, path: '/membros', section: 'mesa',
     keywords: ['membros', 'convite', 'jogadores', 'senha', 'dono', 'ficha'],
   },
@@ -75,12 +83,12 @@ export const NAV_ITEMS: NavItem[] = [
 ];
 
 /**
- * O que a pessoa vê, por seção. Jogador não tem as seções do GM, mas o Escalar Monstro (único
- * item de BASTIDORES) continua aberto a ele: vai para JOGO, como a rota, que nunca foi fechada.
+ * O que a pessoa vê, por seção. Jogador não tem as seções do GM, mas o Escalar Monstro continua
+ * aberto a ele: vai para JOGO, como a rota, que nunca foi fechada. O que é `gmOnly` some.
  */
 export function visibleNav(isGm: boolean): NavItem[] {
   if (isGm) return NAV_ITEMS;
-  return NAV_ITEMS.filter((i) => i.section !== 'mesa').map((i) => (i.section === 'gm' ? { ...i, section: 'jogo' } : i));
+  return NAV_ITEMS.filter((i) => i.section !== 'mesa' && !i.gmOnly).map((i) => (i.section === 'gm' ? { ...i, section: 'jogo' } : i));
 }
 
 export const SECTION_LABEL: Record<NavSection, string> = {

@@ -19,6 +19,8 @@ const MonsterScalerPage = lazy(() =>
 const BattleMapPage = lazy(() => import('./modules/battle-map/BattleMapPage'));
 const SessionDiaryPage = lazy(() =>
   import('./modules/session-diary/SessionDiaryPage').then((m) => ({ default: m.SessionDiaryPage })));
+const CampaignJournalPage = lazy(() =>
+  import('./modules/campaign-journal/CampaignJournalPage').then((m) => ({ default: m.CampaignJournalPage })));
 
 const MembersPage = lazy(() =>
   import('./modules/account/MembersPage').then((m) => ({ default: m.MembersPage })));
@@ -45,6 +47,7 @@ function App() {
               <Route path="escalar-monstro" element={page(<MonsterScalerPage />)} />
               <Route path="mapa/:id?" element={page(<BattleMapPage />)} />
               <Route path="historico" element={page(<SessionDiaryPage />)} />
+              <Route path="diario-campanha/:id?" element={page(<CampaignJournalPage />)} />
               <Route path="membros" element={page(<MembersPage />)} />
               <Route path="mesa" element={page(<MesaSettingsPage />)} />
               {/* O nome antigo ("Diário da Sessão") parecia um diário escrito; o link salvo continua valendo. */}
