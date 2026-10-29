@@ -519,8 +519,10 @@ estáticos e passou a mostrar a mesa VIVA; a sidebar ganhou seções; o celular,
   (`mesa-settings` no `auth-handler`; colunas `session_started_at`/`next_session_at` em `mesas`). O `?me` traz nome, sessão,
   próxima sessão e o número de CONTAS (`mesa_account_counts`, sem as sessões anônimas); a mudança chega a todos pelo `settings`
   do canal de eventos (`applyMesaSettings`).
-- **Início** (`pages/HomePage.tsx` = casca no chunk principal; `pages/home/previews.tsx` + `party.ts` = chunk vivo): herói com as
-  ações do papel (GM: começar combate, convidar; jogador: a própria ficha, o mapa), "O grupo" (fichas publicadas com PV —
+- **Início** (`pages/HomePage.tsx` = casca no chunk principal; `pages/home/previews.tsx` + `party.ts` = chunk vivo): herói com a
+  **sessão em destaque** no topo (`SessionHighlight`: a em andamento, ou a próxima com dia, hora e "em N dias" — pedido do
+  usuário; sem nenhuma, o selo "Pathfinder 2e Remaster"), as ações do papel (GM: começar combate, convidar; jogador: a própria
+  ficha, o mapa), "O grupo" (fichas publicadas com PV —
   máximo por `characterMaxHp` sobre a ficha publicada —, condições e online = alguém com a ficha aberta ou o dono no app), e
   prévias com a mesa real: a ficha da pessoa + a última rolagem dela, a ordem do combate do mapa ativo, o mapa ativo com os
   tokens, o d20 e os troféus da última sessão. Toda prévia tem estado vazio. **Sem botão "Rolar dado"** fora do mapa e da ficha
