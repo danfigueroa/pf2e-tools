@@ -53,7 +53,8 @@ function twin(frames: string) {
     ] as const
 }
 
-const SHAKE = twin(`
+/** Tremor curto (dano, bloqueio, senha errada na entrada). */
+export const SHAKE = twin(`
     0%, 100% { transform: translateX(0); }
     15% { transform: translateX(-5px); }
     30% { transform: translateX(5px); }
