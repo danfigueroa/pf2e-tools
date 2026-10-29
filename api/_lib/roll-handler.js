@@ -45,6 +45,8 @@ export async function handleRollRequest(mesa, method, query, body, ctx = {}) {
   if (body?.action === 'share-add') {
     const share = sanitizeShare(body?.share)
     if (!share) return fail(400, 'Compartilhamento inválido')
+    // O que o GM mostra pelo diário nasce no `journal-reveal`, que confere o papel.
+    if (share.type === 'handout') return fail(400, 'Compartilhamento inválido')
     const rev = await addShare(mesa, share, ctx.userId ?? null)
     return ok({ rev, share })
   }

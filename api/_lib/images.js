@@ -1,5 +1,6 @@
 // Imagens (mapas e tokens) no Supabase Storage — bucket público `images`, com as
-// pastas `tokens/`, `maps/` e `monsters/` (migration `imagens`).
+// pastas `tokens/`, `maps/` e `monsters/` (migration `imagens`), mais `journal/`,
+// as do Diário de Campanha, que só o GM envia (migration `diario_de_campanha`).
 //
 // O navegador envia direto (services/images.ts); o servidor só APAGA, com a
 // chave secreta. Os arquivos vieram do Vercel Blob no MESMO caminho, então uma
@@ -11,7 +12,7 @@ import { supabase } from './supabase.js'
 export const IMAGE_BUCKET = 'images'
 
 const BLOB_URL_RE = /^https:\/\/[a-z0-9]+\.public\.blob\.vercel-storage\.com\/(.+)$/
-const PATH_RE = /^(tokens|maps|monsters)\/[A-Za-z0-9._-]{1,160}$/
+const PATH_RE = /^(tokens|maps|monsters|journal)\/[A-Za-z0-9._-]{1,160}$/
 
 /**
  * O caminho no bucket de uma URL NOSSA — do Storage deste projeto ou do Blob de

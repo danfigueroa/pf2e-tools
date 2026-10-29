@@ -153,8 +153,12 @@ export function sanitizeRoll(r) {
 // ESPELHO de `src/services/tableShare.ts` (`sanitizeTableShare`). Viaja só a
 // REFERÊNCIA (tipo, nome, rank): quem recebe busca a descrição traduzida como o
 // drawer da ficha busca, então não há prosa para validar aqui.
+//
+// `handout` é o que o GM mostra pelo Diário de Campanha: `name` é o título e
+// `ref` o id em `journal_reveals`, de onde o cartão lê o texto e a imagem. Só o
+// servidor o cria (`journal-reveal`); o `share-add` do cliente o recusa.
 
-const SHARE_TYPES = ['feat', 'special', 'item', 'spell']
+const SHARE_TYPES = ['feat', 'special', 'item', 'spell', 'handout']
 /** Até 120 caracteres, sem quebra de linha nem outro caractere de controle. */
 const validName = (v) =>
   typeof v === 'string' && v.length <= 120 && !!v.trim() && ![...v].some((c) => c.charCodeAt(0) < 32)
@@ -181,6 +185,10 @@ export function sanitizeShare(s) {
   if (s.type === 'spell') {
     const caster = sanitizeCaster(s.caster)
     if (caster) out.caster = caster
+  }
+  if (s.type === 'handout') {
+    if (typeof s.ref !== 'string' || !ID_RE.test(s.ref)) return null
+    out.ref = s.ref
   }
   return out
 }
