@@ -1563,5 +1563,36 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
   ok(table.sanitizeTableRoll(base) === null && server.sanitizeRoll(base) === null, 'sem nada para mostrar continua recusado')
 }
 
+// ── Diário de Campanha: orçamento de XP (GM Core pg. 75-76) e as marcas do Markdown ──
+{
+  const xp = await import('../src/modules/campaign-journal/xp.ts')
+  const blocks = await import('../src/components/markdown/blocks.ts')
+  eq(xp.creatureXp(5, 5), 40, 'criatura do nível do grupo vale 40 XP')
+  eq(xp.creatureXp(2, 5), 15, 'nível do grupo −3 vale 15 XP (o exemplo do GM Core)')
+  eq(xp.creatureXp(9, 5), 160, 'nível do grupo +4 vale 160 XP')
+  ok(xp.creatureXp(10, 5) === null && xp.creatureXp(0, 5) === null, 'fora de −4…+4 não está na tabela')
+  eq(xp.budgetFor('moderate', 4), 80, 'moderado para 4 personagens: 80 XP')
+  eq(xp.budgetFor('severe', 6), 180, 'severo para 6: 120 + 2 × 30')
+  eq(xp.budgetFor('low', 3), 40, 'baixo para 3: 60 − 20')
+  const boss = xp.encounterXp([{ name: 'Chefe', level: 7, count: 1 }, { name: 'Capanga', level: 1, count: 4 }], 5, 4)
+  ok(boss.total === 120 && boss.threat === 'severe', 'Chefe e Capangas (GM Core): 120 XP, ameaça severa')
+  const pair = xp.encounterXp([{ name: 'Par', level: 5, count: 2 }], 5, 4)
+  eq(pair.threat, 'moderate', 'Par de criaturas do nível: moderada')
+  eq(xp.encounterXp([{ name: 'Par', level: 5, count: 2 }], 5, 6).threat, 'trivial', 'o mesmo par para 6 personagens não chega ao baixo (100 XP)')
+  const off = xp.encounterXp([{ name: 'Tarrasque', level: 25, count: 1 }], 10, 4)
+  ok(off.total === 0 && off.outOfRange[0]?.diff === 15, 'criatura fora da tabela é avisada, não somada')
+  eq(JSON.stringify(xp.partyFromLevels([7, 7, 7, 6])), '{"level":7,"size":4}', 'grupo: o nível mais comum')
+
+  const segs = blocks.splitSegments('Intro\n\n:::jogadores Carta do barão\nQuerido **amigo**\n:::\nSegredo do GM\n:::jogadores\nSem fim')
+  eq(segs.map((x) => x.kind).join(','), 'text,players,text,players', 'trechos para os jogadores separados do resto')
+  eq(segs[1].title, 'Carta do barão', 'título do trecho')
+  eq(segs[1].text, 'Querido **amigo**', 'texto do trecho, sem as marcas')
+  eq(segs[3].text, 'Sem fim', 'trecho sem fechamento vai até o fim')
+  eq(blocks.splitSegments('```\n:::jogadores X\n```').length, 1, 'dentro de bloco de código, `:::` é só texto')
+  eq(blocks.withWikiLinks('Fale com [[Barão Ulric]].'), 'Fale com [Barão Ulric](#journal:Bar%C3%A3o%20Ulric).', '[[Nome]] vira link do catálogo')
+  eq(blocks.wikiNames('[[A]] e [[B]] e [[A]]').join('|'), 'A|B', 'nomes citados sem repetição')
+  eq(blocks.forPlayers(' O [[Barão]] chegou. '), 'O Barão chegou.', 'o que vai à mesa sai sem as marcas')
+}
+
 console.log(`${passed} conferências ok, ${failures} falha(s).`)
 process.exit(failures ? 1 : 0)

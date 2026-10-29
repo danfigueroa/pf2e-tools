@@ -91,6 +91,8 @@ export interface JournalSummary {
     updatedAt: number
     image: string | null
     status: string | null
+    /** Só sessão: as fichas e ganchos ligados a ela. */
+    links: string[]
 }
 
 // ── Limites (o documento inteiro cabe em 256 KB no banco) ────────────────────
@@ -224,6 +226,7 @@ export function sanitizeSummary(raw: unknown): JournalSummary | null {
         updatedAt: typeof r.updatedAt === 'number' ? r.updatedAt : 0,
         image: typeof r.image === 'string' ? r.image : null,
         status: typeof r.status === 'string' ? r.status : null,
+        links: ids(r.links, MAX_LINKS),
     }
 }
 
