@@ -24,7 +24,7 @@ import type { TableRoll } from '../../dice/tableRoll'
 import { gold } from '../../theme'
 import { useMesaInfo, useRole } from '../../services/auth'
 import { sessionSince } from '../../layouts/format'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { computeAwards, type Scope } from './awards'
 import { keyOf, mergePeople, sessionSeries, summarize, tableTotals, type DaySummary } from './stats'
 import { AwardGrid } from './components/AwardGrid'
@@ -51,10 +51,13 @@ const PAGE = 50
  * Aberta durante a sessão, a página acompanha as rolagens novas.
  */
 export const SessionDiaryPage = () => {
+    // `?dia=AAAA-MM-DD` abre aquela sessão (o Diário de Campanha leva para cá).
+    const [params] = useSearchParams()
+    const linked = /^\d{4}-\d{2}-\d{2}$/.test(params.get('dia') ?? '') ? params.get('dia') : null
     const [days, setDays] = useState<DiaryDay[] | null>(null)
     const [summary, setSummary] = useState<DaySummary[] | null>(null)
-    const [scope, setScope] = useState<Scope | null>(null)
-    const [day, setDay] = useState<string | null>(null)
+    const [scope, setScope] = useState<Scope | null>(linked ? 'session' : null)
+    const [day, setDay] = useState<string | null>(linked)
     const [rolls, setRolls] = useState<TableRoll[] | null>(null)
     const [failed, setFailed] = useState(false)
     const [who, setWho] = useState<string | null>(null)
