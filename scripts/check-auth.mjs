@@ -26,6 +26,9 @@ const password = `Tmp-${stamp}-${Math.random().toString(36).slice(2)}`
 const users = {} // nome → { id, token }
 const slugs = [`teste-auth-a-${stamp}`, `teste-auth-u-${stamp}`]
 const createdMaps = []
+const journalId = `teste-journal-${stamp}`
+const revealId = `teste-reveal-${stamp}`
+const uploaded = []
 let failures = 0
 
 const pass = (name) => console.log(`  ok   ${name}`)
@@ -59,6 +62,11 @@ async function makeUser(name, { anonymous = false } = {}) {
 const sheetJson = (name) => ({ build: { name, class: 'Teste', level: 1 } })
 
 async function cleanup() {
+    await db.from('journal_docs').delete().eq('mesa', MESA).eq('id', journalId)
+    await db.from('journal_reveals').delete().eq('mesa', MESA).eq('id', revealId)
+    await db.from('shares').delete().eq('mesa', MESA).eq('id', revealId)
+    await db.from('mesa_events').delete().eq('mesa', MESA).eq('data->>id', revealId)
+    if (uploaded.length) await db.storage.from('images').remove(uploaded)
     // Rolagens de teste entram no Histórico de Rolagens da mesa: saem todas.
     await db.from('rolls').delete().eq('mesa', MESA).like('id', `teste-auth-${stamp}%`)
     for (const id of createdMaps) await db.from('maps').delete().eq('mesa', MESA).eq('id', id)
@@ -268,6 +276,35 @@ try {
     expect('?me traz o nome da mesa', mine?.name, mesaRow.name)
     expect('?me conta as contas da mesa', typeof mine?.members === 'number' && mine.members >= 3, true)
 
+    console.log('Diário de Campanha')
+    const jdoc = { id: journalId, kind: 'session', title: 'Sessão de teste', sort: 1, data: { prep: 'segredo' } }
+    expect('jogador não lista o diário', (await call({ token: users.a.token, query: { journal: 'list' } })).status, 403)
+    expect('jogador não grava no diário', (await call({ token: users.a.token, method: 'POST', body: { action: 'journal-save', doc: jdoc, base: null } })).status, 403)
+    const jsave = await call({ token: users.gm.token, method: 'POST', body: { action: 'journal-save', doc: jdoc, base: null } })
+    expect('GM grava no diário → 200', jsave.status, 200)
+    expect('jogador não lê o documento', (await call({ token: users.a.token, query: { journal: journalId } })).status, 403)
+    expect('GM lê o documento', (await call({ token: users.gm.token, query: { journal: journalId } })).body.doc?.data?.prep, 'segredo')
+    expect('escrita com versão velha → 409', (await call({ token: users.gm.token, method: 'POST', body: { action: 'journal-save', doc: jdoc, base: 1 } })).status, 409)
+    const reveal = { id: revealId, title: 'Carta do barão', markdown: 'Querido amigo…' }
+    expect('jogador não mostra à mesa', (await call({ token: users.a.token, method: 'POST', body: { action: 'journal-reveal', reveal, by: 'A', color: '#7e611d' } })).status, 403)
+    expect('share-add de handout pelo cliente → 400', (await call({ token: users.a.token, method: 'POST', body: { action: 'share-add', share: { id: revealId, by: 'A', color: '#7e611d', type: 'handout', name: 'X', ref: revealId } } })).status, 400)
+    expect('GM mostra à mesa → 200', (await call({ token: users.gm.token, method: 'POST', body: { action: 'journal-reveal', reveal, by: 'GM', color: '#7e611d' } })).status, 200)
+    expect('jogador lê o que foi mostrado', (await call({ token: users.a.token, query: { reveal: revealId } })).body.reveal?.markdown, 'Querido amigo…')
+    expect('quem não é membro não lê', (await call({ token: users.out.token, query: { reveal: revealId } })).status, 403)
+    const handoutEvent = await db.from('mesa_events').select('kind').eq('mesa', MESA).eq('data->>id', revealId).maybeSingle()
+    expect('a notificação é handout-shared', handoutEvent.data?.kind, 'handout-shared')
+    // Imagem do diário: a pasta `journal/` é só do GM.
+    const png = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='), (c) => c.charCodeAt(0))
+    const upload = async (token, path) => {
+        const client = createClient(url, publishable, { auth: { persistSession: false, autoRefreshToken: false }, global: { headers: { Authorization: `Bearer ${token}` } } })
+        const { error } = await client.storage.from('images').upload(path, new Blob([png], { type: 'image/png' }), { contentType: 'image/png', upsert: false })
+        if (!error) uploaded.push(path)
+        return !error
+    }
+    expect('jogador não envia imagem ao diário', await upload(users.a.token, `journal/teste-${stamp}-a.png`), false)
+    expect('GM envia imagem ao diário', await upload(users.gm.token, `journal/teste-${stamp}-gm.png`), true)
+    expect('jogador ainda envia token', await upload(users.a.token, `tokens/teste-${stamp}-a.png`), true)
+
     console.log('Iniciativa e papéis')
     expect('jogador não grava encontro', (await call({ token: users.a.token, method: 'POST', body: { action: 'encounter-save', map: null, state: {} } })).status, 403)
     // A mesa de teste é real e pode ter outros GMs (o dono do projeto): aí a trava não se aplica.
@@ -289,6 +326,9 @@ try {
     expect('jogador não se promove a GM', (await call({ token: users.b.token, method: 'POST', body: { action: 'member-set-role', user: users.b.id, role: 'gm' } })).status, 403)
     expect('jogador não troca a senha de outro', (await call({ token: users.b.token, method: 'POST', body: { action: 'member-reset-password', user: users.a.id } })).status, 403)
     expect('quem não é membro não lista membros', (await call({ token: users.out.token, query: { members: '1' } })).status, 403)
+    // O diário tem segredos: também NÃO afrouxa com a flag.
+    expect('jogador não lê o diário (flag desligada)', (await call({ token: users.b.token, query: { journal: 'list' } })).status, 403)
+    expect('sem sessão não lê o diário (flag desligada)', (await call({ query: { journal: 'list' } })).status, 403)
 } catch (error) {
     failures += 1
     console.error('Erro inesperado:', error)
