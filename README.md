@@ -1170,7 +1170,7 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
     -   [x] Token do personagem permanente; o do monstro some com o mapa
     -   [x] Rolador de dados
 -   [x] **Rolagens da mesa**: toda rolagem aparece para todos, em qualquer página, com histórico
--   [x] **Histórico de Rolagens** (era "Diário da sessão"): as rolagens de cada noite de jogo, com 20 e 1 naturais, média do d20,
+-   [x] **Histórico de Rolagens** (era "Diário da sessão"; só conta o que foi rolado com a sessão iniciada pelo GM): as rolagens de cada noite de jogo, com 20 e 1 naturais, média do d20,
         dano rolado por personagem e os destaques da sessão
     -   [x] **Todas as sessões**: troféus somando todas as noites (Abençoado pelos dados, Amaldiçoado, Golpe do século, Noite do
             apocalipse…), ranking por métrica, "o d20 é justo?" e a linha do tempo das sessões, com animação

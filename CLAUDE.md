@@ -514,7 +514,8 @@ estáticos e passou a mostrar a mesa VIVA; a sidebar ganhou seções; o celular,
   aparelho, nem ao GM mapa/combate (só ele faz). Item recebido é notificação LOCAL do aparelho (`onArrival` de `gifts.ts`, só para
   ficha que a conta possui). Tocar leva ao lugar: `?ficha=<slug>` na Ficha Virtual, `/mapa/<id>`, `/iniciativa`, ou reabre o
   cartão da regra (evento `pf2e:show-share`). Eventos de mais de 30 dias saem pelo `pg_cron`.
-- **Configurações da mesa** (`/mesa`, `MesaSettingsPage`, GM de verdade sempre): nome, iniciar/encerrar sessão e próxima sessão
+- **Configurações da mesa** (`/mesa`, `MesaSettingsPage`, GM de verdade sempre): nome, iniciar/encerrar sessão (a sessão é
+  também o que faz as rolagens contarem no Histórico — ver lá) e próxima sessão
   (`mesa-settings` no `auth-handler`; colunas `session_started_at`/`next_session_at` em `mesas`). O `?me` traz nome, sessão,
   próxima sessão e o número de CONTAS (`mesa_account_counts`, sem as sessões anônimas); a mudança chega a todos pelo `settings`
   do canal de eventos (`applyMesaSettings`).
@@ -773,6 +774,15 @@ montado UMA vez no `MainLayout` (trocar de rota não refaz o "já visto"), e o h
 `/historico` (`modules/session-diary/` + `services/diary.ts`): as rolagens de um dia de jogo, para o resumo do fim da
 sessão e para conferir o que rolou. **Chamava-se "Diário da Sessão"** (rota `/diario`, que redireciona), e o nome
 fazia pensar num diário escrito; o código e o endpoint (`?diary=`) mantêm o nome antigo. O banco guarda toda rolagem (`rolls`, ver "Feed de rolagens"); aqui só se agrupa.
+
+- **Só conta o que foi rolado com a SESSÃO INICIADA** (decisão do usuário: fora da sessão os jogadores testam a ficha e as
+  ferramentas, e isso sujava médias e troféus). Cada rolagem tem `rolls.in_session`, marcado pelo BANCO na inserção (trigger
+  `rolls_in_session`, pela `mesas.session_started_at` daquele instante — o GM liga e desliga em `/mesa`). As três funções do
+  histórico (`diary_days`, `diary_rolls`, `diary_summary`) filtram `in_session` na FONTE, então o `summarize` do cliente e o
+  fallback em memória não mudaram, e o `check-diary` segue valendo. A rolagem de fora continua no feed (o cartão e as últimas
+  30). As rolagens de antes da migration `rolagens_da_sessao` ficaram `true` (não havia sessão para marcar). **GM que esquece
+  de iniciar a sessão perde as estatísticas da noite** — a página avisa ("Só entram aqui as rolagens feitas com a sessão
+  iniciada", com o atalho para `/mesa` para o GM).
 
 - **O dia de jogo vai das 6h às 6h no horário de Brasília** (`diary_day` no banco, migration `diario_da_sessao`, com
   índice): a mesa joga à noite, e uma sessão que passa da meia-noite continua sendo uma só. `diaryDayOf` (cliente) e o
