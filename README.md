@@ -587,16 +587,26 @@ pf2e-tools/
 │   │   │   ├── i18n.ts                  # Tradução pt-BR (vocabulário mecânico + nomes)
 │   │   │   ├── components/              # CharacterInput, FormSelector, StatBlockGenerator, ExportOptions
 │   │   │   └── data/                    # 1 arquivo por magia + spells.ts + from-pathbuilder.ts
-│   │   └── monster-scaler/       # Módulo de Escalar Monstro (criatura da AON em outro nível)
-│   │       ├── MonsterScalerPage.tsx    # Página: controles à esquerda, stat block à direita
-│   │       ├── scaling.ts               # Motor: preserva a diferença em relação ao benchmark
-│   │       ├── abilityDc.ts             # CDs escritas na prosa das habilidades
-│   │       ├── abilityDamage.ts         # Dano escrito na prosa (baforada, aura, área)
-│   │       ├── spellcasting.ts          # Ranks, slots e a lista de magias no nível-alvo
-│   │       ├── ruleTerms.ts             # Que pedaços da ficha são termo de regra
-│   │       ├── toCombatant.ts           # Monstro reescalado → combatente da Iniciativa
-│   │       ├── components/              # MonsterSearch, ScaleAdjustPanel, MonsterStatBlock, MonsterExport
-│   │       └── data/creatureTables.ts   # GERADO por scripts/fetch-creature-tables.mjs
+│   │   ├── monster-scaler/       # Módulo de Escalar Monstro (criatura da AON em outro nível)
+│   │   │   ├── MonsterScalerPage.tsx    # Página: controles à esquerda, stat block à direita
+│   │   │   ├── scaling.ts               # Motor: preserva a diferença em relação ao benchmark
+│   │   │   ├── abilityDc.ts             # CDs escritas na prosa das habilidades
+│   │   │   ├── abilityDamage.ts         # Dano escrito na prosa (baforada, aura, área)
+│   │   │   ├── spellcasting.ts          # Ranks, slots e a lista de magias no nível-alvo
+│   │   │   ├── ruleTerms.ts             # Que pedaços da ficha são termo de regra
+│   │   │   ├── toCombatant.ts           # Monstro reescalado → combatente da Iniciativa
+│   │   │   ├── components/              # MonsterSearch, ScaleAdjustPanel, MonsterStatBlock, MonsterExport
+│   │   │   └── data/creatureTables.ts   # GERADO por scripts/fetch-creature-tables.mjs
+│   │   └── campaign-journal/     # Módulo de Diário de Campanha (só o GM)
+│   │       ├── CampaignJournalPage.tsx  # Página: índice à esquerda, documento à direita
+│   │       ├── doc.ts                   # Sessão, ficha do catálogo e gancho: formato e validação
+│   │       ├── useJournal.ts            # Lista e documento: salvamento automático, rascunho, conflito
+│   │       ├── xp.ts                    # Orçamento de XP do GM Core (pg. 75-76)
+│   │       ├── templates.ts             # Modelos de cada parte
+│   │       └── components/              # SessionView, EntryView, MarkdownEditor, EncounterPlanner, SessionLog, ThreadsPanel, RevealDialog
+│   ├── components/
+│   │   ├── markdown/             # Markdown do diário e do cartão da mesa (react-markdown + remark-gfm)
+│   │   └── HandoutCard.tsx       # O que o GM mostra à mesa, na tela de todos
 │   ├── hooks/
 │   │   └── useCreatureSearch.ts  # Busca de criaturas (debounce, faixa, paginação) — Iniciativa + Escalar Monstro
 │   ├── layouts/
@@ -619,6 +629,7 @@ pf2e-tools/
 │   │   ├── combatStatus.ts       # Rodada e vez de quem, só leitura (sidebar e Início)
 │   │   ├── tableState.ts         # Estado compartilhado da mesa, em tempo real
 │   │   ├── maps.ts               # Mapa de combate: tempo real + escrita otimista
+│   │   ├── journal.ts            # Diário de Campanha: documentos, "Mostrar à mesa" e o canal do Realtime
 │   │   └── images.ts             # Redução e envio de imagens (Supabase Storage, IndexedDB de reserva)
 │   ├── pathbuilder/                # Tipos do JSON do Pathbuilder, parse/normalização e dados de arma (usados por todos os módulos)
 │   ├── types/
@@ -1020,6 +1031,10 @@ O servidor (`server/index.mjs`) fornece endpoints para buscar dados da Archives 
 | GET    | `/api/state`     | `char`, `field` | **Uma** fatia do estado — o poll das ações do turno quando não há tempo real |
 | GET    | `/api/state`     | `rolls`, `rev` | Feed das últimas 30 rolagens (só o contador, se nada mudou) |
 | POST   | `/api/state`     | `{ action: 'roll-add', roll }` | Manda uma rolagem já sorteada para a mesa |
+| GET    | `/api/state`     | `journal` (`list` ou id) | Diário de Campanha: o índice ou um documento — **só o GM** |
+| POST   | `/api/state`     | `{ action: 'journal-save', doc, base }` | Grava um documento do diário se ainda for a versão `base` (senão 409) — **só o GM** |
+| POST   | `/api/state`     | `{ action: 'journal-reveal', reveal }` | Mostra um trecho ou imagem na tela da mesa — **só o GM** |
+| GET    | `/api/state`     | `reveal`   | O que o GM mostrou (o cartão dos jogadores lê daqui) |
 
 As variantes **plurais** (`/api/feats`, `/api/searches`, `/api/spells`, `/api/companions`) aceitam
 uma lista de nomes para busca em lote. Todas as descrições são **traduzidas para pt-BR** via Groq
