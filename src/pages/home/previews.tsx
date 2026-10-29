@@ -4,6 +4,7 @@ import {
   EmojiEvents as TrophyIcon,
   FormatListNumbered as InitiativeIcon,
   History as HistoryIcon,
+  Transform as TransformIcon,
   LocalFireDepartment as FireIcon,
   Map as MapIcon,
   PhoneIphone as ViewerIcon,
@@ -466,6 +467,14 @@ export function MobileTools() {
                 }} />
               ))}
           </Box>
+        </ButtonBase>
+        <ButtonBase component={Link} to="/transformation" sx={{
+          ...tile, gridColumn: '1 / -1', minHeight: 0, flexDirection: 'row', alignItems: 'center', gap: 1.5,
+          bgcolor: parchment.paper, border: `1px solid ${rule}`,
+        }}>
+          <TransformIcon sx={{ color: gold.deep, fontSize: 22 }} />
+          <Typography sx={{ fontFamily: displayFont, fontWeight: 600, flex: 1 }}>Transformações</Typography>
+          <Typography noWrap sx={{ fontSize: '0.8125rem', color: ink.secondary }}>Formas de batalha</Typography>
         </ButtonBase>
       </Box>
     </Box>

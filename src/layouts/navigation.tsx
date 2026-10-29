@@ -56,12 +56,13 @@ export const NAV_ITEMS: NavItem[] = [
     keywords: ['historico', 'rolagens', 'sessao', 'estatisticas', 'trofeus', 'd20', 'diario'],
   },
   {
-    text: 'Escalar Monstro', icon: <ScalerIcon />, path: '/escalar-monstro', section: 'gm',
-    keywords: ['monstro', 'criatura', 'nivel', 'gm core', 'aon', 'stat block'],
+    // De todos: é o stat block da forma de batalha do PERSONAGEM (decisão do usuário).
+    text: 'Transformações', icon: <TransformIcon />, path: '/transformation', section: 'jogo',
+    keywords: ['transformacao', 'forma', 'battle form', 'stat block', 'druida'],
   },
   {
-    text: 'Transformações', icon: <TransformIcon />, path: '/transformation', section: 'gm',
-    keywords: ['transformacao', 'forma', 'battle form', 'stat block', 'druida'],
+    text: 'Escalar Monstro', icon: <ScalerIcon />, path: '/escalar-monstro', section: 'gm',
+    keywords: ['monstro', 'criatura', 'nivel', 'gm core', 'aon', 'stat block'],
   },
   {
     text: 'Membros e convites', icon: <MembersIcon />, path: '/membros', section: 'mesa',
@@ -74,8 +75,8 @@ export const NAV_ITEMS: NavItem[] = [
 ];
 
 /**
- * O que a pessoa vê, por seção. Jogador não tem as seções do GM, mas as duas ferramentas de
- * BASTIDORES continuam dele (a Transformação é dos druidas do grupo): vão para JOGO.
+ * O que a pessoa vê, por seção. Jogador não tem as seções do GM, mas o Escalar Monstro (único
+ * item de BASTIDORES) continua aberto a ele: vai para JOGO, como a rota, que nunca foi fechada.
  */
 export function visibleNav(isGm: boolean): NavItem[] {
   if (isGm) return NAV_ITEMS;

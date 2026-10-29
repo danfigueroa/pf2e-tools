@@ -491,8 +491,9 @@ Redesign do usuário (out/2026, artefato de design "Covil de Dados — Nova Home
 estáticos e passou a mostrar a mesa VIVA; a sidebar ganhou seções; o celular, barra de abas.
 
 - **Navegação numa lista só** (`layouts/navigation.tsx`, `NAV_ITEMS`): a sidebar (seções JOGO / BASTIDORES DO GM / MESA), a
-  barra de abas e a busca leem dela — destino novo entra nos três. Jogador não vê BASTIDORES nem MESA, mas Escalar Monstro e
-  Transformações vão para JOGO (`visibleNav`): a Transformação é dos druidas do grupo.
+  barra de abas e a busca leem dela — destino novo entra nos três. **Transformações é de JOGO para todos** (decisão do
+  usuário: a forma de batalha é do personagem), na sidebar e na Início (linha abaixo dos cartões; no celular, um bloco
+  largo na grade). Jogador não vê BASTIDORES nem MESA, mas o Escalar Monstro vai para JOGO (`visibleNav`; a rota é aberta).
 - **Sidebar** (`layouts/sidebar/Sidebar.tsx`): cartão da mesa (nome do servidor, "N membros", sessão em andamento ou próxima
   sessão, avatares de quem está na mesa — tocar abre a `PresenceList`), navegação com o selo "Rodada N" na Iniciativa
   (`services/combatStatus.ts`), as 3 últimas rolagens e o perfil. **Recolhe** para um trilho de ícones (preferência do aparelho,

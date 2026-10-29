@@ -95,7 +95,7 @@ const ToolCard = ({ title, icon, description, footnote, to, linkText, stage, pre
   </Box>
 );
 
-const GmTool = ({ to, title, text, badge }: { to: string; title: string; text: string; badge: ReactNode }) => (
+const ToolRow = ({ to, title, text, badge }: { to: string; title: string; text: string; badge: ReactNode }) => (
   <ButtonBase component={Link} to={to} sx={{
     flex: '1 1 340px', minWidth: 0, display: 'flex', alignItems: 'center', gap: 2.5, p: { xs: 2, sm: 2.75 },
     borderRadius: 2.25, bgcolor: parchment.paper, textAlign: 'left', justifyContent: 'flex-start', color: ink.primary,
@@ -275,6 +275,15 @@ export const HomePage = () => {
             preview={<Live dark><HistoryPreview /></Live>}
           />
         </Box>
+        {/* De todos (decisão do usuário): a forma de batalha é do personagem, não do GM. */}
+        <Box sx={{ display: 'flex', borderRadius: 3, bgcolor: parchment.sunken, p: 1 }}>
+          <ToolRow
+            to="/transformation"
+            title="Stat Block de Transformação"
+            text="Forma Animal, Forma Elemental e as outras do Remaster, com os números do seu personagem e exportação em PNG."
+            badge={<><TransformIcon sx={{ color: gold.bright }} /><Typography sx={{ fontWeight: 700, fontSize: '0.875rem' }}>Formas</Typography></>}
+          />
+        </Box>
       </Box>
 
       {/* Bastidores do GM */}
@@ -290,17 +299,11 @@ export const HomePage = () => {
             </Box>
           </Box>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            <GmTool
+            <ToolRow
               to="/escalar-monstro"
               title="Escalar Monstro"
               text="Qualquer criatura da AON no nível que a sua mesa precisa, pelas tabelas do GM Core."
               badge={<><ScalerIcon sx={{ color: gold.bright }} /><Typography sx={{ fontWeight: 700, fontSize: '0.875rem' }}>Nível ±</Typography></>}
-            />
-            <GmTool
-              to="/transformation"
-              title="Stat Block de Transformação"
-              text="Forma Animal, Forma Elemental e as outras do Remaster, com os números do personagem e exportação em PNG."
-              badge={<><TransformIcon sx={{ color: gold.bright }} /><Typography sx={{ fontWeight: 700, fontSize: '0.875rem' }}>Formas</Typography></>}
             />
           </Box>
         </Box>
