@@ -7,10 +7,8 @@ import {
     Card,
     CardContent,
     CircularProgress,
-    FormControlLabel,
     IconButton,
     Paper,
-    Switch,
     ToggleButton,
     ToggleButtonGroup,
     Tooltip,
@@ -69,8 +67,6 @@ import { DRAW_COLORS, gold, green, ink, parchment } from '../../theme'
 import { setCurrentMapId } from '../initiative-tracker/encounterStorage'
 import { useRole } from '../../services/auth'
 import { usePublishedSheets } from '../character-viewer/usePublishedSheets'
-
-const GM_KEY = 'pf2e:map:gm'
 
 const DRAW_KEY = 'pf2e:map:draw'
 const AREA_KEY = 'pf2e:map:area'
@@ -146,13 +142,11 @@ export const BattleMapPage = () => {
     const id = routeId ?? null
 
     const menu = useLayoutMenu()
-    // O papel vem da conta (membro GM da mesa); o interruptor "Modo GM" só liga ou desliga a
-    // VISÃO de GM de quem já é GM — jogador não o vê, e o servidor decide pelo papel, nunca por ele.
+    // Quem é GM vem da CONTA (o papel na mesa): o GM vê sempre todas as ferramentas do mapa e o
+    // jogador nunca as vê. O interruptor "Modo GM" de antes do login saiu (decisão do usuário), e o
+    // servidor decide pelo papel do mesmo jeito.
     const { isGm, userId } = useRole()
-    const [gmView, setGmView] = useState(() => {
-        try { return localStorage.getItem(GM_KEY) !== '0' } catch { return true }
-    })
-    const gm = isGm && gmView
+    const gm = isGm
     const [tool, setTool] = useState<MapTool>('select')
     const [diceOpen, setDiceOpen] = useState(false)
     const [zoom, setZoom] = useState(1)
@@ -166,7 +160,7 @@ export const BattleMapPage = () => {
         try { localStorage.setItem(SHEET_OPEN_KEY, open ? '1' : '0') } catch { /* noop */ }
     }, [])
     const [sheetSlug, setSheetSlug] = useState<string | null>(readSheetChoice)
-    // Modo GM: o token cuja imagem está sendo enquadrada.
+    // GM: o token cuja imagem está sendo enquadrada.
     const [fitFor, setFitFor] = useState<string | null>(null)
     const [tapped, setTapped] = useState<{ id: string; anchor: HTMLElement } | null>(null)
     const [resolving, setResolving] = useState(!routeId)
@@ -187,7 +181,7 @@ export const BattleMapPage = () => {
         try { localStorage.setItem(DRAW_KEY, JSON.stringify(next)) } catch { /* só nesta aba */ }
     }
 
-    // Fora do Modo GM, mapa privado chega como `hidden` — o servidor nem o entrega.
+    // Para o jogador, mapa privado chega como `hidden` — o servidor nem o entrega.
     const { data: rawData, error, activeId, hidden } = useMapData(id, gm)
     const [revealing, setRevealing] = useState(false)
     const reveal = () => {
@@ -214,13 +208,7 @@ export const BattleMapPage = () => {
         return () => { alive = false }
     }, [routeId, navigate])
 
-    const toggleGm = (on: boolean) => {
-        setGmView(on)
-        if (!on && tool === 'image') setTool('select')
-        try { localStorage.setItem(GM_KEY, on ? '1' : '0') } catch { /* sem storage, só nesta aba */ }
-    }
-
-    // Arrastar é do PAPEL, não da visão: o GM move todos mesmo com o "Modo GM" desligado. O servidor confere de novo.
+    // O GM move todos os tokens; o jogador, só os dele. O servidor confere de novo.
     const { ownerOf } = usePublishedSheets()
     const canMove = useCallback((token: TokenDescriptor) => {
         if (isGm) return true
@@ -455,7 +443,7 @@ export const BattleMapPage = () => {
                     </Button>
 
                     {/* Logo depois das ferramentas, onde o olho já está: no canto
-                        oposto, junto do Modo GM, ninguém achava. */}
+                        oposto da barra, ninguém achava. */}
                     <Tooltip title="Clique duas vezes em qualquer ponto do mapa: um anel dourado pisca ali na tela de todos da mesa por alguns segundos. Vale em qualquer ferramenta (menos em cima de um token).">
                         <Box
                             sx={{
@@ -474,13 +462,6 @@ export const BattleMapPage = () => {
 
                     <Box sx={{ flex: 1 }} />
 
-                    {isGm && (
-                        <FormControlLabel
-                            control={<Switch size="small" checked={gm} onChange={(e) => toggleGm(e.target.checked)} color="warning" />}
-                            label="Modo GM"
-                            sx={{ mr: 0.5, '& .MuiFormControlLabel-label': { fontSize: '0.85rem' } }}
-                        />
-                    )}
                 </Paper>
 
                 {data?.private && gm && (
@@ -494,7 +475,7 @@ export const BattleMapPage = () => {
                             </Button>
                         )}
                     >
-                        Mapa privado: só quem está no Modo GM vê.
+                        Mapa privado: só o GM vê.
                     </Alert>
                 )}
                 {data && activeId && activeId !== id && (
@@ -593,7 +574,7 @@ export const BattleMapPage = () => {
                                     : error
                                         ? 'Ele pode ter sido apagado depois do jogo.'
                                         : isGm
-                                            ? 'Nenhum mapa aberto. Escolha um da sessão ou, no Modo GM, crie um novo.'
+                                            ? 'Nenhum mapa aberto. Escolha um da sessão ou crie um novo.'
                                             : 'Nenhum mapa aberto. Escolha um da sessão — o GM cria e revela os mapas.'}
                             </Typography>
                             <Button variant="contained" startIcon={<MapsIcon />} onClick={() => setDrawer(true)}>

@@ -270,21 +270,21 @@ abre, mas não é o alvo.
 
 -   **Grid de quadrados de 5 ft (1,5 m)**, com zoom pela roda do mouse (10% a 400%), botões de
     +/−/enquadrar e o botão do meio do mouse para arrastar o mapa em qualquer ferramenta
--   **Camada do mapa** (Modo GM, ferramenta **Mapa**): envia a imagem — reduzida no navegador para
+-   **Camada do mapa** (GM, ferramenta **Mapa**): envia a imagem — reduzida no navegador para
     no máximo 4096 px — e define a escala digitando **largura ou altura em quadrados**, ou puxando
     uma das **quatro alças** (proporção travada). Fora dessa ferramenta o grid cobre só a imagem;
     dentro dela, aparece a área em volta, para mostrar até onde dá para crescer
 -   **Tokens com barra de PV**, movidos quadrado a quadrado, mostrando a distância percorrida. A
     barra fica sempre por cima dos tokens. Personagem mostra os números; monstro mostra só a barra
-    (os números ficam no Modo GM), e o jogador vê "Ferido / Muito ferido…" ao clicar
+    (os números só o GM vê), e o jogador vê "Ferido / Muito ferido…" ao clicar
 -   **Dano e cura no token**: clicar abre o painel. O PV do personagem é o mesmo da Ficha Virtual;
     o do monstro anda junto com a Iniciativa, nos dois sentidos
 -   **Régua** com a regra das diagonais alternadas do Player Core (5-10-5)
 -   **Desenhar** (para todos — quem conjura a Wall of Fire é o jogador): traço **livre**, **linha**
     reta que encaixa no grid e mostra o comprimento, 12 cores de efeito (Fogo, Gelo, Ácido, Arcano,
     Luz, Sombra, Elétrico, Veneno, Sangue, Sônico, Terreno difícil, Vital) e três espessuras. O
-    modo **Apagar** mostra um **×** em cada desenho e apaga só aquele; "Limpar todos" fica no
-    Modo GM. Os desenhos ficam sob os tokens, semitransparentes
+    modo **Apagar** mostra um **×** em cada desenho e apaga só aquele; "Limpar todos" é só do
+    GM. Os desenhos ficam sob os tokens, semitransparentes
 -   **Área de efeito** (para todos): explosão, emanação, cone e linha medidos pela regra 5-10-5,
     com o tamanho em pés e a cor do efeito, e quantas criaturas a área pega
     ("Explosão 20 ft · 3 criaturas"). É uma consulta, como a régua: fica na tela de quem mediu até
@@ -298,7 +298,7 @@ abre, mas não é o alvo.
     bônus e cor. A rolagem vai para o feed da mesa, junto com as rolagens das fichas
 -   **Vários mapas por sessão**: o GM cria os mapas na gaveta "Mapas da sessão" e **leva a mesa**
     de um para outro; quem estiver em outro mapa recebe o aviso "A mesa está em outro mapa — Ir"
--   **Mapas privados**: mapa novo nasce **escondido da mesa** — só quem está no Modo GM o vê na
+-   **Mapas privados**: mapa novo nasce **escondido da mesa** — só o GM o vê na
     lista ou consegue abri-lo. O GM o prepara (imagem, encontro) e o **revela** pelo olho na lista
     ou pelo aviso no topo do mapa; levar a mesa para ele também revela. Quem estiver com o link
     aberto vê "Mapa ainda não revelado" e o mapa aparece sozinho na revelação
@@ -318,14 +318,14 @@ abre, mas não é o alvo.
     tocar num token de personagem oferece **Ver ficha**
 -   **Menu discreto**: em `/mapa` a barra lateral some e vira uma aba na borda esquerda — o mapa
     ocupa a tela inteira, e reenquadra sozinho quando o painel abre ou fecha
--   **Enquadrar e trocar a imagem do token** (Modo GM → "Imagem e enquadramento"): arraste a imagem
+-   **Enquadrar e trocar a imagem do token** (GM → "Imagem e enquadramento"): arraste a imagem
     para escolher o que fica no **centro do círculo**, ajuste a **ampliação** (1–4×) e, para
     monstros, **envie outra imagem** no mesmo diálogo. A imagem inteira aparece esmaecida atrás do
     círculo; dá para aplicar às cópias com a mesma imagem e voltar à original
 
-**Modo GM** é só um interruptor de interface, sem senha (não há login no app): mostra a camada do
-mapa, os números de PV dos monstros, os mapas privados e as ações coletivas (criar, revelar,
-levar a mesa, apagar, limpar desenhos).
+**Quem é GM vem da conta** (o papel na mesa), sem interruptor: o GM sempre vê a camada do mapa,
+os números de PV dos monstros, os mapas privados e as ações coletivas (criar, revelar, levar a
+mesa, apagar, limpar desenhos); o jogador não vê nada disso.
 
 Todos veem o mesmo mapa: os aparelhos acompanham as mudanças a cada 1,5 s enquanto a aba está
 aberta, sem botão de atualizar.
@@ -556,7 +556,7 @@ pf2e-tools/
 │   │   │   ├── damage.ts / defenses.ts  # Dano RAW, resistência, fraqueza e imunidade
 │   │   │   └── components/              # Cartão, barra de turno, diálogos de lote, busca AON
 │   │   ├── battle-map/           # Módulo de Mapa de Combate (VTT, só desktop)
-│   │   │   ├── BattleMapPage.tsx        # Página: barra de ferramentas, Modo GM, avisos
+│   │   │   ├── BattleMapPage.tsx        # Página: barra de ferramentas, avisos
 │   │   │   ├── geometry.ts              # Quadrado de 5 ft, diagonal 5-10-5, snap, tamanho do token
 │   │   │   ├── drawing.ts               # Desenhos: simplificação do traço, validação
 │   │   │   ├── hp.ts                    # Dano/cura no token
@@ -846,7 +846,7 @@ Sem id na URL, abre o mapa para onde a mesa está. O módulo é o único carrega
 
 | Arquivo                         | Responsabilidade                                                         |
 | ------------------------------- | ------------------------------------------------------------------------ |
-| `BattleMapPage.tsx`             | Barra de ferramentas, Modo GM, avisos, PV de cada token                   |
+| `BattleMapPage.tsx`             | Barra de ferramentas, avisos, PV de cada token                            |
 | `components/MapCanvas.tsx`      | Pan/zoom, grid, imagem, tokens, régua e gestos — sem render React no gesto |
 | `components/Token.tsx`          | Token com imagem ou iniciais, barra de PV e nome                          |
 | `components/DrawingLayer.tsx`   | Os desenhos, entre o grid e os tokens                                     |

@@ -557,7 +557,7 @@ personagens, mapas e mapa ativo, encontro da Iniciativa, feed de rolagens e regr
   caches da AON no cliente, pacotes estáticos
   `public/descriptions/<slug>.json` (são do personagem) e as pastas do bucket de imagens (nomes aleatórios). No `localStorage`, só o
   que é da mesa ganhou `mesaKey` (cache do estado, encontro da Iniciativa, ficha aberta, personagem do painel do mapa);
-  preferência de interface (Modo GM, ferramenta, extras de rolagem) é do aparelho.
+  preferência de interface (ferramenta do mapa, extras de rolagem, sidebar recolhida) é do aparelho.
 - A migração do `localStorage` antigo (`legacy` do `useSharedState`) só roda na mesa legada: em outra, levaria o PV de
   lá para um personagem de mesmo nome.
 - Mesas hoje: **Casa do Gordo Online** (`casa-do-gordo`, legada, os 6 personagens) e **Arton 1515** (`arton-1515`,
@@ -1585,7 +1585,7 @@ oferece os parecidos) e envia o token UMA vez.
   personagem entra do mesmo jeito. Entra na AON no nível base: escalar é à mão, pelo Escalar Monstro.
 - **Enquadramento**: o círculo do token tem "Enquadrar" (o mesmo `TokenFitDialog` do mapa; centro + ampliação, `fit` no
   companheiro). O upload guarda a imagem INTEIRA (`NPC_TOKEN_MAX_SIDE`, sem recorte), e o enquadramento vai junto:
-  `NpcCombatant.tokenFit` → descriptor `fit` em `tok:` → o mapa o usa como padrão, e o `fit:<id>` do Modo GM, se
+  `NpcCombatant.tokenFit` → descriptor `fit` em `tok:` → o mapa o usa como padrão, e o `fit:<id>` que o GM ajusta no mapa, se
   existir, vale POR CIMA (apagá-lo — "Centralizar" no mapa — devolve o enquadramento do companheiro). Imagem nova
   zera o enquadramento.
 - **O token e o enquadramento são lidos da ficha quando o companheiro ENTRA — e relidos depois**: o jogador pode
@@ -1595,7 +1595,7 @@ oferece os parecidos) e envia o token UMA vez.
   sobrescreve o token se a ficha tem um, para não apagar a imagem que o GM pôs à mão no cartão. Não há push: sem a
   Iniciativa aberta ou o "Atualizar", a mudança na ficha não chega ao mapa.
 - **Sem duplicar**: o reducer (`addCombatants`) descarta NPC cujo par `companionOf/companionId` já está no encontro —
-  mesma trava dos PCs por slug. O enquadramento do token no mapa (Modo GM) continua valendo para eles.
+  mesma trava dos PCs por slug. O enquadramento do token no mapa (feito pelo GM) continua valendo para eles.
 
 ## Módulo initiative-tracker (Iniciativa)
 
@@ -1864,9 +1864,11 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
   posiciona, move e aplica dano. Token novo nasce no primeiro quadrado livre da faixa de cima
   (`freeSpot`, no servidor, que é quem conhece as posições de todo mundo).
 - **Quem vê número**: PC sempre; monstro só a barra, com "Ferido/Muito ferido…" no popover, e os
-  números no Modo GM. **Quem é GM vem da conta** (`useRole`, papel na mesa); o interruptor "Modo GM" só liga ou desliga a
-  VISÃO de quem já é GM (jogador nem o vê) e mostra a camada do mapa (enviar e dimensionar a imagem) e criar/apagar/ativar mapas.
-- **Mapas privados** (decisão do usuário): mapa novo **nasce privado** e só o Modo GM o vê, até ser
+  números só para o GM. **Quem é GM vem da conta** (`useRole`, papel na mesa) e é SEMPRE GM no mapa: vê a camada do mapa
+  (enviar e dimensionar a imagem), os números dos monstros, os mapas privados e criar/apagar/ativar mapas; o jogador nunca
+  vê nada disso. O interruptor "Modo GM" de antes do login (`pf2e:map:gm`) saiu — decisão do usuário: "agora temos contas
+  com tipos de acesso". Em texto e comentário, "Modo GM" velho = "o GM".
+- **Mapas privados** (decisão do usuário): mapa novo **nasce privado** e só o GM o vê, até ser
   revelado (olho na lista, ou "Revelar à mesa" no aviso do próprio mapa). Mapa antigo, sem o
   campo, é público.
   - **O servidor não entrega** o privado a quem não manda `gm=1` (`?maps=`, `?map=`, `?mapRev=`):
@@ -1881,8 +1883,7 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
   - Quem está num privado vê "Mapa ainda não revelado" e continua no poll: o 403 do `?map=` traz
     `rev`/`tableRev` (`hiddenRevs` no cliente), então a espera segue custando só o MGET, e o
     `?mapRev=` responde `hidden: true` quando o GM esconde o mapa com alguém olhando.
-  - O acesso GM é **por entrada** do store (`useMapData(id, gm)`): trocar o Modo GM recarrega o
-    mapa. A **Iniciativa sempre lê como GM** (`useMapSync`, `EncounterMapPicker`, com "· privado")
+  - O acesso GM é **por entrada** do store (`useMapData(id, gm)`; o `gm` é o papel da conta). A **Iniciativa sempre lê como GM** (`useMapSync`, `EncounterMapPicker`, com "· privado")
     — é lá que se monta o encontro do mapa escondido.
 - A imagem do mapa supõe **70 px por quadrado** ao chegar (padrão do Roll20); o GM ajusta pelas
   quatro alças (proporção travada, canto oposto parado) ou digitando largura/altura em quadrados.
@@ -1973,7 +1974,7 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
     por dado. Aqui giro e estouro são CSS com `animation-delay` por dado, e o número que passa durante
     o giro é UM `requestAnimationFrame` escrevendo `textContent` — só os 24 primeiros dados trocam de
     número. Total da animação ≤ ~1,3 s em qualquer quantidade. A camada fica fora do "mundo" do mapa.
-- **Enquadrar a imagem do token** (Modo GM — `tokenFit.ts`, `TokenFitDialog.tsx`, `TokenFitEditor.tsx`): no popover
+- **Enquadrar a imagem do token** (GM — `tokenFit.ts`, `TokenFitDialog.tsx`, `TokenFitEditor.tsx`): no popover
   do token com imagem, "Enquadrar a imagem" abre um diálogo onde o GM arrasta a imagem para escolher o ponto que
   fica no CENTRO do círculo e ajusta a ampliação (1–4×). A imagem inteira aparece esmaecida atrás, para ver o que
   fica de fora; "Centralizar" volta ao padrão e há um "aplicar às cópias com a mesma imagem".

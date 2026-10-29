@@ -9,13 +9,13 @@ interface Props {
     anchor: HTMLElement | null
     token: TokenDescriptor | null
     hp: TokenHp | null
-    /** Pode ver número e mexer no PV (personagem sempre; monstro só no Modo GM). */
+    /** Pode ver número e mexer no PV (personagem sempre; monstro só o GM). */
     canEdit: boolean
     onClose: () => void
     onApply: (next: TokenHp) => void
     /** Personagem com ficha: abre-a no painel ao lado do mapa. */
     onOpenSheet?: (slug: string) => void
-    /** Modo GM com imagem no token: abre o enquadramento (centro e ampliação). */
+    /** GM, token com imagem: abre o enquadramento (centro e ampliação). */
     onAdjustImage?: () => void
 }
 
@@ -124,7 +124,7 @@ export const TokenPopover = ({ anchor, token, hp, canEdit, onClose, onApply, onO
 
                     {hp && !canEdit && (
                         <Typography variant="caption" sx={{ color: ink.secondary }}>
-                            O PV do monstro só aparece no Modo GM.
+                            Os números do PV do monstro são só do GM.
                         </Typography>
                     )}
                 </Box>
