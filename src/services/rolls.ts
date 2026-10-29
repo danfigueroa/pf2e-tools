@@ -45,6 +45,9 @@ const own = new Set<string>()
 
 /** A rolagem saiu deste aparelho — o feed a mostra mesmo se chegou antes da primeira leitura. */
 export const isOwnRoll = (id: string): boolean => own.has(id)
+
+/** Um compartilhamento criado por outro caminho (o handout do diário, pelo `journal-reveal`) também é "daqui". */
+export const markOwnShare = (id: string): void => { own.add(id) }
 const listeners = new Set<() => void>()
 let timer: ReturnType<typeof setTimeout> | null = null
 let inflight: Promise<void> | null = null

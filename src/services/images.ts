@@ -116,9 +116,10 @@ const slugify = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '')
  * Onde cada imagem mora no bucket, pelo tempo que ela vive:
  * - `tokens/`   — token de PERSONAGEM: permanente, vale em todos os mapas;
  * - `maps/`     — a imagem de um mapa: some quando o mapa é apagado;
- * - `monsters/` — token de monstro: é do encontro de um mapa e some com ele.
+ * - `monsters/` — token de monstro: é do encontro de um mapa e some com ele;
+ * - `journal/`  — imagem do Diário de Campanha (NPC, local, item): permanente, só o GM envia.
  */
-export type ImageFolder = 'tokens' | 'maps' | 'monsters'
+export type ImageFolder = 'tokens' | 'maps' | 'monsters' | 'journal'
 
 const BUCKET = 'images'
 const SUPABASE_URL = ((import.meta.env ?? {}) as Partial<ImportMetaEnv>).VITE_SUPABASE_URL as string | undefined
@@ -136,7 +137,7 @@ const randomSuffix = () => crypto.randomUUID().replace(/-/g, '').slice(0, 12)
 
 /**
  * Sobe a imagem já reduzida e devolve a URL pública (ou `idb:` sem Supabase).
- * O bucket só aceita as três pastas acima, de quem está registrado numa mesa.
+ * O bucket só aceita as pastas acima, de quem está registrado numa mesa (`journal/`, só do GM).
  */
 export async function uploadImage(blob: Blob, folder: ImageFolder, name: string): Promise<string> {
     if (!isSupabaseConfigured) return saveLocal(blob)
