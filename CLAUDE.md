@@ -7,7 +7,7 @@ Orientações para o Claude Code trabalhar neste repositório. Para detalhes de 
 **Covil de Dados** (antes "PF2e Toolkit"; o repositório e o pacote seguem `pf2e-tools`) — SPA (React 19 + TypeScript + Vite + MUI 7) com ferramentas para Pathfinder 2e
 Remaster. Textos de UI em **português (pt-BR)**.
 
-Sete módulos ativos (rotas em `src/App.tsx`):
+Oito módulos ativos (rotas em `src/App.tsx`):
 - `/ficha-virtual` → `src/modules/character-viewer/` — visualizador de ficha (JSON Pathbuilder) com
   descrições da AON traduzidas sob demanda.
 - `/iniciativa` → `src/modules/initiative-tracker/` — gerenciador de iniciativa e combate.
@@ -20,6 +20,7 @@ Sete módulos ativos (rotas em `src/App.tsx`):
   estatísticas por personagem e destaques (`/diario`, o nome antigo, redireciona).
 - `/diario-campanha/:id?` → `src/modules/campaign-journal/` — Diário de Campanha, **só do GM**: preparação das
   sessões em Markdown, catálogo de NPCs/locais/itens, ganchos, encontros com XP e o "Mostrar à mesa".
+- `/trofeus/:user?` → `src/modules/trophies/` — Troféus do Covil: a coleção de troféus da conta e o ranking da mesa.
 
 **Todo módulo é `React.lazy`** (`App.tsx`); só a Início e o `MainLayout` vão no bundle principal.
 Num bundle único (1,7 MB, 520 kB gzip), quem abria a Ficha Virtual no celular baixava o
@@ -62,6 +63,7 @@ node scripts/check-heightening.mjs      # confere o heightening das magias contr
 node scripts/check-rolls.mjs            # confere a matemática das rolagens contra as fichas do grupo
 node --env-file=.env scripts/check-diary.mjs
                                         # confere o resumo do histórico da mesa (SQL) contra a conta do cliente, dia a dia
+node scripts/check-trophies.mjs         # confere as regras dos troféus (sequências, destaques da sessão, platinas)
 node scripts/check-economy.mjs          # confere que todo talento/item do elenco que custa ação, reação ou Ponto Mítico tem caminho
 node --env-file=.env scripts/check-auth.mjs
                                         # matriz de acesso (login, papéis, convites, dono de ficha, notificações, configurações da mesa)
@@ -248,6 +250,8 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   Ver a seção do módulo.
 - **O mesmo `state` serve as Anotações do personagem** (`api/_lib/notes-handler.js` + `notes-store.js`): `GET ?notes=<slug>` e
   `POST { action: 'notes-save', char, data, base }`. Antes de `isSheetRequest`. Ver "Anotações" no módulo character-viewer.
+- **O mesmo `state` serve os Troféus do Covil** (`api/_lib/trophy-handler.js` + `trophy-store.js` + `trophies.js`):
+  `GET ?trophies=me|<userId>|ranking`. Antes de `isSheetRequest`. Ver a seção "Troféus do Covil".
 - **O mesmo `state` serve os encontros da Iniciativa** (`api/_lib/encounter-handler.js` + `encounter-store.js`):
   `GET ?encounter=<mapId|none>` e `POST { action: 'encounter-save', map, state }` (`map` null = "Sem mapa"). Vem
   antes de `isSheetRequest` nos dois servidores, pelo mesmo motivo do mapa. Ver "O encontro vai para a nuvem" na
@@ -561,6 +565,45 @@ estáticos e passou a mostrar a mesa VIVA; a sidebar ganhou seções; o celular,
 - **Bundle**: a moldura nova custou ~9 kB gzip no chunk principal. O `Tooltip` do MUI puxa o popper.js (~7 kB gzip) — na
   moldura use `title` nativo; a lista do sino, a busca e as prévias são chunks.
 - `?ficha=<slug>` em `/ficha-virtual` abre aquela ficha publicada (e sai da URL) — é como o grupo e as notificações levam à ficha.
+
+## Troféus do Covil
+
+Gamificação no estilo PSN/Xbox/Steam (pedido do usuário): cada CONTA tem uma coleção de troféus, ganhos por feitos na
+plataforma, e a página `/trofeus` (`modules/trophies/`, lazy) mostra o perfil, a coleção e o ranking da mesa;
+`/trofeus/<userId>` é o perfil de um colega. Migration `trofeus`. Decisões do usuário: **global por conta** (soma as
+mesas; o troféu guarda em qual foi ganho), **a mesa vê tudo + ranking**, **todo mundo do zero** (nada retroativo) e
+**o GM tem um conjunto próprio**, com ranking separado.
+
+- **O catálogo mora num lugar só** (`api/_lib/trophies.js`, `TROPHIES`): id, papel, categoria, grau, título, descrição,
+  `goal` e `measure(facts)`. O GET devolve o catálogo junto com o perfil — o cliente não repete a lista. **Troféu novo =
+  uma entrada lá** (e, se precisar de um fato que não existe, o feito no handler certo e a conta em `deriveFacts`/
+  `trophy_facts`) + um caso no `check-trophies`. Pontos: bronze 15, prata 30, ouro 90, platina 300; a platina de cada
+  papel é "todos os outros daquele papel". O nível do perfil sai dos pontos (`levelOf` em `services/trophies.ts`).
+- **Os fatos vêm de três tabelas**: `trophy_feats` (o registro dos feitos, que nasce vazio — por isso "do zero" sai de
+  graça), `mesa_sessions` (o histórico das sessões, que a mesa não tinha: só `mesas.session_started_at`) e as rolagens
+  `in_session` DENTRO de uma janela de `mesa_sessions`, pela ficha que a pessoa possui (`sheets.owner_id`). A função
+  `trophy_facts(user)` junta tudo numa consulta, somando as mesas. `account_trophies` guarda o que já desbloqueou
+  (PK `user_id, trophy_id`: desbloquear é idempotente).
+- **Quem registra os feitos é o servidor**, no handler que já conhece o usuário (`recordFeat`/`touchFeat` de
+  `trophy-store.js`, sempre dentro de `safely`: **troféu nunca derruba a ação de verdade**):
+  anotações (`note-created` com a etiqueta, `note-edited`, `background` com o tamanho e `afterLevelUp`), publicação
+  (`sheet-published`, `level-up`), item passado (campo `gave` que cresce, no `state-router`), regra compartilhada,
+  correção de tradução, mapa revelado, sessão no Diário e "Mostrar à mesa". O combate iniciado é gravado por TRIGGER
+  (`encounter_trophy_feat`, rodada 0 → 1). **Feito de jogador só vale para o DONO da ficha** (`ownerOf`): o GM mexendo
+  na ficha de alguém não ganha o troféu dele. O autosave das anotações grava a cada 1,5 s: `touchFeat` junta a rajada
+  num registro só (janela de 30 min) e só reavalia quando algo que o catálogo lê mudou.
+- **Sessão** (`mesa-settings` no `auth-handler`): iniciar abre uma linha em `mesa_sessions` (e fecha alguma esquecida
+  aberta); encerrar fecha, roda `session_rollup` (mesmas contas do `diary_summary`) e elege os destaques
+  (`sessionHighlights`: maior dano somado, maior dano numa rolagem, melhor média do d20 com 8+ testes; **empate não
+  elege ninguém**), e depois avalia todos os membros. Presença = rolou com a ficha dela dentro da sessão; "anotou na
+  sessão" = algum feito de nota/background dentro da janela; sequências contam sessões seguidas DA MESMA mesa.
+- **Avaliar** (`evaluate`) roda depois de cada feito e no `GET ?trophies=me`; o que é novo vai para `account_trophies`
+  e vira `mesa_events` `trophy-unlocked` (`data: { user, name, trophy, title, tier }`) na mesa onde aconteceu. O sino
+  mostra o meu sempre e o dos colegas só se for ouro ou platina; o `TrophyToastLayer` (no `MainLayout`) mostra o cartão
+  "Troféu desbloqueado" ao dono, em fila, por 6 s. `onTableEvent` passou a entregar o `data` do evento.
+- **Cores dos graus** em `TROPHY_TIERS` (`theme/palette.ts`): `medal` pinta a taça, `ink` é o texto (≥4,5:1) e `tint` o
+  fundo do cartão desbloqueado. A taça é SVG (`TrophyMedal`); o grau vai também por extenso.
+- **Não feito ainda**: casos de troféu no `check-auth` e os pontos no cartão do perfil da sidebar.
 
 ## Mesas
 

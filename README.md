@@ -48,6 +48,7 @@ O toolkit expõe as ferramentas abaixo (rotas em `src/App.tsx`), listadas na pá
 | **Stat Block de Transformação** | `/transformation` | `src/modules/transformation-statblock/` | Gera o stat block de qualquer _battle form_ do Remaster              |
 | **Escalar Monstro**           | `/escalar-monstro` | `src/modules/monster-scaler/`        | Adapta uma criatura da AON para outro nível                            |
 | **Diário de Campanha** (GM)   | `/diario-campanha` | `src/modules/campaign-journal/`      | Preparação das sessões em Markdown, catálogo de NPCs/locais/itens, ganchos, encontros com XP e o que mostrar à mesa |
+| **Troféus do Covil**         | `/trofeus`        | `src/modules/trophies/`               | Troféus por conta (bronze a platina), perfil com nível e ranking da mesa |
 
 ### 🪑 Mesas
 
@@ -1212,6 +1213,9 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
             apocalipse…), ranking por métrica, "o d20 é justo?" e a linha do tempo das sessões, com animação
 -   [x] **Quem está na mesa**: o cartão da mesa na sidebar mostra quem está com o app aberto (e, tocando,
         o nome do aparelho, a ficha aberta e a página); no mapa, o token do personagem com a ficha aberta ganha um ponto verde
+-   [x] **Troféus do Covil**: troféus por conta (bronze, prata, ouro e platina) por escrever o background, anotar
+        em sessões seguidas, tirar 20 natural, causar o maior dano da sessão e mais; perfil com nível, coleção e
+        ranking da mesa em `/trofeus`, e o aviso "Troféu desbloqueado"
 -   [x] **Início viva, por papel**: o GM vê a próxima sessão com "Preparar a sessão" (encontro, mapa, Diário); o jogador, o
         cartão do seu personagem (PV, condições, última rolagem). Os dois têm atalhos com o estado da mesa, o grupo
         com PV e quem está online, e a última sessão (média do d20, troféu e rolagens)
