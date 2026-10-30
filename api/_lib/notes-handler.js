@@ -33,6 +33,12 @@ async function noteFeats(mesa, slug, before, after, userId) {
         return prev && (prev.body !== n.body || prev.title !== n.title)
     })
     if (edited) await touchFeat(mesa, owner, 'note-edited', { slug }, FEAT_WINDOW_MS)
+    // A maior anotação ("Pena prolífica"): só quando ela cresceu e já é de bom tamanho.
+    const longest = (list) => Math.max(0, ...(list ?? []).map((n) => n.body.length))
+    const length = longest(after.notes)
+    if (length >= 200 && length > longest(before?.notes)) {
+        await touchFeat(mesa, owner, 'note-length', { slug, length }, FEAT_WINDOW_MS)
+    }
     const text = after.background.trim()
     if (text !== (before?.background ?? '').trim() && text.length > 0) {
         const [levelUp, lastBackground] = await Promise.all([

@@ -81,6 +81,25 @@ test('platina: todos os outros do papel', () => {
     assert.equal(wire.goal, others.length)
 })
 
+test('sorte: médias da sessão e sequências', () => {
+    const hot = evaluateFacts(deriveFacts({ bestSessionAvg: 14, worstSessionAvg: 0 })).earned
+    assert.ok(hot.has('sortudo') && !hot.has('dado-gelado'), 'média 0 = nenhuma sessão com 10 testes, não "gelado"')
+    assert.ok(evaluateFacts(deriveFacts({ worstSessionAvg: 6.5 })).earned.has('dado-gelado'))
+    const runs = evaluateFacts(deriveFacts({ run20: 2, run1: 3, redemption: 1 })).earned
+    assert.ok(runs.has('dois-20-seguidos') && !runs.has('tres-20-seguidos'))
+    assert.ok(runs.has('dois-1-seguidos') && runs.has('tres-1-seguidos') && runs.has('redencao'))
+})
+
+test('combate e MVP', () => {
+    const e = evaluateFacts(deriveFacts({ bestHit: 120, bestSessionDamage: 450, critStrikes: 1, maxRays: 3, sameSessionHighlights: 3 })).earned
+    for (const id of ['dano-50', 'dano-100', 'sessao-300', 'critico', 'raios', 'mvp']) assert.ok(e.has(id), id)
+    assert.ok(!e.has('sessao-600'))
+})
+
+test('secretos têm descrição (o cliente esconde até ganhar)', () => {
+    for (const x of TROPHIES.filter((y) => y.hidden)) assert.ok(x.description.length > 10, x.id)
+})
+
 test('pontos por papel', () => {
     assert.deepEqual(pointsOf(['primeira-ficha', 'gm-15-sessoes', 'nao-existe']), { player: 15, gm: 90 })
 })
