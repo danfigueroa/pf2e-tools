@@ -129,6 +129,25 @@ export async function trophyProfile(userId) {
     return { catalog, unlocked, progress, points: pointsOf(unlocked.map((u) => u.id)) }
 }
 
+/**
+ * O resumo leve (sidebar e Início): pontos, quantos e os últimos desbloqueados, sem avaliar
+ * nem calcular progresso — uma consulta só, a cada abertura do app.
+ */
+export async function trophySummary(userId) {
+    const db = supabase()
+    if (!db || !isUserId(userId)) return { points: { player: 0, gm: 0 }, count: 0, total: TROPHY_BY_ID.size, recent: [] }
+    const unlocked = (await unlockedOf(db, userId)).sort((a, b) => b.at - a.at)
+    return {
+        points: pointsOf(unlocked.map((u) => u.id)),
+        count: unlocked.length,
+        total: TROPHY_BY_ID.size,
+        recent: unlocked.slice(0, 4).map((u) => {
+            const x = TROPHY_BY_ID.get(u.id)
+            return { id: u.id, at: u.at, title: x?.title ?? u.id, tier: x?.tier ?? 'bronze' }
+        }),
+    }
+}
+
 /** Os membros da mesa (com conta) com os pontos de jogador e de GM. */
 export async function trophyRanking(mesa) {
     const db = supabase()
