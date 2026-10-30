@@ -584,6 +584,14 @@ mesas; o troféu guarda em qual foi ganho), **a mesa vê tudo + ranking**, **tod
   `in_session` DENTRO de uma janela de `mesa_sessions`, pela ficha que a pessoa possui (`sheets.owner_id`). A função
   `trophy_facts(user)` junta tudo numa consulta, somando as mesas. `account_trophies` guarda o que já desbloqueou
   (PK `user_id, trophy_id`: desbloquear é idempotente).
+- **O catálogo tem 88 troféus** (72 de jogador, 16 de GM), em categorias: ficha, história e notas, presença, dados,
+  sorte e azar, combate, destaques da sessão, a mesa e mestre. Os fatos de rolagem saem de `trophy_facts` (migration
+  `mais_trofeus` a substitui inteira): **"seguidos" é dentro da MESMA sessão**, na ordem rolada, cada raio um teste
+  (`run20`, `run1` por ilhas de faces iguais; `redemption` = 1 natural seguido de 20); maior teste e maior dano numa
+  rolagem, dano somado numa sessão, críticos (20 natural numa rolagem com dano), raios, iniciativas pela ficha,
+  rolagens de madrugada (0h–5h de Brasília), médias da sessão com 10+ testes, maratonas (sessão de 4 h+), primeira
+  rolagem da sessão, nível publicado, os três destaques na mesma sessão (pelo `data.session` dos feitos) e a maior
+  anotação (feito `note-length`). Secretos (`hidden`) aparecem como "Troféu secreto" até serem ganhos.
 - **Quem registra os feitos é o servidor**, no handler que já conhece o usuário (`recordFeat`/`touchFeat` de
   `trophy-store.js`, sempre dentro de `safely`: **troféu nunca derruba a ação de verdade**):
   anotações (`note-created` com a etiqueta, `note-edited`, `background` com o tamanho e `afterLevelUp`), publicação
