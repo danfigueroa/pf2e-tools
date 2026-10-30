@@ -471,7 +471,8 @@ aparelho e o servidor nunca recusava ninguém.
   boot com a sessão que existir. O servidor recusar por papel volta como `pf2e:forbidden` (aviso na tela); 401 relê o login.
   **A UI só esconde botões** — o que vale é o servidor. Sessão anônima antiga é descartada no boot.
 - **Tela de entrada** (`modules/account/LoginPage.tsx` + `LoginLayout.tsx` + `onboarding/`, tudo no chunk lazy da
-  `LoginPage`, ~10 kB gzip): formulário num painel de pergaminho e, ao lado (no celular, abaixo: "Conheça o Covil"), a
+  `LoginPage`, ~10 kB gzip): formulário num painel de pergaminho (no desktop, com o logo EMPILHADO no topo; no celular
+o horizontal fica no cabeçalho verde) e, ao lado (no celular, abaixo: "Conheça o Covil"), a
   **vitrine** — seis cenas animadas DESENHADAS EM CÓDIGO (decisão do usuário: nada de captura de tela), com dados
   fictícios e sem rede, porque a tela é pública. Cada cena é um loop de passos (`useSceneClock`, um `setTimeout` por passo,
   o movimento é CSS) e reusa o que existe (`DiceTray`, `pulseAnimation`, `floatUp`…). **Só a cena da vez monta**; quem marca
