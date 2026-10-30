@@ -4,6 +4,7 @@
 // junto com o perfil: o cliente só desenha. O aviso de troféu novo chega pelo canal de eventos
 // da mesa (`trophy-unlocked`, ver `services/notifications.ts`).
 
+import { useSyncExternalStore } from 'react'
 import { stateApi } from './mesa'
 
 export type TrophyTier = 'bronze' | 'prata' | 'ouro' | 'platina'
@@ -80,4 +81,43 @@ export async function fetchTrophyProfile(who: 'me' | string): Promise<TrophyProf
 export async function fetchTrophyRanking(): Promise<RankingEntry[] | null> {
     const body = await get<{ ranking?: RankingEntry[] }>('?trophies=ranking')
     return Array.isArray(body?.ranking) ? body.ranking : null
+}
+
+// --- Resumo leve (sidebar e Início) ----------------------------------------------------------
+
+export interface TrophySummary {
+    points: Record<TrophyRole, number>
+    count: number
+    total: number
+    recent: { id: string; at: number; title: string; tier: TrophyTier }[]
+}
+
+let summary: TrophySummary | null = null
+let summaryRead: Promise<void> | null = null
+const summaryListeners = new Set<() => void>()
+
+async function readSummary() {
+    const body = await get<{ summary?: TrophySummary }>('?trophies=summary')
+    if (body?.summary) {
+        summary = body.summary
+        summaryListeners.forEach((l) => l())
+    }
+}
+
+/** Relê o resumo (um troféu novo chegou). */
+export function refreshTrophySummary() {
+    summaryRead = readSummary()
+}
+
+/** `null` até a primeira leitura; lida uma vez por carga e de novo a cada troféu desta conta. */
+export function useTrophySummary(): TrophySummary | null {
+    return useSyncExternalStore(
+        (cb) => {
+            summaryListeners.add(cb)
+            summaryRead ??= readSummary()
+            return () => { summaryListeners.delete(cb) }
+        },
+        () => summary,
+        () => null,
+    )
 }
