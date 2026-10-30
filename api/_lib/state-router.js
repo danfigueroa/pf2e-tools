@@ -5,7 +5,7 @@
 // Devolve sempre `{ status, body }`; quem chama só escreve a resposta.
 //
 // Ordem das rotas (importa): conta → [portão] → notificações → mapa → rolagens → correções → diário
-// de campanha → encontro → ficha → estado. A rota da ficha aceita qualquer POST com `action` e engoliria as
+// de campanha → anotações → encontro → ficha → estado. A rota da ficha aceita qualquer POST com `action` e engoliria as
 // anteriores, e a da conta vem antes do portão porque quem ainda não é membro precisa
 // poder resgatar o convite que o torna um.
 
@@ -24,6 +24,7 @@ import { handleMapRequest, isMapRequest } from './map-handler.js'
 import { handleRollRequest, isRollRequest } from './roll-handler.js'
 import { handleEncounterRequest, isEncounterRequest } from './encounter-handler.js'
 import { handleJournalRequest, isJournalRequest } from './journal-handler.js'
+import { handleNotesRequest, isNotesRequest } from './notes-handler.js'
 import { handleFixRequest, isFixRequest } from './fix-handler.js'
 import { handleAuthRequest, isAuthRequest } from './auth-handler.js'
 import { handleEventRequest, isEventRequest } from './event-handler.js'
@@ -80,6 +81,10 @@ export async function routeState({ req, method, query, body }) {
     if (isJournalRequest(method, query, body)) {
         return run('Erro no diário de campanha', 'Erro ao tratar o diário de campanha', () =>
             handleJournalRequest(mesa, method, query, body, ctx))
+    }
+    if (isNotesRequest(method, query, body)) {
+        return run('Erro nas anotações', 'Erro ao tratar as anotações', () =>
+            handleNotesRequest(mesa, method, query, body, ctx))
     }
     if (isEncounterRequest(method, query, body)) {
         return run('Erro no encontro', 'Erro ao tratar o encontro', () =>
