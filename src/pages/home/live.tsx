@@ -29,6 +29,11 @@ import {
   chrome, displayFont, gold, green, HP_COLOR, ink, ONLINE_BADGE, parchment, rule, status, TOKEN_NPC, TOKEN_PC,
 } from '../../theme';
 import { useParty, type PartyMember } from './party';
+import { levelOf, useTrophySummary } from '../../services/trophies';
+import { useInView } from '../../motion/useInView';
+import { useAnimatedNumber } from '../../motion/useAnimatedNumber';
+import { TrophyMedal } from '../../modules/trophies/TrophyMedal';
+import { EASE_BACK } from '../../modules/trophies/motion';
 
 // As partes VIVAS da Início, num chunk à parte (o estado da mesa, o mapa, o histórico e os
 // helpers da ficha não entram no bundle principal). Cada parte tem o seu estado vazio honesto.
@@ -680,5 +685,62 @@ export function PlayerCombat() {
         })}
       </Box>
     </Box>
+  );
+}
+
+// --- Troféus ------------------------------------------------------------------------------
+
+/** A vitrine dos troféus da pessoa: nível, pontos e os últimos ganhos, com a entrada animada. */
+export function TrophyShowcase() {
+  const summary = useTrophySummary();
+  const [ref, shown] = useInView<HTMLAnchorElement>();
+  const total = summary ? summary.points.player + summary.points.gm : 0;
+  const lvl = levelOf(total);
+  const points = useAnimatedNumber(shown ? total : 0, { duration: 1100 });
+  if (!summary) return <Skeleton variant="rounded" height={96} sx={{ borderRadius: 3 }} />;
+  return (
+    <ButtonBase ref={ref} component={Link} to="/trofeus" aria-label="Abrir os meus troféus" sx={{
+      ...card, borderRadius: 2.75, width: '100%', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: { xs: 1.5, sm: 2.5 },
+      p: { xs: 1.75, sm: 2.25 }, justifyContent: 'flex-start', textAlign: 'left', color: ink.primary,
+    }}>
+      <Box sx={{
+        width: 52, height: 52, borderRadius: '50%', bgcolor: green.deepest, color: gold.bright, flexShrink: 0,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
+        transform: shown ? 'none' : 'scale(0.5) rotate(-30deg)', transition: `transform 700ms ${EASE_BACK}`,
+      }}>
+        <Typography sx={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.1em' }}>NÍVEL</Typography>
+        <Typography sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.25rem', color: chrome.text }}>{lvl.level}</Typography>
+      </Box>
+      <Box sx={{ flex: '1 1 180px', minWidth: 0 }}>
+        <Typography sx={eyebrow}>Troféus do Covil</Typography>
+        <Typography sx={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+          {points} pontos · {summary.count} de {summary.total} troféus
+        </Typography>
+        <Box sx={{ mt: 0.75, height: 5, borderRadius: 99, bgcolor: parchment.sunken, overflow: 'hidden', maxWidth: 260 }} aria-hidden>
+          <Box sx={{
+            height: '100%', bgcolor: gold.main, borderRadius: 99, transformOrigin: 'left center',
+            transform: `scaleX(${shown ? lvl.into / lvl.next : 0})`, transition: 'transform 900ms cubic-bezier(0.22, 1, 0.36, 1) 300ms',
+          }} />
+        </Box>
+      </Box>
+      <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'center', flexWrap: 'wrap' }}>
+        {summary.recent.length === 0 && (
+          <Typography sx={{ fontSize: '0.875rem', color: ink.secondary, maxWidth: 300 }}>
+            Nenhum troféu ainda. Escreva o background ou role numa sessão para ganhar o primeiro.
+          </Typography>
+        )}
+        {summary.recent.map((r, i) => (
+          <Box key={r.id} title={r.title} sx={{
+            display: 'flex', alignItems: 'center', gap: 1, maxWidth: { xs: '100%', sm: 200 },
+            opacity: shown ? 1 : 0, transform: shown ? 'none' : 'translateY(10px) scale(0.8)',
+            transition: `opacity 400ms ease, transform 600ms ${EASE_BACK}`, transitionDelay: `${250 + i * 110}ms`,
+          }}>
+            <TrophyMedal tier={r.tier} size={36} />
+            <Typography noWrap sx={{ fontSize: '0.8125rem', fontWeight: 600, display: { xs: i === 0 ? 'block' : 'none', md: 'block' } }}>{r.title}</Typography>
+          </Box>
+        ))}
+      </Box>
+      <ChevronIcon sx={{ color: gold.deep, display: { xs: 'none', sm: 'block' } }} />
+    </ButtonBase>
   );
 }

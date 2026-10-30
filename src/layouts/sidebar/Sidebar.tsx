@@ -2,6 +2,7 @@ import { lazy, Suspense, useState } from 'react';
 import { Box, ButtonBase, IconButton, Popover, Typography } from '@mui/material';
 import {
   Casino as DiceIcon,
+  EmojiEvents as TrophyIcon,
   Key as KeyIcon,
   Lock as LockIcon,
   Logout as LogoutIcon,
@@ -14,6 +15,8 @@ import { signOut, useMesaInfo, useRole } from '../../services/auth';
 import { usePresence } from '../../services/presence';
 import { useTableRolls } from '../../services/rolls';
 import { useCombatStatus } from '../../services/combatStatus';
+import { levelOf, useTrophySummary } from '../../services/trophies';
+import { useAnimatedNumber } from '../../motion/useAnimatedNumber';
 import { MesaMenu } from '../../components/MesaSwitcher';
 import { initialsOf, isCurrent, SECTION_LABEL, visibleNav, type NavItem, type NavSection } from '../navigation';
 import { rollHeadline, sessionDate, sessionSince, timeAgo } from '../format';
@@ -367,11 +370,28 @@ const Profile = ({ collapsed, onOpenPassword }: { collapsed: boolean; onOpenPass
         <Box sx={{ flex: 1, minWidth: 0, pl: 1 }}>
           <Typography noWrap sx={{ fontSize: '0.95rem', fontWeight: 600, color: chrome.text }}>{name}</Typography>
           <Typography noWrap sx={{ fontSize: '0.75rem', color: chrome.textMuted }}>{roleText}</Typography>
+          <TrophyLine />
         </Box>
         <IconButton size="small" aria-label="Trocar senha" title="Trocar senha" onClick={onOpenPassword} sx={{ color: chrome.textMuted }}><KeyIcon fontSize="small" /></IconButton>
         <IconButton size="small" aria-label="Sair da conta" title="Sair da conta" onClick={() => void signOut()} sx={{ color: chrome.textMuted }}><LogoutIcon fontSize="small" /></IconButton>
       </Box>
       <Disclaimer />
+    </Box>
+  );
+};
+
+/** Nível e pontos dos Troféus do Covil, com os pontos correndo até o valor quando mudam. */
+const TrophyLine = () => {
+  const summary = useTrophySummary();
+  const total = summary ? summary.points.player + summary.points.gm : 0;
+  const shown = useAnimatedNumber(total, { duration: 900 });
+  if (!summary) return null;
+  return (
+    <Box component={Link} to="/trofeus" sx={{
+      display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 0.25, fontSize: '0.75rem', fontWeight: 600,
+      color: gold.bright, textDecoration: 'none', fontVariantNumeric: 'tabular-nums', '&:hover': { textDecoration: 'underline' },
+    }}>
+      <TrophyIcon sx={{ fontSize: 14 }} />Nível {levelOf(total).level} · {shown} pts
     </Box>
   );
 };

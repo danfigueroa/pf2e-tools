@@ -18,6 +18,7 @@ const PrepareList = lazy(() => live().then((m) => ({ default: m.PrepareList })))
 const PlayerCard = lazy(() => live().then((m) => ({ default: m.PlayerCard })));
 const GmCombat = lazy(() => live().then((m) => ({ default: m.GmCombat })));
 const PlayerCombat = lazy(() => live().then((m) => ({ default: m.PlayerCombat })));
+const TrophyShowcase = lazy(() => live().then((m) => ({ default: m.TrophyShowcase })));
 const QuickAccess = lazy(() => live().then((m) => ({ default: m.QuickAccess })));
 const GroupSection = lazy(() => live().then((m) => ({ default: m.GroupSection })));
 const LastSessionSection = lazy(() => live().then((m) => ({ default: m.LastSessionSection })));
@@ -192,6 +193,8 @@ export const HomePage = () => {
       )}
 
       <Live height={200}><QuickAccess gm={role.isGm} members={mesa.members} /></Live>
+
+      {role.userId && <Live height={96}><TrophyShowcase /></Live>}
 
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2.5, alignItems: 'flex-start' }}>
         <Live height={300}><GroupSection gm={role.isGm} /></Live>
