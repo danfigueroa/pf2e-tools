@@ -38,6 +38,8 @@ interface Props {
     /** Começa na prévia, quando já há texto (no celular). */
     preferView?: boolean
     'aria-label'?: string
+    /** Fora do diário: sem `[[ ]]`, bloco para os jogadores nem envio de imagem. */
+    plain?: boolean
 }
 
 function ToolButton({ title, onClick, children, disabled }: { title: string; onClick: () => void; children: ReactNode; disabled?: boolean }) {
@@ -51,7 +53,7 @@ function ToolButton({ title, onClick, children, disabled }: { title: string; onC
 }
 
 export const MarkdownEditor = memo(function MarkdownEditor(props: Props) {
-    const { value, onChange, imageName, template, placeholder, minRows = 8, preferView = true } = props
+    const { value, onChange, imageName, template, placeholder, minRows = 8, preferView = true, plain = false } = props
     const theme = useTheme()
     const wide = useMediaQuery(theme.breakpoints.up('md'))
     const tools = useJournalTools()
@@ -136,13 +138,17 @@ export const MarkdownEditor = memo(function MarkdownEditor(props: Props) {
                 <ToolButton title="Lista" onClick={() => prefixLines('- ')} disabled={!showEditor}><FormatListBulleted fontSize="small" /></ToolButton>
                 <ToolButton title="Lista de tarefas" onClick={() => prefixLines('- [ ] ')} disabled={!showEditor}><Checklist fontSize="small" /></ToolButton>
                 <ToolButton title="Citação" onClick={() => prefixLines('> ')} disabled={!showEditor}><FormatQuote fontSize="small" /></ToolButton>
-                <ToolButton title="Link para o catálogo: [[Nome]]" onClick={() => wrap('[[', ']]', 'Nome')} disabled={!showEditor}><LinkIcon fontSize="small" /></ToolButton>
-                <ToolButton title="Bloco para os jogadores" onClick={() => wrap(':::jogadores Título\n', '\n:::', 'O que os jogadores leem.')} disabled={!showEditor}>
-                    <PlayersIcon fontSize="small" sx={{ color: gold.deep }} />
-                </ToolButton>
-                <ToolButton title="Enviar imagem" onClick={() => fileRef.current?.click()} disabled={!showEditor || uploading}>
+                {!plain && (
+                    <>
+                    <ToolButton title="Link para o catálogo: [[Nome]]" onClick={() => wrap('[[', ']]', 'Nome')} disabled={!showEditor}><LinkIcon fontSize="small" /></ToolButton>
+                    <ToolButton title="Bloco para os jogadores" onClick={() => wrap(':::jogadores Título\n', '\n:::', 'O que os jogadores leem.')} disabled={!showEditor}>
+                        <PlayersIcon fontSize="small" sx={{ color: gold.deep }} />
+                    </ToolButton>
+                    <ToolButton title="Enviar imagem" onClick={() => fileRef.current?.click()} disabled={!showEditor || uploading}>
                     {uploading ? <CircularProgress size={16} /> : <ImageIcon fontSize="small" />}
-                </ToolButton>
+                    </ToolButton>
+                    </>
+                )}
                 {template && (
                     <ToolButton title="Inserir modelo" onClick={() => insert(template)} disabled={!showEditor}><TemplateIcon fontSize="small" /></ToolButton>
                 )}
