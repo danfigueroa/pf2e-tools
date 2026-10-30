@@ -16,16 +16,17 @@ import {
 import { Link } from 'react-router-dom';
 import { useRole } from '../../services/auth';
 import { useTableRolls } from '../../services/rolls';
-import { useCombatStatus } from '../../services/combatStatus';
+import { useCombatStatus, type CombatEntry } from '../../services/combatStatus';
 import { useMapData } from '../../services/maps';
 import { fetchDiarySummary } from '../../services/diary';
+import { BASE_ACTIONS } from '../../modules/character-viewer/actions';
 import { mergePeople, type DaySummary } from '../../modules/session-diary/stats';
 import { computeAwards, shortDay } from '../../modules/session-diary/awards';
 import { TokenBadge } from '../../modules/battle-map/components/TokenBadge';
 import { rollHeadline, timeAgo } from '../../layouts/format';
 import { initialsOf } from '../../layouts/navigation';
 import {
-  chrome, displayFont, gold, green, HP_COLOR, ink, ONLINE_BADGE, parchment, rule, status,
+  chrome, displayFont, gold, green, HP_COLOR, ink, ONLINE_BADGE, parchment, rule, status, TOKEN_NPC, TOKEN_PC,
 } from '../../theme';
 import { useParty, type PartyMember } from './party';
 
@@ -265,7 +266,7 @@ export function PlayerCard() {
 
 // --- Acesso rápido ------------------------------------------------------------------------
 
-interface QuickItem { to: string; icon: ReactNode; title: string; text: string; gm?: boolean }
+interface QuickItem { to: string; icon: ReactNode; title: string; text: string; gm?: boolean; live?: boolean }
 
 /** Os atalhos, cada um com uma linha viva. O GM ganha Fichas, Diário, Escalar Monstro e o convite. */
 export function QuickAccess({ gm, members: memberCount }: { gm: boolean; members: number | null }) {
@@ -274,11 +275,14 @@ export function QuickAccess({ gm, members: memberCount }: { gm: boolean; members
   const combatLine = useCombatLine();
   const mapName = useMapName();
   const session = useLastSession();
+  const { data: mapData } = useMapData(combat?.mapId ?? null);
+  const inCombat = !!combat && combat.round > 0;
+  const tokens = mapData ? Object.keys(mapData.tokens).length : null;
 
   const items: QuickItem[] = [
     ...(gm ? [{ to: '/ficha-virtual', icon: <ViewerIcon />, title: 'Fichas', text: `${members.length} ${members.length === 1 ? 'personagem' : 'personagens'}` }] : []),
-    { to: '/iniciativa', icon: <InitiativeIcon />, title: 'Iniciativa', text: combatLine },
-    { to: combat?.mapId ? `/mapa/${combat.mapId}` : '/mapa', icon: <MapIcon />, title: 'Mapa de Combate', text: mapName ?? 'Nenhum mapa ativo' },
+    { to: '/iniciativa', icon: <InitiativeIcon />, title: 'Iniciativa', text: combatLine, live: inCombat },
+    { to: combat?.mapId ? `/mapa/${combat.mapId}` : '/mapa', icon: <MapIcon />, title: 'Mapa de Combate', text: mapName ? `${mapName}${inCombat && tokens ? ` · ${tokens} tokens` : ''}` : 'Nenhum mapa ativo', live: inCombat && !!mapName },
     { to: '/historico', icon: <HistoryIcon />, title: 'Rolagens', text: session ? `Última sessão: ${shortDay(session.day)}` : 'Histórico da mesa' },
     { to: '/transformation', icon: <TransformIcon />, title: 'Transformações', text: 'Forma Animal, Elemental…' },
     ...(gm ? [
@@ -305,6 +309,9 @@ export function QuickAccess({ gm, members: memberCount }: { gm: boolean; members
             <Box sx={{ minWidth: 0, maxWidth: '100%', display: 'flex', flexDirection: 'column', gap: 0.25 }}>
               <Typography sx={{ fontWeight: 600, fontSize: { xs: '0.9375rem', sm: '1rem' }, display: 'flex', alignItems: 'center', gap: 1 }}>
                 {it.title}
+                {it.live && (
+                  <Box component="span" sx={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.04em', px: 0.75, py: 0.25, borderRadius: 0.75, bgcolor: ONLINE_BADGE.bg, color: ONLINE_BADGE.text }}>AO VIVO</Box>
+                )}
                 {it.gm && (
                   <Box component="span" sx={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.04em', px: 0.75, py: 0.25, borderRadius: 0.75, bgcolor: green.deepest, color: chrome.text }}>GM</Box>
                 )}
@@ -320,7 +327,7 @@ export function QuickAccess({ gm, members: memberCount }: { gm: boolean; members
 
 // --- O grupo ------------------------------------------------------------------------------
 
-const MemberRow = ({ member: m }: { member: PartyMember }) => (
+const MemberRow = ({ member: m, playing }: { member: PartyMember; playing?: boolean }) => (
   <ButtonBase component={Link} to={sheetLink(m.slug)} sx={{
     display: 'flex', alignItems: 'center', gap: 1.75, py: 1.25, minHeight: 56, textAlign: 'left', justifyContent: 'flex-start',
     borderTop: `1px solid ${parchment.sunken}`, color: 'inherit', width: '100%',
@@ -332,7 +339,7 @@ const MemberRow = ({ member: m }: { member: PartyMember }) => (
     <Box sx={{ flex: 1, minWidth: 0 }}>
       <Typography noWrap sx={{ fontWeight: 600, fontSize: '0.95rem' }}>{m.name}</Typography>
       <Typography noWrap sx={{ fontSize: '0.8125rem', color: ink.secondary }}>
-        {[m.className, `Nível ${m.level}`, ...m.conditions.slice(0, 2)].filter(Boolean).join(' · ')}
+        {[m.className, playing ? 'jogando agora' : `Nível ${m.level}`, ...m.conditions.slice(0, 2)].filter(Boolean).join(' · ')}
       </Typography>
     </Box>
     <Box sx={{ width: { xs: 96, sm: 140 }, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 0.625, alignItems: 'flex-end' }}>
@@ -368,6 +375,8 @@ const MemberTile = ({ member: m }: { member: PartyMember }) => (
 /** O grupo: o GM vê uma lista com nível e PV; o jogador, uma grade de leitura. */
 export function GroupSection({ gm }: { gm: boolean }) {
   const { members, ready } = useParty();
+  const combat = useCombatStatus();
+  const activeSlug = combat && combat.round > 0 ? combat.order.find((c) => c.id === combat.activeId)?.slug ?? null : null;
   const online = members.filter((m) => m.online).length;
   return (
     <Box component="section" aria-labelledby="home-grupo" sx={{ ...card, borderRadius: 2.75, flex: '3 1 440px', minWidth: 0, p: { xs: 2, sm: 3 }, pb: { xs: 1.5, sm: gm ? 1.5 : 3 }, display: 'flex', flexDirection: 'column', gap: gm ? 0.5 : 1.75 }}>
@@ -384,7 +393,7 @@ export function GroupSection({ gm }: { gm: boolean }) {
         </Typography>
       )}
       {gm
-        ? members.map((m) => <MemberRow key={m.slug} member={m} />)
+        ? members.map((m) => <MemberRow key={m.slug} member={m} playing={m.slug === activeSlug} />)
         : (
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 1.25 }}>
             {members.map((m) => <MemberTile key={m.slug} member={m} />)}
@@ -416,7 +425,7 @@ const HistoryLink = ({ children }: { children: ReactNode }) => (
 );
 
 /** A última sessão da mesa (GM) ou a do jogador: troféu, média do d20 e as rolagens mais recentes. */
-export function LastSessionSection({ gm }: { gm: boolean }) {
+export function LastSessionSection({ gm, inCombat = false }: { gm: boolean; inCombat?: boolean }) {
   const session = useLastSession();
   const { rolls } = useTableRolls();
   const { members } = useParty();
@@ -438,25 +447,27 @@ export function LastSessionSection({ gm }: { gm: boolean }) {
     return view.awards.find((a) => mine && a.winner?.person.slug === mine.slug) ?? null;
   }, [view, gm, mine]);
 
-  const list = (gm ? rolls : rolls.filter((r) => mine && r.slug === mine.slug)).slice(0, 3);
+  const list = (gm ? rolls : rolls.filter((r) => mine && r.slug === mine.slug)).slice(0, inCombat ? 4 : 3);
 
   return (
     <Box component="section" aria-labelledby="home-ultima" sx={{ ...card, borderRadius: 2.75, flex: '2 1 320px', minWidth: 0, p: { xs: 2, sm: 3 }, display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1.5 }}>
         <Typography id="home-ultima" component="h2" sx={{ fontFamily: displayFont, fontWeight: 600, fontSize: '1.25rem' }}>
-          {gm ? 'Última sessão' : 'Sua última sessão'}
+          {inCombat ? 'Rolagens ao vivo' : gm ? 'Última sessão' : 'Sua última sessão'}
         </Typography>
-        {session && <Typography sx={{ fontSize: '0.875rem', color: ink.secondary }}>{shortDay(session.day)}</Typography>}
+        {inCombat
+          ? <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.75, fontSize: '0.8125rem', fontWeight: 600, color: ONLINE_BADGE.text }}><Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: ONLINE_BADGE.dot }} />agora</Box>
+          : session && <Typography sx={{ fontSize: '0.875rem', color: ink.secondary }}>{shortDay(session.day)}</Typography>}
       </Box>
 
-      {session === undefined && <Skeleton variant="rounded" height={120} />}
-      {session === null && (
+      {!inCombat && session === undefined && <Skeleton variant="rounded" height={120} />}
+      {!inCombat && session === null && (
         <Typography variant="body2" color="text.secondary">
           Nenhuma rolagem guardada ainda. Com a sessão iniciada, a primeira noite aparece aqui.
         </Typography>
       )}
 
-      {view && (
+      {view && !inCombat && (
         <>
           {gm ? (
             <Box sx={{ display: 'flex', gap: 1.25 }}>
@@ -490,7 +501,7 @@ export function LastSessionSection({ gm }: { gm: boolean }) {
       )}
 
       <Box>
-        <Typography sx={{ ...eyebrow, fontSize: '0.75rem', pb: 0.75 }}>{gm ? 'Últimas rolagens' : 'Suas rolagens'}</Typography>
+        {!inCombat && <Typography sx={{ ...eyebrow, fontSize: '0.75rem', pb: 0.75 }}>{gm ? 'Últimas rolagens' : 'Suas rolagens'}</Typography>}
         {list.length === 0 && (
           <Typography variant="body2" color="text.secondary" sx={{ borderTop: `1px solid ${parchment.sunken}`, pt: 1.5 }}>
             {gm ? 'Ninguém rolou ainda.' : mine ? 'Você ainda não rolou nada.' : 'Publique uma ficha para rolar pela mesa.'}
@@ -504,7 +515,170 @@ export function LastSessionSection({ gm }: { gm: boolean }) {
           />
         ))}
       </Box>
-      <HistoryLink>{gm ? 'Ver histórico completo' : 'Ver histórico da mesa'}</HistoryLink>
+      <HistoryLink>{inCombat ? 'Ver todas de hoje' : gm ? 'Ver histórico completo' : 'Ver histórico da mesa'}</HistoryLink>
+    </Box>
+  );
+}
+
+// --- Durante o combate --------------------------------------------------------------------
+
+/** A ordem a partir de `fromId` (circular), sem ele. */
+function rotated(order: CombatEntry[], fromId: string | null): CombatEntry[] {
+  const i = Math.max(0, order.findIndex((c) => c.id === fromId));
+  return [...order.slice(i), ...order.slice(0, i)];
+}
+
+const OrderRow = ({ entry, active, hp, tag }: { entry: CombatEntry; active?: boolean; hp: { current: number; max: number } | null; tag?: string }) => (
+  <Box sx={{
+    display: 'flex', alignItems: 'center', gap: 1.5, px: 1.5, py: 1.125, borderRadius: 1.5, minHeight: 48,
+    bgcolor: active ? green.deepest : 'transparent', color: active ? chrome.text : ink.primary, opacity: entry.defeated ? 0.55 : 1,
+    boxShadow: active ? `0 0 0 2px ${gold.bright}` : 'none',
+  }}>
+    <Box sx={{
+      width: 30, height: 30, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: '0.6875rem', fontWeight: 700, color: chrome.onAccent, bgcolor: entry.kind === 'npc' ? TOKEN_NPC : TOKEN_PC,
+    }}>{initialsOf(entry.name)}</Box>
+    <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+      <Typography noWrap sx={{ fontWeight: 600, fontSize: '0.875rem', textDecoration: entry.defeated ? 'line-through' : 'none' }}>
+        {entry.name}{tag && <Box component="span" sx={{ fontWeight: 400, color: active ? chrome.textMuted : ink.secondary }}> · {tag}</Box>}
+      </Typography>
+      {hp && !active && <Box sx={{ maxWidth: 160 }}><HpBar current={hp.current} max={hp.max} height={5} /></Box>}
+    </Box>
+    <Typography sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{entry.initiative}</Typography>
+  </Box>
+);
+
+const Pips = ({ left }: { left: number }) => (
+  <Box sx={{ display: 'flex', gap: 0.75 }} role="img" aria-label={`${left} de ${BASE_ACTIONS} ações restantes`}>
+    {Array.from({ length: BASE_ACTIONS }, (_, i) => (
+      <Box key={i} sx={{ width: 12, height: 12, transform: 'rotate(45deg)', boxSizing: 'border-box', bgcolor: i < left ? gold.bright : 'transparent', border: `2px solid ${gold.bright}` }} />
+    ))}
+  </Box>
+);
+
+/** O combate do GM: de quem é a vez, a ordem e os atalhos (o turno passa pela Iniciativa). */
+export function GmCombat() {
+  const combat = useCombatStatus();
+  const { members } = useParty();
+  if (!combat || combat.round <= 0) return null;
+  const active = combat.order.find((c) => c.id === combat.activeId);
+  const pc = active?.slug ? members.find((m) => m.slug === active.slug) : null;
+  const hp = pc?.hp ?? active?.hp ?? null;
+  const list = rotated(combat.order, combat.activeId);
+  const index = Math.max(0, combat.order.findIndex((c) => c.id === combat.activeId)) + 1;
+  const shown = list.slice(0, 6);
+  const hpOf = (c: CombatEntry) => (c.slug ? members.find((m) => m.slug === c.slug)?.hp ?? null : c.hp);
+  return (
+    <Box component="section" aria-labelledby="home-vez" sx={{ borderRadius: 3, bgcolor: chrome.hero, color: chrome.textSoft, p: { xs: 2.25, sm: 3.5 }, display: 'flex', flexWrap: 'wrap', gap: 3.5 }}>
+      <Box sx={{ flex: '1 1 380px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2.25 }}>
+        <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.14em', color: gold.bright }}>RODADA {combat.round} · TURNO {index} DE {combat.order.length}</Typography>
+        {active && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ width: 56, height: 56, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: displayFont, fontWeight: 700, fontSize: '1.125rem', color: chrome.onAccent, bgcolor: active.kind === 'npc' ? TOKEN_NPC : TOKEN_PC, boxShadow: `0 0 0 3px ${chrome.hero}, 0 0 0 5px ${gold.bright}` }}>
+              {initialsOf(active.name)}
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.14em', color: chrome.textSoft }}>É A VEZ DE</Typography>
+              <Typography id="home-vez" component="h2" sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: { xs: '1.5rem', sm: '1.875rem' }, color: chrome.text, lineHeight: 1.15 }}>{active.name}</Typography>
+              {hp && <Typography sx={{ fontVariantNumeric: 'tabular-nums' }}>{hp.current} / {hp.max} PV</Typography>}
+            </Box>
+            {pc?.actions && <Box sx={{ ml: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.75 }}>
+              <Pips left={Math.max(0, BASE_ACTIONS - pc.actions.used)} />
+              <Typography sx={{ fontSize: '0.75rem' }}>{Math.max(0, BASE_ACTIONS - pc.actions.used)} ações</Typography>
+            </Box>}
+          </Box>
+        )}
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.25, mt: 'auto' }}>
+          <ButtonBase component={Link} to="/iniciativa" sx={{ height: 48, px: 2.5, borderRadius: 1.5, bgcolor: gold.bright, color: green.deepest, fontWeight: 700, gap: 1.25, '&:hover': { bgcolor: gold.main } }}>
+            Abrir iniciativa<ArrowIcon fontSize="small" />
+          </ButtonBase>
+          <ButtonBase component={Link} to={combat.mapId ? `/mapa/${combat.mapId}` : '/mapa'} sx={{ height: 48, px: 2.25, borderRadius: 1.5, border: `1px solid ${chrome.lineStrong}`, color: chrome.text, fontWeight: 600 }}>
+            Abrir mapa
+          </ButtonBase>
+        </Box>
+      </Box>
+      <Box sx={{ flex: '1 1 340px', minWidth: 0, borderRadius: 2.25, bgcolor: parchment.paper, color: ink.primary, p: 1, display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 1.5, pt: 1, pb: 0.75, fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em', color: ink.secondary }}>
+          <span>ORDEM</span><span>INIC.</span>
+        </Box>
+        {shown.map((c) => <OrderRow key={c.id} entry={c} active={c.id === combat.activeId} hp={hpOf(c)} tag={c.id === combat.activeId ? 'agora' : undefined} />)}
+        {list.length > shown.length && (
+          <ButtonBase component={Link} to="/iniciativa" sx={{ minHeight: 44, fontWeight: 600, fontSize: '0.875rem', color: gold.deep }}>
+            + {list.length - shown.length} na fila · ver todos
+          </ButtonBase>
+        )}
+      </Box>
+    </Box>
+  );
+}
+
+/** O combate do jogador: "É a sua vez" (ou de quem é) com PV e ações, e quem age depois. */
+export function PlayerCombat() {
+  const combat = useCombatStatus();
+  const { members } = useParty();
+  const { userId } = useRole();
+  if (!combat || combat.round <= 0) return null;
+  const mine = members.find((m) => userId && m.ownerId === userId) ?? null;
+  const active = combat.order.find((c) => c.id === combat.activeId);
+  const myTurn = !!mine && active?.slug === mine.slug;
+  const from = mine ? combat.order.find((c) => c.slug === mine.slug)?.id ?? combat.activeId : combat.activeId;
+  const after = rotated(combat.order, from).slice(1, 5);
+  const hpOf = (c: CombatEntry) => (c.slug ? members.find((m) => m.slug === c.slug)?.hp ?? null : c.hp);
+  const left = Math.max(0, BASE_ACTIONS - (mine?.actions?.used ?? 0));
+  return (
+    <Box sx={{ flex: '1 1 100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box component="section" aria-labelledby="home-vez" sx={{
+        borderRadius: 3, bgcolor: chrome.hero, color: chrome.textSoft, p: { xs: 2.25, sm: 3 }, display: 'flex', flexDirection: 'column', gap: 2,
+        boxShadow: myTurn ? `inset 0 0 0 2px ${gold.bright}` : 'none',
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {mine && <Box sx={{ borderRadius: '50%', boxShadow: `0 0 0 3px ${chrome.hero}, 0 0 0 5px ${gold.bright}`, display: 'flex' }}><TokenBadge slug={mine.slug} name={mine.name} size={54} /></Box>}
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.14em', color: myTurn ? gold.bright : chrome.textSoft }}>
+              {myTurn ? 'É A SUA VEZ' : `COMBATE · RODADA ${combat.round}`}
+            </Typography>
+            <Typography id="home-vez" component="h2" noWrap sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.5rem', color: chrome.text }}>
+              {mine ? mine.name : active ? `Vez de ${active.name}` : 'Combate'}
+            </Typography>
+            {!myTurn && active && mine && <Typography sx={{ fontSize: '0.875rem' }}>Agora: {active.name}</Typography>}
+          </Box>
+          {myTurn && mine && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.75 }}>
+              <Pips left={left} /><Typography sx={{ fontSize: '0.75rem' }}>{left} ações</Typography>
+            </Box>
+          )}
+        </Box>
+        {mine?.hp && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem', fontWeight: 600 }}>
+              <Box component="span" sx={{ color: chrome.textMuted }}>PONTOS DE VIDA</Box>
+              <Box component="span" sx={{ color: chrome.text, fontVariantNumeric: 'tabular-nums' }}>{mine.hp.current} / {mine.hp.max}</Box>
+            </Box>
+            <HpBar current={mine.hp.current} max={mine.hp.max} height={8} track={green.deepest} />
+          </Box>
+        )}
+        <ButtonBase component={Link} to={mine ? sheetLink(mine.slug) : '/iniciativa'} sx={{ height: 50, borderRadius: 1.75, bgcolor: gold.bright, color: green.deepest, fontWeight: 700, gap: 1.25, '&:hover': { bgcolor: gold.main } }}>
+          {mine ? 'Abrir minha ficha' : 'Abrir iniciativa'}<ArrowIcon fontSize="small" />
+        </ButtonBase>
+      </Box>
+      <Box component="section" aria-labelledby="home-depois" sx={{ ...card, borderRadius: 2.5, p: { xs: 1.75, sm: 2.5 }, pb: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 0.75 }}>
+          <Typography id="home-depois" component="h2" sx={{ ...eyebrow }}>{mine ? 'Depois de você' : 'Próximos'}</Typography>
+          <ButtonBase component={Link} to="/iniciativa" sx={{ minHeight: 40, fontSize: '0.8125rem', fontWeight: 600, color: gold.deep }}>Ver ordem completa</ButtonBase>
+        </Box>
+        {after.map((c, i) => {
+          const hp = hpOf(c);
+          return (
+            <Box key={c.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.125, borderTop: `1px solid ${parchment.sunken}` }}>
+              <Box sx={{ width: 30, height: 30, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6875rem', fontWeight: 700, color: chrome.onAccent, bgcolor: c.kind === 'npc' ? TOKEN_NPC : TOKEN_PC }}>{initialsOf(c.name)}</Box>
+              <Typography noWrap sx={{ flex: 1, fontWeight: 600, fontSize: '0.875rem', textDecoration: c.defeated ? 'line-through' : 'none' }}>{c.name}</Typography>
+              <Typography sx={{ fontSize: '0.8125rem', color: hp && hp.current / hp.max <= 0.35 ? status.error : ink.secondary, fontVariantNumeric: 'tabular-nums' }}>
+                {i === 0 && !mine ? 'próximo' : c.kind === 'pc' && hp ? `${hp.current}/${hp.max}` : c.kind === 'npc' ? 'NPC' : ''}
+              </Typography>
+            </Box>
+          );
+        })}
+      </Box>
     </Box>
   );
 }

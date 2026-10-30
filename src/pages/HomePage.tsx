@@ -1,4 +1,5 @@
 import { lazy, Suspense, type ReactNode } from 'react';
+import { useCombatStatus } from '../services/combatStatus';
 import { Box, ButtonBase, Skeleton, Typography } from '@mui/material';
 import { ArrowForward as ArrowIcon, Event as EventIcon, Search as SearchIcon, Sync as SyncIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
@@ -15,6 +16,8 @@ const live = () => import('./home/live');
 const PartyLine = lazy(() => live().then((m) => ({ default: m.PartyLine })));
 const PrepareList = lazy(() => live().then((m) => ({ default: m.PrepareList })));
 const PlayerCard = lazy(() => live().then((m) => ({ default: m.PlayerCard })));
+const GmCombat = lazy(() => live().then((m) => ({ default: m.GmCombat })));
+const PlayerCombat = lazy(() => live().then((m) => ({ default: m.PlayerCombat })));
 const QuickAccess = lazy(() => live().then((m) => ({ default: m.QuickAccess })));
 const GroupSection = lazy(() => live().then((m) => ({ default: m.GroupSection })));
 const LastSessionSection = lazy(() => live().then((m) => ({ default: m.LastSessionSection })));
@@ -149,6 +152,8 @@ export const HomePage = () => {
   const { mesa } = useSession();
   const first = (role.displayName ?? role.username ?? '').split(' ')[0];
   const hello = role.isGm && first ? `${greeting()}, ${first}` : greeting();
+  const combat = useCombatStatus();
+  const inCombat = !!combat && combat.round > 0;
 
   return (
     <Box sx={{ maxWidth: 1180, mx: 'auto', display: 'flex', flexDirection: 'column', gap: { xs: 2.5, md: 3.5 } }}>
@@ -156,7 +161,7 @@ export const HomePage = () => {
       <Box component="header" sx={{ display: { xs: 'none', md: 'flex' }, flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: 2 }}>
         <Box>
           <Typography sx={{ fontSize: '0.875rem', color: ink.secondary }}>{longDate()}{role.isGm ? '' : ` · ${mesa.name}`}</Typography>
-          <Typography component="h1" sx={{ fontFamily: displayFont, fontWeight: 600, fontSize: '1.875rem' }}>{hello}</Typography>
+          <Typography component="h1" sx={{ fontFamily: displayFont, fontWeight: 600, fontSize: '1.875rem' }}>{inCombat && role.isGm ? 'Combate em andamento' : hello}</Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <ButtonBase onClick={openSearch} aria-label="Buscar uma página" sx={{
@@ -175,7 +180,9 @@ export const HomePage = () => {
       </Box>
       <Typography component="h1" sx={{ display: { xs: 'block', md: 'none' }, fontFamily: displayFont, fontWeight: 600, fontSize: '1.5rem', mt: 0.5 }}>{hello}</Typography>
 
-      {role.isGm ? (
+      {inCombat ? (
+        <Live height={300} dark>{role.isGm ? <GmCombat /> : <PlayerCombat />}</Live>
+      ) : role.isGm ? (
         <GmHero />
       ) : (
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 2, sm: 2.5 } }}>
@@ -188,7 +195,7 @@ export const HomePage = () => {
 
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2.5, alignItems: 'flex-start' }}>
         <Live height={300}><GroupSection gm={role.isGm} /></Live>
-        <Live height={300}><LastSessionSection gm={role.isGm} /></Live>
+        <Live height={300}><LastSessionSection gm={role.isGm} inCombat={inCombat && role.isGm} /></Live>
       </Box>
 
       <Box component="footer" sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 1.5, pt: 2, borderTop: `1px solid ${rule}`, fontSize: '0.8125rem', color: ink.secondary }}>
