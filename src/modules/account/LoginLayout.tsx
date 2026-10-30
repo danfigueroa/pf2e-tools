@@ -4,6 +4,7 @@ import { Box, Typography } from '@mui/material';
 import { chrome, displayFont, gold, green, parchment } from '../../theme';
 import { useReducedMotion } from '../../motion/motion';
 import logoHorizontal from '../../assets/covil-logo-horizontal-fundo-escuro.svg';
+import logoStacked from '../../assets/covil-logo-empilhado-fundo-claro.svg';
 import { Showcase } from './onboarding/Showcase';
 
 const rise = keyframes`
@@ -41,11 +42,12 @@ export const LoginLayout = ({ children }: { children: ReactNode }) => {
       }}
     >
       <Box sx={{ gridArea: 'intro', px: { xs: 2, sm: 4, lg: 8 }, pt: { xs: 4, md: 6 }, pb: { xs: 3, md: 2 }, animation: enter(0) }}>
-        <Box component="img" src={logoHorizontal} alt="Covil de Dados" sx={{ display: 'block', height: { xs: 40, md: 48 } }} />
+        {/* No desktop o logo vai para o painel do formulário, que tem menos conteúdo. */}
+        <Box component="img" src={logoHorizontal} alt="Covil de Dados" sx={{ display: { xs: 'block', md: 'none' }, height: 40 }} />
         <Typography
           component="h1"
           sx={{
-            mt: { xs: 3, md: 5 },
+            mt: { xs: 3, md: 2 },
             fontFamily: displayFont,
             fontWeight: 700,
             lineHeight: 1.15,
@@ -84,7 +86,15 @@ export const LoginLayout = ({ children }: { children: ReactNode }) => {
             py: { xs: 3, md: 6 },
           }}
         >
-          <Box sx={{ width: '100%', maxWidth: 380, mx: 'auto' }}>{children}</Box>
+          <Box sx={{ width: '100%', maxWidth: 380, mx: 'auto' }}>
+            <Box
+              component="img"
+              src={logoStacked}
+              alt="Covil de Dados"
+              sx={{ display: { xs: 'none', md: 'block' }, height: 120, mx: 'auto', mb: 4 }}
+            />
+            {children}
+          </Box>
         </Box>
       </Box>
 
