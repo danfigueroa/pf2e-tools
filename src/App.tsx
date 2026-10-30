@@ -24,6 +24,7 @@ const CampaignJournalPage = lazy(() =>
 
 const MembersPage = lazy(() =>
   import('./modules/account/MembersPage').then((m) => ({ default: m.MembersPage })));
+const TrophiesPage = lazy(() => import('./modules/trophies/TrophiesPage'));
 const MesaSettingsPage = lazy(() =>
   import('./modules/account/MesaSettingsPage').then((m) => ({ default: m.MesaSettingsPage })));
 
@@ -50,6 +51,7 @@ function App() {
               <Route path="diario-campanha/:id?" element={page(<CampaignJournalPage />)} />
               <Route path="membros" element={page(<MembersPage />)} />
               <Route path="mesa" element={page(<MesaSettingsPage />)} />
+              <Route path="trofeus/:user?" element={page(<TrophiesPage />)} />
               {/* O nome antigo ("Diário da Sessão") parecia um diário escrito; o link salvo continua valendo. */}
               <Route path="diario" element={<Navigate to="/historico" replace />} />
             </Route>

@@ -5,6 +5,7 @@ import type { LayoutContext } from './menuContext';
 import { gold, green } from '../theme';
 import { RollFeedLayer, RollHistoryDrawer } from '../components/RollFeed';
 import { SharedRuleLayer } from '../components/SharedRuleLayer';
+import { TrophyToastLayer } from '../components/TrophyToastLayer';
 import { setPresencePage, startPresence } from '../services/presence';
 import { startNotifications } from '../services/notifications';
 import { Sidebar } from './sidebar/Sidebar';
@@ -159,6 +160,8 @@ export const MainLayout = () => {
       <RollFeedLayer />
       {/* Regra (talento, magia…) que alguém compartilhou pela ficha. */}
       <SharedRuleLayer />
+      {/* Troféu desbloqueado (desta conta). */}
+      <TrophyToastLayer />
       <RollHistoryDrawer open={historyOpen} onClose={() => setHistoryOpen(false)} />
       {passwordOpen && (
         <Suspense fallback={null}>

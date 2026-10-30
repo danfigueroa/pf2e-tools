@@ -10,6 +10,7 @@ import {
   Groups as MembersIcon,
   Tune as SettingsIcon,
   MenuBook as JournalIcon,
+  EmojiEvents as TrophyIcon,
 } from '@mui/icons-material';
 
 // A navegação do app inteiro numa lista só: a sidebar (em seções), a barra de abas do
@@ -62,6 +63,10 @@ export const NAV_ITEMS: NavItem[] = [
     // De todos: é o stat block da forma de batalha do PERSONAGEM (decisão do usuário).
     text: 'Transformações', icon: <TransformIcon />, path: '/transformation', section: 'jogo',
     keywords: ['transformacao', 'forma', 'battle form', 'stat block', 'druida'],
+  },
+  {
+    text: 'Troféus', icon: <TrophyIcon />, path: '/trofeus', section: 'jogo',
+    keywords: ['trofeus', 'conquistas', 'perfil', 'ranking', 'pontos', 'platina', 'achievements'],
   },
   {
     text: 'Escalar Monstro', icon: <ScalerIcon />, path: '/escalar-monstro', section: 'gm',
