@@ -549,6 +549,12 @@ estáticos e passou a mostrar a mesa VIVA; a sidebar ganhou seções; o celular,
     nível e PV para o GM, grade de leitura para o jogador; online = alguém com a ficha aberta ou o dono no app) e **a última
     sessão** (`LastSessionSection`: média do d20, troféu e rolagens; a do jogador mostra o troféu DELE e só as rolagens dele).
     A leitura do resumo do histórico é uma só, compartilhada (`readLastSession`). Toda parte tem estado vazio.
+  - **Durante o combate** (`combat.round > 0`, de `useCombatStatus`) a Início troca a faixa da sessão: o GM vê `GmCombat` (rodada e
+    turno, de quem é a vez com PV e ações, a ordem a partir dela com "+N na fila", Abrir iniciativa/mapa), os atalhos ganham
+    "AO VIVO" e a última sessão vira "Rolagens ao vivo"; o jogador vê `PlayerCombat` ("É a sua vez" com PV, ações e a ficha, e
+    "Depois de você"). **Fora do design, de propósito**: o "Próximo turno" (passar o turno escreve durações, aflições e dano
+    persistente no encontro da Iniciativa) e os "lembretes no fim do turno" (o `combatStatus` não traz aflição nem persistente) —
+    ficam na Iniciativa; os botões de rolagem rápida também.
   - **Sem botão "Rolar dado"** fora do mapa e da ficha (decisão do usuário). Celular: o personagem e a sessão numa pilha, atalhos
     em grade 2×2 (o cabeçalho do layout faz o resto). **Não prometa na tela o que não existe**: o design dizia que a Início
     mostraria a ordem de iniciativa e avisaria a vez; o que há é a linha "Rodada N · vez de X" no atalho da Iniciativa.
