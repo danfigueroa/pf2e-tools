@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { announceSheet } from '../../services/presence'
 import {
     Alert,
@@ -24,6 +24,7 @@ import {
     AutoAwesome as SpecialsIcon,
     AutoFixHigh as SpellsIcon,
     Pets as PetsIcon,
+    StickyNote2 as NotesIcon,
     Inventory2 as InventoryIcon,
 } from '@mui/icons-material'
 
@@ -179,7 +180,21 @@ const SECTIONS: SectionDef[] = [
         icon: <InventoryIcon />,
         render: ({ build, onSelect, mods, mythicPoints }) => <InventorySection build={build} onSelect={onSelect} mods={mods} mythicPoints={mythicPoints} />,
     },
+    {
+        // Sempre visível (sem `visible`): é do jogador, não do `build`, e escondida vazia não haveria como escrever a primeira nota.
+        id: 'notes',
+        label: 'Anotações',
+        icon: <NotesIcon />,
+        render: ({ build }) => (
+            <Suspense fallback={<Typography color="text.secondary">Carregando…</Typography>}>
+                <NotesSection build={build} />
+            </Suspense>
+        ),
+    },
 ]
+
+// Chunk próprio: o Markdown (react-markdown) não entra no da ficha.
+const NotesSection = lazy(() => import('./sections/NotesSection'))
 
 interface Props {
     build: BuildInfo
