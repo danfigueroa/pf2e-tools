@@ -25,7 +25,8 @@ import { EASE, EASE_BACK, flash, glowNew, grow, reveal } from './motion';
 // última visita respira com o selo "Novo" e o ranking desliza ao reordenar (FLIP).
 
 const CATEGORIES: Record<string, string> = {
-  ficha: 'Ficha', historia: 'História e notas', presenca: 'Presença', dados: 'Dados', destaques: 'Destaques da sessão',
+  ficha: 'Ficha', historia: 'História e notas', presenca: 'Presença', dados: 'Dados', sorte: 'Sorte e azar',
+  combate: 'Combate', destaques: 'Destaques da sessão',
   mesa: 'A mesa', mestre: 'Mestre', platina: 'Platina',
 };
 const TIER_ORDER: TrophyTier[] = ['platina', 'ouro', 'prata', 'bronze'];
