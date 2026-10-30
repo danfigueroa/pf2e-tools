@@ -537,14 +537,21 @@ estáticos e passou a mostrar a mesa VIVA; a sidebar ganhou seções; o celular,
   (`mesa-settings` no `auth-handler`; colunas `session_started_at`/`next_session_at` em `mesas`). O `?me` traz nome, sessão,
   próxima sessão e o número de CONTAS (`mesa_account_counts`, sem as sessões anônimas); a mudança chega a todos pelo `settings`
   do canal de eventos (`applyMesaSettings`).
-- **Início** (`pages/HomePage.tsx` = casca no chunk principal; `pages/home/previews.tsx` + `party.ts` = chunk vivo): herói com a
-  **sessão em destaque** no topo (`SessionHighlight`: a em andamento, ou a próxima com dia, hora e "em N dias" — pedido do
-  usuário; sem nenhuma, o selo "Pathfinder 2e Remaster"), as ações do papel (GM: começar combate, convidar; jogador: a própria
-  ficha, o mapa), "O grupo" (fichas publicadas com PV —
-  máximo por `characterMaxHp` sobre a ficha publicada —, condições e online = alguém com a ficha aberta ou o dono no app), e
-  prévias com a mesa real: a ficha da pessoa + a última rolagem dela, a ordem do combate do mapa ativo, o mapa ativo com os
-  tokens, o d20 e os troféus da última sessão. Toda prévia tem estado vazio. **Sem botão "Rolar dado"** fora do mapa e da ficha
-  (decisão do usuário). Celular: grupo em fileira e ferramentas em grade 2×2.
+- **Início** (`pages/HomePage.tsx` = casca no chunk principal; `pages/home/live.tsx` + `party.ts` = chunk vivo): redesenhada em
+  out/2026 (artefato "Covil de Dados — Nova Home") com **uma tela por papel**, sem herói de marketing nem prévias das ferramentas.
+  - **GM**: "próxima sessão" em faixa escura (`GmHero`: bloco de data SÁB/14/NOV, "em N dias", personagens no nível comum e
+    quantos estão online, **Começar combate** e **Editar data** → `/mesa`; com a sessão iniciada vira "Sessão em andamento" e
+    "Encerrar sessão"; sem nenhuma, "Marcar sessão") e, ao lado, **Preparar a sessão** (`PrepareList`: montar o encontro, escolher o
+    mapa, revisar o Diário, cada um com o estado de agora). **Jogador**: o cartão do **seu personagem** (`PlayerCard`: PV, condições,
+    última rolagem, "Abrir minha ficha"; sem ficha, o convite para publicar) + a próxima sessão compacta (`PlayerSession`).
+  - Depois, para os dois: **Acesso rápido** (`QuickAccess`, cada atalho com uma linha viva: rodada e vez de quem, nome do mapa,
+    última sessão; o GM ganha Fichas, Diário, Escalar Monstro e Convidar, marcados "GM"), **O grupo** (`GroupSection`: lista com
+    nível e PV para o GM, grade de leitura para o jogador; online = alguém com a ficha aberta ou o dono no app) e **a última
+    sessão** (`LastSessionSection`: média do d20, troféu e rolagens; a do jogador mostra o troféu DELE e só as rolagens dele).
+    A leitura do resumo do histórico é uma só, compartilhada (`readLastSession`). Toda parte tem estado vazio.
+  - **Sem botão "Rolar dado"** fora do mapa e da ficha (decisão do usuário). Celular: o personagem e a sessão numa pilha, atalhos
+    em grade 2×2 (o cabeçalho do layout faz o resto). **Não prometa na tela o que não existe**: o design dizia que a Início
+    mostraria a ordem de iniciativa e avisaria a vez; o que há é a linha "Rodada N · vez de X" no atalho da Iniciativa.
 - **Bundle**: a moldura nova custou ~9 kB gzip no chunk principal. O `Tooltip` do MUI puxa o popper.js (~7 kB gzip) — na
   moldura use `title` nativo; a lista do sino, a busca e as prévias são chunks.
 - `?ficha=<slug>` em `/ficha-virtual` abre aquela ficha publicada (e sai da URL) — é como o grupo e as notificações levam à ficha.

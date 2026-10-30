@@ -615,8 +615,8 @@ pf2e-tools/
 │   │   ├── MobileChrome.tsx      # Cabeçalho e barra de abas do celular
 │   │   └── navigation.tsx        # A lista única de destinos (sidebar, abas e busca)
 │   ├── pages/
-│   │   ├── HomePage.tsx          # Página inicial: herói, o grupo e as prévias das ferramentas
-│   │   └── home/                 # As partes vivas da Início (grupo, ficha, combate, mapa, histórico)
+│   │   ├── HomePage.tsx          # Página inicial: sessão, seu personagem (ou preparar a sessão), atalhos, grupo e última sessão
+│   │   └── home/                 # As partes vivas da Início (personagem, atalhos, grupo, última sessão)
 │   ├── services/
 │   │   ├── descriptions.ts       # Cliente do backend (busca + cache das descrições AON)
 │   │   ├── creatures.ts          # Cliente da busca de criaturas na AON
@@ -1212,8 +1212,9 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
             apocalipse…), ranking por métrica, "o d20 é justo?" e a linha do tempo das sessões, com animação
 -   [x] **Quem está na mesa**: o cartão da mesa na sidebar mostra quem está com o app aberto (e, tocando,
         o nome do aparelho, a ficha aberta e a página); no mapa, o token do personagem com a ficha aberta ganha um ponto verde
--   [x] **Início viva**: o grupo com PV, condições e quem está online, e as prévias das ferramentas com a
-        mesa real (a sua ficha, a ordem do combate, o mapa onde a mesa está, o d20 da última sessão)
+-   [x] **Início viva, por papel**: o GM vê a próxima sessão com "Preparar a sessão" (encontro, mapa, Diário); o jogador, o
+        cartão do seu personagem (PV, condições, última rolagem). Os dois têm atalhos com o estado da mesa, o grupo
+        com PV e quem está online, e a última sessão (média do d20, troféu e rolagens)
 -   [x] **Sidebar em seções** (Jogo, Bastidores do GM, Mesa), que recolhe para um trilho de ícones, e
         **barra de abas no celular**
 -   [x] **Notificações** (o sino): ficha publicada ou atribuída a você, item recebido, mapa ativado ou
