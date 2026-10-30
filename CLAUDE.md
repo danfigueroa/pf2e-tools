@@ -246,6 +246,8 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
 - **O mesmo `state` serve o Diário de Campanha** (`api/_lib/journal-handler.js` + `journal-store.js`): `GET ?journal=list`,
   `?journal=<id>`, `?reveal=<id>` e `POST` com `journal-save`/`journal-delete`/`journal-reveal`. Antes de `isSheetRequest`.
   Ver a seção do módulo.
+- **O mesmo `state` serve as Anotações do personagem** (`api/_lib/notes-handler.js` + `notes-store.js`): `GET ?notes=<slug>` e
+  `POST { action: 'notes-save', char, data, base }`. Antes de `isSheetRequest`. Ver "Anotações" no módulo character-viewer.
 - **O mesmo `state` serve os encontros da Iniciativa** (`api/_lib/encounter-handler.js` + `encounter-store.js`):
   `GET ?encounter=<mapId|none>` e `POST { action: 'encounter-save', map, state }` (`map` null = "Sem mapa"). Vem
   antes de `isSheetRequest` nos dois servidores, pelo mesmo motivo do mapa. Ver "O encontro vai para a nuvem" na
@@ -976,6 +978,15 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   - **Quem desenha a partir de um cache precisa assiná-lo.** A aba de Magias lê o resumo da linha
     de `getCachedSpell` no render; antes, o resumo aparecia porque fechar o drawer repintava a
     página inteira. Com `memo`, ela assina `useDescriptionCacheVersion`.
+- **Anotações** (aba, `sections/NotesSection.tsx` + `components/useCharacterNotes.ts` + `notes.ts` + `services/notes.ts`,
+  migration `anotacoes_do_personagem`): background do personagem + várias notas (etiqueta NPC/Item/Local/Evento/Outro, busca,
+  fixar) em Markdown com prévia. **Tabela própria `character_notes`** (um documento por mesa+slug, teto de 128 KB), não o estado
+  da mesa, cujo campo é de 8 KB. Ler é de qualquer membro; escrever, do dono e do GM (`canEditSheet`). Escrita condicional
+  com `base`/`updatedAt` e 409, como o Diário de Campanha; salva 1,5 s depois da última mudança, com rascunho no `localStorage`
+  e aviso do banco em `mesa:<mesa>:notes` (só `slug`/`updatedAt`, sem texto). **Os tetos existem duas vezes** (`notes.ts` e
+  `notes-store.js`). A aba é `React.lazy` (o `react-markdown` não entra no chunk da ficha) e fica SEMPRE visível. Ficha de outra
+  pessoa mostra só a prévia (o `ReadOnlyTheme` trava os botões do editor). O `MarkdownEditor` ganhou `plain` (sem `[[ ]]`, bloco
+  para jogadores nem envio de imagem — a pasta `journal/` é só do GM).
 - **Guia "Como Jogar"** (Visão Geral), em ordem de precedência: (1) o **gerado por IA** da ficha
   publicada, quando a ficha aberta É a da mesa; (2) o curado à mão em `combatGuides.ts`, casado
   **por nome** (`byName`, `curated: true`); (3) `buildFallbackGuide()`, heurístico e marcado como
