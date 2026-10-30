@@ -603,7 +603,22 @@ mesas; o troféu guarda em qual foi ganho), **a mesa vê tudo + ranking**, **tod
   "Troféu desbloqueado" ao dono, em fila, por 6 s. `onTableEvent` passou a entregar o `data` do evento.
 - **Cores dos graus** em `TROPHY_TIERS` (`theme/palette.ts`): `medal` pinta a taça, `ink` é o texto (≥4,5:1) e `tint` o
   fundo do cartão desbloqueado. A taça é SVG (`TrophyMedal`); o grau vai também por extenso.
-- **Não feito ainda**: casos de troféu no `check-auth` e os pontos no cartão do perfil da sidebar.
+- **Onde aparecem**: a página `/trofeus` (item "Troféus" da navegação e da busca), a vitrine da Início
+  (`TrophyShowcase` em `home/live.tsx`: nível, pontos e os últimos ganhos), o nível e os pontos no cartão do perfil da
+  sidebar (`TrophyLine`), o sino e o cartão de desbloqueio. A sidebar e a Início leem o resumo leve
+  (`GET ?trophies=summary`, `useTrophySummary` — sem avaliar nem calcular progresso), relido a cada troféu desta conta.
+- **Animações** (`modules/trophies/motion.ts`, sem biblioteca; movimento reduzido = tudo direto):
+  - **Desbloqueio** (`TrophyUnlockCard`, chunk baixado com o app ocioso pelo `TrophyToastLayer`): o cartão desce, a
+    taça entra girando no próprio eixo e assenta, faíscas na cor do grau explodem atrás dela (`Sparks`: um `<canvas>`
+    com partículas num `requestAnimationFrame`, nunca um elemento por faísca), um brilho atravessa a medalha e os pontos
+    contam ("+90 pts"). Platina: duas levas de faíscas, dois anéis dourados e 10 s na tela. Fila, um por vez, com saída.
+  - **Página**: cartões em cascata quando a grade aparece (`useInView` + `reveal`), a taça de cada um assenta, nível,
+    pontos e contagens correm (`useAnimatedNumber`), barras crescem por `scaleX`. O troféu ganho desde a última visita
+    (`pf2e:trophies:seen:<userId>`, deste aparelho; a primeira visita não marca nada) vem primeiro, com "Novo!" e um
+    brilho que respira duas vezes.
+  - **Ranking**: FLIP como o `Leaderboard` do histórico (as linhas deslizam ao reordenar), a linha de quem ganhou
+    pontos pisca e os pontos contam. A página relê perfil e ranking a cada `trophy-unlocked` da mesa.
+- **Não feito ainda**: casos de troféu no `check-auth`.
 
 ## Mesas
 
