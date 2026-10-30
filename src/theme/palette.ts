@@ -136,6 +136,17 @@ export const SHIELD_COLOR = '#4A6572'
  * masmorra, pergaminho), não sobre o tema — por isso são mais vivas que os
  * acentos de texto, e o anel de quem está no turno é o ouro claro.
  */
+/**
+ * Troféus do Covil, por grau: `medal` pinta a medalha (preenchimento), `ink` é o texto do grau
+ * sobre o pergaminho (≥4,5:1) e `tint` é o fundo do cartão desbloqueado.
+ */
+export const TROPHY_TIERS = {
+    bronze: { medal: '#B0723F', ink: '#7A4A24', tint: '#F1E2D2', label: 'Bronze' },
+    prata: { medal: '#9AA3AA', ink: '#4F5960', tint: '#E8EAEB', label: 'Prata' },
+    ouro: { medal: '#C8A951', ink: '#7E611D', tint: '#F3E8C6', label: 'Ouro' },
+    platina: { medal: '#7FA0B8', ink: '#2F5470', tint: '#DDE8EF', label: 'Platina' },
+} as const
+
 export const TOKEN_PC = '#4F9A6B'
 export const TOKEN_NPC = '#B23A2E'
 /** Fundo do token sem imagem e do mapa vazio. */

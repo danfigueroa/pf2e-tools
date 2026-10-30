@@ -9,10 +9,14 @@ import {
   Campaign as HandoutIcon,
   SportsKabaddi as CombatIcon,
   Visibility as RevealIcon,
+  EmojiEvents as TrophyIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications, type NotificationKind, type TableNotification } from '../services/notifications';
 import { timeAgo } from '../layouts/format';
+import { getAuthState } from '../services/auth';
+
+const myId = () => { const a = getAuthState(); return a.status === 'in' ? a.user.id : null; };
 import { gold, rule } from '../theme';
 
 const ICONS: Record<NotificationKind, ReactElement> = {
@@ -23,6 +27,7 @@ const ICONS: Record<NotificationKind, ReactElement> = {
   'combat-started': <CombatIcon fontSize="small" />,
   'rule-shared': <RuleIcon fontSize="small" />,
   'handout-shared': <HandoutIcon fontSize="small" />,
+  'trophy-unlocked': <TrophyIcon fontSize="small" />,
   gift: <GiftIcon fontSize="small" />,
 };
 
@@ -47,6 +52,10 @@ function textOf(n: TableNotification): string {
       return `${str(d.by) || 'Alguém'} compartilhou ${str(d.name) || 'uma regra'}`;
     case 'handout-shared':
       return `${str(d.by) || 'O GM'} mostrou à mesa: ${str(d.name) || 'sem título'}`;
+    case 'trophy-unlocked':
+      return d.user === myId()
+        ? `Troféu desbloqueado: ${str(d.title)}`
+        : `${str(d.name) || 'Alguém'} ganhou ${str(d.title)}`;
     case 'gift':
       return `${fromSlug(str(d.from)) || 'Alguém'} te enviou ${typeof d.n === 'number' ? d.n : 1}× ${str(d.name)}`;
   }
@@ -66,6 +75,8 @@ export default function NotificationsList({ anchor, fresh, onClose }: { anchor: 
       navigate(str(d.map) ? `/mapa/${str(d.map)}` : '/mapa');
     } else if (n.kind === 'combat-started') {
       navigate('/iniciativa');
+    } else if (n.kind === 'trophy-unlocked') {
+      navigate(d.user === myId() ? '/trofeus' : `/trofeus/${str(d.user)}`);
     } else if (str(d.slug)) {
       navigate(`/ficha-virtual?ficha=${encodeURIComponent(str(d.slug))}`);
     }

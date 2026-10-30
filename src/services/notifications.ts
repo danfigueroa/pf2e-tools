@@ -25,6 +25,7 @@ export type NotificationKind =
     | 'combat-started'
     | 'rule-shared'
     | 'handout-shared'
+    | 'trophy-unlocked'
     | 'gift'
 
 export interface TableNotification {
@@ -76,6 +77,8 @@ function relevant(e: ServerEvent): boolean {
     if (e.target && e.target !== me) return false
     if (e.kind === 'sheet-published' && me && e.data.by === me) return false
     if ((e.kind === 'rule-shared' || e.kind === 'handout-shared') && typeof e.data.id === 'string' && isOwnRoll(e.data.id)) return false
+    // Troféu: o meu sempre; o dos colegas só quando é de ouro ou platina (os outros seriam ruído).
+    if (e.kind === 'trophy-unlocked' && e.data.user !== me && e.data.tier !== 'ouro' && e.data.tier !== 'platina') return false
     if (roleOf(auth).isGm && (e.kind === 'map-active' || e.kind === 'map-revealed' || e.kind === 'combat-started')) {
         return false
     }
@@ -109,10 +112,11 @@ async function fetchEvents() {
     } catch { /* offline: fica a lista que já se tinha */ }
 }
 
-const eventListeners = new Set<(kind: NotificationKind) => void>()
+type EventListener = (kind: NotificationKind, data: Record<string, unknown>) => void
+const eventListeners = new Set<EventListener>()
 
 /** Avisa cada evento da mesa que chega ao vivo (mesmo os que o sino não mostra a esta pessoa). */
-export function onTableEvent(listener: (kind: NotificationKind) => void): () => void {
+export function onTableEvent(listener: EventListener): () => void {
     eventListeners.add(listener)
     return () => { eventListeners.delete(listener) }
 }
@@ -121,12 +125,13 @@ function onEvent(payload: unknown) {
     const p = payload as { id?: unknown; kind?: unknown; data?: unknown; at?: unknown; target?: unknown }
     const id = Number(p.id)
     if (!Number.isSafeInteger(id) || typeof p.kind !== 'string' || server.some((e) => e.id === id)) return
-    eventListeners.forEach((l) => l(p.kind as NotificationKind))
+    const data = (p.data && typeof p.data === 'object' ? p.data : {}) as Record<string, unknown>
+    eventListeners.forEach((l) => l(p.kind as NotificationKind, data))
     server = [
         {
             id,
             kind: p.kind as NotificationKind,
-            data: (p.data && typeof p.data === 'object' ? p.data : {}) as Record<string, unknown>,
+            data,
             at: typeof p.at === 'string' ? Date.parse(p.at) : Date.now(),
             target: typeof p.target === 'string' ? p.target : null,
         },
