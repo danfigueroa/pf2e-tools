@@ -4,7 +4,7 @@
 //
 // Devolve sempre `{ status, body }`; quem chama só escreve a resposta.
 //
-// Ordem das rotas (importa): conta → [portão] → notificações → mapa → rolagens → correções → diário
+// Ordem das rotas (importa): conta → [portão] → notificações → troféus → mapa → rolagens → correções → diário
 // de campanha → anotações → encontro → ficha → estado. A rota da ficha aceita qualquer POST com `action` e engoliria as
 // anteriores, e a da conta vem antes do portão porque quem ainda não é membro precisa
 // poder resgatar o convite que o torna um.
@@ -28,10 +28,17 @@ import { handleNotesRequest, isNotesRequest } from './notes-handler.js'
 import { handleFixRequest, isFixRequest } from './fix-handler.js'
 import { handleAuthRequest, isAuthRequest } from './auth-handler.js'
 import { handleEventRequest, isEventRequest } from './event-handler.js'
+import { handleTrophyRequest, isTrophyRequest } from './trophy-handler.js'
+import { ownerOf, recordFeat, safely } from './trophy-store.js'
 import { mesaFrom } from './mesas.js'
 import { canEditSheet, forbidden, gate, resolveAccess } from './access.js'
 
 const fail = (status, error) => ({ status, body: { error } })
+
+/** Quantos itens o campo `gave` soma (`{ destinatário: { item: n } }`). */
+const giftTotal = (gave) => Object.values(gave && typeof gave === 'object' ? gave : {})
+    .reduce((sum, items) => sum + Object.values(items && typeof items === 'object' ? items : {})
+        .reduce((n, v) => n + (Number.isFinite(v) ? v : 0), 0), 0)
 
 /** Roda uma rota; erro inesperado vira 500 com a mensagem da rota (e o detalhe só no log). */
 async function run(label, message, fn) {
@@ -68,6 +75,9 @@ export async function routeState({ req, method, query, body }) {
         return run('Erro nas notificações', 'Erro ao tratar as notificações', () =>
             handleEventRequest(mesa, method, query, body, ctx))
     }
+    if (isTrophyRequest(method, query)) {
+        return run('Erro nos troféus', 'Erro ao tratar os troféus', () => handleTrophyRequest(mesa, method, query, body, ctx))
+    }
     if (isMapRequest(method, query, body)) {
         return run('Erro no mapa', 'Erro ao tratar o mapa', () => handleMapRequest(mesa, method, query, body, ctx))
     }
@@ -76,7 +86,7 @@ export async function routeState({ req, method, query, body }) {
     }
     if (isFixRequest(method, query, body)) {
         return run('Erro na correção de tradução', 'Erro ao tratar a correção de tradução', () =>
-            handleFixRequest(method, query, body, ctx))
+            handleFixRequest(method, query, body, { ...ctx, mesa }))
     }
     if (isJournalRequest(method, query, body)) {
         return run('Erro no diário de campanha', 'Erro ao tratar o diário de campanha', () =>
@@ -137,7 +147,15 @@ export async function routeState({ req, method, query, body }) {
         return run('Erro ao gravar', 'Erro ao gravar o estado da mesa', async () => {
             // PV, slots, condições… são do personagem: o dono da ficha e o GM escrevem; o resto só lê.
             if (!(await canEditSheet(access, mesa, char))) return forbidden('Este personagem é de outra pessoa')
+            // Passar item: o troféu "Generoso" conta quando o total passado cresce.
+            const gaveBefore = field === 'gave' ? giftTotal((await readField(mesa, char, field))?.data) : 0
             const updatedAt = await writeField(mesa, char, field, data, access.userId)
+            if (field === 'gave' && giftTotal(data) > gaveBefore) {
+                await safely('item passado', async () => {
+                    const owner = await ownerOf(mesa, char, access.userId)
+                    if (owner) await recordFeat(mesa, owner, 'gave-item', { slug: char })
+                })
+            }
             return { status: 200, body: { ok: true, updatedAt, storeReady: isStoreConfigured() } }
         })
     }
