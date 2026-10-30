@@ -11,6 +11,7 @@
 import { isSupabaseConfigured } from './supabase.js'
 import { forbidden } from './access.js'
 import { encounterKey, isValidEncounter, readEncounter, writeEncounter } from './encounter-store.js'
+import { evaluate, safely } from './trophy-store.js'
 
 const ok = (body) => ({ status: 200, body: { ...body, storeReady: isSupabaseConfigured() } })
 const fail = (status, error) => ({ status, body: { error } })
@@ -34,5 +35,7 @@ export async function handleEncounterRequest(mesa, method, query, body, ctx = {}
     if (!isValidEncounter(body?.state)) return fail(400, 'Encontro inválido')
     const updatedAt = await writeEncounter(mesa, key, body.state, ctx.userId ?? null)
     if (updatedAt === null) return fail(404, 'Mapa não encontrado')
+    // O feito do combate é gravado pelo banco (trigger); aqui só se avalia, para o aviso sair já.
+    if (body.state?.round === 1) await safely('combate', () => evaluate(mesa, ctx.userId))
     return ok({ updatedAt })
 }

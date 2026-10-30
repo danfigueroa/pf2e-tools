@@ -30,6 +30,7 @@ import { randomInt } from 'node:crypto'
 import { supabase, isSupabaseConfigured } from './supabase.js'
 import { forbidden, forgetMember, forgetOwner, memberRole } from './access.js'
 import { isValidSlug } from './table-store.js'
+import { endSession, safely, startSession } from './trophy-store.js'
 
 const ok = (body = {}) => ({ status: 200, body: { ok: true, ...body, storeReady: isSupabaseConfigured() } })
 const fail = (status, error) => ({ status, body: { error } })
@@ -341,10 +342,16 @@ export async function handleAuthRequest(mesa, method, query, body, access) {
             }
         }
         if (Object.keys(patch).length === 0) return fail(400, 'Nada para mudar')
+        // A sessão que está acabando (para o histórico de sessões dos troféus).
+        const wasStarted = body.session === 'end'
+            ? check(await db.from('mesas').select('session_started_at').eq('id', mesa).maybeSingle())?.session_started_at ?? null
+            : null
         const rows = check(
             await db.from('mesas').update(patch).eq('id', mesa).select('name, session_started_at, next_session_at'),
         )
         const row = rows?.[0]
+        if (body.session === 'start') await safely('abrir sessão', () => startSession(mesa, access?.userId ?? null))
+        if (body.session === 'end' && wasStarted) await safely('encerrar sessão', () => endSession(mesa, access?.userId ?? null, wasStarted))
         return ok({
             name: row?.name ?? null,
             sessionStartedAt: row?.session_started_at ?? null,

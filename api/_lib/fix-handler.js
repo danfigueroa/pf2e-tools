@@ -10,6 +10,7 @@
 
 import { isSupabaseConfigured } from './supabase.js'
 import { isValidFixKey, listFixes, sanitizeFixFields, saveFix } from './fix-store.js'
+import { recordFeat, safely } from './trophy-store.js'
 
 const ok = (body) => ({ status: 200, body: { ...body, storeReady: isSupabaseConfigured() } })
 const fail = (status, error) => ({ status, body: { error } })
@@ -28,5 +29,10 @@ export async function handleFixRequest(method, query, body, ctx = {}) {
     if (!isValidFixKey(kind, name)) return fail(400, 'Tipo ou nome inválido')
     const fields = sanitizeFixFields(kind, body.fields)
     if (!fields) return fail(400, 'Correção inválida')
-    return ok({ fix: await saveFix(kind, name, fields, ctx.userId ?? null) })
+    const fix = await saveFix(kind, name, fields, ctx.userId ?? null)
+    // A correção é global; o feito fica na mesa de quem corrigiu (é para onde vai o aviso).
+    if (Object.keys(fields).length > 0 && ctx.mesa) {
+        await safely('correção de tradução', () => recordFeat(ctx.mesa, ctx.userId, 'translation-fix', { kind, name }))
+    }
+    return ok({ fix })
 }

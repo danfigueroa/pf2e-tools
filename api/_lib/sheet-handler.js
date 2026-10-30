@@ -45,6 +45,7 @@ import {
   isValidDescriptionVersion,
   readSheetDescriptions,
 } from './sheet-descriptions.js'
+import { recordFeat, safely } from './trophy-store.js'
 
 // Fichas e descrições moram no Supabase; sem ele, num Map de processo.
 const ok = (body) => ({ status: 200, body: { ...body, storeReady: isSupabaseConfigured() } })
@@ -98,6 +99,13 @@ export async function handleSheetRequest(mesa, method, query, body, ctx = {}) {
       forgetOwner(mesa, publishSlug)
       sheet.ownerId = ctx.userId
     }
+    await safely('ficha publicada', async () => {
+      const owner = sheet.ownerId && sheet.ownerId === ctx.userId ? ctx.userId : null
+      if (!owner) return
+      const gained = sheet.previous?.level ? sheet.level - sheet.previous.level : 0
+      if (gained > 0) await recordFeat(mesa, owner, 'level-up', { slug: publishSlug, level: sheet.level, gained }, false)
+      await recordFeat(mesa, owner, 'sheet-published', { slug: publishSlug, level: sheet.level })
+    })
     // As consultas da ficha à AON ficam no banco já na publicação (não segura a resposta mais que alguns segundos).
     await Promise.race([warmSheetLookups(json).catch(() => {}), new Promise((r) => setTimeout(r, 8000))])
     return ok({ sheet })

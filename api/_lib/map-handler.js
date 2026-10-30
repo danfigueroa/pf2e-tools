@@ -42,6 +42,7 @@ import {
     syncTokens,
     writeMapFields,
 } from './map-store.js'
+import { recordFeat, safely } from './trophy-store.js'
 
 const ok = (body) => ({ status: 200, body: { ...body, storeReady: isSupabaseConfigured() } })
 const fail = (status, error) => ({ status, body: { error } })
@@ -156,6 +157,7 @@ export async function handleMapRequest(mesa, method, query, body, ctx = {}) {
     if (action === 'map-visibility') {
         const rev = await setMapPrivate(mesa, id, body.private === true)
         if (rev === null) return fail(404, 'Mapa não encontrado')
+        if (body.private !== true) await safely('mapa revelado', () => recordFeat(mesa, ctx.userId, 'gm-map-revealed', { map: id }))
         return ok({ rev })
     }
 

@@ -22,6 +22,7 @@ import { forbidden, memberRole } from './access.js'
 import { imagePath } from './images.js'
 import { addShare, sanitizeShare } from './roll-store.js'
 import { ID_RE, addReveal, cleanDoc, cleanReveal, deleteDoc, listDocs, readDoc, readReveal, writeDoc } from './journal-store.js'
+import { recordFeat, safely } from './trophy-store.js'
 
 const ok = (body) => ({ status: 200, body: { ...body, storeReady: isSupabaseConfigured() } })
 const fail = (status, error) => ({ status, body: { error } })
@@ -70,6 +71,7 @@ export async function handleJournalRequest(mesa, method, query, body, ctx = {}) 
             const current = await readDoc(mesa, doc.id)
             return { status: 409, body: { error: 'Editado em outro aparelho', code: 'conflict', doc: current } }
         }
+        if (base === null && doc.kind === 'session') await safely('sessão no diário', () => recordFeat(mesa, by, 'gm-journal', { doc: doc.id }))
         return ok({ updatedAt: out.updatedAt })
     }
 
@@ -90,5 +92,6 @@ export async function handleJournalRequest(mesa, method, query, body, ctx = {}) 
     if (!share) return fail(400, 'Compartilhamento inválido')
     await addReveal(mesa, reveal, by)
     const rev = await addShare(mesa, share, by)
+    await safely('mostrar à mesa', () => recordFeat(mesa, by, 'gm-handout', { reveal: reveal.id }))
     return ok({ rev, share })
 }

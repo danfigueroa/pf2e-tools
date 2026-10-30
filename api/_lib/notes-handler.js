@@ -12,6 +12,39 @@ import { isSupabaseConfigured } from './supabase.js'
 import { canEditSheet, forbidden } from './access.js'
 import { isValidSlug } from './table-store.js'
 import { cleanNotes, readNotes, writeNotes } from './notes-store.js'
+import { lastFeatAt, ownerOf, recordFeat, safely, touchFeat } from './trophy-store.js'
+
+/** Rajada do autosave: edições dentro desta janela viram um feito só. */
+const FEAT_WINDOW_MS = 30 * 60 * 1000
+
+/**
+ * Os feitos de uma gravação das anotações (troféus): notas novas, notas editadas e o
+ * background escrito — e se ele mudou DEPOIS de o personagem subir de nível.
+ */
+async function noteFeats(mesa, slug, before, after, userId) {
+    const owner = await ownerOf(mesa, slug, userId)
+    if (!owner) return
+    const old = new Map((before?.notes ?? []).map((n) => [n.id, n]))
+    for (const n of after.notes) {
+        if (!old.has(n.id)) await recordFeat(mesa, owner, 'note-created', { slug, tag: n.tag })
+    }
+    const edited = after.notes.some((n) => {
+        const prev = old.get(n.id)
+        return prev && (prev.body !== n.body || prev.title !== n.title)
+    })
+    if (edited) await touchFeat(mesa, owner, 'note-edited', { slug }, FEAT_WINDOW_MS)
+    const text = after.background.trim()
+    if (text !== (before?.background ?? '').trim() && text.length > 0) {
+        const [levelUp, lastBackground] = await Promise.all([
+            lastFeatAt(owner, 'level-up', slug),
+            lastFeatAt(owner, 'background', slug),
+        ])
+        // Um registro novo por level-up: senão a janela juntaria este com o background antigo.
+        const afterLevelUp = levelUp > 0 && levelUp > lastBackground
+        if (afterLevelUp) await recordFeat(mesa, owner, 'background', { slug, length: text.length, afterLevelUp: true })
+        else await touchFeat(mesa, owner, 'background', { slug, length: text.length }, FEAT_WINDOW_MS)
+    }
+}
 
 const ok = (body) => ({ status: 200, body: { ...body, storeReady: isSupabaseConfigured() } })
 const fail = (status, error) => ({ status, body: { error } })
@@ -36,10 +69,12 @@ export async function handleNotesRequest(mesa, method, query, body, ctx = {}) {
     const base = body.base === null || body.base === undefined ? null : Number(body.base)
     if (base !== null && !Number.isFinite(base)) return fail(400, 'Versão inválida')
 
+    const before = await readNotes(mesa, body.char)
     const out = await writeNotes(mesa, body.char, data, base, ctx.userId ?? null)
     if (out.conflict) {
         const current = await readNotes(mesa, body.char)
         return { status: 409, body: { error: 'Editado em outro aparelho', code: 'conflict', notes: current } }
     }
+    await safely('anotações', () => noteFeats(mesa, body.char, before?.data, data, ctx.userId))
     return ok({ updatedAt: out.updatedAt })
 }

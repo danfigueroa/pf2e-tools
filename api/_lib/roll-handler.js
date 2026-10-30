@@ -19,6 +19,7 @@
 import { canEditSheet, forbidden } from './access.js'
 import { isSupabaseConfigured } from './supabase.js'
 import { DAY_RE, addRoll, addShare, readDiaryDays, readDiaryRolls, readDiarySummary, readRolls, sanitizeRoll, sanitizeShare } from './roll-store.js'
+import { recordFeat, safely } from './trophy-store.js'
 
 const ok = (body) => ({ status: 200, body: { ...body, storeReady: isSupabaseConfigured() } })
 const fail = (status, error) => ({ status, body: { error } })
@@ -48,6 +49,7 @@ export async function handleRollRequest(mesa, method, query, body, ctx = {}) {
     // O que o GM mostra pelo diário nasce no `journal-reveal`, que confere o papel.
     if (share.type === 'handout') return fail(400, 'Compartilhamento inválido')
     const rev = await addShare(mesa, share, ctx.userId ?? null)
+    await safely('regra compartilhada', () => recordFeat(mesa, ctx.userId, 'rule-shared', { name: share.name }))
     return ok({ rev, share })
   }
   const roll = sanitizeRoll(body?.roll)
