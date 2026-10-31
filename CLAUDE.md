@@ -2223,7 +2223,8 @@ itens, locais…). Tabelas `journal_docs` e `journal_reveals` (migration `diario
 - **Planejador de encontros** (`EncounterPlanner` + `xp.ts`): a busca de criaturas da Iniciativa (`AonCreatureSearch`
   com `onPick`, que devolve a `AonCreature`), o orçamento do GM Core pg. 75-76 (Table 10-1 e 10-2, conferidas na AON) com
   o ajuste por personagem, e "Enviar para a Iniciativa" (`npcFromCreature` × quantidade → `appendCombatants`, como o
-  Escalar Monstro). O grupo padrão sai das fichas publicadas (`partyFromLevels`: o nível mais comum); o GM ajusta por
+  Escalar Monstro). Cada criatura tem um nível-alvo (`PlannedCreature.level`, ausente = original): o XP usa o escalado e o
+  envio busca a ficha (`fetchMonster`) e escala com `scaleMonster`/`npcFromScaled`, sem ajuste fino de degraus nem magias. O grupo padrão sai das fichas publicadas (`partyFromLevels`: o nível mais comum); o GM ajusta por
   sessão (`party`). Criatura a mais de 4 níveis do grupo não está na tabela: aviso, sem XP — nunca um número chutado. A
   ameaça é a maior cujo orçamento o total alcança (80 XP para 6 personagens é Trivial: o Baixo é 100).
 - **Registro** (`SessionLog`): anotações com hora e etiqueta. "Começar a sessão" liga a sessão da mesa
