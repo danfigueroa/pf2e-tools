@@ -2175,7 +2175,8 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
     GM acabou de dar.
 - **Troop encolhe com o PV** (`isTroop`/`troopSegments`/`troopSide` em `battle-map/geometry.ts`, usados no `descriptors` do
   `useMapSync`): criatura com o traço `Troop` (NPC Core pg. 231: 4 segmentos de 2×2, perde um abaixo de 2/3 e outro abaixo de 1/3
-  do PV máximo) vai ao mapa como UM token de 4×4 → 3×3 → 2×2. A regra manda 16/12/8 quadrados, mas o token é sempre quadrado.
+  do PV máximo) vai ao mapa como UM token de 4×4 → 3×3 → 2×2, calculado NO MAPA (`withTroopSizes`, de `hp:<id>`; o `tok:` leva `troop` e o
+  tamanho cheio): dano dado no mapa chega à Iniciativa só quando ela abre. A regra manda 16/12/8 quadrados, mas o token é sempre quadrado.
   Não feito: o limiar virar o novo PV máximo, o teto de um limiar por Golpe e a escolha do segmento removido.
 
 - **Ordem de turnos no mapa** (`components/TurnOrder.tsx`): lista só de leitura no canto superior esquerdo (nomes, número,
