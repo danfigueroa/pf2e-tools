@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type Dispatch } from 'react'
 import { syncTokens, useMapData, type NpcHp, type TokenDescriptor } from '../../services/maps'
-import { isTinySize, sizeSquares } from '../battle-map/geometry'
+import { isTinySize, isTroop, sizeSquares, troopSide } from '../battle-map/geometry'
 import type { EncounterAction } from './encounterReducer'
 import type { CombatantView, EncounterState } from './types'
 
@@ -13,6 +13,7 @@ const hpKey = (hp: HpPayload) => `${hp.current}/${hp.temp}/${hp.max}`
 
 function descriptors(state: EncounterState, views: CombatantView[]): Array<TokenDescriptor & { id: string }> {
     const maxById = new Map(views.map((v) => [v.combatant.id, v.maxHp]))
+    const viewById = new Map(views.map((v) => [v.combatant.id, v]))
     return state.combatants.map((c, order) => c.kind === 'pc'
         ? {
             id: c.id,
@@ -31,7 +32,10 @@ function descriptors(state: EncounterState, views: CombatantView[]): Array<Token
             order,
             kind: 'npc',
             name: c.name,
-            size: sizeSquares(c.size),
+            // Troop encolhe sozinho conforme o PV cai (um token de 4×4 → 3×3 → 2×2).
+            size: isTroop(c.traits) && viewById.get(c.id)
+                ? troopSide(viewById.get(c.id)!.current, viewById.get(c.id)!.maxHp)
+                : sizeSquares(c.size),
             // Minúsculo ocupa o quadrado (alvo de toque) mas é desenhado menor.
             tiny: isTinySize(c.size) || undefined,
             image: c.tokenImage,

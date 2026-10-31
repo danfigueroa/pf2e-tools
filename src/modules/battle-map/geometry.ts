@@ -56,6 +56,26 @@ export function sizeSquares(size: string | null | undefined): number {
     }
 }
 
+/** Criatura com o traço Troop (NPC Core pg. 231; Bestiary 3 pg. 306). */
+export const isTroop = (traits: readonly string[] | undefined): boolean =>
+    !!traits?.some((t) => t.trim().toLowerCase() === 'troop')
+
+/**
+ * Segmentos que um troop ainda tem: 4 inteiro, um a menos ao cair abaixo de
+ * 2/3 do PV máximo e outro abaixo de 1/3 (os limiares típicos do stat block).
+ */
+export function troopSegments(current: number, max: number): number {
+    if (max <= 0) return 4
+    return 4 - (current * 3 < max * 2 ? 1 : 0) - (current * 3 < max ? 1 : 0)
+}
+
+/**
+ * Lado do token de um troop. Pela regra são 16, 12 e 8 quadrados (4, 3 e 2
+ * segmentos de 2×2), mas o token do mapa é sempre quadrado: aproximamos pelo
+ * número de segmentos (4×4, 3×3, 2×2) para a perda ficar visível a cada limiar.
+ */
+export const troopSide = (current: number, max: number): number => troopSegments(current, max)
+
 /** Minúsculo: ocupa 1 quadrado no mapa (alvo de toque), mas o token é desenhado menor. */
 export const isTinySize = (size: string | null | undefined): boolean => (size ?? '').toLowerCase() === 'tiny'
 
