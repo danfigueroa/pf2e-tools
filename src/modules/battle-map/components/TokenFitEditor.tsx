@@ -40,7 +40,12 @@ export const TokenFitEditor = ({ mapId, tokenId, data, views, onClose }: Props) 
     // Sem imagem ainda, o monstro abre o diálogo só para ENVIAR uma; o PC precisa já ter a dele.
     if (!isNpc && (!shownUrl || !src)) return null
     const savedUrl = view.fit.url
-    const copies = [...views.values()].filter((v) => v.id !== tokenId && v.image === view.image).map((v) => v.id)
+    // Sem imagem, `undefined === undefined` fazia de TODO token sem imagem uma "cópia" (o Ghostly Mob e o
+    // Skeleton Mob mudavam juntos). Sem imagem, só conta o mesmo monstro ("Goblin Warrior 2" de "Goblin Warrior").
+    const baseName = (name: string) => name.replace(/\s+\d+$/, '')
+    const copies = [...views.values()]
+        .filter((v) => v.id !== tokenId && (view.image ? v.image === view.image : !v.image && baseName(data.tokens[v.id]?.name ?? v.id) === baseName(token.name)))
+        .map((v) => v.id)
 
     const upload = async (file: File) => {
         setBusy(true)
