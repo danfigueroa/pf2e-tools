@@ -37,7 +37,12 @@ export const LOG_TAG_LABEL: Record<LogTag, string> = {
 
 export interface Scene { id: string; title: string; md: string; status: SceneStatus }
 
-export interface PlannedCreature { creature: AonCreature; count: number }
+export interface PlannedCreature {
+    creature: AonCreature
+    count: number
+    /** Nível-alvo do Escalar Monstro; ausente = a criatura como a AON a publica. */
+    level?: number
+}
 
 export interface PlannedEncounter {
     id: string
@@ -159,7 +164,10 @@ function sessionData(raw: unknown): SessionData {
                     const pc = obj(p)
                     const creature = creatureOf(pc.creature)
                     const count = Number.isInteger(pc.count) ? Math.min(20, Math.max(1, pc.count as number)) : 1
-                    return creature ? [{ creature, count }] : []
+                    if (!creature) return []
+                    const level = Number.isInteger(pc.level) && (pc.level as number) !== creature.level
+                        ? Math.min(25, Math.max(-1, pc.level as number)) : undefined
+                    return [{ creature, count, ...(level !== undefined ? { level } : {}) }]
                 }),
             }
         }),

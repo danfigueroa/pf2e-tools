@@ -10,6 +10,9 @@ import {
 import { AonCreatureSearch } from '../../initiative-tracker/components/AonCreatureSearch'
 import { npcFromCreature } from '../../initiative-tracker/importCharacter'
 import { appendCombatants, currentMapId } from '../../initiative-tracker/encounterStorage'
+import { fetchMonster } from '../../../services/monster'
+import { scaleMonster, clampLevel } from '../../monster-scaler/scaling'
+import { npcFromScaled } from '../../monster-scaler/toCombatant'
 import { listMaps } from '../../../services/maps'
 import { chrome, displayFont, gold, green, ink, parchment, rule, status as statusColor } from '../../../theme'
 import { encounterXp, THREAT_LABEL, THREATS, type Threat } from '../xp'
@@ -73,7 +76,7 @@ export const EncounterPlanner = memo(function EncounterPlanner({ encounter, part
     const [searching, setSearching] = useState(encounter.creatures.length === 0)
     const [mapName, setMapName] = useState<string | null>(null)
     const xp = useMemo(() => encounterXp(
-        encounter.creatures.map((c) => ({ name: c.creature.name, level: c.creature.level, count: c.count })),
+        encounter.creatures.map((c) => ({ name: c.creature.name, level: c.level ?? c.creature.level, count: c.count })),
         party.level, party.size,
     ), [encounter.creatures, party.level, party.size])
 
@@ -93,12 +96,40 @@ export const EncounterPlanner = memo(function EncounterPlanner({ encounter, part
             : encounter.creatures.map((c, j) => (j === i ? { ...c, count: Math.min(20, count) } : c)),
     })
 
-    const send = () => {
-        const combatants = encounter.creatures.flatMap(({ creature, count }) =>
-            Array.from({ length: count }, (_, i) => npcFromCreature(creature, count > 1 ? i : 0)))
-        appendCombatants(combatants)
-        set({ status: 'sent' })
-        navigate('/iniciativa')
+    const setLevel = (i: number, level: number) => set({
+        creatures: encounter.creatures.map((c, j) => {
+            if (j !== i) return c
+            const next = clampLevel(level)
+            return next === c.creature.level
+                ? { creature: c.creature, count: c.count }
+                : { ...c, level: next }
+        }),
+    })
+
+    const [sending, setSending] = useState(false)
+    const [sendError, setSendError] = useState<string | null>(null)
+    const send = async () => {
+        setSending(true)
+        setSendError(null)
+        try {
+            const groups = await Promise.all(encounter.creatures.map(async ({ creature, count, level }) => {
+                if (level === undefined || level === creature.level) {
+                    return Array.from({ length: count }, (_, i) => npcFromCreature(creature, count > 1 ? i : 0))
+                }
+                // Escalada: precisa da ficha completa da AON, não só do resumo da busca.
+                const detail = await fetchMonster(creature.name)
+                if (!detail) throw new Error(`Não deu para carregar a ficha de "${creature.name}" para escalar.`)
+                const scaled = scaleMonster(detail, level, {}, null)
+                return Array.from({ length: count }, (_, i) => npcFromScaled(scaled, count > 1 ? i : 0))
+            }))
+            appendCombatants(groups.flat())
+            set({ status: 'sent' })
+            navigate('/iniciativa')
+        } catch (e) {
+            setSendError(e instanceof Error ? e.message : 'Não deu para enviar o encontro.')
+        } finally {
+            setSending(false)
+        }
     }
 
     const total = encounter.creatures.reduce((n, c) => n + c.count, 0)
@@ -148,7 +179,8 @@ export const EncounterPlanner = memo(function EncounterPlanner({ encounter, part
 
             <Stack spacing={0.75} sx={{ mb: 1.5 }}>
                 {encounter.creatures.map((c, i) => {
-                    const diff = c.creature.level - party.level
+                    const lvl = c.level ?? c.creature.level
+                    const diff = lvl - party.level
                     return (
                         <Box key={`${c.creature.name}-${i}`} sx={{
                             display: 'flex', alignItems: 'center', gap: 1, px: 1, py: 0.5,
@@ -157,9 +189,20 @@ export const EncounterPlanner = memo(function EncounterPlanner({ encounter, part
                             <Box sx={{ flex: 1, minWidth: 0 }}>
                                 <Typography sx={{ fontWeight: 600 }} noWrap>{c.creature.name}</Typography>
                                 <Typography variant="caption" color="text.secondary">
-                                    Nível {c.creature.level} ({diff >= 0 ? '+' : ''}{diff}) · CA {c.creature.ac} · PV {c.creature.hp}
+                                    Nível {lvl} ({diff >= 0 ? '+' : ''}{diff})
+                                    {c.level !== undefined ? ` · escalada do nível ${c.creature.level}` : ` · CA ${c.creature.ac} · PV ${c.creature.hp}`}
                                 </Typography>
                             </Box>
+                            <IconButton size="small" aria-label={`Diminuir o nível de ${c.creature.name}`} onClick={() => setLevel(i, lvl - 1)}>
+                                <RemoveIcon fontSize="small" sx={{ color: gold.deep }} />
+                            </IconButton>
+                            <Typography variant="caption" sx={{ minWidth: 28, textAlign: 'center', fontWeight: 700, color: gold.deep }}>
+                                N{lvl}
+                            </Typography>
+                            <IconButton size="small" aria-label={`Aumentar o nível de ${c.creature.name}`} onClick={() => setLevel(i, lvl + 1)}>
+                                <AddIcon fontSize="small" sx={{ color: gold.deep }} />
+                            </IconButton>
+                            <Box sx={{ width: 8 }} />
                             <IconButton size="small" aria-label={`Um ${c.creature.name} a menos`} onClick={() => setCount(i, c.count - 1)}>
                                 <RemoveIcon fontSize="small" />
                             </IconButton>
@@ -187,7 +230,7 @@ export const EncounterPlanner = memo(function EncounterPlanner({ encounter, part
                 <Box sx={{ mb: 2, p: 1.5, border: `1px dashed ${gold.main}`, borderRadius: 1 }}>
                     <AonCreatureSearch
                         onPick={(creature, count) => {
-                            const i = encounter.creatures.findIndex((c) => c.creature.name === creature.name)
+                            const i = encounter.creatures.findIndex((c) => c.creature.name === creature.name && c.level === undefined)
                             set({
                                 creatures: i >= 0
                                     ? encounter.creatures.map((c, j) => (j === i ? { ...c, count: Math.min(20, c.count + count) } : c))
@@ -210,8 +253,8 @@ export const EncounterPlanner = memo(function EncounterPlanner({ encounter, part
             />
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }} sx={{ mt: 1.5 }}>
-                <Button variant="contained" startIcon={<SendIcon />} disabled={total === 0} onClick={send}>
-                    Enviar para a Iniciativa
+                <Button variant="contained" startIcon={<SendIcon />} disabled={total === 0 || sending} onClick={() => void send()}>
+                    {sending ? 'Enviando…' : 'Enviar para a Iniciativa'}
                 </Button>
                 <Typography variant="caption" color="text.secondary">
                     {total === 0
@@ -219,6 +262,7 @@ export const EncounterPlanner = memo(function EncounterPlanner({ encounter, part
                         : `${total} combatente${total > 1 ? 's' : ''} no encontro ${mapName ? `do mapa "${mapName}"` : 'aberto na Iniciativa'}.`}
                 </Typography>
             </Stack>
+            {sendError && <Alert severity="error" sx={{ mt: 1 }}>{sendError}</Alert>}
         </Paper>
     )
 })
