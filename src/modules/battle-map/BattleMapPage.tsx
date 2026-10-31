@@ -57,6 +57,7 @@ import {
     setMapVisibility,
     useMapData,
     withPcSizes,
+    withTroopSizes,
     writeMapField,
     writePcHp,
     type MapData,
@@ -189,8 +190,8 @@ export const BattleMapPage = () => {
         setRevealing(true)
         setMapVisibility(id, false).catch(() => {}).finally(() => setRevealing(false))
     }
-    // Enlarge/Shrink ligado na Ficha Virtual muda o tamanho do token do personagem.
-    const data = useMemo(() => (rawData ? withPcSizes(rawData) : null), [rawData])
+    // Enlarge/Shrink ligado na Ficha Virtual muda o tamanho do token do personagem; o troop encolhe com o PV.
+    const data = useMemo(() => (rawData ? withTroopSizes(withPcSizes(rawData)) : null), [rawData])
 
     // Sem mapa na URL: vai para onde a mesa está; sem mesa, abre a lista.
     useEffect(() => {

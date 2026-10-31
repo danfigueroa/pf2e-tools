@@ -19,7 +19,7 @@ import { ensureStateLive, onStateChange, saveField } from './tableState'
 import { listenMesaChannel } from './supabase'
 import { onFeedActivity } from './rolls'
 import type { HpStored } from '../modules/character-viewer/components/useHpTracker'
-import { sizeSquares, type Cell, type ImageRect } from '../modules/battle-map/geometry'
+import { sizeSquares, troopSide, type Cell, type ImageRect } from '../modules/battle-map/geometry'
 import { activeSizeEffect, sanitizeSizeEffect } from '../modules/character-viewer/sizeEffects'
 import { stateApi } from './mesa'
 
@@ -55,6 +55,8 @@ export interface TokenDescriptor {
      * de um personagem é aplicado só no cliente, por `withPcSizes`.
      */
     tiny?: boolean
+    /** Criatura Troop: o lado do token acompanha o PV (`withTroopSizes`); `size` é o do troop inteiro. */
+    troop?: boolean
     /** Companheiro de combate (Animated Armor): o slug do PC dono — quem pode movê-lo, além do GM. */
     companionOf?: string
     /** Posição do combatente na ordem de turnos da Iniciativa (0 = primeiro). */
@@ -734,6 +736,25 @@ export function withPcSizes(data: MapData): MapData {
         if (!effect) continue
         tokens ??= { ...data.tokens }
         tokens[id] = { ...token, size: sizeSquares(effect.size), tiny: effect.size === 'tiny' }
+    }
+    return tokens ? { ...data, tokens } : data
+}
+
+/**
+ * Troop (NPC Core pg. 231) perde um segmento abaixo de 2/3 e outro abaixo de 1/3 do PV
+ * máximo: o lado do token cai de 4 para 3 e 2. Calculado aqui, do `hp:<id>` do mapa, porque
+ * é por ele que o dano chega — dado no mapa, antes de a Iniciativa abrir, ou vindo dela.
+ * O `size` gravado no `tok:` fica sendo o do troop inteiro.
+ */
+export function withTroopSizes(data: MapData): MapData {
+    let tokens: Record<string, TokenDescriptor> | null = null
+    for (const [id, token] of Object.entries(data.tokens)) {
+        const hp = data.hp[id]
+        if (!token.troop || !hp || hp.max <= 0) continue
+        const side = Math.min(token.size, troopSide(hp.current, hp.max))
+        if (side === token.size) continue
+        tokens ??= { ...data.tokens }
+        tokens[id] = { ...token, size: side }
     }
     return tokens ? { ...data, tokens } : data
 }
