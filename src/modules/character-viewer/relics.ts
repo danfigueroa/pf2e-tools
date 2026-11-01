@@ -21,6 +21,7 @@ import { nameStarts } from './customRunes'
 import type { ActivityInfo } from './activities'
 import type { HealActivity } from './healActivities'
 import type { CastTime } from './spellCast'
+import { tr } from '../../i18n'
 
 export type RelicTier = 'minor' | 'major' | 'grand'
 export type RelicCost = 1 | 2 | 3 | 'reaction' | 'free'
@@ -118,7 +119,7 @@ export const RELICS: RelicEntry[] = [
         name: "Miranda's Arm",
         on: { kind: 'weapon', weapon: 'Braço Sônico' },
         aspects: ['Metal', 'Dragon'],
-        description: "Miranda's Arm é o nome que ela deu à relíquia: o braço dela, que também é o Braço Sônico da ficha. As runas dele continuam: +1 de potência, striking e Shock (já no ataque da aba Combate). O nível da relíquia é o do personagem.",
+        description: tr("Miranda's Arm é o nome que ela deu à relíquia: o braço dela, que também é o Braço Sônico da ficha. As runas dele continuam: +1 de potência, striking e Shock (já no ataque da aba Combate). O nível da relíquia é o do personagem.", 'Miranda\'s Arm is the name she gave her relic: her arm, which is also the Braço Sônico on the sheet. Its runes remain: +1 potency, striking and shock (already in the Combat tab\'s attack). The relic\'s level is the character\'s level.'),
         gifts: [
             {
                 id: 'scrap-shot',
@@ -127,7 +128,7 @@ export const RELICS: RelicEntry[] = [
                 kind: 'power',
                 special: 'scrap-shot',
                 activation: { cost: 2 },
-                facts: (level) => `${scrapShotDice(level)}d6 perfurante, ataque de magia, até 9 m`,
+                facts: (level) => tr(`${scrapShotDice(level)}d6 perfurante, ataque de magia, até 9 m`, `${scrapShotDice(level)}d6 piercing, spell attack, up to 30 feet`),
             },
             {
                 id: 'dragon-strike',
@@ -135,8 +136,8 @@ export const RELICS: RelicEntry[] = [
                 tier: 'minor',
                 kind: 'power',
                 special: 'dragon-strike',
-                activation: { cost: 1, frequency: 'uma vez por hora (a cada 10 minutos a partir do 11º nível)', limited: true },
-                facts: (level) => `${level >= 11 ? 'uma vez a cada 10 minutos' : 'uma vez por hora'}; +1d6 cortante por 1 minuto`,
+                activation: { cost: 1, frequency: tr('uma vez por hora (a cada 10 minutos a partir do 11º nível)', 'once per hour (every 10 minutes from 11th level)'), limited: true },
+                facts: (level) => tr(`${level >= 11 ? 'uma vez a cada 10 minutos' : 'uma vez por hora'}; +1d6 cortante por 1 minuto`, `${level >= 11 ? 'once every 10 minutes' : 'once per hour'}; +1d6 slashing for 1 minute`),
             },
         ],
     },
@@ -146,7 +147,7 @@ export const RELICS: RelicEntry[] = [
         name: "Loki's Heart",
         on: { kind: 'item', name: "Loki's Heart" },
         aspects: ['Time', 'Luck'],
-        description: "A relíquia do Loki (Loki's Heart, item vestido na ficha). O nível dela é o dele. As dádivas são da AON: Sands of the Hourglass e Whammy.",
+        description: tr("A relíquia do Loki (Loki's Heart, item vestido na ficha). O nível dela é o dele. As dádivas são da AON: Sands of the Hourglass e Whammy.", 'Loki\'s relic (Loki\'s Heart, an item worn on the sheet). Its level is his level. The gifts come from AON: Sands of the Hourglass and Whammy.'),
         gifts: [
             // Treasure Vault (Remastered) pg. 200: 2 ações (concentrar, manipular), 1× por hora, aspecto Time;
             // pré-requisito: relíquia de 5º nível ou mais. O alvo faz Fortitude — a AON NÃO dá a CD, é do mestre.
@@ -156,7 +157,7 @@ export const RELICS: RelicEntry[] = [
                 tier: 'minor',
                 kind: 'power',
                 minLevel: 5,
-                activation: { cost: 2, frequency: 'uma vez por hora', limited: true },
+                activation: { cost: 2, frequency: tr('uma vez por hora', 'once per hour'), limited: true },
             },
             // Treasure Vault (Remastered) pg. 199: reação (concentrar), 1× por dia, aspecto Luck, traço Misfortune.
             {
@@ -166,9 +167,9 @@ export const RELICS: RelicEntry[] = [
                 kind: 'power',
                 activation: {
                     cost: 'reaction',
-                    frequency: 'uma vez por dia',
+                    frequency: tr('uma vez por dia', 'once per day'),
                     limited: true,
-                    trigger: 'um inimigo a até 9 m tira um sucesso em ataque, salvaguarda ou teste de perícia',
+                    trigger: tr('um inimigo a até 9 m tira um sucesso em ataque, salvaguarda ou teste de perícia', 'an enemy within 30 feet succeeds at an attack, saving throw or skill check'),
                 },
             },
         ],
@@ -180,7 +181,7 @@ export const RELICS: RelicEntry[] = [
         character: nameStarts('hearts'),
         name: 'Redenção Pelas Cinzas',
         aspects: ['Life', 'Celestial'],
-        description: 'Um par de luvas sem dedos (a direita ainda tem o anelar e o mindinho, estilo luva de artista), de couro ressecado por anos de uso e de um cinza sem cor, como se tivessem perdido toda a saturação. Flocos de cinza se soltam delas o tempo todo e somem no ar. O nível da relíquia é o do personagem.',
+        description: tr('Um par de luvas sem dedos (a direita ainda tem o anelar e o mindinho, estilo luva de artista), de couro ressecado por anos de uso e de um cinza sem cor, como se tivessem perdido toda a saturação. Flocos de cinza se soltam delas o tempo todo e somem no ar. O nível da relíquia é o do personagem.', 'A pair of fingerless gloves (the right one still has the ring and little fingers, artist-glove style), of leather dried out by years of use and of a colorless gray, as if they had lost all their saturation. Flakes of ash come off them all the time and vanish in the air. The relic\'s level is the character\'s level.'),
         gifts: [
             {
                 id: 'healing-wave',
@@ -188,8 +189,8 @@ export const RELICS: RelicEntry[] = [
                 tier: 'minor',
                 kind: 'power',
                 special: 'healing-wave',
-                activation: { cost: 2, frequency: 'uma vez por hora', limited: true },
-                facts: (level) => `${level}d4 PV para você e cada criatura viva no cone de 4,5 m`,
+                activation: { cost: 2, frequency: tr('uma vez por hora', 'once per hour'), limited: true },
+                facts: (level) => tr(`${level}d4 PV para você e cada criatura viva no cone de 4,5 m`, `${level}d4 HP for you and each living creature in the 15-foot cone`),
             },
             {
                 id: 'word-of-faith',
@@ -197,8 +198,8 @@ export const RELICS: RelicEntry[] = [
                 tier: 'minor',
                 kind: 'power',
                 special: 'word-of-faith',
-                activation: { cost: 2, frequency: 'uma vez por hora', limited: true },
-                facts: (level) => `${level}d8 PV em você ou num aliado, e o Amedrontado dele cai 1`,
+                activation: { cost: 2, frequency: tr('uma vez por hora', 'once per hour'), limited: true },
+                facts: (level) => tr(`${level}d8 PV em você ou num aliado, e o Amedrontado dele cai 1`, `${level}d8 HP to you or an ally, and their frightened drops by 1`),
             },
         ],
     },
@@ -209,7 +210,7 @@ export const RELICS: RelicEntry[] = [
         character: nameStarts('hearts'),
         name: 'Afinco do Artista',
         aspects: ['Life', 'Emotion'],
-        description: 'A relíquia da alma do personagem: um sobretudo de couro marrom, simples e gasto pelo uso, igual a tantos outros — salvo pelas manchas de tinta multicoloridas nas lapelas e mangas, que exalam vida e, sob a luz certa, às vezes cintilam em cor. O nível da relíquia é o do personagem.',
+        description: tr('A relíquia da alma do personagem: um sobretudo de couro marrom, simples e gasto pelo uso, igual a tantos outros — salvo pelas manchas de tinta multicoloridas nas lapelas e mangas, que exalam vida e, sob a luz certa, às vezes cintilam em cor. O nível da relíquia é o do personagem.', 'The character\'s soul relic: a brown leather overcoat, plain and worn from use, like so many others — except for the multicolored paint stains on the lapels and sleeves, which exude life and, in the right light, sometimes shimmer with color. The relic\'s level is the character\'s level.'),
         gifts: [
             {
                 id: 'dominant-emotion',
@@ -218,20 +219,20 @@ export const RELICS: RelicEntry[] = [
                 kind: 'power',
                 activation: {
                     cost: 'reaction',
-                    frequency: 'uma vez por hora',
+                    frequency: tr('uma vez por hora', 'once per hour'),
                     limited: true,
-                    trigger: 'você seria afetado negativamente por um efeito de emoção',
+                    trigger: tr('você seria afetado negativamente por um efeito de emoção', 'you would be negatively affected by an emotion effect'),
                 },
                 // O texto manda "tentar um teste de counteract"; sem modificador na relíquia, o número é do mestre.
-                facts: (level) => `counteract de rank ${Math.ceil(level / 2)} (metade do nível, arredondada para cima); o modificador a AON não dá`,
+                facts: (level) => tr(`counteract de rank ${Math.ceil(level / 2)} (metade do nível, arredondada para cima); o modificador a AON não dá`, `rank ${Math.ceil(level / 2)} counteract (half the level, rounded up); AON doesn't give the modifier`),
             },
             {
                 id: 'bestow-life',
                 name: 'Bestow Life',
                 tier: 'minor',
                 kind: 'power',
-                activation: { cost: 2, frequency: 'uma vez por dia', limited: true },
-                facts: (level) => `objeto animado de nível ${Math.floor(level / 2)}, por 1 hora, numa tarefa simples sem combate`,
+                activation: { cost: 2, frequency: tr('uma vez por dia', 'once per day'), limited: true },
+                facts: (level) => tr(`objeto animado de nível ${Math.floor(level / 2)}, por 1 hora, numa tarefa simples sem combate`, `level ${Math.floor(level / 2)} animated object, for 1 hour, on a simple non-combat task`),
             },
         ],
     },
@@ -241,7 +242,7 @@ export const RELICS: RelicEntry[] = [
         character: nameStarts('woyd'),
         name: 'Brasão da Família',
         aspects: ['Soul', 'Emotion'],
-        description: 'A relíquia do Woyd: o brasão da família dele. O nível da relíquia é o do personagem. As dádivas são da AON: Absorb Injury e Emotion Surge.',
+        description: tr('A relíquia do Woyd: o brasão da família dele. O nível da relíquia é o do personagem. As dádivas são da AON: Absorb Injury e Emotion Surge.', 'Woyd\'s relic: his family\'s coat of arms. The relic\'s level is the character\'s level. The gifts come from AON: Absorb Injury and Emotion Surge.'),
         gifts: [
             // Secrets of Magic pg. 231: reação (envision), 1× por dia, aspecto Soul. Você recebe o dano do aliado,
             // com os efeitos que vêm junto (veneno, condições, persistente) — quanto é, é do mestre.
@@ -252,11 +253,11 @@ export const RELICS: RelicEntry[] = [
                 kind: 'power',
                 activation: {
                     cost: 'reaction',
-                    frequency: 'uma vez por dia',
+                    frequency: tr('uma vez por dia', 'once per day'),
                     limited: true,
-                    trigger: 'um aliado a até 9 m sofre dano',
+                    trigger: tr('um aliado a até 9 m sofre dano', 'an ally within 30 feet takes damage'),
                 },
-                facts: () => 'você recebe o dano no lugar do aliado, com os efeitos que vêm junto',
+                facts: () => tr('você recebe o dano no lugar do aliado, com os efeitos que vêm junto', 'you take the damage instead of the ally, with the effects that come with it'),
             },
             // Treasure Vault (Remastered) pg. 199: 1 ação (concentrar), 1× por hora, aspecto Emotion. +1 de status
             // por 1 minuto num tipo de teste que depende da EMOÇÃO da relíquia: Pride (informada pelo jogador) = Sociedade.
@@ -268,8 +269,8 @@ export const RELICS: RelicEntry[] = [
                 kind: 'power',
                 special: 'emotion-surge',
                 emotion: 'Pride',
-                activation: { cost: 1, frequency: 'uma vez por hora', limited: true },
-                facts: () => 'emoção Pride (orgulho): +1 de status em testes de Sociedade por 1 minuto',
+                activation: { cost: 1, frequency: tr('uma vez por hora', 'once per hour'), limited: true },
+                facts: () => tr('emoção Pride (orgulho): +1 de status em testes de Sociedade por 1 minuto', 'Pride emotion: +1 status bonus to Society checks for 1 minute'),
             },
         ],
     },
@@ -297,16 +298,16 @@ export function relicHealActivity(build: BuildInfo, relic: RelicEntry, gift: Rel
     const level = relicLevel(build)
     if (gift.special === 'healing-wave') {
         return {
-            key: giftUseKey(relic, gift), name: gift.name, actions: 2, daily: true, unstable: false, frequency: 'uma vez por hora',
+            key: giftUseKey(relic, gift), name: gift.name, actions: 2, daily: true, unstable: false, frequency: tr('uma vez por hora', 'once per hour'),
             count: level, faces: 4, flat: 0, formula: `${level}d4`,
-            note: 'Cone de 4,5 m: você e cada criatura viva na área recuperam o mesmo valor (uma rolagem só). Efeito de vitalidade.',
+            note: tr('Cone de 4,5 m: você e cada criatura viva na área recuperam o mesmo valor (uma rolagem só). Efeito de vitalidade.', '15-foot cone: you and each living creature in the area regain the same amount (a single roll). Vitality effect.'),
         }
     }
     if (gift.special === 'word-of-faith') {
         return {
-            key: giftUseKey(relic, gift), name: gift.name, actions: 2, daily: true, unstable: false, frequency: 'uma vez por hora',
+            key: giftUseKey(relic, gift), name: gift.name, actions: 2, daily: true, unstable: false, frequency: tr('uma vez por hora', 'once per hour'),
             count: level, faces: 8, flat: 0, formula: `${level}d8`,
-            note: 'Mão sobre você ou um aliado: ele recupera esse PV e reduz o Amedrontado em 1. Efeito de vitalidade, sagrado.',
+            note: tr('Mão sobre você ou um aliado: ele recupera esse PV e reduz o Amedrontado em 1. Efeito de vitalidade, sagrado.', 'Hand on you or an ally: they regain that HP and reduce frightened by 1. Vitality effect, holy.'),
             reducesFrightened: true,
         }
     }

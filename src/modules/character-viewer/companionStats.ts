@@ -1,3 +1,4 @@
+import { isEn } from '../../i18n'
 // Cálculo determinístico da ficha de um companheiro animal.
 //
 // O backend (api/_lib/companion-core.js) entrega a base CANÔNICA do companheiro
@@ -93,7 +94,9 @@ export interface ComputedCompanion {
     sourceBook?: string
 }
 
-// Perícias em pt-BR (o vocabulário mecânico chega canônico em inglês do AON).
+/* i18n-ignore-file */
+// Perícias em pt-BR (o vocabulário mecânico chega canônico em inglês do AON). Em inglês
+// (`isEn`) as funções devolvem o termo como veio; os dicionários são só do português.
 const SKILL_LABELS: Record<string, string> = {
     Acrobatics: 'Acrobacia', Arcana: 'Arcanismo', Athletics: 'Atletismo',
     Crafting: 'Ofício', Deception: 'Engano', Diplomacy: 'Diplomacia',
@@ -105,6 +108,7 @@ const SKILL_LABELS: Record<string, string> = {
 }
 
 export function translateSkill(name: string): string {
+    if (isEn) return name
     return SKILL_LABELS[name] ?? name
 }
 
@@ -125,10 +129,13 @@ const SENSE_PATTERNS: Array<[RegExp, string]> = [
 ]
 
 export function translateSenses(text: string): string {
+    if (isEn) return String(text || '')
     return SENSE_PATTERNS.reduce((acc, [re, pt]) => acc.replace(re, pt), String(text || ''))
 }
 
-const RANK_LABELS = ['Destreinado', 'Treinado', 'Perito', 'Mestre', 'Lendário']
+const RANK_LABELS = isEn
+    ? ['Untrained', 'Trained', 'Expert', 'Master', 'Legendary']
+    : ['Destreinado', 'Treinado', 'Perito', 'Mestre', 'Lendário']
 
 export function rankLabel(rank: Rank): string {
     return RANK_LABELS[rank] ?? RANK_LABELS[0]
@@ -140,6 +147,7 @@ const STAGE_LABELS: Record<string, string> = {
 }
 
 export function stageLabel(stage: string): string {
+    if (isEn) return stage
     return STAGE_LABELS[stage] ?? stage
 }
 

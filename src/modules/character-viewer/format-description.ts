@@ -18,6 +18,8 @@ export interface ParsedDescription {
     heightened: HeightenedEntry[]
 }
 
+/* i18n-ignore-file */
+// (Os rótulos abaixo são do PARSE do texto da AON, nos dois idiomas — não são texto da tela.)
 // Cabeçalhos canônicos PF2e (PT-BR + EN) que aparecem inline e merecem destaque.
 // Ordem importa: maiores antes (para "Sucesso Crítico" casar antes de "Sucesso").
 const SECTION_LABELS = [

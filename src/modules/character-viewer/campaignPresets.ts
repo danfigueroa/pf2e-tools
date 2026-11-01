@@ -1,6 +1,7 @@
 import { fetchPublished, type PublishedSheet } from '../../services/sheets'
 import { charSlugFromName } from './charId'
 import { currentMesa } from '../../services/mesa'
+import { tr } from '../../i18n'
 
 export interface CharacterPreset {
     /** Rótulo curto dos cards e botões — e o nome do combatente na Iniciativa. */
@@ -24,19 +25,19 @@ export interface CharacterPreset {
  */
 export const PRESETS_BY_MESA: Record<string, CharacterPreset[]> = {
   'casa-do-gordo': [
-    { name: 'Brukuthur', sheetName: 'Brukuthur, The Barbarian Android', class: 'Bárbaro',     level: 10, filename: 'brukuthur10.json'           },
-    { name: 'Ceros',     sheetName: 'Cerosqualhanthallas',              class: 'Patrulheiro', level: 10, filename: 'cerosqualhanthallas10.json' },
-    { name: 'Eldarion',  sheetName: 'Eldarion',                         class: 'Ladino',      level: 10, filename: 'eldarion10.json'            },
-    { name: 'Ghan Buri', sheetName: 'Ghan Buri',                        class: 'Guerreiro',   level: 10, filename: 'ghanburi10.json'            },
+    { name: 'Brukuthur', sheetName: 'Brukuthur, The Barbarian Android', class: tr('Bárbaro', 'Barbarian'),     level: 10, filename: 'brukuthur10.json'           },
+    { name: 'Ceros',     sheetName: 'Cerosqualhanthallas',              class: tr('Patrulheiro', 'Ranger'), level: 10, filename: 'cerosqualhanthallas10.json' },
+    { name: 'Eldarion',  sheetName: 'Eldarion',                         class: tr('Ladino', 'Rogue'),      level: 10, filename: 'eldarion10.json'            },
+    { name: 'Ghan Buri', sheetName: 'Ghan Buri',                        class: tr('Guerreiro', 'Fighter'),   level: 10, filename: 'ghanburi10.json'            },
     { name: 'Nathaniel', sheetName: 'Nathaniel o Magus',                class: 'Magus',       level: 10, filename: 'nathaniel10.json'           },
-    { name: 'Thalos',    sheetName: 'Thalos Alba',                      class: 'Psíquico',    level: 10, filename: 'thalos10.json'              },
+    { name: 'Thalos',    sheetName: 'Thalos Alba',                      class: tr('Psíquico', 'Psychic'),    level: 10, filename: 'thalos10.json'              },
   ],
   // Os outros JSONs ainda vão chegar; até lá, também as fichas publicadas pela mesa.
   'arton-1515': [
     { name: 'Loki',    sheetName: 'Loki',              class: 'Magus',        level: 7, filename: 'loki7.json'    },
-    { name: 'Miranda', sheetName: 'Miranda Stormblade', class: 'Investigadora', level: 7, filename: 'miranda7.json' },
-    { name: 'Hearts Folly', sheetName: 'Hearts folly', class: 'Monge', level: 7, filename: 'heartsfolly7.json' },
-    { name: 'Woyd', sheetName: 'Woyd', class: 'Clérigo', level: 7, filename: 'woyd7.json' },
+    { name: 'Miranda', sheetName: 'Miranda Stormblade', class: tr('Investigadora', 'Investigator'), level: 7, filename: 'miranda7.json' },
+    { name: 'Hearts Folly', sheetName: 'Hearts folly', class: tr('Monge', 'Monk'), level: 7, filename: 'heartsfolly7.json' },
+    { name: 'Woyd', sheetName: 'Woyd', class: tr('Clérigo', 'Cleric'), level: 7, filename: 'woyd7.json' },
   ],
 }
 
@@ -52,6 +53,6 @@ export async function loadPresetJson(preset: CharacterPreset): Promise<{ json: u
     const published = await fetchPublished(charSlugFromName(preset.sheetName))
     if (published) return { json: published.json, published }
     const res = await fetch(`/characters/${preset.filename}`)
-    if (!res.ok) throw new Error(`Falha ao carregar ${preset.filename}`)
+    if (!res.ok) throw new Error(tr(`Falha ao carregar ${preset.filename}`, `Failed to load ${preset.filename}`))
     return { json: await res.json(), published: null }
 }

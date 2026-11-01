@@ -12,6 +12,7 @@
  */
 import type { FeatDescription } from '../../pathbuilder/types'
 import { castTimeOf, type CastTime } from './spellCast'
+import { tr } from '../../i18n'
 
 export interface ActivityInfo {
     time: CastTime
@@ -30,13 +31,13 @@ export const DEDICATED: Readonly<Record<string, string>> = {
     'hunt prey': 'RangerBar',
     'gravity weapon': 'RangerBar',
     'arcane cascade': 'MagusBar',
-    'spellstrike': 'diálogo do Golpe',
-    'poison weapon': 'diálogo do Golpe',
-    'exacting strike': 'diálogo do Golpe',
+    'spellstrike': 'diálogo do Golpe', // i18n-ok: dado interno
+    'poison weapon': 'diálogo do Golpe', // i18n-ok: dado interno
+    'exacting strike': 'diálogo do Golpe', // i18n-ok: dado interno
     "hunter's aim": 'diálogo do Golpe',
-    'debilitating strike': 'diálogo do Golpe',
-    'reactive strike': 'diálogo do Golpe (reação)',
-    'battle medicine': 'diálogo de Medicina',
+    'debilitating strike': 'diálogo do Golpe', // i18n-ok: dado interno
+    'reactive strike': 'diálogo do Golpe (reação)', // i18n-ok: dado interno
+    'battle medicine': 'diálogo de Medicina', // i18n-ok: dado interno
     'shield block': 'ShieldCard',
     'reactive shield': 'ShieldCard',
     'quick shield block': 'ShieldCard',
@@ -44,22 +45,22 @@ export const DEDICATED: Readonly<Record<string, string>> = {
     'fiery rebirth': 'MagusBar',
     'summon mythic power': 'MagusBar',
     'unleash psyche': 'PsycheBar',
-    'rewrite fate': '✦ dos diálogos',
-    'devise a stratagem': 'diálogo do Golpe e da perícia',
-    'tamper': 'diálogo de Ofício (ação de perícia)',
-    'stand still': 'diálogo do Golpe (reação)',
-    'flurry of blows': 'diálogo do Golpe',
-    'ki strike': 'diálogo do Golpe',
-    'inner upheaval': 'diálogo do Golpe',
-    'perfect strike': 'diálogo do Golpe',
+    'rewrite fate': '✦ dos diálogos', // i18n-ok: dado interno
+    'devise a stratagem': 'diálogo do Golpe e da perícia', // i18n-ok: dado interno
+    'tamper': 'diálogo de Ofício (ação de perícia)', // i18n-ok: dado interno
+    'stand still': 'diálogo do Golpe (reação)', // i18n-ok: dado interno
+    'flurry of blows': 'diálogo do Golpe', // i18n-ok: dado interno
+    'ki strike': 'diálogo do Golpe', // i18n-ok: dado interno
+    'inner upheaval': 'diálogo do Golpe', // i18n-ok: dado interno
+    'perfect strike': 'diálogo do Golpe', // i18n-ok: dado interno
     'monastic archer stance': 'MonkBar',
     'orc ferocity': 'OrcFerocityButton',
     'pursue a lead': 'InvestigatorBar',
     'clue in': 'InvestigatorBar',
     'expeditious inspection': 'InvestigatorBar',
-    'mythic strike': '✦ do diálogo do Golpe',
-    'prescience': '✦ do diálogo de iniciativa',
-    'mythic magic': 'conjuração',
+    'mythic strike': '✦ do diálogo do Golpe', // i18n-ok: dado interno
+    'prescience': '✦ do diálogo de iniciativa', // i18n-ok: dado interno
+    'mythic magic': 'conjuração', // i18n-ok: dado interno
     'godspeed': 'MythicFeatsBar',
     'correct the story': 'MythicFeatsBar',
     'arc of destruction': 'MythicFeatsBar',
@@ -107,10 +108,10 @@ export function activityOf(name: string, desc: ActivitySource | null | undefined
 export function costLabel(info: ActivityInfo): string {
     const t = info.time
     const parts: string[] = []
-    if (t.kind === 'actions') parts.push(`${t.n} ${t.n === 1 ? 'ação' : 'ações'}`)
-    else if (t.kind === 'variable') parts.push(`${t.min}–${t.max} ações`)
-    else if (t.kind === 'reaction') parts.push('reação')
-    else if (t.kind === 'free') parts.push('ação livre')
-    if (info.mythicPoint) parts.push('1 ponto')
+    if (t.kind === 'actions') parts.push(`${t.n} ${t.n === 1 ? tr('ação', 'action') : tr('ações', 'actions')}`)
+    else if (t.kind === 'variable') parts.push(tr(`${t.min}–${t.max} ações`, `${t.min}–${t.max} actions`))
+    else if (t.kind === 'reaction') parts.push(tr('reação', 'reaction'))
+    else if (t.kind === 'free') parts.push(tr('ação livre', 'free action'))
+    if (info.mythicPoint) parts.push(tr('1 ponto', '1 point'))
     return parts.join(' + ')
 }

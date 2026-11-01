@@ -1,3 +1,4 @@
+import { isEn } from '../../i18n'
 /**
  * O traço de arma como a AON o registra: "Deadly d10" → "Deadly", "Fatal 1d10" → "Fatal",
  * "Volley 30 ft." → "Volley", "Versatile S" → "Versatile", "Twin (Sheath)" → "Twin".
@@ -15,7 +16,8 @@ export function traitName(raw: string): string {
         .trim()
 }
 
-/** O vocabulário da ficha (igual a `TRAIT_PT` de `api/_lib/rule-core.js` — mudou uma, muda a outra). */
+/** O vocabulário da ficha (igual a `TRAIT_PT` de `api/_lib/rule-core.js` — mudou uma, muda a outra). Só do português. */
+/* i18n-ignore-file */
 export const TRAIT_PT: Record<string, string> = {
     agile: 'ágil',
     finesse: 'acuidade',
@@ -54,6 +56,8 @@ export function traitLabel(raw: string, label?: string | null): string {
     if (!base) return text
     const at = text.toLowerCase().indexOf(base.toLowerCase())
     const rest = at >= 0 ? text.slice(at + base.length) : ''
+    // Em inglês o chip mostra o traço como a AON escreve (o `label` do servidor também vem em inglês).
+    if (isEn) return capitalize(text)
     const name = TRAIT_PT[base.toLowerCase()] ?? label ?? base
     return capitalize(`${name}${restPt(base, rest)}`.trim())
 }

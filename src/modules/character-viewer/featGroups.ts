@@ -1,3 +1,4 @@
+import { isEn, tr } from '../../i18n'
 /**
  * Os grupos das abas Talentos e Habilidades, em português.
  *
@@ -10,6 +11,8 @@
 import type { FeatDescription } from '../../pathbuilder/types'
 
 // --- Talentos ---------------------------------------------------------------------------------------
+// (Os dicionários abaixo são do português; em inglês vale o tipo como o Pathbuilder manda.)
+/* i18n-ignore-file */
 
 const FEAT_TYPES: Record<string, string> = {
     'class feat': 'Talentos de classe',
@@ -32,8 +35,22 @@ const CLASSES: Record<string, string> = {
 }
 
 /** "Class Feat" → "Talentos de classe"; "Fighter Feat" → "Talentos de Guerreiro"; "Elf Heritage" → "Herança: Elf". */
+const FEAT_TYPES_EN: Record<string, string> = {
+    'class feat': 'Class feats', 'ancestry feat': 'Ancestry feats', 'skill feat': 'Skill feats',
+    'general feat': 'General feats', 'archetype feat': 'Archetype feats', 'mythic feat': 'Mythic feats',
+    'awarded feat': 'Awarded feats', heritage: 'Heritage', 'bonus feat': 'Bonus feats',
+}
+
 export function featTypeLabel(type: string): string {
     const t = type.trim()
+    if (isEn) {
+        const known = FEAT_TYPES_EN[t.toLowerCase()]
+        if (known) return known
+        const feat = /^(.+) Feat$/i.exec(t)
+        if (feat) return `${feat[1]} feats`
+        const heritage = /^(.+) Heritage$/i.exec(t)
+        return heritage ? `Heritage: ${heritage[1]}` : t
+    }
     const known = FEAT_TYPES[t.toLowerCase()]
     if (known) return known
     const feat = /^(.+) Feat$/i.exec(t)
@@ -48,14 +65,14 @@ export function featTypeLabel(type: string): string {
 export type SpecialGroup = 'class' | 'ancestry' | 'mythic' | 'actions' | 'spells' | 'relic' | 'choices' | 'other'
 
 export const SPECIAL_GROUPS: Array<{ id: SpecialGroup; label: string }> = [
-    { id: 'class', label: 'Características de classe' },
-    { id: 'ancestry', label: 'Ancestralidade e herança' },
-    { id: 'mythic', label: 'Habilidades míticas' },
-    { id: 'actions', label: 'Ações' },
-    { id: 'spells', label: 'Magias e poderes' },
-    { id: 'relic', label: 'Relíquias' },
-    { id: 'choices', label: 'Escolhas da ficha' },
-    { id: 'other', label: 'Outras' },
+    { id: 'class', label: tr('Características de classe', 'Class features') },
+    { id: 'ancestry', label: tr('Ancestralidade e herança', 'Ancestry and heritage') },
+    { id: 'mythic', label: tr('Habilidades míticas', 'Mythic abilities') },
+    { id: 'actions', label: tr('Ações', 'Actions') },
+    { id: 'spells', label: tr('Magias e poderes', 'Spells and powers') },
+    { id: 'relic', label: tr('Relíquias', 'Relics') },
+    { id: 'choices', label: tr('Escolhas da ficha', 'Sheet choices') },
+    { id: 'other', label: tr('Outras', 'Other') },
 ]
 
 // Categorias da AON que são parte da classe (o ramo/escolha que a classe pede: escola, mente, doutrina…).

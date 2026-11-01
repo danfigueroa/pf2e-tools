@@ -6,6 +6,7 @@
 import type { HeightenedEntry } from './format-description'
 import type { SpellComponent, SpellDescription } from '../../pathbuilder/types'
 import { translateDamageType } from '../transformation-statblock/i18n'
+import { tr } from '../../i18n'
 
 /** Rank efetivo de conjuração: truques e focus spells (slot 0) elevam
  *  automaticamente para ceil(nível/2) (regra Remaster); slots normais usam o
@@ -159,21 +160,21 @@ export function formatValue(v: { count: number; faces: number; flat: number }): 
 export function componentLabel(c: ScaledComponent): string {
     const value = `${formatValue(c.value)}${c.uncertain ? ' (?)' : ''}`
     if (c.kind === 'healing') return `${value} PV`
-    if (c.kind === 'tempHp') return `${value} PV temporários`
+    if (c.kind === 'tempHp') return tr(`${value} PV temporários`, `${value} temporary HP`)
     const types = c.types.map(translateDamageType).join('/')
-    return [value, types, c.persistent ? 'persistente' : ''].filter(Boolean).join(' ')
+    return [value, types, c.persistent ? tr('persistente', 'persistent') : ''].filter(Boolean).join(' ')
 }
 
 /** Números não-dano, com rótulo: "Dureza", "Resistência (fogo)", "Cura extra". */
 export const NAMED_LABEL: Partial<Record<SpellComponent['kind'], string>> = {
-    hardness: 'Dureza',
-    resistance: 'Resistência',
+    hardness: tr('Dureza', 'Hardness'),
+    resistance: tr('Resistência', 'Resistance'),
     weakness: 'Fraqueza',
-    healingExtra: 'Cura extra',
+    healingExtra: tr('Cura extra', 'Extra healing'),
 }
 
 export function namedLabel(c: ScaledComponent): string {
-    const base = NAMED_LABEL[c.kind] ?? (c.kind === 'tempHp' ? 'PV temporários' : 'Valor')
+    const base = NAMED_LABEL[c.kind] ?? (c.kind === 'tempHp' ? tr('PV temporários', 'Temporary HP') : 'Valor')
     return c.types.length ? `${base} (${c.types.map(translateDamageType).join('/')})` : base
 }
 
