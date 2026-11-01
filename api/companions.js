@@ -3,6 +3,7 @@
 // server/index.mjs.
 import { resolveCompanion } from './_lib/companion-core.js'
 import { hasTranslationKey } from './_lib/aon.js'
+import { apiLang } from './_lib/i18n.js'
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -10,6 +11,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
 
   if (req.method === 'OPTIONS') return res.status(200).end()
+  const lang = apiLang(req, res)
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   const names = req.body?.names
@@ -17,13 +19,13 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Campo "names" deve ser um array não-vazio' })
   }
 
-  const translationEnabled = hasTranslationKey()
+  const translationEnabled = lang === 'en' ? false : hasTranslationKey()
 
   try {
     // Um por vez: cada chamada já é pesada (busca no AON + extração via LLM).
     const results = {}
     for (const name of names) {
-      const stats = await resolveCompanion(name, translationEnabled)
+      const stats = await resolveCompanion(name, translationEnabled, lang)
       if (stats) results[name] = stats
     }
     return res.status(200).json(results)

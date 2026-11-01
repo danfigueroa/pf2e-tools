@@ -1,6 +1,7 @@
 // Endpoint single (GET ?name=...) — legado; usa o mesmo núcleo do batch.
 import { resolveCompanion } from './_lib/companion-core.js'
 import { hasTranslationKey } from './_lib/aon.js'
+import { apiLang } from './_lib/i18n.js'
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -8,12 +9,13 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
 
   if (req.method === 'OPTIONS') return res.status(200).end()
+  const lang = apiLang(req, res)
 
   const { name } = req.query
   if (!name) return res.status(400).json({ error: 'Nome do animal é obrigatório' })
 
   try {
-    const stats = await resolveCompanion(name, hasTranslationKey())
+    const stats = await resolveCompanion(name, lang === 'en' ? false : hasTranslationKey(), lang)
     if (!stats) {
       return res.status(404).json({ error: `Companheiro "${name}" não encontrado no AON` })
     }

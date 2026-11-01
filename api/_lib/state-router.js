@@ -32,6 +32,7 @@ import { handleTrophyRequest, isTrophyRequest } from './trophy-handler.js'
 import { ownerOf, recordFeat, safely } from './trophy-store.js'
 import { mesaFrom } from './mesas.js'
 import { canEditSheet, forbidden, gate, resolveAccess } from './access.js'
+import { langOf, localizeBody } from './i18n.js'
 
 const fail = (status, error) => ({ status, body: { error } })
 
@@ -50,7 +51,13 @@ async function run(label, message, fn) {
     }
 }
 
-export async function routeState({ req, method, query, body }) {
+export async function routeState(input) {
+    // As mensagens de erro saem em inglês quando o pedido é em inglês (`?lang=en`).
+    const out = await route(input)
+    return { ...out, body: localizeBody(out.body, langOf(input.query)) }
+}
+
+async function route({ req, method, query, body }) {
     // A mesa vale para tudo abaixo (ver mesas.js). Vai na query também no POST.
     const mesa = mesaFrom(query)
     if (!mesa) return fail(400, 'Parâmetro "mesa" inválido')
@@ -69,7 +76,7 @@ export async function routeState({ req, method, query, body }) {
 
     const denied = gate(access)
     if (denied) return denied
-    const ctx = { userId: access.userId, access }
+    const ctx = { userId: access.userId, access, lang: langOf(query) }
 
     if (isEventRequest(method, query, body)) {
         return run('Erro nas notificações', 'Erro ao tratar as notificações', () =>

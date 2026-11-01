@@ -25,6 +25,7 @@ import { resolveItemTraits } from './_lib/item-traits-core.js'
 import { resolveShields } from './_lib/shield-core.js'
 import { resolveGear } from './_lib/gear-core.js'
 import { hasTranslationKey } from './_lib/aon.js'
+import { apiLang } from './_lib/i18n.js'
 
 export default async function handler(req, res) {
   // CORS
@@ -35,6 +36,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     return res.status(200).end()
   }
+  const lang = apiLang(req, res)
 
   // Modo aflição: lista de venenos/doenças com estágios.
   const affliction = req.query?.affliction ? String(req.query.affliction).trim() : ''
@@ -51,7 +53,7 @@ export default async function handler(req, res) {
   const traitRules = req.query?.traitRules ? String(req.query.traitRules) : ''
   if (traitRules) {
     try {
-      return res.status(200).json({ rules: await resolveTraitRules(traitRules.split('|')) })
+      return res.status(200).json({ rules: await resolveTraitRules(traitRules.split('|'), lang) })
     } catch (error) {
       console.error('Trait rules API error:', error)
       return res.status(500).json({ error: 'Erro ao buscar regras' })
@@ -135,7 +137,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const entry = await resolveSpecial(name, hasTranslationKey())
+    const entry = await resolveSpecial(name, lang === 'en' ? false : hasTranslationKey(), lang)
     if (!entry.description) {
       return res.status(404).json({ error: 'Item não encontrado' })
     }

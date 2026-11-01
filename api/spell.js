@@ -1,6 +1,7 @@
 // Endpoint single (GET ?name=...) — legado; usa o mesmo núcleo do batch.
 import { resolveSpell } from './_lib/spells-core.js'
 import { hasTranslationKey } from './_lib/aon.js'
+import { apiLang } from './_lib/i18n.js'
 
 export default async function handler(req, res) {
   // CORS
@@ -11,6 +12,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     return res.status(200).end()
   }
+  const lang = apiLang(req, res)
 
   const { name } = req.query
 
@@ -19,7 +21,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const spellData = await resolveSpell(name, hasTranslationKey())
+    const spellData = await resolveSpell(name, lang === 'en' ? false : hasTranslationKey(), lang)
     if (!spellData.description) {
       return res.status(404).json({ error: 'Magia não encontrada' })
     }

@@ -3,6 +3,7 @@
 // api/_lib/spells-core.js, compartilhado com api/spell.js e server/index.mjs.
 import { resolveSpells } from './_lib/spells-core.js'
 import { hasTranslationKey } from './_lib/aon.js'
+import { apiLang } from './_lib/i18n.js'
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -10,6 +11,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
 
   if (req.method === 'OPTIONS') return res.status(200).end()
+  const lang = apiLang(req, res)
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   let names
@@ -22,7 +24,8 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Body inválido' })
   }
 
-  const translationEnabled = hasTranslationKey()
+  // Inglês: o texto da AON, sem tradução (nem chave de IA é preciso).
+  const translationEnabled = lang === 'en' ? false : hasTranslationKey()
 
   try {
     // Cada grupo traduz tudo numa chamada só (ver resolveSpells): o espaço entre
@@ -31,7 +34,7 @@ export default async function handler(req, res) {
     const results = {}
     for (let i = 0; i < names.length; i += GROUP) {
       const group = names.slice(i, i + GROUP)
-      const resolved = await resolveSpells(group, translationEnabled)
+      const resolved = await resolveSpells(group, translationEnabled, lang)
       // Chavear pelo nome de INPUT (não pelo nome retornado do AON), assim o
       // frontend encontra a magia mesmo quando o AON normaliza capitalização/sufixo.
       resolved.forEach((r, idx) => { results[group[idx]] = r })

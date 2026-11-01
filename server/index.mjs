@@ -15,6 +15,7 @@ import { resolveItemTraits } from '../api/_lib/item-traits-core.js'
 import { hasTranslationKey } from '../api/_lib/aon.js'
 import { pingDatabase } from '../api/_lib/supabase.js'
 import { routeState } from '../api/_lib/state-router.js'
+import { langOf, localizeBody } from '../api/_lib/i18n.js'
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3001
 // Gate de tradução: as chaves em si (GEMINI_API_KEY / GROQ_API_KEY) são lidas
@@ -27,12 +28,15 @@ const CACHE = new Map()
 // (api/_lib/feat-core.js). Aqui só entra o cache em memória do dev server —
 // payloads com translationPending (ex.: 429 do Groq) NÃO são cacheados, para
 // que a próxima consulta retraduza em vez de fixar o inglês.
-async function resolveEntryCached(name, kind) {
-  const cacheKey = `${kind}:${name}`
+// O idioma entra na chave: em inglês o texto é o da AON, sem tradução.
+const langKey = (lang) => (lang === 'en' ? 'en:' : '')
+
+async function resolveEntryCached(name, kind, lang = 'pt') {
+  const cacheKey = `${langKey(lang)}${kind}:${name}`
   if (CACHE.has(cacheKey)) return CACHE.get(cacheKey)
 
   const resolver = kind === 'feat' ? resolveFeat : kind === 'item' ? resolveItem : resolveSpecial
-  const entry = await resolver(name, TRANSLATION_ENABLED)
+  const entry = await resolver(name, TRANSLATION_ENABLED, lang)
   if (entry && !entry.translationPending) CACHE.set(cacheKey, entry)
   return entry
 }
@@ -41,14 +45,14 @@ async function resolveEntryCached(name, kind) {
 // Resolução de magias delegada ao núcleo compartilhado com o serverless
 // (api/_lib/spells-core.js) — mesma busca, parse estrutural e tradução.
 // Aqui só entra o cache em memória do dev server.
-async function resolveSpellCached(spellName) {
-  const cacheKey = `spell:${spellName}`
+async function resolveSpellCached(spellName, lang = 'pt') {
+  const cacheKey = `${langKey(lang)}spell:${spellName}`
   if (CACHE.has(cacheKey)) {
     return CACHE.get(cacheKey)
   }
   console.log(`[spell] Buscando: ${spellName}`)
   try {
-    const spellData = await resolveSpell(spellName, TRANSLATION_ENABLED)
+    const spellData = await resolveSpell(spellName, TRANSLATION_ENABLED, lang)
     // Tradução pendente (ex.: 429 do Groq) → não cachear, retenta na próxima.
     if (spellData && !spellData.translationPending) CACHE.set(cacheKey, spellData)
     return spellData
@@ -60,11 +64,11 @@ async function resolveSpellCached(spellName) {
 
 // Companheiros animais: mesma resolução do serverless
 // (api/_lib/companion-core.js). Aqui só entra o cache em memória do dev server.
-async function resolveCompanionCached(animalName) {
-  const cacheKey = `companion:${animalName}`
+async function resolveCompanionCached(animalName, lang = 'pt') {
+  const cacheKey = `${langKey(lang)}companion:${animalName}`
   if (CACHE.has(cacheKey)) return CACHE.get(cacheKey)
 
-  const stats = await resolveCompanion(animalName, TRANSLATION_ENABLED)
+  const stats = await resolveCompanion(animalName, TRANSLATION_ENABLED, lang)
   if (stats) {
     console.log(`[companion] ${animalName}: ${stats.size}, ${stats.speed} pés`)
     CACHE.set(cacheKey, stats)
@@ -104,6 +108,18 @@ const server = http.createServer(async (req, res) => {
   
   const parsedUrl = new URL(req.url, `http://localhost:${PORT}`)
   const pathname = parsedUrl.pathname
+  // `?lang=en` (o cliente em inglês põe em todo pedido): descrições sem tradução e os
+  // erros em inglês, traduzidos na saída como no serverless (`apiLang`).
+  const lang = langOf(parsedUrl.searchParams)
+  if (lang === 'en') {
+    const end = res.end.bind(res)
+    res.end = (chunk, ...rest) => {
+      if (typeof chunk === 'string' && chunk.startsWith('{')) {
+        try { chunk = JSON.stringify(localizeBody(JSON.parse(chunk), lang)) } catch { /* não é JSON: vai como está */ }
+      }
+      return end(chunk, ...rest)
+    }
+  }
   
   // Health check
   if (pathname === '/api/health') {
@@ -136,7 +152,7 @@ const server = http.createServer(async (req, res) => {
     }
     
     try {
-      const feat = await resolveEntryCached(name, 'feat')
+      const feat = await resolveEntryCached(name, 'feat', lang)
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify(feat || { name, description: null }))
     } catch (e) {
@@ -171,7 +187,7 @@ const server = http.createServer(async (req, res) => {
     const traitRulesParam = parsedUrl.searchParams.get('traitRules') || ''
     if (traitRulesParam) {
       try {
-        const rules = await resolveTraitRules(traitRulesParam.split('|'))
+        const rules = await resolveTraitRules(traitRulesParam.split('|'), lang)
         res.writeHead(200, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ rules }))
       } catch (e) {
@@ -278,7 +294,7 @@ const server = http.createServer(async (req, res) => {
     }
     
     try {
-      const entry = await resolveEntryCached(name, 'special')
+      const entry = await resolveEntryCached(name, 'special', lang)
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify(entry || { name, description: null }))
     } catch (e) {
@@ -299,7 +315,7 @@ const server = http.createServer(async (req, res) => {
     }
     
     try {
-      const spellData = await resolveSpellCached(name)
+      const spellData = await resolveSpellCached(name, lang)
       res.writeHead(200, { 'Content-Type': 'application/json' })
       // Retorna o objeto completo da magia (não apenas description)
       res.end(JSON.stringify(spellData || { name, description: null }))
@@ -320,7 +336,7 @@ const server = http.createServer(async (req, res) => {
       return
     }
     try {
-      const stats = await resolveCompanionCached(name)
+      const stats = await resolveCompanionCached(name, lang)
       if (!stats) {
         res.writeHead(404, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ error: 'Companheiro não encontrado' }))
@@ -401,7 +417,7 @@ const server = http.createServer(async (req, res) => {
     try {
       const results = {}
       for (const name of names) {
-        const stats = await resolveCompanionCached(name)
+        const stats = await resolveCompanionCached(name, lang)
         if (stats) results[name] = stats
       }
       res.writeHead(200, { 'Content-Type': 'application/json' })
@@ -429,7 +445,7 @@ const server = http.createServer(async (req, res) => {
       for (let i = 0; i < names.length; i += CONCURRENCY) {
         const chunk = names.slice(i, i + CONCURRENCY)
         const resolved = await Promise.all(chunk.map(async n => {
-          return (await resolveEntryCached(n, 'feat')) || { name: n, description: null }
+          return (await resolveEntryCached(n, 'feat', lang)) || { name: n, description: null }
         }))
         // Chavear pelo nome de INPUT (não pelo nome do AON), como no serverless.
         resolved.forEach((r, idx) => { results[chunk[idx]] = r })
@@ -459,7 +475,7 @@ const server = http.createServer(async (req, res) => {
       for (let i = 0; i < names.length; i += CONCURRENCY) {
         const chunk = names.slice(i, i + CONCURRENCY)
         const resolved = await Promise.all(chunk.map(async n => {
-          return (await resolveEntryCached(n, parsedUrl.searchParams.get('kind') === 'item' ? 'item' : 'special')) || { name: n, description: null }
+          return (await resolveEntryCached(n, parsedUrl.searchParams.get('kind') === 'item' ? 'item' : 'special', lang)) || { name: n, description: null }
         }))
         resolved.forEach((r, idx) => { results[chunk[idx]] = r })
       }
@@ -489,16 +505,16 @@ const server = http.createServer(async (req, res) => {
       const results = {}
       const missing = []
       for (const n of names) {
-        const hit = CACHE.get(`spell:${n}`)
+        const hit = CACHE.get(`${langKey(lang)}spell:${n}`)
         if (hit) results[n] = hit
         else missing.push(n)
       }
       for (let i = 0; i < missing.length; i += GROUP) {
         const group = missing.slice(i, i + GROUP)
-        const resolved = await resolveSpells(group, TRANSLATION_ENABLED)
+        const resolved = await resolveSpells(group, TRANSLATION_ENABLED, lang)
         resolved.forEach((r, idx) => {
           // Tradução pendente não é cacheada: retenta na próxima.
-          if (r && !r.translationPending) CACHE.set(`spell:${group[idx]}`, r)
+          if (r && !r.translationPending) CACHE.set(`${langKey(lang)}spell:${group[idx]}`, r)
           // Chavear pelo nome de INPUT (não pelo nome do AON), como no serverless.
           results[group[idx]] = r || { name: group[idx], description: null }
         })
