@@ -39,10 +39,3 @@ export function weaponNameKey(build: BuildInfo, weapon: Weapon): string {
 
 /** A chave de um ataque desarmado (`UnarmedAttack.id`). */
 export const unarmedNameKey = (id: string): string => `u:${id}`
-
-/**
- * O nome que vai ao feed e ao título do diálogo: o apelido seguido do nome da arma entre parênteses —
- * quem lê o histórico da mesa vê qual é a arma de verdade. Sem apelido, o nome de sempre.
- */
-export const attackLabel = (nickname: string | undefined, original: string): string =>
-    nickname ? `${nickname} (${original})` : original

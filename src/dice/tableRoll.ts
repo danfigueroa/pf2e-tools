@@ -172,7 +172,7 @@ export function sanitizeTableRoll(raw: unknown): TableRoll | null {
         title: str(r.title, 60),
     }
     if (typeof r.slug === 'string' && /^[a-z0-9-]{1,64}$/.test(r.slug)) out.slug = r.slug
-    if (typeof r.sub === 'string' && r.sub) out.sub = str(r.sub, 80)
+    if (typeof r.sub === 'string' && r.sub) out.sub = str(r.sub, 160)
     if (typeof r.note === 'string' && r.note) out.note = str(r.note, 300)
 
     if (r.check !== undefined) {

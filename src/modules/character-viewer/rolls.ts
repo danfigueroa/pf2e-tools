@@ -143,7 +143,7 @@ export function flurryRoll(who: RollerIdentity, strike: Strike, plans: [StrikePl
             },
         }
     })
-    return { ...base(who, `Flurry of Blows — ${strike.label ?? strike.name}`, sub), rays, ...(note ? { note } : {}) }
+    return { ...base(who, `Flurry of Blows — ${strike.label ?? strike.name}`, strikeSub(strike, sub)), rays, ...(note ? { note } : {}) }
 }
 
 /** Uso de um poder que não rola nada (dádiva de relíquia): o cartão da mesa mostra o que foi usado e o que custou. */
@@ -169,6 +169,10 @@ export function assuranceRoll(who: RollerIdentity, title: string, proficiency: n
     }
 }
 
+/** O `sub` de um Golpe: o nome completo da arma (quando tem apelido) e o que a rolagem já diz. */
+const strikeSub = (strike: Strike, sub?: string): string | undefined =>
+    [strike.detail, sub].filter(Boolean).join(' · ') || undefined
+
 /** Golpe: o ataque e o dano saem juntos, com o crítico já montado. */
 export function strikeRoll(
     who: RollerIdentity,
@@ -180,7 +184,7 @@ export function strikeRoll(
     const attackParts = mythicDelta != null ? [...plan.attackParts, mythicPart(mythicDelta)] : plan.attackParts
     const dmg = rollStrikeDamage(plan, strike.damageType)
     return {
-        ...base(who, `Golpe — ${strike.label ?? strike.name}`, sub),
+        ...base(who, `Golpe — ${strike.label ?? strike.name}`, strikeSub(strike, sub)),
         check: d20Check(attackParts, mythicDelta != null),
         damage: {
             parts: dmg.parts.map((p) => toPart(p.label, p.rolled, p.persistent)),

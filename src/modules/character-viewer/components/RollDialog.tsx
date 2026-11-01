@@ -53,7 +53,7 @@ import {
     type StrikeOptions,
 } from '../strikes'
 import { damageComponents, formatValue, componentLabel, scaleSpell, type ScaledComponent } from '../heightening'
-import { attackLabel } from '../attackNames'
+import { itemDisplayName } from '../customRunes'
 import { assuranceRoll, checkRoll, flurryRoll, isMythicAttackSpell, mapLabel, mythicSpellAttack, raysRoll, rollerIdentity, treatWoundsRoll, spellRoll, spellstrikeRoll, strikeRoll, withSimplePoison, type SpellAttackInfo } from '../rolls'
 import type { TableRoll } from '../../../dice/tableRoll'
 import { dialogEmbedProps, useEmbedContainer } from '../embedContext'
@@ -636,7 +636,8 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
         ? weaponStrike(build, weapon, entry && entry.kind === 'weapon' ? entry : null, rules, profile)
         : unarmedStrike(build, (request as Extract<RollRequest, { kind: 'unarmed' }>).attack)
     // O apelido só vai ao que a mesa lê; o `name` segue casando traços, runas e regras.
-    const strike = request.nickname ? { ...plainStrike, label: attackLabel(request.nickname, plainStrike.name) } : plainStrike
+    const fullName = weapon ? itemDisplayName(build, weapon, 'weapon') : plainStrike.name
+    const strike = request.nickname ? { ...plainStrike, label: request.nickname, detail: fullName } : plainStrike
 
     // Por arma, não por perfil: o 2d6 de precisão da Gloom Blade é o mesmo nos três perfis.
     const storeKey = extrasKey(who.slug, weapon ? `w:${weapon.name}` : strike.key)
@@ -755,7 +756,12 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
 
     return (
         <>
-            <DialogTitle sx={{ pb: 1 }}>Golpe — {weapon ? attackLabel(request.nickname, weapon.display || weapon.name) : attackLabel(request.nickname, strike.name)}</DialogTitle>
+            <DialogTitle sx={{ pb: 1 }}>
+                Golpe — {request.nickname ?? fullName}
+                {request.nickname && (
+                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 400, lineHeight: 1.3 }}>{fullName}</Typography>
+                )}
+            </DialogTitle>
             <DialogContent>
                 <Stack spacing={1.5} sx={{ pt: 0.5 }}>
                     {rules && rules.profiles.length > 0 && (

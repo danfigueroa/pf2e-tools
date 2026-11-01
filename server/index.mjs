@@ -10,7 +10,7 @@ import { resolveAfflictions } from '../api/_lib/affliction-core.js'
 import { resolveShields } from '../api/_lib/shield-core.js'
 import { resolveGear } from '../api/_lib/gear-core.js'
 import { resolveSpellList } from '../api/_lib/spell-list-core.js'
-import { resolveRule } from '../api/_lib/rule-core.js'
+import { resolveRule, resolveTraitRules } from '../api/_lib/rule-core.js'
 import { resolveItemTraits } from '../api/_lib/item-traits-core.js'
 import { hasTranslationKey } from '../api/_lib/aon.js'
 import { pingDatabase } from '../api/_lib/supabase.js'
@@ -161,6 +161,21 @@ const server = http.createServer(async (req, res) => {
         res.end(JSON.stringify(page))
       } catch (e) {
         console.error('[/api/search?affliction] Error:', e)
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: e.message }))
+      }
+      return
+    }
+
+    // Modo regras de traço em lote (?traitRules=a|b): as regras dos traços das armas, já no banco.
+    const traitRulesParam = parsedUrl.searchParams.get('traitRules') || ''
+    if (traitRulesParam) {
+      try {
+        const rules = await resolveTraitRules(traitRulesParam.split('|'))
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ rules }))
+      } catch (e) {
+        console.error('[/api/search?traitRules] Error:', e)
         res.writeHead(500, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ error: e.message }))
       }

@@ -16,6 +16,7 @@
 
 import { searchAonRaw } from './aon.js'
 import { isLegacy, toArray } from './creature-core.js'
+import { cachedLookup } from './lookup-cache.js'
 
 const AON_BASE = 'https://2e.aonprd.com'
 
@@ -131,3 +132,47 @@ export async function resolveRule(name, kind = null) {
   }
   return null
 }
+
+
+// --- Traços de arma, em lote e já no banco ------------------------------------------------------
+
+export const MAX_TRAIT_RULES = 30
+
+/**
+ * O traço de arma como a AON o registra: "Deadly d10" → "Deadly", "Fatal 1d10" → "Fatal",
+ * "Volley 30 ft." → "Volley", "Versatile S" → "Versatile", "Twin (Sheath)" → "Twin".
+ * (`traitName` em `character-viewer/weaponTraits.ts` é a mesma conta — mudou uma, muda a outra.)
+ */
+export function weaponTraitName(raw) {
+  return String(raw || '')
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/\b\d*d\d+\b/gi, ' ')
+    .replace(/\d+\s*(?:feet|foot|ft\.?)?/gi, ' ')
+    .replace(/^(versatile|modular)\b.*$/i, '$1')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/** Só a categoria `trait`: "Unarmed" ou "Deadly" não podem cair numa magia ou condição homônima. */
+async function resolveTraitOnly(term) {
+  const { hits } = await searchAonRaw({ query: term, category: 'trait', limit: 8 })
+  const hit = pickHit(hits, term)
+  return hit ? normalize(hit) : null
+}
+
+async function resolveTraitRulesUncached(terms) {
+  const out = {}
+  for (const term of terms) {
+    const rule = await resolveTraitOnly(term).catch(() => null)
+    if (rule) out[term] = rule
+  }
+  return out
+}
+
+/**
+ * A regra de vários traços de uma vez, chaveada pelo termo. A primeira vez vai à AON; depois sai do
+ * banco (`aon_lookups`, `trait:v1`, global) — o tocar no chip da arma não espera a AON. O que a
+ * AON não tem fica de fora e é tentado de novo na próxima. Subiu o formato de `normalize`? Suba a versão.
+ */
+export const resolveTraitRules = (terms) =>
+  cachedLookup('trait:v1', [...new Set(terms.map(weaponTraitName).filter(Boolean))].slice(0, MAX_TRAIT_RULES), resolveTraitRulesUncached)

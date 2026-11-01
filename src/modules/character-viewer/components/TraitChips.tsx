@@ -1,7 +1,7 @@
-import { memo, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
 import { Chip, Popover, Stack } from '@mui/material'
-import { fetchRule, type AonRule } from '../../../services/rules'
-import { traitTerm } from '../../monster-scaler/ruleTerms'
+import { fetchRule, prefetchTraitRules, type AonRule } from '../../../services/rules'
+import { traitName } from '../weaponTraits'
 import { RuleBody } from '../../monster-scaler/components/RuleTip'
 
 // Os traços de uma arma ("Deadly d10", "Volley 30 ft.", "Agile") como chips que, ao toque, abrem
@@ -17,13 +17,16 @@ export const TraitChips = memo(function TraitChips({ traits }: { traits: string[
   const [rule, setRule] = useState<AonRule | null>(null)
   const [loading, setLoading] = useState(false)
   const unique = [...new Set(traits.map((t) => t.trim()).filter(Boolean))]
+  // As regras já estão no banco do servidor: uma consulta em lote ao aparecer, e o toque lê da memória.
+  const wanted = unique.map(traitName).join('|')
+  useEffect(() => { if (wanted) void prefetchTraitRules(wanted.split('|')) }, [wanted])
   if (unique.length === 0) return null
 
   const show = (el: HTMLElement, raw: string) => {
     setOpen({ el, raw })
     setRule(null)
     setLoading(true)
-    void fetchRule(traitTerm(raw), 'trait').then((found) => {
+    void fetchRule(traitName(raw), 'trait').then((found) => {
       // Quem toca em outro traço antes da resposta não recebe a regra do anterior.
       setOpen((cur) => {
         if (cur?.raw === raw) { setRule(found); setLoading(false) }

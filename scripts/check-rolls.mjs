@@ -1122,24 +1122,45 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
 
 // ── Nome próprio das armas e ataques: só apresentação, com chave estável ──
 {
-    const { sanitizeAttackNames, weaponNameKey, unarmedNameKey, attackLabel, MAX_NAME_LENGTH, MAX_NAMES } = attackNames
+    const { sanitizeAttackNames, weaponNameKey, unarmedNameKey, MAX_NAME_LENGTH, MAX_NAMES } = attackNames
     const dagger = { name: 'Dagger' }, dagger2 = { name: 'Dagger' }, bow = { name: 'Longbow' }
     const build = { weapons: [dagger, bow, dagger2] }
     eq(weaponNameKey(build, dagger), 'w:dagger#0', 'primeira Dagger')
     eq(weaponNameKey(build, dagger2), 'w:dagger#1', 'segunda Dagger é outro apelido')
     eq(weaponNameKey(build, bow), 'w:longbow#0', 'a chave não depende do `display` (runa nova não perde o apelido)')
     eq(unarmedNameKey('fist'), 'u:fist', 'chave do desarmado')
-    eq(attackLabel('Fenrir', 'Longbow'), 'Fenrir (Longbow)', 'o feed mostra o apelido e a arma de verdade')
-    eq(attackLabel(undefined, 'Longbow'), 'Longbow', 'sem apelido, o nome de sempre')
     const clean = sanitizeAttackNames({ 'w:a#0': '  Fenrir  ', 'w:b#0': '   ', 'w:c#0': 7, 'w:d#0': 'x'.repeat(200) })
     eq(JSON.stringify(Object.keys(clean)), '["w:a#0","w:d#0"]', 'vazio e não-texto saem')
     eq(clean['w:a#0'], 'Fenrir', 'apara os espaços')
     eq(clean['w:d#0'].length, MAX_NAME_LENGTH, 'corta no teto')
     eq(Object.keys(sanitizeAttackNames(Object.fromEntries(Array.from({ length: 80 }, (_, i) => [`w:${i}#0`, 'n'])))).length, MAX_NAMES, 'teto de apelidos por ficha')
     eq(Object.keys(sanitizeAttackNames([1, 2])).length, 0, 'array não é o formato')
-    // O strike com `label` não muda o `name`: as regras seguem casando por ele.
-    const strike = { name: 'Longbow', label: attackLabel('Fenrir', 'Longbow') }
-    eq(strike.name, 'Longbow', 'o `name` do Strike (regras) não é tocado')
+    // Com apelido, o título leva o apelido e o `sub` leva o nome completo (runas, material), nas duas validações.
+    const full = '+1 Striking Decaying Cold Iron (Low-Grade) Special Unarmed (1d6)'
+    const named = { ...ghanStrike, label: 'Punho do Dragão', detail: full }
+    const nr = rolls.strikeRoll(who, named, strikes.planStrike(party.ghan, named, NO_MODIFIERS, opts()), null, 'ágil')
+    eq(nr.title, 'Golpe — Punho do Dragão', 'o título é o apelido')
+    eq(nr.sub, `${full} · ágil`, 'o nome completo vai no sub, antes do resto')
+    eq(table.sanitizeTableRoll(nr)?.sub, nr.sub, 'cliente guarda o sub inteiro')
+    eq(server.sanitizeRoll(nr)?.sub, nr.sub, 'servidor guarda o sub inteiro')
+    eq(named.name, ghanStrike.name, 'o `name` do Strike (regras) não é tocado')
+    const plain = rolls.strikeRoll(who, ghanStrike, strikes.planStrike(party.ghan, ghanStrike, NO_MODIFIERS, opts()), null)
+    eq(plain.sub, undefined, 'sem apelido, nada muda no sub')
+}
+
+// ── O nome do traço de arma (para buscar a regra): cliente e servidor fazem a mesma conta ──
+{
+    const { traitName } = await import('../src/modules/character-viewer/weaponTraits.ts')
+    const { weaponTraitName } = await import('../api/_lib/rule-core.js')
+    const cases = {
+        'Deadly d10': 'Deadly', 'Fatal 1d10': 'Fatal', 'Volley 30 ft.': 'Volley', 'Versatile S': 'Versatile',
+        'Twin (Sheath)': 'Twin', 'Thrown 10 ft.': 'Thrown', 'Two-Hand d10': 'Two-Hand', 'Modular B, P, or S': 'Modular',
+        'Agile': 'Agile', 'Reload 1': 'Reload',
+    }
+    for (const [raw, want] of Object.entries(cases)) {
+        eq(traitName(raw), want, `traço "${raw}" no cliente`)
+        eq(weaponTraitName(raw), want, `traço "${raw}" no servidor`)
+    }
 }
 
 // ── Path to Perfection do Monge: o export traz a escolha ("Will"), não o nome da habilidade ──

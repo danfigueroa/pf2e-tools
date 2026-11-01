@@ -1385,12 +1385,16 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   próximo export desfaria — e as regras (traços da AON, `magicWeapons.ts`, `homebrewGear.ts`, runas, `meleeBonusParts`)
   seguem casando pelo `name` ORIGINAL. A chave usa o `name` do Pathbuilder (sobrevive a runa nova, ao contrário do `display`)
   mais a ocorrência (duas Daggers = dois apelidos). O card mostra o apelido com o original embaixo; o título do diálogo e o do
-  feed viram "Fenrir (Longbow)" por `Strike.label` — campo só de leitura da mesa, **nunca use `label` em conta**. Campo de 40
+  feed mostram o apelido (`Strike.label`, título "Golpe — Punho do Dragão") e o nome COMPLETO com runas e material (`Strike.detail`, no `sub` da rolagem; o card o mantém logo abaixo do apelido, legível) — campos só de leitura da mesa, **nunca use `label`/`detail` em conta**. O limite do `sub` subiu de 80 para 160 nos DOIS validadores por causa disso. Campo de 40
   caracteres, 30 apelidos por ficha (`sanitizeAttackNames`, conferido no `check-rolls`). Ficha de outra pessoa: o `IconButton`
   fica travado pelo `ReadOnlyTheme`, e o `useSharedState` não escreve.
 - **Traços das armas** (`components/TraitChips.tsx`): cada arma e ataque desarmado mostra os traços (`search?gear=`, ou o catálogo
-  de `homebrewGear.ts`) como chips; tocar abre a regra da AON (`fetchRule(traitTerm(raw), 'trait')`, em inglês, a mesma do stat block
-  do monstro) num popover. Os traços vêm da entrada remaster (conferido contra a legacy, sem divergência nas armas do grupo).
+  de `homebrewGear.ts`) como chips; tocar abre a regra da AON (em inglês, a mesma do stat block do monstro) num popover. **As regras já estão
+  no banco**: `search?traitRules=a|b` (`resolveTraitRules` em `rule-core.js`, tabela `aon_lookups`, `kind` `trait:v1` — o CHECK da
+  coluna só aceita `letras:vN`, sem segundo `:`) devolve várias de uma vez; a publicação as aquece (`sheet-warm.js`, mais os traços
+  dos desarmados) e o `TraitChips` as busca em lote ao aparecer (`prefetchTraitRules`, no MESMO cache de `fetchRule(…, 'trait')`),
+  então o toque lê da memória. **O nome do traço é `traitName`** (`weaponTraits.ts` = `weaponTraitName` do servidor, conferido no
+  `check-rolls`): "Deadly d10" → "Deadly". O `traitTerm` do stat block de monstro tira os dígitos e deixaria "Deadly d" — não use aqui. Os traços vêm da entrada remaster (conferido contra a legacy, sem divergência nas armas do grupo).
 - **Curas que são ação** (`healActivities.ts` + `HealActivityButton`): **Searing Restoration** (1d10 + 1d10 no 3º nível e a cada 2
   depois: 4d10 no nível 7) e **Healer's Touch** (2d6+7; 4d6+15 na Greater; 1×/dia, `uses`). O botão "Curar" rola, posta no feed
   (`healRoll`, uma parcela `free`) e soma ao PV de quem usa ("Em mim mesmo"). O traço **Unstable** (Guns & Gears Remastered pg. 236)

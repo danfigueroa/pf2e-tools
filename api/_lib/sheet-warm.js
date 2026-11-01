@@ -5,6 +5,10 @@
 import { resolveGear, MAX_GEAR_NAMES } from './gear-core.js'
 import { resolveItemTraits, MAX_ITEM_NAMES } from './item-traits-core.js'
 import { resolveShields, MAX_SHIELD_NAMES } from './shield-core.js'
+import { resolveTraitRules } from './rule-core.js'
+
+// Traços dos ataques desarmados e das armas caseiras (`unarmed.ts`, `homebrewGear.ts`): não passam pelo `search?gear=`.
+const UNARMED_TRAITS = ['Agile', 'Finesse', 'Nonlethal', 'Unarmed', 'Trip']
 
 const names = (list, pick) => (Array.isArray(list) ? list : []).map(pick).filter((n) => typeof n === 'string' && n.trim())
 
@@ -16,8 +20,13 @@ export async function warmSheetLookups(json) {
   const shields = names(armor.filter((a) => a?.prof === 'shield'), (a) => a?.name)
   const worn = names(armor.filter((a) => a?.prof !== 'shield'), (a) => a?.name)
   const equipment = names(build.equipment, (e) => (Array.isArray(e) ? e[0] : null))
+  // As regras dos traços das armas também ficam no banco: tocar no chip na ficha lê dali, sem esperar a AON.
+  const gear = resolveGear([...weapons, ...worn].slice(0, MAX_GEAR_NAMES)).then(async (found) => {
+    const traits = Object.values(found).flatMap((g) => (g?.kind === 'weapon' ? g.traits : []))
+    await resolveTraitRules([...traits, ...UNARMED_TRAITS])
+  })
   await Promise.allSettled([
-    resolveGear([...weapons, ...worn].slice(0, MAX_GEAR_NAMES)),
+    gear,
     resolveItemTraits(equipment.slice(0, MAX_ITEM_NAMES)),
     resolveShields(shields.slice(0, MAX_SHIELD_NAMES)),
   ])

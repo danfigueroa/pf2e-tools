@@ -54,7 +54,8 @@ const AttackTitle = ({ nickname, original, titleVariant, onEdit }: { nickname?: 
             </IconButton>
         </Typography>
         {nickname && (
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.3, overflowWrap: 'break-word' }}>
+            // O nome completo (runas, material…) fica logo abaixo, legível: apelido em cima, regras claras embaixo.
+            <Typography variant="body2" color="text.secondary" sx={{ display: 'block', lineHeight: 1.3, mt: 0.25, overflowWrap: 'break-word' }}>
                 {original}
             </Typography>
         )}

@@ -135,8 +135,10 @@ export interface Strike {
     /** Chave estável — guarda as escolhas de dano extra. */
     key: string
     name: string
-    /** Só para o que a mesa LÊ (título da rolagem): o apelido do jogador + o nome. Nunca entra na conta — as regras casam por `name`. */
+    /** Só para o que a mesa LÊ: o apelido do jogador (título da rolagem). Nunca entra na conta — as regras casam por `name`. */
     label?: string
+    /** O nome completo da arma (runas, material…), que acompanha o apelido no `sub` da rolagem. */
+    detail?: string
     /** O total da ficha, sem condições. */
     attack: number
     /** Atributo que o `attack` da ficha já traz embutido. */

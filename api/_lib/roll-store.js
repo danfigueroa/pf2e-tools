@@ -101,7 +101,7 @@ export function sanitizeRoll(r) {
   const budget = { left: MAX_ROLL_DICE }
   const out = { id: r.id, at: Date.now(), by: str(r.by, 40), color: r.color, title: str(r.title, 60) }
   if (typeof r.slug === 'string' && ID_RE.test(r.slug)) out.slug = r.slug
-  if (typeof r.sub === 'string' && r.sub) out.sub = str(r.sub, 80)
+  if (typeof r.sub === 'string' && r.sub) out.sub = str(r.sub, 160)
   if (typeof r.note === 'string' && r.note) out.note = str(r.note, 300)
 
   if (r.check !== undefined) {

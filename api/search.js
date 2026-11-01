@@ -3,6 +3,7 @@
 //   ?name=       → descrição de item/habilidade, TRADUZIDA (comportamento legado)
 //   ?affliction= → venenos e doenças com estágios, SEM tradução
 //   ?spells=1    → lista de magias por tradição e rank, SEM tradução
+//   ?traitRules=a|b → as regras dos traços das armas (em lote, cacheadas no banco), SEM tradução
 //   ?rule=       → a regra de um termo (condição, habilidade, traço, magia), SEM tradução
 //   ?items=a|b   → traços dos itens do inventário (consumível? cura?), SEM tradução
 //   ?shields=a|b → bônus, Dureza, PV e BT dos escudos, SEM tradução
@@ -19,7 +20,7 @@
 import { resolveSpecial } from './_lib/feat-core.js'
 import { resolveAfflictions } from './_lib/affliction-core.js'
 import { resolveSpellList } from './_lib/spell-list-core.js'
-import { resolveRule } from './_lib/rule-core.js'
+import { resolveRule, resolveTraitRules } from './_lib/rule-core.js'
 import { resolveItemTraits } from './_lib/item-traits-core.js'
 import { resolveShields } from './_lib/shield-core.js'
 import { resolveGear } from './_lib/gear-core.js'
@@ -43,6 +44,17 @@ export default async function handler(req, res) {
     } catch (error) {
       console.error('Affliction API error:', error)
       return res.status(500).json({ error: 'Erro ao buscar aflição' })
+    }
+  }
+
+  // Modo regras de traço em lote (?traitRules=a|b): as regras dos traços das armas, já no banco.
+  const traitRules = req.query?.traitRules ? String(req.query.traitRules) : ''
+  if (traitRules) {
+    try {
+      return res.status(200).json({ rules: await resolveTraitRules(traitRules.split('|')) })
+    } catch (error) {
+      console.error('Trait rules API error:', error)
+      return res.status(500).json({ error: 'Erro ao buscar regras' })
     }
   }
 

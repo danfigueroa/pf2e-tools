@@ -74,3 +74,29 @@ export function fetchRule(name: string, kind: string | null = null): Promise<Aon
     inflight.set(key, request)
     return request
 }
+
+/**
+ * As regras dos traços das armas de uma vez só (`?traitRules=`): o servidor as tem no banco, então
+ * é uma consulta rápida, e cada uma entra no MESMO cache de `fetchRule(termo, 'trait')` — tocar no
+ * chip depois lê da memória, sem rede. O que o servidor não achou fica de fora (o toque tenta de novo).
+ */
+export async function prefetchTraitRules(terms: string[]): Promise<void> {
+    const missing = [...new Set(terms.map((t) => t.trim()).filter(Boolean))].filter((term) => {
+        const key = storageKey('trait', term)
+        if (memory.has(key)) return false
+        const stored = readStored(key)
+        if (stored !== undefined) { memory.set(key, stored); return false }
+        return true
+    })
+    if (missing.length === 0) return
+    try {
+        const r = await fetch(`/api/search?${new URLSearchParams({ traitRules: missing.join('|') }).toString()}`)
+        if (!r.ok) return
+        const { rules } = (await r.json()) as { rules?: Record<string, AonRule> }
+        for (const [term, rule] of Object.entries(rules ?? {})) {
+            const key = storageKey('trait', term)
+            memory.set(key, rule)
+            try { localStorage.setItem(key, JSON.stringify(rule)) } catch { /* cota cheia */ }
+        }
+    } catch { /* sem rede: o toque no chip busca sozinho */ }
+}
