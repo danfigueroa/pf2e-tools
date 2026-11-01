@@ -18,6 +18,7 @@ import { useCombatStatus } from '../../services/combatStatus';
 import { levelOf, useTrophySummary } from '../../services/trophies';
 import { useAnimatedNumber } from '../../motion/useAnimatedNumber';
 import { MesaMenu } from '../../components/MesaSwitcher';
+import { LanguageToggle } from '../../components/LanguageToggle';
 import { initialsOf, isCurrent, SECTION_LABEL, visibleNav, type NavItem, type NavSection } from '../navigation';
 import { rollHeadline, sessionDate, sessionSince, timeAgo } from '../format';
 import logoHorizontal from '../../assets/covil-logo-horizontal-fundo-escuro.svg';
@@ -359,6 +360,7 @@ const Profile = ({ collapsed, onOpenPassword }: { collapsed: boolean; onOpenPass
     return (
       <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, pt: 2, borderTop: `1px solid ${chrome.active}` }}>
         <Box title={`${name} · ${roleText}`}><Initials name={name} size={40} ring /></Box>
+        <LanguageToggle compact />
         <IconButton aria-label="Sair da conta" title="Sair da conta" onClick={() => void signOut()} sx={{ color: chrome.textMuted }}><LogoutIcon fontSize="small" /></IconButton>
       </Box>
     );
@@ -375,6 +377,7 @@ const Profile = ({ collapsed, onOpenPassword }: { collapsed: boolean; onOpenPass
         <IconButton size="small" aria-label="Trocar senha" title="Trocar senha" onClick={onOpenPassword} sx={{ color: chrome.textMuted }}><KeyIcon fontSize="small" /></IconButton>
         <IconButton size="small" aria-label="Sair da conta" title="Sair da conta" onClick={() => void signOut()} sx={{ color: chrome.textMuted }}><LogoutIcon fontSize="small" /></IconButton>
       </Box>
+      <LanguageToggle />
       <Disclaimer />
     </Box>
   );

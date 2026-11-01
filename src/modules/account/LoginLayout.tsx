@@ -6,6 +6,8 @@ import { useReducedMotion } from '../../motion/motion';
 import logoHorizontal from '../../assets/covil-logo-horizontal-fundo-escuro.svg';
 import logoStacked from '../../assets/covil-logo-empilhado-fundo-claro.svg';
 import { Showcase } from './onboarding/Showcase';
+import { LanguageToggle } from '../../components/LanguageToggle';
+import { tr } from '../../i18n';
 
 const rise = keyframes`
   0% { opacity: 0; transform: translateY(16px); }
@@ -15,7 +17,7 @@ const rise = keyframes`
 // Pontinhos de latão bem apagados sobre o verde — textura sem imagem.
 const DOTS = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Ccircle cx='1.5' cy='1.5' r='1' fill='%23C8A951' fill-opacity='0.09'/%3E%3C/svg%3E")`;
 
-const HIGHLIGHTS = ['Ao vivo para a mesa toda', 'Feito para o celular', 'Pathfinder 2e Remaster'];
+const HIGHLIGHTS = [tr('Ao vivo para a mesa toda', 'Live for the whole table'), tr('Feito para o celular', 'Built for your phone'), 'Pathfinder 2e Remaster'];
 
 /**
  * A tela de entrada: vitrine à esquerda e o formulário num painel de pergaminho à direita;
@@ -43,7 +45,11 @@ export const LoginLayout = ({ children }: { children: ReactNode }) => {
     >
       <Box sx={{ gridArea: 'intro', px: { xs: 2, sm: 4, lg: 8 }, pt: { xs: 4, md: 6 }, pb: { xs: 3, md: 2 }, animation: enter(0) }}>
         {/* No desktop o logo vai para o painel do formulário, que tem menos conteúdo. */}
-        <Box component="img" src={logoHorizontal} alt="Covil de Dados" sx={{ display: { xs: 'block', md: 'none' }, height: 40 }} />
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: { xs: 'space-between', md: 'flex-end' }, gap: 2 }}>
+          <Box component="img" src={logoHorizontal} alt="Covil de Dados" sx={{ display: { xs: 'block', md: 'none' }, height: 40, minWidth: 0 }} />
+          {/* Antes do login vale só neste aparelho; ao entrar, a conta herda a escolha. */}
+          <LanguageToggle />
+        </Box>
         <Typography
           component="h1"
           sx={{
@@ -56,11 +62,14 @@ export const LoginLayout = ({ children }: { children: ReactNode }) => {
             maxWidth: 640,
           }}
         >
-          Sua mesa de Pathfinder,{' '}
-          <Box component="span" sx={{ color: gold.bright, whiteSpace: 'nowrap' }}>ao vivo</Box>
+          {tr('Sua mesa de Pathfinder,', 'Your Pathfinder table,')}{' '}
+          <Box component="span" sx={{ color: gold.bright, whiteSpace: 'nowrap' }}>{tr('ao vivo', 'live')}</Box>
         </Typography>
         <Typography sx={{ mt: 1.25, color: chrome.textSoft, maxWidth: 520, fontSize: { xs: '0.95rem', md: '1.05rem' } }}>
-          Fichas, combate, mapa e rolagens num lugar só — sincronizados para o grupo inteiro, em qualquer aparelho.
+          {tr(
+            'Fichas, combate, mapa e rolagens num lugar só — sincronizados para o grupo inteiro, em qualquer aparelho.',
+            'Character sheets, combat, map and rolls in one place — synced for the whole group, on any device.',
+          )}
         </Typography>
       </Box>
 
@@ -102,7 +111,7 @@ export const LoginLayout = ({ children }: { children: ReactNode }) => {
         <Typography
           sx={{ display: { md: 'none' }, mb: 2, fontSize: '0.75rem', letterSpacing: '0.14em', fontWeight: 700, color: gold.bright, textAlign: 'center' }}
         >
-          CONHEÇA O COVIL
+          {tr('CONHEÇA O COVIL', 'MEET THE COVIL')}
         </Typography>
         <Showcase />
       </Box>
@@ -134,7 +143,10 @@ export const LoginLayout = ({ children }: { children: ReactNode }) => {
           ))}
         </Box>
         <Typography sx={{ fontSize: '0.72rem', color: chrome.textMuted, textAlign: 'center' }}>
-          Ferramenta de fã, gratuita e não oficial. Pathfinder é marca registrada da Paizo Inc.
+          {tr(
+            'Ferramenta de fã, gratuita e não oficial. Pathfinder é marca registrada da Paizo Inc.',
+            'Free, unofficial fan tool. Pathfinder is a registered trademark of Paizo Inc.',
+          )}
         </Typography>
       </Box>
     </Box>
