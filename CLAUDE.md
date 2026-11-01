@@ -1379,6 +1379,13 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   - **Não automatizado**: o contador de "1× por rodada" do estratagema, a CD de Reflexos do Tamper (é do mestre) e a escolha da
     criatura do estratagema. `check-rolls` cobre dados por nível, INT, arma sem ágil, investigações, Assurance e a aceitação
     pelo servidor.
+- **Grupos das abas Talentos e Habilidades** (`featGroups.ts`): os dois são agrupados e os títulos saem em português. Talentos: o
+  Pathbuilder já manda o tipo ("Class Feat"), só se traduz (`featTypeLabel`; "Fighter Feat" → "Talentos de Guerreiro"). Habilidades
+  (`specials`): o Pathbuilder manda uma lista PLANA, então o grupo vem da `category` que a AON devolve no pacote de descrições
+  (`specialGroup`): classe, ancestralidade e herança, míticas, ações, magias e poderes, relíquias, escolhas da ficha e, enquanto a
+  descrição não chegou, "Outras" — a habilidade muda de grupo sozinha quando ela carrega. **Não use o `className` da AON**: ela casa
+  "Weapon Specialization" com a primeira classe que a tem (o bárbaro vinha como "Alchemist"). O sentido da ancestralidade
+  (Darkvision, Low-Light Vision) é reconhecido pelo nome, porque a AON o devolve como habilidade de familiar ou regra.
 - **Nome próprio das armas e ataques** (`attackNames.ts` + `components/useAttackNames.ts` + `AttackNameDialog.tsx`, campo `names`
   da mesa, migration `nomes_dos_ataques`): o lápis no título do card (armas e desarmados) abre o diálogo. **É só apresentação**:
   o apelido fica numa fatia à parte (`{ "w:longbow#0": "Fenrir" }`, `u:<id>` no desarmado) — nunca no JSON da ficha, que o

@@ -7,6 +7,7 @@ import type { ConditionModifiers } from '../conditions'
 import type { MythicPointsApi } from '../components/useMythicPoints'
 import { ActivityButton } from '../components/ActivityButton'
 import { getCachedFeat, useDescriptionCacheVersion } from '../../../services/descriptions'
+import { featTypeLabel } from '../featGroups'
 
 interface Props {
     build: BuildInfo
@@ -52,7 +53,7 @@ const FeatsSectionView = ({ build, onSelect, mods, mythicPoints }: Props) => {
                             backgroundColor: 'background.paper',
                         }}>
                             <Typography variant="overline" sx={{ fontWeight: 700, letterSpacing: '0.06em', color: 'primary.light' }}>
-                                {type}
+                                {featTypeLabel(type)}
                             </Typography>
                             <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
                                 ({feats.length})

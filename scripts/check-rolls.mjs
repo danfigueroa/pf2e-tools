@@ -29,6 +29,7 @@ const spellstrike = await import('../src/modules/character-viewer/spellstrike.ts
 const hasSpellstrikeFn = magusHas => magusHas && magus.hasSpellstrike(magusHas)
 const ranger = await import('../src/modules/character-viewer/ranger.ts')
 const attackNames = await import('../src/modules/character-viewer/attackNames.ts')
+const featGroups = await import('../src/modules/character-viewer/featGroups.ts')
 const rogue = await import('../src/modules/character-viewer/rogue.ts')
 const fighter = await import('../src/modules/character-viewer/fighter.ts')
 const investigator = await import('../src/modules/character-viewer/investigator.ts')
@@ -1173,6 +1174,32 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
         eq(traitName(raw), want, `traço "${raw}" no cliente`)
         eq(weaponTraitName(raw), want, `traço "${raw}" no servidor`)
     }
+}
+
+// ── Grupos das abas Talentos e Habilidades, em português ──
+{
+    const { featTypeLabel, specialGroup } = featGroups
+    eq(featTypeLabel('Class Feat'), 'Talentos de classe', 'Class Feat')
+    eq(featTypeLabel('Mythic Feat'), 'Talentos míticos', 'Mythic Feat')
+    eq(featTypeLabel('Awarded Feat'), 'Talentos concedidos', 'Awarded Feat')
+    eq(featTypeLabel('Fighter Feat'), 'Talentos de Guerreiro', 'talento de classe pelo nome da classe')
+    eq(featTypeLabel('Reincarnation Feat'), 'Talentos de Reincarnation', 'classe desconhecida mantém o nome da AON')
+    eq(featTypeLabel('Elf Heritage'), 'Herança: Elf', 'herança de ancestralidade')
+    eq(featTypeLabel('Algo Novo'), 'Algo Novo', 'tipo desconhecido fica como veio')
+    const d = (category, traits = []) => ({ name: 'x', description: null, category, traits })
+    eq(specialGroup('Flurry of Blows', d('class-feature')), 'class', 'característica de classe')
+    eq(specialGroup('Weapon Specialization', { ...d('class-feature'), className: 'Alchemist' }), 'class', 'o className errado da AON não conta')
+    eq(specialGroup('Cloistered Cleric', d('doctrine')), 'class', 'doutrina é da classe')
+    eq(specialGroup('Dromaar', d('heritage')), 'ancestry', 'herança')
+    eq(specialGroup('Darkvision', d('familiar-ability')), 'ancestry', 'Darkvision vem da AON como habilidade de familiar')
+    eq(specialGroup('Low-Light Vision', d('rules')), 'ancestry', 'sentido pelo nome')
+    eq(specialGroup('Guardian\'s Calling', d('mythic-calling')), 'mythic', 'chamado mítico')
+    eq(specialGroup('Rewrite Fate', d('action', ['Mythic'])), 'mythic', 'ação com o traço Mythic é mítica')
+    eq(specialGroup('Escape', d('action', ['Move'])), 'actions', 'ação comum')
+    eq(specialGroup('Healing Wave', d('relic')), 'relic', 'relíquia')
+    eq(specialGroup('Inner Upheaval', d('spell')), 'spells', 'magia')
+    eq(specialGroup('Athletics', d('skill')), 'choices', 'perícia escolhida')
+    eq(specialGroup('Algo', null), 'other', 'sem descrição ainda: Outras')
 }
 
 // ── Path to Perfection do Monge: o export traz a escolha ("Will"), não o nome da habilidade ──
