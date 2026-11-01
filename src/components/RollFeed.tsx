@@ -71,7 +71,7 @@ const RaysBlock = ({ rays, color, kind = 'ray' }: { rays: RollRay[]; color: stri
                     <Caption color={gold.bright}>{tr('Dano se acertar', 'Damage on a hit')}</Caption>
                     <DiceTray dice={dmg.dice} flat={dmg.flat} total={ray.damage.total} color={color} compact />
                     <Caption>{ray.damage.parts.filter((p) => !p.persistent).map((p) => `${p.label} ${p.total}`).join(' · ')}</Caption>
-                    {ray.damage.crit && <Caption color={gold.bright}><b>Crítico: {ray.damage.crit.total}</b></Caption>}
+                    {ray.damage.crit && <Caption color={gold.bright}><b>{tr('Crítico: ', 'Critical: ')}{ray.damage.crit.total}</b></Caption>}
                 </Box>
             )
         })}
@@ -150,7 +150,7 @@ const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) =
                     ))}
                     {roll.damage.crit && (
                         <Caption color={gold.bright}>
-                            <b>Crítico: {roll.damage.crit.total}</b>
+                            <b>{tr('Crítico: ', 'Critical: ')}{roll.damage.crit.total}</b>
                             {roll.damage.crit.note ? ` (${roll.damage.crit.note})` : ''}
                         </Caption>
                     )}
@@ -275,7 +275,7 @@ export const HistoryRow = ({ roll }: { roll: TableRoll }) => (
                 <Typography variant="body2">
                     <b>{tr('Dano ', 'Damage ')}{roll.damage.total}</b>
                     {' — '}
-                    {roll.damage.parts.map((p) => `${p.label}: ${partFormula(p)} = ${p.total}${p.persistent ? ' (persistente)' : ''}`).join(' · ')}
+                    {roll.damage.parts.map((p) => `${p.label}: ${partFormula(p)} = ${p.total}${p.persistent ? tr(' (persistente)', ' (persistent)') : ''}`).join(' · ')}
                 </Typography>
                 {roll.damage.crit && (
                     <Typography variant="body2" sx={{ color: gold.deep }}>
@@ -293,7 +293,7 @@ export const HistoryRow = ({ roll }: { roll: TableRoll }) => (
                     <Typography key={i} variant="body2">
                         <b>{`${raysLabel(roll)} ${i + 1}`}:</b> {tr(' ataque ', ' attack ')}{ray.check.total} (d20 {ray.check.d20} {signed(ray.check.mod)}) · <b>{tr('dano ', 'damage ')}{ray.damage.total}</b>
                         {' — '}
-                        {ray.damage.parts.map((p) => `${p.label}: ${partFormula(p)} = ${p.total}${p.persistent ? ' (persistente)' : ''}`).join(' · ')}
+                        {ray.damage.parts.map((p) => `${p.label}: ${partFormula(p)} = ${p.total}${p.persistent ? tr(' (persistente)', ' (persistent)') : ''}`).join(' · ')}
                         {ray.damage.crit ? tr(` · crítico ${ray.damage.crit.total}${ray.damage.crit.note ? ` (${ray.damage.crit.note})` : ''}`, ` · critical ${ray.damage.crit.total}${ray.damage.crit.note ? ` (${ray.damage.crit.note})` : ''}`) : ''}
                     </Typography>
                 ))}

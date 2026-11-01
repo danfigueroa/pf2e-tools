@@ -76,7 +76,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     // Tem os segredos da campanha: o jogador não vê, e o servidor recusa.
     text: tr('Diário de Campanha', 'Campaign Journal'), icon: <JournalIcon />, path: '/diario-campanha', section: 'gm', gmOnly: true,
-    keywords: ['diario', 'campanha', 'preparacao', tr('sessao', 'session'), 'npc', tr('notas', 'notes'), 'cenas', 'ganchos', 'handout'],
+    keywords: ['diario', 'campanha', 'preparacao', tr('sessao', 'session'), 'npc', tr('notas', 'notes'), tr('cenas', 'scenes'), tr('ganchos', 'hooks'), 'handout'],
   },
   {
     text: tr('Membros e convites', 'Members and invites'), icon: <MembersIcon />, path: '/membros', section: 'mesa',

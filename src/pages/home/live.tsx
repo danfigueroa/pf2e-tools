@@ -638,7 +638,7 @@ export function PlayerCombat() {
             <Typography id="home-vez" component="h2" noWrap sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.5rem', color: chrome.text }}>
               {mine ? mine.name : active ? tr(`Vez de ${active.name}`, `${active.name}'s turn`) : tr('Combate', 'Combat')}
             </Typography>
-            {!myTurn && active && mine && <Typography sx={{ fontSize: '0.875rem' }}>Agora: {active.name}</Typography>}
+            {!myTurn && active && mine && <Typography sx={{ fontSize: "0.875rem" }}>{tr("Agora: ", "Now: ")}{active.name}</Typography>}
           </Box>
           {myTurn && mine && (
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.75 }}>

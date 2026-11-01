@@ -64,7 +64,7 @@ quadrado quadrados régua desenhar desenho desenhos limpar camada privado revela
 mesa mesas tirar pôr põe sobe desce vem vêm volta entra sai fim início meio parte partes faltam falta
 precisa preciso deve devem cria criar criado salvo salva gravado gravar lido ler lê escolha escolhido
 quantos quantas quanto quanta mudou muda mudar tipo tipos geral automático automática manual
-cenas cena elenco conjurada conjurado ganhou ganhei regra regras compartilhada compartilhado copiado copiada enviou envie forma formas te lhe
+persistente persistentes veneno venenos simples contundente perfurante cortante tratar ferimentos dobrado dobrada fogo frio eletricidade sônico vazio vitalidade espírito cenas cena elenco conjurada conjurado ganhou ganhei regra regras compartilhada compartilhado copiado copiada enviou envie forma formas te lhe
 `.trim().split(/\s+/).filter((w) => !['mesa', 'mesas'].includes(w)))
 
 const IGNORE_CALLEES = new Set(['console', 'RegExp', 'require', 'import', 'mesaKey', 'localStorage', 'sessionStorage', 'getItem', 'setItem', 'removeItem', 'matchMedia', 'querySelector', 'addEventListener', 'removeEventListener', 'dispatchEvent', 'CustomEvent', 'Event'])
@@ -77,7 +77,8 @@ function looksPortuguese(text) {
     if (ALLOW.has(t)) return false
     if (t.length < 2 || !/[a-zA-ZÀ-ú]/.test(t)) return false
     // Rota, caminho, chave ou id ("/mapa", "casa-do-gordo", "pf2e:mesa"): dado, não texto.
-    if (!/\s/.test(t) && (/[/:]/.test(t) || /^[a-z0-9]+(?:[-_.][a-z0-9]+)+$/.test(t))) return false
+    const bare = t.replace(/\s*…\s*/g, '').trim()
+    if (!/\s/.test(bare) && (/\//.test(bare) || /^[a-z0-9]+(?:[-_.:][a-z0-9]+)+$/.test(bare))) return false
     if (ACCENT.test(t)) return true
     const words = t.toLowerCase().match(/[a-zà-ú]+/g) ?? []
     if (words.some((w) => WORDS.has(w))) return true
@@ -148,7 +149,8 @@ export function scanFile(file) {
     }
     const visit = (node) => {
         if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) report(node, node.text, ts.isStringLiteral(node) ? 'string' : 'template')
-        else if (ts.isTemplateExpression(node)) report(node, [node.head.text, ...node.templateSpans.map((s) => s.literal.text)].join(' '), 'template')
+        // As partes do template com um marcador no lugar de cada `${}` (senão "veneno: ${x}" viraria "veneno:", que parece chave).
+        else if (ts.isTemplateExpression(node)) report(node, [node.head.text, ...node.templateSpans.map((s) => s.literal.text)].join(' … '), 'template')
         else if (ts.isJsxText(node)) report(node, node.text, 'jsx')
         ts.forEachChild(node, visit)
     }
