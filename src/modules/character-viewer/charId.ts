@@ -66,6 +66,9 @@ export const energyKeyFor = (build: BuildInfo): string => energyKeyForSlug(charS
 /** Arcane Cascade, Spellstrike e Summon Mythic Power do Magus (`magus.ts`). */
 export const magusKeyForSlug = (slug: string): string => `${slug}/magus`
 export const magusKeyFor = (build: BuildInfo): string => magusKeyForSlug(charSlug(build))
+/** Apelidos das armas e ataques (`attackNames.ts`). */
+export const namesKeyForSlug = (slug: string): string => `${slug}/names`
+export const namesKeyFor = (build: BuildInfo): string => namesKeyForSlug(charSlug(build))
 /** Hunt Prey e Gravity Weapon do Patrulheiro (`ranger.ts`). */
 export const rangerKeyForSlug = (slug: string): string => `${slug}/ranger`
 export const rangerKeyFor = (build: BuildInfo): string => rangerKeyForSlug(charSlug(build))

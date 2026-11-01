@@ -28,6 +28,7 @@ const magus = await import('../src/modules/character-viewer/magus.ts')
 const spellstrike = await import('../src/modules/character-viewer/spellstrike.ts')
 const hasSpellstrikeFn = magusHas => magusHas && magus.hasSpellstrike(magusHas)
 const ranger = await import('../src/modules/character-viewer/ranger.ts')
+const attackNames = await import('../src/modules/character-viewer/attackNames.ts')
 const rogue = await import('../src/modules/character-viewer/rogue.ts')
 const fighter = await import('../src/modules/character-viewer/fighter.ts')
 const investigator = await import('../src/modules/character-viewer/investigator.ts')
@@ -1117,6 +1118,28 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
 {
     const base = normalizeBuild({ name: 'T', level: 1, specials: ['Medium', 'Spellstrike', 'Large'], spellCasters: [], weapons: [] })
     eq(base.specials.join(','), 'Spellstrike', 'tamanho ("Medium", "Large") sai das habilidades — na AON, "Medium" é a classe do médium')
+}
+
+// ── Nome próprio das armas e ataques: só apresentação, com chave estável ──
+{
+    const { sanitizeAttackNames, weaponNameKey, unarmedNameKey, attackLabel, MAX_NAME_LENGTH, MAX_NAMES } = attackNames
+    const dagger = { name: 'Dagger' }, dagger2 = { name: 'Dagger' }, bow = { name: 'Longbow' }
+    const build = { weapons: [dagger, bow, dagger2] }
+    eq(weaponNameKey(build, dagger), 'w:dagger#0', 'primeira Dagger')
+    eq(weaponNameKey(build, dagger2), 'w:dagger#1', 'segunda Dagger é outro apelido')
+    eq(weaponNameKey(build, bow), 'w:longbow#0', 'a chave não depende do `display` (runa nova não perde o apelido)')
+    eq(unarmedNameKey('fist'), 'u:fist', 'chave do desarmado')
+    eq(attackLabel('Fenrir', 'Longbow'), 'Fenrir (Longbow)', 'o feed mostra o apelido e a arma de verdade')
+    eq(attackLabel(undefined, 'Longbow'), 'Longbow', 'sem apelido, o nome de sempre')
+    const clean = sanitizeAttackNames({ 'w:a#0': '  Fenrir  ', 'w:b#0': '   ', 'w:c#0': 7, 'w:d#0': 'x'.repeat(200) })
+    eq(JSON.stringify(Object.keys(clean)), '["w:a#0","w:d#0"]', 'vazio e não-texto saem')
+    eq(clean['w:a#0'], 'Fenrir', 'apara os espaços')
+    eq(clean['w:d#0'].length, MAX_NAME_LENGTH, 'corta no teto')
+    eq(Object.keys(sanitizeAttackNames(Object.fromEntries(Array.from({ length: 80 }, (_, i) => [`w:${i}#0`, 'n'])))).length, MAX_NAMES, 'teto de apelidos por ficha')
+    eq(Object.keys(sanitizeAttackNames([1, 2])).length, 0, 'array não é o formato')
+    // O strike com `label` não muda o `name`: as regras seguem casando por ele.
+    const strike = { name: 'Longbow', label: attackLabel('Fenrir', 'Longbow') }
+    eq(strike.name, 'Longbow', 'o `name` do Strike (regras) não é tocado')
 }
 
 // ── Path to Perfection do Monge: o export traz a escolha ("Will"), não o nome da habilidade ──

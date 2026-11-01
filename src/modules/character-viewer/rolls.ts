@@ -143,7 +143,7 @@ export function flurryRoll(who: RollerIdentity, strike: Strike, plans: [StrikePl
             },
         }
     })
-    return { ...base(who, `Flurry of Blows — ${strike.name}`, sub), rays, ...(note ? { note } : {}) }
+    return { ...base(who, `Flurry of Blows — ${strike.label ?? strike.name}`, sub), rays, ...(note ? { note } : {}) }
 }
 
 /** Uso de um poder que não rola nada (dádiva de relíquia): o cartão da mesa mostra o que foi usado e o que custou. */
@@ -180,7 +180,7 @@ export function strikeRoll(
     const attackParts = mythicDelta != null ? [...plan.attackParts, mythicPart(mythicDelta)] : plan.attackParts
     const dmg = rollStrikeDamage(plan, strike.damageType)
     return {
-        ...base(who, `Golpe — ${strike.name}`, sub),
+        ...base(who, `Golpe — ${strike.label ?? strike.name}`, sub),
         check: d20Check(attackParts, mythicDelta != null),
         damage: {
             parts: dmg.parts.map((p) => toPart(p.label, p.rolled, p.persistent)),
@@ -251,7 +251,7 @@ export function spellstrikeRoll(
     spell: SpellstrikeInput,
 ): TableRoll {
     const roll = strikeRoll(who, strike, plan, mythicDelta, sub)
-    roll.title = `Spellstrike — ${strike.name} + ${spell.name}`
+    roll.title = `Spellstrike — ${strike.label ?? strike.name} + ${spell.name}`
     const parts = spell.components.map((c) =>
         toPart(componentLabel(c), rollGroups(c.value.count ? [{ count: c.value.count, faces: c.value.faces }] : [], c.value.flat), c.persistent))
     const spellTotal = Math.max(0, parts.filter((p) => !p.persistent).reduce((n, p) => n + p.total, 0))

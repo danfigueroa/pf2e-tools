@@ -53,6 +53,7 @@ import {
     type StrikeOptions,
 } from '../strikes'
 import { damageComponents, formatValue, componentLabel, scaleSpell, type ScaledComponent } from '../heightening'
+import { attackLabel } from '../attackNames'
 import { assuranceRoll, checkRoll, flurryRoll, isMythicAttackSpell, mapLabel, mythicSpellAttack, raysRoll, rollerIdentity, treatWoundsRoll, spellRoll, spellstrikeRoll, strikeRoll, withSimplePoison, type SpellAttackInfo } from '../rolls'
 import type { TableRoll } from '../../../dice/tableRoll'
 import { dialogEmbedProps, useEmbedContainer } from '../embedContext'
@@ -96,8 +97,8 @@ import { SpellstrikePanel } from './SpellstrikePanel'
 /** O que tocar na ficha pede para rolar. */
 export type RollRequest =
     | { kind: 'check'; check: Check; note?: string }
-    | { kind: 'weapon'; weapon: Weapon }
-    | { kind: 'unarmed'; attack: UnarmedAttack }
+    | { kind: 'weapon'; weapon: Weapon; /** Apelido do jogador (`attackNames.ts`): só no título. */ nickname?: string }
+    | { kind: 'unarmed'; attack: UnarmedAttack; nickname?: string }
     | {
         kind: 'spell'
         name: string
@@ -631,9 +632,11 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
 
     const entry = weapon ? (homebrew ?? gear[weapon.name]) : null
     const loading = !!weapon && entry === undefined
-    const strike = weapon
+    const plainStrike = weapon
         ? weaponStrike(build, weapon, entry && entry.kind === 'weapon' ? entry : null, rules, profile)
         : unarmedStrike(build, (request as Extract<RollRequest, { kind: 'unarmed' }>).attack)
+    // O apelido só vai ao que a mesa lê; o `name` segue casando traços, runas e regras.
+    const strike = request.nickname ? { ...plainStrike, label: attackLabel(request.nickname, plainStrike.name) } : plainStrike
 
     // Por arma, não por perfil: o 2d6 de precisão da Gloom Blade é o mesmo nos três perfis.
     const storeKey = extrasKey(who.slug, weapon ? `w:${weapon.name}` : strike.key)
@@ -752,7 +755,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
 
     return (
         <>
-            <DialogTitle sx={{ pb: 1 }}>Golpe — {weapon ? (weapon.display || weapon.name) : strike.name}</DialogTitle>
+            <DialogTitle sx={{ pb: 1 }}>Golpe — {weapon ? attackLabel(request.nickname, weapon.display || weapon.name) : attackLabel(request.nickname, strike.name)}</DialogTitle>
             <DialogContent>
                 <Stack spacing={1.5} sx={{ pt: 0.5 }}>
                     {rules && rules.profiles.length > 0 && (
@@ -1213,7 +1216,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                                 onClick={() => {
                                     actions.spendReaction()
                                     monkSlots.spendFocus()
-                                    send(checkRoll(who, `Perfect Strike — ${strike.name}`, plan.attackParts, null, 'rerrola o ataque que errou (fortuna): vale o novo resultado'), false)
+                                    send(checkRoll(who, `Perfect Strike — ${strike.label ?? strike.name}`, plan.attackParts, null, 'rerrola o ataque que errou (fortuna): vale o novo resultado'), false)
                                 }}
                             >
                                 Perfect Strike · rerrolar o ataque que errou (reação + 1 ponto de foco)

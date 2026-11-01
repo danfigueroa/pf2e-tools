@@ -53,7 +53,7 @@ import { PersistentDamageBar } from './components/PersistentDamageBar'
 import { MythicPointsBar } from './components/MythicPointsBar'
 import { useUses } from './components/useUses'
 import { GODSPEED_SOURCE, godspeedConditions, withGodspeed } from './mythicFeats'
-import { usesKeyFor, actionsKeyFor, afflictionsKeyFor, charSlug, conditionsKeyFor, energyKeyFor, investigatorKeyFor, legacyCharKey, magusKeyFor, mythicKeyFor, persistentKeyFor, psycheKeyFor, rageKeyFor, rangerKeyFor, sizeKeyFor } from './charId'
+import { usesKeyFor, actionsKeyFor, afflictionsKeyFor, charSlug, conditionsKeyFor, energyKeyFor, investigatorKeyFor, legacyCharKey, magusKeyFor, mythicKeyFor, namesKeyFor, persistentKeyFor, psycheKeyFor, rageKeyFor, rangerKeyFor, sizeKeyFor } from './charId'
 import { useConditions } from './components/useConditions'
 import { useAfflictions } from './components/useAfflictions'
 import { usePersistentDamage } from './components/usePersistentDamage'
@@ -79,6 +79,7 @@ import { InvestigatorBar } from './components/InvestigatorBar'
 import { MonkBar } from './components/MonkBar'
 import { hasMonasticArcherStance } from './monk'
 import { useInvestigator } from './components/useInvestigator'
+import { useAttackNames, type AttackNamesApi } from './components/useAttackNames'
 import { hasInvestigatorFeatures } from './investigator'
 import { useRanger } from './components/useRanger'
 import { hasRangerFeatures, withRanger } from './ranger'
@@ -108,6 +109,8 @@ export interface SectionContext {
     guide: GuideSlot
     /** Enlarge/Shrink ligado — a runa do Brukuthur liga e desliga pela aba de Combate. */
     sizeEffect: SizeEffectApi
+    /** Apelidos das armas e ataques. */
+    attackNames: AttackNamesApi
     /** Celular ou painel estreito (acordeão). */
     compact: boolean
 }
@@ -131,8 +134,8 @@ const SECTIONS: SectionDef[] = [
         id: 'combat',
         label: 'Combate',
         icon: <CombatIcon />,
-        render: ({ build, mods, onRoll, onSelect, sizeEffect }) => (
-            <CombatSection build={build} mods={mods} onRoll={onRoll} onSelect={onSelect} sizeEffect={sizeEffect} />
+        render: ({ build, mods, onRoll, onSelect, sizeEffect, attackNames }) => (
+            <CombatSection build={build} mods={mods} onRoll={onRoll} onSelect={onSelect} sizeEffect={sizeEffect} attackNames={attackNames} />
         ),
     },
     {
@@ -288,6 +291,8 @@ const SheetBody = ({ build: source, publication, onReset, onRestore, compact = f
     const ranger = useRanger(rangerKeyFor(build), build)
     // Investigações do Investigador: o +1 entra nos testes pelo diálogo, que lê o mesmo estado da mesa.
     const investigator = useInvestigator(investigatorKeyFor(build))
+    // Nome próprio das armas e ataques: só apresentação, as regras casam pelo nome original.
+    const attackNames = useAttackNames(namesKeyFor(build))
     // Reflexive Shield: o escudo erguido (estado da mesa) também vale nos Reflexos.
     const reflexShield = reflexShieldBonus(build, useCharacterShield(build).view?.acBonus ?? 0)
 
@@ -407,7 +412,7 @@ const SheetBody = ({ build: source, publication, onReset, onRestore, compact = f
     const openRoll = useMemo(() => (readOnly ? () => {} : setRollReq), [readOnly])
 
     const visibleSections = SECTIONS.filter(s => !s.visible || s.visible(build))
-    const ctx: SectionContext = { build, onSelect: setDrawerReq, onRoll: openRoll, mods, mythicPoints, guide, sizeEffect, compact: isPhone }
+    const ctx: SectionContext = { build, onSelect: setDrawerReq, onRoll: openRoll, mods, mythicPoints, guide, sizeEffect, attackNames, compact: isPhone }
 
     return (
         <Container maxWidth={compact ? false : 'lg'} disableGutters sx={{ pb: compact ? 2 : 6 }}>

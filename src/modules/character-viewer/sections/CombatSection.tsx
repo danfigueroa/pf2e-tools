@@ -1,6 +1,6 @@
-import { useMemo, memo } from 'react'
-import { Box, Button, Card, CardContent, Typography, Stack, Chip, Divider, Link, Tooltip } from '@mui/material'
-import { Casino as DiceIcon } from '@mui/icons-material'
+import { useMemo, memo, useState } from 'react'
+import { Box, Button, IconButton, Card, CardContent, Typography, Stack, Chip, Divider, Link, Tooltip } from '@mui/material'
+import { Casino as DiceIcon, Edit as EditIcon } from '@mui/icons-material'
 import type { BuildInfo, Weapon } from '../../../pathbuilder/types'
 import { weaponDamageFormula } from '../../../pathbuilder/weapon'
 import {
@@ -21,6 +21,9 @@ import { sharedMod, type AppliedMod, type ConditionModifiers } from '../conditio
 import { ConditionDelta } from '../components/ConditionDelta'
 import { MythicNote } from '../components/MythicNote'
 import { TraitChips } from '../components/TraitChips'
+import { AttackNameDialog } from '../components/AttackNameDialog'
+import { unarmedNameKey, weaponNameKey } from '../attackNames'
+import type { AttackNamesApi } from '../components/useAttackNames'
 import { CONDITION_COLOR } from '../../../theme'
 
 import { useCharacterShield } from '../components/useShield'
@@ -37,9 +40,30 @@ interface Props {
     onSelect: (req: DescriptionRequest) => void
     /** Enlarge/Shrink da runa — o botão mora no card da armadura. */
     sizeEffect: SizeEffectApi
+    /** Apelidos das armas e ataques (só apresentação). */
+    attackNames: AttackNamesApi
 }
 
-const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect }: Props) => {
+/** O nome na ficha: o apelido do jogador (com o original embaixo) ou só o original, e o lápis que edita. */
+const AttackTitle = ({ nickname, original, titleVariant, onEdit }: { nickname?: string; original: string; titleVariant: 'h6' | 'body1'; onEdit: () => void }) => (
+    <Box sx={{ minWidth: 0 }}>
+        <Typography variant={titleVariant} component="div" sx={{ fontWeight: 700, lineHeight: 1.2, overflowWrap: 'break-word' }}>
+            {nickname ?? original}
+            <IconButton size="small" onClick={onEdit} aria-label={`Dar nome próprio a ${original}`} sx={{ ml: 0.5, p: 0.5, verticalAlign: 'baseline' }}>
+                <EditIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+        </Typography>
+        {nickname && (
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.3, overflowWrap: 'break-word' }}>
+                {original}
+            </Typography>
+        )}
+    </Box>
+)
+
+const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect, attackNames }: Props) => {
+    // Qual arma/ataque está tendo o nome editado: a chave, o nome original e o apelido de agora.
+    const [renaming, setRenaming] = useState<{ key: string; original: string } | null>(null)
     const weapons = useMemo(() => build.weapons ?? [], [build.weapons])
     // Traços das armas (AON): dizem o atributo do ataque, o MAP e o crítico.
     // Arma caseira (o braço da relíquia): os traços vêm do catálogo, não da AON.
@@ -78,9 +102,12 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect }: Props)
                         {/* Quebra de linha em vez de espremer: no painel do mapa a janela é larga (breakpoint `sm`), mas a coluna tem ~420px. */}
                         <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="center" alignItems={{ xs: 'center', sm: 'flex-start' }} spacing={1} useFlexGap sx={{ flexWrap: { sm: 'wrap' } }}>
                             <Box sx={{ flex: { xs: '1 1 auto', sm: '1 1 200px' }, minWidth: 0, textAlign: 'center' }}>
-                                <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2, overflowWrap: 'break-word' }}>
-                                    {itemDisplayName(build, w, 'weapon')}
-                                </Typography>
+                                <AttackTitle
+                                    titleVariant="h6"
+                                    nickname={attackNames.names[weaponNameKey(build, w)]}
+                                    original={itemDisplayName(build, w, 'weapon')}
+                                    onEdit={() => setRenaming({ key: weaponNameKey(build, w), original: itemDisplayName(build, w, 'weapon') })}
+                                />
                                 <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.75, justifyContent: 'center' }}>
                                     <Chip label={`Proficiência: ${capitalize(w.prof)}`} size="small" variant="outlined" />
                                     {w.qty > 1 && <Chip label={`x${w.qty}`} size="small" variant="outlined" />}
@@ -104,8 +131,8 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect }: Props)
                                 damage={`${weaponDamageFormula(w)} ${damageTypeLabel(w.damageType)}`.trim()}
                                 bonuses={strike.traits.ranged ? [] : meleeBonusParts(mods, { agile: strike.traits.agile, name: w.name })}
                                 extra={w.extraDamage?.length ? w.extraDamage.map((d) => `+ ${d}`).join(' ') : undefined}
-                                onRoll={() => onRoll({ kind: 'weapon', weapon: w })}
-                                rollLabel={w.display || w.name}
+                                onRoll={() => onRoll({ kind: 'weapon', weapon: w, nickname: attackNames.names[weaponNameKey(build, w)] })}
+                                rollLabel={attackNames.names[weaponNameKey(build, w)] ?? (w.display || w.name)}
                             />
                         </Stack>
                         <WeaponProfiles weapon={w} conditionDelta={shown - w.attack} />
@@ -135,12 +162,12 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect }: Props)
                                     sx={{ py: 1.25, flexWrap: { sm: 'wrap' } }}
                                 >
                                     <Box sx={{ flex: { xs: '1 1 auto', sm: '1 1 200px' }, minWidth: 0, textAlign: 'center' }}>
-                                        <Typography sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-                                            {u.name}
-                                            <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 0.75 }}>
-                                                {u.en}
-                                            </Typography>
-                                        </Typography>
+                                        <AttackTitle
+                                            titleVariant="body1"
+                                            nickname={attackNames.names[unarmedNameKey(u.id)]}
+                                            original={u.en && u.en !== u.name ? `${u.name} (${u.en})` : u.name}
+                                            onEdit={() => setRenaming({ key: unarmedNameKey(u.id), original: u.name })}
+                                        />
                                         <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.75, justifyContent: 'center' }}>
                                             <Chip
                                                 label={u.source}
@@ -167,8 +194,8 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect }: Props)
                                         damageDelta={mods.total.damageStr}
                                         bonuses={meleeBonusParts(mods, { agile: u.agile, name: u.name })}
                                         extra={u.extraDamage?.length ? u.extraDamage.map((d) => `+ ${d}`).join(' ') : undefined}
-                                        onRoll={() => onRoll({ kind: 'unarmed', attack: u })}
-                                        rollLabel={u.name}
+                                        onRoll={() => onRoll({ kind: 'unarmed', attack: u, nickname: attackNames.names[unarmedNameKey(u.id)] })}
+                                        rollLabel={attackNames.names[unarmedNameKey(u.id)] ?? u.name}
                                     />
                                 </Stack>
                             ))}
@@ -250,6 +277,14 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect }: Props)
                     </CardContent>
                 </Card>
             )}
+            <AttackNameDialog
+                key={renaming?.key ?? 'none'}
+                open={!!renaming}
+                original={renaming?.original ?? ''}
+                current={renaming ? (attackNames.names[renaming.key] ?? '') : ''}
+                onSave={(name) => { if (renaming) attackNames.setName(renaming.key, name) }}
+                onClose={() => setRenaming(null)}
+            />
         </Stack>
     )
 }
