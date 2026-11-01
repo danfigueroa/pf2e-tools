@@ -20,6 +20,7 @@ import { meleeBonusParts } from '../rage'
 import { sharedMod, type AppliedMod, type ConditionModifiers } from '../conditions'
 import { ConditionDelta } from '../components/ConditionDelta'
 import { MythicNote } from '../components/MythicNote'
+import { TraitChips } from '../components/TraitChips'
 import { CONDITION_COLOR } from '../../../theme'
 
 import { useCharacterShield } from '../components/useShield'
@@ -87,6 +88,7 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect }: Props)
                                         <Chip key={r} label={r} size="small" sx={{ textTransform: 'capitalize' }} />
                                     ))}
                                 </Stack>
+                                {g && g.kind === 'weapon' && <TraitChips traits={g.traits} />}
                             </Box>
                             <AttackStats
                                 attack={signed(shown)}
@@ -140,9 +142,6 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect }: Props)
                                             </Typography>
                                         </Typography>
                                         <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.75, justifyContent: 'center' }}>
-                                            {u.traits.map((t) => (
-                                                <Chip key={t} label={t} size="small" variant="outlined" sx={{ height: 22, fontSize: '0.7rem' }} />
-                                            ))}
                                             <Chip
                                                 label={u.source}
                                                 size="small"
@@ -153,6 +152,8 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect }: Props)
                                                 <Chip label="à escolha" size="small" variant="outlined" sx={{ height: 22, fontSize: '0.7rem' }} />
                                             )}
                                         </Stack>
+                                        {/* Todo ataque desarmado tem o traço Unarmed (Punho na AON; Howl of the Wild pg. 22 nos animais); a tabela só guarda os que mudam a conta. */}
+                                        <TraitChips traits={[...u.traits, 'unarmed']} />
                                     </Box>
                                     <AttackStats
                                         attack={signed(u.attack + unarmedDelta(mods, u.usesDex))}

@@ -31,7 +31,7 @@ interface Props {
     children: ReactNode
 }
 
-function RuleBody({ rule, loading }: { rule: AonRule | null; loading: boolean }) {
+export function RuleBody({ rule, loading }: { rule: AonRule | null; loading: boolean }) {
     if (loading) {
         return (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
