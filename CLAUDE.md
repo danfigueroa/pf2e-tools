@@ -686,7 +686,7 @@ membro da mesa; escrever, só do dono da ficha e do GM (ver "Login, papéis e do
   sozinha. A releitura também sobrepõe o que está na fila, para não desfazer na tela uma edição ainda não gravada.
 - **Uma LINHA por fatia** (`hp`, `slots`, `conditions`, `afflictions`,
   `persistent`, `mythic`, `consumed`, `shield`, `token`, `size`, `rage`, `psyche`, `energy`, `magus`, `ranger`, `rogue`,
-  `investigator`, `actions`, `uses`, `companions`, `gave`, `pet:<kind>:<slug>#<i>`). Campo novo precisa entrar no `FIELD_RE` de
+  `investigator`, `names`, `actions`, `uses`, `companions`, `gave`, `pet:<kind>:<slug>#<i>`). Campo novo precisa entrar no `FIELD_RE` de
   `table-store.js`, senão o POST volta "Campo inválido" e o estado fica só no `localStorage`.
   A mesma lista está no CHECK da tabela (migration `estado_da_mesa`) — mudou um, muda o outro, e campo novo é
   migration nova. Documento único faria dois jogadores editando ao mesmo tempo se sobrescreverem — quem marcasse
@@ -1379,6 +1379,18 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   - **Não automatizado**: o contador de "1× por rodada" do estratagema, a CD de Reflexos do Tamper (é do mestre) e a escolha da
     criatura do estratagema. `check-rolls` cobre dados por nível, INT, arma sem ágil, investigações, Assurance e a aceitação
     pelo servidor.
+- **Nome próprio das armas e ataques** (`attackNames.ts` + `components/useAttackNames.ts` + `AttackNameDialog.tsx`, campo `names`
+  da mesa, migration `nomes_dos_ataques`): o lápis no título do card (armas e desarmados) abre o diálogo. **É só apresentação**:
+  o apelido fica numa fatia à parte (`{ "w:longbow#0": "Fenrir" }`, `u:<id>` no desarmado) — nunca no JSON da ficha, que o
+  próximo export desfaria — e as regras (traços da AON, `magicWeapons.ts`, `homebrewGear.ts`, runas, `meleeBonusParts`)
+  seguem casando pelo `name` ORIGINAL. A chave usa o `name` do Pathbuilder (sobrevive a runa nova, ao contrário do `display`)
+  mais a ocorrência (duas Daggers = dois apelidos). O card mostra o apelido com o original embaixo; o título do diálogo e o do
+  feed viram "Fenrir (Longbow)" por `Strike.label` — campo só de leitura da mesa, **nunca use `label` em conta**. Campo de 40
+  caracteres, 30 apelidos por ficha (`sanitizeAttackNames`, conferido no `check-rolls`). Ficha de outra pessoa: o `IconButton`
+  fica travado pelo `ReadOnlyTheme`, e o `useSharedState` não escreve.
+- **Traços das armas** (`components/TraitChips.tsx`): cada arma e ataque desarmado mostra os traços (`search?gear=`, ou o catálogo
+  de `homebrewGear.ts`) como chips; tocar abre a regra da AON (`fetchRule(traitTerm(raw), 'trait')`, em inglês, a mesma do stat block
+  do monstro) num popover. Os traços vêm da entrada remaster (conferido contra a legacy, sem divergência nas armas do grupo).
 - **Curas que são ação** (`healActivities.ts` + `HealActivityButton`): **Searing Restoration** (1d10 + 1d10 no 3º nível e a cada 2
   depois: 4d10 no nível 7) e **Healer's Touch** (2d6+7; 4d6+15 na Greater; 1×/dia, `uses`). O botão "Curar" rola, posta no feed
   (`healRoll`, uma parcela `free`) e soma ao PV de quem usa ("Em mim mesmo"). O traço **Unstable** (Guns & Gears Remastered pg. 236)
