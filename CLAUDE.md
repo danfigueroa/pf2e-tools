@@ -591,7 +591,7 @@ mesas; o troféu guarda em qual foi ganho), **a mesa vê tudo + ranking**, **tod
   rolagem, dano somado numa sessão, críticos (20 natural numa rolagem com dano), raios, iniciativas pela ficha,
   rolagens de madrugada (0h–5h de Brasília), médias da sessão com 10+ testes, maratonas (sessão de 4 h+), primeira
   rolagem da sessão, nível publicado, os três destaques na mesma sessão (pelo `data.session` dos feitos) e a maior
-  anotação (feito `note-length`). Secretos (`hidden`) aparecem como "Troféu secreto" até serem ganhos.
+  anotação (feito `note-length`). **Todo troféu ainda não ganho é secreto** (decisão do usuário: senão a mesa corre atrás da lista): `catalogWire(unlockedIds)` mascara no SERVIDOR título, descrição e meta ("Troféu secreto", `goal` 1) e o `trophyProfile` só devolve o progresso dos ganhos — esconder só na tela vazaria pela aba Rede. O `hidden` do catálogo ficou sem efeito.
 - **Quem registra os feitos é o servidor**, no handler que já conhece o usuário (`recordFeat`/`touchFeat` de
   `trophy-store.js`, sempre dentro de `safely`: **troféu nunca derruba a ação de verdade**):
   anotações (`note-created` com a etiqueta, `note-edited`, `background` com o tamanho e `afterLevelUp`), publicação
@@ -608,7 +608,7 @@ mesas; o troféu guarda em qual foi ganho), **a mesa vê tudo + ranking**, **tod
 - **Avaliar** (`evaluate`) roda depois de cada feito e no `GET ?trophies=me`; o que é novo vai para `account_trophies`
   e vira `mesa_events` `trophy-unlocked` (`data: { user, name, trophy, title, tier }`) na mesa onde aconteceu. O sino
   mostra o meu sempre e o dos colegas só se for ouro ou platina; o `TrophyToastLayer` (no `MainLayout`) mostra o cartão
-  "Troféu desbloqueado" ao dono, em fila, por 6 s. `onTableEvent` passou a entregar o `data` do evento.
+  "Troféu desbloqueado" a **toda a mesa**, em fila, por 6 s (aos colegas como "FULANO DESBLOQUEOU", sem os pontos). `onTableEvent` passou a entregar o `data` do evento.
 - **Cores dos graus** em `TROPHY_TIERS` (`theme/palette.ts`): `medal` pinta a taça, `ink` é o texto (≥4,5:1) e `tint` o
   fundo do cartão desbloqueado. A taça é SVG (`TrophyMedal`); o grau vai também por extenso.
 - **Onde aparecem**: a página `/trofeus` (item "Troféus" da navegação e da busca), a vitrine da Início
