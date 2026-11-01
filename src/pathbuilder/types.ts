@@ -126,6 +126,8 @@ export interface StaffInfo {
 
 export interface FeatDescription {
   name: string;
+  /** A AON não tem uma entrada com o nome pedido: esta é a descrição da entrada de nome parecido (`namesCompatible`). */
+  matchedName?: string;
   level?: number | null;
   actions?: string;        // "Single Action", "Two Actions", "Reaction", "Free Action"
   traits?: string[];

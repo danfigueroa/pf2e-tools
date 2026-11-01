@@ -70,6 +70,15 @@ function readCache<T>(kind: Kind, name: string): T | null {
 }
 
 function readRaw<T>(kind: Kind, name: string): T | null {
+    const value = readStored<T>(kind, name)
+    // Entrada de OUTRA coisa (a AON difusa devolvia "Feast" para "Reincarnation Feat"): vale como se não
+    // existisse, e a próxima busca refaz — o servidor já não devolve esses acertos. Cobre o cache do aparelho,
+    // os pacotes estáticos e o da ficha publicada, sem precisar subir a `CACHE_VERSION` (que jogaria fora tudo).
+    if (value && isForeign(name, value)) return null
+    return value
+}
+
+function readStored<T>(kind: Kind, name: string): T | null {
     const k = key(kind, name)
     if (memory.has(k)) return memory.get(k) as T
     try {
@@ -81,6 +90,35 @@ function readRaw<T>(kind: Kind, name: string): T | null {
     } catch {
         return null
     }
+}
+
+const STOP_WORDS = new Set(['of', 'the', 'a', 'an', 'and', 'for', 'to', 'in', 'on', 'or'])
+
+function nameTokens(name: string): string[] {
+    return String(name || '')
+        .toLowerCase()
+        .replace(/\([^)]*\)/g, ' ')
+        .replace(/\d+\s*feet?/gi, ' ')
+        .replace(/['’]s\b/g, '')
+        .split(/[^a-z0-9]+/)
+        .filter((t) => t && !STOP_WORDS.has(t))
+        .map((t) => (t.length > 3 && t.endsWith('s') ? t.slice(0, -1) : t))
+}
+
+/**
+ * Os nomes são da mesma coisa? As palavras de um estão todas no outro. (`namesCompatible` em
+ * `api/_lib/aon-parse.js` é a mesma conta — mudou uma, muda a outra; o `check-rolls` confere.)
+ */
+export function namesCompatible(requested: string, found: string): boolean {
+    const a = nameTokens(requested)
+    const b = nameTokens(found)
+    if (a.length === 0 || b.length === 0) return false
+    return a.every((t) => b.includes(t)) || b.every((t) => a.includes(t))
+}
+
+function isForeign(requested: string, value: unknown): boolean {
+    const found = (value as { name?: unknown } | null)?.name
+    return typeof found === 'string' && found !== '' && !namesCompatible(requested, found)
 }
 
 // Quem desenha a partir do cache (as linhas da aba de Magias) precisa saber

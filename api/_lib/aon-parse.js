@@ -14,18 +14,48 @@ function isLegacy(source) {
     || (Array.isArray(source?.remaster_name) && source.remaster_name.length > 0)
 }
 
+// --- Quando um acerto APROXIMADO ainda é a mesma coisa ----------------------------------------------
+//
+// A busca da AON é difusa: sem o nome exato ela devolve o melhor acerto de QUALQUER nome, e o app o
+// aceitava — "Reincarnation Feat" (a vaga da Fleshwarp no Pathbuilder) virava "Feast", "Emotionally Unaware"
+// virava "Master Strike", "Will" (a escolha do Path to Perfection) virava "Iron Will". Um acerto só vale
+// quando os nomes são COMPATÍVEIS: as palavras de um estão todas no outro ("Cognitive Crossover" ↔
+// "Kreighton's Cognitive Crossover", "Studious Spell: Blur" ↔ "Studious Spell"). Sem isso, a coisa não tem
+// entrada na AON e a ficha diz isso, em vez de mostrar a regra de outra.
+// (`namesCompatible` em `src/services/descriptions.ts` é a mesma conta — mudou uma, muda a outra.)
+
+const STOP_WORDS = new Set(['of', 'the', 'a', 'an', 'and', 'for', 'to', 'in', 'on', 'or'])
+
+function nameTokens(name) {
+  return String(name || '')
+    .toLowerCase()
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/\d+\s*feet?/gi, ' ')
+    .replace(/['’]s\b/g, '')
+    .split(/[^a-z0-9]+/)
+    .filter((t) => t && !STOP_WORDS.has(t))
+    .map((t) => (t.length > 3 && t.endsWith('s') ? t.slice(0, -1) : t))
+}
+
+export function namesCompatible(requested, found) {
+  const a = nameTokens(requested)
+  const b = nameTokens(found)
+  if (a.length === 0 || b.length === 0) return false
+  return a.every((t) => b.includes(t)) || b.every((t) => a.includes(t))
+}
+
 // Escolhe o melhor hit do Elasticsearch para um nome:
 // - só matches exatos de nome quando existirem;
 // - descarta docs legacy renomeados, MAS mantém-os quando são a única opção
 //   (ex.: a ficha lista "Power Attack", cujo nome remaster é "Vicious Swing");
 // - prefere a versão Remaster (primary_source "Player Core*"), senão a de
 //   release_date mais recente;
-// - sem match exato, devolve o primeiro hit (fuzzy).
+// - sem match exato, o primeiro hit de nome COMPATÍVEL (`namesCompatible`); se nenhum for, `null`.
 export function pickBestHit(hits, name) {
   if (!Array.isArray(hits) || hits.length === 0) return null
   const lower = String(name).toLowerCase()
   const exact = hits.filter(h => h._source?.name?.toLowerCase() === lower)
-  if (exact.length === 0) return hits[0]
+  if (exact.length === 0) return hits.find((h) => namesCompatible(name, h._source?.name)) ?? null
 
   const current = exact.filter(h => !isLegacy(h._source))
   const pool = current.length > 0 ? current : exact

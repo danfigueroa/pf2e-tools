@@ -41,8 +41,8 @@ async function prepareSpell(name, translationEnabled) {
   }
 
   if (!best) {
-    const fallback = await generateFallbackDescription(name, 'spell', translationEnabled)
-    return { name, done: emptySpell(name, fallback) }
+    // Magia que a AON não tem fica sem descrição: o texto de uma magia não se inventa.
+    return { name, done: emptySpell(name, null) }
   }
 
   const source = best._source

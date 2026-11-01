@@ -1176,6 +1176,36 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
     }
 }
 
+// ── A AON difusa devolvia outra coisa: só vale o acerto de nome COMPATÍVEL (cliente e servidor iguais) ──
+{
+    const server = await import('../api/_lib/aon-parse.js')
+    const client = await import('../src/services/descriptions.ts')
+    const same = [
+        ['Cognitive Crossover', "Kreighton's Cognitive Crossover"], ['Studious Spell: Blur', 'Studious Spell'],
+        ['Assurance (Athletics)', 'Assurance'], ['Scent (imprecise) 30 feet', 'Scent'], ['Frostbite (Amped)', 'Frostbite'],
+        ['Domain: Void', 'Void'], ['Second Doctrine', 'Doctrine'], ["Hunter's Edge: Precision", "Hunter's Edge"],
+        ['Staff of Healing (Greater)', 'Staff of Healing (Greater)'], ['Aeromancer', 'Shory Aeromancer'], ['Longbow', 'longbow'],
+    ]
+    const other = [
+        ['Reincarnation Feat', 'Feast'], ['Emotionally Unaware', 'Master Strike'], ['Basic Finisher', 'Exemplary Finisher'],
+        ['Storm Order', 'Druidic Order'], ['Thief Racket', "Rogue's Racket"], ['Standard Cantrip: Shield (Archetype)', 'Shield Block'],
+        ['Wish for Luck', 'Instant Manifestation'], ['Box of Unspoiling II', 'Armor of Fury'], ['Shadow Weaver', 'Reactive Strike'],
+        ['Empiricism Selected Skill: Occultism', 'Skill Feats'],
+    ]
+    for (const [a, b] of same) {
+        ok(server.namesCompatible(a, b) && server.namesCompatible(b, a), `servidor: "${a}" e "${b}" são a mesma coisa`)
+        ok(client.namesCompatible(a, b) && client.namesCompatible(b, a), `cliente: "${a}" e "${b}" são a mesma coisa`)
+    }
+    for (const [a, b] of other) {
+        ok(!server.namesCompatible(a, b), `servidor: "${a}" não é "${b}"`)
+        ok(!client.namesCompatible(a, b), `cliente: "${a}" não é "${b}"`)
+    }
+    const hit = (name, extra = {}) => ({ _source: { name, ...extra } })
+    eq(server.pickBestHit([hit('Feast'), hit('Master Strike')], 'Reincarnation Feat'), null, 'sem nome compatível: nenhum acerto (antes, o primeiro)')
+    eq(server.pickBestHit([hit('Ray of Frost'), hit('Frostbite')], 'Frostbite (Amped)')?._source.name, 'Frostbite', 'o acerto compatível vale mesmo atrás de outro')
+    eq(server.pickBestHit([hit('Feast'), hit('Heal')], 'Heal')?._source.name, 'Heal', 'o nome exato continua mandando')
+}
+
 // ── Grupos das abas Talentos e Habilidades, em português ──
 {
     const { featTypeLabel, specialGroup } = featGroups

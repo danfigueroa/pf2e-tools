@@ -443,12 +443,20 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                         <Skeleton variant="text" width="60%" />
                     </Stack>
                 ) : (
+                    <>
+                    {/* A AON não tem uma entrada com este nome: avisa de qual é o texto, em vez de passar por ele. */}
+                    {entry?.matchedName && (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontStyle: 'italic' }}>
+                            A AON não tem uma entrada chamada “{request.name}”; esta é a descrição de “{entry.matchedName}”.
+                        </Typography>
+                    )}
                     <DescriptionBody
                         parts={parsed?.parts ?? []}
                         heightenedBlock={heightenedBlock}
                         diceSubs={diceSubs}
                         accent={accent}
                     />
+                    </>
                 )}
 
                 {/* Corrigir a tradução: só do que já veio traduzido (inglês pendente se resolve sozinho) */}

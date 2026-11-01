@@ -87,7 +87,10 @@ async function prepareEntry(rawName, categories, itemType, translationEnabled) {
   }
 
   if (!best) {
-    const fallback = await generateFallbackDescription(searchName, itemType, translationEnabled)
+    // Regra de talento, habilidade ou magia NÃO se inventa: o que a AON não tem fica sem descrição (a tela
+    // diz isso). O LLM só escreve a frase de apoio de ITEM caseiro, que é o caso de antes.
+    const invent = itemType !== 'feat' && itemType !== 'special'
+    const fallback = invent ? await generateFallbackDescription(searchName, itemType, translationEnabled) : null
     return { done: emptyEntry(rawName, fallback, itemType) }
   }
 
@@ -181,8 +184,14 @@ async function finishEntry(prep, translated, translationEnabled) {
     }
     : null
 
+  // O nome da AON difere do pedido (mais do que o parêntese que o Pathbuilder anexa): a tela avisa de qual
+  // entrada é a descrição ("Kreighton's Cognitive Crossover" para "Cognitive Crossover").
+  const sameName = (a, b) => String(a).trim().toLowerCase() === String(b).trim().toLowerCase()
+  const matchedName = source.name && !sameName(source.name, rawName) && !sameName(source.name, searchName) ? source.name : undefined
+
   return {
     name: source.name || rawName,
+    ...(matchedName ? { matchedName } : {}),
     level: typeof source.level === 'number' ? source.level : null,
     actions: source.actions || '',
     traits,
