@@ -20,6 +20,7 @@ import { RESIST_LABEL, rageGivesTempHp, type RageSpec } from '../rage'
 import { useHpTracker } from './useHpTracker'
 import type { ConditionsApi } from './useConditions'
 import type { RageApi } from './useRage'
+import { tr } from '../../../i18n'
 
 interface Props {
     build: BuildInfo
@@ -79,11 +80,10 @@ export const RageBar = ({ build, rage, conditions }: Props) => {
                 <Stack direction="row" alignItems="center" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
                     <RageIcon sx={{ color: RAGE_COLOR }} />
                     <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1rem' }}>
-                        Fúria
-                    </Typography>
+                        {tr('Fúria', 'Rage')}</Typography>
                     {active && (
                         <Chip
-                            label="Em fúria"
+                            label={tr("Em fúria", 'Raging')}
                             size="small"
                             sx={{ ...chipSx, bgcolor: RAGE_COLOR, color: '#FFFFFF' }}
                         />
@@ -91,13 +91,12 @@ export const RageBar = ({ build, rage, conditions }: Props) => {
 
                     <Box sx={{ ml: 'auto' }}>
                         {active ? (
-                            <Tooltip title="Pela regra, a Fúria não se encerra por vontade: acaba em 1 minuto, ao fim do encontro ou ao cair inconsciente.">
+                            <Tooltip title={tr("Pela regra, a Fúria não se encerra por vontade: acaba em 1 minuto, ao fim do encontro ou ao cair inconsciente.", 'By the rules, Rage can\'t be ended at will: it ends after 1 minute, at the end of the encounter or when you fall unconscious.')}>
                                 <Button size="small" variant="outlined" onClick={end}>
-                                    Encerrar Fúria
-                                </Button>
+                                    {tr('Encerrar Fúria', 'End Rage')}</Button>
                             </Tooltip>
                         ) : (
-                            <Tooltip title={fatigued ? 'Fatigado: não é possível entrar em Fúria.' : 'Rage — 1 ação.'}>
+                            <Tooltip title={fatigued ? tr('Fatigado: não é possível entrar em Fúria.', 'Fatigued: you can\'t Rage.') : tr('Rage — 1 ação.', 'Rage — 1 action.')}>
                                 <span>
                                     <Button
                                         size="small"
@@ -106,8 +105,7 @@ export const RageBar = ({ build, rage, conditions }: Props) => {
                                         onClick={begin}
                                         sx={{ bgcolor: RAGE_COLOR, '&:hover': { bgcolor: RAGE_COLOR, filter: 'brightness(0.9)' } }}
                                     >
-                                        Entrar em Fúria
-                                    </Button>
+                                        {tr('Entrar em Fúria', 'Rage')}</Button>
                                 </span>
                             </Tooltip>
                         )}
@@ -121,18 +119,18 @@ export const RageBar = ({ build, rage, conditions }: Props) => {
                             <Chip label={`Resiste: ${resistText(effect.resist)}`} size="small" variant="outlined" sx={chipSx} />
                         )}
                         {(stored.granted ?? 0) > 0 && (
-                            <Chip label={`+${stored.granted} PV temporários`} size="small" variant="outlined" sx={chipSx} />
+                            <Chip label={tr(`+${stored.granted} PV temporários`, `+${stored.granted} temporary HP`)} size="small" variant="outlined" sx={chipSx} />
                         )}
                         {effect.brutality && (
-                            <Tooltip title="Brutality: em Fúria você tem os efeitos de especialização crítica das armas corpo a corpo e dos ataques desarmados.">
-                                <Chip label="Especialização crítica" size="small" variant="outlined" sx={chipSx} />
+                            <Tooltip title={tr("Brutality: em Fúria você tem os efeitos de especialização crítica das armas corpo a corpo e dos ataques desarmados.", 'Brutality: while raging you get the critical specialization effects of melee weapons and unarmed attacks.')}>
+                                <Chip label={tr("Especialização crítica", 'Critical specialization')} size="small" variant="outlined" sx={chipSx} />
                             </Tooltip>
                         )}
                     </Stack>
                 )}
 
                 {spec.titan && (
-                    <Tooltip title="Titan Mauler (Giant Instinct): com uma arma Grande em mãos, o dano da Fúria sobe, mas você fica Desajeitado 1 — com Fúria ou sem — e não há como remover isso enquanto a empunha.">
+                    <Tooltip title={tr("Titan Mauler (Giant Instinct): com uma arma Grande em mãos, o dano da Fúria sobe, mas você fica Desajeitado 1 — com Fúria ou sem — e não há como remover isso enquanto a empunha.", 'Titan Mauler (Giant Instinct): with a Large weapon in hand, Rage damage goes up, but you are clumsy 1 — raging or not — and there\'s no way to remove it while you wield it.')}>
                         <FormControlLabel
                             sx={{ display: 'flex', mt: 0.5, mr: 0 }}
                             control={
@@ -140,8 +138,7 @@ export const RageBar = ({ build, rage, conditions }: Props) => {
                             }
                             label={
                                 <Typography variant="body2">
-                                    Arma Grande em mãos ({spec.titan.weapons.join(', ')}) · Desajeitado 1
-                                </Typography>
+                                    {tr('Arma Grande em mãos (', 'Large weapon in hand (')}{spec.titan.weapons.join(', ')}{tr(') · Desajeitado 1', ') · Clumsy 1')}</Typography>
                             }
                         />
                     </Tooltip>
@@ -149,9 +146,9 @@ export const RageBar = ({ build, rage, conditions }: Props) => {
 
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
                     {active
-                        ? 'Sem ações com o traço concentrar, exceto as de Fúria (Procurar vale). Dura 1 minuto, até o fim do encontro ou a queda à inconsciência.'
-                        : `Entrar dá ${spec.tempHp} PV temporários (nível + CON).${spec.quickTempered ? ' Quick-Tempered: ao rolar iniciativa, ação livre.' : ''}`}
-                    {coolingDown && ' A Fúria acabou há menos de 1 minuto: entrar de novo agora não dá PV temporários.'}
+                        ? tr('Sem ações com o traço concentrar, exceto as de Fúria (Procurar vale). Dura 1 minuto, até o fim do encontro ou a queda à inconsciência.', 'No actions with the concentrate trait, except Rage ones (Seek works). Lasts 1 minute, until the end of the encounter or falling unconscious.')
+                        : tr(`Entrar dá ${spec.tempHp} PV temporários (nível + CON).${spec.quickTempered ? ' Quick-Tempered: ao rolar iniciativa, ação livre.' : ''}`, `Entering gives ${spec.tempHp} temporary HP (level + CON).${spec.quickTempered ? ' Quick-Tempered: when rolling initiative, free action.' : ''}`)}
+                    {coolingDown && tr(' A Fúria acabou há menos de 1 minuto: entrar de novo agora não dá PV temporários.', ' Rage ended less than 1 minute ago: entering again now gives no temporary HP.')}
                 </Typography>
             </CardContent>
         </Card>
@@ -160,12 +157,12 @@ export const RageBar = ({ build, rage, conditions }: Props) => {
 
 /** O dano extra na Fúria, com o caso da arma Grande e o da arma ágil. */
 const DamageChip = ({ spec, titan }: { spec: RageSpec; titan: { weapons: string[]; damage: number } | null }) => (
-    <Tooltip title="Dano extra em Golpes corpo a corpo. Metade se a arma ou o ataque desarmado é ágil. Dobra no crítico.">
+    <Tooltip title={tr("Dano extra em Golpes corpo a corpo. Metade se a arma ou o ataque desarmado é ágil. Dobra no crítico.", 'Extra damage on melee Strikes. Half if the weapon or unarmed attack is agile. Doubles on a critical.')}>
         <Chip
             label={
                 titan
-                    ? `+${titan.damage} dano com ${titan.weapons.join(', ')} · +${spec.damage} nas demais`
-                    : `+${spec.damage} dano corpo a corpo`
+                    ? tr(`+${titan.damage} dano com ${titan.weapons.join(', ')} · +${spec.damage} nas demais`, `+${titan.damage} damage with ${titan.weapons.join(', ')} · +${spec.damage} with the others`)
+                    : tr(`+${spec.damage} dano corpo a corpo`, `+${spec.damage} melee damage`)
             }
             size="small"
             sx={{ ...chipSx, bgcolor: RAGE_COLOR + '22', color: RAGE_COLOR, border: `1px solid ${RAGE_COLOR}55` }}

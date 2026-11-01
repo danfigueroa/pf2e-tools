@@ -3,6 +3,7 @@ import { MAGUS_COLOR } from '../../../theme'
 import { componentLabel } from '../heightening'
 import type { MagusApi } from './useMagus'
 import type { SpellstrikeApi } from './useSpellstrike'
+import { tr } from '../../../i18n'
 
 interface Props {
     ss: SpellstrikeApi
@@ -24,25 +25,24 @@ export const SpellstrikePanel = ({ ss, magus }: Props) => {
 
                 {magus.stored.spent && (
                     <Alert severity="warning" sx={{ py: 0 }}>
-                        O Spellstrike está gasto: recarregue (1 ação) antes de usar de novo — o botão está na faixa do Magus.
-                    </Alert>
+                        {tr('O Spellstrike está gasto: recarregue (1 ação) antes de usar de novo — o botão está na faixa do Magus.', 'Spellstrike is spent: recharge it (1 action) before using it again — the button is in the Magus bar.')}</Alert>
                 )}
 
                 <FormControl size="small" fullWidth>
-                    <InputLabel id="spellstrike-spell">Magia no Golpe</InputLabel>
+                    <InputLabel id="spellstrike-spell">{tr('Magia no Golpe', 'Spell in the Strike')}</InputLabel>
                     <Select
                         labelId="spellstrike-spell"
-                        label="Magia no Golpe"
+                        label={tr("Magia no Golpe", 'Spell in the Strike')}
                         value={ss.choice ?? ''}
                         onChange={(e) => ss.setChoice(e.target.value || null)}
                     >
-                        <MenuItem value=""><em>Só o Golpe (sem magia)</em></MenuItem>
+                        <MenuItem value=""><em>{tr('Só o Golpe (sem magia)', 'Just the Strike (no spell)')}</em></MenuItem>
                         {[...ss.options].sort((a, b) => a.caster.localeCompare(b.caster) || b.rank - a.rank || a.name.localeCompare(b.name)).map((o) => (
                             <MenuItem key={o.id} value={o.id} disabled={o.left === 0}>
                                 {o.name} · {o.kind === 'cantrip'
-                                    ? `truque (rank ${o.rank})`
+                                    ? tr(`truque (rank ${o.rank})`, `cantrip (rank ${o.rank})`)
                                     : o.kind === 'mythic'
-                                        ? `rank ${o.rank} · 1 Ponto Mítico (${o.left} disponível)`
+                                        ? tr(`rank ${o.rank} · 1 Ponto Mítico (${o.left} disponível)`, `rank ${o.rank} · 1 Mythic Point (${o.left} available)`)
                                         : `rank ${o.rank} · ${o.left} slot${o.left === 1 ? '' : 's'}`}
                                 {ss.options.some((x) => x.caster !== o.caster) ? ` — ${o.caster}` : ''}
                             </MenuItem>
@@ -51,7 +51,7 @@ export const SpellstrikePanel = ({ ss, magus }: Props) => {
                 </FormControl>
 
                 {option && ss.loading && (
-                    <Typography variant="caption" color="text.secondary">Buscando a magia no AON…</Typography>
+                    <Typography variant="caption" color="text.secondary">{tr('Buscando a magia no AON…', 'Looking up the spell on AON…')}</Typography>
                 )}
                 {option && ss.issue && <Alert severity="warning" sx={{ py: 0 }}>{ss.issue}</Alert>}
 
@@ -59,16 +59,16 @@ export const SpellstrikePanel = ({ ss, magus }: Props) => {
                     <>
                         {ss.actionLimit && ss.nActions != null && (
                             <Box>
-                                <Typography variant="caption" color="text.secondary">Ações da magia dentro do Spellstrike</Typography>
+                                <Typography variant="caption" color="text.secondary">{tr('Ações da magia dentro do Spellstrike', 'Spell actions inside Spellstrike')}</Typography>
                                 <ToggleButtonGroup exclusive size="small" fullWidth value={ss.nActions} onChange={(_, v: number | null) => { if (v != null) ss.setNActions(v) }}>
                                     {Array.from({ length: ss.actionLimit.max - ss.actionLimit.min + 1 }, (_, i) => ss.actionLimit!.min + i).map((n) => (
-                                        <ToggleButton key={n} value={n}>{n} {n === 1 ? 'ação' : 'ações'}</ToggleButton>
+                                        <ToggleButton key={n} value={n}>{n} {n === 1 ? tr('ação', 'action') : tr('ações', 'actions')}</ToggleButton>
                                     ))}
                                 </ToggleButtonGroup>
                                 {ss.variant && (
                                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
                                         {ss.variant.rays > 1
-                                            ? 'O Spellstrike entrega a magia num único Golpe: vale um raio só (o dano é o da versão com estas ações).'
+                                            ? tr('O Spellstrike entrega a magia num único Golpe: vale um raio só (o dano é o da versão com estas ações).', 'Spellstrike delivers the spell in a single Strike: only one ray applies (the damage is the version with these actions).')
                                             : ss.variant.notes[0]}
                                     </Typography>
                                 )}
@@ -77,7 +77,7 @@ export const SpellstrikePanel = ({ ss, magus }: Props) => {
                         {ss.amp && (
                             <Box>
                                 <Chip
-                                    label={`Amplificar · 1 Ponto de Foco (${ss.focusLeft} disponível${ss.focusLeft === 1 ? '' : 'is'})`}
+                                    label={tr(`Amplificar · 1 Ponto de Foco (${ss.focusLeft} disponível${ss.focusLeft === 1 ? '' : 'is'})`, `Amp · 1 Focus Point (${ss.focusLeft} available)`)}
                                     color={ss.ampOn ? 'primary' : 'default'}
                                     variant={ss.ampOn ? 'filled' : 'outlined'}
                                     disabled={!ss.ampOn && ss.focusLeft === 0}
@@ -87,16 +87,14 @@ export const SpellstrikePanel = ({ ss, magus }: Props) => {
                                 />
                                 {ss.ampOn && (
                                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                        {ss.amp.summary} No Spellstrike, só o alvo do Golpe recebe.
-                                    </Typography>
+                                        {ss.amp.summary} {tr('No Spellstrike, só o alvo do Golpe recebe.', 'In Spellstrike, only the Strike\'s target is affected.')}</Typography>
                                 )}
                             </Box>
                         )}
                         {ss.components.length > 0 ? (
                             <Box>
                                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                                    Dano da magia (rank {option.rank}) — ligue o que vale
-                                </Typography>
+                                    {tr('Dano da magia (rank ', 'Spell damage (rank ')}{option.rank}{tr(') — ligue o que vale', ') — turn on what applies')}</Typography>
                                 <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
                                     {ss.components.map((c) => {
                                         const on = ss.selected.has(c.id) && !c.uncertain
@@ -117,22 +115,20 @@ export const SpellstrikePanel = ({ ss, magus }: Props) => {
                             </Box>
                         ) : (
                             <Typography variant="caption" color="text.secondary">
-                                Esta magia não tem dano legível para rolar; o efeito dela vale à parte.
-                            </Typography>
+                                {tr('Esta magia não tem dano legível para rolar; o efeito dela vale à parte.', 'This spell has no readable damage to roll; its effect applies separately.')}</Typography>
                         )}
 
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                             {ss.usesAttack
-                                ? 'Magia de ataque: usa o resultado do Golpe e dobra no crítico.'
-                                : `Salvaguarda${ss.spell.defense ? ` (${ss.spell.defense})` : ''}: o alvo rola a dele; o dano da magia não dobra com o crítico do Golpe.`}
+                                ? tr('Magia de ataque: usa o resultado do Golpe e dobra no crítico.', 'Attack spell: uses the Strike\'s result and doubles on a critical.')
+                                : tr(`Salvaguarda${ss.spell.defense ? ` (${ss.spell.defense})` : ''}: o alvo rola a dele; o dano da magia não dobra com o crítico do Golpe.`, `Saving throw${ss.spell.defense ? ` (${ss.spell.defense})` : ''}: the target rolls theirs; the spell's damage doesn't double with the Strike's critical.`)}
                             {' '}
-                            {option.kind === 'cantrip' ? (ss.ampOn ? 'Truque amplificado: gasta 1 Ponto de Foco ao rolar.' : 'Truque: não gasta slot.') : option.kind === 'mythic' ? 'Mythic Magic: gasta 1 Ponto Mítico, e o ataque é o do Golpe (sem a proficiência mítica da magia).' : `Ao rolar, gasta 1 slot de rank ${option.spellLevel}.`}
-                            {' '}Conta como dois ataques para a penalidade (aplicada depois).
-                        </Typography>
+                            {option.kind === 'cantrip' ? (ss.ampOn ? tr('Truque amplificado: gasta 1 Ponto de Foco ao rolar.', 'Amped cantrip: spends 1 Focus Point when rolling.') : tr('Truque: não gasta slot.', 'Cantrip: doesn\'t spend a slot.')) : option.kind === 'mythic' ? tr('Mythic Magic: gasta 1 Ponto Mítico, e o ataque é o do Golpe (sem a proficiência mítica da magia).', 'Mythic Magic: spends 1 Mythic Point, and the attack is the Strike\'s (without the spell\'s mythic proficiency).') : tr(`Ao rolar, gasta 1 slot de rank ${option.spellLevel}.`, `When rolling, spends 1 rank ${option.spellLevel} slot.`)}
+                            {' '}{tr('Conta como dois ataques para a penalidade (aplicada depois).', 'Counts as two attacks for the penalty (applied afterwards).')}</Typography>
 
                         {magus.canCascade && !magus.stored.cascade && (
                             <Chip
-                                label="Entrar na Arcane Cascade depois"
+                                label={tr("Entrar na Arcane Cascade depois", 'Enter Arcane Cascade afterwards')}
                                 color={ss.enterCascade ? 'primary' : 'default'}
                                 variant={ss.enterCascade ? 'filled' : 'outlined'}
                                 aria-pressed={ss.enterCascade}

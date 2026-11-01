@@ -18,7 +18,7 @@ import type { ConditionModifiers } from '../conditions'
 import type { GuideSlot } from '../components/usePublication'
 import type { RollRequest } from '../components/RollDialog'
 import { RollTrigger } from '../components/RollTrigger'
-import { locale } from '../../../i18n'
+import { locale, tr } from '../../../i18n'
 
 interface Props {
     build: BuildInfo
@@ -88,20 +88,19 @@ const OverviewSectionView = ({ build, mods, guide: slot, onRoll, compact = false
                     animate={armed}
                     extra={shieldAc > 0 ? (
                         <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: gold.deep }}>
-                            +{shieldAc} escudo erguido
-                        </Typography>
+                            +{shieldAc} {tr('escudo erguido', 'shield raised')}</Typography>
                     ) : null}
                 />
                 <StatTile
-                    label="Percepção"
+                    label={tr("Percepção", 'Perception')}
                     value={signed(perception.total)}
                     delta={perception.conditionDelta}
                     base={perception.base}
-                    onRoll={() => onRoll({ kind: 'check', check: perception, note: 'Percepção também é a iniciativa padrão.' })}
+                    onRoll={() => onRoll({ kind: 'check', check: perception, note: tr('Percepção também é a iniciativa padrão.', 'Perception is also the default initiative.') })}
                 />
                 <StatTile
-                    label="Deslocamento"
-                    value={`${speed} pés`}
+                    label={tr("Deslocamento", 'Speed')}
+                    value={tr(`${speed} pés`, `${speed} feet`)}
                     delta={mods.total.speed}
                 />
             </Box>
@@ -109,7 +108,7 @@ const OverviewSectionView = ({ build, mods, guide: slot, onRoll, compact = false
             {/* Saves */}
             <Card>
                 <CardContent>
-                    <SectionTitle>Salvaguardas</SectionTitle>
+                    <SectionTitle>{tr('Salvaguardas', 'Saving Throws')}</SectionTitle>
                     {/* Grade em vez de Stack: no celular o Stack virava coluna
                         e o divisor vertical ficava atravessado. Três colunas
                         cabem mesmo em 320px — são três números curtos. */}
@@ -201,13 +200,13 @@ const OverviewSectionView = ({ build, mods, guide: slot, onRoll, compact = false
                         )}
                         {((build.resistances && build.resistances.length > 0) || rageResist) && (
                             <Box>
-                                <SectionTitle>Resistências</SectionTitle>
+                                <SectionTitle>{tr('Resistências', 'Resistances')}</SectionTitle>
                                 {build.resistances && build.resistances.length > 0 && (
                                     <Typography>{build.resistances.join(', ')}</Typography>
                                 )}
                                 {rageResist && (
                                     <Typography sx={{ color: RAGE_COLOR, fontWeight: 600 }}>
-                                        Em fúria: {rageResist}
+                                        {tr('Em fúria: ', 'Raging: ')}{rageResist}
                                     </Typography>
                                 )}
                             </Box>
@@ -237,19 +236,18 @@ const OverviewSectionView = ({ build, mods, guide: slot, onRoll, compact = false
                     >
                         <GuideIcon sx={{ color: 'primary.light' }} />
                         <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                            Guia de Uso — Como Jogar
-                        </Typography>
+                            {tr('Guia de Uso — Como Jogar', 'Play Guide — How to Play')}</Typography>
                         {guide.ai && (
-                            <Chip label="gerado por IA" size="small" variant="outlined" sx={{ ml: 'auto' }} />
+                            <Chip label={tr('gerado por IA', 'AI-generated')} size="small" variant="outlined" sx={{ ml: 'auto' }} />
                         )}
                         {!guide.curated && (
-                            <Chip label="automático" size="small" variant="outlined" sx={{ ml: 'auto' }} />
+                            <Chip label={tr("automático", 'automatic')} size="small" variant="outlined" sx={{ ml: 'auto' }} />
                         )}
                         {compact && !guideOpen && slot.status === 'generating' && (
-                            <Chip label="gerando…" size="small" color="info" variant="outlined" />
+                            <Chip label={tr("gerando…", 'generating…')} size="small" color="info" variant="outlined" />
                         )}
                         {compact && !guideOpen && slot.status === 'failed' && (
-                            <Chip label="não gerou" size="small" color="warning" variant="outlined" />
+                            <Chip label={tr("não gerou", 'not generated')} size="small" color="warning" variant="outlined" />
                         )}
                         {compact && (
                             <ExpandIcon
@@ -265,27 +263,25 @@ const OverviewSectionView = ({ build, mods, guide: slot, onRoll, compact = false
                     <Collapse in={showGuide} timeout={compact ? 200 : 0} unmountOnExit id="guide-body">
                     {slot.status === 'generating' && (
                         <Alert severity="info" icon={<CircularProgress size={18} />} sx={{ mb: 2 }}>
-                            Gerando o guia para a ficha publicada… leva até meio minuto.
-                            {!guide.ai && ' Enquanto isso, segue o guia anterior.'}
+                            {tr('Gerando o guia para a ficha publicada… leva até meio minuto.', 'Generating the guide for the published sheet… takes up to half a minute.')}{!guide.ai && tr(' Enquanto isso, segue o guia anterior.', ' Meanwhile, the previous guide stays.')}
                         </Alert>
                     )}
                     {slot.status === 'failed' && (
                         <Alert
                             severity="warning"
                             sx={{ mb: 2 }}
-                            action={<Button color="inherit" size="small" onClick={slot.onGenerate}>Tentar de novo</Button>}
+                            action={<Button color="inherit" size="small" onClick={slot.onGenerate}>{tr('Tentar de novo', 'Try again')}</Button>}
                         >
-                            Não deu para gerar o guia: {slot.error}
+                            {tr('Não deu para gerar o guia: ', 'Couldn\'t generate the guide: ')}{slot.error}
                         </Alert>
                     )}
                     {slot.published && !slot.guide && slot.status === 'idle' && (
                         <Alert
                             severity="info"
                             sx={{ mb: 2 }}
-                            action={<Button color="inherit" size="small" onClick={slot.onGenerate}>Gerar guia</Button>}
+                            action={<Button color="inherit" size="small" onClick={slot.onGenerate}>{tr('Gerar guia', 'Generate guide')}</Button>}
                         >
-                            Esta ficha foi publicada sem guia novo — o de baixo pode descrever a versão anterior.
-                        </Alert>
+                            {tr('Esta ficha foi publicada sem guia novo — o de baixo pode descrever a versão anterior.', 'This sheet was published without a new guide — the one below may describe the previous version.')}</Alert>
                     )}
 
                     <GuideMarkdown markdown={guide.markdown} />
@@ -293,17 +289,14 @@ const OverviewSectionView = ({ build, mods, guide: slot, onRoll, compact = false
                     {guide.ai && slot.guide && (
                         <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, mt: 2 }}>
                             <Typography variant="caption" color="text.secondary" sx={{ flex: '1 1 auto' }}>
-                                Gerado por IA a partir da ficha em {new Date(slot.guide.generatedAt).toLocaleDateString(locale)}.
-                                Confira na ficha antes de confiar num número.
-                            </Typography>
+                                {tr('Gerado por IA a partir da ficha em ', 'Generated by AI from the sheet on ')}{new Date(slot.guide.generatedAt).toLocaleDateString(locale)}{tr('. Confira na ficha antes de confiar num número.', '. Check the sheet before trusting a number.')}</Typography>
                             <Button
                                 size="small"
                                 startIcon={<RegenerateIcon />}
                                 onClick={slot.onGenerate}
                                 disabled={slot.status === 'generating'}
                             >
-                                Gerar de novo
-                            </Button>
+                                {tr('Gerar de novo', 'Generate again')}</Button>
                         </Box>
                     )}
                     </Collapse>

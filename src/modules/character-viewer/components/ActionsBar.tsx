@@ -3,6 +3,7 @@ import { Alert, Button, ButtonBase, Card, CardContent, Chip, Snackbar, Stack, To
 import { gold, green, MAGUS_COLOR, SHIELD_COLOR } from '../../../theme'
 import type { ActionsApi } from './useActions'
 import { useSheetReadOnly } from '../sheetAccess'
+import { tr } from '../../../i18n'
 
 interface Props {
     actions: ActionsApi
@@ -75,7 +76,7 @@ export const ActionsBar = ({ actions, shieldReaction }: Props) => {
     const spentBase = Math.min(stored.used, budget.base)
     const out = left.total === 0
     const lostLabel = budget.lost > 0
-        ? [budget.stunned > 0 ? `Atordoado ${budget.stunned}` : null, budget.slowed > 0 ? `Lento ${budget.slowed}` : null]
+        ? [budget.stunned > 0 ? tr(`Atordoado ${budget.stunned}`, `Stunned ${budget.stunned}`) : null, budget.slowed > 0 ? tr(`Lento ${budget.slowed}`, `Slowed ${budget.slowed}`) : null]
             .filter(Boolean).join(' / ')
         : null
 
@@ -84,7 +85,7 @@ export const ActionsBar = ({ actions, shieldReaction }: Props) => {
             <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
                 <Stack spacing={1}>
                     <Stack direction="row" alignItems="center" sx={{ flexWrap: 'wrap', gap: 1.25 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1rem', mr: 0.5 }}>Ações</Typography>
+                        <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1rem', mr: 0.5 }}>{tr('Ações', 'Actions')}</Typography>
 
                         <Stack direction="row" spacing={0.75} alignItems="center">
                             {Array.from({ length: budget.base }, (_, i) => (
@@ -92,20 +93,20 @@ export const ActionsBar = ({ actions, shieldReaction }: Props) => {
                                     key={i}
                                     state={i < spentBase ? 'spent' : 'free'}
                                     color={green.main}
-                                    label={i < spentBase ? 'Ação gasta — toque para devolver' : 'Ação disponível — toque para gastar'}
+                                    label={i < spentBase ? tr('Ação gasta — toque para devolver', 'Action spent — tap to give it back') : tr('Ação disponível — toque para gastar', 'Action available — tap to spend')}
                                     // Tocar num pip gasto devolve até ele; num livre, gasta até ele.
                                     onClick={() => actions.setUsed(i < spentBase ? i : i + 1)}
                                     glyph="◆"
                                 />
                             ))}
                             {Array.from({ length: budget.lost }, (_, i) => (
-                                <Pip key={`lost-${i}`} state="lost" color="#777777" label={`Ação perdida (${lostLabel})`} />
+                                <Pip key={`lost-${i}`} state="lost" color="#777777" label={tr(`Ação perdida (${lostLabel})`, `Action lost (${lostLabel})`)} />
                             ))}
                             {budget.quick && (
                                 <Pip
                                     state={stored.quickUsed ? 'spent' : 'free'}
                                     color={MAGUS_COLOR}
-                                    label="Ação extra do Acelerado: só para Golpe ou Andar"
+                                    label={tr("Ação extra do Acelerado: só para Golpe ou Andar", 'Quickened\'s extra action: only for Strike or Stride')}
                                     onClick={actions.toggleQuick}
                                     glyph="+"
                                 />
@@ -115,7 +116,7 @@ export const ActionsBar = ({ actions, shieldReaction }: Props) => {
                         <Pip
                             state={stored.reacted ? 'spent' : 'free'}
                             color={gold.deep}
-                            label={stored.reacted ? 'Reação usada nesta rodada — toque para devolver' : 'Reação disponível'}
+                            label={stored.reacted ? tr('Reação usada nesta rodada — toque para devolver', 'Reaction used this round — tap to give it back') : tr('Reação disponível', 'Reaction available')}
                             onClick={actions.toggleReaction}
                             glyph="⤴"
                         />
@@ -124,37 +125,35 @@ export const ActionsBar = ({ actions, shieldReaction }: Props) => {
                                 state={stored.shieldReacted ? 'spent' : 'free'}
                                 color={SHIELD_COLOR}
                                 label={stored.shieldReacted
-                                    ? 'Reação extra do Quick Shield Block usada — toque para devolver'
-                                    : 'Reação extra do Quick Shield Block: só para Shield Block'}
+                                    ? tr('Reação extra do Quick Shield Block usada — toque para devolver', 'Quick Shield Block\'s extra reaction used — tap to give it back')
+                                    : tr('Reação extra do Quick Shield Block: só para Shield Block', 'Quick Shield Block\'s extra reaction: only for Shield Block')}
                                 onClick={actions.toggleShieldReaction}
                                 glyph="🛡"
                             />
                         )}
 
-                        {out && <Chip label="Sem ações neste turno" color="error" size="small" sx={{ fontWeight: 700 }} />}
+                        {out && <Chip label={tr("Sem ações neste turno", 'No actions this turn')} color="error" size="small" sx={{ fontWeight: 700 }} />}
                     </Stack>
 
                     <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75 }} alignItems="center">
-                        <Tooltip title={budget.quick ? 'Usa a ação extra do Acelerado primeiro' : 'Andar (Stride)'}>
+                        <Tooltip title={budget.quick ? tr('Usa a ação extra do Acelerado primeiro', 'Uses Quickened\'s extra action first') : 'Andar (Stride)'}>
                             <Button size="small" variant="outlined" onClick={() => actions.spend(1, 'move-attack')}>Andar</Button>
                         </Tooltip>
-                        <Button size="small" variant="outlined" onClick={() => actions.spend(1)}>−1 ação</Button>
+                        <Button size="small" variant="outlined" onClick={() => actions.spend(1)}>{tr('−1 ação', '−1 action')}</Button>
                         <Button size="small" variant="outlined" onClick={() => actions.spend(2)}>−2</Button>
                         <Button size="small" variant="outlined" onClick={() => actions.spend(3)}>−3</Button>
                         <Button size="small" variant="contained" onClick={actions.startTurn} sx={{ ml: 'auto' }}>
-                            Novo turno
-                        </Button>
+                            {tr('Novo turno', 'New turn')}</Button>
                     </Stack>
 
                     {lostLabel && (
                         <Typography variant="caption" color="text.secondary">
-                            {lostLabel}: {budget.base} ação{budget.base === 1 ? '' : 'ões'} neste turno.
+                            {lostLabel}: {tr(`${budget.base} ${budget.base === 1 ? 'ação' : 'ações'} neste turno.`, `${budget.base} ${budget.base === 1 ? 'action' : 'actions'} this turn.`)}
                         </Typography>
                     )}
                     {budget.quick && (
                         <Typography variant="caption" color="text.secondary">
-                            Acelerado: +1 ação, só para Golpe ou Andar.
-                        </Typography>
+                            {tr('Acelerado: +1 ação, só para Golpe ou Andar.', 'Quickened: +1 action, only for Strike or Stride.')}</Typography>
                     )}
                 </Stack>
             </CardContent>
@@ -166,8 +165,7 @@ export const ActionsBar = ({ actions, shieldReaction }: Props) => {
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             >
                 <Alert severity="warning" variant="filled" onClose={() => setNotice(false)}>
-                    Sem ações neste turno.
-                </Alert>
+                    {tr('Sem ações neste turno.', 'No actions this turn.')}</Alert>
             </Snackbar>
         </Card>
     )

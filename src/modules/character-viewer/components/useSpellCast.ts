@@ -8,6 +8,7 @@ import { useActions, type ActionsApi } from './useActions'
 import { useMagus } from './useMagus'
 import type { MythicPointsApi } from './useMythicPoints'
 import type { SpellSlotsApi } from './useSpellSlots'
+import { tr } from '../../../i18n'
 
 export interface CastInput {
     name: string
@@ -46,19 +47,19 @@ export function payTime(
     const pay = (n: number) => {
         const lacking = actions.missing(n, 'any')
         actions.spend(n, 'any')
-        spent.push(`${n} ${n === 1 ? 'ação' : 'ações'}`)
-        if (lacking > 0) warnings.push(`faltaram ${lacking} ação(ões) neste turno`)
+        spent.push(`${n} ${n === 1 ? tr('ação', 'action') : tr('ações', 'actions')}`)
+        if (lacking > 0) warnings.push(tr(`faltaram ${lacking} ação(ões) neste turno`, `${lacking} action(s) short this turn`))
     }
     if (time.kind === 'actions') pay(time.n)
     else if (time.kind === 'variable') {
-        if (chosen == null) warnings.push(`ação variável: contei ${time.min}; ajuste na faixa de Ações se gastou mais`)
+        if (chosen == null) warnings.push(tr(`ação variável: contei ${time.min}; ajuste na faixa de Ações se gastou mais`, `variable action: I counted ${time.min}; adjust in the Actions bar if you spent more`))
         pay(chosen ?? time.min)
     } else if (time.kind === 'reaction') {
-        if (actions.stored.reacted) warnings.push('a reação desta rodada já tinha sido usada')
+        if (actions.stored.reacted) warnings.push(tr('a reação desta rodada já tinha sido usada', 'this round\'s reaction had already been used'))
         actions.spendReaction()
-        spent.push('a reação')
+        spent.push(tr('a reação', 'the reaction'))
     } else if (time.kind === 'unknown') {
-        warnings.push('não sei quantas ações custa (abra a descrição); gaste na faixa de Ações')
+        warnings.push(tr('não sei quantas ações custa (abra a descrição); gaste na faixa de Ações', 'I don\'t know how many actions it costs (open the description); spend it in the Actions bar'))
     }
 }
 
@@ -82,25 +83,25 @@ export function useSpellCast(build: BuildInfo, mods: ConditionModifiers, mythicP
 
         const { resource } = input
         if (resource.kind === 'slot' || resource.kind === 'spontaneous') {
-            if (slots.usedOf(resource.key) >= resource.total) warnings.push('sem slot disponível deste rank')
+            if (slots.usedOf(resource.key) >= resource.total) warnings.push(tr('sem slot disponível deste rank', 'no slot available at this rank'))
             else { slots.spendOne(resource.key, resource.total); spent.push('1 slot') }
         } else if (resource.kind === 'focus') {
-            if (slots.focusUsed >= slots.focusMax) warnings.push('sem pontos de foco')
-            else { slots.spendFocus(); spent.push('1 ponto de foco') }
+            if (slots.focusUsed >= slots.focusMax) warnings.push(tr('sem pontos de foco', 'no focus points'))
+            else { slots.spendFocus(); spent.push(tr('1 ponto de foco', '1 focus point')) }
         } else if (resource.kind === 'mythic') {
-            if (mythicPoints.available <= 0) warnings.push('sem Pontos Míticos')
-            else { mythicPoints.spend(); spent.push('1 Ponto Mítico') }
+            if (mythicPoints.available <= 0) warnings.push(tr('sem Pontos Míticos', 'no Mythic Points'))
+            else { mythicPoints.spend(); spent.push(tr('1 Ponto Mítico', '1 Mythic Point')) }
         }
 
         const time = castTimeOf(input.actionsText)
         payTime(actions, time, input.chosenActions, spent, warnings)
         if (isConfluxSpell(input.traits) && (time.kind === 'actions' || time.kind === 'variable') && hasSpellstrike(build) && magus.stored.spent) {
             magus.rechargeSpellstrike()
-            spent.push('recarregou o Spellstrike')
+            spent.push(tr('recarregou o Spellstrike', 'recharged Spellstrike'))
         }
         if (spellIncludesStrike(input.name)) {
             prepayStrike()
-            spent.push('o Golpe da magia (role-o na aba de Combate, sem gastar ação)')
+            spent.push(tr('o Golpe da magia (role-o na aba de Combate, sem gastar ação)', 'the spell\'s Strike (roll it in the Combat tab, without spending an action)'))
         }
         return { paired: false, spent, warnings }
     }, [actions, slots, mythicPoints, magus, build])
@@ -112,7 +113,7 @@ export type SpellCastApi = ReturnType<typeof useSpellCast>
 
 /** "Fireball: gastou 1 slot e 2 ações — faltaram 1 ação(ões)…" para o aviso da lista. */
 export function castMessage(name: string, r: CastReport): string {
-    if (r.paired) return `${name}: a rolagem já gastou o slot e as ações — nada foi contado de novo.`
-    const spent = r.spent.length ? `gastou ${r.spent.join(' e ')}` : 'nada a gastar'
-    return `${name}: ${spent}${r.warnings.length ? ` — atenção: ${r.warnings.join('; ')}` : ''}.`
+    if (r.paired) return tr(`${name}: a rolagem já gastou o slot e as ações — nada foi contado de novo.`, `${name}: the roll already spent the slot and the actions — nothing was counted again.`)
+    const spent = r.spent.length ? tr(`gastou ${r.spent.join(' e ')}`, `spent ${r.spent.join(' and ')}`) : tr('nada a gastar', 'nothing to spend')
+    return `${name}: ${spent}${r.warnings.length ? tr(` — atenção: ${r.warnings.join('; ')}`, ` — warning: ${r.warnings.join('; ')}`) : ''}.`
 }
