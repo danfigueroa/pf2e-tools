@@ -21,6 +21,8 @@ interface Props {
     fitX: number
     fitY: number
     fitZ: number
+    /** A imagem espelhada na horizontal (tecla F). */
+    flip: boolean
     active: boolean
     /** Alguém (em outro aparelho) está com a ficha deste personagem aberta (`services/presence`). */
     online: boolean
@@ -161,7 +163,7 @@ function useResizeAnimation(
     }, [px, inset, border, circle, bar, name])
 }
 
-export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, image, fitX, fitY, fitZ, active, online }: Props) {
+export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, image, fitX, fitY, fitZ, flip, active, online }: Props) {
     const theme = useTheme()
     const src = useImageUrl(image)
     // Sem saber a proporção da imagem (ainda carregando) vale o `cover` de sempre.
@@ -271,6 +273,9 @@ export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, ima
                 }}
             >
                 {src ? (
+                    // O espelho é do círculo, não da imagem: espelhar só a imagem inverteria o ponto
+                    // de enquadramento (`fit`), que é medido a partir do centro do círculo.
+                    <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', transform: flip ? 'scaleX(-1)' : 'none' }}>
                     <img
                         src={src}
                         alt=""
@@ -284,6 +289,7 @@ export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, ima
                             ? { width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }
                             : { position: 'absolute', ...fitStyle({ x: fitX, y: fitY, z: fitZ }, known), maxWidth: 'none', pointerEvents: 'none' }}
                     />
+                    </span>
                 ) : (
                     <span
                         style={{

@@ -227,7 +227,16 @@ export const BattleMapPage = () => {
     dataRef.current = data
 
     const onMove = useCallback((tokenId: string, cell: Cell) => {
-        if (id) writeMapField(id, `pos:${tokenId}`, cell, { now: true })
+        // Mover não desvira o token: o `flip` mora junto da posição e volta com ela.
+        const flip = dataRef.current?.pos[tokenId]?.flip
+        if (id) writeMapField(id, `pos:${tokenId}`, flip ? { ...cell, flip: true } : cell, { now: true })
+    }, [id])
+
+    const onFlip = useCallback((tokenId: string) => {
+        const at = dataRef.current?.pos[tokenId]
+        if (!id || !at) return
+        const { flip, ...cell } = at
+        writeMapField(id, `pos:${tokenId}`, flip ? cell : { ...cell, flip: true }, { now: true })
     }, [id])
 
     const onImageRect = useCallback((rect: ImageRect) => {
@@ -317,6 +326,7 @@ export const BattleMapPage = () => {
                     tool={tool}
                     views={views}
                     onMove={onMove}
+                    onFlip={onFlip}
                     onImageRect={onImageRect}
                     onTokenTap={onTokenTap}
                     onZoomChange={setZoom}
@@ -445,7 +455,7 @@ export const BattleMapPage = () => {
 
                     {/* Logo depois das ferramentas, onde o olho já está: no canto
                         oposto da barra, ninguém achava. */}
-                    <Tooltip title="Clique duas vezes em qualquer ponto do mapa: um anel dourado pisca ali na tela de todos da mesa por alguns segundos. Vale em qualquer ferramenta (menos em cima de um token).">
+                    <Tooltip title="Clique duas vezes em qualquer ponto do mapa: um anel dourado pisca ali na tela de todos da mesa por alguns segundos. Vale em qualquer ferramenta (menos em cima de um token). Com o mouse sobre um token seu, a tecla F vira a imagem dele na horizontal.">
                         <Box
                             sx={{
                                 display: { xs: 'none', md: 'flex' },
@@ -457,7 +467,7 @@ export const BattleMapPage = () => {
                             }}
                         >
                             <PingIcon fontSize="small" sx={{ color: gold.bright }} />
-                            Clique duplo: ping
+                            Clique duplo: ping · F: virar token
                         </Box>
                     </Tooltip>
 

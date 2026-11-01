@@ -54,6 +54,8 @@ interface Props {
     /** PV e imagem já resolvidos por token (a página sabe do Modo GM e dos PCs). */
     views: Map<string, TokenView>
     onMove: (tokenId: string, cell: Cell) => void
+    /** Tecla F sobre um token: espelha a imagem na horizontal. */
+    onFlip: (tokenId: string) => void
     onImageRect: (rect: ImageRect) => void
     onTokenTap: (tokenId: string, anchor: HTMLElement) => void
     onZoomChange: (zoom: number) => void
@@ -168,7 +170,7 @@ const TAP_SLOP_PX = 6
  *   congela a rasterização na escala inicial e o mapa fica borrado ao aproximar.
  */
 export const MapCanvas = memo(function MapCanvas({
-    data, tool, views, onMove, onImageRect, onTokenTap, onZoomChange, drawStyle, areaStyle, onDraw, onErase, onPing, apiRef,
+    data, tool, views, onMove, onFlip, onImageRect, onTokenTap, onZoomChange, drawStyle, areaStyle, onDraw, onErase, onPing, apiRef,
 }: Props) {
     // Personagens com a ficha aberta em OUTRO aparelho: o ponto verde do token.
     const peers = usePresence()
@@ -216,12 +218,35 @@ export const MapCanvas = memo(function MapCanvas({
     viewsRef.current = views
     const toolRef = useRef(tool)
     toolRef.current = tool
-    const cb = useRef({ onMove, onImageRect, onTokenTap, onZoomChange, onDraw, onErase, onPing })
-    cb.current = { onMove, onImageRect, onTokenTap, onZoomChange, onDraw, onErase, onPing }
+    const cb = useRef({ onMove, onFlip, onImageRect, onTokenTap, onZoomChange, onDraw, onErase, onPing })
+    cb.current = { onMove, onFlip, onImageRect, onTokenTap, onZoomChange, onDraw, onErase, onPing }
     const styleRef = useRef(drawStyle)
     styleRef.current = drawStyle
     const areaStyleRef = useRef(areaStyle)
     areaStyleRef.current = areaStyle
+
+    // Tecla F: vira o token que está sob o mouse (só o que quem olha pode mover; o servidor confere de novo).
+    // O ponteiro é lido da janela, sem estado: virar não depende de o token ter foco nem de clicar nele.
+    useEffect(() => {
+        const at = { x: -1, y: -1 }
+        const onPointer = (e: PointerEvent) => { at.x = e.clientX; at.y = e.clientY }
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key.toLowerCase() !== 'f' || e.repeat || e.ctrlKey || e.metaKey || e.altKey) return
+            const t = e.target as HTMLElement | null
+            if (t && (t.isContentEditable || /^(input|textarea|select)$/i.test(t.tagName))) return
+            if (document.querySelector('[role="dialog"]')) return
+            const id = (document.elementFromPoint(at.x, at.y)?.closest('[data-token-id]') as HTMLElement | null)?.dataset.tokenId
+            if (!id || !viewsRef.current.get(id)?.movable) return
+            e.preventDefault()
+            cb.current.onFlip(id)
+        }
+        window.addEventListener('pointermove', onPointer, { passive: true })
+        window.addEventListener('keydown', onKey)
+        return () => {
+            window.removeEventListener('pointermove', onPointer)
+            window.removeEventListener('keydown', onKey)
+        }
+    }, [])
 
     const rect = data.meta.imageRect
     const cells = useMemo(
@@ -928,6 +953,7 @@ export const MapCanvas = memo(function MapCanvas({
                             fitX={view?.fit.x ?? 0.5}
                             fitY={view?.fit.y ?? 0.5}
                             fitZ={view?.fit.z ?? 1}
+                            flip={!!pos.flip}
                             active={data.turn === id}
                             online={token.kind === 'pc' && !!token.slug && online.has(token.slug)}
                         />

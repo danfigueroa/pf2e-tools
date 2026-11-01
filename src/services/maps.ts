@@ -23,6 +23,14 @@ import { sizeSquares, troopSide, type Cell, type ImageRect } from '../modules/ba
 import { activeSizeEffect, sanitizeSizeEffect } from '../modules/character-viewer/sizeEffects'
 import { stateApi } from './mesa'
 
+/**
+ * Onde o token está — e, junto, para onde ele olha: `flip` espelha a imagem na horizontal (tecla F no
+ * mapa). Mora no `pos:<id>` de propósito: quem pode mover o token é quem pode virá-lo (a regra do
+ * servidor já é essa), sem campo novo nem migration. Quem grava a posição (o arrasto) PRECISA levar o
+ * `flip` de volta, senão mover o token o desviraria.
+ */
+export interface PlacedCell extends Cell { flip?: boolean }
+
 export interface MapImage { url: string; w: number; h: number }
 
 export interface MapMeta {
@@ -78,7 +86,7 @@ export interface MapData {
     /** Só o Modo GM vê — quem não está nele nem recebe o mapa. */
     private?: boolean
     tokens: Record<string, TokenDescriptor>
-    pos: Record<string, Cell>
+    pos: Record<string, PlacedCell>
     hp: Record<string, NpcHp>
     /** Enquadramento da imagem de cada token (centro e ampliação), cru — quem usa valida com `sanitizeFit`. */
     fit: Record<string, unknown>

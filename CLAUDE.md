@@ -2074,6 +2074,12 @@ VTT em `/mapa/:id?`. Sem id na URL abre o mapa para onde a mesa está (`pf2e:map
     ou o maior deslocamento de quem só voa (`creatureSpeed`). A Ficha Virtual ainda soma o
     `speedBonus` inteiro na Visão Geral.
   - Combatente importado antes do campo não tem `speed`: tirar e pôr de novo no encontro.
+- **Virar o token (tecla F)** (`flip` em `PlacedCell`, `services/maps.ts`): com o mouse sobre um token que quem olha pode mover, F espelha a
+  imagem na horizontal. O `flip` mora DENTRO do `pos:<id>` (`{ x, y, flip: true }`) de propósito: quem move é quem vira — a regra do
+  servidor (`canMoveTokens`) já é essa —, sem campo novo nem migration. **Quem grava a posição tem de devolver o `flip`** (`onMove` da
+  página o faz; senão arrastar desviraria o token). O alvo é o token sob o ponteiro (`elementFromPoint` + `data-token-id`, ponteiro lido
+  da janela), ignorado com campo de texto ou diálogo aberto. O espelho é de um invólucro do tamanho do círculo, não da `<img>`: espelhar
+  a imagem inverteria o ponto de enquadramento (`fit`). As iniciais (token sem imagem) não são espelhadas.
 - **Ping** (clique duplo, qualquer ferramenta, menos sobre token — lá o clique abre o painel de
   dano). Foi Alt+clique na primeira versão: ninguém achava a dica nem sabia a tecla, e segurar o
   clique brigaria com o início do arrasto, da régua e do traço. Campo `ping:<id>` que quem pingou apaga em 6 s. Quem
