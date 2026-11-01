@@ -18,7 +18,8 @@ import { drop, EASE, pointsUp, ringOut, rise, shine, spinIn } from './motion';
 //   5. platina: duas levas de faíscas e dois anéis dourados se abrindo, e o cartão fica mais.
 // Movimento reduzido: o cartão aparece pronto, sem nada disso.
 
-export interface UnlockToast { key: string; title: string; tier: TrophyTier }
+/** `who` = quem ganhou, quando não é esta conta (o anúncio vai a toda a mesa). */
+export interface UnlockToast { key: string; title: string; tier: TrophyTier; who: string | null }
 
 const MEDAL = 56;
 
@@ -38,7 +39,7 @@ export default function TrophyUnlockCard({ toast, leaving, onOpen, onClose }: { 
 
   const motion = (value: string) => (reduced ? 'none' : value);
   return (
-    <Box role="status" aria-live="polite" aria-label={`Troféu desbloqueado: ${toast.title} (${tier.label})`} sx={{
+    <Box role="status" aria-live="polite" aria-label={`${toast.who ? `${toast.who} desbloqueou` : 'Troféu desbloqueado'}: ${toast.title} (${tier.label})`} sx={{
       position: 'fixed', top: { xs: 72, md: 16 }, left: { xs: '50%', md: 'calc(50% + var(--sidebar-w, 0px) / 2)' },
       transform: 'translate(-50%, 0)', zIndex: 1260, width: 'min(400px, calc(100vw - 24px))', boxSizing: 'border-box',
       display: 'flex', alignItems: 'center', gap: 1.75, p: 1.5, pr: 0.5, borderRadius: 2.5, overflow: 'visible',
@@ -77,15 +78,17 @@ export default function TrophyUnlockCard({ toast, leaving, onOpen, onClose }: { 
         </Box>
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.12em', color: gold.bright }}>
-            {platinum ? 'PLATINA CONQUISTADA' : 'TROFÉU DESBLOQUEADO'} · {tier.label.toUpperCase()}
+            {toast.who ? `${toast.who.toUpperCase()} DESBLOQUEOU` : platinum ? 'PLATINA CONQUISTADA' : 'TROFÉU DESBLOQUEADO'} · {tier.label.toUpperCase()}
           </Typography>
           <Typography noWrap sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.0625rem' }}>{toast.title}</Typography>
-          <Typography sx={{
-            fontSize: '0.8125rem', fontWeight: 700, color: chrome.textSoft, fontVariantNumeric: 'tabular-nums',
-            animation: motion(`${pointsUp} 2600ms ease-out 700ms both`),
-          }}>
-            +{shown} pts
-          </Typography>
+          {!toast.who && (
+            <Typography sx={{
+              fontSize: '0.8125rem', fontWeight: 700, color: chrome.textSoft, fontVariantNumeric: 'tabular-nums',
+              animation: motion(`${pointsUp} 2600ms ease-out 700ms both`),
+            }}>
+              +{shown} pts
+            </Typography>
+          )}
         </Box>
       </ButtonBase>
       <IconButton size="small" aria-label="Fechar" onClick={onClose} sx={{ color: chrome.textMuted, alignSelf: 'flex-start' }}>

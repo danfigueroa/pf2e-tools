@@ -36,10 +36,15 @@ export const TrophyToastLayer = memo(function TrophyToastLayer() {
   useEffect(() => onTableEvent((kind, data) => {
     if (kind !== 'trophy-unlocked') return;
     const auth = getAuthState();
-    if (auth.status !== 'in' || data.user !== auth.user.id) return;
-    refreshTrophySummary();
+    if (auth.status !== 'in') return;
+    // Todo mundo da mesa vê o anúncio; o resumo de pontos só muda para quem ganhou.
+    const mine = data.user === auth.user.id;
+    if (mine) refreshTrophySummary();
     const tier = TIERS.includes(data.tier as TrophyTier) ? (data.tier as TrophyTier) : 'bronze';
-    setQueue((q) => [...q, { key: `${String(data.trophy)}-${Date.now()}`, title: String(data.title ?? 'Troféu'), tier }]);
+    setQueue((q) => [...q, {
+      key: `${String(data.trophy)}-${String(data.user)}-${Date.now()}`, title: String(data.title ?? 'Troféu'), tier,
+      who: mine ? null : (typeof data.name === 'string' && data.name ? data.name : 'Alguém da mesa'),
+    }]);
   }), []);
 
   const current = queue[0];
