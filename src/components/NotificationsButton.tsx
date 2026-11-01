@@ -3,6 +3,7 @@ import { Badge, IconButton } from '@mui/material';
 import { NotificationsNone as BellIcon } from '@mui/icons-material';
 import { markAllRead, useNotifications } from '../services/notifications';
 import { ink, parchment, rule } from '../theme';
+import { tr } from '../i18n';
 
 // A lista (popover, ícones, textos) só baixa no primeiro toque: o sino em si fica no chunk principal.
 const NotificationsList = lazy(() => import('./NotificationsList'));
@@ -24,12 +25,12 @@ export const NotificationsButton = ({ tone = 'light' }: { tone?: 'light' | 'dark
     if (unread > 0) void markAllRead();
   };
 
-  const label = unread > 0 ? `Notificações: ${unread} não ${unread === 1 ? 'lida' : 'lidas'}` : 'Notificações';
+  const label = unread > 0 ? tr(`Notificações: ${unread} não ${unread === 1 ? 'lida' : 'lidas'}`, `Notifications: ${unread} unread`) : tr('Notificações', 'Notifications');
   return (
     <>
       <IconButton
         aria-label={label}
-        title="Notificações"
+        title={tr("Notificações", 'Notifications')}
         aria-haspopup="dialog"
         onClick={(e) => open(e.currentTarget)}
         sx={{

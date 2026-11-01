@@ -6,6 +6,7 @@ import { DiceTray } from '../motion/DiceTray'
 import { gold, mapChrome, MYTHIC_COLOR, MYTHIC_ON_DARK, parchment } from '../theme'
 import { isOwnRoll, useTableRolls } from '../services/rolls'
 import { basicSaveLine, partFormula, rayCritTotal, rayTotal, rollSummaryText, type RolledPart, type RollRay, type TableRoll } from '../dice/tableRoll'
+import { locale, tr } from '../i18n'
 
 // Rolagens da mesa (as últimas, na sidebar), para todo mundo, em qualquer página — montado UMA vez no
 // `MainLayout`. Por ficar no layout, trocar de rota não refaz o "já visto".
@@ -46,20 +47,28 @@ const Caption = ({ children, color }: { children: React.ReactNode; color?: strin
 )
 
 /** Flurry of Blows são golpes; o resto (Blazing Bolt…) são raios. */
-const raysLabel = (roll: TableRoll) => (roll.title.startsWith('Flurry') ? 'Golpe' : 'Raio')
+type RaysKind = 'strike' | 'ray'
+const raysKind = (roll: TableRoll): RaysKind => (roll.title.startsWith('Flurry') ? 'strike' : 'ray')
+const RAYS_TEXT: Record<RaysKind, { one: string; many: string; hit: string }> = {
+    strike: { one: tr('Golpe', 'Strike'), many: tr('golpes', 'Strikes'), hit: tr('os golpes que acertarem', 'the Strikes that hit') },
+    ray: { one: tr('Raio', 'Ray'), many: tr('raios', 'rays'), hit: tr('os raios que acertarem', 'the rays that hit') },
+}
+const raysLabel = (roll: TableRoll) => RAYS_TEXT[raysKind(roll)].one
 
 /** Vários raios na mesma rolagem: cada um com o ataque e o dano, e o total dos raios no fim. */
-const RaysBlock = ({ rays, color, label = 'Raio' }: { rays: RollRay[]; color: string; label?: string }) => (
+const RaysBlock = ({ rays, color, kind = 'ray' }: { rays: RollRay[]; color: string; kind?: RaysKind }) => {
+    const label = RAYS_TEXT[kind].one
+    return (
     <Box sx={{ mt: 0.75 }}>
         {rays.map((ray, i) => {
             const dmg = damageDice(ray.damage.parts)
             return (
                 <Box key={i} sx={{ mt: 0.75 }}>
                     <Divider sx={{ borderColor: `${gold.main}55`, mb: 0.5 }} />
-                    <Caption color={gold.bright}>{label} {i + 1} de {rays.length}</Caption>
+                    <Caption color={gold.bright}>{label} {i + 1} {tr(' de ', ' of ')}{rays.length}</Caption>
                     <DiceTray dice={[{ faces: 20, value: ray.check.d20 }]} flat={ray.check.mod} total={ray.check.total} color={color} compact />
-                    {ray.check.mythic && <Caption color={MYTHIC_ON_DARK}>✦ proficiência mítica</Caption>}
-                    <Caption color={gold.bright}>Dano se acertar</Caption>
+                    {ray.check.mythic && <Caption color={MYTHIC_ON_DARK}>{tr('✦ proficiência mítica', '✦ mythic proficiency')}</Caption>}
+                    <Caption color={gold.bright}>{tr('Dano se acertar', 'Damage on a hit')}</Caption>
                     <DiceTray dice={dmg.dice} flat={dmg.flat} total={ray.damage.total} color={color} compact />
                     <Caption>{ray.damage.parts.filter((p) => !p.persistent).map((p) => `${p.label} ${p.total}`).join(' · ')}</Caption>
                     {ray.damage.crit && <Caption color={gold.bright}><b>Crítico: {ray.damage.crit.total}</b></Caption>}
@@ -68,14 +77,15 @@ const RaysBlock = ({ rays, color, label = 'Raio' }: { rays: RollRay[]; color: st
         })}
         <Divider sx={{ borderColor: `${gold.main}99`, my: 0.75 }} />
         <Typography sx={{ textAlign: 'center', fontWeight: 800, fontSize: '1.15rem' }}>
-            Total dos {rays.length} {label === 'Golpe' ? 'golpes' : 'raios'}: {rayTotal(rays)}
+            {tr('Total dos ', 'Total of the ')}{rays.length} {RAYS_TEXT[kind].many}: {rayTotal(rays)}
         </Typography>
         <Caption color={gold.bright}>
-            <b>Se todos forem críticos: {rayCritTotal(rays)}</b>
+            <b>{tr('Se todos forem críticos: ', 'If all are critical: ')}{rayCritTotal(rays)}</b>
         </Caption>
-        <Caption>Some só {label === 'Golpe' ? 'os golpes que acertarem' : 'os raios que acertarem'}.</Caption>
+        <Caption>{tr('Some só ', 'Add only ')}{RAYS_TEXT[kind].hit}.</Caption>
     </Box>
-)
+    )
+}
 
 /** O cartão de uma rolagem, com a bandeja animada. */
 const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) => {
@@ -102,7 +112,7 @@ const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) =
         >
             <IconButton
                 size="small"
-                aria-label="Fechar rolagem"
+                aria-label={tr("Fechar rolagem", 'Close roll')}
                 onClick={onClose}
                 sx={{
                     position: 'absolute',
@@ -116,7 +126,7 @@ const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) =
             </IconButton>
             {/* Recuo dos dois lados para o título centrado não passar por baixo do ×. */}
             <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: gold.bright, fontWeight: 700, px: 3.5 }}>
-                {roll.by || 'Alguém'} · {roll.title}
+                {roll.by || tr('Alguém', 'Someone')} · {roll.title}
             </Typography>
             {roll.sub && <Caption>{roll.sub}</Caption>}
             {roll.note && <Caption>{roll.note}</Caption>}
@@ -124,7 +134,7 @@ const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) =
             {roll.check && (
                 <Box sx={{ mt: 0.75 }}>
                     <DiceTray dice={[{ faces: 20, value: roll.check.d20 }]} flat={roll.check.mod} total={roll.check.total} color={roll.color} />
-                    {roll.check.mythic && <Caption color={MYTHIC_ON_DARK}>✦ proficiência mítica</Caption>}
+                    {roll.check.mythic && <Caption color={MYTHIC_ON_DARK}>{tr('✦ proficiência mítica', '✦ mythic proficiency')}</Caption>}
                     {roll.check.parts.length > 0 && <Caption>{partsLine(roll.check.parts)}</Caption>}
                 </Box>
             )}
@@ -132,11 +142,11 @@ const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) =
             {roll.damage && dmg && (
                 <Box sx={{ mt: 1 }}>
                     {roll.check && <Divider sx={{ borderColor: `${gold.main}55`, mb: 0.75 }} />}
-                    <Caption color={gold.bright}>{roll.check ? 'Dano se acertar' : 'Dano'}</Caption>
+                    <Caption color={gold.bright}>{roll.check ? tr('Dano se acertar', 'Damage on a hit') : tr('Dano', 'Damage')}</Caption>
                     <DiceTray dice={dmg.dice} flat={dmg.flat} total={roll.damage.total} color={roll.color} compact={!!roll.check} />
                     <Caption>{roll.damage.parts.filter((p) => !p.persistent).map((p) => `${p.label} ${p.total}`).join(' · ')}</Caption>
                     {persistent.map((p, i) => (
-                        <Caption key={i}>+ {p.label}: {p.total} no fim de cada turno</Caption>
+                        <Caption key={i}>+ {p.label}: {p.total} {tr(' no fim de cada turno', ' at the end of each turn')}</Caption>
                     ))}
                     {roll.damage.crit && (
                         <Caption color={gold.bright}>
@@ -148,7 +158,7 @@ const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) =
                 </Box>
             )}
 
-            {roll.rays && <RaysBlock rays={roll.rays} color={roll.color} label={raysLabel(roll)} />}
+            {roll.rays && <RaysBlock rays={roll.rays} color={roll.color} kind={raysKind(roll)} />}
 
             {roll.use && (
                 <Typography sx={{ mt: 0.75, textAlign: 'center', fontWeight: 800, fontSize: '1.15rem' }}>
@@ -232,13 +242,13 @@ export const RollFeedLayer = memo(function RollFeedLayer() {
 })
 
 const timeOf = (at: number) =>
-    at ? new Date(at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : ''
+    at ? new Date(at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : ''
 
 /** Uma linha das últimas rolagens: sem animação, com a conta inteira. Também a do histórico de rolagens. */
 export const HistoryRow = ({ roll }: { roll: TableRoll }) => (
     <Box sx={{ py: 1.25 }}>
         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, flexWrap: 'wrap' }}>
-            <Typography sx={{ fontWeight: 700 }}>{roll.by || 'Alguém'}</Typography>
+            <Typography sx={{ fontWeight: 700 }}>{roll.by || tr('Alguém', 'Someone')}</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ flex: 1, minWidth: 0 }}>{roll.title}</Typography>
             <Typography variant="caption" color="text.secondary">{timeOf(roll.at)}</Typography>
         </Box>
@@ -253,7 +263,7 @@ export const HistoryRow = ({ roll }: { roll: TableRoll }) => (
                     </Typography>
                     {roll.check.d20 === 20 && <Chip size="small" label="Natural 20" sx={{ height: 20, color: gold.deep, borderColor: gold.main }} variant="outlined" />}
                     {roll.check.d20 === 1 && <Chip size="small" label="Natural 1" color="error" variant="outlined" sx={{ height: 20 }} />}
-                    {roll.check.mythic && <Chip size="small" label="✦ mítico" variant="outlined" sx={{ height: 20, color: MYTHIC_COLOR, borderColor: MYTHIC_COLOR }} />}
+                    {roll.check.mythic && <Chip size="small" label={tr("✦ mítico", '✦ mythic')} variant="outlined" sx={{ height: 20, color: MYTHIC_COLOR, borderColor: MYTHIC_COLOR }} />}
                 </Stack>
                 {roll.check.parts.length > 0 && (
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{partsLine(roll.check.parts)}</Typography>
@@ -263,13 +273,13 @@ export const HistoryRow = ({ roll }: { roll: TableRoll }) => (
         {roll.damage && (
             <Box sx={{ mt: 0.5 }}>
                 <Typography variant="body2">
-                    <b>Dano {roll.damage.total}</b>
+                    <b>{tr('Dano ', 'Damage ')}{roll.damage.total}</b>
                     {' — '}
                     {roll.damage.parts.map((p) => `${p.label}: ${partFormula(p)} = ${p.total}${p.persistent ? ' (persistente)' : ''}`).join(' · ')}
                 </Typography>
                 {roll.damage.crit && (
                     <Typography variant="body2" sx={{ color: gold.deep }}>
-                        Crítico {roll.damage.crit.total}{roll.damage.crit.note ? ` (${roll.damage.crit.note})` : ''}
+                        {tr('Crítico ', 'Critical ')}{roll.damage.crit.total}{roll.damage.crit.note ? ` (${roll.damage.crit.note})` : ''}
                     </Typography>
                 )}
                 {roll.damage.basic && (
@@ -281,13 +291,13 @@ export const HistoryRow = ({ roll }: { roll: TableRoll }) => (
             <Box sx={{ mt: 0.5 }}>
                 {roll.rays.map((ray, i) => (
                     <Typography key={i} variant="body2">
-                        <b>{`${raysLabel(roll)} ${i + 1}`}:</b> ataque {ray.check.total} (d20 {ray.check.d20} {signed(ray.check.mod)}) · <b>dano {ray.damage.total}</b>
+                        <b>{`${raysLabel(roll)} ${i + 1}`}:</b> {tr(' ataque ', ' attack ')}{ray.check.total} (d20 {ray.check.d20} {signed(ray.check.mod)}) · <b>{tr('dano ', 'damage ')}{ray.damage.total}</b>
                         {' — '}
                         {ray.damage.parts.map((p) => `${p.label}: ${partFormula(p)} = ${p.total}${p.persistent ? ' (persistente)' : ''}`).join(' · ')}
-                        {ray.damage.crit ? ` · crítico ${ray.damage.crit.total}${ray.damage.crit.note ? ` (${ray.damage.crit.note})` : ''}` : ''}
+                        {ray.damage.crit ? tr(` · crítico ${ray.damage.crit.total}${ray.damage.crit.note ? ` (${ray.damage.crit.note})` : ''}`, ` · critical ${ray.damage.crit.total}${ray.damage.crit.note ? ` (${ray.damage.crit.note})` : ''}`) : ''}
                     </Typography>
                 ))}
-                <Typography variant="body2"><b>Total {rayTotal(roll.rays)}</b> · todos críticos {rayCritTotal(roll.rays)}</Typography>
+                <Typography variant="body2"><b>Total {rayTotal(roll.rays)}</b> {tr(' · todos críticos ', ' · all critical ')}{rayCritTotal(roll.rays)}</Typography>
             </Box>
         )}
         {roll.use && <Typography variant="body2" sx={{ mt: 0.5 }}><b>{roll.use.text}</b></Typography>}
@@ -307,13 +317,13 @@ export const RollHistoryDrawer = ({ open, onClose }: { open: boolean; onClose: (
     return (
         <Drawer anchor="right" open={open} onClose={onClose} PaperProps={{ sx: { width: 'min(400px, 100vw)' } }}>
             <Box sx={{ display: 'flex', alignItems: 'center', px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
-                <Typography variant="h6" sx={{ flex: 1, fontWeight: 700 }}>Últimas rolagens</Typography>
-                <IconButton aria-label="Fechar" onClick={onClose}><CloseIcon /></IconButton>
+                <Typography variant="h6" sx={{ flex: 1, fontWeight: 700 }}>{tr('Últimas rolagens', 'Latest rolls')}</Typography>
+                <IconButton aria-label={tr("Fechar", 'Close')} onClick={onClose}><CloseIcon /></IconButton>
             </Box>
             <Box sx={{ px: 2, overflowY: 'auto' }}>
                 {rolls.length === 0 ? (
                     <Typography color="text.secondary" sx={{ py: 3, fontStyle: 'italic' }}>
-                        {ready ? 'Ninguém rolou nada nas últimas 24 horas.' : 'Carregando…'}
+                        {ready ? tr('Ninguém rolou nada nas últimas 24 horas.', 'Nobody rolled anything in the last 24 hours.') : tr('Carregando…', 'Loading…')}
                     </Typography>
                 ) : (
                     <Stack divider={<Divider flexItem />}>
@@ -321,8 +331,7 @@ export const RollHistoryDrawer = ({ open, onClose }: { open: boolean; onClose: (
                     </Stack>
                 )}
                 <Button fullWidth sx={{ my: 1.5 }} onClick={() => { onClose(); navigate('/historico') }}>
-                    Ver o histórico completo
-                </Button>
+                    {tr('Ver o histórico completo', 'See the full history')}</Button>
             </Box>
         </Drawer>
     )

@@ -3,6 +3,7 @@ import { Alert, Box, Button, CircularProgress, Snackbar } from '@mui/material';
 import { currentMesa } from '../services/mesa';
 import { getAuthState, initAuth, refreshAuth, useAuth } from '../services/auth';
 import { green } from '../theme';
+import { tr } from '../i18n';
 
 // A tela de entrada só é baixada por quem precisa dela: quem já está logado não paga o chunk.
 const LoginPage = lazy(() => import('../modules/account/LoginPage').then((m) => ({ default: m.LoginPage })));
@@ -10,7 +11,7 @@ const JoinPage = lazy(() => import('../modules/account/JoinPage').then((m) => ({
 
 const Splash = ({ children }: { children?: ReactNode }) => (
   <Box sx={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', backgroundColor: green.main, px: 2 }}>
-    {children ?? <CircularProgress sx={{ color: '#C8A951' }} aria-label="Carregando" />}
+    {children ?? <CircularProgress sx={{ color: '#C8A951' }} aria-label={tr("Carregando", 'Loading')} />}
   </Box>
 );
 
@@ -48,9 +49,8 @@ export const AuthGate = ({ children }: { children: ReactNode }) => {
   if (auth.status === 'error') {
     return (
       <Splash>
-        <Alert severity="warning" action={<Button color="inherit" size="small" onClick={() => void refreshAuth()}>Tentar de novo</Button>}>
-          Não consegui falar com o servidor.
-        </Alert>
+        <Alert severity="warning" action={<Button color="inherit" size="small" onClick={() => void refreshAuth()}>{tr('Tentar de novo', 'Try again')}</Button>}>
+          {tr('Não consegui falar com o servidor.', 'Could not reach the server.')}</Alert>
       </Splash>
     );
   }

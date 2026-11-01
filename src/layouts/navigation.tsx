@@ -12,6 +12,7 @@ import {
   MenuBook as JournalIcon,
   EmojiEvents as TrophyIcon,
 } from '@mui/icons-material';
+import { tr } from '../i18n';
 
 // A navegação do app inteiro numa lista só: a sidebar (em seções), a barra de abas do
 // celular e a busca (⌘K) leem daqui — um destino novo entra nos três de uma vez.
@@ -42,48 +43,48 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { text: 'Início', icon: <HomeIcon />, path: '/', section: 'jogo', keywords: ['inicio', 'home', 'painel', 'grupo'] },
+  { text: tr('Início', 'Home'), icon: <HomeIcon />, path: '/', section: 'jogo', keywords: ['inicio', 'home', 'painel', tr('grupo', 'group')] },
   {
-    text: 'Ficha Virtual', icon: <ViewerIcon />, path: '/ficha-virtual', section: 'jogo',
-    keywords: ['ficha', 'personagem', 'pathbuilder', 'magias', 'talentos', 'inventario', 'pv', 'publicar'],
+    text: tr('Ficha Virtual', 'Virtual Sheet'), icon: <ViewerIcon />, path: '/ficha-virtual', section: 'jogo',
+    keywords: [tr('ficha', 'sheet'), tr('personagem', 'character'), 'pathbuilder', tr('magias', 'spells'), tr('talentos', 'feats'), 'inventario', 'pv', tr('publicar', 'publish')],
   },
   {
-    text: 'Iniciativa', icon: <InitiativeIcon />, path: '/iniciativa', section: 'jogo',
-    keywords: ['combate', 'encontro', 'turno', 'rodada', 'dano', 'monstros', 'condicoes'],
+    text: tr('Iniciativa', 'Initiative'), icon: <InitiativeIcon />, path: '/iniciativa', section: 'jogo',
+    keywords: [tr('combate', 'combat'), tr('encontro', 'encounter'), tr('turno', 'turn'), tr('rodada', 'round'), tr('dano', 'damage'), tr('monstros', 'monsters'), 'condicoes'],
   },
   {
-    text: 'Mapa de Combate', icon: <MapIcon />, path: '/mapa', section: 'jogo',
-    keywords: ['mapa', 'grid', 'tokens', 'regua', 'area', 'vtt', 'dados'],
+    text: tr('Mapa de Combate', 'Battle Map'), icon: <MapIcon />, path: '/mapa', section: 'jogo',
+    keywords: [tr('mapa', 'map'), 'grid', 'tokens', 'regua', 'area', 'vtt', 'dados'],
   },
   {
-    text: 'Rolagens', icon: <HistoryIcon />, path: '/historico', section: 'jogo',
-    keywords: ['historico', 'rolagens', 'sessao', 'estatisticas', 'trofeus', 'd20', 'diario'],
+    text: tr('Rolagens', 'Rolls'), icon: <HistoryIcon />, path: '/historico', section: 'jogo',
+    keywords: ['historico', tr('rolagens', 'rolls'), tr('sessao', 'session'), 'estatisticas', 'trofeus', 'd20', 'diario'],
   },
   {
     // De todos: é o stat block da forma de batalha do PERSONAGEM (decisão do usuário).
-    text: 'Transformações', icon: <TransformIcon />, path: '/transformation', section: 'jogo',
-    keywords: ['transformacao', 'forma', 'battle form', 'stat block', 'druida'],
+    text: tr('Transformações', 'Transformations'), icon: <TransformIcon />, path: '/transformation', section: 'jogo',
+    keywords: ['transformacao', tr('forma', 'form'), 'battle form', 'stat block', 'druida'],
   },
   {
-    text: 'Troféus', icon: <TrophyIcon />, path: '/trofeus', section: 'jogo',
-    keywords: ['trofeus', 'conquistas', 'perfil', 'ranking', 'pontos', 'platina', 'achievements'],
+    text: tr('Troféus', 'Trophies'), icon: <TrophyIcon />, path: '/trofeus', section: 'jogo',
+    keywords: ['trofeus', 'conquistas', 'perfil', 'ranking', tr('pontos', 'points'), 'platina', 'achievements'],
   },
   {
-    text: 'Escalar Monstro', icon: <ScalerIcon />, path: '/escalar-monstro', section: 'gm',
-    keywords: ['monstro', 'criatura', 'nivel', 'gm core', 'aon', 'stat block'],
+    text: tr('Escalar Monstro', 'Scale Monster'), icon: <ScalerIcon />, path: '/escalar-monstro', section: 'gm',
+    keywords: [tr('monstro', 'monster'), tr('criatura', 'creature'), tr('nivel', 'level'), 'gm core', 'aon', 'stat block'],
   },
   {
     // Tem os segredos da campanha: o jogador não vê, e o servidor recusa.
-    text: 'Diário de Campanha', icon: <JournalIcon />, path: '/diario-campanha', section: 'gm', gmOnly: true,
-    keywords: ['diario', 'campanha', 'preparacao', 'sessao', 'npc', 'notas', 'cenas', 'ganchos', 'handout'],
+    text: tr('Diário de Campanha', 'Campaign Journal'), icon: <JournalIcon />, path: '/diario-campanha', section: 'gm', gmOnly: true,
+    keywords: ['diario', 'campanha', 'preparacao', tr('sessao', 'session'), 'npc', tr('notas', 'notes'), 'cenas', 'ganchos', 'handout'],
   },
   {
-    text: 'Membros e convites', icon: <MembersIcon />, path: '/membros', section: 'mesa',
-    keywords: ['membros', 'convite', 'jogadores', 'senha', 'dono', 'ficha'],
+    text: tr('Membros e convites', 'Members and invites'), icon: <MembersIcon />, path: '/membros', section: 'mesa',
+    keywords: [tr('membros', 'members'), tr('convite', 'invite'), tr('jogadores', 'players'), tr('senha', 'password'), 'dono', tr('ficha', 'sheet')],
   },
   {
-    text: 'Configurações da mesa', icon: <SettingsIcon />, path: '/mesa', section: 'mesa',
-    keywords: ['configuracoes', 'mesa', 'nome', 'sessao', 'proxima sessao'],
+    text: tr('Configurações da mesa', 'Table settings'), icon: <SettingsIcon />, path: '/mesa', section: 'mesa',
+    keywords: ['configuracoes', 'mesa', tr('nome', 'name'), tr('sessao', 'session'), tr('proxima sessao', 'next session')],
   },
 ];
 
@@ -98,7 +99,7 @@ export function visibleNav(isGm: boolean): NavItem[] {
 
 export const SECTION_LABEL: Record<NavSection, string> = {
   jogo: 'Jogo',
-  gm: 'Bastidores do GM',
+  gm: tr('Bastidores do GM', 'GM Backstage'),
   mesa: 'Mesa',
 };
 

@@ -6,6 +6,7 @@
 
 import { stateApi } from './mesa'
 import { authHeaderNow, listenMesaChannel } from './supabase'
+import { tr } from '../i18n'
 
 export interface RawNotes { data: unknown; updatedAt: number }
 
@@ -40,10 +41,10 @@ export async function saveNotes(slug: string, data: unknown, base: number | null
         })
         const body = await r.json().catch(() => ({})) as { updatedAt?: number; error?: string; code?: string; notes?: unknown }
         if (r.status === 409 && body.code === 'conflict') return { ok: false, conflict: true, current: asRaw(body.notes) }
-        if (!r.ok || typeof body.updatedAt !== 'number') return { ok: false, conflict: false, error: body.error ?? 'Não foi possível salvar' }
+        if (!r.ok || typeof body.updatedAt !== 'number') return { ok: false, conflict: false, error: body.error ?? tr('Não foi possível salvar', 'Could not save') }
         return { ok: true, updatedAt: body.updatedAt }
     } catch {
-        return { ok: false, conflict: false, error: 'Sem conexão' }
+        return { ok: false, conflict: false, error: tr('Sem conexão', 'No connection') }
     }
 }
 

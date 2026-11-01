@@ -3,6 +3,7 @@ import { Divider, ListItemIcon, ListItemText, Menu, MenuItem } from '@mui/materi
 import { Check as CheckIcon, Link as LinkIcon } from '@mui/icons-material';
 import { currentMesa, MESAS, mesaLink, switchMesa } from '../services/mesa';
 import { mesaName, useAuth } from '../services/auth';
+import { tr } from '../i18n';
 
 /**
  * O menu das mesas: trocar recarrega a página na outra mesa (`switchMesa`); "Copiar link"
@@ -21,7 +22,7 @@ export const MesaMenu = ({ anchor, onClose }: { anchor: HTMLElement | null; onCl
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
       // Sem permissão de área de transferência: mostra o link para copiar à mão.
-      window.prompt('Link da mesa', mesaLink());
+      window.prompt(tr('Link da mesa', 'Table link'), mesaLink());
     }
   };
 
@@ -39,7 +40,7 @@ export const MesaMenu = ({ anchor, onClose }: { anchor: HTMLElement | null; onCl
       <Divider />
       <MenuItem onClick={copyLink}>
         <ListItemIcon><LinkIcon fontSize="small" /></ListItemIcon>
-        <ListItemText primary={copied ? 'Link copiado' : 'Copiar link da mesa'} />
+        <ListItemText primary={copied ? tr('Link copiado', 'Link copied') : tr('Copiar link da mesa', 'Copy table link')} />
       </MenuItem>
     </Menu>
   );

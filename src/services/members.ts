@@ -3,6 +3,7 @@
 
 import { stateApi } from './mesa'
 import { applyMesaSettings, type Role } from './auth'
+import { tr } from '../i18n'
 
 export interface MemberRow {
     userId: string
@@ -44,10 +45,10 @@ async function call<T>(init: RequestInit, query = ''): Promise<Result<T>> {
     try {
         const res = await fetch(stateApi(query), init)
         const data = await res.json().catch(() => ({}))
-        if (!res.ok) return { ok: false, error: typeof data.error === 'string' ? data.error : 'Não deu certo' }
+        if (!res.ok) return { ok: false, error: typeof data.error === 'string' ? data.error : tr('Não deu certo', 'That didn\'t work') }
         return { ok: true, data: data as T }
     } catch {
-        return { ok: false, error: 'Sem conexão com o servidor' }
+        return { ok: false, error: tr('Sem conexão com o servidor', 'No connection to the server') }
     }
 }
 

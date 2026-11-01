@@ -5,6 +5,7 @@
 import { stateApi } from './mesa'
 import { sanitizeTableRoll, type TableRoll } from '../dice/tableRoll'
 import type { DaySummary, Mark } from '../modules/session-diary/stats'
+import { tr } from '../i18n'
 
 export interface DiaryDay {
     /** `YYYY-MM-DD`. */
@@ -54,7 +55,7 @@ function summaryRow(v: unknown): DaySummary | null {
     if (typeof s.day !== 'string' || typeof s.key !== 'string' || !Array.isArray(s.hist) || s.hist.length !== 20) return null
     return {
         day: s.day, key: s.key,
-        name: typeof s.name === 'string' ? s.name : 'Alguém',
+        name: typeof s.name === 'string' ? s.name : tr('Alguém', 'Someone'),
         color: typeof s.color === 'string' && /^#[0-9a-fA-F]{6}$/.test(s.color) ? s.color : '#5A5044',
         rolls: num(s.rolls), checks: num(s.checks), d20Sum: num(s.d20Sum), nat20: num(s.nat20), nat1: num(s.nat1),
         mythic: num(s.mythic), damage: num(s.damage), hist: s.hist.map(num),

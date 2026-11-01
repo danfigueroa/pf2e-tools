@@ -6,6 +6,7 @@ import { fetchReveal, type Reveal } from '../services/journal'
 import { useImageUrl } from '../services/images'
 import { displayFont, gold, green, parchment } from '../theme'
 import type { TableShare } from '../services/tableShare'
+import { tr } from '../i18n'
 
 // O que o GM mostrou à mesa pelo Diário de Campanha: um trecho `:::jogadores`
 // ou uma imagem (retrato de NPC, local, item). Chega pelo feed como a regra
@@ -28,7 +29,7 @@ export default function HandoutCard({ share, onClose }: { share: TableShare; onC
     return (
         <Box
             role="region"
-            aria-label={`${who} mostrou à mesa: ${share.name}`}
+            aria-label={tr(`${who} mostrou à mesa: ${share.name}`, `${who} showed the table: ${share.name}`)}
             sx={{
                 position: 'fixed',
                 zIndex: 1240,
@@ -52,9 +53,8 @@ export default function HandoutCard({ share, onClose }: { share: TableShare; onC
                 bgcolor: green.main, borderBottom: `2px solid ${gold.main}`, flexShrink: 0,
             }}>
                 <Typography variant="body2" sx={{ color: parchment.paper, minWidth: 0, flex: 1 }}>
-                    <Box component="strong" sx={{ color: gold.bright }}>{who}</Box> mostrou à mesa
-                </Typography>
-                <IconButton aria-label="Fechar" onClick={onClose} sx={{ color: parchment.paper }}><CloseIcon /></IconButton>
+                    <Box component="strong" sx={{ color: gold.bright }}>{who}</Box> {tr(' mostrou à mesa', ' showed the table')}</Typography>
+                <IconButton aria-label={tr("Fechar", 'Close')} onClick={onClose} sx={{ color: parchment.paper }}><CloseIcon /></IconButton>
             </Box>
             <Box sx={{ overflowY: 'auto', p: { xs: 2, md: 2.5 } }}>
                 <Typography component="h2" sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.3rem', color: green.main, mb: 1.5 }}>
@@ -67,9 +67,9 @@ export default function HandoutCard({ share, onClose }: { share: TableShare; onC
                         <Skeleton variant="text" width="70%" />
                     </Stack>
                 )}
-                {reveal === null && <Typography color="text.secondary">Não foi possível abrir o que o GM mostrou.</Typography>}
+                {reveal === null && <Typography color="text.secondary">{tr('Não foi possível abrir o que o GM mostrou.', 'Could not open what the GM showed.')}</Typography>}
                 {reveal && image && (
-                    <Button onClick={() => setZoom(true)} aria-label="Ampliar a imagem" sx={{ p: 0, display: 'block', width: '100%', mb: reveal.markdown ? 2 : 0 }}>
+                    <Button onClick={() => setZoom(true)} aria-label={tr("Ampliar a imagem", 'Enlarge the image')} sx={{ p: 0, display: 'block', width: '100%', mb: reveal.markdown ? 2 : 0 }}>
                         <Box component="img" src={image} alt={reveal.title} sx={{ display: 'block', width: '100%', maxHeight: '45vh', objectFit: 'contain', borderRadius: 1 }} />
                     </Button>
                 )}
@@ -77,7 +77,7 @@ export default function HandoutCard({ share, onClose }: { share: TableShare; onC
             </Box>
             {zoom && image && (
                 <Dialog open fullScreen onClose={() => setZoom(false)} slotProps={{ paper: { sx: { bgcolor: green.deepest } } }}>
-                    <IconButton aria-label="Fechar a imagem" onClick={() => setZoom(false)} sx={{ position: 'absolute', top: 8, right: 8, color: parchment.paper, zIndex: 1 }}>
+                    <IconButton aria-label={tr("Fechar a imagem", 'Close the image')} onClick={() => setZoom(false)} sx={{ position: 'absolute', top: 8, right: 8, color: parchment.paper, zIndex: 1 }}>
                         <CloseIcon />
                     </IconButton>
                     <Box onClick={() => setZoom(false)} sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>

@@ -2,6 +2,7 @@ import { lazy, memo, Suspense, useEffect, useRef, useState } from 'react'
 import { Box } from '@mui/material'
 import { isOwnRoll, useTableShares } from '../services/rolls'
 import { isRuleShare, sanitizeTableShare, type TableShare } from '../services/tableShare'
+import { tr } from '../i18n'
 
 // Regras compartilhadas com a mesa (`services/tableShare.ts`), em qualquer
 // página — montado UMA vez no `MainLayout`, como o feed de rolagens.
@@ -73,7 +74,7 @@ export const SharedRuleLayer = memo(function SharedRuleLayer() {
                 role="status"
                 sx={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clipPath: 'inset(50%)' }}
             >
-                {isRuleShare(shown) ? `${shown.by || 'Alguém'} compartilhou ${shown.name}` : `${shown.by || 'O GM'} mostrou à mesa: ${shown.name}`}
+                {isRuleShare(shown) ? `${shown.by || tr('Alguém', 'Someone')} compartilhou ${shown.name}` : tr(`${shown.by || 'O GM'} mostrou à mesa: ${shown.name}`, `${shown.by || 'The GM'} showed the table: ${shown.name}`)}
             </Box>
         </Suspense>
     )

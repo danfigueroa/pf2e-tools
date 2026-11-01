@@ -12,7 +12,7 @@
 import { useSyncExternalStore } from 'react'
 import { currentMesa, stateApi, switchMesa } from './mesa'
 import { authHeaders, getAuthClient, isSupabaseConfigured } from './supabase'
-import { isEn, lang, rememberLanguage, storedLanguage, type Lang } from '../i18n'
+import { isEn, lang, rememberLanguage, storedLanguage, type Lang, tr } from '../i18n'
 
 export type Role = 'player' | 'gm'
 
@@ -110,7 +110,7 @@ async function post(body: Record<string, unknown>): Promise<{ ok: boolean; data:
         const data = (await res.json().catch(() => ({}))) as Record<string, unknown>
         return { ok: res.ok, data }
     } catch {
-        return { ok: false, data: { error: 'Sem conexão com o servidor' } }
+        return { ok: false, data: { error: tr('Sem conexão com o servidor', 'No connection to the server') } }
     }
 }
 
@@ -120,7 +120,7 @@ const errorOf = (data: Record<string, unknown>, fallback: string) =>
 /** Resgata um convite. Em caso de sucesso devolve a mesa e o papel; senão, o motivo. */
 export async function acceptInvite(code: string): Promise<{ mesa: string; role: Role } | { error: string }> {
     const { ok, data } = await post({ action: 'invite-accept', code })
-    if (!ok) return { error: errorOf(data, 'Não foi possível usar este convite') }
+    if (!ok) return { error: errorOf(data, tr('Não foi possível usar este convite', 'Could not use this invite')) }
     return { mesa: String(data.mesa), role: data.role === 'gm' ? 'gm' : 'player' }
 }
 
@@ -202,10 +202,10 @@ export async function signIn(
     { reload = true, beforeReload }: EnterOptions & { reload?: boolean } = {},
 ): Promise<string | null> {
     const client = await getAuthClient()
-    if (!client) return 'Não foi possível falar com o servidor de login'
+    if (!client) return tr('Não foi possível falar com o servidor de login', 'Could not reach the sign-in server')
     const { data, error } = await client.auth.signInWithPassword({ email: emailOf(username), password })
     if (error) {
-        return error.status === 429 ? 'Muitas tentativas seguidas — espere um minuto' : 'Usuário ou senha incorretos'
+        return error.status === 429 ? tr('Muitas tentativas seguidas — espere um minuto', 'Too many attempts in a row — wait a minute') : tr('Usuário ou senha incorretos', 'Wrong username or password')
     }
     // O idioma da conta já vale na carga seguinte (o recarregamento abaixo), sem uma segunda.
     const saved = accountLanguage(data.user?.user_metadata)
@@ -231,7 +231,7 @@ export async function register(
         password: input.password,
         name: input.name.trim(),
     })
-    if (!ok) return errorOf(data, 'Não foi possível criar a conta')
+    if (!ok) return errorOf(data, tr('Não foi possível criar a conta', 'Could not create the account'))
     setPendingInvite(null)
     const problem = await signIn(input.username, input.password, { reload: false })
     if (problem) return problem
@@ -245,10 +245,10 @@ export async function register(
 /** Troca a senha de quem está logado. Devolve o erro, ou `null`. */
 export async function changePassword(password: string): Promise<string | null> {
     const client = await getAuthClient()
-    if (!client) return 'Não foi possível falar com o servidor de login'
+    if (!client) return tr('Não foi possível falar com o servidor de login', 'Could not reach the sign-in server')
     const { error } = await client.auth.updateUser({ password })
     if (!error) return null
-    return error.code === 'same_password' ? 'A senha nova é igual à atual' : 'Não foi possível trocar a senha'
+    return error.code === 'same_password' ? tr('A senha nova é igual à atual', 'The new password is the same as the current one') : tr('Não foi possível trocar a senha', 'Could not change the password')
 }
 
 // --- Idioma da conta -----------------------------------------------------------------
@@ -436,7 +436,7 @@ export function installApiAuth() {
         } else if (response.status === 403) {
             const body = await response.clone().json().catch(() => null)
             if (body?.code === 'forbidden') {
-                window.dispatchEvent(new CustomEvent('pf2e:forbidden', { detail: String(body.error ?? 'Sem permissão') }))
+                window.dispatchEvent(new CustomEvent('pf2e:forbidden', { detail: String(body.error ?? tr('Sem permissão', 'Not allowed')) }))
             }
         }
         return response

@@ -6,6 +6,7 @@ import { Campaign as ShareIcon } from '@mui/icons-material'
 import { displayFont, gold, green, ink, parchment, rule } from '../../theme'
 import { useImageUrl } from '../../services/images'
 import { splitSegments, WIKI_HREF, withWikiLinks } from './blocks'
+import { tr } from '../../i18n'
 
 // Markdown do Diário de Campanha e do cartão do que o GM mostra à mesa.
 //
@@ -49,8 +50,8 @@ function MdImage({ src, alt, onShare }: { src: string; alt: string; onShare?: (u
             {onShare && (
                 <IconButton
                     size="small"
-                    aria-label={`Mostrar à mesa: ${alt || 'imagem'}`}
-                    title="Mostrar à mesa"
+                    aria-label={tr(`Mostrar à mesa: ${alt || 'imagem'}`, `Show the table: ${alt || 'image'}`)}
+                    title={tr("Mostrar à mesa", 'Show the table')}
                     onClick={() => onShare(src, alt)}
                     sx={{
                         position: 'absolute', top: 6, right: 6, bgcolor: green.main, color: gold.bright,
@@ -76,7 +77,7 @@ function useComponents({ onShareImage, onWikiLink, knownNames }: Props): Compone
                         component="button"
                         type="button"
                         onClick={() => onWikiLink(name)}
-                        title={known ? `Abrir ${name}` : `Criar a ficha de ${name}`}
+                        title={known ? tr(`Abrir ${name}`, `Open ${name}`) : tr(`Criar a ficha de ${name}`, `Create ${name}'s entry`)}
                         sx={{
                             font: 'inherit', verticalAlign: 'baseline', fontWeight: 600,
                             color: known ? green.mid : gold.deep,
@@ -130,7 +131,7 @@ function PlayersBlock({ title, children, onShare }: { title: string; children: R
     return (
         <Box
             component="section"
-            aria-label={title ? `Para os jogadores: ${title}` : 'Para os jogadores'}
+            aria-label={title ? tr(`Para os jogadores: ${title}`, `For the players: ${title}`) : tr('Para os jogadores', 'For the players')}
             sx={{
                 my: 2, border: `1px solid ${gold.main}`, borderLeft: `4px solid ${gold.main}`, borderRadius: 1,
                 bgcolor: parchment.page, overflow: 'hidden',
@@ -141,8 +142,7 @@ function PlayersBlock({ title, children, onShare }: { title: string; children: R
                 borderBottom: `1px solid ${rule}`, bgcolor: parchment.sunken,
             }}>
                 <Typography variant="caption" sx={{ color: gold.deep, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>
-                    Para os jogadores
-                </Typography>
+                    {tr('Para os jogadores', 'For the players')}</Typography>
                 {title && <Typography variant="body2" sx={{ fontWeight: 600, color: ink.primary, minWidth: 0 }}>{title}</Typography>}
                 {onShare && (
                     <Button
@@ -151,8 +151,7 @@ function PlayersBlock({ title, children, onShare }: { title: string; children: R
                         onClick={onShare}
                         sx={{ ml: 'auto', color: green.mid }}
                     >
-                        Mostrar à mesa
-                    </Button>
+                        {tr('Mostrar à mesa', 'Show the table')}</Button>
                 )}
             </Box>
             <Box sx={{ px: 2, py: 1 }}>{children}</Box>

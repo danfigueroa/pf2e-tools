@@ -4,6 +4,7 @@ import { onTableEvent } from '../services/notifications';
 import { getAuthState } from '../services/auth';
 import { refreshTrophySummary, type TrophyTier } from '../services/trophies';
 import type { UnlockToast } from '../modules/trophies/TrophyUnlockCard';
+import { tr } from '../i18n';
 
 // "Troféu desbloqueado", em qualquer página: montado UMA vez no `MainLayout`, ouve o canal de
 // eventos da mesa e mostra o cartão quando o troféu é DESTA conta. Vários de uma vez (encerrar
@@ -42,8 +43,8 @@ export const TrophyToastLayer = memo(function TrophyToastLayer() {
     if (mine) refreshTrophySummary();
     const tier = TIERS.includes(data.tier as TrophyTier) ? (data.tier as TrophyTier) : 'bronze';
     setQueue((q) => [...q, {
-      key: `${String(data.trophy)}-${String(data.user)}-${Date.now()}`, title: String(data.title ?? 'Troféu'), tier,
-      who: mine ? null : (typeof data.name === 'string' && data.name ? data.name : 'Alguém da mesa'),
+      key: `${String(data.trophy)}-${String(data.user)}-${Date.now()}`, title: String(data.title ?? tr('Troféu', 'Trophy')), tier,
+      who: mine ? null : (typeof data.name === 'string' && data.name ? data.name : tr('Alguém da mesa', 'Someone at the table')),
     }]);
   }), []);
 

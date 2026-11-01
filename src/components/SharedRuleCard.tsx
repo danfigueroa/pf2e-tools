@@ -4,6 +4,7 @@ import { DescriptionContent, type DescriptionRequest } from '../modules/characte
 import { hasCachedDescription, loadDescriptionBundle, readSheetDescriptions } from '../services/descriptions'
 import { gold, green, parchment } from '../theme'
 import type { RuleShare } from '../services/tableShare'
+import { tr } from '../i18n'
 
 // O cartão de uma regra compartilhada: o mesmo conteúdo do drawer da ficha,
 // buscado aqui pela referência que chegou da mesa. Carregado sob demanda
@@ -30,7 +31,7 @@ export default function SharedRuleCard({ share, onClose }: { share: RuleShare; o
     const [request, setRequest] = useState<DescriptionRequest>(() => requestOf(share))
     // Já no cache deste aparelho (a ficha de quem compartilhou estava aberta aqui): nada a esperar.
     const [seeded, setSeeded] = useState(() => !share.slug || hasCachedDescription(share.type, share.name))
-    const who = share.by || 'Alguém'
+    const who = share.by || tr('Alguém', 'Someone')
 
     useEffect(() => {
         const slug = share.slug
@@ -50,7 +51,7 @@ export default function SharedRuleCard({ share, onClose }: { share: RuleShare; o
     return (
         <Box
             role="region"
-            aria-label={`Regra compartilhada por ${who}`}
+            aria-label={tr(`Regra compartilhada por ${who}`, `Rule shared by ${who}`)}
             sx={{
                 position: 'fixed',
                 zIndex: 1240,
@@ -84,8 +85,7 @@ export default function SharedRuleCard({ share, onClose }: { share: RuleShare; o
             >
                 <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: share.color, flexShrink: 0 }} />
                 <Typography variant="body2" sx={{ color: parchment.paper, minWidth: 0 }}>
-                    <Box component="strong" sx={{ color: gold.bright }}>{who}</Box> compartilhou com a mesa
-                </Typography>
+                    <Box component="strong" sx={{ color: gold.bright }}>{who}</Box> {tr(' compartilhou com a mesa', ' shared with the table')}</Typography>
             </Box>
             <Box sx={{ flex: '1 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
                 {seeded ? (

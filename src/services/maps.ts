@@ -22,6 +22,7 @@ import type { HpStored } from '../modules/character-viewer/components/useHpTrack
 import { sizeSquares, troopSide, type Cell, type ImageRect } from '../modules/battle-map/geometry'
 import { activeSizeEffect, sanitizeSizeEffect } from '../modules/character-viewer/sizeEffects'
 import { stateApi } from './mesa'
+import { tr } from '../i18n'
 
 /**
  * Onde o token está — e, junto, para onde ele olha: `flip` espelha a imagem na horizontal (tecla F no
@@ -138,7 +139,7 @@ class ApiError extends Error {
 async function getJson<T>(query: string): Promise<T> {
     const r = await fetch(stateApi(`?${query}`))
     const body = await r.json().catch(() => ({}))
-    if (!r.ok) throw new ApiError(body.error || `Erro ${r.status}`, body)
+    if (!r.ok) throw new ApiError(body.error || tr(`Erro ${r.status}`, `Error ${r.status}`), body)
     noteCaps(body)
     return body as T
 }
@@ -150,7 +151,7 @@ async function post<T>(payload: unknown): Promise<T> {
         body: JSON.stringify(payload),
     })
     const body = await r.json().catch(() => ({}))
-    if (!r.ok) throw new Error(body.error || `Erro ${r.status}`)
+    if (!r.ok) throw new Error(body.error || tr(`Erro ${r.status}`, `Error ${r.status}`))
     noteCaps(body)
     return body as T
 }
@@ -348,7 +349,7 @@ export function loadMap(id: string): Promise<void> {
                 applyHidden(entry, { rev: Number(error.body.rev) || 0, tableRev: Number(error.body.tableRev) || 0 })
                 return
             }
-            setSnapshot(entry, { error: error instanceof Error ? error.message : 'Erro ao abrir o mapa' })
+            setSnapshot(entry, { error: error instanceof Error ? error.message : tr('Erro ao abrir o mapa', 'Error opening the map') })
         } finally {
             entry.loading = null
         }

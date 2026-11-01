@@ -9,7 +9,7 @@
 
 import { stateApi } from './mesa'
 import { authHeaders } from './supabase'
-import { lang, type Lang } from '../i18n'
+import { lang, type Lang, tr } from '../i18n'
 
 export interface GuideText {
     markdown: string
@@ -67,7 +67,7 @@ export interface PublishedSummary {
 async function call<T>(init: RequestInit | null, query = ''): Promise<T> {
     const r = await fetch(stateApi(query), init ?? undefined)
     const body = await r.json().catch(() => ({}))
-    if (!r.ok) throw new Error((body as { error?: string }).error || `Erro ${r.status}`)
+    if (!r.ok) throw new Error((body as { error?: string }).error || tr(`Erro ${r.status}`, `Error ${r.status}`))
     return body as T
 }
 

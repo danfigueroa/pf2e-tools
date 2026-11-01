@@ -9,6 +9,7 @@
 import { stateApi } from './mesa'
 import { authHeaderNow, listenMesaChannel } from './supabase'
 import { markOwnShare } from './rolls'
+import { tr } from '../i18n'
 
 const post = (payload: Record<string, unknown>) => fetch(stateApi(), {
     method: 'POST',
@@ -51,10 +52,10 @@ export async function saveJournalDoc(doc: unknown, base: number | null): Promise
         const r = await post({ action: 'journal-save', doc, base })
         const body = await r.json().catch(() => ({})) as { updatedAt?: number; error?: string; code?: string; doc?: unknown }
         if (r.status === 409 && body.code === 'conflict') return { ok: false, conflict: true, current: body.doc ?? null }
-        if (!r.ok || typeof body.updatedAt !== 'number') return { ok: false, conflict: false, error: body.error ?? 'Não foi possível salvar' }
+        if (!r.ok || typeof body.updatedAt !== 'number') return { ok: false, conflict: false, error: body.error ?? tr('Não foi possível salvar', 'Could not save') }
         return { ok: true, updatedAt: body.updatedAt }
     } catch {
-        return { ok: false, conflict: false, error: 'Sem conexão' }
+        return { ok: false, conflict: false, error: tr('Sem conexão', 'No connection') }
     }
 }
 
@@ -94,9 +95,9 @@ export async function revealToTable(input: RevealInput, by: string, color: strin
         const r = await post({ action: 'journal-reveal', reveal: { id, ...input }, by, color })
         if (r.ok) return null
         const body = await r.json().catch(() => ({})) as { error?: string }
-        return body.error ?? 'Não foi possível mostrar à mesa'
+        return body.error ?? tr('Não foi possível mostrar à mesa', 'Could not show it to the table')
     } catch {
-        return 'Sem conexão'
+        return tr('Sem conexão', 'No connection')
     }
 }
 

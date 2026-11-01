@@ -18,6 +18,7 @@
 import { useEffect, useState } from 'react'
 import { deleteStoredImage } from './maps'
 import { getSupabase, isSupabaseConfigured } from './supabase'
+import { tr } from '../i18n'
 
 export const MAP_MAX_SIDE = 4096
 export const TOKEN_MAX_SIDE = 256
@@ -53,7 +54,7 @@ export async function shrinkImage(file: Blob, maxSide: number, square = false): 
         canvas.width = width
         canvas.height = height
         const ctx = canvas.getContext('2d')
-        if (!ctx) throw new ImageError('Este navegador não consegue reduzir a imagem.')
+        if (!ctx) throw new ImageError(tr('Este navegador não consegue reduzir a imagem.', 'This browser cannot shrink the image.'))
         ctx.imageSmoothingQuality = 'high'
         ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, width, height)
 
@@ -90,7 +91,7 @@ async function decode(file: Blob): Promise<Decoded> {
             if (!img.naturalWidth) throw new Error('vazia')
             return img
         } catch {
-            throw new ImageError('Não deu para abrir esta imagem. Use PNG, JPG ou WebP.')
+            throw new ImageError(tr('Não deu para abrir esta imagem. Use PNG, JPG ou WebP.', 'Could not open this image. Use PNG, JPG or WebP.'))
         } finally {
             URL.revokeObjectURL(url)
         }
@@ -103,14 +104,14 @@ const dims = (d: Decoded) => ('naturalWidth' in d
 
 function toBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob> {
     return new Promise((resolve, reject) => {
-        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Falha ao codificar a imagem'))), type, quality)
+        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error(tr('Falha ao codificar a imagem', 'Failed to encode the image')))), type, quality)
     })
 }
 
 const extOf = (type: string) => (type === 'image/webp' ? 'webp' : type === 'image/png' ? 'png' : 'jpg')
 
 const slugify = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '')
-    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'imagem'
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'imagem' // i18n-ok: nome de arquivo
 
 /**
  * Onde cada imagem mora no bucket, pelo tempo que ela vive:
@@ -142,7 +143,7 @@ const randomSuffix = () => crypto.randomUUID().replace(/-/g, '').slice(0, 12)
 export async function uploadImage(blob: Blob, folder: ImageFolder, name: string): Promise<string> {
     if (!isSupabaseConfigured) return saveLocal(blob)
     const client = await getSupabase()
-    if (!client) throw new ImageError('Sem conexão com o armazenamento de imagens. Tente de novo em instantes.')
+    if (!client) throw new ImageError(tr('Sem conexão com o armazenamento de imagens. Tente de novo em instantes.', 'No connection to image storage. Try again in a moment.'))
     const path = `${folder}/${slugify(name)}-${randomSuffix()}.${extOf(blob.type)}`
     const { error } = await client.storage.from(BUCKET).upload(path, blob, {
         contentType: blob.type,
@@ -150,13 +151,13 @@ export async function uploadImage(blob: Blob, folder: ImageFolder, name: string)
         upsert: false,
     })
     // A mensagem crua vai junto: é ela que diz se foi a rede, o tamanho ou o tipo do arquivo.
-    if (error) throw new ImageError(`O envio falhou: ${error.message}`)
+    if (error) throw new ImageError(tr(`O envio falhou: ${error.message}`, `Upload failed: ${error.message}`))
     return client.storage.from(BUCKET).getPublicUrl(path).data.publicUrl
 }
 
 /** Texto do erro para mostrar a quem enviou. */
 export const imageErrorText = (error: unknown) =>
-    error instanceof ImageError ? error.message : 'Não foi possível enviar a imagem.'
+    error instanceof ImageError ? error.message : tr('Não foi possível enviar a imagem.', 'Could not upload the image.')
 
 /** Imagem que deixou de ser usada. */
 export async function deleteImage(url: string | null | undefined): Promise<void> {

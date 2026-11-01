@@ -6,8 +6,9 @@ import { Link } from 'react-router-dom';
 import { chrome, displayFont, gold, green, ink, parchment, rule } from '../theme';
 import { useMesaInfo, useRole } from '../services/auth';
 import { NotificationsButton } from '../components/NotificationsButton';
-import { greeting, longDate, sessionSince, sessionTime, untilSession } from '../layouts/format';
+import { greeting, longDate, sessionAt, sessionTime, untilSession } from '../layouts/format';
 import { openSearch } from '../layouts/navigation';
+import { locale, tr } from '../i18n';
 
 // A Início: a casca (topo, a próxima sessão) vai no bundle principal e pinta na hora; o que é
 // VIVO (o grupo, o personagem, os atalhos com o estado da mesa, a última sessão) chega num chunk
@@ -37,7 +38,7 @@ const Live = ({ children, height, dark }: { children: ReactNode; height: number;
 const DateBlock = ({ iso, size }: { iso: string | null; size: 'lg' | 'sm' }) => {
   const big = size === 'lg';
   const d = iso ? new Date(iso) : null;
-  const part = (opts: Intl.DateTimeFormatOptions) => d!.toLocaleDateString('pt-BR', opts).replace('.', '').toUpperCase();
+  const part = (opts: Intl.DateTimeFormatOptions) => d!.toLocaleDateString(locale, opts).replace('.', '').toUpperCase();
   const small = { fontSize: big ? '0.75rem' : '0.6875rem', fontWeight: 700, letterSpacing: '0.12em' };
   return (
     <Box sx={{
@@ -58,9 +59,9 @@ const DateBlock = ({ iso, size }: { iso: string | null; size: 'lg' | 'sm' }) => 
 /** "Sábado, às 14:00" (jogador) ou "Sábado, 14 de novembro, às 14:00" (GM). */
 function sessionTitle(iso: string, long: boolean): string {
   const d = new Date(iso);
-  const weekday = d.toLocaleDateString('pt-BR', { weekday: 'long' });
-  const day = long ? `, ${d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}` : '';
-  return `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)}${day}, às ${sessionTime(iso)}`;
+  const weekday = d.toLocaleDateString(locale, { weekday: 'long' });
+  const day = long ? `, ${d.toLocaleDateString(locale, { day: 'numeric', month: 'long' })}` : '';
+  return tr(`${weekday.charAt(0).toUpperCase()}${weekday.slice(1)}${day}, às ${sessionTime(iso)}`, `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)}${day}, at ${sessionTime(iso)}`);
 }
 
 /** A sessão de agora: a em andamento, a próxima marcada em /mesa, ou o convite para marcar. */
@@ -72,7 +73,7 @@ function useSession() {
 
 const GmHero = () => {
   const { liveAt, next } = useSession();
-  const heading = liveAt ? `Começou ${sessionSince(liveAt).replace('desde', 'às')}` : next ? sessionTitle(next, true) : 'Nenhuma sessão marcada';
+  const heading = liveAt ? tr(`Começou ${sessionAt(liveAt)}`, `Started ${sessionAt(liveAt)}`) : next ? sessionTitle(next, true) : tr('Nenhuma sessão marcada', 'No session scheduled');
   return (
     <Box component="section" aria-labelledby="home-proxima" sx={{
       borderRadius: 3, bgcolor: chrome.hero, color: chrome.textSoft, p: { xs: 2.25, sm: 3.5 }, display: 'flex', flexWrap: 'wrap', gap: { xs: 2.5, sm: 3.5 },
@@ -88,7 +89,7 @@ const GmHero = () => {
             : <DateBlock iso={next} size="lg" />}
           <Box sx={{ minWidth: 0 }}>
             <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.14em', color: liveAt ? chrome.online : chrome.textSoft }}>
-              {liveAt ? 'SESSÃO EM ANDAMENTO' : next ? `PRÓXIMA SESSÃO · ${untilSession(next).toUpperCase()}` : 'PRÓXIMA SESSÃO'}
+              {liveAt ? tr('SESSÃO EM ANDAMENTO', 'SESSION IN PROGRESS') : next ? tr(`PRÓXIMA SESSÃO · ${untilSession(next).toUpperCase()}`, `NEXT SESSION · ${untilSession(next).toUpperCase()}`) : tr('PRÓXIMA SESSÃO', 'NEXT SESSION')}
             </Typography>
             <Typography id="home-proxima" component="h2" sx={{ fontFamily: displayFont, fontWeight: 600, fontSize: { xs: '1.375rem', sm: '1.625rem' }, lineHeight: 1.2, color: chrome.text, my: 0.5 }}>
               {heading}
@@ -100,10 +101,10 @@ const GmHero = () => {
         </Box>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.25, mt: 'auto' }}>
           <ButtonBase component={Link} to="/iniciativa" sx={{ height: 48, px: 2.5, borderRadius: 1.5, bgcolor: gold.bright, color: green.deepest, fontWeight: 700, gap: 1.25, '&:hover': { bgcolor: gold.main } }}>
-            Começar combate<ArrowIcon fontSize="small" />
+            {tr('Começar combate', 'Start combat')}<ArrowIcon fontSize="small" />
           </ButtonBase>
           <ButtonBase component={Link} to="/mesa" sx={{ height: 48, px: 2.25, borderRadius: 1.5, border: `1px solid ${chrome.lineStrong}`, color: chrome.text, fontWeight: 600 }}>
-            {liveAt ? 'Encerrar sessão' : next ? 'Editar data' : 'Marcar sessão'}
+            {liveAt ? tr('Encerrar sessão', 'End session') : next ? tr('Editar data', 'Edit date') : tr('Marcar sessão', 'Schedule session')}
           </ButtonBase>
         </Box>
       </Box>
@@ -116,12 +117,12 @@ const GmHero = () => {
 const PlayerSession = () => {
   const { liveAt, next } = useSession();
   return (
-    <Box component="section" aria-label="Próxima sessão" sx={{
+    <Box component="section" aria-label={tr("Próxima sessão", 'Next session')} sx={{
       flex: '2 1 320px', minWidth: 0, borderRadius: 3, bgcolor: chrome.hero, color: chrome.textSoft, p: { xs: 1.75, sm: 3.25 },
       display: 'flex', flexDirection: { xs: 'row', sm: 'column' }, alignItems: { xs: 'center', sm: 'stretch' }, gap: { xs: 1.75, sm: 2.25 },
     }}>
       <Typography sx={{ display: { xs: 'none', sm: 'block' }, fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.14em', color: liveAt ? chrome.online : chrome.textSoft }}>
-        {liveAt ? 'SESSÃO EM ANDAMENTO' : 'PRÓXIMA SESSÃO'}
+        {liveAt ? tr('SESSÃO EM ANDAMENTO', 'SESSION IN PROGRESS') : tr('PRÓXIMA SESSÃO', 'NEXT SESSION')}
       </Typography>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.25 }}>
         {liveAt
@@ -133,16 +134,16 @@ const PlayerSession = () => {
           : <DateBlock iso={next} size="sm" />}
         <Box sx={{ minWidth: 0 }}>
           <Typography sx={{ display: { xs: 'block', sm: 'none' }, fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.14em', color: liveAt ? chrome.online : gold.bright }}>
-            {liveAt ? 'SESSÃO EM ANDAMENTO' : 'PRÓXIMA SESSÃO'}
+            {liveAt ? tr('SESSÃO EM ANDAMENTO', 'SESSION IN PROGRESS') : tr('PRÓXIMA SESSÃO', 'NEXT SESSION')}
           </Typography>
           <Typography component="h2" sx={{ fontFamily: displayFont, fontWeight: 600, fontSize: { xs: '1rem', sm: '1.375rem' }, lineHeight: 1.25, color: chrome.text }}>
-            {liveAt ? `Começou ${sessionSince(liveAt).replace('desde', 'às')}` : next ? sessionTitle(next, false) : 'Nenhuma sessão marcada'}
+            {liveAt ? tr(`Começou ${sessionAt(liveAt)}`, `Started ${sessionAt(liveAt)}`) : next ? sessionTitle(next, false) : tr('Nenhuma sessão marcada', 'No session scheduled')}
           </Typography>
-          {next && !liveAt && <Typography sx={{ fontSize: '0.9375rem', color: chrome.textSoft }}>{untilSession(next) === 'hoje' ? 'É hoje' : untilSession(next) === 'amanhã' ? 'É amanhã' : `Faltam ${untilSession(next).replace('em ', '')}`}</Typography>}
+          {next && !liveAt && <Typography sx={{ fontSize: '0.9375rem', color: chrome.textSoft }}>{untilSession(next) === 'hoje' ? tr('É hoje', 'It\'s today') : untilSession(next) === 'amanhã' ? tr('É amanhã', 'It\'s tomorrow') : tr(`Faltam ${untilSession(next).replace('em ', '')}`, `${untilSession(next).replace('in ', '')} to go`)}</Typography>}
         </Box>
       </Box>
       <Typography sx={{ display: { xs: 'none', sm: 'block' }, mt: 'auto', pt: 2, borderTop: `1px solid ${chrome.line}`, fontSize: '0.875rem', lineHeight: 1.5 }}>
-        {liveAt ? 'A sessão está valendo: suas rolagens entram no histórico da noite.' : 'O GM marca a data em Configurações da mesa; ela aparece aqui para todos.'}
+        {liveAt ? tr('A sessão está valendo: suas rolagens entram no histórico da noite.', 'The session is live: your rolls count toward tonight\'s history.') : tr('O GM marca a data em Configurações da mesa; ela aparece aqui para todos.', 'The GM sets the date in Table settings; it shows up here for everyone.')}
       </Typography>
     </Box>
   );
@@ -162,16 +163,15 @@ export const HomePage = () => {
       <Box component="header" sx={{ display: { xs: 'none', md: 'flex' }, flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: 2 }}>
         <Box>
           <Typography sx={{ fontSize: '0.875rem', color: ink.secondary }}>{longDate()}{role.isGm ? '' : ` · ${mesa.name}`}</Typography>
-          <Typography component="h1" sx={{ fontFamily: displayFont, fontWeight: 600, fontSize: '1.875rem' }}>{inCombat && role.isGm ? 'Combate em andamento' : hello}</Typography>
+          <Typography component="h1" sx={{ fontFamily: displayFont, fontWeight: 600, fontSize: '1.875rem' }}>{inCombat && role.isGm ? tr('Combate em andamento', 'Combat in progress') : hello}</Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <ButtonBase onClick={openSearch} aria-label="Buscar uma página" sx={{
+          <ButtonBase onClick={openSearch} aria-label={tr("Buscar uma página", 'Search for a page')} sx={{
             ...card, borderRadius: 1.75, height: 48, width: 360, maxWidth: '100%', px: 1.75, gap: 1.25, justifyContent: 'flex-start', color: ink.secondary,
           }}>
             <SearchIcon fontSize="small" />
             <Box component="span" sx={{ flex: 1, minWidth: 0, textAlign: 'left', fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              Ir para uma página…
-            </Box>
+              {tr('Ir para uma página…', 'Go to a page…')}</Box>
             <Box component="kbd" sx={{ fontFamily: 'inherit', fontSize: '0.75rem', fontWeight: 600, px: 0.875, py: 0.25, borderRadius: 0.75, border: `1px solid ${rule}` }}>
               {isMac ? '⌘K' : 'Ctrl K'}
             </Box>
@@ -202,8 +202,8 @@ export const HomePage = () => {
       </Box>
 
       <Box component="footer" sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 1.5, pt: 2, borderTop: `1px solid ${rule}`, fontSize: '0.8125rem', color: ink.secondary }}>
-        <span>Feito por fãs para a comunidade Pathfinder 2e</span>
-        <span>Gratuito e não oficial · Pathfinder é marca registrada da Paizo Inc.</span>
+        <span>{tr('Feito por fãs para a comunidade Pathfinder 2e', 'Made by fans for the Pathfinder 2e community')}</span>
+        <span>{tr('Gratuito e não oficial · Pathfinder é marca registrada da Paizo Inc.', 'Free and unofficial · Pathfinder is a registered trademark of Paizo Inc.')}</span>
       </Box>
     </Box>
   );

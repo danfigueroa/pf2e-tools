@@ -23,6 +23,7 @@ import { initialsOf, isCurrent, SECTION_LABEL, visibleNav, type NavItem, type Na
 import { rollHeadline, sessionDate, sessionSince, timeAgo } from '../format';
 import logoHorizontal from '../../assets/covil-logo-horizontal-fundo-escuro.svg';
 import logoSymbol from '../../assets/covil-simbolo.svg';
+import { tr } from '../../i18n';
 
 // A lista detalhada de quem está na mesa (com o nome do aparelho editável): só baixa ao abrir.
 const PresenceList = lazy(() => import('../../components/PresenceList').then((m) => ({ default: m.PresenceList })));
@@ -89,7 +90,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse, onNavigate, onOpenHistory
       <Brand collapsed={collapsed} onToggleCollapse={onToggleCollapse} />
       <MesaCard collapsed={collapsed} />
 
-      <Box component="nav" aria-label="Navegação principal" sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+      <Box component="nav" aria-label={tr("Navegação principal", 'Main navigation')} sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
         {sections.map(({ section, items: list }, i) => (
           <Box key={section} sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
             {collapsed ? (
@@ -106,7 +107,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse, onNavigate, onOpenHistory
       </Box>
 
       {collapsed ? (
-        <IconButton aria-label="Últimas rolagens" title="Últimas rolagens" onClick={onOpenHistory} sx={{ alignSelf: 'center', color: chrome.textMuted }}>
+        <IconButton aria-label={tr("Últimas rolagens", 'Latest rolls')} title={tr("Últimas rolagens", 'Latest rolls')} onClick={onOpenHistory} sx={{ alignSelf: 'center', color: chrome.textMuted }}>
           <DiceIcon />
         </IconButton>
       ) : (
@@ -127,8 +128,8 @@ const Brand = ({ collapsed, onToggleCollapse }: { collapsed: boolean; onToggleCo
     )}
     {onToggleCollapse && (
       <IconButton
-        aria-label={collapsed ? 'Abrir menu' : 'Recolher menu'}
-        title={collapsed ? 'Abrir menu' : 'Recolher menu'}
+        aria-label={collapsed ? tr('Abrir menu', 'Open menu') : 'Recolher menu'}
+        title={collapsed ? tr('Abrir menu', 'Open menu') : 'Recolher menu'}
         onClick={onToggleCollapse}
         sx={{
           width: 44, height: 44, borderRadius: 1.5, border: `1px solid ${chrome.line}`, color: chrome.textMuted,
@@ -149,12 +150,12 @@ const MesaCard = ({ collapsed }: { collapsed: boolean }) => {
   const [menu, setMenu] = useState<HTMLElement | null>(null);
   const [people, setPeople] = useState<HTMLElement | null>(null);
 
-  const who = role.isGm ? 'você é o GM' : 'você joga';
-  const subtitle = mesa.members ? `${mesa.members} ${mesa.members === 1 ? 'membro' : 'membros'} · ${who}` : who;
+  const who = role.isGm ? tr('você é o GM', 'you are the GM') : tr('você joga', 'you play');
+  const subtitle = mesa.members ? `${mesa.members} ${mesa.members === 1 ? 'membro' : tr('membros', 'members')} · ${who}` : who;
   const session = mesa.sessionStartedAt
-    ? { live: true, title: 'Sessão em andamento', detail: sessionSince(mesa.sessionStartedAt) }
+    ? { live: true, title: tr('Sessão em andamento', 'Session in progress'), detail: sessionSince(mesa.sessionStartedAt) }
     : mesa.nextSessionAt && Date.parse(mesa.nextSessionAt) > Date.now()
-      ? { live: false, title: 'Próxima sessão', detail: sessionDate(mesa.nextSessionAt) }
+      ? { live: false, title: tr('Próxima sessão', 'Next session'), detail: sessionDate(mesa.nextSessionAt) }
       : null;
   const here = peers.length;
 
@@ -172,8 +173,8 @@ const MesaCard = ({ collapsed }: { collapsed: boolean }) => {
     return (
       <>
         <ButtonBase
-          aria-label={`Mesa: ${mesa.name}. Trocar de mesa`}
-          title={`${mesa.name} · trocar de mesa`}
+          aria-label={tr(`Mesa: ${mesa.name}. Trocar de mesa`, `Table: ${mesa.name}. Switch table`)}
+          title={tr(`${mesa.name} · trocar de mesa`, `${mesa.name} · switch table`)}
           aria-haspopup="menu"
           onClick={(e) => setMenu(e.currentTarget)}
           sx={{ alignSelf: 'center', borderRadius: 1.5, position: 'relative' }}
@@ -193,7 +194,7 @@ const MesaCard = ({ collapsed }: { collapsed: boolean }) => {
       <ButtonBase
         onClick={(e) => setMenu(e.currentTarget)}
         aria-haspopup="menu"
-        aria-label={`Mesa: ${mesa.name}. Trocar de mesa`}
+        aria-label={tr(`Mesa: ${mesa.name}. Trocar de mesa`, `Table: ${mesa.name}. Switch table`)}
         sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: 1.5, p: 1.75, minHeight: 64, textAlign: 'left', justifyContent: 'flex-start' }}
       >
         {badge}
@@ -207,7 +208,7 @@ const MesaCard = ({ collapsed }: { collapsed: boolean }) => {
         <ButtonBase
           onClick={(e) => { if (here > 0) setPeople(e.currentTarget); }}
           disabled={here === 0}
-          aria-label={here > 0 ? `Quem está na mesa agora: ${here}` : undefined}
+          aria-label={here > 0 ? tr(`Quem está na mesa agora: ${here}`, `Who is at the table now: ${here}`) : undefined}
           sx={{
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.25,
             px: 1.75, py: 1.5, borderTop: `1px solid ${chrome.line}`, bgcolor: chrome.raisedDeep, textAlign: 'left',
@@ -221,7 +222,7 @@ const MesaCard = ({ collapsed }: { collapsed: boolean }) => {
               </Typography>
             )}
             <Typography noWrap sx={{ fontSize: '0.75rem', color: chrome.textMuted }}>
-              {[session?.detail, here > 0 ? `${here} na mesa agora` : null].filter(Boolean).join(' · ')}
+              {[session?.detail, here > 0 ? tr(`${here} na mesa agora`, `${here} at the table now`) : null].filter(Boolean).join(' · ')}
             </Typography>
           </Box>
           {here > 0 && (
@@ -262,7 +263,7 @@ const NavLink = ({ item, collapsed, onNavigate }: { item: NavItem; collapsed: bo
       onClick={onNavigate}
       aria-current={active ? 'page' : undefined}
       aria-label={collapsed ? item.text : undefined}
-      title={collapsed ? (round ? `${item.text} · rodada ${round}` : item.text) : undefined}
+      title={collapsed ? (round ? tr(`${item.text} · rodada ${round}`, `${item.text} · round ${round}`) : item.text) : undefined}
       sx={{
         display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'flex-start', gap: 1.5,
         minHeight: 48, pl: collapsed ? 0 : 0.75, pr: collapsed ? 0 : 1.5, borderRadius: 1.75,
@@ -293,7 +294,7 @@ const NavLink = ({ item, collapsed, onNavigate }: { item: NavItem; collapsed: bo
               px: 1.125, py: 0.375, borderRadius: 99, bgcolor: `${gold.bright}29`, color: chrome.text, whiteSpace: 'nowrap',
             }}>
               <Box component="span" sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: gold.bright }} />
-              Rodada {round}
+              {tr('Rodada ', 'Round ')}{round}
             </Box>
           )}
         </>
@@ -312,15 +313,13 @@ const RecentRolls = ({ onOpenHistory }: { onOpenHistory: () => void }) => {
     <Box sx={{ borderRadius: 2.25, bgcolor: chrome.raised, p: 1.75, display: 'flex', flexDirection: 'column', gap: 1.25, mt: 0.5 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
         <Typography noWrap sx={{ ...sectionLabelSx, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <DiceIcon sx={{ fontSize: 14, color: gold.bright }} /> Últimas rolagens
-        </Typography>
+          <DiceIcon sx={{ fontSize: 14, color: gold.bright }} /> {tr(' Últimas rolagens', ' Latest rolls')}</Typography>
         <ButtonBase onClick={onOpenHistory} sx={{ fontSize: '0.75rem', fontWeight: 600, color: gold.bright, px: 0.5, py: 0.5, borderRadius: 1, whiteSpace: 'nowrap', flexShrink: 0 }}>
-          Ver todas
-        </ButtonBase>
+          {tr('Ver todas', 'See all')}</ButtonBase>
       </Box>
       {recent.length === 0 ? (
         <Typography sx={{ fontSize: '0.8125rem', color: chrome.textMuted }}>
-          {ready ? 'Ninguém rolou nada ainda.' : 'Carregando…'}
+          {ready ? tr('Ninguém rolou nada ainda.', 'Nobody has rolled anything yet.') : tr('Carregando…', 'Loading…')}
         </Typography>
       ) : recent.map((roll) => {
         const total = rollHeadline(roll);
@@ -330,7 +329,7 @@ const RecentRolls = ({ onOpenHistory }: { onOpenHistory: () => void }) => {
             <Initials name={roll.by || '?'} size={26} bg={roll.color} color={chrome.onAccent} />
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography noWrap sx={{ fontSize: '0.8125rem', fontWeight: 600, color: chrome.text }}>{roll.title}</Typography>
-              <Typography noWrap sx={{ fontSize: '0.75rem', color: chrome.textMuted }}>{roll.by || 'Alguém'} · {timeAgo(roll.at)}</Typography>
+              <Typography noWrap sx={{ fontSize: '0.75rem', color: chrome.textMuted }}>{roll.by || tr('Alguém', 'Someone')} · {timeAgo(roll.at)}</Typography>
             </Box>
             {nat20 && (
               <Box component="span" sx={{ fontSize: '0.625rem', fontWeight: 700, px: 0.75, py: 0.25, borderRadius: 0.75, bgcolor: gold.bright, color: green.deepest }}>
@@ -351,8 +350,8 @@ const RecentRolls = ({ onOpenHistory }: { onOpenHistory: () => void }) => {
 
 const Profile = ({ collapsed, onOpenPassword }: { collapsed: boolean; onOpenPassword: () => void }) => {
   const role = useRole();
-  const name = role.displayName ?? role.username ?? 'Sua conta';
-  const roleText = role.isGm ? 'Mestre da mesa' : 'Jogador';
+  const name = role.displayName ?? role.username ?? tr('Sua conta', 'Your account');
+  const roleText = role.isGm ? tr('Mestre da mesa', 'Game master') : tr('Jogador', 'Player');
   if (!role.userId) {
     return collapsed ? null : <Disclaimer />;
   }
@@ -361,7 +360,7 @@ const Profile = ({ collapsed, onOpenPassword }: { collapsed: boolean; onOpenPass
       <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, pt: 2, borderTop: `1px solid ${chrome.active}` }}>
         <Box title={`${name} · ${roleText}`}><Initials name={name} size={40} ring /></Box>
         <LanguageToggle compact />
-        <IconButton aria-label="Sair da conta" title="Sair da conta" onClick={() => void signOut()} sx={{ color: chrome.textMuted }}><LogoutIcon fontSize="small" /></IconButton>
+        <IconButton aria-label={tr("Sair da conta", 'Sign out')} title={tr("Sair da conta", 'Sign out')} onClick={() => void signOut()} sx={{ color: chrome.textMuted }}><LogoutIcon fontSize="small" /></IconButton>
       </Box>
     );
   }
@@ -374,8 +373,8 @@ const Profile = ({ collapsed, onOpenPassword }: { collapsed: boolean; onOpenPass
           <Typography noWrap sx={{ fontSize: '0.75rem', color: chrome.textMuted }}>{roleText}</Typography>
           <TrophyLine />
         </Box>
-        <IconButton size="small" aria-label="Trocar senha" title="Trocar senha" onClick={onOpenPassword} sx={{ color: chrome.textMuted }}><KeyIcon fontSize="small" /></IconButton>
-        <IconButton size="small" aria-label="Sair da conta" title="Sair da conta" onClick={() => void signOut()} sx={{ color: chrome.textMuted }}><LogoutIcon fontSize="small" /></IconButton>
+        <IconButton size="small" aria-label={tr("Trocar senha", 'Change password')} title={tr("Trocar senha", 'Change password')} onClick={onOpenPassword} sx={{ color: chrome.textMuted }}><KeyIcon fontSize="small" /></IconButton>
+        <IconButton size="small" aria-label={tr("Sair da conta", 'Sign out')} title={tr("Sair da conta", 'Sign out')} onClick={() => void signOut()} sx={{ color: chrome.textMuted }}><LogoutIcon fontSize="small" /></IconButton>
       </Box>
       <LanguageToggle />
       <Disclaimer />
@@ -394,13 +393,12 @@ const TrophyLine = () => {
       display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 0.25, fontSize: '0.75rem', fontWeight: 600,
       color: gold.bright, textDecoration: 'none', fontVariantNumeric: 'tabular-nums', '&:hover': { textDecoration: 'underline' },
     }}>
-      <TrophyIcon sx={{ fontSize: 14 }} />Nível {levelOf(total).level} · {shown} pts
+      <TrophyIcon sx={{ fontSize: 14 }} />{tr('Nível ', 'Level ')}{levelOf(total).level} · {shown} pts
     </Box>
   );
 };
 
 const Disclaimer = () => (
   <Typography sx={{ px: 0.5, fontSize: '0.75rem', lineHeight: 1.5, color: chrome.label }}>
-    Ferramenta de fã, gratuita e não oficial. Pathfinder é marca registrada da Paizo Inc.
-  </Typography>
+    {tr('Ferramenta de fã, gratuita e não oficial. Pathfinder é marca registrada da Paizo Inc.', 'Free, unofficial fan tool. Pathfinder is a registered trademark of Paizo Inc.')}</Typography>
 );

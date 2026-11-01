@@ -18,6 +18,7 @@ import { getAuthState } from '../services/auth';
 
 const myId = () => { const a = getAuthState(); return a.status === 'in' ? a.user.id : null; };
 import { gold, rule } from '../theme';
+import { tr } from '../i18n';
 
 const ICONS: Record<NotificationKind, ReactElement> = {
   'sheet-published': <SheetIcon fontSize="small" />,
@@ -39,25 +40,28 @@ function textOf(n: TableNotification): string {
   const d = n.data;
   switch (n.kind) {
     case 'sheet-published':
-      return `Nova versão de ${str(d.name) || 'uma ficha'}${typeof d.level === 'number' ? ` (nível ${d.level})` : ''}`;
+      return tr(`Nova versão de ${str(d.name) || 'uma ficha'}${typeof d.level === 'number' ? ` (nível ${d.level})` : ''}`, `New version of ${str(d.name) || 'a sheet'}${typeof d.level === 'number' ? ` (level ${d.level})` : ''}`);
     case 'sheet-assigned':
-      return `${str(d.name) || 'Uma ficha'} agora é sua`;
+      return tr(`${str(d.name) || 'Uma ficha'} agora é sua`, `${str(d.name) || 'A sheet'} is now yours`);
     case 'map-active':
-      return `A mesa foi para o mapa ${str(d.name) || 'novo'}`;
+      return tr(`A mesa foi para o mapa ${str(d.name) || 'novo'}`, `The table moved to the map ${str(d.name) || 'new'}`);
     case 'map-revealed':
-      return `Mapa revelado: ${str(d.name) || 'sem nome'}`;
+      return tr(`Mapa revelado: ${str(d.name) || 'sem nome'}`, `Map revealed: ${str(d.name) || 'unnamed'}`);
     case 'combat-started':
-      return 'O combate começou';
+      return tr('O combate começou', 'Combat started');
     case 'rule-shared':
-      return `${str(d.by) || 'Alguém'} compartilhou ${str(d.name) || 'uma regra'}`;
+      return `${str(d.by) || tr('Alguém', 'Someone')} compartilhou ${str(d.name) || tr('uma regra', 'a rule')}`;
     case 'handout-shared':
-      return `${str(d.by) || 'O GM'} mostrou à mesa: ${str(d.name) || 'sem título'}`;
+      return tr(`${str(d.by) || 'O GM'} mostrou à mesa: ${str(d.name) || 'sem título'}`, `${str(d.by) || 'The GM'} showed the table: ${str(d.name) || 'untitled'}`);
     case 'trophy-unlocked':
       return d.user === myId()
-        ? `Troféu desbloqueado: ${str(d.title)}`
-        : `${str(d.name) || 'Alguém'} ganhou ${str(d.title)}`;
+        ? tr(`Troféu desbloqueado: ${str(d.title)}`, `Trophy unlocked: ${str(d.title)}`)
+        : tr(`${str(d.name) || 'Alguém'} ganhou ${str(d.title)}`, `${str(d.name) || 'Someone'} earned ${str(d.title)}`);
     case 'gift':
-      return `${fromSlug(str(d.from)) || 'Alguém'} te enviou ${typeof d.n === 'number' ? d.n : 1}× ${str(d.name)}`;
+      return tr(
+        `${fromSlug(str(d.from)) || 'Alguém'} te enviou ${typeof d.n === 'number' ? d.n : 1}× ${str(d.name)}`,
+        `${fromSlug(str(d.from)) || 'Someone'} sent you ${typeof d.n === 'number' ? d.n : 1}× ${str(d.name)}`,
+      );
   }
 }
 
@@ -92,12 +96,10 @@ export default function NotificationsList({ anchor, fresh, onClose }: { anchor: 
       slotProps={{ paper: { sx: { width: 'min(360px, calc(100vw - 16px))', maxHeight: 'min(520px, 70vh)', display: 'flex', flexDirection: 'column' } } }}
     >
       <Typography component="h2" sx={{ px: 2, pt: 1.75, pb: 1, fontWeight: 700, borderBottom: `1px solid ${rule}` }}>
-        Notificações
-      </Typography>
+        {tr('Notificações', 'Notifications')}</Typography>
       {items.length === 0 ? (
         <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
-          Nada novo por aqui. Fichas publicadas, mapas, combates, regras compartilhadas, o que o GM mostra e itens recebidos aparecem aqui.
-        </Typography>
+          {tr('Nada novo por aqui. Fichas publicadas, mapas, combates, regras compartilhadas, o que o GM mostra e itens recebidos aparecem aqui.', 'Nothing new here. Published sheets, maps, combats, shared rules, what the GM shows and received items show up here.')}</Typography>
       ) : (
         <Box component="ul" sx={{ listStyle: 'none', m: 0, p: 0, overflowY: 'auto' }}>
           {items.map((n) => {
@@ -117,7 +119,7 @@ export default function NotificationsList({ anchor, fresh, onClose }: { anchor: 
                     <Typography variant="body2" sx={{ fontWeight: isNew ? 700 : 400 }}>{textOf(n)}</Typography>
                     <Typography variant="caption" color="text.secondary">{timeAgo(n.at)}</Typography>
                   </Box>
-                  {isNew && <Box aria-label="nova" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: gold.deep, mt: 0.75, flexShrink: 0 }} />}
+                  {isNew && <Box aria-label={tr("nova", 'new')} sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: gold.deep, mt: 0.75, flexShrink: 0 }} />}
                 </ButtonBase>
               </Box>
             );

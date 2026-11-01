@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useRole } from '../services/auth';
 import { SECTION_LABEL, visibleNav, type NavItem } from '../layouts/navigation';
 import { gold, ink, rule } from '../theme';
+import { tr } from '../i18n';
 
 // A busca (⌘K / Ctrl+K, o campo do topo da Início e a lupa do celular): ir para uma página ou
 // ferramenta pelo teclado. Decisão do usuário: só navegação — nada de regras da AON aqui.
@@ -49,7 +50,7 @@ export default function CommandPalette({ onClose }: { onClose: () => void }) {
       onClose={onClose}
       fullWidth
       maxWidth="sm"
-      aria-label="Ir para uma página"
+      aria-label={tr("Ir para uma página", 'Go to a page')}
       sx={{ '& .MuiDialog-container': { alignItems: 'flex-start' } }}
       slotProps={{ paper: { sx: { mt: { xs: 2, sm: '12vh' }, mx: 1, width: 'calc(100% - 16px)' } } }}
     >
@@ -58,9 +59,9 @@ export default function CommandPalette({ onClose }: { onClose: () => void }) {
         <InputBase
           autoFocus
           fullWidth
-          placeholder="Ir para… (página ou ferramenta)"
+          placeholder={tr("Ir para… (página ou ferramenta)", 'Go to… (page or tool)')}
           value={query}
-          inputProps={{ 'aria-label': 'Ir para uma página ou ferramenta', role: 'combobox', 'aria-expanded': true, 'aria-controls': 'busca-resultados' }}
+          inputProps={{ 'aria-label': tr('Ir para uma página ou ferramenta', 'Go to a page or tool'), role: 'combobox', 'aria-expanded': true, 'aria-controls': 'busca-resultados' }}
           onChange={(e) => { setQuery(e.target.value); setIndex(0); }}
           onKeyDown={(e) => {
             if (e.key === 'ArrowDown') { e.preventDefault(); setIndex((current + 1) % Math.max(1, results.length)); }
@@ -72,7 +73,7 @@ export default function CommandPalette({ onClose }: { onClose: () => void }) {
       </Box>
       <Box id="busca-resultados" role="listbox" component="ul" sx={{ listStyle: 'none', m: 0, p: 1, maxHeight: '60vh', overflowY: 'auto' }}>
         {results.length === 0 && (
-          <Typography variant="body2" color="text.secondary" sx={{ p: 1.5 }}>Nenhuma página com esse nome.</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ p: 1.5 }}>{tr('Nenhuma página com esse nome.', 'No page with that name.')}</Typography>
         )}
         {results.map((item, i) => (
           <Box component="li" key={item.path} role="option" aria-selected={i === current}>

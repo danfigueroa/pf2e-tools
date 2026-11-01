@@ -4,21 +4,22 @@ import { Check as CheckIcon, Edit as EditIcon } from '@mui/icons-material';
 import { setDeviceName, useDeviceName, usePresence, type Peer } from '../services/presence';
 import { TokenBadge } from '../modules/battle-map/components/TokenBadge';
 import { gold, green, parchment, status as statusColor } from '../theme/palette';
+import { tr } from '../i18n';
 
 /** Tinta clara sobre a moldura verde, a mesma do `MainLayout`. */
 const CHROME_TEXT = 'rgba(237, 227, 204, 0.78)';
 
 const PAGES: [string, string][] = [
-  ['/ficha-virtual', 'Ficha'],
-  ['/iniciativa', 'Iniciativa'],
-  ['/mapa', 'Mapa'],
-  ['/transformation', 'Transformação'],
-  ['/escalar-monstro', 'Escalar Monstro'],
-  ['/historico', 'Histórico de Rolagens'],
+  ['/ficha-virtual', tr('Ficha', 'Sheet')],
+  ['/iniciativa', tr('Iniciativa', 'Initiative')],
+  ['/mapa', tr('Mapa', 'Map')],
+  ['/transformation', tr('Transformação', 'Transformation')],
+  ['/escalar-monstro', tr('Escalar Monstro', 'Scale Monster')],
+  ['/historico', tr('Histórico de Rolagens', 'Roll History')],
 ];
 
 const pageLabel = (path: string) =>
-  PAGES.find(([prefix]) => path === prefix || path.startsWith(`${prefix}/`))?.[1] ?? 'Início';
+  PAGES.find(([prefix]) => path === prefix || path.startsWith(`${prefix}/`))?.[1] ?? tr('Início', 'Home');
 
 const initials = (text: string) =>
   text.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? '').join('') || '?';
@@ -34,7 +35,7 @@ export const PresenceList = () => {
   return (
     <Box sx={{ px: 2.5, pb: 1.5 }}>
       <Typography variant="caption" sx={{ display: 'block', color: CHROME_TEXT, mb: 0.75 }}>
-        Na mesa agora · {peers.length}
+        {tr('Na mesa agora · ', 'At the table now · ')}{peers.length}
       </Typography>
       <Box component="ul" sx={{ listStyle: 'none', m: 0, p: 0, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
         {peers.map((peer) => <PeerRow key={peer.id} peer={peer} />)}
@@ -44,8 +45,8 @@ export const PresenceList = () => {
 };
 
 const PeerRow = ({ peer }: { peer: Peer }) => {
-  const title = peer.name || peer.who || peer.character || (peer.self ? 'Este aparelho' : 'Sem nome');
-  const where = [peer.name && peer.character ? peer.character : null, pageLabel(peer.page), peer.visible ? null : 'em segundo plano']
+  const title = peer.name || peer.who || peer.character || (peer.self ? tr('Este aparelho', 'This device') : tr('Sem nome', 'Unnamed'));
+  const where = [peer.name && peer.character ? peer.character : null, pageLabel(peer.page), peer.visible ? null : tr('em segundo plano', 'in the background')]
     .filter(Boolean)
     .join(' · ');
   return (
@@ -99,24 +100,24 @@ const SelfName = ({ title }: { title: string }) => {
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onBlur={save}
-          placeholder="Seu nome"
-          inputProps={{ maxLength: 40, 'aria-label': 'Nome deste aparelho na mesa' }}
+          placeholder={tr("Seu nome", 'Your name')}
+          inputProps={{ maxLength: 40, 'aria-label': tr('Nome deste aparelho na mesa', 'This device\'s name at the table') }}
           sx={{ flex: 1, fontSize: '0.85rem', color: parchment.page, borderBottom: `1px solid ${gold.main}`, py: 0 }}
         />
-        <IconButton type="submit" size="small" aria-label="Salvar nome" sx={{ color: gold.bright, p: 0.25 }}>
+        <IconButton type="submit" size="small" aria-label={tr("Salvar nome", 'Save name')} sx={{ color: gold.bright, p: 0.25 }}>
           <CheckIcon sx={{ fontSize: '1rem' }} />
         </IconButton>
       </Box>
     );
   }
   return (
-    <Tooltip title="Dar um nome a este aparelho" enterDelay={400}>
+    <Tooltip title={tr("Dar um nome a este aparelho", 'Name this device')} enterDelay={400}>
       <ButtonBase
         onClick={() => { setDraft(name); setEditing(true); }}
         sx={{ display: 'flex', alignItems: 'center', gap: 0.5, maxWidth: '100%', borderRadius: 0.5 }}
       >
         <Typography noWrap sx={{ fontSize: '0.85rem', fontWeight: 600, color: parchment.page, lineHeight: 1.2 }}>
-          {title} <Box component="span" sx={{ color: CHROME_TEXT, fontWeight: 400 }}>(você)</Box>
+          {title} <Box component="span" sx={{ color: CHROME_TEXT, fontWeight: 400 }}>{tr('(você)', '(you)')}</Box>
         </Typography>
         <EditIcon sx={{ fontSize: '0.85rem', color: CHROME_TEXT, flexShrink: 0 }} />
       </ButtonBase>
