@@ -245,14 +245,25 @@ async function resolveTraitRulesUncached(terms) {
   return translateTraitRules(found)
 }
 
+async function resolveTraitRulesEnglish(terms) {
+  const out = {}
+  for (const term of terms) {
+    const rule = await resolveTraitOnly(term).catch(() => null)
+    if (rule) out[term] = { ...rule, label: capitalize(rule.name) }
+  }
+  return out
+}
+
 /**
  * A regra de vários traços de uma vez, EM PORTUGUÊS, chaveada pelo termo. A primeira vez vai à AON e à
  * tradução; depois sai do banco (`aon_lookups`, `trait:v2`, global) — tocar no chip da arma não espera
  * nada. O que a tradução não deu fica de fora do banco e volta em inglês com `translationPending`
  * (o cliente não o guarda e pede de novo). Subiu o formato? Suba a versão.
  */
-export async function resolveTraitRules(rawTerms) {
+export async function resolveTraitRules(rawTerms, lang = 'pt') {
   const terms = [...new Set(rawTerms.map(weaponTraitName).filter(Boolean))].slice(0, MAX_TRAIT_RULES)
+  // Inglês: a regra como a AON escreve, sem tradução — também no banco, em `traiten:v1`.
+  if (lang === 'en') return cachedLookup('traiten:v1', terms, resolveTraitRulesEnglish)
   const out = await cachedLookup('trait:v2', terms, resolveTraitRulesUncached)
   for (const term of terms) {
     if (out[term]) continue

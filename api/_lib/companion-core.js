@@ -60,7 +60,9 @@ function parseTail(text) {
   }
 }
 
-export async function resolveCompanion(name, translationEnabled) {
+export async function resolveCompanion(name, translationEnabled, lang = 'pt') {
+  // Inglês: o texto da AON como está, sem LLM.
+  if (lang === 'en') translationEnabled = false
   const best = await findCompanion(name)
   if (!best) return null
 

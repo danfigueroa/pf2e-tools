@@ -232,7 +232,9 @@ async function finishEntry(prep, translated, translationEnabled) {
  * pacote de uma ficha inteira (~100 talentos, habilidades e itens) seriam cem
  * chamadas a 4,2 s de distância no Gemini free. Devolve na ordem de `names`.
  */
-async function resolveEntries(names, categories, itemType, translationEnabled) {
+async function resolveEntries(names, categories, itemType, translationEnabled, lang = 'pt') {
+  // `lang = 'en'`: o texto da AON como está, sem LLM (nem para completar prosa curta).
+  if (lang === 'en') translationEnabled = false
   const preps = await Promise.all(names.map((n) => prepareEntry(n, categories, itemType, translationEnabled)))
   const owners = []
   const segments = []
@@ -249,46 +251,46 @@ async function resolveEntries(names, categories, itemType, translationEnabled) {
     prep.done ? prep.done : finishEntry(prep, perEntry[i], translationEnabled)))
 }
 
-export function resolveFeats(names, translationEnabled) {
-  return resolveEntries(names, FEAT_CATEGORIES, 'feat', translationEnabled)
+export function resolveFeats(names, translationEnabled, lang = 'pt') {
+  return resolveEntries(names, FEAT_CATEGORIES, 'feat', translationEnabled, lang)
 }
 
 /** Habilidades especiais E itens do inventário (mesmo endpoint, `/api/searches`). */
-export function resolveSpecials(names, translationEnabled) {
-  return resolveEntries(names, SPECIAL_CATEGORIES, 'special', translationEnabled)
+export function resolveSpecials(names, translationEnabled, lang = 'pt') {
+  return resolveEntries(names, SPECIAL_CATEGORIES, 'special', translationEnabled, lang)
 }
 
 /**
  * Itens do inventário: as mesmas categorias das habilidades (uma dádiva de relíquia é "item"), mas um acerto de
  * nome parcial só vale se também for item (`namesCompatible(..., item)`).
  */
-export function resolveItems(names, translationEnabled) {
-  return resolveEntries(names, SPECIAL_CATEGORIES, 'item', translationEnabled)
+export function resolveItems(names, translationEnabled, lang = 'pt') {
+  return resolveEntries(names, SPECIAL_CATEGORIES, 'item', translationEnabled, lang)
 }
 
-export async function resolveFeat(name, translationEnabled) {
-  const [entry] = await resolveFeats([name], translationEnabled)
+export async function resolveFeat(name, translationEnabled, lang = 'pt') {
+  const [entry] = await resolveFeats([name], translationEnabled, lang)
   return entry
 }
 
-export async function resolveItem(name, translationEnabled) {
-  const [entry] = await resolveItems([name], translationEnabled)
+export async function resolveItem(name, translationEnabled, lang = 'pt') {
+  const [entry] = await resolveItems([name], translationEnabled, lang)
   return entry
 }
 
-export async function resolveSpecial(name, translationEnabled) {
-  const [entry] = await resolveSpecials([name], translationEnabled)
+export async function resolveSpecial(name, translationEnabled, lang = 'pt') {
+  const [entry] = await resolveSpecials([name], translationEnabled, lang)
   return entry
 }
 
 // Executa vários nomes com concorrência limitada, chaveando o resultado pelo
 // nome de ENTRADA — o AON normaliza nomes ("Power Attack" → "Vicious Swing") e
 // sem isso o frontend perde o item.
-export async function resolveMany(names, translationEnabled, resolver, concurrency = 3) {
+export async function resolveMany(names, translationEnabled, resolver, concurrency = 3, lang = 'pt') {
   const results = {}
   for (let i = 0; i < names.length; i += concurrency) {
     const chunk = names.slice(i, i + concurrency)
-    const resolved = await Promise.all(chunk.map(n => resolver(n, translationEnabled)))
+    const resolved = await Promise.all(chunk.map(n => resolver(n, translationEnabled, lang)))
     resolved.forEach((r, idx) => { results[chunk[idx]] = r })
   }
   return results

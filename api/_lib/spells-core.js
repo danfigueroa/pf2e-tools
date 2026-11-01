@@ -31,7 +31,7 @@ function emptySpell(name, description) {
 }
 
 /** Busca no AON e parseia em EN — a parte barata, sem LLM. */
-async function prepareSpell(name, translationEnabled) {
+async function prepareSpell(name, translationEnabled, lang) {
   let best = null
   for (const cat of ['spell', 'cantrip', 'focus']) {
     const results = await searchAon(name, cat, 10)
@@ -52,10 +52,11 @@ async function prepareSpell(name, translationEnabled) {
 
   // Entradas de heightening: o dicionário determinístico resolve a maioria; o
   // que sobra vai para o LLM junto com a prosa.
+  // Em inglês o texto da AON vai como está: nem dicionário, nem LLM.
   const heightened = parsed.heightenedEntries.map((entry) => ({
     level: entry.level,
     en: entry.text,
-    text: translateHeightenedText(entry.text),
+    text: lang === 'en' ? entry.text : translateHeightenedText(entry.text),
   }))
 
   // Trechos que precisam do LLM, na ordem: prosa primeiro, depois heightening.
@@ -67,7 +68,11 @@ async function prepareSpell(name, translationEnabled) {
 }
 
 /** Monta o payload a partir do que `prepareSpell` achou e das traduções (na ordem de `segments`). */
-async function finishSpell(prep, translated, translationEnabled) {
+async function finishSpell(prep, translated, translationEnabled, lang) {
+  // Inglês: os metadados e o tipo de dano ficam como a AON os escreve ("30 feet",
+  // "basic Reflex", "fire"); em português, o dicionário determinístico de sempre.
+  const meta = lang === 'en' ? (v) => v : translateMetadata
+  const damageTypeOf = lang === 'en' ? (v) => String(v || '').toLowerCase() : translateDamageType
   const { name, source, parsed, proseEN, heightened } = prep
   const { damage, damageTypeEN } = extractDamage(proseEN)
   // Números da prosa e como o heightening mexe em cada um — sobre o EN, antes
@@ -124,14 +129,14 @@ async function finishSpell(prep, translated, translationEnabled) {
     traits: traits.length > 0 ? traits : (traditions.length === 0 ? allTraits : []),
     traditions: traditions.length > 0 ? traditions : undefined,
     castComponents: cleanAonText(source.cast_components || source.components || ''),
-    range: translateMetadata(cleanAonText(rangeStr)),
-    area: translateMetadata(cleanAonText(areaStr)),
-    targets: translateMetadata(cleanAonText(targetsStr)),
-    duration: translateMetadata(cleanAonText(durationStr)),
-    defense: translateMetadata(cleanAonText(defenseStr)),
+    range: meta(cleanAonText(rangeStr)),
+    area: meta(cleanAonText(areaStr)),
+    targets: meta(cleanAonText(targetsStr)),
+    duration: meta(cleanAonText(durationStr)),
+    defense: meta(cleanAonText(defenseStr)),
     description: description || null,
     damage,
-    damageType: translateDamageType(damageTypeEN),
+    damageType: damageTypeOf(damageTypeEN),
     heightened: {},
     heightenedEntries,
     ...(scaling ? { scaling } : {}),
@@ -146,8 +151,10 @@ async function finishSpell(prep, translated, translationEnabled) {
  * chamada por magia (mais uma por heightening) custava ~10 s cada.
  * Devolve os payloads na ordem de `names`.
  */
-export async function resolveSpells(names, translationEnabled) {
-  const preps = await Promise.all(names.map((n) => prepareSpell(n, translationEnabled)))
+export async function resolveSpells(names, translationEnabled, lang = 'pt') {
+  // `lang = 'en'`: o texto da AON, sem tradução nenhuma (nem chamada ao LLM).
+  if (lang === 'en') translationEnabled = false
+  const preps = await Promise.all(names.map((n) => prepareSpell(n, translationEnabled, lang)))
   const owners = []
   const segments = []
   preps.forEach((prep, i) => {
@@ -157,10 +164,10 @@ export async function resolveSpells(names, translationEnabled) {
   const perSpell = preps.map(() => [])
   translated.forEach((t, k) => perSpell[owners[k]].push(t))
   return Promise.all(preps.map((prep, i) =>
-    prep.done ? prep.done : finishSpell(prep, perSpell[i], translationEnabled)))
+    prep.done ? prep.done : finishSpell(prep, perSpell[i], translationEnabled, lang)))
 }
 
-export async function resolveSpell(name, translationEnabled) {
-  const [spell] = await resolveSpells([name], translationEnabled)
+export async function resolveSpell(name, translationEnabled, lang = 'pt') {
+  const [spell] = await resolveSpells([name], translationEnabled, lang)
   return spell
 }
