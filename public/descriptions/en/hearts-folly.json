@@ -1,0 +1,749 @@
+{
+ "version": "v13",
+ "character": "Hearts folly",
+ "entries": {
+  "spell": {
+   "Inner Upheaval": {
+    "name": "Inner Upheaval",
+    "level": 1,
+    "heighten": [
+     "+4"
+    ],
+    "sourceBook": "Player Core 2, p. 256",
+    "actions": "Single Action",
+    "traits": [
+     "Concentrate",
+     "Focus",
+     "Monk",
+     "Uncommon"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "You focus your qi into devastating magical attacks. Make an unarmed Strike or Flurry of Blows (this doesn't change the limit on using only one flourish per turn). You gain a +1 status bonus to your attack rolls with the Strikes, and the Strikes deal 1d6 extra damage. This damage can be any of the following types of your choice, chosen each time you Strike: force, spirit, vitality, or void.",
+    "damage": "1d6",
+    "damageType": "extra",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+4",
+      "text": "The extra damage increases by 1d6."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "1d6",
+       "kind": "damage",
+       "types": [],
+       "persistent": false,
+       "count": 1,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+4",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 6,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Ki Strike": {
+    "name": "Ki Strike",
+    "level": 1,
+    "heighten": [
+     "+4"
+    ],
+    "sourceBook": "Core Rulebook, p. 401",
+    "actions": "Single Action",
+    "traits": [
+     "Monk",
+     "Transmutation",
+     "Uncommon",
+     "Focus"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "You focus your ki into magical attacks. Make an unarmed Strike or Flurry of Blows (this doesn't change the limit on using only one flourish per turn). You gain a +1 status bonus to your attack rolls with the Strikes, and the Strikes deal 1d6 extra damage. This damage can be any of the following types of your choice, chosen each time you Strike: force, spirit, vitality, or void.",
+    "damage": "1d6",
+    "damageType": "extra",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+4",
+      "text": "The extra damage increases by 1d6."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "1d6",
+       "kind": "damage",
+       "types": [],
+       "persistent": false,
+       "count": 1,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+4",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 6,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Perfect Strike": {
+    "name": "Perfect Strike",
+    "level": 2,
+    "sourceBook": "World Guide, p. 83",
+    "actions": "Reaction",
+    "traits": [
+     "Divination",
+     "Fortune",
+     "Uncommon",
+     "Focus"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "You call upon insight from your training to recover accuracy. Reroll the missed attack roll and keep the new result.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Unfolding Wind Rush": {
+    "name": "Unfolding Wind Rush",
+    "level": 3,
+    "heighten": [
+     "5th"
+    ],
+    "sourceBook": "World Guide, p. 83",
+    "actions": "Single Action",
+    "traits": [
+     "Evocation",
+     "Uncommon",
+     "Focus"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "You travel on a rushing wind. Move two times: two Strides, two Steps, or one Stride and one Step (in either order). You can Stride or Step into the air during this movement, moving upward at a 45-degree angle at most; if you end your movement in the air, you fall after taking one action or when your turn ends, whichever comes first. A wall of wind appears in all the spaces you left during this movement, lasting for 1 round.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "5th",
+      "text": "The wall of wind lasts 3 rounds."
+     }
+    ]
+   }
+  },
+  "feat": {
+   "Ancestral Paragon": {
+    "name": "Ancestral Paragon",
+    "level": 3,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "description": "Whether through instinct, study, or magic, you feel a deeper connection to your ancestry. You gain a 1st-level ancestry feat."
+   },
+   "Clever Improviser": {
+    "name": "Clever Improviser",
+    "level": 5,
+    "actions": "",
+    "traits": [
+     "Human"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 64",
+    "description": "You’ve learned how to handle situations when you’re out of your depth. You gain the Untrained Improvisation general feat. In addition, you can attempt skill actions that normally require you to be trained, even if you are untrained."
+   },
+   "Correct the Story": {
+    "name": "Correct The Story",
+    "level": 6,
+    "actions": "Reaction",
+    "traits": [
+     "Misfortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "trigger": "An enemy critically succeeds at an attack roll or saving throw.",
+    "description": "You know the story of your journey well and can correct it when your enemy tells it incorrectly. Spend a Mythic Point. The enemy must reroll the triggering attack roll or save and take the new result."
+   },
+   "Deflect Projectile": {
+    "name": "Deflect Projectile",
+    "level": 4,
+    "actions": "Reaction",
+    "traits": [
+     "Monk"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 121",
+    "trigger": "You are the target of a physical ranged attack.",
+    "requirements": "You’re aware of the attack, are not off-guard against it, and have a hand free.",
+    "description": "You gain a +4 circumstance bonus to AC against the triggering attack. If the attack misses, you have deflected it. You cannot use this feat to deflect unusually massive ranged projectiles (such as boulders or ballista bolts)."
+   },
+   "Dromaar": {
+    "name": "Dromaar",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Player Core, p. 83",
+    "description": "Heritage Dromaar Orcish strength emboldens your bloodline. You have a green tinge to your skin and other indicators of orc heritage. You gain the orc trait, the dromaar trait, and low-light vision. When you gain an ancestry feat, you can choose from dromaar and orc feats in addition to those from your ancestry."
+   },
+   "Ears that Hear the Truth": {
+    "name": "Ears that Hear the Truth",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 81",
+    "description": "You have an acute understanding of the rhythms of living things, and you never miss the quaver that betrays a spoken lie. When you attempt to Sense Motive, or when you roll Perception for initiative, you can spend a Mythic Point to attempt the check or roll at mythic proficiency."
+   },
+   "Experienced Smuggler": {
+    "name": "Experienced Smuggler",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 255",
+    "prerequisites": "Trained in Stealth",
+    "description": "You often smuggle things past the authorities. When the GM rolls your Stealth check to see if a passive observer notices a small item you've concealed, the GM uses the number rolled or 10—whichever is higher—as the result of your die roll, adding it to your Stealth modifier to determine your Stealth check result. If you're a master in Stealth, the GM uses the number rolled or 15, and if you're legendary in Stealth, you automatically succeed at hiding a small concealed item from passive observers. This provides no benefits when a creature attempts a Perception check while actively searching you for hidden items."
+   },
+   "Fleet": {
+    "name": "Fleet",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 256",
+    "description": "You move more quickly on foot. Your Speed increases by 5 feet."
+   },
+   "Hydra's Bond": {
+    "name": "Hydra's Bond",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Mythic",
+     "Rare"
+    ],
+    "category": "feat",
+    "sourceBook": "Pathfinder #218: Titanbane, p. 68",
+    "description": "When the hero-gods built Pol-Sylirica and its seven armies, they feared betrayal from within. They took inspiration from the multi-headed hydra, and bound the seven armies together with supernatural ties to make them behave as if they shared one body. Following these tactics, during daily preparations, you can select a number of willing creatures equal to half your level to be part of your hydra’s bond. Members of the same hydra’s bond always know if another member is telling the truth. When a member of the hydra’s bond saves against an effect that would have them act against their allies (such as the confused condition, a dominate spell, or other mental effects that would give an ally the controlled condition), you can spend a Mythic Point to allow that character to attempt the save at mythic proficiency. If a member of the hydra’s bond fails a save against such an effect, other members automatically know that the target is controlled or under the influence of a mental effect. In addition, all members of the hydra’s bond gain a +2 circumstance bonus to any roll made to counteract that effect."
+   },
+   "Ki Strike": {
+    "name": "Ki Strike",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Monk"
+    ],
+    "category": "feat",
+    "sourceBook": "Core Rulebook, p. 158",
+    "description": "Your study of the flow of mystical energy allows you to harness it into your physical strikes. You gain the ki strike ki spell and a focus pool of 1 Focus Point. The rules for ki spells are summarized in the Key Terms section on the monk class page, and the full rules for focus spells appear here."
+   },
+   "Monastic Archer Stance": {
+    "name": "Monastic Archer Stance",
+    "level": 1,
+    "actions": "Single Action",
+    "traits": [
+     "Monk",
+     "Stance"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 118",
+    "requirements": "You are unarmored and wielding a longbow, a shortbow, or a bow with the Monk trait.",
+    "description": "You enter a specialized stance for a unique martial art centered around the use of a bow. While in this stance, the only Strikes you can make are those using longbows, shortbows, or bows with the monk trait. You can use Flurry of Blows with these bows. You can use your other monk feats or monk abilities that normally require unarmed attacks with these bows when attacking within half the first range increment (normally 50 feet for a longbow and 30 feet for a shortbow), so long as the feat or ability doesn't require a single, specific Strike. Special When you select this feat, you become trained in the longbow, shortbow, and any simple and martial bows with the monk trait. If you gain the expert strikes class feature, your proficiency rank for these weapons increases to expert, and if you gain the master strikes class feature, your proficiency rank for these weapons increases to master."
+   },
+   "Orc Ferocity": {
+    "name": "Orc Ferocity",
+    "level": 1,
+    "actions": "Reaction",
+    "traits": [
+     "Orc"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 72",
+    "trigger": "You would be reduced to 0 Hit Points but not immediately killed",
+    "frequency": "once per day",
+    "description": "Fierceness in battle runs through your blood, and you refuse to fall from your injuries no matter how terrible they may be. You avoid being knocked out and remain at 1 Hit Point, and your wounded condition increases by 1."
+   },
+   "Orc Sight": {
+    "name": "Orc Sight",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Dromaar",
+     "Half-Orc"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 83",
+    "prerequisites": "low-light vision",
+    "description": "Your orc blood grants you the keen vision of your forebears. You gain darkvision, allowing you to see in darkness and dim light just as well as you can in bright light. However, in darkness, you see in black and white only. Special You can take this feat only at 1st level, and you can’t retrain out of this feat or into this feat."
+   },
+   "Perfect Ki Adept": {
+    "name": "Perfect Ki Adept",
+    "level": 6,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Student of Perfection"
+    ],
+    "sourceBook": "World Guide, p. 83",
+    "prerequisites": "Student of Perfection Dedication",
+    "description": "You gain the appropriate ki spell for your School of Perfection: unblinking flame revelation for Unblinking Flame, unbreaking wave advance for Unbreaking Waves, unfolding wind rush for Unfolding Wind, or untwisting iron buffer for Untwisting Iron. Increase the number of Focus Points in your focus pool by 1."
+   },
+   "Perfect Strike": {
+    "name": "Perfect Strike",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Student of Perfection"
+    ],
+    "sourceBook": "World Guide, p. 83",
+    "prerequisites": "Student of Perfection Dedication",
+    "description": "You gain the perfect strike ki spell. Increase the number of Focus Points in your focus pool by 1."
+   },
+   "Qi Spells": {
+    "name": "Qi Spells",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Monk"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Bullet Dancer"
+    ],
+    "sourceBook": "Player Core 2, p. 119",
+    "description": "You have cultivated your qi to produce magical effects. You gain inner upheaval, qi rush, or another 1st-rank monk qi spell you have access to. Special You can select this feat more than once, choosing a different spell each time."
+   },
+   "Specialty Crafting": {
+    "name": "Specialty Crafting",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 262",
+    "prerequisites": "Trained in Crafting",
+    "description": "Your training focused on Crafting one particular kind of item. Select one of the specialties listed below; you gain a +1 circumstance bonus to Crafting checks to Craft items of that type. If you are a master in Crafting, this bonus increases to +2. If it's unclear whether the specialty applies, the GM decides. Some specialties might apply only partially. For example, if you were making a morningstar and had specialty in woodworking, the GM might give you half your bonus because the item requires both blacksmithing and woodworking. ## Specialty Crafting Specialty Applicable Items Alchemy* Alchemical items such as elixirs Artistry Fine art, including jewelry Blacksmithing Durable metal goods, including metal armor Bookmaking Books and paper Glassmaking Glass, including glassware and windows Leatherworking Leather goods, including leather armor Pottery Ceramic goods Shipbuilding Ships and boats Stonemasonry Stone goods and structures Tailoring Clothing Weaving Textiles, baskets, and rugs Woodworking Wooden goods and structures * Requires Alchemical Crafting to Craft."
+   },
+   "Stand Still": {
+    "name": "Stand Still",
+    "level": 4,
+    "actions": "Reaction",
+    "traits": [
+     "Monk"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 121",
+    "trigger": "A creature within your reach uses a move action or leaves a square during a move action it’s using.",
+    "description": "You strike out when your foe tries to flee. Make a melee Strike against the triggering creature. If the attack is a critical hit and the trigger was a move action, you disrupt that action."
+   },
+   "Student of Perfection Dedication": {
+    "name": "Student of Perfection Dedication",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Archetype",
+     "Dedication",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Student of Perfection"
+    ],
+    "sourceBook": "World Guide, p. 83",
+    "prerequisites": "powerful fist or expert in unarmed attacks; member of a House of Perfection",
+    "access": "You are from Jalmeray.",
+    "description": "You have learned the martial arts techniques of your House of Perfection. You become trained in your choice of Acrobatics or Athletics and Warfare Lore; if you were already trained, you become an expert instead. You gain the Ki Strike monk class feat, which grants you the ki strike ki spell and a focus pool of 1 Focus Point that you can recover using the Refocus activity as a monk does. Your ki spells from Student of Perfection are occult spells. Special You can’t select another dedication feat until you have gained two other feats from the student of perfection archetype."
+   },
+   "Stunning Blows": {
+    "name": "Stunning Blows",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Monk"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 121",
+    "prerequisites": "flurry of blows",
+    "description": "The focused power of your flurry threatens to overwhelm your opponent. When you target the same creature with two Strikes from your Flurry of Blows, you can try to stun the creature. If either Strike hits and deals damage, the target must succeed at a Fortitude save against your class DC or be stunned 1 (or stunned 3 on a critical failure). This is an incapacitation effect."
+   },
+   "Titan Wrestler": {
+    "name": "Titan Wrestler",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 263",
+    "prerequisites": "Trained in Athletics",
+    "description": "You can attempt to Disarm, Grapple, Reposition, Shove, or Trip creatures up to two sizes larger than you, or up to three sizes larger than you if you're legendary in Athletics."
+   },
+   "Underwater Marauder": {
+    "name": "Underwater Marauder",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 264",
+    "prerequisites": "Trained in Athletics",
+    "description": "You've learned to fight underwater. You are not off-guard while in water, and you don't take the usual penalties for using a bludgeoning or slashing melee weapon in water."
+   },
+   "Untrained Improvisation": {
+    "name": "Untrained Improvisation",
+    "level": 3,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 264",
+    "description": "You’ve learned how to handle situations when you’re out of your depth. Your proficiency bonus to untrained skill checks is equal to your level –2. This improves to your level –1 at 5th level and your full level at 7th level. This doesn’t allow you to use the skill’s trained actions."
+   }
+  },
+  "special": {
+   "Athletics": {
+    "name": "Athletics",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "skill",
+    "sourceBook": "Player Core, p. 234",
+    "description": "Skill Athletics Athletics allows you to perform deeds of physical prowess. Most Athletics actions let you move about the environment (Climb, High Jump, Long Jump, Swim) or control your opponent's movement in combat (Grapple, Reposition, Shove, Trip, and Disarm). Escape: When you use the Escape basic action, you can use your Athletics modifier instead of your unarmed attack modifier. Multiple Attacks with Athletics Several Athletics actions have the attack trait, meaning that using them more than once in the same turn makes them less accurate. Since these actions use your free hand, you use the traits for your fist attack to determine the multiple attack penalty, so your fist's agile trait applies. Therefore, you take a 4 penalty if the action is your second attack of the turn, or a 8 if it's the third. Some weapon traits allow you to take these actions using a weapon, in which case the penalty might be 5 or 10 if the weapon doesn't have the agile trait. Some characters can get unarmed attacks without the agile trait as well. If it's unclear which penalty to use, the GM makes the call. Item Bonuses for Athletics Item Bonus Level Category Consumable Note Beastmaster's Sigil +1 0 Spellhearts No Item bonus to Athletic checks to Trip Medal of Gorilla’s Might +1 3 Worn Items No Item bonus to Athletics checks to Climb, Force Open, High Jump, and Long Jump. Crowbar (Levered) +1 3 Adventuring Gear No to Force Open anything that can be pried open. Bracelet Of Buoyancy +1 3 Other Worn Items No to Swim Essence Charm +1 4 Other Worn Items No Item bonus to a check of the crafter's choice Grippy Gloves +1 4 Other Worn Items No Item bonus to Athletics Check to Climb, Grapple, and Reposition. Sailor’s Collar +1 4 Worn Items No Item bonus to Athletics Checks to Climb, Force Open, High Jump, and Long Jump. Coral Aspect +1 4 Other Worn Items No Item bonus to Swim Mariner's Splint +1 5 Armor No Athletics checks toClimb or Swim Trudd's Strength +1 5 Clan Dagger Filigrees No Item bonus to Athletics checks Injigo's Loving Embrace +1 9 Held Items No Item bonus to Athletics check to Grapple with the net. Kinburi's Sandals of Bounding +1 9 Other Worn Items No Item bonus to Athletics checks to High Jump and Long Jump Dread Ampoule (Greater) +1 11 Alchemical Bombs No Item bonus to Athletic checks to Force Open Bestial Mutagen (Lesser) +1 1 Alchemical Elixirs Yes Item bonus to Athletics checks Bronze Bull Pendant +1 2 Talismans Yes Athletics to Shove Monkey Pin +1 2 Talismans Yes Athletics to Climb Savior Spike +1 2 Talismans Yes Athletics to Grab an Edge Energizing Tea +1 4 Tea Yes Item bonus to Athletics Mantis Embrace +2 0 Other Worn Items No Athletics checks to Grapple or Shove Zarothrask's Contract +2 9 Other Contracts No Disarm manufactured items and to Grapple Kinburi's Sandals of Bounding +2 9 Other Worn Items No Item bonus to Athletics checks to High Jump and Long Jump when activated Fire-Jump Ring +2 10 Other Worn Items No Sash of Prowess +2 10 Worn Items No Greater Sailor’s Collar +2 10 Worn Items No Item bonus to Athletics Checks to Climb, Force Open, High Jump, and Long Jump. Gloves of Precision +2 10 Worn Items No Item bonus to Climb Kinetic Wraps of Strength +2 10 Worn Items No Item bonus to Force Open, Reposition, and Shove Greater Trudd's Strength +2 11 Clan Dagger Filigrees No Item bonus to Athletics checks Helm of Zeal +2 11 Worn Items No Item bonus of the associated Deity's Divine Skill Helm of the Tides +2 11 Other Worn Items No Item bonus to Swim Stampede Medallion +2 12 Eidolon Items No Item bonus to Athletics checks to Shove or Trip. Greater Stampede Medallion +2 15 Eidolon Items No Item bonus to Athletics checks to Shove or Trip. Bestial Mutagen (Moderate) +2 3 Alchemical Elixirs Yes Item bonus to Athletics checks Sash of Prowess (Greater) +3 17 Worn Items No Jaws of the Grogrisant +3 17 Apex Items No Item bonus to Perception checks to Athletics Helm of Zeal (Greater) +3 18 Worn Items No Item bonus of the associated Deity's Divi..."
+   },
+   "Bestow Life": {
+    "name": "Bestow Life",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Vitality",
+     "Positive"
+    ],
+    "category": "relic",
+    "sourceBook": "GM Core, p. 315",
+    "description": "Activate Two Actions: (concentrate) Frequency once per day; Effect An infusion of vitality energy from your relic can temporarily animate an unliving object. You transform an adjacent inanimate object into an animated object with a level equal to one-half the relic's level and appropriate to the object (so a broom would become an animated broom). The object pursues a single simple noncombat task you state when you use Bestow Life, ignoring any subsequent commands. The object is mindless and pursues the task single-mindedly and in an uncreative manner. The object remains animated for 1 hour."
+   },
+   "Darkvision": {
+    "name": "Darkvision",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "familiar-ability",
+    "sourceBook": "Player Core, p. 259",
+    "description": "Familiar Ability Darkvision Ability Type Familiar Your familiar gains darkvision."
+   },
+   "Dominant Emotion": {
+    "name": "Dominant Emotion",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Emotion",
+     "Mental"
+    ],
+    "category": "relic",
+    "sourceBook": "Treasure Vault (Remastered), p. 198",
+    "description": "Activate Reaction: (concentrate) Frequency once per hour; Trigger You would be adversely affected by an emotion effect; Effect The relic tries to neutralize the triggering effect with its own emotion, attempting a counteract check. If the check succeeds, you feel a sudden rush of the relic's emotion and the counteracted effect doesn't take hold of you."
+   },
+   "Dromaar": {
+    "name": "Dromaar",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Player Core, p. 83",
+    "description": "Heritage Dromaar Orcish strength emboldens your bloodline. You have a green tinge to your skin and other indicators of orc heritage. You gain the orc trait, the dromaar trait, and low-light vision. When you gain an ancestry feat, you can choose from dromaar and orc feats in addition to those from your ancestry."
+   },
+   "Expert Strikes": {
+    "name": "Expert Strikes",
+    "level": 5,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Monk",
+    "sourceBook": "Player Core 2, p. 114",
+    "description": "You’ve practiced martial arts and have now surpassed your former skill. Your proficiency ranks for unarmed attacks and simple weapons increase to expert. When you get a critical hit with an unarmed attack in the brawling group, you get its critical specialization effect."
+   },
+   "Flurry of Blows": {
+    "name": "Flurry of Blows",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Monk",
+    "sourceBook": "Player Core 2, p. 114",
+    "description": "You can attack rapidly with the Flurry of Blows action."
+   },
+   "Guardian's Calling": {
+    "name": "Guardian's Calling",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Calling",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "mythic-calling",
+    "sourceBook": "War of Immortals, p. 80",
+    "description": "Edicts place yourself in harm’s way to protect your allies or innocent creatures under threat Anathema retreat from a battle while your allies or innocent bystanders are in danger without taking every reasonable effort to rescue them first"
+   },
+   "Healing Wave": {
+    "name": "Healing Wave",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Healing",
+     "Vitality",
+     "Positive"
+    ],
+    "category": "relic",
+    "sourceBook": "GM Core, p. 315",
+    "description": "Activate Two Actions: (concentrate) Frequency once per hour; Effect You release a wave of vitality energy in a 15-foot cone. You and each living target in the area regain 1d4 HP per level of the relic."
+   },
+   "Incredible Movement": {
+    "name": "Incredible Movement",
+    "level": 3,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Monk",
+    "sourceBook": "Player Core 2, p. 114",
+    "description": "You move like the wind. You gain a +10-foot status bonus to your Speed whenever you’re not wearing armor. The bonus increases by 5 feet for every 4 levels you have beyond 3rd."
+   },
+   "Inner Upheaval": {
+    "name": "Inner Upheaval",
+    "level": 1,
+    "actions": "Single Action",
+    "traits": [
+     "Concentrate",
+     "Focus",
+     "Monk",
+     "Uncommon"
+    ],
+    "category": "spell",
+    "sourceBook": "Player Core 2, p. 256",
+    "description": "You focus your qi into devastating magical attacks. Make an unarmed Strike or Flurry of Blows (this doesn't change the limit on using only one flourish per turn). You gain a +1 status bonus to your attack rolls with the Strikes, and the Strikes deal 1d6 extra damage. This damage can be any of the following types of your choice, chosen each time you Strike: force, spirit, vitality, or void."
+   },
+   "Low-Light Vision": {
+    "name": "Low-Light Vision",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "rules",
+    "sourceBook": "Player Core, p. 433",
+    "description": "Rules Low-Light Vision A creature with low-light vision can see in dim light as though it were bright light, so it ignores the concealed condition due to dim light."
+   },
+   "Mystic Strikes": {
+    "name": "Mystic Strikes",
+    "level": 3,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Monk",
+    "sourceBook": "Player Core 2, p. 114",
+    "description": "Focusing your will into your physical attacks imbues them with mystical energy. Your unarmed attacks become magical, allowing them to get past resistances to non-magical attacks. However, you still need an item such as handwraps of mighty blows to gain an item bonus to attack rolls or increase your attacks' weapon damage dice."
+   },
+   "Occult": {
+    "name": "Occult",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Occult"
+    ],
+    "category": "trait",
+    "sourceBook": "Player Core, p. 459",
+    "description": "Trait Occult This magic comes from the occult tradition, calling upon bizarre and ephemeral mysteries. Anything with this trait is magical. A creature with this trait is primarily constituted of or has a strong connection to occult magic."
+   },
+   "Path to Perfection (Will)": {
+    "name": "Path to Perfection",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Monk",
+    "sourceBook": "Player Core 2, p. 114",
+    "description": "You have progressed along your own path to enlightenment. Choose your Fortitude, Reflex, or Will saving throw. Your proficiency rank for the chosen saving throw increases to master. When you roll a success on the chosen saving throw, you get a critical success instead."
+   },
+   "Perception Expertise (Monk)": {
+    "name": "Perception Expertise",
+    "level": 5,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Monk",
+    "sourceBook": "Player Core 2, p. 114",
+    "description": "You remain alert to threats around you. Your proficiency rank for Perception increases to expert."
+   },
+   "Powerful Fist": {
+    "name": "Powerful Fist",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Monk",
+    "sourceBook": "Player Core 2, p. 114",
+    "description": "Your fists are deadly weapons. The damage die for your fist increases to 1d6 instead of 1d4. You don’t take the normal –2 circumstance penalty when making a lethal attack with your fist or any other unarmed attacks."
+   },
+   "Rewrite Fate": {
+    "name": "Rewrite Fate",
+    "level": null,
+    "actions": "Free Action",
+    "traits": [
+     "Fortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "action",
+    "sourceBook": "War of Immortals, p. 78",
+    "trigger": "You roll a skill check or saving throw and don’t like the result.",
+    "description": "Destiny, fate, or some other force bends around you as your mythic power swells, manifesting in a flash of light or visible surge of energy emanating from your body as you cast aside the chains of fate. You expend a Mythic Point and reroll the check or save with mythic proficiency, taking the new result."
+   },
+   "Unfolding Wind Rush": {
+    "name": "Unfolding Wind Rush",
+    "level": 3,
+    "actions": "Single Action",
+    "traits": [
+     "Evocation",
+     "Uncommon",
+     "Focus"
+    ],
+    "category": "spell",
+    "sourceBook": "World Guide, p. 83",
+    "description": "You travel on a rushing wind. Move two times: two Strides, two Steps, or one Stride and one Step (in either order). You can Stride or Step into the air during this movement, moving upward at a 45-degree angle at most; if you end your movement in the air, you fall after taking one action or when your turn ends, whichever comes first. A wall of wind appears in all the spaces you left during this movement, lasting for 1 round."
+   },
+   "Weapon Specialization (Monk)": {
+    "name": "Weapon Specialization",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Monk",
+    "sourceBook": "Player Core 2, p. 114",
+    "description": "You’ve learned how to inflict greater injuries with the weapons you know best. You deal 2 additional damage with weapons and unarmed attacks in which you are an expert. This damage increases to 3 if you’re a master, and 4 if you’re legendary."
+   },
+   "Word of Faith": {
+    "name": "Word of Faith",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Healing",
+     "Holy",
+     "Vitality",
+     "Positive"
+    ],
+    "category": "relic",
+    "sourceBook": "GM Core, p. 311",
+    "description": "Activate Two Actions: (concentrate, manipulate) Frequency once per hour; Effect Placing your hand on yourself or an ally, you heal their wounds and bolster their spirit. The target regains 1d8 HP per item level and reduces their frightened value by 1."
+   }
+  },
+  "item": {
+   "Longbow": {
+    "name": "Longbow",
+    "level": 0,
+    "actions": "",
+    "traits": [
+     "Deadly",
+     "Volley"
+    ],
+    "category": "weapon",
+    "sourceBook": "Player Core, p. 280",
+    "description": "This 5-foot-tall bow, usually made of a single piece of elm, hickory, or yew, has a powerful draw and is excellent at propelling arrows with great force and at an extreme distance. You must use two hands to fire a longbow, and it can't be used while mounted. Critical Specialization Effects Source Core Rulebook pg. 283 Certain feats, class features, weapon runes, and other effects can grant you additional benefits when you make a Strike with certain weapons and get a critical success. This is called a critical specialization effect. The exact effect depends on which weapon group your weapon belongs to, as listed below. You can always decide not to add the critical specialization effect of your weapon. Click here for the full rules on Critical Specialization Effects. Specific Magic Weapons Horselord's Longbow, Hunter's Anthem, Splithead Bow"
+   },
+   "Mask of the Cursed Eye": {
+    "name": "Mask of the Cursed Eye",
+    "level": 8,
+    "actions": "",
+    "traits": [
+     "Invested",
+     "Magical",
+     "Uncommon"
+    ],
+    "category": "equipment",
+    "sourceBook": "Treasure Vault (Remastered), p. 155",
+    "description": "A mask of the cursed eye is decorated with at least one wide, staring eye. The first time each day you’re targeted with a detection, prediction, revelation, or scrying spell by a creature on your plane that you can’t perceive, the creature targeting you must attempt a DC 24 Will save. This effect is automatic and does not require you to Activate the item. Critical Success The creature is unaffected. Success The creature is unaffected, but you know you’ve been targeted with a spell that has one of these traits. Failure The creature is sickened 1 and dazzled for 1 minute. You know you’ve been targeted with a spell that has one of these traits. Critical Failure The creature is sickened 2 and dazzled for 10 minutes, and the spell is disrupted. You gain a brief mental glimpse of the triggering creature and learn its approximate distance and direction."
+   },
+   "Special Unarmed (1d6)": {
+    "name": "Special Unarmed (1d6)",
+    "actions": "",
+    "traits": [],
+    "category": "equipment",
+    "description": "The character's unarmed attack, built by hand in Pathbuilder: 1d6 (Powerful Fist), +1 potency, striking and a decaying rune (1d4 void), made of low-grade cold iron. Bludgeoning, piercing or slashing damage, your choice."
+   }
+  }
+ }
+}

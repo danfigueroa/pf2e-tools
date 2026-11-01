@@ -1,0 +1,1426 @@
+{
+ "version": "v13",
+ "character": "Loki",
+ "entries": {
+  "spell": {
+   "Blur": {
+    "name": "Blur",
+    "level": 2,
+    "sourceBook": "Player Core, p. 318",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Illusion",
+     "Manipulate",
+     "Visual"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "touch",
+    "area": "",
+    "targets": "1 creature",
+    "duration": "1 minute",
+    "defense": "",
+    "description": "The target's form appears blurry. It becomes concealed. As the nature of this effect still leaves the target's location obvious, the target can't use this concealment to Hide or Sneak.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Detect Magic": {
+    "name": "Detect Magic",
+    "level": 1,
+    "heighten": [
+     "3rd",
+     "4th"
+    ],
+    "sourceBook": "Player Core, p. 323",
+    "actions": "Two Actions",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Detection",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Primal",
+     "Elemental"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "30-foot emanation",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "You send out a pulse that registers the presence of magic. You receive no information beyond the presence or absence of magic. You can choose to ignore magic you're fully aware of, such as the magic items and ongoing spells of you and your allies. You detect illusion magic only if that magic's effect has a lower rank than the rank of your detect magic spell. However, items that have an illusion aura but aren't deceptive in appearance (such as an invisibility potion) typically are detected normally.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "3rd",
+      "text": "You learn the rank or level of the most powerful magical effect the spell detects, as determined by the GM."
+     },
+     {
+      "level": "4th",
+      "text": "As 3rd rank, but you also pinpoint the source of the highest-rank magic. Like for an imprecise sense, you don't learn the exact location, but can narrow down the source to within a 5-foot cube (or the nearest if larger than that)."
+     }
+    ]
+   },
+   "Dimensional Assault": {
+    "name": "Dimensional Assault",
+    "level": 1,
+    "heighten": [
+     "5th"
+    ],
+    "sourceBook": "Impossible Magic, p. 179",
+    "actions": "Single Action",
+    "traits": [
+     "Concentrate",
+     "Focus",
+     "Magus",
+     "Teleportation",
+     "Uncommon"
+    ],
+    "castComponents": "",
+    "range": "half your Speed",
+    "area": "",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "You tumble through a small rift in space itself, making a short dimensional hop to better position yourself for a devastating surprise attack. Teleport to any space in range you can see that’s within reach of an enemy, and then make a melee Strike against that enemy. If you attempt to bring another creature with you when you teleport—even if you’re carrying it in an extradimensional container—the spell is disrupted.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "5th",
+      "text": "The range is equal to your Speed."
+     }
+    ]
+   },
+   "Electric Arc": {
+    "name": "Electric Arc",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 328",
+    "actions": "Two Actions",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Electricity",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "30 feet",
+    "area": "",
+    "targets": "1 or 2 creatures",
+    "duration": "",
+    "defense": "basic Reflex",
+    "description": "An arc of lightning leaps from one target to another. Each target takes 2d4 electricity damage with a basic Reflex save.",
+    "damage": "2d4",
+    "damageType": "electricity",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The damage increases by 1d4."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "2d4",
+       "kind": "damage",
+       "types": [
+        "electricity"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 4,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 4,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Exchange Image": {
+    "name": "Exchange Image",
+    "level": 1,
+    "sourceBook": "Pathfinder #147: Tomorrow Must Burn, p. 73",
+    "actions": "Two Actions",
+    "traits": [
+     "Illusion",
+     "Uncommon",
+     "Visual"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "touch",
+    "area": "",
+    "targets": "you and 1 other humanoid",
+    "duration": "varies",
+    "defense": "Will",
+    "description": "To mislead pursuers, the Lacunafex developed the means to swap visages. You trade appearances with the target, with the effects depending on the result of the target’s Will saving throw. Willing and unconscious targets automatically critically fail this saving throw. Critical Success No effect. Success You take on the target’s appearance, and they take yours. This has the same effects as a 1st-level illusory disguise spell, except that the target can’t Dismiss the disguise. The duration is 1 minute or until Dismissed. Failure As success, but the duration is 1 hour or until Dismissed. Critical Failure As success, but the duration is 24 hours.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Figment": {
+    "name": "Figment",
+    "level": 1,
+    "sourceBook": "Player Core, p. 331",
+    "actions": "Two Actions",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Illusion",
+     "Manipulate",
+     "Subtle"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "30 feet",
+    "area": "",
+    "targets": "",
+    "duration": "sustained",
+    "defense": "",
+    "description": "You create a simple illusory sound or vision. A sound adds the auditory trait to the spell and the sound can't include intelligible words or elaborate music. A vision adds the visual trait, can be no larger than a 5-foot cube, and is clearly crude and undetailed if viewed from within 15 feet. When you Cast or Sustain the Spell, you can attempt to Create a Diversion with the illusion, gaining a +2 circumstance bonus to your Deception check. If the attempt fails against a creature, that creature disbelieves the figment.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Force Fang": {
+    "name": "Force Fang",
+    "level": 1,
+    "heighten": [
+     "+2"
+    ],
+    "sourceBook": "Impossible Magic, p. 179",
+    "actions": "Single Action",
+    "traits": [
+     "Focus",
+     "Force",
+     "Magus",
+     "Manipulate",
+     "Uncommon"
+    ],
+    "castComponents": "",
+    "range": "varies",
+    "area": "",
+    "targets": "1 creature",
+    "duration": "",
+    "defense": "",
+    "description": "You briefly transform your attack into pure force energy to bypass your opponent’s defenses. You magically shift your weapon or unarmed attack into a spike of pure force that deals 1d4+1 force damage to a target within your melee reach. If you can use Spellstrike with a ranged weapon (with the starlit span hybrid study, for example), you can instead target a creature in the first range increment of your ranged weapon.",
+    "damage": "1d4+1",
+    "damageType": "force",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+2",
+      "text": "The damage increases by 1d4+1."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "1d4+1",
+       "kind": "damage",
+       "types": [
+        "force"
+       ],
+       "persistent": false,
+       "count": 1,
+       "faces": 4,
+       "flat": 1,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+2",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 4,
+         "flat": 1
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Haste": {
+    "name": "Haste",
+    "level": 3,
+    "heighten": [
+     "7th"
+    ],
+    "sourceBook": "Player Core, p. 335",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "30 feet",
+    "area": "",
+    "targets": "1 creature",
+    "duration": "1 minute",
+    "defense": "",
+    "description": "Magic empowers the target to act faster. It gains the quickened condition and can use the extra action each round for only Strike and Stride actions.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "7th",
+      "text": "You can target up to 6 creatures."
+     }
+    ]
+   },
+   "Ignition": {
+    "name": "Ignition",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 336",
+    "actions": "Two Actions",
+    "traits": [
+     "Attack",
+     "Cantrip",
+     "Concentrate",
+     "Fire",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "30 feet",
+    "area": "",
+    "targets": "1 creature",
+    "duration": "",
+    "defense": "AC",
+    "description": "You snap your fingers and point at a target, which begins to smolder. Make a spell attack roll against the target's AC, dealing 2d4 fire damage on a hit. If the target is within your melee reach, you can choose to make a melee spell attack with the flame instead of a ranged spell attack, which increases all the spell's damage dice to d6s. Critical Success The target takes double damage and 1d4 persistent fire damage. Success The target takes full damage.",
+    "damage": "2d4",
+    "damageType": "fire",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The initial damage increases by 1d4 and the persistent fire damage on a critical hit increases by 1d4."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "2d4",
+       "kind": "damage",
+       "types": [
+        "fire"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 4,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      },
+      {
+       "id": 1,
+       "formula": "1d4",
+       "kind": "damage",
+       "types": [
+        "fire"
+       ],
+       "persistent": true,
+       "count": 1,
+       "faces": 4,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 4,
+         "flat": 0
+        },
+        {
+         "id": 1,
+         "mode": "add",
+         "count": 1,
+         "faces": 4,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Imaginary Weapon": {
+    "name": "Imaginary Weapon",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Dark Archive (Remastered), p. 22",
+    "actions": "Two Actions",
+    "traits": [
+     "Attack",
+     "Cantrip",
+     "Concentrate",
+     "Force",
+     "Manipulate",
+     "Psychic",
+     "Uncommon"
+    ],
+    "castComponents": "",
+    "range": "touch",
+    "area": "",
+    "targets": "1 creature",
+    "duration": "",
+    "defense": "AC",
+    "description": "You create a simple weapon of force and lash out, its arc following your hand. Make a melee spell attack roll against your target's AC. If you hit, you deal 2d6 force damage. On a critical success, you deal double damage and can choose to detonate your weapon to push the target 10 feet away from you.\n\nAmp You form multiple force weapons to lash out at multiple foes. You can target two creatures, making an attack against each. These attacks each increase your multiple attack penalty, but you don't increase your multiple attack penalty until after you make all the spell attack rolls. Amp Heightened (+1) The damage increases by 2d6 instead of 1d6.",
+    "damage": "2d6",
+    "damageType": "force",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The damage increases by 1d6."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "2d6",
+       "kind": "damage",
+       "types": [
+        "force"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 6,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Invisibility": {
+    "name": "Invisibility",
+    "level": 2,
+    "heighten": [
+     "4th"
+    ],
+    "sourceBook": "Player Core, p. 339",
+    "actions": "Two Actions",
+    "traits": [
+     "Illusion",
+     "Manipulate",
+     "Subtle"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "touch",
+    "area": "",
+    "targets": "1 creature",
+    "duration": "10 minutes",
+    "defense": "",
+    "description": "Illusions bend light around the target, rendering it invisible. This makes it undetected to all creatures, though the creatures can attempt to find the target, making it hidden to them instead. If the target uses a hostile action, the spell ends after that hostile action is completed. Paizo Clarification Invisibility follows the rules of the invisible condition. The second sentence summarizes them but doesn't cover every instance, such as you being hidden to creatures observing you when you become invisible instead of being undetected to them.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "4th",
+      "text": "The spell lasts 1 minute, but it doesn't end if the target uses a hostile action."
+     }
+    ]
+   },
+   "Needle Darts": {
+    "name": "Needle Darts",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Rage of Elements, p. 144",
+    "actions": "Two Actions",
+    "traits": [
+     "Attack",
+     "Cantrip",
+     "Concentrate",
+     "Manipulate",
+     "Metal"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "60 feet",
+    "area": "",
+    "targets": "1 creature",
+    "duration": "",
+    "defense": "AC",
+    "description": "You shape three needles out of a piece of metal in your possession and send them flying in a tight group toward one target. Make a spell attack roll against your target's AC. The needles deal 3d4 piercing damage and might cause bleeding. The needles impart any special properties of the metal that forms them; for instance, cold iron needles deal additional damage to creatures with weakness to cold iron. All the needles are made of the same metal, and the metal returns to you after the attack. Critical Success The target takes double damage and 1 persistent bleed damage. Success The target takes full damage.",
+    "damage": "3d4",
+    "damageType": "piercing",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "You send one additional needle, increasing the regular damage by 1d4 and increasing the persistent bleed damage on a critical hit by 1."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "3d4",
+       "kind": "damage",
+       "types": [
+        "piercing"
+       ],
+       "persistent": false,
+       "count": 3,
+       "faces": 4,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      },
+      {
+       "id": 1,
+       "formula": "1",
+       "kind": "damage",
+       "types": [
+        "bleed"
+       ],
+       "persistent": true,
+       "count": 0,
+       "faces": 0,
+       "flat": 1,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [],
+       "safe": false,
+       "resolved": false
+      }
+     ]
+    }
+   },
+   "Shield (Archetype)": {
+    "name": "Shield",
+    "level": 1,
+    "heighten": [
+     "+2"
+    ],
+    "sourceBook": "Player Core, p. 356",
+    "actions": "Single Action",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Force"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Elemental"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "until the start of your next turn",
+    "defense": "",
+    "description": "You raise a magical shield of force. This counts as using the Raise a Shield action, giving you a +1 circumstance bonus to AC until the start of your next turn, but it doesn't require a hand to use. While the spell is in effect, you can use the Shield Block reaction with your magic shield. The shield has Hardness 5. You can use the spell's reaction to reduce damage from any spell or magical effect, even if it doesn't deal physical damage. After you use Shield Block, the spell ends and you can't cast it again for 10 minutes.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+2",
+      "text": "The shield's Hardness increases by 5."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "5",
+       "kind": "hardness",
+       "types": [],
+       "persistent": false,
+       "count": 0,
+       "faces": 0,
+       "flat": 5,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+2",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 0,
+         "faces": 0,
+         "flat": 5
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Slow": {
+    "name": "Slow",
+    "level": 3,
+    "heighten": [
+     "6th"
+    ],
+    "sourceBook": "Player Core, p. 357",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "30 feet",
+    "area": "",
+    "targets": "1 creature",
+    "duration": "varies",
+    "defense": "Fortitude",
+    "description": "You dilate the flow of time around the target, slowing its actions. Critical Success The target is unaffected. Success The target is slowed 1 for 1 round. Failure The target is slowed 1 for 1 minute. Critical Failure The target is slowed 2 for 1 minute.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "6th",
+      "text": "You can target up to 10 creatures."
+     }
+    ]
+   },
+   "Sure Strike": {
+    "name": "Sure Strike",
+    "level": 1,
+    "sourceBook": "Player Core, p. 361",
+    "actions": "Single Action",
+    "traits": [
+     "Concentrate",
+     "Fortune"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "until the end of your turn",
+    "defense": "",
+    "description": "The next time you make an attack roll before the end of your turn, roll it twice and use the better result. The attack ignores circumstance penalties to the attack roll and any flat check required due to the target being concealed or hidden. You are then temporarily immune to sure strike for 10 minutes.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Telekinetic Hand": {
+    "name": "Telekinetic Hand",
+    "level": 1,
+    "heighten": [
+     "3rd",
+     "5th",
+     "7th"
+    ],
+    "sourceBook": "Player Core, p. 362",
+    "actions": "Two Actions",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult",
+     "Elemental"
+    ],
+    "castComponents": "",
+    "range": "30 feet",
+    "area": "",
+    "targets": "1 unattended object of Light bulk or less",
+    "duration": "sustained",
+    "defense": "",
+    "description": "You create a floating, magical hand, either invisible or ghostlike, that grasps the target object and levitates it slowly up to 20 feet in any direction. When you Sustain the spell, you can move the object an additional 20 feet. If the object is in the air when the spell ends, the object falls.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "3rd",
+      "text": "You can target an unattended object with a Bulk of 1 or less."
+     },
+     {
+      "level": "5th",
+      "text": "The range increases to 60 feet, and you can target an unattended object with a Bulk of 1 or less."
+     },
+     {
+      "level": "7th",
+      "text": "The range increases to 60 feet, and you can target an unattended object with a Bulk of 2 or less."
+     }
+    ]
+   },
+   "Vision of Death": {
+    "name": "Vision of Death",
+    "level": 4,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 366",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Death",
+     "Emotion",
+     "Fear",
+     "Manipulate",
+     "Mental"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "120 feet",
+    "area": "",
+    "targets": "1 living creature",
+    "duration": "",
+    "defense": "Will",
+    "description": "You force the target to see a vision of its own death. It takes 8d6 mental damage with a Will save. If the target is reduced to 0 HP by this spell, its vision becomes reality and kills it instantly. Critical Success The target is unaffected. Success The target takes half damage and is frightened 1. Failure The target takes full damage and is frightened 2. Critical Failure The target takes double damage, is frightened 4, and is fleeing for as long as it's frightened.",
+    "damage": "8d6",
+    "damageType": "mental",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The damage increases by 2d6."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "8d6",
+       "kind": "damage",
+       "types": [
+        "mental"
+       ],
+       "persistent": false,
+       "count": 8,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 2,
+         "faces": 6,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   }
+  },
+  "feat": {
+   "Assurance": {
+    "name": "Assurance",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Fortune",
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "prerequisites": "trained in at least one skill",
+    "description": "Even in the worst circumstances, you can perform basic tasks. Choose a skill you're trained in. You can forgo rolling a skill check for that skill to instead receive a result of 10 + your proficiency bonus (do not apply any other bonuses, penalties, or modifiers). Paizo Clarification What happens to abilities that depend on your roll when you set your die to a certain result instead of actually rolling? Typically, it still counts as a roll for abilities that trigger off your roll. For example, if you used Assurance to automatically get a result of 10 + your proficiency bonus and it would be a success, an ability that applies to that skill and says “when you roll a success, you get a critical success instead” would still upgrade your result to a critical success. Though this general rule should apply most of the time, a GM might rule otherwise in certain circumstances based on the specific abilities and their themes. Special You can select this feat multiple times. Each time, choose a different skill and gain the benefits for that skill."
+   },
+   "Basic Thoughtform": {
+    "name": "Basic Thoughtform",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Psychic"
+    ],
+    "sourceBook": "Dark Archive (Remastered), p. 48",
+    "prerequisites": "Psychic Dedication",
+    "description": "You gain a 1st- or 2nd-level psychic feat of your choice."
+   },
+   "Cognitive Crossover": {
+    "name": "Kreighton's Cognitive Crossover",
+    "matchedName": "Kreighton's Cognitive Crossover",
+    "level": 4,
+    "actions": "Reaction",
+    "traits": [
+     "General",
+     "Skill",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "PFS Guide, p. 119",
+    "trigger": "You gain no information from a Recall Knowledge check (usually because you failed the secret check) using one of the two skills you chose for this feat.",
+    "access": "Member of the Pathfinder Society.",
+    "description": "Kreighton teaches his students that an agile mind can glean clues leading to the truth, even from the most unlikely of sources. You immediately reattempt the triggering check using the other chosen skill. Special When you gain this feat, choose two of the following skills: Arcana, Crafting, Lore (any one), Medicine, Nature, Occultism, Religion, or Society. Scrolls Training Source PFS Guide pg. 119 The Society's Master of Scrolls, Kreighton Shaine (Lost Omens Pathfinder Society Guide page 42), may be considered strange and absent-minded by his peers, but the elf venture-captain takes his duties quite seriously. Skilled in researching obscure subjects and unraveling inscrutable secrets, Kreighton teaches his students the value of an inquisitive mind. Related Feats:"
+   },
+   "Divert Destiny": {
+    "name": "Divert Destiny",
+    "level": 6,
+    "actions": "Free Action",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "trigger": "An attack or effect would reduce you to 0 Hit Points or kill you outright.",
+    "description": "You defy the fate before you, calling on wells of mythic vitality to sustain your life and allow you to persevere. You expend 1 Mythic Point and survive the triggering attack or effect, lose the wounded or dying conditions entirely, don’t increase your doomed condition, and are conscious and standing with a number of Hit Points equal to 10 + your level, regardless of how many Hit Points you had before."
+   },
+   "Ears that Hear the Truth": {
+    "name": "Ears that Hear the Truth",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 81",
+    "description": "You have an acute understanding of the rhythms of living things, and you never miss the quaver that betrays a spoken lie. When you attempt to Sense Motive, or when you roll Perception for initiative, you can spend a Mythic Point to attempt the check or roll at mythic proficiency."
+   },
+   "Force Fang": {
+    "name": "Force Fang",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Magus"
+    ],
+    "category": "feat",
+    "sourceBook": "Impossible Magic, p. 18",
+    "description": "You can turn your attack into an unerring blur of force. You learn the force fang conflux spell."
+   },
+   "Mental Balm": {
+    "name": "Mental Balm",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Amp",
+     "Emotion",
+     "Mental",
+     "Psychic"
+    ],
+    "category": "feat",
+    "sourceBook": "Dark Archive (Remastered), p. 24",
+    "description": "Your spells release soothing mental waves. Use this amp in place of a psi cantrip's normal amp entry. You can use this amp only on a psi cantrip that targets or affects you or one or more of your allies and doesn't target or affect any enemies.\n\nAmp You or one ally within 30 feet gains a +2 status bonus to Will saves against emotion effects for 1 minute. You can also have the amped psi cantrip attempt to counteract one effect imposing the frightened condition on yourself or the chosen ally, or an effect imposing the stupefied condition that has a duration of 1 hour or less. If you successfully counteract the effect, you remove only the frightened and stupefied conditions, not any other part of the effect."
+   },
+   "Oddity Identification": {
+    "name": "Oddity Identification",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 259",
+    "prerequisites": "Trained in Occultism",
+    "description": "When you become aware of a magical effect or see a spell being cast, you can immediately determine if it twists minds (with the mental trait), fights against fortune (with the fortune or misfortune trait), or reveals secrets (with the detection, prediction, revelation, or scrying traits). At the GM's discretion, similar effects can also fall into these categories. When you Identify Magic or Recall Knowledge to learn more about these effects, you can always use Occultism without penalty and gain a +2 circumstance bonus."
+   },
+   "Pickpocket": {
+    "name": "Pickpocket",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 259",
+    "prerequisites": "Trained in Thievery",
+    "description": "You can Steal or Palm an Object that's closely guarded, such as in a pocket, without taking the –5 penalty. You can't steal objects that would be extremely noticeable or time consuming to remove (like worn shoes or armor or actively wielded objects). If you're a master in Thievery, you can attempt to Steal from a creature in combat or otherwise on guard. When doing so, Stealing requires 2 actions instead of 1, and you take a –5 penalty."
+   },
+   "Psi Development": {
+    "name": "Psi Development",
+    "level": 6,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Psychic"
+    ],
+    "sourceBook": "Dark Archive (Remastered), p. 48",
+    "prerequisites": "Psychic Dedication",
+    "description": "You've found a new mental form. You gain another psi cantrip from your conscious mind: either the standard cantrip you didn't take with Psychic Dedication, or the unique surface psi cantrip. You gain the psychic benefits for this second psi cantrip. You gain the ability to amp your psi cantrips. If you don't have one, you gain a focus pool of 1 Focus Point, which you can use to amp your psi cantrips, and you can Refocus by meditating on your new powers."
+   },
+   "Psychic Dedication": {
+    "name": "Psychic Dedication",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Archetype",
+     "Dedication",
+     "Multiclass"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Psychic"
+    ],
+    "sourceBook": "Dark Archive (Remastered), p. 48",
+    "prerequisites": "Intelligence +2 or Charisma +2",
+    "description": "You feel something awaken within your mind. You become trained in Occultism; if you were already trained in Occultism, you become trained in a skill of your choice. You cast spells like a psychic and gain the Cast a Spell activity; as you don't have a subconscious mind class feature, your thoughtforms are simple intentions. Choose a conscious mind. You gain a spell repertoire with one standard psi cantrip of your choice from your conscious mind, which you cast as a psi cantrip. You gain the normal benefits for this psi cantrip, but not any other benefits from the conscious mind. You're trained in the spell attack modifier and spell DC statistics. Your key spellcasting attribute for psychic archetype spells is the attribute you used to qualify for the archetype, and they are occult psychic spells."
+   },
+   "Reactive Strike": {
+    "name": "Reactive Strike",
+    "level": 6,
+    "actions": "Reaction",
+    "traits": [
+     "Barbarian",
+     "Champion",
+     "Commander",
+     "Exemplar",
+     "Guardian",
+     "Magus",
+     "Swashbuckler"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Marshal",
+     "Golden Legionnaire"
+    ],
+    "sourceBook": "Player Core 2, p. 80",
+    "trigger": "A creature within your reach uses a manipulate action or a move action, makes a ranged attack, or leaves a square during a move action it’s using.",
+    "description": "You lash out at a foe that leaves an opening. Make a melee Strike against the triggering creature. If your attack is a critical hit and the trigger was a manipulate action, you disrupt that action. This Strike doesn't count toward your multiple attack penalty, and your multiple attack penalty doesn't apply to this Strike."
+   },
+   "Read Psychometric Resonance": {
+    "name": "Read Psychometric Resonance",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Concentrate",
+     "Emotion",
+     "Exploration",
+     "General",
+     "Mental",
+     "Occult",
+     "Skill",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "Dark Archive (Remastered), p. 79",
+    "prerequisites": "Trained in Occultism",
+    "description": "With a touch, you can read the psychic impressions left on objects by their previous owners. This exploration activity functions similarly to Detect Magic in that you move at half your travel speed or slower while looking for psychometric resonance. You must brush your bare hands over any objects you pass while you do this. This detects objects with significant emotional resonance attached to them, such as the joy from a child's beloved teddy bear, the sorrow from a widower's wedding ring, or the fear from a victim's murder weapon. If you're looking for a particular type of emotional resonance, you can choose to ignore other emotions. If you find an item with that resonance, you can explore that resonance with the following action. Psychometric Assessment (concentrate, emotion, exploration, mental, occult) Requirements Your bare hands are touching an object in which you detected psychometric resonance; Effect You spend 1 minute concentrating on the object to get a vision of the face of the person who imbued the item with such emotion in the first place. If the associated emotion is painfully negative, you might take 1d6 psychic damage, as determined by the GM."
+   },
+   "Spirit Sheath": {
+    "name": "Spirit Sheath",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Arcane",
+     "Extradimensional",
+     "Magus"
+    ],
+    "category": "feat",
+    "sourceBook": "Impossible Magic, p. 18",
+    "description": "You’ve magically constructed an extradimensional sheath for your weapon that you access through your clothing, typically through a pocket, sleeve, or seam. This sheath is hard to notice, granting a +2 circumstance bonus to your Stealth checks to Conceal an Item within it. A spirit sheath can hold up to 1 Bulk worth of weapons. During a Spellstrike, you can Interact to draw one weapon from the sheath before you Cast the Spell. You can draw or return a weapon to a spirit sheath as an Interact action, as can anyone else holding or wearing the clothing that contains the sheath. A dispel magic spell or similar effect can be used against the spirit sheath to expel the weapon. The counteract check is made against your spell DC and the counteract rank is half your level rounded up. The weapon is also expelled if you become unconscious."
+   },
+   "Surgewise Fleshwarp": {
+    "name": "Surgewise Fleshwarp",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Impossible Lands, p. 28",
+    "description": "Heritage Surgewise Fleshwarp The undulations of your body's cilia are hyper-attuned to wellsprings of magic; they trill and thrum with insights into occult energies, and their vibrations alert you to the presence of secrets. You gain the trained proficiency rank in Occultism. If you're trained in Occultism, you instead become trained in another skill of your choice. You also gain the Oddity Identification skill feat."
+   },
+   "Toughness": {
+    "name": "Toughness",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 263",
+    "description": "Your body can withstand more punishment than most before succumbing. Increase your maximum Hit Points by your level. You reduce the DC of recovery checks by 1."
+   },
+   "Unbelievably Believable": {
+    "name": "Unbelievably Believable",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "description": "Your words echo with soothing and convincing power. When you attempt a check to Gather Information, Make an Impression, make a Request, or Lie, you can spend a Mythic Point to attempt the check at mythic proficiency."
+   },
+   "Uncanny Awareness": {
+    "name": "Uncanny Awareness",
+    "level": 5,
+    "actions": "",
+    "traits": [
+     "Fleshwarp"
+    ],
+    "category": "feat",
+    "sourceBook": "Ancestry Guide, p. 93",
+    "description": "You have a keen sense of movement around you. You gain motion sense as an imprecise sense out to 30 feet. Motion sense allows you to detect nearby motion through vibration and air movement."
+   },
+   "Untrained Improvisation": {
+    "name": "Untrained Improvisation",
+    "level": 3,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 264",
+    "description": "You’ve learned how to handle situations when you’re out of your depth. Your proficiency bonus to untrained skill checks is equal to your level –2. This improves to your level –1 at 5th level and your full level at 7th level. This doesn’t allow you to use the skill’s trained actions."
+   },
+   "Weight of Experience": {
+    "name": "Weight of Experience",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Rare",
+     "Reincarnated",
+     "Universal Ancestry"
+    ],
+    "category": "feat",
+    "sourceBook": "Season of Ghosts (Hardcover), p. 319",
+    "description": "The experience you’ve accumulated over multiple lifetimes envelops you like a weighted blanket, providing comfort and bestowing confidence under pressure. You gain the trained proficiency rank in one skill of your choice and the Assurance skill feat in that skill as a bonus feat."
+   }
+  },
+  "special": {
+   "Arcane Cascade": {
+    "name": "Arcane Cascade",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Magus",
+    "sourceBook": "Impossible Magic, p. 9",
+    "description": "You can enter a special stance to blend magic into your attacks and defend against spells."
+   },
+   "Charisma": {
+    "name": "Charisma",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "rules",
+    "sourceBook": "Core Rulebook, p. 19",
+    "description": "Rules Charisma Charisma measures your character’s personal magnetism and strength of personality. A high Charisma score helps you influence the thoughts and moods of others."
+   },
+   "Conflux Spells": {
+    "name": "Conflux Spells",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Magus",
+    "sourceBook": "Impossible Magic, p. 9",
+    "description": "You learn a conflux spell from your hybrid study, and you can cast additional conflux spells by selecting certain feats. Conflux spells are magus-specific spells created for combat and are a type of focus spell. It costs 1 Focus Point to cast a focus spell, and you start with a focus pool of 1 Focus Point. You refill your focus pool during your daily preparations, and you can regain 1 Focus Point by spending 10 minutes using the Refocus activity to both study your spellbook and perform a physical regimen. Focus spells are automatically heightened to half your level rounded up, much like cantrips. Focus spells don't require spell slots, and you can't cast them using spell slots. Certain feats give you more focus spells. The maximum Focus Points your focus pool can hold is equal to the number of focus spells you have, but it can never be more than 3 points. The full rules for focus spells appear here."
+   },
+   "Laughing Shadow": {
+    "name": "Laughing Shadow",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "hybrid-study",
+    "sourceBook": "Impossible Magic, p. 13",
+    "description": "Magus Hybrid Study Laughing Shadow Magic is freeing, a means to your ends, and you can use it to go where you want, do as you please, and avoid the consequences. You are a laughing shadow of spell and blade, always one step ahead of your foes, always with a trick up your sleeve. While in Arcane Cascade stance, you gain a +5-foot status bonus to your Speeds, or a +10-foot bonus if you're unarmored. If you Strike an off-guard creature while you're in the stance and have a free hand, that Strike's extra damage from Arcane Cascade is increased to 3. The increased extra damage is 5 if you have weapon specialization, or 7 if you have greater weapon specialization. You must have your other hand completely free; the extra damage doesn't apply if you have a free-hand weapon or other item in that hand, even if you would normally be able to use the hand for other things. Conflux Spell Dimensional Assault Studious Spell (7th) Blur Studious Spell (11th) Ghostly Weapon Studious Spell (13th) Translocate"
+   },
+   "Low-Light Vision": {
+    "name": "Low-Light Vision",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "rules",
+    "sourceBook": "Player Core, p. 433",
+    "description": "Rules Low-Light Vision A creature with low-light vision can see in dim light as though it were bright light, so it ignores the concealed condition due to dim light."
+   },
+   "Magus Spellcasting": {
+    "name": "Magus Spellcasting",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Magus",
+    "sourceBook": "Impossible Magic, p. 9",
+    "description": "You study spells so you can combine them with your attacks or solve problems that strength of arms alone can't handle. You are a spellcaster, and you can cast spells of the arcane tradition using the Cast a Spell activity. As a magus, when you cast spells, you might draw sigils with your weapon or a free hand and shout magical words of power as battle cries. At 1st level, you can prepare one 1st-rank spell and five cantrips each morning from the spells in your spellbook (see below). Prepared spells remain available to you until you cast them or until you prepare your spells again. The number of spells you can prepare is called your spell slots. As you increase in level as a magus, the number of spells you can prepare each day increases, as does the highest rank of spell you can cast, as shown in the Magus Spells per Day table. Some of your spells require you to attempt a spell attack to see how effective they are, or have your enemies roll against your spell DC (typically by attempting a saving throw). Your spell attack modifier and spell DC are calculated using your Intelligence modifier. Heightening Spells When you get spell slots of 2nd rank and higher, you can fill those slots with stronger versions of lower-rank spells. This increases the spell's rank, heightening it to match the spell slot. Many spells have specific improvements when they are heightened to certain ranks. Cantrips Some of your spells are cantrips. A cantrip is a special type of spell that doesn't use spell slots. You can cast a cantrip at will, any number of times per day. A cantrip is always automatically heightened to half your level rounded up— this is usually equal to the highest rank of magus spell slot you have. For example, as a 1st-level magus, your cantrips are 1st-rank spells, and as a 5th-level magus, your cantrips are 3rd-rank spells. Spellbook Every arcane spell has a written version, which you record in your personalized book of spells. You start with a spellbook worth 10 sp or less, which you receive for free and must study each day to prepare your spells. Your spellbook's form and name are up to you. It might be anything from a sturdy book with a secure latch entitled Theses on the Stratagems of Supernatural Warfare to a tattered collection of training pamphlets with your name scrawled on the cover. The spellbook contains your choice of eight arcane cantrips and five 1st-rank arcane spells. You choose these from the common spells on the arcane spell list or from other arcane spells you gain access to. Each time you gain a level, you add two arcane spells to your spellbook, of any spell rank for which you have spell slots, chosen from common spells of your tradition or others you gain access to. You can also add spells to your spellbook with the Learn a Spell activity. If you have a spellbook from multiple sources (such as being a magus with the Wizard Dedication feat, you can use the same spellbook for all your spells."
+   },
+   "Reflex Expertise (Magus)": {
+    "name": "Reflex Expertise",
+    "level": 5,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Magus",
+    "sourceBook": "Impossible Magic, p. 9",
+    "description": "You’ve developed a knack for dodging danger. Your proficiency rank for Reflex saves increases to expert."
+   },
+   "Rewrite Fate": {
+    "name": "Rewrite Fate",
+    "level": null,
+    "actions": "Free Action",
+    "traits": [
+     "Fortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "action",
+    "sourceBook": "War of Immortals, p. 78",
+    "trigger": "You roll a skill check or saving throw and don’t like the result.",
+    "description": "Destiny, fate, or some other force bends around you as your mythic power swells, manifesting in a flash of light or visible surge of energy emanating from your body as you cast aside the chains of fate. You expend a Mythic Point and reroll the check or save with mythic proficiency, taking the new result."
+   },
+   "Runelord's Calling": {
+    "name": "Runelord's Calling",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Calling",
+     "Mythic",
+     "Rare"
+    ],
+    "category": "mythic-calling",
+    "sourceBook": "Revenge of the Runelords Player's Guide, p. 18",
+    "description": "Edicts seek out rare magic spells and items from ancient Thassilon, learn knowledge about Thassilon that has been forgotten Anathema willingly destroy ancient texts or other forms of written knowledge without first preserving that lore in some way, treat another’s convictions or beliefs as fantasy or delusion"
+   },
+   "Sands of the Hourglass": {
+    "name": "Sands of the Hourglass",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "relic",
+    "sourceBook": "Treasure Vault (Remastered), p. 200",
+    "prerequisites": "The relic is 5th level or higher.",
+    "description": "Activate Two Actions: (concentrate, manipulate) Frequency once per hour; Effect You target one creature within 30 feet, temporarily imposing the decrepitude of time on it. The target must attempt a Fortitude saving throw. The clumsy and enfeebled conditions last 1 minute. Critical Success The target is unaffected. Success The target becomes clumsy 1 and enfeebled 1. Failure The target becomes clumsy 2, enfeebled 2, and drained 1. Critical Failure The target becomes clumsy 3, enfeebled 3, and drained 2."
+   },
+   "Spellbook": {
+    "name": "Spellbook (Blank)",
+    "matchedName": "Spellbook (Blank)",
+    "level": 0,
+    "actions": "",
+    "traits": [],
+    "category": "equipment",
+    "sourceBook": "Player Core, p. 292",
+    "description": "A spellbook holds the written knowledge necessary to learn and prepare various spells, a necessity for wizards (who typically get one for free) and a useful luxury for other spellcasters looking to learn additional spells. Each spellbook can hold up to 100 spells. The Price listed is for a blank spellbook."
+   },
+   "Spellstrike": {
+    "name": "Spellstrike",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Magus",
+    "sourceBook": "Impossible Magic, p. 9",
+    "description": "You’ve learned the fundamental magus technique that lets you combine magical and physical attacks together. You gain the Spellstrike activity. Spellstrike Specifics Though the base Spellstrike rules cover most spells, various modifications apply to more complicated spells when loaded into your fist, blade, or other attack. One Target: The spell targets only the target of your Strike, even if it normally allows more targets. This includes area spells, against which only the target attempts a saving throw. Any ongoing effects of the area, such as the difficult terrain from scatter scree, affect only the target's space. Some feats let you affect more creatures. Reach: The coupled spell affects the target using the reach of the weapon or unarmed attack you use for your Spellstrike. For instance, gouging claw would affect a creature beyond the reach of your hand if you used a weapon with reach, and frostbite would affect only a creature in your weapon's reach, even though the spell's range is longer. Ancillary Effects: Your spell still has any non-targeted effects that might affect creatures other than the target, as well as any ongoing effects starting from the moment you hit with the Strike. For example, scatter scree would still create difficult terrain in the target's space (as mentioned above), and tangle vine's circumstance penalty would last for its normal duration. The spell takes effect after the Strike deals damage; if the Strike has other special effects, the GM determines whether they happen before or after the spell. Invalid or Immune Target: If the target you hit wouldn't be a valid target for the spell, the spell is still expended but doesn't affect the target. If the target is immune to your attack but not the spell, it can still be affected by the spell. Variable Actions: Some spells have different effects based on the number of actions you spend to cast them. You choose whether to use the effects of the 1- or 2-action version of the spell when you use Spellstrike. A spell has to take exactly 1 or 2 actions; you can't use Spellstrike with a spell that takes a free action, reaction, or 3 or more actions. Spellshape: Even if you gain a spellshape action from outside the magus class, such as from a multiclass feat or an item, you typically can't use spellshape with Spellstrike. Spellshape actions require the next action you take to be Cast a Spell, and Spellstrike is a combined activity that doesn't qualify."
+   },
+   "Spellstrike Specifics": {
+    "name": "Spellstrike",
+    "matchedName": "Spellstrike",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Magus",
+    "sourceBook": "Impossible Magic, p. 9",
+    "description": "You’ve learned the fundamental magus technique that lets you combine magical and physical attacks together. You gain the Spellstrike activity. Spellstrike Specifics Though the base Spellstrike rules cover most spells, various modifications apply to more complicated spells when loaded into your fist, blade, or other attack. One Target: The spell targets only the target of your Strike, even if it normally allows more targets. This includes area spells, against which only the target attempts a saving throw. Any ongoing effects of the area, such as the difficult terrain from scatter scree, affect only the target's space. Some feats let you affect more creatures. Reach: The coupled spell affects the target using the reach of the weapon or unarmed attack you use for your Spellstrike. For instance, gouging claw would affect a creature beyond the reach of your hand if you used a weapon with reach, and frostbite would affect only a creature in your weapon's reach, even though the spell's range is longer. Ancillary Effects: Your spell still has any non-targeted effects that might affect creatures other than the target, as well as any ongoing effects starting from the moment you hit with the Strike. For example, scatter scree would still create difficult terrain in the target's space (as mentioned above), and tangle vine's circumstance penalty would last for its normal duration. The spell takes effect after the Strike deals damage; if the Strike has other special effects, the GM determines whether they happen before or after the spell. Invalid or Immune Target: If the target you hit wouldn't be a valid target for the spell, the spell is still expended but doesn't affect the target. If the target is immune to your attack but not the spell, it can still be affected by the spell. Variable Actions: Some spells have different effects based on the number of actions you spend to cast them. You choose whether to use the effects of the 1- or 2-action version of the spell when you use Spellstrike. A spell has to take exactly 1 or 2 actions; you can't use Spellstrike with a spell that takes a free action, reaction, or 3 or more actions. Spellshape: Even if you gain a spellshape action from outside the magus class, such as from a multiclass feat or an item, you typically can't use spellshape with Spellstrike. Spellshape actions require the next action you take to be Cast a Spell, and Spellstrike is a combined activity that doesn't qualify."
+   },
+   "Studious Spell: Blur": {
+    "name": "Studious Spell",
+    "matchedName": "Studious Spell",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Magus",
+    "sourceBook": "Impossible Magic, p. 9",
+    "description": "You've deeply studied certain beneficial spells to speedily enter Arcane Cascade when you cast them. When you cast a studious spell, you can use Arcane Cascade as a free action as your next action this turn. Add any studious spell you gain to your spellbook if you don't know it already. Your studious spells are gecko grip and an additional spell depending on your hybrid study, listed in the hybrid study's entry. At 11th level, add haste and an additional spell depending on your hybrid study to your studious spells. At 13th level, add fly and an additional spell depending on your hybrid study to your studious spells."
+   },
+   "Studious Spell: Gecko Grip": {
+    "name": "Studious Spell",
+    "matchedName": "Studious Spell",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Magus",
+    "sourceBook": "Impossible Magic, p. 9",
+    "description": "You've deeply studied certain beneficial spells to speedily enter Arcane Cascade when you cast them. When you cast a studious spell, you can use Arcane Cascade as a free action as your next action this turn. Add any studious spell you gain to your spellbook if you don't know it already. Your studious spells are gecko grip and an additional spell depending on your hybrid study, listed in the hybrid study's entry. At 11th level, add haste and an additional spell depending on your hybrid study to your studious spells. At 13th level, add fly and an additional spell depending on your hybrid study to your studious spells."
+   },
+   "Studious Spells": {
+    "name": "Studious Spells",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Magus",
+    "sourceBook": "Secrets of Magic, p. 35",
+    "description": "Your hybrid study grants you additional spells that can enhance your power in combat. You gain two special 2nd-level studious spell slots, which can be used to prepare gecko grip, sure strike, water breathing, and an additional spell depending on your hybrid study. You add any spells from this class feature to your spellbook. At 11th level, the extra slots increase to 3rd level and you add haste and an additional spell depending on your hybrid study. At 13th level, the extra slots increase to 4th level and you add fly and an additional spell depending on your hybrid study. See specific hybrid studies for more information."
+   },
+   "Surgewise Fleshwarp": {
+    "name": "Surgewise Fleshwarp",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Impossible Lands, p. 28",
+    "description": "Heritage Surgewise Fleshwarp The undulations of your body's cilia are hyper-attuned to wellsprings of magic; they trill and thrum with insights into occult energies, and their vibrations alert you to the presence of secrets. You gain the trained proficiency rank in Occultism. If you're trained in Occultism, you instead become trained in another skill of your choice. You also gain the Oddity Identification skill feat."
+   },
+   "The Tangible Dream": {
+    "name": "The Tangible Dream",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "conscious-mind",
+    "sourceBook": "Dark Archive (Remastered), p. 21",
+    "description": "Psychic Conscious Mind The Tangible Dream You pull colors and shapes from the depth of your mind, projecting impossible creations into the world as tapestries of astral thread or sculptures of force and light. Granted Spells - 1st Dizzying Colors - 2nd Invisibility - 3rd Sea of Thought - 4th Containment - 5th Etheric Shards - 6th Scintillating Safeguard - 7th Project Image - 8th Confusing Colors - 9th Resplendent Mansion Psi Cantrips Figment and Shield Surface Psi Cantrip Imaginary Weapon Deeper Psi Cantrip (Level 6) Astral Rain Deepest Psi Cantrip (Level 10) Hologram Cage Figment Your minor illusions shift and dance in a way that draws the eye. The When you Sustain the spell, you can move the apparent sound or vision up to 15 feet. You can then attempt to Create a Diversion as usual. Those creatures who disbelieved the illusion aren't affected by this diversion. Your figment also gains the following amp. Amp When you amp the spell, you can create a particularly distracting illusion as part of its normal effects. Choose an unoccupied square within the spell's range. The illusion in that square provides flanking for a single melee attack made before the beginning of your next turn. If you Sustain the spell, the details of the illusion change and shift to keep your enemies unsettled; the flanking illusion's The flanking illusion can't provide its benefit against any creature who has disbelieved the figment . Shield Your shield spell can be deployed on behalf of others. When you The option to Shield Block with the spell is up to you and uses your reaction, not the target's. Your shield also gains the following amp. Amp You create a layered barrier of three shields to improve your defenses. The The shield still lowers at the start of each of your turns, but you can raise it again when you Sustain the Spell. When you Shield Block with this spell, one of the three layers breaks and you cease to gain the bonus to AC, but the spell doesn't end. You can keep using the spell until the final layer breaks; once it does, the spell ends and you can't You can choose to break additional layers when you Shield Block with this spell to improve your defenses. If you break two layers instead of one, increase the Hardness to 1-1/2 × the normal amount (7 at 1st rank, 15 at 3rd rank, 22 at 5th rank, 30 at 7th rank, and 37 at 9th rank). If you break all three layers, increase the Hardness to double the normal amount."
+   },
+   "Unique Cantrip: Imaginary Weapon": {
+    "name": "Imaginary Weapon",
+    "matchedName": "Imaginary Weapon",
+    "level": 1,
+    "actions": "Two Actions",
+    "traits": [
+     "Attack",
+     "Cantrip",
+     "Concentrate",
+     "Force",
+     "Manipulate",
+     "Psychic",
+     "Uncommon"
+    ],
+    "category": "spell",
+    "sourceBook": "Dark Archive (Remastered), p. 22",
+    "description": "You create a simple weapon of force and lash out, its arc following your hand. Make a melee spell attack roll against your target's AC. If you hit, you deal 2d6 force damage. On a critical success, you deal double damage and can choose to detonate your weapon to push the target 10 feet away from you.\n\nAmp You form multiple force weapons to lash out at multiple foes. You can target two creatures, making an attack against each. These attacks each increase your multiple attack penalty, but you don't increase your multiple attack penalty until after you make all the spell attack rolls. Amp Heightened (+1) The damage increases by 2d6 instead of 1d6."
+   },
+   "Unusual Anatomy": {
+    "name": "Unusual Anatomy",
+    "level": 5,
+    "actions": "Single Action",
+    "traits": [
+     "Focus",
+     "Manipulate",
+     "Polymorph",
+     "Sorcerer",
+     "Uncommon"
+    ],
+    "category": "spell",
+    "sourceBook": "Player Core 2, p. 262",
+    "description": "You transform your flesh and organs into a bizarre amalgam of glistening skin, rough scales, tufts of hair, and tumorous protuberances. This has the following effects. You gain resistance 10 to precision damage and resistance 10 to extra damage from critical hits. If the resistance is greater than the extra damage, it reduces the extra damage to 0 but doesn't reduce the attack's normal damage. You gain darkvision. Acid oozes from your skin. Any creature that hits you with an unarmed attack or with a non-reach melee weapon takes 2d6 acid damage."
+   },
+   "Weapon Expertise (Magus)": {
+    "name": "Weapon Expertise",
+    "level": 5,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Magus",
+    "sourceBook": "Impossible Magic, p. 9",
+    "description": "You’ve dedicated yourself to learning the intricacies of your weapons. Your proficiency ranks for simple weapons, martial weapons, and unarmed attacks increase to expert."
+   },
+   "Weapon Specialization (Magus)": {
+    "name": "Weapon Specialization",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Magus",
+    "sourceBook": "Impossible Magic, p. 9",
+    "description": "You’ve learned how to inflict greater injuries with the weapons you know best. You deal 2 additional damage with weapons and unarmed attacks in which you are an expert. This damage increases to 3 if you’re a master and 4 if you’re legendary."
+   },
+   "Whammy": {
+    "name": "Whammy",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Misfortune"
+    ],
+    "category": "relic",
+    "sourceBook": "Treasure Vault (Remastered), p. 199",
+    "description": "Activate Reaction: (concentrate) Frequency once per day; Trigger An enemy within 30 feet rolls a success on an attack roll, saving throw, or skill check; Effect Your relic sends out a wave of bad luck, forcing the creature to reroll and take the worse result."
+   }
+  },
+  "item": {
+   "Bands of Force": {
+    "name": "Bands of Force",
+    "level": 8,
+    "actions": "",
+    "traits": [
+     "Force",
+     "Invested",
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 286",
+    "description": "Decorated with clear gemstones, these thick metal bands spread an inflexible layer of force over your body. The force grants you a +1 item bonus to AC and saving throws, and a maximum Dexterity modifier of +5 as armor. You can affix talismans to the bands as though they were light armor. Activate—Return Force Reaction: (force, manipulate) Trigger A creature critically misses you with a melee Strike.; Effect You Shove the creature using the bands' Athletics modifier of +14. Bands of Force Source GM Core pg. 286 Price 500 gp Bands of Force (Greater) Source GM Core pg. 286 Price 4,500 gp\n\nThe item bonus to AC and saves is +2. The bands' Athletics modifier is +21. Bands of Force (Major) Source GM Core pg. 286 Price 70,000 gp\n\nThe item bonus to AC and saves is +3. The bands' Athletics modifier is +33."
+   },
+   "Cloak of Illusions": {
+    "name": "Cloak of Illusions",
+    "level": 7,
+    "actions": "",
+    "traits": [
+     "Invested",
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 287",
+    "description": "This cloak flows, covering and concealing the wearer's body. The cloak allows you to cast figment as an occult innate cantrip. Although naturally a dull gray, while invested the cloak picks up colors and patterns from its surroundings, granting a +1 item bonus to Stealth checks. Activate—Draw Hood Two Actions: (manipulate) Frequency once per day; Effect You draw the hood up and gain the effects of invisibility, with the spell's normal duration or until you pull the hood back down, whichever comes first. Cloak of Illusions Source GM Core pg. 287 Price 360 gp Cloak of Illusions (Greater) Source GM Core pg. 287 Price 1,750 gp\n\nThe cloak grants a +2 item bonus and the effects of 4th-rank invisibility."
+   },
+   "Exquisite Sword Cane": {
+    "name": "Exquisite Sword Cane",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Agile",
+     "Concealable",
+     "Finesse",
+     "Parry",
+     "Twin"
+    ],
+    "category": "weapon",
+    "sourceBook": "Pathfinder #157: Devil at the Dreaming Palace, p. 80",
+    "description": "An exquisite sword cane is a sword sheathed inside a hollow cane, which itself can be used as a clubbing weapon with or without the sword sheathed inside. Critical Specialization Effects Source Core Rulebook pg. 283 Certain feats, class features, weapon runes, and other effects can grant you additional benefits when you make a Strike with certain weapons and get a critical success. This is called a critical specialization effect. The exact effect depends on which weapon group your weapon belongs to, as listed below. You can always decide not to add the critical specialization effect of your weapon. Click here for the full rules on Critical Specialization Effects. Specific Magic Weapons Reaper's Lancet"
+   },
+   "Loki's Heart": {
+    "name": "Loki's Heart",
+    "actions": "",
+    "traits": [
+     "Magical",
+     "Relic"
+    ],
+    "category": "equipment",
+    "description": "Loki's relic, worn. Its level is his level, and the gifts come from AON: Sands of the Hourglass (2 actions, once per hour: the target attempts a Fortitude save and becomes clumsy and enfeebled) and Whammy (reaction, once per day: an enemy who hit rerolls and takes the worse result). They live on the relic card, in the Inventory."
+   }
+  }
+ }
+}

@@ -1,0 +1,1487 @@
+{
+ "version": "v13",
+ "character": "Cerosqualhanthallas",
+ "entries": {
+  "spell": {
+   "Darkvision": {
+    "name": "Darkvision",
+    "level": 2,
+    "heighten": [
+     "3rd",
+     "5th"
+    ],
+    "sourceBook": "Player Core, p. 322",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Primal",
+     "Elemental"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "1 hour",
+    "defense": "",
+    "description": "You grant yourself supernatural sight in areas of darkness. You gain darkvision.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "3rd",
+      "text": "The spell's range is touch and it targets 1 willing creature."
+     },
+     {
+      "level": "5th",
+      "text": "The spell's range is touch and it targets 1 willing creature. The duration is until your next daily preparations."
+     }
+    ]
+   },
+   "Electric Arc": {
+    "name": "Electric Arc",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 328",
+    "actions": "Two Actions",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Electricity",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "30 feet",
+    "area": "",
+    "targets": "1 or 2 creatures",
+    "duration": "",
+    "defense": "basic Reflex",
+    "description": "An arc of lightning leaps from one target to another. Each target takes 2d4 electricity damage with a basic Reflex save.",
+    "damage": "2d4",
+    "damageType": "electricity",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The damage increases by 1d4."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "2d4",
+       "kind": "damage",
+       "types": [
+        "electricity"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 4,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 4,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Fleet Step": {
+    "name": "Fleet Step",
+    "level": 1,
+    "sourceBook": "Player Core, p. 332",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "1 minute",
+    "defense": "",
+    "description": "You gain a +30-foot status bonus to your Speed.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Gravity Weapon": {
+    "name": "Gravity Weapon",
+    "level": 1,
+    "sourceBook": "Player Core, p. 383",
+    "actions": "Single Action",
+    "traits": [
+     "Focus",
+     "Ranger",
+     "Uncommon"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "1 minute",
+    "defense": "",
+    "description": "You build up gravitational force and funnel it into your blows, leading to more powerful attacks with blade and bow alike. On your first weapon Strike each round, you gain a status bonus to damage equal to twice the number of weapon damage dice.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Guidance": {
+    "name": "Guidance",
+    "level": 1,
+    "sourceBook": "Player Core, p. 334",
+    "actions": "Single Action",
+    "traits": [
+     "Cantrip",
+     "Concentrate"
+    ],
+    "traditions": [
+     "Divine",
+     "Occult",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "30 feet",
+    "area": "",
+    "targets": "1 creature",
+    "duration": "until the start of your next turn",
+    "defense": "",
+    "description": "You ask for the guidance of supernatural entities, granting the target a +1 status bonus to one attack roll, Perception check, saving throw, or skill check the target attempts before the duration ends. The target chooses which roll to use the bonus on before rolling. If the target uses the bonus, the spell ends. Either way, the target is then temporarily immune for 1 hour.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Haste": {
+    "name": "Haste",
+    "level": 3,
+    "heighten": [
+     "7th"
+    ],
+    "sourceBook": "Player Core, p. 335",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "30 feet",
+    "area": "",
+    "targets": "1 creature",
+    "duration": "1 minute",
+    "defense": "",
+    "description": "Magic empowers the target to act faster. It gains the quickened condition and can use the extra action each round for only Strike and Stride actions.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "7th",
+      "text": "You can target up to 6 creatures."
+     }
+    ]
+   },
+   "Heal": {
+    "name": "Heal",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 335",
+    "actions": "Single Action to Three Actions",
+    "traits": [
+     "Healing",
+     "Manipulate",
+     "Vitality",
+     "Positive"
+    ],
+    "traditions": [
+     "Divine",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "varies",
+    "area": "",
+    "targets": "1 willing living creature or 1 undead creature",
+    "duration": "",
+    "defense": "",
+    "description": "You channel vital energy to heal the living or damage the undead. If the target is a willing living creature, you restore 1d8 Hit Points. If the target is undead, you deal that amount of vitality damage to it, and it gets a basic Fortitude save. The number of actions you spend when Casting this Spell determines its targets, range, area, and other parameters. Single Action: The spell has a range of touch. Two Actions: (concentrate) The spell has a range of 30 feet. If you're healing a living creature, increase the Hit Points restored by 8. Three Actions: (concentrate) You disperse vital energy in a 30-foot emanation. This targets all living and undead creatures in the burst.",
+    "damage": "1d8",
+    "damageType": "healing",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The amount of healing or damage increases by 1d8, and the extra healing for the 2-action version increases by 8."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "1d8",
+       "kind": "healing",
+       "types": [],
+       "persistent": false,
+       "count": 1,
+       "faces": 8,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      },
+      {
+       "id": 1,
+       "formula": "8",
+       "kind": "healingExtra",
+       "types": [],
+       "persistent": false,
+       "count": 0,
+       "faces": 0,
+       "flat": 8,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 8,
+         "flat": 0
+        },
+        {
+         "id": 1,
+         "mode": "add",
+         "count": 0,
+         "faces": 0,
+         "flat": 8
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Holy Light": {
+    "name": "Holy Light",
+    "level": 3,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 335",
+    "actions": "Two Actions",
+    "traits": [
+     "Attack",
+     "Concentrate",
+     "Fire",
+     "Holy",
+     "Light",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Divine",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "120 feet",
+    "area": "",
+    "targets": "1 creature",
+    "duration": "",
+    "defense": "AC",
+    "description": "You shine a blazing ray of light tinged with holy energy. Make a ranged spell attack. The ray deals 5d6 fire damage. If the target has the unholy trait, you deal an extra 5d6 spirit damage. Critical Success The target takes double damage. Success The target takes full damage. If the light passes through an area of magical darkness or targets a creature affected by magical darkness, holy light attempts to counteract the darkness. If you need to determine whether the light passes through an area of darkness, draw a line between yourself and the spell's target.",
+    "damage": "5d6",
+    "damageType": "fire",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The fire damage increases by 2d6, and the spirit damage against unholy creatures increases by 2d6."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "5d6",
+       "kind": "damage",
+       "types": [
+        "fire"
+       ],
+       "persistent": false,
+       "count": 5,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 2
+      },
+      {
+       "id": 1,
+       "formula": "5d6",
+       "kind": "damage",
+       "types": [
+        "spirit"
+       ],
+       "persistent": false,
+       "count": 5,
+       "faces": 6,
+       "flat": 0,
+       "nth": 1,
+       "occurrences": 2
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 2,
+         "faces": 6,
+         "flat": 0
+        },
+        {
+         "id": 1,
+         "mode": "add",
+         "count": 2,
+         "faces": 6,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Scorching Ray": {
+    "name": "Scorching Ray",
+    "level": 2,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Secrets of Magic, p. 127",
+    "actions": "Single Action to Three Actions",
+    "traits": [
+     "Attack",
+     "Evocation",
+     "Fire"
+    ],
+    "traditions": [
+     "Arcane",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "60 feet",
+    "area": "",
+    "targets": "1 or more creatures",
+    "duration": "",
+    "defense": "",
+    "description": "You fire a ray of heat and flame. Make a spell attack roll against a single creature. On a hit, the target takes 2d6 fire damage, and on a critical hit, the target takes double damage. For each additional action you use when Casting the Spell, you can fire an additional ray at a different target, to a maximum of three rays targeting three different targets for 3 actions. These attacks each increase your multiple attack penalty, but you don't increase your multiple attack penalty until after you make all the spell attack rolls for scorching ray. If you spend 2 or more actions Casting the Spell, the damage increases to 4d6 fire damage on a hit, and it still deals double damage on a critical hit.",
+    "damage": "2d6",
+    "damageType": "fire",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The damage to each target increases by 1d6 for the 1-action version, or by 2d6 for the 2-action and 3-action versions."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "2d6",
+       "kind": "damage",
+       "types": [
+        "fire"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      },
+      {
+       "id": 1,
+       "formula": "4d6",
+       "kind": "damage",
+       "types": [
+        "fire"
+       ],
+       "persistent": false,
+       "count": 4,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 6,
+         "flat": 0
+        },
+        {
+         "id": 1,
+         "mode": "add",
+         "count": 2,
+         "faces": 6,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Soothing Mist": {
+    "name": "Soothing Mist",
+    "level": 2,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 383",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Focus",
+     "Healing",
+     "Manipulate",
+     "Ranger",
+     "Uncommon",
+     "Vitality",
+     "Positive"
+    ],
+    "castComponents": "",
+    "range": "30 feet",
+    "area": "",
+    "targets": "1 willing living creature or 1 undead creature",
+    "duration": "",
+    "defense": "",
+    "description": "You call forth a magical mist that envelops a creature. The mist restores 2d8 Hit Points to a target living creature and ends one source of persistent acid, bleed, fire, poison, or void damage affecting it. If the creature is taking persistent damage from multiple sources, you select which one is removed. Against an undead target, you deal 2d8 vitality damage (basic Fortitude save); if it fails the save, it also takes 2 persistent vitality damage.",
+    "damage": "2d8",
+    "damageType": "vitality",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The amount of healing (or damage to an undead target) increases by 1d8, and the persistent vitality damage to an undead creature increases by 1."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "2d8",
+       "kind": "healing",
+       "types": [],
+       "persistent": false,
+       "count": 2,
+       "faces": 8,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 2
+      },
+      {
+       "id": 1,
+       "formula": "2d8",
+       "kind": "damage",
+       "types": [
+        "vitality"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 8,
+       "flat": 0,
+       "nth": 1,
+       "occurrences": 2
+      },
+      {
+       "id": 2,
+       "formula": "2",
+       "kind": "damage",
+       "types": [
+        "vitality"
+       ],
+       "persistent": true,
+       "count": 0,
+       "faces": 0,
+       "flat": 2,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 8,
+         "flat": 0
+        },
+        {
+         "id": 1,
+         "mode": "add",
+         "count": 1,
+         "faces": 8,
+         "flat": 0
+        },
+        {
+         "id": 2,
+         "mode": "add",
+         "count": 0,
+         "faces": 0,
+         "flat": 1
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Summon Elemental": {
+    "name": "Summon Elemental",
+    "level": 2,
+    "heighten": [
+     "3rd",
+     "4th",
+     "5th",
+     "6th",
+     "7th",
+     "8th",
+     "9th",
+     "10th"
+    ],
+    "sourceBook": "Player Core, p. 360",
+    "actions": "Three Actions",
+    "traits": [
+     "Concentrate",
+     "Manipulate",
+     "Summon"
+    ],
+    "traditions": [
+     "Arcane",
+     "Primal",
+     "Elemental"
+    ],
+    "castComponents": "",
+    "range": "30 feet",
+    "area": "",
+    "targets": "",
+    "duration": "sustained up to 1 minute",
+    "defense": "",
+    "description": "You summon a creature that has the elemental trait and whose level is 1 or lower to fight for you.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "3rd",
+      "text": "Level 2."
+     },
+     {
+      "level": "4th",
+      "text": "Level 3."
+     },
+     {
+      "level": "5th",
+      "text": "Level 5."
+     },
+     {
+      "level": "6th",
+      "text": "Level 7."
+     },
+     {
+      "level": "7th",
+      "text": "Level 9."
+     },
+     {
+      "level": "8th",
+      "text": "Level 11."
+     },
+     {
+      "level": "9th",
+      "text": "Level 13."
+     },
+     {
+      "level": "10th",
+      "text": "Level 15."
+     }
+    ]
+   },
+   "Tempest Surge": {
+    "name": "Tempest Surge",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 382",
+    "actions": "Two Actions",
+    "traits": [
+     "Air",
+     "Concentrate",
+     "Druid",
+     "Electricity",
+     "Focus",
+     "Manipulate",
+     "Uncommon"
+    ],
+    "castComponents": "",
+    "range": "30 feet",
+    "area": "",
+    "targets": "1 creature",
+    "duration": "",
+    "defense": "basic Reflex",
+    "description": "You surround a foe in a swirling storm of violent winds, roiling clouds, and crackling lightning. The storm deals 1d12 electricity damage to the target with a basic Reflex save. On a failure, the target also is clumsy 2 for 1 round.",
+    "damage": "1d12",
+    "damageType": "electricity",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The initial damage increases by 1d12."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "1d12",
+       "kind": "damage",
+       "types": [
+        "electricity"
+       ],
+       "persistent": false,
+       "count": 1,
+       "faces": 12,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 12,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Terrain Transposition": {
+    "name": "Terrain Transposition",
+    "level": 5,
+    "sourceBook": "Player Core, p. 384",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Focus",
+     "Manipulate",
+     "Ranger",
+     "Teleportation",
+     "Uncommon"
+    ],
+    "castComponents": "",
+    "range": "90 feet",
+    "area": "",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "You mystically transpose your current location with another. While in a wilderness environment, you transport yourself and items you're holding to a clear space you can see within range. If you have Favored Terrain and both your starting and ending position are in your favored terrain, the range increases to 180 feet. If you have an animal companion and it is adjacent to you, you can transport it along with you to an adjacent open space, but if this spell would bring any other creature with you, even in an extradimensional container, the spell is lost.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   }
+  },
+  "feat": {
+   "Additional Lore": {
+    "name": "Additional Lore",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "description": "Your knowledge has expanded to encompass a new field. Choose a Lore skill subcategory. You become trained in it. At 3rd, 7th, and 15th levels, you gain an additional skill increase you can apply only to the chosen Lore subcategory. Special You can select this feat more than once. Each time you must select a new subcategory of Lore and you gain the additional skill increases to that subcategory for the listed levels."
+   },
+   "Additional Recollection": {
+    "name": "Additional Recollection",
+    "level": 6,
+    "actions": "Free Action",
+    "traits": [
+     "Ranger"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 159",
+    "trigger": "You succeed or critically succeed at a check to Recall Knowledge on your hunted prey",
+    "description": "You scan the battlefield quickly, remembering critical details about multiple opponents you face. You immediately attempt a check to Recall Knowledge about a different creature you can perceive."
+   },
+   "Advanced Warden": {
+    "name": "Advanced Warden",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Ranger"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Beastmaster"
+    ],
+    "sourceBook": "Player Core, p. 159",
+    "prerequisites": "Initiate Warden",
+    "description": "You unlock more powerful primal spells. You gain your choice of one warden spell from the advanced warden spells (or another you have access to). Special You can take this feat multiple times, choosing a different advanced warden spell each time."
+   },
+   "Advanced Wilding": {
+    "name": "Advanced Wilding",
+    "level": 6,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Druid"
+    ],
+    "sourceBook": "Player Core, p. 218",
+    "prerequisites": "Basic Wilding",
+    "description": "You gain one druid feat. For the purpose of meeting its prerequisites, your druid level is equal to half your character level. Special You can select this feat more than once. Each time you select it, you gain another druid feat."
+   },
+   "Aiuvarin": {
+    "name": "Aiuvarin",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Player Core, p. 82",
+    "description": "Heritage Aiuvarin You have elves, or possibly other aiuvarins, in your family tree. You have pointed ears and other telltale signs of elf heritage. You gain the elf trait, the aiuvarin trait, and low-light vision. In addition, when you gain an ancestry feat, you can choose from aiuvarin and elf feats in addition to those from your ancestry."
+   },
+   "Ancestral Paragon": {
+    "name": "Ancestral Paragon",
+    "level": 3,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "description": "Whether through instinct, study, or magic, you feel a deeper connection to your ancestry. You gain a 1st-level ancestry feat."
+   },
+   "Ancestral Suspicion": {
+    "name": "Ancestral Suspicion",
+    "level": 5,
+    "actions": "",
+    "traits": [
+     "Elf"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 48",
+    "description": "Long-lived elves have seen civilizations rise and fall, often at the hands of outside forces. As a result, they have developed a wariness of others who might seek to influence or control them. You've been trained to resist such manipulation, gaining a +2 circumstance bonus to saving throws against effects that would make you controlled, such as dominate, and to Perception checks to Sense Motive when trying to determine if a creature is under the influence of such an effect. When you roll a success on a saving throw against such an effect, you get a critical success instead."
+   },
+   "Arms that Cut the Waves": {
+    "name": "Arms that Cut the Waves",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 81",
+    "description": "River, lake, sea, or ocean, the water calls to you, and you don’t fear its depths. When you attempt an Athletics check to Swim, you can spend a Mythic Point to attempt the check at mythic proficiency. When you would run out of air and begin suffocating, you can instead spend a Mythic Point to hold your breath for 10 more rounds."
+   },
+   "Basic Druid Spellcasting": {
+    "name": "Basic Druid Spellcasting",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Druid"
+    ],
+    "sourceBook": "Player Core, p. 218",
+    "prerequisites": "Druid Dedication",
+    "description": "You gain the basic spellcasting benefits."
+   },
+   "Basic Wilding": {
+    "name": "Basic Wilding",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Druid"
+    ],
+    "sourceBook": "Player Core, p. 218",
+    "prerequisites": "Druid Dedication",
+    "description": "You gain a 1st- or 2nd-level druid feat."
+   },
+   "Correct the Story": {
+    "name": "Correct The Story",
+    "level": 6,
+    "actions": "Reaction",
+    "traits": [
+     "Misfortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "trigger": "An enemy critically succeeds at an attack roll or saving throw.",
+    "description": "You know the story of your journey well and can correct it when your enemy tells it incorrectly. Spend a Mythic Point. The enemy must reroll the triggering attack roll or save and take the new result."
+   },
+   "Deadly Aim": {
+    "name": "Deadly Aim",
+    "level": 8,
+    "actions": "Single Action",
+    "traits": [
+     "Flourish",
+     "Ranger"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 161",
+    "prerequisites": "weapon specialization",
+    "description": "You aim for your prey’s weak spots, making your shot more challenging but dealing more damage if you hit. Make a ranged Strike against your hunted prey at a –2 penalty. You gain a +4 circumstance bonus to damage on that Strike. This bonus increases to +6 at 11th level and +8 at 15th level."
+   },
+   "Druid Dedication": {
+    "name": "Druid Dedication",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Archetype",
+     "Dedication",
+     "Multiclass"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Druid"
+    ],
+    "sourceBook": "Player Core, p. 218",
+    "prerequisites": "Wisdom +2",
+    "description": "You cast spells like a druid. You gain the Cast a Spell activity. You can prepare two common cantrips each day from the primal spell list or any other primal cantrips you learn or discover. You’re trained in the spell attack modifier and spell DC statistics. Your key spellcasting attribute for druid archetype spells is Wisdom, and they are primal druid spells. You learn the Wildsong language, and you are bound by the druid’s anathema. Choose a druidic order. You become a member of that order and are also bound by its specific anathema, allowing you to take the order’s feats. You become trained in Nature and your order’s associated skill; for each of these skills in which you were already trained, you become trained in a skill of your choice. You don’t gain any other abilities from your choice of order."
+   },
+   "Forager": {
+    "name": "Forager",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 256",
+    "prerequisites": "Trained in Survival",
+    "description": "While using Survival to Subsist, if you roll any result worse than a success, you get a success. On a success, you can provide subsistence living for yourself and four additional creatures, and on a critical success, you can take care of twice as many additional creatures. You can choose to support half the number of creatures with a comfortable living. Increase the number of additional creatures you feed on a success to eight if you're an expert in Survival, 16 if you're a master, and 32 if you're legendary."
+   },
+   "General Training": {
+    "name": "General Training",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Human"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 64",
+    "description": "Your adaptability manifests in your mastery of a range of useful abilities. You gain a 1st-level general feat. You must meet the feat’s prerequisites, but if you select this feat during character creation, you can select the feat later in the process in order to determine which prerequisites you meet. Special You can select this feat multiple times, choosing a different feat each time."
+   },
+   "Godspeed": {
+    "name": "Godspeed",
+    "level": 4,
+    "actions": "Single Action",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "description": "Mythic power grants you speed to rival beasts and demigods. Spend a Mythic Point; for the next minute, you gain a +10-foot status bonus to all your Speeds and are quickened. You can use the extra action each round to Stride, Step, or Leap."
+   },
+   "Hunter's Aim": {
+    "name": "Hunter's Aim",
+    "level": 2,
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Ranger"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Game Hunter"
+    ],
+    "sourceBook": "Player Core, p. 158",
+    "description": "When you focus on aiming, your attack becomes particularly accurate. Make a ranged weapon Strike against your hunted prey. On this Strike, you gain a +2 circumstance bonus to the attack roll and ignore your prey’s concealed condition and any lesser cover."
+   },
+   "Incredible Initiative": {
+    "name": "Incredible Initiative",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 256",
+    "description": "You react more quickly than others can. You gain a +2 circumstance bonus to initiative rolls."
+   },
+   "Initiate Warden": {
+    "name": "Initiate Warden",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Ranger"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Beastmaster"
+    ],
+    "sourceBook": "Player Core, p. 157",
+    "description": "You’ve trained with one of the ranger sects known as wardens, who practice a specialized type of primal magic. You gain your choice of one warden spell from the initial warden spells (or another you have access to). Special You can take this feat multiple times, choosing a different initial warden spell each time."
+   },
+   "Multilingual": {
+    "name": "Multilingual",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 258",
+    "prerequisites": "Trained in Society",
+    "description": "You easily pick up new languages. You learn two new languages, chosen from common languages, uncommon languages, and any others you have access to. You learn an additional language if you are or become a master in Society and again if you are or become legendary. Special You can select this feat multiple times. Each time, you learn additional languages."
+   },
+   "Mythic Magic": {
+    "name": "Mythic Magic",
+    "level": 8,
+    "actions": "",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 83",
+    "description": "You convert your mythic power into a magical effect. When you gain this feat, choose up to three spells of 1st or 2nd rank that take no more than 3 actions to cast and that are either instantaneous or have a duration of 10 minutes or less. You can spend a Mythic Point to cast any of those spells for their normal action cost and use mythic proficiency to determine your spell attack rolls and spell DCs, and the spells are automatically heightened to a rank equal to half your level (rounded up). If you don’t normally have the ability to cast spells, you use Charisma as your spellcasting attribute modifier; otherwise, you use the spellcasting ability associated with your spellcasting class. You gain the Cast a Spell activity only for spells cast with this feat; you don’t otherwise gain the typical benefits of being a spellcaster. Special At 14th level, add one spell of 3rd rank for you to cast using this ability. At 20th level, add one 4th-rank spell."
+   },
+   "Mythic Strike": {
+    "name": "Mythic Strike",
+    "level": 10,
+    "actions": "Single Action",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 84",
+    "description": "You infuse your weapon or unarmed attack with mythic power before lashing out at an enemy with devastating force. Spend a Mythic Point and then Strike a creature with a weapon you’re wielding or an unarmed attack you have available. This Strike is made at mythic proficiency, and the weapon or unarmed attack counts as a mythic weapon for the purposes of overcoming mythic resistance or mythic immunity."
+   },
+   "Natural Medicine": {
+    "name": "Natural Medicine",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 258",
+    "prerequisites": "Trained in Nature",
+    "description": "You can apply natural cures to heal your allies. You can use Nature instead of Medicine to Treat Wounds, including higher Nature proficiency letting you attempt more difficult checks. It doesn't replace Medicine for uses of the skill other than Treat Wounds or for feat prerequisites. If you're in the wilderness, you might have easier access to fresh ingredients, allowing you to gain a +2 circumstance bonus to your check to Treat Wounds using Nature, subject to the GM's determination."
+   },
+   "Natural Skill": {
+    "name": "Natural Skill",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Human"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 64",
+    "description": "Your ingenuity allows you to learn a wide variety of skills. You gain the trained proficiency rank in two skills of your choice."
+   },
+   "Order Spell": {
+    "name": "Order Spell",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Druid"
+    ],
+    "sourceBook": "Player Core, p. 218",
+    "prerequisites": "Druid Dedication",
+    "description": "You gain the initial order spell from your order. This is a focus spell, granting you a focus pool or expanding that pool. You can Refocus by being one with nature. (For more on focus spells, see page 298.)"
+   },
+   "Peerless Warden": {
+    "name": "Peerless Warden",
+    "level": 10,
+    "actions": "",
+    "traits": [
+     "Ranger"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 161",
+    "prerequisites": "Initiate Warden",
+    "description": "Your mastery of primal magic has given you access to the greatest secrets of warden magic. You gain your choice of one warden spell from the peerless warden spells (or another you have access to). Special You can take this feat multiple times, choosing a different peerless warden spell each time."
+   },
+   "Pinch Time": {
+    "name": "Pinch Time",
+    "level": 9,
+    "actions": "",
+    "traits": [
+     "Half-Elf",
+     "Aiuvarin"
+    ],
+    "category": "feat",
+    "sourceBook": "Advanced Player's Guide, p. 47",
+    "description": "One of your parents has a human life span and another an elven life span, with your own somewhere between. As a result, you have an unusual perspective on time, which you've learned to manifest to aid yourself in moments of stress. You gain haste as a 3rd-level arcane innate spell, though you can target only yourself. You can Cast this Spell once per day."
+   },
+   "Robust Health": {
+    "name": "Robust Health",
+    "level": 3,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 233",
+    "description": "Your physiology responds well to first aid. You gain a circumstance bonus to the number of Hit Points you regain equal to your level from a successful attempt to Treat your Wounds or use Battle Medicine on you. After you or an ally use Battle Medicine on you, you become temporarily immune to that Battle Medicine for only 1 hour, instead of 1 day."
+   },
+   "Snowdrift Spell": {
+    "name": "Snowdrift Spell",
+    "level": 4,
+    "actions": "Single Action",
+    "traits": [
+     "Cold",
+     "Druid",
+     "Manipulate",
+     "Spellshape",
+     "Metamagic"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 131",
+    "prerequisites": "storm order",
+    "description": "The howling wind and precipitation of your magic turn to thick snow. If your next action is to Cast a Spell that has the air, water, or cold trait, and that does not have the fire trait, select one creature affected by the spell on the ground. Each square on the ground under or adjacent to the creature fills with ankle-deep snow. Those squares are difficult terrain until the beginning of your next turn. A creature can Interact to clear a square of snow, and the snow in a square melts if that square is exposed to a fire effect."
+   },
+   "Storm Born": {
+    "name": "Storm Born",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Druid"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 128",
+    "prerequisites": "storm order",
+    "description": "You are at home out in the elements, reveling in the power of nature unleashed. You do not take circumstance penalties to ranged spell attacks or Perception checks caused by weather, and your targeted spells don’t require a flat check to succeed against a target concealed by weather (such as fog)."
+   },
+   "Terrain Expertise": {
+    "name": "Terrain Expertise",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 263",
+    "prerequisites": "Trained in Survival",
+    "description": "Your experience in navigating a certain type of terrain makes you supremely confident while doing so. You gain a +1 circumstance bonus to Survival checks in one of the following types of terrain, chosen when you select this feat: aquatic, arctic, desert, forest, mountain, plains, sky, swamp, or underground. Special You can select this feat more than once, choosing a different type of terrain each time."
+   }
+  },
+  "special": {
+   "Aiuvarin": {
+    "name": "Aiuvarin",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Player Core, p. 82",
+    "description": "Heritage Aiuvarin You have elves, or possibly other aiuvarins, in your family tree. You have pointed ears and other telltale signs of elf heritage. You gain the elf trait, the aiuvarin trait, and low-light vision. In addition, when you gain an ancestry feat, you can choose from aiuvarin and elf feats in addition to those from your ancestry."
+   },
+   "Forest": {
+    "name": "Forest",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "draconic-exemplar",
+    "sourceBook": "Draconic Codex, p. 206",
+    "description": "Draconic Exemplar Forest"
+   },
+   "Gravity Weapon": {
+    "name": "Gravity Weapon",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Ranger"
+    ],
+    "category": "feat",
+    "sourceBook": "Advanced Player's Guide, p. 132",
+    "description": "Your expertise with your weapons and commitment to taking out your targets lends you magical power. You gain the gravity weapon warden spell and a focus pool of 1 Focus Point."
+   },
+   "Hunt Prey": {
+    "name": "Hunt Prey",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Ranger",
+    "sourceBook": "Player Core, p. 152",
+    "description": "When you focus your attention on a single foe, you become unstoppable in your pursuit. You gain the Hunt Prey action."
+   },
+   "Hunter's Calling": {
+    "name": "Hunter's Calling",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Calling",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "mythic-calling",
+    "sourceBook": "War of Immortals, p. 80",
+    "description": "Edicts be first in a group to scout an unknown and potentially dangerous area, seek out creatures that are causing imbalances in the natural world and correct the imbalance Anathema leave an animal or beast you’ve wounded free to cause future harm, refuse a request to hunt a dangerous animal or beast"
+   },
+   "Hunter's Edge: Precision": {
+    "name": "Hunter's Edge",
+    "matchedName": "Hunter's Edge",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Ranger",
+    "sourceBook": "Player Core, p. 152",
+    "description": "You have trained to become a skilled hunter and tracker, gaining an extra benefit when you Hunt Prey depending on the focus of your training. Choose a hunter's edge."
+   },
+   "Intimidation": {
+    "name": "Intimidation",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "skill",
+    "sourceBook": "Player Core, p. 240",
+    "description": "Skill Intimidation You bend others to your will using threats. Unlike Deception or Diplomacy, Intimidation is typically a blunt instrument with little room for nuance or care. Item Bonuses for Intimidation Item Bonus Level Category Consumable Note Feather of the Unfounded Bravado +1 2 Held Items No Item bonus to Demoralize Marshal's Baton +1 3 Held Items No Item bonus to Intimidation against troops, individual soldiers, and military leaders Spider Lily Tattoo +1 3 Tattoos No Item bonus to Intimidation Essence Charm +1 4 Other Worn Items No Item bonus to a check of the crafter's choice Killer’s Belt +1 4 Worn Items No Item bonus to Intimidation Cape of Justice +1 4 Other Worn Items No Item bonus to Demoralize Deravon's Helm +1 4 Other Worn Items No Item bonus to Intimidation checks made to Demoralize. Trudd's Strength +1 5 Clan Dagger Filigrees No Item bonus to Intimidation checks to Coerce Graverose Garland +1 5 Other Worn Items No against undead Stormshard +1 6 Held Items No item bonus to intimidation checks to influence the undead Security Badge +1 7 Other Worn Items No Item bonus to Intimidation checks Draconic Verge +1 7 Held Items No Item bonus to Demoralize Ring of Fair Assessment +1 7 Other Worn Items No Coerce to convince others of the fairness or accuracy of your judgments. Crown of Witchcraft +1 10 Worn Items No Silver Tongue +2 8 Spellhearts No Item bonus checks to Intimidation checks to Demoralize until the end of your turn. Guise of the Smirking Devil +2 9 Worn Items No Greater Killer’s Belt +2 9 Worn Items No Item bonus to Intimidation Admiral's Bicorne +2 10 Other Worn Items No Item bonus to Intimidation Entertainer's Cincture +2 10 Worn Items No Item bonus to Intimidation if selected Greater Trudd's Strength +2 11 Clan Dagger Filigrees No Item bonus to Intimidation checks to Coerce Helm of Zeal +2 11 Worn Items No Item bonus of the associated Deity's Divine Skill Gasping Lament +2 12 Coda No Intimidation checks to Demoralize Greater Stormshard +2 12 Held Items No item bonus to intimidation checks to influence the undead Dragon Pearl +2 16 Other Worn Items No Item bonus to Intimidation checks Dragon Pearl +2 16 Other Worn Items No Item bonus to Intimidation checks Crown of Witchcraft (Greater) +2 18 Worn Items No Mask of Allure +2 18 Apex Items No Item bonus while wearing the mask. Greater Gasping Lament +3 17 Coda No Intimidation checks to Demoralize Jaws of the Grogrisant +3 17 Apex Items No Item bonus to Intimidation checks Entertainer's Cincture (Greater) +3 17 Worn Items No Item bonus to Intimidation if selected Major Stormshard +3 18 Held Items No item bonus to intimidation checks to influence the undead Helm of Zeal (Greater) +3 18 Worn Items No Item bonus of the associated Deity's Divine Skill Guise of the Smirking Devil (Greater) +3 19 Worn Items No Related Feats To see a list of Feats related to Intimidation, click here. Intimidation Untrained Actions Action Coerce Auditory Concentrate Emotion Exploration Linguistic Mental With threats either veiled or overt, you attempt to bully a creature into doing what you want. You must spend at least 1 minute of conversation with the creature. At the end of the conversation, attempt an Intimidation check against the target's Will DC, modified by any circumstances the GM determines. (The attitudes referenced in the effects below are summarized in the Changing Attitudes sidebar and described in full in the Conditions Appendix.) Critical Success The The However, the Success As critical success, but once the Failure The Critical Failure The Action Demoralize Single Action Auditory Concentrate Emotion Fear Mental With a sudden shout, a well-timed taunt, or a cutting put-down, you can shake an enemy's resolve. Choose a creature within 30 feet of you who you're aware of. Attempt an Intimidation check against that target's Will DC. If the Regardless of your result, the Critical Success The Success The"
+   },
+   "Low-Light Vision": {
+    "name": "Low-Light Vision",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "rules",
+    "sourceBook": "Player Core, p. 433",
+    "description": "Rules Low-Light Vision A creature with low-light vision can see in dim light as though it were bright light, so it ignores the concealed condition due to dim light."
+   },
+   "Natural Reflexes": {
+    "name": "Natural Reflexes",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Ranger",
+    "sourceBook": "Player Core, p. 152",
+    "description": "You've honed your reflexes dodging falling trees and pounding hail. Your proficiency rank for Reflex saves increases to master. When you roll a success on a Reflex save, you get a critical success instead."
+   },
+   "Nature's Edge": {
+    "name": "Nature's Edge",
+    "level": 9,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Ranger",
+    "sourceBook": "Player Core, p. 152",
+    "description": "You always find the weak points in your foes' defenses when they're on unfavorable terrain. Enemies are off-guard to you if they're in difficult terrain."
+   },
+   "Perception Mastery (Ranger)": {
+    "name": "Perception Mastery",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Ranger",
+    "sourceBook": "Player Core, p. 152",
+    "description": "You have highly developed acuity and attention to detail. Your proficiency rank for Perception increases to master."
+   },
+   "Ranger Expertise": {
+    "name": "Ranger Expertise",
+    "level": 9,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Ranger",
+    "sourceBook": "Player Core, p. 152",
+    "description": "You've gained techniques that improve your cunning and skill. Your proficiency rank for your ranger DC increases to expert. If you have warden spells, your proficiency rank for spell attacks and spell DCs increases to expert."
+   },
+   "Ranger Weapon Expertise": {
+    "name": "Ranger Weapon Expertise",
+    "level": 5,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Ranger",
+    "sourceBook": "Player Core, p. 152",
+    "description": "You gain every advantage from your weapons. Your proficiency rank for martial weapons, simple weapons, and unarmed attacks increases to expert. You gain access to the critical specialization effects of all such weapons and unarmed attacks when attacking your hunted prey."
+   },
+   "Rewrite Fate": {
+    "name": "Rewrite Fate",
+    "level": null,
+    "actions": "Free Action",
+    "traits": [
+     "Fortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "action",
+    "sourceBook": "War of Immortals, p. 78",
+    "trigger": "You roll a skill check or saving throw and don’t like the result.",
+    "description": "Destiny, fate, or some other force bends around you as your mythic power swells, manifesting in a flash of light or visible surge of energy emanating from your body as you cast aside the chains of fate. You expend a Mythic Point and reroll the check or save with mythic proficiency, taking the new result."
+   },
+   "Society": {
+    "name": "Society",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "skill",
+    "sourceBook": "Player Core, p. 244",
+    "description": "Skill Society You understand the people and systems that make civilization run, and you know the historical events that make societies what they are today. Further, you can use that knowledge to navigate the complex physical, societal, and economic workings of settlements. Society Untrained General Actions - Recall Knowledge about local history, important personalities, legal institutions, societal structure, and humanoid cultures. The GM might allow Society to apply to other creatures that are major elements of society in your region, such as the draconic nobility in a kingdom of humans ruled by dragons. - Subsist in a settlement by finding shelter, scrounging, or begging for food. Society Trained General Actions - Decipher Writing that's a coded message, text written in an incomplete or archaic form, or in some cases, text in a language you don't know. Item Bonuses for Society Item Bonus Level Category Consumable Note Essence Charm +1 4 Other Worn Items No Item bonus to a check of the crafter's choice Kols's Oath +1 5 Clan Dagger Filigrees No Item bonus to Society checks Pristine Epaulets +1 5 Other Worn Items No Item bonus to Society Cognitive Mutagen (Lesser) +1 1 Alchemical Elixirs Yes Humbug Pocket +2 9 Worn Items No Greater Kols's Oath +2 11 Clan Dagger Filigrees No Item bonus to Society checks Helm of Zeal +2 11 Worn Items No Item bonus of the associated Deity's Divine Skill Cognitive Mutagen (Moderate) +2 3 Alchemical Elixirs Yes Humbug Pocket (Greater) +3 17 Worn Items No Checks to Conceal an Object Helm of Zeal (Greater) +3 18 Worn Items No Item bonus of the associated Deity's Divine Skill Draconal Mask +3 19 Apex Items No item bonus to Society checks Cognitive Mutagen (Greater) +3 11 Alchemical Elixirs Yes Cognitive Mutagen (Major) +4 17 Alchemical Elixirs Yes Related Feats To see a list of Feats related to Society, click here. Society Trained Actions Action Create Forgery Downtime Secret Requirements You provide the proper writing materials for your forgery. You create a forged document, usually over the course of a day or a week. The GM rolls a secret DC 20 Society check. If you need to forge a specific person's handwriting, you need a sample of that person's handwriting. Otherwise, you need only to have seen a similar document, and you gain up to a +4 circumstance bonus to the check (the GM determines the bonus). Success The forgery is of good enough quality that passive observers can't notice the fake (but see Examining Forgeries). Failure The forgery has some obvious signs of being a fake, potentially allowing passive observers to detect it. Each time a passive observer sees the document, the GM compares your check result to the observer's Perception DC or Society DC, whichever is higher. If your result doesn't exceed a passive observer's DC, that observer knows the document is a forgery."
+   },
+   "Soothing Mist": {
+    "name": "Soothing Mist",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Ranger"
+    ],
+    "category": "feat",
+    "sourceBook": "Advanced Player's Guide, p. 132",
+    "prerequisites": "warden spells",
+    "description": "You have a connection to the healing properties of nature and can produce a magical mist to heal damage and stop burning or bleeding. You gain the soothing mist warden spell. Increase the number of Focus Points in your focus pool by 1."
+   },
+   "Storm Order": {
+    "name": "Storm",
+    "matchedName": "Storm",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "druidic-order",
+    "sourceBook": "Player Core, p. 125",
+    "description": "Druidic Order Storm Whether you were born under a tempest or survived a bolt of lightning from a clear blue sky, you now carry the fury of the storm in your heart, channeling thunder to terrifying destructive effect and riding the winds through the air."
+   },
+   "Terrain Transposition": {
+    "name": "Terrain Transposition",
+    "level": 10,
+    "actions": "",
+    "traits": [
+     "Ranger"
+    ],
+    "category": "feat",
+    "sourceBook": "Advanced Player's Guide, p. 133",
+    "prerequisites": "warden spells",
+    "description": "You are so connected to the wilderness that you can magically jump from place to place within it. You gain the terrain transposition warden spell. Increase the number of Focus Points in your focus pool by 1."
+   },
+   "Trackless Journey": {
+    "name": "Trackless Journey",
+    "level": 5,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Ranger",
+    "sourceBook": "Player Core, p. 152",
+    "description": "When you move through natural terrains, you are hard to track. You always gain the benefits of the Cover Tracks action in such terrains, without moving at half your Speed."
+   },
+   "Weapon Specialization (Ranger)": {
+    "name": "Weapon Specialization",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Ranger",
+    "sourceBook": "Player Core, p. 152",
+    "description": "You inflict greater injuries with the weapons you know best. You deal 2 additional damage with weapons and unarmed attacks in which you're an expert. This damage increases to 3 if you're a master, and 4 if you're legendary."
+   },
+   "Will Expertise (Ranger)": {
+    "name": "Will Expertise",
+    "level": 3,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Ranger",
+    "sourceBook": "Player Core, p. 152",
+    "description": "Your mental defenses grow stronger. Your proficiency rank for Will saves increases to expert."
+   },
+   "Wisdom": {
+    "name": "Wisdom",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "rules",
+    "sourceBook": "Core Rulebook, p. 19",
+    "description": "Rules Wisdom Wisdom measures your character’s common sense, awareness, and intuition. Your Wisdom modifier is added to your Perception and Will saving throws."
+   }
+  },
+  "item": {
+   "Bag of Holding (Type II)": {
+    "name": "Bag of Holding (Type II)",
+    "level": 7,
+    "actions": "",
+    "traits": [
+     "Conjuration",
+     "Extradimensional",
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "Core Rulebook, p. 572",
+    "description": "Though it appears to be a cloth sack decorated with panels of richly colored silk or stylish embroidery, a bag of holding opens into an extradimensional space larger than its outside dimensions. The Bulk held inside the bag doesn't change the Bulk of the bag of holding itself. The amount of Bulk the bag's extradimensional space can hold depends on its type. You can Interact with the bag of holding to stow items in it or remove them just like a mundane sack. Though the bag can hold a great amount of material, an object still needs to be able to fit through the opening of the sack to be stored inside. If the bag is overloaded or broken, it ruptures and is ruined, causing the items inside to be lost forever. If it's turned inside out, the items inside spill out unharmed, but the bag must be put right before it can be used again. A living creature placed inside the bag has enough air for 10 minutes before it begins to suffocate, and it can attempt to Escape against a DC of 13. An item inside the bag provides no benefits unless it's retrieved first. An item in the bag can't be detected by magic that detects only things on the same plane. Bag of Holding (Type I) Source Core Rulebook pg. 572 Price 75 gp\n\nCapacity 25 Bulk Bag of Holding (Type II) Source Core Rulebook pg. 572 Price 300 gp\n\nCapacity 50 Bulk Bag of Holding (Type III) Source Core Rulebook pg. 572 Price 1,200 gp\n\nCapacity 100 Bulk Bag of Holding (Type IV) Source Core Rulebook pg. 572 Price 2,400 gp\n\nCapacity 150 Bulk"
+   },
+   "Bands of Force": {
+    "name": "Bands of Force",
+    "level": 8,
+    "actions": "",
+    "traits": [
+     "Force",
+     "Invested",
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 286",
+    "description": "Decorated with clear gemstones, these thick metal bands spread an inflexible layer of force over your body. The force grants you a +1 item bonus to AC and saving throws, and a maximum Dexterity modifier of +5 as armor. You can affix talismans to the bands as though they were light armor. Activate—Return Force Reaction: (force, manipulate) Trigger A creature critically misses you with a melee Strike.; Effect You Shove the creature using the bands' Athletics modifier of +14. Bands of Force Source GM Core pg. 286 Price 500 gp Bands of Force (Greater) Source GM Core pg. 286 Price 4,500 gp\n\nThe item bonus to AC and saves is +2. The bands' Athletics modifier is +21. Bands of Force (Major) Source GM Core pg. 286 Price 70,000 gp\n\nThe item bonus to AC and saves is +3. The bands' Athletics modifier is +33."
+   },
+   "Cloak of Illusions (Greater)": {
+    "name": "Cloak of Illusions (Greater)",
+    "level": 12,
+    "actions": "",
+    "traits": [
+     "Invested",
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 287",
+    "description": "This cloak flows, covering and concealing the wearer's body. The cloak allows you to cast figment as an occult innate cantrip. Although naturally a dull gray, while invested the cloak picks up colors and patterns from its surroundings, granting a +1 item bonus to Stealth checks. Activate—Draw Hood Two Actions: (manipulate) Frequency once per day; Effect You draw the hood up and gain the effects of invisibility, with the spell's normal duration or until you pull the hood back down, whichever comes first. Cloak of Illusions Source GM Core pg. 287 Price 360 gp Cloak of Illusions (Greater) Source GM Core pg. 287 Price 1,750 gp\n\nThe cloak grants a +2 item bonus and the effects of 4th-rank invisibility."
+   },
+   "Composite Longbow": {
+    "name": "Composite Longbow",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Deadly",
+     "Propulsive",
+     "Volley"
+    ],
+    "category": "weapon",
+    "sourceBook": "Tian Xia Character Guide, p. 128",
+    "description": "This projectile weapon is made from horn, wood, and sinew laminated together to increase the power of its pull and the force of its projectile. Like all longbows, its great size also increases the bow's range and power. You must use two hands to fire it, and it cannot be used while mounted. Any time an ability is specifically restricted to a longbow, such as Erastil's favored weapon, it also applies to composite longbows unless otherwise stated. Critical Specialization Effects Source Core Rulebook pg. 283 Certain feats, class features, weapon runes, and other effects can grant you additional benefits when you make a Strike with certain weapons and get a critical success. This is called a critical specialization effect. The exact effect depends on which weapon group your weapon belongs to, as listed below. You can always decide not to add the critical specialization effect of your weapon. Click here for the full rules on Critical Specialization Effects."
+   },
+   "Dagger": {
+    "name": "Dagger",
+    "level": 0,
+    "actions": "",
+    "traits": [
+     "Agile",
+     "Finesse",
+     "Thrown",
+     "Versatile"
+    ],
+    "category": "weapon",
+    "sourceBook": "Player Core, p. 277",
+    "description": "This small, bladed weapon is held in one hand and used to stab a creature in close combat. It can also be thrown. Critical Specialization Effects Source Core Rulebook pg. 283 Certain feats, class features, weapon runes, and other effects can grant you additional benefits when you make a Strike with certain weapons and get a critical success. This is called a critical specialization effect. The exact effect depends on which weapon group your weapon belongs to, as listed below. You can always decide not to add the critical specialization effect of your weapon. Click here for the full rules on Critical Specialization Effects. Specific Magic Weapons Apotheosis Knife, Bloody Fang, Dog-Bone Knife, Fiend's Hunger, Ghast Stiletto, Gloaming Shard, Poisonous Dagger, Serpent Dagger, Shadefield Knife, Shard of Self-Destruction, Undead Scourge"
+   },
+   "Ring of Sustenance": {
+    "name": "Ring of Sustenance",
+    "level": 7,
+    "actions": "",
+    "traits": [
+     "Invested",
+     "Magical",
+     "Uncommon"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 294",
+    "description": "This polished wooden ring constantly refreshes your body and mind. You don't need to eat or drink while wearing it, and you need only 2 hours of sleep per day to gain the benefits of 8 hours of sleep. A ring of sustenance doesn't function until it's been worn and invested continuously for a week. Removing it resets this interval."
+   },
+   "Shortsword": {
+    "name": "Shortsword",
+    "level": 0,
+    "actions": "",
+    "traits": [
+     "Agile",
+     "Finesse",
+     "Versatile"
+    ],
+    "category": "weapon",
+    "sourceBook": "Player Core, p. 278",
+    "description": "These blades come in a variety of shapes and styles, but they are typically 2 feet long. Critical Specialization Effects Source Core Rulebook pg. 283 Certain feats, class features, weapon runes, and other effects can grant you additional benefits when you make a Strike with certain weapons and get a critical success. This is called a critical specialization effect. The exact effect depends on which weapon group your weapon belongs to, as listed below. You can always decide not to add the critical specialization effect of your weapon. Click here for the full rules on Critical Specialization Effects. Specific Magic Weapons Blade of Four Energies, Celestial Peachwood Sword, Gloom Blade, Radiant Victory"
+   }
+  }
+ }
+}

@@ -4,6 +4,7 @@
 //   node --env-file=.env scripts/build-description-bundle.mjs                 # presets do repositório
 //   node --env-file=.env scripts/build-description-bundle.mjs --published https://<app>.vercel.app
 //   node --env-file=.env scripts/build-description-bundle.mjs --all           # retraduz tudo
+//   node scripts/build-description-bundle.mjs --lang en                        # em inglês (sem tradução)
 //
 // Por quê: o elenco é pequeno e o que cada ficha descreve muda pouco, mas toda
 // ficha aberta num aparelho novo refazia busca na AON + tradução por LLM a cada
@@ -28,6 +29,8 @@
 //   personagens publicados que não são preset — de cada mesa.
 // - Nunca grava inglês: o que ficou com `translationPending` depois de três
 //   passadas fica de fora (o app busca pela API) e o script sai com código 1.
+// - `--lang en`: o pacote em INGLÊS (`public/descriptions/en/<slug>.json`), para quem
+//   usa a plataforma em inglês. É o texto da AON como está — sem LLM nem chave de IA.
 
 import { register } from 'node:module'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -37,7 +40,13 @@ import { fileURLToPath } from 'node:url'
 register('./ts-loader.mjs', import.meta.url)
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const OUT_DIR = join(ROOT, 'public', 'descriptions')
+const cli = process.argv.slice(2)
+const LANG = cli.includes('--lang') ? cli[cli.indexOf('--lang') + 1] : 'pt'
+if (LANG !== 'pt' && LANG !== 'en') {
+  console.error('Uso: --lang pt|en')
+  process.exit(2)
+}
+const OUT_DIR = LANG === 'en' ? join(ROOT, 'public', 'descriptions', 'en') : join(ROOT, 'public', 'descriptions')
 // Pacotes da primeira versão (só magias): reaproveitados para não retraduzir.
 const LEGACY_SPELLS_DIR = join(ROOT, 'public', 'spells')
 
@@ -63,7 +72,7 @@ if (args.includes('--published') && !publishedAt) {
   process.exit(2)
 }
 
-if (!hasTranslationKey()) {
+if (LANG === 'pt' && !hasTranslationKey()) {
   console.error('Sem GEMINI_API_KEY/GROQ_API_KEY: o pacote sairia em inglês. Rode com --env-file=.env.')
   process.exit(2)
 }
@@ -114,6 +123,7 @@ function readJson(path) {
 function previousEntries(slug) {
   const current = readJson(join(OUT_DIR, `${slug}.json`))
   if (current?.version === CACHE_VERSION && current.entries) return current.entries
+  if (LANG === 'en') return {}
   const legacy = readJson(join(LEGACY_SPELLS_DIR, `${slug}.json`))
   if (legacy?.version === CACHE_VERSION && legacy.spells) return { spell: legacy.spells }
   return {}
@@ -131,7 +141,7 @@ async function resolveAll(kind, names) {
   for (let pass = 0; pass < PASSES && pending.length > 0; pass++) {
     for (let i = 0; i < pending.length; i += GROUP) {
       const group = pending.slice(i, i + GROUP)
-      const out = await RESOLVERS[kind](group, true)
+      const out = await RESOLVERS[kind](group, true, LANG)
       out.forEach((entry, k) => { if (usable(entry)) resolved[kind].set(group[k], entry) })
       process.stdout.write('.')
     }

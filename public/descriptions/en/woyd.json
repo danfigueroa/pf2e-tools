@@ -1,0 +1,1421 @@
+{
+ "version": "v13",
+ "character": "Woyd",
+ "entries": {
+  "spell": {
+   "Banishing Touch": {
+    "name": "Banishing Touch",
+    "level": 2,
+    "heighten": [
+     "4th",
+     "6th",
+     "8th"
+    ],
+    "sourceBook": "War of Immortals, p. 154",
+    "actions": "Single Action to Three Actions",
+    "traits": [
+     "Attack",
+     "Concentrate",
+     "Manipulate",
+     "Mythic",
+     "Rare"
+    ],
+    "castComponents": "",
+    "range": "touch",
+    "area": "",
+    "targets": "1 creature",
+    "duration": "",
+    "defense": "AC",
+    "description": "Your touch projects a surge of magic that launches your target safely away. Make a melee spell attack at mythic proficiency against your target's AC. If you hit, you deal 1d6 bludgeoning damage, and you launch the target into the air and away from you; the target takes falling damage as normal. The number of actions you spend while Casting the Spell determines the damage dealt by your touch and how far the target is launched. Single Action: The target is launched 10 feet into the air and knocked back 10 feet. Two Actions: Your touch deals 2d6 bludgeoning damage instead. The target is launched 20 feet into the air and pushed back 10 feet. Three Actions: Your touch deals 2d6 bludgeoning damage instead. The target is launched 30 feet into the air and pushed back 20 feet.",
+    "damage": "1d6",
+    "damageType": "bludgeoning",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "4th",
+      "text": "The initial damage increases by 1d6, and all distances increase by 10 feet for the 1-action version or 20 feet for the 2- and 3-action versions."
+     },
+     {
+      "level": "6th",
+      "text": "The initial damage increases by 2d6, and all distances increase by 20 feet for the 1-action version or 60 feet for the 2- and 3-action versions."
+     },
+     {
+      "level": "8th",
+      "text": "The initial damage increases by 3d6, and all distances increase by 30 feet for the 1-action version or 100 feet for the 2- and 3-action versions."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "1d6",
+       "kind": "damage",
+       "types": [
+        "bludgeoning"
+       ],
+       "persistent": false,
+       "count": 1,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      },
+      {
+       "id": 1,
+       "formula": "2d6",
+       "kind": "damage",
+       "types": [
+        "bludgeoning"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 2
+      },
+      {
+       "id": 2,
+       "formula": "2d6",
+       "kind": "damage",
+       "types": [
+        "bludgeoning"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 6,
+       "flat": 0,
+       "nth": 1,
+       "occurrences": 2
+      }
+     ],
+     "rules": [
+      {
+       "level": "4th",
+       "adds": [],
+       "safe": false,
+       "resolved": false
+      },
+      {
+       "level": "6th",
+       "adds": [],
+       "safe": false,
+       "resolved": false
+      },
+      {
+       "level": "8th",
+       "adds": [],
+       "safe": false,
+       "resolved": false
+      }
+     ]
+    }
+   },
+   "Detect Magic": {
+    "name": "Detect Magic",
+    "level": 1,
+    "heighten": [
+     "3rd",
+     "4th"
+    ],
+    "sourceBook": "Player Core, p. 323",
+    "actions": "Two Actions",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Detection",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Primal",
+     "Elemental"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "30-foot emanation",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "You send out a pulse that registers the presence of magic. You receive no information beyond the presence or absence of magic. You can choose to ignore magic you're fully aware of, such as the magic items and ongoing spells of you and your allies. You detect illusion magic only if that magic's effect has a lower rank than the rank of your detect magic spell. However, items that have an illusion aura but aren't deceptive in appearance (such as an invisibility potion) typically are detected normally.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "3rd",
+      "text": "You learn the rank or level of the most powerful magical effect the spell detects, as determined by the GM."
+     },
+     {
+      "level": "4th",
+      "text": "As 3rd rank, but you also pinpoint the source of the highest-rank magic. Like for an imprecise sense, you don't learn the exact location, but can narrow down the source to within a 5-foot cube (or the nearest if larger than that)."
+     }
+    ]
+   },
+   "Dispel Magic": {
+    "name": "Dispel Magic",
+    "level": 2,
+    "sourceBook": "Player Core, p. 325",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Primal",
+     "Elemental"
+    ],
+    "castComponents": "",
+    "range": "120 feet",
+    "area": "",
+    "targets": "1 spell effect or unattended magic item",
+    "duration": "",
+    "defense": "",
+    "description": "You unravel the magic behind a spell or effect. Attempt a counteract check against the target. If you successfully counteract a magic item, it becomes a mundane item of its type for 10 minutes. This doesn't change the item's non-magical properties. If the target is an artifact or similar item, you automatically fail.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Divine Wrath": {
+    "name": "Divine Wrath",
+    "level": 4,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 326",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Manipulate",
+     "Sanctified",
+     "Spirit"
+    ],
+    "traditions": [
+     "Divine"
+    ],
+    "castComponents": "",
+    "range": "120 feet",
+    "area": "20-foot burst",
+    "targets": "",
+    "duration": "",
+    "defense": "Fortitude",
+    "description": "You channel the fury of divinity against your foes. You deal 4d10 spirit damage to enemies in the area, depending on their Fortitude save. Critical Success The creature is unaffected. Success The creature takes half damage. Failure The creature takes full damage and is sickened 1. Critical Failure The creature takes full damage and is sickened 2; while it's sickened, it's also slowed 1.",
+    "damage": "4d10",
+    "damageType": "spirit",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The damage increases by 1d10."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "4d10",
+       "kind": "damage",
+       "types": [
+        "spirit"
+       ],
+       "persistent": false,
+       "count": 4,
+       "faces": 10,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 10,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Empty Inside": {
+    "name": "Empty Inside",
+    "level": 1,
+    "heighten": [
+     "5th"
+    ],
+    "sourceBook": "Divine Mysteries, p. 268",
+    "actions": "Single Action",
+    "traits": [
+     "Cleric",
+     "Concentrate",
+     "Focus",
+     "Mental",
+     "Uncommon"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "You inject a sliver of the void into your mind, momentarily remaking it into a bleak and empty place. Attempt a counteract check against one emotion effect affecting you.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "5th",
+      "text": "You can attempt counteract checks against any number of emotion effects affecting you."
+     }
+    ]
+   },
+   "Enfeeble": {
+    "name": "Enfeeble",
+    "level": 1,
+    "sourceBook": "Player Core, p. 329",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "30 feet",
+    "area": "",
+    "targets": "1 creature",
+    "duration": "varies",
+    "defense": "Fortitude",
+    "description": "You sap the target's strength, depending on its Fortitude save. Critical Success The target is unaffected. Success The target is enfeebled 1 until the start of your next turn. Failure The target is enfeebled 2 for 1 minute. Critical Failure The target is enfeebled 3 for 1 minute.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Forbidding Ward": {
+    "name": "Forbidding Ward",
+    "level": 1,
+    "heighten": [
+     "6th"
+    ],
+    "sourceBook": "Player Core, p. 332",
+    "actions": "Two Actions",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Divine",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "30 feet",
+    "area": "",
+    "targets": "1 ally and 1 enemy",
+    "duration": "sustained up to 1 minute",
+    "defense": "",
+    "description": "You ward an ally against the attacks and hostile spells from the target enemy. The target ally gains a +1 status bonus to Armor Class and saving throws against the target enemy's attacks, spells, and other effects.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "6th",
+      "text": "The status bonus increases to +2."
+     }
+    ]
+   },
+   "Heal": {
+    "name": "Heal",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 335",
+    "actions": "Single Action to Three Actions",
+    "traits": [
+     "Healing",
+     "Manipulate",
+     "Vitality",
+     "Positive"
+    ],
+    "traditions": [
+     "Divine",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "varies",
+    "area": "",
+    "targets": "1 willing living creature or 1 undead creature",
+    "duration": "",
+    "defense": "",
+    "description": "You channel vital energy to heal the living or damage the undead. If the target is a willing living creature, you restore 1d8 Hit Points. If the target is undead, you deal that amount of vitality damage to it, and it gets a basic Fortitude save. The number of actions you spend when Casting this Spell determines its targets, range, area, and other parameters. Single Action: The spell has a range of touch. Two Actions: (concentrate) The spell has a range of 30 feet. If you're healing a living creature, increase the Hit Points restored by 8. Three Actions: (concentrate) You disperse vital energy in a 30-foot emanation. This targets all living and undead creatures in the burst.",
+    "damage": "1d8",
+    "damageType": "healing",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The amount of healing or damage increases by 1d8, and the extra healing for the 2-action version increases by 8."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "1d8",
+       "kind": "healing",
+       "types": [],
+       "persistent": false,
+       "count": 1,
+       "faces": 8,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      },
+      {
+       "id": 1,
+       "formula": "8",
+       "kind": "healingExtra",
+       "types": [],
+       "persistent": false,
+       "count": 0,
+       "faces": 0,
+       "flat": 8,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 8,
+         "flat": 0
+        },
+        {
+         "id": 1,
+         "mode": "add",
+         "count": 0,
+         "faces": 0,
+         "flat": 8
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Holy Light": {
+    "name": "Holy Light",
+    "level": 3,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 335",
+    "actions": "Two Actions",
+    "traits": [
+     "Attack",
+     "Concentrate",
+     "Fire",
+     "Holy",
+     "Light",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Divine",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "120 feet",
+    "area": "",
+    "targets": "1 creature",
+    "duration": "",
+    "defense": "AC",
+    "description": "You shine a blazing ray of light tinged with holy energy. Make a ranged spell attack. The ray deals 5d6 fire damage. If the target has the unholy trait, you deal an extra 5d6 spirit damage. Critical Success The target takes double damage. Success The target takes full damage. If the light passes through an area of magical darkness or targets a creature affected by magical darkness, holy light attempts to counteract the darkness. If you need to determine whether the light passes through an area of darkness, draw a line between yourself and the spell's target.",
+    "damage": "5d6",
+    "damageType": "fire",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The fire damage increases by 2d6, and the spirit damage against unholy creatures increases by 2d6."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "5d6",
+       "kind": "damage",
+       "types": [
+        "fire"
+       ],
+       "persistent": false,
+       "count": 5,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 2
+      },
+      {
+       "id": 1,
+       "formula": "5d6",
+       "kind": "damage",
+       "types": [
+        "spirit"
+       ],
+       "persistent": false,
+       "count": 5,
+       "faces": 6,
+       "flat": 0,
+       "nth": 1,
+       "occurrences": 2
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 2,
+         "faces": 6,
+         "flat": 0
+        },
+        {
+         "id": 1,
+         "mode": "add",
+         "count": 2,
+         "faces": 6,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Illuminate": {
+    "name": "Illuminate",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Rage of Elements, p. 120",
+    "actions": "Single Action",
+    "traits": [
+     "Cantrip",
+     "Fire",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "30-foot emanation (see text)",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "You light all non-magical light sources in the area that use fire to provide their light—such as candles, lamps, and sconces. You can choose to make the emanation smaller than its maximum, to any distance of your choice. If a light source is attended by an unwilling creature, that creature can attempt a Reflex save to snuff the light out before it becomes noticeable.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The maximum area increases by 10 feet."
+     }
+    ]
+   },
+   "Impending Doom": {
+    "name": "Impending Doom",
+    "level": 3,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Secrets of Magic, p. 110",
+    "actions": "Two Actions",
+    "traits": [
+     "Divination",
+     "Emotion",
+     "Fear",
+     "Incapacitation",
+     "Mental",
+     "Prediction"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "30 feet",
+    "area": "",
+    "targets": "1 living creature",
+    "duration": "3 rounds",
+    "defense": "Will",
+    "description": "You sift through myriad potential futures, seize upon one potential moment in which the target meets a particularly gruesome and fatal end, and then show it a vision of its impending demise. The intense mental vision grows more and more terrifying to the target as the doom grows closer, and it takes 3 rounds to reach its conclusion. The target must attempt a Will saving throw to determine the effects. At the end of the spell's duration, if the target was affected, the target witnesses its death and takes 6d6 mental damage. Critical Success The creature is unaffected. Success The creature is unaffected for 1 round. On the second round, it becomes flat-footed. Finally, on the third round, it becomes frightened 1. At the end of the third round, it takes half damage. Failure The creature is immediately flat-footed. On the second round, it becomes frightened 2. Finally, on the third round, it also becomes stunned 1. At the end of the third round, the creature takes full damage. Critical Failure The creature is immediately flat-footed and frightened 3. On the second round, it becomes stunned 1. Finally, on the third round, it also becomes paralyzed. At the end of the third round, the creature takes double damage.",
+    "damage": "6d6",
+    "damageType": "mental",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The damage increases by 2d6."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "6d6",
+       "kind": "damage",
+       "types": [
+        "mental"
+       ],
+       "persistent": false,
+       "count": 6,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 2,
+         "faces": 6,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Mystic Armor": {
+    "name": "Mystic Armor",
+    "level": 1,
+    "heighten": [
+     "4th",
+     "6th",
+     "8th",
+     "10th"
+    ],
+    "sourceBook": "Player Core, p. 346",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Primal",
+     "Elemental"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "until your next daily preparations",
+    "defense": "",
+    "description": "You ward yourself with shimmering magical energy, gaining a +1 item bonus to AC and a maximum Dexterity modifier of +5. While wearing mystic armor, you use your unarmored proficiency to calculate your AC.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "4th",
+      "text": "You gain a +1 item bonus to saving throws."
+     },
+     {
+      "level": "6th",
+      "text": "The item bonus to AC increases to +2, and you gain a +1 item bonus to saving throws."
+     },
+     {
+      "level": "8th",
+      "text": "The item bonus to AC increases to +2, and you gain a +2 item bonus to saving throws."
+     },
+     {
+      "level": "10th",
+      "text": "The item bonus to AC increases to +3, and you gain a +3 item bonus to saving throws."
+     }
+    ]
+   },
+   "Radiant Field": {
+    "name": "Radiant Field",
+    "level": 2,
+    "heighten": [
+     "4th"
+    ],
+    "sourceBook": "Divine Mysteries, p. 259",
+    "actions": "Three Actions",
+    "traits": [
+     "Concentrate",
+     "Light",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "120 feet",
+    "area": "20-foot {{rules 2385 \"burst\"}}",
+    "targets": "",
+    "duration": "1 minute",
+    "defense": "Fortitude",
+    "description": "You create an area of bright light. Creatures with light blindness that are blinded by radiant field and remain in the area must attempt a Fortitude save at the start of their turns. On a failure, a creature remains blinded for 1 round; this is an incapacitation effect. This spell also suppresses magical darkness of your radiant field spell’s rank or lower.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "4th",
+      "text": "Creatures seen through the area are concealed to creatures outside the area. Creatures with light blindness can continue to be blinded by the field as long as the field is visible, even when outside of the field."
+     }
+    ]
+   },
+   "Ring of Truth": {
+    "name": "Ring of Truth",
+    "level": 3,
+    "sourceBook": "Player Core, p. 354",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Detection",
+     "Manipulate",
+     "Mental",
+     "Uncommon"
+    ],
+    "traditions": [
+     "Divine",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "30 feet",
+    "area": "20-foot burst",
+    "targets": "",
+    "duration": "10 minutes",
+    "defense": "Will",
+    "description": "You designate an area in which lies are revealed. Creatures in the area also take a –2 status penalty to Deception checks. Each time a creature in the area speaks a true statement, the soft ring of a bell sounds in the area. Creatures are aware of the magic; therefore, they can avoid answering questions to which they would normally respond with a lie, or they can be evasive as long as they remain within the boundaries of the truth. If a creature is in the area when the spell is cast or later enters the area, that creature attempts a Will save. It uses the results of this initial save if it leaves and reenters the area. Critical Success The target is so convincing that the bell rings even if they lie. Success If the target lies and succeeds at their Deception check against all targets, the bell still rings. Failure The bell accurately sees through their deception and will never ring if they lie.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Stabilize": {
+    "name": "Stabilize",
+    "level": 1,
+    "sourceBook": "Player Core, p. 359",
+    "actions": "Two Actions",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Healing",
+     "Manipulate",
+     "Vitality",
+     "Positive"
+    ],
+    "traditions": [
+     "Divine",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "30 feet",
+    "area": "",
+    "targets": "1 dying creature",
+    "duration": "",
+    "defense": "",
+    "description": "Life energy shuts death's door. The target loses the dying condition, though it remains unconscious at 0 Hit Points.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Vital Beacon": {
+    "name": "Vital Beacon",
+    "level": 4,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 366",
+    "actions": "1 minute",
+    "traits": [
+     "Concentrate",
+     "Healing",
+     "Manipulate",
+     "Vitality",
+     "Positive"
+    ],
+    "traditions": [
+     "Divine",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "until your next daily preparations",
+    "defense": "",
+    "description": "Vitality radiates outward from you, allowing others to supplicate and receive healing. Once per round, either you or an ally can use an Interact action to supplicate and lay hands upon you to regain Hit Points. Each time the beacon heals someone, it decreases in strength. It restores 4d10 Hit Points to the first creature, 4d8 Hit Points to the second, 4d6 Hit Points to the third, and 4d4 Hit Points to the fourth, after which the spell ends. You can have only one vital beacon active at a time.",
+    "damage": "4d10",
+    "damageType": "healing",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The beacon restores one additional die of HP each time it heals, using the normal die size for that step."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "4d10",
+       "kind": "healing",
+       "types": [],
+       "persistent": false,
+       "count": 4,
+       "faces": 10,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      },
+      {
+       "id": 1,
+       "formula": "4d8",
+       "kind": "healing",
+       "types": [],
+       "persistent": false,
+       "count": 4,
+       "faces": 8,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      },
+      {
+       "id": 2,
+       "formula": "4d6",
+       "kind": "healing",
+       "types": [],
+       "persistent": false,
+       "count": 4,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      },
+      {
+       "id": 3,
+       "formula": "4d4",
+       "kind": "healing",
+       "types": [],
+       "persistent": false,
+       "count": 4,
+       "faces": 4,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [],
+       "safe": false,
+       "resolved": false
+      }
+     ]
+    }
+   },
+   "Void Warp": {
+    "name": "Void Warp",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 366",
+    "actions": "Two Actions",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Manipulate",
+     "Void",
+     "Negative"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "30 feet",
+    "area": "",
+    "targets": "1 living creature",
+    "duration": "",
+    "defense": "basic Fortitude",
+    "description": "You call upon the Void to harm life force. The target takes 2d4 void damage with a basic Fortitude save. On a critical failure, the target is also enfeebled 1 until the start of your next turn.",
+    "damage": "2d4",
+    "damageType": "void",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The damage increases by 1d4."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "2d4",
+       "kind": "damage",
+       "types": [
+        "void"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 4,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 4,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   }
+  },
+  "feat": {
+   "Additional Lore": {
+    "name": "Additional Lore",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "description": "Your knowledge has expanded to encompass a new field. Choose a Lore skill subcategory. You become trained in it. At 3rd, 7th, and 15th levels, you gain an additional skill increase you can apply only to the chosen Lore subcategory. Special You can select this feat more than once. Each time you must select a new subcategory of Lore and you gain the additional skill increases to that subcategory for the listed levels."
+   },
+   "Ancestral Paragon": {
+    "name": "Ancestral Paragon",
+    "level": 3,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "description": "Whether through instinct, study, or magic, you feel a deeper connection to your ancestry. You gain a 1st-level ancestry feat."
+   },
+   "Clever Improviser": {
+    "name": "Clever Improviser",
+    "level": 5,
+    "actions": "",
+    "traits": [
+     "Human"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 64",
+    "description": "You’ve learned how to handle situations when you’re out of your depth. You gain the Untrained Improvisation general feat. In addition, you can attempt skill actions that normally require you to be trained, even if you are untrained."
+   },
+   "Cognitive Crossover": {
+    "name": "Kreighton's Cognitive Crossover",
+    "matchedName": "Kreighton's Cognitive Crossover",
+    "level": 4,
+    "actions": "Reaction",
+    "traits": [
+     "General",
+     "Skill",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "PFS Guide, p. 119",
+    "trigger": "You gain no information from a Recall Knowledge check (usually because you failed the secret check) using one of the two skills you chose for this feat.",
+    "access": "Member of the Pathfinder Society.",
+    "description": "Kreighton teaches his students that an agile mind can glean clues leading to the truth, even from the most unlikely of sources. You immediately reattempt the triggering check using the other chosen skill. Special When you gain this feat, choose two of the following skills: Arcana, Crafting, Lore (any one), Medicine, Nature, Occultism, Religion, or Society. Scrolls Training Source PFS Guide pg. 119 The Society's Master of Scrolls, Kreighton Shaine (Lost Omens Pathfinder Society Guide page 42), may be considered strange and absent-minded by his peers, but the elf venture-captain takes his duties quite seriously. Skilled in researching obscure subjects and unraveling inscrutable secrets, Kreighton teaches his students the value of an inquisitive mind. Related Feats:"
+   },
+   "Correct the Story": {
+    "name": "Correct The Story",
+    "level": 6,
+    "actions": "Reaction",
+    "traits": [
+     "Misfortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "trigger": "An enemy critically succeeds at an attack roll or saving throw.",
+    "description": "You know the story of your journey well and can correct it when your enemy tells it incorrectly. Spend a Mythic Point. The enemy must reroll the triggering attack roll or save and take the new result."
+   },
+   "Domain Initiate": {
+    "name": "Domain Initiate",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Cleric"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Soul Warden",
+     "Vindicator"
+    ],
+    "sourceBook": "Player Core, p. 113",
+    "description": "Your deity bestows a special spell related to their powers. Select one domain—a subject of particular interest to you within your religion—from your deity’s list. You gain an initial domain spell for that domain, a spell unique to the domain and not available to other clerics. Domain spells are a type of focus spell. It costs 1 Focus Point to cast a focus spell, and you start with a focus pool of 1 Focus Point. You refill your focus pool during your daily preparations, and you can regain 1 Focus Point by spending 10 minutes using the Refocus activity to pray to your deity or do service toward their causes. Focus spells are automatically heightened to half your level rounded up, much like cantrips. Focus spells don’t require spell slots, and can’t be cast using spell slots. Your focus pool can hold one Focus Point for each focus spell you have, up to 3 points. The full rules for focus spells appear here. Special You can select this feat multiple times, selecting a different domain each time and gaining its domain spell."
+   },
+   "Ears that Hear the Truth": {
+    "name": "Ears that Hear the Truth",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 81",
+    "description": "You have an acute understanding of the rhythms of living things, and you never miss the quaver that betrays a spoken lie. When you attempt to Sense Motive, or when you roll Perception for initiative, you can spend a Mythic Point to attempt the check or roll at mythic proficiency."
+   },
+   "Haughty Obstinacy": {
+    "name": "Haughty Obstinacy",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Human"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 64",
+    "description": "Your powerful ego makes it harder for others to order you around. If you roll a success on a saving throw against a mental effect that attempts to directly control your actions, you critically succeed instead. If a creature rolls a failure on a check to Coerce you using Intimidation, it gets a critical failure instead (so it can’t try to Coerce you again for 1 week)."
+   },
+   "Healing Hands": {
+    "name": "Healing Hands",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Cleric"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 114",
+    "prerequisites": "healing font",
+    "description": "Your vitality is even more vibrant and restorative. When you cast heal, you roll d10s instead of d8s."
+   },
+   "Multilingual": {
+    "name": "Multilingual",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 258",
+    "prerequisites": "Trained in Society",
+    "description": "You easily pick up new languages. You learn two new languages, chosen from common languages, uncommon languages, and any others you have access to. You learn an additional language if you are or become a master in Society and again if you are or become legendary. Special You can select this feat multiple times. Each time, you learn additional languages."
+   },
+   "Natural Ambition": {
+    "name": "Natural Ambition",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Human"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 64",
+    "description": "You were raised to be ambitious and always reach for the stars, leading you to progress quickly in your chosen field. You gain a 1st-level class feat for your class. You must meet the prerequisites, but you can select the feat later in the character creation process in order to determine which prerequisites you meet."
+   },
+   "Prescience": {
+    "name": "Prescience",
+    "level": 4,
+    "actions": "Free Action",
+    "traits": [
+     "Mythic",
+     "Prediction",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "trigger": "You’re about to roll initiative.",
+    "description": "Mythic power floods through your mind, filling you with visions of possible futures, events that might or might not happen, and warnings of things that might be. Spend a Mythic Point and roll your initiative check using mythic proficiency. Until the end of your first turn, you have a +1 status bonus to AC and all saves."
+   },
+   "Rapid Response": {
+    "name": "Rapid Response",
+    "level": 2,
+    "actions": "Reaction",
+    "traits": [
+     "Cleric"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 115",
+    "trigger": "An ally is reduced to 0 Hit Points",
+    "description": "You work quickly in emergencies. You Stride towards the triggering ally. You gain a +10-foot circumstance bonus to your Speed during this movement."
+   },
+   "Sacred Ground": {
+    "name": "Sacred Ground",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Cleric",
+     "Consecration",
+     "Divine",
+     "Exploration"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 116",
+    "prerequisites": "harmful font or healing font",
+    "frequency": "once per 10 minutes",
+    "description": "You pray continuously for 1 minute to call a subtle shadow of your deity’s realm over a 30-foot burst centered on you. It lasts for 10 minutes, and a creature that remains in the area for the entire 10 minutes regains Hit Points equal to your level. If you have a healing font, this activity has the healing and vitality traits and heals living creatures. If you have a harmful font, this activity has the healing and void traits and heals undead creatures (or other creatures with void healing). Clerics with Versatile Font can choose either or both. It can’t damage creatures in any case."
+   },
+   "Schooled in Secrets": {
+    "name": "Schooled in Secrets",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 262",
+    "prerequisites": "Trained in Occultism",
+    "description": "You notice the signs and symbols that members of mystery cults and other secret societies use to declare their affiliation to fellow members. You can use Occultism in place of Diplomacy to Gather Information about such groups and in place of Deception to Impersonate a member of these groups. If you belong to a secret cult, lodge, sect, or similar organization, you automatically recognize members of your group unless they are specifically attempting to conceal their presence from you. They also recognize your standing unless you are specifically concealing it."
+   },
+   "Selective Energy": {
+    "name": "Selective Energy",
+    "level": 6,
+    "actions": "",
+    "traits": [
+     "Cleric"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 117",
+    "description": "As you call down divine power, you can prevent some enemies from benefiting or some allies from being hurt. When you cast a version of harm or heal that has an area, you can designate up to 5 creatures in the area. They are not targeted by the spell."
+   },
+   "Thorough Search": {
+    "name": "Thorough Search",
+    "level": 3,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 234",
+    "prerequisites": "Expert in Perception",
+    "description": "You take your time searching to ensure you find everything. When Searching, you can take twice as long to search. Normally this means you Search at up to one quarter of your Speed, to a maximum of 150 feet per minute to check everything, or 75 feet per minute to check everything before you walk into an area. If you do and the GM rolls your secret check to Seek to notice something, you gain a +2 circumstance bonus to that Perception check and if you succeed, you get a critical success instead."
+   },
+   "Toughness": {
+    "name": "Toughness",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 263",
+    "description": "Your body can withstand more punishment than most before succumbing. Increase your maximum Hit Points by your level. You reduce the DC of recovery checks by 1."
+   },
+   "Untrained Improvisation": {
+    "name": "Untrained Improvisation",
+    "level": 3,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 264",
+    "description": "You’ve learned how to handle situations when you’re out of your depth. Your proficiency bonus to untrained skill checks is equal to your level –2. This improves to your level –1 at 5th level and your full level at 7th level. This doesn’t allow you to use the skill’s trained actions."
+   },
+   "Versatile Human": {
+    "name": "Versatile Human",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Player Core, p. 63",
+    "description": "Heritage Versatile Human Humanity's versatility and ambition have fueled its ascendance to be the most common ancestry in most nations throughout the world. Select a general feat of your choice for which you meet the"
+   }
+  },
+  "special": {
+   "Absorb Injury": {
+    "name": "Absorb Injury",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Necromancy"
+    ],
+    "category": "relic",
+    "sourceBook": "Secrets of Magic, p. 231",
+    "description": "Activate Reaction: envision; Frequency once per day; Trigger an ally within 30 feet takes damage; Effect You forge a conduit to your ally's soul and absorb the injury to protect them. You receive the damage instead of your ally; you also take any additional effects associated with the transferred damage, such as poison on the blade, conditions, or persistent fire damage from a critical hit with a flaming rune."
+   },
+   "Anathema": {
+    "name": "Anathema",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Cleric",
+    "sourceBook": "Player Core, p. 108",
+    "description": "Acts fundamentally opposed to your deity's ideals are anathema to your faith. Learning or casting spells, committing acts, and using items that are anathema to your deity remove you from your deity's good graces. Casting spells with the unholy trait is almost always anathema to deities who don't allow unholy sanctification, and casting holy spells is likewise anathema to those who don't allow holy sanctification. Similarly, casting spells that are anathema to the tenets or goals of your faith could interfere with your connection to your deity. For example, casting a spell to create undead would be anathema to Pharasma, the goddess of death. Many actions that are anathema don't appear in any deity's formal list. For borderline cases, you and your GM determine which acts are anathema. If you perform enough acts that are anathema to your deity, you lose the magical abilities that come from your connection to your deity. The class features that you lose are determined by the GM, but they likely include your divine font and all cleric spellcasting. These abilities can be regained only if you repent by conducting an atone ritual."
+   },
+   "Cleric Spellcasting": {
+    "name": "Cleric Spellcasting",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Cleric",
+    "sourceBook": "Player Core, p. 108",
+    "description": "Your deity bestows on you the power to cast divine spells. You are a spellcaster, and you can cast spells of the divine tradition using the Cast a Spell activity. As a cleric, your chants generally invoke your deity and their powerful servants by name or title, while your gestures are followed by sacred symbols or other representations of your deity At 1st level, you can prepare two 1st-rank spells and five cantrips each morning from the common spells on the divine spell list or from other divine spells to which you gain access and learn via Learn a Spell. Prepared spells remain available to you until you cast them or until you prepare your spells again. The number of spells you can prepare each day is called your spell slots. As you increase in level as a cleric, the number of spells you can prepare each day increases, as does the highest rank of spell you can cast, as shown in Cleric Spells per Day table above. Some of your spells require you to attempt a spell attack to see how effective they are or for your enemies to roll against your spell DC (typically by attempting a saving throw). Since your key attribute is Wisdom, your spell attack modifier and spell DC use your Wisdom modifier. Heightening Spells When you get spell slots of 2nd rank and higher, you can fill those slots with stronger versions of lower-rank spells. This increases the spell's rank, heightening it to match the spell slot. Many spells have specific improvements when they are heightened to certain ranks. Cantrips Some of your spells are cantrips. A cantrip is a special type of spell that doesn't use spell slots. You can cast a cantrip at will, any number of times per day. A cantrip is always automatically heightened to half your level rounded up—this is usually equal to the highest rank of cleric spell slot you have. For example, as a 1st-level cleric, your cantrips are 1st-rank spells, and as a 5th-level cleric, your cantrips are 3rd-rank spells."
+   },
+   "Cloistered Cleric": {
+    "name": "Cloistered Cleric",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "doctrine",
+    "sourceBook": "Player Core, p. 112",
+    "description": "Cleric Doctrine Cloistered Cleric You are a cleric of the cloth, focusing on divine magic and your connection to your deity’s domains. - First Doctrine (1st) You gain the Domain Initiate cleric feat. - Second Doctrine (3rd) Your proficiency rank for Fortitude saves increases to expert. - Third Doctrine (7th) Your proficiency ranks for the spell attack modifier and spell DC statistics increase to expert. - Fourth Doctrine (11th) You gain expert proficiency with your deity's favored weapon, simple weapons, and unarmed attacks. When you critically succeed at an attack roll using your deity's favored weapon, you apply the weapon's critical specialization effect; use your spell DC in place of your class DC. - Fifth Doctrine (15th) Your proficiency ranks for the spell attack modifier and spell DC statistics increase to master. - Final Doctrine (19th) Your proficiency ranks for the spell attack modifier and spell DC statistics increase to legendary."
+   },
+   "Deity (Cleric)": {
+    "name": "Deity",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Cleric",
+    "sourceBook": "Player Core, p. 108",
+    "description": "As a cleric, you are a mortal servitor of a deity you revere above all others. The most common deities in Pathfinder have edicts, areas of concern, and the benefits you get for being a cleric of that deity. Your deity grants you the trained proficiency rank in one skill and with the deity's favored weapon. If the favored weapon is uncommon, you also get access to that weapon. Your deity also adds spells to your spell list. You can prepare these just like you can any spell on the divine spell list once you can prepare spells of their rank as a cleric. Any of these spells that aren't normally on the divine list are still divine spells if you prepare them this way. Sanctification Depending on your deity, their sanctification can make you holy or unholy. This gives you the holy or unholy trait, which commits you to one side of a struggle over the souls of the planes and may be referenced in other abilities. If you “can be” holy or unholy according to your deity, you make that choice, and if you “must be” holy or unholy you gain the trait automatically. If you gain the opposing trait in some way, you lose the previous trait until you complete an atone ritual. Anathema Acts fundamentally opposed to your deity's ideals are anathema to your faith. Learning or casting spells, committing acts, and using items that are anathema to your deity remove you from your deity's good graces. Casting spells with the unholy trait is almost always anathema to deities who don't allow unholy sanctification, and casting holy spells is likewise anathema to those who don't allow holy sanctification. Similarly, casting spells that are anathema to the tenets or goals of your faith could interfere with your connection to your deity. For example, casting a spell to create undead would be anathema to Pharasma, the goddess of death. Many actions that are anathema don't appear in any deity's formal list. For borderline cases, you and your GM determine which acts are anathema. If you perform enough acts that are anathema to your deity, you lose the magical abilities that come from your connection to your deity. The class features that you lose are determined by the GM, but they likely include your divine font and all cleric spellcasting. These abilities can be regained only if you repent by conducting an atone ritual."
+   },
+   "Domain: Void": {
+    "name": "Void",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "domain",
+    "sourceBook": "Gods & Magic, p. 119",
+    "description": "Void domain: you draw power from emptiness. Domain spell: Empty Inside. Advanced domain spell: Door to Beyond (with the Advanced Domain feat)."
+   },
+   "Emotion Surge": {
+    "name": "Emotion Surge",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Emotion",
+     "Mental"
+    ],
+    "category": "relic",
+    "sourceBook": "Treasure Vault (Remastered), p. 199",
+    "description": "Activate Single Action: (concentrate) Frequency once per hour; Effect A surge of emotion emanates from your relic, granting a +1 status bonus to skill checks determined by the relic's emotion. This bonus lasts for 1 minute. Anger Athletics checks Awe Performance checks Dedication Checks to Recall Knowledge Fear Stealth checks Hatred Intimidation checks Joy Diplomacy checks Love Medicine checks Misery Survival checks Pride Society checks Remorse Deception checks"
+   },
+   "Holy": {
+    "name": "Holy",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Holy"
+    ],
+    "category": "class-feature",
+    "className": "Cleric",
+    "sourceBook": "Player Core, p. 108",
+    "description": "Sanctification: depending on your deity, their sanctification can make you holy or unholy. You are HOLY: you gain the holy trait, which commits you to one side of a struggle over the souls of the planes and may be referenced in other abilities. If you gain the opposing trait in some way, you lose the previous trait until you complete an atone ritual."
+   },
+   "Perception Expertise (Cleric)": {
+    "name": "Perception Expertise",
+    "level": 5,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Cleric",
+    "sourceBook": "Player Core, p. 108",
+    "description": "You remain alert to threats around you. Your proficiency rank for Perception increases to expert."
+   },
+   "Rewrite Fate": {
+    "name": "Rewrite Fate",
+    "level": null,
+    "actions": "Free Action",
+    "traits": [
+     "Fortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "action",
+    "sourceBook": "War of Immortals, p. 78",
+    "trigger": "You roll a skill check or saving throw and don’t like the result.",
+    "description": "Destiny, fate, or some other force bends around you as your mythic power swells, manifesting in a flash of light or visible surge of energy emanating from your body as you cast aside the chains of fate. You expend a Mythic Point and reroll the check or save with mythic proficiency, taking the new result."
+   },
+   "Sage's Calling": {
+    "name": "Sage's Calling",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Calling",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "mythic-calling",
+    "sourceBook": "War of Immortals, p. 80",
+    "description": "Edicts preserve your knowledge for future generations, seek out lost knowledge in dangerous or forgotten places Anathema destroy books or other repositories of knowledge, lie to hide knowledge from the world"
+   },
+   "Second Doctrine": {
+    "name": "Doctrine",
+    "matchedName": "Doctrine",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Cleric",
+    "sourceBook": "Player Core, p. 108",
+    "description": "Even among followers of the same deity, approaches vary. At 1st level, you select cloistered cleric or warpriest and gain the benefits of its first doctrine. At 3rd level and every four levels thereafter, you gain another benefit from your doctrine. Doctrines can be found here."
+   },
+   "Third Doctrine": {
+    "name": "Doctrine",
+    "matchedName": "Doctrine",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Cleric",
+    "sourceBook": "Player Core, p. 108",
+    "description": "Even among followers of the same deity, approaches vary. At 1st level, you select cloistered cleric or warpriest and gain the benefits of its first doctrine. At 3rd level and every four levels thereafter, you gain another benefit from your doctrine. Doctrines can be found here."
+   },
+   "Versatile Human": {
+    "name": "Versatile Human",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Player Core, p. 63",
+    "description": "Heritage Versatile Human Humanity's versatility and ambition have fueled its ascendance to be the most common ancestry in most nations throughout the world. Select a general feat of your choice for which you meet the"
+   }
+  },
+  "item": {
+   "Healer's Toolkit": {
+    "name": "Healer's Toolkit",
+    "level": 0,
+    "actions": "",
+    "traits": [],
+    "category": "equipment",
+    "sourceBook": "Player Core, p. 288",
+    "description": "This kit of bandages, herbs, and suturing tools is necessary for Medicine checks to Administer First Aid, Treat Disease, Treat Poison, or Treat Wounds. If you wear your healer's toolkit, you can draw and replace them as part of the action that uses them. You can use a toolkit with 1 hand if you’re wearing it or 2 if you’re holding it. See here for details. Healer's Toolkit Source Player Core pg. 288 Price 5 gp Bulk 1 Healer's Toolkit (Expanded) Source Player Core pg. 288 Price 50 gp Bulk 1\n\nExpanded healer's toolkits provide a +1 item bonus to such checks."
+   },
+   "Healing Potion (Lesser)": {
+    "name": "Healing Potion (Lesser)",
+    "level": 3,
+    "actions": "Single Action",
+    "traits": [
+     "Consumable",
+     "Healing",
+     "Magical",
+     "Potion",
+     "Vitality",
+     "Positive"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 259",
+    "description": "A healing potion is a vial of a ruby-red liquid that imparts a tingling sensation as the drinker's wounds heal rapidly. When you drink a healing potion, you regain the listed number of Hit Points. Healing Potion (Minor) Source GM Core pg. 259, Core Rulebook pg. 563 Price 4 gp\n\nThe potion restores 1d8 Hit Points. Healing Potion (Lesser) Source GM Core pg. 259, Core Rulebook pg. 563 Price 12 gp\n\nThe potion restores 2d8+5 Hit Points. Healing Potion (Moderate) Source GM Core pg. 259, Core Rulebook pg. 563 Price 50 gp\n\nThe potion restores 3d8+10 Hit Points. Healing Potion (Greater) Source GM Core pg. 259, Core Rulebook pg. 563 Price 400 gp\n\nThe potion restores 6d8+20 Hit Points. Healing Potion (Major) Source GM Core pg. 259, Core Rulebook pg. 563 Price 5,000 gp\n\nThe potion restores 8d8+30 Hit Points."
+   },
+   "Invisibility Potion": {
+    "name": "Invisibility Potion",
+    "level": 4,
+    "actions": "Single Action",
+    "traits": [
+     "Consumable",
+     "Illusion",
+     "Magical",
+     "Potion",
+     "Uncommon"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 259",
+    "description": "An invisibility potion is colorless and oddly lightweight. Upon drinking it, you gain the effects of a 2nd-rank invisibility spell."
+   },
+   "Rapier": {
+    "name": "Rapier",
+    "level": 0,
+    "actions": "",
+    "traits": [
+     "Deadly",
+     "Disarm",
+     "Finesse"
+    ],
+    "category": "weapon",
+    "sourceBook": "Player Core, p. 278",
+    "description": "The rapier is a long and thin piercing blade with a basket hilt. It is prized among many as a dueling weapon. Critical Specialization Effects Source Core Rulebook pg. 283 Certain feats, class features, weapon runes, and other effects can grant you additional benefits when you make a Strike with certain weapons and get a critical success. This is called a critical specialization effect. The exact effect depends on which weapon group your weapon belongs to, as listed below. You can always decide not to add the critical specialization effect of your weapon. Click here for the full rules on Critical Specialization Effects. Specific Magic Weapons Final Stand, Protector's Final Gift, Rime Foil, Soulpiercer, Storm Flash, Viper Rapier"
+   },
+   "Religious Symbol (Silver)": {
+    "name": "Religious Symbol (Silver)",
+    "level": 0,
+    "actions": "",
+    "traits": [],
+    "category": "equipment",
+    "sourceBook": "Player Core, p. 290",
+    "description": "This piece of wood or silver is emblazoned with an image representing a deity. Some divine spellcasters, such as clerics, can use a religious symbol to use certain abilities. A religious symbol can be worn on the body on a chain or pin, or can be held. Religious Symbol (Wooden) Source Player Core pg. 290, Core Rulebook pg. 291 Price 1 sp Hands 1 Bulk L Religious Symbol (Silver) Source Player Core pg. 290, Core Rulebook pg. 291 Price 2 gp Hands 1 Bulk L"
+   },
+   "Scroll Robes": {
+    "name": "Scroll Robes",
+    "level": 0,
+    "actions": "",
+    "traits": [
+     "Inscribed"
+    ],
+    "category": "armor",
+    "sourceBook": "Treasure Vault (Remastered), p. 11",
+    "description": "Scroll robes are composed of paper alchemically treated for strength and flexibility. A layered structure prevents cutting and tearing, and for the purpose of calculating damage, the robes are considered to be cloth. The paper accepts all sorts of decoration, including magical writing, as detailed in the inscribed trait. Unarmored category, cloth group: +0 AC bonus, Dex cap +5, no check or Speed penalty. Because it has a Dex cap, it accepts fundamental and property runes — Woyd's has +1 potency."
+   }
+  }
+ }
+}

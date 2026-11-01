@@ -1,0 +1,1983 @@
+{
+ "version": "v13",
+ "character": "Thalos Alba",
+ "entries": {
+  "spell": {
+   "Alarm": {
+    "name": "Alarm",
+    "level": 1,
+    "heighten": [
+     "3rd"
+    ],
+    "sourceBook": "Player Core, p. 314",
+    "actions": "10 minutes",
+    "traits": [
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "touch",
+    "area": "20-foot burst",
+    "targets": "",
+    "duration": "8 hours",
+    "defense": "",
+    "description": "You ward an area to alert you when creatures enter without your permission. When you cast alarm, select a password. Whenever a Small or larger corporeal creature enters the spell's area without speaking the password, alarm sends your choice of a mental alert (in which case the spell gains the mental trait) or an audible alarm with the sound and volume of a hand bell (in which case the spell gains the auditory trait). Either option automatically awakens you, and the bell allows each creature in the area to attempt a DC 15 Perception check to wake up. A creature aware of the alarm must succeed at a Stealth check against the spell's DC or trigger the spell when moving into the area.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "3rd",
+      "text": "You can specify a trigger for which types of creatures sound the alarm spell, as described in Setting Triggers on page 303."
+     }
+    ]
+   },
+   "Blazing Bolt": {
+    "name": "Blazing Bolt",
+    "level": 2,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 318",
+    "actions": "Single Action to Three Actions",
+    "traits": [
+     "Attack",
+     "Concentrate",
+     "Fire",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "60 feet",
+    "area": "",
+    "targets": "1 or more creatures",
+    "duration": "",
+    "defense": "AC",
+    "description": "You fire a ray of heat and flame. Make a spell attack roll against a single creature. On a hit, the target takes 2d6 fire damage, and on a critical hit, the target takes double damage. For each additional action you use when Casting the Spell, you can fire an additional ray at a different target, to a maximum of three rays targeting three different targets for 3 actions. These attacks each increase your multiple attack penalty, but you don't increase your multiple attack penalty until after you make all the spell attack rolls for blazing bolt. If you spend 2 or more actions Casting the Spell, the damage increases to 4d6 fire damage on a hit, and it still deals double damage on a critical hit.",
+    "damage": "2d6",
+    "damageType": "fire",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The damage to each target increases by 1d6 for the 1-action version, or by 2d6 for the 2- and 3-action versions."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "2d6",
+       "kind": "damage",
+       "types": [
+        "fire"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      },
+      {
+       "id": 1,
+       "formula": "4d6",
+       "kind": "damage",
+       "types": [
+        "fire"
+       ],
+       "persistent": false,
+       "count": 4,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 6,
+         "flat": 0
+        },
+        {
+         "id": 1,
+         "mode": "add",
+         "count": 2,
+         "faces": 6,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Breathe Fire": {
+    "name": "Breathe Fire",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 319",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Fire",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "15-foot cone",
+    "targets": "",
+    "duration": "",
+    "defense": "basic Reflex",
+    "description": "A gout of flame sprays from your mouth. You deal 2d6 fire damage to creatures in the area with a basic Reflex save.",
+    "damage": "2d6",
+    "damageType": "fire",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The damage increases by 2d6."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "2d6",
+       "kind": "damage",
+       "types": [
+        "fire"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 2,
+         "faces": 6,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Clairvoyance": {
+    "name": "Clairvoyance",
+    "level": 4,
+    "sourceBook": "Player Core, p. 320",
+    "actions": "1 minute",
+    "traits": [
+     "Concentrate",
+     "Manipulate",
+     "Scrying"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "500 feet",
+    "area": "",
+    "targets": "",
+    "duration": "10 minutes",
+    "defense": "",
+    "description": "You create an invisible floating eye at a location within range (even if it's outside your line of sight or line of effect). The eye can't move, but you can see in all directions from that point as if using your normal visual senses.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Cleanse Affliction": {
+    "name": "Cleanse Affliction",
+    "level": 2,
+    "heighten": [
+     "3rd",
+     "4th"
+    ],
+    "sourceBook": "Player Core, p. 320",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Healing",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Divine",
+     "Occult",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "touch",
+    "area": "",
+    "targets": "1 willing creature",
+    "duration": "",
+    "defense": "",
+    "description": "Gentle restorative magic pushes back the effects of toxins and more complex maladies. Choose an affliction on the target, such as a curse, disease, or poison. If it has advanced past stage one, reduce the stage by one. This reduction can be applied only once to a given case of an affliction, with the case ending when it's completely cured. Although the reduction can't occur again, heightened versions of this spell attempt to counteract with each casting.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "3rd",
+      "text": "Attempt to counteract the affliction if it is a disease or poison."
+     },
+     {
+      "level": "4th",
+      "text": "Attempt to counteract the affliction if it is a curse, disease, or poison."
+     }
+    ]
+   },
+   "Dream Message": {
+    "name": "Dream Message",
+    "level": 3,
+    "heighten": [
+     "4th"
+    ],
+    "sourceBook": "Player Core, p. 326",
+    "actions": "10 minutes",
+    "traits": [
+     "Concentrate",
+     "Manipulate",
+     "Mental"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "planetary",
+    "area": "",
+    "targets": "1 creature you know by name and have met in person",
+    "duration": "until your next daily preparations",
+    "defense": "",
+    "description": "You send a message to your target's dream. The message is one-way, up to 1 minute of speech (roughly 150 words). If the target is asleep, they receive the message instantly. If not, they receive it the next time they sleep. As soon as they receive it, the spell ends, and you know the message was sent.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "4th",
+      "text": "You can target up to 10 creatures you know by name and have met in person. You must send the same message to all of them; the spell ends for each creature individually."
+     }
+    ]
+   },
+   "Entropic Wheel": {
+    "name": "Entropic Wheel",
+    "level": 3,
+    "sourceBook": "Dark Archive (Remastered), p. 20",
+    "actions": "Reaction",
+    "traits": [
+     "Cantrip",
+     "Cold",
+     "Concentrate",
+     "Fire",
+     "Psychic",
+     "Uncommon"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "1 minute",
+    "defense": "",
+    "description": "You stockpile thermal energy in a magical wheel-like construct that lets you burn opponents with cold or freeze their bodies with heat. When you Cast the Spell, the wheel has one mote of thermal energy, and when you use a cold or fire effect or deal cold or fire damage, the wheel spins, siphoning off a bit of energy and gaining another mote. The wheel can't gain motes more than once on a given turn, and the maximum number of motes is equal to _entropic wheel's_rank. When you Cast a Spell that deals fire damage, the target also takes cold damage equal to the number of motes in the entropic wheel. When you Cast a Spell that deals cold damage, the target also takes fire damage equal to the number of motes in the entropic wheel. This applies only to the initial damage of the spell, not to any persistent damage or ongoing effects.\n\nAmp You gain two motes instead of one when you Cast the Spell and each time the wheel gains another mote.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Fireball": {
+    "name": "Fireball",
+    "level": 3,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 331",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Fire",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "500 feet",
+    "area": "20-foot burst",
+    "targets": "",
+    "duration": "",
+    "defense": "basic Reflex",
+    "description": "A roaring blast of fire detonates at a spot you designate, dealing 6d6 fire damage.",
+    "damage": "6d6",
+    "damageType": "fire",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The damage increases by 2d6."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "6d6",
+       "kind": "damage",
+       "types": [
+        "fire"
+       ],
+       "persistent": false,
+       "count": 6,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 2,
+         "faces": 6,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Fly": {
+    "name": "Fly",
+    "level": 4,
+    "heighten": [
+     "7th"
+    ],
+    "sourceBook": "Player Core, p. 332",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Primal",
+     "Elemental"
+    ],
+    "castComponents": "",
+    "range": "touch",
+    "area": "",
+    "targets": "1 creature",
+    "duration": "5 minutes",
+    "defense": "",
+    "description": "The target can soar through the air, gaining a fly Speed equal to its Speed or 20 feet, whichever is greater.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "7th",
+      "text": "The duration increases to 1 hour."
+     }
+    ]
+   },
+   "Frostbite (Amped)": {
+    "name": "Frostbite",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 332",
+    "actions": "Two Actions",
+    "traits": [
+     "Cantrip",
+     "Cold",
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "60 feet",
+    "area": "",
+    "targets": "1 creature",
+    "duration": "",
+    "defense": "basic Fortitude",
+    "description": "An orb of biting cold coalesces around your target, freezing its body. The target takes 2d4 cold damage with a basic Fortitude save. On a critical failure, the target also gains weakness 1 to bludgeoning until the start of your next turn.",
+    "damage": "2d4",
+    "damageType": "cold",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The damage increases by 1d4 and the weakness on a critical failure increases by 1."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "2d4",
+       "kind": "damage",
+       "types": [
+        "cold"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 4,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      },
+      {
+       "id": 1,
+       "formula": "1",
+       "kind": "weakness",
+       "types": [
+        "bludgeoning"
+       ],
+       "persistent": false,
+       "count": 0,
+       "faces": 0,
+       "flat": 1,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 4,
+         "flat": 0
+        },
+        {
+         "id": 1,
+         "mode": "add",
+         "count": 0,
+         "faces": 0,
+         "flat": 1
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Howling Blizzard": {
+    "name": "Howling Blizzard",
+    "level": 5,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 335",
+    "actions": "Two Actions or Three Actions",
+    "traits": [
+     "Air",
+     "Cold",
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "varies",
+    "targets": "",
+    "duration": "",
+    "defense": "basic Reflex",
+    "description": "Freezing winds extend from your hands, pushing away from you with great force. If you Cast this Spell with 2 actions, it has an area of a 60-foot cone; if you Cast this Spell with 3 actions, it has a range of 500 feet and an area of a 30-foot burst. Each creature in the area takes 10d6 cold damage with a basic Reflex save. Snowdrifts and icy gales fill the area until the start of your next turn, making the area difficult terrain.",
+    "damage": "10d6",
+    "damageType": "cold",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The damage increases by 2d6."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "10d6",
+       "kind": "damage",
+       "types": [
+        "cold"
+       ],
+       "persistent": false,
+       "count": 10,
+       "faces": 6,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 2,
+         "faces": 6,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Hypercognition": {
+    "name": "Hypercognition",
+    "level": 3,
+    "sourceBook": "Player Core, p. 336",
+    "actions": "Single Action",
+    "traits": [
+     "Concentrate"
+    ],
+    "traditions": [
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "You rapidly catalog and collate information relevant to your current situation. You can instantly use up to 6 Recall Knowledge actions as part of Casting this Spell. For these actions, you can't use any special abilities, reactions, or free actions that trigger when you Recall Knowledge.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Ice Storm": {
+    "name": "Ice Storm",
+    "level": 4,
+    "heighten": [
+     "+2"
+    ],
+    "sourceBook": "Player Core 2, p. 247",
+    "actions": "Three Actions",
+    "traits": [
+     "Cold",
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "120 feet",
+    "area": "20-foot burst",
+    "targets": "",
+    "duration": "sustained up to 1 minute",
+    "defense": "basic Reflex",
+    "description": "You create a gray storm cloud that pelts creatures with an icy deluge. When you Cast the Spell, a burst of magical hail deals 2d8 bludgeoning damage and 2d8 cold damage to each creature in the area below the cloud (basic Reflex save). Snow and sleet continue to rain down in the area for the remainder of the spell's duration, making the area difficult terrain. Any creature that ends its turn in the storm takes 2 cold damage. If you Cast this Spell outdoors, you can create two nonoverlapping clouds instead of one. As normal, if a Large or larger creature is in both clouds, it still only takes the initial damage once and the continuing damage once per turn.",
+    "damage": "2d8",
+    "damageType": "bludgeoning",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+2",
+      "text": "The initial bludgeoning damage and cold damage increase by 1d8 each, and the cold damage creatures take at the end of their turns increases by 1."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "2d8",
+       "kind": "damage",
+       "types": [
+        "bludgeoning"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 8,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 2
+      },
+      {
+       "id": 1,
+       "formula": "2d8",
+       "kind": "damage",
+       "types": [
+        "cold"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 8,
+       "flat": 0,
+       "nth": 1,
+       "occurrences": 2
+      },
+      {
+       "id": 2,
+       "formula": "2",
+       "kind": "damage",
+       "types": [
+        "cold"
+       ],
+       "persistent": false,
+       "count": 0,
+       "faces": 0,
+       "flat": 2,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+2",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 8,
+         "flat": 0
+        },
+        {
+         "id": 1,
+         "mode": "add",
+         "count": 1,
+         "faces": 8,
+         "flat": 0
+        },
+        {
+         "id": 2,
+         "mode": "add",
+         "count": 0,
+         "faces": 0,
+         "flat": 1
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Ignition (Amped)": {
+    "name": "Ignition",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Player Core, p. 336",
+    "actions": "Two Actions",
+    "traits": [
+     "Attack",
+     "Cantrip",
+     "Concentrate",
+     "Fire",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "30 feet",
+    "area": "",
+    "targets": "1 creature",
+    "duration": "",
+    "defense": "AC",
+    "description": "You snap your fingers and point at a target, which begins to smolder. Make a spell attack roll against the target's AC, dealing 2d4 fire damage on a hit. If the target is within your melee reach, you can choose to make a melee spell attack with the flame instead of a ranged spell attack, which increases all the spell's damage dice to d6s. Critical Success The target takes double damage and 1d4 persistent fire damage. Success The target takes full damage.",
+    "damage": "2d4",
+    "damageType": "fire",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The initial damage increases by 1d4 and the persistent fire damage on a critical hit increases by 1d4."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "2d4",
+       "kind": "damage",
+       "types": [
+        "fire"
+       ],
+       "persistent": false,
+       "count": 2,
+       "faces": 4,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      },
+      {
+       "id": 1,
+       "formula": "1d4",
+       "kind": "damage",
+       "types": [
+        "fire"
+       ],
+       "persistent": true,
+       "count": 1,
+       "faces": 4,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 4,
+         "flat": 0
+        },
+        {
+         "id": 1,
+         "mode": "add",
+         "count": 1,
+         "faces": 4,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Illuminate": {
+    "name": "Illuminate",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Rage of Elements, p. 120",
+    "actions": "Single Action",
+    "traits": [
+     "Cantrip",
+     "Fire",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Primal"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "30-foot emanation (see text)",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "You light all non-magical light sources in the area that use fire to provide their light—such as candles, lamps, and sconces. You can choose to make the emanation smaller than its maximum, to any distance of your choice. If a light source is attended by an unwilling creature, that creature can attempt a Reflex save to snuff the light out before it becomes noticeable.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The maximum area increases by 10 feet."
+     }
+    ]
+   },
+   "Invisibility": {
+    "name": "Invisibility",
+    "level": 2,
+    "heighten": [
+     "4th"
+    ],
+    "sourceBook": "Player Core, p. 339",
+    "actions": "Two Actions",
+    "traits": [
+     "Illusion",
+     "Manipulate",
+     "Subtle"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "touch",
+    "area": "",
+    "targets": "1 creature",
+    "duration": "10 minutes",
+    "defense": "",
+    "description": "Illusions bend light around the target, rendering it invisible. This makes it undetected to all creatures, though the creatures can attempt to find the target, making it hidden to them instead. If the target uses a hostile action, the spell ends after that hostile action is completed. Paizo Clarification Invisibility follows the rules of the invisible condition. The second sentence summarizes them but doesn't cover every instance, such as you being hidden to creatures observing you when you become invisible instead of being undetected to them.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "4th",
+      "text": "The spell lasts 1 minute, but it doesn't end if the target uses a hostile action."
+     }
+    ]
+   },
+   "Mind Probe": {
+    "name": "Mind Probe",
+    "level": 5,
+    "sourceBook": "Player Core, p. 343",
+    "actions": "1 minute",
+    "traits": [
+     "Concentrate",
+     "Linguistic",
+     "Manipulate",
+     "Mental",
+     "Uncommon"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "30 feet",
+    "area": "",
+    "targets": "1 creature",
+    "duration": "sustained up to 1 minute",
+    "defense": "Will",
+    "description": "You cast your thoughts through a creature's mind, sifting for information. You access the target's memories and knowledge unless it fends you off with a Will save. Success The target is unaffected. Failure Each round of the spell's duration, you can Sustain the spell to ask a different question and attempt to uncover the answer. For each question, the target can attempt a Deception check against your spell DC; if the target succeeds, you don't learn the answer, and on a critical success, the target gives you a false answer that you believe is truthful. Once you've asked the target a given question, asking it again, even with a separate casting of mind probe, produces the same result. Critical Failure As failure, and the target takes a –4 circumstance penalty to Deception checks against your questions",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Read Omens": {
+    "name": "Read Omens",
+    "level": 4,
+    "sourceBook": "Player Core, p. 352",
+    "actions": "10 minutes",
+    "traits": [
+     "Concentrate",
+     "Manipulate",
+     "Prediction",
+     "Uncommon"
+    ],
+    "traditions": [
+     "Divine",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "You peek into the future. Choose a particular goal or activity you plan to engage in within 1 week, or an event you expect might happen within 1 week. You learn a cryptic clue or piece of advice that could help with the chosen event, often in the form of a rhyme or omen.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": []
+   },
+   "Redistribute Potential": {
+    "name": "Redistribute Potential",
+    "level": 5,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Dark Archive (Remastered), p. 20",
+    "actions": "Two Actions",
+    "traits": [
+     "Cantrip",
+     "Cold",
+     "Concentrate",
+     "Fire",
+     "Manipulate",
+     "Psychic",
+     "Uncommon"
+    ],
+    "castComponents": "",
+    "range": "60 feet",
+    "area": "2 adjacent 5-foot squares",
+    "targets": "",
+    "duration": "",
+    "defense": "basic Fortitude",
+    "description": "Energy attempts to balance out, but with your magic, you can shunt all the energy in one area to another. Creatures in either area take 4d4 damage with a basic Fortitude save. Choose one of the squares to steal heat, dealing cold damage, and the other to concentrate the stolen heat, dealing fire damage. A creature that fails its save also becomes clumsy 1 from numbness if it's in the area of stolen heat or enfeebled 1 from heat stroke if it's in the area of concentrated heat; these conditions last until the start of your next turn. If a creature is large enough to be in both squares, you choose only one of the areas for it to attempt its save against; it's unaffected by the other area.\n\nAmp ou can affect the flow of energy on a much grander scale. Instead of two 5-foot squares, you create two 10-foot bursts. They still must be adjacent to one another and can overlap. A creature in both areas can still be affected by only one of your choice. The spell’s damage increases to 6d6. The conditions last for 1 minute. Amp Heightened (+1) Increase the damage by 2d6 instead of 1d4.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "The damage increases by 1d4."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "4d4",
+       "kind": "damage",
+       "types": [],
+       "persistent": false,
+       "count": 4,
+       "faces": 4,
+       "flat": 0,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 1,
+         "faces": 4,
+         "flat": 0
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Shield": {
+    "name": "Shield",
+    "level": 1,
+    "heighten": [
+     "+2"
+    ],
+    "sourceBook": "Player Core, p. 356",
+    "actions": "Single Action",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Force"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Elemental"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "",
+    "targets": "",
+    "duration": "until the start of your next turn",
+    "defense": "",
+    "description": "You raise a magical shield of force. This counts as using the Raise a Shield action, giving you a +1 circumstance bonus to AC until the start of your next turn, but it doesn't require a hand to use. While the spell is in effect, you can use the Shield Block reaction with your magic shield. The shield has Hardness 5. You can use the spell's reaction to reduce damage from any spell or magical effect, even if it doesn't deal physical damage. After you use Shield Block, the spell ends and you can't cast it again for 10 minutes.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+2",
+      "text": "The shield's Hardness increases by 5."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "5",
+       "kind": "hardness",
+       "types": [],
+       "persistent": false,
+       "count": 0,
+       "faces": 0,
+       "flat": 5,
+       "nth": 0,
+       "occurrences": 1
+      }
+     ],
+     "rules": [
+      {
+       "level": "+2",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 0,
+         "faces": 0,
+         "flat": 5
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   },
+   "Sleep": {
+    "name": "Sleep",
+    "level": 1,
+    "heighten": [
+     "4th"
+    ],
+    "sourceBook": "Player Core, p. 357",
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Incapacitation",
+     "Manipulate",
+     "Mental",
+     "Sleep"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "30 feet",
+    "area": "5-foot burst",
+    "targets": "",
+    "duration": "",
+    "defense": "Will",
+    "description": "Each creature in the area becomes drowsy, possibly nodding off. A creature that falls unconscious from this spell doesn't fall prone or release what it's holding. This spell doesn't prevent creatures from waking up due to a successful Perception check, limiting its utility in combat. Critical Success The creature is unaffected. Success The creature takes a –1 status penalty to Perception checks for 1 round. Failure The creature falls unconscious. If it's still unconscious after 1 minute, it wakes up automatically. Critical Failure The creature falls unconscious. If it's still unconscious after 1 hour, it wakes up automatically.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "4th",
+      "text": "The creatures fall unconscious for 1 round on a failure or 1 minute on a critical failure. They fall prone and release what they're holding, and they can't attempt Perception checks to wake up. When the duration ends, the creature is sleeping normally instead of automatically waking up."
+     }
+    ]
+   },
+   "Summon Entity": {
+    "name": "Summon Entity",
+    "level": 5,
+    "heighten": [
+     "6th",
+     "7th",
+     "8th",
+     "9th",
+     "10th"
+    ],
+    "sourceBook": "Player Core, p. 360",
+    "actions": "Three Actions",
+    "traits": [
+     "Concentrate",
+     "Manipulate",
+     "Summon"
+    ],
+    "traditions": [
+     "Occult"
+    ],
+    "castComponents": "",
+    "range": "30 feet",
+    "area": "",
+    "targets": "",
+    "duration": "sustained up to 1 minute",
+    "defense": "",
+    "description": "You summon a creature that has the aberration trait and whose level is 5 or lower to fight for you.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "6th",
+      "text": "Level 7."
+     },
+     {
+      "level": "7th",
+      "text": "Level 9."
+     },
+     {
+      "level": "8th",
+      "text": "Level 11."
+     },
+     {
+      "level": "9th",
+      "text": "Level 13."
+     },
+     {
+      "level": "10th",
+      "text": "Level 15."
+     }
+    ]
+   },
+   "Telekinetic Hand": {
+    "name": "Telekinetic Hand",
+    "level": 1,
+    "heighten": [
+     "3rd",
+     "5th",
+     "7th"
+    ],
+    "sourceBook": "Player Core, p. 362",
+    "actions": "Two Actions",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Occult",
+     "Elemental"
+    ],
+    "castComponents": "",
+    "range": "30 feet",
+    "area": "",
+    "targets": "1 unattended object of Light bulk or less",
+    "duration": "sustained",
+    "defense": "",
+    "description": "You create a floating, magical hand, either invisible or ghostlike, that grasps the target object and levitates it slowly up to 20 feet in any direction. When you Sustain the spell, you can move the object an additional 20 feet. If the object is in the air when the spell ends, the object falls.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "3rd",
+      "text": "You can target an unattended object with a Bulk of 1 or less."
+     },
+     {
+      "level": "5th",
+      "text": "The range increases to 60 feet, and you can target an unattended object with a Bulk of 1 or less."
+     },
+     {
+      "level": "7th",
+      "text": "The range increases to 60 feet, and you can target an unattended object with a Bulk of 2 or less."
+     }
+    ]
+   },
+   "Thermal Stasis": {
+    "name": "Thermal Stasis",
+    "level": 1,
+    "heighten": [
+     "+1"
+    ],
+    "sourceBook": "Dark Archive (Remastered), p. 20",
+    "actions": "Single Action",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Psychic",
+     "Uncommon"
+    ],
+    "castComponents": "",
+    "range": "60 feet",
+    "area": "",
+    "targets": "1 creature",
+    "duration": "until the start of your next turn",
+    "defense": "",
+    "description": "The same abilities that let you raise or lower thermal energy also let you keep it at a safe medium. The target gains resistance 2 against fire damage and resistance 2 against cold damage.\n\nAmp The spell’s duration becomes 1 minute.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "+1",
+      "text": "Each resistance increases by 2."
+     }
+    ],
+    "scaling": {
+     "components": [
+      {
+       "id": 0,
+       "formula": "2",
+       "kind": "resistance",
+       "types": [
+        "fire"
+       ],
+       "persistent": false,
+       "count": 0,
+       "faces": 0,
+       "flat": 2,
+       "nth": 0,
+       "occurrences": 2
+      },
+      {
+       "id": 1,
+       "formula": "2",
+       "kind": "resistance",
+       "types": [
+        "cold"
+       ],
+       "persistent": false,
+       "count": 0,
+       "faces": 0,
+       "flat": 2,
+       "nth": 1,
+       "occurrences": 2
+      }
+     ],
+     "rules": [
+      {
+       "level": "+1",
+       "adds": [
+        {
+         "id": 0,
+         "mode": "add",
+         "count": 0,
+         "faces": 0,
+         "flat": 2
+        },
+        {
+         "id": 1,
+         "mode": "add",
+         "count": 0,
+         "faces": 0,
+         "flat": 2
+        }
+       ],
+       "safe": true,
+       "resolved": true
+      }
+     ]
+    }
+   }
+  },
+  "feat": {
+   "Additional Lore": {
+    "name": "Additional Lore",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "description": "Your knowledge has expanded to encompass a new field. Choose a Lore skill subcategory. You become trained in it. At 3rd, 7th, and 15th levels, you gain an additional skill increase you can apply only to the chosen Lore subcategory. Special You can select this feat more than once. Each time you must select a new subcategory of Lore and you gain the additional skill increases to that subcategory for the listed levels."
+   },
+   "Aeromancer": {
+    "name": "Shory Aeromancer",
+    "matchedName": "Shory Aeromancer",
+    "level": 9,
+    "actions": "",
+    "traits": [
+     "Human"
+    ],
+    "category": "feat",
+    "sourceBook": "Character Guide, p. 14",
+    "prerequisites": "Garundi ethnicity, Mauxi ethnicity, or Tian-Yae ethnicity",
+    "description": "Your ancestors hailed from the flying cities of the Shory, and a few simple tricks have come down through the ages to you. You can cast 4th-level fly on yourself as an innate arcane spell once per day."
+   },
+   "Ancestral Paragon": {
+    "name": "Ancestral Paragon",
+    "level": 3,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "description": "Whether through instinct, study, or magic, you feel a deeper connection to your ancestry. You gain a 1st-level ancestry feat."
+   },
+   "Arc of Destruction": {
+    "name": "Arc of Destruction",
+    "level": 8,
+    "actions": "Reaction",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 83",
+    "trigger": "An enemy you’re observing targets you with a ranged weapon Strike.",
+    "description": "You redirect an incoming weapon or projectile and send your enemy’s own attack roaring back at them, increasing its accuracy with a surge of mythic power. Spend a Mythic Point; you gain a +4 status bonus to AC against the triggering Strike. If the Strike fails, you immediately snatch the weapon or ammunition used for the attack out of the air and launch it back at the enemy, using mythic proficiency for your Strike. If the attack was made with a thrown weapon, add the weapon’s runes and other effects to the attack as normal. If the triggering attack was made with a piece of ammunition that you’re wielding an appropriate weapon for, you can apply your weapon’s runes and other effects to the attack."
+   },
+   "Astrology": {
+    "name": "Saoc Astrology",
+    "matchedName": "Saoc Astrology",
+    "level": 1,
+    "actions": "Single Action",
+    "traits": [
+     "Concentrate",
+     "Human",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "Character Guide, p. 12",
+    "requirements": "You must spend 10 minutes just after your daily preparations examining the sky or consulting a star chart or you can’t use this action that day.",
+    "frequency": "3 times per day",
+    "access": "Lirgeni nationality",
+    "description": "The ancient Saoc Brethren were the masters of astrology, and while your knowledge may be but a pale shadow of their wisdom, it still comes in handy. You recall the stars’ predictions about your current situation. If your next action requires you to attempt one or more skill checks, roll 1d8. On a result of 6, 7, or 8, you gain a +2 circumstance bonus to the first such skill check you attempt. On a 3, 4, or 5, you gain a +1 circumstance bonus. On a 2, you gain nothing. On a 1, you take a –1 circumstance penalty to the skill check."
+   },
+   "Automatic Writing": {
+    "name": "Automatic Writing",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Concentrate",
+     "Exploration",
+     "General",
+     "Skill",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "Dark Archive (Remastered), p. 78",
+    "prerequisites": "Expert in Occultism",
+    "frequency": "once per day",
+    "description": "When confronted with the unknown, you can receive knowledge beyond your own experience via written messages delivered by your hand. You spend 10 minutes seated while holding a writing utensil, using it to make small circular motions as you open your mind to the forces around you. You receive information as your hand writes on its own, guided by spirits. At the end of these 10 minutes, Recall Knowledge with any Lore skill in which you are not trained, using your Occultism modifier instead of your modifier with that skill. The strain of this spirit channeling leaves you stupefied 1 for the next 10 minutes."
+   },
+   "Become Destiny": {
+    "name": "Become Destiny",
+    "level": 10,
+    "actions": "Free Action",
+    "traits": [
+     "Concentrate",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 84",
+    "description": "You defy any external force blocking your mythic purpose. Spend a Mythic Point, and remove any one condition you’re afflicted with, end the ongoing effects of any one spell you’re currently affected by, or free yourself from the effects of any one trap or hazard (such as a snare or bottomless pit). When freeing yourself from a hazard in this way, you immediately move to the nearest safe location adjacent to the hazard."
+   },
+   "Chronoskimmer Dedication": {
+    "name": "Chronoskimmer Dedication",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Archetype",
+     "Dedication",
+     "Rare"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Chronoskimmer"
+    ],
+    "sourceBook": "Dark Archive (Remastered), p. 186",
+    "description": "You became partially unstuck from time and have learned how to manipulate your place in the flow of time. When you roll initiative, you can choose one of three options: either do nothing and roll initiative normally, stabilize your timestream, or destabilize your timestream and send it into intense fluctuations. Stabilize your Timestream (fortune) You don't roll initiative, and instead your initiative is equal to 10 + the modifier you would have used for initiative. Destabilize your Timestream (fortune) You don't roll initiative, and instead attempt a DC 11 flat check. On a success, your initiative is equal to 19 + the modifier you would have used for initiative, and on a failure, your initiative is equal to 1 + that modifier. Additionally, if your initiative roll result is tied with an opponent's initiative roll, you go first. Your manipulation of time grants you access to a number of abilities, some of which require a saving throw. The DC for these abilities is either your class DC or spell DC, whichever is higher, and is called your chronoskimmer DC."
+   },
+   "Cognitive Crossover": {
+    "name": "Kreighton's Cognitive Crossover",
+    "matchedName": "Kreighton's Cognitive Crossover",
+    "level": 4,
+    "actions": "Reaction",
+    "traits": [
+     "General",
+     "Skill",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "PFS Guide, p. 119",
+    "trigger": "You gain no information from a Recall Knowledge check (usually because you failed the secret check) using one of the two skills you chose for this feat.",
+    "access": "Member of the Pathfinder Society.",
+    "description": "Kreighton teaches his students that an agile mind can glean clues leading to the truth, even from the most unlikely of sources. You immediately reattempt the triggering check using the other chosen skill. Special When you gain this feat, choose two of the following skills: Arcana, Crafting, Lore (any one), Medicine, Nature, Occultism, Religion, or Society. Scrolls Training Source PFS Guide pg. 119 The Society's Master of Scrolls, Kreighton Shaine (Lost Omens Pathfinder Society Guide page 42), may be considered strange and absent-minded by his peers, but the elf venture-captain takes his duties quite seriously. Skilled in researching obscure subjects and unraveling inscrutable secrets, Kreighton teaches his students the value of an inquisitive mind. Related Feats:"
+   },
+   "Consult the Spirits": {
+    "name": "Consult the Spirits",
+    "level": 7,
+    "actions": "",
+    "traits": [
+     "General",
+     "Secret",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 228",
+    "prerequisites": "Master in Occultism, Master in Nature, or Master in Religion",
+    "frequency": "once per day",
+    "description": "You have learned rites or meditations that enable you to perceive minor, invisible spirits within a place. Choose Nature, Occultism, or Religion when you select this feat. Nature allows you to contact the spirits of nature that form leshies, who are born of pure life essence rather than spiritual energy and can answer questions about natural features like the location of nearby water or plant life. Religion reveals the presence of angelic, demonic, or other spirits in service to divine beings, who provide information about sources of powerful life energy or energy from the Void; sacred or profane influences; or the presence of undead. Occultism allows you to contact lingering spirits, psychic echoes of the departed dead, and spirits from beyond reality, who tell you about things like strange auras, effects, or the presence of unnatural occult beings. Spend 10 minutes and attempt a check to Recall Knowledge with the chosen skill; the DC is determined by the GM (usually a very high DC for the level of the highest-level creature you might encounter in the area). If you're legendary in the chosen skill, you can use this feat once per hour, instead of only once per day, but you can't use it again on any area that overlaps a previous area. Critical Success The spirits reveal themselves to you and have a helpful attitude toward you. Only you can perceive these spirits. They answer three simple questions about the environment within 100 feet of you, depending on the skill you chose and thus the type of spirits you contact. Their answers are almost always a single word, and their knowledge is limited to within their area of interest. Success As with a critical success, but the spirits are indifferent to you and answer only one question. Failure You are unable to contact the spirits of this place. Critical Failure You contact one or more malevolent spirits. They are hostile toward you, though they may not immediately appear so. They answer up to three questions but give you information that is harmful to you in some way, as determined by the GM."
+   },
+   "Correct the Story": {
+    "name": "Correct The Story",
+    "level": 6,
+    "actions": "Reaction",
+    "traits": [
+     "Misfortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "trigger": "An enemy critically succeeds at an attack roll or saving throw.",
+    "description": "You know the story of your journey well and can correct it when your enemy tells it incorrectly. Spend a Mythic Point. The enemy must reroll the triggering attack roll or save and take the new result."
+   },
+   "Disturbing Knowledge": {
+    "name": "Disturbing Knowledge",
+    "level": 7,
+    "actions": "Two Actions",
+    "traits": [
+     "Emotion",
+     "Fear",
+     "General",
+     "Mental",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 229",
+    "prerequisites": "Master in Occultism",
+    "description": "You utter a litany of dreadful names, prophecies, and descriptions of realms beyond mortal comprehension, drawn from your study of forbidden tomes and scrolls. Even those who don't understand your language are unsettled by these dire secrets. Attempt an Occultism check and compare the result to the Will DC of an enemy within 30 feet, or to the Will DCs of any number of enemies within 30 feet if you are legendary in Occultism. Those creatures are temporarily immune for 24 hours. Critical Success The target becomes confused for 1 round and frightened 1. Success The target becomes frightened 1. Failure The target is unaffected. Critical Failure You get overly caught up in your own words and become frightened 1."
+   },
+   "Fast Recovery": {
+    "name": "Fast Recovery",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 255",
+    "prerequisites": "Constitution +2",
+    "description": "Your body quickly bounces back from afflictions. You regain twice as many Hit Points from resting. Each time you succeed at a Fortitude save against an ongoing disease or poison, you reduce its stage by 2, or by 1 against a virulent disease or poison. Each critical success you achieve against an ongoing disease or poison reduces its stage by 3, or by 2 against a virulent disease or poison. In addition, you reduce the severity of your drained condition by 2 when you rest for a night instead of by 1."
+   },
+   "Guide the Timeline": {
+    "name": "Guide the Timeline",
+    "level": 6,
+    "actions": "Single Action",
+    "traits": [
+     "Archetype",
+     "Concentrate"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Chronoskimmer"
+    ],
+    "sourceBook": "Dark Archive (Remastered), p. 186",
+    "prerequisites": "Chronoskimmer Dedication",
+    "frequency": "once per day",
+    "description": "You know the result you want and subtly nudge the timeline to your intended destination. Choose an ally or a foe. If you choose an ally, the next time within the next round that ally makes an attack roll or skill check, they roll it twice and take the higher result; this is a fortune effect. If you choose a foe, the next time within the next round that foe makes an attack roll or skill check, they must roll twice and take the lower result unless they succeed at a Will save against your chronoskimmer DC; this is a misfortune effect. Regardless of your choice, the target becomes temporarily immune for 24 hours."
+   },
+   "Haughty Obstinacy": {
+    "name": "Haughty Obstinacy",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Human"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 64",
+    "description": "Your powerful ego makes it harder for others to order you around. If you roll a success on a saving throw against a mental effect that attempts to directly control your actions, you critically succeed instead. If a creature rolls a failure on a check to Coerce you using Intimidation, it gets a critical failure instead (so it can’t try to Coerce you again for 1 week)."
+   },
+   "Homing Beacon": {
+    "name": "Homing Beacon",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Amp",
+     "Psychic"
+    ],
+    "category": "feat",
+    "sourceBook": "Dark Archive (Remastered), p. 24",
+    "description": "As your spell strikes a target, you plant a beacon in the target's mind that announces its presence to those nearby. Use this amp in place of a psi cantrip's normal amp entry. The amped cantrip must be one that has one or more targets and must either require a spell attack roll or have a saving throw.\n\nAmp Choose one creature hit by the spell (if the spell has a spell attack roll) or that fails its save against the spell (if the spell requires a save). A psychic beacon emits from the creature's location, making it easier to notice the creature as the mind and attention of onlookers is subtly drawn to it. For 1 minute, if the target would be invisible, it's instead merely concealed, and if it would be concealed, it's no longer concealed."
+   },
+   "Hydra's Bond": {
+    "name": "Hydra's Bond",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Mythic",
+     "Rare"
+    ],
+    "category": "feat",
+    "sourceBook": "Pathfinder #218: Titanbane, p. 68",
+    "description": "When the hero-gods built Pol-Sylirica and its seven armies, they feared betrayal from within. They took inspiration from the multi-headed hydra, and bound the seven armies together with supernatural ties to make them behave as if they shared one body. Following these tactics, during daily preparations, you can select a number of willing creatures equal to half your level to be part of your hydra’s bond. Members of the same hydra’s bond always know if another member is telling the truth. When a member of the hydra’s bond saves against an effect that would have them act against their allies (such as the confused condition, a dominate spell, or other mental effects that would give an ally the controlled condition), you can spend a Mythic Point to allow that character to attempt the save at mythic proficiency. If a member of the hydra’s bond fails a save against such an effect, other members automatically know that the target is controlled or under the influence of a mental effect. In addition, all members of the hydra’s bond gain a +2 circumstance bonus to any roll made to counteract that effect."
+   },
+   "Incredible Initiative": {
+    "name": "Incredible Initiative",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 256",
+    "description": "You react more quickly than others can. You gain a +2 circumstance bonus to initiative rolls."
+   },
+   "Mental Static": {
+    "name": "Mental Static",
+    "level": 8,
+    "actions": "Reaction",
+    "traits": [
+     "Mental",
+     "Nonlethal",
+     "Occult",
+     "Psychic"
+    ],
+    "category": "feat",
+    "sourceBook": "Dark Archive (Remastered), p. 27",
+    "trigger": "You roll a critical success on a Will save against a mental effect from a creature.",
+    "description": "Your thoughts sting back when a lesser mind tries to invade your own. You deal mental damage equal to your level to the triggering creature. If you so desire, you can also send the creature a single mental image to coincide with the damage, such as a watchful eye or the dread of floating in an infinite sea."
+   },
+   "Natural Medicine": {
+    "name": "Natural Medicine",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 258",
+    "prerequisites": "Trained in Nature",
+    "description": "You can apply natural cures to heal your allies. You can use Nature instead of Medicine to Treat Wounds, including higher Nature proficiency letting you attempt more difficult checks. It doesn't replace Medicine for uses of the skill other than Treat Wounds or for feat prerequisites. If you're in the wilderness, you might have easier access to fresh ingredients, allowing you to gain a +2 circumstance bonus to your check to Treat Wounds using Nature, subject to the GM's determination."
+   },
+   "Psi Burst": {
+    "name": "Psi Burst",
+    "level": 2,
+    "actions": "Single Action",
+    "traits": [
+     "Concentrate",
+     "Mindshift",
+     "Occult",
+     "Psyche",
+     "Psychic"
+    ],
+    "category": "feat",
+    "sourceBook": "Dark Archive (Remastered), p. 24",
+    "frequency": "once per round",
+    "description": "With a passing thought, you direct violent psychic energies at a nearby creature. Target one creature within 30 feet. It takes 1d4 bludgeoning damage with a basic Reflex save. At 3rd level and every 2 levels thereafter, the damage increases by 1d4."
+   },
+   "Reversing Charge": {
+    "name": "Reversing Charge",
+    "level": 8,
+    "actions": "Two Actions",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Chronoskimmer"
+    ],
+    "sourceBook": "Dark Archive (Remastered), p. 186",
+    "prerequisites": "Chronoskimmer Dedication",
+    "description": "You dive into the fray before rewinding yourself to safety. Stride up to your Speed. If you end your movement within melee reach of at least one enemy, you can make a melee Strike against that enemy. You then teleport back to the square from which you began your Reversing Charge. You can use Reversing Charge while Burrowing, Climbing, Flying, or Swimming instead of Striding if you have the corresponding movement type."
+   },
+   "Sixth Sense": {
+    "name": "Sixth Sense",
+    "level": 6,
+    "actions": "",
+    "traits": [
+     "Occult",
+     "Psychic"
+    ],
+    "category": "feat",
+    "sourceBook": "Dark Archive (Remastered), p. 26",
+    "description": "Your psychic abilities also allow you to detect the lingering thoughts of spirits and similar entities. While you're exploring but not Searching, the GM rolls a secret check for you to find haunts that usually require Searching, as well as spirits, creatures on the Ethereal Plane, and beings made entirely of spiritual essence, such as celestials, fiends, and monitors. You can also potentially notice ethereal creatures and spirits inside solid objects, provided they are within 30 feet of you. This applies while Searching, Seeking, and on the automatic secret check from Sixth Sense. You can still notice spirits only on a successful check, and you can't see them if they're more than 5 feet inside an object. When you notice a creature with your Sixth Sense, you also learn its location, making it hidden to you if it had been undetected."
+   },
+   "Steal Time": {
+    "name": "Steal Time",
+    "level": 10,
+    "actions": "Two Actions",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Chronoskimmer"
+    ],
+    "sourceBook": "Dark Archive (Remastered), p. 186",
+    "prerequisites": "Chronoskimmer Dedication",
+    "frequency": "once per hour",
+    "description": "You reach into another creature's timeline and attempt to alter their flow of time. Select a creature within 30 feet. That creature attempts a Fortitude saving throw against your chronoskimmer DC. The creature takes the effects of slow based on the result of its saving throw."
+   },
+   "Thoughtsense": {
+    "name": "Thoughtsense",
+    "level": 8,
+    "actions": "",
+    "traits": [
+     "Mental",
+     "Psychic"
+    ],
+    "category": "feat",
+    "sourceBook": "Dark Archive (Remastered), p. 27",
+    "description": "You can detect the flickers of mental activity let off by all thinking creatures. You gain thoughtsense as a vague sense that has a range of 30 feet—like all vague senses, it's only about as precise as an average human's sense of smell, meaning you generally can predict only if a creature is present. Your thoughtsense detects only thinking creatures, so a creature that is unthinking or otherwise immune to mental effects (such as many constructs and oozes) can't be perceived using your thoughtsense, regardless of how precise it is. While your Psyche is Unleashed, your thoughtsense upgrades to an imprecise sense, letting you use it to Seek out creatures."
+   },
+   "Turn Back the Clock": {
+    "name": "Turn Back the Clock",
+    "level": 4,
+    "actions": "Reaction",
+    "traits": [
+     "Archetype",
+     "Concentrate",
+     "Fortune"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Chronoskimmer"
+    ],
+    "sourceBook": "Dark Archive (Remastered), p. 186",
+    "prerequisites": "Chronoskimmer Dedication",
+    "trigger": "You fail a skill check or saving throw.",
+    "frequency": "once per day",
+    "description": "After failing a test of skill, you hop back in your personal timeline so you can try again. You reroll the triggering check with a +1 circumstance bonus as you apply your experience from your last attempt. You must use the new result, even if it's worse than your first roll."
+   },
+   "Versatile Human": {
+    "name": "Versatile Human",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Player Core, p. 63",
+    "description": "Heritage Versatile Human Humanity's versatility and ambition have fueled its ascendance to be the most common ancestry in most nations throughout the world. Select a general feat of your choice for which you meet the"
+   },
+   "Wavetouched Paragon": {
+    "name": "Wavetouched Paragon",
+    "level": 5,
+    "actions": "",
+    "traits": [
+     "Human"
+    ],
+    "category": "feat",
+    "sourceBook": "Character Guide, p. 13",
+    "prerequisites": "Bonuwat ethnicity",
+    "description": "You have been blessed by the sea, granting you the ability to swim like a fish. You gain a 15-foot swim Speed. Special If you have the Bonuwat Wavetouched background, you can take this feat at 1st level instead of 5th."
+   },
+   "We've Met Before": {
+    "name": "We've Met Before",
+    "level": 2,
+    "actions": "Single Action",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 81",
+    "requirements": "You’ve spent at least 1 minute in mutual conversation with a creature.",
+    "description": "Your ability to discern information about those you interact with is without peer. Spend a Mythic Point to gain a Lore skill specific to the required creature for the next 24 hours; you have mythic proficiency with that skill and can use it to Recall Knowledge about the creature, Decipher Writings created by the creature, Earn Income or Subsist in areas ruled by the creature, or perform other appropriate tasks as determined by the GM."
+   }
+  },
+  "special": {
+   "Clarity of Focus": {
+    "name": "Clarity of Focus",
+    "level": 5,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Psychic",
+    "sourceBook": "Dark Archive (Remastered), p. 9",
+    "description": "Your deepening connection to your mind grants you more power to fuel your psi amps. Increase the number of Focus Points in your focus pool by 1. As normal, this ability can't increase the size of your focus pool above 3 points."
+   },
+   "Dreamer's Calling": {
+    "name": "Dreamer's Calling",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Calling",
+     "Mythic",
+     "Rare"
+    ],
+    "category": "mythic-calling",
+    "sourceBook": "Revenge of the Runelords Player's Guide, p. 17",
+    "description": "Edicts share your dreams with your friends and take interest if they share their dreams with you, take inspiration from your dreams when you create Anathema deny a creature (including yourself) the chance to sleep long enough to dream, deride those who have ambitions that they’re unlikely to ever achieve"
+   },
+   "Expert Spellcaster (Psychic)": {
+    "name": "Expert Spellcaster",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Psychic",
+    "sourceBook": "Dark Archive (Remastered), p. 9",
+    "description": "Self-reflection has brought you greater knowledge of yourself and, with it, psychic power. Your proficiency ranks for spell attack modifier and spell DC increase to expert."
+   },
+   "Fade into Daydreams": {
+    "name": "Fade into Daydreams",
+    "level": null,
+    "actions": "Single Action",
+    "traits": [
+     "Illusion",
+     "Psyche",
+     "Psychic"
+    ],
+    "category": "action",
+    "sourceBook": "Dark Archive (Remastered), p. 16",
+    "description": "Your flights of imagination spill into the real world, causing you to become indistinct, hazy, or cloaked in figments. You become concealed until the start of your next turn. This concealment can't be used to Hide, as normal for concealing effects that leave your location obvious."
+   },
+   "Fortitude Expertise (Psychic)": {
+    "name": "Fortitude Expertise",
+    "level": 9,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Bard",
+    "sourceBook": "Player Core, p. 94",
+    "description": "Your physique has grown hardy in your adventures. Your proficiency rank for Fortitude saves increases to expert."
+   },
+   "Occultism": {
+    "name": "Occultism",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "skill",
+    "sourceBook": "Player Core, p. 243",
+    "description": "Skill Occultism You know a great deal about ancient philosophies, esoteric lore, obscure mysticism, and supernatural creatures. Occultism Untrained General Actions - Recall Knowledge about ancient mysteries; obscure philosophies; creatures of occult significance (like aberrations, spirits, and oozes); and esoteric planes like the Astral Plane, Creation's Forge, the Ethereal Plane, the Netherworld, and the Void. Occultism Trained General Actions - Decipher Writing on occult topics, including complex metaphysical systems, syncretic principles, obscure philosophies, and incoherent ramblings. - Identify Magic, particularly magic of the occult tradition. - Learn a Spell from the occult tradition. Item Bonuses for Occultism Item Bonus Level Category Consumable Note Essence Charm +1 4 Other Worn Items No Item bonus to a check of the crafter's choice Essence Forge (Lesser) +1 6 Other No Item Bonus Cognitive Mutagen (Lesser) +1 1 Alchemical Elixirs Yes Accoutrements of Bone +2 9 Specific Magic Armor No Item bonus to Occultism checks. Fulu Compendium +2 9 Held Items No Item bonus to determine a fulu's function or authenticity. Helm of Zeal +2 11 Worn Items No Item bonus of the associated Deity's Divine Skill Essence Forge (Moderate) +2 12 Other No Item Bonus Stage Magician's Cloak +2 13 Held Items No When worn with the black velvet lining facing out, the stage magician’s cloak grants a +2 item bonus to Occultism checks. Cognitive Mutagen (Moderate) +2 3 Alchemical Elixirs Yes Essence Forge (Greater) +3 18 Other No Item Bonus Helm of Zeal (Greater) +3 18 Worn Items No Item bonus of the associated Deity's Divine Skill Archivist's Gaze +3 18 Apex Items No Item bonus to Occultism. Cognitive Mutagen (Greater) +3 11 Alchemical Elixirs Yes Archivist's Gaze +4 18 Apex Items No Item bonus to Occultism when Investigating. Cognitive Mutagen (Major) +4 17 Alchemical Elixirs Yes Related Feats To see a list of Feats related to Occultism, click here."
+   },
+   "Precognitive Reflexes": {
+    "name": "Precognitive Reflexes",
+    "level": 5,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Psychic",
+    "sourceBook": "Dark Archive (Remastered), p. 9",
+    "description": "Minor precognition ensures you can react to threats slightly before they occur. Your proficiency rank for Reflex saves increases to expert."
+   },
+   "Psi Cantrips And Amps": {
+    "name": "Psi Cantrips and Amps",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Psychic",
+    "sourceBook": "Dark Archive (Remastered), p. 9",
+    "description": "The magic of your mind manifests as psi cantrips, which you can modify by spending Focus Points. Like other cantrips, you can cast psi cantrips as often as you like, and they are automatically heightened to half your level rounded up. Your psi cantrips are in addition to the cantrips you choose from the occult list as part of your psychic spellcasting. Generally, only feats can give you more psi cantrips. Unlike other cantrips, you can't swap out psi cantrips gained from psychic feats at a later level, unless you swap out the specific feat via retraining. At 1st level, you learn three psi cantrips determined by your choice of conscious mind; one is a unique psi cantrip and two are common cantrips, typically from the occult spellcasting tradition, that you always cast as psi cantrips. You automatically gain more psi cantrips as you progress in your career as a psychic. You start with a focus pool of 2 Focus Points. However, unlike other spellcasters, you don't gain focus spells that cost Focus Points to cast. Instead, you use your Focus Points to boost or modify your psi cantrips by applying amps—specialized thoughtforms that alter the expression of your psychic power. Each of your psi cantrips has a special amp heading. Whenever you cast a psi cantrip, you can amp it by spending 1 Focus Point as a free action. If the next action you take is to cast the psi cantrip, you add the amp effect. If the spell is a reaction or triggered free action, instead spend the Focus Point as part of that action to add the amped effect.You can also gain additional amps through feats, allowing you to substitute a psi cantrip's normal amp effect for another one. You choose which amp to use, if you choose to use any, each time you cast a psi cantrip. Unless otherwise noted, you can apply only one amp to a given psi cantrip. You refill your focus pool during your daily preparations, and you can regain Focus Points by spending 10 minutes using the Refocus activity to explore your mind, whether via meditation, practicing a craft or activity that gives you the mental space to self-reflect, or talking through your thoughts and feelings with yourself or another. If you've spent Focus Points only to amp psi cantrips or fuel psychic abilities since the last time you Refocused, you regain 2 Focus Points instead of 1. If you've spent Focus Points on focus spells or abilities other than those from the psychic class (for instance, to cast a focus spell you gained from an archetype), you regain only 1 Focus Point."
+   },
+   "Psychic Spellcasting": {
+    "name": "Psychic Spellcasting",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Psychic",
+    "sourceBook": "Dark Archive (Remastered), p. 9",
+    "description": "You access the vast well of power that resides within your own mind, calling forth psychic magic with nothing but thought and will. You are a spellcaster and can cast occult spells using the Cast a Spell activity. You don't need to utter incantations to cast your spells, instead exerting your mind toward your intended effect as described in your subconscious mind class feature. Your spells still have clear and noticeable visual and auditory manifestations, as normal for a spellcaster. Each day, you can cast one 1st-rank spell. You must know spells to cast them, and you learn them via the spell repertoire class feature. The number of spells you can cast each day is called your spell slots. As you increase in level as a psychic, your number of spells per day increases, as does the highest rank of spells you can cast, as shown on the Psychic Spells per Day table. Some of your spells require you to attempt a spell attack roll to see how effective they are, or have your enemies roll against your spell DC (typically by attempting a saving throw), Since your key attribute is determined by your subconscious mind, your spell attack rolls and spell DCs use the modifier for the attribute stated in your subconscious mind. Heightening Spells When you get spell slots of 2nd rank and higher, you can fill those slots with stronger versions of lower-rank spells. This increases the spell's rank, heightening it to match the spell slot. You must have a spell in your spell repertoire at the rank you want to cast in order to heighten it to that rank. Many spells have specific improvements when they are heightened to certain ranks. The signature spells class feature lets you heighten certain spells freely. Cantrips Some of your spells are cantrips. A cantrip is a special type of spell that doesn't use spell slots. You can cast a cantrip at will, any number of times per day. A cantrip is automatically heightened to half your level rounded up— this is usually equal to the highest rank of psychic spell slot you have. For example, as a 1st-level psychic, your cantrips are 1st-rank spells, and as a 5th-level psychic, your cantrips are 3rd-rank spells. As a psychic, you get the ability to improve some of your cantrips with special benefits and psi amps. Over the course of your career, your choice of conscious mind class feature gives you extra cantrips, benefits and psi amps for cantrips, and a collection of unique psi cantrips."
+   },
+   "Rewrite Fate": {
+    "name": "Rewrite Fate",
+    "level": null,
+    "actions": "Free Action",
+    "traits": [
+     "Fortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "action",
+    "sourceBook": "War of Immortals, p. 78",
+    "trigger": "You roll a skill check or saving throw and don’t like the result.",
+    "description": "Destiny, fate, or some other force bends around you as your mythic power swells, manifesting in a flash of light or visible surge of energy emanating from your body as you cast aside the chains of fate. You expend a Mythic Point and reroll the check or save with mythic proficiency, taking the new result."
+   },
+   "Signature Spells (Psychic)": {
+    "name": "Signature Spells",
+    "level": 3,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Psychic",
+    "sourceBook": "Dark Archive (Remastered), p. 9",
+    "description": "You've learned to cast some of your spells more flexibly. For each spell rank you have access to, choose one spell of that rank to be a signature spell. You don't need to learn heightened versions of signature spells separately; instead, you can heighten these spells freely. If you've learned a signature spell at a higher rank than its minimum, you can also cast all its lower-rank versions without learning those separately. If you swap out a signature spell, you can choose a replacement signature spell of the same spell rank at which you learned the previous spell. You can also retrain specifically to change a signature spell to a different spell of that rank without swapping any spells; this takes as much time as retraining a spell normally does."
+   },
+   "The Oscillating Wave": {
+    "name": "The Oscillating Wave",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "conscious-mind",
+    "sourceBook": "Dark Archive (Remastered), p. 19",
+    "description": "Psychic Conscious Mind The Oscillating Wave Energy can't be created or destroyed, only transferred or changed whenever you use your magic to add or remove energy, you must then balance it with the opposing force. While this allows you to invert your spells to The first time in an encounter that you Once you add energy, you must remove energy the next time you When you Refocus, you restore yourself to a neutral state, allowing you to once again freely choose whether you add or remove energy on your next spell. Granted Spells - 1st Breathe Fire - 2nd Blazing Bolt - 3rd Fireball - 4th Ice Storm - 5th Howling Blizzard - 6th Frozen Fog - 7th Volcanic Eruption - 8th Arctic Rift - 9th Falling Stars Psi Cantrips Frostbite and Ignition Surface Psi Cantrip Thermal Stasis Deeper Psi Cantrip (Level 6) Entropic Wheel Deepest Psi Cantrip (Level 10) Redistribute Potential Conservation of Energy Energy can't be created or destroyed, only transferred or changed whenever you use your magic to add or remove energy, you must then balance it with the opposing force. While this allows you to invert your spells to The first time in an encounter that you Once you add energy, you must remove energy the next time you When you Refocus, you restore yourself to a neutral state, allowing you to once again freely choose whether you add or remove energy on your next spell. Adding Energy: The ability gains the fire trait and any damage it deals is fire damage. It loses any traits matching damage types it no longer deals. Removing Energy: The ability gains the cold trait and any damage it deals is cold damage. It loses any traits matching damage types it no longer deals. Mindshift: When you use an action that has the mindshift trait, you can choose to add or remove energy to it instead of making it mental. Alter it as normal for adding or removing energy and change any save it requires to a Reflex save. Frostbite You can freeze people from even farther away. The Your frostbite also gains the following amp. Amp You drain thermal energy at a distance, using what you plunder to replenish yourself. The orb deals 3d4 cold damage. You gain temporary Hit Points equal to half the damage the You lose any remaining temporary Hit Points after 1 minute. Amp Heightened (+1) The initial damage increases by 2d4 instead of 1d4. The weakness on a critical failure increases by 1. Ignition You can drastically increase the heat against When using ignition as a ranged attack, increase the When using ignition as a melee attack, your reach increases by 5 feet. Your ignition also gains the following amp. Amp You project pure heat that causes a The initial damage changes to 1d10 fire damage plus 1 fire splash damage. When using amped ignition as a melee attack, increase the damage dice of the initial damage from d10s to d12s. You are not harmed by splash damage from amped ignition . Amp Heightened (+1) Instead of using ignition's normal heightened entry, the initial damage increases by 1d10 (1d12 for melee) and the splash damage increases by 1. The persistent fire damage on a critical hit increases by 1d4."
+   },
+   "Unleash Psyche": {
+    "name": "Unleash Psyche",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Psychic",
+    "sourceBook": "Dark Archive (Remastered), p. 9",
+    "description": "When one thins the barrier between their inner mind and the outer world, one can unleash true psychic power. However, the mind wasn’t meant to tap its full strength for long, leading to backlash once your unleashed psyche ends."
+   },
+   "Versatile Human": {
+    "name": "Versatile Human",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Player Core, p. 63",
+    "description": "Heritage Versatile Human Humanity's versatility and ambition have fueled its ascendance to be the most common ancestry in most nations throughout the world. Select a general feat of your choice for which you meet the"
+   },
+   "Wandering Reverie": {
+    "name": "Wandering Reverie",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "subconscious-mind",
+    "sourceBook": "Dark Archive (Remastered), p. 16",
+    "description": "Psychic Subconscious Mind Wandering Reverie The subconscious is by definition buried below the surface. Thus, only by stripping away the clamor and interference of everyday thought can you bring this more fundamental part of your mind to bear. Whether through sleep, self-hypnosis, or special exercises to empty your mind, you've found a way to access a deeper, more chaotic state of free association that better channels your psychic power. Your thoughtforms come from your imagination, images, and sensations your mind freely associates. You might have a passing daydream of small creatures bringing you an object as you telekinetically attract it or you may blink to find you've teleported to your desired location. Spell manifestations from imagination thoughtforms have surreal or indistinct qualities, and the exact details fade quickly from observers' memory, as sensations from a dream. Key Attribute Your key attribute is Charisma. Psyche Action Fade into Daydreams Action Fade into Daydreams Single Action Illusion Psyche Psychic Your flights of imagination spill into the real world, causing you to become indistinct, hazy, or cloaked in figments. You become concealed until the start of your next turn. This concealment can't be used to Hide, as normal for concealing effects that leave your location obvious."
+   }
+  },
+  "item": {
+   "Box of Unspoiling II": {
+    "name": "Box of Unspoiling (Type II)",
+    "matchedName": "Box of Unspoiling (Type II)",
+    "level": 8,
+    "actions": "",
+    "traits": [
+     "Extradimensional",
+     "Magical",
+     "Uncommon"
+    ],
+    "category": "equipment",
+    "sourceBook": "Pathfinder #208: Hoof, Cinder, and Storm, p. 80",
+    "description": "This storage container decorated with images of wildlife and berries is popular among Shoanti quahs and other nomadic groups. The box functions like a spacious pouch, holding an amount of Bulk depending on its type, and is inscribed with magic to keep its contents cool to allow for travel with perishable items like meat and fruit. Items in the box are kept fresh for up to a year. Box of Unspoiling (Type I) Source Pathfinder #208: Hoof, Cinder, and Storm pg. 80 Price 200 gp\n\n25 Bulk Box of Unspoiling (Type II) Source Pathfinder #208: Hoof, Cinder, and Storm pg. 80 Price 575 gp\n\n50 Bulk Box of Unspoiling (Type III) Source Pathfinder #208: Hoof, Cinder, and Storm pg. 80 Price 1,640 gp\n\n100 Bulk Box of Unspoiling (Type IV) Source Pathfinder #208: Hoof, Cinder, and Storm pg. 80 Price 3,600 gp\n\n150 Bulk"
+   },
+   "Crystal Lattice": {
+    "name": "Crystal Lattice",
+    "level": 12,
+    "actions": "",
+    "traits": [
+     "Invested",
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "Impossible Magic, p. 202",
+    "description": "This +2 resilient raiment explorer’s clothing is a longline vest made of a flexible, durable lattice of many fine crystals. A wide variety of these vests exist, and their colors depend on the type of crystal that forms the lattice. The crystals glow briefly when an enemy hits the wearer. Activate—Crystal Exoskeleton Two Actions: (concentrate, manipulate) Frequency once per day; Effect The crystals on your vest grow and extend, becoming an architecturally sculpted exoskeleton that covers your form. You gain 20 temporary Hit Points that last for 1 hour. The exoskeleton crumbles into dust when the temporary Hit Points are depleted or when the duration ends, and the crystals return to their original state."
+   },
+   "Mentalist's Staff (Greater)": {
+    "name": "Mentalist's Staff (Greater)",
+    "level": 8,
+    "actions": "",
+    "traits": [
+     "Magical",
+     "Staff"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 279",
+    "description": "This polished wooden staff bears a swirling motif reminiscent of the folds of a brain. While wielding the staff, you gain a +2 circumstance bonus to checks to identify mental magic. Activate Cast a Spell; Effect You expend a number of charges from the staff to cast a spell from its list.",
+    "staff": {
+     "tierName": "Mentalist's Staff (Greater)",
+     "tierLevel": 8,
+     "price": "460 gp",
+     "effect": "",
+     "ranks": [
+      {
+       "rank": 0,
+       "spells": [
+        {
+         "name": "daze",
+         "tierLevel": 4
+        }
+       ]
+      },
+      {
+       "rank": 1,
+       "spells": [
+        {
+         "name": "mindlink",
+         "tierLevel": 4
+        },
+        {
+         "name": "phantom pain",
+         "tierLevel": 4
+        }
+       ]
+      },
+      {
+       "rank": 2,
+       "spells": [
+        {
+         "name": "paranoia",
+         "tierLevel": 8
+        }
+       ]
+      },
+      {
+       "rank": 3,
+       "spells": [
+        {
+         "name": "hypercognition",
+         "tierLevel": 8
+        },
+        {
+         "name": "phantom pain",
+         "tierLevel": 8
+        }
+       ]
+      }
+     ],
+     "tiers": [
+      {
+       "name": "Mentalist's Staff",
+       "level": 4
+      },
+      {
+       "name": "Mentalist's Staff (Greater)",
+       "level": 8
+      }
+     ]
+    }
+   },
+   "Potion of Annulment (Lesser)": {
+    "name": "Potion of Annulment (Lesser)",
+    "level": 10,
+    "actions": "Single Action",
+    "traits": [
+     "Abjuration",
+     "Consumable",
+     "Magical",
+     "Potion",
+     "Rare"
+    ],
+    "category": "equipment",
+    "sourceBook": "Pathfinder #182: Graveclaw, p. 77",
+    "description": "A potion of annulment magically breaks a supernatural deal you have made, such as an infernal contract (Bestiary 90), a sea hag's bargain, or the geas ritual. Upon drinking the potion, attempt a counteract check against the highest-level such effect, with a counteract modifier determined by the potion's type. If the check is successful, the deal ends for all parties. You're not penalized for breaking the contract, but you also enjoy none of its benefits or rewards. Individuals with whom you shared the contract are aware it has been annulled and may seek vengeance. This potion can't rewind time or negate effects that have already occurred; for example, if you have killed someone to fulfill an infernal contract, drinking this potion and canceling the contract doesn't bring the dead individual back to life. Potion of Annulment (Lesser) Source Pathfinder #182: Graveclaw pg. 77 Price 200 gp Bulk L\n\nThe counteract modifier is +17. Potion of Annulment (Moderate) Source Pathfinder #182: Graveclaw pg. 77 Price 1,300 gp Bulk L\n\nThe counteract modifier is +24. Potion of Annulment (Greater) Source Pathfinder #182: Graveclaw pg. 77 Price 13,000 gp Bulk L\n\nThe counteract modifier is +30."
+   },
+   "Potion of Resistance (Moderate)": {
+    "name": "Potion of Resistance (Moderate)",
+    "level": 10,
+    "actions": "Single Action",
+    "traits": [
+     "Consumable",
+     "Magical",
+     "Potion"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 260",
+    "description": "Drinking this thick, fortifying potion grants resistance against a single damage type for 1 hour. Each potion of resistance is created to defend against acid, cold, electricity, fire, or sonic damage (and is called a lesser potion of fire resistance or the like). Potion of Resistance (Lesser) Source GM Core pg. 260, Core Rulebook pg. 563 Price 45 gp\n\nYou gain resistance 5 to the appropriate energy type Potion of Resistance (Moderate) Source GM Core pg. 260, Core Rulebook pg. 563 Price 180 gp\n\nYou gain resistance 10 to the appropriate energy type. Potion of Resistance (Greater) Source GM Core pg. 260, Core Rulebook pg. 563 Price 850 gp\n\nYou gain resistance 15 to the appropriate energy type."
+   }
+  }
+ }
+}

@@ -1,0 +1,695 @@
+{
+ "version": "v13",
+ "character": "Miranda Stormblade",
+ "entries": {
+  "spell": {
+   "Detect Magic": {
+    "name": "Detect Magic",
+    "level": 1,
+    "heighten": [
+     "3rd",
+     "4th"
+    ],
+    "sourceBook": "Player Core, p. 323",
+    "actions": "Two Actions",
+    "traits": [
+     "Cantrip",
+     "Concentrate",
+     "Detection",
+     "Manipulate"
+    ],
+    "traditions": [
+     "Arcane",
+     "Divine",
+     "Occult",
+     "Primal",
+     "Elemental"
+    ],
+    "castComponents": "",
+    "range": "",
+    "area": "30-foot emanation",
+    "targets": "",
+    "duration": "",
+    "defense": "",
+    "description": "You send out a pulse that registers the presence of magic. You receive no information beyond the presence or absence of magic. You can choose to ignore magic you're fully aware of, such as the magic items and ongoing spells of you and your allies. You detect illusion magic only if that magic's effect has a lower rank than the rank of your detect magic spell. However, items that have an illusion aura but aren't deceptive in appearance (such as an invisibility potion) typically are detected normally.",
+    "damage": "",
+    "damageType": "",
+    "heightened": {},
+    "heightenedEntries": [
+     {
+      "level": "3rd",
+      "text": "You learn the rank or level of the most powerful magical effect the spell detects, as determined by the GM."
+     },
+     {
+      "level": "4th",
+      "text": "As 3rd rank, but you also pinpoint the source of the highest-rank magic. Like for an imprecise sense, you don't learn the exact location, but can narrow down the source to within a 5-foot cube (or the nearest if larger than that)."
+     }
+    ]
+   }
+  },
+  "feat": {
+   "Additional Lore": {
+    "name": "Additional Lore",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "description": "Your knowledge has expanded to encompass a new field. Choose a Lore skill subcategory. You become trained in it. At 3rd, 7th, and 15th levels, you gain an additional skill increase you can apply only to the chosen Lore subcategory. Special You can select this feat more than once. Each time you must select a new subcategory of Lore and you gain the additional skill increases to that subcategory for the listed levels."
+   },
+   "Advanced Breakthrough": {
+    "name": "Advanced Breakthrough",
+    "level": 6,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Inventor"
+    ],
+    "sourceBook": "Guns &amp; Gears (Remastered), p. 49",
+    "prerequisites": "Basic Breakthrough",
+    "description": "You gain one inventor feat. For the purpose of meeting its prerequisites, your inventor level is equal to half your character level. Special You can select this feat more than once. Each time you select it, you gain another inventor feat."
+   },
+   "Alchemical Crafting": {
+    "name": "Alchemical Crafting",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "prerequisites": "Trained in Crafting",
+    "description": "You can use the Craft activity to create alchemical items. When you select this feat, you immediately add the formulas for four common 1st-level alchemical items to your formula book."
+   },
+   "Arcane Sense": {
+    "name": "Arcane Sense",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "prerequisites": "Trained in Arcana",
+    "description": "Your study of magic allows you to instinctively sense its presence. You can cast 1st-rank detect magic at will as an arcane innate spell. If you're a master in Arcana, the spell is heightened to 3rd rank; if you're legendary, it is heightened to 4th rank."
+   },
+   "Assurance": {
+    "name": "Assurance",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Fortune",
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 252",
+    "prerequisites": "trained in at least one skill",
+    "description": "Even in the worst circumstances, you can perform basic tasks. Choose a skill you're trained in. You can forgo rolling a skill check for that skill to instead receive a result of 10 + your proficiency bonus (do not apply any other bonuses, penalties, or modifiers). Paizo Clarification What happens to abilities that depend on your roll when you set your die to a certain result instead of actually rolling? Typically, it still counts as a roll for abilities that trigger off your roll. For example, if you used Assurance to automatically get a result of 10 + your proficiency bonus and it would be a success, an ability that applies to that skill and says “when you roll a success, you get a critical success instead” would still upgrade your result to a critical success. Though this general rule should apply most of the time, a GM might rule otherwise in certain circumstances based on the specific abilities and their themes. Special You can select this feat multiple times. Each time, choose a different skill and gain the benefits for that skill."
+   },
+   "Basic Breakthrough": {
+    "name": "Basic Breakthrough",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Inventor"
+    ],
+    "sourceBook": "Guns &amp; Gears (Remastered), p. 49",
+    "prerequisites": "Inventor Dedication",
+    "description": "You gain a 1st- or 2nd-level inventor feat of your choice."
+   },
+   "Battle Medicine": {
+    "name": "Battle Medicine",
+    "level": 1,
+    "actions": "Single Action",
+    "traits": [
+     "General",
+     "Healing",
+     "Manipulate",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 253",
+    "prerequisites": "Trained in Medicine",
+    "requirements": "You're holding or wearing a healer's toolkit.",
+    "description": "You can patch up wounds, even in combat. Attempt a Medicine check with the same DC as for Treat Wounds and restore the corresponding amount of HP; this doesn't remove the wounded condition. As with Treat Wounds, you can attempt checks against higher DCs if you have the minimum proficiency rank. The target is then immune to your Battle Medicine for 1 day. This does not make them immune to, or otherwise count as, Treat Wounds."
+   },
+   "Canny Acumen": {
+    "name": "Canny Acumen",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 253",
+    "description": "Your avoidance or observation is beyond the ken of most in your profession. Choose Fortitude saves, Reflex saves, Will saves, or Perception. You become an expert in your choice. At 17th level, you become a master in your choice."
+   },
+   "Correct the Story": {
+    "name": "Correct The Story",
+    "level": 6,
+    "actions": "Reaction",
+    "traits": [
+     "Misfortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "trigger": "An enemy critically succeeds at an attack roll or saving throw.",
+    "description": "You know the story of your journey well and can correct it when your enemy tells it incorrectly. Spend a Mythic Point. The enemy must reroll the triggering attack roll or save and take the new result."
+   },
+   "Detective's Readiness": {
+    "name": "Detective's Readiness",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Investigator"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 108",
+    "description": "When you're on a case, you stay watchful and resolute to avoid tricks your suspect might pull. You gain your investigation bonus from Pursue a Lead on saving throws (and their DCs, as normal) against creatures or effects that are related to the question at the heart of an open investigation, and you can use Clue In to assist an ally's saving throw against that creature or effect."
+   },
+   "Ears that Hear the Truth": {
+    "name": "Ears that Hear the Truth",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 81",
+    "description": "You have an acute understanding of the rhythms of living things, and you never miss the quaver that betrays a spoken lie. When you attempt to Sense Motive, or when you roll Perception for initiative, you can spend a Mythic Point to attempt the check or roll at mythic proficiency."
+   },
+   "General Training": {
+    "name": "General Training",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Human"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 64",
+    "description": "Your adaptability manifests in your mastery of a range of useful abilities. You gain a 1st-level general feat. You must meet the feat’s prerequisites, but if you select this feat during character creation, you can select the feat later in the process in order to determine which prerequisites you meet. Special You can select this feat multiple times, choosing a different feat each time."
+   },
+   "Godless Healing": {
+    "name": "Godless Healing",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Pure Legion Enforcer"
+    ],
+    "sourceBook": "Hellfire Dispatches, p. 60",
+    "prerequisites": "Battle Medicine; can’t have a patron deity",
+    "description": "You recover an additional 5 Hit Points from a successful attempt to Treat your Wounds or use Battle Medicine on you. After you or an ally use Battle Medicine on you, you become temporarily immune to that Battle Medicine for only 1 hour, instead of 1 day."
+   },
+   "Hobnobber": {
+    "name": "Hobnobber",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 256",
+    "prerequisites": "Trained in Diplomacy",
+    "description": "You are skilled at learning information through conversation. The Gather Information exploration activity takes you half as long as normal (typically reducing the time to 1 hour). If you're a master in Diplomacy and roll a critical failure to Gather Information, you get a failure instead. There is still no guarantee that a rumor you learn with Gather Information is accurate."
+   },
+   "Inventor": {
+    "name": "Inventor",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Downtime",
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 257",
+    "prerequisites": "Expert in Crafting",
+    "description": "You are a genius at Crafting, easily able to determine how things are made and create new inventions. You can spend downtime to invent a common formula that you don't know. This works just like the Craft activity: you spend half the Price of the formula up front, attempt a Crafting check, and on a success either finish the formula by paying the difference or work for longer to decrease the Price. The difference is that you spend the additional time in research, design, and development, rather than in creating an item. Once it's complete, you add the new formula you invented to your formula book. The GM might allow you to invent uncommon or rare formulas, typically with an increased DC. You need the Alchemical Crafting feat to invent alchemical formulas and the Magical Crafting feat to invent magical formulas."
+   },
+   "Inventor Dedication": {
+    "name": "Inventor Dedication",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Archetype",
+     "Dedication",
+     "Multiclass",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Inventor"
+    ],
+    "sourceBook": "Guns &amp; Gears (Remastered), p. 49",
+    "prerequisites": "Intelligence +2",
+    "description": "You become trained in Crafting and inventor class DC. You gain the Inventor skill feat, even if you don't meet the skill feat's requirements. Choose an innovation. You gain that innovation, though you don't gain any other abilities that modify or use that innovation, such as modifications or Explode."
+   },
+   "Known Weaknesses": {
+    "name": "Known Weaknesses",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Investigator"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 106",
+    "description": "Whenever you Devise a Stratagem, you can also attempt a check to Recall Knowledge as part of that action before rolling the d20. If you critically succeed at the Recall Knowledge check, you notice a weakness and can convey the information to allies to grant each of them a +1 circumstance bonus to their next attack roll against the subject, as long as their attack is made before the beginning of your next turn. If you choose an attack stratagem, this bonus applies to that attack roll too."
+   },
+   "Natural Skill": {
+    "name": "Natural Skill",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Human"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 64",
+    "description": "Your ingenuity allows you to learn a wide variety of skills. You gain the trained proficiency rank in two skills of your choice."
+   },
+   "Searing Restoration": {
+    "name": "Searing Restoration",
+    "level": 2,
+    "actions": "Single Action",
+    "traits": [
+     "Fire",
+     "Healing",
+     "Inventor",
+     "Manipulate",
+     "Unstable"
+    ],
+    "category": "feat",
+    "sourceBook": "Guns &amp; Gears (Remastered), p. 26",
+    "description": "They told you there was no way that explosions could heal people, but they were fools… Fools who didn't understand your brilliance! You create a minor explosion from your innovation, altering the combustion to cauterize wounds using vaporized medicinal herbs. You or a living creature adjacent to you regains 1d10 Hit Points. In addition, the creature you heal can attempt an immediate flat check to recover from a single source of persistent bleed damage, with the DC reduction from appropriate assistance. At 3rd level, and every 2 levels thereafter, increase the healing by 1d10. Special If your innovation is a minion, it can take this action rather than you, though because it's not a living creature, it can't use the ability on itself."
+   },
+   "Shared Stratagem": {
+    "name": "Shared Stratagem",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Investigator"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 107",
+    "description": "The plans you make include your allies as well as yourself. When you hit a creature with an attack on which you substituted your attack roll due to Devising a Stratagem, designate one ally. The creature you hit is off-guard to that ally on the next attack that ally makes against that creature before the start of your next turn."
+   },
+   "Skilled Human": {
+    "name": "Skilled Human",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Player Core, p. 63",
+    "description": "Heritage Skilled Human Your ingenuity allows you to train in a wide variety of skills. You become trained in one skill of your choice. At 5th level, you become an expert in the chosen skill."
+   },
+   "Tamper": {
+    "name": "Tamper",
+    "level": 1,
+    "actions": "Single Action",
+    "traits": [
+     "Inventor",
+     "Manipulate"
+    ],
+    "category": "feat",
+    "sourceBook": "Guns &amp; Gears (Remastered), p. 25",
+    "description": "You tamper with a foe's weapon or armor, using a free hand. Choose either a weapon held by an enemy in your reach or a suit of armor worn by an enemy in your reach. Attempt a Crafting check against the enemy's Reflex DC. Critical Success Your tampering is incredibly effective. If you tampered with a weapon, the enemy takes a –2 circumstance penalty to attack rolls and damage rolls with that weapon. If you tampered with armor, the armor hampers the enemy's movement, making the enemy flat-footed and inflicting a –10-foot penalty to its Speeds. The effect lasts until the enemy Interacts to remove it, regardless of which one you used. Success Your tampering is temporarily effective. As critical success, but the effect ends at the start of your next turn, even if the enemy doesn't Interact to end it. Critical Failure Your tampering backfires dramatically, creating a small explosion from your own tools or gear. You take fire damage equal to your level."
+   },
+   "That's Odd": {
+    "name": "That's Odd",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Investigator"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 107",
+    "description": "When you enter a new location, such as a room or corridor, you immediately notice one thing out of the ordinary. The GM determines what it is, or whether there's nothing reasonable to pick up, skipping obvious clues that can be easily noticed without a check or specifically looking for them. You learn only that an area or object is suspicious, but not why it's suspicious. For example, if you entered a study with a large bloodstain on the ground, the bloodstain is so obviously suspicious it's evident to you already, so the GM might note that there's something suspicious about the desk drawer instead. You would then need to investigate the drawer further to find out what specifically is out of the ordinary. If you wish, you can Pursue a Lead concerning this detail even if you have Pursed a Lead less than 10 minutes ago. That's Odd doesn't reveal whether creatures are suspicious. You don't typically get any benefit when you leave and come back to a place, though if a major change has happened there and time has passed, the GM might determine that you do."
+   },
+   "Thorough Research": {
+    "name": "Thorough Research",
+    "level": 6,
+    "actions": "",
+    "traits": [
+     "Investigator"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Vindicator"
+    ],
+    "sourceBook": "Player Core 2, p. 109",
+    "description": "You have comprehensive knowledge in your fields of interest. When you succeed at a Recall Knowledge check, you gain additional information or context. When you critically succeed at a check to Recall Knowledge, you get additional information or context or can ask an additional follow-up question (the GM chooses which)."
+   },
+   "Toughness": {
+    "name": "Toughness",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 263",
+    "description": "Your body can withstand more punishment than most before succumbing. Increase your maximum Hit Points by your level. You reduce the DC of recovery checks by 1."
+   },
+   "Ward Medic": {
+    "name": "Ward Medic",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 265",
+    "prerequisites": "Expert in Medicine",
+    "description": "You've studied in large medical wards, treating several patients at once and tending to all their needs. When you use Treat Disease or Treat Wounds, you can treat up to two targets. If you're a master in Medicine, you can treat up to four targets, and if you're legendary, you can treat up to eight targets."
+   },
+   "We've Met Before": {
+    "name": "We've Met Before",
+    "level": 2,
+    "actions": "Single Action",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 81",
+    "requirements": "You’ve spent at least 1 minute in mutual conversation with a creature.",
+    "description": "Your ability to discern information about those you interact with is without peer. Spend a Mythic Point to gain a Lore skill specific to the required creature for the next 24 hours; you have mythic proficiency with that skill and can use it to Recall Knowledge about the creature, Decipher Writings created by the creature, Earn Income or Subsist in areas ruled by the creature, or perform other appropriate tasks as determined by the GM."
+   }
+  },
+  "special": {
+   "Bookkeeper's Calling": {
+    "name": "Bookkeeper's Calling",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Calling",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "mythic-calling",
+    "sourceBook": "War of Immortals, p. 79",
+    "description": "Edicts educate others, record new knowledge so that others can share in your discoveries Anathema destroy books, scrolls, or other instruments used to record information; refuse an opportunity to share your knowledge with an earnest knowledge-seeker"
+   },
+   "Clue In": {
+    "name": "Clue In",
+    "level": null,
+    "actions": "Reaction",
+    "traits": [
+     "Concentrate",
+     "Investigator"
+    ],
+    "category": "action",
+    "sourceBook": "Player Core 2, p. 102",
+    "trigger": "Another creature attempts a check that could help get you closer to answering the question at the heart of one of your active investigations.",
+    "frequency": "once per 10 minutes",
+    "description": "You share information with the triggering creature. They gain a circumstance bonus to their check equal to your investigation bonus from Pursue a Lead. The GM can add any relevant traits to this reaction depending on the situation, such as auditory and linguistic if you're conveying information verbally."
+   },
+   "Devise a Stratagem": {
+    "name": "Devise a Stratagem",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Investigator",
+    "sourceBook": "Player Core 2, p. 100",
+    "description": "You can play out a battle in your head, using brains rather than brawn to execute an attack."
+   },
+   "Dragon Strike": {
+    "name": "Dragon Strike",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Evocation"
+    ],
+    "category": "relic",
+    "sourceBook": "Secrets of Magic, p. 230",
+    "description": "Activate Single Action: command; Frequency once per hour; Effect Ghostly images of draconic claws form around your hands and linger in the air when you attack. For 1 minute, when you make a successful unarmed melee Strike, you deal an additional 1d6 slashing damage. At 11th level, you can use the ability once per 10 minutes instead of once per hour."
+   },
+   "Empiricism Methodology": {
+    "name": "Methodology",
+    "matchedName": "Methodology",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Investigator",
+    "sourceBook": "Player Core 2, p. 100",
+    "description": "Your studies have made you savvy in a broad spectrum of areas, but one particular investigative process drew your intense—even obsessive—interest. Choose a methodology. Methodologies can be found here."
+   },
+   "Empiricism Selected Skill: Occultism": {
+    "name": "Empiricism",
+    "matchedName": "Empiricism",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "methodology",
+    "sourceBook": "Player Core 2, p. 104",
+    "description": "Investigator Methodology Empiricism Everything comes down to data. Calculating statistics, running numbers, and using inductive reasoning allows you to determine the most likely outcome of any scenario, and anything out of place draws your keen attention. You are trained in one Intelligence-based skill of your choice. You gain the That’s Odd investigator feat, and you gain the Expeditious Inspection free action. Action Expeditious Inspection Free Action Investigator You Recall Knowledge, Seek, or Sense Motive."
+   },
+   "Expeditious Inspection": {
+    "name": "Expeditious Inspection",
+    "level": null,
+    "actions": "Free Action",
+    "traits": [
+     "Investigator"
+    ],
+    "category": "action",
+    "sourceBook": "Player Core 2, p. 104",
+    "frequency": "once per 10 minutes",
+    "description": "You observe and assess your surroundings with great speed. You Recall Knowledge, Seek, or Sense Motive."
+   },
+   "Keen Recollection": {
+    "name": "Keen Recollection",
+    "level": 3,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Investigator",
+    "sourceBook": "Player Core 2, p. 100",
+    "description": "You can recall pertinent facts on topics that aren’t your specialty. Your proficiency bonus to untrained skill checks to Recall Knowledge is equal to your level instead of +0."
+   },
+   "Pursue a Lead": {
+    "name": "Pursue a Lead",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Concentrate",
+     "Exploration",
+     "Investigator"
+    ],
+    "category": "action",
+    "sourceBook": "Player Core 2, p. 102",
+    "description": "You name one detail you've identified that you think is part of a larger mystery, then spend 1 minute examining it. The detail is typically either obvious or something you've already discovered using Recall Knowledge, Sense Motive, Gather Information, or a similar action. After the minute passes, the GM either confirms there's a larger mystery or tells you there's nothing more to learn (the detail is inconsequential or you know all the information already). If there is in fact a larger mystery at play, you can't Pursue a Lead again for 10 minutes, but you can choose to open an investigation. To do so, define the question at the heart of the mystery, such as “Where has the priceless work of art that was supposed to hang here been taken?” or “Who or what killed this priest?” Work with your GM to refine the question if need be. You can also give your investigation a name to better keep track of it (such as “The Case of the Cheated Goblin” or “The Skinsaw Murders”). Investigation Bonus Whenever you attempt a Perception check or skill check to attempt to get closer to answering the question at the heart of an active investigation, you gain a +1 circumstance bonus to the check. The exact checks this applies to depend on the actions you use to investigate and are determined by the GM, but checks to investigate are typically Perception checks or skill checks that use Intelligence, Wisdom, or Charisma. Active Investigations You can maintain two active investigations at a time. If you Pursue another Lead after that, the case must be different from any of your current investigations (as far as you are aware), and you give up on a current investigation of your choice. Once you've given up pursuit of an investigation, you can't Pursue a Lead into it again until after the next time you make your daily preparations. Solving an Investigation If you answer the question at the heart of your investigation, the GM tells you that you've done so. You don't lose the bonus or other benefits until you choose to close the investigation by Pursuing a Lead again or voluntarily Dismissing it. If what you discover points to an even larger mystery, you can work with the GM to adapt the question and name of the investigation to the new information."
+   },
+   "Religion": {
+    "name": "Religion",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "rules",
+    "sourceBook": "Player Core, p. 35",
+    "description": "Rules Religion Selection of a deity is critical for clerics, but most characters pay respect to at least one deity to find a focus in life and guide their choices, especially in times of hardship or need. Some people instead worship a group of deities arranged in a pantheon, follow a non-deific religion like the Green Faith, or adhere to a specific philosophy. Note that far more deities, religions, and philosophies exist on any world, Golarion included, than those detailed below."
+   },
+   "Rewrite Fate": {
+    "name": "Rewrite Fate",
+    "level": null,
+    "actions": "Free Action",
+    "traits": [
+     "Fortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "action",
+    "sourceBook": "War of Immortals, p. 78",
+    "trigger": "You roll a skill check or saving throw and don’t like the result.",
+    "description": "Destiny, fate, or some other force bends around you as your mythic power swells, manifesting in a flash of light or visible surge of energy emanating from your body as you cast aside the chains of fate. You expend a Mythic Point and reroll the check or save with mythic proficiency, taking the new result."
+   },
+   "Scrap Shot": {
+    "name": "Scrap Shot",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Metal"
+    ],
+    "category": "relic",
+    "sourceBook": "Rage of Elements, p. 148",
+    "description": "Activate Two Actions: (concentrate, manipulate) Effect Magnetic repulsion sends a sharp chunk of metal scrap flying from your relic. Make a spell attack roll with your relic against a target within 30 feet. The chunk deals 1d6 piercing damage for every 2 levels the relic has (minimum 1d6). If the target is wearing metal armor or is made of metal, you gain a +1 circumstance bonus to your spell attack roll, and the target becomes clumsy 1 until the start of your next turn as the scrap adheres to the target. If your relic is made of a precious metal, the shot is also made of or coated in that metal, bypassing resistances and the like accordingly. The scrap left behind by the shot rusts or crumbles quickly and isn't worth anything if sold."
+   },
+   "Skilled Human": {
+    "name": "Skilled Human",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Player Core, p. 63",
+    "description": "Heritage Skilled Human Your ingenuity allows you to train in a wide variety of skills. You become trained in one skill of your choice. At 5th level, you become an expert in the chosen skill."
+   },
+   "Skillful Lessons": {
+    "name": "Skillful Lessons",
+    "level": 3,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Investigator",
+    "sourceBook": "Player Core 2, p. 100",
+    "description": "At 3rd level and every odd-numbered level thereafter, you gain a skill feat. This feat must be for an Intelligence-, Wisdom-, or Charisma-based skill, or for the skill you gained from your methodology."
+   },
+   "Strategic Strike": {
+    "name": "Strategic Strike",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Investigator",
+    "sourceBook": "Player Core 2, p. 100",
+    "description": "When you strike carefully and with forethought, you deal a telling blow. When making a Strike that adds your Intelligence modifier to your attack roll due to Devising a Stratagem, you deal an additional 1d6 precision damage. As your investigator level increases, so too does the deadliness of your strategic strike. Increase the number of dice by one at 5th, 9th, 13th, and 17th levels."
+   },
+   "Survival": {
+    "name": "Survival",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "skill",
+    "sourceBook": "Player Core, p. 246",
+    "description": "Skill Survival You are adept at living in the wilderness, foraging for food and building shelter, and with training you discover the secrets of tracking and hiding your trail. Survival Untrained General Actions - Subsist in the wild by foraging for food and building shelter. Item Bonuses for Survival Item Bonus Level Category Consumable Note Staff of Providence +1 0 Staves No Survival checks to Sense Direction or Subsist Astrolabe +1 2 Adventuring Gear No Item bonus to checks to identify celestial bodies Aromatic Ammunition +1 2 Alchemical Ammunition No Item bonus to Track the affected creature for as long as it has the odor. Emperor's Peak Quartz Bracelet +1 3 Other Worn Items No Item bonus to Survival checks to Sense Direction. +3 if in mountainous terrain Emperor's Peak Quartz Bracelet +1 3 Other Worn Items No Item bonus to Survival checks to Subsist. +3 if in mountainous terrain Tracker's Goggles +1 3 Worn Items No Survival checks to Sense Direction and Track Mariner's Astrolabe +1 3 Adventuring Gear No Item bonus to checks to identify celestial bodies Hongrui's Gratitude +1 3 Held Items No Temporary item bonus to Survival Hoax-Hunter's Kit +1 3 Adventuring Gear No Track a creature you are studying Mantle of Far Horizons +1 3 Other Worn Items No Item bonus to Survival checks made to Sense Direction. Essence Charm +1 4 Other Worn Items No Item bonus to a check of the crafter's choice Mark Of The Torrent +1 5 Other Worn Items No to Gather Information about a missing person. Atlas Arcane +1 7 Held Items No item bonus to Survival Lesser Mariner's Mien +1 8 Worn Items No Item bonus to Survival checks. Eyes Of The Moonwarden +1 9 Other Worn Items No item bonus to Survival checks Tracker's Goggles (Greater) +2 9 Worn Items No Survival checks to Sense Direction and Track Needle of Undeath +2 10 Held Items No item bonus to sense direction when using the stars to orient themself Helm of Zeal +2 11 Worn Items No Item bonus of the associated Deity's Divine Skill Bloodstride Blade +2 13 Specific Magic Weapons No Item bonus to Seek or Track creatures that have blood. Moderate Mariner's Mien +2 15 Worn Items No Item bonus to Survival checks. Helm of Zeal (Greater) +3 18 Worn Items No Item bonus of the associated Deity's Divine Skill Related Feats To see a list of Feats related to Survival, click here. Survival Untrained Actions Action Sense Direction Exploration Secret Using the stars, the position of the sun, traits of the geography or flora, or the behavior of fauna, you can stay oriented in the wild. Typically, you attempt a Survival check only once per day, but some environments or changes might necessitate rolling more often. The GM determines the DC and how long this activity takes (usually just a minute or so). More unusual locales or those you're unfamiliar with might require you to have a minimum proficiency rank to Sense Direction. Without a compass, you take a 2 item penalty to checks to Sense Direction. Critical Success You get an excellent sense of where you are. If you are in an environment with cardinal directions, you know them exactly. Success You gain enough orientation to avoid becoming hopelessly lost. If you are in an environment with cardinal directions, you have a sense of those directions. Sample Sense Direction Tasks Untrained determine a cardinal direction using the sun Trained find an overgrown path in a forest Expert navigate a hedge maze Master navigate a byzantine labyrinth or relatively featureless desert Legendary navigate an ever-changing dream realm Survival Trained Actions Action Cover Tracks Concentrate Exploration Move You cover your tracks, moving up to half your travel Speed. You don't need to attempt a Survival check to cover your tracks, but anyone tracking you must succeed at a Survival check against your Survival DC if it is higher than the normal DC to Track. In some cases, you might Cover Tracks in an encounter. In this case, Cover Tracks is a single action and doesn't have the exploration ..."
+   },
+   "Thievery": {
+    "name": "Thievery",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "skill",
+    "sourceBook": "Player Core, p. 246",
+    "description": "Skill Thievery You are trained in a particular set of skills favored by thieves and miscreants. Item Bonuses for Thievery Item Bonus Level Category Consumable Note Charlatan's Gloves +1 3 Worn Items No Thieves' Toolkit (Infiltrator) +1 3 Adventuring Gear No Thievery checks to Pick Locks and Disable Devices Keymaking Tools +1 3 Held Items No Item bonus to Thievery to Pick a Lock. Essence Charm +1 4 Other Worn Items No Item bonus to a check of the crafter's choice Shacklebreaker +1 4 Other Worn Items No Illusionist's Hat +1 8 Other Worn Items No to Palm an Object Quicksilver Mutagen +1 0 Alchemical Elixirs Yes Shacklebreaker +2 4 Other Worn Items No Charlatan's Gloves (Greater) +2 9 Worn Items No Gloves of Precision +2 10 Worn Items No Item bonus to Disable a Device and Pick a Lock Ring of Maniacal Devices +2 11 Worn Items No Thievery checks to Disable a Device and to Pick a Lock Helm of Zeal +2 11 Worn Items No Item bonus of the associated Deity's Divine Skill Quicksilver Mutagen +2 0 Alchemical Elixirs Yes Ring of Maniacal Devices (Greater) +3 18 Worn Items No Thievery checks to Disable a Device and to Pick a Lock Helm of Zeal (Greater) +3 18 Worn Items No Item bonus of the associated Deity's Divine Skill Greater Gloves of Precision +3 18 Worn Items No Item bonus to Disable a Device and Pick a Lock Quicksilver Mutagen +3 0 Alchemical Elixirs Yes Quicksilver Mutagen +4 0 Alchemical Elixirs Yes Related Feats To see a list of Feats related to Thievery, click here. Thievery Untrained Actions Action Palm an Object Single Action Manipulate You pick up a small, unattended object and try not to be noticed. Roll a single Thievery check against the Perception DCs of all creatures who are currently observing you. You can typically only Palm Objects of negligible Bulk, though the GM might determine otherwise depending on the situation. Success The creature doesn't notice you Palming the Object. Failure The creature notices you Palming the Object. Action Steal Single Action Manipulate You try to take a small object from another creature without being noticed. Typically, you can Steal only an object of negligible Bulk, you must have a free hand, and you automatically fail if the creature who has the object is in combat or on guard. Attempt a Thievery check to determine if you successfully Steal the object. The DC is usually the Perception DC of the creature wearing the object. It's easiest to steal an object that is worn but not closely guarded (like a loosely carried pouch filled with coins, or an object within such a pouch). The GM might increase the DC if the object is protected or if the nature of the object makes it harder to steal (such as a very small item in a large pack, or a sheet of parchment mixed in with other documents). For instance, the DC is typically 5 higher if the object is in a pocket, held in a creature's hand, or similarly protected. You might also need to compare your Thievery check result against the Perception DCs of observers other than the person wearing the object. The GM might impose a circumstance penalty to the DCs of observers who are distracted. Success You steal the item without the bearer noticing, or an observer doesn't see you take or attempt to take the item. Failure The item's bearer notices your attempt before you can take the object, or an observer sees you take or attempt to take the item. The GM determines the response of any creature that notices your theft. Thievery Trained Actions Action Disable a Device Two Actions Manipulate This action allows you to disarm a trap or another complex device. Often, a device requires numerous successes before becoming disabled, depending on its construction and complexity. A thieves' toolkit is helpful and sometimes even required to Disable a Device, as determined by the GM, and sometimes a device requires a higher proficiency rank in Thievery to disable it. Your Thievery check result determines your progress. Critical Success You disable the device, or you ..."
+   },
+   "Vigilant Senses (Investigator)": {
+    "name": "Vigilant Senses",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Investigator",
+    "sourceBook": "Player Core 2, p. 100",
+    "description": "Through your adventures, you’ve developed keen awareness and attention to detail. Your proficiency rank in Perception increases to master."
+   },
+   "Weapon Expertise (Investigator)": {
+    "name": "Weapon Expertise",
+    "level": 5,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Investigator",
+    "sourceBook": "Player Core 2, p. 100",
+    "description": "You’ve dedicated yourself to learning the intricacies of your weapons. Your proficiency ranks for simple weapons, martial weapons, and unarmed attacks increase to expert."
+   },
+   "Weapon Innovation": {
+    "name": "Innovation",
+    "matchedName": "Innovation",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Inventor",
+    "sourceBook": "Guns &amp; Gears (Remastered), p. 15",
+    "description": "While you're always creating inventions, there's one that represents your preeminent work, the one that you hope—with refinement—might change the world. Choose one innovation. Your innovation's level is equal to your level. If your innovation is destroyed, you can spend 1 day of downtime and attempt a Crafting check with a high DC for your level; on a success, you rebuild it. An innovation only works due to your constant maintenance and tinkering, and therefore has no market Price. Innovations can be found here."
+   },
+   "Weapon Specialization (Investigator)": {
+    "name": "Weapon Specialization",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Investigator",
+    "sourceBook": "Player Core 2, p. 100",
+    "description": "You can inflict greater injuries with the weapons you know best. You deal 2 additional damage with weapons and unarmed attacks in which you are an expert. This damage increases to 3 if you’re a master, and to 4 if you’re legendary."
+   }
+  },
+  "item": {
+   "Arachnid Harness": {
+    "name": "Arachnid Harness",
+    "level": 7,
+    "actions": "",
+    "traits": [
+     "Invested",
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "Treasure Vault (Remastered), p. 14",
+    "description": "This +1 leather armor has four knobbed ribs that wrap around the torso. The armor grants you resistance 2 to poison damage. Activate Single Action: (concentrate) Frequency once per day; Effect The ribs from the armor spread into functional spider limbs. For 1 minute, you gain a climb Speed equal to half your land Speed and have your limbs free as you climb. If you use all your free limbs to help you Climb, your climb Speed equals your land Speed. Arachnid Harness Source Treasure Vault (Remastered) pg. 14 Price 360 gp Bulk 1 Craft Requirements The initial raw materials must include four intact legs from a giant tarantula. Arachnid Harness (Greater) Source Treasure Vault (Remastered) pg. 14 Price 700 gp Bulk 1\n\nThe armor is +1 resilient leather armor, the resistance is 5, and the harness can be activated once every 10 minutes. Craft Requirements The initial raw materials must include four intact legs from a goliath spider."
+   },
+   "Braço Sônico": {
+    "name": "Braço Sônico",
+    "actions": "",
+    "traits": [],
+    "category": "equipment",
+    "description": "Miranda's arm, the relic she named Miranda's Arm: +1 potency, striking and a shock rune, made of low-grade cold iron. Sonic damage and finesse. Its powers (Scrap Shot and Dragon Strike) live on the relic card, in the Inventory."
+   },
+   "Healer's Gloves": {
+    "name": "Healer's Gloves",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Invested",
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 290",
+    "description": "These clean, white gloves never show signs of blood, even after they're used to stitch up wounds or treat other ailments. They give you a +1 item bonus to Medicine checks. Activate—Healer's Touch Single Action: (manipulate) Frequency once per day; Effect You soothe the wounds of a willing, living, adjacent creature, restoring 2d6+7 Hit Points to that creature. This is a healing vitality effect. You can't harm undead with this healing. Healer's Gloves Source GM Core pg. 290, Core Rulebook pg. 612 Price 80 gp Healer's Gloves (Greater) Source GM Core pg. 290, Core Rulebook pg. 612 Price 700 gp\n\nThe gloves provide a +2 bonus and restore 4d6+15 Hit Points."
+   },
+   "Miranda's Arm": {
+    "name": "Miranda's Arm",
+    "actions": "",
+    "traits": [
+     "Magical",
+     "Relic"
+    ],
+    "category": "equipment",
+    "description": "The name Miranda gave her relic: the arm, the same Braço Sônico on the sheet, with its runes kept (+1 striking, shock). The powers are gifts from AON: Scrap Shot (2 actions) and Dragon Strike (1 action, once per hour). They live on the relic card, in the Inventory."
+   },
+   "Steel Shield": {
+    "name": "Steel Shield",
+    "level": 0,
+    "actions": "",
+    "traits": [],
+    "category": "shield",
+    "sourceBook": "Player Core, p. 274",
+    "description": "Like wooden shields, steel shields come in a variety of shapes and sizes. Though more expensive than wooden shields, they are much more durable. Specific Magic Shields Clockwork Shield, Coward's Shield, Dragon Shield, Dragonslayer's Shield, Emergency Escape Shield, Energized Shield, Force Shield, Forge Warden, Imposing Shield, Indestructible Shield, Lion's Shield, Magnetic Shield, Magnetic Shield, Martyr's Shield, Martyr's Shield, Medusa's Scream, Sensei's Parasol, Shield of Endurance, Shield of the Bear, Spellguard Shield, Spellshock Shield, Spined Shield, Stifling Shield, Sturdy Shield"
+   },
+   "Sword Cane": {
+    "name": "Sword Cane",
+    "level": 0,
+    "actions": "",
+    "traits": [
+     "Agile",
+     "Concealable",
+     "Finesse"
+    ],
+    "category": "weapon",
+    "sourceBook": "Tian Xia Character Guide, p. 127",
+    "description": "This slender, rapier-like sword is concealed within a wooden or metal cane that serves as a sheath, making it an inconspicuous weapon easy to slip past inspections or into high-society events. A sword cane is typically 4 feet long when sheathed, and its hilt is usually capped with a wooden or metal decoration. Critical Specialization Effects Source Core Rulebook pg. 283 Certain feats, class features, weapon runes, and other effects can grant you additional benefits when you make a Strike with certain weapons and get a critical success. This is called a critical specialization effect. The exact effect depends on which weapon group your weapon belongs to, as listed below. You can always decide not to add the critical specialization effect of your weapon. Click here for the full rules on Critical Specialization Effects. Specific Magic Weapons Infiltrator's Accessory"
+   }
+  }
+ }
+}

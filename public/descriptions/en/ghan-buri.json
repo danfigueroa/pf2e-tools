@@ -1,0 +1,599 @@
+{
+ "version": "v13",
+ "character": "Ghan Buri",
+ "entries": {
+  "spell": {},
+  "feat": {
+   "Bastion Dedication": {
+    "name": "Bastion Dedication",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Archetype",
+     "Dedication"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Bastion"
+    ],
+    "sourceBook": "Player Core 2, p. 187",
+    "prerequisites": "Shield Block",
+    "description": "You are particularly skilled at using a shield to protect yourself in combat. You gain the Reactive Shield fighter feat."
+   },
+   "Battle Medicine": {
+    "name": "Battle Medicine",
+    "level": 1,
+    "actions": "Single Action",
+    "traits": [
+     "General",
+     "Healing",
+     "Manipulate",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 253",
+    "prerequisites": "Trained in Medicine",
+    "requirements": "You're holding or wearing a healer's toolkit.",
+    "description": "You can patch up wounds, even in combat. Attempt a Medicine check with the same DC as for Treat Wounds and restore the corresponding amount of HP; this doesn't remove the wounded condition. As with Treat Wounds, you can attempt checks against higher DCs if you have the minimum proficiency rank. The target is then immune to your Battle Medicine for 1 day. This does not make them immune to, or otherwise count as, Treat Wounds."
+   },
+   "Blind-Fight": {
+    "name": "Blind-Fight",
+    "level": 8,
+    "actions": "",
+    "traits": [
+     "Fighter",
+     "Investigator",
+     "Ranger",
+     "Rogue"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Horizon Walker",
+     "Exorcist",
+     "Eagle Knight",
+     "Hellbreaker"
+    ],
+    "sourceBook": "Player Core, p. 145",
+    "prerequisites": "master in Perception",
+    "description": "Your battle instincts make you more aware of concealed and invisible opponents. You don’t need to succeed at a flat check to target concealed creatures. You’re not off-guard to creatures that are hidden from you (unless you’re off-guard to them for reasons other than the hidden condition), and you need only a successful DC 5 flat check to target a hidden creature. While you’re adjacent to an undetected creature of your level or lower, it is instead only hidden from you"
+   },
+   "Cognitive Crossover": {
+    "name": "Kreighton's Cognitive Crossover",
+    "matchedName": "Kreighton's Cognitive Crossover",
+    "level": 4,
+    "actions": "Reaction",
+    "traits": [
+     "General",
+     "Skill",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "PFS Guide, p. 119",
+    "trigger": "You gain no information from a Recall Knowledge check (usually because you failed the secret check) using one of the two skills you chose for this feat.",
+    "access": "Member of the Pathfinder Society.",
+    "description": "Kreighton teaches his students that an agile mind can glean clues leading to the truth, even from the most unlikely of sources. You immediately reattempt the triggering check using the other chosen skill. Special When you gain this feat, choose two of the following skills: Arcana, Crafting, Lore (any one), Medicine, Nature, Occultism, Religion, or Society. Scrolls Training Source PFS Guide pg. 119 The Society's Master of Scrolls, Kreighton Shaine (Lost Omens Pathfinder Society Guide page 42), may be considered strange and absent-minded by his peers, but the elf venture-captain takes his duties quite seriously. Skilled in researching obscure subjects and unraveling inscrutable secrets, Kreighton teaches his students the value of an inquisitive mind. Related Feats:"
+   },
+   "Correct the Story": {
+    "name": "Correct The Story",
+    "level": 6,
+    "actions": "Reaction",
+    "traits": [
+     "Misfortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 82",
+    "trigger": "An enemy critically succeeds at an attack roll or saving throw.",
+    "description": "You know the story of your journey well and can correct it when your enemy tells it incorrectly. Spend a Mythic Point. The enemy must reroll the triggering attack roll or save and take the new result."
+   },
+   "Destructive Block": {
+    "name": "Destructive Block",
+    "level": 10,
+    "actions": "",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Bastion"
+    ],
+    "sourceBook": "Player Core 2, p. 187",
+    "prerequisites": "Bastion Dedication",
+    "description": "You can protect yourself more effectively, at the expense of your shield. When you Shield Block, you can reduce the damage to yourself by double the shield’s Hardness, but if you do, the shield takes double the normal amount of damage it would have taken (before applying its Hardness). You can’t use Destructive Block if your shield can’t typically be broken or destroyed, such as if you’re using an indestructible shield."
+   },
+   "Devoted Guardian": {
+    "name": "Devoted Guardian",
+    "level": 2,
+    "actions": "Single Action",
+    "traits": [
+     "Champion",
+     "Fighter",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "Knights of Lastwall, p. 82",
+    "requirements": "Your last action was to Raise a Shield.",
+    "access": "Knights of Lastwall have access to this feat.",
+    "description": "You adopt a wide stance, ready to defend both yourself and your chosen ward. Select one adjacent creature. As long as your shield is raised and the creature remains adjacent to you, the creature gains a +1 circumstance bonus to their AC, or a +2 circumstance bonus if the shield you raised was a tower shield."
+   },
+   "Disarming Block": {
+    "name": "Disarming Block",
+    "level": 4,
+    "actions": "Free Action",
+    "traits": [
+     "Archetype"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Bastion"
+    ],
+    "sourceBook": "Player Core 2, p. 187",
+    "prerequisites": "Bastion Dedication; Trained in Athletics",
+    "trigger": "You Shield Block a melee Strike made with a held weapon.",
+    "description": "With deft and practiced movement, you block at an angle to potentially dislodge the weapon. You attempt to Disarm the creature whose attack you blocked of the weapon they attacked you with. You can do so even if you don’t have a hand free."
+   },
+   "Ears that Hear the Truth": {
+    "name": "Ears that Hear the Truth",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 81",
+    "description": "You have an acute understanding of the rhythms of living things, and you never miss the quaver that betrays a spoken lie. When you attempt to Sense Motive, or when you roll Perception for initiative, you can spend a Mythic Point to attempt the check or roll at mythic proficiency."
+   },
+   "Exacting Strike": {
+    "name": "Exacting Strike",
+    "level": 1,
+    "actions": "Single Action",
+    "traits": [
+     "Fighter",
+     "Press"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 140",
+    "description": "You make a controlled follow-up attack, fully accounting for your momentum. Make a Strike. The Strike gains the following failure effect. Failure This attack does not count toward your multiple attack penalty."
+   },
+   "Fearsome Brute": {
+    "name": "Fearsome Brute",
+    "level": 10,
+    "actions": "",
+    "traits": [
+     "Fighter"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Hellknight"
+    ],
+    "sourceBook": "Player Core, p. 147",
+    "description": "Fear makes your foes weak and more vulnerable to your attacks. You gain a circumstance bonus to damage rolls for Strikes against frightened creatures. The bonus is equal to double the target’s frightened value. If you’re a master in Intimidation, increase the bonus to triple the target’s frightened value."
+   },
+   "Fiery Rebirth": {
+    "name": "Fiery Rebirth",
+    "level": 4,
+    "actions": "Free Action",
+    "traits": [
+     "Fire",
+     "Healing",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "Pathfinder #216: The Acropolis Pyre, p. 82",
+    "trigger": "You regain Hit Points while you are unconscious.",
+    "description": "When you escape death, you return to life with retributive fire that burns those who harmed you. You expend 1 Mythic Point, return to consciousness, Stand, and regain additional Hit Points equal to your level. You then erupt in flames, dealing fire damage equal to twice your level to adjacent foes, with a basic Reflex save against your class DC. Foes that critically fail the save are also pushed 5 feet away from you."
+   },
+   "Fleet": {
+    "name": "Fleet",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 256",
+    "description": "You move more quickly on foot. Your Speed increases by 5 feet."
+   },
+   "Impeccable Crafting": {
+    "name": "Impeccable Crafting",
+    "level": 7,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 256",
+    "prerequisites": "Master in Crafting; Specialty Crafting",
+    "description": "You craft flawless creations with great efficiency. Whenever you roll a success at a Crafting check to make an item of the type you chose with Specialty Crafting, you get a critical success instead."
+   },
+   "Intimidating Glare": {
+    "name": "Intimidating Glare",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 257",
+    "prerequisites": "Trained in Intimidation",
+    "description": "You can Demoralize with a mere glare. When you do, Demoralize loses the auditory trait and gains the visual trait, and you don’t take a penalty if the creature doesn’t understand your language."
+   },
+   "Jotunborn Weapon Familiarity": {
+    "name": "Jotunborn Weapon Familiarity",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Jotunborn"
+    ],
+    "category": "feat",
+    "sourceBook": "Battlecry!, p. 13",
+    "description": "You gain access to all uncommon weapons with the jotunborn trait. You have familiarity with weapons with the jotunborn trait plus the bola, greataxe, halberd, maul, longspear, and war flail—for the purpose of proficiency, you treat any of these that are martial weapons as simple weapons and any that are advanced weapons as martial weapons."
+   },
+   "Mythic Strike": {
+    "name": "Mythic Strike",
+    "level": 10,
+    "actions": "Single Action",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 84",
+    "description": "You infuse your weapon or unarmed attack with mythic power before lashing out at an enemy with devastating force. Spend a Mythic Point and then Strike a creature with a weapon you’re wielding or an unarmed attack you have available. This Strike is made at mythic proficiency, and the weapon or unarmed attack counts as a mythic weapon for the purposes of overcoming mythic resistance or mythic immunity."
+   },
+   "Planar Resilience": {
+    "name": "Planar Resilience",
+    "level": 5,
+    "actions": "",
+    "traits": [
+     "Jotunborn"
+    ],
+    "category": "feat",
+    "sourceBook": "Battlecry!, p. 14",
+    "description": "Your body has adapted to the variety of harsh climes that you encounter in your travels. You treat temperature-based environmental effects as if they were one step less extreme (incredible cold or heat becomes extreme, extreme cold or heat becomes severe, and so on). Additionally, the planar energies that move through you allow you to further adapt your body with some concentration and effort. During your daily preparations, choose either cold or fire. You gain resistance to that damage equal to half your level (minimum 1)."
+   },
+   "Plane Step": {
+    "name": "Plane Step",
+    "level": 9,
+    "actions": "Two Actions",
+    "traits": [
+     "Concentrate",
+     "Jotunborn",
+     "Move",
+     "Occult",
+     "Teleportation"
+    ],
+    "category": "feat",
+    "sourceBook": "Battlecry!, p. 14",
+    "description": "You temporarily move just beyond the threshold of the current plane, granting you concealment until the end of your next turn. You remain clearly visible while stepping outside of a plane in this way and you can’t use this concealment to Hide or Sneak."
+   },
+   "Quick Repair": {
+    "name": "Quick Repair",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 260",
+    "prerequisites": "Trained in Crafting",
+    "description": "For you, the Repair activity loses the exploration trait and takes 1 minute instead of 10 minutes. If you're a master in Crafting, it takes 3 actions. If you're legendary, it takes 1 action."
+   },
+   "Quick Reversal": {
+    "name": "Quick Reversal",
+    "level": 4,
+    "actions": "Single Action",
+    "traits": [
+     "Fighter",
+     "Flourish",
+     "Press"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 143",
+    "requirements": "You are flanked by at least two enemies",
+    "description": "You turn your foes’ flanking against them with a quick reverse. Make a melee Strike against one of the flanking enemies and make a second Strike with the same weapon or unarmed attack against a different enemy that is flanking you. This second Strike has the same multiple attack penalty of the initial attack and doesn’t count toward your multiple attack penalty."
+   },
+   "Quick Shield Block": {
+    "name": "Quick Shield Block",
+    "level": 8,
+    "actions": "",
+    "traits": [
+     "Champion",
+     "Fighter"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Bastion",
+     "Viking"
+    ],
+    "sourceBook": "Player Core, p. 147",
+    "prerequisites": "Shield Block",
+    "description": "You can bring your shield into place with hardly a thought. At the start of each of your turns, you gain an additional reaction that you can use only to Shield Block."
+   },
+   "Reactive Shield": {
+    "name": "Reactive Shield",
+    "level": 1,
+    "actions": "Reaction",
+    "traits": [
+     "Fighter",
+     "Guardian"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Viking"
+    ],
+    "sourceBook": "Player Core, p. 140",
+    "trigger": "An enemy hits you with a melee Strike",
+    "requirements": "You are wielding a shield",
+    "description": "You can snap your shield into place just as you would take a blow, avoiding the hit at the last second. You immediately use the Raise a Shield action and gain your shield’s bonus to AC. The circumstance bonus from the shield applies to your AC when you’re determining the outcome of the triggering attack."
+   },
+   "Reflexive Shield": {
+    "name": "Reflexive Shield",
+    "level": 6,
+    "actions": "",
+    "traits": [
+     "Fighter",
+     "Guardian"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Bastion",
+     "Golden Legionnaire"
+    ],
+    "sourceBook": "Player Core, p. 145",
+    "description": "You can use your shield to fend off explosions and the like. When you Raise your Shield, you gain your shield’s circumstance bonus to Reflex saves. Special If you have the Shield Block reaction, damage you take as a result of a Reflex save can trigger that reaction, even if the damage isn’t physical damage."
+   },
+   "Robust Health": {
+    "name": "Robust Health",
+    "level": 3,
+    "actions": "",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core 2, p. 233",
+    "description": "Your physiology responds well to first aid. You gain a circumstance bonus to the number of Hit Points you regain equal to your level from a successful attempt to Treat your Wounds or use Battle Medicine on you. After you or an ally use Battle Medicine on you, you become temporarily immune to that Battle Medicine for only 1 hour, instead of 1 day."
+   },
+   "Shield Block": {
+    "name": "Shield Block",
+    "level": 1,
+    "actions": "Reaction",
+    "traits": [
+     "General"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 262",
+    "trigger": "While you have your shield raised, you would take physical damage (bludgeoning, piercing, or slashing) from an attack.",
+    "description": "You snap your shield in place to ward off a blow. Your shield prevents you from taking an amount of damage up to the shield’s Hardness. You and the shield each take any remaining damage, possibly breaking or destroying the shield."
+   },
+   "Shield Warden": {
+    "name": "Shield Warden",
+    "level": 6,
+    "actions": "",
+    "traits": [
+     "Champion",
+     "Commander",
+     "Fighter"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Knight Vigilant",
+     "Bastion",
+     "Ulfen Guard",
+     "Golden Legionnaire"
+    ],
+    "sourceBook": "Player Core, p. 145",
+    "prerequisites": "Shield Block",
+    "description": "When you have a shield raised, you can use your Shield Block reaction when an attack is made against an ally adjacent to you. If you do, the shield prevents that ally from taking damage instead of preventing you from taking damage, following the normal rules for Shield Block."
+   },
+   "Shielded Stride": {
+    "name": "Shielded Stride",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Fighter"
+    ],
+    "category": "feat",
+    "archetype": [
+     "Bastion",
+     "Viking"
+    ],
+    "sourceBook": "Player Core, p. 143",
+    "description": "When your shield is up, your enemies’ blows can’t touch you. When you have your shield raised, you can Stride to move half your Speed without triggering reactions that are triggered by your movement (such as Reactive Strikes). You can use Shielded Stride while Flying or Swimming instead of Striding if you have the corresponding movement type."
+   },
+   "Specialty Crafting": {
+    "name": "Specialty Crafting",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "category": "feat",
+    "sourceBook": "Player Core, p. 262",
+    "prerequisites": "Trained in Crafting",
+    "description": "Your training focused on Crafting one particular kind of item. Select one of the specialties listed below; you gain a +1 circumstance bonus to Crafting checks to Craft items of that type. If you are a master in Crafting, this bonus increases to +2. If it's unclear whether the specialty applies, the GM decides. Some specialties might apply only partially. For example, if you were making a morningstar and had specialty in woodworking, the GM might give you half your bonus because the item requires both blacksmithing and woodworking. ## Specialty Crafting Specialty Applicable Items Alchemy* Alchemical items such as elixirs Artistry Fine art, including jewelry Blacksmithing Durable metal goods, including metal armor Bookmaking Books and paper Glassmaking Glass, including glassware and windows Leatherworking Leather goods, including leather armor Pottery Ceramic goods Shipbuilding Ships and boats Stonemasonry Stone goods and structures Tailoring Clothing Weaving Textiles, baskets, and rugs Woodworking Wooden goods and structures * Requires Alchemical Crafting to Craft."
+   },
+   "Summon Mythic Power": {
+    "name": "Summon Mythic Power",
+    "level": 8,
+    "actions": "Single Action",
+    "traits": [
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "feat",
+    "sourceBook": "War of Immortals, p. 83",
+    "frequency": "once per day",
+    "description": "You call upon fate, divinity, or whatever other power has carried you this far, demanding that it carry you just a little bit farther. You regain 1 Mythic Point."
+   },
+   "Warrior Jotunborn": {
+    "name": "Warrior Jotunborn",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Battlecry!, p. 12",
+    "description": "Heritage Warrior Jotunborn Your hardier body made you a perfect recruit for combat. The damage die for your fist increases to 1d6. You don’t take a penalty when making a lethal attack with your fist. Feats that require Warrior Jotunborn. . Pounding Leap"
+   }
+  },
+  "special": {
+   "Artisan's Calling": {
+    "name": "Artisan's Calling",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Calling",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "mythic-calling",
+    "sourceBook": "War of Immortals, p. 79",
+    "description": "Edicts be the first to test an item or weapon crafted with your own hands, seek out or innovate formulas for evermore complex creations Anathema destroy the creations of other artisans, refuse an earnest request to repair something that has been broken, use a weapon or item crafted by someone else, except for the purpose of learning its function so you can understand how to create it yourself"
+   },
+   "Battle Hardened (Fighter)": {
+    "name": "Battle Hardened",
+    "level": 9,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Fighter",
+    "sourceBook": "Player Core, p. 136",
+    "description": "Your experience in battle helps protect you against magic and toxins alike. Your proficiency rank for Fortitude saves increases to master. When you roll a success on a Fortitude save, you get a critical success instead."
+   },
+   "Battlefield Surveyor": {
+    "name": "Battlefield Surveyor",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Fighter",
+    "sourceBook": "Player Core, p. 136",
+    "description": "Whether taking stock of an enemy army or simply standing guard, you excel at observing your foes. Your proficiency rank for Perception increases to master. In addition, you gain a +2 circumstance bonus to Perception checks for initiative, making you faster to react during combat."
+   },
+   "Bravery": {
+    "name": "Bravery",
+    "level": 3,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Fighter",
+    "sourceBook": "Player Core, p. 136",
+    "description": "Having faced countless foes and the chaos of battle, you have learned how to stand strong in the face of fear. Your proficiency rank for Will saves increases to expert. When you roll a success at a Will save against a fear effect, you get a critical success instead. In addition, anytime you gain the frightened condition, reduce its value by 1."
+   },
+   "Combat Flexibility": {
+    "name": "Combat Flexibility",
+    "level": 9,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Fighter",
+    "sourceBook": "Player Core, p. 136",
+    "description": "You can prepare your tactics to suit different situations. When you make your daily preparations, you gain one fighter feat of 8th level or lower that you meet the prerequisites for and don't already have. You can use that feat until your next daily preparations."
+   },
+   "Hammer": {
+    "name": "Hammer",
+    "level": 0,
+    "actions": "",
+    "traits": [],
+    "category": "equipment",
+    "sourceBook": "Player Core, p. 288",
+    "description": "Item 0 Hammer Price 1 sp Hands 1 Bulk L"
+   },
+   "Low-Light Vision": {
+    "name": "Low-Light Vision",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "rules",
+    "sourceBook": "Player Core, p. 433",
+    "description": "Rules Low-Light Vision A creature with low-light vision can see in dim light as though it were bright light, so it ignores the concealed condition due to dim light."
+   },
+   "Reactive Strike": {
+    "name": "Reactive Strike",
+    "level": 1,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Fighter",
+    "sourceBook": "Player Core, p. 136",
+    "description": "Ever watchful for weaknesses, you can quickly attack foes that leave an opening in their defenses. You gain the Reactive Strike reaction."
+   },
+   "Rewrite Fate": {
+    "name": "Rewrite Fate",
+    "level": null,
+    "actions": "Free Action",
+    "traits": [
+     "Fortune",
+     "Mythic",
+     "Uncommon"
+    ],
+    "category": "action",
+    "sourceBook": "War of Immortals, p. 78",
+    "trigger": "You roll a skill check or saving throw and don’t like the result.",
+    "description": "Destiny, fate, or some other force bends around you as your mythic power swells, manifesting in a flash of light or visible surge of energy emanating from your body as you cast aside the chains of fate. You expend a Mythic Point and reroll the check or save with mythic proficiency, taking the new result."
+   },
+   "Warrior Jotunborn": {
+    "name": "Warrior Jotunborn",
+    "level": null,
+    "actions": "",
+    "traits": [],
+    "category": "heritage",
+    "sourceBook": "Battlecry!, p. 12",
+    "description": "Heritage Warrior Jotunborn Your hardier body made you a perfect recruit for combat. The damage die for your fist increases to 1d6. You don’t take a penalty when making a lethal attack with your fist. Feats that require Warrior Jotunborn. . Pounding Leap"
+   },
+   "Weapon Specialization (Fighter)": {
+    "name": "Weapon Specialization",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Fighter",
+    "sourceBook": "Player Core, p. 136",
+    "description": "You've learned how to inflict greater injuries with the weapons you know best. You deal 2 additional damage with weapons and unarmed attacks in which you're an expert. This damage increases to 3 if you're a master, and 4 if you're legendary."
+   }
+  },
+  "item": {
+   "Fortress Shield": {
+    "name": "Fortress Shield",
+    "level": 1,
+    "actions": "",
+    "traits": [
+     "Hefty"
+    ],
+    "category": "shield",
+    "sourceBook": "Treasure Vault (Remastered), p. 20",
+    "description": "Also known as portable walls, these thick and heavy shields are slightly larger than tower shields. Like tower shields, they're typically made from wood reinforced with metal, but many are made from larger amounts of metal or even stone. 2 Getting the higher bonus for a fortress shield requires using the Take Cover action while the shield is raised."
+   },
+   "Hero's Plate": {
+    "name": "Hero's Plate",
+    "level": 10,
+    "actions": "",
+    "traits": [
+     "Magical",
+     "Rare"
+    ],
+    "category": "equipment",
+    "sourceBook": "Pathfinder #202: Severed at the Root, p. 77",
+    "description": "Golden images of heroic deeds decorate the black plates of this +1 resilient full plate. You gain resistance 5 to mental damage and a +1 status bonus to saves against fear. Activate—Personal Legend Single Action: (concentrate) Frequency once per day; Effect The scenes depicted on your armor shift and change, making room to accommodate your current heroic feats. You cast heroism on yourself. Hero’s Plate Source Pathfinder #202: Severed at the Root pg. 77 Price 1,000 gp Greater Hero’s Plate Source Pathfinder #202: Severed at the Root pg. 77 Price 22,500 gp\n\nThe armor is +2 greater resilient full plate, the resistance increases to 10, the status bonus increases to +2, and heroism is heightened to 6th-rank."
+   },
+   "Warhammer": {
+    "name": "Warhammer",
+    "level": 0,
+    "actions": "",
+    "traits": [
+     "Shove"
+    ],
+    "category": "weapon",
+    "sourceBook": "Player Core, p. 278",
+    "description": "This weapon has a wooden shaft ending in a large, heavy metal head. The head of the hammer might be single-sided or double-sided, but it's always capable of delivering powerful bludgeoning blows. Critical Specialization Effects Source Core Rulebook pg. 283 Certain feats, class features, weapon runes, and other effects can grant you additional benefits when you make a Strike with certain weapons and get a critical success. This is called a critical specialization effect. The exact effect depends on which weapon group your weapon belongs to, as listed below. You can always decide not to add the critical specialization effect of your weapon. Click here for the full rules on Critical Specialization Effects. Specific Magic Weapons Blessed Reformer, Chimera's Claw, Draddeth's Edge, Sky Hammer, Storm Hammer"
+   }
+  }
+ }
+}
