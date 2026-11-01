@@ -31,6 +31,7 @@ import { castMessage, useSpellCast, type CastReport } from '../components/useSpe
 import { NO_RESOURCE, type CastResource } from '../spellCast'
 import { hasPsychicArchetype } from '../psiAmps'
 import { VIEW_OK } from '../sheetAccess'
+import { tr } from '../../../i18n'
 
 interface Props {
     build: BuildInfo
@@ -84,8 +85,7 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
             <Card>
                 <CardContent>
                     <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                        Este personagem não conjura magias.
-                    </Typography>
+                        {tr('Este personagem não conjura magias.', 'This character doesn\'t cast spells.')}</Typography>
                 </CardContent>
             </Card>
         )
@@ -100,21 +100,18 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
     return (
         <Stack spacing={2}>
             <EmbedDialog open={confirmNewDay} onClose={() => setConfirmNewDay(false)}>
-                <DialogTitle>Começar um novo dia?</DialogTitle>
+                <DialogTitle>{tr('Começar um novo dia?', 'Start a new day?')}</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Todos os slots de magia e pontos de foco voltam a ficar disponíveis.
-                        Como a ficha é compartilhada, isso vale para todos os jogadores.
-                    </DialogContentText>
+                        {tr('Todos os slots de magia e pontos de foco voltam a ficar disponíveis. Como a ficha é compartilhada, isso vale para todos os jogadores.', 'All spell slots and focus points become available again. Since the sheet is shared, this applies for every player.')}</DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button color="inherit" onClick={() => setConfirmNewDay(false)}>Cancelar</Button>
+                    <Button color="inherit" onClick={() => setConfirmNewDay(false)}>{tr('Cancelar', 'Cancel')}</Button>
                     <Button
                         variant="contained"
                         onClick={() => { slots.resetAll(); uses.resetAll(); setConfirmNewDay(false) }}
                     >
-                        Novo dia
-                    </Button>
+                        {tr('Novo dia', 'New day')}</Button>
                 </DialogActions>
             </EmbedDialog>
 
@@ -126,8 +123,8 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
                         <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between">
                             <Typography variant="caption" color="text.secondary" sx={{ flex: 1 }}>
                                 {slots.spentCount > 0
-                                    ? `Gastos hoje: ${slots.spentCount}. Toque num slot gasto para recuperá-lo.`
-                                    : 'Toque num slot para gastá-lo; toque de novo para recuperá-lo.'}
+                                    ? tr(`Gastos hoje: ${slots.spentCount}. Toque num slot gasto para recuperá-lo.`, `Spent today: ${slots.spentCount}. Tap a spent slot to recover it.`)
+                                    : tr('Toque num slot para gastá-lo; toque de novo para recuperá-lo.', 'Tap a slot to spend it; tap again to recover it.')}
                             </Typography>
                             <Button
                                 size="small"
@@ -137,8 +134,7 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
                                 onClick={() => setConfirmNewDay(true)}
                                 sx={{ flexShrink: 0 }}
                             >
-                                Novo dia
-                            </Button>
+                                {tr('Novo dia', 'New day')}</Button>
                         </Stack>
                     </CardContent>
                 </Card>
@@ -150,7 +146,7 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
                         {progress ? (
                             <Box>
                                 <Typography variant="caption" color="text.secondary">
-                                    Carregando magias… {progress.done}/{progress.total}
+                                    {tr('Carregando magias… ', 'Loading spells… ')}{progress.done}/{progress.total}
                                 </Typography>
                                 <LinearProgress
                                     variant={progress.total > 0 ? 'determinate' : 'indeterminate'}
@@ -161,11 +157,9 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
                         ) : (
                             <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between">
                                 <Typography variant="caption" color="text.secondary" sx={{ flex: 1 }}>
-                                    Baixe todas as descrições de uma vez para consultar na mesa sem espera.
-                                </Typography>
+                                    {tr('Baixe todas as descrições de uma vez para consultar na mesa sem espera.', 'Download every description at once to look things up at the table without waiting.')}</Typography>
                                 <Button size="small" variant="outlined" startIcon={<DownloadIcon />} onClick={loadAll} {...VIEW_OK}>
-                                    Carregar todas
-                                </Button>
+                                    {tr('Carregar todas', 'Load all')}</Button>
                             </Stack>
                         )}
                     </CardContent>
@@ -196,19 +190,18 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
                         <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
                             <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between">
                                 <Typography variant="overline" sx={{ fontWeight: 700, color: 'primary.light' }}>
-                                    Magias de Foco (nível {focusRank})
+                                    {tr('Magias de Foco (nível ', 'Focus Spells (level ')}{focusRank})
                                 </Typography>
                                 {focusMax > 0 && (
                                     <Stack direction="row" spacing={1} alignItems="center">
                                         <Typography variant="caption" color="text.secondary">
-                                            <SlotCount total={focusMax} used={slots.focusUsed} /> pontos
-                                        </Typography>
+                                            <SlotCount total={focusMax} used={slots.focusUsed} /> {tr('pontos', 'points')}</Typography>
                                         <SlotPips
                                             total={focusMax}
                                             used={slots.focusUsed}
                                             color={gold.main}
                                             onChange={slots.setFocusUsed}
-                                            label="Ponto de foco"
+                                            label={tr("Ponto de foco", 'Focus point')}
                                             size={16}
                                         />
                                     </Stack>
@@ -233,7 +226,7 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
                                 spend={focusMax > 0 ? {
                                     onSpend: () => { markCast(s.name, { kind: 'focus' }) },
                                     disabled: slots.focusUsed >= focusMax,
-                                    tooltip: 'Gastar 1 Ponto de Foco',
+                                    tooltip: tr('Gastar 1 Ponto de Foco', 'Spend 1 Focus Point'),
                                 } : undefined}
                                 dimmed={focusMax > 0 && slots.focusUsed >= focusMax}
                                 psycheOn={!!mods.psyche}
@@ -242,8 +235,7 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
                         {focusMax > 0 && (
                             <Box sx={{ px: 2, py: 1, borderTop: '1px solid', borderColor: 'divider' }}>
                                 <Typography variant="caption" color="text.secondary">
-                                    Refocus (10 min) devolve 1 ponto — toque num ponto gasto para recuperá-lo.
-                                </Typography>
+                                    {tr('Refocus (10 min) devolve 1 ponto — toque num ponto gasto para recuperá-lo.', 'Refocus (10 min) restores 1 point — tap a spent point to recover it.')}</Typography>
                             </Box>
                         )}
                     </CardContent>
@@ -360,8 +352,8 @@ const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, o
                                 />
                                 <Chip
                                     label={isMythicMagic
-                                        ? 'Ponto Mítico'
-                                        : caster.spellcastingType === 'prepared' ? 'Preparado' : 'Espontâneo'}
+                                        ? tr('Ponto Mítico', 'Mythic Point')
+                                        : caster.spellcastingType === 'prepared' ? 'Preparado' : tr('Espontâneo', 'Spontaneous')}
                                     size="small"
                                     variant="outlined"
                                     sx={isMythicMagic ? { color: MYTHIC_COLOR, borderColor: MYTHIC_COLOR } : undefined}
@@ -376,8 +368,8 @@ const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, o
                             <Button
                                 size="small"
                                 startIcon={<DiceIcon />}
-                                onClick={() => onRoll({ kind: 'spell', name: `Ataque de magia — ${caster.name}`, attack: attackInfo })}
-                                aria-label={`Rolar ataque de magia de ${caster.name}`}
+                                onClick={() => onRoll({ kind: 'spell', name: tr(`Ataque de magia — ${caster.name}`, `Spell attack — ${caster.name}`), attack: attackInfo })}
+                                aria-label={tr(`Rolar ataque de magia de ${caster.name}`, `Roll ${caster.name}'s spell attack`)}
                                 sx={{ mt: 0.25, minHeight: 32, px: 1 }}
                             >
                                 Atq {signed(attack)}
@@ -386,8 +378,7 @@ const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, o
                     </Stack>
                     {isMythicMagic && (
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                            Sem slots: cada conjuração gasta <strong>1 Ponto Mítico</strong>, com proficiência
-                            mítica no ataque e na CD. Disponíveis agora: {mythicPoints.available} de {mythicPoints.max}.
+                            {tr('Sem slots: cada conjuração gasta ', 'No slots: each casting spends ')}<strong>{tr('1 Ponto Mítico', '1 Mythic Point')}</strong>{tr(', com proficiência mítica no ataque e na CD. Disponíveis agora: ', ', with mythic proficiency in attack and DC. Available now: ')}{mythicPoints.available} {tr('de ', 'of ')}{mythicPoints.max}.
                         </Typography>
                     )}
                 </Box>
@@ -439,7 +430,7 @@ const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, o
                                 gap: 1,
                             }}>
                                 <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: '0.06em' }}>
-                                    {spellLevel === 0 ? `TRUQUES (NÍVEL ${castRank})` : `NÍVEL ${spellLevel}`}
+                                    {spellLevel === 0 ? tr(`TRUQUES (NÍVEL ${castRank})`, `CANTRIPS (RANK ${castRank})`) : tr(`NÍVEL ${spellLevel}`, `RANK ${spellLevel}`)}
                                 </Typography>
                                 {/* Espontâneo: os slots ficam no cabeçalho, não na magia. */}
                                 {isSpontaneous && summary && (
@@ -448,7 +439,7 @@ const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, o
                                         used={summary.used}
                                         color={accent}
                                         onChange={(next) => slots.setUsed(key, next, summary.total)}
-                                        label={`Slot de nível ${spellLevel}`}
+                                        label={tr(`Slot de nível ${spellLevel}`, `Rank ${spellLevel} slot`)}
                                     />
                                 )}
                             </Box>
@@ -465,14 +456,14 @@ const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, o
                                     ? {
                                         onSpend: () => { markCast(name, resource) },
                                         disabled: mythicPoints.available === 0,
-                                        tooltip: 'Gastar 1 Ponto Mítico',
-                                        emptyTooltip: 'Sem Pontos Míticos disponíveis',
+                                        tooltip: tr('Gastar 1 Ponto Mítico', 'Spend 1 Mythic Point'),
+                                        emptyTooltip: tr('Sem Pontos Míticos disponíveis', 'No Mythic Points available'),
                                     }
                                     : isSpontaneous && summary
                                     ? {
                                         onSpend: () => { markCast(name, resource) },
                                         disabled: summary.used >= summary.total,
-                                        tooltip: `Gastar 1 slot de nível ${spellLevel}`,
+                                        tooltip: tr(`Gastar 1 slot de nível ${spellLevel}`, `Spend 1 rank ${spellLevel} slot`),
                                     }
                                     : undefined
                                 return (
@@ -498,7 +489,7 @@ const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, o
                                                 if (next > used && markCast(name, resource).paired) return
                                                 slots.setUsed(rowKey, next, count)
                                             },
-                                            label: `Slot de ${name}`,
+                                            label: tr(`Slot de ${name}`, `${name} slot`),
                                         } : undefined}
                                         spend={spontaneousSpend}
                                         dimmed={tracked ? used >= count : false}
@@ -586,7 +577,7 @@ const SpellRow = ({ name, count, accent, request, onSelect, pips, spend, dimmed,
                         </Typography>
                     )}
                     {raisedTo != null && (
-                        <Tooltip title={`Elevada: rank base ${cached?.level}, conjurada no ${raisedTo}º — os números já estão no rank conjurado`}>
+                        <Tooltip title={tr(`Elevada: rank base ${cached?.level}, conjurada no ${raisedTo}º — os números já estão no rank conjurado`, `Heightened: base rank ${cached?.level}, cast at ${raisedTo} — the numbers are already at the cast rank`)}>
                             <Typography
                                 component="span"
                                 variant="caption"
@@ -605,7 +596,7 @@ const SpellRow = ({ name, count, accent, request, onSelect, pips, spend, dimmed,
                         </Tooltip>
                     )}
                     {signature && (
-                        <Tooltip title="Magia de assinatura: pode ser conjurada em qualquer slot de rank igual ou maior, sem aprender de novo.">
+                        <Tooltip title={tr("Magia de assinatura: pode ser conjurada em qualquer slot de rank igual ou maior, sem aprender de novo.", 'Signature spell: can be cast in any slot of equal or higher rank, without learning it again.')}>
                             <Typography
                                 component="span"
                                 variant="caption"
@@ -616,7 +607,7 @@ const SpellRow = ({ name, count, accent, request, onSelect, pips, spend, dimmed,
                         </Tooltip>
                     )}
                     {psycheBonus > 0 && (
-                        <Tooltip title="Unleash Psyche: bônus de status no dano inicial (o dobro do rank). Já entra na rolagem.">
+                        <Tooltip title={tr("Unleash Psyche: bônus de status no dano inicial (o dobro do rank). Já entra na rolagem.", 'Unleash Psyche: status bonus to the initial damage (twice the rank). Already in the roll.')}>
                             <Typography
                                 component="span"
                                 variant="caption"
@@ -649,7 +640,7 @@ const SpellRow = ({ name, count, accent, request, onSelect, pips, spend, dimmed,
                     />
                 )}
                 {spend && (
-                    <Tooltip title={spend.disabled ? (spend.emptyTooltip ?? 'Sem slots disponíveis') : spend.tooltip}>
+                    <Tooltip title={spend.disabled ? (spend.emptyTooltip ?? tr('Sem slots disponíveis', 'No slots available')) : spend.tooltip}>
                         <span>
                             <IconButton
                                 size="small"
@@ -730,8 +721,7 @@ const SlotsOverview = ({ build, slots, focusMax, hasFocusSpells, mythicPoints }:
         <Card>
             <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
                 <Typography variant="overline" sx={{ fontWeight: 700, color: 'primary.light', display: 'block', lineHeight: 1.6 }}>
-                    Recursos de hoje
-                </Typography>
+                    {tr('Recursos de hoje', 'Today\'s resources')}</Typography>
                 <Stack spacing={1.25} sx={{ mt: 0.5 }}>
                     {rows.map(({ caster, idx, ranks }) => (
                         <Box key={`${caster.name}-${idx}`}>
@@ -748,18 +738,16 @@ const SlotsOverview = ({ build, slots, focusMax, hasFocusSpells, mythicPoints }:
                     {showMythic && (
                         <Box>
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                                Mythic Magic · cada conjuração gasta 1 ponto
-                            </Typography>
-                            <Cell label="Míticos" total={mythicPoints.max} used={mythicPoints.max - mythicPoints.available} color={MYTHIC_COLOR} />
+                                {tr('Mythic Magic · cada conjuração gasta 1 ponto', 'Mythic Magic · each casting spends 1 point')}</Typography>
+                            <Cell label={tr("Míticos", 'Mythic')} total={mythicPoints.max} used={mythicPoints.max - mythicPoints.available} color={MYTHIC_COLOR} />
                         </Box>
                     )}
                     {showFocus && (
                         <Box>
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                                Pontos de foco
-                            </Typography>
+                                {tr('Pontos de foco', 'Focus points')}</Typography>
                             <Stack direction="row" spacing={1.5} alignItems="center">
-                                <Cell label="Foco" total={focusMax} used={slots.focusUsed} color={gold.deep} />
+                                <Cell label={tr("Foco", 'Focus')} total={focusMax} used={slots.focusUsed} color={gold.deep} />
                                 <Typography variant="caption" color="text.secondary">Refocus (10 min) devolve 1.</Typography>
                             </Stack>
                         </Box>
@@ -787,7 +775,7 @@ function focusCasterInfo(build: BuildInfo, entry: FocusSpellEntry, mods: Conditi
     const base = build.level + proficiency + abilityBonus + (itemBonus ?? 0)
     const attack = base + mods.total.attackSpell
     return {
-        name: 'Magias de Foco',
+        name: tr('Magias de Foco', 'Focus Spells'),
         dc: 10 + base + mods.total.spellDc,
         attack,
         tradition: entry.tradition,

@@ -31,8 +31,9 @@ import { useAnimatedNumber } from '../../../motion/useAnimatedNumber'
 import { useValueDeltas } from '../../../motion/useValueDeltas'
 import { FloatingDeltas } from '../../../motion/FloatingDeltas'
 import { EmbedDialog } from './EmbedDialog'
+import { tr } from '../../../i18n'
 
-const RANK_LABELS = ['destreinado', 'treinado', 'especialista', 'mestre', 'lendário']
+const RANK_LABELS = tr(['destreinado', 'treinado', 'especialista', 'mestre', 'lendário'], ['untrained', 'trained', 'expert', 'master', 'legendary'])
 
 interface Props {
     build: BuildInfo
@@ -104,8 +105,8 @@ export const ShieldCard = ({ build, shield, mods }: Props) => {
                     </Stack>
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                         {loading
-                            ? 'Buscando Dureza e PV do escudo na AON…'
-                            : 'A AON não tem os números deste escudo — sem eles não dá para erguer nem bloquear.'}
+                            ? tr('Buscando Dureza e PV do escudo na AON…', 'Looking up the shield\'s Hardness and HP on AON…')
+                            : tr('A AON não tem os números deste escudo — sem eles não dá para erguer nem bloquear.', 'AON doesn\'t have this shield\'s numbers — without them you can\'t raise or block.')}
                     </Typography>
                 </CardContent>
             </Card>
@@ -130,13 +131,13 @@ export const ShieldCard = ({ build, shield, mods }: Props) => {
         setFlash({ id, absorbed: result.absorbed })
         if (!reduced) setManualPulse({ kind: result.broke || result.destroyed ? 'break' : 'block', id })
         const tail = result.destroyed
-            ? ' · Escudo DESTRUÍDO'
-            : result.broke ? ' · Escudo QUEBRADO' : ''
+            ? tr(' · Escudo DESTRUÍDO', ' · Shield DESTROYED')
+            : result.broke ? tr(' · Escudo QUEBRADO', ' · Shield BROKEN') : ''
         setNotice({
-            text: `${result.destructive ? 'Bloqueio Destrutivo' : 'Bloqueio'}: Dureza segurou ${result.absorbed} · escudo −${result.toShield} · você −${result.toCreature}${tail}`
-                + (reaction === 'shield' ? ' · usou a reação extra do Quick Shield Block'
-                    : reaction === 'normal' ? ' · usou a sua reação'
-                        : ' · ATENÇÃO: sem reação disponível nesta rodada'),
+            text: tr(`${result.destructive ? 'Bloqueio Destrutivo' : 'Bloqueio'}: Dureza segurou ${result.absorbed} · escudo −${result.toShield} · você −${result.toCreature}${tail}`, `${result.destructive ? 'Destructive Block' : 'Block'}: Hardness absorbed ${result.absorbed} · shield −${result.toShield} · you −${result.toCreature}${tail}`)
+                + (reaction === 'shield' ? tr(' · usou a reação extra do Quick Shield Block', ' · used Quick Shield Block\'s extra reaction')
+                    : reaction === 'normal' ? tr(' · usou a sua reação', ' · used your reaction')
+                        : tr(' · ATENÇÃO: sem reação disponível nesta rodada', ' · WARNING: no reaction available this round')),
             reaction,
             ...before,
         })
@@ -163,18 +164,18 @@ export const ShieldCard = ({ build, shield, mods }: Props) => {
                             animation: raised && armed && !reduced ? `${lift} 380ms ease-out` : 'none',
                         }}
                     />
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>Escudo</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>{tr('Escudo', 'Shield')}</Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ minWidth: 0 }} noWrap>
                         {stats.name}
                     </Typography>
                     <Stack direction="row" sx={{ ml: 'auto', gap: 0.75, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                        <Chip size="small" variant="outlined" label={`Dureza ${stats.hardness}`} sx={{ fontWeight: 700, color: SHIELD_COLOR, borderColor: SHIELD_COLOR }} />
+                        <Chip size="small" variant="outlined" label={tr(`Dureza ${stats.hardness}`, `Hardness ${stats.hardness}`)} sx={{ fontWeight: 700, color: SHIELD_COLOR, borderColor: SHIELD_COLOR }} />
                         <Chip size="small" variant="outlined" label={`+${stats.bonus} CA`} />
                         {destroyed ? (
-                            <Chip size="small" color="error" label="Destruído" sx={{ fontWeight: 700 }} />
+                            <Chip size="small" color="error" label={tr("Destruído", 'Destroyed')} sx={{ fontWeight: 700 }} />
                         ) : broken ? (
-                            <Tooltip title="Escudo quebrado não dá bônus na CA, não pode ser erguido nem bloquear até ser consertado acima do BT.">
-                                <Chip size="small" color="error" label="Quebrado" sx={{ fontWeight: 700 }} />
+                            <Tooltip title={tr("Escudo quebrado não dá bônus na CA, não pode ser erguido nem bloquear até ser consertado acima do BT.", 'A broken shield gives no AC bonus and can\'t be raised or block until repaired above its BT.')}>
+                                <Chip size="small" color="error" label={tr("Quebrado", 'Broken')} sx={{ fontWeight: 700 }} />
                             </Tooltip>
                         ) : raised ? (
                             <Chip size="small" label="Erguido" sx={{ fontWeight: 700, backgroundColor: gold.main + '33', color: gold.deep }} />
@@ -204,7 +205,7 @@ export const ShieldCard = ({ build, shield, mods }: Props) => {
                                 animation: reduced ? 'none' : `${floatUp} 1300ms ease-out forwards`,
                             }}
                         >
-                            Dureza segurou {flash.absorbed}
+                            {tr('Dureza segurou ', 'Hardness absorbed ')}{flash.absorbed}
                         </Typography>
                     )}
                 </Box>
@@ -213,7 +214,7 @@ export const ShieldCard = ({ build, shield, mods }: Props) => {
                     da rachadura quando quebra. */}
                 <Box
                     role="progressbar"
-                    aria-label={`PV do escudo, BT ${stats.bt}`}
+                    aria-label={tr(`PV do escudo, BT ${stats.bt}`, `Shield HP, BT ${stats.bt}`)}
                     aria-valuemin={0}
                     aria-valuemax={stats.maxHp}
                     aria-valuenow={shieldHp}
@@ -259,7 +260,7 @@ export const ShieldCard = ({ build, shield, mods }: Props) => {
                             </Box>
                         )}
                     </Box>
-                    <Tooltip title={`Limiar de quebra (BT) ${stats.bt}`}>
+                    <Tooltip title={tr(`Limiar de quebra (BT) ${stats.bt}`, `Broken Threshold (BT) ${stats.bt}`)}>
                         <Box
                             sx={{
                                 position: 'absolute',
@@ -274,11 +275,11 @@ export const ShieldCard = ({ build, shield, mods }: Props) => {
                     </Tooltip>
                 </Box>
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
-                    BT {stats.bt} · {stats.canBlock ? 'Bloqueio com Escudo: a Dureza segura o dano, e o resto vai para você e para o escudo.' : 'Sem o talento Bloqueio com Escudo.'}
+                    BT {stats.bt} · {stats.canBlock ? tr('Bloqueio com Escudo: a Dureza segura o dano, e o resto vai para você e para o escudo.', 'Shield Block: Hardness absorbs the damage, and the rest goes to you and to the shield.') : tr('Sem o talento Bloqueio com Escudo.', 'Without the Shield Block feat.')}
                 </Typography>
 
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.25 }}>
-                    <Tooltip title={broken ? 'Escudo quebrado não pode ser erguido.' : raised ? 'Vale até o início do seu próximo turno.' : actions.missing(1, 'any') > 0 ? 'Erguer gasta 1 ação — você não tem ações neste turno (dá para erguer mesmo assim).' : 'Erguer o escudo (Raise a Shield) gasta 1 ação.'}>
+                    <Tooltip title={broken ? tr('Escudo quebrado não pode ser erguido.', 'A broken shield can\'t be raised.') : raised ? tr('Vale até o início do seu próximo turno.', 'Lasts until the start of your next turn.') : actions.missing(1, 'any') > 0 ? tr('Erguer gasta 1 ação — você não tem ações neste turno (dá para erguer mesmo assim).', 'Raising takes 1 action — you have no actions this turn (you can raise it anyway).') : tr('Erguer o escudo (Raise a Shield) gasta 1 ação.', 'Raising the shield (Raise a Shield) takes 1 action.')}>
                         <span style={{ flex: '1 1 140px', display: 'flex' }}>
                             <Button
                                 fullWidth
@@ -294,12 +295,12 @@ export const ShieldCard = ({ build, shield, mods }: Props) => {
                                     ? { fontWeight: 700, color: gold.deep, borderColor: gold.main }
                                     : { fontWeight: 700, backgroundColor: SHIELD_COLOR, '&:hover': { backgroundColor: SHIELD_COLOR, filter: 'brightness(0.9)' } }}
                             >
-                                {raised ? 'Abaixar escudo' : `Erguer (+${stats.bonus} CA)`}
+                                {raised ? tr('Abaixar escudo', 'Lower shield') : tr(`Erguer (+${stats.bonus} CA)`, `Raise (+${stats.bonus} AC)`)}
                             </Button>
                         </span>
                     </Tooltip>
                     {hasReactiveShield(build) && !raised && !broken && (
-                        <Tooltip title="Reactive Shield: ergue o escudo como reação quando um inimigo o acerta com um Golpe corpo a corpo. Gasta a sua reação normal (não a extra do Quick Shield Block).">
+                        <Tooltip title={tr("Reactive Shield: ergue o escudo como reação quando um inimigo o acerta com um Golpe corpo a corpo. Gasta a sua reação normal (não a extra do Quick Shield Block).", 'Reactive Shield: raise the shield as a reaction when an enemy hits you with a melee Strike. Spends your normal reaction (not Quick Shield Block\'s extra one).')}>
                             <span style={{ flex: '1 1 140px', display: 'flex' }}>
                                 <Button
                                     fullWidth
@@ -308,7 +309,7 @@ export const ShieldCard = ({ build, shield, mods }: Props) => {
                                     onClick={() => { if (!actions.stored.reacted) actions.spendReaction(); setRaised(true) }}
                                     sx={{ fontWeight: 700 }}
                                 >
-                                    Erguer como reação{actions.stored.reacted ? ' (já reagiu)' : ''}
+                                    {tr('Erguer como reação', 'Raise as a reaction')}{actions.stored.reacted ? tr(' (já reagiu)', ' (already reacted)') : ''}
                                 </Button>
                             </span>
                         </Tooltip>
@@ -320,15 +321,14 @@ export const ShieldCard = ({ build, shield, mods }: Props) => {
                         disabled={shieldHp >= stats.maxHp}
                         sx={{ flex: '1 1 120px', fontWeight: 700 }}
                     >
-                        Consertar
-                    </Button>
+                        {tr('Consertar', 'Repair')}</Button>
                 </Box>
 
                 {stats.canBlock && (
                     <Box sx={{ display: 'flex', gap: 1.25, mt: 1.25 }}>
                         <TextField
                             size="small"
-                            label="Dano do golpe"
+                            label={tr("Dano do golpe", 'Strike damage')}
                             value={amount}
                             onChange={(e) => setAmount(e.target.value.replace(/\D/g, ''))}
                             onKeyDown={(e) => { if (e.key === 'Enter') handleBlock(false) }}
@@ -336,7 +336,7 @@ export const ShieldCard = ({ build, shield, mods }: Props) => {
                             disabled={!view.canBlock}
                             sx={{ width: 130, flexShrink: 0 }}
                         />
-                        <Tooltip title={view.canBlock ? 'Dano físico de um ataque, já com resistências.' : broken ? 'Escudo quebrado não bloqueia.' : 'Erga o escudo para bloquear.'}>
+                        <Tooltip title={view.canBlock ? tr('Dano físico de um ataque, já com resistências.', 'Physical damage from an attack, already with resistances.') : broken ? tr('Escudo quebrado não bloqueia.', 'A broken shield doesn\'t block.') : tr('Erga o escudo para bloquear.', 'Raise the shield to block.')}>
                             <span style={{ flex: 1, display: 'flex' }}>
                                 <Button
                                     fullWidth
@@ -345,8 +345,7 @@ export const ShieldCard = ({ build, shield, mods }: Props) => {
                                     onClick={() => handleBlock(false)}
                                     sx={{ fontWeight: 700, backgroundColor: SHIELD_COLOR, '&:hover': { backgroundColor: SHIELD_COLOR, filter: 'brightness(0.9)' } }}
                                 >
-                                    Bloquear
-                                </Button>
+                                    {tr('Bloquear', 'Block')}</Button>
                             </span>
                         </Tooltip>
                     </Box>
@@ -381,8 +380,7 @@ export const ShieldCard = ({ build, shield, mods }: Props) => {
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
                 action={notice ? (
                     <Button size="small" sx={{ color: gold.bright }} onClick={() => { undo(notice); setNotice(null) }}>
-                        Desfazer
-                    </Button>
+                        {tr('Desfazer', 'Undo')}</Button>
                 ) : undefined}
             />
         </Card>
@@ -405,15 +403,15 @@ const DestructiveBlock = ({ damage, hardness, shieldHp, bt, enabled, onBlock }: 
         if (damage == null) return ''
         const split = blockSplit(damage, hardness, destructive)
         const after = Math.max(0, shieldHp - split.toShield)
-        const tail = after === 0 ? ' (destruído)' : shieldHp > bt && isBroken(after, { bt }) ? ' (quebra)' : ''
-        return `você −${split.toCreature} · escudo −${split.toShield}${tail}`
+        const tail = after === 0 ? tr(' (destruído)', ' (destroyed)') : shieldHp > bt && isBroken(after, { bt }) ? ' (quebra)' : ''
+        return tr(`você −${split.toCreature} · escudo −${split.toShield}${tail}`, `you −${split.toCreature} · shield −${split.toShield}${tail}`)
     }
 
     return (
         <Box sx={{ mt: 1.25 }}>
             <Tooltip title={enabled
-                ? `Reduz o seu dano pelo dobro da Dureza (${2 * hardness}), mas o escudo toma o dobro do dano antes da Dureza.`
-                : 'Erga o escudo (inteiro) para bloquear.'}
+                ? tr(`Reduz o seu dano pelo dobro da Dureza (${2 * hardness}), mas o escudo toma o dobro do dano antes da Dureza.`, `Reduces your damage by twice the Hardness (${2 * hardness}), but the shield takes double the damage before Hardness.`)
+                : tr('Erga o escudo (inteiro) para bloquear.', 'Raise the (intact) shield to block.')}
             >
                 <span style={{ display: 'flex' }}>
                     <Button
@@ -430,7 +428,7 @@ const DestructiveBlock = ({ damage, hardness, shieldHp, bt, enabled, onBlock }: 
             </Tooltip>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
                 {damage == null
-                    ? `Destructive Block: você desconta ${2 * hardness} (o dobro da Dureza) e o escudo toma o dobro do dano, menos a Dureza.`
+                    ? tr(`Destructive Block: você desconta ${2 * hardness} (o dobro da Dureza) e o escudo toma o dobro do dano, menos a Dureza.`, `Destructive Block: you reduce ${2 * hardness} (twice the Hardness) and the shield takes double the damage, minus Hardness.`)
                     : `Comum: ${outcome(false)} · Destrutivo: ${outcome(true)}`}
             </Typography>
         </Box>
@@ -457,29 +455,28 @@ const RepairDialog = ({ open, onClose, rank, destroyed, missing, onRepair }: {
 
     return (
         <EmbedDialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-            <DialogTitle sx={{ fontWeight: 700 }}>Consertar escudo</DialogTitle>
+            <DialogTitle sx={{ fontWeight: 700 }}>{tr('Consertar escudo', 'Repair shield')}</DialogTitle>
             <DialogContent>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Teste de Ofício para Reparar · {RANK_LABELS[rank]}. Faltam {missing} PV.
+                    {tr('Teste de Ofício para Reparar · ', 'Crafting check to Repair · ')}{RANK_LABELS[rank]}{tr('. Faltam ', '. Missing ')}{missing} PV.
                 </Typography>
                 {destroyed ? (
                     <Typography variant="body2" sx={{ mb: 2, color: status.error, fontWeight: 600 }}>
-                        Escudo destruído não pode ser consertado. Se ele foi substituído, use “Restaurar tudo”.
-                    </Typography>
+                        {tr('Escudo destruído não pode ser consertado. Se ele foi substituído, use “Restaurar tudo”.', 'A destroyed shield can\'t be repaired. If it was replaced, use “Restore all”.')}</Typography>
                 ) : (
                     <Stack spacing={1} sx={{ mb: 2 }}>
                         <Button variant="contained" color="success" onClick={() => onRepair(success)} sx={{ fontWeight: 700 }}>
-                            Sucesso · +{success} PV
+                            {tr('Sucesso · +', 'Success · +')}{success} PV
                         </Button>
                         <Button variant="contained" color="success" onClick={() => onRepair(crit)} sx={{ fontWeight: 700 }}>
-                            Sucesso crítico · +{crit} PV
+                            {tr('Sucesso crítico · +', 'Critical success · +')}{crit} PV
                         </Button>
                     </Stack>
                 )}
                 <Box sx={{ display: 'flex', gap: 1 }}>
                     <TextField
                         size="small"
-                        label="Outro valor"
+                        label={tr("Outro valor", 'Other amount')}
                         value={custom}
                         disabled={destroyed}
                         onChange={(e) => setCustom(e.target.value.replace(/\D/g, ''))}
@@ -496,8 +493,8 @@ const RepairDialog = ({ open, onClose, rank, destroyed, missing, onRepair }: {
                 </Box>
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => onRepair(missing)} color="inherit">Restaurar tudo</Button>
-                <Button onClick={onClose}>Fechar</Button>
+                <Button onClick={() => onRepair(missing)} color="inherit">{tr('Restaurar tudo', 'Restore all')}</Button>
+                <Button onClick={onClose}>{tr('Fechar', 'Close')}</Button>
             </DialogActions>
         </EmbedDialog>
     )

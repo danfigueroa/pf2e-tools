@@ -23,7 +23,7 @@ import {
 } from '@mui/icons-material'
 import { applyFix, useFixesVersion } from '../../../services/translationFixes'
 import { TranslationFix } from './TranslationFix'
-import { isEn } from '../../../i18n'
+import { isEn, tr } from '../../../i18n'
 import {
     fetchFeatDescription,
     fetchSpecialDescription,
@@ -106,9 +106,9 @@ interface State {
 }
 
 const TYPE_LABEL: Record<DescriptionRequest['type'], string> = {
-    feat: 'Talento',
-    special: 'Habilidade',
-    spell: 'Magia',
+    feat: tr('Talento', 'Feat'),
+    special: tr('Habilidade', 'Ability'),
+    spell: tr('Magia', 'Spell'),
     item: 'Item',
 }
 
@@ -247,7 +247,7 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
     const heightenedBlock = useMemo(() => {
         if (heightenedEntries.length === 0) return null
         if (!levelAware) {
-            return { title: 'CONJURADA COM NÍVEL MAIS ALTO', entries: heightenedEntries, levelAware: false }
+            return { title: tr('CONJURADA COM NÍVEL MAIS ALTO', 'HEIGHTENED'), entries: heightenedEntries, levelAware: false }
         }
         // Com `scaling`, só sobra o que não virou número (Fly 7º, área maior…).
         const visible = scaled
@@ -297,7 +297,7 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                         {onShare && !state.loading && (spell || entry) && (
                             <ShareButton key={request.name} onShare={() => onShare(request)} />
                         )}
-                        <IconButton onClick={onClose} size="small" aria-label="Fechar" {...VIEW_OK}>
+                        <IconButton onClick={onClose} size="small" aria-label={tr("Fechar", 'Close')} {...VIEW_OK}>
                             <CloseIcon />
                         </IconButton>
                     </Stack>
@@ -348,8 +348,7 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                         color="text.secondary"
                         sx={{ display: 'block', fontStyle: 'italic', mb: 1.5 }}
                     >
-                        Texto original em inglês — traduzindo automaticamente…
-                    </Typography>
+                        {tr('Texto original em inglês — traduzindo automaticamente…', 'Original English text — translating automatically…')}</Typography>
                 )}
 
                 {/* Bloco de nível de conjuração */}
@@ -370,8 +369,8 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                         }}
                     >
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            {spell.level != null && `Nível base ${spell.level} · `}
-                            Conjurada no nível {request.level}
+                            {spell.level != null && tr(`Nível base ${spell.level} · `, `Base rank ${spell.level} · `)}
+                            {tr('Conjurada no nível ', 'Cast at rank ')}{request.level}
                         </Typography>
                         {spell.level != null && request.level > spell.level && (
                             <Chip
@@ -388,7 +387,7 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                         )}
                         {request.autoHeightened && (
                             <Typography variant="caption" color="text.secondary">
-                                elevada automaticamente
+                                {tr('elevada automaticamente', 'heightened automatically')}
                             </Typography>
                         )}
                     </Box>
@@ -448,7 +447,7 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                     {/* A AON não tem uma entrada com este nome: avisa de qual é o texto, em vez de passar por ele. */}
                     {entry?.matchedName && (
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontStyle: 'italic' }}>
-                            A AON não tem uma entrada chamada “{request.name}”; esta é a descrição de “{entry.matchedName}”.
+                            {tr('A AON não tem uma entrada chamada “', 'AON has no entry called “')}{request.name}{tr('”; esta é a descrição de “', '”; this is the description of “')}{entry.matchedName}”.
                         </Typography>
                     )}
                     <DescriptionBody
@@ -481,7 +480,7 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                         color: accent,
                     }}
                 >
-                    Ver no Archives of Nethys <ExternalIcon sx={{ fontSize: 14 }} />
+                    {tr('Ver no Archives of Nethys ', 'See on Archives of Nethys ')}<ExternalIcon sx={{ fontSize: 14 }} />
                 </Link>
             </Box>
         </Box>
@@ -491,10 +490,10 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
 type ShareStatus = 'idle' | 'sending' | 'done' | 'failed'
 
 const SHARE_LABEL: Record<ShareStatus, string> = {
-    idle: 'Compartilhar com a mesa',
+    idle: tr('Compartilhar com a mesa', 'Share with the table'),
     sending: 'Compartilhando…',
-    done: 'Compartilhado com a mesa',
-    failed: 'Não deu para compartilhar — tente de novo',
+    done: tr('Compartilhado com a mesa', 'Shared with the table'),
+    failed: tr('Não deu para compartilhar — tente de novo', 'Couldn\'t share — try again'),
 }
 
 // O ✓ fica uns segundos: confirma, e segura o toque duplo que mandaria duas vezes.
@@ -532,14 +531,14 @@ const ShareButton = ({ onShare }: { onShare: () => Promise<boolean> }) => {
 // pelo strip heurístico de metadados.
 const EntryMetadata = ({ entry, accent }: { entry: FeatDescription; accent: string }) => {
     const rows: [string, string][] = []
-    if (entry.className) rows.push(['Classe', entry.className])
-    if (entry.archetype?.length) rows.push(['Arquétipo', entry.archetype.join(', ')])
-    if (entry.prerequisites) rows.push(['Pré-requisitos', entry.prerequisites])
-    if (entry.frequency) rows.push(['Frequência', entry.frequency])
-    if (entry.trigger) rows.push(['Gatilho', entry.trigger])
-    if (entry.requirements) rows.push(['Requisitos', entry.requirements])
-    if (entry.cost) rows.push(['Custo', entry.cost])
-    if (entry.access) rows.push(['Acesso', entry.access])
+    if (entry.className) rows.push([tr('Classe', 'Class'), entry.className])
+    if (entry.archetype?.length) rows.push([tr('Arquétipo', 'Archetype'), entry.archetype.join(', ')])
+    if (entry.prerequisites) rows.push([tr('Pré-requisitos', 'Prerequisites'), entry.prerequisites])
+    if (entry.frequency) rows.push([tr('Frequência', 'Frequency'), entry.frequency])
+    if (entry.trigger) rows.push([tr('Gatilho', 'Trigger'), entry.trigger])
+    if (entry.requirements) rows.push([tr('Requisitos', 'Requirements'), entry.requirements])
+    if (entry.cost) rows.push([tr('Custo', 'Cost'), entry.cost])
+    if (entry.access) rows.push([tr('Acesso', 'Access'), entry.access])
 
     if (rows.length === 0 && !entry.traits?.length && entry.level == null) return null
 
@@ -549,7 +548,7 @@ const EntryMetadata = ({ entry, accent }: { entry: FeatDescription; accent: stri
                 <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.5, mb: rows.length > 0 ? 1.5 : 0 }}>
                     {entry.level != null && (
                         <Chip
-                            label={`Nível ${entry.level}`}
+                            label={tr(`Nível ${entry.level}`, `Level ${entry.level}`)}
                             size="small"
                             sx={{
                                 backgroundColor: accent + '25',
@@ -614,8 +613,7 @@ const SpellRollButton = ({ spell, caster, castRank, name, cast, onRoll }: {
     if (isStrikeFocusSpell(name)) {
         return (
             <Alert severity="info" sx={{ mb: 2 }}>
-                Esta magia se usa no diálogo do Golpe (aba Combate, "Rolar" no ataque desarmado): o chip dela gasta o Ponto de Foco e soma o que a magia dá.
-            </Alert>
+                {tr('Esta magia se usa no diálogo do Golpe (aba Combate, "Rolar" no ataque desarmado): o chip dela gasta o Ponto de Foco e soma o que a magia dá.', 'This spell is used in the Strike dialog (Combat tab, "Roll" on the unarmed attack): its chip spends the Focus Point and adds what the spell gives.')}</Alert>
         )
     }
     const hasAttack = !!caster?.attackInfo && (spell.traits ?? []).some((t) => t.toLowerCase() === 'attack')
@@ -624,7 +622,7 @@ const SpellRollButton = ({ spell, caster, castRank, name, cast, onRoll }: {
     // Magia da ficha sem nada para rolar (Guidance, Bless…) ainda se CONJURA: o botão gasta as
     // ações e o slot. Magia fora da ficha (bastão, consulta) não tem conjurador e não ganha o botão.
     if (!hasAttack && !hasDamage && !caster) return null
-    const label = hasAttack && hasDamage ? 'Rolar ataque e dano' : hasAttack ? 'Rolar ataque' : hasDamage ? 'Rolar dano' : 'Conjurar'
+    const label = hasAttack && hasDamage ? tr('Rolar ataque e dano', 'Roll attack and damage') : hasAttack ? tr('Rolar ataque', 'Roll attack') : hasDamage ? tr('Rolar dano', 'Roll damage') : tr('Conjurar', 'Cast')
     return (
         <Button
             variant="contained"
@@ -692,27 +690,27 @@ const SpellMetadata = ({
                 }}
             >
                 {caster && (
-                    <MetaRow label="CD / Ataque" value={`CD ${caster.dc} · ${signed(caster.attack)}`} accent={accent} />
+                    <MetaRow label={tr("CD / Ataque", 'DC / Attack')} value={`CD ${caster.dc} · ${signed(caster.attack)}`} accent={accent} />
                 )}
                 {spell.traditions && spell.traditions.length > 0 && (
-                    <MetaRow label="Tradições" value={spell.traditions.join(', ')} />
+                    <MetaRow label={tr("Tradições", 'Traditions')} value={spell.traditions.join(', ')} />
                 )}
                 {spell.castComponents && (
                     <MetaRow
-                        label="Conjuração"
+                        label={tr("Conjuração", 'Casting')}
                         value={`${actionSymbol(spell.actions ?? '')} ${spell.castComponents}`.trim()}
                     />
                 )}
-                {spell.range && <MetaRow label="Alcance" value={spell.range} />}
-                {spell.area && <MetaRow label="Área" value={spell.area} />}
-                {spell.targets && <MetaRow label="Alvos" value={spell.targets} />}
-                {spell.duration && <MetaRow label="Duração" value={spell.duration} />}
+                {spell.range && <MetaRow label={tr("Alcance", 'Range')} value={spell.range} />}
+                {spell.area && <MetaRow label={tr("Área", 'Area')} value={spell.area} />}
+                {spell.targets && <MetaRow label={tr("Alvos", 'Targets')} value={spell.targets} />}
+                {spell.duration && <MetaRow label={tr("Duração", 'Duration')} value={spell.duration} />}
                 {spell.defense && <MetaRow label="Defesa" value={spell.defense} />}
                 {scaled ? (
                     <>
                         {dmg.length > 0 && (
                             <MetaRow
-                                label={scaled.heightened && castLevel != null ? `Dano (rank ${castLevel})` : 'Dano'}
+                                label={scaled.heightened && castLevel != null ? tr(`Dano (rank ${castLevel})`, `Damage (rank ${castLevel})`) : tr('Dano', 'Damage')}
                                 value={dmg.map(componentLabel).join(', ')}
                                 accent={scaled.heightened ? accent : undefined}
                             />
@@ -730,13 +728,13 @@ const SpellMetadata = ({
                     <>
                         {spell.damage && (
                             <MetaRow
-                                label="Dano"
+                                label={tr("Dano", 'Damage')}
                                 value={`${spell.damage}${spell.damageType ? ` ${spell.damageType}` : ''}`}
                             />
                         )}
                         {heightenedDamage && (
                             <MetaRow
-                                label={castLevel != null ? `Dano (rank ${castLevel})` : 'Dano elevado'}
+                                label={castLevel != null ? tr(`Dano (rank ${castLevel})`, `Damage (rank ${castLevel})`) : tr('Dano elevado', 'Heightened damage')}
                                 value={`${heightenedDamage}${spell.damageType ? ` ${spell.damageType}` : ''}`}
                                 accent={accent}
                             />
@@ -840,7 +838,7 @@ const PartText = ({ text, hits, accent }: { text: string; hits: Hit[]; accent: s
             <Box
                 key={i}
                 component="span"
-                title={`${h.sub.from} no rank base — elevado para o rank conjurado`}
+                title={tr(`${h.sub.from} no rank base — elevado para o rank conjurado`, `${h.sub.from} at base rank — heightened to the cast rank`)}
                 sx={{ color: accent, fontWeight: 700 }}
             >
                 {h.sub.to}
@@ -872,8 +870,7 @@ const DescriptionBody = ({
     if (parts.length === 0 && !heightenedBlock) {
         return (
             <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                Descrição não encontrada. Tente abrir no Archives of Nethys.
-            </Typography>
+                {tr('Descrição não encontrada. Tente abrir no Archives of Nethys.', 'Description not found. Try opening it on Archives of Nethys.')}</Typography>
         )
     }
 
@@ -893,8 +890,7 @@ const DescriptionBody = ({
                         mb: 0.5,
                     }}
                 >
-                    DESCRIÇÃO
-                </Typography>
+                    {tr('DESCRIÇÃO', 'DESCRIPTION')}</Typography>
             )}
             {parts.map((p, idx) => {
                 const partHits = hits[idx]
@@ -984,7 +980,7 @@ const DescriptionBody = ({
                                             variant="caption"
                                             sx={{ ml: 0.75, color: accent, fontWeight: 700, whiteSpace: 'nowrap' }}
                                         >
-                                            ✓ aplica ×{h.times}
+                                            {tr('✓ aplica ×', '✓ applies ×')}{h.times}
                                         </Typography>
                                     )}
                                 </Typography>
