@@ -37,11 +37,26 @@ function cleanSearchName(name) {
     .trim()
 }
 
-async function findBestEntry(name, categories) {
+// As classes do jogo, para reconhecer o qualificador "(Magus)" que o cliente põe nas características que várias
+// classes têm com o mesmo nome (`sharedClassFeatures.ts`, `specialLookupName`).
+const CLASS_NAMES = new Set([
+  'alchemist', 'animist', 'barbarian', 'bard', 'champion', 'cleric', 'commander', 'druid', 'exemplar', 'fighter',
+  'guardian', 'gunslinger', 'inventor', 'investigator', 'kineticist', 'magus', 'monk', 'necromancer', 'oracle',
+  'psychic', 'ranger', 'rogue', 'runesmith', 'sorcerer', 'summoner', 'swashbuckler', 'thaumaturge', 'witch', 'wizard',
+])
+
+/** "Weapon Expertise (Magus)" → "Magus"; o parêntese que não é classe ("Assurance (Athletics)") não conta. */
+function classHint(name) {
+  const m = /\(([^)]+)\)\s*$/.exec(String(name || ''))
+  return m && CLASS_NAMES.has(m[1].trim().toLowerCase()) ? m[1].trim() : null
+}
+
+async function findBestEntry(name, categories, className = null, item = false) {
   let best = null
   for (const cat of categories) {
-    const results = await searchAon(name, cat, 10)
-    const pick = pickBestHit(results, name)
+    // Característica de classe: uma entrada por classe, e as remaster ficavam depois das 10 primeiras (legacy).
+    const results = await searchAon(name, cat, cat === 'class-feature' ? 60 : 10)
+    const pick = pickBestHit(results, name, className, item)
     if (pick && pick._source?.name?.toLowerCase() === name.toLowerCase()) return pick
     if (!best && pick) best = pick
   }
@@ -76,22 +91,21 @@ async function prepareEntry(rawName, categories, itemType, translationEnabled) {
   // pelo nome limpo devolvia o item BASE — nível, preço e magias errados.
   // Só quando o nome cru não casa exato vale a limpeza, que é o caminho de
   // "Assurance (Athletics)" e "Scent (imprecise) 30 feet".
+  const hint = classHint(fullName)
   let best = null
   if (fullName && fullName !== searchName) {
-    best = await findBestEntry(fullName, categories)
+    best = await findBestEntry(fullName, categories, hint, itemType === 'item')
   }
   if (!isExact(best, fullName)) {
-    const alt = await findBestEntry(searchName, categories)
+    const alt = await findBestEntry(searchName, categories, hint, itemType === 'item')
     if (isExact(alt, searchName)) best = alt
     else if (!best) best = alt
   }
 
   if (!best) {
-    // Regra de talento, habilidade ou magia NÃO se inventa: o que a AON não tem fica sem descrição (a tela
-    // diz isso). O LLM só escreve a frase de apoio de ITEM caseiro, que é o caso de antes.
-    const invent = itemType !== 'feat' && itemType !== 'special'
-    const fallback = invent ? await generateFallbackDescription(searchName, itemType, translationEnabled) : null
-    return { done: emptyEntry(rawName, fallback, itemType) }
+    // O que a AON não tem fica SEM descrição (a tela diz isso): nem regra nem item se inventa por LLM — "descreva
+    // o que é Shadow Weaver no Pathfinder" devolveria um texto plausível e falso.
+    return { done: emptyEntry(rawName, null, itemType) }
   }
 
   const source = best._source
@@ -244,8 +258,21 @@ export function resolveSpecials(names, translationEnabled) {
   return resolveEntries(names, SPECIAL_CATEGORIES, 'special', translationEnabled)
 }
 
+/**
+ * Itens do inventário: as mesmas categorias das habilidades (uma dádiva de relíquia é "item"), mas um acerto de
+ * nome parcial só vale se também for item (`namesCompatible(..., item)`).
+ */
+export function resolveItems(names, translationEnabled) {
+  return resolveEntries(names, SPECIAL_CATEGORIES, 'item', translationEnabled)
+}
+
 export async function resolveFeat(name, translationEnabled) {
   const [entry] = await resolveFeats([name], translationEnabled)
+  return entry
+}
+
+export async function resolveItem(name, translationEnabled) {
+  const [entry] = await resolveItems([name], translationEnabled)
   return entry
 }
 

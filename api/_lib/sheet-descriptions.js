@@ -44,7 +44,7 @@ import { join } from 'node:path'
 import { supabase } from './supabase.js'
 import { sameJson } from './json.js'
 import { resolveSpells } from './spells-core.js'
-import { resolveFeats, resolveSpecials } from './feat-core.js'
+import { resolveFeats, resolveItems, resolveSpecials } from './feat-core.js'
 
 const LOCK_SECONDS = 70
 
@@ -54,7 +54,7 @@ const RESOLVERS = {
   feat: resolveFeats,
   special: resolveSpecials,
   // Itens vão pelo mesmo `/api/searches` das habilidades; o tipo separado é do cache do cliente.
-  item: resolveSpecials,
+  item: resolveItems,
 }
 export const DESCRIPTION_KINDS = Object.keys(RESOLVERS)
 

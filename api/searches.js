@@ -1,6 +1,6 @@
 // Batch endpoint: busca múltiplas habilidades especiais/itens. O núcleo fica em
 // api/_lib/feat-core.js, compartilhado com api/search.js e server/index.mjs.
-import { resolveSpecial, resolveMany } from './_lib/feat-core.js'
+import { resolveItem, resolveSpecial, resolveMany } from './_lib/feat-core.js'
 import { hasTranslationKey } from './_lib/aon.js'
 
 export default async function handler(req, res) {
@@ -17,7 +17,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    const results = await resolveMany(names, hasTranslationKey(), resolveSpecial)
+    // `?kind=item`: item do inventário (o acerto parcial só vale se for item também).
+    const resolver = req.query?.kind === 'item' ? resolveItem : resolveSpecial
+    const results = await resolveMany(names, hasTranslationKey(), resolver)
     return res.status(200).json(results)
   } catch (error) {
     console.error('Searches batch API error:', error)

@@ -2,7 +2,7 @@ import 'dotenv/config'
 import http from 'node:http'
 import { URL } from 'node:url'
 import { resolveSpell, resolveSpells } from '../api/_lib/spells-core.js'
-import { resolveFeat, resolveSpecial } from '../api/_lib/feat-core.js'
+import { resolveFeat, resolveItem, resolveSpecial } from '../api/_lib/feat-core.js'
 import { resolveCompanion } from '../api/_lib/companion-core.js'
 import { resolveCreatures } from '../api/_lib/creature-core.js'
 import { resolveMonster } from '../api/_lib/monster-core.js'
@@ -31,7 +31,7 @@ async function resolveEntryCached(name, kind) {
   const cacheKey = `${kind}:${name}`
   if (CACHE.has(cacheKey)) return CACHE.get(cacheKey)
 
-  const resolver = kind === 'feat' ? resolveFeat : resolveSpecial
+  const resolver = kind === 'feat' ? resolveFeat : kind === 'item' ? resolveItem : resolveSpecial
   const entry = await resolver(name, TRANSLATION_ENABLED)
   if (entry && !entry.translationPending) CACHE.set(cacheKey, entry)
   return entry
@@ -459,7 +459,7 @@ const server = http.createServer(async (req, res) => {
       for (let i = 0; i < names.length; i += CONCURRENCY) {
         const chunk = names.slice(i, i + CONCURRENCY)
         const resolved = await Promise.all(chunk.map(async n => {
-          return (await resolveEntryCached(n, 'special')) || { name: n, description: null }
+          return (await resolveEntryCached(n, parsedUrl.searchParams.get('kind') === 'item' ? 'item' : 'special')) || { name: n, description: null }
         }))
         resolved.forEach((r, idx) => { results[chunk[idx]] = r })
       }

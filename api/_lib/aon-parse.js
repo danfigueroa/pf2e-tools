@@ -37,12 +37,39 @@ function nameTokens(name) {
     .map((t) => (t.length > 3 && t.endsWith('s') ? t.slice(0, -1) : t))
 }
 
-export function namesCompatible(requested, found) {
+// Entradas genéricas: um acerto MAIS CURTO nessas categorias é a palavra solta, não a coisa pedida
+// ("Card Sharp's Escape" → a ação Escape, "Basic Finisher" → o traço Finisher, "Thief Racket" → o exemplo de build Thief).
+const GENERIC_CATEGORIES = new Set(['trait', 'action', 'class-sample', 'skill', 'rules', 'condition', 'background', 'deity', 'ancestry', 'creature', 'creature-family', 'language', 'plane', 'source', 'article'])
+// No equipamento, o que sobra do nome pedido só pode ser o grau ("Box of Unspoiling II" ↔ "Box of Unspoiling (Type II)").
+const GRADE_WORDS = new Set(['i', 'ii', 'iii', 'iv', 'v', 'type', 'lesser', 'minor', 'moderate', 'greater', 'major', 'true', 'standard'])
+// Categorias de item: nelas o nome mais curto só vale se o que sobra for o grau ('Shadow Weaver' não é a runa 'Shadow (Major)').
+const ITEM_CATEGORIES = new Set(['equipment', 'item-bonus', 'weapon', 'armor', 'shield', 'rune'])
+
+/**
+ * O acerto `found` (de categoria `category`) é a coisa pedida? Mesmas palavras; ou o pedido é o FIM do
+ * achado (um prefixo próprio: "Kreighton's Cognitive Crossover", "Shory Aeromancer"); ou o achado é o
+ * COMEÇO ou o FIM do pedido ("Studious Spell" para "Studious Spell: Blur", "Doctrine" para "Second
+ * Doctrine"), desde que não seja uma entrada genérica. O meio não vale ("Instinct" ≠ "Giant Instinct
+ * Specialization Ability"), nem um sufixo novo ("Spellbook Prodigy" ≠ "Spellbook").
+ */
+export function namesCompatible(requested, found, category, item = false) {
   const a = nameTokens(requested)
   const b = nameTokens(found)
   if (a.length === 0 || b.length === 0) return false
-  return a.every((t) => b.includes(t)) || b.every((t) => a.includes(t))
+  if (a.length === b.length) return a.every((t) => b.includes(t))
+  const isPrefix = (short, long) => short.every((t, i) => long[i] === t)
+  const isSuffix = (short, long) => short.every((t, i) => long[long.length - short.length + i] === t)
+  if (a.length < b.length) return isSuffix(a, b)
+  if (!isPrefix(b, a) && !isSuffix(b, a)) return false
+  const cat = String(category || '').toLowerCase()
+  if (GENERIC_CATEGORIES.has(cat)) return false
+  // Item: o achado mais curto tem de ser item também ("Shadow Weaver", a armadura do Eldarion, não é a linhagem Shadow).
+  if (item && !ITEM_CATEGORIES.has(cat)) return false
+  if (ITEM_CATEGORIES.has(cat)) return a.filter((t) => !b.includes(t)).every((t) => GRADE_WORDS.has(t))
+  return true
 }
+
+const classesOf = (source) => (Array.isArray(source?.class) ? source.class : [source?.class]).filter(Boolean).map((c) => String(c).toLowerCase())
 
 // Escolhe o melhor hit do Elasticsearch para um nome:
 // - só matches exatos de nome quando existirem;
@@ -50,15 +77,25 @@ export function namesCompatible(requested, found) {
 //   (ex.: a ficha lista "Power Attack", cujo nome remaster é "Vicious Swing");
 // - prefere a versão Remaster (primary_source "Player Core*"), senão a de
 //   release_date mais recente;
+// - com `className`, entre os exatos vale o da classe (característica que várias classes têm);
 // - sem match exato, o primeiro hit de nome COMPATÍVEL (`namesCompatible`); se nenhum for, `null`.
-export function pickBestHit(hits, name) {
+export function pickBestHit(hits, name, className = null, item = false) {
   if (!Array.isArray(hits) || hits.length === 0) return null
   const lower = String(name).toLowerCase()
   const exact = hits.filter(h => h._source?.name?.toLowerCase() === lower)
-  if (exact.length === 0) return hits.find((h) => namesCompatible(name, h._source?.name)) ?? null
+  if (exact.length === 0) {
+    const compatible = hits.filter((h) => namesCompatible(name, h._source?.name, h._source?.category, item))
+    return compatible.find((h) => !isLegacy(h._source)) ?? compatible[0] ?? null
+  }
 
-  const current = exact.filter(h => !isLegacy(h._source))
-  const pool = current.length > 0 ? current : exact
+  // Característica que várias classes têm com o MESMO nome ("Weapon Expertise", "Expert Spellcaster"): vale a da
+  // classe do personagem — o texto muda (armas simples do Druida × marciais do Magus; a tradição do Bardo).
+  const hint = className ? String(className).toLowerCase() : null
+  const ofClass = hint ? exact.filter(h => classesOf(h._source).includes(hint)) : []
+  const scoped = ofClass.length > 0 ? ofClass : exact
+
+  const current = scoped.filter(h => !isLegacy(h._source))
+  const pool = current.length > 0 ? current : scoped
 
   const remaster = pool.find(h => /^player core/i.test(h._source.primary_source || ''))
   if (remaster) return remaster
