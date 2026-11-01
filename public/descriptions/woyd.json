@@ -1260,16 +1260,6 @@
     "sourceBook": "Treasure Vault (Remastered), p. 199",
     "description": "Activate Single Action: (concentrate) Frequência uma vez por hora; Efeito Uma onda de emoção emana da sua relíquia, concedendo um bônus de status de +1 em testes de perícia determinados pela emoção da relíquia. Este bônus dura 1 minuto. Raiva testes de Athletics; Admiração testes de Performance; Dedicação testes para Recall Knowledge; Medo testes de Stealth; Ódio testes de Intimidation; Alegria testes de Diplomacy; Amor testes de Medicine; Miséria testes de Survival; Orgulho testes de Society; Remorso testes de Deception"
    },
-   "Healing Font": {
-    "name": "Divine Font",
-    "level": 1,
-    "actions": "",
-    "traits": [],
-    "category": "class-feature",
-    "className": "Cleric",
-    "sourceBook": "Player Core, p. 108",
-    "description": "Pela bênção da sua divindade, você ganha magias adicionais que canalizam a força vital chamada vitalidade ou sua contraforça, o vazio. Ao preparar suas magias a cada dia, você pode preparar magias heal ou harm adicionais, conforme a sua divindade. Uma vez feita a escolha, não pode mudá-la sem intervenção divina. Healing Font: você ganha 4 espaços de magia adicionais por dia no seu rank mais alto de espaços de magia de clérigo, e só pode preparar heal neles. No 5º nível passam a 5, e no 15º, a 6."
-   },
    "Holy": {
     "name": "Holy",
     "level": 1,

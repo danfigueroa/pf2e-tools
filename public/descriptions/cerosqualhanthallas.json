@@ -1328,14 +1328,14 @@
     "description": "Você tem uma conexão com as propriedades curativas da natureza e pode produzir uma névoa mágica para curar dano e parar queimaduras ou sangramentos. Você ganha a magia de guardião soothing mist. Aumente o número de Pontos de Foco em sua reserva de foco em 1."
    },
    "Storm Order": {
-    "name": "Druidic Order",
-    "level": 1,
+    "name": "Storm",
+    "matchedName": "Storm",
+    "level": null,
     "actions": "",
     "traits": [],
-    "category": "class-feature",
-    "className": "Druid",
-    "sourceBook": "Core Rulebook, p. 128",
-    "description": "Ao se tornar um druida, você se alinha a uma ordem druídica, o que lhe concede um talento de classe, uma magia de ordem (veja abaixo) e uma perícia treinada adicional vinculada à sua ordem. Embora você sempre seja um membro da sua ordem inicial, não é inédito que um druida peça para estudar com outras ordens em busca de uma compreensão maior do mundo natural, e druidas personagens jogadores estão entre os mais propensos a combinar os poderes de diferentes ordens. Magias de ordem são um tipo de magia de foco. Custa 1 Ponto de Foco conjurar uma magia de foco, e você começa com uma reserva de foco de 1 Ponto de Foco. Você reabastece sua reserva de foco durante suas preparações diárias, e você pode recuperar 1 Ponto de Foco gastando 10 minutos usando a atividade Refocar para comungar com espíritos locais da natureza ou cuidar da natureza selvagem de uma maneira condizente com sua ordem. Magias de foco são automaticamente intensificadas para metade do seu nível arredondado para cima, assim como truques. Magias de foco não exigem espaços de magia para serem conjuradas, e você não pode conjurá-las usando espaços de magia. Selecionar talentos de druida pode lhe dar mais magias de foco e aumentar o tamanho da sua reserva de foco, embora sua reserva de foco nunca possa conter mais de 3 pontos. As regras completas para magias de foco são encontradas aqui. Ordens podem ser encontradas aqui."
+    "category": "druidic-order",
+    "sourceBook": "Core Rulebook, p. 132",
+    "description": "Ordem Druídica Storm Você carrega a fúria da tempestade dentro de si, canalizando-a para um efeito aterrorizante e cavalgando os ventos pelo céu. Você está treinado em Acrobacia. Você também ganha a façanha druidica Storm Born. Você ganha o feitiço de ordem tempest surge e aumenta o número de pontos de foco em seu reservatório de foco em 1. Poluir o ar ou permitir que aqueles que causam grande poluição do ar ou mudanças climáticas escapem sem punição é um anátema para sua ordem. (Isso não o obriga a agir contra apenas um dano potencial ao meio ambiente ou a sacrificar‑se contra um inimigo obviamente superior.)"
    },
    "Terrain Transposition": {
     "name": "Terrain Transposition",

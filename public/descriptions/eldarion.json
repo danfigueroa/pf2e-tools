@@ -75,20 +75,16 @@
     "description": "Você pode tratar ferimentos, mesmo em combate. Tente um teste de Medicine com a mesma CD de Treat Wounds e restaure a quantidade correspondente de PV; isso não remove a condição wounded. Assim como em Treat Wounds, você pode tentar testes contra CDs mais altas se tiver o grau de proficiência mínimo. O alvo fica então imune ao seu Battle Medicine por 1 dia. Isso não o torna imune a, ou conta de outra forma como, Treat Wounds."
    },
    "Card Sharp's Escape": {
-    "name": "Fane's Escape",
-    "level": 4,
-    "actions": "Two Actions",
+    "name": "Escape",
+    "matchedName": "Escape",
+    "level": null,
+    "actions": "Single Action",
     "traits": [
-     "General",
-     "Skill",
-     "Uncommon"
+     "Attack"
     ],
-    "category": "feat",
-    "sourceBook": "PFS Guide, p. 118",
-    "prerequisites": "Perito em Stealth",
-    "requirements": "Você tem um baralho de cartas de jogar em sua posse.",
-    "access": "Membro da Pathfinder Society.",
-    "description": "Uma boa fuga requer uma boa distração. Você usa Interact para sacar um baralho de cartas e lançá-lo em uma explosão esvoaçante, fazendo com que você fique brevemente hidden para todas as outras criaturas que usam a visão como sentido preciso, e então você usa Sneak. Você tem cobertura suficiente para usar Sneak até o final do seu turno. Isso deixa todas as cartas do baralho espalhadas pela sala; recolhê-las em um baralho novamente leva vários minutos. Perilous Larceny Fonte PFS Guide pág. 118 A capitã pirata Stella Fane (humana CN, corsária; Lost Omens Character Guide 119) juntou-se à Pathfinder Society como capitã de empreitada como parte de um acordo para ajudar a Sociedade a passar pelos bloqueios navais fortemente armados dos Free Captains de Port Peril. Astuta e competitiva, a maior fraqueza de Stella como líder da Sociedade é seu ódio inabalável pelo governo de Chelaxian. Aqueles que conseguirem evitar acabar afundados ou executados pelos comandantes navais de Chelaxian enquanto ajudam Stella podem sair com alguns truques a mais do que tinham antes de ver a pirata habilidosa em ação. Fane's Fourberie e Stella's Stab and Snag, abaixo, são talentos de classe que ladinos ou swashbucklers podem selecionar. Quando você seleciona qualquer um dos talentos, ele perde o traço da outra classe. Talentos Relacionados: Fane's Fourberie, Stella's Stab and Snag"
+    "category": "action",
+    "sourceBook": "Core Rulebook, p. 470",
+    "description": "Você tenta escapar de estar grabbed, immobilized ou restrained. Escolha uma criatura, objeto, efeito de feitiço, hazard ou outro impedimento que imponha qualquer dessas condições a você. Faça um teste usando seu modificador de ataque desarmado contra a CD do efeito. Normalmente isso é a CD de Athletics de uma criatura que está te Grappling, a CD de Thievery de uma criatura que te amarrou, a CD de feitiço para um efeito de feitiço, ou a CD de Escape listada de um objeto, hazard ou outro impedimento. Você pode fazer um teste de Acrobatics ou Athletics em vez de usar seu modificador de ataque se preferir (mas essa ação ainda tem a característica de ataque). Critical Success Você se liberta e remove as condições grabbed, immobilized e restrained impostas pelo alvo escolhido. Você pode então Stride até 5 pés. Success Você se liberta e remove as condições grabbed, immobilized e restrained impostas pelo alvo escolhido. Critical Failure Você não se liberta, e não pode tentar Escape novamente até o seu próximo turno."
    },
    "Divert Destiny": {
     "name": "Divert Destiny",
@@ -488,14 +484,16 @@
     "description": "Editos saltam sem ter certeza de que pousarão ilesos, teste seus reflexos ao manobrar pelos espaços de inimigos significativamente mais poderosos. Anathema manobrar ao redor de um inimigo quando rolar através do seu espaço é uma opção viável, use medidas de segurança para tentar acrobacias."
    },
    "Basic Finisher": {
-    "name": "Exemplary Finisher",
-    "level": 9,
+    "name": "Finisher",
+    "matchedName": "Finisher",
+    "level": null,
     "actions": "",
-    "traits": [],
-    "category": "class-feature",
-    "className": "Swashbuckler",
-    "sourceBook": "Advanced Player's Guide, p. 82",
-    "description": "Você executa seus movimentos finais com um estilo espetacular, adicionando efeitos especiais aos seus finalizadores. Se um Strike que você fizer como parte de um finalizador acertar um inimigo, você adiciona um dos seguintes efeitos ao Strike, dependendo do estilo do seu swashbuckler. Uma lista de todos os estilos de swashbuckler pode ser encontrada here."
+    "traits": [
+     "Finisher"
+    ],
+    "category": "trait",
+    "sourceBook": "Advanced Player's Guide, p. 267",
+    "description": "Traço Finalizador Os finalizadores são movimentos de finalização espetaculares que utilizam sua panache. Você pode usar um finalizador somente se possuir panache, e perde sua panache imediatamente após executar um finalizador. Depois de usar um finalizador, você não pode usar nenhuma ação que tenha o traço ataque pelo resto do seu turno. Algumas ações que têm o traço finalizador também concedem um efeito em caso de falha. Efeitos adicionados em uma falha não se aplicam em uma falha crítica. Se sua ação de finalizador for bem‑sucedida, ainda pode optar por aplicar o efeito de falha em vez disso. Por exemplo, você pode fazer isso quando um ataque não causa dano devido à resistência."
    },
    "Debilitating Strike": {
     "name": "Debilitating Strike",
@@ -630,14 +628,15 @@
     "description": "Você salta para o combate mais rápido do que os inimigos conseguem reagir. Na primeira rodada de combate, se você rolar Deception ou Stealth para iniciativa, criaturas que ainda não agiram estão off-guard para você."
    },
    "Thief Racket": {
-    "name": "Rogue's Racket",
-    "level": 1,
+    "name": "Thief",
+    "matchedName": "Thief",
+    "level": null,
     "actions": "",
     "traits": [],
-    "category": "class-feature",
+    "category": "class-sample",
     "className": "Rogue",
-    "sourceBook": "Core Rulebook, p. 178",
-    "description": "Ao iniciar no caminho do ladino, você começou a desenvolver seu próprio estilo para perseguir suas atividades ilícitas. Seu racket molda suas técnicas de ladino e a maneira como você aborda um trabalho, enquanto constrói sua reputação no submundo do crime para um certo tipo de serviço. Um cliente com bolsos cheios pode até contratar uma equipe de ladinos para um assalto específico, cada um especializado em um racket diferente, a fim de cobrir todas as frentes. Escolha um racket de ladino. Rackets podem ser encontrados aqui"
+    "sourceBook": "Core Rulebook, p. 186",
+    "description": "Exemplo de Construção de Classe Ladrão Furtivo e ágil, você abre fechaduras, encontra portas secretas e armadilhas, e coleta todo o melhor saque Atributos Priorize Destreza. Constituição aumenta sua vida e Sabedoria ajuda a perceber armadilhas. Perícias Acrobacia, Arcano, Atletismo, Artesanato, Enganação, Diplomacia, Sociedade, Furtividade Especialidade do Ladino Ladrão Talento Inicial Trap Finder Talentos de Nível Superior Quick Draw (2º), Skirmish Strike (6º), Sneak Savant (10º), Spring from the Shadows (12º), Implausible Infiltration (18º)"
    },
    "Weapon Specialization": {
     "name": "Weapon Specialization",
@@ -725,14 +724,17 @@
     "description": "Pontas semelhantes a garras nesta grossa faixa dourada se estendem para cavar profundamente em superfícies verticais quando você está realizando a ação Climb. Este anel concede a você um deslocamento de escalada igual à metade do seu deslocamento terrestre. Penalidades ao seu deslocamento (incluindo aquelas provenientes de sua armadura) aplicam-se antes da divisão pela metade."
    },
    "Shadow Weaver": {
-    "name": "Reactive Strike",
-    "level": 1,
+    "name": "Shadow (Major)",
+    "matchedName": "Shadow (Major)",
+    "level": 17,
     "actions": "",
-    "traits": [],
-    "category": "class-feature",
-    "className": "Fighter",
-    "sourceBook": "Player Core, p. 136",
-    "description": "Sempre atento a fraquezas, você pode atacar rapidamente inimigos que deixam uma abertura em suas defesas. Você ganha a reação Reactive Strike."
+    "traits": [
+     "Magical",
+     "Shadow"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 227",
+    "description": "Armadura gravada com esta runa adquire uma aparência negra e enevoada. Você recebe um bônus de item +1 em testes de Furtividade enquanto estiver usando a armadura. Shadow Source GM Core pg. 227, Core Rulebook pg. 583 Preço 55 gp Shadow (Greater) Source GM Core pg. 227, Core Rulebook pg. 583 Preço 650 gp O bônus de item é +2. Shadow (Major) Source GM Core pg. 227, Core Rulebook pg. 583 Preço 14,000 gp O bônus de item é +3."
    },
    "Toxic Effluence": {
     "name": "Toxic Effluence",

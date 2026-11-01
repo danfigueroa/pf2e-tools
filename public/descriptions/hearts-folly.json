@@ -629,6 +629,16 @@
     "sourceBook": "Player Core, p. 459",
     "description": "Traço Oculto Esta magia vem da tradição oculta, invocando mistérios bizarros e efêmeros. Qualquer coisa com este traço é mágica. Uma criatura com este traço é constituída principalmente de ou tem uma forte conexão com magia oculta."
    },
+   "Path to Perfection (Will)": {
+    "name": "Path to Perfection",
+    "level": 7,
+    "actions": "",
+    "traits": [],
+    "category": "class-feature",
+    "className": "Monk",
+    "sourceBook": "Player Core 2, p. 114",
+    "description": "Você progrediu ao longo do seu próprio caminho para a iluminação. Escolha seu teste de resistência de Fortitude, Reflexos ou Vontade. Sua graduação de proficiência para o teste de resistência escolhido aumenta para mestre. Quando você obtiver um sucesso em um teste de resistência escolhido, você obtém um sucesso crítico em vez disso."
+   },
    "Perception Expertise": {
     "name": "Perception Expertise",
     "level": 5,
@@ -685,16 +695,6 @@
     "className": "Alchemist",
     "sourceBook": "Core Rulebook, p. 66",
     "description": "Você aprendeu como infligir ferimentos maiores com as armas que conhece melhor. Você causa 2 de dano adicional com armas e ataques desarmados nos quais você é perito. Esse dano aumenta para 3 se você for mestre, e para 4 se você for lendário."
-   },
-   "Will": {
-    "name": "Iron Will",
-    "level": 7,
-    "actions": "",
-    "traits": [],
-    "category": "class-feature",
-    "className": "Alchemist",
-    "sourceBook": "Core Rulebook, p. 66",
-    "description": "Suas defesas mentais são uma fortaleza de ferro. Sua graduação de proficiência para testes de Vontade aumenta para perito."
    },
    "Word of Faith": {
     "name": "Word of Faith",

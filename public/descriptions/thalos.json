@@ -427,37 +427,37 @@
     ]
    },
    "Frostbite (Amped)": {
-    "name": "Ray of Frost",
+    "name": "Frostbite",
     "level": 1,
     "heighten": [
      "+1"
     ],
-    "sourceBook": "Core Rulebook, p. 362",
+    "sourceBook": "Player Core, p. 332",
     "actions": "Two Actions",
     "traits": [
-     "Attack",
      "Cantrip",
      "Cold",
-     "Evocation"
+     "Concentrate",
+     "Manipulate"
     ],
     "traditions": [
      "Arcane",
      "Primal"
     ],
     "castComponents": "",
-    "range": "120 pés",
+    "range": "60 pés",
     "area": "",
     "targets": "1 criatura",
     "duration": "",
-    "defense": "",
-    "description": "Você dispara um raio gelado. Faça um teste de ataque de magia. O raio causa 2d4 de dano de frio. Sucesso Crítico O alvo sofre o dobro de dano e recebe uma penalidade de status de -3 metros (10 pés) em seus Deslocamentos por 1 rodada. Sucesso O alvo sofre o dano normal.",
+    "defense": "Fortitude básico",
+    "description": "Uma esfera de frio cortante se coalesce ao redor do seu alvo, congelando seu corpo. O alvo recebe 2d4 de dano de frio com um teste básico de Fortitude. Em uma falha crítica, o alvo também ganha fraqueza 1 a contusão até o início do seu próximo turno.",
     "damage": "2d4",
     "damageType": "frio",
     "heightened": {},
     "heightenedEntries": [
      {
       "level": "+1",
-      "text": "O dano aumenta em 1d4."
+      "text": "O dano aumenta em 1d4 e a fraqueza em uma falha crítica aumenta em 1."
      }
     ],
     "scaling": {
@@ -475,6 +475,20 @@
        "flat": 0,
        "nth": 0,
        "occurrences": 1
+      },
+      {
+       "id": 1,
+       "formula": "1",
+       "kind": "weakness",
+       "types": [
+        "bludgeoning"
+       ],
+       "persistent": false,
+       "count": 0,
+       "faces": 0,
+       "flat": 1,
+       "nth": 0,
+       "occurrences": 1
       }
      ],
      "rules": [
@@ -487,6 +501,13 @@
          "count": 1,
          "faces": 4,
          "flat": 0
+        },
+        {
+         "id": 1,
+         "mode": "add",
+         "count": 0,
+         "faces": 0,
+         "flat": 1
         }
        ],
        "safe": true,
@@ -698,18 +719,19 @@
     }
    },
    "Ignition (Amped)": {
-    "name": "Produce Flame",
+    "name": "Ignition",
     "level": 1,
     "heighten": [
      "+1"
     ],
-    "sourceBook": "Core Rulebook, p. 360",
+    "sourceBook": "Player Core, p. 336",
     "actions": "Two Actions",
     "traits": [
      "Attack",
      "Cantrip",
-     "Evocation",
-     "Fire"
+     "Concentrate",
+     "Fire",
+     "Manipulate"
     ],
     "traditions": [
      "Arcane",
@@ -720,15 +742,15 @@
     "area": "",
     "targets": "1 criatura",
     "duration": "",
-    "defense": "",
-    "description": "Uma pequena bola de chamas aparece na palma da sua mão, e você ataca com ela, seja em combate corpo a corpo ou à distância. Faça um teste de ataque de magia contra a CA do seu alvo. Este é normalmente um ataque à distância, mas você também pode fazer um ataque corpo a corpo contra uma criatura ao seu alcance desarmado. A chama causa 2d4 de dano de fogo. Sucesso Crítico O alvo sofre o dobro de dano e 1d4 de dano de fogo persistente. Sucesso O alvo sofre o dano total.",
+    "defense": "CA",
+    "description": "Você estala os dedos e aponta para um alvo, que começa a fumegar. Faça uma rolagem de ataque de magia contra a AC do alvo, causando 2d4 de dano de fogo em um acerto. Se o alvo estiver dentro do seu alcance corpo a corpo, você pode escolher fazer um ataque de magia corpo a corpo com a chama ao invés de um ataque de magia à distância, o que aumenta todos os dados de dano da magia para d6. Sucesso Crítico O alvo recebe dano dobrado e 1d4 de dano persistente de fogo. Sucesso O alvo recebe dano total.",
     "damage": "2d4",
     "damageType": "fogo",
     "heightened": {},
     "heightenedEntries": [
      {
       "level": "+1",
-      "text": "Aumente o dano em 1d4 e o dano persistente em um acerto crítico em 1d4."
+      "text": "O dano inicial aumenta em 1d4 e o dano persistente de fogo em um acerto crítico aumenta em 1d4."
      }
     ],
     "scaling": {
@@ -1826,14 +1848,18 @@
   },
   "item": {
    "Box of Unspoiling II": {
-    "name": "Armor of Fury",
-    "level": 19,
+    "name": "Box of Unspoiling (Type II)",
+    "matchedName": "Box of Unspoiling (Type II)",
+    "level": 8,
     "actions": "",
-    "traits": [],
-    "category": "class-feature",
-    "className": "Barbarian",
-    "sourceBook": "Core Rulebook, p. 82",
-    "description": "Seu treinamento e fúria aprofundam sua conexão com sua armadura. Seus graus de proficiência para armadura leve, armadura média e defesa sem armadura aumentam para mestre."
+    "traits": [
+     "Extradimensional",
+     "Magical",
+     "Uncommon"
+    ],
+    "category": "equipment",
+    "sourceBook": "Pathfinder #208: Hoof, Cinder, and Storm, p. 80",
+    "description": "Este recipiente de armazenamento decorado com imagens de vida selvagem e frutas silvestres é popular entre os Shoanti quahs e outros grupos nômades. A caixa funciona como uma bolsa espaçosa, contendo uma quantidade de Bulk dependendo do seu tipo, e está inscrita com magia para manter seu conteúdo frio, permitindo viajar com itens perecíveis como carne e fruta. Os itens na caixa permanecem frescos por até um ano. Box of Unspoiling (Tipo I) Fonte Pathfinder #208: Hoof, Cinder, and Storm pág. 80 Preço 200 gp 25 Bulk Box of Unspoiling (Tipo II) Fonte Pathfinder #208: Hoof, Cinder, and Storm pág. 80 Preço 575 gp 50 Bulk Box of Unspoiling (Tipo III) Fonte Pathfinder #208: Hoof, Cinder, and Storm pág. 80 Preço 1,640 gp 100 Bulk Box of Unspoiling (Tipo IV) Fonte Pathfinder #208: Hoof, Cinder, and Storm pág. 80 Preço 3,600 gp 150 Bulk"
    },
    "Crystal Lattice": {
     "name": "Crystal Lattice",

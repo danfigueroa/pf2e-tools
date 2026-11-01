@@ -1062,23 +1062,6 @@
     "prerequisites": "Treinado em Ocultismo",
     "description": "Com um toque, você pode ler as impressões psíquicas deixadas nos objetos por seus proprietários anteriores. Esta atividade de exploração funciona de forma semelhante a Detect Magic, pois você se move a metade da sua velocidade de viagem ou mais devagar enquanto procura por ressonância psicométrica. Você deve passar as mãos nuas sobre quaisquer objetos que cruzar enquanto faz isso. Isso detecta objetos com ressonância emocional significativa anexada a eles, como a alegria do ursinho de pelúcia amado de uma criança, a tristeza do anel de casamento de um viúvo, ou o medo da arma de assassinato de uma vítima. Se você está procurando um tipo particular de ressonância emocional, pode escolher ignorar outras emoções. Se encontrar um item com essa ressonância, pode explorar essa ressonância com a ação a seguir. Psychometric Assessment (concentrate, emotion, exploration, mental, occult) Requisitos Suas mãos nuas estão tocando um objeto no qual você detectou ressonância psicométrica; Efeito Você gasta 1 minuto concentrando-se no objeto para obter uma visão do rosto da pessoa que imbuíu o item com tal emoção originalmente. Se a emoção associada for dolorosamente negativa, você pode sofrer 1d6 de dano psíquico, conforme determinado pelo GM."
    },
-   "Reincarnation Feat": {
-    "name": "Feast",
-    "level": 4,
-    "actions": "Two Actions",
-    "traits": [
-     "Archetype",
-     "Manipulate"
-    ],
-    "category": "feat",
-    "archetype": [
-     "Zombie"
-    ],
-    "sourceBook": "Book of the Dead, p. 60",
-    "prerequisites": "Zombie Dedication",
-    "requirements": "Você está adjacente a uma criatura restrita ou inconsciente, ou a uma criatura morta que morreu na última hora.",
-    "description": "Você se alimenta de uma criatura adjacente restrita ou inconsciente, ou de uma criatura morta que morreu na última hora. Se a criatura estiver viva, você causa dano igual ao dano das suas mandíbulas. Viva ou morta, você ganha um número de Pontos de Vida temporários igual à metade do seu nível, que duram 1 minuto. Você pode, ao invés disso, escolher ganhar Pontos de Vida temporários iguais ao dobro do seu nível, mas se fizer isso, deve ter sucesso em um teste plano de CD 6 ou seu corpo se deteriora."
-   },
    "Spirit Sheath": {
     "name": "Spirit Sheath",
     "level": 2,
@@ -1266,14 +1249,17 @@
     "description": "Ativar Duas Ações: (concentrate, manipulate) Frequência uma vez por hora; Efeito Você tem como alvo uma criatura a até 30 pés, impondo temporariamente a decrepitude do tempo sobre ela. O alvo deve tentar um teste de Fortitude. As condições clumsy e enfeebled duram 1 minuto. Sucesso Crítico O alvo não é afetado. Sucesso O alvo fica clumsy 1 e enfeebled 1. Falha O alvo fica clumsy 2, enfeebled 2 e drained 1. Falha Crítica O alvo fica clumsy 3, enfeebled 3 e drained 2."
    },
    "Spellbook": {
-    "name": "Magus Spellcasting",
+    "name": "Spellbook Prodigy",
+    "matchedName": "Spellbook Prodigy",
     "level": 1,
     "actions": "",
-    "traits": [],
-    "category": "class-feature",
-    "className": "Magus",
-    "sourceBook": "Impossible Magic, p. 9",
-    "description": "Você estuda magias para que possa combiná-las com seus ataques ou resolver problemas que a força das armas sozinha não consegue lidar. Você é um conjurador, e pode conjurar magias da tradição arcana usando a atividade Cast a Spell. Como um magus, quando você conjura magias, você pode desenhar sigilos com sua arma ou uma mão livre e gritar palavras mágicas de poder como gritos de guerra. No 1º nível, você pode preparar uma magia de 1º grau e cinco truques a cada manhã a partir das magias em seu grimório (veja abaixo). Magias preparadas permanecem disponíveis para você até que você as conjure ou até que você prepare suas magias novamente. O número de magias que você pode preparar é chamado de seus espaços de magia. À medida que você aumenta de nível como magus, o número de magias que você pode preparar por dia aumenta, assim como o grau mais alto de magia que você pode conjurar, conforme mostrado na tabela Magus Spells per Day. Algumas de suas magias exigem que você tente um ataque mágico para ver quão eficazes elas são, ou que seus inimigos rolem contra sua DC de magia (tipicamente tentando um teste de resistência). Seu modificador de ataque mágico e DC de magia são calculados usando seu modificador de Inteligência. Aprimorando Magias Quando você obtém espaços de magia de 2º grau e superior, você pode preencher esses espaços com versões mais fortes de magias de grau inferior. Isso aumenta o grau da magia, aprimorando-a para corresponder ao espaço de magia. Muitas magias possuem melhorias específicas quando são aprimoradas para certos graus. Truques Algumas de suas magias são truques. Um truque é um tipo especial de magia que não usa espaços de magia. Você pode conjurar um truque à vontade, qualquer número de vezes por dia. Um truque é sempre automaticamente aprimorado para metade do seu nível arredondado para cima — isso geralmente é igual ao grau mais alto de espaço de magia de magus que você possui. Por exemplo, como um magus de 1º nível, seus truques são magias de 1º grau, e como um magus de 5º nível, seus truques são magias de 3º grau. Grimório Toda magia arcana tem uma versão escrita, que você registra em seu livro de magias personalizado. Você começa com um grimório que vale 10 sp ou menos, que você recebe gratuitamente e deve estudar a cada dia para preparar suas magias. A forma e o nome do seu grimório dependem de você. Pode ser qualquer coisa, desde um livro resistente com uma trava segura intitulado Teses sobre os Estratagemas da Guerra Sobrenatural até uma coleção esfarrapada de panfletos de treinamento com seu nome rabiscado na capa. O grimório contém sua escolha de oito truques arcanos e cinco magias arcanas de 1º grau. Você escolhe essas a partir das magias comuns na lista de magias arcanas ou de outras magias arcanas às quais você ganha acesso. Cada vez que você ganha um nível, você adiciona duas magias arcanas ao seu grimório, de qualquer grau de magia para o qual você tenha espaços de magia, escolhidas a partir de magias comuns da sua tradição ou outras às quais você ganha acesso. Você também pode adicionar magias ao seu grimório com a atividade Learn a Spell. Se você tiver um grimório de múltiplas fontes (como ser um magus com o talento Wizard Dedication), você pode usar o mesmo grimório para todas as suas magias."
+    "traits": [
+     "Wizard"
+    ],
+    "category": "feat",
+    "sourceBook": "Advanced Player's Guide, p. 142",
+    "prerequisites": "Treinado em Arcano",
+    "description": "Você é particularmente hábil em aprender magias para adicionar ao seu grimório. Você pode Learn a Spell em metade do tempo que normalmente leva. Além disso, quando você obtém uma falha crítica no seu teste para Learn a Spell, você recebe apenas uma falha. Quando você obtém uma falha, pode tentar novamente após 1 semana."
    },
    "Spellstrike": {
     "name": "Spellstrike",
@@ -1296,14 +1282,16 @@
     "description": "Você aprendeu a técnica fundamental de mago que permite combinar ataques mágicos e físicos. Você ganha a atividade Spellstrike."
    },
    "Standard Cantrip: Shield (Archetype)": {
-    "name": "Shield Block",
-    "level": 1,
+    "name": "Cantrip",
+    "matchedName": "Cantrip",
+    "level": null,
     "actions": "",
-    "traits": [],
-    "category": "class-feature",
-    "className": "Champion",
-    "sourceBook": "Core Rulebook, p. 104",
-    "description": "Você ganha o talento geral Shield Block, uma reação que permite que você reduza o dano com seu escudo."
+    "traits": [
+     "Cantrip"
+    ],
+    "category": "trait",
+    "sourceBook": "Core Rulebook, p. 629",
+    "description": "Traço Truque Uma magia que você pode"
    },
    "Studious Spell: Blur": {
     "name": "Studious Spell",
@@ -1354,14 +1342,21 @@
     "description": "Mente Consciente Psíquica O Sonho Tangível Você puxa cores e formas das profundezas da sua mente, projetando criações impossíveis no mundo como tapeçarias de fios astrais ou esculturas de força e luz. Magias Concedidas - 1º Dizzying Colors - 2º Invisibility - 3º Sea of Thought - 4º Containment - 5º Etheric Shards - 6º Scintillating Safeguard - 7º Project Image - 8º Confusing Colors - 9º Resplendent Mansion Psi Truques Figment e Shield Psi Truque de Superfície Imaginary Weapon Psi Truque Profundo (Nível 6) Astral Rain Psi Truque Mais Profundo (Nível 10) Hologram Cage Figment Suas ilusões menores mudam e dançam de uma forma que atrai o olhar. Quando você Sustenta a magia, você pode mover o som ou visão aparente em até 15 pés. Você pode então tentar um Create a Diversion como de costume. Aquelas criaturas que não acreditaram na ilusão não são afetadas por essa distração. Seu figment também ganha o seguinte amp. Amp Quando você usa amp na magia, você pode criar uma ilusão particularmente distrativa como parte de seus efeitos normais. Escolha um quadrado desocupado dentro do alcance da magia. A ilusão naquele quadrado fornece flanking para um único ataque corpo a corpo feito antes do início do seu próximo turno. Se você Sustentar a magia, os detalhes da ilusão mudam e se deslocam para manter seus inimigos inquietos; a ilusão de flanking não pode fornecer seu benefício contra qualquer criatura que não tenha acreditado no figment. Shield Sua magia shield pode ser utilizada em favor de outros. A opção de realizar um Shield Block com a magia cabe a você e usa sua reação, não a do alvo. Seu escudo também ganha o seguinte amp. Amp Você cria uma barreira em camadas de três escudos para melhorar suas defesas. O escudo ainda abaixa no início de cada um dos seus turnos, mas você pode levantá-lo novamente quando Sustentar a Magia. Quando você realiza um Shield Block com esta magia, uma das três camadas quebra e você deixa de ganhar o bônus na CA, mas a magia não termina. Você pode continuar usando a magia até que a camada final quebre; uma vez que isso aconteça, a magia termina e você não pode. Você pode escolher quebrar camadas adicionais ao realizar um Shield Block com esta magia para melhorar suas defesas. Se você quebrar duas camadas em vez de uma, aumente a Dureza para 1-1/2 vezes o valor normal (7 no 1º círculo, 15 no 3º círculo, 22 no 5º círculo, 30 no 7º círculo e 37 no 9º círculo). Se você quebrar todas as três camadas, aumente a Dureza para o dobro do valor normal."
    },
    "Unique Cantrip: Imaginary Weapon": {
-    "name": "Psi Cantrips and Amps",
+    "name": "Imaginary Weapon",
+    "matchedName": "Imaginary Weapon",
     "level": 1,
-    "actions": "",
-    "traits": [],
-    "category": "class-feature",
-    "className": "Psychic",
-    "sourceBook": "Dark Archive, p. 8",
-    "description": "A magia da sua mente se manifesta como psi truques, que você pode modificar gastando Pontos de Foco. Como outros truques, você pode conjurar psi truques tão frequentemente quanto quiser, e eles são automaticamente amplificados para metade do seu nível arredondado para cima. Seus psi truques são um adicional aos truques que você escolhe da lista oculta como parte da sua conjuração psíquica. Geralmente, apenas talentos podem lhe dar mais psi truques. Diferente de outros truques, você não pode trocar psi truques ganhos de talentos psíquicos em um nível posterior, a menos que troque o talento específico via retreinamento. No 1º nível, você aprende três psi truques determinados pela sua escolha de mente consciente; um é um psi truque único e dois são truques comuns, tipicamente da tradição de conjuração oculta, que você sempre conjura como psi truques. Você ganha automaticamente mais psi truques conforme progride em sua carreira como psíquico. Você começa com uma reserva de foco de 2 Pontos de Foco. No entanto, diferente de outros conjuradores, você não ganha magias de foco que custam Pontos de Foco para conjurar. Em vez disso, você usa seus Pontos de Foco para impulsionar ou modificar seus psi truques aplicando amps—formas de pensamento especializadas que alteram a expressão do seu poder psíquico. Cada um dos seus psi truques tem um cabeçalho de amp especial. Sempre que você conjura um psi truque, você pode usar amp nele gastando 1 Ponto de Foco para adicionar o efeito de amp. Você também pode ganhar amps adicionais através de talentos, permitindo que você substitua o efeito de amp normal de um psi truque por outro. Você escolhe qual amp usar, se escolher usar algum, cada vez que conjura um psi truque. A menos que indicado de outra forma, você pode aplicar apenas um amp a um determinado psi truque. Você reabastece sua reserva de foco durante suas preparações diárias, e você pode recuperar Pontos de Foco gastando 10 minutos usando a atividade Refocus para explorar sua mente, seja via meditação, praticando um ofício ou atividade que lhe dê o espaço mental para autorreflexão, ou conversando sobre seus pensamentos e sentimentos consigo mesmo ou com outra pessoa. Se você gastou Pontos de Foco apenas para usar amp em psi truques ou alimentar habilidades psíquicas desde a última vez que você usou Refocus, você recupera 2 Pontos de Foco em vez de 1. Se você gastou Pontos de Foco em magias de foco ou habilidades que não sejam da classe psíquica (por exemplo, para conjurar uma magia de foco que você ganhou de um arquétipo), você recupera apenas 1 Ponto de Foco."
+    "actions": "Two Actions",
+    "traits": [
+     "Attack",
+     "Cantrip",
+     "Evocation",
+     "Force",
+     "Psychic",
+     "Uncommon"
+    ],
+    "category": "spell",
+    "sourceBook": "Dark Archive, p. 22",
+    "description": "Você cria uma arma simples de força. Faça um teste de ataque de magia corpo a corpo contra a CA do seu alvo. Se você acertar, causa 2d8 de dano contundente ou cortante (sua escolha). Em um sucesso crítico, você causa dano dobrado e pode escolher detonar sua arma para empurrar o alvo 10 pés para longe de você. Amp Você forma múltiplas armas de força para golpear vários inimigos. Você faz duas Strikes de arma imaginária, cada uma contra um alvo diferente. Sua penalidade de múltiplos ataques não aumenta até que você tenha feito ambas as Strikes. Amp Aprimorado (+1) O dano aumenta em 2d8 ao invés de 1d8."
    },
    "Unusual Anatomy": {
     "name": "Unusual Anatomy",
@@ -1408,16 +1403,6 @@
     "category": "relic",
     "sourceBook": "Treasure Vault (Remastered), p. 199",
     "description": "Ativar Reação: (concentrar) Frequência uma vez por dia; Gatilho Um inimigo a até 30 pés rola um sucesso em um teste de ataque, teste de resistência ou teste de perícia; Efeito Sua relíquia envia uma onda de má sorte, forçando a criatura a rolar novamente e ficar com o pior resultado."
-   },
-   "Wish for Luck": {
-    "name": "Instant Manifestation",
-    "level": 19,
-    "actions": "",
-    "traits": [],
-    "category": "class-feature",
-    "className": "Summoner",
-    "sourceBook": "Secrets of Magic, p. 51",
-    "description": "Você pode manifestar seu eidolon com velocidade incrível. Você pode usar Manifest Eidolon como uma ação única, em vez de uma atividade de três ações."
    }
   },
   "item": {

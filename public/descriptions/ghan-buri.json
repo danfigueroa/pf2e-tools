@@ -505,16 +505,6 @@
     "sourceBook": "Player Core, p. 288",
     "description": "Item 0 Hammer Preço 1 sp Mãos 1 Volume L"
    },
-   "Iivlar Weaving": {
-    "name": "Guardian's Armor",
-    "level": 1,
-    "actions": "",
-    "traits": [],
-    "category": "class-feature",
-    "className": "Guardian",
-    "sourceBook": "Battlecry!, p. 37",
-    "description": "Mesmo quando você é atingido, sua armadura o protege de parte do dano. Enquanto estiver vestindo armadura média ou pesada, você ganha resistência a dano físico igual a 1 + metade do seu nível. Além disso, você pode descansar normalmente enquanto estiver vestindo armadura média ou pesada."
-   },
    "Low-Light Vision": {
     "name": "Low-Light Vision",
     "level": null,

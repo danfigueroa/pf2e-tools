@@ -483,16 +483,6 @@
     "sourceBook": "Grand Bazaar, p. 23",
     "description": "Habilidade de Familiar Habilidade Construída Tipo de Familiar Específico - Clockwork Familiar Seu Clockwork Familiar é feito de metal em vez de carne e osso, embora ainda seja delicado o suficiente em certos lugares para ser vulnerável à violência da mesma maneira que uma criatura viva. Ele é imune a sangramento, efeitos de morte, doença, doomed, drained, fatigado, cura, necromancia, ataques não letais, paralisado, veneno, sickened e inconsciente. Ele pode recuperar Pontos de Vida apenas através da ação Repair e outros métodos que consertam itens, não de qualquer forma de cura de Pontos de Vida. Ele é destruído com 0 Pontos de Vida."
    },
-   "Emotionally Unaware": {
-    "name": "Master Strike",
-    "level": 19,
-    "actions": "",
-    "traits": [],
-    "category": "class-feature",
-    "className": "Rogue",
-    "sourceBook": "Core Rulebook, p. 178",
-    "description": "Você pode incapacitar um inimigo desatento com um único Strike. Seu grau de proficiência para a CD de classe de ladino aumenta para mestre. Você ganha a ação livre Master Strike."
-   },
    "Furious Footfalls": {
     "name": "Furious Footfalls",
     "level": 3,

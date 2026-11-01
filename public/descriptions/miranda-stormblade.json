@@ -458,14 +458,14 @@
     "description": "Seus estudos o tornaram experiente em muitas áreas, mas uma em particular atraiu seu interesse intenso. Escolha uma metodologia. Metodologias podem ser encontradas aqui."
    },
    "Empiricism Selected Skill: Occultism": {
-    "name": "Skill Feats",
-    "level": 2,
+    "name": "Empiricism",
+    "matchedName": "Empiricism",
+    "level": null,
     "actions": "",
     "traits": [],
-    "category": "class-feature",
-    "className": "Alchemist",
-    "sourceBook": "Core Rulebook, p. 66",
-    "description": "No 2º nível e a cada 2 níveis subsequentes, você ganha um talento de perícia. Talentos de perícia podem ser encontrados no Capítulo 5 e possuem o traço de perícia. Você deve ser treinado ou superior na perícia correspondente para selecionar um talento de perícia."
+    "category": "methodology",
+    "sourceBook": "Advanced Player's Guide, p. 57",
+    "description": "Metodologia do Investigador Empirismo Tudo se resume a dados. Calcular estatísticas, analisar números e usar raciocínio indutivo permite que você determine o resultado mais provável de qualquer cenário, e qualquer coisa fora do lugar chama sua atenção aguçada. Você está treinado em uma perícia baseada em Inteligência de sua escolha. Você ganha a façanha de investigador That's Odd, e ganha a ação livre Expeditious Inspection. Ação Expeditious Inspection Ação livre Investigador Você Lembrar Conhecimento, Seek ou Intuição."
    },
    "Expeditious Inspection": {
     "name": "Expeditious Inspection",
