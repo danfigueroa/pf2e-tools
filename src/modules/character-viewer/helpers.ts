@@ -1,15 +1,16 @@
+import { tr } from '../../i18n'
 import { TRADITION_COLORS, ink } from '../../theme/palette'
 import { parseFeatEntry, type Abilities, type BuildInfo, type SpellCaster } from '../../pathbuilder/types'
 
 export type AbilityKey = keyof Pick<Abilities, 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'>
 
 export const ABILITY_LABELS: Record<AbilityKey, string> = {
-    str: 'FOR',
-    dex: 'DES',
+    str: tr('FOR', 'STR'),
+    dex: tr('DES', 'DEX'),
     con: 'CON',
     int: 'INT',
-    wis: 'SAB',
-    cha: 'CAR',
+    wis: tr('SAB', 'WIS'),
+    cha: tr('CAR', 'CHA'),
 }
 
 export function abilityMod(score: number): number {
@@ -60,12 +61,12 @@ export function signed(n: number): string {
 
 export function proficiencyLabel(rank: number): string {
     switch (rank) {
-        case 0: return 'Destreinado'
-        case 2: return 'Treinado'
-        case 4: return 'Especialista'
-        case 6: return 'Mestre'
-        case 8: return 'Lendário'
-        default: return rank > 0 ? `+${rank}` : 'Destreinado'
+        case 0: return tr('Destreinado', 'Untrained')
+        case 2: return tr('Treinado', 'Trained')
+        case 4: return tr('Especialista', 'Expert')
+        case 6: return tr('Mestre', 'Master')
+        case 8: return tr('Lendário', 'Legendary')
+        default: return rank > 0 ? `+${rank}` : tr('Destreinado', 'Untrained')
     }
 }
 
@@ -94,9 +95,9 @@ export function traditionColor(tradition: string): string {
 
 export function traditionLabel(tradition: string): string {
     const map: Record<string, string> = {
-        arcane: 'Arcano',
-        divine: 'Divino',
-        occult: 'Oculto',
+        arcane: tr('Arcano', 'Arcane'),
+        divine: tr('Divino', 'Divine'),
+        occult: tr('Oculto', 'Occult'),
         primal: 'Primal',
     }
     return map[tradition?.toLowerCase()] || tradition

@@ -17,6 +17,7 @@
 //   condições     `effectiveParts`, que já resolve "o mesmo tipo não empilha"
 
 import { parseFeatEntry, type BuildInfo, type Proficiencies } from '../../pathbuilder/types'
+import { tr } from '../../i18n'
 import { abilityMod, ABILITY_LABELS, MYTHIC_PROFICIENCY_BONUS, mythicProficiencyDelta, proficiencyLabel, type AbilityKey } from './helpers'
 import { effectiveParts, SKILL_TARGET, type ConditionModifiers, type ModTarget } from './conditions'
 
@@ -61,8 +62,8 @@ export type SaveKey = 'fortitude' | 'reflex' | 'will'
 
 export const SAVES: ReadonlyArray<{ key: SaveKey; label: string; en: string; ability: AbilityKey }> = [
     { key: 'fortitude', label: 'Fortitude', en: 'Fortitude', ability: 'con' },
-    { key: 'reflex', label: 'Reflexos', en: 'Reflex', ability: 'dex' },
-    { key: 'will', label: 'Vontade', en: 'Will', ability: 'wis' },
+    { key: 'reflex', label: tr('Reflexos', 'Reflex'), en: 'Reflex', ability: 'dex' },
+    { key: 'will', label: tr('Vontade', 'Will'), en: 'Will', ability: 'wis' },
 ]
 
 export type SkillKey = keyof Pick<Proficiencies,
@@ -71,34 +72,34 @@ export type SkillKey = keyof Pick<Proficiencies,
     | 'survival' | 'thievery'>
 
 export const SKILLS: ReadonlyArray<{ key: SkillKey; label: string; en: string; ability: AbilityKey }> = [
-    { key: 'acrobatics', label: 'Acrobacia', en: 'Acrobatics', ability: 'dex' },
-    { key: 'arcana', label: 'Arcanismo', en: 'Arcana', ability: 'int' },
-    { key: 'athletics', label: 'Atletismo', en: 'Athletics', ability: 'str' },
-    { key: 'crafting', label: 'Ofício', en: 'Crafting', ability: 'int' },
-    { key: 'deception', label: 'Engano', en: 'Deception', ability: 'cha' },
-    { key: 'diplomacy', label: 'Diplomacia', en: 'Diplomacy', ability: 'cha' },
-    { key: 'intimidation', label: 'Intimidação', en: 'Intimidation', ability: 'cha' },
-    { key: 'medicine', label: 'Medicina', en: 'Medicine', ability: 'wis' },
-    { key: 'nature', label: 'Natureza', en: 'Nature', ability: 'wis' },
-    { key: 'occultism', label: 'Ocultismo', en: 'Occultism', ability: 'int' },
+    { key: 'acrobatics', label: tr('Acrobacia', 'Acrobatics'), en: 'Acrobatics', ability: 'dex' },
+    { key: 'arcana', label: tr('Arcanismo', 'Arcana'), en: 'Arcana', ability: 'int' },
+    { key: 'athletics', label: tr('Atletismo', 'Athletics'), en: 'Athletics', ability: 'str' },
+    { key: 'crafting', label: tr('Ofício', 'Crafting'), en: 'Crafting', ability: 'int' },
+    { key: 'deception', label: tr('Engano', 'Deception'), en: 'Deception', ability: 'cha' },
+    { key: 'diplomacy', label: tr('Diplomacia', 'Diplomacy'), en: 'Diplomacy', ability: 'cha' },
+    { key: 'intimidation', label: tr('Intimidação', 'Intimidation'), en: 'Intimidation', ability: 'cha' },
+    { key: 'medicine', label: tr('Medicina', 'Medicine'), en: 'Medicine', ability: 'wis' },
+    { key: 'nature', label: tr('Natureza', 'Nature'), en: 'Nature', ability: 'wis' },
+    { key: 'occultism', label: tr('Ocultismo', 'Occultism'), en: 'Occultism', ability: 'int' },
     { key: 'performance', label: 'Performance', en: 'Performance', ability: 'cha' },
-    { key: 'religion', label: 'Religião', en: 'Religion', ability: 'wis' },
-    { key: 'society', label: 'Sociedade', en: 'Society', ability: 'int' },
-    { key: 'stealth', label: 'Furtividade', en: 'Stealth', ability: 'dex' },
-    { key: 'survival', label: 'Sobrevivência', en: 'Survival', ability: 'wis' },
-    { key: 'thievery', label: 'Roubo', en: 'Thievery', ability: 'dex' },
+    { key: 'religion', label: tr('Religião', 'Religion'), en: 'Religion', ability: 'wis' },
+    { key: 'society', label: tr('Sociedade', 'Society'), en: 'Society', ability: 'int' },
+    { key: 'stealth', label: tr('Furtividade', 'Stealth'), en: 'Stealth', ability: 'dex' },
+    { key: 'survival', label: tr('Sobrevivência', 'Survival'), en: 'Survival', ability: 'wis' },
+    { key: 'thievery', label: tr('Roubo', 'Thievery'), en: 'Thievery', ability: 'dex' },
 ]
 
 /** Rótulo pt-BR do tipo de bônus do Pathbuilder ("Item Bonus" → "Item"). */
 const BONUS_TYPE_LABEL: Record<string, string> = {
     'item bonus': 'Item',
     'item penalty': 'Item',
-    'status bonus': 'Estado',
-    'status penalty': 'Estado',
-    'circumstance bonus': 'Circunstância',
-    'circumstance penalty': 'Circunstância',
-    'untyped bonus': 'Bônus',
-    'untyped penalty': 'Penalidade',
+    'status bonus': tr('Estado', 'Status'),
+    'status penalty': tr('Estado', 'Status'),
+    'circumstance bonus': tr('Circunstância', 'Circumstance'),
+    'circumstance penalty': tr('Circunstância', 'Circumstance'),
+    'untyped bonus': tr('Bônus', 'Bonus'),
+    'untyped penalty': tr('Penalidade', 'Penalty'),
 }
 
 /**
@@ -162,19 +163,19 @@ function buildCheck(build: BuildInfo, mods: ConditionModifiers, input: CheckInpu
     const improv = input.improvise && rank === 0 ? untrainedImprovisation(build) : null
     const profValue = improv != null ? improv : rank > 0 ? level + rank : 0
     const parts: CheckPart[] = [
-        { label: improv != null ? 'Improvisação (destreinada)' : proficiencyLabel(rank), value: profValue, kind: 'prof' },
+        { label: improv != null ? tr('Improvisação (destreinada)', 'Improvisation (untrained)') : proficiencyLabel(rank), value: profValue, kind: 'prof' },
         { label: ABILITY_LABELS[ability], value: abilityMod(build.abilities[ability]), kind: 'ability' },
         ...pathbuilderBonuses(build, input.modNames),
     ]
     const acp = armorCheckPenalty(build, ability, input.armor)
-    if (acp) parts.push({ label: 'Armadura', value: acp, kind: 'armor' })
+    if (acp) parts.push({ label: tr('Armadura', 'Armor'), value: acp, kind: 'armor' })
 
     const base = sum(parts)
     const cond = conditionParts(mods, input.target)
     // Reflexive Shield: o bônus do escudo erguido é de circunstância e SOMA aos
     // penalizadores (só a pior penalidade do tipo entra em `conditionParts`).
     if (input.target === 'reflex' && mods.reflexShield) {
-        cond.push({ label: 'Reflexive Shield (escudo erguido)', value: mods.reflexShield, kind: 'condition' })
+        cond.push({ label: tr('Reflexive Shield (escudo erguido)', 'Reflexive Shield (shield raised)'), value: mods.reflexShield, kind: 'condition' })
     }
     const conditionDelta = sum(cond)
     return {
@@ -216,7 +217,7 @@ export function saveCheck(build: BuildInfo, key: SaveKey, mods: ConditionModifie
 
 export function perceptionCheck(build: BuildInfo, mods: ConditionModifiers): Check {
     return buildCheck(build, mods, {
-        label: 'Percepção',
+        label: tr('Percepção', 'Perception'),
         en: 'Perception',
         modNames: ['Perception'],
         rank: build.proficiencies.perception ?? 0,
