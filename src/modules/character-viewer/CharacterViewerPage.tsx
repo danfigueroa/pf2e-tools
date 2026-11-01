@@ -12,7 +12,7 @@ import { charSlugFromName } from './charId'
 import { CharacterSheetView } from './CharacterSheetView'
 import { curatedBase } from './combatGuides'
 import { characterDescriptionNames } from './descriptionNames'
-import { loadSheetDescriptions } from '../../services/descriptions'
+import { loadSheetDescriptionsBoth } from '../../services/descriptions'
 import { mesaKey } from '../../services/mesa'
 
 // Da mesa: trocar de mesa recarrega a página, e a ficha aberta da outra não pode voltar.
@@ -125,7 +125,7 @@ export const CharacterViewerPage = () => {
             const published = parseCharacterJson(sheet.json)
             try { sessionStorage.setItem(SESSION_PUBLISHED_KEY, sheet.slug) } catch { /* noop */ }
             void publication.generateGuide(sheet, base)
-            void loadSheetDescriptions(sheet.slug, characterDescriptionNames(published))
+            void loadSheetDescriptionsBoth(sheet.slug, characterDescriptionNames(published))
         } catch { /* sem rede: a ficha segue aberta e tenta de novo na próxima abertura */ }
     }
 
@@ -144,7 +144,7 @@ export const CharacterViewerPage = () => {
             void publication.generateGuide(sheet, base)
             // Já, antes de qualquer jogador abrir: a mesa encontra todas as descrições
             // traduzidas. Num level-up quase tudo vem do pacote estático e só o novo é traduzido.
-            void loadSheetDescriptions(sheet.slug, characterDescriptionNames(published))
+            void loadSheetDescriptionsBoth(sheet.slug, characterDescriptionNames(published))
         } catch (e) {
             setPublishError(e instanceof Error ? e.message : 'Falha ao publicar')
         } finally {
@@ -159,7 +159,7 @@ export const CharacterViewerPage = () => {
             const sheet = await publication.restore(slug)
             const restored = parseCharacterJson(sheet.json)
             show(restored, sheet)
-            void loadSheetDescriptions(sheet.slug, characterDescriptionNames(restored))
+            void loadSheetDescriptionsBoth(sheet.slug, characterDescriptionNames(restored))
             setPublishedNotice('Versão anterior restaurada.')
         } catch (e) {
             setPublishedNotice(e instanceof Error ? e.message : 'Falha ao restaurar')

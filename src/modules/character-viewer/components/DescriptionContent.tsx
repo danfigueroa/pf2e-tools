@@ -23,6 +23,7 @@ import {
 } from '@mui/icons-material'
 import { applyFix, useFixesVersion } from '../../../services/translationFixes'
 import { TranslationFix } from './TranslationFix'
+import { isEn } from '../../../i18n'
 import {
     fetchFeatDescription,
     fetchSpecialDescription,
@@ -460,7 +461,8 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                 )}
 
                 {/* Corrigir a tradução: só do que já veio traduzido (inglês pendente se resolve sozinho) */}
-                {!state.loading && (spell || entry) && !(spell ?? entry)?.translationPending && (
+                {/* Em inglês o texto é o da AON, sem tradução a corrigir. */}
+                {!isEn && !state.loading && (spell || entry) && !(spell ?? entry)?.translationPending && (
                     <TranslationFix kind={request.type} name={request.name} payload={(spell ?? entry)!} />
                 )}
 

@@ -6,6 +6,8 @@
 // o resultado pretendido (ver `api/_lib/rule-core.js`), e regra publicada não
 // muda — então vale guardar entre sessões.
 
+import { isEn } from '../i18n'
+
 export interface AonRule {
     name: string
     category: string | null
@@ -84,7 +86,8 @@ export function fetchRule(name: string, kind: string | null = null): Promise<Aon
 // que já veio TRADUZIDO — chave própria (`trait-pt`), para não misturar com o inglês do stat block do
 // monstro — e `translationPending` nunca é guardado ("nada de cachear inglês").
 
-const PT = 'trait-pt'
+// Em inglês a regra é a da AON como está (`traiten:v1` no servidor): cache próprio também aqui.
+const PT = isEn ? 'trait-en' : 'trait-pt'
 const ptKey = (term: string) => storageKey(PT, term)
 
 /** A regra do traço se já estiver na memória ou no aparelho; não vai à rede. */

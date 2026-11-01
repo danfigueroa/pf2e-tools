@@ -6,6 +6,7 @@ import { useSyncExternalStore } from 'react'
 import type { FeatDescription, SpellDescription, CompanionStats } from '../pathbuilder/types'
 import { stateApi } from './mesa'
 import { applyFix, subscribeFixes, type FixKind } from './translationFixes'
+import { lang, type Lang } from '../i18n'
 
 // v10: talentos/habilidades/itens passaram a ser objetos estruturados e param
 // de ser cacheados quando a tradução falha (translationPending). A troca de
@@ -47,8 +48,12 @@ async function probeApi(): Promise<boolean> {
     }
 }
 
+// Em inglês a descrição é outra (o texto da AON, sem tradução): chave própria. A do
+// português é a de sempre, para o cache de cada aparelho continuar valendo.
+const LANG_SEGMENT = lang === 'en' ? 'en:' : ''
+
 function key(kind: Kind, name: string) {
-    return `pf2e:${CACHE_VERSION}:${kind}:${name}`
+    return `pf2e:${CACHE_VERSION}:${LANG_SEGMENT}${kind}:${name}`
 }
 
 // Parse em memória na frente do localStorage, como em `gear.ts`. A lista de
@@ -348,8 +353,8 @@ export function hasCachedDescription(kind: 'feat' | 'spell' | 'special' | 'item'
 // O elenco é pequeno e o que cada ficha descreve (magias, talentos,
 // habilidades, itens) muda pouco, então tudo é resolvido e traduzido UMA vez e
 // entregue pronto, por dois caminhos:
-//   - estático (`/descriptions/<slug>.json`, CDN), gerado por
-//     `scripts/build-description-bundle.mjs` para os presets do repositório;
+//   - estático (`/descriptions/<slug>.json`, CDN; em inglês, `/descriptions/en/<slug>.json`),
+//     gerado por `scripts/build-description-bundle.mjs` para os presets do repositório;
 //   - o da ficha PUBLICADA (`api/_lib/sheet-descriptions.js`, Redis), que o
 //     servidor mantém sozinho — é por ela que chega um level-up.
 // Os dois entram no cache em memória — o mesmo que as abas, o drawer e o
@@ -402,7 +407,7 @@ export function loadDescriptionBundle(slug: string): Promise<void> {
 
 async function fetchDescriptionBundle(slug: string): Promise<void> {
     try {
-        const r = await fetch(`/descriptions/${encodeURIComponent(slug)}.json`)
+        const r = await fetch(`/descriptions/${lang === 'en' ? 'en/' : ''}${encodeURIComponent(slug)}.json`)
         // Sem o arquivo, o servidor devolve o index.html do SPA: o `json()` falha e cai no catch.
         if (!r.ok) return
         const body = (await r.json()) as { version?: unknown; entries?: Entries }
@@ -436,6 +441,12 @@ const SHEET_ROUNDS = 12
 const sheetBundles = new Map<string, Promise<void>>()
 
 /**
+ * O idioma do pacote na query. O `fetch` já põe `lang=en` quando a conta está em inglês;
+ * aqui só se diz o idioma quando é o OUTRO (a publicação monta os dois).
+ */
+const langQuery = (target: Lang) => (target === lang ? '' : `&lang=${target}`)
+
+/**
  * Andamento da montagem neste aparelho, para a faixa da ficha publicada avisar
  * "preparando…" e "prontas". Só existe quando ESTE aparelho completou algo —
  * abrir uma ficha já pronta não mostra nada.
@@ -461,30 +472,46 @@ export function useSheetDescriptionsStatus(slug: string | null): SheetDescriptio
     )
 }
 
-/** Lê (e, se faltar algo, completa) as descrições traduzidas da ficha publicada `slug`. */
-export function loadSheetDescriptions(slug: string, names: DescriptionNameLists): Promise<void> {
+/**
+ * Lê (e, se faltar algo, completa) as descrições da ficha publicada `slug`, no idioma
+ * `target` — o desta página, por padrão. A publicação pede os DOIS (`'pt'` e `'en'`):
+ * o banco fica com a ficha inteira nas duas línguas. O pacote do outro idioma só é
+ * montado no servidor; não entra no cache desta página nem na faixa de andamento.
+ */
+export function loadSheetDescriptions(slug: string, names: DescriptionNameLists, target: Lang = lang): Promise<void> {
     const total = BUNDLE_KINDS.reduce((sum, kind) => sum + names[kind].length, 0)
     if (!slug || total === 0) return Promise.resolve()
     // A lista entra na chave: publicar o nível 11 no meio da sessão pede de novo.
-    const flight = `${slug}\n${BUNDLE_KINDS.map((kind) => [...names[kind]].sort().join('|')).join('\n')}`
+    const flight = `${target}\n${slug}\n${BUNDLE_KINDS.map((kind) => [...names[kind]].sort().join('|')).join('\n')}`
     let loading = sheetBundles.get(flight)
     if (!loading) {
-        loading = syncSheetDescriptions(slug, names)
+        loading = syncSheetDescriptions(slug, names, target)
         sheetBundles.set(flight, loading)
     }
     return loading
 }
 
 /**
+ * Os dois idiomas de uma vez: o desta página (a promessa devolvida, que a faixa
+ * acompanha) e o outro, montado só no servidor. É o que a publicação e a abertura da
+ * ficha chamam — o banco fica com a ficha inteira em português E em inglês, use alguém
+ * o inglês ou não. O inglês é só a busca na AON (sem LLM), então custa pouco.
+ */
+export function loadSheetDescriptionsBoth(slug: string, names: DescriptionNameLists): Promise<void> {
+    void loadSheetDescriptions(slug, names, lang === 'en' ? 'pt' : 'en')
+    return loadSheetDescriptions(slug, names)
+}
+
+/**
  * O pacote da ficha publicada, já semeado no cache: `null` se ainda não há (ou é
  * de outra versão), `undefined` se o pedido falhou.
  */
-async function fetchSheetBundle(slug: string): Promise<SheetBundle | null | undefined> {
-    const r = await fetch(stateApi(`?sheetDescriptions=${encodeURIComponent(slug)}`))
+async function fetchSheetBundle(slug: string, target: Lang = lang): Promise<SheetBundle | null | undefined> {
+    const r = await fetch(stateApi(`?sheetDescriptions=${encodeURIComponent(slug)}${langQuery(target)}`))
     if (!r.ok) return undefined
     const { bundle } = (await r.json()) as { bundle: SheetBundle | null }
     const current = bundle?.version === CACHE_VERSION ? bundle : null
-    seedEntries(current?.entries)
+    if (target === lang) seedEntries(current?.entries)
     return current
 }
 
@@ -506,39 +533,41 @@ export function readSheetDescriptions(slug: string): Promise<void> {
     return reading
 }
 
-async function syncSheetDescriptions(slug: string, names: DescriptionNameLists): Promise<void> {
+async function syncSheetDescriptions(slug: string, names: DescriptionNameLists, target: Lang): Promise<void> {
+    // O andamento na tela é só o do idioma desta página.
+    const status = (next: SheetDescriptionsStatus | null) => { if (target === lang) setSheetStatus(slug, next) }
     try {
-        const current = await fetchSheetBundle(slug)
+        const current = await fetchSheetBundle(slug, target)
         if (current === undefined) return
 
         // O que o servidor ainda não tem (ou não achou há pouco, `misses`, e desistiu por um dia).
         const known = (kind: BundleKind, n: string) => !!current?.entries?.[kind]?.[n] || current?.misses?.[kind]?.[n] != null
         if (BUNDLE_KINDS.every((kind) => names[kind].every((n) => known(kind, n)))) return
 
-        setSheetStatus(slug, { state: 'building', remaining: null })
+        status({ state: 'building', remaining: null })
         for (let round = 0; round < SHEET_ROUNDS; round++) {
             const res = await fetch(stateApi(), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'sheet-descriptions', char: slug, names, version: CACHE_VERSION }),
+                body: JSON.stringify({ action: 'sheet-descriptions', char: slug, names, version: CACHE_VERSION, lang: target }),
             })
             if (!res.ok) break
             const out = (await res.json()) as { busy?: boolean; added?: Entries; remaining?: number }
             // Outro aparelho já está completando: o dele chega a quem abrir depois.
-            if (out.busy) { setSheetStatus(slug, null); return }
+            if (out.busy) { status(null); return }
             const added = out.added
                 ? BUNDLE_KINDS.reduce((sum, kind) => sum + Object.keys(out.added?.[kind] ?? {}).length, 0)
                 : 0
-            seedEntries(out.added)
+            if (target === lang) seedEntries(out.added)
             const remaining = out.remaining ?? 0
-            if (remaining === 0) { setSheetStatus(slug, { state: 'done' }); return }
+            if (remaining === 0) { status({ state: 'done' }); return }
             // Sem progresso (tradutor fora do ar): para, e a próxima abertura tenta de novo.
-            if (added === 0) { setSheetStatus(slug, { state: 'incomplete', remaining }); return }
-            setSheetStatus(slug, { state: 'building', remaining })
+            if (added === 0) { status({ state: 'incomplete', remaining }); return }
+            status({ state: 'building', remaining })
         }
-        if (sheetStatus.get(slug)?.state === 'building') setSheetStatus(slug, null)
+        if (target === lang && sheetStatus.get(slug)?.state === 'building') setSheetStatus(slug, null)
     } catch {
         // Atalho, nunca requisito: a descrição segue pela API.
-        if (sheetStatus.get(slug)?.state === 'building') setSheetStatus(slug, null)
+        if (target === lang && sheetStatus.get(slug)?.state === 'building') setSheetStatus(slug, null)
     }
 }

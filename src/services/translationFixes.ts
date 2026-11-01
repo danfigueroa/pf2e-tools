@@ -10,6 +10,7 @@
 import { useSyncExternalStore } from 'react'
 import { stateApi } from './mesa'
 import { authHeaderNow, listenMesaChannel } from './supabase'
+import { isEn } from '../i18n'
 
 export type FixKind = 'feat' | 'special' | 'item' | 'spell'
 
@@ -187,6 +188,8 @@ export function applyFix<T extends object>(kind: FixKind, name: string, payload:
 export function applyFix<T extends object>(kind: FixKind, name: string, payload: T | null): T | null
 export function applyFix<T extends object>(kind: FixKind, name: string, payload: T | null): T | null {
     if (!payload) return payload
+    // As correções são da TRADUÇÃO: em inglês o texto é o da AON e não há o que corrigir.
+    if (isEn) return payload
     const base = (originals.get(payload) ?? payload) as T
     const fix = getFix(kind, name)
     if (!fix) return base
