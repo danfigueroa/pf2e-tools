@@ -75,12 +75,12 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect }: Props)
                 <Card key={`${w.name}-${idx}`}>
                     <CardContent>
                         {/* Quebra de linha em vez de espremer: no painel do mapa a janela é larga (breakpoint `sm`), mas a coluna tem ~420px. */}
-                        <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={1} useFlexGap sx={{ flexWrap: { sm: 'wrap' } }}>
-                            <Box sx={{ flex: { xs: '1 1 auto', sm: '1 1 200px' }, minWidth: 0 }}>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="center" alignItems={{ xs: 'center', sm: 'flex-start' }} spacing={1} useFlexGap sx={{ flexWrap: { sm: 'wrap' } }}>
+                            <Box sx={{ flex: { xs: '1 1 auto', sm: '1 1 200px' }, minWidth: 0, textAlign: 'center' }}>
                                 <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2, overflowWrap: 'break-word' }}>
                                     {itemDisplayName(build, w, 'weapon')}
                                 </Typography>
-                                <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.75 }}>
+                                <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.75, justifyContent: 'center' }}>
                                     <Chip label={`Proficiência: ${capitalize(w.prof)}`} size="small" variant="outlined" />
                                     {w.qty > 1 && <Chip label={`x${w.qty}`} size="small" variant="outlined" />}
                                     {itemRuneNames(build, w, 'weapon').map((r) => (
@@ -126,19 +126,20 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect }: Props)
                                 <Stack
                                     key={u.id}
                                     direction={{ xs: 'column', sm: 'row' }}
-                                    justifyContent="space-between"
+                                    justifyContent="center"
+                                    alignItems={{ xs: 'center', sm: 'flex-start' }}
                                     spacing={1}
                                     useFlexGap
                                     sx={{ py: 1.25, flexWrap: { sm: 'wrap' } }}
                                 >
-                                    <Box sx={{ flex: { xs: '1 1 auto', sm: '1 1 200px' }, minWidth: 0 }}>
+                                    <Box sx={{ flex: { xs: '1 1 auto', sm: '1 1 200px' }, minWidth: 0, textAlign: 'center' }}>
                                         <Typography sx={{ fontWeight: 700, lineHeight: 1.2 }}>
                                             {u.name}
                                             <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 0.75 }}>
                                                 {u.en}
                                             </Typography>
                                         </Typography>
-                                        <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.75 }}>
+                                        <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.75, justifyContent: 'center' }}>
                                             {u.traits.map((t) => (
                                                 <Chip key={t} label={t} size="small" variant="outlined" sx={{ height: 22, fontSize: '0.7rem' }} />
                                             ))}
@@ -518,7 +519,8 @@ const AttackStats = ({ attack, attackHint, attackDelta = 0, attackBase, mythicAt
     <Box
         sx={{
             minWidth: { sm: 160 },
-            textAlign: { xs: 'left', sm: 'center' },
+            textAlign: 'center',
+            justifyContent: 'center',
             display: 'flex',
             flexDirection: { xs: 'row', sm: 'column' },
             gap: { xs: 2, sm: 0 },
