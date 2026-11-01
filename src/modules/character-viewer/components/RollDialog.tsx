@@ -93,6 +93,7 @@ import { actionsKeyFor, conditionsKeyFor, hpKeyFor, investigatorKeyFor, magusKey
 import { useMagus } from './useMagus'
 import { useSpellstrike } from './useSpellstrike'
 import { SpellstrikePanel } from './SpellstrikePanel'
+import { tr } from '../../../i18n'
 
 /** O que tocar na ficha pede para rolar. */
 export type RollRequest =
@@ -196,7 +197,7 @@ const AdjustField = ({ label, value, onChange }: { label: string; value: number;
             onChange(Number.isFinite(n) ? Math.max(-99, Math.min(99, n)) : 0)
         }}
         slotProps={{ htmlInput: { inputMode: 'numeric', step: 1 } }}
-        helperText="Entra como está — confira você se o tipo empilha (status, circunstância)."
+        helperText={tr("Entra como está — confira você se o tipo empilha (status, circunstância).", 'Goes in as is — check yourself whether the type stacks (status, circumstance).')}
         fullWidth
     />
 )
@@ -207,7 +208,7 @@ const SituationalNotes = ({ mods }: { mods: ConditionModifiers }) =>
         <Box>
             {mods.situational.map((s, i) => (
                 <Typography key={i} variant="caption" sx={{ display: 'block', color: CONDITION_COLOR }}>
-                    Não aplicado sozinho — {s.from}: {s.text}
+                    {tr('Não aplicado sozinho — ', 'Not applied on its own — ')}{s.from}: {s.text}
                 </Typography>
             ))}
         </Box>
@@ -234,20 +235,20 @@ const RollActions = ({ mythicOption, total, mythicDelta, mythicPoints, alreadyMy
     const none = mythicPoints.available === 0
     return (
         <DialogActions sx={{ flexWrap: 'wrap', gap: 1, px: 3, pb: 2 }}>
-            <Button onClick={onClose} sx={{ mr: 'auto' }}>Cancelar</Button>
+            <Button onClick={onClose} sx={{ mr: 'auto' }}>{tr('Cancelar', 'Cancel')}</Button>
             {mythic && (
                 <Button
                     variant="outlined"
                     disabled={none || disabled}
                     onClick={() => onRoll(true)}
                     sx={{ color: MYTHIC_COLOR, borderColor: MYTHIC_COLOR }}
-                    title={`${mythicOption?.feat}: troca a proficiência pela mítica (nível + 10) e gasta 1 Ponto Mítico`}
+                    title={tr(`${mythicOption?.feat}: troca a proficiência pela mítica (nível + 10) e gasta 1 Ponto Mítico`, `${mythicOption?.feat}: swaps your proficiency for mythic (level + 10) and spends 1 Mythic Point`)}
                 >
-                    {none ? `${mythicOption?.label} · sem Pontos Míticos` : `${mythicOption?.label} ${signed(total! + mythicDelta!)} · ${mythicPoints.available} pt`}
+                    {none ? tr(`${mythicOption?.label} · sem Pontos Míticos`, `${mythicOption?.label} · no Mythic Points`) : `${mythicOption?.label} ${signed(total! + mythicDelta!)} · ${mythicPoints.available} pt`}
                 </Button>
             )}
             <Button variant="contained" startIcon={<DiceIcon />} disabled={disabled} onClick={() => onRoll(false)}>
-                {label ?? (total != null ? `Rolar ${signed(total)}` : 'Rolar')}
+                {label ?? (total != null ? tr(`Rolar ${signed(total)}`, `Roll ${signed(total)}`) : tr('Rolar', 'Roll'))}
             </Button>
         </DialogActions>
     )
@@ -322,14 +323,14 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     const assur = assuranceResult(build, check.en, check.rank)
     const assuranceOn = !!assur && assurance
     const parts = assuranceOn
-        ? [{ label: `Assurance: 10 + proficiência (${assur.proficiency})`, value: assur.total, kind: 'base' as const }]
+        ? [{ label: tr(`Assurance: 10 + proficiência (${assur.proficiency})`, `Assurance: 10 + proficiency (${assur.proficiency})`), value: assur.total, kind: 'base' as const }]
         : [
         ...check.parts,
         ...investigationParts(investigating, stratagemSkill),
-        ...(keen ? [{ label: 'Keen Recollection (nível, destreinada)', value: keen, kind: 'other' as const }] : []),
+        ...(keen ? [{ label: tr('Keen Recollection (nível, destreinada)', 'Keen Recollection (level, untrained)'), value: keen, kind: 'other' as const }] : []),
         ...(surge && surgeOn ? [{ label: `Emotion Surge · ${surge.emotion} (status)`, value: 1, kind: 'other' as const }] : []),
-        ...(iniBonus && iniBonus.value ? [{ label: `Iniciativa: ${iniBonus.from.join(' / ')} (circunstância)`, value: iniBonus.value, kind: 'other' as const }] : []),
-        ...(riskyOn ? [{ label: 'Risky Surgery (circunstância)', value: 2, kind: 'other' as const }] : []),
+        ...(iniBonus && iniBonus.value ? [{ label: tr(`Iniciativa: ${iniBonus.from.join(' / ')} (circunstância)`, `Initiative: ${iniBonus.from.join(' / ')} (circumstance)`), value: iniBonus.value, kind: 'other' as const }] : []),
+        ...(riskyOn ? [{ label: tr('Risky Surgery (circunstância)', 'Risky Surgery (circumstance)'), value: 2, kind: 'other' as const }] : []),
         ...(adjust ? [{ label: 'Ajuste', value: adjust, kind: 'other' as const }] : []),
     ]
     const total = sumParts(parts)
@@ -344,18 +345,18 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     const mythicOption = assuranceOn ? null : mythicOptionFor(build, mythicContext)
     return (
         <>
-            <DialogTitle sx={{ pb: 1 }}>Rolar {check.label}</DialogTitle>
+            <DialogTitle sx={{ pb: 1 }}>{tr('Rolar ', 'Roll ')}{check.label}</DialogTitle>
             <DialogContent>
                 <Stack spacing={1.5} sx={{ pt: 0.5 }}>
                     <Memorial parts={parts} total={total} />
                     {request.note && <Typography variant="caption" color="text.secondary">{request.note}</Typography>}
                     <SituationalNotes mods={mods} />
-                    <AdjustField label="Outros bônus/penalidades" value={adjust} onChange={setAdjust} />
+                    <AdjustField label={tr("Outros bônus/penalidades", 'Other bonuses/penalties')} value={adjust} onChange={setAdjust} />
                     {canTreat && (
                         <Box>
                             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                                 <Chip
-                                    label="Tratar Ferimentos · 10 min"
+                                    label={tr("Tratar Ferimentos · 10 min", 'Treat Wounds · 10 min')}
                                     color={healMode === 'treat' ? 'primary' : 'default'}
                                     variant={healMode === 'treat' ? 'filled' : 'outlined'}
                                     onClick={() => setHealMode(healMode === 'treat' ? null : 'treat')}
@@ -364,7 +365,7 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                                 />
                                 {canBattle && (
                                     <Chip
-                                        label="Battle Medicine · 1 ação"
+                                        label={tr("Battle Medicine · 1 ação", 'Battle Medicine · 1 action')}
                                         color={healMode === 'battle' ? 'primary' : 'default'}
                                         variant={healMode === 'battle' ? 'filled' : 'outlined'}
                                         onClick={() => setHealMode(healMode === 'battle' ? null : 'battle')}
@@ -393,7 +394,7 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                                         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                                             <Chip
                                                 size="small"
-                                                label="Tratar por 1 hora · cura em dobro"
+                                                label={tr("Tratar por 1 hora · cura em dobro", 'Treat for 1 hour · double healing')}
                                                 color={hour ? 'primary' : 'default'}
                                                 variant={hour ? 'filled' : 'outlined'}
                                                 onClick={() => setHour(!hour)}
@@ -413,43 +414,40 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                                     )}
                                     <FormControlLabel
                                         control={<Switch size="small" checked={onSelf} onChange={(e) => setOnSelf(e.target.checked)} />}
-                                        label="Em mim mesmo (soma ao meu PV)"
+                                        label={tr("Em mim mesmo (soma ao meu PV)", 'On myself (adds to my HP)')}
                                     />
                                     {healLacking > 0 && (
                                         <Alert severity="warning" sx={{ py: 0 }}>
-                                            Você não tem ações suficientes neste turno (faltam {healLacking}). Dá para rolar mesmo assim.
-                                        </Alert>
+                                            {tr('Você não tem ações suficientes neste turno (faltam ', 'You don\'t have enough actions this turn (missing ')}{healLacking}{tr('). Dá para rolar mesmo assim.', '). You can roll anyway.')}</Alert>
                                     )}
                                     <Typography variant="caption" color="text.secondary">
-                                        Sucesso: 2d8{treatOption.bonus ? ` + ${treatOption.bonus}` : ''} PV · crítico: 4d8{treatOption.bonus ? ` + ${treatOption.bonus}` : ''} · falha crítica: 1d8 de dano.
-                                        {healMode === 'battle'
-                                            ? ' Gasta 1 ação (manipular, exige o kit de curandeiro). Não tira Ferido. O alvo fica imune ao seu Battle Medicine por 1 dia — não ao Tratar Ferimentos.'
-                                            : ` Sem custo em ações (são 10 minutos, fora do combate). Sucesso tira Ferido${wounded ? ` (você tem Ferido ${wounded})` : ''}. O alvo fica imune a Tratar Ferimentos por ${hasContinualRecovery(build) ? '10 minutos (Continual Recovery)' : '1 hora'}.`}
-                                        {healMode === 'treat' && wardMedicTargets(build, check.rank) > 1 ? ` Ward Medic: até ${wardMedicTargets(build, check.rank)} alvos com a mesma rolagem.` : ''}
-                                        {onSelf && hasGodlessHealing(build) ? ' Godless Healing: +5 PV quando a cura funciona em você' + (healMode === 'battle' ? ' e a imunidade ao Battle Medicine cai para 1 hora.' : '.') : ''}
-                                        {riskyOn ? ' Risky Surgery: +2 no teste, sucesso vira crítico e o paciente toma 1d8 cortante antes da cura.' : ''}
+                                        {tr('Sucesso: 2d8', 'Success: 2d8')}{treatOption.bonus ? ` + ${treatOption.bonus}` : ''} {tr(' PV · crítico: 4d8', ' HP · critical: 4d8')}{treatOption.bonus ? ` + ${treatOption.bonus}` : ''} {tr(' · falha crítica: 1d8 de dano.', ' · critical failure: 1d8 damage.')}{healMode === 'battle'
+                                            ? tr(' Gasta 1 ação (manipular, exige o kit de curandeiro). Não tira Ferido. O alvo fica imune ao seu Battle Medicine por 1 dia — não ao Tratar Ferimentos.', ' Spends 1 action (manipulate, requires a healer\'s toolkit). Doesn\'t remove wounded. The target becomes immune to your Battle Medicine for 1 day — not to Treat Wounds.')
+                                            : tr(` Sem custo em ações (são 10 minutos, fora do combate). Sucesso tira Ferido${wounded ? ` (você tem Ferido ${wounded})` : ''}. O alvo fica imune a Tratar Ferimentos por ${hasContinualRecovery(build) ? '10 minutos (Continual Recovery)' : '1 hora'}.`, ` No action cost (it takes 10 minutes, out of combat). A success removes wounded${wounded ? ` (you have wounded ${wounded})` : ''}. The target becomes immune to Treat Wounds for ${hasContinualRecovery(build) ? '10 minutes (Continual Recovery)' : '1 hour'}.`)}
+                                        {healMode === 'treat' && wardMedicTargets(build, check.rank) > 1 ? tr(` Ward Medic: até ${wardMedicTargets(build, check.rank)} alvos com a mesma rolagem.`, ` Ward Medic: up to ${wardMedicTargets(build, check.rank)} targets with the same roll.`) : ''}
+                                        {onSelf && hasGodlessHealing(build) ? tr(' Godless Healing: +5 PV quando a cura funciona em você', ' Godless Healing: +5 HP when the healing works on you') + (healMode === 'battle' ? tr(' e a imunidade ao Battle Medicine cai para 1 hora.', ' and the Battle Medicine immunity drops to 1 hour.') : '.') : ''}
+                                        {riskyOn ? tr(' Risky Surgery: +2 no teste, sucesso vira crítico e o paciente toma 1d8 cortante antes da cura.', ' Risky Surgery: +2 to the check, a success becomes a critical and the patient takes 1d8 slashing before the healing.') : ''}
                                     </Typography>
                                 </Stack>
                             ) : (
                                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                    Escolhe a CD, rola a cura e soma ao PV.
-                                </Typography>
+                                    {tr('Escolhe a CD, rola a cura e soma ao PV.', 'Choose the DC, roll the healing and add it to HP.')}</Typography>
                             )}
                         </Box>
                     )}
                     {surge && !assuranceOn && (
                         <Box>
-                            <Typography variant="caption" color="text.secondary">Relíquia</Typography>
+                            <Typography variant="caption" color="text.secondary">{tr('Relíquia', 'Relic')}</Typography>
                             <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', mt: 0.5 }}>
                                 <Chip
                                     size="small"
-                                    label={`Emotion Surge ativa (${surge.emotion}) · +1`}
+                                    label={tr(`Emotion Surge ativa (${surge.emotion}) · +1`, `Emotion Surge active (${surge.emotion}) · +1`)}
                                     color={surgeOn ? 'primary' : 'default'}
                                     variant={surgeOn ? 'filled' : 'outlined'}
                                     onClick={() => setSurgeOn(!surgeOn)}
                                     aria-pressed={surgeOn}
                                     sx={{ minHeight: 28 }}
-                                    title="Ligue no minuto depois de ativar a dádiva no cartão da Relíquia (Inventário)"
+                                    title={tr("Ligue no minuto depois de ativar a dádiva no cartão da Relíquia (Inventário)", 'Turn it on during the minute after activating the gift on the Relic card (Inventory)')}
                                 />
                             </Box>
                         </Box>
@@ -461,19 +459,19 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                                 {canInvestigate && (
                                     <Chip
                                         size="small"
-                                        label={isSave ? 'Detective\'s Readiness · +1 (contra o alvo da investigação)' : 'Investigação ativa · +1'}
+                                        label={isSave ? tr('Detective\'s Readiness · +1 (contra o alvo da investigação)', 'Detective\'s Readiness · +1 (against the investigation\'s target)') : tr('Investigação ativa · +1', 'Active investigation · +1')}
                                         color={investigating ? 'primary' : 'default'}
                                         variant={investigating ? 'filled' : 'outlined'}
                                         onClick={() => setInvestigate(!investigate)}
                                         aria-pressed={investigating}
                                         sx={{ minHeight: 28 }}
-                                        title={`Aberta: ${investigator.stored.leads.map((l) => l.name).join(' · ')}`}
+                                        title={tr(`Aberta: ${investigator.stored.leads.map((l) => l.name).join(' · ')}`, `Open: ${investigator.stored.leads.map((l) => l.name).join(' · ')}`)}
                                     />
                                 )}
                                 {canSkillStrat && (
                                     <Chip
                                         size="small"
-                                        label={`Estratagema de perícia · ${stratagemSkill && stratFree ? 'ação livre' : '+1 ação'} · +1`}
+                                        label={tr(`Estratagema de perícia · ${stratagemSkill && stratFree ? 'ação livre' : '+1 ação'} · +1`, `Skill stratagem · ${stratagemSkill && stratFree ? 'free action' : '+1 action'} · +1`)}
                                         color={stratagemSkill ? 'primary' : 'default'}
                                         variant={stratagemSkill ? 'filled' : 'outlined'}
                                         onClick={() => setSkillStrat(!skillStrat)}
@@ -484,7 +482,7 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                                 {stratagemSkill && (
                                     <Chip
                                         size="small"
-                                        label="Criatura da investigação · ação livre"
+                                        label={tr("Criatura da investigação · ação livre", 'Investigation\'s creature · free action')}
                                         color={stratFree ? 'primary' : 'default'}
                                         variant={stratFree ? 'filled' : 'outlined'}
                                         onClick={() => setStratFree(!stratFree)}
@@ -495,7 +493,7 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                                 {assur && (
                                     <Chip
                                         size="small"
-                                        label={`Assurance · resultado fixo ${assur.total} (sem rolar)`}
+                                        label={tr(`Assurance · resultado fixo ${assur.total} (sem rolar)`, `Assurance · fixed result ${assur.total} (no roll)`)}
                                         color={assuranceOn ? 'primary' : 'default'}
                                         variant={assuranceOn ? 'filled' : 'outlined'}
                                         onClick={() => setAssurance(!assurance)}
@@ -506,25 +504,23 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                             </Box>
                             {stratagemSkill && (
                                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                    Estratagema de perícia: +1 no teste de INT, SAB, CAR ou Percepção sobre a criatura escolhida (com a investigação, o bônus dela sobe 1). Você não pode atacar essa criatura até o início do seu próximo turno. Vale uma vez por rodada.
-                                </Typography>
+                                    {tr('Estratagema de perícia: +1 no teste de INT, SAB, CAR ou Percepção sobre a criatura escolhida (com a investigação, o bônus dela sobe 1). Você não pode atacar essa criatura até o início do seu próximo turno. Vale uma vez por rodada.', 'Skill stratagem: +1 to the INT, WIS, CHA or Perception check about the chosen creature (with the investigation, its bonus goes up by 1). You can\'t attack that creature until the start of your next turn. Once per round.')}</Typography>
                             )}
                             {assuranceOn && (
                                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                    Assurance: 10 + a proficiência, sem nenhum outro bônus ou penalidade. Não há d20, então não há 20 nem 1 natural nem ✦.
-                                </Typography>
+                                    {tr('Assurance: 10 + a proficiência, sem nenhum outro bônus ou penalidade. Não há d20, então não há 20 nem 1 natural nem ✦.', 'Assurance: 10 + your proficiency, with no other bonus or penalty. There\'s no d20, so no natural 20 or 1 and no ✦.')}</Typography>
                             )}
                         </Box>
                     )}
                     {skillActionList.length > 0 && !healMode && (
                         <Box>
-                            <Typography variant="caption" color="text.secondary">Esta rolagem é uma ação de perícia?</Typography>
+                            <Typography variant="caption" color="text.secondary">{tr('Esta rolagem é uma ação de perícia?', 'Is this roll a skill action?')}</Typography>
                             <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', mt: 0.5 }}>
                                 {skillActionList.map((a) => (
                                     <Chip
                                         key={a.id}
                                         size="small"
-                                        label={`${a.label} · ${a.time ?? `${a.actions} ${a.actions === 1 ? 'ação' : 'ações'}`}`}
+                                        label={`${a.label} · ${a.time ?? `${a.actions} ${a.actions === 1 ? tr('ação', 'action') : tr('ações', 'actions')}`}`}
                                         color={skillActionId === a.id ? 'primary' : 'default'}
                                         variant={skillActionId === a.id ? 'filled' : 'outlined'}
                                         onClick={() => setSkillActionId(skillActionId === a.id ? null : a.id)}
@@ -535,15 +531,14 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                             </Box>
                             {skillLacking > 0 && (
                                 <Alert severity="warning" sx={{ py: 0, mt: 0.75 }}>
-                                    Você não tem ações suficientes neste turno (faltam {skillLacking}). Dá para rolar mesmo assim.
-                                </Alert>
+                                    {tr('Você não tem ações suficientes neste turno (faltam ', 'You don\'t have enough actions this turn (missing ')}{skillLacking}{tr('). Dá para rolar mesmo assim.', '). You can roll anyway.')}</Alert>
                             )}
                         </Box>
                     )}
                     {canInitiative && (
                         <Box>
                             <Chip
-                                label="Usar como iniciativa"
+                                label={tr("Usar como iniciativa", 'Use as initiative')}
                                 color={initiative ? 'primary' : 'default'}
                                 variant={initiative ? 'filled' : 'outlined'}
                                 onClick={() => setInitiative(!initiative)}
@@ -551,9 +546,8 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                                 sx={{ minHeight: 32 }}
                             />
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                O total vira a sua iniciativa no encontro do mestre.
-                                {initiativeBonus(build, check.en)?.value ? ' Seus bônus de iniciativa entram na conta ao ligar.' : ''}
-                                {initiativeBonus(build, check.en)?.winsTies ? ' Elven Instincts: num empate com oponente, você age primeiro.' : ''}
+                                {tr('O total vira a sua iniciativa no encontro do mestre.', 'The total becomes your initiative in the GM\'s encounter.')}{initiativeBonus(build, check.en)?.value ? tr(' Seus bônus de iniciativa entram na conta ao ligar.', ' Your initiative bonuses are added when you turn it on.') : ''}
+                                {initiativeBonus(build, check.en)?.winsTies ? tr(' Elven Instincts: num empate com oponente, você age primeiro.', ' Elven Instincts: on a tie with an opponent, you act first.') : ''}
                             </Typography>
                         </Box>
                     )}
@@ -565,7 +559,7 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                 mythicDelta={check.mythicDelta}
                 mythicPoints={mythicPoints}
                 onClose={onClose}
-                label={assuranceOn ? `Usar Assurance · ${assur.total}` : undefined}
+                label={assuranceOn ? tr(`Usar Assurance · ${assur.total}`, `Use Assurance · ${assur.total}`) : undefined}
                 onRoll={(mythic) => {
                     if (stratagemPay > 0) actions.spend(stratagemPay, 'any')
                     if (healMode && canTreat) {
@@ -588,7 +582,7 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                         return
                     }
                     if (skillAction && skillAction.actions > 0) payTime(actions, { kind: 'actions', n: skillAction.actions }, undefined, [], [])
-                    const sub = [skillAction?.label, initiative && canInitiative ? 'iniciativa' : null].filter(Boolean).join(' · ') || undefined
+                    const sub = [skillAction?.label, initiative && canInitiative ? tr('iniciativa', 'initiative') : null].filter(Boolean).join(' · ') || undefined
                     send(
                         assuranceOn
                             ? assuranceRoll(who, check.label, assur.proficiency, [sub, 'Assurance'].filter(Boolean).join(' · '))
@@ -726,14 +720,14 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
             : actions.missing(actionCostNow, actionKind)
     const reactionUsed = asReaction && actions.stored.reacted
     const rollNote = [
-        poisonName && poisonUsed ? (simplePoison ? `veneno simples: ${simpleDice.count}d${simpleDice.faces} de veneno, sem salvaguarda` : poisonNote(poisonName, poisonDef)) : null,
+        poisonName && poisonUsed ? (simplePoison ? tr(`veneno simples: ${simpleDice.count}d${simpleDice.faces} de veneno, sem salvaguarda`, `simple poison: ${simpleDice.count}d${simpleDice.faces} poison, no saving throw`) : poisonNote(poisonName, poisonDef)) : null,
         debil ? DEBILITATIONS.find((d) => d.id === debil)?.note : null,
-        exacting ? 'Exacting Strike: se errar, não conta para a penalidade de ataques múltiplos' : null,
-        flurrying ? 'Flurry of Blows: se os dois Golpes acertarem a mesma criatura, o dano se combina para resistências e fraquezas' : null,
+        exacting ? tr('Exacting Strike: se errar, não conta para a penalidade de ataques múltiplos', 'Exacting Strike: if it misses, it doesn\'t count toward the multiple attack penalty') : null,
+        flurrying ? tr('Flurry of Blows: se os dois Golpes acertarem a mesma criatura, o dano se combina para resistências e fraquezas', 'Flurry of Blows: if both Strikes hit the same creature, the damage is combined for resistances and weaknesses') : null,
         stunning ? stunningBlowsNote(classDc(build)) : null,
-        devising ? `Devise a Stratagem (fortune): o d20 é o do estratagema${plan.stratagem ? `; Strategic Strike ${plan.stratagem.dice}d6 de precisão` : ''}` : null,
-        devising && opts.extrasOn[KNOWN_WEAKNESSES_KEY] === true ? 'Known Weaknesses: Recall Knowledge antes do d20 — no crítico, aliados têm +1 de circunstância no ataque contra o alvo até o próximo turno' : null,
-        devising && opts.extrasOn[SHARED_STRATAGEM_KEY] === true ? 'Shared Stratagem: se acertar, o alvo fica desprevenido para o próximo ataque de um aliado, até o próximo turno' : null,
+        devising ? tr(`Devise a Stratagem (fortune): o d20 é o do estratagema${plan.stratagem ? `; Strategic Strike ${plan.stratagem.dice}d6 de precisão` : ''}`, `Devise a Stratagem (fortune): the d20 is the stratagem's${plan.stratagem ? `; Strategic Strike ${plan.stratagem.dice}d6 precision` : ''}`) : null,
+        devising && opts.extrasOn[KNOWN_WEAKNESSES_KEY] === true ? tr('Known Weaknesses: Recall Knowledge antes do d20 — no crítico, aliados têm +1 de circunstância no ataque contra o alvo até o próximo turno', 'Known Weaknesses: Recall Knowledge before the d20 — on a critical, allies get a +1 circumstance bonus to attacks against the target until the next turn') : null,
+        devising && opts.extrasOn[SHARED_STRATAGEM_KEY] === true ? tr('Shared Stratagem: se acertar, o alvo fica desprevenido para o próximo ataque de um aliado, até o próximo turno', 'Shared Stratagem: on a hit, the target is off-guard to an ally\'s next attack, until the next turn') : null,
     ].filter(Boolean).join(' · ')
     const damageText = [
         `${formatValue({ count: plan.weapon.groups[0]?.count ?? 0, faces: plan.weapon.groups[0]?.faces ?? 0, flat: plan.weapon.flat })} ${strike.damageType}`,
@@ -741,7 +735,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
     ].join(' + ')
     const critExtras = [
         plan.deadly ? `deadly ${plan.deadly.count}d${plan.deadly.faces}` : null,
-        plan.fatal ? `fatal: dados da arma em d${plan.fatal} e +1d${plan.fatal}` : null,
+        plan.fatal ? tr(`fatal: dados da arma em d${plan.fatal} e +1d${plan.fatal}`, `fatal: weapon dice at d${plan.fatal} and +1d${plan.fatal}`) : null,
         ...plan.critEffects.map((c) => c.label),
     ].filter(Boolean)
     const spec = strike.spec
@@ -757,7 +751,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
     return (
         <>
             <DialogTitle sx={{ pb: 1 }}>
-                Golpe — {request.nickname ?? fullName}
+                {tr('Golpe — ', 'Strike — ')}{request.nickname ?? fullName}
                 {request.nickname && (
                     <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 400, lineHeight: 1.3 }}>{fullName}</Typography>
                 )}
@@ -781,7 +775,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                     )}
 
                     <Box>
-                        <Typography variant="caption" color="text.secondary">Penalidade de ataques múltiplos{traits.agile ? ' (ágil)' : ''}</Typography>
+                        <Typography variant="caption" color="text.secondary">{tr('Penalidade de ataques múltiplos', 'Multiple attack penalty')}{traits.agile ? tr(' (ágil)', ' (agile)') : ''}</Typography>
                         <ToggleButtonGroup
                             exclusive
                             size="small"
@@ -804,7 +798,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                             onChange={(_, v: AttackMode | null) => { if (v) setOpts({ ...opts, mode: v }) }}
                             fullWidth
                         >
-                            <ToggleButton value="auto">Corpo a corpo</ToggleButton>
+                            <ToggleButton value="auto">{tr('Corpo a corpo', 'Melee')}</ToggleButton>
                             <ToggleButton value="thrown">Arremesso</ToggleButton>
                         </ToggleButtonGroup>
                     )}
@@ -816,14 +810,14 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                             onChange={(_, v: AttackMode | null) => { if (v) setOpts({ ...opts, mode: v }) }}
                             fullWidth
                         >
-                            <ToggleButton value="str">Ataque de FOR</ToggleButton>
-                            <ToggleButton value="dex">Ataque de DES</ToggleButton>
+                            <ToggleButton value="str">{tr('Ataque de FOR', 'STR attack')}</ToggleButton>
+                            <ToggleButton value="dex">{tr('Ataque de DES', 'DEX attack')}</ToggleButton>
                         </ToggleButtonGroup>
                     )}
 
                     <Box>
                         <Chip
-                            label="É uma reação (Reactive Strike, Stand Still…)"
+                            label={tr("É uma reação (Reactive Strike, Stand Still…)", 'It\'s a reaction (Reactive Strike, Stand Still…)')}
                             color={asReaction ? 'primary' : 'default'}
                             variant={asReaction ? 'filled' : 'outlined'}
                             onClick={() => setAsReaction(!asReaction)}
@@ -834,21 +828,19 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                     </Box>
                     {lacking > 0 && (
                         <Alert severity="warning" sx={{ py: 0 }}>
-                            Você não tem ações suficientes neste turno (faltam {lacking}). Dá para rolar mesmo assim.
-                        </Alert>
+                            {tr('Você não tem ações suficientes neste turno (faltam ', 'You don\'t have enough actions this turn (missing ')}{lacking}{tr('). Dá para rolar mesmo assim.', '). You can roll anyway.')}</Alert>
                     )}
                     {reactionUsed && (
-                        <Alert severity="warning" sx={{ py: 0 }}>A reação desta rodada já foi usada.</Alert>
+                        <Alert severity="warning" sx={{ py: 0 }}>{tr('A reação desta rodada já foi usada.', 'This round\'s reaction was already used.')}</Alert>
                     )}
 
                     {canSpellstrike && ss.options.length > 0 && <SpellstrikePanel ss={ss} magus={magus} />}
 
-                    <Memorial title="Ataque" parts={plan.attackParts} total={plan.attackTotal} />
+                    <Memorial title={tr("Ataque", 'Attack')} parts={plan.attackParts} total={plan.attackTotal} />
 
                     <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, px: 1.25, py: 0.75 }}>
                         <Typography variant="overline" color="text.secondary" sx={{ display: 'block', lineHeight: 1.6, fontWeight: 700 }}>
-                            Dano
-                        </Typography>
+                            {tr('Dano', 'Damage')}</Typography>
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>{damageText}</Typography>
                         {plan.damageParts.length > 1 && (
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
@@ -856,15 +848,14 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                             </Typography>
                         )}
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                            Crítico: dobra o rolado{critExtras.length ? `, mais ${critExtras.join(' e ')} por fora do dobro` : ''}.
+                            {tr('Crítico: dobra o rolado', 'Critical: doubles what\'s rolled')}{critExtras.length ? tr(`, mais ${critExtras.join(' e ')} por fora do dobro`, `, plus ${critExtras.join(' and ')} outside the doubling`) : ''}.
                         </Typography>
                     </Box>
 
                     {strike.extras.length > 0 && (
                         <Box>
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                                Dano extra — ligue só o que vale neste golpe
-                            </Typography>
+                                {tr('Dano extra — ligue só o que vale neste golpe', 'Extra damage — turn on only what applies to this Strike')}</Typography>
                             <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
                                 {strike.extras.map((e) => {
                                     const on = extraEnabled(e, opts.extrasOn, mods)
@@ -883,8 +874,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                             </Stack>
                             {strike.extras.some((e) => e.precision) && (
                                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                    Precisão é condicional (Ataque Furtivo, Hunter's Edge…) e não afeta criatura imune a precisão.
-                                </Typography>
+                                    {tr('Precisão é condicional (Ataque Furtivo, Hunter\'s Edge…) e não afeta criatura imune a precisão.', 'Precision is conditional (Sneak Attack, Hunter\'s Edge…) and doesn\'t affect creatures immune to precision.')}</Typography>
                             )}
                         </Box>
                     )}
@@ -892,8 +882,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                     {hasFearsomeBrute(build) && (
                         <Box>
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                                Fearsome Brute — alvo amedrontado
-                            </Typography>
+                                {tr('Fearsome Brute — alvo amedrontado', 'Fearsome Brute — frightened target')}</Typography>
                             <ToggleButtonGroup
                                 exclusive
                                 size="small"
@@ -903,7 +892,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                             >
                                 {[0, 1, 2, 3, 4].map((n) => (
                                     <ToggleButton key={n} value={n}>
-                                        {n === 0 ? 'Não' : `${n} (+${fearsomeBruteBonus(build, n)})`}
+                                        {n === 0 ? tr('Não', 'No') : `${n} (+${fearsomeBruteBonus(build, n)})`}
                                     </ToggleButton>
                                 ))}
                             </ToggleButtonGroup>
@@ -912,7 +901,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                     {laughingApplies && (
                         <Box>
                             <Chip
-                                label={`Laughing Shadow · alvo desprevenido, outra mão livre (${laughingShadowDamage(build)} de dano da postura)`}
+                                label={tr(`Laughing Shadow · alvo desprevenido, outra mão livre (${laughingShadowDamage(build)} de dano da postura)`, `Laughing Shadow · off-guard target, other hand free (${laughingShadowDamage(build)} stance damage)`)}
                                 color={laughing ? 'primary' : 'default'}
                                 variant={laughing ? 'filled' : 'outlined'}
                                 onClick={() => setLaughing(!laughing)}
@@ -920,14 +909,13 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                                 sx={{ minHeight: 32, height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal' } }}
                             />
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                Só com a outra mão completamente vazia (nada de arma de mão livre ou item nela) e contra alvo desprevenido — Finta, flanco, invisibilidade.
-                            </Typography>
+                                {tr('Só com a outra mão completamente vazia (nada de arma de mão livre ou item nela) e contra alvo desprevenido — Finta, flanco, invisibilidade.', 'Only with your other hand completely empty (no free-hand weapon or item in it) and against an off-guard target — Feint, flanking, invisibility.')}</Typography>
                         </Box>
                     )}
                     {hasDeviseAStratagem(build) && (
                         <Box>
                             <Chip
-                                label={`Devise a Stratagem · ${stratagemCost(opts.extrasOn) === 0 && devising ? 'ação livre' : '+1 ação'} · 1× por rodada`}
+                                label={tr(`Devise a Stratagem · ${stratagemCost(opts.extrasOn) === 0 && devising ? 'ação livre' : '+1 ação'} · 1× por rodada`, `Devise a Stratagem · ${stratagemCost(opts.extrasOn) === 0 && devising ? 'free action' : '+1 action'} · 1× per round`)}
                                 color={devising ? 'primary' : 'default'}
                                 variant={devising ? 'filled' : 'outlined'}
                                 onClick={() => toggleExtra(STRATAGEM_KEY, !devising)}
@@ -935,12 +923,11 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                                 sx={{ minHeight: 32 }}
                             />
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                O d20 desta rolagem é o do estratagema (fortune) e, com arma ágil, de acuidade ou à distância, soma INT e leva o Strategic Strike. Vale só no primeiro Golpe na criatura escolhida, até o seu próximo turno.
-                            </Typography>
+                                {tr('O d20 desta rolagem é o do estratagema (fortune) e, com arma ágil, de acuidade ou à distância, soma INT e leva o Strategic Strike. Vale só no primeiro Golpe na criatura escolhida, até o seu próximo turno.', 'This roll\'s d20 is the stratagem\'s (fortune) and, with an agile, finesse or ranged weapon, adds INT and gets Strategic Strike. Only on the first Strike against the chosen creature, until your next turn.')}</Typography>
                             {devising && (
                                 <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75, mt: 0.75 }}>
                                     <Chip
-                                        label="Investigação ativa sobre o alvo · ação livre"
+                                        label={tr("Investigação ativa sobre o alvo · ação livre", 'Active investigation on the target · free action')}
                                         color={opts.extrasOn[LEAD_KEY] === true ? 'primary' : 'default'}
                                         variant={opts.extrasOn[LEAD_KEY] === true ? 'filled' : 'outlined'}
                                         onClick={() => toggleExtra(LEAD_KEY, opts.extrasOn[LEAD_KEY] !== true)}
@@ -949,7 +936,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                                     />
                                     {hasKnownWeaknesses(build) && (
                                         <Chip
-                                            label="Known Weaknesses · Recall Knowledge antes"
+                                            label={tr("Known Weaknesses · Recall Knowledge antes", 'Known Weaknesses · Recall Knowledge first')}
                                             color={opts.extrasOn[KNOWN_WEAKNESSES_KEY] === true ? 'primary' : 'default'}
                                             variant={opts.extrasOn[KNOWN_WEAKNESSES_KEY] === true ? 'filled' : 'outlined'}
                                             onClick={() => toggleExtra(KNOWN_WEAKNESSES_KEY, opts.extrasOn[KNOWN_WEAKNESSES_KEY] !== true)}
@@ -959,7 +946,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                                     )}
                                     {hasSharedStratagem(build) && (
                                         <Chip
-                                            label="Shared Stratagem · aliado aproveita"
+                                            label={tr("Shared Stratagem · aliado aproveita", 'Shared Stratagem · an ally benefits')}
                                             color={opts.extrasOn[SHARED_STRATAGEM_KEY] === true ? 'primary' : 'default'}
                                             variant={opts.extrasOn[SHARED_STRATAGEM_KEY] === true ? 'filled' : 'outlined'}
                                             onClick={() => toggleExtra(SHARED_STRATAGEM_KEY, opts.extrasOn[SHARED_STRATAGEM_KEY] !== true)}
@@ -974,7 +961,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                     {dragonStrikeApplies(build, strike, opts) && (
                         <Box>
                             <Chip
-                                label="Dragon Strike ativa · +1d6 cortante"
+                                label={tr("Dragon Strike ativa · +1d6 cortante", 'Dragon Strike active · +1d6 slashing')}
                                 color={opts.extrasOn[DRAGON_STRIKE_KEY] === true ? 'primary' : 'default'}
                                 variant={opts.extrasOn[DRAGON_STRIKE_KEY] === true ? 'filled' : 'outlined'}
                                 onClick={() => toggleExtra(DRAGON_STRIKE_KEY, opts.extrasOn[DRAGON_STRIKE_KEY] !== true)}
@@ -982,14 +969,13 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                                 sx={{ minHeight: 32 }}
                             />
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                Miranda's Arm: por 1 minuto depois de ativar na aba Inventário, Golpe corpo a corpo desarmado acertado soma 1d6 cortante. O app não conta o minuto; se o braço conta como desarmado, o mestre decide.
-                            </Typography>
+                                {tr('Miranda\'s Arm: por 1 minuto depois de ativar na aba Inventário, Golpe corpo a corpo desarmado acertado soma 1d6 cortante. O app não conta o minuto; se o braço conta como desarmado, o mestre decide.', 'Miranda\'s Arm: for 1 minute after activating it in the Inventory tab, a melee unarmed Strike that hits adds 1d6 slashing. The app doesn\'t count the minute; whether the arm counts as unarmed is up to the GM.')}</Typography>
                         </Box>
                     )}
                     {(flurryOk.ok || flurryOk.reason) && (
                         <Box>
                             <Chip
-                                label="Flurry of Blows · 1 ação · 2 Golpes"
+                                label={tr("Flurry of Blows · 1 ação · 2 Golpes", 'Flurry of Blows · 1 action · 2 Strikes')}
                                 color={flurrying ? 'primary' : 'default'}
                                 variant={flurrying ? 'filled' : 'outlined'}
                                 disabled={!flurryOk.ok}
@@ -1002,13 +988,12 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                             )}
                             {flurrying && (
                                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                    Os dois Golpes saem juntos; o 2º já leva a penalidade de ataques múltiplos de um degrau acima. É flourish: uma vez por turno.
-                                    {stanceOn && !strike.unarmed ? ' Com arco, vale dentro de metade do incremento de distância.' : ''}
+                                    {tr('Os dois Golpes saem juntos; o 2º já leva a penalidade de ataques múltiplos de um degrau acima. É flourish: uma vez por turno.', 'Both Strikes go out together; the 2nd already takes the multiple attack penalty one step higher. It\'s a flourish: once per turn.')}{stanceOn && !strike.unarmed ? tr(' Com arco, vale dentro de metade do incremento de distância.', ' With a bow, it applies within half the range increment.') : ''}
                                 </Typography>
                             )}
                             {flurrying && hasStunningBlows(build) && (
                                 <Chip
-                                    label={`Stunning Blows · mesma criatura (CD ${classDc(build)})`}
+                                    label={tr(`Stunning Blows · mesma criatura (CD ${classDc(build)})`, `Stunning Blows · same creature (DC ${classDc(build)})`)}
                                     color={stunning ? 'primary' : 'default'}
                                     variant={stunning ? 'filled' : 'outlined'}
                                     onClick={() => toggleExtra(STUNNING_KEY, !stunning)}
@@ -1022,7 +1007,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                     {kiAvailable && (
                         <Box>
                             <Chip
-                                label={`Ki Strike / Inner Upheaval · 1 ponto de foco · +1 ataque · +${kiStrikeDice(build.level)}d6`}
+                                label={tr(`Ki Strike / Inner Upheaval · 1 ponto de foco · +1 ataque · +${kiStrikeDice(build.level)}d6`, `Ki Strike / Inner Upheaval · 1 focus point · +1 attack · +${kiStrikeDice(build.level)}d6`)}
                                 color={kiOn ? 'primary' : 'default'}
                                 variant={kiOn ? 'filled' : 'outlined'}
                                 onClick={() => toggleExtra(KI_KEY, !kiOn)}
@@ -1048,15 +1033,15 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                             )}
                             <Typography variant="caption" color={kiOn && focusLeft === 0 ? 'warning.main' : 'text.secondary'} sx={{ display: 'block', mt: 0.5 }}>
                                 {kiOn && focusLeft === 0
-                                    ? 'Sem Pontos de Foco: dá para rolar mesmo assim.'
-                                    : `A ação é a do próprio Golpe ou Flurry. Gasta 1 Ponto de Foco (${focusLeft} restante${focusLeft === 1 ? '' : 's'}); o tipo do dano extra é à escolha a cada Golpe.`}
+                                    ? tr('Sem Pontos de Foco: dá para rolar mesmo assim.', 'No Focus Points: you can roll anyway.')
+                                    : tr(`A ação é a do próprio Golpe ou Flurry. Gasta 1 Ponto de Foco (${focusLeft} restante${focusLeft === 1 ? '' : 's'}); o tipo do dano extra é à escolha a cada Golpe.`, `The action is the Strike's or Flurry's own. Spends 1 Focus Point (${focusLeft} left); the extra damage type is your choice on each Strike.`)}
                             </Typography>
                         </Box>
                     )}
                     {hasExactingStrike(build) && (
                         <Box>
                             <Chip
-                                label="Exacting Strike · 1 ação (Pressionar)"
+                                label={tr("Exacting Strike · 1 ação (Pressionar)", 'Exacting Strike · 1 action (Press)')}
                                 color={exacting ? 'primary' : 'default'}
                                 variant={exacting ? 'filled' : 'outlined'}
                                 onClick={() => setExacting(!exacting)}
@@ -1064,14 +1049,13 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                                 sx={{ minHeight: 32 }}
                             />
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                Se este Golpe errar, ele não conta para a penalidade de ataques múltiplos — marque o próximo ataque de acordo.
-                            </Typography>
+                                {tr('Se este Golpe errar, ele não conta para a penalidade de ataques múltiplos — marque o próximo ataque de acordo.', 'If this Strike misses, it doesn\'t count toward the multiple attack penalty — mark the next attack accordingly.')}</Typography>
                         </Box>
                     )}
                     {canApplyPoison && (
                         <Box>
                             <Chip
-                                label="Aplicar veneno antes do Golpe · +1 ação"
+                                label={tr("Aplicar veneno antes do Golpe · +1 ação", 'Apply poison before the Strike · +1 action')}
                                 color={applyNow ? 'primary' : 'default'}
                                 variant={applyNow ? 'filled' : 'outlined'}
                                 onClick={() => setApplyNow(!applyNow)}
@@ -1084,27 +1068,26 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                                         size="small"
                                         value={po.selected?.name ?? ''}
                                         onChange={(e) => po.setChoice(e.target.value)}
-                                        inputProps={{ 'aria-label': 'Veneno a aplicar' }}
+                                        inputProps={{ 'aria-label': tr('Veneno a aplicar', 'Poison to apply') }}
                                         displayEmpty
                                         fullWidth
                                     >
                                         {po.options.map((o) => (
                                             <MenuItem key={o.name} value={o.name} disabled={o.left === 0}>
-                                                {o.label} · {isSimplePoison(o.name) ? `${o.left}/${o.of} por dia` : `×${o.left}`}
+                                                {o.label} · {isSimplePoison(o.name) ? tr(`${o.left}/${o.of} por dia`, `${o.left}/${o.of} per day`) : `×${o.left}`}
                                             </MenuItem>
                                         ))}
                                     </Select>
                                     <Typography variant="caption" color="text.secondary">
                                         {po.selected
-                                            ? 'Ao rolar: aplica (Interagir, 1 ação), gasta a dose e o Golpe já leva o veneno.'
-                                            : 'Sem veneno para aplicar.'}
+                                            ? tr('Ao rolar: aplica (Interagir, 1 ação), gasta a dose e o Golpe já leva o veneno.', 'On rolling: applies it (Interact, 1 action), spends the dose and the Strike already carries the poison.')
+                                            : tr('Sem veneno para aplicar.', 'No poison to apply.')}
                                     </Typography>
                                     {rogue.stored.simpleUsed > 0 && (
                                         <Typography variant="caption" color="text.secondary">
-                                            Veneno simples: {po.simpleLeft} de {po.dose} doses hoje.{' '}
+                                            {tr('Veneno simples: ', 'Simple poison: ')}{po.simpleLeft} {tr(' de ', ' of ')}{po.dose} {tr(' doses hoje.', ' doses today.')}{' '}
                                             <Button size="small" onClick={rogue.newDay} sx={{ minWidth: 0, p: 0, verticalAlign: 'baseline' }}>
-                                                Nova preparação
-                                            </Button>
+                                                {tr('Nova preparação', 'New preparation')}</Button>
                                         </Typography>
                                     )}
                                 </Stack>
@@ -1115,7 +1098,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                         <Box>
                             <Stack direction="row" alignItems="center" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
                                 <Chip
-                                    label={simplePoison ? `Arma envenenada · veneno simples ${simpleDice.count}d${simpleDice.faces}` : `Arma envenenada · ${poisonNote(rogue.stored.poison, poisonDef).replace('veneno: ', '')}`}
+                                    label={simplePoison ? tr(`Arma envenenada · veneno simples ${simpleDice.count}d${simpleDice.faces}`, `Poisoned weapon · simple poison ${simpleDice.count}d${simpleDice.faces}`) : tr(`Arma envenenada · ${poisonNote(rogue.stored.poison, poisonDef).replace('veneno: ', '')}`, `Poisoned weapon · ${poisonNote(rogue.stored.poison, poisonDef).replace('poison: ', '')}`)}
                                     color={poisonOn ? 'primary' : 'default'}
                                     variant={poisonOn ? 'filled' : 'outlined'}
                                     onClick={() => setPoisonOn(!poisonOn)}
@@ -1123,21 +1106,19 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                                     sx={{ minHeight: 32 }}
                                 />
                                 <Button size="small" color="inherit" onClick={rogue.clearPoison}>
-                                    Veneno usado
-                                </Button>
+                                    {tr('Veneno usado', 'Poison used')}</Button>
                             </Stack>
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
                                 {simplePoison
-                                    ? `Rola ${simpleDice.count}d${simpleDice.faces} de veneno junto, sem salvaguarda e sem dobrar no crítico — vale se o Golpe acertar. Quando acertar, toque "Veneno usado".`
-                                    : 'O veneno entra se o Golpe acertar; a rolagem diz qual é. Quando acertar, toque "Veneno usado".'}
+                                    ? tr(`Rola ${simpleDice.count}d${simpleDice.faces} de veneno junto, sem salvaguarda e sem dobrar no crítico — vale se o Golpe acertar. Quando acertar, toque "Veneno usado".`, `Rolls ${simpleDice.count}d${simpleDice.faces} poison along, no saving throw and not doubled on a critical — applies if the Strike hits. When it hits, tap "Poison used".`)
+                                    : tr('O veneno entra se o Golpe acertar; a rolagem diz qual é. Quando acertar, toque "Veneno usado".', 'The poison applies if the Strike hits; the roll says which one. When it hits, tap "Poison used".')}
                             </Typography>
                         </Box>
                     )}
                     {canDebilitate && (
                         <Box>
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                                Debilitating Strike — se acertar um alvo desprevenido (ação livre)
-                            </Typography>
+                                {tr('Debilitating Strike — se acertar um alvo desprevenido (ação livre)', 'Debilitating Strike — if it hits an off-guard target (free action)')}</Typography>
                             <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
                                 {DEBILITATIONS.map((d) => (
                                     <Chip
@@ -1156,7 +1137,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                     {gravityApplies(strike, mods) && (
                         <Box>
                             <Chip
-                                label={`Primeiro Golpe da rodada · Gravity Weapon +${gravityBonus(strike.weaponDice.count)}`}
+                                label={tr(`Primeiro Golpe da rodada · Gravity Weapon +${gravityBonus(strike.weaponDice.count)}`, `First Strike of the round · Gravity Weapon +${gravityBonus(strike.weaponDice.count)}`)}
                                 color={opts.extrasOn[FIRST_STRIKE_KEY] !== false ? 'primary' : 'default'}
                                 variant={opts.extrasOn[FIRST_STRIKE_KEY] !== false ? 'filled' : 'outlined'}
                                 onClick={() => toggleExtra(FIRST_STRIKE_KEY, opts.extrasOn[FIRST_STRIKE_KEY] === false)}
@@ -1164,14 +1145,13 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                                 sx={{ minHeight: 32 }}
                             />
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                Bônus de status igual a 2 × os dados da arma, só no primeiro Golpe com arma de cada rodada. Desligue nos seguintes.
-                            </Typography>
+                                {tr('Bônus de status igual a 2 × os dados da arma, só no primeiro Golpe com arma de cada rodada. Desligue nos seguintes.', 'Status bonus equal to 2 × the weapon dice, only on the first Strike with a weapon each round. Turn it off on the following ones.')}</Typography>
                         </Box>
                     )}
                     {huntersAimApplies(build, strike, opts) && (
                         <Box>
                             <Chip
-                                label="Hunter's Aim · +2 contra a presa (2 ações)"
+                                label={tr("Hunter's Aim · +2 contra a presa (2 ações)", 'Hunter\'s Aim · +2 against the prey (2 actions)')}
                                 color={opts.extrasOn[HUNTERS_AIM_KEY] === true ? 'primary' : 'default'}
                                 variant={opts.extrasOn[HUNTERS_AIM_KEY] === true ? 'filled' : 'outlined'}
                                 onClick={() => toggleExtra(HUNTERS_AIM_KEY, opts.extrasOn[HUNTERS_AIM_KEY] !== true)}
@@ -1179,18 +1159,16 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                                 sx={{ minHeight: 32 }}
                             />
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                +2 de circunstância no ataque contra a presa caçada; ignora escondido e cobertura leve.
-                            </Typography>
+                                {tr('+2 de circunstância no ataque contra a presa caçada; ignora escondido e cobertura leve.', '+2 circumstance bonus to the attack against the hunted prey; ignores hidden and lesser cover.')}</Typography>
                         </Box>
                     )}
 
                     {spec && (spec.source.kind === 'prey' || spec.source.kind === 'situational') && (
                         <Box>
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                                Se o golpe for crítico
-                            </Typography>
+                                {tr('Se o golpe for crítico', 'If the Strike is a critical')}</Typography>
                             <Chip
-                                label={`${spec.effect.label}${spec.effect.damage ? '' : ' (aviso)'}`}
+                                label={`${spec.effect.label}${spec.effect.damage ? '' : tr(' (aviso)', ' (warning)')}`}
                                 color={specOn ? 'primary' : 'default'}
                                 variant={specOn ? 'filled' : 'outlined'}
                                 onClick={() => toggleExtra(SPEC_KEY, !specOn)}
@@ -1204,15 +1182,15 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                     )}
                     {spec && (spec.source.kind === 'always' || spec.source.kind === 'raging') && (
                         <Typography variant="caption" color={specOn ? 'text.secondary' : 'warning.main'} sx={{ display: 'block' }}>
-                            {spec.effect.label}: {specOn ? 'vale neste golpe' : 'só vale em Fúria'} — {spec.source.reason}.
+                            {spec.effect.label}: {specOn ? tr('vale neste golpe', 'applies to this Strike') : tr('só vale em Fúria', 'only applies while raging')} — {spec.source.reason}.
                         </Typography>
                     )}
 
                     {plan.warnings.map((w) => <Alert key={w} severity="warning" sx={{ py: 0 }}>{w}</Alert>)}
-                    {loading && <Typography variant="caption" color="text.secondary">Buscando os traços da arma no AON…</Typography>}
+                    {loading && <Typography variant="caption" color="text.secondary">{tr('Buscando os traços da arma no AON…', 'Looking up the weapon\'s traits on AON…')}</Typography>}
                     <SituationalNotes mods={mods} />
                     {stanceOn && strike.unarmed && (
-                        <Alert severity="warning" sx={{ py: 0 }}>Na Monastic Archer Stance os únicos Golpes possíveis são os de arco: desligue a postura na faixa do Monge para atacar desarmado.</Alert>
+                        <Alert severity="warning" sx={{ py: 0 }}>{tr('Na Monastic Archer Stance os únicos Golpes possíveis são os de arco: desligue a postura na faixa do Monge para atacar desarmado.', 'In Monastic Archer Stance the only possible Strikes are bow Strikes: turn the stance off in the Monk bar to attack unarmed.')}</Alert>
                     )}
                     {perfectStrikeApplies(build, strike) && (
                         <Box>
@@ -1222,21 +1200,19 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                                 onClick={() => {
                                     actions.spendReaction()
                                     monkSlots.spendFocus()
-                                    send(checkRoll(who, `Perfect Strike — ${strike.label ?? strike.name}`, plan.attackParts, null, 'rerrola o ataque que errou (fortuna): vale o novo resultado'), false)
+                                    send(checkRoll(who, `Perfect Strike — ${strike.label ?? strike.name}`, plan.attackParts, null, tr('rerrola o ataque que errou (fortuna): vale o novo resultado', 'rerolls the attack that missed (fortune): the new result applies')), false)
                                 }}
                             >
-                                Perfect Strike · rerrolar o ataque que errou (reação + 1 ponto de foco)
-                            </Button>
+                                {tr('Perfect Strike · rerrolar o ataque que errou (reação + 1 ponto de foco)', 'Perfect Strike · reroll the attack that missed (reaction + 1 focus point)')}</Button>
                             <Typography variant="caption" color={focusLeft === 0 || actions.stored.reacted ? 'warning.main' : 'text.secondary'} sx={{ display: 'block', mt: 0.5 }}>
-                                {focusLeft === 0 ? 'Sem Pontos de Foco. ' : ''}{actions.stored.reacted ? 'A reação desta rodada já foi usada. ' : ''}
-                                Rola o ataque de novo com a mesma conta acima (MAP incluído) e vale o novo resultado. O dano é rolado à parte, se acertar.
-                            </Typography>
+                                {focusLeft === 0 ? tr('Sem Pontos de Foco. ', 'No Focus Points. ') : ''}{actions.stored.reacted ? tr('A reação desta rodada já foi usada. ', 'This round\'s reaction was already used. ') : ''}
+                                {tr('Rola o ataque de novo com a mesma conta acima (MAP incluído) e vale o novo resultado. O dano é rolado à parte, se acertar.', 'Rolls the attack again with the same math above (MAP included) and the new result applies. The damage is rolled separately, if it hits.')}</Typography>
                         </Box>
                     )}
 
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-                        <AdjustField label="Ajuste no ataque" value={opts.attackAdjust} onChange={(n) => setOpts({ ...opts, attackAdjust: n })} />
-                        <AdjustField label="Ajuste no dano" value={opts.damageAdjust} onChange={(n) => setOpts({ ...opts, damageAdjust: n })} />
+                        <AdjustField label={tr("Ajuste no ataque", 'Attack adjustment')} value={opts.attackAdjust} onChange={(n) => setOpts({ ...opts, attackAdjust: n })} />
+                        <AdjustField label={tr("Ajuste no dano", 'Damage adjustment')} value={opts.damageAdjust} onChange={(n) => setOpts({ ...opts, damageAdjust: n })} />
                     </Stack>
                 </Stack>
             </DialogContent>
@@ -1284,7 +1260,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                     const caster = build.spellCasters?.[ss.option.casterIndex]
                     const baseDc = ss.option.focus ? ss.option.focus.dc : caster ? spellcasterStats(build, caster).dc : null
                     const dc = baseDc != null ? baseDc + mods.total.spellDc : null
-                    const defense = !ss.usesAttack && ss.spell.defense ? `salvaguarda: ${ss.spell.defense}${dc ? ` (CD ${dc})` : ''}` : null
+                    const defense = !ss.usesAttack && ss.spell.defense ? tr(`salvaguarda: ${ss.spell.defense}${dc ? ` (CD ${dc})` : ''}`, `save: ${ss.spell.defense}${dc ? ` (DC ${dc})` : ''}`) : null
                     const amped = ss.ampOn ? 'amplificada' : null
                     send(noted(spellstrikeRoll(who, strike, plan, mythicDelta, [sub, `rank ${ss.option.rank}`, amped, defense].filter(Boolean).join(' · '), {
                         name: ss.option.name,
@@ -1346,12 +1322,12 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                 : resource.kind === 'mythic' ? mythicPoints.available <= 0
                     : false
     const resourceText =
-        resource.kind === 'slot' || resource.kind === 'spontaneous' ? `1 slot de rank ${castRank ?? '?'}`
-            : resource.kind === 'focus' ? '1 ponto de foco'
-                : resource.kind === 'mythic' ? '1 Ponto Mítico (Mythic Magic)'
+        resource.kind === 'slot' || resource.kind === 'spontaneous' ? tr(`1 slot de rank ${castRank ?? '?'}`, `1 rank ${castRank ?? '?'} slot`)
+            : resource.kind === 'focus' ? tr('1 ponto de foco', '1 focus point')
+                : resource.kind === 'mythic' ? tr('1 Ponto Mítico (Mythic Magic)', '1 Mythic Point (Mythic Magic)')
                     : null
     const costText = [
-        castTime?.kind === 'reaction' ? 'a reação' : spellActions > 0 ? `${spellActions} ${spellActions === 1 ? 'ação' : 'ações'}` : null,
+        castTime?.kind === 'reaction' ? tr('a reação', 'the reaction') : spellActions > 0 ? `${spellActions} ${spellActions === 1 ? tr('ação', 'action') : tr('ações', 'actions')}` : null,
         resourceText,
     ].filter(Boolean).join(' e ')
     const ampDef = request.psychic && canAmpPsiCantrips(build) ? psiAmpFor(request.name) : null
@@ -1392,7 +1368,7 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
 
     const attackParts: CheckPart[] | null = hasAttack ? [
         ...attack!.parts,
-        ...(map ? [{ label: `${map + 1}º ataque`, value: -5 * map, kind: 'map' as const }] : []),
+        ...(map ? [{ label: tr(`${map + 1}º ataque`, `${['1st', '2nd', '3rd'][map] ?? `${map + 1}th`} attack`), value: -5 * map, kind: 'map' as const }] : []),
         ...(adjust ? [{ label: 'Ajuste', value: adjust, kind: 'other' as const }] : []),
     ] : null
     const total = attackParts ? sumParts(attackParts) : null
@@ -1412,10 +1388,10 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     const sub = [
         castRank != null ? `rank ${castRank}` : null,
         attackParts && map ? mapLabel(map) : null,
-        basic && spell?.defense ? `salvaguarda: ${spell.defense}` : null,
+        basic && spell?.defense ? tr(`salvaguarda: ${spell.defense}`, `save: ${spell.defense}`) : null,
         ampOn && ampDef ? 'amplificada' : null,
-        mode ? `energia: ${mode === 'add' ? 'adicionando (fogo)' : 'removendo (frio)'}` : null,
-        psycheTarget ? `psique liberada +${psycheBonus}` : null,
+        mode ? tr('energia: ', 'energy: ') + (mode === 'add' ? tr('adicionando (fogo)', 'adding (fire)') : tr('removendo (frio)', 'removing (cold)')) : null,
+        psycheTarget ? tr(`psique liberada +${psycheBonus}`, `psyche unleashed +${psycheBonus}`) : null,
     ].filter(Boolean).join(' · ')
 
     return (
@@ -1426,30 +1402,28 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                     {attackParts && (
                         <>
                             <Box>
-                                <Typography variant="caption" color="text.secondary">Penalidade de ataques múltiplos</Typography>
+                                <Typography variant="caption" color="text.secondary">{tr('Penalidade de ataques múltiplos', 'Multiple attack penalty')}</Typography>
                                 <ToggleButtonGroup exclusive size="small" value={map} onChange={(_, v) => { if (v !== null) setMap(v) }} fullWidth>
                                     <ToggleButton value={0}>1º</ToggleButton>
                                     <ToggleButton value={1}>2º (−5)</ToggleButton>
                                     <ToggleButton value={2}>3º (−10)</ToggleButton>
                                 </ToggleButtonGroup>
                             </Box>
-                            <Memorial title="Ataque de magia" parts={attackParts} total={total!} />
+                            <Memorial title={tr("Ataque de magia", 'Spell attack')} parts={attackParts} total={total!} />
                             {isMythicAttackSpell(request.name) && !attack!.alreadyMythic && (
                                 <Typography variant="caption" sx={{ color: MYTHIC_COLOR }}>
-                                    Magia mítica: o ataque usa a proficiência mítica (nível + 10), como a AON manda.
-                                </Typography>
+                                    {tr('Magia mítica: o ataque usa a proficiência mítica (nível + 10), como a AON manda.', 'Mythic spell: the attack uses mythic proficiency (level + 10), as AON says.')}</Typography>
                             )}
                             {attack!.alreadyMythic && (
                                 <Typography variant="caption" sx={{ color: MYTHIC_COLOR }}>
-                                    Mythic Magic: o ataque já usa a proficiência mítica, e o Ponto Mítico sai ao conjurar.
-                                </Typography>
+                                    {tr('Mythic Magic: o ataque já usa a proficiência mítica, e o Ponto Mítico sai ao conjurar.', 'Mythic Magic: the attack already uses mythic proficiency, and the Mythic Point is spent when casting.')}</Typography>
                             )}
                         </>
                     )}
 
                     {range && (
                         <Box>
-                            <Typography variant="caption" color="text.secondary">Quantas ações você gasta nesta magia</Typography>
+                            <Typography variant="caption" color="text.secondary">{tr('Quantas ações você gasta nesta magia', 'How many actions you spend on this spell')}</Typography>
                             <ToggleButtonGroup
                                 exclusive
                                 size="small"
@@ -1463,7 +1437,7 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                                 fullWidth
                             >
                                 {Array.from({ length: range.max - range.min + 1 }, (_, i) => range.min + i).map((n) => (
-                                    <ToggleButton key={n} value={n}>{n} {n === 1 ? 'ação' : 'ações'}</ToggleButton>
+                                    <ToggleButton key={n} value={n}>{n} {n === 1 ? tr('ação', 'action') : tr('ações', 'actions')}</ToggleButton>
                                 ))}
                             </ToggleButtonGroup>
                             {variant ? (
@@ -1472,15 +1446,14 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                                 ))
                             ) : (
                                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                    O efeito desta magia muda com as ações (alvos, área, dano). Os números aqui são os da descrição — confira o que o seu número de ações faz.
-                                </Typography>
+                                    {tr('O efeito desta magia muda com as ações (alvos, área, dano). Os números aqui são os da descrição — confira o que o seu número de ações faz.', 'This spell\'s effect changes with the actions (targets, area, damage). The numbers here are the description\'s — check what your number of actions does.')}</Typography>
                             )}
                         </Box>
                     )}
                     {ampDef && castRank != null && (
                         <Box>
                             <Chip
-                                label={`Amplificar · 1 Ponto de Foco (${focusLeft} restante${focusLeft === 1 ? '' : 's'})`}
+                                label={tr(`Amplificar · 1 Ponto de Foco (${focusLeft} restante${focusLeft === 1 ? '' : 's'})`, `Amp · 1 Focus Point (${focusLeft} left)`)}
                                 color={ampOn ? 'primary' : 'default'}
                                 variant={ampOn ? 'filled' : 'outlined'}
                                 disabled={!ampOn && focusLeft === 0}
@@ -1493,12 +1466,11 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                                 sx={{ minHeight: 32 }}
                             />
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                {ampDef.summary} O ponto é gasto ao rolar.
-                            </Typography>
+                                {ampDef.summary} {tr(' O ponto é gasto ao rolar.', ' The point is spent when rolling.')}</Typography>
                             {ampOn && ampDef.meleeOption && (
                                 <Chip
                                     size="small"
-                                    label="Ataque corpo a corpo (d12)"
+                                    label={tr("Ataque corpo a corpo (d12)", 'Melee attack (d12)')}
                                     color={melee ? 'primary' : 'default'}
                                     variant={melee ? 'filled' : 'outlined'}
                                     aria-pressed={melee}
@@ -1516,19 +1488,18 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                         <Box>
                             <Typography variant="caption" color="text.secondary">Conservation of Energy</Typography>
                             <ToggleButtonGroup exclusive size="small" value={mode} fullWidth onChange={(_, v: EnergyMode | null) => { if (v) setPicked(v) }}>
-                                <ToggleButton value="add" disabled={!energy.allowed.includes('add')} sx={{ textTransform: 'none' }}>Adicionar (fogo)</ToggleButton>
-                                <ToggleButton value="remove" disabled={!energy.allowed.includes('remove')} sx={{ textTransform: 'none' }}>Remover (frio)</ToggleButton>
+                                <ToggleButton value="add" disabled={!energy.allowed.includes('add')} sx={{ textTransform: 'none' }}>{tr('Adicionar (fogo)', 'Add (fire)')}</ToggleButton>
+                                <ToggleButton value="remove" disabled={!energy.allowed.includes('remove')} sx={{ textTransform: 'none' }}>{tr('Remover (frio)', 'Remove (cold)')}</ToggleButton>
                             </ToggleButtonGroup>
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                {energy.stored.last ? 'A última foi a oposta: esta tem de ser a outra.' : 'Neutro: a primeira escolha é livre.'} Rolar registra a escolha.
-                            </Typography>
+                                {energy.stored.last ? tr('A última foi a oposta: esta tem de ser a outra.', 'The last one was the opposite: this one has to be the other.') : tr('Neutro: a primeira escolha é livre.', 'Neutral: the first choice is free.')} {tr(' Rolar registra a escolha.', ' Rolling records the choice.')}</Typography>
                         </Box>
                     )}
 
                     {components.length > 0 && (
                         <Box>
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                                {components.length > 1 ? 'Dano — às vezes as parcelas somam, às vezes são alternativas: ligue as que valem' : 'Dano'}
+                                {components.length > 1 ? tr('Dano — às vezes as parcelas somam, às vezes são alternativas: ligue as que valem', 'Damage — sometimes the parts add up, sometimes they\'re alternatives: turn on the ones that apply') : tr('Dano', 'Damage')}
                             </Typography>
                             <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
                                 {components.map((c) => {
@@ -1554,55 +1525,48 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                             </Stack>
                             {components.some((c) => c.uncertain) && (
                                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                    "(?)": o número deste rank não pôde ser lido com segurança — role à mão.
-                                </Typography>
+                                    {tr('"(?)": o número deste rank não pôde ser lido com segurança — role à mão.', '"(?)": this rank\'s number couldn\'t be read safely — roll it by hand.')}</Typography>
                             )}
                             {basic && (
                                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                    Salvaguarda básica: a mesa vê o dano de cada grau (sucesso ½, falha crítica ×2).
-                                </Typography>
+                                    {tr('Salvaguarda básica: a mesa vê o dano de cada grau (sucesso ½, falha crítica ×2).', 'Basic save: the table sees the damage for each degree (success ½, critical failure ×2).')}</Typography>
                             )}
                             {attackParts && chosen.length > 0 && (
                                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                    Crítico: dobra o rolado (o persistente entra à parte, como a magia mandar).
-                                </Typography>
+                                    {tr('Crítico: dobra o rolado (o persistente entra à parte, como a magia mandar).', 'Critical: doubles what\'s rolled (persistent damage goes separately, as the spell says).')}</Typography>
                             )}
                         </Box>
                     )}
 
                     {psycheTarget && (
                         <Typography variant="caption" sx={{ color: PSYCHE_COLOR, display: 'block' }}>
-                            Psique liberada: +{psycheBonus} de dano (status, o dobro do rank {castRank}) na primeira parcela de dano.
-                        </Typography>
+                            {tr('Psique liberada: +', 'Psyche unleashed: +')}{psycheBonus}{tr(' de dano (status, o dobro do rank ', ' damage (status, twice the rank ')}{castRank}{tr(') na primeira parcela de dano.', ') on the first damage part.')}</Typography>
                     )}
 
                     {spell && castRank != null && !scaled && (
                         <Alert severity="info" sx={{ py: 0 }}>
-                            O dano desta magia ainda não está no formato que dá para rolar. Feche e abra a magia de novo.
-                        </Alert>
+                            {tr('O dano desta magia ainda não está no formato que dá para rolar. Feche e abra a magia de novo.', 'This spell\'s damage isn\'t in a rollable format yet. Close the spell and open it again.')}</Alert>
                     )}
                     {spell && components.length === 0 && scaled && !attackParts && (
-                        <Alert severity="info" sx={{ py: 0 }}>Esta magia não tem ataque nem dano para rolar: "Conjurar" só registra o gasto.</Alert>
+                        <Alert severity="info" sx={{ py: 0 }}>{tr('Esta magia não tem ataque nem dano para rolar: "Conjurar" só registra o gasto.', 'This spell has no attack or damage to roll: "Cast" only records the spending.')}</Alert>
                     )}
                     {spell && costText && (
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                            {castOnly ? 'Conjurar' : 'Rolar'} gasta {costText}.{resourceText ? ' Se você já marcou o slot na lista, não conta de novo.' : ''}
+                            {castOnly ? tr('Conjurar', 'Cast') : tr('Rolar', 'Roll')} {tr(' gasta ', ' spends ')}{costText}.{resourceText ? tr(' Se você já marcou o slot na lista, não conta de novo.', ' If you already marked the slot in the list, it doesn\'t count again.') : ''}
                         </Typography>
                     )}
                     {spell && resourceLacking && (
                         <Alert severity="warning" sx={{ py: 0 }}>
-                            {resource.kind === 'mythic' ? 'Você não tem Pontos Míticos.' : resource.kind === 'focus' ? 'Você não tem pontos de foco.' : 'Não há slot disponível deste rank.'} Dá para conjurar mesmo assim, mas nada é descontado.
-                        </Alert>
+                            {resource.kind === 'mythic' ? tr('Você não tem Pontos Míticos.', 'You have no Mythic Points.') : resource.kind === 'focus' ? tr('Você não tem pontos de foco.', 'You have no focus points.') : tr('Não há slot disponível deste rank.', 'There\'s no slot available at this rank.')} {tr(' Dá para conjurar mesmo assim, mas nada é descontado.', ' You can cast anyway, but nothing is deducted.')}</Alert>
                     )}
 
                     {lackingSpell > 0 && (
                         <Alert severity="warning" sx={{ py: 0 }}>
-                            Você não tem ações suficientes neste turno (faltam {lackingSpell}). Dá para rolar mesmo assim.
-                        </Alert>
+                            {tr('Você não tem ações suficientes neste turno (faltam ', 'You don\'t have enough actions this turn (missing ')}{lackingSpell}{tr('). Dá para rolar mesmo assim.', '). You can roll anyway.')}</Alert>
                     )}
                     {studious && (
                         <Chip
-                            label="Magia estudiosa: entrar na Arcane Cascade como ação livre"
+                            label={tr("Magia estudiosa: entrar na Arcane Cascade como ação livre", 'Studious spell: enter Arcane Cascade as a free action')}
                             color={studiousCascade ? 'primary' : 'default'}
                             variant={studiousCascade ? 'filled' : 'outlined'}
                             aria-pressed={studiousCascade}
@@ -1611,7 +1575,7 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                         />
                     )}
                     {attackParts && <SituationalNotes mods={mods} />}
-                    {attackParts && <AdjustField label="Ajuste no ataque" value={adjust} onChange={setAdjust} />}
+                    {attackParts && <AdjustField label={tr("Ajuste no ataque", 'Attack adjustment')} value={adjust} onChange={setAdjust} />}
                 </Stack>
             </DialogContent>
             <RollActions
@@ -1622,7 +1586,7 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                 mythicPoints={mythicPoints}
                 onClose={onClose}
                 disabled={nothing && !castOnly}
-                label={castOnly ? 'Conjurar' : undefined}
+                label={castOnly ? tr('Conjurar', 'Cast') : undefined}
                 onRoll={(mythic) => {
                     if (spell) {
                         spellCast.cast({ name: request.name, actionsText: spell.actions, resource, via: 'roll', chosenActions: range ? nActions : undefined, traits: spell.traits })

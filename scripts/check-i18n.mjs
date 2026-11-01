@@ -116,7 +116,8 @@ function exempt(node) {
             if (name === 'tr') return p.arguments?.[0] === child || p.arguments?.[1] === child
             if (IGNORE_CALLEES.has(name)) return true
             if (ts.isPropertyAccessExpression(p.expression) && calleeName(p.expression.expression) === 'console') return true
-            return false
+            // Outra chamada: segue subindo (a string pode estar dentro do português de um `tr()`).
+            continue
         }
         if (ts.isBinaryExpression(p) && [ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken, ts.SyntaxKind.EqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsToken].includes(p.operatorToken.kind)) return true
         if (ts.isCaseClause(p) && p.expression === child) return true

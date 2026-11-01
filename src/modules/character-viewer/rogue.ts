@@ -76,5 +76,8 @@ export const DEBILITATIONS: Array<{ id: Debilitation; label: string; note: strin
 /** O texto da rolagem sobre o veneno da arma. */
 export function poisonNote(name: string, def: { dc: number | null; save: string | null } | null): string {
     const save = def?.save ? { fortitude: 'Fortitude', reflex: tr('Reflexos', 'Reflex'), will: tr('Vontade', 'Will') }[def.save] ?? def.save : null
-    return `veneno: ${name}${def?.dc ? ` (CD ${def.dc}${save ? ` ${save}` : ''})` : ''}`
+    return tr(
+        `veneno: ${name}${def?.dc ? ` (CD ${def.dc}${save ? ` ${save}` : ''})` : ''}`,
+        `poison: ${name}${def?.dc ? ` (DC ${def.dc}${save ? ` ${save}` : ''})` : ''}`,
+    )
 }
