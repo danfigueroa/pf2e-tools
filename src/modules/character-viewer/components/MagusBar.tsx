@@ -33,6 +33,7 @@ import { MythicFeatsRows } from './MythicFeatsRows'
 import type { ConditionsApi } from './useConditions'
 import type { MagusApi } from './useMagus'
 import type { MythicPointsApi } from './useMythicPoints'
+import { tr } from '../../../i18n'
 
 interface Props {
     build: BuildInfo
@@ -95,7 +96,7 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
                     <Stack direction="row" alignItems="center" spacing={1}>
                         <MagusIcon sx={{ color: MAGUS_COLOR }} />
                         <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1rem' }}>
-                            {magus.canCascade || hasSpellstrike(build) ? 'Magus' : 'Poder mítico'}
+                            {magus.canCascade || hasSpellstrike(build) ? 'Magus' : tr('Poder mítico', 'Mythic power')}
                         </Typography>
                     </Stack>
 
@@ -105,7 +106,7 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
                                 {effect ? (
                                     <>
                                         <Chip
-                                            label={`Na postura · +${effect.damage} ${translateDamageType(effect.type)}`}
+                                            label={tr(`Na postura · +${effect.damage} ${translateDamageType(effect.type)}`, `In the stance · +${effect.damage} ${translateDamageType(effect.type)}`)}
                                             size="small"
                                             sx={{ ...chipSx, bgcolor: MAGUS_COLOR, color: '#FFFFFF' }}
                                         />
@@ -113,7 +114,7 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
                                             size="small"
                                             value={stored.cascadeType}
                                             onChange={(e) => magus.setCascadeType(e.target.value)}
-                                            inputProps={{ 'aria-label': 'Tipo do dano da postura' }}
+                                            inputProps={{ 'aria-label': tr('Tipo do dano da postura', 'Stance damage type') }}
                                             sx={{ height: 32, fontSize: '0.85rem' }}
                                         >
                                             {CASCADE_TYPES.map((t) => (
@@ -121,31 +122,27 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
                                             ))}
                                         </Select>
                                         <Button size="small" variant="outlined" onClick={() => magus.setCascade(false)} sx={{ ml: 'auto' }}>
-                                            Sair da postura
-                                        </Button>
+                                            {tr('Sair da postura', 'Leave the stance')}</Button>
                                     </>
                                 ) : (
                                     <>
                                         <Typography variant="body2" color="text.secondary" sx={{ flex: 1, minWidth: 160 }}>
-                                            +{cascadeDamage(build)} de dano nos Golpes corpo a corpo.
-                                        </Typography>
-                                        <Tooltip title="Para entrar, sua última ação no turno precisa ter sido conjurar uma magia ou fazer um Spellstrike.">
+                                            +{cascadeDamage(build)} {tr('de dano nos Golpes corpo a corpo.', 'damage on melee Strikes.')}</Typography>
+                                        <Tooltip title={tr("Para entrar, sua última ação no turno precisa ter sido conjurar uma magia ou fazer um Spellstrike.", 'To enter it, your last action on the turn must have been casting a spell or making a Spellstrike.')}>
                                             <Button
                                                 size="small"
                                                 variant="contained"
                                                 onClick={() => { actions.spend(1); magus.setCascade(true) }}
                                                 sx={{ bgcolor: MAGUS_COLOR, '&:hover': { bgcolor: MAGUS_COLOR, filter: 'brightness(0.9)' } }}
                                             >
-                                                Entrar na postura
-                                            </Button>
+                                                {tr('Entrar na postura', 'Enter the stance')}</Button>
                                         </Tooltip>
                                     </>
                                 )}
                             </FeatureRow>
                             {effect && (
                                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                    Escolha o tipo da última magia que conjurou (força se ela não causava dano). Os Golpes ganham o traço arcane.
-                                </Typography>
+                                    {tr('Escolha o tipo da última magia que conjurou (força se ela não causava dano). Os Golpes ganham o traço arcane.', 'Choose the type of the last spell you cast (force if it dealt no damage). The Strikes gain the arcane trait.')}</Typography>
                             )}
                         </Box>
                     )}
@@ -153,21 +150,20 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
                     {hasSpellstrike(build) && (
                         <FeatureRow title="Spellstrike">
                             <Chip
-                                label={stored.spent ? 'Gasto' : 'Carregado'}
+                                label={stored.spent ? tr('Gasto', 'Spent') : tr('Carregado', 'Charged')}
                                 size="small"
                                 variant={stored.spent ? 'outlined' : 'filled'}
                                 sx={stored.spent ? chipSx : { ...chipSx, bgcolor: MAGUS_COLOR + '22', color: MAGUS_COLOR, border: `1px solid ${MAGUS_COLOR}55` }}
                             />
                             <Box sx={{ ml: 'auto' }}>
                                 {stored.spent ? (
-                                    <Tooltip title="Recarregar o Spellstrike custa 1 ação.">
+                                    <Tooltip title={tr("Recarregar o Spellstrike custa 1 ação.", 'Recharging Spellstrike costs 1 action.')}>
                                         <Button size="small" variant="contained" onClick={() => { actions.spend(1); magus.rechargeSpellstrike() }}
                                             sx={{ bgcolor: MAGUS_COLOR, '&:hover': { bgcolor: MAGUS_COLOR, filter: 'brightness(0.9)' } }}>
-                                            Recarregar · 1 ação
-                                        </Button>
+                                            {tr('Recarregar · 1 ação', 'Recharge · 1 action')}</Button>
                                     </Tooltip>
                                 ) : (
-                                    <Tooltip title="Marca como gasto. Volta ao recarregar (1 ação, concentrar) ou ao conjurar uma magia de conflux que leve 1 ação ou mais; magia de foco de outro tipo não recarrega.">
+                                    <Tooltip title={tr("Marca como gasto. Volta ao recarregar (1 ação, concentrar) ou ao conjurar uma magia de conflux que leve 1 ação ou mais; magia de foco de outro tipo não recarrega.", 'Marks it as spent. It comes back when you recharge (1 action, concentrate) or cast a conflux spell that takes 1 action or more; another kind of focus spell doesn\'t recharge it.')}>
                                         <Button size="small" variant="outlined" onClick={magus.spendSpellstrike}>
                                             Usei o Spellstrike
                                         </Button>
@@ -182,22 +178,20 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
                             {stored.summoned ? (
                                 <>
                                     <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
-                                        Já usada hoje.
-                                    </Typography>
-                                    <Button size="small" onClick={magus.newDay}>Novo dia</Button>
+                                        {tr('Já usada hoje.', 'Already used today.')}</Typography>
+                                    <Button size="small" onClick={magus.newDay}>{tr('Novo dia', 'New day')}</Button>
                                 </>
                             ) : (
                                 <>
                                     <Typography variant="body2" color="text.secondary" sx={{ flex: 1, minWidth: 160 }}>
-                                        1 ação, 1× por dia: recupera 1 Ponto Mítico.
-                                    </Typography>
+                                        {tr('1 ação, 1× por dia: recupera 1 Ponto Mítico.', '1 action, 1× per day: regain 1 Mythic Point.')}</Typography>
                                     <Button
                                         size="small"
                                         variant="outlined"
                                         disabled={mythicPoints.used === 0}
                                         onClick={summon}
                                     >
-                                        {mythicPoints.used === 0 ? 'Pontos cheios' : 'Recuperar 1 ponto'}
+                                        {mythicPoints.used === 0 ? tr('Pontos cheios', 'Points full') : tr('Recuperar 1 ponto', 'Regain 1 point')}
                                     </Button>
                                 </>
                             )}
@@ -207,7 +201,7 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
                     {hasDivertDestiny(build) && (
                         <FeatureRow title="Divert Destiny">
                             <Typography variant="body2" color="text.secondary" sx={{ flex: 1, minWidth: 160 }}>
-                                Reação: ao ir a 0 PV, gasta 1 Ponto Mítico e fica com {divertHp} PV.
+                                {tr('Reação: ao ir a 0 PV, gasta 1 Ponto Mítico e fica com ', 'Reaction: when you drop to 0 HP, spend 1 Mythic Point and stay at ')}{divertHp} PV.
                             </Typography>
                             <Button
                                 size="small"
@@ -216,7 +210,7 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
                                 disabled={!canSpend}
                                 onClick={() => setConfirmDivert(true)}
                             >
-                                {canSpend ? 'Usar' : 'Sem pontos'}
+                                {canSpend ? tr('Usar', 'Use') : tr('Sem pontos', 'No points')}
                             </Button>
                         </FeatureRow>
                     )}
@@ -224,10 +218,10 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
                     {hasFieryRebirthFeat(build) && (
                         <FeatureRow title="Fiery Rebirth">
                             <Typography variant="body2" color="text.secondary" sx={{ flex: 1, minWidth: 160 }}>
-                                Ao escapar da morte: gasta 1 Ponto Mítico, volta de pé com +{fieryRebirthHeal(build.level)} PV e explode em fogo ({fieryRebirthDamage(build.level)}).
+                                {tr('Ao escapar da morte: gasta 1 Ponto Mítico, volta de pé com +', 'When you escape death: spend 1 Mythic Point, get back up with +')}{fieryRebirthHeal(build.level)} {tr('PV e explode em fogo (', 'HP and explode in fire (')}{fieryRebirthDamage(build.level)}).
                             </Typography>
                             <Button size="small" variant="outlined" color="error" disabled={!canSpend} onClick={() => setConfirmRebirth(true)}>
-                                {canSpend ? 'Usar' : 'Sem pontos'}
+                                {canSpend ? tr('Usar', 'Use') : tr('Sem pontos', 'No points')}
                             </Button>
                         </FeatureRow>
                     )}
@@ -238,14 +232,11 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
                 <DialogTitle>Fiery Rebirth</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Gasta 1 Ponto Mítico. {build.name} volta à consciência, de pé, e recupera {fieryRebirthHeal(build.level)} PV.
-                        Em seguida explode em fogo: {fieryRebirthDamage(build.level)} de dano em quem está adjacente (Reflexos básico,
-                        CD {classDc(build)}; falha crítica empurra 1,5 m). A rolagem vai para a mesa.
-                    </DialogContentText>
+                        {tr('Gasta 1 Ponto Mítico. ', 'Spends 1 Mythic Point. ')}{build.name} {tr('volta à consciência, de pé, e recupera ', 'regains consciousness, standing, and recovers ')}{fieryRebirthHeal(build.level)} {tr('PV. Em seguida explode em fogo: ', 'HP. Then explodes in fire: ')}{fieryRebirthDamage(build.level)} {tr('de dano em quem está adjacente (Reflexos básico, CD ', 'damage to whoever is adjacent (basic Reflex, DC ')}{classDc(build)}{tr('; falha crítica empurra 1,5 m). A rolagem vai para a mesa.', '; critical failure pushes 5 feet). The roll goes to the table.')}</DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button color="inherit" onClick={() => setConfirmRebirth(false)}>Cancelar</Button>
-                    <Button variant="contained" color="error" onClick={rebirth}>Usar Fiery Rebirth</Button>
+                    <Button color="inherit" onClick={() => setConfirmRebirth(false)}>{tr('Cancelar', 'Cancel')}</Button>
+                    <Button variant="contained" color="error" onClick={rebirth}>{tr('Usar Fiery Rebirth', 'Use Fiery Rebirth')}</Button>
                 </DialogActions>
             </EmbedDialog>
 
@@ -253,13 +244,11 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
                 <DialogTitle>Divert Destiny</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Gasta 1 Ponto Mítico. {build.name} sobrevive com {divertHp} PV, perde os estados ferido e morrendo
-                        e fica de pé e consciente. O condenado não aumenta.
-                    </DialogContentText>
+                        {tr('Gasta 1 Ponto Mítico. ', 'Spends 1 Mythic Point. ')}{build.name} {tr('sobrevive com ', 'survives with ')}{divertHp} {tr('PV, perde os estados ferido e morrendo e fica de pé e consciente. O condenado não aumenta.', 'HP, loses the wounded and dying conditions and is standing and conscious. Doomed doesn\'t increase.')}</DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button color="inherit" onClick={() => setConfirmDivert(false)}>Cancelar</Button>
-                    <Button variant="contained" color="error" onClick={divert}>Usar Divert Destiny</Button>
+                    <Button color="inherit" onClick={() => setConfirmDivert(false)}>{tr('Cancelar', 'Cancel')}</Button>
+                    <Button variant="contained" color="error" onClick={divert}>{tr('Usar Divert Destiny', 'Use Divert Destiny')}</Button>
                 </DialogActions>
             </EmbedDialog>
         </Card>

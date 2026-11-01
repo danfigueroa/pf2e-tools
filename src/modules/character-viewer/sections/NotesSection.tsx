@@ -11,6 +11,7 @@ import { charSlug } from '../charId'
 import { useSheetReadOnly, VIEW_OK } from '../sheetAccess'
 import { useCharacterNotes, type NotesStatus } from '../components/useCharacterNotes'
 import { MAX_NOTES, NOTE_TAGS, TAG_LABELS, newNoteId, type Note, type NoteTag } from '../notes'
+import { tr } from '../../../i18n'
 
 // Aba Anotações: o background do personagem e as notas do jogador (NPCs, itens,
 // locais, acontecimentos). Markdown com prévia; salva sozinho (ver
@@ -21,12 +22,12 @@ import { MAX_NOTES, NOTE_TAGS, TAG_LABELS, newNoteId, type Note, type NoteTag } 
 interface Props { build: BuildInfo }
 
 const STATUS_TEXT: Record<NotesStatus, string> = {
-    loading: 'Carregando…',
-    saved: 'Salvo',
-    pending: 'Alterações a salvar…',
+    loading: tr('Carregando…', 'Loading…'),
+    saved: tr('Salvo', 'Saved'),
+    pending: tr('Alterações a salvar…', 'Changes to save…'),
     saving: 'Salvando…',
-    offline: 'Sem conexão — guardado neste aparelho',
-    conflict: 'Editado em outro aparelho',
+    offline: tr('Sem conexão — guardado neste aparelho', 'No connection — kept on this device'),
+    conflict: tr('Editado em outro aparelho', 'Edited on another device'),
 }
 
 const sortNotes = (a: Note, b: Note) =>
@@ -48,7 +49,7 @@ function NoteCard({ note, readOnly, version, onChange, onDelete }: {
                         ? (
                             <TextField
                                 size="small"
-                                label="Título"
+                                label={tr("Título", 'Title')}
                                 defaultValue={note.title}
                                 key={`${note.id}-t-${version}`}
                                 onChange={(e) => onChange({ title: e.target.value.slice(0, 200) })}
@@ -57,7 +58,7 @@ function NoteCard({ note, readOnly, version, onChange, onDelete }: {
                         )
                         : (
                             <Typography variant="subtitle1" sx={{ flex: '1 1 140px', fontWeight: 700, minWidth: 0, overflowWrap: 'anywhere' }}>
-                                {note.title || 'Sem título'}
+                                {note.title || tr('Sem título', 'Untitled')}
                             </Typography>
                         )}
                     {open && !readOnly
@@ -78,14 +79,14 @@ function NoteCard({ note, readOnly, version, onChange, onDelete }: {
                         <>
                             <IconButton
                                 size="small"
-                                aria-label={note.pinned ? 'Desafixar nota' : 'Fixar nota no topo'}
+                                aria-label={note.pinned ? tr('Desafixar nota', 'Unpin note') : tr('Fixar nota no topo', 'Pin note to the top')}
                                 onClick={() => onChange({ pinned: !note.pinned })}
                                 sx={{ color: note.pinned ? green.main : 'text.disabled' }}
                             >
                                 <PinIcon fontSize="small" />
                             </IconButton>
-                            <Button size="small" onClick={() => setOpen((v) => !v)}>{open ? 'Pronto' : 'Editar'}</Button>
-                            <IconButton size="small" aria-label="Apagar nota" onClick={onDelete}>
+                            <Button size="small" onClick={() => setOpen((v) => !v)}>{open ? tr('Pronto', 'Done') : tr('Editar', 'Edit')}</Button>
+                            <IconButton size="small" aria-label={tr("Apagar nota", 'Delete note')} onClick={onDelete}>
                                 <DeleteIcon fontSize="small" />
                             </IconButton>
                         </>
@@ -102,13 +103,13 @@ function NoteCard({ note, readOnly, version, onChange, onDelete }: {
                                 onChange={(body) => onChange({ body: body.slice(0, 20000) })}
                                 imageName={note.id}
                                 minRows={6}
-                                aria-label={`Texto da nota ${note.title}`}
-                                placeholder="Escreva o que aconteceu, o que descobriu, o que quer lembrar…"
+                                aria-label={tr(`Texto da nota ${note.title}`, `Text of the note ${note.title}`)}
+                                placeholder={tr("Escreva o que aconteceu, o que descobriu, o que quer lembrar…", 'Write what happened, what you found out, what you want to remember…')}
                             />
                         )
                         : note.body.trim()
                             ? <Markdown source={note.body} />
-                            : <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>Nota vazia.</Typography>}
+                            : <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>{tr('Nota vazia.', 'Empty note.')}</Typography>}
                 </Box>
             </CardContent>
         </Card>
@@ -146,7 +147,7 @@ const NotesSectionView = ({ build }: Props) => {
     }
 
     const removeNote = (note: Note) => {
-        if (!window.confirm(`Apagar a nota "${note.title || 'Sem título'}"? Isso vale para a mesa inteira.`)) return
+        if (!window.confirm(tr(`Apagar a nota "${note.title || 'Sem título'}"? Isso vale para a mesa inteira.`, `Delete the note "${note.title || 'Untitled'}"? This applies to the whole table.`))) return
         update((n) => ({ ...n, notes: n.notes.filter((x) => x.id !== note.id) }))
     }
 
@@ -157,21 +158,20 @@ const NotesSectionView = ({ build }: Props) => {
                     severity="warning"
                     action={(
                         <Stack direction="row" spacing={1}>
-                            <Button color="inherit" size="small" onClick={keepTheirs} disabled={!theirs}>Usar a do outro aparelho</Button>
-                            <Button color="inherit" size="small" onClick={keepMine}>Manter a minha</Button>
+                            <Button color="inherit" size="small" onClick={keepTheirs} disabled={!theirs}>{tr('Usar a do outro aparelho', 'Use the other device\'s version')}</Button>
+                            <Button color="inherit" size="small" onClick={keepMine}>{tr('Manter a minha', 'Keep mine')}</Button>
                         </Stack>
                     )}
                 >
-                    Estas anotações foram editadas em outro aparelho.
-                </Alert>
+                    {tr('Estas anotações foram editadas em outro aparelho.', 'These notes were edited on another device.')}</Alert>
             )}
             {status === 'offline' && (
-                <Alert severity="info" action={<Button color="inherit" size="small" onClick={retry}>Tentar de novo</Button>}>
+                <Alert severity="info" action={<Button color="inherit" size="small" onClick={retry}>{tr('Tentar de novo', 'Try again')}</Button>}>
                     {STATUS_TEXT.offline}
                 </Alert>
             )}
             {readOnly && (
-                <Alert severity="info" icon={false}>Anotações de outro jogador: só leitura.</Alert>
+                <Alert severity="info" icon={false}>{tr('Anotações de outro jogador: só leitura.', 'Another player\'s notes: read-only.')}</Alert>
             )}
 
             <Card>
@@ -183,7 +183,7 @@ const NotesSectionView = ({ build }: Props) => {
                     {readOnly
                         ? notes.background.trim()
                             ? <Markdown source={notes.background} />
-                            : <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>Sem background escrito.</Typography>
+                            : <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>{tr('Sem background escrito.', 'No background written.')}</Typography>
                         : (
                             <MarkdownEditor
                                 key={`bg-${version}`}
@@ -192,30 +192,29 @@ const NotesSectionView = ({ build }: Props) => {
                                 onChange={(background) => update((n) => ({ ...n, background: background.slice(0, 20000) }))}
                                 imageName={`${slug}-background`}
                                 minRows={8}
-                                aria-label="Background do personagem"
-                                placeholder="Quem é o seu personagem? De onde veio, o que quer, o que teme…"
+                                aria-label={tr("Background do personagem", 'Character background')}
+                                placeholder={tr("Quem é o seu personagem? De onde veio, o que quer, o que teme…", 'Who is your character? Where did they come from, what do they want, what do they fear…')}
                             />
                         )}
                 </CardContent>
             </Card>
 
             <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
-                <Typography variant="h6" sx={{ mr: 'auto' }}>Anotações</Typography>
+                <Typography variant="h6" sx={{ mr: 'auto' }}>{tr('Anotações', 'Notes')}</Typography>
                 <TextField
                     size="small"
-                    placeholder="Buscar"
+                    placeholder={tr("Buscar", 'Search')}
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     slotProps={{
                         input: { startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment> },
-                        htmlInput: { 'aria-label': 'Buscar nas anotações' },
+                        htmlInput: { 'aria-label': tr('Buscar nas anotações', 'Search the notes') },
                     }}
                     sx={{ flex: '1 1 160px', maxWidth: 260 }}
                 />
                 {!readOnly && (
                     <Button variant="contained" startIcon={<AddIcon />} onClick={addNote} disabled={notes.notes.length >= MAX_NOTES}>
-                        Nova nota
-                    </Button>
+                        {tr('Nova nota', 'New note')}</Button>
                 )}
             </Stack>
 
@@ -225,7 +224,7 @@ const NotesSectionView = ({ build }: Props) => {
                         key={t}
                         {...VIEW_OK}
                         size="small"
-                        label={t === 'all' ? 'Todas' : TAG_LABELS[t]}
+                        label={t === 'all' ? tr('Todas', 'All') : TAG_LABELS[t]}
                         color={tag === t ? 'primary' : 'default'}
                         variant={tag === t ? 'filled' : 'outlined'}
                         onClick={() => setTag(t)}
@@ -237,8 +236,8 @@ const NotesSectionView = ({ build }: Props) => {
                 ? (
                     <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
                         {notes.notes.length === 0
-                            ? (readOnly ? 'Nenhuma nota ainda.' : 'Nenhuma nota ainda. Anote NPCs, itens, locais e o que aconteceu em cada sessão.')
-                            : 'Nenhuma nota com esse filtro.'}
+                            ? (readOnly ? tr('Nenhuma nota ainda.', 'No notes yet.') : tr('Nenhuma nota ainda. Anote NPCs, itens, locais e o que aconteceu em cada sessão.', 'No notes yet. Note down NPCs, items, places and what happened in each session.'))
+                            : tr('Nenhuma nota com esse filtro.', 'No notes with this filter.')}
                     </Typography>
                 )
                 : shown.map((note) => (

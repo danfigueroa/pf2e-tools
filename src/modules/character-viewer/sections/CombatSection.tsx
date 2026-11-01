@@ -31,7 +31,7 @@ import { useGear } from '../../../services/gear'
 import { homebrewGear } from '../homebrewGear'
 import { DEFAULT_STRIKE_OPTIONS, planStrike, weaponStrike } from '../strikes'
 import type { RollRequest } from '../components/RollDialog'
-import { locale } from '../../../i18n'
+import { locale, tr } from '../../../i18n'
 
 interface Props {
     build: BuildInfo
@@ -50,7 +50,7 @@ const AttackTitle = ({ nickname, original, titleVariant, onEdit }: { nickname?: 
     <Box sx={{ minWidth: 0 }}>
         <Typography variant={titleVariant} component="div" sx={{ fontWeight: 700, lineHeight: 1.2, overflowWrap: 'break-word' }}>
             {nickname ?? original}
-            <IconButton size="small" onClick={onEdit} aria-label={`Dar nome próprio a ${original}`} sx={{ ml: 0.5, p: 0.5, verticalAlign: 'baseline' }}>
+            <IconButton size="small" onClick={onEdit} aria-label={tr(`Dar nome próprio a ${original}`, `Give ${original} a custom name`)} sx={{ ml: 0.5, p: 0.5, verticalAlign: 'baseline' }}>
                 <EditIcon sx={{ fontSize: 16 }} />
             </IconButton>
         </Typography>
@@ -85,7 +85,7 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect, attackNa
     const isEmpty = weapons.length === 0 && unarmed.length === 0 && armor.length === 0 && !build.acTotal
 
     if (isEmpty) {
-        return <EmptyMsg>Sem armas ou armadura na ficha.</EmptyMsg>
+        return <EmptyMsg>{tr('Sem armas ou armadura na ficha.', 'No weapons or armor on the sheet.')}</EmptyMsg>
     }
 
     return (
@@ -111,7 +111,7 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect, attackNa
                                     onEdit={() => setRenaming({ key: weaponNameKey(build, w), original: itemDisplayName(build, w, 'weapon') })}
                                 />
                                 <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.75, justifyContent: 'center' }}>
-                                    <Chip label={`Proficiência: ${capitalize(w.prof)}`} size="small" variant="outlined" />
+                                    <Chip label={tr(`Proficiência: ${capitalize(w.prof)}`, `Proficiency: ${capitalize(w.prof)}`)} size="small" variant="outlined" />
                                     {w.qty > 1 && <Chip label={`x${w.qty}`} size="small" variant="outlined" />}
                                     {itemRuneNames(build, w, 'weapon').map((r) => (
                                         <Chip key={r} label={r} size="small" sx={{ textTransform: 'capitalize' }} />
@@ -150,8 +150,7 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect, attackNa
                 <Card>
                     <CardContent>
                         <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: '0.06em' }}>
-                            Ataques Desarmados
-                        </Typography>
+                            {tr('Ataques Desarmados', 'Unarmed Attacks')}</Typography>
                         <Stack spacing={0} sx={{ mt: 1 }} divider={<Divider flexItem />}>
                             {unarmed.map((u) => (
                                 <Stack
@@ -178,7 +177,7 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect, attackNa
                                                 sx={{ height: 22, fontSize: '0.7rem' }}
                                             />
                                             {u.choice && (
-                                                <Chip label="à escolha" size="small" variant="outlined" sx={{ height: 22, fontSize: '0.7rem' }} />
+                                                <Chip label={tr("à escolha", 'your choice')} size="small" variant="outlined" sx={{ height: 22, fontSize: '0.7rem' }} />
                                             )}
                                         </Stack>
                                         {/* Todo ataque desarmado tem o traço Unarmed (Punho na AON; Howl of the Wild pg. 22 nos animais); a tabela só guarda os que mudam a conta. */}
@@ -219,8 +218,7 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect, attackNa
                 <Card>
                     <CardContent>
                         <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: '0.06em' }}>
-                            Armadura
-                        </Typography>
+                            {tr('Armadura', 'Armor')}</Typography>
                         {armor.length > 0 ? (
                             <Stack spacing={1} sx={{ mt: 1 }}>
                                 {armor.map((a, idx) => (
@@ -230,7 +228,7 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect, attackNa
                                         </Typography>
                                         <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
                                             <Chip label={capitalize(a.prof)} size="small" variant="outlined" />
-                                            {a.pot > 0 && <Chip label={`+${a.pot} potência`} size="small" variant="outlined" />}
+                                            {a.pot > 0 && <Chip label={tr(`+${a.pot} potência`, `+${a.pot} potency`)} size="small" variant="outlined" />}
                                             {a.worn && <Chip label="Vestida" size="small" color="primary" />}
                                             {itemRuneNames(build, a, 'armor').map((r) => (
                                                 <Chip key={r} label={r} size="small" sx={{ textTransform: 'capitalize' }} />
@@ -244,8 +242,7 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect, attackNa
                             </Stack>
                         ) : (
                             <Typography color="text.secondary" sx={{ mt: 1, fontStyle: 'italic' }}>
-                                Sem armadura — CA de desarmado.
-                            </Typography>
+                                {tr('Sem armadura — CA de desarmado.', 'No armor — unarmored AC.')}</Typography>
                         )}
                         {build.acTotal && (
                             <Box
@@ -263,7 +260,7 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect, attackNa
                                 }}
                             >
                                 <MiniStat
-                                    label={shieldAc ? 'CA (escudo erguido)' : 'CA total'}
+                                    label={shieldAc ? tr('CA (escudo erguido)', 'AC (shield raised)') : 'CA total'}
                                     value={build.acTotal.acTotal + mods.total.ac + shieldAc}
                                     delta={mods.total.ac}
                                     base={build.acTotal.acTotal}
@@ -272,7 +269,7 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect, attackNa
                                 <MiniStat label="Atr." value={signed(build.acTotal.acAbilityBonus)} />
                                 <MiniStat label="Item" value={signed(build.acTotal.acItemBonus)} />
                                 {build.acTotal.shieldBonus != null && (
-                                    <MiniStat label="Escudo" value={signed(build.acTotal.shieldBonus)} />
+                                    <MiniStat label={tr("Escudo", 'Shield')} value={signed(build.acTotal.shieldBonus)} />
                                 )}
                             </Box>
                         )}
@@ -305,8 +302,7 @@ const WeaponProfiles = ({ weapon, conditionDelta }: { weapon: Weapon; conditionD
     return (
         <Box sx={{ mt: 2, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
             <Typography variant="overline" sx={{ fontWeight: 700, letterSpacing: '0.06em', color: 'primary.light' }}>
-                Quando fica mais forte
-            </Typography>
+                {tr('Quando fica mais forte', 'When it gets stronger')}</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1.25 }}>
                 {rules.summary}
             </Typography>
@@ -333,11 +329,11 @@ const WeaponProfiles = ({ weapon, conditionDelta }: { weapon: Weapon; conditionD
                             para os dois números não vazarem em 320px. */}
                         <Stack direction="row" sx={{ flexWrap: 'wrap', columnGap: 1.5, rowGap: 0.25, mt: 0.25 }}>
                             <Typography variant="body2">
-                                <Box component="span" sx={{ color: 'text.secondary' }}>Ataque </Box>
+                                <Box component="span" sx={{ color: 'text.secondary' }}>{tr('Ataque ', 'Attack ')}</Box>
                                 <Box component="span" sx={{ fontWeight: 700 }}>{signed(row.attack)}</Box>
                             </Typography>
                             <Typography variant="body2">
-                                <Box component="span" sx={{ color: 'text.secondary' }}>Dano </Box>
+                                <Box component="span" sx={{ color: 'text.secondary' }}>{tr('Dano ', 'Damage ')}</Box>
                                 <Box component="span" sx={{ fontWeight: 700 }}>{row.damage}</Box>
                                 {row.extra.length > 0 && (
                                     <Box component="span" sx={{ color: 'text.secondary' }}>
@@ -398,10 +394,10 @@ const CustomRuneBox = ({ rune, build, sizeEffect, onSelect }: {
             >
                 <Typography variant="body2">
                     <Box component="span" sx={{ fontWeight: 700 }}>
-                        Ativar — {act.name} {actionSymbol(act.actions)}
+                        {tr('Ativar — ', 'Activate — ')}{act.name} {actionSymbol(act.actions)}
                     </Box>
                     {' '}({act.traits.join(', ')})
-                    {act.frequency && <>; <Box component="span" sx={{ fontWeight: 700 }}>Frequência</Box> {act.frequency}</>}
+                    {act.frequency && <>; <Box component="span" sx={{ fontWeight: 700 }}>{tr('Frequência', 'Frequency')}</Box> {act.frequency}</>}
                     ; <Box component="span" sx={{ fontWeight: 700 }}>Efeito</Box> {act.effect}
                 </Typography>
                 {act.sizeEffects && (
@@ -419,7 +415,7 @@ const CustomRuneBox = ({ rune, build, sizeEffect, onSelect }: {
 )
 
 const sinceText = (ms?: number) =>
-    ms ? ` desde ${new Date(ms).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}` : ''
+    ms ? tr(` desde ${new Date(ms).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}`, ` since ${new Date(ms).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}`) : ''
 
 /**
  * Os botões da ativação. Ligado, mostra o que vale agora e o "Voltar ao
@@ -448,17 +444,16 @@ const SizeToggle = ({ ids, build, api, onSelect }: {
                 }}
             >
                 <Typography sx={{ fontWeight: 700 }}>
-                    Ativo: {effect.label} — {sizeLabel(effect.size)}{sinceText(stored.since)}
+                    {tr('Ativo: ', 'Active: ')}{effect.label} — {sizeLabel(effect.size)}{sinceText(stored.since)}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
                     {effect.summary}
                 </Typography>
                 <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1, mt: 1 }}>
                     <Button size="small" variant="contained" onClick={api.deactivate}>
-                        Voltar ao normal
-                    </Button>
+                        {tr('Voltar ao normal', 'Back to normal')}</Button>
                     <Button size="small" onClick={() => onSelect({ type: 'spell', name: effect.spell, level: effect.rank })}>
-                        Ver {effect.spell}
+                        {tr('Ver ', 'See ')}{effect.spell}
                     </Button>
                 </Stack>
             </Box>
@@ -478,12 +473,12 @@ const SizeToggle = ({ ids, build, api, onSelect }: {
                                 variant="contained"
                                 disabled={stored.used || !applies}
                                 onClick={() => api.activate(id)}
-                                aria-label={`Ativar ${def.label} (${def.spell})`}
+                                aria-label={tr(`Ativar ${def.label} (${def.spell})`, `Activate ${def.label} (${def.spell})`)}
                             >
                                 {def.label} · {def.spell}{def.rank > 2 ? ` ${def.rank}º` : ''}
                             </Button>
                             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                                {applies ? def.summary : `Sem efeito: você já é ${sizeLabel(base)}.`}
+                                {applies ? def.summary : tr(`Sem efeito: você já é ${sizeLabel(base)}.`, `No effect: you are already ${sizeLabel(base)}.`)}
                                 {' '}
                                 <Link
                                     component="button"
@@ -491,8 +486,7 @@ const SizeToggle = ({ ids, build, api, onSelect }: {
                                     onClick={() => onSelect({ type: 'spell', name: def.spell, level: def.rank })}
                                     sx={{ verticalAlign: 'baseline' }}
                                 >
-                                    Ver magia
-                                </Link>
+                                    {tr('Ver magia', 'See spell')}</Link>
                             </Typography>
                         </Box>
                     )
@@ -501,11 +495,9 @@ const SizeToggle = ({ ids, build, api, onSelect }: {
             {stored.used && (
                 <Stack direction="row" alignItems="center" sx={{ flexWrap: 'wrap', gap: 1, mt: 1 }}>
                     <Typography variant="body2" color="text.secondary">
-                        Ativação de hoje já usada.
-                    </Typography>
+                        {tr('Ativação de hoje já usada.', 'Today\'s activation already used.')}</Typography>
                     <Button size="small" onClick={api.recharge}>
-                        Novo dia
-                    </Button>
+                        {tr('Novo dia', 'New day')}</Button>
                 </Stack>
             )}
         </Box>
@@ -565,7 +557,7 @@ const AttackStats = ({ attack, attackHint, attackDelta = 0, attackBase, mythicAt
         }}
     >
         <Box sx={{ flex: 1 }}>
-            <StatRow label="Ataque" value={attack} highlight extra={attackHint} />
+            <StatRow label={tr("Ataque", 'Attack')} value={attack} highlight extra={attackHint} />
             <ConditionDelta delta={attackDelta} base={attackBase} />
             {mythicAttack != null && (
                 <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, color: MYTHIC_COLOR }}>
@@ -576,14 +568,13 @@ const AttackStats = ({ attack, attackHint, attackDelta = 0, attackBase, mythicAt
         </Box>
         <Divider sx={{ display: { xs: 'none', sm: 'block' }, my: 0.5 }} flexItem />
         <Box sx={{ flex: 1 }}>
-            <StatRow label="Dano" value={damage} extra={extra} />
+            <StatRow label={tr("Dano", 'Damage')} value={damage} extra={extra} />
             {damageDelta !== 0 && (
                 <Typography
                     component="span"
                     sx={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, color: CONDITION_COLOR }}
                 >
-                    {signed(damageDelta)} no dano de FOR
-                </Typography>
+                    {signed(damageDelta)} {tr('no dano de FOR', 'to STR damage')}</Typography>
             )}
             {bonuses.map((b) => (
                 <Typography key={b.from} component="span" sx={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, color: 'primary.light' }}>
@@ -595,11 +586,10 @@ const AttackStats = ({ attack, attackHint, attackDelta = 0, attackBase, mythicAt
                 variant="contained"
                 startIcon={<DiceIcon />}
                 onClick={onRoll}
-                aria-label={`Rolar golpe com ${rollLabel}`}
+                aria-label={tr(`Rolar golpe com ${rollLabel}`, `Roll Strike with ${rollLabel}`)}
                 sx={{ mt: 1, minHeight: 36 }}
             >
-                Rolar
-            </Button>
+                {tr('Rolar', 'Roll')}</Button>
         </Box>
     </Box>
 )
@@ -644,17 +634,16 @@ const ByAbilityHint = ({ str, dex, damage }: { str: number; dex: number; damage:
     const bits = [
         str !== 0 ? `FOR ${signed(str)}` : null,
         dex !== 0 ? `DES ${signed(dex)}` : null,
-        damage !== 0 ? `dano de FOR ${signed(damage)}` : null,
+        damage !== 0 ? tr(`dano de FOR ${signed(damage)}`, `STR damage ${signed(damage)}`) : null,
     ].filter(Boolean) as string[]
     if (bits.length === 0) return null
     return (
-        <Tooltip title="Penalidade extra conforme o atributo que a arma usa — a ficha do Pathbuilder não registra isso.">
+        <Tooltip title={tr("Penalidade extra conforme o atributo que a arma usa — a ficha do Pathbuilder não registra isso.", 'Extra penalty depending on the attribute the weapon uses — the Pathbuilder sheet doesn\'t record that.')}>
             <Typography
                 component="span"
                 sx={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, color: CONDITION_COLOR, cursor: 'help' }}
             >
-                {bits.join(' · ')} a mais
-            </Typography>
+                {bits.join(' · ')} {tr('a mais', 'more')}</Typography>
         </Tooltip>
     )
 }
@@ -680,14 +669,14 @@ function distinctNotes(list: Array<{ note?: string }>): string[] {
 }
 
 const DAMAGE_TYPES: Record<string, string> = {
-    B: 'contundente',
-    P: 'perfurante',
-    S: 'cortante',
+    B: tr('contundente', 'bludgeoning'),
+    P: tr('perfurante', 'piercing'),
+    S: tr('cortante', 'slashing'),
 }
 
 function damageTypeLabel(type: string): string {
     // "B, P or S": ataque com o tipo de dano à escolha de quem bate (o desarmado do Monge).
-    if (/^[bps]\s*(,|or|ou)\s*[bps]/i.test((type || '').trim())) return 'contundente, perfurante ou cortante'
+    if (/^[bps]\s*(,|or|ou)\s*[bps]/i.test((type || '').trim())) return tr('contundente, perfurante ou cortante', 'bludgeoning, piercing or slashing')
     return DAMAGE_TYPES[(type || '').toUpperCase()] ?? type
 }
 
