@@ -12,6 +12,7 @@
 import { useSyncExternalStore } from 'react'
 import { currentMesa, stateApi, switchMesa } from './mesa'
 import { authHeaders, getAuthClient, isSupabaseConfigured } from './supabase'
+import { isEn, lang, rememberLanguage, storedLanguage, type Lang } from '../i18n'
 
 export type Role = 'player' | 'gm'
 
@@ -161,6 +162,7 @@ async function load(): Promise<void> {
         return setState({ status: 'out' })
     }
     if (!data.session) return setState({ status: 'out' })
+    if (adoptAccountLanguage(client, data.session.user.user_metadata)) return
 
     const me = await fetchMe()
     if (!me) {
@@ -201,10 +203,13 @@ export async function signIn(
 ): Promise<string | null> {
     const client = await getAuthClient()
     if (!client) return 'Não foi possível falar com o servidor de login'
-    const { error } = await client.auth.signInWithPassword({ email: emailOf(username), password })
+    const { data, error } = await client.auth.signInWithPassword({ email: emailOf(username), password })
     if (error) {
         return error.status === 429 ? 'Muitas tentativas seguidas — espere um minuto' : 'Usuário ou senha incorretos'
     }
+    // O idioma da conta já vale na carga seguinte (o recarregamento abaixo), sem uma segunda.
+    const saved = accountLanguage(data.user?.user_metadata)
+    if (saved) rememberLanguage(saved)
     if (!reload) return null
     await beforeReload?.()
     window.location.reload()
@@ -244,6 +249,59 @@ export async function changePassword(password: string): Promise<string | null> {
     const { error } = await client.auth.updateUser({ password })
     if (!error) return null
     return error.code === 'same_password' ? 'A senha nova é igual à atual' : 'Não foi possível trocar a senha'
+}
+
+// --- Idioma da conta -----------------------------------------------------------------
+//
+// A escolha mora em `user_metadata.language` (o Supabase Auth guarda por conta, sem
+// tabela nem migration; o `updateUser` MESCLA os campos, o `username` fica). O
+// `localStorage` (`i18n`) é o cache da primeira pintura: no boot, se a conta diz outra
+// coisa, o aparelho adota e recarrega uma vez.
+
+const LANG_SYNC_KEY = 'pf2e:language-sync'
+
+const accountLanguage = (meta: Record<string, unknown> | undefined): Lang | null =>
+    meta?.language === 'en' || meta?.language === 'pt' ? meta.language : null
+
+type AuthClient = NonNullable<Awaited<ReturnType<typeof getAuthClient>>>
+
+/** Reconcilia aparelho e conta. Devolve `true` quando vai recarregar. */
+function adoptAccountLanguage(client: AuthClient, meta: Record<string, unknown> | undefined): boolean {
+    const saved = accountLanguage(meta)
+    if (!saved) {
+        // Conta que nunca escolheu herda a escolha explícita deste aparelho (a da tela de entrada).
+        const device = storedLanguage()
+        if (device) void client.auth.updateUser({ data: { language: device } }).catch(() => {})
+        return false
+    }
+    if (saved === lang) {
+        try { sessionStorage.removeItem(LANG_SYNC_KEY) } catch { /* nada a limpar */ }
+        return false
+    }
+    rememberLanguage(saved)
+    // Trava contra laço: se o armazenamento não grava, a página recarregaria para sempre.
+    try {
+        if (sessionStorage.getItem(LANG_SYNC_KEY) === saved) return false
+        sessionStorage.setItem(LANG_SYNC_KEY, saved)
+    } catch {
+        return false
+    }
+    window.location.reload()
+    return true
+}
+
+/**
+ * Troca o idioma: grava no aparelho e, logado, na conta (vale em todo aparelho dela), e
+ * recarrega. Se a conta não aceitar (sem rede), o aparelho troca do mesmo jeito, e o
+ * próximo boot com rede volta ao que a conta diz.
+ */
+export async function setLanguage(next: Lang): Promise<void> {
+    rememberLanguage(next)
+    if (state.status === 'in') {
+        const client = await getAuthClient()
+        await client?.auth.updateUser({ data: { language: next } }).catch(() => {})
+    }
+    window.location.reload()
 }
 
 export async function signOut(): Promise<void> {
@@ -339,6 +397,14 @@ const isApi = (url: string): boolean => {
     }
 }
 
+function withLang(url: string): string {
+    if (/[?&]lang=/.test(url)) return url
+    const hash = url.indexOf('#')
+    const base = hash < 0 ? url : url.slice(0, hash)
+    const tail = hash < 0 ? '' : url.slice(hash)
+    return `${base}${base.includes('?') ? '&' : '?'}lang=en${tail}`
+}
+
 /**
  * Faz todo `fetch('/api/…')` levar o JWT de quem está logado. São mais de 30 pontos de
  * chamada, a maioria (os GETs de mapa, estado e ficha) nunca mandou cabeçalho nenhum — e
@@ -360,7 +426,10 @@ export function installApiAuth() {
         if (!headers.has('Authorization')) {
             for (const [name, value] of Object.entries(await authHeaders())) headers.set(name, value)
         }
-        const response = await original(input, { ...init, headers })
+        // Em inglês, todo pedido diz o idioma na QUERY (entra na chave de qualquer cache
+        // HTTP sem `Vary`). Em português a URL fica como sempre foi.
+        const target = isEn && !(input instanceof Request) ? withLang(url) : input
+        const response = await original(target, { ...init, headers })
 
         if (response.status === 401) {
             window.dispatchEvent(new Event('pf2e:unauthenticated'))
