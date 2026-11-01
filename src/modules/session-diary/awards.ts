@@ -7,6 +7,7 @@
 // não é destaque. O vice só aparece quando há um vencedor.
 
 import { d20Average, type Mark, type Night, type PersonStats } from './stats'
+import { locale } from '../../i18n'
 
 export type Scope = 'session' | 'table'
 
@@ -46,9 +47,9 @@ export const MIN_CHECKS: Record<Scope, number> = { session: 8, table: 20 }
 export const MIN_NIGHT_CHECKS = 10
 
 const count = (n: number) => `${n}×`
-const decimal = (n: number) => n.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+const decimal = (n: number) => n.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 export const shortDay = (day: string) =>
-    new Date(`${day}T12:00:00-03:00`).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' })
+    new Date(`${day}T12:00:00-03:00`).toLocaleDateString(locale, { weekday: 'short', day: '2-digit', month: '2-digit' })
 
 interface Candidate {
     person: PersonStats
@@ -126,7 +127,7 @@ export function computeAwards(people: PersonStats[], scope: Scope): Award[] {
         legend: rank(byMark(people, (p) => p.best), 'max', String),
         stumble: rank(byMark(people, (p) => p.worst), 'min', String),
         smash: rank(byMark(people, (p) => p.biggestHit), 'max', String),
-        engine: rank(byCount(people, (p) => p.damage), 'max', (n) => n.toLocaleString('pt-BR')),
+        engine: rank(byCount(people, (p) => p.damage), 'max', (n) => n.toLocaleString(locale)),
         gunner: rank(byCount(people, (p) => p.rolls), 'max', String),
         mythic: rank(byCount(people, (p) => p.mythic), 'max', count),
         glory: rank(byNight(people, 'max'), 'max', decimal),
@@ -148,7 +149,7 @@ export const METRICS: Metric[] = [
     { id: 'nat20', label: 'Vezes que tirou 20', value: (p) => p.nat20, format: String, tone: 'gold' },
     { id: 'nat1', label: 'Vezes que tirou 1', value: (p) => p.nat1, format: String, tone: 'bad' },
     { id: 'avg', label: 'Média no d20', value: (p, scope) => (p.checks >= MIN_CHECKS[scope] ? d20Average(p) : null), format: decimal, tone: 'gold' },
-    { id: 'damage', label: 'Dano rolado', value: (p) => p.damage, format: (n) => n.toLocaleString('pt-BR'), tone: 'green' },
+    { id: 'damage', label: 'Dano rolado', value: (p) => p.damage, format: (n) => n.toLocaleString(locale), tone: 'green' },
     { id: 'rolls', label: 'Rolagens feitas', value: (p) => p.rolls, format: String, tone: 'green' },
     { id: 'mythic', label: 'Pontos Míticos gastos', value: (p) => p.mythic, format: String, tone: 'mythic' },
 ]

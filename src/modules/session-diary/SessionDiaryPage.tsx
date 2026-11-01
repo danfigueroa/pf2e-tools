@@ -33,11 +33,12 @@ import { Leaderboard } from './components/Leaderboard'
 import { PersonCard } from './components/PersonCard'
 import { SessionTimeline } from './components/SessionTimeline'
 import { StatCounters } from './components/StatCounters'
+import { locale } from '../../i18n'
 
 const dayLabel = (day: string) =>
-    new Date(`${day}T12:00:00-03:00`).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })
+    new Date(`${day}T12:00:00-03:00`).toLocaleDateString(locale, { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })
 
-const timeLabel = (at: number) => new Date(at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+const timeLabel = (at: number) => new Date(at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
 
 /** Quantas rolagens a lista desenha de cada vez: uma noite longa passa de mil. */
 const PAGE = 50

@@ -1,3 +1,4 @@
+import { locale } from '../../i18n'
 // Geometria do mapa de combate. O mundo é medido em QUADRADOS; pixel só
 // existe na hora de desenhar (quadrado × CELL_PX), e o zoom é uma escala CSS
 // por cima disso.
@@ -39,7 +40,7 @@ export function squaresBetween(a: Cell, b: Cell): number {
 /** "25 ft · 7,5 m" */
 export function formatDistance(squares: number): string {
     const feet = squares * FEET_PER_SQUARE
-    const meters = (squares * METERS_PER_SQUARE).toLocaleString('pt-BR', { maximumFractionDigits: 1 })
+    const meters = (squares * METERS_PER_SQUARE).toLocaleString(locale, { maximumFractionDigits: 1 })
     return `${feet} ft · ${meters} m`
 }
 

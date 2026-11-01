@@ -4,6 +4,7 @@ import { useInView } from '../../../motion/useInView'
 import { gold, green, ink, parchment, rule, status } from '../../../theme'
 import { fairness, VERDICT_TEXT } from '../fairness'
 import type { PersonStats } from '../stats'
+import { locale } from '../../../i18n'
 
 interface Props {
     people: PersonStats[]
@@ -44,7 +45,7 @@ export const D20Histogram = memo(({ people, tableHist }: Props) => {
                     </Select>
                 </FormControl>
                 <Typography variant="body2" color="text.secondary">
-                    {f.checks.toLocaleString('pt-BR')} {f.checks === 1 ? 'teste' : 'testes'}
+                    {f.checks.toLocaleString(locale)} {f.checks === 1 ? 'teste' : 'testes'}
                     {f.hot !== null && f.checks >= 20 && <> · o número que mais saiu foi o <b>{f.hot}</b>, e o que menos saiu, o <b>{f.cold}</b></>}
                 </Typography>
             </Box>

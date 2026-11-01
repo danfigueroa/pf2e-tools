@@ -18,6 +18,7 @@ import type { ConditionModifiers } from '../conditions'
 import type { GuideSlot } from '../components/usePublication'
 import type { RollRequest } from '../components/RollDialog'
 import { RollTrigger } from '../components/RollTrigger'
+import { locale } from '../../../i18n'
 
 interface Props {
     build: BuildInfo
@@ -292,7 +293,7 @@ const OverviewSectionView = ({ build, mods, guide: slot, onRoll, compact = false
                     {guide.ai && slot.guide && (
                         <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, mt: 2 }}>
                             <Typography variant="caption" color="text.secondary" sx={{ flex: '1 1 auto' }}>
-                                Gerado por IA a partir da ficha em {new Date(slot.guide.generatedAt).toLocaleDateString('pt-BR')}.
+                                Gerado por IA a partir da ficha em {new Date(slot.guide.generatedAt).toLocaleDateString(locale)}.
                                 Confira na ficha antes de confiar num número.
                             </Typography>
                             <Button

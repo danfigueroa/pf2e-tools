@@ -5,6 +5,7 @@ import { gold, green, ink, parchment, rule, status } from '../../../theme'
 import { d20Average, type SessionPoint } from '../stats'
 import { shortDay } from '../awards'
 import { grow } from './style'
+import { locale } from '../../../i18n'
 
 /** Quantas sessões cabem na linha do tempo; as mais antigas ficam de fora (o seletor ainda as tem). */
 const MAX_SESSIONS = 24
@@ -38,7 +39,7 @@ export const SessionTimeline = memo(({ series, onOpenDay }: Props) => {
                 {list.map((s, i) => {
                     const avg = d20Average(s)
                     const label = `${shortDay(s.day)}: ${s.rolls} rolagens, ${s.people} ${s.people === 1 ? 'pessoa' : 'pessoas'}` +
-                        (avg !== null ? `, média do d20 ${avg.toLocaleString('pt-BR')}` : '') + `, ${s.nat20}× 20 e ${s.nat1}× 1`
+                        (avg !== null ? `, média do d20 ${avg.toLocaleString(locale)}` : '') + `, ${s.nat20}× 20 e ${s.nat1}× 1`
                     return (
                         <ButtonBase
                             key={s.day}
@@ -54,7 +55,7 @@ export const SessionTimeline = memo(({ series, onOpenDay }: Props) => {
                         >
                             {avg !== null && list.length <= 12 && (
                                 <Typography variant="caption" sx={{ fontWeight: 700, color: ink.secondary, lineHeight: 1.2, opacity: shown ? 1 : 0, transition: 'opacity 300ms ease 600ms' }}>
-                                    {avg.toLocaleString('pt-BR')}
+                                    {avg.toLocaleString(locale)}
                                 </Typography>
                             )}
                             <Box

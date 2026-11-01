@@ -10,6 +10,7 @@ import { displayFont, ink, parchment, rule } from '../../../theme'
 import type { Award } from '../awards'
 import { CountUp, PersonAvatar } from './ui'
 import { reveal, TONE } from './style'
+import { locale } from '../../../i18n'
 
 const ICONS: Record<string, ReactElement> = {
     blessed: <AutoAwesome />, cursed: <SentimentVeryDissatisfied />, hot: <Whatshot />, cold: <AcUnit />,
@@ -135,7 +136,7 @@ const joinNames = (names: string[]) =>
 
 /** Durante a contagem, o rótulo acompanha o número: "7×" passa por "3×", "+2" por "+1". */
 function formatLike(label: string, n: number, decimals: number): string {
-    const text = n.toLocaleString('pt-BR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+    const text = n.toLocaleString(locale, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
     if (label.endsWith('×')) return `${text}×`
     if (label.startsWith('+')) return n > 0 ? `+${text}` : text
     const unit = label.match(/^\S+\s+(.+)$/)

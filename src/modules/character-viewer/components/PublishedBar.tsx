@@ -5,8 +5,9 @@ import type { PublishedSheet } from '../../../services/sheets'
 import { useSheetDescriptionsStatus, type SheetDescriptionsStatus } from '../../../services/descriptions'
 import { canEditSheet, useRole } from '../../../services/auth'
 import { EmbedDialog } from './EmbedDialog'
+import { locale } from '../../../i18n'
 
-const when = (ts: number) => new Date(ts).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+const when = (ts: number) => new Date(ts).toLocaleString(locale, { dateStyle: 'short', timeStyle: 'short' })
 
 /**
  * Faixa sob o cabeçalho quando a ficha aberta é a publicada pela mesa. É

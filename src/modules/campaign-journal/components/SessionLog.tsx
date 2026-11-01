@@ -3,13 +3,14 @@ import { Box, Button, Chip, IconButton, Stack, TextField, Typography } from '@mu
 import { Close as CloseIcon, Send as SendIcon } from '@mui/icons-material'
 import { gold, green, parchment, rule } from '../../../theme'
 import { LOG_TAG_LABEL, LOG_TAGS, MAX_LOG, newId, type LogEntry, type LogTag } from '../doc'
+import { locale } from '../../../i18n'
 
 // Registro durante o jogo: anotações rápidas com hora (o que aconteceu, decisões,
 // saques, pistas). Enter grava; a etiqueta escolhida fica para a próxima, porque
 // numa luta o GM anota várias coisas do mesmo tipo seguidas.
 
-const time = (at: number) => new Date(at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-const dayOf = (at: number) => new Date(at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+const time = (at: number) => new Date(at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+const dayOf = (at: number) => new Date(at).toLocaleDateString(locale, { day: '2-digit', month: '2-digit' })
 
 interface Props {
     log: LogEntry[]

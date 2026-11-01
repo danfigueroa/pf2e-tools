@@ -3,6 +3,7 @@
 import { Box } from '@mui/material'
 import { TokenBadge } from '../../battle-map/components/TokenBadge'
 import { useAnimatedNumber } from '../../../motion/useAnimatedNumber'
+import { locale } from '../../../i18n'
 
 interface CountProps {
     value: number
@@ -17,7 +18,7 @@ interface CountProps {
 export const CountUp = ({ value, decimals = 0, shown, format, duration = 1100 }: CountProps) => {
     const scale = 10 ** decimals
     const n = useAnimatedNumber(shown ? Math.round(value * scale) : 0, { duration }) / scale
-    const text = format ? format(n) : n.toLocaleString('pt-BR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+    const text = format ? format(n) : n.toLocaleString(locale, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
     return <>{text}</>
 }
 

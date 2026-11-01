@@ -31,6 +31,7 @@ import { useGear } from '../../../services/gear'
 import { homebrewGear } from '../homebrewGear'
 import { DEFAULT_STRIKE_OPTIONS, planStrike, weaponStrike } from '../strikes'
 import type { RollRequest } from '../components/RollDialog'
+import { locale } from '../../../i18n'
 
 interface Props {
     build: BuildInfo
@@ -418,7 +419,7 @@ const CustomRuneBox = ({ rune, build, sizeEffect, onSelect }: {
 )
 
 const sinceText = (ms?: number) =>
-    ms ? ` desde ${new Date(ms).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : ''
+    ms ? ` desde ${new Date(ms).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}` : ''
 
 /**
  * Os botões da ativação. Ligado, mostra o que vale agora e o "Voltar ao

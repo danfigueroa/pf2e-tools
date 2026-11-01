@@ -13,6 +13,7 @@ import {
 import type { BuildInfo } from '../../../pathbuilder/types'
 import { diffSheets } from '../sheetDiff'
 import { EmbedDialog } from './EmbedDialog'
+import { locale } from '../../../i18n'
 
 /** A versão contra a qual o JSON enviado é comparado. */
 export interface PublishBase {
@@ -44,7 +45,7 @@ export const PublishDialog = ({ open, incoming, base, busy, error, onPublish, on
     // Só a ficha JÁ publicada dispensa publicar de novo; o arquivo fixo da campanha ainda não está no banco.
     const alreadyPublished = !!diff?.identical && base?.from === 'published'
     const baseLabel = base?.from === 'published'
-        ? `a ficha publicada${base.publishedAt ? ` em ${new Date(base.publishedAt).toLocaleDateString('pt-BR')}` : ''}`
+        ? `a ficha publicada${base.publishedAt ? ` em ${new Date(base.publishedAt).toLocaleDateString(locale)}` : ''}`
         : 'a ficha da campanha'
 
     return (

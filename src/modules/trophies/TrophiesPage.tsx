@@ -16,6 +16,7 @@ import { useReducedMotion } from '../../motion/motion';
 import { useAnimatedNumber } from '../../motion/useAnimatedNumber';
 import { TrophyMedal } from './TrophyMedal';
 import { EASE, EASE_BACK, flash, glowNew, grow, reveal } from './motion';
+import { locale } from '../../i18n';
 
 // Troféus do Covil (`/trofeus`, `/trofeus/:user`): o perfil de troféus da conta — o meu ou o de
 // um colega da mesa — e o ranking da mesa. O catálogo vem do servidor junto com o perfil.
@@ -31,7 +32,7 @@ const CATEGORIES: Record<string, string> = {
 };
 const TIER_ORDER: TrophyTier[] = ['platina', 'ouro', 'prata', 'bronze'];
 const mesaName = (id: string | null) => MESAS.find((m) => m.id === id)?.nome ?? null;
-const date = (at: number) => new Date(at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+const date = (at: number) => new Date(at).toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' });
 const card = { borderRadius: 3, bgcolor: parchment.paper, border: `1px solid ${rule}` };
 
 // --- "Novo desde a última visita" (por conta, neste aparelho) --------------------------------
