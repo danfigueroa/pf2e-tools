@@ -1201,15 +1201,15 @@
     "sourceBook": "Impossible Magic, p. 9",
     "description": "Você estuda magias para que possa combiná-las com seus ataques ou resolver problemas que a força das armas sozinha não consegue lidar. Você é um conjurador, e pode conjurar magias da tradição arcana usando a atividade Cast a Spell. Como um magus, quando você conjura magias, você pode desenhar sigilos com sua arma ou uma mão livre e gritar palavras mágicas de poder como gritos de guerra. No 1º nível, você pode preparar uma magia de 1º grau e cinco truques a cada manhã a partir das magias em seu grimório (veja abaixo). Magias preparadas permanecem disponíveis para você até que você as conjure ou até que você prepare suas magias novamente. O número de magias que você pode preparar é chamado de seus espaços de magia. À medida que você aumenta de nível como magus, o número de magias que você pode preparar por dia aumenta, assim como o grau mais alto de magia que você pode conjurar, conforme mostrado na tabela Magus Spells per Day. Algumas de suas magias exigem que você tente um ataque mágico para ver quão eficazes elas são, ou que seus inimigos rolem contra sua DC de magia (tipicamente tentando um teste de resistência). Seu modificador de ataque mágico e DC de magia são calculados usando seu modificador de Inteligência. Aprimorando Magias Quando você obtém espaços de magia de 2º grau e superior, você pode preencher esses espaços com versões mais fortes de magias de grau inferior. Isso aumenta o grau da magia, aprimorando-a para corresponder ao espaço de magia. Muitas magias possuem melhorias específicas quando são aprimoradas para certos graus. Truques Algumas de suas magias são truques. Um truque é um tipo especial de magia que não usa espaços de magia. Você pode conjurar um truque à vontade, qualquer número de vezes por dia. Um truque é sempre automaticamente aprimorado para metade do seu nível arredondado para cima — isso geralmente é igual ao grau mais alto de espaço de magia de magus que você possui. Por exemplo, como um magus de 1º nível, seus truques são magias de 1º grau, e como um magus de 5º nível, seus truques são magias de 3º grau. Grimório Toda magia arcana tem uma versão escrita, que você registra em seu livro de magias personalizado. Você começa com um grimório que vale 10 sp ou menos, que você recebe gratuitamente e deve estudar a cada dia para preparar suas magias. A forma e o nome do seu grimório dependem de você. Pode ser qualquer coisa, desde um livro resistente com uma trava segura intitulado Teses sobre os Estratagemas da Guerra Sobrenatural até uma coleção esfarrapada de panfletos de treinamento com seu nome rabiscado na capa. O grimório contém sua escolha de oito truques arcanos e cinco magias arcanas de 1º grau. Você escolhe essas a partir das magias comuns na lista de magias arcanas ou de outras magias arcanas às quais você ganha acesso. Cada vez que você ganha um nível, você adiciona duas magias arcanas ao seu grimório, de qualquer grau de magia para o qual você tenha espaços de magia, escolhidas a partir de magias comuns da sua tradição ou outras às quais você ganha acesso. Você também pode adicionar magias ao seu grimório com a atividade Learn a Spell. Se você tiver um grimório de múltiplas fontes (como ser um magus com o talento Wizard Dedication), você pode usar o mesmo grimório para todas as suas magias."
    },
-   "Reflex Expertise": {
+   "Reflex Expertise (Magus)": {
     "name": "Reflex Expertise",
-    "level": 3,
+    "level": 5,
     "actions": "",
     "traits": [],
     "category": "class-feature",
-    "className": "Bard",
-    "sourceBook": "Player Core, p. 94",
-    "description": "Você desenvolveu um talento para desviar do perigo. Sua graduação de proficiência para testes de Reflexo aumenta para perito."
+    "className": "Magus",
+    "sourceBook": "Impossible Magic, p. 9",
+    "description": "Você desenvolveu uma habilidade para esquivar‑se do perigo. Seu grau de proficiência em testes de Reflexo aumenta para perito."
    },
    "Rewrite Fate": {
     "name": "Rewrite Fate",
@@ -1249,17 +1249,14 @@
     "description": "Ativar Duas Ações: (concentrate, manipulate) Frequência uma vez por hora; Efeito Você tem como alvo uma criatura a até 30 pés, impondo temporariamente a decrepitude do tempo sobre ela. O alvo deve tentar um teste de Fortitude. As condições clumsy e enfeebled duram 1 minuto. Sucesso Crítico O alvo não é afetado. Sucesso O alvo fica clumsy 1 e enfeebled 1. Falha O alvo fica clumsy 2, enfeebled 2 e drained 1. Falha Crítica O alvo fica clumsy 3, enfeebled 3 e drained 2."
    },
    "Spellbook": {
-    "name": "Spellbook Prodigy",
-    "matchedName": "Spellbook Prodigy",
-    "level": 1,
+    "name": "Spellbook (Blank)",
+    "matchedName": "Spellbook (Blank)",
+    "level": 0,
     "actions": "",
-    "traits": [
-     "Wizard"
-    ],
-    "category": "feat",
-    "sourceBook": "Advanced Player's Guide, p. 142",
-    "prerequisites": "Treinado em Arcano",
-    "description": "Você é particularmente hábil em aprender magias para adicionar ao seu grimório. Você pode Learn a Spell em metade do tempo que normalmente leva. Além disso, quando você obtém uma falha crítica no seu teste para Learn a Spell, você recebe apenas uma falha. Quando você obtém uma falha, pode tentar novamente após 1 semana."
+    "traits": [],
+    "category": "equipment",
+    "sourceBook": "Player Core, p. 292",
+    "description": "Um livro de magias contém o conhecimento escrito necessário para aprender e preparar várias magias, sendo uma necessidade para feiticeiros (que normalmente recebem um de graça) e um luxo útil para outros conjuradores que desejam aprender magias adicionais. Cada livro de magias pode conter até 100 magias. O Preço listado é para um livro de magias em branco."
    },
    "Spellstrike": {
     "name": "Spellstrike",
@@ -1280,18 +1277,6 @@
     "className": "Magus",
     "sourceBook": "Secrets of Magic, p. 35",
     "description": "Você aprendeu a técnica fundamental de mago que permite combinar ataques mágicos e físicos. Você ganha a atividade Spellstrike."
-   },
-   "Standard Cantrip: Shield (Archetype)": {
-    "name": "Cantrip",
-    "matchedName": "Cantrip",
-    "level": null,
-    "actions": "",
-    "traits": [
-     "Cantrip"
-    ],
-    "category": "trait",
-    "sourceBook": "Core Rulebook, p. 629",
-    "description": "Traço Truque Uma magia que você pode"
    },
    "Studious Spell: Blur": {
     "name": "Studious Spell",
@@ -1373,25 +1358,25 @@
     "sourceBook": "Player Core 2, p. 262",
     "description": "Você transforma sua carne e órgãos em um amálgama bizarro de pele brilhante, escamas ásperas, tufos de cabelo e protuberâncias tumorais. Isso tem os seguintes efeitos. Você ganha resistência 10 a dano de precisão e resistência 10 a dano extra de acertos críticos. Se a resistência for maior que o dano extra, ela reduz o dano extra a 0, mas não reduz o dano normal do ataque. Você ganha visão no escuro. Ácido escorre da sua pele. Qualquer criatura que lhe acerte com um ataque desarmado ou com uma arma corpo a corpo sem alcance sofre 2d6 de dano de ácido."
    },
-   "Weapon Expertise": {
+   "Weapon Expertise (Magus)": {
     "name": "Weapon Expertise",
-    "level": 11,
+    "level": 5,
     "actions": "",
     "traits": [],
     "category": "class-feature",
-    "className": "Druid",
-    "sourceBook": "Player Core, p. 122",
-    "description": "Você aprimorou sua perícia em combate. Sua graduação de proficiência para armas simples e ataques desarmados aumenta para perito."
+    "className": "Magus",
+    "sourceBook": "Impossible Magic, p. 9",
+    "description": "Você se dedicou a aprender as intricacias de suas armas. Seus graus de proficiência em armas simples, armas marciais e ataques desarmados aumentam para perito."
    },
-   "Weapon Specialization": {
+   "Weapon Specialization (Magus)": {
     "name": "Weapon Specialization",
-    "level": 13,
+    "level": 7,
     "actions": "",
     "traits": [],
     "category": "class-feature",
-    "className": "Alchemist",
-    "sourceBook": "Core Rulebook, p. 66",
-    "description": "Você aprendeu como infligir ferimentos maiores com as armas que conhece melhor. Você causa 2 de dano adicional com armas e ataques desarmados nos quais você é perito. Esse dano aumenta para 3 se você for mestre, e para 4 se você for lendário."
+    "className": "Magus",
+    "sourceBook": "Impossible Magic, p. 9",
+    "description": "Você aprendeu a infligir ferimentos maiores com as armas que conhece melhor. Você causa 2 de dano adicional com armas e ataques desarmados nos quais você é perito. Esse dano aumenta para 3 se você for mestre e 4 se for lendário."
    },
    "Whammy": {
     "name": "Whammy",

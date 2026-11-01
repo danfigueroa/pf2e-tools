@@ -1712,15 +1712,15 @@
     "sourceBook": "Revenge of the Runelords Player's Guide, p. 17",
     "description": "Edictos compartilhe seus sonhos com seus amigos e demonstre interesse se eles compartilharem os sonhos deles com você, inspire-se em seus sonhos ao criar Anathema negue a uma criatura (incluindo você mesmo) a chance de dormir o suficiente para sonhar, ridicularize aqueles que possuem ambições que dificilmente alcançarão."
    },
-   "Expert Spellcaster": {
+   "Expert Spellcaster (Psychic)": {
     "name": "Expert Spellcaster",
     "level": 7,
     "actions": "",
     "traits": [],
     "category": "class-feature",
-    "className": "Bard",
-    "sourceBook": "Player Core, p. 94",
-    "description": "Suas técnicas mágicas tornam-se mais fortes. Seus graus de proficiência para modificadores de ataque mágico e DCs de magia aumentam para perito."
+    "className": "Psychic",
+    "sourceBook": "Dark Archive (Remastered), p. 9",
+    "description": "A autorreflexão lhe trouxe maior conhecimento de si mesmo e, com isso, poder psíquico. Seus graus de proficiência para modificador de ataque de magia e CD de magia aumentam para perito."
    },
    "Fade into Daydreams": {
     "name": "Fade into Daydreams",
@@ -1735,7 +1735,7 @@
     "sourceBook": "Dark Archive (Remastered), p. 16",
     "description": "Seus voos de imaginação transbordam para o mundo real, fazendo com que você se torne indistinto, nebuloso ou envolto em ilusões. Você se torna concealed até o início do seu próximo turno. Essa condição concealed não pode ser usada para Hide, como é normal para efeitos de ocultação que deixam sua localização óbvia."
    },
-   "Fortitude Expertise": {
+   "Fortitude Expertise (Psychic)": {
     "name": "Fortitude Expertise",
     "level": 9,
     "actions": "",
@@ -1743,7 +1743,7 @@
     "category": "class-feature",
     "className": "Bard",
     "sourceBook": "Player Core, p. 94",
-    "description": "Seu físico tornou-se resistente em suas aventuras. Sua graduação de proficiência para testes de Fortitude aumenta para perito."
+    "description": "Seu físico se tornou mais resistente em suas aventuras. Seu grau de proficiência para testes de Fortitude aumenta para perito."
    },
    "Occultism": {
     "name": "Occultism",
@@ -1798,15 +1798,15 @@
     "trigger": "Você rola um teste de perícia ou uma salvaguarda e não gosta do resultado.",
     "description": "O destino, a sorte ou alguma outra força se curva ao seu redor à medida que seu poder mítico aumenta, manifestando-se em um clarão de luz ou em uma onda visível de energia emanando de seu corpo enquanto você se livra das correntes do destino. Você gasta um Mythic Point e rola novamente o teste ou salvaguarda com proficiência mítica, assumindo o novo resultado."
    },
-   "Signature Spells": {
+   "Signature Spells (Psychic)": {
     "name": "Signature Spells",
     "level": 3,
     "actions": "",
     "traits": [],
     "category": "class-feature",
-    "className": "Bard",
-    "sourceBook": "Player Core, p. 94",
-    "description": "A experiência permite que você conjure algumas magias de forma mais flexível. Para cada círculo de magia ao qual você tem acesso, escolha uma magia desse círculo para ser uma magia característica. Você não precisa aprender versões intensificadas de magias características separadamente; em vez disso, você pode intensificar essas magias livremente. Se você aprendeu uma magia característica em um círculo superior ao seu mínimo, você também pode conjurar todas as suas versões de círculo inferior sem aprender essas separadamente. Se você trocar uma magia característica, pode escolher uma magia característica substituta do mesmo círculo de magia em que aprendeu a magia anterior. Você também pode retreinar especificamente para mudar uma magia característica para uma magia diferente daquele círculo sem trocar nenhuma outra magia; isso leva tanto tempo quanto retreinar uma magia normalmente."
+    "className": "Psychic",
+    "sourceBook": "Dark Archive (Remastered), p. 9",
+    "description": "Você aprendeu a lançar algumas de suas magias de forma mais flexível. Para cada nível de magia ao qual você tem acesso, escolha uma magia desse nível para ser uma magia assinatura. Você não precisa aprender versões aprimoradas das magias assinatura separadamente; ao invés disso, pode aprimorar essas magias livremente. Se você aprendeu uma magia assinatura em um nível superior ao seu mínimo, também pode lançar todas as suas versões de nível inferior sem precisar aprendê‑las separadamente. Se você trocar uma magia assinatura, pode escolher uma magia assinatura de substituição do mesmo nível de magia em que aprendeu a magia anterior. Você também pode reaprender especificamente para mudar uma magia assinatura para outra magia desse nível sem trocar nenhuma magia; isso leva tanto tempo quanto reaprender uma magia normalmente."
    },
    "The Oscillating Wave": {
     "name": "The Oscillating Wave",

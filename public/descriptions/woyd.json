@@ -1229,7 +1229,7 @@
     "sourceBook": "Player Core, p. 112",
     "description": "Doutrina de Clérigo: Clérigo Enclausurado. Você é um clérigo do clero, focando em magia divina e em sua conexão com os domínios da sua divindade. - Primeira Doutrina (1º) Você ganha o talento de clérigo Domain Initiate. - Segunda Doutrina (3º) Sua graduação de proficiência para testes de Fortitude aumenta para perito. - Terceira Doutrina (7º) Suas graduações de proficiência para as estatísticas de modificador de ataque de magia e CD de magia aumentam para perito. - Quarta Doutrina (11º) Você ganha proficiência de perito com a arma favorecida da sua divindade, armas simples e ataques desarmados. Quando você obtém um sucesso crítico em um teste de ataque usando a arma favorecida da sua divindade, você aplica o efeito de especialização crítica da arma; use sua CD de magia no lugar da sua CD de classe. - Quinta Doutrina (15º) Suas graduações de proficiência para as estatísticas de modificador de ataque de magia e CD de magia aumentam para mestre. - Doutrina Final (19º) Suas graduações de proficiência para as estatísticas de modificador de ataque de magia e CD de magia aumentam para lendário."
    },
-   "Deity": {
+   "Deity (Cleric)": {
     "name": "Deity",
     "level": 1,
     "actions": "",
@@ -1272,7 +1272,7 @@
     "sourceBook": "Player Core, p. 108",
     "description": "Santificação: conforme a divindade, a santificação dela pode tornar você holy ou unholy. Você é HOLY: ganha o traço holy, o que o compromete com um lado da luta pelas almas dos planos e pode ser citado por outras habilidades. As suas magias santificadas (como Divine Wrath) ganham o traço holy, e efeitos holy costumam ser mais fortes contra criaturas unholy. Se você ganhar o traço oposto de algum modo, perde o atual até completar um ritual atone."
    },
-   "Perception Expertise": {
+   "Perception Expertise (Cleric)": {
     "name": "Perception Expertise",
     "level": 5,
     "actions": "",

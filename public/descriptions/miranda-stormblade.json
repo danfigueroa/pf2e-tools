@@ -583,7 +583,7 @@
     "sourceBook": "Player Core, p. 246",
     "description": "Perícia Thievery Você é treinado em um conjunto específico de habilidades favorecidas por ladrões e malfeitores. Bônus de Item para Thievery Bônus de Item Nível Categoria Consumível Nota Charlatan's Gloves +1 3 Itens Vestidos Não Thieves' Toolkit (Infiltrator) +1 3 Equipamento de Aventura Não Testes de Thievery para Pick Locks e Disable Devices Keymaking Tools +1 3 Itens Empunhados Não Bônus de item para Thievery para Pick a Lock. Essence Charm +1 4 Outros Itens Vestidos Não Bônus de item para um teste à escolha do artífice Shacklebreaker +1 4 Outros Itens Vestidos Não Illusionist's Hat +1 8 Outros Itens Vestidos Não para Palm an Object Quicksilver Mutagen +1 0 Elixires Alquímicos Sim Shacklebreaker +2 4 Outros Itens Vestidos Não Charlatan's Gloves (Greater) +2 9 Itens Vestidos Não Gloves of Precision +2 10 Itens Vestidos Não Bônus de item para Disable a Device e Pick a Lock Ring of Maniacal Devices +2 11 Itens Vestidos Não Testes de Thievery para Disable a Device e para Pick a Lock Helm of Zeal +2 11 Itens Vestidos Não Bônus de item da Perícia Divina da Divindade associada Quicksilver Mutagen +2 0 Elixires Alquímicos Sim Ring of Maniacal Devices (Greater) +3 18 Itens Vestidos Não Testes de Thievery para Disable a Device e para Pick a Lock Helm of Zeal (Greater) +3 18 Itens Vestidos Não Bônus de item da Perícia Divina da Divindade associada Greater Gloves of Precision +3 18 Itens Vestidos Não Bônus de item para Disable a Device e Pick a Lock Quicksilver Mutagen +3 0 Elixires Alquímicos Sim Quicksilver Mutagen +4 0 Elixires Alquímicos Sim Talentos Relacionados Para ver uma lista de Talentos relacionados a Thievery, clique aqui. Thievery Ações Não treinadas Ação Palm an Object Ação Única Manipular Você pega um objeto pequeno e desacompanhado e tenta não ser notado. Role um único teste de Thievery contra as CDs de Percepção de todas as criaturas que estão observando você no momento. Você tipicamente só pode Palm Objects de Volume desprezível, embora o GM possa determinar o contrário dependendo da situação. Sucesso A criatura não nota você Palming the Object. Falha A criatura nota você Palming the Object. Ação Steal Ação Única Manipular Você tenta pegar um objeto pequeno de outra criatura sem ser notado. Tipicamente, você pode Steal apenas um objeto de Volume desprezível, você deve ter uma mão livre, e você falha automaticamente se a criatura que possui o objeto estiver em combate ou em guarda. Tente um teste de Thievery para determinar se você consegue Steal o objeto com sucesso. A CD é geralmente a CD de Percepção da criatura que está usando o objeto. É mais fácil roubar um objeto que está sendo usado, mas não está sendo guardado de perto (como uma bolsa carregada frouxamente cheia de moedas, ou um objeto dentro de tal bolsa). O GM pode aumentar a CD se o objeto estiver protegido ou se a natureza do objeto o tornar mais difícil de roubar (como um item muito pequeno em uma mochila grande, ou uma folha de pergaminho misturada com outros documentos). Por exemplo, a CD é tipicamente 5 maior se o objeto estiver em um bolso, segurado na mão de uma criatura, ou similarmente protegido. Você também pode precisar comparar o resultado do seu teste de Thievery contra as CDs de Percepção de observadores além da pessoa que está usando o objeto. O GM pode impor uma penalidade de circunstância às CDs de observadores que estiverem distraídos. Sucesso Você rouba o item sem que o portador note, ou um observador não vê você pegar ou tentar pegar o item. Falha O portador do item nota sua tentativa antes que você possa pegar o objeto, ou um observador vê você pegar ou tentar pegar o item. O GM determina a resposta de qualquer criatura que note seu roubo. Thievery Ações Treinadas Ação Disable a Device Duas Ações Manipular Esta ação permite que você desarme uma armadilha ou outro dispositivo complexo. Frequentemente, um dispositivo requer inúmeros sucessos antes de ser desativado, dependendo de sua construção e complexidade. Um thieves' toolkit é útil e às vezes até necessário para Disable a Device, conforme determinado pelo GM, e às vezes um dispositivo requer um grau de proficiência mais alto em Thievery para ser desativado. O resultado do seu teste de Thievery determina seu progresso. Sucesso Crítico Você desativa o dispositivo, ou você..."
    },
-   "Vigilant Senses": {
+   "Vigilant Senses (Investigator)": {
     "name": "Vigilant Senses",
     "level": 7,
     "actions": "",
@@ -593,15 +593,15 @@
     "sourceBook": "Player Core 2, p. 100",
     "description": "Através de suas aventuras, você desenvolveu uma percepção aguçada e atenção aos detalhes. Seu grau de proficiência em Perception aumenta para mestre."
    },
-   "Weapon Expertise": {
+   "Weapon Expertise (Investigator)": {
     "name": "Weapon Expertise",
-    "level": 11,
+    "level": 5,
     "actions": "",
     "traits": [],
     "category": "class-feature",
-    "className": "Druid",
-    "sourceBook": "Player Core, p. 122",
-    "description": "Você aprimorou sua perícia em combate. Sua graduação de proficiência para armas simples e ataques desarmados aumenta para perito."
+    "className": "Investigator",
+    "sourceBook": "Player Core 2, p. 100",
+    "description": "Você se dedicou a aprender as intricacias de suas armas. Seus graus de proficiência em armas simples, armas marciais e ataques desarmados aumentam para perito."
    },
    "Weapon Innovation": {
     "name": "Innovation",
@@ -613,15 +613,15 @@
     "sourceBook": "Guns &amp; Gears (Remastered), p. 15",
     "description": "Embora você esteja sempre criando invenções, há uma que representa seu trabalho proeminente, aquela que você espera — com refinamento — que possa mudar o mundo. Escolha uma innovation. O nível da sua innovation é igual ao seu nível. Se sua innovation for destruída, você pode gastar 1 dia de tempo de inatividade e tentar um teste de Crafting com uma CD alta para o seu nível; em um sucesso, você a reconstrói. Uma innovation só funciona devido à sua manutenção e ajustes constantes e, portanto, não tem Preço de mercado. Innovations podem ser encontradas aqui."
    },
-   "Weapon Specialization": {
+   "Weapon Specialization (Investigator)": {
     "name": "Weapon Specialization",
-    "level": 13,
+    "level": 7,
     "actions": "",
     "traits": [],
     "category": "class-feature",
-    "className": "Alchemist",
-    "sourceBook": "Core Rulebook, p. 66",
-    "description": "Você aprendeu como infligir ferimentos maiores com as armas que conhece melhor. Você causa 2 de dano adicional com armas e ataques desarmados nos quais você é perito. Esse dano aumenta para 3 se você for mestre, e para 4 se você for lendário."
+    "className": "Investigator",
+    "sourceBook": "Player Core 2, p. 100",
+    "description": "Você pode infligir ferimentos maiores com as armas que você conhece melhor. Você causa 2 de dano adicional com armas e ataques desarmados nos quais você é perito. Esse dano aumenta para 3 se você for mestre, e para 4 se for lendário."
    }
   },
   "item": {

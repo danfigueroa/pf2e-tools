@@ -639,14 +639,14 @@
     "sourceBook": "Player Core 2, p. 114",
     "description": "Você progrediu ao longo do seu próprio caminho para a iluminação. Escolha seu teste de resistência de Fortitude, Reflexos ou Vontade. Sua graduação de proficiência para o teste de resistência escolhido aumenta para mestre. Quando você obtiver um sucesso em um teste de resistência escolhido, você obtém um sucesso crítico em vez disso."
    },
-   "Perception Expertise": {
+   "Perception Expertise (Monk)": {
     "name": "Perception Expertise",
     "level": 5,
     "actions": "",
     "traits": [],
     "category": "class-feature",
-    "className": "Cleric",
-    "sourceBook": "Player Core, p. 108",
+    "className": "Monk",
+    "sourceBook": "Player Core 2, p. 114",
     "description": "Você permanece alerta às ameaças ao seu redor. Seu grau de proficiência em Percepção aumenta para perito."
    },
    "Powerful Fist": {
@@ -686,15 +686,15 @@
     "sourceBook": "World Guide, p. 83",
     "description": "Você viaja sobre um vento impetuoso. Mova-se duas vezes: dois Strides, dois Steps, ou um Stride e um Step (em qualquer ordem). Você pode usar Stride ou Step para o ar durante esse movimento, movendo-se para cima em um ângulo de no máximo 45 graus; se você terminar seu movimento no ar, você cai após realizar uma ação ou quando seu turno terminar, o que ocorrer primeiro. Uma parede de vento aparece em todos os espaços que você deixou durante esse movimento, durando por 1 rodada."
    },
-   "Weapon Specialization": {
+   "Weapon Specialization (Monk)": {
     "name": "Weapon Specialization",
-    "level": 13,
+    "level": 7,
     "actions": "",
     "traits": [],
     "category": "class-feature",
-    "className": "Alchemist",
-    "sourceBook": "Core Rulebook, p. 66",
-    "description": "Você aprendeu como infligir ferimentos maiores com as armas que conhece melhor. Você causa 2 de dano adicional com armas e ataques desarmados nos quais você é perito. Esse dano aumenta para 3 se você for mestre, e para 4 se você for lendário."
+    "className": "Monk",
+    "sourceBook": "Player Core 2, p. 114",
+    "description": "Você aprendeu a infligir ferimentos maiores com as armas que você conhece melhor. Você causa 2 de dano adicional com armas e ataques desarmados nos quais você é perito. Esse dano aumenta para 3 se você for mestre, e 4 se for lendário."
    },
    "Word of Faith": {
     "name": "Word of Faith",

@@ -1262,15 +1262,15 @@
     "sourceBook": "Player Core, p. 152",
     "description": "Você sempre encontra os pontos fracos nas defesas de seus inimigos quando eles estão em terreno desfavorável. Inimigos ficam off-guard para você se estiverem em terreno difícil."
    },
-   "Perception Mastery": {
+   "Perception Mastery (Ranger)": {
     "name": "Perception Mastery",
-    "level": 11,
+    "level": 7,
     "actions": "",
     "traits": [],
     "category": "class-feature",
-    "className": "Bard",
-    "sourceBook": "Player Core, p. 94",
-    "description": "Você desenvolveu uma percepção aguçada e atenção aos detalhes. Sua graduação de proficiência para Percepção aumenta para mestre."
+    "className": "Ranger",
+    "sourceBook": "Player Core, p. 152",
+    "description": "Você tem acuidade altamente desenvolvida e atenção aos detalhes. Seu grau de proficiência em Percepção aumenta para mestre."
    },
    "Ranger Expertise": {
     "name": "Ranger Expertise",
@@ -1359,17 +1359,17 @@
     "sourceBook": "Player Core, p. 152",
     "description": "Quando você se move através de terrenos naturais, é difícil rastreá-lo. Você sempre ganha os benefícios da ação Cobrir Rastros nesses terrenos, sem se mover com metade do seu Deslocamento."
    },
-   "Weapon Specialization": {
+   "Weapon Specialization (Ranger)": {
     "name": "Weapon Specialization",
-    "level": 13,
+    "level": 7,
     "actions": "",
     "traits": [],
     "category": "class-feature",
-    "className": "Alchemist",
-    "sourceBook": "Core Rulebook, p. 66",
-    "description": "Você aprendeu como infligir ferimentos maiores com as armas que conhece melhor. Você causa 2 de dano adicional com armas e ataques desarmados nos quais você é perito. Esse dano aumenta para 3 se você for mestre, e para 4 se você for lendário."
+    "className": "Ranger",
+    "sourceBook": "Player Core, p. 152",
+    "description": "Você inflige ferimentos maiores com as armas que conhece melhor. Você causa 2 de dano adicional com armas e ataques desarmados nos quais você é perito. Esse dano aumenta para 3 se você for mestre, e 4 se for lendário."
    },
-   "Will Expertise": {
+   "Will Expertise (Ranger)": {
     "name": "Will Expertise",
     "level": 3,
     "actions": "",
@@ -1377,7 +1377,7 @@
     "category": "class-feature",
     "className": "Ranger",
     "sourceBook": "Player Core, p. 152",
-    "description": "Suas defesas mentais tornam-se mais fortes. Sua graduação de proficiência para testes de Vontade aumenta para perito."
+    "description": "Suas defesas mentais ficam mais fortes. Seu grau de proficiência em testes de Vontade aumenta para perito."
    },
    "Wisdom": {
     "name": "Wisdom",

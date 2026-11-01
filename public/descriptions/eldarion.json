@@ -74,18 +74,6 @@
     "requirements": "Você está segurando ou usando um healer's toolkit.",
     "description": "Você pode tratar ferimentos, mesmo em combate. Tente um teste de Medicine com a mesma CD de Treat Wounds e restaure a quantidade correspondente de PV; isso não remove a condição wounded. Assim como em Treat Wounds, você pode tentar testes contra CDs mais altas se tiver o grau de proficiência mínimo. O alvo fica então imune ao seu Battle Medicine por 1 dia. Isso não o torna imune a, ou conta de outra forma como, Treat Wounds."
    },
-   "Card Sharp's Escape": {
-    "name": "Escape",
-    "matchedName": "Escape",
-    "level": null,
-    "actions": "Single Action",
-    "traits": [
-     "Attack"
-    ],
-    "category": "action",
-    "sourceBook": "Core Rulebook, p. 470",
-    "description": "Você tenta escapar de estar grabbed, immobilized ou restrained. Escolha uma criatura, objeto, efeito de feitiço, hazard ou outro impedimento que imponha qualquer dessas condições a você. Faça um teste usando seu modificador de ataque desarmado contra a CD do efeito. Normalmente isso é a CD de Athletics de uma criatura que está te Grappling, a CD de Thievery de uma criatura que te amarrou, a CD de feitiço para um efeito de feitiço, ou a CD de Escape listada de um objeto, hazard ou outro impedimento. Você pode fazer um teste de Acrobatics ou Athletics em vez de usar seu modificador de ataque se preferir (mas essa ação ainda tem a característica de ataque). Critical Success Você se liberta e remove as condições grabbed, immobilized e restrained impostas pelo alvo escolhido. Você pode então Stride até 5 pés. Success Você se liberta e remove as condições grabbed, immobilized e restrained impostas pelo alvo escolhido. Critical Failure Você não se liberta, e não pode tentar Escape novamente até o seu próximo turno."
-   },
    "Divert Destiny": {
     "name": "Divert Destiny",
     "level": 6,
@@ -483,18 +471,6 @@
     "sourceBook": "War of Immortals, p. 79",
     "description": "Editos saltam sem ter certeza de que pousarão ilesos, teste seus reflexos ao manobrar pelos espaços de inimigos significativamente mais poderosos. Anathema manobrar ao redor de um inimigo quando rolar através do seu espaço é uma opção viável, use medidas de segurança para tentar acrobacias."
    },
-   "Basic Finisher": {
-    "name": "Finisher",
-    "matchedName": "Finisher",
-    "level": null,
-    "actions": "",
-    "traits": [
-     "Finisher"
-    ],
-    "category": "trait",
-    "sourceBook": "Advanced Player's Guide, p. 267",
-    "description": "Traço Finalizador Os finalizadores são movimentos de finalização espetaculares que utilizam sua panache. Você pode usar um finalizador somente se possuir panache, e perde sua panache imediatamente após executar um finalizador. Depois de usar um finalizador, você não pode usar nenhuma ação que tenha o traço ataque pelo resto do seu turno. Algumas ações que têm o traço finalizador também concedem um efeito em caso de falha. Efeitos adicionados em uma falha não se aplicam em uma falha crítica. Se sua ação de finalizador for bem‑sucedida, ainda pode optar por aplicar o efeito de falha em vez disso. Por exemplo, você pode fazer isso quando um ataque não causa dano devido à resistência."
-   },
    "Debilitating Strike": {
     "name": "Debilitating Strike",
     "level": 9,
@@ -505,7 +481,7 @@
     "sourceBook": "Player Core, p. 164",
     "description": "Ao aproveitar uma abertura, você tanto impede quanto fere seu inimigo. Você ganha a ação livre Debilitating Strike."
    },
-   "Deny Advantage": {
+   "Deny Advantage (Rogue)": {
     "name": "Deny Advantage",
     "level": 3,
     "actions": "",
@@ -513,7 +489,7 @@
     "category": "class-feature",
     "className": "Rogue",
     "sourceBook": "Player Core, p. 164",
-    "description": "Como alguém que aproveita aberturas, você tem cuidado para não deixar tais lacunas você mesmo. Você não está off-guard contra criaturas ocultas, não detectadas ou flanking de seu nível ou inferior, ou criaturas de seu nível ou inferior usando ataque surpresa. No entanto, elas ainda podem ajudar seus aliados a flanquear."
+    "description": "Como alguém que aproveita as brechas, você tem cuidado para não deixar tais lacunas você mesmo. Você não fica off-guard contra criaturas ocultas, não detectadas ou que estejam flanking de nível igual ou inferior ao seu, ou criaturas de nível igual ou inferior que usem ataque surpresa. No entanto, elas ainda podem ajudar seus aliados a flanking."
    },
    "Evasive Reflexes": {
     "name": "Evasive Reflexes",
@@ -544,15 +520,15 @@
     "sourceBook": "Player Core 2, p. 158",
     "description": "Você inverte a situação contra inimigos que vacilam, capitalizando seu erro. Você ganha a reação Opportune Riposte."
    },
-   "Perception Mastery": {
+   "Perception Mastery (Rogue)": {
     "name": "Perception Mastery",
-    "level": 11,
+    "level": 7,
     "actions": "",
     "traits": [],
     "category": "class-feature",
-    "className": "Bard",
-    "sourceBook": "Player Core, p. 94",
-    "description": "Você desenvolveu uma percepção aguçada e atenção aos detalhes. Sua graduação de proficiência para Percepção aumenta para mestre."
+    "className": "Rogue",
+    "sourceBook": "Player Core, p. 164",
+    "description": "Você desenvolveu uma percepção aguçada e atenção aos detalhes. Seu grau de proficiência em Percepção aumenta para mestre."
    },
    "Precise Strike": {
     "name": "Precise Strike",
@@ -633,20 +609,19 @@
     "level": null,
     "actions": "",
     "traits": [],
-    "category": "class-sample",
-    "className": "Rogue",
-    "sourceBook": "Core Rulebook, p. 186",
-    "description": "Exemplo de Construção de Classe Ladrão Furtivo e ágil, você abre fechaduras, encontra portas secretas e armadilhas, e coleta todo o melhor saque Atributos Priorize Destreza. Constituição aumenta sua vida e Sabedoria ajuda a perceber armadilhas. Perícias Acrobacia, Arcano, Atletismo, Artesanato, Enganação, Diplomacia, Sociedade, Furtividade Especialidade do Ladino Ladrão Talento Inicial Trap Finder Talentos de Nível Superior Quick Draw (2º), Skirmish Strike (6º), Sneak Savant (10º), Spring from the Shadows (12º), Implausible Infiltration (18º)"
+    "category": "racket",
+    "sourceBook": "Player Core, p. 167",
+    "description": "Rogue Racket Thief Nada supera a emoção de pegar algo que pertence a outra pessoa, especialmente se você puder fazer isso completamente despercebido. Você pode ser um batedor de carteira nas ruas, um ladrão de janelas que entra sorrateiramente pelas janelas, ou até mesmo um consultor, testando os cofres dos clientes em busca de brechas. Quando uma luta começa, você prefere armas rápidas e leves, e você Strike onde dói. Quando você ataca com uma finesse melee weapon ou um finesse melee unarmed attack, pode adicionar seu modificador de Dexterity aos rolos de dano em vez do seu modificador de Strength. Você está treinado em Furtividade."
    },
-   "Weapon Specialization": {
+   "Weapon Specialization (Rogue)": {
     "name": "Weapon Specialization",
-    "level": 13,
+    "level": 7,
     "actions": "",
     "traits": [],
     "category": "class-feature",
-    "className": "Alchemist",
-    "sourceBook": "Core Rulebook, p. 66",
-    "description": "Você aprendeu como infligir ferimentos maiores com as armas que conhece melhor. Você causa 2 de dano adicional com armas e ataques desarmados nos quais você é perito. Esse dano aumenta para 3 se você for mestre, e para 4 se você for lendário."
+    "className": "Rogue",
+    "sourceBook": "Player Core, p. 164",
+    "description": "Você aprendeu a infligir ferimentos maiores com as armas que conhece melhor. Você causa 2 de dano adicional com weapons e unarmed attacks nos quais você é perito. Esse dano aumenta para 3 se você for mestre, e 4 se for lendário."
    },
    "Weapon Tricks": {
     "name": "Weapon Tricks",
@@ -722,19 +697,6 @@
     "category": "equipment",
     "sourceBook": "GM Core, p. 294",
     "description": "Pontas semelhantes a garras nesta grossa faixa dourada se estendem para cavar profundamente em superfícies verticais quando você está realizando a ação Climb. Este anel concede a você um deslocamento de escalada igual à metade do seu deslocamento terrestre. Penalidades ao seu deslocamento (incluindo aquelas provenientes de sua armadura) aplicam-se antes da divisão pela metade."
-   },
-   "Shadow Weaver": {
-    "name": "Shadow (Major)",
-    "matchedName": "Shadow (Major)",
-    "level": 17,
-    "actions": "",
-    "traits": [
-     "Magical",
-     "Shadow"
-    ],
-    "category": "equipment",
-    "sourceBook": "GM Core, p. 227",
-    "description": "Armadura gravada com esta runa adquire uma aparência negra e enevoada. Você recebe um bônus de item +1 em testes de Furtividade enquanto estiver usando a armadura. Shadow Source GM Core pg. 227, Core Rulebook pg. 583 Preço 55 gp Shadow (Greater) Source GM Core pg. 227, Core Rulebook pg. 583 Preço 650 gp O bônus de item é +2. Shadow (Major) Source GM Core pg. 227, Core Rulebook pg. 583 Preço 14,000 gp O bônus de item é +3."
    },
    "Toxic Effluence": {
     "name": "Toxic Effluence",

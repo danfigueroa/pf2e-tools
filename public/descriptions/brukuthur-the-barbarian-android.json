@@ -513,16 +513,6 @@
     "sourceBook": "Core Rulebook, p. 82",
     "description": "Exposição repetida e pele calejada permitem que você se defenda de danos. Enquanto estiver em Rage, você ganha resistência igual a 3 + seu modificador de Constituição a tipos de dano baseados no seu instinct. Veja os instincts específicos para mais informações."
    },
-   "Giant Instinct Specialization Ability": {
-    "name": "Instinct",
-    "level": 1,
-    "actions": "",
-    "traits": [],
-    "category": "class-feature",
-    "className": "Barbarian",
-    "sourceBook": "Core Rulebook, p. 82",
-    "description": "Sua fúria brota de um instinto dominante — um que você aprendeu de uma tradição ou que vem naturalmente para você. Seu instinto lhe concede uma habilidade, exige que você evite certos comportamentos, concede a você aumento de dano e resistências em níveis mais altos e permite que você selecione talentos ligados ao seu instinto. Instintos podem ser encontrados aqui."
-   },
    "Guardian's Calling": {
     "name": "Guardian's Calling",
     "level": null,
@@ -536,7 +526,7 @@
     "sourceBook": "War of Immortals, p. 80",
     "description": "Edictos coloque-se em perigo para proteger seus aliados ou criaturas inocentes sob ameaça Anátema recuar de uma batalha enquanto seus aliados ou espectadores inocentes estiverem em perigo sem fazer todos os esforços razoáveis para resgatá-los primeiro"
    },
-   "Juggernaut": {
+   "Juggernaut (Barbarian)": {
     "name": "Juggernaut",
     "level": 7,
     "actions": "",
@@ -544,7 +534,7 @@
     "category": "class-feature",
     "className": "Barbarian",
     "sourceBook": "Player Core 2, p. 70",
-    "description": "Seu corpo está acostumado a dificuldades físicas e é resistente a doenças. Sua graduação de proficiência para testes de Fortitude aumenta para mestre. Quando você rolar um sucesso em um teste de Fortitude, você obtém um sucesso crítico em vez disso."
+    "description": "Seu corpo está acostumado a dificuldades físicas e resistente a enfermidades. Seu grau de proficiência em testes de Fortitude aumenta para mestre. Quando você obtém sucesso em um teste de Fortitude, você obtém sucesso crítico em vez disso."
    },
    "Low-Light Vision": {
     "name": "Low-Light Vision",
@@ -595,15 +585,15 @@
     "sourceBook": "Player Core, p. 136",
     "description": "Sempre atento a fraquezas, você pode atacar rapidamente inimigos que deixam uma abertura em suas defesas. Você ganha a reação Reactive Strike."
    },
-   "Reflex Expertise": {
+   "Reflex Expertise (Barbarian)": {
     "name": "Reflex Expertise",
-    "level": 3,
+    "level": 9,
     "actions": "",
     "traits": [],
     "category": "class-feature",
-    "className": "Bard",
-    "sourceBook": "Player Core, p. 94",
-    "description": "Você desenvolveu um talento para desviar do perigo. Sua graduação de proficiência para testes de Reflexo aumenta para perito."
+    "className": "Barbarian",
+    "sourceBook": "Player Core 2, p. 70",
+    "description": "Você desenvolveu uma habilidade para esquivar‑se do perigo. Seu grau de proficiência em testes de Reflexo aumenta para perito."
    },
    "Rewrite Fate": {
     "name": "Rewrite Fate",
@@ -619,15 +609,15 @@
     "trigger": "Você rola um teste de perícia ou uma salvaguarda e não gosta do resultado.",
     "description": "O destino, a sorte ou alguma outra força se curva ao seu redor à medida que seu poder mítico aumenta, manifestando-se em um clarão de luz ou em uma onda visível de energia emanando de seu corpo enquanto você se livra das correntes do destino. Você gasta um Mythic Point e rola novamente o teste ou salvaguarda com proficiência mítica, assumindo o novo resultado."
    },
-   "Weapon Specialization": {
+   "Weapon Specialization (Barbarian)": {
     "name": "Weapon Specialization",
-    "level": 13,
+    "level": 7,
     "actions": "",
     "traits": [],
     "category": "class-feature",
-    "className": "Alchemist",
-    "sourceBook": "Core Rulebook, p. 66",
-    "description": "Você aprendeu como infligir ferimentos maiores com as armas que conhece melhor. Você causa 2 de dano adicional com armas e ataques desarmados nos quais você é perito. Esse dano aumenta para 3 se você for mestre, e para 4 se você for lendário."
+    "className": "Barbarian",
+    "sourceBook": "Player Core 2, p. 70",
+    "description": "Sua raiva ajuda você a acertar com mais força. Você causa 2 de dano adicionais com armas e ataques desarmados nos quais você tem proficiência perito. Esse dano aumenta para 3 se você for mestre, e 4 se for lendário. Você ganha a habilidade de especialização do seu instinto."
    }
   },
   "item": {

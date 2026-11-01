@@ -456,7 +456,7 @@
     "sourceBook": "War of Immortals, p. 79",
     "description": "Edictos seja o primeiro a testar um item ou arma criado com suas próprias mãos, busque ou inove fórmulas para criações cada vez mais complexas Anátema destruir as criações de outros artesãos, recusar um pedido sincero para consertar algo que foi quebrado, usar uma arma ou item criado por outra pessoa, exceto com o propósito de aprender sua função para que você possa entender como criá-lo você mesmo"
    },
-   "Battle Hardened": {
+   "Battle Hardened (Fighter)": {
     "name": "Battle Hardened",
     "level": 9,
     "actions": "",
@@ -464,7 +464,7 @@
     "category": "class-feature",
     "className": "Fighter",
     "sourceBook": "Player Core, p. 136",
-    "description": "Sua experiência em batalha ajuda a protegê-lo tanto contra magia quanto contra toxinas. Seu grau de proficiência para testes de Fortitude aumenta para mestre. Quando você rola um sucesso em um teste de Fortitude, você obtém um sucesso crítico em vez disso."
+    "description": "Sua experiência em batalha ajuda a protegê-lo contra magia e toxinas igualmente. Seu grau de proficiência em testes de Fortitude aumenta para mestre. Quando você obtém um sucesso em um teste de Fortitude, você obtém um sucesso crítico em vez disso."
    },
    "Battlefield Surveyor": {
     "name": "Battlefield Surveyor",
@@ -547,15 +547,15 @@
     "sourceBook": "Battlecry!, p. 12",
     "description": "Heritage Warrior Jotunborn Seu corpo mais resistente fez de você um recruta perfeito para o combate. O dado de dano para seu punho aumenta para 1d6. Você não sofre penalidade ao realizar um ataque letal com seu punho. Talentos que requerem Warrior Jotunborn. Pounding Leap"
    },
-   "Weapon Specialization": {
+   "Weapon Specialization (Fighter)": {
     "name": "Weapon Specialization",
-    "level": 13,
+    "level": 7,
     "actions": "",
     "traits": [],
     "category": "class-feature",
-    "className": "Alchemist",
-    "sourceBook": "Core Rulebook, p. 66",
-    "description": "Você aprendeu como infligir ferimentos maiores com as armas que conhece melhor. Você causa 2 de dano adicional com armas e ataques desarmados nos quais você é perito. Esse dano aumenta para 3 se você for mestre, e para 4 se você for lendário."
+    "className": "Fighter",
+    "sourceBook": "Player Core, p. 136",
+    "description": "Você aprendeu a infligir ferimentos maiores com as armas que conhece melhor. Você causa 2 de dano adicional com armas e ataques desarmados nos quais você é perito. Esse dano aumenta para 3 se você for mestre, e 4 se for lendário."
    }
   },
   "item": {
