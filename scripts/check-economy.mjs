@@ -24,6 +24,7 @@ const sc = await import('../src/modules/character-viewer/spellCast.ts')
 const mf = await import('../src/modules/character-viewer/mythicFeats.ts')
 const mu = await import('../src/modules/character-viewer/mythicUse.ts')
 const relics = await import('../src/modules/character-viewer/relics.ts')
+const { specialLookupName } = await import('../src/modules/character-viewer/sharedClassFeatures.ts')
 
 /** Talentos que gastam ponto numa rolagem (✦) — o `mythicUse.ts` os oferece no diálogo. */
 const MYTHIC_ROLL_FEATS = new Set(['Ears that Hear the Truth', 'Feet that Stride the Sky', 'Arms that Cut the Waves', 'Unbelievably Believable', 'Prescience', "Sage's Calling"])
@@ -57,7 +58,7 @@ for (const file of readdirSync(new URL('characters/', dir)).filter((f) => f.ends
 
     const owned = [
         ...build.feats.map((f) => ({ name: f[0], desc: entries.feat?.[f[0]] })),
-        ...build.specials.map((n) => ({ name: n, desc: entries.special?.[n] })),
+        ...build.specials.map((n) => ({ name: n, desc: entries.special?.[specialLookupName(build, n)] })),
     ]
     for (const { name, desc } of owned) {
         if (!desc) continue

@@ -48,10 +48,10 @@ const { MESAS } = await import('../src/services/mesa.ts')
 const { charSlugFromName } = await import('../src/modules/character-viewer/charId.ts')
 const { CACHE_VERSION } = await import('../src/services/descriptions.ts')
 const { resolveSpells } = await import('../api/_lib/spells-core.js')
-const { resolveFeats, resolveSpecials } = await import('../api/_lib/feat-core.js')
+const { resolveFeats, resolveItems, resolveSpecials } = await import('../api/_lib/feat-core.js')
 const { hasTranslationKey } = await import('../api/_lib/aon.js')
 
-const RESOLVERS = { spell: resolveSpells, feat: resolveFeats, special: resolveSpecials, item: resolveSpecials }
+const RESOLVERS = { spell: resolveSpells, feat: resolveFeats, special: resolveSpecials, item: resolveItems }
 const KINDS = Object.keys(RESOLVERS)
 const KIND_LABEL = { spell: 'magias', feat: 'talentos', special: 'habilidades', item: 'itens' }
 

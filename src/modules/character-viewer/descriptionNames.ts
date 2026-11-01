@@ -13,6 +13,8 @@ import { inventoryRows } from './inventory'
 import { relicsOf } from './relics'
 
 /** Os tipos do cache de descrições (`services/descriptions.ts`), menos companheiro. */
+import { specialLookupName } from './sharedClassFeatures'
+
 export type DescriptionKind = 'spell' | 'feat' | 'special' | 'item'
 
 export type DescriptionNames = Record<DescriptionKind, string[]>
@@ -31,7 +33,8 @@ export function characterDescriptionNames(build: BuildInfo): DescriptionNames {
         // Aba de Talentos.
         feat: unique((build.feats ?? []).map((f) => parseFeatEntry(f).name)),
         // Aba de Habilidades.
-        special: unique([...(build.specials ?? []).map((s) => String(s)), ...relicGiftNames(build, 'power')]),
+        // Com a classe nas características que várias classes têm (`specialLookupName`): é a chave da descrição.
+        special: unique([...(build.specials ?? []).map((s) => specialLookupName(build, String(s))), ...relicGiftNames(build, 'power')]),
         // Aba de Inventário (armas e armaduras inclusas).
         item: unique([...inventoryRows(build).map((row) => row.name), ...relicGiftNames(build, 'rune')]),
     }

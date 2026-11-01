@@ -8,6 +8,7 @@ import type { MythicPointsApi } from '../components/useMythicPoints'
 import { ActivityButton } from '../components/ActivityButton'
 import { getCachedSpecial, useDescriptionCacheVersion } from '../../../services/descriptions'
 import { SPECIAL_GROUPS, specialGroup, type SpecialGroup } from '../featGroups'
+import { specialLookupName } from '../sharedClassFeatures'
 
 interface Props {
     build: BuildInfo
@@ -24,12 +25,12 @@ const SpecialsSectionView = ({ build, onSelect, mods, mythicPoints }: Props) => 
         const by = new Map<SpecialGroup, string[]>()
         for (const s of specials ?? []) {
             const name = String(s)
-            const id = specialGroup(name, getCachedSpecial(name))
+            const id = specialGroup(name, getCachedSpecial(specialLookupName(build, name)))
             by.set(id, [...(by.get(id) ?? []), name])
         }
         return SPECIAL_GROUPS.flatMap((g) => (by.has(g.id) ? [{ ...g, names: by.get(g.id)! }] : []))
         // eslint-disable-next-line react-hooks/exhaustive-deps -- `cacheVersion` é o que invalida a leitura do cache
-    }, [specials, cacheVersion])
+    }, [specials, build, cacheVersion])
 
     if (!specials?.length) {
         return (
@@ -62,8 +63,8 @@ const SpecialsSectionView = ({ build, onSelect, mods, mythicPoints }: Props) => 
                                     key={`${name}-${idx}`}
                                     role="button"
                                     tabIndex={0}
-                                    onClick={() => onSelect({ type: 'special', name })}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect({ type: 'special', name }) }}
+                                    onClick={() => onSelect({ type: 'special', name: specialLookupName(build, name) })}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect({ type: 'special', name: specialLookupName(build, name) }) }}
                                     sx={{
                                         display: 'flex',
                                         alignItems: 'center',
@@ -78,7 +79,7 @@ const SpecialsSectionView = ({ build, onSelect, mods, mythicPoints }: Props) => 
                                 >
                                     <Typography sx={{ fontWeight: 500, minWidth: 0 }}>{name}</Typography>
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <ActivityButton build={build} mods={mods} mythicPoints={mythicPoints} name={name} desc={getCachedSpecial(name)} />
+                                        <ActivityButton build={build} mods={mods} mythicPoints={mythicPoints} name={name} desc={getCachedSpecial(specialLookupName(build, name))} />
                                         <ChevronIcon fontSize="small" sx={{ color: 'text.secondary' }} />
                                     </Box>
                                 </Box>

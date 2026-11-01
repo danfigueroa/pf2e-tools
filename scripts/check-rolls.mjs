@@ -1180,29 +1180,46 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
 {
     const server = await import('../api/_lib/aon-parse.js')
     const client = await import('../src/services/descriptions.ts')
+    // [pedido, achado, categoria do achado, é item?]
     const same = [
-        ['Cognitive Crossover', "Kreighton's Cognitive Crossover"], ['Studious Spell: Blur', 'Studious Spell'],
-        ['Assurance (Athletics)', 'Assurance'], ['Scent (imprecise) 30 feet', 'Scent'], ['Frostbite (Amped)', 'Frostbite'],
-        ['Domain: Void', 'Void'], ['Second Doctrine', 'Doctrine'], ["Hunter's Edge: Precision", "Hunter's Edge"],
-        ['Staff of Healing (Greater)', 'Staff of Healing (Greater)'], ['Aeromancer', 'Shory Aeromancer'], ['Longbow', 'longbow'],
+        ['Cognitive Crossover', "Kreighton's Cognitive Crossover", 'feat'], ['Flip', 'Farabellus Flip', 'feat'],
+        ['Aeromancer', 'Shory Aeromancer', 'feat'], ['Studious Spell: Blur', 'Studious Spell', 'class-feature'],
+        ['Assurance (Athletics)', 'Assurance', 'feat'], ['Scent (imprecise) 30 feet', 'Scent', 'creature-ability'],
+        ['Frostbite (Amped)', 'Frostbite', 'spell'], ['Domain: Void', 'Void', 'domain'], ['Second Doctrine', 'Doctrine', 'class-feature'],
+        ["Hunter's Edge: Precision", "Hunter's Edge", 'class-feature'], ['Storm Order', 'Storm', 'druidic-order'],
+        ['Unique Cantrip: Imaginary Weapon', 'Imaginary Weapon', 'spell'], ['Staff of Healing (Greater)', 'Staff of Healing (Greater)', 'equipment', true],
+        ['Box of Unspoiling II', 'Box of Unspoiling (Type II)', 'equipment', true], ['Weapon Expertise (Magus)', 'Weapon Expertise', 'class-feature'],
+        ['Longbow', 'longbow', 'weapon', true],
     ]
     const other = [
-        ['Reincarnation Feat', 'Feast'], ['Emotionally Unaware', 'Master Strike'], ['Basic Finisher', 'Exemplary Finisher'],
-        ['Storm Order', 'Druidic Order'], ['Thief Racket', "Rogue's Racket"], ['Standard Cantrip: Shield (Archetype)', 'Shield Block'],
-        ['Wish for Luck', 'Instant Manifestation'], ['Box of Unspoiling II', 'Armor of Fury'], ['Shadow Weaver', 'Reactive Strike'],
-        ['Empiricism Selected Skill: Occultism', 'Skill Feats'],
+        ['Reincarnation Feat', 'Feast', 'feat'], ['Emotionally Unaware', 'Master Strike', 'class-feature'],
+        ['Basic Finisher', 'Exemplary Finisher', 'class-feature'], ['Thief Racket', "Rogue's Racket", 'class-feature'],
+        ["Card Sharp's Escape", 'Escape', 'action'], ['Basic Finisher', 'Finisher', 'trait'], ['Thief Racket', 'Thief', 'class-sample'],
+        ['Standard Cantrip: Shield (Archetype)', 'Cantrip', 'trait'], ['Spellbook', 'Spellbook Prodigy', 'feat'],
+        ['Giant Instinct Specialization Ability', 'Instinct', 'class-feature'], ['Shadow Weaver', 'Shadow (Major)', 'item-bonus', true],
+        ['Shadow Weaver', 'Shadow', 'bloodline', true], ['Shadow Weaver', 'Weaver', 'background', true],
+        ['Wish for Luck', 'Instant Manifestation', 'class-feature'], ['Box of Unspoiling II', 'Armor of Fury', 'equipment', true],
     ]
-    for (const [a, b] of same) {
-        ok(server.namesCompatible(a, b) && server.namesCompatible(b, a), `servidor: "${a}" e "${b}" são a mesma coisa`)
-        ok(client.namesCompatible(a, b) && client.namesCompatible(b, a), `cliente: "${a}" e "${b}" são a mesma coisa`)
+    for (const [a, b, cat, item] of same) {
+        ok(server.namesCompatible(a, b, cat, !!item), `servidor: "${b}" serve para "${a}"`)
+        ok(client.namesCompatible(a, b, cat, !!item), `cliente: "${b}" serve para "${a}"`)
     }
-    for (const [a, b] of other) {
-        ok(!server.namesCompatible(a, b), `servidor: "${a}" não é "${b}"`)
-        ok(!client.namesCompatible(a, b), `cliente: "${a}" não é "${b}"`)
+    for (const [a, b, cat, item] of other) {
+        ok(!server.namesCompatible(a, b, cat, !!item), `servidor: "${b}" NÃO serve para "${a}"`)
+        ok(!client.namesCompatible(a, b, cat, !!item), `cliente: "${b}" NÃO serve para "${a}"`)
     }
+    // Característica que várias classes têm: vale a da classe; entre as compatíveis, a remaster.
+    const cls = (name, klass, legacy) => ({ _source: { name, class: [klass], ...(legacy ? { remaster_id: ['x'] } : {}) } })
+    eq(server.pickBestHit([cls('Weapon Expertise', 'Druid'), cls('Weapon Expertise', 'Magus', true), cls('Weapon Expertise', 'Magus')], 'Weapon Expertise', 'Magus')?._source.class[0], 'Magus', 'a da classe do personagem')
+    ok(!server.pickBestHit([cls('Weapon Expertise', 'Druid'), cls('Weapon Expertise', 'Magus', true), cls('Weapon Expertise', 'Magus')], 'Weapon Expertise', 'Magus')?._source.remaster_id, 'e a remaster dela')
+    eq(server.pickBestHit([cls('Fortitude Expertise', 'Bard')], 'Fortitude Expertise', 'Psychic')?._source.class[0], 'Bard', 'sem a da classe, vale a que houver')
+    const { specialLookupName, SHARED_CLASS_FEATURES } = await import('../src/modules/character-viewer/sharedClassFeatures.ts')
+    eq(specialLookupName({ class: 'Magus' }, 'Weapon Expertise'), 'Weapon Expertise (Magus)', 'busca com a classe')
+    eq(specialLookupName({ class: 'Magus' }, 'Spellstrike'), 'Spellstrike', 'nome de uma classe só fica como está')
+    ok(SHARED_CLASS_FEATURES.size >= 40, 'lista de nomes compartilhados gerada')
     const hit = (name, extra = {}) => ({ _source: { name, ...extra } })
-    eq(server.pickBestHit([hit('Feast'), hit('Master Strike')], 'Reincarnation Feat'), null, 'sem nome compatível: nenhum acerto (antes, o primeiro)')
-    eq(server.pickBestHit([hit('Ray of Frost'), hit('Frostbite')], 'Frostbite (Amped)')?._source.name, 'Frostbite', 'o acerto compatível vale mesmo atrás de outro')
+    eq(server.pickBestHit([hit('Feast', { category: 'feat' }), hit('Master Strike', { category: 'class-feature' })], 'Reincarnation Feat'), null, 'sem nome compatível: nenhum acerto (antes, o primeiro)')
+    eq(server.pickBestHit([hit('Ray of Frost', { category: 'spell' }), hit('Frostbite', { category: 'spell' })], 'Frostbite (Amped)')?._source.name, 'Frostbite', 'o acerto compatível vale mesmo atrás de outro')
     eq(server.pickBestHit([hit('Feast'), hit('Heal')], 'Heal')?._source.name, 'Heal', 'o nome exato continua mandando')
 }
 

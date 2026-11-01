@@ -74,7 +74,7 @@ function readRaw<T>(kind: Kind, name: string): T | null {
     // Entrada de OUTRA coisa (a AON difusa devolvia "Feast" para "Reincarnation Feat"): vale como se não
     // existisse, e a próxima busca refaz — o servidor já não devolve esses acertos. Cobre o cache do aparelho,
     // os pacotes estáticos e o da ficha publicada, sem precisar subir a `CACHE_VERSION` (que jogaria fora tudo).
-    if (value && isForeign(name, value)) return null
+    if (value && isForeign(name, value, kind === 'item')) return null
     return value
 }
 
@@ -105,20 +105,34 @@ function nameTokens(name: string): string[] {
         .map((t) => (t.length > 3 && t.endsWith('s') ? t.slice(0, -1) : t))
 }
 
+const GENERIC_CATEGORIES = new Set(['trait', 'action', 'class-sample', 'skill', 'rules', 'condition', 'background', 'deity', 'ancestry', 'creature', 'creature-family', 'language', 'plane', 'source', 'article'])
+const GRADE_WORDS = new Set(['i', 'ii', 'iii', 'iv', 'v', 'type', 'lesser', 'minor', 'moderate', 'greater', 'major', 'true', 'standard'])
+const ITEM_CATEGORIES = new Set(['equipment', 'item-bonus', 'weapon', 'armor', 'shield', 'rune'])
+
 /**
- * Os nomes são da mesma coisa? As palavras de um estão todas no outro. (`namesCompatible` em
- * `api/_lib/aon-parse.js` é a mesma conta — mudou uma, muda a outra; o `check-rolls` confere.)
+ * A entrada `found` (de categoria `category`) é a coisa pedida? (`namesCompatible` em `api/_lib/aon-parse.js`
+ * é a mesma conta, com a explicação — mudou uma, muda a outra; o `check-rolls` confere.)
  */
-export function namesCompatible(requested: string, found: string): boolean {
+export function namesCompatible(requested: string, found: string, category?: string | null, item = false): boolean {
     const a = nameTokens(requested)
     const b = nameTokens(found)
     if (a.length === 0 || b.length === 0) return false
-    return a.every((t) => b.includes(t)) || b.every((t) => a.includes(t))
+    if (a.length === b.length) return a.every((t) => b.includes(t))
+    const isPrefix = (short: string[], long: string[]) => short.every((t, i) => long[i] === t)
+    const isSuffix = (short: string[], long: string[]) => short.every((t, i) => long[long.length - short.length + i] === t)
+    if (a.length < b.length) return isSuffix(a, b)
+    if (!isPrefix(b, a) && !isSuffix(b, a)) return false
+    const cat = String(category ?? '').toLowerCase()
+    if (GENERIC_CATEGORIES.has(cat)) return false
+    if (item && !ITEM_CATEGORIES.has(cat)) return false
+    if (ITEM_CATEGORIES.has(cat)) return a.filter((t) => !b.includes(t)).every((t) => GRADE_WORDS.has(t))
+    return true
 }
 
-function isForeign(requested: string, value: unknown): boolean {
-    const found = (value as { name?: unknown } | null)?.name
-    return typeof found === 'string' && found !== '' && !namesCompatible(requested, found)
+function isForeign(requested: string, value: unknown, item: boolean): boolean {
+    const v = value as { name?: unknown; category?: unknown } | null
+    const found = v?.name
+    return typeof found === 'string' && found !== '' && !namesCompatible(requested, found, typeof v?.category === 'string' ? v.category : null, item)
 }
 
 // Quem desenha a partir do cache (as linhas da aba de Magias) precisa saber
@@ -296,7 +310,7 @@ export async function prefetchSpellDescriptions(
 }
 
 export function fetchItemDescription(name: string) {
-    return fetchEntry('item', '/api/searches', name)
+    return fetchEntry('item', '/api/searches?kind=item', name)
 }
 
 export async function fetchCompanionStats(name: string): Promise<CompanionStats | null> {
