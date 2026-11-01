@@ -1382,14 +1382,24 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
 - **Acerto aproximado da AON só vale com nome COMPATÍVEL** (`namesCompatible` em `aon-parse.js` e `descriptions.ts` — a mesma conta nos
   dois lados, conferida no `check-rolls`): a busca da AON é difusa e `pickBestHit` devolvia o primeiro acerto de QUALQUER nome sem o exato —
   "Reincarnation Feat" (a vaga da Fleshwarp no Pathbuilder, o talento de verdade é o filho) virava "Feast", "Emotionally Unaware" virava
-  "Master Strike", "Will" virava "Iron Will". Compatível = as palavras de um nome estão todas no outro ("Cognitive Crossover" ↔
-  "Kreighton's Cognitive Crossover"; parênteses e "30 feet" não contam). Sem acerto compatível, talento/habilidade/magia ficam SEM descrição
-  ("Descrição não encontrada"): **não se inventa regra por LLM** (`generateFallbackDescription` só segue para item caseiro). Acerto aceito com
+  "Master Strike", "Will" virava "Iron Will". Compatível (parênteses e "30 feet" não contam): mesmas palavras; ou o pedido é o FIM do achado (o Pathbuilder corta o
+  nome próprio: "Cognitive Crossover" ↔ "Kreighton's Cognitive Crossover", "Flip" ↔ "Farabellus Flip", conferidos na AON); ou o achado
+  é o COMEÇO ou o FIM do pedido ("Studious Spell" para "Studious Spell: Blur") e não é entrada genérica (traço, ação, perícia, exemplo
+  de build, background…: "Card Sharp's Escape" não é a ação Escape) — e, em ITEM (`resolveItems`, `?kind=item`), só outro item com
+  o que sobra sendo o grau ("Box of Unspoiling II"). O meio não vale ("Instinct" ≠ "Giant Instinct Specialization Ability"). Sem acerto compatível, talento/habilidade/magia/item ficam SEM descrição
+  ("Descrição não encontrada"): **não se inventa texto por LLM** (o `generateFallbackDescription` só completa prosa vazia de uma entrada achada). Acerto aceito com
   nome diferente leva `matchedName` e a tela avisa de qual entrada é o texto. O cliente também descarta do cache entrada de nome incompatível
   (`readRaw`: cache do aparelho, pacotes estáticos e o da ficha publicada), sem subir a `CACHE_VERSION`. Auditou as 10 fichas em out/2026:
   18 entradas erradas, apagadas dos pacotes e do banco (`descriptions`) e refeitas (as magias "Frostbite (Amped)" e "Ignition (Amped)" do
   Thalos apontavam para as magias legacy). Perdeu-se de propósito o texto aproximado de "Healing Font" (→ Divine Font), "Storm Order",
   "Thief Racket" e "Spellbook": melhor sem descrição que com a de outra coisa.
+- **Característica com o mesmo nome em várias classes** ("Weapon Expertise", "Expert Spellcaster", "Weapon Specialization" — 50 nomes,
+  `sharedClassFeatures.ts`, GERADO por `scripts/fetch-shared-class-features.mjs`): a descrição é buscada e guardada como
+  "Weapon Expertise (Magus)" (`specialLookupName`, usado na aba Habilidades, em `characterDescriptionNames` e no `check-economy`), e o
+  servidor reconhece o parêntese como classe (`classHint` em `feat-core.js`) e escolhe a entrada daquela classe, remaster primeiro
+  (`pickBestHit(…, className)`). Antes vinha a da primeira classe que a AON devolvesse: o Magus lia a Weapon Expertise do Druida
+  (armas simples) e todo mundo lia a Weapon Specialization legacy do Alquimista. A busca em `class-feature` vai a 60 resultados: as
+  remaster ficavam depois das 10 primeiras. Classe sem entrada própria (o Psíquico não tem Fortitude Expertise) usa a que houver.
 - **Grupos das abas Talentos e Habilidades** (`featGroups.ts`): os dois são agrupados e os títulos saem em português. Talentos: o
   Pathbuilder já manda o tipo ("Class Feat"), só se traduz (`featTypeLabel`; "Fighter Feat" → "Talentos de Guerreiro"). Habilidades
   (`specials`): o Pathbuilder manda uma lista PLANA, então o grupo vem da `category` que a AON devolve no pacote de descrições
