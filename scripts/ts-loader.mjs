@@ -8,7 +8,7 @@
 //   1. resolve import sem extensão (`./types` → `./types.ts`), como o Vite;
 //   2. remove os tipos com o `typescript`, que já é dependência de dev.
 
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync, statSync } from 'node:fs'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import ts from 'typescript'
 
@@ -17,7 +17,9 @@ const CANDIDATES = ['.ts', '.tsx', '/index.ts', '/index.tsx']
 export async function resolve(specifier, context, next) {
   if (specifier.startsWith('.') && context.parentURL?.endsWith('.ts')) {
     const base = new URL(specifier, context.parentURL)
-    if (!existsSync(fileURLToPath(base))) {
+    // Pasta também conta como "sem arquivo": `../i18n` é `../i18n/index.ts`.
+    const path = fileURLToPath(base)
+    if (!existsSync(path) || statSync(path).isDirectory()) {
       for (const ext of CANDIDATES) {
         const candidate = pathToFileURL(fileURLToPath(base) + ext)
         if (existsSync(fileURLToPath(candidate))) {
