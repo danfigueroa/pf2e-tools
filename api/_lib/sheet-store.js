@@ -208,9 +208,16 @@ export async function publishSheet(mesa, slug, json, by = null) {
  * Grava o guia gerado — só se a ficha ainda for a mesma que o gerou. Duas
  * publicações seguidas não podem terminar com o guia da primeira na segunda.
  */
-export async function saveGuide(mesa, slug, publishedAt, markdown) {
+export async function saveGuide(mesa, slug, publishedAt, markdown, { en = null, current = null } = {}) {
   const db = store()
-  const saved = await db.saveGuide(mesa, slug, publishedAt, { markdown, generatedAt: Date.now() })
+  // O guia em inglês mora DENTRO do mesmo `guide` (`guide.en`): o histórico e o
+  // "Restaurar" (`publish_sheet`/`restore_sheet`) copiam o `guide` inteiro e levam junto.
+  // `markdown` nulo = só o inglês mudou (o português fica como estava).
+  const at = Date.now()
+  const guide = { ...(current ?? {}) }
+  if (markdown) Object.assign(guide, { markdown, generatedAt: at })
+  if (en) guide.en = { markdown: en, generatedAt: at }
+  const saved = await db.saveGuide(mesa, slug, publishedAt, guide)
   return publicView(db, mesa, slug, saved)
 }
 
@@ -228,7 +235,13 @@ export async function readForGuide(mesa, slug) {
   const db = store()
   const [rec, [previous]] = await Promise.all([db.current(mesa, slug), db.versions(mesa, slug, 1, true)])
   if (!rec) return null
-  return { json: rec.json, publishedAt: rec.publishedAt, previousGuide: previous?.guide?.markdown ?? null }
+  return {
+    json: rec.json,
+    publishedAt: rec.publishedAt,
+    guide: rec.guide ?? null,
+    previousGuide: previous?.guide?.markdown ?? null,
+    previousGuideEn: previous?.guide?.en?.markdown ?? null,
+  }
 }
 
 /**

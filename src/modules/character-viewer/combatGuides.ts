@@ -2,6 +2,8 @@ import type { BuildInfo } from '../../pathbuilder/types'
 import { totalHp } from './helpers'
 import { saveCheck, SAVES } from './checks'
 import { NO_MODIFIERS } from './conditions'
+import type { GuideBases } from '../../services/sheets'
+import { isEn } from '../../i18n'
 
 // Guias de uso ("como jogar em combate") escritos à mão a partir da análise de
 // cada ficha (classe, talentos, magias, itens). Cada guia casa por nome do
@@ -12,6 +14,8 @@ export interface CombatGuide {
     /** Casa o guia com uma build carregada. */
     match: (b: BuildInfo) => boolean
     markdown: string
+    /** O mesmo guia em inglês, escrito à mão (para quem usa a plataforma em inglês). */
+    markdownEn?: string
     /** true = escrito à mão; false = derivado por heurística. */
     curated: boolean
 }
@@ -836,12 +840,14 @@ _Este é um guia automático a partir dos dados da ficha. Um guia detalhado e re
 
 export function getCombatGuide(b: BuildInfo): { markdown: string; curated: boolean } {
     const found = COMBAT_GUIDES.find((g) => g.match(b))
-    if (found) return { markdown: found.markdown, curated: true }
+    // Em inglês vale o curado em inglês; sem ele, o automático (em inglês) — nunca o português.
+    const markdown = isEn ? found?.markdownEn : found?.markdown
+    if (markdown) return { markdown, curated: true }
     return { markdown: buildFallbackGuide(b), curated: false }
 }
 
-/** O guia curado que o app mostrava — base para a IA atualizar em vez de começar do zero. */
-export function curatedBase(b: BuildInfo): string | null {
-    const g = getCombatGuide(b)
-    return g.curated ? g.markdown : null
+/** Os guias curados que o app mostra — base para a IA atualizar em vez de começar do zero, em cada idioma. */
+export function curatedBase(b: BuildInfo): GuideBases {
+    const found = COMBAT_GUIDES.find((g) => g.match(b))
+    return { pt: found?.markdown ?? null, en: found?.markdownEn ?? null }
 }

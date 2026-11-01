@@ -9,10 +9,35 @@
 
 import { stateApi } from './mesa'
 import { authHeaders } from './supabase'
+import { lang, type Lang } from '../i18n'
 
-export interface PublishedGuide {
+export interface GuideText {
     markdown: string
     generatedAt: number
+}
+
+/**
+ * O guia gerado: o português no topo (como sempre foi) e o inglês em `en`, gerado junto
+ * na publicação — da ficha, não traduzido. Ficha publicada antes do inglês não tem `en`.
+ * O português pode faltar quando só o inglês deu certo.
+ */
+export interface PublishedGuide {
+    markdown?: string
+    generatedAt?: number
+    en?: GuideText
+}
+
+/** O guia no idioma `target` (o desta página, por padrão), ou `null`. */
+export function guideIn(guide: PublishedGuide | null | undefined, target: Lang = lang): GuideText | null {
+    if (!guide) return null
+    if (target === 'en') return guide.en?.markdown ? guide.en : null
+    return guide.markdown && guide.generatedAt ? { markdown: guide.markdown, generatedAt: guide.generatedAt } : null
+}
+
+/** As bases curadas à mão de cada idioma (o servidor só as usa sem o guia da versão anterior). */
+export interface GuideBases {
+    pt: string | null
+    en: string | null
 }
 
 export interface PublishedSheet {
@@ -79,12 +104,15 @@ export async function publishSheet(json: unknown): Promise<PublishedSheet> {
 }
 
 /**
- * Gera o guia da versão publicada. `baseGuide` é o guia que o app mostrava
- * (o curado à mão) — o servidor só o usa quando não tem o guia da versão
- * anterior. Demora: a cadeia de IA leva de 5 a 30 segundos.
+ * Gera o guia da versão publicada. `base` é o guia que o app mostrava (o curado à
+ * mão, em cada idioma) — o servidor só o usa quando não tem o guia da versão
+ * anterior. `only` pede um idioma só (ausente = os dois, que é o da publicação).
+ * Demora: a cadeia de IA leva de 5 a 30 segundos.
  */
-export async function requestGuide(slug: string, baseGuide: string | null): Promise<PublishedSheet> {
-    const { sheet } = await post<{ sheet: PublishedSheet }>({ action: 'guide', char: slug, baseGuide })
+export async function requestGuide(slug: string, base: GuideBases, only?: Lang): Promise<PublishedSheet> {
+    const { sheet } = await post<{ sheet: PublishedSheet }>({
+        action: 'guide', char: slug, baseGuide: base.pt, baseGuideEn: base.en, ...(only ? { lang: only } : {}),
+    })
     return sheet
 }
 

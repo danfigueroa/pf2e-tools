@@ -3,9 +3,12 @@ import {
     publishSheet,
     requestGuide,
     restoreSheet,
-    type PublishedGuide,
+    type GuideBases,
+    type GuideText,
     type PublishedSheet,
 } from '../../../services/sheets'
+import type { Lang } from '../../../i18n'
+import { tr } from '../../../i18n'
 
 export type GuideStatus = 'idle' | 'generating' | 'failed'
 
@@ -13,7 +16,8 @@ export type GuideStatus = 'idle' | 'generating' | 'failed'
 export interface GuideSlot {
     /** `null` = a ficha aberta não é a da mesa: vale o guia curado/heurístico. */
     published: PublishedSheet | null
-    guide: PublishedGuide | null
+    /** O guia gerado no idioma desta página. */
+    guide: GuideText | null
     status: GuideStatus
     error: string | null
     onGenerate: () => void
@@ -42,18 +46,18 @@ export function usePublication() {
         setGuideError(null)
     }, [])
 
-    const generateGuide = useCallback(async (sheet: PublishedSheet, baseGuide: string | null) => {
+    const generateGuide = useCallback(async (sheet: PublishedSheet, base: GuideBases, only?: Lang) => {
         setGuideStatus('generating')
         setGuideError(null)
         try {
-            const next = await requestGuide(sheet.slug, baseGuide)
+            const next = await requestGuide(sheet.slug, base, only)
             if (currentSlug.current !== next.slug) return
             setPublished(next)
             setGuideStatus('idle')
         } catch (e) {
             if (currentSlug.current !== sheet.slug) return
             setGuideStatus('failed')
-            setGuideError(e instanceof Error ? e.message : 'Falha ao gerar o guia')
+            setGuideError(e instanceof Error ? e.message : tr('Falha ao gerar o guia', 'Failed to generate the guide'))
         }
     }, [])
 

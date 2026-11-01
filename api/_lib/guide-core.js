@@ -9,6 +9,10 @@
 // Quando existe um guia anterior (o curado à mão, ou o gerado para a versão
 // passada), ele entra no prompt como BASE: a IA atualiza em vez de começar do
 // zero, então a tática que alguém já revisou sobrevive ao level-up.
+//
+// Dois idiomas: o guia em inglês é GERADO a partir da ficha, com o prompt em inglês —
+// nunca uma tradução do português (decisão do usuário: a fonte é a ficha e a AON, que já
+// são em inglês). A publicação pede os dois juntos (`sheet-handler.js`).
 
 import { runChainedPrompt } from './aon.js'
 import { MAX_GUIDE_BYTES } from './sheet-store.js'
@@ -37,6 +41,46 @@ const SECTIONS = [
   '## 🛡️ Defesa e Sobrevivência',
   '## ⚠️ Erros Comuns',
 ]
+
+const SECTIONS_EN = [
+  '## 🎯 Combat Role',
+  '## 🔁 Turn Routine',
+  '## ⭐ Never Forget',
+  '## ✨ Spells and Resources',
+  '## 🎒 Items',
+  '## 🛡️ Defense and Survival',
+  '## ⚠️ Common Mistakes',
+]
+
+function buildPromptEn(json, baseGuide) {
+  const baseSections = baseGuide ? (String(baseGuide).match(/^## .*$/gm) || []).map((h) => h.trim()) : []
+  const sectionRule = baseSections.length >= 3
+    ? `use EXACTLY these sections, in this order: ${baseSections.join(' | ')}.`
+    : `use this order: ${SECTIONS_EN.join(' | ')}, skipping "✨ Spells and Resources" if the character has no spells nor daily resources.`
+  const base = baseGuide
+    ? `\n\nPREVIOUS GUIDE for this character (written for an earlier version of the sheet). Use it as a BASE: keep the tactics that still apply, fix what the new sheet changed (level, feats, spells, items, numbers) and add what is new. Do not copy old numbers without checking them against the sheet:\n\n${String(baseGuide).slice(0, MAX_GUIDE_BYTES)}`
+    : ''
+
+  return `You are a veteran Pathfinder 2e Remaster player writing a practical "how to play" guide for this character in combat, for the player to read at the table on their phone.
+
+Write in English. Use the official Remaster names of feats, spells, items, actions and conditions (Strike, Stride, Demoralize, off-guard, frightened…), exactly as they appear on the sheet.
+
+FORMAT (mandatory — the app only understands this):
+- Section titles starting with "## "; ${sectionRule}
+- Lists with "- " at the start of the line.
+- Bold with **text**. No tables, links, italics, "###" headings or code blocks.
+- With a previous guide, keep the same level of detail and a similar length — do not summarize. Without one, between 450 and 900 words. Short, actionable sentences, citing the sheet's real numbers (AC, HP, attack bonus, DCs).
+
+RULES:
+- Use ONLY what is on the sheet below and the Remaster rules.
+- NEVER describe the mechanical effect of a feat, spell or item you are not absolutely sure about — an invented effect at the table is worse than none. When in doubt, name it, say WHEN to use it and tell the player to tap it on the sheet to read the rule.
+- Do not invent numeric bonuses: only numbers that are on the sheet or in the previous guide.
+- In the routine, say what to do with the 3 actions on typical turns, citing the feats the sheet has.
+- Return ONLY the guide in markdown, with no introduction nor closing comment.
+
+SHEET (Pathbuilder JSON):
+${compactBuild(json)}${base}`
+}
 
 function buildPrompt(json, baseGuide) {
   // As seções do guia anterior, ditas explicitamente: só "siga as seções dele"
@@ -97,8 +141,9 @@ function tidy(text) {
  * @returns {Promise<string|null>} o markdown, ou null quando a cadeia inteira
  *   falhou — a ficha continua publicada, e o guia pode ser pedido de novo.
  */
-export async function generateGuide(json, baseGuide = null) {
-  const out = await runChainedPrompt(buildPrompt(json, baseGuide), {
+export async function generateGuide(json, baseGuide = null, lang = 'pt') {
+  const prompt = lang === 'en' ? buildPromptEn(json, baseGuide) : buildPrompt(json, baseGuide)
+  const out = await runChainedPrompt(prompt, {
     maxTokens: 4096,
     // `cleanTranslation` é feito para prosa traduzida (tira aspas das pontas,
     // prefixos como "Aqui está") e não tem o que fazer num markdown.

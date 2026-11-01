@@ -14,7 +14,7 @@ import {
     useMediaQuery,
 } from '@mui/material'
 import { ExpandMore as ExpandIcon, Lock as LockIcon } from '@mui/icons-material'
-import { checkApiAvailable, fetchCompanionStats, loadDescriptionBundle, loadSheetDescriptions } from '../../services/descriptions'
+import { checkApiAvailable, fetchCompanionStats, loadDescriptionBundle, loadSheetDescriptionsBoth } from '../../services/descriptions'
 import { characterDescriptionNames } from './descriptionNames'
 import {
     Shield as OverviewIcon,
@@ -38,7 +38,8 @@ import { ReadOnlyTheme } from './components/ReadOnlyTheme'
 import { NewVersionBar } from './components/NewVersionBar'
 import { withRelicRunes } from './relics'
 import { GiftArrivalNotice } from './components/GiftArrivalNotice'
-import type { PublishedSheet } from '../../services/sheets'
+import { guideIn, type PublishedSheet } from '../../services/sheets'
+import { lang } from '../../i18n'
 import type { GuideSlot, PublicationApi } from './components/usePublication'
 import { curatedBase } from './combatGuides'
 import { CharacterHeader } from './components/CharacterHeader'
@@ -362,7 +363,7 @@ const SheetBody = ({ build: source, publication, onReset, onRestore, compact = f
     // Quem está na mesa vê que esta ficha está aberta (sidebar).
     useEffect(() => announceSheet(slug, build.name), [slug, build.name])
     useEffect(() => {
-        if (isPublished) void loadSheetDescriptions(slug, descriptionNames)
+        if (isPublished) void loadSheetDescriptionsBoth(slug, descriptionNames)
     }, [slug, descriptionNames, isPublished])
 
     // Pré-busca stats de companheiros animais (só 1-2 fetches, vale eager)
@@ -388,10 +389,11 @@ const SheetBody = ({ build: source, publication, onReset, onRestore, compact = f
     // diálogo de rolagem (estado desta página) repintaria a seção inteira.
     const guide = useMemo<GuideSlot>(() => ({
         published,
-        guide: published?.guide ?? null,
+        guide: guideIn(published?.guide),
         status: guideStatus,
         error: guideError,
-        onGenerate: () => { if (published) void generateGuide(published, curatedBase(build)) },
+        // Daqui, só o idioma desta página (o "Gerar de novo" e a ficha publicada antes do inglês).
+        onGenerate: () => { if (published) void generateGuide(published, curatedBase(build), lang) },
     }), [published, guideStatus, guideError, generateGuide, build])
     const closeDrawer = useCallback(() => setDrawerReq(null), [])
     // O "Usar" das abas Talentos e Habilidades também dentro do drawer: quem foi ler a
