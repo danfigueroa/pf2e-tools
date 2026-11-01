@@ -45,15 +45,18 @@ const Caption = ({ children, color }: { children: React.ReactNode; color?: strin
     </Typography>
 )
 
+/** Flurry of Blows são golpes; o resto (Blazing Bolt…) são raios. */
+const raysLabel = (roll: TableRoll) => (roll.title.startsWith('Flurry') ? 'Golpe' : 'Raio')
+
 /** Vários raios na mesma rolagem: cada um com o ataque e o dano, e o total dos raios no fim. */
-const RaysBlock = ({ rays, color }: { rays: RollRay[]; color: string }) => (
+const RaysBlock = ({ rays, color, label = 'Raio' }: { rays: RollRay[]; color: string; label?: string }) => (
     <Box sx={{ mt: 0.75 }}>
         {rays.map((ray, i) => {
             const dmg = damageDice(ray.damage.parts)
             return (
                 <Box key={i} sx={{ mt: 0.75 }}>
                     <Divider sx={{ borderColor: `${gold.main}55`, mb: 0.5 }} />
-                    <Caption color={gold.bright}>Raio {i + 1} de {rays.length}</Caption>
+                    <Caption color={gold.bright}>{label} {i + 1} de {rays.length}</Caption>
                     <DiceTray dice={[{ faces: 20, value: ray.check.d20 }]} flat={ray.check.mod} total={ray.check.total} color={color} compact />
                     {ray.check.mythic && <Caption color={MYTHIC_ON_DARK}>✦ proficiência mítica</Caption>}
                     <Caption color={gold.bright}>Dano se acertar</Caption>
@@ -65,12 +68,12 @@ const RaysBlock = ({ rays, color }: { rays: RollRay[]; color: string }) => (
         })}
         <Divider sx={{ borderColor: `${gold.main}99`, my: 0.75 }} />
         <Typography sx={{ textAlign: 'center', fontWeight: 800, fontSize: '1.15rem' }}>
-            Total dos {rays.length} raios: {rayTotal(rays)}
+            Total dos {rays.length} {label === 'Golpe' ? 'golpes' : 'raios'}: {rayTotal(rays)}
         </Typography>
         <Caption color={gold.bright}>
             <b>Se todos forem críticos: {rayCritTotal(rays)}</b>
         </Caption>
-        <Caption>Some só os raios que acertarem.</Caption>
+        <Caption>Some só {label === 'Golpe' ? 'os golpes que acertarem' : 'os raios que acertarem'}.</Caption>
     </Box>
 )
 
@@ -145,7 +148,7 @@ const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) =
                 </Box>
             )}
 
-            {roll.rays && <RaysBlock rays={roll.rays} color={roll.color} />}
+            {roll.rays && <RaysBlock rays={roll.rays} color={roll.color} label={raysLabel(roll)} />}
 
             {roll.use && (
                 <Typography sx={{ mt: 0.75, textAlign: 'center', fontWeight: 800, fontSize: '1.15rem' }}>
@@ -278,8 +281,10 @@ export const HistoryRow = ({ roll }: { roll: TableRoll }) => (
             <Box sx={{ mt: 0.5 }}>
                 {roll.rays.map((ray, i) => (
                     <Typography key={i} variant="body2">
-                        <b>Raio {i + 1}:</b> ataque {ray.check.total} (d20 {ray.check.d20} {signed(ray.check.mod)}) · dano {ray.damage.total}
-                        {ray.damage.crit ? ` · crítico ${ray.damage.crit.total}` : ''}
+                        <b>{`${raysLabel(roll)} ${i + 1}`}:</b> ataque {ray.check.total} (d20 {ray.check.d20} {signed(ray.check.mod)}) · <b>dano {ray.damage.total}</b>
+                        {' — '}
+                        {ray.damage.parts.map((p) => `${p.label}: ${partFormula(p)} = ${p.total}${p.persistent ? ' (persistente)' : ''}`).join(' · ')}
+                        {ray.damage.crit ? ` · crítico ${ray.damage.crit.total}${ray.damage.crit.note ? ` (${ray.damage.crit.note})` : ''}` : ''}
                     </Typography>
                 ))}
                 <Typography variant="body2"><b>Total {rayTotal(roll.rays)}</b> · todos críticos {rayCritTotal(roll.rays)}</Typography>
