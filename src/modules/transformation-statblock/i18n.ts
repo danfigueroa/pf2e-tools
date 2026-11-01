@@ -1,35 +1,40 @@
+/* i18n-ignore-file */
 // Tradução pt-BR do vocabulário mecânico do bloco de criatura.
 // Os arquivos de dados mantêm os valores canônicos (tamanho, tipos de dano,
 // traits, sentidos, deslocamentos) em inglês; a tradução acontece no render.
+// Em INGLÊS (`isEn`) as funções devolvem o termo canônico como veio, e os rótulos
+// fixos são os do livro — os dicionários abaixo são só do português.
+
+import { isEn, tr } from '../../i18n';
 
 // Rótulos fixos do bloco de criatura
 export const LABELS = {
-  perception: 'Percepção',
-  languages: 'Idiomas',
-  skills: 'Perícias',
-  ac: 'CA',
+  perception: tr('Percepção', 'Perception'),
+  languages: tr('Idiomas', 'Languages'),
+  skills: tr('Perícias', 'Skills'),
+  ac: tr('CA', 'AC'),
   fort: 'Fort',
   ref: 'Ref',
-  will: 'Von',
-  hp: 'PV',
-  tempHp: 'PV temporários',
-  immunities: 'Imunidades',
-  resistances: 'Resistências',
-  weaknesses: 'Fraquezas',
-  speed: 'Deslocamento',
-  melee: 'Corpo a corpo',
-  ranged: 'À distância',
-  damage: 'Dano',
-  athletics: 'Atletismo',
-  duration: 'Duração',
-  traditions: 'Tradições',
-  level: 'Nível',
-  creature: 'Criatura',
+  will: tr('Von', 'Will'),
+  hp: tr('PV', 'HP'),
+  tempHp: tr('PV temporários', 'temporary HP'),
+  immunities: tr('Imunidades', 'Immunities'),
+  resistances: tr('Resistências', 'Resistances'),
+  weaknesses: tr('Fraquezas', 'Weaknesses'),
+  speed: tr('Deslocamento', 'Speed'),
+  melee: tr('Corpo a corpo', 'Melee'),
+  ranged: tr('À distância', 'Ranged'),
+  damage: tr('Dano', 'Damage'),
+  athletics: tr('Atletismo', 'Athletics'),
+  duration: tr('Duração', 'Duration'),
+  traditions: tr('Tradições', 'Traditions'),
+  level: tr('Nível', 'Level'),
+  creature: tr('Criatura', 'Creature'),
   // Usados pelo bloco de criatura da AON (módulo de escalar monstro).
-  items: 'Itens',
-  senses: 'Sentidos',
-  recallKnowledge: 'Rememorar Conhecimento',
-  source: 'Fonte',
+  items: tr('Itens', 'Items'),
+  senses: tr('Sentidos', 'Senses'),
+  recallKnowledge: tr('Rememorar Conhecimento', 'Recall Knowledge'),
+  source: tr('Fonte', 'Source'),
 } as const;
 
 /**
@@ -51,12 +56,12 @@ export function actionGlyph(actions: string | null | undefined): string {
 
 // Abreviações de atributo
 export const ABILITY_ABBR: Record<string, string> = {
-  strength: 'For',
-  dexterity: 'Des',
+  strength: tr('For', 'Str'),
+  dexterity: tr('Des', 'Dex'),
   constitution: 'Con',
   intelligence: 'Int',
-  wisdom: 'Sab',
-  charisma: 'Car',
+  wisdom: tr('Sab', 'Wis'),
+  charisma: tr('Car', 'Cha'),
 };
 
 // Tamanhos
@@ -102,21 +107,21 @@ const DAMAGE_TYPES: Record<string, string> = {
 
 // Sentidos
 export const SENSES: Record<string, string> = {
-  lowLightVision: 'visão na penumbra',
-  darkvision: 'visão no escuro',
-  scent: 'olfato',
-  tremorsense: 'sentido sísmico',
-  truesight: 'visão verdadeira',
-  blindsight: 'percepção às cegas',
+  lowLightVision: tr('visão na penumbra', 'low-light vision'),
+  darkvision: tr('visão no escuro', 'darkvision'),
+  scent: tr('olfato', 'scent'),
+  tremorsense: tr('sentido sísmico', 'tremorsense'),
+  truesight: tr('visão verdadeira', 'truesight'),
+  blindsight: tr('percepção às cegas', 'blindsight'),
 };
 
 // Tipos de deslocamento
 export const SPEED_TYPES: Record<string, string> = {
   land: '',
-  climb: 'escalar',
-  swim: 'nadar',
-  fly: 'voar',
-  burrow: 'escavar',
+  climb: tr('escalar', 'climb'),
+  swim: tr('nadar', 'swim'),
+  fly: tr('voar', 'fly'),
+  burrow: tr('escavar', 'burrow'),
 };
 
 // Traits comuns (palavra inicial; números e letras de tipo são preservados)
@@ -339,6 +344,7 @@ const NAMES: Record<string, string> = {
 };
 
 export function translateName(name: string): string {
+  if (isEn) return name;
   return NAMES[name] ?? name;
 }
 
@@ -359,14 +365,17 @@ const SPELL_META: Record<string, string> = {
 };
 
 export function translateSpellMeta(value: string): string {
+  if (isEn) return value;
   return SPELL_META[value.toLowerCase()] ?? value;
 }
 
 export function translateSize(size: string): string {
+  if (isEn) return size;
   return SIZES[size] ?? size;
 }
 
 export function translateRarity(rarity: string): string {
+  if (isEn) return rarity;
   // Os dados deste módulo trazem a raridade capitalizada, mas o índice da AON
   // devolve minúscula ("uncommon") — sem isso a busca de criaturas mostrava a
   // raridade em inglês.
@@ -375,12 +384,14 @@ export function translateRarity(rarity: string): string {
 }
 
 export function translateDamageType(type: string): string {
+  if (isEn) return type;
   return DAMAGE_TYPES[type.toLowerCase()] ?? type;
 }
 
 // Traduz a string de dano completa, ex.: "2d6 bludgeoning plus 1d8 acid"
 // → "2d6 contundente mais 1d8 ácido". Preserva dados e números.
 export function translateDamageString(damage: string): string {
+  if (isEn) return damage;
   let out = damage
     .replace(/\bplus\b/gi, 'mais')
     .replace(/\bpersistent\b/gi, 'persistente')
@@ -395,6 +406,7 @@ export function translateDamageString(damage: string): string {
 // Traduz um trait, preservando números/letras (ex.: "reach 20" → "alcance 20",
 // "versatile S" → "versátil C", "deadly d10" → "letal d10").
 export function translateTrait(trait: string): string {
+  if (isEn) return trait;
   const parts = trait.split(' ');
   const head = TRAITS[parts[0].toLowerCase()] ?? TRAITS[parts[0]] ?? parts[0];
   if (parts.length === 1) return head;
@@ -403,6 +415,7 @@ export function translateTrait(trait: string): string {
 }
 
 export function translateAttackName(name: string): string {
+  if (isEn) return name;
   return ATTACK_NAMES[name.toLowerCase()] ?? name;
 }
 
@@ -420,6 +433,7 @@ const IMMUNITIES: Record<string, string> = {
 };
 
 export function translateImmunity(name: string): string {
+  if (isEn) return name;
   return IMMUNITIES[name.toLowerCase()] ?? translateDamageType(name);
 }
 
