@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Box, ButtonBase, Stack, Tooltip } from '@mui/material'
 import { RECOVER, RIPPLE, SPEND, useArmed, useReducedMotion } from '../../../motion/motion'
 import { useSheetReadOnly } from '../sheetAccess'
+import { tr } from '../../../i18n'
 
 interface Props {
     /** Quantidade de slots do grupo. */
@@ -47,10 +48,10 @@ export const SlotPips = ({ total, used, color, onChange, label, size = 14 }: Pro
                 const moved = change && i >= Math.min(change.from, change.to) && i < Math.max(change.from, change.to)
                 const twin = (change?.id ?? 0) % 2
                 return (
-                    <Tooltip key={i} title={spent ? 'Recuperar' : 'Gastar'} enterDelay={400}>
+                    <Tooltip key={i} title={spent ? 'Recuperar' : tr('Gastar', 'Spend')} enterDelay={400}>
                         <ButtonBase
                             disabled={readOnly}
-                            aria-label={`${label} ${i + 1}: ${spent ? 'gasto' : 'disponível'}`}
+                            aria-label={`${label} ${i + 1}: ${spent ? tr('gasto', 'spent') : tr('disponível', 'available')}`}
                             onClick={(e) => {
                                 e.stopPropagation()
                                 onChange(spent ? i : i + 1)

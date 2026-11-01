@@ -14,6 +14,7 @@ import { curatedBase } from './combatGuides'
 import { characterDescriptionNames } from './descriptionNames'
 import { loadSheetDescriptionsBoth } from '../../services/descriptions'
 import { mesaKey } from '../../services/mesa'
+import { tr } from '../../i18n'
 
 // Da mesa: trocar de mesa recarrega a página, e a ficha aberta da outra não pode voltar.
 const SESSION_KEY = mesaKey('pf2e:viewer:lastBuild')
@@ -91,7 +92,7 @@ export const CharacterViewerPage = () => {
         try {
             b = parseCharacterJson(json)
         } catch (e) {
-            setError(e instanceof Error ? e.message : 'JSON inválido.')
+            setError(e instanceof Error ? e.message : tr('JSON inválido.', 'Invalid JSON.'))
             return
         }
         if (origin.kind === 'preset') {
@@ -140,13 +141,13 @@ export const CharacterViewerPage = () => {
             const published = parseCharacterJson(sheet.json)
             show(published, sheet)
             setPending(null)
-            setPublishedNotice(`${sheet.name} publicada para a mesa.`)
+            setPublishedNotice(tr(`${sheet.name} publicada para a mesa.`, `${sheet.name} published to the table.`))
             void publication.generateGuide(sheet, base)
             // Já, antes de qualquer jogador abrir: a mesa encontra todas as descrições
             // traduzidas. Num level-up quase tudo vem do pacote estático e só o novo é traduzido.
             void loadSheetDescriptionsBoth(sheet.slug, characterDescriptionNames(published))
         } catch (e) {
-            setPublishError(e instanceof Error ? e.message : 'Falha ao publicar')
+            setPublishError(e instanceof Error ? e.message : tr('Falha ao publicar', 'Failed to publish'))
         } finally {
             setPublishBusy(false)
         }
@@ -160,9 +161,9 @@ export const CharacterViewerPage = () => {
             const restored = parseCharacterJson(sheet.json)
             show(restored, sheet)
             void loadSheetDescriptionsBoth(sheet.slug, characterDescriptionNames(restored))
-            setPublishedNotice('Versão anterior restaurada.')
+            setPublishedNotice(tr('Versão anterior restaurada.', 'Previous version restored.'))
         } catch (e) {
-            setPublishedNotice(e instanceof Error ? e.message : 'Falha ao restaurar')
+            setPublishedNotice(e instanceof Error ? e.message : tr('Falha ao restaurar', 'Failed to restore'))
         }
     }
 

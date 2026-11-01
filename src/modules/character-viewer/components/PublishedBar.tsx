@@ -5,7 +5,7 @@ import type { PublishedSheet } from '../../../services/sheets'
 import { useSheetDescriptionsStatus, type SheetDescriptionsStatus } from '../../../services/descriptions'
 import { canEditSheet, useRole } from '../../../services/auth'
 import { EmbedDialog } from './EmbedDialog'
-import { locale } from '../../../i18n'
+import { locale, tr } from '../../../i18n'
 
 const when = (ts: number) => new Date(ts).toLocaleString(locale, { dateStyle: 'short', timeStyle: 'short' })
 
@@ -36,27 +36,24 @@ export const PublishedBar = ({ sheet, onRestore }: { sheet: PublishedSheet; onRe
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: '1 1 220px', minWidth: 0 }}>
                 <PublishedIcon fontSize="small" sx={{ color: 'primary.main', flexShrink: 0 }} />
                 <Typography variant="body2" color="text.secondary" sx={{ minWidth: 0 }}>
-                    Ficha da mesa · publicada em {when(sheet.publishedAt)}
+                    {tr('Ficha da mesa · publicada em ', 'Table sheet · published on ')}{when(sheet.publishedAt)}
                 </Typography>
             </Box>
             {descriptions && <DescriptionsStatus status={descriptions} />}
             {prev && editable && (
                 <Button size="small" startIcon={<RestoreIcon />} onClick={() => setConfirming(true)}>
-                    Versão anterior
-                </Button>
+                    {tr('Versão anterior', 'Previous version')}</Button>
             )}
 
             <EmbedDialog open={confirming} onClose={() => setConfirming(false)}>
-                <DialogTitle>Voltar à versão anterior?</DialogTitle>
+                <DialogTitle>{tr('Voltar à versão anterior?', 'Go back to the previous version?')}</DialogTitle>
                 <DialogContent>
                     <Typography>
-                        A ficha da mesa volta para a versão publicada em {prev ? when(prev.publishedAt) : ''}
-                        {prev?.level != null ? ` (nível ${prev.level})` : ''}, para todos. A versão de agora
-                        fica guardada no lugar dela, então dá para desfazer.
-                    </Typography>
+                        {tr('A ficha da mesa volta para a versão publicada em ', 'The table\'s sheet goes back to the version published on ')}{prev ? when(prev.publishedAt) : ''}
+                        {prev?.level != null ? tr(` (nível ${prev.level})`, ` (level ${prev.level})`) : ''}{tr(', para todos. A versão de agora fica guardada no lugar dela, então dá para desfazer.', ', for everyone. The current version is kept in its place, so you can undo it.')}</Typography>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setConfirming(false)}>Cancelar</Button>
+                    <Button onClick={() => setConfirming(false)}>{tr('Cancelar', 'Cancel')}</Button>
                     <Button variant="contained" onClick={() => { setConfirming(false); onRestore() }}>
                         Restaurar
                     </Button>
@@ -80,10 +77,10 @@ const DescriptionsStatus = ({ status }: { status: SheetDescriptionsStatus }) => 
         {status.state === 'done' && <ReadyIcon fontSize="small" sx={{ color: 'primary.main' }} />}
         <Typography variant="caption">
             {status.state === 'building'
-                ? `Preparando as descrições para a mesa${status.remaining ? ` · faltam ${status.remaining}` : '…'}`
+                ? tr(`Preparando as descrições para a mesa${status.remaining ? ` · faltam ${status.remaining}` : '…'}`, `Preparing the descriptions for the table${status.remaining ? ` · ${status.remaining} left` : '…'}`)
                 : status.state === 'done'
-                    ? 'Descrições prontas: magias, talentos e itens abrem na hora para a mesa'
-                    : `${status.remaining} descrições ficaram para depois — abrem pela internet até lá`}
+                    ? tr('Descrições prontas: magias, talentos e itens abrem na hora para a mesa', 'Descriptions ready: spells, feats and items open instantly for the table')
+                    : tr(`${status.remaining} descrições ficaram para depois — abrem pela internet até lá`, `${status.remaining} descriptions left for later — they open over the internet until then`)}
         </Typography>
     </Box>
 )

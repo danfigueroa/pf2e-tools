@@ -13,7 +13,7 @@ import {
 import type { BuildInfo } from '../../../pathbuilder/types'
 import { diffSheets } from '../sheetDiff'
 import { EmbedDialog } from './EmbedDialog'
-import { locale } from '../../../i18n'
+import { locale, tr } from '../../../i18n'
 
 /** A versão contra a qual o JSON enviado é comparado. */
 export interface PublishBase {
@@ -45,8 +45,8 @@ export const PublishDialog = ({ open, incoming, base, busy, error, onPublish, on
     // Só a ficha JÁ publicada dispensa publicar de novo; o arquivo fixo da campanha ainda não está no banco.
     const alreadyPublished = !!diff?.identical && base?.from === 'published'
     const baseLabel = base?.from === 'published'
-        ? `a ficha publicada${base.publishedAt ? ` em ${new Date(base.publishedAt).toLocaleDateString(locale)}` : ''}`
-        : 'a ficha da campanha'
+        ? tr(`a ficha publicada${base.publishedAt ? ` em ${new Date(base.publishedAt).toLocaleDateString(locale)}` : ''}`, `the published sheet${base.publishedAt ? ` from ${new Date(base.publishedAt).toLocaleDateString(locale)}` : ''}`)
+        : tr('a ficha da campanha', 'the campaign sheet')
 
     return (
         <EmbedDialog open={open} onClose={busy ? undefined : onCancel} fullWidth maxWidth="sm">
@@ -54,23 +54,20 @@ export const PublishDialog = ({ open, incoming, base, busy, error, onPublish, on
             <DialogContent dividers>
                 {!base ? (
                     <Typography sx={{ mb: 1 }}>
-                        Personagem novo na mesa. Publicar faz ele aparecer para todos — na Ficha Virtual,
-                        na Iniciativa e na Transformação.
-                    </Typography>
+                        {tr('Personagem novo na mesa. Publicar faz ele aparecer para todos — na Ficha Virtual, na Iniciativa e na Transformação.', 'New character at the table. Publishing makes them show up for everyone — in the Virtual Sheet, Initiative and Transformation.')}</Typography>
                 ) : alreadyPublished ? (
-                    <Typography sx={{ mb: 1 }}>Igual a {baseLabel}. Não há o que atualizar.</Typography>
+                    <Typography sx={{ mb: 1 }}>Igual a {baseLabel}{tr('. Não há o que atualizar.', '. There\'s nothing to update.')}</Typography>
                 ) : diff?.identical ? (
                     <Typography sx={{ mb: 1 }}>
-                        Igual a {baseLabel}, que ainda não está no banco da mesa. Publicar guarda a ficha lá, sempre disponível.
-                    </Typography>
+                        Igual a {baseLabel}{tr(', que ainda não está no banco da mesa. Publicar guarda a ficha lá, sempre disponível.', ', which isn\'t in the table\'s database yet. Publishing stores the sheet there, always available.')}</Typography>
                 ) : (
                     <>
                         <Typography sx={{ mb: 1.5 }}>
-                            Comparado com {baseLabel}:
+                            {tr('Comparado com ', 'Compared with ')}{baseLabel}:
                         </Typography>
                         {diff && diff.levelFrom !== diff.levelTo && (
                             <Chip
-                                label={`Nível ${diff.levelFrom} → ${diff.levelTo}`}
+                                label={tr(`Nível ${diff.levelFrom} → ${diff.levelTo}`, `Level ${diff.levelFrom} → ${diff.levelTo}`)}
                                 color="primary"
                                 sx={{ fontWeight: 700, mb: 1.5 }}
                             />
@@ -87,31 +84,26 @@ export const PublishDialog = ({ open, incoming, base, busy, error, onPublish, on
                             ))}
                             {diff && diff.changes.length === 0 && (
                                 <Typography variant="body2" color="text.secondary">
-                                    Talentos, magias e itens são os mesmos; mudaram só números da ficha.
-                                </Typography>
+                                    {tr('Talentos, magias e itens são os mesmos; mudaram só números da ficha.', 'Feats, spells and items are the same; only the sheet\'s numbers changed.')}</Typography>
                             )}
                         </Stack>
                     </>
                 )}
 
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                    Toda ficha enviada é guardada no banco da mesa. Ao publicar, a ficha passa a valer para toda a mesa e um guia de como jogar é gerado
-                    por IA para a versão nova. A versão anterior fica guardada e pode ser restaurada.
-                    PV, condições e slots não mudam.
-                </Typography>
+                    {tr('Toda ficha enviada é guardada no banco da mesa. Ao publicar, a ficha passa a valer para toda a mesa e um guia de como jogar é gerado por IA para a versão nova. A versão anterior fica guardada e pode ser restaurada. PV, condições e slots não mudam.', 'Every uploaded sheet is stored in the table\'s database. When you publish, the sheet becomes the one for the whole table and a how-to-play guide is generated by AI for the new version. The previous version is kept and can be restored. HP, conditions and slots don\'t change.')}</Typography>
 
                 {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
             </DialogContent>
             <DialogActions sx={{ flexWrap: 'wrap', gap: 1 }}>
-                <Button onClick={onCancel} disabled={busy}>Cancelar</Button>
+                <Button onClick={onCancel} disabled={busy}>{tr('Cancelar', 'Cancel')}</Button>
                 <Button
                     variant="contained"
                     onClick={onPublish}
                     disabled={busy || alreadyPublished}
                     startIcon={busy ? <CircularProgress size={16} color="inherit" /> : undefined}
                 >
-                    Publicar para a mesa
-                </Button>
+                    {tr('Publicar para a mesa', 'Publish to the table')}</Button>
             </DialogActions>
         </EmbedDialog>
     )
@@ -127,7 +119,7 @@ const NameList = ({ sign, names }: { sign: '+' | '−'; names: string[] }) => {
                 {sign}
             </Box>
             {shown.join(', ')}
-            {rest > 0 ? ` e mais ${rest}` : ''}
+            {rest > 0 ? tr(` e mais ${rest}`, ` and ${rest} more`) : ''}
         </Typography>
     )
 }

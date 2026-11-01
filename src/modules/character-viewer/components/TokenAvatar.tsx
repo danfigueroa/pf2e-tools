@@ -6,6 +6,7 @@ import { TOKEN_MAX_SIDE, deleteImage, imageErrorText, shrinkImage, uploadImage, 
 import { initials } from '../../battle-map/geometry'
 import { MAP_BACKDROP, TOKEN_PC, gold, parchment } from '../../../theme'
 import { useSheetReadOnly } from '../sheetAccess'
+import { tr } from '../../../i18n'
 
 interface TokenStored { url: string }
 
@@ -62,11 +63,11 @@ export const TokenAvatar = ({ slug, name }: Props) => {
 
     return (
         <>
-            <Tooltip title={readOnly ? '' : token ? 'Trocar o token do mapa' : 'Enviar o token do mapa'}>
+            <Tooltip title={readOnly ? '' : token ? tr('Trocar o token do mapa', 'Change the map token') : tr('Enviar o token do mapa', 'Upload the map token')}>
                 <ButtonBase
                     onClick={() => input.current?.click()}
                     disabled={busy || readOnly}
-                    aria-label={token ? `Trocar o token de ${name}` : `Enviar o token de ${name}`}
+                    aria-label={token ? tr(`Trocar o token de ${name}`, `Change ${name}'s token`) : tr(`Enviar o token de ${name}`, `Upload ${name}'s token`)}
                     sx={{
                         position: 'relative',
                         flexShrink: 0,

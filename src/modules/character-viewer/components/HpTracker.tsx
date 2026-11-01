@@ -21,6 +21,7 @@ import { hpBarColor, useHpTracker } from './useHpTracker'
 import { hpKeyFor, legacyCharKey } from '../charId'
 import { useHpFeedback } from '../../../motion/useHpFeedback'
 import { FloatingDeltas } from '../../../motion/FloatingDeltas'
+import { tr } from '../../../i18n'
 
 interface Props {
     build: BuildInfo
@@ -69,11 +70,10 @@ export const HpTracker = ({ build, maxHp, maxHpDelta = 0 }: Props) => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5, flexWrap: 'wrap' }}>
                     <HpIcon sx={{ color: HP_COLOR }} />
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                        Pontos de Vida
-                    </Typography>
+                        {tr('Pontos de Vida', 'Hit Points')}</Typography>
                     {current === 0 && (
                         <Chip
-                            label="Inconsciente / Morrendo"
+                            label={tr("Inconsciente / Morrendo", 'Unconscious / Dying')}
                             size="small"
                             color="error"
                             sx={{ ml: 'auto', fontWeight: 700 }}
@@ -95,7 +95,7 @@ export const HpTracker = ({ build, maxHp, maxHpDelta = 0 }: Props) => {
                     </Box>
                     {maxHpDelta !== 0 && (
                         <Chip
-                            label={`${maxHpDelta} máx · condição`}
+                            label={tr(`${maxHpDelta} máx · condição`, `${maxHpDelta} max · condition`)}
                             size="small"
                             variant="outlined"
                             sx={{ ml: 1, fontWeight: 700, color: CONDITION_COLOR, borderColor: CONDITION_COLOR }}
@@ -150,8 +150,7 @@ export const HpTracker = ({ build, maxHp, maxHpDelta = 0 }: Props) => {
                         onClick={handleDamage}
                         sx={{ fontWeight: 700, flex: { xs: '1 1 0', sm: '0 0 auto' } }}
                     >
-                        Dano
-                    </Button>
+                        {tr('Dano', 'Damage')}</Button>
                     <Button
                         variant="contained"
                         color="success"

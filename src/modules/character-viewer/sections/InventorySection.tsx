@@ -37,6 +37,7 @@ import { actionsKeyFor } from '../charId'
 import { castTimeOf } from '../spellCast'
 import { useActions } from '../components/useActions'
 import { payTime } from '../components/useSpellCast'
+import { tr } from '../../../i18n'
 
 interface Props {
     build: BuildInfo
@@ -120,19 +121,19 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
         payTime(actions, time, undefined, spentText, warnings)
         // Sem custo conhecido (item sem `actions`) não chuta: o aviso do `payTime` diz para gastar à mão.
         const costNote = [
-            spentText.length ? `gastou ${spentText.join(' e ')}` : null,
-            warnings.length ? `atenção: ${warnings.join('; ')}` : null,
+            spentText.length ? tr(`gastou ${spentText.join(' e ')}`, `spent ${spentText.join(' and ')}`) : null,
+            warnings.length ? tr(`atenção: ${warnings.join('; ')}`, `warning: ${warnings.join('; ')}`) : null,
         ].filter(Boolean).join(' · ')
         const actionsSpent = time.kind === 'actions' ? time.n : 0
         const formula = traits[row.name]?.healing
         const roll = formula ? rollFormulaDetailed(formula) : null
         if (!formula || !roll) {
-            setNotice({ text: `${row.name} usado${costNote ? ` · ${costNote}` : ''}.`, name: row.name, qty: row.sheetQty, healed: 0, actionsSpent })
+            setNotice({ text: tr(`${row.name} usado${costNote ? ` · ${costNote}` : ''}.`, `${row.name} used${costNote ? ` · ${costNote}` : ''}.`), name: row.name, qty: row.sheetQty, healed: 0, actionsSpent })
             return
         }
         const before = hp.current
         const healed = hp.applyHealing(roll.total)
-        const capped = healed < roll.total ? ' (PV cheio)' : ''
+        const capped = healed < roll.total ? tr(' (PV cheio)', ' (HP full)') : ''
         setNotice(null)
         setDrink({
             event: { name: row.name, formula, roll, before, after: before + healed, max: characterMaxHp(build, mods.hpMaxDelta) },
@@ -159,8 +160,7 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
             <Card>
                 <CardContent>
                     <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                        Inventário vazio.
-                    </Typography>
+                        {tr('Inventário vazio.', 'Empty inventory.')}</Typography>
                 </CardContent>
             </Card>
         )
@@ -190,8 +190,7 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
                     <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
                         <Box sx={{ px: 2, py: 1.25, borderBottom: '1px solid', borderColor: 'divider' }}>
                             <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: '0.06em' }}>
-                                Itens
-                            </Typography>
+                                {tr('Itens', 'Items')}</Typography>
                         </Box>
                         <Stack divider={<Box sx={{ borderBottom: '1px solid', borderColor: 'divider' }} />}>
                             {rows.map((row, idx) => {
@@ -262,7 +261,7 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
                                                     // A `key` pelo restante refaz o estouro a cada uso.
                                                     <Chip
                                                         key={remaining}
-                                                        label={`x${remaining} de ${row.qty}`}
+                                                        label={tr(`x${remaining} de ${row.qty}`, `x${remaining} of ${row.qty}`)}
                                                         size="small"
                                                         variant="outlined"
                                                         sx={{ animation: armed ? `${pop} 320ms ease-out` : 'none', '@media (prefers-reduced-motion: reduce)': { animation: 'none' } }}
@@ -290,7 +289,7 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
                                                     da janela do "Desfazer". Só até a quantidade da ficha: acima
                                                     disso o item nunca existiu. Não mexe no PV. */}
                                                 {remaining < row.qty && (
-                                                    <Tooltip title="Devolver 1 ao inventário">
+                                                    <Tooltip title={tr("Devolver 1 ao inventário", 'Give 1 back to the inventory')}>
                                                         <IconButton
                                                             size="small"
                                                             aria-label={`Devolver 1 ${row.name}`}
@@ -307,10 +306,10 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
                                                 )}
                                                 {/* Passar a um colega: o item sai daqui e entra no inventário dele. */}
                                                 {!spent && (
-                                                    <Tooltip title="Passar a um colega">
+                                                    <Tooltip title={tr("Passar a um colega", 'Give to a teammate')}>
                                                         <IconButton
                                                             size="small"
-                                                            aria-label={`Passar ${row.name}`}
+                                                            aria-label={tr(`Passar ${row.name}`, `Give ${row.name}`)}
                                                             onClick={() => setGiving({ name: row.name, max: remaining, sheetQty: row.sheetQty })}
                                                             sx={{
                                                                 border: '1px solid',
@@ -327,7 +326,7 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
                                                         size="small"
                                                         variant="contained"
                                                         startIcon={healing ? <DrinkIcon /> : <UseIcon />}
-                                                        aria-label={`${healing ? 'Beber' : 'Usar'} ${row.name}`}
+                                                        aria-label={`${healing ? 'Beber' : tr('Usar', 'Use')} ${row.name}`}
                                                         onClick={() => use(row)}
                                                         sx={healing ? {
                                                             fontWeight: 700,
@@ -336,7 +335,7 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
                                                             '&:hover': { backgroundColor: HP_COLOR, filter: 'brightness(0.88)' },
                                                         } : { fontWeight: 700 }}
                                                     >
-                                                        {healing ? 'Beber' : 'Usar'}
+                                                        {healing ? 'Beber' : tr('Usar', 'Use')}
                                                     </Button>
                                                 )}
                                             </Stack>
@@ -359,8 +358,8 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
                     const ok = gifts.give(target.slug, giving.name, n)
                     setGiving(null)
                     setGiveNotice(ok
-                        ? { text: `${n}× ${giving.name} passou para ${target.label}.`, to: target.slug, name: giving.name, n }
-                        : { text: 'Não deu para registrar: muitos itens passados a esse colega.', to: '', name: '', n: 0 })
+                        ? { text: tr(`${n}× ${giving.name} passou para ${target.label}.`, `${n}× ${giving.name} given to ${target.label}.`), to: target.slug, name: giving.name, n }
+                        : { text: tr('Não deu para registrar: muitos itens passados a esse colega.', 'Couldn\'t record it: too many items given to that teammate.'), to: '', name: '', n: 0 })
                 }}
             />
             <Snackbar
@@ -375,8 +374,7 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
                         sx={{ color: gold.bright }}
                         onClick={() => { gifts.give(giveNotice.to, giveNotice.name, -giveNotice.n); setGiveNotice(null) }}
                     >
-                        Desfazer
-                    </Button>
+                        {tr('Desfazer', 'Undo')}</Button>
                 ) : undefined}
             />
             <PotionOverlay drink={drink?.event ?? null} onClose={closeDrink} />
@@ -393,8 +391,7 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
                         sx={{ color: gold.bright }}
                         onClick={() => { undo(notice); setNotice(null) }}
                     >
-                        Desfazer
-                    </Button>
+                        {tr('Desfazer', 'Undo')}</Button>
                 ) : undefined}
             />
             {/* A relíquia (se tiver) fica fora do retorno antecipado do inventário vazio. */}

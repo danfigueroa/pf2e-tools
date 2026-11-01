@@ -9,6 +9,7 @@ import { Close as CloseIcon } from '@mui/icons-material'
 import { gold, ink, parchment, rule, status } from '../../../theme'
 import { damageTypeLabel } from '../../initiative-tracker/defenses'
 import type { PersistentDamage } from '../../initiative-tracker/persistentDamage'
+import { tr } from '../../../i18n'
 
 interface Props {
     persistent: PersistentDamage[]
@@ -36,8 +37,7 @@ export const PersistentDamageBar = ({ persistent, onRemove }: Props) => {
                     >
                         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.75, flexWrap: 'wrap' }}>
                             <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                                {p.formula} de {label} persistente
-                            </Typography>
+                                {p.formula} {tr('de ', 'of ')}{label} {tr('persistente', 'persistent')}</Typography>
                             {p.sourceName && (
                                 <Chip
                                     size="small"
@@ -47,10 +47,10 @@ export const PersistentDamageBar = ({ persistent, onRemove }: Props) => {
                                 />
                             )}
                             <Box sx={{ flex: 1 }} />
-                            <Tooltip title="Remover (quando o grupo acabar com o efeito)">
+                            <Tooltip title={tr("Remover (quando o grupo acabar com o efeito)", 'Remove (when the group ends the effect)')}>
                                 <IconButton
                                     size="small"
-                                    aria-label={`Remover dano persistente de ${label}`}
+                                    aria-label={tr(`Remover dano persistente de ${label}`, `Remove persistent damage from ${label}`)}
                                     onClick={() => onRemove(p.id)}
                                 >
                                     <CloseIcon fontSize="small" />
@@ -59,8 +59,7 @@ export const PersistentDamageBar = ({ persistent, onRemove }: Props) => {
                         </Box>
 
                         <Typography variant="caption" sx={{ display: 'block', color: ink.secondary }}>
-                            Cai ao final de cada um dos seus turnos · teste plano CD {p.dc} para acabar
-                        </Typography>
+                            {tr('Cai ao final de cada um dos seus turnos · teste plano CD ', 'Falls at the end of each of your turns · flat check DC ')}{p.dc} {tr('para acabar', 'to end it')}</Typography>
                     </Box>
                 )
             })}

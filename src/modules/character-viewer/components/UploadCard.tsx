@@ -16,6 +16,7 @@ import { usePublishedSheets } from '../usePublishedSheets'
 import { fetchPublished, type PublishedSheet } from '../../../services/sheets'
 import { charSlugFromName } from '../charId'
 import { TokenBadge } from '../../battle-map/components/TokenBadge'
+import { tr } from '../../../i18n'
 
 /** De onde veio o JSON: arquivo enviado agora abre o diálogo de publicar. */
 export type JsonOrigin =
@@ -90,17 +91,14 @@ export const UploadCard = ({ onJson, error }: Props) => {
         <Card sx={{ maxWidth: 600, mx: 'auto', mt: { xs: 2, md: 6 } }}>
             <CardContent sx={{ p: { xs: 3, md: 4 } }}>
                 <Typography variant="h4" component="h2" sx={{ fontWeight: 700, mb: 1, textAlign: 'center' }}>
-                    Ficha Virtual
-                </Typography>
+                    {tr('Ficha Virtual', 'Virtual Sheet')}</Typography>
                 <Typography color="text.secondary" sx={{ mb: 3, lineHeight: 1.6, textAlign: 'center' }}>
-                    Selecione um personagem da campanha ou carregue seu próprio arquivo JSON.
-                </Typography>
+                    {tr('Selecione um personagem da campanha ou carregue seu próprio arquivo JSON.', 'Select a campaign character or load your own JSON file.')}</Typography>
 
                 {/* Mesa nova, sem preset nem ficha publicada ainda: sem o título de uma lista vazia. */}
                 {CAMPAIGN_PRESETS.length + extras.length > 0 && (
                     <Typography variant="overline" sx={{ color: 'text.secondary', display: 'block', mb: 1.5 }}>
-                        Fichas da Campanha
-                    </Typography>
+                        {tr('Fichas da Campanha', 'Campaign Sheets')}</Typography>
                 )}
 
                 <Box
@@ -134,8 +132,7 @@ export const UploadCard = ({ onJson, error }: Props) => {
                                 </Typography>
                                 {find(preset) && (
                                     <Typography variant="caption" sx={{ display: 'block', color: 'primary.main', fontWeight: 600 }}>
-                                        atualizada pela mesa
-                                    </Typography>
+                                        {tr('atualizada pela mesa', 'updated by the table')}</Typography>
                                 )}
                             </CardActionArea>
                         </Card>
@@ -155,8 +152,7 @@ export const UploadCard = ({ onJson, error }: Props) => {
                                     {sheet.className} {sheet.level}
                                 </Typography>
                                 <Typography variant="caption" sx={{ display: 'block', color: 'primary.main', fontWeight: 600 }}>
-                                    publicada pela mesa
-                                </Typography>
+                                    {tr('publicada pela mesa', 'published by the table')}</Typography>
                             </CardActionArea>
                         </Card>
                     ))}
@@ -164,8 +160,7 @@ export const UploadCard = ({ onJson, error }: Props) => {
 
                 <Divider sx={{ mb: 3 }}>
                     <Typography variant="caption" color="text.secondary">
-                        atualizou no Pathbuilder? envie o JSON
-                    </Typography>
+                        {tr('atualizou no Pathbuilder? envie o JSON', 'updated in Pathbuilder? upload the JSON')}</Typography>
                 </Divider>
 
                 <input
@@ -188,8 +183,7 @@ export const UploadCard = ({ onJson, error }: Props) => {
                         onClick={() => inputRef.current?.click()}
                         disabled={loadingPreset !== null}
                     >
-                        Escolher arquivo JSON
-                    </Button>
+                        {tr('Escolher arquivo JSON', 'Choose JSON file')}</Button>
                 </Box>
 
                 {error && (
@@ -200,14 +194,13 @@ export const UploadCard = ({ onJson, error }: Props) => {
 
                 <Box sx={{ mt: 3, fontSize: '0.78rem', color: 'text.secondary', textAlign: 'left' }}>
                     <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
-                        Formatos suportados:
+                        {tr('Formatos suportados:', 'Supported formats:')}
                     </Typography>
                     <Typography variant="caption" sx={{ display: 'block', opacity: 0.85 }}>
-                        • Export do Pathbuilder 2e (campo <code>build</code>)
+                        {tr('• Export do Pathbuilder 2e (campo ', '• Pathbuilder 2e export (field ')}<code>build</code>)
                     </Typography>
                     <Typography variant="caption" sx={{ display: 'block', opacity: 0.85 }}>
-                        • Enviar a ficha de um personagem da mesa permite publicar a versão nova para todos
-                    </Typography>
+                        {tr('• Enviar a ficha de um personagem da mesa permite publicar a versão nova para todos', '• Uploading the sheet of a character at the table lets you publish the new version for everyone')}</Typography>
                 </Box>
             </CardContent>
         </Card>

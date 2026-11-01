@@ -11,6 +11,7 @@ import { useActivity } from './useActivity'
 import type { MythicPointsApi } from './useMythicPoints'
 import { postRoll } from '../../../services/rolls'
 import { rollerIdentity, powerUseRoll } from '../rolls'
+import { tr } from '../../../i18n'
 
 interface Props {
     build: BuildInfo
@@ -43,9 +44,9 @@ export const ActivityBody = ({ build, mods, mythicPoints, name, info, fullWidth,
         e.stopPropagation()
         if (usedToday) { uses.unmark(usedKey); return }
         const r = activate(usedKey, info)
-        const spent = r.spent.length ? `gastou ${r.spent.join(' e ')}` : 'nada a gastar'
+        const spent = r.spent.length ? tr(`gastou ${r.spent.join(' e ')}`, `spent ${r.spent.join(' and ')}`) : tr('nada a gastar', 'nothing to spend')
         if (announce) {
-            const detail = [r.spent.length ? `Gastou ${r.spent.join(' e ')}` : '', info.trigger ? `Gatilho: ${info.trigger}` : '', ...r.warnings.map((w) => `Atenção: ${w}`)]
+            const detail = [r.spent.length ? tr(`Gastou ${r.spent.join(' e ')}`, `Spent ${r.spent.join(' and ')}`) : '', info.trigger ? `Gatilho: ${info.trigger}` : '', ...r.warnings.map((w) => tr(`Atenção: ${w}`, `Warning: ${w}`))]
             let desc: string | null = null
             try {
                 // Nunca segura o cartão por mais de 4 s: sem a regra, ele sai do mesmo jeito.
@@ -53,7 +54,7 @@ export const ActivityBody = ({ build, mods, mythicPoints, name, info, fullWidth,
             } catch { desc = null }
             void postRoll(powerUseRoll(who, announce.title.slice(0, 60), `Usou · ${costLabel(info)}`, announce.sub, detail.filter(Boolean).join(' · ').slice(0, 290), desc?.trim() || undefined))
         }
-        setNote({ text: `${name}: ${spent}${r.warnings.length ? ` — atenção: ${r.warnings.join('; ')}` : ''}.`, warn: r.warnings.length > 0 })
+        setNote({ text: `${name}: ${spent}${r.warnings.length ? tr(` — atenção: ${r.warnings.join('; ')}`, ` — warning: ${r.warnings.join('; ')}`) : ''}.`, warn: r.warnings.length > 0 })
     }
 
     return (
@@ -63,8 +64,8 @@ export const ActivityBody = ({ build, mods, mythicPoints, name, info, fullWidth,
                 variant={usedToday ? 'outlined' : 'contained'}
                 onClick={click}
                 onKeyDown={(e) => e.stopPropagation()}
-                aria-label={usedToday ? `${name} já usada hoje — devolver` : `Usar ${name}`}
-                title={info.trigger ? `Gatilho: ${info.trigger}` : usedToday ? 'Já usada hoje — toque para devolver' : undefined}
+                aria-label={usedToday ? tr(`${name} já usada hoje — devolver`, `${name} already used today — give it back`) : tr(`Usar ${name}`, `Use ${name}`)}
+                title={info.trigger ? `Gatilho: ${info.trigger}` : usedToday ? tr('Já usada hoje — toque para devolver', 'Already used today — tap to give it back') : undefined}
                 fullWidth={fullWidth}
                 sx={{
                     flexShrink: 0,
@@ -73,7 +74,7 @@ export const ActivityBody = ({ build, mods, mythicPoints, name, info, fullWidth,
                     ...(usedToday ? { color: gold.deep, borderColor: gold.main } : {}),
                 }}
             >
-                {usedToday ? 'Usada hoje ↺' : `Usar · ${costLabel(info)}`}
+                {usedToday ? tr('Usada hoje ↺', 'Used today ↺') : tr(`Usar · ${costLabel(info)}`, `Use · ${costLabel(info)}`)}
             </Button>
             <Snackbar
                 open={!!note}

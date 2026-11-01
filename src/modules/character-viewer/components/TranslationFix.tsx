@@ -24,13 +24,14 @@ import {
 } from '../../../services/translationFixes'
 import { status as statusColor } from '../../../theme/palette'
 import { VIEW_OK } from '../sheetAccess'
+import { tr } from '../../../i18n'
 
 const FIELD_LABEL: Record<string, string> = {
-    description: 'Descrição',
-    prerequisites: 'Pré-requisitos',
+    description: tr('Descrição', 'Description'),
+    prerequisites: tr('Pré-requisitos', 'Prerequisites'),
     trigger: 'Gatilho',
     requirements: 'Requisitos',
-    frequency: 'Frequência',
+    frequency: tr('Frequência', 'Frequency'),
     cost: 'Custo',
     access: 'Acesso',
 }
@@ -74,25 +75,21 @@ export const TranslationFix = ({ kind, name, payload }: Props) => {
         <Box sx={{ mt: 1.5 }}>
             {active && (
                 <Typography variant="caption" sx={{ display: 'block', color: statusColor.success, fontWeight: 600, mb: 0.5 }}>
-                    Tradução corrigida pela mesa
-                </Typography>
+                    {tr('Tradução corrigida pela mesa', 'Translation corrected by the table')}</Typography>
             )}
             <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
                 <Button {...VIEW_OK} size="small" startIcon={<EditIcon />} onClick={() => { setFailed(false); setOpen(true) }}>
-                    Corrigir tradução
-                </Button>
+                    {tr('Corrigir tradução', 'Correct translation')}</Button>
                 {/* A primeira correção não tem anterior: desfazê-la é voltar à tradução automática. */}
                 {record && (active || record.previous) && (
                     <Button {...VIEW_OK} size="small" startIcon={busy ? <CircularProgress size={14} /> : <UndoIcon />} disabled={busy}
                         onClick={() => { void run(record.previous ?? {}) }}>
-                        Desfazer última correção
-                    </Button>
+                        {tr('Desfazer última correção', 'Undo last correction')}</Button>
                 )}
             </Stack>
             {failed && !open && (
                 <Typography variant="caption" sx={{ display: 'block', color: statusColor.error, mt: 0.5 }}>
-                    Não deu para salvar. Confira a conexão e tente de novo.
-                </Typography>
+                    {tr('Não deu para salvar. Confira a conexão e tente de novo.', 'Couldn\'t save. Check the connection and try again.')}</Typography>
             )}
             {open && (
                 <FixDialog
@@ -137,16 +134,13 @@ const FixDialog = ({ kind, name, payload, active, busy, failed, onSave, onClose 
 
     return (
         <EmbedDialog open onClose={busy ? undefined : onClose} fullWidth maxWidth="md">
-            <DialogTitle sx={{ pb: 1 }}>Corrigir tradução · {name}</DialogTitle>
+            <DialogTitle sx={{ pb: 1 }}>{tr('Corrigir tradução · ', 'Correct translation · ')}{name}</DialogTitle>
             <DialogContent>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    A correção vale para todos os aparelhos e as duas mesas, e a tradução automática nunca a
-                    desfaz. Campo apagado volta à tradução automática.
-                </Typography>
+                    {tr('A correção vale para todos os aparelhos e as duas mesas, e a tradução automática nunca a desfaz. Campo apagado volta à tradução automática.', 'The correction applies to every device and both tables, and the automatic translation never undoes it. A cleared field goes back to the automatic translation.')}</Typography>
                 {kind === 'spell' && (
                     <Alert severity="info" sx={{ mb: 2 }}>
-                        Mantenha os dados (2d6, 1d8…) como estão: é por eles que o app mostra a magia elevada.
-                    </Alert>
+                        {tr('Mantenha os dados (2d6, 1d8…) como estão: é por eles que o app mostra a magia elevada.', 'Keep the dice (2d6, 1d8…) as they are: that\'s how the app shows the heightened spell.')}</Alert>
                 )}
                 <Stack spacing={2}>
                     {fields.map((f) => (
@@ -163,20 +157,18 @@ const FixDialog = ({ kind, name, payload, active, busy, failed, onSave, onClose 
                     ))}
                 </Stack>
                 {failed && (
-                    <Alert severity="error" sx={{ mt: 2 }}>Não deu para salvar. Confira a conexão e tente de novo.</Alert>
+                    <Alert severity="error" sx={{ mt: 2 }}>{tr('Não deu para salvar. Confira a conexão e tente de novo.', 'Couldn\'t save. Check the connection and try again.')}</Alert>
                 )}
             </DialogContent>
             <DialogActions sx={{ flexWrap: 'wrap', gap: 1 }}>
                 {active && (
                     <Button {...VIEW_OK} color="inherit" disabled={busy} onClick={() => onSave({})} sx={{ mr: 'auto' }}>
-                        Voltar à tradução automática
-                    </Button>
+                        {tr('Voltar à tradução automática', 'Back to automatic translation')}</Button>
                 )}
-                <Button {...VIEW_OK} onClick={onClose} disabled={busy}>Cancelar</Button>
+                <Button {...VIEW_OK} onClick={onClose} disabled={busy}>{tr('Cancelar', 'Cancel')}</Button>
                 <Button {...VIEW_OK} variant="contained" disabled={busy} onClick={() => onSave(changes())}
                     startIcon={busy ? <CircularProgress size={16} color="inherit" /> : undefined}>
-                    Salvar para a mesa
-                </Button>
+                    {tr('Salvar para a mesa', 'Save for the table')}</Button>
             </DialogActions>
         </EmbedDialog>
     )

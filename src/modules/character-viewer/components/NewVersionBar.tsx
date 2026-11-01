@@ -4,6 +4,7 @@ import { fetchPublished, type PublishedSheet } from '../../../services/sheets'
 import { onSheetNotice, useLatestPublished } from '../../../services/sheetNotices'
 import { currentUserId } from '../../../services/supabase'
 import { VIEW_OK } from '../sheetAccess'
+import { tr } from '../../../i18n'
 
 interface Props {
     slug: string
@@ -55,14 +56,13 @@ export const NewVersionBar = ({ slug, published, onOpen, onGuide }: Props) => {
             action={(
                 <Button color="inherit" size="small" onClick={open} disabled={busy} {...VIEW_OK}
                     startIcon={busy ? <CircularProgress size={14} color="inherit" /> : undefined}>
-                    Abrir a nova versão
-                </Button>
+                    {tr('Abrir a nova versão', 'Open the new version')}</Button>
             )}
         >
             {published
-                ? `Nova versão da ficha publicada pela mesa${latest.level ? ` (nível ${latest.level})` : ''}.`
-                : `A mesa publicou uma versão desta ficha${latest.level ? ` (nível ${latest.level})` : ''}.`}
-            {failed && ' Não deu para abrir — tente de novo.'}
+                ? tr(`Nova versão da ficha publicada pela mesa${latest.level ? ` (nível ${latest.level})` : ''}.`, `New version of the sheet published by the table${latest.level ? ` (level ${latest.level})` : ''}.`)
+                : tr(`A mesa publicou uma versão desta ficha${latest.level ? ` (nível ${latest.level})` : ''}.`, `The table published a version of this sheet${latest.level ? ` (level ${latest.level})` : ''}.`)}
+            {failed && tr(' Não deu para abrir — tente de novo.', ' Couldn\'t open — try again.')}
         </Alert>
     )
 }

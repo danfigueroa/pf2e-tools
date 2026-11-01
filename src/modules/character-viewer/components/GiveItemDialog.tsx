@@ -5,6 +5,7 @@ import {
 } from '@mui/material'
 import { EmbedDialog } from './EmbedDialog'
 import type { RosterEntry } from '../useRoster'
+import { tr } from '../../../i18n'
 
 interface Props {
     /** O item a passar; `null` = fechado. */
@@ -39,25 +40,23 @@ export const GiveItemDialog = ({ item, roster, holders, onClose, onConfirm }: Pr
 
     return (
         <EmbedDialog open={!!item} onClose={onClose} fullWidth maxWidth="xs">
-            <DialogTitle>Passar {item?.name}</DialogTitle>
+            <DialogTitle>{tr('Passar ', 'Give ')}{item?.name}</DialogTitle>
             <DialogContent>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                    O item sai do seu inventário e vai para o do colega; ele pode usar ou devolver.
-                </Typography>
+                    {tr('O item sai do seu inventário e vai para o do colega; ele pode usar ou devolver.', 'The item leaves your inventory and goes to your teammate\'s; they can use it or give it back.')}</Typography>
                 <List dense disablePadding sx={{ mb: 2 }}>
                     {sorted.map((r) => (
                         <ListItemButton key={r.slug} selected={r.slug === to} onClick={() => setTo(r.slug)}>
                             <ListItemText
                                 primary={r.label}
-                                secondary={[r.meta, heldBy.has(r.slug) ? `passou ${heldBy.get(r.slug)} a você` : '']
+                                secondary={[r.meta, heldBy.has(r.slug) ? tr(`passou ${heldBy.get(r.slug)} a você`, `gave you ${heldBy.get(r.slug)}`) : '']
                                     .filter(Boolean).join(' · ')}
                             />
                         </ListItemButton>
                     ))}
                     {sorted.length === 0 && (
                         <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', px: 2 }}>
-                            Nenhum outro personagem na mesa.
-                        </Typography>
+                            {tr('Nenhum outro personagem na mesa.', 'No other character at the table.')}</Typography>
                     )}
                 </List>
                 <TextField
@@ -67,20 +66,19 @@ export const GiveItemDialog = ({ item, roster, holders, onClose, onConfirm }: Pr
                     value={qty}
                     onChange={(e) => setQty(e.target.value)}
                     slotProps={{ htmlInput: { min: 1, max, inputMode: 'numeric' } }}
-                    helperText={`Você tem ${max}.`}
+                    helperText={tr(`Você tem ${max}.`, `You have ${max}.`)}
                     error={qty !== '' && !valid && !!to}
                     fullWidth
                 />
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose}>Cancelar</Button>
+                <Button onClick={onClose}>{tr('Cancelar', 'Cancel')}</Button>
                 <Button
                     variant="contained"
                     disabled={!valid}
                     onClick={() => { if (target) onConfirm(target, n) }}
                 >
-                    Passar
-                </Button>
+                    {tr('Passar', 'Give')}</Button>
             </DialogActions>
         </EmbedDialog>
     )

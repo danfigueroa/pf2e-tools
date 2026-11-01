@@ -15,6 +15,7 @@ import type { RollRequest } from '../components/RollDialog'
 import { RollTrigger } from '../components/RollTrigger'
 import { ConditionDelta } from '../components/ConditionDelta'
 import { MythicNote } from '../components/MythicNote'
+import { tr } from '../../../i18n'
 
 interface Props {
     build: BuildInfo
@@ -22,7 +23,7 @@ interface Props {
     onRoll: (req: RollRequest) => void
 }
 
-const ARMOR_NOTE = 'A penalidade de armadura não vale em ação com o traço ataque (Agarrar, Empurrar, Derrubar…) — tire no ajuste.'
+const ARMOR_NOTE = tr('A penalidade de armadura não vale em ação com o traço ataque (Agarrar, Empurrar, Derrubar…) — tire no ajuste.', 'The armor check penalty doesn\'t apply to actions with the attack trait (Grapple, Shove, Trip…) — remove it in the adjustment.')
 
 const RANK_COLOR: Record<number, string> = RANK_COLORS
 
@@ -111,7 +112,7 @@ const SkillsSectionView = ({ build, mods, onRoll }: Props) => {
                                             : `${loreName}: ${signed(loreTotal)}`}
                                         size="small"
                                         onClick={() => onRoll({ kind: 'check', check })}
-                                        aria-label={`Rolar ${check.label}`}
+                                        aria-label={tr(`Rolar ${check.label}`, `Roll ${check.label}`)}
                                         sx={{ minHeight: 32 }}
                                     />
                                 )

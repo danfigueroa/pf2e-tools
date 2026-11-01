@@ -1,3 +1,4 @@
+import { tr } from '../../i18n'
 /**
  * Unleash Psyche do Psíquico (Dark Archive) e o que ela faz com a ficha.
  *
@@ -53,7 +54,7 @@ export function withPsyche(mods: ConditionModifiers, effect: PsycheEffect | null
     return effect ? { ...mods, psyche: effect } : mods
 }
 
-export const STRAIN_SOURCE = 'Psique esgotada'
+export const STRAIN_SOURCE = tr('Psique esgotada', 'Psyche spent')
 
 /** A ressaca derivada: Estupefato 1. */
 export function strainConditions(stored: PsycheStored, has: boolean): ConditionState {

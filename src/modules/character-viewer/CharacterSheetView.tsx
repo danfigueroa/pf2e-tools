@@ -39,7 +39,7 @@ import { NewVersionBar } from './components/NewVersionBar'
 import { withRelicRunes } from './relics'
 import { GiftArrivalNotice } from './components/GiftArrivalNotice'
 import { guideIn, type PublishedSheet } from '../../services/sheets'
-import { lang } from '../../i18n'
+import { lang, tr } from '../../i18n'
 import type { GuideSlot, PublicationApi } from './components/usePublication'
 import { curatedBase } from './combatGuides'
 import { CharacterHeader } from './components/CharacterHeader'
@@ -127,13 +127,13 @@ interface SectionDef {
 const SECTIONS: SectionDef[] = [
     {
         id: 'overview',
-        label: 'Visão Geral',
+        label: tr('Visão Geral', 'Overview'),
         icon: <OverviewIcon />,
         render: ({ build, mods, guide, onRoll, compact }) => <OverviewSection build={build} mods={mods} guide={guide} onRoll={onRoll} compact={compact} />,
     },
     {
         id: 'combat',
-        label: 'Combate',
+        label: tr('Combate', 'Combat'),
         icon: <CombatIcon />,
         render: ({ build, mods, onRoll, onSelect, sizeEffect, attackNames }) => (
             <CombatSection build={build} mods={mods} onRoll={onRoll} onSelect={onSelect} sizeEffect={sizeEffect} attackNames={attackNames} />
@@ -141,26 +141,26 @@ const SECTIONS: SectionDef[] = [
     },
     {
         id: 'skills',
-        label: 'Perícias',
+        label: tr('Perícias', 'Skills'),
         icon: <SkillsIcon />,
         render: ({ build, mods, onRoll }) => <SkillsSection build={build} mods={mods} onRoll={onRoll} />,
     },
     {
         id: 'feats',
-        label: 'Talentos',
+        label: tr('Talentos', 'Feats'),
         icon: <FeatsIcon />,
         render: ({ build, onSelect, mods, mythicPoints }) => <FeatsSection build={build} onSelect={onSelect} mods={mods} mythicPoints={mythicPoints} />,
     },
     {
         id: 'specials',
-        label: 'Habilidades',
+        label: tr('Habilidades', 'Abilities'),
         icon: <SpecialsIcon />,
         render: ({ build, onSelect, mods, mythicPoints }) => <SpecialsSection build={build} onSelect={onSelect} mods={mods} mythicPoints={mythicPoints} />,
         visible: (b) => (b.specials?.length ?? 0) > 0,
     },
     {
         id: 'spells',
-        label: 'Magias',
+        label: tr('Magias', 'Spells'),
         icon: <SpellsIcon />,
         render: ({ build, onSelect, onRoll, mods, mythicPoints }) => (
             <SpellsSection build={build} onSelect={onSelect} onRoll={onRoll} mods={mods} mythicPoints={mythicPoints} />
@@ -180,17 +180,17 @@ const SECTIONS: SectionDef[] = [
     },
     {
         id: 'inventory',
-        label: 'Inventário',
+        label: tr('Inventário', 'Inventory'),
         icon: <InventoryIcon />,
         render: ({ build, onSelect, mods, mythicPoints }) => <InventorySection build={build} onSelect={onSelect} mods={mods} mythicPoints={mythicPoints} />,
     },
     {
         // Sempre visível (sem `visible`): é do jogador, não do `build`, e escondida vazia não haveria como escrever a primeira nota.
         id: 'notes',
-        label: 'Anotações',
+        label: tr('Anotações', 'Notes'),
         icon: <NotesIcon />,
         render: ({ build }) => (
-            <Suspense fallback={<Typography color="text.secondary">Carregando…</Typography>}>
+            <Suspense fallback={<Typography color="text.secondary">{tr('Carregando…', 'Loading…')}</Typography>}>
                 <NotesSection build={build} />
             </Suspense>
         ),
@@ -427,8 +427,8 @@ const SheetBody = ({ build: source, publication, onReset, onRestore, compact = f
             {readOnly && (
                 <Alert severity="info" icon={<LockIcon fontSize="inherit" />} sx={{ mb: 2 }}>
                     {ownerless
-                        ? 'Esta ficha ainda não tem dono — só o GM mexe nela. Dá para ler tudo, mas rolar, gastar e marcar fica com o GM até ele atribuí-la.'
-                        : 'Ficha de outra pessoa: dá para ler tudo, mas rolar, gastar e marcar é só do dono e do GM.'}
+                        ? tr('Esta ficha ainda não tem dono — só o GM mexe nela. Dá para ler tudo, mas rolar, gastar e marcar fica com o GM até ele atribuí-la.', 'This sheet has no owner yet — only the GM changes it. You can read everything, but rolling, spending and marking stay with the GM until they assign it.')
+                        : tr('Ficha de outra pessoa: dá para ler tudo, mas rolar, gastar e marcar é só do dono e do GM.', 'Someone else\'s sheet: you can read everything, but rolling, spending and marking are only for the owner and the GM.')}
                 </Alert>
             )}
 
@@ -455,8 +455,7 @@ const SheetBody = ({ build: source, publication, onReset, onRestore, compact = f
             {/* Dica só de quem desenvolve: na mesa as descrições vêm dos pacotes já traduzidos. */}
             {import.meta.env.DEV && apiAvailable === false && (
                 <Alert severity="warning" sx={{ mb: 2 }}>
-                    Servidor de descrições offline. Os textos do AON não serão carregados.
-                    Para ativar a busca + tradução, rode <code>npm run dev:full</code> (em vez de <code>npm run dev</code>).
+                    {tr('Servidor de descrições offline. Os textos do AON não serão carregados. Para ativar a busca + tradução, rode ', 'Description server offline. AON texts won\'t be loaded. To enable the search + translation, run ')}<code>npm run dev:full</code> {tr('(em vez de ', '(instead of ')}<code>npm run dev</code>).
                 </Alert>
             )}
 

@@ -8,6 +8,7 @@ import { bubble, floatUp, tilt, useReducedMotion } from '../../../motion/motion'
 import { useAnimatedNumber } from '../../../motion/useAnimatedNumber'
 import { hpBarColor } from './useHpTracker'
 import { EmbedDialog } from './EmbedDialog'
+import { tr } from '../../../i18n'
 
 /** O que a overlay mostra. A cura JÁ foi aplicada quando ela abre. */
 export interface DrinkEvent {
@@ -103,7 +104,7 @@ const PotionContent = ({ drink, onClose }: { drink: DrinkEvent; onClose: () => v
                         {drink.name}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        Cura {drink.formula}
+                        {tr('Cura ', 'Healing ')}{drink.formula}
                     </Typography>
                 </Stack>
 
@@ -177,7 +178,7 @@ const PotionContent = ({ drink, onClose }: { drink: DrinkEvent; onClose: () => v
                         aria-valuemin={0}
                         aria-valuemax={drink.max}
                         aria-valuenow={healing ? drink.after : drink.before}
-                        aria-label="Pontos de Vida"
+                        aria-label={tr("Pontos de Vida", 'Hit Points')}
                         sx={{
                             position: 'relative',
                             height: 12,
@@ -212,10 +213,10 @@ const PotionContent = ({ drink, onClose }: { drink: DrinkEvent; onClose: () => v
                             {healed > 0 ? (
                                 <>
                                     <Typography sx={{ fontWeight: 700, color: status.success }}>+{healed} PV</Typography>
-                                    {capped && <Chip size="small" label="PV cheio" variant="outlined" />}
+                                    {capped && <Chip size="small" label={tr('PV cheio', 'HP full')} variant="outlined" />}
                                 </>
                             ) : (
-                                <Typography sx={{ fontWeight: 600 }} color="text.secondary">O PV já estava cheio.</Typography>
+                                <Typography sx={{ fontWeight: 600 }} color="text.secondary">{tr('O PV já estava cheio.', 'HP was already full.')}</Typography>
                             )}
                         </>
                     )}
@@ -223,7 +224,7 @@ const PotionContent = ({ drink, onClose }: { drink: DrinkEvent; onClose: () => v
             </DialogContent>
             <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
                 <Button onClick={skipped ? onClose : () => setPhase('done')} autoFocus>
-                    {skipped ? 'Fechar' : 'Pular'}
+                    {skipped ? tr('Fechar', 'Close') : 'Pular'}
                 </Button>
             </DialogActions>
         </>

@@ -26,6 +26,7 @@ import { CONDITIONS, GROUP_LABELS, type ConditionDef, type ConditionGroup } from
 import type { ConditionState } from './useConditions'
 import { useEmbedContainer } from '../embedContext'
 import { EmbedDialog } from './EmbedDialog'
+import { tr } from '../../../i18n'
 
 interface Props {
     open: boolean
@@ -56,13 +57,13 @@ export const ConditionsDialog = ({ open, onClose, state, onToggle, onAdjust }: P
 
     return (
         <EmbedDialog open={open} onClose={onClose} fullScreen={fullScreen} maxWidth="sm" fullWidth>
-            <DialogTitle sx={{ fontWeight: 700 }}>Condições</DialogTitle>
+            <DialogTitle sx={{ fontWeight: 700 }}>{tr('Condições', 'Conditions')}</DialogTitle>
             <DialogContent dividers sx={{ px: { xs: 1.5, sm: 3 } }}>
                 <TextField
                     autoFocus={!fullScreen}
                     fullWidth
                     size="small"
-                    placeholder="Buscar condição…"
+                    placeholder={tr("Buscar condição…", 'Search condition…')}
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     InputProps={{
@@ -77,8 +78,7 @@ export const ConditionsDialog = ({ open, onClose, state, onToggle, onAdjust }: P
 
                 {groups.length === 0 && (
                     <Typography color="text.secondary" sx={{ fontStyle: 'italic', py: 2 }}>
-                        Nenhuma condição corresponde à busca.
-                    </Typography>
+                        {tr('Nenhuma condição corresponde à busca.', 'No condition matches the search.')}</Typography>
                 )}
 
                 {groups.map(({ group, items }) => (
@@ -104,7 +104,7 @@ export const ConditionsDialog = ({ open, onClose, state, onToggle, onAdjust }: P
                 ))}
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose} variant="contained">Pronto</Button>
+                <Button onClick={onClose} variant="contained">{tr('Pronto', 'Done')}</Button>
             </DialogActions>
         </EmbedDialog>
     )
@@ -133,7 +133,7 @@ const ConditionRow = ({ def, value, onToggle, onAdjust }: {
             <IconButton
                 size="small"
                 onClick={onToggle}
-                aria-label={active ? `Remover ${def.name}` : `Adicionar ${def.name}`}
+                aria-label={active ? tr(`Remover ${def.name}`, `Remove ${def.name}`) : tr(`Adicionar ${def.name}`, `Add ${def.name}`)}
                 sx={{ color: active ? CONDITION_COLOR : 'text.disabled', mt: -0.25 }}
             >
                 {active ? <OnIcon /> : <OffIcon />}

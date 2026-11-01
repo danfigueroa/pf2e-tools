@@ -8,6 +8,7 @@ import { useActions } from './useActions'
 import type { MythicPointsApi } from './useMythicPoints'
 import { payTime, type CastReport } from './useSpellCast'
 import { useUses } from './useUses'
+import { tr } from '../../../i18n'
 
 /**
  * Usa um talento ou habilidade ativável: paga o tempo (ações ou reação) e, se for talento mítico
@@ -22,15 +23,15 @@ export function useActivity(build: BuildInfo, mods: ConditionModifiers, mythicPo
         const spent: string[] = []
         const warnings: string[] = []
         if (info.mythicPoint) {
-            if (mythicPoints.available <= 0) warnings.push('sem Pontos Míticos')
-            else { mythicPoints.spend(); spent.push('1 Ponto Mítico') }
+            if (mythicPoints.available <= 0) warnings.push(tr('sem Pontos Míticos', 'no Mythic Points'))
+            else { mythicPoints.spend(); spent.push(tr('1 Ponto Mítico', '1 Mythic Point')) }
         }
         payTime(actions, info.time, undefined, spent, warnings)
         if (info.daily) uses.mark(name)
         // Sudden Charge, Vicious Swing…: o custo já inclui o Golpe — o próximo Golpe do diálogo não cobra de novo.
         if (info.includesStrike) {
             prepayStrike()
-            spent.push('o Golpe (o próximo Golpe não gasta ação)')
+            spent.push(tr('o Golpe (o próximo Golpe não gasta ação)', 'the Strike (the next Strike spends no action)'))
         }
         return { paired: false, spent, warnings }
     }, [actions, mythicPoints, uses])

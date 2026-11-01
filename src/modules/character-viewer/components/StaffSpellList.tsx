@@ -3,6 +3,7 @@ import { ChevronRight as ChevronIcon } from '@mui/icons-material'
 import { gold, ink, parchment, rule } from '../../../theme'
 import type { StaffInfo } from '../../../pathbuilder/types'
 import type { DescriptionRequest } from './DescriptionDrawer'
+import { tr } from '../../../i18n'
 
 interface Props {
     staff: StaffInfo
@@ -43,8 +44,7 @@ export const StaffSpellList = ({ staff, accent, onNavigate }: Props) => {
                     variant="caption"
                     sx={{ fontWeight: 700, letterSpacing: '0.06em', color: gold.deep }}
                 >
-                    MAGIAS DO BASTÃO
-                </Typography>
+                    {tr('MAGIAS DO BASTÃO', 'STAFF SPELLS')}</Typography>
                 <Typography variant="caption" sx={{ color: ink.secondary }}>
                     {`Item ${staff.tierLevel}`}
                     {staff.price ? ` · ${formatPrice(staff.price)}` : ''}
@@ -74,8 +74,8 @@ export const StaffSpellList = ({ staff, accent, onNavigate }: Props) => {
                         >
                             <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: '0.06em' }}>
                                 {rank === 0
-                                    ? (spells.length > 1 ? 'TRUQUES' : 'TRUQUE')
-                                    : `NÍVEL ${rank}`}
+                                    ? (spells.length > 1 ? tr('TRUQUES', 'CANTRIPS') : tr('TRUQUE', 'CANTRIP'))
+                                    : tr(`NÍVEL ${rank}`, `RANK ${rank}`)}
                             </Typography>
                             <Typography variant="caption" sx={{ color: ink.secondary }}>
                                 {chargeLabel(rank)}
@@ -156,10 +156,7 @@ export const StaffSpellList = ({ staff, accent, onNavigate }: Props) => {
                 variant="caption"
                 sx={{ display: 'block', mt: 0.75, color: ink.secondary, lineHeight: 1.5 }}
             >
-                Ao preparar, o bastão recebe cargas iguais ao rank do seu slot mais alto — conjurador
-                preparado pode gastar um slot para somar o rank dele. Conjurar da lista exige ter a
-                magia na sua própria lista.
-            </Typography>
+                {tr('Ao preparar, o bastão recebe cargas iguais ao rank do seu slot mais alto — conjurador preparado pode gastar um slot para somar o rank dele. Conjurar da lista exige ter a magia na sua própria lista.', 'When you prepare it, the staff gains charges equal to the rank of your highest slot — a prepared caster can spend a slot to add its rank. Casting from the list requires having the spell on your own list.')}</Typography>
         </Box>
     )
 }
@@ -176,7 +173,7 @@ const formatPrice = (price: string) =>
 
 /** RAW: conjurar gasta cargas iguais ao rank; truque sai de graça. */
 const chargeLabel = (rank: number) =>
-    rank === 0 ? 'sem cargas' : `${rank} ${rank === 1 ? 'carga' : 'cargas'}`
+    rank === 0 ? tr('sem cargas', 'no charges') : `${rank} ${rank === 1 ? 'carga' : 'cargas'}`
 
 /**
  * Magia herdada de um degrau inferior ganha etiqueta com o qualificador dele

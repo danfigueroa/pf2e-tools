@@ -12,6 +12,7 @@ import { HealActivityButton } from './HealActivityButton'
 import { fetchItemDescription, fetchSpecialDescription, getCachedItem, getCachedSpecial } from '../../../services/descriptions'
 import type { DescriptionRequest } from './DescriptionDrawer'
 import type { MythicPointsApi } from './useMythicPoints'
+import { tr } from '../../../i18n'
 
 interface Props {
     build: BuildInfo
@@ -30,7 +31,7 @@ const giftRule = async (gift: RelicGift): Promise<string | null> => {
     return [d.requirements && `Requisitos: ${d.requirements}`, d.trigger && `Gatilho: ${d.trigger}`, d.description].filter(Boolean).join('\n')
 }
 
-const TIER_LABEL: Record<RelicTier, string> = { minor: 'Dádiva menor', major: 'Dádiva maior', grand: 'Dádiva grandiosa' }
+const TIER_LABEL: Record<RelicTier, string> = { minor: tr('Dádiva menor', 'Minor gift'), major: tr('Dádiva maior', 'Major gift'), grand: tr('Dádiva grandiosa', 'Grand gift') }
 
 /** O custo para mostrar — inclusive a ação livre sem limite, que não ganha botão. */
 const activationLabel = (gift: RelicGift): string => {
@@ -51,14 +52,14 @@ const Gift = ({ relic, gift, index, build, mods, mythicPoints, onSelect }: Props
                 <Typography sx={{ fontWeight: 600, minWidth: 0, mr: 'auto' }}>{gift.name}</Typography>
                 <Chip label={TIER_LABEL[gift.tier]} size="small" variant="outlined" />
                 <Chip label={gift.kind === 'rune' ? 'Runa' : 'Poder'} size="small" />
-                {!unlocked && <Chip label={`libera no nível ${giftMinLevel(gift, index)}`} size="small" />}
+                {!unlocked && <Chip label={tr(`libera no nível ${giftMinLevel(gift, index)}`, `unlocks at level ${giftMinLevel(gift, index)}`)} size="small" />}
             </Stack>
             {act && (
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                     {[
                         activationLabel(gift),
                         act.frequency,
-                        act.trigger ? `gatilho: ${act.trigger}` : null,
+                        act.trigger ? tr(`gatilho: ${act.trigger}`, `trigger: ${act.trigger}`) : null,
                     ].filter(Boolean).join(' · ')}
                 </Typography>
             )}
@@ -75,8 +76,7 @@ const Gift = ({ relic, gift, index, build, mods, mythicPoints, onSelect }: Props
                         variant="outlined"
                         onClick={() => onSelect({ type: gift.kind === 'rune' ? 'item' : 'special', name: gift.name })}
                     >
-                        Ver descrição
-                    </Button>
+                        {tr('Ver descrição', 'See description')}</Button>
                 )}
                 {info && gift.special === 'scrap-shot' && <ScrapShotButton build={build} mods={mods} relic={relic} gift={gift} />}
                 {heal && <HealActivityButton build={build} mods={mods} activity={heal} />}
@@ -108,12 +108,12 @@ export const RelicsCard = (props: Props) => {
                 <Card key={relic.id}>
                     <CardContent>
                         <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: '0.06em' }}>
-                            Relíquia · nível {level}
+                            {tr('Relíquia · nível ', 'Relic · level ')}{level}
                         </Typography>
                         <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>{relic.name}</Typography>
                         <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.75 }}>
                             {relic.on?.kind === 'weapon' && <Chip label={relic.on.weapon} size="small" variant="outlined" />}
-                            {relic.on?.kind === 'armor' && <Chip label="Armadura" size="small" variant="outlined" />}
+                            {relic.on?.kind === 'armor' && <Chip label={tr("Armadura", 'Armor')} size="small" variant="outlined" />}
                             {relic.on?.kind === 'item' && <Chip label={relic.on.name} size="small" variant="outlined" />}
                             {relic.aspects?.map((a) => <Chip key={a} label={a} size="small" />)}
                         </Stack>

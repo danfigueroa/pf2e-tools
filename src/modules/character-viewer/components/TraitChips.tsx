@@ -3,6 +3,7 @@ import { Chip, Popover, Stack } from '@mui/material'
 import { fetchTraitRule, peekTraitRule, prefetchTraitRules, type AonRule } from '../../../services/rules'
 import { traitLabel, traitName } from '../weaponTraits'
 import { RuleBody } from '../../monster-scaler/components/RuleTip'
+import { tr } from '../../../i18n'
 
 // Os traços de uma arma ("Deadly d10", "Volley 30 ft.", "Agile") como chips que, ao toque, abrem
 // a regra do traço — direto da AON, em inglês, a mesma caixinha de regra do stat block do monstro
@@ -49,7 +50,7 @@ export const TraitChips = memo(function TraitChips({ traits }: { traits: string[
             clickable
             onClick={(e) => show(e.currentTarget, t)}
             aria-haspopup="dialog"
-            aria-label={`Traço ${traitLabel(t, peekTraitRule(traitName(t))?.label)}: ler a regra`}
+            aria-label={tr(`Traço ${traitLabel(t, peekTraitRule(traitName(t))?.label)}: ler a regra`, `Trait ${traitLabel(t, peekTraitRule(traitName(t))?.label)}: read the rule`)}
             sx={{ height: 22, fontSize: '0.7rem', borderStyle: 'dashed' }}
           />
         ))}

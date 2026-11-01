@@ -6,6 +6,7 @@ import { charSlug } from '../charId'
 import type { BuildInfo } from '../../../pathbuilder/types'
 import { sizeLabel, type SizeEffectDef } from '../sizeEffects'
 import { VIEW_OK } from '../sheetAccess'
+import { tr } from '../../../i18n'
 
 interface Props {
     build: BuildInfo
@@ -64,7 +65,7 @@ export const CharacterHeader = ({ build, onReset, sizeEffect, compact = false }:
                             </Typography>
                             <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 0.75 }}>
                                 <Chip
-                                    label={`Nível ${build.level}`}
+                                    label={tr(`Nível ${build.level}`, `Level ${build.level}`)}
                                     color="primary"
                                     size="small"
                                     sx={{ fontWeight: 600 }}
@@ -106,8 +107,7 @@ export const CharacterHeader = ({ build, onReset, sizeEffect, compact = false }:
                             sx={{ flexShrink: 0 }}
                             {...VIEW_OK}
                         >
-                            Trocar ficha
-                        </Button>
+                            {tr('Trocar ficha', 'Switch sheet')}</Button>
                     </Stack>
                 </Stack>
             </CardContent>

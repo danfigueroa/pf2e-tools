@@ -14,6 +14,7 @@ import {
 import { translateSize, translateDamageType, translateAttackName, translateTrait } from '../../transformation-statblock/i18n'
 import { CompanionHpBar } from '../components/CompanionHpBar'
 import { legacyPetKey, petKeyFor } from '../charId'
+import { tr } from '../../../i18n'
 
 interface Props { build: BuildInfo }
 
@@ -28,8 +29,7 @@ const PetsSectionView = ({ build }: Props) => {
             <Card>
                 <CardContent>
                     <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                        Sem companheiros ou familiares.
-                    </Typography>
+                        {tr('Sem companheiros ou familiares.', 'No companions or familiars.')}</Typography>
                 </CardContent>
             </Card>
         )
@@ -96,7 +96,7 @@ const PetCard = ({ pet, base, level, storageKey, legacyKey }: { pet: Pet; base?:
                         {pet.name}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        {pet.animal} · Nível {level}
+                        {pet.animal} {tr('· Nível ', '· Level ')}{level}
                     </Typography>
                 </Stack>
 
@@ -115,8 +115,7 @@ const PetCard = ({ pet, base, level, storageKey, legacyKey }: { pet: Pet; base?:
 
                 {!stats && (
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 2, fontStyle: 'italic' }}>
-                        Carregando a ficha do companheiro no Archives of Nethys…
-                    </Typography>
+                        {tr('Carregando a ficha do companheiro no Archives of Nethys…', 'Loading the companion\'s sheet from Archives of Nethys…')}</Typography>
                 )}
 
                 {stats && <CompanionHpBar storageKey={storageKey} legacyKey={legacyKey} maxHp={stats.hp} />}
@@ -149,8 +148,8 @@ const CompanionSheet = ({ stats }: { stats: ComputedCompanion }) => (
             }}
         >
             <BigStat label="CA" value={String(stats.ac)} />
-            <BigStat label="Percepção" value={signed(stats.perception.modifier)} hint={rankLabel(stats.perception.rank)} />
-            <BigStat label="Deslocamento" value={formatSpeeds(stats)} />
+            <BigStat label={tr("Percepção", 'Perception')} value={signed(stats.perception.modifier)} hint={rankLabel(stats.perception.rank)} />
+            <BigStat label={tr("Deslocamento", 'Speed')} value={formatSpeeds(stats)} />
         </Box>
 
         {/* Atributos */}
@@ -180,7 +179,7 @@ const CompanionSheet = ({ stats }: { stats: ComputedCompanion }) => (
         </Row>
 
         {stats.attacks.length > 0 && (
-            <Row label="Ataques">
+            <Row label={tr("Ataques", 'Attacks')}>
                 <Stack spacing={0.5}>
                     {stats.attacks.map((a) => (
                         <Typography key={a.name} variant="body2">
@@ -197,7 +196,7 @@ const CompanionSheet = ({ stats }: { stats: ComputedCompanion }) => (
                                 </Box>
                             )}
                             {a.magical && (
-                                <Box component="span" sx={{ color: 'text.secondary', fontSize: '0.8em' }}> · mágico</Box>
+                                <Box component="span" sx={{ color: 'text.secondary', fontSize: '0.8em' }}> {tr('· mágico', '· magical')}</Box>
                             )}
                         </Typography>
                     ))}
@@ -206,7 +205,7 @@ const CompanionSheet = ({ stats }: { stats: ComputedCompanion }) => (
         )}
 
         {stats.skills.length > 0 && (
-            <Row label="Perícias">
+            <Row label={tr("Perícias", 'Skills')}>
                 <InlineList>
                     {stats.skills.map((s) => (
                         <Typography key={s.name} variant="body2" component="span" sx={{ whiteSpace: 'nowrap' }}>
@@ -226,25 +225,24 @@ const CompanionSheet = ({ stats }: { stats: ComputedCompanion }) => (
         {stats.barding && (
             <Row label="Barda">
                 <Typography variant="body2">
-                    +{stats.barding.ac} CA · limite de Des +{stats.barding.dexCap} · penalidade {stats.barding.checkPenalty}
+                    +{stats.barding.ac} {tr('CA · limite de Des +', 'AC · Dex cap +')}{stats.barding.dexCap} {tr('· penalidade ', '· penalty ')}{stats.barding.checkPenalty}
                 </Typography>
             </Row>
         )}
 
         {stats.supportBenefit && (
-            <Row label="Benefício de apoio">
+            <Row label={tr("Benefício de apoio", 'Support benefit')}>
                 <Typography variant="body2">{stats.supportBenefit}</Typography>
             </Row>
         )}
 
         {stats.advancedManeuver && (
-            <Row label="Manobra avançada">
+            <Row label={tr("Manobra avançada", 'Advanced maneuver')}>
                 <Typography variant="body2">
                     {stats.advancedManeuver}
                     {!stats.hasAdvancedManeuver && (
                         <Box component="span" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
-                            {' '}— aprendida ao virar nimble ou savage
-                        </Box>
+                            {' '}{tr('— aprendida ao virar nimble ou savage', '— learned on becoming nimble or savage')}</Box>
                     )}
                 </Typography>
             </Row>
@@ -265,11 +263,11 @@ function formatSpeeds(stats: ComputedCompanion): string {
     const extra = Object.entries(stats.speeds)
         .filter(([k]) => k !== 'land')
         .map(([k, v]) => `${SPEED_LABELS[k] ?? k} ${v}`)
-    return [`${stats.speed} pés`, ...extra].join(', ')
+    return [tr(`${stats.speed} pés`, `${stats.speed} feet`), ...extra].join(', ')
 }
 
 const SPEED_LABELS: Record<string, string> = {
-    fly: 'voo', swim: 'natação', climb: 'escalada', burrow: 'escavação',
+    fly: 'voo', swim: tr('natação', 'swim'), climb: 'escalada', burrow: tr('escavação', 'burrow'),
 }
 
 const BigStat = ({ label, value, hint }: { label: string; value: string; hint?: string }) => (

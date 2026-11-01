@@ -9,6 +9,7 @@ import { FeatureRow } from './FeatureRow'
 import { useActions } from './useActions'
 import { useSpellSlots } from './useSpellSlots'
 import { useUses } from './useUses'
+import { tr } from '../../../i18n'
 
 interface Props {
     build: BuildInfo
@@ -45,33 +46,30 @@ export const MonkBar = ({ build, mods }: Props) => {
                     <FeatureRow title="Monastic Archer Stance">
                         {stanceOn ? (
                             <>
-                                <Chip label="Em postura · só Golpes de arco" size="small" sx={{ ...chipSx, bgcolor: MONK_COLOR, color: '#FFFFFF' }} />
+                                <Chip label={tr("Em postura · só Golpes de arco", 'In stance · bow Strikes only')} size="small" sx={{ ...chipSx, bgcolor: MONK_COLOR, color: '#FFFFFF' }} />
                                 <Button size="small" variant="outlined" onClick={() => uses.unmark(STANCE_USE_KEY)} sx={{ ml: 'auto' }}>
-                                    Sair da postura
-                                </Button>
+                                    {tr('Sair da postura', 'Leave the stance')}</Button>
                             </>
                         ) : (
                             <>
                                 <Typography variant="body2" color={armored ? 'warning.main' : 'text.secondary'} sx={{ flex: 1, minWidth: 160 }}>
                                     {armored
-                                        ? 'Exige estar sem armadura: há armadura vestida na ficha.'
-                                        : '1 ação. Sem armadura e com um arco: os únicos Golpes passam a ser de arco, e o Flurry vale com ele.'}
+                                        ? tr('Exige estar sem armadura: há armadura vestida na ficha.', 'Requires being unarmored: there\'s armor worn on the sheet.')
+                                        : tr('1 ação. Sem armadura e com um arco: os únicos Golpes passam a ser de arco, e o Flurry vale com ele.', '1 action. Unarmored and with a bow: your only Strikes become bow Strikes, and Flurry works with it.')}
                                 </Typography>
                                 <Button size="small" variant="contained" onClick={() => { actions.spend(1, 'any'); uses.mark(STANCE_USE_KEY) }} sx={solid}>
-                                    Entrar · 1 ação
-                                </Button>
+                                    {tr('Entrar · 1 ação', 'Enter · 1 action')}</Button>
                             </>
                         )}
                     </FeatureRow>
 
                     <Typography variant="caption" color="text.secondary">
                         {[
-                            hasFlurryOfBlows(build) ? 'Flurry of Blows (1 ação, 2 Golpes)' : null,
-                            hasKiStrike(build) ? `Ki Strike / Inner Upheaval (+1 ataque, +${kiStrikeDice(build.level)}d6)` : null,
-                            hasPerfectStrike(build) ? 'Perfect Strike (reação, rerrola o ataque desarmado)' : null,
+                            hasFlurryOfBlows(build) ? tr('Flurry of Blows (1 ação, 2 Golpes)', 'Flurry of Blows (1 action, 2 Strikes)') : null,
+                            hasKiStrike(build) ? tr(`Ki Strike / Inner Upheaval (+1 ataque, +${kiStrikeDice(build.level)}d6)`, `Ki Strike / Inner Upheaval (+1 attack, +${kiStrikeDice(build.level)}d6)`) : null,
+                            hasPerfectStrike(build) ? tr('Perfect Strike (reação, rerrola o ataque desarmado)', 'Perfect Strike (reaction, rerolls the unarmed attack)') : null,
                         ].filter(Boolean).join(' · ')}
-                        {' '}ficam no diálogo do Golpe, na aba Combate.
-                    </Typography>
+                        {' '}{tr('ficam no diálogo do Golpe, na aba Combate.', 'live in the Strike dialog, on the Combat tab.')}</Typography>
                 </Stack>
             </CardContent>
         </Card>

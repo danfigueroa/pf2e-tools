@@ -17,6 +17,7 @@ import { hasGravityWeapon, hasHuntPrey, hasPrecisionEdge } from '../ranger'
 import { FeatureRow } from './FeatureRow'
 import type { RangerApi } from './useRanger'
 import { useSpellSlots } from './useSpellSlots'
+import { tr } from '../../../i18n'
 
 interface Props {
     build: BuildInfo
@@ -57,24 +58,22 @@ export const RangerBar = ({ build, ranger, mods }: Props) => {
                         <FeatureRow title="Hunt Prey">
                             {stored.prey ? (
                                 <>
-                                    <Chip label="Presa marcada" size="small" sx={{ ...chipSx, bgcolor: RANGER_COLOR, color: '#FFFFFF' }} />
+                                    <Chip label={tr('Presa marcada', 'Prey marked')} size="small" sx={{ ...chipSx, bgcolor: RANGER_COLOR, color: '#FFFFFF' }} />
                                     {hasPrecisionEdge(build) && (
-                                        <Tooltip title="Hunter's Edge: Precision — o primeiro acerto de cada rodada na presa soma dano de precisão. O chip de precisão da arma vem ligado.">
-                                            <Chip label="precisão ligada" size="small" variant="outlined" sx={chipSx} />
+                                        <Tooltip title={tr("Hunter's Edge: Precision — o primeiro acerto de cada rodada na presa soma dano de precisão. O chip de precisão da arma vem ligado.", 'Hunter\'s Edge: Precision — the first hit each round against the prey adds precision damage. The weapon\'s precision chip comes on.')}>
+                                            <Chip label={tr("precisão ligada", 'precision on')} size="small" variant="outlined" sx={chipSx} />
                                         </Tooltip>
                                     )}
                                     <Button size="small" variant="outlined" onClick={() => ranger.setPrey(false)} sx={{ ml: 'auto' }}>
-                                        Soltar a presa
+                                        {tr('Soltar a presa', 'Release the prey')}
                                     </Button>
                                 </>
                             ) : (
                                 <>
                                     <Typography variant="body2" color="text.secondary" sx={{ flex: 1, minWidth: 160 }}>
-                                        1 ação: marca uma criatura como presa.
-                                    </Typography>
+                                        {tr('1 ação: marca uma criatura como presa.', '1 action: mark a creature as prey.')}</Typography>
                                     <Button size="small" variant="contained" onClick={() => { actions.spend(1); ranger.setPrey(true) }} sx={solid}>
-                                        Marcar a presa
-                                    </Button>
+                                        {tr('Marcar a presa', 'Mark the prey')}</Button>
                                 </>
                             )}
                         </FeatureRow>
@@ -84,10 +83,9 @@ export const RangerBar = ({ build, ranger, mods }: Props) => {
                         <FeatureRow title="Gravity Weapon">
                             {stored.gravity ? (
                                 <>
-                                    <Chip label="Ativa · 1 minuto" size="small" sx={{ ...chipSx, bgcolor: RANGER_COLOR, color: '#FFFFFF' }} />
+                                    <Chip label={tr("Ativa · 1 minuto", 'Active · 1 minute')} size="small" sx={{ ...chipSx, bgcolor: RANGER_COLOR, color: '#FFFFFF' }} />
                                     <Typography variant="caption" color="text.secondary" sx={{ flex: 1, minWidth: 140 }}>
-                                        1º Golpe com arma da rodada: +2 × dados de dano.
-                                    </Typography>
+                                        {tr('1º Golpe com arma da rodada: +2 × dados de dano.', '1st Strike with a weapon each round: +2 × damage dice.')}</Typography>
                                     <Button size="small" variant="outlined" onClick={() => ranger.setGravity(false)}>
                                         Encerrar
                                     </Button>
@@ -95,7 +93,7 @@ export const RangerBar = ({ build, ranger, mods }: Props) => {
                             ) : (
                                 <>
                                     <Typography variant="body2" color="text.secondary" sx={{ flex: 1, minWidth: 160 }}>
-                                        1 ação, 1 Ponto de Foco ({focusLeft} restante{focusLeft === 1 ? '' : 's'}).
+                                        {tr('1 ação, 1 Ponto de Foco (', '1 action, 1 Focus Point (')}{focusLeft} restante{focusLeft === 1 ? '' : 's'}).
                                     </Typography>
                                     <Button
                                         size="small"
@@ -104,7 +102,7 @@ export const RangerBar = ({ build, ranger, mods }: Props) => {
                                         onClick={activateGravity}
                                         sx={solid}
                                     >
-                                        {focusLeft === 0 ? 'Sem foco' : 'Ativar'}
+                                        {focusLeft === 0 ? tr('Sem foco', 'No focus') : tr('Ativar', 'Activate')}
                                     </Button>
                                 </>
                             )}

@@ -2,6 +2,7 @@ import { Box, Button, Card, CardContent, Chip, Stack, Tooltip, Typography } from
 import { SwapVert as EnergyIcon } from '@mui/icons-material'
 import { PSYCHE_COLOR } from '../../../theme'
 import type { EnergyApi } from './useEnergy'
+import { tr } from '../../../i18n'
 
 const chipSx = { height: 24, fontSize: '0.75rem', fontWeight: 600 }
 
@@ -26,10 +27,10 @@ export const EnergyBar = ({ energy }: { energy: EnergyApi }) => {
                         size="small"
                         sx={{ ...chipSx, ...(last ? { bgcolor: PSYCHE_COLOR + '22', color: PSYCHE_COLOR, border: `1px solid ${PSYCHE_COLOR}55` } : {}) }}
                         variant={last ? 'filled' : 'outlined'}
-                        label={last === 'add' ? 'Adicionou (fogo) · próxima remove' : last === 'remove' ? 'Removeu (frio) · próxima adiciona' : 'Neutro · escolha livre'}
+                        label={last === 'add' ? tr('Adicionou (fogo) · próxima remove', 'Added (fire) · next one removes') : last === 'remove' ? tr('Removeu (frio) · próxima adiciona', 'Removed (cold) · next one adds') : tr('Neutro · escolha livre', 'Neutral · free choice')}
                     />
                     <Box sx={{ ml: 'auto' }}>
-                        <Tooltip title="Ao Refocus você volta ao neutro e escolhe livremente na próxima conjuração.">
+                        <Tooltip title={tr("Ao Refocus você volta ao neutro e escolhe livremente na próxima conjuração.", 'When you Refocus you go back to neutral and choose freely on the next casting.')}>
                             <span>
                                 <Button size="small" variant="outlined" disabled={!last} onClick={energy.reset}>
                                     Neutralizar (Refocus)
@@ -39,9 +40,7 @@ export const EnergyBar = ({ energy }: { energy: EnergyApi }) => {
                     </Box>
                 </Stack>
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
-                    Vale para as magias concedidas (Burning Hands, Fireball…) e os psi cantrips Frostbite e Ignition: todo o
-                    dano delas vira fogo ao adicionar, frio ao remover. Rolar a magia registra a escolha.
-                </Typography>
+                    {tr('Vale para as magias concedidas (Burning Hands, Fireball…) e os psi cantrips Frostbite e Ignition: todo o dano delas vira fogo ao adicionar, frio ao remover. Rolar a magia registra a escolha.', 'Applies to the granted spells (Burning Hands, Fireball…) and the psi cantrips Frostbite and Ignition: all their damage becomes fire when adding, cold when removing. Rolling the spell records the choice.')}</Typography>
             </CardContent>
         </Card>
     )

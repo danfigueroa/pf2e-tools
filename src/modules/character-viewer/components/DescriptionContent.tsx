@@ -375,7 +375,7 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                         {spell.level != null && request.level > spell.level && (
                             <Chip
                                 size="small"
-                                label={`Elevada +${request.level - spell.level}`}
+                                label={tr(`Elevada +${request.level - spell.level}`, `Heightened +${request.level - spell.level}`)}
                                 sx={{
                                     backgroundColor: accent + '25',
                                     color: accent,

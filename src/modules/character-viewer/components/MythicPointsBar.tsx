@@ -15,6 +15,7 @@ import { MYTHIC_COLOR } from '../helpers'
 import { SlotPips, SlotCount } from './SlotPips'
 import type { MythicPointsApi } from './useMythicPoints'
 import { EmbedDialog } from './EmbedDialog'
+import { tr } from '../../../i18n'
 
 interface Props {
     points: MythicPointsApi
@@ -40,19 +41,17 @@ export const MythicPointsBar = ({ points, onNewDay }: Props) => {
                     <Stack direction="row" alignItems="center" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
                         <MythicIcon sx={{ color: MYTHIC_COLOR }} />
                         <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1rem' }}>
-                            Pontos Míticos
-                        </Typography>
+                            {tr('Pontos Míticos', 'Mythic Points')}</Typography>
 
                         <Typography variant="caption" color="text.secondary">
-                            <SlotCount total={points.max} used={points.used} /> disponíveis
-                        </Typography>
+                            <SlotCount total={points.max} used={points.used} /> {tr('disponíveis', 'available')}</Typography>
 
                         <SlotPips
                             total={points.max}
                             used={points.used}
                             color={MYTHIC_COLOR}
                             onChange={points.setUsed}
-                            label="Ponto mítico"
+                            label={tr("Ponto mítico", 'Mythic point')}
                             size={18}
                         />
 
@@ -64,8 +63,7 @@ export const MythicPointsBar = ({ points, onNewDay }: Props) => {
                                 onClick={points.spend}
                                 sx={{ color: MYTHIC_COLOR, borderColor: MYTHIC_COLOR + '80' }}
                             >
-                                Gastar 1
-                            </Button>
+                                {tr('Gastar 1', 'Spend 1')}</Button>
                             <Button
                                 size="small"
                                 variant="outlined"
@@ -73,34 +71,28 @@ export const MythicPointsBar = ({ points, onNewDay }: Props) => {
                                 disabled={points.used === 0}
                                 onClick={() => setConfirmReset(true)}
                             >
-                                Novo dia
-                            </Button>
+                                {tr('Novo dia', 'New day')}</Button>
                         </Stack>
                     </Stack>
 
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                        Gaste um ponto para usar a proficiência mítica (✦) numa salvaguarda, perícia ou
-                        ataque. Toque num ponto gasto para devolvê-lo.
-                    </Typography>
+                        {tr('Gaste um ponto para usar a proficiência mítica (✦) numa salvaguarda, perícia ou ataque. Toque num ponto gasto para devolvê-lo.', 'Spend a point to use mythic proficiency (✦) on a saving throw, skill or attack. Tap a spent point to give it back.')}</Typography>
                 </CardContent>
             </Card>
 
             <EmbedDialog open={confirmReset} onClose={() => setConfirmReset(false)}>
-                <DialogTitle>Começar um novo dia?</DialogTitle>
+                <DialogTitle>{tr('Começar um novo dia?', 'Start a new day?')}</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Os {points.max} Pontos Míticos voltam a ficar disponíveis. Como a ficha é
-                        compartilhada, isso vale para todos os jogadores.
-                    </DialogContentText>
+                        {tr('Os ', 'The ')}{points.max} {tr('Pontos Míticos voltam a ficar disponíveis. Como a ficha é compartilhada, isso vale para todos os jogadores.', 'Mythic Points become available again. Since the sheet is shared, this applies for every player.')}</DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button color="inherit" onClick={() => setConfirmReset(false)}>Cancelar</Button>
+                    <Button color="inherit" onClick={() => setConfirmReset(false)}>{tr('Cancelar', 'Cancel')}</Button>
                     <Button
                         variant="contained"
                         onClick={() => { points.resetAll(); onNewDay?.(); setConfirmReset(false) }}
                     >
-                        Novo dia
-                    </Button>
+                        {tr('Novo dia', 'New day')}</Button>
                 </DialogActions>
             </EmbedDialog>
         </>

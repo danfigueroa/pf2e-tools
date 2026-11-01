@@ -8,6 +8,7 @@ import type { MythicPointsApi } from '../components/useMythicPoints'
 import { ActivityButton } from '../components/ActivityButton'
 import { getCachedFeat, useDescriptionCacheVersion } from '../../../services/descriptions'
 import { featTypeLabel } from '../featGroups'
+import { tr } from '../../../i18n'
 
 interface Props {
     build: BuildInfo
@@ -34,8 +35,7 @@ const FeatsSectionView = ({ build, onSelect, mods, mythicPoints }: Props) => {
             <Card>
                 <CardContent>
                     <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                        Sem talentos registrados.
-                    </Typography>
+                        {tr('Sem talentos registrados.', 'No feats recorded.')}</Typography>
                 </CardContent>
             </Card>
         )

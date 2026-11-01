@@ -9,6 +9,7 @@ import { ActivityButton } from '../components/ActivityButton'
 import { getCachedSpecial, useDescriptionCacheVersion } from '../../../services/descriptions'
 import { SPECIAL_GROUPS, specialGroup, type SpecialGroup } from '../featGroups'
 import { specialLookupName } from '../sharedClassFeatures'
+import { tr } from '../../../i18n'
 
 interface Props {
     build: BuildInfo
@@ -37,8 +38,7 @@ const SpecialsSectionView = ({ build, onSelect, mods, mythicPoints }: Props) => 
             <Card>
                 <CardContent>
                     <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                        Sem habilidades especiais.
-                    </Typography>
+                        {tr('Sem habilidades especiais.', 'No special abilities.')}</Typography>
                 </CardContent>
             </Card>
         )

@@ -488,8 +488,7 @@ const RepairDialog = ({ open, onClose, rank, destroyed, missing, onRepair }: {
                         disabled={destroyed || !(value > 0)}
                         onClick={() => { onRepair(value); setCustom('') }}
                     >
-                        Aplicar
-                    </Button>
+                        {tr('Aplicar', 'Apply')}</Button>
                 </Box>
             </DialogContent>
             <DialogActions>

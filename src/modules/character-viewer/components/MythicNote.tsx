@@ -1,6 +1,7 @@
 import { Typography } from '@mui/material'
 import type { SxProps, Theme } from '@mui/material'
 import { MYTHIC_COLOR } from '../helpers'
+import { tr } from '../../../i18n'
 
 /**
  * Legenda do "✦" que aparece nas salvaguardas, nas perícias e nos ataques.
@@ -14,6 +15,5 @@ export const MythicNote = ({ sx }: { sx?: SxProps<Theme> }) => (
             ...(Array.isArray(sx) ? sx : [sx]),
         ]}
     >
-        ✦ valor com proficiência mítica (nível + 10) — ao gastar um Ponto Mítico
-    </Typography>
+        {tr('✦ valor com proficiência mítica (nível + 10) — ao gastar um Ponto Mítico', '✦ value with mythic proficiency (level + 10) — when spending a Mythic Point')}</Typography>
 )

@@ -1,5 +1,6 @@
 import { Box, ButtonBase, type SxProps, type Theme } from '@mui/material'
 import { useSheetReadOnly } from '../sheetAccess'
+import { tr } from '../../../i18n'
 
 /**
  * Torna um número da ficha tocável para rolar. O número continua sendo o
@@ -24,8 +25,8 @@ export const RollTrigger = ({ label, onClick, children, sx }: {
     return (
     <ButtonBase
         onClick={onClick}
-        aria-label={`Rolar ${label}`}
-        title={`Rolar ${label}`}
+        aria-label={tr(`Rolar ${label}`, `Roll ${label}`)}
+        title={tr(`Rolar ${label}`, `Roll ${label}`)}
         focusRipple
         sx={[
             {

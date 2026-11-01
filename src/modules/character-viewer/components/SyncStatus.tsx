@@ -6,6 +6,7 @@ import { getStatus, refresh, subscribeStatus } from '../../../services/tableStat
 import { charSlug } from '../charId'
 import type { BuildInfo } from '../../../pathbuilder/types'
 import { VIEW_OK } from '../sheetAccess'
+import { tr } from '../../../i18n'
 
 /** Estado da sincronia com a mesa (o Realtime avisa; nada de polling aqui). */
 const useSyncStatus = () => useSyncExternalStore(subscribeStatus, getStatus, getStatus)
@@ -13,10 +14,10 @@ const useSyncStatus = () => useSyncExternalStore(subscribeStatus, getStatus, get
 /** "agora", "há 2 min", "há 1 h" — sem dependência de biblioteca de datas. */
 function agoLabel(at: number, now: number): string {
     const secs = Math.max(0, Math.round((now - at) / 1000))
-    if (secs < 45) return 'agora'
+    if (secs < 45) return tr('agora', 'now')
     const mins = Math.round(secs / 60)
-    if (mins < 60) return `há ${mins} min`
-    return `há ${Math.round(mins / 60)} h`
+    if (mins < 60) return tr(`há ${mins} min`, `${mins} min ago`)
+    return tr(`há ${Math.round(mins / 60)} h`, `${Math.round(mins / 60)} h ago`)
 }
 
 interface Props {
@@ -58,29 +59,29 @@ export const SyncStatus = ({ build }: Props) => {
     let hint: string
 
     if (offline) {
-        label = 'Só neste aparelho'
+        label = tr('Só neste aparelho', 'Only on this device')
         tone = statusColor.warning
-        hint = 'Sem contato com o servidor. As alterações ficam salvas aqui e sobem quando a conexão voltar.'
+        hint = tr('Sem contato com o servidor. As alterações ficam salvas aqui e sobem quando a conexão voltar.', 'No contact with the server. Changes are saved here and go up when the connection comes back.')
     } else if (!sync.storeReady) {
-        label = 'Só neste aparelho'
+        label = tr('Só neste aparelho', 'Only on this device')
         tone = statusColor.warning
-        hint = 'O servidor está sem armazenamento configurado, então o estado não é compartilhado.'
+        hint = tr('O servidor está sem armazenamento configurado, então o estado não é compartilhado.', 'The server has no storage configured, so the state isn\'t shared.')
     } else if (saving) {
         label = 'Salvando…'
         tone = gold.deep
-        hint = 'Enviando a alteração para a mesa.'
+        hint = tr('Enviando a alteração para a mesa.', 'Sending the change to the table.')
     } else if (sync.live) {
-        label = 'Ao vivo'
+        label = tr('Ao vivo', 'Live')
         tone = statusColor.success
-        hint = 'PV, slots e condições são os mesmos para todos os jogadores, e o que mudar em outro aparelho aparece aqui na hora.'
+        hint = tr('PV, slots e condições são os mesmos para todos os jogadores, e o que mudar em outro aparelho aparece aqui na hora.', 'HP, slots and conditions are the same for every player, and what changes on another device shows up here right away.')
     } else if (sync.lastSyncedAt) {
         label = `Sincronizado ${agoLabel(sync.lastSyncedAt, now)}`
         tone = gold.deep
-        hint = 'PV, slots e condições são os mesmos para todos os jogadores.'
+        hint = tr('PV, slots e condições são os mesmos para todos os jogadores.', 'HP, slots and conditions are the same for every player.')
     } else {
         label = 'Sincronizando…'
         tone = gold.deep
-        hint = 'Buscando o estado da mesa.'
+        hint = tr('Buscando o estado da mesa.', 'Fetching the table state.')
     }
 
     return (

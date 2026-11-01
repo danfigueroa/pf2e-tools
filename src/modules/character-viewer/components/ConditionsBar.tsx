@@ -26,6 +26,7 @@ import { CONDITIONS_BY_ID, TARGET_LABELS, affectedTargets } from '../conditions'
 import { ConditionsDialog } from './ConditionsDialog'
 import type { ConditionsApi } from './useConditions'
 import { pop, useArmed } from '../../../motion/motion'
+import { tr } from '../../../i18n'
 
 interface Props {
     conditions: ConditionsApi
@@ -63,25 +64,21 @@ export const ConditionsBar = ({ conditions }: Props) => {
                     <Stack direction="row" alignItems="center" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
                         <ConditionIcon sx={{ color: CONDITION_COLOR }} />
                         <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1rem' }}>
-                            Condições
-                        </Typography>
+                            {tr('Condições', 'Conditions')}</Typography>
 
                         {mods.active.length === 0 && (
                             <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                                Nenhuma ativa.
-                            </Typography>
+                                {tr('Nenhuma ativa.', 'None active.')}</Typography>
                         )}
 
                         <Box sx={{ flex: 1 }} />
 
                         <Button size="small" variant="outlined" startIcon={<AddIcon />} onClick={() => setDialogOpen(true)}>
-                            Adicionar
-                        </Button>
+                            {tr('Adicionar', 'Add')}</Button>
                         {mods.count > 0 && (
-                            <Tooltip title="Remover todas as condições">
+                            <Tooltip title={tr("Remover todas as condições", 'Remove all conditions')}>
                                 <Button size="small" color="inherit" startIcon={<ClearIcon />} onClick={clear}>
-                                    Limpar
-                                </Button>
+                                    {tr('Limpar', 'Clear')}</Button>
                             </Tooltip>
                         )}
                     </Stack>
@@ -101,9 +98,9 @@ export const ConditionsBar = ({ conditions }: Props) => {
                                         key={entry.id}
                                         title={
                                             fromAffliction
-                                                ? `${def.summary} (imposta por ${conditions.derivedSources[entry.id] ?? 'uma aflição ativa'})`
+                                                ? tr(`${def.summary} (imposta por ${conditions.derivedSources[entry.id] ?? 'uma aflição ativa'})`, `${def.summary} (imposed by ${conditions.derivedSources[entry.id] ?? 'an active affliction'})`)
                                                 : entry.via
-                                                    ? `${def.summary} (imposta por ${entry.via})`
+                                                    ? tr(`${def.summary} (imposta por ${entry.via})`, `${def.summary} (imposed by ${entry.via})`)
                                                     : def.summary
                                         }
                                         enterDelay={400}
@@ -158,7 +155,7 @@ export const ConditionsBar = ({ conditions }: Props) => {
                                             {!implied && (
                                                 <IconButton
                                                     size="small"
-                                                    aria-label={`Remover ${def.name}`}
+                                                    aria-label={tr(`Remover ${def.name}`, `Remove ${def.name}`)}
                                                     onClick={() => toggle(entry.id)}
                                                     sx={{ p: TAP_PADDING }}
                                                 >
@@ -207,7 +204,7 @@ export const ConditionsBar = ({ conditions }: Props) => {
                                     }
                                     sx={{ ml: 'auto' }}
                                 >
-                                    {showDetails ? 'Menos' : 'Detalhes'}
+                                    {showDetails ? tr('Menos', 'Less') : 'Detalhes'}
                                 </Button>
                             </Stack>
 
@@ -215,12 +212,12 @@ export const ConditionsBar = ({ conditions }: Props) => {
                                 <Divider sx={{ my: 1.5 }} />
                                 {mods.hpMaxDelta !== 0 && (
                                     <Typography variant="body2" sx={{ fontWeight: 700, color: CONDITION_COLOR, mb: 1 }}>
-                                        PV máximos {signed(mods.hpMaxDelta)}
+                                        {tr('PV máximos ', 'Max HP ')}{signed(mods.hpMaxDelta)}
                                     </Typography>
                                 )}
                                 {mods.situational.length > 0 && (
                                     <Box sx={{ mb: 1 }}>
-                                        <SubTitle>Só em certas situações</SubTitle>
+                                        <SubTitle>{tr('Só em certas situações', 'Only in certain situations')}</SubTitle>
                                         {mods.situational.map((s, i) => (
                                             <Typography key={i} variant="body2" color="text.secondary">
                                                 <strong>{s.from}:</strong> {s.text}
@@ -230,7 +227,7 @@ export const ConditionsBar = ({ conditions }: Props) => {
                                 )}
                                 {mods.notes.length > 0 && (
                                     <Box>
-                                        <SubTitle>Efeitos que a ficha não calcula</SubTitle>
+                                        <SubTitle>{tr('Efeitos que a ficha não calcula', 'Effects the sheet doesn\'t calculate')}</SubTitle>
                                         {mods.notes.map((n, i) => (
                                             <Typography key={i} variant="body2" color="text.secondary">
                                                 <strong>{n.from}:</strong> {n.text}

@@ -10,6 +10,7 @@ import { useActions } from './useActions'
 import { useConditions } from './useConditions'
 import { useHpTracker } from './useHpTracker'
 import { useUses } from './useUses'
+import { tr } from '../../../i18n'
 
 /** Orc Ferocity (Player Core pg. 72): reação, uma vez por dia, ao cair a 0 PV sem morrer na hora. */
 export const ORC_FEROCITY = 'Orc Ferocity'
@@ -41,7 +42,7 @@ export const OrcFerocityButton = ({ build, mods, fullWidth }: Props) => {
         hp.restoreHp({ current: 1, temp: hp.temp })
         conditions.setCondition('wounded', wounded + 1)
         setOpen(false)
-        setNote(`Orc Ferocity: você fica com 1 PV e Ferido ${wounded + 1}.`)
+        setNote(tr(`Orc Ferocity: você fica com 1 PV e Ferido ${wounded + 1}.`, `Orc Ferocity: you stay at 1 HP and wounded ${wounded + 1}.`))
     }
 
     return (
@@ -51,7 +52,7 @@ export const OrcFerocityButton = ({ build, mods, fullWidth }: Props) => {
                 variant={usedToday ? 'outlined' : 'contained'}
                 onClick={(e) => { e.stopPropagation(); if (usedToday) uses.unmark(ORC_FEROCITY); else setOpen(true) }}
                 onKeyDown={(e) => e.stopPropagation()}
-                aria-label={usedToday ? 'Orc Ferocity já usada hoje — devolver' : 'Usar Orc Ferocity'}
+                aria-label={usedToday ? tr('Orc Ferocity já usada hoje — devolver', 'Orc Ferocity already used today — give it back') : tr('Usar Orc Ferocity', 'Use Orc Ferocity')}
                 fullWidth={fullWidth}
                 sx={{
                     flexShrink: 0,
@@ -60,20 +61,18 @@ export const OrcFerocityButton = ({ build, mods, fullWidth }: Props) => {
                     ...(usedToday ? { color: gold.deep, borderColor: gold.main } : {}),
                 }}
             >
-                {usedToday ? 'Usada hoje ↺' : 'Usar · reação'}
+                {usedToday ? tr('Usada hoje ↺', 'Used today ↺') : tr('Usar · reação', 'Use · reaction')}
             </Button>
             <EmbedDialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="xs" onClick={(e) => e.stopPropagation()}>
                 <DialogTitle sx={{ pb: 1 }}>Orc Ferocity</DialogTitle>
                 <DialogContent>
                     <Typography variant="body2" sx={{ mb: 1 }}>
-                        Gatilho: você cairia a 0 PV, mas não morreria na hora. Em vez disso, fica com <b>1 PV</b> e o Ferido sobe 1
-                        (de {wounded} para {wounded + 1}). Gasta a reação e o uso do dia.
-                    </Typography>
-                    {actions.stored.reacted && <Alert severity="warning" sx={{ py: 0 }}>A reação desta rodada já foi usada. Dá para usar mesmo assim.</Alert>}
+                        {tr('Gatilho: você cairia a 0 PV, mas não morreria na hora. Em vez disso, fica com ', 'Trigger: you would drop to 0 HP, but wouldn\'t die right away. Instead, you stay at ')}<b>1 PV</b> {tr('e o Ferido sobe 1 (de ', 'and wounded goes up by 1 (from ')}{wounded} {tr('para ', 'to ')}{wounded + 1}{tr('). Gasta a reação e o uso do dia.', '). Spends the reaction and the day\'s use.')}</Typography>
+                    {actions.stored.reacted && <Alert severity="warning" sx={{ py: 0 }}>{tr('A reação desta rodada já foi usada. Dá para usar mesmo assim.', 'This round\'s reaction was already used. You can use it anyway.')}</Alert>}
                 </DialogContent>
                 <DialogActions sx={{ px: 3, pb: 2 }}>
-                    <Button onClick={() => setOpen(false)} sx={{ mr: 'auto' }}>Cancelar</Button>
-                    <Button variant="contained" onClick={confirm}>Ficar com 1 PV</Button>
+                    <Button onClick={() => setOpen(false)} sx={{ mr: 'auto' }}>{tr('Cancelar', 'Cancel')}</Button>
+                    <Button variant="contained" onClick={confirm}>{tr('Ficar com 1 PV', 'Stay at 1 HP')}</Button>
                 </DialogActions>
             </EmbedDialog>
             <Snackbar open={!!note} autoHideDuration={7000} onClose={() => setNote(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>

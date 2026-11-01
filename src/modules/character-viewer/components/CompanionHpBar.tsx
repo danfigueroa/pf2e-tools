@@ -20,6 +20,7 @@ import { HP_COLOR } from '../../../theme/palette'
 import { hpBarColor, useHpTracker } from './useHpTracker'
 import { useHpFeedback } from '../../../motion/useHpFeedback'
 import { FloatingDeltas } from '../../../motion/FloatingDeltas'
+import { tr } from '../../../i18n'
 
 interface Props {
     /** Chave de sincronia da mesa (ver `petKeyFor`). */
@@ -36,7 +37,7 @@ interface Props {
  * persistência e mesmas regras (PV temporários absorvem dano primeiro),
  * num bloco que cabe dentro do card do companheiro.
  */
-export const CompanionHpBar = ({ storageKey, legacyKey, maxHp, downLabel = 'Inconsciente' }: Props) => {
+export const CompanionHpBar = ({ storageKey, legacyKey, maxHp, downLabel = tr('Inconsciente', 'Unconscious') }: Props) => {
     const theme = useTheme()
     const { current, temp, applyDamage, applyHealing, setTemp, resetFull } = useHpTracker(storageKey, maxHp, legacyKey)
 
@@ -84,8 +85,7 @@ export const CompanionHpBar = ({ storageKey, legacyKey, maxHp, downLabel = 'Inco
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                 <HpIcon sx={{ color: HP_COLOR, fontSize: '1.1rem' }} />
                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    Pontos de Vida
-                </Typography>
+                    {tr('Pontos de Vida', 'Hit Points')}</Typography>
                 <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5, ml: 'auto', position: 'relative' }}>
                     <Typography sx={{ fontWeight: 800, fontSize: '1.35rem', lineHeight: 1, color: barColor, fontVariantNumeric: 'tabular-nums' }}>
                         {feedback.shown}
@@ -134,8 +134,7 @@ export const CompanionHpBar = ({ storageKey, legacyKey, maxHp, downLabel = 'Inco
                     sx={{ width: 92 }}
                 />
                 <Button size="small" variant="contained" color="error" disabled={!hasAmount} onClick={handleDamage} sx={{ fontWeight: 700 }}>
-                    Dano
-                </Button>
+                    {tr('Dano', 'Damage')}</Button>
                 <Button size="small" variant="contained" color="success" disabled={!hasAmount} onClick={handleHeal} sx={{ fontWeight: 700 }}>
                     Curar
                 </Button>

@@ -12,6 +12,7 @@ import { TokenFitDialog } from '../../battle-map/components/TokenFitDialog'
 import { charSlug, companionsKeyFor } from '../charId'
 import { useCompanions } from './useCompanions'
 import { useSheetReadOnly } from '../sheetAccess'
+import { tr } from '../../../i18n'
 
 /** O token da criatura: toque para enviar ou trocar a imagem (permanente, pasta `tokens/`); o lápis enquadra. */
 const CompanionToken = ({ slug, companion, onChange, onFit }: {
@@ -50,12 +51,12 @@ const CompanionToken = ({ slug, companion, onChange, onFit }: {
 
     return (
         <Box sx={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
-            <Tooltip title={companion.token ? 'Trocar o token' : 'Enviar o token'}>
+            <Tooltip title={companion.token ? tr('Trocar o token', 'Change the token') : tr('Enviar o token', 'Upload the token')}>
                 <ButtonBase
                     onClick={() => input.current?.click()}
                     // Ficha alheia: enviar subiria a imagem ao Storage antes de a mesa recusar a escrita.
                     disabled={busy || readOnly}
-                    aria-label={`${companion.token ? 'Trocar' : 'Enviar'} o token de ${companion.name}`}
+                    aria-label={tr(`${companion.token ? 'Trocar' : 'Enviar'} o token de ${companion.name}`, `${companion.token ? 'Change' : 'Upload'} ${companion.name}'s token`)}
                     sx={{
                         position: 'relative',
                         width: 64,
@@ -153,7 +154,7 @@ export const CompanionsCard = ({ build }: Props) => {
             setName('')
             return
         }
-        setError(results.length === 0 ? `Não achei "${wanted}" na AON.` : `Não achei exatamente "${wanted}". Quis dizer:`)
+        setError(results.length === 0 ? tr(`Não achei "${wanted}" na AON.`, `Couldn't find "${wanted}" on AON.`) : tr(`Não achei exatamente "${wanted}". Quis dizer:`, `Couldn't find exactly "${wanted}". Did you mean:`))
         setSuggestions(results.map((r) => r.name))
     }
 
@@ -161,21 +162,19 @@ export const CompanionsCard = ({ build }: Props) => {
         <Card>
             <CardContent>
                 <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700 }}>
-                    Companheiros de combate
-                </Typography>
+                    {tr('Companheiros de combate', 'Combat companions')}</Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-                    Criaturas da AON que entram no encontro (e no mapa) sozinhas quando {build.name} entra. O token e o enquadramento dele são feitos uma vez só.
-                </Typography>
+                    {tr('Criaturas da AON que entram no encontro (e no mapa) sozinhas quando ', 'AON creatures that join the encounter (and the map) on their own when ')}{build.name} {tr('entra. O token e o enquadramento dele são feitos uma vez só.', 'joins. Their token and framing are set only once.')}</Typography>
 
                 <Stack spacing={1.25}>
                     {companions.list.map((c) => (
                         <Box key={c.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                             <CompanionToken slug={slug} companion={c} onChange={(url) => companions.setToken(c.id, url)} onFit={(f) => companions.setFit(c.id, f)} />
                             <Typography sx={{ flex: 1, fontWeight: 700, minWidth: 0 }}>{c.name}</Typography>
-                            <Tooltip title="Remover">
+                            <Tooltip title={tr("Remover", 'Remove')}>
                                 <IconButton
                                     size="small"
-                                    aria-label={`Remover ${c.name}`}
+                                    aria-label={tr(`Remover ${c.name}`, `Remove ${c.name}`)}
                                     onClick={() => { companions.remove(c.id); if (c.token?.url) void deleteImage(c.token.url) }}
                                 >
                                     <RemoveIcon fontSize="small" />
@@ -185,8 +184,7 @@ export const CompanionsCard = ({ build }: Props) => {
                     ))}
                     {companions.list.length === 0 && (
                         <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                            Nenhum ainda.
-                        </Typography>
+                            {tr('Nenhum ainda.', 'None yet.')}</Typography>
                     )}
                 </Stack>
 
@@ -194,15 +192,14 @@ export const CompanionsCard = ({ build }: Props) => {
                     <TextField
                         size="small"
                         fullWidth
-                        label="Criatura (nome na AON, ex.: Animated Armor)"
+                        label={tr("Criatura (nome na AON, ex.: Animated Armor)", 'Creature (AON name, e.g. Animated Armor)')}
                         value={name}
                         disabled={full || busy}
                         onChange={(e) => { setName(e.target.value); setError(null) }}
                         onKeyDown={(e) => { if (e.key === 'Enter') void submit() }}
                     />
                     <Button variant="contained" startIcon={<AddIcon />} disabled={full || busy || name.trim().length < 2} onClick={() => void submit()} sx={{ flexShrink: 0, height: 40 }}>
-                        Adicionar
-                    </Button>
+                        {tr('Adicionar', 'Add')}</Button>
                 </Box>
                 {error && (
                     <Alert severity="warning" sx={{ mt: 1, py: 0 }}>
@@ -216,7 +213,7 @@ export const CompanionsCard = ({ build }: Props) => {
                         )}
                     </Alert>
                 )}
-                {full && <Typography variant="caption" color="text.secondary">Limite de {MAX_COMPANIONS} companheiros.</Typography>}
+                {full && <Typography variant="caption" color="text.secondary">{tr('Limite de ', 'Limit of ')}{MAX_COMPANIONS} companheiros.</Typography>}
             </CardContent>
         </Card>
     )

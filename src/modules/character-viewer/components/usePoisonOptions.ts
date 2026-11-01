@@ -6,6 +6,7 @@ import { SIMPLE_POISON, isApplicablePoison, isSimplePoison, simpleDoses, simpleP
 import { useConsumables } from './useConsumables'
 import { useGifts } from './useGifts'
 import type { RogueApi } from './useRogue'
+import { tr } from '../../../i18n'
 
 export interface PoisonOption {
     name: string
@@ -51,7 +52,7 @@ export function usePoisonOptions(build: BuildInfo, rogue: RogueApi, enabled = tr
     const simpleLeft = Math.max(0, dose - rogue.stored.simpleUsed)
     const dice = simplePoisonDice(build)
     const options: PoisonOption[] = [
-        { name: SIMPLE_POISON, label: `Veneno simples · ${dice.count}d${dice.faces} de veneno`, left: simpleLeft, of: dose },
+        { name: SIMPLE_POISON, label: tr(`Veneno simples · ${dice.count}d${dice.faces} de veneno`, `Simple poison · ${dice.count}d${dice.faces} poison`), left: simpleLeft, of: dose },
         ...inventory.map((o) => ({ name: o.name, label: o.name, left: o.left, of: o.qty })),
     ]
 

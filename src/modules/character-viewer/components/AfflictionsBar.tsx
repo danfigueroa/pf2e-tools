@@ -7,6 +7,7 @@ import { Close as CloseIcon } from '@mui/icons-material'
 import { CONDITIONS_BY_ID } from '../conditions'
 import { gold, ink, parchment, rule, status } from '../../../theme'
 import { stageOf, type AfflictionState } from '../../initiative-tracker/afflictions'
+import { tr } from '../../../i18n'
 
 interface Props {
     afflictions: AfflictionState[]
@@ -49,13 +50,13 @@ export const AfflictionsBar = ({ afflictions, onRemove }: Props) => {
                                 sx={{ backgroundColor: gold.main + '33', fontWeight: 700 }}
                             />
                             {a.def.virulent && (
-                                <Tooltip title="Virulento: precisa de dois sucessos seguidos para melhorar um estágio.">
+                                <Tooltip title={tr("Virulento: precisa de dois sucessos seguidos para melhorar um estágio.", 'Virulent: needs two successes in a row to improve a stage.')}>
                                     <Chip size="small" variant="outlined" label="Virulento" />
                                 </Tooltip>
                             )}
                             <Box sx={{ flex: 1 }} />
-                            <Tooltip title="Remover (quando o grupo curar a aflição)">
-                                <IconButton size="small" aria-label={`Remover ${a.def.name}`} onClick={() => onRemove(a.id)}>
+                            <Tooltip title={tr("Remover (quando o grupo curar a aflição)", 'Remove (when the group cures the affliction)')}>
+                                <IconButton size="small" aria-label={tr(`Remover ${a.def.name}`, `Remove ${a.def.name}`)} onClick={() => onRemove(a.id)}>
                                     <CloseIcon fontSize="small" />
                                 </IconButton>
                             </Tooltip>
@@ -84,12 +85,12 @@ export const AfflictionsBar = ({ afflictions, onRemove }: Props) => {
 
                         <Typography variant="caption" sx={{ display: 'block', color: ink.secondary, mt: 0.5 }}>
                             {a.def.dc !== null && a.def.save
-                                ? `CD ${a.def.dc} ${a.def.save === 'fortitude' ? 'Fortitude' : a.def.save === 'reflex' ? 'Reflexos' : 'Vontade'}`
-                                : (a.def.raw ?? 'salvaguarda não lida')}
+                                ? `CD ${a.def.dc} ${a.def.save === 'fortitude' ? 'Fortitude' : a.def.save === 'reflex' ? tr('Reflexos', 'Reflex') : tr('Vontade', 'Will')}`
+                                : (a.def.raw ?? tr('salvaguarda não lida', 'save not read'))}
                             {due
-                                ? ' · salvaguarda pendente'
+                                ? tr(' · salvaguarda pendente', ' · save pending')
                                 : a.roundsLeft !== null
-                                    ? ` · salva em ${a.roundsLeft} rodada${a.roundsLeft > 1 ? 's' : ''}`
+                                    ? tr(` · salva em ${a.roundsLeft} rodada${a.roundsLeft > 1 ? 's' : ''}`, ` · save in ${a.roundsLeft} round${a.roundsLeft > 1 ? 's' : ''}`)
                                     : stage?.durationRaw ? ` · ${stage.durationRaw}` : ''}
                         </Typography>
                     </Box>
