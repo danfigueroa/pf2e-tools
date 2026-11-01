@@ -4,6 +4,7 @@ import { HP_COLOR, gold, ink, parchment, rule } from '../../../../theme';
 import { pop } from '../../../../motion/motion';
 import { useAnimatedNumber } from '../../../../motion/useAnimatedNumber';
 import { useSceneClock } from '../useSceneClock';
+import { tr } from '../../../../i18n';
 
 // Quantas vezes cada face do d20 saiu numa noite inventada (1 a 20).
 const FACES = [3, 5, 4, 6, 5, 7, 4, 6, 8, 5, 6, 7, 5, 6, 4, 7, 5, 6, 4, 9];
@@ -19,9 +20,9 @@ export const HistoryScene = () => {
   return (
     <Box sx={{ p: 2, color: ink.primary, display: 'grid', gap: 1.5 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 1 }}>
-        <Box sx={{ fontFamily: '"Cinzel", Georgia, serif', fontWeight: 700, fontSize: '0.9rem' }}>Sessão de sábado</Box>
+        <Box sx={{ fontFamily: '"Cinzel", Georgia, serif', fontWeight: 700, fontSize: '0.9rem' }}>{tr('Sessão de sábado', 'Saturday\'s session')}</Box>
         <Box sx={{ fontSize: '0.72rem', color: ink.secondary }}>
-          Média do d20{' '}
+          {tr('Média do d20', 'd20 average')}{' '}
           <Box component="span" sx={{ fontSize: '1.1rem', fontWeight: 800, color: ink.primary, fontVariantNumeric: 'tabular-nums' }}>
             {(mean / 10).toFixed(1).replace('.', ',')}
           </Box>
@@ -64,8 +65,8 @@ export const HistoryScene = () => {
           >
             <TrophyIcon sx={{ color: gold.deep }} />
             <Box sx={{ minWidth: 0 }}>
-              <Box sx={{ fontSize: '0.8rem', fontWeight: 700 }}>Quem tirou 20 mais vezes</Box>
-              <Box sx={{ fontSize: '0.72rem', color: ink.secondary }}>Korvak · 4 vezes nesta sessão</Box>
+              <Box sx={{ fontSize: '0.8rem', fontWeight: 700 }}>{tr('Quem tirou 20 mais vezes', 'Who rolled 20 the most')}</Box>
+              <Box sx={{ fontSize: '0.72rem', color: ink.secondary }}>{tr('Korvak · 4 vezes nesta sessão', 'Korvak · 4 times this session')}</Box>
             </Box>
           </Box>
         )}

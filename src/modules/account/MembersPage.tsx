@@ -9,6 +9,7 @@ import {
   type MembersData,
 } from '../../services/members';
 import { displayFont, ink } from '../../theme';
+import { locale, tr } from '../../i18n';
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2.5 }, mb: 2.5 }}>
@@ -20,7 +21,7 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 );
 
 const label = (m: { displayName: string | null; username: string | null; email: string | null }) =>
-  m.displayName ?? m.username ?? m.email ?? 'Sem nome';
+  m.displayName ?? m.username ?? m.email ?? tr('Sem nome', 'Unnamed');
 
 /**
  * A tela do GM: quem está na mesa, convites e a quem pertence cada ficha. As fichas que já
@@ -46,19 +47,19 @@ export const MembersPage = () => {
 
   useEffect(() => { if (isGm) void load(); }, [isGm, load]);
 
-  if (!isGm) return <Alert severity="info">Só o GM da mesa vê esta página.</Alert>;
+  if (!isGm) return <Alert severity="info">{tr('Só o GM da mesa vê esta página.', 'Only the table\'s GM sees this page.')}</Alert>;
 
   // Roda uma ação e relê a lista; o erro do servidor vira o aviso da página.
   const act = async (run: () => Promise<{ ok: boolean } & Record<string, unknown>>) => {
     setError(null);
     const result = await run();
-    if (!result.ok) setError(String(result.error ?? 'Não deu certo'));
+    if (!result.ok) setError(String(result.error ?? tr('Não deu certo', 'That didn\'t work')));
     await load();
   };
 
   const copy = async (code: string) => {
     const link = inviteLink(code);
-    try { await navigator.clipboard.writeText(link); } catch { window.prompt('Link do convite', link); }
+    try { await navigator.clipboard.writeText(link); } catch { window.prompt(tr('Link do convite', 'Invite link'), link); }
     setCopied(code);
     window.setTimeout(() => setCopied(null), 2000);
   };
@@ -71,22 +72,21 @@ export const MembersPage = () => {
 
   return (
     <Box sx={{ maxWidth: 820, mx: 'auto' }}>
-      <Typography component="h1" variant="h4" sx={{ mb: 0.5 }}>Membros</Typography>
+      <Typography component="h1" variant="h4" sx={{ mb: 0.5 }}>{tr('Membros', 'Members')}</Typography>
       <Typography color="text.secondary" sx={{ mb: 2.5 }}>Mesa {mesa.name}</Typography>
 
       {error && <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 2 }}>{error}</Alert>}
       {newPassword && (
         <Alert severity="success" onClose={() => setNewPassword(null)} sx={{ mb: 2 }}>
-          Senha nova de <strong>{newPassword.who}</strong>:{' '}
+          {tr('Senha nova de ', 'New password for ')}<strong>{newPassword.who}</strong>:{' '}
           <Box component="span" sx={{ fontFamily: 'monospace', fontSize: '1.1rem', fontWeight: 700 }}>{newPassword.password}</Box>
-          {' '}— passe para a pessoa. Ela pode trocar depois, no menu da conta. Esta senha não aparece de novo.
-        </Alert>
+          {' '}{tr('— passe para a pessoa. Ela pode trocar depois, no menu da conta. Esta senha não aparece de novo.', '— hand it to the person. They can change it later, in the account menu. This password won\'t be shown again.')}</Alert>
       )}
 
       <Section title="Convidar">
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 2 }} alignItems={{ sm: 'center' }}>
           <Select size="small" value={inviteRole} onChange={(e) => setInviteRole(e.target.value as Role)}>
-            <MenuItem value="player">Jogador</MenuItem>
+            <MenuItem value="player">{tr('Jogador', 'Player')}</MenuItem>
             <MenuItem value="gm">GM</MenuItem>
           </Select>
           <TextField
@@ -94,27 +94,26 @@ export const MembersPage = () => {
             onChange={(e) => setUses(Math.min(50, Math.max(1, Number(e.target.value) || 1)))}
           />
           <TextField
-            size="small" type="number" label="Validade (dias)" value={days} sx={{ width: 140 }}
+            size="small" type="number" label={tr("Validade (dias)", 'Valid for (days)')} value={days} sx={{ width: 140 }}
             onChange={(e) => setDays(Math.min(30, Math.max(1, Number(e.target.value) || 1)))}
           />
           <Button variant="contained" onClick={() => void act(() => createInvite(inviteRole, uses, days))}>
-            Gerar convite
-          </Button>
+            {tr('Gerar convite', 'Generate invite')}</Button>
         </Stack>
 
         {activeInvites.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">Nenhum convite ativo.</Typography>
+          <Typography variant="body2" color="text.secondary">{tr('Nenhum convite ativo.', 'No active invite.')}</Typography>
         ) : (
           <Stack spacing={1}>
             {activeInvites.map((invite) => (
               <Box key={invite.code} sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                 <Typography sx={{ fontFamily: 'monospace', letterSpacing: '0.1em' }}>{invite.code}</Typography>
-                <Chip size="small" label={invite.role === 'gm' ? 'GM' : 'Jogador'} />
+                <Chip size="small" label={invite.role === 'gm' ? 'GM' : tr('Jogador', 'Player')} />
                 <Typography variant="caption" color="text.secondary" sx={{ flex: 1, minWidth: 120 }}>
-                  {invite.uses}/{invite.maxUses} usos · até {new Date(invite.expiresAt).toLocaleDateString('pt-BR')}
+                  {invite.uses}/{invite.maxUses} {tr(' usos · até ', ' uses · until ')}{new Date(invite.expiresAt).toLocaleDateString(locale)}
                 </Typography>
                 <Button size="small" startIcon={<CopyIcon />} onClick={() => void copy(invite.code)}>
-                  {copied === invite.code ? 'Copiado!' : 'Copiar link'}
+                  {copied === invite.code ? tr('Copiado!', 'Copied!') : 'Copiar link'}
                 </Button>
                 <Button size="small" color="error" onClick={() => void act(() => revokeInvite(invite.code))}>Revogar</Button>
               </Box>
@@ -123,53 +122,52 @@ export const MembersPage = () => {
         )}
       </Section>
 
-      <Section title="Quem está na mesa">
-        {!data ? <Typography color="text.secondary">Carregando…</Typography> : (
+      <Section title={tr("Quem está na mesa", 'Who is at the table')}>
+        {!data ? <Typography color="text.secondary">{tr('Carregando…', 'Loading…')}</Typography> : (
           <Stack spacing={1.25} divider={<Box sx={{ borderTop: `1px solid ${ink.disabled}33` }} />}>
             {accounts.map((m) => (
               <Box key={m.userId} sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                 <Box sx={{ flex: 1, minWidth: 160 }}>
-                  <Typography sx={{ fontWeight: 600 }} noWrap>{label(m)}{m.userId === userId ? ' (você)' : ''}</Typography>
+                  <Typography sx={{ fontWeight: 600 }} noWrap>{label(m)}{m.userId === userId ? tr(' (você)', ' (you)') : ''}</Typography>
                   {m.displayName && (m.username || m.email) && (
                     <Typography variant="caption" color="text.secondary" noWrap>{m.username ?? m.email}</Typography>
                   )}
                 </Box>
-                <Tooltip title="Nome exibido na mesa">
+                <Tooltip title={tr("Nome exibido na mesa", 'Name shown at the table')}>
                   <Button
                     size="small"
                     onClick={() => {
-                      const name = window.prompt('Nome na mesa', m.displayName ?? '');
+                      const name = window.prompt(tr('Nome na mesa', 'Name at the table'), m.displayName ?? '');
                       if (name?.trim()) void act(() => setMemberName(name.trim(), m.userId));
                     }}
                   >
                     Renomear
                   </Button>
                 </Tooltip>
-                <Tooltip title="Para quem esqueceu a senha">
+                <Tooltip title={tr("Para quem esqueceu a senha", 'For whoever forgot their password')}>
                   <Button
                     size="small"
                     onClick={async () => {
-                      if (!window.confirm(`Gerar uma senha nova para ${label(m)}? A atual deixa de valer.`)) return;
+                      if (!window.confirm(tr(`Gerar uma senha nova para ${label(m)}? A atual deixa de valer.`, `Generate a new password for ${label(m)}? The current one stops working.`))) return;
                       setError(null);
                       const result = await resetPassword(m.userId);
                       if (result.ok) setNewPassword({ who: label(m), password: result.data.password });
                       else setError(result.error);
                     }}
                   >
-                    Nova senha
-                  </Button>
+                    {tr('Nova senha', 'New password')}</Button>
                 </Tooltip>
                 <Select
                   size="small" value={m.role}
                   onChange={(e) => void act(() => setMemberRole(m.userId, e.target.value as Role))}
                 >
-                  <MenuItem value="player">Jogador</MenuItem>
+                  <MenuItem value="player">{tr('Jogador', 'Player')}</MenuItem>
                   <MenuItem value="gm">GM</MenuItem>
                 </Select>
-                <Tooltip title="Tirar da mesa">
+                <Tooltip title={tr("Tirar da mesa", 'Remove from the table')}>
                   <IconButton
-                    aria-label={`Tirar ${label(m)} da mesa`}
-                    onClick={() => { if (window.confirm(`Tirar ${label(m)} da mesa?`)) void act(() => removeMember(m.userId)); }}
+                    aria-label={tr(`Tirar ${label(m)} da mesa`, `Remove ${label(m)} from the table`)}
+                    onClick={() => { if (window.confirm(tr(`Tirar ${label(m)} da mesa?`, `Remove ${label(m)} from the table?`))) void act(() => removeMember(m.userId)); }}
                   >
                     <DeleteIcon />
                   </IconButton>
@@ -180,18 +178,15 @@ export const MembersPage = () => {
         )}
         {legacyDevices > 0 && (
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
-            Mais {legacyDevices} aparelho{legacyDevices === 1 ? '' : 's'} do app de antes do login, sem conta. Não entram
-            em nada e somem quando o login passar a ser obrigatório.
-          </Typography>
+            {tr('Mais ', 'Plus ')}{legacyDevices} aparelho{legacyDevices === 1 ? '' : 's'} {tr(' do app de antes do login, sem conta. Não entram em nada e somem quando o login passar a ser obrigatório.', ' from the app before sign-in, without an account. They don\'t get into anything and disappear once sign-in becomes mandatory.')}</Typography>
         )}
       </Section>
 
-      <Section title="Dono de cada ficha">
+      <Section title={tr("Dono de cada ficha", 'Owner of each sheet')}>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-          Só o dono e o GM alteram uma ficha. As publicadas antes do login estão sem dono até você atribuí-las.
-        </Typography>
+          {tr('Só o dono e o GM alteram uma ficha. As publicadas antes do login estão sem dono até você atribuí-las.', 'Only the owner and the GM change a sheet. Those published before sign-in have no owner until you assign them.')}</Typography>
         {!data ? null : data.sheets.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">Nenhuma ficha publicada.</Typography>
+          <Typography variant="body2" color="text.secondary">{tr('Nenhuma ficha publicada.', 'No published sheet.')}</Typography>
         ) : (
           <Stack spacing={1}>
             {data.sheets.map((sheet) => (
@@ -202,7 +197,7 @@ export const MembersPage = () => {
                   value={sheet.ownerId ?? ''}
                   onChange={(e) => void act(() => assignSheet(sheet.slug, e.target.value || null))}
                 >
-                  <MenuItem value=""><em>Sem dono (só o GM)</em></MenuItem>
+                  <MenuItem value=""><em>{tr('Sem dono (só o GM)', 'No owner (GM only)')}</em></MenuItem>
                   {accounts.map((m) => (
                     <MenuItem key={m.userId} value={m.userId}>
                       {label(m)}

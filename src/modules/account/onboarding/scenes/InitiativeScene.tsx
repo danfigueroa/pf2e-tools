@@ -3,6 +3,7 @@ import { HP_COLOR, TOKEN_NPC, TOKEN_PC, gold, ink, parchment, rule, status } fro
 import { pop, pulseAnimation } from '../../../../motion/motion';
 import { useSceneClock } from '../useSceneClock';
 import { Initials } from '../SceneFrame';
+import { tr } from '../../../../i18n';
 
 const ROW = 40;
 const COMBATANTS = [
@@ -27,7 +28,7 @@ export const InitiativeScene = () => {
   return (
     <Box sx={{ p: 2, color: ink.primary }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.25 }}>
-        <Box sx={{ fontFamily: '"Cinzel", Georgia, serif', fontWeight: 700, fontSize: '0.9rem' }}>Emboscada na ponte</Box>
+        <Box sx={{ fontFamily: '"Cinzel", Georgia, serif', fontWeight: 700, fontSize: '0.9rem' }}>{tr('Emboscada na ponte', 'Ambush at the bridge')}</Box>
         <Box
           key={round}
           sx={{
@@ -41,7 +42,7 @@ export const InitiativeScene = () => {
             animation: `${pop} 380ms ease-out`,
           }}
         >
-          Rodada {round}
+          {tr('Rodada ', 'Round ')}{round}
         </Box>
       </Box>
 
@@ -103,7 +104,7 @@ export const InitiativeScene = () => {
                 {c.name}
               </Box>
               {gone ? (
-                <Box sx={{ fontSize: '0.68rem', fontWeight: 700, color: HP_COLOR, animation: `${pop} 380ms ease-out` }}>Derrotado</Box>
+                <Box sx={{ fontSize: '0.68rem', fontWeight: 700, color: HP_COLOR, animation: `${pop} 380ms ease-out` }}>{tr('Derrotado', 'Defeated')}</Box>
               ) : (
                 <Box sx={{ width: 64, height: 6, borderRadius: 3, backgroundColor: parchment.sunken, overflow: 'hidden', flex: '0 0 auto' }}>
                   <Box
@@ -123,7 +124,7 @@ export const InitiativeScene = () => {
       </Box>
 
       <Box key={step} sx={{ mt: 1, fontSize: '0.75rem', color: ink.secondary, animation: `${pop} 300ms ease-out` }}>
-        Vez de <Box component="span" sx={{ fontWeight: 700, color: ink.primary }}>{COMBATANTS[active].name}</Box>
+        {tr('Vez de ', 'Turn: ')}<Box component="span" sx={{ fontWeight: 700, color: ink.primary }}>{COMBATANTS[active].name}</Box>
       </Box>
     </Box>
   );

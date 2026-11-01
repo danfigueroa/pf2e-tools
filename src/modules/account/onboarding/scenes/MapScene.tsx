@@ -2,6 +2,7 @@ import { keyframes } from '@emotion/react';
 import { Box } from '@mui/material';
 import { DRAW_COLORS, HP_COLOR, MAGUS_COLOR, MAP_BACKDROP, TOKEN_NPC, TOKEN_PC, chrome, gold, mapChrome, status } from '../../../../theme';
 import { useSceneClock } from '../useSceneClock';
+import { tr } from '../../../../i18n';
 
 // Tudo em quadrados (1 unidade = 5 ft), como o mapa de verdade.
 const COLS = 12;
@@ -112,7 +113,7 @@ export const MapScene = () => {
             animation: `${fadeIn} 200ms ease-out`,
           }}
         >
-          {measuring ? 'Seraphine · 15 ft · 1 ação' : 'Explosão 10 ft · 2 criaturas'}
+          {measuring ? tr('Seraphine · 15 ft · 1 ação', 'Seraphine · 15 ft · 1 action') : tr('Explosão 10 ft · 2 criaturas', 'Burst 10 ft · 2 creatures')}
         </Box>
       )}
     </Box>

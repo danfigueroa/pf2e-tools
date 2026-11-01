@@ -4,6 +4,7 @@ import { Visibility as RevealIcon } from '@mui/icons-material';
 import { chrome, gold, green, ink, parchment, rule } from '../../../../theme';
 import { pulseAnimation } from '../../../../motion/motion';
 import { useSceneClock } from '../useSceneClock';
+import { tr } from '../../../../i18n';
 
 // As linhas "sendo escritas" são barras, não texto: a cena mostra o gesto, não um conteúdo.
 const LINES = [0.92, 0.7, 0.84, 0.55] as const;
@@ -22,7 +23,7 @@ export const JournalScene = () => {
   return (
     <Box sx={{ p: 2, color: ink.primary }}>
       <Box sx={{ display: 'flex', gap: 0.75, mb: 1.25, flexWrap: 'wrap' }} aria-hidden>
-        {['Preparação', 'Cenas', 'Encontros', 'Elenco'].map((t, i) => (
+        {[tr('Preparação', 'Prep'), tr('Cenas', 'Scenes'), tr('Encontros', 'Encounters'), tr('Elenco', 'Cast')].map((t, i) => (
           <Box
             key={t}
             sx={{
@@ -38,7 +39,7 @@ export const JournalScene = () => {
         ))}
       </Box>
 
-      <Box sx={{ fontFamily: '"Cinzel", Georgia, serif', fontWeight: 700, fontSize: '0.9rem', mb: 1 }}>Sessão 12 — A Torre Afogada</Box>
+      <Box sx={{ fontFamily: '"Cinzel", Georgia, serif', fontWeight: 700, fontSize: '0.9rem', mb: 1 }}>{tr('Sessão 12 — A Torre Afogada', 'Session 12 — The Drowned Tower')}</Box>
 
       <Box sx={{ display: 'grid', gap: 0.75, mb: 1.25 }}>
         {LINES.map((w, i) => (
@@ -66,8 +67,7 @@ export const JournalScene = () => {
                   transition: 'opacity 300ms ease-out 450ms',
                 }}
               >
-                Capitã Mirela
-              </Box>
+                {tr('Capitã Mirela', 'Captain Mirela')}</Box>
             )}
           </Box>
         ))}
@@ -87,9 +87,8 @@ export const JournalScene = () => {
         }}
       >
         <Box sx={{ flex: 1, minWidth: 0, fontSize: '0.72rem', color: ink.secondary }}>
-          <Box sx={{ fontWeight: 700, color: ink.primary }}>Para os jogadores</Box>
-          A carta encharcada na mesa do capitão…
-        </Box>
+          <Box sx={{ fontWeight: 700, color: ink.primary }}>{tr('Para os jogadores', 'For the players')}</Box>
+          {tr('A carta encharcada na mesa do capitão…', 'The soaked letter on the captain\'s desk…')}</Box>
         <Box
           sx={{
             display: 'flex',
@@ -106,8 +105,7 @@ export const JournalScene = () => {
             animation: step === 2 ? pulseAnimation({ kind: 'turn', id: 1 }) : undefined,
           }}
         >
-          <RevealIcon sx={{ fontSize: 14 }} /> Mostrar à mesa
-        </Box>
+          <RevealIcon sx={{ fontSize: 14 }} /> {tr(' Mostrar à mesa', ' Show the table')}</Box>
       </Box>
 
       {step === 3 && (
@@ -126,8 +124,8 @@ export const JournalScene = () => {
             animation: `${rise} 420ms cubic-bezier(.2,.8,.2,1)`,
           }}
         >
-          <Box sx={{ fontSize: '0.65rem', letterSpacing: '0.08em', color: gold.bright, fontWeight: 700 }}>NA TELA DE TODOS</Box>
-          <Box sx={{ fontSize: '0.78rem', mt: 0.25 }}>A carta encharcada na mesa do capitão…</Box>
+          <Box sx={{ fontSize: '0.65rem', letterSpacing: '0.08em', color: gold.bright, fontWeight: 700 }}>{tr('NA TELA DE TODOS', 'ON EVERYONE\'S SCREEN')}</Box>
+          <Box sx={{ fontSize: '0.78rem', mt: 0.25 }}>{tr('A carta encharcada na mesa do capitão…', 'The soaked letter on the captain\'s desk…')}</Box>
           <Box sx={{ mt: 0.75, height: 1, backgroundColor: rule, opacity: 0.3 }} />
         </Box>
       )}

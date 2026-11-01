@@ -3,6 +3,7 @@ import { Alert, Box, Button, List, ListItemButton, ListItemText, TextField, Typo
 import { acceptInvite, signOut, type Membership } from '../../services/auth';
 import { currentMesa, MESAS, switchMesa } from '../../services/mesa';
 import { AuthShell } from './AuthShell';
+import { tr } from '../../i18n';
 
 interface Props {
   username: string | null;
@@ -36,17 +37,16 @@ export const JoinPage = ({ username, mesas, notice }: Props) => {
   const others = mesas.filter((m) => m.id !== currentMesa.id && MESAS.some((x) => x.id === m.id));
 
   return (
-    <AuthShell title={`Você ainda não está na mesa ${currentMesa.nome}`}>
+    <AuthShell title={tr(`Você ainda não está na mesa ${currentMesa.nome}`, `You are not at the table ${currentMesa.nome} yet`)}>
       <Box
         component="form"
         onSubmit={(e) => { e.preventDefault(); if (code.trim().length >= 8 && !busy) void join(); }}
         sx={{ display: 'grid', gap: 2 }}
       >
         <Typography variant="body2" color="text.secondary">
-          Peça um convite ao GM da mesa. Se ele mandou um link, é só abri-lo; se mandou um código, digite abaixo.
-        </Typography>
+          {tr('Peça um convite ao GM da mesa. Se ele mandou um link, é só abri-lo; se mandou um código, digite abaixo.', 'Ask the table\'s GM for an invite. If they sent a link, just open it; if they sent a code, type it below.')}</Typography>
         <TextField
-          label="Código do convite"
+          label={tr("Código do convite", 'Invite code')}
           autoFocus
           value={code}
           onChange={(e) => setCode(e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 32))}
@@ -54,17 +54,17 @@ export const JoinPage = ({ username, mesas, notice }: Props) => {
         />
         {error && <Alert severity="error">{error}</Alert>}
         <Button type="submit" variant="contained" disabled={code.trim().length < 8 || busy}>
-          {busy ? 'Entrando…' : 'Entrar na mesa'}
+          {busy ? 'Entrando…' : tr('Entrar na mesa', 'Join the table')}
         </Button>
       </Box>
 
       {others.length > 0 && (
         <Box sx={{ mt: 3 }}>
-          <Typography variant="subtitle2" sx={{ mb: 0.5 }}>Suas outras mesas</Typography>
+          <Typography variant="subtitle2" sx={{ mb: 0.5 }}>{tr('Suas outras mesas', 'Your other tables')}</Typography>
           <List dense disablePadding>
             {others.map((m) => (
               <ListItemButton key={m.id} onClick={() => switchMesa(m.id)}>
-                <ListItemText primary={m.name} secondary={m.role === 'gm' ? 'GM' : 'Jogador'} />
+                <ListItemText primary={m.name} secondary={m.role === 'gm' ? 'GM' : tr('Jogador', 'Player')} />
               </ListItemButton>
             ))}
           </List>
@@ -73,7 +73,7 @@ export const JoinPage = ({ username, mesas, notice }: Props) => {
 
       <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
         <Typography variant="caption" color="text.secondary" sx={{ minWidth: 0 }} noWrap>{username}</Typography>
-        <Button size="small" onClick={() => void signOut()}>Sair</Button>
+        <Button size="small" onClick={() => void signOut()}>{tr('Sair', 'Sign out')}</Button>
       </Box>
     </AuthShell>
   );

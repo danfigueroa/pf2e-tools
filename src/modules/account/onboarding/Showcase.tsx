@@ -6,6 +6,7 @@ import { useReducedMotion } from '../../../motion/motion';
 import { SCENES } from './scenes';
 import { SceneFrame } from './SceneFrame';
 import { ScenePlaying } from './useSceneClock';
+import { tr } from '../../../i18n';
 
 /** Quanto cada cena fica na tela antes da próxima. */
 const SCENE_MS = 7000;
@@ -117,7 +118,7 @@ export const Showcase = () => {
       ref={root}
       role="region"
       aria-roledescription="carrossel"
-      aria-label="O que dá para fazer no Covil de Dados"
+      aria-label={tr("O que dá para fazer no Covil de Dados", 'What you can do in the Covil de Dados')}
       onKeyDown={onKeyDown}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}

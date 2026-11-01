@@ -6,6 +6,7 @@ import { USERNAME_RE, cleanUsername, pendingInvite, register, signIn } from '../
 import { SHAKE, useReducedMotion } from '../../motion/motion';
 import { displayFont, gold, green, ink, parchment, rule, status } from '../../theme';
 import { LoginLayout } from './LoginLayout';
+import { tr } from '../../i18n';
 
 type Mode = 'login' | 'register';
 
@@ -31,7 +32,7 @@ const PasswordField = ({ helperText, error, inputRef, ...props }: TextFieldProps
       onKeyDown={readCaps}
       onKeyUp={readCaps}
       onBlur={() => setCaps(false)}
-      helperText={caps ? 'O Caps Lock está ligado' : helperText}
+      helperText={caps ? tr('O Caps Lock está ligado', 'Caps Lock is on') : helperText}
       FormHelperTextProps={caps ? { sx: { color: status.warning, fontWeight: 600 } } : undefined}
       InputProps={{
         endAdornment: (
@@ -39,7 +40,7 @@ const PasswordField = ({ helperText, error, inputRef, ...props }: TextFieldProps
             <IconButton
               edge="end"
               size="small"
-              aria-label={shown ? 'Esconder a senha' : 'Mostrar a senha'}
+              aria-label={shown ? tr('Esconder a senha', 'Hide the password') : tr('Mostrar a senha', 'Show the password')}
               onClick={() => setShown((v) => !v)}
               onMouseDown={(e) => e.preventDefault()}
             >
@@ -56,7 +57,7 @@ const PasswordField = ({ helperText, error, inputRef, ...props }: TextFieldProps
 const ModeSwitch = ({ mode, onChange }: { mode: Mode; onChange: (m: Mode) => void }) => (
   <Box
     role="tablist"
-    aria-label="Entrar ou criar conta"
+    aria-label={tr("Entrar ou criar conta", 'Sign in or create an account')}
     sx={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr 1fr', p: 0.5, borderRadius: 2, backgroundColor: parchment.sunken, mb: 3 }}
   >
     <Box
@@ -92,7 +93,7 @@ const ModeSwitch = ({ mode, onChange }: { mode: Mode; onChange: (m: Mode) => voi
           '&.Mui-focusVisible': { outline: `2px solid ${gold.main}`, outlineOffset: 1 },
         }}
       >
-        {m === 'login' ? 'Entrar' : 'Criar conta'}
+        {m === 'login' ? tr('Entrar', 'Sign in') : tr('Criar conta', 'Create account')}
       </ButtonBase>
     ))}
   </Box>
@@ -168,12 +169,12 @@ export const LoginPage = () => {
         }}
       >
         <Typography component="h2" sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: { xs: '1.3rem', sm: '1.5rem' }, lineHeight: 1.25, color: ink.primary }}>
-          {mode === 'login' ? 'Bem-vindo de volta' : 'Entre para o Covil'}
+          {mode === 'login' ? tr('Bem-vindo de volta', 'Welcome back') : tr('Entre para o Covil', 'Enter the Covil')}
         </Typography>
         <Typography variant="body2" sx={{ mt: 0.5, mb: 2.5, color: ink.secondary }}>
           {mode === 'login'
-            ? 'Entre com o usuário que você criou no convite da mesa.'
-            : 'Use o convite que o GM mandou. Você escolhe um usuário e uma senha — não precisa de e-mail.'}
+            ? tr('Entre com o usuário que você criou no convite da mesa.', 'Sign in with the username you created from the table\'s invite.')
+            : tr('Use o convite que o GM mandou. Você escolhe um usuário e uma senha — não precisa de e-mail.', 'Use the invite the GM sent you. You choose a username and a password — no e-mail needed.')}
         </Typography>
 
         <ModeSwitch mode={mode} onChange={switchTo} />
@@ -181,8 +182,8 @@ export const LoginPage = () => {
         {invite && (
           <Alert severity="info" sx={{ mb: 2, borderLeft: `3px solid ${gold.main}` }}>
             {mode === 'login'
-              ? 'Você tem um convite. Entre na sua conta e ele vale sozinho — ou crie uma conta nova.'
-              : 'Convite da mesa já preenchido. Falta só escolher seu usuário e senha.'}
+              ? tr('Você tem um convite. Entre na sua conta e ele vale sozinho — ou crie uma conta nova.', 'You have an invite. Sign in to your account and it applies by itself — or create a new account.')
+              : tr('Convite da mesa já preenchido. Falta só escolher seu usuário e senha.', 'Table invite already filled in. All that\'s left is choosing your username and password.')}
           </Alert>
         )}
 
@@ -196,21 +197,21 @@ export const LoginPage = () => {
           {mode === 'register' && (
             <>
               <TextField
-                label="Código do convite"
+                label={tr("Código do convite", 'Invite code')}
                 value={code}
                 onChange={(e) => setCode(e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 32))}
                 inputProps={{ style: { letterSpacing: '0.15em', fontFamily: 'monospace' } }}
               />
               <TextField
-                label="Seu nome na mesa"
-                helperText="Opcional — é como os outros veem você"
+                label={tr("Seu nome na mesa", 'Your name at the table')}
+                helperText={tr("Opcional — é como os outros veem você", 'Optional — it\'s how the others see you')}
                 value={name}
                 onChange={(e) => setName(e.target.value.slice(0, 40))}
               />
             </>
           )}
           <TextField
-            label="Usuário"
+            label={tr("Usuário", 'Username')}
             autoComplete="username"
             autoCapitalize="none"
             autoCorrect="off"
@@ -219,25 +220,25 @@ export const LoginPage = () => {
             value={username}
             onChange={(e) => setUsername(mode === 'register' ? e.target.value.slice(0, 30) : e.target.value)}
             error={mode === 'register' && username.length > 0 && !validUser}
-            helperText={mode === 'register' ? 'De 3 a 30: letras minúsculas, números, ponto, hífen ou sublinhado' : undefined}
+            helperText={mode === 'register' ? tr('De 3 a 30: letras minúsculas, números, ponto, hífen ou sublinhado', '3 to 30: lowercase letters, numbers, dot, hyphen or underscore') : undefined}
           />
           <PasswordField
-            label="Senha"
+            label={tr("Senha", 'Password')}
             inputRef={passwordRef}
             autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             error={mode === 'register' && password.length > 0 && password.length < 6}
-            helperText={mode === 'register' ? 'Pelo menos 6 caracteres' : undefined}
+            helperText={mode === 'register' ? tr('Pelo menos 6 caracteres', 'At least 6 characters') : undefined}
           />
           {mode === 'register' && (
             <PasswordField
-              label="Repita a senha"
+              label={tr("Repita a senha", 'Repeat the password')}
               autoComplete="new-password"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               error={mismatch}
-              helperText={mismatch ? 'As senhas não são iguais' : ' '}
+              helperText={mismatch ? tr('As senhas não são iguais', 'The passwords don\'t match') : ' '}
             />
           )}
 
@@ -260,20 +261,20 @@ export const LoginPage = () => {
               transition: 'background-color 250ms',
             }}
           >
-            {done ? 'Bem-vindo!' : busy
-              ? (mode === 'login' ? 'Entrando…' : 'Criando a conta…')
-              : (mode === 'login' ? 'Entrar' : 'Criar conta e entrar')}
+            {done ? tr('Bem-vindo!', 'Welcome!') : busy
+              ? (mode === 'login' ? 'Entrando…' : tr('Criando a conta…', 'Creating the account…'))
+              : (mode === 'login' ? tr('Entrar', 'Sign in') : tr('Criar conta e entrar', 'Create account and sign in'))}
           </Button>
         </Box>
 
         <Box sx={{ mt: 3, pt: 2, borderTop: `1px solid ${rule}`, display: 'grid', gap: 0.5 }}>
           <Typography variant="caption" sx={{ color: ink.secondary }}>
             {mode === 'login'
-              ? 'Esqueceu a senha? Peça ao GM da mesa para gerar uma provisória.'
-              : 'Sem convite? Peça um link ao GM da sua mesa.'}
+              ? tr('Esqueceu a senha? Peça ao GM da mesa para gerar uma provisória.', 'Forgot your password? Ask the table\'s GM to generate a temporary one.')
+              : tr('Sem convite? Peça um link ao GM da sua mesa.', 'No invite? Ask your table\'s GM for a link.')}
           </Typography>
           <Typography variant="caption" sx={{ color: green.light }}>
-            {mode === 'login' ? 'Primeira vez aqui? Toque em "Criar conta" com o convite.' : 'Já tem conta? Toque em "Entrar".'}
+            {mode === 'login' ? tr('Primeira vez aqui? Toque em "Criar conta" com o convite.', 'First time here? Tap "Create account" with the invite.') : tr('Já tem conta? Toque em "Entrar".', 'Already have an account? Tap "Sign in".')}
           </Typography>
         </Box>
       </Box>

@@ -4,6 +4,7 @@ import { SPEND, floatUp, pop, pulseAnimation, useReducedMotion } from '../../../
 import { useAnimatedNumber } from '../../../../motion/useAnimatedNumber';
 import { useSceneClock } from '../useSceneClock';
 import { Initials } from '../SceneFrame';
+import { tr } from '../../../../i18n';
 
 // Parada → toma 9 de dano → fica Amedrontado → gasta um slot → é curada.
 const STEPS = [1100, 1500, 1400, 1400, 1700] as const;
@@ -19,7 +20,7 @@ export const SheetScene = () => {
   return (
     <Box sx={{ p: { xs: 1.5, sm: 2 }, display: 'grid', gap: { xs: 1.25, sm: 1.5 }, color: ink.primary }}>
       <Box sx={{ display: 'flex', gap: 0.75 }} aria-hidden>
-        {['Visão Geral', 'Combate', 'Magias'].map((t, i) => (
+        {[tr('Visão Geral', 'Overview'), tr('Combate', 'Combat'), tr('Magias', 'Spells')].map((t, i) => (
           <Box
             key={t}
             sx={{
@@ -41,13 +42,13 @@ export const SheetScene = () => {
         <Initials text="SE" color={green.light} size={36} />
         <Box sx={{ minWidth: 0 }}>
           <Box sx={{ fontWeight: 700, fontSize: '0.95rem', fontFamily: '"Cinzel", Georgia, serif' }}>Seraphine</Box>
-          <Box sx={{ fontSize: '0.72rem', color: ink.secondary }}>Clériga 7 · Humana</Box>
+          <Box sx={{ fontSize: '0.72rem', color: ink.secondary }}>{tr('Clériga 7 · Humana', 'Cleric 7 · Human')}</Box>
         </Box>
       </Box>
 
       <Box sx={{ position: 'relative', p: 1.25, borderRadius: 1.5, backgroundColor: parchment.page, animation: pulse }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mb: 0.75 }}>
-          <Box sx={{ fontSize: '0.7rem', letterSpacing: '0.08em', color: ink.secondary, fontWeight: 700 }}>PONTOS DE VIDA</Box>
+          <Box sx={{ fontSize: '0.7rem', letterSpacing: '0.08em', color: ink.secondary, fontWeight: 700 }}>{tr('PONTOS DE VIDA', 'HIT POINTS')}</Box>
           <Box sx={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
             <Box component="span" sx={{ fontSize: '1.15rem', color: hurt ? HP_COLOR : ink.primary, transition: 'color 300ms' }}>{hp}</Box>
             <Box component="span" sx={{ fontSize: '0.8rem', color: ink.secondary }}> / {MAX}</Box>
@@ -83,7 +84,7 @@ export const SheetScene = () => {
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minHeight: 26, flexWrap: 'wrap' }}>
-        <Box sx={{ fontSize: '0.7rem', color: ink.secondary, fontWeight: 700, letterSpacing: '0.08em' }}>CONDIÇÕES</Box>
+        <Box sx={{ fontSize: '0.7rem', color: ink.secondary, fontWeight: 700, letterSpacing: '0.08em' }}>{tr('CONDIÇÕES', 'CONDITIONS')}</Box>
         {step >= 2 ? (
           <Box
             sx={{
@@ -97,15 +98,14 @@ export const SheetScene = () => {
               animation: `${pop} 380ms ease-out`,
             }}
           >
-            Amedrontado 1
-          </Box>
+            {tr('Amedrontado 1', 'Frightened 1')}</Box>
         ) : (
-          <Box sx={{ fontSize: '0.75rem', color: ink.disabled }}>nenhuma</Box>
+          <Box sx={{ fontSize: '0.75rem', color: ink.disabled }}>{tr('nenhuma', 'none')}</Box>
         )}
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Box sx={{ fontSize: '0.7rem', color: ink.secondary, fontWeight: 700, letterSpacing: '0.08em' }}>MAGIAS DE 3º</Box>
+        <Box sx={{ fontSize: '0.7rem', color: ink.secondary, fontWeight: 700, letterSpacing: '0.08em' }}>{tr('MAGIAS DE 3º', 'RANK 3 SPELLS')}</Box>
         {[0, 1, 2].map((i) => {
           const spent = i === 0 && step >= 3;
           return (
@@ -123,7 +123,7 @@ export const SheetScene = () => {
             />
           );
         })}
-        <Box sx={{ fontSize: '0.72rem', color: ink.secondary, ml: 0.5 }}>{step >= 3 ? 'Heal conjurada' : ''}</Box>
+        <Box sx={{ fontSize: '0.72rem', color: ink.secondary, ml: 0.5 }}>{step >= 3 ? tr('Heal conjurada', 'Heal cast') : ''}</Box>
       </Box>
     </Box>
   );

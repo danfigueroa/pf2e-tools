@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from '@mui/material';
 import { changePassword } from '../../services/auth';
+import { tr } from '../../i18n';
 
 /** Trocar a própria senha (a provisória que o GM gerou, por exemplo). */
 export const ChangePasswordDialog = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
@@ -32,10 +33,10 @@ export const ChangePasswordDialog = ({ open, onClose }: { open: boolean; onClose
 
   return (
     <Dialog open={open} onClose={close} fullWidth maxWidth="xs">
-      <DialogTitle>Trocar senha</DialogTitle>
+      <DialogTitle>{tr('Trocar senha', 'Change password')}</DialogTitle>
       <DialogContent>
         {done ? (
-          <Alert severity="success">Senha trocada. Use a nova na próxima vez que entrar.</Alert>
+          <Alert severity="success">{tr('Senha trocada. Use a nova na próxima vez que entrar.', 'Password changed. Use the new one next time you sign in.')}</Alert>
         ) : (
           <Stack
             component="form"
@@ -45,22 +46,22 @@ export const ChangePasswordDialog = ({ open, onClose }: { open: boolean; onClose
             onSubmit={(e) => { e.preventDefault(); if (ready) void save(); }}
           >
             <TextField
-              label="Senha nova" type="password" autoComplete="new-password" autoFocus
+              label={tr("Senha nova", 'New password')} type="password" autoComplete="new-password" autoFocus
               value={password} onChange={(e) => setPassword(e.target.value)}
-              error={password.length > 0 && password.length < 6} helperText="Pelo menos 6 caracteres"
+              error={password.length > 0 && password.length < 6} helperText={tr("Pelo menos 6 caracteres", 'At least 6 characters')}
             />
             <TextField
-              label="Repita a senha nova" type="password" autoComplete="new-password"
+              label={tr("Repita a senha nova", 'Repeat the new password')} type="password" autoComplete="new-password"
               value={confirm} onChange={(e) => setConfirm(e.target.value)}
-              error={mismatch} helperText={mismatch ? 'As senhas não são iguais' : ' '}
+              error={mismatch} helperText={mismatch ? tr('As senhas não são iguais', 'The passwords don\'t match') : ' '}
             />
             {error && <Alert severity="error">{error}</Alert>}
           </Stack>
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={close}>{done ? 'Fechar' : 'Cancelar'}</Button>
-        {!done && <Button type="submit" form="change-password" variant="contained" disabled={!ready}>Trocar</Button>}
+        <Button onClick={close}>{done ? tr('Fechar', 'Close') : tr('Cancelar', 'Cancel')}</Button>
+        {!done && <Button type="submit" form="change-password" variant="contained" disabled={!ready}>{tr('Trocar', 'Change')}</Button>}
       </DialogActions>
     </Dialog>
   );

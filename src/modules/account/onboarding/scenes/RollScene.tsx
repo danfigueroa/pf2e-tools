@@ -4,12 +4,13 @@ import { DiceTray } from '../../../../motion/DiceTray';
 import { MAGUS_COLOR, RAGE_COLOR, chrome, gold, green } from '../../../../theme';
 import { useSceneClock } from '../useSceneClock';
 import { Initials } from '../SceneFrame';
+import { tr } from '../../../../i18n';
 
 // Três rolagens de gente diferente, uma depois da outra — os números já vêm "sorteados".
 const ROLLS = [
-  { who: 'Seraphine', initials: 'SE', color: green.light, label: 'Vontade', d20: 20, mod: 15 },
-  { who: 'Bruma', initials: 'BR', color: MAGUS_COLOR, label: 'Golpe · Rapieira', d20: 14, mod: 17 },
-  { who: 'Korvak', initials: 'KO', color: RAGE_COLOR, label: 'Atletismo', d20: 9, mod: 16 },
+  { who: 'Seraphine', initials: 'SE', color: green.light, label: tr('Vontade', 'Will'), d20: 20, mod: 15 },
+  { who: 'Bruma', initials: 'BR', color: MAGUS_COLOR, label: tr('Golpe · Rapieira', 'Strike · Rapier'), d20: 14, mod: 17 },
+  { who: 'Korvak', initials: 'KO', color: RAGE_COLOR, label: tr('Atletismo', 'Athletics'), d20: 9, mod: 16 },
 ] as const;
 const STEPS = [3400, 3400, 3400] as const;
 
@@ -67,8 +68,7 @@ export const RollScene = () => {
         }}
       >
         <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: chrome.online }} />
-        Na tela dos <Box component="span" sx={{ color: gold.bright, fontWeight: 700 }}>5</Box> da mesa
-      </Box>
+        {tr('Na tela dos ', 'On the screens of the ')}<Box component="span" sx={{ color: gold.bright, fontWeight: 700 }}>5</Box> {tr(' da mesa', ' at the table')}</Box>
     </Box>
   );
 };
