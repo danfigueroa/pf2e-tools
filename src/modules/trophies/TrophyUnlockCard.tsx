@@ -81,14 +81,12 @@ export default function TrophyUnlockCard({ toast, leaving, onOpen, onClose }: { 
             {toast.who ? `${toast.who.toUpperCase()} DESBLOQUEOU` : platinum ? 'PLATINA CONQUISTADA' : 'TROFÉU DESBLOQUEADO'} · {tier.label.toUpperCase()}
           </Typography>
           <Typography noWrap sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.0625rem' }}>{toast.title}</Typography>
-          {!toast.who && (
-            <Typography sx={{
-              fontSize: '0.8125rem', fontWeight: 700, color: chrome.textSoft, fontVariantNumeric: 'tabular-nums',
-              animation: motion(`${pointsUp} 2600ms ease-out 700ms both`),
-            }}>
-              +{shown} pts
-            </Typography>
-          )}
+          <Typography sx={{
+            fontSize: '0.8125rem', fontWeight: 700, color: chrome.textSoft, fontVariantNumeric: 'tabular-nums',
+            animation: motion(`${pointsUp} 2600ms ease-out 700ms both`),
+          }}>
+            +{shown} pts
+          </Typography>
         </Box>
       </ButtonBase>
       <IconButton size="small" aria-label="Fechar" onClick={onClose} sx={{ color: chrome.textMuted, alignSelf: 'flex-start' }}>

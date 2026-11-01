@@ -608,7 +608,7 @@ mesas; o troféu guarda em qual foi ganho), **a mesa vê tudo + ranking**, **tod
 - **Avaliar** (`evaluate`) roda depois de cada feito e no `GET ?trophies=me`; o que é novo vai para `account_trophies`
   e vira `mesa_events` `trophy-unlocked` (`data: { user, name, trophy, title, tier }`) na mesa onde aconteceu. O sino
   mostra o meu sempre e o dos colegas só se for ouro ou platina; o `TrophyToastLayer` (no `MainLayout`) mostra o cartão
-  "Troféu desbloqueado" a **toda a mesa**, em fila, por 6 s (aos colegas como "FULANO DESBLOQUEOU", sem os pontos). `onTableEvent` passou a entregar o `data` do evento.
+  "Troféu desbloqueado" a **toda a mesa**, em fila, por 6 s (aos colegas como "FULANO DESBLOQUEOU", com os pontos). `onTableEvent` passou a entregar o `data` do evento.
 - **Cores dos graus** em `TROPHY_TIERS` (`theme/palette.ts`): `medal` pinta a taça, `ink` é o texto (≥4,5:1) e `tint` o
   fundo do cartão desbloqueado. A taça é SVG (`TrophyMedal`); o grau vai também por extenso.
 - **Onde aparecem**: a página `/trofeus` (item "Troféus" da navegação e da busca), a vitrine da Início
