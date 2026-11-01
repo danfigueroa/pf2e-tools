@@ -23,7 +23,8 @@ export async function warmSheetLookups(json) {
   // As regras dos traços das armas também ficam no banco: tocar no chip na ficha lê dali, sem esperar a AON.
   const gear = resolveGear([...weapons, ...worn].slice(0, MAX_GEAR_NAMES)).then(async (found) => {
     const traits = Object.values(found).flatMap((g) => (g?.kind === 'weapon' ? g.traits : []))
-    await resolveTraitRules([...traits, ...UNARMED_TRAITS])
+    // Os dois idiomas: quem abrir em inglês também lê do banco.
+    await Promise.allSettled([resolveTraitRules([...traits, ...UNARMED_TRAITS]), resolveTraitRules([...traits, ...UNARMED_TRAITS], 'en')])
   })
   await Promise.allSettled([
     gear,

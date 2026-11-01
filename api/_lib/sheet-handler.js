@@ -8,8 +8,9 @@
 //   POST { action: 'guide', char, baseGuide? } → gera o guia da versão atual
 //   POST { action: 'restore', char, version? } → volta a uma versão do histórico (a anterior sem `version`)
 //   GET  ?sheetVersions=<slug>            → o histórico da ficha (sem o JSON de cada versão)
-//   GET  ?sheetDescriptions=<slug>        → magias, talentos, habilidades e itens já traduzidos
-//   POST { action: 'sheet-descriptions', char, names: { spell, feat, special, item }, version }
+//   GET  ?sheetDescriptions=<slug>[&lang=en] → magias, talentos, habilidades e itens já traduzidos
+//                                         (ou, em inglês, como a AON escreve)
+//   POST { action: 'sheet-descriptions', char, names: { spell, feat, special, item }, version, lang? }
 //                                         → resolve o que falta (ver sheet-descriptions.js)
 //
 // Tudo dentro da mesa do pedido (`mesa`, ver mesas.js). `ctx.userId` é quem pediu,
@@ -69,7 +70,7 @@ export async function handleSheetRequest(mesa, method, query, body, ctx = {}) {
     if (query.sheetDescriptions) {
       const slug = String(query.sheetDescriptions)
       if (!isValidSlug(slug)) return fail(400, 'Parâmetro "sheetDescriptions" inválido')
-      return ok({ bundle: await readSheetDescriptions(mesa, slug) })
+      return ok({ bundle: await readSheetDescriptions(mesa, slug, query.lang === 'en' ? 'en' : 'pt') })
     }
     const slug = String(query.sheet)
     if (!isValidSlug(slug)) return fail(400, 'Parâmetro "sheet" inválido')
@@ -128,21 +129,31 @@ export async function handleSheetRequest(mesa, method, query, body, ctx = {}) {
     // cliente mostrava (o curado à mão em `combatGuides.ts`, que só o
     // frontend conhece).
     const clientBase = typeof body.baseGuide === 'string' ? body.baseGuide.slice(0, MAX_GUIDE_BYTES) : null
-    const markdown = await generateGuide(current.json, current.previousGuide ?? clientBase)
-    if (!markdown) return fail(502, 'A IA não devolveu um guia válido — tente de novo')
-    const sheet = await saveGuide(mesa, slug, current.publishedAt, markdown)
+    const clientBaseEn = typeof body.baseGuideEn === 'string' ? body.baseGuideEn.slice(0, MAX_GUIDE_BYTES) : null
+    // Os dois idiomas juntos (a publicação), cada um GERADO da ficha — o inglês não é
+    // tradução do português. `lang: 'en'` pede só o inglês (ficha publicada antes dele).
+    const want = body.lang === 'en' ? ['en'] : body.lang === 'pt' ? ['pt'] : ['pt', 'en']
+    const [pt, en] = await Promise.all([
+      want.includes('pt') ? generateGuide(current.json, current.previousGuide ?? clientBase, 'pt').catch(() => null) : null,
+      want.includes('en') ? generateGuide(current.json, current.previousGuideEn ?? clientBaseEn, 'en').catch(() => null) : null,
+    ])
+    if (!pt && !en) return fail(502, 'A IA não devolveu um guia válido — tente de novo')
+    const sheet = await saveGuide(mesa, slug, current.publishedAt, pt, { en, current: current.guide })
     if (!sheet) return fail(409, 'A ficha mudou enquanto o guia era gerado')
     return ok({ sheet })
   }
 
   if (action === 'sheet-descriptions') {
-    if (!hasTranslationKey()) return fail(503, 'Sem chave de IA configurada no servidor')
+    // O idioma do PACOTE vai no corpo: a publicação pede os dois, qualquer que seja o de quem publica.
+    const lang = body.lang === 'en' ? 'en' : body.lang === 'pt' ? 'pt' : (ctx.lang ?? 'pt')
+    // Inglês é o texto da AON: não precisa de chave de IA.
+    if (lang === 'pt' && !hasTranslationKey()) return fail(503, 'Sem chave de IA configurada no servidor')
     const names = cleanDescriptionNames(body.names)
     if (!names) return fail(400, 'Campo "names" inválido')
     if (!isValidDescriptionVersion(body.version)) return fail(400, 'Campo "version" inválido')
     // Só de ficha publicada: os presets que ninguém publicou têm o pacote estático.
     if (!(await readSheet(mesa, slug))) return fail(404, 'Ficha não publicada')
-    return ok(await buildSheetDescriptions(mesa, slug, names, body.version))
+    return ok(await buildSheetDescriptions(mesa, slug, names, body.version, lang))
   }
 
   if (action === 'restore') {

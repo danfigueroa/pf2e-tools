@@ -9,7 +9,7 @@
 // novo recebe tudo num GET só — toda aba abre pronta, todo toque é instantâneo.
 //
 // No Postgres (ver a migration `traducoes_e_descricoes`):
-//   descriptions            (version, kind, name) → payload   GLOBAL: a Heal do
+//   descriptions            (version, lang, kind, name) → payload   GLOBAL: a Heal do
 //                           Thalos serve ao Ghan Buri e à outra mesa
 //   description_misses      (kind, name) → quando a AON não achou   GLOBAL
 //   sheet_description_sets  (mesa, slug) → version + os nomes que a ficha descreve
@@ -38,6 +38,12 @@
 //   só é tentado de novo depois de `MISS_RETRY_MS`: sem isso, cada abertura da
 //   ficha pediria o mesmo nome inexistente à AON (e ao LLM, que tenta
 //   descrevê-lo). Falha de TRADUÇÃO não conta como miss — é passageira.
+// - DOIS IDIOMAS (`lang`, migration `descricoes_em_ingles`): o pacote em inglês é o
+//   texto da AON sem tradução — sem LLM nem chave de IA, só a busca. A lista de nomes e
+//   os misses são os mesmos para os dois; a trava e as descrições, um por idioma. O
+//   inglês só LÊ os misses (quem os grava é o português): uma entrada que a AON acha com
+//   a prosa vazia é miss em inglês, mas não em português (o LLM completa), e o miss
+//   inglês seguraria o português por 24 h.
 
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -107,8 +113,11 @@ const dbStore = (db) => {
     return data
   }
   return {
-    readBundle: async (mesa, slug) =>
-      check(await db.rpc('sheet_descriptions', { p_mesa: mesa, p_slug: slug })),
+    // Português pela função de 2 argumentos, a de sempre; inglês pela de 3.
+    readBundle: async (mesa, slug, lang) =>
+      check(await (lang === 'en'
+        ? db.rpc('sheet_descriptions', { p_mesa: mesa, p_slug: slug, p_lang: lang })
+        : db.rpc('sheet_descriptions', { p_mesa: mesa, p_slug: slug }))),
     readSet: async (mesa, slug) =>
       check(await db.from('sheet_description_sets').select('version, names')
         .eq('mesa', mesa).eq('slug', slug).maybeSingle()),
@@ -117,15 +126,15 @@ const dbStore = (db) => {
         .upsert({ mesa, slug, version, names, updated_at: new Date().toISOString() }))
     },
     /** Quais destes nomes já têm descrição (só o nome: o payload não precisa sair do banco). */
-    knownNames: async (version, kind, names) => {
+    knownNames: async (version, kind, names, lang) => {
       if (names.length === 0) return new Set()
       const rows = check(await db.from('descriptions').select('name')
-        .eq('version', version).eq('kind', kind).in('name', names))
+        .eq('version', version).eq('lang', lang).eq('kind', kind).in('name', names))
       return new Set(rows.map((r) => r.name))
     },
-    writeEntries: async (version, kind, bag) => {
+    writeEntries: async (version, kind, bag, lang) => {
       const at = new Date().toISOString()
-      const rows = Object.entries(bag).map(([name, payload]) => ({ version, kind, name, payload, updated_at: at }))
+      const rows = Object.entries(bag).map(([name, payload]) => ({ version, lang, kind, name, payload, updated_at: at }))
       if (rows.length > 0) check(await db.from('descriptions').upsert(rows))
     },
     /** `Map<nome, ms>` de quando a AON não achou cada nome. */
@@ -152,10 +161,10 @@ const memoryStore = (() => {
   const entries = new Map()
   const misses = new Map()
   const locks = new Map()
-  const entryKey = (version, kind, name) => `${version}|${kind}|${name}`
+  const entryKey = (version, kind, name, lang) => `${version}|${lang}|${kind}|${name}`
   const missKey = (kind, name) => `${kind}|${name}`
   return {
-    readBundle: async (mesa, slug) => {
+    readBundle: async (mesa, slug, lang) => {
       const set = sets.get(`${mesa}|${slug}`)
       if (!set) return null
       const now = Date.now()
@@ -164,7 +173,7 @@ const memoryStore = (() => {
       )]))
       return {
         version: set.version,
-        entries: bag((kind, n) => entries.get(entryKey(set.version, kind, n))),
+        entries: bag((kind, n) => entries.get(entryKey(set.version, kind, n, lang))),
         misses: bag((kind, n) => {
           const at = misses.get(missKey(kind, n))
           return at != null && now - at < MISS_RETRY_MS ? at : null
@@ -173,9 +182,9 @@ const memoryStore = (() => {
     },
     readSet: async (mesa, slug) => sets.get(`${mesa}|${slug}`) ?? null,
     writeSet: async (mesa, slug, version, names) => { sets.set(`${mesa}|${slug}`, { version, names }) },
-    knownNames: async (version, kind, names) => new Set(names.filter((n) => entries.has(entryKey(version, kind, n)))),
-    writeEntries: async (version, kind, bag) => {
-      for (const [name, payload] of Object.entries(bag)) entries.set(entryKey(version, kind, name), payload)
+    knownNames: async (version, kind, names, lang) => new Set(names.filter((n) => entries.has(entryKey(version, kind, n, lang)))),
+    writeEntries: async (version, kind, bag, lang) => {
+      for (const [name, payload] of Object.entries(bag)) entries.set(entryKey(version, kind, name, lang), payload)
     },
     readMisses: async (kind, names) => new Map(names
       .filter((n) => misses.has(missKey(kind, n)))
@@ -197,10 +206,10 @@ const store = () => {
 }
 
 // A trava é da mesa, como a ficha publicada que a pediu; as descrições não.
-const lockKey = (mesa, slug) => `sheet-desc:${mesa}:${slug}`
+const lockKey = (mesa, slug, lang) => `sheet-desc:${mesa}:${slug}${lang === 'en' ? ':en' : ''}`
 
-export async function readSheetDescriptions(mesa, slug) {
-  const raw = await store().readBundle(mesa, slug)
+export async function readSheetDescriptions(mesa, slug, lang = 'pt') {
+  const raw = await store().readBundle(mesa, slug, lang)
   if (!raw || typeof raw !== 'object' || !raw.entries || typeof raw.entries !== 'object') return null
   return { version: raw.version, entries: bagsFrom(raw.entries), misses: bagsFrom(raw.misses) }
 }
@@ -228,14 +237,16 @@ function mergeNames(previous, names) {
  * `vercel.json`. Se o disco não tiver (configuração mudou), pede ao domínio de
  * produção. Sem nenhum dos dois, a montagem só fica mais lenta.
  */
-async function staticBundle(slug) {
+async function staticBundle(slug, lang) {
+  // O inglês mora numa pasta própria (`public/descriptions/en/`), gerada pelo mesmo script.
+  const dir = lang === 'en' ? ['descriptions', 'en'] : ['descriptions']
   try {
-    return JSON.parse(await readFile(join(process.cwd(), 'public', 'descriptions', `${slug}.json`), 'utf8'))
+    return JSON.parse(await readFile(join(process.cwd(), 'public', ...dir, `${slug}.json`), 'utf8'))
   } catch { /* segue para o CDN */ }
   const host = process.env.VERCEL_PROJECT_PRODUCTION_URL
   if (!host) return null
   try {
-    const r = await fetch(`https://${host}/descriptions/${encodeURIComponent(slug)}.json`)
+    const r = await fetch(`https://${host}/${dir.join('/')}/${encodeURIComponent(slug)}.json`)
     return r.ok ? await r.json() : null
   } catch {
     return null
@@ -251,15 +262,15 @@ const usable = (entry) =>
  * @returns `{ busy: true }` se outro aparelho já está gerando, senão
  *   `{ added: { tipo: { nome: payload } }, remaining }` — `remaining > 0` = chame de novo.
  */
-export async function buildSheetDescriptions(mesa, slug, names, version) {
+export async function buildSheetDescriptions(mesa, slug, names, version, lang = 'pt') {
   const db = store()
-  if (!(await db.lock(lockKey(mesa, slug), LOCK_SECONDS))) return { busy: true }
+  if (!(await db.lock(lockKey(mesa, slug, lang), LOCK_SECONDS))) return { busy: true }
   try {
     const started = Date.now()
     // Uma ida ao banco por consulta, todas juntas: em sequência eram ~10 viagens.
     const [set, ...lookups] = await Promise.all([
       db.readSet(mesa, slug),
-      ...DESCRIPTION_KINDS.flatMap((kind) => [db.knownNames(version, kind, names[kind]), db.readMisses(kind, names[kind])]),
+      ...DESCRIPTION_KINDS.flatMap((kind) => [db.knownNames(version, kind, names[kind], lang), db.readMisses(kind, names[kind])]),
     ])
     const sameVersion = set?.version === version
     const nextNames = mergeNames(sameVersion ? set.names : null, names)
@@ -277,7 +288,7 @@ export async function buildSheetDescriptions(mesa, slug, names, version) {
     const keep = async (kind, bag) => {
       const found = Object.keys(bag)
       if (found.length === 0) return
-      await db.writeEntries(version, kind, bag)
+      await db.writeEntries(version, kind, bag, lang)
       await db.clearMisses(kind, found.filter((n) => missedAt[kind].has(n)))
       for (const n of found) {
         known[kind].add(n)
@@ -288,7 +299,7 @@ export async function buildSheetDescriptions(mesa, slug, names, version) {
 
     // O pacote estático primeiro: o que ele tem não precisa de AON nem de LLM.
     if (DESCRIPTION_KINDS.some((kind) => pending(kind).length > 0)) {
-      const base = await staticBundle(slug)
+      const base = await staticBundle(slug, lang)
       if (base?.version === version) {
         for (const kind of DESCRIPTION_KINDS) {
           const seed = {}
@@ -307,7 +318,8 @@ export async function buildSheetDescriptions(mesa, slug, names, version) {
       for (let i = 0; i < missing.length; i += GROUP) {
         if (Date.now() - started >= BUDGET_MS) break work
         const group = missing.slice(i, i + GROUP)
-        const resolved = await RESOLVERS[kind](group, true)
+        // Inglês: sem tradução (o resolvedor ignora a chave de IA com `lang = 'en'`).
+        const resolved = await RESOLVERS[kind](group, true, lang)
         const found = {}
         const notFound = []
         resolved.forEach((entry, k) => {
@@ -315,6 +327,7 @@ export async function buildSheetDescriptions(mesa, slug, names, version) {
           else if (!entry?.translationPending) notFound.push(group[k])
         })
         await keep(kind, found)
+        if (lang === 'en') continue
         const at = Date.now()
         await db.writeMisses(kind, notFound, at)
         for (const n of notFound) missedAt[kind].set(n, at)
@@ -328,6 +341,6 @@ export async function buildSheetDescriptions(mesa, slug, names, version) {
     const remaining = DESCRIPTION_KINDS.reduce((sum, kind) => sum + pending(kind).length, 0)
     return { added, remaining }
   } finally {
-    await db.unlock(lockKey(mesa, slug))
+    await db.unlock(lockKey(mesa, slug, lang))
   }
 }
