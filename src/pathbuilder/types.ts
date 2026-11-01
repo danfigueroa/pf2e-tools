@@ -434,6 +434,28 @@ function dropSizeSpecials(build: BuildInfo): BuildInfo {
   return { ...build, specials: build.specials.filter((s) => !SIZE_SPECIALS.has(s)) };
 }
 
+// O Pathbuilder lista a ESCOLHA do Path to Perfection do Monge ("Will", "Reflex", "Fortitude") em `specials`
+// no lugar do nome da habilidade — a Hearts Folly (Monge 7) tinha só "Will", e a aba Habilidades nunca
+// mostrava Path to Perfection. Vira "Path to Perfection (Will)": a AON resolve pelo nome sem o parêntese
+// (`cleanSearchName`) e a escolha fica à vista. Conferido na AON: Path to Perfection (nível 7), Second (11)
+// e Third (15). Pela ordem da lista; só até quantos o nível dá, e não mexe se o export já trouxer o nome.
+const PATHS = ['Path to Perfection', 'Second Path to Perfection', 'Third Path to Perfection'];
+const SAVE_NAMES = new Set(['Fortitude', 'Reflex', 'Will']);
+
+function fixPathToPerfection(build: BuildInfo): BuildInfo {
+  if (!/^monk$/i.test(build.class ?? '') || !build.specials) return build;
+  if (build.specials.some((s) => /path to perfection/i.test(s))) return build;
+  const allowed = build.level >= 15 ? 3 : build.level >= 11 ? 2 : build.level >= 7 ? 1 : 0;
+  let used = 0;
+  let changed = false;
+  const specials = build.specials.map((s) => {
+    if (!SAVE_NAMES.has(s) || used >= allowed) return s;
+    changed = true;
+    return `${PATHS[used++]} (${s})`;
+  });
+  return changed ? { ...build, specials } : build;
+}
+
 // O Pathbuilder ainda conta o Ponto de Foco pela regra antiga, uma fonte a mais: o Loki (Magus 7 com o
 // arquétipo de Psíquico) sai com 3. No Remaster o pool é o número de magias de foco, até 3 (Player Core
 // pg. 298) — truque de foco não conta —, e o Psi Development só dá 1 ponto a quem não tem pool nenhum.
@@ -469,7 +491,7 @@ export function addItemResistances(build: BuildInfo): BuildInfo {
 }
 
 export function normalizeBuild(build: BuildInfo): BuildInfo {
-  return addItemResistances(fixFocusPool(dropSizeSpecials(fixWeaponExports(normalizeSpellCasters(build)))));
+  return addItemResistances(fixFocusPool(fixPathToPerfection(dropSizeSpecials(fixWeaponExports(normalizeSpellCasters(build))))));
 }
 
 export function formatAbilityScore(name: string, value: number) {

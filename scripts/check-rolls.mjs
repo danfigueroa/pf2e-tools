@@ -1119,6 +1119,17 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
     eq(base.specials.join(','), 'Spellstrike', 'tamanho ("Medium", "Large") sai das habilidades — na AON, "Medium" é a classe do médium')
 }
 
+// ── Path to Perfection do Monge: o export traz a escolha ("Will"), não o nome da habilidade ──
+{
+    const monk = (level, specials, cls = 'Monk') => normalizeBuild({ name: 'T', class: cls, level, specials, spellCasters: [], weapons: [] }).specials.join(',')
+    eq(monk(7, ['Flurry of Blows', 'Will']), 'Flurry of Blows,Path to Perfection (Will)', 'nível 7: a escolha vira Path to Perfection (Will)')
+    eq(monk(11, ['Will', 'Reflex']), 'Path to Perfection (Will),Second Path to Perfection (Reflex)', 'nível 11: o segundo é o Second Path')
+    eq(monk(7, ['Will', 'Reflex']), 'Path to Perfection (Will),Reflex', 'só tantos quantos o nível dá')
+    eq(monk(7, ['Path to Perfection', 'Will']), 'Path to Perfection,Will', 'se o export já traz o nome, não mexe')
+    eq(monk(7, ['Will'], 'Fighter'), 'Will', 'só o Monge')
+    eq(normalizeBuild(load('heartsfolly7')).specials.includes('Path to Perfection (Will)'), true, 'Hearts Folly tem a habilidade')
+}
+
 // ── Pool de foco pela regra do Remaster: uma magia de foco = um ponto, até 3; truque de foco não conta ──
 {
     const pool = (file) => normalizeBuild(load(file)).focusPoints
