@@ -74,9 +74,10 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect }: Props)
                 return (
                 <Card key={`${w.name}-${idx}`}>
                     <CardContent>
-                        <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={1}>
-                            <Box sx={{ flex: 1, minWidth: 0 }}>
-                                <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+                        {/* Quebra de linha em vez de espremer: no painel do mapa a janela é larga (breakpoint `sm`), mas a coluna tem ~420px. */}
+                        <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={1} useFlexGap sx={{ flexWrap: { sm: 'wrap' } }}>
+                            <Box sx={{ flex: { xs: '1 1 auto', sm: '1 1 200px' }, minWidth: 0 }}>
+                                <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2, overflowWrap: 'break-word' }}>
                                     {itemDisplayName(build, w, 'weapon')}
                                 </Typography>
                                 <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.75 }}>
@@ -127,9 +128,10 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect }: Props)
                                     direction={{ xs: 'column', sm: 'row' }}
                                     justifyContent="space-between"
                                     spacing={1}
-                                    sx={{ py: 1.25 }}
+                                    useFlexGap
+                                    sx={{ py: 1.25, flexWrap: { sm: 'wrap' } }}
                                 >
-                                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                                    <Box sx={{ flex: { xs: '1 1 auto', sm: '1 1 200px' }, minWidth: 0 }}>
                                         <Typography sx={{ fontWeight: 700, lineHeight: 1.2 }}>
                                             {u.name}
                                             <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 0.75 }}>
