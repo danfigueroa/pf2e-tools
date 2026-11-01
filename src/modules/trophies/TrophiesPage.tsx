@@ -74,7 +74,7 @@ function TrophyCard({ def, at, mesa, progress, mine, fresh, shown, index }: {
   def: TrophyDef; at: number | null; mesa: string | null; progress: number; mine: boolean; fresh: boolean; shown: boolean; index: number;
 }) {
   const unlocked = at !== null;
-  const secret = def.hidden && !unlocked;
+  const secret = !unlocked;
   const tier = TROPHY_TIERS[def.tier];
   const reduced = useReducedMotion();
   return (

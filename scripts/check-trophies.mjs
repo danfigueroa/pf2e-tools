@@ -81,6 +81,16 @@ test('platina: todos os outros do papel', () => {
     assert.equal(wire.goal, others.length)
 })
 
+test('catálogo mascara o que ainda não foi ganho', () => {
+    const got = new Set(['dois-20-seguidos'])
+    const wire = catalogWire(got)
+    for (const x of wire) {
+        if (got.has(x.id)) assert.ok(x.title !== 'Troféu secreto' && x.description, x.id)
+        else assert.ok(x.title === 'Troféu secreto' && x.description === '' && x.goal === 1 && x.hidden, x.id)
+    }
+    assert.equal(wire.length, TROPHIES.length)
+})
+
 test('sorte: médias da sessão e sequências', () => {
     const hot = evaluateFacts(deriveFacts({ bestSessionAvg: 14, worstSessionAvg: 0 })).earned
     assert.ok(hot.has('sortudo') && !hot.has('dado-gelado'), 'média 0 = nenhuma sessão com 10 testes, não "gelado"')

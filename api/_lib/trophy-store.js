@@ -122,10 +122,13 @@ export async function evaluate(mesa, userId) {
 /** O perfil de troféus de uma conta: catálogo, desbloqueados, progresso e pontos. */
 export async function trophyProfile(userId) {
     const db = supabase()
-    const catalog = catalogWire()
-    if (!db || !isUserId(userId)) return { catalog, unlocked: [], progress: {}, points: { player: 0, gm: 0 } }
+    if (!db || !isUserId(userId)) return { catalog: catalogWire(new Set()), unlocked: [], progress: {}, points: { player: 0, gm: 0 } }
     const unlocked = await unlockedOf(db, userId)
-    const { progress } = evaluateFacts(await factsOf(db, userId), new Set(unlocked.map((u) => u.id)))
+    const got = new Set(unlocked.map((u) => u.id))
+    const catalog = catalogWire(got)
+    // O progresso de um troféu ainda fechado também entregaria a regra dele.
+    const all = evaluateFacts(await factsOf(db, userId), got).progress
+    const progress = Object.fromEntries(Object.entries(all).filter(([id]) => got.has(id)))
     return { catalog, unlocked, progress, points: pointsOf(unlocked.map((u) => u.id)) }
 }
 

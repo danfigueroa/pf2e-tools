@@ -129,11 +129,15 @@ export const TROPHIES = [
 export const TROPHY_BY_ID = new Map(TROPHIES.map((x) => [x.id, x]))
 
 /** O catálogo como vai para o cliente (sem as funções). */
-export function catalogWire() {
-    return TROPHIES.map(({ id, role, category, tier, title, description, hidden }) => ({
-        id, role, category, tier, title, description, hidden: hidden === true,
-        goal: goalOf(TROPHY_BY_ID.get(id)),
-    }))
+export function catalogWire(unlockedIds = null) {
+    return TROPHIES.map(({ id, role, category, tier, title, description }) => {
+        // Com `unlockedIds`, o que ainda não foi ganho sai MASCARADO: título, descrição e meta nunca
+        // chegam ao cliente (esconder só na tela deixaria a lista à mostra na aba Rede).
+        if (unlockedIds && !unlockedIds.has(id)) {
+            return { id, role, category, tier, title: 'Troféu secreto', description: '', hidden: true, goal: 1 }
+        }
+        return { id, role, category, tier, title, description, hidden: false, goal: goalOf(TROPHY_BY_ID.get(id)) }
+    })
 }
 
 function goalOf(trophy) {
