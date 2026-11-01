@@ -15,6 +15,7 @@
 
 import type { DiceExpr } from '../../dice/roll'
 import { parseDiceExpr } from '../../dice/roll'
+import { tr } from '../../i18n'
 
 export interface CritDamage {
     expr: DiceExpr
@@ -80,12 +81,12 @@ export function runeCritEffects(runes: string[] | undefined): CritEffect[] {
                 })
                 break
             case 'frost':
-                out.push({ key, source: 'rune', label: 'Frost', note: `Fortitude CD ${dc} ou lento 1 até o fim do seu próximo turno` })
+                out.push({ key, source: 'rune', label: 'Frost', note: tr(`Fortitude CD ${dc} ou lento 1 até o fim do seu próximo turno`, `Fortitude DC ${dc} or slowed 1 until the end of your next turn`) })
                 break
             case 'thundering':
                 out.push({
                     key, source: 'rune', label: 'Thundering',
-                    note: `Fortitude CD ${dc} ou surdo ${greater ? 'permanente' : 'por 1 min (1 h na falha crítica)'}`,
+                    note: tr(`Fortitude CD ${dc} ou surdo ${greater ? 'permanente' : 'por 1 min (1 h na falha crítica)'}`, `Fortitude DC ${dc} or deafened ${greater ? 'permanently' : 'for 1 min (1 h on a critical failure)'}`),
                 })
                 break
         }
@@ -97,7 +98,7 @@ export function runeCritEffects(runes: string[] | undefined): CritEffect[] {
 export function specCritEffect(group: string | null | undefined, bonus: number): CritEffect | null {
     const g = (group || '').toLowerCase().trim()
     if (!g) return null
-    const label = `Especialização · ${group}`
+    const label = tr(`Especialização · ${group}`, `Specialization · ${group}`)
     const key = 'spec'
     const bleed = (die: string): CritEffect => ({
         key, source: 'spec', label,
@@ -110,18 +111,18 @@ export function specCritEffect(group: string | null | undefined, bonus: number):
         case 'crossbow': return bleed('1d8')
         case 'pick':
             return { key, source: 'spec', label, damage: { expr: dice('0'), perDie: PICK_PER_DIE, type: 'piercing', persistent: false, to: 'target' } }
-        case 'axe': return note('Outra criatura adjacente ao alvo e ao alcance, com CA menor que o ataque, sofre dano igual ao nº de dados da arma')
-        case 'bomb': return note('Raio do respingo vai a 3 m')
-        case 'bow': return note('Alvo preso a uma superfície adjacente fica imobilizado (Atletismo/Fuga para soltar)')
-        case 'brawling': return note('Fortitude contra sua CD de classe ou lento 1 até o fim do seu próximo turno')
-        case 'club': return note('Empurra o alvo até 3 m (movimento forçado)')
-        case 'firearm': case 'sling': return note('Fortitude contra sua CD de classe ou atordoado 1')
-        case 'flail': return note('Reflexos contra sua CD de classe ou cai caído')
-        case 'hammer': return note('Fortitude contra sua CD de classe ou cai caído')
-        case 'polearm': return note('Move o alvo 1,5 m numa direção à sua escolha (movimento forçado)')
-        case 'shield': return note('Empurra o alvo 1,5 m para longe de você (movimento forçado)')
-        case 'spear': return note('Alvo fica desajeitado 1 até o início do seu próximo turno')
-        case 'sword': return note('Alvo fica desprevenido até o início do seu próximo turno')
+        case 'axe': return note(tr('Outra criatura adjacente ao alvo e ao alcance, com CA menor que o ataque, sofre dano igual ao nº de dados da arma', 'Another creature adjacent to the target and within reach, with AC lower than the attack, takes damage equal to the number of weapon damage dice'))
+        case 'bomb': return note(tr('Raio do respingo vai a 3 m', 'The splash radius increases to 10 feet'))
+        case 'bow': return note(tr('Alvo preso a uma superfície adjacente fica imobilizado (Atletismo/Fuga para soltar)', 'Target pinned to an adjacent surface is immobilized (Athletics/Escape to break free)'))
+        case 'brawling': return note(tr('Fortitude contra sua CD de classe ou lento 1 até o fim do seu próximo turno', 'Fortitude against your class DC or slowed 1 until the end of your next turn'))
+        case 'club': return note(tr('Empurra o alvo até 3 m (movimento forçado)', 'Pushes the target up to 10 feet (forced movement)'))
+        case 'firearm': case 'sling': return note(tr('Fortitude contra sua CD de classe ou atordoado 1', 'Fortitude against your class DC or stunned 1'))
+        case 'flail': return note(tr('Reflexos contra sua CD de classe ou cai caído', 'Reflex against your class DC or knocked prone'))
+        case 'hammer': return note(tr('Fortitude contra sua CD de classe ou cai caído', 'Fortitude against your class DC or knocked prone'))
+        case 'polearm': return note(tr('Move o alvo 1,5 m numa direção à sua escolha (movimento forçado)', 'Moves the target 5 feet in a direction of your choice (forced movement)'))
+        case 'shield': return note(tr('Empurra o alvo 1,5 m para longe de você (movimento forçado)', 'Pushes the target 5 feet away from you (forced movement)'))
+        case 'spear': return note(tr('Alvo fica desajeitado 1 até o início do seu próximo turno', 'Target is clumsy 1 until the start of your next turn'))
+        case 'sword': return note(tr('Alvo fica desprevenido até o início do seu próximo turno', 'Target is off-guard until the start of your next turn'))
     }
     return null
 }
@@ -166,19 +167,19 @@ export function specSourceFor(
         return { kind: 'always', reason: 'Gunslinger Weapon Mastery' }
     }
     if (cls === 'barbarian' && has('Brutality') && !ctx.ranged && !ctx.thrown) {
-        return { kind: 'raging', reason: 'Brutality, em Fúria' }
+        return { kind: 'raging', reason: tr('Brutality, em Fúria', 'Brutality, while raging') }
     }
     if (cls === 'monk' && has('Expert Strikes') && group === 'brawling') {
-        return { kind: 'always', reason: 'Expert Strikes (ataque desarmado do grupo brawling)' }
+        return { kind: 'always', reason: tr('Expert Strikes (ataque desarmado do grupo brawling)', 'Expert Strikes (brawling group unarmed attack)') }
     }
     if (cls === 'ranger' && has('Ranger Weapon Expertise')) {
-        return { kind: 'prey', reason: 'Ranger Weapon Expertise, contra a presa caçada' }
+        return { kind: 'prey', reason: tr('Ranger Weapon Expertise, contra a presa caçada', 'Ranger Weapon Expertise, against the hunted prey') }
     }
     if (cls === 'rogue' && has('Weapon Tricks') && (ctx.agile || ctx.finesse)) {
-        return { kind: 'situational', reason: 'Weapon Tricks, contra alvo desprevenido' }
+        return { kind: 'situational', reason: tr('Weapon Tricks, contra alvo desprevenido', 'Weapon Tricks, against an off-guard target') }
     }
     if (cls === 'bard' && has('Bard Weapon Expertise')) {
-        return { kind: 'situational', reason: 'Bard Weapon Expertise, com uma composição ativa' }
+        return { kind: 'situational', reason: tr('Bard Weapon Expertise, com uma composição ativa', 'Bard Weapon Expertise, with an active composition') }
     }
     return null
 }

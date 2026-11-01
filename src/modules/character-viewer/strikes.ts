@@ -26,6 +26,7 @@ import type { BuildInfo, Weapon } from '../../pathbuilder/types'
 import { strikingDice, stepUpDie } from '../../pathbuilder/weapon'
 import type { WeaponGear } from '../../services/gear'
 import { translateDamageType } from '../transformation-statblock/i18n'
+import { tr } from '../../i18n'
 import { exprText, parseDiceExpr, rollGroups, type DiceExpr, type DiceGroup, type RolledExpr } from '../../dice/roll'
 import { abilityMod, ABILITY_LABELS, mythicProficiencyDelta, weaponProficiencyRank } from './helpers'
 import { conditionParts, type CheckPart } from './checks'
@@ -127,7 +128,7 @@ export function parseExtraDamage(list: string[] | undefined, fromProfile = false
 /** "1d6 elétrico", "1d8 precisão", "1d6 sangramento persistente". */
 export function extraLabel(e: ExtraDamage): string {
     const type = translateDamageType(e.type)
-    return [exprText(e.expr), type, e.persistent ? 'persistente' : ''].filter(Boolean).join(' ')
+    return [exprText(e.expr), type, e.persistent ? tr('persistente', 'persistent') : ''].filter(Boolean).join(' ')
 }
 
 /** Tudo que a rolagem precisa de UMA arma (ou desarmado, ou perfil situacional). */
@@ -161,12 +162,12 @@ export interface Strike {
     group?: string | null
 }
 
-const B_P_S: Record<string, string> = { B: 'contundente', P: 'perfurante', S: 'cortante' }
+const B_P_S: Record<string, string> = { B: tr('contundente', 'bludgeoning'), P: tr('perfurante', 'piercing'), S: tr('cortante', 'slashing') }
 
 /** "P" → perfurante; "B, P or S" (ataque à escolha do dano, como o do Monge) → os três tipos. */
 function damageTypeOf(raw: string | undefined): string {
     const text = (raw || '').trim()
-    if (/^[bps]\s*(,|or|ou)\s*[bps]/i.test(text)) return 'contundente, perfurante ou cortante'
+    if (/^[bps]\s*(,|or|ou)\s*[bps]/i.test(text)) return tr('contundente, perfurante ou cortante', 'bludgeoning, piercing or slashing')
     return B_P_S[text.toUpperCase()] ?? translateDamageType(text)
 }
 
@@ -418,7 +419,7 @@ export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers
         const other = s.baseAbility === 'str' ? 'dex' : 'str'
         if (score(other) > score(s.baseAbility)) ability = other
     }
-    if (!traits.known) warnings.push('Traços da arma não encontrados no AON: rolando como corpo a corpo, sem ágil e sem deadly/fatal.')
+    if (!traits.known) warnings.push(tr('Traços da arma não encontrados no AON: rolando como corpo a corpo, sem ágil e sem deadly/fatal.', 'Weapon traits not found on AON: rolling as melee, no agile and no deadly/fatal.'))
 
     // Devise a Stratagem (ataque): com arma que pode somar INT, vale INT no lugar de FOR/DES.
     // Strategic Strike vem junto, mesmo que INT e DES empatem — a regra é "somar INT por causa do estratagema".
@@ -426,14 +427,14 @@ export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers
     const stratagemInt = devising && stratagemQualifies(traits)
     if (devising && !stratagemInt) {
         warnings.push(traits.known
-            ? 'Devise a Stratagem: esta arma não é ágil nem de acuidade (e não é à distância), então não soma INT nem leva o Strategic Strike. O d20 do estratagema vale do mesmo jeito.'
-            : 'Devise a Stratagem: sem os traços da arma não dá para saber se ela soma INT. Se somar, use o ajuste no ataque e acrescente o Strategic Strike à mão.')
+            ? tr('Devise a Stratagem: esta arma não é ágil nem de acuidade (e não é à distância), então não soma INT nem leva o Strategic Strike. O d20 do estratagema vale do mesmo jeito.', 'Devise a Stratagem: this weapon is not agile or finesse (and not ranged), so it doesn\'t add INT nor gets Strategic Strike. The stratagem\'s d20 still applies.')
+            : tr('Devise a Stratagem: sem os traços da arma não dá para saber se ela soma INT. Se somar, use o ajuste no ataque e acrescente o Strategic Strike à mão.', 'Devise a Stratagem: without the weapon\'s traits there\'s no way to know whether it adds INT. If it does, use the attack adjustment and add Strategic Strike by hand.'))
     }
 
-    const attackParts: CheckPart[] = [{ label: 'Ficha', value: s.attack, kind: 'base' }]
+    const attackParts: CheckPart[] = [{ label: tr('Ficha', 'Sheet'), value: s.attack, kind: 'base' }]
     if (stratagemInt) {
         attackParts.push({
-            label: `${ABILITY_LABELS.int} em vez de ${ABILITY_LABELS[s.baseAbility]} (estratagema)`,
+            label: tr(`${ABILITY_LABELS.int} em vez de ${ABILITY_LABELS[s.baseAbility]} (estratagema)`, `${ABILITY_LABELS.int} instead of ${ABILITY_LABELS[s.baseAbility]} (stratagem)`),
             value: abilityMod(build.abilities.int) - modOf(s.baseAbility),
             kind: 'ability',
         })
@@ -441,7 +442,7 @@ export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers
     } else {
         if (ability !== s.baseAbility) {
             attackParts.push({
-                label: `${ABILITY_LABELS[ability]} em vez de ${ABILITY_LABELS[s.baseAbility]}`,
+                label: tr(`${ABILITY_LABELS[ability]} em vez de ${ABILITY_LABELS[s.baseAbility]}`, `${ABILITY_LABELS[ability]} instead of ${ABILITY_LABELS[s.baseAbility]}`),
                 value: modOf(ability) - modOf(s.baseAbility),
                 kind: 'ability',
             })
@@ -451,18 +452,18 @@ export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers
     const map = mapPenalty(traits.agile, opts.map)
     // Hunter's Aim: Golpe à distância contra a presa (2 ações), escolha do jogador.
     if (huntersAimApplies(build, s, opts) && opts.extrasOn[HUNTERS_AIM_KEY] === true) {
-        attackParts.push({ label: "Hunter's Aim (circunstância)", value: 2, kind: 'other' })
+        attackParts.push({ label: tr("Hunter's Aim (circunstância)", 'Hunter\'s Aim (circumstance)'), value: 2, kind: 'other' })
     }
     // Ki Strike / Inner Upheaval: +1 de status no ataque.
     const ki = kiStrikeApplies(build, s) && opts.extrasOn[KI_KEY] === true
     if (ki) attackParts.push({ label: 'Ki Strike (estado)', value: 1, kind: 'other' })
-    if (map) attackParts.push({ label: `${opts.map + 1}º ataque${traits.agile ? ' (ágil)' : ''}`, value: map, kind: 'map' })
+    if (map) attackParts.push({ label: tr(`${opts.map + 1}º ataque${traits.agile ? ' (ágil)' : ''}`, `${opts.map === 1 ? '2nd' : '3rd'} attack${traits.agile ? ' (agile)' : ''}`), value: map, kind: 'map' })
     if (opts.attackAdjust) attackParts.push({ label: 'Ajuste', value: opts.attackAdjust, kind: 'other' })
     const attackTotal = attackParts.reduce((sum, p) => sum + p.value, 0)
 
     // Dano da arma. Enfraquecido só pesa se a arma soma FOR ao dano.
     const strInDamage = !traits.ranged || traits.propulsive || opts.mode === 'thrown'
-    const damageParts: CheckPart[] = [{ label: 'Ficha', value: s.damageFlat, kind: 'base' }]
+    const damageParts: CheckPart[] = [{ label: tr('Ficha', 'Sheet'), value: s.damageFlat, kind: 'base' }]
     if (strInDamage && mods.total.damageStr) {
         damageParts.push(...conditionParts(mods, 'damageStr'))
     }
@@ -478,7 +479,7 @@ export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers
     }
     // Fearsome Brute: circunstância, 2 × (3 × se mestre em Intimidação) o medo do alvo.
     const brute = hasFearsomeBrute(build) ? fearsomeBruteBonus(build, opts.frightened ?? 0) : 0
-    if (brute) damageParts.push({ label: `Fearsome Brute (amedrontado ${opts.frightened})`, value: brute, kind: 'other' })
+    if (brute) damageParts.push({ label: tr(`Fearsome Brute (amedrontado ${opts.frightened})`, `Fearsome Brute (frightened ${opts.frightened})`), value: brute, kind: 'other' })
     if (opts.damageAdjust) damageParts.push({ label: 'Ajuste', value: opts.damageAdjust, kind: 'other' })
     const flat = damageParts.reduce((sum, p) => sum + p.value, 0)
 
@@ -550,7 +551,7 @@ export function rollStrikeDamage(plan: StrikePlan, damageType: string): DamageRo
     let note = `2 × ${total}`
     if (plan.fatal) {
         const fatalWeapon = rollGroups(plan.weapon.groups.map((g) => ({ ...g, faces: plan.fatal! })), plan.weapon.flat)
-        extra.push({ label: `fatal: arma em d${plan.fatal}`, rolled: fatalWeapon, persistent: false })
+        extra.push({ label: tr(`fatal: arma em d${plan.fatal}`, `fatal: weapon at d${plan.fatal}`), rolled: fatalWeapon, persistent: false })
         critBase = Math.max(1, fatalWeapon.total + plusTotal(immediate.slice(1)))
         note = `2 × ${critBase}`
         const plus = rollGroups([{ count: 1, faces: plan.fatal }])
@@ -572,10 +573,10 @@ export function rollStrikeDamage(plan: StrikePlan, damageType: string): DamageRo
             const flat = d.expr.flat + (d.perDie ?? 0) * weaponDice
             const rolled = rollGroups(d.expr.groups, flat)
             const type = translateDamageType(d.type)
-            const label = `${c.label}: ${rolled.dice.length ? exprText({ groups: d.expr.groups, flat }) : flat} ${type}${d.persistent ? ' persistente' : ''}`
+            const label = `${c.label}: ${rolled.dice.length ? exprText({ groups: d.expr.groups, flat }) : flat} ${type}${d.persistent ? tr(' persistente', ' persistent') : ''}`
             extra.push({ label, rolled, persistent: d.persistent })
-            if (d.to === 'armor') aside.push(`${c.label}: ${rolled.total} ${type} na armadura/escudo do alvo`)
-            else if (d.persistent) aside.push(`${c.label}: ${rolled.total} ${type} persistente`)
+            if (d.to === 'armor') aside.push(tr(`${c.label}: ${rolled.total} ${type} na armadura/escudo do alvo`, `${c.label}: ${rolled.total} ${type} to the target's armor/shield`))
+            else if (d.persistent) aside.push(tr(`${c.label}: ${rolled.total} ${type} persistente`, `${c.label}: ${rolled.total} persistent ${type}`))
             else { outside += rolled.total; note += ` + ${c.label} ${rolled.total}` }
         }
         if (c.mirrors) {
@@ -583,15 +584,15 @@ export function rollStrikeDamage(plan: StrikePlan, damageType: string): DamageRo
             const at = plan.extras.findIndex((e) => !e.persistent && e.type === c.mirrors)
             const hit = at >= 0 ? parts[at + 1] : null
             aside.push(hit
-                ? `${c.label}: ${hit.rolled.total} ${translateDamageType(c.mirrors)} em até 2 criaturas a 3 m do alvo`
-                : `${c.label}: mesmo dano ${translateDamageType(c.mirrors)} em até 2 criaturas a 3 m do alvo`)
+                ? tr(`${c.label}: ${hit.rolled.total} ${translateDamageType(c.mirrors)} em até 2 criaturas a 3 m do alvo`, `${c.label}: ${hit.rolled.total} ${translateDamageType(c.mirrors)} to up to 2 creatures within 10 feet of the target`)
+                : tr(`${c.label}: mesmo dano ${translateDamageType(c.mirrors)} em até 2 criaturas a 3 m do alvo`, `${c.label}: same ${translateDamageType(c.mirrors)} damage to up to 2 creatures within 10 feet of the target`))
         }
         if (c.note) aside.push(`${c.label}: ${c.note}`)
     }
 
     const critTotal = 2 * critBase + outside
     const persistent = parts.filter((p) => p.persistent)
-    if (persistent.length) note += ` · persistente dobrado: ${persistent.map((p) => 2 * p.rolled.total).join(' + ')}`
+    if (persistent.length) note += tr(` · persistente dobrado: `, ` · persistent doubled: `) + persistent.map((p) => 2 * p.rolled.total).join(' + ')
     note = `${note} = ${critTotal}`
     if (aside.length) note += ` · ${aside.join(' · ')}`
     return { parts, total, crit: { total: critTotal, note, extra } }

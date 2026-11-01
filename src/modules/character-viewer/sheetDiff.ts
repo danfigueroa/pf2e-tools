@@ -1,4 +1,5 @@
 import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
+import { tr } from '../../i18n'
 
 /**
  * O que muda entre a ficha da mesa e o JSON que alguém quer publicar — é o que
@@ -59,10 +60,10 @@ function compare(label: string, before: string[], after: string[]): SheetChange 
 
 export function diffSheets(before: BuildInfo, after: BuildInfo): SheetDiff {
     const changes = [
-        compare('Talentos', feats(before), feats(after)),
-        compare('Habilidades', before.specials ?? [], after.specials ?? []),
-        compare('Magias', spells(before), spells(after)),
-        compare('Itens', items(before), items(after)),
+        compare(tr('Talentos', 'Feats'), feats(before), feats(after)),
+        compare(tr('Habilidades', 'Abilities'), before.specials ?? [], after.specials ?? []),
+        compare(tr('Magias', 'Spells'), spells(before), spells(after)),
+        compare(tr('Itens', 'Items'), items(before), items(after)),
     ].filter((c): c is SheetChange => c !== null)
 
     return {

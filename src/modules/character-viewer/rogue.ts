@@ -17,6 +17,7 @@
  */
 import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
 import type { ItemTraits } from '../../services/itemTraits'
+import { tr } from '../../i18n'
 
 export interface RogueStored {
     /** Nome (do Pathbuilder) do veneno que está na arma; `null` = arma limpa. */
@@ -68,12 +69,12 @@ export function isApplicablePoison(traits: ItemTraits | null | undefined): boole
 export type Debilitation = 'speed' | 'enfeebled'
 
 export const DEBILITATIONS: Array<{ id: Debilitation; label: string; note: string }> = [
-    { id: 'speed', label: 'Deslocamento −3 m', note: 'Debilitating Strike: deslocamento −3 m (−10 pés) até o fim do próximo turno' },
-    { id: 'enfeebled', label: 'Enfraquecido 1', note: 'Debilitating Strike: Enfraquecido 1 até o fim do próximo turno' },
+    { id: 'speed', label: tr('Deslocamento −3 m', 'Speed −10 feet'), note: tr('Debilitating Strike: deslocamento −3 m (−10 pés) até o fim do próximo turno', 'Debilitating Strike: −10-foot Speed penalty until the end of the next turn') },
+    { id: 'enfeebled', label: tr('Enfraquecido 1', 'Enfeebled 1'), note: tr('Debilitating Strike: Enfraquecido 1 até o fim do próximo turno', 'Debilitating Strike: enfeebled 1 until the end of the next turn') },
 ]
 
 /** O texto da rolagem sobre o veneno da arma. */
 export function poisonNote(name: string, def: { dc: number | null; save: string | null } | null): string {
-    const save = def?.save ? { fortitude: 'Fortitude', reflex: 'Reflexos', will: 'Vontade' }[def.save] ?? def.save : null
+    const save = def?.save ? { fortitude: 'Fortitude', reflex: tr('Reflexos', 'Reflex'), will: tr('Vontade', 'Will') }[def.save] ?? def.save : null
     return `veneno: ${name}${def?.dc ? ` (CD ${def.dc}${save ? ` ${save}` : ''})` : ''}`
 }

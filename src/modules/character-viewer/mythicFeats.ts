@@ -10,6 +10,7 @@
 import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
 import type { ActivityInfo } from './activities'
 import type { ConditionModifiers } from './conditions'
+import { tr } from '../../i18n'
 
 export type MythicFeatId = 'godspeed' | 'correct-the-story' | 'arc-of-destruction' | 'become-destiny' | 'weve-met-before'
 
@@ -29,31 +30,31 @@ export const MYTHIC_FEATS: ReadonlyArray<MythicFeatDef> = [
         id: 'godspeed',
         name: 'Godspeed',
         info: act({ kind: 'actions', n: 1 }),
-        summary: '1 ação + 1 ponto: por 1 minuto, +3 m (10 pés) de status nos Deslocamentos e Acelerado (a ação extra serve para Andar, Passo ou Salto).',
+        summary: tr('1 ação + 1 ponto: por 1 minuto, +3 m (10 pés) de status nos Deslocamentos e Acelerado (a ação extra serve para Andar, Passo ou Salto).', '1 action + 1 point: for 1 minute, +10-foot status bonus to your Speeds and quickened (the extra action can be used to Stride, Step or Leap).'),
     },
     {
         id: 'correct-the-story',
         name: 'Correct the Story',
-        info: act({ kind: 'reaction' }, 'Um inimigo tira um sucesso crítico num ataque ou salvaguarda.'),
-        summary: 'Reação + 1 ponto: o inimigo rola de novo o ataque ou a salvaguarda e fica com o novo resultado.',
+        info: act({ kind: 'reaction' }, tr('Um inimigo tira um sucesso crítico num ataque ou salvaguarda.', 'An enemy critically succeeds at an attack or saving throw.')),
+        summary: tr('Reação + 1 ponto: o inimigo rola de novo o ataque ou a salvaguarda e fica com o novo resultado.', 'Reaction + 1 point: the enemy rerolls the attack or save and takes the new result.'),
     },
     {
         id: 'arc-of-destruction',
         name: 'Arc of Destruction',
-        info: act({ kind: 'reaction' }, 'Um inimigo que você observa mira você com um Golpe à distância.'),
-        summary: 'Reação + 1 ponto: +4 de status na CA contra esse Golpe; se ele errar, você devolve a arma ou munição com proficiência mítica.',
+        info: act({ kind: 'reaction' }, tr('Um inimigo que você observa mira você com um Golpe à distância.', 'An enemy you observe targets you with a ranged Strike.')),
+        summary: tr('Reação + 1 ponto: +4 de status na CA contra esse Golpe; se ele errar, você devolve a arma ou munição com proficiência mítica.', 'Reaction + 1 point: +4 status bonus to AC against that Strike; if it misses, you send the weapon or ammunition back with mythic proficiency.'),
     },
     {
         id: 'become-destiny',
         name: 'Become Destiny',
         info: act({ kind: 'free' }),
-        summary: 'Ação livre + 1 ponto: remove uma condição, encerra o efeito contínuo de uma magia ou liberta você de uma armadilha ou perigo.',
+        summary: tr('Ação livre + 1 ponto: remove uma condição, encerra o efeito contínuo de uma magia ou liberta você de uma armadilha ou perigo.', 'Free action + 1 point: remove a condition, end a spell\'s ongoing effect or free yourself from a trap or hazard.'),
     },
     {
         id: 'weve-met-before',
         name: "We've Met Before",
         info: act({ kind: 'actions', n: 1 }),
-        summary: '1 ação + 1 ponto (exige 1 minuto de conversa): ganha um Saber da criatura por 24 h, com proficiência mítica.',
+        summary: tr('1 ação + 1 ponto (exige 1 minuto de conversa): ganha um Saber da criatura por 24 h, com proficiência mítica.', '1 action + 1 point (requires 1 minute of conversation): gain a Lore about the creature for 24 h, with mythic proficiency.'),
     },
 ]
 

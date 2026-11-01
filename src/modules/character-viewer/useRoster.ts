@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { charSlugFromName } from './charId'
 import { CAMPAIGN_PRESETS } from './campaignPresets'
 import { usePublishedSheets } from './usePublishedSheets'
+import { tr } from '../../i18n'
 
 export interface RosterEntry {
     slug: string
@@ -21,8 +22,8 @@ export function useRoster(): RosterEntry[] {
         ...CAMPAIGN_PRESETS.map((p) => ({
             slug: charSlugFromName(p.sheetName),
             label: p.name,
-            meta: `${p.class} · nível ${levelOf(p)}`,
+            meta: tr(`${p.class} · nível ${levelOf(p)}`, `${p.class} · level ${levelOf(p)}`),
         })),
-        ...extras.map((s) => ({ slug: s.slug, label: s.name, meta: s.level ? `Nível ${s.level}` : '' })),
+        ...extras.map((s) => ({ slug: s.slug, label: s.name, meta: s.level ? tr(`Nível ${s.level}`, `Level ${s.level}`) : '' })),
     ], [levelOf, extras])
 }

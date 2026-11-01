@@ -1,6 +1,7 @@
 import type { BuildInfo } from '../../pathbuilder/types'
 import { strikingDice } from '../../pathbuilder/weapon'
 import { abilityMod } from './helpers'
+import { tr } from '../../i18n'
 
 /**
  * Ataques desarmados. O JSON do Pathbuilder **não exporta ataque desarmado
@@ -53,25 +54,25 @@ interface UnarmedBase {
  * pg. 22). Todos são do grupo brawling e têm o trait unarmed.
  */
 const ANIMAL_ATTACKS: Record<string, UnarmedBase> = {
-    antler: { en: 'Antler', name: 'Galhada', die: 'd6', damageType: 'perfurante', traits: ['finesse'] },
-    beak: { en: 'Beak', name: 'Bico', die: 'd6', damageType: 'perfurante', traits: ['finesse'] },
-    claw: { en: 'Claw', name: 'Garra', die: 'd4', damageType: 'cortante', traits: ['agile', 'finesse'] },
-    fangs: { en: 'Fangs', name: 'Presas', die: 'd6', damageType: 'perfurante', traits: ['finesse'] },
-    fist: { en: 'Fist', name: 'Punho', die: 'd4', damageType: 'contundente', traits: ['agile', 'finesse', 'nonlethal'] },
-    horn: { en: 'Horn', name: 'Chifre', die: 'd6', damageType: 'perfurante', traits: ['finesse'] },
-    jaws: { en: 'Jaws', name: 'Mandíbulas', die: 'd6', damageType: 'perfurante', traits: ['finesse'] },
-    tail: { en: 'Tail', name: 'Cauda', die: 'd6', damageType: 'contundente', traits: ['finesse', 'trip'] },
-    talon: { en: 'Talon', name: 'Talão', die: 'd4', damageType: 'perfurante', traits: ['agile', 'finesse'] },
-    tongue: { en: 'Tongue', name: 'Língua', die: 'd6', damageType: 'contundente', traits: ['finesse'] },
-    wing: { en: 'Wing', name: 'Asa', die: 'd4', damageType: 'contundente', traits: ['agile', 'finesse'] },
+    antler: { en: 'Antler', name: 'Galhada', die: 'd6', damageType: tr('perfurante', 'piercing'), traits: ['finesse'] },
+    beak: { en: 'Beak', name: 'Bico', die: 'd6', damageType: tr('perfurante', 'piercing'), traits: ['finesse'] },
+    claw: { en: 'Claw', name: 'Garra', die: 'd4', damageType: tr('cortante', 'slashing'), traits: ['agile', 'finesse'] },
+    fangs: { en: 'Fangs', name: 'Presas', die: 'd6', damageType: tr('perfurante', 'piercing'), traits: ['finesse'] },
+    fist: { en: 'Fist', name: 'Punho', die: 'd4', damageType: tr('contundente', 'bludgeoning'), traits: ['agile', 'finesse', 'nonlethal'] },
+    horn: { en: 'Horn', name: 'Chifre', die: 'd6', damageType: tr('perfurante', 'piercing'), traits: ['finesse'] },
+    jaws: { en: 'Jaws', name: tr('Mandíbulas', 'Jaws'), die: 'd6', damageType: tr('perfurante', 'piercing'), traits: ['finesse'] },
+    tail: { en: 'Tail', name: 'Cauda', die: 'd6', damageType: tr('contundente', 'bludgeoning'), traits: ['finesse', 'trip'] },
+    talon: { en: 'Talon', name: tr('Talão', 'Talon'), die: 'd4', damageType: tr('perfurante', 'piercing'), traits: ['agile', 'finesse'] },
+    tongue: { en: 'Tongue', name: tr('Língua', 'Tongue'), die: 'd6', damageType: tr('contundente', 'bludgeoning'), traits: ['finesse'] },
+    wing: { en: 'Wing', name: 'Asa', die: 'd4', damageType: tr('contundente', 'bludgeoning'), traits: ['agile', 'finesse'] },
 }
 
 const TRAIT_LABELS: Record<string, string> = {
-    agile: 'Ágil',
+    agile: tr('Ágil', 'Agile'),
     finesse: 'Acuidade',
-    nonlethal: 'Não letal',
+    nonlethal: tr('Não letal', 'Nonlethal'),
     trip: 'Derrubar',
-    unarmed: 'Desarmado',
+    unarmed: tr('Desarmado', 'Unarmed'),
 }
 
 /**
@@ -101,13 +102,13 @@ const ITEM_ATTACKS: Record<string, { base: UnarmedBase; note: string }> = {
     'wolfjaw armor': {
         base: {
             en: 'Jaws',
-            name: 'Mandíbulas',
+            name: tr('Mandíbulas', 'Jaws'),
             die: 'd8',
-            damageType: 'perfurante',
+            damageType: tr('perfurante', 'piercing'),
             traits: ['trip'],
-            extraDamage: ['1 de frio'],
+            extraDamage: [tr('1 de frio', '1 cold')],
         },
-        note: 'Ativação ◆ (uma vez por hora) para ganhar o ataque; feito com as mãos.',
+        note: tr('Ativação ◆ (uma vez por hora) para ganhar o ataque; feito com as mãos.', 'Activation ◆ (once per hour) to gain the attack; made with the hands.'),
     },
 }
 
@@ -151,13 +152,13 @@ function collectGrants(build: BuildInfo): Grant[] {
         const source = known?.animal
             ?? (build.heritage ? `${build.heritage} (Awakened Animal)` : 'Awakened Animal')
         const note = known
-            ? `${known.animal}: ataque animal à escolha do personagem — a ficha não registra qual foi.`
-            : 'Ataque animal à escolha do personagem — a ficha não registra qual foi.'
+            ? tr(`${known.animal}: ataque animal à escolha do personagem — a ficha não registra qual foi.`, `${known.animal}: animal attack of the character's choice — the sheet doesn't record which one.`)
+            : tr('Ataque animal à escolha do personagem — a ficha não registra qual foi.', 'Animal attack of the character\'s choice — the sheet doesn\'t record which one.')
         for (const key of keys) {
             grants.push({ base: ANIMAL_ATTACKS[key], source, note, choice: true })
         }
     } else {
-        grants.push({ base: ANIMAL_ATTACKS.fist, source: 'Todo personagem' })
+        grants.push({ base: ANIMAL_ATTACKS.fist, source: tr('Todo personagem', 'Every character') })
     }
 
     // Itens equipados (armadura vestida ou item investido) que dão ataque.

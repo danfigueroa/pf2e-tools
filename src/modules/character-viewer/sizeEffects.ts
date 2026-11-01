@@ -13,6 +13,7 @@
  */
 import type { ConditionState } from './components/useConditions'
 import type { ConditionModifiers } from './conditions'
+import { tr } from '../../i18n'
 
 export type SizeEffectId = 'enlarge' | 'shrink'
 
@@ -41,12 +42,12 @@ const SIZES = ['tiny', 'small', 'medium', 'large', 'huge', 'gargantuan'] as cons
 type SizeKey = (typeof SIZES)[number]
 
 const SIZE_LABEL: Record<SizeKey, string> = {
-    tiny: 'Miúdo',
-    small: 'Pequeno',
-    medium: 'Médio',
-    large: 'Grande',
-    huge: 'Enorme',
-    gargantuan: 'Imenso',
+    tiny: tr('Miúdo', 'Tiny'),
+    small: tr('Pequeno', 'Small'),
+    medium: tr('Médio', 'Medium'),
+    large: tr('Grande', 'Large'),
+    huge: tr('Enorme', 'Huge'),
+    gargantuan: tr('Imenso', 'Gargantuan'),
 }
 
 /** Canônico em inglês, como `sizeName` do Pathbuilder e `size` da AON. */
@@ -88,25 +89,31 @@ export const SIZE_EFFECTS: Record<SizeEffectId, SizeEffectDef> = {
         id: 'enlarge',
         spell: 'Enlarge',
         rank: 4,
-        label: 'Aumentar',
+        label: tr('Aumentar', 'Enlarge'),
         size: 'huge',
         conditions: { clumsy: 1 },
         meleeDamage: 4,
-        summary:
+        summary: tr(
             'Enorme por 5 minutos: desajeitado 1, alcance +10 ft e +4 de bônus de estado no dano '
             + 'dos Golpes corpo a corpo. Sem efeito em quem já é Enorme ou maior.',
+            'Huge for 5 minutes: clumsy 1, reach +10 ft and a +4 status bonus to melee Strike '
+            + 'damage. No effect on someone already Huge or larger.',
+        ),
     },
     shrink: {
         id: 'shrink',
         spell: 'Shrink',
         rank: 2,
-        label: 'Encolher',
+        label: tr('Encolher', 'Shrink'),
         size: 'tiny',
         conditions: {},
         meleeDamage: 0,
-        summary:
+        summary: tr(
             'Miúdo por 5 minutos e alcance 0. O equipamento encolhe junto e volta ao tamanho '
             + 'original se for removido. Sem efeito em quem já é Miúdo.',
+            'Tiny for 5 minutes and reach 0. Your gear shrinks along and returns to its original '
+            + 'size if removed. No effect on someone already Tiny.',
+        ),
     },
 }
 

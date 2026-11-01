@@ -15,6 +15,7 @@
 
 import type { Check } from './checks'
 import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
+import { tr } from '../../i18n'
 
 export interface TreatWoundsOption {
     dc: number
@@ -50,8 +51,8 @@ export function wardMedicTargets(b: BuildInfo, rank: number): number {
 export const TREAT_WOUNDS_OPTIONS: ReadonlyArray<TreatWoundsOption> = [
     { dc: 15, minRank: 2, bonus: 0, label: 'Treinado' },
     { dc: 20, minRank: 4, bonus: 10, label: 'Especialista' },
-    { dc: 30, minRank: 6, bonus: 30, label: 'Mestre' },
-    { dc: 40, minRank: 8, bonus: 50, label: 'Lendário' },
+    { dc: 30, minRank: 6, bonus: 30, label: tr('Mestre', 'Master') },
+    { dc: 40, minRank: 8, bonus: 50, label: tr('Lendário', 'Legendary') },
 ]
 
 /** As CDs que o rank de Medicina permite. Destreinado: nenhuma. */
@@ -61,10 +62,10 @@ export const availableOptions = (rank: number): TreatWoundsOption[] =>
 export type Degree = 'critSuccess' | 'success' | 'failure' | 'critFailure'
 
 export const DEGREE_LABEL: Record<Degree, string> = {
-    critSuccess: 'Sucesso crítico',
-    success: 'Sucesso',
-    failure: 'Falha',
-    critFailure: 'Falha crítica',
+    critSuccess: tr('Sucesso crítico', 'Critical success'),
+    success: tr('Sucesso', 'Success'),
+    failure: tr('Falha', 'Failure'),
+    critFailure: tr('Falha crítica', 'Critical failure'),
 }
 
 /** Grau de sucesso: ±10 da CD, e o d20 natural 20/1 sobe/desce um grau. */

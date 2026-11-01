@@ -1,3 +1,4 @@
+import { tr } from '../../i18n'
 // Anotações do personagem: o formato e a validação. O servidor (`notes-store.js`)
 // confere os mesmos tetos — mudou um, muda o outro.
 
@@ -5,7 +6,7 @@ export const NOTE_TAGS = ['npc', 'item', 'local', 'evento', 'outro'] as const
 export type NoteTag = (typeof NOTE_TAGS)[number]
 
 export const TAG_LABELS: Record<NoteTag, string> = {
-    npc: 'NPC', item: 'Item', local: 'Local', evento: 'Evento', outro: 'Outro',
+    npc: 'NPC', item: 'Item', local: tr('Local', 'Place'), evento: tr('Evento', 'Event'), outro: tr('Outro', 'Other'),
 }
 
 export const MAX_TEXT = 20000

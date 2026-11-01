@@ -12,6 +12,7 @@
  * mesma entrada (Magic Missile = Force Barrage, Scorching Ray = Blazing Bolt, Qi Blast = Ki Blast).
  */
 import type { ScaledComponent } from './heightening'
+import { tr } from '../../i18n'
 
 export interface ActionRange {
     min: number
@@ -78,7 +79,7 @@ export interface VariantOptions {
 }
 
 const selective = (n: number, opts: VariantOptions): string[] =>
-    n === 3 && opts.selectiveEnergy ? ['Selective Energy: escolha até 5 criaturas na área que NÃO são alvo.'] : []
+    n === 3 && opts.selectiveEnergy ? [tr('Selective Energy: escolha até 5 criaturas na área que NÃO são alvo.', 'Selective Energy: choose up to 5 creatures in the area that are NOT targets.')] : []
 
 type Maker = (rank: number, n: number, opts: VariantOptions) => Variant
 const variant = (components: ScaledComponent[], notes: string[], rays = 1): Variant => ({ components, notes, rays })
@@ -94,8 +95,8 @@ const CATALOG: Record<string, { base: number; make: Maker }> = {
             return variant(
                 [heal(r, faces, n === 2 ? 8 * r : 0)],
                 [
-                    n === 1 ? 'Alcance de toque.' : n === 2 ? `Alcance de 9 m. +${8 * r} de cura em criatura VIVA (contra morto-vivo o dano é só ${r}d${faces}).` : 'Emanação de 9 m: todos os vivos e mortos-vivos na área.',
-                    ...(opts.healingHands ? ['Healing Hands: d10 em vez de d8.'] : []),
+                    n === 1 ? tr('Alcance de toque.', 'Range of touch.') : n === 2 ? tr(`Alcance de 9 m. +${8 * r} de cura em criatura VIVA (contra morto-vivo o dano é só ${r}d${faces}).`, `Range 30 feet. +${8 * r} healing to a LIVING creature (against undead the damage is only ${r}d${faces}).`) : tr('Emanação de 9 m: todos os vivos e mortos-vivos na área.', '30-foot emanation: all living and undead in the area.'),
+                    ...(opts.healingHands ? [tr('Healing Hands: d10 em vez de d8.', 'Healing Hands: d10 instead of d8.')] : []),
                     ...selective(n, opts),
                 ],
             )
@@ -107,7 +108,7 @@ const CATALOG: Record<string, { base: number; make: Maker }> = {
         make: (r, n, opts) => variant(
             [dmg('void', r, 8)],
             [
-                n === 1 ? 'Alcance de toque. Salvaguarda de Fortitude básica.' : n === 2 ? `Alcance de 9 m. Curando morto-vivo disposto: ${r}d8 + ${8 * r}.` : 'Emanação de 9 m: todos os vivos e mortos-vivos na área.',
+                n === 1 ? tr('Alcance de toque. Salvaguarda de Fortitude básica.', 'Range of touch. Basic Fortitude save.') : n === 2 ? tr(`Alcance de 9 m. Curando morto-vivo disposto: ${r}d8 + ${8 * r}.`, `Range 30 feet. Healing a willing undead: ${r}d8 + ${8 * r}.`) : tr('Emanação de 9 m: todos os vivos e mortos-vivos na área.', '30-foot emanation: all living and undead in the area.'),
                 ...selective(n, opts),
             ],
         ),
@@ -119,7 +120,7 @@ const CATALOG: Record<string, { base: number; make: Maker }> = {
             const shots = n * (1 + Math.floor((r - 1) / 2))
             return variant(
                 [dmg('force', shots, 4, shots)],
-                [`${shots} projétil${shots === 1 ? '' : 'eis'} (1d4+1 cada, acerto automático). Escolha o alvo de cada um; no mesmo alvo o dano soma.`],
+                [tr(`${shots} projétil${shots === 1 ? '' : 'eis'} (1d4+1 cada, acerto automático). Escolha o alvo de cada um; no mesmo alvo o dano soma.`, `${shots} missile${shots === 1 ? '' : 's'} (1d4+1 each, automatic hit). Choose each one's target; on the same target the damage adds up.`)],
             )
         },
     },
@@ -129,7 +130,7 @@ const CATALOG: Record<string, { base: number; make: Maker }> = {
         base: 2,
         make: (r, n) => variant(
             [dmg('fire', n === 1 ? r : 2 * r, 6)],
-            [`${n} raio${n === 1 ? '' : 's'} (um ataque de magia cada, em alvos diferentes). O MAP só sobe depois de todos.`],
+            [tr(`${n} raio${n === 1 ? '' : 's'} (um ataque de magia cada, em alvos diferentes). O MAP só sobe depois de todos.`, `${n} ray${n === 1 ? '' : 's'} (one spell attack each, at different targets). The MAP only goes up after all of them.`)],
             n,
         ),
     },
@@ -138,7 +139,7 @@ const CATALOG: Record<string, { base: number; make: Maker }> = {
         base: 3,
         make: (r, n) => variant(
             [dmg('force', n === 1 ? r - 1 : n === 2 ? 2 * r - 3 : 2 * r - 2, 6)],
-            [`Cone de ${n === 1 ? '4,5' : n === 2 ? '9' : '18'} m. Fortitude: sucesso crítico ignora; sucesso ½; falha cheio e empurra 1,5 m; falha crítica dobro e empurra 3 m.`],
+            [tr(`Cone de ${n === 1 ? '4,5' : n === 2 ? '9' : '18'} m. Fortitude: sucesso crítico ignora; sucesso ½; falha cheio e empurra 1,5 m; falha crítica dobro e empurra 3 m.`, `${n === 1 ? '15' : n === 2 ? '30' : '60'}-foot cone. Fortitude: critical success unaffected; success ½; failure full and pushed 5 feet; critical failure double and pushed 10 feet.`)],
         ),
     },
     // Disorienting Flash: 1d10 (quadrado de 1,5 m), 2d10 (explosão de 3 m), 2d10 (explosão de 6 m); +1d10 por rank em todas.
@@ -147,8 +148,8 @@ const CATALOG: Record<string, { base: number; make: Maker }> = {
         make: (r, n) => variant(
             [dmg('sonic', n === 1 ? r - 1 : r, 10)],
             [
-                n === 1 ? 'Quadrado de 1,5 m; ofuscado na falha.' : n === 2 ? 'Explosão de 3 m; ofuscado na falha.' : 'Explosão de 6 m; ofuscado E surdo na falha.',
-                'Fortitude básica.',
+                n === 1 ? tr('Quadrado de 1,5 m; ofuscado na falha.', '5-foot square; dazzled on a failure.') : n === 2 ? tr('Explosão de 3 m; ofuscado na falha.', '10-foot burst; dazzled on a failure.') : tr('Explosão de 6 m; ofuscado E surdo na falha.', '20-foot burst; dazzled AND deafened on a failure.'),
+                tr('Fortitude básica.', 'Basic Fortitude.'),
             ],
         ),
     },
@@ -157,7 +158,7 @@ const CATALOG: Record<string, { base: number; make: Maker }> = {
         base: 1,
         make: (r, n) => variant(
             [dmg('sonic', n === 1 ? r : 2 * r, 4)],
-            [n === 1 ? 'Um inimigo.' : n === 2 ? 'Explosão de 3 m.' : 'Emanação de 9 m.', 'Fortitude básica.'],
+            [n === 1 ? tr('Um inimigo.', 'One enemy.') : n === 2 ? tr('Explosão de 3 m.', '10-foot burst.') : tr('Emanação de 9 m.', '30-foot emanation.'), tr('Fortitude básica.', 'Basic Fortitude.')],
         ),
     },
     // Banishing Touch (War of Immortals pg. 154, rank 2): toque, ataque de magia corpo a corpo com proficiência mítica.
@@ -173,7 +174,7 @@ const CATALOG: Record<string, { base: number; make: Maker }> = {
             const m = (ft: number) => String(Math.round(ft * 0.3 * 10) / 10).replace('.', ',')
             return variant(
                 [dmg('bludgeoning', (n === 1 ? 1 : 2) + tier, 6)],
-                [`Se acertar: o alvo é lançado ${m(base[0] + far)} m para o alto e ${m(base[1] + far)} m para trás, e sofre o dano de queda normal.`],
+                [tr(`Se acertar: o alvo é lançado ${m(base[0] + far)} m para o alto e ${m(base[1] + far)} m para trás, e sofre o dano de queda normal.`, `On a hit: the target is launched ${base[0] + far} feet up and ${base[1] + far} feet back, and takes normal falling damage.`)],
             )
         },
     },
@@ -182,7 +183,7 @@ const CATALOG: Record<string, { base: number; make: Maker }> = {
         base: 4,
         make: (r, n) => variant(
             [heal(r - 1, 6)],
-            [`${n} alvo${n === 1 ? '' : 's'}: cada um recupera os PV. Voltar de Morrendo por esta cura não aumenta Ferido.`],
+            [tr(`${n} alvo${n === 1 ? '' : 's'}: cada um recupera os PV. Voltar de Morrendo por esta cura não aumenta Ferido.`, `${n} target${n === 1 ? '' : 's'}: each one regains HP. Coming back from dying through this healing doesn't increase wounded.`)],
         ),
     },
 }

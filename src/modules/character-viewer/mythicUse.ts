@@ -20,6 +20,7 @@
  * Ears OU Rewrite Fate), vence o mais específico.
  */
 import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
+import { tr } from '../../i18n'
 
 export type MythicContext = 'check' | 'strike' | 'spell-attack' | 'initiative' | 'initiative-skill' | 'sense-motive' | 'jump' | 'swim' | 'influence' | 'recall'
 
@@ -54,7 +55,7 @@ const SPECIFIC: Partial<Record<MythicContext, string[]>> = {
 }
 
 const NOTES: Record<string, string> = {
-    'Prescience': 'Prescience: +1 de status na CA e em todas as salvaguardas até o fim do primeiro turno.',
+    'Prescience': tr('Prescience: +1 de status na CA e em todas as salvaguardas até o fim do primeiro turno.', 'Prescience: +1 status bonus to AC and all saving throws until the end of the first turn.'),
 }
 
 /** Contextos que também são teste de perícia, onde o Rewrite Fate serve de reserva. */

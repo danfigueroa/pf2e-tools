@@ -19,6 +19,7 @@
  */
 import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
 import type { WeaponTraits } from './strikes'
+import { tr } from '../../i18n'
 
 const norm = (s: string) => s.trim().toLowerCase()
 const hasSpecial = (b: BuildInfo, name: string) => (b.specials ?? []).some((s) => norm(s) === norm(name))
@@ -162,10 +163,10 @@ export function investigationEligible(en: string, ability: string | null): boole
  */
 export function investigationParts(investigating: boolean, skillStratagem: boolean): Array<{ label: string; value: number; kind: 'other' }> {
     const out: Array<{ label: string; value: number; kind: 'other' }> = []
-    if (investigating) out.push({ label: 'Investigação ativa (circunstância)', value: INVESTIGATION_BONUS, kind: 'other' })
+    if (investigating) out.push({ label: tr('Investigação ativa (circunstância)', 'Active investigation (circumstance)'), value: INVESTIGATION_BONUS, kind: 'other' })
     if (skillStratagem) {
         out.push({
-            label: investigating ? 'Estratagema de perícia (aumenta o bônus da investigação)' : 'Estratagema de perícia (circunstância)',
+            label: investigating ? tr('Estratagema de perícia (aumenta o bônus da investigação)', 'Skill stratagem (raises the investigation bonus)') : tr('Estratagema de perícia (circunstância)', 'Skill stratagem (circumstance)'),
             value: 1,
             kind: 'other',
         })

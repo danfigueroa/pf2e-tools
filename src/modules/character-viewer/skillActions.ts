@@ -10,6 +10,7 @@
  */
 import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
 import type { MythicContext } from './mythicUse'
+import { tr } from '../../i18n'
 
 export interface SkillAction {
     id: string
@@ -58,8 +59,8 @@ export const SKILL_ACTIONS: Readonly<Record<string, ReadonlyArray<SkillAction>>>
     Diplomacy: [
         { id: 'bon-mot', label: 'Bon Mot', actions: 1 },
         { id: 'request', label: 'Request', actions: 1, mythic: 'influence' },
-        { id: 'make-impression', label: 'Make an Impression', actions: 0, time: '1 minuto', mythic: 'influence' },
-        { id: 'gather-information', label: 'Gather Information', actions: 0, time: '2 horas', mythic: 'influence' },
+        { id: 'make-impression', label: 'Make an Impression', actions: 0, time: tr('1 minuto', '1 minute'), mythic: 'influence' },
+        { id: 'gather-information', label: 'Gather Information', actions: 0, time: tr('2 horas', '2 hours'), mythic: 'influence' },
     ],
     Performance: [{ id: 'perform', label: 'Perform', actions: 1 }],
     Perception: [
@@ -81,7 +82,7 @@ export const SKILL_ACTIONS: Readonly<Record<string, ReadonlyArray<SkillAction>>>
     Occultism: [recall],
     Religion: [recall],
     Society: [recall],
-    Crafting: [recall, { id: 'tamper', label: 'Tamper (contra a CD de Reflexos)', actions: 1, feat: 'Tamper' }],
+    Crafting: [recall, { id: 'tamper', label: tr('Tamper (contra a CD de Reflexos)', 'Tamper (against Reflex DC)'), actions: 1, feat: 'Tamper' }],
     Survival: [],
 }
 

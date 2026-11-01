@@ -20,6 +20,7 @@ import { castRankForSlot } from './heightening'
 import { actionRange } from './actionVariants'
 import { collectFocusSpells } from './spellNames'
 import { hasPsychicArchetype } from './psiAmps'
+import { tr } from '../../i18n'
 
 export interface SpellstrikeOption {
     /** Identidade estável na lista: `bloco|nível|nome` (a mesma magia pode estar em dois blocos). */
@@ -94,7 +95,7 @@ export function spellstrikeOptions(build: BuildInfo, usedOf: (key: string) => nu
         const dc = proficiency != null && abilityBonus != null ? 10 + build.level + proficiency + abilityBonus + (itemBonus ?? 0) : null
         const psychic = build.class === 'Psychic' || (entry.tradition === 'occult' && hasPsychicArchetype(build))
         out.push({
-            id: `foco|${entry.tradition}|${entry.name}`, name: entry.name, caster: 'Truques de foco', casterIndex: -1,
+            id: `foco|${entry.tradition}|${entry.name}`, name: entry.name, caster: tr('Truques de foco', 'Focus cantrips'), casterIndex: -1,
             spellLevel: 0, rank: castRankForSlot(0, build.level), kind: 'cantrip', slot: null, left: null, focus: { dc, psychic },
         })
     }
@@ -108,14 +109,14 @@ export function spellstrikeIssue(spell: SpellDescription | null): string | null 
     // Magia de ação variável (Blazing Bolt, 1 a 3) serve se puder ser conjurada com 1 ou 2 ações.
     const range = actionRange(spell.actions)
     if (range) {
-        if (range.min > 2) return 'Spellstrike só aceita magia de 1 ou 2 ações.'
+        if (range.min > 2) return tr('Spellstrike só aceita magia de 1 ou 2 ações.', 'Spellstrike only accepts 1- or 2-action spells.')
     } else if (spell.actions != null && sym !== '◆' && sym !== '◆◆') {
-        return 'Spellstrike só aceita magia de 1 ou 2 ações.'
+        return tr('Spellstrike só aceita magia de 1 ou 2 ações.', 'Spellstrike only accepts 1- or 2-action spells.')
     }
     const traits = (spell.traits ?? []).map((t) => t.toLowerCase())
     const hasSave = !!(spell.defense ?? '').trim()
     if (!traits.includes('attack') && !hasSave) {
-        return 'A magia precisa exigir ataque de magia ou salvaguarda.'
+        return tr('A magia precisa exigir ataque de magia ou salvaguarda.', 'The spell must require a spell attack or a saving throw.')
     }
     return null
 }

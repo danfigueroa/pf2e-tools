@@ -4,6 +4,7 @@
 
 import type { BuildInfo } from '../../pathbuilder/types'
 import { itemDisplayName } from './customRunes'
+import { tr } from '../../i18n'
 
 /** Uma linha do inventário, já normalizada venha de onde vier. */
 export interface ItemRow {
@@ -32,7 +33,7 @@ export function inventoryRows(build: BuildInfo): ItemRow[] {
         name: w.name,
         qty: w.qty,
         sheetQty: w.qty,
-        tags: ['Arma'],
+        tags: [tr('Arma', 'Weapon')],
         equipment: false,
     }))
     const armor = (build.armor ?? []).map((a) => ({
@@ -41,7 +42,7 @@ export function inventoryRows(build: BuildInfo): ItemRow[] {
         name: a.name,
         qty: a.qty,
         sheetQty: a.qty,
-        tags: a.worn ? ['Armadura', 'Vestida'] : ['Armadura'],
+        tags: a.worn ? [tr('Armadura', 'Armor'), 'Vestida'] : [tr('Armadura', 'Armor')],
         equipment: false,
     }))
     const equipment = (build.equipment ?? []).map(([name, qty, status]) => ({

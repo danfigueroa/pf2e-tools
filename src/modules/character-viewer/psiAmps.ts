@@ -17,6 +17,7 @@
  */
 import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
 import type { ScaledComponent } from './heightening'
+import { tr } from '../../i18n'
 
 /** Uma parcela de dano que o amp põe no lugar do dano normal. */
 export interface AmpDamage {
@@ -47,65 +48,65 @@ const d = (count: number, faces: number, type: string, persistent = false, flat 
 const AMPS: PsiAmp[] = [
     {
         name: 'Frostbite',
-        summary: 'Drena a energia térmica à distância: 3d4 de frio e PV temporários.',
+        summary: tr('Drena a energia térmica à distância: 3d4 de frio e PV temporários.', 'Drains thermal energy from afar: 3d4 cold and temporary HP.'),
         damage: (rank) => [d(3 + 2 * (rank - 1), 4, 'cold')],
         notes: (rank) => [
-            'Ganha PV temporários iguais à metade do dano que o alvo sofre (depois de resistências); somem em 1 minuto.',
-            `Falha crítica: fraqueza ${rank} a contundente até o início do seu próximo turno.`,
+            tr('Ganha PV temporários iguais à metade do dano que o alvo sofre (depois de resistências); somem em 1 minuto.', 'Gain temporary HP equal to half the damage the target takes (after resistances); they go away after 1 minute.'),
+            tr(`Falha crítica: fraqueza ${rank} a contundente até o início do seu próximo turno.`, `Critical failure: weakness ${rank} to bludgeoning until the start of your next turn.`),
         ],
     },
     {
         name: 'Ignition',
-        summary: 'Calor puro: 1d10 de fogo (d12 corpo a corpo) mais respingo, sem ferir você.',
+        summary: tr('Calor puro: 1d10 de fogo (d12 corpo a corpo) mais respingo, sem ferir você.', 'Pure heat: 1d10 fire (d12 in melee) plus splash, without hurting you.'),
         meleeOption: true,
         damage: (rank, melee) => [
             d(rank, melee ? 12 : 10, 'fire'),
             d(rank, 4, 'fire', true),
         ],
         notes: (rank) => [
-            `Respingo de fogo: ${rank} (você não sofre o respingo).`,
-            'O dano persistente de 1d4 por rank só existe no sucesso crítico, que também dobra o dano inicial.',
+            tr(`Respingo de fogo: ${rank} (você não sofre o respingo).`, `Fire splash: ${rank} (you don't take the splash).`),
+            tr('O dano persistente de 1d4 por rank só existe no sucesso crítico, que também dobra o dano inicial.', 'The 1d4 persistent damage per rank only exists on a critical success, which also doubles the initial damage.'),
         ],
     },
     {
         name: 'Redistribute Potential',
-        summary: 'Duas explosões de 3 m adjacentes: 6d6 (frio numa, fogo na outra).',
+        summary: tr('Duas explosões de 3 m adjacentes: 6d6 (frio numa, fogo na outra).', 'Two adjacent 10-foot bursts: 6d6 (cold in one, fire in the other).'),
         damage: (rank) => [d(6 + 2 * (rank - 1), 6, 'cold'), d(6 + 2 * (rank - 1), 6, 'fire')],
         notes: () => [
-            'Um lado rouba calor (frio), o outro o concentra (fogo): ligue só o tipo da área do alvo. Criatura nas duas escolhe uma.',
-            'Falha: desajeitado 1 (área do frio) ou enfraquecido 1 (área do fogo), por 1 minuto.',
+            tr('Um lado rouba calor (frio), o outro o concentra (fogo): ligue só o tipo da área do alvo. Criatura nas duas escolhe uma.', 'One side steals heat (cold), the other concentrates it (fire): turn on only the target\'s area type. A creature in both picks one.'),
+            tr('Falha: desajeitado 1 (área do frio) ou enfraquecido 1 (área do fogo), por 1 minuto.', 'Failure: clumsy 1 (cold area) or enfeebled 1 (fire area), for 1 minute.'),
         ],
     },
     {
         name: 'Imaginary Weapon',
-        summary: 'Várias armas de força: dois alvos, um ataque em cada, 2d6 de força por rank.',
+        summary: tr('Várias armas de força: dois alvos, um ataque em cada, 2d6 de força por rank.', 'Several force weapons: two targets, one attack each, 2d6 force per rank.'),
         damage: (rank) => [d(2 * rank, 6, 'force')],
         notes: () => [
-            'Fora do Spellstrike, ataca DOIS alvos diferentes; a penalidade de ataques múltiplos só sobe depois dos dois.',
-            'No Spellstrike a magia pega só o alvo do Golpe — com o dano amplificado.',
+            tr('Fora do Spellstrike, ataca DOIS alvos diferentes; a penalidade de ataques múltiplos só sobe depois dos dois.', 'Outside Spellstrike, it attacks TWO different targets; the multiple attack penalty only goes up after both.'),
+            tr('No Spellstrike a magia pega só o alvo do Golpe — com o dano amplificado.', 'In Spellstrike the spell only hits the Strike\'s target — with the amped damage.'),
         ],
     },
     {
         name: 'Shield',
-        summary: 'Três camadas de escudo, sustentadas por até 1 minuto.',
+        summary: tr('Três camadas de escudo, sustentadas por até 1 minuto.', 'Three layers of shield, sustained for up to 1 minute.'),
         notes: (rank) => {
             const hardness = 5 + 5 * Math.floor((rank - 1) / 2)
             return [
-                'Cada Shield Block quebra uma camada e tira o bônus na CA, mas a magia continua; erga de novo ao Sustentar. Quebrada a última, nada de Shield por 10 minutos.',
-                `Quebrar duas camadas num bloqueio: Dureza ${Math.floor(hardness * 1.5)}; as três: Dureza ${hardness * 2} (a normal é ${hardness}).`,
-                'Mental Balm (se você tiver o talento) pode ser usado no lugar: +2 de status em Vontade contra emoção por 1 minuto e uma tentativa de contra-atacar o amedrontado.',
+                tr('Cada Shield Block quebra uma camada e tira o bônus na CA, mas a magia continua; erga de novo ao Sustentar. Quebrada a última, nada de Shield por 10 minutos.', 'Each Shield Block breaks one layer and removes the AC bonus, but the spell continues; raise it again when you Sustain. Once the last one breaks, no Shield for 10 minutes.'),
+                tr(`Quebrar duas camadas num bloqueio: Dureza ${Math.floor(hardness * 1.5)}; as três: Dureza ${hardness * 2} (a normal é ${hardness}).`, `Breaking two layers in one block: Hardness ${Math.floor(hardness * 1.5)}; all three: Hardness ${hardness * 2} (normal is ${hardness}).`),
+                tr('Mental Balm (se você tiver o talento) pode ser usado no lugar: +2 de status em Vontade contra emoção por 1 minuto e uma tentativa de contra-atacar o amedrontado.', 'Mental Balm (if you have the feat) can be used instead: +2 status bonus to Will against emotion for 1 minute and an attempt to counteract frightened.'),
             ]
         },
     },
     {
         name: 'Entropic Wheel',
-        summary: 'A roda ganha 2 motes em vez de 1, a cada vez que ganha um.',
-        notes: () => ['Cada mote soma 1 de dano do tipo oposto em magias de frio e fogo (só o dano inicial).'],
+        summary: tr('A roda ganha 2 motes em vez de 1, a cada vez que ganha um.', 'The wheel gains 2 motes instead of 1, each time it gains one.'),
+        notes: () => [tr('Cada mote soma 1 de dano do tipo oposto em magias de frio e fogo (só o dano inicial).', 'Each mote adds 1 damage of the opposite type to cold and fire spells (initial damage only).')],
     },
     {
         name: 'Thermal Stasis',
-        summary: 'A duração passa a 1 minuto.',
-        notes: (rank) => [`Resistência ${2 * rank} a fogo e a frio no seu rank (2 por rank).`],
+        summary: tr('A duração passa a 1 minuto.', 'The duration becomes 1 minute.'),
+        notes: (rank) => [tr(`Resistência ${2 * rank} a fogo e a frio no seu rank (2 por rank).`, `Resistance ${2 * rank} to fire and cold at your rank (2 per rank).`)],
     },
 ]
 

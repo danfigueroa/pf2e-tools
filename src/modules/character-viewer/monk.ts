@@ -17,6 +17,7 @@
  */
 import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
 import type { Strike } from './strikes'
+import { tr } from '../../i18n'
 
 const norm = (s: string) => s.trim().toLowerCase()
 const hasSpecial = (b: BuildInfo, name: string) => (b.specials ?? []).some((s) => norm(s) === norm(name))
@@ -53,7 +54,7 @@ export const kiStrikeDice = (level: number): number => 1 + Math.floor((focusRank
 
 export const KI_TYPES = ['force', 'spirit', 'vitality', 'void'] as const
 export type KiType = (typeof KI_TYPES)[number]
-export const KI_TYPE_LABEL: Record<KiType, string> = { force: 'força', spirit: 'espírito', vitality: 'vitalidade', void: 'vazio' }
+export const KI_TYPE_LABEL: Record<KiType, string> = { force: tr('força', 'force'), spirit: tr('espírito', 'spirit'), vitality: tr('vitalidade', 'vitality'), void: tr('vazio', 'void') }
 
 /** Chaves das escolhas por Golpe, guardadas junto dos chips de dano extra (não ficam lembradas). */
 export const FLURRY_KEY = 'flurry'
@@ -81,7 +82,7 @@ export function flurryCheck(build: BuildInfo, s: Strike, stanceOn: boolean): Flu
     if (hasMonasticArcherStance(build) && isBow(s)) {
         return stanceOn
             ? { ok: true, reason: null }
-            : { ok: false, reason: 'Flurry com arco exige a Monastic Archer Stance (1 ação): ligue a postura na faixa do Monge.' }
+            : { ok: false, reason: tr('Flurry com arco exige a Monastic Archer Stance (1 ação): ligue a postura na faixa do Monge.', 'Flurry with a bow requires Monastic Archer Stance (1 action): turn on the stance in the Monk bar.') }
     }
     return { ok: false, reason: null }
 }
@@ -95,4 +96,4 @@ export const perfectStrikeApplies = (build: BuildInfo, s: Strike): boolean => ha
 
 /** O aviso do Stunning Blows na rolagem; a CD de classe é do personagem. */
 export const stunningBlowsNote = (dc: number): string =>
-    `Stunning Blows: se um Golpe acertar e causar dano, Fortitude contra CD ${dc} ou atordoado 1 (atordoado 3 na falha crítica); incapacitação`
+    tr(`Stunning Blows: se um Golpe acertar e causar dano, Fortitude contra CD ${dc} ou atordoado 1 (atordoado 3 na falha crítica); incapacitação`, `Stunning Blows: if a Strike hits and deals damage, Fortitude against DC ${dc} or stunned 1 (stunned 3 on a critical failure); incapacitation`)

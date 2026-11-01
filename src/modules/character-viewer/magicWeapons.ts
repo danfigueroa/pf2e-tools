@@ -1,3 +1,4 @@
+import { tr } from '../../i18n'
 /**
  * Armas mágicas cujos números **mudam conforme a situação**.
  *
@@ -36,18 +37,21 @@ export interface MagicWeaponRules {
 const MAGIC_WEAPONS: Record<string, MagicWeaponRules> = {
     'gloom blade': {
         source: 'GM Core pg. 242',
-        summary:
+        summary: tr(
             'Negra como carvão, a lâmina fica mais potente no escuro. Na luz plena é um '
             + '+1 shortsword; na penumbra ou na escuridão vira um +2 striking shortsword.',
-        baseLabel: 'Luz plena (o que a ficha mostra)',
+            'Coal-black, the blade grows stronger in the dark. In bright light it is a '
+            + '+1 shortsword; in dim light or darkness it becomes a +2 striking shortsword.',
+        ),
+        baseLabel: tr('Luz plena (o que a ficha mostra)', 'Bright light (what the sheet shows)'),
         profiles: [
             {
-                when: 'Penumbra ou escuridão',
+                when: tr('Penumbra ou escuridão', 'Dim light or darkness'),
                 attackDelta: 1,
                 striking: 'striking',
             },
             {
-                when: 'Penumbra ou escuridão, atacando quem não te detecta',
+                when: tr('Penumbra ou escuridão, atacando quem não te detecta', 'Dim light or darkness, attacking someone who can\'t detect you'),
                 attackDelta: 1,
                 striking: 'striking',
                 // Em inglês como o resto do dano extra que vem da ficha: as
@@ -56,11 +60,19 @@ const MAGIC_WEAPONS: Record<string, MagicWeaponRules> = {
             },
         ],
         notes: [
-            'O 1d6 de precisão vale sempre que você ataca uma criatura que não te detecta '
-            + '(undetected) — inclusive na luz plena.',
-            'Na luz plena a lâmina só emite aura mágica para magias de 4º grau ou mais.',
-            'Runas fundamentais melhores que +2 striking também passam a valer na penumbra '
-            + 'e na escuridão.',
+            tr(
+                'O 1d6 de precisão vale sempre que você ataca uma criatura que não te detecta '
+                + '(undetected) — inclusive na luz plena.',
+                'The 1d6 precision applies whenever you attack a creature that can\'t detect you '
+                + '(undetected) — even in bright light.',
+            ),
+            tr('Na luz plena a lâmina só emite aura mágica para magias de 4º grau ou mais.', 'In bright light the blade only gives off a magic aura to spells of 4th rank or higher.'),
+            tr(
+                'Runas fundamentais melhores que +2 striking também passam a valer na penumbra '
+                + 'e na escuridão.',
+                'Fundamental runes better than +2 striking also apply in dim light '
+                + 'and darkness.',
+            ),
         ],
     },
 }

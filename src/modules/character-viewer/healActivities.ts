@@ -18,6 +18,7 @@
  *   (`UNSTABLE_BROKEN`) e o jogador devolve depois dos 10 minutos.
  */
 import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
+import { tr } from '../../i18n'
 
 export interface HealActivity {
     /** Chave do "usada hoje" no campo `uses` (só quando `daily`). */
@@ -59,13 +60,13 @@ export function featHeal(build: BuildInfo, name: string): HealActivity | null {
             key: 'Sacred Ground',
             name: 'Sacred Ground',
             actions: 0,
-            time: '1 minuto',
+            time: tr('1 minuto', '1 minute'),
             daily: true,
-            frequency: 'uma vez a cada 10 minutos',
+            frequency: tr('uma vez a cada 10 minutos', 'once every 10 minutes'),
             unstable: false,
             count: 0, faces: 1, flat: level,
             formula: formulaOf(0, 1, level),
-            note: 'Explosão de 9 m centrada em você, por 10 minutos: quem ficar na área os 10 minutos inteiros recupera esse PV (criaturas vivas; efeito de vitalidade). Não causa dano.',
+            note: tr('Explosão de 9 m centrada em você, por 10 minutos: quem ficar na área os 10 minutos inteiros recupera esse PV (criaturas vivas; efeito de vitalidade). Não causa dano.', '30-foot burst centered on you, for 10 minutes: whoever stays in the area for the whole 10 minutes regains that HP (living creatures; vitality effect). Deals no damage.'),
         }
     }
     if (norm(name) !== 'searing restoration' || !hasFeat(build, 'searing restoration')) return null
@@ -78,7 +79,7 @@ export function featHeal(build: BuildInfo, name: string): HealActivity | null {
         unstable: true,
         count, faces: 10, flat: 0,
         formula: formulaOf(count, 10, 0),
-        note: 'Quem foi curado pode fazer um teste simples imediato contra UMA fonte de sangramento persistente (a CD cai com ajuda apropriada).',
+        note: tr('Quem foi curado pode fazer um teste simples imediato contra UMA fonte de sangramento persistente (a CD cai com ajuda apropriada).', 'Whoever was healed can attempt an immediate flat check against ONE source of persistent bleed (the DC drops with appropriate help).'),
     }
 }
 
@@ -95,7 +96,7 @@ export function itemHeal(itemName: string): HealActivity | null {
         unstable: false,
         count, faces: 6, flat,
         formula: formulaOf(count, 6, flat),
-        note: 'Criatura viva, disposta e adjacente. Efeito de vitalidade: não machuca morto-vivo.',
+        note: tr('Criatura viva, disposta e adjacente. Efeito de vitalidade: não machuca morto-vivo.', 'A living, willing, adjacent creature. Vitality effect: doesn\'t hurt undead.'),
     }
 }
 

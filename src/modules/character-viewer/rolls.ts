@@ -19,6 +19,7 @@ import { newRollId, type RolledPart, type TableRoll } from '../../dice/tableRoll
 import { rollStrikeDamage, type Strike, type StrikePlan } from './strikes'
 import { componentLabel, type ScaledComponent } from './heightening'
 import { DEGREE_LABEL, GODLESS_HEALING_BONUS, treatWoundsOutcome, type Degree, type TreatVariant, type TreatWoundsOption } from './treatWounds'
+import { tr } from '../../i18n'
 
 /** Quem rola: o nome curto da mesa, o slug e a cor dos dados. */
 export interface RollerIdentity {
@@ -65,7 +66,7 @@ export function shareRule(who: RollerIdentity, req: DescriptionRequest): TableSh
 const sum = (parts: CheckPart[]) => parts.reduce((s, p) => s + p.value, 0)
 
 /** A parcela que troca a proficiência pela mítica (o delta, não +10 por cima). */
-export const mythicPart = (delta: number): CheckPart => ({ label: '✦ proficiência mítica', value: delta, kind: 'mythic' })
+export const mythicPart = (delta: number): CheckPart => ({ label: tr('✦ proficiência mítica', '✦ mythic proficiency'), value: delta, kind: 'mythic' })
 
 const toPart = (label: string, r: RolledExpr, persistent = false): RolledPart => ({
     label,
@@ -119,7 +120,7 @@ export function scrapShotRoll(who: RollerIdentity, title: string, attackParts: C
         ...base(who, title, sub),
         check: d20Check(attackParts, false),
         damage: {
-            parts: [toPart('perfurante', rolled)],
+            parts: [toPart(tr('perfurante', 'piercing'), rolled)],
             total,
             crit: { total: 2 * total, note: `2 × ${total} = ${2 * total}` },
         },
@@ -162,7 +163,7 @@ export function healRoll(who: RollerIdentity, title: string, label: string, roll
  * como em qualquer teste (e o servidor aceita). Não há natural 20 nem 1, e o ✦ não se aplica.
  */
 export function assuranceRoll(who: RollerIdentity, title: string, proficiency: number, sub?: string): TableRoll {
-    const parts = [{ label: 'Assurance: 10 + proficiência', value: proficiency }]
+    const parts = [{ label: tr('Assurance: 10 + proficiência', 'Assurance: 10 + proficiency'), value: proficiency }]
     return {
         ...base(who, title, sub),
         check: { d20: 10, mod: proficiency, total: 10 + proficiency, mythic: false, parts },
@@ -184,7 +185,7 @@ export function strikeRoll(
     const attackParts = mythicDelta != null ? [...plan.attackParts, mythicPart(mythicDelta)] : plan.attackParts
     const dmg = rollStrikeDamage(plan, strike.damageType)
     return {
-        ...base(who, `Golpe — ${strike.label ?? strike.name}`, strikeSub(strike, sub)),
+        ...base(who, tr(`Golpe — ${strike.label ?? strike.name}`, `Strike — ${strike.label ?? strike.name}`), strikeSub(strike, sub)),
         check: d20Check(attackParts, mythicDelta != null),
         damage: {
             parts: dmg.parts.map((p) => toPart(p.label, p.rolled, p.persistent)),
@@ -199,9 +200,9 @@ export function strikeRoll(
  * contra a CD de classe. Dano fixo (2 × nível), então não há dado a rolar.
  */
 export function fieryRebirthRoll(who: RollerIdentity, damage: number, dc: number): TableRoll {
-    const roll = base(who, 'Fiery Rebirth', `Reflexos básico · CD ${dc}`)
+    const roll = base(who, 'Fiery Rebirth', tr(`Reflexos básico · CD ${dc}`, `Basic Reflex · DC ${dc}`))
     roll.damage = {
-        parts: [{ label: 'fogo (adjacentes)', dice: [], flat: damage, total: damage }],
+        parts: [{ label: tr('fogo (adjacentes)', 'fire (adjacent)'), dice: [], flat: damage, total: damage }],
         total: damage,
         basic: true,
     }
@@ -216,7 +217,7 @@ export function fieryRebirthRoll(who: RollerIdentity, damage: number, dc: number
 export function withSimplePoison(roll: TableRoll, dice: { count: number; faces: number }): TableRoll {
     if (!roll.damage) return roll
     const rolled = rollGroups([dice])
-    const label = `veneno simples (${dice.count}d${dice.faces})`
+    const label = tr(`veneno simples (${dice.count}d${dice.faces})`, `simple poison (${dice.count}d${dice.faces})`)
     const dmg = roll.damage
     return {
         ...roll,
@@ -225,7 +226,7 @@ export function withSimplePoison(roll: TableRoll, dice: { count: number; faces: 
             parts: dmg.parts.length < 8 ? [...dmg.parts, toPart(label, rolled)] : dmg.parts,
             total: dmg.total + rolled.total,
             ...(dmg.crit
-                ? { crit: { total: dmg.crit.total + rolled.total, note: `${dmg.crit.note} + veneno ${rolled.total} (não dobra)` } }
+                ? { crit: { total: dmg.crit.total + rolled.total, note: tr(`${dmg.crit.note} + veneno ${rolled.total} (não dobra)`, `${dmg.crit.note} + poison ${rolled.total} (not doubled)`) } }
                 : {}),
         },
     }
@@ -264,13 +265,13 @@ export function spellstrikeRoll(
     // recusada. As da magia viram uma só (a soma de tudo que não é persistente).
     dmg.parts = dmg.parts.length + parts.length <= 8
         ? [...dmg.parts, ...parts]
-        : [...dmg.parts, { label: `magia: ${spell.name}`, dice: [], flat: spellTotal, total: spellTotal }]
+        : [...dmg.parts, { label: tr(`magia: ${spell.name}`, `spell: ${spell.name}`), dice: [], flat: spellTotal, total: spellTotal }]
     dmg.total += spellTotal
     if (dmg.crit) {
         const extra = spell.usesAttack ? 2 * spellTotal : spellTotal
         dmg.crit = {
             total: dmg.crit.total + extra,
-            note: `${dmg.crit.note} + magia ${spell.usesAttack ? `2 × ${spellTotal}` : spellTotal} = ${dmg.crit.total + extra}`,
+            note: tr(`${dmg.crit.note} + magia ${spell.usesAttack ? `2 × ${spellTotal}` : spellTotal} = ${dmg.crit.total + extra}`, `${dmg.crit.note} + spell ${spell.usesAttack ? `2 × ${spellTotal}` : spellTotal} = ${dmg.crit.total + extra}`),
         }
     }
     return roll
@@ -294,7 +295,7 @@ export function casterAttack(build: BuildInfo, caster: SpellCaster, mods: Condit
     const rank = caster.proficiency ?? 0
     const parts: CheckPart[] = [
         mythicMagic
-            ? { label: 'Mítica', value: build.level + MYTHIC_PROFICIENCY_BONUS, kind: 'prof' }
+            ? { label: tr('Mítica', 'Mythic'), value: build.level + MYTHIC_PROFICIENCY_BONUS, kind: 'prof' }
             // Mesma conta de `spellcasterStats` (o "Atq" do cartão): bloco de
             // conjuração nunca é destreinado, e os dois números têm de bater.
             : { label: proficiencyLabel(rank), value: build.level + rank, kind: 'prof' },
@@ -320,7 +321,7 @@ export const isMythicAttackSpell = (name: string) => MYTHIC_ATTACK_SPELLS.has(na
 /** O ataque de magia com a proficiência mítica no lugar da do bloco (o ✦ não se aplica: já é mítico). */
 export function mythicSpellAttack(build: BuildInfo, attack: SpellAttackInfo): SpellAttackInfo {
     if (attack.alreadyMythic) return attack
-    const parts = attack.parts.map((p): CheckPart => (p.kind === 'prof' ? { label: 'Mítica', value: build.level + MYTHIC_PROFICIENCY_BONUS, kind: 'prof' } : p))
+    const parts = attack.parts.map((p): CheckPart => (p.kind === 'prof' ? { label: tr('Mítica', 'Mythic'), value: build.level + MYTHIC_PROFICIENCY_BONUS, kind: 'prof' } : p))
     return { parts, total: sum(parts), mythicDelta: null, alreadyMythic: false }
 }
 
@@ -342,7 +343,7 @@ export function focusAttack(
 }
 
 export const mapLabel = (map: 0 | 1 | 2, agile = false) =>
-    map === 0 ? '1º ataque' : `${map + 1}º ataque (${agile ? (map === 1 ? '−4' : '−8') : (map === 1 ? '−5' : '−10')})`
+    map === 0 ? tr('1º ataque', '1st attack') : tr(`${map + 1}º ataque (${agile ? (map === 1 ? '−4' : '−8') : (map === 1 ? '−5' : '−10')})`, `${map === 1 ? '2nd' : '3rd'} attack (${agile ? (map === 1 ? '−4' : '−8') : (map === 1 ? '−5' : '−10')})`)
 
 /**
  * Magia: o ataque (se tiver o traço ataque) e o dano dos componentes escolhidos,
@@ -422,9 +423,9 @@ export function treatWoundsRoll(
     variant: TreatVariant = { mode: 'treat' },
 ): { roll: TableRoll; degree: Degree; delta: number; selfDamage: number; removesWounded: boolean } {
     const battle = variant.mode === 'battle'
-    const sub = [`Medicina · CD ${option.dc}`, variant.hour && !battle ? '1 hora' : null, variant.risky && !battle ? 'Risky Surgery' : null]
+    const sub = [tr(`Medicina · CD ${option.dc}`, `Medicine · DC ${option.dc}`), variant.hour && !battle ? tr('1 hora', '1 hour') : null, variant.risky && !battle ? 'Risky Surgery' : null]
         .filter(Boolean).join(' · ')
-    const title = battle ? 'Battle Medicine' : 'Tratar Ferimentos'
+    const title = battle ? 'Battle Medicine' : tr('Tratar Ferimentos', 'Treat Wounds')
     const roll = variant.assurance != null
         ? assuranceRoll(who, title, variant.assurance, [sub, 'Assurance'].join(' · '))
         : checkRoll(who, title, parts, mythicDelta, sub)
@@ -445,19 +446,19 @@ export function treatWoundsRoll(
             rolled.flat += GODLESS_HEALING_BONUS
             rolled.total += GODLESS_HEALING_BONUS
         }
-        roll.free = toPart(out.dice.heals ? `${out.doubled ? 'Cura em dobro (1 h)' : 'Cura'}${godless ? ' + Godless Healing' : ''}` : 'Dano', rolled)
+        roll.free = toPart(out.dice.heals ? `${out.doubled ? tr('Cura em dobro (1 h)', 'Double healing (1 h)') : tr('Cura', 'Healing')}${godless ? ' + Godless Healing' : ''}` : tr('Dano', 'Damage'), rolled)
         delta = out.dice.heals ? rolled.total : -rolled.total
     }
     let selfDamage = 0
     if (variant.risky && !battle) {
         const cut = rollGroups([{ count: 1, faces: 8 }], 0)
         selfDamage = cut.total
-        roll.damage = { parts: [toPart('Risky Surgery (cortante)', cut)], total: cut.total }
+        roll.damage = { parts: [toPart(tr('Risky Surgery (cortante)', 'Risky Surgery (slashing)'), cut)], total: cut.total }
     }
     roll.note = [
-        DEGREE_LABEL[out.degree] + (delta === 0 ? ' — nenhuma cura' : ''),
-        out.removesWounded ? 'tira Ferido' : null,
-        battle ? (variant.godless ? 'Imune ao Battle Medicine por 1 hora (Godless Healing)' : 'Alvo imune ao seu Battle Medicine por 1 dia') : 'Alvo imune a Tratar Ferimentos por 1 hora',
+        DEGREE_LABEL[out.degree] + (delta === 0 ? tr(' — nenhuma cura', ' — no healing') : ''),
+        out.removesWounded ? tr('tira Ferido', 'removes wounded') : null,
+        battle ? (variant.godless ? tr('Imune ao Battle Medicine por 1 hora (Godless Healing)', 'Immune to Battle Medicine for 1 hour (Godless Healing)') : tr('Alvo imune ao seu Battle Medicine por 1 dia', 'Target immune to your Battle Medicine for 1 day')) : tr('Alvo imune a Tratar Ferimentos por 1 hora', 'Target immune to Treat Wounds for 1 hour'),
     ].filter(Boolean).join('. ') + '.'
     return { roll, degree: out.degree, delta, selfDamage, removesWounded: out.removesWounded }
 }

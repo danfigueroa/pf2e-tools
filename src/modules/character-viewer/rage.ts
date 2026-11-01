@@ -29,6 +29,7 @@ import type { BuildInfo } from '../../pathbuilder/types'
 import type { ConditionState } from './components/useConditions'
 import type { AppliedMod, ConditionModifiers } from './conditions'
 import { abilityMod } from './helpers'
+import { tr } from '../../i18n'
 
 /** Quanto dura a "ressaca": nova Fúria dentro disso não dá PV temporários. */
 export const RAGE_COOLDOWN_MS = 60_000
@@ -181,11 +182,11 @@ export function meleeBonusParts(mods: ConditionModifiers, weapon: { agile: boole
     const rage = mods.rage
     if (!rage) return parts
     if (rage.titan?.weapons.some((w) => sameName(w, weapon.name))) {
-        parts.push({ from: 'Fúria (arma Grande)', type: 'untyped', value: rage.titan.damage })
+        parts.push({ from: tr('Fúria (arma Grande)', 'Rage (Large weapon)'), type: 'untyped', value: rage.titan.damage })
     } else if (weapon.agile) {
-        parts.push({ from: 'Fúria (ágil, metade)', type: 'untyped', value: Math.floor(rage.base / 2) })
+        parts.push({ from: tr('Fúria (ágil, metade)', 'Rage (agile, half)'), type: 'untyped', value: Math.floor(rage.base / 2) })
     } else {
-        parts.push({ from: 'Fúria', type: 'untyped', value: rage.base })
+        parts.push({ from: tr('Fúria', 'Rage'), type: 'untyped', value: rage.base })
     }
     return parts
 }
@@ -212,10 +213,10 @@ export const rageGivesTempHp = (stored: RageStored, now: number): boolean =>
 
 /** "contundente 7, fogo 7" — o que a Raging Resistance dá. */
 export const RESIST_LABEL: Record<string, string> = {
-    bludgeoning: 'contundente',
-    piercing: 'perfurante',
-    slashing: 'cortante',
-    fire: 'fogo',
-    cold: 'frio',
-    electricity: 'eletricidade',
+    bludgeoning: tr('contundente', 'bludgeoning'),
+    piercing: tr('perfurante', 'piercing'),
+    slashing: tr('cortante', 'slashing'),
+    fire: tr('fogo', 'fire'),
+    cold: tr('frio', 'cold'),
+    electricity: tr('eletricidade', 'electricity'),
 }

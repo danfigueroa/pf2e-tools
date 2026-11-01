@@ -11,6 +11,7 @@
  */
 import type { Armor, BuildInfo, Weapon } from '../../pathbuilder/types'
 import type { SizeEffectId } from './sizeEffects'
+import { tr } from '../../i18n'
 
 /** Uma ativação da runa: o que ela faz e quais magias ela imita. */
 export interface RuneActivation {
@@ -62,32 +63,47 @@ const CUSTOM_RUNES: CustomRuneEntry[] = [
         rune: {
             name: "Brukuthur's Size-Changing",
             level: 11,
-            traits: ['Incomum', 'Mágico'],
-            source: 'Invenção própria (homebrew)',
-            price: '1.400 po',
-            usage: 'gravada em armadura; Volume —',
-            description:
+            traits: [tr('Incomum', 'Uncommon'), tr('Mágico', 'Magical')],
+            source: tr('Invenção própria (homebrew)', 'Homebrew invention'),
+            price: tr('1.400 po', '1,400 gp'),
+            usage: tr('gravada em armadura; Volume —', 'etched onto armor; Bulk —'),
+            description: tr(
                 'Esta armadura tem matrizes arcanas reforçadas e circuitos de autômato '
                 + 'superdimensionados que permitem a ela e a quem a veste mudar drasticamente de '
                 + 'tamanho. Graças à engenharia única, os condutos mágicos são disparados por '
                 + 'interruptores mecânicos na própria armadura, dispensando o foco mental.',
+                'This armor has reinforced arcane matrices and oversized automaton circuitry that let it, '
+                + 'and whoever wears it, change size drastically. Thanks to its unique engineering, the magical '
+                + 'conduits are triggered by mechanical switches on the armor itself, with no need for mental focus.',
+            ),
             activations: [
                 {
-                    name: 'Mudar de Tamanho',
+                    name: tr('Mudar de Tamanho', 'Change Size'),
                     actions: '1',
-                    traits: ['manipular'],
-                    frequency: '1× por dia',
-                    effect:
+                    traits: [tr('manipular', 'manipulate')],
+                    frequency: tr('1× por dia', '1× per day'),
+                    effect: tr(
                         'A armadura altera o seu chassi e gera um efeito mecânico estritamente '
                         + 'igual a uma Enlarge de 4º rank ou a uma Shrink em você.',
+                        'The armor reshapes your chassis and produces a mechanical effect exactly '
+                        + 'like a 4th-rank enlarge or a shrink on you.',
+                    ),
                     sizeEffects: ['enlarge', 'shrink'],
                 },
             ],
             notes: [
-                'Sem traço de concentração: os interruptores dispensam o foco mental, então a '
-                + 'ativação não depende de você conseguir se concentrar.',
-                'Enlarge e Giant\'s Stature são polimorfia. Se os dois valem juntos (e qual '
-                + 'tamanho resulta) é decisão do GM — a ficha não soma um ao outro.',
+                tr(
+                    'Sem traço de concentração: os interruptores dispensam o foco mental, então a '
+                    + 'ativação não depende de você conseguir se concentrar.',
+                    'No concentrate trait: the switches remove the need for mental focus, so the '
+                    + 'activation doesn\'t depend on you being able to concentrate.',
+                ),
+                tr(
+                    'Enlarge e Giant\'s Stature são polimorfia. Se os dois valem juntos (e qual '
+                    + 'tamanho resulta) é decisão do GM — a ficha não soma um ao outro.',
+                    'Enlarge and Giant\'s Stature are polymorph. Whether both apply together (and which '
+                    + 'size results) is up to the GM — the sheet doesn\'t stack one on the other.',
+                ),
             ],
         },
     },
