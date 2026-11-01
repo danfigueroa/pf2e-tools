@@ -1389,11 +1389,18 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   caracteres, 30 apelidos por ficha (`sanitizeAttackNames`, conferido no `check-rolls`). Ficha de outra pessoa: o `IconButton`
   fica travado pelo `ReadOnlyTheme`, e o `useSharedState` não escreve.
 - **Traços das armas** (`components/TraitChips.tsx`): cada arma e ataque desarmado mostra os traços (`search?gear=`, ou o catálogo
-  de `homebrewGear.ts`) como chips; tocar abre a regra da AON (em inglês, a mesma do stat block do monstro) num popover. **As regras já estão
-  no banco**: `search?traitRules=a|b` (`resolveTraitRules` em `rule-core.js`, tabela `aon_lookups`, `kind` `trait:v1` — o CHECK da
-  coluna só aceita `letras:vN`, sem segundo `:`) devolve várias de uma vez; a publicação as aquece (`sheet-warm.js`, mais os traços
+  de `homebrewGear.ts`) como chips; tocar abre a regra da AON (em inglês, a mesma do stat block do monstro) num popover. **Em PORTUGUÊS** (a ficha é toda em pt-BR; o stat
+  block do monstro segue em inglês), **e já no banco**: `search?traitRules=a|b` (`resolveTraitRules` em `rule-core.js`, tabela
+  `aon_lookups`, `kind` `trait:v2` — o CHECK da coluna só aceita `letras:vN`, sem segundo `:`) devolve várias de uma vez; a publicação as aquece (`sheet-warm.js`, mais os traços
   dos desarmados) e o `TraitChips` as busca em lote ao aparecer (`prefetchTraitRules`, no MESMO cache de `fetchRule(…, 'trait')`),
-  então o toque lê da memória. **O nome do traço é `traitName`** (`weaponTraits.ts` = `weaponTraitName` do servidor, conferido no
+  então o toque lê da memória. **O chip e a regra são traduzidos**: o nome vem do vocabulário da ficha (`TRAIT_PT`, o mesmo de
+  `transformation-statblock/i18n.ts`, nos DOIS lados — `rule-core.js` e `weaponTraits.ts`, conferido no `check-rolls`) ou de um prompt
+  próprio de nomes (`translateTraitNames`: o `translateSegments` manda manter nome próprio e devolvia "Volley"/"Twin" em inglês), e o
+  texto pelo `translateSegments`. **Só a regra COMPLETAMENTE traduzida vai para o banco**: falha volta em inglês com
+  `translationPending` e o cliente não a guarda (cache `trait-pt`, separado do inglês do monstro). O chip mostra o rótulo
+  (`traitLabel`: pés → metros, `Versatile S` → `C`, "d10" fica) e a regra o nome em português com o original entre parênteses
+  ("Letal (Deadly)"). Habilidades de perícia citadas na prosa ("Athletics") seguem como a tradução geral as deixa.
+  **O nome do traço é `traitName`** (`weaponTraits.ts` = `weaponTraitName` do servidor, conferido no
   `check-rolls`): "Deadly d10" → "Deadly". O `traitTerm` do stat block de monstro tira os dígitos e deixaria "Deadly d" — não use aqui. Os traços vêm da entrada remaster (conferido contra a legacy, sem divergência nas armas do grupo).
 - **Curas que são ação** (`healActivities.ts` + `HealActivityButton`): **Searing Restoration** (1d10 + 1d10 no 3º nível e a cada 2
   depois: 4d10 no nível 7) e **Healer's Touch** (2d6+7; 4d6+15 na Greater; 1×/dia, `uses`). O botão "Curar" rola, posta no feed

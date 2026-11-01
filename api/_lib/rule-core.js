@@ -14,7 +14,7 @@
 // cachear inglês" (ver `aon.js`) existe para tradução que FALHOU e precisa ser
 // tentada de novo. Aqui o inglês é o resultado pretendido, não um acidente.
 
-import { searchAonRaw } from './aon.js'
+import { searchAonRaw, translateSegments, hasTranslationKey, runChainedPrompt } from './aon.js'
 import { isLegacy, toArray } from './creature-core.js'
 import { cachedLookup } from './lookup-cache.js'
 
@@ -134,7 +134,7 @@ export async function resolveRule(name, kind = null) {
 }
 
 
-// --- Traços de arma, em lote e já no banco ------------------------------------------------------
+// --- Traços de arma, em português, em lote e já no banco ------------------------------------------
 
 export const MAX_TRAIT_RULES = 30
 
@@ -153,6 +153,25 @@ export function weaponTraitName(raw) {
     .trim()
 }
 
+/**
+ * O vocabulário que a ficha já usa para os traços (o mesmo de `transformation-statblock/i18n.ts`).
+ * O que não está aqui é traduzido pela cadeia e fica no banco. (`TRAIT_PT` em `weaponTraits.ts` é a
+ * mesma lista — mudou uma, muda a outra; o `check-rolls` confere.)
+ */
+export const TRAIT_PT = {
+  agile: 'ágil',
+  finesse: 'acuidade',
+  deadly: 'letal',
+  versatile: 'versátil',
+  forceful: 'impetuoso',
+  sweep: 'amplo',
+  shove: 'empurrar',
+  backswing: 'contragolpe',
+  thrown: 'arremesso',
+  unarmed: 'desarmado',
+  trip: 'derrubar',
+}
+
 /** Só a categoria `trait`: "Unarmed" ou "Deadly" não podem cair numa magia ou condição homônima. */
 async function resolveTraitOnly(term) {
   const { hits } = await searchAonRaw({ query: term, category: 'trait', limit: 8 })
@@ -160,19 +179,85 @@ async function resolveTraitOnly(term) {
   return hit ? normalize(hit) : null
 }
 
-async function resolveTraitRulesUncached(terms) {
+const capitalize = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s)
+const CHUNK = 6
+
+/**
+ * O nome em português de traços de arma que a ficha ainda não tem no vocabulário. Prompt PRÓPRIO, não o
+ * `translateSegments`: aquele manda manter nomes próprios em inglês e devolvia "Volley" e "Twin" como
+ * estavam — o nome de um traço é palavra comum, e traduz-se. O vocabulário da ficha entra no prompt para
+ * o resto combinar com ele. `null` na falha (nada é cacheado).
+ */
+async function translateTraitNames(names) {
+  if (names.length === 0 || !hasTranslationKey()) return {}
+  const glossary = Object.entries(TRAIT_PT).map(([en, pt]) => `${en} = ${pt}`).join('; ')
+  const prompt = `Dê o nome em português brasileiro, como usado nas edições brasileiras de Pathfinder 2e (Remaster), de cada TRAÇO DE ARMA abaixo. O nome de um traço é palavra comum, não nome próprio: traduza-o (só deixe igual quando o próprio livro brasileiro o mantém, como "Fatal"). Use o mesmo vocabulário do restante da ficha: ${glossary}. Responda APENAS um objeto JSON {"Nome em inglês": "nome em português"}, sem explicações nem crases.\n\n${JSON.stringify(names)}`
+  const raw = await runChainedPrompt(prompt, { clean: false, maxTokens: 1024 })
+  if (!raw) return {}
+  try {
+    const parsed = JSON.parse(raw.replace(/^[^{]*/, '').replace(/[^}]*$/, ''))
+    const out = {}
+    for (const name of names) {
+      const pt = typeof parsed?.[name] === 'string' ? parsed[name].replace(/[.*_"]/g, '').trim() : ''
+      if (pt && pt.length <= 40) out[name] = pt.toLowerCase()
+    }
+    return out
+  } catch {
+    return {}
+  }
+}
+
+/**
+ * Traduz o nome (vocabulário da ficha ou prompt de nomes) e o texto de cada regra. Só devolve a regra
+ * COMPLETAMENTE traduzida: tradução que falhou não é cacheada (ver "Nada de cachear inglês" no
+ * CLAUDE.md) — quem chama tenta de novo na próxima consulta.
+ */
+async function translateTraitRules(rules) {
+  const enabled = hasTranslationKey()
+  const unknown = [...new Set(rules.map(({ rule }) => rule.name).filter((n) => !TRAIT_PT[n.toLowerCase()]))]
+  const names = {}
+  for (let i = 0; i < unknown.length; i += 15) Object.assign(names, await translateTraitNames(unknown.slice(i, i + 15)))
+
   const out = {}
-  for (const term of terms) {
-    const rule = await resolveTraitOnly(term).catch(() => null)
-    if (rule) out[term] = rule
+  for (let i = 0; i < rules.length; i += CHUNK) {
+    const group = rules.slice(i, i + CHUNK)
+    const pt = await translateSegments(group.map(({ rule }) => rule.text), enabled)
+    group.forEach(({ term, rule }, n) => {
+      const label = TRAIT_PT[rule.name.toLowerCase()] ?? names[rule.name]
+      if (!pt[n] || !label) return
+      const shown = capitalize(label)
+      // O texto traduzido ainda cita o traço pelo nome em inglês ("uma arma twin"): troca pelo daqui.
+      const text = label.toLowerCase() === rule.name.toLowerCase()
+        ? pt[n]
+        : pt[n].replace(new RegExp(`\\b${rule.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi'), label)
+      out[term] = { ...rule, label: shown, name: label.toLowerCase() === rule.name.toLowerCase() ? shown : `${shown} (${rule.name})`, text }
+    })
   }
   return out
 }
 
+async function resolveTraitRulesUncached(terms) {
+  const found = []
+  for (const term of terms) {
+    const rule = await resolveTraitOnly(term).catch(() => null)
+    if (rule) found.push({ term, rule })
+  }
+  return translateTraitRules(found)
+}
+
 /**
- * A regra de vários traços de uma vez, chaveada pelo termo. A primeira vez vai à AON; depois sai do
- * banco (`aon_lookups`, `trait:v1`, global) — o tocar no chip da arma não espera a AON. O que a
- * AON não tem fica de fora e é tentado de novo na próxima. Subiu o formato de `normalize`? Suba a versão.
+ * A regra de vários traços de uma vez, EM PORTUGUÊS, chaveada pelo termo. A primeira vez vai à AON e à
+ * tradução; depois sai do banco (`aon_lookups`, `trait:v2`, global) — tocar no chip da arma não espera
+ * nada. O que a tradução não deu fica de fora do banco e volta em inglês com `translationPending`
+ * (o cliente não o guarda e pede de novo). Subiu o formato? Suba a versão.
  */
-export const resolveTraitRules = (terms) =>
-  cachedLookup('trait:v1', [...new Set(terms.map(weaponTraitName).filter(Boolean))].slice(0, MAX_TRAIT_RULES), resolveTraitRulesUncached)
+export async function resolveTraitRules(rawTerms) {
+  const terms = [...new Set(rawTerms.map(weaponTraitName).filter(Boolean))].slice(0, MAX_TRAIT_RULES)
+  const out = await cachedLookup('trait:v2', terms, resolveTraitRulesUncached)
+  for (const term of terms) {
+    if (out[term]) continue
+    const rule = await resolveTraitOnly(term).catch(() => null)
+    if (rule) out[term] = { ...rule, ...(TRAIT_PT[term.toLowerCase()] ? { label: capitalize(TRAIT_PT[term.toLowerCase()]) } : {}), translationPending: true }
+  }
+  return out
+}

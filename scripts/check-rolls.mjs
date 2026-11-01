@@ -1150,8 +1150,20 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
 
 // ── O nome do traço de arma (para buscar a regra): cliente e servidor fazem a mesma conta ──
 {
-    const { traitName } = await import('../src/modules/character-viewer/weaponTraits.ts')
-    const { weaponTraitName } = await import('../api/_lib/rule-core.js')
+    const { traitName, traitLabel, TRAIT_PT } = await import('../src/modules/character-viewer/weaponTraits.ts')
+    const { weaponTraitName, TRAIT_PT: SERVER_PT } = await import('../api/_lib/rule-core.js')
+    eq(JSON.stringify(TRAIT_PT), JSON.stringify(SERVER_PT), 'o vocabulário de traços é o mesmo no cliente e no servidor')
+    // O chip em português: nome do vocabulário (ou o do servidor), o resto traduzido (pés → metros, S → C).
+    eq(traitLabel('Deadly d10'), 'Letal d10', 'Deadly d10')
+    eq(traitLabel('Fatal 1d10', 'fatal'), 'Fatal 1d10', 'Fatal usa o nome do servidor')
+    eq(traitLabel('Volley 30 ft.', 'salva'), 'Salva 9 m', 'Volley 30 ft. → 9 m')
+    eq(traitLabel('Thrown 10 ft.'), 'Arremesso 3 m', 'Thrown 10 ft. → 3 m')
+    eq(traitLabel('Thrown 5 ft.'), 'Arremesso 1,5 m', '5 ft. → 1,5 m')
+    eq(traitLabel('Versatile S'), 'Versátil C', 'Versatile S → C (cortante)')
+    eq(traitLabel('Versatile P'), 'Versátil P', 'Versatile P fica')
+    eq(traitLabel('Twin (Sheath)', 'gêmea'), 'Gêmea (Sheath)', 'Twin com o nome do servidor')
+    eq(traitLabel('agile'), 'Ágil', 'minúsculo do desarmado')
+    eq(traitLabel('Parry'), 'Parry', 'sem vocabulário nem nome do servidor, fica o da AON')
     const cases = {
         'Deadly d10': 'Deadly', 'Fatal 1d10': 'Fatal', 'Volley 30 ft.': 'Volley', 'Versatile S': 'Versatile',
         'Twin (Sheath)': 'Twin', 'Thrown 10 ft.': 'Thrown', 'Two-Hand d10': 'Two-Hand', 'Modular B, P, or S': 'Modular',

@@ -1,15 +1,13 @@
 import { memo, useEffect, useState } from 'react'
 import { Chip, Popover, Stack } from '@mui/material'
-import { fetchRule, prefetchTraitRules, type AonRule } from '../../../services/rules'
-import { traitName } from '../weaponTraits'
+import { fetchTraitRule, peekTraitRule, prefetchTraitRules, type AonRule } from '../../../services/rules'
+import { traitLabel, traitName } from '../weaponTraits'
 import { RuleBody } from '../../monster-scaler/components/RuleTip'
 
 // Os traços de uma arma ("Deadly d10", "Volley 30 ft.", "Agile") como chips que, ao toque, abrem
 // a regra do traço — direto da AON, em inglês, a mesma caixinha de regra do stat block do monstro
-// (`fetchRule` com cache; a busca só acontece ao abrir, nunca no render). Toque e não passar o
+// (em português, já traduzida e guardada no banco pelo servidor; ver `prefetchTraitRules`). Toque e não passar o
 // mouse, porque a ficha é usada no celular, e popover porque o tooltip some no meio da leitura.
-
-const label = (raw: string) => raw.charAt(0).toUpperCase() + raw.slice(1)
 
 /** Um chip por traço, sem repetir. O texto é o que a AON escreve (com o dado/alcance); a regra é do termo puro. */
 export const TraitChips = memo(function TraitChips({ traits }: { traits: string[] }) {
@@ -19,14 +17,18 @@ export const TraitChips = memo(function TraitChips({ traits }: { traits: string[
   const unique = [...new Set(traits.map((t) => t.trim()).filter(Boolean))]
   // As regras já estão no banco do servidor: uma consulta em lote ao aparecer, e o toque lê da memória.
   const wanted = unique.map(traitName).join('|')
-  useEffect(() => { if (wanted) void prefetchTraitRules(wanted.split('|')) }, [wanted])
+  // `tick` repinta os chips quando o nome em português (do servidor) chega.
+  const [, setTick] = useState(0)
+  useEffect(() => {
+    if (wanted) void prefetchTraitRules(wanted.split('|')).then(() => setTick((n) => n + 1))
+  }, [wanted])
   if (unique.length === 0) return null
 
   const show = (el: HTMLElement, raw: string) => {
     setOpen({ el, raw })
     setRule(null)
     setLoading(true)
-    void fetchRule(traitName(raw), 'trait').then((found) => {
+    void fetchTraitRule(traitName(raw)).then((found) => {
       // Quem toca em outro traço antes da resposta não recebe a regra do anterior.
       setOpen((cur) => {
         if (cur?.raw === raw) { setRule(found); setLoading(false) }
@@ -41,13 +43,13 @@ export const TraitChips = memo(function TraitChips({ traits }: { traits: string[
         {unique.map((t) => (
           <Chip
             key={t}
-            label={label(t)}
+            label={traitLabel(t, peekTraitRule(traitName(t))?.label)}
             size="small"
             variant="outlined"
             clickable
             onClick={(e) => show(e.currentTarget, t)}
             aria-haspopup="dialog"
-            aria-label={`Traço ${label(t)}: ler a regra`}
+            aria-label={`Traço ${traitLabel(t, peekTraitRule(traitName(t))?.label)}: ler a regra`}
             sx={{ height: 22, fontSize: '0.7rem', borderStyle: 'dashed' }}
           />
         ))}
