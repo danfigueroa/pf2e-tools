@@ -16,7 +16,7 @@ import { useReducedMotion } from '../../motion/motion';
 import { useAnimatedNumber } from '../../motion/useAnimatedNumber';
 import { TrophyMedal } from './TrophyMedal';
 import { EASE, EASE_BACK, flash, glowNew, grow, reveal } from './motion';
-import { locale } from '../../i18n';
+import { locale, tr } from '../../i18n';
 
 // Troféus do Covil (`/trofeus`, `/trofeus/:user`): o perfil de troféus da conta — o meu ou o de
 // um colega da mesa — e o ranking da mesa. O catálogo vem do servidor junto com o perfil.
@@ -26,9 +26,9 @@ import { locale } from '../../i18n';
 // última visita respira com o selo "Novo" e o ranking desliza ao reordenar (FLIP).
 
 const CATEGORIES: Record<string, string> = {
-  ficha: 'Ficha', historia: 'História e notas', presenca: 'Presença', dados: 'Dados', sorte: 'Sorte e azar',
-  combate: 'Combate', destaques: 'Destaques da sessão',
-  mesa: 'A mesa', mestre: 'Mestre', platina: 'Platina',
+  ficha: tr('Ficha', 'Sheet'), historia: tr('História e notas', 'Story and notes'), presenca: tr('Presença', 'Attendance'), dados: tr('Dados', 'Dice'), sorte: tr('Sorte e azar', 'Luck'),
+  combate: tr('Combate', 'Combat'), destaques: tr('Destaques da sessão', 'Session highlights'),
+  mesa: tr('A mesa', 'The table'), mestre: tr('Mestre', 'Game master'), platina: tr('Platina', 'Platinum'),
 };
 const TIER_ORDER: TrophyTier[] = ['platina', 'ouro', 'prata', 'bronze'];
 const mesaName = (id: string | null) => MESAS.find((m) => m.id === id)?.nome ?? null;
@@ -94,14 +94,14 @@ function TrophyCard({ def, at, mesa, progress, mine, fresh, shown, index }: {
       <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
         <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1 }}>
           <Typography component="h3" sx={{ fontWeight: 700, color: unlocked ? ink.primary : ink.secondary, lineHeight: 1.25 }}>
-            {secret ? 'Troféu secreto' : def.title}
+            {secret ? tr('Troféu secreto', 'Secret trophy') : def.title}
           </Typography>
           <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.08em', color: tier.ink, flexShrink: 0, textTransform: 'uppercase' }}>
-            {fresh ? 'Novo!' : tier.label}
+            {fresh ? tr('Novo!', 'New!') : tier.label}
           </Typography>
         </Box>
         <Typography sx={{ fontSize: '0.875rem', color: ink.secondary, lineHeight: 1.45 }}>
-          {secret ? (mine ? 'Continue jogando para descobrir.' : 'Ainda não descoberto.') : def.description}
+          {secret ? (mine ? tr('Continue jogando para descobrir.', 'Keep playing to find out.') : tr('Ainda não descoberto.', 'Not discovered yet.')) : def.description}
         </Typography>
         {unlocked ? (
           <Typography sx={{ fontSize: '0.75rem', color: ink.secondary, mt: 0.25 }}>
@@ -137,13 +137,13 @@ function ProfileHeader({ name, profile, role }: { name: string; profile: TrophyP
           alignItems: 'center', justifyContent: 'center', flexShrink: 0, lineHeight: 1,
           transform: shown ? 'none' : 'scale(0.5)', transition: `transform 700ms ${EASE_BACK}`,
         }}>
-          <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em' }}>NÍVEL</Typography>
+          <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em' }}>{tr('NÍVEL', 'LEVEL')}</Typography>
           <Typography sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.625rem' }}><Count value={lvl.level} shown={shown} duration={900} /></Typography>
         </Box>
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography component="h1" noWrap sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: { xs: '1.375rem', sm: '1.75rem' } }}>{name}</Typography>
           <Typography sx={{ fontSize: '0.875rem', color: chrome.textSoft, fontVariantNumeric: 'tabular-nums' }}>
-            <Count value={total} shown={shown} duration={1200} /> pontos · faltam {lvl.next - lvl.into} para o nível {lvl.level + 1}
+            <Count value={total} shown={shown} duration={1200} /> {tr('pontos · faltam ', 'points · ')}{lvl.next - lvl.into} {tr('para o nível ', 'to level ')}{lvl.level + 1}
           </Typography>
           <Box sx={{ mt: 1, display: 'flex' }}><Bar fraction={lvl.into / lvl.next} shown={shown} track={chrome.active} fill={gold.bright} delay={300} /></Box>
         </Box>
@@ -162,7 +162,7 @@ function ProfileHeader({ name, profile, role }: { name: string; profile: TrophyP
         ))}
         <Box sx={{ pl: { sm: 1 }, ...reveal(shown, 6) }}>
           <Typography sx={{ fontFamily: displayFont, fontWeight: 700, lineHeight: 1 }}><Count value={pct} shown={shown} />%</Typography>
-          <Typography sx={{ fontSize: '0.6875rem', color: chrome.textSoft }}>{done} de {ofRole.length}</Typography>
+          <Typography sx={{ fontSize: '0.6875rem', color: chrome.textSoft }}>{done} {tr('de ', 'of ')}{ofRole.length}</Typography>
         </Box>
       </Box>
     </Box>
@@ -185,17 +185,17 @@ function Collection({ profile, mine, isGm, fresh }: { profile: TrophyProfile; mi
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
         {hasGm && (['player', 'gm'] as const).map((r) => (
-          <Chip key={r} label={r === 'player' ? 'Jogador' : 'Mestre'} color={role === r ? 'primary' : 'default'}
+          <Chip key={r} label={r === 'player' ? tr('Jogador', 'Player') : tr('Mestre', 'Game master')} color={role === r ? 'primary' : 'default'}
             onClick={() => { setRole(r); setCategory(null); }} sx={{ fontWeight: 600 }} />
         ))}
         {hasGm && <Box sx={{ width: 8 }} />}
-        <Chip label="Todos" variant={category ? 'outlined' : 'filled'} onClick={() => setCategory(null)} />
+        <Chip label={tr("Todos", 'All')} variant={category ? 'outlined' : 'filled'} onClick={() => setCategory(null)} />
         {categories.map((c) => (
           <Chip key={c} label={CATEGORIES[c] ?? c} variant={category === c ? 'filled' : 'outlined'} onClick={() => setCategory(c)} />
         ))}
-        <Chip label="Só os que faltam" variant={missing ? 'filled' : 'outlined'} onClick={() => setMissing((m) => !m)} />
+        <Chip label={tr("Só os que faltam", 'Only the missing ones')} variant={missing ? 'filled' : 'outlined'} onClick={() => setMissing((m) => !m)} />
       </Box>
-      {list.length === 0 && <Typography color="text.secondary">Nenhum troféu neste filtro.</Typography>}
+      {list.length === 0 && <Typography color="text.secondary">{tr('Nenhum troféu neste filtro.', 'No trophies in this filter.')}</Typography>}
       <Box ref={ref} sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: 1.5 }}>
         {list.map((d, i) => {
           const u = unlocked.get(d.id);
@@ -270,10 +270,10 @@ function RankList({ title, role, list, me }: { title: string; role: TrophyRole; 
               {initialsOf(e.name)}
             </Box>
             <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-              <Typography noWrap sx={{ fontWeight: 600 }}>{e.name}{e.userId === me ? ' (você)' : ''}</Typography>
+              <Typography noWrap sx={{ fontWeight: 600 }}>{e.name}{e.userId === me ? tr(' (você)', ' (you)') : ''}</Typography>
               <Box sx={{ display: 'flex', maxWidth: 240 }}><Bar fraction={e.points[role] / top} shown={shown} height={5} delay={200 + i * 60} /></Box>
               <Typography noWrap sx={{ fontSize: '0.8125rem', color: ink.secondary }}>
-                {e.count} {e.count === 1 ? 'troféu' : 'troféus'}{e.platinum ? ` · ${e.platinum} platina` : ''}{e.last ? ` · último: ${e.last.title}` : ''}
+                {e.count} {e.count === 1 ? tr('troféu', 'trophy') : tr('troféus', 'trophies')}{e.platinum ? ` · ${e.platinum} platina` : ''}{e.last ? tr(` · último: ${e.last.title}`, ` · latest: ${e.last.title}`) : ''}
               </Typography>
             </Box>
             <Typography sx={{ fontFamily: displayFont, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
@@ -293,7 +293,7 @@ function Ranking({ entries, me }: { entries: RankingEntry[]; me: string | null }
   const masters = entries.filter((e) => e.role === 'gm' || e.points.gm > 0).sort((a, b) => b.points.gm - a.points.gm || byName(a, b));
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {players.length > 0 && <RankList title="Jogadores" role="player" list={players} me={me} />}
+      {players.length > 0 && <RankList title={tr("Jogadores", 'Players')} role="player" list={players} me={me} />}
       {masters.length > 0 && <RankList title="Mestres" role="gm" list={masters} me={me} />}
     </Box>
   );
@@ -320,24 +320,24 @@ export default function TrophiesPage() {
   }, [mine, user, version]);
 
   const entry = ranking?.find((e) => e.userId === (mine ? role.userId : user));
-  const name = mine ? (role.displayName ?? role.username ?? 'Você') : entry?.name ?? 'Membro da mesa';
+  const name = mine ? (role.displayName ?? role.username ?? tr('Você', 'You')) : entry?.name ?? tr('Membro da mesa', 'Table member');
   const showTab = mine ? tab : 'mine';
 
   return (
     <Box sx={{ maxWidth: 1100, mx: 'auto', display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3 } }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
         {!mine && (
-          <ButtonBase component={Link} to="/trofeus" aria-label="Voltar aos meus troféus" sx={{ width: 44, height: 44, borderRadius: 1.5, border: `1px solid ${rule}` }}>
+          <ButtonBase component={Link} to="/trofeus" aria-label={tr("Voltar aos meus troféus", 'Back to my trophies')} sx={{ width: 44, height: 44, borderRadius: 1.5, border: `1px solid ${rule}` }}>
             <BackIcon />
           </ButtonBase>
         )}
         <TrophyIcon sx={{ color: gold.deep }} />
-        <Typography sx={{ fontFamily: displayFont, fontWeight: 600, fontSize: '1.25rem' }}>Troféus do Covil</Typography>
+        <Typography sx={{ fontFamily: displayFont, fontWeight: 600, fontSize: '1.25rem' }}>{tr('Troféus do Covil', 'Covil Trophies')}</Typography>
       </Box>
 
       {mine && (
         <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ borderBottom: `1px solid ${rule}` }}>
-          <Tab value="mine" label="Meus troféus" />
+          <Tab value="mine" label={tr("Meus troféus", 'My trophies')} />
           <Tab value="mesa" label="A mesa" />
         </Tabs>
       )}
@@ -346,14 +346,13 @@ export default function TrophiesPage() {
         profile === undefined ? (
           <><Skeleton variant="rounded" height={130} /><Skeleton variant="rounded" height={320} /></>
         ) : profile === null ? (
-          <Alert severity="warning">Não foi possível carregar os troféus agora.</Alert>
+          <Alert severity="warning">{tr('Não foi possível carregar os troféus agora.', 'Couldn\'t load the trophies right now.')}</Alert>
         ) : (
           <>
             <ProfileHeader name={name} profile={profile} role="player" />
             {mine && profile.unlocked.length === 0 && (
               <Alert severity="info" icon={<TrophyIcon />}>
-                Todo mundo começa do zero. Escreva o background, anote o que acontece e role os dados com a sessão aberta pelo GM para ganhar os primeiros troféus.
-              </Alert>
+                {tr('Todo mundo começa do zero. Escreva o background, anote o que acontece e role os dados com a sessão aberta pelo GM para ganhar os primeiros troféus.', 'Everyone starts from zero. Write your background, note down what happens and roll the dice with the session opened by the GM to earn the first trophies.')}</Alert>
             )}
             <Collection profile={profile} mine={mine} isGm={mine ? role.isGm : entry?.role === 'gm'} fresh={fresh} />
           </>
@@ -362,7 +361,7 @@ export default function TrophiesPage() {
 
       {showTab === 'mesa' && (
         ranking === undefined ? <Skeleton variant="rounded" height={320} />
-          : ranking === null ? <Alert severity="warning">Não foi possível carregar o ranking agora.</Alert>
+          : ranking === null ? <Alert severity="warning">{tr('Não foi possível carregar o ranking agora.', 'Couldn\'t load the ranking right now.')}</Alert>
             : <Ranking entries={ranking} me={role.userId} />
       )}
     </Box>

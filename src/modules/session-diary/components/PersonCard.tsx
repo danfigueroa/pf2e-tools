@@ -5,6 +5,7 @@ import { gold, green, MYTHIC_COLOR, parchment, rule, status } from '../../../the
 import { d20Average, type PersonStats } from '../stats'
 import { CountUp, PersonAvatar } from './ui'
 import { grow, reveal } from './style'
+import { tr } from '../../../i18n'
 
 const Stat = ({ label, value, tone, shown, decimals }: { label: string; value: number | null; tone?: string; shown: boolean; decimals?: number }) => (
     <Box sx={{ minWidth: 0 }}>
@@ -45,18 +46,18 @@ export const PersonCard = memo(({ person: p, index }: { person: PersonStats; ind
                 <Typography sx={{ fontWeight: 700, minWidth: 0 }} noWrap>{p.name}</Typography>
             </Box>
             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 1 }}>
-                <Stat label="Rolagens" value={p.rolls} shown={shown} />
-                <Stat label="Testes" value={p.checks} shown={shown} />
-                <Stat label="Média no d20" value={d20Average(p)} decimals={1} shown={shown} />
+                <Stat label={tr("Rolagens", 'Rolls')} value={p.rolls} shown={shown} />
+                <Stat label={tr("Testes", 'Checks')} value={p.checks} shown={shown} />
+                <Stat label={tr("Média no d20", 'd20 average')} value={d20Average(p)} decimals={1} shown={shown} />
                 <Stat label="Tirou 20" value={p.nat20} tone={p.nat20 ? gold.deep : undefined} shown={shown} />
                 <Stat label="Tirou 1" value={p.nat1} tone={p.nat1 ? status.error : undefined} shown={shown} />
-                <Stat label="Pontos Míticos" value={p.mythic} tone={p.mythic ? MYTHIC_COLOR : undefined} shown={shown} />
+                <Stat label={tr("Pontos Míticos", 'Mythic Points')} value={p.mythic} tone={p.mythic ? MYTHIC_COLOR : undefined} shown={shown} />
             </Box>
             {(p.damage > 0 || p.best) && (
                 <Box sx={{ mt: 1, display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 1 }}>
-                    {p.best && <Stat label="Maior teste" value={p.best.total} shown={shown} />}
-                    {p.damage > 0 && <Stat label="Dano rolado" value={p.damage} shown={shown} />}
-                    {p.biggestHit && <Stat label="Maior dano" value={p.biggestHit.total} shown={shown} />}
+                    {p.best && <Stat label={tr("Maior teste", 'Highest check')} value={p.best.total} shown={shown} />}
+                    {p.damage > 0 && <Stat label={tr("Dano rolado", 'Damage rolled')} value={p.damage} shown={shown} />}
+                    {p.biggestHit && <Stat label={tr("Maior dano", 'Biggest damage')} value={p.biggestHit.total} shown={shown} />}
                 </Box>
             )}
             {p.checks > 0 && <MiniHist hist={p.hist} shown={shown} />}

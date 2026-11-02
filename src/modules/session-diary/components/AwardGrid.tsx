@@ -10,7 +10,7 @@ import { displayFont, ink, parchment, rule } from '../../../theme'
 import type { Award } from '../awards'
 import { CountUp, PersonAvatar } from './ui'
 import { reveal, TONE } from './style'
-import { locale } from '../../../i18n'
+import { locale, tr } from '../../../i18n'
 
 const ICONS: Record<string, ReactElement> = {
     blessed: <AutoAwesome />, cursed: <SentimentVeryDissatisfied />, hot: <Whatshot />, cold: <AcUnit />,
@@ -114,18 +114,16 @@ const AwardCard = memo(({ award: a, big, shown, index, onOpenDay }: CardProps) =
                     </Box>
                     {a.runnerUp && (
                         <Typography variant="caption" sx={{ display: 'block', mt: 1, color: ink.secondary }} noWrap>
-                            2º lugar: {a.runnerUp.person.name} ({a.runnerUp.label})
+                            {tr('2º lugar: ', '2nd place: ')}{a.runnerUp.person.name} ({a.runnerUp.label})
                         </Typography>
                     )}
                 </>
             ) : a.tie ? (
                 <Typography variant="body2" sx={{ color: ink.secondary }}>
-                    <b>Empate</b> entre {joinNames(a.tie.names)}, com {a.tie.label} cada.
-                </Typography>
+                    <b>Empate</b> {tr('entre ', 'between ')}{joinNames(a.tie.names)}{tr(', com ', ', with ')}{a.tie.label} {tr('cada.', 'each.')}</Typography>
             ) : (
                 <Typography variant="body2" sx={{ color: ink.secondary, fontStyle: 'italic' }}>
-                    Ninguém ainda: falta rolar mais.
-                </Typography>
+                    {tr('Ninguém ainda: falta rolar mais.', 'Nobody yet: more rolling needed.')}</Typography>
             )}
         </Paper>
     )

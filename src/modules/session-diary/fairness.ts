@@ -1,3 +1,4 @@
+import { tr } from '../../i18n'
 // "O d20 é honesto?": o teste qui-quadrado da distribuição das faces contra a
 // uniforme (5% cada). É para a mesa rir, mas a conta é de verdade — nunca acusa
 // um dado com poucos testes, que é quando todo dado parece viciado.
@@ -38,8 +39,8 @@ export function fairness(hist: number[]): Fairness {
 }
 
 export const VERDICT_TEXT: Record<Verdict, string> = {
-    few: 'Ainda não dá para saber: são precisos pelo menos 100 testes.',
-    fair: 'O dado é justo: cada número está saindo mais ou menos as mesmas vezes. A culpa é de quem rola.',
-    suspicious: 'Estranho: alguns números estão saindo bem mais que outros. Pode ser só azar.',
-    loaded: 'Parece viciado: alguns números estão saindo muito mais que outros, mais do que o azar explica.',
+    few: tr('Ainda não dá para saber: são precisos pelo menos 100 testes.', 'Can\'t tell yet: at least 100 checks are needed.'),
+    fair: tr('O dado é justo: cada número está saindo mais ou menos as mesmas vezes. A culpa é de quem rola.', 'The die is fair: every number is coming up about the same number of times. Blame whoever is rolling.'),
+    suspicious: tr('Estranho: alguns números estão saindo bem mais que outros. Pode ser só azar.', 'Strange: some numbers are coming up a lot more than others. It may be just bad luck.'),
+    loaded: tr('Parece viciado: alguns números estão saindo muito mais que outros, mais do que o azar explica.', 'Looks loaded: some numbers are coming up much more than others, more than bad luck explains.'),
 }

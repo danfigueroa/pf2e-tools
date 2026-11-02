@@ -8,6 +8,7 @@ import { TIER_POINTS, type TrophyTier } from '../../services/trophies';
 import { TrophyMedal } from './TrophyMedal';
 import { Sparks } from './Sparks';
 import { drop, EASE, pointsUp, ringOut, rise, shine, spinIn } from './motion';
+import { tr } from '../../i18n';
 
 // O cartão "Troféu desbloqueado", no estilo dos consoles (chunk à parte: o `TrophyToastLayer`
 // do layout só o baixa quando há o que mostrar). A sequência:
@@ -39,7 +40,7 @@ export default function TrophyUnlockCard({ toast, leaving, onOpen, onClose }: { 
 
   const motion = (value: string) => (reduced ? 'none' : value);
   return (
-    <Box role="status" aria-live="polite" aria-label={`${toast.who ? `${toast.who} desbloqueou` : 'Troféu desbloqueado'}: ${toast.title} (${tier.label})`} sx={{
+    <Box role="status" aria-live="polite" aria-label={`${toast.who ? tr(`${toast.who} desbloqueou`, `${toast.who} unlocked`) : tr('Troféu desbloqueado', 'Trophy unlocked')}: ${toast.title} (${tier.label})`} sx={{
       position: 'fixed', top: { xs: 72, md: 16 }, left: { xs: '50%', md: 'calc(50% + var(--sidebar-w, 0px) / 2)' },
       transform: 'translate(-50%, 0)', zIndex: 1260, width: 'min(400px, calc(100vw - 24px))', boxSizing: 'border-box',
       display: 'flex', alignItems: 'center', gap: 1.75, p: 1.5, pr: 0.5, borderRadius: 2.5, overflow: 'visible',
@@ -78,7 +79,7 @@ export default function TrophyUnlockCard({ toast, leaving, onOpen, onClose }: { 
         </Box>
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.12em', color: gold.bright }}>
-            {toast.who ? `${toast.who.toUpperCase()} DESBLOQUEOU` : platinum ? 'PLATINA CONQUISTADA' : 'TROFÉU DESBLOQUEADO'} · {tier.label.toUpperCase()}
+            {toast.who ? tr(`${toast.who.toUpperCase()} DESBLOQUEOU`, `${toast.who.toUpperCase()} UNLOCKED`) : platinum ? tr('PLATINA CONQUISTADA', 'PLATINUM EARNED') : tr('TROFÉU DESBLOQUEADO', 'TROPHY UNLOCKED')} · {tier.label.toUpperCase()}
           </Typography>
           <Typography noWrap sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.0625rem' }}>{toast.title}</Typography>
           <Typography sx={{
@@ -89,7 +90,7 @@ export default function TrophyUnlockCard({ toast, leaving, onOpen, onClose }: { 
           </Typography>
         </Box>
       </ButtonBase>
-      <IconButton size="small" aria-label="Fechar" onClick={onClose} sx={{ color: chrome.textMuted, alignSelf: 'flex-start' }}>
+      <IconButton size="small" aria-label={tr("Fechar", 'Close')} onClick={onClose} sx={{ color: chrome.textMuted, alignSelf: 'flex-start' }}>
         <CloseIcon fontSize="small" />
       </IconButton>
     </Box>

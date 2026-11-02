@@ -1,3 +1,4 @@
+import { tr } from '../i18n'
 /**
  * Paleta do Pathfinder 2e Remaster: verde profundo (moldura), pergaminho
  * (conteúdo) e ouro/latão (filetes e rótulos) — o trade dress do Player Core /
@@ -142,9 +143,9 @@ export const SHIELD_COLOR = '#4A6572'
  */
 export const TROPHY_TIERS = {
     bronze: { medal: '#B0723F', ink: '#7A4A24', tint: '#F1E2D2', label: 'Bronze' },
-    prata: { medal: '#9AA3AA', ink: '#4F5960', tint: '#E8EAEB', label: 'Prata' },
-    ouro: { medal: '#C8A951', ink: '#7E611D', tint: '#F3E8C6', label: 'Ouro' },
-    platina: { medal: '#7FA0B8', ink: '#2F5470', tint: '#DDE8EF', label: 'Platina' },
+    prata: { medal: '#9AA3AA', ink: '#4F5960', tint: '#E8EAEB', label: tr('Prata', 'Silver') },
+    ouro: { medal: '#C8A951', ink: '#7E611D', tint: '#F3E8C6', label: tr('Ouro', 'Gold') },
+    platina: { medal: '#7FA0B8', ink: '#2F5470', tint: '#DDE8EF', label: tr('Platina', 'Platinum') },
 } as const
 
 export const TOKEN_PC = '#4F9A6B'
@@ -168,17 +169,17 @@ export const mapChrome = {
  * apagada sumiria no mapa de lava ou no de pergaminho.
  */
 export const DRAW_COLORS = [
-    { id: 'fire', label: 'Fogo', hex: '#E0531F' },
-    { id: 'cold', label: 'Gelo', hex: '#3FA9F5' },
-    { id: 'acid', label: 'Ácido', hex: '#6BBF3A' },
-    { id: 'arcane', label: 'Arcano', hex: '#9B59D0' },
-    { id: 'light', label: 'Luz', hex: '#F2D04B' },
-    { id: 'shadow', label: 'Sombra', hex: '#1C1C1C' },
-    { id: 'electricity', label: 'Elétrico', hex: '#7DF9FF' },
-    { id: 'poison', label: 'Veneno', hex: '#2E7D32' },
-    { id: 'blood', label: 'Sangue', hex: '#8E1B1B' },
-    { id: 'sonic', label: 'Sônico', hex: '#FF6FB5' },
-    { id: 'terrain', label: 'Terreno difícil', hex: '#8B5A2B' },
+    { id: 'fire', label: tr('Fogo', 'Fire'), hex: '#E0531F' },
+    { id: 'cold', label: tr('Gelo', 'Ice'), hex: '#3FA9F5' },
+    { id: 'acid', label: tr('Ácido', 'Acid'), hex: '#6BBF3A' },
+    { id: 'arcane', label: tr('Arcano', 'Arcane'), hex: '#9B59D0' },
+    { id: 'light', label: tr('Luz', 'Light'), hex: '#F2D04B' },
+    { id: 'shadow', label: tr('Sombra', 'Shadow'), hex: '#1C1C1C' },
+    { id: 'electricity', label: tr('Elétrico', 'Electric'), hex: '#7DF9FF' },
+    { id: 'poison', label: tr('Veneno', 'Poison'), hex: '#2E7D32' },
+    { id: 'blood', label: tr('Sangue', 'Blood'), hex: '#8E1B1B' },
+    { id: 'sonic', label: tr('Sônico', 'Sonic'), hex: '#FF6FB5' },
+    { id: 'terrain', label: tr('Terreno difícil', 'Difficult terrain'), hex: '#8B5A2B' },
     { id: 'vital', label: 'Vital', hex: '#FFFFFF' },
 ] as const
 

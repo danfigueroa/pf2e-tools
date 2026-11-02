@@ -1,3 +1,4 @@
+import { tr } from '../i18n'
 // A rolagem que viaja pela mesa: a ficha rola, o feed (`services/rolls.ts`)
 // leva, e todo aparelho aberto na plataforma mostra — no Mapa, numa ficha, na
 // Iniciativa.
@@ -244,20 +245,23 @@ export const rayCritTotal = (rays: RollRay[]): number => rays.reduce((n, r) => n
 
 /** Os quatro graus de uma salvaguarda básica sobre o dano rolado (½ arredondado para baixo). */
 export const basicSaveLine = (total: number): string =>
-    `Falha ${total} · Sucesso ${Math.floor(total / 2)} · Falha crítica ${2 * total} · Sucesso crítico 0`
+    tr(
+        `Falha ${total} · Sucesso ${Math.floor(total / 2)} · Falha crítica ${2 * total} · Sucesso crítico 0`,
+        `Failure ${total} · Success ${Math.floor(total / 2)} · Critical failure ${2 * total} · Critical success 0`,
+    )
 
 /** Texto para leitor de tela e para o histórico: "Fortitude: 23 (d20 8 + 15)". */
 export function rollSummaryText(r: TableRoll): string {
     const bits: string[] = []
     if (r.check) bits.push(`${r.check.total} (d20 ${r.check.d20} ${r.check.mod >= 0 ? '+' : '−'} ${Math.abs(r.check.mod)})`)
     if (r.damage) {
-        bits.push(`dano ${r.damage.total}${r.damage.crit ? `, crítico ${r.damage.crit.total}` : ''}`)
+        bits.push(tr(`dano ${r.damage.total}${r.damage.crit ? `, crítico ${r.damage.crit.total}` : ''}`, `damage ${r.damage.total}${r.damage.crit ? `, critical ${r.damage.crit.total}` : ''}`))
     }
     if (r.rays) {
-        const hits = r.rays.map((ray, i) => `raio ${i + 1}: ${ray.check.total} para acertar, dano ${ray.damage.total}`)
-        bits.push(`${r.rays.length} raios (${hits.join('; ')}); total ${rayTotal(r.rays)}`)
+        const hits = r.rays.map((ray, i) => tr(`raio ${i + 1}: ${ray.check.total} para acertar, dano ${ray.damage.total}`, `ray ${i + 1}: ${ray.check.total} to hit, damage ${ray.damage.total}`))
+        bits.push(tr(`${r.rays.length} raios (${hits.join('; ')}); total ${rayTotal(r.rays)}`, `${r.rays.length} rays (${hits.join('; ')}); total ${rayTotal(r.rays)}`))
     }
     if (r.free) bits.push(`${partFormula(r.free)} = ${r.free.total}`)
     if (r.use) bits.push(r.use.text)
-    return `${r.by || 'Alguém'} — ${r.title}: ${bits.join('; ')}`
+    return `${r.by || tr('Alguém', 'Someone')} — ${r.title}: ${bits.join('; ')}`
 }

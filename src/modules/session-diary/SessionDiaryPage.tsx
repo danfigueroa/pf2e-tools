@@ -33,7 +33,7 @@ import { Leaderboard } from './components/Leaderboard'
 import { PersonCard } from './components/PersonCard'
 import { SessionTimeline } from './components/SessionTimeline'
 import { StatCounters } from './components/StatCounters'
-import { locale } from '../../i18n'
+import { locale, tr } from '../../i18n'
 
 const dayLabel = (day: string) =>
     new Date(`${day}T12:00:00-03:00`).toLocaleDateString(locale, { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })
@@ -54,7 +54,7 @@ const PAGE = 50
 export const SessionDiaryPage = () => {
     // `?dia=AAAA-MM-DD` abre aquela sessão (o Diário de Campanha leva para cá).
     const [params] = useSearchParams()
-    const linked = /^\d{4}-\d{2}-\d{2}$/.test(params.get('dia') ?? '') ? params.get('dia') : null
+    const linked = /^\d{4}-\d{2}-\d{2}$/.test(params.get('dia') ?? '') ? params.get('dia') : null // i18n-ok: chave
     const [days, setDays] = useState<DiaryDay[] | null>(null)
     const [summary, setSummary] = useState<DaySummary[] | null>(null)
     const [scope, setScope] = useState<Scope | null>(linked ? 'session' : null)
@@ -143,8 +143,7 @@ export const SessionDiaryPage = () => {
     return (
         <Container maxWidth="lg" disableGutters sx={{ pb: 4 }}>
             <Typography variant="h3" component="h1" sx={{ fontWeight: 700, mb: 0.5 }}>
-                Histórico de rolagens
-            </Typography>
+                {tr('Histórico de rolagens', 'Roll history')}</Typography>
             <Box sx={{ height: 2, width: { xs: 120, sm: 180 }, backgroundColor: gold.main, mb: 2 }} />
             <SessionNotice />
 
@@ -152,33 +151,33 @@ export const SessionDiaryPage = () => {
                 <Skeleton variant="rounded" height={40} sx={{ maxWidth: 420 }} />
             ) : days.length === 0 ? (
                 <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                    {failed ? 'Não deu para ler o histórico. Confira a conexão e recarregue.' : 'Nenhuma rolagem na mesa ainda. As da próxima sessão aparecem aqui.'}
+                    {failed ? tr('Não deu para ler o histórico. Confira a conexão e recarregue.', 'Couldn\'t read the history. Check the connection and reload.') : tr('Nenhuma rolagem na mesa ainda. As da próxima sessão aparecem aqui.', 'No rolls at the table yet. The next session\'s ones show up here.')}
                 </Typography>
             ) : (
                 <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap', mb: 2.5 }}>
                     <ToggleButtonGroup
                         exclusive size="small" color="primary" value={scope}
                         onChange={(_, v: Scope | null) => { if (v) setScope(v) }}
-                        aria-label="O que ver"
+                        aria-label={tr("O que ver", 'What to see')}
                     >
-                        <ToggleButton value="table" sx={{ px: 2 }}>Todas as sessões</ToggleButton>
-                        <ToggleButton value="session" sx={{ px: 2 }}>Uma sessão</ToggleButton>
+                        <ToggleButton value="table" sx={{ px: 2 }}>{tr('Todas as sessões', 'All sessions')}</ToggleButton>
+                        <ToggleButton value="session" sx={{ px: 2 }}>{tr('Uma sessão', 'One session')}</ToggleButton>
                     </ToggleButtonGroup>
                     {scope === 'session' && (
                         <>
                             <FormControl size="small" sx={{ flex: '1 1 240px', maxWidth: 420 }}>
-                                <InputLabel id="diary-day">Sessão</InputLabel>
-                                <Select labelId="diary-day" label="Sessão" value={day ?? ''} onChange={(e) => setDay(String(e.target.value))}>
+                                <InputLabel id="diary-day">{tr('Sessão', 'Session')}</InputLabel>
+                                <Select labelId="diary-day" label={tr("Sessão", 'Session')} value={day ?? ''} onChange={(e) => setDay(String(e.target.value))}>
                                     {days.map((d) => (
                                         <MenuItem key={d.day} value={d.day}>
-                                            {dayLabel(d.day)} · {d.count} {d.count === 1 ? 'rolagem' : 'rolagens'}
+                                            {dayLabel(d.day)} · {d.count} {d.count === 1 ? tr('rolagem', 'roll') : tr('rolagens', 'rolls')}
                                         </MenuItem>
                                     ))}
                                 </Select>
                             </FormControl>
                             {info && (
                                 <Typography variant="body2" color="text.secondary">
-                                    {timeLabel(info.first)}–{timeLabel(info.last)} · {info.people} {info.people === 1 ? 'pessoa rolou' : 'pessoas rolaram'}
+                                    {timeLabel(info.first)}–{timeLabel(info.last)} · {info.people} {info.people === 1 ? tr('pessoa rolou', 'person rolled') : tr('pessoas rolaram', 'people rolled')}
                                 </Typography>
                             )}
                         </>
@@ -189,16 +188,16 @@ export const SessionDiaryPage = () => {
             {scope === 'table' && (summary === null ? <Skeleton variant="rounded" height={220} /> : summary.length > 0 && (
                 <Stack spacing={3.5}>
                     <StatCounters totals={tableSum} scope="table" />
-                    <Section title="Hall da fama" hint="Somando todas as sessões da mesa.">
+                    <Section title={tr("Hall da fama", 'Hall of fame')} hint={tr("Somando todas as sessões da mesa.", 'Adding up all of the table\'s sessions.')}>
                         <AwardGrid awards={tableAwards} onOpenDay={openDay} />
                     </Section>
-                    <Section title="Ranking" hint="Escolha o que comparar.">
+                    <Section title="Ranking" hint={tr("Escolha o que comparar.", 'Choose what to compare.')}>
                         <Leaderboard people={tablePeople} scope="table" />
                     </Section>
-                    <Section title="O d20 é justo?">
+                    <Section title={tr("O d20 é justo?", 'Is the d20 fair?')}>
                         <D20Histogram people={tablePeople} tableHist={tableSum.hist} />
                     </Section>
-                    <Section title="Sessão a sessão">
+                    <Section title={tr("Sessão a sessão", 'Session by session')}>
                         <SessionTimeline series={series} onOpenDay={openDay} />
                     </Section>
                     <DamageNote />
@@ -210,20 +209,20 @@ export const SessionDiaryPage = () => {
             {scope === 'session' && rolls && rolls.length > 0 && (
                 <Stack spacing={3.5}>
                     <StatCounters totals={sessionSum} scope="session" />
-                    <Section title="Destaques da noite">
+                    <Section title={tr("Destaques da noite", 'Highlights of the night')}>
                         <AwardGrid awards={sessionAwards} />
                     </Section>
-                    <Section title="Por personagem">
+                    <Section title={tr("Por personagem", 'By character')}>
                         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 1.5 }}>
                             {people.map((p, i) => <PersonCard key={p.key} person={p} index={i} />)}
                         </Box>
                     </Section>
-                    <Section title="O d20 da noite">
+                    <Section title={tr("O d20 da noite", 'The night\'s d20')}>
                         <D20Histogram people={people} tableHist={sessionSum.hist} />
                     </Section>
-                    <Section title="Rolagens">
+                    <Section title={tr("Rolagens", 'Rolls')}>
                         <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75, mb: 1 }}>
-                            <Chip label={`Todos · ${rolls.length}`} onClick={() => { setWho(null); setVisible(PAGE) }} color={who === null ? 'primary' : 'default'} variant={who === null ? 'filled' : 'outlined'} />
+                            <Chip label={tr(`Todos · ${rolls.length}`, `All · ${rolls.length}`)} onClick={() => { setWho(null); setVisible(PAGE) }} color={who === null ? 'primary' : 'default'} variant={who === null ? 'filled' : 'outlined'} />
                             {people.map((p) => (
                                 <Chip key={p.key} label={`${p.name} · ${p.rolls}`} onClick={() => { setWho(p.key); setVisible(PAGE) }}
                                     color={who === p.key ? 'primary' : 'default'} variant={who === p.key ? 'filled' : 'outlined'} />
@@ -236,7 +235,7 @@ export const SessionDiaryPage = () => {
                         </Paper>
                         {filtered.length > visible && (
                             <Button onClick={() => setVisible((v) => v + PAGE)} sx={{ mt: 1 }}>
-                                Mostrar mais ({filtered.length - visible} restantes)
+                                {tr('Mostrar mais (', 'Show more (')}{filtered.length - visible} restantes)
                             </Button>
                         )}
                     </Section>
@@ -259,8 +258,7 @@ const Section = ({ title, hint, children }: { title: string; hint?: string; chil
 
 const DamageNote = () => (
     <Typography variant="caption" color="text.secondary">
-        O dano soma tudo o que foi rolado, mesmo quando o golpe errou: o app não sabe se acertou. Dano persistente não entra.
-    </Typography>
+        {tr('O dano soma tudo o que foi rolado, mesmo quando o golpe errou: o app não sabe se acertou. Dano persistente não entra.', 'Damage adds up everything rolled, even when the Strike missed: the app doesn\'t know if it hit. Persistent damage isn\'t counted.')}</Typography>
 )
 
 /**
@@ -273,18 +271,15 @@ const SessionNotice = () => {
     if (mesa.sessionStartedAt) {
         return (
             <Alert severity="success" sx={{ mb: 2.5, maxWidth: 720 }}>
-                Sessão em andamento, {sessionSince(mesa.sessionStartedAt)}: as rolagens de agora entram no histórico.
-            </Alert>
+                {tr('Sessão em andamento, ', 'Session in progress, ')}{sessionSince(mesa.sessionStartedAt)}{tr(': as rolagens de agora entram no histórico.', ': the rolls from now on count toward the history.')}</Alert>
         )
     }
     return (
         <Alert
             severity="info"
             sx={{ mb: 2.5, maxWidth: 720 }}
-            action={isGm ? <Button component={Link} to="/mesa" color="inherit" size="small" sx={{ whiteSpace: 'nowrap' }}>Iniciar sessão</Button> : undefined}
+            action={isGm ? <Button component={Link} to="/mesa" color="inherit" size="small" sx={{ whiteSpace: 'nowrap' }}>{tr('Iniciar sessão', 'Start session')}</Button> : undefined}
         >
-            Só entram aqui as rolagens feitas com a sessão iniciada. Fora dela (testando a ficha, por exemplo), a rolagem
-            aparece para a mesa, mas não conta nas estatísticas.
-        </Alert>
+            {tr('Só entram aqui as rolagens feitas com a sessão iniciada. Fora dela (testando a ficha, por exemplo), a rolagem aparece para a mesa, mas não conta nas estatísticas.', 'Only rolls made with the session started count here. Outside it (testing the sheet, for example), the roll shows up for the table, but doesn\'t count in the stats.')}</Alert>
     )
 }

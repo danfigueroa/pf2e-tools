@@ -6,6 +6,7 @@ import { d20Average, type TableTotals } from '../stats'
 import { CountUp } from './ui'
 import { reveal, TONE } from './style'
 import type { AwardTone } from '../awards'
+import { tr } from '../../../i18n'
 
 interface Props {
     totals: TableTotals
@@ -25,14 +26,14 @@ export const StatCounters = memo(({ totals: t, scope }: Props) => {
     const [ref, shown] = useInView<HTMLDivElement>()
     const avg = d20Average(t)
     const tiles: Tile[] = [
-        scope === 'table' ? { label: 'Sessões', value: t.sessions } : { label: 'Pessoas que rolaram', value: t.people },
-        { label: 'Rolagens', value: t.rolls },
-        { label: 'Testes de d20', value: t.checks },
-        { label: 'Vezes que saiu 20', value: t.nat20, tone: 'gold' },
-        { label: 'Vezes que saiu 1', value: t.nat1, tone: 'bad' },
-        ...(avg !== null ? [{ label: 'Média no d20', value: avg, decimals: 1 }] : []),
-        { label: 'Dano rolado', value: t.damage, tone: 'green' },
-        ...(t.mythic > 0 ? [{ label: 'Pontos Míticos gastos', value: t.mythic, tone: 'mythic' as const }] : []),
+        scope === 'table' ? { label: tr('Sessões', 'Sessions'), value: t.sessions } : { label: tr('Pessoas que rolaram', 'People who rolled'), value: t.people },
+        { label: tr('Rolagens', 'Rolls'), value: t.rolls },
+        { label: tr('Testes de d20', 'd20 checks'), value: t.checks },
+        { label: tr('Vezes que saiu 20', 'Times a 20 came up'), value: t.nat20, tone: 'gold' },
+        { label: tr('Vezes que saiu 1', 'Times a 1 came up'), value: t.nat1, tone: 'bad' },
+        ...(avg !== null ? [{ label: tr('Média no d20', 'd20 average'), value: avg, decimals: 1 }] : []),
+        { label: tr('Dano rolado', 'Damage rolled'), value: t.damage, tone: 'green' },
+        ...(t.mythic > 0 ? [{ label: tr('Pontos Míticos gastos', 'Mythic Points spent'), value: t.mythic, tone: 'mythic' as const }] : []),
     ]
     return (
         <Box

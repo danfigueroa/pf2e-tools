@@ -13,6 +13,7 @@
 
 import { rayTotal, type TableRoll } from '../../dice/tableRoll'
 import { diaryDayOf } from '../../services/diary'
+import { tr } from '../../i18n'
 
 /** Uma rolagem marcante: o total, o título ("Golpe — Warhammer") e quando foi. */
 export interface Mark {
@@ -88,9 +89,9 @@ export function damageOf(roll: TableRoll): number {
     return roll.damage?.total ?? 0
 }
 
-export const keyOf = (roll: TableRoll) => roll.slug || `nome:${(roll.by || 'Alguém').trim().toLowerCase()}`
+export const keyOf = (roll: TableRoll) => roll.slug || `nome:${(roll.by || 'Alguém').trim().toLowerCase()}` // i18n-ok: chave
 
-const slugOf = (key: string) => (key.startsWith('nome:') ? null : key)
+const slugOf = (key: string) => (key.startsWith('nome:') ? null : key) // i18n-ok: chave
 
 const emptyHist = () => new Array<number>(20).fill(0)
 
@@ -104,7 +105,7 @@ export function summarize(rolls: TableRoll[]): DaySummary[] {
         let s = rows.get(id)
         if (!s) {
             s = {
-                day, key, name: roll.by || 'Alguém', color: roll.color,
+                day, key, name: roll.by || tr('Alguém', 'Someone'), color: roll.color,
                 rolls: 0, damage: 0, checks: 0, d20Sum: 0, nat20: 0, nat1: 0, mythic: 0,
                 hist: emptyHist(), best: null, worst: null, biggestHit: null,
             }

@@ -7,7 +7,7 @@
 // não é destaque. O vice só aparece quando há um vencedor.
 
 import { d20Average, type Mark, type Night, type PersonStats } from './stats'
-import { locale } from '../../i18n'
+import { locale, tr } from '../../i18n'
 
 export type Scope = 'session' | 'table'
 
@@ -93,30 +93,30 @@ function byNight(people: PersonStats[], better: 'max' | 'min'): Candidate[] {
             const d = nightAverage(b) - nightAverage(a)
             return (better === 'max' ? d > 0 : d < 0) ? b : a
         })
-        return [{ person, value: Math.round(nightAverage(pick) * 10) / 10, detail: `${shortDay(pick.day)}, em ${pick.checks} testes`, day: pick.day }]
+        return [{ person, value: Math.round(nightAverage(pick) * 10) / 10, detail: tr(`${shortDay(pick.day)}, em ${pick.checks} testes`, `${shortDay(pick.day)}, over ${pick.checks} checks`), day: pick.day }]
     })
 }
 
 export const AWARDS: AwardDef[] = [
-    { id: 'blessed', title: 'Abençoado pelos dados', blurb: 'Quem tirou 20 no d20 mais vezes', tone: 'gold' },
-    { id: 'cursed', title: 'Amaldiçoado', blurb: 'Quem tirou 1 no d20 mais vezes', tone: 'bad' },
-    { id: 'hot', title: 'Dado quente', blurb: 'Quem tira os números mais altos no d20, em média', tone: 'gold' },
-    { id: 'cold', title: 'Nuvem negra', blurb: 'Quem tira os números mais baixos no d20, em média', tone: 'bad' },
-    { id: 'legend', title: 'Teste lendário', blurb: 'O maior resultado de um teste (d20 + bônus)', tone: 'green' },
-    { id: 'stumble', title: 'Tropeço épico', blurb: 'O menor resultado de um teste (d20 + bônus)', tone: 'bad' },
-    { id: 'smash', title: 'Golpe do século', blurb: 'O maior dano rolado de uma vez só', tone: 'green' },
-    { id: 'engine', title: 'Máquina de dano', blurb: 'Quem mais rolou dano, somando tudo', tone: 'green' },
-    { id: 'gunner', title: 'Metralhadora', blurb: 'Quem mais rolou dados', tone: 'green' },
-    { id: 'mythic', title: 'Toque do destino', blurb: 'Quem mais gastou Pontos Míticos (✦) para rolar', tone: 'mythic' },
-    { id: 'glory', title: 'Noite de glória', blurb: 'A noite de alguém com a maior média no d20', tone: 'gold', tableOnly: true },
-    { id: 'doom', title: 'Noite do apocalipse', blurb: 'A noite de alguém com a menor média no d20', tone: 'bad', tableOnly: true },
+    { id: 'blessed', title: tr('Abençoado pelos dados', 'Blessed by the dice'), blurb: tr('Quem tirou 20 no d20 mais vezes', 'Who rolled 20 on the d20 the most'), tone: 'gold' },
+    { id: 'cursed', title: tr('Amaldiçoado', 'Cursed'), blurb: tr('Quem tirou 1 no d20 mais vezes', 'Who rolled 1 on the d20 the most'), tone: 'bad' },
+    { id: 'hot', title: tr('Dado quente', 'Hot die'), blurb: tr('Quem tira os números mais altos no d20, em média', 'Who rolls the highest numbers on the d20, on average'), tone: 'gold' },
+    { id: 'cold', title: tr('Nuvem negra', 'Dark cloud'), blurb: tr('Quem tira os números mais baixos no d20, em média', 'Who rolls the lowest numbers on the d20, on average'), tone: 'bad' },
+    { id: 'legend', title: tr('Teste lendário', 'Legendary check'), blurb: tr('O maior resultado de um teste (d20 + bônus)', 'The highest result of a check (d20 + bonus)'), tone: 'green' },
+    { id: 'stumble', title: tr('Tropeço épico', 'Epic stumble'), blurb: tr('O menor resultado de um teste (d20 + bônus)', 'The lowest result of a check (d20 + bonus)'), tone: 'bad' },
+    { id: 'smash', title: tr('Golpe do século', 'Strike of the century'), blurb: tr('O maior dano rolado de uma vez só', 'The most damage rolled in a single go'), tone: 'green' },
+    { id: 'engine', title: tr('Máquina de dano', 'Damage machine'), blurb: tr('Quem mais rolou dano, somando tudo', 'Who rolled the most damage, adding it all up'), tone: 'green' },
+    { id: 'gunner', title: tr('Metralhadora', 'Machine gun'), blurb: tr('Quem mais rolou dados', 'Who rolled the most dice'), tone: 'green' },
+    { id: 'mythic', title: tr('Toque do destino', 'Touch of fate'), blurb: tr('Quem mais gastou Pontos Míticos (✦) para rolar', 'Who spent the most Mythic Points (✦) to roll'), tone: 'mythic' },
+    { id: 'glory', title: tr('Noite de glória', 'Night of glory'), blurb: tr('A noite de alguém com a maior média no d20', 'Someone\'s night with the highest d20 average'), tone: 'gold', tableOnly: true },
+    { id: 'doom', title: tr('Noite do apocalipse', 'Night of the apocalypse'), blurb: tr('A noite de alguém com a menor média no d20', 'Someone\'s night with the lowest d20 average'), tone: 'bad', tableOnly: true },
 ]
 
 /** Os troféus do escopo, na ordem de `AWARDS`; os sem vencedor ficam (o cartão diz "ninguém ainda" ou quem empatou). */
 export function computeAwards(people: PersonStats[], scope: Scope): Award[] {
     const min = MIN_CHECKS[scope]
     const avg = (better: 'max' | 'min') => rank(
-        people.filter((p) => p.checks >= min).map((person) => ({ person, value: d20Average(person) ?? 0, detail: `em ${person.checks} testes` })),
+        people.filter((p) => p.checks >= min).map((person) => ({ person, value: d20Average(person) ?? 0, detail: tr(`em ${person.checks} testes`, `over ${person.checks} checks`) })),
         better, decimal,
     )
     const results: Record<string, Ranked> = {
@@ -146,10 +146,10 @@ export interface Metric {
 }
 
 export const METRICS: Metric[] = [
-    { id: 'nat20', label: 'Vezes que tirou 20', value: (p) => p.nat20, format: String, tone: 'gold' },
-    { id: 'nat1', label: 'Vezes que tirou 1', value: (p) => p.nat1, format: String, tone: 'bad' },
-    { id: 'avg', label: 'Média no d20', value: (p, scope) => (p.checks >= MIN_CHECKS[scope] ? d20Average(p) : null), format: decimal, tone: 'gold' },
-    { id: 'damage', label: 'Dano rolado', value: (p) => p.damage, format: (n) => n.toLocaleString(locale), tone: 'green' },
-    { id: 'rolls', label: 'Rolagens feitas', value: (p) => p.rolls, format: String, tone: 'green' },
-    { id: 'mythic', label: 'Pontos Míticos gastos', value: (p) => p.mythic, format: String, tone: 'mythic' },
+    { id: 'nat20', label: tr('Vezes que tirou 20', 'Times rolled 20'), value: (p) => p.nat20, format: String, tone: 'gold' },
+    { id: 'nat1', label: tr('Vezes que tirou 1', 'Times rolled 1'), value: (p) => p.nat1, format: String, tone: 'bad' },
+    { id: 'avg', label: tr('Média no d20', 'd20 average'), value: (p, scope) => (p.checks >= MIN_CHECKS[scope] ? d20Average(p) : null), format: decimal, tone: 'gold' },
+    { id: 'damage', label: tr('Dano rolado', 'Damage rolled'), value: (p) => p.damage, format: (n) => n.toLocaleString(locale), tone: 'green' },
+    { id: 'rolls', label: tr('Rolagens feitas', 'Rolls made'), value: (p) => p.rolls, format: String, tone: 'green' },
+    { id: 'mythic', label: tr('Pontos Míticos gastos', 'Mythic Points spent'), value: (p) => p.mythic, format: String, tone: 'mythic' },
 ]

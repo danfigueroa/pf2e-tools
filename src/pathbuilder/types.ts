@@ -1,3 +1,4 @@
+import { tr } from '../i18n'
 export interface AbilityBreakdown {
   ancestryFree?: string[];
   ancestryBoosts?: string[];
@@ -289,13 +290,13 @@ export function parseFeatEntry(f: FeatEntry): { name: string; type: string; leve
   if (Array.isArray(f)) {
     return {
       name: String(f[0] ?? ''),
-      type: String(f[2] ?? 'Outro'),
+      type: String(f[2] ?? tr('Outro', 'Other')),
       level: Number(f[3] ?? 1),
     }
   }
   return {
     name: String(f.name ?? ''),
-    type: String(f.type ?? 'Outro'),
+    type: String(f.type ?? tr('Outro', 'Other')),
     level: Number(f.level ?? 1),
   }
 }
@@ -369,7 +370,7 @@ export interface CharacterFile {
 export function parseCharacterJson(json: unknown): BuildInfo {
   const obj = json as CharacterFile;
   if (!obj || !obj.success || !obj.build) {
-    throw new Error('JSON de personagem inválido: campo "build" ausente.');
+    throw new Error(tr('JSON de personagem inválido: campo "build" ausente.', 'Invalid character JSON: missing "build" field.'));
   }
   return normalizeBuild(obj.build);
 }
@@ -406,7 +407,7 @@ export function normalizeSpellCasters(build: BuildInfo): BuildInfo {
  */
 const WEAPON_EXPORT_FIXES: Array<{ character: RegExp; weapon: string }> = [
   // Longsword +1 striking do Nathaniel: o export dá 18 (10 + Perito 4 + FOR 4); o certo é 19.
-  { character: /^nathaniel/i, weapon: 'zarroc sheilvean' },
+  { character: /^nathaniel/i, weapon: 'zarroc sheilvean' }, // i18n-ok: nome
 ];
 
 export function fixWeaponExports(build: BuildInfo): BuildInfo {

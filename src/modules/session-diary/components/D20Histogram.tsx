@@ -4,7 +4,7 @@ import { useInView } from '../../../motion/useInView'
 import { gold, green, ink, parchment, rule, status } from '../../../theme'
 import { fairness, VERDICT_TEXT } from '../fairness'
 import type { PersonStats } from '../stats'
-import { locale } from '../../../i18n'
+import { locale, tr } from '../../../i18n'
 
 interface Props {
     people: PersonStats[]
@@ -39,19 +39,19 @@ export const D20Histogram = memo(({ people, tableHist }: Props) => {
         <Box ref={ref}>
             <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap', mb: 1 }}>
                 <FormControl size="small" sx={{ minWidth: 0, flex: '0 1 260px' }}>
-                    <Select value={who} onChange={(e) => setWho(String(e.target.value))} displayEmpty inputProps={{ 'aria-label': 'De quem' }}>
-                        <MenuItem value="">Todo mundo</MenuItem>
+                    <Select value={who} onChange={(e) => setWho(String(e.target.value))} displayEmpty inputProps={{ 'aria-label': tr('De quem', 'Whose') }}>
+                        <MenuItem value="">{tr('Todo mundo', 'Everyone')}</MenuItem>
                         {rolled.map((p) => <MenuItem key={p.key} value={p.key}>{p.name}</MenuItem>)}
                     </Select>
                 </FormControl>
                 <Typography variant="body2" color="text.secondary">
-                    {f.checks.toLocaleString(locale)} {f.checks === 1 ? 'teste' : 'testes'}
-                    {f.hot !== null && f.checks >= 20 && <> · o número que mais saiu foi o <b>{f.hot}</b>, e o que menos saiu, o <b>{f.cold}</b></>}
+                    {f.checks.toLocaleString(locale)} {f.checks === 1 ? tr('teste', 'check') : tr('testes', 'checks')}
+                    {f.hot !== null && f.checks >= 20 && <> {tr('· o número que mais saiu foi o ', '· the most rolled number was ')}<b>{f.hot}</b>{tr(', e o que menos saiu, o ', ', and the least rolled, ')}<b>{f.cold}</b></>}
                 </Typography>
             </Box>
 
             <Box sx={{ backgroundColor: parchment.paper, border: `1px solid ${rule}`, borderRadius: 2, p: { xs: 1, sm: 1.5 } }}>
-                <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Quantas vezes cada face do d20 saiu" style={{ display: 'block' }}>
+                <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={tr("Quantas vezes cada face do d20 saiu", 'How many times each d20 face came up')} style={{ display: 'block' }}>
                     {hist.map((n, i) => {
                         const face = i + 1
                         const x = PAD_X + i * SLOT + SLOT * 0.14
@@ -86,9 +86,7 @@ export const D20Histogram = memo(({ people, tableHist }: Props) => {
                 {VERDICT_TEXT[f.verdict]}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-                Cada barra mostra quantas vezes aquele número saiu no d20. A linha tracejada é quantas vezes cada número
-                deveria ter saído num dado justo.
-            </Typography>
+                {tr('Cada barra mostra quantas vezes aquele número saiu no d20. A linha tracejada é quantas vezes cada número deveria ter saído num dado justo.', 'Each bar shows how many times that number came up on the d20. The dashed line is how many times each number should have come up on a fair die.')}</Typography>
         </Box>
     )
 })

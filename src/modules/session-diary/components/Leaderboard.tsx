@@ -7,6 +7,7 @@ import { METRICS, MIN_CHECKS, type Scope } from '../awards'
 import type { PersonStats } from '../stats'
 import { CountUp, PersonAvatar } from './ui'
 import { grow, reveal, TONE } from './style'
+import { tr } from '../../../i18n'
 
 interface Props {
     people: PersonStats[]
@@ -73,7 +74,7 @@ export const Leaderboard = memo(({ people, scope }: Props) => {
             </Stack>
             {rows.length === 0 ? (
                 <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                    {metric.id === 'avg' ? `Ninguém fez ${MIN_CHECKS[scope]} testes ainda.` : 'Ninguém ainda.'}
+                    {metric.id === 'avg' ? tr(`Ninguém fez ${MIN_CHECKS[scope]} testes ainda.`, `Nobody made ${MIN_CHECKS[scope]} checks yet.`) : tr('Ninguém ainda.', 'Nobody yet.')}
                 </Typography>
             ) : (
                 <Box sx={{ display: 'grid', gap: 0.75 }}>
@@ -112,8 +113,7 @@ export const Leaderboard = memo(({ people, scope }: Props) => {
             )}
             {metric.id === 'avg' && (
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                    Só aparece quem fez pelo menos {MIN_CHECKS[scope]} testes de d20: com poucos testes, a média não diz nada.
-                </Typography>
+                    {tr('Só aparece quem fez pelo menos ', 'Only those who made at least ')}{MIN_CHECKS[scope]} {tr('testes de d20: com poucos testes, a média não diz nada.', 'd20 checks show up: with few checks, the average says nothing.')}</Typography>
             )}
         </Box>
     )

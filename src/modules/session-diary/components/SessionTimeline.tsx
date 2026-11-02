@@ -5,7 +5,7 @@ import { gold, green, ink, parchment, rule, status } from '../../../theme'
 import { d20Average, type SessionPoint } from '../stats'
 import { shortDay } from '../awards'
 import { grow } from './style'
-import { locale } from '../../../i18n'
+import { locale, tr } from '../../../i18n'
 
 /** Quantas sessões cabem na linha do tempo; as mais antigas ficam de fora (o seletor ainda as tem). */
 const MAX_SESSIONS = 24
@@ -38,14 +38,14 @@ export const SessionTimeline = memo(({ series, onOpenDay }: Props) => {
             >
                 {list.map((s, i) => {
                     const avg = d20Average(s)
-                    const label = `${shortDay(s.day)}: ${s.rolls} rolagens, ${s.people} ${s.people === 1 ? 'pessoa' : 'pessoas'}` +
-                        (avg !== null ? `, média do d20 ${avg.toLocaleString(locale)}` : '') + `, ${s.nat20}× 20 e ${s.nat1}× 1`
+                    const label = tr(`${shortDay(s.day)}: ${s.rolls} rolagens, ${s.people} ${s.people === 1 ? 'pessoa' : 'pessoas'}`, `${shortDay(s.day)}: ${s.rolls} rolls, ${s.people} ${s.people === 1 ? 'person' : 'people'}`) +
+                        (avg !== null ? tr(`, média do d20 ${avg.toLocaleString(locale)}`, `, d20 average ${avg.toLocaleString(locale)}`) : '') + `, ${s.nat20}× 20 e ${s.nat1}× 1`
                     return (
                         <ButtonBase
                             key={s.day}
                             onClick={() => onOpenDay(s.day)}
                             title={label}
-                            aria-label={`Abrir a sessão de ${label}`}
+                            aria-label={tr(`Abrir a sessão de ${label}`, `Open the ${label} session`)}
                             sx={{
                                 flex: '1 1 0', minWidth: 0, maxWidth: 56, height: '100%',
                                 display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'stretch',
@@ -78,9 +78,7 @@ export const SessionTimeline = memo(({ series, onOpenDay }: Props) => {
                 ))}
             </Box>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                Cada coluna é uma noite de jogo: quanto mais alta, mais a mesa rolou. O número em cima é a média no d20 da noite,
-                e a cor diz como foi: vermelho é noite de azar, dourado é noite de sorte. Toque numa coluna para ver a noite.
-                {series.length > MAX_SESSIONS && ` Mostrando as últimas ${MAX_SESSIONS}.`}
+                {tr('Cada coluna é uma noite de jogo: quanto mais alta, mais a mesa rolou. O número em cima é a média no d20 da noite, e a cor diz como foi: vermelho é noite de azar, dourado é noite de sorte. Toque numa coluna para ver a noite.', 'Each column is a game night: the taller, the more the table rolled. The number on top is the night\'s d20 average, and the color tells how it went: red is a night of bad luck, gold is a night of good luck. Tap a column to see the night.')}{series.length > MAX_SESSIONS && tr(` Mostrando as últimas ${MAX_SESSIONS}.`, ` Showing the last ${MAX_SESSIONS}.`)}
             </Typography>
         </Box>
     )
