@@ -50,7 +50,7 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 function formatSpeed(speed: Record<string, number>): string {
     const parts: string[] = []
     const names: Record<string, string> = {
-        land: '', climb: 'escalada', swim: tr('natação', 'swim'), fly: 'voo', burrow: tr('escavação', 'burrow'),
+        land: '', climb: tr('escalada', 'climb'), swim: tr('natação', 'swim'), fly: tr('voo', 'fly'), burrow: tr('escavação', 'burrow'),
     }
     for (const [type, value] of Object.entries(speed)) {
         // `max` é derivado pela AON, não é um deslocamento de verdade.
@@ -269,7 +269,7 @@ export function MonsterStatBlock({ monster }: Props) {
                                         {/* Onde a contagem de slots já foi escrita (espontânea),
                                             repeti-la aqui viraria "4 slots — 4 slots vazios". */}
                                         {block.kind === 'spontaneous' || group.spells.length > 0
-                                            ? (group.empty === 1 ? tr('vazio', 'empty') : 'vazios')
+                                            ? (group.empty === 1 ? tr('vazio', 'empty') : tr('vazios', 'empty'))
                                             : (group.empty === 1 ? tr('slot vazio', 'empty slot') : tr('slots vazios', 'empty slots'))}
                                     </Box>
                                 )}

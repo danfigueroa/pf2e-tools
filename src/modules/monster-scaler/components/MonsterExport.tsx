@@ -71,7 +71,7 @@ export function MonsterExport({ target, monster, onSendToInitiative }: Props) {
                     disabled={exporting}
                     startIcon={exporting ? <CircularProgress size={16} color="inherit" /> : <DownloadIcon />}
                 >
-                    {exporting ? tr('Gerando…', 'Generating…') : 'Exportar PNG'}
+                    {exporting ? tr('Gerando…', 'Generating…') : tr('Exportar PNG', 'Export PNG')}
                 </Button>
                 <Button variant="outlined" startIcon={<InitiativeIcon />} onClick={onSendToInitiative}>
                     {tr('Enviar para Iniciativa', 'Send to Initiative')}</Button>

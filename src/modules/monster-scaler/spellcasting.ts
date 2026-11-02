@@ -553,6 +553,6 @@ export const rankLabel = (rank: number): string =>
 export function groupLabel(group: ScaledSpellGroup): string {
     if (group.label) return group.label
     if (group.kind === 'cantrip') return tr(`Truques (${rankLabel(group.rank)})`, `Cantrips (${rankLabel(group.rank)})`)
-    if (group.kind === 'constant') return `Constante (${rankLabel(group.rank)})`
+    if (group.kind === 'constant') return tr(`Constante (${rankLabel(group.rank)})`, `Constant (${rankLabel(group.rank)})`)
     return rankLabel(group.rank)
 }
