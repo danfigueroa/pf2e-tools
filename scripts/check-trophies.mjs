@@ -5,6 +5,8 @@
 //   node scripts/check-trophies.mjs
 
 import assert from 'node:assert/strict'
+import * as T from '../api/_lib/trophies.js'
+import { TROPHIES_EN } from '../api/_lib/trophies-en.js'
 import {
     TROPHIES, catalogWire, deriveFacts, evaluateFacts, longestStreak, pointsOf, sessionHighlights,
 } from '../api/_lib/trophies.js'
@@ -112,6 +114,20 @@ test('secretos têm descrição (o cliente esconde até ganhar)', () => {
 
 test('pontos por papel', () => {
     assert.deepEqual(pointsOf(['primeira-ficha', 'gm-15-sessoes', 'nao-existe']), { player: 15, gm: 90 })
+})
+
+test('todo troféu tem título e descrição em inglês, com os mesmos números', () => {
+    const { TROPHIES, BACKGROUND_MIN, BACKGROUND_LONG, catalogWire } = T
+    for (const x of TROPHIES) {
+        const en = TROPHIES_EN[x.id]
+        assert.ok(en && en[0] && en[1], `sem inglês: ${x.id}`)
+        // Os números da descrição (sem separador de milhar) são os mesmos nos dois idiomas.
+        const nums = (t) => (t.replace(/(\d)[.,](\d{3})/g, '$1$2').match(/\d+/g) ?? []).sort().join(',')
+        assert.equal(nums(en[1]), nums(x.description), `números diferentes: ${x.id}`)
+    }
+    assert.equal(Object.keys(TROPHIES_EN).length, TROPHIES.length, 'id em inglês que não existe no catálogo')
+    assert.ok(TROPHIES_EN.background[1].includes(String(BACKGROUND_MIN)) && TROPHIES_EN['background-longo'][1].includes(String(BACKGROUND_LONG)))
+    assert.equal(catalogWire(new Set(), 'en')[0].title, 'Secret trophy')
 })
 
 console.log(failures ? `\n${failures} falha(s)` : '\nTudo certo.')

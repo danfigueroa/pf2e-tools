@@ -7,7 +7,7 @@
 
 import { supabase } from './supabase.js'
 import { sheetOwner } from './access.js'
-import { catalogWire, deriveFacts, evaluateFacts, pointsOf, sessionHighlights, TROPHY_BY_ID } from './trophies.js'
+import { catalogWire, deriveFacts, evaluateFacts, pointsOf, sessionHighlights, TROPHY_BY_ID, trophyText } from './trophies.js'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 export const isUserId = (v) => typeof v === 'string' && UUID.test(v)
@@ -113,19 +113,19 @@ export async function evaluate(mesa, userId) {
         return {
             mesa,
             kind: 'trophy-unlocked',
-            data: { user: userId, name: member?.display_name ?? null, trophy: id, title: x?.title ?? id, tier: x?.tier ?? 'bronze' },
+            data: { user: userId, name: member?.display_name ?? null, trophy: id, title: x?.title ?? id, titleEn: trophyText(id, 'en').title, tier: x?.tier ?? 'bronze' },
         }
     })))
     return ids
 }
 
 /** O perfil de troféus de uma conta: catálogo, desbloqueados, progresso e pontos. */
-export async function trophyProfile(userId) {
+export async function trophyProfile(userId, lang = 'pt') {
     const db = supabase()
-    if (!db || !isUserId(userId)) return { catalog: catalogWire(new Set()), unlocked: [], progress: {}, points: { player: 0, gm: 0 } }
+    if (!db || !isUserId(userId)) return { catalog: catalogWire(new Set(), lang), unlocked: [], progress: {}, points: { player: 0, gm: 0 } }
     const unlocked = await unlockedOf(db, userId)
     const got = new Set(unlocked.map((u) => u.id))
-    const catalog = catalogWire(got)
+    const catalog = catalogWire(got, lang)
     // O progresso de um troféu ainda fechado também entregaria a regra dele.
     const all = evaluateFacts(await factsOf(db, userId), got).progress
     const progress = Object.fromEntries(Object.entries(all).filter(([id]) => got.has(id)))
@@ -136,7 +136,7 @@ export async function trophyProfile(userId) {
  * O resumo leve (sidebar e Início): pontos, quantos e os últimos desbloqueados, sem avaliar
  * nem calcular progresso — uma consulta só, a cada abertura do app.
  */
-export async function trophySummary(userId) {
+export async function trophySummary(userId, lang = 'pt') {
     const db = supabase()
     if (!db || !isUserId(userId)) return { points: { player: 0, gm: 0 }, count: 0, total: TROPHY_BY_ID.size, recent: [] }
     const unlocked = (await unlockedOf(db, userId)).sort((a, b) => b.at - a.at)
@@ -146,13 +146,13 @@ export async function trophySummary(userId) {
         total: TROPHY_BY_ID.size,
         recent: unlocked.slice(0, 4).map((u) => {
             const x = TROPHY_BY_ID.get(u.id)
-            return { id: u.id, at: u.at, title: x?.title ?? u.id, tier: x?.tier ?? 'bronze' }
+            return { id: u.id, at: u.at, title: x ? trophyText(u.id, lang).title : u.id, tier: x?.tier ?? 'bronze' }
         }),
     }
 }
 
 /** Os membros da mesa (com conta) com os pontos de jogador e de GM. */
-export async function trophyRanking(mesa) {
+export async function trophyRanking(mesa, lang = 'pt') {
     const db = supabase()
     if (!db) return []
     const rows = check(await db.rpc('trophy_ranking', { p_mesa: mesa })) ?? []
@@ -168,7 +168,7 @@ export async function trophyRanking(mesa) {
             points: pointsOf(ids),
             count: ids.length,
             platinum: ids.filter((id) => TROPHY_BY_ID.get(id)?.tier === 'platina').length,
-            last: last ? { id: last.id, at: Number(last.at), title: TROPHY_BY_ID.get(last.id)?.title ?? last.id } : null,
+            last: last ? { id: last.id, at: Number(last.at), title: TROPHY_BY_ID.get(last.id) ? trophyText(last.id, lang).title : last.id } : null,
         }
     })
 }

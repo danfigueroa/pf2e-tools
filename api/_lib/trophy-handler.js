@@ -21,14 +21,14 @@ export function isTrophyRequest(method, query) {
 
 export async function handleTrophyRequest(mesa, method, query, body, ctx = {}) {
     const which = String(query.trophies ?? '')
-    if (which === 'ranking') return ok({ ranking: await trophyRanking(mesa) })
-    if (which === 'summary') return ok({ summary: await trophySummary(ctx.userId) })
+    if (which === 'ranking') return ok({ ranking: await trophyRanking(mesa, ctx.lang) })
+    if (which === 'summary') return ok({ summary: await trophySummary(ctx.userId, ctx.lang) })
     if (which === 'me') {
-        if (!isUserId(ctx.userId)) return ok(await trophyProfile(null))
+        if (!isUserId(ctx.userId)) return ok(await trophyProfile(null, ctx.lang))
         await safely('avaliar', () => evaluate(mesa, ctx.userId))
-        return ok(await trophyProfile(ctx.userId))
+        return ok(await trophyProfile(ctx.userId, ctx.lang))
     }
     if (!isUserId(which)) return fail(400, 'Conta inválida')
     if (!(await memberRole(mesa, which))) return fail(403, 'Essa pessoa não está nesta mesa')
-    return ok(await trophyProfile(which))
+    return ok(await trophyProfile(which, ctx.lang))
 }

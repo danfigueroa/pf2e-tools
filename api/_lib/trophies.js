@@ -5,6 +5,8 @@
 // Pontos como na PSN: bronze 15, prata 30, ouro 90, platina 300. A platina de cada papel
 // é "todos os outros daquele papel". `scripts/check-trophies.mjs` confere as regras.
 
+import { TROPHIES_EN } from './trophies-en.js'
+
 export const TIER_POINTS = { bronze: 15, prata: 30, ouro: 90, platina: 300 }
 export const TIERS = Object.keys(TIER_POINTS)
 
@@ -129,13 +131,22 @@ export const TROPHIES = [
 export const TROPHY_BY_ID = new Map(TROPHIES.map((x) => [x.id, x]))
 
 /** O catálogo como vai para o cliente (sem as funções). */
-export function catalogWire(unlockedIds = null) {
-    return TROPHIES.map(({ id, role, category, tier, title, description }) => {
+/** Título e descrição no idioma do pedido (o catálogo é português; o inglês vem de `trophies-en.js`). */
+export function trophyText(id, lang = 'pt') {
+    const x = TROPHY_BY_ID.get(id)
+    if (!x) return { title: id, description: '' }
+    const en = lang === 'en' ? TROPHIES_EN[id] : null
+    return en ? { title: en[0], description: en[1] } : { title: x.title, description: x.description }
+}
+
+export function catalogWire(unlockedIds = null, lang = 'pt') {
+    return TROPHIES.map(({ id, role, category, tier }) => {
         // Com `unlockedIds`, o que ainda não foi ganho sai MASCARADO: título, descrição e meta nunca
         // chegam ao cliente (esconder só na tela deixaria a lista à mostra na aba Rede).
         if (unlockedIds && !unlockedIds.has(id)) {
-            return { id, role, category, tier, title: 'Troféu secreto', description: '', hidden: true, goal: 1 }
+            return { id, role, category, tier, title: lang === 'en' ? 'Secret trophy' : 'Troféu secreto', description: '', hidden: true, goal: 1 }
         }
+        const { title, description } = trophyText(id, lang)
         return { id, role, category, tier, title, description, hidden: false, goal: goalOf(TROPHY_BY_ID.get(id)) }
     })
 }

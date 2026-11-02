@@ -55,8 +55,8 @@ function textOf(n: TableNotification): string {
       return tr(`${str(d.by) || 'O GM'} mostrou à mesa: ${str(d.name) || 'sem título'}`, `${str(d.by) || 'The GM'} showed the table: ${str(d.name) || 'untitled'}`);
     case 'trophy-unlocked':
       return d.user === myId()
-        ? tr(`Troféu desbloqueado: ${str(d.title)}`, `Trophy unlocked: ${str(d.title)}`)
-        : tr(`${str(d.name) || 'Alguém'} ganhou ${str(d.title)}`, `${str(d.name) || 'Someone'} earned ${str(d.title)}`);
+        ? tr(`Troféu desbloqueado: ${str(d.title)}`, `Trophy unlocked: ${str(d.titleEn) || str(d.title)}`)
+        : tr(`${str(d.name) || 'Alguém'} ganhou ${str(d.title)}`, `${str(d.name) || 'Someone'} earned ${str(d.titleEn) || str(d.title)}`);
     case 'gift':
       return tr(
         `${fromSlug(str(d.from)) || 'Alguém'} te enviou ${typeof d.n === 'number' ? d.n : 1}× ${str(d.name)}`,
