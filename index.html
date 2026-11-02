@@ -8,6 +8,20 @@
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#1B3B2A" />
+    <script>
+      // Primeira pintura no tema certo, antes do bundle: a mesma leitura de `src/theme/mode.ts`
+      // (localStorage `pf2e:theme`, senão o sistema). As cores são `parchment.page` e
+      // `green.deepest` de `src/theme/palette.ts` — mudou lá, muda aqui.
+      (function () {
+        var pref = null
+        try { pref = localStorage.getItem('pf2e:theme') } catch (e) {}
+        var dark = pref === 'dark' || (pref !== 'light' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches)
+        var root = document.documentElement
+        root.style.colorScheme = dark ? 'dark' : 'light'
+        root.style.backgroundColor = dark ? '#15130F' : '#EDE3CC'
+        if (dark) document.querySelector('meta[name="theme-color"]').setAttribute('content', '#14281D')
+      })()
+    </script>
     <meta name="description" content="Ficha, iniciativa, mapa, monstros e rolagens em tempo real para a sua mesa de PF2e. Ferramenta de fã, gratuita e não oficial." />
     <meta name="keywords" content="Pathfinder, 2e, RPG, ferramentas, stat block, transformação" />
     <title>Covil de Dados · ferramentas de mesa para PF2e</title>
