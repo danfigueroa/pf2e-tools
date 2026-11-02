@@ -66,6 +66,12 @@ export const energyKeyFor = (build: BuildInfo): string => energyKeyForSlug(charS
 /** Arcane Cascade, Spellstrike e Summon Mythic Power do Magus (`magus.ts`). */
 export const magusKeyForSlug = (slug: string): string => `${slug}/magus`
 export const magusKeyFor = (build: BuildInfo): string => magusKeyForSlug(charSlug(build))
+/** Imagens das armas, armaduras e itens do Inventário (`itemArt.ts`). */
+export const artKeyForSlug = (slug: string): string => `${slug}/art`
+export const artKeyFor = (build: BuildInfo): string => artKeyForSlug(charSlug(build))
+/** Trechos do jogador no guia "Como Jogar" (`guideNotes.ts`). */
+export const guideKeyForSlug = (slug: string): string => `${slug}/guide`
+export const guideKeyFor = (build: BuildInfo): string => guideKeyForSlug(charSlug(build))
 /** Apelidos das armas e ataques (`attackNames.ts`). */
 export const namesKeyForSlug = (slug: string): string => `${slug}/names`
 export const namesKeyFor = (build: BuildInfo): string => namesKeyForSlug(charSlug(build))

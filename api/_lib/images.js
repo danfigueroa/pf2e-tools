@@ -12,7 +12,7 @@ import { supabase } from './supabase.js'
 export const IMAGE_BUCKET = 'images'
 
 const BLOB_URL_RE = /^https:\/\/[a-z0-9]+\.public\.blob\.vercel-storage\.com\/(.+)$/
-const PATH_RE = /^(tokens|maps|monsters|journal)\/[A-Za-z0-9._-]{1,160}$/
+const PATH_RE = /^(tokens|maps|monsters|journal|items)\/[A-Za-z0-9._-]{1,160}$/
 
 /**
  * O caminho no bucket de uma URL NOSSA — do Storage deste projeto ou do Blob de

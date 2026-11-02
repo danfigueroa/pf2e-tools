@@ -119,8 +119,9 @@ const slugify = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '')
  * - `maps/`     — a imagem de um mapa: some quando o mapa é apagado;
  * - `monsters/` — token de monstro: é do encontro de um mapa e some com ele;
  * - `journal/`  — imagem do Diário de Campanha (NPC, local, item): permanente, só o GM envia.
+ * - `items/`    — imagem de arma, armadura ou item do Inventário: permanente, como `tokens/`.
  */
-export type ImageFolder = 'tokens' | 'maps' | 'monsters' | 'journal'
+export type ImageFolder = 'tokens' | 'maps' | 'monsters' | 'journal' | 'items'
 
 const BUCKET = 'images'
 const SUPABASE_URL = ((import.meta.env ?? {}) as Partial<ImportMetaEnv>).VITE_SUPABASE_URL as string | undefined
