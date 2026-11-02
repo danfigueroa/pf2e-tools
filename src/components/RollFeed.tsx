@@ -331,7 +331,7 @@ export const RollHistoryDrawer = ({ open, onClose }: { open: boolean; onClose: (
                     </Stack>
                 )}
                 <Button fullWidth sx={{ my: 1.5 }} onClick={() => { onClose(); navigate('/historico') }}>
-                    {tr('Ver o histórico completo', 'See the full history')}</Button>
+                    {tr('Ver as estatísticas da mesa', 'See the table stats')}</Button>
             </Box>
         </Drawer>
     )

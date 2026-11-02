@@ -285,7 +285,7 @@ export function QuickAccess({ gm, members: memberCount }: { gm: boolean; members
     ...(gm ? [{ to: '/ficha-virtual', icon: <ViewerIcon />, title: tr('Fichas', 'Sheets'), text: `${members.length} ${members.length === 1 ? tr('personagem', 'character') : tr('personagens', 'characters')}` }] : []),
     { to: '/iniciativa', icon: <InitiativeIcon />, title: tr('Iniciativa', 'Initiative'), text: combatLine, live: inCombat },
     { to: combat?.mapId ? `/mapa/${combat.mapId}` : '/mapa', icon: <MapIcon />, title: tr('Mapa de Combate', 'Battle Map'), text: mapName ? `${mapName}${inCombat && tokens ? ` · ${tokens} tokens` : ''}` : tr('Nenhum mapa ativo', 'No active map'), live: inCombat && !!mapName },
-    { to: '/historico', icon: <HistoryIcon />, title: tr('Rolagens', 'Rolls'), text: session ? tr(`Última sessão: ${shortDay(session.day)}`, `Last session: ${shortDay(session.day)}`) : tr('Histórico da mesa', 'Table history') },
+    { to: '/historico', icon: <HistoryIcon />, title: tr('Estatísticas', 'Stats'), text: session ? tr(`Última sessão: ${shortDay(session.day)}`, `Last session: ${shortDay(session.day)}`) : tr('Estatísticas da mesa', 'Table stats') },
     { to: '/transformation', icon: <TransformIcon />, title: tr('Transformações', 'Transformations'), text: tr('Forma Animal, Elemental…', 'Animal Form, Elemental…') },
     ...(gm ? [
       { to: '/diario-campanha', icon: <JournalIcon />, title: tr('Diário', 'Journal'), text: tr('Notas da campanha', 'Campaign notes'), gm: true },
@@ -514,7 +514,7 @@ export function LastSessionSection({ gm, inCombat = false }: { gm: boolean; inCo
           />
         ))}
       </Box>
-      <HistoryLink>{inCombat ? tr('Ver todas de hoje', 'See all from today') : gm ? tr('Ver histórico completo', 'See full history') : tr('Ver histórico da mesa', 'See table history')}</HistoryLink>
+      <HistoryLink>{inCombat ? tr('Ver todas de hoje', 'See all from today') : gm ? tr('Ver as estatísticas', 'See the stats') : tr('Ver as estatísticas da mesa', 'See the table stats')}</HistoryLink>
     </Box>
   );
 }

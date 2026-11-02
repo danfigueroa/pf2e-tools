@@ -52,7 +52,7 @@ export const SCENES: Scene[] = [
   },
   {
     id: 'historico',
-    label: tr('Histórico', 'History'),
+    label: tr('Estatísticas', 'Stats'),
     title: tr('As estatísticas de cada sessão', 'Each session\'s stats'),
     text: tr('Média do d20, críticos, maior dano e os troféus da noite. Será que o seu dado é justo?', 'd20 average, crits, biggest damage and the night\'s trophies. Is your die fair?'),
     Scene: HistoryScene,

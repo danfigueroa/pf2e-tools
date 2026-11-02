@@ -57,7 +57,7 @@ export const MesaSettingsPage = () => {
       {error && <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 2 }}>{error}</Alert>}
       {saved && <Alert severity="success" onClose={() => setSaved(null)} sx={{ mb: 2 }}>{saved}</Alert>}
 
-      <Section title={tr("Sessão", 'Session')} hint={tr("Só as rolagens feitas com a sessão iniciada contam no Histórico de Rolagens (estatísticas e troféus); as de fora — testes da ficha — aparecem para a mesa, mas não entram. Com a sessão em andamento, a sidebar de todos mostra o selo verde.", 'Only rolls made with the session started count in the Roll History (stats and trophies); the ones outside it — sheet tests — show up for the table, but don\'t count. With the session in progress, everyone\'s sidebar shows the green badge.')}>
+      <Section title={tr("Sessão", 'Session')} hint={tr("Só as rolagens feitas com a sessão iniciada contam nas Estatísticas da Mesa (médias, destaques e troféus); as de fora — testes da ficha — aparecem para a mesa, mas não entram. Com a sessão em andamento, a sidebar de todos mostra o selo verde.", 'Only rolls made with the session started count in the Table Stats (averages, highlights and trophies); the ones outside it — sheet tests — show up for the table, but don\'t count. With the session in progress, everyone\'s sidebar shows the green badge.')}>
         {mesa.sessionStartedAt ? (
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }}>
             <Typography sx={{ flex: 1, fontWeight: 600 }}>{tr('Sessão em andamento, ', 'Session in progress, ')}{sessionSince(mesa.sessionStartedAt)}</Typography>

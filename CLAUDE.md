@@ -16,7 +16,7 @@ Oito módulos ativos (rotas em `src/App.tsx`):
   para outro nível, pelas tabelas de construção de criaturas do GM Core.
 - `/mapa/:id?` → `src/modules/battle-map/` — mapa de combate (VTT): grid de 5 ft, imagem, tokens
   com barra de PV e régua.
-- `/historico` → `src/modules/session-diary/` — Histórico de Rolagens: as rolagens de cada dia de jogo, com
+- `/historico` → `src/modules/session-diary/` — Estatísticas da Mesa (era "Histórico de Rolagens"): as rolagens de cada dia de jogo, com
   estatísticas por personagem e destaques (`/diario`, o nome antigo, redireciona).
 - `/diario-campanha/:id?` → `src/modules/campaign-journal/` — Diário de Campanha, **só do GM**: preparação das
   sessões em Markdown, catálogo de NPCs/locais/itens, ganchos, encontros com XP e o "Mostrar à mesa".
@@ -270,7 +270,7 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
     que o `GuideMarkdown` não entende e mostrava crus.
 - **O mesmo `state` serve o feed de rolagens** (`api/_lib/roll-handler.js` + `roll-store.js`):
   `GET ?rolls=1&rev=N` e `POST { action: 'roll-add', roll }`. No Postgres (tabelas `rolls` e `shares`, migration
-  `feed_de_rolagens`): **toda rolagem fica** (é o Histórico de Rolagens), com `author` = a sessão de quem
+  `feed_de_rolagens`): **toda rolagem fica** (é o que as Estatísticas da Mesa leem), com `author` = a sessão de quem
   rolou; o GET devolve as últimas 30 numa consulta (`read_feed`), e só o `rev` quando nada mudou. As duas tabelas
   tiram o `seq` da MESMA sequência, e o `rev` é o maior `seq` da mesa: com sequências separadas, um compartilhamento
   abaixo da última rolagem não mudaria o máximo. `isRollRequest` vem **antes** de `isSheetRequest` nos dois
@@ -925,11 +925,12 @@ montado UMA vez no `MainLayout` (trocar de rota não refaz o "já visto"), e o h
   leitura. Fica acima do cabeçalho do celular e das gavetas (`zIndex` 1250), abaixo dos diálogos. Vale para
   toda rolagem, da ficha ou do mapa: as duas passam pelo mesmo `RollFeedLayer`.
 
-## Histórico de Rolagens
+## Estatísticas da Mesa (o antigo Histórico de Rolagens)
 
 `/historico` (`modules/session-diary/` + `services/diary.ts`): as rolagens de um dia de jogo, para o resumo do fim da
 sessão e para conferir o que rolou. **Chamava-se "Diário da Sessão"** (rota `/diario`, que redireciona), e o nome
-fazia pensar num diário escrito; o código e o endpoint (`?diary=`) mantêm o nome antigo. O banco guarda toda rolagem (`rolls`, ver "Feed de rolagens"); aqui só se agrupa.
+fazia pensar num diário escrito; depois, "Histórico de Rolagens", que não dizia que o módulo é de estatísticas (decisão do
+usuário, nov/2026: "Estatísticas da Mesa", "Estatísticas" na navegação; a rota `/historico` ficou); o código e o endpoint (`?diary=`) mantêm o nome antigo. O banco guarda toda rolagem (`rolls`, ver "Feed de rolagens"); aqui só se agrupa.
 
 - **Só conta o que foi rolado com a SESSÃO INICIADA** (decisão do usuário: fora da sessão os jogadores testam a ficha e as
   ferramentas, e isso sujava médias e troféus). Cada rolagem tem `rolls.in_session`, marcado pelo BANCO na inserção (trigger

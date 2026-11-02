@@ -143,7 +143,7 @@ export const SessionDiaryPage = () => {
     return (
         <Container maxWidth="lg" disableGutters sx={{ pb: 4 }}>
             <Typography variant="h3" component="h1" sx={{ fontWeight: 700, mb: 0.5 }}>
-                {tr('Histórico de rolagens', 'Roll history')}</Typography>
+                {tr('Estatísticas da Mesa', 'Table Stats')}</Typography>
             <Box sx={{ height: 2, width: { xs: 120, sm: 180 }, backgroundColor: gold.main, mb: 2 }} />
             <SessionNotice />
 
@@ -151,7 +151,7 @@ export const SessionDiaryPage = () => {
                 <Skeleton variant="rounded" height={40} sx={{ maxWidth: 420 }} />
             ) : days.length === 0 ? (
                 <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                    {failed ? tr('Não deu para ler o histórico. Confira a conexão e recarregue.', 'Couldn\'t read the history. Check the connection and reload.') : tr('Nenhuma rolagem na mesa ainda. As da próxima sessão aparecem aqui.', 'No rolls at the table yet. The next session\'s ones show up here.')}
+                    {failed ? tr('Não deu para ler as estatísticas. Confira a conexão e recarregue.', 'Couldn\'t read the stats. Check the connection and reload.') : tr('Nenhuma rolagem na mesa ainda. As da próxima sessão aparecem aqui.', 'No rolls at the table yet. The next session\'s ones show up here.')}
                 </Typography>
             ) : (
                 <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap', mb: 2.5 }}>
@@ -271,7 +271,7 @@ const SessionNotice = () => {
     if (mesa.sessionStartedAt) {
         return (
             <Alert severity="success" sx={{ mb: 2.5, maxWidth: 720 }}>
-                {tr('Sessão em andamento, ', 'Session in progress, ')}{sessionSince(mesa.sessionStartedAt)}{tr(': as rolagens de agora entram no histórico.', ': the rolls from now on count toward the history.')}</Alert>
+                {tr('Sessão em andamento, ', 'Session in progress, ')}{sessionSince(mesa.sessionStartedAt)}{tr(': as rolagens de agora entram nas estatísticas.', ': the rolls from now on count toward the stats.')}</Alert>
         )
     }
     return (

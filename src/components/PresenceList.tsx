@@ -15,7 +15,7 @@ const PAGES: [string, string][] = [
   ['/mapa', tr('Mapa', 'Map')],
   ['/transformation', tr('Transformação', 'Transformation')],
   ['/escalar-monstro', tr('Escalar Monstro', 'Scale Monster')],
-  ['/historico', tr('Histórico de Rolagens', 'Roll History')],
+  ['/historico', tr('Estatísticas da Mesa', 'Table Stats')],
 ];
 
 const pageLabel = (path: string) =>

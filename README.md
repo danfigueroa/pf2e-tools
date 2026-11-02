@@ -48,7 +48,7 @@ O toolkit expõe as ferramentas abaixo (rotas em `src/App.tsx`), listadas na pá
 | **Ficha Virtual**             | `/ficha-virtual`  | `src/modules/character-viewer/`       | Visualizador interativo da ficha, com descrições da AON traduzidas     |
 | **Iniciativa**                | `/iniciativa`     | `src/modules/initiative-tracker/`     | Ordem de turnos, dano em área, condições e aflições                    |
 | **Mapa de Combate**           | `/mapa`           | `src/modules/battle-map/`             | Grid de 5 ft com imagem, tokens com barra de PV e régua                |
-| **Histórico de Rolagens**     | `/historico`      | `src/modules/session-diary/`          | Troféus, ranking e o d20 da mesa em todas as sessões; cada noite também |
+| **Estatísticas da Mesa**      | `/historico`      | `src/modules/session-diary/`          | Troféus, ranking e o d20 da mesa em todas as sessões; cada noite também |
 | **Stat Block de Transformação** | `/transformation` | `src/modules/transformation-statblock/` | Gera o stat block de qualquer _battle form_ do Remaster              |
 | **Escalar Monstro**           | `/escalar-monstro` | `src/modules/monster-scaler/`        | Adapta uma criatura da AON para outro nível                            |
 | **Diário de Campanha** (GM)   | `/diario-campanha` | `src/modules/campaign-journal/`      | Preparação das sessões em Markdown, catálogo de NPCs/locais/itens, ganchos, encontros com XP e o que mostrar à mesa |
@@ -1212,7 +1212,7 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
     -   [x] Token do personagem permanente; o do monstro some com o mapa
     -   [x] Rolador de dados
 -   [x] **Rolagens da mesa**: toda rolagem aparece para todos, em qualquer página, com histórico
--   [x] **Histórico de Rolagens** (era "Diário da sessão"; só conta o que foi rolado com a sessão iniciada pelo GM): as rolagens de cada noite de jogo, com 20 e 1 naturais, média do d20,
+-   [x] **Estatísticas da Mesa** (era "Histórico de Rolagens" e, antes, "Diário da sessão"; só conta o que foi rolado com a sessão iniciada pelo GM): as rolagens de cada noite de jogo, com 20 e 1 naturais, média do d20,
         dano rolado por personagem e os destaques da sessão
     -   [x] **Todas as sessões**: troféus somando todas as noites (Abençoado pelos dados, Amaldiçoado, Golpe do século, Noite do
             apocalipse…), ranking por métrica, "o d20 é justo?" e a linha do tempo das sessões, com animação

@@ -57,8 +57,8 @@ export const NAV_ITEMS: NavItem[] = [
     keywords: [tr('mapa', 'map'), 'grid', 'tokens', 'regua', 'area', 'vtt', 'dados'],
   },
   {
-    text: tr('Rolagens', 'Rolls'), icon: <HistoryIcon />, path: '/historico', section: 'jogo',
-    keywords: ['historico', tr('rolagens', 'rolls'), tr('sessao', 'session'), 'estatisticas', 'trofeus', 'd20', 'diario'],
+    text: tr('Estatísticas', 'Stats'), icon: <HistoryIcon />, path: '/historico', section: 'jogo',
+    keywords: ['historico', tr('estatisticas da mesa', 'table stats'), tr('rolagens', 'rolls'), tr('sessao', 'session'), 'estatisticas', 'trofeus', 'd20', 'diario'],
   },
   {
     // De todos: é o stat block da forma de batalha do PERSONAGEM (decisão do usuário).
