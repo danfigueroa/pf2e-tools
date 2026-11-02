@@ -54,7 +54,7 @@ import {
 } from '../strikes'
 import { damageComponents, formatValue, componentLabel, scaleSpell, type ScaledComponent } from '../heightening'
 import { itemDisplayName } from '../customRunes'
-import { assuranceRoll, checkRoll, flurryRoll, isMythicAttackSpell, mapLabel, mythicSpellAttack, raysRoll, rollerIdentity, treatWoundsRoll, spellRoll, spellstrikeRoll, strikeRoll, withSimplePoison, type SpellAttackInfo } from '../rolls'
+import { assuranceRoll, checkRoll, extraSpellComponents, flurryRoll, isMythicAttackSpell, mapLabel, mythicSpellAttack, raysRoll, rollerIdentity, treatWoundsRoll, spellRoll, spellstrikeRoll, strikeRoll, withSimplePoison, type SpellAttackInfo } from '../rolls'
 import type { TableRoll } from '../../../dice/tableRoll'
 import { dialogEmbedProps, useEmbedContainer } from '../embedContext'
 import { CASCADE_TYPES, hasLaughingShadow, hasSpellstrike, isStudiousSpell, laughingShadowDamage, withLaughingShadow } from '../magus'
@@ -94,6 +94,8 @@ import { useMagus } from './useMagus'
 import { useSpellstrike } from './useSpellstrike'
 import { SpellstrikePanel } from './SpellstrikePanel'
 import { tr } from '../../../i18n'
+import { ExtraDiceField } from './ExtraDiceField'
+import type { DiceExpr } from '../../../dice/roll'
 
 /** O que tocar na ficha pede para rolar. */
 export type RollRequest =
@@ -636,6 +638,8 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
     // Por arma, não por perfil: o 2d6 de precisão da Gloom Blade é o mesmo nos três perfis.
     const storeKey = extrasKey(who.slug, weapon ? `w:${weapon.name}` : strike.key)
     const [opts, setOpts] = useState<StrikeOptions>(() => ({ ...DEFAULT_STRIKE_OPTIONS, extrasOn: loadExtras(storeKey) }))
+    // Dados extras com texto inválido travam o rolar (rolaria sem eles, em silêncio).
+    const [diceValid, setDiceValid] = useState(true)
     const toggleExtra = (k: string, on: boolean) => {
         const extrasOn = { ...opts.extrasOn, [k]: on }
         setOpts({ ...opts, extrasOn })
@@ -1214,6 +1218,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                         <AdjustField label={tr("Ajuste no ataque", 'Attack adjustment')} value={opts.attackAdjust} onChange={(n) => setOpts({ ...opts, attackAdjust: n })} />
                         <AdjustField label={tr("Ajuste no dano", 'Damage adjustment')} value={opts.damageAdjust} onChange={(n) => setOpts({ ...opts, damageAdjust: n })} />
                     </Stack>
+                    <ExtraDiceField onChange={(expr, valid) => { setOpts((o) => ({ ...o, extraDice: expr })); setDiceValid(valid) }} />
                 </Stack>
             </DialogContent>
             <RollActions
@@ -1224,7 +1229,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                 onClose={onClose}
                 // Magia escolhida e ainda não pronta (buscando, sem slot, regra): o jogador
                 // precisa trocar por "Só o Golpe" — rolar sem ela em silêncio enganaria.
-                disabled={loading || (canSpellstrike && !!ss.option && !ss.ready)}
+                disabled={loading || !diceValid || (canSpellstrike && !!ss.option && !ss.ready)}
                 onRoll={(mythic) => {
                     if (prepay) actions.spend(prepay)
                     if (applying) po.applyChosen()
@@ -1384,6 +1389,13 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     const rolled = psycheTarget
         ? chosen.map((c) => (c === psycheTarget ? { ...c, value: { ...c.value, flat: c.value.flat + psycheBonus } } : c))
         : chosen
+    // O que o jogador soma ao dano/cura (ajuste fixo e dados extras), como parcelas a mais da mesma natureza da
+    // primeira parcela imediata. Ataque de magia: dobram no crítico junto com o resto.
+    const [damageAdjust, setDamageAdjust] = useState(0)
+    const [extraDice, setExtraDice] = useState<DiceExpr | null>(null)
+    const [diceValid, setDiceValid] = useState(true)
+    const extraTarget = chosen.find((c) => (c.kind === 'damage' || c.kind === 'healing') && !c.persistent)
+    const userExtra = extraTarget ? extraSpellComponents(extraTarget.kind, extraDice, damageAdjust) : []
 
     const sub = [
         castRank != null ? `rank ${castRank}` : null,
@@ -1576,6 +1588,16 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                     )}
                     {attackParts && <SituationalNotes mods={mods} />}
                     {attackParts && <AdjustField label={tr("Ajuste no ataque", 'Attack adjustment')} value={adjust} onChange={setAdjust} />}
+                    {extraTarget && (
+                        <>
+                            <AdjustField label={extraTarget.kind === 'healing' ? tr('Ajuste na cura', 'Healing adjustment') : tr('Ajuste no dano', 'Damage adjustment')} value={damageAdjust} onChange={setDamageAdjust} />
+                            <ExtraDiceField onChange={(expr, valid) => { setExtraDice(expr); setDiceValid(valid) }} />
+                            {(variant?.rays ?? 1) > 1 && (damageAdjust !== 0 || extraDice) && (
+                                <Typography variant="caption" color="text.secondary">
+                                    {tr('Com vários raios, o que você somou entra só no primeiro.', 'With several rays, what you added goes only into the first one.')}</Typography>
+                            )}
+                        </>
+                    )}
                 </Stack>
             </DialogContent>
             <RollActions
@@ -1585,7 +1607,7 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                 alreadyMythic={attack?.alreadyMythic}
                 mythicPoints={mythicPoints}
                 onClose={onClose}
-                disabled={nothing && !castOnly}
+                disabled={(nothing && !castOnly) || !diceValid}
                 label={castOnly ? tr('Conjurar', 'Cast') : undefined}
                 onRoll={(mythic) => {
                     if (spell) {
@@ -1612,6 +1634,7 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                             sub: sub || undefined,
                             rays: Array.from({ length: rays }, () => ({ attackParts, mythicDelta: mythic ? attack!.mythicDelta : null })),
                             components: rolled,
+                            firstRayExtra: userExtra,
                         }), mythic)
                         return
                     }
@@ -1620,7 +1643,7 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                         sub: sub || undefined,
                         attackParts,
                         mythicDelta: mythic && attackParts ? attack!.mythicDelta : null,
-                        components: rolled,
+                        components: [...rolled, ...userExtra],
                         basic,
                     }), mythic && !!attackParts)
                 }}

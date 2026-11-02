@@ -27,6 +27,7 @@ import { strikingDice, stepUpDie } from '../../pathbuilder/weapon'
 import type { WeaponGear } from '../../services/gear'
 import { translateDamageType } from '../transformation-statblock/i18n'
 import { tr } from '../../i18n'
+import { extraDiceText } from '../../dice/extraDice'
 import { exprText, parseDiceExpr, rollGroups, type DiceExpr, type DiceGroup, type RolledExpr } from '../../dice/roll'
 import { abilityMod, ABILITY_LABELS, mythicProficiencyDelta, weaponProficiencyRank } from './helpers'
 import { conditionParts, type CheckPart } from './checks'
@@ -98,6 +99,8 @@ export interface ExtraDamage {
      *  Hunter's Edge) —, a não ser que venha do perfil escolhido, que já É a
      *  situação dele ("atacando quem não te detecta"). */
     defaultOn: boolean
+    /** Rótulo pronto, no lugar do "fórmula + tipo" (os dados extras digitados não têm tipo). */
+    label?: string
 }
 
 const EXTRA_RE = /^\s*(\d+\s*d\s*\d+(?:\s*[+-]\s*\d+)?|\d+)\s+(.+?)\s*$/i
@@ -127,6 +130,7 @@ export function parseExtraDamage(list: string[] | undefined, fromProfile = false
 
 /** "1d6 elétrico", "1d8 precisão", "1d6 sangramento persistente". */
 export function extraLabel(e: ExtraDamage): string {
+    if (e.label) return e.label
     const type = translateDamageType(e.type)
     return [exprText(e.expr), type, e.persistent ? tr('persistente', 'persistent') : ''].filter(Boolean).join(' ')
 }
@@ -272,6 +276,8 @@ export interface StrikeOptions {
     attackAdjust: number
     /** Ajuste livre, cru — entra no dano. */
     damageAdjust: number
+    /** Dados extras digitados pelo jogador ("2d6"), já validados por `parseExtraDice`. Dobram no crítico. */
+    extraDice?: DiceExpr | null
     /** Valor de amedrontado do alvo — só o Fearsome Brute usa. */
     frightened?: number
 }
@@ -331,6 +337,22 @@ function strategicStrikeExtras(stratagem: { dice: number } | null): ExtraDamage[
         precision: true,
         persistent: false,
         defaultOn: true,
+    }]
+}
+
+/** Os dados extras que o jogador digitou: parcela própria, sempre ligada, dobrada no crítico como todo dano rolado. */
+export const CUSTOM_DICE_KEY = 'custom-dice'
+function customDiceExtras(expr: DiceExpr | null | undefined): ExtraDamage[] {
+    if (!expr || expr.groups.length === 0) return []
+    return [{
+        key: CUSTOM_DICE_KEY,
+        expr,
+        text: extraDiceText(expr),
+        type: '',
+        precision: false,
+        persistent: false,
+        defaultOn: true,
+        label: `${extraDiceText(expr)} extra`,
     }]
 }
 
@@ -503,6 +525,7 @@ export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers
             ...strategicStrikeExtras(stratagem),
             ...dragonStrikeExtras(dragonStrikeApplies(build, s, opts) && opts.extrasOn[DRAGON_STRIKE_KEY] === true),
             ...kiStrikeExtras(ki ? { dice: kiStrikeDice(build.level), type: kiTypeOf(opts.extrasOn) } : null),
+            ...customDiceExtras(opts.extraDice),
         ],
         deadly,
         fatal: traits.fatal,

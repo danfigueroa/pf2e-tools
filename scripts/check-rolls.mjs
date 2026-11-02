@@ -540,6 +540,39 @@ const crowded = rolls.spellstrikeRoll(ssWho, swordStrike, cascadePlan, null, und
 ok(crowded.damage.parts.length <= 8, 'Muitas parcelas de magia viram uma só, dentro do teto do feed')
 ok(table.sanitizeTableRoll(crowded) !== null && server.sanitizeRoll(crowded) !== null, 'A rolagem cheia ainda passa nos dois sanitizadores')
 
+// ── Dados extras digitados no diálogo ────────────────────────────────────────
+{
+  const { parseExtraDice } = await import('../src/dice/extraDice.ts')
+  const two = parseExtraDice('2d6 + 1d6+1d4')
+  ok(two.ok && two.expr.groups.length === 2 && two.expr.groups[0].count === 3, 'Dados extras: mesmo tamanho junta (2d6+1d6 = 3d6)')
+  ok(parseExtraDice('').ok && parseExtraDice('').expr === null, 'Campo vazio = sem dados extras')
+  ok(!parseExtraDice('1d7').ok, 'd7 não existe na mesa: recusado no campo, não no servidor')
+  ok(!parseExtraDice('2d6+3').ok, 'O fixo vai no ajuste, não aqui')
+  ok(!parseExtraDice('21d6').ok, 'Mais de 20 dados é digitação errada')
+  ok(!parseExtraDice('dois d6').ok, 'Texto solto é recusado')
+  const extraPlan = strikes.planStrike(nat, swordStrike, cascadeMods, { ...opts(), extraDice: two.expr })
+  const custom = extraPlan.extras.find((e) => e.key === strikes.CUSTOM_DICE_KEY)
+  ok(custom && custom.label === '3d6+1d4 extra', 'O Golpe ganha a parcela "3d6+1d4 extra"')
+  const extraRoll = rolls.strikeRoll(ssWho, swordStrike, extraPlan, null)
+  const part = extraRoll.damage.parts.find((p) => p.label === '3d6+1d4 extra')
+  ok(part && part.dice.length === 4 && part.total === part.dice.reduce((n, d) => n + d.value, 0), 'Os dados extras são rolados como parcela própria')
+  ok(extraRoll.damage.crit.total >= 2 * extraRoll.damage.total, 'E dobram no crítico junto com o resto')
+  ok(table.sanitizeTableRoll(extraRoll) !== null && server.sanitizeRoll(extraRoll) !== null, 'Golpe com dados extras passa nos dois sanitizadores')
+  // Teto de 8 parcelas: o feed recusaria a rolagem inteira.
+  const many = { groups: [4, 6, 8, 10, 12, 20, 100].map((faces) => ({ count: 1, faces })), flat: 0 }
+  const lots = strikes.planStrike(nat, swordStrike, cascadeMods, { ...opts(), extraDice: many })
+  lots.extras.push(...Array.from({ length: 8 }, (_, i) => ({ ...custom, key: `x${i}`, label: `x${i}` })))
+  const packed = rolls.strikeRoll(ssWho, swordStrike, lots, null)
+  ok(packed.damage.parts.length <= 8 && packed.damage.total === Math.max(1, packed.damage.parts.filter((p) => !p.persistent).reduce((n, p) => n + p.total, 0)), 'Parcelas demais são juntadas sem mudar o total')
+  ok(table.sanitizeTableRoll(packed) !== null && server.sanitizeRoll(packed) !== null, 'E a rolagem juntada passa nos dois sanitizadores')
+  const spellExtra = rolls.extraSpellComponents('damage', two.expr, 3)
+  eq(spellExtra.length, 3, 'Magia: um componente por tamanho de dado e um para o fixo')
+  const sr = rolls.spellRoll(ssWho, { name: 'Ignition', attackParts: [{ label: 'Ficha', value: 10 }], mythicDelta: null, components: [comp, ...spellExtra], basic: false })
+  ok(sr.damage.crit.total === 2 * sr.damage.total && sr.damage.total >= 7 + 3 + 4, 'Ataque de magia: o que o jogador somou dobra no crítico')
+  const raysWith = rolls.raysRoll(ssWho, { name: 'Blazing Bolt', rays: [{ attackParts: [], mythicDelta: null }, { attackParts: [], mythicDelta: null }], components: [comp], firstRayExtra: spellExtra })
+  ok(raysWith.rays[0].damage.parts.length === 4 && raysWith.rays[1].damage.parts.length === 1, 'Vários raios: o que o jogador somou entra só no primeiro')
+}
+
 
 
 // ── Veneno simples do Poison Weapon (o padrão do Eldarion) ───────────────────

@@ -14,7 +14,7 @@ import { conditionParts, type CheckPart } from './checks'
 import type { ConditionModifiers } from './conditions'
 import type { DescriptionRequest } from './components/DescriptionContent'
 import type { TableShare } from '../../services/tableShare'
-import { rollDie, rollGroups, type RolledExpr } from '../../dice/roll'
+import { rollDie, rollGroups, type DiceExpr, type RolledExpr } from '../../dice/roll'
 import { newRollId, type RolledPart, type TableRoll } from '../../dice/tableRoll'
 import { rollStrikeDamage, type Strike, type StrikePlan } from './strikes'
 import { componentLabel, type ScaledComponent } from './heightening'
@@ -75,6 +75,28 @@ const toPart = (label: string, r: RolledExpr, persistent = false): RolledPart =>
     total: r.total,
     ...(persistent ? { persistent: true } : {}),
 })
+
+/** O feed aceita até 8 parcelas de dano por rolagem (ou por raio); passando disso ele recusa a rolagem inteira. */
+export const MAX_DAMAGE_PARTS = 8
+
+/**
+ * Cabe nas 8 parcelas: junta as últimas parcelas imediatas (nunca a primeira, que é a da arma/magia, nem as
+ * persistentes, que ficam fora do total) duas a duas até caber. Os dados e o fixo vão juntos, então dados + fixo
+ * = total continua fechando nos validadores.
+ */
+export function fitParts(parts: RolledPart[], max = MAX_DAMAGE_PARTS): RolledPart[] {
+    const out = [...parts]
+    while (out.length > max) {
+        const idx = out.map((p, i) => (i > 0 && !p.persistent ? i : -1)).filter((i) => i >= 0)
+        if (idx.length < 2) return out.slice(0, max)
+        const [a, b] = idx.slice(-2)
+        const pa = out[a], pb = out[b]
+        const merged: RolledPart = { label: `${pa.label} + ${pb.label}`.slice(0, 80), dice: [...pa.dice, ...pb.dice], flat: pa.flat + pb.flat, total: pa.total + pb.total }
+        out.splice(b, 1)
+        out[a] = merged
+    }
+    return out
+}
 
 function d20Check(parts: CheckPart[], mythic: boolean): NonNullable<TableRoll['check']> {
     const d20 = rollDie(20)
@@ -138,7 +160,7 @@ export function flurryRoll(who: RollerIdentity, strike: Strike, plans: [StrikePl
         return {
             check: d20Check(plan.attackParts, false),
             damage: {
-                parts: dmg.parts.map((p) => toPart(p.label, p.rolled, p.persistent)),
+                parts: fitParts(dmg.parts.map((p) => toPart(p.label, p.rolled, p.persistent))),
                 total: dmg.total,
                 crit: { total: dmg.crit.total, note: dmg.crit.note },
             },
@@ -188,7 +210,7 @@ export function strikeRoll(
         ...base(who, tr(`Golpe — ${strike.label ?? strike.name}`, `Strike — ${strike.label ?? strike.name}`), strikeSub(strike, sub)),
         check: d20Check(attackParts, mythicDelta != null),
         damage: {
-            parts: dmg.parts.map((p) => toPart(p.label, p.rolled, p.persistent)),
+            parts: fitParts(dmg.parts.map((p) => toPart(p.label, p.rolled, p.persistent))),
             total: dmg.total,
             crit: { total: dmg.crit.total, note: dmg.crit.note },
         },
@@ -223,7 +245,7 @@ export function withSimplePoison(roll: TableRoll, dice: { count: number; faces: 
         ...roll,
         damage: {
             ...dmg,
-            parts: dmg.parts.length < 8 ? [...dmg.parts, toPart(label, rolled)] : dmg.parts,
+            parts: fitParts([...dmg.parts, toPart(label, rolled)]),
             total: dmg.total + rolled.total,
             ...(dmg.crit
                 ? { crit: { total: dmg.crit.total + rolled.total, note: tr(`${dmg.crit.note} + veneno ${rolled.total} (não dobra)`, `${dmg.crit.note} + poison ${rolled.total} (not doubled)`) } }
@@ -371,10 +393,24 @@ export function spellRoll(
     return roll
 }
 
+/**
+ * O que o jogador somou ao dano da magia no diálogo, como componentes a mais: um por tamanho de dado e um para o
+ * ajuste fixo. São do mesmo `kind` da parcela que somam (dano ou cura), sem tipo próprio — o rótulo diz "extra".
+ */
+export function extraSpellComponents(kind: ScaledComponent['kind'], dice: DiceExpr | null, flat: number): ScaledComponent[] {
+    const make = (i: number, count: number, faces: number, f: number): ScaledComponent => ({
+        id: 9900 + i, kind, formula: count ? `${count}d${faces}` : String(f), types: ['extra'], persistent: false,
+        count, faces, flat: f, nth: 0, occurrences: 1, value: { count, faces, flat: f }, changed: false, uncertain: false,
+    })
+    const out = (dice?.groups ?? []).map((g, i) => make(i, g.count, g.faces, 0))
+    if (flat) out.push(make(out.length, 0, 0, flat))
+    return out
+}
+
 /** O dano rolado dos componentes escolhidos; magia de ataque ganha o crítico (dobro). */
 function spellDamage(components: ScaledComponent[], withCrit: boolean, basic: boolean): NonNullable<TableRoll['damage']> {
-    const parts = components.map((c) =>
-        toPart(componentLabel(c), rollGroups(c.value.count ? [{ count: c.value.count, faces: c.value.faces }] : [], c.value.flat), c.persistent))
+    const parts = fitParts(components.map((c) =>
+        toPart(componentLabel(c), rollGroups(c.value.count ? [{ count: c.value.count, faces: c.value.faces }] : [], c.value.flat), c.persistent)))
     const total = Math.max(0, parts.filter((p) => !p.persistent).reduce((s, p) => s + p.total, 0))
     const damage: NonNullable<TableRoll['damage']> = { parts, total }
     // Persistente de magia fica fora do dobro: costuma ser de um grau só
@@ -396,14 +432,16 @@ export function raysRoll(
         /** Um item por raio: o memorial do ataque (igual para todos) e o ✦, se houver. */
         rays: Array<{ attackParts: CheckPart[]; mythicDelta: number | null }>
         components: ScaledComponent[]
+        /** O que o jogador somou (ajuste e dados extras): entra só no PRIMEIRO raio — é um bônus da magia, não de cada raio. */
+        firstRayExtra?: ScaledComponent[]
     },
 ): TableRoll {
     const roll = base(who, input.name, input.sub)
-    roll.rays = input.rays.map((ray) => {
+    roll.rays = input.rays.map((ray, i) => {
         const parts = ray.mythicDelta != null ? [...ray.attackParts, mythicPart(ray.mythicDelta)] : ray.attackParts
         return {
             check: d20Check(parts, ray.mythicDelta != null),
-            damage: spellDamage(input.components, true, false),
+            damage: spellDamage(i === 0 && input.firstRayExtra ? [...input.components, ...input.firstRayExtra] : input.components, true, false),
         }
     })
     return roll
