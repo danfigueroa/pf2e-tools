@@ -285,7 +285,7 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   funções. **`isMapRequest` vem ANTES de `isSheetRequest`** nos dois servidores: a rota da ficha
   aceita qualquer POST com `action` e engoliria as do mapa.
   - Imagens (mapa e tokens) vão **direto do navegador para o Supabase Storage** (bucket público `images`, migration
-    `imagens`), com a sessão de quem está logado: a política de insert só aceita as pastas `tokens/`, `maps/` e `monsters/` (mais `journal/`, só do GM — Diário de Campanha), nome
+    `imagens`), com a sessão de quem está logado: a política de insert só aceita as pastas `tokens/`, `maps/` e `monsters/` (mais `journal/`, só do GM — Diário de Campanha, e `items/`, as imagens de item do Inventário), nome
     `[a-z0-9-]` com extensão de imagem, de quem está em `mesa_members`, e só arquivo NOVO — sem política de update nem
     de delete, ninguém sobrescreve nem apaga a imagem de outro. O bucket barra mais de 8 MB e tipo que não seja
     WebP/PNG/JPEG. Passar pela função esbarraria no limite de 4,5 MB do corpo. Nome com sufixo aleatório e
@@ -743,7 +743,7 @@ membro da mesa; escrever, só do dono da ficha e do GM (ver "Login, papéis e do
   sozinha. A releitura também sobrepõe o que está na fila, para não desfazer na tela uma edição ainda não gravada.
 - **Uma LINHA por fatia** (`hp`, `slots`, `conditions`, `afflictions`,
   `persistent`, `mythic`, `consumed`, `shield`, `token`, `size`, `rage`, `psyche`, `energy`, `magus`, `ranger`, `rogue`,
-  `investigator`, `names`, `actions`, `uses`, `companions`, `gave`, `pet:<kind>:<slug>#<i>`). Campo novo precisa entrar no `FIELD_RE` de
+  `investigator`, `names`, `art`, `guide`, `actions`, `uses`, `companions`, `gave`, `pet:<kind>:<slug>#<i>`). Campo novo precisa entrar no `FIELD_RE` de
   `table-store.js`, senão o POST volta "Campo inválido" e o estado fica só no `localStorage`.
   A mesma lista está no CHECK da tabela (migration `estado_da_mesa`) — mudou um, muda o outro, e campo novo é
   migration nova. Documento único faria dois jogadores editando ao mesmo tempo se sobrescreverem — quem marcasse
@@ -1177,6 +1177,15 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   - **O guia curado é só a BASE da primeira geração por IA**: a IA seguinte parte do guia ANTERIOR, então editar o
     `combatGuides.ts` (o do Nathaniel ganhou a seção da Animated Armor) NÃO muda o guia gerado de uma ficha já publicada —
     só o de quem abre o JSON "só neste aparelho" e o plano B. Para o guia gerado mudar, é preciso republicar a ficha.
+  - **O jogador edita o guia e acrescenta trechos** (pedido do usuário, nov/2026; `GuideEditDialog.tsx`, campo não controlado com
+    prévia no `GuideMarkdown`). Dois caminhos, só para quem edita a ficha:
+    - **"Editar guia"** troca o texto do guia NA FICHA PUBLICADA (ação `guide-edit`, mesmo portão do `guide`; `editGuide` em
+      `sheet-store.js`): marca `editedAt` (selo "gerado por IA · editado") e mantém o `generatedAt`. 409 se a ficha foi publicada de
+      novo no meio. Com o guia editado, o "Gerar de novo" pede confirmação e a IA parte do texto do jogador (`readForGuide` prefere
+      o editado ao da versão anterior); regerar tira o `editedAt` daquela língua. Cada idioma é editado no seu (`guide.en`).
+    - **"Meus trechos"** é texto do jogador no estado da mesa (campo `guide`, `guideNotes.ts`, até 3500 caracteres para caber nos
+      8 KB com acento), mostrado no fim do guia em "Do jogador". Não pertence à versão da ficha: sobrevive a toda publicação, e a IA
+      nunca o lê nem o reescreve. Conteúdo do usuário: não é traduzido.
 - **Publicar a ficha para a mesa** (`components/usePublication.ts`, `PublishDialog.tsx`,
   `PublishedBar.tsx`, `services/sheets.ts`): enviar um JSON abre um diálogo com o que muda
   (`sheetDiff.ts` — nível, talentos, habilidades, magias, itens) contra a versão da mesa (a
@@ -1333,6 +1342,11 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     com o app fechado aparece como aviso na volta. Reler: ao abrir, ao reconectar o canal e ao voltar a aba.
   - Fora do escopo, de propósito: histórico de transferências; a descrição do item recebido vem da API (o pacote
     pré-traduzido de quem recebeu não o conhece). Teto de 12 destinatários × 40 itens por fatia.
+- **Imagem de item** (`itemArt.ts` + `components/useItemArt.ts` + `ItemArt.tsx`, pedido do usuário): miniatura de 44 px na linha
+  do Inventário (arma, armadura e equipamento); sem imagem, o botão de enviar (só quem edita a ficha); com imagem, tocar abre a
+  grande com Trocar/Remover. Campo `art` da mesa, `{ nome minúsculo: url }` — chave pelo NOME, então duas cópias dividem a imagem e
+  ela sobrevive a reexport e a passar o item. Pasta `items/` do bucket, permanente como `tokens/` (trocar apaga a antiga). Até 25
+  por ficha: o campo tem teto de 8 KB, e o envio recusa antes de subir (senão ficaria arquivo órfão).
 - **Relíquias** (`relics.ts` + `components/RelicsCard.tsx`, no Inventário): catálogo À MÃO por nome de personagem
   (`RELICS`: cada relíquia entra quando o jogador informa o que ela é e que dádivas tem; hoje só o **Miranda's Arm**), como
   `customRunes.ts`. Regras do GM Core, Advancing a Relic (pg. 309): o **nível da relíquia é o do dono**; a Tabela 2–22
@@ -1453,8 +1467,14 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   pg. 103) é o chip "Devise a Stratagem · +1 ação · 1× por rodada" (`STRATAGEM_KEY` em `extrasOn`, **não lembrado** de um Golpe para
   o outro, como o Hunter's Aim): cobra a ação **antes** do Golpe pelo mesmo `prepay` do veneno (de qualquer tipo; a ação extra do
   Acelerado fica para o Golpe), troca FOR/DES por INT no ataque e soma o **Strategic Strike** (`1d6 precision`, +1 dado nos níveis 5, 9,
-  13 e 17) como parcela extra, dobrada no crítico. O d20 não é rolado à parte: Golpe e estratagema saem no mesmo clique, então o d20 da
-  rolagem JÁ É o do estratagema (`note` diz "fortune"). O chip "Investigação ativa sobre o alvo" (`LEAD_KEY`) zera o custo (ação livre).
+  13 e 17) como parcela extra, dobrada no crítico. O chip "Investigação ativa sobre o alvo" (`LEAD_KEY`) zera o custo (ação livre).
+  - **O d20 vem PRIMEIRO, a escolha depois** (decisão do usuário, nov/2026, seguindo a AON: "Roll a d20, then decide on an attack
+    stratagem or skill stratagem"). Com o chip ligado, o diálogo mostra "Rolar o d20 do estratagema" (paga a ação ali, não no Golpe)
+    e trava o rolar até haver d20. O d20 fica em memória por personagem (`stratagemPending.ts`, `{ d20, turn }`) até ser usado,
+    descartado, o `actions.turn` mudar ou passarem 15 min — fechar o diálogo não rerola, o Golpe reabre com o chip ligado
+    (`peekStratagem`) e a faixa das Investigações mostra "Estratagema: d20 N" com "Descartar". Rolar o Golpe usa esse d20
+    (`withStratagemD20`, só no 1º do Flurry); "Não usar (estratagema de perícia)" o descarta SEM ir à mesa — então não conta nas
+    estatísticas. Fortuna (Sure Strike, Wish for Luck) fica travada com o estratagema: não soma.
   - **A arma tem de poder somar INT** (`stratagemQualifies`): ágil, acuidade ou à distância; sem traços da AON (arma caseira) o app
     **não afirma** e avisa. O Strategic Strike vale mesmo com INT = DES (a regra é "somar INT pelo estratagema"). Condição que mexe em INT
     (Estupefato) entra por `skillInt`, no lugar das de FOR/DES.
@@ -1728,6 +1748,10 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
   (`perDay`), os pips ficam no cabeçalho e a linha ganha botão de gastar. Truques (nível 0) são à
   vontade e **nunca** têm slot, inclusive os inatos. Foco é um contador único (`build.focusPoints`).
   "Novo dia" zera tudo.
+  - **Recuperar pelo resumo** (pedido do usuário): no "Recursos de hoje" e nos chips "Nv X" do conjurador, a célula com gasto abre
+    um menu (`SlotRecoverMenu.tsx`): no espontâneo, o slot do rank; no preparado, uma linha por magia com cópia gasta (o slot É a
+    cópia); também Ponto de Foco e Ponto Mítico. Sempre pelo menu, mesmo com uma opção só (um toque perdido não devolve nada), e,
+    como o pip, só desfaz — não devolve ação.
 - **Condições** (`conditions.ts` + `components/useConditions.ts` + `ConditionsBar.tsx`): catálogo do
   Remaster escrito à mão (o Pathbuilder não exporta condição nenhuma), com o efeito mecânico de cada
   uma declarado em `effects` sobre alvos atômicos (`ac`, `reflex`, `attackStr`, `skillDex`…) e
@@ -1797,6 +1821,18 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     runa de energia começa ligada, **precisão desligada** (Ataque Furtivo, Hunter's Edge são
     condicionais), e o dano extra de um perfil situacional (`magicWeapons.ts`) começa ligado — o
     perfil escolhido já É a situação dele.
+  - **Dados extras digitados** (`ExtraDiceField.tsx` + `src/dice/extraDice.ts`): "2d6", "1d8+1d4", ao lado do ajuste fixo. Só as
+    faces que a mesa aceita (`DICE_FACES`: d7 é recusado no CAMPO, não pelo servidor), até 20 dados, sem fixo; inválido trava o rolar.
+    No Golpe é um `ExtraDamage` (`CUSTOM_DICE_KEY`, rótulo "2d6 extra") e dobra no crítico; na magia, o diálogo ganhou também o
+    ajuste FIXO de dano/cura, e os dois viram componentes a mais (`extraSpellComponents`) — no Blazing Bolt, só no primeiro raio.
+    Parcela demais junta as últimas (`fitParts`, teto de 8 do feed) sem mudar o total.
+  - **Fortuna: rolar 2d20 e ficar com o maior** (`fortune.ts` + `useFortune` + `FortuneChips`, textos conferidos na AON): **Sure
+    Strike** (só ataque: Golpe, Spellstrike, ataque de magia) e **Wish for Luck** (antecedente Genie-Blessed, 1×/dia em `uses`:
+    ataque, salvaguarda e perícia — não Percepção, nem Tratar Ferimentos, nem Assurance). Chips excludentes; com o chip, o ✦ do
+    Rewrite Fate some (também é fortuna). Rolar com o Sure Strike CONJURA (1 ação + a cópia preparada, `sureStrikeResource`), a não
+    ser que a magia tenha sido conjurada antes pelo "Conjurar" ou pelo slot — `useSpellCast` deixa um crédito (`noteSureStrikeCast`)
+    que o ataque consome. O d20 descartado vai em `check.discarded` (≤ `d20`, nos DOIS validadores) e aparece no cartão; **as
+    estatísticas só leem `check.d20`**, então o descartado não conta em lugar nenhum, sem mudar o SQL.
   - Sem traços no AON (arma caseira), rola como corpo a corpo sem ágil, com aviso e um seletor
     FOR/DES. O título do cartão usa o nome base (`Warhammer`), não o do Pathbuilder com as runas.
   - **Magia**: o dano é o de `scaleSpell` no rank conjurado — o mesmo da linha e do drawer —, um
