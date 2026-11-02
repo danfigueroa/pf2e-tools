@@ -5,7 +5,7 @@ Orientações para o Claude Code trabalhar neste repositório. Para detalhes de 
 ## O que é
 
 **Covil de Dados** (antes "PF2e Toolkit"; o repositório e o pacote seguem `pf2e-tools`) — SPA (React 19 + TypeScript + Vite + MUI 7) com ferramentas para Pathfinder 2e
-Remaster. Textos de UI em **português (pt-BR)**.
+Remaster. Textos de UI em **português (pt-BR) ou inglês**, à escolha de cada conta (ver "Idioma").
 
 Oito módulos ativos (rotas em `src/App.tsx`):
 - `/ficha-virtual` → `src/modules/character-viewer/` — visualizador de ficha (JSON Pathbuilder) com
@@ -33,6 +33,57 @@ o `parseCharacterJson`/`normalizeBuild` (`BuildInfo`) moraram nela e hoje vivem 
 todos os módulos. O `jspdf` continua nas dependências: é o `ExportOptions` do gerador de Transformação que o usa.
 `/character-sheet` ainda redireciona para a Início, para quem tiver o link salvo.
 
+## Idioma (português e inglês)
+
+Desde nov/2026 cada **conta** escolhe Português (como sempre foi) ou English (decisão do usuário: parte dos jogadores fala
+inglês, o original do PF2e). Em inglês a plataforma inteira e a ficha ficam em inglês, e as descrições vêm **direto da AON,
+sem passar pela tradução** — e ficam gravadas no banco em inglês também.
+
+- **`src/i18n/index.ts`, sem biblioteca.** `lang` é uma CONSTANTE lida no boot (como a mesa): trocar de idioma **recarrega a
+  página** (`setLanguage` em `services/auth.ts`). Por isso `tr(pt, en)` é uma função comum, sem hook, e vale nos arquivos de
+  lógica e nos catálogos montados no nível do módulo. Os dois lados são obrigatórios. `isEn`, `locale` (datas e números: todo
+  `toLocale*` usa `locale`, nunca `'pt-BR'` fixo). Fora do navegador (scripts) é sempre português, a não ser com `PF2E_LANG=en`.
+- **Regra da casa: o lado português de todo `tr()` é o texto de antes, sem mudança.** O modo português não muda.
+- **A escolha mora em `user_metadata.language`** (Supabase Auth, sem tabela nem migration; `updateUser` mescla o campo). O
+  `localStorage` (`pf2e:language`, global) é só a primeira pintura e o que vale antes do login; o `load()` do `auth.ts` adota o
+  da conta e recarrega uma vez (trava em `sessionStorage`). Conta sem escolha herda a do aparelho. Seletor PT/EN
+  (`components/LanguageToggle.tsx`) no perfil da sidebar, no menu da conta do celular e na tela de entrada.
+- **O idioma vai na QUERY de todo `/api/*`** (`lang=en`, posto pelo wrapper de `fetch` do `installApiAuth`; em português a URL
+  não muda). No servidor, `api/_lib/i18n.js`: `langOf`, e as mensagens de erro continuam escritas em português nos handlers e são
+  trocadas **na saída** (`localizeBody`, no `routeState` e no `apiLang` de cada `api/*.js`) pelo dicionário `EXACT`/`PATTERNS`.
+  Mensagem nova de erro precisa de entrada lá, senão sai em português.
+- **Descrições em inglês**: os núcleos (`resolveSpells`, `resolveFeats`/`Specials`/`Items`, `resolveCompanion`) aceitam `lang`
+  e, em `en`, desligam a tradução **e** os dicionários determinísticos (`translateMetadata`, `translateDamageType`,
+  `translateHeightenedText`) — sem isso, mesmo sem chave, a magia voltava com metadado em português. Regras de traço em inglês:
+  `resolveTraitRules(terms, 'en')`, cache `traiten:v1` em `aon_lookups`.
+  - **Banco**: `descriptions.lang` (`'pt'`/`'en'`, migration `descricoes_em_ingles`), PK `(version, lang, kind, name)`.
+    `sheet_descriptions(mesa, slug, lang)` é a função de 3 argumentos; a de 2 continua só português (sem o filtro, as linhas
+    em inglês colidiriam no `jsonb_object_agg`). Lista de nomes e misses são os mesmos nos dois idiomas; **o inglês só lê os
+    misses** (quem grava é o português).
+  - **A publicação monta os DOIS pacotes** (`loadSheetDescriptionsBoth`), e a abertura da ficha completa os dois. O inglês não
+    precisa de chave de IA e é só a busca na AON.
+  - **Cliente**: a chave do cache em inglês é `pf2e:<versão>:en:<tipo>:<nome>` (a do português não mudou — os caches dos
+    aparelhos continuam valendo); pacotes estáticos em `public/descriptions/en/` (`build-description-bundle.mjs --lang en`, sem
+    chave de IA). As entradas que o pacote português tem corrigidas à mão (relíquias, itens caseiros, Anathema/Holy/Domain do
+    Woyd) foram escritas também no pacote inglês: o script é incremental e as mantém.
+  - **Correções de tradução não valem em inglês** (`applyFix` devolve o original, e o "Corrigir tradução" some).
+- **Guia "Como Jogar"**: a ação `guide` gera **pt e en em paralelo**, cada um DA FICHA (prompt próprio em inglês,
+  `buildPromptEn`) — nunca uma tradução do português (decisão do usuário). O inglês mora DENTRO do mesmo `guide` (`guide.en =
+  { markdown, generatedAt }`), então histórico e "Restaurar" o levam junto. `lang: 'en'` gera só o que falta. Guias curados em
+  inglês em `combatGuidesEn.ts` (`markdownEn`); o guia automático é bilíngue. `guideIn(guide)` escolhe o do idioma.
+- **Troféus**: o catálogo em inglês é `api/_lib/trophies-en.js` (por id; o `check-trophies` exige todos e confere os números).
+  `catalogWire(unlocked, lang)`; o evento `trophy-unlocked` leva `titleEn`.
+- **Rolagens no feed saem no idioma de quem rolou** (decisão do usuário): a rolagem continua sendo texto pronto.
+- **Vocabulário mecânico**: as funções `translateX` de `transformation-statblock/i18n.ts`, `translateSkill`/`translateSenses`
+  (`companionStats.ts`) e `traitLabel` (`weaponTraits.ts`) devolvem o termo canônico em inglês; os nomes de condição, perícia,
+  salvaguarda e atributo usam o nome oficial do Remaster. Distâncias em inglês são em **pés** (a régua do mapa mostra só pés).
+- **Diário de Campanha**: modelos em inglês (`TEMPLATES_EN`) e o bloco `:::players`, que o parse aceita junto de `:::jogadores`.
+- **Conteúdo do usuário fica como foi escrito**: anotações, background, diário, apelidos de arma, nomes de relíquia, nome da mesa.
+- **`scripts/check-i18n.mjs`** (no `npm run lint`) acusa texto em português fora de `tr()` (acento, lista de palavras,
+  abreviações PV/CA/CD). Dado que só parece texto se cala com `// i18n-ok` na linha ou `/* i18n-ignore-file */` (arquivo de
+  conteúdo em português por design, como os guias curados e os dicionários). `--ui` revisa rótulos de uma palavra pelo
+  dicionário de inglês do sistema (barulhento: é para revisão). **Texto novo de tela = `tr('…', '…')`.**
+
 ## Marca
 
 Nome **Covil de Dados**, kit em `brand/covil-de-dados/` (`LEIA-ME.md` tem cores, fontes e qual arquivo usar). No app:
@@ -49,7 +100,7 @@ npm run dev        # Vite dev server (Vite escolhe a porta, ~5173)
 npm run dev:api    # servidor de scraping/tradução da AON (server/index.mjs, porta 3001)
 npm run dev:full   # ambos (concurrently)
 npm run build      # tsc -b && vite build  ← rode antes de considerar algo pronto
-npm run lint       # eslint
+npm run lint       # eslint + check-i18n (texto em português fora de tr())
 ```
 
 Sempre valide mudanças não triviais com `npm run build` (roda `tsc -b`) e `npm run lint`.
@@ -63,7 +114,10 @@ node scripts/check-heightening.mjs      # confere o heightening das magias contr
 node scripts/check-rolls.mjs            # confere a matemática das rolagens contra as fichas do grupo
 node --env-file=.env scripts/check-diary.mjs
                                         # confere o resumo do histórico da mesa (SQL) contra a conta do cliente, dia a dia
-node scripts/check-trophies.mjs         # confere as regras dos troféus (sequências, destaques da sessão, platinas)
+node scripts/check-trophies.mjs         # confere as regras dos troféus (sequências, destaques da sessão, platinas, o catálogo em inglês)
+node scripts/check-i18n.mjs [--ui]      # texto em português fora de tr(); --ui revisa rótulos de uma palavra pelo dicionário de inglês
+node --env-file=.env scripts/prepare-sheets.mjs [mesa] [slug] [--lang en] [--guides-en]
+                                        # completa no banco as descrições (em inglês com --lang en) e o guia em inglês das fichas publicadas
 node scripts/check-economy.mjs          # confere que todo talento/item do elenco que custa ação, reação ou Ponto Mítico tem caminho
 node --env-file=.env scripts/check-auth.mjs
                                         # matriz de acesso (login, papéis, convites, dono de ficha, notificações, configurações da mesa)
@@ -258,6 +312,8 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   seção da Iniciativa.
 
 ### Tradução (o ponto que mais quebra)
+
+(Tudo abaixo é o caminho do **português**. Em inglês não há tradução: ver "Idioma".)
 
 - **Cadeia de provedores** em `TRANSLATION_CHAIN` (`api/_lib/aon.js`): Gemini
   `gemini-3.1-flash-lite` → Groq `gpt-oss-120b` → Groq `gpt-oss-20b`. Todos falam a API

@@ -37,6 +37,10 @@ O **Covil de Dados** (antes PF2e Toolkit) é uma aplicação web projetada para 
 
 ## ✨ Funcionalidades
 
+**Português ou inglês, por conta:** cada usuário escolhe o idioma (PT/EN no menu da conta ou na tela de entrada). Em
+inglês a plataforma inteira e a ficha ficam em inglês, e as descrições vêm direto da Archives of Nethys, sem tradução —
+também guardadas no banco. O guia "Como Jogar" é gerado nos dois idiomas na publicação.
+
 O toolkit expõe as ferramentas abaixo (rotas em `src/App.tsx`), listadas na página inicial:
 
 | Ferramenta                    | Rota              | Módulo                                | O que faz                                                              |
@@ -1183,6 +1187,7 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
     -   [x] Presets de campanha + upload/colar JSON + restauração por sessão
     -   [x] Guias de uso "Como Jogar" (curados à mão + fallback heurístico)
     -   [x] Descrições da AON traduzidas para pt-BR sob demanda (drawer)
+    -   [x] Plataforma em inglês por escolha da conta (descrições da AON em inglês, sem tradução)
     -   [x] Áreas: Combate, Perícias, Talentos, Habilidades, Magias, Companheiros, Inventário
     -   [x] Estado de jogo compartilhado entre os jogadores (PV, slots, foco, condições, pontos míticos)
     -   [x] Proficiência mítica em salvaguardas, perícias e ataques + pool de 3 Pontos Míticos
