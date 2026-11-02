@@ -7,7 +7,7 @@ import {
     LocalDrink as DrinkIcon,
     TouchApp as UseIcon,
 } from '@mui/icons-material'
-import { COIN_COLORS, HP_COLOR } from '../../../theme/palette'
+import { COIN_COLORS, HP_COLOR, onSolid } from '../../../theme/palette'
 import { gold } from '../../../theme'
 import type { BuildInfo } from '../../../pathbuilder/types'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
@@ -331,7 +331,7 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
                                                         sx={healing ? {
                                                             fontWeight: 700,
                                                             backgroundColor: HP_COLOR,
-                                                            color: 'common.white',
+                                                            color: onSolid,
                                                             '&:hover': { backgroundColor: HP_COLOR, filter: 'brightness(0.88)' },
                                                         } : { fontWeight: 700 }}
                                                     >

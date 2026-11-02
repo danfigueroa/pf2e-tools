@@ -4,7 +4,7 @@ import { PhotoCamera as CameraIcon } from '@mui/icons-material'
 import { useSharedState } from './useSharedState'
 import { TOKEN_MAX_SIDE, deleteImage, imageErrorText, shrinkImage, uploadImage, useImageUrl } from '../../../services/images'
 import { initials } from '../../battle-map/geometry'
-import { MAP_BACKDROP, TOKEN_PC, gold, parchment } from '../../../theme'
+import { MAP_BACKDROP, TOKEN_PC, gold, onFrame } from '../../../theme'
 import { useSheetReadOnly } from '../sheetAccess'
 import { tr } from '../../../i18n'
 
@@ -85,7 +85,7 @@ export const TokenAvatar = ({ slug, name }: Props) => {
                     {src ? (
                         <Box component="img" src={src} alt="" sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
-                        <Box component="span" sx={{ color: parchment.page, fontWeight: 700, fontSize: '1.4rem' }}>
+                        <Box component="span" sx={{ color: onFrame.page, fontWeight: 700, fontSize: '1.4rem' }}>
                             {initials(name)}
                         </Box>
                     )}

@@ -1,6 +1,6 @@
 import { Box, Button, Card, CardContent, Chip, Stack, Tooltip, Typography } from '@mui/material'
 import { Psychology as PsycheIcon } from '@mui/icons-material'
-import { PSYCHE_COLOR } from '../../../theme'
+import { PSYCHE_COLOR, onSolid } from '../../../theme'
 import type { PsycheApi } from './usePsyche'
 import { tr } from '../../../i18n'
 
@@ -30,7 +30,7 @@ export const PsycheBar = ({ psyche }: Props) => {
                         Unleash Psyche
                     </Typography>
                     {phase === 'unleashed' && (
-                        <Chip label={tr('Psique liberada', 'Psyche unleashed')} size="small" sx={{ ...chipSx, bgcolor: PSYCHE_COLOR, color: '#FFFFFF' }} />
+                        <Chip label={tr('Psique liberada', 'Psyche unleashed')} size="small" sx={{ ...chipSx, bgcolor: PSYCHE_COLOR, color: onSolid }} />
                     )}
                     {phase === 'strain' && (
                         <Chip label={tr("Esgotada · Estupefato 1", 'Exhausted · Stupefied 1')} size="small" variant="outlined" sx={chipSx} />

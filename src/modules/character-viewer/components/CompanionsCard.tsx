@@ -5,7 +5,7 @@ import type { BuildInfo } from '../../../pathbuilder/types'
 import { NPC_TOKEN_MAX_SIDE, deleteImage, imageErrorText, shrinkImage, uploadImage, useImageUrl } from '../../../services/images'
 import { searchCreatures } from '../../../services/creatures'
 import { initials } from '../../battle-map/geometry'
-import { MAP_BACKDROP, TOKEN_NPC, parchment } from '../../../theme'
+import { MAP_BACKDROP, TOKEN_NPC, onFrame } from '../../../theme'
 import { MAX_COMPANIONS, type Companion } from '../companions'
 import { DEFAULT_FIT, fitStyle, isDefaultFit, sanitizeFit, type TokenFit } from '../../battle-map/tokenFit'
 import { TokenFitDialog } from '../../battle-map/components/TokenFitDialog'
@@ -65,7 +65,7 @@ const CompanionToken = ({ slug, companion, onChange, onFit }: {
                         border: `3px solid ${TOKEN_NPC}`,
                         backgroundColor: MAP_BACKDROP,
                         overflow: 'hidden',
-                        color: parchment.page,
+                        color: onFrame.page,
                         fontWeight: 700,
                         fontSize: '1.3rem',
                     }}

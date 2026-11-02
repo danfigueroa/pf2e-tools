@@ -1,6 +1,6 @@
 import { Button, Card, CardContent, Chip, Stack, Typography } from '@mui/material'
 import { SelfImprovement as MonkIcon } from '@mui/icons-material'
-import { MONK_COLOR } from '../../../theme'
+import { MONK_COLOR, onSolid } from '../../../theme'
 import type { BuildInfo } from '../../../pathbuilder/types'
 import { actionsKeyFor, legacyCharKey, slotsKeyFor, usesKeyFor } from '../charId'
 import type { ConditionModifiers } from '../conditions'
@@ -46,7 +46,7 @@ export const MonkBar = ({ build, mods }: Props) => {
                     <FeatureRow title="Monastic Archer Stance">
                         {stanceOn ? (
                             <>
-                                <Chip label={tr("Em postura · só Golpes de arco", 'In stance · bow Strikes only')} size="small" sx={{ ...chipSx, bgcolor: MONK_COLOR, color: '#FFFFFF' }} />
+                                <Chip label={tr("Em postura · só Golpes de arco", 'In stance · bow Strikes only')} size="small" sx={{ ...chipSx, bgcolor: MONK_COLOR, color: onSolid }} />
                                 <Button size="small" variant="outlined" onClick={() => uses.unmark(STANCE_USE_KEY)} sx={{ ml: 'auto' }}>
                                     {tr('Sair da postura', 'Leave the stance')}</Button>
                             </>

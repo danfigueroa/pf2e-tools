@@ -11,7 +11,7 @@ import {
     Typography,
 } from '@mui/material'
 import { Whatshot as RageIcon } from '@mui/icons-material'
-import { RAGE_COLOR } from '../../../theme'
+import { RAGE_COLOR, onSolid } from '../../../theme'
 import type { BuildInfo } from '../../../pathbuilder/types'
 import { characterMaxHp } from '../helpers'
 import { actionsKeyFor, hpKeyFor, legacyCharKey } from '../charId'
@@ -85,7 +85,7 @@ export const RageBar = ({ build, rage, conditions }: Props) => {
                         <Chip
                             label={tr("Em fúria", 'Raging')}
                             size="small"
-                            sx={{ ...chipSx, bgcolor: RAGE_COLOR, color: '#FFFFFF' }}
+                            sx={{ ...chipSx, bgcolor: RAGE_COLOR, color: onSolid }}
                         />
                     )}
 

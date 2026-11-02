@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Button, Card, CardContent, Chip, MenuItem, Select, Stack, TextField, Typography } from '@mui/material'
 import { Search as InvestigatorIcon } from '@mui/icons-material'
-import { INVESTIGATOR_COLOR } from '../../../theme'
+import { INVESTIGATOR_COLOR, onSolid } from '../../../theme'
 import type { BuildInfo } from '../../../pathbuilder/types'
 import { actionsKeyFor } from '../charId'
 import type { ConditionModifiers } from '../conditions'
@@ -76,7 +76,7 @@ export const InvestigatorBar = ({ build, investigator, mods }: Props) => {
         }
         return (
             <>
-                {at != null && <Chip label={tr("pronto", 'ready')} size="small" sx={{ ...chipSx, bgcolor: INVESTIGATOR_COLOR, color: '#FFFFFF' }} />}
+                {at != null && <Chip label={tr("pronto", 'ready')} size="small" sx={{ ...chipSx, bgcolor: INVESTIGATOR_COLOR, color: onSolid }} />}
                 <Button size="small" variant="contained" onClick={use} sx={solid}>{label}</Button>
             </>
         )
@@ -101,7 +101,7 @@ export const InvestigatorBar = ({ build, investigator, mods }: Props) => {
                             )}
                             {stored.leads.map((l) => (
                                 <FeatureRow key={l.id} title={l.name}>
-                                    <Chip label={tr("ativa · +1", 'active · +1')} size="small" sx={{ ...chipSx, bgcolor: INVESTIGATOR_COLOR, color: '#FFFFFF' }} />
+                                    <Chip label={tr("ativa · +1", 'active · +1')} size="small" sx={{ ...chipSx, bgcolor: INVESTIGATOR_COLOR, color: onSolid }} />
                                     <Button size="small" variant="outlined" onClick={() => investigator.close(l.id)} sx={{ ml: 'auto' }}>{tr('Resolvida', 'Resolved')}</Button>
                                     <Button size="small" color="inherit" onClick={() => investigator.abandon(l.id)} title={tr("Sai da lista e não volta até a próxima preparação diária", 'It leaves the list and doesn\'t come back until the next daily preparations')}>
                                         {tr('Abandonar', 'Abandon')}</Button>

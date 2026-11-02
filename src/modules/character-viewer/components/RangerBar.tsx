@@ -8,7 +8,7 @@ import {
     Typography,
 } from '@mui/material'
 import { Adjust as RangerIcon } from '@mui/icons-material'
-import { RANGER_COLOR } from '../../../theme'
+import { RANGER_COLOR, onSolid } from '../../../theme'
 import type { BuildInfo } from '../../../pathbuilder/types'
 import { actionsKeyFor, legacyCharKey, slotsKeyFor } from '../charId'
 import type { ConditionModifiers } from '../conditions'
@@ -58,7 +58,7 @@ export const RangerBar = ({ build, ranger, mods }: Props) => {
                         <FeatureRow title="Hunt Prey">
                             {stored.prey ? (
                                 <>
-                                    <Chip label={tr('Presa marcada', 'Prey marked')} size="small" sx={{ ...chipSx, bgcolor: RANGER_COLOR, color: '#FFFFFF' }} />
+                                    <Chip label={tr('Presa marcada', 'Prey marked')} size="small" sx={{ ...chipSx, bgcolor: RANGER_COLOR, color: onSolid }} />
                                     {hasPrecisionEdge(build) && (
                                         <Tooltip title={tr("Hunter's Edge: Precision — o primeiro acerto de cada rodada na presa soma dano de precisão. O chip de precisão da arma vem ligado.", 'Hunter\'s Edge: Precision — the first hit each round against the prey adds precision damage. The weapon\'s precision chip comes on.')}>
                                             <Chip label={tr("precisão ligada", 'precision on')} size="small" variant="outlined" sx={chipSx} />
@@ -83,7 +83,7 @@ export const RangerBar = ({ build, ranger, mods }: Props) => {
                         <FeatureRow title="Gravity Weapon">
                             {stored.gravity ? (
                                 <>
-                                    <Chip label={tr("Ativa · 1 minuto", 'Active · 1 minute')} size="small" sx={{ ...chipSx, bgcolor: RANGER_COLOR, color: '#FFFFFF' }} />
+                                    <Chip label={tr("Ativa · 1 minuto", 'Active · 1 minute')} size="small" sx={{ ...chipSx, bgcolor: RANGER_COLOR, color: onSolid }} />
                                     <Typography variant="caption" color="text.secondary" sx={{ flex: 1, minWidth: 140 }}>
                                         {tr('1º Golpe com arma da rodada: +2 × dados de dano.', '1st Strike with a weapon each round: +2 × damage dice.')}</Typography>
                                     <Button size="small" variant="outlined" onClick={() => ranger.setGravity(false)}>

@@ -28,7 +28,7 @@ import {
     Inventory2 as InventoryIcon,
 } from '@mui/icons-material'
 
-import { green, gold, parchment, displayFont } from '../../theme'
+import { green, gold, displayFont, onFrame } from '../../theme'
 import type { BuildInfo, FeatDescription } from '../../pathbuilder/types'
 import { PublishedBar } from './components/PublishedBar'
 import { canEditSheet, useRole } from '../../services/auth'
@@ -483,7 +483,7 @@ const SheetBody = ({ build: source, publication, onReset, onRestore, compact = f
                                 expandIcon={<ExpandIcon sx={{ color: gold.bright }} />}
                                 sx={{
                                     backgroundColor: green.main,
-                                    color: parchment.page,
+                                    color: onFrame.page,
                                     borderBottom: `2px solid ${gold.main}`,
                                 }}
                             >
@@ -522,7 +522,7 @@ const SheetBody = ({ build: source, publication, onReset, onRestore, compact = f
                                 '&.Mui-selected': { color: gold.bright },
                             },
                             '& .MuiTabs-scrollButtons': {
-                                color: parchment.page,
+                                color: onFrame.page,
                                 // No tablet a faixa rola, mas sem seta ninguém
                                 // descobre que há aba depois de "Magias".
                                 '&.Mui-disabled': { opacity: 0.3 },

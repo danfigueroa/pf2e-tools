@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import { Box, Card, CardContent, Typography, Stack, Chip, Divider } from '@mui/material'
-import { green } from '../../../theme/palette'
+import { greenInk } from '../../../theme/palette'
 import type { BuildInfo, CompanionStats, Pet } from '../../../pathbuilder/types'
 import { signed } from '../helpers'
 import {
@@ -18,7 +18,7 @@ import { tr } from '../../../i18n'
 
 interface Props { build: BuildInfo }
 
-const ACCENT = green.main
+const ACCENT = greenInk.main
 
 const PetsSectionView = ({ build }: Props) => {
     const pets = build.pets || []

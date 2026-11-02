@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Alert, Button, ButtonBase, Card, CardContent, Chip, Snackbar, Stack, Tooltip, Typography } from '@mui/material'
-import { gold, green, MAGUS_COLOR, SHIELD_COLOR } from '../../../theme'
+import { gold, MAGUS_COLOR, SHIELD_COLOR, greenInk, onSolid } from '../../../theme'
 import type { ActionsApi } from './useActions'
 import { useSheetReadOnly } from '../sheetAccess'
 import { tr } from '../../../i18n'
@@ -37,7 +37,7 @@ const Pip = ({ state, label, color, onClick, glyph }: {
                     borderRadius: '50%',
                     border: `2px ${state === 'lost' ? 'dashed' : 'solid'} ${state === 'lost' ? 'rgba(120,120,120,0.7)' : color}`,
                     bgcolor: state === 'free' ? color : 'transparent',
-                    color: state === 'free' ? '#FFFFFF' : color,
+                    color: state === 'free' ? onSolid : color,
                     fontSize: '0.8rem',
                     fontWeight: 700,
                     opacity: state === 'lost' ? 0.55 : 1,
@@ -92,7 +92,7 @@ export const ActionsBar = ({ actions, shieldReaction }: Props) => {
                                 <Pip
                                     key={i}
                                     state={i < spentBase ? 'spent' : 'free'}
-                                    color={green.main}
+                                    color={greenInk.main}
                                     label={i < spentBase ? tr('Ação gasta — toque para devolver', 'Action spent — tap to give it back') : tr('Ação disponível — toque para gastar', 'Action available — tap to spend')}
                                     // Tocar num pip gasto devolve até ele; num livre, gasta até ele.
                                     onClick={() => actions.setUsed(i < spentBase ? i : i + 1)}

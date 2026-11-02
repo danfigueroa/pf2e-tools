@@ -6,7 +6,7 @@ import { Add as AddIcon, Delete as DeleteIcon, PushPin as PinIcon, Search as Sea
 import type { BuildInfo } from '../../../pathbuilder/types'
 import { Markdown } from '../../../components/markdown/Markdown'
 import { MarkdownEditor } from '../../campaign-journal/components/MarkdownEditor'
-import { green, rule } from '../../../theme'
+import { rule, greenInk } from '../../../theme'
 import { charSlug } from '../charId'
 import { useSheetReadOnly, VIEW_OK } from '../sheetAccess'
 import { useCharacterNotes, type NotesStatus } from '../components/useCharacterNotes'
@@ -81,7 +81,7 @@ function NoteCard({ note, readOnly, version, onChange, onDelete }: {
                                 size="small"
                                 aria-label={note.pinned ? tr('Desafixar nota', 'Unpin note') : tr('Fixar nota no topo', 'Pin note to the top')}
                                 onClick={() => onChange({ pinned: !note.pinned })}
-                                sx={{ color: note.pinned ? green.main : 'text.disabled' }}
+                                sx={{ color: note.pinned ? greenInk.main : 'text.disabled' }}
                             >
                                 <PinIcon fontSize="small" />
                             </IconButton>

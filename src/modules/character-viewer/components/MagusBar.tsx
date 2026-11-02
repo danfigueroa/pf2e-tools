@@ -16,7 +16,7 @@ import {
     Typography,
 } from '@mui/material'
 import { AutoFixHigh as MagusIcon } from '@mui/icons-material'
-import { MAGUS_COLOR } from '../../../theme'
+import { MAGUS_COLOR, onSolid } from '../../../theme'
 import type { BuildInfo } from '../../../pathbuilder/types'
 import { characterMaxHp } from '../helpers'
 import { actionsKeyFor, hpKeyFor, legacyCharKey } from '../charId'
@@ -108,7 +108,7 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
                                         <Chip
                                             label={tr(`Na postura · +${effect.damage} ${translateDamageType(effect.type)}`, `In the stance · +${effect.damage} ${translateDamageType(effect.type)}`)}
                                             size="small"
-                                            sx={{ ...chipSx, bgcolor: MAGUS_COLOR, color: '#FFFFFF' }}
+                                            sx={{ ...chipSx, bgcolor: MAGUS_COLOR, color: onSolid }}
                                         />
                                         <Select
                                             size="small"
