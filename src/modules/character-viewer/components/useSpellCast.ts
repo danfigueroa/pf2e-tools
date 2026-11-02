@@ -3,6 +3,7 @@ import type { BuildInfo } from '../../../pathbuilder/types'
 import type { ConditionModifiers } from '../conditions'
 import { actionsKeyFor, magusKeyFor } from '../charId'
 import { castTimeOf, isConfluxSpell, pairCast, prepayStrike, spellIncludesStrike, type CastResource, type CastTime } from '../spellCast'
+import { noteSureStrikeCast } from '../fortune'
 import { hasSpellstrike } from '../magus'
 import { useActions, type ActionsApi } from './useActions'
 import { useMagus } from './useMagus'
@@ -78,6 +79,8 @@ export function useSpellCast(build: BuildInfo, mods: ConditionModifiers, mythicP
 
     const cast = useCallback((input: CastInput): CastReport => {
         if (pairCast(input.name, input.via)) return { paired: true, spent: [], warnings: [] }
+        // Sure Strike conjurado agora vale para o próximo ataque com o chip de fortuna, sem cobrar de novo.
+        noteSureStrikeCast(input.name)
         const spent: string[] = []
         const warnings: string[] = []
 

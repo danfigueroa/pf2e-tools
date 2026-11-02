@@ -55,6 +55,9 @@ const RAYS_TEXT: Record<RaysKind, { one: string; many: string; hit: string }> = 
 }
 const raysLabel = (roll: TableRoll) => RAYS_TEXT[raysKind(roll)].one
 
+/** Fortuna: o d20 que ficou de fora (só para a mesa conferir; não entra em estatística nenhuma). */
+const discardedText = (d: number) => tr(`Fortuna: rolou 2d20 e ficou com o maior (o outro foi ${d})`, `Fortune: rolled 2d20 and kept the higher (the other was ${d})`)
+
 /** Vários raios na mesma rolagem: cada um com o ataque e o dano, e o total dos raios no fim. */
 const RaysBlock = ({ rays, color, kind = 'ray' }: { rays: RollRay[]; color: string; kind?: RaysKind }) => {
     const label = RAYS_TEXT[kind].one
@@ -68,6 +71,7 @@ const RaysBlock = ({ rays, color, kind = 'ray' }: { rays: RollRay[]; color: stri
                     <Caption color={gold.bright}>{label} {i + 1} {tr(' de ', ' of ')}{rays.length}</Caption>
                     <DiceTray dice={[{ faces: 20, value: ray.check.d20 }]} flat={ray.check.mod} total={ray.check.total} color={color} compact />
                     {ray.check.mythic && <Caption color={MYTHIC_ON_DARK}>{tr('✦ proficiência mítica', '✦ mythic proficiency')}</Caption>}
+                    {ray.check.discarded != null && <Caption>{discardedText(ray.check.discarded)}</Caption>}
                     <Caption color={gold.bright}>{tr('Dano se acertar', 'Damage on a hit')}</Caption>
                     <DiceTray dice={dmg.dice} flat={dmg.flat} total={ray.damage.total} color={color} compact />
                     <Caption>{ray.damage.parts.filter((p) => !p.persistent).map((p) => `${p.label} ${p.total}`).join(' · ')}</Caption>
@@ -135,6 +139,7 @@ const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) =
                 <Box sx={{ mt: 0.75 }}>
                     <DiceTray dice={[{ faces: 20, value: roll.check.d20 }]} flat={roll.check.mod} total={roll.check.total} color={roll.color} />
                     {roll.check.mythic && <Caption color={MYTHIC_ON_DARK}>{tr('✦ proficiência mítica', '✦ mythic proficiency')}</Caption>}
+                    {roll.check.discarded != null && <Caption>{discardedText(roll.check.discarded)}</Caption>}
                     {roll.check.parts.length > 0 && <Caption>{partsLine(roll.check.parts)}</Caption>}
                 </Box>
             )}
@@ -260,6 +265,7 @@ export const HistoryRow = ({ roll }: { roll: TableRoll }) => (
                     <Typography sx={{ fontWeight: 800, fontSize: '1.15rem' }}>{roll.check.total}</Typography>
                     <Typography variant="body2" color="text.secondary">
                         d20 {roll.check.d20} {signed(roll.check.mod)}
+                        {roll.check.discarded != null && <> {tr(`(fortuna; o outro d20: ${roll.check.discarded})`, `(fortune; the other d20: ${roll.check.discarded})`)}</>}
                     </Typography>
                     {roll.check.d20 === 20 && <Chip size="small" label="Natural 20" sx={{ height: 20, color: gold.deep, borderColor: gold.main }} variant="outlined" />}
                     {roll.check.d20 === 1 && <Chip size="small" label="Natural 1" color="error" variant="outlined" sx={{ height: 20 }} />}

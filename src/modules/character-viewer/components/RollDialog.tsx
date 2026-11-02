@@ -95,6 +95,8 @@ import { useSpellstrike } from './useSpellstrike'
 import { SpellstrikePanel } from './SpellstrikePanel'
 import { tr } from '../../../i18n'
 import { ExtraDiceField } from './ExtraDiceField'
+import { FortuneChips } from './FortuneChips'
+import { useFortune } from './useFortune'
 import type { DiceExpr } from '../../../dice/roll'
 
 /** O que tocar na ficha pede para rolar. */
@@ -344,7 +346,10 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     const mythicContext: MythicContext = healMode ? 'check'
         : skillAction?.mythic ?? (initiative && canInitiative ? (check.en === 'Perception' ? 'initiative' : 'initiative-skill') : 'check')
     // Assurance não rola: não há o que o ✦ refazer.
-    const mythicOption = assuranceOn ? null : mythicOptionFor(build, mythicContext)
+    // Wish for Luck: salvaguarda e perícia (Percepção não é perícia). Fora do Tratar Ferimentos (o grau da cura sai
+    // do d20 lá dentro) e do Assurance (não rola). Fortuna não soma com o Rewrite Fate (que também é): com o chip, sem ✦.
+    const fortune = useFortune(build, mods, mythicPoints, check.en === 'Perception' || healMode || assuranceOn ? null : isSave ? 'save' : 'skill')
+    const mythicOption = assuranceOn || fortune.active ? null : mythicOptionFor(build, mythicContext)
     return (
         <>
             <DialogTitle sx={{ pb: 1 }}>{tr('Rolar ', 'Roll ')}{check.label}</DialogTitle>
@@ -354,6 +359,7 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                     {request.note && <Typography variant="caption" color="text.secondary">{request.note}</Typography>}
                     <SituationalNotes mods={mods} />
                     <AdjustField label={tr("Outros bônus/penalidades", 'Other bonuses/penalties')} value={adjust} onChange={setAdjust} />
+                    <FortuneChips fortune={fortune} />
                     {canTreat && (
                         <Box>
                             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -588,10 +594,10 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                     send(
                         assuranceOn
                             ? assuranceRoll(who, check.label, assur.proficiency, [sub, 'Assurance'].filter(Boolean).join(' · '))
-                            : {
+                            : fortune.apply({
                                 ...checkRoll(who, check.label, parts, mythic ? check.mythicDelta : null, sub, initiative && canInitiative),
                                 ...(mythic && mythicOption?.note ? { note: mythicOption.note } : {}),
-                            },
+                            }),
                         mythic,
                     )
                 }}
@@ -707,6 +713,9 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
     const aiming = huntersAimApplies(build, strike, opts) && opts.extrasOn[HUNTERS_AIM_KEY] === true
     // Devise a Stratagem: 1 ação à parte (paga antes do Golpe), ou livre com uma investigação sobre a criatura.
     const devising = stratagemOn(build, opts.extrasOn)
+    // Sure Strike / Wish for Luck: fortuna no ataque. O estratagema de ataque também é fortuna — não somam.
+    const fortune = useFortune(build, mods, mythicPoints, 'attack')
+    const fortuneBlocked = devising ? tr('O Golpe do estratagema já é fortuna: outro efeito de fortuna não soma.', 'The stratagem Strike is already fortune: another fortune effect doesn\'t stack.') : null
     const deviseCost = devising ? stratagemCost(opts.extrasOn) : 0
     const actionCostNow = asReaction ? 0 : spellstriking || aiming ? 2 : 1
     // O Flurry e o Ki Strike são ações próprias (não são "Golpe ou Andar"): a ação extra do Acelerado não os paga.
@@ -1193,6 +1202,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                     {plan.warnings.map((w) => <Alert key={w} severity="warning" sx={{ py: 0 }}>{w}</Alert>)}
                     {loading && <Typography variant="caption" color="text.secondary">{tr('Buscando os traços da arma no AON…', 'Looking up the weapon\'s traits on AON…')}</Typography>}
                     <SituationalNotes mods={mods} />
+                    <FortuneChips fortune={fortune} blocked={fortuneBlocked} />
                     {stanceOn && strike.unarmed && (
                         <Alert severity="warning" sx={{ py: 0 }}>{tr('Na Monastic Archer Stance os únicos Golpes possíveis são os de arco: desligue a postura na faixa do Monge para atacar desarmado.', 'In Monastic Archer Stance the only possible Strikes are bow Strikes: turn the stance off in the Monk bar to attack unarmed.')}</Alert>
                     )}
@@ -1238,7 +1248,8 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                     const mythicDelta = mythic ? plan.mythicDelta : null
                     const noted = (r: TableRoll): TableRoll => {
                         const poisoned = simplePoison && poisonUsed ? withSimplePoison(r, simpleDice) : r
-                        return rollNote ? { ...poisoned, note: rollNote } : poisoned
+                        const withNote = rollNote ? { ...poisoned, note: rollNote } : poisoned
+                        return fortuneBlocked ? withNote : fortune.apply(withNote)
                     }
                     if (kiOn) monkSlots.spendFocus()
                     if (flurrying && secondPlan) {
@@ -1391,6 +1402,7 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
         : chosen
     // O que o jogador soma ao dano/cura (ajuste fixo e dados extras), como parcelas a mais da mesma natureza da
     // primeira parcela imediata. Ataque de magia: dobram no crítico junto com o resto.
+    const fortune = useFortune(build, mods, mythicPoints, hasAttack ? 'attack' : null)
     const [damageAdjust, setDamageAdjust] = useState(0)
     const [extraDice, setExtraDice] = useState<DiceExpr | null>(null)
     const [diceValid, setDiceValid] = useState(true)
@@ -1587,6 +1599,7 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                         />
                     )}
                     {attackParts && <SituationalNotes mods={mods} />}
+                    {attackParts && <FortuneChips fortune={fortune} />}
                     {attackParts && <AdjustField label={tr("Ajuste no ataque", 'Attack adjustment')} value={adjust} onChange={setAdjust} />}
                     {extraTarget && (
                         <>
@@ -1629,23 +1642,23 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                     // rolagem só — um cartão com os raios e o total, não um popup por raio.
                     const rays = attackParts ? (variant?.rays ?? 1) : 1
                     if (attackParts && rays > 1) {
-                        send(raysRoll(who, {
+                        send(fortune.apply(raysRoll(who, {
                             name: request.name,
                             sub: sub || undefined,
                             rays: Array.from({ length: rays }, () => ({ attackParts, mythicDelta: mythic ? attack!.mythicDelta : null })),
                             components: rolled,
                             firstRayExtra: userExtra,
-                        }), mythic)
+                        })), mythic)
                         return
                     }
-                    send(spellRoll(who, {
+                    send(fortune.apply(spellRoll(who, {
                         name: request.name,
                         sub: sub || undefined,
                         attackParts,
                         mythicDelta: mythic && attackParts ? attack!.mythicDelta : null,
                         components: [...rolled, ...userExtra],
                         basic,
-                    }), mythic && !!attackParts)
+                    })), mythic && !!attackParts)
                 }}
             />
         </>

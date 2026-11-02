@@ -42,6 +42,8 @@ export const DEDICATED: Readonly<Record<string, string>> = {
     'reactive shield': 'ShieldCard',
     'quick shield block': 'ShieldCard',
     'divert destiny': 'MagusBar',
+    // Fortuna, no diálogo de rolagem (chip, 1×/dia em `uses`).
+    'wish for luck': 'RollDialog',
     'fiery rebirth': 'MagusBar',
     'summon mythic power': 'MagusBar',
     'unleash psyche': 'PsycheBar',

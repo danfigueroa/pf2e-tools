@@ -63,6 +63,11 @@ export interface TableRoll {
         total: number
         mythic: boolean
         parts: { label: string; value: number }[]
+        /**
+         * Efeito de fortuna (Sure Strike, Wish for Luck): rolou dois d20 e ficou com o maior — este é o que saiu.
+         * Só apresentação: as estatísticas (diário, troféus) leem `d20` e nunca este.
+         */
+        discarded?: number
     }
     damage?: {
         parts: RolledPart[]
@@ -136,6 +141,8 @@ function sanitizeCheck(raw: unknown): TableRoll['check'] | null {
         parts: parts
             .filter((p): p is Record<string, unknown> => !!p && typeof p === 'object' && isInt((p as Record<string, unknown>).value, 999))
             .map((p) => ({ label: str(p.label, 60), value: p.value as number })),
+        // Fortuna: o d20 descartado, nunca maior que o que valeu (o mesmo do `roll-store.js`).
+        ...(isInt(c.discarded) && (c.discarded as number) >= 1 && (c.discarded as number) <= (c.d20 as number) ? { discarded: c.discarded as number } : {}),
     }
 }
 

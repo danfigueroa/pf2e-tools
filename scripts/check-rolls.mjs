@@ -575,6 +575,41 @@ ok(table.sanitizeTableRoll(crowded) !== null && server.sanitizeRoll(crowded) !==
 
 
 
+// ── Fortuna: Sure Strike e Wish for Luck (Loki) ──────────────────────────────
+{
+  const fortune = await import('../src/modules/character-viewer/fortune.ts')
+  const loki = parseCharacterJson(JSON.parse(readFileSync(new URL('../public/characters/loki7.json', import.meta.url))))
+  const ids = (ctx) => fortune.fortuneSourcesFor(loki, ctx).map((s) => s.id).join(',')
+  eq(ids('attack'), 'sure-strike,wish-for-luck', 'Loki: Sure Strike e Wish for Luck no ataque')
+  eq(ids('save'), 'wish-for-luck', 'Na salvaguarda, só o Wish for Luck (Sure Strike é de ataque)')
+  eq(ids('skill'), 'wish-for-luck', 'Na perícia também')
+  eq(fortune.fortuneSourcesFor(nat, 'attack').length, 0, 'Quem não tem nenhum dos dois não ganha chip')
+  const base = rolls.checkRoll(ssWho, 'Teste', [{ label: 'Ficha', value: 7 }], null)
+  base.check.d20 = 4; base.check.total = 11
+  const lucky = fortune.withFortune(base, 'nota', 17)
+  ok(lucky.check.d20 === 17 && lucky.check.discarded === 4 && lucky.check.total === 24, 'Fortuna: fica o maior d20 e o total acompanha')
+  const unlucky = fortune.withFortune(base, 'nota', 2)
+  ok(unlucky.check.d20 === 4 && unlucky.check.discarded === 2 && unlucky.check.total === 11, 'Segundo d20 menor: o primeiro continua valendo')
+  ok(table.sanitizeTableRoll(lucky)?.check.discarded === 4 && server.sanitizeRoll(lucky)?.check.discarded === 4, 'Os dois sanitizadores guardam o d20 descartado')
+  const forged = { ...lucky, check: { ...lucky.check, discarded: 19 } }
+  ok(table.sanitizeTableRoll(forged)?.check.discarded === undefined && server.sanitizeRoll(forged)?.check.discarded === undefined, 'Descartado maior que o que valeu não é fortuna: some nos dois')
+  const statsMod = await import('../src/modules/session-diary/stats.ts')
+  const [day] = statsMod.summarize([{ ...lucky, at: Date.UTC(2026, 10, 2, 23), slug: 'loki' }])
+  ok(day.checks === 1 && day.d20Sum === 17 && day.hist[3] === 0, 'Estatísticas: só o d20 que valeu conta (o descartado fica fora)')
+  const rayRoll = { ...base, check: undefined, rays: [{ check: { ...base.check }, damage: { parts: [], total: 0 } }, { check: { ...base.check }, damage: { parts: [], total: 0 } }] }
+  const rayLucky = fortune.withFortune(rayRoll, 'nota', 20)
+  ok(rayLucky.rays[0].check.d20 === 20 && rayLucky.rays[1].check.discarded === undefined, 'Vários raios: a fortuna vale no primeiro ataque')
+  const sure = fortune.sureStrikeName(loki)
+  eq(sure, 'Sure Strike', 'O nome da magia vem da ficha')
+  const res = fortune.sureStrikeResource(loki, { usedOf: () => 0 }, sure)
+  ok(res && res.kind === 'slot' && res.total === 1 && res.key.includes('Sure Strike'), 'Conjurar pelo chip gasta a cópia preparada do Sure Strike')
+  eq(fortune.sureStrikeResource(loki, { usedOf: () => 1 }, sure), null, 'Sem cópia livre: nada a descontar (o app avisa)')
+  fortune.noteSureStrikeCast('Fireball')
+  ok(!fortune.takeSureStrikeCast(), 'Outra magia não deixa crédito de Sure Strike')
+  fortune.noteSureStrikeCast('Sure Strike')
+  ok(fortune.takeSureStrikeCast() && !fortune.takeSureStrikeCast(), 'A conjuração do Sure Strike paga UM ataque com o chip')
+}
+
 // ── Veneno simples do Poison Weapon (o padrão do Eldarion) ───────────────────
 eq(rogue.simpleDoses(eld), 10, 'Doses por dia = nível')
 eq(rogue.simplePoisonDice(eld).count, 2, 'Eldarion tem o Improved Poison Weapon: 2d4')

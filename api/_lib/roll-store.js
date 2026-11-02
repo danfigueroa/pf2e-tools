@@ -72,6 +72,9 @@ function sanitizeCheck(c) {
     mythic: c.mythic === true,
     parts: parts.filter((p) => p && typeof p === 'object' && isInt(p.value, 999))
       .map((p) => ({ label: str(p.label, 60), value: p.value })),
+    // Fortuna (Sure Strike, Wish for Luck): o d20 que ficou de fora. Fica o MAIOR, então o descartado nunca
+    // passa do que valeu. As estatísticas só leem `d20`: o descartado não conta em lugar nenhum.
+    ...(isInt(c.discarded) && c.discarded >= 1 && c.discarded <= c.d20 ? { discarded: c.discarded } : {}),
   }
 }
 
