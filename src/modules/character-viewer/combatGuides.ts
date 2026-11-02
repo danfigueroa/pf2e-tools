@@ -539,7 +539,7 @@ const MIRANDA = `## 🎯 Papel em Combate
 
 ## ⭐ Nunca Esqueça
 - 📱 **No app:** no diálogo do Golpe, o chip **Devise a Stratagem** cobra a ação, troca para INT, soma o Strategic Strike e põe a anotação fortune na rolagem. O chip **Investigação ativa sobre o alvo** deixa o estratagema livre. O app não conta "1× por rodada": é você. **Nos testes de perícia**, o mesmo talento aparece como **Estratagema de perícia** (+1 no teste de INT, SAB, CAR ou Percepção sobre o alvo, e você não ataca essa criatura até o próximo turno).
-- 🎲 **O d20 do estratagema é o do ataque:** não role de novo. A fortuna não soma com outro efeito de fortuna na mesma rolagem.
+- 🎲 **Primeiro o d20, depois a escolha:** no diálogo do Golpe, "Rolar o d20 do estratagema" mostra o número antes. Bom: role o Golpe, que sai com esse d20 (não se rola de novo). Ruim: "Não usar" e fique com o estratagema de perícia (+1 num teste sobre a criatura, sem poder golpeá-la). A fortuna não soma com outro efeito de fortuna na mesma rolagem.
 - 🔍 **Known Weaknesses:** ao Devise a Stratagem, você pode fazer um **Recall Knowledge antes do d20**. No sucesso crítico, você percebe uma fraqueza e cada aliado ganha **+1 de circunstância** no ataque contra o alvo até o seu próximo turno (o seu também).
 - 🤝 **Shared Stratagem:** se o Golpe com o estratagema acertar, **designe um aliado**: o alvo fica **desprevenido** contra o próximo ataque dele antes do seu próximo turno. Combina bem com o ladino ou o guerreiro do grupo.
 - 🛡️ **Escudo de aço (+2 na CA erguido):** custa uma ação para erguer e **não bloqueia** (ela não tem Shield Block). Só vale quando você vai ficar na linha de fogo.
@@ -590,7 +590,7 @@ Três Pontos Míticos por dia, na faixa ao lado das condições.
 
 ## ⚠️ Erros Comuns
 - ❌ **Usar o Devise a Stratagem com arma pesada:** sem ágil, acuidade ou distância, não soma INT nem o Strategic Strike. Use a Sword Cane.
-- ❌ **Rolar um d20 à parte no estratagema:** o d20 do estratagema é o do Golpe.
+- ❌ **Rolar o Golpe de novo depois do estratagema:** o Golpe contra a criatura usa o d20 do estratagema, já rolado.
 - ❌ **Devise a Stratagem duas vezes por rodada:** só uma, e vale para o **primeiro** Golpe na criatura escolhida.
 - ❌ **Esquecer a ação livre:** com investigação ativa sobre o alvo, o estratagema não custa nada.
 - ❌ **Gastar os 3 Pontos Míticos cedo:** o Correct the Story salva uma rodada ruim, e o We've Met Before só vale se o alvo for importante.

@@ -482,7 +482,7 @@ export const MIRANDA_EN = `## 🎯 Combat Role
 
 ## ⭐ Never Forget
 - 📱 **In the app:** in the Strike dialog, the **Devise a Stratagem** chip charges the action, switches to INT, adds Strategic Strike and puts the fortune note on the roll. The **Active investigation on the target** chip makes the stratagem free. The app doesn't count "1× per round": you do. **On skill checks**, the same feat shows up as **Skill stratagem** (+1 to the INT, WIS, CHA or Perception check about the target, and you don't attack that creature until your next turn).
-- 🎲 **The stratagem's d20 is the attack's:** don't roll again. Fortune doesn't stack with another fortune effect on the same roll.
+- 🎲 **First the d20, then the choice:** in the Strike dialog, "Roll the stratagem d20" shows the number first. Good: roll the Strike, which goes out with that d20 (no rolling again). Bad: "Don't use it" and keep the skill stratagem (+1 to a check about the creature, without being able to Strike it). Fortune doesn't stack with another fortune effect on the same roll.
 - 🔍 **Known Weaknesses:** when you Devise a Stratagem, you can make a **Recall Knowledge before the d20**. On a critical success, you notice a weakness and each ally gets a **+1 circumstance bonus** to attacks against the target until your next turn (yours too).
 - 🤝 **Shared Stratagem:** if the stratagem Strike hits, **designate an ally**: the target is **off-guard** against their next attack before your next turn. Pairs well with the group's rogue or fighter.
 - 🛡️ **Steel shield (+2 AC when raised):** costs an action to raise and **doesn't block** (she doesn't have Shield Block). Only worth it when you'll be in the line of fire.
@@ -533,7 +533,7 @@ Three Mythic Points per day, in the bar next to the conditions.
 
 ## ⚠️ Common Mistakes
 - ❌ **Using Devise a Stratagem with a heavy weapon:** without agile, finesse or ranged, it doesn't add INT nor Strategic Strike. Use the Sword Cane.
-- ❌ **Rolling a separate d20 for the stratagem:** the stratagem's d20 is the Strike's.
+- ❌ **Rolling the Strike again after the stratagem:** the Strike against the creature uses the stratagem's d20, already rolled.
 - ❌ **Devise a Stratagem twice per round:** only once, and it applies to the **first** Strike against the chosen creature.
 - ❌ **Forgetting the free action:** with an active investigation on the target, the stratagem costs nothing.
 - ❌ **Spending the 3 Mythic Points early:** Correct the Story saves a bad round, and We've Met Before is only worth it if the target is important.
