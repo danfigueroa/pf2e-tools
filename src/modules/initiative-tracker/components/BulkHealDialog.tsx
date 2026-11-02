@@ -50,7 +50,7 @@ export const BulkHealDialog = ({ open, onClose, targets, onApply }: Props) => {
     return (
         <Dialog open={open} onClose={onClose} fullScreen={fullScreen} maxWidth="xs" fullWidth>
             <DialogTitle sx={{ fontWeight: 700 }}>
-                {mode === 'heal' ? 'Curar' : tr('PV temporários', 'Temporary HP')}
+                {mode === 'heal' ? tr('Curar', 'Heal') : tr('PV temporários', 'Temporary HP')}
             </DialogTitle>
 
             <DialogContent dividers>

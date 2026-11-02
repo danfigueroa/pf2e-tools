@@ -11,7 +11,7 @@ export const OUTCOME_LABELS: Record<SaveOutcome, string> = {
     fail: tr('Falha', 'Failure'),
     success: tr('Sucesso', 'Success'),
     critSuccess: tr('Sucesso crítico', 'Critical success'),
-    none: 'Direto',
+    none: tr('Direto', 'Direct'),
 }
 
 const MULTIPLIERS: Record<SaveOutcome, number> = {

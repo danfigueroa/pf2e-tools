@@ -202,7 +202,7 @@ export const CombatantCard = ({
                             onChange={onToggleSelect}
                             size="small"
                             sx={{ p: 0.5, mt: -0.25 }}
-                            inputProps={{ 'aria-label': `Selecionar ${combatant.name}` }}
+                            inputProps={{ 'aria-label': tr(`Selecionar ${combatant.name}`, `Select ${combatant.name}`) }}
                         />
 
                         <TextField

@@ -43,8 +43,8 @@ const OUTCOME_SHORT: Record<SaveOutcome, string> = {
     critFail: tr('Falha cr.', 'Crit fail'),
     fail: tr('Falha', 'Failure'),
     success: tr('Sucesso', 'Success'),
-    critSuccess: 'Suc. cr.',
-    none: 'Direto',
+    critSuccess: tr('Suc. cr.', 'Crit success'),
+    none: tr('Direto', 'Direct'),
 }
 
 const OUTCOME_ORDER: SaveOutcome[] = ['critFail', 'fail', 'success', 'critSuccess']
