@@ -70,6 +70,7 @@ mesa mesas tirar pôr põe sobe desce vem vêm volta entra sai fim início meio 
 precisa preciso deve devem cria criar criado salvo salva gravado gravar lido ler lê escolha escolhido
 quantos quantas quanto quanta mudou muda mudar tipo tipos geral automático automática manual
 persistente persistentes veneno venenos simples contundente perfurante cortante tratar ferimentos dobrado dobrada fogo frio eletricidade sônico vazio vitalidade espírito imune sofreu chegou caiu fraq fraqueza fraquezas resist segura recuperados ajuda apropriada atual estágio ataques por gerado gerada recarregou recarregar manter minha meu mesma mesmo passou passar elevada elevado aplica aplicar cenas cena elenco conjurada conjurado compartilhou mostrou ganhou ganhei regra regras compartilhada compartilhado copiado copiada enviou envie forma formas te lhe
+copiar entrando enviando salvando sincronizando sincronizado compartilhando exportando exportar recolher detalhes pular recuperar gatilho requisitos custo acesso recebido vestida beber preparado preparadas acuidade derrubar urso direto curar selecionar vazios constante aventureiro fina grossa largura altura ileso planejado planejada jogada feita pulada aparece resolvido runa poder amplificada quebra comum destrutivo voo escalada cauda negrito texto usou
 `.trim().split(/\s+/).filter((w) => !['mesa', 'mesas'].includes(w)))
 
 const PT_EXACT = new Set(['FOR', 'DES', 'SAB', 'CAR', 'po', 'pp', 'pl', 'pc', 'Atr.', 'Qtd.', 'Nº', 'Valor', 'Mover tokens', 'Jogo', 'Mesa', 'A mesa', 'Dados', 'PV temp', 'Prof.', 'Von'])
