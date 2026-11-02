@@ -5,6 +5,7 @@
 // render). Aqui só entra o casamento por tipo.
 
 import { translateDamageType } from '../transformation-statblock/i18n'
+import { tr } from '../../i18n'
 
 /** Tipos que o diálogo de dano oferece, na ordem em que aparecem. */
 export const DAMAGE_TYPES = [
@@ -80,6 +81,6 @@ export function parseResistanceStrings(entries: string[]): {
  * de transformação (lá todo dano tem tipo), então entra aqui.
  */
 export function damageTypeLabel(type: string): string {
-    const label = type === 'untyped' ? 'sem tipo' : translateDamageType(type)
+    const label = type === 'untyped' ? tr('sem tipo', 'untyped') : translateDamageType(type)
     return label.charAt(0).toUpperCase() + label.slice(1)
 }

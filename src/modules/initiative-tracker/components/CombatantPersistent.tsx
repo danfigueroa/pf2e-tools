@@ -11,6 +11,7 @@ import { Close as CloseIcon } from '@mui/icons-material'
 import { gold, ink, parchment, rule, status } from '../../../theme'
 import { damageTypeLabel } from '../defenses'
 import { ASSISTED_DC, FLAT_DC, type PersistentDamage } from '../persistentDamage'
+import { tr } from '../../../i18n'
 
 interface Props {
     persistent: PersistentDamage[]
@@ -44,8 +45,7 @@ export function CombatantPersistent({ persistent, onChange }: Props) {
                     >
                         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.75, flexWrap: 'wrap' }}>
                             <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                                {p.formula} de {label.toLowerCase()} persistente
-                            </Typography>
+                                {p.formula} {tr('de ', 'of ')}{label.toLowerCase()} {tr('persistente', 'persistent')}</Typography>
                             {p.sourceName && (
                                 <Chip
                                     size="small"
@@ -55,10 +55,10 @@ export function CombatantPersistent({ persistent, onChange }: Props) {
                                 />
                             )}
                             <Box sx={{ flex: 1 }} />
-                            <Tooltip title="Remover (cura, apagar o fogo, fim do combate)">
+                            <Tooltip title={tr("Remover (cura, apagar o fogo, fim do combate)", 'Remove (healing, putting out the fire, end of combat)')}>
                                 <IconButton
                                     size="small"
-                                    aria-label={`Remover dano persistente de ${label.toLowerCase()}`}
+                                    aria-label={tr(`Remover dano persistente de ${label.toLowerCase()}`, `Remove ${label.toLowerCase()} persistent damage`)}
                                     onClick={() => remove(p.id)}
                                 >
                                     <CloseIcon fontSize="small" />
@@ -67,8 +67,7 @@ export function CombatantPersistent({ persistent, onChange }: Props) {
                         </Box>
 
                         <Typography variant="caption" sx={{ display: 'block', color: ink.secondary }}>
-                            Cai ao final de cada turno · teste plano CD {p.dc} para acabar
-                        </Typography>
+                            {tr('Cai ao final de cada turno · teste plano CD ', 'Falls at the end of each turn · flat check DC ')}{p.dc} {tr('para acabar', 'to end it')}</Typography>
 
                         {/* Só depois de o dano cair é que o teste plano existe. */}
                         {p.checkDue ? (
@@ -77,7 +76,7 @@ export function CombatantPersistent({ persistent, onChange }: Props) {
                                     variant="caption"
                                     sx={{ display: 'block', color: status.warning, fontWeight: 700 }}
                                 >
-                                    Teste plano CD {p.dc}:
+                                    {tr('Teste plano CD ', 'Flat check DC ')}{p.dc}:
                                 </Typography>
                                 <Box
                                     sx={{
@@ -91,18 +90,16 @@ export function CombatantPersistent({ persistent, onChange }: Props) {
                                         size="small"
                                         variant="outlined"
                                         onClick={() => remove(p.id)}
-                                        aria-label={`Passou no teste plano do dano persistente de ${label.toLowerCase()}`}
+                                        aria-label={tr(`Passou no teste plano do dano persistente de ${label.toLowerCase()}`, `Passed the flat check of the ${label.toLowerCase()} persistent damage`)}
                                     >
-                                        Passou
-                                    </Button>
+                                        {tr('Passou', 'Passed')}</Button>
                                     <Button
                                         size="small"
                                         variant="outlined"
                                         onClick={() => replace(p.id, { checkDue: false })}
-                                        aria-label={`Falhou no teste plano do dano persistente de ${label.toLowerCase()}`}
+                                        aria-label={tr(`Falhou no teste plano do dano persistente de ${label.toLowerCase()}`, `Failed the flat check of the ${label.toLowerCase()} persistent damage`)}
                                     >
-                                        Falhou
-                                    </Button>
+                                        {tr('Falhou', 'Failed')}</Button>
                                 </Box>
                             </Box>
                         ) : (
@@ -113,7 +110,7 @@ export function CombatantPersistent({ persistent, onChange }: Props) {
                                 onClick={() => replace(p.id, { dc: p.dc === FLAT_DC ? ASSISTED_DC : FLAT_DC })}
                                 sx={{ mt: 0.25 }}
                             >
-                                {p.dc === FLAT_DC ? `Ajuda apropriada (CD ${ASSISTED_DC})` : `Sem ajuda (CD ${FLAT_DC})`}
+                                {p.dc === FLAT_DC ? tr(`Ajuda apropriada (CD ${ASSISTED_DC})`, `Appropriate help (DC ${ASSISTED_DC})`) : tr(`Sem ajuda (CD ${FLAT_DC})`, `No help (DC ${FLAT_DC})`)}
                             </Button>
                         )}
                     </Box>

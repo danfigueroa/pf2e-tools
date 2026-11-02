@@ -25,6 +25,7 @@ import { Search as SearchIcon } from '@mui/icons-material'
 import { gold, ink, parchment, rule } from '../../../theme'
 import { searchAfflictions } from '../../../services/afflictions'
 import { initialStage, newAffliction, SAVE_DEGREES, type AfflictionDef, type AfflictionState } from '../afflictions'
+import { tr } from '../../../i18n'
 
 interface Props {
     open: boolean
@@ -36,8 +37,8 @@ interface Props {
 
 const saveLabel = (def: AfflictionDef) =>
     def.dc !== null && def.save
-        ? `CD ${def.dc} ${def.save === 'fortitude' ? 'Fortitude' : def.save === 'reflex' ? 'Reflexos' : 'Vontade'}`
-        : (def.raw ?? 'salvaguarda não estruturada')
+        ? `CD ${def.dc} ${def.save === 'fortitude' ? 'Fortitude' : def.save === 'reflex' ? tr('Reflexos', 'Reflex') : tr('Vontade', 'Will')}`
+        : (def.raw ?? tr('salvaguarda não estruturada', 'unstructured saving throw'))
 
 export function AfflictionDialog({ open, targetName, onClose, onApply }: Props) {
     const theme = useTheme()
@@ -87,7 +88,7 @@ export function AfflictionDialog({ open, targetName, onClose, onApply }: Props) 
     return (
         <Dialog open={open} onClose={onClose} fullScreen={fullScreen} maxWidth="sm" fullWidth>
             <DialogTitle sx={{ fontWeight: 700 }}>
-                Aplicar aflição{targetName ? ` — ${targetName}` : ''}
+                {tr('Aplicar aflição', 'Apply affliction')}{targetName ? ` — ${targetName}` : ''}
             </DialogTitle>
             <DialogContent sx={{ px: { xs: 1.5, sm: 3 } }}>
                 {!chosen && (
@@ -96,7 +97,7 @@ export function AfflictionDialog({ open, targetName, onClose, onApply }: Props) 
                             autoFocus
                             fullWidth
                             size="small"
-                            placeholder="Nome do veneno ou doença (em inglês)"
+                            placeholder={tr("Nome do veneno ou doença (em inglês)", 'Name of the poison or disease')}
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             InputProps={{
@@ -108,11 +109,10 @@ export function AfflictionDialog({ open, targetName, onClose, onApply }: Props) 
                             }}
                         />
                         <Typography variant="caption" sx={{ display: 'block', mt: 1, color: ink.secondary }}>
-                            O índice da AON é em inglês: "venom", "poison", "fever"…
-                        </Typography>
+                            {tr('O índice da AON é em inglês: "venom", "poison", "fever"…', 'AON\'s index is in English: "venom", "poison", "fever"…')}</Typography>
 
                         {searched && results.length === 0 && !loading && (
-                            <Alert severity="info" sx={{ mt: 1 }}>Nenhuma aflição com esse nome.</Alert>
+                            <Alert severity="info" sx={{ mt: 1 }}>{tr('Nenhuma aflição com esse nome.', 'No affliction with that name.')}</Alert>
                         )}
 
                         <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
@@ -135,9 +135,8 @@ export function AfflictionDialog({ open, targetName, onClose, onApply }: Props) 
                                 >
                                     <Typography sx={{ fontWeight: 600 }}>{def.name}</Typography>
                                     <Typography variant="caption" sx={{ color: ink.secondary }}>
-                                        {saveLabel(def)} · {def.stages.length} estágio(s)
-                                        {def.maxDurationRaw ? ` · máx. ${def.maxDurationRaw}` : ''}
-                                        {def.onsetRaw ? ` · início em ${def.onsetRaw}` : ''}
+                                        {saveLabel(def)} · {def.stages.length} {tr('estágio(s)', 'stage(s)')}{def.maxDurationRaw ? tr(` · máx. ${def.maxDurationRaw}`, ` · max ${def.maxDurationRaw}`) : ''}
+                                        {def.onsetRaw ? tr(` · início em ${def.onsetRaw}`, ` · onset ${def.onsetRaw}`) : ''}
                                     </Typography>
                                 </Box>
                             ))}
@@ -150,12 +149,11 @@ export function AfflictionDialog({ open, targetName, onClose, onApply }: Props) 
                         <Typography sx={{ fontWeight: 700 }}>{chosen.name}</Typography>
                         <Typography variant="caption" sx={{ color: ink.secondary, display: 'block' }}>
                             {saveLabel(chosen)}
-                            {chosen.maxDurationRaw ? ` · duração máxima ${chosen.maxDurationRaw}` : ''}
+                            {chosen.maxDurationRaw ? tr(` · duração máxima ${chosen.maxDurationRaw}`, ` · maximum duration ${chosen.maxDurationRaw}`) : ''}
                         </Typography>
                         {chosen.onsetRaw && (
                             <Alert severity="info" sx={{ mt: 1 }}>
-                                Início em {chosen.onsetRaw}: só aplique quando esse tempo passar.
-                            </Alert>
+                                {tr('Início em ', 'Onset ')}{chosen.onsetRaw}{tr(': só aplique quando esse tempo passar.', ': only apply it once that time passes.')}</Alert>
                         )}
                         {chosen.virulent && (
                             <Chip size="small" label="Virulento" sx={{ mt: 1 }} />
@@ -165,9 +163,9 @@ export function AfflictionDialog({ open, targetName, onClose, onApply }: Props) 
                             {chosen.stages.map((s, i) => (
                                 <Box key={i} sx={{ px: 1, py: 0.75, borderTop: i ? `1px solid ${rule}88` : 'none' }}>
                                     <Typography variant="caption" sx={{ fontWeight: 700, color: gold.deep }}>
-                                        Estágio {i + 1}
+                                        {tr('Estágio ', 'Stage ')}{i + 1}
                                         {s.durationRaw ? ` · ${s.durationRaw}` : ''}
-                                        {s.durationRounds === null && s.durationRaw ? ' (fora do combate)' : ''}
+                                        {s.durationRounds === null && s.durationRaw ? tr(' (fora do combate)', ' (outside combat)') : ''}
                                     </Typography>
                                     <Typography variant="body2">{s.text}</Typography>
                                 </Box>
@@ -175,13 +173,9 @@ export function AfflictionDialog({ open, targetName, onClose, onApply }: Props) 
                         </Box>
 
                         <Typography variant="overline" sx={{ display: 'block', mt: 2, color: gold.deep }}>
-                            Resultado da salvaguarda inicial
-                        </Typography>
+                            {tr('Resultado da salvaguarda inicial', 'Initial saving throw result')}</Typography>
                         <Typography variant="caption" sx={{ color: ink.secondary }}>
-                            Falha entra no estágio 1; falha crítica, no 2. Sucesso não aflige.
-                            O dano do estágio é rolado e aplicado na hora — o aviso traz o valor
-                            e o "Desfazer".
-                        </Typography>
+                            {tr('Falha entra no estágio 1; falha crítica, no 2. Sucesso não aflige. O dano do estágio é rolado e aplicado na hora — o aviso traz o valor e o "Desfazer".', 'A failure enters stage 1; a critical failure, stage 2. A success doesn\'t afflict. The stage\'s damage is rolled and applied right away — the notice brings the amount and the "Undo".')}</Typography>
                         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 1, mt: 1 }}>
                             {SAVE_DEGREES.map((d) => (
                                 <Button key={d.id} variant="outlined" onClick={() => apply(d.id)}>
@@ -190,7 +184,7 @@ export function AfflictionDialog({ open, targetName, onClose, onApply }: Props) 
                             ))}
                         </Box>
 
-                        <Button sx={{ mt: 1 }} onClick={() => setChosen(null)}>Escolher outra</Button>
+                        <Button sx={{ mt: 1 }} onClick={() => setChosen(null)}>{tr('Escolher outra', 'Choose another')}</Button>
                     </Box>
                 )}
             </DialogContent>

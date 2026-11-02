@@ -25,6 +25,7 @@ import { ink } from '../../../theme'
 import { DAMAGE_TYPES, damageTypeLabel } from '../defenses'
 import { averageFormula, parseFormula } from '../dice'
 import { newPersistent, type PersistentDamage } from '../persistentDamage'
+import { tr } from '../../../i18n'
 
 interface Props {
     open: boolean
@@ -60,7 +61,7 @@ export function PersistentDamageDialog({ open, targetName, onClose, onApply }: P
     return (
         <Dialog open={open} onClose={onClose} fullScreen={fullScreen} maxWidth="xs" fullWidth>
             <DialogTitle sx={{ fontWeight: 700 }}>
-                Dano persistente{targetName ? ` — ${targetName}` : ''}
+                {tr('Dano persistente', 'Persistent damage')}{targetName ? ` — ${targetName}` : ''}
             </DialogTitle>
             <DialogContent sx={{ px: { xs: 1.5, sm: 3 } }}>
                 {/* Grid em vez de flex com minWidth fixo: dobra sozinho a 320px. */}
@@ -75,17 +76,17 @@ export function PersistentDamageDialog({ open, targetName, onClose, onApply }: P
                     <TextField
                         autoFocus
                         size="small"
-                        label="Fórmula"
+                        label={tr("Fórmula", 'Formula')}
                         value={formula}
                         onChange={(e) => setFormula(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') apply() }}
                         error={formula.trim().length > 0 && !valid}
-                        helperText={valid ? `média ${averageFormula(formula)}` : 'ex.: 1d6, 2d8+4, 3'}
+                        helperText={valid ? tr(`média ${averageFormula(formula)}`, `average ${averageFormula(formula)}`) : 'ex.: 1d6, 2d8+4, 3'}
                     />
                     <TextField
                         select
                         size="small"
-                        label="Tipo"
+                        label={tr("Tipo", 'Type')}
                         value={type}
                         onChange={(e) => setType(e.target.value)}
                     >
@@ -108,13 +109,11 @@ export function PersistentDamageDialog({ open, targetName, onClose, onApply }: P
                 </Box>
 
                 <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: ink.secondary }}>
-                    Cai ao final de cada turno do alvo, com os dados rolados de novo, e em seguida
-                    vem o teste plano de CD 15 para acabar. Pode ser removido a qualquer momento.
-                </Typography>
+                    {tr('Cai ao final de cada turno do alvo, com os dados rolados de novo, e em seguida vem o teste plano de CD 15 para acabar. Pode ser removido a qualquer momento.', 'Falls at the end of each of the target\'s turns, with the dice rolled again, and then comes the DC 15 flat check to end it. It can be removed at any time.')}</Typography>
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose}>Cancelar</Button>
-                <Button variant="contained" disabled={!valid} onClick={apply}>Aplicar</Button>
+                <Button onClick={onClose}>{tr('Cancelar', 'Cancel')}</Button>
+                <Button variant="contained" disabled={!valid} onClick={apply}>{tr('Aplicar', 'Apply')}</Button>
             </DialogActions>
         </Dialog>
     )

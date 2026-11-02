@@ -64,7 +64,7 @@ quadrado quadrados régua desenhar desenho desenhos limpar camada privado revela
 mesa mesas tirar pôr põe sobe desce vem vêm volta entra sai fim início meio parte partes faltam falta
 precisa preciso deve devem cria criar criado salvo salva gravado gravar lido ler lê escolha escolhido
 quantos quantas quanto quanta mudou muda mudar tipo tipos geral automático automática manual
-persistente persistentes veneno venenos simples contundente perfurante cortante tratar ferimentos dobrado dobrada fogo frio eletricidade sônico vazio vitalidade espírito por gerado gerada recarregou recarregar manter minha meu mesma mesmo passou passar elevada elevado aplica aplicar cenas cena elenco conjurada conjurado ganhou ganhei regra regras compartilhada compartilhado copiado copiada enviou envie forma formas te lhe
+persistente persistentes veneno venenos simples contundente perfurante cortante tratar ferimentos dobrado dobrada fogo frio eletricidade sônico vazio vitalidade espírito imune sofreu chegou caiu fraq fraqueza fraquezas resist segura recuperados ajuda apropriada atual estágio ataques por gerado gerada recarregou recarregar manter minha meu mesma mesmo passou passar elevada elevado aplica aplicar cenas cena elenco conjurada conjurado ganhou ganhei regra regras compartilhada compartilhado copiado copiada enviou envie forma formas te lhe
 `.trim().split(/\s+/).filter((w) => !['mesa', 'mesas'].includes(w)))
 
 const IGNORE_CALLEES = new Set(['console', 'RegExp', 'require', 'import', 'mesaKey', 'localStorage', 'sessionStorage', 'getItem', 'setItem', 'removeItem', 'matchMedia', 'querySelector', 'addEventListener', 'removeEventListener', 'dispatchEvent', 'CustomEvent', 'Event'])

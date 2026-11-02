@@ -25,6 +25,7 @@ import {
 import { CONDITION_COLOR, gold, green, SHIELD_COLOR, status } from '../../../theme'
 import { lift, useArmed, useReducedMotion } from '../../../motion/motion'
 import type { CombatantView } from '../types'
+import { tr } from '../../../i18n'
 
 interface Props {
     view: CombatantView
@@ -123,35 +124,35 @@ export const CombatantActions = ({
         <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75, mt: 1 }}>
             <ActionButton
                 icon={<ConditionIcon sx={{ fontSize: '1rem' }} />}
-                label="Condições"
+                label={tr("Condições", 'Conditions')}
                 count={conditionCount}
                 color={CONDITION_COLOR}
-                title="Marcar ou tirar condições"
-                ariaLabel={`Condições de ${name}`}
+                title={tr("Marcar ou tirar condições", 'Mark or remove conditions')}
+                ariaLabel={tr(`Condições de ${name}`, `${name}'s conditions`)}
                 onClick={onOpenConditions}
             />
             <ActionButton
                 icon={<AfflictionIcon sx={{ fontSize: '1rem' }} />}
-                label="Aflições"
+                label={tr("Aflições", 'Afflictions')}
                 count={view.afflictions.length}
                 attention={saveDue}
                 color={gold.deep}
                 title={saveDue
-                    ? 'Salvaguarda de estágio vencida — informe o grau na caixa abaixo'
-                    : 'Aplicar um veneno ou doença da AON'}
-                ariaLabel={`Aflições de ${name}${saveDue ? ', salvaguarda pendente' : ''}`}
+                    ? tr('Salvaguarda de estágio vencida — informe o grau na caixa abaixo', 'Stage saving throw due — enter the degree in the box below')
+                    : tr('Aplicar um veneno ou doença da AON', 'Apply a poison or disease from AON')}
+                ariaLabel={tr(`Aflições de ${name}${saveDue ? ', salvaguarda pendente' : ''}`, `${name}'s afflictions${saveDue ? ', save pending' : ''}`)}
                 onClick={onOpenAfflictions}
             />
             <ActionButton
                 icon={<PersistentIcon sx={{ fontSize: '1rem' }} />}
-                label="Persistente"
+                label={tr("Persistente", 'Persistent')}
                 count={view.persistent.length}
                 attention={checkDue}
                 color={status.error}
                 title={checkDue
-                    ? 'Teste plano pendente — informe o resultado na caixa abaixo'
-                    : 'Aplicar dano persistente (fogo, sangramento…)'}
-                ariaLabel={`Dano persistente de ${name}${checkDue ? ', teste plano pendente' : ''}`}
+                    ? tr('Teste plano pendente — informe o resultado na caixa abaixo', 'Flat check pending — enter the result in the box below')
+                    : tr('Aplicar dano persistente (fogo, sangramento…)', 'Apply persistent damage (fire, bleed…)')}
+                ariaLabel={tr(`Dano persistente de ${name}${checkDue ? ', teste plano pendente' : ''}`, `${name}'s persistent damage${checkDue ? ', flat check pending' : ''}`)}
                 onClick={onOpenPersistent}
             />
 
@@ -159,10 +160,10 @@ export const CombatantActions = ({
                 quem tem escudo, então fica na fileira escrita, não no menu. */}
             {view.shield ? (
                 <Tooltip title={view.shield.broken
-                    ? 'Escudo quebrado: não pode ser erguido'
+                    ? tr('Escudo quebrado: não pode ser erguido', 'Broken shield: can\'t be raised')
                     : view.shield.raised
-                        ? 'Abaixar o escudo (abaixa sozinho no início do próximo turno)'
-                        : `Levantar Escudo: +${view.shield.stats.bonus} de circunstância na CA`}
+                        ? tr('Abaixar o escudo (abaixa sozinho no início do próximo turno)', 'Lower the shield (it lowers by itself at the start of the next turn)')
+                        : tr(`Levantar Escudo: +${view.shield.stats.bonus} de circunstância na CA`, `Raise a Shield: +${view.shield.stats.bonus} circumstance bonus to AC`)}
                 >
                     <span style={{ display: 'inline-flex' }}>
                         <Button
@@ -180,7 +181,7 @@ export const CombatantActions = ({
                             }
                             onClick={() => view.setShieldRaised(!view.shield!.raised)}
                             aria-pressed={view.shield.raised}
-                            aria-label={`${view.shield.raised ? 'Abaixar' : 'Levantar'} o escudo de ${name}`}
+                            aria-label={tr(`${view.shield.raised ? 'Abaixar' : 'Levantar'} o escudo de ${name}`, `${view.shield.raised ? 'Lower' : 'Raise'} ${name}'s shield`)}
                             sx={{
                                 flex: '0 0 auto',
                                 px: 1,
@@ -190,18 +191,18 @@ export const CombatantActions = ({
                                     : { color: SHIELD_COLOR, borderColor: SHIELD_COLOR + '66', '&:hover': { borderColor: SHIELD_COLOR } }),
                             }}
                         >
-                            {view.shield.broken ? 'Escudo quebrado' : view.shield.raised ? `Escudo +${view.shield.stats.bonus}` : 'Levantar escudo'}
+                            {view.shield.broken ? tr('Escudo quebrado', 'Broken shield') : view.shield.raised ? tr(`Escudo +${view.shield.stats.bonus}`, `Shield +${view.shield.stats.bonus}`) : tr('Levantar escudo', 'Raise shield')}
                         </Button>
                     </span>
                 </Tooltip>
             ) : onDefineShield ? (
                 <ActionButton
                     icon={<ShieldIcon sx={{ fontSize: '1rem' }} />}
-                    label="Escudo"
+                    label={tr("Escudo", 'Shield')}
                     count={0}
                     color={SHIELD_COLOR}
-                    title="Definir o escudo deste monstro (Dureza, PV, BT)"
-                    ariaLabel={`Definir escudo de ${name}`}
+                    title={tr("Definir o escudo deste monstro (Dureza, PV, BT)", 'Set this monster\'s shield (Hardness, HP, BT)')}
+                    ariaLabel={tr(`Definir escudo de ${name}`, `Set ${name}'s shield`)}
                     onClick={onDefineShield}
                 />
             ) : null}
@@ -211,7 +212,7 @@ export const CombatantActions = ({
                 um dos três acentos de estado. Personagem não entra: a ficha dele
                 é a Ficha Virtual, que já tem tudo e é da mesa. */}
             {sheetName && (
-                <Tooltip title={sheetOpen ? 'Fechar a ficha' : `Ver a ficha de ${sheetName} sem sair daqui`}>
+                <Tooltip title={sheetOpen ? tr('Fechar a ficha', 'Close the sheet') : tr(`Ver a ficha de ${sheetName} sem sair daqui`, `See ${sheetName}'s sheet without leaving`)}>
                     <Button
                         size="small"
                         variant={sheetOpen ? 'contained' : 'outlined'}
@@ -227,7 +228,7 @@ export const CombatantActions = ({
                         }
                         onClick={onToggleSheet}
                         aria-expanded={sheetOpen}
-                        aria-label={`${sheetOpen ? 'Fechar' : 'Ver'} a ficha de ${name}`}
+                        aria-label={tr(`${sheetOpen ? 'Fechar' : 'Ver'} a ficha de ${name}`, `${sheetOpen ? 'Close' : 'See'} ${name}'s sheet`)}
                         sx={{
                             flex: '0 0 auto',
                             px: 1,
@@ -237,8 +238,7 @@ export const CombatantActions = ({
                                 : { color: green.main, borderColor: green.main + '66', '&:hover': { borderColor: green.main } }),
                         }}
                     >
-                        Ficha
-                    </Button>
+                        {tr('Ficha', 'Sheet')}</Button>
                 </Tooltip>
             )}
         </Stack>

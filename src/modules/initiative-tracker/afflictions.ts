@@ -9,15 +9,16 @@
 import { parseDamageEntries, type DamageEntry } from './dice'
 import { CONDITIONS_BY_ID } from '../character-viewer/conditions'
 import type { ConditionState } from '../character-viewer/components/useConditions'
+import { tr } from '../../i18n'
 
 /** Grau de sucesso de uma salvaguarda, informado pelo GM. */
 export type SaveDegree = 'critSuccess' | 'success' | 'failure' | 'critFailure'
 
 export const SAVE_DEGREES: Array<{ id: SaveDegree; label: string; short: string }> = [
-    { id: 'critSuccess', label: 'Sucesso crítico', short: 'C✓' },
-    { id: 'success', label: 'Sucesso', short: '✓' },
-    { id: 'failure', label: 'Falha', short: '✗' },
-    { id: 'critFailure', label: 'Falha crítica', short: 'C✗' },
+    { id: 'critSuccess', label: tr('Sucesso crítico', 'Critical success'), short: 'C✓' },
+    { id: 'success', label: tr('Sucesso', 'Success'), short: '✓' },
+    { id: 'failure', label: tr('Falha', 'Failure'), short: '✗' },
+    { id: 'critFailure', label: tr('Falha crítica', 'Critical failure'), short: 'C✗' },
 ]
 
 export interface AfflictionStage {

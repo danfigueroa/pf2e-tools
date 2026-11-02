@@ -5,6 +5,7 @@ import { CloudDone as SavedIcon, CloudOff as OfflineIcon, CloudUpload as SavingI
 import { listMaps, type MapSummary } from '../../../services/maps'
 import { gold, status as statusColor } from '../../../theme/palette'
 import type { CloudStatus } from '../useEncounterCloud'
+import { tr } from '../../../i18n'
 
 interface Props {
     mapId: string | null
@@ -14,21 +15,21 @@ interface Props {
 
 const CLOUD: Record<CloudStatus, { label: string; hint: string; tone: string; Icon: typeof SavedIcon }> = {
     saved: {
-        label: 'Na nuvem',
-        hint: 'Este encontro abre igual em qualquer aparelho, e o que mudar em outro aparece aqui.',
+        label: tr('Na nuvem', 'In the cloud'),
+        hint: tr('Este encontro abre igual em qualquer aparelho, e o que mudar em outro aparece aqui.', 'This encounter opens the same on any device, and what changes on another shows up here.'),
         tone: statusColor.success,
         Icon: SavedIcon,
     },
-    saving: { label: 'Salvando…', hint: 'Enviando o encontro para a nuvem.', tone: gold.deep, Icon: SavingIcon },
+    saving: { label: 'Salvando…', hint: tr('Enviando o encontro para a nuvem.', 'Sending the encounter to the cloud.'), tone: gold.deep, Icon: SavingIcon },
     offline: {
-        label: 'Não subiu',
-        hint: 'Sem contato com a nuvem. O encontro fica salvo aqui e sobe na próxima mudança ou quando a conexão voltar.',
+        label: tr('Não subiu', 'Didn\'t upload'),
+        hint: tr('Sem contato com a nuvem. O encontro fica salvo aqui e sobe na próxima mudança ou quando a conexão voltar.', 'No contact with the cloud. The encounter is saved here and goes up on the next change or when the connection comes back.'),
         tone: statusColor.warning,
         Icon: OfflineIcon,
     },
     local: {
-        label: 'Só neste aparelho',
-        hint: 'Sem nuvem disponível: o encontro fica salvo só neste navegador.',
+        label: tr('Só neste aparelho', 'Only on this device'),
+        hint: tr('Sem nuvem disponível: o encontro fica salvo só neste navegador.', 'No cloud available: the encounter is saved only in this browser.'),
         tone: statusColor.warning,
         Icon: OfflineIcon,
     },
@@ -57,23 +58,22 @@ export const EncounterMapPicker = ({ mapId, onChange, cloud }: Props) => {
     return (
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 2, flexWrap: 'wrap' }}>
             <FormControl size="small" sx={{ flex: '1 1 220px', maxWidth: 420 }}>
-                <InputLabel id="encounter-map">Mapa de combate</InputLabel>
+                <InputLabel id="encounter-map">{tr('Mapa de combate', 'Battle map')}</InputLabel>
                 <Select
                     labelId="encounter-map"
-                    label="Mapa de combate"
+                    label={tr("Mapa de combate", 'Battle map')}
                     value={mapId ?? NONE}
                     onOpen={reload}
                     onChange={(e) => onChange(e.target.value === NONE ? null : String(e.target.value))}
                 >
-                    <MenuItem value={NONE}>Sem mapa</MenuItem>
-                    {maps.map((m) => <MenuItem key={m.id} value={m.id}>{m.private ? `${m.name} · privado` : m.name}</MenuItem>)}
-                    {missing && <MenuItem value={mapId}>Mapa apagado</MenuItem>}
+                    <MenuItem value={NONE}>{tr('Sem mapa', 'No map')}</MenuItem>
+                    {maps.map((m) => <MenuItem key={m.id} value={m.id}>{m.private ? tr(`${m.name} · privado`, `${m.name} · private`) : m.name}</MenuItem>)}
+                    {missing && <MenuItem value={mapId}>{tr('Mapa apagado', 'Map deleted')}</MenuItem>}
                 </Select>
             </FormControl>
             {mapId && !missing && (
                 <Button variant="outlined" startIcon={<MapIcon />} onClick={() => navigate(`/mapa/${mapId}`)}>
-                    Abrir mapa
-                </Button>
+                    {tr('Abrir mapa', 'Open map')}</Button>
             )}
             <Tooltip title={hint} enterDelay={400}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>

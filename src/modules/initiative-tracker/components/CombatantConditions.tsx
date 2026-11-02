@@ -5,6 +5,7 @@ import { CONDITIONS_BY_ID } from '../../character-viewer/conditions'
 import { stageConditions } from '../afflictions'
 import type { CombatantView } from '../types'
 import { pop, useArmed } from '../../../motion/motion'
+import { tr } from '../../../i18n'
 
 /** Mesmos alvos de toque da barra de condições da Ficha Virtual. */
 const TAP_PADDING = { xs: 0.6, sm: 0.25 }
@@ -31,18 +32,18 @@ export const CombatantConditions = ({ view }: { view: CombatantView }) => {
     /** id da condição → de onde ela vem agora ("do estágio de X", "do Enlarge 4º"). */
     const fromAffliction = new Map<string, string>()
     for (const a of afflictions) {
-        for (const id of Object.keys(stageConditions(a))) fromAffliction.set(id, `do estágio de ${a.def.name}`)
+        for (const id of Object.keys(stageConditions(a))) fromAffliction.set(id, tr(`do estágio de ${a.def.name}`, `from ${a.def.name}'s stage`))
     }
     // O Desajeitado do Enlarge ligado na Ficha Virtual: derivado do mesmo jeito.
     if (sizeEffect) {
         for (const id of Object.keys(sizeEffect.conditions)) {
-            if (!fromAffliction.has(id)) fromAffliction.set(id, `do ${sizeEffect.spell} ${sizeEffect.rank}º`)
+            if (!fromAffliction.has(id)) fromAffliction.set(id, tr(`do ${sizeEffect.spell} ${sizeEffect.rank}º`, `from ${sizeEffect.spell} rank ${sizeEffect.rank}`))
         }
     }
 
     // O Desajeitado do Titan Mauler (Fúria do bárbaro): idem.
     for (const id of Object.keys(rageConditions)) {
-        if (!fromAffliction.has(id)) fromAffliction.set(id, 'do Titan Mauler')
+        if (!fromAffliction.has(id)) fromAffliction.set(id, tr('do Titan Mauler', 'from Titan Mauler'))
     }
 
     // Nada a dizer quando não há condição: o "Sem condições" existia como
@@ -66,7 +67,7 @@ export const CombatantConditions = ({ view }: { view: CombatantView }) => {
                             viaAffliction
                                 ? `${def.summary} (${viaAffliction})`
                                 : entry.via
-                                    ? `${def.summary} (imposta por ${entry.via})`
+                                    ? tr(`${def.summary} (imposta por ${entry.via})`, `${def.summary} (imposed by ${entry.via})`)
                                     : def.summary
                         }
                     >
@@ -132,7 +133,7 @@ export const CombatantConditions = ({ view }: { view: CombatantView }) => {
                                         size="small"
                                         sx={{ p: TAP_PADDING }}
                                         onClick={() => toggleCondition(entry.id)}
-                                        aria-label={`Remover ${def.name}`}
+                                        aria-label={tr(`Remover ${def.name}`, `Remove ${def.name}`)}
                                     >
                                         <CloseIcon sx={{ fontSize: TAP_ICON }} />
                                     </IconButton>

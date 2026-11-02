@@ -17,6 +17,7 @@ import { levelInput, useCreatureSearch } from '../../../hooks/useCreatureSearch'
 import { damageTypeLabel } from '../defenses'
 import { npcFromCreature } from '../importCharacter'
 import type { NpcCombatant } from '../types'
+import { tr } from '../../../i18n'
 
 interface Props {
     onAdd?: (npcs: NpcCombatant[]) => void
@@ -52,7 +53,7 @@ export const AonCreatureSearch = ({ onAdd, onPick }: Props) => {
                 autoFocus
                 fullWidth
                 size="small"
-                placeholder="Nome da criatura (em inglês)"
+                placeholder={tr("Nome da criatura (em inglês)", 'Creature name')}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 InputProps={{
@@ -75,14 +76,14 @@ export const AonCreatureSearch = ({ onAdd, onPick }: Props) => {
             >
                 <TextField
                     size="small"
-                    label="Nível mín."
+                    label={tr("Nível mín.", 'Min level')}
                     value={minLevel}
                     onChange={(e) => setMinLevel(levelInput(e.target.value))}
                     inputProps={{ inputMode: 'numeric' }}
                 />
                 <TextField
                     size="small"
-                    label="Nível máx."
+                    label={tr("Nível máx.", 'Max level')}
                     value={maxLevel}
                     onChange={(e) => setMaxLevel(levelInput(e.target.value))}
                     inputProps={{ inputMode: 'numeric' }}
@@ -98,16 +99,14 @@ export const AonCreatureSearch = ({ onAdd, onPick }: Props) => {
 
             {searched && results.length === 0 && !loading && (
                 <Typography variant="body2" sx={{ color: ink.secondary, fontStyle: 'italic' }}>
-                    Nenhuma criatura encontrada. O índice da AON está em inglês — tente "goblin",
-                    "skeleton", "dragon", ou busque só pela faixa de nível.
-                </Typography>
+                    {tr('Nenhuma criatura encontrada. O índice da AON está em inglês — tente "goblin", "skeleton", "dragon", ou busque só pela faixa de nível.', 'No creature found. AON\'s index is in English — try "goblin", "skeleton", "dragon", or search only by level range.')}</Typography>
             )}
 
             {searched && results.length > 0 && (
                 <Typography variant="caption" sx={{ color: ink.secondary, display: 'block', mb: 1 }}>
                     {hasMore
-                        ? `Mostrando ${results.length} de ~${total}.`
-                        : `${results.length} ${results.length === 1 ? 'criatura' : 'criaturas'}.`}
+                        ? tr(`Mostrando ${results.length} de ~${total}.`, `Showing ${results.length} of ~${total}.`)
+                        : `${results.length} ${results.length === 1 ? tr('criatura', 'creature') : tr('criaturas', 'creatures')}.`}
                 </Typography>
             )}
 
@@ -128,7 +127,7 @@ export const AonCreatureSearch = ({ onAdd, onPick }: Props) => {
                                     <Typography sx={{ fontWeight: 700 }}>{creature.name}</Typography>
                                     <Chip
                                         size="small"
-                                        label={`Nível ${creature.level}`}
+                                        label={tr(`Nível ${creature.level}`, `Level ${creature.level}`)}
                                         sx={{ height: 18, fontSize: '0.65rem', backgroundColor: gold.main + '33' }}
                                     />
                                     {creature.rarity && creature.rarity !== 'common' && (
@@ -146,7 +145,7 @@ export const AonCreatureSearch = ({ onAdd, onPick }: Props) => {
                                 </Stack>
 
                                 <Typography variant="caption" sx={{ color: ink.secondary, display: 'block', mt: 0.25 }}>
-                                    {creature.hp} PV · CA {creature.ac} · Percepção +{creature.perception}
+                                    {creature.hp} PV · CA {creature.ac} {tr('· Percepção +', '· Perception +')}{creature.perception}
                                     {creature.size ? ` · ${translateSize(creature.size)}` : ''}
                                     {creature.source ? ` · ${creature.source}` : ''}
                                 </Typography>
@@ -174,7 +173,7 @@ export const AonCreatureSearch = ({ onAdd, onPick }: Props) => {
                                             key={`w-${type}`}
                                             size="small"
                                             variant="outlined"
-                                            label={`fraq. ${damageTypeLabel(type).toLowerCase()} ${v}`}
+                                            label={tr(`fraq. ${damageTypeLabel(type).toLowerCase()} ${v}`, `weak. ${damageTypeLabel(type).toLowerCase()} ${v}`)}
                                             sx={{ height: 17, fontSize: '0.62rem' }}
                                         />
                                     ))}
@@ -188,7 +187,7 @@ export const AonCreatureSearch = ({ onAdd, onPick }: Props) => {
                                 onClick={() => handleAdd(creature)}
                                 sx={{ whiteSpace: 'nowrap' }}
                             >
-                                {count > 1 ? `+${count}` : 'Adicionar'}
+                                {count > 1 ? `+${count}` : tr('Adicionar', 'Add')}
                             </Button>
                         </Stack>
                     </Box>
@@ -204,7 +203,7 @@ export const AonCreatureSearch = ({ onAdd, onPick }: Props) => {
                     startIcon={loadingMore ? <CircularProgress size={16} /> : undefined}
                     sx={{ mt: 1.5 }}
                 >
-                    {loadingMore ? 'Carregando…' : 'Carregar mais'}
+                    {loadingMore ? tr('Carregando…', 'Loading…') : tr('Carregar mais', 'Load more')}
                 </Button>
             )}
         </Box>

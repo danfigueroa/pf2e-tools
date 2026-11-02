@@ -12,9 +12,10 @@ import {
     Typography,
 } from '@mui/material'
 import type { NpcShield } from '../types'
+import { tr } from '../../../i18n'
 
 const DEFAULT: NpcShield = {
-    name: 'Escudo de aço',
+    name: tr('Escudo de aço', 'Steel shield'),
     bonus: 2,
     hardness: 5,
     maxHp: 20,
@@ -67,7 +68,7 @@ const ShieldForm = ({ shield, onClose, onSave }: {
 
     const maxHp = Math.max(1, num(form.maxHp, start.maxHp))
     const save = () => onSave({
-        name: form.name.trim() || 'Escudo',
+        name: form.name.trim() || tr('Escudo', 'Shield'),
         bonus: num(form.bonus, 2),
         hardness: num(form.hardness, 0),
         maxHp,
@@ -79,40 +80,38 @@ const ShieldForm = ({ shield, onClose, onSave }: {
 
     return (
         <>
-            <DialogTitle sx={{ fontWeight: 700 }}>{shield ? 'Editar escudo' : 'Definir escudo'}</DialogTitle>
+            <DialogTitle sx={{ fontWeight: 700 }}>{shield ? tr('Editar escudo', 'Edit shield') : tr('Definir escudo', 'Set shield')}</DialogTitle>
             <DialogContent>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Os números estão no stat block: “steel shield (Hardness 5, HP 20, BT 10)”.
-                </Typography>
+                    {tr('Os números estão no stat block: “steel shield (Hardness 5, HP 20, BT 10)”.', 'The numbers are in the stat block: “steel shield (Hardness 5, HP 20, BT 10)”.')}</Typography>
                 <TextField
                     fullWidth
                     size="small"
-                    label="Nome"
+                    label={tr("Nome", 'Name')}
                     value={form.name}
                     onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                     sx={{ mb: 1.5 }}
                 />
                 <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: 1.5 }}>
-                    <TextField size="small" label="Bônus CA" value={form.bonus} onChange={set('bonus')} inputProps={{ inputMode: 'numeric' }} />
-                    <TextField size="small" label="Dureza" value={form.hardness} onChange={set('hardness')} inputProps={{ inputMode: 'numeric' }} />
-                    <TextField size="small" label="PV máx." value={form.maxHp} onChange={set('maxHp')} inputProps={{ inputMode: 'numeric' }} />
+                    <TextField size="small" label={tr("Bônus CA", 'AC bonus')} value={form.bonus} onChange={set('bonus')} inputProps={{ inputMode: 'numeric' }} />
+                    <TextField size="small" label={tr("Dureza", 'Hardness')} value={form.hardness} onChange={set('hardness')} inputProps={{ inputMode: 'numeric' }} />
+                    <TextField size="small" label={tr("PV máx.", 'Max HP')} value={form.maxHp} onChange={set('maxHp')} inputProps={{ inputMode: 'numeric' }} />
                     <TextField size="small" label="BT" value={form.bt} onChange={set('bt')} inputProps={{ inputMode: 'numeric' }} />
-                    <TextField size="small" label="PV atual" value={form.hp} onChange={set('hp')} inputProps={{ inputMode: 'numeric' }} />
+                    <TextField size="small" label={tr('PV atual', 'Current HP')} value={form.hp} onChange={set('hp')} inputProps={{ inputMode: 'numeric' }} />
                 </Box>
                 <FormControlLabel
                     sx={{ mt: 1 }}
                     control={<Checkbox checked={form.canBlock} onChange={(e) => setForm((f) => ({ ...f, canBlock: e.target.checked }))} />}
-                    label="Tem a reação Bloqueio com Escudo"
+                    label={tr("Tem a reação Bloqueio com Escudo", 'Has the Shield Block reaction')}
                 />
             </DialogContent>
             <DialogActions>
                 {shield && (
                     <Button color="error" onClick={() => onSave(undefined)} sx={{ mr: 'auto' }}>
-                        Remover
-                    </Button>
+                        {tr('Remover', 'Remove')}</Button>
                 )}
-                <Button onClick={onClose}>Cancelar</Button>
-                <Button variant="contained" onClick={save}>Salvar</Button>
+                <Button onClick={onClose}>{tr('Cancelar', 'Cancel')}</Button>
+                <Button variant="contained" onClick={save}>{tr('Salvar', 'Save')}</Button>
             </DialogActions>
         </>
     )

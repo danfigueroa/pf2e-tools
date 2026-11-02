@@ -44,6 +44,7 @@ import { NPC_TOKEN_MAX_SIDE, imageErrorText, shrinkImage, uploadImage } from '..
 import type { BlockResult } from '../../character-viewer/shield'
 import type { CombatantView, NpcShield } from '../types'
 import { pop, pulseAnimation, useArmed, useReducedMotion, type Pulse } from '../../../motion/motion'
+import { tr } from '../../../i18n'
 
 interface Props {
     view: CombatantView
@@ -155,13 +156,13 @@ export const CombatantCard = ({
     // No celular acompanha o nome; no desktop fecha a faixa à direita.
     const controls = (
         <Stack direction="row" spacing={0} sx={{ flexShrink: 0 }}>
-            <Tooltip title="Subir na ordem">
-                <IconButton size="small" onClick={() => onMove(-1)} sx={{ p: 0.4 }} aria-label="Subir na ordem">
+            <Tooltip title={tr("Subir na ordem", 'Move up in the order')}>
+                <IconButton size="small" onClick={() => onMove(-1)} sx={{ p: 0.4 }} aria-label={tr("Subir na ordem", 'Move up in the order')}>
                     <UpIcon sx={{ fontSize: '1rem' }} />
                 </IconButton>
             </Tooltip>
-            <Tooltip title="Descer na ordem">
-                <IconButton size="small" onClick={() => onMove(1)} sx={{ p: 0.4 }} aria-label="Descer na ordem">
+            <Tooltip title={tr("Descer na ordem", 'Move down in the order')}>
+                <IconButton size="small" onClick={() => onMove(1)} sx={{ p: 0.4 }} aria-label={tr("Descer na ordem", 'Move down in the order')}>
                     <DownIcon sx={{ fontSize: '1rem' }} />
                 </IconButton>
             </Tooltip>
@@ -169,7 +170,7 @@ export const CombatantCard = ({
                 size="small"
                 onClick={(e) => setMenuAnchor(e.currentTarget)}
                 sx={{ p: 0.4 }}
-                aria-label={`Mais ações para ${combatant.name}`}
+                aria-label={tr(`Mais ações para ${combatant.name}`, `More actions for ${combatant.name}`)}
             >
                 <MoreIcon sx={{ fontSize: '1.1rem' }} />
             </IconButton>
@@ -210,7 +211,7 @@ export const CombatantCard = ({
                             onChange={(e) => setInitiative(e.target.value.replace(/[^\d-]/g, ''))}
                             onBlur={commitInitiative}
                             onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
-                            inputProps={{ inputMode: 'numeric', 'aria-label': `Iniciativa de ${combatant.name}` }}
+                            inputProps={{ inputMode: 'numeric', 'aria-label': tr(`Iniciativa de ${combatant.name}`, `${combatant.name}'s initiative`) }}
                             sx={{
                                 width: 52,
                                 flexShrink: 0,
@@ -229,14 +230,14 @@ export const CombatantCard = ({
                                     {combatant.name}
                                 </Typography>
                                 {npc?.aonUrl && (
-                                    <Tooltip title="Abrir no Archives of Nethys">
+                                    <Tooltip title={tr("Abrir no Archives of Nethys", 'Open on Archives of Nethys')}>
                                         <IconButton
                                             size="small"
                                             href={npc.aonUrl}
                                             target="_blank"
                                             rel="noopener"
                                             sx={{ p: 0.25 }}
-                                            aria-label="Abrir no Archives of Nethys"
+                                            aria-label={tr("Abrir no Archives of Nethys", 'Open on Archives of Nethys')}
                                         >
                                             <LinkIcon sx={{ fontSize: '0.85rem' }} />
                                         </IconButton>
@@ -253,7 +254,7 @@ export const CombatantCard = ({
                                 sx={{ flexWrap: 'wrap', color: ink.secondary, mt: 0.25 }}
                             >
                                 <Typography variant="caption">
-                                    {combatant.kind === 'pc' ? combatant.klass ?? 'Personagem' : 'Nível'} {combatant.level}
+                                    {combatant.kind === 'pc' ? combatant.klass ?? tr('Personagem', 'Character') : tr('Nível', 'Level')} {combatant.level}
                                 </Typography>
                                 {view.sizeEffect && (
                                     <Tooltip title={view.sizeEffect.summary}>
@@ -263,13 +264,12 @@ export const CombatantCard = ({
                                     </Tooltip>
                                 )}
                                 {view.raging && (
-                                    <Tooltip title="Fúria ligada na Ficha Virtual: resistência da Raging Resistance e dano extra nos Golpes corpo a corpo.">
+                                    <Tooltip title={tr("Fúria ligada na Ficha Virtual: resistência da Raging Resistance e dano extra nos Golpes corpo a corpo.", 'Rage on in the Virtual Sheet: Raging Resistance and extra damage on melee Strikes.')}>
                                         <Typography variant="caption" sx={{ fontWeight: 700, color: RAGE_COLOR }}>
-                                            Em fúria
-                                        </Typography>
+                                            {tr('Em fúria', 'Raging')}</Typography>
                                     </Tooltip>
                                 )}
-                                <Tooltip title={shieldAc ? `CA com escudo erguido (+${shieldAc})` : 'CA'}>
+                                <Tooltip title={shieldAc ? tr(`CA com escudo erguido (+${shieldAc})`, `AC with shield raised (+${shieldAc})`) : 'CA'}>
                                     <Stack direction="row" alignItems="center" spacing={0.25} sx={{ color: shieldAc ? gold.deep : undefined }}>
                                         <AcIcon sx={{ fontSize: '0.8rem' }} />
                                         {/* Estoura ao erguer/abaixar: é o número que o GM confere. */}
@@ -344,7 +344,7 @@ export const CombatantCard = ({
                             <Chip key={t} size="small" label={translateTrait(t)} sx={{ height: 18, fontSize: '0.65rem' }} />
                         ))}
                         {combatant.defenseNotes?.map((note) => (
-                            <Tooltip key={note} title="Defesa com ressalva — ajuste o dano à mão">
+                            <Tooltip key={note} title={tr("Defesa com ressalva — ajuste o dano à mão", 'Defense with a caveat — adjust the damage by hand')}>
                                 <Chip
                                     size="small"
                                     label={note}
@@ -360,15 +360,13 @@ export const CombatantCard = ({
             <Menu anchorEl={menuAnchor} open={!!menuAnchor} onClose={closeMenu}>
                 {combatant.delayed ? (
                     <MenuItem onClick={() => { onRejoin(); closeMenu() }}>
-                        <RejoinIcon fontSize="small" sx={{ mr: 1 }} /> Entrar agora
-                    </MenuItem>
+                        <RejoinIcon fontSize="small" sx={{ mr: 1 }} /> {tr('Entrar agora', 'Act now')}</MenuItem>
                 ) : (
                     <MenuItem onClick={() => { onDelay(); closeMenu() }}>
-                        <DelayIcon fontSize="small" sx={{ mr: 1 }} /> Adiar
-                    </MenuItem>
+                        <DelayIcon fontSize="small" sx={{ mr: 1 }} /> {tr('Adiar', 'Delay')}</MenuItem>
                 )}
                 <MenuItem onClick={() => { onToggleDefeated(); closeMenu() }}>
-                    {combatant.defeated ? 'Reativar no combate' : 'Marcar como derrotado'}
+                    {combatant.defeated ? tr('Reativar no combate', 'Reactivate in combat') : tr('Marcar como derrotado', 'Mark as defeated')}
                 </MenuItem>
                 {combatant.kind === 'npc' && (
                     <MenuItem onClick={() => { onDuplicate(); closeMenu() }}>
@@ -382,13 +380,12 @@ export const CombatantCard = ({
                     >
                         <TokenIcon fontSize="small" sx={{ mr: 1 }} />
                         {!hasMap
-                            ? 'Imagem do token (escolha um mapa)'
-                            : npc?.tokenImage ? 'Trocar imagem do token' : 'Imagem do token'}
+                            ? tr('Imagem do token (escolha um mapa)', 'Token image (choose a map)')
+                            : npc?.tokenImage ? tr('Trocar imagem do token', 'Change token image') : tr('Imagem do token', 'Token image')}
                     </MenuItem>
                 )}
                 <MenuItem onClick={() => { onRemove(); closeMenu() }}>
-                    <DeleteIcon fontSize="small" sx={{ mr: 1 }} /> Remover
-                </MenuItem>
+                    <DeleteIcon fontSize="small" sx={{ mr: 1 }} /> {tr('Remover', 'Remove')}</MenuItem>
             </Menu>
             {npc && (
                 <input

@@ -8,6 +8,7 @@ import type { AonCreature } from '../../services/creatures'
 import type { NpcCombatant, NpcShield, PcCombatant } from './types'
 import { shieldItemOf } from '../character-viewer/shield'
 import { rageSpec } from '../character-viewer/rage'
+import { tr } from '../../i18n'
 
 /**
  * Deslocamento do personagem para o mapa: o da ficha MAIS os bônus, nunca
@@ -115,7 +116,7 @@ export function npcFromCreature(creature: AonCreature, index = 0): NpcCombatant 
 }
 
 /** O escudo lido do texto da AON, inteiro e abaixado. */
-export function npcShieldFrom(s: NonNullable<AonCreature['shield']>, name = 'Escudo'): NpcShield {
+export function npcShieldFrom(s: NonNullable<AonCreature['shield']>, name = tr('Escudo', 'Shield')): NpcShield {
     return {
         name,
         bonus: s.bonus,
@@ -143,7 +144,7 @@ export function npcFromManual(input: {
     return {
         id: crypto.randomUUID(),
         kind: 'npc',
-        name: input.name.trim() || 'Monstro',
+        name: input.name.trim() || tr('Monstro', 'Monster'),
         level: input.level,
         initiative: input.initiative,
         ac: input.ac,

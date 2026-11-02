@@ -20,6 +20,7 @@ import type { Combatant, EncounterState, NpcCombatant, NpcShield, PcCombatant } 
 import type { ShieldItem } from '../character-viewer/shield'
 import { sanitizeFit } from '../battle-map/tokenFit'
 import { mesaKey } from '../../services/mesa'
+import { tr } from '../../i18n'
 
 const STORAGE_KEY = mesaKey('pf2e:initiative:v1')
 const MAP_KEY_PREFIX = mesaKey('pf2e:initiative:v1:map:')
@@ -91,7 +92,7 @@ function npcShield(value: unknown): NpcShield | undefined {
     const maxHp = num(v.maxHp, 0)
     if (maxHp <= 0) return undefined
     return {
-        name: typeof v.name === 'string' ? v.name : 'Escudo',
+        name: typeof v.name === 'string' ? v.name : tr('Escudo', 'Shield'),
         bonus: Math.max(0, num(v.bonus, 2)),
         hardness: Math.max(0, num(v.hardness)),
         maxHp,

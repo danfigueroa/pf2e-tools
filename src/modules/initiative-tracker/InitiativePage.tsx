@@ -44,6 +44,7 @@ import { AddCombatantDialog } from './components/AddCombatantDialog'
 import { AfflictionDialog } from './components/AfflictionDialog'
 import { PersistentDamageDialog } from './components/PersistentDamageDialog'
 import type { Combatant, CombatantView, EncounterState, NpcCombatant } from './types'
+import { tr } from '../../i18n'
 
 type OpenDialog = 'add' | 'damage' | 'heal' | 'condition' | 'end' | null
 
@@ -57,11 +58,11 @@ type OpenDialog = 'add' | 'damage' | 'heal' | 'condition' | 'end' | null
 function describeAutoDamage(event: AutoDamage): string {
     const parts = event.rolls.map((r) => {
         const label = damageTypeLabel(r.type).toLowerCase()
-        if (r.immune) return `${r.formula} ${label}: imune`
+        if (r.immune) return tr(`${r.formula} ${label}: imune`, `${r.formula} ${label}: immune`)
         const defended = r.final !== r.rolled ? ` → ${r.final}` : ''
         return `${r.formula} ${label} ${r.rolled}${defended}`
     })
-    return `${event.name} sofreu ${event.total} — ${event.source} (${parts.join(', ')})`
+    return tr(`${event.name} sofreu ${event.total} — ${event.source} (${parts.join(', ')})`, `${event.name} took ${event.total} — ${event.source} (${parts.join(', ')})`)
 }
 
 export const InitiativePage = () => {
@@ -108,7 +109,7 @@ export const InitiativePage = () => {
     // A iniciativa que o jogador rolou pela ficha vira a dele no encontro.
     useInitiativeRolls(state.combatants, useCallback((u) => {
         dispatch({ type: 'setInitiative', id: u.combatantId, value: u.value })
-        setToast({ text: `${u.name}: iniciativa ${u.value} (${u.skill}).` })
+        setToast({ text: tr(`${u.name}: iniciativa ${u.value} (${u.skill}).`, `${u.name}: initiative ${u.value} (${u.skill}).`) })
     }, []))
 
     // O `localStorage` pinta a página e segura o encontro sem rede; a nuvem o leva
@@ -128,8 +129,8 @@ export const InitiativePage = () => {
     mapIdRef.current = mapId
     const cloud = useEncounterCloud(mapId, state, dispatch, useCallback((previous: EncounterState, from: string | null) => {
         setToast({
-            text: 'Abri a versão deste encontro que está na nuvem. A deste aparelho era diferente.',
-            label: 'Desfazer',
+            text: tr('Abri a versão deste encontro que está na nuvem. A deste aparelho era diferente.', 'I opened this encounter\'s cloud version. This device\'s version was different.'),
+            label: tr('Desfazer', 'Undo'),
             action: () => { if (mapIdRef.current === from) dispatch({ type: 'hydrate', state: previous }) },
         })
     }, []))
@@ -224,8 +225,8 @@ export const InitiativePage = () => {
             }
         }))
         dispatch({ type: 'addCombatants', combatants: [...combatants, ...extra] })
-        if (extra.length > 0) setToast({ text: `Entraram com o personagem: ${extra.map((e) => e.name).join(', ')}.` })
-        if (missing.length > 0) setToast({ text: `Não achei na AON: ${missing.join(', ')}.` })
+        if (extra.length > 0) setToast({ text: tr(`Entraram com o personagem: ${extra.map((e) => e.name).join(', ')}.`, `Joined with the character: ${extra.map((e) => e.name).join(', ')}.`) })
+        if (missing.length > 0) setToast({ text: tr(`Não achei na AON: ${missing.join(', ')}.`, `Not found on AON: ${missing.join(', ')}.`) })
     }
 
     const viewsById = useMemo(
@@ -306,7 +307,7 @@ export const InitiativePage = () => {
         setAutoDamage({
             combatantId: leavingId,
             name: view.combatant.name,
-            source: 'Dano persistente',
+            source: tr('Dano persistente', 'Persistent damage'),
             rolls,
             total,
             undo: () => view.setVitals(before.current, before.temp),
@@ -357,15 +358,15 @@ export const InitiativePage = () => {
                 view.applyDamage(amount)
             }
         }
-        if (broke.length > 0) setToast({ text: `Escudo quebrou: ${broke.join(', ')}.` })
+        if (broke.length > 0) setToast({ text: tr(`Escudo quebrou: ${broke.join(', ')}.`, `Shield broke: ${broke.join(', ')}.`) })
     }
 
     /** Bloqueio feito no próprio cartão: avisa quando quebra, com "Desfazer". */
     const onShieldBlocked = (view: CombatantView, result: BlockResult, before: ShieldBefore) => {
-        const tail = result.destroyed ? ' Escudo DESTRUÍDO.' : result.broke ? ' Escudo QUEBRADO.' : ''
+        const tail = result.destroyed ? tr(' Escudo DESTRUÍDO.', ' Shield DESTROYED.') : result.broke ? tr(' Escudo QUEBRADO.', ' Shield BROKEN.') : ''
         setToast({
-            text: `${view.combatant.name}${result.destructive ? ' (Bloqueio Destrutivo)' : ''}: Dureza segurou ${result.absorbed} · escudo −${result.toShield} · PV −${result.toCreature}.${tail}`,
-            label: 'Desfazer',
+            text: tr(`${view.combatant.name}${result.destructive ? ' (Bloqueio Destrutivo)' : ''}: Dureza segurou ${result.absorbed} · escudo −${result.toShield} · PV −${result.toCreature}.${tail}`, `${view.combatant.name}${result.destructive ? ' (Destructive Block)' : ''}: Hardness absorbed ${result.absorbed} · shield −${result.toShield} · HP −${result.toCreature}.${tail}`),
+            label: tr('Desfazer', 'Undo'),
             action: () => {
                 view.restoreShield(before.shield)
                 view.setVitals(before.current, before.temp)
@@ -384,12 +385,12 @@ export const InitiativePage = () => {
         const first = ids.map((id) => viewsById.get(id)).find(Boolean)
         if (!first) return
 
-        const others = ids.length > 1 ? ` (+${ids.length - 1} caíram junto)` : ''
+        const others = ids.length > 1 ? tr(` (+${ids.length - 1} caíram junto)`, ` (+${ids.length - 1} went down too)`) : ''
 
         if (first.combatant.kind === 'npc') {
             setToast({
-                text: `${first.combatant.name} chegou a 0 PV.${others}`,
-                label: 'Marcar derrotado',
+                text: tr(`${first.combatant.name} chegou a 0 PV.${others}`, `${first.combatant.name} reached 0 HP.${others}`),
+                label: tr('Marcar derrotado', 'Mark defeated'),
                 action: () => dispatch({ type: 'setDefeated', id: first.combatant.id, value: true }),
             })
             return
@@ -397,8 +398,8 @@ export const InitiativePage = () => {
 
         const dying = 1 + (first.conditions.wounded ?? 0)
         setToast({
-            text: `${first.combatant.name} caiu a 0 PV.${others}`,
-            label: `Aplicar Morrendo ${dying}`,
+            text: tr(`${first.combatant.name} caiu a 0 PV.${others}`, `${first.combatant.name} dropped to 0 HP.${others}`),
+            label: tr(`Aplicar Morrendo ${dying}`, `Apply Dying ${dying}`),
             action: () => first.setCondition('dying', dying),
         })
     }
@@ -434,8 +435,7 @@ export const InitiativePage = () => {
     return (
         <Container maxWidth="lg" disableGutters sx={{ pb: 2 }}>
             <Typography variant="h3" component="h1" sx={{ fontWeight: 700, mb: 0.5 }}>
-                Iniciativa
-            </Typography>
+                {tr('Iniciativa', 'Initiative')}</Typography>
             <Box sx={{ height: 2, width: { xs: 120, sm: 180 }, backgroundColor: gold.main, mb: 2 }} />
 
             <EncounterMapPicker mapId={mapId} onChange={switchMap} cloud={cloud} />
@@ -465,18 +465,15 @@ export const InitiativePage = () => {
                 onClick={() => setDialog('add')}
                 sx={{ mb: 2 }}
             >
-                Adicionar combatente
-            </Button>
+                {tr('Adicionar combatente', 'Add combatant')}</Button>
 
             {views.length === 0 ? (
                 <Card>
                     <CardContent sx={{ textAlign: 'center', py: 5 }}>
                         <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
-                            Nenhum combatente
-                        </Typography>
+                            {tr('Nenhum combatente', 'No combatants')}</Typography>
                         <Typography sx={{ color: ink.secondary }}>
-                            Importe os personagens da campanha e acrescente os monstros do encontro.
-                        </Typography>
+                            {tr('Importe os personagens da campanha e acrescente os monstros do encontro.', 'Import the campaign characters and add the encounter\'s monsters.')}</Typography>
                     </CardContent>
                 </Card>
             ) : (
@@ -523,11 +520,7 @@ export const InitiativePage = () => {
             )}
 
             <Alert severity="info" sx={{ mt: 2 }}>
-                Um encontro por mapa de combate, salvo na nuvem: abre igual em qualquer aparelho da
-                mesa. Os PV e as condições dos personagens também são da mesa: aparecem na Ficha
-                Virtual de quem estiver jogando, nos dois sentidos. Com um mapa escolhido, cada
-                combatente vira um token nele.
-            </Alert>
+                {tr('Um encontro por mapa de combate, salvo na nuvem: abre igual em qualquer aparelho da mesa. Os PV e as condições dos personagens também são da mesa: aparecem na Ficha Virtual de quem estiver jogando, nos dois sentidos. Com um mapa escolhido, cada combatente vira um token nele.', 'One encounter per battle map, saved in the cloud: it opens the same on any device at the table. The characters\' HP and conditions also belong to the table: they show up on the Virtual Sheet of whoever is playing, both ways. With a map chosen, each combatant becomes a token on it.')}</Alert>
 
             {selected.size > 0 && (
                 <BulkActionBar
@@ -592,15 +585,13 @@ export const InitiativePage = () => {
             )}
 
             <Dialog open={dialog === 'end'} onClose={() => setDialog(null)}>
-                <DialogTitle sx={{ fontWeight: 700 }}>Encerrar o combate?</DialogTitle>
+                <DialogTitle sx={{ fontWeight: 700 }}>{tr('Encerrar o combate?', 'End the combat?')}</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        A lista de combatentes e a rodada são apagadas. Os PV e as condições dos
-                        personagens continuam como estão, na mesa.
-                    </DialogContentText>
+                        {tr('A lista de combatentes e a rodada são apagadas. Os PV e as condições dos personagens continuam como estão, na mesa.', 'The combatant list and the round are cleared. The characters\' HP and conditions stay as they are, at the table.')}</DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setDialog(null)}>Cancelar</Button>
+                    <Button onClick={() => setDialog(null)}>{tr('Cancelar', 'Cancel')}</Button>
                     <Button
                         color="error"
                         variant="contained"
@@ -630,8 +621,7 @@ export const InitiativePage = () => {
                         sx={{ color: gold.bright }}
                         onClick={() => { autoDamage.undo(); setAutoDamage(null) }}
                     >
-                        Desfazer
-                    </Button>
+                        {tr('Desfazer', 'Undo')}</Button>
                 ) : undefined}
             />
 

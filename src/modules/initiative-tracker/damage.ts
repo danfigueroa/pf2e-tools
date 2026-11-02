@@ -1,15 +1,16 @@
 import { defenseValue, isImmune } from './defenses'
 import { blockSplit } from '../character-viewer/shield'
 import type { TargetDefense } from './types'
+import { tr } from '../../i18n'
 
 /** Resultado da salvaguarda do alvo. `none` = dano direto (ataque comum). */
 export type SaveOutcome = 'critFail' | 'fail' | 'success' | 'critSuccess' | 'none'
 
 export const OUTCOME_LABELS: Record<SaveOutcome, string> = {
-    critFail: 'Falha crítica',
-    fail: 'Falha',
-    success: 'Sucesso',
-    critSuccess: 'Sucesso crítico',
+    critFail: tr('Falha crítica', 'Critical failure'),
+    fail: tr('Falha', 'Failure'),
+    success: tr('Sucesso', 'Success'),
+    critSuccess: tr('Sucesso crítico', 'Critical success'),
     none: 'Direto',
 }
 
@@ -103,19 +104,19 @@ export function computeDamage(
 
 /** Memorial em uma linha: "24 → ×½ 12 → fraqueza +5 = 17 → resistência 5 = 12". */
 export function describeDamage(b: DamageBreakdown, typeLabel: string): string {
-    if (b.immune) return `Imune a ${typeLabel} — 0 de dano`
+    if (b.immune) return tr(`Imune a ${typeLabel} — 0 de dano`, `Immune to ${typeLabel} — 0 damage`)
 
     const steps: string[] = [`${b.base}`]
     if (b.multiplier !== 1) {
         steps.push(`${b.multiplier === 0.5 ? '÷2' : `×${b.multiplier}`} = ${b.afterMultiplier}`)
     }
-    if (b.weakness > 0) steps.push(`fraqueza ${typeLabel} +${b.weakness}`)
-    if (b.resistance > 0) steps.push(`resistência ${typeLabel} −${b.resistance}`)
+    if (b.weakness > 0) steps.push(tr(`fraqueza ${typeLabel} +${b.weakness}`, `${typeLabel} weakness +${b.weakness}`))
+    if (b.resistance > 0) steps.push(tr(`resistência ${typeLabel} −${b.resistance}`, `${typeLabel} resistance −${b.resistance}`))
     // O total só acrescenta informação quando defesa entrou na conta: depois de
     // "×2 = 48" repetir "total 48" é ruído.
     if (b.weakness > 0 || b.resistance > 0) steps.push(`total ${b.final + b.blocked}`)
-    if (b.blocked > 0) steps.push(`escudo segurou ${b.blocked} (escudo −${b.toShield})`)
-    if (b.absorbedByTemp > 0) steps.push(`${b.absorbedByTemp} absorvido por PV temporários`)
+    if (b.blocked > 0) steps.push(tr(`escudo segurou ${b.blocked} (escudo −${b.toShield})`, `shield absorbed ${b.blocked} (shield −${b.toShield})`))
+    if (b.absorbedByTemp > 0) steps.push(tr(`${b.absorbedByTemp} absorvido por PV temporários`, `${b.absorbedByTemp} absorbed by temporary HP`))
 
     return steps.join(' → ')
 }

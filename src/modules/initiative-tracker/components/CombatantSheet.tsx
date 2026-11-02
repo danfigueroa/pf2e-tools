@@ -23,6 +23,7 @@ import { scaleMonster } from '../../monster-scaler/scaling'
 import { MonsterStatBlock } from '../../monster-scaler/components/MonsterStatBlock'
 import type { ScaledMonster } from '../../monster-scaler/types'
 import type { NpcCombatant } from '../types'
+import { tr } from '../../../i18n'
 
 interface Props {
     npc: NpcCombatant
@@ -60,11 +61,10 @@ export function CombatantSheet({ npc, aonName, modified }: Props) {
                 sx={{ mt: 1 }}
                 action={npc.aonUrl ? (
                     <Button size="small" href={npc.aonUrl} target="_blank" rel="noopener" startIcon={<LinkIcon />}>
-                        Abrir na AON
-                    </Button>
+                        {tr('Abrir na AON', 'Open on AON')}</Button>
                 ) : undefined}
             >
-                Não foi possível carregar a ficha de {aonName}.
+                {tr('Não foi possível carregar a ficha de ', 'Couldn\'t load the sheet of ')}{aonName}.
             </Alert>
         )
     }
@@ -74,7 +74,7 @@ export function CombatantSheet({ npc, aonName, modified }: Props) {
             <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 1, py: 1 }}>
                 <CircularProgress size={16} />
                 <Typography variant="caption" sx={{ color: ink.secondary }}>
-                    Carregando a ficha de {aonName}…
+                    {tr('Carregando a ficha de ', 'Loading the sheet of ')}{aonName}…
                 </Typography>
             </Stack>
         )
@@ -91,8 +91,7 @@ export function CombatantSheet({ npc, aonName, modified }: Props) {
                 MonsterStatBlock é o mesmo que o escalar monstro exporta. */}
             {modified && (
                 <Typography variant="caption" sx={{ display: 'block', mb: 0.5, color: ink.secondary }}>
-                    Números publicados da AON — os do cartão acima já contam as condições ativas.
-                </Typography>
+                    {tr('Números publicados da AON — os do cartão acima já contam as condições ativas.', 'AON\'s published numbers — the card above already counts the active conditions.')}</Typography>
             )}
             <MonsterStatBlock monster={monster} />
         </Box>

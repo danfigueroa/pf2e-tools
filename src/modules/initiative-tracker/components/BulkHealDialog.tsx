@@ -15,6 +15,7 @@ import {
 } from '@mui/material'
 import { ink } from '../../../theme'
 import type { CombatantView } from '../types'
+import { tr } from '../../../i18n'
 
 type Mode = 'heal' | 'temp'
 
@@ -49,7 +50,7 @@ export const BulkHealDialog = ({ open, onClose, targets, onApply }: Props) => {
     return (
         <Dialog open={open} onClose={onClose} fullScreen={fullScreen} maxWidth="xs" fullWidth>
             <DialogTitle sx={{ fontWeight: 700 }}>
-                {mode === 'heal' ? 'Curar' : 'PV temporários'}
+                {mode === 'heal' ? 'Curar' : tr('PV temporários', 'Temporary HP')}
             </DialogTitle>
 
             <DialogContent dividers>
@@ -61,14 +62,14 @@ export const BulkHealDialog = ({ open, onClose, targets, onApply }: Props) => {
                     onChange={(_, v: Mode | null) => v && setMode(v)}
                     sx={{ mb: 2 }}
                 >
-                    <ToggleButton value="heal">Cura</ToggleButton>
-                    <ToggleButton value="temp">PV temporários</ToggleButton>
+                    <ToggleButton value="heal">{tr('Cura', 'Healing')}</ToggleButton>
+                    <ToggleButton value="temp">{tr('PV temporários', 'Temporary HP')}</ToggleButton>
                 </ToggleButtonGroup>
 
                 <TextField
                     autoFocus={!fullScreen}
                     fullWidth
-                    label={mode === 'heal' ? 'PV recuperados' : 'PV temporários'}
+                    label={mode === 'heal' ? tr('PV recuperados', 'HP regained') : tr('PV temporários', 'Temporary HP')}
                     value={amount}
                     onChange={(e) => setAmount(e.target.value.replace(/\D/g, ''))}
                     onKeyDown={(e) => { if (e.key === 'Enter') handleApply() }}
@@ -77,21 +78,21 @@ export const BulkHealDialog = ({ open, onClose, targets, onApply }: Props) => {
 
                 <Typography variant="caption" sx={{ color: ink.secondary, display: 'block', mt: 1.5 }}>
                     {mode === 'heal'
-                        ? 'A cura nunca passa do PV máximo.'
-                        : 'PV temporários não empilham: o valor substitui o que o alvo já tinha.'}
+                        ? tr('A cura nunca passa do PV máximo.', 'Healing never goes over max HP.')
+                        : tr('PV temporários não empilham: o valor substitui o que o alvo já tinha.', 'Temporary HP don\'t stack: the value replaces what the target already had.')}
                 </Typography>
 
                 <Stack sx={{ mt: 1.5 }}>
                     <Typography variant="caption" sx={{ color: ink.secondary }}>
-                        Alvos: {targets.map((t) => t.combatant.name).join(', ')}
+                        {tr('Alvos: ', 'Targets: ')}{targets.map((t) => t.combatant.name).join(', ')}
                     </Typography>
                 </Stack>
             </DialogContent>
 
             <DialogActions>
-                <Button onClick={onClose}>Cancelar</Button>
+                <Button onClick={onClose}>{tr('Cancelar', 'Cancel')}</Button>
                 <Button variant="contained" disabled={!valid} onClick={handleApply}>
-                    Aplicar a {targets.length} {targets.length === 1 ? 'alvo' : 'alvos'}
+                    {tr('Aplicar a ', 'Apply to ')}{targets.length} {targets.length === 1 ? tr('alvo', 'target') : tr('alvos', 'targets')}
                 </Button>
             </DialogActions>
         </Dialog>

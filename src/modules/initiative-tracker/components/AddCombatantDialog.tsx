@@ -29,6 +29,7 @@ import { npcFromManual, pcFromBuild } from '../importCharacter'
 import { CREATURE_SIZES, type CreatureSize } from '../../battle-map/geometry'
 import { AonCreatureSearch } from './AonCreatureSearch'
 import type { Combatant } from '../types'
+import { tr } from '../../../i18n'
 
 interface Props {
     open: boolean
@@ -55,7 +56,7 @@ export const AddCombatantDialog = ({ open, onClose, onAdd, existingSlugs }: Prop
 
     return (
         <Dialog open={open} onClose={onClose} fullScreen={fullScreen} maxWidth="sm" fullWidth>
-            <DialogTitle sx={{ fontWeight: 700, pb: 0 }}>Adicionar ao combate</DialogTitle>
+            <DialogTitle sx={{ fontWeight: 700, pb: 0 }}>{tr('Adicionar ao combate', 'Add to combat')}</DialogTitle>
 
             <Tabs
                 value={tab}
@@ -63,9 +64,9 @@ export const AddCombatantDialog = ({ open, onClose, onAdd, existingSlugs }: Prop
                 variant="fullWidth"
                 sx={{ borderBottom: `2px solid ${gold.main}`, mt: 1 }}
             >
-                <Tab label="Personagem" />
-                <Tab label="Monstro" />
-                <Tab label="Buscar AON" />
+                <Tab label={tr("Personagem", 'Character')} />
+                <Tab label={tr("Monstro", 'Monster')} />
+                <Tab label={tr("Buscar AON", 'Search AON')} />
             </Tabs>
 
             <DialogContent sx={{ px: { xs: 1.5, sm: 3 }, pt: 2 }}>
@@ -154,8 +155,8 @@ const CharacterTab = ({
         setSelected(new Set(failed.map((p) => p.filename)))
         setError(
             failed.length === 1
-                ? `Não foi possível carregar a ficha de ${failed[0].name}.`
-                : `Não foi possível carregar: ${failed.map((p) => p.name).join(', ')}.`,
+                ? tr(`Não foi possível carregar a ficha de ${failed[0].name}.`, `Couldn't load ${failed[0].name}'s sheet.`)
+                : tr(`Não foi possível carregar: ${failed.map((p) => p.name).join(', ')}.`, `Couldn't load: ${failed.map((p) => p.name).join(', ')}.`),
         )
     }
 
@@ -167,10 +168,9 @@ const CharacterTab = ({
 
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
                 <Typography variant="overline" sx={{ color: ink.secondary }}>
-                    Fichas da campanha
-                </Typography>
+                    {tr('Fichas da campanha', 'Campaign sheets')}</Typography>
                 <Button size="small" onClick={toggleAll} disabled={available.length === 0 || loading}>
-                    {allSelected ? 'Limpar seleção' : 'Selecionar todos'}
+                    {allSelected ? tr('Limpar seleção', 'Clear selection') : tr('Selecionar todos', 'Select all')}
                 </Button>
             </Box>
 
@@ -207,7 +207,7 @@ const CharacterTab = ({
                                         : <PersonIcon sx={{ color: green.main }} />}
                                     <Typography sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}>{preset.name}</Typography>
                                     <Typography variant="caption" sx={{ color: ink.secondary }}>
-                                        {already ? 'já no combate' : `${preset.class} ${levelOf(preset)}`}
+                                        {already ? tr('já no combate', 'already in combat') : `${preset.class} ${levelOf(preset)}`}
                                     </Typography>
                                 </CardContent>
                             </CardActionArea>
@@ -225,10 +225,10 @@ const CharacterTab = ({
                 sx={{ mb: 2.5 }}
             >
                 {loading
-                    ? 'Carregando…'
+                    ? tr('Carregando…', 'Loading…')
                     : count === 0
-                        ? 'Selecione ao menos um personagem'
-                        : `Adicionar ${count} ${count > 1 ? 'personagens' : 'personagem'}`}
+                        ? tr('Selecione ao menos um personagem', 'Select at least one character')
+                        : tr(`Adicionar ${count} ${count > 1 ? 'personagens' : 'personagem'}`, `Add ${count} ${count > 1 ? 'characters' : 'character'}`)}
             </Button>
 
             <Button
@@ -238,8 +238,7 @@ const CharacterTab = ({
                 onClick={() => inputRef.current?.click()}
                 disabled={loading}
             >
-                Carregar JSON do Pathbuilder
-            </Button>
+                {tr('Carregar JSON do Pathbuilder', 'Load Pathbuilder JSON')}</Button>
             <input
                 ref={inputRef}
                 type="file"
@@ -281,9 +280,9 @@ const CharacterTab = ({
                     onAdd(built, false)
                     setError([
                         bad.length > 0
-                            ? `JSON de personagem inválido — exporte a ficha pelo Pathbuilder: ${bad.join(', ')}.`
+                            ? tr(`JSON de personagem inválido — exporte a ficha pelo Pathbuilder: ${bad.join(', ')}.`, `Invalid character JSON — export the sheet from Pathbuilder: ${bad.join(', ')}.`)
                             : null,
-                        repeated.length > 0 ? `Já está no combate: ${repeated.join(', ')}.` : null,
+                        repeated.length > 0 ? tr(`Já está no combate: ${repeated.join(', ')}.`, `Already in combat: ${repeated.join(', ')}.`) : null,
                     ].filter(Boolean).join(' '))
                 }}
             />
@@ -327,7 +326,7 @@ const ManualTab = ({ onAdd }: { onAdd: (c: Combatant[]) => void }) => {
                 <TextField
                     autoFocus
                     fullWidth
-                    label="Nome"
+                    label={tr("Nome", 'Name')}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                 />
@@ -342,9 +341,9 @@ const ManualTab = ({ onAdd }: { onAdd: (c: Combatant[]) => void }) => {
                         inputProps={{ inputMode: 'numeric' }} />
                     <TextField label="CA" value={ac} onChange={(e) => setAc(digits(e.target.value))}
                         inputProps={{ inputMode: 'numeric' }} />
-                    <TextField label="Nível" value={level} onChange={(e) => setLevel(digits(e.target.value))}
+                    <TextField label={tr("Nível", 'Level')} value={level} onChange={(e) => setLevel(digits(e.target.value))}
                         inputProps={{ inputMode: 'numeric' }} />
-                    <TextField label="Iniciativa" value={initiative}
+                    <TextField label={tr("Iniciativa", 'Initiative')} value={initiative}
                         onChange={(e) => setInitiative(digits(e.target.value))}
                         inputProps={{ inputMode: 'numeric' }} />
                     <TextField label="Quantidade" value={quantity}
@@ -355,10 +354,10 @@ const ManualTab = ({ onAdd }: { onAdd: (c: Combatant[]) => void }) => {
                 <TextField
                     select
                     fullWidth
-                    label="Tamanho"
+                    label={tr("Tamanho", 'Size')}
                     value={size}
                     onChange={(e) => setSize(e.target.value as CreatureSize)}
-                    helperText={`Espaço no mapa: ${CREATURE_SIZES.find((s) => s.value === size)?.space}`}
+                    helperText={tr(`Espaço no mapa: ${CREATURE_SIZES.find((s) => s.value === size)?.space}`, `Space on the map: ${CREATURE_SIZES.find((s) => s.value === size)?.space}`)}
                 >
                     {CREATURE_SIZES.map((s) => (
                         <MenuItem key={s.value} value={s.value}>
@@ -372,8 +371,7 @@ const ManualTab = ({ onAdd }: { onAdd: (c: Combatant[]) => void }) => {
                     ))}
                 </TextField>
                 <Typography variant="caption" sx={{ color: ink.secondary }}>
-                    Resistências e fraquezas podem ser ajustadas depois, no cartão do combatente.
-                </Typography>
+                    {tr('Resistências e fraquezas podem ser ajustadas depois, no cartão do combatente.', 'Resistances and weaknesses can be adjusted later, on the combatant\'s card.')}</Typography>
             </Stack>
 
             <Button
@@ -383,8 +381,7 @@ const ManualTab = ({ onAdd }: { onAdd: (c: Combatant[]) => void }) => {
                 onClick={handleAdd}
                 sx={{ mt: 2.5, backgroundColor: green.main, color: parchment.page }}
             >
-                Adicionar
-            </Button>
+                {tr('Adicionar', 'Add')}</Button>
         </Box>
     )
 }

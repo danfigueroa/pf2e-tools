@@ -7,6 +7,7 @@ import { crack, pulseAnimation, useArmed, useReducedMotion } from '../../../moti
 import { useAnimatedNumber } from '../../../motion/useAnimatedNumber'
 import { useValueDeltas } from '../../../motion/useValueDeltas'
 import { FloatingDeltas } from '../../../motion/FloatingDeltas'
+import { tr } from '../../../i18n'
 
 /**
  * A faixa do escudo embaixo do PV no cartão: PV do escudo em aço (item, não
@@ -41,7 +42,7 @@ export const CombatantShield = ({ shield, onEdit }: { shield: ShieldView; onEdit
                     <FloatingDeltas deltas={deltas} />
                 </Box>
                 <Box sx={{ flex: 1 }} />
-                <Tooltip title={`Dureza ${stats.hardness} · BT ${stats.bt}${stats.canBlock ? '' : ' · sem Bloqueio com Escudo'}`}>
+                <Tooltip title={tr(`Dureza ${stats.hardness} · BT ${stats.bt}${stats.canBlock ? '' : ' · sem Bloqueio com Escudo'}`, `Hardness ${stats.hardness} · BT ${stats.bt}${stats.canBlock ? '' : ' · no Shield Block'}`)}>
                     <Typography variant="caption" sx={{ color: SHIELD_COLOR, fontWeight: 700 }}>
                         Dur. {stats.hardness}
                     </Typography>
@@ -50,19 +51,19 @@ export const CombatantShield = ({ shield, onEdit }: { shield: ShieldView; onEdit
                     <Chip
                         size="small"
                         color="error"
-                        label={destroyed ? 'Destruído' : 'Quebrado'}
+                        label={destroyed ? tr('Destruído', 'Destroyed') : tr('Quebrado', 'Broken')}
                         sx={{ height: 18, fontSize: '0.65rem', fontWeight: 700 }}
                     />
                 )}
                 {onEdit && (
-                    <IconButton size="small" onClick={onEdit} aria-label="Editar escudo" sx={{ p: 0.25 }}>
+                    <IconButton size="small" onClick={onEdit} aria-label={tr("Editar escudo", 'Edit shield')} sx={{ p: 0.25 }}>
                         <EditIcon sx={{ fontSize: '0.9rem' }} />
                     </IconButton>
                 )}
             </Stack>
             <Box
                 role="progressbar"
-                aria-label={`PV do escudo, BT ${stats.bt}`}
+                aria-label={tr(`PV do escudo, BT ${stats.bt}`, `Shield HP, BT ${stats.bt}`)}
                 aria-valuemin={0}
                 aria-valuemax={stats.maxHp}
                 aria-valuenow={hp}

@@ -6,6 +6,7 @@ import {
     LocalFireDepartment as DamageIcon,
 } from '@mui/icons-material'
 import { gold, HP_COLOR, ink, parchment } from '../../../theme'
+import { tr } from '../../../i18n'
 
 interface Props {
     count: number
@@ -38,7 +39,7 @@ export const BulkActionBar = ({ count, onDamage, onHeal, onCondition, onClear }:
     >
         <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap', gap: 1 }}>
             <Typography variant="body2" sx={{ fontWeight: 700, color: ink.secondary, mr: 0.5 }}>
-                {count} {count === 1 ? 'alvo' : 'alvos'}
+                {count} {count === 1 ? tr('alvo', 'target') : tr('alvos', 'targets')}
             </Typography>
 
             <Button
@@ -48,20 +49,16 @@ export const BulkActionBar = ({ count, onDamage, onHeal, onCondition, onClear }:
                 startIcon={<DamageIcon />}
                 sx={{ backgroundColor: HP_COLOR, '&:hover': { backgroundColor: '#8F3622' } }}
             >
-                Dano
-            </Button>
+                {tr('Dano', 'Damage')}</Button>
             <Button variant="outlined" size="small" onClick={onHeal} startIcon={<HealIcon />}>
-                Cura
-            </Button>
+                {tr('Cura', 'Healing')}</Button>
             <Button variant="outlined" size="small" onClick={onCondition} startIcon={<ConditionIcon />}>
-                Condição
-            </Button>
+                {tr('Condição', 'Condition')}</Button>
 
             <Box sx={{ flex: 1 }} />
 
             <Button size="small" onClick={onClear} startIcon={<ClearIcon />} sx={{ color: ink.secondary }}>
-                Limpar
-            </Button>
+                {tr('Limpar', 'Clear')}</Button>
         </Stack>
     </Box>
 )

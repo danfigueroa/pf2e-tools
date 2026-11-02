@@ -23,6 +23,7 @@ import {
     type ConditionGroup,
 } from '../../character-viewer/conditions'
 import type { CombatantView } from '../types'
+import { tr } from '../../../i18n'
 
 interface Props {
     open: boolean
@@ -77,7 +78,7 @@ export const BulkConditionDialog = ({ open, onClose, targets, onApply }: Props) 
     return (
         <Dialog open={open} onClose={close} fullScreen={fullScreen} maxWidth="sm" fullWidth>
             <DialogTitle sx={{ fontWeight: 700 }}>
-                Aplicar condição a {targets.length} {targets.length === 1 ? 'alvo' : 'alvos'}
+                {tr('Aplicar condição a ', 'Apply condition to ')}{targets.length} {targets.length === 1 ? tr('alvo', 'target') : tr('alvos', 'targets')}
             </DialogTitle>
 
             <DialogContent dividers sx={{ px: { xs: 1.5, sm: 3 } }}>
@@ -85,7 +86,7 @@ export const BulkConditionDialog = ({ open, onClose, targets, onApply }: Props) 
                     autoFocus={!fullScreen}
                     fullWidth
                     size="small"
-                    placeholder="Buscar condição…"
+                    placeholder={tr("Buscar condição…", 'Search condition…')}
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     InputProps={{
@@ -143,13 +144,13 @@ export const BulkConditionDialog = ({ open, onClose, targets, onApply }: Props) 
                                 />
                             )}
                             <TextField
-                                label="Duração"
+                                label={tr("Duração", 'Duration')}
                                 size="small"
-                                placeholder="sem prazo"
+                                placeholder={tr("sem prazo", 'no limit')}
                                 value={rounds}
                                 onChange={(e) => setRounds(e.target.value.replace(/\D/g, ''))}
                                 inputProps={{ inputMode: 'numeric' }}
-                                helperText="Rodadas — conta no turno do alvo"
+                                helperText={tr("Rodadas — conta no turno do alvo", 'Rounds — counted on the target\'s turn')}
                                 sx={{ width: 170 }}
                             />
                         </Stack>
@@ -158,10 +159,9 @@ export const BulkConditionDialog = ({ open, onClose, targets, onApply }: Props) 
             </DialogContent>
 
             <DialogActions>
-                <Button onClick={close}>Cancelar</Button>
+                <Button onClick={close}>{tr('Cancelar', 'Cancel')}</Button>
                 <Button variant="contained" disabled={!selected} onClick={handleApply}>
-                    Aplicar
-                </Button>
+                    {tr('Aplicar', 'Apply')}</Button>
             </DialogActions>
         </Dialog>
     )

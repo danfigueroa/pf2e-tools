@@ -14,6 +14,7 @@ import { CONDITIONS_BY_ID } from '../../character-viewer/conditions'
 import { gold, ink, parchment, rule, status } from '../../../theme'
 import { SAVE_DEGREES, stageDamage, stageOf, type AfflictionState } from '../afflictions'
 import { damageTypeLabel } from '../defenses'
+import { tr } from '../../../i18n'
 
 interface Props {
     afflictions: AfflictionState[]
@@ -66,14 +67,14 @@ export function CombatantAfflictions({ afflictions, onSave, onAdvance, onRemove 
                                 sx={{ backgroundColor: gold.main + '33', fontWeight: 700 }}
                             />
                             {a.def.virulent && (
-                                <Tooltip title="Virulento: precisa de dois sucessos seguidos para melhorar um estágio.">
+                                <Tooltip title={tr("Virulento: precisa de dois sucessos seguidos para melhorar um estágio.", 'Virulent: needs two successes in a row to improve a stage.')}>
                                     <Chip size="small" variant="outlined" label="Virulento" />
                                 </Tooltip>
                             )}
                             <Box sx={{ flex: 1 }} />
                             <IconButton
                                 size="small"
-                                aria-label={`Remover ${a.def.name}`}
+                                aria-label={tr(`Remover ${a.def.name}`, `Remove ${a.def.name}`)}
                                 onClick={() => onRemove(a.id)}
                             >
                                 <CloseIcon fontSize="small" />
@@ -93,7 +94,7 @@ export function CombatantAfflictions({ afflictions, onSave, onAdvance, onRemove 
                                     <Chip
                                         key={`dmg${i}`}
                                         size="small"
-                                        label={`${d.formula} de ${damageTypeLabel(d.type).toLowerCase()}`}
+                                        label={tr(`${d.formula} de ${damageTypeLabel(d.type).toLowerCase()}`, `${d.formula} ${damageTypeLabel(d.type).toLowerCase()}`)}
                                         sx={{ backgroundColor: status.error + '22', color: status.error, fontWeight: 700 }}
                                     />
                                 ))}
@@ -113,14 +114,14 @@ export function CombatantAfflictions({ afflictions, onSave, onAdvance, onRemove 
                             <Typography variant="caption" sx={{ color: ink.secondary }}>
                                 {a.def.dc !== null && a.def.save
                                     ? `CD ${a.def.dc} ${a.def.save === 'fortitude' ? 'Fort' : a.def.save === 'reflex' ? 'Ref' : 'Von'}`
-                                    : (a.def.raw ?? 'salvaguarda não lida')}
+                                    : (a.def.raw ?? tr('salvaguarda não lida', 'save not read'))}
                                 {untracked && stage?.durationRaw ? ` · ${stage.durationRaw}` : ''}
                                 {!untracked && !due && a.roundsLeft !== null
-                                    ? ` · salva em ${a.roundsLeft} rodada${a.roundsLeft > 1 ? 's' : ''}`
+                                    ? tr(` · salva em ${a.roundsLeft} rodada${a.roundsLeft > 1 ? 's' : ''}`, ` · save in ${a.roundsLeft} round${a.roundsLeft > 1 ? 's' : ''}`)
                                     : ''}
                                 {a.maxRoundsLeft !== null
-                                    ? ` · acaba em ${a.maxRoundsLeft} rodada${a.maxRoundsLeft > 1 ? 's' : ''}`
-                                    : a.def.maxDurationRaw ? ` · máx. ${a.def.maxDurationRaw}` : ''}
+                                    ? tr(` · acaba em ${a.maxRoundsLeft} rodada${a.maxRoundsLeft > 1 ? 's' : ''}`, ` · ends in ${a.maxRoundsLeft} round${a.maxRoundsLeft > 1 ? 's' : ''}`)
+                                    : a.def.maxDurationRaw ? tr(` · máx. ${a.def.maxDurationRaw}`, ` · max ${a.def.maxDurationRaw}`) : ''}
                             </Typography>
                         </Box>
 
@@ -128,8 +129,7 @@ export function CombatantAfflictions({ afflictions, onSave, onAdvance, onRemove 
                         {due && (
                             <Box sx={{ mt: 0.5 }}>
                                 <Typography variant="caption" sx={{ display: 'block', color: status.warning, fontWeight: 700 }}>
-                                    Salvaguarda de estágio:
-                                </Typography>
+                                    {tr('Salvaguarda de estágio:', 'Stage saving throw:')}</Typography>
                                 <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(64px, 1fr))', gap: 0.5, mt: 0.25 }}>
                                     {SAVE_DEGREES.map((d) => (
                                         <Button
@@ -137,7 +137,7 @@ export function CombatantAfflictions({ afflictions, onSave, onAdvance, onRemove 
                                             size="small"
                                             variant="outlined"
                                             onClick={() => onSave(a.id, d.id)}
-                                            aria-label={`${d.label} na salvaguarda de ${a.def.name}`}
+                                            aria-label={tr(`${d.label} na salvaguarda de ${a.def.name}`, `${d.label} on the ${a.def.name} save`)}
                                         >
                                             {d.short}
                                         </Button>
@@ -154,8 +154,7 @@ export function CombatantAfflictions({ afflictions, onSave, onAdvance, onRemove 
                                 onClick={() => onAdvance(a.id, 1)}
                                 sx={{ mt: 0.25 }}
                             >
-                                Avançar estágio
-                            </Button>
+                                {tr('Avançar estágio', 'Advance stage')}</Button>
                         )}
                     </Box>
                 )

@@ -8,6 +8,7 @@ import { useHpFeedback } from '../../../motion/useHpFeedback'
 import { FloatingDeltas } from '../../../motion/FloatingDeltas'
 import type { BlockResult, ShieldStored } from '../../character-viewer/shield'
 import { CombatantShield } from './CombatantShield'
+import { tr } from '../../../i18n'
 
 /** O estado antes de um bloqueio — o que o "Desfazer" devolve. */
 export interface ShieldBefore {
@@ -88,12 +89,12 @@ export const CombatantVitals = ({ view, onBlocked, onEditShield }: {
                     <FloatingDeltas deltas={feedback.deltas} />
                 </Box>
                 {maxHpDelta !== 0 && (
-                    <Tooltip title="Máximo reduzido por Drenado">
+                    <Tooltip title={tr("Máximo reduzido por Drenado", 'Max reduced by Drained')}>
                         <Typography variant="caption" sx={{ color: HP_COLOR }}>({maxHpDelta})</Typography>
                     </Tooltip>
                 )}
                 {temp > 0 && (
-                    <Tooltip title={`${temp} PV temporários`}>
+                    <Tooltip title={tr(`${temp} PV temporários`, `${temp} temporary HP`)}>
                         <Stack direction="row" alignItems="center" spacing={0.25} sx={{ ml: 0.5 }}>
                             <TempIcon sx={{ fontSize: '0.9rem', color: theme.palette.info.main }} />
                             <Typography variant="caption" sx={{ fontWeight: 700, color: theme.palette.info.main }}>
@@ -127,14 +128,14 @@ export const CombatantVitals = ({ view, onBlocked, onEditShield }: {
                     value={amount}
                     onChange={(e) => setAmount(e.target.value.replace(/\D/g, ''))}
                     onKeyDown={(e) => { if (e.key === 'Enter') run(damage) }}
-                    inputProps={{ inputMode: 'numeric', 'aria-label': `Quantidade de PV para ${name}` }}
+                    inputProps={{ inputMode: 'numeric', 'aria-label': tr(`Quantidade de PV para ${name}`, `Amount of HP for ${name}`) }}
                     sx={{ width: 62, '& .MuiInputBase-input': { py: 0.5, textAlign: 'center' } }}
                 />
                 <Button
                     size="small"
                     variant="contained"
                     onClick={() => run(damage)}
-                    aria-label={`Causar dano em ${name}`}
+                    aria-label={tr(`Causar dano em ${name}`, `Deal damage to ${name}`)}
                     sx={{
                         flex: 1,
                         px: 1,
@@ -142,8 +143,7 @@ export const CombatantVitals = ({ view, onBlocked, onEditShield }: {
                         '&:hover': { backgroundColor: '#8F3622' },
                     }}
                 >
-                    Dano
-                </Button>
+                    {tr('Dano', 'Damage')}</Button>
                 <Button
                     size="small"
                     variant="outlined"
@@ -160,13 +160,12 @@ export const CombatantVitals = ({ view, onBlocked, onEditShield }: {
                         },
                     }}
                 >
-                    Cura
-                </Button>
+                    {tr('Cura', 'Heal')}</Button>
             </Stack>
 
             {canBlock && (
                 <Stack direction="row" spacing={0.75} sx={{ mt: 0.75 }}>
-                    <Tooltip title="O próximo Dano passa pelo escudo: a Dureza segura, o resto vai para o PV e para o escudo. Só dano físico.">
+                    <Tooltip title={tr("O próximo Dano passa pelo escudo: a Dureza segura, o resto vai para o PV e para o escudo. Só dano físico.", 'The next Damage goes through the shield: Hardness absorbs it, the rest goes to HP and the shield. Physical damage only.')}>
                         <Button
                             size="small"
                             fullWidth
@@ -174,7 +173,7 @@ export const CombatantVitals = ({ view, onBlocked, onEditShield }: {
                             startIcon={<ShieldIcon sx={{ fontSize: '1rem' }} />}
                             onClick={() => setBlocking((b) => (b === 'normal' ? 'off' : 'normal'))}
                             aria-pressed={blocking === 'normal'}
-                            aria-label={`Bloquear com escudo o próximo dano em ${name}`}
+                            aria-label={tr(`Bloquear com escudo o próximo dano em ${name}`, `Block the next damage to ${name} with the shield`)}
                             sx={{
                                 fontSize: '0.75rem',
                                 ...(blocking === 'normal'
@@ -182,17 +181,17 @@ export const CombatantVitals = ({ view, onBlocked, onEditShield }: {
                                     : { color: SHIELD_COLOR, borderColor: SHIELD_COLOR + '66', '&:hover': { borderColor: SHIELD_COLOR } }),
                             }}
                         >
-                            {blocking === 'normal' ? 'Bloqueando o próximo dano' : 'Bloquear com escudo'}
+                            {blocking === 'normal' ? tr('Bloqueando o próximo dano', 'Blocking the next damage') : tr('Bloquear com escudo', 'Block with shield')}
                         </Button>
                     </Tooltip>
                     {canDestroy && (
-                        <Tooltip title={`Destructive Block: o próximo Dano desconta o dobro da Dureza (${2 * view.shield!.stats.hardness}) do PV, mas o escudo toma o dobro do dano antes da Dureza. Só dano físico.`}>
+                        <Tooltip title={tr(`Destructive Block: o próximo Dano desconta o dobro da Dureza (${2 * view.shield!.stats.hardness}) do PV, mas o escudo toma o dobro do dano antes da Dureza. Só dano físico.`, `Destructive Block: the next Damage reduces twice the Hardness (${2 * view.shield!.stats.hardness}) from HP, but the shield takes double the damage before Hardness. Physical damage only.`)}>
                             <Button
                                 size="small"
                                 variant={blocking === 'destructive' ? 'contained' : 'outlined'}
                                 onClick={() => setBlocking((b) => (b === 'destructive' ? 'off' : 'destructive'))}
                                 aria-pressed={blocking === 'destructive'}
-                                aria-label={`Bloqueio Destrutivo no próximo dano em ${name}`}
+                                aria-label={tr(`Bloqueio Destrutivo no próximo dano em ${name}`, `Destructive Block on the next damage to ${name}`)}
                                 sx={{
                                     flex: '0 0 auto',
                                     fontSize: '0.75rem',

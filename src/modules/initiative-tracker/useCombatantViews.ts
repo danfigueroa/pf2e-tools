@@ -25,6 +25,7 @@ import {
     type ShieldStored,
 } from '../character-viewer/shield'
 import { shieldView } from '../character-viewer/components/useShield'
+import { tr } from '../../i18n'
 
 /**
  * Um dano que o app aplicou SOZINHO — o do estágio de uma aflição ou o
@@ -249,7 +250,7 @@ function buildView(
         onAutoDamage.current?.({
             combatantId: combatant.id,
             name: combatant.name,
-            source: `${after.def.name} · estágio ${after.stage}`,
+            source: tr(`${after.def.name} · estágio ${after.stage}`, `${after.def.name} · stage ${after.stage}`),
             rolls,
             total,
             undo: () => core.setVitals(vitals.current, vitals.temp),

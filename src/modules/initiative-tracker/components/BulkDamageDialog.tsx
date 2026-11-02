@@ -24,6 +24,7 @@ import { BLOCKABLE_TYPES, isBroken } from '../../character-viewer/shield'
 import { DAMAGE_TYPES, damageTypeLabel } from '../defenses'
 import { computeDamage, describeDamage, OUTCOME_LABELS, type SaveOutcome } from '../damage'
 import type { CombatantView } from '../types'
+import { tr } from '../../../i18n'
 
 interface Props {
     open: boolean
@@ -39,9 +40,9 @@ interface Props {
 
 /** Botões curtos: no celular "Sucesso crítico" não cabe em quatro colunas. */
 const OUTCOME_SHORT: Record<SaveOutcome, string> = {
-    critFail: 'Falha cr.',
-    fail: 'Falha',
-    success: 'Sucesso',
+    critFail: tr('Falha cr.', 'Crit fail'),
+    fail: tr('Falha', 'Failure'),
+    success: tr('Sucesso', 'Success'),
     critSuccess: 'Suc. cr.',
     none: 'Direto',
 }
@@ -112,13 +113,13 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
 
     return (
         <Dialog open={open} onClose={onClose} fullScreen={fullScreen} maxWidth="sm" fullWidth>
-            <DialogTitle sx={{ fontWeight: 700 }}>Aplicar dano</DialogTitle>
+            <DialogTitle sx={{ fontWeight: 700 }}>{tr('Aplicar dano', 'Apply damage')}</DialogTitle>
 
             <DialogContent dividers sx={{ px: { xs: 1.5, sm: 3 } }}>
                 <Stack direction="row" spacing={1.5} sx={{ mb: 2 }}>
                     <TextField
                         autoFocus={!fullScreen}
-                        label="Dano"
+                        label={tr("Dano", 'Damage')}
                         value={amount}
                         onChange={(e) => setAmount(e.target.value.replace(/\D/g, ''))}
                         inputProps={{ inputMode: 'numeric' }}
@@ -126,7 +127,7 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
                     />
                     <TextField
                         select
-                        label="Tipo"
+                        label={tr("Tipo", 'Type')}
                         value={type}
                         onChange={(e) => setType(e.target.value)}
                         sx={{ flex: 1 }}
@@ -138,8 +139,7 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
                 </Stack>
 
                 <Typography variant="overline" sx={{ color: ink.secondary }}>
-                    Resultado para todos
-                </Typography>
+                    {tr('Resultado para todos', 'Result for everyone')}</Typography>
                 <ToggleButtonGroup
                     exclusive
                     fullWidth
@@ -213,7 +213,7 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
                             </ToggleButtonGroup>
 
                             {view.shield?.canBlock && (
-                                <Tooltip title={blockable ? '' : 'Bloqueio com Escudo só segura dano físico.'}>
+                                <Tooltip title={blockable ? '' : tr('Bloqueio com Escudo só segura dano físico.', 'Shield Block only absorbs physical damage.')}>
                                     <FormControlLabel
                                         sx={{ mt: 0.25, mr: 0, '& .MuiFormControlLabel-label': { fontSize: '0.8rem' } }}
                                         control={
@@ -226,14 +226,14 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
                                             />
                                         }
                                         label={blocking && valid
-                                            ? `Bloquear com escudo · escudo ${view.shield.hp} → ${Math.max(0, view.shield.hp - breakdown.toShield)}${isBroken(Math.max(0, view.shield.hp - breakdown.toShield), view.shield.stats) ? ' (quebra)' : ''}`
-                                            : `Bloquear com escudo (Dureza ${view.shield.stats.hardness})`}
+                                            ? tr(`Bloquear com escudo · escudo ${view.shield.hp} → ${Math.max(0, view.shield.hp - breakdown.toShield)}${isBroken(Math.max(0, view.shield.hp - breakdown.toShield), view.shield.stats) ? ' (quebra)' : ''}`, `Block with shield · shield ${view.shield.hp} → ${Math.max(0, view.shield.hp - breakdown.toShield)}${isBroken(Math.max(0, view.shield.hp - breakdown.toShield), view.shield.stats) ? ' (breaks)' : ''}`)
+                                            : tr(`Bloquear com escudo (Dureza ${view.shield.stats.hardness})`, `Block with shield (Hardness ${view.shield.stats.hardness})`)}
                                     />
                                 </Tooltip>
                             )}
 
                             {blocking && view.shield?.stats.destructive && (
-                                <Tooltip title={`Destructive Block: o dobro da Dureza (${2 * view.shield.stats.hardness}) segura o dano, mas o escudo toma o dobro do dano antes da Dureza.`}>
+                                <Tooltip title={tr(`Destructive Block: o dobro da Dureza (${2 * view.shield.stats.hardness}) segura o dano, mas o escudo toma o dobro do dano antes da Dureza.`, `Destructive Block: twice the Hardness (${2 * view.shield.stats.hardness}) absorbs the damage, but the shield takes double the damage before Hardness.`)}>
                                     <FormControlLabel
                                         sx={{ ml: 2, mr: 0, '& .MuiFormControlLabel-label': { fontSize: '0.8rem' } }}
                                         control={
@@ -244,7 +244,7 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
                                                 sx={{ color: HP_COLOR, '&.Mui-checked': { color: HP_COLOR } }}
                                             />
                                         }
-                                        label={`Bloqueio Destrutivo (segura ${2 * view.shield.stats.hardness})`}
+                                        label={tr(`Bloqueio Destrutivo (segura ${2 * view.shield.stats.hardness})`, `Destructive Block (absorbs ${2 * view.shield.stats.hardness})`)}
                                     />
                                 </Tooltip>
                             )}
@@ -263,14 +263,14 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
                 <Typography variant="body2" sx={{ flex: 1, color: ink.secondary }}>
                     Total: <strong style={{ color: gold.deep }}>{total}</strong>
                 </Typography>
-                <Button onClick={onClose}>Cancelar</Button>
+                <Button onClick={onClose}>{tr('Cancelar', 'Cancel')}</Button>
                 <Button
                     variant="contained"
                     disabled={!valid}
                     onClick={handleApply}
                     sx={{ backgroundColor: HP_COLOR, '&:hover': { backgroundColor: '#8F3622' } }}
                 >
-                    Aplicar a {targets.length} {targets.length === 1 ? 'alvo' : 'alvos'}
+                    {tr('Aplicar a ', 'Apply to ')}{targets.length} {targets.length === 1 ? tr('alvo', 'target') : tr('alvos', 'targets')}
                 </Button>
             </DialogActions>
         </Dialog>

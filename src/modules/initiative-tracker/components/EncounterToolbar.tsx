@@ -20,6 +20,7 @@ import {
 import { gold, green, parchment } from '../../../theme'
 import type { Combatant } from '../types'
 import { pop, useArmed } from '../../../motion/motion'
+import { tr } from '../../../i18n'
 
 interface Props {
     round: number
@@ -71,7 +72,7 @@ export const EncounterToolbar = ({
                                 variant="overline"
                                 sx={{ display: 'block', color: gold.bright, lineHeight: 1.2, transformOrigin: 'left center', ...enter }}
                             >
-                                Rodada {round}
+                                {tr('Rodada ', 'Round ')}{round}
                             </Typography>
                             <Typography
                                 key={active.id}
@@ -83,14 +84,13 @@ export const EncounterToolbar = ({
                             </Typography>
                             {next && (
                                 <Typography variant="caption" sx={{ color: parchment.page + 'B3' }} noWrap>
-                                    Depois: {next.name}
+                                    {tr('Depois: ', 'Next: ')}{next.name}
                                 </Typography>
                             )}
                         </>
                     ) : (
                         <Typography variant="h5" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-                            Combate não iniciado
-                        </Typography>
+                            {tr('Combate não iniciado', 'Combat not started')}</Typography>
                     )}
                 </Box>
 
@@ -104,7 +104,7 @@ export const EncounterToolbar = ({
                                 startIcon={<PrevIcon />}
                                 sx={chromeButton}
                             >
-                                {isPhone ? '' : 'Anterior'}
+                                {isPhone ? '' : tr('Anterior', 'Previous')}
                             </Button>
                             <Button
                                 variant="contained"
@@ -118,8 +118,7 @@ export const EncounterToolbar = ({
                                     '&:hover': { backgroundColor: gold.main },
                                 }}
                             >
-                                Próximo turno
-                            </Button>
+                                {tr('Próximo turno', 'Next turn')}</Button>
                         </>
                     ) : (
                         <Button
@@ -135,8 +134,7 @@ export const EncounterToolbar = ({
                                 '&:hover': { backgroundColor: gold.main },
                             }}
                         >
-                            Iniciar combate
-                        </Button>
+                            {tr('Iniciar combate', 'Start combat')}</Button>
                     )}
                 </Stack>
 
@@ -147,17 +145,17 @@ export const EncounterToolbar = ({
                 />
 
                 <Stack direction="row" spacing={1} justifyContent={{ xs: 'space-between', sm: 'flex-start' }}>
-                    <Tooltip title="Reordenar por iniciativa">
+                    <Tooltip title={tr("Reordenar por iniciativa", 'Reorder by initiative')}>
                         <Button size="small" onClick={onSort} startIcon={<SortIcon />} sx={chromeButton}>
                             Reordenar
                         </Button>
                     </Tooltip>
-                    <Tooltip title="Puxar PV e condições da mesa">
+                    <Tooltip title={tr("Puxar PV e condições da mesa", 'Pull HP and conditions from the table')}>
                         <Button size="small" onClick={onRefresh} startIcon={<RefreshIcon />} sx={chromeButton}>
                             Atualizar
                         </Button>
                     </Tooltip>
-                    <Tooltip title="Encerrar e limpar o encontro">
+                    <Tooltip title={tr("Encerrar e limpar o encontro", 'End and clear the encounter')}>
                         <Button size="small" onClick={onEnd} startIcon={<StopIcon />} sx={chromeButton}>
                             Encerrar
                         </Button>

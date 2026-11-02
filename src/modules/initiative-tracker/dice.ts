@@ -14,6 +14,7 @@
 // já estavam aplicados antes desta versão, sem migração de campo nenhuma.
 
 import { DAMAGE_TYPES } from './defenses'
+import { tr } from '../../i18n'
 
 /** `2d6+3` → `{ count: 2, faces: 6, flat: 3 }`. `5` → `{ 0, 0, 5 }`. */
 export interface Formula {
@@ -145,4 +146,4 @@ export function parseDamageEntries(text: string): DamageEntry[] {
 
 /** "1d6" + "fire" → "1d6 de fogo", para os avisos em pt-BR. */
 export const formulaLabel = (entry: DamageEntry, typeLabel: string): string =>
-    `${entry.formula} de ${typeLabel.toLowerCase()}`
+    tr(`${entry.formula} de ${typeLabel.toLowerCase()}`, `${entry.formula} ${typeLabel.toLowerCase()}`)
