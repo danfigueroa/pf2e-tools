@@ -140,7 +140,7 @@ const NotesSectionView = ({ build }: Props) => {
         const now = Date.now()
         update((n) => (n.notes.length >= MAX_NOTES ? n : {
             ...n,
-            notes: [{ id: newNoteId(), title: '', tag: 'outro', body: '', createdAt: now, updatedAt: now }, ...n.notes],
+            notes: [{ id: newNoteId(), title: '', tag: 'outro', body: '', createdAt: now, updatedAt: now }, ...n.notes], // i18n-ok: chave
         }))
         setQuery('')
         setTag('all')

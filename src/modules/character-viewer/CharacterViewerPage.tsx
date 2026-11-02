@@ -38,7 +38,7 @@ export const CharacterViewerPage = () => {
     // `?ficha=<slug>`: abrir uma ficha publicada vindo de outro lugar (o grupo na Início, uma
     // notificação). Vale uma vez e sai da URL, como o `?mesa=`.
     const [params, setParams] = useSearchParams()
-    const linked = params.get('ficha')
+    const linked = params.get('ficha') // i18n-ok: chave
 
     // Restaurar ficha da sessão ao recarregar. Se era a ficha da mesa, relê a
     // versão publicada — alguém pode ter publicado outra enquanto isso.
@@ -81,7 +81,7 @@ export const CharacterViewerPage = () => {
             if (sheet) {
                 try { show(parseCharacterJson(sheet.json), sheet) } catch { /* JSON da mesa inválido: fica onde está */ }
             }
-            setParams((p) => { p.delete('ficha'); return p }, { replace: true })
+            setParams((p) => { p.delete('ficha'); return p }, { replace: true }) // i18n-ok: chave
         })
         // `show` muda a cada render; o pedido é pelo slug do link.
         // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -169,7 +169,7 @@ export function componentLabel(c: ScaledComponent): string {
 export const NAMED_LABEL: Partial<Record<SpellComponent['kind'], string>> = {
     hardness: tr('Dureza', 'Hardness'),
     resistance: tr('Resistência', 'Resistance'),
-    weakness: 'Fraqueza',
+    weakness: tr('Fraqueza', 'Weakness'),
     healingExtra: tr('Cura extra', 'Extra healing'),
 }
 

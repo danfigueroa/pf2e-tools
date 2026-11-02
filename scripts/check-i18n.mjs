@@ -127,7 +127,7 @@ function exempt(node) {
         if (ts.isCaseClause(p) && p.expression === child) return true
         if (ts.isJsxAttribute(p)) {
             const attr = p.name.getText()
-            return ['key', 'id', 'className', 'href', 'to', 'src', 'component', 'variant', 'color', 'size', 'data-view', 'role', 'type', 'name', 'lang'].includes(attr)
+            return ['key', 'id', 'className', 'href', 'to', 'src', 'component', 'variant', 'color', 'size', 'data-view', 'role', 'type', 'name', 'lang', 'path'].includes(attr)
         }
         // Parou numa instrução/declaração: daqui para cima não muda nada.
         if (ts.isStatement(p) && !ts.isBlock(p)) return false

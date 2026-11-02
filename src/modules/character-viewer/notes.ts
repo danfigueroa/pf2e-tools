@@ -2,7 +2,7 @@ import { tr } from '../../i18n'
 // Anotações do personagem: o formato e a validação. O servidor (`notes-store.js`)
 // confere os mesmos tetos — mudou um, muda o outro.
 
-export const NOTE_TAGS = ['npc', 'item', 'local', 'evento', 'outro'] as const
+export const NOTE_TAGS = ['npc', 'item', 'local', 'evento', 'outro'] as const // i18n-ok: chave
 export type NoteTag = (typeof NOTE_TAGS)[number]
 
 export const TAG_LABELS: Record<NoteTag, string> = {
@@ -46,7 +46,7 @@ export function sanitizeNotes(raw: unknown): CharacterNotes | null {
             notes.push({
                 id: n.id,
                 title: typeof n.title === 'string' ? n.title.slice(0, 200) : '',
-                tag: NOTE_TAGS.includes(n.tag as NoteTag) ? n.tag as NoteTag : 'outro',
+                tag: NOTE_TAGS.includes(n.tag as NoteTag) ? n.tag as NoteTag : 'outro', // i18n-ok: chave
                 body: typeof n.body === 'string' ? n.body.slice(0, MAX_TEXT) : '',
                 createdAt: Number.isFinite(n.createdAt) ? Number(n.createdAt) : 0,
                 updatedAt: Number.isFinite(n.updatedAt) ? Number(n.updatedAt) : 0,
