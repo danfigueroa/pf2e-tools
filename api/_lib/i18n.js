@@ -13,6 +13,9 @@ export function langOf(query) {
 
 const EXACT = new Map(Object.entries({
   'A ficha mudou enquanto o guia era gerado': 'The sheet changed while the guide was being generated',
+  'A ficha foi publicada de novo enquanto você editava — reabra a ficha': 'The sheet was published again while you were editing — reopen the sheet',
+  'O guia não pode ficar vazio': 'The guide can\'t be empty',
+  'Guia grande demais': 'Guide too large',
   'A IA não devolveu um guia válido — tente de novo': 'The AI did not return a valid guide — try again',
   'A mesa precisa de pelo menos um GM — promova outra pessoa antes': 'The table needs at least one GM — promote someone else first',
   'A senha precisa ter pelo menos 6 caracteres': 'The password must be at least 6 characters long',

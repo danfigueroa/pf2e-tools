@@ -3,6 +3,7 @@ import {
     publishSheet,
     requestGuide,
     restoreSheet,
+    saveEditedGuide,
     type GuideBases,
     type GuideText,
     type PublishedSheet,
@@ -21,6 +22,8 @@ export interface GuideSlot {
     status: GuideStatus
     error: string | null
     onGenerate: () => void
+    /** Grava o guia editado à mão (no idioma da página). Ausente = quem olha não pode editar a ficha. */
+    onEdit?: (markdown: string) => Promise<void>
 }
 
 /**
@@ -61,6 +64,13 @@ export function usePublication() {
         }
     }, [])
 
+    /** O texto escrito à mão substitui o guia desta língua (a IA, na próxima vez, parte dele). Lança no erro. */
+    const editGuide = useCallback(async (sheet: PublishedSheet, markdown: string) => {
+        const next = await saveEditedGuide(sheet.slug, sheet.publishedAt, markdown)
+        if (currentSlug.current !== next.slug) return
+        setPublished(next)
+    }, [])
+
     const publish = useCallback(async (json: unknown) => {
         const sheet = await publishSheet(json)
         attach(sheet)
@@ -73,7 +83,7 @@ export function usePublication() {
         return sheet
     }, [attach])
 
-    return { published, guideStatus, guideError, attach, publish, restore, generateGuide }
+    return { published, guideStatus, guideError, attach, publish, restore, generateGuide, editGuide }
 }
 
 export type PublicationApi = ReturnType<typeof usePublication>

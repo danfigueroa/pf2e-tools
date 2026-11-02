@@ -215,10 +215,28 @@ export async function saveGuide(mesa, slug, publishedAt, markdown, { en = null, 
   // `markdown` nulo = só o inglês mudou (o português fica como estava).
   const at = Date.now()
   const guide = { ...(current ?? {}) }
-  if (markdown) Object.assign(guide, { markdown, generatedAt: at })
+  // Guia regerado deixa de ser "editado pelo jogador" naquela língua (a IA partiu do texto dele, mas o texto é dela).
+  if (markdown) { Object.assign(guide, { markdown, generatedAt: at }); delete guide.editedAt }
   if (en) guide.en = { markdown: en, generatedAt: at }
   const saved = await db.saveGuide(mesa, slug, publishedAt, guide)
   return publicView(db, mesa, slug, saved)
+}
+
+/**
+ * O guia editado à mão pelo dono (ou pelo GM), numa língua: troca o texto e marca `editedAt`. Mantém o
+ * `generatedAt` (a lista diz "tem guia" por ele) — ou o cria, quando a ficha ainda não tinha guia e o jogador
+ * partiu do texto curado ou automático. Só se a ficha ainda for a que o jogador editou (`publishedAt`): senão,
+ * `null` (409). A próxima geração da IA parte deste texto (`readForGuide`).
+ */
+export async function editGuide(mesa, slug, publishedAt, lang, markdown) {
+  const db = store()
+  const rec = await db.current(mesa, slug)
+  if (!rec || rec.publishedAt !== publishedAt) return null
+  const at = Date.now()
+  const guide = { ...(rec.guide ?? {}) }
+  if (lang === 'en') guide.en = { ...(guide.en ?? {}), markdown, generatedAt: guide.en?.generatedAt ?? at, editedAt: at }
+  else Object.assign(guide, { markdown, generatedAt: guide.generatedAt ?? at, editedAt: at })
+  return publicView(db, mesa, slug, await db.saveGuide(mesa, slug, publishedAt, guide))
 }
 
 /**
@@ -239,8 +257,9 @@ export async function readForGuide(mesa, slug) {
     json: rec.json,
     publishedAt: rec.publishedAt,
     guide: rec.guide ?? null,
-    previousGuide: previous?.guide?.markdown ?? null,
-    previousGuideEn: previous?.guide?.en?.markdown ?? null,
+    // O jogador editou o guia desta versão: a IA parte do texto dele, não do da versão anterior.
+    previousGuide: (rec.guide?.editedAt ? rec.guide.markdown : null) ?? previous?.guide?.markdown ?? null,
+    previousGuideEn: (rec.guide?.en?.editedAt ? rec.guide.en.markdown : null) ?? previous?.guide?.en?.markdown ?? null,
   }
 }
 

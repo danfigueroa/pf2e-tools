@@ -14,6 +14,8 @@ import { lang, type Lang, tr } from '../i18n'
 export interface GuideText {
     markdown: string
     generatedAt: number
+    /** O dono (ou o GM) editou este texto à mão; a próxima geração da IA parte dele. */
+    editedAt?: number
 }
 
 /**
@@ -24,6 +26,7 @@ export interface GuideText {
 export interface PublishedGuide {
     markdown?: string
     generatedAt?: number
+    editedAt?: number
     en?: GuideText
 }
 
@@ -31,7 +34,9 @@ export interface PublishedGuide {
 export function guideIn(guide: PublishedGuide | null | undefined, target: Lang = lang): GuideText | null {
     if (!guide) return null
     if (target === 'en') return guide.en?.markdown ? guide.en : null
-    return guide.markdown && guide.generatedAt ? { markdown: guide.markdown, generatedAt: guide.generatedAt } : null
+    return guide.markdown && guide.generatedAt
+        ? { markdown: guide.markdown, generatedAt: guide.generatedAt, ...(guide.editedAt ? { editedAt: guide.editedAt } : {}) }
+        : null
 }
 
 /** As bases curadas à mão de cada idioma (o servidor só as usa sem o guia da versão anterior). */
@@ -113,6 +118,15 @@ export async function requestGuide(slug: string, base: GuideBases, only?: Lang):
     const { sheet } = await post<{ sheet: PublishedSheet }>({
         action: 'guide', char: slug, baseGuide: base.pt, baseGuideEn: base.en, ...(only ? { lang: only } : {}),
     })
+    return sheet
+}
+
+/**
+ * Grava o guia editado à mão, no idioma desta página. `publishedAt` é o da versão que estava na tela: se alguém
+ * publicou outra no meio, o servidor recusa (409) em vez de pôr o texto antigo na ficha nova.
+ */
+export async function saveEditedGuide(slug: string, publishedAt: number, markdown: string): Promise<PublishedSheet> {
+    const { sheet } = await post<{ sheet: PublishedSheet }>({ action: 'guide-edit', char: slug, publishedAt, markdown, lang })
     return sheet
 }
 

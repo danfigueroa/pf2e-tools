@@ -36,6 +36,7 @@ import {
   readSheet,
   restorePrevious,
   saveGuide,
+  editGuide,
   sheetInfo,
   slugFromName,
 } from './sheet-store.js'
@@ -117,7 +118,7 @@ export async function handleSheetRequest(mesa, method, query, body, ctx = {}) {
 
   // Gerar o guia e restaurar alteram a ficha: dono ou GM. As descrições (abaixo) não —
   // abrir a ficha de outra pessoa completa o pacote dela, e isso é de todos.
-  if ((action === 'guide' || action === 'restore') && !(await canEditSheet(ctx.access, mesa, slug))) {
+  if ((action === 'guide' || action === 'guide-edit' || action === 'restore') && !(await canEditSheet(ctx.access, mesa, slug))) {
     return forbidden('Esta ficha é de outra pessoa — só o dono ou o GM faz isso')
   }
 
@@ -140,6 +141,18 @@ export async function handleSheetRequest(mesa, method, query, body, ctx = {}) {
     if (!pt && !en) return fail(502, 'A IA não devolveu um guia válido — tente de novo')
     const sheet = await saveGuide(mesa, slug, current.publishedAt, pt, { en, current: current.guide })
     if (!sheet) return fail(409, 'A ficha mudou enquanto o guia era gerado')
+    return ok({ sheet })
+  }
+
+  if (action === 'guide-edit') {
+    // O guia escrito à mão pelo dono: só o texto, na língua pedida. Sem IA.
+    const markdown = typeof body.markdown === 'string' ? body.markdown.replace(/\r\n?/g, '\n').trim() : ''
+    if (!markdown) return fail(400, 'O guia não pode ficar vazio')
+    if (Buffer.byteLength(markdown, 'utf8') > MAX_GUIDE_BYTES) return fail(413, 'Guia grande demais')
+    const publishedAt = Number(body.publishedAt)
+    if (!Number.isSafeInteger(publishedAt)) return fail(400, 'Campo "publishedAt" inválido')
+    const sheet = await editGuide(mesa, slug, publishedAt, body.lang === 'en' ? 'en' : 'pt', markdown)
+    if (!sheet) return fail(409, 'A ficha foi publicada de novo enquanto você editava — reabra a ficha')
     return ok({ sheet })
   }
 
