@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'rea
 import { Alert, Box, Button, CircularProgress, Snackbar } from '@mui/material';
 import { currentMesa } from '../services/mesa';
 import { getAuthState, initAuth, refreshAuth, useAuth } from '../services/auth';
-import { green } from '../theme';
+import { green, gold } from '../theme';
 import { tr } from '../i18n';
 
 // A tela de entrada só é baixada por quem precisa dela: quem já está logado não paga o chunk.
@@ -11,7 +11,7 @@ const JoinPage = lazy(() => import('../modules/account/JoinPage').then((m) => ({
 
 const Splash = ({ children }: { children?: ReactNode }) => (
   <Box sx={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', backgroundColor: green.main, px: 2 }}>
-    {children ?? <CircularProgress sx={{ color: '#C8A951' }} aria-label={tr("Carregando", 'Loading')} />}
+    {children ?? <CircularProgress sx={{ color: gold.bright }} aria-label={tr("Carregando", 'Loading')} />}
   </Box>
 );
 

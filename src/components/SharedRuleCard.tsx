@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Box, Skeleton, Stack, Typography } from '@mui/material'
 import { DescriptionContent, type DescriptionRequest } from '../modules/character-viewer/components/DescriptionContent'
 import { hasCachedDescription, loadDescriptionBundle, readSheetDescriptions } from '../services/descriptions'
-import { gold, green, parchment } from '../theme'
+import { gold, green, parchment, onFrame } from '../theme'
 import type { RuleShare } from '../services/tableShare'
 import { tr } from '../i18n'
 
@@ -84,7 +84,7 @@ export default function SharedRuleCard({ share, onClose }: { share: RuleShare; o
                 }}
             >
                 <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: share.color, flexShrink: 0 }} />
-                <Typography variant="body2" sx={{ color: parchment.paper, minWidth: 0 }}>
+                <Typography variant="body2" sx={{ color: onFrame.paper, minWidth: 0 }}>
                     <Box component="strong" sx={{ color: gold.bright }}>{who}</Box> {tr(' compartilhou com a mesa', ' shared with the table')}</Typography>
             </Box>
             <Box sx={{ flex: '1 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>

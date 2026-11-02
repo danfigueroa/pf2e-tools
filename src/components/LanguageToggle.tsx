@@ -7,7 +7,7 @@ import { useState } from 'react'
 import { Box, ButtonBase } from '@mui/material'
 import { lang, tr, type Lang } from '../i18n'
 import { setLanguage } from '../services/auth'
-import { chrome, gold, green, ink, parchment } from '../theme'
+import { chrome, gold, green, ink, onFrame, parchment } from '../theme'
 
 const OPTIONS: { id: Lang; short: string; label: string }[] = [
     { id: 'pt', short: 'PT', label: 'Português' },
@@ -66,7 +66,7 @@ export function LanguageToggle({ tone = 'chrome', compact }: { tone?: 'chrome' |
                         sx={{
                             minWidth: 34, height: 26, px: 1, borderRadius: 999, fontSize: '0.75rem', fontWeight: 700,
                             letterSpacing: '0.06em',
-                            color: active ? (onChrome ? green.deepest : parchment.paper) : (onChrome ? chrome.textMuted : ink.secondary),
+                            color: active ? (onChrome ? green.deepest : onFrame.paper) : (onChrome ? chrome.textMuted : ink.secondary),
                             bgcolor: active ? (onChrome ? gold.bright : green.main) : 'transparent',
                             '@media (pointer: coarse)': { height: 32, minWidth: 40 },
                         }}

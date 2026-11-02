@@ -1,5 +1,5 @@
 import { Box } from '@mui/material'
-import { SHIELD_COLOR, status } from '../theme/palette'
+import { SHIELD_COLOR, status, textHalo } from '../theme/palette'
 import { DURATION, floatUp, type PulseKind } from './motion'
 import type { Delta } from './useValueDeltas'
 
@@ -48,7 +48,7 @@ export const FloatingDeltas = ({ deltas, placement = 'right' }: { deltas: Delta[
                         fontSize: '1.05em',
                         fontVariantNumeric: 'tabular-nums',
                         color: COLOR[d.kind],
-                        textShadow: '0 1px 0 #FFFFFF',
+                        textShadow: `0 1px 0 ${textHalo}`,
                         animation: `${floatUp} ${DURATION.float}ms ease-out forwards`,
                         '@media (prefers-reduced-motion: reduce)': { animation: 'none', opacity: 1 },
                     }}

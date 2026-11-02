@@ -4,7 +4,7 @@ import { Close as CloseIcon } from '@mui/icons-material'
 import { Markdown } from './markdown/Markdown'
 import { fetchReveal, type Reveal } from '../services/journal'
 import { useImageUrl } from '../services/images'
-import { displayFont, gold, green, parchment } from '../theme'
+import { displayFont, gold, green, parchment, greenInk, onFrame } from '../theme'
 import type { TableShare } from '../services/tableShare'
 import { tr } from '../i18n'
 
@@ -52,12 +52,12 @@ export default function HandoutCard({ share, onClose }: { share: TableShare; onC
                 display: 'flex', alignItems: 'center', gap: 1, pl: 2, pr: 0.5, py: 0.25,
                 bgcolor: green.main, borderBottom: `2px solid ${gold.main}`, flexShrink: 0,
             }}>
-                <Typography variant="body2" sx={{ color: parchment.paper, minWidth: 0, flex: 1 }}>
+                <Typography variant="body2" sx={{ color: onFrame.paper, minWidth: 0, flex: 1 }}>
                     <Box component="strong" sx={{ color: gold.bright }}>{who}</Box> {tr(' mostrou à mesa', ' showed the table')}</Typography>
-                <IconButton aria-label={tr("Fechar", 'Close')} onClick={onClose} sx={{ color: parchment.paper }}><CloseIcon /></IconButton>
+                <IconButton aria-label={tr("Fechar", 'Close')} onClick={onClose} sx={{ color: onFrame.paper }}><CloseIcon /></IconButton>
             </Box>
             <Box sx={{ overflowY: 'auto', p: { xs: 2, md: 2.5 } }}>
-                <Typography component="h2" sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.3rem', color: green.main, mb: 1.5 }}>
+                <Typography component="h2" sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.3rem', color: greenInk.main, mb: 1.5 }}>
                     {reveal?.title ?? share.name}
                 </Typography>
                 {reveal === undefined && (
@@ -77,7 +77,7 @@ export default function HandoutCard({ share, onClose }: { share: TableShare; onC
             </Box>
             {zoom && image && (
                 <Dialog open fullScreen onClose={() => setZoom(false)} slotProps={{ paper: { sx: { bgcolor: green.deepest } } }}>
-                    <IconButton aria-label={tr("Fechar a imagem", 'Close the image')} onClick={() => setZoom(false)} sx={{ position: 'absolute', top: 8, right: 8, color: parchment.paper, zIndex: 1 }}>
+                    <IconButton aria-label={tr("Fechar a imagem", 'Close the image')} onClick={() => setZoom(false)} sx={{ position: 'absolute', top: 8, right: 8, color: onFrame.paper, zIndex: 1 }}>
                         <CloseIcon />
                     </IconButton>
                     <Box onClick={() => setZoom(false)} sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>

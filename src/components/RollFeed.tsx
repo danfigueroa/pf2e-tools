@@ -3,7 +3,7 @@ import { Box, Button, Chip, Divider, Drawer, IconButton, Stack, Typography } fro
 import { useNavigate } from 'react-router-dom'
 import { Close as CloseIcon } from '@mui/icons-material'
 import { DiceTray } from '../motion/DiceTray'
-import { gold, mapChrome, MYTHIC_COLOR, MYTHIC_ON_DARK, parchment } from '../theme'
+import { gold, mapChrome, MYTHIC_COLOR, MYTHIC_ON_DARK, onFrame } from '../theme'
 import { isOwnRoll, useTableRolls } from '../services/rolls'
 import { basicSaveLine, partFormula, rayCritTotal, rayTotal, rollSummaryText, type RolledPart, type RollRay, type TableRoll } from '../dice/tableRoll'
 import { locale, tr } from '../i18n'
@@ -40,7 +40,7 @@ function damageDice(parts: RolledPart[]) {
 const Caption = ({ children, color }: { children: React.ReactNode; color?: string }) => (
     <Typography
         variant="caption"
-        sx={{ display: 'block', textAlign: 'center', lineHeight: 1.35, color: color ?? `${parchment.page}CC`, overflowWrap: 'anywhere' }}
+        sx={{ display: 'block', textAlign: 'center', lineHeight: 1.35, color: color ?? `${onFrame.page}CC`, overflowWrap: 'anywhere' }}
     >
         {children}
     </Typography>
@@ -106,7 +106,7 @@ const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) =
                 overflowY: 'auto',
                 overflowX: 'hidden',
                 boxShadow: '0 6px 24px #00000080',
-                color: parchment.page,
+                color: onFrame.page,
                 pointerEvents: 'auto',
             }}
         >
@@ -118,8 +118,8 @@ const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) =
                     position: 'absolute',
                     top: 2,
                     right: 2,
-                    color: `${parchment.page}CC`,
-                    '&:hover': { color: parchment.page, backgroundColor: `${parchment.page}1A` },
+                    color: `${onFrame.page}CC`,
+                    '&:hover': { color: onFrame.page, backgroundColor: `${onFrame.page}1A` },
                 }}
             >
                 <CloseIcon fontSize="small" />
@@ -166,7 +166,7 @@ const RollCard = ({ roll, onClose }: { roll: TableRoll; onClose: () => void }) =
                 </Typography>
             )}
             {roll.use?.desc && (
-                <Typography variant="body2" sx={{ mt: 0.75, whiteSpace: 'pre-line', fontSize: '0.8rem', lineHeight: 1.4, color: `${parchment.page}E6` }}>
+                <Typography variant="body2" sx={{ mt: 0.75, whiteSpace: 'pre-line', fontSize: '0.8rem', lineHeight: 1.4, color: `${onFrame.page}E6` }}>
                     {roll.use.desc}
                 </Typography>
             )}

@@ -3,7 +3,7 @@ import { Box, ButtonBase, IconButton, InputBase, Tooltip, Typography } from '@mu
 import { Check as CheckIcon, Edit as EditIcon } from '@mui/icons-material';
 import { setDeviceName, useDeviceName, usePresence, type Peer } from '../services/presence';
 import { TokenBadge } from '../modules/battle-map/components/TokenBadge';
-import { gold, green, parchment, status as statusColor } from '../theme/palette';
+import { gold, green, status as statusColor, onFrame } from '../theme/palette';
 import { tr } from '../i18n';
 
 /** Tinta clara sobre a moldura verde, a mesma do `MainLayout`. */
@@ -58,7 +58,7 @@ const PeerRow = ({ peer }: { peer: Peer }) => {
             <Box sx={{
               width: 28, height: 28, borderRadius: '50%', border: `2px solid ${gold.main}`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: parchment.page, fontSize: '0.7rem', fontWeight: 700,
+              color: onFrame.page, fontSize: '0.7rem', fontWeight: 700,
             }}>
               {initials(title)}
             </Box>
@@ -73,7 +73,7 @@ const PeerRow = ({ peer }: { peer: Peer }) => {
       </Box>
       <Box sx={{ minWidth: 0, flex: 1 }}>
         {peer.self ? <SelfName title={title} /> : (
-          <Typography noWrap sx={{ fontSize: '0.85rem', fontWeight: 600, color: parchment.page, lineHeight: 1.2 }}>
+          <Typography noWrap sx={{ fontSize: '0.85rem', fontWeight: 600, color: onFrame.page, lineHeight: 1.2 }}>
             {title}
           </Typography>
         )}
@@ -102,7 +102,7 @@ const SelfName = ({ title }: { title: string }) => {
           onBlur={save}
           placeholder={tr("Seu nome", 'Your name')}
           inputProps={{ maxLength: 40, 'aria-label': tr('Nome deste aparelho na mesa', 'This device\'s name at the table') }}
-          sx={{ flex: 1, fontSize: '0.85rem', color: parchment.page, borderBottom: `1px solid ${gold.main}`, py: 0 }}
+          sx={{ flex: 1, fontSize: '0.85rem', color: onFrame.page, borderBottom: `1px solid ${gold.main}`, py: 0 }}
         />
         <IconButton type="submit" size="small" aria-label={tr("Salvar nome", 'Save name')} sx={{ color: gold.bright, p: 0.25 }}>
           <CheckIcon sx={{ fontSize: '1rem' }} />
@@ -116,7 +116,7 @@ const SelfName = ({ title }: { title: string }) => {
         onClick={() => { setDraft(name); setEditing(true); }}
         sx={{ display: 'flex', alignItems: 'center', gap: 0.5, maxWidth: '100%', borderRadius: 0.5 }}
       >
-        <Typography noWrap sx={{ fontSize: '0.85rem', fontWeight: 600, color: parchment.page, lineHeight: 1.2 }}>
+        <Typography noWrap sx={{ fontSize: '0.85rem', fontWeight: 600, color: onFrame.page, lineHeight: 1.2 }}>
           {title} <Box component="span" sx={{ color: CHROME_TEXT, fontWeight: 400 }}>{tr('(você)', '(you)')}</Box>
         </Typography>
         <EditIcon sx={{ fontSize: '0.85rem', color: CHROME_TEXT, flexShrink: 0 }} />

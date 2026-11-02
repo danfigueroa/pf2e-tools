@@ -3,7 +3,7 @@ import ReactMarkdown, { defaultUrlTransform, type Components } from 'react-markd
 import remarkGfm from 'remark-gfm'
 import { Box, Button, IconButton, Link, Typography } from '@mui/material'
 import { Campaign as ShareIcon } from '@mui/icons-material'
-import { displayFont, gold, green, ink, parchment, rule } from '../../theme'
+import { displayFont, gold, green, ink, parchment, rule, greenInk } from '../../theme'
 import { useImageUrl } from '../../services/images'
 import { splitSegments, WIKI_HREF, withWikiLinks } from './blocks'
 import { tr } from '../../i18n'
@@ -80,7 +80,7 @@ function useComponents({ onShareImage, onWikiLink, knownNames }: Props): Compone
                         title={known ? tr(`Abrir ${name}`, `Open ${name}`) : tr(`Criar a ficha de ${name}`, `Create ${name}'s entry`)}
                         sx={{
                             font: 'inherit', verticalAlign: 'baseline', fontWeight: 600,
-                            color: known ? green.mid : gold.deep,
+                            color: known ? greenInk.mid : gold.deep,
                             textDecorationStyle: known ? 'solid' : 'dashed',
                         }}
                     >
@@ -104,7 +104,7 @@ const bodySx = (dense: boolean) => ({
     '& > :first-of-type': { mt: 0 },
     '& > :last-child': { mb: 0 },
     '& h1, & h2, & h3, & h4': {
-        fontFamily: displayFont, color: green.main, lineHeight: 1.25, mt: 2.5, mb: 1,
+        fontFamily: displayFont, color: greenInk.main, lineHeight: 1.25, mt: 2.5, mb: 1,
     },
     '& h1': { fontSize: '1.5rem', borderBottom: `2px solid ${gold.main}`, pb: 0.5 },
     '& h2': { fontSize: '1.25rem', borderBottom: `1px solid ${rule}`, pb: 0.25 },
@@ -149,7 +149,7 @@ function PlayersBlock({ title, children, onShare }: { title: string; children: R
                         size="small"
                         startIcon={<ShareIcon />}
                         onClick={onShare}
-                        sx={{ ml: 'auto', color: green.mid }}
+                        sx={{ ml: 'auto', color: greenInk.mid }}
                     >
                         {tr('Mostrar à mesa', 'Show the table')}</Button>
                 )}
