@@ -8,7 +8,7 @@
         "dev:api": "node server/index.mjs",
         "dev:full": "concurrently \"npm:dev\" \"npm:dev:api\"",
         "build": "tsc -b && vite build",
-        "lint": "eslint .",
+        "lint": "eslint . && node scripts/check-i18n.mjs",
         "preview": "vite preview"
     },
     "dependencies": {
