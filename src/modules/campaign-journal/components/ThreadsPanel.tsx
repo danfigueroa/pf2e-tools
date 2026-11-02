@@ -1,7 +1,7 @@
 import { memo, useState } from 'react'
 import { Box, Button, Chip, IconButton, Paper, Stack, TextField, Typography } from '@mui/material'
 import { Add as AddIcon, Check as CheckIcon, Visibility as RevealIcon, Link as LinkIcon } from '@mui/icons-material'
-import { displayFont, green, parchment, rule } from '../../../theme'
+import { displayFont, parchment, rule, greenInk } from '../../../theme'
 import type { JournalSummary, ThreadStatus } from '../doc'
 import { THREAD_COLOR, THREAD_STATUS_LABEL } from '../threadStyle'
 import { tr } from '../../../i18n'
@@ -72,7 +72,7 @@ export const ThreadsPanel = memo(function ThreadsPanel({ docs, linked, onOpen, o
 
     return (
         <Paper variant="outlined" sx={{ p: 1.5, bgcolor: parchment.paper, position: { xl: 'sticky' }, top: { xl: 16 } }}>
-            <Typography sx={{ fontFamily: displayFont, fontWeight: 700, color: green.main, mb: 1 }}>{tr('Ganchos', 'Hooks')}</Typography>
+            <Typography sx={{ fontFamily: displayFont, fontWeight: 700, color: greenInk.main, mb: 1 }}>{tr('Ganchos', 'Hooks')}</Typography>
             <Typography variant="caption" color="text.secondary">{tr('Nesta sessão', 'In this session')}</Typography>
             {here.length === 0 && <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', py: 0.5 }}>{tr('Nenhum.', 'None.')}</Typography>}
             {here.map((t) => <Row key={t.id} t={t} here onOpen={onOpen} onLink={onLink} onStatus={onStatus} />)}

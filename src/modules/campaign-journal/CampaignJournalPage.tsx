@@ -8,7 +8,7 @@ import { ArrowBack, Delete as DeleteIcon, CloudDone, CloudOff, CloudUpload } fro
 import { useRole } from '../../services/auth'
 import { listPublished } from '../../services/sheets'
 import { deleteJournalDoc, fetchJournalDoc, revealToTable, saveJournalDoc } from '../../services/journal'
-import { displayFont, gold, green, parchment, rule } from '../../theme'
+import { displayFont, gold, green, parchment, rule, onFrame } from '../../theme'
 import {
     CATALOG_KINDS, KIND_LABEL, newDoc, sanitizeDoc, wireDoc, type CatalogDoc, type CatalogKind, type DocKind,
     type JournalDoc, type JournalSummary, type SessionDoc, type ThreadDoc, type ThreadStatus,
@@ -265,7 +265,7 @@ function DocPanel(props: DocPanelProps) {
             <Box sx={{ minWidth: 0 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, flexWrap: 'wrap' }}>
                     {!wide && <IconButton aria-label={tr("Voltar ao índice do diário", 'Back to the journal index')} onClick={onBack}><ArrowBack /></IconButton>}
-                    <Chip size="small" label={KIND_LABEL[doc.kind].one} sx={{ bgcolor: green.main, color: parchment.paper }} />
+                    <Chip size="small" label={KIND_LABEL[doc.kind].one} sx={{ bgcolor: green.main, color: onFrame.paper }} />
                     <TextField
                         variant="standard"
                         value={doc.title}

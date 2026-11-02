@@ -4,7 +4,7 @@ import {
 } from '@mui/material'
 import { AddPhotoAlternate as PhotoIcon, Campaign as ShareIcon, Delete as DeleteIcon } from '@mui/icons-material'
 import { imageErrorText, shrinkImage, uploadImage, useImageUrl } from '../../../services/images'
-import { displayFont, green, parchment, rule } from '../../../theme'
+import { displayFont, parchment, rule, greenInk } from '../../../theme'
 import {
     CATALOG_KINDS, KIND_LABEL, type CatalogDoc, type CatalogKind, type JournalSummary, type ThreadDoc, type ThreadStatus,
 } from '../doc'
@@ -28,7 +28,7 @@ function Appearances({ id, docs, onOpen }: { id: string; docs: JournalSummary[];
     const sessions = docs.filter((d) => d.kind === 'session' && d.links.includes(id)).sort((a, b) => a.sort - b.sort)
     return (
         <Box sx={{ mt: 2 }}>
-            <Typography sx={{ fontFamily: displayFont, fontWeight: 700, color: green.main, mb: 0.75 }}>{tr('Aparece nas sessões', 'Shows up in the sessions')}</Typography>
+            <Typography sx={{ fontFamily: displayFont, fontWeight: 700, color: greenInk.main, mb: 0.75 }}>{tr('Aparece nas sessões', 'Shows up in the sessions')}</Typography>
             {sessions.length === 0
                 ? <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>{tr('Em nenhuma ainda (ponha no Elenco da sessão).', 'In none yet (put it in a session\'s Cast).')}</Typography>
                 : (

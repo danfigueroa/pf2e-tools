@@ -14,7 +14,7 @@ import { fetchMonster } from '../../../services/monster'
 import { scaleMonster, clampLevel } from '../../monster-scaler/scaling'
 import { npcFromScaled } from '../../monster-scaler/toCombatant'
 import { listMaps } from '../../../services/maps'
-import { chrome, displayFont, gold, green, ink, parchment, rule, status as statusColor } from '../../../theme'
+import { chrome, displayFont, gold, ink, parchment, rule, status as statusColor, greenInk } from '../../../theme'
 import { encounterXp, THREAT_LABEL, THREATS, type Threat } from '../xp'
 import type { EncounterStatus, PlannedEncounter } from '../doc'
 import { TEMPLATES } from '../templates'
@@ -53,7 +53,7 @@ function XpBar({ total, budgets }: { total: number; budgets: Record<Threat, numb
                 <Box sx={{ position: 'absolute', inset: '4px 0', bgcolor: parchment.sunken, borderRadius: 1 }} />
                 <Box sx={{
                     position: 'absolute', top: 4, bottom: 4, left: 0, width: `${(Math.min(total, max) / max) * 100}%`,
-                    bgcolor: green.mid, borderRadius: 1, transition: 'width 200ms ease',
+                    bgcolor: greenInk.mid, borderRadius: 1, transition: 'width 200ms ease',
                 }} />
                 {marks.map((t) => (
                     <Box key={t} sx={{ position: 'absolute', left: `${(budgets[t] / max) * 100}%`, top: 0, bottom: 0, width: '2px', bgcolor: THREAT_COLOR[t] }} />
@@ -223,7 +223,7 @@ export const EncounterPlanner = memo(function EncounterPlanner({ encounter, part
                 size="small"
                 startIcon={searching ? <ExpandLess /> : <ExpandMore />}
                 onClick={() => setSearching((v) => !v)}
-                sx={{ mb: 1, color: green.mid }}
+                sx={{ mb: 1, color: greenInk.mid }}
             >
                 {searching ? tr('Fechar a busca', 'Close the search') : tr('Adicionar criaturas da AON', 'Add creatures from AON')}
             </Button>

@@ -3,7 +3,7 @@ import {
     Box, Button, Chip, InputAdornment, List, ListItemButton, ListItemText, Menu, MenuItem, Stack, TextField, Typography,
 } from '@mui/material'
 import { Add as AddIcon, Search as SearchIcon } from '@mui/icons-material'
-import { displayFont, gold, green, parchment, rule } from '../../../theme'
+import { displayFont, gold, parchment, rule, greenInk } from '../../../theme'
 import { CATALOG_KINDS, KIND_LABEL, type CatalogKind, type DocKind, type JournalSummary, type ThreadStatus } from '../doc'
 import { THREAD_COLOR } from '../threadStyle'
 import { tr } from '../../../i18n'
@@ -24,7 +24,7 @@ function Section({ title, children, action }: { title: string; children: React.R
     return (
         <Box sx={{ mb: 2 }}>
             <Stack direction="row" alignItems="center" sx={{ px: 1, mb: 0.5 }}>
-                <Typography sx={{ fontFamily: displayFont, fontWeight: 700, color: green.main, fontSize: '0.95rem', flex: 1 }}>{title}</Typography>
+                <Typography sx={{ fontFamily: displayFont, fontWeight: 700, color: greenInk.main, fontSize: '0.95rem', flex: 1 }}>{title}</Typography>
                 {action}
             </Stack>
             {children}
@@ -87,7 +87,7 @@ export const JournalList = memo(function JournalList({ docs, selected, onOpen, o
 
             <Section title={tr("Sessões", 'Sessions')}>
                 <List dense disablePadding>
-                    {sessions.filter(match).map((d) => item(d, d.status === 'played' ? tr('Jogada', 'Played') : tr('Planejada', 'Planned'), d.status === 'played' ? green.mid : gold.main))}
+                    {sessions.filter(match).map((d) => item(d, d.status === 'played' ? tr('Jogada', 'Played') : tr('Planejada', 'Planned'), d.status === 'played' ? greenInk.mid : gold.main))}
                 </List>
                 {sessions.length === 0 && <Typography variant="body2" color="text.secondary" sx={{ px: 1, fontStyle: 'italic' }}>{tr('Nenhuma sessão ainda.', 'No sessions yet.')}</Typography>}
             </Section>

@@ -12,7 +12,7 @@ import { useMesaInfo } from '../../../services/auth'
 import { saveMesaSettings } from '../../../services/members'
 import { diaryDayOf } from '../../../services/diary'
 import { useImageUrl } from '../../../services/images'
-import { bodyFont, displayFont, gold, green, parchment, rule } from '../../../theme'
+import { bodyFont, displayFont, gold, green, parchment, rule, greenInk, onFrame } from '../../../theme'
 import { wikiNames } from '../../../components/markdown/blocks'
 import {
     CATALOG_KINDS, KIND_LABEL, newId, type CatalogKind, type DocKind, type JournalSummary, type PlannedEncounter,
@@ -148,7 +148,7 @@ function CastPanel({ data, docs, onLinks, onOpen, onCreate }: {
                 if (list.length === 0) return null
                 return (
                     <Box key={k}>
-                        <Typography sx={{ fontFamily: displayFont, fontWeight: 700, color: green.main, mb: 0.75 }}>{KIND_LABEL[k].many}</Typography>
+                        <Typography sx={{ fontFamily: displayFont, fontWeight: 700, color: greenInk.main, mb: 0.75 }}>{KIND_LABEL[k].many}</Typography>
                         <Box sx={{ display: 'grid', gap: 1, gridTemplateColumns: 'repeat(auto-fill, minmax(min(220px, 100%), 1fr))' }}>
                             {list.map((d) => (
                                 <Box key={d.id} sx={{
@@ -287,7 +287,7 @@ export const SessionView = memo(function SessionView({ doc, version, update, doc
                 <Chip
                     label={data.status === 'played' ? tr(`Jogada${data.playedOn ? ` em ${data.playedOn.split('-').reverse().join('/')}` : ''}`, `Played${data.playedOn ? ` on ${data.playedOn}` : ''}`) : tr('Planejada', 'Planned')}
                     onDelete={data.status === 'played' ? () => setData({ status: 'planned', playedOn: null }) : undefined}
-                    sx={{ alignSelf: { xs: 'flex-start', sm: 'center' }, ...(data.status === 'played' ? { bgcolor: green.mid, color: parchment.paper } : {}) }}
+                    sx={{ alignSelf: { xs: 'flex-start', sm: 'center' }, ...(data.status === 'played' ? { bgcolor: green.mid, color: onFrame.paper } : {}) }}
                 />
                 <Box sx={{ flex: 1 }} />
                 {mesa.sessionStartedAt && data.playedOn === today ? (

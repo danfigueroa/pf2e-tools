@@ -1,7 +1,7 @@
 import { memo, useRef, useState } from 'react'
 import { Box, Button, Chip, IconButton, Stack, TextField, Typography } from '@mui/material'
 import { Close as CloseIcon, Send as SendIcon } from '@mui/icons-material'
-import { gold, green, parchment, rule } from '../../../theme'
+import { gold, green, parchment, rule, onFrame } from '../../../theme'
 import { LOG_TAG_LABEL, LOG_TAGS, MAX_LOG, newId, type LogEntry, type LogTag } from '../doc'
 import { locale, tr } from '../../../i18n'
 
@@ -45,7 +45,7 @@ export const SessionLog = memo(function SessionLog({ log, onChange }: Props) {
                             label={LOG_TAG_LABEL[t]}
                             onClick={() => setTag((cur) => (cur === t ? null : t))}
                             variant={tag === t ? 'filled' : 'outlined'}
-                            sx={tag === t ? { bgcolor: green.mid, color: parchment.paper } : undefined}
+                            sx={tag === t ? { bgcolor: green.mid, color: onFrame.paper } : undefined}
                         />
                     ))}
                 </Stack>
