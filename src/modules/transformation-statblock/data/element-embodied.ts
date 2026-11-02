@@ -33,7 +33,7 @@ export const elementEmbodiedForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Voo',
+        name: tr('Voo', 'Flight'),
         description: tr('Você tem um Deslocamento de voo e pode pairar no lugar.', 'You have a fly Speed and can hover in place.'),
         traits: []
       }

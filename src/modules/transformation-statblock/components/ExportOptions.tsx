@@ -321,7 +321,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ config }) => {
             disabled={isExporting}
             sx={{ minWidth: { sm: 200 } }}
           >
-            {isExporting ? 'Exportando...' : tr(`Baixar ${exportOptions.format.toUpperCase()}`, `Download ${exportOptions.format.toUpperCase()}`)}
+            {isExporting ? tr('Exportando...', 'Exporting...') : tr(`Baixar ${exportOptions.format.toUpperCase()}`, `Download ${exportOptions.format.toUpperCase()}`)}
           </Button>
           
           <Button

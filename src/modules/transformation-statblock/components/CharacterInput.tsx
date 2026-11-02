@@ -34,7 +34,7 @@ interface CharacterInputProps {
 const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, character, selectedSpell }) => {
   const { levelOf } = usePublishedSheets();
   const [formData, setFormData] = useState<Partial<PlayerCharacter>>({
-    name: character?.name || 'Aventureiro',
+    name: character?.name || tr('Aventureiro', 'Adventurer'),
     level: character?.level || 5,
     class: character?.class || 'Druida',
     abilityScores: character?.abilityScores || {
