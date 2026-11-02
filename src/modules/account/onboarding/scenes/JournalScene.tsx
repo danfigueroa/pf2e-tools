@@ -1,7 +1,7 @@
 import { keyframes } from '@emotion/react';
 import { Box } from '@mui/material';
 import { Visibility as RevealIcon } from '@mui/icons-material';
-import { chrome, gold, green, ink, parchment, rule } from '../../../../theme';
+import { chrome, gold, green, ink, parchment, rule, onFrame } from '../../../../theme';
 import { pulseAnimation } from '../../../../motion/motion';
 import { useSceneClock } from '../useSceneClock';
 import { tr } from '../../../../i18n';
@@ -100,7 +100,7 @@ export const JournalScene = () => {
             fontSize: '0.7rem',
             fontWeight: 700,
             whiteSpace: 'nowrap',
-            color: parchment.paper,
+            color: onFrame.paper,
             backgroundColor: green.main,
             animation: step === 2 ? pulseAnimation({ kind: 'turn', id: 1 }) : undefined,
           }}

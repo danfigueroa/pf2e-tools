@@ -4,7 +4,7 @@ import { Alert, Box, Button, ButtonBase, CircularProgress, IconButton, InputAdor
 import { Check as CheckIcon, Visibility, VisibilityOff } from '@mui/icons-material';
 import { USERNAME_RE, cleanUsername, pendingInvite, register, signIn } from '../../services/auth';
 import { SHAKE, useReducedMotion } from '../../motion/motion';
-import { displayFont, gold, green, ink, parchment, rule, status } from '../../theme';
+import { displayFont, gold, ink, parchment, rule, status, greenInk } from '../../theme';
 import { LoginLayout } from './LoginLayout';
 import { tr } from '../../i18n';
 
@@ -273,7 +273,7 @@ export const LoginPage = () => {
               ? tr('Esqueceu a senha? Peça ao GM da mesa para gerar uma provisória.', 'Forgot your password? Ask the table\'s GM to generate a temporary one.')
               : tr('Sem convite? Peça um link ao GM da sua mesa.', 'No invite? Ask your table\'s GM for a link.')}
           </Typography>
-          <Typography variant="caption" sx={{ color: green.light }}>
+          <Typography variant="caption" sx={{ color: greenInk.light }}>
             {mode === 'login' ? tr('Primeira vez aqui? Toque em "Criar conta" com o convite.', 'First time here? Tap "Create account" with the invite.') : tr('Já tem conta? Toque em "Entrar".', 'Already have an account? Tap "Sign in".')}
           </Typography>
         </Box>

@@ -1,5 +1,5 @@
 import { Box } from '@mui/material';
-import { HP_COLOR, TOKEN_NPC, TOKEN_PC, gold, ink, parchment, rule, status } from '../../../../theme';
+import { HP_COLOR, TOKEN_NPC, TOKEN_PC, gold, ink, parchment, rule, status, onFrame, lightCore } from '../../../../theme';
 import { pop, pulseAnimation } from '../../../../motion/motion';
 import { useSceneClock } from '../useSceneClock';
 import { Initials } from '../SceneFrame';
@@ -37,8 +37,8 @@ export const InitiativeScene = () => {
             borderRadius: 5,
             fontSize: '0.72rem',
             fontWeight: 700,
-            backgroundColor: gold.deep,
-            color: parchment.paper,
+            backgroundColor: lightCore.gold.deep,
+            color: onFrame.paper,
             animation: `${pop} 380ms ease-out`,
           }}
         >
