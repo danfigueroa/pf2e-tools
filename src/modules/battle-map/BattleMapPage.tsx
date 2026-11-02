@@ -68,6 +68,7 @@ import { DRAW_COLORS, gold, green, ink, parchment } from '../../theme'
 import { setCurrentMapId } from '../initiative-tracker/encounterStorage'
 import { useRole } from '../../services/auth'
 import { usePublishedSheets } from '../character-viewer/usePublishedSheets'
+import { tr } from '../../i18n'
 
 const DRAW_KEY = 'pf2e:map:draw'
 const AREA_KEY = 'pf2e:map:area'
@@ -80,7 +81,7 @@ function loadAreaStyle(): AreaStyle {
     try {
         const raw = JSON.parse(localStorage.getItem(AREA_KEY) ?? 'null') as Partial<AreaStyle> | null
         if (!raw) return fallback
-        const mode = (['burst', 'emanation', 'cone', 'line'] as const).find((m) => m === raw.mode) ?? fallback.mode
+        const mode = (['burst', 'emanation', 'cone', 'line'] as const).find((m) => m === raw.mode) ?? fallback.mode // i18n-ok: id
         const feet = typeof raw.feet === 'number' && raw.feet >= 5 && raw.feet <= 500 ? raw.feet : fallback.feet
         const color = DRAW_COLORS.find((c) => c.hex === raw.color)?.hex ?? fallback.color
         return { mode, feet, color }
@@ -376,7 +377,7 @@ export const BattleMapPage = () => {
                             variant="contained"
                             onClick={menu.openMenu}
                             startIcon={<MenuIcon />}
-                            aria-label="Abrir o menu de navegação"
+                            aria-label={tr("Abrir o menu de navegação", 'Open the navigation menu')}
                             sx={{
                                 flex: '0 0 auto',
                                 fontWeight: 700,
@@ -394,7 +395,7 @@ export const BattleMapPage = () => {
                         sx={{ color: gold.bright, fontWeight: 700, minWidth: 0, maxWidth: { xs: 160, sm: 280 } }}
                     >
                         <Box component="span" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {data?.meta.name ?? 'Mapas'}
+                            {data?.meta.name ?? tr('Mapas', 'Maps')}
                         </Box>
                     </Button>
 
@@ -417,22 +418,22 @@ export const BattleMapPage = () => {
                             <SelectIcon fontSize="small" />
                             <Box component="span" sx={{ ml: 0.75, display: { xs: 'none', sm: 'inline' } }}>Mover</Box>
                         </ToggleButton>
-                        <ToggleButton value="ruler" aria-label="Régua">
+                        <ToggleButton value="ruler" aria-label={tr("Régua", 'Ruler')}>
                             <RulerIcon fontSize="small" />
-                            <Box component="span" sx={{ ml: 0.75, display: { xs: 'none', sm: 'inline' } }}>Régua</Box>
+                            <Box component="span" sx={{ ml: 0.75, display: { xs: 'none', sm: 'inline' } }}>{tr('Régua', 'Ruler')}</Box>
                         </ToggleButton>
-                        <ToggleButton value="draw" aria-label="Desenhar">
+                        <ToggleButton value="draw" aria-label={tr("Desenhar", 'Draw')}>
                             <DrawIcon fontSize="small" />
-                            <Box component="span" sx={{ ml: 0.75, display: { xs: 'none', sm: 'inline' } }}>Desenhar</Box>
+                            <Box component="span" sx={{ ml: 0.75, display: { xs: 'none', sm: 'inline' } }}>{tr('Desenhar', 'Draw')}</Box>
                         </ToggleButton>
-                        <ToggleButton value="area" aria-label="Área de efeito">
+                        <ToggleButton value="area" aria-label={tr("Área de efeito", 'Area of effect')}>
                             <AreaIcon fontSize="small" />
-                            <Box component="span" sx={{ ml: 0.75, display: { xs: 'none', sm: 'inline' } }}>Área</Box>
+                            <Box component="span" sx={{ ml: 0.75, display: { xs: 'none', sm: 'inline' } }}>{tr('Área', 'Area')}</Box>
                         </ToggleButton>
                         {gm && (
-                            <ToggleButton value="image" aria-label="Camada do mapa">
+                            <ToggleButton value="image" aria-label={tr("Camada do mapa", 'Map layer')}>
                                 <ImageIcon fontSize="small" />
-                                <Box component="span" sx={{ ml: 0.75, display: { xs: 'none', sm: 'inline' } }}>Mapa</Box>
+                                <Box component="span" sx={{ ml: 0.75, display: { xs: 'none', sm: 'inline' } }}>{tr('Mapa', 'Map')}</Box>
                             </ToggleButton>
                         )}
                     </ToggleButtonGroup>
@@ -455,7 +456,7 @@ export const BattleMapPage = () => {
 
                     {/* Logo depois das ferramentas, onde o olho já está: no canto
                         oposto da barra, ninguém achava. */}
-                    <Tooltip title="Clique duas vezes em qualquer ponto do mapa: um anel dourado pisca ali na tela de todos da mesa por alguns segundos. Vale em qualquer ferramenta (menos em cima de um token). Com o mouse sobre um token seu, a tecla F vira a imagem dele na horizontal.">
+                    <Tooltip title={tr("Clique duas vezes em qualquer ponto do mapa: um anel dourado pisca ali na tela de todos da mesa por alguns segundos. Vale em qualquer ferramenta (menos em cima de um token). Com o mouse sobre um token seu, a tecla F vira a imagem dele na horizontal.", 'Double-click anywhere on the map: a golden ring flashes there on everyone\'s screen at the table for a few seconds. Works with any tool (except over a token). With the mouse over one of your tokens, the F key flips its image horizontally.')}>
                         <Box
                             sx={{
                                 display: { xs: 'none', md: 'flex' },
@@ -467,8 +468,7 @@ export const BattleMapPage = () => {
                             }}
                         >
                             <PingIcon fontSize="small" sx={{ color: gold.bright }} />
-                            Clique duplo: ping · F: virar token
-                        </Box>
+                            {tr('Clique duplo: ping · F: virar token', 'Double-click: ping · F: flip token')}</Box>
                     </Tooltip>
 
                     <Box sx={{ flex: 1 }} />
@@ -482,12 +482,10 @@ export const BattleMapPage = () => {
                         sx={{ width: 'min(520px, 100%)' }}
                         action={(
                             <Button color="inherit" size="small" disabled={revealing} onClick={reveal} sx={{ whiteSpace: 'nowrap' }}>
-                                Revelar à mesa
-                            </Button>
+                                {tr('Revelar à mesa', 'Reveal to the table')}</Button>
                         )}
                     >
-                        Mapa privado: só o GM vê.
-                    </Alert>
+                        {tr('Mapa privado: só o GM vê.', 'Private map: only the GM sees it.')}</Alert>
                 )}
                 {data && activeId && activeId !== id && (
                     <Alert
@@ -495,8 +493,7 @@ export const BattleMapPage = () => {
                         sx={{ width: 'min(520px, 100%)' }}
                         action={<Button color="inherit" size="small" onClick={() => openMap(activeId)}>Ir</Button>}
                     >
-                        A mesa está em outro mapa.
-                    </Alert>
+                        {tr('A mesa está em outro mapa.', 'The table is on another map.')}</Alert>
                 )}
                 {data && tokenCount === 0 && !hintClosed && (
                     <Alert
@@ -506,22 +503,18 @@ export const BattleMapPage = () => {
                         action={(
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                 <Button color="inherit" size="small" onClick={openEncounter} sx={{ whiteSpace: 'nowrap' }}>
-                                    Montar encontro
-                                </Button>
-                                <IconButton color="inherit" size="small" aria-label="Fechar aviso" onClick={() => setHintClosed(true)}>
+                                    {tr('Montar encontro', 'Build encounter')}</Button>
+                                <IconButton color="inherit" size="small" aria-label={tr("Fechar aviso", 'Close notice')} onClick={() => setHintClosed(true)}>
                                     <CloseIcon fontSize="small" />
                                 </IconButton>
                             </Box>
                         )}
                     >
-                        Os tokens vêm da Iniciativa: cada combatente do encontro deste mapa vira um
-                        token aqui.
-                    </Alert>
+                        {tr('Os tokens vêm da Iniciativa: cada combatente do encontro deste mapa vira um token aqui.', 'The tokens come from Initiative: each combatant in this map\'s encounter becomes a token here.')}</Alert>
                 )}
                 {data && !isMapStoreReady() && (
                     <Alert severity="warning" sx={{ width: 'min(520px, 100%)' }}>
-                        Servidor sem Redis: o mapa não é compartilhado com a mesa.
-                    </Alert>
+                        {tr('Servidor sem Redis: o mapa não é compartilhado com a mesa.', 'Server without storage: the map isn\'t shared with the table.')}</Alert>
                 )}
             </Box>
 
@@ -548,8 +541,8 @@ export const BattleMapPage = () => {
                         {Math.round(zoom * 100)}%
                     </Typography>
                     <IconButton aria-label="Afastar" onClick={() => canvas.current?.zoomBy(0.8)}><ZoomOutIcon /></IconButton>
-                    <Tooltip title="Enquadrar o mapa" placement="left">
-                        <IconButton aria-label="Enquadrar o mapa" onClick={() => canvas.current?.fit()}><FitIcon /></IconButton>
+                    <Tooltip title={tr("Enquadrar o mapa", 'Fit the map')} placement="left">
+                        <IconButton aria-label={tr("Enquadrar o mapa", 'Fit the map')} onClick={() => canvas.current?.fit()}><FitIcon /></IconButton>
                     </Tooltip>
                 </Paper>
             )}
@@ -577,20 +570,19 @@ export const BattleMapPage = () => {
                     <Card sx={{ maxWidth: 420 }}>
                         <CardContent sx={{ textAlign: 'center' }}>
                             <Typography variant="h5" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
-                                {hidden ? 'Mapa ainda não revelado' : error ? 'Mapa não encontrado' : 'Mapa de Combate'}
+                                {hidden ? tr('Mapa ainda não revelado', 'Map not revealed yet') : error ? tr('Mapa não encontrado', 'Map not found') : tr('Mapa de Combate', 'Battle Map')}
                             </Typography>
                             <Typography sx={{ color: ink.secondary, mb: 2 }}>
                                 {hidden
-                                    ? 'O GM ainda está preparando este mapa. Ele aparece aqui sozinho quando for revelado.'
+                                    ? tr('O GM ainda está preparando este mapa. Ele aparece aqui sozinho quando for revelado.', 'The GM is still preparing this map. It shows up here by itself when revealed.')
                                     : error
-                                        ? 'Ele pode ter sido apagado depois do jogo.'
+                                        ? tr('Ele pode ter sido apagado depois do jogo.', 'It may have been deleted after the game.')
                                         : isGm
-                                            ? 'Nenhum mapa aberto. Escolha um da sessão ou crie um novo.'
-                                            : 'Nenhum mapa aberto. Escolha um da sessão — o GM cria e revela os mapas.'}
+                                            ? tr('Nenhum mapa aberto. Escolha um da sessão ou crie um novo.', 'No map open. Choose one from the session or create a new one.')
+                                            : tr('Nenhum mapa aberto. Escolha um da sessão — o GM cria e revela os mapas.', 'No map open. Choose one from the session — the GM creates and reveals the maps.')}
                             </Typography>
                             <Button variant="contained" startIcon={<MapsIcon />} onClick={() => setDrawer(true)}>
-                                Mapas da sessão
-                            </Button>
+                                {tr('Mapas da sessão', 'Session maps')}</Button>
                         </CardContent>
                     </Card>
                 </Box>
@@ -620,9 +612,9 @@ export const BattleMapPage = () => {
             )}
 
             {!sheetOpen && (
-                <Tooltip title="Abrir a ficha" placement="left">
+                <Tooltip title={tr("Abrir a ficha", 'Open the sheet')} placement="left">
                     <IconButton
-                        aria-label="Abrir a ficha"
+                        aria-label={tr("Abrir a ficha", 'Open the sheet')}
                         onClick={() => setSheetOpen(true)}
                         size="small"
                         sx={{

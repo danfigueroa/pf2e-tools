@@ -29,6 +29,7 @@ import { usePresence } from '../../../services/presence'
 import { sendLive, type LiveGesture } from '../../../services/mapLive'
 import { BAND_COLORS, movementBands, moveLabel } from '../movement'
 import { LiveLayer } from './LiveLayer'
+import { tr } from '../../../i18n'
 
 export type MapTool = 'select' | 'ruler' | 'draw' | 'area' | 'image'
 
@@ -478,7 +479,7 @@ export const MapCanvas = memo(function MapCanvas({
         const n = tokensIn(hit, others)
         if (labelRef.current) {
             labelRef.current.textContent =
-                `${AREA_LABELS[area.shape]} ${area.feet} ft · ${n} ${n === 1 ? 'criatura' : 'criaturas'}`
+                `${AREA_LABELS[area.shape]} ${area.feet} ft · ${n} ${n === 1 ? tr('criatura', 'creature') : tr('criaturas', 'creatures')}`
         }
         labelAt.current = space
             ? { wx: (space.x + space.size) * CELL_PX, wy: space.y * CELL_PX }

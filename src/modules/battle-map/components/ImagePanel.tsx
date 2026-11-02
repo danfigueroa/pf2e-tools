@@ -4,6 +4,7 @@ import { Image as ImageIcon } from '@mui/icons-material'
 import { MAP_MAX_SIDE, deleteImage, imageErrorText, isLocalImage, shrinkImage, uploadImage } from '../../../services/images'
 import { ink } from '../../../theme'
 import type { MapMeta } from '../../../services/maps'
+import { tr } from '../../../i18n'
 
 interface Props {
     meta: MapMeta
@@ -88,7 +89,7 @@ export const ImagePanel = ({ meta, onChange }: Props) => {
                 zIndex: 3,
             }}
         >
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Imagem do mapa</Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{tr('Imagem do mapa', 'Map image')}</Typography>
             <input
                 ref={input}
                 type="file"
@@ -102,7 +103,7 @@ export const ImagePanel = ({ meta, onChange }: Props) => {
                 disabled={busy}
                 onClick={() => input.current?.click()}
             >
-                {meta.image ? 'Trocar imagem' : 'Enviar imagem'}
+                {meta.image ? tr('Trocar imagem', 'Change image') : tr('Enviar imagem', 'Upload image')}
             </Button>
 
             {rect && (
@@ -113,15 +114,11 @@ export const ImagePanel = ({ meta, onChange }: Props) => {
             )}
 
             <Typography variant="caption" sx={{ color: ink.secondary }}>
-                Largura e altura em quadrados (cada um = 5 ft). Digite quantos quadrados o mapa
-                tem, ou puxe uma das alças
-                douradas. Arraste a imagem para alinhar as linhas dela com o grid.
-            </Typography>
+                {tr('Largura e altura em quadrados (cada um = 5 ft). Digite quantos quadrados o mapa tem, ou puxe uma das alças douradas. Arraste a imagem para alinhar as linhas dela com o grid.', 'Width and height in squares (each = 5 ft). Type how many squares the map has, or pull one of the golden handles. Drag the image to line up its lines with the grid.')}</Typography>
 
             {isLocalImage(meta.image?.url) && (
                 <Alert severity="warning" sx={{ py: 0 }}>
-                    Imagem só neste aparelho: o servidor não tem armazenamento de imagens.
-                </Alert>
+                    {tr('Imagem só neste aparelho: o servidor não tem armazenamento de imagens.', 'Image only on this device: the server has no image storage.')}</Alert>
             )}
             {error && <Alert severity="error" sx={{ py: 0 }}>{error}</Alert>}
         </Paper>

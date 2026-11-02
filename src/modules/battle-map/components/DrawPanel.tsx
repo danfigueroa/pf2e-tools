@@ -21,6 +21,7 @@ import {
 import { DRAW_WIDTHS, type DrawMode, type DrawStyle } from '../drawing'
 import { gold, ink } from '../../../theme'
 import { ColorSwatches } from './ColorSwatches'
+import { tr } from '../../../i18n'
 
 interface Props {
     style: DrawStyle
@@ -30,7 +31,7 @@ interface Props {
     count: number
 }
 
-const WIDTH_LABELS = ['Fina', 'Média', 'Grossa']
+const WIDTH_LABELS = ['Fina', tr('Média', 'Medium'), 'Grossa']
 
 /** Ferramenta Desenhar: modo, cor do efeito e espessura. */
 export const DrawPanel = ({ style, onChange, onClearAll, count }: Props) => {
@@ -61,16 +62,14 @@ export const DrawPanel = ({ style, onChange, onClearAll, count }: Props) => {
                 value={style.mode}
                 onChange={(_, mode: DrawMode | null) => { if (mode) onChange({ ...style, mode }) }}
             >
-                <ToggleButton value="free" aria-label="Desenho livre"><FreeIcon fontSize="small" sx={{ mr: 0.5 }} />Livre</ToggleButton>
-                <ToggleButton value="line" aria-label="Linha reta"><LineIcon fontSize="small" sx={{ mr: 0.5 }} />Linha</ToggleButton>
-                <ToggleButton value="erase" aria-label="Apagar um desenho"><EraseIcon fontSize="small" sx={{ mr: 0.5 }} />Apagar</ToggleButton>
+                <ToggleButton value="free" aria-label={tr("Desenho livre", 'Freehand')}><FreeIcon fontSize="small" sx={{ mr: 0.5 }} />{tr('Livre', 'Free')}</ToggleButton>
+                <ToggleButton value="line" aria-label={tr("Linha reta", 'Straight line')}><LineIcon fontSize="small" sx={{ mr: 0.5 }} />{tr('Linha', 'Line')}</ToggleButton>
+                <ToggleButton value="erase" aria-label={tr("Apagar um desenho", 'Erase a drawing')}><EraseIcon fontSize="small" sx={{ mr: 0.5 }} />{tr('Apagar', 'Erase')}</ToggleButton>
             </ToggleButtonGroup>
 
             {erasing ? (
                 <Typography variant="body2" sx={{ color: ink.secondary }}>
-                    Toque no <strong>×</strong> vermelho (ou no próprio traço) para apagar só aquele
-                    desenho. Os outros ficam como estão.
-                </Typography>
+                    {tr('Toque no ', 'Tap the red ')}<strong>×</strong> {tr('vermelho (ou no próprio traço) para apagar só aquele desenho. Os outros ficam como estão.', '(or the stroke itself) to erase just that drawing. The others stay as they are.')}</Typography>
             ) : (
                 <>
                     <ColorSwatches value={style.color} onChange={(color) => onChange({ ...style, color })} />
@@ -103,34 +102,32 @@ export const DrawPanel = ({ style, onChange, onClearAll, count }: Props) => {
                     </Box>
                     <Typography variant="caption" sx={{ color: ink.secondary }}>
                         {style.mode === 'line'
-                            ? 'As pontas encaixam no grid e o comprimento aparece enquanto você arrasta.'
-                            : 'Arraste para desenhar. O botão do meio do mouse move o mapa.'}
+                            ? tr('As pontas encaixam no grid e o comprimento aparece enquanto você arrasta.', 'The ends snap to the grid and the length shows while you drag.')
+                            : tr('Arraste para desenhar. O botão do meio do mouse move o mapa.', 'Drag to draw. The middle mouse button moves the map.')}
                     </Typography>
                 </>
             )}
 
             {onClearAll && count > 0 && (
                 <Button size="small" color="error" onClick={() => setConfirm(true)}>
-                    Limpar desenhos e áreas ({count})
+                    {tr('Limpar desenhos e áreas (', 'Clear drawings and areas (')}{count})
                 </Button>
             )}
 
             <Dialog open={confirm} onClose={() => setConfirm(false)}>
-                <DialogTitle sx={{ fontWeight: 700 }}>Limpar os desenhos?</DialogTitle>
+                <DialogTitle sx={{ fontWeight: 700 }}>{tr('Limpar os desenhos?', 'Clear the drawings?')}</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Os {count} desenhos deste mapa somem para a mesa inteira.
-                    </DialogContentText>
+                        {tr('Os ', 'The ')}{count} {tr('desenhos deste mapa somem para a mesa inteira.', 'drawings on this map disappear for the whole table.')}</DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setConfirm(false)}>Cancelar</Button>
+                    <Button onClick={() => setConfirm(false)}>{tr('Cancelar', 'Cancel')}</Button>
                     <Button
                         color="error"
                         variant="contained"
                         onClick={() => { onClearAll?.(); setConfirm(false) }}
                     >
-                        Limpar
-                    </Button>
+                        {tr('Limpar', 'Clear')}</Button>
                 </DialogActions>
             </Dialog>
         </Paper>

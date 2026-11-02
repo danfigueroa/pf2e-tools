@@ -6,6 +6,7 @@ import type { TokenSpace } from './DrawingLayer'
 import { useMapLive, type LivePeer } from '../../../services/mapLive'
 import { DRAW_COLORS, mapChrome } from '../../../theme'
 import type { MapData } from '../../../services/maps'
+import { tr } from '../../../i18n'
 
 /**
  * Cor de quem mede: a régua e o arrasto de cada um numa cor própria, para não
@@ -90,7 +91,7 @@ function PeerGesture({ peer, data, spaces, width, height }: Props & { peer: Live
             />
         )
         drawn = {
-            label: `${AREA_LABELS[g.area.shape]} ${g.area.feet} ft · ${n} ${n === 1 ? 'criatura' : 'criaturas'}`,
+            label: `${AREA_LABELS[g.area.shape]} ${g.area.feet} ft · ${n} ${n === 1 ? tr('criatura', 'creature') : tr('criaturas', 'creatures')}`,
             at: space
                 ? { wx: (space.x + space.size) * CELL_PX, wy: space.y * CELL_PX }
                 : { wx: g.area.x * CELL_PX, wy: g.area.y * CELL_PX },
@@ -177,7 +178,7 @@ function PeerGesture({ peer, data, spaces, width, height }: Props & { peer: Live
                     zIndex: 6,
                 }}
             >
-                <span style={{ color, marginRight: 6 }}>{peer.name || 'Alguém'}</span>
+                <span style={{ color, marginRight: 6 }}>{peer.name || tr('Alguém', 'Someone')}</span>
                 {drawn.label}
             </div>
         </>

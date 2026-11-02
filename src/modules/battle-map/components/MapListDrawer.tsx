@@ -38,6 +38,7 @@ import {
     type MapSummary,
 } from '../../../services/maps'
 import { gold, ink } from '../../../theme'
+import { tr } from '../../../i18n'
 
 interface Props {
     open: boolean
@@ -71,7 +72,7 @@ export const MapListDrawer = ({ open, currentId, gm, onClose, onOpenMap }: Props
             setActiveId(body.activeId)
             setError(null)
         } catch (e) {
-            setError(e instanceof Error ? e.message : 'Erro ao listar os mapas')
+            setError(e instanceof Error ? e.message : tr('Erro ao listar os mapas', 'Error listing the maps'))
         }
     }
 
@@ -85,12 +86,12 @@ export const MapListDrawer = ({ open, currentId, gm, onClose, onOpenMap }: Props
     const run = async (work: () => Promise<void>) => {
         setBusy(true)
         try { await work() } catch (e) {
-            setError(e instanceof Error ? e.message : 'Algo deu errado')
+            setError(e instanceof Error ? e.message : tr('Algo deu errado', 'Something went wrong'))
         } finally { setBusy(false) }
     }
 
     const create = () => run(async () => {
-        const map = await createMap(name.trim() || `Mapa ${(maps?.length ?? 0) + 1}`)
+        const map = await createMap(name.trim() || tr(`Mapa ${(maps?.length ?? 0) + 1}`, `Map ${(maps?.length ?? 0) + 1}`))
         setName('')
         await reload()
         onOpenMap(map.id)
@@ -105,8 +106,7 @@ export const MapListDrawer = ({ open, currentId, gm, onClose, onOpenMap }: Props
         >
             <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1.5, height: '100%' }}>
                 <Typography variant="h5" component="h2" sx={{ fontWeight: 700 }}>
-                    Mapas da sessão
-                </Typography>
+                    {tr('Mapas da sessão', 'Session maps')}</Typography>
                 <Box sx={{ height: 2, width: 120, backgroundColor: gold.main }} />
 
                 {gm && (
@@ -117,15 +117,14 @@ export const MapListDrawer = ({ open, currentId, gm, onClose, onOpenMap }: Props
                     >
                         <TextField
                             size="small"
-                            label="Novo mapa"
-                            placeholder="Ex.: Cripta de Belcorra"
+                            label={tr("Novo mapa", 'New map')}
+                            placeholder={tr("Ex.: Cripta de Belcorra", 'E.g.: Belcorra\'s Crypt')}
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             sx={{ flex: 1 }}
                         />
                         <Button type="submit" variant="contained" disabled={busy} startIcon={<AddIcon />}>
-                            Criar
-                        </Button>
+                            {tr('Criar', 'Create')}</Button>
                     </Box>
                 )}
 
@@ -134,7 +133,7 @@ export const MapListDrawer = ({ open, currentId, gm, onClose, onOpenMap }: Props
                 <List disablePadding sx={{ flex: 1, overflow: 'auto' }}>
                     {maps?.length === 0 && (
                         <Typography variant="body2" sx={{ color: ink.secondary, py: 2 }}>
-                            {gm ? 'Nenhum mapa ainda.' : 'Nenhum mapa revelado ainda. O GM cria e revela os mapas.'}
+                            {gm ? tr('Nenhum mapa ainda.', 'No maps yet.') : tr('Nenhum mapa revelado ainda. O GM cria e revela os mapas.', 'No map revealed yet. The GM creates and reveals the maps.')}
                         </Typography>
                     )}
                     {maps?.map((map) => (
@@ -143,10 +142,10 @@ export const MapListDrawer = ({ open, currentId, gm, onClose, onOpenMap }: Props
                             disablePadding
                             secondaryAction={gm && (
                                 <Box sx={{ display: 'flex' }}>
-                                    <Tooltip title={map.private ? 'Revelar e levar a mesa para este mapa' : 'Levar a mesa para este mapa'}>
+                                    <Tooltip title={map.private ? tr('Revelar e levar a mesa para este mapa', 'Reveal and take the table to this map') : tr('Levar a mesa para este mapa', 'Take the table to this map')}>
                                         <span>
                                             <IconButton
-                                                aria-label={`Levar a mesa para ${map.name}`}
+                                                aria-label={tr(`Levar a mesa para ${map.name}`, `Take the table to ${map.name}`)}
                                                 disabled={busy || activeId === map.id}
                                                 onClick={() => run(async () => {
                                                     await activateMap(map.id)
@@ -157,10 +156,10 @@ export const MapListDrawer = ({ open, currentId, gm, onClose, onOpenMap }: Props
                                             </IconButton>
                                         </span>
                                     </Tooltip>
-                                    <Tooltip title={map.private ? 'Revelar à mesa' : 'Esconder da mesa'}>
+                                    <Tooltip title={map.private ? tr('Revelar à mesa', 'Reveal to the table') : tr('Esconder da mesa', 'Hide from the table')}>
                                         <span>
                                             <IconButton
-                                                aria-label={map.private ? `Revelar ${map.name} à mesa` : `Esconder ${map.name} da mesa`}
+                                                aria-label={map.private ? tr(`Revelar ${map.name} à mesa`, `Reveal ${map.name} to the table`) : tr(`Esconder ${map.name} da mesa`, `Hide ${map.name} from the table`)}
                                                 disabled={busy}
                                                 onClick={() => run(async () => {
                                                     await setMapVisibility(map.id, !map.private)
@@ -178,7 +177,7 @@ export const MapListDrawer = ({ open, currentId, gm, onClose, onOpenMap }: Props
                                         <EditIcon />
                                     </IconButton>
                                     <IconButton
-                                        aria-label={`Apagar ${map.name}`}
+                                        aria-label={tr(`Apagar ${map.name}`, `Delete ${map.name}`)}
                                         onClick={() => setDeleting(map)}
                                     >
                                         <DeleteIcon />
@@ -196,8 +195,8 @@ export const MapListDrawer = ({ open, currentId, gm, onClose, onOpenMap }: Props
                                     primary={map.name}
                                     secondary={(activeId === map.id || map.private) ? (
                                         <Box component="span" sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.25 }}>
-                                            {activeId === map.id && <Chip label="A mesa está aqui" size="small" color="primary" component="span" />}
-                                            {map.private && <Chip label="Privado" size="small" color="warning" icon={<HideIcon />} component="span" />}
+                                            {activeId === map.id && <Chip label={tr("A mesa está aqui", 'The table is here')} size="small" color="primary" component="span" />}
+                                            {map.private && <Chip label={tr("Privado", 'Private')} size="small" color="warning" icon={<HideIcon />} component="span" />}
                                         </Box>
                                     ) : null}
                                     slotProps={{ primary: { sx: { fontWeight: 600 } }, secondary: { component: 'span' } }}
@@ -209,13 +208,11 @@ export const MapListDrawer = ({ open, currentId, gm, onClose, onOpenMap }: Props
 
                 <Divider />
                 <Typography variant="caption" sx={{ color: ink.secondary }}>
-                    Apague os mapas depois do jogo: imagem, tokens e posições vão junto. O token
-                    de cada personagem fica — ele é da ficha.
-                </Typography>
+                    {tr('Apague os mapas depois do jogo: imagem, tokens e posições vão junto. O token de cada personagem fica — ele é da ficha.', 'Delete the maps after the game: image, tokens and positions go with them. Each character\'s token stays — it belongs to the sheet.')}</Typography>
             </Box>
 
             <Dialog open={!!renaming} onClose={() => setRenaming(null)}>
-                <DialogTitle sx={{ fontWeight: 700 }}>Renomear mapa</DialogTitle>
+                <DialogTitle sx={{ fontWeight: 700 }}>{tr('Renomear mapa', 'Rename map')}</DialogTitle>
                 <DialogContent>
                     <TextField
                         autoFocus
@@ -226,7 +223,7 @@ export const MapListDrawer = ({ open, currentId, gm, onClose, onOpenMap }: Props
                     />
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setRenaming(null)}>Cancelar</Button>
+                    <Button onClick={() => setRenaming(null)}>{tr('Cancelar', 'Cancel')}</Button>
                     <Button
                         variant="contained"
                         disabled={!newName.trim() || busy}
@@ -237,21 +234,18 @@ export const MapListDrawer = ({ open, currentId, gm, onClose, onOpenMap }: Props
                             await reload()
                         })}
                     >
-                        Salvar
-                    </Button>
+                        {tr('Salvar', 'Save')}</Button>
                 </DialogActions>
             </Dialog>
 
             <Dialog open={!!deleting} onClose={() => setDeleting(null)}>
-                <DialogTitle sx={{ fontWeight: 700 }}>Apagar “{deleting?.name}”?</DialogTitle>
+                <DialogTitle sx={{ fontWeight: 700 }}>{tr('Apagar “', 'Delete “')}{deleting?.name}”?</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        O mapa some para a mesa inteira, com a imagem, os tokens e as posições. O
-                        encontro da Iniciativa ligado a ele continua no aparelho do GM.
-                    </DialogContentText>
+                        {tr('O mapa some para a mesa inteira, com a imagem, os tokens e as posições. O encontro da Iniciativa ligado a ele continua no aparelho do GM.', 'The map disappears for the whole table, with the image, the tokens and the positions. The Initiative encounter tied to it stays on the GM\'s device.')}</DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setDeleting(null)}>Cancelar</Button>
+                    <Button onClick={() => setDeleting(null)}>{tr('Cancelar', 'Cancel')}</Button>
                     <Button
                         color="error"
                         variant="contained"
@@ -264,8 +258,7 @@ export const MapListDrawer = ({ open, currentId, gm, onClose, onOpenMap }: Props
                             await reload()
                         })}
                     >
-                        Apagar
-                    </Button>
+                        {tr('Apagar', 'Delete')}</Button>
                 </DialogActions>
             </Dialog>
         </Drawer>

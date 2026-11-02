@@ -3,6 +3,7 @@ import { pathOf, sanitizeDrawing } from '../drawing'
 import { areaSquares, cellsPath, sanitizeArea } from '../areas'
 import { CELL_PX, type Cell } from '../geometry'
 import { mapChrome, status } from '../../../theme'
+import { tr } from '../../../i18n'
 
 /** Espaço de um token no grid — a origem de uma emanação. */
 export type TokenSpace = Cell & { size: number }
@@ -34,7 +35,7 @@ function EraseBadge({ x, y }: { x: number; y: number }) {
             <g
                 className="pf2e-drawing-badge"
                 role="button"
-                aria-label="Apagar este desenho"
+                aria-label={tr("Apagar este desenho", 'Erase this drawing')}
                 style={{ pointerEvents: 'all', transition: 'transform 120ms' }}
             >
                 <circle r={BADGE_R} fill={status.error} stroke={mapChrome.text} strokeWidth={2} />

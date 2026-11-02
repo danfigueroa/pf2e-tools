@@ -8,6 +8,7 @@
 import type { Cell } from './geometry'
 import { FEET_PER_SQUARE } from './geometry'
 import { DRAW_COLORS } from '../../theme'
+import { tr } from '../../i18n'
 
 export type AreaShape = 'burst' | 'emanation' | 'cone' | 'line'
 
@@ -26,10 +27,10 @@ export interface Area {
 }
 
 export const AREA_LABELS: Record<AreaShape, string> = {
-    burst: 'Explosão',
-    emanation: 'Emanação',
-    cone: 'Cone',
-    line: 'Linha',
+    burst: tr('Explosão', 'Burst'),
+    emanation: tr('Emanação', 'Emanation'),
+    cone: tr('Cone', 'Cone'),
+    line: tr('Linha', 'Line'),
 }
 
 /** Distância PF2e para um deslocamento de (dx, dy) quadrados: o maior, mais metade do menor. */
@@ -139,7 +140,7 @@ export function cellsPath(cells: Cell[], cellPx: number): string {
     return d
 }
 
-const SHAPES: AreaShape[] = ['burst', 'emanation', 'cone', 'line']
+const SHAPES: AreaShape[] = ['burst', 'emanation', 'cone', 'line'] // i18n-ok: id
 
 /** Área vinda do servidor, validada — `null` se não for área (aí é traço) ou estiver malformada. */
 export function sanitizeArea(raw: unknown): Area | null {

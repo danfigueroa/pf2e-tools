@@ -11,6 +11,7 @@ import { useRoster } from '../../character-viewer/useRoster'
 import { fetchPublished } from '../../../services/sheets'
 import { writeSheetChoice } from '../sheetChoice'
 import { TokenBadge } from './TokenBadge'
+import { tr } from '../../../i18n'
 
 // A ficha é um chunk à parte: só baixa quando o painel abre.
 const CharacterSheetView = lazy(() =>
@@ -99,8 +100,8 @@ export const SheetPanel = ({ slug, onSlugChange, onCollapse }: Props) => {
                     flexShrink: 0,
                 }}
             >
-                <Tooltip title="Recolher a ficha">
-                    <IconButton size="small" onClick={onCollapse} aria-label="Recolher a ficha" sx={{ color: gold.bright }}>
+                <Tooltip title={tr("Recolher a ficha", 'Collapse the sheet')}>
+                    <IconButton size="small" onClick={onCollapse} aria-label={tr("Recolher a ficha", 'Collapse the sheet')} sx={{ color: gold.bright }}>
                         <CollapseIcon fontSize="small" />
                     </IconButton>
                 </Tooltip>
@@ -109,10 +110,10 @@ export const SheetPanel = ({ slug, onSlugChange, onCollapse }: Props) => {
                     displayEmpty
                     value={slug ?? ''}
                     onChange={(e) => choose(e.target.value)}
-                    inputProps={{ 'aria-label': 'Personagem' }}
+                    inputProps={{ 'aria-label': tr('Personagem', 'Character') }}
                     renderValue={(value) => {
                         const o = options.find((x) => x.slug === value)
-                        if (!o) return <Typography sx={{ opacity: 0.8 }}>Escolha o personagem…</Typography>
+                        if (!o) return <Typography sx={{ opacity: 0.8 }}>{tr('Escolha o personagem…', 'Choose the character…')}</Typography>
                         return (
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
                                 <TokenBadge slug={o.slug} name={o.label} size={32} />
@@ -147,14 +148,13 @@ export const SheetPanel = ({ slug, onSlugChange, onCollapse }: Props) => {
                 {!slug && (
                     <Box>
                         <Typography sx={{ color: 'text.secondary', textAlign: 'center', mt: 1, mb: 2 }}>
-                            Quem é você? Toque no seu personagem para ver a ficha ao lado do mapa.
-                        </Typography>
+                            {tr('Quem é você? Toque no seu personagem para ver a ficha ao lado do mapa.', 'Who are you? Tap your character to see the sheet next to the map.')}</Typography>
                         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(112px, 1fr))', gap: 1.25 }}>
                             {options.map((o) => (
                                 <ButtonBase
                                     key={o.slug}
                                     onClick={() => choose(o.slug)}
-                                    aria-label={`Abrir a ficha de ${o.label}`}
+                                    aria-label={tr(`Abrir a ficha de ${o.label}`, `Open ${o.label}'s sheet`)}
                                     sx={{
                                         flexDirection: 'column',
                                         gap: 0.75,
@@ -180,8 +180,7 @@ export const SheetPanel = ({ slug, onSlugChange, onCollapse }: Props) => {
                 )}
                 {slug && failed && !loading && (
                     <Typography sx={{ color: 'error.main', textAlign: 'center', mt: 4 }}>
-                        Não achei a ficha desse personagem.
-                    </Typography>
+                        {tr('Não achei a ficha desse personagem.', 'Couldn\'t find that character\'s sheet.')}</Typography>
                 )}
                 {slug && build && !loading && (
                     <EmbedContext.Provider value={host}>

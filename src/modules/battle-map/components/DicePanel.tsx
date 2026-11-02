@@ -14,6 +14,7 @@ import {
 } from '../dice'
 import type { TableRoll } from '../../../dice/tableRoll'
 import { ColorSwatches } from './ColorSwatches'
+import { tr } from '../../../i18n'
 
 const KEY = 'pf2e:map:dice'
 
@@ -100,7 +101,7 @@ export const DicePanel = ({ onRoll, identity }: Props) => {
         prefs.count,
         prefs.faces,
         prefs.bonus,
-        identity?.by ?? (prefs.name.trim() || 'Jogador'),
+        identity?.by ?? (prefs.name.trim() || tr('Jogador', 'Player')),
         identity?.color ?? prefs.color,
     ))
 
@@ -135,19 +136,19 @@ export const DicePanel = ({ onRoll, identity }: Props) => {
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
                 <Stepper label="Dados" value={prefs.count} min={1} max={MAX_DICE} onChange={(count) => patch({ count })} />
-                <Stepper label="Bônus" value={prefs.bonus} min={-MAX_BONUS} max={MAX_BONUS} onChange={(bonus) => patch({ bonus })} />
+                <Stepper label={tr("Bônus", 'Bonus')} value={prefs.bonus} min={-MAX_BONUS} max={MAX_BONUS} onChange={(bonus) => patch({ bonus })} />
             </Box>
 
             {!identity && (
                 <>
                     <Box>
-                        <Typography variant="caption" sx={{ color: ink.secondary }}>Cor dos dados</Typography>
+                        <Typography variant="caption" sx={{ color: ink.secondary }}>{tr('Cor dos dados', 'Dice color')}</Typography>
                         <ColorSwatches value={prefs.color} onChange={(color) => patch({ color })} />
                     </Box>
 
                     <TextField
                         size="small"
-                        label="Seu nome (aparece para a mesa)"
+                        label={tr("Seu nome (aparece para a mesa)", 'Your name (shown to the table)')}
                         value={prefs.name}
                         onChange={(e) => patch({ name: e.target.value.slice(0, 24) })}
                         onKeyDown={(e) => { if (e.key === 'Enter') roll() }}
@@ -156,7 +157,7 @@ export const DicePanel = ({ onRoll, identity }: Props) => {
             )}
 
             <Button variant="contained" startIcon={<DiceIcon />} onClick={roll} sx={{ fontWeight: 700 }}>
-                Rolar {formulaText(prefs.count, prefs.faces, prefs.bonus)}
+                {tr('Rolar ', 'Roll ')}{formulaText(prefs.count, prefs.faces, prefs.bonus)}
             </Button>
         </Paper>
     )

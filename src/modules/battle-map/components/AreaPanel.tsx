@@ -3,20 +3,21 @@ import { Box, Chip, Paper, TextField, ToggleButton, ToggleButtonGroup, Typograph
 import { AREA_FEET, AREA_LABELS, type AreaShape, type AreaStyle } from '../areas'
 import { ink } from '../../../theme'
 import { ColorSwatches } from './ColorSwatches'
+import { tr } from '../../../i18n'
 
 interface Props {
     style: AreaStyle
     onChange: (style: AreaStyle) => void
 }
 
-const SHAPES: AreaShape[] = ['burst', 'emanation', 'cone', 'line']
+const SHAPES: AreaShape[] = ['burst', 'emanation', 'cone', 'line'] // i18n-ok: id
 
 /** Como usar cada forma — o gesto muda de uma para outra. */
 const HOW_TO: Record<AreaShape, string> = {
-    burst: 'Mova o mouse: a explosão segue o cruzamento do grid mais próximo. Clique para fixar.',
-    emanation: 'Passe o mouse sobre uma criatura: a emanação sai do espaço dela. Clique para fixar.',
-    cone: 'Pressione no cruzamento de origem e arraste para a direção (reto ou diagonal).',
-    line: 'Pressione na origem e arraste para a direção. A linha tem 5 pés de largura.',
+    burst: tr('Mova o mouse: a explosão segue o cruzamento do grid mais próximo. Clique para fixar.', 'Move the mouse: the burst follows the nearest grid intersection. Click to pin it.'),
+    emanation: tr('Passe o mouse sobre uma criatura: a emanação sai do espaço dela. Clique para fixar.', 'Hover over a creature: the emanation comes out of its space. Click to pin it.'),
+    cone: tr('Pressione no cruzamento de origem e arraste para a direção (reto ou diagonal).', 'Press on the origin intersection and drag toward the direction (straight or diagonal).'),
+    line: tr('Pressione na origem e arraste para a direção. A linha tem 5 pés de largura.', 'Press on the origin and drag toward the direction. The line is 5 feet wide.'),
 }
 
 /**
@@ -79,21 +80,19 @@ export const AreaPanel = ({ style, onChange }: Props) => {
                 ))}
                 <TextField
                     size="small"
-                    label="Pés"
+                    label={tr("Pés", 'Feet')}
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
                     onBlur={commitFeet}
                     onKeyDown={(e) => { if (e.key === 'Enter') commitFeet() }}
-                    slotProps={{ htmlInput: { inputMode: 'numeric', 'aria-label': 'Tamanho em pés' } }}
+                    slotProps={{ htmlInput: { inputMode: 'numeric', 'aria-label': tr('Tamanho em pés', 'Size in feet') } }}
                     sx={{ width: 72 }}
                 />
             </Box>
             <ColorSwatches value={style.color} onChange={(color) => onChange({ ...style, color })} />
 
             <Typography variant="caption" sx={{ color: ink.secondary }}>
-                {HOW_TO[style.mode]} Ela some no próximo clique ou ao trocar de ferramenta, e
-                só você a vê.
-            </Typography>
+                {HOW_TO[style.mode]} {tr('Ela some no próximo clique ou ao trocar de ferramenta, e só você a vê.', 'It goes away on the next click or when switching tools, and only you see it.')}</Typography>
         </Paper>
     )
 }

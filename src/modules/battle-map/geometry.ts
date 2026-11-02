@@ -1,4 +1,4 @@
-import { locale } from '../../i18n'
+import { locale, tr, isEn } from '../../i18n'
 // Geometria do mapa de combate. O mundo é medido em QUADRADOS; pixel só
 // existe na hora de desenhar (quadrado × CELL_PX), e o zoom é uma escala CSS
 // por cima disso.
@@ -41,7 +41,8 @@ export function squaresBetween(a: Cell, b: Cell): number {
 export function formatDistance(squares: number): string {
     const feet = squares * FEET_PER_SQUARE
     const meters = (squares * METERS_PER_SQUARE).toLocaleString(locale, { maximumFractionDigits: 1 })
-    return `${feet} ft · ${meters} m`
+    // Em inglês, só pés (como o livro); em português, os dois.
+    return isEn ? `${feet} ft` : `${feet} ft · ${meters} m`
 }
 
 /**
@@ -86,12 +87,12 @@ export const isTinySize = (size: string | null | undefined): boolean => (size ??
  * monstro digitado à mão fica igual a um buscado na AON.
  */
 export const CREATURE_SIZES = [
-    { value: 'Tiny', label: 'Minúsculo', space: '2,5 ft · menos de 1 quadrado' },
-    { value: 'Small', label: 'Pequeno', space: '5 ft · 1 quadrado' },
-    { value: 'Medium', label: 'Médio', space: '5 ft · 1 quadrado' },
-    { value: 'Large', label: 'Grande', space: '10 ft · 2×2 quadrados' },
-    { value: 'Huge', label: 'Enorme', space: '15 ft · 3×3 quadrados' },
-    { value: 'Gargantuan', label: 'Imenso', space: '20 ft ou mais · 4×4 quadrados' },
+    { value: 'Tiny', label: tr('Minúsculo', 'Tiny'), space: tr('2,5 ft · menos de 1 quadrado', '2.5 ft · less than 1 square') },
+    { value: 'Small', label: tr('Pequeno', 'Small'), space: tr('5 ft · 1 quadrado', '5 ft · 1 square') },
+    { value: 'Medium', label: tr('Médio', 'Medium'), space: tr('5 ft · 1 quadrado', '5 ft · 1 square') },
+    { value: 'Large', label: tr('Grande', 'Large'), space: tr('10 ft · 2×2 quadrados', '10 ft · 2×2 squares') },
+    { value: 'Huge', label: tr('Enorme', 'Huge'), space: tr('15 ft · 3×3 quadrados', '15 ft · 3×3 squares') },
+    { value: 'Gargantuan', label: tr('Imenso', 'Gargantuan'), space: tr('20 ft ou mais · 4×4 quadrados', '20 ft or more · 4×4 squares') },
 ] as const
 
 export type CreatureSize = (typeof CREATURE_SIZES)[number]['value']

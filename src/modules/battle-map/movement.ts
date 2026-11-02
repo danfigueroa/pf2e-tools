@@ -3,6 +3,7 @@
 
 import { CELL_PX, formatDistance, squaresBetween, type Cell } from './geometry'
 import { status } from '../../theme'
+import { tr } from '../../i18n'
 
 /** Cores das faixas de 1, 2 e 3 Andares. */
 export const BAND_COLORS = [status.success, status.warning, status.error]
@@ -36,6 +37,6 @@ export function moveLabel(from: Cell, to: Cell, speed: number | undefined): stri
     const squares = squaresBetween(from, to)
     if (!speed) return formatDistance(squares)
     const steps = Math.ceil((squares * 5) / speed)
-    const actions = steps === 0 ? '' : steps > 3 ? ' · fora de alcance' : ` · ${steps} ${steps === 1 ? 'ação' : 'ações'}`
+    const actions = steps === 0 ? '' : steps > 3 ? tr(' · fora de alcance', ' · out of reach') : ` · ${steps} ${steps === 1 ? tr('ação', 'action') : tr('ações', 'actions')}`
     return formatDistance(squares) + actions
 }

@@ -4,6 +4,7 @@ import { hpBarColor } from '../../character-viewer/components/useHpTracker'
 import { ink } from '../../../theme'
 import type { TokenDescriptor } from '../../../services/maps'
 import { damageHp, healHp, type TokenHp } from '../hp'
+import { tr } from '../../../i18n'
 
 interface Props {
     anchor: HTMLElement | null
@@ -24,12 +25,12 @@ interface Props {
  * saber que o golpe pegou sem entregar a ficha do GM.
  */
 function woundLabel(hp: TokenHp): string {
-    if (hp.current <= 0) return 'Caído'
+    if (hp.current <= 0) return tr('Caído', 'Down')
     const ratio = hp.current / hp.max
     if (ratio >= 1) return 'Ileso'
-    if (ratio > 0.5) return 'Ferido'
-    if (ratio > 0.25) return 'Muito ferido'
-    return 'À beira da morte'
+    if (ratio > 0.5) return tr('Ferido', 'Wounded')
+    if (ratio > 0.25) return tr('Muito ferido', 'Badly wounded')
+    return tr('À beira da morte', 'At death\'s door')
 }
 
 export const TokenPopover = ({ anchor, token, hp, canEdit, onClose, onApply, onOpenSheet, onAdjustImage }: Props) => {
@@ -71,7 +72,7 @@ export const TokenPopover = ({ anchor, token, hp, canEdit, onClose, onApply, onO
                             />
                             <Typography variant="body2" sx={{ mt: 0.5, color: ink.secondary }}>
                                 {canEdit
-                                    ? `PV ${hp.current}/${hp.max}${hp.temp > 0 ? ` · +${hp.temp} temporários` : ''}`
+                                    ? `PV ${hp.current}/${hp.max}${hp.temp > 0 ? tr(` · +${hp.temp} temporários`, ` · +${hp.temp} temporary`) : ''}`
                                     : woundLabel(hp)}
                             </Typography>
                         </Box>
@@ -94,38 +95,33 @@ export const TokenPopover = ({ anchor, token, hp, canEdit, onClose, onApply, onO
                                     variant="contained"
                                     color="error"
                                     onClick={() => apply('damage')}
-                                    aria-label={`Dano em ${token.name}`}
+                                    aria-label={tr(`Dano em ${token.name}`, `Damage to ${token.name}`)}
                                 >
-                                    Dano
-                                </Button>
+                                    {tr('Dano', 'Damage')}</Button>
                                 <Button
                                     variant="contained"
                                     color="success"
                                     onClick={() => apply('heal')}
-                                    aria-label={`Cura em ${token.name}`}
+                                    aria-label={tr(`Cura em ${token.name}`, `Healing to ${token.name}`)}
                                 >
-                                    Cura
-                                </Button>
+                                    {tr('Cura', 'Heal')}</Button>
                             </Box>
                         </>
                     )}
 
                     {token.kind === 'pc' && token.slug && onOpenSheet && (
                         <Button variant="outlined" onClick={() => onOpenSheet(token.slug!)}>
-                            Ver ficha
-                        </Button>
+                            {tr('Ver ficha', 'See sheet')}</Button>
                     )}
 
                     {onAdjustImage && (
                         <Button variant="outlined" onClick={onAdjustImage}>
-                            Imagem e enquadramento
-                        </Button>
+                            {tr('Imagem e enquadramento', 'Image and framing')}</Button>
                     )}
 
                     {hp && !canEdit && (
                         <Typography variant="caption" sx={{ color: ink.secondary }}>
-                            Os números do PV do monstro são só do GM.
-                        </Typography>
+                            {tr('Os números do PV do monstro são só do GM.', 'The monster\'s HP numbers are for the GM only.')}</Typography>
                     )}
                 </Box>
             )}

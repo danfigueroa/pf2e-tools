@@ -14,6 +14,7 @@ import {
 } from '@mui/material'
 import { MAP_BACKDROP, TOKEN_NPC, TOKEN_PC } from '../../../theme'
 import { DEFAULT_FIT, MAX_ZOOM, MIN_ZOOM, clampFit, coverSize, fitStyle, type TokenFit } from '../tokenFit'
+import { tr } from '../../../i18n'
 
 interface Props {
     name: string
@@ -81,8 +82,7 @@ export const TokenFitDialog = ({ name, src, initial, copies, pc, onUpload, uploa
             <DialogContent>
                 {src && (
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-                        Arraste a imagem para escolher o que fica no centro do círculo.
-                    </Typography>
+                        {tr('Arraste a imagem para escolher o que fica no centro do círculo.', 'Drag the image to choose what stays in the center of the circle.')}</Typography>
                 )}
 
                 {src ? (
@@ -141,7 +141,7 @@ export const TokenFitDialog = ({ name, src, initial, copies, pc, onUpload, uploa
                     </>
                 ) : (
                     <Box sx={{ width: SIZE, height: SIZE, maxWidth: '100%', mx: 'auto', borderRadius: 1, border: '2px dashed', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', px: 2 }}>
-                        <Typography color="text.secondary">Este token ainda não tem imagem. Envie uma para enquadrar.</Typography>
+                        <Typography color="text.secondary">{tr('Este token ainda não tem imagem. Envie uma para enquadrar.', 'This token has no image yet. Upload one to frame it.')}</Typography>
                     </Box>
                 )}
 
@@ -150,7 +150,7 @@ export const TokenFitDialog = ({ name, src, initial, copies, pc, onUpload, uploa
                         {onUpload && (
                             <>
                                 <Button size="small" variant="outlined" disabled={uploading} onClick={() => fileInput.current?.click()}>
-                                    {uploading ? 'Enviando…' : 'Enviar outra imagem'}
+                                    {uploading ? 'Enviando…' : tr('Enviar outra imagem', 'Upload another image')}
                                 </Button>
                                 <input
                                     ref={fileInput}
@@ -166,7 +166,7 @@ export const TokenFitDialog = ({ name, src, initial, copies, pc, onUpload, uploa
                             </>
                         )}
                         {onRevert && (
-                            <Button size="small" color="inherit" onClick={onRevert}>Usar a imagem original</Button>
+                            <Button size="small" color="inherit" onClick={onRevert}>{tr('Usar a imagem original', 'Use the original image')}</Button>
                         )}
                     </Box>
                 )}
@@ -175,7 +175,7 @@ export const TokenFitDialog = ({ name, src, initial, copies, pc, onUpload, uploa
                 {src && (
                     <>
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
-                    Ampliação · {fit.z.toFixed(2)}×
+                    {tr('Ampliação · ', 'Zoom · ')}{fit.z.toFixed(2)}×
                 </Typography>
                 <Slider
                     value={fit.z}
@@ -183,7 +183,7 @@ export const TokenFitDialog = ({ name, src, initial, copies, pc, onUpload, uploa
                     max={MAX_ZOOM}
                     step={0.05}
                     onChange={(_, v) => setZoom(v as number)}
-                    aria-label="Ampliação do token"
+                    aria-label={tr("Ampliação do token", 'Token zoom')}
                 />
 
                     </>
@@ -192,15 +192,15 @@ export const TokenFitDialog = ({ name, src, initial, copies, pc, onUpload, uploa
                 {copies > 0 && (
                     <FormControlLabel
                         control={<Checkbox checked={applyToCopies} onChange={(e) => setApplyToCopies(e.target.checked)} />}
-                        label={`Aplicar também às ${copies} cópia${copies === 1 ? '' : 's'} com a mesma imagem`}
+                        label={tr(`Aplicar também às ${copies} cópia${copies === 1 ? '' : 's'} com a mesma imagem`, `Also apply to the ${copies} cop${copies === 1 ? 'y' : 'ies'} with the same image`)}
                     />
                 )}
             </DialogContent>
             <DialogActions sx={{ px: 3, pb: 2 }}>
                 <Button color="inherit" onClick={() => setFit(DEFAULT_FIT)}>Centralizar</Button>
                 <Box sx={{ flex: 1 }} />
-                <Button color="inherit" onClick={onClose}>Cancelar</Button>
-                <Button variant="contained" disabled={!src} onClick={() => onSave(shown, applyToCopies && copies > 0)}>Salvar</Button>
+                <Button color="inherit" onClick={onClose}>{tr('Cancelar', 'Cancel')}</Button>
+                <Button variant="contained" disabled={!src} onClick={() => onSave(shown, applyToCopies && copies > 0)}>{tr('Salvar', 'Save')}</Button>
             </DialogActions>
         </Dialog>
     )

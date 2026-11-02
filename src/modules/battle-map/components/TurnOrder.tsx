@@ -4,6 +4,7 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import type { TokenDescriptor } from '../../../services/maps'
 import { gold, green, mapChrome, parchment } from '../../../theme'
+import { tr } from '../../../i18n'
 
 interface Props {
     tokens: Record<string, TokenDescriptor>
@@ -71,11 +72,10 @@ export const TurnOrder = ({ tokens, turn }: Props) => {
                     variant="overline"
                     sx={{ flex: 1, color: gold.bright, fontWeight: 700, lineHeight: 2.2 }}
                 >
-                    Turnos
-                </Typography>
+                    {tr('Turnos', 'Turns')}</Typography>
                 <IconButton
                     size="small"
-                    aria-label={open ? 'Recolher a ordem de turnos' : 'Mostrar a ordem de turnos'}
+                    aria-label={open ? tr('Recolher a ordem de turnos', 'Collapse the turn order') : tr('Mostrar a ordem de turnos', 'Show the turn order')}
                     aria-expanded={open}
                     onClick={toggle}
                     sx={{ color: gold.bright }}
