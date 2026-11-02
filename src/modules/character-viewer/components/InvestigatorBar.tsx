@@ -3,7 +3,8 @@ import { Button, Card, CardContent, Chip, MenuItem, Select, Stack, TextField, Ty
 import { Search as InvestigatorIcon } from '@mui/icons-material'
 import { INVESTIGATOR_COLOR, onSolid } from '../../../theme'
 import type { BuildInfo } from '../../../pathbuilder/types'
-import { actionsKeyFor } from '../charId'
+import { actionsKeyFor, charSlug } from '../charId'
+import { clearStratagem, useStratagemPending } from '../stratagemPending'
 import type { ConditionModifiers } from '../conditions'
 import {
     MAX_LEADS, clock, cooldownLeft, hasClueIn, hasDetectivesReadiness, hasExpeditiousInspection, hasPursueALead, isDropped,
@@ -41,6 +42,9 @@ function useNow(running: boolean): number {
  */
 export const InvestigatorBar = ({ build, investigator, mods }: Props) => {
     const actions = useActions(actionsKeyFor(build), mods)
+    const slug = charSlug(build)
+    // O d20 do Devise a Stratagem rolado no diálogo do Golpe e ainda não usado.
+    const stratagem = useStratagemPending(slug, actions.stored.turn)
     const { stored } = investigator
     const [adding, setAdding] = useState(false)
     const [name, setName] = useState('')
@@ -92,6 +96,14 @@ export const InvestigatorBar = ({ build, investigator, mods }: Props) => {
                         <Typography variant="caption" color="text.secondary">
                             {stored.leads.length}/{MAX_LEADS} {tr('· +1 de circunstância nos testes que levam à resposta', '· +1 circumstance bonus to checks that lead to the answer')}</Typography>
                     </Stack>
+
+                    {stratagem && (
+                        <FeatureRow title={tr(`Estratagema: d20 ${stratagem.d20}`, `Stratagem: d20 ${stratagem.d20}`)}>
+                            <Typography variant="caption" color="text.secondary">
+                                {tr('Vale no primeiro Golpe na criatura, até o seu próximo turno (abra o Golpe).', 'Applies to the first Strike against the creature, until your next turn (open the Strike).')}</Typography>
+                            <Button size="small" color="inherit" onClick={() => clearStratagem(slug)} sx={{ ml: 'auto' }}>{tr('Descartar', 'Discard')}</Button>
+                        </FeatureRow>
+                    )}
 
                     {hasPursueALead(build) && (
                         <>

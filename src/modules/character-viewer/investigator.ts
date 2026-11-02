@@ -6,9 +6,10 @@
  *   próximo turno usa esse d20 no lugar da rolagem (traço *fortune*) e pode somar INT em
  *   vez de FOR/DES — mas só com arma corpo a corpo ágil ou de acuidade, desarmado ágil ou
  *   de acuidade, ou arma à distância. É ação livre se a criatura é parte de uma investigação
- *   ativa (Pursue a Lead). O Golpe e o estratagema saem no mesmo clique, então o d20 da
- *   rolagem JÁ É o do estratagema; o que o diálogo precisa fazer é cobrar a ação, trocar o
- *   atributo e somar o Strategic Strike.
+ *   ativa (Pursue a Lead). "Roll a d20, then decide on an attack stratagem or skill
+ *   stratagem": o d20 sai PRIMEIRO, sozinho e sem ir à mesa (`stratagemPending.ts`), e a
+ *   Investigadora decide depois — usar no Golpe (que sai com esse d20, troca o atributo e
+ *   soma o Strategic Strike) ou não usar (o d20 é descartado e não conta nas estatísticas).
  * - **Strategic Strike**: 1d6 de dano de precisão no Golpe que soma INT por causa do Devise
  *   a Stratagem, +1 dado nos níveis 5, 9, 13 e 17. Dobra no crítico, como toda precisão.
  *   Vale quando a arma PODE somar INT, mesmo que INT e DES empatem.

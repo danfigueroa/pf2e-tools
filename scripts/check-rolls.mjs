@@ -610,6 +610,25 @@ ok(table.sanitizeTableRoll(crowded) !== null && server.sanitizeRoll(crowded) !==
   ok(fortune.takeSureStrikeCast() && !fortune.takeSureStrikeCast(), 'A conjuração do Sure Strike paga UM ataque com o chip')
 }
 
+// ── Devise a Stratagem: o d20 primeiro, a escolha depois ─────────────────────
+{
+  const sp = await import('../src/modules/character-viewer/stratagemPending.ts')
+  const p = sp.rollStratagem('teste-miranda', 111, 14, 1000)
+  ok(sp.readStratagem('teste-miranda', 111, 2000)?.d20 === 14, 'O d20 do estratagema fica guardado (fechar o diálogo não rerola)')
+  eq(sp.readStratagem('teste-miranda', 222, 2000), null, 'Novo turno: o d20 guardado deixa de valer')
+  eq(sp.readStratagem('teste-miranda', 111, 1000 + 16 * 60 * 1000), null, 'Nem passa de 15 minutos')
+  ok(sp.peekStratagem('teste-miranda', 2000) === p, 'O diálogo do Golpe abre com o estratagema ligado se houver d20 guardado')
+  const golpe = rolls.checkRoll(ssWho, 'Golpe', [{ label: 'Ficha', value: 12 }], null)
+  const used = sp.withStratagemD20(golpe, 14)
+  ok(used.check.d20 === 14 && used.check.total === 26, 'Usar no Golpe: o Golpe sai com o d20 do estratagema')
+  ok(table.sanitizeTableRoll(used) !== null && server.sanitizeRoll(used) !== null, 'E passa nos dois sanitizadores')
+  const flurryLike = { ...golpe, check: undefined, rays: [{ check: { ...golpe.check }, damage: { parts: [], total: 0 } }, { check: { ...golpe.check, d20: 3, total: 15 }, damage: { parts: [], total: 0 } }] }
+  const fl = sp.withStratagemD20(flurryLike, 14)
+  ok(fl.rays[0].check.d20 === 14 && fl.rays[1].check.d20 === 3, 'Com dois Golpes, o d20 vale só no primeiro')
+  sp.clearStratagem('teste-miranda')
+  eq(sp.peekStratagem('teste-miranda', 2000), null, '"Não usar" descarta o d20 (e ele nunca foi à mesa)')
+}
+
 // ── Veneno simples do Poison Weapon (o padrão do Eldarion) ───────────────────
 eq(rogue.simpleDoses(eld), 10, 'Doses por dia = nível')
 eq(rogue.simplePoisonDice(eld).count, 2, 'Eldarion tem o Improved Poison Weapon: 2d4')

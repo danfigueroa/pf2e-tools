@@ -97,6 +97,7 @@ import { tr } from '../../../i18n'
 import { ExtraDiceField } from './ExtraDiceField'
 import { FortuneChips } from './FortuneChips'
 import { useFortune } from './useFortune'
+import { clearStratagem, peekStratagem, rollStratagem, useStratagemPending, withStratagemD20 } from '../stratagemPending'
 import type { DiceExpr } from '../../../dice/roll'
 
 /** O que tocar na ficha pede para rolar. */
@@ -619,6 +620,53 @@ function loadExtras(key: string): Record<string, boolean> {
     }
 }
 
+/**
+ * O d20 do Devise a Stratagem, rolado antes do Golpe. Sem ele, o botão para rolar; com ele, o resultado e a
+ * escolha: "Usar no Golpe" é o botão de rolar de baixo (que usa este d20), "Não usar" o descarta — e um d20
+ * descartado não vai à mesa nem às estatísticas.
+ */
+const StratagemD20Box = ({ d20, attack, plainAttack, strategicDice, cost, lacking, onRoll, onDiscard }: {
+    d20: number | null
+    attack: number
+    plainAttack: number | null
+    strategicDice: number | null
+    cost: number
+    lacking: number
+    onRoll: () => void
+    onDiscard: () => void
+}) => {
+    if (d20 == null) {
+        return (
+            <Box sx={{ mt: 1 }}>
+                <Button variant="outlined" size="small" startIcon={<DiceIcon />} onClick={onRoll}>
+                    {tr(`Rolar o d20 do estratagema · ${cost ? '1 ação' : 'ação livre'}`, `Roll the stratagem d20 · ${cost ? '1 action' : 'free action'}`)}</Button>
+                {lacking > 0 && (
+                    <Typography variant="caption" color="warning.main" sx={{ display: 'block', mt: 0.5 }}>
+                        {tr('Sem ações neste turno para o estratagema. Dá para rolar mesmo assim.', 'No actions left this turn for the stratagem. You can roll anyway.')}</Typography>
+                )}
+            </Box>
+        )
+    }
+    return (
+        <Box sx={{ mt: 1, p: 1.25, borderRadius: 1, border: '1px solid', borderColor: 'primary.main', backgroundColor: 'action.hover' }}>
+            <Typography sx={{ fontWeight: 700 }}>
+                {tr('d20 do estratagema: ', 'Stratagem d20: ')}<Box component="span" sx={{ fontSize: '1.2rem' }}>{d20}</Box>
+                {' → '}{tr('no Golpe: ', 'on the Strike: ')}{d20 + attack} ({signed(attack)})
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                {strategicDice ? tr(`Soma INT e leva o Strategic Strike (${strategicDice}d6 de precisão).`, `Adds INT and gets Strategic Strike (${strategicDice}d6 precision).`) : tr('Esta arma não soma INT: só o d20 vale.', 'This weapon doesn\'t add INT: only the d20 applies.')}
+                {plainAttack != null && plainAttack !== attack ? tr(` Sem o estratagema o ataque seria ${signed(plainAttack)}, com um d20 novo.`, ` Without the stratagem the attack would be ${signed(plainAttack)}, with a new d20.`) : ''}
+            </Typography>
+            <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap', gap: 1 }}>
+                <Button size="small" color="inherit" variant="outlined" onClick={onDiscard}>
+                    {tr('Não usar (estratagema de perícia)', 'Don\'t use it (skill stratagem)')}</Button>
+            </Stack>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                {tr('Para usar, role o Golpe abaixo: ele sai com este d20. Sem usar, o d20 não vai à mesa nem às estatísticas; o +1 do estratagema de perícia fica no diálogo do teste.', 'To use it, roll the Strike below: it goes out with this d20. If unused, the d20 doesn\'t go to the table or the stats; the skill stratagem +1 is in the check dialog.')}</Typography>
+        </Box>
+    )
+}
+
 // O estratagema do Investigador e o que vem com ele são da rodada, não da arma: nada disso fica lembrado.
 const SITUATIONAL_KEYS = [STRATAGEM_KEY, LEAD_KEY, KNOWN_WEAKNESSES_KEY, SHARED_STRATAGEM_KEY, DRAGON_STRIKE_KEY, FLURRY_KEY, KI_KEY, STUNNING_KEY, ...KI_TYPES.map(kiTypeKey)]
 
@@ -643,7 +691,11 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
 
     // Por arma, não por perfil: o 2d6 de precisão da Gloom Blade é o mesmo nos três perfis.
     const storeKey = extrasKey(who.slug, weapon ? `w:${weapon.name}` : strike.key)
-    const [opts, setOpts] = useState<StrikeOptions>(() => ({ ...DEFAULT_STRIKE_OPTIONS, extrasOn: loadExtras(storeKey) }))
+    // Com um d20 de estratagema guardado (rolado e o diálogo fechado), o Golpe abre com o estratagema ligado.
+    const [opts, setOpts] = useState<StrikeOptions>(() => ({
+        ...DEFAULT_STRIKE_OPTIONS,
+        extrasOn: { ...loadExtras(storeKey), ...(hasDeviseAStratagem(build) && peekStratagem(who.slug) ? { [STRATAGEM_KEY]: true } : {}) },
+    }))
     // Dados extras com texto inválido travam o rolar (rolaria sem eles, em silêncio).
     const [diceValid, setDiceValid] = useState(true)
     const toggleExtra = (k: string, on: boolean) => {
@@ -717,14 +769,21 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
     const fortune = useFortune(build, mods, mythicPoints, 'attack')
     const fortuneBlocked = devising ? tr('O Golpe do estratagema já é fortuna: outro efeito de fortuna não soma.', 'The stratagem Strike is already fortune: another fortune effect doesn\'t stack.') : null
     const deviseCost = devising ? stratagemCost(opts.extrasOn) : 0
+    // O d20 do estratagema é rolado ANTES (e pago ali): o Golpe só o usa. Sem ele, o botão de rolar fica travado.
+    const pendingStrat = useStratagemPending(who.slug, actions.stored.turn)
+    const stratD20 = devising ? pendingStrat?.d20 ?? null : null
+    // Para comparar: o ataque sem o estratagema (FOR/DES, sem Strategic Strike) — que rolaria um d20 novo.
+    const plainAttack = devising
+        ? planStrike(build, strike, withLaughingShadow(mods, build, laughing && laughingApplies), { ...opts, extrasOn: { ...opts.extrasOn, [STRATAGEM_KEY]: false } }).attackTotal
+        : null
     const actionCostNow = asReaction ? 0 : spellstriking || aiming ? 2 : 1
     // O Flurry e o Ki Strike são ações próprias (não são "Golpe ou Andar"): a ação extra do Acelerado não os paga.
     const actionKind: ActionKind = spellstriking || aiming || flurrying || kiOn ? 'any' : 'move-attack'
     // Aplicar o veneno custa 1 ação à parte (paga primeiro, de qualquer tipo); o Golpe vem depois.
     // Uma atividade que inclui o Golpe (Sudden Charge, Vicious Swing…) já o pagou: este Golpe não cobra.
     const strikePaid = !asReaction && hasPrepaidStrike()
-    // O veneno e o estratagema são pagos antes, de qualquer tipo; o Golpe vem depois.
-    const prepay = (applying ? 1 : 0) + deviseCost
+    // O veneno é pago antes, de qualquer tipo; o Golpe vem depois. (O estratagema já foi pago ao rolar o d20 dele.)
+    const prepay = applying ? 1 : 0
     const lacking = strikePaid
         ? (prepay ? actions.missing(prepay, 'any') : 0)
         : prepay
@@ -936,7 +995,22 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                                 sx={{ minHeight: 32 }}
                             />
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                {tr('O d20 desta rolagem é o do estratagema (fortune) e, com arma ágil, de acuidade ou à distância, soma INT e leva o Strategic Strike. Vale só no primeiro Golpe na criatura escolhida, até o seu próximo turno.', 'This roll\'s d20 is the stratagem\'s (fortune) and, with an agile, finesse or ranged weapon, adds INT and gets Strategic Strike. Only on the first Strike against the chosen creature, until your next turn.')}</Typography>
+                                {tr('Primeiro o d20, depois a escolha: usar no Golpe (fortune; com arma ágil, de acuidade ou à distância soma INT e leva o Strategic Strike — só o primeiro Golpe na criatura, até o seu próximo turno) ou não usar e ficar com o estratagema de perícia.', 'First the d20, then the choice: use it on the Strike (fortune; with an agile, finesse or ranged weapon it adds INT and gets Strategic Strike — only the first Strike against the creature, until your next turn) or don\'t use it and keep the skill stratagem.')}</Typography>
+                            {devising && (
+                                <StratagemD20Box
+                                    d20={stratD20}
+                                    attack={plan.attackTotal}
+                                    plainAttack={plainAttack}
+                                    strategicDice={plan.stratagem?.dice ?? null}
+                                    cost={deviseCost}
+                                    lacking={deviseCost ? actions.missing(deviseCost, 'any') : 0}
+                                    onRoll={() => {
+                                        if (deviseCost) actions.spend(deviseCost, 'any')
+                                        rollStratagem(who.slug, actions.stored.turn)
+                                    }}
+                                    onDiscard={() => { clearStratagem(who.slug); toggleExtra(STRATAGEM_KEY, false) }}
+                                />
+                            )}
                             {devising && (
                                 <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75, mt: 0.75 }}>
                                     <Chip
@@ -1239,7 +1313,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                 onClose={onClose}
                 // Magia escolhida e ainda não pronta (buscando, sem slot, regra): o jogador
                 // precisa trocar por "Só o Golpe" — rolar sem ela em silêncio enganaria.
-                disabled={loading || !diceValid || (canSpellstrike && !!ss.option && !ss.ready)}
+                disabled={loading || !diceValid || (devising && stratD20 == null) || (canSpellstrike && !!ss.option && !ss.ready)}
                 onRoll={(mythic) => {
                     if (prepay) actions.spend(prepay)
                     if (applying) po.applyChosen()
@@ -1249,7 +1323,12 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                     const noted = (r: TableRoll): TableRoll => {
                         const poisoned = simplePoison && poisonUsed ? withSimplePoison(r, simpleDice) : r
                         const withNote = rollNote ? { ...poisoned, note: rollNote } : poisoned
-                        return fortuneBlocked ? withNote : fortune.apply(withNote)
+                        if (devising && stratD20 != null) {
+                            // O d20 do estratagema vira o do Golpe e sai da memória: vale uma vez.
+                            clearStratagem(who.slug)
+                            return withStratagemD20(withNote, stratD20)
+                        }
+                        return fortune.apply(withNote)
                     }
                     if (kiOn) monkSlots.spendFocus()
                     if (flurrying && secondPlan) {
