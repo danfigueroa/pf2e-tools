@@ -17,7 +17,7 @@ import {
     Sort as SortIcon,
     Stop as StopIcon,
 } from '@mui/icons-material'
-import { gold, green, parchment } from '../../../theme'
+import { gold, green, onFrame } from '../../../theme'
 import type { Combatant } from '../types'
 import { pop, useArmed } from '../../../motion/motion'
 import { tr } from '../../../i18n'
@@ -51,7 +51,7 @@ export const EncounterToolbar = ({
         <Box
             sx={{
                 backgroundColor: green.main,
-                color: parchment.page,
+                color: onFrame.page,
                 borderBottom: `2px solid ${gold.main}`,
                 borderRadius: 1,
                 px: { xs: 1.5, sm: 2 },
@@ -83,7 +83,7 @@ export const EncounterToolbar = ({
                                 {active.name}
                             </Typography>
                             {next && (
-                                <Typography variant="caption" sx={{ color: parchment.page + 'B3' }} noWrap>
+                                <Typography variant="caption" sx={{ color: onFrame.page + 'B3' }} noWrap>
                                     {tr('Depois: ', 'Next: ')}{next.name}
                                 </Typography>
                             )}
@@ -141,7 +141,7 @@ export const EncounterToolbar = ({
                 <Divider
                     orientation={isPhone ? 'horizontal' : 'vertical'}
                     flexItem
-                    sx={{ borderColor: parchment.page + '33' }}
+                    sx={{ borderColor: onFrame.page + '33' }}
                 />
 
                 <Stack direction="row" spacing={1} justifyContent={{ xs: 'space-between', sm: 'flex-start' }}>
@@ -168,7 +168,7 @@ export const EncounterToolbar = ({
 }
 
 const chromeButton = {
-    color: parchment.page,
-    borderColor: parchment.page + '55',
-    '&:hover': { borderColor: gold.bright, backgroundColor: parchment.page + '11' },
+    color: onFrame.page,
+    borderColor: onFrame.page + '55',
+    '&:hover': { borderColor: gold.bright, backgroundColor: onFrame.page + '11' },
 }

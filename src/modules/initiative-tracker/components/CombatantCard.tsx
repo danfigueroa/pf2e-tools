@@ -28,7 +28,7 @@ import {
     Shield as AcIcon,
     Visibility as PerceptionIcon,
 } from '@mui/icons-material'
-import { RAGE_COLOR, gold, green, ink, parchment, rule } from '../../../theme'
+import { RAGE_COLOR, gold, ink, parchment, rule, greenInk } from '../../../theme'
 import { signed } from '../../character-viewer/helpers'
 import { translateTrait } from '../../transformation-statblock/i18n'
 import { aonNameOf } from '../importCharacter'
@@ -181,7 +181,7 @@ export const CombatantCard = ({
         <Card
             sx={{
                 opacity: dimmed ? 0.6 : 1,
-                borderLeft: `4px solid ${isActive ? green.main : 'transparent'}`,
+                borderLeft: `4px solid ${isActive ? greenInk.main : 'transparent'}`,
                 backgroundColor: isActive ? gold.main + '18' : parchment.paper,
                 borderColor: isActive ? gold.main : rule,
                 transition: 'background-color 300ms, border-color 300ms, opacity 300ms',

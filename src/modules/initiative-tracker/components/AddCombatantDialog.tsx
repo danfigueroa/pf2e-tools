@@ -20,7 +20,7 @@ import {
     useTheme,
 } from '@mui/material'
 import { Check as CheckIcon, CloudUpload as UploadIcon, Person as PersonIcon } from '@mui/icons-material'
-import { gold, green, ink, parchment } from '../../../theme'
+import { gold, green, ink, parchment, greenInk, onFrame } from '../../../theme'
 import { CAMPAIGN_PRESETS, loadPresetJson, type CharacterPreset } from '../../character-viewer/campaignPresets'
 import { usePublishedSheets } from '../../character-viewer/usePublishedSheets'
 import { charSlugFromName } from '../../character-viewer/charId'
@@ -204,7 +204,7 @@ const CharacterTab = ({
                                 <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 }, textAlign: 'center' }}>
                                     {isSelected
                                         ? <CheckIcon sx={{ color: gold.deep }} />
-                                        : <PersonIcon sx={{ color: green.main }} />}
+                                        : <PersonIcon sx={{ color: greenInk.main }} />}
                                     <Typography sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}>{preset.name}</Typography>
                                     <Typography variant="caption" sx={{ color: ink.secondary }}>
                                         {already ? tr('já no combate', 'already in combat') : `${preset.class} ${levelOf(preset)}`}
@@ -379,7 +379,7 @@ const ManualTab = ({ onAdd }: { onAdd: (c: Combatant[]) => void }) => {
                 variant="contained"
                 disabled={!valid}
                 onClick={handleAdd}
-                sx={{ mt: 2.5, backgroundColor: green.main, color: parchment.page }}
+                sx={{ mt: 2.5, backgroundColor: green.main, color: onFrame.page }}
             >
                 {tr('Adicionar', 'Add')}</Button>
         </Box>

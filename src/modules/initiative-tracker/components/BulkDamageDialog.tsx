@@ -19,7 +19,7 @@ import {
     useMediaQuery,
     useTheme,
 } from '@mui/material'
-import { gold, HP_COLOR, ink, parchment, SHIELD_COLOR } from '../../../theme'
+import { gold, HP_COLOR, ink, parchment, SHIELD_COLOR, HP_HOVER } from '../../../theme'
 import { BLOCKABLE_TYPES, isBroken } from '../../character-viewer/shield'
 import { DAMAGE_TYPES, damageTypeLabel } from '../defenses'
 import { computeDamage, describeDamage, OUTCOME_LABELS, type SaveOutcome } from '../damage'
@@ -266,7 +266,7 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
                     variant="contained"
                     disabled={!valid}
                     onClick={handleApply}
-                    sx={{ backgroundColor: HP_COLOR, '&:hover': { backgroundColor: '#8F3622' } }}
+                    sx={{ backgroundColor: HP_COLOR, '&:hover': { backgroundColor: HP_HOVER } }}
                 >
                     {tr('Aplicar a ', 'Apply to ')}{targets.length} {targets.length === 1 ? tr('alvo', 'target') : tr('alvos', 'targets')}
                 </Button>

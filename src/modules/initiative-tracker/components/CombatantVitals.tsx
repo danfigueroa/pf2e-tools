@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { Box, Button, LinearProgress, Stack, TextField, Tooltip, Typography, useTheme } from '@mui/material'
 import { Favorite as HpIcon, HealthAndSafety as TempIcon, Shield as ShieldIcon } from '@mui/icons-material'
 import { hpBarColor } from '../../character-viewer/components/useHpTracker'
-import { HP_COLOR, ink, SHIELD_COLOR } from '../../../theme'
+import { HP_COLOR, ink, SHIELD_COLOR, HP_HOVER } from '../../../theme'
 import type { CombatantView } from '../types'
 import { useHpFeedback } from '../../../motion/useHpFeedback'
 import { FloatingDeltas } from '../../../motion/FloatingDeltas'
@@ -140,7 +140,7 @@ export const CombatantVitals = ({ view, onBlocked, onEditShield }: {
                         flex: 1,
                         px: 1,
                         backgroundColor: HP_COLOR,
-                        '&:hover': { backgroundColor: '#8F3622' },
+                        '&:hover': { backgroundColor: HP_HOVER },
                     }}
                 >
                     {tr('Dano', 'Damage')}</Button>
@@ -196,7 +196,7 @@ export const CombatantVitals = ({ view, onBlocked, onEditShield }: {
                                     flex: '0 0 auto',
                                     fontSize: '0.75rem',
                                     ...(blocking === 'destructive'
-                                        ? { backgroundColor: HP_COLOR, '&:hover': { backgroundColor: '#8F3622' } }
+                                        ? { backgroundColor: HP_COLOR, '&:hover': { backgroundColor: HP_HOVER } }
                                         : { color: HP_COLOR, borderColor: HP_COLOR + '66', '&:hover': { borderColor: HP_COLOR } }),
                                 }}
                             >

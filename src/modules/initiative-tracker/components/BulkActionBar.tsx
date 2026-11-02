@@ -5,7 +5,7 @@ import {
     Favorite as HealIcon,
     LocalFireDepartment as DamageIcon,
 } from '@mui/icons-material'
-import { gold, HP_COLOR, ink, parchment } from '../../../theme'
+import { gold, HP_COLOR, ink, parchment, HP_HOVER } from '../../../theme'
 import { tr } from '../../../i18n'
 
 interface Props {
@@ -47,7 +47,7 @@ export const BulkActionBar = ({ count, onDamage, onHeal, onCondition, onClear }:
                 size="small"
                 onClick={onDamage}
                 startIcon={<DamageIcon />}
-                sx={{ backgroundColor: HP_COLOR, '&:hover': { backgroundColor: '#8F3622' } }}
+                sx={{ backgroundColor: HP_COLOR, '&:hover': { backgroundColor: HP_HOVER } }}
             >
                 {tr('Dano', 'Damage')}</Button>
             <Button variant="outlined" size="small" onClick={onHeal} startIcon={<HealIcon />}>

@@ -22,7 +22,7 @@ import {
     MenuBook as SheetIcon,
     Shield as ShieldIcon,
 } from '@mui/icons-material'
-import { CONDITION_COLOR, gold, green, SHIELD_COLOR, status } from '../../../theme'
+import { CONDITION_COLOR, gold, green, SHIELD_COLOR, status, greenInk, lightCore, onFrame, WARNING_HOVER } from '../../../theme'
 import { lift, useArmed, useReducedMotion } from '../../../motion/motion'
 import type { CombatantView } from '../types'
 import { tr } from '../../../i18n'
@@ -72,7 +72,7 @@ const ActionButton = ({ icon, label, count, attention, color, title, ariaLabel, 
                 px: 1,
                 fontSize: '0.75rem',
                 ...(attention
-                    ? { backgroundColor: status.warning, '&:hover': { backgroundColor: '#8E5F14' } }
+                    ? { backgroundColor: status.warning, '&:hover': { backgroundColor: WARNING_HOVER } }
                     : { color, borderColor: color + '66', '&:hover': { borderColor: color } }),
             }}
         >
@@ -187,7 +187,7 @@ export const CombatantActions = ({
                                 px: 1,
                                 fontSize: '0.75rem',
                                 ...(view.shield.raised
-                                    ? { backgroundColor: gold.main, color: '#FFFFFF', '&:hover': { backgroundColor: gold.deep } }
+                                    ? { backgroundColor: gold.main, color: '#FFFFFF', '&:hover': { backgroundColor: lightCore.gold.deep } }
                                     : { color: SHIELD_COLOR, borderColor: SHIELD_COLOR + '66', '&:hover': { borderColor: SHIELD_COLOR } }),
                             }}
                         >
@@ -234,8 +234,8 @@ export const CombatantActions = ({
                             px: 1,
                             fontSize: '0.75rem',
                             ...(sheetOpen
-                                ? { backgroundColor: green.main, '&:hover': { backgroundColor: green.deepest } }
-                                : { color: green.main, borderColor: green.main + '66', '&:hover': { borderColor: green.main } }),
+                                ? { backgroundColor: green.main, color: onFrame.paper, '&:hover': { backgroundColor: green.deepest } }
+                                : { color: greenInk.main, borderColor: greenInk.main + '66', '&:hover': { borderColor: greenInk.main } }),
                         }}
                     >
                         {tr('Ficha', 'Sheet')}</Button>
