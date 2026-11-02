@@ -19,6 +19,7 @@ import {
   translateName,
 } from '../i18n';
 import { tr } from '../../../i18n';
+import { LightTheme } from '../../../components/LightTheme';
 
 interface StatBlockGeneratorProps {
   spell: TransformationSpell | null;
@@ -322,6 +323,7 @@ const StatBlockGenerator: React.FC<StatBlockGeneratorProps> = ({
   );
 
   return (
+    <LightTheme>
     <Card sx={{ mt: 2, bgcolor: PARCHMENT, color: INK, border: `1px solid ${GREEN}`, borderRadius: '4px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.25)' }}>
       {/* Header bar — nome longo em tela estreita quebra para a linha de baixo
           em vez de espremer o "CRIATURA N", que precisa ficar inteiro. */}
@@ -426,6 +428,7 @@ const StatBlockGenerator: React.FC<StatBlockGeneratorProps> = ({
         </Typography>
       </Box>
     </Card>
+    </LightTheme>
   );
 };
 

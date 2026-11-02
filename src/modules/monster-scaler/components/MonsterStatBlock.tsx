@@ -19,6 +19,7 @@ import { splitConditions, traitTerm } from '../ruleTerms'
 import { RuleTip } from './RuleTip'
 import type { ScaledMonster } from '../types'
 import { tr } from '../../../i18n'
+import { LightTheme } from '../../../components/LightTheme'
 
 // Paleta Remaster (pergaminho + verde + ouro), literal de propósito.
 const GREEN = '#1B3B2A'
@@ -108,6 +109,7 @@ export function MonsterStatBlock({ monster }: Props) {
     ]
 
     return (
+        <LightTheme>
         <Card sx={{ bgcolor: PARCHMENT, color: INK, border: `1px solid ${GREEN}`, borderRadius: '4px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.25)' }}>
             {/* Nome longo quebra para a linha de baixo em vez de espremer o
                 "CRIATURA N", que precisa ficar inteiro. */}
@@ -315,5 +317,6 @@ export function MonsterStatBlock({ monster }: Props) {
                 </Typography>
             </Box>
         </Card>
+        </LightTheme>
     )
 }
