@@ -42,7 +42,7 @@ export function inventoryRows(build: BuildInfo): ItemRow[] {
         name: a.name,
         qty: a.qty,
         sheetQty: a.qty,
-        tags: a.worn ? [tr('Armadura', 'Armor'), 'Vestida'] : [tr('Armadura', 'Armor')],
+        tags: a.worn ? [tr('Armadura', 'Armor'), tr('Vestida', 'Worn')] : [tr('Armadura', 'Armor')],
         equipment: false,
     }))
     const equipment = (build.equipment ?? []).map(([name, qty, status]) => ({

@@ -326,7 +326,7 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
                                                         size="small"
                                                         variant="contained"
                                                         startIcon={healing ? <DrinkIcon /> : <UseIcon />}
-                                                        aria-label={`${healing ? 'Beber' : tr('Usar', 'Use')} ${row.name}`}
+                                                        aria-label={`${healing ? tr('Beber', 'Drink') : tr('Usar', 'Use')} ${row.name}`}
                                                         onClick={() => use(row)}
                                                         sx={healing ? {
                                                             fontWeight: 700,
@@ -335,7 +335,7 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
                                                             '&:hover': { backgroundColor: HP_COLOR, filter: 'brightness(0.88)' },
                                                         } : { fontWeight: 700 }}
                                                     >
-                                                        {healing ? 'Beber' : tr('Usar', 'Use')}
+                                                        {healing ? tr('Beber', 'Drink') : tr('Usar', 'Use')}
                                                     </Button>
                                                 )}
                                             </Stack>

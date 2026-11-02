@@ -132,7 +132,7 @@ export const HealActivityButton = ({ build, mods, activity, fullWidth }: Props) 
                     ...(usedToday ? { color: gold.deep, borderColor: gold.main } : {}),
                 }}
             >
-                {usedToday ? tr('Usada ↺', 'Used ↺') : `Curar · ${costLabel}`}
+                {usedToday ? tr('Usada ↺', 'Used ↺') : tr(`Curar · ${costLabel}`, `Heal · ${costLabel}`)}
             </Button>
             <EmbedDialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="xs" onClick={(e) => e.stopPropagation()}>
                 <DialogTitle sx={{ pb: 1 }}>{activity.name}</DialogTitle>

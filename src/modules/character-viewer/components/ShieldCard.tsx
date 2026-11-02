@@ -403,7 +403,7 @@ const DestructiveBlock = ({ damage, hardness, shieldHp, bt, enabled, onBlock }: 
         if (damage == null) return ''
         const split = blockSplit(damage, hardness, destructive)
         const after = Math.max(0, shieldHp - split.toShield)
-        const tail = after === 0 ? tr(' (destruído)', ' (destroyed)') : shieldHp > bt && isBroken(after, { bt }) ? ' (quebra)' : ''
+        const tail = after === 0 ? tr(' (destruído)', ' (destroyed)') : shieldHp > bt && isBroken(after, { bt }) ? tr(' (quebra)', ' (breaks)') : ''
         return tr(`você −${split.toCreature} · escudo −${split.toShield}${tail}`, `you −${split.toCreature} · shield −${split.toShield}${tail}`)
     }
 
@@ -428,7 +428,7 @@ const DestructiveBlock = ({ damage, hardness, shieldHp, bt, enabled, onBlock }: 
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
                 {damage == null
                     ? tr(`Destructive Block: você desconta ${2 * hardness} (o dobro da Dureza) e o escudo toma o dobro do dano, menos a Dureza.`, `Destructive Block: you reduce ${2 * hardness} (twice the Hardness) and the shield takes double the damage, minus Hardness.`)
-                    : `Comum: ${outcome(false)} · Destrutivo: ${outcome(true)}`}
+                    : tr(`Comum: ${outcome(false)} · Destrutivo: ${outcome(true)}`, `Normal: ${outcome(false)} · Destructive: ${outcome(true)}`)}
             </Typography>
         </Box>
     )

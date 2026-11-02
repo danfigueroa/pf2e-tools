@@ -28,7 +28,7 @@ const giftRule = async (gift: RelicGift): Promise<string | null> => {
         ? (getCachedItem(gift.name) ?? await fetchItemDescription(gift.name))
         : (getCachedSpecial(gift.name) ?? await fetchSpecialDescription(gift.name))
     if (!d?.description || d.translationPending) return null
-    return [d.requirements && `Requisitos: ${d.requirements}`, d.trigger && `Gatilho: ${d.trigger}`, d.description].filter(Boolean).join('\n')
+    return [d.requirements && tr(`Requisitos: ${d.requirements}`, `Requirements: ${d.requirements}`), d.trigger && tr(`Gatilho: ${d.trigger}`, `Trigger: ${d.trigger}`), d.description].filter(Boolean).join('\n')
 }
 
 const TIER_LABEL: Record<RelicTier, string> = { minor: tr('Dádiva menor', 'Minor gift'), major: tr('Dádiva maior', 'Major gift'), grand: tr('Dádiva grandiosa', 'Grand gift') }
@@ -51,7 +51,7 @@ const Gift = ({ relic, gift, index, build, mods, mythicPoints, onSelect }: Props
             <Stack direction="row" alignItems="center" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
                 <Typography sx={{ fontWeight: 600, minWidth: 0, mr: 'auto' }}>{gift.name}</Typography>
                 <Chip label={TIER_LABEL[gift.tier]} size="small" variant="outlined" />
-                <Chip label={gift.kind === 'rune' ? 'Runa' : 'Poder'} size="small" />
+                <Chip label={gift.kind === 'rune' ? tr('Runa', 'Rune') : tr('Poder', 'Power')} size="small" />
                 {!unlocked && <Chip label={tr(`libera no nível ${giftMinLevel(gift, index)}`, `unlocks at level ${giftMinLevel(gift, index)}`)} size="small" />}
             </Stack>
             {act && (

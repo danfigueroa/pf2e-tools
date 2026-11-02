@@ -67,7 +67,7 @@ export const SyncStatus = ({ build }: Props) => {
         tone = statusColor.warning
         hint = tr('O servidor está sem armazenamento configurado, então o estado não é compartilhado.', 'The server has no storage configured, so the state isn\'t shared.')
     } else if (saving) {
-        label = 'Salvando…'
+        label = tr('Salvando…', 'Saving…')
         tone = gold.deep
         hint = tr('Enviando a alteração para a mesa.', 'Sending the change to the table.')
     } else if (sync.live) {
@@ -75,11 +75,11 @@ export const SyncStatus = ({ build }: Props) => {
         tone = statusColor.success
         hint = tr('PV, slots e condições são os mesmos para todos os jogadores, e o que mudar em outro aparelho aparece aqui na hora.', 'HP, slots and conditions are the same for every player, and what changes on another device shows up here right away.')
     } else if (sync.lastSyncedAt) {
-        label = `Sincronizado ${agoLabel(sync.lastSyncedAt, now)}`
+        label = tr(`Sincronizado ${agoLabel(sync.lastSyncedAt, now)}`, `Synced ${agoLabel(sync.lastSyncedAt, now)}`)
         tone = gold.deep
         hint = tr('PV, slots e condições são os mesmos para todos os jogadores.', 'HP, slots and conditions are the same for every player.')
     } else {
-        label = 'Sincronizando…'
+        label = tr('Sincronizando…', 'Syncing…')
         tone = gold.deep
         hint = tr('Buscando o estado da mesa.', 'Fetching the table state.')
     }

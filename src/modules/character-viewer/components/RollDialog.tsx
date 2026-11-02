@@ -1261,7 +1261,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                     const baseDc = ss.option.focus ? ss.option.focus.dc : caster ? spellcasterStats(build, caster).dc : null
                     const dc = baseDc != null ? baseDc + mods.total.spellDc : null
                     const defense = !ss.usesAttack && ss.spell.defense ? tr(`salvaguarda: ${ss.spell.defense}${dc ? ` (CD ${dc})` : ''}`, `save: ${ss.spell.defense}${dc ? ` (DC ${dc})` : ''}`) : null
-                    const amped = ss.ampOn ? 'amplificada' : null
+                    const amped = ss.ampOn ? tr('amplificada', 'amped') : null
                     send(noted(spellstrikeRoll(who, strike, plan, mythicDelta, [sub, `rank ${ss.option.rank}`, amped, defense].filter(Boolean).join(' · '), {
                         name: ss.option.name,
                         components: ss.chosen,
@@ -1389,7 +1389,7 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
         castRank != null ? `rank ${castRank}` : null,
         attackParts && map ? mapLabel(map) : null,
         basic && spell?.defense ? tr(`salvaguarda: ${spell.defense}`, `save: ${spell.defense}`) : null,
-        ampOn && ampDef ? 'amplificada' : null,
+        ampOn && ampDef ? tr('amplificada', 'amped') : null,
         mode ? tr('energia: ', 'energy: ') + (mode === 'add' ? tr('adicionando (fogo)', 'adding (fire)') : tr('removendo (frio)', 'removing (cold)')) : null,
         psycheTarget ? tr(`psique liberada +${psycheBonus}`, `psyche unleashed +${psycheBonus}`) : null,
     ].filter(Boolean).join(' · ')

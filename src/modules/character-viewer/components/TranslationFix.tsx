@@ -29,11 +29,11 @@ import { tr } from '../../../i18n'
 const FIELD_LABEL: Record<string, string> = {
     description: tr('Descrição', 'Description'),
     prerequisites: tr('Pré-requisitos', 'Prerequisites'),
-    trigger: 'Gatilho',
-    requirements: 'Requisitos',
+    trigger: tr('Gatilho', 'Trigger'),
+    requirements: tr('Requisitos', 'Requirements'),
     frequency: tr('Frequência', 'Frequency'),
-    cost: 'Custo',
-    access: 'Acesso',
+    cost: tr('Custo', 'Cost'),
+    access: tr('Acesso', 'Access'),
 }
 
 interface Props {

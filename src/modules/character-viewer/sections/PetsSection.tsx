@@ -267,7 +267,7 @@ function formatSpeeds(stats: ComputedCompanion): string {
 }
 
 const SPEED_LABELS: Record<string, string> = {
-    fly: 'voo', swim: tr('natação', 'swim'), climb: 'escalada', burrow: tr('escavação', 'burrow'),
+    fly: tr('voo', 'fly'), swim: tr('natação', 'swim'), climb: tr('escalada', 'climb'), burrow: tr('escavação', 'burrow'),
 }
 
 const BigStat = ({ label, value, hint }: { label: string; value: string; hint?: string }) => (

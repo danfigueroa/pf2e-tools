@@ -48,7 +48,7 @@ export const SlotPips = ({ total, used, color, onChange, label, size = 14 }: Pro
                 const moved = change && i >= Math.min(change.from, change.to) && i < Math.max(change.from, change.to)
                 const twin = (change?.id ?? 0) % 2
                 return (
-                    <Tooltip key={i} title={spent ? 'Recuperar' : tr('Gastar', 'Spend')} enterDelay={400}>
+                    <Tooltip key={i} title={spent ? tr('Recuperar', 'Recover') : tr('Gastar', 'Spend')} enterDelay={400}>
                         <ButtonBase
                             disabled={readOnly}
                             aria-label={`${label} ${i + 1}: ${spent ? tr('gasto', 'spent') : tr('disponível', 'available')}`}

@@ -56,22 +56,22 @@ interface UnarmedBase {
 const ANIMAL_ATTACKS: Record<string, UnarmedBase> = {
     antler: { en: 'Antler', name: tr('Galhada', 'Antler'), die: 'd6', damageType: tr('perfurante', 'piercing'), traits: ['finesse'] },
     beak: { en: 'Beak', name: tr('Bico', 'Beak'), die: 'd6', damageType: tr('perfurante', 'piercing'), traits: ['finesse'] },
-    claw: { en: 'Claw', name: tr('Garra', 'Talon'), die: 'd4', damageType: tr('cortante', 'slashing'), traits: ['agile', 'finesse'] },
+    claw: { en: 'Claw', name: tr('Garra', 'Claw'), die: 'd4', damageType: tr('cortante', 'slashing'), traits: ['agile', 'finesse'] },
     fangs: { en: 'Fangs', name: tr('Presas', 'Fangs'), die: 'd6', damageType: tr('perfurante', 'piercing'), traits: ['finesse'] },
     fist: { en: 'Fist', name: tr('Punho', 'Fist'), die: 'd4', damageType: tr('contundente', 'bludgeoning'), traits: ['agile', 'finesse', 'nonlethal'] },
     horn: { en: 'Horn', name: tr('Chifre', 'Horn'), die: 'd6', damageType: tr('perfurante', 'piercing'), traits: ['finesse'] },
     jaws: { en: 'Jaws', name: tr('Mandíbulas', 'Jaws'), die: 'd6', damageType: tr('perfurante', 'piercing'), traits: ['finesse'] },
-    tail: { en: 'Tail', name: 'Cauda', die: 'd6', damageType: tr('contundente', 'bludgeoning'), traits: ['finesse', 'trip'] },
+    tail: { en: 'Tail', name: tr('Cauda', 'Tail'), die: 'd6', damageType: tr('contundente', 'bludgeoning'), traits: ['finesse', 'trip'] },
     talon: { en: 'Talon', name: tr('Talão', 'Talon'), die: 'd4', damageType: tr('perfurante', 'piercing'), traits: ['agile', 'finesse'] },
     tongue: { en: 'Tongue', name: tr('Língua', 'Tongue'), die: 'd6', damageType: tr('contundente', 'bludgeoning'), traits: ['finesse'] },
-    wing: { en: 'Wing', name: 'Asa', die: 'd4', damageType: tr('contundente', 'bludgeoning'), traits: ['agile', 'finesse'] },
+    wing: { en: 'Wing', name: tr('Asa', 'Wing'), die: 'd4', damageType: tr('contundente', 'bludgeoning'), traits: ['agile', 'finesse'] },
 }
 
 const TRAIT_LABELS: Record<string, string> = {
     agile: tr('Ágil', 'Agile'),
-    finesse: 'Acuidade',
+    finesse: tr('Acuidade', 'Finesse'),
     nonlethal: tr('Não letal', 'Nonlethal'),
-    trip: 'Derrubar',
+    trip: tr('Derrubar', 'Trip'),
     unarmed: tr('Desarmado', 'Unarmed'),
 }
 
@@ -94,7 +94,7 @@ const AWAKENED_HERITAGE_CHOICES: Record<string, string[]> = {
  * `combatGuides.ts`: o urso do Ardagar não tem cauda para atacar.
  */
 const CHARACTER_ANIMALS: Record<string, { animal: string; attacks: string[] }> = {
-    ardagar: { animal: 'Urso', attacks: ['claw', 'jaws'] },
+    ardagar: { animal: tr('Urso', 'Bear'), attacks: ['claw', 'jaws'] },
 }
 
 /** Itens que concedem um ataque desarmado — casados pelo nome do item. */

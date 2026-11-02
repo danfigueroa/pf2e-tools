@@ -353,7 +353,7 @@ const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, o
                                 <Chip
                                     label={isMythicMagic
                                         ? tr('Ponto Mítico', 'Mythic Point')
-                                        : caster.spellcastingType === 'prepared' ? 'Preparado' : tr('Espontâneo', 'Spontaneous')}
+                                        : caster.spellcastingType === 'prepared' ? tr('Preparado', 'Prepared') : tr('Espontâneo', 'Spontaneous')}
                                     size="small"
                                     variant="outlined"
                                     sx={isMythicMagic ? { color: MYTHIC_COLOR, borderColor: MYTHIC_COLOR } : undefined}
@@ -724,7 +724,7 @@ const SlotsOverview = ({ build, slots, focusMax, hasFocusSpells, mythicPoints }:
                     {rows.map(({ caster, idx, ranks }) => (
                         <Box key={`${caster.name}-${idx}`}>
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                                {caster.name} · {caster.spellcastingType === 'prepared' ? 'preparadas' : 'slots'}
+                                {caster.name} · {caster.spellcastingType === 'prepared' ? tr('preparadas', 'prepared') : 'slots'}
                             </Typography>
                             <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
                                 {ranks.map((r) => (

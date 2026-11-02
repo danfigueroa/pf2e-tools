@@ -223,7 +223,7 @@ const PotionContent = ({ drink, onClose }: { drink: DrinkEvent; onClose: () => v
             </DialogContent>
             <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
                 <Button onClick={skipped ? onClose : () => setPhase('done')} autoFocus>
-                    {skipped ? tr('Fechar', 'Close') : 'Pular'}
+                    {skipped ? tr('Fechar', 'Close') : tr('Pular', 'Skip')}
                 </Button>
             </DialogActions>
         </>

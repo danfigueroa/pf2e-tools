@@ -136,7 +136,7 @@ export const ActionsBar = ({ actions, shieldReaction }: Props) => {
                     </Stack>
 
                     <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75 }} alignItems="center">
-                        <Tooltip title={budget.quick ? tr('Usa a ação extra do Acelerado primeiro', 'Uses Quickened\'s extra action first') : 'Andar (Stride)'}>
+                        <Tooltip title={budget.quick ? tr('Usa a ação extra do Acelerado primeiro', 'Uses Quickened\'s extra action first') : tr('Andar (Stride)', 'Stride')}>
                             <Button size="small" variant="outlined" onClick={() => actions.spend(1, 'move-attack')}>{tr('Andar', 'Stride')}</Button>
                         </Tooltip>
                         <Button size="small" variant="outlined" onClick={() => actions.spend(1)}>{tr('−1 ação', '−1 action')}</Button>

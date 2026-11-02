@@ -7,6 +7,7 @@
 // aqui edita o JSON do Pathbuilder.
 
 import type { ItemRow } from './inventory'
+import { tr } from '../../i18n'
 
 /** Destinatário (slug) → item → quantidade passada, cumulativa. */
 export type Gave = Record<string, Record<string, number>>
@@ -106,12 +107,12 @@ export function withGifts(rows: ItemRow[], gave: Gave, incoming: Incoming): Item
         seen.add(row.name)
         const qty = row.sheetQty + deltaOf(row.name, gave, incoming)
         if (qty <= 0) continue
-        out.push({ ...row, qty, tags: deltaOf(row.name, gave, incoming) > 0 ? [...row.tags, 'Recebido'] : row.tags })
+        out.push({ ...row, qty, tags: deltaOf(row.name, gave, incoming) > 0 ? [...row.tags, tr('Recebido', 'Received')] : row.tags })
     }
     for (const name of names) {
         if (seen.has(name)) continue
         const qty = deltaOf(name, gave, incoming)
-        if (qty > 0) out.push({ label: name, name, qty, sheetQty: 0, tags: ['Recebido'], equipment: true })
+        if (qty > 0) out.push({ label: name, name, qty, sheetQty: 0, tags: [tr('Recebido', 'Received')], equipment: true })
     }
     return out
 }

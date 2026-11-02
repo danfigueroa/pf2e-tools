@@ -204,7 +204,7 @@ export const ConditionsBar = ({ conditions }: Props) => {
                                     }
                                     sx={{ ml: 'auto' }}
                                 >
-                                    {showDetails ? tr('Menos', 'Less') : 'Detalhes'}
+                                    {showDetails ? tr('Menos', 'Less') : tr('Detalhes', 'Details')}
                                 </Button>
                             </Stack>
 

@@ -25,7 +25,7 @@ const STATUS_TEXT: Record<NotesStatus, string> = {
     loading: tr('Carregando…', 'Loading…'),
     saved: tr('Salvo', 'Saved'),
     pending: tr('Alterações a salvar…', 'Changes to save…'),
-    saving: 'Salvando…',
+    saving: tr('Salvando…', 'Saving…'),
     offline: tr('Sem conexão — guardado neste aparelho', 'No connection — kept on this device'),
     conflict: tr('Editado em outro aparelho', 'Edited on another device'),
 }

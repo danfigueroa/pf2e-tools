@@ -66,7 +66,7 @@ export const MythicFeatsRows = ({ build, magus, mythicPoints, conditions }: Prop
                                 size="small"
                                 variant="outlined"
                                 disabled={!canSpend}
-                                title={feat.info.trigger ? `Gatilho: ${feat.info.trigger}` : undefined}
+                                title={feat.info.trigger ? tr(`Gatilho: ${feat.info.trigger}`, `Trigger: ${feat.info.trigger}`) : undefined}
                                 onClick={() => {
                                     if (feat.id === 'become-destiny') { setDestiny(true); return }
                                     pay(feat, feat.id === 'godspeed' ? tr('Acelerado ligado e +3 m nos Deslocamentos.', 'Quickened on and +10 feet to Speeds.') : undefined)

@@ -491,7 +491,7 @@ type ShareStatus = 'idle' | 'sending' | 'done' | 'failed'
 
 const SHARE_LABEL: Record<ShareStatus, string> = {
     idle: tr('Compartilhar com a mesa', 'Share with the table'),
-    sending: 'Compartilhando…',
+    sending: tr('Compartilhando…', 'Sharing…'),
     done: tr('Compartilhado com a mesa', 'Shared with the table'),
     failed: tr('Não deu para compartilhar — tente de novo', 'Couldn\'t share — try again'),
 }
