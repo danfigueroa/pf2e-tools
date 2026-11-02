@@ -37,7 +37,9 @@ export function useUses(syncKey: string) {
     /** Novo dia: devolve tudo. */
     const resetAll = useCallback(() => setState(() => ({})), [setState])
 
-    return useMemo(() => ({ usedOf, mark, unmark, resetAll }), [usedOf, mark, unmark, resetAll])
+    /** Quantos usos diários estão marcados: o "Novo dia" tem o que devolver mesmo sem slot nem Ponto Mítico gasto. */
+    const count = Object.keys(state).length
+    return useMemo(() => ({ usedOf, mark, unmark, resetAll, count }), [usedOf, mark, unmark, resetAll, count])
 }
 
 export type UsesApi = ReturnType<typeof useUses>

@@ -452,7 +452,7 @@ const SheetBody = ({ build: source, publication, onReset, onRestore, compact = f
                 onRemove={persistentDamage.remove}
             />
 
-            {isMythicCharacter(build) && <MythicPointsBar points={mythicPoints} onNewDay={uses.resetAll} />}
+            {isMythicCharacter(build) && <MythicPointsBar points={mythicPoints} onNewDay={uses.resetAll} dailyUsed={uses.count > 0} />}
 
             {/* Dica só de quem desenvolve: na mesa as descrições vêm dos pacotes já traduzidos. */}
             {import.meta.env.DEV && apiAvailable === false && (

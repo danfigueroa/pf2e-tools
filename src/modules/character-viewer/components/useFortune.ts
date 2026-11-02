@@ -43,7 +43,10 @@ export function useFortune(build: BuildInfo, mods: ConditionModifiers, mythicPoi
         return withFortune(roll, active.note)
     }
 
-    return { sources, picked: active?.id ?? null, setPicked, active, wishUsed, sureCast, apply }
+    /** Devolve o uso do dia (marcado por engano, ou o dia virou sem o "Novo dia"). */
+    const restoreWish = () => uses.unmark(WISH_FOR_LUCK_USE)
+
+    return { sources, picked: active?.id ?? null, setPicked, active, wishUsed, sureCast, apply, restoreWish }
 }
 
 export type FortuneApi = ReturnType<typeof useFortune>

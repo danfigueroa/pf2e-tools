@@ -880,7 +880,8 @@ elenco ficar sem caminho (rode depois de publicar um personagem novo ou regerar 
   O mesmo botão aparece **dentro do drawer** do talento/habilidade (`renderActions` do `DescriptionContent`, ligado pelo
   `CharacterSheetView`), para quem foi ler a regra usar dali; o cartão da regra compartilhada não o recebe.
 - **"Uma vez por dia"**: campo da mesa `uses` (`{ nome: vezes }`, no `FIELD_RE`); o botão vira "Usada hoje ↺" (toque devolve) e
-  o **Novo dia** (aba Magias e faixa dos Pontos Míticos) zera. O Summon Mythic Power segue com o `magus.summoned` dele.
+  o **Novo dia** (aba Magias e faixa dos Pontos Míticos) zera — e fica habilitado só com um uso marcado (`uses.count`): antes ele
+  exigia slot ou Ponto Mítico gasto, e um 1×/dia sozinho (o Wish for Luck) não tinha como voltar. O Summon Mythic Power segue com o `magus.summoned` dele.
 - **Atividade que inclui um Golpe** (Sudden Charge, Vicious Swing, Slam Down, Quick Reversal… — só em ação, nunca reação):
   o custo da atividade já paga o Golpe, então ela deixa um "Golpe pago" (`prepayStrike`, 90 s) que o PRÓXIMO Golpe do diálogo
   consome (`takePrepaidStrike`) sem gastar ação. Metamagia (Reach Spell, Snowdrift Spell) é só 1 ação à parte, antes da magia.
@@ -1829,7 +1830,7 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     Parcela demais junta as últimas (`fitParts`, teto de 8 do feed) sem mudar o total.
   - **Fortuna: rolar 2d20 e ficar com o maior** (`fortune.ts` + `useFortune` + `FortuneChips`, textos conferidos na AON): **Sure
     Strike** (só ataque: Golpe, Spellstrike, ataque de magia) e **Wish for Luck** (antecedente Genie-Blessed, 1×/dia em `uses`:
-    ataque, salvaguarda e perícia — não Percepção, nem Tratar Ferimentos, nem Assurance). Chips excludentes; com o chip, o ✦ do
+    ataque, salvaguarda e perícia — não Percepção, nem Tratar Ferimentos, nem Assurance). Usado, o chip vira "usado hoje ↺" e o toque devolve o uso. Chips excludentes; com o chip, o ✦ do
     Rewrite Fate some (também é fortuna). Rolar com o Sure Strike CONJURA (1 ação + a cópia preparada, `sureStrikeResource`), a não
     ser que a magia tenha sido conjurada antes pelo "Conjurar" ou pelo slot — `useSpellCast` deixa um crédito (`noteSureStrikeCast`)
     que o ataque consome. O d20 descartado vai em `check.discarded` (≤ `d20`, nos DOIS validadores) e aparece no cartão; **as

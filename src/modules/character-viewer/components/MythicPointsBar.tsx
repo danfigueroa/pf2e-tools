@@ -21,6 +21,8 @@ interface Props {
     points: MythicPointsApi
     /** Novo dia também devolve as atividades de uso diário (`useUses`). */
     onNewDay?: () => void
+    /** Há uso diário marcado: o Novo dia tem o que devolver mesmo com os pontos cheios. */
+    dailyUsed?: boolean
 }
 
 /**
@@ -31,7 +33,7 @@ interface Props {
  * Os pips funcionam como os de slot de magia: tocar num disponível gasta,
  * tocar num gasto devolve.
  */
-export const MythicPointsBar = ({ points, onNewDay }: Props) => {
+export const MythicPointsBar = ({ points, onNewDay, dailyUsed = false }: Props) => {
     const [confirmReset, setConfirmReset] = useState(false)
 
     return (
@@ -68,7 +70,7 @@ export const MythicPointsBar = ({ points, onNewDay }: Props) => {
                                 size="small"
                                 variant="outlined"
                                 startIcon={<RestoreIcon />}
-                                disabled={points.used === 0}
+                                disabled={points.used === 0 && !dailyUsed}
                                 onClick={() => setConfirmReset(true)}
                             >
                                 {tr('Novo dia', 'New day')}</Button>
@@ -84,7 +86,7 @@ export const MythicPointsBar = ({ points, onNewDay }: Props) => {
                 <DialogTitle>{tr('Começar um novo dia?', 'Start a new day?')}</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        {tr('Os ', 'The ')}{points.max} {tr('Pontos Míticos voltam a ficar disponíveis. Como a ficha é compartilhada, isso vale para todos os jogadores.', 'Mythic Points become available again. Since the sheet is shared, this applies for every player.')}</DialogContentText>
+                        {tr('Os ', 'The ')}{points.max} {tr('Pontos Míticos e os usos diários (1×/dia) voltam a ficar disponíveis. Como a ficha é compartilhada, isso vale para todos os jogadores.', 'Mythic Points and daily uses (1/day) become available again. Since the sheet is shared, this applies for every player.')}</DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button color="inherit" onClick={() => setConfirmReset(false)}>{tr('Cancelar', 'Cancel')}</Button>

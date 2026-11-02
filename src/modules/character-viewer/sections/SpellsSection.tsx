@@ -104,7 +104,7 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
                 <DialogTitle>{tr('Começar um novo dia?', 'Start a new day?')}</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        {tr('Todos os slots de magia e pontos de foco voltam a ficar disponíveis. Como a ficha é compartilhada, isso vale para todos os jogadores.', 'All spell slots and focus points become available again. Since the sheet is shared, this applies for every player.')}</DialogContentText>
+                        {tr('Todos os slots de magia, pontos de foco e usos diários (1×/dia) voltam a ficar disponíveis. Como a ficha é compartilhada, isso vale para todos os jogadores.', 'All spell slots, focus points and daily uses (1/day) become available again. Since the sheet is shared, this applies for every player.')}</DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button color="inherit" onClick={() => setConfirmNewDay(false)}>{tr('Cancelar', 'Cancel')}</Button>
@@ -125,13 +125,15 @@ const SpellsSectionView = ({ build, onSelect, onRoll, mods, mythicPoints }: Prop
                             <Typography variant="caption" color="text.secondary" sx={{ flex: 1 }}>
                                 {slots.spentCount > 0
                                     ? tr(`Gastos hoje: ${slots.spentCount}. Toque num slot gasto para recuperá-lo.`, `Spent today: ${slots.spentCount}. Tap a spent slot to recover it.`)
-                                    : tr('Toque num slot para gastá-lo; toque de novo para recuperá-lo.', 'Tap a slot to spend it; tap again to recover it.')}
+                                    : uses.count > 0
+                                        ? tr('Nenhum slot gasto, mas há usos diários marcados (1×/dia): o Novo dia os devolve.', 'No slot spent, but there are daily uses marked (1/day): New day gives them back.')
+                                        : tr('Toque num slot para gastá-lo; toque de novo para recuperá-lo.', 'Tap a slot to spend it; tap again to recover it.')}
                             </Typography>
                             <Button
                                 size="small"
                                 variant="outlined"
                                 startIcon={<RestoreIcon />}
-                                disabled={slots.spentCount === 0}
+                                disabled={slots.spentCount === 0 && uses.count === 0}
                                 onClick={() => setConfirmNewDay(true)}
                                 sx={{ flexShrink: 0 }}
                             >

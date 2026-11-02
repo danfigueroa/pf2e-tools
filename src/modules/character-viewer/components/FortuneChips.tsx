@@ -18,7 +18,7 @@ export function FortuneChips({ fortune, blocked }: Props) {
                 {fortune.sources.map((s) => {
                     const used = s.id === 'wish-for-luck' && fortune.wishUsed
                     const on = fortune.picked === s.id && !blocked
-                    const cost = s.id === 'sure-strike' && fortune.sureCast ? tr('já conjurada', 'already cast') : used ? tr('usado hoje', 'used today') : s.cost
+                    const cost = s.id === 'sure-strike' && fortune.sureCast ? tr('já conjurada', 'already cast') : used ? tr('usado hoje ↺', 'used today ↺') : s.cost
                     return (
                         <Chip
                             key={s.id}
@@ -26,10 +26,12 @@ export function FortuneChips({ fortune, blocked }: Props) {
                             label={`${s.label} · ${cost}`}
                             color={on ? 'primary' : 'default'}
                             variant={on ? 'filled' : 'outlined'}
-                            disabled={used || !!blocked}
+                            disabled={!!blocked}
                             aria-pressed={on}
-                            onClick={() => fortune.setPicked(on ? null : s.id)}
-                            sx={{ minHeight: 28 }}
+                            // Usado: o toque devolve o uso do dia (como o "Usada hoje ↺" das atividades); o próximo o escolhe.
+                            onClick={() => (used ? fortune.restoreWish() : fortune.setPicked(on ? null : s.id))}
+                            title={used ? tr('Devolver o uso de hoje (marcado por engano, ou já é outro dia)', 'Give today\'s use back (marked by mistake, or it\'s already another day)') : undefined}
+                            sx={{ minHeight: 28, ...(used ? { opacity: 0.7 } : {}) }}
                         />
                     )
                 })}
