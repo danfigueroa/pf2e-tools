@@ -133,8 +133,8 @@ export const MarkdownEditor = memo(function MarkdownEditor(props: Props) {
                 display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.25, px: 0.5, py: 0.25,
                 borderBottom: `1px solid ${rule}`, bgcolor: parchment.page,
             }}>
-                <ToolButton title="Negrito" onClick={() => wrap('**', '**', 'texto')} disabled={!showEditor}><FormatBold fontSize="small" /></ToolButton>
-                <ToolButton title={tr("Itálico", 'Italic')} onClick={() => wrap('_', '_', 'texto')} disabled={!showEditor}><FormatItalic fontSize="small" /></ToolButton>
+                <ToolButton title={tr('Negrito', 'Bold')} onClick={() => wrap('**', '**', tr('texto', 'text'))} disabled={!showEditor}><FormatBold fontSize="small" /></ToolButton>
+                <ToolButton title={tr("Itálico", 'Italic')} onClick={() => wrap('_', '_', tr('texto', 'text'))} disabled={!showEditor}><FormatItalic fontSize="small" /></ToolButton>
                 <ToolButton title={tr("Título", 'Heading')} onClick={() => prefixLines('## ')} disabled={!showEditor}><Title fontSize="small" /></ToolButton>
                 <ToolButton title={tr("Lista", 'List')} onClick={() => prefixLines('- ')} disabled={!showEditor}><FormatListBulleted fontSize="small" /></ToolButton>
                 <ToolButton title={tr("Lista de tarefas", 'Task list')} onClick={() => prefixLines('- [ ] ')} disabled={!showEditor}><Checklist fontSize="small" /></ToolButton>

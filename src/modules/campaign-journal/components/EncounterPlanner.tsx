@@ -34,7 +34,7 @@ const THREAT_COLOR: Record<Threat, string> = {
     extreme: statusColor.error,
 }
 
-const STATUS_LABEL: Record<EncounterStatus, string> = { planned: 'Planejado', sent: tr('Na Iniciativa', 'In Initiative'), done: tr('Feito', 'Done') }
+const STATUS_LABEL: Record<EncounterStatus, string> = { planned: tr('Planejado', 'Planned'), sent: tr('Na Iniciativa', 'In Initiative'), done: tr('Feito', 'Done') }
 
 interface Props {
     encounter: PlannedEncounter
@@ -255,7 +255,7 @@ export const EncounterPlanner = memo(function EncounterPlanner({ encounter, part
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }} sx={{ mt: 1.5 }}>
                 <Button variant="contained" startIcon={<SendIcon />} disabled={total === 0 || sending} onClick={() => void send()}>
-                    {sending ? 'Enviando…' : tr('Enviar para a Iniciativa', 'Send to Initiative')}
+                    {sending ? tr('Enviando…', 'Sending…') : tr('Enviar para a Iniciativa', 'Send to Initiative')}
                 </Button>
                 <Typography variant="caption" color="text.secondary">
                     {total === 0

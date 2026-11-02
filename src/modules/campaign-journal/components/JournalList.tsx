@@ -87,7 +87,7 @@ export const JournalList = memo(function JournalList({ docs, selected, onOpen, o
 
             <Section title={tr("Sessões", 'Sessions')}>
                 <List dense disablePadding>
-                    {sessions.filter(match).map((d) => item(d, d.status === 'played' ? 'Jogada' : 'Planejada', d.status === 'played' ? green.mid : gold.main))}
+                    {sessions.filter(match).map((d) => item(d, d.status === 'played' ? tr('Jogada', 'Played') : tr('Planejada', 'Planned'), d.status === 'played' ? green.mid : gold.main))}
                 </List>
                 {sessions.length === 0 && <Typography variant="body2" color="text.secondary" sx={{ px: 1, fontStyle: 'italic' }}>{tr('Nenhuma sessão ainda.', 'No sessions yet.')}</Typography>}
             </Section>

@@ -178,8 +178,8 @@ export const ThreadView = memo(function ThreadView({ doc, version, update, docs,
                         </ToggleButton>
                     ))}
                 </ToggleButtonGroup>
-                {sessionSelect('Aparece em', doc.data.introducedIn, (v) => setData({ introducedIn: v }))}
-                {sessionSelect('Resolvido em', doc.data.resolvedIn, (v) => setData({ resolvedIn: v }))}
+                {sessionSelect(tr('Aparece em', 'Appears in'), doc.data.introducedIn, (v) => setData({ introducedIn: v }))}
+                {sessionSelect(tr('Resolvido em', 'Resolved in'), doc.data.resolvedIn, (v) => setData({ resolvedIn: v }))}
             </Stack>
             <MarkdownEditor
                 key={`md-${version}`}

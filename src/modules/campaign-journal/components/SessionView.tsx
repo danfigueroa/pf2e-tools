@@ -31,7 +31,7 @@ import { tr } from '../../../i18n'
 
 type TabKey = 'prep' | 'scenes' | 'encounters' | 'cast' | 'log' | 'recap'
 
-const SCENE_STATUS: Record<SceneStatus, string> = { planned: 'Planejada', done: 'Feita', skipped: 'Pulada' }
+const SCENE_STATUS: Record<SceneStatus, string> = { planned: tr('Planejada', 'Planned'), done: tr('Feita', 'Done'), skipped: tr('Pulada', 'Skipped') }
 
 interface Props {
     doc: SessionDoc
@@ -285,7 +285,7 @@ export const SessionView = memo(function SessionView({ doc, version, update, doc
                     sx={{ width: { xs: '100%', sm: 180 } }}
                 />
                 <Chip
-                    label={data.status === 'played' ? `Jogada${data.playedOn ? ` em ${data.playedOn.split('-').reverse().join('/')}` : ''}` : 'Planejada'}
+                    label={data.status === 'played' ? tr(`Jogada${data.playedOn ? ` em ${data.playedOn.split('-').reverse().join('/')}` : ''}`, `Played${data.playedOn ? ` on ${data.playedOn}` : ''}`) : tr('Planejada', 'Planned')}
                     onDelete={data.status === 'played' ? () => setData({ status: 'planned', playedOn: null }) : undefined}
                     sx={{ alignSelf: { xs: 'flex-start', sm: 'center' }, ...(data.status === 'played' ? { bgcolor: green.mid, color: parchment.paper } : {}) }}
                 />
