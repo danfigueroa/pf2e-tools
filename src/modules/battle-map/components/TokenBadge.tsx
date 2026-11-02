@@ -2,7 +2,7 @@ import { Box } from '@mui/material'
 import { useSharedState } from '../../character-viewer/components/useSharedState'
 import { useImageUrl } from '../../../services/images'
 import { initials } from '../geometry'
-import { MAP_BACKDROP, TOKEN_PC, parchment } from '../../../theme'
+import { MAP_BACKDROP, TOKEN_PC, onFrame } from '../../../theme'
 
 interface TokenStored { url: string }
 
@@ -42,7 +42,7 @@ export const TokenBadge = ({ slug, name, size = 36 }: Props) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: parchment.page,
+                color: onFrame.page,
                 fontWeight: 700,
                 fontSize: size * 0.38,
             }}

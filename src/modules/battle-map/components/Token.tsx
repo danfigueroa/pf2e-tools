@@ -3,7 +3,7 @@ import { useTheme } from '@mui/material'
 import { CELL_PX, initials } from '../geometry'
 import { hpBarColor } from '../../character-viewer/components/useHpTracker'
 import { useImageUrl } from '../../../services/images'
-import { MAP_BACKDROP, TOKEN_NPC, TOKEN_PC, gold, mapChrome, parchment, status } from '../../../theme'
+import { MAP_BACKDROP, TOKEN_NPC, TOKEN_PC, gold, mapChrome, status, onFrame } from '../../../theme'
 import type { TokenDescriptor } from '../../../services/maps'
 import type { TokenHp } from '../hp'
 import { fitStyle } from '../tokenFit'
@@ -293,7 +293,7 @@ export const Token = memo(function Token({ id, token, x, y, hp, showNumbers, ima
                 ) : (
                     <span
                         style={{
-                            color: parchment.page,
+                            color: onFrame.page,
                             fontWeight: 700,
                             fontSize: (px - 2 * inset) * 0.32,
                             letterSpacing: '0.02em',

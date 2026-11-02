@@ -3,7 +3,7 @@ import { Box, IconButton, Paper, Typography } from '@mui/material'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import type { TokenDescriptor } from '../../../services/maps'
-import { gold, green, mapChrome, parchment } from '../../../theme'
+import { gold, green, mapChrome, onFrame } from '../../../theme'
 import { tr } from '../../../i18n'
 
 interface Props {
@@ -62,7 +62,7 @@ export const TurnOrder = ({ tokens, turn }: Props) => {
                 flexDirection: 'column',
                 overflow: 'hidden',
                 backgroundColor: green.main,
-                color: parchment.page,
+                color: onFrame.page,
                 borderTop: `2px solid ${gold.main}`,
             }}
         >

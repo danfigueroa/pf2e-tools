@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { Box, ButtonBase, CircularProgress, IconButton, MenuItem, Select, Tooltip, Typography } from '@mui/material'
 import { ChevronRight as CollapseIcon } from '@mui/icons-material'
-import { green, gold, parchment, displayFont } from '../../../theme'
+import { green, gold, displayFont, onFrame } from '../../../theme'
 import { parseCharacterJson, type BuildInfo } from '../../../pathbuilder/types'
 import { CAMPAIGN_PRESETS, loadPresetJson } from '../../character-viewer/campaignPresets'
 import { charSlugFromName } from '../../character-viewer/charId'
@@ -126,7 +126,7 @@ export const SheetPanel = ({ slug, onSlugChange, onCollapse }: Props) => {
                     sx={{
                         flex: 1,
                         minWidth: 0,
-                        color: parchment.page,
+                        color: onFrame.page,
                         '& .MuiSelect-icon': { color: gold.bright },
                         '& fieldset': { borderColor: 'rgba(200, 169, 81, 0.5)' },
                         '& .MuiSelect-select': { py: 0.75 },

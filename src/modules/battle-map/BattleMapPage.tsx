@@ -64,7 +64,7 @@ import {
     type MapMeta,
     type TokenDescriptor,
 } from '../../services/maps'
-import { DRAW_COLORS, gold, green, ink, parchment } from '../../theme'
+import { DRAW_COLORS, gold, green, ink, onFrame } from '../../theme'
 import { setCurrentMapId } from '../initiative-tracker/encounterStorage'
 import { useRole } from '../../services/auth'
 import { usePublishedSheets } from '../character-viewer/usePublishedSheets'
@@ -368,7 +368,7 @@ export const BattleMapPage = () => {
                         flexWrap: 'wrap',
                         gap: 1,
                         backgroundColor: green.main,
-                        color: parchment.page,
+                        color: onFrame.page,
                         borderBottom: `2px solid ${gold.main}`,
                     }}
                 >
@@ -406,7 +406,7 @@ export const BattleMapPage = () => {
                         onChange={(_, v: MapTool | null) => { if (v) setTool(v) }}
                         sx={{
                             '& .MuiToggleButton-root': {
-                                color: parchment.page,
+                                color: onFrame.page,
                                 borderColor: `${gold.main}66`,
                                 px: { xs: 1, sm: 1.5 },
                                 '&.Mui-selected': { color: green.deepest, backgroundColor: gold.bright },
@@ -445,7 +445,7 @@ export const BattleMapPage = () => {
                         onClick={() => setDiceOpen((o) => !o)}
                         startIcon={<DiceIcon fontSize="small" />}
                         sx={{
-                            color: diceOpen ? green.deepest : parchment.page,
+                            color: diceOpen ? green.deepest : onFrame.page,
                             backgroundColor: diceOpen ? gold.bright : 'transparent',
                             border: `1px solid ${gold.main}66`,
                             '&:hover': { backgroundColor: diceOpen ? gold.bright : `${gold.main}33` },
@@ -462,7 +462,7 @@ export const BattleMapPage = () => {
                                 display: { xs: 'none', md: 'flex' },
                                 alignItems: 'center',
                                 gap: 0.5,
-                                color: parchment.page,
+                                color: onFrame.page,
                                 fontSize: '0.8rem',
                                 cursor: 'help',
                             }}
@@ -533,7 +533,7 @@ export const BattleMapPage = () => {
                         flexDirection: 'column',
                         alignItems: 'center',
                         backgroundColor: green.main,
-                        '& .MuiIconButton-root': { color: parchment.page, width: 44, height: 44 },
+                        '& .MuiIconButton-root': { color: onFrame.page, width: 44, height: 44 },
                     }}
                 >
                     <IconButton aria-label={tr("Aproximar", 'Zoom in')} onClick={() => canvas.current?.zoomBy(1.25)}><ZoomInIcon /></IconButton>
