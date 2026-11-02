@@ -629,6 +629,21 @@ ok(table.sanitizeTableRoll(crowded) !== null && server.sanitizeRoll(crowded) !==
   eq(sp.peekStratagem('teste-miranda', 2000), null, '"Não usar" descarta o d20 (e ele nunca foi à mesa)')
 }
 
+// ── Imagem dos itens (campo `art`) ───────────────────────────────────────────
+{
+  const itemArt = await import('../src/modules/character-viewer/itemArt.ts')
+  const url = 'https://x.supabase.co/storage/v1/object/public/images/items/loki-mirage-abc.webp'
+  const clean = itemArt.sanitizeItemArt({ 'exquisite sword cane': url, bad: 'javascript:alert(1)', long: 'https://' + 'a'.repeat(400), arr: [url] })
+  eq(Object.keys(clean).join(','), 'exquisite sword cane', 'Imagem de item: só URL https (ou idb:) e de tamanho razoável')
+  ok(itemArt.sanitizeItemArt([url]) === itemArt.NO_ITEM_ART, 'Lista não é o formato')
+  const many = Object.fromEntries(Array.from({ length: 60 }, (_, i) => [`item ${i}`, url]))
+  eq(Object.keys(itemArt.sanitizeItemArt(many)).length, itemArt.MAX_ITEM_ART, 'No máximo 25 imagens por ficha')
+  eq(itemArt.itemArtKey('  Healing Potion (Minor) '), 'healing potion (minor)', 'A chave é o nome, minúsculo: duas cópias dividem a imagem')
+  ok(tableStore.isValidField ? tableStore.isValidField('art') && tableStore.isValidField('guide') : true, 'O servidor aceita os campos art e guide')
+  const worst = itemArt.sanitizeItemArt(Object.fromEntries(Array.from({ length: 40 }, (_, i) => [`item ${i}`.padEnd(itemArt.MAX_ART_KEY, 'x'), 'https://' + 'a'.repeat(itemArt.MAX_ART_URL - 8)])))
+  ok(new TextEncoder().encode(JSON.stringify(worst)).length <= tableStore.MAX_FIELD_BYTES, 'O pior caso cabe no teto de 8 KB do campo')
+}
+
 // ── Veneno simples do Poison Weapon (o padrão do Eldarion) ───────────────────
 eq(rogue.simpleDoses(eld), 10, 'Doses por dia = nível')
 eq(rogue.simplePoisonDice(eld).count, 2, 'Eldarion tem o Improved Poison Weapon: 2d4')

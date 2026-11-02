@@ -14,7 +14,9 @@ import type { DescriptionRequest } from '../components/DescriptionDrawer'
 import type { ConditionModifiers } from '../conditions'
 import { characterMaxHp } from '../helpers'
 import type { ItemRow } from '../inventory'
-import { consumedKeyFor, hpKeyFor, legacyCharKey } from '../charId'
+import { artKeyFor, consumedKeyFor, hpKeyFor, legacyCharKey } from '../charId'
+import { useItemArt } from '../components/useItemArt'
+import { ItemArt } from '../components/ItemArt'
 import { useConsumables } from '../components/useConsumables'
 import { CompanionsCard } from '../components/CompanionsCard'
 import { RelicsCard } from '../components/RelicsCard'
@@ -80,6 +82,9 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
     const hasRelics = relicsOf(build).length > 0
 
     const consumables = useConsumables(consumedKeyFor(build))
+    // A imagem de cada item (campo `art` da mesa): miniatura na linha, grande ao tocar.
+    const art = useItemArt(artKeyFor(build))
+    const anyArt = art.count > 0
     // Usar/beber custa a ação que a AON diz (poção, elixir e veneno: 1 ação de Interagir).
     const actions = useActions(actionsKeyFor(build), mods)
     // Cura de poção vai no PV do próprio personagem (quem bebe). É a mesma fatia
@@ -221,6 +226,7 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
                                             '&:hover': { backgroundColor: 'action.hover' },
                                         }}
                                     >
+                                        <ItemArt slug={me} name={row.name} label={row.label} art={art} reserve={anyArt} />
                                         <Box
                                             role="button"
                                             tabIndex={0}
