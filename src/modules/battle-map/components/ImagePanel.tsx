@@ -108,8 +108,8 @@ export const ImagePanel = ({ meta, onChange }: Props) => {
 
             {rect && (
                 <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
-                    {sideField('w', 'Largura')}
-                    {sideField('h', 'Altura')}
+                    {sideField('w', tr('Largura', 'Width'))}
+                    {sideField('h', tr('Altura', 'Height'))}
                 </Box>
             )}
 

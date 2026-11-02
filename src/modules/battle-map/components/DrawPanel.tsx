@@ -31,7 +31,7 @@ interface Props {
     count: number
 }
 
-const WIDTH_LABELS = ['Fina', tr('Média', 'Medium'), 'Grossa']
+const WIDTH_LABELS = [tr('Fina', 'Thin'), tr('Média', 'Medium'), tr('Grossa', 'Thick')]
 
 /** Ferramenta Desenhar: modo, cor do efeito e espessura. */
 export const DrawPanel = ({ style, onChange, onClearAll, count }: Props) => {

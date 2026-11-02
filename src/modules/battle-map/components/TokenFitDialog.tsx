@@ -150,7 +150,7 @@ export const TokenFitDialog = ({ name, src, initial, copies, pc, onUpload, uploa
                         {onUpload && (
                             <>
                                 <Button size="small" variant="outlined" disabled={uploading} onClick={() => fileInput.current?.click()}>
-                                    {uploading ? 'Enviando…' : tr('Enviar outra imagem', 'Upload another image')}
+                                    {uploading ? tr('Enviando…', 'Uploading…') : tr('Enviar outra imagem', 'Upload another image')}
                                 </Button>
                                 <input
                                     ref={fileInput}

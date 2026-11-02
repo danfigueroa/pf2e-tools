@@ -27,7 +27,7 @@ interface Props {
 function woundLabel(hp: TokenHp): string {
     if (hp.current <= 0) return tr('Caído', 'Down')
     const ratio = hp.current / hp.max
-    if (ratio >= 1) return 'Ileso'
+    if (ratio >= 1) return tr('Ileso', 'Unharmed')
     if (ratio > 0.5) return tr('Ferido', 'Wounded')
     if (ratio > 0.25) return tr('Muito ferido', 'Badly wounded')
     return tr('À beira da morte', 'At death\'s door')
