@@ -11,6 +11,7 @@ import { Markdown } from '../../../components/markdown/Markdown'
 import { imageErrorText, shrinkImage, uploadImage } from '../../../services/images'
 import { gold, parchment, rule } from '../../../theme'
 import { useJournalTools } from '../tools'
+import { tr } from '../../../i18n'
 
 // Editor de Markdown do diário: barra de formatação, envio de imagem e prévia —
 // lado a lado no desktop, alternada (Editar/Ver) no celular. Na prévia, os
@@ -133,24 +134,24 @@ export const MarkdownEditor = memo(function MarkdownEditor(props: Props) {
                 borderBottom: `1px solid ${rule}`, bgcolor: parchment.page,
             }}>
                 <ToolButton title="Negrito" onClick={() => wrap('**', '**', 'texto')} disabled={!showEditor}><FormatBold fontSize="small" /></ToolButton>
-                <ToolButton title="Itálico" onClick={() => wrap('_', '_', 'texto')} disabled={!showEditor}><FormatItalic fontSize="small" /></ToolButton>
-                <ToolButton title="Título" onClick={() => prefixLines('## ')} disabled={!showEditor}><Title fontSize="small" /></ToolButton>
-                <ToolButton title="Lista" onClick={() => prefixLines('- ')} disabled={!showEditor}><FormatListBulleted fontSize="small" /></ToolButton>
-                <ToolButton title="Lista de tarefas" onClick={() => prefixLines('- [ ] ')} disabled={!showEditor}><Checklist fontSize="small" /></ToolButton>
-                <ToolButton title="Citação" onClick={() => prefixLines('> ')} disabled={!showEditor}><FormatQuote fontSize="small" /></ToolButton>
+                <ToolButton title={tr("Itálico", 'Italic')} onClick={() => wrap('_', '_', 'texto')} disabled={!showEditor}><FormatItalic fontSize="small" /></ToolButton>
+                <ToolButton title={tr("Título", 'Heading')} onClick={() => prefixLines('## ')} disabled={!showEditor}><Title fontSize="small" /></ToolButton>
+                <ToolButton title={tr("Lista", 'List')} onClick={() => prefixLines('- ')} disabled={!showEditor}><FormatListBulleted fontSize="small" /></ToolButton>
+                <ToolButton title={tr("Lista de tarefas", 'Task list')} onClick={() => prefixLines('- [ ] ')} disabled={!showEditor}><Checklist fontSize="small" /></ToolButton>
+                <ToolButton title={tr("Citação", 'Quote')} onClick={() => prefixLines('> ')} disabled={!showEditor}><FormatQuote fontSize="small" /></ToolButton>
                 {!plain && (
                     <>
-                    <ToolButton title="Link para o catálogo: [[Nome]]" onClick={() => wrap('[[', ']]', 'Nome')} disabled={!showEditor}><LinkIcon fontSize="small" /></ToolButton>
-                    <ToolButton title="Bloco para os jogadores" onClick={() => wrap(':::jogadores Título\n', '\n:::', 'O que os jogadores leem.')} disabled={!showEditor}>
+                    <ToolButton title={tr("Link para o catálogo: [[Nome]]", 'Link to the catalog: [[Name]]')} onClick={() => wrap('[[', ']]', tr('Nome', 'Name'))} disabled={!showEditor}><LinkIcon fontSize="small" /></ToolButton>
+                    <ToolButton title={tr("Bloco para os jogadores", 'Block for the players')} onClick={() => wrap(tr(':::jogadores Título\n', ':::players Title\n'), '\n:::', tr('O que os jogadores leem.', 'What the players read.'))} disabled={!showEditor}>
                         <PlayersIcon fontSize="small" sx={{ color: gold.deep }} />
                     </ToolButton>
-                    <ToolButton title="Enviar imagem" onClick={() => fileRef.current?.click()} disabled={!showEditor || uploading}>
+                    <ToolButton title={tr("Enviar imagem", 'Upload image')} onClick={() => fileRef.current?.click()} disabled={!showEditor || uploading}>
                     {uploading ? <CircularProgress size={16} /> : <ImageIcon fontSize="small" />}
                     </ToolButton>
                     </>
                 )}
                 {template && (
-                    <ToolButton title="Inserir modelo" onClick={() => insert(template)} disabled={!showEditor}><TemplateIcon fontSize="small" /></ToolButton>
+                    <ToolButton title={tr('Inserir modelo', 'Insert template')} onClick={() => insert(template)} disabled={!showEditor}><TemplateIcon fontSize="small" /></ToolButton>
                 )}
                 <Box sx={{ flex: 1 }} />
                 <ToggleButtonGroup
@@ -160,8 +161,8 @@ export const MarkdownEditor = memo(function MarkdownEditor(props: Props) {
                     onChange={(_, v: Mode | null) => { if (v) setMode(v) }}
                     sx={{ '& .MuiToggleButton-root': { py: 0.25, px: 1, textTransform: 'none' } }}
                 >
-                    <ToggleButton value="edit">Editar</ToggleButton>
-                    <ToggleButton value="view">Ver</ToggleButton>
+                    <ToggleButton value="edit">{tr('Editar', 'Edit')}</ToggleButton>
+                    <ToggleButton value="view">{tr('Ver', 'View')}</ToggleButton>
                 </ToggleButtonGroup>
                 <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => void onFile(e.target.files?.[0])} />
             </Box>
@@ -193,7 +194,7 @@ export const MarkdownEditor = memo(function MarkdownEditor(props: Props) {
                                     knownNames={tools.knownNames}
                                 />
                             )
-                            : <Box sx={{ color: 'text.secondary', fontStyle: 'italic' }}>Nada escrito ainda.</Box>}
+                            : <Box sx={{ color: 'text.secondary', fontStyle: 'italic' }}>{tr('Nada escrito ainda.', 'Nothing written yet.')}</Box>}
                     </Box>
                 )}
             </Box>

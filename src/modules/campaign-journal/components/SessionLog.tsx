@@ -3,7 +3,7 @@ import { Box, Button, Chip, IconButton, Stack, TextField, Typography } from '@mu
 import { Close as CloseIcon, Send as SendIcon } from '@mui/icons-material'
 import { gold, green, parchment, rule } from '../../../theme'
 import { LOG_TAG_LABEL, LOG_TAGS, MAX_LOG, newId, type LogEntry, type LogTag } from '../doc'
-import { locale } from '../../../i18n'
+import { locale, tr } from '../../../i18n'
 
 // Registro durante o jogo: anotações rápidas com hora (o que aconteceu, decisões,
 // saques, pistas). Enter grava; a etiqueta escolhida fica para a próxima, porque
@@ -54,13 +54,13 @@ export const SessionLog = memo(function SessionLog({ log, onChange }: Props) {
                         inputRef={input}
                         size="small"
                         fullWidth
-                        placeholder="O que aconteceu? (Enter grava)"
+                        placeholder={tr("O que aconteceu? (Enter grava)", 'What happened? (Enter saves)')}
                         value={text}
                         onChange={(e) => setText(e.target.value.slice(0, 2000))}
                         onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); add() } }}
-                        slotProps={{ htmlInput: { 'aria-label': 'Nova anotação do registro' } }}
+                        slotProps={{ htmlInput: { 'aria-label': tr('Nova anotação do registro', 'New log entry') } }}
                     />
-                    <Button variant="contained" onClick={add} disabled={!text.trim()} aria-label="Gravar anotação" sx={{ minWidth: 0, px: 1.5 }}>
+                    <Button variant="contained" onClick={add} disabled={!text.trim()} aria-label={tr("Gravar anotação", 'Save entry')} sx={{ minWidth: 0, px: 1.5 }}>
                         <SendIcon fontSize="small" />
                     </Button>
                 </Stack>
@@ -68,8 +68,8 @@ export const SessionLog = memo(function SessionLog({ log, onChange }: Props) {
 
             {log.length > 0 && (
                 <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap alignItems="center">
-                    <Typography variant="caption" color="text.secondary">Mostrar:</Typography>
-                    <Chip size="small" label="Tudo" variant={filter ? 'outlined' : 'filled'} onClick={() => setFilter(null)} />
+                    <Typography variant="caption" color="text.secondary">{tr('Mostrar:', 'Show:')}</Typography>
+                    <Chip size="small" label={tr("Tudo", 'All')} variant={filter ? 'outlined' : 'filled'} onClick={() => setFilter(null)} />
                     {LOG_TAGS.filter((t) => log.some((e) => e.tag === t)).map((t) => (
                         <Chip key={t} size="small" label={LOG_TAG_LABEL[t]} variant={filter === t ? 'filled' : 'outlined'} onClick={() => setFilter(t)} />
                     ))}
@@ -78,7 +78,7 @@ export const SessionLog = memo(function SessionLog({ log, onChange }: Props) {
 
             {shown.length === 0 && (
                 <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                    {log.length ? 'Nada com essa etiqueta.' : 'Nada anotado ainda. Durante o jogo, anote aqui o que acontece.'}
+                    {log.length ? tr('Nada com essa etiqueta.', 'Nothing with that tag.') : tr('Nada anotado ainda. Durante o jogo, anote aqui o que acontece.', 'Nothing noted yet. During the game, note down here what happens.')}
                 </Typography>
             )}
             <Stack component="ol" spacing={0} sx={{ listStyle: 'none', p: 0, m: 0 }}>
@@ -93,7 +93,7 @@ export const SessionLog = memo(function SessionLog({ log, onChange }: Props) {
                             {e.tag && <Chip size="small" label={LOG_TAG_LABEL[e.tag]} sx={{ mr: 0.75, height: 20 }} />}
                             <Typography component="span" sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{e.text}</Typography>
                         </Box>
-                        <IconButton size="small" aria-label="Apagar anotação" onClick={() => onChange(log.filter((x) => x.id !== e.id))}>
+                        <IconButton size="small" aria-label={tr("Apagar anotação", 'Delete entry')} onClick={() => onChange(log.filter((x) => x.id !== e.id))}>
                             <CloseIcon fontSize="small" />
                         </IconButton>
                     </Box>

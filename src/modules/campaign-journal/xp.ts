@@ -1,3 +1,4 @@
+import { tr } from '../../i18n'
 // Orçamento de XP de um encontro, pelo GM Core (pg. 75-76), conferido na AON:
 //   Table 10-1: Encounter Budget        (Rules.aspx?ID=2717)
 //   Table 10-2: Creature XP and Role    (Rules.aspx?ID=2718)
@@ -12,7 +13,7 @@ export type Threat = 'trivial' | 'low' | 'moderate' | 'severe' | 'extreme'
 export const THREATS: readonly Threat[] = ['trivial', 'low', 'moderate', 'severe', 'extreme']
 
 export const THREAT_LABEL: Record<Threat, string> = {
-    trivial: 'Trivial', low: 'Baixa', moderate: 'Moderada', severe: 'Severa', extreme: 'Extrema',
+    trivial: 'Trivial', low: tr('Baixa', 'Low'), moderate: tr('Moderada', 'Moderate'), severe: tr('Severa', 'Severe'), extreme: tr('Extrema', 'Extreme'),
 }
 
 /** Table 10-1: XP para 4 personagens e o ajuste por personagem a mais ou a menos. */

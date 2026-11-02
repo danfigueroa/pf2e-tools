@@ -12,6 +12,7 @@ import { TEMPLATES } from '../templates'
 import { useJournalTools } from '../tools'
 import { MarkdownEditor } from './MarkdownEditor'
 import { THREAD_COLOR, THREAD_STATUS_LABEL } from '../threadStyle'
+import { tr } from '../../../i18n'
 
 // A ficha de um NPC, local, item, facção ou outro (o catálogo da campanha,
 // reaproveitado entre sessões) e a de um gancho.
@@ -27,9 +28,9 @@ function Appearances({ id, docs, onOpen }: { id: string; docs: JournalSummary[];
     const sessions = docs.filter((d) => d.kind === 'session' && d.links.includes(id)).sort((a, b) => a.sort - b.sort)
     return (
         <Box sx={{ mt: 2 }}>
-            <Typography sx={{ fontFamily: displayFont, fontWeight: 700, color: green.main, mb: 0.75 }}>Aparece nas sessões</Typography>
+            <Typography sx={{ fontFamily: displayFont, fontWeight: 700, color: green.main, mb: 0.75 }}>{tr('Aparece nas sessões', 'Shows up in the sessions')}</Typography>
             {sessions.length === 0
-                ? <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>Em nenhuma ainda (ponha no Elenco da sessão).</Typography>
+                ? <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>{tr('Em nenhuma ainda (ponha no Elenco da sessão).', 'In none yet (put it in a session\'s Cast).')}</Typography>
                 : (
                     <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
                         {sessions.map((s) => <Chip key={s.id} label={sessionLabel(s)} onClick={() => onOpen(s.id)} />)}
@@ -81,16 +82,16 @@ export const CatalogView = memo(function CatalogView({ doc, version, update, doc
                     }}>
                         {image
                             ? <Box component="img" src={image} alt={doc.title} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            : <Typography variant="body2" color="text.secondary">Sem imagem</Typography>}
+                            : <Typography variant="body2" color="text.secondary">{tr('Sem imagem', 'No image')}</Typography>}
                     </Box>
                     <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
                         <Button size="small" startIcon={uploading ? <CircularProgress size={14} /> : <PhotoIcon />} disabled={uploading} onClick={() => file.current?.click()}>
-                            {doc.data.image ? 'Trocar' : 'Enviar imagem'}
+                            {doc.data.image ? tr('Trocar', 'Change') : tr('Enviar imagem', 'Upload image')}
                         </Button>
                         {doc.data.image && (
                             <>
-                                <Button size="small" startIcon={<ShareIcon />} onClick={() => tools.shareImage(doc.data.image!, doc.title)}>Mostrar</Button>
-                                <Button size="small" color="inherit" aria-label="Tirar a imagem" onClick={() => setData({ image: null })}><DeleteIcon fontSize="small" /></Button>
+                                <Button size="small" startIcon={<ShareIcon />} onClick={() => tools.shareImage(doc.data.image!, doc.title)}>{tr('Mostrar', 'Show')}</Button>
+                                <Button size="small" color="inherit" aria-label={tr("Tirar a imagem", 'Remove the image')} onClick={() => setData({ image: null })}><DeleteIcon fontSize="small" /></Button>
                             </>
                         )}
                     </Stack>
@@ -100,7 +101,7 @@ export const CatalogView = memo(function CatalogView({ doc, version, update, doc
                     <TextField
                         select
                         size="small"
-                        label="Tipo"
+                        label={tr("Tipo", 'Kind')}
                         value={doc.kind}
                         onChange={(e) => update((d) => ({ ...d, kind: e.target.value as CatalogKind }))}
                         slotProps={{ select: { native: true } }}
@@ -115,7 +116,7 @@ export const CatalogView = memo(function CatalogView({ doc, version, update, doc
                         options={NO_OPTIONS}
                         value={doc.data.tags}
                         onChange={(_, v) => setData({ tags: [...new Set(v.map((t) => t.trim().slice(0, 30)).filter(Boolean))].slice(0, 12) })}
-                        renderInput={(params) => <TextField {...params} label="Etiquetas" placeholder="aliado, cidade, mágico… (Enter)" />}
+                        renderInput={(params) => <TextField {...params} label="Etiquetas" placeholder={tr("aliado, cidade, mágico… (Enter)", 'ally, city, magic… (Enter)')} />}
                     />
                     {error && <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>}
                 </Stack>
@@ -127,7 +128,7 @@ export const CatalogView = memo(function CatalogView({ doc, version, update, doc
                 imageName={doc.title}
                 template={TEMPLATES[doc.kind]}
                 minRows={14}
-                aria-label={`Texto de ${doc.title}`}
+                aria-label={tr(`Texto de ${doc.title}`, `Text of ${doc.title}`)}
             />
             <Appearances id={doc.id} docs={docs} onOpen={onOpen} />
         </Box>
@@ -187,7 +188,7 @@ export const ThreadView = memo(function ThreadView({ doc, version, update, docs,
                 imageName={doc.title}
                 template={TEMPLATES.thread}
                 minRows={10}
-                aria-label={`Texto do gancho ${doc.title}`}
+                aria-label={tr(`Texto do gancho ${doc.title}`, `Text of the hook ${doc.title}`)}
             />
             <Appearances id={doc.id} docs={docs} onOpen={onOpen} />
         </Box>

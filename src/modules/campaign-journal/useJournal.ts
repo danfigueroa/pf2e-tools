@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { mesaKey } from '../../services/mesa'
 import { fetchJournalDoc, fetchJournalList, listenJournal, saveJournalDoc } from '../../services/journal'
 import { sanitizeDoc, sanitizeSummary, wireDoc, type JournalDoc, type JournalSummary } from './doc'
+import { tr } from '../../i18n'
 
 // A lista do diário e o documento aberto.
 //
@@ -101,7 +102,7 @@ export interface JournalDocState {
 export async function createJournalDoc(doc: JournalDoc): Promise<string | null> {
     const out = await saveJournalDoc(wireDoc(doc), null)
     if (out.ok) return null
-    return out.conflict ? 'Já existe um documento com esse id' : out.error
+    return out.conflict ? tr('Já existe um documento com esse id', 'A document with that id already exists') : out.error
 }
 
 export function useJournalDoc(id: string | null, onSaved?: (doc: JournalDoc) => void): JournalDocState {

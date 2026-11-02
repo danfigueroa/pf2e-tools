@@ -9,6 +9,7 @@
 // conteúdo é validado AQUI, ao ler — da API ou do rascunho no `localStorage`.
 
 import type { AonCreature } from '../../services/creatures'
+import { tr } from '../../i18n'
 
 export type CatalogKind = 'npc' | 'location' | 'item' | 'faction' | 'other'
 export type DocKind = 'session' | CatalogKind | 'thread'
@@ -16,23 +17,23 @@ export type DocKind = 'session' | CatalogKind | 'thread'
 export const CATALOG_KINDS: readonly CatalogKind[] = ['npc', 'location', 'item', 'faction', 'other']
 
 export const KIND_LABEL: Record<DocKind, { one: string; many: string }> = {
-    session: { one: 'Sessão', many: 'Sessões' },
+    session: { one: tr('Sessão', 'Session'), many: tr('Sessões', 'Sessions') },
     npc: { one: 'NPC', many: 'NPCs' },
-    location: { one: 'Local', many: 'Locais' },
-    item: { one: 'Item', many: 'Itens' },
-    faction: { one: 'Facção', many: 'Facções' },
-    other: { one: 'Outro', many: 'Outros' },
-    thread: { one: 'Gancho', many: 'Ganchos' },
+    location: { one: tr('Local', 'Place'), many: tr('Locais', 'Places') },
+    item: { one: 'Item', many: tr('Itens', 'Items') },
+    faction: { one: tr('Facção', 'Faction'), many: tr('Facções', 'Factions') },
+    other: { one: tr('Outro', 'Other'), many: tr('Outros', 'Others') },
+    thread: { one: tr('Gancho', 'Hook'), many: tr('Ganchos', 'Hooks') },
 }
 
 export type SceneStatus = 'planned' | 'done' | 'skipped'
 export type EncounterStatus = 'planned' | 'sent' | 'done'
 export type ThreadStatus = 'open' | 'revealed' | 'resolved'
 
-export const LOG_TAGS = ['combate', 'saque', 'decisao', 'npc', 'pista'] as const
+export const LOG_TAGS = ['combate', 'saque', 'decisao', 'npc', 'pista'] as const // i18n-ok: chaves
 export type LogTag = typeof LOG_TAGS[number]
 export const LOG_TAG_LABEL: Record<LogTag, string> = {
-    combate: 'Combate', saque: 'Saque', decisao: 'Decisão', npc: 'NPC', pista: 'Pista',
+    combate: tr('Combate', 'Combat'), saque: tr('Saque', 'Loot'), decisao: tr('Decisão', 'Decision'), npc: 'NPC', pista: tr('Pista', 'Clue'),
 }
 
 export interface Scene { id: string; title: string; md: string; status: SceneStatus }
@@ -214,7 +215,7 @@ export function sanitizeDoc(raw: unknown): JournalDoc | null {
     if (!KINDS.includes(r.kind as DocKind)) return null
     const base: Base = {
         id: r.id,
-        title: line(r.title, 200).trim() || 'Sem título',
+        title: line(r.title, 200).trim() || tr('Sem título', 'Untitled'),
         sort: Number.isInteger(r.sort) ? r.sort as number : 0,
         updatedAt: typeof r.updatedAt === 'number' ? r.updatedAt : null,
     }
@@ -229,7 +230,7 @@ export function sanitizeSummary(raw: unknown): JournalSummary | null {
     return {
         id: r.id,
         kind: r.kind as DocKind,
-        title: line(r.title, 200) || 'Sem título',
+        title: line(r.title, 200) || tr('Sem título', 'Untitled'),
         sort: Number.isInteger(r.sort) ? r.sort as number : 0,
         updatedAt: typeof r.updatedAt === 'number' ? r.updatedAt : 0,
         image: typeof r.image === 'string' ? r.image : null,

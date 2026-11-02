@@ -19,6 +19,7 @@ import { encounterXp, THREAT_LABEL, THREATS, type Threat } from '../xp'
 import type { EncounterStatus, PlannedEncounter } from '../doc'
 import { TEMPLATES } from '../templates'
 import { MarkdownEditor } from './MarkdownEditor'
+import { tr } from '../../../i18n'
 
 // Um encontro planejado: criaturas da AON (a mesma busca da Iniciativa), o
 // orçamento de XP do GM Core para o grupo e o botão que manda tudo para a
@@ -33,7 +34,7 @@ const THREAT_COLOR: Record<Threat, string> = {
     extreme: statusColor.error,
 }
 
-const STATUS_LABEL: Record<EncounterStatus, string> = { planned: 'Planejado', sent: 'Na Iniciativa', done: 'Feito' }
+const STATUS_LABEL: Record<EncounterStatus, string> = { planned: 'Planejado', sent: tr('Na Iniciativa', 'In Initiative'), done: tr('Feito', 'Done') }
 
 interface Props {
     encounter: PlannedEncounter
@@ -118,7 +119,7 @@ export const EncounterPlanner = memo(function EncounterPlanner({ encounter, part
                 }
                 // Escalada: precisa da ficha completa da AON, não só do resumo da busca.
                 const detail = await fetchMonster(creature.name)
-                if (!detail) throw new Error(`Não deu para carregar a ficha de "${creature.name}" para escalar.`)
+                if (!detail) throw new Error(tr(`Não deu para carregar a ficha de "${creature.name}" para escalar.`, `Couldn't load "${creature.name}"'s sheet to scale it.`))
                 const scaled = scaleMonster(detail, level, {}, null)
                 return Array.from({ length: count }, (_, i) => npcFromScaled(scaled, count > 1 ? i : 0))
             }))
@@ -126,7 +127,7 @@ export const EncounterPlanner = memo(function EncounterPlanner({ encounter, part
             set({ status: 'sent' })
             navigate('/iniciativa')
         } catch (e) {
-            setSendError(e instanceof Error ? e.message : 'Não deu para enviar o encontro.')
+            setSendError(e instanceof Error ? e.message : tr('Não deu para enviar o encontro.', 'Couldn\'t send the encounter.'))
         } finally {
             setSending(false)
         }
@@ -139,22 +140,22 @@ export const EncounterPlanner = memo(function EncounterPlanner({ encounter, part
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
                 <TextField
                     size="small"
-                    label="Encontro"
+                    label={tr("Encontro", 'Encounter')}
                     value={encounter.title}
                     onChange={(e) => set({ title: e.target.value.slice(0, 120) })}
                     sx={{ flex: 1, minWidth: 0 }}
                 />
-                <IconButton aria-label={`Apagar o encontro ${encounter.title}`} onClick={onRemove}><DeleteIcon /></IconButton>
+                <IconButton aria-label={tr(`Apagar o encontro ${encounter.title}`, `Delete the encounter ${encounter.title}`)} onClick={onRemove}><DeleteIcon /></IconButton>
             </Stack>
 
             <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mb: 0.5 }}>
                 <Chip
-                    label={`Ameaça ${THREAT_LABEL[xp.threat].toLowerCase()}`}
+                    label={tr(`Ameaça ${THREAT_LABEL[xp.threat].toLowerCase()}`, `${THREAT_LABEL[xp.threat]} threat`)}
                     sx={{ bgcolor: THREAT_COLOR[xp.threat], color: chrome.onAccent, fontWeight: 700 }}
                 />
                 <Typography sx={{ fontFamily: displayFont, fontWeight: 700 }}>{xp.total} XP</Typography>
                 <Typography variant="body2" color="text.secondary">
-                    para {party.size} personagens de nível {party.level}
+                    {tr('para ', 'for ')}{party.size} {tr('personagens de nível ', 'characters of level ')}{party.level}
                 </Typography>
                 <Box sx={{ flex: 1 }} />
                 <ToggleButtonGroup
@@ -172,7 +173,7 @@ export const EncounterPlanner = memo(function EncounterPlanner({ encounter, part
             <XpBar total={xp.total} budgets={xp.budgets} />
             {xp.outOfRange.length > 0 && (
                 <Alert severity="warning" sx={{ mb: 1.5 }}>
-                    Fora da tabela do GM Core (mais de 4 níveis do grupo), sem XP na conta:{' '}
+                    {tr('Fora da tabela do GM Core (mais de 4 níveis do grupo), sem XP na conta:', 'Outside the GM Core table (more than 4 levels from the group), no XP counted:')}{' '}
                     {xp.outOfRange.map((o) => `${o.name} (${o.diff > 0 ? '+' : ''}${o.diff})`).join(', ')}.
                 </Alert>
             )}
@@ -189,28 +190,28 @@ export const EncounterPlanner = memo(function EncounterPlanner({ encounter, part
                             <Box sx={{ flex: 1, minWidth: 0 }}>
                                 <Typography sx={{ fontWeight: 600 }} noWrap>{c.creature.name}</Typography>
                                 <Typography variant="caption" color="text.secondary">
-                                    Nível {lvl} ({diff >= 0 ? '+' : ''}{diff})
-                                    {c.level !== undefined ? ` · escalada do nível ${c.creature.level}` : ` · CA ${c.creature.ac} · PV ${c.creature.hp}`}
+                                    {tr('Nível ', 'Level ')}{lvl} ({diff >= 0 ? '+' : ''}{diff})
+                                    {c.level !== undefined ? tr(` · escalada do nível ${c.creature.level}`, ` · scaled from level ${c.creature.level}`) : ` · CA ${c.creature.ac} · PV ${c.creature.hp}`}
                                 </Typography>
                             </Box>
-                            <IconButton size="small" aria-label={`Diminuir o nível de ${c.creature.name}`} onClick={() => setLevel(i, lvl - 1)}>
+                            <IconButton size="small" aria-label={tr(`Diminuir o nível de ${c.creature.name}`, `Lower ${c.creature.name}'s level`)} onClick={() => setLevel(i, lvl - 1)}>
                                 <RemoveIcon fontSize="small" sx={{ color: gold.deep }} />
                             </IconButton>
                             <Typography variant="caption" sx={{ minWidth: 28, textAlign: 'center', fontWeight: 700, color: gold.deep }}>
                                 N{lvl}
                             </Typography>
-                            <IconButton size="small" aria-label={`Aumentar o nível de ${c.creature.name}`} onClick={() => setLevel(i, lvl + 1)}>
+                            <IconButton size="small" aria-label={tr(`Aumentar o nível de ${c.creature.name}`, `Raise ${c.creature.name}'s level`)} onClick={() => setLevel(i, lvl + 1)}>
                                 <AddIcon fontSize="small" sx={{ color: gold.deep }} />
                             </IconButton>
                             <Box sx={{ width: 8 }} />
-                            <IconButton size="small" aria-label={`Um ${c.creature.name} a menos`} onClick={() => setCount(i, c.count - 1)}>
+                            <IconButton size="small" aria-label={tr(`Um ${c.creature.name} a menos`, `One fewer ${c.creature.name}`)} onClick={() => setCount(i, c.count - 1)}>
                                 <RemoveIcon fontSize="small" />
                             </IconButton>
                             <Typography sx={{ minWidth: 20, textAlign: 'center', fontWeight: 700 }}>{c.count}</Typography>
-                            <IconButton size="small" aria-label={`Um ${c.creature.name} a mais`} onClick={() => setCount(i, c.count + 1)}>
+                            <IconButton size="small" aria-label={tr(`Um ${c.creature.name} a mais`, `One more ${c.creature.name}`)} onClick={() => setCount(i, c.count + 1)}>
                                 <AddIcon fontSize="small" />
                             </IconButton>
-                            <IconButton size="small" aria-label={`Tirar ${c.creature.name}`} onClick={() => setCount(i, 0)}>
+                            <IconButton size="small" aria-label={tr(`Tirar ${c.creature.name}`, `Remove ${c.creature.name}`)} onClick={() => setCount(i, 0)}>
                                 <CloseIcon fontSize="small" />
                             </IconButton>
                         </Box>
@@ -224,7 +225,7 @@ export const EncounterPlanner = memo(function EncounterPlanner({ encounter, part
                 onClick={() => setSearching((v) => !v)}
                 sx={{ mb: 1, color: green.mid }}
             >
-                {searching ? 'Fechar a busca' : 'Adicionar criaturas da AON'}
+                {searching ? tr('Fechar a busca', 'Close the search') : tr('Adicionar criaturas da AON', 'Add creatures from AON')}
             </Button>
             <Collapse in={searching} unmountOnExit>
                 <Box sx={{ mb: 2, p: 1.5, border: `1px dashed ${gold.main}`, borderRadius: 1 }}>
@@ -245,21 +246,21 @@ export const EncounterPlanner = memo(function EncounterPlanner({ encounter, part
                 key={`${encounter.id}-${version}`}
                 value={encounter.md}
                 onChange={(md) => set({ md })}
-                imageName={encounter.title || 'encontro'}
+                imageName={encounter.title || tr('encontro', 'encounter')}
                 template={TEMPLATES.encounter}
                 minRows={4}
-                placeholder="Terreno, táticas, recompensa…"
-                aria-label={`Notas do encontro ${encounter.title}`}
+                placeholder={tr("Terreno, táticas, recompensa…", 'Terrain, tactics, reward…')}
+                aria-label={tr(`Notas do encontro ${encounter.title}`, `Notes for the encounter ${encounter.title}`)}
             />
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }} sx={{ mt: 1.5 }}>
                 <Button variant="contained" startIcon={<SendIcon />} disabled={total === 0 || sending} onClick={() => void send()}>
-                    {sending ? 'Enviando…' : 'Enviar para a Iniciativa'}
+                    {sending ? 'Enviando…' : tr('Enviar para a Iniciativa', 'Send to Initiative')}
                 </Button>
                 <Typography variant="caption" color="text.secondary">
                     {total === 0
-                        ? 'Adicione criaturas para enviar.'
-                        : `${total} combatente${total > 1 ? 's' : ''} no encontro ${mapName ? `do mapa "${mapName}"` : 'aberto na Iniciativa'}.`}
+                        ? tr('Adicione criaturas para enviar.', 'Add creatures to send.')
+                        : tr(`${total} combatente${total > 1 ? 's' : ''} no encontro ${mapName ? `do mapa "${mapName}"` : 'aberto na Iniciativa'}.`, `${total} combatant${total > 1 ? 's' : ''} in the encounter ${mapName ? `of the map "${mapName}"` : 'open in Initiative'}.`)}
                 </Typography>
             </Stack>
             {sendError && <Alert severity="error" sx={{ mt: 1 }}>{sendError}</Alert>}

@@ -4,6 +4,7 @@ import { Add as AddIcon, Check as CheckIcon, Visibility as RevealIcon, Link as L
 import { displayFont, green, parchment, rule } from '../../../theme'
 import type { JournalSummary, ThreadStatus } from '../doc'
 import { THREAD_COLOR, THREAD_STATUS_LABEL } from '../threadStyle'
+import { tr } from '../../../i18n'
 
 // Ganchos e pendências da campanha ao lado da sessão: os desta sessão e os que
 // seguem em aberto, para o GM não esquecer a pista que plantou três sessões atrás.
@@ -38,17 +39,17 @@ function Row({ t, here, onOpen, onLink, onStatus }: {
                 <Typography variant="body2" noWrap>{t.title}</Typography>
             </Button>
             {!here && (
-                <IconButton size="small" aria-label={`Ligar "${t.title}" a esta sessão`} title="Ligar a esta sessão" onClick={() => onLink(t.id)}>
+                <IconButton size="small" aria-label={tr(`Ligar "${t.title}" a esta sessão`, `Link "${t.title}" to this session`)} title={tr("Ligar a esta sessão", 'Link to this session')} onClick={() => onLink(t.id)}>
                     <LinkIcon fontSize="small" />
                 </IconButton>
             )}
             {status === 'open' && (
-                <IconButton size="small" aria-label={`Marcar "${t.title}" como revelado`} title="Revelado" onClick={() => onStatus(t.id, 'revealed')}>
+                <IconButton size="small" aria-label={tr(`Marcar "${t.title}" como revelado`, `Mark "${t.title}" as revealed`)} title="Revelado" onClick={() => onStatus(t.id, 'revealed')}>
                     <RevealIcon fontSize="small" />
                 </IconButton>
             )}
             {status !== 'resolved' && (
-                <IconButton size="small" aria-label={`Marcar "${t.title}" como resolvido`} title="Resolvido" onClick={() => onStatus(t.id, 'resolved')}>
+                <IconButton size="small" aria-label={tr(`Marcar "${t.title}" como resolvido`, `Mark "${t.title}" as resolved`)} title="Resolvido" onClick={() => onStatus(t.id, 'resolved')}>
                     <CheckIcon fontSize="small" />
                 </IconButton>
             )}
@@ -72,12 +73,12 @@ export const ThreadsPanel = memo(function ThreadsPanel({ docs, linked, onOpen, o
     return (
         <Paper variant="outlined" sx={{ p: 1.5, bgcolor: parchment.paper, position: { xl: 'sticky' }, top: { xl: 16 } }}>
             <Typography sx={{ fontFamily: displayFont, fontWeight: 700, color: green.main, mb: 1 }}>Ganchos</Typography>
-            <Typography variant="caption" color="text.secondary">Nesta sessão</Typography>
-            {here.length === 0 && <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', py: 0.5 }}>Nenhum.</Typography>}
+            <Typography variant="caption" color="text.secondary">{tr('Nesta sessão', 'In this session')}</Typography>
+            {here.length === 0 && <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', py: 0.5 }}>{tr('Nenhum.', 'None.')}</Typography>}
             {here.map((t) => <Row key={t.id} t={t} here onOpen={onOpen} onLink={onLink} onStatus={onStatus} />)}
             {open.length > 0 && (
                 <>
-                    <Typography variant="caption" color="text.secondary" component="div" sx={{ mt: 1.5 }}>Em aberto na campanha</Typography>
+                    <Typography variant="caption" color="text.secondary" component="div" sx={{ mt: 1.5 }}>{tr('Em aberto na campanha', 'Open in the campaign')}</Typography>
                     {open.map((t) => <Row key={t.id} t={t} here={false} onOpen={onOpen} onLink={onLink} onStatus={onStatus} />)}
                 </>
             )}
@@ -85,13 +86,13 @@ export const ThreadsPanel = memo(function ThreadsPanel({ docs, linked, onOpen, o
                 <TextField
                     size="small"
                     fullWidth
-                    placeholder="Novo gancho, pista, segredo…"
+                    placeholder={tr("Novo gancho, pista, segredo…", 'New hook, clue, secret…')}
                     value={title}
                     onChange={(e) => setTitle(e.target.value.slice(0, 200))}
                     onKeyDown={(e) => { if (e.key === 'Enter') add() }}
-                    slotProps={{ htmlInput: { 'aria-label': 'Novo gancho' } }}
+                    slotProps={{ htmlInput: { 'aria-label': tr('Novo gancho', 'New hook') } }}
                 />
-                <IconButton aria-label="Criar gancho" onClick={add} disabled={!title.trim()}><AddIcon /></IconButton>
+                <IconButton aria-label={tr("Criar gancho", 'Create hook')} onClick={add} disabled={!title.trim()}><AddIcon /></IconButton>
             </Stack>
             <Stack direction="row" spacing={0.75} sx={{ mt: 1.5 }} flexWrap="wrap" useFlexGap>
                 {(Object.keys(THREAD_STATUS_LABEL) as ThreadStatus[]).map((s) => (

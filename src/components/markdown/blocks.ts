@@ -16,7 +16,8 @@ export interface MdSegment {
     title?: string
 }
 
-const OPEN_RE = /^:::[ \t]*jogadores\b[ \t]*(.*)$/i
+// `:::players` é o mesmo bloco, para quem usa a plataforma em inglês (os dois valem sempre).
+const OPEN_RE = /^:::[ \t]*(?:jogadores|players)\b[ \t]*(.*)$/i
 const CLOSE_RE = /^:::[ \t]*$/
 const FENCE_RE = /^(```|~~~)/
 

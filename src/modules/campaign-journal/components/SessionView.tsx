@@ -23,6 +23,7 @@ import { MarkdownEditor } from './MarkdownEditor'
 import { EncounterPlanner } from './EncounterPlanner'
 import { SessionLog } from './SessionLog'
 import { ThreadsPanel } from './ThreadsPanel'
+import { tr } from '../../../i18n'
 
 // Uma página por sessão: a preparação, as cenas (com o que já foi feito), os
 // encontros planejados, o elenco que aparece (do catálogo da campanha), o
@@ -59,7 +60,7 @@ function SceneCard({ scene, version, first, last, onChange, onMove, onRemove }: 
             <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mb: 1.5 }}>
                 <TextField
                     size="small"
-                    label="Cena"
+                    label={tr("Cena", 'Scene')}
                     value={scene.title}
                     onChange={(e) => onChange({ ...scene, title: e.target.value.slice(0, 120) })}
                     sx={{ flex: '1 1 200px', minWidth: 0 }}
@@ -74,19 +75,19 @@ function SceneCard({ scene, version, first, last, onChange, onMove, onRemove }: 
                     {(Object.keys(SCENE_STATUS) as SceneStatus[]).map((s) => <ToggleButton key={s} value={s}>{SCENE_STATUS[s]}</ToggleButton>)}
                 </ToggleButtonGroup>
                 <Box>
-                    <IconButton size="small" aria-label={`Subir a cena ${scene.title}`} disabled={first} onClick={() => onMove(-1)}><ArrowUpward fontSize="small" /></IconButton>
-                    <IconButton size="small" aria-label={`Descer a cena ${scene.title}`} disabled={last} onClick={() => onMove(1)}><ArrowDownward fontSize="small" /></IconButton>
-                    <IconButton size="small" aria-label={`Apagar a cena ${scene.title}`} onClick={onRemove}><DeleteIcon fontSize="small" /></IconButton>
+                    <IconButton size="small" aria-label={tr(`Subir a cena ${scene.title}`, `Move the scene ${scene.title} up`)} disabled={first} onClick={() => onMove(-1)}><ArrowUpward fontSize="small" /></IconButton>
+                    <IconButton size="small" aria-label={tr(`Descer a cena ${scene.title}`, `Move the scene ${scene.title} down`)} disabled={last} onClick={() => onMove(1)}><ArrowDownward fontSize="small" /></IconButton>
+                    <IconButton size="small" aria-label={tr(`Apagar a cena ${scene.title}`, `Delete the scene ${scene.title}`)} onClick={onRemove}><DeleteIcon fontSize="small" /></IconButton>
                 </Box>
             </Stack>
             <MarkdownEditor
                 key={`${scene.id}-${version}`}
                 value={scene.md}
                 onChange={(md) => onChange({ ...scene, md })}
-                imageName={scene.title || 'cena'}
+                imageName={scene.title || tr('cena', 'scene')}
                 template={TEMPLATES.scene}
                 minRows={5}
-                aria-label={`Texto da cena ${scene.title}`}
+                aria-label={tr(`Texto da cena ${scene.title}`, `Text of the scene ${scene.title}`)}
             />
         </Paper>
     )
@@ -130,13 +131,13 @@ function CastPanel({ data, docs, onLinks, onOpen, onCreate }: {
         <Stack spacing={2}>
             {(toLink.length > 0 || toCreate.length > 0) && (
                 <Alert severity="info" icon={false}>
-                    <Typography variant="body2" sx={{ mb: 1 }}>Citados no texto desta sessão:</Typography>
+                    <Typography variant="body2" sx={{ mb: 1 }}>{tr('Citados no texto desta sessão:', 'Mentioned in this session\'s text:')}</Typography>
                     <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
                         {toLink.map((d) => (
-                            <Chip key={d.id} size="small" icon={<AddIcon />} label={`Pôr no elenco: ${d.title}`} onClick={() => onLinks([...data.links, d.id])} />
+                            <Chip key={d.id} size="small" icon={<AddIcon />} label={tr(`Pôr no elenco: ${d.title}`, `Add to the cast: ${d.title}`)} onClick={() => onLinks([...data.links, d.id])} />
                         ))}
                         {toCreate.map((n) => (
-                            <Chip key={n} size="small" variant="outlined" icon={<AddIcon />} label={`Criar NPC: ${n}`} onClick={() => void create(n, 'npc')} />
+                            <Chip key={n} size="small" variant="outlined" icon={<AddIcon />} label={tr(`Criar NPC: ${n}`, `Create NPC: ${n}`)} onClick={() => void create(n, 'npc')} />
                         ))}
                     </Stack>
                 </Alert>
@@ -158,7 +159,7 @@ function CastPanel({ data, docs, onLinks, onOpen, onCreate }: {
                                     <Button onClick={() => onOpen(d.id)} sx={{ flex: 1, minWidth: 0, justifyContent: 'flex-start', textTransform: 'none', color: 'text.primary', px: 0.5 }}>
                                         <Typography noWrap sx={{ fontWeight: 600 }}>{d.title}</Typography>
                                     </Button>
-                                    <IconButton size="small" aria-label={`Tirar ${d.title} do elenco`} onClick={() => onLinks(data.links.filter((x) => x !== d.id))}>
+                                    <IconButton size="small" aria-label={tr(`Tirar ${d.title} do elenco`, `Remove ${d.title} from the cast`)} onClick={() => onLinks(data.links.filter((x) => x !== d.id))}>
                                         <CloseIcon fontSize="small" />
                                     </IconButton>
                                 </Box>
@@ -169,12 +170,11 @@ function CastPanel({ data, docs, onLinks, onOpen, onCreate }: {
             })}
             {linked.length === 0 && (
                 <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                    Ninguém no elenco ainda. Escolha do catálogo da campanha ou crie aqui.
-                </Typography>
+                    {tr('Ninguém no elenco ainda. Escolha do catálogo da campanha ou crie aqui.', 'Nobody in the cast yet. Pick from the campaign catalog or create one here.')}</Typography>
             )}
 
             <Paper variant="outlined" sx={{ p: 1.5 }}>
-                <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>Do catálogo</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>{tr('Do catálogo', 'From the catalog')}</Typography>
                 <Autocomplete
                     size="small"
                     options={options}
@@ -182,34 +182,33 @@ function CastPanel({ data, docs, onLinks, onOpen, onCreate }: {
                     getOptionLabel={(o) => o.title}
                     value={null}
                     onChange={(_, v) => { if (v) onLinks([...data.links, v.id]) }}
-                    renderInput={(params) => <TextField {...params} placeholder="Buscar NPC, local, item…" />}
-                    noOptionsText="Nada no catálogo com esse nome"
+                    renderInput={(params) => <TextField {...params} placeholder={tr("Buscar NPC, local, item…", 'Search NPC, place, item…')} />}
+                    noOptionsText={tr("Nada no catálogo com esse nome", 'Nothing in the catalog with that name')}
                     blurOnSelect
                     clearOnBlur
                 />
-                <Typography variant="body2" sx={{ fontWeight: 600, mt: 2, mb: 1 }}>Novo</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600, mt: 2, mb: 1 }}>{tr('Novo', 'New')}</Typography>
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
                     <TextField
                         size="small"
                         select
                         value={kind}
                         onChange={(e) => setKind(e.target.value as CatalogKind)}
-                        slotProps={{ select: { native: true }, htmlInput: { 'aria-label': 'Tipo' } }}
+                        slotProps={{ select: { native: true }, htmlInput: { 'aria-label': tr('Tipo', 'Kind') } }}
                         sx={{ minWidth: 120 }}
                     >
                         {CATALOG_KINDS.map((k) => <option key={k} value={k}>{KIND_LABEL[k].one}</option>)}
                     </TextField>
                     <TextField
                         size="small"
-                        placeholder="Nome"
+                        placeholder={tr("Nome", 'Name')}
                         value={name}
                         onChange={(e) => setName(e.target.value.slice(0, 200))}
                         onKeyDown={(e) => { if (e.key === 'Enter' && name.trim()) { void create(name.trim(), kind); setName('') } }}
                         sx={{ flex: 1 }}
                     />
                     <Button variant="outlined" startIcon={<AddIcon />} disabled={!name.trim()} onClick={() => { void create(name.trim(), kind); setName('') }}>
-                        Criar
-                    </Button>
+                        {tr('Criar', 'Create')}</Button>
                 </Stack>
             </Paper>
         </Stack>
@@ -254,10 +253,10 @@ export const SessionView = memo(function SessionView({ doc, version, update, doc
 
     const doneScenes = data.scenes.filter((s) => s.status === 'done').length
     const tabs: { key: TabKey; label: string; count?: number }[] = [
-        { key: 'prep', label: 'Preparação' },
-        { key: 'scenes', label: 'Cenas', count: data.scenes.length },
-        { key: 'encounters', label: 'Encontros', count: data.encounters.length },
-        { key: 'cast', label: 'Elenco', count: data.links.filter((id) => docs.some((d) => d.id === id && d.kind !== 'thread')).length },
+        { key: 'prep', label: tr('Preparação', 'Prep') },
+        { key: 'scenes', label: tr('Cenas', 'Scenes'), count: data.scenes.length },
+        { key: 'encounters', label: tr('Encontros', 'Encounters'), count: data.encounters.length },
+        { key: 'cast', label: tr('Elenco', 'Cast'), count: data.links.filter((id) => docs.some((d) => d.id === id && d.kind !== 'thread')).length },
         { key: 'log', label: 'Registro', count: data.log.length },
         { key: 'recap', label: 'Resumo' },
     ]
@@ -279,7 +278,7 @@ export const SessionView = memo(function SessionView({ doc, version, update, doc
                 <TextField
                     size="small"
                     type="date"
-                    label="Marcada para"
+                    label={tr("Marcada para", 'Scheduled for')}
                     value={data.plannedFor ?? ''}
                     onChange={(e) => setData({ plannedFor: e.target.value || null })}
                     slotProps={{ inputLabel: { shrink: true } }}
@@ -293,17 +292,14 @@ export const SessionView = memo(function SessionView({ doc, version, update, doc
                 <Box sx={{ flex: 1 }} />
                 {mesa.sessionStartedAt && data.playedOn === today ? (
                     <Button variant="outlined" color="error" startIcon={<StopIcon />} disabled={busy} onClick={() => void endSession()}>
-                        Encerrar a sessão
-                    </Button>
+                        {tr('Encerrar a sessão', 'End the session')}</Button>
                 ) : (
                     <Button variant="contained" startIcon={<StartIcon />} disabled={busy} onClick={() => void startSession()}>
-                        Começar a sessão
-                    </Button>
+                        {tr('Começar a sessão', 'Start the session')}</Button>
                 )}
                 {data.playedOn && (
                     <Button component={RouterLink} to={`/historico?dia=${data.playedOn}`} startIcon={<HistoryIcon />}>
-                        Rolagens deste dia
-                    </Button>
+                        {tr('Rolagens deste dia', 'This day\'s rolls')}</Button>
                 )}
             </Stack>
             {error && <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 2 }}>{error}</Alert>}
@@ -345,8 +341,8 @@ export const SessionView = memo(function SessionView({ doc, version, update, doc
                             imageName={doc.title}
                             template={TEMPLATES.prep}
                             minRows={16}
-                            placeholder="Onde paramos, o objetivo da sessão, segredos e pistas…"
-                            aria-label="Preparação da sessão"
+                            placeholder={tr("Onde paramos, o objetivo da sessão, segredos e pistas…", 'Where we stopped, the session\'s goal, secrets and clues…')}
+                            aria-label={tr("Preparação da sessão", 'Session prep')}
                         />
                     )}
 
@@ -362,18 +358,17 @@ export const SessionView = memo(function SessionView({ doc, version, update, doc
                                     onChange={(next) => setScene(s.id, next)}
                                     onMove={(d) => setData((cur) => ({ scenes: move(cur.scenes, cur.scenes.findIndex((x) => x.id === s.id), d) }))}
                                     onRemove={() => {
-                                        if (window.confirm(`Apagar a cena "${s.title || 'sem título'}"?`)) setData((cur) => ({ scenes: cur.scenes.filter((x) => x.id !== s.id) }))
+                                        if (window.confirm(tr(`Apagar a cena "${s.title || 'sem título'}"?`, `Delete the scene "${s.title || 'untitled'}"?`))) setData((cur) => ({ scenes: cur.scenes.filter((x) => x.id !== s.id) }))
                                     }}
                                 />
                             ))}
                             <Button
                                 variant="outlined"
                                 startIcon={<AddIcon />}
-                                onClick={() => setData((cur) => ({ scenes: [...cur.scenes, { id: newId('c'), title: `Cena ${cur.scenes.length + 1}`, md: '', status: 'planned' }] }))}
+                                onClick={() => setData((cur) => ({ scenes: [...cur.scenes, { id: newId('c'), title: tr(`Cena ${cur.scenes.length + 1}`, `Scene ${cur.scenes.length + 1}`), md: '', status: 'planned' }] }))}
                                 sx={{ alignSelf: 'flex-start' }}
                             >
-                                Nova cena
-                            </Button>
+                                {tr('Nova cena', 'New scene')}</Button>
                         </Stack>
                     )}
 
@@ -381,26 +376,26 @@ export const SessionView = memo(function SessionView({ doc, version, update, doc
                         <Stack spacing={2}>
                             <Paper variant="outlined" sx={{ p: 1.5 }}>
                                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }}>
-                                    <Typography variant="body2" sx={{ fontWeight: 600 }}>Grupo</Typography>
+                                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{tr('Grupo', 'Group')}</Typography>
                                     <Stack direction="row" spacing={1.5}>
                                         <TextField
-                                            size="small" type="number" label="Nível" value={party.level}
+                                            size="small" type="number" label={tr("Nível", 'Level')} value={party.level}
                                             onChange={(e) => setData({ party: { ...party, level: Math.max(-1, Math.min(25, parseInt(e.target.value, 10) || 1)) } })}
                                             sx={{ width: 90 }}
                                         />
                                         <TextField
-                                            size="small" type="number" label="Personagens" value={party.size}
+                                            size="small" type="number" label={tr("Personagens", 'Characters')} value={party.size}
                                             onChange={(e) => setData({ party: { ...party, size: Math.max(1, Math.min(12, parseInt(e.target.value, 10) || 4)) } })}
                                             sx={{ width: 120 }}
                                         />
                                     </Stack>
                                     <Typography variant="caption" color="text.secondary" sx={{ flex: 1 }}>
                                         {data.party
-                                            ? 'Definido à mão para esta sessão.'
-                                            : publishedParty ? 'Pelas fichas publicadas da mesa.' : 'Sem fichas publicadas: ajuste à mão.'}
+                                            ? tr('Definido à mão para esta sessão.', 'Set by hand for this session.')
+                                            : publishedParty ? tr('Pelas fichas publicadas da mesa.', 'From the table\'s published sheets.') : tr('Sem fichas publicadas: ajuste à mão.', 'No published sheets: adjust by hand.')}
                                     </Typography>
                                     {data.party && publishedParty && (
-                                        <Button size="small" onClick={() => setData({ party: null })}>Usar as fichas da mesa</Button>
+                                        <Button size="small" onClick={() => setData({ party: null })}>{tr('Usar as fichas da mesa', 'Use the table\'s sheets')}</Button>
                                     )}
                                 </Stack>
                             </Paper>
@@ -412,18 +407,17 @@ export const SessionView = memo(function SessionView({ doc, version, update, doc
                                     version={version}
                                     onChange={(next) => setEncounter(e.id, next)}
                                     onRemove={() => {
-                                        if (window.confirm(`Apagar o encontro "${e.title || 'sem título'}"?`)) setData((cur) => ({ encounters: cur.encounters.filter((x) => x.id !== e.id) }))
+                                        if (window.confirm(tr(`Apagar o encontro "${e.title || 'sem título'}"?`, `Delete the encounter "${e.title || 'untitled'}"?`))) setData((cur) => ({ encounters: cur.encounters.filter((x) => x.id !== e.id) }))
                                     }}
                                 />
                             ))}
                             <Button
                                 variant="outlined"
                                 startIcon={<AddIcon />}
-                                onClick={() => setData((cur) => ({ encounters: [...cur.encounters, { id: newId('e'), title: `Encontro ${cur.encounters.length + 1}`, md: '', creatures: [], status: 'planned' }] }))}
+                                onClick={() => setData((cur) => ({ encounters: [...cur.encounters, { id: newId('e'), title: tr(`Encontro ${cur.encounters.length + 1}`, `Encounter ${cur.encounters.length + 1}`), md: '', creatures: [], status: 'planned' }] }))}
                                 sx={{ alignSelf: 'flex-start' }}
                             >
-                                Novo encontro
-                            </Button>
+                                {tr('Novo encontro', 'New encounter')}</Button>
                         </Stack>
                     )}
 
@@ -441,8 +435,8 @@ export const SessionView = memo(function SessionView({ doc, version, update, doc
                             imageName={doc.title}
                             template={TEMPLATES.recap}
                             minRows={12}
-                            placeholder="O que aconteceu, ganchos para a próxima, recompensas dadas…"
-                            aria-label="Resumo da sessão"
+                            placeholder={tr("O que aconteceu, ganchos para a próxima, recompensas dadas…", 'What happened, hooks for next time, rewards given…')}
+                            aria-label={tr("Resumo da sessão", 'Session summary')}
                         />
                     )}
                 </Box>

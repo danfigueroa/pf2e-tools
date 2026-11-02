@@ -1733,6 +1733,7 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
   eq(blocks.withWikiLinks('Fale com [[Barão Ulric]].'), 'Fale com [Barão Ulric](#journal:Bar%C3%A3o%20Ulric).', '[[Nome]] vira link do catálogo')
   eq(blocks.wikiNames('[[A]] e [[B]] e [[A]]').join('|'), 'A|B', 'nomes citados sem repetição')
   eq(blocks.forPlayers(' O [[Barão]] chegou. '), 'O Barão chegou.', 'o que vai à mesa sai sem as marcas')
+  eq(blocks.splitSegments('Intro\n:::players Letter\nHi\n:::').map((x) => x.kind).join(','), 'text,players', ':::players (inglês) é o mesmo bloco')
 }
 
 console.log(`${passed} conferências ok, ${failures} falha(s).`)

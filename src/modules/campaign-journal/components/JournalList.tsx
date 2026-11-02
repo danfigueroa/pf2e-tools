@@ -6,6 +6,7 @@ import { Add as AddIcon, Search as SearchIcon } from '@mui/icons-material'
 import { displayFont, gold, green, parchment, rule } from '../../../theme'
 import { CATALOG_KINDS, KIND_LABEL, type CatalogKind, type DocKind, type JournalSummary, type ThreadStatus } from '../doc'
 import { THREAD_COLOR } from '../threadStyle'
+import { tr } from '../../../i18n'
 
 // O índice do diário: as sessões (a mais nova no topo), o catálogo da campanha
 // por tipo e os ganchos. A busca é pelo título, sem acento.
@@ -68,15 +69,15 @@ export const JournalList = memo(function JournalList({ docs, selected, onOpen, o
             <TextField
                 size="small"
                 fullWidth
-                placeholder="Buscar no diário"
+                placeholder={tr("Buscar no diário", 'Search the journal')}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment> } }}
                 sx={{ mb: 1.5 }}
             />
             <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-                <Button variant="contained" startIcon={<AddIcon />} onClick={() => onNew('session')} sx={{ flex: 1 }}>Sessão</Button>
-                <Button variant="outlined" startIcon={<AddIcon />} onClick={(e) => setMenu(e.currentTarget)} sx={{ flex: 1 }}>Ficha</Button>
+                <Button variant="contained" startIcon={<AddIcon />} onClick={() => onNew('session')} sx={{ flex: 1 }}>{tr('Sessão', 'Session')}</Button>
+                <Button variant="outlined" startIcon={<AddIcon />} onClick={(e) => setMenu(e.currentTarget)} sx={{ flex: 1 }}>{tr('Ficha', 'Entry')}</Button>
                 <Menu anchorEl={menu} open={!!menu} onClose={() => setMenu(null)}>
                     {[...CATALOG_KINDS, 'thread' as const].map((k) => (
                         <MenuItem key={k} onClick={() => { setMenu(null); onNew(k) }}>{KIND_LABEL[k].one}</MenuItem>
@@ -84,16 +85,16 @@ export const JournalList = memo(function JournalList({ docs, selected, onOpen, o
                 </Menu>
             </Stack>
 
-            <Section title="Sessões">
+            <Section title={tr("Sessões", 'Sessions')}>
                 <List dense disablePadding>
                     {sessions.filter(match).map((d) => item(d, d.status === 'played' ? 'Jogada' : 'Planejada', d.status === 'played' ? green.mid : gold.main))}
                 </List>
-                {sessions.length === 0 && <Typography variant="body2" color="text.secondary" sx={{ px: 1, fontStyle: 'italic' }}>Nenhuma sessão ainda.</Typography>}
+                {sessions.length === 0 && <Typography variant="body2" color="text.secondary" sx={{ px: 1, fontStyle: 'italic' }}>{tr('Nenhuma sessão ainda.', 'No sessions yet.')}</Typography>}
             </Section>
 
-            <Section title="Catálogo da campanha">
+            <Section title={tr("Catálogo da campanha", 'Campaign catalog')}>
                 <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ px: 1, mb: 0.75 }}>
-                    <Chip size="small" label="Tudo" variant={kind ? 'outlined' : 'filled'} onClick={() => setKind(null)} />
+                    <Chip size="small" label={tr("Tudo", 'All')} variant={kind ? 'outlined' : 'filled'} onClick={() => setKind(null)} />
                     {CATALOG_KINDS.filter((k) => catalog.some((d) => d.kind === k)).map((k) => (
                         <Chip key={k} size="small" label={KIND_LABEL[k].many} variant={kind === k ? 'filled' : 'outlined'} onClick={() => setKind(k)} />
                     ))}
@@ -103,8 +104,7 @@ export const JournalList = memo(function JournalList({ docs, selected, onOpen, o
                 </List>
                 {catalog.length === 0 && (
                     <Typography variant="body2" color="text.secondary" sx={{ px: 1, fontStyle: 'italic' }}>
-                        NPCs, locais, itens e facções que servem a várias sessões.
-                    </Typography>
+                        {tr('NPCs, locais, itens e facções que servem a várias sessões.', 'NPCs, places, items and factions that serve several sessions.')}</Typography>
                 )}
             </Section>
 
@@ -112,10 +112,10 @@ export const JournalList = memo(function JournalList({ docs, selected, onOpen, o
                 <List dense disablePadding>
                     {threads.filter(match).map((d) => item(d, undefined, THREAD_COLOR[(d.status as ThreadStatus | null) ?? 'open']))}
                 </List>
-                {threads.length === 0 && <Typography variant="body2" color="text.secondary" sx={{ px: 1, fontStyle: 'italic' }}>Pistas, segredos e pendências.</Typography>}
+                {threads.length === 0 && <Typography variant="body2" color="text.secondary" sx={{ px: 1, fontStyle: 'italic' }}>{tr('Pistas, segredos e pendências.', 'Clues, secrets and loose ends.')}</Typography>}
             </Section>
             <Box sx={{ borderTop: `1px solid ${rule}`, pt: 1, px: 1 }}>
-                <Typography variant="caption" color="text.secondary">Só o GM vê o diário. O que for para a mesa sai pelo "Mostrar à mesa".</Typography>
+                <Typography variant="caption" color="text.secondary">{tr('Só o GM vê o diário. O que for para a mesa sai pelo "Mostrar à mesa".', 'Only the GM sees the journal. What goes to the table goes out through "Show the table".')}</Typography>
             </Box>
         </Box>
     )

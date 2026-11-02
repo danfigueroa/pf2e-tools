@@ -7,6 +7,7 @@ import { Markdown } from '../../../components/markdown/Markdown'
 import { forPlayers } from '../../../components/markdown/blocks'
 import { useImageUrl } from '../../../services/images'
 import { rule } from '../../../theme'
+import { tr } from '../../../i18n'
 
 // Confirmação antes de mostrar à mesa: é exatamente isto que vai aparecer na tela
 // de todos. Um toque perdido no botão de um trecho não pode revelar um segredo
@@ -43,13 +44,12 @@ export function RevealDialog({ draft, onClose, onConfirm }: Props) {
 
     return (
         <Dialog open onClose={onClose} fullWidth maxWidth="sm">
-            <DialogTitle>Mostrar à mesa</DialogTitle>
+            <DialogTitle>{tr('Mostrar à mesa', 'Show the table')}</DialogTitle>
             <DialogContent>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Aparece na tela de todos os jogadores, em qualquer página, até eles fecharem.
-                </Typography>
+                    {tr('Aparece na tela de todos os jogadores, em qualquer página, até eles fecharem.', 'It shows up on every player\'s screen, on any page, until they close it.')}</Typography>
                 <TextField
-                    label="Título"
+                    label={tr("Título", 'Title')}
                     size="small"
                     fullWidth
                     value={title}
@@ -63,10 +63,9 @@ export function RevealDialog({ draft, onClose, onConfirm }: Props) {
                 {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose}>Cancelar</Button>
+                <Button onClick={onClose}>{tr('Cancelar', 'Cancel')}</Button>
                 <Button variant="contained" startIcon={<ShareIcon />} disabled={busy || !trimmed} onClick={() => void confirm()}>
-                    Mostrar
-                </Button>
+                    {tr('Mostrar', 'Show')}</Button>
             </DialogActions>
         </Dialog>
     )
