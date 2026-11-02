@@ -19,6 +19,7 @@ import { levelOf, useTrophySummary } from '../../services/trophies';
 import { useAnimatedNumber } from '../../motion/useAnimatedNumber';
 import { MesaMenu } from '../../components/MesaSwitcher';
 import { LanguageToggle } from '../../components/LanguageToggle';
+import { ThemeToggle } from '../../components/ThemeToggle';
 import { initialsOf, isCurrent, SECTION_LABEL, visibleNav, type NavItem, type NavSection } from '../navigation';
 import { rollHeadline, sessionDate, sessionSince, timeAgo } from '../format';
 import logoHorizontal from '../../assets/covil-logo-horizontal-fundo-escuro.svg';
@@ -353,13 +354,24 @@ const Profile = ({ collapsed, onOpenPassword }: { collapsed: boolean; onOpenPass
   const name = role.displayName ?? role.username ?? tr('Sua conta', 'Your account');
   const roleText = role.isGm ? tr('Mestre da mesa', 'Game master') : tr('Jogador', 'Player');
   if (!role.userId) {
-    return collapsed ? null : <Disclaimer />;
+    // Sem conta (sem Supabase): o idioma e o tema continuam sendo escolhas deste aparelho.
+    if (collapsed) return null;
+    return (
+      <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', gap: 1.75, pt: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+          <LanguageToggle />
+          <ThemeToggle />
+        </Box>
+        <Disclaimer />
+      </Box>
+    );
   }
   if (collapsed) {
     return (
       <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, pt: 2, borderTop: `1px solid ${chrome.active}` }}>
         <Box title={`${name} · ${roleText}`}><Initials name={name} size={40} ring /></Box>
         <LanguageToggle compact />
+        <ThemeToggle compact />
         <IconButton aria-label={tr("Sair da conta", 'Sign out')} title={tr("Sair da conta", 'Sign out')} onClick={() => void signOut()} sx={{ color: chrome.textMuted }}><LogoutIcon fontSize="small" /></IconButton>
       </Box>
     );
@@ -376,7 +388,10 @@ const Profile = ({ collapsed, onOpenPassword }: { collapsed: boolean; onOpenPass
         <IconButton size="small" aria-label={tr("Trocar senha", 'Change password')} title={tr("Trocar senha", 'Change password')} onClick={onOpenPassword} sx={{ color: chrome.textMuted }}><KeyIcon fontSize="small" /></IconButton>
         <IconButton size="small" aria-label={tr("Sair da conta", 'Sign out')} title={tr("Sair da conta", 'Sign out')} onClick={() => void signOut()} sx={{ color: chrome.textMuted }}><LogoutIcon fontSize="small" /></IconButton>
       </Box>
-      <LanguageToggle />
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+        <LanguageToggle />
+        <ThemeToggle />
+      </Box>
       <Disclaimer />
     </Box>
   );

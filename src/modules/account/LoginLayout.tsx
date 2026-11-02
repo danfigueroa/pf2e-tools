@@ -7,6 +7,7 @@ import logoHorizontal from '../../assets/covil-logo-horizontal-fundo-escuro.svg'
 import logoStacked from '../../assets/covil-logo-empilhado-fundo-claro.svg';
 import { Showcase } from './onboarding/Showcase';
 import { LanguageToggle } from '../../components/LanguageToggle';
+import { ThemeToggle } from '../../components/ThemeToggle';
 import { tr } from '../../i18n';
 
 const rise = keyframes`
@@ -48,7 +49,10 @@ export const LoginLayout = ({ children }: { children: ReactNode }) => {
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: { xs: 'space-between', md: 'flex-end' }, gap: 2 }}>
           <Box component="img" src={logoHorizontal} alt="Covil de Dados" sx={{ display: { xs: 'block', md: 'none' }, height: 40, minWidth: 0 }} />
           {/* Antes do login vale só neste aparelho; ao entrar, a conta herda a escolha. */}
-          <LanguageToggle />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            <ThemeToggle />
+            <LanguageToggle />
+          </Box>
         </Box>
         <Typography
           component="h1"

@@ -17,6 +17,7 @@ import { signOut, useMesaInfo, useRole } from '../services/auth';
 import { MesaMenu } from '../components/MesaSwitcher';
 import { NotificationsButton } from '../components/NotificationsButton';
 import { LanguageToggle } from '../components/LanguageToggle';
+import { ThemeToggle } from '../components/ThemeToggle';
 import { tr } from '../i18n';
 import { initialsOf, isCurrent, MOBILE_HEADER_HEIGHT, openSearch, TAB_BAR_HEIGHT } from './navigation';
 import logoSymbol from '../assets/covil-simbolo.svg';
@@ -86,6 +87,10 @@ export const MobileHeader = ({ onOpenPassword }: { onOpenPassword: () => void })
         <Box sx={{ px: 2, py: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
           <Typography variant="body2">{tr('Idioma', 'Language')}</Typography>
           <LanguageToggle tone="paper" />
+        </Box>
+        <Box sx={{ px: 2, py: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+          <Typography variant="body2">{tr('Tema', 'Theme')}</Typography>
+          <ThemeToggle tone="paper" />
         </Box>
         <MenuItem onClick={() => void signOut()}>
           <ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon>
