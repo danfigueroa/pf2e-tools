@@ -65,7 +65,8 @@ sem passar pela tradução** — e ficam gravadas no banco em inglês também.
   - **Cliente**: a chave do cache em inglês é `pf2e:<versão>:en:<tipo>:<nome>` (a do português não mudou — os caches dos
     aparelhos continuam valendo); pacotes estáticos em `public/descriptions/en/` (`build-description-bundle.mjs --lang en`, sem
     chave de IA). As entradas que o pacote português tem corrigidas à mão (relíquias, itens caseiros, Anathema/Holy/Domain do
-    Woyd) foram escritas também no pacote inglês: o script é incremental e as mantém.
+    Woyd, o Wish for Luck do Loki — ação que a AON só tem DENTRO do antecedente Genie-Blessed, sem entrada própria) foram escritas também no pacote inglês: o script é incremental e as mantém. A ficha publicada lê do banco: entrada escrita à mão vai também para `descriptions` (as duas línguas, na versão do
+    pacote) e sai de `description_misses`.
   - **Correções de tradução não valem em inglês** (`applyFix` devolve o original, e o "Corrigir tradução" some).
 - **Guia "Como Jogar"**: a ação `guide` gera **pt e en em paralelo**, cada um DA FICHA (prompt próprio em inglês,
   `buildPromptEn`) — nunca uma tradução do português (decisão do usuário). O inglês mora DENTRO do mesmo `guide` (`guide.en =

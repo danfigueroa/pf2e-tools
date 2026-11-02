@@ -1388,6 +1388,22 @@
     "category": "relic",
     "sourceBook": "Treasure Vault (Remastered), p. 199",
     "description": "Ativar Reação: (concentrar) Frequência uma vez por dia; Gatilho Um inimigo a até 30 pés rola um sucesso em um teste de ataque, teste de resistência ou teste de perícia; Efeito Sua relíquia envia uma onda de má sorte, forçando a criatura a rolar novamente e ficar com o pior resultado."
+   },
+   "Wish for Luck": {
+    "name": "Wish for Luck",
+    "level": null,
+    "actions": "Free Action",
+    "traits": [
+     "Arcane",
+     "Auditory",
+     "Divination",
+     "Fortune"
+    ],
+    "category": "action",
+    "sourceBook": "Secrets of Magic, p. 30",
+    "trigger": "Você está prestes a rolar um teste de ataque, uma salvaguarda ou um teste de perícia.",
+    "frequency": "uma vez por dia",
+    "description": "Você deseja o sucesso em voz alta. Role o teste duas vezes e fique com o maior resultado. (Ação concedida pelo antecedente Genie-Blessed.)"
    }
   },
   "item": {

@@ -1368,6 +1368,22 @@
     "category": "relic",
     "sourceBook": "Treasure Vault (Remastered), p. 199",
     "description": "Activate Reaction: (concentrate) Frequency once per day; Trigger An enemy within 30 feet rolls a success on an attack roll, saving throw, or skill check; Effect Your relic sends out a wave of bad luck, forcing the creature to reroll and take the worse result."
+   },
+   "Wish for Luck": {
+    "name": "Wish for Luck",
+    "level": null,
+    "actions": "Free Action",
+    "traits": [
+     "Arcane",
+     "Auditory",
+     "Divination",
+     "Fortune"
+    ],
+    "category": "action",
+    "sourceBook": "Secrets of Magic, p. 30",
+    "trigger": "You are about to roll an attack roll, saving throw, or skill check.",
+    "frequency": "once per day",
+    "description": "You wish aloud for success. Roll the check twice and take the higher result. (Action granted by the Genie-Blessed background.)"
    }
   },
   "item": {
