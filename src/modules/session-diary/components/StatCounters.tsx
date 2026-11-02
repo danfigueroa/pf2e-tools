@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import { Box, Typography } from '@mui/material'
 import { useInView } from '../../../motion/useInView'
-import { gold, green, parchment } from '../../../theme'
+import { gold, green, onFrame } from '../../../theme'
 import { d20Average, type TableTotals } from '../stats'
 import { CountUp } from './ui'
 import { reveal, TONE } from './style'
@@ -55,12 +55,12 @@ export const StatCounters = memo(({ totals: t, scope }: Props) => {
                         sx={{
                             fontWeight: 800, fontSize: { xs: '1.6rem', sm: '2rem' }, lineHeight: 1.1,
                             fontVariantNumeric: 'tabular-nums',
-                            color: tile.tone === 'gold' ? gold.bright : tile.tone ? lighten(TONE[tile.tone].accent) : parchment.paper,
+                            color: tile.tone === 'gold' ? gold.bright : tile.tone ? lighten(TONE[tile.tone].accent) : onFrame.paper,
                         }}
                     >
                         <CountUp value={tile.value} decimals={tile.decimals} shown={shown} />
                     </Typography>
-                    <Typography variant="caption" sx={{ color: `${parchment.paper}CC`, letterSpacing: 0.4, textTransform: 'uppercase' }}>
+                    <Typography variant="caption" sx={{ color: `${onFrame.paper}CC`, letterSpacing: 0.4, textTransform: 'uppercase' }}>
                         {tile.label}
                     </Typography>
                 </Box>

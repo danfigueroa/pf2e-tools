@@ -1,7 +1,7 @@
 // Estilos do histórico: a cor de cada tom, a entrada escalonada e a barra que cresce.
 
 import type { SxProps, Theme } from '@mui/material'
-import { gold, green, MYTHIC_COLOR, status } from '../../../theme'
+import { gold, MYTHIC_COLOR, status, greenInk } from '../../../theme'
 import type { AwardTone } from '../awards'
 
 /** Texto (contraste ≥4,5:1 no pergaminho) e acento (filetes, barras) de cada tom. */
@@ -9,7 +9,7 @@ export const TONE: Record<AwardTone, { text: string; accent: string }> = {
     gold: { text: gold.deep, accent: gold.main },
     bad: { text: status.error, accent: status.error },
     mythic: { text: MYTHIC_COLOR, accent: MYTHIC_COLOR },
-    green: { text: green.mid, accent: green.light },
+    green: { text: greenInk.mid, accent: greenInk.light },
 }
 
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'

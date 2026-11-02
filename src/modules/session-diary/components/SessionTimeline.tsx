@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import { Box, ButtonBase, Typography } from '@mui/material'
 import { useInView } from '../../../motion/useInView'
-import { gold, green, ink, parchment, rule, status } from '../../../theme'
+import { gold, ink, parchment, rule, status, greenInk } from '../../../theme'
 import { d20Average, type SessionPoint } from '../stats'
 import { shortDay } from '../awards'
 import { grow } from './style'
@@ -17,7 +17,7 @@ interface Props {
 
 /** A cor da média da noite: azarada em vermelho, na média em verde, quente em ouro. */
 const avgColor = (avg: number | null) =>
-    avg === null ? rule : avg < 9 ? status.error : avg < 10 ? status.warning : avg < 12 ? green.light : gold.main
+    avg === null ? rule : avg < 9 ? status.error : avg < 10 ? status.warning : avg < 12 ? greenInk.light : gold.main
 
 /**
  * Uma coluna por sessão: a altura é quanto a mesa rolou, a cor é a média do d20

@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import { Box, Paper, Typography } from '@mui/material'
 import { useInView } from '../../../motion/useInView'
-import { gold, green, MYTHIC_COLOR, parchment, rule, status } from '../../../theme'
+import { gold, MYTHIC_COLOR, parchment, rule, status, greenInk } from '../../../theme'
 import { d20Average, type PersonStats } from '../stats'
 import { CountUp, PersonAvatar } from './ui'
 import { grow, reveal } from './style'
@@ -27,7 +27,7 @@ const MiniHist = ({ hist, shown }: { hist: number[]; shown: boolean }) => {
                     sx={{
                         ...grow(shown, n / max, 'y', i),
                         flex: '1 1 0', height: '100%', borderRadius: '2px 2px 0 0',
-                        backgroundColor: i === 19 ? gold.main : i === 0 ? status.error : n > 0 ? green.light : rule,
+                        backgroundColor: i === 19 ? gold.main : i === 0 ? status.error : n > 0 ? greenInk.light : rule,
                         opacity: n > 0 ? 1 : 0.4,
                     }}
                 />

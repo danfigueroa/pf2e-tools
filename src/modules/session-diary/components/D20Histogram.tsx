@@ -1,7 +1,7 @@
 import { memo, useMemo, useState } from 'react'
 import { Box, FormControl, MenuItem, Select, Typography } from '@mui/material'
 import { useInView } from '../../../motion/useInView'
-import { gold, green, ink, parchment, rule, status } from '../../../theme'
+import { gold, ink, parchment, rule, status, greenInk } from '../../../theme'
 import { fairness, VERDICT_TEXT } from '../fairness'
 import type { PersonStats } from '../stats'
 import { locale, tr } from '../../../i18n'
@@ -19,7 +19,7 @@ const BASE = H - 18
 const SLOT = (W - PAD_X * 2) / 20
 const LABELED = new Set([1, 5, 10, 15, 20])
 
-const barColor = (face: number) => (face === 20 ? gold.main : face === 1 ? status.error : green.light)
+const barColor = (face: number) => (face === 20 ? gold.main : face === 1 ? status.error : greenInk.light)
 
 /**
  * As 20 faces do d20 contra o esperado (a linha tracejada, 5% cada) e o
@@ -82,7 +82,7 @@ export const D20Histogram = memo(({ people, tableHist }: Props) => {
                     )}
                 </svg>
             </Box>
-            <Typography sx={{ mt: 1, fontWeight: 600, color: f.verdict === 'fair' ? green.mid : f.verdict === 'few' ? ink.secondary : status.error }}>
+            <Typography sx={{ mt: 1, fontWeight: 600, color: f.verdict === 'fair' ? greenInk.mid : f.verdict === 'few' ? ink.secondary : status.error }}>
                 {VERDICT_TEXT[f.verdict]}
             </Typography>
             <Typography variant="caption" color="text.secondary">
