@@ -1,7 +1,9 @@
 import { createTheme } from '@mui/material/styles'
-import { green, parchment, gold, ink, rule, status } from './palette'
+import { core, lightCore, type ThemeCore } from './palette'
+import { themeMode, type ThemeMode } from './mode'
 
 export * from './palette'
+export { themeMode, themePref, isDark, setThemePref, type ThemePref } from './mode'
 
 /** Serifada versalete dos títulos oficiais (capas e cabeçalhos da Paizo). */
 export const displayFont = '"Cinzel", "Spectral", Georgia, serif'
@@ -26,14 +28,21 @@ const fluidTitle = (mobile: string, tablet: string, desktop: string) => ({
 /**
  * Tema PF2e Remaster: moldura verde escura com conteúdo em pergaminho.
  * Cores vêm todas de `./palette` — nada de hex literal aqui.
+ *
+ * Montado a partir dos tokens de base de um tema (`ThemeCore`): o do app usa os desta carga
+ * (`core`, claro ou escuro), e o `lightTheme` é o claro de sempre, para os stat blocks
+ * exportados que ficam claros nos dois temas (`components/LightTheme.tsx`).
  */
-export const pathfinderTheme = createTheme({
+function buildTheme({ green, greenInk, parchment, gold, ink, rule, status, fx }: ThemeCore, mode: ThemeMode) {
+    return createTheme({
     palette: {
-        mode: 'light',
+        mode,
+        // No escuro o primário é o verde CLARO (texto, botão de texto, foco do campo) com
+        // tinta escura por cima; no claro, o de sempre (`greenInk` = `green` ali).
         primary: {
-            main: green.main,
-            light: green.light,
-            dark: green.deepest,
+            main: greenInk.main,
+            light: greenInk.light,
+            dark: mode === 'dark' ? greenInk.mid : green.deepest,
             contrastText: parchment.paper,
         },
         secondary: {
@@ -135,17 +144,26 @@ export const pathfinderTheme = createTheme({
                 },
             },
         },
+        // O MUI clareia o Paper elevado no escuro com um degradê por cima (`--Paper-overlay`):
+        // os fundos são os do pergaminho, escolhidos à mão, então sem degradê nenhum.
+        MuiPaper: {
+            styleOverrides: {
+                root: {
+                    backgroundImage: 'none',
+                },
+            },
+        },
         MuiCard: {
             styleOverrides: {
                 root: {
                     backgroundImage: 'none',
                     backgroundColor: parchment.paper,
                     border: `1px solid ${rule}`,
-                    boxShadow: '0 1px 2px rgba(35, 32, 26, 0.06), 0 2px 10px rgba(35, 32, 26, 0.05)',
+                    boxShadow: `0 1px 2px ${fx.shadow}, 0 2px 10px ${fx.shadowSoft}`,
                     transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
                     '&:hover': {
                         borderColor: gold.main,
-                        boxShadow: '0 2px 4px rgba(35, 32, 26, 0.08), 0 6px 18px rgba(27, 59, 42, 0.10)',
+                        boxShadow: `0 2px 4px ${fx.shadowHover}, 0 6px 18px ${fx.shadowHoverTint}`,
                     },
                 },
             },
@@ -163,16 +181,16 @@ export const pathfinderTheme = createTheme({
                     },
                 },
                 contained: {
-                    boxShadow: '0 1px 3px rgba(20, 40, 29, 0.28)',
+                    boxShadow: `0 1px 3px ${fx.button}`,
                     '&:hover': {
-                        boxShadow: '0 3px 10px rgba(20, 40, 29, 0.32)',
+                        boxShadow: `0 3px 10px ${fx.buttonHover}`,
                     },
                 },
                 outlined: {
                     borderColor: rule,
                     '&:hover': {
-                        borderColor: green.main,
-                        backgroundColor: 'rgba(27, 59, 42, 0.06)',
+                        borderColor: greenInk.main,
+                        backgroundColor: fx.outlinedHover,
                     },
                 },
             },
@@ -182,7 +200,8 @@ export const pathfinderTheme = createTheme({
                 root: {
                     backgroundImage: 'none',
                     backgroundColor: green.deepest,
-                    color: parchment.paper,
+                    // Tinta SOBRE a moldura: fixa nos dois temas (o `parchment` escuro sumiria aqui).
+                    color: lightCore.parchment.paper,
                     borderBottom: `2px solid ${gold.bright}`,
                     boxShadow: 'none',
                 },
@@ -205,13 +224,13 @@ export const pathfinderTheme = createTheme({
             styleOverrides: {
                 root: {
                     '&.Mui-selected': {
-                        backgroundColor: 'rgba(27, 59, 42, 0.10)',
+                        backgroundColor: fx.selected,
                         '&:hover': {
-                            backgroundColor: 'rgba(27, 59, 42, 0.16)',
+                            backgroundColor: fx.selectedHover,
                         },
                     },
                     '&:hover': {
-                        backgroundColor: 'rgba(35, 32, 26, 0.05)',
+                        backgroundColor: fx.hover,
                     },
                 },
             },
@@ -270,7 +289,14 @@ export const pathfinderTheme = createTheme({
             },
         },
     },
-})
+    })
+}
+
+/** O tema desta carga (claro ou escuro, `theme/mode`). */
+export const pathfinderTheme = buildTheme(core, themeMode)
+
+/** O tema claro de sempre, para o que fica claro nos dois temas (stat blocks exportados). */
+export const lightTheme = themeMode === 'light' ? pathfinderTheme : buildTheme(lightCore, 'light')
 
 // Extend the theme interface to include custom colors
 declare module '@mui/material/styles' {

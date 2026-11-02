@@ -33,7 +33,7 @@ const page = (element: React.ReactNode) => <Suspense fallback={null}>{element}</
 function App() {
   return (
     <ThemeProvider theme={pathfinderTheme}>
-      <CssBaseline />
+      <CssBaseline enableColorScheme />
       <Router>
         <AuthGate>
           <Routes>

@@ -1,4 +1,5 @@
 import { tr } from '../i18n'
+import { isDark } from './mode'
 /**
  * Paleta do Pathfinder 2e Remaster: verde profundo (moldura), pergaminho
  * (conteúdo) e ouro/latão (filetes e rótulos) — o trade dress do Player Core /
@@ -10,48 +11,104 @@ import { tr } from '../i18n'
  *
  * Os acentos semânticos foram entonados para ler sobre pergaminho (>= 4.5:1
  * sobre `parchment.paper`) — as versões antigas eram claras demais porque
- * assumiam fundo escuro.
+ * assumiam fundo escuro. No tema escuro (`theme/mode`) cada um tem a sua versão
+ * clara, escolhida por `pick` no boot; `scripts/check-contrast.mjs` confere os dois.
  */
 
-// Verde Remaster — moldura, chrome, cabeçalhos
-export const green = {
-    deepest: '#14281D',
-    main: '#1B3B2A',
-    mid: '#2A5540',
-    light: '#3D7357',
-} as const
+/** Escolhe o valor do tema desta carga (`theme/mode`: constante, trocar recarrega). */
+const pick = <T,>(light: T, dark: T): T => (isDark ? dark : light)
 
-// Pergaminho — superfícies de conteúdo
-export const parchment = {
-    page: '#EDE3CC',
-    paper: '#F7F1E1',
-    sunken: '#E3D7BC',
-} as const
+/**
+ * Os tokens de base de cada tema. O claro é o de sempre, sem mudança nenhuma; o escuro é o
+ * "pergaminho à luz de vela": marrom quente no conteúdo, a MESMA moldura verde, e a tinta e
+ * os acentos clareados para ler sobre ele (≥4,5:1, conferido pelo `scripts/check-contrast.mjs`).
+ *
+ * `lightCore` existe para o tema claro aninhado (`components/LightTheme.tsx`) dos stat blocks
+ * exportados, que ficam claros nos dois temas.
+ */
+export const lightCore = {
+    // Verde Remaster — moldura, chrome, cabeçalhos. É MOLDURA: igual nos dois temas.
+    green: { deepest: '#14281D', main: '#1B3B2A', mid: '#2A5540', light: '#3D7357' },
+    // O verde como TINTA/acento sobre o conteúdo (texto, borda, ícone). No claro é o próprio
+    // `green`; no escuro clareia, senão some sobre o pergaminho escuro.
+    greenInk: { main: '#1B3B2A', mid: '#2A5540', light: '#3D7357' },
+    // Pergaminho — superfícies de conteúdo
+    parchment: { page: '#EDE3CC', paper: '#F7F1E1', sunken: '#E3D7BC' },
+    // Ouro/latão — filetes, rótulos e destaques. `deep` é o ouro de TEXTO.
+    gold: { deep: '#7E611D', main: '#A8842C', bright: '#C8A951' },
+    // Tinta
+    ink: { primary: '#23201A', secondary: '#5A5044', disabled: '#8A8072' },
+    // Filete / divisória
+    rule: '#CDBE9E',
+    // Estados (entonados para fundo claro)
+    status: { error: '#A62A21', warning: '#B0761A', success: '#2F7D46', info: '#2B5FA8' },
+    // Sombras e véus do tema do MUI (cartão, hover de lista, item selecionado).
+    fx: {
+        shadow: 'rgba(35, 32, 26, 0.06)',
+        shadowSoft: 'rgba(35, 32, 26, 0.05)',
+        shadowHover: 'rgba(35, 32, 26, 0.08)',
+        shadowHoverTint: 'rgba(27, 59, 42, 0.10)',
+        button: 'rgba(20, 40, 29, 0.28)',
+        buttonHover: 'rgba(20, 40, 29, 0.32)',
+        outlinedHover: 'rgba(27, 59, 42, 0.06)',
+        selected: 'rgba(27, 59, 42, 0.10)',
+        selectedHover: 'rgba(27, 59, 42, 0.16)',
+        hover: 'rgba(35, 32, 26, 0.05)',
+    },
+}
 
-// Ouro/latão — filetes, rótulos e destaques
-export const gold = {
-    deep: '#7E611D',
-    main: '#A8842C',
-    bright: '#C8A951',
-} as const
+export type ThemeCore = typeof lightCore
 
-// Tinta
-export const ink = {
-    primary: '#23201A',
-    secondary: '#5A5044',
-    disabled: '#8A8072',
-} as const
+const darkCore: ThemeCore = {
+    green: lightCore.green,
+    greenInk: { main: '#7DBB93', mid: '#6FAE86', light: '#95CCA8' },
+    parchment: { page: '#15130F', paper: '#1E1B15', sunken: '#29251D' },
+    gold: { deep: '#D4B565', main: '#A8842C', bright: '#C8A951' },
+    ink: { primary: '#EDE3CC', secondary: '#B8AC95', disabled: '#8F8576' },
+    rule: '#3D372C',
+    status: { error: '#F07A6E', warning: '#E8A84A', success: '#6FC587', info: '#7FAEEA' },
+    fx: {
+        shadow: 'rgba(0, 0, 0, 0.30)',
+        shadowSoft: 'rgba(0, 0, 0, 0.22)',
+        shadowHover: 'rgba(0, 0, 0, 0.36)',
+        shadowHoverTint: 'rgba(0, 0, 0, 0.28)',
+        button: 'rgba(0, 0, 0, 0.40)',
+        buttonHover: 'rgba(0, 0, 0, 0.50)',
+        outlinedHover: 'rgba(125, 187, 147, 0.10)',
+        selected: 'rgba(125, 187, 147, 0.14)',
+        selectedHover: 'rgba(125, 187, 147, 0.20)',
+        hover: 'rgba(237, 227, 204, 0.06)',
+    },
+}
 
-// Filete / divisória
-export const rule = '#CDBE9E'
+/** Os tokens de base do tema desta carga. */
+export const core: ThemeCore = pick(lightCore, darkCore)
 
-// Estados (entonados para fundo claro)
-export const status = {
-    error: '#A62A21',
-    warning: '#B0761A',
-    success: '#2F7D46',
-    info: '#2B5FA8',
-} as const
+export const green = core.green
+export const greenInk = core.greenInk
+export const parchment = core.parchment
+export const gold = core.gold
+export const ink = core.ink
+export const rule = core.rule
+export const status = core.status
+
+/**
+ * Tinta clara SOBRE a moldura verde (cabeçalho de cartão, barra da Iniciativa, do mapa). São os
+ * tons do pergaminho claro, fixos nos dois temas: no escuro o `parchment` vira fundo escuro, e
+ * texto sobre a moldura escrito com ele sumiria. Regra: sobre `green.*`/`chrome.*`, nunca
+ * `parchment.*` — use `onFrame` ou `chrome.*`.
+ */
+export const onFrame = lightCore.parchment
+
+/**
+ * Texto sobre um ACENTO cheio (chip "Em fúria", "Presa marcada", pip livre, botão "Beber"). No
+ * claro o acento é escuro e o texto é branco; no escuro o acento clareia, e o texto passa a ser
+ * o pergaminho escuro.
+ */
+export const onSolid = pick('#FFFFFF', darkCore.parchment.paper)
+
+/** Halo atrás de um número que flutua sobre o conteúdo (o "−9" do PV): a cor do fundo, mais forte. */
+export const textHalo = pick('#FFFFFF', '#000000')
 
 /**
  * A moldura verde da sidebar, do cabeçalho do celular e dos blocos escuros da Início (herói,
@@ -82,55 +139,67 @@ export const chrome = {
 } as const
 
 /** Selo "N online" sobre o pergaminho. */
-export const ONLINE_BADGE = { bg: '#E3F0E6', text: '#22603A', dot: '#2F8A52' } as const
+export const ONLINE_BADGE = pick(
+    { bg: '#E3F0E6', text: '#22603A', dot: '#2F8A52' },
+    { bg: '#1F3327', text: '#7FD69A', dot: '#6FCF8E' },
+)
 
 // --- Acentos semânticos do PF2e ---
 
 /** Tradições de magia. */
-export const TRADITION_COLORS: Record<string, string> = {
+export const TRADITION_COLORS: Record<string, string> = pick<Record<string, string>>({
     arcane: '#2B5FA8', // azul
     divine: '#9A6B12', // âmbar
     occult: '#6B3FA0', // roxo
     primal: '#3E7A33', // verde
-}
+}, {
+    arcane: '#7FAEEA',
+    divine: '#E0B252',
+    occult: '#B993E6',
+    primal: '#86C57A',
+})
 
-export const MYTHIC_COLOR = '#B03356'
+export const MYTHIC_COLOR = pick('#B03356', '#F2A0B6')
 /** O mesmo acento sobre a moldura escura (cartão de rolagem): o de cima dá 2,5:1 ali. */
 export const MYTHIC_ON_DARK = '#F2A0B6'
 
 /** Pontos de vida (HpTracker). */
-export const HP_COLOR = '#B4442A'
+export const HP_COLOR = pick('#B4442A', '#F08A6E')
+/** Hover do botão cheio de dano (`HP_COLOR`): mais escuro no claro, mais claro no escuro. */
+export const HP_HOVER = pick('#8F3622', '#F4A28B')
+/** Hover do botão cheio de aviso (`status.warning`). */
+export const WARNING_HOVER = pick('#8E5F14', '#EDBC6E')
 
 /**
  * Fúria do bárbaro (a faixa da ficha). Vermelho de braseiro, mais escuro que o
  * `HP_COLOR` para não se confundir com a barra de PV; 6,6:1 sobre `parchment.paper`.
  */
-export const RAGE_COLOR = '#A02A18'
+export const RAGE_COLOR = pick('#A02A18', '#F27A62')
 
 /** Psique liberada do Psíquico (a faixa da ficha). Violeta; 7,7:1 sobre `parchment.paper`. */
-export const PSYCHE_COLOR = '#5B3A8C'
+export const PSYCHE_COLOR = pick('#5B3A8C', '#B79BE8')
 
 /** Poison Weapon (a faixa do Ladino). Roxo-veneno; 7,0:1 sobre `parchment.paper`. */
-export const ROGUE_COLOR = '#6A3F7A'
+export const ROGUE_COLOR = pick('#6A3F7A', '#CB97DA') // i18n-ok (hex)
 
 /** Hunt Prey e Gravity Weapon (a faixa do Patrulheiro). Verde-floresta; 6,5:1 sobre `parchment.paper`. */
-export const RANGER_COLOR = '#3A6B35'
+export const RANGER_COLOR = pick('#3A6B35', '#8CC683')
 
 /** A faixa do Monge (postura, Flurry, Ki Strike). Bronze; 5,0:1 sobre `parchment.paper`. */
-export const MONK_COLOR = '#8A5A1E'
+export const MONK_COLOR = pick('#8A5A1E', '#DDA35E')
 
 /** Investigações e estratagemas da faixa do Investigador. Verde-azulado; 5,9:1 sobre `parchment.paper`. */
-export const INVESTIGATOR_COLOR = '#1F6A73'
+export const INVESTIGATOR_COLOR = pick('#1F6A73', '#6CC3CD')
 
 /** Arcane Cascade e a faixa do Magus. Azul-arcano; 7,3:1 sobre `parchment.paper`. */
-export const MAGUS_COLOR = '#2F4F8F'
+export const MAGUS_COLOR = pick('#2F4F8F', '#8FAEEB')
 
 /**
  * Escudo (ShieldCard, cartão da Iniciativa) — aço azulado. É item, não
  * criatura: a barra de PV dele não pode ser confundida com a do personagem.
  * 5,5:1 sobre `parchment.paper`.
  */
-export const SHIELD_COLOR = '#4A6572'
+export const SHIELD_COLOR = pick('#4A6572', '#9DB8C5')
 
 /**
  * Borda dos tokens do mapa de combate. Ficam sobre a IMAGEM do mapa (lava,
@@ -142,10 +211,10 @@ export const SHIELD_COLOR = '#4A6572'
  * sobre o pergaminho (≥4,5:1) e `tint` é o fundo do cartão desbloqueado.
  */
 export const TROPHY_TIERS = {
-    bronze: { medal: '#B0723F', ink: '#7A4A24', tint: '#F1E2D2', label: 'Bronze' },
-    prata: { medal: '#9AA3AA', ink: '#4F5960', tint: '#E8EAEB', label: tr('Prata', 'Silver') },
-    ouro: { medal: '#C8A951', ink: '#7E611D', tint: '#F3E8C6', label: tr('Ouro', 'Gold') },
-    platina: { medal: '#7FA0B8', ink: '#2F5470', tint: '#DDE8EF', label: tr('Platina', 'Platinum') },
+    bronze: { medal: '#B0723F', ink: pick('#7A4A24', '#D9A577'), tint: pick('#F1E2D2', '#33261B'), label: 'Bronze' },
+    prata: { medal: '#9AA3AA', ink: pick('#4F5960', '#BFC7CD'), tint: pick('#E8EAEB', '#2A2D2F'), label: tr('Prata', 'Silver') },
+    ouro: { medal: '#C8A951', ink: pick('#7E611D', '#D4B565'), tint: pick('#F3E8C6', '#332B17'), label: tr('Ouro', 'Gold') },
+    platina: { medal: '#7FA0B8', ink: pick('#2F5470', '#9EC3DE'), tint: pick('#DDE8EF', '#1F2B33'), label: tr('Platina', 'Platinum') }, // i18n-ok (hex)
 } as const
 
 export const TOKEN_PC = '#4F9A6B'
@@ -184,37 +253,35 @@ export const DRAW_COLORS = [
 ] as const
 
 /** Condições ativas (ConditionsBar) — roxo de esmalte, distinto do PV e do mítico. */
-export const CONDITION_COLOR = '#5E4B8B'
+export const CONDITION_COLOR = pick('#5E4B8B', '#B4A2E3')
 
 /** Moedas: platina, ouro, prata, cobre. */
-export const COIN_COLORS = {
-    pp: '#7C8FA8',
-    gp: '#9A6B12',
-    sp: '#6E7175',
-    cp: '#8A4B22',
-} as const
+export const COIN_COLORS = pick(
+    { pp: '#7C8FA8', gp: '#9A6B12', sp: '#6E7175', cp: '#8A4B22' },
+    { pp: '#AEBFD4', gp: '#E0B252', sp: '#B5B8BC', cp: '#DC9767' },
+)
 
 /** Ranks de proficiência (bônus 2×rank do Pathbuilder). */
 export const RANK_COLORS: Record<number, string> = {
     0: ink.disabled, // destreinado
-    2: green.main, // treinado
-    4: '#2B5FA8', // perito
-    6: '#6B3FA0', // mestre
-    8: '#9A6B12', // lendário
+    2: greenInk.main, // treinado
+    4: TRADITION_COLORS.arcane, // perito (azul)
+    6: TRADITION_COLORS.occult, // mestre (roxo)
+    8: TRADITION_COLORS.divine, // lendário (âmbar)
 }
 
 /** Raridade PF2e — cores canônicas da Paizo, escurecidas para pergaminho. */
 export const RARITY_COLORS = {
     common: ink.secondary,
-    uncommon: '#A84800',
-    rare: '#0C1466',
-    unique: '#800080',
+    uncommon: pick('#A84800', '#F09A5A'),
+    rare: pick('#0C1466', '#8F9DF5'),
+    unique: pick('#800080', '#E08AE0'),
 } as const
 
 /** Tipo de item aberto no DescriptionDrawer. */
 export const TYPE_ACCENT = {
-    feat: green.main,
-    special: '#6B3FA0',
-    spell: '#2B5FA8',
-    item: '#9A6B12',
+    feat: greenInk.main,
+    special: TRADITION_COLORS.occult,
+    spell: TRADITION_COLORS.arcane,
+    item: TRADITION_COLORS.divine,
 } as const
