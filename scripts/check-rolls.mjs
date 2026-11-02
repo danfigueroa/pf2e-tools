@@ -644,6 +644,29 @@ ok(table.sanitizeTableRoll(crowded) !== null && server.sanitizeRoll(crowded) !==
   ok(new TextEncoder().encode(JSON.stringify(worst)).length <= tableStore.MAX_FIELD_BYTES, 'O pior caso cabe no teto de 8 KB do campo')
 }
 
+// ── Guia editado à mão e os trechos do jogador ───────────────────────────────
+{
+  const gn = await import('../src/modules/character-viewer/guideNotes.ts')
+  eq(gn.sanitizeGuideNotes({ text: '  ## Meu jeito\r\n- abrir com Fenda  ' }).text, '## Meu jeito\n- abrir com Fenda', 'Trechos do jogador: quebras normalizadas e sem espaço nas pontas')
+  eq(gn.sanitizeGuideNotes({ text: 'é'.repeat(9000) }).text.length, gn.MAX_GUIDE_NOTES, 'Trechos cortados no teto')
+  ok(new TextEncoder().encode(JSON.stringify({ text: 'é'.repeat(gn.MAX_GUIDE_NOTES) })).length <= tableStore.MAX_FIELD_BYTES, 'O teto dos trechos cabe nos 8 KB do campo, mesmo só com acento')
+  ok(gn.isGuideNotesEmpty(gn.sanitizeGuideNotes({ text: '   ' })) && gn.isGuideNotesEmpty(gn.sanitizeGuideNotes(null)), 'Vazio = sem trechos')
+  if (!process.env.SUPABASE_URL) {
+    const store = await import('../api/_lib/sheet-store.js')
+    const json = JSON.parse(readFileSync(new URL('../public/characters/loki7.json', import.meta.url)))
+    const pub = await store.publishSheet('arton-1515', 'teste-guia', json)
+    await store.saveGuide('arton-1515', 'teste-guia', pub.publishedAt, '## Gerado\n- pela IA', { current: null })
+    const edited = await store.editGuide('arton-1515', 'teste-guia', pub.publishedAt, 'pt', '## Meu guia\n- escrito à mão')
+    ok(edited?.guide.markdown === '## Meu guia\n- escrito à mão' && edited.guide.editedAt > 0 && edited.guide.generatedAt > 0, 'Guia editado: troca o texto, marca editedAt e mantém generatedAt')
+    eq((await store.readForGuide('arton-1515', 'teste-guia')).previousGuide, '## Meu guia\n- escrito à mão', '"Gerar de novo" parte do texto editado')
+    eq(await store.editGuide('arton-1515', 'teste-guia', pub.publishedAt - 1, 'pt', 'x'), null, 'Versão diferente da que foi editada: recusado (409)')
+    const enEdit = await store.editGuide('arton-1515', 'teste-guia', pub.publishedAt, 'en', '## My guide')
+    ok(enEdit.guide.en.markdown === '## My guide' && enEdit.guide.markdown === '## Meu guia\n- escrito à mão', 'Editar o inglês não mexe no português')
+    const regen = await store.saveGuide('arton-1515', 'teste-guia', pub.publishedAt, '## Novo da IA', { current: enEdit.guide })
+    ok(regen.guide.markdown === '## Novo da IA' && regen.guide.editedAt === undefined && regen.guide.en.editedAt > 0, 'Regerar o português tira o "editado" dele (e só dele)')
+  }
+}
+
 // ── Veneno simples do Poison Weapon (o padrão do Eldarion) ───────────────────
 eq(rogue.simpleDoses(eld), 10, 'Doses por dia = nível')
 eq(rogue.simplePoisonDice(eld).count, 2, 'Eldarion tem o Improved Poison Weapon: 2d4')

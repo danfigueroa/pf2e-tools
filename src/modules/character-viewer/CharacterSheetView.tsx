@@ -343,7 +343,7 @@ const SheetBody = ({ build: source, publication, onReset, onRestore, compact = f
     // Pontos Míticos: gastos de qualquer aba, então o hook mora aqui.
     const mythicPoints = useMythicPoints(mythicKeyFor(build), MYTHIC_POINTS_MAX)
 
-    const { generateGuide, published, guideStatus, guideError, attach } = publication
+    const { generateGuide, editGuide, published, guideStatus, guideError, attach } = publication
 
     // Verifica se o backend está disponível ao montar
     useEffect(() => {
@@ -394,7 +394,9 @@ const SheetBody = ({ build: source, publication, onReset, onRestore, compact = f
         error: guideError,
         // Daqui, só o idioma desta página (o "Gerar de novo" e a ficha publicada antes do inglês).
         onGenerate: () => { if (published) void generateGuide(published, curatedBase(build), lang) },
-    }), [published, guideStatus, guideError, generateGuide, build])
+        // Editar à mão: só quem pode mexer na ficha, e só na ficha da mesa (a do aparelho não tem onde gravar).
+        onEdit: published && !readOnly ? (markdown: string) => editGuide(published, markdown) : undefined,
+    }), [published, guideStatus, guideError, generateGuide, editGuide, build, readOnly])
     const closeDrawer = useCallback(() => setDrawerReq(null), [])
     // O "Usar" das abas Talentos e Habilidades também dentro do drawer: quem foi ler a
     // regra usa dali. Os dois botões leem a mesma fatia da mesa (ações, usos do dia).
