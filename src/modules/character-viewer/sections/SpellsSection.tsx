@@ -30,7 +30,8 @@ import { EmbedDialog } from '../components/EmbedDialog'
 import { castMessage, useSpellCast, type CastReport } from '../components/useSpellCast'
 import { NO_RESOURCE, type CastResource } from '../spellCast'
 import { hasPsychicArchetype } from '../psiAmps'
-import { VIEW_OK } from '../sheetAccess'
+import { useSheetReadOnly, VIEW_OK } from '../sheetAccess'
+import { SlotRecoverMenu, type RecoverOption } from '../components/SlotRecoverMenu'
 import { tr } from '../../../i18n'
 
 interface Props {
@@ -283,6 +284,8 @@ const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, o
     // Mythic Magic: os "slots" que o Pathbuilder exporta não existem; cada
     // conjuração sai do pool de Pontos Míticos da barra do topo.
     const isMythicMagic = isMythicMagicCaster(caster)
+    const readOnly = useSheetReadOnly()
+    const [recoverMenu, setRecoverMenu] = useState<{ anchor: HTMLElement; rank: number; options: RecoverOption[] } | null>(null)
 
     // Assinatura: a magia aparece no rank que o repertório a guarda e, elevada,
     // em todo rank acima que tenha slot (`signatureSpells.ts`).
@@ -391,11 +394,18 @@ const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, o
                                 const s = levelSummary(l.spellLevel, l.entries)
                                 if (!s) return null
                                 const empty = s.used >= s.total
+                                const canRecover = !readOnly && s.used > 0
                                 return (
                                     <Chip
                                         key={l.spellLevel}
                                         size="small"
                                         label={<>Nv {l.spellLevel}: <SlotCount total={s.total} used={s.used} /></>}
+                                        icon={canRecover ? <RestoreIcon sx={{ fontSize: '0.85rem !important' }} /> : undefined}
+                                        onClick={canRecover ? (e) => setRecoverMenu({
+                                            anchor: e.currentTarget, rank: l.spellLevel,
+                                            options: recoverOptions(slots, casterIdx, caster, l.spellLevel, l.entries),
+                                        }) : undefined}
+                                        aria-label={canRecover ? tr(`Recuperar slot de ${l.spellLevel}º rank`, `Recover a rank ${l.spellLevel} slot`) : undefined}
                                         sx={{
                                             height: 22,
                                             fontSize: '0.7rem',
@@ -406,6 +416,14 @@ const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, o
                                 )
                             })}
                         </Stack>
+                        {recoverMenu && (
+                            <SlotRecoverMenu
+                                anchor={recoverMenu.anchor}
+                                title={tr(`${caster.name} · ${recoverMenu.rank}º rank`, `${caster.name} · rank ${recoverMenu.rank}`)}
+                                options={recoverMenu.options}
+                                onClose={() => setRecoverMenu(null)}
+                            />
+                        )}
                     </Box>
                 )}
 
@@ -667,27 +685,97 @@ interface OverviewProps {
 }
 
 /**
+ * O que dá para recuperar num rank de um conjurador: no espontâneo, o slot do rank; no preparado, a cópia de cada
+ * magia que tem alguma gasta (o slot é a cópia). O mesmo para o quadro "Recursos de hoje" e os chips do conjurador.
+ */
+function recoverOptions(
+    slots: SpellSlotsApi, casterIdx: number, caster: SpellCaster, rank: number,
+    entries: Array<{ name: string; count: number; signature?: 'base' | 'raised' }>,
+): RecoverOption[] {
+    if (caster.spellcastingType === 'spontaneous') {
+        const total = caster.perDay?.[rank] ?? 0
+        const key = slotKey(casterIdx, caster.name, rank)
+        const used = Math.min(total, slots.usedOf(key))
+        return used > 0
+            ? [{ key, label: tr(`Recuperar 1 slot de ${rank}º rank`, `Recover 1 rank ${rank} slot`), onPick: () => slots.setUsed(key, used - 1, total) }]
+            : []
+    }
+    return entries.flatMap((e) => {
+        if (e.signature === 'raised') return []
+        const key = slotKey(casterIdx, caster.name, rank, e.name)
+        const used = Math.min(e.count, slots.usedOf(key))
+        return used > 0 ? [{ key, label: e.name, onPick: () => slots.setUsed(key, used - 1, e.count) }] : []
+    })
+}
+
+interface CellProps {
+    label: string
+    total: number
+    used: number
+    color: string
+    /** Abre o menu de recuperar; ausente = a célula só mostra. */
+    onRecover?: (anchor: HTMLElement) => void
+    recoverLabel?: string
+}
+
+const Cell = ({ label, total, used, color, onRecover, recoverLabel }: CellProps) => {
+    const left = Math.max(0, total - used)
+    const empty = left === 0
+    const clickable = onRecover != null && used > 0
+    return (
+        <Box
+            component={clickable ? 'button' : 'div'}
+            type={clickable ? 'button' : undefined}
+            onClick={clickable ? (e: React.MouseEvent<HTMLElement>) => onRecover(e.currentTarget) : undefined}
+            aria-label={clickable ? recoverLabel : undefined}
+            title={clickable ? recoverLabel : undefined}
+            sx={{
+                minWidth: 56, px: 1, py: 0.5, textAlign: 'center', borderRadius: 1, font: 'inherit', color: 'inherit',
+                border: '1px solid', borderColor: empty ? 'divider' : color + '88',
+                backgroundColor: empty ? 'action.hover' : color + '14',
+                opacity: empty && !clickable ? 0.6 : 1,
+                cursor: clickable ? 'pointer' : 'default',
+                position: 'relative',
+                ...(clickable ? { '&:hover, &:focus-visible': { borderColor: color, outline: 'none' } } : {}),
+            }}
+        >
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.2 }}>{label}</Typography>
+            <Typography sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums', lineHeight: 1.3 }}>
+                {left}<Box component="span" sx={{ fontWeight: 400, color: 'text.secondary' }}>/{total}</Box>
+            </Typography>
+            {clickable && (
+                <RestoreIcon aria-hidden sx={{ position: 'absolute', top: 2, right: 2, fontSize: 12, color: 'text.secondary' }} />
+            )}
+        </Box>
+    )
+}
+
+/**
  * Quadro-resumo do dia: slots disponíveis por rank de cada conjurador e os pontos de foco, num lugar só.
- * Só lê — gastar e recuperar continua nos pips da lista. Mythic Magic não tem slot: entra como Pontos Míticos.
+ * Gastar continua nos pips da lista (gastar é conjurar e paga ações); RECUPERAR dá para fazer daqui também — tocar
+ * numa célula com gasto abre o menu. Mythic Magic não tem slot: entra como Pontos Míticos.
  */
 const SlotsOverview = ({ build, slots, focusMax, hasFocusSpells, mythicPoints }: OverviewProps) => {
+    const readOnly = useSheetReadOnly()
+    const [menu, setMenu] = useState<{ anchor: HTMLElement; title: string; options: RecoverOption[] } | null>(null)
     const rows = (build.spellCasters ?? []).flatMap((caster, idx) => {
         if (isMythicMagicCaster(caster)) return []
         const spontaneous = caster.spellcastingType === 'spontaneous'
         const ranks = caster.spells
             .filter((l) => l.spellLevel > 0 && l.list.length > 0)
             .map((l) => {
+                const entries = dedupe(l.list)
                 if (spontaneous) {
                     const total = caster.perDay?.[l.spellLevel] ?? 0
-                    return { rank: l.spellLevel, total, used: Math.min(total, slots.usedOf(slotKey(idx, caster.name, l.spellLevel))) }
+                    return { rank: l.spellLevel, total, used: Math.min(total, slots.usedOf(slotKey(idx, caster.name, l.spellLevel))), entries }
                 }
                 let total = 0
                 let used = 0
-                for (const e of dedupe(l.list)) {
+                for (const e of entries) {
                     total += e.count
                     used += Math.min(e.count, slots.usedOf(slotKey(idx, caster.name, l.spellLevel, e.name)))
                 }
-                return { rank: l.spellLevel, total, used }
+                return { rank: l.spellLevel, total, used, entries }
             })
             .filter((r) => r.total > 0)
             .sort((a, b) => a.rank - b.rank)
@@ -697,23 +785,9 @@ const SlotsOverview = ({ build, slots, focusMax, hasFocusSpells, mythicPoints }:
     const showMythic = (build.spellCasters ?? []).some(isMythicMagicCaster) && mythicPoints.max > 0
     if (rows.length === 0 && !showFocus && !showMythic) return null
 
-    const Cell = ({ label, total, used, color }: { label: string; total: number; used: number; color: string }) => {
-        const left = Math.max(0, total - used)
-        const empty = left === 0
-        return (
-            <Box sx={{
-                minWidth: 56, px: 1, py: 0.5, textAlign: 'center', borderRadius: 1,
-                border: '1px solid', borderColor: empty ? 'divider' : color + '88',
-                backgroundColor: empty ? 'action.hover' : color + '14',
-                opacity: empty ? 0.6 : 1,
-            }}>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.2 }}>{label}</Typography>
-                <Typography sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums', lineHeight: 1.3 }}>
-                    {left}<Box component="span" sx={{ fontWeight: 400, color: 'text.secondary' }}>/{total}</Box>
-                </Typography>
-            </Box>
-        )
-    }
+    // Sempre pelo menu, mesmo com uma opção só: um toque perdido no quadro não devolve nada sozinho.
+    const open = readOnly ? undefined : (anchor: HTMLElement, title: string, options: RecoverOption[]) => setMenu({ anchor, title, options })
+    const recoverHint = tr('Toque para recuperar', 'Tap to recover')
 
     return (
         <Card>
@@ -728,7 +802,11 @@ const SlotsOverview = ({ build, slots, focusMax, hasFocusSpells, mythicPoints }:
                             </Typography>
                             <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
                                 {ranks.map((r) => (
-                                    <Cell key={r.rank} label={`${r.rank}º`} total={r.total} used={r.used} color={traditionColor(caster.magicTradition)} />
+                                    <Cell
+                                        key={r.rank} label={`${r.rank}º`} total={r.total} used={r.used} color={traditionColor(caster.magicTradition)}
+                                        recoverLabel={tr(`Recuperar slot de ${r.rank}º rank — ${caster.name}`, `Recover a rank ${r.rank} slot — ${caster.name}`)}
+                                        onRecover={open && ((a) => open(a, tr(`${caster.name} · ${r.rank}º rank`, `${caster.name} · rank ${r.rank}`), recoverOptions(slots, idx, caster, r.rank, r.entries)))}
+                                    />
                                 ))}
                             </Stack>
                         </Box>
@@ -737,7 +815,14 @@ const SlotsOverview = ({ build, slots, focusMax, hasFocusSpells, mythicPoints }:
                         <Box>
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
                                 {tr('Mythic Magic · cada conjuração gasta 1 ponto', 'Mythic Magic · each casting spends 1 point')}</Typography>
-                            <Cell label={tr("Míticos", 'Mythic')} total={mythicPoints.max} used={mythicPoints.max - mythicPoints.available} color={MYTHIC_COLOR} />
+                            <Cell
+                                label={tr("Míticos", 'Mythic')} total={mythicPoints.max} used={mythicPoints.used} color={MYTHIC_COLOR}
+                                recoverLabel={tr('Recuperar Ponto Mítico', 'Recover a Mythic Point')}
+                                onRecover={open && ((a) => open(a, tr('Pontos Míticos', 'Mythic Points'), [{
+                                    key: 'mythic', label: tr('Recuperar 1 Ponto Mítico', 'Recover 1 Mythic Point'),
+                                    onPick: () => mythicPoints.setUsed(mythicPoints.used - 1),
+                                }]))}
+                            />
                         </Box>
                     )}
                     {showFocus && (
@@ -745,12 +830,25 @@ const SlotsOverview = ({ build, slots, focusMax, hasFocusSpells, mythicPoints }:
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
                                 {tr('Pontos de foco', 'Focus points')}</Typography>
                             <Stack direction="row" spacing={1.5} alignItems="center">
-                                <Cell label={tr("Foco", 'Focus')} total={focusMax} used={slots.focusUsed} color={gold.deep} />
-                                <Typography variant="caption" color="text.secondary">Refocus (10 min) devolve 1.</Typography>
+                                <Cell
+                                    label={tr("Foco", 'Focus')} total={focusMax} used={slots.focusUsed} color={gold.deep}
+                                    recoverLabel={tr('Recuperar Ponto de Foco', 'Recover a Focus Point')}
+                                    onRecover={open && ((a) => open(a, tr('Pontos de foco', 'Focus points'), [{
+                                        key: 'focus', label: tr('Recuperar 1 Ponto de Foco', 'Recover 1 Focus Point'),
+                                        onPick: () => slots.setFocusUsed(slots.focusUsed - 1),
+                                    }]))}
+                                />
+                                <Typography variant="caption" color="text.secondary">{tr('Refocus (10 min) devolve 1.', 'Refocus (10 min) gives 1 back.')}</Typography>
                             </Stack>
                         </Box>
                     )}
                 </Stack>
+                {!readOnly && (rows.some((r) => r.ranks.some((x) => x.used > 0)) || slots.focusUsed > 0) && (
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>{recoverHint}{tr(' um slot gasto (só desfaz: não devolve ação).', ' a spent slot (it only undoes: no action back).')}</Typography>
+                )}
+                {menu && (
+                    <SlotRecoverMenu anchor={menu.anchor} title={menu.title} options={menu.options} onClose={() => setMenu(null)} />
+                )}
             </CardContent>
         </Card>
     )
