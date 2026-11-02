@@ -116,6 +116,7 @@ node --env-file=.env scripts/check-diary.mjs
                                         # confere o resumo do histórico da mesa (SQL) contra a conta do cliente, dia a dia
 node scripts/check-trophies.mjs         # confere as regras dos troféus (sequências, destaques da sessão, platinas, o catálogo em inglês)
 node scripts/check-i18n.mjs [--ui]      # texto em português fora de tr(); --ui revisa rótulos de uma palavra pelo dicionário de inglês
+node scripts/check-contrast.mjs         # contraste das cores do tema, no claro e no escuro (rode ao mexer em palette.ts)
 node --env-file=.env scripts/prepare-sheets.mjs [mesa] [slug] [--lang en] [--guides-en]
                                         # completa no banco as descrições (em inglês com --lang en) e o guia em inglês das fichas publicadas
 node scripts/check-economy.mjs          # confere que todo talento/item do elenco que custa ação, reação ou Ponto Mítico tem caminho
@@ -1031,6 +1032,46 @@ Source Sans 3 (ambas num único `<link>` no `index.html`).
 - `StatBlockGenerator.tsx` mantém hex literais de propósito — é justamente o subtree que o
   `html2canvas` captura. Ao mexer nele, acompanhe a folha de impressão escrita à mão em
   `ExportOptions.tsx`, que replica classes do MUI e desanda em silêncio.
+
+### Tema escuro (Claro / Escuro / Sistema)
+
+Desde nov/2026 há um tema escuro, o "pergaminho à luz de vela": a MESMA moldura verde e o conteúdo em marrom quente,
+com tinta e acentos clareados. Seletor de três opções (`components/ThemeToggle.tsx`, sol/lua/monitor) ao lado do
+`LanguageToggle`: perfil da sidebar (e a versão `compact` na recolhida), menu da conta do celular e tela de entrada.
+
+- **O tema é uma CONSTANTE lida no boot** (`src/theme/mode.ts`, como o `lang`): trocar recarrega a página
+  (`setThemePref`). É o que deixa ~135 arquivos seguirem importando `parchment.paper`, `HP_COLOR`… como constantes e
+  concatenando alpha (`accent + '22'`) — variáveis CSS quebrariam as duas coisas e o `html2canvas`. **Não "conserte"
+  para trocar ao vivo** sem rever tudo isso.
+- **A escolha é do APARELHO** (decisão do usuário): `localStorage` `pf2e:theme` (global, sem `mesaKey`), `light` |
+  `dark` | `system`. Sem escolha vale "Sistema" (`prefers-color-scheme`); o sistema mudar com o app aberto só vale na
+  próxima carga. O `index.html` repete a leitura num script inline (fundo do `<html>` e `theme-color`) para a primeira
+  pintura não piscar — as duas cores de lá são cópias de `palette.ts`.
+- **`palette.ts` exporta os tokens do tema desta carga** (`pick(claro, escuro)`). **O claro é idêntico ao de antes**
+  (regra da casa, como o português do `tr()`); `lightCore`/`core` são os tokens de base, e o `theme/index.ts` monta o
+  tema do MUI de um `ThemeCore` (`buildTheme`), com `primary` = `greenInk` e as sombras/véus em `fx`.
+- **Moldura × conteúdo — a regra que mais quebra**: trocam de tema `parchment`, `ink`, `rule`, `gold.deep`, `status`,
+  `greenInk` e os acentos semânticos (`HP_COLOR`, `RAGE_COLOR`, `TRADITION_COLORS`, `RANK_COLORS`, …). **Ficam
+  iguais** (são moldura ou ficam sobre imagem): `green.*`, `chrome.*`, `gold.main`/`bright`, `mapChrome`, `TOKEN_*`,
+  `MAP_BACKDROP`, `DRAW_COLORS`, `medal` dos troféus. Por isso:
+  - **Texto sobre a moldura (`green.*`, `chrome.*`) usa `onFrame.*` ou `chrome.*`, NUNCA `parchment.*`** — no escuro o
+    pergaminho vira fundo escuro e o texto some. `onFrame` tem os valores do pergaminho claro.
+  - **Verde como tinta/acento sobre o conteúdo (texto, borda, ícone, barra) é `greenInk.*`**, não `green.*` — o verde
+    da moldura some sobre o pergaminho escuro. `green.*` é só para fundo de moldura.
+  - **Texto sobre um acento cheio** (chip "Em fúria", pip livre, botão "Beber") é `onSolid` (branco no claro, pergaminho
+    escuro no escuro), não `'#FFFFFF'`: no escuro o acento clareia. Hover de botão cheio: `HP_HOVER`, `WARNING_HOVER`.
+  - O par "acento/`green.main` de fundo + `parchment.paper` de texto" só funciona quando os dois trocam juntos: com
+    fundo de MOLDURA (`green.main` fixo) o texto é `onFrame.paper`. Botão `contained` com o fundo da moldura no `sx`
+    precisa de `color: onFrame.paper` (o `contrastText` do primário é escuro no tema escuro).
+- **Os stat blocks exportados ficam claros nos dois temas** (`components/LightTheme.tsx`, um `ThemeProvider` com o
+  `lightTheme`, em volta do `MonsterStatBlock` e do `StatBlockGenerator`): o PNG não muda com o tema de quem exporta,
+  e o cartão da Iniciativa mostra a ficha do monstro como folha de pergaminho.
+- **`scripts/check-contrast.mjs`** confere os dois temas (cada um num processo, `PF2E_THEME`): tinta do conteúdo sobre
+  `parchment.paper` ≥4,5:1 (3:1 sobre `page`/`sunken`), tinta da moldura sobre `green.*`/`chrome.*`, `onSolid` sobre
+  os acentos. Pares do claro que já eram baixos antes do tema escuro (`status.warning`, o âmbar `#9A6B12`) ficam em
+  `LIGHT_KNOWN`, como aviso. **Cor nova = as duas versões + o script passando.**
+- Para conferir no navegador sem login: `VITE_SUPABASE_URL= VITE_SUPABASE_PUBLISHABLE_KEY= npx vite` (modo local, a
+  sidebar mostra os seletores mesmo sem conta) com `localStorage['pf2e:theme']`.
 
 ## Responsividade
 
