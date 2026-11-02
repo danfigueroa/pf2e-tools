@@ -7,19 +7,20 @@
 import { Box, Button, MenuItem, Select, Typography } from '@mui/material'
 import { gold, ink, parchment, rule } from '../../../theme'
 import type { BenchColumn, ScaledRow } from '../types'
+import { tr } from '../../../i18n'
 
 // Nem toda linha usa os cinco degraus: dano em área tem colunas próprias
 // (ilimitado/limitado) e a linha de ranks de conjuração escolhe um comportamento.
 const COLUMN_LABELS: Record<BenchColumn, string> = {
-    extreme: 'Extremo',
-    high: 'Alto',
-    moderate: 'Moderado',
-    low: 'Baixo',
-    terrible: 'Terrível',
-    unlimited: 'Ilimitado',
-    limited: 'Limitado',
-    follow: 'Acompanham',
-    original: 'Originais',
+    extreme: tr('Extremo', 'Extreme'),
+    high: tr('Alto', 'High'),
+    moderate: tr('Moderado', 'Moderate'),
+    low: tr('Baixo', 'Low'),
+    terrible: tr('Terrível', 'Terrible'),
+    unlimited: tr('Ilimitado', 'Unlimited'),
+    limited: tr('Limitado', 'Limited'),
+    follow: tr('Acompanham', 'Follow'),
+    original: tr('Originais', 'Original'),
 }
 
 interface Props {
@@ -39,17 +40,14 @@ export function ScaleAdjustPanel({ rows, overrides, onOverride, onReset }: Props
         <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mb: 1, flexWrap: 'wrap' }}>
                 <Typography variant="overline" sx={{ color: gold.deep, letterSpacing: '0.06em' }}>
-                    Ajuste fino
+                    {tr('Ajuste fino', 'Fine-tuning')}
                 </Typography>
                 <Button size="small" disabled={!dirty} onClick={onReset}>
-                    Restaurar padrão
-                </Button>
+                    {tr('Restaurar padrão', 'Restore default')}</Button>
             </Box>
 
             <Typography variant="caption" sx={{ display: 'block', mb: 1, color: ink.secondary }}>
-                Cada linha mantém o degrau que a AON atribuiu à ficha original, e a diferença dela
-                para a tabela é preservada. Trocar o degrau recalcula só aquela linha.
-            </Typography>
+                {tr('Cada linha mantém o degrau que a AON atribuiu à ficha original, e a diferença dela para a tabela é preservada. Trocar o degrau recalcula só aquela linha.', 'Each row keeps the tier AON gave the original sheet, and its difference from the table is preserved. Changing the tier recalculates only that row.')}</Typography>
 
             <Box sx={{ border: `1px solid ${rule}`, borderRadius: 1, overflow: 'hidden' }}>
                 {rows.map((row, index) => {
@@ -73,8 +71,8 @@ export function ScaleAdjustPanel({ rows, overrides, onOverride, onReset }: Props
                             <Typography variant="body2" sx={{ fontWeight: 600, minWidth: 0, overflowWrap: 'break-word' }}>
                                 {row.label}
                                 {row.inferred && (
-                                    <Box component="span" sx={{ color: ink.disabled, fontWeight: 400 }} title="A AON não classifica esta linha — perícias e as CDs escritas na prosa das habilidades: o degrau foi deduzido do valor.">
-                                        {' '}·  deduzido
+                                    <Box component="span" sx={{ color: ink.disabled, fontWeight: 400 }} title={tr("A AON não classifica esta linha — perícias e as CDs escritas na prosa das habilidades: o degrau foi deduzido do valor.", 'AON doesn\'t classify this row — skills and the DCs written in the abilities\' prose: the tier was deduced from the value.')}>
+                                        {' '}{tr('·  deduzido', '·  deduced')}
                                     </Box>
                                 )}
                             </Typography>
@@ -95,7 +93,7 @@ export function ScaleAdjustPanel({ rows, overrides, onOverride, onReset }: Props
                                 displayEmpty
                                 onChange={(e) => onOverride(row.key, e.target.value as BenchColumn)}
                                 sx={{ fontSize: '0.8rem' }}
-                                inputProps={{ 'aria-label': `Degrau de ${row.label}` }}
+                                inputProps={{ 'aria-label': tr(`Degrau de ${row.label}`, `${row.label} tier`) }}
                             >
                                 {row.column === null && <MenuItem value="">—</MenuItem>}
                                 {row.columns.map((c) => (

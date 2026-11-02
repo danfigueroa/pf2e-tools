@@ -5,6 +5,7 @@ import { Alert, Box, Button, CircularProgress } from '@mui/material'
 import { Download as DownloadIcon, FormatListNumbered as InitiativeIcon } from '@mui/icons-material'
 import html2canvas from 'html2canvas'
 import type { ScaledMonster } from '../types'
+import { tr } from '../../../i18n'
 
 interface Props {
     /** O nó que vira imagem — normalmente o wrapper do stat block. */
@@ -42,20 +43,20 @@ export function MonsterExport({ target, monster, onSendToInitiative }: Props) {
                 useCORS: true,
             })
             const blob = await toBlob(canvas)
-            if (!blob) throw new Error('não foi possível gerar a imagem')
+            if (!blob) throw new Error(tr('não foi possível gerar a imagem', 'couldn\'t generate the image'))
 
             const url = URL.createObjectURL(blob)
             const link = document.createElement('a')
             link.href = url
             const slug = monster.source.name.replace(/[^\w]+/g, '-').toLowerCase()
-            link.download = `${slug}-nivel-${monster.level}.png`
+            link.download = tr(`${slug}-nivel-${monster.level}.png`, `${slug}-level-${monster.level}.png`)
             document.body.appendChild(link)
             link.click()
             document.body.removeChild(link)
             URL.revokeObjectURL(url)
             setDone(true)
         } catch (e) {
-            setError(e instanceof Error ? e.message : 'falha ao exportar')
+            setError(e instanceof Error ? e.message : tr('falha ao exportar', 'export failed'))
         } finally {
             setExporting(false)
         }
@@ -70,15 +71,14 @@ export function MonsterExport({ target, monster, onSendToInitiative }: Props) {
                     disabled={exporting}
                     startIcon={exporting ? <CircularProgress size={16} color="inherit" /> : <DownloadIcon />}
                 >
-                    {exporting ? 'Gerando…' : 'Exportar PNG'}
+                    {exporting ? tr('Gerando…', 'Generating…') : 'Exportar PNG'}
                 </Button>
                 <Button variant="outlined" startIcon={<InitiativeIcon />} onClick={onSendToInitiative}>
-                    Enviar para Iniciativa
-                </Button>
+                    {tr('Enviar para Iniciativa', 'Send to Initiative')}</Button>
             </Box>
 
-            {done && <Alert severity="success" sx={{ mt: 1 }}>Imagem exportada.</Alert>}
-            {error && <Alert severity="error" sx={{ mt: 1 }}>Não deu para exportar: {error}</Alert>}
+            {done && <Alert severity="success" sx={{ mt: 1 }}>{tr('Imagem exportada.', 'Image exported.')}</Alert>}
+            {error && <Alert severity="error" sx={{ mt: 1 }}>{tr('Não deu para exportar: ', 'Couldn\'t export: ')}{error}</Alert>}
         </Box>
     )
 }

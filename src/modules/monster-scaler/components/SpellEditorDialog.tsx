@@ -33,6 +33,7 @@ import { gold, ink, parchment, rule } from '../../../theme'
 import { searchSpellList, type AonSpell } from '../../../services/spellList'
 import { buildSpellEdits, groupLabel, spellCopies, withCopies } from '../spellcasting'
 import type { ScaledSpellBlock, ScaledSpellGroup, SpellEdits, SpellEntry } from '../types'
+import { tr } from '../../../i18n'
 
 interface Props {
     open: boolean
@@ -73,17 +74,15 @@ export function SpellEditorDialog({
     return (
         <Dialog open={open} onClose={onClose} fullScreen={fullScreen} maxWidth="md" fullWidth>
             <DialogTitle sx={{ fontFamily: 'Cinzel, serif' }}>
-                Magias do monstro
-                <Typography variant="body2" sx={{ color: ink.secondary, fontFamily: 'inherit' }}>
-                    nível-alvo {level}
+                {tr('Magias do monstro', 'Monster spells')}<Typography variant="body2" sx={{ color: ink.secondary, fontFamily: 'inherit' }}>
+                    {tr('nível-alvo ', 'target level ')}{level}
                 </Typography>
             </DialogTitle>
 
             <DialogContent dividers>
                 {blocks.length === 0 && (
                     <Typography variant="body2" sx={{ color: ink.secondary }}>
-                        Esta criatura não conjura magias.
-                    </Typography>
+                        {tr('Esta criatura não conjura magias.', 'This creature doesn\'t cast spells.')}</Typography>
                 )}
 
                 {blocks.map((block, b) => (
@@ -94,9 +93,7 @@ export function SpellEditorDialog({
 
                         {block.kind === 'ritual' && (
                             <Typography variant="caption" sx={{ display: 'block', color: ink.secondary, mb: 0.5 }}>
-                                Ritual é conjurado de um livro, em downtime: o rank dele não acompanha
-                                o nível da criatura (GM Core pg. 123).
-                            </Typography>
+                                {tr('Ritual é conjurado de um livro, em downtime: o rank dele não acompanha o nível da criatura (GM Core pg. 123).', 'A ritual is cast from a book, during downtime: its rank doesn\'t follow the creature\'s level (GM Core pg. 123).')}</Typography>
                         )}
 
                         {block.groups.map((group, g) => (
@@ -116,9 +113,8 @@ export function SpellEditorDialog({
 
             <DialogActions sx={{ justifyContent: 'space-between' }}>
                 <Button size="small" disabled={!edited} onClick={onReset}>
-                    Restaurar as magias da AON
-                </Button>
-                <Button onClick={onClose} variant="contained">Pronto</Button>
+                    {tr('Restaurar as magias da AON', 'Restore AON\'s spells')}</Button>
+                <Button onClick={onClose} variant="contained">{tr('Pronto', 'Done')}</Button>
             </DialogActions>
         </Dialog>
     )
@@ -180,7 +176,7 @@ function GroupRow({ block, group, adding, onToggleAdd, onChange }: RowProps) {
                 {group.slots !== null && (
                     <Typography variant="caption" sx={{ color: ink.secondary }}>
                         {group.slots} {group.slots === 1 ? 'slot' : 'slots'}
-                        {group.empty > 0 ? ` · ${group.empty} sem magia` : ''}
+                        {group.empty > 0 ? tr(` · ${group.empty} sem magia`, ` · ${group.empty} without a spell`) : ''}
                     </Typography>
                 )}
                 <Button
@@ -189,15 +185,14 @@ function GroupRow({ block, group, adding, onToggleAdd, onChange }: RowProps) {
                     onClick={onToggleAdd}
                     sx={{ ml: 'auto' }}
                 >
-                    {adding ? 'Fechar' : 'Adicionar'}
+                    {adding ? tr('Fechar', 'Close') : tr('Adicionar', 'Add')}
                 </Button>
             </Box>
 
             <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                 {group.spells.length === 0 && !adding && (
                     <Typography variant="caption" sx={{ color: ink.disabled, fontStyle: 'italic' }}>
-                        nenhuma magia escolhida
-                    </Typography>
+                        {tr('nenhuma magia escolhida', 'no spell chosen')}</Typography>
                 )}
                 {/* O nome fica em INGLÊS: é a chave de busca na AON. */}
                 {group.spells.map((entry, i) => (
@@ -206,7 +201,7 @@ function GroupRow({ block, group, adding, onToggleAdd, onChange }: RowProps) {
                         size="small"
                         label={entry.note ? `${entry.name} (${entry.note})` : entry.name}
                         onDelete={() => remove(i)}
-                        title={spellCopies(entry) > 1 ? 'Tirar uma cópia' : 'Tirar a magia'}
+                        title={spellCopies(entry) > 1 ? tr('Tirar uma cópia', 'Remove a copy') : tr('Tirar a magia', 'Remove the spell')}
                         sx={{ backgroundColor: parchment.sunken }}
                     />
                 ))}
@@ -269,20 +264,20 @@ function SpellPicker({ block, group, copies, onPick }: PickerProps) {
                     size="small"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder={`Magia de até ${group.rank}º rank`}
+                    placeholder={tr(`Magia de até ${group.rank}º rank`, `Spell of up to rank ${group.rank}`)}
                     InputProps={{ startAdornment: <SearchIcon fontSize="small" sx={{ mr: 0.5, color: ink.disabled }} /> }}
                     sx={{ flex: '1 1 200px' }}
                 />
                 {block.tradition && (
                     <FormControlLabel
                         control={<Switch size="small" checked={anyTradition} onChange={(e) => setAnyTradition(e.target.checked)} />}
-                        label={<Typography variant="caption">Fora da tradição</Typography>}
+                        label={<Typography variant="caption">{tr('Fora da tradição', 'Off-tradition')}</Typography>}
                     />
                 )}
                 {block.kind === 'innate' && (
                     <FormControlLabel
                         control={<Switch size="small" checked={atWill} onChange={(e) => setAtWill(e.target.checked)} />}
-                        label={<Typography variant="caption">À vontade</Typography>}
+                        label={<Typography variant="caption">{tr('À vontade', 'At will')}</Typography>}
                     />
                 )}
             </Box>
@@ -296,8 +291,7 @@ function SpellPicker({ block, group, copies, onPick }: PickerProps) {
 
             {!loading && results.length === 0 && (
                 <Alert severity="info" sx={{ mt: 1 }}>
-                    Nenhuma magia encontrada com esse filtro.
-                </Alert>
+                    {tr('Nenhuma magia encontrada com esse filtro.', 'No spell found with this filter.')}</Alert>
             )}
 
             <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 1, maxHeight: 220, overflowY: 'auto' }}>
@@ -312,7 +306,7 @@ function SpellPicker({ block, group, copies, onPick }: PickerProps) {
                             // Já escolhida: soma uma cópia onde isso quer dizer
                             // alguma coisa, e fica apagada onde não quer.
                             disabled={has && !copies}
-                            title={has && copies ? 'Somar uma cópia' : undefined}
+                            title={has && copies ? tr('Somar uma cópia', 'Add a copy') : undefined}
                             onClick={() => onPick(spell, atWill)}
                             sx={{
                                 backgroundColor: parchment.paper,

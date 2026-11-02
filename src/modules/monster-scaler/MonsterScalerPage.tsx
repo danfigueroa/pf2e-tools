@@ -31,6 +31,7 @@ import { MAX_LEVEL, MIN_LEVEL } from './data/creatureTables'
 import { clampLevel, scaleMonster } from './scaling'
 import { npcFromScaled } from './toCombatant'
 import type { BenchColumn, MonsterDetail, SpellEdits } from './types'
+import { tr } from '../../i18n'
 
 export const MonsterScalerPage = () => {
     const navigate = useNavigate()
@@ -55,7 +56,7 @@ export const MonsterScalerPage = () => {
         void fetchMonster(creature.name).then((found) => {
             setLoading(false)
             if (!found) {
-                setLoadError(`Não deu para carregar a ficha de "${creature.name}".`)
+                setLoadError(tr(`Não deu para carregar a ficha de "${creature.name}".`, `Couldn't load "${creature.name}"'s sheet.`))
                 return
             }
             setMonster(found)
@@ -87,12 +88,9 @@ export const MonsterScalerPage = () => {
     return (
         <Container maxWidth="xl" disableGutters>
             <Typography variant="h3" component="h1" gutterBottom>
-                Escalar Monstro
-            </Typography>
+                {tr('Escalar Monstro', 'Scale Monster')}</Typography>
             <Typography variant="h6" sx={{ color: ink.secondary, mb: 3, fontWeight: 400 }}>
-                Pegue a ficha de qualquer criatura do Archives of Nethys e adapte para o nível que a
-                sua mesa precisa, pelas tabelas de construção de criaturas do GM Core.
-            </Typography>
+                {tr('Pegue a ficha de qualquer criatura do Archives of Nethys e adapte para o nível que a sua mesa precisa, pelas tabelas de construção de criaturas do GM Core.', 'Take any creature\'s sheet from Archives of Nethys and adapt it to the level your table needs, using the GM Core creature-building tables.')}</Typography>
 
             <Box
                 sx={{
@@ -111,10 +109,10 @@ export const MonsterScalerPage = () => {
                                     {monster.name}
                                 </Typography>
                                 <Typography variant="caption" sx={{ color: ink.secondary }}>
-                                    ficha original de nível {monster.level}
+                                    {tr('ficha original de nível ', 'original sheet at level ')}{monster.level}
                                 </Typography>
                             </Box>
-                            <Button size="small" onClick={() => setSearchOpen(true)}>Trocar criatura</Button>
+                            <Button size="small" onClick={() => setSearchOpen(true)}>{tr('Trocar criatura', 'Change creature')}</Button>
                         </Paper>
                     )}
 
@@ -127,7 +125,7 @@ export const MonsterScalerPage = () => {
                     {loading && (
                         <Paper sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                             <CircularProgress size={18} />
-                            <Typography variant="body2">Carregando a ficha…</Typography>
+                            <Typography variant="body2">{tr('Carregando a ficha…', 'Loading the sheet…')}</Typography>
                         </Paper>
                     )}
 
@@ -137,13 +135,12 @@ export const MonsterScalerPage = () => {
                         <>
                             <Paper sx={{ p: { xs: 1.5, sm: 2 } }}>
                                 <Typography variant="overline" sx={{ color: gold.deep, letterSpacing: '0.06em' }}>
-                                    Nível-alvo
-                                </Typography>
+                                    {tr('Nível-alvo', 'Target level')}</Typography>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                                     <IconButton
                                         onClick={() => step(-1)}
                                         disabled={level <= MIN_LEVEL}
-                                        aria-label="Diminuir o nível-alvo"
+                                        aria-label={tr("Diminuir o nível-alvo", 'Lower the target level')}
                                         sx={{ border: `1px solid ${rule}` }}
                                     >
                                         <RemoveIcon />
@@ -156,40 +153,36 @@ export const MonsterScalerPage = () => {
                                             const n = parseInt(raw, 10)
                                             if (Number.isFinite(n)) setLevel(clampLevel(n))
                                         }}
-                                        inputProps={{ inputMode: 'numeric', style: { textAlign: 'center' }, 'aria-label': 'Nível-alvo' }}
+                                        inputProps={{ inputMode: 'numeric', style: { textAlign: 'center' }, 'aria-label': tr('Nível-alvo', 'Target level') }}
                                         sx={{ width: 88 }}
                                     />
                                     <IconButton
                                         onClick={() => step(1)}
                                         disabled={level >= MAX_LEVEL}
-                                        aria-label="Aumentar o nível-alvo"
+                                        aria-label={tr("Aumentar o nível-alvo", 'Raise the target level')}
                                         sx={{ border: `1px solid ${rule}` }}
                                     >
                                         <AddIcon />
                                     </IconButton>
                                     {level !== scaled.source.level && (
                                         <Button size="small" onClick={() => setLevel(clampLevel(scaled.source.level))}>
-                                            Voltar ao original ({scaled.source.level})
+                                            {tr('Voltar ao original (', 'Back to the original (')}{scaled.source.level})
                                         </Button>
                                     )}
                                 </Box>
                                 <Typography variant="caption" sx={{ display: 'block', mt: 1, color: ink.secondary }}>
-                                    As tabelas do GM Core cobrem do nível {MIN_LEVEL} ao {MAX_LEVEL}.
+                                    {tr('As tabelas do GM Core cobrem do nível ', 'The GM Core tables cover level ')}{MIN_LEVEL} {tr('ao ', 'to ')}{MAX_LEVEL}.
                                 </Typography>
                             </Paper>
 
                             {scaled.spellcasting.length > 0 && (
                                 <Paper sx={{ p: { xs: 1.5, sm: 2 } }}>
                                     <Typography variant="overline" sx={{ color: gold.deep, letterSpacing: '0.06em' }}>
-                                        Magias
-                                    </Typography>
+                                        {tr('Magias', 'Spells')}</Typography>
                                     <Typography variant="body2" sx={{ color: ink.secondary, mb: 1 }}>
-                                        O nível novo abre ranks e slots; as magias que entram neles
-                                        são escolha sua.
-                                    </Typography>
+                                        {tr('O nível novo abre ranks e slots; as magias que entram neles são escolha sua.', 'The new level opens ranks and slots; the spells that go in them are your choice.')}</Typography>
                                     <Button size="small" variant="outlined" onClick={() => setSpellsOpen(true)}>
-                                        Editar magias
-                                    </Button>
+                                        {tr('Editar magias', 'Edit spells')}</Button>
                                 </Paper>
                             )}
 
@@ -212,9 +205,7 @@ export const MonsterScalerPage = () => {
                     {!scaled && !loading && (
                         <Paper sx={{ p: 3 }}>
                             <Typography variant="body2" sx={{ color: ink.secondary }}>
-                                Busque uma criatura para começar. O nível, os degraus de cada
-                                estatística e o stat block aparecem aqui.
-                            </Typography>
+                                {tr('Busque uma criatura para começar. O nível, os degraus de cada estatística e o stat block aparecem aqui.', 'Search for a creature to start. The level, each statistic\'s tier and the stat block show up here.')}</Typography>
                         </Paper>
                     )}
 
@@ -234,8 +225,7 @@ export const MonsterScalerPage = () => {
                             {scaled.warnings.length > 0 && (
                                 <Alert severity="warning">
                                     <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                                        O que a ferramenta não ajustou
-                                    </Typography>
+                                        {tr('O que a ferramenta não ajustou', 'What the tool didn\'t adjust')}</Typography>
                                     <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
                                         {scaled.warnings.map((w, i) => (
                                             <li key={i}>

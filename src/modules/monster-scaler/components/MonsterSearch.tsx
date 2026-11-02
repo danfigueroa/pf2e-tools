@@ -8,6 +8,7 @@ import { levelInput, useCreatureSearch } from '../../../hooks/useCreatureSearch'
 import { translateRarity, translateSize, translateTrait } from '../../transformation-statblock/i18n'
 import type { AonCreature } from '../../../services/creatures'
 import { LoadMoreButton } from './LoadMoreButton'
+import { tr } from '../../../i18n'
 
 interface Props {
     onSelect: (creature: AonCreature) => void
@@ -30,7 +31,7 @@ export function MonsterSearch({ onSelect, selectedName }: Props) {
                 autoFocus
                 fullWidth
                 size="small"
-                placeholder="Nome da criatura (em inglês)"
+                placeholder={tr("Nome da criatura (em inglês)", 'Creature name')}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 InputProps={{
@@ -45,12 +46,12 @@ export function MonsterSearch({ onSelect, selectedName }: Props) {
             {/* Grid em vez de flex-wrap com minWidth fixo: a 320px o flex estoura. */}
             <Box sx={{ mt: 1, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 1 }}>
                 <TextField
-                    size="small" label="Nível mín." value={minLevel}
+                    size="small" label={tr("Nível mín.", 'Min level')} value={minLevel}
                     onChange={(e) => setMinLevel(levelInput(e.target.value))}
                     inputProps={{ inputMode: 'numeric' }}
                 />
                 <TextField
-                    size="small" label="Nível máx." value={maxLevel}
+                    size="small" label={tr("Nível máx.", 'Max level')} value={maxLevel}
                     onChange={(e) => setMaxLevel(levelInput(e.target.value))}
                     inputProps={{ inputMode: 'numeric' }}
                 />
@@ -59,15 +60,14 @@ export function MonsterSearch({ onSelect, selectedName }: Props) {
             {searched && (
                 <Typography variant="caption" sx={{ display: 'block', mt: 1, color: ink.secondary }}>
                     {hasMore
-                        ? `Mostrando ${results.length} de ~${total}.`
-                        : `${results.length} criatura(s).`}
+                        ? tr(`Mostrando ${results.length} de ~${total}.`, `Showing ${results.length} of ~${total}.`)
+                        : tr(`${results.length} criatura(s).`, `${results.length} creature(s).`)}
                 </Typography>
             )}
 
             {!searched && (
                 <Typography variant="caption" sx={{ display: 'block', mt: 1, color: ink.secondary }}>
-                    O índice da AON é em inglês: busque por "goblin", "dragon", "ogre"… ou por faixa de nível.
-                </Typography>
+                    {tr('O índice da AON é em inglês: busque por "goblin", "dragon", "ogre"… ou por faixa de nível.', 'AON\'s index is in English: search for "goblin", "dragon", "ogre"… or by level range.')}</Typography>
             )}
 
             <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
@@ -97,7 +97,7 @@ export function MonsterSearch({ onSelect, selectedName }: Props) {
                         >
                             <Typography sx={{ fontWeight: 600 }}>{creature.name}</Typography>
                             <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
-                                <Chip size="small" label={`Nível ${creature.level}`} sx={{ backgroundColor: gold.main + '33' }} />
+                                <Chip size="small" label={tr(`Nível ${creature.level}`, `Level ${creature.level}`)} sx={{ backgroundColor: gold.main + '33' }} />
                                 {creature.rarity && creature.rarity !== 'common' && (
                                     <Chip
                                         size="small" variant="outlined"
@@ -110,7 +110,7 @@ export function MonsterSearch({ onSelect, selectedName }: Props) {
                                 ))}
                             </Box>
                             <Typography variant="caption" sx={{ color: ink.secondary }}>
-                                {creature.hp} PV · CA {creature.ac} · Percepção +{creature.perception}
+                                {creature.hp} PV · CA {creature.ac} {tr('· Percepção +', '· Perception +')}{creature.perception}
                                 {creature.size ? ` · ${translateSize(creature.size)}` : ''}
                                 {creature.source ? ` · ${creature.source}` : ''}
                             </Typography>

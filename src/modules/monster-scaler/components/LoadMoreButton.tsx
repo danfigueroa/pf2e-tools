@@ -1,4 +1,5 @@
 import { Button, CircularProgress } from '@mui/material'
+import { tr } from '../../../i18n'
 
 interface Props {
     loading: boolean
@@ -19,7 +20,7 @@ export function LoadMoreButton({ loading, onClick }: Props) {
             onClick={onClick}
             startIcon={loading ? <CircularProgress size={16} /> : undefined}
         >
-            {loading ? 'Carregando…' : 'Carregar mais'}
+            {loading ? tr('Carregando…', 'Loading…') : tr('Carregar mais', 'Load more')}
         </Button>
     )
 }

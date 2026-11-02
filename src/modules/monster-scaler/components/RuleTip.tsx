@@ -13,6 +13,7 @@ import { useState, type ReactNode } from 'react'
 import { Box, CircularProgress, Tooltip, Typography } from '@mui/material'
 import { fetchRule, type AonRule } from '../../../services/rules'
 import type { RuleKind } from '../ruleTerms'
+import { tr } from '../../../i18n'
 
 // Hex literal, como manda o stat block: este componente é desenhado DENTRO do
 // subtree que o html2canvas rasteriza (ver MonsterStatBlock.tsx).
@@ -36,15 +37,14 @@ export function RuleBody({ rule, loading }: { rule: AonRule | null; loading: boo
         return (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <CircularProgress size={14} sx={{ color: GOLD_DEEP }} />
-                <Typography variant="caption">Buscando a regra…</Typography>
+                <Typography variant="caption">{tr('Buscando a regra…', 'Looking up the rule…')}</Typography>
             </Box>
         )
     }
     if (!rule) {
         return (
             <Typography variant="caption" sx={{ color: MUTED }}>
-                O Archives of Nethys não tem entrada para este termo.
-            </Typography>
+                {tr('O Archives of Nethys não tem entrada para este termo.', 'Archives of Nethys has no entry for this term.')}</Typography>
         )
     }
     return (

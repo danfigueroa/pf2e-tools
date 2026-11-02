@@ -18,6 +18,7 @@ import { formatSpellEntry, groupLabel } from '../spellcasting'
 import { splitConditions, traitTerm } from '../ruleTerms'
 import { RuleTip } from './RuleTip'
 import type { ScaledMonster } from '../types'
+import { tr } from '../../../i18n'
 
 // Paleta Remaster (pergaminho + verde + ouro), literal de propósito.
 const GREEN = '#1B3B2A'
@@ -49,13 +50,13 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 function formatSpeed(speed: Record<string, number>): string {
     const parts: string[] = []
     const names: Record<string, string> = {
-        land: '', climb: 'escalada', swim: 'natação', fly: 'voo', burrow: 'escavação',
+        land: '', climb: 'escalada', swim: tr('natação', 'swim'), fly: 'voo', burrow: tr('escavação', 'burrow'),
     }
     for (const [type, value] of Object.entries(speed)) {
         // `max` é derivado pela AON, não é um deslocamento de verdade.
         if (type === 'max' || !value) continue
         const name = names[type] ?? type
-        parts.push(`${name ? `${name} ` : ''}${value} pés`)
+        parts.push(tr(`${name ? `${name} ` : ''}${value} pés`, `${name ? `${name} ` : ''}${value} feet`))
     }
     return parts.length > 0 ? parts.join(', ') : '—'
 }
@@ -131,7 +132,7 @@ export function MonsterStatBlock({ monster }: Props) {
             <Box sx={{ px: PAD_X, py: 1.5 }}>
                 {source.level !== monster.level && (
                     <Typography variant="body2" sx={{ fontStyle: 'italic', color: ITALIC, mb: 1 }}>
-                        Adaptado do nível {source.level} para o nível {monster.level}
+                        {tr('Adaptado do nível ', 'Adapted from level ')}{source.level} {tr('para o nível ', 'to level ')}{monster.level}
                     </Typography>
                 )}
 
@@ -236,7 +237,7 @@ export function MonsterStatBlock({ monster }: Props) {
                         <Typography variant="body2">
                             <Label>{block.label}</Label>
                             {block.dc !== null ? ` CD ${block.dc}` : ''}
-                            {block.attack !== null ? `, ataque ${mod(block.attack)}` : ''}
+                            {block.attack !== null ? tr(`, ataque ${mod(block.attack)}`, `, attack ${mod(block.attack)}`) : ''}
                         </Typography>
                         {block.groups.map((group, g) => (
                             <Typography key={g} variant="body2" sx={{ pl: 1.5 }}>
@@ -268,8 +269,8 @@ export function MonsterStatBlock({ monster }: Props) {
                                         {/* Onde a contagem de slots já foi escrita (espontânea),
                                             repeti-la aqui viraria "4 slots — 4 slots vazios". */}
                                         {block.kind === 'spontaneous' || group.spells.length > 0
-                                            ? (group.empty === 1 ? 'vazio' : 'vazios')
-                                            : (group.empty === 1 ? 'slot vazio' : 'slots vazios')}
+                                            ? (group.empty === 1 ? tr('vazio', 'empty') : 'vazios')
+                                            : (group.empty === 1 ? tr('slot vazio', 'empty slot') : tr('slots vazios', 'empty slots'))}
                                     </Box>
                                 )}
                             </Typography>
@@ -310,7 +311,7 @@ export function MonsterStatBlock({ monster }: Props) {
                 <Typography variant="caption" sx={{ color: MUTED, display: 'block' }}>
                     {LABELS.source}: {source.source ?? 'Archives of Nethys'}
                     {source.family ? ` • ${source.family}` : ''}
-                    {source.level !== monster.level ? ` • ficha original de nível ${source.level}` : ''}
+                    {source.level !== monster.level ? tr(` • ficha original de nível ${source.level}`, ` • original sheet at level ${source.level}`) : ''}
                 </Typography>
             </Box>
         </Card>

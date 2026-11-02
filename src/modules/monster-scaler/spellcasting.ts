@@ -37,6 +37,7 @@ import type {
     SpellGroupKind,
     SpellcastingBlock,
 } from './types'
+import { tr } from '../../i18n'
 
 /** Truques que um conjurador de verdade tem (GM Core pg. 122). */
 export const CANTRIPS_KNOWN = 5
@@ -272,9 +273,14 @@ export function scaleSpellcasting(
         if (kind === 'innate' && options.followRanks(index)
             && maxSpellRank(fromLevel) !== topRank && source.some((g) => g.kind === 'rank')) {
             warnings.push(
-                `As magias inatas de "${block.label}" subiram de rank junto com o nível. `
-                + 'O RAW permite (inata não é limitada por nível), mas confira se cada uma '
-                + 'ganha alguma coisa ao ser elevada.',
+                tr(
+                    `As magias inatas de "${block.label}" subiram de rank junto com o nível. `
+                    + 'O RAW permite (inata não é limitada por nível), mas confira se cada uma '
+                    + 'ganha alguma coisa ao ser elevada.',
+                    `The innate spells of "${block.label}" went up in rank along with the level. `
+                    + "RAW allows it (innate spells aren't limited by level), but check whether each one "
+                    + 'gains anything from being heightened.',
+                ),
             )
         }
 
@@ -376,8 +382,12 @@ function mergeByRank(
     }
     if (merges > 0) {
         warnings.push(
-            `Em "${label}", ranks diferentes caíram no mesmo rank depois do ajuste `
-            + '(o rank 10 é o teto) e as listas foram juntadas — confira se não sobrou magia demais.',
+            tr(
+                `Em "${label}", ranks diferentes caíram no mesmo rank depois do ajuste `
+                + '(o rank 10 é o teto) e as listas foram juntadas — confira se não sobrou magia demais.',
+                `In "${label}", different ranks landed on the same rank after the adjustment `
+                + "(rank 10 is the ceiling) and the lists were merged — check there aren't too many spells left.",
+            ),
         )
     }
     return [...byKey.values()]
@@ -474,8 +484,12 @@ function applySlots(
         const { used, empty } = emptyOf(group, slots)
         if (kind === 'prepared' && used > slots) {
             warnings.push(
-                `"${label}" tem ${used} magia(s) preparada(s) de ${rankLabel(group.rank)} rank `
-                + `para ${slots} slot(s) no nível ${toLevel} — tire ${used - slots}.`,
+                tr(
+                    `"${label}" tem ${used} magia(s) preparada(s) de ${rankLabel(group.rank)} rank `
+                    + `para ${slots} slot(s) no nível ${toLevel} — tire ${used - slots}.`,
+                    `"${label}" has ${used} prepared rank ${group.rank} spell(s) `
+                    + `for ${slots} slot(s) at level ${toLevel} — remove ${used - slots}.`,
+                ),
             )
         }
         return { ...toGroup(group, slots), empty }
@@ -508,9 +522,14 @@ function applySlots(
     }
 
     warnings.push(
-        `O nível ${toLevel} abriu ${opened.length} rank(s) em "${label}" `
-        + `(${opened.map(rankLabel).join(', ')}), com ${emptyTotal} slot(s) vazio(s): `
-        + 'escolha as magias em "Editar magias".',
+        tr(
+            `O nível ${toLevel} abriu ${opened.length} rank(s) em "${label}" `
+            + `(${opened.map(rankLabel).join(', ')}), com ${emptyTotal} slot(s) vazio(s): `
+            + 'escolha as magias em "Editar magias".',
+            `Level ${toLevel} opened ${opened.length} rank(s) in "${label}" `
+            + `(${opened.map(rankLabel).join(', ')}), with ${emptyTotal} empty slot(s): `
+            + 'choose the spells in "Edit spells".',
+        ),
     )
 
     return out
@@ -526,12 +545,14 @@ const toGroup = (group: NormalizedGroup, slots: number | null): ScaledSpellGroup
 })
 
 /** `5` → "5º". */
-export const rankLabel = (rank: number): string => `${rank}º`
+/** "3º" / "3rd" — o rank como a ficha escreve. */
+export const rankLabel = (rank: number): string =>
+    tr(`${rank}º`, `${rank}${rank % 10 === 1 && rank !== 11 ? 'st' : rank % 10 === 2 && rank !== 12 ? 'nd' : rank % 10 === 3 && rank !== 13 ? 'rd' : 'th'}`)
 
 /** O rótulo em pt-BR de um grupo: "Truques (5º)", "Constante (4º)", "5º". */
 export function groupLabel(group: ScaledSpellGroup): string {
     if (group.label) return group.label
-    if (group.kind === 'cantrip') return `Truques (${rankLabel(group.rank)})`
+    if (group.kind === 'cantrip') return tr(`Truques (${rankLabel(group.rank)})`, `Cantrips (${rankLabel(group.rank)})`)
     if (group.kind === 'constant') return `Constante (${rankLabel(group.rank)})`
     return rankLabel(group.rank)
 }

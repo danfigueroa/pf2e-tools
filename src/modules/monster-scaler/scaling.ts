@@ -53,6 +53,7 @@ import type {
     ScaledStrike,
     ScaleOverrides,
 } from './types'
+import { tr } from '../../i18n'
 
 export const clampLevel = (level: number): number =>
     Math.min(MAX_LEVEL, Math.max(MIN_LEVEL, Math.round(level)))
@@ -433,19 +434,19 @@ export function scaleMonster(
     const acBase = baseColumn(source.ac.scale, AC_TABLE, from, source.ac.value)
     const acColumn = pick(overrides, 'ac', ORDER, acBase.column)
     const ac = shift(AC_TABLE, from, to, acBase.column, acColumn, source.ac.value)
-    addRow('ac', 'CA', AC_TABLE, acColumn, source.ac.value, ac, 'flat', acBase.inferred)
+    addRow('ac', tr('CA', 'AC'), AC_TABLE, acColumn, source.ac.value, ac, 'flat', acBase.inferred)
 
     const hpBase = baseColumn(source.hp.scale, HP_TABLE, from, source.hp.value)
     const hpColumn = pick(overrides, 'hp', ORDER, hpBase.column)
     const hp = shiftHp(from, to, hpBase.column, hpColumn, source.hp.value)
-    addRow('hp', 'PV', HP_TABLE, hpColumn, source.hp.value, hp, 'flat', hpBase.inferred)
+    addRow('hp', tr('PV', 'HP'), HP_TABLE, hpColumn, source.hp.value, hp, 'flat', hpBase.inferred)
 
     const percBase = baseColumn(source.perception.scale, PERCEPTION_TABLE, from, source.perception.value)
     const percColumn = pick(overrides, 'perception', ORDER, percBase.column)
     const perception = shift(PERCEPTION_TABLE, from, to, percBase.column, percColumn, source.perception.value)
-    addRow('perception', 'Percepção', PERCEPTION_TABLE, percColumn, source.perception.value, perception, 'modifier', percBase.inferred)
+    addRow('perception', tr('Percepção', 'Perception'), PERCEPTION_TABLE, percColumn, source.perception.value, perception, 'modifier', percBase.inferred)
 
-    const saveLabels = { fort: 'Fortitude', ref: 'Reflexos', will: 'Vontade' } as const
+    const saveLabels = { fort: 'Fortitude', ref: tr('Reflexos', 'Reflex'), will: tr('Vontade', 'Will') } as const
     const saves = { fort: 0, ref: 0, will: 0 }
     for (const key of ['fort', 'ref', 'will'] as const) {
         const stat = source.saves[key]
@@ -457,16 +458,16 @@ export function scaleMonster(
 
     // --- atributos ---
     const attrLabels: Record<AttributeKey, string> = {
-        strength: 'For', dexterity: 'Des', constitution: 'Con',
-        intelligence: 'Int', wisdom: 'Sab', charisma: 'Car',
+        strength: tr('For', 'Str'), dexterity: tr('Des', 'Dex'), constitution: 'Con',
+        intelligence: 'Int', wisdom: tr('Sab', 'Wis'), charisma: tr('Car', 'Cha'),
     }
     const attributes = {} as Record<AttributeKey, number>
     for (const key of Object.keys(attrLabels) as AttributeKey[]) {
         const stat = source.attributes[key]
         const base = baseColumn(stat.scale, ATTRIBUTE_TABLE, from, stat.value)
-        const column = pick(overrides, `attr:${key}`, ORDER, base.column)
+        const column = pick(overrides, `attr:${key}`, ORDER, base.column) // i18n-ok: chave
         attributes[key] = shift(ATTRIBUTE_TABLE, from, to, base.column, column, stat.value)
-        addRow(`attr:${key}`, attrLabels[key], ATTRIBUTE_TABLE, column, stat.value, attributes[key], 'modifier', base.inferred)
+        addRow(`attr:${key}`, attrLabels[key], ATTRIBUTE_TABLE, column, stat.value, attributes[key], 'modifier', base.inferred) // i18n-ok: chave
     }
 
     // --- perícias: única estatística sem degrau no índice ---
@@ -491,7 +492,7 @@ export function scaleMonster(
         )
         const attackColumn = pick(overrides, `attack:${index}`, ORDER, attackBase)
         const bonus = shift(STRIKE_ATTACK_TABLE, from, to, attackBase, attackColumn, strike.bonus)
-        addRow(`attack:${index}`, `${strike.name} (ataque)`, STRIKE_ATTACK_TABLE, attackColumn, strike.bonus, bonus, 'modifier')
+        addRow(`attack:${index}`, tr(`${strike.name} (ataque)`, `${strike.name} (attack)`), STRIKE_ATTACK_TABLE, attackColumn, strike.bonus, bonus, 'modifier')
 
         const average = formulaAverage(strike.damage?.formula ?? null)
         const damageBase = strikeColumn(
@@ -503,7 +504,7 @@ export function scaleMonster(
         )
 
         if (strike.damage?.riders) {
-            warnings.push(`O dano extra de "${strike.name}" (${strike.damage.riders}) não foi reescalado.`)
+            warnings.push(tr(`O dano extra de "${strike.name}" (${strike.damage.riders}) não foi reescalado.`, `The extra damage of "${strike.name}" (${strike.damage.riders}) wasn't rescaled.`))
         }
 
         return {
@@ -523,7 +524,7 @@ export function scaleMonster(
         const avgFrom = formulaAverage(scaled.originalFormula) ?? 0
         rows.push({
             key: `damage:${index}`,
-            label: `${strike.name} (dano)`,
+            label: tr(`${strike.name} (dano)`, `${strike.name} (damage)`),
             from: Math.round(avgFrom),
             to: Math.round(formulaAverage(scaled.damageFormula) ?? avgFrom),
             column: pick(
@@ -613,7 +614,7 @@ export function scaleMonster(
         dcMap.set(group.value, scaledDc)
         addRow(
             key,
-            `CD ${group.value} (${labelAbilities(group.abilities)})`,
+            tr(`CD ${group.value} (${labelAbilities(group.abilities)})`, `DC ${group.value} (${labelAbilities(group.abilities)})`),
             SPELL_DC_TABLE, column, group.value, scaledDc, 'flat', base.inferred,
         )
     }
@@ -630,7 +631,7 @@ export function scaleMonster(
         damageMap.set(group.formula, scaledFormula)
         rows.push({
             key,
-            label: `Dano ${group.formula} (${labelAbilities(group.abilities)})`,
+            label: tr(`Dano ${group.formula} (${labelAbilities(group.abilities)})`, `Damage ${group.formula} (${labelAbilities(group.abilities)})`),
             from: Math.round(average),
             to: Math.round(formulaAverage(scaledFormula) ?? average),
             column,
@@ -660,45 +661,60 @@ export function scaleMonster(
     // saberia por quê — pior do que um erro visível.
     if (source.level < MIN_LEVEL || source.level > MAX_LEVEL) {
         warnings.push(
-            `A ficha original é de nível ${source.level}, fora da faixa das tabelas do GM Core `
-            + `(${MIN_LEVEL} a ${MAX_LEVEL}): os degraus foram deduzidos do nível ${clampLevel(source.level)} `
-            + 'e o resultado é aproximado.',
+            tr(
+                `A ficha original é de nível ${source.level}, fora da faixa das tabelas do GM Core `
+                + `(${MIN_LEVEL} a ${MAX_LEVEL}): os degraus foram deduzidos do nível ${clampLevel(source.level)} `
+                + 'e o resultado é aproximado.',
+                `The original sheet is level ${source.level}, outside the GM Core tables' range `
+                + `(${MIN_LEVEL} to ${MAX_LEVEL}): the tiers were deduced from level ${clampLevel(source.level)} `
+                + 'and the result is approximate.',
+            ),
         )
     }
 
     const unscaled = rows.filter((r) => r.column === null).map((r) => r.label)
     if (unscaled.length > 0) {
         warnings.push(
-            `Sem degrau de referência na AON, então não foi reescalado: ${unscaled.join(', ')}.`,
+            tr(`Sem degrau de referência na AON, então não foi reescalado: ${unscaled.join(', ')}.`, `No reference tier on AON, so it wasn't rescaled: ${unscaled.join(', ')}.`),
         )
     }
 
     if ((source.statblock?.abilities.length ?? 0) > 0) {
         const adjusted = [
-            ...(dcGroups.length > 0 ? ['as CDs'] : []),
-            ...(damageGroups.length > 0 ? ['o dano'] : []),
+            ...(dcGroups.length > 0 ? [tr('as CDs', 'the DCs')] : []),
+            ...(damageGroups.length > 0 ? [tr('o dano', 'the damage')] : []),
         ]
         warnings.push(
             adjusted.length > 0
-                ? `Nas habilidades especiais, a ferramenta ajustou ${adjusted.join(' e ')} que a `
-                    + 'prosa declara; alcance, duração e o efeito em si ficam como estão (o teste '
-                    + 'plano também, que é de CD fixa).'
-                : 'A prosa das habilidades especiais não foi reescalada — ajuste dados e efeitos manualmente.',
+                ? tr(
+                    `Nas habilidades especiais, a ferramenta ajustou ${adjusted.join(' e ')} que a `
+                        + 'prosa declara; alcance, duração e o efeito em si ficam como estão (o teste '
+                        + 'plano também, que é de CD fixa).',
+                    `In the special abilities, the tool adjusted ${adjusted.join(' and ')} the prose `
+                        + 'states; range, duration and the effect itself stay as they are (so does the '
+                        + 'flat check, which has a fixed DC).',
+                )
+                : tr('A prosa das habilidades especiais não foi reescalada — ajuste dados e efeitos manualmente.', "The special abilities' prose wasn't rescaled — adjust dice and effects by hand."),
         )
     }
     warnings.push(...cast.warnings)
     if (spellcasting.some((b) => b.kind !== 'ritual') && maxSpellRank(from) !== maxSpellRank(to)) {
         warnings.push(
-            `No nível ${to}, o teto de conjuração é ${rankLabel(maxSpellRank(to))} `
-            + `(no nível ${from} era ${rankLabel(maxSpellRank(from))}) — GM Core pg. 122. `
-            + 'Bloco que já ficava abaixo do teto continua abaixo, na mesma distância.',
+            tr(
+                `No nível ${to}, o teto de conjuração é ${rankLabel(maxSpellRank(to))} `
+                + `(no nível ${from} era ${rankLabel(maxSpellRank(from))}) — GM Core pg. 122. `
+                + 'Bloco que já ficava abaixo do teto continua abaixo, na mesma distância.',
+                `At level ${to}, the spellcasting ceiling is rank ${maxSpellRank(to)} `
+                + `(at level ${from} it was rank ${maxSpellRank(from)}) — GM Core pg. 122. `
+                + 'A block that was already below the ceiling stays below, at the same distance.',
+            ),
         )
     }
     if (source.defenseNotes.length > 0) {
-        warnings.push(...source.defenseNotes.map((n) => `Defesa com ressalva, mantida como está: ${n}.`))
+        warnings.push(...source.defenseNotes.map((n) => tr(`Defesa com ressalva, mantida como está: ${n}.`, `Defense with a caveat, kept as is: ${n}.`)))
     }
     if (parsedStrikes.length === 0 && source.attackBonuses.length > 0) {
-        warnings.push('Os golpes desta criatura não puderam ser lidos e não foram reescalados.')
+        warnings.push(tr('Os golpes desta criatura não puderam ser lidos e não foram reescalados.', 'This creature\'s Strikes couldn\'t be read and weren\'t rescaled.'))
     }
 
     return {
