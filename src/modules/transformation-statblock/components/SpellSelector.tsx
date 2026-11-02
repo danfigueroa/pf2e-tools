@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import type { TransformationSpell } from '../../../types';
 import { transformationSpells } from '../data/spells';
+import { tr } from '../../../i18n';
 
 interface SpellSelectorProps {
   selectedSpell: TransformationSpell | null;
@@ -68,30 +69,29 @@ export const SpellSelector: React.FC<SpellSelectorProps> = ({
     <Card>
       <CardContent>
         <Typography variant="h6" gutterBottom>
-          Seleção de Magia
-        </Typography>
+          {tr('Seleção de Magia', 'Spell Selection')}</Typography>
         
         <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
           <FormControl fullWidth>
-            <InputLabel>Magia de Transformação</InputLabel>
+            <InputLabel>{tr('Magia de Transformação', 'Transformation Spell')}</InputLabel>
             <Select
               value={selectedSpell?.id || ''}
-              label="Magia de Transformação"
+              label={tr("Magia de Transformação", 'Transformation Spell')}
               onChange={(e) => handleSpellChange(e.target.value)}
             >
               <MenuItem value="">
-                <em>Selecione uma magia</em>
+                <em>{tr('Selecione uma magia', 'Select a spell')}</em>
               </MenuItem>
               {transformationSpells.map((spell) => (
                 <MenuItem key={spell.id} value={spell.id}>
-                  {spell.name} (Nível {spell.level})
+                  {spell.name} {tr('(Nível ', '(Rank ')}{spell.level})
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
           
           <TextField
-            label="Nível do Conjurador"
+            label={tr("Nível do Conjurador", 'Caster Level')}
             type="number"
             value={casterLevel}
             onChange={(e) => onCasterLevelChange(Math.max(1, Math.min(20, parseInt(e.target.value) || 1)))}
@@ -103,18 +103,18 @@ export const SpellSelector: React.FC<SpellSelectorProps> = ({
         {selectedSpell && (
           <Box>
             <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-              <Chip label={`Nível ${selectedSpell.level}`} size="small" />
+              <Chip label={tr(`Nível ${selectedSpell.level}`, `Rank ${selectedSpell.level}`)} size="small" />
               <Chip label={selectedSpell.school} size="small" color="primary" />
               {selectedSpell.traditions.map((tradition) => (
                 <Chip key={tradition} label={tradition} size="small" variant="outlined" />
               ))}
-              <Chip label={`Nível Efetivo: ${getEffectiveSpellLevel()}`} size="small" color="secondary" />
+              <Chip label={tr(`Nível Efetivo: ${getEffectiveSpellLevel()}`, `Effective rank: ${getEffectiveSpellLevel()}`)} size="small" color="secondary" />
             </Box>
             
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              <strong>Conjuração:</strong> {selectedSpell.cast} | 
-              <strong> Alcance:</strong> {selectedSpell.range} | 
-              <strong> Duração:</strong> {selectedSpell.duration}
+              <strong>{tr('Conjuração:', 'Casting:')}</strong> {selectedSpell.cast} | 
+              <strong> {tr('Alcance:', 'Range:')}</strong> {selectedSpell.range} | 
+              <strong> {tr('Duração:', 'Duration:')}</strong> {selectedSpell.duration}
             </Typography>
             
             <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
@@ -122,8 +122,7 @@ export const SpellSelector: React.FC<SpellSelectorProps> = ({
             </Typography>
             
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              <strong>Formas Disponíveis:</strong> {selectedSpell.forms.length} opções
-            </Typography>
+              <strong>{tr('Formas Disponíveis:', 'Available Forms:')}</strong> {selectedSpell.forms.length} {tr('opções', 'options')}</Typography>
           </Box>
         )}
       </CardContent>

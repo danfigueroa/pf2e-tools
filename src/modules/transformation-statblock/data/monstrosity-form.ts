@@ -1,4 +1,5 @@
 import type { TransformationSpell, TransformationForm } from '../../../types';
+import { tr } from '../../../i18n';
 
 // Monstrosity Form - monstrous battle forms
 export const monstrosityForms: TransformationForm[] = [
@@ -30,13 +31,13 @@ export const monstrosityForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Autoimolação',
-        description: 'Todos os seus ataques corpo a corpo causam 2d8 de dano de fogo adicional. Você ganha imunidade a fogo e fraqueza 10 a frio.',
+        name: tr('Autoimolação', 'Self-Immolation'),
+        description: tr('Todos os seus ataques corpo a corpo causam 2d8 de dano de fogo adicional. Você ganha imunidade a fogo e fraqueza 10 a frio.', 'All your melee attacks deal 2d8 extra fire damage. You gain immunity to fire and weakness 10 to cold.'),
         traits: ['fire']
       },
       {
-        name: 'Manto de Chamas',
-        description: 'Qualquer criatura que tocar você ou acertá-lo com ataque desarmado ou arma corpo a corpo sem alcance sofre 2d6 de dano de fogo.',
+        name: tr('Manto de Chamas', 'Mantle of Flames'),
+        description: tr('Qualquer criatura que tocar você ou acertá-lo com ataque desarmado ou arma corpo a corpo sem alcance sofre 2d6 de dano de fogo.', 'Any creature that touches you or hits you with an unarmed attack or a melee weapon without reach takes 2d6 fire damage.'),
         traits: ['fire', 'aura']
       }
     ],
@@ -86,8 +87,8 @@ export const monstrosityForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Inexorável',
-        description: 'Você pode escavar rocha sólida e não pode ser agarrado, imobilizado ou contido por meios não mágicos.',
+        name: tr('Inexorável', 'Inexorable'),
+        description: tr('Você pode escavar rocha sólida e não pode ser agarrado, imobilizado ou contido por meios não mágicos.', 'You can burrow through solid rock and can\'t be grabbed, immobilized or restrained by nonmagical means.'),
         traits: []
       }
     ],
@@ -126,12 +127,12 @@ export const monstrosityForms: TransformationForm[] = [
     abilities: [
       {
         name: 'Spine Rake',
-        description: 'Uma vez por rodada, como parte de uma ação de Nadar, você causa 3d6 de dano cortante a qualquer criatura por quem nadar.',
+        description: tr('Uma vez por rodada, como parte de uma ação de Nadar, você causa 3d6 de dano cortante a qualquer criatura por quem nadar.', 'Once per round, as part of a Swim action, you deal 3d6 slashing damage to any creature you swim past.'),
         traits: []
       },
       {
-        name: 'Aquático',
-        description: 'Pode respirar debaixo da água.',
+        name: tr('Aquático', 'Aquatic'),
+        description: tr('Pode respirar debaixo da água.', 'Can breathe underwater.'),
         traits: []
       }
     ],
@@ -167,13 +168,13 @@ export const monstrosityForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Nuvem de Tinta',
-        description: 'Uma vez por minuto, você pode emitir uma nuvem de tinta com raio de 30 pés, criando camuflagem por 1 minuto na água.',
+        name: tr('Nuvem de Tinta', 'Ink Cloud'),
+        description: tr('Uma vez por minuto, você pode emitir uma nuvem de tinta com raio de 30 pés, criando camuflagem por 1 minuto na água.', 'Once per minute, you can emit a 30-foot-radius cloud of ink, creating concealment for 1 minute in water.'),
         traits: []
       },
       {
-        name: 'Aquático',
-        description: 'Pode respirar debaixo da água.',
+        name: tr('Aquático', 'Aquatic'),
+        description: tr('Pode respirar debaixo da água.', 'Can breathe underwater.'),
         traits: []
       }
     ],
@@ -210,7 +211,7 @@ export const monstrosityForms: TransformationForm[] = [
     abilities: [
       {
         name: 'Atropelar',
-        description: 'Você se Desloca até o dobro do seu Deslocamento e pode atravessar espaços de criaturas Grandes ou menores. Cada criatura por quem passar sofre 2d8 de dano contundente (salvamento de Reflexos básico).',
+        description: tr('Você se Desloca até o dobro do seu Deslocamento e pode atravessar espaços de criaturas Grandes ou menores. Cada criatura por quem passar sofre 2d8 de dano contundente (salvamento de Reflexos básico).', 'You Stride up to double your Speed and can move through the spaces of Large or smaller creatures. Each creature you pass through takes 2d8 bludgeoning damage (basic Reflex save).'),
         traits: []
       }
     ],

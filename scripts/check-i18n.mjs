@@ -59,13 +59,15 @@ primeira segunda terceira último última seguinte rodadas turnos combatente com
 adiar ordem lento atordoado acelerado cego caído morrendo ferido condenado inconsciente amedrontado
 desajeitado enfraquecido drenado fatigado estupefato desprevenido imobilizado agarrado contido
 oculto escondido invisível confuso fascinado paralisado enjoado surdo quebrado destruído consertar
-erguer bloquear dureza mão mãos corpo distância alcance área cone linha explosão emanação metros
+erguer bloquear dureza mão mãos corpo distância alcance área linha explosão emanação metros
 quadrado quadrados régua desenhar desenho desenhos limpar camada privado revelar levar ativar
 mesa mesas tirar pôr põe sobe desce vem vêm volta entra sai fim início meio parte partes faltam falta
 precisa preciso deve devem cria criar criado salvo salva gravado gravar lido ler lê escolha escolhido
 quantos quantas quanto quanta mudou muda mudar tipo tipos geral automático automática manual
 persistente persistentes veneno venenos simples contundente perfurante cortante tratar ferimentos dobrado dobrada fogo frio eletricidade sônico vazio vitalidade espírito imune sofreu chegou caiu fraq fraqueza fraquezas resist segura recuperados ajuda apropriada atual estágio ataques por gerado gerada recarregou recarregar manter minha meu mesma mesmo passou passar elevada elevado aplica aplicar cenas cena elenco conjurada conjurado ganhou ganhei regra regras compartilhada compartilhado copiado copiada enviou envie forma formas te lhe
 `.trim().split(/\s+/).filter((w) => !['mesa', 'mesas'].includes(w)))
+
+const ENGLISH_FUNCTION = new Set(['the', 'and', 'you', 'your', 'of', 'with', 'which', 'are', 'is', 'can', 'or', 'to', 'in', 'from', 'that', 'this'])
 
 const IGNORE_CALLEES = new Set(['console', 'RegExp', 'require', 'import', 'mesaKey', 'localStorage', 'sessionStorage', 'getItem', 'setItem', 'removeItem', 'matchMedia', 'querySelector', 'addEventListener', 'removeEventListener', 'dispatchEvent', 'CustomEvent', 'Event'])
 
@@ -81,6 +83,8 @@ function looksPortuguese(text) {
     if (!/\s/.test(bare) && (/\//.test(bare) || /^[a-z0-9]+(?:[-_.:][a-z0-9]+)+$/.test(bare))) return false
     if (ACCENT.test(t)) return true
     const words = t.toLowerCase().match(/[a-zà-ú]+/g) ?? []
+    // Texto que já é inglês (a prosa da AON guardada nos dados): muitas palavras-função inglesas.
+    if (words.filter((w) => ENGLISH_FUNCTION.has(w)).length >= 3) return false
     if (words.some((w) => WORDS.has(w))) return true
     if (!english || !/\s/.test(t)) return false
     if (/^url\(|^"[\w-]+(?: [\w-]+)*"(?: "[\w -]+")*$/.test(t)) return false

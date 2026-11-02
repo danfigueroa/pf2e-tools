@@ -1,4 +1,5 @@
 import type { TransformationSpell, TransformationForm } from '../../../types';
+import { tr } from '../../../i18n';
 
 // Ooze Form - ooze battle forms (Rage of Elements / Player Core reprint)
 // Note: dice-only damage strings; the flat damage bonus (+5) comes from the
@@ -23,13 +24,13 @@ export const oozeForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Sentido de Movimento',
-        description: 'Você não enxerga, mas percebe o movimento de criaturas em até 30 pés (impreciso).',
+        name: tr('Sentido de Movimento', 'Motion Sense'),
+        description: tr('Você não enxerga, mas percebe o movimento de criaturas em até 30 pés (impreciso).', 'You can\'t see, but you sense the movement of creatures within 30 feet (imprecise).'),
         traits: []
       },
       {
-        name: 'Corpo Corrosivo',
-        description: 'Uma criatura que acertar você com um ataque desarmado sofre dano de ácido do seu corpo.',
+        name: tr('Corpo Corrosivo', 'Corrosive Body'),
+        description: tr('Uma criatura que acertar você com um ataque desarmado sofre dano de ácido do seu corpo.', 'A creature that hits you with an unarmed attack takes acid damage from your body.'),
         traits: []
       }
     ],
@@ -61,13 +62,13 @@ export const oozeForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Sentido de Movimento',
-        description: 'Você não enxerga, mas percebe o movimento de criaturas em até 30 pés (impreciso).',
+        name: tr('Sentido de Movimento', 'Motion Sense'),
+        description: tr('Você não enxerga, mas percebe o movimento de criaturas em até 30 pés (impreciso).', 'You can\'t see, but you sense the movement of creatures within 30 feet (imprecise).'),
         traits: []
       },
       {
-        name: 'Toque Entorpecente',
-        description: 'Uma criatura atingida pela face do cubo deve ser bem-sucedida em um salvamento de Fortitude ou fica atordoada 1 (atordoada 1 e paralisada por 1 rodada em uma falha crítica).',
+        name: tr('Toque Entorpecente', 'Numbing Touch'),
+        description: tr('Uma criatura atingida pela face do cubo deve ser bem-sucedida em um salvamento de Fortitude ou fica atordoada 1 (atordoada 1 e paralisada por 1 rodada em uma falha crítica).', 'A creature hit by the cube\'s face must succeed at a Fortitude save or be stunned 1 (stunned 1 and paralyzed for 1 round on a critical failure).'),
         traits: ['incapacitation']
       }
     ],
@@ -101,13 +102,13 @@ export const oozeForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Sentido de Movimento',
-        description: 'Você não enxerga, mas percebe o movimento de criaturas em até 30 pés (impreciso).',
+        name: tr('Sentido de Movimento', 'Motion Sense'),
+        description: tr('Você não enxerga, mas percebe o movimento de criaturas em até 30 pés (impreciso).', 'You can\'t see, but you sense the movement of creatures within 30 feet (imprecise).'),
         traits: []
       },
       {
         name: 'Agarrar',
-        description: 'Você pode usar seu pseudópode para Agarrar uma criatura que atingir.',
+        description: tr('Você pode usar seu pseudópode para Agarrar uma criatura que atingir.', 'You can use your pseudopod to Grab a creature you hit.'),
         traits: []
       }
     ],
@@ -140,13 +141,13 @@ export const oozeForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Sentido de Movimento',
-        description: 'Você não enxerga, mas percebe o movimento de criaturas em até 30 pés (impreciso).',
+        name: tr('Sentido de Movimento', 'Motion Sense'),
+        description: tr('Você não enxerga, mas percebe o movimento de criaturas em até 30 pés (impreciso).', 'You can\'t see, but you sense the movement of creatures within 30 feet (imprecise).'),
         traits: []
       },
       {
         name: 'Agarrar',
-        description: 'Você pode usar seu pseudópode para Agarrar uma criatura que atingir.',
+        description: tr('Você pode usar seu pseudópode para Agarrar uma criatura que atingir.', 'You can use your pseudopod to Grab a creature you hit.'),
         traits: []
       }
     ],

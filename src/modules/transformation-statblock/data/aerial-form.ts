@@ -1,4 +1,5 @@
 import type { TransformationSpell, TransformationForm } from '../../../types';
+import { tr } from '../../../i18n';
 
 // Aerial Form - forms that can fly
 export const aerialForms: TransformationForm[] = [
@@ -28,8 +29,8 @@ export const aerialForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Ecolocalização',
-        description: 'Ecolocalização precisa 40 pés',
+        name: tr('Ecolocalização', 'Echolocation'),
+        description: tr('Ecolocalização precisa 40 pés', 'Echolocation precise 40 feet'),
         traits: []
       }
     ],

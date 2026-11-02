@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import type { TransformationSpell, TransformationForm } from '../../../types';
 import { translateName, translateSize, translateAttackName, translateDamageString, translateTrait } from '../i18n';
+import { tr } from '../../../i18n';
 
 interface FormSelectorProps {
   selectedSpell: TransformationSpell | null;
@@ -27,11 +28,9 @@ export const FormSelector: React.FC<FormSelectorProps> = ({
       <Card>
         <CardContent>
           <Typography variant="h6" gutterBottom>
-            Seleção de Forma
-          </Typography>
+            {tr('Seleção de Forma', 'Form Selection')}</Typography>
           <Alert severity="info">
-            Selecione uma magia primeiro para ver as formas disponíveis.
-          </Alert>
+            {tr('Selecione uma magia primeiro para ver as formas disponíveis.', 'Select a spell first to see the available forms.')}</Alert>
         </CardContent>
       </Card>
     );
@@ -39,11 +38,11 @@ export const FormSelector: React.FC<FormSelectorProps> = ({
 
   const formatSpeed = (speed: TransformationForm['speed']) => {
     const speeds = [];
-    if (speed.land) speeds.push(`${speed.land} pés`);
-    if (speed.fly) speeds.push(`voo ${speed.fly} pés`);
-    if (speed.swim) speeds.push(`natação ${speed.swim} pés`);
-    if (speed.climb) speeds.push(`escalada ${speed.climb} pés`);
-    if (speed.burrow) speeds.push(`escavação ${speed.burrow} pés`);
+    if (speed.land) speeds.push(tr(`${speed.land} pés`, `${speed.land} feet`));
+    if (speed.fly) speeds.push(tr(`voo ${speed.fly} pés`, `fly ${speed.fly} feet`));
+    if (speed.swim) speeds.push(tr(`natação ${speed.swim} pés`, `swim ${speed.swim} feet`));
+    if (speed.climb) speeds.push(tr(`escalada ${speed.climb} pés`, `climb ${speed.climb} feet`));
+    if (speed.burrow) speeds.push(tr(`escavação ${speed.burrow} pés`, `burrow ${speed.burrow} feet`));
     return speeds.join(', ');
   };
 
@@ -60,11 +59,10 @@ export const FormSelector: React.FC<FormSelectorProps> = ({
     <Card>
       <CardContent>
         <Typography variant="h6" gutterBottom>
-          Seleção de Forma
-        </Typography>
+          {tr('Seleção de Forma', 'Form Selection')}</Typography>
         
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Escolha uma das formas disponíveis para a magia {translateName(selectedSpell.name)}:
+          {tr('Escolha uma das formas disponíveis para a magia ', 'Choose one of the available forms for the spell ')}{translateName(selectedSpell.name)}:
         </Typography>
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
@@ -96,16 +94,16 @@ export const FormSelector: React.FC<FormSelectorProps> = ({
                   </Typography>
                   
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                    <strong>Ataques:</strong> {formatAttacks(form.attacks)}
+                    <strong>{tr('Ataques:', 'Attacks:')}</strong> {formatAttacks(form.attacks)}
                   </Typography>
                   
                   {form.senses && (
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                       <strong>Sentidos:</strong>
-                      {form.senses.lowLightVision && ' visão na penumbra'}
-                      {form.senses.scent && ` olfato ${form.senses.scent} pés (impreciso)`}
-                      {form.senses.darkvision && ` visão no escuro ${form.senses.darkvision} pés`}
-                      {form.senses.tremorsense && ` sentido sísmico ${form.senses.tremorsense} pés`}
+                      {form.senses.lowLightVision && tr(' visão na penumbra', ' low-light vision')}
+                      {form.senses.scent && tr(` olfato ${form.senses.scent} pés (impreciso)`, ` scent ${form.senses.scent} feet (imprecise)`)}
+                      {form.senses.darkvision && tr(` visão no escuro ${form.senses.darkvision} pés`, ` darkvision ${form.senses.darkvision} feet`)}
+                      {form.senses.tremorsense && tr(` sentido sísmico ${form.senses.tremorsense} pés`, ` tremorsense ${form.senses.tremorsense} feet`)}
                     </Typography>
                   )}
 
@@ -123,15 +121,14 @@ export const FormSelector: React.FC<FormSelectorProps> = ({
         {selectedForm && (
           <Box sx={{ mt: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'divider' }}>
             <Typography variant="subtitle2" gutterBottom>
-              Forma Selecionada: {translateName(selectedForm.name)}
+              {tr('Forma Selecionada: ', 'Selected Form: ')}{translateName(selectedForm.name)}
             </Typography>
             <Button 
               variant="outlined" 
               size="small" 
               onClick={() => onFormChange(null)}
             >
-              Limpar Seleção
-            </Button>
+              {tr('Limpar Seleção', 'Clear Selection')}</Button>
           </Box>
         )}
       </CardContent>

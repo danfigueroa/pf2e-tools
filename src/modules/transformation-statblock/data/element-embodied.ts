@@ -1,4 +1,5 @@
 import type { TransformationSpell, TransformationForm } from '../../../types';
+import { tr } from '../../../i18n';
 
 // Element Embodied - rank 10 elemental battle form (Rage of Elements).
 // Common statistics (verified): AC 25 + level, 30 temporary HP (40 for earth
@@ -33,7 +34,7 @@ export const elementEmbodiedForms: TransformationForm[] = [
     abilities: [
       {
         name: 'Voo',
-        description: 'Você tem um Deslocamento de voo e pode pairar no lugar.',
+        description: tr('Você tem um Deslocamento de voo e pode pairar no lugar.', 'You have a fly Speed and can hover in place.'),
         traits: []
       }
     ],
@@ -62,8 +63,8 @@ export const elementEmbodiedForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Deslizar pela Terra',
-        description: 'Você pode Escavar através de terra e pedra com seu Deslocamento de escavação.',
+        name: tr('Deslizar pela Terra', 'Earth Glide'),
+        description: tr('Você pode Escavar através de terra e pedra com seu Deslocamento de escavação.', 'You can Burrow through earth and stone with your burrow Speed.'),
         traits: []
       }
     ],
@@ -94,7 +95,7 @@ export const elementEmbodiedForms: TransformationForm[] = [
     abilities: [
       {
         name: 'Chamas Envolventes',
-        description: 'Criaturas que terminam o turno adjacentes a você sofrem dano de fogo.',
+        description: tr('Criaturas que terminam o turno adjacentes a você sofrem dano de fogo.', 'Creatures that end their turn adjacent to you take fire damage.'),
         traits: []
       }
     ],
@@ -127,7 +128,7 @@ export const elementEmbodiedForms: TransformationForm[] = [
     abilities: [
       {
         name: 'Encharcar',
-        description: 'Você pode Empurrar criaturas que atingir e apagar fogos não mágicos.',
+        description: tr('Você pode Empurrar criaturas que atingir e apagar fogos não mágicos.', 'You can Shove creatures you hit and put out nonmagical fires.'),
         traits: []
       }
     ],
@@ -156,7 +157,7 @@ export const elementEmbodiedForms: TransformationForm[] = [
     abilities: [
       {
         name: 'Conduzir Energia',
-        description: 'Você conduz eletricidade, causando dano de eletricidade adicional com seus ataques.',
+        description: tr('Você conduz eletricidade, causando dano de eletricidade adicional com seus ataques.', 'You conduct electricity, dealing extra electricity damage with your attacks.'),
         traits: []
       }
     ],
@@ -186,7 +187,7 @@ export const elementEmbodiedForms: TransformationForm[] = [
     abilities: [
       {
         name: 'Rebrota Verdejante',
-        description: 'Seu corpo se regenera constantemente, e seus cipós podem prender criaturas que você atingir.',
+        description: tr('Seu corpo se regenera constantemente, e seus cipós podem prender criaturas que você atingir.', 'Your body constantly regenerates, and your vines can grab creatures you hit.'),
         traits: []
       }
     ],

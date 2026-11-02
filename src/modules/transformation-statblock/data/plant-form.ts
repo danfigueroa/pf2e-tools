@@ -1,4 +1,5 @@
 import type { TransformationSpell, TransformationForm } from '../../../types';
+import { tr } from '../../../i18n';
 
 // Plant Form - plant battle forms
 export const plantForms: TransformationForm[] = [
@@ -58,8 +59,8 @@ export const plantForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Agarrão Pegajoso',
-        description: 'Uma criatura atingida pelo seu ataque de folha fica agarrada até o fim do seu próximo turno, a menos que Escape antes.',
+        name: tr('Agarrão Pegajoso', 'Sticky Grab'),
+        description: tr('Uma criatura atingida pelo seu ataque de folha fica agarrada até o fim do seu próximo turno, a menos que Escape antes.', 'A creature hit by your leaf attack is grabbed until the end of your next turn, unless it Escapes first.'),
         traits: []
       }
     ],
@@ -95,7 +96,7 @@ export const plantForms: TransformationForm[] = [
     abilities: [
       {
         name: 'Cambalear',
-        description: 'Você recebe +2 de bônus de circunstância na CA e nos salvamentos em terreno pantanoso ou com vegetação.',
+        description: tr('Você recebe +2 de bônus de circunstância na CA e nos salvamentos em terreno pantanoso ou com vegetação.', 'You gain a +2 circumstance bonus to AC and saves in swampy or vegetated terrain.'),
         traits: []
       }
     ],
@@ -129,8 +130,8 @@ export const plantForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Nuvem de Esporos',
-        description: 'Uma vez por rodada, você pode liberar uma nuvem de esporos em uma emanação de 15 pés. Criaturas na área devem ser bem-sucedidas em um salvamento de Fortitude ou ficam enjoadas 1.',
+        name: tr('Nuvem de Esporos', 'Spore Cloud'),
+        description: tr('Uma vez por rodada, você pode liberar uma nuvem de esporos em uma emanação de 15 pés. Criaturas na área devem ser bem-sucedidas em um salvamento de Fortitude ou ficam enjoadas 1.', 'Once per round, you can release a cloud of spores in a 15-foot emanation. Creatures in the area must succeed at a Fortitude save or become sickened 1.'),
         traits: ['poison']
       }
     ],

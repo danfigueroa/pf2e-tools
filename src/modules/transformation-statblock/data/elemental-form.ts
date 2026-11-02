@@ -1,4 +1,5 @@
 import type { TransformationSpell, TransformationForm } from '../../../types';
+import { tr } from '../../../i18n';
 
 // Elemental Form - elemental battle forms
 export const elementalForms: TransformationForm[] = [
@@ -22,7 +23,7 @@ export const elementalForms: TransformationForm[] = [
     abilities: [
       {
         name: 'Ventos Fortes',
-        description: 'Você recebe +2 de bônus de circunstância na CA e nos salvamentos contra ataques à distância.',
+        description: tr('Você recebe +2 de bônus de circunstância na CA e nos salvamentos contra ataques à distância.', 'You gain a +2 circumstance bonus to AC and saves against ranged attacks.'),
         traits: ['air']
       }
     ],
@@ -107,8 +108,8 @@ export const elementalForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Anfíbio',
-        description: 'Pode respirar na água e no ar.',
+        name: tr('Anfíbio', 'Amphibious'),
+        description: tr('Pode respirar na água e no ar.', 'Can breathe in water and air.'),
         traits: []
       }
     ],
@@ -167,8 +168,8 @@ export const elementalForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Regeneração de Madeira',
-        description: 'Você ganha cura acelerada 2 enquanto estiver em uma área de luz brilhante.',
+        name: tr('Regeneração de Madeira', 'Wood Regeneration'),
+        description: tr('Você ganha cura acelerada 2 enquanto estiver em uma área de luz brilhante.', 'You gain fast healing 2 while in an area of bright light.'),
         traits: []
       }
     ],

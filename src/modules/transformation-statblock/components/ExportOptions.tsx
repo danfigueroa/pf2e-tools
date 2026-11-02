@@ -26,6 +26,7 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import type { TransformationConfig, ExportOptions as ExportOptionsType } from '../../../types';
 import StatBlockGenerator from './StatBlockGenerator';
+import { tr } from '../../../i18n';
 
 interface ExportOptionsProps {
   config: TransformationConfig;
@@ -124,7 +125,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ config }) => {
     if (printWindow && statBlockRef.current) {
       const statBlockHTML = statBlockRef.current.innerHTML;
       
-      printWindow.document.write(`
+      printWindow.document.write(` // i18n-ok: folha de impressão (HTML)
         <!DOCTYPE html>
         <html>
         <head>
@@ -209,21 +210,18 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ config }) => {
       </Typography>
       
       <Typography variant="body2" color="text.secondary" gutterBottom>
-        Configure as opções de exportação e baixe o stat block da sua transformação.
-      </Typography>
+        {tr('Configure as opções de exportação e baixe o stat block da sua transformação.', 'Configure the export options and download your transformation\'s stat block.')}</Typography>
 
       {exportSuccess && (
         <Alert severity="success" sx={{ mb: 2 }}>
-          Stat block exportado com sucesso!
-        </Alert>
+          {tr('Stat block exportado com sucesso!', 'Stat block exported successfully!')}</Alert>
       )}
 
       <Stack spacing={3}>
         {/* Preview */}
         <Paper elevation={2} sx={{ p: { xs: 1.5, sm: 2 } }}>
           <Typography variant="h6" gutterBottom>
-            Visualização Final
-          </Typography>
+            {tr('Visualização Final', 'Final Preview')}</Typography>
           <Box 
             ref={statBlockRef}
             sx={{
@@ -241,7 +239,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ config }) => {
                 character={config.character}
               />
             ) : (
-              <Typography color="error">Erro: Nenhuma forma selecionada</Typography>
+              <Typography color="error">{tr('Erro: Nenhuma forma selecionada', 'Error: No form selected')}</Typography>
             )}
           </Box>
         </Paper>
@@ -250,8 +248,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ config }) => {
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
-              Opções de Exportação
-            </Typography>
+              {tr('Opções de Exportação', 'Export Options')}</Typography>
             
             <Stack spacing={3}>
               <FormControl fullWidth>
@@ -270,23 +267,21 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ config }) => {
                   <MenuItem value="png">
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <ImageIcon fontSize="small" />
-                      PNG (Imagem)
-                    </Box>
+                      {tr('PNG (Imagem)', 'PNG (Image)')}</Box>
                   </MenuItem>
                   <MenuItem value="jpg">
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <ImageIcon fontSize="small" />
-                      JPG (Imagem)
-                    </Box>
+                      {tr('JPG (Imagem)', 'JPG (Image)')}</Box>
                   </MenuItem>
                 </Select>
               </FormControl>
 
               <FormControl fullWidth>
-                <InputLabel>Tamanho do Papel</InputLabel>
+                <InputLabel>{tr('Tamanho do Papel', 'Paper Size')}</InputLabel>
                 <Select
                   value={exportOptions.paperSize}
-                  label="Tamanho do Papel"
+                  label={tr("Tamanho do Papel", 'Paper Size')}
                   onChange={(e) => setExportOptions(prev => ({ ...prev, paperSize: e.target.value as 'A4' | 'Letter' | 'Custom' }))}
                 >
                   <MenuItem value="A4">A4 (210 × 297 mm)</MenuItem>
@@ -302,7 +297,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ config }) => {
                     onChange={(e) => setExportOptions(prev => ({ ...prev, includeBackground: e.target.checked }))}
                   />
                 }
-                label="Incluir cores do tema (sempre com fundo branco para impressão)"
+                label={tr("Incluir cores do tema (sempre com fundo branco para impressão)", 'Include theme colors (always on a white background for printing)')}
               />
             </Stack>
           </CardContent>
@@ -328,7 +323,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ config }) => {
             disabled={isExporting}
             sx={{ minWidth: { sm: 200 } }}
           >
-            {isExporting ? 'Exportando...' : `Baixar ${exportOptions.format.toUpperCase()}`}
+            {isExporting ? 'Exportando...' : tr(`Baixar ${exportOptions.format.toUpperCase()}`, `Download ${exportOptions.format.toUpperCase()}`)}
           </Button>
           
           <Button
@@ -347,11 +342,9 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ config }) => {
         {/* Additional Info */}
         <Box sx={{ textAlign: 'center' }}>
           <Typography variant="body2" color="text.secondary">
-            💡 <strong>Dica:</strong> Use o formato PDF para melhor qualidade e compatibilidade.
-          </Typography>
+            💡 <strong>{tr('Dica:', 'Tip:')}</strong> {tr('Use o formato PDF para melhor qualidade e compatibilidade.', 'Use the PDF format for better quality and compatibility.')}</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            O stat block gerado segue as regras oficiais do Pathfinder 2e.
-          </Typography>
+            {tr('O stat block gerado segue as regras oficiais do Pathfinder 2e.', 'The generated stat block follows the official Pathfinder 2e rules.')}</Typography>
         </Box>
       </Stack>
     </Box>

@@ -1,4 +1,5 @@
 import type { TransformationSpell, TransformationForm } from '../../../types';
+import { tr } from '../../../i18n';
 
 // Angel Form - celestial battle forms
 export const angelForms: TransformationForm[] = [
@@ -20,13 +21,13 @@ export const angelForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Memória Perfeita',
-        description: 'Você recorda perfeitamente tudo o que viu ou ouviu e recebe +4 em testes para lembrar de coisas.',
+        name: tr('Memória Perfeita', 'Perfect Recall'),
+        description: tr('Você recorda perfeitamente tudo o que viu ou ouviu e recebe +4 em testes para lembrar de coisas.', 'You perfectly remember everything you have seen or heard and gain +4 to checks to remember things.'),
         traits: []
       },
       {
-        name: 'Repositório de Saber',
-        description: 'Você pode rolar Recordar Conhecimento usando Religião ou Ofício no lugar da perícia normal.',
+        name: tr('Repositório de Saber', 'Repository of Lore'),
+        description: tr('Você pode rolar Recordar Conhecimento usando Religião ou Ofício no lugar da perícia normal.', 'You can Recall Knowledge using Religion or Crafting instead of the normal skill.'),
         traits: []
       }
     ],
@@ -61,12 +62,12 @@ export const angelForms: TransformationForm[] = [
     abilities: [
       {
         name: 'Harmonizar',
-        description: 'Você pode usar Atuação para conjurar uma magia curar de uma ação uma vez por rodada, curando 2d8 PV de uma criatura em até 30 pés.',
+        description: tr('Você pode usar Atuação para conjurar uma magia curar de uma ação uma vez por rodada, curando 2d8 PV de uma criatura em até 30 pés.', 'You can use Performance to cast a one-action heal spell once per round, healing 2d8 HP to a creature within 30 feet.'),
         traits: ['healing', 'sonic']
       },
       {
         name: 'Coro Ensurdecedor',
-        description: 'Uma vez por rodada, você pode criar uma explosão de som. Criaturas em até 15 pés sofrem 2d6 de dano sônico (salvamento de Fortitude básico).',
+        description: tr('Uma vez por rodada, você pode criar uma explosão de som. Criaturas em até 15 pés sofrem 2d6 de dano sônico (salvamento de Fortitude básico).', 'Once per round, you can create a burst of sound. Creatures within 15 feet take 2d6 sonic damage (basic Fortitude save).'),
         traits: ['sonic']
       }
     ],
@@ -102,13 +103,13 @@ export const angelForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Aura de Vitalidade',
-        description: 'Aliados em até 20 pés de você ganham cura acelerada 2.',
+        name: tr('Aura de Vitalidade', 'Aura of Vitality'),
+        description: tr('Aliados em até 20 pés de você ganham cura acelerada 2.', 'Allies within 20 feet of you gain fast healing 2.'),
         traits: ['aura', 'healing']
       },
       {
         name: 'Campo Dissipador',
-        description: 'Uma vez por rodada, você pode tentar anular um efeito mágico em uma criatura que tocar.',
+        description: tr('Uma vez por rodada, você pode tentar anular um efeito mágico em uma criatura que tocar.', 'Once per round, you can attempt to counteract a magical effect on a creature you touch.'),
         traits: []
       }
     ],
@@ -144,13 +145,13 @@ export const angelForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Resistência Elemental',
-        description: 'Você tem resistência 10 a ácido, frio, eletricidade e fogo.',
+        name: tr('Resistência Elemental', 'Elemental Resistance'),
+        description: tr('Você tem resistência 10 a ácido, frio, eletricidade e fogo.', 'You have resistance 10 to acid, cold, electricity and fire.'),
         traits: []
       },
       {
-        name: 'Golpe Sólido',
-        description: 'Quando você acerta um acerto crítico com sua maça, o alvo é empurrado 10 pés.',
+        name: tr('Golpe Sólido', 'Solid Blow'),
+        description: tr('Quando você acerta um acerto crítico com sua maça, o alvo é empurrado 10 pés.', 'When you score a critical hit with your mace, the target is pushed 10 feet.'),
         traits: []
       }
     ],
@@ -188,13 +189,13 @@ export const angelForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Aura do Viajante',
-        description: 'Aliados em até 20 pés não são afetados por terreno difícil e ganham +10 pés de bônus de condição no Deslocamento.',
+        name: tr('Aura do Viajante', 'Traveler\'s Aura'),
+        description: tr('Aliados em até 20 pés não são afetados por terreno difícil e ganham +10 pés de bônus de condição no Deslocamento.', 'Allies within 20 feet aren\'t affected by difficult terrain and gain a +10-foot circumstance bonus to Speed.'),
         traits: ['aura']
       },
       {
-        name: 'Salvo-conduto do Mensageiro',
-        description: 'Você e todos os aliados em até 20 pés não podem ser atacados por criaturas invocadas ou chamadas, a menos que sejam controladas diretamente.',
+        name: tr('Salvo-conduto do Mensageiro', 'Messenger\'s Safe Passage'),
+        description: tr('Você e todos os aliados em até 20 pés não podem ser atacados por criaturas invocadas ou chamadas, a menos que sejam controladas diretamente.', 'You and all allies within 20 feet can\'t be attacked by summoned or called creatures, unless they are directly controlled.'),
         traits: ['aura']
       }
     ],
@@ -230,13 +231,13 @@ export const angelForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Lâmina da Justiça',
-        description: 'Seu espadão sagrado causa 2d6 de dano de espírito adicional contra corruptores e mortos-vivos.',
+        name: tr('Lâmina da Justiça', 'Blade of Justice'),
+        description: tr('Seu espadão sagrado causa 2d6 de dano de espírito adicional contra corruptores e mortos-vivos.', 'Your holy greatsword deals 2d6 extra spirit damage against fiends and undead.'),
         traits: []
       },
       {
         name: 'Armamentos Sagrados',
-        description: 'Qualquer arma que você empunhar ganha o efeito da runa sagrada.',
+        description: tr('Qualquer arma que você empunhar ganha o efeito da runa sagrada.', 'Any weapon you wield gains the effect of the holy rune.'),
         traits: []
       }
     ],

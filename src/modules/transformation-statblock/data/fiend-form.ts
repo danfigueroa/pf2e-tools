@@ -1,4 +1,5 @@
 import type { TransformationSpell, TransformationForm } from '../../../types';
+import { tr } from '../../../i18n';
 
 // Fiend Form - fiend battle forms
 export const fiendForms: TransformationForm[] = [
@@ -27,13 +28,13 @@ export const fiendForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Visão na Fumaça',
-        description: 'Você enxerga através da fumaça como se ela não existisse.',
+        name: tr('Visão na Fumaça', 'Smoke Vision'),
+        description: tr('Você enxerga através da fumaça como se ela não existisse.', 'You see through smoke as if it weren\'t there.'),
         traits: []
       },
       {
-        name: 'Toque Flamejante',
-        description: 'Criaturas que tocam você ou o acertam com ataques desarmados sofrem 1d6 de dano de fogo.',
+        name: tr('Toque Flamejante', 'Fiery Touch'),
+        description: tr('Criaturas que tocam você ou o acertam com ataques desarmados sofrem 1d6 de dano de fogo.', 'Creatures that touch you or hit you with unarmed attacks take 1d6 fire damage.'),
         traits: ['fire', 'aura']
       }
     ],
@@ -74,7 +75,7 @@ export const fiendForms: TransformationForm[] = [
     abilities: [
       {
         name: 'Fedor',
-        description: 'Criaturas em até 15 pés devem ser bem-sucedidas em um salvamento de Fortitude ou ficam enjoadas 1.',
+        description: tr('Criaturas em até 15 pés devem ser bem-sucedidas em um salvamento de Fortitude ou ficam enjoadas 1.', 'Creatures within 15 feet must succeed at a Fortitude save or become sickened 1.'),
         traits: ['aura', 'poison']
       }
     ],
@@ -114,8 +115,8 @@ export const fiendForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Golpe Dilacerante',
-        description: 'Seus ataques de glaive causam 1d6 de dano de sangramento persistente.',
+        name: tr('Golpe Dilacerante', 'Rending Strike'),
+        description: tr('Seus ataques de glaive causam 1d6 de dano de sangramento persistente.', 'Your glaive attacks deal 1d6 persistent bleed damage.'),
         traits: []
       }
     ],
@@ -158,8 +159,8 @@ export const fiendForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Chamas da Fúria',
-        description: 'Seus ataques à distância causam 1d6 de dano de fogo adicional.',
+        name: tr('Chamas da Fúria', 'Flames of Fury'),
+        description: tr('Seus ataques à distância causam 1d6 de dano de fogo adicional.', 'Your ranged attacks deal 1d6 extra fire damage.'),
         traits: ['fire']
       }
     ],
@@ -201,8 +202,8 @@ export const fiendForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Arma de Sopro',
-        description: 'Uma vez por rodada, você exala um cone de fogo de 30 pés causando 6d6 de dano de fogo (salvamento de Reflexos básico).',
+        name: tr('Arma de Sopro', 'Breath Weapon'),
+        description: tr('Uma vez por rodada, você exala um cone de fogo de 30 pés causando 6d6 de dano de fogo (salvamento de Reflexos básico).', 'Once per round, you exhale a 30-foot cone of fire dealing 6d6 fire damage (basic Reflex save).'),
         traits: ['fire']
       }
     ],
@@ -246,13 +247,13 @@ export const fiendForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Constrição',
-        description: 'Enquanto tiver uma criatura agarrada, você pode causar 2d10 de dano contundente a ela como uma única ação.',
+        name: tr('Constrição', 'Constrict'),
+        description: tr('Enquanto tiver uma criatura agarrada, você pode causar 2d10 de dano contundente a ela como uma única ação.', 'While you have a creature grabbed, you can deal 2d10 bludgeoning damage to it as a single action.'),
         traits: []
       },
       {
-        name: 'Anfíbio',
-        description: 'Pode respirar na água e no ar.',
+        name: tr('Anfíbio', 'Amphibious'),
+        description: tr('Pode respirar na água e no ar.', 'Can breathe in water and air.'),
         traits: []
       }
     ],

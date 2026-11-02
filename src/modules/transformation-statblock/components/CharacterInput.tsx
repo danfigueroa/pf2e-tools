@@ -20,6 +20,7 @@ import { playerCharacterFromJson } from '../data/from-pathbuilder';
 import { CAMPAIGN_PRESETS, loadPresetJson, type CharacterPreset } from '../../character-viewer/campaignPresets';
 import { usePublishedSheets } from '../../character-viewer/usePublishedSheets';
 import { translateName, translateSpellMeta, translateTrait } from '../i18n';
+import { tr } from '../../../i18n';
 
 /** Colunas que se dobram sozinhas: uma no celular, quantas couberem depois. */
 const FIELD_GRID = { xs: '1fr', sm: 'repeat(auto-fit, minmax(180px, 1fr))' };
@@ -63,7 +64,7 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
       setErrors([]);
     } catch (e) {
       setImported(false);
-      setErrors([e instanceof Error ? e.message : 'Falha ao importar JSON']);
+      setErrors([e instanceof Error ? e.message : tr('Falha ao importar JSON', 'Failed to import JSON')]);
     }
   };
 
@@ -76,7 +77,7 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
         applyImportedCharacter(JSON.parse(String(reader.result)));
       } catch {
         setImported(false);
-        setErrors(['Arquivo JSON inválido']);
+        setErrors([tr('Arquivo JSON inválido', 'Invalid JSON file')]);
       }
     };
     reader.readAsText(file);
@@ -90,7 +91,7 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
       applyImportedCharacter(json);
     } catch {
       setImported(false);
-      setErrors(['Não foi possível carregar o personagem da campanha']);
+      setErrors([tr('Não foi possível carregar o personagem da campanha', 'Couldn\'t load the campaign character')]);
     }
   };
 
@@ -113,26 +114,26 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
     const newErrors: string[] = [];
     
     if (!formData.name || formData.name.trim() === '') {
-      newErrors.push('Nome é obrigatório');
+      newErrors.push(tr('Nome é obrigatório', 'Name is required'));
     }
     
     if (!formData.level || formData.level < 1 || formData.level > 20) {
-      newErrors.push('Nível deve estar entre 1 e 20');
+      newErrors.push(tr('Nível deve estar entre 1 e 20', 'Level must be between 1 and 20'));
     }
 
     if (!currentSpell) {
-      newErrors.push('Selecione uma magia de transformação');
+      newErrors.push(tr('Selecione uma magia de transformação', 'Select a transformation spell'));
     }
     
     // Ability-score bounds only apply to manual entry; imported sheets carry
     // real scores that can exceed 20 at high levels.
     if (!imported) {
       if (!formData.abilityScores) {
-        newErrors.push('Atributos são obrigatórios');
+        newErrors.push(tr('Atributos são obrigatórios', 'Attributes are required'));
       } else {
         Object.entries(formData.abilityScores).forEach(([attr, value]) => {
           if (value < 8 || value > 20) {
-            newErrors.push(`${attr} deve estar entre 8 e 20`);
+            newErrors.push(tr(`${attr} deve estar entre 8 e 20`, `${attr} must be between 8 and 20`));
           }
         });
       }
@@ -174,13 +175,10 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
   return (
     <Box>
       <Typography variant="h5" gutterBottom>
-        Dados do Personagem
-      </Typography>
+        {tr('Dados do Personagem', 'Character Data')}</Typography>
       
       <Typography variant="body2" color="text.secondary" gutterBottom>
-        Importe a ficha do personagem e escolha a magia de transformação. Sem import, preencha os
-        dados manualmente (usa aproximações).
-      </Typography>
+        {tr('Importe a ficha do personagem e escolha a magia de transformação. Sem import, preencha os dados manualmente (usa aproximações).', 'Import the character\'s sheet and choose the transformation spell. Without importing, fill in the data by hand (uses approximations).')}</Typography>
 
       {errors.length > 0 && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -194,14 +192,9 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
       <Card sx={{ mt: 2 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
-            Importar Ficha
-          </Typography>
+            {tr('Importar Ficha', 'Import Sheet')}</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Carregue um JSON do Pathbuilder 2e para usar HP, salvamentos, percepção, atletismo e
-            ataque reais. Depois de importar, basta escolher a magia — os campos manuais somem.
-            Qualquer personagem da campanha pode se transformar, não só conjuradores: a forma pode
-            vir de pergaminho, varinha ou poção.
-          </Typography>
+            {tr('Carregue um JSON do Pathbuilder 2e para usar HP, salvamentos, percepção, atletismo e ataque reais. Depois de importar, basta escolher a magia — os campos manuais somem. Qualquer personagem da campanha pode se transformar, não só conjuradores: a forma pode vir de pergaminho, varinha ou poção.', 'Load a Pathbuilder 2e JSON to use the real HP, saves, Perception, Athletics and attack. After importing, just pick the spell — the manual fields go away. Any campaign character can transform, not only casters: the form can come from a scroll, wand or potion.')}</Typography>
           <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
             {CAMPAIGN_PRESETS.map((preset) => (
               <Button
@@ -214,15 +207,13 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
               </Button>
             ))}
             <Button variant="contained" size="small" component="label">
-              Carregar JSON
-              <input type="file" hidden accept="application/json,.json" onChange={handleFileUpload} />
+              {tr('Carregar JSON', 'Load JSON')}<input type="file" hidden accept="application/json,.json" onChange={handleFileUpload} />
             </Button>
             {imported && (
               <>
-                <Chip label="Ficha importada ✓" color="success" size="small" />
+                <Chip label={tr("Ficha importada ✓", 'Sheet imported ✓')} color="success" size="small" />
                 <Button variant="text" size="small" color="inherit" onClick={clearImport}>
-                  Limpar
-                </Button>
+                  {tr('Limpar', 'Clear')}</Button>
               </>
             )}
           </Stack>
@@ -244,12 +235,11 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
                   {formData.saves && <Chip size="small" label={`Fort ${formatModifier(formData.saves.fortitude)}`} />}
                   {formData.saves && <Chip size="small" label={`Ref ${formatModifier(formData.saves.reflex)}`} />}
                   {formData.saves && <Chip size="small" label={`Will ${formatModifier(formData.saves.will)}`} />}
-                  {formData.athletics != null && <Chip size="small" label={`Atletismo ${formatModifier(formData.athletics)}`} />}
-                  {formData.attackBonus != null && <Chip size="small" label={`Ataque ${formatModifier(formData.attackBonus)}`} />}
+                  {formData.athletics != null && <Chip size="small" label={tr(`Atletismo ${formatModifier(formData.athletics)}`, `Athletics ${formatModifier(formData.athletics)}`)} />}
+                  {formData.attackBonus != null && <Chip size="small" label={tr(`Ataque ${formatModifier(formData.attackBonus)}`, `Attack ${formatModifier(formData.attackBonus)}`)} />}
                 </Box>
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                  Valores reais da ficha. Para preencher à mão, use "Limpar" acima.
-                </Typography>
+                  {tr('Valores reais da ficha. Para preencher à mão, use "Limpar" acima.', 'Real values from the sheet. To fill in by hand, use "Clear" above.')}</Typography>
               </Box>
             )}
 
@@ -260,13 +250,13 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
                     empilha sozinha quando não cabe mais uma coluna. */}
                 <Box sx={{ display: 'grid', gridTemplateColumns: FIELD_GRID, gap: 2 }}>
                   <TextField
-                    label="Nome"
+                    label={tr("Nome", 'Name')}
                     value={formData.name || ''}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   />
 
                   <TextField
-                    label="Nível"
+                    label={tr("Nível", 'Level')}
                     type="number"
                     value={formData.level || 1}
                     onChange={(e) => setFormData(prev => ({ ...prev, level: parseInt(e.target.value) || 1 }))}
@@ -279,7 +269,7 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
                     value={formData.baseHP || ''}
                     onChange={(e) => setFormData(prev => ({ ...prev, baseHP: parseInt(e.target.value) || undefined }))}
                     inputProps={{ min: 1 }}
-                    helperText="Pontos de vida base do personagem"
+                    helperText={tr("Pontos de vida base do personagem", 'Character\'s base Hit Points')}
                   />
                 </Box>
 
@@ -295,7 +285,7 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
                       <MenuItem value="Ranger">Ranger</MenuItem>
                       <MenuItem value="Mago">Mago</MenuItem>
                       <MenuItem value="Feiticeiro">Feiticeiro</MenuItem>
-                      <MenuItem value="Outro">Outro</MenuItem>
+                      <MenuItem value={tr("Outro", 'Other')}>{tr('Outro', 'Other')}</MenuItem>
                     </Select>
                   </FormControl>
                 </Box>
@@ -305,18 +295,17 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
             {/* Spell Selection */}
             <Box>
               <Typography variant="h6" gutterBottom>
-                Magia de Transformação
-              </Typography>
+                {tr('Magia de Transformação', 'Transformation Spell')}</Typography>
               <FormControl fullWidth>
-                <InputLabel>Selecionar Magia</InputLabel>
+                <InputLabel>{tr('Selecionar Magia', 'Select Spell')}</InputLabel>
                 <Select
                   value={currentSpell?.id || ''}
-                  label="Selecionar Magia"
+                  label={tr("Selecionar Magia", 'Select Spell')}
                   onChange={(e) => handleSpellChange(e.target.value)}
                 >
                   {transformationSpells.map((spell) => (
                     <MenuItem key={spell.id} value={spell.id}>
-                      {translateName(spell.name)} (Nível {spell.level})
+                      {translateName(spell.name)} {tr('(Nível ', '(Rank ')}{spell.level})
                     </MenuItem>
                   ))}
                 </Select>
@@ -331,16 +320,15 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
                     {currentSpell.traditions.map((tradition) => (
                       <Chip key={tradition} label={translateTrait(tradition)} size="small" variant="outlined" />
                     ))}
-                    <Chip label={`Nível ${currentSpell.level}`} size="small" color="secondary" />
+                    <Chip label={tr(`Nível ${currentSpell.level}`, `Rank ${currentSpell.level}`)} size="small" color="secondary" />
                   </Box>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                    <strong>Conjuração:</strong> {translateSpellMeta(currentSpell.cast)} |
-                    <strong> Alcance:</strong> {translateSpellMeta(currentSpell.range)} |
-                    <strong> Duração:</strong> {translateSpellMeta(currentSpell.duration)}
+                    <strong>{tr('Conjuração:', 'Casting:')}</strong> {translateSpellMeta(currentSpell.cast)} |
+                    <strong> {tr('Alcance:', 'Range:')}</strong> {translateSpellMeta(currentSpell.range)} |
+                    <strong> {tr('Duração:', 'Duration:')}</strong> {translateSpellMeta(currentSpell.duration)}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    <strong>Formas Disponíveis:</strong> {currentSpell.forms.length} opções
-                  </Typography>
+                    <strong>{tr('Formas Disponíveis:', 'Available Forms:')}</strong> {currentSpell.forms.length} {tr('opções', 'options')}</Typography>
                 </Box>
               )}
             </Box>
@@ -386,8 +374,7 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
                 onClick={handleSubmit}
                 sx={{ width: { xs: '100%', sm: 'auto' }, minWidth: { sm: 200 } }}
               >
-                Continuar
-              </Button>
+                {tr('Continuar', 'Continue')}</Button>
             </Box>
           </Stack>
         </CardContent>

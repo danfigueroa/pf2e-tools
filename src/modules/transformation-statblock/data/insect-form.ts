@@ -1,4 +1,5 @@
 import type { TransformationSpell, TransformationForm } from '../../../types';
+import { tr } from '../../../i18n';
 
 // Insect Form - insect forms
 export const insectForms: TransformationForm[] = [
@@ -151,7 +152,7 @@ export const insectForms: TransformationForm[] = [
     abilities: [
       {
         name: 'Web',
-        description: 'Você pode disparar uma teia como ataque à distância para prender um alvo.',
+        description: tr('Você pode disparar uma teia como ataque à distância para prender um alvo.', 'You can shoot a web as a ranged attack to trap a target.'),
         traits: []
       }
     ],

@@ -18,6 +18,7 @@ import {
   translateSpeedType,
   translateName,
 } from '../i18n';
+import { tr } from '../../../i18n';
 
 interface StatBlockGeneratorProps {
   spell: TransformationSpell | null;
@@ -165,8 +166,7 @@ const StatBlockGenerator: React.FC<StatBlockGeneratorProps> = ({
   if (!spell || !form || !character) {
     return (
       <Alert severity="info">
-        Selecione uma magia, forma e configure o personagem para gerar o stat block.
-      </Alert>
+        {tr('Selecione uma magia, forma e configure o personagem para gerar o stat block.', 'Select a spell, a form and set up the character to generate the stat block.')}</Alert>
     );
   }
 
@@ -259,20 +259,20 @@ const StatBlockGenerator: React.FC<StatBlockGeneratorProps> = ({
 
   const formatSpeed = (speed: TransformationForm['speed']) => {
     const speeds: string[] = [];
-    if (speed.land) speeds.push(`${speed.land} pés`);
-    if (speed.climb) speeds.push(`${translateSpeedType('climb')} ${speed.climb} pés`);
-    if (speed.swim) speeds.push(`${translateSpeedType('swim')} ${speed.swim} pés`);
-    if (speed.fly) speeds.push(`${translateSpeedType('fly')} ${speed.fly} pés`);
-    if (speed.burrow) speeds.push(`${translateSpeedType('burrow')} ${speed.burrow} pés`);
-    return speeds.join(', ') || 'nenhum';
+    if (speed.land) speeds.push(tr(`${speed.land} pés`, `${speed.land} feet`));
+    if (speed.climb) speeds.push(tr(`${translateSpeedType('climb')} ${speed.climb} pés`, `${translateSpeedType('climb')} ${speed.climb} feet`));
+    if (speed.swim) speeds.push(tr(`${translateSpeedType('swim')} ${speed.swim} pés`, `${translateSpeedType('swim')} ${speed.swim} feet`));
+    if (speed.fly) speeds.push(tr(`${translateSpeedType('fly')} ${speed.fly} pés`, `${translateSpeedType('fly')} ${speed.fly} feet`));
+    if (speed.burrow) speeds.push(tr(`${translateSpeedType('burrow')} ${speed.burrow} pés`, `${translateSpeedType('burrow')} ${speed.burrow} feet`));
+    return speeds.join(', ') || tr('nenhum', 'none');
   };
 
   const formatSenses = (senses: TransformationForm['senses']) => {
     const senseList: string[] = [];
     if (senses?.lowLightVision) senseList.push(translateSense('lowLightVision'));
-    if (senses?.darkvision) senseList.push(`${translateSense('darkvision')} ${senses.darkvision} pés`);
-    if (senses?.scent) senseList.push(`${translateSense('scent')} (impreciso) ${senses.scent} pés`);
-    if (senses?.tremorsense) senseList.push(`${translateSense('tremorsense')} (impreciso) ${senses.tremorsense} pés`);
+    if (senses?.darkvision) senseList.push(tr(`${translateSense('darkvision')} ${senses.darkvision} pés`, `${translateSense('darkvision')} ${senses.darkvision} feet`));
+    if (senses?.scent) senseList.push(tr(`${translateSense('scent')} (impreciso) ${senses.scent} pés`, `${translateSense('scent')} (imprecise) ${senses.scent} feet`));
+    if (senses?.tremorsense) senseList.push(tr(`${translateSense('tremorsense')} (impreciso) ${senses.tremorsense} pés`, `${translateSense('tremorsense')} (imprecise) ${senses.tremorsense} feet`));
     return senseList.join(', ');
   };
 
@@ -389,7 +389,7 @@ const StatBlockGenerator: React.FC<StatBlockGeneratorProps> = ({
 
           const attackType = attack.type === 'melee' ? LABELS.melee : LABELS.ranged;
           const reach = attack.range ?? (stats.reach > 5 && attack.type === 'melee' ? stats.reach : 0);
-          const reachInfo = reach ? ` (${translateTrait('reach')} ${reach} pés)` : '';
+          const reachInfo = reach ? tr(` (${translateTrait('reach')} ${reach} pés)`, ` (${translateTrait('reach')} ${reach} feet)`) : '';
 
           return (
             <Typography key={index} variant="body2" sx={{ mt: 0.5 }}>

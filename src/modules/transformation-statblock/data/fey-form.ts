@@ -1,4 +1,5 @@
 import type { TransformationSpell, TransformationForm } from '../../../types';
+import { tr } from '../../../i18n';
 
 // Fey Form - fey battle forms
 export const feyForms: TransformationForm[] = [
@@ -20,13 +21,13 @@ export const feyForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Fundir-se à Árvore',
-        description: 'Você pode entrar em uma árvore e se esconder nela. Dentro dela, você tem camuflagem total e percebe os arredores com seus sentidos normais.',
+        name: tr('Fundir-se à Árvore', 'Tree Meld'),
+        description: tr('Você pode entrar em uma árvore e se esconder nela. Dentro dela, você tem camuflagem total e percebe os arredores com seus sentidos normais.', 'You can enter a tree and hide inside it. While inside, you have total concealment and perceive your surroundings with your normal senses.'),
         traits: []
       },
       {
         name: 'Empatia Natural',
-        description: 'Você pode se comunicar com plantas e animais.',
+        description: tr('Você pode se comunicar com plantas e animais.', 'You can communicate with plants and animals.'),
         traits: []
       }
     ],
@@ -63,8 +64,8 @@ export const feyForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Ataque em Matilha',
-        description: 'Seus ataques causam 1d6 de dano adicional a criaturas ao alcance de pelo menos um aliado seu.',
+        name: tr('Ataque em Matilha', 'Pack Attack'),
+        description: tr('Seus ataques causam 1d6 de dano adicional a criaturas ao alcance de pelo menos um aliado seu.', 'Your attacks deal 1d6 extra damage to creatures within reach of at least one of your allies.'),
         traits: []
       }
     ],
@@ -97,12 +98,12 @@ export const feyForms: TransformationForm[] = [
     abilities: [
       {
         name: 'Beleza Cegante',
-        description: 'Uma vez por rodada, você pode tentar ofuscar uma criatura em até 30 pés que possa ver você (salvamento de Vontade).',
+        description: tr('Uma vez por rodada, você pode tentar ofuscar uma criatura em até 30 pés que possa ver você (salvamento de Vontade).', 'Once per round, you can try to dazzle a creature within 30 feet that can see you (Will save).'),
         traits: ['emotion', 'visual']
       },
       {
-        name: 'Respiração Aquática',
-        description: 'Você pode respirar debaixo da água.',
+        name: tr('Respiração Aquática', 'Water Breathing'),
+        description: tr('Você pode respirar debaixo da água.', 'You can breathe underwater.'),
         traits: []
       }
     ],
@@ -134,12 +135,12 @@ export const feyForms: TransformationForm[] = [
     abilities: [
       {
         name: 'Invisibilidade',
-        description: 'Você pode ficar invisível à vontade por 1 minuto ou até atacar.',
+        description: tr('Você pode ficar invisível à vontade por 1 minuto ou até atacar.', 'You can become invisible at will for 1 minute or until you attack.'),
         traits: ['illusion']
       },
       {
-        name: 'Aspergir Pó de Pixie',
-        description: 'Você pode conceder a um aliado adjacente um Deslocamento de voo de 45 pés por 1 rodada.',
+        name: tr('Aspergir Pó de Pixie', 'Sprinkle Pixie Dust'),
+        description: tr('Você pode conceder a um aliado adjacente um Deslocamento de voo de 45 pés por 1 rodada.', 'You can grant an adjacent ally a 45-foot fly Speed for 1 round.'),
         traits: []
       }
     ],
@@ -177,12 +178,12 @@ export const feyForms: TransformationForm[] = [
     abilities: [
       {
         name: 'Ligeiro',
-        description: 'Você recebe +10 pés de bônus de condição no seu Deslocamento terrestre e ignora terreno difícil.',
+        description: tr('Você recebe +10 pés de bônus de condição no seu Deslocamento terrestre e ignora terreno difícil.', 'You gain a +10-foot circumstance bonus to your land Speed and ignore difficult terrain.'),
         traits: []
       },
       {
-        name: 'Passo na Floresta',
-        description: 'Você ignora terreno difícil causado por plantas e vegetação rasteira.',
+        name: tr('Passo na Floresta', 'Woodland Stride'),
+        description: tr('Você ignora terreno difícil causado por plantas e vegetação rasteira.', 'You ignore difficult terrain caused by plants and undergrowth.'),
         traits: []
       }
     ],
@@ -219,13 +220,13 @@ export const feyForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Botas de Ferro',
-        description: 'Seus ataques de bota ignoram os primeiros 5 pontos de resistência a dano físico do alvo.',
+        name: tr('Botas de Ferro', 'Iron Boots'),
+        description: tr('Seus ataques de bota ignoram os primeiros 5 pontos de resistência a dano físico do alvo.', 'Your boot attacks ignore the target\'s first 5 points of physical damage resistance.'),
         traits: []
       },
       {
         name: 'Stomp',
-        description: 'Se você acertar uma criatura caída com um ataque de bota, ela sofre 2d6 de dano de sangramento persistente adicional.',
+        description: tr('Se você acertar uma criatura caída com um ataque de bota, ela sofre 2d6 de dano de sangramento persistente adicional.', 'If you hit a prone creature with a boot attack, it takes 2d6 extra persistent bleed damage.'),
         traits: []
       }
     ],

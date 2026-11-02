@@ -14,6 +14,7 @@ import { natureIncarnateSpell, natureIncarnateForms } from './nature-incarnate';
 import { oozeFormSpell, oozeForms } from './ooze-form';
 import { elementEmbodiedSpell, elementEmbodiedForms } from './element-embodied';
 import { avatarSpell, avatarForms } from './avatar';
+import { tr } from '../../../i18n';
 
 // Animal forms available for Animal Form spell
 export const animalForms: TransformationForm[] = [
@@ -220,8 +221,8 @@ export const animalForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Aquático',
-        description: 'Pode respirar debaixo da água, mas não no ar',
+        name: tr('Aquático', 'Aquatic'),
+        description: tr('Pode respirar debaixo da água, mas não no ar', 'Can breathe underwater, but not in air'),
         traits: []
       }
     ],
@@ -282,8 +283,8 @@ export const animalForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Anfíbio',
-        description: 'Pode respirar na água e no ar',
+        name: tr('Anfíbio', 'Amphibious'),
+        description: tr('Pode respirar na água e no ar', 'Can breathe in water and in air'),
         traits: []
       }
     ],
@@ -319,8 +320,8 @@ export const animalForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Prender a Respiração',
-        description: 'Pode prender a respiração durante a transformação',
+        name: tr('Prender a Respiração', 'Hold Breath'),
+        description: tr('Pode prender a respiração durante a transformação', 'Can hold its breath during the transformation'),
         traits: []
       }
     ],
@@ -348,8 +349,8 @@ export const animalForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Prender a Respiração',
-        description: 'Pode prender a respiração durante a transformação',
+        name: tr('Prender a Respiração', 'Hold Breath'),
+        description: tr('Pode prender a respiração durante a transformação', 'Can hold its breath during the transformation'),
         traits: []
       }
     ],
@@ -378,8 +379,8 @@ export const animalForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Prender a Respiração',
-        description: 'Pode prender a respiração durante a transformação',
+        name: tr('Prender a Respiração', 'Hold Breath'),
+        description: tr('Pode prender a respiração durante a transformação', 'Can hold its breath during the transformation'),
         traits: []
       }
     ],

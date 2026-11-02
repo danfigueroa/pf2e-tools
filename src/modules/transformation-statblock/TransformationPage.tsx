@@ -17,6 +17,7 @@ import { FormSelector } from './components/FormSelector';
 import StatBlockGenerator from './components/StatBlockGenerator';
 import CharacterInput from './components/CharacterInput';
 import ExportOptions from './components/ExportOptions';
+import { tr } from '../../i18n';
 
 // Temporary placeholder components for steps not yet implemented
 interface StatBlockPreviewProps {
@@ -33,7 +34,7 @@ const StatBlockPreview: React.FC<StatBlockPreviewProps> = ({ config, onNext }) =
       character={config.character}
     />
     <Box sx={{ textAlign: 'center', mt: 3 }}>
-      <Button variant="contained" onClick={onNext}>Continuar para Exportação</Button>
+      <Button variant="contained" onClick={onNext}>{tr('Continuar para Exportação', 'Continue to Export')}</Button>
     </Box>
   </Box>
 );
@@ -41,10 +42,10 @@ const StatBlockPreview: React.FC<StatBlockPreviewProps> = ({ config, onNext }) =
 
 
 const steps = [
-  'Dados do Personagem',
-  'Escolher Forma',
-  'Visualizar Stat Block',
-  'Exportar',
+  tr('Dados do Personagem', 'Character Data'),
+  tr('Escolher Forma', 'Choose Form'),
+  tr('Visualizar Stat Block', 'Preview Stat Block'),
+  tr('Exportar', 'Export'),
 ];
 
 export const TransformationPage: React.FC = () => {
@@ -123,7 +124,7 @@ export const TransformationPage: React.FC = () => {
           />
         );
       default:
-        return <Typography>Passo desconhecido</Typography>;
+        return <Typography>{tr('Passo desconhecido', 'Unknown step')}</Typography>;
     }
   };
 
@@ -143,23 +144,21 @@ export const TransformationPage: React.FC = () => {
             textAlign: 'center',
           }}
         >
-          Gerador de Stat Block de Transformação
-        </Typography>
+          {tr('Gerador de Stat Block de Transformação', 'Transformation Stat Block Generator')}</Typography>
         
         <Typography
           variant="h6"
           color="text.secondary"
           sx={{ textAlign: 'center', mb: 4, fontWeight: 300, fontSize: { xs: '0.95rem', sm: '1.25rem' } }}
         >
-          Crie stat blocks detalhados para magias de transformação do Pathfinder 2e Remaster
-        </Typography>
+          {tr('Crie stat blocks detalhados para magias de transformação do Pathfinder 2e Remaster', 'Create detailed stat blocks for Pathfinder 2e Remaster transformation spells')}</Typography>
       </Box>
 
       <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
         {isPhone ? (
           <Box>
             <Typography variant="overline" color="text.secondary" sx={{ display: 'block' }}>
-              Passo {activeStep + 1} de {steps.length}
+              Passo {activeStep + 1} {tr('de ', 'of ')}{steps.length}
             </Typography>
             <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
               {steps[activeStep]}
@@ -191,8 +190,7 @@ export const TransformationPage: React.FC = () => {
             variant="outlined"
             sx={{ flex: { xs: 1, sm: '0 0 auto' } }}
           >
-            Voltar
-          </Button>
+            {tr('Voltar', 'Back')}</Button>
           
           {activeStep < steps.length - 1 && (
             <Button
@@ -201,8 +199,7 @@ export const TransformationPage: React.FC = () => {
               disabled={!canProceed}
               sx={{ flex: { xs: 1, sm: '0 0 auto' } }}
             >
-              Próximo
-            </Button>
+              {tr('Próximo', 'Next')}</Button>
           )}
         </Box>
       </Paper>

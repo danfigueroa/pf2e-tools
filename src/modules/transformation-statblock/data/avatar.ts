@@ -1,4 +1,5 @@
 import type { TransformationSpell, TransformationForm } from '../../../types';
+import { tr } from '../../../i18n';
 
 // Avatar - rank 10 divine battle form. You become an embodiment of your deity.
 // Common statistics (verified): AC 25 + level, 30 temporary HP, Huge, darkvision,
@@ -26,7 +27,7 @@ export const avatarForms: TransformationForm[] = [
     abilities: [
       {
         name: 'Aspecto Divino',
-        description: 'Use esta forma genérica quando sua divindade não estiver listada; substitua pela arma favorecida, deslocamento e habilidade característica da sua divindade, conforme a entrada de avatar dela.',
+        description: tr('Use esta forma genérica quando sua divindade não estiver listada; substitua pela arma favorecida, deslocamento e habilidade característica da sua divindade, conforme a entrada de avatar dela.', 'Use this generic form when your deity isn\'t listed; replace it with your deity\'s favored weapon, Speed and signature ability, as given in their avatar entry.'),
         traits: []
       }
     ],
@@ -55,8 +56,8 @@ export const avatarForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Golpe Retributivo',
-        description: 'Quando um aliado perto de você é atingido, você pode retaliar contra o atacante com força radiante.',
+        name: tr('Golpe Retributivo', 'Retributive Strike'),
+        description: tr('Quando um aliado perto de você é atingido, você pode retaliar contra o atacante com força radiante.', 'When an ally near you is hit, you can retaliate against the attacker with radiant force.'),
         traits: []
       }
     ],
@@ -84,8 +85,8 @@ export const avatarForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Sede de Sangue',
-        description: 'Seus ataques causam dano adicional contra criaturas que já sofreram dano neste combate.',
+        name: tr('Sede de Sangue', 'Bloodthirst'),
+        description: tr('Seus ataques causam dano adicional contra criaturas que já sofreram dano neste combate.', 'Your attacks deal extra damage against creatures that have already taken damage this combat.'),
         traits: []
       }
     ],
@@ -122,7 +123,7 @@ export const avatarForms: TransformationForm[] = [
     abilities: [
       {
         name: 'Luz Curativa',
-        description: 'Você irradia luz restauradora, e seus ataques de fogo podem ferir mortos-vivos com energia positiva.',
+        description: tr('Você irradia luz restauradora, e seus ataques de fogo podem ferir mortos-vivos com energia positiva.', 'You radiate restoring light, and your fire attacks can harm undead with vital energy.'),
         traits: []
       }
     ],
@@ -151,8 +152,8 @@ export const avatarForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Devastação',
-        description: 'Você pode Escavar, e seus ataques destroem objetos sem dono e terreno com facilidade.',
+        name: tr('Devastação', 'Devastation'),
+        description: tr('Você pode Escavar, e seus ataques destroem objetos sem dono e terreno com facilidade.', 'You can Burrow, and your attacks easily destroy unattended objects and terrain.'),
         traits: []
       }
     ],
@@ -183,7 +184,7 @@ export const avatarForms: TransformationForm[] = [
     abilities: [
       {
         name: 'Julgamento Final',
-        description: 'Seus ataques são especialmente eficazes contra mortos-vivos e criaturas que enganaram a morte.',
+        description: tr('Seus ataques são especialmente eficazes contra mortos-vivos e criaturas que enganaram a morte.', 'Your attacks are especially effective against undead and creatures that have cheated death.'),
         traits: []
       }
     ],
