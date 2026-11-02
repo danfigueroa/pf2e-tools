@@ -229,7 +229,7 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect, attackNa
                                         <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
                                             <Chip label={capitalize(a.prof)} size="small" variant="outlined" />
                                             {a.pot > 0 && <Chip label={tr(`+${a.pot} potência`, `+${a.pot} potency`)} size="small" variant="outlined" />}
-                                            {a.worn && <Chip label="Vestida" size="small" color="primary" />}
+                                            {a.worn && <Chip label={tr("Vestida", 'Worn')} size="small" color="primary" />}
                                             {itemRuneNames(build, a, 'armor').map((r) => (
                                                 <Chip key={r} label={r} size="small" sx={{ textTransform: 'capitalize' }} />
                                             ))}
@@ -260,13 +260,13 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect, attackNa
                                 }}
                             >
                                 <MiniStat
-                                    label={shieldAc ? tr('CA (escudo erguido)', 'AC (shield raised)') : 'CA total'}
+                                    label={shieldAc ? tr('CA (escudo erguido)', 'AC (shield raised)') : tr('CA total', 'Total AC')}
                                     value={build.acTotal.acTotal + mods.total.ac + shieldAc}
                                     delta={mods.total.ac}
                                     base={build.acTotal.acTotal}
                                 />
-                                <MiniStat label="Prof." value={signed(build.acTotal.acProfBonus)} />
-                                <MiniStat label="Atr." value={signed(build.acTotal.acAbilityBonus)} />
+                                <MiniStat label={tr("Prof.", 'Prof.')} value={signed(build.acTotal.acProfBonus)} />
+                                <MiniStat label={tr("Atr.", 'Attr.')} value={signed(build.acTotal.acAbilityBonus)} />
                                 <MiniStat label="Item" value={signed(build.acTotal.acItemBonus)} />
                                 {build.acTotal.shieldBonus != null && (
                                     <MiniStat label={tr("Escudo", 'Shield')} value={signed(build.acTotal.shieldBonus)} />
@@ -372,7 +372,7 @@ const CustomRuneBox = ({ rune, build, sizeEffect, onSelect }: {
 }) => (
     <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
         <Typography variant="overline" sx={{ fontWeight: 700, letterSpacing: '0.06em', color: 'primary.light' }}>
-            Runa {rune.name} · Item {rune.level}
+            {tr('Runa ', 'Rune ')}{rune.name} · Item {rune.level}
         </Typography>
         <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
             {rune.traits.map((t) => (
@@ -398,7 +398,7 @@ const CustomRuneBox = ({ rune, build, sizeEffect, onSelect }: {
                     </Box>
                     {' '}({act.traits.join(', ')})
                     {act.frequency && <>; <Box component="span" sx={{ fontWeight: 700 }}>{tr('Frequência', 'Frequency')}</Box> {act.frequency}</>}
-                    ; <Box component="span" sx={{ fontWeight: 700 }}>Efeito</Box> {act.effect}
+                    ; <Box component="span" sx={{ fontWeight: 700 }}>{tr('Efeito', 'Effect')}</Box> {act.effect}
                 </Typography>
                 {act.sizeEffects && (
                     <SizeToggle ids={act.sizeEffects} build={build} api={sizeEffect} onSelect={onSelect} />

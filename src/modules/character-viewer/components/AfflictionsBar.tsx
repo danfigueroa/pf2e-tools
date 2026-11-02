@@ -46,12 +46,12 @@ export const AfflictionsBar = ({ afflictions, onRemove }: Props) => {
                             </Typography>
                             <Chip
                                 size="small"
-                                label={`Estágio ${a.stage}/${a.def.stages.length}`}
+                                label={tr(`Estágio ${a.stage}/${a.def.stages.length}`, `Stage ${a.stage}/${a.def.stages.length}`)}
                                 sx={{ backgroundColor: gold.main + '33', fontWeight: 700 }}
                             />
                             {a.def.virulent && (
                                 <Tooltip title={tr("Virulento: precisa de dois sucessos seguidos para melhorar um estágio.", 'Virulent: needs two successes in a row to improve a stage.')}>
-                                    <Chip size="small" variant="outlined" label="Virulento" />
+                                    <Chip size="small" variant="outlined" label={tr("Virulento", 'Virulent')} />
                                 </Tooltip>
                             )}
                             <Box sx={{ flex: 1 }} />
@@ -85,7 +85,7 @@ export const AfflictionsBar = ({ afflictions, onRemove }: Props) => {
 
                         <Typography variant="caption" sx={{ display: 'block', color: ink.secondary, mt: 0.5 }}>
                             {a.def.dc !== null && a.def.save
-                                ? `CD ${a.def.dc} ${a.def.save === 'fortitude' ? 'Fortitude' : a.def.save === 'reflex' ? tr('Reflexos', 'Reflex') : tr('Vontade', 'Will')}`
+                                ? tr(`CD ${a.def.dc} ${a.def.save === 'fortitude' ? 'Fortitude' : a.def.save === 'reflex' ? tr('Reflexos', 'Reflex') : tr('Vontade', 'Will')}`, `DC ${a.def.dc} ${a.def.save === 'fortitude' ? 'Fortitude' : a.def.save === 'reflex' ? tr('Reflexos', 'Reflex') : tr('Vontade', 'Will')}`)
                                 : (a.def.raw ?? tr('salvaguarda não lida', 'save not read'))}
                             {due
                                 ? tr(' · salvaguarda pendente', ' · save pending')

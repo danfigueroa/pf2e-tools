@@ -49,8 +49,8 @@ export const PersonCard = memo(({ person: p, index }: { person: PersonStats; ind
                 <Stat label={tr("Rolagens", 'Rolls')} value={p.rolls} shown={shown} />
                 <Stat label={tr("Testes", 'Checks')} value={p.checks} shown={shown} />
                 <Stat label={tr("Média no d20", 'd20 average')} value={d20Average(p)} decimals={1} shown={shown} />
-                <Stat label="Tirou 20" value={p.nat20} tone={p.nat20 ? gold.deep : undefined} shown={shown} />
-                <Stat label="Tirou 1" value={p.nat1} tone={p.nat1 ? status.error : undefined} shown={shown} />
+                <Stat label={tr("Tirou 20", 'Rolled 20')} value={p.nat20} tone={p.nat20 ? gold.deep : undefined} shown={shown} />
+                <Stat label={tr("Tirou 1", 'Rolled 1')} value={p.nat1} tone={p.nat1 ? status.error : undefined} shown={shown} />
                 <Stat label={tr("Pontos Míticos", 'Mythic Points')} value={p.mythic} tone={p.mythic ? MYTHIC_COLOR : undefined} shown={shown} />
             </Box>
             {(p.damage > 0 || p.best) && (

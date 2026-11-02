@@ -136,7 +136,7 @@ export const ConditionsBar = ({ conditions }: Props) => {
                                                 <>
                                                     <IconButton
                                                         size="small"
-                                                        aria-label={`Diminuir ${def.name}`}
+                                                        aria-label={tr(`Diminuir ${def.name}`, `Decrease ${def.name}`)}
                                                         onClick={() => adjust(entry.id, -1)}
                                                         sx={{ p: TAP_PADDING }}
                                                     >
@@ -144,7 +144,7 @@ export const ConditionsBar = ({ conditions }: Props) => {
                                                     </IconButton>
                                                     <IconButton
                                                         size="small"
-                                                        aria-label={`Aumentar ${def.name}`}
+                                                        aria-label={tr(`Aumentar ${def.name}`, `Increase ${def.name}`)}
                                                         onClick={() => adjust(entry.id, 1)}
                                                         sx={{ p: TAP_PADDING }}
                                                     >

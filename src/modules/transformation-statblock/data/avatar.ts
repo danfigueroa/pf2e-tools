@@ -26,7 +26,7 @@ export const avatarForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Aspecto Divino',
+        name: tr('Aspecto Divino', 'Divine Aspect'),
         description: tr('Use esta forma genérica quando sua divindade não estiver listada; substitua pela arma favorecida, deslocamento e habilidade característica da sua divindade, conforme a entrada de avatar dela.', 'Use this generic form when your deity isn\'t listed; replace it with your deity\'s favored weapon, Speed and signature ability, as given in their avatar entry.'),
         traits: []
       }
@@ -122,7 +122,7 @@ export const avatarForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Luz Curativa',
+        name: tr('Luz Curativa', 'Healing Light'),
         description: tr('Você irradia luz restauradora, e seus ataques de fogo podem ferir mortos-vivos com energia positiva.', 'You radiate restoring light, and your fire attacks can harm undead with vital energy.'),
         traits: []
       }
@@ -183,7 +183,7 @@ export const avatarForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Julgamento Final',
+        name: tr('Julgamento Final', 'Final Judgment'),
         description: tr('Seus ataques são especialmente eficazes contra mortos-vivos e criaturas que enganaram a morte.', 'Your attacks are especially effective against undead and creatures that have cheated death.'),
         traits: []
       }

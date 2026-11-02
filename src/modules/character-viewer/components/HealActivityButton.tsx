@@ -139,7 +139,7 @@ export const HealActivityButton = ({ build, mods, activity, fullWidth }: Props) 
                 <DialogContent>
                     <Stack spacing={1.25} sx={{ pt: 0.5 }}>
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            {tr('Cura ', 'Healing ')}{activity.formula} PV · {costLabel}{activity.frequency ? ` · ${activity.frequency}` : activity.daily ? tr(' · 1× por dia', ' · 1× per day') : ''}
+                            {tr('Cura ', 'Healing ')}{activity.formula} {tr('PV · ', 'HP · ')}{costLabel}{activity.frequency ? ` · ${activity.frequency}` : activity.daily ? tr(' · 1× por dia', ' · 1× per day') : ''}
                         </Typography>
                         <FormControlLabel
                             control={<Switch size="small" checked={onSelf} onChange={(e) => setOnSelf(e.target.checked)} />}

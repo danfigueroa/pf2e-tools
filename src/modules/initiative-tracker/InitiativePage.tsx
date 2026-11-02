@@ -601,8 +601,7 @@ export const InitiativePage = () => {
                             setDialog(null)
                         }}
                     >
-                        Encerrar
-                    </Button>
+                        {tr('Encerrar', 'End')}</Button>
                 </DialogActions>
             </Dialog>
 

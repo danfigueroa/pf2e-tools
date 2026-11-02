@@ -159,7 +159,7 @@ export function formatValue(v: { count: number; faces: number; flat: number }): 
 /** Dano/cura de um componente em pt-BR: "6d4 fogo persistente", "5d8 PV". */
 export function componentLabel(c: ScaledComponent): string {
     const value = `${formatValue(c.value)}${c.uncertain ? ' (?)' : ''}`
-    if (c.kind === 'healing') return `${value} PV`
+    if (c.kind === 'healing') return tr(`${value} PV`, `${value} HP`)
     if (c.kind === 'tempHp') return tr(`${value} PV temporários`, `${value} temporary HP`)
     const types = c.types.map(translateDamageType).join('/')
     return [value, types, c.persistent ? tr('persistente', 'persistent') : ''].filter(Boolean).join(' ')
@@ -174,7 +174,7 @@ export const NAMED_LABEL: Partial<Record<SpellComponent['kind'], string>> = {
 }
 
 export function namedLabel(c: ScaledComponent): string {
-    const base = NAMED_LABEL[c.kind] ?? (c.kind === 'tempHp' ? tr('PV temporários', 'Temporary HP') : 'Valor')
+    const base = NAMED_LABEL[c.kind] ?? (c.kind === 'tempHp' ? tr('PV temporários', 'Temporary HP') : tr('Valor', 'Amount'))
     return c.types.length ? `${base} (${c.types.map(translateDamageType).join('/')})` : base
 }
 

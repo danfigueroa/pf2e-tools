@@ -65,7 +65,7 @@ const Stepper = ({ label, value, min, max, onChange }: {
     }
     return (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <IconButton size="small" aria-label={`Diminuir ${label}`} disabled={value <= min} onClick={() => onChange(value - 1)}>
+            <IconButton size="small" aria-label={tr(`Diminuir ${label}`, `Decrease ${label}`)} disabled={value <= min} onClick={() => onChange(value - 1)}>
                 <MinusIcon fontSize="small" />
             </IconButton>
             <TextField
@@ -78,7 +78,7 @@ const Stepper = ({ label, value, min, max, onChange }: {
                 slotProps={{ htmlInput: { inputMode: 'numeric', style: { textAlign: 'center' } } }}
                 sx={{ width: 84 }}
             />
-            <IconButton size="small" aria-label={`Aumentar ${label}`} disabled={value >= max} onClick={() => onChange(value + 1)}>
+            <IconButton size="small" aria-label={tr(`Aumentar ${label}`, `Increase ${label}`)} disabled={value >= max} onClick={() => onChange(value + 1)}>
                 <PlusIcon fontSize="small" />
             </IconButton>
         </Box>
@@ -135,7 +135,7 @@ export const DicePanel = ({ onRoll, identity }: Props) => {
             </ToggleButtonGroup>
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
-                <Stepper label="Dados" value={prefs.count} min={1} max={MAX_DICE} onChange={(count) => patch({ count })} />
+                <Stepper label={tr("Dados", 'Dice')} value={prefs.count} min={1} max={MAX_DICE} onChange={(count) => patch({ count })} />
                 <Stepper label={tr("Bônus", 'Bonus')} value={prefs.bonus} min={-MAX_BONUS} max={MAX_BONUS} onChange={(bonus) => patch({ bonus })} />
             </Box>
 

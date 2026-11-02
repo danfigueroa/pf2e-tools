@@ -74,7 +74,7 @@ export const fiendForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Fedor',
+        name: tr('Fedor', 'Stench'),
         description: tr('Criaturas em até 15 pés devem ser bem-sucedidas em um salvamento de Fortitude ou ficam enjoadas 1.', 'Creatures within 15 feet must succeed at a Fortitude save or become sickened 1.'),
         traits: ['aura', 'poison']
       }

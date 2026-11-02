@@ -171,7 +171,7 @@ export const MapListDrawer = ({ open, currentId, gm, onClose, onOpenMap }: Props
                                         </span>
                                     </Tooltip>
                                     <IconButton
-                                        aria-label={`Renomear ${map.name}`}
+                                        aria-label={tr(`Renomear ${map.name}`, `Rename ${map.name}`)}
                                         onClick={() => { setRenaming(map); setNewName(map.name) }}
                                     >
                                         <EditIcon />

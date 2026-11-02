@@ -210,7 +210,7 @@ export const monstrosityForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Atropelar',
+        name: tr('Atropelar', 'Trample'),
         description: tr('Você se Desloca até o dobro do seu Deslocamento e pode atravessar espaços de criaturas Grandes ou menores. Cada criatura por quem passar sofre 2d8 de dano contundente (salvamento de Reflexos básico).', 'You Stride up to double your Speed and can move through the spaces of Large or smaller creatures. Each creature you pass through takes 2d8 bludgeoning damage (basic Reflex save).'),
         traits: []
       }

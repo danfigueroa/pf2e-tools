@@ -74,7 +74,7 @@ export const SharedRuleLayer = memo(function SharedRuleLayer() {
                 role="status"
                 sx={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clipPath: 'inset(50%)' }}
             >
-                {isRuleShare(shown) ? `${shown.by || tr('Alguém', 'Someone')} compartilhou ${shown.name}` : tr(`${shown.by || 'O GM'} mostrou à mesa: ${shown.name}`, `${shown.by || 'The GM'} showed the table: ${shown.name}`)}
+                {isRuleShare(shown) ? tr(`${shown.by || 'Alguém'} compartilhou ${shown.name}`, `${shown.by || 'Someone'} shared ${shown.name}`) : tr(`${shown.by || 'O GM'} mostrou à mesa: ${shown.name}`, `${shown.by || 'The GM'} showed the table: ${shown.name}`)}
             </Box>
         </Suspense>
     )

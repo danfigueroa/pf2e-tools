@@ -138,7 +138,7 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
         setDrink({
             event: { name: row.name, formula, roll, before, after: before + healed, max: characterMaxHp(build, mods.hpMaxDelta) },
             notice: {
-                text: `${row.name}: ${formula} → ${rollMemorial(roll)} · +${healed} PV${capped}${costNote ? ` · ${costNote}` : ''}`,
+                text: tr(`${row.name}: ${formula} → ${rollMemorial(roll)} · +${healed} PV${capped}${costNote ? ` · ${costNote}` : ''}`, `${row.name}: ${formula} → ${rollMemorial(roll)} · +${healed} HP${capped}${costNote ? ` · ${costNote}` : ''}`),
                 name: row.name,
                 qty: row.sheetQty,
                 healed,
@@ -176,10 +176,10 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
                         </Typography>
                         <Stack direction="row" spacing={2} sx={{ mt: 1, flexWrap: 'wrap', gap: 1 }}>
                             {/* platina é "pl": "pp" já é prata, e as duas colidiam. */}
-                            <Coin label="pl" value={money.pp} accent={COIN_COLORS.pp} />
-                            <Coin label="po" value={money.gp} accent={COIN_COLORS.gp} />
-                            <Coin label="pp" value={money.sp} accent={COIN_COLORS.sp} />
-                            <Coin label="pc" value={money.cp} accent={COIN_COLORS.cp} />
+                            <Coin label={tr("pl", 'pp')} value={money.pp} accent={COIN_COLORS.pp} />
+                            <Coin label={tr("po", 'gp')} value={money.gp} accent={COIN_COLORS.gp} />
+                            <Coin label={tr("pp", 'sp')} value={money.sp} accent={COIN_COLORS.sp} />
+                            <Coin label={tr("pc", 'cp')} value={money.cp} accent={COIN_COLORS.cp} />
                         </Stack>
                     </CardContent>
                 </Card>
@@ -256,7 +256,7 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
                                                 sx={{ flexWrap: 'wrap', gap: 0.75, ml: 'auto', justifyContent: 'flex-end' }}
                                             >
                                                 {spent ? (
-                                                    <Chip label="Esgotado" size="small" />
+                                                    <Chip label={tr("Esgotado", 'Used up')} size="small" />
                                                 ) : remaining < row.qty ? (
                                                     // A `key` pelo restante refaz o estouro a cada uso.
                                                     <Chip
@@ -292,7 +292,7 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
                                                     <Tooltip title={tr("Devolver 1 ao inventário", 'Give 1 back to the inventory')}>
                                                         <IconButton
                                                             size="small"
-                                                            aria-label={`Devolver 1 ${row.name}`}
+                                                            aria-label={tr(`Devolver 1 ${row.name}`, `Give back 1 ${row.name}`)}
                                                             onClick={() => consumables.restore(row.name, row.sheetQty)}
                                                             sx={{
                                                                 border: '1px solid',

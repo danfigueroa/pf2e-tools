@@ -120,7 +120,7 @@ const AwardCard = memo(({ award: a, big, shown, index, onOpenDay }: CardProps) =
                 </>
             ) : a.tie ? (
                 <Typography variant="body2" sx={{ color: ink.secondary }}>
-                    <b>Empate</b> {tr('entre ', 'between ')}{joinNames(a.tie.names)}{tr(', com ', ', with ')}{a.tie.label} {tr('cada.', 'each.')}</Typography>
+                    <b>{tr('Empate', 'Tie')}</b> {tr('entre ', 'between ')}{joinNames(a.tie.names)}{tr(', com ', ', with ')}{a.tie.label} {tr('cada.', 'each.')}</Typography>
             ) : (
                 <Typography variant="body2" sx={{ color: ink.secondary, fontStyle: 'italic' }}>
                     {tr('Ninguém ainda: falta rolar mais.', 'Nobody yet: more rolling needed.')}</Typography>

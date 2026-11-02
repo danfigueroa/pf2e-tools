@@ -159,11 +159,11 @@ const ConditionRow = ({ def, value, onToggle, onAdjust }: {
 
             {def.valued && active && (
                 <Stack direction="row" alignItems="center" spacing={0.25} sx={{ flexShrink: 0 }}>
-                    <IconButton size="small" onClick={() => onAdjust(-1)} aria-label={`Diminuir ${def.name}`}>
+                    <IconButton size="small" onClick={() => onAdjust(-1)} aria-label={tr(`Diminuir ${def.name}`, `Decrease ${def.name}`)}>
                         <RemoveIcon fontSize="small" />
                     </IconButton>
                     <Typography sx={{ minWidth: 18, textAlign: 'center', fontWeight: 700 }}>{value}</Typography>
-                    <IconButton size="small" onClick={() => onAdjust(1)} aria-label={`Aumentar ${def.name}`}>
+                    <IconButton size="small" onClick={() => onAdjust(1)} aria-label={tr(`Aumentar ${def.name}`, `Increase ${def.name}`)}>
                         <AddIcon fontSize="small" />
                     </IconButton>
                 </Stack>

@@ -115,7 +115,7 @@ export const CombatantConditions = ({ view }: { view: CombatantView }) => {
                                                 size="small"
                                                 sx={{ p: TAP_PADDING }}
                                                 onClick={() => adjustCondition(entry.id, -1)}
-                                                aria-label={`Diminuir ${def.name}`}
+                                                aria-label={tr(`Diminuir ${def.name}`, `Decrease ${def.name}`)}
                                             >
                                                 <RemoveIcon sx={{ fontSize: TAP_ICON }} />
                                             </IconButton>
@@ -123,7 +123,7 @@ export const CombatantConditions = ({ view }: { view: CombatantView }) => {
                                                 size="small"
                                                 sx={{ p: TAP_PADDING }}
                                                 onClick={() => adjustCondition(entry.id, 1)}
-                                                aria-label={`Aumentar ${def.name}`}
+                                                aria-label={tr(`Aumentar ${def.name}`, `Increase ${def.name}`)}
                                             >
                                                 <AddIcon sx={{ fontSize: TAP_ICON }} />
                                             </IconButton>

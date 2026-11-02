@@ -8,9 +8,9 @@ import { tr } from '../../../../i18n';
 const ROW = 40;
 const COMBATANTS = [
   { name: 'Seraphine', initials: 'SE', init: 24, pc: true },
-  { name: 'Goblin Guerreiro', initials: 'GG', init: 21, pc: false },
-  { name: 'Bruma', initials: 'BR', init: 18, pc: true },
-  { name: 'Goblin Arqueiro', initials: 'GA', init: 12, pc: false },
+  { name: tr('Goblin Guerreiro', 'Goblin Warrior'), initials: 'GG', init: 21, pc: false },
+  { name: tr('Bruma', 'Mist'), initials: 'BR', init: 18, pc: true },
+  { name: tr('Goblin Arqueiro', 'Goblin Archer'), initials: 'GA', init: 12, pc: false },
 ] as const;
 // Um passo por turno, duas rodadas. Na vez da Bruma o guerreiro toma o golpe; no começo da
 // rodada seguinte a Seraphine o derruba, e o turno dele passa direto.

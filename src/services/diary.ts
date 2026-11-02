@@ -76,7 +76,7 @@ export async function fetchDiarySummary(): Promise<DaySummary[] | null> {
     }
 }
 
-const DAY_FMT = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' })
+const DAY_FMT = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }) // i18n-ok
 
 /** O dia de jogo de um instante — o mesmo `diary_day` do banco. */
 export const diaryDayOf = (at: number) => DAY_FMT.format(new Date(at - 6 * 60 * 60 * 1000))

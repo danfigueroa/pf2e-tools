@@ -690,7 +690,7 @@ const SpellMetadata = ({
                 }}
             >
                 {caster && (
-                    <MetaRow label={tr("CD / Ataque", 'DC / Attack')} value={`CD ${caster.dc} · ${signed(caster.attack)}`} accent={accent} />
+                    <MetaRow label={tr("CD / Ataque", 'DC / Attack')} value={tr(`CD ${caster.dc} · ${signed(caster.attack)}`, `DC ${caster.dc} · ${signed(caster.attack)}`)} accent={accent} />
                 )}
                 {spell.traditions && spell.traditions.length > 0 && (
                     <MetaRow label={tr("Tradições", 'Traditions')} value={spell.traditions.join(', ')} />
@@ -705,7 +705,7 @@ const SpellMetadata = ({
                 {spell.area && <MetaRow label={tr("Área", 'Area')} value={spell.area} />}
                 {spell.targets && <MetaRow label={tr("Alvos", 'Targets')} value={spell.targets} />}
                 {spell.duration && <MetaRow label={tr("Duração", 'Duration')} value={spell.duration} />}
-                {spell.defense && <MetaRow label="Defesa" value={spell.defense} />}
+                {spell.defense && <MetaRow label={tr("Defesa", 'Defense')} value={spell.defense} />}
                 {scaled ? (
                     <>
                         {dmg.length > 0 && (

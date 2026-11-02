@@ -97,7 +97,7 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
 
   const clearImport = () => {
     setFormData({
-      name: 'Aventureiro',
+      name: tr('Aventureiro', 'Adventurer'),
       level: 5,
       class: 'Druida',
       abilityScores: { strength: 12, dexterity: 14, constitution: 14, intelligence: 12, wisdom: 18, charisma: 10 },
@@ -231,7 +231,7 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                   {formData.maxHP != null && <Chip size="small" label={`HP ${formData.maxHP}`} />}
-                  {formData.perception != null && <Chip size="small" label={`Perc ${formatModifier(formData.perception)}`} />}
+                  {formData.perception != null && <Chip size="small" label={tr(`Perc ${formatModifier(formData.perception)}`, `Perc ${formatModifier(formData.perception)}`)} />}
                   {formData.saves && <Chip size="small" label={`Fort ${formatModifier(formData.saves.fortitude)}`} />}
                   {formData.saves && <Chip size="small" label={`Ref ${formatModifier(formData.saves.reflex)}`} />}
                   {formData.saves && <Chip size="small" label={`Will ${formatModifier(formData.saves.will)}`} />}
@@ -275,16 +275,16 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
 
                 <Box sx={{ display: 'grid', gridTemplateColumns: FIELD_GRID, gap: 2 }}>
                   <FormControl>
-                    <InputLabel>Classe</InputLabel>
+                    <InputLabel>{tr('Classe', 'Class')}</InputLabel>
                     <Select
                       value={formData.class || ''}
-                      label="Classe"
+                      label={tr("Classe", 'Class')}
                       onChange={(e) => setFormData(prev => ({ ...prev, class: e.target.value }))}
                     >
-                      <MenuItem value="Druida">Druida</MenuItem>
+                      <MenuItem value="Druida">{tr('Druida', 'Druid')}</MenuItem>
                       <MenuItem value="Ranger">Ranger</MenuItem>
-                      <MenuItem value="Mago">Mago</MenuItem>
-                      <MenuItem value="Feiticeiro">Feiticeiro</MenuItem>
+                      <MenuItem value="Mago">{tr('Mago', 'Wizard')}</MenuItem>
+                      <MenuItem value="Feiticeiro">{tr('Feiticeiro', 'Sorcerer')}</MenuItem>
                       <MenuItem value={tr("Outro", 'Other')}>{tr('Outro', 'Other')}</MenuItem>
                     </Select>
                   </FormControl>
@@ -337,8 +337,7 @@ const CharacterInput: React.FC<CharacterInputProps> = ({ onCharacterInput, chara
             {!imported && (
               <Box>
                 <Typography variant="h6" gutterBottom>
-                  Atributos
-                </Typography>
+                  {tr('Atributos', 'Attributes')}</Typography>
                 <Box
                   sx={{
                     display: 'grid',

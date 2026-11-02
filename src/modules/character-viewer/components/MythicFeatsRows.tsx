@@ -55,7 +55,7 @@ export const MythicFeatsRows = ({ build, magus, mythicPoints, conditions }: Prop
                             <Chip label={tr("Ativo · +3 m · Acelerado", 'Active · +10 ft · Quickened')} size="small" color="primary" sx={{ height: 24, fontSize: '0.75rem', fontWeight: 600 }} />
                             <Typography variant="body2" color="text.secondary" sx={{ flex: 1, minWidth: 140 }}>
                                 {tr('Dura 1 minuto; encerre quando acabar.', 'Lasts 1 minute; end it when it\'s over.')}</Typography>
-                            <Button size="small" variant="outlined" onClick={() => magus.setGodspeed(false)}>Encerrar</Button>
+                            <Button size="small" variant="outlined" onClick={() => magus.setGodspeed(false)}>{tr('Encerrar', 'End')}</Button>
                         </>
                     ) : (
                         <>

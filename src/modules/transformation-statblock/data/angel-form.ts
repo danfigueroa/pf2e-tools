@@ -61,12 +61,12 @@ export const angelForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Harmonizar',
+        name: tr('Harmonizar', 'Harmonize'),
         description: tr('Você pode usar Atuação para conjurar uma magia curar de uma ação uma vez por rodada, curando 2d8 PV de uma criatura em até 30 pés.', 'You can use Performance to cast a one-action heal spell once per round, healing 2d8 HP to a creature within 30 feet.'),
         traits: ['healing', 'sonic']
       },
       {
-        name: 'Coro Ensurdecedor',
+        name: tr('Coro Ensurdecedor', 'Deafening Choir'),
         description: tr('Uma vez por rodada, você pode criar uma explosão de som. Criaturas em até 15 pés sofrem 2d6 de dano sônico (salvamento de Fortitude básico).', 'Once per round, you can create a burst of sound. Creatures within 15 feet take 2d6 sonic damage (basic Fortitude save).'),
         traits: ['sonic']
       }
@@ -108,7 +108,7 @@ export const angelForms: TransformationForm[] = [
         traits: ['aura', 'healing']
       },
       {
-        name: 'Campo Dissipador',
+        name: tr('Campo Dissipador', 'Dispelling Field'),
         description: tr('Uma vez por rodada, você pode tentar anular um efeito mágico em uma criatura que tocar.', 'Once per round, you can attempt to counteract a magical effect on a creature you touch.'),
         traits: []
       }
@@ -236,7 +236,7 @@ export const angelForms: TransformationForm[] = [
         traits: []
       },
       {
-        name: 'Armamentos Sagrados',
+        name: tr('Armamentos Sagrados', 'Holy Armaments'),
         description: tr('Qualquer arma que você empunhar ganha o efeito da runa sagrada.', 'Any weapon you wield gains the effect of the holy rune.'),
         traits: []
       }

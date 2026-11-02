@@ -96,8 +96,7 @@ const CompanionToken = ({ slug, companion, onChange, onFit }: {
             </Tooltip>
             {src && (
                 <Button size="small" startIcon={<CropIcon sx={{ fontSize: 14 }} />} onClick={() => setFitting(true)} sx={{ minWidth: 0, py: 0, fontSize: '0.7rem' }}>
-                    Enquadrar
-                </Button>
+                    {tr('Enquadrar', 'Frame')}</Button>
             )}
             <input
                 ref={input}
@@ -213,7 +212,7 @@ export const CompanionsCard = ({ build }: Props) => {
                         )}
                     </Alert>
                 )}
-                {full && <Typography variant="caption" color="text.secondary">{tr('Limite de ', 'Limit of ')}{MAX_COMPANIONS} companheiros.</Typography>}
+                {full && <Typography variant="caption" color="text.secondary">{tr('Limite de ', 'Limit of ')}{MAX_COMPANIONS} {tr('companheiros.', 'companions.')}</Typography>}
             </CardContent>
         </Card>
     )

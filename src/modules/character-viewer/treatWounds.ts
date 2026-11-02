@@ -49,8 +49,8 @@ export function wardMedicTargets(b: BuildInfo, rank: number): number {
 }
 
 export const TREAT_WOUNDS_OPTIONS: ReadonlyArray<TreatWoundsOption> = [
-    { dc: 15, minRank: 2, bonus: 0, label: 'Treinado' },
-    { dc: 20, minRank: 4, bonus: 10, label: 'Especialista' },
+    { dc: 15, minRank: 2, bonus: 0, label: tr('Treinado', 'Trained') },
+    { dc: 20, minRank: 4, bonus: 10, label: tr('Especialista', 'Expert') },
     { dc: 30, minRank: 6, bonus: 30, label: tr('Mestre', 'Master') },
     { dc: 40, minRank: 8, bonus: 50, label: tr('Lendário', 'Legendary') },
 ]

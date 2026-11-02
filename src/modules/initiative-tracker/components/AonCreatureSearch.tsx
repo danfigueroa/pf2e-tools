@@ -90,7 +90,7 @@ export const AonCreatureSearch = ({ onAdd, onPick }: Props) => {
                 />
                 <TextField
                     size="small"
-                    label="Qtd."
+                    label={tr("Qtd.", 'Qty.')}
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value.replace(/\D/g, ''))}
                     inputProps={{ inputMode: 'numeric' }}
@@ -145,7 +145,7 @@ export const AonCreatureSearch = ({ onAdd, onPick }: Props) => {
                                 </Stack>
 
                                 <Typography variant="caption" sx={{ color: ink.secondary, display: 'block', mt: 0.25 }}>
-                                    {creature.hp} PV · CA {creature.ac} {tr('· Percepção +', '· Perception +')}{creature.perception}
+                                    {creature.hp} {tr('PV · CA ', 'HP · AC ')}{creature.ac} {tr('· Percepção +', '· Perception +')}{creature.perception}
                                     {creature.size ? ` · ${translateSize(creature.size)}` : ''}
                                     {creature.source ? ` · ${creature.source}` : ''}
                                 </Typography>

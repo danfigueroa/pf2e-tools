@@ -83,7 +83,7 @@ export const TokenPopover = ({ anchor, token, hp, canEdit, onClose, onApply, onO
                             <TextField
                                 size="small"
                                 type="number"
-                                label="Quantidade"
+                                label={tr("Quantidade", 'Amount')}
                                 value={value}
                                 onChange={(e) => setValue(e.target.value)}
                                 onKeyDown={(e) => { if (e.key === 'Enter') apply('damage') }}

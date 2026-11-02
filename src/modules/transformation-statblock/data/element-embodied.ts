@@ -94,7 +94,7 @@ export const elementEmbodiedForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Chamas Envolventes',
+        name: tr('Chamas Envolventes', 'Engulfing Flames'),
         description: tr('Criaturas que terminam o turno adjacentes a você sofrem dano de fogo.', 'Creatures that end their turn adjacent to you take fire damage.'),
         traits: []
       }
@@ -127,7 +127,7 @@ export const elementEmbodiedForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Encharcar',
+        name: tr('Encharcar', 'Drench'),
         description: tr('Você pode Empurrar criaturas que atingir e apagar fogos não mágicos.', 'You can Shove creatures you hit and put out nonmagical fires.'),
         traits: []
       }
@@ -156,7 +156,7 @@ export const elementEmbodiedForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Conduzir Energia',
+        name: tr('Conduzir Energia', 'Conduct Energy'),
         description: tr('Você conduz eletricidade, causando dano de eletricidade adicional com seus ataques.', 'You conduct electricity, dealing extra electricity damage with your attacks.'),
         traits: []
       }
@@ -186,7 +186,7 @@ export const elementEmbodiedForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Rebrota Verdejante',
+        name: tr('Rebrota Verdejante', 'Verdant Regrowth'),
         description: tr('Seu corpo se regenera constantemente, e seus cipós podem prender criaturas que você atingir.', 'Your body constantly regenerates, and your vines can grab creatures you hit.'),
         traits: []
       }

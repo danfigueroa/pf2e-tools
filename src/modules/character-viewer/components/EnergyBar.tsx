@@ -33,8 +33,7 @@ export const EnergyBar = ({ energy }: { energy: EnergyApi }) => {
                         <Tooltip title={tr("Ao Refocus você volta ao neutro e escolhe livremente na próxima conjuração.", 'When you Refocus you go back to neutral and choose freely on the next casting.')}>
                             <span>
                                 <Button size="small" variant="outlined" disabled={!last} onClick={energy.reset}>
-                                    Neutralizar (Refocus)
-                                </Button>
+                                    {tr('Neutralizar (Refocus)', 'Neutralize (Refocus)')}</Button>
                             </span>
                         </Tooltip>
                     </Box>

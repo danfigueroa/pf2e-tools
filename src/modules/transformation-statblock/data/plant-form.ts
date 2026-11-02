@@ -95,7 +95,7 @@ export const plantForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Cambalear',
+        name: tr('Cambalear', 'Shamble'),
         description: tr('Você recebe +2 de bônus de circunstância na CA e nos salvamentos em terreno pantanoso ou com vegetação.', 'You gain a +2 circumstance bonus to AC and saves in swampy or vegetated terrain.'),
         traits: []
       }

@@ -63,12 +63,12 @@ export function CombatantAfflictions({ afflictions, onSave, onAdvance, onRemove 
                             </Typography>
                             <Chip
                                 size="small"
-                                label={`Estágio ${a.stage}/${total}`}
+                                label={tr(`Estágio ${a.stage}/${total}`, `Stage ${a.stage}/${total}`)}
                                 sx={{ backgroundColor: gold.main + '33', fontWeight: 700 }}
                             />
                             {a.def.virulent && (
                                 <Tooltip title={tr("Virulento: precisa de dois sucessos seguidos para melhorar um estágio.", 'Virulent: needs two successes in a row to improve a stage.')}>
-                                    <Chip size="small" variant="outlined" label="Virulento" />
+                                    <Chip size="small" variant="outlined" label={tr("Virulento", 'Virulent')} />
                                 </Tooltip>
                             )}
                             <Box sx={{ flex: 1 }} />
@@ -113,7 +113,7 @@ export function CombatantAfflictions({ afflictions, onSave, onAdvance, onRemove 
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap', mt: 0.75 }}>
                             <Typography variant="caption" sx={{ color: ink.secondary }}>
                                 {a.def.dc !== null && a.def.save
-                                    ? `CD ${a.def.dc} ${a.def.save === 'fortitude' ? 'Fort' : a.def.save === 'reflex' ? 'Ref' : 'Von'}`
+                                    ? tr(`CD ${a.def.dc} ${a.def.save === 'fortitude' ? 'Fort' : a.def.save === 'reflex' ? 'Ref' : 'Von'}`, `DC ${a.def.dc} ${a.def.save === 'fortitude' ? 'Fort' : a.def.save === 'reflex' ? 'Ref' : 'Will'}`)
                                     : (a.def.raw ?? tr('salvaguarda não lida', 'save not read'))}
                                 {untracked && stage?.durationRaw ? ` · ${stage.durationRaw}` : ''}
                                 {!untracked && !due && a.roundsLeft !== null

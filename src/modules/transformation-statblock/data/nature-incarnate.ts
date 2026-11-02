@@ -146,12 +146,12 @@ export const natureIncarnateForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Sintonia Elemental',
+        name: tr('Sintonia Elemental', 'Elemental Attunement'),
         description: tr('Escolha ar, terra, fogo ou água ao se transformar. Você ganha imunidade ao elemento escolhido e fraqueza 15 ao elemento oposto.', 'Choose air, earth, fire or water when you transform. You gain immunity to the chosen element and weakness 15 to the opposing element.'),
         traits: []
       },
       {
-        name: 'Surto Elemental',
+        name: tr('Surto Elemental', 'Elemental Surge'),
         description: tr('Uma vez por rodada, você pode liberar uma linha de 60 pés ou cone de 30 pés do seu elemento, causando 10d6 de dano do tipo do seu elemento (salvamento de Reflexos básico).', 'Once per round, you can release a 60-foot line or 30-foot cone of your element, dealing 10d6 damage of your element\'s type (basic Reflex save).'),
         traits: []
       },
@@ -204,7 +204,7 @@ export const natureIncarnateForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Toxina Primordial',
+        name: tr('Toxina Primordial', 'Primordial Toxin'),
         description: tr('Sua mordida e constrição aplicam um veneno potente que causa 4d6 de dano de veneno persistente com um salvamento de Fortitude falho.', 'Your bite and constrict apply a potent poison that deals 4d6 persistent poison damage on a failed Fortitude save.'),
         traits: ['poison']
       },
@@ -214,7 +214,7 @@ export const natureIncarnateForms: TransformationForm[] = [
         traits: []
       },
       {
-        name: 'Engolir Inteiro',
+        name: tr('Engolir Inteiro', 'Swallow Whole'),
         description: tr('Criaturas Grandes ou menores que você agarrou podem ser engolidas. Criaturas engolidas sofrem 6d6 de dano contundente e 6d6 de ácido por rodada.', 'Large or smaller creatures you have grabbed can be swallowed. Swallowed creatures take 6d6 bludgeoning and 6d6 acid damage per round.'),
         traits: []
       }

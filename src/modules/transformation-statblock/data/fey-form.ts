@@ -26,7 +26,7 @@ export const feyForms: TransformationForm[] = [
         traits: []
       },
       {
-        name: 'Empatia Natural',
+        name: tr('Empatia Natural', 'Nature Empathy'),
         description: tr('Você pode se comunicar com plantas e animais.', 'You can communicate with plants and animals.'),
         traits: []
       }
@@ -97,7 +97,7 @@ export const feyForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Beleza Cegante',
+        name: tr('Beleza Cegante', 'Blinding Beauty'),
         description: tr('Uma vez por rodada, você pode tentar ofuscar uma criatura em até 30 pés que possa ver você (salvamento de Vontade).', 'Once per round, you can try to dazzle a creature within 30 feet that can see you (Will save).'),
         traits: ['emotion', 'visual']
       },
@@ -134,7 +134,7 @@ export const feyForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Invisibilidade',
+        name: tr('Invisibilidade', 'Invisibility'),
         description: tr('Você pode ficar invisível à vontade por 1 minuto ou até atacar.', 'You can become invisible at will for 1 minute or until you attack.'),
         traits: ['illusion']
       },
@@ -177,7 +177,7 @@ export const feyForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Ligeiro',
+        name: tr('Ligeiro', 'Swift'),
         description: tr('Você recebe +10 pés de bônus de condição no seu Deslocamento terrestre e ignora terreno difícil.', 'You gain a +10-foot circumstance bonus to your land Speed and ignore difficult terrain.'),
         traits: []
       },

@@ -7,6 +7,7 @@ import { DicePanel } from '../../battle-map/components/DicePanel'
 import { postRoll } from '../../../services/rolls'
 import { rollerIdentity } from '../rolls'
 import type { TableRoll } from '../../../dice/tableRoll'
+import { tr } from '../../../i18n'
 
 /**
  * Rolador de dados livre, o mesmo do Mapa de Combate: para a rolagem que a ficha
@@ -30,8 +31,7 @@ export const DiceBar = ({ build }: { build: BuildInfo }) => {
                 sx={open ? { bgcolor: green.main, color: gold.bright, '&:hover': { bgcolor: green.main } } : undefined}
                 style={{ marginBottom: open ? 8 : 0 }}
             >
-                Dados
-            </Button>
+                {tr('Dados', 'Dice')}</Button>
             {open && <DicePanel identity={identity} onRoll={(roll: TableRoll) => { void postRoll(roll) }} />}
         </Box>
     )

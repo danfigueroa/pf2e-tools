@@ -348,8 +348,7 @@ const MemberRow = ({ member: m, playing }: { member: PartyMember; playing?: bool
       {m.hp ? (
         <>
           <Typography sx={{ fontSize: '0.8125rem', fontVariantNumeric: 'tabular-nums', color: m.hp.current / m.hp.max <= 0.5 ? status.error : ink.secondary }}>
-            {m.hp.current}{m.hp.temp > 0 ? ` +${m.hp.temp}` : ''} / {m.hp.max} PV
-          </Typography>
+            {m.hp.current}{m.hp.temp > 0 ? ` +${m.hp.temp}` : ''} / {m.hp.max} {tr('PV', 'HP')}</Typography>
           <Box sx={{ width: '100%' }}><HpBar current={m.hp.current} max={m.hp.max} /></Box>
         </>
       ) : <Skeleton width="100%" height={20} />}
@@ -580,7 +579,7 @@ export function GmCombat() {
             <Box sx={{ minWidth: 0 }}>
               <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.14em', color: chrome.textSoft }}>{tr('É A VEZ DE', 'IT\'S THE TURN OF')}</Typography>
               <Typography id="home-vez" component="h2" sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: { xs: '1.5rem', sm: '1.875rem' }, color: chrome.text, lineHeight: 1.15 }}>{active.name}</Typography>
-              {hp && <Typography sx={{ fontVariantNumeric: 'tabular-nums' }}>{hp.current} / {hp.max} PV</Typography>}
+              {hp && <Typography sx={{ fontVariantNumeric: 'tabular-nums' }}>{hp.current} / {hp.max} {tr('PV', 'HP')}</Typography>}
             </Box>
             {pc?.actions && <Box sx={{ ml: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.75 }}>
               <Pips left={Math.max(0, BASE_ACTIONS - pc.actions.used)} />

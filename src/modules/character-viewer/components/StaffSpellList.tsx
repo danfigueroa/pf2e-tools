@@ -3,7 +3,7 @@ import { ChevronRight as ChevronIcon } from '@mui/icons-material'
 import { gold, ink, parchment, rule } from '../../../theme'
 import type { StaffInfo } from '../../../pathbuilder/types'
 import type { DescriptionRequest } from './DescriptionDrawer'
-import { tr } from '../../../i18n'
+import { tr, isEn } from '../../../i18n'
 
 interface Props {
     staff: StaffInfo
@@ -165,7 +165,8 @@ export const StaffSpellList = ({ staff, accent, onNavigate }: Props) => {
  * Moeda é vocabulário mecânico, então é traduzida no render (como o resto do
  * módulo): "1,800 gp" → "1.800 po". O backend guarda o preço canônico do AON.
  */
-const COIN_PT: Record<string, string> = { pp: 'pl', gp: 'po', sp: 'pp', cp: 'pc' }
+// Em inglês a moeda fica como a AON escreve (gp, sp…).
+const COIN_PT: Record<string, string> = isEn ? { pp: 'pp', gp: 'gp', sp: 'sp', cp: 'cp' } : { pp: 'pl', gp: 'po', sp: 'pp', cp: 'pc' } // i18n-ok
 const formatPrice = (price: string) =>
     price
         .replace(/(\d),(\d)/g, '$1.$2')

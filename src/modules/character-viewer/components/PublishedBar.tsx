@@ -55,8 +55,7 @@ export const PublishedBar = ({ sheet, onRestore }: { sheet: PublishedSheet; onRe
                 <DialogActions>
                     <Button onClick={() => setConfirming(false)}>{tr('Cancelar', 'Cancel')}</Button>
                     <Button variant="contained" onClick={() => { setConfirming(false); onRestore() }}>
-                        Restaurar
-                    </Button>
+                        {tr('Restaurar', 'Restore')}</Button>
                 </DialogActions>
             </EmbedDialog>
         </Box>

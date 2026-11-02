@@ -102,10 +102,9 @@ export const InvestigatorBar = ({ build, investigator, mods }: Props) => {
                             {stored.leads.map((l) => (
                                 <FeatureRow key={l.id} title={l.name}>
                                     <Chip label={tr("ativa · +1", 'active · +1')} size="small" sx={{ ...chipSx, bgcolor: INVESTIGATOR_COLOR, color: '#FFFFFF' }} />
-                                    <Button size="small" variant="outlined" onClick={() => investigator.close(l.id)} sx={{ ml: 'auto' }}>Resolvida</Button>
+                                    <Button size="small" variant="outlined" onClick={() => investigator.close(l.id)} sx={{ ml: 'auto' }}>{tr('Resolvida', 'Resolved')}</Button>
                                     <Button size="small" color="inherit" onClick={() => investigator.abandon(l.id)} title={tr("Sai da lista e não volta até a próxima preparação diária", 'It leaves the list and doesn\'t come back until the next daily preparations')}>
-                                        Abandonar
-                                    </Button>
+                                        {tr('Abandonar', 'Abandon')}</Button>
                                 </FeatureRow>
                             ))}
                             {adding ? (

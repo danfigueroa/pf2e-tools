@@ -56,10 +56,10 @@ export const PublishDialog = ({ open, incoming, base, busy, error, onPublish, on
                     <Typography sx={{ mb: 1 }}>
                         {tr('Personagem novo na mesa. Publicar faz ele aparecer para todos — na Ficha Virtual, na Iniciativa e na Transformação.', 'New character at the table. Publishing makes them show up for everyone — in the Virtual Sheet, Initiative and Transformation.')}</Typography>
                 ) : alreadyPublished ? (
-                    <Typography sx={{ mb: 1 }}>Igual a {baseLabel}{tr('. Não há o que atualizar.', '. There\'s nothing to update.')}</Typography>
+                    <Typography sx={{ mb: 1 }}>{tr('Igual a ', 'Same as ')}{baseLabel}{tr('. Não há o que atualizar.', '. There\'s nothing to update.')}</Typography>
                 ) : diff?.identical ? (
                     <Typography sx={{ mb: 1 }}>
-                        Igual a {baseLabel}{tr(', que ainda não está no banco da mesa. Publicar guarda a ficha lá, sempre disponível.', ', which isn\'t in the table\'s database yet. Publishing stores the sheet there, always available.')}</Typography>
+                        {tr('Igual a ', 'Same as ')}{baseLabel}{tr(', que ainda não está no banco da mesa. Publicar guarda a ficha lá, sempre disponível.', ', which isn\'t in the table\'s database yet. Publishing stores the sheet there, always available.')}</Typography>
                 ) : (
                     <>
                         <Typography sx={{ mb: 1.5 }}>

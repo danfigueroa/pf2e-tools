@@ -335,7 +335,7 @@ export function focusAttack(
     if (proficiency == null || abilityBonus == null) return null
     const parts: CheckPart[] = [
         { label: proficiencyLabel(proficiency), value: proficiency > 0 ? build.level + proficiency : 0, kind: 'prof' },
-        { label: 'Atributo', value: abilityBonus, kind: 'ability' },
+        { label: tr('Atributo', 'Attribute'), value: abilityBonus, kind: 'ability' },
         ...(itemBonus ? [{ label: 'Item', value: itemBonus, kind: 'item' as const }] : []),
         ...conditionParts(mods, 'attackSpell'),
     ]

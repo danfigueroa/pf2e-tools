@@ -56,8 +56,7 @@ export const PsycheBar = ({ psyche }: Props) => {
                         {phase === 'strain' && (
                             <Tooltip title={tr("A mente se recupera por 2 rodadas: Estupefato 1 e sem liberar de novo. Toque quando passarem.", 'The mind recovers for 2 rounds: stupefied 1 and no unleashing again. Tap when they pass.')}>
                                 <Button size="small" variant="outlined" onClick={psyche.recover}>
-                                    Recuperada
-                                </Button>
+                                    {tr('Recuperada', 'Recovered')}</Button>
                             </Tooltip>
                         )}
                     </Box>

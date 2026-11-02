@@ -294,7 +294,7 @@ function Ranking({ entries, me }: { entries: RankingEntry[]; me: string | null }
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       {players.length > 0 && <RankList title={tr("Jogadores", 'Players')} role="player" list={players} me={me} />}
-      {masters.length > 0 && <RankList title="Mestres" role="gm" list={masters} me={me} />}
+      {masters.length > 0 && <RankList title={tr("Mestres", 'Game masters')} role="gm" list={masters} me={me} />}
     </Box>
   );
 }

@@ -414,7 +414,7 @@ export const BattleMapPage = () => {
                             },
                         }}
                     >
-                        <ToggleButton value="select" aria-label="Mover tokens">
+                        <ToggleButton value="select" aria-label={tr("Mover tokens", 'Move tokens')}>
                             <SelectIcon fontSize="small" />
                             <Box component="span" sx={{ ml: 0.75, display: { xs: 'none', sm: 'inline' } }}>Mover</Box>
                         </ToggleButton>
@@ -451,7 +451,7 @@ export const BattleMapPage = () => {
                             '&:hover': { backgroundColor: diceOpen ? gold.bright : `${gold.main}33` },
                         }}
                     >
-                        <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Dados</Box>
+                        <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>{tr('Dados', 'Dice')}</Box>
                     </Button>
 
                     {/* Logo depois das ferramentas, onde o olho já está: no canto
@@ -536,11 +536,11 @@ export const BattleMapPage = () => {
                         '& .MuiIconButton-root': { color: parchment.page, width: 44, height: 44 },
                     }}
                 >
-                    <IconButton aria-label="Aproximar" onClick={() => canvas.current?.zoomBy(1.25)}><ZoomInIcon /></IconButton>
+                    <IconButton aria-label={tr("Aproximar", 'Zoom in')} onClick={() => canvas.current?.zoomBy(1.25)}><ZoomInIcon /></IconButton>
                     <Typography variant="caption" sx={{ color: gold.bright, fontWeight: 700 }}>
                         {Math.round(zoom * 100)}%
                     </Typography>
-                    <IconButton aria-label="Afastar" onClick={() => canvas.current?.zoomBy(0.8)}><ZoomOutIcon /></IconButton>
+                    <IconButton aria-label={tr("Afastar", 'Zoom out')} onClick={() => canvas.current?.zoomBy(0.8)}><ZoomOutIcon /></IconButton>
                     <Tooltip title={tr("Enquadrar o mapa", 'Fit the map')} placement="left">
                         <IconButton aria-label={tr("Enquadrar o mapa", 'Fit the map')} onClick={() => canvas.current?.fit()}><FitIcon /></IconButton>
                     </Tooltip>

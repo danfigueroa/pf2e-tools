@@ -136,7 +136,7 @@ export const HpTracker = ({ build, maxHp, maxHpDelta = 0 }: Props) => {
                     <TextField
                         type="number"
                         size="small"
-                        label="Valor"
+                        label={tr("Valor", 'Amount')}
                         value={amountInput}
                         onChange={(e) => setAmountInput(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') handleDamage() }}
@@ -158,8 +158,7 @@ export const HpTracker = ({ build, maxHp, maxHpDelta = 0 }: Props) => {
                         onClick={handleHeal}
                         sx={{ fontWeight: 700, flex: { xs: '1 1 0', sm: '0 0 auto' } }}
                     >
-                        Curar
-                    </Button>
+                        {tr('Curar', 'Heal')}</Button>
                 </Box>
 
                 {/* PV temporários + Restaurar */}
@@ -167,7 +166,7 @@ export const HpTracker = ({ build, maxHp, maxHpDelta = 0 }: Props) => {
                     <TextField
                         type="number"
                         size="small"
-                        label="PV temp"
+                        label={tr("PV temp", 'Temp HP')}
                         value={tempInput}
                         onChange={(e) => setTempInput(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') handleSetTemp() }}
@@ -181,8 +180,7 @@ export const HpTracker = ({ build, maxHp, maxHpDelta = 0 }: Props) => {
                         onClick={handleSetTemp}
                         sx={{ flex: { xs: '1 1 0', sm: '0 0 auto' } }}
                     >
-                        Definir
-                    </Button>
+                        {tr('Definir', 'Set')}</Button>
                     <Button
                         variant="text"
                         color="inherit"
@@ -190,8 +188,7 @@ export const HpTracker = ({ build, maxHp, maxHpDelta = 0 }: Props) => {
                         onClick={resetFull}
                         sx={{ ml: 'auto' }}
                     >
-                        Restaurar
-                    </Button>
+                        {tr('Restaurar', 'Restore')}</Button>
                 </Box>
             </CardContent>
         </Card>

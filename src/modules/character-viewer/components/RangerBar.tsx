@@ -51,7 +51,7 @@ export const RangerBar = ({ build, ranger, mods }: Props) => {
                 <Stack spacing={1.25}>
                     <Stack direction="row" alignItems="center" spacing={1}>
                         <RangerIcon sx={{ color: RANGER_COLOR }} />
-                        <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1rem' }}>Patrulheiro</Typography>
+                        <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1rem' }}>{tr('Patrulheiro', 'Ranger')}</Typography>
                     </Stack>
 
                     {hasHuntPrey(build) && (
@@ -87,13 +87,12 @@ export const RangerBar = ({ build, ranger, mods }: Props) => {
                                     <Typography variant="caption" color="text.secondary" sx={{ flex: 1, minWidth: 140 }}>
                                         {tr('1º Golpe com arma da rodada: +2 × dados de dano.', '1st Strike with a weapon each round: +2 × damage dice.')}</Typography>
                                     <Button size="small" variant="outlined" onClick={() => ranger.setGravity(false)}>
-                                        Encerrar
-                                    </Button>
+                                        {tr('Encerrar', 'End')}</Button>
                                 </>
                             ) : (
                                 <>
                                     <Typography variant="body2" color="text.secondary" sx={{ flex: 1, minWidth: 160 }}>
-                                        {tr('1 ação, 1 Ponto de Foco (', '1 action, 1 Focus Point (')}{focusLeft} restante{focusLeft === 1 ? '' : 's'}).
+                                        {tr('1 ação, 1 Ponto de Foco (', '1 action, 1 Focus Point (')}{focusLeft} {tr('restante', 'left')}{focusLeft === 1 ? '' : 's'}).
                                     </Typography>
                                     <Button
                                         size="small"

@@ -83,14 +83,14 @@ export const MembersPage = () => {
           {' '}{tr('— passe para a pessoa. Ela pode trocar depois, no menu da conta. Esta senha não aparece de novo.', '— hand it to the person. They can change it later, in the account menu. This password won\'t be shown again.')}</Alert>
       )}
 
-      <Section title="Convidar">
+      <Section title={tr("Convidar", 'Invite')}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 2 }} alignItems={{ sm: 'center' }}>
           <Select size="small" value={inviteRole} onChange={(e) => setInviteRole(e.target.value as Role)}>
             <MenuItem value="player">{tr('Jogador', 'Player')}</MenuItem>
             <MenuItem value="gm">GM</MenuItem>
           </Select>
           <TextField
-            size="small" type="number" label="Usos" value={uses} sx={{ width: 100 }}
+            size="small" type="number" label={tr("Usos", 'Uses')} value={uses} sx={{ width: 100 }}
             onChange={(e) => setUses(Math.min(50, Math.max(1, Number(e.target.value) || 1)))}
           />
           <TextField
@@ -115,7 +115,7 @@ export const MembersPage = () => {
                 <Button size="small" startIcon={<CopyIcon />} onClick={() => void copy(invite.code)}>
                   {copied === invite.code ? tr('Copiado!', 'Copied!') : 'Copiar link'}
                 </Button>
-                <Button size="small" color="error" onClick={() => void act(() => revokeInvite(invite.code))}>Revogar</Button>
+                <Button size="small" color="error" onClick={() => void act(() => revokeInvite(invite.code))}>{tr('Revogar', 'Revoke')}</Button>
               </Box>
             ))}
           </Stack>
@@ -141,8 +141,7 @@ export const MembersPage = () => {
                       if (name?.trim()) void act(() => setMemberName(name.trim(), m.userId));
                     }}
                   >
-                    Renomear
-                  </Button>
+                    {tr('Renomear', 'Rename')}</Button>
                 </Tooltip>
                 <Tooltip title={tr("Para quem esqueceu a senha", 'For whoever forgot their password')}>
                   <Button
@@ -178,7 +177,7 @@ export const MembersPage = () => {
         )}
         {legacyDevices > 0 && (
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
-            {tr('Mais ', 'Plus ')}{legacyDevices} aparelho{legacyDevices === 1 ? '' : 's'} {tr(' do app de antes do login, sem conta. Não entram em nada e somem quando o login passar a ser obrigatório.', ' from the app before sign-in, without an account. They don\'t get into anything and disappear once sign-in becomes mandatory.')}</Typography>
+            {tr('Mais ', 'Plus ')}{legacyDevices} {tr('aparelho', 'device')}{legacyDevices === 1 ? '' : 's'} {tr(' do app de antes do login, sem conta. Não entram em nada e somem quando o login passar a ser obrigatório.', ' from the app before sign-in, without an account. They don\'t get into anything and disappear once sign-in becomes mandatory.')}</Typography>
         )}
       </Section>
 

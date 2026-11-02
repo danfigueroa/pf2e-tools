@@ -116,7 +116,7 @@ export const CatalogView = memo(function CatalogView({ doc, version, update, doc
                         options={NO_OPTIONS}
                         value={doc.data.tags}
                         onChange={(_, v) => setData({ tags: [...new Set(v.map((t) => t.trim().slice(0, 30)).filter(Boolean))].slice(0, 12) })}
-                        renderInput={(params) => <TextField {...params} label="Etiquetas" placeholder={tr("aliado, cidade, mágico… (Enter)", 'ally, city, magic… (Enter)')} />}
+                        renderInput={(params) => <TextField {...params} label={tr("Etiquetas", 'Tags')} placeholder={tr("aliado, cidade, mágico… (Enter)", 'ally, city, magic… (Enter)')} />}
                     />
                     {error && <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>}
                 </Stack>

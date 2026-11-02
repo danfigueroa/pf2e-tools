@@ -155,8 +155,7 @@ const PotionContent = ({ drink, onClose }: { drink: DrinkEvent; onClose: () => v
                             {shownHp}
                         </Typography>
                         <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 600 }}>
-                            / {drink.max} PV
-                        </Typography>
+                            / {drink.max} {tr('PV', 'HP')}</Typography>
                         {healing && healed > 0 && (
                             <Typography
                                 aria-hidden
@@ -212,7 +211,7 @@ const PotionContent = ({ drink, onClose }: { drink: DrinkEvent; onClose: () => v
                         <>
                             {healed > 0 ? (
                                 <>
-                                    <Typography sx={{ fontWeight: 700, color: status.success }}>+{healed} PV</Typography>
+                                    <Typography sx={{ fontWeight: 700, color: status.success }}>+{healed} {tr('PV', 'HP')}</Typography>
                                     {capped && <Chip size="small" label={tr('PV cheio', 'HP full')} variant="outlined" />}
                                 </>
                             ) : (

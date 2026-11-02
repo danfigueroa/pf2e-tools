@@ -152,7 +152,7 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
                     }}
                     sx={{ mb: 1 }}
                 >
-                    <ToggleButton value="none" aria-label={OUTCOME_LABELS.none}>Direto</ToggleButton>
+                    <ToggleButton value="none" aria-label={OUTCOME_LABELS.none}>{tr('Direto', 'Direct')}</ToggleButton>
                     {OUTCOME_ORDER.map((o) => (
                         <ToggleButton key={o} value={o} aria-label={OUTCOME_LABELS[o]}>
                             {OUTCOME_SHORT[o]}
@@ -180,8 +180,7 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
                                     <Typography
                                         sx={{ fontWeight: 700, color: breakdown.final > 0 ? HP_COLOR : ink.disabled }}
                                     >
-                                        −{breakdown.final} PV
-                                    </Typography>
+                                        −{breakdown.final} {tr('PV', 'HP')}</Typography>
                                 </Tooltip>
                                 <Typography variant="caption" sx={{ color: ink.secondary, whiteSpace: 'nowrap' }}>
                                     {view.current} → {breakdown.currentAfter}
@@ -198,8 +197,7 @@ export const BulkDamageDialog = ({ open, onClose, targets, onApply }: Props) => 
                                 }
                             >
                                 <ToggleButton value="none" aria-label={OUTCOME_LABELS.none} sx={{ fontSize: '0.7rem', py: 0.25 }}>
-                                    Direto
-                                </ToggleButton>
+                                    {tr('Direto', 'Direct')}</ToggleButton>
                                 {OUTCOME_ORDER.map((o) => (
                                     <ToggleButton
                                         key={o}

@@ -135,7 +135,7 @@ export const BulkConditionDialog = ({ open, onClose, targets, onApply }: Props) 
                         <Stack direction="row" spacing={1.5}>
                             {selected.valued && (
                                 <TextField
-                                    label="Valor"
+                                    label={tr("Valor", 'Amount')}
                                     size="small"
                                     value={value}
                                     onChange={(e) => setValue(e.target.value.replace(/\D/g, ''))}

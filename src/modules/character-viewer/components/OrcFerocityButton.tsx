@@ -67,7 +67,7 @@ export const OrcFerocityButton = ({ build, mods, fullWidth }: Props) => {
                 <DialogTitle sx={{ pb: 1 }}>Orc Ferocity</DialogTitle>
                 <DialogContent>
                     <Typography variant="body2" sx={{ mb: 1 }}>
-                        {tr('Gatilho: você cairia a 0 PV, mas não morreria na hora. Em vez disso, fica com ', 'Trigger: you would drop to 0 HP, but wouldn\'t die right away. Instead, you stay at ')}<b>1 PV</b> {tr('e o Ferido sobe 1 (de ', 'and wounded goes up by 1 (from ')}{wounded} {tr('para ', 'to ')}{wounded + 1}{tr('). Gasta a reação e o uso do dia.', '). Spends the reaction and the day\'s use.')}</Typography>
+                        {tr('Gatilho: você cairia a 0 PV, mas não morreria na hora. Em vez disso, fica com ', 'Trigger: you would drop to 0 HP, but wouldn\'t die right away. Instead, you stay at ')}<b>{tr('1 PV', '1 HP')}</b> {tr('e o Ferido sobe 1 (de ', 'and wounded goes up by 1 (from ')}{wounded} {tr('para ', 'to ')}{wounded + 1}{tr('). Gasta a reação e o uso do dia.', '). Spends the reaction and the day\'s use.')}</Typography>
                     {actions.stored.reacted && <Alert severity="warning" sx={{ py: 0 }}>{tr('A reação desta rodada já foi usada. Dá para usar mesmo assim.', 'This round\'s reaction was already used. You can use it anyway.')}</Alert>}
                 </DialogContent>
                 <DialogActions sx={{ px: 3, pb: 2 }}>

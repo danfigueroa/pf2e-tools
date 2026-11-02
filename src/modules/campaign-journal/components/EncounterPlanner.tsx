@@ -191,7 +191,7 @@ export const EncounterPlanner = memo(function EncounterPlanner({ encounter, part
                                 <Typography sx={{ fontWeight: 600 }} noWrap>{c.creature.name}</Typography>
                                 <Typography variant="caption" color="text.secondary">
                                     {tr('Nível ', 'Level ')}{lvl} ({diff >= 0 ? '+' : ''}{diff})
-                                    {c.level !== undefined ? tr(` · escalada do nível ${c.creature.level}`, ` · scaled from level ${c.creature.level}`) : ` · CA ${c.creature.ac} · PV ${c.creature.hp}`}
+                                    {c.level !== undefined ? tr(` · escalada do nível ${c.creature.level}`, ` · scaled from level ${c.creature.level}`) : tr(` · CA ${c.creature.ac} · PV ${c.creature.hp}`, ` · AC ${c.creature.ac} · HP ${c.creature.hp}`)}
                                 </Typography>
                             </Box>
                             <IconButton size="small" aria-label={tr(`Diminuir o nível de ${c.creature.name}`, `Lower ${c.creature.name}'s level`)} onClick={() => setLevel(i, lvl - 1)}>

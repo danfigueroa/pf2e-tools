@@ -126,7 +126,7 @@ export const CompanionHpBar = ({ storageKey, legacyKey, maxHp, downLabel = tr('I
                 <TextField
                     type="number"
                     size="small"
-                    label="Valor"
+                    label={tr("Valor", 'Amount')}
                     value={amountInput}
                     onChange={(e) => setAmountInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') handleDamage() }}
@@ -136,12 +136,11 @@ export const CompanionHpBar = ({ storageKey, legacyKey, maxHp, downLabel = tr('I
                 <Button size="small" variant="contained" color="error" disabled={!hasAmount} onClick={handleDamage} sx={{ fontWeight: 700 }}>
                     {tr('Dano', 'Damage')}</Button>
                 <Button size="small" variant="contained" color="success" disabled={!hasAmount} onClick={handleHeal} sx={{ fontWeight: 700 }}>
-                    Curar
-                </Button>
+                    {tr('Curar', 'Heal')}</Button>
                 <TextField
                     type="number"
                     size="small"
-                    label="PV temp"
+                    label={tr("PV temp", 'Temp HP')}
                     value={tempInput}
                     onChange={(e) => setTempInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') handleSetTemp() }}
@@ -149,9 +148,8 @@ export const CompanionHpBar = ({ storageKey, legacyKey, maxHp, downLabel = tr('I
                     sx={{ width: 96 }}
                 />
                 <Button size="small" variant="outlined" color="info" disabled={!hasTemp} onClick={handleSetTemp}>
-                    Definir
-                </Button>
-                <Tooltip title="Restaurar PV">
+                    {tr('Definir', 'Set')}</Button>
+                <Tooltip title={tr("Restaurar PV", 'Restore HP')}>
                     <IconButton size="small" onClick={resetFull} sx={{ ml: 'auto' }}>
                         <RestoreIcon fontSize="small" />
                     </IconButton>

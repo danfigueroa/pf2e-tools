@@ -244,7 +244,7 @@ export const CombatantCard = ({
                                     </Tooltip>
                                 )}
                                 {combatant.delayed && (
-                                    <Chip size="small" label="Adiado" sx={{ height: 18, fontSize: '0.65rem' }} />
+                                    <Chip size="small" label={tr("Adiado", 'Delayed')} sx={{ height: 18, fontSize: '0.65rem' }} />
                                 )}
                             </Stack>
 
@@ -269,7 +269,7 @@ export const CombatantCard = ({
                                             {tr('Em fúria', 'Raging')}</Typography>
                                     </Tooltip>
                                 )}
-                                <Tooltip title={shieldAc ? tr(`CA com escudo erguido (+${shieldAc})`, `AC with shield raised (+${shieldAc})`) : 'CA'}>
+                                <Tooltip title={shieldAc ? tr(`CA com escudo erguido (+${shieldAc})`, `AC with shield raised (+${shieldAc})`) : tr('CA', 'AC')}>
                                     <Stack direction="row" alignItems="center" spacing={0.25} sx={{ color: shieldAc ? gold.deep : undefined }}>
                                         <AcIcon sx={{ fontSize: '0.8rem' }} />
                                         {/* Estoura ao erguer/abaixar: é o número que o GM confere. */}
@@ -370,8 +370,7 @@ export const CombatantCard = ({
                 </MenuItem>
                 {combatant.kind === 'npc' && (
                     <MenuItem onClick={() => { onDuplicate(); closeMenu() }}>
-                        <DuplicateIcon fontSize="small" sx={{ mr: 1 }} /> Duplicar
-                    </MenuItem>
+                        <DuplicateIcon fontSize="small" sx={{ mr: 1 }} /> {tr('Duplicar', 'Duplicate')}</MenuItem>
                 )}
                 {combatant.kind === 'npc' && (
                     <MenuItem

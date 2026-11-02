@@ -66,7 +66,7 @@ function NoteCard({ note, readOnly, version, onChange, onDelete }: {
                             <TextField
                                 select
                                 size="small"
-                                label="Etiqueta"
+                                label={tr("Etiqueta", 'Tag')}
                                 value={note.tag}
                                 onChange={(e) => onChange({ tag: e.target.value as NoteTag })}
                                 sx={{ minWidth: 120 }}

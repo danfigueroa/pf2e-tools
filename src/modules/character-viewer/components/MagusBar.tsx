@@ -165,8 +165,7 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
                                 ) : (
                                     <Tooltip title={tr("Marca como gasto. Volta ao recarregar (1 ação, concentrar) ou ao conjurar uma magia de conflux que leve 1 ação ou mais; magia de foco de outro tipo não recarrega.", 'Marks it as spent. It comes back when you recharge (1 action, concentrate) or cast a conflux spell that takes 1 action or more; another kind of focus spell doesn\'t recharge it.')}>
                                         <Button size="small" variant="outlined" onClick={magus.spendSpellstrike}>
-                                            Usei o Spellstrike
-                                        </Button>
+                                            {tr('Usei o Spellstrike', 'I used Spellstrike')}</Button>
                                     </Tooltip>
                                 )}
                             </Box>
@@ -201,8 +200,7 @@ export const MagusBar = ({ build, magus, mythicPoints, conditions }: Props) => {
                     {hasDivertDestiny(build) && (
                         <FeatureRow title="Divert Destiny">
                             <Typography variant="body2" color="text.secondary" sx={{ flex: 1, minWidth: 160 }}>
-                                {tr('Reação: ao ir a 0 PV, gasta 1 Ponto Mítico e fica com ', 'Reaction: when you drop to 0 HP, spend 1 Mythic Point and stay at ')}{divertHp} PV.
-                            </Typography>
+                                {tr('Reação: ao ir a 0 PV, gasta 1 Ponto Mítico e fica com ', 'Reaction: when you drop to 0 HP, spend 1 Mythic Point and stay at ')}{divertHp} {tr('PV.', 'HP.')}</Typography>
                             <Button
                                 size="small"
                                 variant="outlined"

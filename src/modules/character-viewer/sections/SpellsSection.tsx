@@ -362,7 +362,7 @@ const CasterCard = ({ caster, casterIdx, build, slots, mythicPoints, onSelect, o
                         </Box>
                         <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                                CD {dc}
+                                {tr('CD ', 'DC ')}{dc}
                             </Typography>
                             <ConditionDelta delta={mods.total.spellDc} base={base.dc} align="right" />
                             <Button
@@ -602,8 +602,7 @@ const SpellRow = ({ name, count, accent, request, onSelect, pips, spend, dimmed,
                                 variant="caption"
                                 sx={{ ml: 0.75, px: 0.5, borderRadius: 0.75, border: `1px solid ${accent}66`, color: accent, fontWeight: 700, whiteSpace: 'nowrap' }}
                             >
-                                assinatura
-                            </Typography>
+                                {tr('assinatura', 'signature')}</Typography>
                         </Tooltip>
                     )}
                     {psycheBonus > 0 && (
@@ -613,8 +612,7 @@ const SpellRow = ({ name, count, accent, request, onSelect, pips, spend, dimmed,
                                 variant="caption"
                                 sx={{ ml: 0.75, px: 0.5, borderRadius: 0.75, border: `1px solid ${PSYCHE_COLOR}66`, color: PSYCHE_COLOR, fontWeight: 700, whiteSpace: 'nowrap' }}
                             >
-                                +{psycheBonus} psique
-                            </Typography>
+                                +{psycheBonus} {tr('psique', 'psyche')}</Typography>
                         </Tooltip>
                     )}
                     {count && count > 1 && !pips && (

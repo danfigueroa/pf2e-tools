@@ -96,8 +96,7 @@ export const SyncStatus = ({ build }: Props) => {
                     sx={{ flexShrink: 0 }}
                     {...VIEW_OK}
                 >
-                    Atualizar
-                </Button>
+                    {tr('Atualizar', 'Refresh')}</Button>
             )}
             <Tooltip title={hint} enterDelay={400}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>

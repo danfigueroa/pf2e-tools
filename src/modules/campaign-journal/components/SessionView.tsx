@@ -257,8 +257,8 @@ export const SessionView = memo(function SessionView({ doc, version, update, doc
         { key: 'scenes', label: tr('Cenas', 'Scenes'), count: data.scenes.length },
         { key: 'encounters', label: tr('Encontros', 'Encounters'), count: data.encounters.length },
         { key: 'cast', label: tr('Elenco', 'Cast'), count: data.links.filter((id) => docs.some((d) => d.id === id && d.kind !== 'thread')).length },
-        { key: 'log', label: 'Registro', count: data.log.length },
-        { key: 'recap', label: 'Resumo' },
+        { key: 'log', label: tr('Registro', 'Log'), count: data.log.length },
+        { key: 'recap', label: tr('Resumo', 'Summary') },
     ]
 
     return (
@@ -267,7 +267,7 @@ export const SessionView = memo(function SessionView({ doc, version, update, doc
                 <TextField
                     size="small"
                     type="number"
-                    label="Nº"
+                    label={tr("Nº", 'No.')}
                     value={data.number}
                     onChange={(e) => {
                         const n = Math.max(0, Math.min(9999, parseInt(e.target.value, 10) || 0))

@@ -37,13 +37,13 @@ const BASE = '/diario-campanha'
 const GM_COLOR = gold.deep
 
 const STATUS_CHIP: Record<SaveStatus, { label: string; icon?: React.ReactElement }> = {
-    loading: { label: 'Abrindo…' },
+    loading: { label: tr('Abrindo…', 'Opening…') },
     missing: { label: tr('Não encontrado', 'Not found') },
     saved: { label: tr('Salvo', 'Saved'), icon: <CloudDone fontSize="small" /> },
-    pending: { label: 'Alterado', icon: <CloudUpload fontSize="small" /> },
-    saving: { label: 'Salvando…', icon: <CloudUpload fontSize="small" /> },
+    pending: { label: tr('Alterado', 'Changed'), icon: <CloudUpload fontSize="small" /> },
+    saving: { label: tr('Salvando…', 'Saving…'), icon: <CloudUpload fontSize="small" /> },
     offline: { label: tr('Sem conexão: guardado neste aparelho', 'No connection: kept on this device'), icon: <CloudOff fontSize="small" /> },
-    conflict: { label: 'Conflito', icon: <CloudOff fontSize="small" /> },
+    conflict: { label: tr('Conflito', 'Conflict'), icon: <CloudOff fontSize="small" /> },
 }
 
 const isCatalog = (d: JournalDoc): d is CatalogDoc => (CATALOG_KINDS as readonly string[]).includes(d.kind)

@@ -22,7 +22,12 @@ const countOnly = args.includes('--count')
 // `--strict`: também acusa texto com uma palavra que não está no dicionário de inglês do sistema
 // (/usr/share/dict/words) — pega o português sem acento que a lista acima não tem. Barulhento
 // (nome de talento, de personagem): é para revisão, não para o lint.
-const strict = args.includes('--strict')
+const strict = args.includes('--strict') || args.includes('--ui')
+// `--ui`: só os textos de tela (texto de JSX, `label`/`title`/`placeholder`… e campos de rótulo dos
+// catálogos) que tenham QUALQUER palavra fora do dicionário de inglês — pega "Valor", "Usos". Revisão.
+const uiOnly = args.includes('--ui')
+const UI_ATTRS = new Set(['label', 'title', 'placeholder', 'helperText', 'aria-label', 'alt', 'primary', 'secondary', 'tooltip'])
+const UI_PROPS = new Set(['label', 'title', 'text', 'summary', 'description', 'blurb', 'name', 'hint', 'helper', 'caption', 'subtitle', 'message'])
 let english = null
 if (strict) {
     try { english = new Set(readFileSync('/usr/share/dict/words', 'utf8').toLowerCase().split('\n')) } catch { english = null }
@@ -64,8 +69,10 @@ quadrado quadrados régua desenhar desenho desenhos limpar camada privado revela
 mesa mesas tirar pôr põe sobe desce vem vêm volta entra sai fim início meio parte partes faltam falta
 precisa preciso deve devem cria criar criado salvo salva gravado gravar lido ler lê escolha escolhido
 quantos quantas quanto quanta mudou muda mudar tipo tipos geral automático automática manual
-persistente persistentes veneno venenos simples contundente perfurante cortante tratar ferimentos dobrado dobrada fogo frio eletricidade sônico vazio vitalidade espírito imune sofreu chegou caiu fraq fraqueza fraquezas resist segura recuperados ajuda apropriada atual estágio ataques por gerado gerada recarregou recarregar manter minha meu mesma mesmo passou passar elevada elevado aplica aplicar cenas cena elenco conjurada conjurado ganhou ganhei regra regras compartilhada compartilhado copiado copiada enviou envie forma formas te lhe
+persistente persistentes veneno venenos simples contundente perfurante cortante tratar ferimentos dobrado dobrada fogo frio eletricidade sônico vazio vitalidade espírito imune sofreu chegou caiu fraq fraqueza fraquezas resist segura recuperados ajuda apropriada atual estágio ataques por gerado gerada recarregou recarregar manter minha meu mesma mesmo passou passar elevada elevado aplica aplicar cenas cena elenco conjurada conjurado compartilhou mostrou ganhou ganhei regra regras compartilhada compartilhado copiado copiada enviou envie forma formas te lhe
 `.trim().split(/\s+/).filter((w) => !['mesa', 'mesas'].includes(w)))
+
+const PT_EXACT = new Set(['FOR', 'DES', 'SAB', 'CAR', 'po', 'pp', 'pl', 'pc', 'Atr.', 'Qtd.', 'Nº', 'Valor', 'Mover tokens', 'Dados', 'PV temp', 'Prof.', 'Von'])
 
 const ENGLISH_FUNCTION = new Set(['the', 'and', 'you', 'your', 'of', 'with', 'which', 'are', 'is', 'can', 'or', 'to', 'in', 'from', 'that', 'this'])
 
@@ -82,6 +89,8 @@ function looksPortuguese(text) {
     const bare = t.replace(/\s*…\s*/g, '').trim()
     if (!/\s/.test(bare) && (/\//.test(bare) || /^[a-z0-9]+(?:[-_.:][a-z0-9]+)+$/.test(bare))) return false
     if (ACCENT.test(t)) return true
+    // Abreviações da ficha em português (PV/CA/CD, os atributos, as moedas) e rótulos de uma palavra só.
+    if (/\b(?:PV|CA|CD)\b/.test(t) || PT_EXACT.has(t)) return true
     const words = t.toLowerCase().match(/[a-zà-ú]+/g) ?? []
     // Texto que já é inglês (a prosa da AON guardada nos dados): muitas palavras-função inglesas.
     if (words.filter((w) => ENGLISH_FUNCTION.has(w)).length >= 3) return false
@@ -146,7 +155,9 @@ export function scanFile(file) {
     const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, file.endsWith('x') ? ts.ScriptKind.TSX : ts.ScriptKind.TS)
     const out = []
     const report = (node, value, kind) => {
-        if (!looksPortuguese(value) || exempt(node)) return
+        if (uiOnly) {
+            if (exempt(node) || !isUiContext(node) || !hasForeignWord(value)) return
+        } else if (!looksPortuguese(value) || exempt(node)) return
         const line = source.getLineAndCharacterOfPosition(node.getStart(source)).line
         if (/i18n-ok/.test(lines[line]) || /i18n-ok/.test(lines[line - 1] ?? '')) return
         const inAttr = !!node.parent && ts.isJsxAttribute(node.parent)
@@ -161,6 +172,26 @@ export function scanFile(file) {
     }
     visit(source)
     return out
+}
+
+function isUiContext(node) {
+    if (ts.isJsxText(node)) return true
+    const p = node.parent
+    if (!p) return false
+    if (ts.isJsxAttribute(p)) return UI_ATTRS.has(p.name.getText())
+    if (ts.isJsxExpression(p) && p.parent && ts.isJsxAttribute(p.parent)) return UI_ATTRS.has(p.parent.name.getText())
+    if (ts.isPropertyAssignment(p) && p.initializer === node) return UI_PROPS.has(p.name.getText())
+    return false
+}
+
+function hasForeignWord(text) {
+    if (!english) return false
+    const words = text.match(/[A-Za-zÀ-ú]{4,}/g) ?? []
+    return words.some((w) => {
+        const l = w.toLowerCase()
+        if (/[à-ú]/.test(l)) return true
+        return !english.has(l) && !english.has(l.replace(/s$/, '')) && !english.has(l.replace(/(ed|ing|es|ies)$/, '')) && !/[A-Z].*[A-Z]/.test(w)
+    })
 }
 
 export const listFiles = (paths) => paths.flatMap((p) => files(p))

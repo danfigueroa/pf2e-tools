@@ -79,7 +79,7 @@ export const DrawPanel = ({ style, onChange, onClearAll, count }: Props) => {
                             return (
                                 <ButtonBase
                                     key={w}
-                                    aria-label={`Espessura ${WIDTH_LABELS[i]}`}
+                                    aria-label={tr(`Espessura ${WIDTH_LABELS[i]}`, `Thickness ${WIDTH_LABELS[i]}`)}
                                     aria-pressed={selected}
                                     onClick={() => onChange({ ...style, width: w })}
                                     sx={{

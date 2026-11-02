@@ -147,7 +147,7 @@ const CompanionSheet = ({ stats }: { stats: ComputedCompanion }) => (
                 backgroundColor: ACCENT + '0a',
             }}
         >
-            <BigStat label="CA" value={String(stats.ac)} />
+            <BigStat label={tr("CA", 'AC')} value={String(stats.ac)} />
             <BigStat label={tr("Percepção", 'Perception')} value={signed(stats.perception.modifier)} hint={rankLabel(stats.perception.rank)} />
             <BigStat label={tr("Deslocamento", 'Speed')} value={formatSpeeds(stats)} />
         </Box>
@@ -167,7 +167,7 @@ const CompanionSheet = ({ stats }: { stats: ComputedCompanion }) => (
         </Box>
 
         {/* Salvamentos */}
-        <Row label="Salvamentos">
+        <Row label={tr("Salvamentos", 'Saves')}>
             <InlineList>
                 {[stats.saves.fortitude, stats.saves.reflex, stats.saves.will].map((s) => (
                     <Typography key={s.name} variant="body2" component="span">
@@ -220,10 +220,10 @@ const CompanionSheet = ({ stats }: { stats: ComputedCompanion }) => (
             </Row>
         )}
 
-        {stats.senses && <Row label="Sentidos"><Typography variant="body2">{translateSenses(stats.senses)}</Typography></Row>}
+        {stats.senses && <Row label={tr("Sentidos", 'Senses')}><Typography variant="body2">{translateSenses(stats.senses)}</Typography></Row>}
 
         {stats.barding && (
-            <Row label="Barda">
+            <Row label={tr("Barda", 'Barding')}>
                 <Typography variant="body2">
                     +{stats.barding.ac} {tr('CA · limite de Des +', 'AC · Dex cap +')}{stats.barding.dexCap} {tr('· penalidade ', '· penalty ')}{stats.barding.checkPenalty}
                 </Typography>

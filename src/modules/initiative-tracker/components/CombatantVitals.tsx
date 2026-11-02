@@ -123,7 +123,7 @@ export const CombatantVitals = ({ view, onBlocked, onEditShield }: {
             <Stack direction="row" spacing={0.75} alignItems="stretch">
                 <TextField
                     size="small"
-                    placeholder="PV"
+                    placeholder={tr("PV", 'HP')}
                     inputRef={inputRef}
                     value={amount}
                     onChange={(e) => setAmount(e.target.value.replace(/\D/g, ''))}
@@ -148,7 +148,7 @@ export const CombatantVitals = ({ view, onBlocked, onEditShield }: {
                     size="small"
                     variant="outlined"
                     onClick={() => run(applyHealing)}
-                    aria-label={`Curar ${name}`}
+                    aria-label={tr(`Curar ${name}`, `Heal ${name}`)}
                     sx={{
                         flex: 1,
                         px: 1,
@@ -200,8 +200,7 @@ export const CombatantVitals = ({ view, onBlocked, onEditShield }: {
                                         : { color: HP_COLOR, borderColor: HP_COLOR + '66', '&:hover': { borderColor: HP_COLOR } }),
                                 }}
                             >
-                                Destrutivo
-                            </Button>
+                                {tr('Destrutivo', 'Destructive')}</Button>
                         </Tooltip>
                     )}
                 </Stack>

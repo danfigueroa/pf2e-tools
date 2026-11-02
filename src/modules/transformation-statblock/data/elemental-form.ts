@@ -22,7 +22,7 @@ export const elementalForms: TransformationForm[] = [
     ],
     abilities: [
       {
-        name: 'Ventos Fortes',
+        name: tr('Ventos Fortes', 'Strong Winds'),
         description: tr('Você recebe +2 de bônus de circunstância na CA e nos salvamentos contra ataques à distância.', 'You gain a +2 circumstance bonus to AC and saves against ranged attacks.'),
         traits: ['air']
       }

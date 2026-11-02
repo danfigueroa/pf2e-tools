@@ -236,7 +236,7 @@ export function MonsterStatBlock({ monster }: Props) {
                     <Box key={i} sx={{ mt: 0.5 }}>
                         <Typography variant="body2">
                             <Label>{block.label}</Label>
-                            {block.dc !== null ? ` CD ${block.dc}` : ''}
+                            {block.dc !== null ? tr(` CD ${block.dc}`, ` DC ${block.dc}`) : ''}
                             {block.attack !== null ? tr(`, ataque ${mod(block.attack)}`, `, attack ${mod(block.attack)}`) : ''}
                         </Typography>
                         {block.groups.map((group, g) => (

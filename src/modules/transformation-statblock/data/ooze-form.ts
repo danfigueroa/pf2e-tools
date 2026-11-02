@@ -107,7 +107,7 @@ export const oozeForms: TransformationForm[] = [
         traits: []
       },
       {
-        name: 'Agarrar',
+        name: tr('Agarrar', 'Grab'),
         description: tr('Você pode usar seu pseudópode para Agarrar uma criatura que atingir.', 'You can use your pseudopod to Grab a creature you hit.'),
         traits: []
       }
@@ -146,7 +146,7 @@ export const oozeForms: TransformationForm[] = [
         traits: []
       },
       {
-        name: 'Agarrar',
+        name: tr('Agarrar', 'Grab'),
         description: tr('Você pode usar seu pseudópode para Agarrar uma criatura que atingir.', 'You can use your pseudopod to Grab a creature you hit.'),
         traits: []
       }

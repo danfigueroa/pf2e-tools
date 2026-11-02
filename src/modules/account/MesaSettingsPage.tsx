@@ -88,8 +88,7 @@ export const MesaSettingsPage = () => {
             {tr('Salvar', 'Save')}</Button>
           <Button disabled={busy || !mesa.nextSessionAt}
             onClick={() => { setNext(''); void run({ nextSessionAt: null }, tr('Próxima sessão desmarcada.', 'Next session cleared.')); }}>
-            Desmarcar
-          </Button>
+            {tr('Desmarcar', 'Clear')}</Button>
         </Stack>
       </Section>
 

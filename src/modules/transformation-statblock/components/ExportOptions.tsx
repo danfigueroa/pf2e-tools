@@ -206,8 +206,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ config }) => {
   return (
     <Box>
       <Typography variant="h5" gutterBottom>
-        Exportar Stat Block
-      </Typography>
+        {tr('Exportar Stat Block', 'Export Stat Block')}</Typography>
       
       <Typography variant="body2" color="text.secondary" gutterBottom>
         {tr('Configure as opções de exportação e baixe o stat block da sua transformação.', 'Configure the export options and download your transformation\'s stat block.')}</Typography>
@@ -252,17 +251,16 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ config }) => {
             
             <Stack spacing={3}>
               <FormControl fullWidth>
-                <InputLabel>Formato</InputLabel>
+                <InputLabel>{tr('Formato', 'Format')}</InputLabel>
                 <Select
                   value={exportOptions.format}
-                  label="Formato"
+                  label={tr("Formato", 'Format')}
                   onChange={(e) => setExportOptions(prev => ({ ...prev, format: e.target.value as 'pdf' | 'png' | 'jpg' }))}
                 >
                   <MenuItem value="pdf">
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <PdfIcon fontSize="small" />
-                      PDF (Recomendado)
-                    </Box>
+                      {tr('PDF (Recomendado)', 'PDF (Recommended)')}</Box>
                   </MenuItem>
                   <MenuItem value="png">
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -286,7 +284,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ config }) => {
                 >
                   <MenuItem value="A4">A4 (210 × 297 mm)</MenuItem>
                   <MenuItem value="Letter">Letter (8.5 × 11 in)</MenuItem>
-                  <MenuItem value="Custom">Personalizado</MenuItem>
+                  <MenuItem value="Custom">{tr('Personalizado', 'Custom')}</MenuItem>
                 </Select>
               </FormControl>
 
@@ -333,8 +331,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ config }) => {
             onClick={handlePrint}
             sx={{ minWidth: { sm: 150 } }}
           >
-            Imprimir
-          </Button>
+            {tr('Imprimir', 'Print')}</Button>
         </Box>
 
         <Divider />

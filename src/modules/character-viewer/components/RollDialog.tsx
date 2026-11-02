@@ -331,7 +331,7 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
         ...(surge && surgeOn ? [{ label: `Emotion Surge · ${surge.emotion} (status)`, value: 1, kind: 'other' as const }] : []),
         ...(iniBonus && iniBonus.value ? [{ label: tr(`Iniciativa: ${iniBonus.from.join(' / ')} (circunstância)`, `Initiative: ${iniBonus.from.join(' / ')} (circumstance)`), value: iniBonus.value, kind: 'other' as const }] : []),
         ...(riskyOn ? [{ label: tr('Risky Surgery (circunstância)', 'Risky Surgery (circumstance)'), value: 2, kind: 'other' as const }] : []),
-        ...(adjust ? [{ label: 'Ajuste', value: adjust, kind: 'other' as const }] : []),
+        ...(adjust ? [{ label: tr('Ajuste', 'Adjustment'), value: adjust, kind: 'other' as const }] : []),
     ]
     const total = sumParts(parts)
     const who = useMemo(() => rollerIdentity(build), [build])
@@ -385,7 +385,7 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                                     >
                                         {treatOptions.map((o) => (
                                             <ToggleButton key={o.dc} value={o.dc} sx={{ flexDirection: 'column', textTransform: 'none', lineHeight: 1.2, py: 0.75 }}>
-                                                <b>CD {o.dc}</b>
+                                                <b>{tr('CD ', 'DC ')}{o.dc}</b>
                                                 <span style={{ fontSize: '0.7rem' }}>2d8{o.bonus ? `+${o.bonus}` : ''}</span>
                                             </ToggleButton>
                                         ))}
@@ -454,7 +454,7 @@ const CheckBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
                     )}
                     {(canInvestigate || canSkillStrat || assur) && (
                         <Box>
-                            <Typography variant="caption" color="text.secondary">Investigador</Typography>
+                            <Typography variant="caption" color="text.secondary">{tr('Investigador', 'Investigator')}</Typography>
                             <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', mt: 0.5 }}>
                                 {canInvestigate && (
                                     <Chip
@@ -799,7 +799,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                             fullWidth
                         >
                             <ToggleButton value="auto">{tr('Corpo a corpo', 'Melee')}</ToggleButton>
-                            <ToggleButton value="thrown">Arremesso</ToggleButton>
+                            <ToggleButton value="thrown">{tr('Arremesso', 'Thrown')}</ToggleButton>
                         </ToggleButtonGroup>
                     )}
                     {!traits.known && !loading && (
@@ -844,7 +844,7 @@ const StrikeBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<E
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>{damageText}</Typography>
                         {plan.damageParts.length > 1 && (
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                                Fixo: {plan.damageParts.map((p) => `${p.label} ${signed(p.value)}`).join(' · ')}
+                                {tr('Fixo: ', 'Flat: ')}{plan.damageParts.map((p) => `${p.label} ${signed(p.value)}`).join(' · ')}
                             </Typography>
                         )}
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
@@ -1369,7 +1369,7 @@ const SpellBody = ({ request, build, mods, mythicPoints, onClose }: BodyProps<Ex
     const attackParts: CheckPart[] | null = hasAttack ? [
         ...attack!.parts,
         ...(map ? [{ label: tr(`${map + 1}º ataque`, `${['1st', '2nd', '3rd'][map] ?? `${map + 1}th`} attack`), value: -5 * map, kind: 'map' as const }] : []),
-        ...(adjust ? [{ label: 'Ajuste', value: adjust, kind: 'other' as const }] : []),
+        ...(adjust ? [{ label: tr('Ajuste', 'Adjustment'), value: adjust, kind: 'other' as const }] : []),
     ] : null
     const total = attackParts ? sumParts(attackParts) : null
     const chosen = components.filter((c) => selected.has(c.id) && !c.uncertain)

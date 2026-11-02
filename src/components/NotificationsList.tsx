@@ -50,7 +50,7 @@ function textOf(n: TableNotification): string {
     case 'combat-started':
       return tr('O combate começou', 'Combat started');
     case 'rule-shared':
-      return `${str(d.by) || tr('Alguém', 'Someone')} compartilhou ${str(d.name) || tr('uma regra', 'a rule')}`;
+      return tr(`${str(d.by) || 'Alguém'} compartilhou ${str(d.name) || 'uma regra'}`, `${str(d.by) || 'Someone'} shared ${str(d.name) || 'a rule'}`);
     case 'handout-shared':
       return tr(`${str(d.by) || 'O GM'} mostrou à mesa: ${str(d.name) || 'sem título'}`, `${str(d.by) || 'The GM'} showed the table: ${str(d.name) || 'untitled'}`);
     case 'trophy-unlocked':

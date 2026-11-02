@@ -108,7 +108,7 @@ export const JournalList = memo(function JournalList({ docs, selected, onOpen, o
                 )}
             </Section>
 
-            <Section title="Ganchos">
+            <Section title={tr("Ganchos", 'Hooks')}>
                 <List dense disablePadding>
                     {threads.filter(match).map((d) => item(d, undefined, THREAD_COLOR[(d.status as ThreadStatus | null) ?? 'open']))}
                 </List>

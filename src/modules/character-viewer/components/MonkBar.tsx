@@ -39,8 +39,8 @@ export const MonkBar = ({ build, mods }: Props) => {
                 <Stack spacing={1.25}>
                     <Stack direction="row" alignItems="center" spacing={1}>
                         <MonkIcon sx={{ color: MONK_COLOR }} />
-                        <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1rem' }}>Monge</Typography>
-                        <Chip label={`Foco ${focusLeft}/${slots.focusMax}`} size="small" variant="outlined" sx={chipSx} />
+                        <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1rem' }}>{tr('Monge', 'Monk')}</Typography>
+                        <Chip label={tr(`Foco ${focusLeft}/${slots.focusMax}`, `Focus ${focusLeft}/${slots.focusMax}`)} size="small" variant="outlined" sx={chipSx} />
                     </Stack>
 
                     <FeatureRow title="Monastic Archer Stance">

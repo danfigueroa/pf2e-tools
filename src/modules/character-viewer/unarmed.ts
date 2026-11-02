@@ -54,12 +54,12 @@ interface UnarmedBase {
  * pg. 22). Todos são do grupo brawling e têm o trait unarmed.
  */
 const ANIMAL_ATTACKS: Record<string, UnarmedBase> = {
-    antler: { en: 'Antler', name: 'Galhada', die: 'd6', damageType: tr('perfurante', 'piercing'), traits: ['finesse'] },
-    beak: { en: 'Beak', name: 'Bico', die: 'd6', damageType: tr('perfurante', 'piercing'), traits: ['finesse'] },
-    claw: { en: 'Claw', name: 'Garra', die: 'd4', damageType: tr('cortante', 'slashing'), traits: ['agile', 'finesse'] },
-    fangs: { en: 'Fangs', name: 'Presas', die: 'd6', damageType: tr('perfurante', 'piercing'), traits: ['finesse'] },
-    fist: { en: 'Fist', name: 'Punho', die: 'd4', damageType: tr('contundente', 'bludgeoning'), traits: ['agile', 'finesse', 'nonlethal'] },
-    horn: { en: 'Horn', name: 'Chifre', die: 'd6', damageType: tr('perfurante', 'piercing'), traits: ['finesse'] },
+    antler: { en: 'Antler', name: tr('Galhada', 'Antler'), die: 'd6', damageType: tr('perfurante', 'piercing'), traits: ['finesse'] },
+    beak: { en: 'Beak', name: tr('Bico', 'Beak'), die: 'd6', damageType: tr('perfurante', 'piercing'), traits: ['finesse'] },
+    claw: { en: 'Claw', name: tr('Garra', 'Talon'), die: 'd4', damageType: tr('cortante', 'slashing'), traits: ['agile', 'finesse'] },
+    fangs: { en: 'Fangs', name: tr('Presas', 'Fangs'), die: 'd6', damageType: tr('perfurante', 'piercing'), traits: ['finesse'] },
+    fist: { en: 'Fist', name: tr('Punho', 'Fist'), die: 'd4', damageType: tr('contundente', 'bludgeoning'), traits: ['agile', 'finesse', 'nonlethal'] },
+    horn: { en: 'Horn', name: tr('Chifre', 'Horn'), die: 'd6', damageType: tr('perfurante', 'piercing'), traits: ['finesse'] },
     jaws: { en: 'Jaws', name: tr('Mandíbulas', 'Jaws'), die: 'd6', damageType: tr('perfurante', 'piercing'), traits: ['finesse'] },
     tail: { en: 'Tail', name: 'Cauda', die: 'd6', damageType: tr('contundente', 'bludgeoning'), traits: ['finesse', 'trip'] },
     talon: { en: 'Talon', name: tr('Talão', 'Talon'), die: 'd4', damageType: tr('perfurante', 'piercing'), traits: ['agile', 'finesse'] },

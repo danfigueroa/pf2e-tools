@@ -337,16 +337,16 @@ const ManualTab = ({ onAdd }: { onAdd: (c: Combatant[]) => void }) => {
                         gap: 1.5,
                     }}
                 >
-                    <TextField label="PV" value={hp} onChange={(e) => setHp(digits(e.target.value))}
+                    <TextField label={tr("PV", 'HP')} value={hp} onChange={(e) => setHp(digits(e.target.value))}
                         inputProps={{ inputMode: 'numeric' }} />
-                    <TextField label="CA" value={ac} onChange={(e) => setAc(digits(e.target.value))}
+                    <TextField label={tr("CA", 'AC')} value={ac} onChange={(e) => setAc(digits(e.target.value))}
                         inputProps={{ inputMode: 'numeric' }} />
                     <TextField label={tr("Nível", 'Level')} value={level} onChange={(e) => setLevel(digits(e.target.value))}
                         inputProps={{ inputMode: 'numeric' }} />
                     <TextField label={tr("Iniciativa", 'Initiative')} value={initiative}
                         onChange={(e) => setInitiative(digits(e.target.value))}
                         inputProps={{ inputMode: 'numeric' }} />
-                    <TextField label="Quantidade" value={quantity}
+                    <TextField label={tr("Quantidade", 'Amount')} value={quantity}
                         onChange={(e) => setQuantity(digits(e.target.value))}
                         inputProps={{ inputMode: 'numeric' }} />
                 </Box>

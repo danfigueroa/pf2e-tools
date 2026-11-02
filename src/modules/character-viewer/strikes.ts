@@ -458,7 +458,7 @@ export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers
     const ki = kiStrikeApplies(build, s) && opts.extrasOn[KI_KEY] === true
     if (ki) attackParts.push({ label: 'Ki Strike (estado)', value: 1, kind: 'other' })
     if (map) attackParts.push({ label: tr(`${opts.map + 1}º ataque${traits.agile ? ' (ágil)' : ''}`, `${opts.map === 1 ? '2nd' : '3rd'} attack${traits.agile ? ' (agile)' : ''}`), value: map, kind: 'map' })
-    if (opts.attackAdjust) attackParts.push({ label: 'Ajuste', value: opts.attackAdjust, kind: 'other' })
+    if (opts.attackAdjust) attackParts.push({ label: tr('Ajuste', 'Adjustment'), value: opts.attackAdjust, kind: 'other' })
     const attackTotal = attackParts.reduce((sum, p) => sum + p.value, 0)
 
     // Dano da arma. Enfraquecido só pesa se a arma soma FOR ao dano.
@@ -480,7 +480,7 @@ export function planStrike(build: BuildInfo, s: Strike, mods: ConditionModifiers
     // Fearsome Brute: circunstância, 2 × (3 × se mestre em Intimidação) o medo do alvo.
     const brute = hasFearsomeBrute(build) ? fearsomeBruteBonus(build, opts.frightened ?? 0) : 0
     if (brute) damageParts.push({ label: tr(`Fearsome Brute (amedrontado ${opts.frightened})`, `Fearsome Brute (frightened ${opts.frightened})`), value: brute, kind: 'other' })
-    if (opts.damageAdjust) damageParts.push({ label: 'Ajuste', value: opts.damageAdjust, kind: 'other' })
+    if (opts.damageAdjust) damageParts.push({ label: tr('Ajuste', 'Adjustment'), value: opts.damageAdjust, kind: 'other' })
     const flat = damageParts.reduce((sum, p) => sum + p.value, 0)
 
     const stratagem = stratagemInt && hasStrategicStrike(build) ? { dice: strategicStrikeDice(build.level) } : null

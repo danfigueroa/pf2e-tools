@@ -110,7 +110,7 @@ export function MonsterSearch({ onSelect, selectedName }: Props) {
                                 ))}
                             </Box>
                             <Typography variant="caption" sx={{ color: ink.secondary }}>
-                                {creature.hp} PV · CA {creature.ac} {tr('· Percepção +', '· Perception +')}{creature.perception}
+                                {creature.hp} {tr('PV · CA ', 'HP · AC ')}{creature.ac} {tr('· Percepção +', '· Perception +')}{creature.perception}
                                 {creature.size ? ` · ${translateSize(creature.size)}` : ''}
                                 {creature.source ? ` · ${creature.source}` : ''}
                             </Typography>

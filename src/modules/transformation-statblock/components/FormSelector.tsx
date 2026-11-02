@@ -90,7 +90,7 @@ export const FormSelector: React.FC<FormSelectorProps> = ({
                   </Box>
                   
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                    <strong>Velocidade:</strong> {formatSpeed(form.speed)}
+                    <strong>{tr('Velocidade:', 'Speed:')}</strong> {formatSpeed(form.speed)}
                   </Typography>
                   
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
@@ -99,7 +99,7 @@ export const FormSelector: React.FC<FormSelectorProps> = ({
                   
                   {form.senses && (
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                      <strong>Sentidos:</strong>
+                      <strong>{tr('Sentidos:', 'Senses:')}</strong>
                       {form.senses.lowLightVision && tr(' visão na penumbra', ' low-light vision')}
                       {form.senses.scent && tr(` olfato ${form.senses.scent} pés (impreciso)`, ` scent ${form.senses.scent} feet (imprecise)`)}
                       {form.senses.darkvision && tr(` visão no escuro ${form.senses.darkvision} pés`, ` darkvision ${form.senses.darkvision} feet`)}
@@ -109,7 +109,7 @@ export const FormSelector: React.FC<FormSelectorProps> = ({
 
                   {selectedForm?.id === form.id && (
                     <Box sx={{ mt: 2 }}>
-                      <Chip label="Selecionado" color="primary" size="small" />
+                      <Chip label={tr("Selecionado", 'Selected')} color="primary" size="small" />
                     </Box>
                   )}
                 </CardContent>

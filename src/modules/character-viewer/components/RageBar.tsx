@@ -116,7 +116,7 @@ export const RageBar = ({ build, rage, conditions }: Props) => {
                     <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75, mt: 1 }}>
                         <DamageChip spec={spec} titan={effect.titan} />
                         {Object.keys(effect.resist).length > 0 && (
-                            <Chip label={`Resiste: ${resistText(effect.resist)}`} size="small" variant="outlined" sx={chipSx} />
+                            <Chip label={tr(`Resiste: ${resistText(effect.resist)}`, `Resists: ${resistText(effect.resist)}`)} size="small" variant="outlined" sx={chipSx} />
                         )}
                         {(stored.granted ?? 0) > 0 && (
                             <Chip label={tr(`+${stored.granted} PV temporários`, `+${stored.granted} temporary HP`)} size="small" variant="outlined" sx={chipSx} />

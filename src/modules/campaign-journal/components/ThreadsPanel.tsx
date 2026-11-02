@@ -44,12 +44,12 @@ function Row({ t, here, onOpen, onLink, onStatus }: {
                 </IconButton>
             )}
             {status === 'open' && (
-                <IconButton size="small" aria-label={tr(`Marcar "${t.title}" como revelado`, `Mark "${t.title}" as revealed`)} title="Revelado" onClick={() => onStatus(t.id, 'revealed')}>
+                <IconButton size="small" aria-label={tr(`Marcar "${t.title}" como revelado`, `Mark "${t.title}" as revealed`)} title={tr("Revelado", 'Revealed')} onClick={() => onStatus(t.id, 'revealed')}>
                     <RevealIcon fontSize="small" />
                 </IconButton>
             )}
             {status !== 'resolved' && (
-                <IconButton size="small" aria-label={tr(`Marcar "${t.title}" como resolvido`, `Mark "${t.title}" as resolved`)} title="Resolvido" onClick={() => onStatus(t.id, 'resolved')}>
+                <IconButton size="small" aria-label={tr(`Marcar "${t.title}" como resolvido`, `Mark "${t.title}" as resolved`)} title={tr("Resolvido", 'Resolved')} onClick={() => onStatus(t.id, 'resolved')}>
                     <CheckIcon fontSize="small" />
                 </IconButton>
             )}
@@ -72,7 +72,7 @@ export const ThreadsPanel = memo(function ThreadsPanel({ docs, linked, onOpen, o
 
     return (
         <Paper variant="outlined" sx={{ p: 1.5, bgcolor: parchment.paper, position: { xl: 'sticky' }, top: { xl: 16 } }}>
-            <Typography sx={{ fontFamily: displayFont, fontWeight: 700, color: green.main, mb: 1 }}>Ganchos</Typography>
+            <Typography sx={{ fontFamily: displayFont, fontWeight: 700, color: green.main, mb: 1 }}>{tr('Ganchos', 'Hooks')}</Typography>
             <Typography variant="caption" color="text.secondary">{tr('Nesta sessão', 'In this session')}</Typography>
             {here.length === 0 && <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', py: 0.5 }}>{tr('Nenhum.', 'None.')}</Typography>}
             {here.map((t) => <Row key={t.id} t={t} here onOpen={onOpen} onLink={onLink} onStatus={onStatus} />)}

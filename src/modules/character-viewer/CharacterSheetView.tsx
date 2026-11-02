@@ -173,7 +173,7 @@ const SECTIONS: SectionDef[] = [
     },
     {
         id: 'pets',
-        label: 'Companheiros',
+        label: tr('Companheiros', 'Companions'),
         icon: <PetsIcon />,
         render: ({ build }) => <PetsSection build={build} />,
         visible: (b) => (b.pets?.length ?? 0) > 0 || (b.familiars?.length ?? 0) > 0,

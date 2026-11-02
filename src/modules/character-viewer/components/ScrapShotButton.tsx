@@ -75,7 +75,7 @@ export const ScrapShotButton = ({ build, mods, relic, gift }: Props) => {
                 aria-label={tr(`Atacar com ${gift.name}`, `Attack with ${gift.name}`)}
                 sx={{ flexShrink: 0, fontWeight: 700, minHeight: 30, px: 1.25, fontSize: '0.75rem' }}
             >
-                Atacar · {cost} {cost === 1 ? tr('ação', 'action') : tr('ações', 'actions')}
+                {tr('Atacar · ', 'Attack · ')}{cost} {cost === 1 ? tr('ação', 'action') : tr('ações', 'actions')}
             </Button>
             <EmbedDialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="xs">
                 <DialogTitle sx={{ pb: 1 }}>{relic.name}: {gift.name}</DialogTitle>

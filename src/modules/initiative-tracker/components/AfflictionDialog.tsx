@@ -37,7 +37,7 @@ interface Props {
 
 const saveLabel = (def: AfflictionDef) =>
     def.dc !== null && def.save
-        ? `CD ${def.dc} ${def.save === 'fortitude' ? 'Fortitude' : def.save === 'reflex' ? tr('Reflexos', 'Reflex') : tr('Vontade', 'Will')}`
+        ? tr(`CD ${def.dc} ${def.save === 'fortitude' ? 'Fortitude' : def.save === 'reflex' ? tr('Reflexos', 'Reflex') : tr('Vontade', 'Will')}`, `DC ${def.dc} ${def.save === 'fortitude' ? 'Fortitude' : def.save === 'reflex' ? tr('Reflexos', 'Reflex') : tr('Vontade', 'Will')}`)
         : (def.raw ?? tr('salvaguarda não estruturada', 'unstructured saving throw'))
 
 export function AfflictionDialog({ open, targetName, onClose, onApply }: Props) {
@@ -156,7 +156,7 @@ export function AfflictionDialog({ open, targetName, onClose, onApply }: Props) 
                                 {tr('Início em ', 'Onset ')}{chosen.onsetRaw}{tr(': só aplique quando esse tempo passar.', ': only apply it once that time passes.')}</Alert>
                         )}
                         {chosen.virulent && (
-                            <Chip size="small" label="Virulento" sx={{ mt: 1 }} />
+                            <Chip size="small" label={tr("Virulento", 'Virulent')} sx={{ mt: 1 }} />
                         )}
 
                         <Box sx={{ mt: 1.5, border: `1px solid ${rule}`, borderRadius: 1 }}>

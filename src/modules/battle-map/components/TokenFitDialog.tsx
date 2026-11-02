@@ -78,7 +78,7 @@ export const TokenFitDialog = ({ name, src, initial, copies, pc, onUpload, uploa
 
     return (
         <Dialog open onClose={onClose} maxWidth="xs" fullWidth>
-            <DialogTitle sx={{ pb: 1 }}>Enquadrar o token — {name}</DialogTitle>
+            <DialogTitle sx={{ pb: 1 }}>{tr('Enquadrar o token — ', 'Frame the token — ')}{name}</DialogTitle>
             <DialogContent>
                 {src && (
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
@@ -197,7 +197,7 @@ export const TokenFitDialog = ({ name, src, initial, copies, pc, onUpload, uploa
                 )}
             </DialogContent>
             <DialogActions sx={{ px: 3, pb: 2 }}>
-                <Button color="inherit" onClick={() => setFit(DEFAULT_FIT)}>Centralizar</Button>
+                <Button color="inherit" onClick={() => setFit(DEFAULT_FIT)}>{tr('Centralizar', 'Center')}</Button>
                 <Box sx={{ flex: 1 }} />
                 <Button color="inherit" onClick={onClose}>{tr('Cancelar', 'Cancel')}</Button>
                 <Button variant="contained" disabled={!src} onClick={() => onSave(shown, applyToCopies && copies > 0)}>{tr('Salvar', 'Save')}</Button>

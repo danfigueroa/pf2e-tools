@@ -285,7 +285,7 @@ function SpellPicker({ block, group, copies, onPick }: PickerProps) {
             {loading && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
                     <CircularProgress size={16} />
-                    <Typography variant="caption">Buscando…</Typography>
+                    <Typography variant="caption">{tr('Buscando…', 'Searching…')}</Typography>
                 </Box>
             )}
 

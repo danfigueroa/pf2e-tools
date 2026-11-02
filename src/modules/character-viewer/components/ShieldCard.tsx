@@ -170,7 +170,7 @@ export const ShieldCard = ({ build, shield, mods }: Props) => {
                     </Typography>
                     <Stack direction="row" sx={{ ml: 'auto', gap: 0.75, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                         <Chip size="small" variant="outlined" label={tr(`Dureza ${stats.hardness}`, `Hardness ${stats.hardness}`)} sx={{ fontWeight: 700, color: SHIELD_COLOR, borderColor: SHIELD_COLOR }} />
-                        <Chip size="small" variant="outlined" label={`+${stats.bonus} CA`} />
+                        <Chip size="small" variant="outlined" label={tr(`+${stats.bonus} CA`, `+${stats.bonus} AC`)} />
                         {destroyed ? (
                             <Chip size="small" color="error" label={tr("Destruído", 'Destroyed')} sx={{ fontWeight: 700 }} />
                         ) : broken ? (
@@ -178,7 +178,7 @@ export const ShieldCard = ({ build, shield, mods }: Props) => {
                                 <Chip size="small" color="error" label={tr("Quebrado", 'Broken')} sx={{ fontWeight: 700 }} />
                             </Tooltip>
                         ) : raised ? (
-                            <Chip size="small" label="Erguido" sx={{ fontWeight: 700, backgroundColor: gold.main + '33', color: gold.deep }} />
+                            <Chip size="small" label={tr("Erguido", 'Raised')} sx={{ fontWeight: 700, backgroundColor: gold.main + '33', color: gold.deep }} />
                         ) : null}
                     </Stack>
                 </Box>
@@ -422,8 +422,7 @@ const DestructiveBlock = ({ damage, hardness, shieldHp, bt, enabled, onBlock }: 
                         onClick={onBlock}
                         sx={{ fontWeight: 700, color: status.error, borderColor: status.error + '80', '&:hover': { borderColor: status.error } }}
                     >
-                        Bloqueio Destrutivo
-                    </Button>
+                        {tr('Bloqueio Destrutivo', 'Destructive Block')}</Button>
                 </span>
             </Tooltip>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
@@ -458,19 +457,16 @@ const RepairDialog = ({ open, onClose, rank, destroyed, missing, onRepair }: {
             <DialogTitle sx={{ fontWeight: 700 }}>{tr('Consertar escudo', 'Repair shield')}</DialogTitle>
             <DialogContent>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    {tr('Teste de Ofício para Reparar · ', 'Crafting check to Repair · ')}{RANK_LABELS[rank]}{tr('. Faltam ', '. Missing ')}{missing} PV.
-                </Typography>
+                    {tr('Teste de Ofício para Reparar · ', 'Crafting check to Repair · ')}{RANK_LABELS[rank]}{tr('. Faltam ', '. Missing ')}{missing} {tr('PV.', 'HP.')}</Typography>
                 {destroyed ? (
                     <Typography variant="body2" sx={{ mb: 2, color: status.error, fontWeight: 600 }}>
                         {tr('Escudo destruído não pode ser consertado. Se ele foi substituído, use “Restaurar tudo”.', 'A destroyed shield can\'t be repaired. If it was replaced, use “Restore all”.')}</Typography>
                 ) : (
                     <Stack spacing={1} sx={{ mb: 2 }}>
                         <Button variant="contained" color="success" onClick={() => onRepair(success)} sx={{ fontWeight: 700 }}>
-                            {tr('Sucesso · +', 'Success · +')}{success} PV
-                        </Button>
+                            {tr('Sucesso · +', 'Success · +')}{success} {tr('PV', 'HP')}</Button>
                         <Button variant="contained" color="success" onClick={() => onRepair(crit)} sx={{ fontWeight: 700 }}>
-                            {tr('Sucesso crítico · +', 'Critical success · +')}{crit} PV
-                        </Button>
+                            {tr('Sucesso crítico · +', 'Critical success · +')}{crit} {tr('PV', 'HP')}</Button>
                     </Stack>
                 )}
                 <Box sx={{ display: 'flex', gap: 1 }}>

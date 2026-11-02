@@ -60,7 +60,7 @@ export const GiveItemDialog = ({ item, roster, holders, onClose, onConfirm }: Pr
                     )}
                 </List>
                 <TextField
-                    label="Quantidade"
+                    label={tr("Quantidade", 'Amount')}
                     type="number"
                     size="small"
                     value={qty}

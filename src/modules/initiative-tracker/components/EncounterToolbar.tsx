@@ -147,24 +147,21 @@ export const EncounterToolbar = ({
                 <Stack direction="row" spacing={1} justifyContent={{ xs: 'space-between', sm: 'flex-start' }}>
                     <Tooltip title={tr("Reordenar por iniciativa", 'Reorder by initiative')}>
                         <Button size="small" onClick={onSort} startIcon={<SortIcon />} sx={chromeButton}>
-                            Reordenar
-                        </Button>
+                            {tr('Reordenar', 'Reorder')}</Button>
                     </Tooltip>
                     <Tooltip title={tr("Puxar PV e condições da mesa", 'Pull HP and conditions from the table')}>
                         <Button size="small" onClick={onRefresh} startIcon={<RefreshIcon />} sx={chromeButton}>
-                            Atualizar
-                        </Button>
+                            {tr('Atualizar', 'Refresh')}</Button>
                     </Tooltip>
                     <Tooltip title={tr("Encerrar e limpar o encontro", 'End and clear the encounter')}>
                         <Button size="small" onClick={onEnd} startIcon={<StopIcon />} sx={chromeButton}>
-                            Encerrar
-                        </Button>
+                            {tr('Encerrar', 'End')}</Button>
                     </Tooltip>
                 </Stack>
             </Stack>
 
             {started && active.delayed && (
-                <Chip size="small" label="Adiado" sx={{ mt: 1, backgroundColor: gold.main + '55' }} />
+                <Chip size="small" label={tr("Adiado", 'Delayed')} sx={{ mt: 1, backgroundColor: gold.main + '55' }} />
             )}
         </Box>
     )

@@ -78,7 +78,7 @@ const OverviewSectionView = ({ build, mods, guide: slot, onRoll, compact = false
                 gap: { xs: 1, sm: 1.5 },
             }}>
                 <StatTile
-                    label="CA"
+                    label={tr("CA", 'AC')}
                     value={baseAc + mods.total.ac + shieldAc}
                     accent={shieldAc ? gold.deep : theme.palette.primary.main}
                     delta={mods.total.ac}
@@ -150,7 +150,7 @@ const OverviewSectionView = ({ build, mods, guide: slot, onRoll, compact = false
             {/* Atributos */}
             <Card>
                 <CardContent>
-                    <SectionTitle>Atributos</SectionTitle>
+                    <SectionTitle>{tr('Atributos', 'Attributes')}</SectionTitle>
                     <Box sx={{
                         display: 'grid',
                         gridTemplateColumns: { xs: 'repeat(3, 1fr)', sm: 'repeat(6, 1fr)' },
@@ -194,7 +194,7 @@ const OverviewSectionView = ({ build, mods, guide: slot, onRoll, compact = false
                     <CardContent>
                         {build.languages?.length > 0 && (
                             <Box sx={{ mb: build.resistances?.length || rageResist ? 2 : 0 }}>
-                                <SectionTitle>Idiomas</SectionTitle>
+                                <SectionTitle>{tr('Idiomas', 'Languages')}</SectionTitle>
                                 <Typography>{build.languages.join(', ')}</Typography>
                             </Box>
                         )}

@@ -20,7 +20,7 @@ const CLOUD: Record<CloudStatus, { label: string; hint: string; tone: string; Ic
         tone: statusColor.success,
         Icon: SavedIcon,
     },
-    saving: { label: 'Salvando…', hint: tr('Enviando o encontro para a nuvem.', 'Sending the encounter to the cloud.'), tone: gold.deep, Icon: SavingIcon },
+    saving: { label: tr('Salvando…', 'Saving…'), hint: tr('Enviando o encontro para a nuvem.', 'Sending the encounter to the cloud.'), tone: gold.deep, Icon: SavingIcon },
     offline: {
         label: tr('Não subiu', 'Didn\'t upload'),
         hint: tr('Sem contato com a nuvem. O encontro fica salvo aqui e sobe na próxima mudança ou quando a conexão voltar.', 'No contact with the cloud. The encounter is saved here and goes up on the next change or when the connection comes back.'),
