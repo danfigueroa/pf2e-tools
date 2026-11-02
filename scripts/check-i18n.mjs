@@ -72,7 +72,7 @@ quantos quantas quanto quanta mudou muda mudar tipo tipos geral automático auto
 persistente persistentes veneno venenos simples contundente perfurante cortante tratar ferimentos dobrado dobrada fogo frio eletricidade sônico vazio vitalidade espírito imune sofreu chegou caiu fraq fraqueza fraquezas resist segura recuperados ajuda apropriada atual estágio ataques por gerado gerada recarregou recarregar manter minha meu mesma mesmo passou passar elevada elevado aplica aplicar cenas cena elenco conjurada conjurado compartilhou mostrou ganhou ganhei regra regras compartilhada compartilhado copiado copiada enviou envie forma formas te lhe
 `.trim().split(/\s+/).filter((w) => !['mesa', 'mesas'].includes(w)))
 
-const PT_EXACT = new Set(['FOR', 'DES', 'SAB', 'CAR', 'po', 'pp', 'pl', 'pc', 'Atr.', 'Qtd.', 'Nº', 'Valor', 'Mover tokens', 'Dados', 'PV temp', 'Prof.', 'Von'])
+const PT_EXACT = new Set(['FOR', 'DES', 'SAB', 'CAR', 'po', 'pp', 'pl', 'pc', 'Atr.', 'Qtd.', 'Nº', 'Valor', 'Mover tokens', 'Jogo', 'Mesa', 'A mesa', 'Dados', 'PV temp', 'Prof.', 'Von'])
 
 const ENGLISH_FUNCTION = new Set(['the', 'and', 'you', 'your', 'of', 'with', 'which', 'are', 'is', 'can', 'or', 'to', 'in', 'from', 'that', 'this'])
 

@@ -338,7 +338,7 @@ export default function TrophiesPage() {
       {mine && (
         <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ borderBottom: `1px solid ${rule}` }}>
           <Tab value="mine" label={tr("Meus troféus", 'My trophies')} />
-          <Tab value="mesa" label="A mesa" />
+          <Tab value="mesa" label={tr('A mesa', 'The table')} />
         </Tabs>
       )}
 

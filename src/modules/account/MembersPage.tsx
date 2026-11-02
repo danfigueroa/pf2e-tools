@@ -73,7 +73,7 @@ export const MembersPage = () => {
   return (
     <Box sx={{ maxWidth: 820, mx: 'auto' }}>
       <Typography component="h1" variant="h4" sx={{ mb: 0.5 }}>{tr('Membros', 'Members')}</Typography>
-      <Typography color="text.secondary" sx={{ mb: 2.5 }}>Mesa {mesa.name}</Typography>
+      <Typography color="text.secondary" sx={{ mb: 2.5 }}>{tr('Mesa ', 'Table ')}{mesa.name}</Typography>
 
       {error && <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 2 }}>{error}</Alert>}
       {newPassword && (

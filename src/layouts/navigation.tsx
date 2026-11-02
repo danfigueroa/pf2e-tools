@@ -98,9 +98,9 @@ export function visibleNav(isGm: boolean): NavItem[] {
 }
 
 export const SECTION_LABEL: Record<NavSection, string> = {
-  jogo: 'Jogo',
+  jogo: tr('Jogo', 'Game'),
   gm: tr('Bastidores do GM', 'GM Backstage'),
-  mesa: 'Mesa',
+  mesa: tr('Mesa', 'Table'),
 };
 
 /** `/mapa/abc123` ainda é o item "Mapa de Combate". */
