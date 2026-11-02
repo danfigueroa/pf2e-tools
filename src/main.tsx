@@ -3,6 +3,8 @@
 import './services/mesa'
 // O idioma desta carga (constante até a próxima): antes de qualquer texto ser montado.
 import './i18n'
+// O tema desta carga (claro/escuro), idem: as cores de `theme/palette` são lidas dele.
+import './theme/mode'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
