@@ -128,8 +128,8 @@ const Brand = ({ collapsed, onToggleCollapse }: { collapsed: boolean; onToggleCo
     )}
     {onToggleCollapse && (
       <IconButton
-        aria-label={collapsed ? tr('Abrir menu', 'Open menu') : 'Recolher menu'}
-        title={collapsed ? tr('Abrir menu', 'Open menu') : 'Recolher menu'}
+        aria-label={collapsed ? tr('Abrir menu', 'Open menu') : tr('Recolher menu', 'Collapse menu')}
+        title={collapsed ? tr('Abrir menu', 'Open menu') : tr('Recolher menu', 'Collapse menu')}
         onClick={onToggleCollapse}
         sx={{
           width: 44, height: 44, borderRadius: 1.5, border: `1px solid ${chrome.line}`, color: chrome.textMuted,

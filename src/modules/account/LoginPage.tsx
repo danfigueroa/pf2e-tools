@@ -262,7 +262,7 @@ export const LoginPage = () => {
             }}
           >
             {done ? tr('Bem-vindo!', 'Welcome!') : busy
-              ? (mode === 'login' ? 'Entrando…' : tr('Criando a conta…', 'Creating the account…'))
+              ? (mode === 'login' ? tr('Entrando…', 'Signing in…') : tr('Criando a conta…', 'Creating the account…'))
               : (mode === 'login' ? tr('Entrar', 'Sign in') : tr('Criar conta e entrar', 'Create account and sign in'))}
           </Button>
         </Box>

@@ -113,7 +113,7 @@ export const MembersPage = () => {
                   {invite.uses}/{invite.maxUses} {tr(' usos · até ', ' uses · until ')}{new Date(invite.expiresAt).toLocaleDateString(locale)}
                 </Typography>
                 <Button size="small" startIcon={<CopyIcon />} onClick={() => void copy(invite.code)}>
-                  {copied === invite.code ? tr('Copiado!', 'Copied!') : 'Copiar link'}
+                  {copied === invite.code ? tr('Copiado!', 'Copied!') : tr('Copiar link', 'Copy link')}
                 </Button>
                 <Button size="small" color="error" onClick={() => void act(() => revokeInvite(invite.code))}>{tr('Revogar', 'Revoke')}</Button>
               </Box>

@@ -54,7 +54,7 @@ export const JoinPage = ({ username, mesas, notice }: Props) => {
         />
         {error && <Alert severity="error">{error}</Alert>}
         <Button type="submit" variant="contained" disabled={code.trim().length < 8 || busy}>
-          {busy ? 'Entrando…' : tr('Entrar na mesa', 'Join the table')}
+          {busy ? tr('Entrando…', 'Joining…') : tr('Entrar na mesa', 'Join the table')}
         </Button>
       </Box>
 
