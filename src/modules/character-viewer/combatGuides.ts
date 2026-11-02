@@ -1,9 +1,16 @@
+/* i18n-ignore-file */
+// (O português dos guias curados é conteúdo, não texto da tela: o inglês está em `combatGuidesEn.ts`,
+// e o guia automático passa pelo `tr`.)
 import type { BuildInfo } from '../../pathbuilder/types'
 import { totalHp } from './helpers'
 import { saveCheck, SAVES } from './checks'
 import { NO_MODIFIERS } from './conditions'
 import type { GuideBases } from '../../services/sheets'
-import { isEn } from '../../i18n'
+import { isEn, tr } from '../../i18n'
+import {
+    ARDAGAR_EN, BRUKUTHUR_EN, CEROSQUALHANTHALLAS_EN, ELDARION_EN, GHAN_BURI_EN, HEARTS_FOLLY_EN,
+    LOKI_EN, MIRANDA_EN, NATHANIEL_EN, THALOS_EN, WOYD_EN,
+} from './combatGuidesEn'
 
 // Guias de uso ("como jogar em combate") escritos à mão a partir da análise de
 // cada ficha (classe, talentos, magias, itens). Cada guia casa por nome do
@@ -743,18 +750,18 @@ Aspectos **Soul** e **Emotion**. No app, o cartão **Relíquia** no Inventário 
 - ❌ **Contar com *Mystic Armor* para subir a CA:** com a túnica +1, não muda nada até o 4º rank.`
 
 export const COMBAT_GUIDES: CombatGuide[] = [
-    { match: byName('Ardagar'), markdown: ARDAGAR, curated: true },
-    { match: byName('Eldarion'), markdown: ELDARION, curated: true },
-    { match: byName('Ghan Buri'), markdown: GHAN_BURI, curated: true },
-    { match: (b) => (b.name || '').trim().toLowerCase().startsWith('brukuthur'), markdown: BRUKUTHUR, curated: true },
-    { match: byName('Cerosqualhanthallas'), markdown: CEROSQUALHANTHALLAS, curated: true },
+    { match: byName('Ardagar'), markdown: ARDAGAR, markdownEn: ARDAGAR_EN, curated: true },
+    { match: byName('Eldarion'), markdown: ELDARION, markdownEn: ELDARION_EN, curated: true },
+    { match: byName('Ghan Buri'), markdown: GHAN_BURI, markdownEn: GHAN_BURI_EN, curated: true },
+    { match: (b) => (b.name || '').trim().toLowerCase().startsWith('brukuthur'), markdown: BRUKUTHUR, markdownEn: BRUKUTHUR_EN, curated: true },
+    { match: byName('Cerosqualhanthallas'), markdown: CEROSQUALHANTHALLAS, markdownEn: CEROSQUALHANTHALLAS_EN, curated: true },
     // O Pathbuilder exporta "Nathaniel o Magus"; casa pelo começo, como o Brukuthur.
-    { match: (b) => (b.name || '').trim().toLowerCase().startsWith('nathaniel'), markdown: NATHANIEL, curated: true },
-    { match: (b) => (b.name || '').trim().toLowerCase().startsWith('thalos'), markdown: THALOS, curated: true },
-    { match: byName('Loki'), markdown: LOKI, curated: true },
-    { match: (b) => (b.name || '').trim().toLowerCase().startsWith('miranda'), markdown: MIRANDA, curated: true },
-    { match: (b) => (b.name || '').trim().toLowerCase().startsWith('hearts'), markdown: HEARTS_FOLLY, curated: true },
-    { match: byName('Woyd'), markdown: WOYD, curated: true },
+    { match: (b) => (b.name || '').trim().toLowerCase().startsWith('nathaniel'), markdown: NATHANIEL, markdownEn: NATHANIEL_EN, curated: true },
+    { match: (b) => (b.name || '').trim().toLowerCase().startsWith('thalos'), markdown: THALOS, markdownEn: THALOS_EN, curated: true },
+    { match: byName('Loki'), markdown: LOKI, markdownEn: LOKI_EN, curated: true },
+    { match: (b) => (b.name || '').trim().toLowerCase().startsWith('miranda'), markdown: MIRANDA, markdownEn: MIRANDA_EN, curated: true },
+    { match: (b) => (b.name || '').trim().toLowerCase().startsWith('hearts'), markdown: HEARTS_FOLLY, markdownEn: HEARTS_FOLLY_EN, curated: true },
+    { match: byName('Woyd'), markdown: WOYD, markdownEn: WOYD_EN, curated: true },
 ]
 
 // ---------------------------------------------------------------------------
@@ -762,7 +769,7 @@ export const COMBAT_GUIDES: CombatGuide[] = [
 // ---------------------------------------------------------------------------
 
 // Papel tático aproximado por classe.
-const CLASS_ROLE: Record<string, string> = {
+const CLASS_ROLE: Record<string, string> = tr({
     Fighter: 'Linha de frente — dano marcial confiável e Reações de ataque de oportunidade.',
     Barbarian: 'Linha de frente — dano bruto; entre em Rage antes de engajar.',
     Champion: 'Tanque/defensor — proteja aliados com sua Reação de campeão.',
@@ -785,7 +792,30 @@ const CLASS_ROLE: Record<string, string> = {
     Alchemist: 'Suporte com bombas e elixires — prepare recursos antes da luta.',
     Kineticist: 'Blaster elemental — canalize impulsos conforme a situação.',
     Thaumaturge: 'Versátil anti-monstro — Exploit Vulnerability e use seu implemento.',
-}
+}, {
+    Fighter: 'Front line — reliable martial damage and attack-of-opportunity Reactions.',
+    Barbarian: 'Front line — raw damage; Rage before engaging.',
+    Champion: 'Tank/defender — protect allies with your champion Reaction.',
+    Monk: 'Agile combatant — mobility, control and unarmed strikes; use your stance.',
+    Rogue: 'Precision/skirmisher — set up off-guard for Sneak Attack and hit-and-run.',
+    Ranger: 'Hunter — mark the target (Hunt Prey) and focus your attacks on it.',
+    Swashbuckler: 'Agile duelist — gain panache and close with a finisher.',
+    Gunslinger: 'Sharpshooter — manage reloading and positioning for sure shots.',
+    Investigator: 'Methodical precision — Devise a Stratagem before attacking.',
+    Cleric: 'Divine support — heal, bless and control; stay in the back line.',
+    Druid: 'Primal caster — control, summoning and battle forms; command companions.',
+    Wizard: 'Arcane artillery — area control and debuffs from afar.',
+    Sorcerer: 'Spontaneous caster — flexible damage/control; stay behind.',
+    Oracle: 'Divine support/damage — manage your curse when casting.',
+    Witch: 'Arcane/occult control — hexes and debuffs; protect your familiar.',
+    Bard: 'Occult support — keep your compositions (Courageous Anthem) going.',
+    Psychic: 'Mental caster — alternate amps and psi cantrips; back line.',
+    Magus: 'Hybrid — Spellstrike for damage spikes; manage recharging.',
+    Summoner: 'You + eidolon act together; put the eidolon in front.',
+    Alchemist: 'Support with bombs and elixirs — prepare resources before the fight.',
+    Kineticist: 'Elemental blaster — channel impulses as the situation calls for.',
+    Thaumaturge: 'Versatile monster-hunter — Exploit Vulnerability and use your implement.',
+})
 
 function bestSave(b: BuildInfo): string {
     const saves = SAVES.map((s) => saveCheck(b, s.key, NO_MODIFIERS))
@@ -793,11 +823,14 @@ function bestSave(b: BuildInfo): string {
     const best = saves[0]
     const worst = saves[saves.length - 1]
     const sg = (n: number) => (n >= 0 ? `+${n}` : `${n}`)
-    return `Melhor save: **${best.label} ${sg(best.total)}**; mais frágil: **${worst.label} ${sg(worst.total)}** — cuidado com efeitos que o visem.`
+    return tr(
+        `Melhor save: **${best.label} ${sg(best.total)}**; mais frágil: **${worst.label} ${sg(worst.total)}** — cuidado com efeitos que o visem.`,
+        `Best save: **${best.label} ${sg(best.total)}**; weakest: **${worst.label} ${sg(worst.total)}** — watch out for effects that target it.`,
+    )
 }
 
 export function buildFallbackGuide(b: BuildInfo): string {
-    const role = CLASS_ROLE[b.class] || 'Analise classe, atributo-chave e talentos para definir seu papel na linha de combate.'
+    const role = CLASS_ROLE[b.class] || tr('Analise classe, atributo-chave e talentos para definir seu papel na linha de combate.', 'Look at your class, key attribute and feats to define your role in the battle line.')
     const ac = b.acTotal?.acTotal ?? 10
     const hp = totalHp({
         ancestryHp: b.attributes.ancestryhp,
@@ -819,11 +852,26 @@ export function buildFallbackGuide(b: BuildInfo): string {
     const casts = (b.spellCasters || []).some((c) => c.spells?.some((l) => l.list.length > 0))
 
     const remember: string[] = []
-    if (classFeats.length) remember.push(`⭐ Lembre dos seus talentos de destaque: **${classFeats.join(', ')}**.`)
-    remember.push('🛡️ Cheque suas **Reações** (ex.: Shield Block, esquivas, ataques de oportunidade) e não termine a rodada sem considerar usá-las.')
-    if (hasFocus) remember.push('🔮 Você tem **magias de foco** — gaste os pontos e **refocus** entre combates.')
-    if (casts) remember.push('✨ Priorize ligar **buffs/controle** cedo, quando rendem mais rounds.')
+    if (classFeats.length) remember.push(tr(`⭐ Lembre dos seus talentos de destaque: **${classFeats.join(', ')}**.`, `⭐ Remember your standout feats: **${classFeats.join(', ')}**.`))
+    remember.push(tr('🛡️ Cheque suas **Reações** (ex.: Shield Block, esquivas, ataques de oportunidade) e não termine a rodada sem considerar usá-las.', "🛡️ Check your **Reactions** (e.g. Shield Block, dodges, attacks of opportunity) and don't end the round without considering them."))
+    if (hasFocus) remember.push(tr('🔮 Você tem **magias de foco** — gaste os pontos e **refocus** entre combates.', '🔮 You have **focus spells** — spend the points and **Refocus** between combats.'))
+    if (casts) remember.push(tr('✨ Priorize ligar **buffs/controle** cedo, quando rendem mais rounds.', '✨ Prioritize **buffs/control** early, when they last more rounds.'))
 
+    if (isEn) {
+        return `## 🎯 Combat Role
+${role}
+
+## 🛡️ Defense & Survival
+- ❤️ **AC ${ac}** · **~${hp} HP**.
+- 🎲 ${bestSave(b)}
+
+## ⭐ Never Forget
+${remember.map((r) => `- ${r}`).join('\n')}
+
+## ⚠️ Note
+_This is an automatic guide built from the sheet's data. A detailed, reviewed guide hasn't been written for this character yet._`
+    }
+    // i18n-ok: o guia automático em português (o inglês está logo acima)
     return `## 🎯 Papel em Combate
 ${role}
 
