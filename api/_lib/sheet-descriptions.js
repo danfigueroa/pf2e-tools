@@ -39,11 +39,12 @@
 //   ficha pediria o mesmo nome inexistente à AON (e ao LLM, que tenta
 //   descrevê-lo). Falha de TRADUÇÃO não conta como miss — é passageira.
 // - DOIS IDIOMAS (`lang`, migration `descricoes_em_ingles`): o pacote em inglês é o
-//   texto da AON sem tradução — sem LLM nem chave de IA, só a busca. A lista de nomes e
-//   os misses são os mesmos para os dois; a trava e as descrições, um por idioma. O
-//   inglês só LÊ os misses (quem os grava é o português): uma entrada que a AON acha com
-//   a prosa vazia é miss em inglês, mas não em português (o LLM completa), e o miss
-//   inglês seguraria o português por 24 h.
+//   texto da AON sem tradução — sem LLM nem chave de IA, só a busca. A lista de nomes é a
+//   mesma para os dois; a trava, as descrições e os misses, um por idioma (migration
+//   `publicacao_preparada`). O inglês lê os misses do português (o que a AON não acha não
+//   existe em língua nenhuma) e os próprios: uma entrada que a AON acha com a prosa vazia é
+//   miss em inglês, mas não em português (o LLM completa) — por isso o miss inglês não pode
+//   segurar o português.
 
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -137,19 +138,21 @@ const dbStore = (db) => {
       const rows = Object.entries(bag).map(([name, payload]) => ({ version, lang, kind, name, payload, updated_at: at }))
       if (rows.length > 0) check(await db.from('descriptions').upsert(rows))
     },
-    /** `Map<nome, ms>` de quando a AON não achou cada nome. */
-    readMisses: async (kind, names) => {
+    /** `Map<nome, ms>` de quando a AON não achou cada nome — os do português e os do idioma pedido. */
+    readMisses: async (kind, names, lang) => {
       if (names.length === 0) return new Map()
       const rows = check(await db.from('description_misses').select('name, missed_at')
-        .eq('kind', kind).in('name', names))
-      return new Map(rows.map((r) => [r.name, Date.parse(r.missed_at)]))
+        .eq('kind', kind).in('lang', [...new Set(['pt', lang])]).in('name', names))
+      const out = new Map()
+      for (const r of rows) out.set(r.name, Math.max(out.get(r.name) ?? 0, Date.parse(r.missed_at)))
+      return out
     },
-    writeMisses: async (kind, names, at) => {
+    writeMisses: async (kind, names, at, lang) => {
       const iso = new Date(at).toISOString()
-      if (names.length > 0) check(await db.from('description_misses').upsert(names.map((name) => ({ kind, name, missed_at: iso }))))
+      if (names.length > 0) check(await db.from('description_misses').upsert(names.map((name) => ({ kind, name, lang, missed_at: iso }))))
     },
-    clearMisses: async (kind, names) => {
-      if (names.length > 0) check(await db.from('description_misses').delete().eq('kind', kind).in('name', names))
+    clearMisses: async (kind, names, lang) => {
+      if (names.length > 0) check(await db.from('description_misses').delete().eq('kind', kind).eq('lang', lang).in('name', names))
     },
     lock: async (key, seconds) => check(await db.rpc('try_lock', { p_key: key, p_seconds: seconds })) === true,
     unlock: async (key) => { check(await db.from('locks').delete().eq('key', key)) },
@@ -162,7 +165,8 @@ const memoryStore = (() => {
   const misses = new Map()
   const locks = new Map()
   const entryKey = (version, kind, name, lang) => `${version}|${lang}|${kind}|${name}`
-  const missKey = (kind, name) => `${kind}|${name}`
+  const missKey = (kind, name, lang = 'pt') => `${kind}|${name}|${lang}`
+  const missAt = (kind, name, lang) => Math.max(misses.get(missKey(kind, name)) ?? 0, lang === 'pt' ? 0 : misses.get(missKey(kind, name, lang)) ?? 0) || null
   return {
     readBundle: async (mesa, slug, lang) => {
       const set = sets.get(`${mesa}|${slug}`)
@@ -175,7 +179,7 @@ const memoryStore = (() => {
         version: set.version,
         entries: bag((kind, n) => entries.get(entryKey(set.version, kind, n, lang))),
         misses: bag((kind, n) => {
-          const at = misses.get(missKey(kind, n))
+          const at = missAt(kind, n, lang)
           return at != null && now - at < MISS_RETRY_MS ? at : null
         }),
       }
@@ -186,11 +190,11 @@ const memoryStore = (() => {
     writeEntries: async (version, kind, bag, lang) => {
       for (const [name, payload] of Object.entries(bag)) entries.set(entryKey(version, kind, name, lang), payload)
     },
-    readMisses: async (kind, names) => new Map(names
-      .filter((n) => misses.has(missKey(kind, n)))
-      .map((n) => [n, misses.get(missKey(kind, n))])),
-    writeMisses: async (kind, names, at) => { for (const n of names) misses.set(missKey(kind, n), at) },
-    clearMisses: async (kind, names) => { for (const n of names) misses.delete(missKey(kind, n)) },
+    readMisses: async (kind, names, lang) => new Map(names
+      .map((n) => [n, missAt(kind, n, lang)])
+      .filter(([, at]) => at != null)),
+    writeMisses: async (kind, names, at, lang) => { for (const n of names) misses.set(missKey(kind, n, lang), at) },
+    clearMisses: async (kind, names, lang) => { for (const n of names) misses.delete(missKey(kind, n, lang)) },
     lock: async (key, seconds) => {
       if ((locks.get(key) ?? 0) > Date.now()) return false
       locks.set(key, Date.now() + seconds * 1000)
@@ -270,7 +274,7 @@ export async function buildSheetDescriptions(mesa, slug, names, version, lang = 
     // Uma ida ao banco por consulta, todas juntas: em sequência eram ~10 viagens.
     const [set, ...lookups] = await Promise.all([
       db.readSet(mesa, slug),
-      ...DESCRIPTION_KINDS.flatMap((kind) => [db.knownNames(version, kind, names[kind], lang), db.readMisses(kind, names[kind])]),
+      ...DESCRIPTION_KINDS.flatMap((kind) => [db.knownNames(version, kind, names[kind], lang), db.readMisses(kind, names[kind], lang)]),
     ])
     const sameVersion = set?.version === version
     const nextNames = mergeNames(sameVersion ? set.names : null, names)
@@ -289,7 +293,8 @@ export async function buildSheetDescriptions(mesa, slug, names, version, lang = 
       const found = Object.keys(bag)
       if (found.length === 0) return
       await db.writeEntries(version, kind, bag, lang)
-      await db.clearMisses(kind, found.filter((n) => missedAt[kind].has(n)))
+      // Achou: sai o miss DESTE idioma (o do português, se houver, é do português — ele o limpa ao achar).
+      await db.clearMisses(kind, found.filter((n) => missedAt[kind].has(n)), lang)
       for (const n of found) {
         known[kind].add(n)
         missedAt[kind].delete(n)
@@ -327,9 +332,10 @@ export async function buildSheetDescriptions(mesa, slug, names, version, lang = 
           else if (!entry?.translationPending) notFound.push(group[k])
         })
         await keep(kind, found)
-        if (lang === 'en') continue
+        // Cada idioma grava o próprio miss: em inglês, a entrada que a AON acha sem prosa (o português a
+        // completa pelo LLM) é miss só em inglês — sem isso o pacote inglês nunca fechava.
         const at = Date.now()
-        await db.writeMisses(kind, notFound, at)
+        await db.writeMisses(kind, notFound, at, lang)
         for (const n of notFound) missedAt[kind].set(n, at)
       }
     }
