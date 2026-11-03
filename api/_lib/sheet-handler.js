@@ -4,7 +4,14 @@
 //
 //   GET  ?sheets=1                        → lista das fichas publicadas
 //   GET  ?sheet=<slug>                    → a ficha publicada (com o guia)
-//   POST { action: 'publish', sheet }     → publica um JSON do Pathbuilder
+//   POST { action: 'draft-create', sheet, names, version, companions?, baseGuide?, baseGuideEn? }
+//                                         → o JSON enviado vira um RASCUNHO (ver sheet-draft.js): a ficha
+//                                           só entra na mesa quando tudo está preparado no banco
+//   POST { action: 'draft-step', char }   → faz o próximo pedaço do preparo (o cliente chama em laço)
+//   POST { action: 'draft-discard', char } → desiste do rascunho
+//   GET  ?sheetDraft=<slug>               → o andamento de um rascunho (sem o JSON)
+//   POST { action: 'publish', sheet }     → publica um JSON do Pathbuilder NA HORA, sem preparo
+//                                           (scripts e cliente antigo; o app usa o rascunho)
 //   POST { action: 'guide', char, baseGuide? } → gera o guia da versão atual
 //   POST { action: 'restore', char, version? } → volta a uma versão do histórico (a anterior sem `version`)
 //   GET  ?sheetVersions=<slug>            → o histórico da ficha (sem o JSON de cada versão)
@@ -48,6 +55,7 @@ import {
   readSheetDescriptions,
 } from './sheet-descriptions.js'
 import { recordFeat, safely } from './trophy-store.js'
+import { createDraft, discardDraft, draftCreator, listDrafts, readDraft, sameAsPublished, stepDraft } from './sheet-draft.js'
 
 // Fichas e descrições moram no Supabase; sem ele, num Map de processo.
 const ok = (body) => ({ status: 200, body: { ...body, storeReady: isSupabaseConfigured() } })
@@ -55,14 +63,23 @@ const fail = (status, error) => ({ status, body: { error } })
 
 /** Falso quando a requisição não é de ficha — aí segue a rota do estado. */
 export function isSheetRequest(method, query, body) {
-  if (method === 'GET') return !!(query.sheets || query.sheet || query.sheetDescriptions || query.sheetVersions)
+  if (method === 'GET') return !!(query.sheets || query.sheet || query.sheetDescriptions || query.sheetVersions || query.sheetDraft)
   if (method === 'POST') return typeof body?.action === 'string'
   return false
 }
 
 export async function handleSheetRequest(mesa, method, query, body, ctx = {}) {
   if (method === 'GET') {
-    if (query.sheets) return ok({ sheets: await listSheets(mesa) })
+    // Os rascunhos em preparo vão junto: a mesa vê "em preparo" sem abrir nada.
+    if (query.sheets) {
+      const [sheets, drafts] = await Promise.all([listSheets(mesa), listDrafts(mesa)])
+      return ok({ sheets, drafts })
+    }
+    if (query.sheetDraft) {
+      const slug = String(query.sheetDraft)
+      if (!isValidSlug(slug)) return fail(400, 'Parâmetro "sheetDraft" inválido')
+      return ok({ draft: await readDraft(mesa, slug) })
+    }
     if (query.sheetVersions) {
       const slug = String(query.sheetVersions)
       if (!isValidSlug(slug)) return fail(400, 'Parâmetro "sheetVersions" inválido')
@@ -80,6 +97,40 @@ export async function handleSheetRequest(mesa, method, query, body, ctx = {}) {
   }
 
   const action = body.action
+
+  if (action === 'draft-create') {
+    const json = body.sheet
+    const info = sheetInfo(json)
+    if (!info) return fail(400, 'Não parece um JSON do Pathbuilder (falta build.name ou build.level)')
+    if (JSON.stringify(json).length > MAX_SHEET_BYTES) return fail(400, 'Ficha grande demais')
+    const names = cleanDescriptionNames(body.names)
+    if (!names) return fail(400, 'Campo "names" inválido')
+    if (!isValidDescriptionVersion(body.version)) return fail(400, 'Campo "version" inválido')
+    // O slug sai do nome da própria ficha, como no `publish`.
+    const draftSlug = slugFromName(info.name)
+    const { access } = ctx
+    const existed = access?.enforce ? (await sheetOwner(mesa, draftSlug)).exists : true
+    if (existed && !(await canEditSheet(access, mesa, draftSlug))) {
+      return forbidden('Esta ficha é de outra pessoa — só o dono ou o GM publica por cima')
+    }
+    // Ficha nova que outra pessoa já está preparando: só o GM passa por cima.
+    if (!existed && access?.enforce && access.role !== 'gm') {
+      const other = await draftCreator(mesa, draftSlug)
+      if (other && other.createdBy !== access.userId) return forbidden('Outra pessoa já está preparando esta ficha')
+    }
+    if (await sameAsPublished(mesa, draftSlug, json)) return fail(409, 'Igual à ficha publicada — não há o que atualizar')
+    const draft = await createDraft(mesa, draftSlug, {
+      json,
+      names,
+      version: body.version,
+      companions: body.companions,
+      baseGuide: body.baseGuide,
+      baseGuideEn: body.baseGuideEn,
+      createdBy: ctx.userId ?? null,
+      maxGuideBytes: MAX_GUIDE_BYTES,
+    })
+    return ok({ draft })
+  }
 
   if (action === 'publish') {
     const json = body.sheet
@@ -115,6 +166,34 @@ export async function handleSheetRequest(mesa, method, query, body, ctx = {}) {
 
   const slug = String(body.char || '')
   if (!isValidSlug(slug)) return fail(400, 'Campo "char" inválido')
+
+  if (action === 'draft-step' || action === 'draft-discard') {
+    // Conduz ou descarta: quem criou o rascunho, o dono da ficha que já existe, ou o GM.
+    const creator = await draftCreator(mesa, slug)
+    const { access } = ctx
+    const allowed = !access?.enforce || access.role === 'gm'
+      || (creator && creator.createdBy === access.userId)
+      || ((await sheetOwner(mesa, slug)).exists && (await canEditSheet(access, mesa, slug)))
+    if (!allowed) return forbidden('Esta ficha está sendo preparada por outra pessoa')
+    if (action === 'draft-discard') {
+      await discardDraft(mesa, slug)
+      return ok({ discarded: true })
+    }
+    const out = await stepDraft(mesa, slug, { userId: ctx.userId ?? null, enforce: !!access?.enforce })
+    if (out.state === 'ready' && out.sheet) {
+      if (out.created) forgetOwner(mesa, slug)
+      const sheet = out.sheet
+      await safely('ficha publicada', async () => {
+        const owner = sheet.ownerId && sheet.ownerId === out.publishedBy ? out.publishedBy : null
+        if (!owner) return
+        const gained = sheet.previous?.level ? sheet.level - sheet.previous.level : 0
+        if (gained > 0) await recordFeat(mesa, owner, 'level-up', { slug, level: sheet.level, gained }, false)
+        await recordFeat(mesa, owner, 'sheet-published', { slug, level: sheet.level })
+      })
+    }
+    const { publishedBy: _by, created: _created, ...reply } = out
+    return ok(reply)
+  }
 
   // Gerar o guia e restaurar alteram a ficha: dono ou GM. As descrições (abaixo) não —
   // abrir a ficha de outra pessoa completa o pacote dela, e isso é de todos.
