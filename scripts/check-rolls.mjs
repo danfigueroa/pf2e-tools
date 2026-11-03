@@ -1897,6 +1897,15 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
   eq(w.linkNames('[[Barão Ulric]], [[wiki:Absalão|a cidade]] e [[barao  ulric]]').join('|'), 'barao ulric|absalao',
     'Wiki: links dobrados (sem acento nem caixa), com rótulo e wiki:, sem repetição')
   eq(w.fold('  ÁRVORE  Ç '), 'arvore c', 'Wiki: a dobra do servidor')
+  const blocks = await import('../src/components/markdown/blocks.ts')
+  for (const name of ['Barão Ulric', 'AÇÃO  Épica', 'Ilha de Jalmeray']) {
+    eq(blocks.foldName(name), w.fold(name), `Wiki: a dobra do cliente é a do servidor (${name})`)
+  }
+  eq(blocks.splitSegments('a\n:::mestre Plano\nsegredo\n:::\nb').map((x) => x.kind).join(','), 'text,gm,text', 'Wiki: :::mestre é um segmento à parte')
+  eq(blocks.splitSegments(':::gm\nx\n:::')[0].kind, 'gm', 'Wiki: :::gm (inglês) é o mesmo bloco')
+  eq(blocks.withWikiLinks('[[wiki:Absalão|a cidade]]'), '[a cidade](#journal:wiki%3AAbsal%C3%A3o)', 'Wiki: rótulo e wiki: no link')
+  eq(blocks.forPlayers('O [[Barão|velho]] e [[wiki:Absalão]]'), 'O velho e Absalão', 'Wiki: o texto sem marcas usa o rótulo e tira o wiki:')
+  eq(blocks.playersText('segredo\n:::jogadores\nA [[Carta]]\n:::\nmais\n:::jogadores X\nB\n:::'), 'A Carta\n\nB', 'Wiki: só os trechos :::jogadores saem do Diário')
 }
 
 console.log(`${passed} conferências ok, ${failures} falha(s).`)

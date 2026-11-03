@@ -14,7 +14,7 @@ import {
     type JournalDoc, type JournalSummary, type SessionDoc, type ThreadDoc, type ThreadStatus,
 } from './doc'
 import { TEMPLATES } from './templates'
-import { JournalToolsContext, type JournalTools } from './tools'
+import { JournalToolsContext, type JournalTools } from '../../components/markdown/tools'
 import { createJournalDoc, useJournalDoc, useJournalList, type SaveStatus } from './useJournal'
 import { partyFromLevels } from './xp'
 import { JournalList } from './components/JournalList'

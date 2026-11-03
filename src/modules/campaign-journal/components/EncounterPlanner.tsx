@@ -18,7 +18,7 @@ import { chrome, displayFont, gold, ink, parchment, rule, status as statusColor,
 import { encounterXp, THREAT_LABEL, THREATS, type Threat } from '../xp'
 import type { EncounterStatus, PlannedEncounter } from '../doc'
 import { TEMPLATES } from '../templates'
-import { MarkdownEditor } from './MarkdownEditor'
+import { MarkdownEditor } from '../../../components/markdown/MarkdownEditor'
 import { tr } from '../../../i18n'
 
 // Um encontro planejado: criaturas da AON (a mesma busca da Iniciativa), o

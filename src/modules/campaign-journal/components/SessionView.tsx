@@ -19,7 +19,7 @@ import {
     type Scene, type SceneStatus, type SessionData, type SessionDoc, type ThreadStatus,
 } from '../doc'
 import { TEMPLATES } from '../templates'
-import { MarkdownEditor } from './MarkdownEditor'
+import { MarkdownEditor } from '../../../components/markdown/MarkdownEditor'
 import { EncounterPlanner } from './EncounterPlanner'
 import { SessionLog } from './SessionLog'
 import { ThreadsPanel } from './ThreadsPanel'

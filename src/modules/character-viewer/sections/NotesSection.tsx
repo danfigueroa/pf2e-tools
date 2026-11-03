@@ -5,7 +5,7 @@ import {
 import { Add as AddIcon, Delete as DeleteIcon, PushPin as PinIcon, Search as SearchIcon } from '@mui/icons-material'
 import type { BuildInfo } from '../../../pathbuilder/types'
 import { Markdown } from '../../../components/markdown/Markdown'
-import { MarkdownEditor } from '../../campaign-journal/components/MarkdownEditor'
+import { MarkdownEditor } from '../../../components/markdown/MarkdownEditor'
 import { rule, greenInk } from '../../../theme'
 import { charSlug } from '../charId'
 import { useSheetReadOnly, VIEW_OK } from '../sheetAccess'

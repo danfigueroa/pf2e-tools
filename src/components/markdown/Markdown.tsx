@@ -2,10 +2,10 @@ import { memo, useMemo, type ReactNode } from 'react'
 import ReactMarkdown, { defaultUrlTransform, type Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Box, Button, IconButton, Link, Typography } from '@mui/material'
-import { Campaign as ShareIcon } from '@mui/icons-material'
+import { Campaign as ShareIcon, VisibilityOff as SecretIcon } from '@mui/icons-material'
 import { displayFont, gold, green, ink, parchment, rule, greenInk } from '../../theme'
 import { useImageUrl } from '../../services/images'
-import { splitSegments, WIKI_HREF, withWikiLinks } from './blocks'
+import { linkName, splitSegments, WIKI_HREF, withWikiLinks } from './blocks'
 import { tr } from '../../i18n'
 
 // Markdown do Diário de Campanha e do cartão do que o GM mostra à mesa.
@@ -28,6 +28,11 @@ interface Props {
     onWikiLink?: (name: string) => void
     /** Nomes que existem no catálogo (sem caixa); os outros saem como "criar". */
     knownNames?: ReadonlySet<string>
+    /**
+     * Para onde um `[[Nome]]` aponta (vence o `knownNames`): `known` no próprio lugar, `wiki` numa
+     * página da Wiki (ganha o selo "Wiki"), `missing` ainda não existe ("criar").
+     */
+    resolveLink?: (name: string) => 'known' | 'wiki' | 'missing'
     /** Corpo mais compacto (cartão da mesa). */
     dense?: boolean
 }
@@ -65,19 +70,23 @@ function MdImage({ src, alt, onShare }: { src: string; alt: string; onShare?: (u
     )
 }
 
-function useComponents({ onShareImage, onWikiLink, knownNames }: Props): Components {
+function useComponents({ onShareImage, onWikiLink, knownNames, resolveLink }: Props): Components {
     return useMemo<Components>(() => ({
         a: ({ href, children }) => {
             if (href?.startsWith(WIKI_HREF)) {
-                const name = decodeURIComponent(href.slice(WIKI_HREF.length))
+                const target = decodeURIComponent(href.slice(WIKI_HREF.length))
+                const name = linkName(target)
                 if (!onWikiLink) return <strong>{children}</strong>
-                const known = !knownNames || knownNames.has(name.toLowerCase())
+                const where = resolveLink
+                    ? resolveLink(target)
+                    : !knownNames || knownNames.has(target.toLowerCase()) ? 'known' : 'missing'
+                const known = where !== 'missing'
                 return (
                     <Link
                         component="button"
                         type="button"
-                        onClick={() => onWikiLink(name)}
-                        title={known ? tr(`Abrir ${name}`, `Open ${name}`) : tr(`Criar a ficha de ${name}`, `Create ${name}'s entry`)}
+                        onClick={() => onWikiLink(target)}
+                        title={known ? tr(`Abrir ${name}`, `Open ${name}`) : tr(`Criar a página de ${name}`, `Create ${name}'s page`)}
                         sx={{
                             font: 'inherit', verticalAlign: 'baseline', fontWeight: 600,
                             color: known ? greenInk.mid : gold.deep,
@@ -85,6 +94,10 @@ function useComponents({ onShareImage, onWikiLink, knownNames }: Props): Compone
                         }}
                     >
                         {children}
+                        {where === 'wiki' && (
+                            <Box component="sup" sx={{ ml: 0.25, fontSize: '0.65em', fontWeight: 700, color: gold.deep, letterSpacing: 0.3 }}>
+                                {tr('Wiki', 'Wiki')}</Box>
+                        )}
                     </Link>
                 )
             }
@@ -93,7 +106,7 @@ function useComponents({ onShareImage, onWikiLink, knownNames }: Props): Compone
         img: ({ src, alt }) => (typeof src === 'string' && src
             ? <MdImage src={src} alt={alt ?? ''} onShare={onShareImage} />
             : null),
-    }), [onShareImage, onWikiLink, knownNames])
+    }), [onShareImage, onWikiLink, knownNames, resolveLink])
 }
 
 const bodySx = (dense: boolean) => ({
@@ -159,6 +172,25 @@ function PlayersBlock({ title, children, onShare }: { title: string; children: R
     )
 }
 
+/** O segredo do GM numa página da Wiki: só chega ao GM (o servidor o corta para o jogador). */
+function GmBlock({ title, children }: { title: string; children: ReactNode }) {
+    return (
+        <Box
+            component="section"
+            aria-label={title ? tr(`Só o mestre vê: ${title}`, `GM only: ${title}`) : tr('Só o mestre vê', 'GM only')}
+            sx={{ my: 2, border: `1px dashed ${ink.secondary}`, borderLeft: `4px solid ${ink.secondary}`, borderRadius: 1, bgcolor: parchment.sunken }}
+        >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', px: 1.5, py: 0.5, borderBottom: `1px dashed ${rule}` }}>
+                <SecretIcon sx={{ fontSize: 16, color: ink.secondary }} />
+                <Typography variant="caption" sx={{ color: ink.secondary, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                    {tr('Só o mestre vê', 'GM only')}</Typography>
+                {title && <Typography variant="body2" sx={{ fontWeight: 600, color: ink.primary, minWidth: 0 }}>{title}</Typography>}
+            </Box>
+            <Box sx={{ px: 2, py: 1 }}>{children}</Box>
+        </Box>
+    )
+}
+
 export const Markdown = memo(function Markdown(props: Props) {
     const { source, onShareBlock, dense = false } = props
     const components = useComponents(props)
@@ -170,7 +202,9 @@ export const Markdown = memo(function Markdown(props: Props) {
     )
     return (
         <Box sx={bodySx(dense)}>
-            {segments.map((seg, i) => (seg.kind === 'players'
+            {segments.map((seg, i) => (seg.kind === 'gm'
+                ? <GmBlock key={i} title={seg.title ?? ''}>{render(seg.text)}</GmBlock>
+                : seg.kind === 'players'
                 ? (
                     <PlayersBlock
                         key={i}

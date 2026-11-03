@@ -9,8 +9,8 @@ import {
     CATALOG_KINDS, KIND_LABEL, type CatalogDoc, type CatalogKind, type JournalSummary, type ThreadDoc, type ThreadStatus,
 } from '../doc'
 import { TEMPLATES } from '../templates'
-import { useJournalTools } from '../tools'
-import { MarkdownEditor } from './MarkdownEditor'
+import { useJournalTools } from '../../../components/markdown/tools'
+import { MarkdownEditor } from '../../../components/markdown/MarkdownEditor'
 import { THREAD_COLOR, THREAD_STATUS_LABEL } from '../threadStyle'
 import { tr } from '../../../i18n'
 

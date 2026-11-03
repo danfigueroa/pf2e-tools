@@ -5,15 +5,15 @@ import {
 } from '@mui/material'
 import {
     FormatBold, FormatItalic, Title, FormatListBulleted, FormatQuote, Link as LinkIcon, Image as ImageIcon,
-    Campaign as PlayersIcon, AutoAwesome as TemplateIcon, Checklist,
+    Campaign as PlayersIcon, AutoAwesome as TemplateIcon, Checklist, VisibilityOff as SecretIcon,
 } from '@mui/icons-material'
-import { Markdown } from '../../../components/markdown/Markdown'
-import { imageErrorText, shrinkImage, uploadImage } from '../../../services/images'
-import { gold, parchment, rule } from '../../../theme'
-import { useJournalTools } from '../tools'
-import { tr } from '../../../i18n'
+import { Markdown } from './Markdown'
+import { imageErrorText, shrinkImage, uploadImage, type ImageFolder } from '../../services/images'
+import { gold, ink, parchment, rule } from '../../theme'
+import { useJournalTools } from './tools'
+import { tr } from '../../i18n'
 
-// Editor de Markdown do diário: barra de formatação, envio de imagem e prévia —
+// Editor de Markdown do diário (e da Wiki da Mesa, e das Anotações): barra de formatação, envio de imagem e prévia —
 // lado a lado no desktop, alternada (Editar/Ver) no celular. Na prévia, os
 // trechos `:::jogadores` e as imagens ganham o botão "Mostrar à mesa".
 //
@@ -41,6 +41,14 @@ interface Props {
     'aria-label'?: string
     /** Fora do diário: sem `[[ ]]`, bloco para os jogadores nem envio de imagem. */
     plain?: boolean
+    /** A pasta do bucket das imagens enviadas por aqui (o diário é `journal/`, só do GM). */
+    imageFolder?: ImageFolder
+    /** Mostra o botão do bloco `:::jogadores` (o padrão fora do `plain`). */
+    playersBlock?: boolean
+    /** Mostra o botão do trecho `:::mestre` (a Wiki, para o GM). */
+    gmBlock?: boolean
+    /** Dica do botão de link `[[ ]]`. */
+    linkTitle?: string
 }
 
 function ToolButton({ title, onClick, children, disabled }: { title: string; onClick: () => void; children: ReactNode; disabled?: boolean }) {
@@ -55,6 +63,7 @@ function ToolButton({ title, onClick, children, disabled }: { title: string; onC
 
 export const MarkdownEditor = memo(function MarkdownEditor(props: Props) {
     const { value, onChange, imageName, template, placeholder, minRows = 8, preferView = true, plain = false } = props
+    const { imageFolder = 'journal', playersBlock = !plain, gmBlock = false } = props
     const theme = useTheme()
     const wide = useMediaQuery(theme.breakpoints.up('md'))
     const tools = useJournalTools()
@@ -113,7 +122,7 @@ export const MarkdownEditor = memo(function MarkdownEditor(props: Props) {
         setError(null)
         try {
             const { blob } = await shrinkImage(file, JOURNAL_IMAGE_MAX_SIDE)
-            const url = await uploadImage(blob, 'journal', imageName)
+            const url = await uploadImage(blob, imageFolder, imageName)
             const alt = file.name.replace(/\.[a-z0-9]+$/i, '').replace(/[[\]]/g, '')
             insert(`![${alt}](${url})`)
         } catch (err) {
@@ -141,10 +150,17 @@ export const MarkdownEditor = memo(function MarkdownEditor(props: Props) {
                 <ToolButton title={tr("Citação", 'Quote')} onClick={() => prefixLines('> ')} disabled={!showEditor}><FormatQuote fontSize="small" /></ToolButton>
                 {!plain && (
                     <>
-                    <ToolButton title={tr("Link para o catálogo: [[Nome]]", 'Link to the catalog: [[Name]]')} onClick={() => wrap('[[', ']]', tr('Nome', 'Name'))} disabled={!showEditor}><LinkIcon fontSize="small" /></ToolButton>
+                    <ToolButton title={props.linkTitle ?? tr("Link para o catálogo: [[Nome]]", 'Link to the catalog: [[Name]]')} onClick={() => wrap('[[', ']]', tr('Nome', 'Name'))} disabled={!showEditor}><LinkIcon fontSize="small" /></ToolButton>
+                    {playersBlock && (
                     <ToolButton title={tr("Bloco para os jogadores", 'Block for the players')} onClick={() => wrap(tr(':::jogadores Título\n', ':::players Title\n'), '\n:::', tr('O que os jogadores leem.', 'What the players read.'))} disabled={!showEditor}>
                         <PlayersIcon fontSize="small" sx={{ color: gold.deep }} />
                     </ToolButton>
+                    )}
+                    {gmBlock && (
+                    <ToolButton title={tr("Trecho do mestre (os jogadores não veem)", 'GM-only block (players don\'t see it)')} onClick={() => wrap(tr(':::mestre\n', ':::gm\n'), '\n:::', tr('O que só o mestre sabe.', 'What only the GM knows.'))} disabled={!showEditor}>
+                        <SecretIcon fontSize="small" sx={{ color: ink.secondary }} />
+                    </ToolButton>
+                    )}
                     <ToolButton title={tr("Enviar imagem", 'Upload image')} onClick={() => fileRef.current?.click()} disabled={!showEditor || uploading}>
                     {uploading ? <CircularProgress size={16} /> : <ImageIcon fontSize="small" />}
                     </ToolButton>
@@ -192,6 +208,7 @@ export const MarkdownEditor = memo(function MarkdownEditor(props: Props) {
                                     onShareImage={tools.shareImage}
                                     onWikiLink={tools.openWiki}
                                     knownNames={tools.knownNames}
+                                    resolveLink={tools.resolveLink}
                                 />
                             )
                             : <Box sx={{ color: 'text.secondary', fontStyle: 'italic' }}>{tr('Nada escrito ainda.', 'Nothing written yet.')}</Box>}
