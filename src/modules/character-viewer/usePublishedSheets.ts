@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
-import { listPublished, type PublishedSummary } from '../../services/sheets'
+import { listSheetsAndDrafts, type PublishedSummary, type SheetDraft } from '../../services/sheets'
 import { onSheetNotice } from '../../services/sheetNotices'
+import { onPreparationFinished } from '../../services/sheetPreparation'
 import { charSlugFromName } from './charId'
 import { CAMPAIGN_PRESETS, type CharacterPreset } from './campaignPresets'
 
@@ -13,14 +14,29 @@ const CAMPAIGN_SLUGS = new Set(CAMPAIGN_PRESETS.map((p) => charSlugFromName(p.sh
  */
 export function usePublishedSheets() {
     const [published, setPublished] = useState<PublishedSummary[]>([])
+    // Publicações em preparo (rascunhos): a ficha ainda não está na mesa.
+    const [drafts, setDrafts] = useState<SheetDraft[]>([])
 
     useEffect(() => {
         let cancelled = false
-        const load = () => { listPublished().then((list) => { if (!cancelled) setPublished(list) }) }
+        let timer: ReturnType<typeof setTimeout> | null = null
+        const load = () => {
+            listSheetsAndDrafts().then((list) => {
+                if (cancelled) return
+                setPublished(list.sheets)
+                setDrafts(list.drafts)
+            })
+        }
         load()
-        // Publicação ou restauração em outro aparelho: o nível dos cards acompanha.
-        const stop = onSheetNotice((notice) => { if (notice.kind === 'published') load() })
-        return () => { cancelled = true; stop() }
+        // Publicação ou restauração em outro aparelho: o nível dos cards acompanha. O andamento de um
+        // preparo chega a cada passo; junta a rajada numa leitura só.
+        const stop = onSheetNotice((notice) => {
+            if (notice.kind === 'published' || notice.kind === 'prepared') load()
+            else if (notice.kind === 'preparing' && !timer) timer = setTimeout(() => { timer = null; load() }, 1500)
+        })
+        // Sem Realtime (modo local, canal fechado), o preparo que esta aba terminou também relê.
+        const stopFinished = onPreparationFinished(load)
+        return () => { cancelled = true; stop(); stopFinished(); if (timer) clearTimeout(timer) }
     }, [])
 
     const find = useCallback(
@@ -40,5 +56,8 @@ export function usePublishedSheets() {
         [published],
     )
 
-    return { published, find, levelOf, extras, ownerOf }
+    /** O rascunho em preparo deste personagem, ou `null`. */
+    const draftOf = useCallback((slug: string) => drafts.find((d) => d.slug === slug) ?? null, [drafts])
+
+    return { published, find, levelOf, extras, ownerOf, drafts, draftOf }
 }

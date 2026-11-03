@@ -1,7 +1,9 @@
 // Avisos de ficha publicada (migration `aviso_de_ficha_publicada`): o banco conta,
 // no canal `mesa:<mesa>:sheets`, quando uma ficha ganha versão nova (publicar ou
 // restaurar) e quando o guia dela fica pronto. Só a referência viaja; a ficha é
-// relida pela API (`fetchPublished`).
+// relida pela API (`fetchPublished`). Também conta o andamento de uma publicação em
+// preparo (migration `publicacao_preparada`): `preparing` a cada passo do rascunho e
+// `prepared` quando ele sai (promovido ou descartado).
 //
 // Um canal só, aberto na primeira assinatura e mantido (mesmo motivo de
 // `services/encounters.ts`: sair e entrar no mesmo tópico em seguida perdia o canal).
@@ -21,6 +23,8 @@ export interface SheetPublishedNotice {
 export type SheetNotice =
     | ({ kind: 'published' } & SheetPublishedNotice)
     | { kind: 'guide'; slug: string; publishedAt: number }
+    | { kind: 'preparing'; slug: string }
+    | { kind: 'prepared'; slug: string }
 
 const latest = new Map<string, SheetPublishedNotice>()
 const listeners = new Set<(notice: SheetNotice) => void>()
@@ -52,6 +56,19 @@ function start() {
             const p = payload as { slug?: unknown; publishedAt?: unknown } | null
             if (!p || typeof p.slug !== 'string' || typeof p.publishedAt !== 'number') return
             const notice: SheetNotice = { kind: 'guide', slug: p.slug, publishedAt: p.publishedAt }
+            listeners.forEach((l) => l(notice))
+        },
+        // O andamento em si é relido pela API (`?sheets=1`): aqui só o aviso de que mudou.
+        preparing: (payload) => {
+            const p = payload as { slug?: unknown } | null
+            if (!p || typeof p.slug !== 'string') return
+            const notice: SheetNotice = { kind: 'preparing', slug: p.slug }
+            listeners.forEach((l) => l(notice))
+        },
+        prepared: (payload) => {
+            const p = payload as { slug?: unknown } | null
+            if (!p || typeof p.slug !== 'string') return
+            const notice: SheetNotice = { kind: 'prepared', slug: p.slug }
             listeners.forEach((l) => l(notice))
         },
     }, () => {}).then((stop) => {

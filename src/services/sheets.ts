@@ -69,10 +69,24 @@ export interface PublishedSummary {
     ownerId: string | null
 }
 
+/** Erro de um pedido ao servidor, com o status (0 = sem resposta: rede fora). */
+export class SheetApiError extends Error {
+    status: number
+    constructor(message: string, status: number) {
+        super(message)
+        this.status = status
+    }
+}
+
 async function call<T>(init: RequestInit | null, query = ''): Promise<T> {
-    const r = await fetch(stateApi(query), init ?? undefined)
+    let r: Response
+    try {
+        r = await fetch(stateApi(query), init ?? undefined)
+    } catch {
+        throw new SheetApiError(tr('Sem conexão com o servidor', 'No connection to the server'), 0)
+    }
     const body = await r.json().catch(() => ({}))
-    if (!r.ok) throw new Error((body as { error?: string }).error || tr(`Erro ${r.status}`, `Error ${r.status}`))
+    if (!r.ok) throw new SheetApiError((body as { error?: string }).error || tr(`Erro ${r.status}`, `Error ${r.status}`), r.status)
     return body as T
 }
 
@@ -85,11 +99,16 @@ const post = async <T>(payload: Record<string, unknown>) =>
     })
 
 export async function listPublished(): Promise<PublishedSummary[]> {
+    return (await listSheetsAndDrafts()).sheets
+}
+
+/** As fichas publicadas e os rascunhos em preparo (uma consulta só). */
+export async function listSheetsAndDrafts(): Promise<{ sheets: PublishedSummary[]; drafts: SheetDraft[] }> {
     try {
-        const { sheets } = await call<{ sheets: PublishedSummary[] }>(null, '?sheets=1')
-        return sheets ?? []
+        const { sheets, drafts } = await call<{ sheets?: PublishedSummary[]; drafts?: SheetDraft[] }>(null, '?sheets=1')
+        return { sheets: sheets ?? [], drafts: drafts ?? [] }
     } catch {
-        return []
+        return { sheets: [], drafts: [] }
     }
 }
 
@@ -133,4 +152,84 @@ export async function saveEditedGuide(slug: string, publishedAt: number, markdow
 export async function restoreSheet(slug: string): Promise<PublishedSheet> {
     const { sheet } = await post<{ sheet: PublishedSheet }>({ action: 'restore', char: slug })
     return sheet
+}
+
+// --- Publicação preparada (ver `api/_lib/sheet-draft.js`) -----------------------------
+//
+// O JSON enviado vira um RASCUNHO, e a ficha só entra na mesa quando tudo o que ela precisa
+// está no banco: consultas da AON, companheiros, descrições em português e em inglês, o guia
+// nas duas línguas. Quem publicou conduz o preparo (`draft-step` em laço, `sheetPreparation.ts`).
+
+/** Os passos do preparo, na ordem em que o servidor os faz. */
+export const DRAFT_STEPS = ['lookups', 'companions', 'desc-pt', 'desc-en', 'guide-pt', 'guide-en', 'finish'] as const
+export type DraftStep = (typeof DRAFT_STEPS)[number]
+
+/** Por que o preparo está esperando: a tradução, o guia, a AON, outro aparelho, a rede. */
+export type DraftWaitReason = 'translation' | 'guide' | 'aon' | 'busy' | 'network'
+
+export interface DraftProgress {
+    step: DraftStep
+    steps: Record<DraftStep, 'pending' | 'done'>
+    /** Quantas descrições faltam, por idioma. */
+    remaining: Partial<Record<DraftStep, number>>
+    done: number
+    total: number
+    waiting: DraftWaitReason | null
+    retryAt: number | null
+    attempts: number
+}
+
+export interface SheetDraft {
+    slug: string
+    name: string
+    className: string
+    level: number
+    /** Quem enviou (conduz o preparo, com o GM). */
+    createdBy: string | null
+    updatedAt: number
+    progress: DraftProgress
+}
+
+export type DraftStepResult =
+    | { state: 'working' | 'waiting' | 'busy'; retryIn?: number; draft?: SheetDraft }
+    | { state: 'ready'; sheet: PublishedSheet }
+    | { state: 'error'; error: string; draft?: SheetDraft }
+    | { state: 'gone' }
+
+export interface DraftInput {
+    json: unknown
+    names: Record<'spell' | 'feat' | 'special' | 'item', string[]>
+    /** A `CACHE_VERSION` das descrições. */
+    version: string
+    companions: string[]
+    base: GuideBases
+}
+
+export async function createDraft(input: DraftInput): Promise<SheetDraft> {
+    const { draft } = await post<{ draft: SheetDraft }>({
+        action: 'draft-create',
+        sheet: input.json,
+        names: input.names,
+        version: input.version,
+        companions: input.companions,
+        baseGuide: input.base.pt,
+        baseGuideEn: input.base.en,
+    })
+    return draft
+}
+
+export const stepDraft = (slug: string) => post<DraftStepResult>({ action: 'draft-step', char: slug })
+
+export async function discardDraft(slug: string): Promise<void> {
+    await post({ action: 'draft-discard', char: slug })
+}
+
+/** O andamento de um rascunho, ou `null` (não há, ou rede fora). */
+export async function fetchDraft(slug: string): Promise<SheetDraft | null> {
+    try {
+        const { draft } = await call<{ draft: SheetDraft | null }>(null, `?sheetDraft=${encodeURIComponent(slug)}`)
+        return draft
+    } catch {
+        return null
+    }
 }
