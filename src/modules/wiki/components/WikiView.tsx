@@ -73,7 +73,7 @@ export const WikiView = memo(function WikiView(props: Props) {
                 {page.locked && <Chip size="small" icon={<LockIcon />} label={tr('Travada pelo GM', 'Locked by the GM')} variant="outlined" />}
                 {page.hasSecrets && <Chip size="small" icon={<SecretIcon />} label={tr('Tem trechos do mestre', 'Has GM-only parts')} variant="outlined" />}
             </Stack>
-            <Typography component="h1" variant="h4" sx={{ mb: 0.5, overflowWrap: 'anywhere' }}>{page.title}</Typography>
+            <Typography component="h1" variant="h2" sx={{ mb: 0.5, overflowWrap: 'anywhere' }}>{page.title}</Typography>
             {page.aliases.length > 0 && (
                 <Typography variant="body2" sx={{ color: ink.secondary, mb: 0.5 }}>
                     {tr('Também chamado: ', 'Also known as: ')}{page.aliases.join(', ')}</Typography>

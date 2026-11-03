@@ -12,7 +12,7 @@ import {
 } from '../../services/wiki'
 import { linkName } from '../../components/markdown/blocks'
 import { gold, parchment, rule } from '../../theme'
-import { KIND_LABEL, templateFor } from './kinds'
+import { KIND_LABEL } from './kinds'
 import { findPage, formatWhen, authorName, useNameIndex, useWikiPageView } from './useWiki'
 import { WikiList, RecentChanges } from './components/WikiList'
 import { WikiView } from './components/WikiView'
@@ -50,7 +50,7 @@ export function WikiPage() {
 
     const open = useCallback((pageId: string) => { setCreating(null); navigate(`${BASE}/${pageId}`) }, [navigate])
     const startNew = useCallback((title = '', kind: WikiKind = 'npc') => {
-        setCreating(blankPage(kind, title, templateFor(kind)))
+        setCreating(blankPage(kind, title))
         if (id) navigate(BASE)
     }, [id, navigate])
 
@@ -63,7 +63,7 @@ export function WikiPage() {
         if (existing && index.list) open(existing)
         else if (index.list) {
             const kind = (WIKI_KINDS as readonly string[]).includes(novoTipo ?? '') ? novoTipo as WikiKind : 'npc'
-            setCreating(blankPage(kind, novo.slice(0, 120), templateFor(kind)))
+            setCreating(blankPage(kind, novo.slice(0, 120)))
         } else return
         setParams((p) => { p.delete('nova'); p.delete('tipo'); return p }, { replace: true }) // i18n-ok: parâmetro da URL
     }, [novo, novoTipo, names, index.list, open, setParams])
