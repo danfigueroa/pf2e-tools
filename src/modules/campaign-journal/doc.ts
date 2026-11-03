@@ -65,15 +65,23 @@ export interface SessionData {
     prep: string
     scenes: Scene[]
     encounters: PlannedEncounter[]
-    /** Fichas do catálogo e ganchos que aparecem nesta sessão. */
+    /** Fichas do catálogo e ganchos que aparecem nesta sessão, e páginas da Wiki (`wiki:<id>`). */
     links: string[]
     log: LogEntry[]
     recap: string
     /** Grupo do planejador de encontros: `null` = o das fichas publicadas. */
     party: { level: number; size: number } | null
+    /** A página da Wiki da Mesa onde o resumo foi publicado como crônica. */
+    chronicle: string | null
 }
 
-export interface CatalogData { image: string | null; md: string; tags: string[] }
+export interface CatalogData {
+    image: string | null
+    md: string
+    tags: string[]
+    /** A página da Wiki da Mesa ligada a esta ficha (a parte que a mesa conhece). */
+    wiki: string | null
+}
 
 export interface ThreadData {
     md: string
@@ -112,6 +120,11 @@ const MAX_LINKS = 200
 const MAX_TAGS = 12
 
 export const ID_RE = /^[a-z0-9-]{1,64}$/
+/** Uma página da Wiki da Mesa (o id de `services/wiki.ts`). */
+export const WIKI_ID_RE = /^w-[a-z0-9]{6,32}$/
+/** No elenco da sessão, a página da Wiki vai como `wiki:<id>`. */
+export const WIKI_LINK_PREFIX = 'wiki:'
+const isLink = (x: string) => ID_RE.test(x) || (x.startsWith(WIKI_LINK_PREFIX) && WIKI_ID_RE.test(x.slice(WIKI_LINK_PREFIX.length)))
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/
 
 export const newId = (prefix: string) => `${prefix}-${crypto.randomUUID().replace(/-/g, '').slice(0, 12)}`
@@ -124,7 +137,8 @@ const arr = (v: unknown): unknown[] => (Array.isArray(v) ? v : [])
 const obj = (v: unknown): Record<string, unknown> => (v && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, unknown> : {})
 const idOr = (v: unknown, prefix: string) => (typeof v === 'string' && ID_RE.test(v) ? v : newId(prefix))
 const day = (v: unknown) => (typeof v === 'string' && DAY_RE.test(v) ? v : null)
-const ids = (v: unknown, max: number) => [...new Set(arr(v).filter((x): x is string => typeof x === 'string' && ID_RE.test(x)))].slice(0, max)
+const links = (v: unknown, max: number) => [...new Set(arr(v).filter((x): x is string => typeof x === 'string' && isLink(x)))].slice(0, max)
+const wikiId = (v: unknown) => (typeof v === 'string' && WIKI_ID_RE.test(v) ? v : null)
 
 function creatureOf(raw: unknown): AonCreature | null {
     const c = obj(raw)
@@ -137,7 +151,7 @@ function creatureOf(raw: unknown): AonCreature | null {
 export function emptySession(number: number): SessionData {
     return {
         number, plannedFor: null, playedOn: null, status: 'planned', prep: '', scenes: [], encounters: [],
-        links: [], log: [], recap: '', party: null,
+        links: [], log: [], recap: '', party: null, chronicle: null,
     }
 }
 
@@ -172,7 +186,7 @@ function sessionData(raw: unknown): SessionData {
                 }),
             }
         }),
-        links: ids(d.links, MAX_LINKS),
+        links: links(d.links, MAX_LINKS),
         log: arr(d.log).slice(-MAX_LOG).flatMap((l) => {
             const x = obj(l)
             const text = str(x.text, 2000).trim()
@@ -184,6 +198,7 @@ function sessionData(raw: unknown): SessionData {
         party: Number.isInteger(party.level) && Number.isInteger(party.size)
             ? { level: Math.min(25, Math.max(-1, party.level as number)), size: Math.min(12, Math.max(1, party.size as number)) }
             : null,
+        chronicle: wikiId(d.chronicle),
     }
 }
 
@@ -193,6 +208,7 @@ function catalogData(raw: unknown): CatalogData {
         image: typeof d.image === 'string' && d.image.length <= 500 ? d.image : null,
         md: str(d.md, MAX_TEXT),
         tags: [...new Set(arr(d.tags).map((t) => line(t, 30).trim()).filter(Boolean))].slice(0, MAX_TAGS),
+        wiki: wikiId(d.wiki),
     }
 }
 
@@ -235,7 +251,7 @@ export function sanitizeSummary(raw: unknown): JournalSummary | null {
         updatedAt: typeof r.updatedAt === 'number' ? r.updatedAt : 0,
         image: typeof r.image === 'string' ? r.image : null,
         status: typeof r.status === 'string' ? r.status : null,
-        links: ids(r.links, MAX_LINKS),
+        links: links(r.links, MAX_LINKS),
     }
 }
 
@@ -244,7 +260,7 @@ export function newDoc(kind: DocKind, title: string, opts: { number?: number; md
     const base: Base = { id: newId(kind === 'session' ? 's' : kind === 'thread' ? 'g' : 'f'), title, sort: opts.number ?? 0, updatedAt: null }
     if (kind === 'session') return { ...base, kind, data: { ...emptySession(opts.number ?? 0), prep: opts.md ?? '' } }
     if (kind === 'thread') return { ...base, kind, data: { md: opts.md ?? '', status: 'open', introducedIn: null, resolvedIn: null } }
-    return { ...base, kind, data: { image: null, md: opts.md ?? '', tags: [] } }
+    return { ...base, kind, data: { image: null, md: opts.md ?? '', tags: [], wiki: null } }
 }
 
 /** Para o servidor (`journal-save`): sem o `updatedAt`, que ele mesmo dá. */

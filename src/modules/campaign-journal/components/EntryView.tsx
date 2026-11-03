@@ -1,8 +1,13 @@
 import { memo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
-    Alert, Autocomplete, Box, Button, Chip, CircularProgress, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography,
+    Alert, Autocomplete, Box, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Stack,
+    TextField, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material'
-import { AddPhotoAlternate as PhotoIcon, Campaign as ShareIcon, Delete as DeleteIcon } from '@mui/icons-material'
+import { AddPhotoAlternate as PhotoIcon, AutoStories as WikiIcon, Campaign as ShareIcon, Delete as DeleteIcon } from '@mui/icons-material'
+import { Markdown } from '../../../components/markdown/Markdown'
+import { playersText } from '../../../components/markdown/blocks'
+import { blankPage, saveWikiPage, useWikiIndex, type WikiSummary } from '../../../services/wiki'
 import { imageErrorText, shrinkImage, uploadImage, useImageUrl } from '../../../services/images'
 import { displayFont, parchment, rule, greenInk } from '../../../theme'
 import {
@@ -130,10 +135,86 @@ export const CatalogView = memo(function CatalogView({ doc, version, update, doc
                 minRows={14}
                 aria-label={tr(`Texto de ${doc.title}`, `Text of ${doc.title}`)}
             />
+            <WikiLink doc={doc} onLink={(wiki) => setData({ wiki })} />
             <Appearances id={doc.id} docs={docs} onOpen={onOpen} />
         </Box>
     )
 })
+
+/**
+ * A ficha do catálogo (secreta) e a página da Wiki da Mesa (o que a mesa conhece) ligadas: abrir a
+ * página, ligar a uma que já existe, ou criar uma a partir desta — que leva título, imagem, etiquetas
+ * e SÓ os trechos `:::jogadores`, depois de o GM ver o que vai.
+ */
+function WikiLink({ doc, onLink }: { doc: CatalogDoc; onLink: (id: string | null) => void }) {
+    const navigate = useNavigate()
+    const pages = useWikiIndex().list?.pages ?? null
+    const [confirm, setConfirm] = useState(false)
+    const [busy, setBusy] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+    const linked = doc.data.wiki ? pages?.find((p) => p.id === doc.data.wiki) ?? null : null
+    const text = playersText(doc.data.md)
+
+    const create = async () => {
+        setBusy(true)
+        setError(null)
+        const page = { ...blankPage(doc.kind, doc.title, text), image: doc.data.image, tags: doc.data.tags }
+        const out = await saveWikiPage(page, null)
+        setBusy(false)
+        if (!out.ok) { setError(out.conflict ? tr('Tente de novo', 'Try again') : out.error); return }
+        setConfirm(false)
+        onLink(page.id)
+    }
+
+    return (
+        <Box sx={{ mt: 2 }}>
+            <Typography sx={{ fontFamily: displayFont, fontWeight: 700, color: greenInk.main, mb: 0.75 }}>{tr('Na Wiki da Mesa', 'On the Table Wiki')}</Typography>
+            {doc.data.wiki
+                ? (
+                    <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+                        {linked
+                            ? <Chip icon={<WikiIcon />} label={linked.title} onClick={() => navigate(`/wiki/${linked.id}`)} />
+                            : <Typography variant="body2" color="text.secondary">{pages ? tr('A página ligada foi apagada.', 'The linked page was deleted.') : tr('Carregando…', 'Loading…')}</Typography>}
+                        <Button size="small" color="inherit" onClick={() => onLink(null)}>{tr('Desligar', 'Unlink')}</Button>
+                    </Stack>
+                )
+                : (
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }}>
+                        <Autocomplete<WikiSummary>
+                            size="small"
+                            options={pages ?? []}
+                            getOptionLabel={(p) => p.title}
+                            value={null}
+                            onChange={(_, v) => { if (v) onLink(v.id) }}
+                            renderInput={(params) => <TextField {...params} placeholder={tr('Ligar a uma página da Wiki…', 'Link to a wiki page…')} />}
+                            sx={{ flex: 1, minWidth: 0 }}
+                            blurOnSelect
+                        />
+                        <Button size="small" startIcon={<WikiIcon />} onClick={() => setConfirm(true)}>{tr('Criar na Wiki a partir desta', 'Create on the wiki from this')}</Button>
+                    </Stack>
+                )}
+            {confirm && (
+                <Dialog open onClose={() => setConfirm(false)} fullWidth maxWidth="sm">
+                    <DialogTitle>{tr('Criar "', 'Create "')}{doc.title}{tr('" na Wiki', '" on the wiki')}</DialogTitle>
+                    <DialogContent dividers>
+                        <Typography variant="body2" sx={{ mb: 1.5 }}>
+                            {tr('A página nasce pública, com o título, a imagem, as etiquetas e só os trechos :::jogadores desta ficha. O resto continua secreto no Diário.', 'The page starts public, with this entry\'s title, image, tags and only its :::players blocks. The rest stays secret in the Journal.')}</Typography>
+                        <Box sx={{ p: 1.5, border: `1px dashed ${rule}`, borderRadius: 1, bgcolor: parchment.paper }}>
+                            {text
+                                ? <Markdown source={text} dense />
+                                : <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>{tr('Nenhum trecho :::jogadores: a página nasce sem texto.', 'No :::players block: the page starts with no text.')}</Typography>}
+                        </Box>
+                        {error && <Alert severity="error" sx={{ mt: 1.5 }}>{error}</Alert>}
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setConfirm(false)}>{tr('Cancelar', 'Cancel')}</Button>
+                        <Button variant="contained" disabled={busy} onClick={() => void create()}>{tr('Criar', 'Create')}</Button>
+                    </DialogActions>
+                </Dialog>
+            )}
+        </Box>
+    )
+}
 
 interface ThreadProps {
     doc: ThreadDoc

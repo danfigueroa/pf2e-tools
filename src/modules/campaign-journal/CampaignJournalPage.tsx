@@ -8,6 +8,8 @@ import { ArrowBack, Delete as DeleteIcon, CloudDone, CloudOff, CloudUpload } fro
 import { useRole } from '../../services/auth'
 import { listPublished } from '../../services/sheets'
 import { deleteJournalDoc, fetchJournalDoc, revealToTable, saveJournalDoc } from '../../services/journal'
+import { useWikiIndex } from '../../services/wiki'
+import { foldName, linkName } from '../../components/markdown/blocks'
 import { displayFont, gold, green, parchment, rule, onFrame } from '../../theme'
 import {
     CATALOG_KINDS, KIND_LABEL, newDoc, sanitizeDoc, wireDoc, type CatalogDoc, type CatalogKind, type DocKind,
@@ -103,12 +105,34 @@ function Journal() {
         list.patch({ ...next, updatedAt: out.updatedAt })
     }, [list])
 
+    // `[[Nome]]`: primeiro o catálogo do diário, depois a Wiki da Mesa; `[[wiki:Nome]]` vai direto à Wiki.
+    const wiki = useWikiIndex()
+    const wikiNames = useMemo(() => {
+        const map = new Map<string, string>()
+        for (const p of wiki.list?.pages ?? []) {
+            for (const n of [p.title, ...p.aliases]) if (!map.has(foldName(n))) map.set(foldName(n), p.id)
+        }
+        return map
+    }, [wiki.list])
     const knownNames = useMemo(() => new Set(docs.filter((d) => d.kind !== 'session').map((d) => d.title.toLowerCase())), [docs])
-    const openWiki = useCallback((name: string) => {
-        const found = docs.find((d) => d.kind !== 'session' && d.title.toLowerCase() === name.toLowerCase())
-        if (found) open(found.id)
+    const catalogOf = useCallback((name: string) =>
+        docs.find((d) => d.kind !== 'session' && d.title.toLowerCase() === name.toLowerCase()) ?? null, [docs])
+    const resolveLink = useCallback((target: string) => {
+        const forced = /^wiki:/i.test(target)
+        const name = linkName(target)
+        if (!forced && catalogOf(name)) return 'known' as const
+        return wikiNames.has(foldName(name)) ? 'wiki' as const : 'missing' as const
+    }, [catalogOf, wikiNames])
+    const openWiki = useCallback((target: string) => {
+        const forced = /^wiki:/i.test(target)
+        const name = linkName(target)
+        const found = forced ? null : catalogOf(name)
+        if (found) { open(found.id); return }
+        const page = wikiNames.get(foldName(name))
+        if (page) navigate(`/wiki/${page}`)
+        else if (forced) navigate(`/wiki?nova=${encodeURIComponent(name)}`)
         else setWikiNew({ name, kind: 'npc' })
-    }, [docs, open])
+    }, [catalogOf, wikiNames, open, navigate])
 
     const confirmReveal = useCallback(async (draft: RevealDraft) => {
         if (!reveal) return tr('Nada para mostrar', 'Nothing to show')
@@ -149,7 +173,7 @@ function Journal() {
                             onDeleted={(docId) => { list.drop(docId); navigate(BASE) }}
                             onCreate={create}
                             onThreadStatus={(docId, s) => void threadStatus(docId, s)}
-                            tools={{ knownNames, openWiki }}
+                            tools={{ knownNames, openWiki, resolveLink }}
                             onReveal={(draft) => setReveal({ ...draft, source: id })}
                         />
                     )
@@ -162,7 +186,7 @@ function Journal() {
                 <Dialog open onClose={() => setWikiNew(null)} fullWidth maxWidth="xs">
                     <DialogTitle>{tr('Criar "', 'Create "')}{wikiNew.name}"</DialogTitle>
                     <DialogContent>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{tr('Ainda não há ficha com esse nome no catálogo.', 'There\'s no entry with that name in the catalog yet.')}</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{tr('Ainda não há ficha com esse nome no catálogo nem página na Wiki da Mesa.', 'There\'s no entry with that name in the catalog nor a page on the Table Wiki yet.')}</Typography>
                         <TextField
                             select
                             size="small"
@@ -177,12 +201,18 @@ function Journal() {
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setWikiNew(null)}>{tr('Cancelar', 'Cancel')}</Button>
+                        <Button onClick={() => {
+                            const { name, kind } = wikiNew
+                            setWikiNew(null)
+                            navigate(`/wiki?nova=${encodeURIComponent(name)}&tipo=${kind}`)
+                        }}>
+                            {tr('Criar na Wiki', 'Create on the wiki')}</Button>
                         <Button variant="contained" onClick={() => {
                             const { name, kind } = wikiNew
                             setWikiNew(null)
                             void create(kind, name).then((docId) => { if (docId) open(docId) })
                         }}>
-                            {tr('Criar e abrir', 'Create and open')}</Button>
+                            {tr('Criar no catálogo', 'Create in the catalog')}</Button>
                     </DialogActions>
                 </Dialog>
             )}
@@ -223,7 +253,7 @@ interface DocPanelProps {
     onDeleted: (id: string) => void
     onCreate: (kind: DocKind, title: string, from?: string) => Promise<string | null>
     onThreadStatus: (id: string, status: ThreadStatus) => void
-    tools: Pick<JournalTools, 'knownNames' | 'openWiki'>
+    tools: Pick<JournalTools, 'knownNames' | 'openWiki' | 'resolveLink'>
     onReveal: (draft: RevealDraft) => void
 }
 

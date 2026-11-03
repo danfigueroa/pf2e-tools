@@ -1,5 +1,5 @@
 import { memo, useCallback, useMemo, useState } from 'react'
-import { Link as RouterLink } from 'react-router-dom'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import {
     Alert, Autocomplete, Avatar, Box, Button, Chip, IconButton, Paper, Stack, Tab, Tabs, TextField,
     ToggleButton, ToggleButtonGroup, Typography,
@@ -13,9 +13,12 @@ import { saveMesaSettings } from '../../../services/members'
 import { diaryDayOf } from '../../../services/diary'
 import { useImageUrl } from '../../../services/images'
 import { bodyFont, displayFont, gold, green, parchment, rule, greenInk, onFrame } from '../../../theme'
-import { wikiNames } from '../../../components/markdown/blocks'
+import { foldName, linkName, wikiNames } from '../../../components/markdown/blocks'
+import { useWikiIndex, type WikiSummary } from '../../../services/wiki'
+import { KIND_LABEL as WIKI_KIND_LABEL } from '../../wiki/kinds'
+import { ChronicleButton } from './ChronicleDialog'
 import {
-    CATALOG_KINDS, KIND_LABEL, newId, type CatalogKind, type DocKind, type JournalSummary, type PlannedEncounter,
+    CATALOG_KINDS, KIND_LABEL, newId, WIKI_LINK_PREFIX, type CatalogKind, type DocKind, type JournalSummary, type PlannedEncounter,
     type Scene, type SceneStatus, type SessionData, type SessionDoc, type ThreadStatus,
 } from '../doc'
 import { TEMPLATES } from '../templates'
@@ -30,6 +33,8 @@ import { tr } from '../../../i18n'
 // registro do que acontece na mesa e o resumo do fim.
 
 type TabKey = 'prep' | 'scenes' | 'encounters' | 'cast' | 'log' | 'recap'
+
+const NO_PAGES: WikiSummary[] = []
 
 const SCENE_STATUS: Record<SceneStatus, string> = { planned: tr('Planejada', 'Planned'), done: tr('Feita', 'Done'), skipped: tr('Pulada', 'Skipped') }
 
@@ -107,9 +112,21 @@ function CastPanel({ data, docs, onLinks, onOpen, onCreate }: {
     onLinks: (links: string[]) => void; onOpen: (id: string) => void
     onCreate: (kind: DocKind, title: string) => Promise<string | null>
 }) {
+    const navigate = useNavigate()
     const [kind, setKind] = useState<CatalogKind>('npc')
     const [name, setName] = useState('')
     const catalog = docs.filter((d) => (CATALOG_KINDS as readonly string[]).includes(d.kind))
+    const wikiPages = useWikiIndex().list?.pages ?? NO_PAGES
+    const wikiByName = useMemo(() => {
+        const map = new Map<string, WikiSummary>()
+        for (const p of wikiPages) for (const n of [p.title, ...p.aliases]) if (!map.has(foldName(n))) map.set(foldName(n), p)
+        return map
+    }, [wikiPages])
+    const wikiLinked = data.links
+        .filter((l) => l.startsWith(WIKI_LINK_PREFIX))
+        .map((l) => wikiPages.find((p) => p.id === l.slice(WIKI_LINK_PREFIX.length)))
+        .filter((p): p is WikiSummary => !!p)
+    const wikiOptions = wikiPages.filter((p) => !data.links.includes(WIKI_LINK_PREFIX + p.id)).sort((a, b) => a.title.localeCompare(b.title))
     const linked = data.links.map((id) => catalog.find((d) => d.id === id)).filter((d): d is JournalSummary => !!d)
     const options = catalog.filter((d) => !data.links.includes(d.id)).sort((a, b) => a.title.localeCompare(b.title))
 
@@ -119,8 +136,15 @@ function CastPanel({ data, docs, onLinks, onOpen, onCreate }: {
         return wikiNames(text)
     }, [data.prep, data.recap, data.scenes, data.encounters])
     const byName = new Map(catalog.map((d) => [d.title.toLowerCase(), d]))
-    const toLink = cited.map((n) => byName.get(n.toLowerCase())).filter((d): d is JournalSummary => !!d && !data.links.includes(d.id))
-    const toCreate = cited.filter((n) => !byName.has(n.toLowerCase()))
+    const forced = (n: string) => /^wiki:/i.test(n)
+    const toLink = cited.filter((n) => !forced(n)).map((n) => byName.get(n.toLowerCase())).filter((d): d is JournalSummary => !!d && !data.links.includes(d.id))
+    // Citados que não estão no catálogo, mas são páginas da Wiki da Mesa.
+    const toLinkWiki = [...new Map(cited
+        .filter((n) => forced(n) || !byName.has(n.toLowerCase()))
+        .map((n) => wikiByName.get(foldName(linkName(n))))
+        .filter((p): p is WikiSummary => !!p && !data.links.includes(WIKI_LINK_PREFIX + p.id))
+        .map((p) => [p.id, p])).values()]
+    const toCreate = cited.filter((n) => !forced(n) && !byName.has(n.toLowerCase()) && !wikiByName.has(foldName(n)))
 
     const create = async (title: string, k: CatalogKind) => {
         const id = await onCreate(k, title)
@@ -129,12 +153,15 @@ function CastPanel({ data, docs, onLinks, onOpen, onCreate }: {
 
     return (
         <Stack spacing={2}>
-            {(toLink.length > 0 || toCreate.length > 0) && (
+            {(toLink.length > 0 || toLinkWiki.length > 0 || toCreate.length > 0) && (
                 <Alert severity="info" icon={false}>
                     <Typography variant="body2" sx={{ mb: 1 }}>{tr('Citados no texto desta sessão:', 'Mentioned in this session\'s text:')}</Typography>
                     <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
                         {toLink.map((d) => (
                             <Chip key={d.id} size="small" icon={<AddIcon />} label={tr(`Pôr no elenco: ${d.title}`, `Add to the cast: ${d.title}`)} onClick={() => onLinks([...data.links, d.id])} />
+                        ))}
+                        {toLinkWiki.map((p) => (
+                            <Chip key={p.id} size="small" icon={<AddIcon />} label={tr(`Pôr no elenco (Wiki): ${p.title}`, `Add to the cast (wiki): ${p.title}`)} onClick={() => onLinks([...data.links, WIKI_LINK_PREFIX + p.id])} />
                         ))}
                         {toCreate.map((n) => (
                             <Chip key={n} size="small" variant="outlined" icon={<AddIcon />} label={tr(`Criar NPC: ${n}`, `Create NPC: ${n}`)} onClick={() => void create(n, 'npc')} />
@@ -168,7 +195,29 @@ function CastPanel({ data, docs, onLinks, onOpen, onCreate }: {
                     </Box>
                 )
             })}
-            {linked.length === 0 && (
+            {wikiLinked.length > 0 && (
+                <Box>
+                    <Typography sx={{ fontFamily: displayFont, fontWeight: 700, color: greenInk.main, mb: 0.75 }}>{tr('Da Wiki da Mesa', 'From the Table Wiki')}</Typography>
+                    <Box sx={{ display: 'grid', gap: 1, gridTemplateColumns: 'repeat(auto-fill, minmax(min(220px, 100%), 1fr))' }}>
+                        {wikiLinked.map((p) => (
+                            <Box key={p.id} sx={{
+                                display: 'flex', alignItems: 'center', gap: 1, p: 0.75, pl: 1,
+                                border: `1px solid ${rule}`, borderRadius: 1, bgcolor: parchment.paper,
+                            }}>
+                                <Thumb url={p.image} name={p.title} />
+                                <Button onClick={() => navigate(`/wiki/${p.id}`)} sx={{ flex: 1, minWidth: 0, justifyContent: 'flex-start', textTransform: 'none', color: 'text.primary', px: 0.5, display: 'block', textAlign: 'left' }}>
+                                    <Typography noWrap sx={{ fontWeight: 600 }}>{p.title}</Typography>
+                                    <Typography noWrap variant="caption" color="text.secondary" component="div">{WIKI_KIND_LABEL[p.kind].one}</Typography>
+                                </Button>
+                                <IconButton size="small" aria-label={tr(`Tirar ${p.title} do elenco`, `Remove ${p.title} from the cast`)} onClick={() => onLinks(data.links.filter((x) => x !== WIKI_LINK_PREFIX + p.id))}>
+                                    <CloseIcon fontSize="small" />
+                                </IconButton>
+                            </Box>
+                        ))}
+                    </Box>
+                </Box>
+            )}
+            {linked.length === 0 && wikiLinked.length === 0 && (
                 <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
                     {tr('Ninguém no elenco ainda. Escolha do catálogo da campanha ou crie aqui.', 'Nobody in the cast yet. Pick from the campaign catalog or create one here.')}</Typography>
             )}
@@ -187,6 +236,23 @@ function CastPanel({ data, docs, onLinks, onOpen, onCreate }: {
                     blurOnSelect
                     clearOnBlur
                 />
+                {wikiOptions.length > 0 && (
+                    <>
+                        <Typography variant="body2" sx={{ fontWeight: 600, mt: 2, mb: 1 }}>{tr('Da Wiki da Mesa', 'From the Table Wiki')}</Typography>
+                        <Autocomplete
+                            size="small"
+                            options={wikiOptions}
+                            groupBy={(o) => WIKI_KIND_LABEL[o.kind].many}
+                            getOptionLabel={(o) => o.title}
+                            value={null}
+                            onChange={(_, v) => { if (v) onLinks([...data.links, WIKI_LINK_PREFIX + v.id]) }}
+                            renderInput={(params) => <TextField {...params} placeholder={tr('Buscar na Wiki…', 'Search the wiki…')} />}
+                            noOptionsText={tr('Nada na Wiki com esse nome', 'Nothing on the wiki with that name')}
+                            blurOnSelect
+                            clearOnBlur
+                        />
+                    </>
+                )}
                 <Typography variant="body2" sx={{ fontWeight: 600, mt: 2, mb: 1 }}>{tr('Novo', 'New')}</Typography>
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
                     <TextField
@@ -256,7 +322,7 @@ export const SessionView = memo(function SessionView({ doc, version, update, doc
         { key: 'prep', label: tr('Preparação', 'Prep') },
         { key: 'scenes', label: tr('Cenas', 'Scenes'), count: data.scenes.length },
         { key: 'encounters', label: tr('Encontros', 'Encounters'), count: data.encounters.length },
-        { key: 'cast', label: tr('Elenco', 'Cast'), count: data.links.filter((id) => docs.some((d) => d.id === id && d.kind !== 'thread')).length },
+        { key: 'cast', label: tr('Elenco', 'Cast'), count: data.links.filter((id) => id.startsWith(WIKI_LINK_PREFIX) || docs.some((d) => d.id === id && d.kind !== 'thread')).length },
         { key: 'log', label: tr('Registro', 'Log'), count: data.log.length },
         { key: 'recap', label: tr('Resumo', 'Summary') },
     ]
@@ -428,16 +494,19 @@ export const SessionView = memo(function SessionView({ doc, version, update, doc
                     {tab === 'log' && <SessionLog log={data.log} onChange={(log) => setData({ log })} />}
 
                     {tab === 'recap' && (
-                        <MarkdownEditor
-                            key={`recap-${version}`}
-                            value={data.recap}
-                            onChange={(recap) => setData({ recap })}
-                            imageName={doc.title}
-                            template={TEMPLATES.recap}
-                            minRows={12}
-                            placeholder={tr("O que aconteceu, ganchos para a próxima, recompensas dadas…", 'What happened, hooks for next time, rewards given…')}
-                            aria-label={tr("Resumo da sessão", 'Session summary')}
-                        />
+                        <Stack spacing={1.5}>
+                            <MarkdownEditor
+                                key={`recap-${version}`}
+                                value={data.recap}
+                                onChange={(recap) => setData({ recap })}
+                                imageName={doc.title}
+                                template={TEMPLATES.recap}
+                                minRows={12}
+                                placeholder={tr("O que aconteceu, ganchos para a próxima, recompensas dadas…", 'What happened, hooks for next time, rewards given…')}
+                                aria-label={tr("Resumo da sessão", 'Session summary')}
+                            />
+                            <ChronicleButton session={doc} onPublished={(id) => setData({ chronicle: id })} />
+                        </Stack>
                     )}
                 </Box>
                 <ThreadsPanel
