@@ -5,14 +5,16 @@ import { useSearchParams } from 'react-router-dom'
 import { normalizeBuild, parseCharacterJson, type BuildInfo } from '../../pathbuilder/types'
 import { UploadCard, type JsonOrigin } from './components/UploadCard'
 import { PublishDialog, type PublishBase } from './components/PublishDialog'
+import { PreparingDialog } from './components/PreparingDialog'
 import { usePublication } from './components/usePublication'
-import { fetchPublished, type PublishedSheet } from '../../services/sheets'
+import { createDraft, fetchPublished, type PublishedSheet, type SheetDraft } from '../../services/sheets'
+import { startPreparation } from '../../services/sheetPreparation'
 import { CAMPAIGN_PRESETS } from './campaignPresets'
 import { charSlugFromName } from './charId'
 import { CharacterSheetView } from './CharacterSheetView'
 import { curatedBase } from './combatGuides'
-import { characterDescriptionNames } from './descriptionNames'
-import { loadSheetDescriptionsBoth } from '../../services/descriptions'
+import { characterDescriptionNames, companionAnimalNames } from './descriptionNames'
+import { CACHE_VERSION, loadSheetDescriptionsBoth } from '../../services/descriptions'
 import { mesaKey } from '../../services/mesa'
 import { tr } from '../../i18n'
 
@@ -32,6 +34,8 @@ export const CharacterViewerPage = () => {
     const [publishBusy, setPublishBusy] = useState(false)
     const [publishError, setPublishError] = useState<string | null>(null)
     const [publishedNotice, setPublishedNotice] = useState<string | null>(null)
+    // A publicação em preparo que o diálogo mostra (o preparo segue mesmo com ele fechado).
+    const [preparing, setPreparing] = useState<{ slug: string; name: string; draft: SheetDraft | null } | null>(null)
     // Cada ficha aberta começa na Visão Geral: a chave remonta o corpo.
     const [viewKey, setViewKey] = useState(0)
 
@@ -119,14 +123,25 @@ export const CharacterViewerPage = () => {
         setPending({ json, build: b, base })
     }
 
+    /**
+     * O JSON vira um rascunho no servidor, que prepara tudo (descrições nas duas línguas, guia nas duas,
+     * consultas da AON) antes de a ficha valer para a mesa. O guia que o app mostrava para ESTE
+     * personagem (o curado) vai como base da primeira geração.
+     */
+    const draftOf = (json: unknown, b: BuildInfo) => createDraft({
+        json,
+        names: characterDescriptionNames(b),
+        version: CACHE_VERSION,
+        companions: companionAnimalNames(b),
+        base: curatedBase(b),
+    })
+
+    // O preset que ainda só existe como arquivo é publicado ao ser aberto, em segundo plano: ele já
+    // abre do arquivo (com o pacote estático), e o preparo, rápido, coloca-o na mesa.
     const publishPreset = async (json: unknown, b: BuildInfo) => {
-        const base = curatedBase(b)
         try {
-            const sheet = await publication.publish(json)
-            const published = parseCharacterJson(sheet.json)
-            try { sessionStorage.setItem(SESSION_PUBLISHED_KEY, sheet.slug) } catch { /* noop */ }
-            void publication.generateGuide(sheet, base)
-            void loadSheetDescriptionsBoth(sheet.slug, characterDescriptionNames(published))
+            const draft = await draftOf(json, b)
+            startPreparation(draft.slug, draft)
         } catch { /* sem rede: a ficha segue aberta e tenta de novo na próxima abertura */ }
     }
 
@@ -134,23 +149,23 @@ export const CharacterViewerPage = () => {
         if (!pending) return
         setPublishBusy(true)
         setPublishError(null)
-        // O guia que o app mostrava para ESTE personagem vira a base do novo.
-        const base = curatedBase(pending.build)
         try {
-            const sheet = await publication.publish(pending.json)
-            const published = parseCharacterJson(sheet.json)
-            show(published, sheet)
+            const draft = await draftOf(pending.json, pending.build)
             setPending(null)
-            setPublishedNotice(tr(`${sheet.name} publicada para a mesa.`, `${sheet.name} published to the table.`))
-            void publication.generateGuide(sheet, base)
-            // Já, antes de qualquer jogador abrir: a mesa encontra todas as descrições
-            // traduzidas. Num level-up quase tudo vem do pacote estático e só o novo é traduzido.
-            void loadSheetDescriptionsBoth(sheet.slug, characterDescriptionNames(published))
+            startPreparation(draft.slug, draft)
+            setPreparing({ slug: draft.slug, name: draft.name, draft })
         } catch (e) {
             setPublishError(e instanceof Error ? e.message : tr('Falha ao publicar', 'Failed to publish'))
         } finally {
             setPublishBusy(false)
         }
+    }
+
+    /** O preparo terminou: a ficha está na mesa, completa — agora abre. */
+    const handlePrepared = (sheet: PublishedSheet) => {
+        setPreparing(null)
+        try { show(parseCharacterJson(sheet.json), sheet) } catch { return }
+        setPublishedNotice(tr(`${sheet.name} publicada para a mesa.`, `${sheet.name} published to the table.`))
     }
 
     const handleRestore = async () => {
@@ -211,9 +226,22 @@ export const CharacterViewerPage = () => {
                     onOpenPublished={(sheet) => show(parseCharacterJson(sheet.json), sheet)}
                 />
             ) : (
-                <UploadCard onJson={handleJson} error={error} />
+                <UploadCard onJson={handleJson} error={error} onResume={(draft) => setPreparing({ slug: draft.slug, name: draft.name, draft })} />
             )}
             {publishDialog}
+            {preparing && (
+                <PreparingDialog
+                    slug={preparing.slug}
+                    name={preparing.name}
+                    initial={preparing.draft}
+                    onClose={() => setPreparing(null)}
+                    onReady={handlePrepared}
+                    onDiscarded={() => {
+                        setPreparing(null)
+                        setPublishedNotice(tr('Preparo descartado.', 'Preparation discarded.'))
+                    }}
+                />
+            )}
             {publishSnackbar}
         </>
     )

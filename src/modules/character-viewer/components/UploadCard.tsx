@@ -7,13 +7,16 @@ import {
     CardContent,
     CircularProgress,
     Divider,
+    LinearProgress,
     Typography,
     Alert,
 } from '@mui/material'
 import { CloudUpload as UploadIcon } from '@mui/icons-material'
 import { CAMPAIGN_PRESETS, loadPresetJson, type CharacterPreset } from '../campaignPresets'
 import { usePublishedSheets } from '../usePublishedSheets'
-import { fetchPublished, type PublishedSheet } from '../../../services/sheets'
+import { fetchPublished, type PublishedSheet, type SheetDraft } from '../../../services/sheets'
+import { usePreparation } from '../../../services/sheetPreparation'
+import { canEditSheet, useRole } from '../../../services/auth'
 import { charSlugFromName } from '../charId'
 import { TokenBadge } from '../../battle-map/components/TokenBadge'
 import { tr } from '../../../i18n'
@@ -26,6 +29,8 @@ export type JsonOrigin =
 interface Props {
     onJson: (data: unknown, origin: JsonOrigin) => void
     error: string | null
+    /** Reabre o preparo de uma publicação (o diálogo com a barra). */
+    onResume: (draft: SheetDraft) => void
 }
 
 const TOKEN_SIZE = 56
@@ -48,11 +53,45 @@ const CardToken = ({ loading, slug, name }: { loading: boolean; slug: string; na
     </Box>
 )
 
-export const UploadCard = ({ onJson, error }: Props) => {
+/**
+ * Uma publicação em preparo: o andamento e, para quem pode conduzi-la (quem enviou, o dono da ficha, o
+ * GM), "Continuar" — que reabre o diálogo e retoma o preparo neste aparelho.
+ */
+const DraftRow = ({ draft, canDrive, onResume }: { draft: SheetDraft; canDrive: boolean; onResume: () => void }) => {
+    // Rodando nesta aba, o andamento é o daqui (mais novo que o da lista).
+    const live = usePreparation(draft.slug)
+    // Terminou nesta aba: a lista relê e a linha sai (sem esperar o aviso da mesa).
+    if (live?.phase === 'ready' || live?.phase === 'gone') return null
+    const progress = live?.draft?.progress ?? draft.progress
+    const pct = Math.round((100 * progress.done) / Math.max(1, progress.total))
+    return (
+        <Card variant="outlined" sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <TokenBadge slug={draft.slug} name={draft.name} size={40} />
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2, overflowWrap: 'anywhere' }}>
+                    {draft.name}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                    {draft.className} {draft.level} · {tr(`em preparo · ${pct}%`, `being prepared · ${pct}%`)}
+                </Typography>
+                <LinearProgress variant="determinate" value={pct} sx={{ mt: 0.5, height: 4, borderRadius: 2 }} />
+            </Box>
+            {canDrive ? (
+                <Button size="small" variant="outlined" onClick={onResume}>{tr('Continuar', 'Continue')}</Button>
+            ) : null}
+        </Card>
+    )
+}
+
+export const UploadCard = ({ onJson, error, onResume }: Props) => {
     const inputRef = useRef<HTMLInputElement>(null)
     const [loadingPreset, setLoadingPreset] = useState<string | null>(null)
 
-    const { levelOf, find, extras } = usePublishedSheets()
+    const { levelOf, find, extras, drafts, draftOf, ownerOf } = usePublishedSheets()
+    const role = useRole()
+    // O mesmo portão do servidor (`draft-step`): quem enviou, o dono da ficha que já existe, o GM.
+    const canDrive = (d: SheetDraft) =>
+        (role.userId !== null && d.createdBy === role.userId) || canEditSheet(role, ownerOf(d.slug))
 
     const handleFile = async (file: File) => {
         try {
@@ -95,6 +134,18 @@ export const UploadCard = ({ onJson, error }: Props) => {
                 <Typography color="text.secondary" sx={{ mb: 3, lineHeight: 1.6, textAlign: 'center' }}>
                     {tr('Selecione um personagem da campanha ou carregue seu próprio arquivo JSON.', 'Select a campaign character or load your own JSON file.')}</Typography>
 
+                {drafts.length > 0 && (
+                    <>
+                        <Typography variant="overline" sx={{ color: 'text.secondary', display: 'block', mb: 1.5 }}>
+                            {tr('Em preparo', 'Being prepared')}</Typography>
+                        <Box sx={{ display: 'grid', gap: 1, mb: 3 }}>
+                            {drafts.map((d) => (
+                                <DraftRow key={d.slug} draft={d} canDrive={canDrive(d)} onResume={() => onResume(d)} />
+                            ))}
+                        </Box>
+                    </>
+                )}
+
                 {/* Mesa nova, sem preset nem ficha publicada ainda: sem o título de uma lista vazia. */}
                 {CAMPAIGN_PRESETS.length + extras.length > 0 && (
                     <Typography variant="overline" sx={{ color: 'text.secondary', display: 'block', mb: 1.5 }}>
@@ -130,7 +181,10 @@ export const UploadCard = ({ onJson, error }: Props) => {
                                 <Typography variant="caption" color="text.secondary">
                                     {preset.class} {levelOf(preset)}
                                 </Typography>
-                                {find(preset) && (
+                                {draftOf(charSlugFromName(preset.sheetName)) ? (
+                                    <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontWeight: 600 }}>
+                                        {tr('nova versão em preparo', 'new version being prepared')}</Typography>
+                                ) : find(preset) && (
                                     <Typography variant="caption" sx={{ display: 'block', color: 'primary.main', fontWeight: 600 }}>
                                         {tr('atualizada pela mesa', 'updated by the table')}</Typography>
                                 )}
@@ -151,8 +205,13 @@ export const UploadCard = ({ onJson, error }: Props) => {
                                 <Typography variant="caption" color="text.secondary">
                                     {sheet.className} {sheet.level}
                                 </Typography>
-                                <Typography variant="caption" sx={{ display: 'block', color: 'primary.main', fontWeight: 600 }}>
-                                    {tr('publicada pela mesa', 'published by the table')}</Typography>
+                                {draftOf(sheet.slug) ? (
+                                    <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontWeight: 600 }}>
+                                        {tr('nova versão em preparo', 'new version being prepared')}</Typography>
+                                ) : (
+                                    <Typography variant="caption" sx={{ display: 'block', color: 'primary.main', fontWeight: 600 }}>
+                                        {tr('publicada pela mesa', 'published by the table')}</Typography>
+                                )}
                             </CardActionArea>
                         </Card>
                     ))}

@@ -1,6 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
 import {
-    publishSheet,
     requestGuide,
     restoreSheet,
     saveEditedGuide,
@@ -71,19 +70,13 @@ export function usePublication() {
         setPublished(next)
     }, [])
 
-    const publish = useCallback(async (json: unknown) => {
-        const sheet = await publishSheet(json)
-        attach(sheet)
-        return sheet
-    }, [attach])
-
     const restore = useCallback(async (slug: string) => {
         const sheet = await restoreSheet(slug)
         attach(sheet)
         return sheet
     }, [attach])
 
-    return { published, guideStatus, guideError, attach, publish, restore, generateGuide, editGuide }
+    return { published, guideStatus, guideError, attach, restore, generateGuide, editGuide }
 }
 
 export type PublicationApi = ReturnType<typeof usePublication>

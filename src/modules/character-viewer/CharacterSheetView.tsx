@@ -15,7 +15,7 @@ import {
 } from '@mui/material'
 import { ExpandMore as ExpandIcon, Lock as LockIcon } from '@mui/icons-material'
 import { checkApiAvailable, fetchCompanionStats, loadDescriptionBundle, loadSheetDescriptionsBoth } from '../../services/descriptions'
-import { characterDescriptionNames } from './descriptionNames'
+import { characterDescriptionNames, companionAnimalNames } from './descriptionNames'
 import {
     Shield as OverviewIcon,
     LocalFireDepartment as CombatIcon,
@@ -369,9 +369,7 @@ const SheetBody = ({ build: source, publication, onReset, onRestore, compact = f
     // Pré-busca stats de companheiros animais (só 1-2 fetches, vale eager)
     useEffect(() => {
         if (apiAvailable !== true) return
-        const animals = (source.pets || [])
-            .filter(p => p.type === 'Animal Companion' && p.animal && !source.petDescriptions?.[p.animal])
-            .map(p => p.animal!)
+        const animals = companionAnimalNames(source)
         if (animals.length === 0) return
 
         let cancelled = false

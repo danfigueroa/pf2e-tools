@@ -39,3 +39,12 @@ export function characterDescriptionNames(build: BuildInfo): DescriptionNames {
         item: unique([...inventoryRows(build).map((row) => row.name), ...relicGiftNames(build, 'rune')]),
     }
 }
+
+/**
+ * Os companheiros animais que a ficha busca na AON (a aba Companheiros): os mesmos que a publicação
+ * deixa prontos no banco. O Pathbuilder às vezes já manda a descrição (`petDescriptions`) — esses não.
+ */
+export const companionAnimalNames = (build: BuildInfo): string[] =>
+    unique((build.pets ?? [])
+        .filter((p) => p.type === 'Animal Companion' && p.animal && !build.petDescriptions?.[p.animal])
+        .map((p) => p.animal!))
