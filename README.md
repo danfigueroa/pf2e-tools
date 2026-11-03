@@ -72,19 +72,29 @@ qualquer dispositivo — no desktop as áreas viram **abas**; no mobile viram **
 -   📂 **Carregamento**: upload de JSON, colar texto, ou **presets de campanha** prontos
     (`public/characters/*.json`, registrados em `campaignPresets.ts`). A última ficha fica salva na
     sessão (`sessionStorage`) e é restaurada ao recarregar.
+-   📤 **Publicar para a mesa (preparada)**: enviar o JSON de um personagem mostra o que mudou e, ao
+    publicar, a ficha é **preparada antes de valer**: consultas da AON (armas, armaduras, itens,
+    traços), companheiros, descrições em **português e inglês** e o guia "Como Jogar" nas **duas
+    línguas**, tudo gravado no banco. Uma barra mostra cada passo; a ficha só abre — para quem
+    publicou e para a mesa — quando estiver completa. Se a IA estiver no limite, o preparo espera e
+    tenta de novo sozinho; fechar a aba não perde nada ("Em preparo" → **Continuar** na tela inicial).
+    Num level-up a mesa segue com a versão anterior até o fim. Só o dono da ficha e o GM publicam
+    por cima; a versão anterior fica no histórico e pode ser restaurada.
 -   🗂️ **Áreas**: Visão Geral, Combate, Perícias, Talentos, Habilidades, Magias, Companheiros e
     Inventário — as áreas sem conteúdo (magias, companheiros…) somem automaticamente.
 -   📖 **Guia de Uso "Como Jogar"** na Visão Geral: um resumo tático por personagem (papel em
-    combate, rotina de turno, recursos, erros comuns). É **escrito à mão** por ficha em
-    `combatGuides.ts`; fichas ainda não catalogadas caem num **gerador heurístico** a partir dos
-    dados da build (marcado como automático).
+    combate, rotina de turno, recursos, erros comuns). A ficha publicada traz o guia **gerado por IA**
+    para a versão dela, nas duas línguas (a IA parte do guia anterior, ou do escrito à mão em
+    `combatGuides.ts`); o dono pode editá-lo e acrescentar trechos próprios. Sem guia gerado vale o
+    escrito à mão, e fichas não catalogadas caem num **gerador heurístico** (marcado como automático).
 -   🌐 **Descrições sob demanda**: toque em um talento, habilidade, magia ou item e um _drawer_
     abre com a descrição completa buscada da **Archives of Nethys** e **traduzida para pt-BR**
     (requer o backend rodando; ver [API do Servidor](#-api-do-servidor)).
 -   ✏️ **Correção de tradução pela mesa**: no pé da descrição, "Corrigir tradução" abre o texto para
     editar. A correção vale na hora para todos os aparelhos e as duas mesas, e a tradução automática
     nunca a desfaz. "Desfazer última correção" e "Voltar à tradução automática" estão a um toque.
--   🐾 **Companheiros e familiares**: stats de companheiros animais são pré-carregados do backend.
+-   🐾 **Companheiros e familiares**: stats de companheiros animais vêm da AON e ficam no banco
+    (preparados na publicação).
 -   ✦ **Míticos**: personagens com talento mítico ganham o **pool de 3 Pontos Míticos**
     (gastar/devolver como os slots de magia, "Novo dia" para recuperar tudo) e o valor com
     **proficiência mítica** ao lado de cada salvaguarda, perícia e **ataque** — a proficiência

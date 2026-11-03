@@ -515,7 +515,8 @@ aparelho e o servidor nunca recusava ninguém.
   sem GM (409 ao rebaixar/remover o último).
 - **Ficha tem dono** (`sheets.owner_id`): quem a publica pela primeira vez; só o dono e o GM publicam por cima, pedem o
   guia, restauram e **escrevem o estado do personagem** (PV, slots, condições…). Ficha sem dono (as publicadas antes do
-  login) é só do GM até ele atribuir em `/membros` (`sheet-assign`). Ler é de qualquer membro. `published_by` continua
+  login) é só do GM até ele atribuir em `/membros` (`sheet-assign`). **Em 2026-11-03 as 10 fichas das duas mesas já tinham
+  dono**: cada jogador publica (e prepara) a própria ficha mesmo com a cobrança ligada. Ler é de qualquer membro. `published_by` continua
   sendo só autoria do último publicador.
 - **A autorização mora no servidor, num lugar só**: `api/_lib/state-router.js` (despacho do `/api/state`, usado pela Vercel
   E pelo dev server — antes eram duas cópias) → `access.js` (`resolveAccess`: identidade + papel, cache de 30 s;
@@ -558,7 +559,8 @@ o horizontal fica no cabeçalho verde) e, ao lado (no celular, abaixo: "Conheça
   `CompanionsCard` — que subiria a imagem ao Storage antes de a mesa recusar) leem `useSheetReadOnly()` à mão.
 - **Rollout em passos (a ordem importa)**: (1) migration aditiva + servidor com a flag DESLIGADA; (2) deploy do cliente
   novo; (3) `grant-gm.mjs <mesa>` (imprime o link em `https://pathfinder.danielfigueroa.dev/convite/…`) e o GM cria a conta
-  por ele; (4) o GM convida e atribui as fichas; (5) **cutover**: `AUTH_REQUIRED=1`, apagar `mesa_members` dos usuários `is_anonymous`, desligar
+  por ele; (4) o GM convida e atribui as fichas — **feitos (1) a (4)**: contas criadas e as 10 fichas com dono (conferido no
+  banco em 2026-11-03); (5) **cutover**, o que falta: `AUTH_REQUIRED=1`, apagar `mesa_members` dos usuários `is_anonymous`, desligar
   `enable_anonymous_sign_ins` e uma migration que tira o `insert`/`update` direto de `mesa_members` do `authenticated`
   (hoje ainda liberado para o cliente ANTIGO não perder o Realtime — sem fechar isso, qualquer logado se auto-inscreve).
 - **Não coberto ainda**: os endpoints da AON (`feat`, `search`, `spell`…) seguem abertos (`gateLogin` existe em `access.js`,
