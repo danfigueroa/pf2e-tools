@@ -134,6 +134,17 @@ const EXACT = new Map(Object.entries({
   'Você não faz parte desta mesa': 'You are not part of this table',
   'Você só move o seu próprio token': 'You can only move your own token',
   'Muitas tentativas seguidas — espere um minuto': 'Too many attempts in a row — wait a minute',
+  // Wiki da Mesa
+  'Erro ao tratar a wiki': 'Error handling the wiki',
+  'Página não encontrada': 'Page not found',
+  'Página inválida': 'Invalid page',
+  'Página-mãe inválida': 'Invalid parent page',
+  'Esta página está travada pelo GM': 'The GM locked this page',
+  'Já existe uma página com esse id': 'A page with that id already exists',
+  'Editada por outra pessoa': 'Edited by someone else',
+  'Só quem criou a página e o GM a apagam': 'Only whoever created the page and the GM can delete it',
+  'Só o GM abre a lixeira da Wiki': 'Only the GM can open the wiki trash',
+  'Mande a página para a lixeira antes': 'Move the page to the trash first',
 }))
 
 // Mensagens montadas com um valor no meio.
