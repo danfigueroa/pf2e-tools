@@ -1861,5 +1861,22 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
   eq(blocks.splitSegments('Intro\n:::players Letter\nHi\n:::').map((x) => x.kind).join(','), 'text,players', ':::players (inglês) é o mesmo bloco')
 }
 
+// ── Publicação preparada: a conferência final e a barra (api/_lib/sheet-draft.js) ───────────
+{
+  const draft = await import('../api/_lib/sheet-draft.js')
+  const names = { spell: ['Heal'], feat: ['Toughness'], special: [], item: ['Lost Item'] }
+  const longGuide = (title) => ['## Papel', '## Rotina', '## Defesa', '## Dicas'].map((h) => `${h}\n${title} `.padEnd(400, 'x')).join('\n\n')
+  const guide = { markdown: longGuide('pt'), generatedAt: 1, en: { markdown: longGuide('en'), generatedAt: 1 } }
+  const bundle = { entries: { spell: { Heal: {} }, feat: { Toughness: {} }, special: {}, item: {} }, misses: { spell: {}, feat: {}, special: {}, item: { 'Lost Item': 1 } } }
+  eq(draft.missingParts({ names, bundles: { pt: bundle, en: bundle }, guide }).length, 0, 'Preparo: tudo nas duas línguas (o miss conta como resolvido) e os dois guias = pronta')
+  const noEn = { ...bundle, entries: { ...bundle.entries, feat: {} } }
+  eq(draft.missingParts({ names, bundles: { pt: bundle, en: noEn }, guide }).join(','), 'desc-en', 'Preparo: falta uma descrição em inglês → refaz só o inglês')
+  eq(draft.missingParts({ names, bundles: { pt: bundle, en: bundle }, guide: { ...guide, en: null } }).join(','), 'guide-en', 'Preparo: sem o guia em inglês → não publica')
+  eq(draft.missingParts({ names, bundles: { pt: null, en: bundle }, guide: { generatedAt: 1, markdown: '## curto' } }).join(','), 'desc-pt,guide-pt,guide-en', 'Preparo: pacote ausente e guia que não parece guia')
+  const view = draft.progressView({ names: 10, steps: { lookups: 'done', companions: 'done' }, remaining: { 'desc-pt': 4, 'desc-en': 10 } })
+  ok(view.done === 2 + 6 && view.total === 10 * 2 + 5, 'Barra: cada descrição conta nas duas línguas, e cada passo, 1')
+  eq(draft.progressView({ names: 3, steps: Object.fromEntries(draft.DRAFT_STEPS.map((s) => [s, 'done'])) }).done, 3 * 2 + 5, 'Barra cheia com tudo feito')
+}
+
 console.log(`${passed} conferências ok, ${failures} falha(s).`)
 process.exit(failures ? 1 : 0)

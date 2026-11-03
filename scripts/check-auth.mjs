@@ -24,7 +24,7 @@ const db = supabase()
 const stamp = Date.now().toString(36)
 const password = `Tmp-${stamp}-${Math.random().toString(36).slice(2)}`
 const users = {} // nome → { id, token }
-const slugs = [`teste-auth-a-${stamp}`, `teste-auth-u-${stamp}`]
+const slugs = [`teste-auth-a-${stamp}`, `teste-auth-u-${stamp}`, `teste-auth-d-${stamp}`]
 const createdMaps = []
 const journalId = `teste-journal-${stamp}`
 const revealId = `teste-reveal-${stamp}`
@@ -77,6 +77,8 @@ async function cleanup() {
         await db.from('character_state').delete().eq('mesa', MESA).eq('slug', slug)
         await db.from('sheet_versions').delete().eq('mesa', MESA).eq('slug', slug)
         await db.from('sheets').delete().eq('mesa', MESA).eq('slug', slug)
+        await db.from('sheet_drafts').delete().eq('mesa', MESA).eq('slug', slug)
+        await db.from('sheet_description_sets').delete().eq('mesa', MESA).eq('slug', slug)
     }
     for (const u of Object.values(users)) {
         await db.from('mesa_invites').delete().eq('created_by', u.id)
@@ -169,6 +171,24 @@ try {
     expect('GM publica por cima → 200', (await pub(users.gm.token, `Teste Auth A ${stamp}`)).status, 200)
     expect('dono segue sendo A', (await db.from('sheets').select('owner_id').eq('mesa', MESA).eq('slug', slugs[0]).single()).data?.owner_id, users.a.id)
     expect('B lê a ficha → 200', (await call({ token: users.b.token, query: { sheet: slugs[0] } })).status, 200)
+
+    console.log('Publicação preparada (rascunho)')
+    const draftNames = { spell: [], feat: ['Toughness'], special: [], item: [] }
+    const draft = (token, name) => call({ token, method: 'POST', body: { action: 'draft-create', sheet: sheetJson(name), names: draftNames, version: 'v13' } })
+    const draftSlug = slugs[2]
+    expect('A cria rascunho de ficha nova → 200', (await draft(users.a.token, `Teste Auth D ${stamp}`)).status, 200)
+    const listedDrafts = (await call({ token: users.b.token, query: { sheets: '1' } })).body
+    expect('a mesa vê o rascunho em preparo', listedDrafts.drafts?.some((d) => d.slug === draftSlug), true)
+    expect('...mas a ficha ainda não está na mesa', listedDrafts.sheets?.some((s) => s.slug === draftSlug), false)
+    expect('B cria rascunho da mesma ficha nova → 403', (await draft(users.b.token, `Teste Auth D ${stamp}`)).status, 403)
+    expect('B conduz o rascunho de A → 403', (await call({ token: users.b.token, method: 'POST', body: { action: 'draft-step', char: draftSlug } })).status, 403)
+    expect('B descarta o rascunho de A → 403', (await call({ token: users.b.token, method: 'POST', body: { action: 'draft-discard', char: draftSlug } })).status, 403)
+    expect('B cria rascunho por cima da ficha de A → 403', (await draft(users.b.token, `Teste Auth A ${stamp}`)).status, 403)
+    expect('subir a ficha igual à publicada → 409', (await draft(users.a.token, `Teste Auth A ${stamp}`)).status, 409)
+    expect('A descarta o próprio rascunho → 200', (await call({ token: users.a.token, method: 'POST', body: { action: 'draft-discard', char: draftSlug } })).status, 200)
+    expect('GM cria rascunho → 200', (await draft(users.gm.token, `Teste Auth D ${stamp}`)).status, 200)
+    expect('GM descarta → 200', (await call({ token: users.gm.token, method: 'POST', body: { action: 'draft-discard', char: draftSlug } })).status, 200)
+    expect('descartado, sai da lista', (await call({ token: users.a.token, query: { sheets: '1' } })).body.drafts?.some((d) => d.slug === draftSlug), false)
 
     console.log('Estado do personagem')
     const hp = (token, slug) => call({ token, method: 'POST', body: { char: slug, field: 'hp', data: { current: 3 } } })
