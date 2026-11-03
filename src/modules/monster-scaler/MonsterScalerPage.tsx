@@ -5,7 +5,7 @@
 // resultado ficam lado a lado no desktop e empilhados no celular.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
     Alert,
     Box,
@@ -50,7 +50,9 @@ export const MonsterScalerPage = () => {
     const [searchOpen, setSearchOpen] = useState(true)
     const statBlockRef = useRef<HTMLDivElement>(null)
 
-    const handleSelect = useCallback((creature: AonCreature) => {
+    const [params, setParams] = useSearchParams()
+
+    const handleSelect = useCallback((creature: Pick<AonCreature, 'name'>) => {
         setLoading(true)
         setLoadError(null)
         void fetchMonster(creature.name).then((found) => {
@@ -68,6 +70,14 @@ export const MonsterScalerPage = () => {
             setSpellEdits(null)
         })
     }, [])
+
+    // `?criatura=<nome>`: quem chega de outra página (a Wiki da Mesa) já abre com a criatura. Sai da URL.
+    const linked = params.get('criatura')
+    useEffect(() => {
+        if (!linked) return
+        handleSelect({ name: linked })
+        setParams((p) => { p.delete('criatura'); return p }, { replace: true })
+    }, [linked, handleSelect, setParams])
 
     // Trocar de monstro invalida qualquer degrau — e qualquer magia — escolhido à mão.
     useEffect(() => { setOverrides({}); setSpellEdits(null) }, [monster])
