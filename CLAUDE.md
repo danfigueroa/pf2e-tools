@@ -7,7 +7,7 @@ Orientações para o Claude Code trabalhar neste repositório. Para detalhes de 
 **Covil de Dados** (antes "PF2e Toolkit"; o repositório e o pacote seguem `pf2e-tools`) — SPA (React 19 + TypeScript + Vite + MUI 7) com ferramentas para Pathfinder 2e
 Remaster. Textos de UI em **português (pt-BR) ou inglês**, à escolha de cada conta (ver "Idioma").
 
-Oito módulos ativos (rotas em `src/App.tsx`):
+Nove módulos ativos (rotas em `src/App.tsx`):
 - `/ficha-virtual` → `src/modules/character-viewer/` — visualizador de ficha (JSON Pathbuilder) com
   descrições da AON traduzidas sob demanda.
 - `/iniciativa` → `src/modules/initiative-tracker/` — gerenciador de iniciativa e combate.
@@ -21,6 +21,8 @@ Oito módulos ativos (rotas em `src/App.tsx`):
 - `/diario-campanha/:id?` → `src/modules/campaign-journal/` — Diário de Campanha, **só do GM**: preparação das
   sessões em Markdown, catálogo de NPCs/locais/itens, ganchos, encontros com XP e o "Mostrar à mesa".
 - `/trofeus/:user?` → `src/modules/trophies/` — Troféus do Covil: a coleção de troféus da conta e o ranking da mesa.
+- `/wiki/:id?` → `src/modules/wiki/` — Wiki da Mesa, **de todos**: NPCs, locais, itens, criaturas… com histórico, autoria e
+  os trechos `:::mestre` que só o GM recebe. Ligada ao Diário de Campanha.
 
 **Todo módulo é `React.lazy`** (`App.tsx`); só a Início e o `MainLayout` vão no bundle principal.
 Num bundle único (1,7 MB, 520 kB gzip), quem abria a Ficha Virtual no celular baixava o
@@ -288,7 +290,7 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   funções. **`isMapRequest` vem ANTES de `isSheetRequest`** nos dois servidores: a rota da ficha
   aceita qualquer POST com `action` e engoliria as do mapa.
   - Imagens (mapa e tokens) vão **direto do navegador para o Supabase Storage** (bucket público `images`, migration
-    `imagens`), com a sessão de quem está logado: a política de insert só aceita as pastas `tokens/`, `maps/` e `monsters/` (mais `journal/`, só do GM — Diário de Campanha, e `items/`, as imagens de item do Inventário), nome
+    `imagens`), com a sessão de quem está logado: a política de insert só aceita as pastas `tokens/`, `maps/` e `monsters/` (mais `journal/`, só do GM — Diário de Campanha, `items/`, as imagens de item do Inventário, e `wiki/`, de qualquer membro — Wiki da Mesa), nome
     `[a-z0-9-]` com extensão de imagem, de quem está em `mesa_members`, e só arquivo NOVO — sem política de update nem
     de delete, ninguém sobrescreve nem apaga a imagem de outro. O bucket barra mais de 8 MB e tipo que não seja
     WebP/PNG/JPEG. Passar pela função esbarraria no limite de 4,5 MB do corpo. Nome com sufixo aleatório e
@@ -306,6 +308,9 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
 - **O mesmo `state` serve o Diário de Campanha** (`api/_lib/journal-handler.js` + `journal-store.js`): `GET ?journal=list`,
   `?journal=<id>`, `?reveal=<id>` e `POST` com `journal-save`/`journal-delete`/`journal-reveal`. Antes de `isSheetRequest`.
   Ver a seção do módulo.
+- **O mesmo `state` serve a Wiki da Mesa** (`api/_lib/wiki-handler.js` + `wiki-store.js` + `wiki-secrets.js`): `GET ?wiki=`
+  (`list`/`trash`/`recent`/`search`/id), `?wikiHistory=`, `?wikiRev=` e `POST` com `wiki-save`/`wiki-restore`/`wiki-delete`/
+  `wiki-undelete`/`wiki-purge`/`wiki-flags`/`wiki-show`. Antes de `isSheetRequest`. Ver a seção do módulo.
 - **O mesmo `state` serve as Anotações do personagem** (`api/_lib/notes-handler.js` + `notes-store.js`): `GET ?notes=<slug>` e
   `POST { action: 'notes-save', char, data, base }`. Antes de `isSheetRequest`. Ver "Anotações" no módulo character-viewer.
 - **O mesmo `state` serve os Troféus do Covil** (`api/_lib/trophy-handler.js` + `trophy-store.js` + `trophies.js`):
@@ -469,7 +474,7 @@ das rotas (cada store do servidor manteve as funções exportadas). O Redis e o 
   compartilhamentos de mais de um dia, o estado de personagem parado há 180 dias e os eventos da mesa (notificações) de
   mais de 30 dias.
 - **Tempo real é sempre do banco**: um trigger chama `realtime.send` no canal PRIVADO `mesa:<mesa>:<nome>` (`state`,
-  `rolls`, `map:<id>`, `maps`, `encounters`, `fixes`, `sheets` — também `preparing`/`prepared` do rascunho —, `events`, `journal`), e só quem está em `mesa_members` ouve (RLS em `realtime.messages`). Nenhum cliente
+  `rolls`, `map:<id>`, `maps`, `encounters`, `fixes`, `sheets` — também `preparing`/`prepared` do rascunho —, `events`, `journal`, `wiki`), e só quem está em `mesa_members` ouve (RLS em `realtime.messages`). Nenhum cliente
   transmite — as exceções são a presença (abaixo) e os gestos do mapa (`mesa:<mesa>:live:<mapa>`, ver "Mapa ao vivo"). No cliente, `listenMesaChannel` (`services/supabase.ts`) é o único jeito de ouvir; a cada SUBSCRIBED
   (inclusive reconexão) quem ouve relê o que pode ter perdido. O Realtime põe um `id` próprio no payload quando ele
   não tem um — não use `id` como campo da mensagem.
@@ -2470,6 +2475,63 @@ itens, locais…). Tabelas `journal_docs` e `journal_reveals` (migration `diario
 - Testes: `check-rolls` (XP e `blocks.ts`), `check-auth` (seção "Diário de Campanha": papéis, flag desligada, 409,
   `journal/` do bucket). O navegador foi conferido com GM e jogador em dois Brave headless (criar, salvar, mostrar à mesa
   em outra página, `[[ ]]`, elenco, registro, ganchos, encontro → Iniciativa, aviso e conflito de outro aparelho, 360 px).
+- **Ligação com a Wiki da Mesa** (decisão do usuário: catálogo e Wiki SEPARADOS, ligados por links): `[[Nome]]` procura o
+  catálogo e depois a Wiki (selo "Wiki"; `[[wiki:Nome]]` força a Wiki), o nome que não existe oferece criar no catálogo OU na
+  Wiki; o Elenco aceita páginas da Wiki (`links` com `wiki:<id>`, aceito pelo `sanitizeDoc`); a ficha do catálogo guarda
+  `wiki` (a página ligada) e "Criar na Wiki a partir desta" leva título, imagem, etiquetas e SÓ os trechos `:::jogadores`
+  (`playersText`); o Resumo vira **crônica** (`ChronicleDialog`, página `event`, `chronicle` na sessão), com o texto editável
+  antes de publicar — o resumo é do GM e pode ter segredo.
+- **O `MarkdownEditor` e as `JournalTools` moram em `src/components/markdown/`** (servem ao diário, à Wiki e às Anotações):
+  `imageFolder`, `playersBlock`, `gmBlock`, `linkTitle`, e as ferramentas `resolveLink` (para onde um `[[ ]]` aponta) e
+  `pickLink` (o seletor de páginas do botão de link).
+
+## Módulo wiki (Wiki da Mesa)
+
+O mundo escrito pela mesa inteira (pedido do usuário: "o mestre, até mesmo jogadores, podem escrever sobre NPCs, itens,
+monstros, localidades"). Tabelas `wiki_pages` e `wiki_revisions`, migration `wiki_da_mesa`. Rota `/wiki/:id?`, `?nova=<título>&tipo=<tipo>`
+abre o editor de uma página nova (é como o Diário e os links vermelhos chegam).
+
+- **Quem pode o quê** (decisão do usuário: todos editam, o GM trava; decidido no `wiki-handler.js`, VALE com `AUTH_REQUIRED`
+  desligado, pelo papel na mesa — como o diário): qualquer membro lê as públicas, cria (sempre pública) e edita as públicas não
+  travadas; travada ou só do GM, só o GM edita; apagar é de quem criou e do GM (vai para a lixeira, `deleted_at`); lixeira,
+  travar, esconder/revelar e "Mostrar à mesa" só o GM. Quem não é da mesa recebe 403 até no GET.
+- **Segredo do GM por bloco `:::mestre … :::`** (`:::gm` em inglês), decisão do usuário. **O servidor corta** (`stripSecrets`
+  em `api/_lib/wiki-secrets.js`): o banco guarda `body` (completo) e `body_public` (sem os blocos), e TUDO o que o jogador
+  recebe sai do público — a página, a busca (`wiki_search` com `p_gm`), os backlinks (`links_public`) e o histórico
+  (`wiki_revisions.body_public`). Esconder só na tela vazaria pela aba Rede.
+  - O jogador edita SEM ver os segredos; ao salvar, `mergeSecrets` os põe de volta: depois da mesma linha pública que vinha
+    antes; se ela mudou, no fim da mesma seção (título); se o título sumiu, no fim. Nenhum segredo se perde. `:::mestre`
+    escrito pelo jogador vira `\:::mestre` (texto comum). Restaurar uma versão, no jogador, restaura só o público e mantém os
+    segredos de agora. `check-rolls` cobre; `check-auth` confere no banco.
+  - O `Markdown` desenha o bloco com a moldura "Só o mestre vê" (`GmBlock`); só o GM o recebe.
+- **Página inteira só do GM** (`visibility: 'gm'`, criada assim pelo GM ou escondida depois): some da lista, da busca e dos
+  backlinks do jogador (404 no GET). Revelar dispara `wiki-revealed` no sino.
+- **Editar → Salvar, sem salvamento automático** (diferente do Diário, de propósito: muita gente edita as mesmas páginas, e cada
+  "Salvar" é uma versão com o nome de quem salvou). O que se digita fica num rascunho do aparelho
+  (`mesaKey('pf2e:wiki:draft:<id>')`), recuperado ao voltar a editar a mesma versão. Escrita condicional pelo `updated_at`
+  (409 com a página nova: "Ver a versão nova" / "Salvar a minha por cima"). Salvamentos da MESMA pessoa em 10 min viram uma
+  versão só (`wiki_save`, `p_coalesce_ms`); até 50 versões por página.
+- **Links**: `[[Nome]]`, `[[Nome|rótulo]]` e `[[wiki:Nome]]` (`linkTarget`/`linkName`/`linkLabel` em `blocks.ts`, espelho de
+  `wiki-secrets.js`). Resolvem por título OU apelido, **dobrados** (minúsculas, sem acento: `foldName` no cliente = `fold` no
+  servidor = `wiki_fold` no banco, o `check-rolls` confere os dois JS). Os `links_*` guardam NOMES dobrados, não ids: a página
+  criada depois para um link vermelho ganha os backlinks sozinha. A ficha rápida (`fields`) é texto curto que aceita `[[ ]]`,
+  e os links dela contam nos backlinks.
+- **Ficha rápida por tipo** (`kinds.ts`, `INFOBOX`): NPC (ancestralidade, ocupação, situação, atitude, onde está, facção), local,
+  item, criatura, facção, divindade, evento; `aon` (só criatura) é a ficha da AON ligada (`AonCreatureSearch`), com "Enviar para
+  a Iniciativa" (`npcFromCreature` + `appendCombatants`) e "Escalar" (`/escalar-monstro?criatura=<nome>`) para o GM.
+- **Hierarquia** (`parent`, "Fica em"): a trilha no topo e "Dentro de X" embaixo; o servidor recusa ciclo.
+- **Autoria**: `created_by`/`updated_by` e cada versão; os nomes vêm de `member_names(mesa, ids)` (nome na mesa, senão o usuário),
+  com cache de 1 min no servidor — o jogador não tinha como transformar um uuid em nome.
+- **Índice compartilhado** (`useWikiIndex` em `services/wiki.ts`): um por aba, relido a cada aviso do canal `mesa:<mesa>:wiki`
+  (só o id — a página pode ser só do GM) e a cada escrita deste aparelho; a página e o Diário o dividem. A página aberta relê
+  sozinha, menos durante a edição (aí avisa que mudou).
+- **Notificações** `wiki-created` (página pública nova) e `wiki-revealed`, por trigger; edição não notifica. **Troféus**: feitos
+  `wiki-created` e `wiki-edited` (página de OUTRA pessoa, um por página a cada 30 min), quatro troféus na categoria `wiki`.
+- **"Mostrar à mesa"** (`wiki-show`): o servidor monta o handout com o `body_public` (cortado em 16 KB) e a capa, no mesmo
+  `journal_reveals` + `shares` do Diário.
+- Testes: `check-rolls` (segredos, links, dobra, `blocks.ts`), `check-auth` (seção "Wiki da Mesa": segredo, página do GM, 409,
+  travar, lixeira, revelar, `wiki/` do bucket, flag desligada), `check-trophies`. Navegador: criar, link vermelho → criar,
+  backlink, editar, histórico, 360 px, e o Diário (links com selo, elenco, crônica) no modo local.
 
 ## Módulo transformation-statblock (contexto que se perde fácil)
 
