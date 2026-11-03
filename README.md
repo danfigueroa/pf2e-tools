@@ -1,8 +1,12 @@
 # Covil de Dados 🎲
 
-**Ferramentas essenciais para jogadores e mestres de Pathfinder 2e Remaster**
+**Ferramentas para jogadores e mestres de Pathfinder 2e Remaster**
 
-Um sistema web moderno e modular que oferece diversas ferramentas para automatizar e melhorar a qualidade de vida nas mesas de RPG Pathfinder 2e.
+Uma plataforma web para a mesa de jogo: ficha virtual que rola e gasta recursos, iniciativa, mapa de combate, diário
+de campanha, wiki e estatísticas — tudo compartilhado em tempo real entre o mestre e os jogadores, no celular ou no
+computador.
+
+No ar em **https://pathfinder.danielfigueroa.dev**. Ferramenta de fã, não oficial.
 
 ---
 
@@ -10,441 +14,263 @@ Um sistema web moderno e modular que oferece diversas ferramentas para automatiz
 
 -   [Sobre o Projeto](#-sobre-o-projeto)
 -   [Funcionalidades](#-funcionalidades)
--   [Stack Tecnológica](#-stack-tecnológica)
+-   [Personagens da Campanha](#-personagens-da-campanha)
+-   [Stack Tecnológica](#️-stack-tecnológica)
 -   [Instalação e Execução](#-instalação-e-execução)
--   [Arquitetura do Projeto](#-arquitetura-do-projeto)
--   [Módulos Detalhados](#-módulos-detalhados)
--   [API do Servidor](#-api-do-servidor)
+-   [Deploy](#-deploy-vercel--supabase)
+-   [Arquitetura](#️-arquitetura)
+-   [API](#-api)
 -   [Formato de Dados](#-formato-de-dados)
+-   [Testes e Conferências](#-testes-e-conferências)
 -   [Roadmap](#-roadmap)
 -   [Contribuindo](#-contribuindo)
--   [Contexto para IA](#-contexto-para-ia)
 
 ---
 
 ## 🎯 Sobre o Projeto
 
-O **Covil de Dados** (antes PF2e Toolkit) é uma aplicação web projetada para auxiliar jogadores e mestres de **Pathfinder 2nd Edition (Remaster)**. O sistema oferece ferramentas que automatizam cálculos, geram documentos e facilitam a gestão de personagens e encontros.
+O **Covil de Dados** (antes PF2e Toolkit; o repositório e o pacote seguem `pf2e-tools`) nasceu para tirar da mesa o
+trabalho repetitivo de **Pathfinder 2nd Edition (Remaster)**: somar modificadores, lembrar condições, contar ações e
+slots, aplicar dano em área, procurar regra no meio do turno.
 
-### Principais Objetivos
+Princípios:
 
-1. **Automatização**: Eliminar cálculos manuais repetitivos
-2. **Qualidade de Vida**: Fornecer documentos prontos para impressão
-3. **Referência Rápida**: Integração com Archives of Nethys (AON)
-4. **Modularidade**: Arquitetura que permite fácil adição de novas ferramentas
+1. **A mesa é uma só**: PV, condições, slots, mapa e rolagens são os mesmos em todos os aparelhos, na hora.
+2. **Regra conferida, nunca inventada**: os números vêm da ficha do Pathbuilder e da
+   [Archives of Nethys](https://2e.aonprd.com/) (AON). O que o app não sabe calcular com segurança vira aviso, não número.
+3. **O app conta e avisa, não trava**: gastar uma ação a mais é permitido — a mesa decide.
+4. **Feito para o celular** (menos o mapa, que é de desktop).
 
 ---
 
 ## ✨ Funcionalidades
 
-**Português ou inglês, por conta:** cada usuário escolhe o idioma (PT/EN no menu da conta ou na tela de entrada). Em
-inglês a plataforma inteira e a ficha ficam em inglês, e as descrições vêm direto da Archives of Nethys, sem tradução —
-também guardadas no banco. O guia "Como Jogar" é gerado nos dois idiomas na publicação.
+| Ferramenta                       | Rota                    | O que faz                                                                          |
+| -------------------------------- | ----------------------- | ---------------------------------------------------------------------------------- |
+| **Início**                       | `/`                     | A mesa viva: próxima sessão, seu personagem, combate em andamento, grupo e última sessão |
+| **Ficha Virtual**                | `/ficha-virtual`        | Ficha interativa do Pathbuilder que rola, gasta recursos e mostra as regras da AON |
+| **Iniciativa**                   | `/iniciativa`           | Ordem de turnos, dano em área, condições, aflições, dano persistente e escudos     |
+| **Mapa de Combate**              | `/mapa/:id?`            | VTT com grid de 5 ft, tokens com PV, régua, áreas de efeito, desenhos e dados      |
+| **Estatísticas da Mesa**         | `/historico`            | As rolagens de cada sessão: média do d20, destaques, ranking e "o d20 é justo?"   |
+| **Diário de Campanha** (GM)      | `/diario-campanha/:id?` | Preparação das sessões, catálogo, ganchos, encontros com XP e "Mostrar à mesa"    |
+| **Wiki da Mesa**                 | `/wiki/:id?`            | O mundo escrito por todos, com histórico, autoria e trechos que só o GM vê        |
+| **Troféus do Covil**             | `/trofeus/:user?`       | Troféus por conta (bronze a platina), perfil com nível e ranking da mesa          |
+| **Transformação**                | `/transformation`       | Stat block de qualquer _battle form_ do Remaster, exportável                      |
+| **Escalar Monstro**              | `/escalar-monstro`      | Adapta uma criatura da AON para outro nível pelas tabelas do GM Core               |
+| **Membros** e **Mesa** (GM)      | `/membros`, `/mesa`     | Convites, papéis, senhas provisórias e donos das fichas; nome e sessão da mesa    |
 
-O toolkit expõe as ferramentas abaixo (rotas em `src/App.tsx`), listadas na página inicial:
+### 🧭 Plataforma
 
-| Ferramenta                    | Rota              | Módulo                                | O que faz                                                              |
-| ----------------------------- | ----------------- | ------------------------------------- | ---------------------------------------------------------------------- |
-| **Ficha Virtual**             | `/ficha-virtual`  | `src/modules/character-viewer/`       | Visualizador interativo da ficha, com descrições da AON traduzidas     |
-| **Iniciativa**                | `/iniciativa`     | `src/modules/initiative-tracker/`     | Ordem de turnos, dano em área, condições e aflições                    |
-| **Mapa de Combate**           | `/mapa`           | `src/modules/battle-map/`             | Grid de 5 ft com imagem, tokens com barra de PV e régua                |
-| **Estatísticas da Mesa**      | `/historico`      | `src/modules/session-diary/`          | Troféus, ranking e o d20 da mesa em todas as sessões; cada noite também |
-| **Stat Block de Transformação** | `/transformation` | `src/modules/transformation-statblock/` | Gera o stat block de qualquer _battle form_ do Remaster              |
-| **Escalar Monstro**           | `/escalar-monstro` | `src/modules/monster-scaler/`        | Adapta uma criatura da AON para outro nível                            |
-| **Diário de Campanha** (GM)   | `/diario-campanha` | `src/modules/campaign-journal/`      | Preparação das sessões em Markdown, catálogo de NPCs/locais/itens, ganchos, encontros com XP e o que mostrar à mesa |
-| **Wiki da Mesa**              | `/wiki`           | `src/modules/wiki/`                   | O mundo escrito pela mesa: NPCs, locais, itens, criaturas, facções, com histórico, autoria e segredos do GM |
-| **Troféus do Covil**         | `/trofeus`        | `src/modules/trophies/`               | Troféus por conta (bronze a platina), perfil com nível e ranking da mesa |
+-   **Contas e papéis**: entra-se com **usuário e senha** (sem e-mail). Cada mesa tem **jogadores** e **GM**; entra-se
+    por um **convite** que o GM gera em `/membros` (link `/convite/<código>`). Esqueceu a senha: o GM gera uma
+    provisória. Cada **ficha tem dono** — só ele e o GM a publicam e mexem nos PV, slots e condições dela; a ficha de
+    outra pessoa abre **somente leitura** (tudo visível, nada clicável).
+-   **Mesas**: o site atende mais de uma mesa (hoje **Casa do Gordo Online** e **Arton 1515**), cada uma vendo só o que é
+    dela. Troca-se pelo cartão da mesa na barra lateral; "Copiar link da mesa" gera um link que já entra nela.
+-   **Português ou inglês, por conta**: em inglês a plataforma inteira fica em inglês e as descrições vêm direto da AON,
+    sem tradução. O guia "Como Jogar" é gerado nos dois idiomas.
+-   **Tema claro, escuro ou do sistema**, por aparelho (o escuro é o "pergaminho à luz de vela").
+-   **Tempo real**: o que alguém muda aparece na tela dos outros em menos de um segundo (Realtime do Supabase).
+-   **Quem está na mesa**: avatares no cartão da mesa (tocando: o aparelho, a ficha aberta e a página); no mapa, o token
+    de quem está com a ficha aberta ganha um ponto verde.
+-   **Notificações** (o sino): ficha publicada ou atribuída a você, item recebido, mapa ativado ou revelado, combate
+    começando, regra compartilhada, trecho mostrado pelo GM, página nova na Wiki, troféus. O lido vale em todos os aparelhos.
+-   **Busca ⌘K / Ctrl+K** para ir a qualquer página ou ferramenta.
+-   **Celular**: barra de abas embaixo (Início, Ficha, Iniciativa, Mapa, Mais); no desktop, barra lateral em seções que
+    recolhe para um trilho de ícones.
+-   **Início por papel**: o GM vê a próxima sessão (Começar combate, Editar data) e "Preparar a sessão" (encontro, mapa,
+    Diário); o jogador vê o cartão do seu personagem. Durante o combate, a Início mostra a rodada e de quem é a vez.
 
-### 🪑 Mesas
+### 📜 Ficha Virtual
 
-O site atende mais de uma mesa de jogo. Cada mesa vê só o que é dela: fichas, presets, PV e condições,
-mapas, encontro da Iniciativa, rolagens e regras compartilhadas. A mesa é escolhida no seletor **Mesa** da
-barra lateral (fica lembrada no aparelho), ou por um link que já entra nela — `https://<app>/?mesa=<id>`,
-copiado pelo item "Copiar link da mesa" do próprio seletor. Hoje são duas: **Casa do Gordo Online** e **Arton 1515**.
-Quem nunca escolheu uma mesa fica na Casa do Gordo Online, como antes.
+Ficha do **Pathbuilder 2e** (JSON) pensada para a mesa: **abas** no desktop, **acordeão** no celular.
 
-### ✅ Ficha Virtual (Implementado)
+**Publicação**
 
-Visualizador interativo da ficha (formato **JSON Pathbuilder 2e**), pensado para uso na mesa em
-qualquer dispositivo — no desktop as áreas viram **abas**; no mobile viram **acordeões**.
+-   Enviar o JSON mostra **o que mudou** (nível, talentos, magias, itens) contra a versão da mesa. Ao publicar, a ficha é
+    **preparada antes de valer**: consultas da AON, companheiros, descrições em **português e inglês** e o guia nas duas
+    línguas, tudo no banco. Uma barra mostra cada passo, e a ficha só abre — para quem publicou e para a mesa — completa.
+    Se a IA estiver no limite, o preparo espera e tenta de novo sozinho; fechar a aba não perde nada ("Em preparo" →
+    **Continuar**). Num level-up a mesa segue na versão anterior até o fim.
+-   Quem está com a ficha aberta vê **"Nova versão publicada"** e escolhe quando trocar. A versão anterior fica no
+    histórico e pode ser restaurada.
 
-**Características:**
+**Leitura e regras**
 
--   📂 **Carregamento**: upload de JSON, colar texto, ou **presets de campanha** prontos
-    (`public/characters/*.json`, registrados em `campaignPresets.ts`). A última ficha fica salva na
-    sessão (`sessionStorage`) e é restaurada ao recarregar.
--   📤 **Publicar para a mesa (preparada)**: enviar o JSON de um personagem mostra o que mudou e, ao
-    publicar, a ficha é **preparada antes de valer**: consultas da AON (armas, armaduras, itens,
-    traços), companheiros, descrições em **português e inglês** e o guia "Como Jogar" nas **duas
-    línguas**, tudo gravado no banco. Uma barra mostra cada passo; a ficha só abre — para quem
-    publicou e para a mesa — quando estiver completa. Se a IA estiver no limite, o preparo espera e
-    tenta de novo sozinho; fechar a aba não perde nada ("Em preparo" → **Continuar** na tela inicial).
-    Num level-up a mesa segue com a versão anterior até o fim. Só o dono da ficha e o GM publicam
-    por cima; a versão anterior fica no histórico e pode ser restaurada.
--   🗂️ **Áreas**: Visão Geral, Combate, Perícias, Talentos, Habilidades, Magias, Companheiros e
-    Inventário — as áreas sem conteúdo (magias, companheiros…) somem automaticamente.
--   📖 **Guia de Uso "Como Jogar"** na Visão Geral: um resumo tático por personagem (papel em
-    combate, rotina de turno, recursos, erros comuns). A ficha publicada traz o guia **gerado por IA**
-    para a versão dela, nas duas línguas (a IA parte do guia anterior, ou do escrito à mão em
-    `combatGuides.ts`); o dono pode editá-lo e acrescentar trechos próprios. Sem guia gerado vale o
-    escrito à mão, e fichas não catalogadas caem num **gerador heurístico** (marcado como automático).
--   🌐 **Descrições sob demanda**: toque em um talento, habilidade, magia ou item e um _drawer_
-    abre com a descrição completa buscada da **Archives of Nethys** e **traduzida para pt-BR**
-    (requer o backend rodando; ver [API do Servidor](#-api-do-servidor)).
--   ✏️ **Correção de tradução pela mesa**: no pé da descrição, "Corrigir tradução" abre o texto para
-    editar. A correção vale na hora para todos os aparelhos e as duas mesas, e a tradução automática
-    nunca a desfaz. "Desfazer última correção" e "Voltar à tradução automática" estão a um toque.
--   🐾 **Companheiros e familiares**: stats de companheiros animais vêm da AON e ficam no banco
-    (preparados na publicação).
--   ✦ **Míticos**: personagens com talento mítico ganham o **pool de 3 Pontos Míticos**
-    (gastar/devolver como os slots de magia, "Novo dia" para recuperar tudo) e o valor com
-    **proficiência mítica** ao lado de cada salvaguarda, perícia e **ataque** — a proficiência
-    mítica **substitui** a normal, não soma por cima.
--   🎲 **Rolar pela ficha**: tocar numa salvaguarda, na Percepção, numa perícia ou Saber, no
-    **Rolar** de uma arma ou desarmado, no **Atq** do conjurador ou no botão da magia abre um
-    diálogo com a **conta parcela por parcela** ("Mestre +16 · CON +4 · Item +1 · Amedrontado 1
-    −1") e rola. O Golpe rola **ataque e dano juntos**, com o dano do **acerto e do crítico**
-    (deadly e fatal incluídos); dá para escolher o 1º/2º/3º ataque (MAP, −4/−8 se ágil), ligar ou
-    desligar cada dano extra (runas começam ligadas, precisão desligada) e somar um ajuste livre.
-    A magia rola no **rank conjurado**, e a salvaguarda básica mostra o dano de cada grau. Cada
-    rolagem pode ser **normal ou ✦ mítica** — a mítica gasta o Ponto Mítico sozinha. **Toda a mesa
-    vê a rolagem** (ver [Rolagens da Mesa](#-rolagens-da-mesa-implementado)).
--   👥 **Estado compartilhado da mesa**: PV, PV de companheiros, slots de magia, pontos de foco,
-    pontos míticos e condições são os **mesmos para todos os jogadores** — marcar 50 de dano no notebook aparece no
-    celular de quem estiver na mesa **na hora**, pelo Realtime do Supabase (o cabeçalho mostra
-    **Ao vivo**). Requer o Supabase configurado (ver [Instalação](#-instalação-e-execução)); **sem ele o
-    app funciona igual**, só que o estado fica no aparelho e a sincronia volta a ser pelo botão **Atualizar**.
--   🌑 **Perfis situacionais de arma**: itens que ficam mais fortes em certas condições (a
-    _Gloom Blade_ na penumbra, e mais forte ainda contra quem não te detecta) mostram ataque e dano
-    de cada situação na aba de Combate — escritos à mão em `magicWeapons.ts`, calculados a partir
-    dos números da própria ficha.
--   🎒 **Inventário completo**: armas e armaduras aparecem na lista junto do equipamento, com a
-    descrição da AON a um toque.
--   🛡️ **Escudo**: o escudo vestido ganha um cartão na Visão Geral com **PV em barra própria** (cor
-    de aço, para não confundir com o PV do personagem), **Dureza**, o limiar de quebra (BT) marcado
-    na barra e o estado **Quebrado**/**Destruído**. **Erguer** soma o bônus na CA; **Bloquear**
-    aplica o Bloqueio com Escudo (a Dureza segura, o resto vai para você e para o escudo);
-    **Consertar** devolve PV pelo rank de Ofício (sucesso ou crítico). Os números vêm da AON, com as
-    runas de reforço somadas, e o estado é da mesa.
--   💥 **Efeitos do crítico**: além do dobro, deadly e fatal, as **runas** entram no cartão (Flaming
-    = 1d10 de fogo persistente, Shock repete o dano elétrico em até 2 criaturas, Corrosive; Frost e
-    Thundering viram aviso com a CD) e a **especialização crítica** é lida das características da
-    ficha — vale sempre para Guerreiro e Espadachim, em Fúria para o Bárbaro (Brutality), contra a
-    presa para o Patrulheiro, e é um chip para Ladino e Bardo. Nada disso dobra.
--   ⚡ **Iniciativa pela ficha**: nos testes de Percepção, Furtividade, Atletismo e Acrobacia, o chip
-    **Usar como iniciativa** manda o total para a Iniciativa do mestre, que o aplica ao
-    personagem. O diálogo soma sozinho **Incredible Initiative**, **Elven Instincts** e
-    **Battlefield Surveyor** (bônus de circunstância: não empilham, vale o maior).
--   ⏱️ **Ações do turno**: faixa fora das abas com os **3 pips de ação**, a **reação** e, com
-    **Acelerado (Haste)**, a ação extra que só paga **Golpe ou Andar**. **Lento** e **Atordoado**
-    tiram ações (os dois não somam). O Golpe, a magia (pelo custo da AON) e as ativações de 1 ação
-    descontam sozinhos; **Andar/Interagir/Sacar** têm botão. Ao zerar, a ficha avisa **"Sem ações
-    neste turno"** — e dá para rolar mesmo assim. A Iniciativa do mestre **zera as ações do
-    personagem quando o turno dele começa**.
--   🔥 **Fúria do bárbaro**: um clique liga a Fúria — o dano dos Golpes corpo a corpo sobe (metade em
-    arma ágil), entram os **PV temporários**, a **Raging Resistance** e, no instinto Gigante, o
-    **Titan Mauler** com o Desajeitado que ele cobra.
--   🧠 **Psíquico**: **Unleash Psyche** soma 2 × o rank ao dano das magias de conjuração de Psíquico
-    (com a ressaca em Estupefato 1), e os **psi cantrips** podem ser **amplificados** (1 Ponto de
-    Foco) com o dano do amp. **Conservation of Energy** converte o dano para fogo ou frio.
--   🪄 **Magus**: **Arcane Cascade** (postura: dano extra de força, ou do tipo da última magia, nos
-    Golpes corpo a corpo), **Spellstrike** dentro do Golpe — o jogador escolhe a magia (de qualquer
-    bloco: Magus, arquétipo, inatas ou **Mythic Magic**), e **um clique** rola o Golpe e a magia,
-    gasta o slot (ou o Ponto Mítico) e marca o Spellstrike como gasto —, **Summon Mythic Power**,
-    **Divert Destiny** e **Fiery Rebirth**.
--   🏹 **Patrulheiro**: **Hunt Prey** (a precisão do Hunter's Edge vem ligada), **Gravity Weapon**
-    (2 × os dados da arma no primeiro Golpe da rodada, gasta 1 Ponto de Foco) e **Hunter's Aim**.
--   🗡️ **Ladino**: **Poison Weapon** aplicado **na hora do Golpe** — o **veneno simples** (1d4, 2d4
-    com o Improved; uma dose por nível por dia) é o padrão e os venenos do inventário são opção —,
-    com a ação descontada sozinha, e **Debilitating Strike** como anotação da rolagem.
--   🛡️ **Guerreiro**: **Fearsome Brute** (o diálogo pergunta o medo do alvo), **Exacting Strike**,
-    **Reflexive Shield** (o escudo erguido soma nos Reflexos) e o **Fiery Rebirth** mítico.
--   🪄 **Magias de ação variável** (Heal, Harm, Force Barrage, Blazing Bolt, Ki Blast, Disorienting
-    Flash, Concordant Choir, Rebuke Death…): o jogador **escolhe quantas ações gasta** e o dano, a
-    cura, os alvos, a área e os efeitos seguem a regra da magia. O **Blazing Bolt** de várias
-    ações rola **um ataque e um dano por raio, num cartão só**, com o total no fim. As magias fora
-    do catálogo ganham o seletor e o custo certo, sem número inventado.
--   🐾 **Companheiros de combate** (aba **Inventário**): criaturas da AON que entram **sozinhas** no
-    combate junto com o personagem — a **Animated Armor** do Nathaniel. O jogador informa o nome da
-    AON, envia o **token** uma vez e **enquadra** a imagem (centro e ampliação); a Iniciativa
-    traz o token e o enquadramento, e o relê quando o encontro é aberto.
--   📱 **Guia de Uso no celular**: no layout de acordeão (celular e painel do mapa) o guia vira uma
-    **aba que abre e fecha**, começando fechada — quem navega entre Combate, Perícias e Magias não
-    rola uma página de texto a cada vez.
--   ⏩ **"Carregar todas" as magias** traduz o grupo inteiro numa chamada só (6 magias em ~3 s, eram
-    ~60 s): o limite do tier gratuito é por chamada, não por magia.
--   ⚔️ Cálculos derivados (modificadores, PV, CA, salvamentos, ataques, dano de arma) via
-    helpers reutilizáveis (`helpers.ts`). Salvaguardas, Percepção e perícias saem de uma fonte só
-    (`checks.ts`), que soma o **bônus de item** da ficha (runa resiliente, botas, anel) e a
-    **penalidade de armadura** quando a FOR não alcança a exigência. Os traços das armas (ágil,
-    acuidade, deadly, fatal…) vêm da AON, já que o Pathbuilder não os exporta.
+-   Áreas: Visão Geral, Combate, Perícias, Talentos, Habilidades, Magias, Companheiros, Inventário e **Anotações**
+    (as vazias somem). Talentos e habilidades vêm agrupados por origem.
+-   **Descrição da AON a um toque**, traduzida para pt-BR e já pronta desde a publicação (sem esperar). Toda descrição pode
+    ser **compartilhada com a mesa** (aparece na tela de todos para decidir uma regra) e **corrigida** ("Corrigir
+    tradução", vale para todos os aparelhos e mesas).
+-   **Traços das armas** em chips (Ágil, Letal d10, Arremesso 3 m…), com a regra a um toque.
+-   **Guia "Como Jogar"** na Visão Geral (papel em combate, rotina de turno, recursos, erros comuns): gerado por IA para a
+    versão publicada, a partir do guia anterior; o dono pode **editá-lo** e acrescentar **trechos próprios**.
+-   **Anotações**: background do personagem e notas com etiqueta (NPC, item, local, evento), busca e fixar, em Markdown.
 
-### ✅ Gerador de Stat Block de Transformação (Implementado)
+**Rolagens** (todas aparecem para a mesa inteira)
 
-Gera o stat block de qualquer _battle form_ (magia de transformação) do Pathfinder 2e Remaster,
-no **padrão oficial de bloco de criatura** e **traduzido para pt-BR**.
+-   Tocar numa salvaguarda, Percepção, perícia, Saber, arma, desarmado ou magia abre o diálogo com a **conta parcela por
+    parcela** ("Mestre +16 · CON +4 · Item +1 · Amedrontado 1 −1").
+-   **Golpe**: ataque e dano juntos, com acerto e crítico (deadly, fatal, runas e **especialização crítica** pela ficha),
+    MAP do 1º/2º/3º ataque, chips de dano extra, **dados extras** digitados ("2d6") e ajuste livre.
+-   **Magia** no rank conjurado (heightening calculado), com os quatro graus da salvaguarda básica. **Ação variável**
+    (Heal, Blazing Bolt, Force Barrage…): escolha quantas ações e o efeito acompanha; o Blazing Bolt rola um ataque por raio.
+-   **✦ Mítico**: proficiência mítica (nível + 10, substitui a normal) e o pool de 3 Pontos Míticos, gasto no mesmo clique —
+    só onde um talento da ficha permite.
+-   **Fortuna**: Sure Strike e Wish for Luck rolam 2d20 e ficam com o maior.
+-   **Usar como iniciativa** (Percepção, Furtividade, Atletismo, Acrobacia) manda o total para a Iniciativa do GM, com os
+    bônus de iniciativa da ficha.
+-   **Tratar Ferimentos e Battle Medicine** no diálogo de Medicina: teste e cura juntos, aplicada ao PV.
 
-**Características:**
+**Recursos do turno e do dia**
 
--   Interface step-by-step (Personagem → Forma → Stat Block → Exportar)
--   **Todas as battle forms**: Animal, Ooze, Insect, Aerial, Dinosaur, Fey, Elemental, Plant,
-    Dragon, Fiend, Angel, Monstrosity, Nature Incarnate, Element Embodied e Avatar
--   **Importa a ficha (JSON Pathbuilder 2e)** para usar os modificadores reais do personagem
-    (HP, salvamentos, percepção, atletismo, ataque) — segue a regra "use o valor da magia, a
-    menos que o seu seja maior"
--   **Qualquer personagem da campanha** pode ser escolhido, não só conjuradores — a forma pode vir
-    de pergaminho, varinha ou poção. Os botões são os mesmos presets da Ficha Virtual
--   Layout de bloco de criatura oficial (faixa vinho, tags de trait, corpo pergaminho,
-    divisórias laranja, glyph de ação), tudo em português
--   Exportação em PDF/PNG (print-friendly)
+-   **Ações do turno**: 3 pips, reação, a ação extra do Acelerado; Lento e Atordoado tiram ações. Golpe, magia, atividades
+    e itens descontam sozinhos; a Iniciativa devolve as ações quando o turno do personagem começa.
+-   **Conjurar paga tudo de uma vez**: ações (ou a reação) e o slot, o ponto de foco ou o Ponto Mítico — sem cobrar em
+    dobro se o jogador também marcar o slot.
+-   **Atividades com custo** ("Usar" nos talentos e habilidades), com o custo lido da AON; "uma vez por dia" marcado até o
+    **Novo dia**.
+-   **Slots de magia, foco, Pontos Míticos, condições, aflições e dano persistente**, todos da mesa. Condições do Remaster
+    com o efeito nos números (penalidade do mesmo tipo não empilha; "testes e CDs" inclui a CA).
 
-### ✅ Escalar Monstro (Implementado)
+**Inventário**
 
-Pega a ficha de qualquer criatura do **Archives of Nethys** e adapta para o nível que a sua mesa
-precisa, pelas **tabelas de construção de criaturas do GM Core** (pg. 112-121, níveis -1 a 24).
+-   Armas, armaduras e equipamento numa lista, com **imagem** de cada item.
+-   **Consumíveis**: Usar/Beber, com a cura rolada e aplicada ao PV (e Desfazer); **Passar** poção, elixir ou pergaminho para
+    um colega, que vê "Fulano te enviou 2× X".
+-   **Escudo** com PV em barra própria, Dureza, limiar de quebra, Erguer, Bloquear e Consertar.
+-   **Relíquias** com as dádivas e o botão de usar; **apelido** para cada arma ("Fenrir"); **companheiros de combate** da
+    AON (a Animated Armor do Nathaniel) que entram sozinhos na Iniciativa.
 
-Resolve o problema de gostar da ficha de um monstro que está no nível errado para o grupo.
+**Classes e talentos** (descobertos pela ficha)
 
-**Características:**
+-   **Bárbaro**: Fúria (dano, PV temporários, Raging Resistance, Titan Mauler).
+-   **Magus**: Arcane Cascade, Laughing Shadow e **Spellstrike num clique** (Golpe + magia de qualquer bloco).
+-   **Psíquico**: Unleash Psyche, psi cantrips amplificados, Conservation of Energy.
+-   **Patrulheiro**: Hunt Prey, Gravity Weapon, Hunter's Aim.
+-   **Investigador**: Devise a Stratagem (o d20 primeiro, a escolha depois), investigações, Assurance.
+-   **Monge**: Flurry of Blows, Ki Strike, Perfect Strike, postura do arqueiro monástico.
+-   **Ladino**: Poison Weapon (veneno simples ou do inventário) aplicado no Golpe, Debilitating Strike.
+-   **Guerreiro**: Fearsome Brute, Exacting Strike, Reflexive Shield, Destructive Block.
+-   **Clérigo**: Healing Hands, Sacred Ground, Banishing Touch.
+-   **Míticos**: Summon Mythic Power, Divert Destiny, Fiery Rebirth, Godspeed e outros.
 
--   Busca a criatura na AON por nome, por faixa de nível, ou pelos dois
--   **Preserva a personalidade do monstro**: em vez de trocar cada número pelo da tabela, guarda a
-    diferença entre a ficha original e o benchmark dela e desloca tudo junto. Reescalar um monstro
-    para o próprio nível devolve a ficha original, número por número
--   **Ajuste fino por estatística**: cada linha mostra o degrau que a AON atribuiu
-    (Extremo/Alto/Moderado/Baixo) e permite trocá-lo — dá para pedir um ogro de nível 8 com CA
-    extrema sem mexer no resto
--   Reescala CA, PV, percepção, salvamentos, atributos, perícias, ataques, dano e CD de magia
--   **As CDs e o dano das habilidades acompanham o nível**: a salvaguarda e a baforada que só
-    existem escritas na prosa ("deals 15d6 fire damage … DC 36 basic Reflex save") são ajustadas
-    junto — a CD pela tabela de CD do GM Core, o dano pela de **Dano em Área** (pg. 124) —, e as
-    duas entram no ajuste fino como qualquer outra linha. O **teste plano** fica de fora: a CD dele
-    é fixa pelas regras, não pelo nível do monstro; e "1d4 rounds" de recarga não é dano
--   **Monstro conjurador ganha ranks e slots ao subir de nível** e a lista de magias é sua: o
-    editor busca no Archives of Nethys pela tradição do bloco e pelo rank do slot, e o que o nível
-    novo abriu aparece marcado como vazio — a ferramenta nunca escolhe a magia por você. A escada
-    anda preservando a forma (as magias do topo continuam no topo) e dá para pedir que os ranks
-    fiquem nos originais, bloco a bloco. A mesma magia pode entrar mais de uma vez — três slots de
-    3º com Fireball duas vezes e Haste uma —, com a notação do próprio Archives of Nethys. Slots seguem o GM Core pg. 122, respeitando o número que a
-    ficha original já usava
--   **Diz o que não ajustou**: fora as CDs e o dano, a prosa das habilidades fica em inglês e
-    intocada (alcance, duração, o efeito em si), a lista de magias não muda de rank e o dano extra
-    dos golpes (`plus 2d6 fire`) fica como está — tudo listado num aviso, porque a ferramenta nunca
-    inventa um número que o GM não conferiu
--   **Regra na hora, sem sair da ficha**: passe o mouse (ou segure o dedo, no celular) numa
-    condição, habilidade, traço ou magia e a regra aparece numa caixinha, direto do Archives of
-    Nethys e em inglês — vale também na ficha do monstro dentro do cartão de Iniciativa
--   Stat block no padrão oficial, com exportação em **PNG**
--   **"Enviar para Iniciativa"**: joga o monstro já reescalado direto no encontro
+### ⚔️ Iniciativa
 
-### ✅ Gerenciador de Iniciativa (Implementado)
+-   Importa os personagens da mesa e **busca monstros na AON** por nome e/ou faixa de nível, já com PV, CA, salvaguardas,
+    resistências, fraquezas e imunidades.
+-   **PV e condições dos personagens são os da Ficha Virtual**: o dano do GM aparece no celular do jogador e vice-versa.
+-   **Dano em área** com o resultado da salvaguarda de cada alvo, resistência, fraqueza, escudo e PV temporários, e o
+    memorial antes de aplicar.
+-   Condições com duração em rodadas; **aflições** (venenos e doenças da AON) com estágios e o dano do estágio aplicado
+    sozinho; **dano persistente** no fim do turno com o teste plano. Toda aplicação automática tem Desfazer.
+-   Ordem de turnos com o desempate oficial, ajuste manual, Adiar e Derrotado; sugestão de Morrendo a 0 PV.
+-   **Ficha completa do monstro dentro do cartão**, já no nível em que ele está.
+-   **Encontro na nuvem**, um por mapa de combate: o GM monta no computador e abre no tablet.
 
-Ferramenta de mesa para conduzir o combate: monta o encontro, mantém a ordem de turnos e aplica
-dano, cura e condições em **um ou vários alvos de uma vez**.
+### 🗺️ Mapa de Combate (desktop)
 
-**Características:**
+-   Grid de 5 ft sobre a imagem do mapa (o GM ajusta a escala em quadrados), zoom e pan fluidos.
+-   **Tokens vêm da Iniciativa**, com barra de PV (números só para personagens; o GM vê os dos monstros), tamanho da
+    criatura (Troops encolhem com o PV) e **imagem enquadrada** (centro e ampliação). **F** vira o token.
+-   **Régua** 5-10-5, **áreas de efeito** (explosão, emanação, cone, linha) com a contagem de criaturas, **alcance de
+    movimento** em ações ao arrastar, **desenhos** com 12 cores de efeito, **ping** com clique duplo e **dados**.
+-   **Ao vivo**: a régua, a área e o arrasto de cada um aparecem na tela de todos, com o nome de quem mede.
+-   **Vários mapas por sessão**, que nascem **privados** até o GM revelar; "Levar a mesa" para outro mapa.
+-   **Ficha ao lado**: painel com a Ficha Virtual do seu personagem, com rolagens; ordem de turnos no canto.
 
--   **Importa os personagens da campanha** (presets ou JSON do Pathbuilder) e **busca monstros no
-    Archives of Nethys** pelo nome **e/ou por faixa de nível** — útil para montar encontro na faixa
-    do grupo —, já com PV, CA, percepção, salvamentos, resistências, fraquezas e imunidades; mais um
-    formulário manual e um campo de quantidade para criar "Goblin 1..4"
--   **PV e condições dos personagens são os mesmos da Ficha Virtual**: o dano que o mestre aplica
-    aqui aparece no celular do jogador, e vice-versa
--   **Dano em área do jeito que o PF2e funciona**: um valor de dano, cada alvo com o seu resultado
-    de salvaguarda (falha crítica ×2, falha ×1, sucesso ÷2, sucesso crítico ×0), com resistência,
-    fraqueza e PV temporários na conta — e o memorial visível antes de aplicar
--   **Condições com duração em rodadas**, que decrementa no turno do alvo e some ao vencer, sobre o
-    catálogo Remaster completo (com condições impostas em cascata: Inconsciente → Cego,
-    Desprevenido, Caído)
--   Ordem de turnos com o desempate oficial (o adversário age primeiro), ajuste manual, Adiar com
-    reentrada e marcação de derrotado
--   Sugestão de **Morrendo** (já somando Ferido) ao um personagem chegar a 0 PV — nunca automática
--   **Levantar Escudo e Bloqueio com Escudo**: o botão escrito ergue o escudo (a CA do cartão sobe),
-    e ele **abaixa sozinho no início do próximo turno** de quem ergueu. O próximo dano — no cartão
-    ou no dano em lote, só físico — pode passar pelo escudo: a Dureza segura, o resto cai no PV e no
-    PV do escudo, que quebra no BT. O escudo do personagem é o mesmo da Ficha Virtual; o do monstro
-    vem da prosa da AON quando ela traz os números, ou é definido à mão
+### 📊 Estatísticas da Mesa
 
--   **Companheiros de combate entram junto**: ao adicionar um personagem, as criaturas que a ficha dele
-    lista (a Animated Armor do Nathaniel) entram com a ficha da AON e o token — e não duplicam se o
-    personagem for adicionado de novo. O **Atualizar** do cabeçalho (e abrir a página) relê o token e o
-    enquadramento dos companheiros que já estão no encontro
--   **Ações do turno**: passar o turno (ou **Iniciar**) devolve as 3 ações e a reação do personagem
-    que começa o turno, na ficha do jogador
--   **Fúria à vista**: o cartão mostra "Em fúria", soma a Raging Resistance à defesa e aplica o
-    Desajeitado do Titan Mauler; a **iniciativa rolada pela ficha** é aplicada ao personagem (uma vez
-    por rolagem, sem desfazer o ajuste manual do mestre)
+As rolagens feitas **com a sessão iniciada** pelo GM (fora dela, ninguém suja a média testando a ficha), por noite de jogo
+(das 6h às 6h): média do d20, 20 e 1 naturais, maior teste, maior dano, destaques da sessão e da mesa, ranking por
+métrica e **"O d20 é justo?"** — em textos para quem joga, não para quem programa.
 
-O encontro fica só no aparelho do mestre — **um por mapa de combate** —; os personagens é que são
-compartilhados com a mesa.
+### 📓 Diário de Campanha (só o GM)
 
-### ✅ Mapa de Combate (Implementado)
+-   **Uma página por sessão**: Preparação (com modelo), Cenas, Encontros, Elenco, Registro e Resumo.
+-   **Catálogo da campanha** (NPCs, locais, itens, facções) ligado por `[[Nome]]`, e **ganchos** (aberto → revelado → resolvido).
+-   **Planejador de encontros** com o orçamento de XP do GM Core e "Enviar para a Iniciativa".
+-   **Mostrar à mesa**: um trecho `:::jogadores … :::` ou imagem aparece na tela de todos, com prévia de confirmação.
+-   Salvamento automático, rascunho sem rede e aviso de edição em outro aparelho.
 
-Mapa tático em `/mapa`, no espírito do Roll20. **Feito para desktop** (mouse e teclado); no celular
-abre, mas não é o alvo.
+### 📚 Wiki da Mesa
 
-**Características:**
+-   Páginas por tipo (NPC, local, item, criatura, facção, divindade, evento…), com capa, apelidos e **ficha rápida**.
+-   `[[Nome]]` liga as páginas; **Mencionada em**, trilha "Fica em", busca e mudanças recentes.
+-   **Todos editam**; cada "Salvar" é uma versão com autor, com histórico e Restaurar. O GM **trava**, **esconde** páginas e
+    escreve **trechos do mestre** (`:::mestre … :::`) que o servidor nunca entrega ao jogador.
+-   Ligada ao Diário: o Elenco aceita páginas da Wiki e o Resumo da sessão vira **crônica**.
 
--   **Grid de quadrados de 5 ft (1,5 m)**, com zoom pela roda do mouse (10% a 400%), botões de
-    +/−/enquadrar e o botão do meio do mouse para arrastar o mapa em qualquer ferramenta
--   **Camada do mapa** (GM, ferramenta **Mapa**): envia a imagem — reduzida no navegador para
-    no máximo 4096 px — e define a escala digitando **largura ou altura em quadrados**, ou puxando
-    uma das **quatro alças** (proporção travada). Fora dessa ferramenta o grid cobre só a imagem;
-    dentro dela, aparece a área em volta, para mostrar até onde dá para crescer
--   **Tokens com barra de PV**, movidos quadrado a quadrado, mostrando a distância percorrida. A
-    barra fica sempre por cima dos tokens. Personagem mostra os números; monstro mostra só a barra
-    (os números só o GM vê), e o jogador vê "Ferido / Muito ferido…" ao clicar
--   **Dano e cura no token**: clicar abre o painel. O PV do personagem é o mesmo da Ficha Virtual;
-    o do monstro anda junto com a Iniciativa, nos dois sentidos
--   **Régua** com a regra das diagonais alternadas do Player Core (5-10-5)
--   **Desenhar** (para todos — quem conjura a Wall of Fire é o jogador): traço **livre**, **linha**
-    reta que encaixa no grid e mostra o comprimento, 12 cores de efeito (Fogo, Gelo, Ácido, Arcano,
-    Luz, Sombra, Elétrico, Veneno, Sangue, Sônico, Terreno difícil, Vital) e três espessuras. O
-    modo **Apagar** mostra um **×** em cada desenho e apaga só aquele; "Limpar todos" é só do
-    GM. Os desenhos ficam sob os tokens, semitransparentes
--   **Área de efeito** (para todos): explosão, emanação, cone e linha medidos pela regra 5-10-5,
-    com o tamanho em pés e a cor do efeito, e quantas criaturas a área pega
-    ("Explosão 20 ft · 3 criaturas"). É uma consulta, como a régua: fica na tela de quem mediu até
-    o próximo clique e não é gravada no mapa
--   **Alcance de movimento**: ao arrastar um token, três faixas (verde, âmbar, vermelha) mostram
-    até onde ele chega com 1, 2 e 3 ações de Andar, e o rótulo diz quantas ações o movimento custa.
-    O deslocamento do personagem é o da ficha, somando os bônus e nunca reduzido
--   **Ping**: clique duplo em qualquer ponto do mapa faz um anel dourado piscar ali, na tela de
-    todos
--   **Rolador de dados** (botão **Dados**, sem trocar a ferramenta): d4 a d100, até 100 dados,
-    bônus e cor. A rolagem vai para o feed da mesa, junto com as rolagens das fichas
--   **Vários mapas por sessão**: o GM cria os mapas na gaveta "Mapas da sessão" e **leva a mesa**
-    de um para outro; quem estiver em outro mapa recebe o aviso "A mesa está em outro mapa — Ir"
--   **Mapas privados**: mapa novo nasce **escondido da mesa** — só o GM o vê na
-    lista ou consegue abri-lo. O GM o prepara (imagem, encontro) e o **revela** pelo olho na lista
-    ou pelo aviso no topo do mapa; levar a mesa para ele também revela. Quem estiver com o link
-    aberto vê "Mapa ainda não revelado" e o mapa aparece sozinho na revelação
--   **Os tokens vêm da Iniciativa**: cada encontro é ligado a um mapa e cada combatente vira um
-    token. O botão **Montar encontro** abre a Iniciativa já no encontro daquele mapa
--   **Imagem do token**: a do personagem é enviada no círculo do cabeçalho da Ficha Virtual e é
-    **permanente** (vale em todos os mapas); a do monstro, no menu ⋮ do cartão da Iniciativa, e é
-    **temporária** — some quando o mapa é apagado
--   **Apagar o mapa depois do jogo** leva junto a imagem, os tokens de monstro, as posições e os
-    desenhos. O token dos personagens fica
+### 🏆 Troféus do Covil
 
--   **Ficha ao lado do mapa**: um painel de ~420 px à direita mostra a **Ficha Virtual** (no layout
-    do celular) do personagem do jogador — **uma aba só** para o mapa e a ficha, com rolagens que
-    funcionam. Descrições, diálogos de rolagem e de condições abrem **dentro do painel**, sem cobrir
-    o mapa. O personagem se escolhe numa **grade de cartões com o token** (ou pelo seletor com
-    nome, classe e nível) e fica lembrado no aparelho; o painel se recolhe pela aba da borda, e
-    tocar num token de personagem oferece **Ver ficha**
--   **Menu discreto**: em `/mapa` a barra lateral some e vira uma aba na borda esquerda — o mapa
-    ocupa a tela inteira, e reenquadra sozinho quando o painel abre ou fecha
--   **Enquadrar e trocar a imagem do token** (GM → "Imagem e enquadramento"): arraste a imagem
-    para escolher o que fica no **centro do círculo**, ajuste a **ampliação** (1–4×) e, para
-    monstros, **envie outra imagem** no mesmo diálogo. A imagem inteira aparece esmaecida atrás do
-    círculo; dá para aplicar às cópias com a mesma imagem e voltar à original
+92 troféus (76 de jogador, 16 de GM) por feitos na plataforma: escrever o background, anotar em sessões seguidas, tirar
+20 natural, o maior dano da noite… Todo troféu ainda não ganho é **secreto**. Perfil com nível e pontos, coleção, ranking
+da mesa e o cartão "Troféu desbloqueado" para todos.
 
-**Quem é GM vem da conta** (o papel na mesa), sem interruptor: o GM sempre vê a camada do mapa,
-os números de PV dos monstros, os mapas privados e as ações coletivas (criar, revelar, levar a
-mesa, apagar, limpar desenhos); o jogador não vê nada disso.
+### 🐉 Transformação
 
-Todos veem o mesmo mapa: os aparelhos acompanham as mudanças a cada 1,5 s enquanto a aba está
-aberta, sem botão de atualizar.
+Stat block de qualquer _battle form_ do Remaster (Animal, Dinosaur, Dragon, Elemental, Ooze, Avatar…) com os números reais
+do personagem — "use o valor da magia, a menos que o seu seja maior" —, no padrão oficial de bloco de criatura, em
+português, exportável em PNG/PDF.
 
-### ✅ Rolagens da Mesa (Implementado)
+### 📈 Escalar Monstro
 
-Toda rolagem — da Ficha Virtual ou do rolador do Mapa — aparece **para todo mundo, em qualquer
-página** (Ficha, Iniciativa, Mapa…), num cartão com os dados animados, o resultado e a conta.
+-   Pega uma criatura da AON e adapta para outro nível pelas **tabelas de construção do GM Core** (pg. 112-121, níveis -1 a 24).
+-   **Preserva a personalidade do monstro**: desloca cada número junto com o benchmark, em vez de trocá-lo pelo da tabela —
+    reescalar para o próprio nível devolve a ficha original.
+-   **Ajuste fino** do degrau (Extremo/Alto/Moderado/Baixo) por estatística; CDs e dano escritos na prosa acompanham o nível.
+-   **Conjuradores ganham ranks e slots**, com editor de magias pela tradição; o que o nível abriu fica vazio, marcado.
+-   Diz o que não ajustou; regra de cada termo numa caixinha; exportação em PNG e "Enviar para a Iniciativa".
 
--   Teste de d20 com **Natural 20/1** destacados; Golpe com ataque, dano e crítico no mesmo cartão;
-    salvaguarda básica com o dano de sucesso, falha e falha crítica
--   **Magia de vários raios** (Blazing Bolt de 2 ou 3 ações): um cartão só, com o ataque e o dano de
-    **cada raio**, o **total** dos raios e o total se todos forem críticos
--   Anotações da rolagem (veneno na arma, Debilitating Strike, Exacting Strike) aparecem no cartão
--   **Histórico** das últimas 30 rolagens em "Últimas rolagens" (sidebar; no celular, pelo "Mais"
-    da barra de abas)
--   As rolagens chegam aos outros em ~3 s (~1 s no Mapa), sem botão de atualizar. Com a aba
-    escondida o app não consulta nada
+---
 
-### ✅ Diário de Campanha (Implementado, só o GM)
+## 👥 Personagens da Campanha
 
-A preparação da campanha, escrita em **Markdown**, que só o GM vê (o servidor recusa o jogador):
+Os presets (`public/characters/*.json`, registrados em `src/modules/character-viewer/campaignPresets.ts`) alimentam a
+Ficha Virtual, a Iniciativa e a Transformação. O dia a dia, porém, é cada jogador **publicar** a própria ficha.
 
--   **Uma página por sessão**, com abas: **Preparação** (com modelo: onde paramos, objetivo, começo forte,
-    segredos e pistas, recompensas), **Cenas** (feita/pulada, na ordem), **Encontros**, **Elenco**, **Registro**
-    e **Resumo**
--   **Catálogo da campanha**: NPCs, locais, itens, facções e outros, com imagem, etiquetas e texto, reaproveitados
-    entre sessões. `[[Nome]]` no texto vira link para a ficha (ou oferece criá-la), e o Elenco sugere quem foi
-    citado
--   **Ganchos e pendências**: pistas e segredos em aberto → revelado → resolvido, ao lado da sessão
--   **Planejador de encontros**: criaturas da AON, o **orçamento de XP do GM Core** (trivial a extremo, ajustado
-    ao tamanho do grupo das fichas publicadas) e **Enviar para a Iniciativa** com um clique
--   **Registro durante o jogo**: anotações rápidas com hora e etiqueta (combate, saque, decisão, NPC, pista);
-    "Começar a sessão" liga a sessão da mesa e leva às rolagens daquele dia no Histórico
--   **Mostrar à mesa**: o trecho marcado com `:::jogadores Título … :::` ou uma imagem aparece na tela de todos
-    os jogadores, em qualquer página (e no sino) — o resto da página continua secreto. Uma prévia confirma
-    exatamente o que vai
--   Barra de formatação, envio de imagem, prévia ao lado (no celular, Editar/Ver), salvamento automático,
-    rascunho no aparelho sem rede e aviso quando o mesmo documento é editado em outro aparelho
+**Casa do Gordo Online** (nível 10)
 
-### ✅ Wiki da Mesa (Implementado, de todos)
+| Preset    | Classe                               | Nome na ficha                      | Observações                                                              |
+| --------- | ------------------------------------ | ---------------------------------- | ------------------------------------------------------------------------ |
+| Brukuthur | Bárbaro (Gigante), Android           | `Brukuthur, The Barbarian Android` | Titan Mauler; runa de tamanho caseira (Enlarge/Shrink).                  |
+| Ceros     | Patrulheiro (Precisão), Aiuvarin     | `Cerosqualhanthallas`              | Druid Dedication (Tempestade), arco longo, Mythic Magic.                 |
+| Eldarion  | Ladino (Thief) + Swashbuckler        | `Eldarion`                         | Venenos (o Pathbuilder os exporta como "Invested"); Gloom Blade.        |
+| Ghan Buri | Guerreiro (Bastion), Jotunborn       | `Ghan Buri`                        | Escudo com Destructive Block; Hero's Plate (anda 25 ft no mapa).         |
+| Nathaniel | Magus (Sparkling Targe), Aiuvarin    | `Nathaniel o Magus`                | Animated Armor como companheiro de combate; **anel corrigido à mão** (abaixo). |
+| Thalos    | Psíquico (Oscillating Wave), Humano  | `Thalos Alba`                      | Chronoskimmer; magias de assinatura; o slug segue `thalos`.              |
 
-O que a mesa inteira — GM e jogadores — sabe sobre o mundo, em **Markdown**:
+**Arton 1515** (nível 7)
 
--   **Páginas por tipo**: NPC, local, item, criatura, facção, divindade, evento, lore e outro, cada uma com capa,
-    resumo de uma linha, apelidos, etiquetas e uma **ficha rápida** própria (onde o NPC está, a atitude com o
-    grupo, quem está com o item…). `[[Nome]]` liga uma página a outra (`[[Nome|rótulo]]` para outro texto); um
-    nome que não existe vira link para criá-la
--   **Autoria**: quem criou e quando, quem alterou por último e quando; cada "Salvar" é uma versão do
-    **histórico**, com prévia e **Restaurar**
--   **Mencionada em** (as páginas que citam esta), a trilha **Fica em** (Golarion › Avistan › Absalom…) e as
-    páginas de dentro
--   **Busca** no título, nos apelidos, nas etiquetas e no texto, filtros por tipo, etiqueta e "só as minhas", e as
-    **mudanças recentes** da mesa
--   **Todos editam**; o GM **trava** uma página, **esconde** uma página inteira até revelá-la e escreve **trechos
-    do mestre** (`:::mestre … :::`) que o servidor corta antes de entregar ao jogador — nem o histórico nem a
-    busca os mostram. O jogador edita sem vê-los, e eles continuam no lugar
--   **Criatura ligada à AON**: o GM a manda para a Iniciativa ou para o Escalar Monstro dali
--   **Ligada ao Diário de Campanha**: `[[Nome]]` no diário também acha a Wiki, as páginas entram no Elenco da
-    sessão, uma ficha do catálogo cria a página pública a partir dos trechos `:::jogadores`, e o Resumo da sessão
-    vira uma **crônica** na Wiki
--   "Mostrar à mesa" (GM), notificação de página nova ou revelada, lixeira do GM e quatro troféus
+| Preset       | Classe                                        | Nome na ficha        | Observações                                                              |
+| ------------ | --------------------------------------------- | -------------------- | ------------------------------------------------------------------------ |
+| Loki         | Magus (Laughing Shadow), Fleshwarp            | `Loki`               | Arquétipo de Psíquico (The Tangible Dream); relíquia **Loki's Heart**.   |
+| Miranda      | Investigadora (Empiricism), Humana            | `Miranda Stormblade` | Arquétipo de Inventor; relíquia **Miranda's Arm** (o Braço Sônico).      |
+| Hearts Folly | Monge (Student of Perfection), Humana Dromaar | `Hearts folly`       | Relíquias Redenção Pelas Cinzas e Afinco do Artista; desarmado caseiro.  |
+| Woyd         | Clérigo (Enclausurado, Void), Humano Versátil | `Woyd`               | Relíquia Brasão da Família (emoção Pride); Heal em d10 (Healing Hands).  |
 
-### 🚧 Em Desenvolvimento
-
--   Calculadora de Magias
+-   **O JSON do Nathaniel tem uma edição à mão**: o *Winder's Ring* foi marcado por engano; o certo é o **Ring of Wizardry
+    (Type I)** ([AON 462](https://2e.aonprd.com/Equipment.aspx?ID=462)), com o +1 de Arcanismo em `mods`. Os dois slots de
+    1º rank do anel não estão em `perDay` (são preparados no dia). **Um export novo desfaz a troca** se o anel não for
+    corrigido no Pathbuilder.
+-   **Mythic Magic gasta Ponto Mítico, não slot**: o Pathbuilder o exporta como conjurador com 5 slots de 5º rank que não existem.
+-   O que o Pathbuilder não exporta (desarmados, magias de assinatura, relíquias, runas caseiras, traços de arma caseira)
+    vem de catálogos escritos à mão no código, casados pelo nome — o JSON nunca é editado pelo app.
+-   O Ardagar saiu da campanha; o guia e o ataque animal dele continuam no código para quem carregar o JSON à mão.
 
 ---
 
 ## 🛠️ Stack Tecnológica
 
-### Frontend
-
-| Tecnologia        | Versão | Uso                     |
-| ----------------- | ------ | ----------------------- |
-| React             | 19.x   | Framework UI            |
-| TypeScript        | 5.x    | Tipagem estática        |
-| Vite              | 5.x    | Build tool e dev server |
-| Material-UI (MUI) | 7.x    | Componentes de UI       |
-| MUI X Data Grid   | 8.x    | Tabelas de dados        |
-| jsPDF             | 3.x    | Geração de PDFs         |
-| html2canvas       | 1.x    | Captura do stat block   |
-| React Router      | 7.x    | Roteamento SPA          |
-
-### Backend (Servidor de Scraping + Tradução)
-
-| Tecnologia  | Uso                                             |
-| ----------- | ----------------------------------------------- |
-| Node.js     | Runtime                                         |
-| Cheerio     | Web scraping da AON                             |
-| Groq        | Tradução das descrições da AON para pt-BR       |
-| HTTP nativo | Servidor de API local (`server/index.mjs`)      |
-
-> O mesmo backend roda em dois modos: **funções serverless** em `api/*.js` (deploy Vercel) e o
-> servidor local `server/index.mjs`, ambos compartilhando o núcleo `api/_lib/aon.js`. A tradução
-> exige `GEMINI_API_KEY` e/ou `GROQ_API_KEY` (ver [Deploy](#-deploy-na-vercel-gratuito)).
-
-### Ferramentas de Desenvolvimento
-
--   ESLint (linting)
--   Prettier (formatação)
--   Yarn/npm (gerenciamento de pacotes)
+| Camada      | Tecnologia                                                                                   |
+| ----------- | -------------------------------------------------------------------------------------------- |
+| Frontend    | React 19, TypeScript 5.8, Vite 5, MUI 7, React Router 7, Emotion                             |
+| Conteúdo    | react-markdown + remark-gfm (Diário, Wiki, Anotações); html2canvas e jsPDF (exportações)    |
+| Backend     | Node.js — funções serverless da Vercel (`api/*.js`) e o mesmo núcleo em dev (`server/index.mjs`) |
+| Dados       | Supabase: Postgres, Realtime, Storage e Auth (região São Paulo)                              |
+| Regras      | Elasticsearch da Archives of Nethys                                                          |
+| Tradução    | Gemini (`gemini-3.1-flash-lite`) → Groq (`gpt-oss-120b`, `gpt-oss-20b`), com cache no banco  |
+| Qualidade   | ESLint, `check-i18n` e os scripts de conferência em `scripts/`                               |
 
 ---
 
@@ -452,698 +278,121 @@ O que a mesa inteira — GM e jogadores — sabe sobre o mundo, em **Markdown**:
 
 ### Pré-requisitos
 
--   **Node.js** 18+
--   **Yarn** ou **npm**
+-   **Node.js** 20+ e **npm**
 
 ### Instalação
 
 ```bash
-# Clone o repositório
 git clone <repository-url>
 cd pf2e-tools
-
-# Instale as dependências
-yarn install
-# ou
 npm install
+cp .env.example .env   # e preencha as chaves (ver abaixo)
 ```
 
-### Modos de Execução
-
-#### Desenvolvimento (Frontend apenas)
+### Execução
 
 ```bash
-yarn dev
-# ou
-npm run dev
+npm run dev        # frontend (Vite, http://localhost:5173)
+npm run dev:api    # backend local (http://localhost:3001)
+npm run dev:full   # os dois juntos
+npm run build      # tsc -b && vite build
+npm run lint       # eslint + check-i18n
+npm run preview    # serve o build
 ```
 
--   Acesse: `http://localhost:5173`
--   Funciona sem o backend, mas as descrições traduzidas da AON ficam indisponíveis (use `dev:full`)
+### Variáveis de ambiente (`.env.example`)
 
-#### Desenvolvimento Completo (Frontend + API)
+| Variável                                          | Para quê                                                             |
+| ------------------------------------------------- | -------------------------------------------------------------------- |
+| `GEMINI_API_KEY`, `GROQ_API_KEY`                  | Tradução das descrições (gratuitas, opcionais; sem elas, inglês)     |
+| `SUPABASE_URL`, `SUPABASE_SECRET_KEY`             | Banco no servidor (a chave secreta nunca vai ao frontend)            |
+| `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` | Login e Realtime no navegador                                     |
+| `SUPABASE_DB_PASSWORD`, `SUPABASE_DB_URL`         | Scripts de migration e o backup semanal (pooler em modo sessão)      |
+| `BACKUP_PASSPHRASE`                               | Criptografia do backup (o repositório é público)                     |
+| `AUTH_REQUIRED=1`                                 | Liga a cobrança de login e papel no servidor                         |
 
-```bash
-yarn dev:full
-# ou
-npm run dev:full
-```
-
--   Frontend: `http://localhost:5173`
--   API: `http://localhost:3001`
--   Busca descrições automaticamente da Archives of Nethys
--   Para testar o **estado compartilhado da mesa** entre dois navegadores, preencha as variáveis do
-    Supabase no `.env` (ver `.env.example`). Sem elas o servidor guarda só em memória — o que já serve
-    para um teste local, mas não sobrevive a um restart. **Atenção:** com as chaves do projeto de
-    produção, o `dev:api` local lê e grava no banco de verdade
-
-#### Build de Produção
-
-```bash
-yarn build
-yarn preview
-```
-
-### 🚀 Deploy na Vercel (Gratuito)
-
-O projeto está configurado para deploy automático na Vercel.
-
-#### Passo a Passo
-
-1. **Crie uma conta na Vercel**
-
-    - Acesse [vercel.com](https://vercel.com) e faça login com GitHub
-
-2. **Importe o repositório**
-
-    - Clique em "New Project"
-    - Selecione o repositório `pf2e-tools`
-    - A Vercel detectará automaticamente as configurações do Vite
-
-3. **Configure as variáveis de ambiente**
-
-    - Vá em "Settings" > "Environment Variables"
-    - Adicione `GEMINI_API_KEY` (tradutor primário) — chave gratuita em
-      [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
-    - Adicione `GROQ_API_KEY` (fallback) — chave gratuita em
-      [console.groq.com/keys](https://console.groq.com/keys)
-    - As duas são opcionais, mas com as duas configuradas a tradução continua funcionando quando
-      um dos provedores fica indisponível ou esgota a cota diária
-
-4. **Ligue o Supabase** (opcional — estado da mesa, fichas publicadas, feed, mapas, imagens e o
-   cache de traduções)
-
-    - Crie um projeto gratuito em [supabase.com](https://supabase.com), na região mais perto da mesa
-      (a nossa é São Paulo, `sa-east-1`, com as funções da Vercel em `gru1`)
-    - Em *Authentication → Sign In / Providers*, ligue **Anonymous Sign-Ins** (cada aparelho ganha
-      uma sessão sem tela de login)
-    - Aplique as migrations: `npx supabase link --project-ref <ref>` e `npx supabase db push`
-    - Na Vercel, crie `SUPABASE_URL`, `SUPABASE_SECRET_KEY` (só servidor), `VITE_SUPABASE_URL` e
-      `VITE_SUPABASE_PUBLISHABLE_KEY` (Project Settings → API Keys, as chaves novas)
-    - Sem isso o app funciona igual, mas PV, slots e condições ficam no aparelho de cada jogador e
-      as imagens do mapa ficam no aparelho de quem as enviou
-
-5. **Deploy**
-    - Clique em "Deploy"
-    - Aguarde o build finalizar
-    - Seu app estará disponível em `https://seu-projeto.vercel.app`
-
-#### Estrutura de API Serverless
-
-```
-api/
-├── _lib/
-│   ├── aon.js              # Núcleo: busca na AON (cheerio) + tradução (Groq)
-│   ├── spell-parse.js      # Parse estrutural das magias
-│   ├── spells-core.js      # Helpers de magias
-│   └── metadata-i18n.js    # Dicionário de tradução de metadados
-├── health.js               # GET  /api/health
-├── feat.js / feats.js      # GET  /api/feat?name=...  ·  batch: /api/feats
-├── search.js / searches.js # GET  /api/search?name=...  ·  batch: /api/searches
-├── spell.js / spells.js    # GET  /api/spell?name=...   ·  batch: /api/spells
-├── companion.js / companions.js # GET /api/companion?name=... (stats de companheiro animal)
-├── state.js                # GET/POST /api/state — estado da mesa, fichas publicadas e mapas de combate
-└── clear-cache.js          # POST /api/clear-cache
-```
-
-> `_lib/table-store.js`, `sheet-store.js`, `sheet-descriptions.js`, `roll-store.js` e `map-store.js`
-> são os módulos com persistência (Postgres do Supabase); as imagens vão para o Supabase Storage, e
-> o tempo real é o Realtime do Supabase, transmitido por triggers do banco. Todos os outros
-> endpoints são stateless. O mapa mora dentro de `state.js` pelo limite de 12 funções do plano Hobby.
-
+-   **Sem Supabase o app funciona** em modo local: sem login, com todas as permissões, e tudo fica no aparelho.
+    Para abrir assim mesmo com o `.env` preenchido: `VITE_SUPABASE_URL= VITE_SUPABASE_PUBLISHABLE_KEY= npx vite`.
+-   **Atenção**: com as chaves do projeto de produção, o `dev:api` lê e grava no banco de verdade. Teste numa mesa de
+    teste, com nomes `teste-*`, e apague no fim.
 
 ---
 
-## 🏗️ Arquitetura do Projeto
+## 🚀 Deploy (Vercel + Supabase)
+
+1. **Supabase**: crie um projeto (o nosso é São Paulo, `sa-east-1`), ligue-o (`npx supabase link --project-ref <ref>`) e
+   aplique as migrations (`npx supabase db push`). Cada migration já cria as tabelas, as permissões, os triggers do
+   tempo real e o bucket de imagens.
+2. **Vercel**: importe o repositório (o Vite é detectado), cadastre as variáveis acima e faça o deploy. As funções rodam
+   em `gru1` (`vercel.json`), perto do banco. O cron diário do `vercel.json` chama `/api/health`, que impede o plano
+   gratuito do Supabase de pausar por inatividade.
+3. **Primeiro GM**: `node --env-file=.env scripts/grant-gm.mjs <mesa>` imprime um convite de GM; o GM cria a conta por ele
+   e, em `/membros`, convida os jogadores e atribui as fichas.
+4. **Backup**: `.github/workflows/backup-supabase.yml` faz o dump semanal criptografado (segredos `SUPABASE_DB_URL` e
+   `BACKUP_PASSPHRASE`).
+
+> O plano Hobby da Vercel permite **12 funções serverless por deploy**, e `api/` já tem 12. Endpoint novo entra em
+> `api/search.js` ou `api/state.js` — um 13º arquivo passa no build e derruba o deploy.
+
+---
+
+## 🏗️ Arquitetura
 
 ```
 pf2e-tools/
-├── api/                          # Serverless Functions (Vercel) — ver estrutura acima
-│   └── _lib/                     # Núcleo compartilhado (aon, spell-parse, metadata-i18n…)
+├── api/                    # 12 funções serverless (Vercel)
+│   ├── search.js           #   consultas estruturadas à AON (criaturas, aflições, itens, armas, regras…)
+│   ├── state.js            #   tudo que tem estado: mesa, fichas, rolagens, mapas, diário, wiki, conta…
+│   ├── feat(s).js, spell(s).js, search(es).js, companion(s).js, creature.js, health.js, clear-cache.js
+│   └── _lib/               # núcleo: AON, tradução, parsers, stores do banco, autorização (state-router, access)
+├── server/index.mjs        # o mesmo backend para desenvolvimento local
+├── supabase/migrations/    # o esquema do banco, uma migration por mudança
 ├── public/
-│   └── characters/              # Fichas de exemplo/campanha (Pathbuilder, campo `build`)
-│       ├── brukuthur10.json
-│       ├── cerosqualhanthallas10.json
-│       ├── eldarion10.json
-│       ├── ghanburi10.json
-│       ├── nathaniel10.json
-│       └── thalos10.json
-├── scripts/                      # Rodados à mão, fora do build
-│   ├── fetch-creature-tables.mjs # Gera creatureTables.ts a partir das tabelas do GM Core na AON
-│   ├── check-scaling.mjs         # Confere o motor de escala contra criaturas de verdade
-│   ├── check-rolls.mjs           # Confere a matemática das rolagens contra as fichas do grupo
-│   ├── check-diary.mjs           # Confere o resumo do histórico (SQL) contra a conta do cliente
-│   └── ts-loader.mjs             # Deixa o Node importar os .ts do src/ nos scripts acima
-├── server/
-│   └── index.mjs                 # Servidor de API local (desenvolvimento)
-├── src/
-│   ├── layouts/
-│   │   └── MainLayout.tsx        # Layout principal com navegação
-│   ├── modules/
-│   │   ├── character-viewer/     # Módulo de Ficha Virtual (visualizador interativo)
-│   │   │   ├── CharacterViewerPage.tsx  # Página: abas (desktop) / acordeões (mobile)
-│   │   │   ├── campaignPresets.ts       # Presets de campanha (fichas em public/characters)
-│   │   │   ├── combatGuides.ts          # Guias "Como Jogar" (curados + fallback heurístico)
-│   │   │   ├── helpers.ts               # abilityMod, totalHp, spellcasterStats, …
-│   │   │   ├── sections/                # Overview, Combat, Skills, Feats, Specials, Spells, Pets, Inventory
-│   │   │   └── components/              # UploadCard, CharacterHeader, DescriptionDrawer, GuideMarkdown
-│   │   ├── initiative-tracker/   # Módulo de Iniciativa (gerenciador de combate)
-│   │   │   ├── InitiativePage.tsx       # Página: turnos, seleção e ações em lote
-│   │   │   ├── encounterReducer.ts      # Reducer do encontro + ordem de turnos
-│   │   │   ├── encounterStorage.ts      # Persistência local do encontro
-│   │   │   ├── useEncounterParty.ts     # PV/condições dos personagens no estado da mesa
-│   │   │   ├── useCombatantViews.ts     # Unifica personagem e monstro numa interface só
-│   │   │   ├── damage.ts / defenses.ts  # Dano RAW, resistência, fraqueza e imunidade
-│   │   │   └── components/              # Cartão, barra de turno, diálogos de lote, busca AON
-│   │   ├── battle-map/           # Módulo de Mapa de Combate (VTT, só desktop)
-│   │   │   ├── BattleMapPage.tsx        # Página: barra de ferramentas, avisos
-│   │   │   ├── geometry.ts              # Quadrado de 5 ft, diagonal 5-10-5, snap, tamanho do token
-│   │   │   ├── drawing.ts               # Desenhos: simplificação do traço, validação
-│   │   │   ├── hp.ts                    # Dano/cura no token
-│   │   │   └── components/              # MapCanvas, Token, DrawingLayer, DrawPanel, ImagePanel, MapListDrawer, TokenPopover
-│   │   ├── transformation-statblock/   # Módulo de Stat Blocks
-│   │   │   ├── TransformationPage.tsx   # Fluxo em steps
-│   │   │   ├── i18n.ts                  # Tradução pt-BR (vocabulário mecânico + nomes)
-│   │   │   ├── components/              # CharacterInput, FormSelector, StatBlockGenerator, ExportOptions
-│   │   │   └── data/                    # 1 arquivo por magia + spells.ts + from-pathbuilder.ts
-│   │   ├── monster-scaler/       # Módulo de Escalar Monstro (criatura da AON em outro nível)
-│   │   │   ├── MonsterScalerPage.tsx    # Página: controles à esquerda, stat block à direita
-│   │   │   ├── scaling.ts               # Motor: preserva a diferença em relação ao benchmark
-│   │   │   ├── abilityDc.ts             # CDs escritas na prosa das habilidades
-│   │   │   ├── abilityDamage.ts         # Dano escrito na prosa (baforada, aura, área)
-│   │   │   ├── spellcasting.ts          # Ranks, slots e a lista de magias no nível-alvo
-│   │   │   ├── ruleTerms.ts             # Que pedaços da ficha são termo de regra
-│   │   │   ├── toCombatant.ts           # Monstro reescalado → combatente da Iniciativa
-│   │   │   ├── components/              # MonsterSearch, ScaleAdjustPanel, MonsterStatBlock, MonsterExport
-│   │   │   └── data/creatureTables.ts   # GERADO por scripts/fetch-creature-tables.mjs
-│   │   ├── campaign-journal/     # Módulo de Diário de Campanha (só o GM)
-│   │   │   ├── CampaignJournalPage.tsx  # Página: índice à esquerda, documento à direita
-│   │   │   ├── doc.ts                   # Sessão, ficha do catálogo e gancho: formato e validação
-│   │   │   ├── useJournal.ts            # Lista e documento: salvamento automático, rascunho, conflito
-│   │   │   ├── xp.ts                    # Orçamento de XP do GM Core (pg. 75-76)
-│   │   │   ├── templates.ts             # Modelos de cada parte
-│   │   │   └── components/              # SessionView, EntryView, ChronicleDialog, EncounterPlanner, SessionLog, ThreadsPanel, RevealDialog
-│   │   └── wiki/                 # Wiki da Mesa (de todos)
-│   │       ├── WikiPage.tsx             # Página: índice à esquerda, página (ler/editar) à direita, lixeira
-│   │       ├── kinds.ts                 # Tipos de página, a ficha rápida de cada um e os modelos
-│   │       ├── useWiki.ts               # Página aberta, rascunho da edição, nomes → página, trilha
-│   │       └── components/              # WikiList, WikiView, WikiEditor, HistoryDialog
-│   ├── components/
-│   │   ├── markdown/             # Markdown, editor e ferramentas do diário, da Wiki e do cartão da mesa
-│   │   └── HandoutCard.tsx       # O que o GM mostra à mesa, na tela de todos
-│   ├── hooks/
-│   │   └── useCreatureSearch.ts  # Busca de criaturas (debounce, faixa, paginação) — Iniciativa + Escalar Monstro
-│   ├── layouts/
-│   │   ├── MainLayout.tsx        # Moldura: sidebar fixa (recolhível), gaveta, atalho ⌘K
-│   │   ├── sidebar/Sidebar.tsx   # Cartão da mesa, navegação em seções, últimas rolagens, perfil
-│   │   ├── MobileChrome.tsx      # Cabeçalho e barra de abas do celular
-│   │   └── navigation.tsx        # A lista única de destinos (sidebar, abas e busca)
-│   ├── pages/
-│   │   ├── HomePage.tsx          # Página inicial: sessão, seu personagem (ou preparar a sessão), atalhos, grupo e última sessão
-│   │   └── home/                 # As partes vivas da Início (personagem, atalhos, grupo, última sessão)
-│   ├── services/
-│   │   ├── descriptions.ts       # Cliente do backend (busca + cache das descrições AON)
-│   │   ├── creatures.ts          # Cliente da busca de criaturas na AON
-│   │   ├── monster.ts            # Cliente da ficha completa de uma criatura
-│   │   ├── spellList.ts          # Cliente da lista de magias (tradição + rank)
-│   │   ├── rules.ts              # Cliente da regra de um termo (inglês, cacheado)
-│   │   ├── supabase.ts           # Sessão de quem está logado e os canais do Realtime
-│   │   ├── auth.ts               # Login, papel na mesa, dados da mesa e o JWT em todo /api/*
-│   │   ├── notifications.ts      # O sino: eventos da mesa e o que a conta já leu
-│   │   ├── combatStatus.ts       # Rodada e vez de quem, só leitura (sidebar e Início)
-│   │   ├── tableState.ts         # Estado compartilhado da mesa, em tempo real
-│   │   ├── maps.ts               # Mapa de combate: tempo real + escrita otimista
-│   │   ├── journal.ts            # Diário de Campanha: documentos, "Mostrar à mesa" e o canal do Realtime
-│   │   ├── wiki.ts               # Wiki da Mesa: páginas, histórico, busca, índice compartilhado e o canal
-│   │   └── images.ts             # Redução e envio de imagens (Supabase Storage, IndexedDB de reserva)
-│   ├── pathbuilder/                # Tipos do JSON do Pathbuilder, parse/normalização e dados de arma (usados por todos os módulos)
-│   ├── types/
-│   │   └── index.ts              # Tipos globais
-│   ├── App.tsx                   # Componente raiz + rotas
-│   ├── main.tsx                  # Entry point
-│   └── theme.ts                  # Configuração do tema MUI
-├── package.json
-├── tsconfig.json
-├── vite.config.ts
-└── README.md
+│   ├── characters/         # fichas dos presets (JSON do Pathbuilder)
+│   └── descriptions/       # descrições pré-traduzidas por personagem (pt e en/)
+├── scripts/                # conferências e manutenção, rodados à mão (ver Testes)
+├── brand/covil-de-dados/   # logo, símbolo e o guia da marca
+└── src/
+    ├── App.tsx             # rotas (todo módulo é carregado sob demanda)
+    ├── layouts/            # moldura: sidebar, barra de abas do celular, navegação
+    ├── pages/              # Início
+    ├── modules/            # um módulo por ferramenta (account, character-viewer, initiative-tracker,
+    │                       #   battle-map, session-diary, campaign-journal, wiki, trophies,
+    │                       #   transformation-statblock, monster-scaler)
+    ├── services/           # clientes: estado da mesa, rolagens, descrições, auth, Realtime, mapas…
+    ├── components/         # componentes globais e o editor Markdown
+    ├── pathbuilder/        # tipos e normalização do JSON do Pathbuilder
+    ├── dice/, motion/      # rolagem e animações (sem biblioteca)
+    ├── i18n/               # tr(pt, en), idioma da conta
+    └── theme/              # paleta verde/pergaminho/ouro, tema claro e escuro
 ```
 
-### Padrões de Projeto
-
-1. **Arquitetura Modular**: Cada funcionalidade é um módulo independente em `src/modules/`
-2. **Separação de Responsabilidades**:
-    - `*Page.tsx` = UI e estado
-    - arquivos próprios (`rolls.ts`, `scaling.ts`…) = lógica pura
-    - `types.ts` = definições de tipos
-3. **Componentes Reutilizáveis**: Em `src/components/`
-4. **Tipagem Forte**: TypeScript em todo o projeto
+**Documentação para quem desenvolve**: o `CLAUDE.md` da raiz tem as regras que valem para o repositório inteiro, e cada
+área tem o seu (`api/CLAUDE.md`, `supabase/CLAUDE.md`, `src/services/CLAUDE.md`, `src/theme/CLAUDE.md`,
+`src/modules/<módulo>/CLAUDE.md`…), com as decisões, armadilhas e invariantes daquela parte. Leia antes de mexer nela.
 
 ---
 
-## 📦 Módulos Detalhados
-
-### Módulo: Character Viewer (Ficha Virtual)
-
-**Localização:** `src/modules/character-viewer/`
-
-Visualizador interativo da ficha. Usa `parseCharacterJson`/`BuildInfo` de `src/pathbuilder/`, então aceita o JSON do Pathbuilder.
-
-#### Arquivos
-
-| Arquivo                     | Responsabilidade                                                                    |
-| --------------------------- | ----------------------------------------------------------------------------------- |
-| `CharacterViewerPage.tsx`   | Estado da ficha, restauração por sessão, layout em abas (desktop) / acordeões (mobile), drawer de descrições |
-| `campaignPresets.ts`        | Lista de fichas prontas (`public/characters/*.json`) exibidas no `UploadCard`        |
-| `combatGuides.ts`           | Guias "Como Jogar" — curados à mão por nome + gerador heurístico de fallback         |
-| `magicWeapons.ts`           | Armas cujos números mudam com a situação (Gloom Blade no escuro), casadas pelo nome |
-| `helpers.ts`                | Cálculos derivados: `abilityMod`, `totalHp`, `spellcasterStats`, `isMythicCharacter`, `mythicProficiencyDelta`, … |
-| `components/useMythicPoints` | Pool de 3 Pontos Míticos, compartilhado com a mesa (campo `mythic`)                 |
-| `checks.ts`                 | Totais de salvaguardas, Percepção, perícias e Saberes, com a conta parcela por parcela (item, armadura, condições) |
-| `strikes.ts`                | Conta do Golpe: atributo do ataque, MAP, dano, extras e crítico com deadly/fatal     |
-| `rolls.ts`                  | Monta a rolagem que vai para a mesa (teste, Golpe, magia) e a identidade de quem rola |
-| `components/RollDialog`     | Diálogo de rolagem: memorial, MAP, dano extra, ajuste, normal ou ✦ mítico          |
-| `sections/*`                | Uma área por aba: Overview, Combat, Skills, Feats, Specials, Spells, Pets, Inventory |
-| `CharacterSheetView.tsx`    | O corpo da ficha (hooks, faixas, abas/acordeão), usado pela página e pelo painel do mapa (`compact`) |
-| `embedContext.ts` / `components/EmbedDialog` | Prendem gaveta e diálogos ao painel quando a ficha está embutida no mapa |
-| `actions.ts` / `actionVariants.ts` | Orçamento de ações (Lento, Atordoado, Acelerado) e o catálogo das magias de ação variável |
-| `rage.ts` / `psyche.ts` / `energy.ts` / `psiAmps.ts` | Fúria, Unleash Psyche, Conservation of Energy e os amps dos psi cantrips |
-| `magus.ts` / `spellstrike.ts` | Arcane Cascade e poder mítico; opções e regras do Spellstrike dentro do Golpe |
-| `ranger.ts` / `rogue.ts` / `fighter.ts` | Hunt Prey e Gravity Weapon; Poison Weapon; Fearsome Brute, Reflexive Shield e Fiery Rebirth |
-| `initiative.ts` / `critEffects.ts` | Bônus de iniciativa da ficha; runas e especialização crítica |
-| `companions.ts`             | Companheiros de combate do personagem (nome na AON, token, enquadramento)           |
-| `components/*Bar.tsx`       | Faixas fora das abas: Ações, Fúria, Psique, Energia, Magus, Patrulheiro, Míticos     |
-| `components/UploadCard`     | Upload / colar JSON / escolher preset                                               |
-| `components/DescriptionDrawer` | Drawer que busca a descrição na AON e mostra traduzida                            |
-| `components/GuideMarkdown`  | Render do markdown do guia de uso                                                    |
-
-#### Guia de Uso "Como Jogar"
-
-O guia tático de cada personagem fica em `combatGuides.ts`. Cada guia **casa por nome** da ficha
-(`byName(...)`) e é escrito à mão (`curated: true`). Fichas sem guia catalogado caem em
-`buildFallbackGuide()`, que monta um resumo automático a partir de classe, atributos, PV, CA,
-saves e talentos — sinalizado na UI como guia automático.
-
-> **Ao adicionar uma ficha nova:** copie o JSON para `public/characters/`, registre em
-> `campaignPresets.ts` — com o `sheetName` **exatamente** igual ao `build.name` do JSON — e
-> (recomendado) escreva um guia curado em `combatGuides.ts` casando pelo nome do personagem.
-
-#### Fichas da campanha
-
-Os presets de `campaignPresets.ts` aparecem em **três** lugares: na Ficha Virtual, no diálogo de
-personagens da Iniciativa e no gerador de Transformação. Tirar ou pôr uma ficha ali mexe nos três.
-
-Cada preset tem **dois nomes**: `name` é o rótulo curto dos cards e o nome do combatente na
-Iniciativa ("Ceros" cabe onde "Cerosqualhanthallas" não cabe); `sheetName` é o nome como o
-Pathbuilder exporta, de onde sai o slug do estado da mesa. É pelo `sheetName` que a Iniciativa sabe
-quem **já está no combate** — pelo rótulo, "Ceros" e "Cerosqualhanthallas" dariam slugs diferentes e
-o mesmo personagem entraria duas vezes, dividindo o mesmo PV.
-
-| Preset                | Classe (nível 10)                   | Nome na ficha (casa o guia)          | Observações                                                        |
-| --------------------- | ----------------------------------- | ------------------------------------ | ------------------------------------------------------------------ |
-| Brukuthur             | Bárbaro (Gigante), Android          | `Brukuthur, The Barbarian Android`   | Guia casa pelo começo do nome. Titan Wrestler trocado por Inventor. |
-| Ceros                 | Patrulheiro (Precisão), Aiuvarin    | `Cerosqualhanthallas`                | Nome curto nos cards. Druid Dedication (Tempestade), arco longo.   |
-| Eldarion              | Ladino (Thief) + Swashbuckler       | `Eldarion`                           | Venenos Fearweed, Toxic Effluence e Breath of the Mantis God.      |
-| Ghan Buri             | Guerreiro (Bastion), Jotunborn      | `Ghan Buri`                          | —                                                                  |
-| Nathaniel             | Magus (Sparkling Targe), Aiuvarin   | `Nathaniel o Magus`                  | Guia casa pelo começo do nome. **Anel corrigido à mão** (abaixo).  |
-| Thalos                | Psíquico (Oscillating Wave), Humano | `Thalos Alba`                        | Chronoskimmer completo (4/6/8/10). Nome do export mudou (abaixo).  |
-
-Na **Arton 1515**:
-
-| Preset                | Classe                              | Nome na ficha (casa o guia)          | Observações                                                        |
-| --------------------- | ----------------------------------- | ------------------------------------ | ------------------------------------------------------------------ |
-| Loki                  | Magus 7 (Laughing Shadow), Fleshwarp | `Loki`                              | Arquétipo de Psíquico (The Tangible Dream). Guia pelo Remaster do Magus. |
-| Miranda               | Investigadora 7 (Empiricism), Humana | `Miranda Stormblade`                | Arquétipo de Inventor. Guia curado (`MIRANDA`). Relíquia batizada de **Miranda's Arm** (o Braço Sônico, com acuidade; dádivas Scrap Shot e Dragon Strike da AON). |
-| Hearts Folly          | Monge 7 (Student of Perfection), Humana Dromaar | `Hearts folly`                  | Duas relíquias (Redenção Pelas Cinzas e Afinco do Artista). Flurry, Ki Strike e a postura do arqueiro no app. O desarmado "Special Unarmed (1d6)" é caseiro, tratado como o Punho (ágil, acuidade). |
-| Woyd                  | Clérigo 7 (Enclausurado, Void), Humano Versátil | `Woyd`                          | Relíquia Brasão da Família (Absorb Injury e Emotion Surge, emoção Pride: +1 em Sociedade). Heal em d10 (Healing Hands), Banishing Touch com proficiência mítica, ✦ do Prescience e do Sage's Calling, Sacred Ground pelo Curar. |
-
-- **O JSON do Nathaniel tem uma edição à mão**: o jogador marcou o *Winder's Ring* por engano, e o
-  anel de nível 7 certo é o **Ring of Wizardry (Type I)**
-  ([AON 462](https://2e.aonprd.com/Equipment.aspx?ID=462)) — +1 de item em Arcanismo e dois slots
-  arcanos de 1º rank a mais. A troca está no `equipment` e o +1 no `mods.Arcana`. Os slots extras
-  **não** foram lançados em `perDay`: são preparados no dia, e a ficha não inventa magia pelo
-  jogador. **Um novo export do Pathbuilder desfaz a troca** se o anel não for corrigido lá.
-- **O Thalos virou `Thalos Alba` no export V3**, mas mantém o slug `thalos` (`SLUG_ALIASES` em
-  `charId.ts` e `sheet-store.js`, espelhados): token, PV, slots e ficha publicada seguem valendo.
-  Renomear outro personagem é uma linha nas duas tabelas. O guia casa pelo começo do nome (`startsWith('thalos')`). O arquétipo livre
-  agora é **Chronoskimmer inteiro** (Dedication, Turn Back the Clock, Guide the Timeline, Reversing
-  Charge, Steal Time); o Psychic Duelist foi trocado. Idiomas, Crafting treinado, Fast Recovery e
-  duas poções (Annulment, Resistance) entraram. As magias de assinatura não são
-  exportadas (ver abaixo). Não falta talento de classe de 1º nível: o Psíquico só ganha o primeiro no 2º.
-- **Magias de assinatura do Thalos** (Breathe Fire, Blazing Bolt, Fireball, Ice Storm, Howling Blizzard) vêm de
-  `signatureSpells.ts`, não do Pathbuilder: a aba de Magias as repete elevadas nos ranks acima do delas.
-- **Os venenos do Eldarion vêm como "Invested"** do Pathbuilder, mas são consumíveis — o guia avisa.
-- **Mythic Magic gasta Ponto Mítico, não slot** (Ceros e Nathaniel). O Pathbuilder exporta o talento
-  como conjurador espontâneo com 5 slots de 5º rank, que não existem. A aba de Magias reconhece o
-  bloco pelo nome (`isMythicMagicCaster`), não desenha pips, liga o botão de cada magia ao pool de
-  Pontos Míticos da mesa e calcula CD e ataque com a **proficiência mítica** (nível + 10).
-- **O Ardagar saiu da campanha** (setembro/2026): preset e `public/characters/ardagar10.json`
-  removidos. O guia curado e a espécie do urso em `unarmed.ts` continuam no código porque casam
-  pelo nome — quem carregar o JSON dele à mão ainda vê tudo certo.
-
-#### Descrições traduzidas sob demanda
-
-Ao tocar em um item (talento, habilidade, magia, equipamento), o `DescriptionDrawer` chama o
-backend via `src/services/descriptions.ts`, que busca na AON e devolve o texto traduzido (com
-cache). Sem o backend rodando, um _alert_ avisa e a ficha continua utilizável sem as descrições.
-
-A **correção de tradução** feita pela mesa (`services/translationFixes.ts`, tabela `description_fixes`)
-é uma camada por cima, aplicada na leitura: vale para a descrição venha ela do pacote pré-traduzido,
-da API ou do cache do aparelho.
-
----
-
-### Módulo: Initiative Tracker (Iniciativa)
-
-**Localização:** `src/modules/initiative-tracker/` · **Rota:** `/iniciativa`
-
-Gerenciador de turnos e combate. A decisão central do módulo é **onde cada fatia de estado mora**:
-
-| Fatia                                        | Onde vive                                              |
-| -------------------------------------------- | ------------------------------------------------------ |
-| Combatentes, rodada, turno, durações, defesas | `useReducer` + `localStorage` + nuvem (abre em qualquer aparelho) |
-| PV e condições de **personagem**              | estado da mesa — **as mesmas chaves da Ficha Virtual** |
-| PV e condições de **monstro**                 | dentro do encontro                                     |
-| Aflições e dano persistente de **personagem** | estado da mesa (aparecem na Ficha Virtual)             |
-| Aflições e dano persistente de **monstro**    | dentro do encontro                                     |
-
-Ou seja: o encontro é do mestre, mas o personagem é da mesa. O dano aplicado aqui aparece na Ficha
-Virtual de quem estiver jogando, e o dano que o jogador marcar na ficha aparece aqui.
-
-**Um encontro por mapa de combate.** O seletor "Mapa de combate" no topo troca o encontro: o mestre
-prepara o do Mapa X e o do Mapa Y antes da sessão. Com um mapa escolhido, cada combatente vira um
-token nele (`useMapSync.ts`), e o PV dos monstros anda nos dois sentidos entre o cartão e o token. O
-encontro antigo, de antes dos mapas, virou o "Sem mapa".
-
-**Encontro salvo na nuvem.** Cada encontro sobe sozinho e abre igual em qualquer aparelho da mesa: o
-mestre monta no computador antes da sessão e joga no tablet. O que mudar num aparelho aparece no
-outro em cerca de 1 s. O indicador ao lado do seletor de mapa diz "Na nuvem", "Salvando…" ou "Não
-subiu". Se um aparelho tinha uma versão própria diferente da nuvem, abre a da nuvem e oferece
-"Desfazer" para voltar à dele.
-
-#### Arquivos
-
-| Arquivo                       | Responsabilidade                                                                  |
-| ----------------------------- | --------------------------------------------------------------------------------- |
-| `InitiativePage.tsx`          | Turnos, seleção de alvos, diálogos e a sugestão de Morrendo/Derrotado             |
-| `encounterReducer.ts`         | Reducer puro + ordem de turnos (`activeOrder`, `compareInitiative`, `peekNext`)   |
-| `encounterStorage.ts`         | Carga e gravação do encontro no `localStorage` (um por mapa), com saneamento       |
-| `useMapSync.ts`               | Combatentes → tokens do mapa ligado; PV de monstro nos dois sentidos               |
-| `useEncounterParty.ts`        | PV e condições de todos os personagens do encontro, no estado compartilhado       |
-| `useCombatantViews.ts`        | Unifica personagem e monstro numa interface só para o cartão                       |
-| `damage.ts` / `defenses.ts`   | Dano RAW e casamento de resistência/fraqueza/imunidade por tipo                    |
-| `afflictions.ts`              | Estágios de veneno/doença: salvaguarda, dano do estágio e duração máxima           |
-| `persistentDamage.ts`         | Dano persistente: entrada, teste plano de recuperação e vínculo com a aflição      |
-| `dice.ts`                     | Lê a fórmula de dano da prosa da AON e rola — o único ponto do módulo que rola dados |
-| `importCharacter.ts`          | Ficha ou criatura da AON → combatente                                              |
-| `components/CombatantCard`    | Cartão único (personagem e monstro), com PV, condições e ações do combatente       |
-| `components/CombatantActions` | Os botões de condição, aflição, dano persistente e ficha, com contagem e pendência |
-| `components/CombatantSheet`   | A ficha completa do monstro da AON, aberta dentro do próprio cartão                |
-| `components/BulkDamageDialog` | Dano em área com resultado de salvaguarda por alvo                                 |
-| `components/AonCreatureSearch`| Busca de criaturas em `/api/creature`, com quantidade                              |
-| `InitiativePage.tsx` (companheiros) | `addWithCompanions` traz os companheiros de combate do personagem; `refreshCompanions` relê token e enquadramento |
-
-#### Regras que o módulo implementa
-
--   **Dano** (Player Core, nesta ordem): multiplicador da salvaguarda (falha crítica ×2, falha ×1,
-    sucesso ÷2, sucesso crítico ×0) → imunidade → fraqueza → resistência → PV temporários → PV.
-    Resistência e fraqueza **não somam entre si**: vale a maior aplicável, e guarda-chuvas
-    (`all`, `physical`, `energy`) contam. Defesa com ressalva ("physical 5 except cold iron") vira
-    aviso, **nunca** número.
--   **Ordem de turnos**: em empate entre personagem e adversário, **o adversário age primeiro**.
-    Entre dois personagens, as setas ↑↓ resolvem — e o ajuste sobrevive ao botão "Reordenar".
--   **Adiar**: ao voltar, a iniciativa passa a ser **permanentemente** a da nova posição.
--   **Durações** contam rodadas do próprio alvo: decrementam no início do turno dele e somem ao
-    vencer.
--   **Queda a 0 PV** é sugestão, nunca automatismo: Morrendo `1 + Ferido` para personagem,
-    Derrotado para monstro.
--   **Ficha do monstro no próprio cartão**: todo monstro vindo da AON ganha um botão "Ficha" que
-    abre o stat block completo ali mesmo — Golpes, habilidades, magias, perícias —, sem trocar de
-    aba. É buscada ao abrir e não fica guardada no encontro. Monstro adaptado pelo Escalar Monstro
-    mostra a ficha **já no nível dele**, com os mesmos números do cartão.
--   **Aflições** (venenos e doenças buscados na AON): crítico ✓ −2 estágios, ✓ −1, ✗ +1,
-    crítico ✗ +2; **Virulento** exige dois sucessos seguidos para melhorar um. O **dano escrito no
-    estágio cai sozinho** ao entrar nele — inclusive ao melhorar, que RAW também é entrar num
-    estágio. A aflição **some sozinha** quando a duração máxima vence, quando ela cabe no relógio do
-    combate (rodadas e minutos; hora e dia o mestre encerra à mão).
--   **Dano persistente**: cai **ao final de cada turno** do alvo, com os dados rolados de novo, e em
-    seguida vem o **teste plano de CD 15** para acabar (CD 10 com ajuda apropriada). Pode ser
-    removido a qualquer momento, de personagem ou de monstro. O estágio de aflição que impõe dano
-    persistente cria a entrada sozinho, e ela sai junto quando a aflição sai.
-
-**O que o app rola e o que não rola.** Rolagem de quem está jogando continua na mesa: a iniciativa é
-digitada, e salvaguarda, salvaguarda de estágio e teste plano são informados pelo mestre em botões.
-O que o app rola são os dois danos que o RAW manda cair sem ninguém pedir — o do estágio de uma
-aflição e o persistente do fim do turno —, porque pedir esses dois viraria um clique por turno por
-combatente afligido. Cada aplicação automática mostra o memorial da rolagem e um **Desfazer**.
-O que os jogadores rolam pela Ficha Virtual aparece na tela da Iniciativa, pelo feed de rolagens.
-
----
-
-### Módulo: Battle Map (Mapa de Combate)
-
-**Localização:** `src/modules/battle-map/` · **Rota:** `/mapa/:id?` · **Só desktop**
-
-Sem id na URL, abre o mapa para onde a mesa está. O módulo é o único carregado sob demanda
-(`React.lazy`), para não pesar em quem só abre a ficha.
-
-| Fatia                          | Onde vive                                                        |
-| ------------------------------ | ---------------------------------------------------------------- |
-| Mapa (nome, imagem, escala)    | `map_fields`, campo `meta`                                       |
-| Quem é cada token              | `map_fields`, `tok:<id>` — escrito só pela Iniciativa            |
-| Onde está cada token           | `map_fields`, `pos:<id>` — escrito só pelo mapa                  |
-| Como a imagem é enquadrada     | `map_fields`, `fit:<id>` — centro, ampliação e (monstro) a imagem enviada no mapa |
-| PV de monstro                  | `map_fields`, `hp:<id>` — Iniciativa e mapa, nos dois sentidos   |
-| PV e imagem de personagem      | estado da mesa (`hp`, `token`) — os mesmos da Ficha Virtual      |
-| Cada desenho                   | `map_fields`, `drw:<id>` — uma linha por desenho                 |
-| Ping                           | `map_fields`, `ping:<id>` — apagado por quem pingou em 6 s       |
-| Rolagens de dados              | feed da mesa (tabela `rolls`), o mesmo das fichas                |
-| Imagens                        | Supabase Storage: `tokens/` (permanente), `maps/` e `monsters/` (do mapa) |
-
-#### Arquivos
-
-| Arquivo                         | Responsabilidade                                                         |
-| ------------------------------- | ------------------------------------------------------------------------ |
-| `BattleMapPage.tsx`             | Barra de ferramentas, avisos, PV de cada token                            |
-| `components/MapCanvas.tsx`      | Pan/zoom, grid, imagem, tokens, régua e gestos — sem render React no gesto |
-| `components/Token.tsx`          | Token com imagem ou iniciais, barra de PV e nome                          |
-| `components/DrawingLayer.tsx`   | Os desenhos, entre o grid e os tokens                                     |
-| `components/DrawPanel.tsx`      | Modo (livre, linha, apagar), cor e espessura                              |
-| `components/ImagePanel.tsx`     | Enviar a imagem do mapa e definir a escala em quadrados                   |
-| `components/MapListDrawer.tsx`  | Criar, renomear, levar a mesa e apagar mapas                              |
-| `components/AreaPanel.tsx`      | Forma, tamanho e cor da área de efeito                                    |
-| `components/PingLayer.tsx`      | O anel do clique duplo, mostrado uma vez por aparelho                     |
-| `components/DicePanel.tsx`      | Rolador de dados (quantidade, faces, bônus, cor); manda para o feed      |
-| `areas.ts`                      | Quadrados de explosão, emanação, cone e linha; criaturas dentro           |
-| `components/TokenPopover.tsx`   | Dano e cura no token                                                      |
-| `components/SheetPanel.tsx`     | Painel da Ficha Virtual ao lado do mapa (seletor com token, grade de cartões) |
-| `components/TokenBadge.tsx`     | O token do personagem, só para olhar (lê o mesmo campo da ficha)          |
-| `tokenFit.ts` / `components/TokenFit*.tsx` | Enquadramento da imagem do token (centro e ampliação), com envio de imagem |
-| `geometry.ts` / `drawing.ts`    | Distância PF2e, snap, tamanho do token; simplificação e validação do traço |
-| `services/maps.ts`              | Tempo real (canal do mapa, com a revisão de cada escrita), poll de reserva e escrita otimista |
-| `services/images.ts`            | Redução no navegador e envio direto para o Supabase Storage               |
-| `api/_lib/map-store.js`         | Uma linha por campo, revisão, posição livre para token novo               |
-| `api/_lib/map-handler.js`       | Rotas do mapa dentro de `/api/state`                                      |
-
-#### Desempenho
-
-Pan, zoom e arrasto de token escrevem direto no DOM dentro de um `requestAnimationFrame` — o React
-não renderiza nada durante o gesto. O grid é um único `<svg>` com `<pattern>`. Medido com 40
-tokens sobre uma imagem de 4096 px: 60 fps e nenhuma mutação de DOM nos tokens durante o gesto.
-
----
-
----
-
-### Módulo: Transformation Statblock (Formas de Transformação)
-
-**Localização:** `src/modules/transformation-statblock/`
-
-Gera o stat block de uma _battle form_ do PF2e Remaster, no padrão oficial de bloco de criatura e
-em português. O componente de preview é o mesmo que a exportação (PDF/PNG) captura via `html2canvas`.
-
-#### Arquivos
-
-| Arquivo                        | Responsabilidade                                                                     |
-| ------------------------------ | ------------------------------------------------------------------------------------ |
-| `TransformationPage.tsx`       | Fluxo em steps: Personagem → Forma → Stat Block → Exportar                            |
-| `i18n.ts`                      | Tradução pt-BR: rótulos, tipos de dano, sentidos, tamanhos, traits, imunidades e nomes de magias/formas/ataques |
-| `components/CharacterInput`    | Import da ficha (JSON) ou entrada manual; seleção da magia                            |
-| `components/FormSelector`      | Escolha da forma (criatura) da magia                                                 |
-| `components/StatBlockGenerator`| Calcula os stats (RAW) e renderiza o bloco no layout Paizo                            |
-| `components/ExportOptions`     | Exportação PDF/PNG/impressão (renderiza o StatBlockGenerator)                         |
-| `data/spells.ts`               | Agrega todas as magias (`transformationSpells`) e helpers (`getFormsForSpell`, …)     |
-| `data/<magia>.ts`              | 1 arquivo por magia: `<x>Spell` + `<x>Forms` (formas, ataques, habilidades)          |
-| `data/from-pathbuilder.ts`     | Converte o JSON Pathbuilder em `PlayerCharacter` com modificadores reais              |
-
-#### Regras (RAW) importantes
-
--   **AC** = valor da magia + nível do personagem (substitui a CA normal).
--   **Ataque / Atletismo** = `max(valor da magia, valor do personagem)` — a regra "a menos que o
-    seu seja maior". Requer o modificador real (por isso o import da ficha).
--   **Salvamentos, Percepção e PV** não mudam com a transformação — usam os valores reais do
-    personagem (ou aproximações treinadas quando não há import).
--   Battle forms **não** alteram atributos nem concedem ataque/DC de magia (removidos do bloco).
--   Caso especial: **Ooze Form** tem CA baixa de propósito (`7 + nível`), pois é imune a crítico.
-
-#### Convenção de dados vs. tradução
-
-Os arquivos `data/` mantêm valores **canônicos em inglês** para campos mecânicos (tamanho, tipos
-de dano nas strings de ataque, traits, sentidos, imunidades) — o `i18n.ts` traduz no render. Já
-**nomes e descrições de habilidades** são armazenados em pt-BR nos próprios `data/`. Os campos
-`form.description` e `spell.description/heightened` não são exibidos no layout atual (dados de
-referência) e permanecem em inglês.
-
----
-
-### Módulo: Monster Scaler (Escalar Monstro)
-
-**Localização:** `src/modules/monster-scaler/`
-
-Pega a ficha de uma criatura do Archives of Nethys e adapta para outro nível, pelas dez tabelas de
-construção de criaturas do **GM Core** (pg. 112-121, níveis -1 a 24). O bloco exibido é o mesmo que
-a exportação em PNG captura via `html2canvas`.
-
-#### Arquivos
-
-| Arquivo                          | Responsabilidade                                                              |
-| -------------------------------- | ----------------------------------------------------------------------------- |
-| `MonsterScalerPage.tsx`          | Página: controles à esquerda, stat block à direita (empilhado no celular)      |
-| `scaling.ts`                     | Motor puro: ficha + nível-alvo + overrides → ficha reescalada + avisos         |
-| `types.ts`                       | `MonsterDetail` (o que a API devolve) e `ScaledMonster` (o resultado)          |
-| `toCombatant.ts`                 | Monstro reescalado → `NpcCombatant` da Iniciativa                             |
-| `data/creatureTables.ts`         | **GERADO** por `scripts/fetch-creature-tables.mjs` — não editar à mão          |
-| `components/MonsterSearch`       | Busca na AON (usa `hooks/useCreatureSearch`, compartilhado com a Iniciativa)   |
-| `components/ScaleAdjustPanel`    | Uma linha por estatística, com o degrau trocável                              |
-| `components/MonsterStatBlock`    | Renderiza o bloco no layout Paizo (subtree capturado pelo `html2canvas`)       |
-| `components/MonsterExport`       | Exportação em PNG e botão "Enviar para Iniciativa"                            |
-
-Backend: `api/creature.js?name=` → `api/_lib/monster-core.js` (números + degraus) e
-`api/_lib/creature-parse.js` (golpes, habilidades e conjuração, do campo `markdown` da AON).
-
-#### A regra que explica o módulo
-
-Preserva-se a **diferença** em relação ao benchmark, nunca o benchmark cru.
-
-Criaturas publicadas são feitas à mão e não batem com a tabela: o Bugbear Tormentor é "CA Alta" com
-CA 20, enquanto a tabela diz 19 no nível 3. Trocar o número pelo da tabela apagaria a personalidade
-do monstro e faria reescalar para o **próprio nível** devolver uma ficha diferente da original — a
-ferramenta perderia a confiança do GM no primeiro teste.
-
-Duas exceções à diferença: **PV usa razão** (cresce quase geometricamente, de 9 no nível -1 a ~500
-no 24) e o **dano** pega os dados da tabela do nível-alvo, deixando o modificador fixo absorver o
-desvio do golpe original.
-
-No ajuste fino, a **origem** da conta usa sempre o degrau que a AON deu à ficha e só o **destino**
-usa o degrau escolhido. Usar o escolhido dos dois lados faz o ajuste não fazer nada: as colunas da
-tabela sobem quase em paralelo e a diferença se cancela.
-
-#### O que **não** é reescalado
-
-Por decisão de produto, e sempre listado num aviso na página:
-
--   A **prosa das habilidades** fica em inglês e intocada (dados e CDs dentro do texto ficam como
-    estão).
--   A **lista de magias** não muda de rank — só a CD e o ataque de magia são ajustados.
--   O **dano extra** dos golpes (`plus 2d6 fire`) fica como está: é escolha de design da criatura e
-    não segue a tabela de dano de ataque.
--   Defesas com ressalva (`"physical 5 except cold iron"`) nunca viram número.
-
-A ferramenta **nunca inventa um número que o GM não conferiu** — mesma política do
-`api/_lib/creature-core.js`.
-
----
-
-## 🌐 API do Servidor
-
-O servidor (`server/index.mjs`) fornece endpoints para buscar dados da Archives of Nethys.
-
-### Endpoints
-
-| Método | Rota             | Parâmetros | Descrição                                       |
-| ------ | ---------------- | ---------- | ----------------------------------------------- |
-| GET    | `/api/health`    | —          | Health check (verifica backend disponível)      |
-| GET    | `/api/feat`      | `name`     | Busca descrição de um Feat                       |
-| GET    | `/api/search`    | `name`     | Busca descrição genérica (Special Abilities/itens) |
-| GET    | `/api/spell`     | `name`     | Busca informações detalhadas de uma magia        |
-| GET    | `/api/companion` | `name`     | Stats de companheiro animal                      |
-| GET    | `/api/creature`  | `q`, `minLevel`, `maxLevel`, `limit` | Busca criaturas por nome e/ou faixa de nível — sem tradução |
-| GET    | `/api/creature`  | `name`     | Ficha completa de uma criatura, com o degrau de benchmark de cada estatística — sem tradução |
-| GET    | `/api/search`    | `affliction` | Venenos e doenças com estágios, salvaguarda e duração — sem tradução |
-| GET    | `/api/search`    | `gear`     | Traços das armas e penalidade das armaduras (`a\|b`), para as rolagens — sem tradução |
-| POST   | `/api/clear-cache` | —        | Limpa o cache de descrições                      |
-| GET    | `/api/state`     | `char`     | Estado de jogo compartilhado de um personagem    |
-| POST   | `/api/state`     | body       | Grava uma fatia (`{ char, field, data }`)        |
-| GET    | `/api/state`     | `char`, `field` | **Uma** fatia do estado — o poll das ações do turno quando não há tempo real |
-| GET    | `/api/state`     | `rolls`, `rev` | Feed das últimas 30 rolagens (só o contador, se nada mudou) |
-| POST   | `/api/state`     | `{ action: 'roll-add', roll }` | Manda uma rolagem já sorteada para a mesa |
-| GET    | `/api/state`     | `journal` (`list` ou id) | Diário de Campanha: o índice ou um documento — **só o GM** |
-| POST   | `/api/state`     | `{ action: 'journal-save', doc, base }` | Grava um documento do diário se ainda for a versão `base` (senão 409) — **só o GM** |
-| POST   | `/api/state`     | `{ action: 'journal-reveal', reveal }` | Mostra um trecho ou imagem na tela da mesa — **só o GM** |
-| GET    | `/api/state`     | `reveal`   | O que o GM mostrou (o cartão dos jogadores lê daqui) |
-| GET    | `/api/state`     | `wiki` (`list`, `recent`, `search`, `trash` ou id) | Wiki da Mesa: índice, mudanças recentes, busca, lixeira (GM) ou uma página — sem os trechos do mestre para o jogador |
-| GET    | `/api/state`     | `wikiHistory`, `wikiRev` | O histórico de uma página e uma versão dele |
-| POST   | `/api/state`     | `{ action: 'wiki-save', page, base }` | Grava uma página se ainda for a versão `base` (senão 409); `wiki-restore`, `wiki-delete`, `wiki-flags`, `wiki-show`… |
-
-As variantes **plurais** (`/api/feats`, `/api/searches`, `/api/spells`, `/api/companions`) aceitam
-uma lista de nomes para busca em lote. Todas as descrições são **traduzidas para pt-BR** via Groq
-antes de retornar.
-
-`/api/creature` (nos dois modos) é a exceção: devolvem só os campos já estruturados do índice da
-AON (números e vocabulário curto) e o stat block parseado, sem passar por nenhum modelo — traduzir
-cada busca estouraria o rate limit do tier gratuito e deixaria a busca lenta demais para usar na
-mesa. No modo `?name=`, a prosa das habilidades fica em inglês por decisão de produto.
-
-> Os dois modos moram no mesmo arquivo porque o plano Hobby da Vercel permite **12 funções
-> serverless por deploy**, e `api/*.js` já tinha 12. Confira a contagem antes de criar um endpoint.
-
-### Exemplo de Resposta `/api/spell`
-
-```json
-{
-    "name": "Heal",
-    "actions": "1 to 3",
-    "traits": ["concentrate", "divine", "healing", "manipulate", "vitality"],
-    "range": "varies",
-    "targets": "1 willing living creature or 1 undead",
-    "damage": "1d8",
-    "damageType": "vitality",
-    "description": "Você canaliza energia positiva para curar os vivos...",
-    "heightened": {
-        "+1": "A quantidade curada aumenta em 1d8"
-    }
-}
-```
-
-### Cache
-
-O servidor mantém um cache em memória para evitar requisições repetidas à AON.
-
-### Estado da mesa (`/api/state`)
-
-Único endpoint com estado. Guarda **uma linha por fatia** de cada personagem no Postgres
-(`character_state`: `hp`, `slots`, `conditions`, `mythic`, `rage`, `psyche`, `energy`, `magus`, `ranger`, `rogue`, `actions`, `companions`, `shield`, `size`, `pet:…`) — assim dois jogadores editando coisas diferentes ao mesmo
-tempo não se sobrescrevem. O personagem é identificado por um **slug do nome** (`Ghan Buri` →
-`ghan-buri`), sem o nível, para que subir de nível não zere o estado da mesa.
-
-```bash
-curl "http://localhost:3001/api/state?char=ghan-buri"
-# {"char":"ghan-buri","fields":{"hp":{"data":{"current":42,"temp":7},"updatedAt":…}},"storeReady":true}
-```
-
-Cada escrita é transmitida pelo **Realtime do Supabase** (um trigger do banco, no canal privado
-`mesa:<mesa>:state`), e quem está com a ficha aberta recebe na hora — o cabeçalho mostra **Ao vivo**.
-Sem o canal, a sincronia volta a ser sob demanda (ao abrir a ficha e no botão **Atualizar**).
-
-Sem as credenciais do Supabase o servidor responde igual, mas guarda só em memória — o cliente avisa
-**"Só neste aparelho"** e mantém tudo no `localStorage`.
+## 🌐 API
+
+| Rota                                   | O que devolve                                                                          |
+| -------------------------------------- | -------------------------------------------------------------------------------------- |
+| `GET /api/feat`, `/spell`, `/search`, `/companion` (`?name=`) | Descrição de talento, magia, item/habilidade ou companheiro, traduzida (ou em inglês com `lang=en`) |
+| `/api/feats`, `/spells`, `/searches`, `/companions` | As mesmas, em lote                                                       |
+| `GET /api/creature?q=&minLevel=&maxLevel=` | Busca de criaturas por nome e/ou faixa, paginada por cursor (`nextOffset`, `hasMore`) |
+| `GET /api/creature?name=`              | Ficha completa da criatura, com o degrau de benchmark de cada número                   |
+| `GET /api/search?affliction=` · `?spells=1` · `?rule=` · `?items=` · `?shields=` · `?gear=` · `?traitRules=` | Dados estruturados da AON: aflições, lista de magias, regra de um termo, traços de itens, escudos, armas e armaduras, regras de traço |
+| `GET/POST /api/state`                  | Estado da mesa, fichas publicadas e preparo, rolagens, mapas, encontros, diário, wiki, anotações, troféus, notificações e conta |
+| `GET /api/health`, `POST /api/clear-cache` | Saúde (e o ping que mantém o banco acordado); limpar o cache em memória            |
+
+Toda chamada leva `?mesa=` (exceto a mesa padrão) e, em inglês, `lang=en`. A autorização é do servidor; o catálogo
+completo das rotas do `state` está em `api/CLAUDE.md`.
 
 ---
 
 ## 📋 Formato de Dados
 
-### JSON de Personagem
-
-O sistema aceita JSONs no formato **Pathbuilder 2e** ou similar. Estrutura esperada:
+O app aceita o JSON exportado pelo **Pathbuilder 2e**:
 
 ```json
 {
@@ -1155,296 +404,102 @@ O sistema aceita JSONs no formato **Pathbuilder 2e** ou similar. Estrutura esper
         "ancestry": "Android",
         "heritage": "Polyglot Android",
         "background": "Detective",
-        "abilities": {
-            "str": 10,
-            "dex": 14,
-            "con": 14,
-            "int": 16,
-            "wis": 19,
-            "cha": 12
-        },
-        "proficiencies": {
-            "fortitude": 4,
-            "reflex": 2,
-            "will": 4,
-            "perception": 4,
-            "acrobatics": 0,
-            "...": "..."
-        },
-        "feats": [["Feat Name", null, "Class", 1], "..."],
-        "specials": ["Special Ability 1", "Special Ability 2"],
+        "abilities": { "str": 10, "dex": 14, "con": 14, "int": 16, "wis": 19, "cha": 12 },
+        "proficiencies": { "fortitude": 4, "reflex": 2, "will": 4, "perception": 4, "...": "..." },
+        "mods": { "Fortitude": { "Item Bonus": 1 } },
+        "feats": [["Feat Name", null, "Class Feat", 1]],
+        "specials": ["Special Ability 1"],
         "lores": [["Ancient Regional", 4]],
         "weapons": [
-            {
-                "name": "Longsword",
-                "display": "+2 Striking Longsword",
-                "die": "d8",
-                "pot": 2,
-                "str": "striking",
-                "damageType": "S",
-                "attack": 14,
-                "damageBonus": 3
-            }
+            { "name": "Longsword", "display": "+2 Striking Longsword", "die": "d8", "pot": 2,
+              "str": "striking", "damageType": "S", "attack": 14, "damageBonus": 3 }
         ],
         "spellCasters": [
-            {
-                "name": "Cleric",
-                "magicTradition": "divine",
-                "spellcastingType": "prepared",
-                "ability": "wis",
-                "proficiency": 4,
-                "perDay": [5, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0],
-                "spells": [
-                    {
-                        "spellLevel": 0,
-                        "list": ["Detect Magic", "Guidance", "Shield"]
-                    },
-                    { "spellLevel": 1, "list": ["Bless", "Fear", "Heal"] }
-                ]
-            }
-        ],
-        "featDescriptions": { "Feat Name": "Descrição do feat..." },
-        "specialDescriptions": { "Special Ability": "Descrição..." },
-        "spellDescriptions": { "Heal": { "...": "..." } }
+            { "name": "Cleric", "magicTradition": "divine", "spellcastingType": "prepared", "ability": "wis",
+              "proficiency": 4, "perDay": [5, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0],
+              "spells": [{ "spellLevel": 1, "list": ["Bless", "Heal"] }] }
+        ]
     }
 }
 ```
 
-### Campos Opcionais Pré-preenchidos
+-   **O nome (`build.name`) é a identidade do personagem na mesa**: o PV, os slots e a ficha publicada são guardados por
+    ele (sem o nível — subir de nível não perde nada).
+-   Campos opcionais `featDescriptions`, `specialDescriptions` e `spellDescriptions` são aceitos; sem eles, as descrições
+    vêm da AON.
+-   O app corrige o que o Pathbuilder exporta errado (grimório vazio, pool de foco a mais, tamanho listado como
+    habilidade…) ao ler a ficha, sem alterar o arquivo.
 
-Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são opcionais. Se não existirem no JSON:
+---
 
-1. **Com servidor rodando** (`npm run dev:full`): Busca automaticamente da AON
-2. **Sem servidor**: Exibe apenas o nome com link para AON
+## 🧪 Testes e Conferências
+
+Não há framework de teste; a validação é `npm run build` + `npm run lint` e os scripts abaixo, que saem com código
+diferente de zero quando algo quebra.
+
+| Script                                             | Confere                                                                    |
+| -------------------------------------------------- | -------------------------------------------------------------------------- |
+| `node scripts/check-rolls.mjs`                     | Matemática das rolagens contra as fichas do grupo, regras de classe, e que cliente e servidor recusam a mesma rolagem inválida |
+| `node scripts/check-scaling.mjs 200`               | Motor do Escalar Monstro contra 200 criaturas reais: identidade, monotonia, ida e volta, ajuste fino |
+| `node scripts/check-heightening.mjs`               | Heightening das magias contra o índice inteiro da AON                      |
+| `node scripts/check-economy.mjs`                   | Todo talento/item do elenco que custa ação, reação ou Ponto Mítico tem caminho no app |
+| `node scripts/check-trophies.mjs`                  | Regras e catálogo dos troféus (inclusive em inglês)                        |
+| `node scripts/check-contrast.mjs`                  | Contraste das cores, nos temas claro e escuro                              |
+| `node scripts/check-i18n.mjs`                      | Texto de tela em português fora de `tr()` (roda no `npm run lint`)         |
+| `node --env-file=.env scripts/check-auth.mjs`      | Matriz de acesso contra o banco real (cria e apaga usuários de teste)      |
+| `node --env-file=.env scripts/check-diary.mjs`     | O resumo do histórico em SQL contra a conta do cliente, dia a dia          |
+| `node --env-file=.env scripts/check-migrations.mjs`| As migrations pendentes, em produção, dentro de `BEGIN … ROLLBACK`         |
+
+Manutenção: `fetch-creature-tables.mjs` (tabelas do GM Core), `fetch-shared-class-features.mjs`,
+`build-description-bundle.mjs` (pacotes de descrição), `prepare-sheets.mjs` (completa descrições e guias das fichas
+publicadas), `seed-presets.mjs`, `grant-gm.mjs`.
 
 ---
 
 ## 🎯 Roadmap
 
-### ✅ Concluído
+### ✅ Feito
 
--   [x] Estrutura base do projeto
--   [x] Sistema de navegação e layout
--   [x] **Módulo de Ficha Virtual (visualizador interativo)**
-    -   [x] Layout em abas (desktop) / acordeões (mobile)
-    -   [x] Presets de campanha + upload/colar JSON + restauração por sessão
-    -   [x] Guias de uso "Como Jogar" (curados à mão + fallback heurístico)
-    -   [x] Descrições da AON traduzidas para pt-BR sob demanda (drawer)
-    -   [x] Plataforma em inglês por escolha da conta (descrições da AON em inglês, sem tradução)
-    -   [x] Áreas: Combate, Perícias, Talentos, Habilidades, Magias, Companheiros, Inventário
-    -   [x] Estado de jogo compartilhado entre os jogadores (PV, slots, foco, condições, pontos míticos)
-    -   [x] Proficiência mítica em salvaguardas, perícias e ataques + pool de 3 Pontos Míticos
-    -   [x] Rolar salvaguardas, Percepção, perícias, Golpes (ataque + dano + crítico) e magias pela
-            ficha, normal ou ✦ mítico, com a conta à mostra
-    -   [x] Bônus de item e penalidade de armadura nos testes
--   [x] **Módulo de Iniciativa (gerenciador de combate)**
-    -   [x] Importação de personagens da campanha e busca de monstros na AON (nome e/ou nível)
-    -   [x] PV e condições dos personagens compartilhados com a Ficha Virtual
-    -   [x] Dano em área com resultado de salvaguarda por alvo, resistência e fraqueza
-    -   [x] Condições com duração em rodadas
-    -   [x] Ordem de turnos com desempate RAW, ajuste manual e Adiar
--   [x] **Módulo de Mapa de Combate (VTT, desktop)**
-    -   [x] Grid de 5 ft com zoom, imagem do mapa com escala em quadrados
-    -   [x] Tokens com barra de PV vindos do encontro da Iniciativa (um encontro por mapa)
-    -   [x] Régua com diagonal 5-10-5
-    -   [x] Desenhar (livre, linha, 12 cores, apagar um por vez)
-    -   [x] Áreas de efeito PF2e (explosão, emanação, cone, linha) com contagem de criaturas
-    -   [x] Alcance de movimento (1, 2 e 3 Andares) ao arrastar
-    -   [x] Ping com clique duplo
-    -   [x] Vários mapas por sessão, "levar a mesa" e apagar depois do jogo
-    -   [x] Token do personagem permanente; o do monstro some com o mapa
-    -   [x] Rolador de dados
--   [x] **Rolagens da mesa**: toda rolagem aparece para todos, em qualquer página, com histórico
--   [x] **Estatísticas da Mesa** (era "Histórico de Rolagens" e, antes, "Diário da sessão"; só conta o que foi rolado com a sessão iniciada pelo GM): as rolagens de cada noite de jogo, com 20 e 1 naturais, média do d20,
-        dano rolado por personagem e os destaques da sessão
-    -   [x] **Todas as sessões**: troféus somando todas as noites (Abençoado pelos dados, Amaldiçoado, Golpe do século, Noite do
-            apocalipse…), ranking por métrica, "o d20 é justo?" e a linha do tempo das sessões, com animação
--   [x] **Quem está na mesa**: o cartão da mesa na sidebar mostra quem está com o app aberto (e, tocando,
-        o nome do aparelho, a ficha aberta e a página); no mapa, o token do personagem com a ficha aberta ganha um ponto verde
--   [x] **Troféus do Covil**: troféus por conta (bronze, prata, ouro e platina) por escrever o background, anotar
-        em sessões seguidas, tirar 20 natural, causar o maior dano da sessão e mais; perfil com nível, coleção e
-        ranking da mesa em `/trofeus`, e o aviso "Troféu desbloqueado"
--   [x] **Início viva, por papel**: o GM vê a próxima sessão com "Preparar a sessão" (encontro, mapa, Diário); o jogador, o
-        cartão do seu personagem (PV, condições, última rolagem). Os dois têm atalhos com o estado da mesa, o grupo
-        com PV e quem está online, e a última sessão (média do d20, troféu e rolagens)
--   [x] **Sidebar em seções** (Jogo, Bastidores do GM, Mesa), que recolhe para um trilho de ícones, e
-        **barra de abas no celular**
--   [x] **Notificações** (o sino): ficha publicada ou atribuída a você, item recebido, mapa ativado ou
-        revelado, combate começou e regra compartilhada; o lido vale em todos os aparelhos
--   [x] **Busca ⌘K** para ir a qualquer página ou ferramenta pelo teclado
--   [x] **Configurações da mesa** (GM): nome, sessão em andamento e próxima sessão
--   [x] **Encontros da Iniciativa na nuvem**, abertos igual em qualquer aparelho
--   [x] **Aviso de nova versão da ficha**: quem está com a ficha aberta vê na hora que a mesa publicou
-        outra (um level-up), com o botão para abrir a nova
--   [x] **Correção de tradução pela mesa**, para todos os aparelhos e mesas
--   [x] **Módulo de Escalar Monstro (criatura da AON em outro nível)**
-    -   [x] Tabelas de construção de criaturas do GM Core transcritas do índice da AON (níveis -1 a 24)
-    -   [x] Motor que preserva a diferença da ficha em relação ao benchmark (reescalar para o
-            próprio nível devolve a ficha original)
-    -   [x] Ajuste fino do degrau por estatística
-    -   [x] Avisos do que não foi ajustado (prosa, lista de magias, dano extra)
-    -   [x] Exportação em PNG e envio direto para a Iniciativa
--   [x] Servidor de scraping da AON
--   [x] **Diário de Campanha (só o GM)**: sessões, catálogo, ganchos, registro, planejador de encontros com o XP do
-        GM Core e "Mostrar à mesa"
--   [x] **Wiki da Mesa**: páginas de todos com histórico e autoria, trechos do mestre, backlinks, busca e a ligação
-        com o Diário (elenco, catálogo e crônica)
+-   Ficha Virtual com publicação preparada, rolagens, ações, recursos, inventário, relíquias, anotações e as mecânicas
+    das classes do elenco
+-   Iniciativa com dano em área, aflições, dano persistente, escudos e encontros na nuvem
+-   Mapa de Combate com tempo real, gestos ao vivo, áreas de efeito, mapas privados e a ficha ao lado
+-   Estatísticas da Mesa, Diário de Campanha, Wiki da Mesa e Troféus do Covil
+-   Transformação e Escalar Monstro
+-   Contas com usuário e senha, convites, papéis e donos de ficha; várias mesas
+-   Plataforma em português e inglês; tema escuro; Início por papel; notificações; busca ⌘K
 
-### 🚧 Em Progresso
+### 🚧 Em andamento
 
--   [x] **Módulo de Stat Block de Transformação**
-    -   [x] Interface step-by-step
-    -   [x] Todas as battle forms do Remaster (inclui Ooze, Element Embodied, Avatar)
-    -   [x] Importação da ficha (JSON Pathbuilder) com modificadores reais
-    -   [x] Cálculos RAW (saves/percepção/ataque/atletismo reais)
-    -   [x] Layout de bloco de criatura oficial, traduzido para pt-BR
-    -   [x] Exportação PDF/PNG
+-   **Fechar o login de vez** (`AUTH_REQUIRED=1`, fim das sessões anônimas antigas) e exigir login também nos endpoints da AON
 
 ### 📅 Planejado
 
--   [ ] Calculadora de Magias
--   [ ] Gerador de Encontros aleatórios (o planejador do Diário de Campanha monta à mão)
--   [ ] Suporte a múltiplos idiomas
--   [ ] Temas customizáveis para PDF
--   [ ] PWA (Progressive Web App)
+-   Calculadora de Magias
+-   Gerador de encontros aleatórios (hoje o planejador do Diário monta à mão)
+-   PWA (instalar no celular, funcionar offline)
 
 ---
 
 ## 🤝 Contribuindo
 
-Contribuições são bem-vindas!
-
-### Como Contribuir
-
-1. Fork o projeto
-2. Crie uma branch (`git checkout -b feature/NovaFuncionalidade`)
-3. Commit suas mudanças (`git commit -m 'Adiciona nova funcionalidade'`)
-4. Push para a branch (`git push origin feature/NovaFuncionalidade`)
-5. Abra um Pull Request
-
-### Padrões de Código
-
--   Use TypeScript com tipagem forte
--   Siga a estrutura modular existente
--   Mantenha componentes pequenos e focados
--   Documente funções complexas
--   Use nomes descritivos em português para UI, inglês para código
-
----
-
-## 🤖 Contexto para IA
-
-Esta seção fornece contexto importante para assistentes de IA trabalhando neste projeto.
-
-### Sobre o Sistema de RPG
-
-**Pathfinder 2nd Edition (Remaster)** é um sistema de RPG de mesa da Paizo. Conceitos importantes:
-
--   **Atributos**: STR, DEX, CON, INT, WIS, CHA (valores 10-20+, modificador = (valor-10)/2)
--   **Proficiência**: Untrained (0), Trained (+2), Expert (+4), Master (+6), Legendary (+8)
--   **Bônus Total**: Proficiência + Nível + Modificador de Atributo + Bônus de Item
--   **Bônus Mítico**: 10 + Nível + Modificador de Atributo (regra homebrew)
--   **CD de Magia**: 10 + Proficiência + Nível + Modificador de Atributo-Chave
--   **Archives of Nethys (AON)**: https://2e.aonprd.com/ - Referência oficial online
-
-### Referência de Cálculos
-
-```typescript
-// Modificador de atributo
-const mod = Math.floor((abilityScore - 10) / 2)
-
-// Bônus de perícia
-const skillBonus = proficiencyRank + level + abilityMod + itemBonus
-
-// Bônus mítico (homebrew) — substitui a proficiência, não soma por cima
-const mythicBonus = 10 + level + abilityMod
-
-// Ataque com proficiência mítica: troca a parte de proficiência que já está no
-// número do Pathbuilder (destreinado não soma o nível)
-const mythicAttack = attack - (rank > 0 ? level + rank : 0) + (level + 10)
-
-// CD de magia
-const spellDC = 10 + proficiencyRank + level + keyAbilityMod
-
-// Ataque de magia
-const spellAttack = proficiencyRank + level + keyAbilityMod
-```
-
-### Convenções do Projeto
-
-1. **Idioma**: Interface em português, código em inglês
-2. **PDF**: Sempre print-friendly (preto, cinza, branco apenas)
-3. **Fontes**: Helvetica (disponível no jsPDF por padrão)
-4. **Links AON**: Formato `https://2e.aonprd.com/Search.aspx?q=TERMO`
-5. **Ações de Magia**: "1 ação", "2 ações", "3 ações", "reação", "livre", "1 a 3 ações"
-
-### Arquivos Principais para Modificações
-
-| Funcionalidade         | Arquivo                                                     |
-| ---------------------- | ---------------------------------------------------------- |
-| Ficha Virtual (viewer) | `src/modules/character-viewer/CharacterViewerPage.tsx`     |
-| Guias "Como Jogar"     | `src/modules/character-viewer/combatGuides.ts`             |
-| Presets de campanha    | `src/modules/character-viewer/campaignPresets.ts`          |
-| Tipos + parse do JSON  | `src/pathbuilder/types.ts`                                 |
-| Stat block (battle forms) | `src/modules/transformation-statblock/`                 |
-| Motor de escala de monstro | `src/modules/monster-scaler/scaling.ts`                |
-| Tabelas do GM Core (geradas) | `scripts/fetch-creature-tables.mjs` → `src/modules/monster-scaler/data/creatureTables.ts` |
-| Parse do stat block da AON | `api/_lib/creature-parse.js`                           |
-| Núcleo do backend AON  | `api/_lib/aon.js` (serverless) · `server/index.mjs` (local) |
-| Fichas de exemplo      | `public/characters/*.json`                                 |
-| Tema global            | `src/theme.ts`                                             |
-
-### Testes
-
-Validação obrigatória de mudanças não triviais:
-
-```bash
-npm run build   # tsc -b && vite build
-npm run lint    # eslint
-```
-
-Não há framework de teste no projeto. O que existe é um script de conferência do motor de escala,
-que roda contra criaturas de verdade da AON:
-
-```bash
-node scripts/check-scaling.mjs 200   # 200 criaturas; sai com código != 0 se algo falhar
-```
-
-Ele confere quatro propriedades: **identidade** (reescalar para o próprio nível devolve a ficha
-original), **monotonia** (subir de nível não baixa número), **ida e volta** (+4 níveis e de volta
-fecha) e **ajuste fino** (trocar o degrau move o número). Rode depois de qualquer mudança em
-`scaling.ts` ou nas tabelas.
-
-A matemática das rolagens tem o seu, que roda sem rede contra as fichas do grupo:
-
-```bash
-node scripts/check-rolls.mjs   # sai com código != 0 se algo falhar
-```
-
-Confere os totais de cada ficha (com o bônus de item), o mítico, o empilhamento de condições, o
-MAP, o crítico com deadly e fatal, o piso de 1 no dano e que cliente e servidor recusam a mesma
-rolagem inválida. Rode depois de mexer em `checks.ts`, `strikes.ts`, `rolls.ts` ou `src/dice/`.
-
-Para testar a Ficha Virtual manualmente:
-
-1. Execute `npm run dev:full` (frontend + backend de tradução)
-2. Acesse http://localhost:5173 e abra **Ficha Virtual**
-3. Escolha um preset de campanha (ou faça upload de um JSON Pathbuilder)
-4. Navegue pelas abas e toque em talentos/magias para ver as descrições traduzidas
+-   TypeScript com tipagem forte, um módulo por ferramenta em `src/modules/`, lógica em arquivos próprios.
+-   Interface em português **e** inglês (`tr('…', '…')`), código em inglês.
+-   Leia o `CLAUDE.md` da raiz e o da área antes de mexer; rode `npm run build`, `npm run lint` e o script de conferência
+    da área.
+-   Commits pequenos, mensagens em português.
 
 ---
 
 ## 📄 Licença
 
-Este projeto está sob a licença MIT.
+MIT.
 
 ## 🙏 Agradecimentos
 
 -   Comunidade Pathfinder 2e
--   [Archives of Nethys](https://2e.aonprd.com/) pela referência de dados
--   [Pathbuilder 2e](https://pathbuilder2e.com/) pelo formato de JSON
+-   [Archives of Nethys](https://2e.aonprd.com/) pela referência de regras
+-   [Pathbuilder 2e](https://pathbuilder2e.com/) pelo formato de ficha
 -   [monster.pf2.tools](https://monster.pf2.tools) pela inspiração
 
----
-
-**Desenvolvido com ❤️ para a comunidade Pathfinder 2e**
+Pathfinder é marca da Paizo Inc. Este é um projeto de fã, não oficial.
