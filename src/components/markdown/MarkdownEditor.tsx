@@ -1,6 +1,6 @@
 import { memo, useDeferredValue, useRef, useState, type ReactNode } from 'react'
 import {
-    Alert, Box, CircularProgress, IconButton, InputBase, ToggleButton, ToggleButtonGroup, Tooltip,
+    Alert, Box, Button, CircularProgress, IconButton, InputBase, ToggleButton, ToggleButtonGroup, Tooltip,
     useMediaQuery, useTheme,
 } from '@mui/material'
 import {
@@ -92,6 +92,34 @@ export const MarkdownEditor = memo(function MarkdownEditor(props: Props) {
         changed(el.value)
     }
 
+    /**
+     * Um bloco `:::` em volta do trecho selecionado. As marcas precisam de linha própria, então a linha
+     * é partida em volta da seleção: o que vem antes e depois fica onde estava, e só o trecho entra no
+     * bloco. Para o jogador, o antes e o depois voltam a ser a mesma frase (linhas seguidas, sem linha em
+     * branco, são um parágrafo só no Markdown). Sem seleção, entra o texto de exemplo numa linha nova.
+     */
+    const wrapBlock = (open: string, fallback: string) => {
+        const el = ref.current
+        if (!el) return
+        const v = el.value
+        const { selectionStart: s } = el
+        let e = el.selectionEnd
+        // Linhas inteiras selecionadas com a quebra do fim: o bloco não pega a linha de baixo.
+        if (e > s && v[e - 1] === '\n') e -= 1
+        const lineStart = v.lastIndexOf('\n', s - 1) + 1
+        const nl = v.indexOf('\n', e)
+        const lineEnd = nl < 0 ? v.length : nl
+        const selected = v.slice(s, e).trim()
+        const inner = selected || fallback
+        const before = v.slice(lineStart, s).trimEnd()
+        const after = v.slice(e, lineEnd).trimStart()
+        const head = `${before ? `${before}\n` : ''}${open}\n`
+        el.setRangeText(`${head}${inner}\n:::${after ? `\n${after}` : ''}`, lineStart, lineEnd, 'end')
+        el.focus()
+        el.setSelectionRange(lineStart + head.length, lineStart + head.length + inner.length)
+        changed(el.value)
+    }
+
     /** Prefixo em cada linha da seleção (lista, citação, título). */
     const prefixLines = (prefix: string) => {
         const el = ref.current
@@ -165,14 +193,23 @@ export const MarkdownEditor = memo(function MarkdownEditor(props: Props) {
                     <>
                     <ToolButton title={props.linkTitle ?? tr("Link para o catálogo: [[Nome]]", 'Link to the catalog: [[Name]]')} onClick={() => void link()} disabled={!showEditor}><LinkIcon fontSize="small" /></ToolButton>
                     {playersBlock && (
-                    <ToolButton title={tr("Bloco para os jogadores", 'Block for the players')} onClick={() => wrap(tr(':::jogadores Título\n', ':::players Title\n'), '\n:::', tr('O que os jogadores leem.', 'What the players read.'))} disabled={!showEditor}>
+                    <ToolButton title={tr("Bloco para os jogadores", 'Block for the players')} onClick={() => wrapBlock(tr(':::jogadores Título', ':::players Title'), tr('O que os jogadores leem.', 'What the players read.'))} disabled={!showEditor}>
                         <PlayersIcon fontSize="small" sx={{ color: gold.deep }} />
                     </ToolButton>
                     )}
                     {gmBlock && (
-                    <ToolButton title={tr("Trecho do mestre (os jogadores não veem)", 'GM-only block (players don\'t see it)')} onClick={() => wrap(tr(':::mestre\n', ':::gm\n'), '\n:::', tr('O que só o mestre sabe.', 'What only the GM knows.'))} disabled={!showEditor}>
-                        <SecretIcon fontSize="small" sx={{ color: ink.secondary }} />
-                    </ToolButton>
+                    <Tooltip title={tr('Selecione o trecho e toque: os jogadores não o veem', 'Select the text and tap: players won\'t see it')}>
+                        <span>
+                            <Button
+                                size="small"
+                                startIcon={<SecretIcon fontSize="small" />}
+                                onClick={() => wrapBlock(tr(':::mestre', ':::gm'), tr('O que só o mestre sabe.', 'What only the GM knows.'))}
+                                disabled={!showEditor}
+                                sx={{ color: ink.secondary, textTransform: 'none', py: 0.25, mx: 0.25, minHeight: 0 }}
+                            >
+                                {tr('Só o mestre', 'GM only')}</Button>
+                        </span>
+                    </Tooltip>
                     )}
                     <ToolButton title={tr("Enviar imagem", 'Upload image')} onClick={() => fileRef.current?.click()} disabled={!showEditor || uploading}>
                     {uploading ? <CircularProgress size={16} /> : <ImageIcon fontSize="small" />}
