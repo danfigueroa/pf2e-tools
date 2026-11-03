@@ -2,10 +2,12 @@
 // (magias, talentos, habilidades, itens, dádivas de relíquia) e as consultas de armas, armaduras,
 // consumíveis e escudos. É o que a publicação faz sozinha; este script cobre as fichas que entraram
 // por outro caminho (semeadura, JSON antigo). Incremental: só gasta tradução com o que falta.
-// Uso: node --env-file=.env scripts/prepare-sheets.mjs [mesa] [slug] [--lang en] [--guides-en]
+// Uso: node --env-file=.env scripts/prepare-sheets.mjs [mesa] [slug] [--lang en] [--guides-en] [--guides-pt]
 //   --lang en     monta o pacote de descrições em INGLÊS (texto da AON, sem tradução)
-//   --guides-en   gera o guia "Como Jogar" em inglês das fichas que ainda não o têm (a publicação já gera os
-//                 dois; isto cobre as publicadas antes do inglês)
+//   --guides-en   gera o guia "Como Jogar" em inglês das fichas que ainda não o têm
+//   --guides-pt   o mesmo em português
+// A publicação (preparada, `api/_lib/sheet-draft.js`) já sai com tudo isso; o script cobre as fichas
+// publicadas antes dela, que podem ter ficado sem guia ou com o pacote pela metade.
 import { register } from 'node:module'
 
 register('./ts-loader.mjs', import.meta.url)
@@ -22,15 +24,15 @@ const argv = process.argv.slice(2)
 const flag = (name) => argv.includes(name)
 const lang = argv.includes('--lang') ? argv[argv.indexOf('--lang') + 1] : 'pt'
 const [onlyMesa, onlySlug] = argv.filter((a, i) => !a.startsWith('--') && argv[i - 1] !== '--lang')
-const guidesEn = flag('--guides-en')
+const guideLangs = [...(flag('--guides-pt') ? ['pt'] : []), ...(flag('--guides-en') ? ['en'] : [])]
 let pendingAny = false
 for (const mesa of MESAS.map((m) => m.id).filter((id) => !onlyMesa || id === onlyMesa)) {
   for (const { slug } of await listSheets(mesa)) {
     if (onlySlug && slug !== onlySlug) continue
     const sheet = await readSheet(mesa, slug)
     const names = characterDescriptionNames(parseCharacterJson(sheet.json))
-    if (guidesEn) {
-      await englishGuide(mesa, slug, sheet)
+    if (guideLangs.length > 0) {
+      for (const guideLang of guideLangs) await missingGuide(mesa, slug, guideLang)
       continue
     }
     let remaining = 1
@@ -51,15 +53,21 @@ for (const mesa of MESAS.map((m) => m.id).filter((id) => !onlyMesa || id === onl
 }
 process.exit(pendingAny ? 1 : 0)
 
-/** O guia em inglês, gerado da ficha (base: o curado em inglês), sem mexer no português. */
-async function englishGuide(mesa, slug, sheet) {
-  if (sheet.guide?.en?.markdown) { console.log(`${mesa}/${slug}: guia em inglês já existe`); return }
+/** O guia de um idioma, gerado da ficha (base: o curado daquele idioma), sem mexer no outro. */
+async function missingGuide(mesa, slug, guideLang) {
+  const label = guideLang === 'en' ? 'em inglês' : 'em português'
+  // Relida a cada idioma: o português gravado antes entra no `current` do inglês.
+  const sheet = await readSheet(mesa, slug)
+  const has = guideLang === 'en' ? sheet.guide?.en?.markdown : sheet.guide?.markdown
+  if (has) { console.log(`${mesa}/${slug}: guia ${label} já existe`); return }
   const { generateGuide } = await import('../api/_lib/guide-core.js')
   const { saveGuide } = await import('../api/_lib/sheet-store.js')
   const { curatedBase } = await import('../src/modules/character-viewer/combatGuides.ts')
-  const base = curatedBase(parseCharacterJson(sheet.json)).en
-  const en = await generateGuide(sheet.json, base, 'en')
-  if (!en) { pendingAny = true; console.log(`${mesa}/${slug}: a IA não devolveu o guia em inglês`); return }
-  const saved = await saveGuide(mesa, slug, sheet.publishedAt, null, { en, current: sheet.guide })
-  console.log(`${mesa}/${slug}: ${saved ? 'guia em inglês gravado' : 'a ficha mudou no meio — rode de novo'}`)
+  const base = curatedBase(parseCharacterJson(sheet.json))[guideLang]
+  const text = await generateGuide(sheet.json, base, guideLang)
+  if (!text) { pendingAny = true; console.log(`${mesa}/${slug}: a IA não devolveu o guia ${label}`); return }
+  const saved = guideLang === 'en'
+    ? await saveGuide(mesa, slug, sheet.publishedAt, null, { en: text, current: sheet.guide })
+    : await saveGuide(mesa, slug, sheet.publishedAt, text, { current: sheet.guide })
+  console.log(`${mesa}/${slug}: ${saved ? `guia ${label} gravado` : 'a ficha mudou no meio — rode de novo'}`)
 }
