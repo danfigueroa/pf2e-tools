@@ -21,6 +21,7 @@ const SessionDiaryPage = lazy(() =>
   import('./modules/session-diary/SessionDiaryPage').then((m) => ({ default: m.SessionDiaryPage })));
 const CampaignJournalPage = lazy(() =>
   import('./modules/campaign-journal/CampaignJournalPage').then((m) => ({ default: m.CampaignJournalPage })));
+const WikiPage = lazy(() => import('./modules/wiki/WikiPage'));
 
 const MembersPage = lazy(() =>
   import('./modules/account/MembersPage').then((m) => ({ default: m.MembersPage })));
@@ -49,6 +50,7 @@ function App() {
               <Route path="mapa/:id?" element={page(<BattleMapPage />)} />
               <Route path="historico" element={page(<SessionDiaryPage />)} />
               <Route path="diario-campanha/:id?" element={page(<CampaignJournalPage />)} />
+              <Route path="wiki/:id?" element={page(<WikiPage />)} />
               <Route path="membros" element={page(<MembersPage />)} />
               <Route path="mesa" element={page(<MesaSettingsPage />)} />
               <Route path="trofeus/:user?" element={page(<TrophiesPage />)} />
