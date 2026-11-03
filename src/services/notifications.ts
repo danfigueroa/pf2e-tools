@@ -2,7 +2,7 @@
 //
 // Quem registra os eventos é o BANCO (triggers da migration `inicio_e_notificacoes`): ficha
 // publicada, ficha atribuída a você, mapa ativado ou revelado, combate começou, regra
-// compartilhada. Aqui se lê a lista (`GET ?events=1`), se ouve o canal `mesa:<mesa>:events`
+// compartilhada, página nova (ou revelada) na Wiki da Mesa. Aqui se lê a lista (`GET ?events=1`), se ouve o canal `mesa:<mesa>:events`
 // e se marca como lido — o "lido" é da CONTA, então o celular e o computador concordam.
 //
 // Item recebido de um colega é a exceção: já tem o próprio caminho (`services/gifts.ts`, que
@@ -26,6 +26,8 @@ export type NotificationKind =
     | 'rule-shared'
     | 'handout-shared'
     | 'trophy-unlocked'
+    | 'wiki-created'
+    | 'wiki-revealed'
     | 'gift'
 
 export interface TableNotification {
@@ -76,6 +78,9 @@ function relevant(e: ServerEvent): boolean {
     const me = auth.status === 'in' ? auth.user.id : null
     if (e.target && e.target !== me) return false
     if (e.kind === 'sheet-published' && me && e.data.by === me) return false
+    // Wiki: a página que eu criei não me notifica; a revelada, nunca ao GM (só ele revela).
+    if (e.kind === 'wiki-created' && me && e.data.by === me) return false
+    if (e.kind === 'wiki-revealed' && roleOf(auth).isGm) return false
     if ((e.kind === 'rule-shared' || e.kind === 'handout-shared') && typeof e.data.id === 'string' && isOwnRoll(e.data.id)) return false
     // Troféu: o meu sempre; o dos colegas só quando é de ouro ou platina (os outros seriam ruído).
     if (e.kind === 'trophy-unlocked' && e.data.user !== me && e.data.tier !== 'ouro' && e.data.tier !== 'platina') return false

@@ -10,6 +10,7 @@ import {
   SportsKabaddi as CombatIcon,
   Visibility as RevealIcon,
   EmojiEvents as TrophyIcon,
+  AutoStories as WikiIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications, type NotificationKind, type TableNotification } from '../services/notifications';
@@ -29,6 +30,8 @@ const ICONS: Record<NotificationKind, ReactElement> = {
   'rule-shared': <RuleIcon fontSize="small" />,
   'handout-shared': <HandoutIcon fontSize="small" />,
   'trophy-unlocked': <TrophyIcon fontSize="small" />,
+  'wiki-created': <WikiIcon fontSize="small" />,
+  'wiki-revealed': <WikiIcon fontSize="small" />,
   gift: <GiftIcon fontSize="small" />,
 };
 
@@ -57,6 +60,10 @@ function textOf(n: TableNotification): string {
       return d.user === myId()
         ? tr(`Troféu desbloqueado: ${str(d.title)}`, `Trophy unlocked: ${str(d.titleEn) || str(d.title)}`)
         : tr(`${str(d.name) || 'Alguém'} ganhou ${str(d.title)}`, `${str(d.name) || 'Someone'} earned ${str(d.titleEn) || str(d.title)}`);
+    case 'wiki-created':
+      return tr(`Página nova na Wiki: ${str(d.title) || 'sem título'}`, `New wiki page: ${str(d.title) || 'untitled'}`);
+    case 'wiki-revealed':
+      return tr(`O GM revelou na Wiki: ${str(d.title) || 'sem título'}`, `The GM revealed on the wiki: ${str(d.title) || 'untitled'}`);
     case 'gift':
       return tr(
         `${fromSlug(str(d.from)) || 'Alguém'} te enviou ${typeof d.n === 'number' ? d.n : 1}× ${str(d.name)}`,
@@ -79,6 +86,8 @@ export default function NotificationsList({ anchor, fresh, onClose }: { anchor: 
       navigate(str(d.map) ? `/mapa/${str(d.map)}` : '/mapa');
     } else if (n.kind === 'combat-started') {
       navigate('/iniciativa');
+    } else if (n.kind === 'wiki-created' || n.kind === 'wiki-revealed') {
+      navigate(str(d.id) ? `/wiki/${str(d.id)}` : '/wiki');
     } else if (n.kind === 'trophy-unlocked') {
       navigate(d.user === myId() ? '/trofeus' : `/trofeus/${str(d.user)}`);
     } else if (str(d.slug)) {
