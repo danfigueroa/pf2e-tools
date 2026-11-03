@@ -52,6 +52,7 @@ O toolkit expõe as ferramentas abaixo (rotas em `src/App.tsx`), listadas na pá
 | **Stat Block de Transformação** | `/transformation` | `src/modules/transformation-statblock/` | Gera o stat block de qualquer _battle form_ do Remaster              |
 | **Escalar Monstro**           | `/escalar-monstro` | `src/modules/monster-scaler/`        | Adapta uma criatura da AON para outro nível                            |
 | **Diário de Campanha** (GM)   | `/diario-campanha` | `src/modules/campaign-journal/`      | Preparação das sessões em Markdown, catálogo de NPCs/locais/itens, ganchos, encontros com XP e o que mostrar à mesa |
+| **Wiki da Mesa**              | `/wiki`           | `src/modules/wiki/`                   | O mundo escrito pela mesa: NPCs, locais, itens, criaturas, facções, com histórico, autoria e segredos do GM |
 | **Troféus do Covil**         | `/trofeus`        | `src/modules/trophies/`               | Troféus por conta (bronze a platina), perfil com nível e ranking da mesa |
 
 ### 🪑 Mesas
@@ -382,6 +383,29 @@ A preparação da campanha, escrita em **Markdown**, que só o GM vê (o servido
 -   Barra de formatação, envio de imagem, prévia ao lado (no celular, Editar/Ver), salvamento automático,
     rascunho no aparelho sem rede e aviso quando o mesmo documento é editado em outro aparelho
 
+### ✅ Wiki da Mesa (Implementado, de todos)
+
+O que a mesa inteira — GM e jogadores — sabe sobre o mundo, em **Markdown**:
+
+-   **Páginas por tipo**: NPC, local, item, criatura, facção, divindade, evento, lore e outro, cada uma com capa,
+    resumo de uma linha, apelidos, etiquetas e uma **ficha rápida** própria (onde o NPC está, a atitude com o
+    grupo, quem está com o item…). `[[Nome]]` liga uma página a outra (`[[Nome|rótulo]]` para outro texto); um
+    nome que não existe vira link para criá-la
+-   **Autoria**: quem criou e quando, quem alterou por último e quando; cada "Salvar" é uma versão do
+    **histórico**, com prévia e **Restaurar**
+-   **Mencionada em** (as páginas que citam esta), a trilha **Fica em** (Golarion › Avistan › Absalom…) e as
+    páginas de dentro
+-   **Busca** no título, nos apelidos, nas etiquetas e no texto, filtros por tipo, etiqueta e "só as minhas", e as
+    **mudanças recentes** da mesa
+-   **Todos editam**; o GM **trava** uma página, **esconde** uma página inteira até revelá-la e escreve **trechos
+    do mestre** (`:::mestre … :::`) que o servidor corta antes de entregar ao jogador — nem o histórico nem a
+    busca os mostram. O jogador edita sem vê-los, e eles continuam no lugar
+-   **Criatura ligada à AON**: o GM a manda para a Iniciativa ou para o Escalar Monstro dali
+-   **Ligada ao Diário de Campanha**: `[[Nome]]` no diário também acha a Wiki, as páginas entram no Elenco da
+    sessão, uma ficha do catálogo cria a página pública a partir dos trechos `:::jogadores`, e o Resumo da sessão
+    vira uma **crônica** na Wiki
+-   "Mostrar à mesa" (GM), notificação de página nova ou revelada, lixeira do GM e quatro troféus
+
 ### 🚧 Em Desenvolvimento
 
 -   Calculadora de Magias
@@ -612,15 +636,20 @@ pf2e-tools/
 │   │   │   ├── toCombatant.ts           # Monstro reescalado → combatente da Iniciativa
 │   │   │   ├── components/              # MonsterSearch, ScaleAdjustPanel, MonsterStatBlock, MonsterExport
 │   │   │   └── data/creatureTables.ts   # GERADO por scripts/fetch-creature-tables.mjs
-│   │   └── campaign-journal/     # Módulo de Diário de Campanha (só o GM)
-│   │       ├── CampaignJournalPage.tsx  # Página: índice à esquerda, documento à direita
-│   │       ├── doc.ts                   # Sessão, ficha do catálogo e gancho: formato e validação
-│   │       ├── useJournal.ts            # Lista e documento: salvamento automático, rascunho, conflito
-│   │       ├── xp.ts                    # Orçamento de XP do GM Core (pg. 75-76)
-│   │       ├── templates.ts             # Modelos de cada parte
-│   │       └── components/              # SessionView, EntryView, MarkdownEditor, EncounterPlanner, SessionLog, ThreadsPanel, RevealDialog
+│   │   ├── campaign-journal/     # Módulo de Diário de Campanha (só o GM)
+│   │   │   ├── CampaignJournalPage.tsx  # Página: índice à esquerda, documento à direita
+│   │   │   ├── doc.ts                   # Sessão, ficha do catálogo e gancho: formato e validação
+│   │   │   ├── useJournal.ts            # Lista e documento: salvamento automático, rascunho, conflito
+│   │   │   ├── xp.ts                    # Orçamento de XP do GM Core (pg. 75-76)
+│   │   │   ├── templates.ts             # Modelos de cada parte
+│   │   │   └── components/              # SessionView, EntryView, ChronicleDialog, EncounterPlanner, SessionLog, ThreadsPanel, RevealDialog
+│   │   └── wiki/                 # Wiki da Mesa (de todos)
+│   │       ├── WikiPage.tsx             # Página: índice à esquerda, página (ler/editar) à direita, lixeira
+│   │       ├── kinds.ts                 # Tipos de página, a ficha rápida de cada um e os modelos
+│   │       ├── useWiki.ts               # Página aberta, rascunho da edição, nomes → página, trilha
+│   │       └── components/              # WikiList, WikiView, WikiEditor, HistoryDialog
 │   ├── components/
-│   │   ├── markdown/             # Markdown do diário e do cartão da mesa (react-markdown + remark-gfm)
+│   │   ├── markdown/             # Markdown, editor e ferramentas do diário, da Wiki e do cartão da mesa
 │   │   └── HandoutCard.tsx       # O que o GM mostra à mesa, na tela de todos
 │   ├── hooks/
 │   │   └── useCreatureSearch.ts  # Busca de criaturas (debounce, faixa, paginação) — Iniciativa + Escalar Monstro
@@ -645,6 +674,7 @@ pf2e-tools/
 │   │   ├── tableState.ts         # Estado compartilhado da mesa, em tempo real
 │   │   ├── maps.ts               # Mapa de combate: tempo real + escrita otimista
 │   │   ├── journal.ts            # Diário de Campanha: documentos, "Mostrar à mesa" e o canal do Realtime
+│   │   ├── wiki.ts               # Wiki da Mesa: páginas, histórico, busca, índice compartilhado e o canal
 │   │   └── images.ts             # Redução e envio de imagens (Supabase Storage, IndexedDB de reserva)
 │   ├── pathbuilder/                # Tipos do JSON do Pathbuilder, parse/normalização e dados de arma (usados por todos os módulos)
 │   ├── types/
@@ -1050,6 +1080,9 @@ O servidor (`server/index.mjs`) fornece endpoints para buscar dados da Archives 
 | POST   | `/api/state`     | `{ action: 'journal-save', doc, base }` | Grava um documento do diário se ainda for a versão `base` (senão 409) — **só o GM** |
 | POST   | `/api/state`     | `{ action: 'journal-reveal', reveal }` | Mostra um trecho ou imagem na tela da mesa — **só o GM** |
 | GET    | `/api/state`     | `reveal`   | O que o GM mostrou (o cartão dos jogadores lê daqui) |
+| GET    | `/api/state`     | `wiki` (`list`, `recent`, `search`, `trash` ou id) | Wiki da Mesa: índice, mudanças recentes, busca, lixeira (GM) ou uma página — sem os trechos do mestre para o jogador |
+| GET    | `/api/state`     | `wikiHistory`, `wikiRev` | O histórico de uma página e uma versão dele |
+| POST   | `/api/state`     | `{ action: 'wiki-save', page, base }` | Grava uma página se ainda for a versão `base` (senão 409); `wiki-restore`, `wiki-delete`, `wiki-flags`, `wiki-show`… |
 
 As variantes **plurais** (`/api/feats`, `/api/searches`, `/api/spells`, `/api/companions`) aceitam
 uma lista de nomes para busca em lote. Todas as descrições são **traduzidas para pt-BR** via Groq
@@ -1254,6 +1287,8 @@ Os campos `featDescriptions`, `specialDescriptions` e `spellDescriptions` são o
 -   [x] Servidor de scraping da AON
 -   [x] **Diário de Campanha (só o GM)**: sessões, catálogo, ganchos, registro, planejador de encontros com o XP do
         GM Core e "Mostrar à mesa"
+-   [x] **Wiki da Mesa**: páginas de todos com histórico e autoria, trechos do mestre, backlinks, busca e a ligação
+        com o Diário (elenco, catálogo e crônica)
 
 ### 🚧 Em Progresso
 
