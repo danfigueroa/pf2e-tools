@@ -72,11 +72,11 @@ export const MonsterScalerPage = () => {
     }, [])
 
     // `?criatura=<nome>`: quem chega de outra página (a Wiki da Mesa) já abre com a criatura. Sai da URL.
-    const linked = params.get('criatura')
+    const linked = params.get('criatura') // i18n-ok: parâmetro da URL
     useEffect(() => {
         if (!linked) return
         handleSelect({ name: linked })
-        setParams((p) => { p.delete('criatura'); return p }, { replace: true })
+        setParams((p) => { p.delete('criatura'); return p }, { replace: true }) // i18n-ok: parâmetro da URL
     }, [linked, handleSelect, setParams])
 
     // Trocar de monstro invalida qualquer degrau — e qualquer magia — escolhido à mão.
