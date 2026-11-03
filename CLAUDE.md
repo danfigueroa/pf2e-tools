@@ -58,10 +58,12 @@ sem passar pela tradução** — e ficam gravadas no banco em inglês também.
   `resolveTraitRules(terms, 'en')`, cache `traiten:v1` em `aon_lookups`.
   - **Banco**: `descriptions.lang` (`'pt'`/`'en'`, migration `descricoes_em_ingles`), PK `(version, lang, kind, name)`.
     `sheet_descriptions(mesa, slug, lang)` é a função de 3 argumentos; a de 2 continua só português (sem o filtro, as linhas
-    em inglês colidiriam no `jsonb_object_agg`). Lista de nomes e misses são os mesmos nos dois idiomas; **o inglês só lê os
-    misses** (quem grava é o português).
-  - **A publicação monta os DOIS pacotes** (`loadSheetDescriptionsBoth`), e a abertura da ficha completa os dois. O inglês não
-    precisa de chave de IA e é só a busca na AON.
+    em inglês colidiriam no `jsonb_object_agg`). A lista de nomes é a mesma nos dois idiomas. **Os misses são por idioma**
+    (`description_misses.lang`, migration `publicacao_preparada`): o inglês lê os do português e os próprios, e grava os
+    próprios — a entrada que a AON acha com a prosa vazia é miss só em inglês (o português a completa pelo LLM). Antes o inglês
+    não gravava miss nenhum, e o pacote inglês nunca fechava.
+  - **A publicação monta os DOIS pacotes** (passos `desc-pt` e `desc-en` do preparo, ver "Publicar a ficha para a mesa"), e a
+    abertura da ficha completa os dois (`loadSheetDescriptionsBoth`). O inglês não precisa de chave de IA e é só a busca na AON.
   - **Cliente**: a chave do cache em inglês é `pf2e:<versão>:en:<tipo>:<nome>` (a do português não mudou — os caches dos
     aparelhos continuam valendo); pacotes estáticos em `public/descriptions/en/` (`build-description-bundle.mjs --lang en`, sem
     chave de IA). As entradas que o pacote português tem corrigidas à mão (relíquias, itens caseiros, Anathema/Holy/Domain do
@@ -251,8 +253,8 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
   Fica em `api/state.js`, **um nível** — o glob `"api/*.js"` do `vercel.json` não pega subpastas,
   então `api/state/[char].js` perderia o `maxDuration`.
 - **O mesmo `state` serve as fichas publicadas** (`api/_lib/sheet-handler.js`, compartilhado com o
-  dev server): `GET ?sheets=1` (lista), `GET ?sheet=<slug>`, `GET ?sheetVersions=<slug>` (o histórico), e `POST`
-  com `action` — `publish`, `guide` e `restore` (com `version` opcional: volta a qualquer versão do histórico). POST
+  dev server): `GET ?sheets=1` (lista), `GET ?sheet=<slug>`, `GET ?sheetVersions=<slug>` (o histórico), `GET ?sheetDraft=<slug>`, e `POST`
+  com `action` — `draft-create`/`draft-step`/`draft-discard` (a publicação preparada), `publish`, `guide` e `restore` (com `version` opcional: volta a qualquer versão do histórico). POST
   sem `action` continua sendo a escrita de fatia do estado. Mora aqui pelo limite de 12 funções.
   - **Autoria e dono**: o JWT de quem está logado vai em todo pedido (`installApiAuth`), o servidor o confere
     localmente (`requestIdentity`) e grava em `published_by` (quem publicou POR ÚLTIMO). Quem manda é o `owner_id` —
@@ -362,12 +364,12 @@ Dois modos servindo os mesmos endpoints de consulta à AON:
     nome: a Heal do Thalos serve ao Ghan Buri e à outra mesa), e cada ficha guarda só a LISTA de nomes que descreve
     (`sheet_description_sets`). `GET ?sheetDescriptions=<slug>` monta o pacote no banco numa chamada (função
     `sheet_descriptions`, no formato que o Redis guardava); `POST { action: 'sheet-descriptions', char, names, version }` resolve SÓ o que falta.
-    **Comportamento padrão: o pacote fica pronto NA PUBLICAÇÃO, antes de qualquer jogador abrir.** O
-    "Publicar" (e o "Restaurar") dispara `loadSheetDescriptions` na hora (`CharacterViewerPage`), e a
-    faixa da ficha publicada mostra "Preparando as descrições…" → "Descrições prontas"
-    (`useSheetDescriptionsStatus`). A mesma função roda ao abrir a ficha da mesa
-    (`CharacterSheetView`), como rede de segurança: se quem publicou fechou a aba no meio, o próximo a
-    abrir completa. Os demais aparelhos fazem um GET só.
+    **Comportamento padrão: o pacote fica pronto NA PUBLICAÇÃO, antes de qualquer jogador abrir** — e a ficha nem entra
+    na mesa antes disso (ver "Publicação preparada" em "Publicar a ficha para a mesa"). O "Restaurar" dispara
+    `loadSheetDescriptionsBoth` na hora (`CharacterViewerPage`), e a faixa da ficha publicada mostra "Preparando as
+    descrições…" → "Descrições prontas" (`useSheetDescriptionsStatus`). A mesma função roda ao abrir a ficha da mesa
+    (`CharacterSheetView`), como rede de segurança (fichas publicadas antes do preparo, misses que venceram). Os demais
+    aparelhos fazem um GET só.
   - **A primeira montagem parte do pacote ESTÁTICO do personagem**, que o `vercel.json` empacota junto
     das funções (`includeFiles: public/descriptions/**`; se faltar no disco, busca no domínio de
     produção por `VERCEL_PROJECT_PRODUCTION_URL`). Num level-up quase tudo já está lá: medido em dev,
@@ -467,7 +469,7 @@ das rotas (cada store do servidor manteve as funções exportadas). O Redis e o 
   compartilhamentos de mais de um dia, o estado de personagem parado há 180 dias e os eventos da mesa (notificações) de
   mais de 30 dias.
 - **Tempo real é sempre do banco**: um trigger chama `realtime.send` no canal PRIVADO `mesa:<mesa>:<nome>` (`state`,
-  `rolls`, `map:<id>`, `maps`, `encounters`, `fixes`, `sheets`, `events`, `journal`), e só quem está em `mesa_members` ouve (RLS em `realtime.messages`). Nenhum cliente
+  `rolls`, `map:<id>`, `maps`, `encounters`, `fixes`, `sheets` — também `preparing`/`prepared` do rascunho —, `events`, `journal`), e só quem está em `mesa_members` ouve (RLS em `realtime.messages`). Nenhum cliente
   transmite — as exceções são a presença (abaixo) e os gestos do mapa (`mesa:<mesa>:live:<mapa>`, ver "Mapa ao vivo"). No cliente, `listenMesaChannel` (`services/supabase.ts`) é o único jeito de ouvir; a cada SUBSCRIBED
   (inclusive reconexão) quem ouve relê o que pode ter perdido. O Realtime põe um `id` próprio no payload quando ele
   não tem um — não use `id` como campo da mensagem.
@@ -1188,24 +1190,56 @@ Primitivas em `src/motion/` (keyframes do Emotion + `requestAnimationFrame`, sem
     - **"Meus trechos"** é texto do jogador no estado da mesa (campo `guide`, `guideNotes.ts`, até 3500 caracteres para caber nos
       8 KB com acento), mostrado no fim do guia em "Do jogador". Não pertence à versão da ficha: sobrevive a toda publicação, e a IA
       nunca o lê nem o reescreve. Conteúdo do usuário: não é traduzido.
-- **Publicar a ficha para a mesa** (`components/usePublication.ts`, `PublishDialog.tsx`,
-  `PublishedBar.tsx`, `services/sheets.ts`): enviar um JSON abre um diálogo com o que muda
+- **Publicar a ficha para a mesa** (`components/usePublication.ts`, `PublishDialog.tsx`, `PreparingDialog.tsx`,
+  `PublishedBar.tsx`, `services/sheets.ts`, `services/sheetPreparation.ts`): enviar um JSON abre um diálogo com o que muda
   (`sheetDiff.ts` — nível, talentos, habilidades, magias, itens) contra a versão da mesa (a
-  publicada, senão o arquivo fixo). "Só ver neste aparelho" é o comportamento antigo; "Publicar"
-  grava, pede o guia e abre a ficha (que completa as descrições traduzidas da mesa — ver "Descrições
-  pré-traduzidas"). Ficha NOVA qualquer membro publica (vira dono); por cima de uma existente, só o dono e o GM
-  (ver "Login, papéis e donos de ficha"). A diferença à vista e o "Versão anterior" continuam sendo a salvaguarda.
+  publicada, senão o arquivo fixo). "Publicar" cria um RASCUNHO e abre o preparo (abaixo); a ficha só abre — para quem
+  publicou e para a mesa — quando estiver completa. Ficha NOVA qualquer membro publica (vira dono); por cima de uma
+  existente, só o dono e o GM (ver "Login, papéis e donos de ficha"). A diferença à vista e o "Versão anterior" continuam
+  sendo a salvaguarda.
+  - **Publicação preparada** (decisão do usuário, nov/2026: "só permitir que o usuário acesse quando finalizado e completo";
+    `api/_lib/sheet-draft.js`, migration `publicacao_preparada`). Antes, o "Publicar" gravava a ficha na hora (guia nulo) e
+    disparava guia e descrições sem esperar: o aquecimento era cortado em 8 s, as descrições dependiam da aba, o inglês nunca
+    fechava, guia que falhava ficava sem guia, e a mesa abria a ficha pela metade. Hoje:
+    - `draft-create` grava em `sheet_drafts` o JSON, a lista de nomes (`characterDescriptionNames`), a `CACHE_VERSION`, os
+      companheiros (`companionAnimalNames`) e o guia curado de base. Mesmas validações e portão do `publish`; ficha igual à
+      publicada = 409; ficha nova que outra pessoa já prepara = 403 (só o GM passa por cima).
+    - `draft-step` faz o próximo pedaço, em ordem: `lookups` (`warmSheetLookups` SEM corte; espera enquanto alguma regra de
+      traço sair sem tradução), `companions` (`resolveCompanions` pt/en, agora no banco em `aon_lookups` `pet:v1`/`peten:v1`,
+      também lido pelo `api/companions.js`), `desc-pt`, `desc-en` (`buildSheetDescriptions`), `guide-pt`, `guide-en` (UM
+      idioma por chamada — os dois juntos passavam dos 60 s) e `finish`, que confere tudo de novo (`missingParts`: toda
+      descrição com entrada ou miss nas duas línguas e os dois guias no `looksLikeGuide`) e promove. Cada passo pesado só começa
+      no início da chamada (`STARTS_BEFORE`), para nada passar do `maxDuration`. Trava `sheet-draft:<mesa>:<slug>` (outra aba
+      recebe `busy`).
+    - **Falha da IA ou da AON nunca promove pela metade** (decisão do usuário: esperar e tentar de novo): o passo devolve
+      `waiting` com `retryIn` em recuo (15 s → 30 → 60 → 120 s, `progress.attempts`) e a razão; o cliente espera e chama de
+      novo, sem desistir. Sem chave de IA é `error` (só quem configura resolve). Medido com as chaves inválidas: o guia esperou
+      15/30/60 s e a ficha não foi publicada; com as chaves de volta, concluiu.
+    - **`promote_sheet_draft`** move o rascunho para `sheets` numa transação, JÁ com o guia (o `publish_sheet` zera), e dá o
+      dono à ficha nova (quem criou o rascunho, com a cobrança ligada). Só aí saem o `published`, a notificação, os troféus.
+    - **Quem conduz é o navegador de quem publicou**, com retomada (decisão do usuário): `sheetPreparation.ts` tem um laço por
+      ficha na aba, independente do diálogo — fechar o `PreparingDialog` não para nada. Fechada a aba, o rascunho fica; o
+      cartão "Em preparo" da tela inicial da Ficha Virtual (`UploadCard`, de `?sheets=1`, que agora traz `drafts`) tem
+      "Continuar" para quem enviou, o dono e o GM (o mesmo portão do servidor). A mesa vê o cartão sem botão; preset/ficha que
+      já existe ganha "nova versão em preparo" e continua abrindo a versão de antes até a promoção. O andamento chega pelo canal
+      `sheets` (`preparing`/`prepared`, trigger em `sheet_drafts`, só slug e progresso). Rascunho parado há 14 dias sai pelo `pg_cron`.
+    - A barra (`progressView`): cada descrição conta 1 em cada língua, e cada outro passo 1. Medido: Loki renomeado (descrições
+      já no banco) ficou pronto em 34 s; um level-up dele manteve o nível 7 na mesa durante o preparo e passou ao 8 na promoção.
+    - O `publish` (na hora, sem preparo) continua só para os scripts (`seed-presets`, `check-rolls`, `check-auth`) e para cliente
+      antigo em cache. `check-auth` cobre o portão do rascunho; `check-rolls`, a conferência e a barra.
   - **Toda ficha vai para o banco, SEMPRE** (decisão do usuário): o diálogo não tem mais "Só ver neste aparelho" — só
     Publicar ou Cancelar —, e só a ficha igual a uma JÁ publicada dispensa publicar (igual ao arquivo fixo ainda precisa).
-    Preset aberto que ainda não está publicado é publicado sozinho (`publishPreset`). `scripts/seed-presets.mjs` publica de
+    Preset aberto que ainda não está publicado é publicado sozinho (`publishPreset`, pelo mesmo rascunho, em segundo plano: ele
+    já abre do arquivo). `scripts/seed-presets.mjs` publica de
     uma vez os que faltam, sem nunca sobrescrever (rode depois de registrar um preset novo). Em 2026-10-23 os 9 presets foram semeados.
   - As dádivas de relíquia sem texto no catálogo entram em `characterDescriptionNames` (poder = habilidade, runa = item).
   - **O trabalho com a AON/tradução é feito UMA vez, na publicação** (decisão do usuário). Além das descrições, as consultas
     por nome de `search?gear=`/`items=`/`shields=` são lidas-através do Postgres (`api/_lib/lookup-cache.js`, tabela global
     `aon_lookups`, `kind` versionado como `gear:v1` — mudou o formato, suba a versão): só o que falta vai à AON, e só o que a AON
-    achou é gravado. O `publish` do `sheet-handler` as aquece (`sheet-warm.js`, até 8 s, nunca impede a publicação).
-    `scripts/prepare-sheets.mjs [mesa] [slug]` faz o mesmo (descrições + consultas) para fichas já publicadas, incremental.
-    Ainda ao vivo, de propósito: busca de criatura/magia por nome, regras do stat block, aflições, companheiros.
+    achou é gravado. O preparo da publicação as aquece por inteiro (passo `lookups`, `sheet-warm.js`); o `publish` dos scripts
+    ainda corta em 8 s. `scripts/prepare-sheets.mjs [mesa] [slug]` faz o mesmo (descrições + consultas) para fichas já
+    publicadas, incremental, e `--guides-pt`/`--guides-en` gera o guia que falta. Os companheiros também ficam no banco
+    (`pet:v1`). Ainda ao vivo, de propósito: busca de criatura/magia por nome, regras do stat block, aflições.
   PV, condições e slots não mudam: a identidade é o slug do nome, igual antes.
   - **"Nova versão publicada"** (`components/NewVersionBar.tsx` + `services/sheetNotices.ts`, migration
     `aviso_de_ficha_publicada`): um trigger em `sheets` avisa no canal `mesa:<mesa>:sheets` — `published` quando o
