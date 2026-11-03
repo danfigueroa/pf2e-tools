@@ -40,6 +40,32 @@ test('Wiki: páginas criadas e páginas de outros editadas', () => {
     assert.ok(evaluateFacts(deriveFacts({ feats: { 'wiki-edited': 10 } })).earned.has('wiki-colaborador'))
 })
 
+test('Wiki: tipos, leitura e hierarquia contam por página', () => {
+    const row = (kind, slug, data, mesa = 'a') => ({ mesa, kind, data: { slug, ...data } })
+    const wiki = [
+        ...['npc', 'npc', 'location', 'item', 'creature', 'faction', 'deity', 'event', 'lore'].map((k, i) => row('wiki-created', `p${i}`, { kind: k, parent: i === 2, links: i === 0 ? 6 : 0 })),
+        row('wiki-created', 'p0', { kind: 'npc' }), // a mesma página duas vezes não soma
+        ...Array.from({ length: 6 }, (_, i) => row('wiki-read', `r${i}`, { kind: ['npc', 'item', 'lore', 'event', 'deity', 'faction'][i] })),
+        row('wiki-read', 'r0', { kind: 'npc' }),
+        row('wiki-read', 'r0', { kind: 'npc' }, 'b'), // outra mesa é outra página
+    ]
+    const f = deriveFacts({ wiki })
+    assert.equal(f.wikiByKind.npc, 2)
+    assert.equal(f.wikiCreatedKinds, 8)
+    assert.equal(f.wikiChildren, 1)
+    assert.equal(f.wikiMaxLinks, 6)
+    assert.equal(f.wikiRead, 7)
+    assert.equal(f.wikiReadKinds, 6)
+    const { earned } = evaluateFacts(f)
+    for (const id of ['wiki-todos-tipos', 'wiki-hierarquia', 'wiki-tecelao', 'wiki-leitor', 'wiki-leitor-tipos']) assert.ok(earned.has(id), id)
+    assert.ok(!earned.has('wiki-leitor-25') && !earned.has('wiki-npcs'))
+})
+
+test('Wiki do GM: revelar e segredos', () => {
+    const { earned } = evaluateFacts(deriveFacts({ feats: { 'gm-wiki-reveal': 3, 'gm-wiki-secret': 4 } }))
+    assert.ok(earned.has('gm-wiki-revelar') && !earned.has('gm-wiki-segredos'))
+})
+
 test('do zero: sem fatos, nada desbloqueia', () => {
     const { earned } = evaluateFacts(deriveFacts({}))
     assert.equal(earned.size, 0)

@@ -25,4 +25,8 @@ mesa vê tudo + ranking, **todo mundo do zero** (nada retroativo), **o GM tem co
   `TrophyToastLayer`, a toda a mesa, em fila, 6 s; platina 10 s) com faíscas num **`<canvas>` único** (`Sparks`, nunca um
   elemento por faísca). Página: cascata (`useInView` + `reveal`), contadores, barras por `scaleX`, "Novo!" pelo
   `pf2e:trophies:seen:<userId>` (a primeira visita não marca). Ranking por FLIP.
+- **Feitos da Wiki carregam o tipo da página** (`data.kind`): `wiki-created` (+ `parent`, `links`), `wiki-edited` e `wiki-read`
+  (primeira leitura de página de outra pessoa, uma por conta+mesa+página). `factsOf` lê essas linhas cruas (`WIKI_FEATS`) e
+  `deriveFacts` conta **por página**, não por registro; tipo por tipo em `WIKI_KINDS` ("Outro" não tem troféu). Sem migration:
+  o `trophy_facts` não os resume. GM: `gm-wiki-reveal` (página só-GM revelada), `gm-wiki-secret` (página com `:::mestre`).
 - Falta: casos de troféu no `check-auth`.

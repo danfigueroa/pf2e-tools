@@ -22,6 +22,13 @@ export const MARATHON_HOURS = 4
 export const HOT_AVG = 14
 export const COLD_AVG = 7
 
+/** Os feitos da Wiki que o `trophy_facts` não resume: vêm crus (com o tipo da página) para `deriveFacts`. */
+export const WIKI_FEATS = ['wiki-created', 'wiki-edited', 'wiki-read']
+/** Os tipos de página da Wiki que pedem um troféu (o "Outro" não conta). */
+export const WIKI_KINDS = ['npc', 'location', 'item', 'creature', 'faction', 'deity', 'event', 'lore']
+/** Links `[[ ]]` numa página só para o "Tecelão". */
+export const WIKI_LINKS_NEEDED = 5
+
 const t = (id, role, category, tier, title, description, goal, measure, extra = {}) =>
     ({ id, role, category, tier, title, description, goal, measure, ...extra })
 
@@ -112,6 +119,24 @@ export const TROPHIES = [
     t('wiki-10', 'player', 'wiki', 'prata', 'Enciclopedista', 'Crie 10 páginas na Wiki da Mesa.', 10, (f) => f.wikiPages),
     t('wiki-30', 'player', 'wiki', 'ouro', 'Bibliotecário do Covil', 'Crie 30 páginas na Wiki da Mesa.', 30, (f) => f.wikiPages),
     t('wiki-colaborador', 'player', 'wiki', 'prata', 'Mão na massa', 'Edite 10 vezes páginas da Wiki criadas por outras pessoas.', 10, (f) => f.wikiEdits),
+    t('wiki-segunda-opiniao', 'player', 'wiki', 'bronze', 'Segunda opinião', 'Edite uma página da Wiki criada por outra pessoa.', 1, (f) => f.wikiEdits),
+    t('wiki-revisor-30', 'player', 'wiki', 'ouro', 'Revisor da Biblioteca', 'Edite 30 vezes páginas da Wiki criadas por outras pessoas.', 30, (f) => f.wikiEdits),
+    t('wiki-polimata', 'player', 'wiki', 'prata', 'Polímata', 'Edite páginas de outras pessoas em 4 tipos diferentes da Wiki.', 4, (f) => f.wikiEditedKinds),
+    t('wiki-npcs', 'player', 'wiki', 'prata', 'Retratista', 'Crie 5 páginas de NPC na Wiki.', 5, (f) => f.wikiByKind.npc),
+    t('wiki-locais', 'player', 'wiki', 'prata', 'Geógrafo', 'Crie 5 páginas de Local na Wiki.', 5, (f) => f.wikiByKind.location),
+    t('wiki-criaturas', 'player', 'wiki', 'bronze', 'Bestiarista', 'Crie 3 páginas de Criatura na Wiki.', 3, (f) => f.wikiByKind.creature),
+    t('wiki-itens', 'player', 'wiki', 'bronze', 'Catalogador', 'Crie 3 páginas de Item na Wiki.', 3, (f) => f.wikiByKind.item),
+    t('wiki-faccoes', 'player', 'wiki', 'bronze', 'Diplomata', 'Crie 3 páginas de Facção na Wiki.', 3, (f) => f.wikiByKind.faction),
+    t('wiki-divindades', 'player', 'wiki', 'bronze', 'Teólogo', 'Crie 2 páginas de Divindade na Wiki.', 2, (f) => f.wikiByKind.deity),
+    t('wiki-eventos', 'player', 'wiki', 'bronze', 'Historiador', 'Crie 3 páginas de Evento na Wiki.', 3, (f) => f.wikiByKind.event),
+    t('wiki-lore', 'player', 'wiki', 'bronze', 'Contador de lendas', 'Crie 3 páginas de Lore na Wiki.', 3, (f) => f.wikiByKind.lore),
+    t('wiki-todos-tipos', 'player', 'wiki', 'ouro', 'Mundo inteiro', 'Crie ao menos uma página de cada tipo da Wiki (NPC, Local, Item, Criatura, Facção, Divindade, Evento e Lore).', WIKI_KINDS.length, (f) => f.wikiCreatedKinds),
+    t('wiki-hierarquia', 'player', 'wiki', 'bronze', 'Cada coisa no seu lugar', 'Crie uma página da Wiki com o campo "Fica em" preenchido.', 1, (f) => f.wikiChildren),
+    t('wiki-tecelao', 'player', 'wiki', 'prata', 'Tecelão de teias', `Crie uma página da Wiki com ${WIKI_LINKS_NEEDED}+ links para outras páginas.`, WIKI_LINKS_NEEDED, (f) => f.wikiMaxLinks),
+    t('wiki-leitor', 'player', 'wiki', 'bronze', 'Folheando', 'Leia 5 páginas da Wiki escritas por outras pessoas.', 5, (f) => f.wikiRead),
+    t('wiki-leitor-25', 'player', 'wiki', 'prata', 'Rato de biblioteca', 'Leia 25 páginas da Wiki escritas por outras pessoas.', 25, (f) => f.wikiRead),
+    t('wiki-leitor-60', 'player', 'wiki', 'ouro', 'Sábio do Covil', 'Leia 60 páginas da Wiki escritas por outras pessoas.', 60, (f) => f.wikiRead),
+    t('wiki-leitor-tipos', 'player', 'wiki', 'prata', 'Curioso', 'Leia páginas da Wiki de 6 tipos diferentes.', 6, (f) => f.wikiReadKinds),
     t('platina-jogador', 'player', 'platina', 'platina', 'Lenda do Covil', 'Conquiste todos os outros troféus de jogador.', null, null),
 
     // --- GM
@@ -130,6 +155,8 @@ export const TROPHIES = [
     t('gm-15-mapas', 'gm', 'mestre', 'ouro', 'Explorador de mundos', 'Revele 15 mapas à mesa.', 15, (f) => f.gmMaps),
     t('gm-20-diario', 'gm', 'mestre', 'ouro', 'Cronista da campanha', 'Crie 20 sessões no Diário de Campanha.', 20, (f) => f.gmJournal),
     t('gm-25-mostrar', 'gm', 'mestre', 'prata', 'Guardião de segredos', 'Mostre à mesa 25 trechos do Diário.', 25, (f) => f.gmHandouts),
+    t('gm-wiki-revelar', 'gm', 'mestre', 'bronze', 'Revelação', 'Revele 3 páginas da Wiki que eram só suas.', 3, (f) => f.gmWikiReveals),
+    t('gm-wiki-segredos', 'gm', 'mestre', 'prata', 'Segredos bem escritos', 'Escreva blocos "Só o mestre" em 5 páginas da Wiki.', 5, (f) => f.gmWikiSecrets),
     t('platina-gm', 'gm', 'platina', 'platina', 'Mestre dos Mestres', 'Conquiste todos os outros troféus de mestre.', null, null),
 ]
 
@@ -188,7 +215,28 @@ export function deriveFacts(raw = {}) {
     const feat = (k) => num(feats[k])
     const sessions = Array.isArray(raw.sessions) ? raw.sessions : []
     const tags = new Set(Array.isArray(raw.noteTags) ? raw.noteTags : [])
+    // Wiki: por página (e mesa), não por registro — recriar ou reler a mesma não conta duas vezes.
+    const wikiRows = Array.isArray(raw.wiki) ? raw.wiki : []
+    const pagesOf = (kind) => {
+        const seen = new Map()
+        for (const r of wikiRows) {
+            if (r?.kind !== kind || typeof r.data?.slug !== 'string') continue
+            const key = `${r.mesa}:${r.data.slug}`
+            if (!seen.has(key)) seen.set(key, r.data)
+        }
+        return [...seen.values()]
+    }
+    const created = pagesOf('wiki-created')
+    const wikiByKind = Object.fromEntries(WIKI_KINDS.map((k) => [k, created.filter((d) => d.kind === k).length]))
+    const kindsOf = (list) => new Set(list.map((d) => d.kind).filter((k) => WIKI_KINDS.includes(k))).size
     return {
+        wikiByKind,
+        wikiCreatedKinds: kindsOf(created),
+        wikiChildren: created.filter((d) => d.parent === true).length,
+        wikiMaxLinks: Math.max(0, ...created.map((d) => num(d.links))),
+        wikiEditedKinds: kindsOf(pagesOf('wiki-edited')),
+        wikiRead: pagesOf('wiki-read').length,
+        wikiReadKinds: kindsOf(pagesOf('wiki-read')),
         sheets: feat('sheet-published'),
         maxLevel: num(raw.maxLevel),
         noteMaxLength: num(raw.noteMaxLength),
@@ -230,6 +278,8 @@ export function deriveFacts(raw = {}) {
         fixes: feat('translation-fix'),
         wikiPages: feat('wiki-created'),
         wikiEdits: feat('wiki-edited'),
+        gmWikiReveals: feat('gm-wiki-reveal'),
+        gmWikiSecrets: feat('gm-wiki-secret'),
         gmSessions: feat('gm-session'),
         gmCombats: feat('gm-combat'),
         gmMaps: feat('gm-map-revealed'),

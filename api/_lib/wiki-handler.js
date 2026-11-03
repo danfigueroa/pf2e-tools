@@ -34,7 +34,7 @@ import { forbidden, memberRole } from './access.js'
 import { imagePath } from './images.js'
 import { addShare, sanitizeShare } from './roll-store.js'
 import { addReveal, cleanReveal, MAX_REVEAL_BYTES } from './journal-store.js'
-import { recordFeat, safely, touchFeat } from './trophy-store.js'
+import { lastFeatAt, recordFeat, safely, touchFeat } from './trophy-store.js'
 import { escapeSecrets, fold, hasSecrets, linkNames, mergeSecrets, stripSecrets } from './wiki-secrets.js'
 import {
     PAGE_ID_RE, authorNames, cleanPage, fieldTexts, listPages, pageBacklinks, pageHistory, pageRevision, purgePage,
@@ -51,6 +51,19 @@ const ACTIONS = new Set([
 
 /** Janela em que editar a página de outra pessoa conta uma vez só para o troféu. */
 const EDIT_FEAT_WINDOW_MS = 30 * 60 * 1000
+
+/** Páginas que esta instância já sabe lidas por quem (poupa a consulta ao banco a cada abertura). */
+const READ_SEEN = new Set()
+
+/** Registra a primeira leitura de uma página de outra pessoa (`wiki-read`, uma por conta e página). */
+async function noteRead(mesa, userId, page) {
+    const key = `${mesa}:${userId}:${page.id}`
+    if (READ_SEEN.has(key)) return
+    if (READ_SEEN.size > 5000) READ_SEEN.clear()
+    READ_SEEN.add(key)
+    if (await lastFeatAt(userId, 'wiki-read', page.id, mesa)) return
+    await recordFeat(mesa, userId, 'wiki-read', { slug: page.id, kind: page.kind })
+}
 
 /** Falso quando a requisição não é da Wiki — aí segue para as outras rotas do `state`. */
 export function isWikiRequest(method, query, body) {
@@ -169,6 +182,10 @@ export async function handleWikiRequest(mesa, method, query, body, ctx = {}) {
         if (!PAGE_ID_RE.test(what)) return fail(400, 'Página inválida')
         const page = await readPage(mesa, what)
         if (!visible(page, gm)) return notFound()
+        // Ler a página de outra pessoa conta uma vez por página (troféu); a conta é de quem abriu.
+        if (userId && page.deletedAt === null && page.createdBy !== userId) {
+            await safely('leitura na wiki', () => noteRead(mesa, userId, page))
+        }
         const names = [fold(page.title), ...page.aliases.map(fold)].filter(Boolean)
         const backlinks = await pageBacklinks(mesa, names, { gm, except: page.id })
         return ok({
@@ -215,9 +232,15 @@ export async function handleWikiRequest(mesa, method, query, body, ctx = {}) {
             }
         }
         if (base === null) {
-            await safely('página da wiki', () => recordFeat(mesa, userId, 'wiki-created', { slug: input.id }))
+            await safely('página da wiki', () => recordFeat(mesa, userId, 'wiki-created', {
+                slug: input.id, kind: input.kind, parent: Boolean(input.parent), links: linkNames(text, ...fieldTexts(input.fields)).length,
+            }))
         } else if (userId && current.createdBy && current.createdBy !== userId) {
-            await safely('edição na wiki', () => touchFeat(mesa, userId, 'wiki-edited', { slug: input.id }, EDIT_FEAT_WINDOW_MS))
+            await safely('edição na wiki', () => touchFeat(mesa, userId, 'wiki-edited', { slug: input.id, kind: input.kind }, EDIT_FEAT_WINDOW_MS))
+        }
+        // O GM escrevendo segredo: uma página por janela, como a edição.
+        if (gm && userId && hasSecrets(text)) {
+            await safely('segredo na wiki', () => touchFeat(mesa, userId, 'gm-wiki-secret', { slug: input.id }, EDIT_FEAT_WINDOW_MS))
         }
         return ok(out)
     }
@@ -272,6 +295,9 @@ export async function handleWikiRequest(mesa, method, query, body, ctx = {}) {
         if (body.visibility === 'public' || body.visibility === 'gm') flags.visibility = body.visibility
         if (!Object.keys(flags).length) return fail(400, 'Nada para mudar')
         await setPageFlags(mesa, id, flags)
+        if (flags.visibility === 'public' && page.visibility === 'gm' && page.deletedAt === null) {
+            await safely('página revelada', () => recordFeat(mesa, userId, 'gm-wiki-reveal', { slug: id }))
+        }
         return ok({ ok: true })
     }
 

@@ -7,7 +7,7 @@
 
 import { supabase } from './supabase.js'
 import { sheetOwner } from './access.js'
-import { catalogWire, deriveFacts, evaluateFacts, pointsOf, sessionHighlights, TROPHY_BY_ID, trophyText } from './trophies.js'
+import { WIKI_FEATS, catalogWire, deriveFacts, evaluateFacts, pointsOf, sessionHighlights, TROPHY_BY_ID, trophyText } from './trophies.js'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 export const isUserId = (v) => typeof v === 'string' && UUID.test(v)
@@ -72,11 +72,12 @@ export async function ownerOf(mesa, slug, userId) {
 }
 
 /** O `at` do feito mais recente deste tipo e personagem, ou 0. */
-export async function lastFeatAt(userId, kind, slug) {
+export async function lastFeatAt(userId, kind, slug, mesa = null) {
     const db = supabase()
     if (!db || !isUserId(userId)) return 0
-    const rows = check(await db.from('trophy_feats').select('at')
-        .eq('user_id', userId).eq('kind', kind).eq('data->>slug', slug).order('at', { ascending: false }).limit(1))
+    let q = db.from('trophy_feats').select('at').eq('user_id', userId).eq('kind', kind).eq('data->>slug', slug)
+    if (mesa) q = q.eq('mesa', mesa)
+    const rows = check(await q.order('at', { ascending: false }).limit(1))
     return rows?.length ? Number(rows[0].at) : 0
 }
 
@@ -86,7 +87,11 @@ async function unlockedOf(db, userId) {
 }
 
 async function factsOf(db, userId) {
-    return deriveFacts(check(await db.rpc('trophy_facts', { p_user: userId })) ?? {})
+    const raw = check(await db.rpc('trophy_facts', { p_user: userId })) ?? {}
+    // Os feitos da Wiki carregam o tipo da página; a conta por tipo é feita em `deriveFacts`.
+    const wiki = check(await db.from('trophy_feats').select('mesa, kind, data')
+        .eq('user_id', userId).in('kind', WIKI_FEATS).limit(1000)) ?? []
+    return deriveFacts({ ...raw, wiki })
 }
 
 /**

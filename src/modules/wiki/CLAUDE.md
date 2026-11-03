@@ -28,7 +28,8 @@ uma página nova (é como o Diário e os links vermelhos chegam).
 - Autoria: `created_by`/`updated_by` e cada versão; nomes por `member_names(mesa, ids)` (cache de 1 min).
 - **Índice compartilhado** (`useWikiIndex`): um por aba, relido a cada aviso de `mesa:<mesa>:wiki` (só o id) e a cada escrita.
   A página aberta relê sozinha, menos editando (aí avisa).
-- Notificações `wiki-created`/`wiki-revealed` por trigger (edição não notifica). Troféus: `wiki-created` e `wiki-edited`
-  (página de outra pessoa, um por página a cada 30 min).
+- Notificações `wiki-created`/`wiki-revealed` por trigger (edição não notifica). Troféus: `wiki-created`, `wiki-edited`
+  (página de outra pessoa, um por página a cada 30 min) e `wiki-read` (abrir a página de outra pessoa, uma vez por página,
+  em `noteRead`); todos levam o tipo da página. Tipo novo na Wiki = troféu dele em `WIKI_KINDS` (`trophies.js`).
 - "Mostrar à mesa" (`wiki-show`): handout com `body_public` (16 KB) e capa, no mesmo `journal_reveals` + `shares`.
 - Testes: `check-rolls` (segredos, links, dobra), `check-auth` (seção "Wiki da Mesa"), `check-trophies`.
