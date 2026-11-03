@@ -115,7 +115,7 @@ ${compactBuild(json)}${base}`
 }
 
 /** Guia plausível: começa por seção, tem várias seções e tamanho de guia. */
-function looksLikeGuide(text) {
+export function looksLikeGuide(text) {
   const t = String(text || '').trim()
   const sections = (t.match(/^## /gm) || []).length
   return t.startsWith('## ') && sections >= 4 && t.length >= 1200
