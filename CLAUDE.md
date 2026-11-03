@@ -2504,6 +2504,10 @@ abre o editor de uma página nova (é como o Diário e os links vermelhos chegam
     escrito pelo jogador vira `\:::mestre` (texto comum). Restaurar uma versão, no jogador, restaura só o público e mantém os
     segredos de agora. `check-rolls` cobre; `check-auth` confere no banco.
   - O `Markdown` desenha o bloco com a moldura "Só o mestre vê" (`GmBlock`); só o GM o recebe.
+  - **Botão "Só o mestre"** na barra do editor (GM, pedido do usuário: selecionar o trecho e tocar). As marcas precisam de
+    linha própria, então `wrapBlock` (`MarkdownEditor`) PARTE a linha em volta da seleção: o antes e o depois ficam colados
+    ao bloco, sem linha em branco, e para o jogador voltam a ser um parágrafo só. Por isso o `mergeSecrets` lembra se o bloco
+    tinha linha em branco antes/depois (`blankBefore`/`blankAfter`) — sem isso, a edição de um jogador partiria a frase.
 - **Página inteira só do GM** (`visibility: 'gm'`, criada assim pelo GM ou escondida depois): some da lista, da busca e dos
   backlinks do jogador (404 no GET). Revelar dispara `wiki-revealed` no sino.
 - **Editar → Salvar, sem salvamento automático** (diferente do Diário, de propósito: muita gente edita as mesmas páginas, e cada
