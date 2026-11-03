@@ -121,7 +121,7 @@ const slugify = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '')
  * - `journal/`  — imagem do Diário de Campanha (NPC, local, item): permanente, só o GM envia.
  * - `items/`    — imagem de arma, armadura ou item do Inventário: permanente, como `tokens/`.
  */
-export type ImageFolder = 'tokens' | 'maps' | 'monsters' | 'journal' | 'items'
+export type ImageFolder = 'tokens' | 'maps' | 'monsters' | 'journal' | 'items' | 'wiki'
 
 const BUCKET = 'images'
 const SUPABASE_URL = ((import.meta.env ?? {}) as Partial<ImportMetaEnv>).VITE_SUPABASE_URL as string | undefined
