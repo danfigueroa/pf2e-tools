@@ -33,6 +33,13 @@ test('sequência por mesa, na ordem das sessões', () => {
     assert.equal(longestStreak([s('a', 1, { noted: true }), s('b', 2, { noted: true })], (x) => x.noted), 1)
 })
 
+test('Wiki: páginas criadas e páginas de outros editadas', () => {
+    const { earned } = evaluateFacts(deriveFacts({ feats: { 'wiki-created': 10, 'wiki-edited': 9 } }))
+    assert.ok(earned.has('wiki-primeira') && earned.has('wiki-10'))
+    assert.ok(!earned.has('wiki-30') && !earned.has('wiki-colaborador'))
+    assert.ok(evaluateFacts(deriveFacts({ feats: { 'wiki-edited': 10 } })).earned.has('wiki-colaborador'))
+})
+
 test('do zero: sem fatos, nada desbloqueia', () => {
     const { earned } = evaluateFacts(deriveFacts({}))
     assert.equal(earned.size, 0)

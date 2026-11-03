@@ -107,6 +107,11 @@ export const TROPHIES = [
     t('generoso-10', 'player', 'mesa', 'prata', 'Mecenas', 'Passe itens a colegas 10 vezes.', 10, (f) => f.gave),
     t('advogado-25', 'player', 'mesa', 'prata', 'Jurista', 'Compartilhe 25 regras com a mesa.', 25, (f) => f.rules),
     t('revisor-10', 'player', 'mesa', 'prata', 'Tradutor oficial', 'Corrija 10 traduções.', 10, (f) => f.fixes),
+    // --- Jogador: Wiki da Mesa
+    t('wiki-primeira', 'player', 'wiki', 'bronze', 'Primeira página', 'Crie uma página na Wiki da Mesa.', 1, (f) => f.wikiPages),
+    t('wiki-10', 'player', 'wiki', 'prata', 'Enciclopedista', 'Crie 10 páginas na Wiki da Mesa.', 10, (f) => f.wikiPages),
+    t('wiki-30', 'player', 'wiki', 'ouro', 'Bibliotecário do Covil', 'Crie 30 páginas na Wiki da Mesa.', 30, (f) => f.wikiPages),
+    t('wiki-colaborador', 'player', 'wiki', 'prata', 'Mão na massa', 'Edite 10 vezes páginas da Wiki criadas por outras pessoas.', 10, (f) => f.wikiEdits),
     t('platina-jogador', 'player', 'platina', 'platina', 'Lenda do Covil', 'Conquiste todos os outros troféus de jogador.', null, null),
 
     // --- GM
@@ -223,6 +228,8 @@ export function deriveFacts(raw = {}) {
         gave: feat('gave-item'),
         rules: feat('rule-shared'),
         fixes: feat('translation-fix'),
+        wikiPages: feat('wiki-created'),
+        wikiEdits: feat('wiki-edited'),
         gmSessions: feat('gm-session'),
         gmCombats: feat('gm-combat'),
         gmMaps: feat('gm-map-revealed'),

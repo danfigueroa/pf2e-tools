@@ -28,7 +28,7 @@ import { locale, tr } from '../../i18n';
 const CATEGORIES: Record<string, string> = {
   ficha: tr('Ficha', 'Sheet'), historia: tr('História e notas', 'Story and notes'), presenca: tr('Presença', 'Attendance'), dados: tr('Dados', 'Dice'), sorte: tr('Sorte e azar', 'Luck'),
   combate: tr('Combate', 'Combat'), destaques: tr('Destaques da sessão', 'Session highlights'),
-  mesa: tr('A mesa', 'The table'), mestre: tr('Mestre', 'Game master'), platina: tr('Platina', 'Platinum'),
+  mesa: tr('A mesa', 'The table'), wiki: tr('Wiki da Mesa', 'Table Wiki'), mestre: tr('Mestre', 'Game master'), platina: tr('Platina', 'Platinum'),
 };
 const TIER_ORDER: TrophyTier[] = ['platina', 'ouro', 'prata', 'bronze'];
 const mesaName = (id: string | null) => MESAS.find((m) => m.id === id)?.nome ?? null;
