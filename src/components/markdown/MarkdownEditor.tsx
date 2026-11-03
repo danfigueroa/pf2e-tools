@@ -105,6 +105,19 @@ export const MarkdownEditor = memo(function MarkdownEditor(props: Props) {
         changed(el.value)
     }
 
+    /** O link `[[ ]]`: pelo seletor da página, quando há um; senão, as marcas em volta da seleção. */
+    const link = async () => {
+        const el = ref.current
+        if (!el) return
+        if (!tools.pickLink) { wrap('[[', ']]', tr('Nome', 'Name')); return }
+        const { selectionStart: s, selectionEnd: e } = el
+        const picked = await tools.pickLink(el.value.slice(s, e))
+        if (!picked) { el.focus(); return }
+        el.setRangeText(picked, s, e, 'end')
+        el.focus()
+        changed(el.value)
+    }
+
     const insert = (snippet: string) => {
         const el = ref.current
         if (!el) return
@@ -150,7 +163,7 @@ export const MarkdownEditor = memo(function MarkdownEditor(props: Props) {
                 <ToolButton title={tr("Citação", 'Quote')} onClick={() => prefixLines('> ')} disabled={!showEditor}><FormatQuote fontSize="small" /></ToolButton>
                 {!plain && (
                     <>
-                    <ToolButton title={props.linkTitle ?? tr("Link para o catálogo: [[Nome]]", 'Link to the catalog: [[Name]]')} onClick={() => wrap('[[', ']]', tr('Nome', 'Name'))} disabled={!showEditor}><LinkIcon fontSize="small" /></ToolButton>
+                    <ToolButton title={props.linkTitle ?? tr("Link para o catálogo: [[Nome]]", 'Link to the catalog: [[Name]]')} onClick={() => void link()} disabled={!showEditor}><LinkIcon fontSize="small" /></ToolButton>
                     {playersBlock && (
                     <ToolButton title={tr("Bloco para os jogadores", 'Block for the players')} onClick={() => wrap(tr(':::jogadores Título\n', ':::players Title\n'), '\n:::', tr('O que os jogadores leem.', 'What the players read.'))} disabled={!showEditor}>
                         <PlayersIcon fontSize="small" sx={{ color: gold.deep }} />
