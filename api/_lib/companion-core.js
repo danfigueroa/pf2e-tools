@@ -11,8 +11,9 @@
 // (mature / nimble / savage) e o nível são aplicados no frontend, em
 // src/modules/character-viewer/companionStats.ts, porque dependem da ficha.
 
-import { searchAon, cleanAonText, translateSegments } from './aon.js'
+import { searchAon, cleanAonText, translateSegments, hasTranslationKey } from './aon.js'
 import { pickBestHit } from './aon-parse.js'
+import { cachedLookup } from './lookup-cache.js'
 
 // No AON, companheiros animais ficam na categoria 'animal-companion' (ex.:
 // "Bear", "Wolf"). Sem o filtro, a busca por "Bear" cai na creature-family ou
@@ -120,4 +121,26 @@ export async function resolveCompanion(name, translationEnabled, lang = 'pt') {
     mount: Boolean(s.mount),
     ...(supportBenefitEN && !supportBenefit && translationEnabled ? { translationPending: true } : {}),
   }
+}
+
+/**
+ * Vários companheiros, lidos-através do Postgres (`aon_lookups`, `pet:v1` / `peten:v1`, global): a primeira
+ * vez vai à AON e à tradução, as seguintes saem do banco. A publicação os deixa prontos (`sheet-draft.js`).
+ * O que a tradução não deu (`translationPending`) volta, mas não é gravado — a próxima consulta retraduz.
+ * Mudou o formato do payload? Suba a versão.
+ */
+export async function resolveCompanions(names, lang = 'pt') {
+  const translationEnabled = lang === 'en' ? false : hasTranslationKey()
+  const pending = {}
+  const out = await cachedLookup(lang === 'en' ? 'peten:v1' : 'pet:v1', names, async (missing) => {
+    const fresh = {}
+    for (const name of missing) {
+      const stats = await resolveCompanion(name, translationEnabled, lang)
+      if (!stats) continue
+      if (stats.translationPending) pending[name] = stats
+      else fresh[name] = stats
+    }
+    return fresh
+  })
+  return { ...out, ...pending }
 }

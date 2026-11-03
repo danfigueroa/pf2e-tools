@@ -1,8 +1,7 @@
 // Batch endpoint: busca stats de múltiplos companheiros animais. O núcleo fica
 // em api/_lib/companion-core.js, compartilhado com api/companion.js e
 // server/index.mjs.
-import { resolveCompanion } from './_lib/companion-core.js'
-import { hasTranslationKey } from './_lib/aon.js'
+import { resolveCompanions } from './_lib/companion-core.js'
 import { apiLang } from './_lib/i18n.js'
 
 export default async function handler(req, res) {
@@ -19,16 +18,10 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Campo "names" deve ser um array não-vazio' })
   }
 
-  const translationEnabled = lang === 'en' ? false : hasTranslationKey()
-
   try {
-    // Um por vez: cada chamada já é pesada (busca no AON + extração via LLM).
-    const results = {}
-    for (const name of names) {
-      const stats = await resolveCompanion(name, translationEnabled, lang)
-      if (stats) results[name] = stats
-    }
-    return res.status(200).json(results)
+    // Do banco quando já resolvidos (a publicação os deixa prontos); o resto, um por vez, pela AON.
+    const clean = names.filter((n) => typeof n === 'string' && n.trim()).slice(0, 12)
+    return res.status(200).json(await resolveCompanions(clean, lang))
   } catch (error) {
     console.error('Companions batch API error:', error)
     return res.status(500).json({ error: 'Erro ao buscar companheiros' })

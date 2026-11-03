@@ -3,7 +3,7 @@ import http from 'node:http'
 import { URL } from 'node:url'
 import { resolveSpell, resolveSpells } from '../api/_lib/spells-core.js'
 import { resolveFeat, resolveItem, resolveSpecial } from '../api/_lib/feat-core.js'
-import { resolveCompanion } from '../api/_lib/companion-core.js'
+import { resolveCompanions } from '../api/_lib/companion-core.js'
 import { resolveCreatures } from '../api/_lib/creature-core.js'
 import { resolveMonster } from '../api/_lib/monster-core.js'
 import { resolveAfflictions } from '../api/_lib/affliction-core.js'
@@ -62,14 +62,14 @@ async function resolveSpellCached(spellName, lang = 'pt') {
   }
 }
 
-// Companheiros animais: mesma resolução do serverless
-// (api/_lib/companion-core.js). Aqui só entra o cache em memória do dev server.
+// Companheiros animais: mesma resolução do serverless (api/_lib/companion-core.js, com o cache do
+// banco). Aqui só entra, na frente, o cache em memória do dev server.
 async function resolveCompanionCached(animalName, lang = 'pt') {
   const cacheKey = `${langKey(lang)}companion:${animalName}`
   if (CACHE.has(cacheKey)) return CACHE.get(cacheKey)
 
-  const stats = await resolveCompanion(animalName, TRANSLATION_ENABLED, lang)
-  if (stats) {
+  const stats = (await resolveCompanions([animalName], lang))[animalName] ?? null
+  if (stats && !stats.translationPending) {
     console.log(`[companion] ${animalName}: ${stats.size}, ${stats.speed} pés`)
     CACHE.set(cacheKey, stats)
   } else {
