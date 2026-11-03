@@ -35,8 +35,9 @@ export function fold(text) {
 
 /**
  * As linhas da página separadas em públicas e blocos do GM. Cada bloco guarda as próprias linhas
- * (com a abertura e o fechamento), a última linha pública não vazia antes dele e o título de seção
- * em que estava.
+ * (com a abertura e o fechamento), a última linha pública não vazia antes dele, o título de seção
+ * em que estava e se tinha linha em branco antes e depois — um trecho escondido no meio de uma frase
+ * fica colado nela, e as linhas em volta voltam a ser um parágrafo só para o jogador.
  */
 function parse(md) {
     const lines = String(md ?? '').split('\n')
@@ -46,17 +47,22 @@ function parse(md) {
     let fenced = false
     let prev = null
     let heading = null
-    for (const line of lines) {
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i]
         const t = line.trim()
         if (block) {
             block.lines.push(line)
             if (FENCE_RE.test(t)) fenced = !fenced
-            else if (!fenced && CLOSE_RE.test(t)) { blocks.push(block); block = null }
+            else if (!fenced && CLOSE_RE.test(t)) {
+                block.blankAfter = i + 1 >= lines.length || !lines[i + 1].trim()
+                blocks.push(block)
+                block = null
+            }
             continue
         }
         if (FENCE_RE.test(t)) fenced = !fenced
         if (!fenced && OPEN_RE.test(t)) {
-            block = { lines: [line], prev, heading }
+            block = { lines: [line], prev, heading, blankBefore: i === 0 || !lines[i - 1].trim(), blankAfter: true }
             continue
         }
         pub.push(line)
@@ -112,7 +118,7 @@ export function mergeSecrets(stored, incoming) {
             }
         }
         if (at < 0) at = out.length
-        const chunk = ['', ...b.lines, '']
+        const chunk = [...(b.blankBefore ? [''] : []), ...b.lines, ...(b.blankAfter ? [''] : [])]
         out.splice(at, 0, ...chunk)
         cursor = at + chunk.length
     }

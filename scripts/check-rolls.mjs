@@ -1890,6 +1890,9 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
     'Wiki: linha de antes do segredo mudou → o segredo fica no fim da mesma seção')
   const gone = w.mergeSecrets(page, 'Tudo reescrito.')
   ok(gone.includes('É um vampiro.') && gone.includes('Quer o colar.'), 'Wiki: o jogador apagou tudo e nenhum segredo se perde')
+  const inline = 'O barão é gentil.\n:::mestre\nÉ um vampiro.\n:::\nMora na colina.'
+  eq(w.stripSecrets(inline), 'O barão é gentil.\nMora na colina.', 'Wiki: trecho escondido no meio da frase — o resto segue um parágrafo só')
+  eq(w.mergeSecrets(inline, w.stripSecrets(inline)), inline, 'Wiki: o trecho colado volta colado (sem linha em branco a mais)')
   const injected = w.mergeSecrets('', 'oi\n:::mestre\nsegredo do jogador\n:::')
   ok(injected.includes('\\:::mestre') && !w.hasSecrets(injected), 'Wiki: :::mestre escrito pelo jogador vira texto comum')
   eq(w.stripSecrets('```\n:::mestre\n```\nx'), '```\n:::mestre\n```\nx', 'Wiki: dentro de bloco de código, :::mestre é só texto')
