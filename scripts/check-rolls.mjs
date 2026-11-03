@@ -1878,5 +1878,26 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
   eq(draft.progressView({ names: 3, steps: Object.fromEntries(draft.DRAFT_STEPS.map((s) => [s, 'done'])) }).done, 3 * 2 + 5, 'Barra cheia com tudo feito')
 }
 
+// ── Wiki da Mesa: os segredos do GM e os links (api/_lib/wiki-secrets.js) ────────────────────
+{
+  const w = await import('../api/_lib/wiki-secrets.js')
+  const page = '# Barão Ulric\n\nDono da taverna.\n\n:::mestre\nÉ um vampiro.\n:::\n\n## Aparência\n\nAlto e pálido.\n\n:::gm Plano\nQuer o colar.\n:::\n\n## Rumores\n\nDizem que não come alho.'
+  const pub = w.stripSecrets(page)
+  ok(!pub.includes('vampiro') && !pub.includes('colar') && !pub.includes(':::'), 'Wiki: o jogador não recebe nenhum trecho do mestre (nem :::gm)')
+  eq(w.mergeSecrets(page, pub), page, 'Wiki: salvar sem mexer devolve a página igual, segredos no lugar')
+  const edited = w.mergeSecrets(page, pub.replace('Alto e pálido.', 'Alto, pálido e magro.'))
+  ok(edited.indexOf('Quer o colar') > edited.indexOf('magro') && edited.indexOf('Quer o colar') < edited.indexOf('## Rumores'),
+    'Wiki: linha de antes do segredo mudou → o segredo fica no fim da mesma seção')
+  const gone = w.mergeSecrets(page, 'Tudo reescrito.')
+  ok(gone.includes('É um vampiro.') && gone.includes('Quer o colar.'), 'Wiki: o jogador apagou tudo e nenhum segredo se perde')
+  const injected = w.mergeSecrets('', 'oi\n:::mestre\nsegredo do jogador\n:::')
+  ok(injected.includes('\\:::mestre') && !w.hasSecrets(injected), 'Wiki: :::mestre escrito pelo jogador vira texto comum')
+  eq(w.stripSecrets('```\n:::mestre\n```\nx'), '```\n:::mestre\n```\nx', 'Wiki: dentro de bloco de código, :::mestre é só texto')
+  eq(w.stripSecrets('a\n:::mestre\nsem fim'), 'a', 'Wiki: trecho do mestre sem fechamento vai até o fim (e sai)')
+  eq(w.linkNames('[[Barão Ulric]], [[wiki:Absalão|a cidade]] e [[barao  ulric]]').join('|'), 'barao ulric|absalao',
+    'Wiki: links dobrados (sem acento nem caixa), com rótulo e wiki:, sem repetição')
+  eq(w.fold('  ÁRVORE  Ç '), 'arvore c', 'Wiki: a dobra do servidor')
+}
+
 console.log(`${passed} conferências ok, ${failures} falha(s).`)
 process.exit(failures ? 1 : 0)
