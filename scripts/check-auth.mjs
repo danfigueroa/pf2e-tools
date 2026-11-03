@@ -28,6 +28,7 @@ const slugs = [`teste-auth-a-${stamp}`, `teste-auth-u-${stamp}`, `teste-auth-d-$
 const createdMaps = []
 const journalId = `teste-journal-${stamp}`
 const revealId = `teste-reveal-${stamp}`
+const wikiIds = { a: `w-t${stamp}a`, g: `w-t${stamp}g` }
 const uploaded = []
 let failures = 0
 
@@ -62,6 +63,8 @@ async function makeUser(name, { anonymous = false } = {}) {
 const sheetJson = (name) => ({ build: { name, class: 'Teste', level: 1 } })
 
 async function cleanup() {
+    await db.from('wiki_pages').delete().eq('mesa', MESA).in('id', Object.values(wikiIds))
+    await db.from('mesa_events').delete().eq('mesa', MESA).in('data->>id', Object.values(wikiIds))
     await db.from('journal_docs').delete().eq('mesa', MESA).eq('id', journalId)
     await db.from('journal_reveals').delete().eq('mesa', MESA).eq('id', revealId)
     await db.from('shares').delete().eq('mesa', MESA).eq('id', revealId)
@@ -325,6 +328,56 @@ try {
     expect('GM envia imagem ao diário', await upload(users.gm.token, `journal/teste-${stamp}-gm.png`), true)
     expect('jogador ainda envia token', await upload(users.a.token, `tokens/teste-${stamp}-a.png`), true)
 
+    console.log('Wiki da Mesa')
+    const wget = (token, query) => call({ token, query })
+    const wsave = (token, page, base) => call({ token, method: 'POST', body: { action: 'wiki-save', page, base } })
+    const wread = async (token, id) => (await wget(token, { wiki: id })).body.page
+    const pageA = { id: wikiIds.a, kind: 'npc', title: `Barão Teste ${stamp}`, body: 'Dono da taverna.\n:::mestre\ninjetado pelo jogador\n:::' }
+    expect('quem não é membro não lê a Wiki', (await wget(users.out.token, { wiki: 'list' })).status, 403)
+    expect('jogador cria página → 200', (await wsave(users.a.token, pageA, null)).status, 200)
+    expect(':::mestre do jogador vira texto comum', (await wread(users.gm.token, wikiIds.a))?.body.includes('\\:::mestre'), true)
+    let cur = await wread(users.gm.token, wikiIds.a)
+    expect('GM põe um segredo → 200', (await wsave(users.gm.token, { ...cur, body: `${cur.body}\n\n## Segredos\n\n:::mestre\nÉ um vampiro.\n:::` }, cur.updatedAt)).status, 200)
+    expect('jogador NÃO recebe o segredo', (await wread(users.b.token, wikiIds.a))?.body.includes('vampiro'), false)
+    expect('GM recebe o segredo', (await wread(users.gm.token, wikiIds.a))?.body.includes('vampiro'), true)
+    expect('busca do jogador não acha o segredo', (await wget(users.b.token, { wiki: 'search', q: 'vampiro' })).body.results?.length, 0)
+    expect('busca do GM acha', (await wget(users.gm.token, { wiki: 'search', q: 'vampiro' })).body.results?.length, 1)
+    cur = await wread(users.b.token, wikiIds.a)
+    expect('outro jogador edita a página pública → 200', (await wsave(users.b.token, { ...cur, body: `${cur.body}\n\nMais um parágrafo.` }, cur.updatedAt)).status, 200)
+    expect('o segredo sobrevive à edição do jogador', (await wread(users.gm.token, wikiIds.a))?.body.includes('É um vampiro.'), true)
+    expect('escrita com versão velha → 409', (await wsave(users.b.token, cur, cur.updatedAt)).status, 409)
+    const hist = (await wget(users.b.token, { wikiHistory: wikiIds.a })).body.revisions ?? []
+    expect('histórico com as versões de cada pessoa', hist.length >= 3, true)
+    const revBodies = await Promise.all(hist.map(async (r) => (await wget(users.b.token, { wikiRev: wikiIds.a, rev: String(r.rev) })).body.revision?.body ?? ''))
+    expect('o histórico do jogador não tem o segredo', revBodies.some((b) => b.includes('vampiro')), false)
+    const view = (await wget(users.b.token, { wiki: wikiIds.a })).body
+    expect('autoria com nome de quem criou', typeof view.authors?.[users.a.id] === 'string', true)
+    const pageG = { id: wikiIds.g, kind: 'location', title: `Covil Secreto ${stamp}`, body: `Onde mora o [[${pageA.title}]].`, visibility: 'gm' }
+    expect('GM cria página só dele → 200', (await wsave(users.gm.token, pageG, null)).status, 200)
+    expect('a página do GM não aparece na lista do jogador', (await wget(users.a.token, { wiki: 'list' })).body.pages?.some((p) => p.id === wikiIds.g), false)
+    expect('jogador não abre a página do GM → 404', (await wget(users.a.token, { wiki: wikiIds.g })).status, 404)
+    expect('backlink da página do GM some para o jogador', (await wget(users.a.token, { wiki: wikiIds.a })).body.backlinks?.some((b) => b.id === wikiIds.g), false)
+    expect('backlink aparece para o GM', (await wget(users.gm.token, { wiki: wikiIds.a })).body.backlinks?.some((b) => b.id === wikiIds.g), true)
+    expect('jogador não edita a página do GM', (await wsave(users.a.token, { ...pageG }, Date.now())).status, 404)
+    expect('jogador não trava → 403', (await call({ token: users.a.token, method: 'POST', body: { action: 'wiki-flags', id: wikiIds.a, locked: true } })).status, 403)
+    expect('GM trava → 200', (await call({ token: users.gm.token, method: 'POST', body: { action: 'wiki-flags', id: wikiIds.a, locked: true } })).status, 200)
+    cur = await wread(users.a.token, wikiIds.a)
+    expect('página travada: jogador não edita → 403', (await wsave(users.a.token, cur, cur.updatedAt)).status, 403)
+    await call({ token: users.gm.token, method: 'POST', body: { action: 'wiki-flags', id: wikiIds.a, locked: false } })
+    expect('quem não criou não apaga → 403', (await call({ token: users.b.token, method: 'POST', body: { action: 'wiki-delete', id: wikiIds.a } })).status, 403)
+    expect('quem criou apaga → 200', (await call({ token: users.a.token, method: 'POST', body: { action: 'wiki-delete', id: wikiIds.a } })).status, 200)
+    expect('apagada some da Wiki', (await wget(users.a.token, { wiki: wikiIds.a })).status, 404)
+    expect('jogador não restaura da lixeira', (await call({ token: users.a.token, method: 'POST', body: { action: 'wiki-undelete', id: wikiIds.a } })).status, 403)
+    expect('jogador não abre a lixeira', (await wget(users.a.token, { wiki: 'trash' })).status, 403)
+    expect('GM restaura da lixeira → 200', (await call({ token: users.gm.token, method: 'POST', body: { action: 'wiki-undelete', id: wikiIds.a } })).status, 200)
+    expect('fora da lixeira não apaga de vez → 400', (await call({ token: users.gm.token, method: 'POST', body: { action: 'wiki-purge', id: wikiIds.a } })).status, 400)
+    expect('GM revela a página → 200', (await call({ token: users.gm.token, method: 'POST', body: { action: 'wiki-flags', id: wikiIds.g, visibility: 'public' } })).status, 200)
+    const revealed = await db.from('mesa_events').select('kind').eq('mesa', MESA).eq('data->>id', wikiIds.g)
+    expect('notificação de página revelada', revealed.data?.some((e) => e.kind === 'wiki-revealed'), true)
+    expect('revelada, o jogador a vê', (await wget(users.a.token, { wiki: wikiIds.g })).status, 200)
+    expect('jogador envia imagem à Wiki', await upload(users.a.token, `wiki/teste-${stamp}-a.png`), true)
+    expect('quem não é membro não envia à Wiki', await upload(users.out.token, `wiki/teste-${stamp}-out.png`), false)
+
     console.log('Iniciativa e papéis')
     expect('jogador não grava encontro', (await call({ token: users.a.token, method: 'POST', body: { action: 'encounter-save', map: null, state: {} } })).status, 403)
     // A mesa de teste é real e pode ter outros GMs (o dono do projeto): aí a trava não se aplica.
@@ -349,6 +402,9 @@ try {
     // O diário tem segredos: também NÃO afrouxa com a flag.
     expect('jogador não lê o diário (flag desligada)', (await call({ token: users.b.token, query: { journal: 'list' } })).status, 403)
     expect('sem sessão não lê o diário (flag desligada)', (await call({ query: { journal: 'list' } })).status, 403)
+    // A Wiki também decide pelo papel na mesa, com a flag desligada.
+    expect('sem sessão não lê a Wiki (flag desligada)', (await call({ query: { wiki: 'list' } })).status, 403)
+    expect('quem não é membro não grava na Wiki (flag desligada)', (await call({ token: users.out.token, method: 'POST', body: { action: 'wiki-save', page: { id: `w-t${stamp}x`, kind: 'npc', title: 'X', body: '' }, base: null } })).status, 403)
 } catch (error) {
     failures += 1
     console.error('Erro inesperado:', error)
