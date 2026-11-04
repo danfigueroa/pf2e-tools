@@ -261,12 +261,13 @@ export const purgeWikiPage = (id: string) => simple({ action: 'wiki-purge', id }
 export const setWikiFlags = (id: string, flags: { locked?: boolean; visibility?: 'public' | 'gm' }) =>
     simple({ action: 'wiki-flags', id, ...flags })
 
-/** Mostra a parte pública da página no cartão de toda a mesa (o mesmo handout do Diário). */
-export function showWikiPage(id: string, by: string, color: string): Promise<string | null> {
+/** Mostra a parte pública da página (ou só uma imagem dela, com o nome) no cartão de toda a mesa. */
+export function showWikiPage(id: string, by: string, color: string, image?: string): Promise<string | null> {
     const reveal = `h-${crypto.randomUUID().replace(/-/g, '').slice(0, 16)}`
     // O cartão não aparece no aparelho de quem mostrou.
     markOwnShare(reveal)
-    return simple({ action: 'wiki-show', id, reveal, by, color })
+    // Com `image`: só essa imagem e o nome da página (o handout), sem o texto.
+    return simple({ action: 'wiki-show', id, reveal, by, color, ...(image ? { image } : {}) })
 }
 
 // ── O aviso ao vivo ──────────────────────────────────────────────────────────

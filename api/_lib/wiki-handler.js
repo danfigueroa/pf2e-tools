@@ -14,7 +14,7 @@
 //   POST { action: 'wiki-undelete', id }           → { ok }   (GM)
 //   POST { action: 'wiki-purge', id }              → { ok }   apaga de vez, só da lixeira (GM)
 //   POST { action: 'wiki-flags', id, locked?, visibility? } → { ok }  (GM)
-//   POST { action: 'wiki-show', id, reveal, by, color }     → { share }  "Mostrar à mesa" (GM)
+//   POST { action: 'wiki-show', id, reveal, by, color, image? }  → { share }  "Mostrar à mesa" (GM)
 //
 // Quem pode o quê (decidido AQUI, o cliente só esconde botões), valendo também com `AUTH_REQUIRED`
 // desligado, pelo papel na mesa — como o Diário de Campanha:
@@ -306,11 +306,16 @@ export async function handleWikiRequest(mesa, method, query, body, ctx = {}) {
     let markdown = page.bodyPublic
     while (new TextEncoder().encode(markdown).length > MAX_REVEAL_BYTES - 8) markdown = markdown.slice(0, Math.floor(markdown.length * 0.9))
     if (markdown !== page.bodyPublic) markdown = `${markdown.trimEnd()}\n\n…`
+    // Só a imagem (a capa ou uma do texto público) com o nome da página: o handout de um NPC, item ou
+    // local. Só vale a imagem que a página de fato tem; o jogador nunca recebe a de um trecho do mestre.
+    const only = typeof body.image === 'string' && body.image ? body.image : null
+    if (only && only !== page.image && !page.bodyPublic.includes(`](${only}`)) return fail(400, 'Imagem inválida')
+    if (only && !validImage(only)) return fail(400, 'Imagem inválida')
     const reveal = cleanReveal({
         id: body.reveal,
         title: page.title.slice(0, 120),
-        markdown: markdown || page.summary,
-        image: page.image && validImage(page.image) ? page.image : null,
+        markdown: only ? '' : markdown || page.summary,
+        image: only ?? (page.image && validImage(page.image) ? page.image : null),
         source: page.id,
     })
     if (!reveal) return fail(400, 'Nada para mostrar')
