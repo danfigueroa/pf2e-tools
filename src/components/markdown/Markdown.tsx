@@ -3,9 +3,9 @@ import ReactMarkdown, { defaultUrlTransform, type Components } from 'react-markd
 import remarkGfm from 'remark-gfm'
 import { Box, Button, IconButton, Link, Typography } from '@mui/material'
 import { Campaign as ShareIcon, VisibilityOff as SecretIcon } from '@mui/icons-material'
-import { bodySerif, displayFont, gold, green, ink, parchment, rule, greenInk } from '../../theme'
+import { bodyFont, bodySerif, chrome, displayFont, gold, green, ink, parchment, rule, greenInk, status } from '../../theme'
 import { useImageUrl } from '../../services/images'
-import { alignAtEnd, headingSlug, linkName, splitAlign, splitSegments, WIKI_HREF, withWikiLinks, type TextAlign } from './blocks'
+import { alignAtEnd, firstParagraphLine, headingSlug, linkName, splitAlign, splitSegments, WIKI_HREF, withWikiLinks, type TextAlign } from './blocks'
 import { ImageLightbox } from '../ImageLightbox'
 import { tr } from '../../i18n'
 
@@ -42,6 +42,8 @@ interface Props {
     dropCap?: boolean
     /** O visual de artigo da Wiki: serifa, títulos com losango e filete dourado, citação em destaque. */
     article?: boolean
+    /** Sobre a moldura verde (o cartão escuro da Wiki): tinta clara no texto e nos links. */
+    onDark?: boolean
 }
 
 /** O texto puro de um filho do React (para a âncora do título). */
@@ -99,7 +101,7 @@ function MdImage({ src, alt, onShare }: { src: string; alt: string; onShare?: (u
     )
 }
 
-function useComponents({ onShareImage, onWikiLink, knownNames, resolveLink }: Props): Components {
+function useComponents({ onShareImage, onWikiLink, knownNames, resolveLink, article = false, onDark = false }: Props): Components {
     return useMemo<Components>(() => ({
         a: ({ href, children }) => {
             if (href?.startsWith(WIKI_HREF)) {
@@ -116,15 +118,25 @@ function useComponents({ onShareImage, onWikiLink, knownNames, resolveLink }: Pr
                         type="button"
                         onClick={() => onWikiLink(target)}
                         title={known ? tr(`Abrir ${name}`, `Open ${name}`) : tr(`Criar a página de ${name}`, `Create ${name}'s page`)}
-                        sx={{
-                            font: 'inherit', verticalAlign: 'baseline', fontWeight: 600,
-                            color: known ? greenInk.mid : gold.deep,
-                            textDecorationStyle: known ? 'solid' : 'dashed',
-                        }}
+                        sx={onDark || article
+                            ? {
+                                font: 'inherit', verticalAlign: 'baseline', textAlign: 'inherit', textUnderlineOffset: '4px',
+                                fontWeight: known ? 700 : 600,
+                                color: onDark ? chrome.text : known ? gold.deep : 'inherit',
+                                textDecorationLine: 'underline',
+                                textDecorationStyle: known ? 'solid' : 'dashed',
+                                textDecorationThickness: known ? '2px' : '1px',
+                                textDecorationColor: known ? gold.bright : onDark ? chrome.linkMissing : status.error,
+                            }
+                            : {
+                                font: 'inherit', verticalAlign: 'baseline', fontWeight: 600,
+                                color: known ? greenInk.mid : gold.deep,
+                                textDecorationStyle: known ? 'solid' : 'dashed',
+                            }}
                     >
                         {children}
                         {where === 'wiki' && (
-                            <Box component="sup" sx={{ ml: 0.25, fontSize: '0.65em', fontWeight: 700, color: gold.deep, letterSpacing: 0.3 }}>
+                            <Box component="sup" sx={{ ml: 0.25, fontSize: '0.65em', fontWeight: 700, color: onDark ? gold.bright : gold.deep, letterSpacing: 0.3 }}>
                                 {tr('Wiki', 'Wiki')}</Box>
                         )}
                     </Link>
@@ -132,20 +144,36 @@ function useComponents({ onShareImage, onWikiLink, knownNames, resolveLink }: Pr
             }
             return <Link href={href} target="_blank" rel="noopener noreferrer">{children}</Link>
         },
+        // Na Wiki, a última linha da citação que começa com travessão é a assinatura ("— Fianara").
+        ...(article ? {
+            blockquote: ({ children }) => {
+                const kids = (Array.isArray(children) ? children : [children]).filter((c) => !(typeof c === 'string' && !c.trim()))
+                const last = kids[kids.length - 1]
+                const sign = kids.length > 1 && /^\s*(—|--)\s*/.test(textOf(last)) ? textOf(last).replace(/^\s*(—|--)\s*/, '') : null
+                return (
+                    <Box component="figure">
+                        <blockquote>{sign ? kids.slice(0, -1) : children}</blockquote>
+                        {sign && (
+                            <Box component="figcaption" sx={{ mt: 1.5, fontFamily: bodyFont, fontSize: '0.875rem', fontWeight: 600, letterSpacing: 0.5, color: gold.deep }}>
+                                — {sign}</Box>
+                        )}
+                    </Box>
+                )
+            },
+        } : {}),
         h2: ({ children }) => <h2 id={headingSlug(textOf(children))}>{children}</h2>,
         h3: ({ children }) => <h3 id={headingSlug(textOf(children))}>{children}</h3>,
         img: ({ src, alt }) => (typeof src === 'string' && src
             ? <MdImage src={src} alt={alt ?? ''} onShare={onShareImage} />
             : null),
-    }), [onShareImage, onWikiLink, knownNames, resolveLink])
+    }), [onShareImage, onWikiLink, knownNames, resolveLink, article, onDark])
 }
 
-const bodySx = (dense: boolean, justify: boolean, dropCap: boolean, article: boolean) => ({
-    color: ink.primary,
+const bodySx = (dense: boolean, justify: boolean, dropCap: boolean, article: boolean, onDark = false) => ({
+    color: onDark ? chrome.text : ink.primary,
     fontSize: dense ? '0.95rem' : article ? '1.2rem' : '1rem',
     lineHeight: article ? 1.65 : 1.6,
     ...(article ? { fontFamily: bodySerif } : {}),
-    scrollMarginTop: 80,
     overflowWrap: 'anywhere' as const,
     '& > :first-of-type': { mt: 0 },
     '& > :last-child': { mb: 0 },
@@ -174,25 +202,27 @@ const bodySx = (dense: boolean, justify: boolean, dropCap: boolean, article: boo
     ...(article ? {
         '& h2': {
             display: 'flex', alignItems: 'center', gap: 1.5, fontSize: '1.6rem', fontWeight: 600, border: 0, pb: 0, mt: 4, mb: 1.5,
-            scrollMarginTop: '80px',
+            scrollMarginTop: { xs: '132px', md: '80px' },
             '&::before': { content: '""', width: 10, height: 10, transform: 'rotate(45deg)', bgcolor: gold.bright, flex: 'none' },
             '&::after': { content: '""', flex: 1, height: '1px', backgroundImage: `linear-gradient(90deg, ${gold.bright}, transparent)` },
         },
-        '& h3': { fontSize: '1.3rem', scrollMarginTop: '80px' },
-        '& blockquote': {
-            position: 'relative', border: 0, borderRadius: 2.5, bgcolor: parchment.sunken, py: 2.5, pr: 3, pl: 8, my: 2.5,
-            fontSize: '1.15em', fontStyle: 'italic', color: ink.primary,
+        '& h3': { fontSize: '1.3rem', scrollMarginTop: { xs: '132px', md: '80px' } },
+        '& figure': {
+            position: 'relative', borderRadius: 2.5, bgcolor: parchment.sunken, py: 2.5, pr: 3, pl: { xs: 6, sm: 8 }, my: 2.5, mx: 0,
             '&::before': {
-                content: '"\\201C"', position: 'absolute', left: 20, top: 0, fontFamily: displayFont, fontWeight: 700,
-                fontSize: '4.5rem', lineHeight: 1, color: gold.bright, fontStyle: 'normal',
+                content: '"\\201C"', position: 'absolute', left: { xs: 12, sm: 20 }, top: 0, fontFamily: displayFont, fontWeight: 700,
+                fontSize: '4.5rem', lineHeight: 1, color: gold.bright,
             },
+        },
+        '& figure > blockquote': {
+            m: 0, p: 0, border: 0, bgcolor: 'transparent', fontSize: '1.1em', lineHeight: 1.55, fontStyle: 'italic', color: ink.primary,
         },
     } : {}),
     ...(justify ? { '& p, & li, & blockquote': { textAlign: 'justify', hyphens: 'auto' as const } } : {}),
     ...(dropCap ? {
-        '& > div:first-of-type > div:first-of-type > p:first-child::first-letter': {
-            float: 'left', fontFamily: displayFont, fontWeight: 700, fontSize: '3.4em', lineHeight: 0.85,
-            pr: '0.1em', pt: '0.08em', color: gold.deep,
+        '& p.md-dropcap::first-letter': {
+            float: 'left', fontFamily: displayFont, fontWeight: 700, fontSize: '3.7em', lineHeight: 0.82,
+            pr: '0.12em', pt: '0.1em', color: gold.deep,
         },
     } : {}),
 })
@@ -238,45 +268,64 @@ function PlayersBlock({ title, children, onShare }: { title: string; children: R
 }
 
 /** O segredo do GM numa página da Wiki: só chega ao GM (o servidor o corta para o jogador). */
-function GmBlock({ title, children }: { title: string; children: ReactNode }) {
+function GmBlock({ title, children, id }: { title: string; children: ReactNode; id?: string }) {
     return (
         <Box
-            component="section"
-            aria-label={title ? tr(`Só o mestre vê: ${title}`, `GM only: ${title}`) : tr('Só o mestre vê', 'GM only')}
-            sx={{ my: 2, border: `1px dashed ${ink.secondary}`, borderLeft: `4px solid ${ink.secondary}`, borderRadius: 1, bgcolor: parchment.sunken }}
+            component="aside"
+            id={id}
+            aria-label={title ? tr(`Trecho do mestre: ${title}`, `GM-only part: ${title}`) : tr('Trecho do mestre', 'GM-only part')}
+            sx={{
+                my: 2.5, px: 2.5, py: 2, borderRadius: 2.25, border: `1.5px dashed ${gold.main}`, scrollMarginTop: { xs: '132px', md: '80px' },
+                backgroundImage: `repeating-linear-gradient(135deg, ${parchment.paper} 0 12px, ${parchment.page} 12px 24px)`,
+            }}
         >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', px: 1.5, py: 0.5, borderBottom: `1px dashed ${rule}` }}>
-                <SecretIcon sx={{ fontSize: 16, color: ink.secondary }} />
-                <Typography variant="caption" sx={{ color: ink.secondary, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>
-                    {tr('Só o mestre vê', 'GM only')}</Typography>
-                {title && <Typography variant="body2" sx={{ fontWeight: 600, color: ink.primary, minWidth: 0 }}>{title}</Typography>}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap', mb: 1, fontFamily: bodyFont }}>
+                <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: '0.75rem', fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: gold.deep }}>
+                    <SecretIcon sx={{ fontSize: 16 }} />{tr('Trecho do mestre', 'GM-only part')}{title ? ` · ${title}` : ''}</Box>
+                <Box component="span" sx={{ fontSize: '0.8rem', color: ink.secondary }}>{tr('Os jogadores não veem este bloco', 'Players don\'t see this block')}</Box>
             </Box>
-            <Box sx={{ px: 2, py: 1 }}>{children}</Box>
+            <Box sx={{ '& > div > div > :first-of-type': { mt: 0 } }}>{children}</Box>
         </Box>
     )
 }
 
 export const Markdown = memo(function Markdown(props: Props) {
-    const { source, onShareBlock, dense = false, justify = false, dropCap = false, article = false } = props
+    const { source, onShareBlock, dense = false, justify = false, dropCap = false, article = false, onDark = false } = props
     const components = useComponents(props)
     const segments = useMemo(() => splitSegments(source), [source])
+    // A âncora de cada trecho do mestre (`mestre-1`…), a mesma do sumário (`headingsOf`).
+    const gmIndex = useMemo(() => {
+        const m = new Map<number, number>()
+        segments.forEach((seg, i) => { if (seg.kind === 'gm') m.set(i, m.size + 1) })
+        return m
+    }, [segments])
     // O alinhamento em vigor segue de um trecho ao outro (uma marca `::centro` vale depois dos blocos).
     let running: TextAlign | null = null
-    const render = (text: string) => {
+    // A capitular vai no primeiro parágrafo de texto corrido da página (não na citação nem no título).
+    let capPending = dropCap
+    const render = (text: string, plain = true) => {
         const parts = splitAlign(text, running)
         running = alignAtEnd(text, running)
-        return parts.map((part, i) => (
+        return parts.map((part, i) => {
+            const line = capPending && plain && (!part.align || part.align === 'justify' || part.align === 'left') ? firstParagraphLine(withWikiLinks(part.text)) : null
+            if (line !== null) capPending = false
+            return (
             <Box key={i} sx={part.align ? alignSx(part.align) : undefined}>
-                <ReactMarkdown remarkPlugins={[remarkGfm]} components={components} urlTransform={urlTransform}>
+                <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={line === null ? components : { ...components, p: ({ node, children }) => <p className={node?.position?.start.line === line ? 'md-dropcap' : undefined}>{children}</p> }}
+                    urlTransform={urlTransform}
+                >
                     {withWikiLinks(part.text)}
                 </ReactMarkdown>
             </Box>
-        ))
+            )
+        })
     }
     return (
-        <Box sx={bodySx(dense, justify, dropCap, article)}>
+        <Box sx={bodySx(dense, justify, dropCap, article, onDark)}>
             {segments.map((seg, i) => (seg.kind === 'gm'
-                ? <GmBlock key={i} title={seg.title ?? ''}>{render(seg.text)}</GmBlock>
+                ? <GmBlock key={i} id={`mestre-${gmIndex.get(i)}`} title={seg.title ?? ''}>{render(seg.text, false)}</GmBlock>
                 : seg.kind === 'players'
                 ? (
                     <PlayersBlock

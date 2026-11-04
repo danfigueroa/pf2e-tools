@@ -166,10 +166,19 @@ export function alignAtEnd(text: string, start: TextAlign | null): TextAlign | n
 /** Âncora de um título (`## Aparência e personalidade` → `aparencia-e-personalidade`). */
 export const headingSlug = (text: string) => foldName(text).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
 
-/** Os títulos `##`/`###` do texto (menos os dos blocos `:::` e dos blocos de código), para o sumário. */
-export function headingsOf(source: string): { level: 2 | 3; text: string; id: string }[] {
-    const out: { level: 2 | 3; text: string; id: string }[] = []
+/**
+ * O sumário: os títulos `##`/`###` do texto (fora dos blocos de código) e cada trecho do mestre como uma
+ * entrada (`mestre-1`…, a âncora que o `Markdown` dá ao bloco). Os títulos de dentro do bloco não entram.
+ */
+export function headingsOf(source: string): { level: 2 | 3; text: string; id: string; gm?: boolean }[] {
+    const out: { level: 2 | 3; text: string; id: string; gm?: boolean }[] = []
+    let gm = 0
     for (const seg of splitSegments(source)) {
+        if (seg.kind === 'gm') {
+            gm++
+            out.push({ level: 2, text: seg.title || '', id: `mestre-${gm}`, gm: true })
+            continue
+        }
         if (seg.kind !== 'text') continue
         let fenced = false
         for (const line of seg.text.split('\n')) {
@@ -181,4 +190,24 @@ export function headingsOf(source: string): { level: 2 | 3; text: string; id: st
         }
     }
     return out
+}
+
+/**
+ * A linha (1 = primeira) onde começa o primeiro parágrafo de texto corrido: pula título, citação, lista,
+ * tabela, imagem sozinha, marca de alinhamento e bloco de código. `null` se não há. É onde vai a capitular.
+ */
+export function firstParagraphLine(text: string): number | null {
+    let fenced = false
+    let inBlock = false
+    const lines = text.split('\n')
+    for (let i = 0; i < lines.length; i++) {
+        const t = lines[i].trim()
+        if (FENCE_RE.test(t)) { fenced = !fenced; inBlock = false; continue }
+        if (fenced) continue
+        if (!t) { inBlock = false; continue }
+        if (inBlock) continue
+        if (/^(#{1,6}\s|>|[-*+]\s|\d+[.)]\s|\||!\[[^\]]*\]\([^)]*\)\s*$|:::|::[a-z])/i.test(t) || /^([-*_])\1{2,}$/.test(t)) { inBlock = true; continue }
+        return i + 1
+    }
+    return null
 }
