@@ -293,7 +293,7 @@ export const TYPE_ACCENT = {
  * (`chrome.onAccent`) por cima. É ladrilho, como a moldura: igual nos dois temas.
  */
 export const WIKI_KIND_COLORS = {
-    npc: '#2A5540',
+    npc: '#9A5B2E',
     location: '#3B5E7A',
     item: '#6B4E8A',
     creature: '#8A3B2E',
