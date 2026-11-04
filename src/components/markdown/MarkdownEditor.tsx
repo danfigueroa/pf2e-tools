@@ -6,11 +6,13 @@ import {
 import {
     FormatBold, FormatItalic, Title, FormatListBulleted, FormatQuote, Link as LinkIcon, Image as ImageIcon,
     Campaign as PlayersIcon, AutoAwesome as TemplateIcon, Checklist, VisibilityOff as SecretIcon,
+    FormatAlignLeft, FormatAlignRight, FormatAlignCenter, FormatAlignJustify,
 } from '@mui/icons-material'
 import { Markdown } from './Markdown'
 import { imageErrorText, shrinkImage, uploadImage, type ImageFolder } from '../../services/images'
 import { gold, ink, parchment, rule } from '../../theme'
 import { useJournalTools } from './tools'
+import { alignMark, type TextAlign } from './blocks'
 import { tr } from '../../i18n'
 
 // Editor de Markdown do diário (e da Wiki da Mesa, e das Anotações): barra de formatação, envio de imagem e prévia —
@@ -49,6 +51,10 @@ interface Props {
     gmBlock?: boolean
     /** Dica do botão de link `[[ ]]`. */
     linkTitle?: string
+    /** Botões de alinhamento (`::centro` etc.); o texto sem marca segue o `justify`. */
+    alignTools?: boolean
+    /** O texto sem marca fica justificado (a Wiki). */
+    justify?: boolean
 }
 
 function ToolButton({ title, onClick, children, disabled }: { title: string; onClick: () => void; children: ReactNode; disabled?: boolean }) {
@@ -133,6 +139,34 @@ export const MarkdownEditor = memo(function MarkdownEditor(props: Props) {
         changed(el.value)
     }
 
+    /**
+     * Alinha as linhas da seleção: uma marca `::centro` antes e a do alinhamento padrão depois (a menos que
+     * já haja uma marca ali, que é trocada/mantida), para o alinhamento não vazar para o resto do texto.
+     */
+    const alignLines = (mode: TextAlign) => {
+        const el = ref.current
+        if (!el) return
+        const v = el.value
+        const word: Record<TextAlign, string> = { left: 'esquerda', right: 'direita', center: 'centro', justify: 'justificar' }
+        const s = el.selectionStart
+        let e = el.selectionEnd
+        if (e > s && v[e - 1] === '\n') e -= 1
+        const lineStart = v.lastIndexOf('\n', s - 1) + 1
+        const nl = v.indexOf('\n', e)
+        const lineEnd = nl < 0 ? v.length : nl
+        const prevStart = lineStart > 0 ? v.lastIndexOf('\n', lineStart - 2) + 1 : 0
+        const hasPrev = lineStart > 0 && alignMark(v.slice(prevStart, lineStart - 1)) !== null
+        const nextEnd = lineEnd < v.length ? (v.indexOf('\n', lineEnd + 1) < 0 ? v.length : v.indexOf('\n', lineEnd + 1)) : lineEnd
+        const hasNext = lineEnd < v.length && alignMark(v.slice(lineEnd + 1, nextEnd)) !== null
+        const from = hasPrev ? prevStart : lineStart
+        const body = v.slice(lineStart, lineEnd)
+        const rest: TextAlign = props.justify ? 'justify' : 'left'
+        const out = `::${word[mode]}\n${body}${hasNext ? '' : `\n::${word[rest]}`}`
+        el.setRangeText(out, from, lineEnd, 'end')
+        el.focus()
+        changed(el.value)
+    }
+
     /** O link `[[ ]]`: pelo seletor da página, quando há um; senão, as marcas em volta da seleção. */
     const link = async () => {
         const el = ref.current
@@ -189,6 +223,14 @@ export const MarkdownEditor = memo(function MarkdownEditor(props: Props) {
                 <ToolButton title={tr("Lista", 'List')} onClick={() => prefixLines('- ')} disabled={!showEditor}><FormatListBulleted fontSize="small" /></ToolButton>
                 <ToolButton title={tr("Lista de tarefas", 'Task list')} onClick={() => prefixLines('- [ ] ')} disabled={!showEditor}><Checklist fontSize="small" /></ToolButton>
                 <ToolButton title={tr("Citação", 'Quote')} onClick={() => prefixLines('> ')} disabled={!showEditor}><FormatQuote fontSize="small" /></ToolButton>
+                {props.alignTools && (
+                    <>
+                    <ToolButton title={tr('Alinhar à esquerda', 'Align left')} onClick={() => alignLines('left')} disabled={!showEditor}><FormatAlignLeft fontSize="small" /></ToolButton>
+                    <ToolButton title={tr('Centralizar', 'Center')} onClick={() => alignLines('center')} disabled={!showEditor}><FormatAlignCenter fontSize="small" /></ToolButton>
+                    <ToolButton title={tr('Alinhar à direita', 'Align right')} onClick={() => alignLines('right')} disabled={!showEditor}><FormatAlignRight fontSize="small" /></ToolButton>
+                    <ToolButton title={tr('Justificar (as duas margens)', 'Justify (both margins)')} onClick={() => alignLines('justify')} disabled={!showEditor}><FormatAlignJustify fontSize="small" /></ToolButton>
+                    </>
+                )}
                 {!plain && (
                     <>
                     <ToolButton title={props.linkTitle ?? tr("Link para o catálogo: [[Nome]]", 'Link to the catalog: [[Name]]')} onClick={() => void link()} disabled={!showEditor}><LinkIcon fontSize="small" /></ToolButton>
@@ -259,6 +301,7 @@ export const MarkdownEditor = memo(function MarkdownEditor(props: Props) {
                                     onWikiLink={tools.openWiki}
                                     knownNames={tools.knownNames}
                                     resolveLink={tools.resolveLink}
+                                    justify={props.justify}
                                 />
                             )
                             : <Box sx={{ color: 'text.secondary', fontStyle: 'italic' }}>{tr('Nada escrito ainda.', 'Nothing written yet.')}</Box>}

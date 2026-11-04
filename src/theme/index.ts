@@ -7,6 +7,8 @@ export { themeMode, themePref, isDark, setThemePref, type ThemePref } from './mo
 
 /** Serifada versalete dos títulos oficiais (capas e cabeçalhos da Paizo). */
 export const displayFont = '"Cinzel", "Spectral", Georgia, serif'
+/** A serifa de leitura da Wiki (texto corrido de artigo). */
+export const bodySerif = '"Crimson Pro", "Spectral", Georgia, serif'
 export const bodyFont = '"Source Sans 3", "Roboto", system-ui, sans-serif'
 
 /** Espelha os breakpoints padrão do MUI — usado antes do tema existir. */
