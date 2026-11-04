@@ -31,5 +31,15 @@ uma página nova (é como o Diário e os links vermelhos chegam).
 - Notificações `wiki-created`/`wiki-revealed` por trigger (edição não notifica). Troféus: `wiki-created`, `wiki-edited`
   (página de outra pessoa, um por página a cada 30 min) e `wiki-read` (abrir a página de outra pessoa, uma vez por página,
   em `noteRead`); todos levam o tipo da página. Tipo novo na Wiki = troféu dele em `WIKI_KINDS` (`trophies.js`).
-- "Mostrar à mesa" (`wiki-show`): handout com `body_public` (16 KB) e capa, no mesmo `journal_reveals` + `shares`.
+- "Mostrar à mesa" (`wiki-show`): handout com `body_public` (16 KB) e capa, no mesmo `journal_reveals` + `shares`. Com
+  `image`, só essa imagem + o **nome da página** (retrato de NPC, mapa de local, item). O servidor só aceita a capa ou
+  uma imagem do texto **público**; nunca a de um trecho do mestre.
+- **Imagem amplia ao toque** (`ImageLightbox`, em `Markdown` e na capa da ficha); para o GM, o botão "Mostrar à mesa"
+  fica no próprio lightbox. Toda imagem nova do Markdown herda isso, inclusive no Diário.
+- **Alinhamento** é marca de linha própria (`::esquerda`, `::direita`, `::centro`, `::justificar`; inglês também), vale
+  até a próxima marca, e **não** é `:::` (não toca o parser de segredos). A Wiki é justificada por padrão
+  (`<Markdown justify article dropCap>`); os botões do editor (`alignTools`) põem a marca antes e a do padrão depois da
+  seleção. Código com cercas ignora a marca. `splitAlign`/`alignMark` em `blocks.ts`, testados no `check-rolls`.
+- **Visual de artigo**: `Markdown article` (serifa `bodySerif`, `##` com losango e filete, citação em destaque); o
+  sumário "Nesta página" vem de `headingsOf` e as âncoras de `headingSlug` (mesma função nos dois lados).
 - Testes: `check-rolls` (segredos, links, dobra), `check-auth` (seção "Wiki da Mesa"), `check-trophies`.

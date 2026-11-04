@@ -1,12 +1,14 @@
 import { memo, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import {
-    Box, Button, Chip, InputAdornment, List, ListItemButton, ListItemText, Stack, TextField, ToggleButton,
+    Box, Button, InputAdornment, List, ListItemButton, ListItemText, Stack, TextField, ToggleButton,
     ToggleButtonGroup, Typography,
 } from '@mui/material'
 import { Add as AddIcon, Lock as LockIcon, Search as SearchIcon, VisibilityOff as SecretIcon } from '@mui/icons-material'
 import { foldName } from '../../../components/markdown/blocks'
 import { fetchWikiRecent, searchWiki, WIKI_KINDS, type WikiChange, type WikiKind, type WikiSearchHit, type WikiSummary } from '../../../services/wiki'
-import { displayFont, gold, greenInk, ink, rule } from '../../../theme'
+import { chrome, displayFont, gold, green, greenInk, ink, parchment, rule } from '../../../theme'
+import { useImageUrl } from '../../../services/images'
+import { KindTile } from './KindIcon'
 import { KIND_LABEL } from '../kinds'
 import { authorName, formatWhen } from '../useWiki'
 import { tr } from '../../../i18n'
@@ -59,6 +61,9 @@ export const WikiList = memo(function WikiList({ pages, authors, selected, me, o
         .filter((p) => (!kind || p.kind === kind) && (!tag || p.tags.includes(tag)) && (!mine || p.createdBy === me) && (!q || matches(p, q)))
         .sort((a, b) => a.title.localeCompare(b.title)), [pages, kind, tag, mine, me, q])
 
+    const groups = useMemo(() => WIKI_KINDS
+        .map((k) => [k, filtered.filter((p) => p.kind === k)] as const)
+        .filter(([, list]) => list.length > 0), [filtered])
     const shown = new Set(filtered.map((p) => p.id))
     const extraHits = textHits.filter((h) => !shown.has(h.id))
 
@@ -95,26 +100,12 @@ export const WikiList = memo(function WikiList({ pages, authors, selected, me, o
                             }}
                             sx={{ mb: 1 }}
                         />
-                        <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mb: 1 }}>
+                        <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap role="group" aria-label={tr('Filtrar por tipo', 'Filter by type')} sx={{ mb: 1.5 }}>
+                            <FilterPill active={!kind && !mine} onClick={() => { setKind(null); setMine(false) }}>{tr('Todas', 'All')} · {pages.length}</FilterPill>
                             {WIKI_KINDS.filter((k) => counts.get(k)).map((k) => (
-                                <Chip
-                                    key={k}
-                                    size="small"
-                                    label={`${KIND_LABEL[k].many} ${counts.get(k)}`}
-                                    color={kind === k ? 'primary' : 'default'}
-                                    variant={kind === k ? 'filled' : 'outlined'}
-                                    onClick={() => setKind(kind === k ? null : k)}
-                                />
+                                <FilterPill key={k} active={kind === k} onClick={() => setKind(kind === k ? null : k)}>{KIND_LABEL[k].many} · {counts.get(k)}</FilterPill>
                             ))}
-                            {me && (
-                                <Chip
-                                    size="small"
-                                    label={tr('Só as minhas', 'Only mine')}
-                                    color={mine ? 'primary' : 'default'}
-                                    variant={mine ? 'filled' : 'outlined'}
-                                    onClick={() => setMine(!mine)}
-                                />
-                            )}
+                            {me && <FilterPill active={mine} onClick={() => setMine(!mine)}>{tr('Só as minhas', 'Only mine')}</FilterPill>}
                         </Stack>
                         {tags.length > 0 && (
                             <TextField
@@ -141,26 +132,17 @@ export const WikiList = memo(function WikiList({ pages, authors, selected, me, o
                                 {tr('Nenhuma página com esse filtro.', 'No page matches that filter.')}</Typography>
                         )}
 
-                        <List dense disablePadding>
-                            {filtered.map((p) => (
-                                <ListItemButton key={p.id} selected={p.id === selected} onClick={() => onOpen(p.id)} sx={{ borderRadius: 1, px: 1 }}>
-                                    <ListItemText
-                                        primary={(
-                                            <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
-                                                <Box component="span" sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.title}</Box>
-                                                {p.visibility === 'gm' && <SecretIcon sx={{ fontSize: 14, color: ink.secondary }} aria-label={tr('Só o mestre vê', 'GM only')} />}
-                                                {p.locked && <LockIcon sx={{ fontSize: 14, color: ink.secondary }} aria-label={tr('Travada', 'Locked')} />}
-                                            </Box>
-                                        )}
-                                        secondary={KIND_LABEL[p.kind].one + (p.summary ? ` · ${p.summary}` : '')}
-                                        slotProps={{
-                                            primary: { sx: { fontWeight: 600 } },
-                                            secondary: { sx: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
-                                        }}
-                                    />
-                                </ListItemButton>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                            {groups.map(([k, list]) => (
+                                <Box key={k} component="section" aria-label={KIND_LABEL[k].many} sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                    {!kind && (
+                                        <Typography component="h2" sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 0.75, pt: 1.5, pb: 0.5, fontSize: '0.7rem', fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: ink.secondary }}>
+                                            <Box component="span" aria-hidden="true" sx={{ width: 7, height: 7, transform: 'rotate(45deg)', bgcolor: gold.bright }} />{KIND_LABEL[k].many}</Typography>
+                                    )}
+                                    {list.map((p) => <PageRow key={p.id} page={p} selected={p.id === selected} onOpen={onOpen} />)}
+                                </Box>
                             ))}
-                        </List>
+                        </Box>
 
                         {extraHits.length > 0 && (
                             <Box sx={{ mt: 1.5 }}>
@@ -184,6 +166,56 @@ export const WikiList = memo(function WikiList({ pages, authors, selected, me, o
         </Box>
     )
 })
+
+function FilterPill({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+    return (
+        <Box
+            component="button"
+            type="button"
+            aria-pressed={active}
+            onClick={onClick}
+            sx={{
+                height: { xs: 40, md: 32 }, px: 1.5, borderRadius: 999, font: 'inherit', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer',
+                border: `1px solid ${active ? green.main : rule}`, bgcolor: active ? green.main : 'transparent', color: active ? chrome.text : ink.primary,
+            }}
+        >
+            {children}
+        </Box>
+    )
+}
+
+/** Uma página na lista: a imagem (ou o ícone do tipo), o nome com os selos e o resumo numa linha. */
+function PageRow({ page: p, selected, onOpen }: { page: WikiSummary; selected: boolean; onOpen: (id: string) => void }) {
+    const image = useImageUrl(p.image)
+    return (
+        <Box
+            component="button"
+            type="button"
+            onClick={() => onOpen(p.id)}
+            aria-current={selected ? 'page' : undefined}
+            sx={{
+                display: 'flex', alignItems: 'center', gap: 1.5, p: 1.25, minHeight: 64, width: 1, textAlign: 'left', font: 'inherit', cursor: 'pointer',
+                color: ink.primary, border: 0, borderRadius: 2,
+                bgcolor: selected ? parchment.paper : 'transparent',
+                boxShadow: selected ? `0 0 0 2px ${gold.bright}` : 'none',
+                '&:hover': { bgcolor: selected ? parchment.paper : parchment.sunken },
+            }}
+        >
+            {image
+                ? <Box component="img" src={image} alt="" loading="lazy" sx={{ width: 44, height: 44, borderRadius: 1.5, objectFit: 'cover', objectPosition: 'center 15%', flex: 'none' }} />
+                : <KindTile kind={p.kind} />}
+            <Box component="span" sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.75, fontWeight: 700, fontSize: '0.95rem', color: greenInk.main }}>
+                    <Box component="span" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</Box>
+                    {p.visibility === 'gm' && <SecretIcon sx={{ fontSize: 14, color: ink.secondary, flex: 'none' }} aria-label={tr('Só o mestre vê', 'GM only')} />}
+                    {p.locked && <LockIcon sx={{ fontSize: 14, color: ink.secondary, flex: 'none' }} aria-label={tr('Travada', 'Locked')} />}
+                </Box>
+                <Box component="span" sx={{ fontSize: '0.8125rem', color: ink.secondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {p.summary || KIND_LABEL[p.kind].one}</Box>
+            </Box>
+        </Box>
+    )
+}
 
 /** As últimas versões gravadas na mesa, de todas as páginas, com quem as gravou. */
 export function RecentChanges({ pages, authors, onOpen, limit = 40 }: {

@@ -279,6 +279,8 @@ export function WikiEditor({ initial, base: initialBase, pages, isGm, onSaved, o
                     linkTitle={tr('Link para outra página: [[Nome]]', 'Link to another page: [[Name]]')}
                     template={templateFor(page.kind)}
                     preferView={false}
+                    alignTools
+                    justify
                     minRows={14}
                     aria-label={tr(`Texto de ${page.title}`, `Text of ${page.title}`)}
                 />

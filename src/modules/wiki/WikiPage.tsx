@@ -199,8 +199,8 @@ function PagePanel(props: PanelProps) {
             : (f.visibility === 'public' ? tr('Página revelada à mesa', 'Page revealed to the table') : tr('Página escondida da mesa', 'Page hidden from the table')))
     }
 
-    const show = async () => {
-        const err = await showWikiPage(id, displayName, GM_COLOR)
+    const show = async (image?: string) => {
+        const err = await showWikiPage(id, displayName, GM_COLOR, image)
         onNotice(err ?? tr(`"${view?.page.title ?? ''}" na tela da mesa`, `"${view?.page.title ?? ''}" on the table's screen`))
     }
 
@@ -257,7 +257,7 @@ function PagePanel(props: PanelProps) {
                         onHistory={() => setHistory(true)}
                         onDelete={() => setDeleting(true)}
                         onFlags={(f) => void flags(f)}
-                        onShow={() => void show()}
+                        onShow={(image) => void show(image)}
                         onNotice={onNotice}
                     />
                 )}
