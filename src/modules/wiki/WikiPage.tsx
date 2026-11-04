@@ -7,14 +7,16 @@ import {
 import { ArrowBack } from '@mui/icons-material'
 import { useMesaInfo, useRole } from '../../services/auth'
 import {
-    blankPage, deleteWikiPage, fetchWikiList, purgeWikiPage, refreshWikiIndex, setWikiFlags, showWikiPage, undeleteWikiPage,
-    useWikiIndex, WIKI_KINDS, type WikiKind, type WikiPage as WikiPageData, type WikiSummary,
+    blankPage, deleteWikiPage, fetchWikiList, fetchWikiMissing, purgeWikiPage, refreshWikiIndex, setWikiFlags, showWikiPage, undeleteWikiPage,
+    useWikiIndex, WIKI_KINDS, type WikiKind, type WikiMissing, type WikiPage as WikiPageData, type WikiSummary,
 } from '../../services/wiki'
 import { linkName } from '../../components/markdown/blocks'
 import { gold, parchment, rule } from '../../theme'
 import { KIND_LABEL } from './kinds'
-import { findPage, formatWhen, authorName, useNameIndex, useWikiPageView } from './useWiki'
-import { WikiList, RecentChanges } from './components/WikiList'
+import { findPage, formatWhen, authorName, useNameIndex, useWikiFavorites, useWikiPageView, useWikiSort } from './useWiki'
+import { WikiHome } from './components/WikiHome'
+import { WikiNav, type WikiHomeView } from './components/WikiNav'
+import { WikiSearch } from './components/WikiSearch'
 import { WikiView } from './components/WikiView'
 import { WikiEditor } from './components/WikiEditor'
 import { HistoryDialog } from './components/HistoryDialog'
@@ -23,14 +25,19 @@ import { tr } from '../../i18n'
 // Wiki da Mesa: o que GM e jogadores escrevem sobre o mundo (NPCs, locais, itens, criaturas…). Todos
 // leem, criam e editam; o GM trava, esconde e revela. O servidor decide; aqui só se esconde botão.
 //
-// `/wiki/<id>` abre uma página; `?nova=<título>&tipo=<tipo>` abre o editor de uma página nova (é
-// como o Diário de Campanha e os links vermelhos chegam aqui).
+// `/wiki/<id>` abre uma página; `/wiki?ver=<atalho|tipo>` o Início num atalho (recent, favorites, locked) ou
+// num tipo; `?nova=<título>&tipo=<tipo>` abre o editor de uma página nova (é como o Diário de Campanha e
+// os links vermelhos chegam aqui). ⌘K dentro da Wiki abre a busca dela.
 
 const BASE = '/wiki'
 /** A cor do GM no cartão da mesa: o ouro de texto, que lê sobre o verde do cabeçalho. */
 const GM_COLOR = gold.deep
 
 interface Notice { text: string; action?: { label: string; go: () => void } }
+
+const VIEWS = new Set<string>(['home', 'recent', 'favorites', 'locked', ...WIKI_KINDS])
+/** O `?ver=` da URL: o atalho ou o tipo que o Início mostra. */
+const viewOf = (v: string | null): WikiHomeView => (v && VIEWS.has(v) ? v as WikiHomeView : 'home')
 
 export function WikiPage() {
     const { id = null } = useParams()
@@ -41,19 +48,53 @@ export function WikiPage() {
     const role = useRole()
     const mesaInfo = useMesaInfo()
     const index = useWikiIndex()
-    const pages = useMemo(() => index.list?.pages ?? [], [index.list])
+    const allPages = useMemo(() => index.list?.pages ?? [], [index.list])
     const authors = useMemo(() => index.list?.authors ?? {}, [index.list])
     const isGm = index.list?.gm ?? role.isGm
-    const names = useNameIndex(pages)
+    const names = useNameIndex(allPages)
     const [creating, setCreating] = useState<WikiPageData | null>(null)
     const [notice, setNotice] = useState<Notice | null>(null)
     const [trash, setTrash] = useState(false)
+    const [searching, setSearching] = useState(false)
+    const [mine, setMine] = useState(false)
+    const [sort, setSort] = useWikiSort()
+    const { favorites, isFavorite, toggle: toggleFavorite } = useWikiFavorites()
+    const [missing, setMissing] = useState<WikiMissing[] | null>(null)
+    const view = viewOf(params.get('ver')) // i18n-ok: parâmetro da URL
+    const pages = useMemo(() => (mine ? allPages.filter((p) => p.createdBy === role.userId) : allPages), [allPages, mine, role.userId])
 
-    const open = useCallback((pageId: string) => { setCreating(null); navigate(`${BASE}/${pageId}`) }, [navigate])
+    // Os nomes citados sem página: relidos quando o índice muda (alguém salvou).
+    const stamp = useMemo(() => Math.max(0, ...allPages.map((p) => p.updatedAt)), [allPages])
+    useEffect(() => {
+        if (!index.list) return
+        let live = true
+        void fetchWikiMissing().then((m) => { if (live && m) setMissing(m) })
+        return () => { live = false }
+    }, [stamp, index.list])
+
+    // ⌘K / Ctrl+K dentro da Wiki abre a busca da Wiki (a busca geral do app fica para as outras telas).
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault()
+                e.stopImmediatePropagation()
+                setSearching((v) => !v)
+            }
+        }
+        window.addEventListener('keydown', onKey, { capture: true })
+        return () => window.removeEventListener('keydown', onKey, { capture: true })
+    }, [])
+
+    const open = useCallback((pageId: string) => { setCreating(null); setSearching(false); navigate(`${BASE}/${pageId}`) }, [navigate])
     const startNew = useCallback((title = '', kind: WikiKind = 'npc') => {
-        setCreating(blankPage(kind, title))
+        setSearching(false)
+        setCreating(blankPage(kind, title.slice(0, 120)))
         if (id) navigate(BASE)
     }, [id, navigate])
+    const showView = useCallback((v: WikiHomeView) => {
+        setCreating(null)
+        navigate(v === 'home' ? BASE : `${BASE}?ver=${v}`) // i18n-ok: parâmetro da URL
+    }, [navigate])
 
     // `?nova=` (do Diário, de um link vermelho de outra página): abre o editor da página nova.
     const novo = params.get('nova') // i18n-ok: parâmetro da URL
@@ -86,65 +127,105 @@ export function WikiPage() {
     }
     if (!index.list) return <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>
 
-    const showList = wide || (!id && !creating)
+    const content = creating
+        ? (
+            <Box sx={{ minWidth: 0 }}>
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+                    {!wide && <IconButton aria-label={tr('Voltar ao índice da Wiki', 'Back to the wiki index')} onClick={() => setCreating(null)}><ArrowBack /></IconButton>}
+                    <Typography component="h1" variant="h5">{tr('Nova página', 'New page')}</Typography>
+                </Stack>
+                <WikiEditor
+                    key={creating.id}
+                    initial={creating}
+                    base={null}
+                    pages={allPages}
+                    isGm={isGm}
+                    onSaved={(p) => { setCreating(null); void refreshWikiIndex(); open(p.id) }}
+                    onCancel={() => setCreating(null)}
+                />
+            </Box>
+        )
+        : id
+            ? (
+                <PagePanel
+                    key={id}
+                    id={id}
+                    pages={allPages}
+                    authors={authors}
+                    isGm={isGm}
+                    wide={wide}
+                    displayName={role.displayName || role.username || 'GM'}
+                    favorite={isFavorite(id)}
+                    onFavorite={() => toggleFavorite(id)}
+                    onOpen={open}
+                    onLink={onLink}
+                    resolveLink={resolveLink}
+                    onBack={() => navigate(BASE)}
+                    onKind={(k) => showView(k)}
+                    onNotice={say}
+                />
+            )
+            : (
+                <WikiHome
+                    pages={pages}
+                    authors={authors}
+                    mesaName={mesaInfo.name}
+                    view={view}
+                    wide={wide}
+                    favorites={favorites}
+                    mine={mine}
+                    sort={sort}
+                    missing={missing}
+                    onSort={setSort}
+                    onMine={setMine}
+                    onView={showView}
+                    onOpen={open}
+                    onNew={(title, kind) => startNew(title, kind)}
+                    onSearch={() => setSearching(true)}
+                    onTrash={isGm ? () => setTrash(true) : undefined}
+                />
+            )
+
     return (
-        <Box sx={{ maxWidth: 1500, mx: 'auto' }}>
-            <Box sx={{ display: 'grid', gap: { xs: 3, md: 4, xl: 5 }, gridTemplateColumns: { xs: '1fr', md: '280px minmax(0, 1fr)', xl: '300px minmax(0, 1fr)' }, alignItems: 'start' }}>
-                {showList && (
-                    <Box sx={{
-                        position: { md: 'sticky' }, top: { md: 16 }, maxHeight: { md: 'calc(100vh - 32px)' }, overflowY: { md: 'auto' },
-                        bgcolor: { md: parchment.page }, border: { md: `1px solid ${rule}` }, borderRadius: { md: 3 }, p: { md: 2 },
-                    }}>
-                        <WikiList
-                            pages={pages}
-                            authors={authors}
-                            selected={id}
-                            me={role.userId}
-                            onOpen={open}
-                            onNew={() => startNew()}
-                            mesaName={mesaInfo.name}
-                            dark={!wide}
-                            onTrash={isGm ? () => setTrash(true) : undefined}
-                        />
-                    </Box>
-                )}
-                {creating
-                    ? (
-                        <Box sx={{ minWidth: 0 }}>
-                            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-                                {!wide && <IconButton aria-label={tr('Voltar ao índice da Wiki', 'Back to the wiki index')} onClick={() => setCreating(null)}><ArrowBack /></IconButton>}
-                                <Typography component="h1" variant="h5">{tr('Nova página', 'New page')}</Typography>
-                            </Stack>
-                            <WikiEditor
-                                key={creating.id}
-                                initial={creating}
-                                base={null}
+        <Box sx={{ maxWidth: 1560, mx: 'auto' }}>
+            {wide
+                ? (
+                    <Box sx={{ display: 'grid', gap: { md: 4, xl: 5 }, gridTemplateColumns: { md: '264px minmax(0, 1fr)', xl: '288px minmax(0, 1fr)' }, alignItems: 'start' }}>
+                        <Box sx={{
+                            position: 'sticky', top: 16, maxHeight: 'calc(100vh - 32px)', overflowY: 'auto', display: 'flex', flexDirection: 'column',
+                            bgcolor: parchment.page, border: `1px solid ${rule}`, borderRadius: 3, px: 1.75, py: 2.75, boxSizing: 'border-box',
+                        }}>
+                            <WikiNav
                                 pages={pages}
-                                isGm={isGm}
-                                onSaved={(p) => { setCreating(null); void refreshWikiIndex(); open(p.id) }}
-                                onCancel={() => setCreating(null)}
+                                selected={id}
+                                view={id || creating ? null : view}
+                                mesaName={mesaInfo.name}
+                                favorites={favorites}
+                                mine={mine}
+                                sort={sort}
+                                onSort={setSort}
+                                onMine={setMine}
+                                onOpen={open}
+                                onView={showView}
+                                onNew={() => startNew()}
+                                onSearch={() => setSearching(true)}
+                                onTrash={isGm ? () => setTrash(true) : undefined}
                             />
                         </Box>
-                    )
-                    : id
-                        ? (
-                            <PagePanel
-                                key={id}
-                                id={id}
-                                pages={pages}
-                                authors={authors}
-                                isGm={isGm}
-                                wide={wide}
-                                displayName={role.displayName || role.username || 'GM'}
-                                onOpen={open}
-                                onLink={onLink}
-                                resolveLink={resolveLink}
-                                onBack={() => navigate(BASE)}
-                                onNotice={say}
-                            />
-                        )
-                        : wide && <Home pages={pages} authors={authors} onOpen={open} onNew={() => startNew()} />}
-            </Box>
+                        {content}
+                    </Box>
+                )
+                : content}
+
+            {searching && (
+                <WikiSearch
+                    pages={allPages}
+                    missing={missing}
+                    onClose={() => setSearching(false)}
+                    onOpen={open}
+                    onCreate={(title) => startNew(title)}
+                />
+            )}
 
             {trash && <TrashDialog onClose={() => setTrash(false)} onNotice={say} />}
 
@@ -160,23 +241,6 @@ export function WikiPage() {
     )
 }
 
-function Home({ pages, authors, onOpen, onNew }: { pages: WikiSummary[]; authors: Record<string, string>; onOpen: (id: string) => void; onNew: () => void }) {
-    return (
-        <Box sx={{ p: { xs: 2, sm: 3 }, border: `1px solid ${rule}`, borderRadius: 2, bgcolor: parchment.paper, minWidth: 0 }}>
-            <Typography variant="h5" sx={{ mb: 1 }}>{tr('O mundo, escrito pela mesa', 'The world, written by the table')}</Typography>
-            <Typography color="text.secondary" sx={{ mb: 2, maxWidth: 640 }}>
-                {tr('NPCs, lugares, itens, criaturas, facções e tudo o que o grupo descobriu. Todos escrevem e editam; cada salvamento fica no histórico com o nome de quem salvou. Use [[Nome]] para ligar uma página a outra.', 'NPCs, places, items, creatures, factions and everything the party found out. Everyone writes and edits; each save stays in the history with the name of whoever saved it. Use [[Name]] to link one page to another.')}</Typography>
-            <Button variant="contained" onClick={onNew} sx={{ mb: 3 }}>{tr('Nova página', 'New page')}</Button>
-            {pages.length > 0 && (
-                <>
-                    <Typography variant="h6" sx={{ mb: 1 }}>{tr('Mudanças recentes', 'Recent changes')}</Typography>
-                    <RecentChanges pages={pages} authors={authors} onOpen={onOpen} limit={15} />
-                </>
-            )}
-        </Box>
-    )
-}
-
 interface PanelProps {
     id: string
     pages: WikiSummary[]
@@ -188,11 +252,14 @@ interface PanelProps {
     onLink: (target: string) => void
     resolveLink: (target: string) => 'known' | 'wiki' | 'missing'
     onBack: () => void
+    onKind: (kind: WikiKind) => void
+    favorite: boolean
+    onFavorite: () => void
     onNotice: (text: string, action?: Notice['action']) => void
 }
 
 function PagePanel(props: PanelProps) {
-    const { id, pages, authors, isGm, wide, displayName, onOpen, onLink, resolveLink, onBack, onNotice } = props
+    const { id, pages, authors, isGm, wide, displayName, onOpen, onLink, resolveLink, onBack, onKind, favorite, onFavorite, onNotice } = props
     const [editing, setEditing] = useState(false)
     const { view, status, reload, changedMeanwhile } = useWikiPageView(id, editing)
     const [history, setHistory] = useState(false)
@@ -262,6 +329,9 @@ function PagePanel(props: PanelProps) {
                         onLink={onLink}
                         resolveLink={resolveLink}
                         onHome={onBack}
+                        onKind={onKind}
+                        favorite={favorite}
+                        onFavorite={onFavorite}
                         onEdit={() => setEditing(true)}
                         onHistory={() => setHistory(true)}
                         onDelete={() => setDeleting(true)}

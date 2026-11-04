@@ -110,3 +110,75 @@ export const formatWhen = (ms: number) => (ms
 
 export const authorName = (authors: Record<string, string>, id: string | null) =>
     (id ? authors[id] ?? tr('alguém da mesa', 'someone at the table') : tr('alguém da mesa', 'someone at the table'))
+
+// ── Favoritas (do aparelho) ──────────────────────────────────────────────────
+
+const FAVORITES_EVENT = 'pf2e:wiki-favorites'
+const favoritesKey = () => mesaKey('pf2e:wiki:favorites')
+
+function readFavorites(): string[] {
+    try {
+        const raw = localStorage.getItem(favoritesKey())
+        const list = raw ? JSON.parse(raw) as unknown : []
+        return Array.isArray(list) ? list.filter((x): x is string => typeof x === 'string') : []
+    } catch {
+        return []
+    }
+}
+
+/** As páginas favoritas deste aparelho, nesta mesa. Favoritar é atalho de quem lê, não dado da mesa. */
+export function useWikiFavorites() {
+    const [favorites, setFavorites] = useState<string[]>(readFavorites)
+    useEffect(() => {
+        const sync = () => setFavorites(readFavorites())
+        window.addEventListener(FAVORITES_EVENT, sync)
+        window.addEventListener('storage', sync)
+        return () => { window.removeEventListener(FAVORITES_EVENT, sync); window.removeEventListener('storage', sync) }
+    }, [])
+    const toggle = useCallback((id: string) => {
+        const now = readFavorites()
+        const next = now.includes(id) ? now.filter((x) => x !== id) : [...now, id]
+        try { localStorage.setItem(favoritesKey(), JSON.stringify(next)) } catch { /* sem armazenamento: fica só nesta tela */ }
+        setFavorites(next)
+        window.dispatchEvent(new Event(FAVORITES_EVENT))
+    }, [])
+    return { favorites, isFavorite: (id: string) => favorites.includes(id), toggle }
+}
+
+/** Ordem da lista: alfabética ou as editadas por último primeiro. Preferência do aparelho. */
+export type WikiSort = 'title' | 'recent'
+const SORT_KEY = 'pf2e:wiki:sort'
+
+export function useWikiSort(): [WikiSort, (s: WikiSort) => void] {
+    const [sort, setSort] = useState<WikiSort>(() => {
+        try { return localStorage.getItem(SORT_KEY) === 'recent' ? 'recent' : 'title' } catch { return 'title' }
+    })
+    const set = useCallback((s: WikiSort) => {
+        setSort(s)
+        try { localStorage.setItem(SORT_KEY, s) } catch { /* sem armazenamento */ }
+    }, [])
+    return [sort, set]
+}
+
+export const sortPages = <T extends { title: string; updatedAt: number }>(pages: T[], sort: WikiSort): T[] =>
+    [...pages].sort(sort === 'recent' ? (a, b) => b.updatedAt - a.updatedAt : (a, b) => a.title.localeCompare(b.title))
+
+/** Onde o texto contém a busca, sem acento nem caixa: `[início, fim)` no texto ORIGINAL, ou `null`. */
+export function findFolded(text: string, query: string): [number, number] | null {
+    const q = foldName(query)
+    if (!q) return null
+    const chars = [...text]
+    let folded = ''
+    const at: number[] = []
+    let offset = 0
+    for (const c of chars) {
+        const f = c.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+        for (let i = 0; i < f.length; i++) at.push(offset)
+        folded += f
+        offset += c.length
+    }
+    at.push(offset)
+    const i = folded.indexOf(q)
+    if (i < 0) return null
+    return [at[i], at[i + q.length] ?? offset]
+}

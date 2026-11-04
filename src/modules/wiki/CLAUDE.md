@@ -51,3 +51,12 @@ uma página nova (é como o Diário e os links vermelhos chegam).
 - **Ficha escura**: todo texto nela é `chrome.*` e o `Markdown` dos campos vai com `onDark` (sem isso, a tinta do conteúdo
   some no verde). Ladrilho de tipo: `WIKI_KIND_COLORS` com ícone `chrome.onAccent`, fixo nos dois temas.
 - O nome da mesa no topo da lista vem do servidor (`useMesaInfo`), não de `MESAS`.
+- **Telas**: desktop = `WikiNav` (árvore por tipo, atalhos, "só as minhas") + conteúdo; sem página aberta, `WikiHome`
+  (cartões, filtro por tipo, ordem, "citados sem página"). `?ver=recent|favorites|locked|<tipo>` escolhe o que o Início
+  mostra. Celular: `WikiHome` vira cabeçalho escuro + pílulas de atalho + grupos que recolhem.
+- **Busca** (`WikiSearch`): ⌘K **dentro da Wiki** é dela (ouvinte em captura com `stopImmediatePropagation`; fora da Wiki
+  segue a busca geral). Título/apelido/etiqueta/resumo na hora, texto pelo `wiki_search`, citados sem página e "Criar".
+- **Citados sem página** (`?wiki=missing`, `missingLinks`): os `links_*` do banco são dobrados e não servem para mostrar;
+  o nome sai do texto (o público, para o jogador) e da ficha, comparado com títulos e apelidos que a pessoa vê.
+- A lista traz `badges` (situação e atitude da ficha) para as pílulas dos cartões; o resto dos `fields` só na página.
+- **Favoritas e ordem são do aparelho** (`mesaKey('pf2e:wiki:favorites')`, `pf2e:wiki:sort`), não da mesa.

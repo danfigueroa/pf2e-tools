@@ -7,7 +7,7 @@ import {
     AccountTree as ParentIcon, ArrowBackIosNew as BackIcon, AutoAwesome as LoreIcon, Campaign as ShareIcon, Delete as DeleteIcon,
     Edit as EditIcon, Event as EventIcon, ExpandMore, Favorite as HeartIcon, History as HistoryIcon, Lock as LockIcon,
     LockOpen as UnlockIcon, MenuBook as BookIcon, MoreHoriz as MoreIcon, OpenInNew, Person as PersonIcon, Place as PlaceIcon,
-    Shield as ShieldIcon, Visibility as RevealIcon, VisibilityOff as SecretIcon, ZoomIn,
+    Shield as ShieldIcon, Star as StarIcon, StarOutline, Visibility as RevealIcon, VisibilityOff as SecretIcon, ZoomIn,
 } from '@mui/icons-material'
 import { Markdown } from '../../../components/markdown/Markdown'
 import { headingsOf, splitSegments } from '../../../components/markdown/blocks'
@@ -40,6 +40,11 @@ interface Props {
     resolveLink: (target: string) => 'known' | 'wiki' | 'missing'
     /** Volta ao índice da Wiki (a trilha e o "‹ Wiki" do celular). */
     onHome: () => void
+    /** O Início filtrado por um tipo (o "NPCs" da trilha). */
+    onKind: (kind: WikiSummary['kind']) => void
+    /** Favorita neste aparelho. */
+    favorite: boolean
+    onFavorite: () => void
     onEdit: () => void
     onHistory: () => void
     onDelete: () => void
@@ -265,7 +270,11 @@ export const WikiView = memo(function WikiView(props: Props) {
                 <Box component="section" aria-labelledby="wiki-title" sx={{ bgcolor: green.deepest, color: chrome.text, borderRadius: 3.5, px: 2, pt: 1, pb: 2.75, display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minHeight: 48 }}>
                         <Button onClick={onHome} startIcon={<BackIcon sx={{ fontSize: '16px !important' }} />} sx={{ color: chrome.text, ml: -1, fontWeight: 600 }}>{tr('Wiki', 'Wiki')}</Button>
-                        <Typography sx={{ flex: 1, textAlign: 'center', fontSize: '0.8125rem', color: chrome.textMuted }}>{KIND_LABEL[page.kind].many}</Typography>
+                        <Box sx={{ flex: 1, textAlign: 'center' }}>
+                            <Link component="button" type="button" underline="hover" onClick={() => props.onKind(page.kind)} sx={{ font: 'inherit', fontSize: '0.8125rem', color: chrome.textMuted }}>{KIND_LABEL[page.kind].many}</Link>
+                        </Box>
+                        <IconButton aria-label={props.favorite ? tr('Tirar das favoritas', 'Remove from favorites') : tr('Favoritar', 'Add to favorites')} aria-pressed={props.favorite} onClick={props.onFavorite} sx={{ color: props.favorite ? gold.bright : chrome.text, width: 44, height: 44 }}>
+                            {props.favorite ? <StarIcon /> : <StarOutline />}</IconButton>
                         <MoreMenu {...props} compact dark />
                     </Box>
                     {portrait}
@@ -346,7 +355,7 @@ export const WikiView = memo(function WikiView(props: Props) {
                 <Box component="nav" aria-label={tr('Trilha', 'Breadcrumb')} sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, fontSize: '0.875rem', color: ink.secondary }}>
                     <Link component="button" type="button" underline="hover" onClick={onHome} sx={{ font: 'inherit', color: ink.secondary }}>{tr('Wiki', 'Wiki')}</Link>
                     <span aria-hidden="true">›</span>
-                    <span>{KIND_LABEL[page.kind].many}</span>
+                    <Link component="button" type="button" underline="hover" onClick={() => props.onKind(page.kind)} sx={{ font: 'inherit', color: ink.secondary }}>{KIND_LABEL[page.kind].many}</Link>
                     {trail.map((p) => (
                         <Box key={p.id} component="span" sx={{ display: 'contents' }}>
                             <span aria-hidden="true">›</span>
@@ -535,6 +544,8 @@ function Actions(props: Props) {
                         {page.visibility === 'gm' ? tr('Revelar à mesa', 'Reveal to the table') : tr('Esconder da mesa', 'Hide from the table')}</Button>
                 </>
             )}
+            <Button startIcon={props.favorite ? <StarIcon sx={{ color: gold.main }} /> : <StarOutline />} onClick={props.onFavorite} aria-pressed={props.favorite} sx={ghost}>
+                {props.favorite ? tr('Favorita', 'Favorite') : tr('Favoritar', 'Favorite')}</Button>
             <MoreMenu {...props} />
             {!canEdit && !isGm && page.locked && (
                 <Typography variant="caption" sx={{ color: ink.secondary }}>{tr('O GM travou esta página: só ele a edita.', 'The GM locked this page: only they can edit it.')}</Typography>
