@@ -1857,6 +1857,12 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
   eq(blocks.splitSegments('```\n:::jogadores X\n```').length, 1, 'dentro de bloco de código, `:::` é só texto')
   eq(blocks.withWikiLinks('Fale com [[Barão Ulric]].'), 'Fale com [Barão Ulric](#journal:Bar%C3%A3o%20Ulric).', '[[Nome]] vira link do catálogo')
   eq(blocks.wikiNames('[[A]] e [[B]] e [[A]]').join('|'), 'A|B', 'nomes citados sem repetição')
+  const al = blocks.splitAlign('um\n::centro\ndois\n::justificar\ntrês\n```\n::direita\n```', null)
+  eq(al.map((x) => `${x.align}:${x.text.trim().split('\n')[0]}`).join('|'), 'null:um|center:dois|justify:três', 'marcas de alinhamento partem o texto (e valem sozinhas na linha)')
+  eq(blocks.alignMark(':::mestre'), null, '`:::` não é marca de alinhamento')
+  eq(blocks.alignMark('::right'), 'right', 'marca em inglês')
+  eq(blocks.alignAtEnd('a\n::direita', null), 'right', 'o alinhamento em vigor segue adiante')
+  eq(blocks.headingsOf('# T\n## Visão geral\ntexto\n:::mestre\n## Segredo\n:::\n### Aparência e A').map((h) => h.id).join('|'), 'visao-geral|aparencia-e-a', 'sumário ignora títulos de bloco')
   eq(blocks.forPlayers(' O [[Barão]] chegou. '), 'O Barão chegou.', 'o que vai à mesa sai sem as marcas')
   eq(blocks.splitSegments('Intro\n:::players Letter\nHi\n:::').map((x) => x.kind).join(','), 'text,players', ':::players (inglês) é o mesmo bloco')
 }

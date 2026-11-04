@@ -15,6 +15,12 @@
 //   …
 //   :::
 //
+// E o alinhamento do texto, em linha própria, vale dali até a próxima marca (ou o fim da página):
+//
+//   ::centro   ::direita   ::esquerda   ::justificar     (em inglês: ::center ::right ::left ::justify)
+//
+// Duas vírgulas-pontos, não três: não conflita com `:::` (blocos), nem o servidor as vê como segredo.
+//
 // Puro, sem React: o diário também o usa para achar os nomes citados.
 
 export interface MdSegment {
@@ -108,3 +114,71 @@ export const playersText = (source: string) =>
 /** Minúsculas, sem acento, espaços juntados: a dobra de `fold` em `api/_lib/wiki-secrets.js`. */
 export const foldName = (text: string) =>
     text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim()
+
+export type TextAlign = 'left' | 'right' | 'center' | 'justify'
+
+const ALIGN_WORDS: Record<string, TextAlign> = {
+    esquerda: 'left', left: 'left', direita: 'right', right: 'right',
+    centro: 'center', centralizar: 'center', center: 'center', justificar: 'justify', justificado: 'justify', justify: 'justify',
+}
+const ALIGN_RE = /^::[ \t]*([a-z]+)[ \t]*$/i
+
+/** A marca de alinhamento da linha, ou `null` (linha comum). */
+export const alignMark = (line: string): TextAlign | null => {
+    const m = line.trim().match(ALIGN_RE)
+    return m ? ALIGN_WORDS[m[1].toLowerCase()] ?? null : null
+}
+
+/**
+ * Parte o texto nos trechos de cada alinhamento. `start` é o alinhamento em vigor ao começar (uma marca
+ * vale também depois de um bloco `:::`). Dentro de bloco de código, `::centro` é só texto.
+ */
+export function splitAlign(text: string, start: TextAlign | null): { align: TextAlign | null; text: string }[] {
+    const out: { align: TextAlign | null; text: string }[] = []
+    let align = start
+    let lines: string[] = []
+    let fenced = false
+    const flush = () => {
+        if (lines.join('').trim()) out.push({ align, text: lines.join('\n') })
+        lines = []
+    }
+    for (const line of text.split('\n')) {
+        if (FENCE_RE.test(line.trim())) fenced = !fenced
+        const mark = fenced ? null : alignMark(line)
+        if (mark) { flush(); align = mark } else lines.push(line)
+    }
+    flush()
+    return out
+}
+
+/** O alinhamento em vigor depois deste texto. */
+export function alignAtEnd(text: string, start: TextAlign | null): TextAlign | null {
+    let align = start
+    let fenced = false
+    for (const line of text.split('\n')) {
+        if (FENCE_RE.test(line.trim())) fenced = !fenced
+        const mark = fenced ? null : alignMark(line)
+        if (mark) align = mark
+    }
+    return align
+}
+
+/** Âncora de um título (`## Aparência e personalidade` → `aparencia-e-personalidade`). */
+export const headingSlug = (text: string) => foldName(text).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+
+/** Os títulos `##`/`###` do texto (menos os dos blocos `:::` e dos blocos de código), para o sumário. */
+export function headingsOf(source: string): { level: 2 | 3; text: string; id: string }[] {
+    const out: { level: 2 | 3; text: string; id: string }[] = []
+    for (const seg of splitSegments(source)) {
+        if (seg.kind !== 'text') continue
+        let fenced = false
+        for (const line of seg.text.split('\n')) {
+            if (FENCE_RE.test(line.trim())) fenced = !fenced
+            const m = fenced ? null : line.match(/^(#{2,3})[ \t]+(.+?)[ \t#]*$/)
+            if (!m) continue
+            const text = m[2].replace(WIKI_RE, (_, inner: string) => linkLabel(inner)).replace(/[*_`~]/g, '').trim()
+            if (text) out.push({ level: m[1].length as 2 | 3, text, id: headingSlug(text) })
+        }
+    }
+    return out
+}
