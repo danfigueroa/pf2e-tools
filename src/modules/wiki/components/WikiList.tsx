@@ -1,12 +1,11 @@
 import { memo, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import {
-    Box, Button, InputAdornment, List, ListItemButton, ListItemText, Stack, TextField, ToggleButton,
-    ToggleButtonGroup, Typography,
+    Box, Button, IconButton, List, ListItemButton, ListItemText, Stack, TextField, Typography,
 } from '@mui/material'
-import { Add as AddIcon, Lock as LockIcon, Search as SearchIcon, VisibilityOff as SecretIcon } from '@mui/icons-material'
+import { Add as AddIcon, ChevronRight, DeleteSweep as TrashIcon, Lock as LockIcon, Search as SearchIcon, VisibilityOff as SecretIcon } from '@mui/icons-material'
 import { foldName } from '../../../components/markdown/blocks'
 import { fetchWikiRecent, searchWiki, WIKI_KINDS, type WikiChange, type WikiKind, type WikiSearchHit, type WikiSummary } from '../../../services/wiki'
-import { chrome, displayFont, gold, green, greenInk, ink, parchment, rule } from '../../../theme'
+import { chrome, core, displayFont, gold, green, greenInk, ink, parchment, rule } from '../../../theme'
 import { useImageUrl } from '../../../services/images'
 import { KindTile } from './KindIcon'
 import { KIND_LABEL } from '../kinds'
@@ -25,12 +24,18 @@ interface Props {
     me: string | null
     onOpen: (id: string) => void
     onNew: () => void
+    /** O nome da mesa, no topo da lista. */
+    mesaName: string
+    /** O cabeçalho escuro do celular (a lista ocupa a tela). */
+    dark?: boolean
+    /** Só o GM: abre a lixeira. */
+    onTrash?: () => void
 }
 
 const matches = (p: WikiSummary, q: string) =>
     [p.title, ...p.aliases, ...p.tags, p.summary].some((t) => foldName(t).includes(q))
 
-export const WikiList = memo(function WikiList({ pages, authors, selected, me, onOpen, onNew }: Props) {
+export const WikiList = memo(function WikiList({ pages, authors, selected, me, onOpen, onNew, mesaName, dark = false, onTrash }: Props) {
     const [tab, setTab] = useState<Tab>('pages')
     const [query, setQuery] = useState('')
     const [kind, setKind] = useState<WikiKind | null>(null)
@@ -67,40 +72,92 @@ export const WikiList = memo(function WikiList({ pages, authors, selected, me, o
     const shown = new Set(filtered.map((p) => p.id))
     const extraHits = textHits.filter((h) => !shown.has(h.id))
 
+    const search = (
+        <Box component="label" sx={{
+            display: 'flex', alignItems: 'center', gap: 1.25, height: { xs: 48, md: 44 }, px: 1.5, borderRadius: 1.75, boxSizing: 'border-box',
+            ...(dark ? { bgcolor: chrome.raised, border: `1px solid ${chrome.line}`, color: chrome.textMuted } : { bgcolor: parchment.paper, border: `1px solid ${rule}`, color: ink.secondary }),
+        }}>
+            <SearchIcon sx={{ fontSize: 18 }} />
+            <Box
+                component="input"
+                type="search"
+                value={query}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setQuery(e.target.value); setTab('pages') }}
+                placeholder={dark ? tr('Buscar NPC, local ou item…', 'Search NPC, place or item…') : tr('Buscar na Wiki…', 'Search the wiki…')}
+                aria-label={tr('Buscar na Wiki', 'Search the wiki')}
+                sx={{ flex: 1, minWidth: 0, border: 0, bgcolor: 'transparent', font: 'inherit', fontSize: 16, outline: 'none', color: dark ? chrome.text : ink.primary, '&::placeholder': { color: dark ? chrome.textMuted : ink.secondary, opacity: 1 } }}
+            />
+        </Box>
+    )
+    const newButton = (
+        <Button
+            startIcon={<AddIcon sx={{ color: dark ? green.deepest : gold.bright }} />}
+            onClick={onNew}
+            sx={{
+                flexShrink: 0, height: { xs: 44, md: 40 }, px: 1.75, borderRadius: 1.5, fontWeight: dark ? 700 : 600,
+                ...(dark ? { bgcolor: gold.bright, color: green.deepest, '&:hover': { bgcolor: gold.main } } : { bgcolor: green.main, color: chrome.text, '&:hover': { bgcolor: green.mid } }),
+            }}
+        >
+            {tr('Nova', 'New')}</Button>
+    )
+    const trashButton = onTrash && (
+        <IconButton aria-label={tr('Lixeira da Wiki', 'Wiki trash')} title={tr('Lixeira', 'Trash')} onClick={onTrash} sx={{ color: ink.secondary }}><TrashIcon /></IconButton>
+    )
+
     return (
         <Box sx={{ minWidth: 0 }}>
-            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
-                <ToggleButtonGroup
-                    size="small"
-                    exclusive
-                    value={tab}
-                    onChange={(_, v: Tab | null) => { if (v) setTab(v) }}
-                    sx={{ flex: 1, '& .MuiToggleButton-root': { flex: 1, textTransform: 'none', py: 0.5 } }}
-                >
-                    <ToggleButton value="pages">{tr('Páginas', 'Pages')}</ToggleButton>
-                    <ToggleButton value="recent">{tr('Recentes', 'Recent')}</ToggleButton>
-                </ToggleButtonGroup>
-                <Button size="small" variant="contained" startIcon={<AddIcon />} onClick={onNew} sx={{ flexShrink: 0 }}>
-                    {tr('Nova', 'New')}</Button>
-            </Stack>
+            {dark
+                ? (
+                    <Box component="header" sx={{ bgcolor: green.deepest, color: chrome.text, borderRadius: 3, px: 2, pt: 1.5, pb: 2.5, mb: 2.25, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                            <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                                <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: gold.bright }}>{mesaName}</Typography>
+                                <Typography component="h1" sx={{ m: 0, fontFamily: displayFont, fontWeight: 700, fontSize: '1.6rem', color: chrome.text }}>{tr('Wiki', 'Wiki')}</Typography>
+                            </Box>
+                            {newButton}
+                        </Box>
+                        {search}
+                    </Box>
+                )
+                : (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.25 }}>
+                            <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: gold.deep }}>{tr('Wiki da campanha', 'Campaign wiki')}</Typography>
+                                <Typography component="h1" sx={{ m: 0, fontFamily: displayFont, fontWeight: 600, fontSize: '1.05rem', lineHeight: 1.25, color: greenInk.main, overflowWrap: 'anywhere' }}>{mesaName}</Typography>
+                            </Box>
+                            {newButton}
+                        </Box>
+                        {search}
+                    </Box>
+                )}
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 2 }}>
+            <Box role="group" aria-label={tr('Mostrar', 'Show')} sx={{ flex: 1, display: 'flex', gap: 0.5, p: 0.5, borderRadius: 1.5, bgcolor: parchment.sunken }}>
+                {(['pages', 'recent'] as const).map((t) => (
+                    <Box
+                        key={t}
+                        component="button"
+                        type="button"
+                        aria-pressed={tab === t}
+                        onClick={() => setTab(t)}
+                        sx={{
+                            flex: 1, height: { xs: 38, md: 36 }, borderRadius: 1.1, border: 0, font: 'inherit', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
+                            ...(tab === t ? { bgcolor: parchment.paper, color: greenInk.main, boxShadow: `0 1px 2px ${core.fx.shadowHover}` } : { bgcolor: 'transparent', color: ink.secondary }),
+                        }}
+                    >
+                        {t === 'pages' ? tr('Páginas', 'Pages') : tr('Recentes', 'Recent')}
+                    </Box>
+                ))}
+            </Box>
+            {trashButton}
+            </Box>
 
             {tab === 'recent'
                 ? <RecentChanges pages={pages} authors={authors} onOpen={onOpen} />
                 : (
                     <>
-                        <TextField
-                            size="small"
-                            fullWidth
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                            placeholder={tr('Buscar na Wiki…', 'Search the wiki…')}
-                            slotProps={{
-                                input: { startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment> },
-                                htmlInput: { 'aria-label': tr('Buscar na Wiki', 'Search the wiki') },
-                            }}
-                            sx={{ mb: 1 }}
-                        />
-                        <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap role="group" aria-label={tr('Filtrar por tipo', 'Filter by type')} sx={{ mb: 1.5 }}>
+                        <Stack direction="row" spacing={0.75} flexWrap={dark ? 'nowrap' : 'wrap'} useFlexGap role="group" aria-label={tr('Filtrar por tipo', 'Filter by type')} sx={{ mb: 1.5, ...(dark ? { overflowX: 'auto', mx: -1.5, px: 1.5, '& > *': { flex: 'none' } } : {}) }}>
                             <FilterPill active={!kind && !mine} onClick={() => { setKind(null); setMine(false) }}>{tr('Todas', 'All')} · {pages.length}</FilterPill>
                             {WIKI_KINDS.filter((k) => counts.get(k)).map((k) => (
                                 <FilterPill key={k} active={kind === k} onClick={() => setKind(kind === k ? null : k)}>{KIND_LABEL[k].many} · {counts.get(k)}</FilterPill>
@@ -139,7 +196,7 @@ export const WikiList = memo(function WikiList({ pages, authors, selected, me, o
                                         <Typography component="h2" sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 0.75, pt: 1.5, pb: 0.5, fontSize: '0.7rem', fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: ink.secondary }}>
                                             <Box component="span" aria-hidden="true" sx={{ width: 7, height: 7, transform: 'rotate(45deg)', bgcolor: gold.bright }} />{KIND_LABEL[k].many}</Typography>
                                     )}
-                                    {list.map((p) => <PageRow key={p.id} page={p} selected={p.id === selected} onOpen={onOpen} />)}
+                                    {list.map((p) => <PageRow key={p.id} page={p} selected={p.id === selected} onOpen={onOpen} card={dark} />)}
                                 </Box>
                             ))}
                         </Box>
@@ -185,7 +242,7 @@ function FilterPill({ active, onClick, children }: { active: boolean; onClick: (
 }
 
 /** Uma página na lista: a imagem (ou o ícone do tipo), o nome com os selos e o resumo numa linha. */
-function PageRow({ page: p, selected, onOpen }: { page: WikiSummary; selected: boolean; onOpen: (id: string) => void }) {
+function PageRow({ page: p, selected, onOpen, card }: { page: WikiSummary; selected: boolean; onOpen: (id: string) => void; card: boolean }) {
     const image = useImageUrl(p.image)
     return (
         <Box
@@ -194,25 +251,30 @@ function PageRow({ page: p, selected, onOpen }: { page: WikiSummary; selected: b
             onClick={() => onOpen(p.id)}
             aria-current={selected ? 'page' : undefined}
             sx={{
-                display: 'flex', alignItems: 'center', gap: 1.5, p: 1.25, minHeight: 64, width: 1, textAlign: 'left', font: 'inherit', cursor: 'pointer',
-                color: ink.primary, border: 0, borderRadius: 2,
-                bgcolor: selected ? parchment.paper : 'transparent',
-                boxShadow: selected ? `0 0 0 2px ${gold.bright}` : 'none',
-                '&:hover': { bgcolor: selected ? parchment.paper : parchment.sunken },
+                display: 'flex', alignItems: 'center', gap: card ? 1.75 : 1.5, p: card ? 1.5 : 1.25, minHeight: 64, width: 1, textAlign: 'left', font: 'inherit', cursor: 'pointer',
+                color: ink.primary, borderRadius: card ? 2.25 : 2,
+                border: card ? `1px solid ${rule}` : 0,
+                bgcolor: selected || card ? parchment.paper : 'transparent',
+                boxShadow: selected ? `0 0 0 2px ${gold.bright}, 0 4px 12px ${core.fx.shadowHover}` : 'none',
+                '&:hover': { bgcolor: selected || card ? parchment.paper : parchment.sunken, borderColor: card ? gold.main : undefined },
             }}
         >
             {image
-                ? <Box component="img" src={image} alt="" loading="lazy" sx={{ width: 44, height: 44, borderRadius: 1.5, objectFit: 'cover', objectPosition: 'center 15%', flex: 'none' }} />
-                : <KindTile kind={p.kind} />}
+                ? <Box component="img" src={image} alt="" loading="lazy" sx={{ width: card ? 64 : 44, height: card ? 76 : 44, borderRadius: 1.5, objectFit: 'cover', objectPosition: 'center 15%', flex: 'none', boxShadow: card ? `0 0 0 2px ${gold.bright}` : 'none' }} />
+                : <KindTile kind={p.kind} size={card ? 52 : 44} />}
             <Box component="span" sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.75, fontWeight: 700, fontSize: '0.95rem', color: greenInk.main }}>
+                <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.75, fontWeight: 700, fontSize: card ? '1rem' : '0.95rem', color: greenInk.main, ...(card ? { fontFamily: displayFont } : {}) }}>
                     <Box component="span" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</Box>
                     {p.visibility === 'gm' && <SecretIcon sx={{ fontSize: 14, color: ink.secondary, flex: 'none' }} aria-label={tr('Só o mestre vê', 'GM only')} />}
                     {p.locked && <LockIcon sx={{ fontSize: 14, color: ink.secondary, flex: 'none' }} aria-label={tr('Travada', 'Locked')} />}
                 </Box>
-                <Box component="span" sx={{ fontSize: '0.8125rem', color: ink.secondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <Box component="span" sx={{
+                    fontSize: card ? '0.875rem' : '0.8125rem', lineHeight: 1.35, color: ink.secondary, overflow: 'hidden',
+                    ...(card ? { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' } : { textOverflow: 'ellipsis', whiteSpace: 'nowrap' }),
+                }}>
                     {p.summary || KIND_LABEL[p.kind].one}</Box>
             </Box>
+            {card && <ChevronRight aria-hidden="true" sx={{ color: gold.deep, flex: 'none' }} />}
         </Box>
     )
 }

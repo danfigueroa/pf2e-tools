@@ -40,6 +40,14 @@ uma página nova (é como o Diário e os links vermelhos chegam).
   até a próxima marca, e **não** é `:::` (não toca o parser de segredos). A Wiki é justificada por padrão
   (`<Markdown justify article dropCap>`); os botões do editor (`alignTools`) põem a marca antes e a do padrão depois da
   seleção. Código com cercas ignora a marca. `splitAlign`/`alignMark` em `blocks.ts`, testados no `check-rolls`.
-- **Visual de artigo**: `Markdown article` (serifa `bodySerif`, `##` com losango e filete, citação em destaque); o
-  sumário "Nesta página" vem de `headingsOf` e as âncoras de `headingSlug` (mesma função nos dois lados).
-- Testes: `check-rolls` (segredos, links, dobra), `check-auth` (seção "Wiki da Mesa"), `check-trophies`.
+- **Visual de artigo**: `Markdown article` (serifa `bodySerif`, `##` com losango e filete, citação em `figure` com a
+  última linha `— Nome` virando assinatura, trecho do mestre tracejado e listrado); capitular no primeiro parágrafo de texto
+  corrido (`firstParagraphLine`), não no primeiro bloco. Links: existente em ouro sublinhado, "criar" tracejado em vermelho.
+- **Sumário**: `headingsOf` (títulos `##`/`###` + cada trecho do mestre como `mestre-N`, a mesma âncora do `GmBlock`) e
+  "Páginas ligadas". Só o `nav` é `sticky`, nunca a coluna inteira (mais alta que a tela, escondia o sumário). O item ativo
+  vem da rolagem (`useActiveSection`). No celular, pílulas presas sob o cabeçalho fixo; as âncoras têm `scrollMarginTop`.
+- **Celular ≠ desktop** (`useMediaQuery`, não só `sx`): capa escura com retrato, selos, nome e "Mostrar à mesa"/"Editar";
+  ficha clara recolhível; o "…" leva histórico, travar, esconder e apagar.
+- **Ficha escura**: todo texto nela é `chrome.*` e o `Markdown` dos campos vai com `onDark` (sem isso, a tinta do conteúdo
+  some no verde). Ladrilho de tipo: `WIKI_KIND_COLORS` com ícone `chrome.onAccent`, fixo nos dois temas.
+- O nome da mesa no topo da lista vem do servidor (`useMesaInfo`), não de `MESAS`.

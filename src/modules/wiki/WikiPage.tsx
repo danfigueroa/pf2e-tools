@@ -4,8 +4,8 @@ import {
     Alert, Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, List,
     ListItem, ListItemText, Snackbar, Stack, Typography, useMediaQuery, useTheme,
 } from '@mui/material'
-import { ArrowBack, DeleteSweep as TrashIcon } from '@mui/icons-material'
-import { useRole } from '../../services/auth'
+import { ArrowBack } from '@mui/icons-material'
+import { useMesaInfo, useRole } from '../../services/auth'
 import {
     blankPage, deleteWikiPage, fetchWikiList, purgeWikiPage, refreshWikiIndex, setWikiFlags, showWikiPage, undeleteWikiPage,
     useWikiIndex, WIKI_KINDS, type WikiKind, type WikiPage as WikiPageData, type WikiSummary,
@@ -39,6 +39,7 @@ export function WikiPage() {
     const theme = useTheme()
     const wide = useMediaQuery(theme.breakpoints.up('md'))
     const role = useRole()
+    const mesaInfo = useMesaInfo()
     const index = useWikiIndex()
     const pages = useMemo(() => index.list?.pages ?? [], [index.list])
     const authors = useMemo(() => index.list?.authors ?? {}, [index.list])
@@ -88,16 +89,23 @@ export function WikiPage() {
     const showList = wide || (!id && !creating)
     return (
         <Box sx={{ maxWidth: 1500, mx: 'auto' }}>
-            {showList && !id && !creating && (
-                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-                    <Typography component="h1" variant="h4" sx={{ flex: 1 }}>{tr('Wiki da Mesa', 'Table Wiki')}</Typography>
-                    {isGm && <IconButton aria-label={tr('Lixeira da Wiki', 'Wiki trash')} title={tr('Lixeira', 'Trash')} onClick={() => setTrash(true)}><TrashIcon /></IconButton>}
-                </Stack>
-            )}
-            <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { xs: '1fr', md: '280px minmax(0, 1fr)' }, alignItems: 'start' }}>
+            <Box sx={{ display: 'grid', gap: { xs: 3, md: 4, xl: 5 }, gridTemplateColumns: { xs: '1fr', md: '280px minmax(0, 1fr)', xl: '300px minmax(0, 1fr)' }, alignItems: 'start' }}>
                 {showList && (
-                    <Box sx={{ position: { md: 'sticky' }, top: { md: 16 }, maxHeight: { md: 'calc(100vh - 32px)' }, overflowY: { md: 'auto' }, pr: { md: 0.5 } }}>
-                        <WikiList pages={pages} authors={authors} selected={id} me={role.userId} onOpen={open} onNew={() => startNew()} />
+                    <Box sx={{
+                        position: { md: 'sticky' }, top: { md: 16 }, maxHeight: { md: 'calc(100vh - 32px)' }, overflowY: { md: 'auto' },
+                        bgcolor: { md: parchment.page }, border: { md: `1px solid ${rule}` }, borderRadius: { md: 3 }, p: { md: 2 },
+                    }}>
+                        <WikiList
+                            pages={pages}
+                            authors={authors}
+                            selected={id}
+                            me={role.userId}
+                            onOpen={open}
+                            onNew={() => startNew()}
+                            mesaName={mesaInfo.name}
+                            dark={!wide}
+                            onTrash={isGm ? () => setTrash(true) : undefined}
+                        />
                     </Box>
                 )}
                 {creating
@@ -225,8 +233,8 @@ function PagePanel(props: PanelProps) {
 
     return (
         <Box sx={{ minWidth: 0 }}>
-            {!wide && (
-                <IconButton aria-label={tr('Voltar ao índice da Wiki', 'Back to the wiki index')} onClick={editing ? () => setEditing(false) : onBack} sx={{ mb: 1 }}><ArrowBack /></IconButton>
+            {!wide && editing && (
+                <IconButton aria-label={tr('Voltar à página', 'Back to the page')} onClick={() => setEditing(false)} sx={{ mb: 1 }}><ArrowBack /></IconButton>
             )}
             {editing
                 ? (
@@ -253,6 +261,7 @@ function PagePanel(props: PanelProps) {
                         onOpen={onOpen}
                         onLink={onLink}
                         resolveLink={resolveLink}
+                        onHome={onBack}
                         onEdit={() => setEditing(true)}
                         onHistory={() => setHistory(true)}
                         onDelete={() => setDeleting(true)}

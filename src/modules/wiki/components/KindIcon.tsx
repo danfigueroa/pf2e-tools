@@ -4,7 +4,7 @@ import {
     Article as OtherIcon, AutoAwesome as DeityIcon, Diamond as ItemIcon, Event as EventIcon, MenuBook as LoreIcon,
     Pets as CreatureIcon, Person as NpcIcon, Place as LocationIcon, Shield as FactionIcon,
 } from '@mui/icons-material'
-import { chrome, gold, green } from '../../../theme'
+import { chrome, gold, WIKI_KIND_COLORS } from '../../../theme'
 import type { WikiKind } from '../../../services/wiki'
 
 // O ícone de cada tipo de página, no ladrilho verde da lista, dos cartões e das páginas ligadas.
@@ -23,10 +23,10 @@ export function KindTile({ kind, size = 44 }: { kind: WikiKind; size?: number })
     const Icon = ICONS[kind]
     return (
         <Box aria-hidden="true" sx={{
-            width: size, height: size, borderRadius: `${Math.round(size / 3.6)}px`, flex: 'none', bgcolor: green.mid,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', color: chrome.text,
+            width: size, height: size, borderRadius: `${Math.round(size / 3.6)}px`, flex: 'none', bgcolor: WIKI_KIND_COLORS[kind],
+            display: 'flex', alignItems: 'center', justifyContent: 'center', color: chrome.onAccent,
         }}>
-            <Icon sx={{ fontSize: size * 0.5, color: gold.bright }} />
+            <Icon sx={{ fontSize: size * 0.5, color: chrome.onAccent }} />
         </Box>
     )
 }
