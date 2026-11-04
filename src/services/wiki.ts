@@ -26,6 +26,8 @@ export interface WikiSummary {
     summary: string
     image: string | null
     parent: string | null
+    /** Da ficha, o que a lista mostra em pílula (só na lista; a página traz os `fields` inteiros). */
+    badges?: { status?: string; attitude?: string }
     visibility: 'public' | 'gm'
     locked: boolean
     rev: number
@@ -84,6 +86,15 @@ const strs = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => ty
 const numOr = (v: unknown, d: number) => (typeof v === 'number' && Number.isFinite(v) ? v : d)
 const strOr = (v: unknown) => (typeof v === 'string' ? v : null)
 
+function badgesOf(raw: unknown): WikiSummary['badges'] {
+    const r = raw as Record<string, unknown> | null
+    if (!r || typeof r !== 'object') return {}
+    return {
+        ...(typeof r.status === 'string' && r.status ? { status: r.status } : {}),
+        ...(typeof r.attitude === 'string' && r.attitude ? { attitude: r.attitude } : {}),
+    }
+}
+
 function toSummary(raw: unknown): WikiSummary | null {
     const r = raw as Record<string, unknown> | null
     if (!r || typeof r.id !== 'string' || typeof r.title !== 'string' || !isKind(r.kind)) return null
@@ -96,6 +107,7 @@ function toSummary(raw: unknown): WikiSummary | null {
         summary: typeof r.summary === 'string' ? r.summary : '',
         image: strOr(r.image),
         parent: strOr(r.parent),
+        badges: badgesOf(r.badges),
         visibility: r.visibility === 'gm' ? 'gm' : 'public',
         locked: r.locked === true,
         rev: numOr(r.rev, 1),
@@ -214,6 +226,17 @@ export async function fetchWikiRecent(): Promise<{ changes: WikiChange[]; author
 export async function searchWiki(q: string): Promise<WikiSearchHit[] | null> {
     const body = await getJson<{ results?: WikiSearchHit[] }>(`?wiki=search&q=${encodeURIComponent(q)}`)
     return body && Array.isArray(body.results) ? body.results.filter((h) => isKind(h.kind)) : null
+}
+
+/** Um nome citado em `[[ ]]` que ainda não tem página, e as páginas que o citam. */
+export interface WikiMissing { name: string; from: { id: string; title: string }[] }
+
+export async function fetchWikiMissing(): Promise<WikiMissing[] | null> {
+    const body = await getJson<{ missing?: unknown[] }>('?wiki=missing')
+    if (!body || !Array.isArray(body.missing)) return null
+    return body.missing
+        .map((m) => m as WikiMissing)
+        .filter((m) => m && typeof m.name === 'string' && Array.isArray(m.from))
 }
 
 // ── Escritas ─────────────────────────────────────────────────────────────────

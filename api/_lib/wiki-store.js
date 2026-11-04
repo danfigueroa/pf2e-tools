@@ -117,12 +117,18 @@ const fromRow = (r) => ({
     deletedAt: r.deleted_at === null || r.deleted_at === undefined ? null : Number(r.deleted_at),
 })
 
-const SUMMARY_COLS = 'id, kind, title, aliases, tags, summary, image, parent, visibility, locked, rev, created_by, created_at, updated_by, updated_at, deleted_at'
+const SUMMARY_COLS = 'id, kind, title, aliases, tags, summary, image, parent, fields, visibility, locked, rev, created_by, created_at, updated_by, updated_at, deleted_at'
 
-/** O resumo da lista: tudo menos o texto e os links. */
+/** Os campos da ficha que a lista mostra como pílula (situação e atitude), texto curto. */
+const BADGE_KEYS = ['status', 'attitude']
+const badgesOf = (fields) => Object.fromEntries(BADGE_KEYS
+    .filter((k) => typeof fields?.[k] === 'string' && fields[k].trim())
+    .map((k) => [k, fields[k].trim().slice(0, 40)]))
+
+/** O resumo da lista: tudo menos o texto e os links (da ficha, só a situação e a atitude). */
 export const summaryOf = (p) => ({
     id: p.id, kind: p.kind, title: p.title, aliases: p.aliases, tags: p.tags, summary: p.summary, image: p.image,
-    parent: p.parent, visibility: p.visibility, locked: p.locked, rev: p.rev,
+    parent: p.parent, badges: badgesOf(p.fields), visibility: p.visibility, locked: p.locked, rev: p.rev,
     createdBy: p.createdBy, createdAt: p.createdAt, updatedBy: p.updatedBy, updatedAt: p.updatedAt, deletedAt: p.deletedAt,
 })
 
@@ -190,6 +196,11 @@ const dbStore = (db) => {
             .eq('mesa', mesa).order('edited_at', { ascending: false }).limit(limit))
             .map((r) => ({ page: r.page, rev: r.rev, by: r.edited_by ?? null, at: Number(r.edited_at), title: r.title ?? '' })),
         search: async (mesa, q, gm) => check(await db.rpc('wiki_search', { p_mesa: mesa, p_q: q, p_gm: gm })) ?? [],
+        linkSources: async (mesa, gm) => {
+            let q = db.from('wiki_pages').select(`id, title, aliases, fields, ${gm ? 'body' : 'body_public'}`).eq('mesa', mesa).is('deleted_at', null)
+            if (!gm) q = q.eq('visibility', 'public')
+            return check(await q).map((r) => ({ id: r.id, title: r.title, aliases: r.aliases ?? [], fields: r.fields ?? {}, text: (gm ? r.body : r.body_public) ?? '' }))
+        },
         names: async (mesa, ids) => (ids.length ? check(await db.rpc('member_names', { p_mesa: mesa, p_ids: ids })) ?? {} : {}),
     }
 }
@@ -207,6 +218,9 @@ const memoryStore = {
     list: async (mesa, { gm, trash }) => [...bucket(memPages, mesa).values()]
         .filter((p) => (trash ? p.deletedAt !== null : p.deletedAt === null) && (gm || p.visibility === 'public'))
         .map(summaryOf),
+    linkSources: async (mesa, gm) => [...bucket(memPages, mesa).values()]
+        .filter((p) => p.deletedAt === null && (gm || p.visibility === 'public'))
+        .map((p) => ({ id: p.id, title: p.title, aliases: p.aliases ?? [], fields: p.fields ?? {}, text: (gm ? p.body : p.bodyPublic) ?? '' })),
     read: async (mesa, id) => bucket(memPages, mesa).get(id) ?? null,
     save: async (mesa, page, base, by, now, window) => {
         const pages = bucket(memPages, mesa)
@@ -322,6 +336,9 @@ export const recentChanges = (mesa, limit = 60) => store().recent(mesa, limit)
 
 /** Busca por título, apelido, etiqueta, resumo e texto: `{ id, title, kind, snippet }`. */
 export const searchPages = (mesa, q, gm) => store().search(mesa, q, gm)
+
+/** O texto de cada página que a pessoa vê (o público, para o jogador), para achar os links sem página. */
+export const pageLinkSources = (mesa, gm) => store().linkSources(mesa, gm)
 
 const NAMES_TTL_MS = 60_000
 const nameCache = new Map() // `${mesa}:${uuid}` → { name, at }

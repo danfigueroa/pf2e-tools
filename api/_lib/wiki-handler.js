@@ -5,6 +5,7 @@
 //   GET  ?wiki=trash                  → { pages, authors }            a lixeira (GM)
 //   GET  ?wiki=recent                 → { changes, authors }          as últimas versões gravadas
 //   GET  ?wiki=search&q=…             → { results }                   título, apelido, etiqueta e texto
+//   GET  ?wiki=missing                → { missing }                   nomes em [[ ]] ainda sem página
 //   GET  ?wiki=<id>                   → { page, backlinks, authors, canEdit, canDelete }
 //   GET  ?wikiHistory=<id>            → { revisions, authors }
 //   GET  ?wikiRev=<id>&rev=N          → { revision }
@@ -35,9 +36,9 @@ import { imagePath } from './images.js'
 import { addShare, sanitizeShare } from './roll-store.js'
 import { addReveal, cleanReveal, MAX_REVEAL_BYTES } from './journal-store.js'
 import { lastFeatAt, recordFeat, safely, touchFeat } from './trophy-store.js'
-import { escapeSecrets, fold, hasSecrets, linkNames, mergeSecrets, stripSecrets } from './wiki-secrets.js'
+import { escapeSecrets, fold, hasSecrets, linkNames, linkTarget, mergeSecrets, stripSecrets, WIKI_LINK_RE } from './wiki-secrets.js'
 import {
-    PAGE_ID_RE, authorNames, cleanPage, fieldTexts, listPages, pageBacklinks, pageHistory, pageRevision, purgePage,
+    PAGE_ID_RE, authorNames, cleanPage, fieldTexts, listPages, pageBacklinks, pageLinkSources, pageHistory, pageRevision, purgePage,
     readPage, recentChanges, savePage, searchPages, setPageFlags, trashPage, untrashPage,
 } from './wiki-store.js'
 
@@ -179,6 +180,7 @@ export async function handleWikiRequest(mesa, method, query, body, ctx = {}) {
             if (fold(q).length < 2) return ok({ results: [] })
             return ok({ results: await searchPages(mesa, q, gm) })
         }
+        if (what === 'missing') return ok({ missing: missingLinks(await pageLinkSources(mesa, gm)) })
         if (!PAGE_ID_RE.test(what)) return fail(400, 'Página inválida')
         const page = await readPage(mesa, what)
         if (!visible(page, gm)) return notFound()
@@ -324,4 +326,29 @@ export async function handleWikiRequest(mesa, method, query, body, ctx = {}) {
     await addReveal(mesa, reveal, userId)
     const rev = await addShare(mesa, share, userId)
     return ok({ rev, share })
+}
+
+/**
+ * Os nomes citados em `[[ ]]` (texto e ficha) que não batem com o título nem com o apelido de nenhuma
+ * página que a pessoa vê, com a grafia da primeira vez em que aparecem e as páginas que os citam. Os
+ * `links_*` do banco guardam o nome dobrado, que não serve para mostrar; por isso sai do texto.
+ */
+export function missingLinks(rows) {
+    const known = new Set(rows.flatMap((r) => [fold(r.title), ...r.aliases.map(fold)]))
+    const found = new Map()
+    for (const r of rows) {
+        for (const text of [r.text, ...fieldTexts(r.fields)]) {
+            for (const m of String(text ?? '').matchAll(WIKI_LINK_RE)) {
+                const name = linkTarget(m[1])
+                const key = fold(name)
+                if (!key || known.has(key)) continue
+                const entry = found.get(key) ?? { name, from: [] }
+                if (!entry.from.some((f) => f.id === r.id)) entry.from.push({ id: r.id, title: r.title })
+                found.set(key, entry)
+            }
+        }
+    }
+    return [...found.values()]
+        .sort((a, b) => b.from.length - a.from.length || a.name.localeCompare(b.name))
+        .slice(0, 200)
 }
