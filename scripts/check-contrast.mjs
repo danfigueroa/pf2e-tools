@@ -119,6 +119,10 @@ check('chrome.label', P.chrome.label, 'green.deepest', P.green.deepest)
 for (const name of ['RAGE_COLOR', 'PSYCHE_COLOR', 'RANGER_COLOR', 'MONK_COLOR', 'INVESTIGATOR_COLOR', 'MAGUS_COLOR', 'HP_COLOR', 'CONDITION_COLOR']) {
     check('onSolid', P.onSolid, name, P[name], 4.5)
 }
+// O ícone branco sobre o ladrilho de cada tipo de página da Wiki.
+for (const [k, v] of Object.entries(P.WIKI_KIND_COLORS)) check('chrome.onAccent', P.chrome.onAccent, `WIKI_KIND.${k}`, v, 4.5)
+// O link "criar" no cartão escuro da Wiki: o sublinhado tracejado sobre o herói (filete, 3:1).
+check('chrome.linkMissing', P.chrome.linkMissing, 'chrome.hero', P.chrome.hero, 3)
 // O botão do MUI com o primário: `contrastText` (o pergaminho) sobre o verde de tinta.
 check('primary.contrastText', P.parchment.paper, 'greenInk.main', P.greenInk.main)
 

@@ -136,6 +136,8 @@ export const chrome = {
     online: '#6FCF8E',
     /** Iniciais sobre a cor de um personagem (as cores das rolagens são todas escuras o bastante). */
     onAccent: '#FFFFFF',
+    /** Sublinhado tracejado de link para página que não existe, sobre a moldura (só filete, não texto). */
+    linkMissing: '#E07A62',
 } as const
 
 /** Selo "N online" sobre o pergaminho. */
@@ -284,4 +286,20 @@ export const TYPE_ACCENT = {
     special: TRADITION_COLORS.occult,
     spell: TRADITION_COLORS.arcane,
     item: TRADITION_COLORS.divine,
+} as const
+
+/**
+ * O ladrilho de cada tipo de página da Wiki (lista, páginas ligadas): fundo cheio com o ícone branco
+ * (`chrome.onAccent`) por cima. É ladrilho, como a moldura: igual nos dois temas.
+ */
+export const WIKI_KIND_COLORS = {
+    npc: '#2A5540',
+    location: '#3B5E7A',
+    item: '#6B4E8A',
+    creature: '#8A3B2E',
+    faction: '#7A4A1E',
+    deity: '#7A5C17',
+    event: '#2F4F8F',
+    lore: '#4F5853',
+    other: '#5A5044',
 } as const
