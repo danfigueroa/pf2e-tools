@@ -22,6 +22,8 @@ interface Props {
     art: ItemArtApi
     /** Alguma linha tem imagem: sem a dela, a ficha somente leitura guarda o espaço para a lista não desalinhar. */
     reserve: boolean
+    /** Lado da miniatura (o cartão da relíquia usa uma maior). */
+    size?: number
 }
 
 /**
@@ -29,7 +31,7 @@ interface Props {
  * com imagem, tocar abre a imagem grande, com "Trocar" e "Remover". A imagem vem do Storage (`items/`), e o campo
  * `art` da mesa guarda a URL — todo mundo que abre a ficha vê a mesma.
  */
-export function ItemArt({ slug, name, label, art, reserve }: Props) {
+export function ItemArt({ slug, name, label, art, reserve, size = SIZE }: Props) {
     const url = art.artOf(name)
     const src = useImageUrl(url)
     const readOnly = useSheetReadOnly()
@@ -67,7 +69,7 @@ export function ItemArt({ slug, name, label, art, reserve }: Props) {
     const pick = () => input.current?.click()
 
     if (!url && readOnly) {
-        return reserve ? <Box aria-hidden sx={{ width: SIZE, height: SIZE, flexShrink: 0, ml: 2 }} /> : null
+        return reserve ? <Box aria-hidden sx={{ width: size, height: size, flexShrink: 0, ml: 2 }} /> : null
     }
 
     return (
@@ -78,7 +80,7 @@ export function ItemArt({ slug, name, label, art, reserve }: Props) {
                 aria-label={url ? tr(`Ver a imagem de ${label}`, `See ${label}'s image`) : tr(`Enviar uma imagem para ${label}`, `Upload an image for ${label}`)}
                 title={url ? undefined : tr('Enviar uma imagem do item', 'Upload an image of the item')}
                 sx={{
-                    width: SIZE, height: SIZE, flexShrink: 0, ml: 2, borderRadius: 1, overflow: 'hidden',
+                    width: size, height: size, flexShrink: 0, ml: 2, borderRadius: 1, overflow: 'hidden',
                     border: '1px solid', borderColor: url ? 'divider' : 'transparent',
                     color: 'text.secondary', opacity: url || busy ? 1 : 0.55,
                     backgroundColor: url ? 'background.default' : 'transparent',

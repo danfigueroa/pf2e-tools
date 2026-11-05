@@ -12,6 +12,9 @@ import { HealActivityButton } from './HealActivityButton'
 import { fetchItemDescription, fetchSpecialDescription, getCachedItem, getCachedSpecial } from '../../../services/descriptions'
 import type { DescriptionRequest } from './DescriptionDrawer'
 import type { MythicPointsApi } from './useMythicPoints'
+import { ItemArt } from './ItemArt'
+import type { ItemArtApi } from './useItemArt'
+import { charSlug } from '../charId'
 import { tr } from '../../../i18n'
 
 interface Props {
@@ -19,6 +22,8 @@ interface Props {
     mods: ConditionModifiers
     mythicPoints: MythicPointsApi
     onSelect: (req: DescriptionRequest) => void
+    /** As imagens do Inventário (campo `art`): a da relíquia mora junto, pela chave do nome dela. */
+    art: ItemArtApi
 }
 
 /** A regra do poder para o cartão da mesa: o texto do catálogo, ou a descrição da AON (traduzida) do poder. */
@@ -107,16 +112,21 @@ export const RelicsCard = (props: Props) => {
             {relics.map((relic) => (
                 <Card key={relic.id}>
                     <CardContent>
-                        <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: '0.06em' }}>
-                            {tr('Relíquia · nível ', 'Relic · level ')}{level}
-                        </Typography>
-                        <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>{relic.name}</Typography>
-                        <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.75 }}>
-                            {relic.on?.kind === 'weapon' && <Chip label={relic.on.weapon} size="small" variant="outlined" />}
-                            {relic.on?.kind === 'armor' && <Chip label={tr("Armadura", 'Armor')} size="small" variant="outlined" />}
-                            {relic.on?.kind === 'item' && <Chip label={relic.on.name} size="small" variant="outlined" />}
-                            {relic.aspects?.map((a) => <Chip key={a} label={a} size="small" />)}
-                        </Stack>
+                        <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
+                            <Box sx={{ minWidth: 0, flex: 1 }}>
+                                <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: '0.06em' }}>
+                                    {tr('Relíquia · nível ', 'Relic · level ')}{level}
+                                </Typography>
+                                <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>{relic.name}</Typography>
+                                <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.75 }}>
+                                    {relic.on?.kind === 'weapon' && <Chip label={relic.on.weapon} size="small" variant="outlined" />}
+                                    {relic.on?.kind === 'armor' && <Chip label={tr("Armadura", 'Armor')} size="small" variant="outlined" />}
+                                    {relic.on?.kind === 'item' && <Chip label={relic.on.name} size="small" variant="outlined" />}
+                                    {relic.aspects?.map((a) => <Chip key={a} label={a} size="small" />)}
+                                </Stack>
+                            </Box>
+                            <ItemArt slug={charSlug(props.build)} name={relic.name} label={relic.name} art={props.art} reserve={false} size={72} />
+                        </Box>
                         {relic.description && (
                             <Typography variant="body2" sx={{ mt: 1, whiteSpace: 'pre-line' }}>{relic.description}</Typography>
                         )}

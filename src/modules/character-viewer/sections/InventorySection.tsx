@@ -401,7 +401,7 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
                 ) : undefined}
             />
             {/* A relíquia (se tiver) fica fora do retorno antecipado do inventário vazio. */}
-            <RelicsCard build={build} mods={mods} mythicPoints={mythicPoints} onSelect={onSelect} />
+            <RelicsCard build={build} mods={mods} mythicPoints={mythicPoints} onSelect={onSelect} art={art} />
             {/* Criaturas que entram no combate junto com o personagem (Animated Armor…). */}
             <CompanionsCard build={build} />
         </Stack>
