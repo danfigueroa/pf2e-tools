@@ -3,8 +3,8 @@ import type { BuildInfo } from '../../../pathbuilder/types'
 import type { ConditionModifiers } from '../conditions'
 import { costLabel } from '../activities'
 import {
-    giftActivity, giftMinLevel, giftUnlocked, giftUseKey, relicHealActivity, relicLevel, relicsOf,
-    type RelicEntry, type RelicGift, type RelicTier,
+    giftActivity, giftMinLevel, giftUnlocked, giftUseKey, houseRelicRunes, relicHealActivity, relicLevel, relicsOf,
+    type RelicEntry, type RelicRune, type RelicGift, type RelicTier,
 } from '../relics'
 import { ActivityBody } from './ActivityButton'
 import { ScrapShotButton } from './ScrapShotButton'
@@ -35,6 +35,9 @@ const giftRule = async (gift: RelicGift): Promise<string | null> => {
     if (!d?.description || d.translationPending) return null
     return [d.requirements && tr(`Requisitos: ${d.requirements}`, `Requirements: ${d.requirements}`), d.trigger && tr(`Gatilho: ${d.trigger}`, `Trigger: ${d.trigger}`), d.description].filter(Boolean).join('\n')
 }
+
+/** "+1 · striking": as runas fundamentais da regra da mesa. */
+const houseLabel = (r: RelicRune): string => [r.potency && `+${r.potency}`, r.striking].filter(Boolean).join(' · ')
 
 const TIER_LABEL: Record<RelicTier, string> = { minor: tr('Dádiva menor', 'Minor gift'), major: tr('Dádiva maior', 'Major gift'), grand: tr('Dádiva grandiosa', 'Grand gift') }
 
@@ -129,6 +132,11 @@ export const RelicsCard = (props: Props) => {
                         </Box>
                         {relic.description && (
                             <Typography variant="body2" sx={{ mt: 1, whiteSpace: 'pre-line' }}>{relic.description}</Typography>
+                        )}
+                        {houseRelicRunes(relic) && (
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
+                                {tr(`Regra da mesa: toda relíquia que é arma tem ${houseLabel(houseRelicRunes(relic)!)} (já no ataque e no dano da aba Combate).`, `Table rule: every relic that is a weapon has ${houseLabel(houseRelicRunes(relic)!)} (already in the Combat tab's attack and damage).`)}
+                            </Typography>
                         )}
                         <Stack divider={<Box sx={{ borderBottom: '1px solid', borderColor: 'divider' }} />} sx={{ mt: 1 }}>
                             {relic.gifts.map((gift, idx) => (

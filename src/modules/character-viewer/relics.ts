@@ -18,6 +18,8 @@
 import type { BuildInfo, Weapon } from '../../pathbuilder/types'
 import { strikingDice } from '../../pathbuilder/weapon'
 import { nameStarts } from './customRunes'
+import { runeParts } from './critEffects'
+import { currentMesa } from '../../services/mesa'
 import type { ActivityInfo } from './activities'
 import type { HealActivity } from './healActivities'
 import type { CastTime } from './spellCast'
@@ -90,6 +92,20 @@ export type RelicBase =
     | { kind: 'weapon'; weapon: string }
     | { kind: 'armor' }
     | { kind: 'item'; name: string }
+
+/**
+ * Regra da casa, por mesa: as runas fundamentais que TODA relíquia que é arma recebe.
+ * Casa do Gordo Online: +1 de potência e striking (+1 no ataque, +1 dado de dano), informado pelo
+ * usuário (2026-11-05). Valem pelo MAIOR, como as das dádivas. Armadura ainda não tem a regra escrita
+ * (o equivalente seria potência de armadura + resilient — falta a mesa confirmar).
+ */
+export const HOUSE_RELIC_WEAPON_RUNES: Record<string, RelicRune> = {
+    'casa-do-gordo': { potency: 1, striking: 'striking' },
+}
+
+/** As runas fundamentais que a regra da mesa dá a esta relíquia (só arma), ou null. */
+export const houseRelicRunes = (relic: RelicEntry, mesa: string = currentMesa.id): RelicRune | null =>
+    relic.on?.kind === 'weapon' ? HOUSE_RELIC_WEAPON_RUNES[mesa] ?? null : null
 
 export interface RelicEntry {
     id: string
@@ -368,11 +384,42 @@ const STRIKING_NAME = ['', 'striking', 'greater striking', 'major striking']
 const sameRune = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase()
 
 /**
- * A arma com as runas das dádivas liberadas. Pelo MAIOR, nunca somando: runa do mesmo tipo
- * não empilha (e, se o Pathbuilder já exportou a runa, nada muda de novo). O ataque sobe
- * pelo que a potência ganhou. Não toca a arma que a relíquia não nomeia.
+ * O dano do ACERTO que a runa dá e que o Pathbuilder põe em `extraDamage` quando ele mesmo exporta a runa.
+ * Só o que foi conferido na AON: Flaming (e a Greater) = 1d6 fogo (GM Core pg. 237).
  */
-export function withRelicRunes(build: BuildInfo, catalog: RelicEntry[] = RELICS): BuildInfo {
+const RUNE_HIT_DAMAGE: Record<string, string> = { flaming: '1d6 Fire' }
+
+/** Põe a runa de propriedade; a versão maior troca a menor da mesma runa (Greater Flaming no lugar da Flaming). */
+function addPropertyRune(w: Weapon, rune: string): Weapon {
+    const add = runeParts(rune)
+    const idx = w.runes.findIndex((r) => runeParts(r).base === add.base)
+    if (idx >= 0 && (runeParts(w.runes[idx]).greater || !add.greater)) return w
+    const runes = idx >= 0 ? w.runes.map((r, i) => (i === idx ? rune : r)) : [...w.runes, rune]
+    const hit = RUNE_HIT_DAMAGE[add.base]
+    const extraDamage = hit && !(w.extraDamage ?? []).some((e) => sameRune(e, hit)) ? [...(w.extraDamage ?? []), hit] : w.extraDamage
+    return { ...w, runes, extraDamage }
+}
+
+function applyRune(w: Weapon, rune: RelicRune): Weapon {
+    let next = w
+    const { potency, striking, property } = rune
+    if (potency && potency > next.pot) {
+        next = { ...next, attack: next.attack + (potency - next.pot), pot: potency }
+    }
+    if (striking && STRIKING_RANK(striking) > STRIKING_RANK(next.str)) {
+        next = { ...next, str: STRIKING_NAME[STRIKING_RANK(striking)] }
+    }
+    for (const r of property ?? []) next = addPropertyRune(next, r)
+    return next
+}
+
+/**
+ * A arma com as runas da regra da mesa (`houseRelicRunes`) e das dádivas liberadas. Pelo MAIOR, nunca
+ * somando: runa do mesmo tipo não empilha (e, se o Pathbuilder já exportou a runa, nada muda de novo).
+ * O ataque sobe pelo que a potência ganhou; a runa que dá dano no acerto põe o dano se a ficha não tem.
+ * Não toca a arma que a relíquia não nomeia.
+ */
+export function withRelicRunes(build: BuildInfo, catalog: RelicEntry[] = RELICS, mesa: string = currentMesa.id): BuildInfo {
     const relics = relicsOf(build, catalog).filter((r) => r.on?.kind === 'weapon')
     if (relics.length === 0 || !build.weapons?.length) return build
     const level = relicLevel(build)
@@ -382,18 +429,10 @@ export function withRelicRunes(build: BuildInfo, catalog: RelicEntry[] = RELICS)
         for (const relic of relics) {
             // O Pathbuilder guarda o item base em `name` e o nome da arma específica em `display`.
             if (relic.on?.kind !== 'weapon' || !(sameRune(relic.on.weapon, w.name) || sameRune(relic.on.weapon, w.display ?? ''))) continue
+            const house = houseRelicRunes(relic, mesa)
+            if (house) next = applyRune(next, house)
             relic.gifts.forEach((gift, idx) => {
-                if (gift.kind !== 'rune' || !gift.rune || !giftUnlocked(gift, idx, level)) return
-                const { potency, striking, property } = gift.rune
-                if (potency && potency > next.pot) {
-                    next = { ...next, attack: next.attack + (potency - next.pot), pot: potency }
-                }
-                if (striking && STRIKING_RANK(striking) > STRIKING_RANK(next.str)) {
-                    next = { ...next, str: STRIKING_NAME[STRIKING_RANK(striking)] }
-                }
-                for (const rune of property ?? []) {
-                    if (!next.runes.some((r) => sameRune(r, rune))) next = { ...next, runes: [...next.runes, rune] }
-                }
+                if (gift.kind === 'rune' && gift.rune && giftUnlocked(gift, idx, level)) next = applyRune(next, gift.rune)
             })
         }
         if (next !== w) changed = true

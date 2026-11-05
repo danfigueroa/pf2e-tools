@@ -872,21 +872,39 @@ eq(plain.combatants.length, 3, 'Monstro comum (sem dono) pode repetir à vontade
     ok(relics.giftActivity(power('a', 'minor', { cost: 'free', limited: true }))?.daily, 'relíquia: ação livre com limite ganha botão')
     eq(relics.giftUseKey({ id: 'r' }, { id: 'p' }), 'relic:r:p', 'relíquia: chave do "usada" é única por relíquia e dádiva')
 
-    // Runas na arma: pelo maior, nunca somando.
+    // Runas na arma: pelo maior, nunca somando. Numa mesa sem regra da casa, só as dádivas contam.
+    const wr = (b, c) => relics.withRelicRunes(b, c, 'arton-1515')
     const cat = (gifts) => [entry(gifts)]
     const plain = { ...base, level: 20, weapons: [{ ...w0, pot: 1, str: null, runes: [], attack: 20 }] }
-    const out = relics.withRelicRunes(plain, cat([rune('a', 'minor', { potency: 2, striking: 'striking', property: ['Flaming'] })])).weapons[0]
+    const out = wr(plain, cat([rune('a', 'minor', { potency: 2, striking: 'striking', property: ['Flaming'] })])).weapons[0]
     ok(out.pot === 2 && out.attack === 21 && out.str === 'striking' && out.runes.join() === 'Flaming', 'relíquia: potência +1 sobe o ataque em 1, striking e propriedade entram')
-    const same = relics.withRelicRunes({ ...plain, weapons: [{ ...plain.weapons[0], pot: 2, attack: 21, str: 'Greater Striking', runes: ['flaming'] }] },
+    const same = wr({ ...plain, weapons: [{ ...plain.weapons[0], pot: 2, attack: 21, str: 'Greater Striking', runes: ['flaming'] }] },
         cat([rune('a', 'minor', { potency: 2, striking: 'striking', property: ['Flaming'] })]))
     ok(same.weapons[0].pot === 2 && same.weapons[0].attack === 21 && same.weapons[0].str === 'Greater Striking' && same.weapons[0].runes.length === 1, 'relíquia: runa que a ficha já tem (ou maior) não soma de novo')
-    eq(relics.withRelicRunes({ ...plain, level: 4 }, cat([g(0), rune('b', 'minor', { potency: 3 })])).weapons[0].pot, 1, 'relíquia: runa na 2ª posição só vale a partir do 5º nível')
-    eq(relics.withRelicRunes(plain, cat([g(0), rune('b', 'minor', { potency: 3 })])).weapons[0].pot, 3, 'relíquia: liberada no nível, a runa vale')
-    eq(relics.withRelicRunes(plain, cat([rune('a', 'minor', { striking: 'greater striking' })])).weapons[0].str, 'greater striking', 'relíquia: greater striking')
-    eq(relics.withRelicRunes({ ...plain, weapons: [{ ...plain.weapons[0], name: 'Outra', display: w0.name }] }, cat([rune('a', 'minor', { potency: 2 })])).weapons[0].pot, 2, 'relíquia: casa também pelo nome de exibição (display) do Pathbuilder')
-    eq(relics.withRelicRunes({ ...plain, weapons: [{ ...plain.weapons[0], name: 'Outra', display: 'Outra' }] }, cat([rune('a', 'minor', { potency: 2 })])).weapons[0].pot, 1, 'relíquia: só a arma que a relíquia nomeia')
-    ok(relics.withRelicRunes(plain, []) === plain, 'relíquia: sem relíquia a ficha é a mesma (identidade)')
-    ok(relics.withRelicRunes(plain, cat([power('p', 'minor', undefined)])) === plain, 'relíquia: poder não mexe na arma')
+    eq(wr({ ...plain, level: 4 }, cat([g(0), rune('b', 'minor', { potency: 3 })])).weapons[0].pot, 1, 'relíquia: runa na 2ª posição só vale a partir do 5º nível')
+    eq(wr(plain, cat([g(0), rune('b', 'minor', { potency: 3 })])).weapons[0].pot, 3, 'relíquia: liberada no nível, a runa vale')
+    eq(wr(plain, cat([rune('a', 'minor', { striking: 'greater striking' })])).weapons[0].str, 'greater striking', 'relíquia: greater striking')
+    eq(wr({ ...plain, weapons: [{ ...plain.weapons[0], name: 'Outra', display: w0.name }] }, cat([rune('a', 'minor', { potency: 2 })])).weapons[0].pot, 2, 'relíquia: casa também pelo nome de exibição (display) do Pathbuilder')
+    eq(wr({ ...plain, weapons: [{ ...plain.weapons[0], name: 'Outra', display: 'Outra' }] }, cat([rune('a', 'minor', { potency: 2 })])).weapons[0].pot, 1, 'relíquia: só a arma que a relíquia nomeia')
+    ok(wr(plain, []) === plain, 'relíquia: sem relíquia a ficha é a mesma (identidade)')
+    ok(wr(plain, cat([power('p', 'minor', undefined)])) === plain, 'relíquia: poder não mexe na arma')
+
+    // Regra da casa (Casa do Gordo): relíquia que é arma tem +1 e striking, pelo maior; a outra mesa não.
+    const house = relics.withRelicRunes(plain, cat([]), 'casa-do-gordo').weapons[0]
+    ok(house.pot === 1 && house.attack === 20 && house.str === 'striking', 'relíquia: Casa do Gordo dá striking à arma da relíquia (o +1 já estava)')
+    ok(relics.withRelicRunes(plain, cat([]), 'arton-1515') === plain, 'relíquia: a regra da casa não vale em outra mesa')
+    eq(relics.withRelicRunes({ ...plain, weapons: [{ ...plain.weapons[0], pot: 0, attack: 19 }] }, cat([]), 'casa-do-gordo').weapons[0].attack, 20, 'relíquia: a regra da casa sobe o ataque quando a ficha não tem o +1')
+    eq(relics.withRelicRunes({ ...plain, weapons: [{ ...plain.weapons[0], pot: 2, attack: 21, str: 'greater striking' }] }, cat([]), 'casa-do-gordo').weapons[0].str, 'greater striking', 'relíquia: regra da casa não rebaixa runa maior')
+    ok(relics.withRelicRunes({ ...base, weapons: [{ ...w0, name: 'Outra', display: 'Outra' }] }, cat([]), 'casa-do-gordo').weapons[0].str === w0.str, 'relíquia: regra da casa só na arma da relíquia')
+
+    // Runa maior troca a menor; o dano do acerto da Flaming entra uma vez.
+    const fl = wr(plain, cat([rune('a', 'minor', { property: ['Flaming'] })])).weapons[0]
+    ok(fl.runes.join() === 'Flaming' && fl.extraDamage.filter((e) => e === '1d6 Fire').length === 1, 'relíquia: Flaming põe 1d6 fogo no acerto')
+    const flAgain = wr({ ...plain, weapons: [{ ...plain.weapons[0], extraDamage: ['1d6 fire'] }] }, cat([rune('a', 'minor', { property: ['Flaming'] })])).weapons[0]
+    eq(flAgain.extraDamage.filter((e) => /fire/i.test(e)).length, 1, 'relíquia: o 1d6 fogo que a ficha já tem não duplica')
+    const gf = wr(plain, cat([rune('a', 'minor', { property: ['Flaming'] }), rune('b', 'minor', {}), rune('c', 'major', { property: ['Greater Flaming'] })])).weapons[0]
+    ok(gf.runes.join() === 'Greater Flaming' && gf.extraDamage.filter((e) => e === '1d6 Fire').length === 1, 'relíquia: Greater Flaming substitui a Flaming, sem dano dobrado')
+    ok(wr({ ...plain, weapons: [{ ...plain.weapons[0], runes: ['Flaming (Greater)'] }] }, cat([rune('a', 'minor', { property: ['Flaming'] })])).weapons[0].runes.join() === 'Flaming (Greater)', 'relíquia: a menor não rebaixa a maior')
 }
 
 // ── Enquadramento da imagem do token (Modo GM) ───────────────────────────────

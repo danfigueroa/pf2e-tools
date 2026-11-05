@@ -105,7 +105,8 @@ for (const file of readdirSync(new URL('characters/', dir)).filter((f) => f.ends
 }
 
 // Relíquias (`relics.ts`): o catálogo é à mão, então confere a forma — id único, dádiva com custo vira
-// botão (ou é ação livre sem limite, que não cobra), runa tem o que aplicar, tier válido.
+// botão (ou é ação livre sem limite, que não cobra), runa tem o que aplicar, tier válido. Runa pode ter
+// ativação própria (Shifting: Shift Weapon, 1 ação) — o Inventário só ativa a arma base, então não cobra em dobro.
 const relicIds = new Set()
 for (const relic of relics.RELICS) {
     if (relicIds.has(relic.id)) fail(`relíquia "${relic.id}" repetida`)
@@ -120,7 +121,6 @@ for (const relic of relics.RELICS) {
         if (gift.kind === 'power' && gift.rune) fail(`${where}: é poder mas traz runa`)
         if (gift.activation && !relics.giftActivity(gift) && !(gift.activation.cost === 'free' && !gift.activation.limited)) fail(`${where}: a ativação não gera botão`)
         if (gift.activation?.limited && !gift.activation.frequency) fail(`${where}: limitada sem a frequência escrita`)
-        if (gift.kind === 'rune' && gift.activation) fail(`${where}: runa não tem ativação`)
     }
 }
 if (relics.RELICS.length) console.log(`Relíquias: ${relics.RELICS.length} conferida(s).`)
