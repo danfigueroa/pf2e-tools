@@ -115,11 +115,6 @@ export interface RelicEntry {
     on?: RelicBase
     aspects?: string[]
     description?: string
-    /**
-     * Runas de propriedade do export que a relíquia NÃO tem (GM Core pg. 309: por padrão relíquia não recebe
-     * runa de propriedade fora das dádivas). Sem a lista, as do export ficam (Miranda's Arm mantém a Shock).
-     */
-    dropRunes?: string[]
     gifts: RelicGift[]
 }
 
@@ -299,15 +294,14 @@ export const RELICS: RelicEntry[] = [
         // Solar Bloodthirsty, a relíquia do Brukuthur (aspectos Fire e Earth), forjada sobre um Greataxe — a arma que o
         // Pathbuilder exporta com esse nome de exibição. O jogador trocou as dádivas por runas ("Runes as Gifts", GM Core
         // pg. 309): Fire dá Flaming (menor) e Greater Flaming (maior); Earth dá Shifting (menor). A potência e o striking são
-        // a regra da casa (`HOUSE_RELIC_WEAPON_RUNES`), não dádiva.
+        // a regra da casa (`HOUSE_RELIC_WEAPON_RUNES`), não dádiva. A Extending do export não é dádiva: o jogador a gravou
+        // por crafting (a mesa permite), então fica como o Pathbuilder exporta.
         id: 'solar-bloodthirsty',
         character: nameStarts('brukuthur'),
         name: 'Solar Bloodthirsty',
         on: { kind: 'weapon', weapon: 'Solar Bloodthirsty' },
         aspects: ['Fire', 'Earth'],
-        // A Extending do export era da arma de antes; a relíquia ficou só com as runas das dádivas (decisão do usuário, 2026-11-05).
-        dropRunes: ['Extending'],
-        description: tr('A relíquia do Brukuthur, forjada sobre um machado grande: pesado demais para uma mão só, de lâmina dupla e "barbudo", com um gancho embaixo que aumenta a força do corte. As dádivas viraram runas — Flaming (depois Greater Flaming), do aspecto Fire, e Shifting, do aspecto Earth. O nível da relíquia é o do personagem.', 'Brukuthur\'s relic, forged on a greataxe: too heavy to wield in one hand, double-bladed and "bearded", with a hook at the bottom that adds force to its cut. Its gifts became runes — flaming (later greater flaming), from the Fire aspect, and shifting, from the Earth aspect. The relic\'s level is the character\'s level.'),
+        description: tr('A relíquia do Brukuthur, forjada sobre um machado grande: pesado demais para uma mão só, de lâmina dupla e "barbudo", com um gancho embaixo que aumenta a força do corte. As dádivas viraram runas — Flaming (depois Greater Flaming), do aspecto Fire, e Shifting, do aspecto Earth. A runa Extending ele mesmo gravou na arma, pelas regras de criação da mesa. O nível da relíquia é o do personagem.', 'Brukuthur\'s relic, forged on a greataxe: too heavy to wield in one hand, double-bladed and "bearded", with a hook at the bottom that adds force to its cut. Its gifts became runes — flaming (later greater flaming), from the Fire aspect, and shifting, from the Earth aspect. He etched the extending rune onto the weapon himself, under the table\'s crafting rules. The relic\'s level is the character\'s level.'),
         gifts: [
             // GM Core pg. 237: +1d6 fogo no acerto, 1d10 fogo persistente no crítico.
             { id: 'flaming', name: 'Flaming', tier: 'minor', kind: 'rune', rune: { property: ['Flaming'] } },
@@ -448,8 +442,7 @@ function applyRune(w: Weapon, rune: RelicRune): Weapon {
 }
 
 /**
- * A arma sem as runas que a relíquia descarta (`dropRunes`) e com as da regra da mesa (`houseRelicRunes`) e das
- * dádivas liberadas. Pelo MAIOR, nunca
+ * A arma com as runas da regra da mesa (`houseRelicRunes`) e das dádivas liberadas. Pelo MAIOR, nunca
  * somando: runa do mesmo tipo não empilha (e, se o Pathbuilder já exportou a runa, nada muda de novo).
  * O ataque sobe pelo que a potência ganhou; a runa que dá dano no acerto põe o dano se a ficha não tem.
  * Não toca a arma que a relíquia não nomeia.
@@ -464,10 +457,6 @@ export function withRelicRunes(build: BuildInfo, catalog: RelicEntry[] = RELICS,
         for (const relic of relics) {
             // O Pathbuilder guarda o item base em `name` e o nome da arma específica em `display`.
             if (relic.on?.kind !== 'weapon' || !(sameRune(relic.on.weapon, w.name) || sameRune(relic.on.weapon, w.display ?? ''))) continue
-            const drop = (relic.dropRunes ?? []).map((r) => runeParts(r).base)
-            if (drop.length && next.runes.some((r) => drop.includes(runeParts(r).base))) {
-                next = { ...next, runes: next.runes.filter((r) => !drop.includes(runeParts(r).base)) }
-            }
             const house = houseRelicRunes(relic, mesa)
             if (house) next = applyRune(next, house)
             relic.gifts.forEach((gift, idx) => {
