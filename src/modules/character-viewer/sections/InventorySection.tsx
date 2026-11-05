@@ -7,19 +7,23 @@ import {
     LocalDrink as DrinkIcon,
     TouchApp as UseIcon,
 } from '@mui/icons-material'
-import { COIN_COLORS, HP_COLOR, onSolid } from '../../../theme/palette'
+import { HP_COLOR, onSolid } from '../../../theme/palette'
 import { gold } from '../../../theme'
 import type { BuildInfo } from '../../../pathbuilder/types'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
 import type { ConditionModifiers } from '../conditions'
 import { characterMaxHp } from '../helpers'
 import type { ItemRow } from '../inventory'
-import { artKeyFor, consumedKeyFor, hpKeyFor, legacyCharKey } from '../charId'
+import { artKeyFor, consumedKeyFor, hpKeyFor, legacyCharKey, moneyKeyFor } from '../charId'
 import { useItemArt } from '../components/useItemArt'
 import { ItemArt } from '../components/ItemArt'
 import { useConsumables } from '../components/useConsumables'
 import { CompanionsCard } from '../components/CompanionsCard'
 import { RelicsCard } from '../components/RelicsCard'
+import { MoneyCard } from '../components/MoneyCard'
+import { useMoney } from '../components/useMoney'
+import { purseTotal } from '../money'
+import { useSheetReadOnly } from '../sheetAccess'
 import { ActivityBody } from '../components/ActivityButton'
 import { HealActivityButton } from '../components/HealActivityButton'
 import { itemHeal } from '../healActivities'
@@ -76,8 +80,11 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
     const me = charSlug(build)
     const [giving, setGiving] = useState<{ name: string; max: number; sheetQty: number } | null>(null)
     const [giveNotice, setGiveNotice] = useState<GiveNotice | null>(null)
-    const money = build.money || { cp: 0, sp: 0, gp: 0, pp: 0 }
-    const hasMoney = money.pp + money.gp + money.sp + money.cp > 0
+    // O dinheiro que vale: o da ficha, ou o acertado na mesa (campo `money`).
+    const money = useMoney(moneyKeyFor(build), build.money)
+    // Quem pode editar vê o cartão mesmo zerado (para lançar o primeiro ganho); a ficha de outro, só com dinheiro.
+    const readOnly = useSheetReadOnly()
+    const showMoney = purseTotal(money.purse) > 0 || money.edited || !readOnly
     const hasEquipment = rows.length > 0
     const hasRelics = relicsOf(build).length > 0
 
@@ -160,7 +167,7 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
         if (n.healed > 0) hp.restoreHp({ current: Math.max(0, hp.current - n.healed), temp: hp.temp })
     }
 
-    if (!hasMoney && !hasEquipment && !hasRelics) {
+    if (!showMoney && !hasEquipment && !hasRelics) {
         return (
             <Card>
                 <CardContent>
@@ -173,22 +180,7 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
 
     return (
         <Stack spacing={2}>
-            {hasMoney && (
-                <Card>
-                    <CardContent>
-                        <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: '0.06em' }}>
-                            Dinheiro
-                        </Typography>
-                        <Stack direction="row" spacing={2} sx={{ mt: 1, flexWrap: 'wrap', gap: 1 }}>
-                            {/* platina é "pl": "pp" já é prata, e as duas colidiam. */}
-                            <Coin label={tr("pl", 'pp')} value={money.pp} accent={COIN_COLORS.pp} />
-                            <Coin label={tr("po", 'gp')} value={money.gp} accent={COIN_COLORS.gp} />
-                            <Coin label={tr("pp", 'sp')} value={money.sp} accent={COIN_COLORS.sp} />
-                            <Coin label={tr("pc", 'cp')} value={money.cp} accent={COIN_COLORS.cp} />
-                        </Stack>
-                    </CardContent>
-                </Card>
-            )}
+            {showMoney && <MoneyCard money={money} />}
 
             {hasEquipment && (
                 <Card>
@@ -407,28 +399,5 @@ const InventorySectionView = ({ build, onSelect, mods, mythicPoints }: Props) =>
         </Stack>
     )
 }
-
-const Coin = ({ label, value, accent }: { label: string; value: number; accent: string }) => (
-    <Box
-        sx={{
-            display: 'flex',
-            alignItems: 'baseline',
-            gap: 0.75,
-            px: 1.5,
-            py: 0.75,
-            borderRadius: 1.5,
-            border: '1px solid',
-            borderColor: accent + '55',
-            backgroundColor: accent + '14',
-        }}
-    >
-        <Typography sx={{ fontWeight: 700, color: accent }}>
-            {value}
-        </Typography>
-        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            {label}
-        </Typography>
-    </Box>
-)
 
 export const InventorySection = memo(InventorySectionView)

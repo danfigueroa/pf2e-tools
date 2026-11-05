@@ -69,6 +69,8 @@ export const magusKeyFor = (build: BuildInfo): string => magusKeyForSlug(charSlu
 /** Imagens das armas, armaduras e itens do Inventário (`itemArt.ts`). */
 export const artKeyForSlug = (slug: string): string => `${slug}/art`
 export const artKeyFor = (build: BuildInfo): string => artKeyForSlug(charSlug(build))
+/** O dinheiro acertado na mesa (`money.ts`). */
+export const moneyKeyFor = (build: BuildInfo): string => `${charSlug(build)}/money`
 /** Trechos do jogador no guia "Como Jogar" (`guideNotes.ts`). */
 export const guideKeyForSlug = (slug: string): string => `${slug}/guide`
 export const guideKeyFor = (build: BuildInfo): string => guideKeyForSlug(charSlug(build))

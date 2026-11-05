@@ -232,7 +232,10 @@ O custo vem da **própria AON** (`actions`, `traits`, `trigger`, `frequency`, e 
   como `extra` em `remaining`/`consume`, `consumed.of` segue sendo `sheetQty`. **Quem lê `build.equipment` à mão não vê o
   item recebido: use `useGifts().rows`.** O primeiro retrato não avisa, mas compara com o "visto" do `localStorage`.
 - **Imagem de item** (`itemArt.ts`, campo `art` `{ nome minúsculo: url }`, pasta `items/`): até 25 por ficha (teto 8 KB);
-  recuse antes de subir. Trocar apaga a antiga.
+  recuse antes de subir. Trocar apaga a antiga. A relíquia usa o mesmo campo, pela chave do nome dela (`RelicsCard`).
+- **Dinheiro** (`money.ts`, `useMoney.ts`, `MoneyCard.tsx`, campo `money` `{ purse, of }`): o dono e o GM acertam na mesa;
+  `of` = o dinheiro **da ficha** quando a edição foi feita. Ficha publicada com outro dinheiro vence (o gasto não conta duas
+  vezes). Quem edita vê o cartão mesmo zerado.
 - **Escudo** (`shield.ts`, `useShield.ts`, `ShieldCard.tsx`, campo `shield` `{ hp, raised }`): a CA exportada não inclui o
   escudo. Dureza/PV/BT da AON + runa de reforço (teto por grau). **Quebrado (PV ≤ BT) não ergue, não soma e não bloqueia**;
   o bloqueio que quebra abaixa. No bloqueio, o que passa da Dureza vai inteiro para os dois. Destructive Block (por golpe,
