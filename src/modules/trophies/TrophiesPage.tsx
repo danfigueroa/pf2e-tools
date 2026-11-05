@@ -289,8 +289,10 @@ function RankList({ title, role, list, me }: { title: string; role: TrophyRole; 
 
 function Ranking({ entries, me }: { entries: RankingEntry[]; me: string | null }) {
   const byName = (a: RankingEntry, b: RankingEntry) => a.name.localeCompare(b.name);
-  const players = entries.filter((e) => e.points.player > 0 || e.role === 'player').sort((a, b) => b.points.player - a.points.player || byName(a, b));
-  const masters = entries.filter((e) => e.role === 'gm' || e.points.gm > 0).sort((a, b) => b.points.gm - a.points.gm || byName(a, b));
+  // Cada pessoa aparece só na lista do papel que tem NESTA mesa: os pontos são globais, e o GM que já jogou não
+  // disputa com os jogadores (os pontos de jogador dele seguem no perfil).
+  const players = entries.filter((e) => e.role !== 'gm').sort((a, b) => b.points.player - a.points.player || byName(a, b));
+  const masters = entries.filter((e) => e.role === 'gm').sort((a, b) => b.points.gm - a.points.gm || byName(a, b));
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       {players.length > 0 && <RankList title={tr("Jogadores", 'Players')} role="player" list={players} me={me} />}

@@ -6,6 +6,8 @@ mesa vê tudo + ranking, **todo mundo do zero** (nada retroativo), **o GM tem co
 - **Catálogo num lugar só** (`TROPHIES` em `trophies.js`: id, papel, categoria, grau, título, descrição, `goal`,
   `measure(facts)`). O GET devolve o catálogo; o cliente não repete a lista. **Troféu novo = entrada lá** (+ o feito no handler
   certo e a conta em `deriveFacts`/`trophy_facts` se precisar de fato novo) + entrada em `trophies-en.js` + caso no `check-trophies`.
+- **Ranking pelo papel na mesa**: cada pessoa numa lista só (GM em "Mestres", o resto em "Jogadores"), mesmo com pontos
+  do outro papel — os pontos são globais e apareceriam em dobro.
 - Pontos: bronze 15, prata 30, ouro 90, platina 300; platina = todos os outros do papel. Nível do perfil: `levelOf`.
 - **Todo troféu não ganho é secreto** (decisão do usuário): `catalogWire(unlocked, lang)` mascara **no servidor** título,
   descrição e meta; `trophyProfile` só devolve progresso dos ganhos. Esconder só na tela vazaria pela aba Rede.
