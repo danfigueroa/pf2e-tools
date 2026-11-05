@@ -216,7 +216,7 @@ const BRUKUTHUR = `## 🎯 Papel em Combate
 - 🧬 **Adopted Ancestry (Automaton):** você tem acesso a talentos de ancestralidade Autômato pra escolher no futuro — ainda não usou nenhum, é uma porta aberta, não uma obrigação.
 
 ## 🎒 Itens & Recursos
-- 🪓 **Solar Bloodthirsty (relíquia sobre um Greataxe: +1 striking, Greater Flaming, Shifting):** acerto soma +1d6 fogo, e o crítico põe 2d10 fogo persistente que ignora resistência a fogo; **Shifting** (1 ação, manipular) troca a forma por outra arma corpo a corpo de duas mãos, levando as runas junto.
+- 🪓 **Solar Bloodthirsty (relíquia sobre um Greataxe: +1 striking, Greater Flaming, Shifting, Extending):** acerto soma +1d6 fogo, e o crítico põe 2d10 fogo persistente que ignora resistência a fogo; **Shifting** (1 ação, manipular) troca a forma por outra arma corpo a corpo de duas mãos, levando as runas junto. A runa **Extending** (gravada por ele, crafting) — **Extend, 2 ações (manipular):** um Golpe com **alcance de 18 m** só naquele Golpe; acerta quem está longe sem você sair do lugar.
 - 🛡️ **Studded Leather (+1 resilient, Brukuthur's Size-Changing):** runa homebrew, **1×/dia, 1 ação (manipular)** — interruptores na armadura te dão o efeito de um **Enlarge de 4º rank** (Enorme, alcance +3 m, +4 de estado no dano corpo a corpo, desajeitado 1, 5 min) ou de um **Shrink** (Miúdo, alcance 0). Sem concentração: funciona mesmo quando a mente está ocupada.
 - 🧪 **Elixir of Life (Lesser), investido:** cura rápida de bolso fora do turno de Renewed Vigor.
 - ⭐ **Pontos Míticos:** moeda de *Godspeed*, *Correct the Story*, *Divert Destiny* e *Summon Mythic Power* — cinco usos possíveis competindo pelo mesmo estoque pequeno; priorize Divert Destiny quando a vida realmente estiver em jogo.

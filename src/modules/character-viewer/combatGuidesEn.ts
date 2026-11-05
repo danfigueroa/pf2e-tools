@@ -178,7 +178,7 @@ export const BRUKUTHUR_EN = `## 🎯 Combat Role
 - 🧬 **Adopted Ancestry (Automaton):** you have access to Automaton ancestry feats to choose in the future — you haven't used any yet, it's an open door, not an obligation.
 
 ## 🎒 Items & Resources
-- 🪓 **Solar Bloodthirsty (relic on a greataxe: +1 striking, greater flaming, shifting):** hits add +1d6 fire, and a critical adds 2d10 persistent fire that ignores fire resistance; **shifting** (1 action, manipulate) turns it into another two-handed melee weapon, carrying its runes along.
+- 🪓 **Solar Bloodthirsty (relic on a greataxe: +1 striking, greater flaming, shifting, extending):** hits add +1d6 fire, and a critical adds 2d10 persistent fire that ignores fire resistance; **shifting** (1 action, manipulate) turns it into another two-handed melee weapon, carrying its runes along. The **extending** rune (etched by him, crafting) — **Extend, 2 actions (manipulate):** one Strike with **60-foot reach** for that Strike only; hit a distant foe without moving.
 - 🛡️ **Studded Leather (+1 resilient, Brukuthur's Size-Changing):** homebrew rune, **1×/day, 1 action (manipulate)** — switches on the armor give you the effect of a **4th-rank enlarge** (Huge, +10 feet of reach, +4 status bonus to melee damage, clumsy 1, 5 min) or a **shrink** (Tiny, reach 0). No concentrate: it works even when your mind is busy.
 - 🧪 **Elixir of Life (Lesser), invested:** quick pocket healing outside the Renewed Vigor turn.
 - ⭐ **Mythic Points:** currency for *Godspeed*, *Correct the Story*, *Divert Destiny* and *Summon Mythic Power* — several uses competing for the same small stock; prioritize Divert Destiny when your life is really at stake.
