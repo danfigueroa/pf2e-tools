@@ -249,7 +249,8 @@ O custo vem da **própria AON** (`actions`, `traits`, `trigger`, `frequency`, e 
   aplicado antes das dádivas e mostrado no cartão. Runa de dádiva pode ter `activation` (Shifting). O cartão fica fora do
   "Inventário vazio". Atuais: Miranda's Arm (= o Braço Sônico; Scrap Shot, Dragon Strike), Loki's Heart (Sands of the
   Hourglass, Whammy — a AON não dá a CD), da Hearts Folly Redenção Pelas Cinzas e Afinco do Artista (curas pelo
-  `HealActivityButton`), Brasão da Família do Woyd (Pride, `EMOTION_SURGE`).
+  `HealActivityButton`), Brasão da Família do Woyd (Pride, `EMOTION_SURGE`), Solar Bloodthirsty do Brukuthur (o Greataxe; Flaming → Greater
+  Flaming, Shifting).
 - **Catálogos por nome** (o JSON não é editado): `customRunes.ts` (runas homebrew; `replaces`), `homebrewGear.ts` (traços de
   arma que a AON não tem: Braço Sônico com acuidade, o "Special Unarmed" da Hearts Folly como o Fist), `magicWeapons.ts`
   (perfis situacionais, ex. Gloom Blade), `unarmed.ts` (desarmados à mão — o Pathbuilder não exporta nenhum; `ITEM_ATTACKS`;

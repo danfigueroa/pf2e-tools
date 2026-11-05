@@ -290,6 +290,33 @@ export const RELICS: RelicEntry[] = [
             },
         ],
     },
+    {
+        // Solar Bloodthirsty, a relíquia do Brukuthur (aspectos Fire e Earth), forjada sobre um Greataxe — a arma que o
+        // Pathbuilder exporta com esse nome de exibição. O jogador trocou as dádivas por runas ("Runes as Gifts", GM Core
+        // pg. 309): Fire dá Flaming (menor) e Greater Flaming (maior); Earth dá Shifting (menor). A potência e o striking são
+        // a regra da casa (`HOUSE_RELIC_WEAPON_RUNES`), não dádiva.
+        id: 'solar-bloodthirsty',
+        character: nameStarts('brukuthur'),
+        name: 'Solar Bloodthirsty',
+        on: { kind: 'weapon', weapon: 'Solar Bloodthirsty' },
+        aspects: ['Fire', 'Earth'],
+        description: tr('A relíquia do Brukuthur, forjada sobre um machado grande: pesado demais para uma mão só, de lâmina dupla e "barbudo", com um gancho embaixo que aumenta a força do corte. As dádivas viraram runas — Flaming (depois Greater Flaming), do aspecto Fire, e Shifting, do aspecto Earth. O nível da relíquia é o do personagem.', 'Brukuthur\'s relic, forged on a greataxe: too heavy to wield in one hand, double-bladed and "bearded", with a hook at the bottom that adds force to its cut. Its gifts became runes — flaming (later greater flaming), from the Fire aspect, and shifting, from the Earth aspect. The relic\'s level is the character\'s level.'),
+        gifts: [
+            // GM Core pg. 237: +1d6 fogo no acerto, 1d10 fogo persistente no crítico.
+            { id: 'flaming', name: 'Flaming', tier: 'minor', kind: 'rune', rune: { property: ['Flaming'] } },
+            // GM Core pg. 238: Shift Weapon, 1 ação (manipular) — vira outra arma corpo a corpo do mesmo número de mãos.
+            { id: 'shifting', name: 'Shifting', tier: 'minor', kind: 'rune', rune: { property: ['Shifting'] }, activation: { cost: 1 } },
+            // GM Core pg. 237: o persistente do crítico vai a 2d10 e o fogo da arma ignora a resistência a fogo. Substitui a Flaming.
+            {
+                id: 'greater-flaming',
+                name: 'Flaming (Greater)',
+                tier: 'major',
+                kind: 'rune',
+                rune: { property: ['Greater Flaming'] },
+                facts: () => tr('substitui a Flaming: 2d10 fogo persistente no crítico; o fogo da arma ignora resistência a fogo', 'replaces flaming: 2d10 persistent fire on a critical hit; the weapon\'s fire ignores fire resistance'),
+            },
+        ],
+    },
 ]
 
 export { nameStarts }

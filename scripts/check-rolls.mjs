@@ -907,6 +907,22 @@ eq(plain.combatants.length, 3, 'Monstro comum (sem dono) pode repetir à vontade
     ok(wr({ ...plain, weapons: [{ ...plain.weapons[0], runes: ['Flaming (Greater)'] }] }, cat([rune('a', 'minor', { property: ['Flaming'] })])).weapons[0].runes.join() === 'Flaming (Greater)', 'relíquia: a menor não rebaixa a maior')
 }
 
+// Solar Bloodthirsty: a relíquia do Brukuthur (Greataxe), Flaming → Greater Flaming e Shifting, +1 striking da casa.
+{
+    const bruk = party.brukuthur
+    const [sb] = relics.relicsOf(bruk)
+    ok(sb?.id === 'solar-bloodthirsty' && sb.on?.weapon === 'Solar Bloodthirsty', 'Brukuthur: a relíquia é a Solar Bloodthirsty')
+    const axe = relics.withRelicRunes(bruk, undefined, 'casa-do-gordo').weapons.find((w) => w.name === 'Greataxe')
+    const was = bruk.weapons.find((w) => w.name === 'Greataxe')
+    ok(axe.pot === 1 && axe.str === 'striking' && axe.attack === was.attack, 'Solar Bloodthirsty: +1 striking, ataque como o exportado')
+    ok(axe.runes.includes('Greater Flaming') && axe.runes.includes('Shifting') && !axe.runes.includes('Flaming'), 'Solar Bloodthirsty: Greater Flaming e Shifting no nível 10')
+    eq(axe.extraDamage.filter((e) => /^1d6 fire$/i.test(e)).length, 1, 'Solar Bloodthirsty: um 1d6 fogo só')
+    const fire = critFx.runeCritEffects(axe.runes).filter((c) => c.label === 'Flaming')
+    ok(fire.length === 1 && fire[0].damage.expr.groups[0]?.count === 2 && fire[0].damage.persistent, 'Solar Bloodthirsty: crítico com 2d10 fogo persistente, uma vez')
+    const low = relics.withRelicRunes({ ...bruk, level: 8 }, undefined, 'casa-do-gordo').weapons.find((w) => w.name === 'Greataxe')
+    ok(low.runes.includes('Flaming') && !low.runes.includes('Greater Flaming'), 'Solar Bloodthirsty: antes do 9º, a Flaming menor')
+}
+
 // ── Enquadramento da imagem do token (Modo GM) ───────────────────────────────
 const tf = tokenFit
 eq(JSON.stringify(tf.sanitizeFit(undefined)), JSON.stringify(tf.DEFAULT_FIT), 'Sem campo: o padrão de sempre')
