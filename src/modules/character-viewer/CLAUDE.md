@@ -246,11 +246,12 @@ O custo vem da **própria AON** (`actions`, `traits`, `trigger`, `frequency`, e 
   Runas de arma entram no `build` uma vez (`withRelicRunes`), potência/striking pelo **maior**; a versão maior de uma runa
   troca a menor (Greater Flaming no lugar da Flaming), e a Flaming põe o 1d6 fogo no `extraDamage` se a ficha não tem.
   **Regra da casa por mesa** (`HOUSE_RELIC_WEAPON_RUNES`): na Casa do Gordo toda relíquia que é arma tem +1 striking,
-  aplicado antes das dádivas e mostrado no cartão. Runa de dádiva pode ter `activation` (Shifting). O cartão fica fora do
+  aplicado antes das dádivas e mostrado no cartão. Runa de dádiva pode ter `activation` (Shifting). Runa do export que a relíquia não tem sai por
+  `dropRunes` (por padrão relíquia não tem runa de propriedade fora das dádivas; sem a lista, as do export ficam). O cartão fica fora do
   "Inventário vazio". Atuais: Miranda's Arm (= o Braço Sônico; Scrap Shot, Dragon Strike), Loki's Heart (Sands of the
   Hourglass, Whammy — a AON não dá a CD), da Hearts Folly Redenção Pelas Cinzas e Afinco do Artista (curas pelo
   `HealActivityButton`), Brasão da Família do Woyd (Pride, `EMOTION_SURGE`), Solar Bloodthirsty do Brukuthur (o Greataxe; Flaming → Greater
-  Flaming, Shifting).
+  Flaming, Shifting; a Extending do export sai).
 - **Catálogos por nome** (o JSON não é editado): `customRunes.ts` (runas homebrew; `replaces`), `homebrewGear.ts` (traços de
   arma que a AON não tem: Braço Sônico com acuidade, o "Special Unarmed" da Hearts Folly como o Fist), `magicWeapons.ts`
   (perfis situacionais, ex. Gloom Blade), `unarmed.ts` (desarmados à mão — o Pathbuilder não exporta nenhum; `ITEM_ATTACKS`;
