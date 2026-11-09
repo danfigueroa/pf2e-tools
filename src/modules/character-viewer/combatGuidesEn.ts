@@ -226,6 +226,7 @@ export const CEROSQUALHANTHALLAS_EN = `## 🎯 Combat Role
 
 ## 🎒 Items & Resources
 - 🏹 **+2 Greater Striking Composite Longbow:** your weapon. The sheet adds **+1d6 electricity** to the damage.
+- 💘 **Heartpiercer (relic: the bow, Air and Earth aspects):** the minor gifts are runes (potency +1, striking); the major gift is **Propelling Winds** — **2 actions (concentrate, manipulate), once per hour:** the relic casts *fly* on you. Great for shooting from above, out of melee reach.
 - 🧥 **Cloak of Illusions (Greater):** **+2 to Stealth**, *figment* at will and, **1×/day**, pulling up the hood (2 actions) gives **4th-rank invisibility**: 1 minute that **doesn't end when you attack**. While invisible, the target is *off-guard* to you — combine it with the precision.
 - 🛡️ **Bands of Force:** +1 to AC and saves. **Return Force (reaction):** an enemy **critically misses** a melee Strike against you → the bands **push** it (Athletics +14) away — great for an archer who got surrounded.
 - 🔮 **3 focus points** for *Gravity Weapon*, *Soothing Mist*, *Tempest Surge* and *Terrain Transposition* — Refocus between fights.
@@ -281,7 +282,10 @@ export const NATHANIEL_EN = `## 🎯 Combat Role
 - 🎲 **Rewrite Fate (free):** reroll a skill check or saving throw with mythic proficiency.
 
 ## 🎒 Items & Resources
-- 🗡️ **Zarroc Sheilvean** (*+1 striking longsword*): 2d8+6 slashing, +19.
+- 🗡️ **Zarroc Sheilvean** (*+1 striking longsword*): 2d8+6 slashing, +19. It is your **relic** (Death and Fiend aspects), with three gifts:
+  - 💀 **Death Gaze (2 actions):** a creature you can see within 30 feet takes **1d6 void damage per 2 relic levels** (basic Fortitude). Undead (or anything healed by void) are **healed** instead and become immune for 10 minutes — don't use it on them.
+  - 🩸 **Curse Wound (reaction, concentrate):** your Strike with the sword damages a creature within 60 feet → Will save, or the target **can't recover the HP from that Strike** until its next daily preparations. Cursing an already-cursed creature ends the previous curse.
+  - 😈 **Fiendish Bargain (1 action, once per day):** choose to **counteract a condition**, **regain 3d8+16 HP**, or gain **+2 status to attack rolls for 1 minute**; you pay with a random cost: stupefied 1, clumsy 1, lose 1d8 HP, or −1 to damage (1 minute).
 - 🛡️ **Clockwork Shield** + **+1 resilient cold iron breastplate** — the cold iron weighs against fey and demons **in the armor**, not on the sword.
 - 💍 **Ring of Wizardry (Type I):** **+1 to Arcana** and **two extra 1st-rank arcane slots** per day. During daily preparations, choose which arcane source they go to (Magus or the Wizard archetype) and prepare 1st-rank spells from the spellbook. Taking the ring off, for any reason, loses the extra slots.
 - 🔮 **3 focus points** for *Shielding Strike*, *Runic Impression* and *Hand of the Apprentice* — Refocus between fights.
