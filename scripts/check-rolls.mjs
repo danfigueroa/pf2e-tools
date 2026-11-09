@@ -924,6 +924,27 @@ eq(plain.combatants.length, 3, 'Monstro comum (sem dono) pode repetir à vontade
     ok(low.runes.includes('Flaming') && !low.runes.includes('Greater Flaming'), 'Solar Bloodthirsty: antes do 9º, a Flaming menor')
 }
 
+// Perfurador de Corações (Ceros, Composite Longbow) e Zarroc Sheilvean (Nathaniel, Longsword): as ARMAS ficam como o
+// export, e as dádivas liberam nos níveis 1/5/9.
+{
+    const ceros = party.ceros
+    const [hp] = relics.relicsOf(ceros)
+    ok(hp?.id === 'heartpiercer' && hp.on?.weapon === 'Composite Longbow', 'Ceros: a relíquia é o Perfurador de Corações')
+    const was = ceros.weapons.find((w) => w.name === 'Composite Longbow')
+    const bow = relics.withRelicRunes(ceros, undefined, 'casa-do-gordo').weapons.find((w) => w.name === 'Composite Longbow')
+    ok(bow.pot === was.pot && bow.str === was.str && bow.attack === was.attack && bow.runes.length === was.runes.length, 'Perfurador de Corações: o arco +2 Greater Striking não é rebaixado nem muda')
+    ok(hp.gifts.map((g) => g.id).join() === 'weapon-potency,striking,propelling-winds' && hp.gifts[2].activation.cost === 2 && hp.gifts[2].activation.limited, 'Perfurador de Corações: Propelling Winds, 2 ações, 1×/hora')
+
+    const nat = party.nathaniel
+    const [zs] = relics.relicsOf(nat)
+    ok(zs?.id === 'zarroc-sheilvean' && zs.on?.weapon === 'Zarroc Sheilvean', 'Nathaniel: a relíquia é a Zarroc Sheilvean')
+    const sword = relics.withRelicRunes(nat, undefined, 'casa-do-gordo').weapons.find((w) => w.display === 'Zarroc Sheilvean')
+    const sword0 = nat.weapons.find((w) => w.display === 'Zarroc Sheilvean')
+    ok(sword.pot === sword0.pot && sword.str === 'striking' && sword.attack === sword0.attack, 'Zarroc Sheilvean: +1 striking, ataque como a ficha')
+    ok(zs.gifts.map((g) => g.id).join() === 'death-gaze,curse-wound,fiendish-bargain', 'Zarroc Sheilvean: as três dádivas na ordem 1/5/9')
+    ok(zs.gifts[2].activation.cost === 1 && zs.gifts[2].activation.frequency && zs.gifts[1].activation.cost === 'reaction', 'Zarroc Sheilvean: Fiendish Bargain 1 ação 1×/dia, Curse Wound reação')
+}
+
 // ── Enquadramento da imagem do token (Modo GM) ───────────────────────────────
 const tf = tokenFit
 eq(JSON.stringify(tf.sanitizeFit(undefined)), JSON.stringify(tf.DEFAULT_FIT), 'Sem campo: o padrão de sempre')

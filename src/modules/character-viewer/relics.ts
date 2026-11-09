@@ -318,6 +318,79 @@ export const RELICS: RelicEntry[] = [
             },
         ],
     },
+    {
+        // Perfurador de Corações, a relíquia do Ceros (aspectos Air e Earth): o arco longo composto dele. As dádivas são
+        // runas ("Runes as Gifts", GM Core pg. 309): Potência +1 (1º) e Striking (5º), e a maior é Propelling Winds
+        // (GM Core pg. 310: 2 ações, concentrar e manipular, 1×/hora, a relíquia conjura voar em você). O export já traz o
+        // arco como +2 Greater Striking com Shock — o resto o jogador gravou por crafting (a mesa permite) e fica como está;
+        // as runas de dádiva nunca rebaixam a da ficha. O Pathbuilder exporta o arco como "Composite Longbow".
+        id: 'heartpiercer',
+        character: nameStarts('ceros'),
+        name: 'Perfurador de Corações', // i18n-ok: nome próprio da relíquia, dado pelo jogador
+        on: { kind: 'weapon', weapon: 'Composite Longbow' },
+        aspects: ['Air', 'Earth'],
+        description: tr('O arco longo composto do Ceros. As dádivas menores viraram runas — Potência +1 e Striking — e a dádiva maior é Propelling Winds, que o faz voar. O +2, o Greater Striking e a Shock que aparecem na aba Combate vêm da ficha (o jogador os gravou por crafting, pelas regras da mesa). O nível da relíquia é o do personagem.', 'Ceros\' composite longbow. The minor gifts became runes — potency +1 and striking — and the major gift is Propelling Winds, which lets him fly. The +2, greater striking and shock shown in the Combat tab come from the sheet (the player etched them by crafting, under the table\'s rules). The relic\'s level is the character\'s level.'),
+        gifts: [
+            { id: 'weapon-potency', name: 'Weapon Potency (+1)', tier: 'minor', kind: 'rune', rune: { potency: 1 } },
+            { id: 'striking', name: 'Striking', tier: 'minor', kind: 'rune', rune: { striking: 'striking' } },
+            // GM Core pg. 310: 2 ações (concentrar, manipular), 1×/hora; a relíquia conjura fly em você.
+            {
+                id: 'propelling-winds',
+                name: 'Propelling Winds',
+                tier: 'major',
+                kind: 'power',
+                activation: { cost: 2, frequency: tr('uma vez por hora', 'once per hour'), limited: true },
+                facts: () => tr('a relíquia conjura voar em você', 'the relic casts fly targeting you'),
+            },
+        ],
+    },
+    {
+        // Zarroc Sheilvean, a relíquia do Nathaniel (aspectos Death e Fiend): a espada longa dele. Três dádivas da AON, GM Core
+        // pg. 312-313: Death Gaze e Curse Wound (menores) e Fiendish Bargain (maior). A potência +1 e o striking que a ficha
+        // mostra são a regra da casa e o que o jogador gravou por crafting — não dádiva.
+        id: 'zarroc-sheilvean',
+        character: nameStarts('nathaniel'),
+        name: 'Zarroc Sheilvean',
+        on: { kind: 'weapon', weapon: 'Zarroc Sheilvean' },
+        aspects: ['Death', 'Fiend'],
+        description: tr('A espada longa do Nathaniel. As dádivas são da AON: Death Gaze e Curse Wound (menores) e Fiendish Bargain (maior). A potência +1 e o striking da arma vêm da ficha (gravados por crafting, pelas regras da mesa). O nível da relíquia é o do personagem.', 'Nathaniel\'s longsword. The gifts come from AON: Death Gaze and Curse Wound (minor) and Fiendish Bargain (major). The weapon\'s +1 potency and striking come from the sheet (etched by crafting, under the table\'s rules). The relic\'s level is the character\'s level.'),
+        gifts: [
+            // GM Core pg. 312: 2 ações (concentrar, manipular), alcance 9 m, 1d6 vazio a cada 2 níveis (mín. 1d6), Fortitude básica.
+            // Morto-vivo ou cura vazia é curado em 1d6 PV por nível e fica imune por 10 minutos. Sem frequência na AON.
+            {
+                id: 'death-gaze',
+                name: 'Death Gaze',
+                tier: 'minor',
+                kind: 'power',
+                activation: { cost: 2 },
+                facts: (level) => tr(
+                    `${Math.max(1, Math.floor(level / 2))}d6 dano vazio, Fortitude básica, até 9 m; morto-vivo é curado em ${level}d6 PV`,
+                    `${Math.max(1, Math.floor(level / 2))}d6 void damage, basic Fortitude, up to 30 feet; undead heal ${level}d6 HP`,
+                ),
+            },
+            // GM Core pg. 313: reação (concentrar); pré-requisito: a relíquia é arma. Vontade ou o alvo não recupera os PV
+            // daquele Golpe até a próxima preparação diária. Sem frequência na AON.
+            {
+                id: 'curse-wound',
+                name: 'Curse Wound',
+                tier: 'minor',
+                kind: 'power',
+                activation: {
+                    cost: 'reaction',
+                    trigger: tr('seu Golpe com a relíquia causa dano a uma criatura a até 18 m', 'your Strike with the relic damages a creature within 60 feet'),
+                },
+            },
+            // GM Core pg. 313: 1 ação (concentrar), **uma vez por DIA** (o Gamemastery Guide dizia por hora). 3d8+16 PV é fixo.
+            {
+                id: 'fiendish-bargain',
+                name: 'Fiendish Bargain',
+                tier: 'major',
+                kind: 'power',
+                activation: { cost: 1, frequency: tr('uma vez por dia', 'once per day'), limited: true },
+                facts: () => tr('benefício à escolha (neutralizar condição, 3d8+16 PV ou +2 de status nos ataques por 1 min), depois um custo aleatório', 'your choice of boon (counteract a condition, 3d8+16 HP, or +2 status to attack rolls for 1 minute), then a random cost'),
+            },
+        ],
+    },
 ]
 
 export { nameStarts }
