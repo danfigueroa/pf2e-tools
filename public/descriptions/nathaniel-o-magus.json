@@ -1808,6 +1808,19 @@
     "sourceBook": "Impossible Magic, p. 9",
     "description": "Você aprende uma conflux spell do seu hybrid study, e pode conjurar conflux spells adicionais ao selecionar certos talentos. Conflux spells são magias específicas de magus criadas para combate e são um tipo de focus spell. Custa 1 Focus Point para conjurar uma focus spell, e você começa com uma reserva de foco de 1 Focus Point. Você reabastece sua reserva de foco durante suas preparações diárias, e pode recuperar 1 Focus Point gastando 10 minutos usando a atividade Refocus para estudar seu grimório e realizar um regime físico. Focus spells são automaticamente aprimoradas para metade do seu nível arredondado para cima, assim como truques. Focus spells não exigem espaços de magia, e você não pode conjurá-las usando espaços de magia. Certos talentos concedem a você mais focus spells. O máximo de Focus Points que sua reserva de foco pode conter é igual ao número de focus spells que você possui, mas nunca pode ser superior a 3 pontos. As regras completas para focus spells aparecem aqui."
    },
+   "Curse Wound": {
+    "name": "Curse Wound",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Curse",
+     "Unholy"
+    ],
+    "category": "relic",
+    "sourceBook": "GM Core, p. 313",
+    "prerequisites": "A relíquia é uma arma.",
+    "description": "Ativar Reação: (concentrar) Gatilho Seu Strike com sua relíquia causa dano a uma criatura a até 60 pés; Efeito O mal dentro de sua relíquia amaldiçoa o ferimento de um inimigo para garantir que ele não se cure. A criatura alvo do gatilho deve tentar um teste de Vontade ou ficará incapaz de restaurar os Pontos de Vida perdidos pelo dano do Strike do gatilho até suas próximas preparações diárias. Se você usar Curse Wound em uma criatura já afetada pelo seu Curse Wound, sua aplicação anterior expira."
+   },
    "Darkvision": {
     "name": "Darkvision",
     "level": null,
@@ -1816,6 +1829,18 @@
     "category": "familiar-ability",
     "sourceBook": "Player Core, p. 259",
     "description": "Habilidade de Familiar Darkvision Tipo de Habilidade Familiar Seu familiar ganha darkvision."
+   },
+   "Death Gaze": {
+    "name": "Death Gaze",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Void",
+     "Negative"
+    ],
+    "category": "relic",
+    "sourceBook": "GM Core, p. 312",
+    "description": "Ativar Duas Ações: (concentrar, manipular) Efeito Seu olhar faz com que a carne de uma criatura apodreça e definhe. Alveje uma criatura que você possa ver a até 30 pés. Seu olhar causa 1d6 de dano de vazio à criatura para cada 2 níveis que a relíquia possuir (mínimo 1d6; teste básico de Fortitude). Uma criatura morta-viva ou outra criatura com cura de vazio alvo deste efeito é, em vez disso, curada em 1d6 PV por nível da relíquia e fica temporariamente imune a este efeito por 10 minutos."
    },
    "Expert Spellcaster (Magus)": {
     "name": "Expert Spellcaster",
@@ -1826,6 +1851,17 @@
     "className": "Magus",
     "sourceBook": "Impossible Magic, p. 9",
     "description": "Sua compreensão fundamental da magia melhora, tornando suas magias mais difíceis de resistir. Seus graus de proficiência para o modificador de ataque de magia e para a CD de magia aumentam para perito."
+   },
+   "Fiendish Bargain": {
+    "name": "Fiendish Bargain",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Unholy"
+    ],
+    "category": "relic",
+    "sourceBook": "GM Core, p. 313",
+    "description": "Ativar Ação Única: (concentrar) Frequência uma vez por dia; Efeito Você negocia com a força maligna que fortalece sua relíquia por uma dádiva, embora precise trocar algo em retorno. Selecione um dos seguintes benefícios para ganhar. Sua relíquia tenta anular uma condição prejudicial que afeta você. Você recupera 3d8+16 Pontos de Vida. Este é um efeito de cura. Você ganha um bônus de status de +2 em testes de ataque por 1 minuto. Um dos seguintes efeitos determinados aleatoriamente ocorre com você como pagamento, após aplicar o benefício. Você fica stupefied 1 por 1 minuto. Você fica clumsy 1 por 1 minuto. Você perde 1d8 Pontos de Vida. Você sofre uma penalidade de –1 em testes de dano por 1 minuto."
    },
    "Intelligence": {
     "name": "Intelligence",

@@ -635,6 +635,30 @@
     "sourceBook": "Player Core 2, p. 288",
     "description": "Elixires da vida aceleram os processos de cura natural e o sistema imunológico de uma criatura viva. Ao beber este elixir, você recupera o número listado de Pontos de Vida e ganha um bônus de item em testes de resistência contra doenças e venenos por 10 minutos. Elixir of Life (Minor) Fonte Player Core 2 pg. 288, GM Core pg. 247, Core Rulebook pg. 548 Preço 3 po Volume L O elixir restaura 1d6 Pontos de Vida, e o bônus é +1. Elixir of Life (Lesser) Fonte Player Core 2 pg. 288, GM Core pg. 247, Core Rulebook pg. 548 Preço 30 po Volume L O elixir restaura 3d6+6 Pontos de Vida, e o bônus é +1. Elixir of Life (Moderate) Fonte Player Core 2 pg. 288, GM Core pg. 247, Core Rulebook pg. 548 Preço 150 po Volume L O elixir restaura 5d6+12 Pontos de Vida, e o bônus é +2. Elixir of Life (Greater) Fonte Player Core 2 pg. 288, GM Core pg. 247, Core Rulebook pg. 548 Preço 600 po Volume L O elixir restaura 7d6+18 Pontos de Vida, e o bônus é +2. Elixir of Life (Major) Fonte Player Core 2 pg. 288, GM Core pg. 247, Core Rulebook pg. 548 Preço 1.300 po Volume L O elixir restaura 8d6+21 Pontos de Vida, e o bônus é +3. Elixir of Life (True) Fonte Player Core 2 pg. 288, GM Core pg. 247, Core Rulebook pg. 548 Preço 8.000 po Volume L O elixir restaura 10d6+27 Pontos de Vida, e o bônus é +4."
    },
+   "Flaming": {
+    "name": "Flaming",
+    "level": 8,
+    "actions": "",
+    "traits": [
+     "Fire",
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 237",
+    "description": "Uma arma com esta runa é fortalecida por chamas cintilantes. A arma causa 1d6 de dano de fogo adicional em um Strike bem-sucedido, mais 1d10 de dano de fogo persistente em um acerto crítico. Flaming Fonte GM Core pg. 237, Core Rulebook pg. 584 Preço 500 po Flaming (Greater) Fonte GM Core pg. 237, Core Rulebook pg. 584 Preço 6.500 po Aumente o dano persistente em um acerto crítico para 2d10. O dano de fogo causado por esta arma (incluindo o dano de fogo persistente) ignora a resistência a fogo do alvo."
+   },
+   "Flaming (Greater)": {
+    "name": "Flaming (Greater)",
+    "level": 15,
+    "actions": "",
+    "traits": [
+     "Fire",
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 237",
+    "description": "Uma arma com esta runa é fortalecida por chamas cintilantes. A arma causa 1d6 de dano de fogo adicional em um Strike bem-sucedido, mais 1d10 de dano de fogo persistente em um acerto crítico. Flaming Fonte GM Core pg. 237, Core Rulebook pg. 584 Preço 500 po Flaming (Greater) Fonte GM Core pg. 237, Core Rulebook pg. 584 Preço 6.500 po Aumente o dano persistente em um acerto crítico para 2d10. O dano de fogo causado por esta arma (incluindo o dano de fogo persistente) ignora a resistência a fogo do alvo."
+   },
    "Greataxe": {
     "name": "Greataxe",
     "level": 0,
@@ -645,6 +669,17 @@
     "category": "weapon",
     "sourceBook": "Player Core, p. 278",
     "description": "Este machado de batalha grande é pesado demais para ser empunhado com apenas uma mão. Muitos machados grandes incorporam duas lâminas, e eles são frequentemente \"barbudos\", possuindo um gancho na parte inferior para aumentar a força de seu poder de corte. Critical Specialization Effects Fonte Core Rulebook pg. 283 Certos talentos, características de classe, runas de arma e outros efeitos podem conceder a você benefícios adicionais quando você realiza um Strike com certas armas e obtém um sucesso crítico. Isso é chamado de efeito de especialização crítica. O efeito exato depende de qual grupo de arma sua arma pertence, conforme listado abaixo. Você sempre pode decidir não adicionar o efeito de especialização crítica da sua arma. Clique aqui para as regras completas sobre Critical Specialization Effects. Specific Magic Weapons Blackaxe, Jorngarl's Harm, Kithrender, Retribution Axe"
+   },
+   "Shifting": {
+    "name": "Shifting",
+    "level": 6,
+    "actions": "",
+    "traits": [
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 238",
+    "description": "Com um momento de manipulação, você pode transformar esta arma em uma arma diferente com uma forma semelhante. Ativar—Shift Weapon Ação Única: (manipulate) Efeito A arma assume a forma de outra arma corpo a corpo que exija o mesmo número de mãos para ser empunhada. As runas da arma e qualquer material precioso do qual ela seja feita aplicam-se à nova forma da arma. Quaisquer runas de propriedade que não possam ser aplicadas à nova forma são suprimidas até que o item assuma uma forma à qual elas possam ser aplicadas. As armas nas quais uma shifting weapon pode se transformar baseiam-se nos atributos básicos da arma, portanto, consulte a entrada de Mãos da arma na tabela de armas para ver no que ela pode se transformar. Por exemplo, uma bastard sword exige uma mão, embora receba um benefício em duas mãos do traço two-hand. Portanto, uma shifting bastard sword poderia se transformar em uma longsword, mas não em uma greatsword. Ativar esta runa não altera quantas mãos você está usando atualmente para segurar a arma."
    },
    "Studded Leather Armor": {
     "name": "Studded Leather Armor",

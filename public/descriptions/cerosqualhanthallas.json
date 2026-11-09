@@ -1272,6 +1272,17 @@
     "sourceBook": "Player Core, p. 152",
     "description": "Você tem acuidade altamente desenvolvida e atenção aos detalhes. Seu grau de proficiência em Percepção aumenta para mestre."
    },
+   "Propelling Winds": {
+    "name": "Propelling Winds",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Air"
+    ],
+    "category": "relic",
+    "sourceBook": "GM Core, p. 310",
+    "description": "Ativar Duas Ações: (concentrate, manipulate) Frequência uma vez por hora; Efeito A relíquia conjura fly tendo você como alvo."
+   },
    "Ranger Expertise": {
     "name": "Ranger Expertise",
     "level": 9,
@@ -1480,6 +1491,28 @@
     "category": "weapon",
     "sourceBook": "Player Core, p. 278",
     "description": "Essas lâminas vêm em uma variedade de formatos e estilos, mas tipicamente possuem 60 centímetros de comprimento. Efeitos de Especialização Crítica Fonte Core Rulebook pg. 283 Certos talentos, características de classe, runas de arma e outros efeitos podem conceder a você benefícios adicionais quando você realiza um Strike com certas armas e obtém um sucesso crítico. Isso é chamado de efeito de especialização crítica. O efeito exato depende de qual grupo de arma sua arma pertence, conforme listado abaixo. Você sempre pode decidir não adicionar o efeito de especialização crítica da sua arma. Clique aqui para as regras completas sobre Efeitos de Especialização Crítica. Armas Mágicas Específicas Blade of Four Energies, Celestial Peachwood Sword, Gloom Blade, Radiant Victory"
+   },
+   "Striking": {
+    "name": "Striking",
+    "level": 4,
+    "actions": "",
+    "traits": [
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 236",
+    "description": "Uma runa striking armazena magia destrutiva na arma, aumentando os dados de dano da arma que ela causa para dois em vez de um. Por exemplo, uma adaga +1 striking causaria 2d4 de dano em vez de 1d4 de dano. Você pode aprimorar a runa striking já gravada em uma arma para uma versão mais forte, aumentando os valores da runa existente para os da nova runa. O Preço do aprimoramento é a diferença entre os Preços das duas runas. Striking Fonte GM Core pág. 236, Core Rulebook pág. 581 Preço 65 po Striking (Greater) Fonte GM Core pág. 236, Core Rulebook pág. 581 Preço 1.065 po A arma causa três dados de dano da arma. Striking (Major) Fonte GM Core pág. 236, Core Rulebook pág. 581 Preço 31.065 po A arma causa quatro dados de dano da arma."
+   },
+   "Weapon Potency (+1)": {
+    "name": "Weapon Potency (+1)",
+    "level": 2,
+    "actions": "",
+    "traits": [
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 236",
+    "description": "Aprimoramentos mágicos fazem esta arma acertar com precisão. Testes de ataque com esta arma ganham um bônus de item de +1, e a arma pode ser gravada com uma runa de propriedade. Você pode aprimorar a runa Weapon Potency já gravada em uma arma para uma versão mais forte, aumentando os valores da runa existente para os da nova runa. O Preço do aprimoramento é a diferença entre os preços das duas runas. Weapon Potency (+1) Fonte GM Core pág. 236, Core Rulebook pág. 581 Preço 35 po Requisitos de Craft Você é perito em Crafting. Weapon Potency (+2) Fonte GM Core pág. 236, Core Rulebook pág. 581 Preço 935 po O bônus de item para testes de ataque é +2, e a arma pode ser gravada com duas runas de propriedade. Requisitos de Craft Você é mestre em Crafting. Weapon Potency (+3) Fonte GM Core pág. 236, Core Rulebook pág. 581 Preço 8.935 po O bônus de item para testes de ataque é +3, e a arma pode ser gravada com três runas de propriedade. Requisitos de Craft Você é lendário em Crafting."
    }
   }
  }

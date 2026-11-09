@@ -1809,6 +1809,19 @@
     "sourceBook": "Impossible Magic, p. 9",
     "description": "You learn a conflux spell from your hybrid study, and you can cast additional conflux spells by selecting certain feats. Conflux spells are magus-specific spells created for combat and are a type of focus spell. It costs 1 Focus Point to cast a focus spell, and you start with a focus pool of 1 Focus Point. You refill your focus pool during your daily preparations, and you can regain 1 Focus Point by spending 10 minutes using the Refocus activity to both study your spellbook and perform a physical regimen. Focus spells are automatically heightened to half your level rounded up, much like cantrips. Focus spells don't require spell slots, and you can't cast them using spell slots. Certain feats give you more focus spells. The maximum Focus Points your focus pool can hold is equal to the number of focus spells you have, but it can never be more than 3 points. The full rules for focus spells appear here."
    },
+   "Curse Wound": {
+    "name": "Curse Wound",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Curse",
+     "Unholy"
+    ],
+    "category": "relic",
+    "sourceBook": "GM Core, p. 313",
+    "prerequisites": "The relic is a weapon.",
+    "description": "Activate Reaction: (concentrate) Trigger Your Strike with your relic deals damage to a creature within 60 feet; Effect The evil within your relic curses an enemy's wound to ensure they won't heal. The triggering creature must attempt a Will save or be unable to restore the Hit Points lost by damage from the triggering Strike until its next daily preparations. If you use Curse Wound on a creature already affected by your Curse Wound, your previous application expires."
+   },
    "Darkvision": {
     "name": "Darkvision",
     "level": null,
@@ -1817,6 +1830,18 @@
     "category": "familiar-ability",
     "sourceBook": "Player Core, p. 259",
     "description": "Familiar Ability Darkvision Ability Type Familiar Your familiar gains darkvision."
+   },
+   "Death Gaze": {
+    "name": "Death Gaze",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Void",
+     "Negative"
+    ],
+    "category": "relic",
+    "sourceBook": "GM Core, p. 312",
+    "description": "Activate Two Actions: (concentrate, manipulate) Effect Your stare causes a creature's flesh to rot and wither away. Target a creature you can see within 30 feet. Your stare deals 1d6 void damage to the creature for every 2 levels the relic has (minimum 1d6; basic Fortitude save). An undead creature or other creature with void healing targeted this way is instead healed 1d6 HP per level of the relic and is temporarily immune to this effect for 10 minutes."
    },
    "Expert Spellcaster (Magus)": {
     "name": "Expert Spellcaster",
@@ -1827,6 +1852,17 @@
     "className": "Magus",
     "sourceBook": "Impossible Magic, p. 9",
     "description": "Your fundamental understanding of magic improves, making your spells harder to resist. Your proficiency ranks for your spell attack modifier and spell DC increase to expert."
+   },
+   "Fiendish Bargain": {
+    "name": "Fiendish Bargain",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Unholy"
+    ],
+    "category": "relic",
+    "sourceBook": "GM Core, p. 313",
+    "description": "Activate Single Action: (concentrate) Frequency once per day; Effect You bargain with the evil force empowering your relic for a boon, though you must trade something in return. Select one of the following benefits to gain. Your relic attempts to counteract a harmful condition affecting you. You regain 3d8+16 Hit Points. This is a healing effect. You gain a +2 status bonus to attack rolls for 1 minute. One of the following randomly determined effects occurs to you in payment, after applying the benefit. You are stupefied 1 for 1 minute. You are clumsy 1 for 1 minute. You lose 1d8 Hit Points. You take a –1 penalty to damage rolls for 1 minute."
    },
    "Intelligence": {
     "name": "Intelligence",

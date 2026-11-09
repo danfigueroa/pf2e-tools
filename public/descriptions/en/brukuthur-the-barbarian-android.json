@@ -638,6 +638,30 @@
     "sourceBook": "Player Core 2, p. 288",
     "description": "Elixirs of life accelerate a living creature's natural healing processes and immune system. Upon drinking this elixir, you regain the listed number of Hit Points and gain an item bonus to saving throws against diseases and poisons for 10 minutes. Elixir of Life (Minor) Source Player Core 2 pg. 288, GM Core pg. 247, Core Rulebook pg. 548 Price 3 gp Bulk L\n\nThe elixir restores 1d6 Hit Points, and the bonus is +1. Elixir of Life (Lesser) Source Player Core 2 pg. 288, GM Core pg. 247, Core Rulebook pg. 548 Price 30 gp Bulk L\n\nThe elixir restores 3d6+6 Hit Points, and the bonus is +1. Elixir of Life (Moderate) Source Player Core 2 pg. 288, GM Core pg. 247, Core Rulebook pg. 548 Price 150 gp Bulk L\n\nThe elixir restores 5d6+12 Hit Points, and the bonus is +2. Elixir of Life (Greater) Source Player Core 2 pg. 288, GM Core pg. 247, Core Rulebook pg. 548 Price 600 gp Bulk L\n\nThe elixir restores 7d6+18 Hit Points, and the bonus is +2. Elixir of Life (Major) Source Player Core 2 pg. 288, GM Core pg. 247, Core Rulebook pg. 548 Price 1,300 gp Bulk L\n\nThe elixir restores 8d6+21 Hit Points, and the bonus is +3. Elixir of Life (True) Source Player Core 2 pg. 288, GM Core pg. 247, Core Rulebook pg. 548 Price 8,000 gp Bulk L\n\nThe elixir restores 10d6+27 Hit Points, and the bonus is +4."
    },
+   "Flaming": {
+    "name": "Flaming",
+    "level": 8,
+    "actions": "",
+    "traits": [
+     "Fire",
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 237",
+    "description": "A weapon with this rune is empowered by flickering flame. The weapon deals an additional 1d6 fire damage on a successful Strike, plus 1d10 persistent fire damage on a critical hit. Flaming Source GM Core pg. 237, Core Rulebook pg. 584 Price 500 gp Flaming (Greater) Source GM Core pg. 237, Core Rulebook pg. 584 Price 6,500 gp\n\nIncrease the persistent damage on a critical hit to 2d10. Fire damage dealt by this weapon (including the persistent fire damage) ignores the target's fire resistance."
+   },
+   "Flaming (Greater)": {
+    "name": "Flaming (Greater)",
+    "level": 15,
+    "actions": "",
+    "traits": [
+     "Fire",
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 237",
+    "description": "A weapon with this rune is empowered by flickering flame. The weapon deals an additional 1d6 fire damage on a successful Strike, plus 1d10 persistent fire damage on a critical hit. Flaming Source GM Core pg. 237, Core Rulebook pg. 584 Price 500 gp Flaming (Greater) Source GM Core pg. 237, Core Rulebook pg. 584 Price 6,500 gp\n\nIncrease the persistent damage on a critical hit to 2d10. Fire damage dealt by this weapon (including the persistent fire damage) ignores the target's fire resistance."
+   },
    "Greataxe": {
     "name": "Greataxe",
     "level": 0,
@@ -648,6 +672,17 @@
     "category": "weapon",
     "sourceBook": "Player Core, p. 278",
     "description": "This large battle axe is too heavy to wield with only one hand. Many greataxes incorporate two blades, and they are often “bearded,” having a hook at the bottom to increase the strength of their chopping power. Critical Specialization Effects Source Core Rulebook pg. 283 Certain feats, class features, weapon runes, and other effects can grant you additional benefits when you make a Strike with certain weapons and get a critical success. This is called a critical specialization effect. The exact effect depends on which weapon group your weapon belongs to, as listed below. You can always decide not to add the critical specialization effect of your weapon. Click here for the full rules on Critical Specialization Effects. Specific Magic Weapons Blackaxe, Jorngarl's Harm, Kithrender, Retribution Axe"
+   },
+   "Shifting": {
+    "name": "Shifting",
+    "level": 6,
+    "actions": "",
+    "traits": [
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 238",
+    "description": "With a moment of manipulation, you can shift this weapon into a different weapon with a similar form. Activate—Shift Weapon Single Action: (manipulate) Effect The weapon takes the shape of another melee weapon that requires the same number of hands to wield. The weapon's runes and any precious material it's made of apply to the weapon's new shape. Any property runes that can't apply to the new form are suppressed until the item takes a shape to which they can apply. The weapons a shifting weapon can turn into are based on the base attributes of the weapon, so reference the weapon's Hands entry in the weapons table to see what it can turn into. For example, a bastard sword requires one hand, even though it gets a benefit in two hands from the two-hand trait. Therefore, a shifting bastard sword could turn into a longsword, but not a greatsword. Activating this rune doesn't change how many hands you're currently using to hold the weapon."
    },
    "Studded Leather Armor": {
     "name": "Studded Leather Armor",
