@@ -2,8 +2,9 @@
 // descrições pré-traduzidas (`descriptionNames.ts`) precisa dos MESMOS nomes que
 // a aba busca na AON ao tocar num item.
 
-import type { BuildInfo } from '../../pathbuilder/types'
+import type { BuildInfo, Weapon } from '../../pathbuilder/types'
 import { itemDisplayName } from './customRunes'
+import { relicNameOfWeapon } from './relics'
 import { tr } from '../../i18n'
 
 /** Uma linha do inventário, já normalizada venha de onde vier. */
@@ -27,9 +28,16 @@ export interface ItemRow {
  * as exporta em listas próprias (`weapons`/`armor`, usadas na aba de Combate) —
  * então elas sumiam daqui. A lista junta as três, sem tocar no JSON da ficha.
  */
+function relicLabel(build: BuildInfo, w: Weapon): string {
+    const technical = itemDisplayName(build, w, 'weapon')
+    const relic = relicNameOfWeapon(build, w)
+    return relic && relic !== technical ? `${relic} — ${technical}` : technical
+}
+
 export function inventoryRows(build: BuildInfo): ItemRow[] {
     const weapons = (build.weapons ?? []).map((w) => ({
-        label: itemDisplayName(build, w, 'weapon'),
+        // Relíquia: o nome próprio, com o nome técnico (runas e tudo) ao lado — é aqui que ele mora.
+        label: relicLabel(build, w),
         name: w.name,
         qty: w.qty,
         sheetQty: w.qty,

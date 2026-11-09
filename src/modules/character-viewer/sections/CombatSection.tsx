@@ -13,6 +13,7 @@ import {
 import { unarmedAttacks } from '../unarmed'
 import { magicWeaponRules, type MagicWeaponRules } from '../magicWeapons'
 import { customRunesOf, itemDisplayName, itemRuneNames, type CustomRune } from '../customRunes'
+import { relicNameOfWeapon } from '../relics'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
 import type { SizeEffectApi } from '../components/useSizeEffect'
 import { SIZE_EFFECTS, sizeEffectApplies, sizeLabel, type SizeEffectId } from '../sizeEffects'
@@ -98,6 +99,10 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect, attackNa
                 const known = strike.traits.known
                 const plan = known ? planStrike(build, strike, mods, DEFAULT_STRIKE_OPTIONS) : null
                 const shown = plan ? plan.attackTotal : w.attack + anyAttack
+                // Relíquia: o nome dela é o título (o do jogador, se ele renomeou); o técnico da arma fica no Inventário.
+                const technical = itemDisplayName(build, w, 'weapon')
+                const relicName = relicNameOfWeapon(build, w)
+                const nickname = attackNames.names[weaponNameKey(build, w)] ?? (relicName && relicName !== technical ? relicName : undefined)
                 return (
                 <Card key={`${w.name}-${idx}`}>
                     <CardContent>
@@ -106,8 +111,8 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect, attackNa
                             <Box sx={{ flex: { xs: '1 1 auto', sm: '1 1 200px' }, minWidth: 0, textAlign: 'center' }}>
                                 <AttackTitle
                                     titleVariant="h6"
-                                    nickname={attackNames.names[weaponNameKey(build, w)]}
-                                    original={itemDisplayName(build, w, 'weapon')}
+                                    nickname={nickname}
+                                    original={technical}
                                     onEdit={() => setRenaming({ key: weaponNameKey(build, w), original: itemDisplayName(build, w, 'weapon') })}
                                 />
                                 <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.75, justifyContent: 'center' }}>
@@ -133,8 +138,8 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect, attackNa
                                 damage={`${weaponDamageFormula(w)} ${damageTypeLabel(w.damageType)}`.trim()}
                                 bonuses={strike.traits.ranged ? [] : meleeBonusParts(mods, { agile: strike.traits.agile, name: w.name })}
                                 extra={w.extraDamage?.length ? w.extraDamage.map((d) => `+ ${d}`).join(' ') : undefined}
-                                onRoll={() => onRoll({ kind: 'weapon', weapon: w, nickname: attackNames.names[weaponNameKey(build, w)] })}
-                                rollLabel={attackNames.names[weaponNameKey(build, w)] ?? (w.display || w.name)}
+                                onRoll={() => onRoll({ kind: 'weapon', weapon: w, nickname })}
+                                rollLabel={nickname ?? (w.display || w.name)}
                             />
                         </Stack>
                         <WeaponProfiles weapon={w} conditionDelta={shown - w.attack} />

@@ -455,6 +455,18 @@ export function relicsOf(build: BuildInfo, catalog: RelicEntry[] = RELICS): Reli
     return catalog.filter((r) => r.character(build))
 }
 
+/**
+ * O nome próprio da relíquia que mora nesta arma, ou null. O Combate mostra ele no lugar do nome técnico do
+ * Pathbuilder ("+2 Striking (Greater) Composite Longbow"), que fica no Inventário. Só apresentação: as regras
+ * seguem casando pelo `name` original.
+ */
+export function relicNameOfWeapon(build: BuildInfo, w: Weapon, catalog: RelicEntry[] = RELICS): string | null {
+    for (const relic of relicsOf(build, catalog)) {
+        if (relic.on?.kind === 'weapon' && (sameRune(relic.on.weapon, w.name) || sameRune(relic.on.weapon, w.display ?? ''))) return relic.name
+    }
+    return null
+}
+
 /** Nível em que a dádiva da posição `index` libera. */
 export const giftMinLevel = (gift: RelicGift, index: number): number =>
     gift.minLevel ?? GIFT_LEVELS[Math.min(index, GIFT_LEVELS.length - 1)]

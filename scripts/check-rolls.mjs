@@ -943,6 +943,14 @@ eq(plain.combatants.length, 3, 'Monstro comum (sem dono) pode repetir à vontade
     ok(sword.pot === sword0.pot && sword.str === 'striking' && sword.attack === sword0.attack, 'Zarroc Sheilvean: +1 striking, ataque como a ficha')
     ok(zs.gifts.map((g) => g.id).join() === 'death-gaze,curse-wound,fiendish-bargain', 'Zarroc Sheilvean: as três dádivas na ordem 1/5/9')
     ok(zs.gifts[2].activation.cost === 1 && zs.gifts[2].activation.frequency && zs.gifts[1].activation.cost === 'reaction', 'Zarroc Sheilvean: Fiendish Bargain 1 ação 1×/dia, Curse Wound reação')
+
+    // O Combate mostra o nome da relíquia; o nome técnico (runas) fica no Inventário.
+    const inv = await import('../src/modules/character-viewer/inventory.ts')
+    eq(relics.relicNameOfWeapon(ceros, was), 'Perfurador de Corações', 'Ceros: o arco aparece no Combate como Perfurador de Corações')
+    ok(!relics.relicNameOfWeapon(ceros, { ...was, name: 'Shortsword', display: '' }), 'Arma que não é relíquia não ganha nome de relíquia')
+    ok(inv.inventoryRows(ceros).some((r) => r.name === 'Composite Longbow' && r.label.startsWith('Perfurador de Corações — ') && /Greater/.test(r.label)), 'Inventário do Ceros: nome da relíquia + nome técnico com as runas')
+    eq(relics.relicNameOfWeapon(nat, sword0), 'Zarroc Sheilvean', 'Nathaniel: a espada se chama Zarroc Sheilvean')
+    ok(inv.inventoryRows(nat).some((r) => r.label === 'Zarroc Sheilvean'), 'Inventário do Nathaniel: sem duplicar o nome (o export já o traz)')
 }
 
 // ── Enquadramento da imagem do token (Modo GM) ───────────────────────────────
