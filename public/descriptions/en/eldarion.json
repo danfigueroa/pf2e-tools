@@ -471,6 +471,18 @@
     "sourceBook": "War of Immortals, p. 79",
     "description": "Edicts leap without being sure you’ll land unharmed, test your reflexes by maneuvering through the spaces of significantly more powerful enemies Anathema maneuver around an enemy when tumbling through their space is a viable option, use safety measures to attempt acrobatic stunts"
    },
+   "Dark Roads": {
+    "name": "Dark Roads",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Shadow",
+     "Teleportation"
+    ],
+    "category": "relic",
+    "sourceBook": "GM Core, p. 318",
+    "description": "Activate Two Actions: (concentrate) Effect Your relic creates a path from your shadow to a nearby one, teleporting you and any items you're wearing or holding from your current space to an unoccupied one within 30 feet that you can see. You can't use the dark roads gift again for 1d4 rounds. If the destination is not within an area of bright light, the range is instead 60 feet. If this would bring another creature with you—even if you're carrying it in an extradimensional container—the gift fails."
+   },
    "Debilitating Strike": {
     "name": "Debilitating Strike",
     "level": 9,
@@ -509,6 +521,17 @@
     "category": "rules",
     "sourceBook": "Player Core, p. 433",
     "description": "Rules Low-Light Vision A creature with low-light vision can see in dim light as though it were bright light, so it ignores the concealed condition due to dim light."
+   },
+   "Obscure": {
+    "name": "Obscure",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Shadow"
+    ],
+    "category": "relic",
+    "sourceBook": "GM Core, p. 317",
+    "description": "Your relic absorbs light and wraps shadow around you, hiding you in darkness. As long as you are in dim light in an area of shadows, you can attempt a Stealth check to Hide, even if you aren't concealed against the creature, such as with a creature with darkvision."
    },
    "Opportune Riposte": {
     "name": "Opportune Riposte",
@@ -644,6 +667,17 @@
    }
   },
   "item": {
+   "Armor Potency (+1)": {
+    "name": "Armor Potency (+1)",
+    "level": 5,
+    "actions": "",
+    "traits": [
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 226",
+    "description": "Magic wards deflect attacks. Increase the armor's item bonus to AC by 1. The armor can be etched with one property rune. You can upgrade the armor potency rune already etched on a suit of armor using the normal process for upgrading items and runes."
+   },
    "Breath of the Mantis God": {
     "name": "Breath of the Mantis God",
     "level": 10,
@@ -686,6 +720,17 @@
     "sourceBook": "GM Core, p. 242",
     "description": "As black as coal, this blade grows more potent in darkness. While in bright light, it functions as a +1 shortsword and doesn't appear to radiate a magic aura to detect magic or similar spells unless the spells are 4th rank or higher. In dim light or darkness, the gloom blade becomes a +2 striking shortsword. Whenever you use the gloom blade to attack a creature you're undetected by, you deal 1d6 additional precision damage. To upgrade the gloom blade's fundamental runes, start with the base +1 shortsword, but if you improve it beyond a +2 striking shortsword, the runes apply in dim light or darkness as well."
    },
+   "Resilient": {
+    "name": "Resilient",
+    "level": 8,
+    "actions": "",
+    "traits": [
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 226",
+    "description": "Resilient runes imbue armor with additional protective magic. This grants the wearer a +1 item bonus to saving throws. You can upgrade the resilient rune already etched on a suit of armor using the normal process for upgrading items and runes."
+   },
    "Ring of Climbing": {
     "name": "Ring of Climbing",
     "level": 12,
@@ -697,6 +742,19 @@
     "category": "equipment",
     "sourceBook": "GM Core, p. 294",
     "description": "Claw-like prongs on this thick golden band bears extend to dig deep into sheer surfaces when you are Climbing. This ring grants you a climb Speed equal to half your land Speed. Penalties to your Speed (including those from your armor) apply before halving."
+   },
+   "Shadow Weaver": {
+    "name": "Shadow Weaver",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Relic",
+     "Shadow",
+     "Luck"
+    ],
+    "category": "relic",
+    "sourceBook": "Table relic",
+    "description": "The wardrobe of a shadow-weaver, which manifests as a hooded cloak. It is clothing that counts as armor: the sheet lists it as light armor with +1 armor potency and a resilient rune, plus the Shadow property rune. Custom relic of the table (aspects Shadow and Luck); its gifts are in the Relic card in the Inventory."
    },
    "Toxic Effluence": {
     "name": "Toxic Effluence",

@@ -471,6 +471,18 @@
     "sourceBook": "War of Immortals, p. 79",
     "description": "Editos saltam sem ter certeza de que pousarão ilesos, teste seus reflexos ao manobrar pelos espaços de inimigos significativamente mais poderosos. Anathema manobrar ao redor de um inimigo quando rolar através do seu espaço é uma opção viável, use medidas de segurança para tentar acrobacias."
    },
+   "Dark Roads": {
+    "name": "Dark Roads",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Shadow",
+     "Teleportation"
+    ],
+    "category": "relic",
+    "sourceBook": "GM Core, p. 318",
+    "description": "Ativar Duas Ações: (concentrar) Efeito Sua relíquia cria um caminho da sua sombra até uma próxima, teleportando você e quaisquer itens que você esteja vestindo ou segurando do seu espaço atual para um espaço desocupado dentro de 30 pés que você possa ver. Você não pode usar a dádiva dark roads novamente por 1d4 rodadas. Se o destino não estiver dentro de uma área de luz plena, o alcance é de 60 pés. Se isso trouxer outra criatura com você — mesmo que você a esteja carregando em um recipiente extradimensional — a dádiva falha."
+   },
    "Debilitating Strike": {
     "name": "Debilitating Strike",
     "level": 9,
@@ -509,6 +521,17 @@
     "category": "rules",
     "sourceBook": "Player Core, p. 433",
     "description": "Regras Low-Light Vision Uma criatura com Low-Light Vision pode enxergar na penumbra como se fosse luz plena, portanto ela ignora a condição concealed devido à penumbra."
+   },
+   "Obscure": {
+    "name": "Obscure",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Shadow"
+    ],
+    "category": "relic",
+    "sourceBook": "GM Core, p. 317",
+    "description": "Sua relíquia absorve luz e envolve você em sombras, escondendo-o na escuridão. Enquanto você estiver em luz fraca em uma área de sombras, você pode tentar um teste de Stealth para Hide, mesmo que você não esteja oculto contra a criatura, como no caso de uma criatura com darkvision."
    },
    "Opportune Riposte": {
     "name": "Opportune Riposte",
@@ -644,6 +667,17 @@
    }
   },
   "item": {
+   "Armor Potency (+1)": {
+    "name": "Armor Potency (+1)",
+    "level": 5,
+    "actions": "",
+    "traits": [
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 226",
+    "description": "Proteções mágicas desviam ataques. Aumente o bônus de item da armadura na CA em 1. A armadura pode ser gravada com uma runa de propriedade. Você pode aprimorar a runa de potência de armadura já gravada em um conjunto de armadura usando o processo normal para aprimorar itens e runas."
+   },
    "Breath of the Mantis God": {
     "name": "Breath of the Mantis God",
     "level": 10,
@@ -686,6 +720,17 @@
     "sourceBook": "GM Core, p. 242",
     "description": "Tão negra quanto carvão, esta lâmina torna-se mais potente na escuridão. Enquanto estiver sob luz plena, ela funciona como uma shortsword +1 e não parece irradiar uma aura mágica para detect magic ou magias similares, a menos que as magias sejam de 4º nível ou superior. Em luz fraca ou escuridão, a gloom blade torna-se uma shortsword +2 striking. Sempre que você usa a gloom blade para atacar uma criatura de quem você não foi detectado, você causa 1d6 de dano de precisão adicional. Para aprimorar as runas fundamentais da gloom blade, comece com a shortsword +1 base, mas se você a melhorar além de uma shortsword +2 striking, as runas se aplicam em luz fraca ou escuridão também."
    },
+   "Resilient": {
+    "name": "Resilient",
+    "level": 8,
+    "actions": "",
+    "traits": [
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 226",
+    "description": "As runas resilient imbuem a armadura com magia protetora adicional. Isso concede ao usuário um bônus de item de +1 em testes de resistência. Você pode aprimorar a runa resilient já gravada em um conjunto de armadura usando o processo normal para aprimorar itens e runas."
+   },
    "Ring of Climbing": {
     "name": "Ring of Climbing",
     "level": 12,
@@ -697,6 +742,19 @@
     "category": "equipment",
     "sourceBook": "GM Core, p. 294",
     "description": "Pontas semelhantes a garras nesta grossa faixa dourada se estendem para cavar profundamente em superfícies verticais quando você está realizando a ação Climb. Este anel concede a você um deslocamento de escalada igual à metade do seu deslocamento terrestre. Penalidades ao seu deslocamento (incluindo aquelas provenientes de sua armadura) aplicam-se antes da divisão pela metade."
+   },
+   "Shadow Weaver": {
+    "name": "Shadow Weaver",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Relic",
+     "Shadow",
+     "Luck"
+    ],
+    "category": "relic",
+    "sourceBook": "Relíquia da mesa",
+    "description": "As vestes do Eldarion, que se manifestam como um manto com capuz. É roupa que conta como armadura: a ficha a lista como armadura leve com potência de armadura +1 e a runa resilient, além da runa de propriedade Shadow. Relíquia da mesa (aspectos Shadow e Luck); as dádivas estão no cartão da relíquia, no Inventário."
    },
    "Toxic Effluence": {
     "name": "Toxic Effluence",
