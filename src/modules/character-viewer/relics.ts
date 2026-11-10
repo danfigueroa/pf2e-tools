@@ -46,6 +46,9 @@ export interface RelicRune {
     striking?: 'striking' | 'greater striking' | 'major striking'
     /** Runas de propriedade (nomes da AON, "Flaming"). */
     property?: string[]
+    /** Runas fundamentais de ARMADURA (só exibição: a CA e os testes da ficha já as trazem e nunca são rebaixados). */
+    armorPotency?: 1 | 2 | 3
+    resilient?: 'resilient' | 'greater resilient' | 'major resilient'
 }
 
 export interface RelicGift {
@@ -90,7 +93,8 @@ export type RelicEmotion = keyof typeof EMOTION_SURGE
 
 export type RelicBase =
     | { kind: 'weapon'; weapon: string }
-    | { kind: 'armor' }
+    /** `armor` = o nome da armadura na ficha; `clothing` = a relíquia é roupa que conta como armadura (manto, vestes). */
+    | { kind: 'armor'; armor: string; clothing?: boolean }
     | { kind: 'item'; name: string }
 
 /**
@@ -391,6 +395,44 @@ export const RELICS: RelicEntry[] = [
             },
         ],
     },
+    {
+        // Shadow Weaver, a relíquia do Eldarion (aspectos Shadow e Luck): as vestes dele, que se manifestam como um manto com
+        // capuz. Conta como armadura, mas é roupa (a ficha a lista como armadura leve +1 resilient). Dádivas: as runas
+        // fundamentais de armadura (Armor Potency +1 e Resilient, "Runes as Gifts", GM Core pg. 309) como menores, Obscure
+        // (menor, Shadow, GM Core pg. 317) e Dark Roads (maior, Shadow, GM Core pg. 318). A CA e os testes da ficha já trazem
+        // as runas; elas aqui são só exibição e nunca rebaixam o que a ficha tem.
+        id: 'shadow-weaver',
+        character: nameStarts('eldarion'),
+        name: 'Shadow Weaver', // i18n-ok: nome próprio da relíquia, dado pelo jogador
+        on: { kind: 'armor', armor: 'Shadow Weaver', clothing: true },
+        aspects: ['Shadow', 'Luck'],
+        description: tr('As vestes do Eldarion, que se manifestam como um manto com capuz. Contam como armadura, mas são roupa. As dádivas menores são as runas Armor Potency +1 e Resilient e Obscure; a dádiva maior é Dark Roads. A CA e os testes da ficha já incluem as runas. O nível da relíquia é o do personagem.', 'Eldarion\'s garments, which manifest as a hooded cloak. They count as armor but are clothing. The minor gifts are the Armor Potency +1 and Resilient runes and Obscure; the major gift is Dark Roads. The sheet\'s AC and checks already include the runes. The relic\'s level is the character\'s level.'),
+        gifts: [
+            { id: 'armor-potency', name: 'Armor Potency (+1)', tier: 'minor', kind: 'rune', rune: { armorPotency: 1 } },
+            { id: 'resilient', name: 'Resilient', tier: 'minor', kind: 'rune', rune: { resilient: 'resilient' } },
+            // GM Core pg. 317: passiva (sem ativação). Em penumbra numa área de sombras, dá para tentar Furtividade para se
+            // Esconder mesmo sem estar escondido da criatura (visão no escuro, por exemplo).
+            {
+                id: 'obscure',
+                name: 'Obscure',
+                tier: 'minor',
+                kind: 'power',
+                facts: () => tr('passiva: em penumbra numa área de sombras, você pode se Esconder mesmo sem estar escondido da criatura (visão no escuro, por exemplo)', 'passive: in dim light in an area of shadows, you can Hide even if you aren\'t concealed from the creature (such as one with darkvision)'),
+            },
+            // GM Core pg. 318: 2 ações (concentrar), depois 1d4 rodadas sem poder usar. Teleporta você e o que veste/empunha para um
+            // espaço livre que você veja a até 9 m (18 m se o destino não está em luz brilhante). Falha se levaria outra criatura.
+            // A posição (4ª dádiva) cairia no 13º pela tabela; o jogador já a tem no 10º ("típico", não obrigatório).
+            {
+                id: 'dark-roads',
+                name: 'Dark Roads',
+                tier: 'major',
+                kind: 'power',
+                minLevel: 9,
+                activation: { cost: 2, frequency: tr('depois, 1d4 rodadas sem usar', 'then unusable for 1d4 rounds') },
+                facts: () => tr('teleporta você e o que veste ou empunha a até 9 m (18 m se o destino não está em luz brilhante); falha se levaria outra criatura', 'teleports you and what you wear or hold up to 30 feet (60 feet if the destination isn\'t in bright light); fails if it would bring another creature'),
+            },
+        ],
+    },
 ]
 
 export { nameStarts }
@@ -463,6 +505,26 @@ export function relicsOf(build: BuildInfo, catalog: RelicEntry[] = RELICS): Reli
 export function relicNameOfWeapon(build: BuildInfo, w: Weapon, catalog: RelicEntry[] = RELICS): string | null {
     for (const relic of relicsOf(build, catalog)) {
         if (relic.on?.kind === 'weapon' && (sameRune(relic.on.weapon, w.name) || sameRune(relic.on.weapon, w.display ?? ''))) return relic.name
+    }
+    return null
+}
+
+/** A relíquia que mora nesta armadura (pelo nome base ou pelo de exibição do Pathbuilder), ou null. */
+export function relicOfArmor(build: BuildInfo, a: { name: string; display?: string }, catalog: RelicEntry[] = RELICS): RelicEntry | null {
+    for (const relic of relicsOf(build, catalog)) {
+        if (relic.on?.kind === 'armor' && (sameRune(relic.on.armor, a.name) || sameRune(relic.on.armor, a.display ?? ''))) return relic
+    }
+    return null
+}
+
+/** O nome próprio da relíquia que mora nesta armadura, ou null (par de `relicNameOfWeapon`; só apresentação). */
+export const relicNameOfArmor = (build: BuildInfo, a: { name: string; display?: string }, catalog: RelicEntry[] = RELICS): string | null =>
+    relicOfArmor(build, a, catalog)?.name ?? null
+
+/** A relíquia que mora nesta arma, ou null. */
+export function relicOfWeapon(build: BuildInfo, w: Weapon, catalog: RelicEntry[] = RELICS): RelicEntry | null {
+    for (const relic of relicsOf(build, catalog)) {
+        if (relic.on?.kind === 'weapon' && (sameRune(relic.on.weapon, w.name) || sameRune(relic.on.weapon, w.display ?? ''))) return relic
     }
     return null
 }

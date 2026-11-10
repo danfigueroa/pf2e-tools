@@ -13,7 +13,7 @@ import {
 import { unarmedAttacks } from '../unarmed'
 import { magicWeaponRules, type MagicWeaponRules } from '../magicWeapons'
 import { customRunesOf, itemDisplayName, itemRuneNames, type CustomRune } from '../customRunes'
-import { relicNameOfWeapon } from '../relics'
+import { relicNameOfWeapon, relicOfArmor, relicOfWeapon } from '../relics'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
 import type { SizeEffectApi } from '../components/useSizeEffect'
 import { SIZE_EFFECTS, sizeEffectApplies, sizeLabel, type SizeEffectId } from '../sizeEffects'
@@ -121,6 +121,7 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect, attackNa
                                     {itemRuneNames(build, w, 'weapon').map((r) => (
                                         <Chip key={r} label={r} size="small" sx={{ textTransform: 'capitalize' }} />
                                     ))}
+                                    {relicOfWeapon(build, w)?.aspects?.map((asp) => <Chip key={asp} label={asp} size="small" />)}
                                 </Stack>
                                 {g && g.kind === 'weapon' && <TraitChips traits={g.traits} />}
                             </Box>
@@ -228,11 +229,21 @@ const CombatSectionView = ({ build, mods, onRoll, onSelect, sizeEffect, attackNa
                             <Stack spacing={1} sx={{ mt: 1 }}>
                                 {armor.map((a, idx) => (
                                     <Box key={`${a.name}-${idx}`}>
+                                        {/* Relíquia: o nome dela é o título; o técnico do Pathbuilder fica no Inventário. */}
                                         <Typography sx={{ fontWeight: 600 }}>
-                                            {itemDisplayName(build, a, 'armor')}
+                                            {relicOfArmor(build, a)?.name ?? itemDisplayName(build, a, 'armor')}
                                         </Typography>
                                         <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
                                             <Chip label={capitalize(a.prof)} size="small" variant="outlined" />
+                                            {(() => {
+                                                const r = relicOfArmor(build, a)
+                                                return r && (
+                                                    <>
+                                                        {r.on?.kind === 'armor' && r.on.clothing && <Chip label={tr('Roupa (conta como armadura)', 'Clothing (counts as armor)')} size="small" variant="outlined" />}
+                                                        {r.aspects?.map((asp) => <Chip key={asp} label={asp} size="small" />)}
+                                                    </>
+                                                )
+                                            })()}
                                             {a.pot > 0 && <Chip label={tr(`+${a.pot} potência`, `+${a.pot} potency`)} size="small" variant="outlined" />}
                                             {a.worn && <Chip label={tr("Vestida", 'Worn')} size="small" color="primary" />}
                                             {itemRuneNames(build, a, 'armor').map((r) => (

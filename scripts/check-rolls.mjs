@@ -951,6 +951,25 @@ eq(plain.combatants.length, 3, 'Monstro comum (sem dono) pode repetir à vontade
     ok(inv.inventoryRows(ceros).some((r) => r.name === 'Composite Longbow' && r.label.startsWith('Perfurador de Corações — ') && /Greater/.test(r.label)), 'Inventário do Ceros: nome da relíquia + nome técnico com as runas')
     eq(relics.relicNameOfWeapon(nat, sword0), 'Zarroc Sheilvean', 'Nathaniel: a espada se chama Zarroc Sheilvean')
     ok(inv.inventoryRows(nat).some((r) => r.label === 'Zarroc Sheilvean'), 'Inventário do Nathaniel: sem duplicar o nome (o export já o traz)')
+
+    // Shadow Weaver (Eldarion): armadura-roupa, aspectos Shadow e Luck, runas + Obscure + Dark Roads.
+    const eld = party.eldarion
+    const [sw] = relics.relicsOf(eld)
+    ok(sw?.id === 'shadow-weaver' && sw.on?.kind === 'armor' && sw.on.clothing && sw.aspects.join() === 'Shadow,Luck', 'Eldarion: a relíquia é a Shadow Weaver (roupa que conta como armadura, Shadow e Luck)')
+    ok(sw.gifts.map((g) => g.id).join() === 'armor-potency,resilient,obscure,dark-roads', 'Shadow Weaver: runas, Obscure e Dark Roads')
+    ok(!sw.gifts[2].activation && sw.gifts[3].activation.cost === 2 && sw.gifts[3].tier === 'major', 'Shadow Weaver: Obscure é passiva; Dark Roads é de 2 ações')
+    const cloak = eld.armor.find((a) => a.name === 'Shadow Weaver')
+    eq(relics.relicNameOfArmor(eld, cloak), 'Shadow Weaver', 'Eldarion: a armadura aparece como Shadow Weaver')
+    const cloakRow = inv.inventoryRows(eld).find((r) => r.name === 'Shadow Weaver')
+    ok(cloakRow && ['Shadow', 'Luck'].every((t) => cloakRow.tags.includes(t)) && cloakRow.tags.includes('Roupa'), 'Inventário do Eldarion: tags de armadura, roupa e dos dois aspectos')
+    // Toda relíquia ligada a uma arma ou armadura mostra as tags de aspecto no Inventário.
+    for (const [slug, b] of Object.entries(party)) {
+        for (const r of relics.relicsOf(b)) {
+            if (!r.on || r.on.kind === 'item') continue
+            const row = inv.inventoryRows(b).find((x) => x.name === (r.on.weapon ?? r.on.armor) || x.label.includes(r.name))
+            ok(row && (r.aspects ?? []).every((t) => row.tags.includes(t)), `${slug}: ${r.name} lista as tags de aspecto no Inventário`)
+        }
+    }
 }
 
 // ── Enquadramento da imagem do token (Modo GM) ───────────────────────────────

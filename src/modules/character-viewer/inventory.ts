@@ -4,7 +4,7 @@
 
 import type { BuildInfo, Weapon } from '../../pathbuilder/types'
 import { itemDisplayName } from './customRunes'
-import { relicNameOfWeapon } from './relics'
+import { relicNameOfWeapon, relicOfArmor, relicOfWeapon } from './relics'
 import { tr } from '../../i18n'
 
 /** Uma linha do inventário, já normalizada venha de onde vier. */
@@ -41,18 +41,28 @@ export function inventoryRows(build: BuildInfo): ItemRow[] {
         name: w.name,
         qty: w.qty,
         sheetQty: w.qty,
-        tags: [tr('Arma', 'Weapon')],
+        tags: [tr('Arma', 'Weapon'), ...(relicOfWeapon(build, w)?.aspects ?? [])],
         equipment: false,
     }))
-    const armor = (build.armor ?? []).map((a) => ({
+    const armor = (build.armor ?? []).map((a) => {
         // Runa homebrew (`customRunes.ts`) no lugar da que ela substituiu.
-        label: itemDisplayName(build, a, 'armor'),
-        name: a.name,
-        qty: a.qty,
-        sheetQty: a.qty,
-        tags: a.worn ? [tr('Armadura', 'Armor'), tr('Vestida', 'Worn')] : [tr('Armadura', 'Armor')],
-        equipment: false,
-    }))
+        const technical = itemDisplayName(build, a, 'armor')
+        const relic = relicOfArmor(build, a)
+        const clothing = relic?.on?.kind === 'armor' && relic.on.clothing
+        return {
+            label: relic && relic.name !== technical ? `${relic.name} — ${technical}` : technical,
+            name: a.name,
+            qty: a.qty,
+            sheetQty: a.qty,
+            tags: [
+                tr('Armadura', 'Armor'),
+                ...(a.worn ? [tr('Vestida', 'Worn')] : []),
+                ...(clothing ? [tr('Roupa', 'Clothing')] : []),
+                ...(relic?.aspects ?? []),
+            ],
+            equipment: false,
+        }
+    })
     const equipment = (build.equipment ?? []).map(([name, qty, status]) => ({
         label: name,
         name,

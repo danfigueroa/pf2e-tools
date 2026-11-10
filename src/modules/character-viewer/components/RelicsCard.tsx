@@ -124,6 +124,7 @@ export const RelicsCard = (props: Props) => {
                                 <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.75 }}>
                                     {relic.on?.kind === 'weapon' && <Chip label={relic.on.weapon} size="small" variant="outlined" />}
                                     {relic.on?.kind === 'armor' && <Chip label={tr("Armadura", 'Armor')} size="small" variant="outlined" />}
+                                    {relic.on?.kind === 'armor' && relic.on.clothing && <Chip label={tr('Roupa (conta como armadura)', 'Clothing (counts as armor)')} size="small" variant="outlined" />}
                                     {relic.on?.kind === 'item' && <Chip label={relic.on.name} size="small" variant="outlined" />}
                                     {relic.aspects?.map((a) => <Chip key={a} label={a} size="small" />)}
                                 </Stack>
