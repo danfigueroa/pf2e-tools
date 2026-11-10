@@ -70,7 +70,9 @@ Elven **Thief Rogue** — precision assassin and scout. Your game is **high init
 
 ## 🎒 Items & Resources
 - 🗡️ **Gloom Blade** (shadow): gives off no light and gets around some defenses; your main weapon — combine it with **Quick Draw**.
-- 🥷 **Shadow Weaver (+1 resilient, shadow):** bonus to Stealth and saves — keep it invested.
+- 🥷 **Shadow Weaver (relic, aspects Shadow and Luck):** your garments, which manifest as a hooded cloak — **clothing that counts as armor** (+1 potency, resilient and the Shadow rune: bonus to Stealth and saves; keep it invested). Gifts (on the relic card, in the Inventory):
+  - 🌑 **Obscure** (minor, passive): in **dim light in an area of shadows**, you can attempt **Stealth to Hide even if you aren't concealed** — even from creatures with darkvision. Pairs with the off-guard for Sneak Attack.
+  - 🛤️ **Dark Roads** (major, **2 actions**, concentrate): teleports you and what you wear or hold to an unoccupied space you can see within **30 feet** (**60 feet** if the destination isn't in bright light). Then **unusable for 1d4 rounds**. Fails if it would bring another creature. Great for escaping a surround or landing behind the target.
 - 💍 **Ring of Climbing** + **Feet that Stride the Sky** (mythic): vertical and aerial mobility to reach targets and escape — now with **Aerobatics Mastery** to really maneuver up there.
 - 🤺 **Swashbuckler Dedication (Rascal style):** a duelist layer over the Rogue — panache through Tumble Through, **+1 flat precision** (Finishing Precision) and the **Retreating Finisher** to close on a target and get away. **Swashbuckler's Riposte** is what gives you **Opportune Riposte** (see above, in Never Forget).
 - 🧪 **Toxic Effluence** (contact, **Fort DC 29**, up to 6 rounds): goes on the blade with *Poison Weapon* and has **no onset** — stage 1 is already 3d6 poison + 3d6 fire, **clumsy 1 and enfeebled 1**. It's the combat poison: save it for the target that needs to drop this fight.

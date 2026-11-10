@@ -102,7 +102,9 @@ const ELDARION = `## 🎯 Papel em Combate
 
 ## 🎒 Itens & Recursos
 - 🗡️ **Gloom Blade** (shadow): não emite luz e ignora certas defesas; sua arma principal — combine com **Quick Draw**.
-- 🥷 **Shadow Weaver (+1 resilient, shadow):** bônus em Furtividade e nos saves — mantenha investida.
+- 🥷 **Shadow Weaver (relíquia, aspectos Shadow e Luck):** suas vestes, que se manifestam como um manto com capuz — **roupa que conta como armadura** (+1 de potência, resilient e a runa Shadow: bônus em Furtividade e nos saves; mantenha investida). Dádivas (no cartão da relíquia, no Inventário):
+  - 🌑 **Obscure** (menor, passiva): em **luz fraca numa área de sombras**, você pode tentar **Furtividade para Esconder-se mesmo sem estar escondido** — inclusive de quem tem visão no escuro. Combina com o off-guard do Sneak Attack.
+  - 🛤️ **Dark Roads** (maior, **2 ações**, concentrar): teleporta você e o que veste ou empunha para um espaço livre que você veja a até **9 m** (**18 m** se o destino não está em luz brilhante). Depois, **1d4 rodadas sem poder usar**. Falha se levaria outra criatura junto. Ótima para sair de um cerco ou chegar às costas do alvo.
 - 💍 **Ring of Climbing** + **Feet that Stride the Sky** (mítico): mobilidade vertical e aérea para alcançar alvos e escapar — agora com **Aerobatics Mastery** para manobrar de verdade lá em cima.
 - 🤺 **Swashbuckler Dedication (estilo Rascal):** camada de duelista sobre o Ladino — Panache via Tumble Through, **+1 de precisão fixo** (Finishing Precision) e o Finisher **Retreating Finisher** para fechar um alvo e já sair dali. **Swashbuckler's Riposte** é quem te dá a **Opportune Riposte** (ver acima, em Nunca Esqueça).
 - 🧪 **Toxic Effluence** (contato, **Fort CD 29**, até 6 rodadas): vai na lâmina com *Poison Weapon* e **não tem incubação** — já no estágio 1 são 3d6 veneno + 3d6 fogo, **desajeitado 1 e enfraquecido 1**. É o veneno de combate: guarde para o alvo que precisa cair nesta luta.
