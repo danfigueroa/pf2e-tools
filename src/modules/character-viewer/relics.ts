@@ -323,20 +323,34 @@ export const RELICS: RelicEntry[] = [
         ],
     },
     {
-        // Perfurador de Corações, a relíquia do Ceros (aspectos Air e Earth): o arco longo composto dele. As dádivas são
-        // runas ("Runes as Gifts", GM Core pg. 309): Potência +1 (1º) e Striking (5º), e a maior é Propelling Winds
-        // (GM Core pg. 310: 2 ações, concentrar e manipular, 1×/hora, a relíquia conjura voar em você). O export já traz o
-        // arco como +2 Greater Striking com Shock — o resto o jogador gravou por crafting (a mesa permite) e fica como está;
-        // as runas de dádiva nunca rebaixam a da ficha. O Pathbuilder exporta o arco como "Composite Longbow".
+        // Perfurador de Corações, a relíquia do Ceros (aspectos Air e Earth): o arco longo composto dele. Dádivas: Shattered Earth
+        // (menor, Earth, GM Core pg. 313: 2 ações, concentrar e manipular, 1×/hora, terreno difícil de 3 m de raio a até 18 m),
+        // a runa Corrosive (menor, "Runes as Gifts", GM Core pg. 309 e 237: 1d6 ácido no acerto) e Propelling Winds (maior,
+        // Air, GM Core pg. 310: 2 ações, concentrar e manipular, 1×/hora, a relíquia conjura voar em você). O export já traz o
+        // arco como +2 Greater Striking com Shock — o jogador gravou por crafting (a mesa permite) e fica como está; as runas
+        // de dádiva nunca rebaixam a da ficha. O Pathbuilder exporta o arco como "Composite Longbow".
         id: 'heartpiercer',
         character: nameStarts('ceros'),
         name: 'Perfurador de Corações', // i18n-ok: nome próprio da relíquia, dado pelo jogador
         on: { kind: 'weapon', weapon: 'Composite Longbow' },
         aspects: ['Air', 'Earth'],
-        description: tr('O arco longo composto do Ceros. As dádivas menores viraram runas — Potência +1 e Striking — e a dádiva maior é Propelling Winds, que o faz voar. O +2, o Greater Striking e a Shock que aparecem na aba Combate vêm da ficha (o jogador os gravou por crafting, pelas regras da mesa). O nível da relíquia é o do personagem.', 'Ceros\' composite longbow. The minor gifts became runes — potency +1 and striking — and the major gift is Propelling Winds, which lets him fly. The +2, greater striking and shock shown in the Combat tab come from the sheet (the player etched them by crafting, under the table\'s rules). The relic\'s level is the character\'s level.'),
+        description: tr('O arco longo composto do Ceros. As dádivas são Shattered Earth (menor), que estilhaça o chão em terreno difícil, a runa Corrosive (menor) e Propelling Winds (maior), que o faz voar. O +2, o Greater Striking e a Shock que aparecem na aba Combate vêm da ficha (o jogador os gravou por crafting, pelas regras da mesa). O nível da relíquia é o do personagem.', 'Ceros\' composite longbow. The gifts are Shattered Earth (minor), which splits the ground into difficult terrain, the corrosive rune (minor) and Propelling Winds (major), which lets him fly. The +2, greater striking and shock shown in the Combat tab come from the sheet (the player etched them by crafting, under the table\'s rules). The relic\'s level is the character\'s level.'),
         gifts: [
-            { id: 'weapon-potency', name: 'Weapon Potency (+1)', tier: 'minor', kind: 'rune', rune: { potency: 1 } },
-            { id: 'striking', name: 'Striking', tier: 'minor', kind: 'rune', rune: { striking: 'striking' } },
+            // GM Core pg. 313: 2 ações (concentrar, manipular), 1×/hora; 10 pés de raio a até 60 pés; 1d6 perfurante (Acrobatismo
+            // ou Reflexos), +1d6 no 6º nível e a cada 4 níveis depois (10º, 14º…).
+            {
+                id: 'shattered-earth',
+                name: 'Shattered Earth',
+                tier: 'minor',
+                kind: 'power',
+                activation: { cost: 2, frequency: tr('uma vez por hora', 'once per hour'), limited: true },
+                facts: (level) => {
+                    const dice = level < 6 ? 1 : 1 + Math.floor((level - 2) / 4)
+                    return tr(`${dice}d6 perfurante (Acrobatismo ou Reflexos); terreno difícil, 3 m de raio, a até 18 m`, `${dice}d6 piercing (Acrobatics or Reflex); difficult terrain, 10-foot radius, within 60 feet`)
+                },
+            },
+            // GM Core pg. 237: 1d6 ácido no acerto; no crítico a armadura do alvo (ou o escudo erguido) sofre 3d6 ácido.
+            { id: 'corrosive', name: 'Corrosive', tier: 'minor', kind: 'rune', rune: { property: ['Corrosive'] } },
             // GM Core pg. 310: 2 ações (concentrar, manipular), 1×/hora; a relíquia conjura fly em você.
             {
                 id: 'propelling-winds',
@@ -560,9 +574,9 @@ const sameRune = (a: string, b: string) => a.trim().toLowerCase() === b.trim().t
 
 /**
  * O dano do ACERTO que a runa dá e que o Pathbuilder põe em `extraDamage` quando ele mesmo exporta a runa.
- * Só o que foi conferido na AON: Flaming (e a Greater) = 1d6 fogo (GM Core pg. 237).
+ * Só o que foi conferido na AON (GM Core pg. 237): Flaming (e a Greater) = 1d6 fogo; Corrosive = 1d6 ácido.
  */
-const RUNE_HIT_DAMAGE: Record<string, string> = { flaming: '1d6 Fire' }
+const RUNE_HIT_DAMAGE: Record<string, string> = { flaming: '1d6 Fire', corrosive: '1d6 Acid' }
 
 /** Põe a runa de propriedade; a versão maior troca a menor da mesma runa (Greater Flaming no lugar da Flaming). */
 function addPropertyRune(w: Weapon, rune: string): Weapon {

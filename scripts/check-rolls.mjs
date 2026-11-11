@@ -932,8 +932,11 @@ eq(plain.combatants.length, 3, 'Monstro comum (sem dono) pode repetir à vontade
     ok(hp?.id === 'heartpiercer' && hp.on?.weapon === 'Composite Longbow', 'Ceros: a relíquia é o Perfurador de Corações')
     const was = ceros.weapons.find((w) => w.name === 'Composite Longbow')
     const bow = relics.withRelicRunes(ceros, undefined, 'casa-do-gordo').weapons.find((w) => w.name === 'Composite Longbow')
-    ok(bow.pot === was.pot && bow.str === was.str && bow.attack === was.attack && bow.runes.length === was.runes.length, 'Perfurador de Corações: o arco +2 Greater Striking não é rebaixado nem muda')
-    ok(hp.gifts.map((g) => g.id).join() === 'weapon-potency,striking,propelling-winds' && hp.gifts[2].activation.cost === 2 && hp.gifts[2].activation.limited, 'Perfurador de Corações: Propelling Winds, 2 ações, 1×/hora')
+    ok(bow.pot === was.pot && bow.str === was.str && bow.attack === was.attack && bow.runes.length === was.runes.length + 1, 'Perfurador de Corações: o arco +2 Greater Striking não é rebaixado (só ganha a Corrosive)')
+    ok(hp.gifts.map((g) => g.id).join() === 'shattered-earth,corrosive,propelling-winds' && hp.gifts[0].activation.cost === 2 && hp.gifts[0].activation.limited && hp.gifts[2].activation.cost === 2 && hp.gifts[2].activation.limited, 'Perfurador de Corações: Shattered Earth, Corrosive e Propelling Winds (2 ações, 1×/hora)')
+    ok(hp.gifts[0].facts(10).startsWith('3d6') && hp.gifts[0].facts(5).startsWith('1d6') && hp.gifts[0].facts(6).startsWith('2d6'), 'Shattered Earth: +1d6 no 6º nível e a cada 4 depois')
+    ok(bow.runes.includes('Corrosive') && bow.extraDamage.includes('1d6 Acid') && bow.extraDamage.includes('1d6 Electricity'), 'Perfurador de Corações: a Corrosive entra com 1d6 ácido, a Shock da ficha fica')
+    ok(!relics.withRelicRunes({ ...ceros, level: 4 }, undefined, 'casa-do-gordo').weapons.find((w) => w.name === 'Composite Longbow').runes.includes('Corrosive'), 'Perfurador de Corações: antes do 5º, sem Corrosive')
 
     const nat = party.nathaniel
     const [zs] = relics.relicsOf(nat)
