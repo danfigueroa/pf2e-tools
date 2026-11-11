@@ -269,7 +269,7 @@ const CEROSQUALHANTHALLAS = `## 🎯 Papel em Combate
 
 ## 🎒 Itens & Recursos
 - 🏹 **+2 Greater Striking Composite Longbow:** sua arma. A ficha soma **+1d6 elétrico** ao dano.
-- 💘 **Perfurador de Corações (relíquia: o arco, aspectos Ar e Terra):** as dádivas menores são runas (Potência +1, Striking); a maior é **Ventos Propelentes** — **2 ações (concentrar, manipular), 1×/hora:** a relíquia conjura *fly* em você. Ótimo para atirar de cima, fora do alcance corpo a corpo.
+- 💘 **Perfurador de Corações (relíquia: o arco, aspectos Ar e Terra):** as dádivas menores são **Terra Estilhaçada** (*Shattered Earth*) — **2 ações (concentrar, manipular), 1×/hora:** 3 m de raio de chão a até 18 m vira terreno difícil, e quem entra num quadrado afetado num movimento faz Acrobatismo ou Reflexos ou sofre 1d6 perfurante (+1d6 no 6º nível e a cada 4 depois) — e a runa *corrosive* (1d6 ácido no acerto; no crítico a armadura do alvo sofre 3d6 ácido); a maior é **Ventos Propelentes** — **2 ações (concentrar, manipular), 1×/hora:** a relíquia conjura *fly* em você. Ótimo para atirar de cima, fora do alcance corpo a corpo.
 - 🧥 **Cloak of Illusions (Greater):** **+2 em Furtividade**, *figment* à vontade e, **1×/dia**, puxar o capuz (2 ações) dá **invisibilidade de 4º rank**: 1 minuto que **não acaba quando você ataca**. Invisível, o alvo fica *off-guard* para você — combine com a precisão.
 - 🛡️ **Bands of Force:** +1 na CA e nas salvaguardas. **Return Force (reação):** inimigo **erra criticamente** um golpe corpo a corpo em você → as faixas o **empurram** (Atletismo +14) para longe — ótimo para o arqueiro que ficou cercado.
 - 🔮 **3 pontos de foco** para *Gravity Weapon*, *Soothing Mist*, *Tempest Surge* e *Terrain Transposition* — refocus entre lutas.
