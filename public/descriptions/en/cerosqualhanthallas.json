@@ -1318,6 +1318,17 @@
     "trigger": "You roll a skill check or saving throw and don’t like the result.",
     "description": "Destiny, fate, or some other force bends around you as your mythic power swells, manifesting in a flash of light or visible surge of energy emanating from your body as you cast aside the chains of fate. You expend a Mythic Point and reroll the check or save with mythic proficiency, taking the new result."
    },
+   "Shattered Earth": {
+    "name": "Shattered Earth",
+    "level": null,
+    "actions": "",
+    "traits": [
+     "Earth"
+    ],
+    "category": "relic",
+    "sourceBook": "GM Core, p. 313",
+    "description": "Activate Two Actions: (concentrate, manipulate) Frequency once per hour; Effect Seismic pulses from your relic ripple through the nearby ground, shaking sharp fragments to the surface. A 10-foot-radius patch of stone or earth within 60 feet is transformed into difficult terrain. A creature that enters an affected square during a move action must succeed at an Acrobatics check or Reflex save or take 1d6 piercing damage; it needs to roll only once per move action even if it moves through several squares. At 6th level and every 4 levels thereafter, increase the damage by 1d6."
+   },
    "Society": {
     "name": "Society",
     "level": null,
@@ -1453,6 +1464,18 @@
     "sourceBook": "Tian Xia Character Guide, p. 128",
     "description": "This projectile weapon is made from horn, wood, and sinew laminated together to increase the power of its pull and the force of its projectile. Like all longbows, its great size also increases the bow's range and power. You must use two hands to fire it, and it cannot be used while mounted. Any time an ability is specifically restricted to a longbow, such as Erastil's favored weapon, it also applies to composite longbows unless otherwise stated. Critical Specialization Effects Source Core Rulebook pg. 283 Certain feats, class features, weapon runes, and other effects can grant you additional benefits when you make a Strike with certain weapons and get a critical success. This is called a critical specialization effect. The exact effect depends on which weapon group your weapon belongs to, as listed below. You can always decide not to add the critical specialization effect of your weapon. Click here for the full rules on Critical Specialization Effects."
    },
+   "Corrosive": {
+    "name": "Corrosive",
+    "level": 8,
+    "actions": "",
+    "traits": [
+     "Acid",
+     "Magical"
+    ],
+    "category": "equipment",
+    "sourceBook": "GM Core, p. 237",
+    "description": "Acid sizzles across the surface of the weapon etched with this rune. When you hit with the weapon, add 1d6 acid damage to the damage dealt. In addition, on a critical hit, the target's armor (if any) takes 3d6 acid damage (before applying Hardness); if the target has a shield raised, the shield takes this damage instead. Corrosive Source GM Core pg. 237, Core Rulebook pg. 583 Price 500 gp Corrosive (Greater) Source GM Core pg. 237, Core Rulebook pg. 583 Price 6,500 gp\n\nThe acid damage dealt by this weapon ignores the target's acid resistance. Increase the acid damage dealt to armor or a shield on a critical hit to 6d6."
+   },
    "Dagger": {
     "name": "Dagger",
     "level": 0,
@@ -1492,28 +1515,6 @@
     "category": "weapon",
     "sourceBook": "Player Core, p. 278",
     "description": "These blades come in a variety of shapes and styles, but they are typically 2 feet long. Critical Specialization Effects Source Core Rulebook pg. 283 Certain feats, class features, weapon runes, and other effects can grant you additional benefits when you make a Strike with certain weapons and get a critical success. This is called a critical specialization effect. The exact effect depends on which weapon group your weapon belongs to, as listed below. You can always decide not to add the critical specialization effect of your weapon. Click here for the full rules on Critical Specialization Effects. Specific Magic Weapons Blade of Four Energies, Celestial Peachwood Sword, Gloom Blade, Radiant Victory"
-   },
-   "Striking": {
-    "name": "Striking",
-    "level": 4,
-    "actions": "",
-    "traits": [
-     "Magical"
-    ],
-    "category": "equipment",
-    "sourceBook": "GM Core, p. 236",
-    "description": "A striking rune stores destructive magic in the weapon, increasing the weapon damage dice it deals to two instead of one. For instance, a +1 striking dagger would deal 2d4 damage instead of 1d4 damage. You can upgrade the striking rune already etched on a weapon to a stronger version, increasing the values of the existing rune to those of the new rune. The Price of the upgrade is the difference between the two runes' Prices. Striking Source GM Core pg. 236, Core Rulebook pg. 581 Price 65 gp Striking (Greater) Source GM Core pg. 236, Core Rulebook pg. 581 Price 1,065 gp\n\nThe weapon deals three weapon damage dice. Striking (Major) Source GM Core pg. 236, Core Rulebook pg. 581 Price 31,065 gp\n\nThe weapon deals four weapon damage dice."
-   },
-   "Weapon Potency (+1)": {
-    "name": "Weapon Potency (+1)",
-    "level": 2,
-    "actions": "",
-    "traits": [
-     "Magical"
-    ],
-    "category": "equipment",
-    "sourceBook": "GM Core, p. 236",
-    "description": "Magical enhancements make this weapon strike true. Attack rolls with this weapon gain a +1 item bonus, and the weapon can be etched with one property rune. You can upgrade the weapon potency rune already etched on a weapon to a stronger version, increasing the values of the existing rune to those of the new rune. The Price of the upgrade is the difference between the two runes' prices. Weapon Potency (+1) Source GM Core pg. 236, Core Rulebook pg. 581 Price 35 gp Craft Requirements You are an expert in Crafting. Weapon Potency (+2) Source GM Core pg. 236, Core Rulebook pg. 581 Price 935 gp\n\nThe item bonus to attack rolls is +2, and the weapon can be etched with two property runes. Craft Requirements You are a master in Crafting. Weapon Potency (+3) Source GM Core pg. 236, Core Rulebook pg. 581 Price 8,935 gp\n\nThe item bonus to attack rolls is +3, and the weapon can be etched with three property runes. Craft Requirements You are legendary in Crafting."
    }
   }
  }
