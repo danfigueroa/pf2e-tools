@@ -1,12 +1,13 @@
 import { memo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-    Alert, Autocomplete, Box, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Stack,
-    TextField, ToggleButton, ToggleButtonGroup, Typography,
+    Alert, Autocomplete, Box, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle,
+    FormControlLabel, Radio, RadioGroup, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material'
 import { AddPhotoAlternate as PhotoIcon, AutoStories as WikiIcon, Campaign as ShareIcon, Delete as DeleteIcon } from '@mui/icons-material'
 import { Markdown } from '../../../components/markdown/Markdown'
-import { playersText } from '../../../components/markdown/blocks'
+import { splitSegments } from '../../../components/markdown/blocks'
+import { publicPart, secretCount, wikiBodyFrom, wikiCover, type WikiShare } from '../toWiki'
 import { blankPage, saveWikiPage, useWikiIndex, type WikiSummary } from '../../../services/wiki'
 import { imageErrorText, shrinkImage, uploadImage, useImageUrl } from '../../../services/images'
 import { displayFont, parchment, rule, greenInk } from '../../../theme'
@@ -143,8 +144,9 @@ export const CatalogView = memo(function CatalogView({ doc, version, update, doc
 
 /**
  * A ficha do catálogo (secreta) e a página da Wiki da Mesa (o que a mesa conhece) ligadas: abrir a
- * página, ligar a uma que já existe, ou criar uma a partir desta — que leva título, imagem, etiquetas
- * e SÓ os trechos `:::jogadores`, depois de o GM ver o que vai.
+ * página, ligar a uma que já existe, ou criar uma a partir desta — que leva título, imagem, etiquetas e
+ * o texto inteiro (`toWiki.ts`): o que não é para os jogadores vai como `:::mestre`. O GM escolhe se a
+ * página nasce pública ou oculta e vê antes o que os jogadores vão ler.
  */
 function WikiLink({ doc, onLink }: { doc: CatalogDoc; onLink: (id: string | null) => void }) {
     const navigate = useNavigate()
@@ -153,12 +155,26 @@ function WikiLink({ doc, onLink }: { doc: CatalogDoc; onLink: (id: string | null
     const [busy, setBusy] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const linked = doc.data.wiki ? pages?.find((p) => p.id === doc.data.wiki) ?? null : null
-    const text = playersText(doc.data.md)
+    const hasPlayers = splitSegments(doc.data.md).some((x) => x.kind === 'players')
+    // Com caixas para os jogadores, o GM já separou o que é público; sem elas, as notas são a ficha inteira.
+    const [share, setShare] = useState<WikiShare>(hasPlayers ? 'players' : 'all')
+    const [hidden, setHidden] = useState(false)
+    const body = wikiBodyFrom(doc.data.md, share, tr(':::mestre', ':::gm'))
+    const visible = publicPart(body)
+    const secrets = secretCount(body)
+    const cover = wikiCover(doc.data.image, body)
+    const coverUrl = useImageUrl(cover)
+
+    const open = () => {
+        setShare(hasPlayers ? 'players' : 'all')
+        setError(null)
+        setConfirm(true)
+    }
 
     const create = async () => {
         setBusy(true)
         setError(null)
-        const page = { ...blankPage(doc.kind, doc.title, text), image: doc.data.image, tags: doc.data.tags }
+        const page = { ...blankPage(doc.kind, doc.title, body), image: cover, tags: doc.data.tags, visibility: hidden ? 'gm' as const : 'public' as const }
         const out = await saveWikiPage(page, null)
         setBusy(false)
         if (!out.ok) { setError(out.conflict ? tr('Tente de novo', 'Try again') : out.error); return }
@@ -190,20 +206,39 @@ function WikiLink({ doc, onLink }: { doc: CatalogDoc; onLink: (id: string | null
                             sx={{ flex: 1, minWidth: 0 }}
                             blurOnSelect
                         />
-                        <Button size="small" startIcon={<WikiIcon />} onClick={() => setConfirm(true)}>{tr('Criar na Wiki a partir desta', 'Create on the wiki from this')}</Button>
+                        <Button size="small" startIcon={<WikiIcon />} onClick={open}>{tr('Criar na Wiki a partir desta', 'Create on the wiki from this')}</Button>
                     </Stack>
                 )}
             {confirm && (
                 <Dialog open onClose={() => setConfirm(false)} fullWidth maxWidth="sm">
                     <DialogTitle>{tr('Criar "', 'Create "')}{doc.title}{tr('" na Wiki', '" on the wiki')}</DialogTitle>
                     <DialogContent dividers>
-                        <Typography variant="body2" sx={{ mb: 1.5 }}>
-                            {tr('A página nasce pública, com o título, a imagem, as etiquetas e só os trechos :::jogadores desta ficha. O resto continua secreto no Diário.', 'The page starts public, with this entry\'s title, image, tags and only its :::players blocks. The rest stays secret in the Journal.')}</Typography>
+                        <Typography variant="subtitle2" sx={{ mb: 0.5 }}>{tr('Quem vê a página', 'Who sees the page')}</Typography>
+                        <RadioGroup value={hidden ? 'gm' : 'public'} onChange={(e) => setHidden(e.target.value === 'gm')} sx={{ mb: 2 }}>
+                            <FormControlLabel value="public" control={<Radio size="small" />} label={tr('Pública: os jogadores já a encontram na Wiki', 'Public: the players can find it on the wiki')} />
+                            <FormControlLabel value="gm" control={<Radio size="small" />} label={tr('Oculta: só você a vê, até revelá-la na Wiki', 'Hidden: only you see it, until you reveal it on the wiki')} />
+                        </RadioGroup>
+                        <Typography variant="subtitle2" sx={{ mb: 0.5 }}>{tr('O que os jogadores leem', 'What the players read')}</Typography>
+                        <RadioGroup value={share} onChange={(e) => setShare(e.target.value as WikiShare)} sx={{ mb: 1 }}>
+                            <FormControlLabel value="all" control={<Radio size="small" />} label={tr('Todo o texto, menos os trechos "Só o mestre"', 'All the text, except the "GM only" parts')} />
+                            <FormControlLabel value="players" control={<Radio size="small" />} label={tr('Só as caixas "Para os jogadores"', 'Only the "For the players" boxes')} />
+                        </RadioGroup>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                            {secrets > 0
+                                ? tr(`O resto vai junto como ${secrets === 1 ? '1 trecho' : `${secrets} trechos`} "Só o mestre": você o vê na Wiki, os jogadores não. Nada fica para trás.`, `The rest goes along as ${secrets === 1 ? '1 "GM only" part' : `${secrets} "GM only" parts`}: you see it on the wiki, the players don't. Nothing is left behind.`)
+                                : tr('O texto inteiro vai, com o título, as etiquetas e a imagem.', 'The whole text goes, with the title, tags and image.')}</Typography>
+                        <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mb: 0.5 }}>
+                            {hidden ? tr('Quando você revelar, os jogadores verão:', 'Once you reveal it, the players will see:') : tr('Os jogadores verão:', 'The players will see:')}</Typography>
                         <Box sx={{ p: 1.5, border: `1px dashed ${rule}`, borderRadius: 1, bgcolor: parchment.paper }}>
-                            {text
-                                ? <Markdown source={text} dense />
-                                : <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>{tr('Nenhum trecho :::jogadores: a página nasce sem texto.', 'No :::players block: the page starts with no text.')}</Typography>}
+                            {coverUrl && <Box component="img" src={coverUrl} alt={doc.title} sx={{ display: 'block', maxWidth: '100%', maxHeight: 160, borderRadius: 1, mb: 1 }} />}
+                            {visible
+                                ? <Markdown source={visible} dense />
+                                : <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>{tr('Só o título e a imagem: o texto fica todo no "Só o mestre".', 'Only the title and image: all the text stays "GM only".')}</Typography>}
                         </Box>
+                        {!cover && (
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                                {tr('Sem imagem: a ficha não tem capa nem imagem na parte que os jogadores leem.', 'No image: the entry has no cover and no image in the part the players read.')}</Typography>
+                        )}
                         {error && <Alert severity="error" sx={{ mt: 1.5 }}>{error}</Alert>}
                     </DialogContent>
                     <DialogActions>
