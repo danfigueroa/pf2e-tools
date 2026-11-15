@@ -1954,6 +1954,20 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
   eq(blocks.forPlayers(' O [[Barão]] chegou. '), 'O Barão chegou.', 'o que vai à mesa sai sem as marcas')
   eq(blocks.splitSegments('Intro\n:::players Letter\nHi\n:::').map((x) => x.kind).join(','), 'text,players', ':::players (inglês) é o mesmo bloco')
 
+  // Ficha do Diário → página da Wiki (src/modules/campaign-journal/toWiki.ts).
+  const tw = await import('../src/modules/campaign-journal/toWiki.ts')
+  const entry = 'Notas soltas ![a](journal/a.png)\n:::jogadores Aparência\nAlto. ![b](journal/b.png)\n:::\n:::mestre Plano\nTrai o barão.\n:::\nMais notas.'
+  eq(tw.wikiBodyFrom(entry, 'all'), 'Notas soltas ![a](journal/a.png)\n\n**Aparência**\n\nAlto. ![b](journal/b.png)\n\n:::mestre Plano\nTrai o barão.\n:::\n\nMais notas.',
+    'Diário → Wiki: "tudo" leva o texto inteiro, a caixa dos jogadores vira texto e o segredo segue segredo')
+  const onlyPlayers = tw.wikiBodyFrom(entry, 'players')
+  eq(tw.publicPart(onlyPlayers), '**Aparência**\n\nAlto. ![b](journal/b.png)', 'Diário → Wiki: "só jogadores" deixa visível só a caixa deles')
+  eq(tw.secretCount(onlyPlayers), 3, 'Diário → Wiki: o resto vai como trechos do mestre, nada se perde')
+  ok(blocks.splitSegments(onlyPlayers).filter((x) => x.kind === 'gm').map((x) => x.text).join('|').includes('Mais notas.'), 'Diário → Wiki: as notas soltas viram segredo')
+  eq(tw.wikiCover(null, onlyPlayers), 'journal/b.png', 'Diário → Wiki: sem capa, vale a primeira imagem que os jogadores veem (não a de um segredo)')
+  eq(tw.wikiCover('journal/capa.png', onlyPlayers), 'journal/capa.png', 'Diário → Wiki: a capa da ficha vence')
+  eq(tw.wikiCover(null, tw.wikiBodyFrom(':::mestre\n![s](journal/s.png)\n:::', 'all')), null, 'Diário → Wiki: imagem só em segredo não vira capa')
+  eq(tw.wikiBodyFrom('a\n:::jogadores\nb\n:::', 'players', ':::gm'), ':::gm\na\n:::\n\nb', 'Diário → Wiki: marca do mestre em inglês')
+
   // A barra do editor (src/components/markdown/edit.ts): cada botão aplicado ao texto.
   const ed = await import('../src/components/markdown/edit.ts')
   const apply = (v, t) => ({ v: v.slice(0, t.from) + t.insert + v.slice(t.to), sel: [t.selStart, t.selEnd] })
