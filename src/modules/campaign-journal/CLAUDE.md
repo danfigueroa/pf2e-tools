@@ -27,10 +27,18 @@ A preparação da campanha, **só do GM** (decisão do usuário). Tabelas `journ
 - `react-markdown` + `remark-gfm`, **sem HTML cru**, só em chunks lazy. Toda imagem pelo `useImageUrl`; `urlTransform` deixa passar `idb:`.
 - Marcas próprias resolvidas em `blocks.ts` (puro, no `check-rolls`): `:::jogadores Título … :::` (`:::players` em inglês;
   dentro de bloco de código não conta) e `[[Nome]]`.
-- `MarkdownEditor`: **não controlado** (`defaultValue` + ref); texto de fora remonta pela `key` (`version`). Barra com negrito,
-  título, listas, `[[ ]]` (`pickLink`), bloco para jogadores, "Só o mestre" (`wrapBlock`, GM), imagem e **Modelo**
-  (`templates.ts`, `TEMPLATES_EN`). `plain` = sem `[[ ]]`, blocos e imagem (Anotações). Props: `imageFolder`,
-  `playersBlock`, `gmBlock`, `linkTitle`; ferramentas `resolveLink`, `pickLink`.
+- `MarkdownEditor`: **não controlado** (`defaultValue` + ref); texto de fora remonta pela `key` (`version`). A barra existe
+  para ninguém decorar marca: toda marca que o `Markdown` desenha tem botão ou item de menu com o que faz, e o "?" mostra a
+  cola. Grupos: negrito/itálico/riscado (⌘B, ⌘I, ⌘⇧X), Título ▾, listas e citação, Alinhar ▾ (`alignTools`), `[[ ]]` (⌘K,
+  `pickLink`), imagem, Inserir ▾ (tabela, divisória, citação assinada, **Modelo** de `templates.ts`/`TEMPLATES_EN`), Jogadores,
+  Só o mestre. `plain` = sem `[[ ]]`, blocos e imagem (Anotações). Props: `imageFolder`, `playersBlock`, `gmBlock`, `linkTitle`.
+- No Diário, use sempre o `JournalEditor` (`gmBlock` + `alignTools`, sem `justify`): o Resumo vira crônica com o texto
+  inteiro, e na Wiki o servidor corta o `:::mestre` para os jogadores.
+- As transformações moram em `edit.ts` (puro, no `check-rolls`); o componente só aplica a troca com `insertText`, para o ⌘Z
+  desfazer o botão. Botão apertado de novo **tira** a marca (não empilha `****` nem `- 1. `).
+- **Bloco não abre dentro de bloco** (`blockInRange`): `splitSegments` não aninha, e o `:::` de dentro fecharia o de fora —
+  um `:::mestre` dentro de `:::jogadores` sairia no "Mostrar à mesa".
+- Item de menu que mexe no texto fecha o menu e aplica no quadro seguinte: com o menu aberto, o foco fica preso nele.
 - Editar = editor + prévia lado a lado no desktop, só o editor no celular.
 
 ## Ligação com a Wiki (decisão do usuário: separados, ligados por links)
