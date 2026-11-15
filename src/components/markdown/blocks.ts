@@ -77,6 +77,30 @@ export function splitSegments(source: string): MdSegment[] {
     return out
 }
 
+/**
+ * A seleção `[start, end)` está dentro de um bloco `:::` ou toca a marca de um? O editor não abre um
+ * bloco aí: `splitSegments` não aninha, e o `:::` do bloco de dentro fecharia o de fora — um `:::mestre`
+ * dentro de `:::jogadores` sairia no "Mostrar à mesa".
+ */
+export function blockInRange(source: string, start: number, end = start): boolean {
+    let open = false
+    let fenced = false
+    let at = 0
+    for (const line of source.split('\n')) {
+        const lineEnd = at + line.length
+        const t = line.trim()
+        if (FENCE_RE.test(t)) fenced = !fenced
+        const mark = !fenced && (open ? CLOSE_RE.test(t) : OPEN_RE.test(t) || GM_OPEN_RE.test(t))
+        // A linha conta se a seleção a toca (um cursor no fim da linha também).
+        const touches = start <= lineEnd && end >= at
+        if (touches && (open || mark)) return true
+        if (mark) open = !open
+        if (at > end) break
+        at = lineEnd + 1
+    }
+    return false
+}
+
 export const WIKI_RE = /\[\[([^[\]\n]{1,120})\]\]/g
 export const WIKI_HREF = '#journal:'
 
