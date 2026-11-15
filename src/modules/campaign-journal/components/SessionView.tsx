@@ -22,7 +22,7 @@ import {
     type Scene, type SceneStatus, type SessionData, type SessionDoc, type ThreadStatus,
 } from '../doc'
 import { TEMPLATES } from '../templates'
-import { MarkdownEditor } from '../../../components/markdown/MarkdownEditor'
+import { JournalEditor } from './JournalEditor'
 import { EncounterPlanner } from './EncounterPlanner'
 import { SessionLog } from './SessionLog'
 import { ThreadsPanel } from './ThreadsPanel'
@@ -85,7 +85,7 @@ function SceneCard({ scene, version, first, last, onChange, onMove, onRemove }: 
                     <IconButton size="small" aria-label={tr(`Apagar a cena ${scene.title}`, `Delete the scene ${scene.title}`)} onClick={onRemove}><DeleteIcon fontSize="small" /></IconButton>
                 </Box>
             </Stack>
-            <MarkdownEditor
+            <JournalEditor
                 key={`${scene.id}-${version}`}
                 value={scene.md}
                 onChange={(md) => onChange({ ...scene, md })}
@@ -400,7 +400,7 @@ export const SessionView = memo(function SessionView({ doc, version, update, doc
                     </Tabs>
 
                     {tab === 'prep' && (
-                        <MarkdownEditor
+                        <JournalEditor
                             key={`prep-${version}`}
                             value={data.prep}
                             onChange={(prep) => setData({ prep })}
@@ -495,7 +495,7 @@ export const SessionView = memo(function SessionView({ doc, version, update, doc
 
                     {tab === 'recap' && (
                         <Stack spacing={1.5}>
-                            <MarkdownEditor
+                            <JournalEditor
                                 key={`recap-${version}`}
                                 value={data.recap}
                                 onChange={(recap) => setData({ recap })}

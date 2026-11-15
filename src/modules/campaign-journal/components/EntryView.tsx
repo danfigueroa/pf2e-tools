@@ -15,7 +15,7 @@ import {
 } from '../doc'
 import { TEMPLATES } from '../templates'
 import { useJournalTools } from '../../../components/markdown/tools'
-import { MarkdownEditor } from '../../../components/markdown/MarkdownEditor'
+import { JournalEditor } from './JournalEditor'
 import { THREAD_COLOR, THREAD_STATUS_LABEL } from '../threadStyle'
 import { tr } from '../../../i18n'
 
@@ -126,7 +126,7 @@ export const CatalogView = memo(function CatalogView({ doc, version, update, doc
                     {error && <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>}
                 </Stack>
             </Box>
-            <MarkdownEditor
+            <JournalEditor
                 key={`md-${version}`}
                 value={doc.data.md}
                 onChange={(md) => setData({ md })}
@@ -262,7 +262,7 @@ export const ThreadView = memo(function ThreadView({ doc, version, update, docs,
                 {sessionSelect(tr('Aparece em', 'Appears in'), doc.data.introducedIn, (v) => setData({ introducedIn: v }))}
                 {sessionSelect(tr('Resolvido em', 'Resolved in'), doc.data.resolvedIn, (v) => setData({ resolvedIn: v }))}
             </Stack>
-            <MarkdownEditor
+            <JournalEditor
                 key={`md-${version}`}
                 value={doc.data.md}
                 onChange={(md) => setData({ md })}
