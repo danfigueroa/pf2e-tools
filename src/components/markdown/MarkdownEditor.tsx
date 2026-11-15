@@ -108,9 +108,13 @@ function LabelButton({ title, onClick, icon, children, disabled, menu }: {
 /** O filete entre os grupos da barra. */
 const Sep = () => <Box aria-hidden sx={{ width: '1px', alignSelf: 'stretch', my: 0.75, mx: 0.25, bgcolor: rule }} />
 
-function MenuOption({ icon, primary, secondary, onClick, disabled }: { icon: ReactNode; primary: string; secondary?: string; onClick: () => void; disabled?: boolean }) {
+/**
+ * Item de menu que mexe no texto: fecha o menu e só então aplica, no quadro seguinte. Com o menu aberto, o
+ * foco fica preso nele, e o texto não recebe a troca (nem o desfazer).
+ */
+function MenuOption({ icon, primary, secondary, onClick, close, disabled }: { icon: ReactNode; primary: string; secondary?: string; onClick: () => void; close: () => void; disabled?: boolean }) {
     return (
-        <MenuItem onClick={onClick} disabled={disabled} sx={{ alignItems: 'flex-start', whiteSpace: 'normal', maxWidth: 360 }}>
+        <MenuItem onClick={() => { close(); requestAnimationFrame(onClick) }} disabled={disabled} sx={{ alignItems: 'flex-start', whiteSpace: 'normal', maxWidth: 360 }}>
             <ListItemIcon sx={{ mt: 0.25 }}>{icon}</ListItemIcon>
             <ListItemText primary={primary} secondary={secondary} sx={{ my: 0 }} />
         </MenuItem>
@@ -148,15 +152,17 @@ export const MarkdownEditor = memo(function MarkdownEditor(props: Props) {
     const apply = (make: (v: string, s: number, e: number) => TextEdit | null) => {
         const el = ref.current
         if (!el) return
-        setMenu(null)
         const edit = make(el.value, el.selectionStart, el.selectionEnd)
         el.focus()
         if (!edit) return
         el.setSelectionRange(edit.from, edit.to)
         let done = false
-        try {
-            done = document.execCommand('insertText', false, edit.insert)
-        } catch { done = false }
+        // Só com o foco no campo: se um menu ou diálogo o segurou, o `insertText` iria para outro lugar.
+        if (document.activeElement === el) {
+            try {
+                done = document.execCommand('insertText', false, edit.insert)
+            } catch { done = false }
+        }
         if (!done) {
             el.setRangeText(edit.insert, edit.from, edit.to, 'end')
             changed(el.value)
@@ -233,6 +239,7 @@ export const MarkdownEditor = memo(function MarkdownEditor(props: Props) {
     const showEditor = mode === 'edit'
     const showPreview = mode === 'view' || wide
     const off = !showEditor
+    const closeMenu = () => setMenu(null)
     const openMenu = (kind: MenuKind) => (anchor: HTMLElement) => setMenu({ kind, anchor })
     const table = tableSnippet(tr('Coluna', 'Column'))
 
@@ -324,34 +331,35 @@ export const MarkdownEditor = memo(function MarkdownEditor(props: Props) {
                 <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => void onFile(e.target.files?.[0])} />
             </Box>
 
-            <Menu anchorEl={menu?.anchor} open={menu?.kind === 'heading'} onClose={() => setMenu(null)}>
-                <MenuOption icon={<Typography sx={{ fontWeight: 700, fontSize: '1.1rem', lineHeight: 1 }}>T</Typography>} primary={tr('Título', 'Heading')} secondary="## …" onClick={() => apply((v, s, e) => setHeading(v, s, e, 2))} />
-                <MenuOption icon={<Typography sx={{ fontWeight: 700, fontSize: '0.9rem', lineHeight: 1 }}>T</Typography>} primary={tr('Subtítulo', 'Subheading')} secondary="### …" onClick={() => apply((v, s, e) => setHeading(v, s, e, 3))} />
-                <MenuOption icon={<Typography sx={{ fontSize: '0.85rem', lineHeight: 1 }}>¶</Typography>} primary={tr('Texto normal', 'Normal text')} secondary={tr('Tira o título da linha', 'Removes the heading')} onClick={() => apply((v, s, e) => setHeading(v, s, e, 0))} />
+            <Menu anchorEl={menu?.anchor} open={menu?.kind === 'heading'} onClose={closeMenu} disableRestoreFocus>
+                <MenuOption close={closeMenu} icon={<Typography sx={{ fontWeight: 700, fontSize: '1.1rem', lineHeight: 1 }}>T</Typography>} primary={tr('Título', 'Heading')} secondary="## …" onClick={() => apply((v, s, e) => setHeading(v, s, e, 2))} />
+                <MenuOption close={closeMenu} icon={<Typography sx={{ fontWeight: 700, fontSize: '0.9rem', lineHeight: 1 }}>T</Typography>} primary={tr('Subtítulo', 'Subheading')} secondary="### …" onClick={() => apply((v, s, e) => setHeading(v, s, e, 3))} />
+                <MenuOption close={closeMenu} icon={<Typography sx={{ fontSize: '0.85rem', lineHeight: 1 }}>¶</Typography>} primary={tr('Texto normal', 'Normal text')} secondary={tr('Tira o título da linha', 'Removes the heading')} onClick={() => apply((v, s, e) => setHeading(v, s, e, 0))} />
             </Menu>
 
-            <Menu anchorEl={menu?.anchor} open={menu?.kind === 'align'} onClose={() => setMenu(null)}>
+            <Menu anchorEl={menu?.anchor} open={menu?.kind === 'align'} onClose={closeMenu} disableRestoreFocus>
                 {([
                     ['left', <FormatAlignLeft key="l" fontSize="small" />, tr('À esquerda', 'Left')],
                     ['center', <FormatAlignCenter key="c" fontSize="small" />, tr('Centralizar', 'Center')],
                     ['right', <FormatAlignRight key="r" fontSize="small" />, tr('À direita', 'Right')],
                     ['justify', <FormatAlignJustify key="j" fontSize="small" />, tr('Justificar (as duas margens)', 'Justify (both margins)')],
                 ] as [TextAlign, ReactNode, string][]).map(([a, icon, label]) => (
-                    <MenuOption key={a} icon={icon} primary={label} onClick={() => apply((v, s, e) => alignLines(v, s, e, a, rest, words))} />
+                    <MenuOption close={closeMenu} key={a} icon={icon} primary={label} onClick={() => apply((v, s, e) => alignLines(v, s, e, a, rest, words))} />
                 ))}
             </Menu>
 
-            <Menu anchorEl={menu?.anchor} open={menu?.kind === 'insert'} onClose={() => setMenu(null)}>
-                <MenuOption icon={<TableChart fontSize="small" />} primary={tr('Tabela', 'Table')} secondary={tr('Duas colunas; acrescente linhas copiando a última', 'Two columns; add rows by copying the last one')} onClick={() => insert(table.snippet, table.select)} />
-                <MenuOption icon={<HorizontalRule fontSize="small" />} primary={tr('Divisória', 'Divider')} secondary={tr('Uma linha separando as partes', 'A line between sections')} onClick={() => insert('---')} />
+            <Menu anchorEl={menu?.anchor} open={menu?.kind === 'insert'} onClose={closeMenu} disableRestoreFocus>
+                <MenuOption close={closeMenu} icon={<TableChart fontSize="small" />} primary={tr('Tabela', 'Table')} secondary={tr('Duas colunas; acrescente linhas copiando a última', 'Two columns; add rows by copying the last one')} onClick={() => insert(table.snippet, table.select)} />
+                <MenuOption close={closeMenu} icon={<HorizontalRule fontSize="small" />} primary={tr('Divisória', 'Divider')} secondary={tr('Uma linha separando as partes', 'A line between sections')} onClick={() => insert('---')} />
                 <MenuOption
+                    close={closeMenu}
                     icon={<FormatQuote fontSize="small" />}
                     primary={tr('Citação com assinatura', 'Signed quote')}
                     secondary={tr('A fala selecionada e quem a disse', 'The selected line and who said it')}
                     onClick={() => apply((v, s, e) => quoteWithSignature(v, s, e, tr('A fala.', 'The line.'), tr('Quem disse', 'Who said it')))}
                 />
                 {template && (
-                    <MenuOption icon={<TemplateIcon fontSize="small" />} primary={tr('Modelo', 'Template')} secondary={tr('Um roteiro pronto desta parte, para preencher', 'A ready outline of this part, to fill in')} onClick={() => insert(template)} />
+                    <MenuOption close={closeMenu} icon={<TemplateIcon fontSize="small" />} primary={tr('Modelo', 'Template')} secondary={tr('Um roteiro pronto desta parte, para preencher', 'A ready outline of this part, to fill in')} onClick={() => insert(template)} />
                 )}
             </Menu>
 
