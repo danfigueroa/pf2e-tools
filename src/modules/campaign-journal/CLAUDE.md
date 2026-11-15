@@ -45,7 +45,10 @@ A preparação da campanha, **só do GM** (decisão do usuário). Tabelas `journ
 
 `[[Nome]]` procura o catálogo e depois a Wiki (selo "Wiki"; `[[wiki:Nome]]` força a Wiki); nome inexistente oferece criar em
 um ou outro. O Elenco aceita `wiki:<id>` em `links`. A ficha do catálogo guarda `wiki`; "Criar na Wiki a partir desta" leva
-título, imagem, etiquetas e **só** os trechos `:::jogadores` (`playersText`). O Resumo vira crônica (`ChronicleDialog`, página
+título, etiquetas e **o texto inteiro** (`toWiki.ts`, no `check-rolls`): o GM escolhe se os jogadores leem todo o texto ou só
+as caixas `:::jogadores`, e o resto vai como `:::mestre` (nada fica para trás; o servidor corta o segredo). Escolhe também se a
+página nasce pública ou oculta (`visibility: 'gm'`). Capa: a da ficha, senão a primeira imagem da parte pública — **nunca**
+a de um segredo (a capa vai a todos e ao "Mostrar à mesa"). O Resumo vira crônica (`ChronicleDialog`, página
 `event`, `chronicle`), com o texto editável antes de publicar — o resumo pode ter segredo.
 
 Não há histórico de sessões do diário no banco: a sessão do diário liga ao dia de jogo pelo `playedOn`.
