@@ -4,7 +4,7 @@ import {
     Alert, Autocomplete, Box, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle,
     FormControlLabel, Radio, RadioGroup, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material'
-import { AddPhotoAlternate as PhotoIcon, AutoStories as WikiIcon, Campaign as ShareIcon, Delete as DeleteIcon } from '@mui/icons-material'
+import { Sync as SyncIcon, AddPhotoAlternate as PhotoIcon, AutoStories as WikiIcon, Campaign as ShareIcon, Delete as DeleteIcon } from '@mui/icons-material'
 import { Markdown } from '../../../components/markdown/Markdown'
 import { splitSegments } from '../../../components/markdown/blocks'
 import { publicPart, secretCount, wikiBodyFrom, wikiCover, type WikiShare } from '../toWiki'
@@ -17,6 +17,7 @@ import {
 import { TEMPLATES } from '../templates'
 import { useJournalTools } from '../../../components/markdown/tools'
 import { JournalEditor } from './JournalEditor'
+import { WikiUpdateDialog } from './WikiUpdateDialog'
 import { THREAD_COLOR, THREAD_STATUS_LABEL } from '../threadStyle'
 import { tr } from '../../../i18n'
 
@@ -152,6 +153,8 @@ function WikiLink({ doc, onLink }: { doc: CatalogDoc; onLink: (id: string | null
     const navigate = useNavigate()
     const pages = useWikiIndex().list?.pages ?? null
     const [confirm, setConfirm] = useState(false)
+    const [updating, setUpdating] = useState(false)
+    const [updated, setUpdated] = useState(false)
     const [busy, setBusy] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const linked = doc.data.wiki ? pages?.find((p) => p.id === doc.data.wiki) ?? null : null
@@ -191,7 +194,12 @@ function WikiLink({ doc, onLink }: { doc: CatalogDoc; onLink: (id: string | null
                         {linked
                             ? <Chip icon={<WikiIcon />} label={linked.title} onClick={() => navigate(`/wiki/${linked.id}`)} />
                             : <Typography variant="body2" color="text.secondary">{pages ? tr('A página ligada foi apagada.', 'The linked page was deleted.') : tr('Carregando…', 'Loading…')}</Typography>}
+                        {linked && (
+                            <Button size="small" startIcon={<SyncIcon />} onClick={() => { setUpdated(false); setUpdating(true) }}>
+                                {tr('Atualizar a Wiki com esta ficha', 'Update the wiki from this entry')}</Button>
+                        )}
                         <Button size="small" color="inherit" onClick={() => onLink(null)}>{tr('Desligar', 'Unlink')}</Button>
+                        {updated && <Typography variant="body2" color="text.secondary" role="status">{tr('Wiki atualizada.', 'Wiki updated.')}</Typography>}
                     </Stack>
                 )
                 : (
@@ -209,6 +217,9 @@ function WikiLink({ doc, onLink }: { doc: CatalogDoc; onLink: (id: string | null
                         <Button size="small" startIcon={<WikiIcon />} onClick={open}>{tr('Criar na Wiki a partir desta', 'Create on the wiki from this')}</Button>
                     </Stack>
                 )}
+            {updating && doc.data.wiki && (
+                <WikiUpdateDialog doc={doc} pageId={doc.data.wiki} onClose={() => setUpdating(false)} onDone={() => { setUpdating(false); setUpdated(true) }} />
+            )}
             {confirm && (
                 <Dialog open onClose={() => setConfirm(false)} fullWidth maxWidth="sm">
                     <DialogTitle>{tr('Criar "', 'Create "')}{doc.title}{tr('" na Wiki', '" on the wiki')}</DialogTitle>
