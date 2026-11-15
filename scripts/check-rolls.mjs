@@ -1968,6 +1968,15 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
   eq(tw.wikiCover(null, tw.wikiBodyFrom(':::mestre\n![s](journal/s.png)\n:::', 'all')), null, 'Diário → Wiki: imagem só em segredo não vira capa')
   eq(tw.wikiBodyFrom('a\n:::jogadores\nb\n:::', 'players', ':::gm'), ':::gm\na\n:::\n\nb', 'Diário → Wiki: marca do mestre em inglês')
 
+  const df = tw.lineDiff('a\nb\nc', 'a\nB\nc\nd')
+  eq(df.map((x) => `${x.kind[0]}:${x.text}`).join('|'), 's:a|d:b|a:B|s:c|a:d', 'Diário → Wiki: diferença por linha (o que sai e o que entra)')
+  eq(tw.lineDiff('', 'x').map((x) => x.kind).join(), 'add', 'Diário → Wiki: página vazia, tudo entra')
+  eq(tw.lineDiff('x\ny', 'x\ny').every((x) => x.kind === 'same'), true, 'Diário → Wiki: igual, nada muda')
+  const up = tw.updatedPage({ body: 'velho', image: 'wiki/w.png', tags: ['nobre'], title: 'Barão' }, 'novo', null, ['vilão', 'nobre'], 'all')
+  ok(up.body === 'novo' && up.image === 'wiki/w.png' && up.tags.join() === 'nobre,vilão' && up.title === 'Barão',
+    'Diário → Wiki: atualizar troca o texto, mantém a imagem e o título da Wiki e soma as etiquetas')
+  eq(tw.updatedPage({ body: '', image: 'wiki/w.png', tags: [] }, 'x', 'journal/c.png', [], 'all').image, 'journal/c.png', 'Diário → Wiki: a capa da ficha substitui a da Wiki')
+
   // A barra do editor (src/components/markdown/edit.ts): cada botão aplicado ao texto.
   const ed = await import('../src/components/markdown/edit.ts')
   const apply = (v, t) => ({ v: v.slice(0, t.from) + t.insert + v.slice(t.to), sel: [t.selStart, t.selEnd] })
