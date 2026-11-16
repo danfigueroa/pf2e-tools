@@ -21,13 +21,28 @@ mesa vê tudo + ranking, **todo mundo do zero** (nada retroativo), **o GM tem co
 - **Sessão** (`mesa-settings`): iniciar abre `mesa_sessions` (e fecha alguma esquecida); encerrar fecha, roda
   `session_rollup`, elege destaques (`sessionHighlights`, **empate não elege**) e avalia todos os membros.
 - `evaluate` roda depois de cada feito e no `GET ?trophies=me`; o novo vira `mesa_events` `trophy-unlocked` (`data: { user,
-  name, trophy, title, titleEn, description, descriptionEn, tier }`). O cartão mostra a descrição (o que desbloqueou);
-  ela não vaza, porque quem ganhou já a mostra no próprio perfil. Evento antigo vem sem ela, e o cartão só omite a linha. `GET ?trophies=summary` é o resumo leve da sidebar e da Início (sem avaliar).
-- Cores em `TROPHY_TIERS` (`palette.ts`): `medal` (fixa), `ink` (≥4,5:1), `tint`. Taça em SVG (`TrophyMedal`); grau também por extenso.
-- **Animações** (`motion.ts`, sem biblioteca; movimento reduzido = direto): o `TrophyUnlockCard` (chunk ocioso do
-  `TrophyToastLayer`, a toda a mesa, em fila, 6 s; platina 10 s) com faíscas num **`<canvas>` único** (`Sparks`, nunca um
-  elemento por faísca). Página: cascata (`useInView` + `reveal`), contadores, barras por `scaleX`, "Novo!" pelo
-  `pf2e:trophies:seen:<userId>` (a primeira visita não marca). Ranking por FLIP.
+  name, trophy, title, titleEn, description, descriptionEn, tier, category }`). O aviso mostra a descrição (o que
+  desbloqueou); ela não vaza, porque quem ganhou já a mostra no próprio perfil. Evento antigo vem sem descrição e sem
+  categoria: a linha some e a medalha cai na taça. `GET ?trophies=summary` é o resumo leve da sidebar e da Início (sem avaliar).
+- **Medalha** (`TrophyMedal`, SVG): a **silhueta é do grau** (bronze disco, prata escudo, ouro selo raiado, platina estrela) e o
+  **glifo é da categoria** (`glyphs.ts`; sem categoria, a taça). **Categoria nova no catálogo = glifo novo** (o `check-trophies`
+  cobra). O bloqueado não leva glifo (não dá pista do secreto). Cores em `TROPHY_TIERS` (`palette.ts`): `medal`/`hi`/`lo`/
+  `engrave` são o metal (fixos nos dois temas), `ink` (≥4,5:1) e `tint` são do tema. Grau também por extenso: forma e cor não bastam.
+- **O desbloqueio tem dois formatos** (`TrophyToastLayer`, em fila, os dois em chunks ociosos):
+  - **Cerimônia em tela cheia** (`TrophyCeremony`): o troféu DESTA conta e o ouro/platina de um colega (mais curta). Véu,
+    raios, medalha grande, confete num **`<canvas>` único** (`Sparks`, nunca um elemento por partícula), pontos e — no meu,
+    ao vivo — a barra do nível enchendo, com a subida de nível se houver (`pointsBefore` = o resumo de antes do evento).
+  - **Faixa no topo** (`TrophyUnlockCard`): bronze/prata de colega, **e qualquer troféu quando o foco está num campo de
+    texto** (a cerimônia taparia o que a pessoa digita; autosave do background desbloqueia troféu no meio da frase).
+  - **A cerimônia não rouba o foco nem trava nada**: fecha no toque, no Esc ou no tempo, e o troféu já está gravado.
+  - **Sem som nem vibração** (decisão do usuário): o desbloqueio é só visual.
+- **O MEU troféu vem da lista do sino, não do canal ao vivo** (`subscribeNotifications`): assim o ganho com o app fechado
+  é celebrado na próxima abertura. A marca do já celebrado é `pf2e:trophies:celebrated:<userId>` **com `mesaKey`** (o id é
+  o do evento da mesa); sem marca (primeira vez no aparelho) só se grava o topo. Mais de 3 de uma vez = uma cerimônia só.
+- Em dev, `__trophy({ tier, category, who, pointsBefore })` no console mostra o aviso sem tocar no banco.
+- **Animações** (`motion.ts`, sem biblioteca; movimento reduzido = direto). Página: cascata (`useInView` + `reveal`),
+  contadores, barras por `scaleX`, anel do nível (`LevelRing`, também na Início), "Novo!" pelo `pf2e:trophies:seen:<userId>`
+  (a primeira visita não marca), tocar num troféu ganho revê a cerimônia. Ranking: pódio (só com 3 pessoas pontuadas) + lista por FLIP.
 - **Feitos da Wiki carregam o tipo da página** (`data.kind`): `wiki-created` (+ `parent`, `links`), `wiki-edited` e `wiki-read`
   (primeira leitura de página de outra pessoa, uma por conta+mesa+página). `factsOf` lê essas linhas cruas (`WIKI_FEATS`) e
   `deriveFacts` conta **por página**, não por registro; tipo por tipo em `WIKI_KINDS` ("Outro" não tem troféu). Sem migration:
