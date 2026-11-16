@@ -8,7 +8,7 @@ import { MESAS } from '../../services/mesa';
 import { onTableEvent } from '../../services/notifications';
 import {
   fetchTrophyProfile, fetchTrophyRanking, levelOf, TIER_POINTS,
-  type RankingEntry, type TrophyDef, type TrophyProfile, type TrophyRole, type TrophyTier,
+  type RankingEntry, type TrophyDef, type TrophyProfile, type TrophyRole, type TrophyTier, type Unlocked,
 } from '../../services/trophies';
 import { useInView } from '../../motion/useInView';
 import { useReducedMotion } from '../../motion/motion';
@@ -17,7 +17,7 @@ import { TrophyMedal } from './TrophyMedal';
 import { LevelRing } from './LevelRing';
 import { Ranking } from './Ranking';
 import type { UnlockToast } from './TrophyUnlockCard';
-import { EASE_BACK, glowNew, grow, reveal, shine, sweep } from './motion';
+import { EASE_BACK, glowNew, grow, lockWiggle, reveal, shine, sweep } from './motion';
 import { locale, tr } from '../../i18n';
 
 // Troféus do Covil (`/trofeus`, `/trofeus/:user`): o perfil de troféus da conta — o meu ou o de
@@ -155,10 +155,11 @@ function TrophyCard({ def, at, mesa, progress, mine, fresh, shown, index, onRepl
     : <Box component="article" sx={sx}>{body}</Box>;
 }
 
-function ProfileHeader({ name, profile, role }: { name: string; profile: TrophyProfile; role: TrophyRole }) {
+function ProfileHeader({ name, profile, hasGm }: { name: string; profile: TrophyProfile; hasGm: boolean }) {
   const [ref, shown] = useInView<HTMLDivElement>();
   const got = new Set(profile.unlocked.map((u) => u.id));
-  const ofRole = profile.catalog.filter((d) => d.role === role);
+  // Quem mestra conta os dois conjuntos; quem só joga, o de jogador.
+  const ofRole = profile.catalog.filter((d) => hasGm || d.role === 'player');
   const total = profile.points.player + profile.points.gm;
   const lvl = levelOf(total);
   const done = ofRole.filter((d) => got.has(d.id)).length;
@@ -173,6 +174,11 @@ function ProfileHeader({ name, profile, role }: { name: string; profile: TrophyP
           <Typography sx={{ fontSize: '0.875rem', color: chrome.textSoft, fontVariantNumeric: 'tabular-nums' }}>
             <Count value={total} shown={shown} duration={1200} /> {tr('pontos · faltam ', 'points · ')}{lvl.next - lvl.into} {tr('para o nível ', 'to level ')}{lvl.level + 1}
           </Typography>
+          {hasGm && (
+            <Typography sx={{ fontSize: '0.75rem', color: chrome.textMuted, fontVariantNumeric: 'tabular-nums' }}>
+              {tr('Jogador', 'Player')} {profile.points.player} pts · {tr('Mestre', 'Game master')} {profile.points.gm} pts
+            </Typography>
+          )}
           <Box sx={{ mt: 1, display: 'flex' }}><Bar fraction={lvl.into / lvl.next} shown={shown} track={chrome.active} fill={gold.bright} delay={300} /></Box>
         </Box>
       </Box>
@@ -197,42 +203,128 @@ function ProfileHeader({ name, profile, role }: { name: string; profile: TrophyP
   );
 }
 
-function Collection({ profile, mine, isGm, fresh, onReplay }: { profile: TrophyProfile; mine: boolean; isGm: boolean; fresh: Set<string>; onReplay: (def: TrophyDef) => void }) {
-  const hasGm = isGm || profile.points.gm > 0;
-  const [role, setRole] = useState<TrophyRole>('player');
+type RoleView = 'all' | TrophyRole;
+
+/** Uma categoria da coleção: cabeçalho com o progresso, os troféus ganhos em cartões e os secretos numa prateleira. */
+function Section({ role, category, defs, unlocked, profile, mine, fresh, missing, tagRole, onReplay }: {
+  role: TrophyRole; category: string; defs: TrophyDef[]; unlocked: Map<string, Unlocked>; profile: TrophyProfile
+  mine: boolean; fresh: Set<string>; missing: boolean; tagRole: boolean; onReplay: (def: TrophyDef) => void
+}) {
+  const [ref, shown] = useInView<HTMLDivElement>();
+  const reduced = useReducedMotion();
+  const byTier = (a: TrophyDef, b: TrophyDef) => TIER_POINTS[b.tier] - TIER_POINTS[a.tier];
+  const got = defs.filter((d) => unlocked.has(d.id)).sort((a, b) => Number(fresh.has(b.id)) - Number(fresh.has(a.id)) || byTier(a, b));
+  const locked = defs.filter((d) => !unlocked.has(d.id)).sort(byTier);
+  const points = got.reduce((sum, d) => sum + TIER_POINTS[d.tier], 0);
+  const complete = locked.length === 0;
+  // O emblema da categoria veste o melhor grau já ganho nela.
+  const best = got.length ? [...got].sort(byTier)[0].tier : null;
+  const title = `${CATEGORIES[category] ?? category}${tagRole ? ` · ${role === 'gm' ? tr('Mestre', 'Game master') : tr('Jogador', 'Player')}` : ''}`;
+  return (
+    <Box ref={ref} component="section" sx={{ ...card, borderColor: complete ? gold.bright : rule, overflow: 'hidden', ...reveal(shown) }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: { xs: 1.5, sm: 2.5 }, py: 1.5, bgcolor: parchment.sunken, borderBottom: `1px solid ${rule}` }}>
+        <Box sx={{ flexShrink: 0, transform: shown || reduced ? 'none' : 'scale(0.4) rotate(-30deg)', transition: `transform 700ms ${EASE_BACK} 120ms` }}>
+          <TrophyMedal tier={best ?? 'bronze'} category={category} size={44} />
+        </Box>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', justifyContent: 'space-between', columnGap: 1 }}>
+            <Typography component="h2" sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.125rem', lineHeight: 1.25 }}>{title}</Typography>
+            <Typography sx={{ flexShrink: 0, fontSize: '0.8125rem', fontWeight: 700, color: complete ? gold.deep : ink.secondary, fontVariantNumeric: 'tabular-nums' }}>
+              {complete ? tr('Completa! ', 'Complete! ') : ''}<Count value={got.length} shown={shown} />/{defs.length}{points ? ` · ${points} pts` : ''}
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', mt: 0.75 }}><Bar fraction={got.length / defs.length} shown={shown} track={parchment.page} fill={complete ? gold.bright : gold.main} delay={200} /></Box>
+        </Box>
+      </Box>
+      <Box sx={{ p: { xs: 1.5, sm: 2.5 }, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {!missing && got.length > 0 && (
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', gap: 1.5 }}>
+            {got.map((d, i) => {
+              const u = unlocked.get(d.id)!;
+              return (
+                <TrophyCard key={d.id} def={d} at={u.at} mesa={u.mesa} progress={profile.progress[d.id] ?? 0}
+                  mine={mine} fresh={fresh.has(d.id)} shown={shown} index={i} onReplay={onReplay} />
+              );
+            })}
+          </Box>
+        )}
+        {locked.length > 0 && (
+          <Box>
+            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: ink.secondary, mb: 1 }}>
+              {locked.length} {locked.length === 1 ? tr('secreto por descobrir', 'secret to discover') : tr('secretos por descobrir', 'secrets to discover')}
+            </Typography>
+            {/* A prateleira: o secreto só mostra a forma do grau. Tentar espiar faz o cadeado sacudir. */}
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(60px, 1fr))', gap: 1 }}>
+              {locked.map((d, i) => (
+                <Box key={d.id} title={`${tr('Troféu secreto', 'Secret trophy')} · ${TROPHY_TIERS[d.tier].label}`} sx={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.25, py: 0.75, borderRadius: 2,
+                  ...reveal(shown, i + got.length),
+                  ...(reduced ? {} : { '&:hover > svg, &:active > svg': { animation: `${lockWiggle} 520ms ease-in-out` } }),
+                }}>
+                  <TrophyMedal tier={d.tier} locked size={44} />
+                  <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: TROPHY_TIERS[d.tier].ink }}>
+                    {TROPHY_TIERS[d.tier].label}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        )}
+      </Box>
+    </Box>
+  );
+}
+
+function Collection({ profile, mine, hasGm, fresh, onReplay }: { profile: TrophyProfile; mine: boolean; hasGm: boolean; fresh: Set<string>; onReplay: (def: TrophyDef) => void }) {
+  // Quem mestra vê os dois conjuntos juntos; os botões separam.
+  const [view, setView] = useState<RoleView>('all');
   const [category, setCategory] = useState<string | null>(null);
   const [missing, setMissing] = useState(false);
-  const [ref, shown] = useInView<HTMLDivElement>();
   const unlocked = useMemo(() => new Map(profile.unlocked.map((u) => [u.id, u])), [profile]);
-  const list = profile.catalog
-    .filter((d) => d.role === role && (!category || d.category === category) && (!missing || !unlocked.has(d.id)))
-    .sort((a, b) => Number(fresh.has(b.id)) - Number(fresh.has(a.id))
-      || Number(unlocked.has(b.id)) - Number(unlocked.has(a.id)) || TIER_POINTS[b.tier] - TIER_POINTS[a.tier]);
-  const categories = [...new Set(profile.catalog.filter((d) => d.role === role).map((d) => d.category))];
+  const inView = (d: TrophyDef) => (hasGm ? view === 'all' || d.role === view : d.role === 'player');
+  const visible = profile.catalog.filter(inView);
+  const categories = [...new Set(visible.map((d) => d.category))];
+  // Uma seção por papel + categoria, na ordem do catálogo (a "Platina" existe nos dois papéis).
+  const groups: { role: TrophyRole; category: string; defs: TrophyDef[] }[] = [];
+  for (const d of visible) {
+    if (category && d.category !== category) continue;
+    const g = groups.find((x) => x.role === d.role && x.category === d.category);
+    if (g) g.defs.push(d); else groups.push({ role: d.role, category: d.category, defs: [d] });
+  }
+  const shownGroups = groups.filter((g) => !missing || g.defs.some((d) => !unlocked.has(d.id)));
+  const ROLE_LABEL: Record<RoleView, string> = { all: tr('Todos', 'All'), player: tr('Jogador', 'Player'), gm: tr('Mestre', 'Game master') };
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-        {hasGm && (['player', 'gm'] as const).map((r) => (
-          <Chip key={r} label={r === 'player' ? tr('Jogador', 'Player') : tr('Mestre', 'Game master')} color={role === r ? 'primary' : 'default'}
-            onClick={() => { setRole(r); setCategory(null); }} sx={{ fontWeight: 600 }} />
-        ))}
-        {hasGm && <Box sx={{ width: 8 }} />}
-        <Chip label={tr("Todos", 'All')} variant={category ? 'outlined' : 'filled'} onClick={() => setCategory(null)} />
-        {categories.map((c) => (
-          <Chip key={c} label={CATEGORIES[c] ?? c} variant={category === c ? 'filled' : 'outlined'} onClick={() => setCategory(c)} />
-        ))}
-        <Chip label={tr("Só os que faltam", 'Only the missing ones')} variant={missing ? 'filled' : 'outlined'} onClick={() => setMissing((m) => !m)} />
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+        {hasGm && (
+          <Box role="group" aria-label={tr('Conjunto de troféus', 'Trophy set')} sx={{ display: 'inline-flex', alignSelf: 'flex-start', p: 0.5, borderRadius: 99, bgcolor: parchment.sunken, border: `1px solid ${rule}` }}>
+            {(['all', 'player', 'gm'] as const).map((r) => {
+              const n = profile.catalog.filter((d) => (r === 'all' || d.role === r) && unlocked.has(d.id)).length;
+              return (
+                <ButtonBase key={r} aria-pressed={view === r} onClick={() => { setView(r); setCategory(null); }} sx={{
+                  px: { xs: 1, sm: 2 }, minHeight: 36, borderRadius: 99, whiteSpace: 'nowrap', fontWeight: 700, fontSize: '0.875rem', font: 'inherit',
+                  color: view === r ? chrome.text : ink.primary, bgcolor: view === r ? green.deepest : 'transparent', transition: 'background-color 200ms ease',
+                }}>
+                  <Box component="span" sx={{ fontWeight: 700 }}>{ROLE_LABEL[r]}</Box>
+                  <Box component="span" sx={{ ml: 0.75, fontSize: '0.75rem', color: view === r ? gold.bright : ink.secondary, fontVariantNumeric: 'tabular-nums' }}>{n}</Box>
+                </ButtonBase>
+              );
+            })}
+          </Box>
+        )}
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+          <Chip label={tr('Todas as categorias', 'All categories')} variant={category ? 'outlined' : 'filled'} onClick={() => setCategory(null)} />
+          {categories.map((c) => (
+            <Chip key={c} label={CATEGORIES[c] ?? c} variant={category === c ? 'filled' : 'outlined'} onClick={() => setCategory(c)} />
+          ))}
+          <Chip label={tr("Só os que faltam", 'Only the missing ones')} variant={missing ? 'filled' : 'outlined'} onClick={() => setMissing((m) => !m)} />
+        </Box>
       </Box>
-      {list.length === 0 && <Typography color="text.secondary">{tr('Nenhum troféu neste filtro.', 'No trophies in this filter.')}</Typography>}
-      <Box ref={ref} sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: 1.5 }}>
-        {list.map((d, i) => {
-          const u = unlocked.get(d.id);
-          return (
-            <TrophyCard key={d.id} def={d} at={u?.at ?? null} mesa={u?.mesa ?? null} progress={profile.progress[d.id] ?? 0}
-              mine={mine} fresh={fresh.has(d.id)} shown={shown} index={i} onReplay={onReplay} />
-          );
-        })}
-      </Box>
+      {shownGroups.length === 0 && <Typography color="text.secondary">{tr('Nenhum troféu neste filtro.', 'No trophies in this filter.')}</Typography>}
+      {shownGroups.map((g) => (
+        <Section key={`${g.role}/${g.category}`} role={g.role} category={g.category} defs={g.defs} unlocked={unlocked} profile={profile}
+          mine={mine} fresh={fresh} missing={missing} tagRole={hasGm && view === 'all' && g.category === 'platina'} onReplay={onReplay} />
+      ))}
     </Box>
   );
 }
@@ -267,6 +359,8 @@ export default function TrophiesPage() {
   const entry = ranking?.find((e) => e.userId === (mine ? role.userId : user));
   const name = mine ? (role.displayName ?? role.username ?? tr('Você', 'You')) : entry?.name ?? tr('Membro da mesa', 'Table member');
   const showTab = mine ? tab : 'mine';
+  // Tem conjunto de mestre quem mestra esta mesa ou já pontuou mestrando outra.
+  const hasGm = (mine ? role.isGm : entry?.role === 'gm') || (profile?.points.gm ?? 0) > 0;
 
   return (
     <Box sx={{ maxWidth: 1100, mx: 'auto', display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3 } }}>
@@ -294,12 +388,12 @@ export default function TrophiesPage() {
           <Alert severity="warning">{tr('Não foi possível carregar os troféus agora.', 'Couldn\'t load the trophies right now.')}</Alert>
         ) : (
           <>
-            <ProfileHeader name={name} profile={profile} role="player" />
+            <ProfileHeader name={name} profile={profile} hasGm={hasGm} />
             {mine && profile.unlocked.length === 0 && (
               <Alert severity="info" icon={<TrophyIcon />}>
                 {tr('Todo mundo começa do zero. Escreva o background, anote o que acontece e role os dados com a sessão aberta pelo GM para ganhar os primeiros troféus.', 'Everyone starts from zero. Write your background, note down what happens and roll the dice with the session opened by the GM to earn the first trophies.')}</Alert>
             )}
-            <Collection profile={profile} mine={mine} isGm={mine ? role.isGm : entry?.role === 'gm'} fresh={fresh}
+            <Collection profile={profile} mine={mine} hasGm={hasGm} fresh={fresh}
               onReplay={(d) => setReplay({ key: `replay-${d.id}-${Date.now()}`, title: d.title, tier: d.tier, category: d.category, description: d.description, who: mine ? null : name })} />
           </>
         )

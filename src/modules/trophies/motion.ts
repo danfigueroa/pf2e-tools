@@ -151,3 +151,12 @@ export const crownBob = keyframes`
     0%, 100% { transform: translateY(0) rotate(-4deg); }
     50% { transform: translateY(-4px) rotate(4deg); }
 `
+
+/** O secreto sacode quando alguém tenta espiar. */
+export const lockWiggle = keyframes`
+    0%, 100% { transform: rotate(0deg); }
+    20% { transform: rotate(-10deg); }
+    40% { transform: rotate(9deg); }
+    60% { transform: rotate(-6deg); }
+    80% { transform: rotate(4deg); }
+`
