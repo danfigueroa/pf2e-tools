@@ -21,7 +21,8 @@ mesa vê tudo + ranking, **todo mundo do zero** (nada retroativo), **o GM tem co
 - **Sessão** (`mesa-settings`): iniciar abre `mesa_sessions` (e fecha alguma esquecida); encerrar fecha, roda
   `session_rollup`, elege destaques (`sessionHighlights`, **empate não elege**) e avalia todos os membros.
 - `evaluate` roda depois de cada feito e no `GET ?trophies=me`; o novo vira `mesa_events` `trophy-unlocked` (`data: { user,
-  name, trophy, title, titleEn, tier }`). `GET ?trophies=summary` é o resumo leve da sidebar e da Início (sem avaliar).
+  name, trophy, title, titleEn, description, descriptionEn, tier }`). O cartão mostra a descrição (o que desbloqueou);
+  ela não vaza, porque quem ganhou já a mostra no próprio perfil. Evento antigo vem sem ela, e o cartão só omite a linha. `GET ?trophies=summary` é o resumo leve da sidebar e da Início (sem avaliar).
 - Cores em `TROPHY_TIERS` (`palette.ts`): `medal` (fixa), `ink` (≥4,5:1), `tint`. Taça em SVG (`TrophyMedal`); grau também por extenso.
 - **Animações** (`motion.ts`, sem biblioteca; movimento reduzido = direto): o `TrophyUnlockCard` (chunk ocioso do
   `TrophyToastLayer`, a toda a mesa, em fila, 6 s; platina 10 s) com faíscas num **`<canvas>` único** (`Sparks`, nunca um
