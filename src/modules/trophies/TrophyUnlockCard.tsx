@@ -20,7 +20,11 @@ import { tr } from '../../i18n';
 // Movimento reduzido: o cartão aparece pronto, sem nada disso.
 
 /** `who` = quem ganhou, quando não é esta conta (o anúncio vai a toda a mesa). */
-export interface UnlockToast { key: string; title: string; tier: TrophyTier; who: string | null }
+export interface UnlockToast {
+  key: string; title: string; tier: TrophyTier; who: string | null
+  /** O que desbloqueou o troféu ("Tire dois 20 naturais seguidos na mesma sessão."); vazio no aviso antigo. */
+  description: string
+}
 
 const MEDAL = 56;
 
@@ -40,7 +44,7 @@ export default function TrophyUnlockCard({ toast, leaving, onOpen, onClose }: { 
 
   const motion = (value: string) => (reduced ? 'none' : value);
   return (
-    <Box role="status" aria-live="polite" aria-label={`${toast.who ? tr(`${toast.who} desbloqueou`, `${toast.who} unlocked`) : tr('Troféu desbloqueado', 'Trophy unlocked')}: ${toast.title} (${tier.label})`} sx={{
+    <Box role="status" aria-live="polite" aria-label={`${toast.who ? tr(`${toast.who} desbloqueou`, `${toast.who} unlocked`) : tr('Troféu desbloqueado', 'Trophy unlocked')}: ${toast.title} (${tier.label})${toast.description ? `. ${toast.description}` : ''}`} sx={{
       position: 'fixed', top: { xs: 72, md: 16 }, left: { xs: '50%', md: 'calc(50% + var(--sidebar-w, 0px) / 2)' },
       transform: 'translate(-50%, 0)', zIndex: 1260, width: 'min(400px, calc(100vw - 24px))', boxSizing: 'border-box',
       display: 'flex', alignItems: 'center', gap: 1.75, p: 1.5, pr: 0.5, borderRadius: 2.5, overflow: 'visible',
@@ -82,6 +86,14 @@ export default function TrophyUnlockCard({ toast, leaving, onOpen, onClose }: { 
             {toast.who ? tr(`${toast.who.toUpperCase()} DESBLOQUEOU`, `${toast.who.toUpperCase()} UNLOCKED`) : platinum ? tr('PLATINA CONQUISTADA', 'PLATINUM EARNED') : tr('TROFÉU DESBLOQUEADO', 'TROPHY UNLOCKED')} · {tier.label.toUpperCase()}
           </Typography>
           <Typography noWrap sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.0625rem' }}>{toast.title}</Typography>
+          {toast.description && (
+            <Typography sx={{
+              fontSize: '0.8125rem', lineHeight: 1.35, color: chrome.textSoft, mb: 0.25,
+              display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+            }}>
+              {toast.description}
+            </Typography>
+          )}
           <Typography sx={{
             fontSize: '0.8125rem', fontWeight: 700, color: chrome.textSoft, fontVariantNumeric: 'tabular-nums',
             animation: motion(`${pointsUp} 2600ms ease-out 700ms both`),

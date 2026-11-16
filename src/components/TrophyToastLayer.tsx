@@ -44,6 +44,8 @@ export const TrophyToastLayer = memo(function TrophyToastLayer() {
     const tier = TIERS.includes(data.tier as TrophyTier) ? (data.tier as TrophyTier) : 'bronze';
     setQueue((q) => [...q, {
       key: `${String(data.trophy)}-${String(data.user)}-${Date.now()}`, title: String((isEn ? data.titleEn : null) ?? data.title ?? tr('Troféu', 'Trophy')), tier,
+      // Aviso antigo (de antes da descrição no evento) chega sem ela: o cartão só não mostra a linha.
+      description: String((isEn ? data.descriptionEn : null) ?? data.description ?? ''),
       who: mine ? null : (typeof data.name === 'string' && data.name ? data.name : tr('Alguém da mesa', 'Someone at the table')),
     }]);
   }), []);
