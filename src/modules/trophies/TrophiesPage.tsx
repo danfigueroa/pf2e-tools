@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Box, ButtonBase, Chip, Skeleton, Tab, Tabs, Typography } from '@mui/material';
 import { ArrowBack as BackIcon, ChevronRight as ChevronIcon, EmojiEvents as TrophyIcon } from '@mui/icons-material';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -15,7 +15,9 @@ import { useInView } from '../../motion/useInView';
 import { useReducedMotion } from '../../motion/motion';
 import { useAnimatedNumber } from '../../motion/useAnimatedNumber';
 import { TrophyMedal } from './TrophyMedal';
-import { EASE, EASE_BACK, flash, glowNew, grow, reveal } from './motion';
+import { LevelRing } from './LevelRing';
+import type { UnlockToast } from './TrophyUnlockCard';
+import { EASE, EASE_BACK, flash, glowNew, grow, podiumUp, reveal, shine, sweep } from './motion';
 import { locale, tr } from '../../i18n';
 
 // Troféus do Covil (`/trofeus`, `/trofeus/:user`): o perfil de troféus da conta — o meu ou o de
@@ -23,7 +25,10 @@ import { locale, tr } from '../../i18n';
 //
 // Animação (só apresenta; ver `motion.ts`): os cartões entram em cascata quando a grade aparece,
 // o nível, os pontos e as contagens correm até o valor, as barras crescem, o troféu ganho desde a
-// última visita respira com o selo "Novo" e o ranking desliza ao reordenar (FLIP).
+// última visita respira com o selo "Novo" e o ranking desliza ao reordenar (FLIP). Tocar num troféu
+// ganho revê a cerimônia do desbloqueio (a mesma do aviso, chunk à parte).
+
+const TrophyCeremony = lazy(() => import('./TrophyCeremony'));
 
 const CATEGORIES: Record<string, string> = {
   ficha: tr('Ficha', 'Sheet'), historia: tr('História e notas', 'Story and notes'), presenca: tr('Presença', 'Attendance'), dados: tr('Dados', 'Dice'), sorte: tr('Sorte e azar', 'Luck'),
@@ -71,27 +76,53 @@ const Count = ({ value, shown, duration = 1000 }: { value: number; shown: boolea
   <>{useAnimatedNumber(shown ? value : 0, { duration })}</>
 );
 
-function TrophyCard({ def, at, mesa, progress, mine, fresh, shown, index }: {
-  def: TrophyDef; at: number | null; mesa: string | null; progress: number; mine: boolean; fresh: boolean; shown: boolean; index: number;
+function TrophyCard({ def, at, mesa, progress, mine, fresh, shown, index, onReplay }: {
+  def: TrophyDef; at: number | null; mesa: string | null; progress: number; mine: boolean; fresh: boolean; shown: boolean; index: number
+  onReplay: (def: TrophyDef) => void
 }) {
   const unlocked = at !== null;
   const secret = !unlocked;
   const tier = TROPHY_TIERS[def.tier];
   const reduced = useReducedMotion();
-  return (
-    <Box component="article" sx={{
-      ...card, borderRadius: 2.5, p: 2, display: 'flex', gap: 1.75, alignItems: 'flex-start', position: 'relative',
-      bgcolor: unlocked ? tier.tint : parchment.paper, borderColor: fresh ? gold.bright : unlocked ? tier.medal : rule,
-      ...reveal(shown, index),
-      ...(fresh && !reduced ? { animation: `${glowNew} 1600ms ease-in-out ${600 + Math.min(index, 16) * 45}ms 2` } : {}),
-    }}>
+  const stagger = Math.min(index, 16) * 45;
+  const sx = {
+    ...card, borderRadius: 2.5, p: 2, display: 'flex', gap: 1.75, alignItems: 'flex-start', position: 'relative',
+    justifyContent: 'flex-start', textAlign: 'left', width: '100%', font: 'inherit',
+    bgcolor: unlocked ? tier.tint : parchment.paper, borderColor: fresh ? gold.bright : unlocked ? tier.medal : rule,
+    // A platina ganha tem um halo que fica.
+    ...(unlocked && def.tier === 'platina' ? { boxShadow: `0 0 18px ${tier.medal}55` } : {}),
+    ...reveal(shown, index),
+    ...(fresh && !reduced ? { animation: `${glowNew} 1600ms ease-in-out ${600 + stagger}ms 2` } : {}),
+    // O reflexo atravessa a medalha quando o cartão ganho recebe o ponteiro ou o foco.
+    ...(unlocked && !reduced ? { '&:hover .medal-shine, &:focus-visible .medal-shine': { animation: `${shine} 800ms ease-out both` } } : {}),
+  } as const;
+  const body = (
+    <>
+      {fresh && !reduced && (
+        <Box aria-hidden sx={{ position: 'absolute', inset: 0, borderRadius: 'inherit', overflow: 'hidden', pointerEvents: 'none' }}>
+          <Box sx={{
+            position: 'absolute', top: 0, bottom: 0, left: 0, width: '30%',
+            background: `linear-gradient(90deg, ${gold.bright}00 0%, ${gold.bright}55 50%, ${gold.bright}00 100%)`,
+            animation: `${sweep} 1300ms ease-out ${700 + stagger}ms 2 both`,
+          }} />
+        </Box>
+      )}
       <Box sx={{
+        position: 'relative', flexShrink: 0,
         transform: shown || reduced ? 'none' : 'scale(0.6) rotate(-18deg)',
-        transition: `transform 640ms ${EASE_BACK}`, transitionDelay: `${120 + Math.min(index, 16) * 45}ms`,
+        transition: `transform 640ms ${EASE_BACK}`, transitionDelay: `${120 + stagger}ms`,
       }}>
-        <TrophyMedal tier={def.tier} locked={!unlocked} size={52} />
+        <TrophyMedal tier={def.tier} category={def.category} locked={!unlocked} size={56} />
+        {unlocked && !reduced && (
+          <Box aria-hidden sx={{ position: 'absolute', inset: 0, clipPath: 'circle(34%)', overflow: 'hidden', pointerEvents: 'none' }}>
+            <Box className="medal-shine" sx={{
+              position: 'absolute', top: 0, bottom: 0, left: 0, width: '45%', opacity: 0,
+              background: 'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.85) 50%, rgba(255,255,255,0) 100%)',
+            }} />
+          </Box>
+        )}
       </Box>
-      <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+      <Box sx={{ position: 'relative', flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
         <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1 }}>
           <Typography component="h3" sx={{ fontWeight: 700, color: unlocked ? ink.primary : ink.secondary, lineHeight: 1.25 }}>
             {secret ? tr('Troféu secreto', 'Secret trophy') : def.title}
@@ -109,15 +140,19 @@ function TrophyCard({ def, at, mesa, progress, mine, fresh, shown, index }: {
           </Typography>
         ) : def.goal > 1 && !secret && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-            <Bar fraction={progress / def.goal} shown={shown} delay={250 + Math.min(index, 16) * 45} />
+            <Bar fraction={progress / def.goal} shown={shown} delay={250 + stagger} />
             <Typography sx={{ fontSize: '0.75rem', color: ink.secondary, fontVariantNumeric: 'tabular-nums' }}>
               <Count value={progress} shown={shown} />/{def.goal}
             </Typography>
           </Box>
         )}
       </Box>
-    </Box>
+    </>
   );
+  // O ganho é um botão: tocar revê o desbloqueio.
+  return unlocked
+    ? <ButtonBase component="article" onClick={() => onReplay(def)} title={tr('Rever o desbloqueio', 'Replay the unlock')} sx={sx}>{body}</ButtonBase>
+    : <Box component="article" sx={sx}>{body}</Box>;
 }
 
 function ProfileHeader({ name, profile, role }: { name: string; profile: TrophyProfile; role: TrophyRole }) {
@@ -132,14 +167,7 @@ function ProfileHeader({ name, profile, role }: { name: string; profile: TrophyP
   return (
     <Box ref={ref} component="section" sx={{ borderRadius: 3, bgcolor: green.deepest, color: chrome.text, p: { xs: 2.25, sm: 3 }, display: 'flex', flexWrap: 'wrap', gap: { xs: 2, sm: 3 }, alignItems: 'center', overflow: 'hidden' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: '1 1 300px', minWidth: 0 }}>
-        <Box sx={{
-          width: 64, height: 64, borderRadius: '50%', bgcolor: gold.bright, color: green.deepest, display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center', flexShrink: 0, lineHeight: 1,
-          transform: shown ? 'none' : 'scale(0.5)', transition: `transform 700ms ${EASE_BACK}`,
-        }}>
-          <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em' }}>{tr('NÍVEL', 'LEVEL')}</Typography>
-          <Typography sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.625rem' }}><Count value={lvl.level} shown={shown} duration={900} /></Typography>
-        </Box>
+        <LevelRing level={<Count value={lvl.level} shown={shown} duration={900} />} fraction={lvl.into / lvl.next} shown={shown} size={72} track={chrome.active} />
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography component="h1" noWrap sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: { xs: '1.375rem', sm: '1.75rem' } }}>{name}</Typography>
           <Typography sx={{ fontSize: '0.875rem', color: chrome.textSoft, fontVariantNumeric: 'tabular-nums' }}>
@@ -169,7 +197,7 @@ function ProfileHeader({ name, profile, role }: { name: string; profile: TrophyP
   );
 }
 
-function Collection({ profile, mine, isGm, fresh }: { profile: TrophyProfile; mine: boolean; isGm: boolean; fresh: Set<string> }) {
+function Collection({ profile, mine, isGm, fresh, onReplay }: { profile: TrophyProfile; mine: boolean; isGm: boolean; fresh: Set<string>; onReplay: (def: TrophyDef) => void }) {
   const hasGm = isGm || profile.points.gm > 0;
   const [role, setRole] = useState<TrophyRole>('player');
   const [category, setCategory] = useState<string | null>(null);
@@ -201,13 +229,16 @@ function Collection({ profile, mine, isGm, fresh }: { profile: TrophyProfile; mi
           const u = unlocked.get(d.id);
           return (
             <TrophyCard key={d.id} def={d} at={u?.at ?? null} mesa={u?.mesa ?? null} progress={profile.progress[d.id] ?? 0}
-              mine={mine} fresh={fresh.has(d.id)} shown={shown} index={i} />
+              mine={mine} fresh={fresh.has(d.id)} shown={shown} index={i} onReplay={onReplay} />
           );
         })}
       </Box>
     </Box>
   );
 }
+
+const PODIUM_TIER = ['ouro', 'prata', 'bronze'] as const;
+const PODIUM_HEIGHT = [92, 68, 50];
 
 /** Uma lista do ranking. Ao reordenar, as linhas deslizam até o lugar novo (FLIP). */
 function RankList({ title, role, list, me }: { title: string; role: TrophyRole; list: RankingEntry[]; me: string | null }) {
@@ -249,9 +280,46 @@ function RankList({ title, role, list, me }: { title: string; role: TrophyRole; 
   }, [list, role, reduced]);
 
   const top = Math.max(1, ...list.map((e) => e.points[role]));
+  // Pódio só com três pessoas que já pontuaram: zero não sobe em degrau.
+  const scored = list.filter((e) => e.points[role] > 0);
+  const podium = scored.length >= 3 ? scored.slice(0, 3) : null;
   return (
     <Box ref={ref} component="section" sx={{ ...card, p: { xs: 1.5, sm: 2.5 } }}>
       <Typography component="h2" sx={{ fontFamily: displayFont, fontWeight: 600, fontSize: '1.25rem', px: 1, pb: 1 }}>{title}</Typography>
+      {podium && (
+        // O pódio: 2º, 1º e 3º, com as colunas subindo do chão. A lista completa segue embaixo.
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', alignItems: 'end', gap: { xs: 0.75, sm: 1.5 }, maxWidth: 440, mx: 'auto', px: 1, pt: 1, pb: 2 }}>
+          {[1, 0, 2].map((place) => {
+            const e = podium[place];
+            const metal = TROPHY_TIERS[PODIUM_TIER[place]];
+            return (
+              <ButtonBase key={e.userId} onClick={() => navigate(e.userId === me ? '/trofeus' : `/trofeus/${e.userId}`)}
+                aria-label={tr(`${place + 1}º lugar: ${e.name}, ${e.points[role]} pontos`, `Place ${place + 1}: ${e.name}, ${e.points[role]} points`)}
+                sx={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', minWidth: 0, borderRadius: 1.5, ...reveal(shown, place) }}>
+                <Box sx={{
+                  alignSelf: 'center', width: place === 0 ? 48 : 40, height: place === 0 ? 48 : 40, borderRadius: '50%', bgcolor: green.mid, color: chrome.onAccent,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8125rem', fontWeight: 700,
+                  boxShadow: `0 0 0 3px ${metal.medal}`,
+                }}>
+                  {initialsOf(e.name)}
+                </Box>
+                <Typography noWrap sx={{ fontWeight: 600, fontSize: '0.875rem', mt: 0.75 }}>{e.name.split(' ')[0]}</Typography>
+                <Typography sx={{ fontSize: '0.75rem', color: ink.secondary, fontVariantNumeric: 'tabular-nums', mb: 0.5 }}>
+                  <Count value={e.points[role]} shown={shown} duration={1100} /> pts
+                </Typography>
+                <Box sx={{
+                  height: PODIUM_HEIGHT[place], borderRadius: '8px 8px 0 0', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', pt: 0.75,
+                  background: `linear-gradient(180deg, ${metal.hi} 0%, ${metal.medal} 55%, ${metal.lo} 100%)`, color: metal.engrave,
+                  transformOrigin: 'center bottom',
+                  animation: shown && !reduced ? `${podiumUp} 700ms ${EASE} ${[260, 120, 400][place]}ms both` : 'none',
+                }}>
+                  <Typography sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: place === 0 ? '1.5rem' : '1.25rem', lineHeight: 1 }}>{place + 1}</Typography>
+                </Box>
+              </ButtonBase>
+            );
+          })}
+        </Box>
+      )}
       <Box sx={{ position: 'relative' }}>
         {list.map((e, i) => (
           <ButtonBase
@@ -310,6 +378,13 @@ export default function TrophiesPage() {
   const [ranking, setRanking] = useState<RankingEntry[] | null | undefined>(undefined);
   const [version, setVersion] = useState(0);
   const fresh = useFreshIds(mine ? role.userId : null, profile ? profile.unlocked.map((u) => u.id) : null);
+  // Rever um desbloqueio: a mesma cerimônia do aviso, sem o ato do nível e sem tempo para fechar.
+  const [replay, setReplay] = useState<UnlockToast | null>(null);
+  const [leaving, setLeaving] = useState(false);
+  const closeReplay = () => {
+    setLeaving(true);
+    window.setTimeout(() => { setLeaving(false); setReplay(null); }, 260);
+  };
 
   // Troféu novo chegando (meu ou de alguém) relê o que está na tela.
   useEffect(() => onTableEvent((kind) => { if (kind === 'trophy-unlocked') setVersion((v) => v + 1); }), []);
@@ -356,7 +431,8 @@ export default function TrophiesPage() {
               <Alert severity="info" icon={<TrophyIcon />}>
                 {tr('Todo mundo começa do zero. Escreva o background, anote o que acontece e role os dados com a sessão aberta pelo GM para ganhar os primeiros troféus.', 'Everyone starts from zero. Write your background, note down what happens and roll the dice with the session opened by the GM to earn the first trophies.')}</Alert>
             )}
-            <Collection profile={profile} mine={mine} isGm={mine ? role.isGm : entry?.role === 'gm'} fresh={fresh} />
+            <Collection profile={profile} mine={mine} isGm={mine ? role.isGm : entry?.role === 'gm'} fresh={fresh}
+              onReplay={(d) => setReplay({ key: `replay-${d.id}-${Date.now()}`, title: d.title, tier: d.tier, category: d.category, description: d.description, who: mine ? null : name })} />
           </>
         )
       )}
@@ -365,6 +441,12 @@ export default function TrophiesPage() {
         ranking === undefined ? <Skeleton variant="rounded" height={320} />
           : ranking === null ? <Alert severity="warning">{tr('Não foi possível carregar o ranking agora.', 'Couldn\'t load the ranking right now.')}</Alert>
             : <Ranking entries={ranking} me={role.userId} />
+      )}
+
+      {replay && (
+        <Suspense fallback={null}>
+          <TrophyCeremony key={replay.key} toast={replay} leaving={leaving} onClose={closeReplay} />
+        </Suspense>
       )}
     </Box>
   );
