@@ -118,7 +118,12 @@ export async function evaluate(mesa, userId) {
         return {
             mesa,
             kind: 'trophy-unlocked',
-            data: { user: userId, name: member?.display_name ?? null, trophy: id, title: x?.title ?? id, titleEn: trophyText(id, 'en').title, tier: x?.tier ?? 'bronze' },
+            // A descrição vai junto: o anúncio diz o que a pessoa fez ("Tire dois 20 naturais seguidos…").
+            // Não vaza: quem ganhou já a mostra no próprio perfil, que a mesa vê.
+            data: {
+                user: userId, name: member?.display_name ?? null, trophy: id, title: x?.title ?? id, titleEn: trophyText(id, 'en').title,
+                description: x?.description ?? '', descriptionEn: trophyText(id, 'en').description, tier: x?.tier ?? 'bronze',
+            },
         }
     })))
     return ids
