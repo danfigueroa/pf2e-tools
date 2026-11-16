@@ -8,7 +8,7 @@ import { TrophyMedal } from './TrophyMedal';
 import { Sparks } from './Sparks';
 import type { UnlockToast } from './TrophyUnlockCard';
 import {
-  barFill, EASE, haloBreathe, lineIn, medalFloat, medalIn, raysTurn, ringOut, shine, timeLeft, veilIn, veilOut,
+  barFill, EASE, EASE_BACK, EASE_SPIN, haloBreathe, lineIn, medalFloat, medalLand, medalTurn, raysTurn, ringOut, shine, timeLeft, veilIn, veilOut,
 } from './motion';
 import { tr } from '../../i18n';
 
@@ -153,11 +153,12 @@ export default function TrophyCeremony({ toast, leaving, duration, waiting = 0, 
       <Box ref={stage} sx={{ position: 'relative', width: medal, height: medal, flexShrink: 0, mb: 1 }}>
         {!reduced && (
           <>
-            <Box aria-hidden sx={{ position: 'absolute', left: '50%', top: '50%', width: '170vmax', height: '170vmax', translate: '-50% -50%', pointerEvents: 'none' }}>
+            <Box aria-hidden sx={{ position: 'absolute', left: '50%', top: '50%', width: '84vmax', height: '84vmax', translate: '-50% -50%', pointerEvents: 'none' }}>
               <Box sx={{
                 width: '100%', height: '100%', borderRadius: '50%',
                 background: `repeating-conic-gradient(from 0deg, ${tier.hi}24 0deg 9deg, ${tier.hi}00 9deg 18deg)`,
-                maskImage: 'radial-gradient(circle, #000000 0%, #00000000 34%)', WebkitMaskImage: 'radial-gradient(circle, #000000 0%, #00000000 34%)',
+                maskImage: 'radial-gradient(circle closest-side, #000000 0%, #00000000 97%)', WebkitMaskImage: 'radial-gradient(circle closest-side, #000000 0%, #00000000 97%)',
+                willChange: 'transform',
                 animation: `${raysTurn} 38s linear infinite`,
               }} />
             </Box>
@@ -190,20 +191,23 @@ export default function TrophyCeremony({ toast, leaving, duration, waiting = 0, 
           </Box>
         ) : (
           <Box sx={{ position: 'relative', width: '100%', height: '100%', animation: reduced ? 'none' : `${medalFloat} 3600ms ease-in-out 1300ms infinite` }}>
-            <Box sx={{ position: 'relative', width: '100%', height: '100%', animation: reduced ? 'none' : `${medalIn} 1050ms ${EASE} 140ms both`, filter: 'drop-shadow(0 10px 18px rgba(0,0,0,.5))' }}>
-              <Box sx={{ width: '100%', height: '100%', '& > svg': { width: '100%', height: '100%' } }}>
-                <TrophyMedal tier={toast.tier} category={toast.category} size={164} />
-              </Box>
-              {!reduced && (
-                // O brilho passa só pelo miolo, que todo grau tem redondo.
-                <Box aria-hidden sx={{ position: 'absolute', inset: 0, clipPath: 'circle(34%)', overflow: 'hidden' }}>
-                  <Box sx={{
-                    position: 'absolute', top: 0, bottom: 0, left: 0, width: '45%',
-                    background: 'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.8) 50%, rgba(255,255,255,0) 100%)',
-                    animation: `${shine} 900ms ease-out 1150ms both`,
-                  }} />
+            {/* Por fora cresce e assenta; por dentro gira (ver `motion.ts`). A sombra vai no miolo parado, pintada uma vez. */}
+            <Box sx={{ position: 'relative', width: '100%', height: '100%', '--from-y': '-40px', willChange: 'transform, opacity', animation: reduced ? 'none' : `${medalLand} 900ms ${EASE_BACK} 140ms both` }}>
+              <Box sx={{ position: 'relative', width: '100%', height: '100%', '--persp': '700px', willChange: 'transform', animation: reduced ? 'none' : `${medalTurn} 1150ms ${EASE_SPIN} 140ms both` }}>
+                <Box sx={{ width: '100%', height: '100%', '& > svg': { width: '100%', height: '100%' }, filter: 'drop-shadow(0 10px 18px rgba(0,0,0,.5))' }}>
+                  <TrophyMedal tier={toast.tier} category={toast.category} size={164} />
                 </Box>
-              )}
+                {!reduced && (
+                  // O brilho passa só pelo miolo, que todo grau tem redondo.
+                  <Box aria-hidden sx={{ position: 'absolute', inset: 0, clipPath: 'circle(34%)', overflow: 'hidden' }}>
+                    <Box sx={{
+                      position: 'absolute', top: 0, bottom: 0, left: 0, width: '45%',
+                      background: 'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.8) 50%, rgba(255,255,255,0) 100%)',
+                      animation: `${shine} 900ms ease-out 1250ms both`,
+                    }} />
+                  </Box>
+                )}
+              </Box>
             </Box>
           </Box>
         )}

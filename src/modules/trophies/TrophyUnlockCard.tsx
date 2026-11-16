@@ -7,7 +7,7 @@ import { useAnimatedNumber } from '../../motion/useAnimatedNumber';
 import { TIER_POINTS, type TrophyTier } from '../../services/trophies';
 import { TrophyMedal } from './TrophyMedal';
 import { Sparks } from './Sparks';
-import { drop, EASE, pointsUp, rise, shine, spinIn, sweep, timeLeft } from './motion';
+import { drop, EASE, EASE_BACK, EASE_SPIN, medalLand, medalTurn, pointsUp, rise, shine, sweep, timeLeft } from './motion';
 import { tr } from '../../i18n';
 
 // A FAIXA "Troféu desbloqueado", no topo (chunk à parte: o `TrophyToastLayer` só a baixa quando
@@ -77,17 +77,19 @@ export default function TrophyUnlockCard({ toast, leaving, duration, onOpen, onC
           {/* A medalha, com o que acontece em volta dela. */}
           <Box sx={{ position: 'relative', width: MEDAL, height: MEDAL, flexShrink: 0 }}>
             {!reduced && <Sparks colors={colors} count={platinum ? 46 : toast.tier === 'ouro' ? 34 : 24} bursts={platinum ? 2 : 1} size={240} delay={620} />}
-            <Box sx={{ position: 'relative', width: '100%', height: '100%', '& > svg': { width: '100%', height: '100%' }, animation: motion(`${spinIn} 900ms ${EASE} 120ms both`) }}>
-              <TrophyMedal tier={toast.tier} category={toast.category} size={68} />
-              {!reduced && (
-                <Box aria-hidden sx={{ position: 'absolute', inset: 0, clipPath: 'circle(34%)', overflow: 'hidden' }}>
-                  <Box sx={{
-                    position: 'absolute', top: 0, bottom: 0, left: 0, width: '45%',
-                    background: 'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.85) 50%, rgba(255,255,255,0) 100%)',
-                    animation: `${shine} 800ms ease-out 980ms both`,
-                  }} />
-                </Box>
-              )}
+            <Box sx={{ width: '100%', height: '100%', willChange: 'transform, opacity', animation: motion(`${medalLand} 760ms ${EASE_BACK} 120ms both`) }}>
+              <Box sx={{ position: 'relative', width: '100%', height: '100%', '& > svg': { width: '100%', height: '100%' }, '--persp': '240px', willChange: 'transform', animation: motion(`${medalTurn} 950ms ${EASE_SPIN} 120ms both`) }}>
+                <TrophyMedal tier={toast.tier} category={toast.category} size={68} />
+                {!reduced && (
+                  <Box aria-hidden sx={{ position: 'absolute', inset: 0, clipPath: 'circle(34%)', overflow: 'hidden' }}>
+                    <Box sx={{
+                      position: 'absolute', top: 0, bottom: 0, left: 0, width: '45%',
+                      background: 'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.85) 50%, rgba(255,255,255,0) 100%)',
+                      animation: `${shine} 800ms ease-out 1030ms both`,
+                    }} />
+                  </Box>
+                )}
+              </Box>
             </Box>
           </Box>
           <Box sx={{ minWidth: 0, flex: 1 }}>

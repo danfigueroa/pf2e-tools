@@ -38,12 +38,24 @@ export const rise = keyframes`
     to { transform: translate(-50%, -24px); opacity: 0; }
 `
 
-/** A taça entra girando no próprio eixo e assenta. */
-export const spinIn = keyframes`
-    0% { transform: perspective(240px) rotateY(-720deg) scale(0.2); opacity: 0; }
-    55% { opacity: 1; }
-    80% { transform: perspective(240px) rotateY(12deg) scale(1.12); }
-    100% { transform: perspective(240px) rotateY(0deg) scale(1); }
+/** Freia o giro sem parar no meio: rápido de saída, pousa devagar. */
+export const EASE_SPIN = 'cubic-bezier(0.2, 0.75, 0.25, 1)'
+
+// A entrada da medalha são DUAS animações em elementos aninhados, cada uma com uma curva só do
+// começo ao fim: por fora ela cresce e assenta (`medalLand`, com `EASE_BACK`), por dentro gira
+// (`medalTurn`, com `EASE_SPIN`). Num keyframe só, com parada intermediária, a curva recomeça a
+// cada trecho — o giro freava, parava e arrancava de novo.
+
+/** Por dentro: duas voltas no próprio eixo (`--persp` = a distância da câmera). */
+export const medalTurn = keyframes`
+    from { transform: perspective(var(--persp, 700px)) rotateY(-720deg); }
+    to { transform: perspective(var(--persp, 700px)) rotateY(0deg); }
+`
+
+/** Por fora: vem de longe (`--from-y`), cresce e assenta. */
+export const medalLand = keyframes`
+    from { transform: translateY(var(--from-y, 0px)) scale(0.2); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
 `
 
 /** O brilho que atravessa a medalha. */
@@ -99,14 +111,6 @@ export const raysTurn = keyframes`
 export const haloBreathe = keyframes`
     0%, 100% { transform: scale(0.92); opacity: 0.75; }
     50% { transform: scale(1.08); opacity: 1; }
-`
-
-/** A medalha grande entra girando de longe e assenta, passando um pouco do tamanho. */
-export const medalIn = keyframes`
-    0% { transform: perspective(700px) translateY(-40px) rotateY(-900deg) scale(0.1); opacity: 0; }
-    45% { opacity: 1; }
-    78% { transform: perspective(700px) translateY(0) rotateY(14deg) scale(1.14); }
-    100% { transform: perspective(700px) translateY(0) rotateY(0deg) scale(1); }
 `
 
 /** Depois de assentar, ela flutua de leve. */
