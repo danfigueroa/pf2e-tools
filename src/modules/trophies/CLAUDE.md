@@ -42,7 +42,11 @@ mesa vê tudo + ranking, **todo mundo do zero** (nada retroativo), **o GM tem co
 - Em dev, `__trophy({ tier, category, who, pointsBefore })` no console mostra o aviso sem tocar no banco.
 - **Animações** (`motion.ts`, sem biblioteca; movimento reduzido = direto). Página: cascata (`useInView` + `reveal`),
   contadores, barras por `scaleX`, anel do nível (`LevelRing`, também na Início), "Novo!" pelo `pf2e:trophies:seen:<userId>`
-  (a primeira visita não marca), tocar num troféu ganho revê a cerimônia. Ranking: pódio (só com 3 pessoas pontuadas) + lista por FLIP.
+  (a primeira visita não marca), tocar num troféu ganho revê a cerimônia.
+- **Ranking** (`Ranking.tsx`, aba "A mesa"): uma arena por papel — palco escuro com pódio (holofote, coroa, colunas de
+  metal, confete ao aparecer), a frase da disputa (`chase`: quanto falta para alcançar quem está na frente) e a lista por
+  FLIP. **Empate divide o lugar** (dois "1º", o próximo é o 3º). **Quem não pontuou não sobe em degrau**: o lugar fica
+  "vago", à vista, para alguém tomar. Menos de 3 pessoas na lista = sem pódio.
 - **Feitos da Wiki carregam o tipo da página** (`data.kind`): `wiki-created` (+ `parent`, `links`), `wiki-edited` e `wiki-read`
   (primeira leitura de página de outra pessoa, uma por conta+mesa+página). `factsOf` lê essas linhas cruas (`WIKI_FEATS`) e
   `deriveFacts` conta **por página**, não por registro; tipo por tipo em `WIKI_KINDS` ("Outro" não tem troféu). Sem migration:
