@@ -33,7 +33,8 @@ import { levelOf, useTrophySummary } from '../../services/trophies';
 import { useInView } from '../../motion/useInView';
 import { useAnimatedNumber } from '../../motion/useAnimatedNumber';
 import { TrophyMedal } from '../../modules/trophies/TrophyMedal';
-import { EASE_BACK } from '../../modules/trophies/motion';
+import { LevelRing } from '../../modules/trophies/LevelRing';
+import { EASE_BACK, shine } from '../../modules/trophies/motion';
 import { locale, tr } from '../../i18n';
 
 // As partes VIVAS da Início, num chunk à parte (o estado da mesa, o mapa, o histórico e os
@@ -695,14 +696,7 @@ export function TrophyShowcase() {
       ...card, borderRadius: 2.75, width: '100%', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: { xs: 1.5, sm: 2.5 },
       p: { xs: 1.75, sm: 2.25 }, justifyContent: 'flex-start', textAlign: 'left', color: ink.primary,
     }}>
-      <Box sx={{
-        width: 52, height: 52, borderRadius: '50%', bgcolor: green.deepest, color: gold.bright, flexShrink: 0,
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
-        transform: shown ? 'none' : 'scale(0.5) rotate(-30deg)', transition: `transform 700ms ${EASE_BACK}`,
-      }}>
-        <Typography sx={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.1em' }}>{tr('NÍVEL', 'LEVEL')}</Typography>
-        <Typography sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.25rem', color: chrome.text }}>{lvl.level}</Typography>
-      </Box>
+      <LevelRing level={lvl.level} fraction={lvl.into / lvl.next} shown={shown} size={56} track={parchment.sunken} />
       <Box sx={{ flex: '1 1 180px', minWidth: 0 }}>
         <Typography sx={eyebrow}>{tr('Troféus do Covil', 'Covil Trophies')}</Typography>
         <Typography sx={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
@@ -725,7 +719,19 @@ export function TrophyShowcase() {
             opacity: shown ? 1 : 0, transform: shown ? 'none' : 'translateY(10px) scale(0.8)',
             transition: `opacity 400ms ease, transform 600ms ${EASE_BACK}`, transitionDelay: `${250 + i * 110}ms`,
           }}>
-            <TrophyMedal tier={r.tier} size={36} />
+            <Box sx={{ position: 'relative', flexShrink: 0 }}>
+              <TrophyMedal tier={r.tier} category={r.category} size={i === 0 ? 44 : 36} />
+              {/* O mais recente ganha um reflexo ao entrar. */}
+              {i === 0 && shown && (
+                <Box aria-hidden sx={{ position: 'absolute', inset: 0, clipPath: 'circle(34%)', overflow: 'hidden', '@media (prefers-reduced-motion: reduce)': { display: 'none' } }}>
+                  <Box sx={{
+                    position: 'absolute', top: 0, bottom: 0, left: 0, width: '45%', opacity: 0,
+                    background: 'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.85) 50%, rgba(255,255,255,0) 100%)',
+                    animation: `${shine} 900ms ease-out 900ms both`,
+                  }} />
+                </Box>
+              )}
+            </Box>
             <Typography noWrap sx={{ fontSize: '0.8125rem', fontWeight: 600, display: { xs: i === 0 ? 'block' : 'none', md: 'block' } }}>{r.title}</Typography>
           </Box>
         ))}
