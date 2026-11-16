@@ -210,13 +210,15 @@ export const SHIELD_COLOR = pick('#4A6572', '#9DB8C5')
  */
 /**
  * Troféus do Covil, por grau: `medal` pinta a medalha (preenchimento), `ink` é o texto do grau
- * sobre o pergaminho (≥4,5:1) e `tint` é o fundo do cartão desbloqueado.
+ * sobre o pergaminho (≥4,5:1) e `tint` é o fundo do cartão desbloqueado. `hi` e `lo` são a luz e a
+ * sombra do relevo metálico, e `engrave` é o glifo gravado sobre o metal (≥3:1 sobre `medal`);
+ * os quatro do metal são fixos — a medalha é a mesma nos dois temas.
  */
 export const TROPHY_TIERS = {
-    bronze: { medal: '#B0723F', ink: pick('#7A4A24', '#D9A577'), tint: pick('#F1E2D2', '#33261B'), label: 'Bronze' },
-    prata: { medal: '#9AA3AA', ink: pick('#4F5960', '#BFC7CD'), tint: pick('#E8EAEB', '#2A2D2F'), label: tr('Prata', 'Silver') },
-    ouro: { medal: '#C8A951', ink: pick('#7E611D', '#D4B565'), tint: pick('#F3E8C6', '#332B17'), label: tr('Ouro', 'Gold') },
-    platina: { medal: '#7FA0B8', ink: pick('#2F5470', '#9EC3DE'), tint: pick('#DDE8EF', '#1F2B33'), label: tr('Platina', 'Platinum') }, // i18n-ok (hex)
+    bronze: { medal: '#B0723F', hi: '#E3AE7C', lo: '#74431D', engrave: '#3A2210', ink: pick('#7A4A24', '#D9A577'), tint: pick('#F1E2D2', '#33261B'), label: 'Bronze' },
+    prata: { medal: '#9AA3AA', hi: '#E4E9EC', lo: '#5E686F', engrave: '#2B3238', ink: pick('#4F5960', '#BFC7CD'), tint: pick('#E8EAEB', '#2A2D2F'), label: tr('Prata', 'Silver') },
+    ouro: { medal: '#C8A951', hi: '#F3E09A', lo: '#8A6A1E', engrave: '#4A3810', ink: pick('#7E611D', '#D4B565'), tint: pick('#F3E8C6', '#332B17'), label: tr('Ouro', 'Gold') },
+    platina: { medal: '#7FA0B8', hi: '#D6E6F1', lo: '#3F6480', engrave: '#17303F', ink: pick('#2F5470', '#9EC3DE'), tint: pick('#DDE8EF', '#1F2B33'), label: tr('Platina', 'Platinum') }, // i18n-ok (hex)
 } as const
 
 export const TOKEN_PC = '#4F9A6B'

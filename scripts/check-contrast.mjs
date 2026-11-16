@@ -102,6 +102,8 @@ for (const [name, fg] of Object.entries(contentInk)) {
 }
 check('ONLINE_BADGE.text', P.ONLINE_BADGE.text, 'ONLINE_BADGE.bg', P.ONLINE_BADGE.bg)
 for (const [k, v] of Object.entries(P.TROPHY_TIERS)) check(`TROPHY.${k}.ink`, v.ink, `TROPHY.${k}.tint`, v.tint)
+// O glifo gravado na medalha é desenho, não texto: 3:1 sobre o metal.
+for (const [k, v] of Object.entries(P.TROPHY_TIERS)) check(`TROPHY.${k}.engrave`, v.engrave, `TROPHY.${k}.medal`, v.medal, 3)
 
 // --- Texto sobre a moldura ---
 const frames = { 'green.deepest': P.green.deepest, 'chrome.raised': P.chrome.raised, 'chrome.active': P.chrome.active, 'green.main': P.green.main }
