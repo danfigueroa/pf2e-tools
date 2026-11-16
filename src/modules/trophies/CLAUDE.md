@@ -43,6 +43,9 @@ mesa vê tudo + ranking, **todo mundo do zero** (nada retroativo), **o GM tem co
 - **Animações** (`motion.ts`, sem biblioteca; movimento reduzido = direto). Página: cascata (`useInView` + `reveal`),
   contadores, barras por `scaleX`, anel do nível (`LevelRing`, também na Início), "Novo!" pelo `pf2e:trophies:seen:<userId>`
   (a primeira visita não marca), tocar num troféu ganho revê a cerimônia.
+- **Coleção em seções por papel + categoria** (cabeçalho com emblema, contagem e barra). Os ganhos são cartões; **os secretos
+  ficam numa prateleira de silhuetas** (só a forma do grau: um cartão por secreto virava uma parede de cartões iguais).
+  Quem mestra abre em **"Todos" (jogador + mestre juntos)** e separa pelos botões; a % do cabeçalho conta o que a pessoa vê.
 - **Ranking** (`Ranking.tsx`, aba "A mesa"): uma arena por papel — palco escuro com pódio (holofote, coroa, colunas de
   metal, confete ao aparecer), a frase da disputa (`chase`: quanto falta para alcançar quem está na frente) e a lista por
   FLIP. **Empate divide o lugar** (dois "1º", o próximo é o 3º). **Quem não pontuou não sobe em degrau**: o lugar fica
