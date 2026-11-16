@@ -10,9 +10,9 @@ import { isEn, tr } from '../i18n';
 // "Troféu desbloqueado", em qualquer página: montado UMA vez no `MainLayout`. Vários de uma vez
 // (encerrar a sessão dá alguns) entram em fila, um por vez. Dois formatos, os dois em chunks à
 // parte, baixados com o app ocioso — o primeiro troféu não espera o código chegar:
-//   - CERIMÔNIA em tela cheia: o troféu DESTA conta, e o ouro ou a platina de um colega;
-//   - FAIXA no topo: o bronze e a prata de um colega — e qualquer um quando a pessoa está
-//     digitando (a cerimônia taparia o que ela escreve; o troféu fica para rever na página).
+//   - CERIMÔNIA em tela cheia: o troféu de qualquer pessoa da mesa (o de colega é mais curto);
+//   - FAIXA no topo: só quando a pessoa está digitando (a cerimônia taparia o que ela escreve;
+//     o troféu fica para rever na página).
 // O do colega vem do canal ao vivo. O MEU vem da lista do sino (`?events=1`, relida a cada
 // reconexão): assim o que foi ganho com o app fechado é celebrado na próxima abertura. A marca
 // do que já foi celebrado é do aparelho e da mesa (o id é o do evento da mesa).
@@ -165,7 +165,7 @@ export const TrophyToastLayer = memo(function TrophyToastLayer() {
   // O formato e o tempo são decididos quando o aviso chega à frente da fila, e não mudam com ele na tela.
   const { ceremony, duration } = useMemo(() => {
     if (!current) return { ceremony: false, duration: 0 };
-    const full = (current.who === null || current.tier === 'ouro' || current.tier === 'platina') && !typing();
+    const full = !typing();
     if (!full) return { ceremony: false, duration: BANNER_MS[current.tier] };
     if (current.bundle) return { ceremony: true, duration: BUNDLE_MS };
     const base = (current.who ? PEER_MS : MINE_MS)[current.tier] + (typeof current.pointsBefore === 'number' ? LEVEL_MS : 0);

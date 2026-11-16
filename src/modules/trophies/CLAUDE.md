@@ -29,10 +29,10 @@ mesa vê tudo + ranking, **todo mundo do zero** (nada retroativo), **o GM tem co
   cobra). O bloqueado não leva glifo (não dá pista do secreto). Cores em `TROPHY_TIERS` (`palette.ts`): `medal`/`hi`/`lo`/
   `engrave` são o metal (fixos nos dois temas), `ink` (≥4,5:1) e `tint` são do tema. Grau também por extenso: forma e cor não bastam.
 - **O desbloqueio tem dois formatos** (`TrophyToastLayer`, em fila, os dois em chunks ociosos):
-  - **Cerimônia em tela cheia** (`TrophyCeremony`): o troféu DESTA conta e o ouro/platina de um colega (mais curta). Véu,
+  - **Cerimônia em tela cheia** (`TrophyCeremony`): o troféu de qualquer pessoa da mesa, o de colega numa versão mais curta (decisão do usuário: conquista de um é festa de todos). Véu,
     raios, medalha grande, confete num **`<canvas>` único** (`Sparks`, nunca um elemento por partícula), pontos e — no meu,
     ao vivo — a barra do nível enchendo, com a subida de nível se houver (`pointsBefore` = o resumo de antes do evento).
-  - **Faixa no topo** (`TrophyUnlockCard`): bronze/prata de colega, **e qualquer troféu quando o foco está num campo de
+  - **Faixa no topo** (`TrophyUnlockCard`): **só quando o foco está num campo de
     texto** (a cerimônia taparia o que a pessoa digita; autosave do background desbloqueia troféu no meio da frase).
   - **A cerimônia não rouba o foco nem trava nada**: fecha no toque, no Esc ou no tempo, e o troféu já está gravado.
   - **Sem som nem vibração** (decisão do usuário): o desbloqueio é só visual.
