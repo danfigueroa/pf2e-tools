@@ -35,6 +35,20 @@ const CATEGORIES: Record<string, string> = {
   combate: tr('Combate', 'Combat'), destaques: tr('Destaques da sessão', 'Session highlights'),
   mesa: tr('A mesa', 'The table'), wiki: tr('Wiki da Mesa', 'Table Wiki'), mestre: tr('Mestre', 'Game master'), platina: tr('Platina', 'Platinum'),
 };
+/** O que rende troféu em cada categoria, em termos gerais: os troféus em si seguem secretos. */
+const CATEGORY_BLURBS: Record<string, string> = {
+  ficha: tr('Publicar e evoluir os seus personagens.', 'Publishing and leveling up your characters.'),
+  historia: tr('Escrever o background e as anotações da campanha.', 'Writing your background and campaign notes.'),
+  presenca: tr('Aparecer nas sessões e manter a frequência.', 'Showing up to sessions and keeping a streak.'),
+  dados: tr('Rolar muito e tirar resultados marcantes.', 'Rolling a lot and landing memorable results.'),
+  sorte: tr('Sequências de sorte e de azar nos dados.', 'Streaks of good and bad luck on the dice.'),
+  combate: tr('Causar dano pesado em rolagens e em sessões.', 'Dealing heavy damage in rolls and sessions.'),
+  destaques: tr('Ser eleito destaque do grupo ao fim da sessão.', 'Being named the group\'s standout at the end of a session.'),
+  mesa: tr('Ajudar a mesa: compartilhar regras, passar itens e corrigir traduções.', 'Helping the table: sharing rules, passing items and fixing translations.'),
+  wiki: tr('Criar, ler e editar páginas da Wiki da Mesa.', 'Creating, reading and editing Table Wiki pages.'),
+  mestre: tr('Conduzir sessões, combates, mapas, diário e segredos da Wiki.', 'Running sessions, combats, maps, the journal and Wiki secrets.'),
+  platina: tr('Conquistar todos os outros troféus do papel.', 'Earning every other trophy of the role.'),
+};
 const TIER_ORDER: TrophyTier[] = ['platina', 'ouro', 'prata', 'bronze'];
 const mesaName = (id: string | null) => MESAS.find((m) => m.id === id)?.nome ?? null;
 const date = (at: number) => new Date(at).toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' });
@@ -229,6 +243,9 @@ function Section({ role, category, defs, unlocked, profile, mine, fresh, missing
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', justifyContent: 'space-between', columnGap: 1 }}>
             <Typography component="h2" sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.125rem', lineHeight: 1.25 }}>{title}</Typography>
+            {CATEGORY_BLURBS[category] && (
+              <Typography sx={{ flexBasis: '100%', fontSize: '0.8125rem', color: ink.secondary, lineHeight: 1.35, order: 3 }}>{CATEGORY_BLURBS[category]}</Typography>
+            )}
             <Typography sx={{ flexShrink: 0, fontSize: '0.8125rem', fontWeight: 700, color: complete ? gold.deep : ink.secondary, fontVariantNumeric: 'tabular-nums' }}>
               {complete ? tr('Completa! ', 'Complete! ') : ''}<Count value={got.length} shown={shown} />/{defs.length}{points ? ` · ${points} pts` : ''}
             </Typography>
