@@ -1,7 +1,7 @@
-import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { Alert, Box, ButtonBase, Chip, Skeleton, Tab, Tabs, Typography } from '@mui/material';
-import { ArrowBack as BackIcon, ChevronRight as ChevronIcon, EmojiEvents as TrophyIcon } from '@mui/icons-material';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { ArrowBack as BackIcon, EmojiEvents as TrophyIcon } from '@mui/icons-material';
+import { Link, useParams } from 'react-router-dom';
 import { chrome, displayFont, gold, green, ink, parchment, rule, TROPHY_TIERS } from '../../theme';
 import { useRole } from '../../services/auth';
 import { MESAS } from '../../services/mesa';
@@ -10,14 +10,14 @@ import {
   fetchTrophyProfile, fetchTrophyRanking, levelOf, TIER_POINTS,
   type RankingEntry, type TrophyDef, type TrophyProfile, type TrophyRole, type TrophyTier,
 } from '../../services/trophies';
-import { initialsOf } from '../../layouts/navigation';
 import { useInView } from '../../motion/useInView';
 import { useReducedMotion } from '../../motion/motion';
 import { useAnimatedNumber } from '../../motion/useAnimatedNumber';
 import { TrophyMedal } from './TrophyMedal';
 import { LevelRing } from './LevelRing';
+import { Ranking } from './Ranking';
 import type { UnlockToast } from './TrophyUnlockCard';
-import { EASE, EASE_BACK, flash, glowNew, grow, podiumUp, reveal, shine, sweep } from './motion';
+import { EASE_BACK, glowNew, grow, reveal, shine, sweep } from './motion';
 import { locale, tr } from '../../i18n';
 
 // Troféus do Covil (`/trofeus`, `/trofeus/:user`): o perfil de troféus da conta — o meu ou o de
@@ -233,138 +233,6 @@ function Collection({ profile, mine, isGm, fresh, onReplay }: { profile: TrophyP
           );
         })}
       </Box>
-    </Box>
-  );
-}
-
-const PODIUM_TIER = ['ouro', 'prata', 'bronze'] as const;
-const PODIUM_HEIGHT = [92, 68, 50];
-
-/** Uma lista do ranking. Ao reordenar, as linhas deslizam até o lugar novo (FLIP). */
-function RankList({ title, role, list, me }: { title: string; role: TrophyRole; list: RankingEntry[]; me: string | null }) {
-  const navigate = useNavigate();
-  const reduced = useReducedMotion();
-  const [ref, shown] = useInView<HTMLDivElement>();
-  const nodes = useRef(new Map<string, HTMLElement>());
-  const tops = useRef(new Map<string, number>());
-  const points = useRef(new Map<string, number>());
-  const [gained, setGained] = useState<Set<string>>(new Set());
-
-  useLayoutEffect(() => {
-    // Quem ganhou pontos desde a última lista pisca (a primeira lista não conta).
-    const up = new Set<string>();
-    for (const e of list) {
-      const before = points.current.get(e.userId);
-      if (before !== undefined && e.points[role] > before) up.add(e.userId);
-      points.current.set(e.userId, e.points[role]);
-    }
-    if (up.size) setGained(up);
-    const moved: HTMLElement[] = [];
-    for (const [key, el] of nodes.current) {
-      const before = tops.current.get(key);
-      const now = el.offsetTop;
-      tops.current.set(key, now);
-      if (reduced || before === undefined || before === now) continue;
-      el.style.transition = 'none';
-      el.style.transform = `translateY(${before - now}px)`;
-      moved.push(el);
-    }
-    if (moved.length === 0) return;
-    const raf = requestAnimationFrame(() => {
-      for (const el of moved) {
-        el.style.transition = `transform 620ms ${EASE}`;
-        el.style.transform = '';
-      }
-    });
-    return () => cancelAnimationFrame(raf);
-  }, [list, role, reduced]);
-
-  const top = Math.max(1, ...list.map((e) => e.points[role]));
-  // Pódio só com três pessoas que já pontuaram: zero não sobe em degrau.
-  const scored = list.filter((e) => e.points[role] > 0);
-  const podium = scored.length >= 3 ? scored.slice(0, 3) : null;
-  return (
-    <Box ref={ref} component="section" sx={{ ...card, p: { xs: 1.5, sm: 2.5 } }}>
-      <Typography component="h2" sx={{ fontFamily: displayFont, fontWeight: 600, fontSize: '1.25rem', px: 1, pb: 1 }}>{title}</Typography>
-      {podium && (
-        // O pódio: 2º, 1º e 3º, com as colunas subindo do chão. A lista completa segue embaixo.
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', alignItems: 'end', gap: { xs: 0.75, sm: 1.5 }, maxWidth: 440, mx: 'auto', px: 1, pt: 1, pb: 2 }}>
-          {[1, 0, 2].map((place) => {
-            const e = podium[place];
-            const metal = TROPHY_TIERS[PODIUM_TIER[place]];
-            return (
-              <ButtonBase key={e.userId} onClick={() => navigate(e.userId === me ? '/trofeus' : `/trofeus/${e.userId}`)}
-                aria-label={tr(`${place + 1}º lugar: ${e.name}, ${e.points[role]} pontos`, `Place ${place + 1}: ${e.name}, ${e.points[role]} points`)}
-                sx={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', minWidth: 0, borderRadius: 1.5, ...reveal(shown, place) }}>
-                <Box sx={{
-                  alignSelf: 'center', width: place === 0 ? 48 : 40, height: place === 0 ? 48 : 40, borderRadius: '50%', bgcolor: green.mid, color: chrome.onAccent,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8125rem', fontWeight: 700,
-                  boxShadow: `0 0 0 3px ${metal.medal}`,
-                }}>
-                  {initialsOf(e.name)}
-                </Box>
-                <Typography noWrap sx={{ fontWeight: 600, fontSize: '0.875rem', mt: 0.75 }}>{e.name.split(' ')[0]}</Typography>
-                <Typography sx={{ fontSize: '0.75rem', color: ink.secondary, fontVariantNumeric: 'tabular-nums', mb: 0.5 }}>
-                  <Count value={e.points[role]} shown={shown} duration={1100} /> pts
-                </Typography>
-                <Box sx={{
-                  height: PODIUM_HEIGHT[place], borderRadius: '8px 8px 0 0', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', pt: 0.75,
-                  background: `linear-gradient(180deg, ${metal.hi} 0%, ${metal.medal} 55%, ${metal.lo} 100%)`, color: metal.engrave,
-                  transformOrigin: 'center bottom',
-                  animation: shown && !reduced ? `${podiumUp} 700ms ${EASE} ${[260, 120, 400][place]}ms both` : 'none',
-                }}>
-                  <Typography sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: place === 0 ? '1.5rem' : '1.25rem', lineHeight: 1 }}>{place + 1}</Typography>
-                </Box>
-              </ButtonBase>
-            );
-          })}
-        </Box>
-      )}
-      <Box sx={{ position: 'relative' }}>
-        {list.map((e, i) => (
-          <ButtonBase
-            key={e.userId}
-            ref={(el: HTMLButtonElement | null) => { if (el) nodes.current.set(e.userId, el); else nodes.current.delete(e.userId); }}
-            onClick={() => navigate(e.userId === me ? '/trofeus' : `/trofeus/${e.userId}`)}
-            sx={{
-              width: '100%', display: 'flex', alignItems: 'center', gap: 1.5, px: 1, py: 1.25, minHeight: 60, borderTop: `1px solid ${parchment.sunken}`,
-              justifyContent: 'flex-start', textAlign: 'left', borderRadius: 1, bgcolor: e.userId === me ? `${gold.bright}1F` : 'transparent',
-              ...reveal(shown, i),
-              ...(gained.has(e.userId) && !reduced ? { animation: `${flash} 1600ms ease-out` } : {}),
-            }}
-          >
-            <Typography sx={{ width: 24, fontFamily: displayFont, fontWeight: 700, color: i < 3 ? gold.deep : ink.secondary, textAlign: 'center' }}>{i + 1}</Typography>
-            <Box sx={{ width: 36, height: 36, borderRadius: '50%', bgcolor: green.mid, color: chrome.onAccent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8125rem', fontWeight: 700, flexShrink: 0 }}>
-              {initialsOf(e.name)}
-            </Box>
-            <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-              <Typography noWrap sx={{ fontWeight: 600 }}>{e.name}{e.userId === me ? tr(' (você)', ' (you)') : ''}</Typography>
-              <Box sx={{ display: 'flex', maxWidth: 240 }}><Bar fraction={e.points[role] / top} shown={shown} height={5} delay={200 + i * 60} /></Box>
-              <Typography noWrap sx={{ fontSize: '0.8125rem', color: ink.secondary }}>
-                {e.count} {e.count === 1 ? tr('troféu', 'trophy') : tr('troféus', 'trophies')}{e.platinum ? ` · ${e.platinum} platina` : ''}{e.last ? tr(` · último: ${e.last.title}`, ` · latest: ${e.last.title}`) : ''}
-              </Typography>
-            </Box>
-            <Typography sx={{ fontFamily: displayFont, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
-              <Count value={e.points[role]} shown={shown} duration={1100} />
-            </Typography>
-            <ChevronIcon sx={{ color: gold.deep }} />
-          </ButtonBase>
-        ))}
-      </Box>
-    </Box>
-  );
-}
-
-function Ranking({ entries, me }: { entries: RankingEntry[]; me: string | null }) {
-  const byName = (a: RankingEntry, b: RankingEntry) => a.name.localeCompare(b.name);
-  // Cada pessoa aparece só na lista do papel que tem NESTA mesa: os pontos são globais, e o GM que já jogou não
-  // disputa com os jogadores (os pontos de jogador dele seguem no perfil).
-  const players = entries.filter((e) => e.role !== 'gm').sort((a, b) => b.points.player - a.points.player || byName(a, b));
-  const masters = entries.filter((e) => e.role === 'gm').sort((a, b) => b.points.gm - a.points.gm || byName(a, b));
-  return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {players.length > 0 && <RankList title={tr("Jogadores", 'Players')} role="player" list={players} me={me} />}
-      {masters.length > 0 && <RankList title={tr("Mestres", 'Game masters')} role="gm" list={masters} me={me} />}
     </Box>
   );
 }

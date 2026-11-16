@@ -145,3 +145,9 @@ export const podiumUp = keyframes`
     from { transform: scaleY(0); }
     to { transform: scaleY(1); }
 `
+
+/** A coroa do líder balança de leve. */
+export const crownBob = keyframes`
+    0%, 100% { transform: translateY(0) rotate(-4deg); }
+    50% { transform: translateY(-4px) rotate(4deg); }
+`
