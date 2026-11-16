@@ -59,12 +59,10 @@ export const ringOut = keyframes`
     100% { transform: scale(2.6); opacity: 0; }
 `
 
-/** "+90 pts" sobe e some. */
+/** "+90 pts" sobe e fica. */
 export const pointsUp = keyframes`
     0% { transform: translateY(8px); opacity: 0; }
-    20% { transform: translateY(0); opacity: 1; }
-    80% { transform: translateY(-4px); opacity: 1; }
-    100% { transform: translateY(-14px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
 `
 
 /** O troféu ganho desde a última visita respira devagar, duas vezes. */
@@ -77,4 +75,73 @@ export const glowNew = keyframes`
 export const flash = keyframes`
     0% { background-color: rgba(200, 169, 81, 0.45); }
     100% { background-color: rgba(200, 169, 81, 0); }
+`
+
+// --- A cerimônia em tela cheia ---------------------------------------------------------------
+
+/** O véu escurece a tela. */
+export const veilIn = keyframes`
+    from { opacity: 0; }
+    to { opacity: 1; }
+`
+export const veilOut = keyframes`
+    from { opacity: 1; }
+    to { opacity: 0; }
+`
+
+/** Os raios atrás da medalha giram devagar (o centro já vem do `translate` do elemento). */
+export const raysTurn = keyframes`
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+`
+
+/** O halo respira. */
+export const haloBreathe = keyframes`
+    0%, 100% { transform: scale(0.92); opacity: 0.75; }
+    50% { transform: scale(1.08); opacity: 1; }
+`
+
+/** A medalha grande entra girando de longe e assenta, passando um pouco do tamanho. */
+export const medalIn = keyframes`
+    0% { transform: perspective(700px) translateY(-40px) rotateY(-900deg) scale(0.1); opacity: 0; }
+    45% { opacity: 1; }
+    78% { transform: perspective(700px) translateY(0) rotateY(14deg) scale(1.14); }
+    100% { transform: perspective(700px) translateY(0) rotateY(0deg) scale(1); }
+`
+
+/** Depois de assentar, ela flutua de leve. */
+export const medalFloat = keyframes`
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+`
+
+/** Cada linha do texto sobe e aparece. */
+export const lineIn = keyframes`
+    from { transform: translateY(16px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+`
+
+/** Barra que vai de `--from` a `--to` (frações): o nível enchendo. */
+export const barFill = keyframes`
+    from { transform: scaleX(var(--from, 0)); }
+    to { transform: scaleX(var(--to, 1)); }
+`
+
+/** O tempo que resta do aviso: a barra esvazia, linear. */
+export const timeLeft = keyframes`
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+`
+
+/** O brilho que percorre a faixa de ponta a ponta. */
+export const sweep = keyframes`
+    0% { transform: translateX(-120%) skewX(-18deg); opacity: 0; }
+    15% { opacity: 1; }
+    100% { transform: translateX(420%) skewX(-18deg); opacity: 0; }
+`
+
+/** A coluna do pódio sobe do chão. */
+export const podiumUp = keyframes`
+    from { transform: scaleY(0); }
+    to { transform: scaleY(1); }
 `

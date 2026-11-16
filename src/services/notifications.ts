@@ -117,7 +117,7 @@ async function fetchEvents() {
     } catch { /* offline: fica a lista que já se tinha */ }
 }
 
-type EventListener = (kind: NotificationKind, data: Record<string, unknown>) => void
+type EventListener = (kind: NotificationKind, data: Record<string, unknown>, eventId: number) => void
 const eventListeners = new Set<EventListener>()
 
 /** Avisa cada evento da mesa que chega ao vivo (mesmo os que o sino não mostra a esta pessoa). */
@@ -131,7 +131,7 @@ function onEvent(payload: unknown) {
     const id = Number(p.id)
     if (!Number.isSafeInteger(id) || typeof p.kind !== 'string' || server.some((e) => e.id === id)) return
     const data = (p.data && typeof p.data === 'object' ? p.data : {}) as Record<string, unknown>
-    eventListeners.forEach((l) => l(p.kind as NotificationKind, data))
+    eventListeners.forEach((l) => l(p.kind as NotificationKind, data, id))
     server = [
         {
             id,
@@ -231,5 +231,9 @@ const subscribe = (cb: () => void) => {
     return () => { listeners.delete(cb) }
 }
 const getSnapshot = () => snapshot
+
+/** A mesma lista do sino, para quem não é componente (a fila dos troféus). */
+export const subscribeNotifications = subscribe
+export const getNotifications = getSnapshot
 
 export const useNotifications = (): NotificationsSnapshot => useSyncExternalStore(subscribe, getSnapshot, getSnapshot)

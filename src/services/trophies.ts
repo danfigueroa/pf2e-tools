@@ -109,6 +109,9 @@ export function refreshTrophySummary() {
     summaryRead = readSummary()
 }
 
+/** O resumo como está agora (sem ler): os pontos de ANTES de um troféu que acabou de chegar. */
+export const peekTrophySummary = (): TrophySummary | null => summary
+
 /** `null` até a primeira leitura; lida uma vez por carga e de novo a cada troféu desta conta. */
 export function useTrophySummary(): TrophySummary | null {
     return useSyncExternalStore(
