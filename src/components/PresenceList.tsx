@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Box, ButtonBase, IconButton, InputBase, Tooltip, Typography } from '@mui/material';
 import { Check as CheckIcon, Edit as EditIcon } from '@mui/icons-material';
 import { setDeviceName, useDeviceName, usePresence, type Peer } from '../services/presence';
+import { UserAvatar } from './UserAvatar';
 import { TokenBadge } from '../modules/battle-map/components/TokenBadge';
 import { gold, green, status as statusColor, onFrame } from '../theme/palette';
 import { tr } from '../i18n';
@@ -21,8 +22,6 @@ const PAGES: [string, string][] = [
 const pageLabel = (path: string) =>
   PAGES.find(([prefix]) => path === prefix || path.startsWith(`${prefix}/`))?.[1] ?? tr('Início', 'Home');
 
-const initials = (text: string) =>
-  text.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? '').join('') || '?';
 
 /**
  * Quem está com o app aberto na mesa (`services/presence`): o nome do aparelho, a
@@ -55,13 +54,7 @@ const PeerRow = ({ peer }: { peer: Peer }) => {
         {peer.slug && peer.character
           ? <TokenBadge slug={peer.slug} name={peer.character} size={28} />
           : (
-            <Box sx={{
-              width: 28, height: 28, borderRadius: '50%', border: `2px solid ${gold.main}`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: onFrame.page, fontSize: '0.7rem', fontWeight: 700,
-            }}>
-              {initials(title)}
-            </Box>
+            <UserAvatar userId={peer.id} name={title} size={28} color={onFrame.page} fontSize="0.7rem" sx={{ border: `2px solid ${gold.main}`, boxSizing: 'border-box' }} />
           )}
         <Box
           aria-hidden

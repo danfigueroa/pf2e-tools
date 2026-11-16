@@ -13,6 +13,8 @@ import { MobileHeader, MobileTabBar } from './MobileChrome';
 import { MOBILE_HEADER_HEIGHT, SIDEBAR_RAIL, SIDEBAR_WIDTH, TAB_BAR_HEIGHT } from './navigation';
 
 // Só baixado quando alguém abre "Trocar senha".
+const ProfilePhotoDialog = lazy(() =>
+  import('../modules/account/ProfilePhotoDialog').then((m) => ({ default: m.ProfilePhotoDialog })));
 const ChangePasswordDialog = lazy(() =>
   import('../modules/account/ChangePasswordDialog').then((m) => ({ default: m.ChangePasswordDialog })));
 // Só baixada no primeiro ⌘K (ou toque na busca).
@@ -28,6 +30,7 @@ export const MainLayout = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false);
+  const [photoOpen, setPhotoOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(readCollapsed);
   const theme = useTheme();
@@ -76,6 +79,7 @@ export const MainLayout = () => {
     onNavigate: closeTemporary,
     onOpenHistory: () => { setHistoryOpen(true); closeTemporary(); },
     onOpenPassword: () => { setPasswordOpen(true); closeTemporary(); },
+    onOpenPhoto: () => { setPhotoOpen(true); closeTemporary(); },
   };
 
   const paperSx = {
@@ -99,7 +103,7 @@ export const MainLayout = () => {
     >
       {!isMap && isMobile && (
         <>
-          <MobileHeader onOpenPassword={() => setPasswordOpen(true)} />
+          <MobileHeader onOpenPassword={() => setPasswordOpen(true)} onOpenPhoto={() => setPhotoOpen(true)} />
           <MobileTabBar onMore={() => setDrawerOpen(true)} />
         </>
       )}
@@ -163,6 +167,11 @@ export const MainLayout = () => {
       {/* Troféu desbloqueado (desta conta). */}
       <TrophyToastLayer />
       <RollHistoryDrawer open={historyOpen} onClose={() => setHistoryOpen(false)} />
+      {photoOpen && (
+        <Suspense fallback={null}>
+          <ProfilePhotoDialog open onClose={() => setPhotoOpen(false)} />
+        </Suspense>
+      )}
       {passwordOpen && (
         <Suspense fallback={null}>
           <ChangePasswordDialog open onClose={() => setPasswordOpen(false)} />

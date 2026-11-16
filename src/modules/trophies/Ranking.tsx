@@ -4,7 +4,7 @@ import { ChevronRight as ChevronIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { chrome, displayFont, gold, green, ink, parchment, rule, TROPHY_TIERS } from '../../theme';
 import type { RankingEntry, TrophyRole } from '../../services/trophies';
-import { initialsOf } from '../../layouts/navigation';
+import { UserAvatar } from '../../components/UserAvatar';
 import { useInView } from '../../motion/useInView';
 import { useReducedMotion } from '../../motion/motion';
 import { useAnimatedNumber } from '../../motion/useAnimatedNumber';
@@ -90,9 +90,7 @@ function Step({ placed, slot, shown, me, onOpen }: { placed: Placed | null; slot
         )}
         {/* O aro de metal é o fundo em gradiente aparecendo em volta do miolo. */}
         <Box sx={{ width: avatar, height: avatar, borderRadius: '50%', p: '3px', boxSizing: 'border-box', background: `linear-gradient(145deg, ${metal.hi} 0%, ${metal.medal} 50%, ${metal.lo} 100%)`, boxShadow: `0 0 18px ${metal.medal}80` }}>
-          <Box sx={{ width: '100%', height: '100%', borderRadius: '50%', bgcolor: green.mid, color: chrome.onAccent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: champion ? '1rem' : '0.875rem' }}>
-            {initialsOf(e.name)}
-          </Box>
+          <UserAvatar userId={e.userId} name={e.name} size={56} bg={green.mid} color={chrome.onAccent} fontSize={champion ? '1rem' : '0.875rem'} sx={{ width: '100%', height: '100%' }} />
         </Box>
       </Box>
       <Typography noWrap sx={{ fontWeight: 700, fontSize: { xs: '0.875rem', sm: '1rem' }, color: chrome.text, mt: 0.75 }}>{first(e.name)}</Typography>
@@ -265,9 +263,7 @@ function Arena({ title, subtitle, role, list, me }: { title: string; subtitle: s
                   ? { background: `linear-gradient(145deg, ${metal.hi} 0%, ${metal.medal} 50%, ${metal.lo} 100%)`, color: metal.engrave, boxShadow: `0 1px 3px rgba(0,0,0,.25)` }
                   : { color: ink.secondary }),
               }}>{pts > 0 ? place : '–'}</Box>
-              <Box sx={{ width: 38, height: 38, borderRadius: '50%', bgcolor: green.mid, color: chrome.onAccent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8125rem', fontWeight: 700, flexShrink: 0 }}>
-                {initialsOf(e.name)}
-              </Box>
+              <UserAvatar userId={e.userId} name={e.name} size={38} bg={green.mid} color={chrome.onAccent} fontSize="0.8125rem" />
               <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                 <Typography noWrap sx={{ fontWeight: 600 }}>{e.name}{e.userId === me ? tr(' (você)', ' (you)') : ''}</Typography>
                 <Box sx={{ height: 6, borderRadius: 99, bgcolor: parchment.sunken, overflow: 'hidden', maxWidth: 320 }} aria-hidden>

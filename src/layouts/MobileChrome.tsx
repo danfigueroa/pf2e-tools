@@ -7,6 +7,7 @@ import {
   Key as KeyIcon,
   Logout as LogoutIcon,
   Map as MapIcon,
+  PhotoCamera as PhotoIcon,
   MoreHoriz as MoreIcon,
   PhoneIphone as ViewerIcon,
   Search as SearchIcon,
@@ -18,8 +19,9 @@ import { MesaMenu } from '../components/MesaSwitcher';
 import { NotificationsButton } from '../components/NotificationsButton';
 import { LanguageToggle } from '../components/LanguageToggle';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { UserAvatar } from '../components/UserAvatar';
 import { tr } from '../i18n';
-import { initialsOf, isCurrent, MOBILE_HEADER_HEIGHT, openSearch, TAB_BAR_HEIGHT } from './navigation';
+import { isCurrent, MOBILE_HEADER_HEIGHT, openSearch, TAB_BAR_HEIGHT } from './navigation';
 import logoSymbol from '../assets/covil-simbolo.svg';
 
 const squareButton = {
@@ -31,7 +33,7 @@ const squareButton = {
  * Cabeçalho do celular (todo o app, menos o mapa): símbolo, a mesa (abre o seletor), o sino, a
  * busca e a conta. Fica sobre o pergaminho, como no design — a moldura verde é a barra de abas.
  */
-export const MobileHeader = ({ onOpenPassword }: { onOpenPassword: () => void }) => {
+export const MobileHeader = ({ onOpenPassword, onOpenPhoto }: { onOpenPassword: () => void; onOpenPhoto: () => void }) => {
   const mesa = useMesaInfo();
   const role = useRole();
   const [mesaMenu, setMesaMenu] = useState<HTMLElement | null>(null);
@@ -68,9 +70,9 @@ export const MobileHeader = ({ onOpenPassword }: { onOpenPassword: () => void })
           aria-label={tr(`Conta de ${name}`, `${name}'s account`)}
           aria-haspopup="menu"
           onClick={(e) => setAccount(e.currentTarget)}
-          sx={{ width: 44, height: 44, borderRadius: '50%', flexShrink: 0, bgcolor: green.deepest, color: chrome.text, fontWeight: 700, fontSize: '0.875rem' }}
+          sx={{ width: 44, height: 44, borderRadius: '50%', flexShrink: 0 }}
         >
-          {initialsOf(name)}
+          <UserAvatar userId={role.userId} name={name} size={44} bg={green.deepest} color={chrome.text} fontSize="0.875rem" />
         </ButtonBase>
       )}
       <MesaMenu anchor={mesaMenu} onClose={() => setMesaMenu(null)} />
@@ -80,6 +82,10 @@ export const MobileHeader = ({ onOpenPassword }: { onOpenPassword: () => void })
           <Typography variant="caption" color="text.secondary">{role.isGm ? tr('Mestre da mesa', 'Game master') : tr('Jogador', 'Player')}</Typography>
         </Box>
         <Divider />
+        <MenuItem onClick={() => { setAccount(null); onOpenPhoto(); }}>
+          <ListItemIcon><PhotoIcon fontSize="small" /></ListItemIcon>
+          <ListItemText primary={tr('Foto da conta', 'Account photo')} />
+        </MenuItem>
         <MenuItem onClick={() => { setAccount(null); onOpenPassword(); }}>
           <ListItemIcon><KeyIcon fontSize="small" /></ListItemIcon>
           <ListItemText primary={tr("Trocar senha", 'Change password')} />

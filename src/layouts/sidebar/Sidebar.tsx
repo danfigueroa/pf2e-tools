@@ -21,6 +21,7 @@ import { floatUp, pop } from '../../motion/motion';
 import { MesaMenu } from '../../components/MesaSwitcher';
 import { LanguageToggle } from '../../components/LanguageToggle';
 import { ThemeToggle } from '../../components/ThemeToggle';
+import { UserAvatar } from '../../components/UserAvatar';
 import { initialsOf, isCurrent, SECTION_LABEL, visibleNav, type NavItem, type NavSection } from '../navigation';
 import { rollHeadline, sessionDate, sessionSince, timeAgo } from '../format';
 import logoHorizontal from '../../assets/covil-logo-horizontal-fundo-escuro.svg';
@@ -38,21 +39,14 @@ const sectionLabelSx = {
   color: chrome.label,
 };
 
-/** Círculo com as iniciais, para quem não tem token. */
-export const Initials = ({ name, size = 28, bg = chrome.line, color = chrome.text, ring }: {
-  name: string; size?: number; bg?: string; color?: string; ring?: boolean;
+/** Círculo com a imagem da conta (`userId`) ou, sem ela, com as iniciais. */
+export const Initials = ({ name, size = 28, bg = chrome.line, color = chrome.text, ring, userId }: {
+  name: string; size?: number; bg?: string; color?: string; ring?: boolean; userId?: string | null;
 }) => (
-  <Box
-    aria-hidden
-    sx={{
-      width: size, height: size, borderRadius: '50%', flexShrink: 0, bgcolor: bg, color,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: size * 0.36, fontWeight: 700, lineHeight: 1,
-      boxShadow: ring ? `0 0 0 2px ${green.deepest}, 0 0 0 4px ${gold.bright}` : undefined,
-    }}
-  >
-    {initialsOf(name)}
-  </Box>
+  <UserAvatar
+    userId={userId} name={name} size={size} bg={bg} color={color}
+    sx={{ boxShadow: ring ? `0 0 0 2px ${green.deepest}, 0 0 0 4px ${gold.bright}` : undefined }}
+  />
 );
 
 interface SidebarProps {
@@ -63,13 +57,14 @@ interface SidebarProps {
   onNavigate: () => void;
   onOpenHistory: () => void;
   onOpenPassword: () => void;
+  onOpenPhoto: () => void;
 }
 
 /**
  * A moldura verde: marca, cartão da mesa (sessão e quem está nela), navegação em seções, as
  * últimas rolagens e a conta. Recolhida, vira um trilho só de ícones com dica.
  */
-export const Sidebar = ({ collapsed, onToggleCollapse, onNavigate, onOpenHistory, onOpenPassword }: SidebarProps) => {
+export const Sidebar = ({ collapsed, onToggleCollapse, onNavigate, onOpenHistory, onOpenPassword, onOpenPhoto }: SidebarProps) => {
   const role = useRole();
   const items = visibleNav(role.isGm);
   const sections = (['jogo', 'gm', 'mesa'] as NavSection[])
@@ -116,7 +111,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse, onNavigate, onOpenHistory
         <RecentRolls onOpenHistory={onOpenHistory} />
       )}
 
-      <Profile collapsed={collapsed} onOpenPassword={onOpenPassword} />
+      <Profile collapsed={collapsed} onOpenPassword={onOpenPassword} onOpenPhoto={onOpenPhoto} />
     </Box>
   );
 };
@@ -231,7 +226,7 @@ const MesaCard = ({ collapsed }: { collapsed: boolean }) => {
             <Box sx={{ display: 'flex', flexShrink: 0 }} aria-hidden>
               {peers.slice(0, 4).map((p, i) => (
                 <Box key={p.id} sx={{ ml: i ? -1 : 0, borderRadius: '50%', border: `2px solid ${chrome.raisedDeep}` }}>
-                  <Initials name={p.who || p.name || p.character || '?'} size={26} bg={p.self ? gold.bright : chrome.line} color={p.self ? green.deepest : chrome.text} />
+                  <Initials userId={p.id} name={p.who || p.name || p.character || '?'} size={26} bg={p.self ? gold.bright : chrome.line} color={p.self ? green.deepest : chrome.text} />
                 </Box>
               ))}
             </Box>
@@ -350,7 +345,7 @@ const RecentRolls = ({ onOpenHistory }: { onOpenHistory: () => void }) => {
   );
 };
 
-const Profile = ({ collapsed, onOpenPassword }: { collapsed: boolean; onOpenPassword: () => void }) => {
+const Profile = ({ collapsed, onOpenPassword, onOpenPhoto }: { collapsed: boolean; onOpenPassword: () => void; onOpenPhoto: () => void }) => {
   const role = useRole();
   const name = role.displayName ?? role.username ?? tr('Sua conta', 'Your account');
   const roleText = role.isGm ? tr('Mestre da mesa', 'Game master') : tr('Jogador', 'Player');
@@ -370,7 +365,7 @@ const Profile = ({ collapsed, onOpenPassword }: { collapsed: boolean; onOpenPass
   if (collapsed) {
     return (
       <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, pt: 2, borderTop: `1px solid ${chrome.active}` }}>
-        <Box title={`${name} · ${roleText}`}><Initials name={name} size={40} ring /></Box>
+        <ButtonBase title={tr('Trocar a foto da conta', 'Change account photo')} aria-label={tr('Trocar a foto da conta', 'Change account photo')} onClick={onOpenPhoto} sx={{ borderRadius: '50%' }}><Initials userId={role.userId} name={name} size={40} ring /></ButtonBase>
         <LanguageToggle compact />
         <ThemeToggle compact />
         <IconButton aria-label={tr("Sair da conta", 'Sign out')} title={tr("Sair da conta", 'Sign out')} onClick={() => void signOut()} sx={{ color: chrome.textMuted }}><LogoutIcon fontSize="small" /></IconButton>
@@ -380,7 +375,9 @@ const Profile = ({ collapsed, onOpenPassword }: { collapsed: boolean; onOpenPass
   return (
     <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', gap: 1.75, pt: 2, borderTop: `1px solid ${chrome.active}` }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 0.5 }}>
-        <Initials name={name} size={40} ring />
+        <ButtonBase title={tr('Trocar a foto da conta', 'Change account photo')} aria-label={tr('Trocar a foto da conta', 'Change account photo')} onClick={onOpenPhoto} sx={{ borderRadius: '50%', flexShrink: 0 }}>
+          <Initials userId={role.userId} name={name} size={40} ring />
+        </ButtonBase>
         <Box sx={{ flex: 1, minWidth: 0, pl: 1 }}>
           <Typography noWrap sx={{ fontSize: '0.95rem', fontWeight: 600, color: chrome.text }}>{name}</Typography>
           <Typography noWrap sx={{ fontSize: '0.75rem', color: chrome.textMuted }}>{roleText}</Typography>

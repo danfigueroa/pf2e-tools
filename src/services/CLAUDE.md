@@ -17,6 +17,12 @@ Lado servidor de cada um: `api/CLAUDE.md`. Banco e canais: `supabase/CLAUDE.md`.
   login. Sessão anônima antiga é descartada no boot. Sem Supabase: modo `local`, com todas as permissões.
 - O `load()` adota o idioma da conta e recarrega uma vez (trava em `sessionStorage`).
 
+## Foto da conta (`avatars.ts`, `components/UserAvatar.tsx`)
+
+- A imagem mora em `user_metadata.avatar` (sobe em `tokens/`); sem ela o servidor devolve o token da primeira ficha do dono
+  (`GET ?avatars=1`), e sem ficha vale o círculo com iniciais (o GM sem ficha). Desenhe conta sempre com `UserAvatar` + `userId`.
+- O admin do Supabase **troca** o `user_metadata` inteiro (o idioma mora ali): ao gravar, reenvie o que já havia.
+
 ## Estado compartilhado da mesa (`tableState.ts` + `components/useSharedState.ts`)
 
 PV, slots, foco, pontos míticos, condições… são **da mesa, não do navegador**. Ler é de qualquer membro; escrever, do dono e do GM.
