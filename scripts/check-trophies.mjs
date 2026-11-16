@@ -5,6 +5,7 @@
 //   node scripts/check-trophies.mjs
 
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import * as T from '../api/_lib/trophies.js'
 import { TROPHIES_EN } from '../api/_lib/trophies-en.js'
 import {
@@ -161,6 +162,12 @@ test('todo troféu tem título e descrição em inglês, com os mesmos números'
     assert.equal(Object.keys(TROPHIES_EN).length, TROPHIES.length, 'id em inglês que não existe no catálogo')
     assert.ok(TROPHIES_EN.background[1].includes(String(BACKGROUND_MIN)) && TROPHIES_EN['background-longo'][1].includes(String(BACKGROUND_LONG)))
     assert.equal(catalogWire(new Set(), 'en')[0].title, 'Secret trophy')
+})
+
+test('toda categoria do catálogo tem glifo na medalha', () => {
+    const src = readFileSync(new URL('../src/modules/trophies/glyphs.ts', import.meta.url), 'utf8')
+    const drawn = new Set([...src.matchAll(/^ {4}([a-z]+): \{/gm)].map((m) => m[1]))
+    for (const c of new Set(TROPHIES.map((x) => x.category))) assert.ok(drawn.has(c), `sem glifo: ${c}`)
 })
 
 console.log(failures ? `\n${failures} falha(s)` : '\nTudo certo.')

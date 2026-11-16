@@ -89,7 +89,7 @@ export interface TrophySummary {
     points: Record<TrophyRole, number>
     count: number
     total: number
-    recent: { id: string; at: number; title: string; tier: TrophyTier }[]
+    recent: { id: string; at: number; title: string; tier: TrophyTier; category?: string | null }[]
 }
 
 let summary: TrophySummary | null = null

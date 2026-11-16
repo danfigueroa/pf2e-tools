@@ -123,6 +123,8 @@ export async function evaluate(mesa, userId) {
             data: {
                 user: userId, name: member?.display_name ?? null, trophy: id, title: x?.title ?? id, titleEn: trophyText(id, 'en').title,
                 description: x?.description ?? '', descriptionEn: trophyText(id, 'en').description, tier: x?.tier ?? 'bronze',
+                // A categoria escolhe o glifo da medalha no anúncio (aviso antigo vem sem: taça).
+                category: x?.category ?? null,
             },
         }
     })))
@@ -156,7 +158,7 @@ export async function trophySummary(userId, lang = 'pt') {
         total: TROPHY_BY_ID.size,
         recent: unlocked.slice(0, 4).map((u) => {
             const x = TROPHY_BY_ID.get(u.id)
-            return { id: u.id, at: u.at, title: x ? trophyText(u.id, lang).title : u.id, tier: x?.tier ?? 'bronze' }
+            return { id: u.id, at: u.at, title: x ? trophyText(u.id, lang).title : u.id, tier: x?.tier ?? 'bronze', category: x?.category ?? null }
         }),
     }
 }
