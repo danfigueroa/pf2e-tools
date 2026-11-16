@@ -19,6 +19,8 @@
 //   POST { action: 'member-remove', user }                   → { ok }                  (GM)
 //   POST { action: 'member-set-name', name, user? }          → { ok }   (a própria / GM)
 //   POST { action: 'member-reset-password', user }           → { password }            (GM)
+//   GET  ?avatars=1                               → { avatars: { <userId>: url } }  (membro)
+//   POST { action: 'member-set-avatar', url|null }           → { ok }   (a própria conta)
 //   POST { action: 'sheet-assign', char, user|null }         → { ok }                  (GM)
 //   POST { action: 'mesa-settings', name?, session?: 'start'|'end', nextSessionAt?: ISO|null }
 //                                                             → { name, sessionStartedAt, nextSessionAt } (GM)
@@ -29,7 +31,8 @@
 import { randomInt } from 'node:crypto'
 import { supabase, isSupabaseConfigured } from './supabase.js'
 import { forbidden, forgetMember, forgetOwner, memberRole } from './access.js'
-import { isValidSlug } from './table-store.js'
+import { isValidSlug, readCharacterSlices } from './table-store.js'
+import { deleteImages, imagePath } from './images.js'
 import { endSession, safely, startSession } from './trophy-store.js'
 
 const ok = (body = {}) => ({ status: 200, body: { ok: true, ...body, storeReady: isSupabaseConfigured() } })
@@ -44,6 +47,7 @@ const ACTIONS = new Set([
     'member-set-role',
     'member-remove',
     'member-set-name',
+    'member-set-avatar',
     'sheet-assign',
     'mesa-settings',
 ])
@@ -62,7 +66,7 @@ export const usernameOf = (email) =>
     typeof email === 'string' && email.endsWith(`@${USER_DOMAIN}`) ? email.slice(0, -USER_DOMAIN.length - 1) : null
 
 export function isAuthRequest(method, query, body) {
-    if (method === 'GET') return !!query.me || !!query.members
+    if (method === 'GET') return !!query.me || !!query.members || !!query.avatars
     if (method === 'POST') return ACTIONS.has(body?.action)
     return false
 }
@@ -168,6 +172,29 @@ async function readMe(db, access) {
     }
 }
 
+/**
+ * A imagem de cada membro: a que a pessoa enviou; sem ela, o token da primeira ficha que
+ * ela possui; sem ficha (o GM, em geral), nada — a tela cai nas iniciais.
+ */
+async function readAvatars(db, mesa) {
+    const members = check(await db.from('mesa_members').select('user_id').eq('mesa', mesa)) ?? []
+    const sheets = check(await db.from('sheets').select('slug, owner_id').eq('mesa', mesa).order('slug')) ?? []
+    const slices = await readCharacterSlices(mesa, sheets.map((s) => s.slug), ['token'])
+    const tokenOf = new Map()
+    for (const s of sheets) {
+        const url = slices[s.slug]?.token?.url
+        if (s.owner_id && typeof url === 'string' && !tokenOf.has(s.owner_id)) tokenOf.set(s.owner_id, url)
+    }
+    const out = {}
+    await Promise.all(members.map(async ({ user_id: id }) => {
+        const { data } = await db.auth.admin.getUserById(id)
+        const own = data?.user?.user_metadata?.avatar
+        const url = (typeof own === 'string' && own) || tokenOf.get(id)
+        if (url) out[id] = url
+    }))
+    return out
+}
+
 async function readMembers(db, mesa) {
     const rows = check(
         await db
@@ -234,6 +261,10 @@ export async function handleAuthRequest(mesa, method, query, body, access) {
 
     if (method === 'GET') {
         if (query.me) return ok(await readMe(db, access))
+        if (query.avatars) {
+            if (!(access.role ?? (await memberRole(mesa, access.userId)))) return forbidden()
+            return ok({ avatars: await readAvatars(db, mesa) })
+        }
         if (!gm) return forbidden()
         return ok(await readMembers(db, mesa))
     }
@@ -248,6 +279,24 @@ export async function handleAuthRequest(mesa, method, query, body, access) {
         if (!joined) return fail(404, 'Convite inválido, vencido ou já usado')
         forgetMember(joined.o_mesa, access.userId)
         return ok({ mesa: joined.o_mesa, role: joined.o_role })
+    }
+
+    if (action === 'member-set-avatar') {
+        // Só a própria conta: a imagem é a cara da pessoa na plataforma.
+        const url = body.url == null ? null : String(body.url)
+        if (url !== null && !imagePath(url)?.startsWith('tokens/')) return fail(400, 'Imagem inválida')
+        const { data: found, error } = await db.auth.admin.getUserById(access.userId)
+        if (error || !found?.user) throw new Error(error?.message ?? 'Conta não encontrada')
+        const meta = found.user.user_metadata ?? {}
+        const old = typeof meta.avatar === 'string' ? meta.avatar : null
+        // O admin troca o `user_metadata` inteiro (o idioma mora ali): reenvia o que já tinha.
+        const next = { ...meta }
+        if (url) next.avatar = url
+        else delete next.avatar
+        const upd = await db.auth.admin.updateUserById(access.userId, { user_metadata: next })
+        if (upd.error) throw new Error(upd.error.message)
+        if (old && old !== url) await deleteImages([old])
+        return ok()
     }
 
     if (action === 'member-set-name') {
