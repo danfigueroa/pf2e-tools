@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Box, ButtonBase, IconButton, Popover, Typography } from '@mui/material';
 import {
   Casino as DiceIcon,
@@ -17,6 +17,7 @@ import { useTableRolls } from '../../services/rolls';
 import { useCombatStatus } from '../../services/combatStatus';
 import { levelOf, useTrophySummary } from '../../services/trophies';
 import { useAnimatedNumber } from '../../motion/useAnimatedNumber';
+import { floatUp, pop } from '../../motion/motion';
 import { MesaMenu } from '../../components/MesaSwitcher';
 import { LanguageToggle } from '../../components/LanguageToggle';
 import { ThemeToggle } from '../../components/ThemeToggle';
@@ -397,18 +398,42 @@ const Profile = ({ collapsed, onOpenPassword }: { collapsed: boolean; onOpenPass
   );
 };
 
-/** Nível e pontos dos Troféus do Covil, com os pontos correndo até o valor quando mudam. */
+/** Nível e pontos dos Troféus do Covil: ao ganhar pontos, eles correm até o valor, o "+N" sobe e a linha pulsa. */
 const TrophyLine = () => {
   const summary = useTrophySummary();
   const total = summary ? summary.points.player + summary.points.gm : 0;
   const shown = useAnimatedNumber(total, { duration: 900 });
+  const level = levelOf(total).level;
+  // A primeira leitura não é ganho: só o que muda depois dela anima.
+  const last = useRef<{ total: number; level: number } | null>(null);
+  const [gain, setGain] = useState<{ id: number; amount: number; leveled: boolean } | null>(null);
+  const ready = !!summary;
+  useEffect(() => {
+    if (!ready) return;
+    const before = last.current;
+    last.current = { total, level };
+    if (!before || total <= before.total) return;
+    setGain({ id: Date.now(), amount: total - before.total, leveled: level > before.level });
+    const timer = window.setTimeout(() => setGain(null), 2200);
+    return () => clearTimeout(timer);
+  }, [ready, total, level]);
   if (!summary) return null;
+  const still = { '@media (prefers-reduced-motion: reduce)': { animation: 'none' } };
   return (
     <Box component={Link} to="/trofeus" sx={{
-      display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 0.25, fontSize: '0.75rem', fontWeight: 600,
+      position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 0.25, fontSize: '0.75rem', fontWeight: 600,
       color: gold.bright, textDecoration: 'none', fontVariantNumeric: 'tabular-nums', '&:hover': { textDecoration: 'underline' },
     }}>
-      <TrophyIcon sx={{ fontSize: 14 }} />{tr('Nível ', 'Level ')}{levelOf(total).level} · {shown} pts
+      <TrophyIcon key={gain ? `i${gain.id}` : 'i'} sx={{ fontSize: 14, ...(gain ? { animation: `${pop} 520ms ease-out`, ...still } : {}) }} />
+      <Box component="span" key={gain?.leveled ? `l${gain.id}` : 'l'} sx={{ display: 'inline-block', ...(gain?.leveled ? { animation: `${pop} 620ms ease-out 300ms both`, ...still } : {}) }}>
+        {tr('Nível ', 'Level ')}{level}
+      </Box>
+      <span>· {shown} pts</span>
+      {gain && (
+        <Box component="span" key={gain.id} aria-hidden sx={{ position: 'absolute', left: '100%', top: 0, ml: 0.75, fontWeight: 800, whiteSpace: 'nowrap', animation: `${floatUp} 2000ms ease-out forwards`, ...still }}>
+          +{gain.amount}
+        </Box>
+      )}
     </Box>
   );
 };
