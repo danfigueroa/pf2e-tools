@@ -11,7 +11,7 @@
 import { supabase } from './supabase.js'
 import { fold } from './wiki-secrets.js'
 
-export const PAGE_KINDS = ['npc', 'location', 'item', 'creature', 'faction', 'deity', 'event', 'lore', 'other']
+export const PAGE_KINDS = ['npc', 'location', 'item', 'creature', 'faction', 'deity', 'event', 'lore', 'hazard', 'culture', 'other']
 export const PAGE_ID_RE = /^w-[a-z0-9]{6,32}$/
 export const MAX_BODY_BYTES = 128 * 1024
 export const MAX_REVISIONS = 50

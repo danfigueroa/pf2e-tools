@@ -11,7 +11,7 @@ import { authHeaderNow, listenMesaChannel } from './supabase'
 import { markOwnShare } from './rolls'
 import { tr } from '../i18n'
 
-export const WIKI_KINDS = ['npc', 'location', 'item', 'creature', 'faction', 'deity', 'event', 'lore', 'other'] as const
+export const WIKI_KINDS = ['npc', 'location', 'item', 'creature', 'faction', 'deity', 'event', 'lore', 'hazard', 'culture', 'other'] as const
 export type WikiKind = typeof WIKI_KINDS[number]
 
 /** A criatura da AON ligada a uma página de criatura. */

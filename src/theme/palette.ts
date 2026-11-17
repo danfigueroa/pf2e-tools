@@ -303,5 +303,7 @@ export const WIKI_KIND_COLORS = {
     deity: '#7A5C17',
     event: '#2F4F8F',
     lore: '#4F5853',
+    hazard: '#8A5A12',
+    culture: '#2E6B5E',
     other: '#5A5044',
 } as const

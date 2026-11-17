@@ -19,7 +19,7 @@ import { supabase } from './supabase.js'
 
 export const MAX_DOC_BYTES = 256 * 1024
 export const MAX_REVEAL_BYTES = 16 * 1024
-export const DOC_KINDS = ['session', 'npc', 'location', 'item', 'faction', 'other', 'thread']
+export const DOC_KINDS = ['session', 'npc', 'location', 'item', 'creature', 'faction', 'deity', 'event', 'lore', 'hazard', 'culture', 'other', 'thread']
 export const ID_RE = /^[a-z0-9-]{1,64}$/
 
 const validTitle = (v, max) =>

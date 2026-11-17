@@ -25,7 +25,7 @@ export const COLD_AVG = 7
 /** Os feitos da Wiki que o `trophy_facts` não resume: vêm crus (com o tipo da página) para `deriveFacts`. */
 export const WIKI_FEATS = ['wiki-created', 'wiki-edited', 'wiki-read']
 /** Os tipos de página da Wiki que pedem um troféu (o "Outro" não conta). */
-export const WIKI_KINDS = ['npc', 'location', 'item', 'creature', 'faction', 'deity', 'event', 'lore']
+export const WIKI_KINDS = ['npc', 'location', 'item', 'creature', 'faction', 'deity', 'event', 'lore', 'hazard', 'culture']
 /** Links `[[ ]]` numa página só para o "Tecelão". */
 export const WIKI_LINKS_NEEDED = 5
 
@@ -130,7 +130,9 @@ export const TROPHIES = [
     t('wiki-divindades', 'player', 'wiki', 'bronze', 'Teólogo', 'Crie 2 páginas de Divindade na Wiki.', 2, (f) => f.wikiByKind.deity),
     t('wiki-eventos', 'player', 'wiki', 'bronze', 'Historiador', 'Crie 3 páginas de Evento na Wiki.', 3, (f) => f.wikiByKind.event),
     t('wiki-lore', 'player', 'wiki', 'bronze', 'Contador de lendas', 'Crie 3 páginas de Lore na Wiki.', 3, (f) => f.wikiByKind.lore),
-    t('wiki-todos-tipos', 'player', 'wiki', 'ouro', 'Mundo inteiro', 'Crie ao menos uma página de cada tipo da Wiki (NPC, Local, Item, Criatura, Facção, Divindade, Evento e Lore).', WIKI_KINDS.length, (f) => f.wikiCreatedKinds),
+    t('wiki-perigos', 'player', 'wiki', 'bronze', 'Caçador de armadilhas', 'Crie 3 páginas de Perigo na Wiki.', 3, (f) => f.wikiByKind.hazard),
+    t('wiki-povos', 'player', 'wiki', 'bronze', 'Etnógrafo', 'Crie 2 páginas de Povo na Wiki.', 2, (f) => f.wikiByKind.culture),
+    t('wiki-todos-tipos', 'player', 'wiki', 'ouro', 'Mundo inteiro', 'Crie ao menos uma página de cada tipo da Wiki (NPC, Local, Item, Criatura, Facção, Divindade, Evento, Lore, Perigo e Povo).', WIKI_KINDS.length, (f) => f.wikiCreatedKinds),
     t('wiki-hierarquia', 'player', 'wiki', 'bronze', 'Cada coisa no seu lugar', 'Crie uma página da Wiki com o campo "Fica em" preenchido.', 1, (f) => f.wikiChildren),
     t('wiki-tecelao', 'player', 'wiki', 'prata', 'Tecelão de teias', `Crie uma página da Wiki com ${WIKI_LINKS_NEEDED}+ links para outras páginas.`, WIKI_LINKS_NEEDED, (f) => f.wikiMaxLinks),
     t('wiki-leitor', 'player', 'wiki', 'bronze', 'Folheando', 'Leia 5 páginas da Wiki escritas por outras pessoas.', 5, (f) => f.wikiRead),

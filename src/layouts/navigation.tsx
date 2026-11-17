@@ -69,7 +69,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     // De todos: GM e jogadores escrevem sobre o mundo (o GM trava e esconde, e o servidor confere).
     text: tr('Wiki da Mesa', 'Table Wiki'), icon: <WikiIcon />, path: '/wiki', section: 'jogo',
-    keywords: ['wiki', 'npc', tr('local', 'place'), tr('locais', 'places'), 'item', tr('criatura', 'creature'), tr('faccao', 'faction'), 'lore', tr('mundo', 'world'), tr('cidade', 'city'), 'enciclopedia'],
+    keywords: ['wiki', 'npc', tr('local', 'place'), tr('locais', 'places'), 'item', tr('criatura', 'creature'), tr('faccao', 'faction'), 'lore', tr('perigo', 'hazard'), tr('armadilha', 'trap'), tr('povo', 'people'), tr('mundo', 'world'), tr('cidade', 'city'), 'enciclopedia'],
   },
   {
     text: tr('Troféus', 'Trophies'), icon: <TrophyIcon />, path: '/trofeus', section: 'jogo',

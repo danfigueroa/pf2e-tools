@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react'
 import { Box } from '@mui/material'
 import {
-    Article as OtherIcon, AutoAwesome as DeityIcon, Diamond as ItemIcon, Event as EventIcon, MenuBook as LoreIcon,
+    Article as OtherIcon, AutoAwesome as DeityIcon, Diamond as ItemIcon, Event as EventIcon, Groups as CultureIcon, MenuBook as LoreIcon, ReportProblem as HazardIcon,
     Pets as CreatureIcon, Person as NpcIcon, Place as LocationIcon, Shield as FactionIcon,
 } from '@mui/icons-material'
 import { chrome, gold, greenInk, isDark, status, WIKI_KIND_COLORS } from '../../../theme'
@@ -13,7 +13,7 @@ import { useImageUrl } from '../../../services/images'
 
 const ICONS: Record<WikiKind, ComponentType<{ sx?: object; fontSize?: 'inherit' | 'small' | 'medium' | 'large' }>> = {
     npc: NpcIcon, location: LocationIcon, item: ItemIcon, creature: CreatureIcon, faction: FactionIcon,
-    deity: DeityIcon, event: EventIcon, lore: LoreIcon, other: OtherIcon,
+    deity: DeityIcon, event: EventIcon, lore: LoreIcon, hazard: HazardIcon, culture: CultureIcon, other: OtherIcon,
 }
 
 export function KindGlyph({ kind }: { kind: WikiKind }) {

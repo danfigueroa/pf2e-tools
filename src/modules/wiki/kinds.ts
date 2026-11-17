@@ -16,6 +16,8 @@ export const KIND_LABEL: Record<WikiKind, { one: string; many: string }> = {
     deity: { one: tr('Divindade', 'Deity'), many: tr('Divindades', 'Deities') },
     event: { one: tr('Evento', 'Event'), many: tr('Eventos', 'Events') },
     lore: { one: tr('Lore', 'Lore'), many: tr('Lore', 'Lore') },
+    hazard: { one: tr('Perigo', 'Hazard'), many: tr('Perigos', 'Hazards') },
+    culture: { one: tr('Povo', 'People'), many: tr('Povos', 'Peoples') },
     other: { one: tr('Outro', 'Other'), many: tr('Outros', 'Others') },
 }
 
@@ -72,6 +74,20 @@ export const INFOBOX: Record<WikiKind, FieldDef[]> = {
         { key: 'session', label: tr('Sessão', 'Session') },
     ],
     lore: [],
+    hazard: [
+        { key: 'level', label: tr('Nível', 'Level') },
+        { key: 'complexity', label: tr('Complexidade', 'Complexity'), options: [tr('Simples', 'Simple'), tr('Complexo', 'Complex')] },
+        { key: 'location', label: tr('Onde está', 'Where'), link: true },
+        { key: 'status', label: tr('Situação', 'Status'), options: [tr('Ativo', 'Active'), tr('Desarmado', 'Disabled'), tr('Disparado', 'Triggered'), tr('Desconhecido', 'Unknown')] },
+        { key: 'notice', label: tr('Como perceber', 'How to notice'), placeholder: tr('perícia e CD', 'skill and DC') },
+        { key: 'disable', label: tr('Como desarmar', 'How to disable'), placeholder: tr('perícia e CD', 'skill and DC') },
+    ],
+    culture: [
+        { key: 'homeland', label: tr('Onde vivem', 'Homeland'), link: true },
+        { key: 'languages', label: tr('Idiomas', 'Languages') },
+        { key: 'deities', label: tr('Divindades', 'Deities'), link: true },
+        { key: 'look', label: tr('Aparência', 'Appearance') },
+    ],
     other: [],
 }
 
@@ -85,6 +101,8 @@ export const PARENT_LABEL: Record<WikiKind, string> = {
     deity: tr('Faz parte de', 'Part of'),
     event: tr('Faz parte de', 'Part of'),
     lore: tr('Faz parte de', 'Part of'),
+    hazard: tr('Fica em', 'Located in'),
+    culture: tr('Faz parte de', 'Part of'),
     other: tr('Faz parte de', 'Part of'),
 }
 
@@ -96,6 +114,8 @@ const TEMPLATES: Partial<Record<WikiKind, string>> = {
     faction: tr('## Objetivos\n\n\n## Membros conhecidos\n- \n', '## Goals\n\n\n## Known members\n- \n'),
     deity: tr('## Fé e seguidores\n\n', '## Faith and followers\n\n'),
     event: tr('## O que aconteceu\n\n\n## Consequências\n- \n', '## What happened\n\n\n## Consequences\n- \n'),
+    hazard: tr('## Como é\n\n\n## O que acontece ao disparar\n\n\n## Quem já caiu nele\n- \n', '## What it looks like\n\n\n## What happens when triggered\n\n\n## Who fell for it\n- \n'),
+    culture: tr('## Costumes\n\n\n## História\n\n\n## Nomes comuns\n- \n', '## Customs\n\n\n## History\n\n\n## Common names\n- \n'),
 }
 
 export const templateFor = (kind: WikiKind) => TEMPLATES[kind] ?? ''

@@ -44,7 +44,7 @@ test('Wiki: páginas criadas e páginas de outros editadas', () => {
 test('Wiki: tipos, leitura e hierarquia contam por página', () => {
     const row = (kind, slug, data, mesa = 'a') => ({ mesa, kind, data: { slug, ...data } })
     const wiki = [
-        ...['npc', 'npc', 'location', 'item', 'creature', 'faction', 'deity', 'event', 'lore'].map((k, i) => row('wiki-created', `p${i}`, { kind: k, parent: i === 2, links: i === 0 ? 6 : 0 })),
+        ...['npc', 'npc', 'location', 'item', 'creature', 'faction', 'deity', 'event', 'lore', 'hazard', 'culture'].map((k, i) => row('wiki-created', `p${i}`, { kind: k, parent: i === 2, links: i === 0 ? 6 : 0 })),
         row('wiki-created', 'p0', { kind: 'npc' }), // a mesma página duas vezes não soma
         ...Array.from({ length: 6 }, (_, i) => row('wiki-read', `r${i}`, { kind: ['npc', 'item', 'lore', 'event', 'deity', 'faction'][i] })),
         row('wiki-read', 'r0', { kind: 'npc' }),
@@ -52,7 +52,7 @@ test('Wiki: tipos, leitura e hierarquia contam por página', () => {
     ]
     const f = deriveFacts({ wiki })
     assert.equal(f.wikiByKind.npc, 2)
-    assert.equal(f.wikiCreatedKinds, 8)
+    assert.equal(f.wikiCreatedKinds, 10)
     assert.equal(f.wikiChildren, 1)
     assert.equal(f.wikiMaxLinks, 6)
     assert.equal(f.wikiRead, 7)
