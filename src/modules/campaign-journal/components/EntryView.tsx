@@ -1,4 +1,4 @@
-import { memo, useRef, useState } from 'react'
+import { memo, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
     Alert, Autocomplete, Box, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle,
@@ -15,6 +15,8 @@ import {
     CATALOG_KINDS, KIND_LABEL, type CatalogDoc, type CatalogKind, type JournalSummary, type ThreadDoc, type ThreadStatus,
 } from '../doc'
 import { TEMPLATES } from '../templates'
+import { descendantsOf, PARENT_LABEL, withField } from '../../wiki/kinds'
+import { QuickFacts } from '../../wiki/components/QuickFacts'
 import { useJournalTools } from '../../../components/markdown/tools'
 import { JournalEditor } from './JournalEditor'
 import { WikiUpdateDialog } from './WikiUpdateDialog'
@@ -29,6 +31,7 @@ const PORTRAIT_MAX_SIDE = 1600
 
 const sessionLabel = (s: JournalSummary) => s.title
 const NO_OPTIONS: string[] = []
+const NO_PAGES: WikiSummary[] = []
 
 /** As sessões em que esta ficha aparece (pelos `links` do resumo da lista). */
 function Appearances({ id, docs, onOpen }: { id: string; docs: JournalSummary[]; onOpen: (id: string) => void }) {
@@ -61,6 +64,15 @@ export const CatalogView = memo(function CatalogView({ doc, version, update, doc
     const [uploading, setUploading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const image = useImageUrl(doc.data.image)
+    const wikiPages = useWikiIndex().list?.pages ?? NO_PAGES
+    const catalog = useMemo(() => docs.filter((d) => (CATALOG_KINDS as readonly string[]).includes(d.kind)), [docs])
+    // A ficha aberta vale a do editor (a lista pode estar um passo atrás).
+    const blocked = useMemo(() => descendantsOf(doc.id, catalog.map((d) => (d.id === doc.id ? { id: d.id, parent: doc.data.parent } : d))), [doc.id, doc.data.parent, catalog])
+    const parentOptions = useMemo(() => catalog.filter((d) => !blocked.has(d.id)).sort((a, b) => a.title.localeCompare(b.title)), [catalog, blocked])
+    const parent = parentOptions.find((d) => d.id === doc.data.parent) ?? null
+    // Os campos de link oferecem o catálogo e a Wiki: o `[[ ]]` do Diário procura nos dois.
+    const titles = useMemo(() => [...new Set([...catalog.filter((d) => d.id !== doc.id).map((d) => d.title), ...wikiPages.map((p) => p.title)])]
+        .sort((a, b) => a.localeCompare(b)), [catalog, wikiPages, doc.id])
 
     const setData = (patch: Partial<CatalogDoc['data']>) => update((d) => ({ ...d, data: { ...d.data, ...patch } }))
 
@@ -105,17 +117,42 @@ export const CatalogView = memo(function CatalogView({ doc, version, update, doc
                     <input ref={file} type="file" accept="image/*" hidden onChange={(e) => void onFile(e.target.files?.[0])} />
                 </Box>
                 <Stack spacing={1.5} sx={{ minWidth: 0 }}>
+                    <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+                        <TextField
+                            select
+                            size="small"
+                            label={tr("Tipo", 'Kind')}
+                            value={doc.kind}
+                            onChange={(e) => update((d) => ({ ...d, kind: e.target.value as CatalogKind }))}
+                            slotProps={{ select: { native: true } }}
+                        >
+                            {CATALOG_KINDS.map((k) => <option key={k} value={k}>{KIND_LABEL[k].one}</option>)}
+                        </TextField>
+                        <Autocomplete<JournalSummary>
+                            size="small"
+                            options={parentOptions}
+                            value={parent}
+                            getOptionLabel={(p) => p.title}
+                            isOptionEqualToValue={(a, b) => a.id === b.id}
+                            onChange={(_, v) => setData({ parent: v?.id ?? null })}
+                            renderInput={(params) => <TextField {...params} label={PARENT_LABEL[doc.kind]} placeholder={tr('nenhuma', 'none')} />}
+                        />
+                    </Box>
                     <TextField
-                        select
                         size="small"
-                        label={tr("Tipo", 'Kind')}
-                        value={doc.kind}
-                        onChange={(e) => update((d) => ({ ...d, kind: e.target.value as CatalogKind }))}
-                        slotProps={{ select: { native: true } }}
-                        sx={{ maxWidth: 200 }}
-                    >
-                        {CATALOG_KINDS.map((k) => <option key={k} value={k}>{KIND_LABEL[k].one}</option>)}
-                    </TextField>
+                        label={tr('Resumo (uma linha)', 'Summary (one line)')}
+                        value={doc.data.summary}
+                        onChange={(e) => setData({ summary: e.target.value.replace(/[\n\r\t]/g, ' ').slice(0, 300) })}
+                    />
+                    <Autocomplete
+                        multiple
+                        freeSolo
+                        size="small"
+                        options={NO_OPTIONS}
+                        value={doc.data.aliases}
+                        onChange={(_, v) => setData({ aliases: [...new Set(v.map((t) => t.trim().slice(0, 120)).filter(Boolean))].slice(0, 10) })}
+                        renderInput={(params) => <TextField {...params} label={tr('Também chamado', 'Also known as')} placeholder={tr('apelidos, outros nomes… (Enter)', 'nicknames, other names… (Enter)')} />}
+                    />
                     <Autocomplete
                         multiple
                         freeSolo
@@ -128,6 +165,14 @@ export const CatalogView = memo(function CatalogView({ doc, version, update, doc
                     {error && <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>}
                 </Stack>
             </Box>
+            <QuickFacts
+                kind={doc.kind}
+                fields={doc.data.fields}
+                aon={doc.data.aon}
+                titles={titles}
+                onField={(key, value) => update((d) => ({ ...d, data: { ...d.data, fields: withField(d.data.fields, key, value) } }))}
+                onAon={(aon) => setData({ aon })}
+            />
             <JournalEditor
                 key={`md-${version}`}
                 value={doc.data.md}

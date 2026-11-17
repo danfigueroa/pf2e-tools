@@ -1,28 +1,27 @@
 // Os documentos do Diário de Campanha e a validação de cada um.
 //
 // Um documento é uma SESSÃO (uma página por sessão: preparação, cenas,
-// encontros, elenco, registro e resumo), uma ficha do CATÁLOGO da campanha (NPC,
-// local, item, facção, outro — reaproveitada entre sessões) ou um GANCHO (pista,
-// segredo, pendência, com estado aberto → revelado → resolvido).
+// encontros, elenco, registro e resumo), uma ficha do CATÁLOGO da campanha (os
+// mesmos tipos e campos de uma página da Wiki — reaproveitada entre sessões) ou
+// um GANCHO (pista, segredo, pendência, com estado aberto → revelado → resolvido).
 //
 // O servidor confere só a forma e o tamanho (`api/_lib/journal-store.js`); o
 // conteúdo é validado AQUI, ao ler — da API ou do rascunho no `localStorage`.
 
 import type { AonCreature } from '../../services/creatures'
+import { WIKI_KINDS, type WikiAon, type WikiKind } from '../../services/wiki'
+import { KIND_LABEL as WIKI_KIND_LABEL } from '../wiki/kinds'
 import { tr } from '../../i18n'
 
-export type CatalogKind = 'npc' | 'location' | 'item' | 'faction' | 'other'
+/** O catálogo tem os tipos da Wiki: a ficha vai inteira para lá (decisão do usuário). */
+export type CatalogKind = WikiKind
 export type DocKind = 'session' | CatalogKind | 'thread'
 
-export const CATALOG_KINDS: readonly CatalogKind[] = ['npc', 'location', 'item', 'faction', 'other']
+export const CATALOG_KINDS: readonly CatalogKind[] = WIKI_KINDS
 
 export const KIND_LABEL: Record<DocKind, { one: string; many: string }> = {
     session: { one: tr('Sessão', 'Session'), many: tr('Sessões', 'Sessions') },
-    npc: { one: 'NPC', many: 'NPCs' },
-    location: { one: tr('Local', 'Place'), many: tr('Locais', 'Places') },
-    item: { one: 'Item', many: tr('Itens', 'Items') },
-    faction: { one: tr('Facção', 'Faction'), many: tr('Facções', 'Factions') },
-    other: { one: tr('Outro', 'Other'), many: tr('Outros', 'Others') },
+    ...WIKI_KIND_LABEL,
     thread: { one: tr('Gancho', 'Hook'), many: tr('Ganchos', 'Hooks') },
 }
 
@@ -75,10 +74,21 @@ export interface SessionData {
     chronicle: string | null
 }
 
+/** O mesmo modelo de uma página da Wiki (`WikiPage`), mais a ligação com ela. */
 export interface CatalogData {
     image: string | null
     md: string
     tags: string[]
+    /** Outros nomes: `[[ ]]` acha a ficha por eles também. */
+    aliases: string[]
+    /** Uma linha, como o resumo da Wiki. */
+    summary: string
+    /** A ficha rápida do tipo (`INFOBOX`), texto curto por campo. */
+    fields: Record<string, string>
+    /** A ficha da AON ligada (criatura, ou NPC com stat block). */
+    aon: WikiAon | null
+    /** A ficha-mãe no catálogo ("Fica em"). */
+    parent: string | null
     /** A página da Wiki da Mesa ligada a esta ficha (a parte que a mesa conhece). */
     wiki: string | null
 }
@@ -107,6 +117,9 @@ export interface JournalSummary {
     status: string | null
     /** Só sessão: as fichas e ganchos ligados a ela. */
     links: string[]
+    /** Só ficha: a ficha-mãe e as pílulas da ficha rápida. */
+    parent: string | null
+    badges: { status?: string; attitude?: string; part?: string }
 }
 
 // ── Limites (o documento inteiro cabe em 256 KB no banco) ────────────────────
@@ -118,6 +131,11 @@ const MAX_CREATURES = 20
 export const MAX_LOG = 500
 const MAX_LINKS = 200
 const MAX_TAGS = 12
+// Os mesmos tetos do `wiki-store.js` (a ficha vira página sem perder nada).
+const MAX_ALIASES = 10
+const MAX_FIELDS = 30
+const FIELD_KEY_RE = /^[a-z][a-zA-Z0-9]{0,30}$/
+const AON_URL_RE = /^https:\/\/2e\.aonprd\.com\/[\w./?=&%-]{1,280}$/
 
 export const ID_RE = /^[a-z0-9-]{1,64}$/
 /** Uma página da Wiki da Mesa (o id de `services/wiki.ts`). */
@@ -202,12 +220,62 @@ function sessionData(raw: unknown): SessionData {
     }
 }
 
+const uniqueLines = (v: unknown, maxItems: number, maxLen: number) => {
+    const seen = new Set<string>()
+    const out: string[] = []
+    for (const x of arr(v)) {
+        const s = line(x, maxLen).trim()
+        if (!s || seen.has(s.toLowerCase())) continue
+        seen.add(s.toLowerCase())
+        out.push(s)
+        if (out.length >= maxItems) break
+    }
+    return out
+}
+
+function fieldsOf(raw: unknown): Record<string, string> {
+    const out: Record<string, string> = {}
+    for (const [k, v] of Object.entries(obj(raw))) {
+        if (Object.keys(out).length >= MAX_FIELDS) break
+        if (!FIELD_KEY_RE.test(k) || k === 'aon' || typeof v !== 'string') continue
+        const s = line(v, 300).trim()
+        if (s) out[k] = s
+    }
+    return out
+}
+
+/** As pílulas da ficha (as mesmas que a lista da Wiki mostra; `badgesOf` do `wiki-store.js`). */
+export function badgesOf(fields: Record<string, string>): JournalSummary['badges'] {
+    const out: JournalSummary['badges'] = {}
+    if (fields.status) out.status = fields.status.slice(0, 40)
+    if (fields.attitude) out.attitude = fields.attitude.slice(0, 40)
+    if (fields.part) out.part = fields.part.slice(0, 120)
+    return out
+}
+
+export function aonOf(raw: unknown): WikiAon | null {
+    const a = obj(raw)
+    const name = line(a.name, 120).trim()
+    if (!name) return null
+    return {
+        name,
+        level: Number.isInteger(a.level) && (a.level as number) >= -1 && (a.level as number) <= 30 ? a.level as number : null,
+        url: typeof a.url === 'string' && AON_URL_RE.test(a.url) ? a.url : null,
+        traits: uniqueLines(a.traits, 16, 40),
+    }
+}
+
 function catalogData(raw: unknown): CatalogData {
     const d = obj(raw)
     return {
         image: typeof d.image === 'string' && d.image.length <= 500 ? d.image : null,
         md: str(d.md, MAX_TEXT),
         tags: [...new Set(arr(d.tags).map((t) => line(t, 30).trim()).filter(Boolean))].slice(0, MAX_TAGS),
+        aliases: uniqueLines(d.aliases, MAX_ALIASES, 120),
+        summary: line(d.summary, 300).trim(),
+        fields: fieldsOf(d.fields),
+        aon: aonOf(d.aon),
+        parent: typeof d.parent === 'string' && ID_RE.test(d.parent) ? d.parent : null,
         wiki: wikiId(d.wiki),
     }
 }
@@ -252,6 +320,10 @@ export function sanitizeSummary(raw: unknown): JournalSummary | null {
         image: typeof r.image === 'string' ? r.image : null,
         status: typeof r.status === 'string' ? r.status : null,
         links: links(r.links, MAX_LINKS),
+        parent: typeof r.parent === 'string' && ID_RE.test(r.parent) && r.parent !== r.id ? r.parent : null,
+        badges: Object.fromEntries((['status', 'attitude', 'part'] as const)
+            .map((k) => [k, obj(r.badges)[k]])
+            .filter(([, v]) => typeof v === 'string' && v)) as JournalSummary['badges'],
     }
 }
 
@@ -260,7 +332,7 @@ export function newDoc(kind: DocKind, title: string, opts: { number?: number; md
     const base: Base = { id: newId(kind === 'session' ? 's' : kind === 'thread' ? 'g' : 'f'), title, sort: opts.number ?? 0, updatedAt: null }
     if (kind === 'session') return { ...base, kind, data: { ...emptySession(opts.number ?? 0), prep: opts.md ?? '' } }
     if (kind === 'thread') return { ...base, kind, data: { md: opts.md ?? '', status: 'open', introducedIn: null, resolvedIn: null } }
-    return { ...base, kind, data: { image: null, md: opts.md ?? '', tags: [], wiki: null } }
+    return { ...base, kind, data: { image: null, md: opts.md ?? '', tags: [], aliases: [], summary: '', fields: {}, aon: null, parent: null, wiki: null } }
 }
 
 /** Para o servidor (`journal-save`): sem o `updatedAt`, que ele mesmo dá. */

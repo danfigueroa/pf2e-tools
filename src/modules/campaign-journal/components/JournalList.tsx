@@ -6,6 +6,7 @@ import { Add as AddIcon, Search as SearchIcon } from '@mui/icons-material'
 import { displayFont, gold, parchment, rule, greenInk } from '../../../theme'
 import { CATALOG_KINDS, KIND_LABEL, type CatalogKind, type DocKind, type JournalSummary, type ThreadStatus } from '../doc'
 import { THREAD_COLOR } from '../threadStyle'
+import { isOpponent } from '../../wiki/kinds'
 import { tr } from '../../../i18n'
 
 // O índice do diário: as sessões (a mais nova no topo), o catálogo da campanha
@@ -34,7 +35,8 @@ function Section({ title, children, action }: { title: string; children: React.R
 
 export const JournalList = memo(function JournalList({ docs, selected, onOpen, onNew }: Props) {
     const [query, setQuery] = useState('')
-    const [kind, setKind] = useState<CatalogKind | null>(null)
+    // Um tipo, ou "Oponentes" (o papel na história, que vale para NPC e criatura).
+    const [kind, setKind] = useState<CatalogKind | 'opponents' | null>(null)
     const [menu, setMenu] = useState<HTMLElement | null>(null)
     const q = fold(query.trim())
     const match = (d: JournalSummary) => !q || fold(d.title).includes(q)
@@ -63,7 +65,10 @@ export const JournalList = memo(function JournalList({ docs, selected, onOpen, o
         </ListItemButton>
     )
 
-    const shownCatalog = catalog.filter((d) => (!kind || d.kind === kind) && match(d))
+    const opponents = catalog.filter((d) => isOpponent(d.badges.part)).length
+    const shownCatalog = catalog.filter((d) => (!kind || (kind === 'opponents' ? isOpponent(d.badges.part) : d.kind === kind)) && match(d))
+    const catalogLine = (d: JournalSummary) => [kind && kind !== 'opponents' ? '' : KIND_LABEL[d.kind].one, d.badges.part ?? '']
+        .filter(Boolean).join(' · ') || undefined
     return (
         <Box>
             <TextField
@@ -98,13 +103,16 @@ export const JournalList = memo(function JournalList({ docs, selected, onOpen, o
                     {CATALOG_KINDS.filter((k) => catalog.some((d) => d.kind === k)).map((k) => (
                         <Chip key={k} size="small" label={KIND_LABEL[k].many} variant={kind === k ? 'filled' : 'outlined'} onClick={() => setKind(k)} />
                     ))}
+                    {opponents > 0 && (
+                        <Chip size="small" label={tr(`Oponentes · ${opponents}`, `Opponents · ${opponents}`)} variant={kind === 'opponents' ? 'filled' : 'outlined'} onClick={() => setKind('opponents')} />
+                    )}
                 </Stack>
                 <List dense disablePadding>
-                    {shownCatalog.map((d) => item(d, kind ? undefined : KIND_LABEL[d.kind].one))}
+                    {shownCatalog.map((d) => item(d, catalogLine(d)))}
                 </List>
                 {catalog.length === 0 && (
                     <Typography variant="body2" color="text.secondary" sx={{ px: 1, fontStyle: 'italic' }}>
-                        {tr('NPCs, locais, itens e facções que servem a várias sessões.', 'NPCs, places, items and factions that serve several sessions.')}</Typography>
+                        {tr('NPCs, criaturas, locais, itens, perigos… o que serve a várias sessões e vai inteiro para a Wiki.', 'NPCs, creatures, places, items, hazards… what serves several sessions and goes whole to the wiki.')}</Typography>
                 )}
             </Section>
 

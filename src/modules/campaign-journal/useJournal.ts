@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { mesaKey } from '../../services/mesa'
 import { fetchJournalDoc, fetchJournalList, listenJournal, saveJournalDoc } from '../../services/journal'
-import { sanitizeDoc, sanitizeSummary, wireDoc, type JournalDoc, type JournalSummary } from './doc'
+import { badgesOf, sanitizeDoc, sanitizeSummary, wireDoc, type JournalDoc, type JournalSummary } from './doc'
 import { tr } from '../../i18n'
 
 // A lista do diário e o documento aberto.
@@ -72,6 +72,8 @@ export function useJournalList() {
                 image: 'image' in doc.data ? doc.data.image : null,
                 status: 'status' in doc.data ? doc.data.status : null,
                 links: doc.kind === 'session' ? doc.data.links : [],
+                parent: doc.kind !== 'session' && doc.kind !== 'thread' ? doc.data.parent : null,
+                badges: doc.kind !== 'session' && doc.kind !== 'thread' ? badgesOf(doc.data.fields) : {},
             }
             const i = list.findIndex((d) => d.id === doc.id)
             return i < 0 ? [...list, summary] : list.map((d, j) => (j === i ? summary : d))

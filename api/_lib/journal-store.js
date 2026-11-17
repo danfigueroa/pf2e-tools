@@ -16,6 +16,7 @@
 // a forma e o tamanho. Sem banco, cai num Map de processo por mesa.
 
 import { supabase } from './supabase.js'
+import { badgesOf } from './wiki-store.js'
 
 export const MAX_DOC_BYTES = 256 * 1024
 export const MAX_REVEAL_BYTES = 16 * 1024
@@ -66,6 +67,8 @@ const summaryOf = (doc) => ({
     image: typeof doc.data?.image === 'string' ? doc.data.image : null,
     status: typeof doc.data?.status === 'string' ? doc.data.status : null,
     links: Array.isArray(doc.data?.links) ? doc.data.links : null,
+    parent: typeof doc.data?.parent === 'string' ? doc.data.parent : null,
+    badges: badgesOf(doc.data?.fields),
 })
 
 const dbStore = (db) => {
@@ -76,12 +79,13 @@ const dbStore = (db) => {
     return {
         list: async (mesa) => {
             const rows = check(await db.from('journal_docs')
-                .select('id, kind, title, sort, updated_at, image:data->>image, status:data->>status, links:data->links')
+                .select('id, kind, title, sort, updated_at, image:data->>image, status:data->>status, links:data->links, parent:data->>parent, fields:data->fields')
                 .eq('mesa', mesa))
             return rows.map((r) => ({
                 id: r.id, kind: r.kind, title: r.title, sort: r.sort,
                 updatedAt: Number(r.updated_at), image: r.image ?? null, status: r.status ?? null,
                 links: Array.isArray(r.links) ? r.links : null,
+                parent: r.parent ?? null, badges: badgesOf(r.fields),
             }))
         },
         read: async (mesa, id) => {
