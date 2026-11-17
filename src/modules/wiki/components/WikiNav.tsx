@@ -2,11 +2,11 @@ import { memo, useMemo, useState, type ReactNode } from 'react'
 import { Box, Typography } from '@mui/material'
 import {
     Add as AddIcon, ChevronRight, DeleteSweep as TrashIcon, Home as HomeIcon, Lock as LockIcon, MenuBook as WikiIcon,
-    Schedule as RecentIcon, Search as SearchIcon, SwapVert as SortIcon, Star as StarIcon, VisibilityOff as SecretIcon,
+    Schedule as RecentIcon, SportsKabaddi as OpponentIcon, Search as SearchIcon, SwapVert as SortIcon, Star as StarIcon, VisibilityOff as SecretIcon,
 } from '@mui/icons-material'
 import { WIKI_KINDS, type WikiKind, type WikiSummary } from '../../../services/wiki'
 import { chrome, displayFont, gold, green, greenInk, ink, parchment, rule } from '../../../theme'
-import { KIND_LABEL } from '../kinds'
+import { isOpponent, KIND_LABEL } from '../kinds'
 import { sortPages, type WikiSort } from '../useWiki'
 import { KindSwatch, PageThumb } from './KindIcon'
 import { tr } from '../../../i18n'
@@ -15,7 +15,7 @@ import { tr } from '../../../i18n'
 // Favoritas, Travadas e, para o GM, a Lixeira) e a árvore de páginas por tipo.
 
 /** O que o Início mostra: tudo, um atalho ou um tipo. */
-export type WikiHomeView = 'home' | 'recent' | 'favorites' | 'locked' | WikiKind
+export type WikiHomeView = 'home' | 'recent' | 'favorites' | 'locked' | 'opponents' | WikiKind
 
 interface Props {
     pages: WikiSummary[]
@@ -43,6 +43,7 @@ export const WikiNav = memo(function WikiNav(props: Props) {
         .map((k) => [k, sortPages(pages.filter((p) => p.kind === k), sort)] as const)
         .filter(([, list]) => list.length > 0), [pages, sort])
     const locked = pages.filter((p) => p.locked).length
+    const opponents = pages.filter((p) => isOpponent(p.badges?.part)).length
     const favCount = pages.filter((p) => favorites.includes(p.id)).length
 
     const shortcut = (key: WikiHomeView | 'trash', icon: ReactNode, text: string, count: number | null, onClick: () => void) => {
@@ -90,6 +91,7 @@ export const WikiNav = memo(function WikiNav(props: Props) {
                 {shortcut('recent', <RecentIcon />, tr('Recentes', 'Recent'), null, () => onView('recent'))}
                 {shortcut('favorites', <StarIcon />, tr('Favoritas', 'Favorites'), favCount || null, () => onView('favorites'))}
                 {shortcut('locked', <LockIcon />, tr('Travadas', 'Locked'), locked || null, () => onView('locked'))}
+                {opponents > 0 && shortcut('opponents', <OpponentIcon />, tr('Oponentes', 'Opponents'), opponents, () => onView('opponents'))}
                 {onTrash && shortcut('trash', <TrashIcon />, tr('Lixeira', 'Trash'), null, onTrash)}
             </Box>
 

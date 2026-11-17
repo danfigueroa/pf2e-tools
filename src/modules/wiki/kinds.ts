@@ -28,10 +28,32 @@ export interface FieldDef {
     link?: boolean
     /** Opções fixas (o valor é uma delas). */
     options?: string[]
+    /** Com `options`: vale mais de uma, gravadas juntas como "A, B" (o campo continua um texto). */
+    multi?: true
     placeholder?: string
 }
 
 const NPC_STATUS = [tr('Vivo', 'Alive'), tr('Morto', 'Dead'), tr('Desaparecido', 'Missing'), tr('Desconhecido', 'Unknown')]
+/**
+ * O papel na história é marca, não tipo (decisão do usuário): um dragão é Criatura e pode ser o vilão, e
+ * um vilão humano é NPC. Os quatro primeiros são o que o filtro "Oponentes" junta.
+ */
+export const PARTS = [tr('Vilão', 'Villain'), tr('Chefe', 'Boss'), tr('Rival', 'Rival'), tr('Lacaio', 'Minion'), tr('Patrono', 'Patron'), tr('Informante', 'Informant')]
+/** Nos dois idiomas: a mesa pode ter quem joga em inglês, e o valor gravado é o texto de quem marcou. */
+const OPPONENT_PARTS = new Set(['vilão', 'chefe', 'rival', 'lacaio', 'villain', 'boss', 'minion']) // i18n-ok
+const PART_FIELD: FieldDef = { key: 'part', label: tr('Papel na história', 'Role in the story'), options: PARTS, multi: true }
+
+/** Os valores de um campo `multi` ("Vilão, Chefe" → ["Vilão", "Chefe"]). */
+export const multiValues = (v: string | undefined) => (v ?? '').split(',').map((x) => x.trim()).filter(Boolean)
+/** Junta de volta, na ordem das opções; o que não é opção (marcado no outro idioma) fica no fim. */
+export const joinMulti = (values: string[], options: string[]) =>
+    [...options.filter((o) => values.includes(o)), ...values.filter((v) => !options.includes(v))].join(', ').slice(0, 300)
+/** A página é de alguém que o grupo enfrenta (vilão, chefe, rival, lacaio). */
+export const isOpponent = (part: string | undefined) => multiValues(part).some((p) => OPPONENT_PARTS.has(p.toLowerCase()))
+
+/** Os tipos que podem ligar uma ficha da AON (um vilão humano também tem stat block). */
+export const AON_KINDS: readonly WikiKind[] = ['npc', 'creature']
+
 const ATTITUDE = [tr('Aliado', 'Ally'), tr('Amistoso', 'Friendly'), tr('Indiferente', 'Indifferent'), tr('Hostil', 'Hostile'), tr('Inimigo', 'Enemy')]
 
 export const INFOBOX: Record<WikiKind, FieldDef[]> = {
@@ -40,6 +62,7 @@ export const INFOBOX: Record<WikiKind, FieldDef[]> = {
         { key: 'role', label: tr('Ocupação', 'Occupation'), placeholder: tr('taverneiro, guarda…', 'innkeeper, guard…') },
         { key: 'status', label: tr('Situação', 'Status'), options: NPC_STATUS },
         { key: 'attitude', label: tr('Atitude com o grupo', 'Attitude to the party'), options: ATTITUDE },
+        PART_FIELD,
         { key: 'location', label: tr('Onde está', 'Where'), link: true },
         { key: 'faction', label: tr('Facção', 'Faction'), link: true },
     ],
@@ -57,6 +80,7 @@ export const INFOBOX: Record<WikiKind, FieldDef[]> = {
     creature: [
         { key: 'habitat', label: tr('Onde vive', 'Habitat'), link: true },
         { key: 'status', label: tr('Situação', 'Status'), options: [tr('Viva', 'Alive'), tr('Derrotada', 'Defeated'), tr('Fugiu', 'Fled'), tr('Desconhecida', 'Unknown')] },
+        PART_FIELD,
     ],
     faction: [
         { key: 'leader', label: tr('Líder', 'Leader'), link: true },
@@ -119,3 +143,22 @@ const TEMPLATES: Partial<Record<WikiKind, string>> = {
 }
 
 export const templateFor = (kind: WikiKind) => TEMPLATES[kind] ?? ''
+
+/** As fichas que não podem ser a "mãe" desta: ela e as que já estão dentro dela (viraria um ciclo). */
+export function descendantsOf(id: string, items: readonly { id: string; parent: string | null }[]): Set<string> {
+    const out = new Set([id])
+    let grew = true
+    while (grew) {
+        grew = false
+        for (const p of items) if (p.parent && out.has(p.parent) && !out.has(p.id)) { out.add(p.id); grew = true }
+    }
+    return out
+}
+
+/** Os campos sem nada escrito saem (a ficha não guarda campo vazio). */
+export function withField(fields: Record<string, string>, key: string, value: string): Record<string, string> {
+    const out = { ...fields }
+    if (value.trim()) out[key] = value
+    else delete out[key]
+    return out
+}

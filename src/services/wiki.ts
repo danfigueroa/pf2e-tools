@@ -27,7 +27,7 @@ export interface WikiSummary {
     image: string | null
     parent: string | null
     /** Da ficha, o que a lista mostra em pílula (só na lista; a página traz os `fields` inteiros). */
-    badges?: { status?: string; attitude?: string }
+    badges?: { status?: string; attitude?: string; part?: string }
     visibility: 'public' | 'gm'
     locked: boolean
     rev: number
@@ -92,6 +92,7 @@ function badgesOf(raw: unknown): WikiSummary['badges'] {
     return {
         ...(typeof r.status === 'string' && r.status ? { status: r.status } : {}),
         ...(typeof r.attitude === 'string' && r.attitude ? { attitude: r.attitude } : {}),
+        ...(typeof r.part === 'string' && r.part ? { part: r.part } : {}),
     }
 }
 

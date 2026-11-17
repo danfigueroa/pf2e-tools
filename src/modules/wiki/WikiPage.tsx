@@ -35,7 +35,7 @@ const GM_COLOR = gold.deep
 
 interface Notice { text: string; action?: { label: string; go: () => void } }
 
-const VIEWS = new Set<string>(['home', 'recent', 'favorites', 'locked', ...WIKI_KINDS])
+const VIEWS = new Set<string>(['home', 'recent', 'favorites', 'locked', 'opponents', ...WIKI_KINDS])
 /** O `?ver=` da URL: o atalho ou o tipo que o Início mostra. */
 const viewOf = (v: string | null): WikiHomeView => (v && VIEWS.has(v) ? v as WikiHomeView : 'home')
 

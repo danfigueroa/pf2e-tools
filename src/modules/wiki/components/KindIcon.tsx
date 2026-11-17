@@ -7,6 +7,7 @@ import {
 import { chrome, gold, greenInk, isDark, status, WIKI_KIND_COLORS } from '../../../theme'
 import type { WikiKind, WikiSummary } from '../../../services/wiki'
 import { useImageUrl } from '../../../services/images'
+import { multiValues } from '../kinds'
 
 // O ícone e a cor de cada tipo de página (ladrilho, miniatura sem imagem, capa do cartão) e as pílulas
 // de situação/atitude que a lista e os cartões mostram.
@@ -90,7 +91,7 @@ export function KindSwatch({ kind, size = 22 }: { kind: WikiKind; size?: number 
 
 /** Situação (com o ponto) e atitude, pequenas, sobre o pergaminho. */
 export function PageBadges({ badges, size = 'small' }: { badges: WikiSummary['badges']; size?: 'small' | 'medium' }) {
-    if (!badges?.status && !badges?.attitude) return null
+    if (!badges?.status && !badges?.attitude && !badges?.part) return null
     const h = size === 'small' ? 22 : 24
     const pill = { display: 'inline-flex', alignItems: 'center', gap: 0.6, height: h, px: 1, borderRadius: 999, fontSize: '0.75rem', whiteSpace: 'nowrap' } as const
     const alive = /^(viv|aliv)/i.test(badges.status ?? '')
@@ -104,6 +105,9 @@ export function PageBadges({ badges, size = 'small' }: { badges: WikiSummary['ba
             {badges.attitude && (
                 <Box component="span" sx={{ ...pill, fontWeight: 700, bgcolor: `${gold.bright}38`, color: gold.deep }}>{badges.attitude}</Box>
             )}
+            {multiValues(badges.part).map((x) => (
+                <Box key={x} component="span" sx={{ ...pill, fontWeight: 700, border: `1px solid ${gold.main}`, color: gold.deep }}>{x}</Box>
+            ))}
         </Box>
     )
 }

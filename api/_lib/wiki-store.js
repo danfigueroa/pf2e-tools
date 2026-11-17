@@ -119,13 +119,13 @@ const fromRow = (r) => ({
 
 const SUMMARY_COLS = 'id, kind, title, aliases, tags, summary, image, parent, fields, visibility, locked, rev, created_by, created_at, updated_by, updated_at, deleted_at'
 
-/** Os campos da ficha que a lista mostra como pílula (situação e atitude), texto curto. */
-const BADGE_KEYS = ['status', 'attitude']
-const badgesOf = (fields) => Object.fromEntries(BADGE_KEYS
-    .filter((k) => typeof fields?.[k] === 'string' && fields[k].trim())
-    .map((k) => [k, fields[k].trim().slice(0, 40)]))
+/** Os campos da ficha que a lista mostra como pílula (situação, atitude e papel na história), texto curto. */
+const BADGE_KEYS = { status: 40, attitude: 40, part: 120 }
+export const badgesOf = (fields) => Object.fromEntries(Object.entries(BADGE_KEYS)
+    .filter(([k]) => typeof fields?.[k] === 'string' && fields[k].trim())
+    .map(([k, max]) => [k, fields[k].trim().slice(0, max)]))
 
-/** O resumo da lista: tudo menos o texto e os links (da ficha, só a situação e a atitude). */
+/** O resumo da lista: tudo menos o texto e os links (da ficha, só as pílulas). */
 export const summaryOf = (p) => ({
     id: p.id, kind: p.kind, title: p.title, aliases: p.aliases, tags: p.tags, summary: p.summary, image: p.image,
     parent: p.parent, badges: badgesOf(p.fields), visibility: p.visibility, locked: p.locked, rev: p.rev,

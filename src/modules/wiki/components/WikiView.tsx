@@ -20,7 +20,7 @@ import type { WikiPageView, WikiSummary } from '../../../services/wiki'
 import { npcFromCreature } from '../../initiative-tracker/importCharacter'
 import { appendCombatants } from '../../initiative-tracker/encounterStorage'
 import { bodySerif, chrome, core, displayFont, gold, green, greenInk, ink, parchment, rule, status } from '../../../theme'
-import { INFOBOX, KIND_LABEL, PARENT_LABEL, type FieldDef } from '../kinds'
+import { INFOBOX, KIND_LABEL, multiValues, PARENT_LABEL, type FieldDef } from '../kinds'
 import { authorName, formatWhen, trailOf } from '../useWiki'
 import { tr } from '../../../i18n'
 import { MOBILE_HEADER_HEIGHT } from '../../../layouts/navigation'
@@ -61,8 +61,8 @@ const pill = {
 
 const kicker = { fontSize: '0.75rem', fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: gold.deep } as const
 
-/** Situação e atitude viram pílula (embaixo do nome), não linha da ficha. */
-const PILL_FIELDS = new Set(['status', 'attitude'])
+/** Situação, atitude e papel na história viram pílula (embaixo do nome), não linha da ficha. */
+const PILL_FIELDS = new Set(['status', 'attitude', 'part'])
 /** Campos curtos: vão lado a lado, com o tipo, no topo da ficha. */
 const GRID_FIELDS = new Set(['ancestry', 'type', 'level', 'rarity', 'population'])
 const FIELD_ICONS: Record<string, typeof PlaceIcon> = {
@@ -145,6 +145,11 @@ export const WikiView = memo(function WikiView(props: Props) {
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap justifyContent={wide ? 'center' : 'flex-start'}>
             {pillFields.map((f) => {
                 const v = page.fields[f.key]
+                if (f.multi) {
+                    return multiValues(v).map((x) => (
+                        <Box key={`${f.key}-${x}`} component="span" sx={{ ...pill, height: 32, fontSize: '0.875rem', border: `1px solid ${gold.bright}`, color: chrome.text, fontWeight: 700 }}>{x}</Box>
+                    ))
+                }
                 return f.key === 'status'
                     ? (
                         <Box key={f.key} component="span" sx={{ ...pill, height: 32, fontSize: '0.875rem', bgcolor: chrome.active, color: chrome.textSoft }}>

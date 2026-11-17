@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-    Alert, Autocomplete, Box, Button, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent,
+    Alert, Autocomplete, Box, Button, Checkbox, CircularProgress, Dialog, DialogActions, DialogContent,
     DialogTitle, FormControlLabel, Stack, TextField, Typography,
 } from '@mui/material'
 import { AddPhotoAlternate as PhotoIcon, Delete as DeleteIcon } from '@mui/icons-material'
@@ -9,9 +9,9 @@ import { JournalToolsContext, type JournalTools } from '../../../components/mark
 import { foldName } from '../../../components/markdown/blocks'
 import { imageErrorText, shrinkImage, uploadImage, useImageUrl } from '../../../services/images'
 import { saveWikiPage, WIKI_KINDS, type WikiKind, type WikiPage, type WikiSummary } from '../../../services/wiki'
-import { AonCreatureSearch } from '../../initiative-tracker/components/AonCreatureSearch'
 import { parchment, rule, ink } from '../../../theme'
-import { INFOBOX, KIND_LABEL, PARENT_LABEL, templateFor, type FieldDef } from '../kinds'
+import { descendantsOf, KIND_LABEL, PARENT_LABEL, templateFor, withField } from '../kinds'
+import { QuickFacts } from './QuickFacts'
 import { findPage, readDraft, useNameIndex, writeDraft } from '../useWiki'
 import { tr } from '../../../i18n'
 
@@ -36,17 +36,6 @@ interface Props {
     onCancel: () => void
     /** Alguém gravou outra versão desde que esta edição começou. */
     changedMeanwhile?: boolean
-}
-
-/** As páginas que não podem ser a "mãe" desta: ela e as que já estão dentro dela (viraria um ciclo). */
-function descendantsOf(id: string, pages: WikiSummary[]): Set<string> {
-    const out = new Set([id])
-    let grew = true
-    while (grew) {
-        grew = false
-        for (const p of pages) if (p.parent && out.has(p.parent) && !out.has(p.id)) { out.add(p.id); grew = true }
-    }
-    return out
 }
 
 export function WikiEditor({ initial, base: initialBase, pages, isGm, onSaved, onCancel, changedMeanwhile }: Props) {
@@ -75,12 +64,7 @@ export function WikiEditor({ initial, base: initialBase, pages, isGm, onSaved, o
     }, [page, base, initial])
 
     const set = useCallback((patch: Partial<WikiPage>) => setPage((p) => ({ ...p, ...patch })), [])
-    const setField = (key: string, value: string) => setPage((p) => {
-        const fields = { ...p.fields }
-        if (value.trim()) fields[key] = value
-        else delete fields[key]
-        return { ...p, fields }
-    })
+    const setField = useCallback((key: string, value: string) => setPage((p) => ({ ...p, fields: withField(p.fields, key, value) })), [])
 
     const titles = useMemo(() => pages.filter((p) => p.id !== page.id).map((p) => p.title).sort((a, b) => a.localeCompare(b)), [pages, page.id])
     const tagOptions = useMemo(() => [...new Set(pages.flatMap((p) => p.tags))].sort(), [pages])
@@ -141,8 +125,6 @@ export function WikiEditor({ initial, base: initialBase, pages, isGm, onSaved, o
         writeDraft(page.id, null)
         onCancel()
     }
-
-    const defs = INFOBOX[page.kind]
 
     return (
         <JournalToolsContext.Provider value={tools}>
@@ -255,18 +237,7 @@ export function WikiEditor({ initial, base: initialBase, pages, isGm, onSaved, o
                     </Stack>
                 </Box>
 
-                {(defs.length > 0 || page.kind === 'creature') && (
-                    <Box sx={{ mb: 2, p: 1.5, border: `1px solid ${rule}`, borderRadius: 1, bgcolor: parchment.page }}>
-                        <Typography variant="caption" sx={{ color: ink.secondary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                            {tr('Ficha rápida', 'Quick facts')}</Typography>
-                        <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', mt: 1 }}>
-                            {defs.map((f) => (
-                                <FieldInput key={f.key} def={f} value={page.fields[f.key] ?? ''} titles={titles} onChange={(v) => setField(f.key, v)} />
-                            ))}
-                        </Box>
-                        {page.kind === 'creature' && <AonPicker page={page} onChange={(aon) => set({ aon })} />}
-                    </Box>
-                )}
+                <QuickFacts kind={page.kind} fields={page.fields} aon={page.aon} titles={titles} onField={setField} onAon={(aon) => set({ aon })} />
 
                 <MarkdownEditor
                     key={`wiki-md-${version}`}
@@ -312,80 +283,6 @@ export function WikiEditor({ initial, base: initialBase, pages, isGm, onSaved, o
                 />
             )}
         </JournalToolsContext.Provider>
-    )
-}
-
-function FieldInput({ def, value, titles, onChange }: { def: FieldDef; value: string; titles: string[]; onChange: (v: string) => void }) {
-    if (def.options) {
-        return (
-            <TextField
-                select
-                size="small"
-                label={def.label}
-                value={def.options.includes(value) || !value ? value : ''}
-                onChange={(e) => onChange(e.target.value)}
-                slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}
-            >
-                <option value="">—</option>
-                {def.options.map((o) => <option key={o} value={o}>{o}</option>)}
-            </TextField>
-        )
-    }
-    if (def.link) {
-        const linkOptions = titles.map((t) => `[[${t}]]`)
-        return (
-            <Autocomplete
-                freeSolo
-                size="small"
-                options={linkOptions}
-                value={value}
-                onChange={(_, v) => onChange((v ?? '').slice(0, 300))}
-                onInputChange={(_, v, reason) => { if (reason === 'input') onChange(v.slice(0, 300)) }}
-                filterOptions={(opts, { inputValue }) => {
-                    const q = foldName(inputValue.replace(/[[\]]/g, ''))
-                    return q ? opts.filter((o) => foldName(o).includes(q)).slice(0, 20) : opts.slice(0, 20)
-                }}
-                renderInput={(params) => <TextField {...params} label={def.label} placeholder={tr('[[Página]] ou texto', '[[Page]] or text')} />}
-            />
-        )
-    }
-    return (
-        <TextField
-            size="small"
-            label={def.label}
-            value={value}
-            placeholder={def.placeholder}
-            onChange={(e) => onChange(e.target.value.replace(/[\n\r\t]/g, ' ').slice(0, 300))}
-        />
-    )
-}
-
-/** A página de criatura ligada à ficha da AON: buscar, trocar, tirar. */
-function AonPicker({ page, onChange }: { page: WikiPage; onChange: (aon: WikiPage['aon']) => void }) {
-    const [open, setOpen] = useState(false)
-    return (
-        <Box sx={{ mt: 1.5 }}>
-            {page.aon
-                ? (
-                    <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
-                        <Chip label={`${page.aon.name}${page.aon.level !== null ? tr(` · nível ${page.aon.level}`, ` · level ${page.aon.level}`) : ''}`} onDelete={() => onChange(null)} />
-                        <Button size="small" onClick={() => setOpen(true)}>{tr('Trocar criatura da AON', 'Change AON creature')}</Button>
-                    </Stack>
-                )
-                : <Button size="small" onClick={() => setOpen(true)}>{tr('Ligar à ficha da AON', 'Link to the AON sheet')}</Button>}
-            {open && (
-                <Dialog open onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-                    <DialogTitle>{tr('Criatura da AON', 'AON creature')}</DialogTitle>
-                    <DialogContent>
-                        <AonCreatureSearch onPick={(c) => {
-                            onChange({ name: c.name, level: c.level, url: c.url || null, traits: c.traits.slice(0, 16) })
-                            setOpen(false)
-                        }} />
-                    </DialogContent>
-                    <DialogActions><Button onClick={() => setOpen(false)}>{tr('Fechar', 'Close')}</Button></DialogActions>
-                </Dialog>
-            )}
-        </Box>
     )
 }
 

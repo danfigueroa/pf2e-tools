@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { Box, Button, Typography } from '@mui/material'
 import {
     Add as AddIcon, ArrowBackIosNew as BackIcon, ChevronRight, DeleteSweep as TrashIcon, ExpandMore, Lock as LockIcon,
-    Person as PersonIcon, Schedule as RecentIcon, Search as SearchIcon, Star as StarIcon, SwapVert as SortIcon,
+    Person as PersonIcon, Schedule as RecentIcon, Search as SearchIcon, SportsKabaddi as OpponentIcon, Star as StarIcon, SwapVert as SortIcon,
     VisibilityOff as SecretIcon,
 } from '@mui/icons-material'
 import { WIKI_KINDS, type WikiKind, type WikiMissing, type WikiSummary } from '../../../services/wiki'
 import { bodySerif, chrome, core, displayFont, gold, green, greenInk, ink, parchment, rule, status, WIKI_KIND_COLORS } from '../../../theme'
-import { KIND_LABEL } from '../kinds'
+import { isOpponent, KIND_LABEL } from '../kinds'
 import { sortPages, type WikiSort } from '../useWiki'
 import { KindSwatch, PageBadges, PageThumb } from './KindIcon'
 import { RecentChanges } from './WikiList'
@@ -44,6 +44,7 @@ const MISSING_SHOWN = { wide: 24, narrow: 5 }
 const viewTitle = (v: WikiHomeView) => (v === 'recent' ? tr('Recentes', 'Recent')
     : v === 'favorites' ? tr('Favoritas', 'Favorites')
     : v === 'locked' ? tr('Travadas', 'Locked')
+    : v === 'opponents' ? tr('Oponentes', 'Opponents')
     : tr('Páginas', 'Pages'))
 
 export const WikiHome = memo(function WikiHome(props: Props) {
@@ -52,6 +53,7 @@ export const WikiHome = memo(function WikiHome(props: Props) {
     const shown = useMemo(() => sortPages(pages.filter((p) => (
         view === 'favorites' ? favorites.includes(p.id)
             : view === 'locked' ? p.locked
+            : view === 'opponents' ? isOpponent(p.badges?.part)
             : kind ? p.kind === kind
             : true
     )), sort), [pages, view, kind, favorites, sort])
@@ -150,7 +152,9 @@ function EmptyView({ view }: { view: WikiHomeView }) {
         <Typography sx={{ gridColumn: '1 / -1', color: ink.secondary, fontStyle: 'italic', py: 2 }}>
             {view === 'favorites'
                 ? tr('Nenhuma favorita ainda. Toque na estrela de uma página para ela aparecer aqui (vale para este aparelho).', 'No favorites yet. Tap the star on a page to keep it here (on this device).')
-                : tr('Nenhuma página travada.', 'No locked page.')}
+                : view === 'opponents'
+                    ? tr('Nenhum oponente ainda. Marque o papel na história (Vilão, Chefe, Rival, Lacaio) na ficha de um NPC ou criatura.', 'No opponents yet. Mark the role in the story (Villain, Boss, Rival, Minion) on an NPC or creature page.')
+                    : tr('Nenhuma página travada.', 'No locked page.')}
         </Typography>
     )
 }
@@ -234,6 +238,7 @@ function MobileHome(props: Props & { shown: WikiSummary[]; kind: WikiKind | null
     const groups = WIKI_KINDS.map((k) => [k, shown.filter((p) => p.kind === k)] as const).filter(([, l]) => l.length > 0)
     const locked = pages.filter((p) => p.locked).length
     const favCount = pages.filter((p) => favorites.includes(p.id)).length
+    const opponents = pages.filter((p) => isOpponent(p.badges?.part)).length
 
     const chip = (key: string, icon: ReactNode, text: string, on: boolean, click: () => void) => (
         <Box key={key} component="button" type="button" aria-pressed={on} onClick={click} sx={{
@@ -270,6 +275,7 @@ function MobileHome(props: Props & { shown: WikiSummary[]; kind: WikiKind | null
                     {chip('recent', <RecentIcon />, tr('Recentes', 'Recent'), view === 'recent', () => toggleView('recent'))}
                     {chip('favorites', <StarIcon />, favCount ? tr(`Favoritas · ${favCount}`, `Favorites · ${favCount}`) : tr('Favoritas', 'Favorites'), view === 'favorites', () => toggleView('favorites'))}
                     {chip('locked', <LockIcon />, locked ? tr(`Travadas · ${locked}`, `Locked · ${locked}`) : tr('Travadas', 'Locked'), view === 'locked', () => toggleView('locked'))}
+                    {opponents > 0 && chip('opponents', <OpponentIcon />, tr(`Oponentes · ${opponents}`, `Opponents · ${opponents}`), view === 'opponents', () => toggleView('opponents'))}
                     {chip('mine', <PersonIcon />, tr('Só as minhas', 'Only mine'), mine, () => onMine(!mine))}
                     {onTrash && chip('trash', <TrashIcon />, tr('Lixeira', 'Trash'), false, onTrash)}
                 </Box>
