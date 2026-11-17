@@ -119,6 +119,8 @@ export interface JournalSummary {
     links: string[]
     /** Só ficha: a ficha-mãe e as pílulas da ficha rápida. */
     parent: string | null
+    /** Só ficha: a página da Wiki ligada (a página-mãe da Wiki sai da ficha-mãe). */
+    wiki: string | null
     badges: { status?: string; attitude?: string; part?: string }
 }
 
@@ -321,6 +323,7 @@ export function sanitizeSummary(raw: unknown): JournalSummary | null {
         status: typeof r.status === 'string' ? r.status : null,
         links: links(r.links, MAX_LINKS),
         parent: typeof r.parent === 'string' && ID_RE.test(r.parent) && r.parent !== r.id ? r.parent : null,
+        wiki: wikiId(r.wiki),
         badges: Object.fromEntries((['status', 'attitude', 'part'] as const)
             .map((k) => [k, obj(r.badges)[k]])
             .filter(([, v]) => typeof v === 'string' && v)) as JournalSummary['badges'],

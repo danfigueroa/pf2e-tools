@@ -73,6 +73,7 @@ export function useJournalList() {
                 status: 'status' in doc.data ? doc.data.status : null,
                 links: doc.kind === 'session' ? doc.data.links : [],
                 parent: doc.kind !== 'session' && doc.kind !== 'thread' ? doc.data.parent : null,
+                wiki: doc.kind !== 'session' && doc.kind !== 'thread' ? doc.data.wiki : null,
                 badges: doc.kind !== 'session' && doc.kind !== 'thread' ? badgesOf(doc.data.fields) : {},
             }
             const i = list.findIndex((d) => d.id === doc.id)

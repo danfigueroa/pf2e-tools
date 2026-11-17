@@ -68,6 +68,7 @@ const summaryOf = (doc) => ({
     status: typeof doc.data?.status === 'string' ? doc.data.status : null,
     links: Array.isArray(doc.data?.links) ? doc.data.links : null,
     parent: typeof doc.data?.parent === 'string' ? doc.data.parent : null,
+    wiki: typeof doc.data?.wiki === 'string' ? doc.data.wiki : null,
     badges: badgesOf(doc.data?.fields),
 })
 
@@ -79,13 +80,13 @@ const dbStore = (db) => {
     return {
         list: async (mesa) => {
             const rows = check(await db.from('journal_docs')
-                .select('id, kind, title, sort, updated_at, image:data->>image, status:data->>status, links:data->links, parent:data->>parent, fields:data->fields')
+                .select('id, kind, title, sort, updated_at, image:data->>image, status:data->>status, links:data->links, parent:data->>parent, wiki:data->>wiki, fields:data->fields')
                 .eq('mesa', mesa))
             return rows.map((r) => ({
                 id: r.id, kind: r.kind, title: r.title, sort: r.sort,
                 updatedAt: Number(r.updated_at), image: r.image ?? null, status: r.status ?? null,
                 links: Array.isArray(r.links) ? r.links : null,
-                parent: r.parent ?? null, badges: badgesOf(r.fields),
+                parent: r.parent ?? null, wiki: r.wiki ?? null, badges: badgesOf(r.fields),
             }))
         },
         read: async (mesa, id) => {

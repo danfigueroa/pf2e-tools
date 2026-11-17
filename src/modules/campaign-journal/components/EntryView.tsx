@@ -1,13 +1,13 @@
 import { memo, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-    Alert, Autocomplete, Box, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle,
+    Alert, Autocomplete, Box, Button, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle,
     FormControlLabel, Radio, RadioGroup, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material'
 import { Sync as SyncIcon, AddPhotoAlternate as PhotoIcon, AutoStories as WikiIcon, Campaign as ShareIcon, Delete as DeleteIcon } from '@mui/icons-material'
 import { Markdown } from '../../../components/markdown/Markdown'
 import { splitSegments } from '../../../components/markdown/blocks'
-import { publicPart, secretCount, wikiBodyFrom, wikiCover, type WikiShare } from '../toWiki'
+import { entryOf, pageFrom, publicPart, secretCount, type WikiShare } from '../toWiki'
 import { blankPage, saveWikiPage, useWikiIndex, type WikiSummary } from '../../../services/wiki'
 import { imageErrorText, shrinkImage, uploadImage, useImageUrl } from '../../../services/images'
 import { displayFont, parchment, rule, greenInk } from '../../../theme'
@@ -15,7 +15,7 @@ import {
     CATALOG_KINDS, KIND_LABEL, type CatalogDoc, type CatalogKind, type JournalSummary, type ThreadDoc, type ThreadStatus,
 } from '../doc'
 import { TEMPLATES } from '../templates'
-import { descendantsOf, PARENT_LABEL, withField } from '../../wiki/kinds'
+import { descendantsOf, INFOBOX, PARENT_LABEL, withField } from '../../wiki/kinds'
 import { QuickFacts } from '../../wiki/components/QuickFacts'
 import { useJournalTools } from '../../../components/markdown/tools'
 import { JournalEditor } from './JournalEditor'
@@ -182,7 +182,7 @@ export const CatalogView = memo(function CatalogView({ doc, version, update, doc
                 minRows={14}
                 aria-label={tr(`Texto de ${doc.title}`, `Text of ${doc.title}`)}
             />
-            <WikiLink doc={doc} onLink={(wiki) => setData({ wiki })} />
+            <WikiLink doc={doc} docs={docs} onLink={(wiki) => setData({ wiki })} />
             <Appearances id={doc.id} docs={docs} onOpen={onOpen} />
         </Box>
     )
@@ -194,7 +194,7 @@ export const CatalogView = memo(function CatalogView({ doc, version, update, doc
  * o texto inteiro (`toWiki.ts`): o que não é para os jogadores vai como `:::mestre`. O GM escolhe se a
  * página nasce pública ou oculta e vê antes o que os jogadores vão ler.
  */
-function WikiLink({ doc, onLink }: { doc: CatalogDoc; onLink: (id: string | null) => void }) {
+function WikiLink({ doc, docs, onLink }: { doc: CatalogDoc; docs: JournalSummary[]; onLink: (id: string | null) => void }) {
     const navigate = useNavigate()
     const pages = useWikiIndex().list?.pages ?? null
     const [confirm, setConfirm] = useState(false)
@@ -207,10 +207,16 @@ function WikiLink({ doc, onLink }: { doc: CatalogDoc; onLink: (id: string | null
     // Com caixas para os jogadores, o GM já separou o que é público; sem elas, as notas são a ficha inteira.
     const [share, setShare] = useState<WikiShare>(hasPlayers ? 'players' : 'all')
     const [hidden, setHidden] = useState(false)
-    const body = wikiBodyFrom(doc.data.md, share, tr(':::mestre', ':::gm'))
+    const [facts, setFacts] = useState(true)
+    const [aliases, setAliases] = useState(true)
+    const opts = { share, open: tr(':::mestre', ':::gm'), facts, aliases }
+    const from = pageFrom(entryOf(doc, docs), opts)
+    const body = from.body
     const visible = publicPart(body)
     const secrets = secretCount(body)
-    const cover = wikiCover(doc.data.image, body)
+    const cover = from.image
+    const hasFacts = Object.keys(doc.data.fields).length > 0 || !!doc.data.summary || !!doc.data.aon
+    const parentMissing = !!doc.data.parent && !from.parent
     const coverUrl = useImageUrl(cover)
 
     const open = () => {
@@ -222,7 +228,7 @@ function WikiLink({ doc, onLink }: { doc: CatalogDoc; onLink: (id: string | null
     const create = async () => {
         setBusy(true)
         setError(null)
-        const page = { ...blankPage(doc.kind, doc.title, body), image: cover, tags: doc.data.tags, visibility: hidden ? 'gm' as const : 'public' as const }
+        const page = { ...blankPage(doc.kind, doc.title), ...from, visibility: hidden ? 'gm' as const : 'public' as const }
         const out = await saveWikiPage(page, null)
         setBusy(false)
         if (!out.ok) { setError(out.conflict ? tr('Tente de novo', 'Try again') : out.error); return }
@@ -263,7 +269,7 @@ function WikiLink({ doc, onLink }: { doc: CatalogDoc; onLink: (id: string | null
                     </Stack>
                 )}
             {updating && doc.data.wiki && (
-                <WikiUpdateDialog doc={doc} pageId={doc.data.wiki} onClose={() => setUpdating(false)} onDone={() => { setUpdating(false); setUpdated(true) }} />
+                <WikiUpdateDialog doc={doc} docs={docs} pageId={doc.data.wiki} onClose={() => setUpdating(false)} onDone={() => { setUpdating(false); setUpdated(true) }} />
             )}
             {confirm && (
                 <Dialog open onClose={() => setConfirm(false)} fullWidth maxWidth="sm">
@@ -279,6 +285,21 @@ function WikiLink({ doc, onLink }: { doc: CatalogDoc; onLink: (id: string | null
                             <FormControlLabel value="all" control={<Radio size="small" />} label={tr('Todo o texto, menos os trechos "Só o mestre"', 'All the text, except the "GM only" parts')} />
                             <FormControlLabel value="players" control={<Radio size="small" />} label={tr('Só as caixas "Para os jogadores"', 'Only the "For the players" boxes')} />
                         </RadioGroup>
+                        {(hasFacts || doc.data.aliases.length > 0) && (
+                            <>
+                                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>{tr('O que mais vai', 'What else goes')}</Typography>
+                                <Stack sx={{ mb: 1 }}>
+                                    {hasFacts && <FormControlLabel control={<Checkbox size="small" checked={facts} onChange={(e) => setFacts(e.target.checked)} />} label={tr('A ficha rápida, o resumo e a ficha da AON', 'The quick facts, the summary and the AON sheet')} />}
+                                    {doc.data.aliases.length > 0 && <FormControlLabel control={<Checkbox size="small" checked={aliases} onChange={(e) => setAliases(e.target.checked)} />} label={tr('Os apelidos', 'The aliases')} />}
+                                </Stack>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                    {tr('Na Wiki não há segredo por campo: o que for marcado aqui, os jogadores leem.', 'The wiki has no per-field secrets: whatever you tick here, the players read.')}</Typography>
+                            </>
+                        )}
+                        {parentMissing && (
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                {tr('A ficha-mãe não está na Wiki: a página nasce sem "Fica em".', 'The parent entry isn\'t on the wiki: the page starts without "Located in".')}</Typography>
+                        )}
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
                             {secrets > 0
                                 ? tr(`O resto vai junto como ${secrets === 1 ? '1 trecho' : `${secrets} trechos`} "Só o mestre": você o vê na Wiki, os jogadores não. Nada fica para trás.`, `The rest goes along as ${secrets === 1 ? '1 "GM only" part' : `${secrets} "GM only" parts`}: you see it on the wiki, the players don't. Nothing is left behind.`)
@@ -287,6 +308,7 @@ function WikiLink({ doc, onLink }: { doc: CatalogDoc; onLink: (id: string | null
                             {hidden ? tr('Quando você revelar, os jogadores verão:', 'Once you reveal it, the players will see:') : tr('Os jogadores verão:', 'The players will see:')}</Typography>
                         <Box sx={{ p: 1.5, border: `1px dashed ${rule}`, borderRadius: 1, bgcolor: parchment.paper }}>
                             {coverUrl && <Box component="img" src={coverUrl} alt={doc.title} sx={{ display: 'block', maxWidth: '100%', maxHeight: 160, borderRadius: 1, mb: 1 }} />}
+                            <FactsPreview kind={doc.kind} page={from} />
                             {visible
                                 ? <Markdown source={visible} dense />
                                 : <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>{tr('Só o título e a imagem: o texto fica todo no "Só o mestre".', 'Only the title and image: all the text stays "GM only".')}</Typography>}
@@ -303,6 +325,25 @@ function WikiLink({ doc, onLink }: { doc: CatalogDoc; onLink: (id: string | null
                     </DialogActions>
                 </Dialog>
             )}
+        </Box>
+    )
+}
+
+/** O resumo, os apelidos e a ficha rápida que a página leva, como os jogadores vão ler. */
+function FactsPreview({ kind, page }: { kind: CatalogDoc['kind']; page: ReturnType<typeof pageFrom<ReturnType<typeof entryOf>>> }) {
+    const labels = new Map(INFOBOX[kind].map((f) => [f.key, f.label]))
+    const rows = [
+        ...(page.aliases.length ? [[tr('Também chamado', 'Also known as'), page.aliases.join(', ')]] : []),
+        ...Object.entries(page.fields).map(([k, v]) => [labels.get(k) ?? k, v]),
+        ...(page.aon ? [[tr('Ficha da AON', 'AON sheet'), page.aon.name]] : []),
+    ]
+    if (!page.summary && rows.length === 0) return null
+    return (
+        <Box sx={{ mb: 1, pb: 1, borderBottom: `1px solid ${rule}` }}>
+            {page.summary && <Typography variant="body2" sx={{ fontStyle: 'italic', mb: 0.5 }}>{page.summary}</Typography>}
+            {rows.map(([label, value]) => (
+                <Typography key={label} variant="body2" sx={{ overflowWrap: 'anywhere' }}><strong>{label}:</strong> {value.replace(/\[\[([^\]|]*\|)?([^\]]*)\]\]/g, '$2')}</Typography>
+            ))}
         </Box>
     )
 }

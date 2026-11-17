@@ -1972,10 +1972,33 @@ ok(spellstrike.spellstrikeIssue({ name: 'X', actions: 'Two Actions to Three Acti
   eq(df.map((x) => `${x.kind[0]}:${x.text}`).join('|'), 's:a|d:b|a:B|s:c|a:d', 'Diário → Wiki: diferença por linha (o que sai e o que entra)')
   eq(tw.lineDiff('', 'x').map((x) => x.kind).join(), 'add', 'Diário → Wiki: página vazia, tudo entra')
   eq(tw.lineDiff('x\ny', 'x\ny').every((x) => x.kind === 'same'), true, 'Diário → Wiki: igual, nada muda')
-  const up = tw.updatedPage({ body: 'velho', image: 'wiki/w.png', tags: ['nobre'], title: 'Barão' }, 'novo', null, ['vilão', 'nobre'], 'all')
+  const entryBase = { kind: 'npc', title: 'Barão', image: null, md: 'novo', tags: ['vilão', 'nobre'], aliases: ['O Velho'], summary: 'Senhor do vale',
+    fields: { part: 'Vilão', status: 'Vivo' }, aon: { name: 'Noble', level: 3, url: null, traits: [] }, parentWiki: null }
+  const all = { share: 'all', facts: true, aliases: true }
+  const pf = tw.pageFrom(entryBase, all)
+  ok(pf.fields.part === 'Vilão' && pf.aon.name === 'Noble' && pf.summary === 'Senhor do vale' && pf.aliases.join() === 'O Velho' && pf.parent === null,
+    'Diário → Wiki: criar leva ficha rápida, AON, resumo e apelidos')
+  const pfBare = tw.pageFrom(entryBase, { share: 'all', facts: false, aliases: false })
+  ok(Object.keys(pfBare.fields).length === 0 && pfBare.aon === null && pfBare.summary === '' && pfBare.aliases.length === 0,
+    'Diário → Wiki: sem "levar a ficha rápida/apelidos", nada disso vai (a Wiki não tem segredo por campo)')
+  eq(tw.pageFrom({ ...entryBase, aliases: ['barão', 'B'] }, all).aliases.join(), 'B', 'Diário → Wiki: apelido igual ao título (dobrado) não vai')
+  const wikiPage = { kind: 'npc', title: 'Barão', aliases: ['Velho Barão'], summary: 'antigo', fields: { role: 'nobre' }, aon: null, parent: 'w-mae000', body: 'velho', image: 'wiki/w.png', tags: ['nobre'] }
+  const up = tw.updatedPage(wikiPage, entryBase, all)
   ok(up.body === 'novo' && up.image === 'wiki/w.png' && up.tags.join() === 'nobre,vilão' && up.title === 'Barão',
-    'Diário → Wiki: atualizar troca o texto, mantém a imagem e o título da Wiki e soma as etiquetas')
-  eq(tw.updatedPage({ body: '', image: 'wiki/w.png', tags: [] }, 'x', 'journal/c.png', [], 'all').image, 'journal/c.png', 'Diário → Wiki: a capa da ficha substitui a da Wiki')
+    'Diário → Wiki: atualizar troca o texto, mantém a imagem da Wiki sem capa na ficha e soma as etiquetas')
+  ok(up.fields.part === 'Vilão' && !up.fields.role && up.summary === 'Senhor do vale' && up.aon.name === 'Noble' && up.aliases.join() === 'O Velho',
+    'Diário → Wiki: atualizar troca a ficha rápida, o resumo, a AON e os apelidos pelos da ficha')
+  eq(up.parent, 'w-mae000', 'Diário → Wiki: ficha-mãe fora da Wiki mantém a página-mãe de lá')
+  eq(tw.updatedPage(wikiPage, { ...entryBase, parentWiki: 'w-outra00' }, all).parent, 'w-outra00', 'Diário → Wiki: ficha-mãe ligada vira a página-mãe')
+  const kept = tw.updatedPage(wikiPage, entryBase, { share: 'all', facts: false, aliases: false })
+  ok(kept.fields.role === 'nobre' && kept.summary === 'antigo' && kept.aliases.join() === 'Velho Barão', 'Diário → Wiki: o que não vai fica como está na Wiki')
+  const renamed = tw.updatedPage(wikiPage, { ...entryBase, title: 'Barão Vermelho' }, all)
+  ok(renamed.title === 'Barão Vermelho' && renamed.aliases.includes('Barão'), 'Diário → Wiki: título trocado, o antigo vira apelido (os [[ ]] seguem achando)')
+  eq(tw.updatedPage({ ...wikiPage, image: 'wiki/w.png' }, { ...entryBase, image: 'journal/c.png' }, all).image, 'journal/c.png', 'Diário → Wiki: a capa da ficha substitui a da Wiki')
+  const mc = tw.metaChanges(wikiPage, up).map((c) => c.key)
+  ok(mc.includes('field:part') && mc.includes('field:role') && mc.includes('aon') && mc.includes('summary') && !mc.includes('title') && !mc.includes('parent'),
+    'Diário → Wiki: a diferença lista cada campo que muda, e só eles')
+  eq(tw.metaChanges(up, up).length, 0, 'Diário → Wiki: nada muda, nada listado')
 
   // A barra do editor (src/components/markdown/edit.ts): cada botão aplicado ao texto.
   const ed = await import('../src/components/markdown/edit.ts')

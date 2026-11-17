@@ -1,18 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-    Alert, Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Radio, RadioGroup,
-    Typography,
+    Alert, Box, Button, Checkbox, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Radio, RadioGroup,
+    Stack, Typography,
 } from '@mui/material'
-import { fetchWikiPage, saveWikiPage, setWikiFlags, type WikiPageView } from '../../../services/wiki'
+import { fetchWikiPage, saveWikiPage, setWikiFlags, useWikiIndex, type WikiKind, type WikiPageView, type WikiSummary } from '../../../services/wiki'
+import { INFOBOX, KIND_LABEL, PARENT_LABEL } from '../../wiki/kinds'
 import { splitSegments } from '../../../components/markdown/blocks'
 import { ink, parchment, rule, status } from '../../../theme'
-import { lineDiff, updatedPage, type DiffLine, type WikiShare } from '../toWiki'
-import type { CatalogDoc } from '../doc'
+import { entryOf, lineDiff, metaChanges, updatedPage, type DiffLine, type MetaChange, type WikiShare } from '../toWiki'
+import type { CatalogDoc, JournalSummary } from '../doc'
 import { locale, tr } from '../../../i18n'
 
-// "Atualizar a Wiki com esta ficha": o texto da página ligada passa a ser o da ficha (`updatedPage`).
-// Substitui o que houver lá, inclusive o que outra pessoa escreveu — por isso o GM vê antes a diferença
-// e quem mexeu por último. Grava com o `updatedAt` lido: se alguém salvar no meio, é conflito, não perda.
+// "Atualizar a Wiki com esta ficha": a página ligada passa a ser a ficha — texto, ficha rápida, apelidos,
+// resumo, AON e página-mãe (`updatedPage`). Substitui o que houver lá, inclusive o que outra pessoa
+// escreveu — por isso o GM vê antes a diferença (do texto e de cada campo) e quem mexeu por último. Grava com o `updatedAt` lido: se alguém salvar no meio, é conflito, não perda.
 
 /** Linhas iguais mostradas em volta de cada mudança; o resto das iguais vira "… N linhas iguais". */
 const CONTEXT = 2
@@ -31,18 +32,44 @@ function collapse(diff: DiffLine[]): Row[] {
     return out
 }
 
+/** O nome de cada linha da tabela de campos. */
+function changeLabel(key: string, kind: WikiKind): string {
+    if (key.startsWith('field:')) {
+        const k = key.slice(6)
+        return INFOBOX[kind].find((f) => f.key === k)?.label ?? k
+    }
+    const LABELS: Record<string, string> = {
+        kind: tr('Tipo', 'Kind'), title: tr('Título', 'Title'), summary: tr('Resumo', 'Summary'), aliases: tr('Também chamado', 'Also known as'),
+        aon: tr('Ficha da AON', 'AON sheet'), parent: PARENT_LABEL[kind], image: tr('Imagem', 'Image'), tags: tr('Etiquetas', 'Tags'),
+    }
+    return LABELS[key] ?? key
+}
+
+/** O valor como se lê: tipo pelo nome, página-mãe pelo título, imagem como "trocada". */
+function shown(c: MetaChange, side: 'before' | 'after', pages: WikiSummary[] | undefined): string {
+    const v = c[side]
+    if (!v) return ''
+    if (c.key === 'kind') return KIND_LABEL[v as WikiKind]?.one ?? v
+    if (c.key === 'parent') return pages?.find((p) => p.id === v)?.title ?? tr('outra página', 'another page')
+    if (c.key === 'image') return side === 'before' ? tr('a de agora', 'the current one') : tr('a da ficha', 'the entry\'s')
+    return v.replace(/\[\[([^\]|]*\|)?([^\]]*)\]\]/g, '$2')
+}
+
 interface Props {
     doc: CatalogDoc
+    docs: JournalSummary[]
     pageId: string
     onClose: () => void
     onDone: () => void
 }
 
-export function WikiUpdateDialog({ doc, pageId, onClose, onDone }: Props) {
+export function WikiUpdateDialog({ doc, docs, pageId, onClose, onDone }: Props) {
     const [view, setView] = useState<WikiPageView | null | undefined | 'loading'>('loading')
     const hasPlayers = splitSegments(doc.data.md).some((x) => x.kind === 'players')
     const [share, setShare] = useState<WikiShare>(hasPlayers ? 'players' : 'all')
     const [hidden, setHidden] = useState<boolean | null>(null)
+    const [facts, setFacts] = useState(true)
+    const [aliases, setAliases] = useState(true)
     const [busy, setBusy] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
@@ -58,23 +85,24 @@ export function WikiUpdateDialog({ doc, pageId, onClose, onDone }: Props) {
 
     const page = view && view !== 'loading' ? view.page : null
     const next = useMemo(
-        () => (page ? updatedPage(page, doc.data.md, doc.data.image, doc.data.tags, share, tr(':::mestre', ':::gm')) : null),
-        [page, doc.data.md, doc.data.image, doc.data.tags, share],
+        () => (page ? updatedPage(page, entryOf(doc, docs), { share, open: tr(':::mestre', ':::gm'), facts, aliases }) : null),
+        [page, doc, docs, share, facts, aliases],
     )
+    const changes = useMemo(() => (page && next ? metaChanges(page, next) : []), [page, next])
+    const pages = useWikiIndex().list?.pages
     const diff = useMemo(() => (page && next ? lineDiff(page.body, next.body) : []), [page, next])
     const rows = useMemo(() => collapse(diff), [diff])
     const removed = diff.filter((d) => d.kind === 'del').length
     const added = diff.filter((d) => d.kind === 'add').length
-    const imageChanged = !!page && !!next && next.image !== page.image
-    const tagsChanged = !!page && !!next && next.tags.length !== page.tags.length
     const visibilityChanged = !!page && hidden !== null && hidden !== (page.visibility === 'gm')
-    const nothing = removed + added === 0 && !imageChanged && !tagsChanged && !visibilityChanged
+    const pageChanged = removed + added > 0 || changes.length > 0
+    const nothing = !pageChanged && !visibilityChanged
 
     const save = async () => {
         if (!page || !next) return
         setBusy(true)
         setError(null)
-        if (removed + added > 0 || imageChanged || tagsChanged) {
+        if (pageChanged) {
             const out = await saveWikiPage(next, page.updatedAt)
             if (!out.ok) {
                 setBusy(false)
@@ -104,8 +132,8 @@ export function WikiUpdateDialog({ doc, pageId, onClose, onDone }: Props) {
                 {page && next && (
                     <>
                         <Alert severity="warning" sx={{ mb: 2 }}>
-                            {tr('O texto da página passa a ser o desta ficha. O que estiver só na Wiki (em vermelho abaixo) sai — ',
-                                'The page text becomes this entry\'s. Whatever is only on the wiki (in red below) goes away — ')}
+                            {tr('A página passa a ser esta ficha. O que estiver só na Wiki (em vermelho abaixo) sai — ',
+                                'The page becomes this entry. Whatever is only on the wiki (in red below) goes away — ')}
                             {tr('a versão de antes fica no histórico da página, de onde dá para restaurar (menos uma edição sua feita na Wiki nos últimos 10 minutos: essa é substituída).',
                                 'the previous version stays in the page history, where it can be restored (except an edit of yours made on the wiki in the last 10 minutes: that one is replaced).')}
                             {' '}
@@ -113,8 +141,12 @@ export function WikiUpdateDialog({ doc, pageId, onClose, onDone }: Props) {
                             <strong>{lastBy ?? tr('alguém', 'someone')}</strong>
                             {page.updatedAt ? `, ${new Date(page.updatedAt).toLocaleString(locale, { dateStyle: 'short', timeStyle: 'short' })}` : ''}.
                         </Alert>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                            {tr('Título, apelidos e ficha rápida da página ficam como estão na Wiki.', 'The page\'s title, aliases and infobox stay as they are on the wiki.')}</Typography>
+                        <Stack sx={{ mb: 1.5 }}>
+                            <FormControlLabel control={<Checkbox size="small" checked={facts} onChange={(e) => setFacts(e.target.checked)} />} label={tr('Levar a ficha rápida, o resumo e a ficha da AON', 'Bring the quick facts, the summary and the AON sheet')} />
+                            <FormControlLabel control={<Checkbox size="small" checked={aliases} onChange={(e) => setAliases(e.target.checked)} />} label={tr('Levar os apelidos', 'Bring the aliases')} />
+                            <Typography variant="body2" color="text.secondary">
+                                {tr('O que não for fica como está na Wiki. Na Wiki não há segredo por campo: os jogadores leem a ficha rápida e os apelidos.', 'What you leave out stays as it is on the wiki. The wiki has no per-field secrets: the players read the quick facts and aliases.')}</Typography>
+                        </Stack>
 
                         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 2, mb: 2 }}>
                             <Box>
@@ -137,8 +169,23 @@ export function WikiUpdateDialog({ doc, pageId, onClose, onDone }: Props) {
                             {nothing
                                 ? tr('A Wiki já está igual a esta ficha.', 'The wiki already matches this entry.')
                                 : tr(`O que muda no texto: ${added} linha(s) entra(m), ${removed} sai(em)`, `What changes in the text: ${added} line(s) in, ${removed} out`)}</Typography>
-                        {imageChanged && <Typography variant="body2" sx={{ mb: 0.5 }}>{tr('A imagem da página é trocada pela da ficha.', 'The page image is replaced by the entry\'s.')}</Typography>}
-                        {tagsChanged && <Typography variant="body2" sx={{ mb: 0.5 }}>{tr('As etiquetas da ficha são somadas às da página.', 'The entry\'s tags are added to the page\'s.')}</Typography>}
+                        {changes.length > 0 && (
+                            <Box component="table" sx={{ width: 1, borderCollapse: 'collapse', mb: 1.5, fontSize: '0.875rem', '& td, & th': { borderBottom: `1px solid ${rule}`, p: 0.75, textAlign: 'left', verticalAlign: 'top', overflowWrap: 'anywhere' } }}>
+                                <caption style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>{tr('Campos que mudam', 'Fields that change')}</caption>
+                                <thead>
+                                    <tr><th scope="col">{tr('Campo', 'Field')}</th><th scope="col">{tr('Na Wiki', 'On the wiki')}</th><th scope="col">{tr('Fica', 'Becomes')}</th></tr>
+                                </thead>
+                                <tbody>
+                                    {changes.map((c) => (
+                                        <tr key={c.key}>
+                                            <th scope="row" style={{ fontWeight: 600 }}>{changeLabel(c.key, next.kind)}</th>
+                                            <Box component="td" sx={{ color: status.error, textDecoration: c.before ? 'line-through' : 'none' }}>{shown(c, 'before', pages) || '—'}</Box>
+                                            <Box component="td" sx={{ color: ink.primary }}>{shown(c, 'after', pages) || '—'}</Box>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </Box>
+                        )}
                         {removed + added > 0 && (
                             <Box
                                 role="region"
