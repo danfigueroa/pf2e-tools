@@ -22,8 +22,13 @@ uma página nova (é como o Diário e os links vermelhos chegam).
 - **Links**: `[[Nome]]`, `[[Nome|rótulo]]`, `[[wiki:Nome]]` (`linkTarget`/`linkName`/`linkLabel` em `blocks.ts` ↔
   `wiki-secrets.js`). Resolvem por título ou apelido **dobrados** (`foldName` = `fold` = `wiki_fold`). Os `links_*` guardam
   **nomes dobrados, não ids**: a página criada depois para um link vermelho ganha os backlinks sozinha. Links da ficha rápida contam.
-- **Ficha rápida por tipo** (`kinds.ts`, `INFOBOX`); `aon` (criatura) liga a ficha da AON, com "Enviar para a Iniciativa" e
-  "Escalar" (`/escalar-monstro?criatura=<nome>`) para o GM.
+- **Ficha rápida por tipo** (`kinds.ts`, `INFOBOX`), desenhada pelo `QuickFacts` — o mesmo da ficha do Diário, que tem o
+  mesmo modelo e vai inteira para cá. `aon` (`AON_KINDS`: criatura e NPC) liga a ficha da AON, com "Enviar para a
+  Iniciativa" e "Escalar" (`/escalar-monstro?criatura=<nome>`) para o GM.
+- **Papel na história é marca, não tipo** (decisão do usuário: um dragão pode ser o vilão): `part`, campo `multi` em NPC e
+  Criatura, gravado como `"Vilão, Chefe"`. Vira pílula (`badges.part`) e o filtro `?ver=opponents` (`isOpponent`, nos dois
+  idiomas: o valor é o texto de quem marcou). Tipo novo = cor em `WIKI_KIND_COLORS`, ícone, CHECK de `wiki_pages` **e**
+  de `journal_docs`, `PAGE_KINDS`/`DOC_KINDS` e troféu.
 - Hierarquia por `parent` ("Fica em"); o servidor recusa ciclo.
 - Autoria: `created_by`/`updated_by` e cada versão; nomes por `member_names(mesa, ids)` (cache de 1 min).
 - **Índice compartilhado** (`useWikiIndex`): um por aba, relido a cada aviso de `mesa:<mesa>:wiki` (só o id) e a cada escrita.
@@ -52,11 +57,11 @@ uma página nova (é como o Diário e os links vermelhos chegam).
   some no verde). Ladrilho de tipo: `WIKI_KIND_COLORS` com ícone `chrome.onAccent`, fixo nos dois temas.
 - O nome da mesa no topo da lista vem do servidor (`useMesaInfo`), não de `MESAS`.
 - **Telas**: desktop = `WikiNav` (árvore por tipo, atalhos, "só as minhas") + conteúdo; sem página aberta, `WikiHome`
-  (cartões, filtro por tipo, ordem, "citados sem página"). `?ver=recent|favorites|locked|<tipo>` escolhe o que o Início
+  (cartões, filtro por tipo, ordem, "citados sem página"). `?ver=recent|favorites|locked|opponents|<tipo>` escolhe o que o Início
   mostra. Celular: `WikiHome` vira cabeçalho escuro + pílulas de atalho + grupos que recolhem.
 - **Busca** (`WikiSearch`): ⌘K **dentro da Wiki** é dela (ouvinte em captura com `stopImmediatePropagation`; fora da Wiki
   segue a busca geral). Título/apelido/etiqueta/resumo na hora, texto pelo `wiki_search`, citados sem página e "Criar".
 - **Citados sem página** (`?wiki=missing`, `missingLinks`): os `links_*` do banco são dobrados e não servem para mostrar;
   o nome sai do texto (o público, para o jogador) e da ficha, comparado com títulos e apelidos que a pessoa vê.
-- A lista traz `badges` (situação e atitude da ficha) para as pílulas dos cartões; o resto dos `fields` só na página.
+- A lista traz `badges` (situação, atitude e papel) para as pílulas dos cartões; o resto dos `fields` só na página.
 - **Favoritas e ordem são do aparelho** (`mesaKey('pf2e:wiki:favorites')`, `pf2e:wiki:sort`), não da mesa.

@@ -3,9 +3,12 @@
 A preparação da campanha, **só do GM** (decisão do usuário). Tabelas `journal_docs` e `journal_reveals`.
 
 - **Três tipos** (`doc.ts`): **sessão** (abas Preparação, Cenas, Encontros, Elenco, Registro, Resumo + painel de ganchos),
-  **ficha do catálogo** (`npc`/`location`/`item`/`faction`/`other`) e **gancho** (`thread`: aberto → revelado → resolvido).
+  **ficha do catálogo** (os tipos da Wiki: `CATALOG_KINDS = WIKI_KINDS`) e **gancho** (`thread`: aberto → revelado → resolvido).
   O catálogo é da campanha (decisão do usuário): a sessão só liga ids em `links`; `?journal=list` traz os `links` (responde
   "aparece nas sessões" sem baixar todas).
+- **A ficha do catálogo tem o modelo da página da Wiki** (decisão do usuário: compartilhar não pode deixar campo para trás):
+  apelidos, resumo, ficha rápida (`fields`, o `INFOBOX` do tipo, editada pelo `QuickFacts` da Wiki), `aon` e `parent` (outra
+  ficha). Campo novo na página da Wiki = campo aqui, no `catalogData` (mesmos tetos do `wiki-store.js`) e no `toWiki.ts`.
 - **Só o GM, SEMPRE**: `isRealGm` exige o papel `gm` mesmo com `AUTH_REQUIRED` desligado (o diário tem segredos). Único GET
   aberto a membros: `?reveal=` (o que já foi mostrado). O aviso do Realtime (`mesa:<mesa>:journal`) leva só id e `updatedAt`,
   **sem título**. Imagens em `journal/` (insert só para `gm`, permanentes).
@@ -45,12 +48,15 @@ A preparação da campanha, **só do GM** (decisão do usuário). Tabelas `journ
 
 `[[Nome]]` procura o catálogo e depois a Wiki (selo "Wiki"; `[[wiki:Nome]]` força a Wiki); nome inexistente oferece criar em
 um ou outro. O Elenco aceita `wiki:<id>` em `links`. A ficha do catálogo guarda `wiki`; "Criar na Wiki a partir desta" leva
-título, etiquetas e **o texto inteiro** (`toWiki.ts`, no `check-rolls`): o GM escolhe se os jogadores leem todo o texto ou só
+a ficha inteira (`pageFrom`/`updatedPage` em `toWiki.ts`, no `check-rolls`) e **o texto inteiro**: o GM escolhe se os jogadores leem todo o texto ou só
 as caixas `:::jogadores`, e o resto vai como `:::mestre` (nada fica para trás; o servidor corta o segredo). Escolhe também se a
 página nasce pública ou oculta (`visibility: 'gm'`). Capa: a da ficha, senão a primeira imagem da parte pública — **nunca**
-a de um segredo (a capa vai a todos e ao "Mostrar à mesa"). Ligada, "Atualizar a Wiki com esta ficha" (`WikiUpdateDialog`,
-`updatedPage`) troca o texto da página pelo da ficha **mostrando antes a diferença** (`lineDiff`) e quem editou por último:
-substitui o que alguém escreveu na Wiki. Título, apelidos, infobox e página-mãe ficam os da Wiki; etiquetas se somam.
+a de um segredo (a capa vai a todos e ao "Mostrar à mesa"). **A Wiki não tem segredo por campo**: ficha rápida, resumo e
+apelidos vão aos jogadores, então criar e atualizar têm "não levar" para eles. A página-mãe é a página ligada à ficha-mãe
+(`JournalSummary.wiki`); sem ela, fica a da Wiki. Ligada, "Atualizar a Wiki com esta ficha" (`WikiUpdateDialog`) troca a
+página pela ficha **mostrando antes a diferença** do texto (`lineDiff`) e de cada campo (`metaChanges`) e quem editou por
+último: substitui o que alguém escreveu na Wiki. Etiquetas se somam; título trocado deixa o antigo como apelido (os `[[ ]]`
+que o citam seguem achando).
 Grava com o `updatedAt` lido (409 = alguém salvou no meio); visibilidade muda por `setWikiFlags` (revelar notifica). O Resumo vira crônica (`ChronicleDialog`, página
 `event`, `chronicle`), com o texto editável antes de publicar — o resumo pode ter segredo.
 
