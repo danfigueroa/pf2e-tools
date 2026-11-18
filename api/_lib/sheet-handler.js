@@ -1,6 +1,6 @@
 // Rotas das fichas publicadas, compartilhadas por `api/state.js` (Vercel) e
 // `server/index.mjs` (dev). Moram no endpoint `state` e não num arquivo novo
-// pelo limite de 12 funções serverless do plano Hobby (ver CLAUDE.md).
+// pelo limite de 12 funções serverless do plano Hobby (ver AGENTS.md).
 //
 //   GET  ?sheets=1                        → lista das fichas publicadas
 //   GET  ?sheet=<slug>                    → a ficha publicada (com o guia)

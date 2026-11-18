@@ -108,4 +108,4 @@ Criaturas da AON que entram com o personagem — **não** são os `pets`/`famili
 
 ## Ligação com o mapa
 
-`useMapSync`, encontro por mapa (`encounterStorage.ts`), `EncounterMapPicker`: ver `src/modules/battle-map/CLAUDE.md`.
+`useMapSync`, encontro por mapa (`encounterStorage.ts`), `EncounterMapPicker`: ver `src/modules/battle-map/AGENTS.md`.

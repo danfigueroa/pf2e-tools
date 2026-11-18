@@ -1,7 +1,7 @@
 // Notificações da mesa (o sino). Quem ESCREVE os eventos são os triggers do banco (migration
 // `inicio_e_notificacoes`): ficha publicada ou atribuída, mapa ativado ou revelado, combate
 // iniciado, regra compartilhada. Aqui só se lê e se marca como lido. Mora no endpoint `state`
-// pelo limite de 12 funções serverless (ver CLAUDE.md).
+// pelo limite de 12 funções serverless (ver AGENTS.md).
 //
 //   GET  ?events=1                       → { events: [{ id, kind, data, at }], seen }
 //   POST { action: 'events-seen', upTo } → { seen }

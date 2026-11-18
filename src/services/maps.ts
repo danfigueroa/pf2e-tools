@@ -375,7 +375,7 @@ export function loadMap(id: string): Promise<void> {
  * poucos segundos, e uma janela longa deixaria os aparelhos na rajada o tempo
  * todo — 600 ms com janela de 8 s dava ~2,5× o gasto de antes e estourava a
  * cota com uma sessão por semana. Com 700 ms/5 s a conta fica em ~1,5× (ver o
- * CLAUDE.md).
+ * AGENTS.md).
  */
 const BURST_MS = 700
 const BURST_WINDOW_MS = 5000

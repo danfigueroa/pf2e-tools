@@ -63,7 +63,7 @@ function npcHps(views: CombatantView[]): Map<string, HpPayload> {
  *   último envio; do mapa desce o que alguém mudou lá (o GM tocou no token).
  *
  * O efeito de envio lê só o estado LOCAL e escreve só no mapa, então não
- * realimenta a si mesmo — o laço que o CLAUDE.md proíbe é o de um efeito que
+ * realimenta a si mesmo — o laço que o AGENTS.md proíbe é o de um efeito que
  * lê a mesa e escreve na mesa. O caminho de volta compara com o último valor
  * enviado, para o eco do próprio envio não virar "alguém mexeu no mapa".
  */

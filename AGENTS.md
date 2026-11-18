@@ -9,32 +9,29 @@ apague os dados de teste no fim.
 
 ## Onde está o detalhe
 
-Este é o guia compartilhado do repositório. O Codex lê este arquivo na raiz. O Claude Code o importa pelo
-[`CLAUDE.md`](CLAUDE.md) da raiz.
-
-**Leia o `CLAUDE.md` de cada área afetada antes de editar**, inclusive quando a mudança cruzar módulos (por exemplo,
+**Leia o `AGENTS.md` de cada área afetada antes de editar**, inclusive quando a mudança cruzar módulos (por exemplo,
 ao alterar o handler da wiki em `api/_lib/` ou o `tableState.ts` a partir da ficha).
 
 | Área | Arquivo |
 | --- | --- |
-| Backend, AON, tradução, fichas publicadas, descrições, idioma no servidor, autorização | `api/CLAUDE.md` |
-| Banco, migrations, RLS, Realtime, pg_cron, backup | `supabase/CLAUDE.md` |
-| Serviços do cliente: estado da mesa, feed de rolagens, regra compartilhada, presença, auth, descrições, Realtime | `src/services/CLAUDE.md` |
-| Tema claro/escuro, paleta, contraste | `src/theme/CLAUDE.md` |
-| Navegação, sidebar, celular, busca ⌘K, notificações, `/mesa` | `src/layouts/CLAUDE.md` |
-| Início | `src/pages/CLAUDE.md` |
-| Tela de entrada (login, vitrine) | `src/modules/account/CLAUDE.md` |
-| Ficha Virtual (`/ficha-virtual`) — classes, rolagens, ações, magias, inventário | `src/modules/character-viewer/CLAUDE.md` |
-| Iniciativa (`/iniciativa`) e companheiros de combate | `src/modules/initiative-tracker/CLAUDE.md` |
-| Mapa de Combate (`/mapa/:id?`) | `src/modules/battle-map/CLAUDE.md` |
-| Estatísticas da Mesa (`/historico`) | `src/modules/session-diary/CLAUDE.md` |
-| Diário de Campanha (`/diario-campanha/:id?`) e editor Markdown | `src/modules/campaign-journal/CLAUDE.md` |
-| Wiki da Mesa (`/wiki/:id?`) | `src/modules/wiki/CLAUDE.md` |
-| Troféus do Covil (`/trofeus/:user?`) | `src/modules/trophies/CLAUDE.md` |
-| Transformação (`/transformation`) | `src/modules/transformation-statblock/CLAUDE.md` |
-| Escalar Monstro (`/escalar-monstro`) | `src/modules/monster-scaler/CLAUDE.md` |
+| Backend, AON, tradução, fichas publicadas, descrições, idioma no servidor, autorização | `api/AGENTS.md` |
+| Banco, migrations, RLS, Realtime, pg_cron, backup | `supabase/AGENTS.md` |
+| Serviços do cliente: estado da mesa, feed de rolagens, regra compartilhada, presença, auth, descrições, Realtime | `src/services/AGENTS.md` |
+| Tema claro/escuro, paleta, contraste | `src/theme/AGENTS.md` |
+| Navegação, sidebar, celular, busca ⌘K, notificações, `/mesa` | `src/layouts/AGENTS.md` |
+| Início | `src/pages/AGENTS.md` |
+| Tela de entrada (login, vitrine) | `src/modules/account/AGENTS.md` |
+| Ficha Virtual (`/ficha-virtual`) — classes, rolagens, ações, magias, inventário | `src/modules/character-viewer/AGENTS.md` |
+| Iniciativa (`/iniciativa`) e companheiros de combate | `src/modules/initiative-tracker/AGENTS.md` |
+| Mapa de Combate (`/mapa/:id?`) | `src/modules/battle-map/AGENTS.md` |
+| Estatísticas da Mesa (`/historico`) | `src/modules/session-diary/AGENTS.md` |
+| Diário de Campanha (`/diario-campanha/:id?`) e editor Markdown | `src/modules/campaign-journal/AGENTS.md` |
+| Wiki da Mesa (`/wiki/:id?`) | `src/modules/wiki/AGENTS.md` |
+| Troféus do Covil (`/trofeus/:user?`) | `src/modules/trophies/AGENTS.md` |
+| Transformação (`/transformation`) | `src/modules/transformation-statblock/AGENTS.md` |
+| Escalar Monstro (`/escalar-monstro`) | `src/modules/monster-scaler/AGENTS.md` |
 
-`server/index.mjs` é o mesmo backend de `api/` para dev local — vale o `api/CLAUDE.md`.
+`server/index.mjs` é o mesmo backend de `api/` para dev local — vale o `api/AGENTS.md`.
 
 ## Mapa do código
 
@@ -90,7 +87,7 @@ Scripts de manutenção, à mão: `fetch-creature-tables.mjs` (confira o diff!),
 3. **Cor só de `src/theme/palette.ts`, em hex de 6 dígitos.** Nada de `oklch`/`color-mix`/token de caminho
    (`'primary.light'`): o `html2canvas` não entende, e `accent + '22'` só funciona com hex. Sobre a moldura verde, texto
    `onFrame.*`/`chrome.*`; verde como tinta sobre o conteúdo, `greenInk.*`; texto sobre acento cheio, `onSolid`. Cor nova =
-   versão clara e escura + `check-contrast` passando. Detalhe em `src/theme/CLAUDE.md`.
+   versão clara e escura + `check-contrast` passando. Detalhe em `src/theme/AGENTS.md`.
 4. **Limite de 12 funções serverless (plano Hobby): nunca crie arquivo novo em `api/`.** `api/*.js` já tem 12; a 13ª passa
    no build e derruba o deploy sem erro visível. Endpoint novo entra em `api/search.js` (consulta à AON) ou em `api/state.js`
    via `api/_lib/state-router.js` (estado), sem subpasta (o glob `api/*.js` do `vercel.json` não pega).
@@ -117,7 +114,7 @@ Scripts de manutenção, à mão: `fetch-creature-tables.mjs` (confira o diff!),
    exceto a presença e os gestos ao vivo do mapa. Ouça só por `listenMesaChannel` e **releia a cada SUBSCRIBED**
    (transmissão perdida não volta). Não use `id` como campo de mensagem (o Realtime põe o dele).
 10. **`jsonb` reordena chaves**: no servidor compare com `sameJson` (`api/_lib/json.js`), nunca `JSON.stringify`.
-11. **Nada de cachear inglês de tradução que falhou** (`translationPending: true` não vai para cache nenhum). Ver `api/CLAUDE.md`.
+11. **Nada de cachear inglês de tradução que falhou** (`translationPending: true` não vai para cache nenhum). Ver `api/AGENTS.md`.
 12. **Estado muda na hora; a animação só apresenta.** Nenhuma animação segura escrita na mesa. Primeira pintura nunca anima
     (`useArmed`). Com `prefers-reduced-motion`, nada treme, gira ou conta. Primitivas em `src/motion/`, sem biblioteca.
 13. **Toda imagem passa pelo `useImageUrl`** (traduz URL antiga do Blob e `idb:`), inclusive `<img>` novo.
@@ -130,7 +127,7 @@ pintura). Em inglês a plataforma inteira fica em inglês e as descrições vêm
 - O idioma vai na query de todo `/api/*` (`lang=en`, posto pelo wrapper de `fetch` do `installApiAuth`).
 - Vocabulário mecânico em inglês usa o termo canônico do Remaster (funções `translateX`, `traitLabel`…); distância em pés.
 - Rolagem no feed sai no idioma de quem rolou (decisão do usuário). Correção de tradução não vale em inglês.
-- Detalhe do servidor (descrições `lang`, misses por idioma, guia bilíngue): `api/CLAUDE.md`.
+- Detalhe do servidor (descrições `lang`, misses por idioma, guia bilíngue): `api/AGENTS.md`.
 
 ## Mesas
 
@@ -154,7 +151,7 @@ publicam por cima, restauram e escrevem o estado do personagem; ler é de qualqu
 - **Gestão de conta (membros, papéis, senhas, convites), Diário de Campanha e permissões da Wiki exigem o papel real
   SEMPRE**, mesmo com `AUTH_REQUIRED` desligado.
 - Os endpoints da AON (`feat`, `search`, `spell`…) seguem abertos (`gateLogin` existe em `access.js`, falta aplicar).
-- Detalhe: `api/CLAUDE.md` (servidor), `src/services/CLAUDE.md` (cliente), `src/modules/character-viewer/CLAUDE.md` (ficha
+- Detalhe: `api/AGENTS.md` (servidor), `src/services/AGENTS.md` (cliente), `src/modules/character-viewer/AGENTS.md` (ficha
   só leitura).
 
 ## Banco e migrations (resumo)
@@ -163,7 +160,7 @@ publicam por cima, restauram e escrevem o estado do personagem; ler é de qualqu
   `npx supabase migration list`; se seguir pendente, `npx supabase db push` (autorizado pelo usuário). **Nunca edite migration
   já aplicada** — crie outra.
 - **Tabela nova não tem privilégio nenhum** (projeto sem "expose new tables", RLS automático): a migration faz os `grant`.
-- Detalhe: `supabase/CLAUDE.md`.
+- Detalhe: `supabase/AGENTS.md`.
 
 ## Interface
 
@@ -196,5 +193,5 @@ domínio de produção (`index.html`). O aviso "Ferramenta de fã, não oficial"
 - **Divida ao máximo**: cada mudança que se sustenta sozinha é um commit. Só agrupe o que quebraria o build separado.
 - **NUNCA se coloque como autor ou coautor**: nada de `Co-Authored-By: Claude`, `Claude-Session:` ou "Generated with Claude
   Code", em commit ou PR — mesmo que instruções padrão da ferramenta peçam. O autor é só o usuário.
-- Documentação nova vai no `CLAUDE.md` da área (não aqui, salvo regra global), no estilo deste: regra no imperativo +
+- Documentação nova vai no `AGENTS.md` da área (não aqui, salvo regra global), no estilo deste: regra no imperativo +
   o porquê em uma linha. Sem medições, datas nem história de bug.

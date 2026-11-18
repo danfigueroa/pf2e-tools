@@ -210,7 +210,7 @@ async function translateTraitNames(names) {
 /**
  * Traduz o nome (vocabulário da ficha ou prompt de nomes) e o texto de cada regra. Só devolve a regra
  * COMPLETAMENTE traduzida: tradução que falhou não é cacheada (ver "Nada de cachear inglês" no
- * CLAUDE.md) — quem chama tenta de novo na próxima consulta.
+ * AGENTS.md) — quem chama tenta de novo na próxima consulta.
  */
 async function translateTraitRules(rules) {
   const enabled = hasTranslationKey()

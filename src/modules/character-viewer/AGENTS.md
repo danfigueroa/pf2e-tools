@@ -2,7 +2,7 @@
 
 Visualizador interativo da ficha do Pathbuilder: abas no desktop, acordeão abaixo de `sm` (e no painel do mapa). Seções em
 `sections/*` (Overview, Combat, Skills, Feats, Specials, Spells, Pets, Inventory, Notes); as vazias somem. Helpers em
-`helpers.ts`. Estado da mesa: `src/services/CLAUDE.md`. Publicação no servidor: `api/CLAUDE.md`.
+`helpers.ts`. Estado da mesa: `src/services/AGENTS.md`. Publicação no servidor: `api/AGENTS.md`.
 
 **Princípio da ficha**: o JSON do Pathbuilder **nunca é editado à mão nem regravado**. O que ele não exporta ou exporta errado
 é corrigido no `normalizeBuild` ou num **catálogo por nome** (de personagem, arma, item, talento), para sobreviver a todo

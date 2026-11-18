@@ -1,6 +1,6 @@
 // Rotas das Anotações do personagem, compartilhadas por `api/state.js` (Vercel) e
 // `server/index.mjs` (dev). Moram no endpoint `state` pelo limite de 12 funções
-// serverless do plano Hobby (ver CLAUDE.md).
+// serverless do plano Hobby (ver AGENTS.md).
 //
 //   GET  ?notes=<slug>                                  → { notes: { data, updatedAt } | null }  (qualquer membro)
 //   POST { action: 'notes-save', char, data, base }     → { updatedAt } | 409                    (dono da ficha e GM)

@@ -1,6 +1,6 @@
 // Rotas do feed de rolagens, compartilhadas por `api/state.js` (Vercel) e
 // `server/index.mjs` (dev). Moram no endpoint `state` pelo limite de 12 funções
-// serverless do plano Hobby (ver CLAUDE.md).
+// serverless do plano Hobby (ver AGENTS.md).
 //
 //   GET  ?rolls=1[&rev=N]               → o contador; com `rev` diferente (ou
 //                                          sem `rev`), as últimas 30 rolagens. Com o

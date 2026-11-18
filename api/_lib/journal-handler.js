@@ -1,6 +1,6 @@
 // Rotas do Diário de Campanha, compartilhadas por `api/state.js` (Vercel) e
 // `server/index.mjs` (dev). Moram no endpoint `state` pelo limite de 12 funções
-// serverless do plano Hobby (ver CLAUDE.md).
+// serverless do plano Hobby (ver AGENTS.md).
 //
 //   GET  ?journal=list                          → { docs: resumo[] }            (GM)
 //   GET  ?journal=<id>                          → { doc | null }               (GM)

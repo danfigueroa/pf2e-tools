@@ -1,6 +1,6 @@
 # Serviços do cliente (`src/services/`)
 
-Lado servidor de cada um: `api/CLAUDE.md`. Banco e canais: `supabase/CLAUDE.md`.
+Lado servidor de cada um: `api/AGENTS.md`. Banco e canais: `supabase/AGENTS.md`.
 
 ## Supabase no cliente (`supabase.ts`)
 
@@ -88,8 +88,8 @@ PV, slots, foco, pontos míticos, condições… são **da mesa, não do navegad
 ## Outros
 
 - `mesa.ts`: `currentMesa` (constante do boot; `main.tsx` importa antes de tudo), `mesaKey`, `switchMesa`.
-- `images.ts`: `ImageFolder` define a vida da imagem (ver `src/modules/battle-map/CLAUDE.md`); `shrinkImage` reduz antes de
+- `images.ts`: `ImageFolder` define a vida da imagem (ver `src/modules/battle-map/AGENTS.md`); `shrinkImage` reduz antes de
   subir (Safari devolve PNG ao pedir WebP → cai para JPEG; `createImageBitmap` com fallback para `<img>` + `decode()`). Erro
   de envio sempre com motivo (`ImageError`/`imageErrorText`). Sem Supabase, IndexedDB (`idb:<chave>`).
-- `gifts.ts`, `notes.ts`, `sheets.ts`, `sheetPreparation.ts`, `sheetNotices.ts`: ver `src/modules/character-viewer/CLAUDE.md`.
-- `notifications.ts`, `combatStatus.ts`: ver `src/layouts/CLAUDE.md`. `encounters.ts`: Iniciativa. `maps.ts`, `mapLive.ts`: Mapa.
+- `gifts.ts`, `notes.ts`, `sheets.ts`, `sheetPreparation.ts`, `sheetNotices.ts`: ver `src/modules/character-viewer/AGENTS.md`.
+- `notifications.ts`, `combatStatus.ts`: ver `src/layouts/AGENTS.md`. `encounters.ts`: Iniciativa. `maps.ts`, `mapLive.ts`: Mapa.

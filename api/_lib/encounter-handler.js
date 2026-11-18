@@ -1,6 +1,6 @@
 // Rotas dos encontros da Iniciativa na nuvem, compartilhadas por `api/state.js`
 // (Vercel) e `server/index.mjs` (dev). Moram no endpoint `state` pelo limite de
-// 12 funções serverless do plano Hobby (ver CLAUDE.md).
+// 12 funções serverless do plano Hobby (ver AGENTS.md).
 //
 //   GET  ?encounter=<mapId|none>                  → { encounter: { state, updatedAt } | null }
 //   POST { action: 'encounter-save', map, state } → { updatedAt }  (`map` null = "Sem mapa")

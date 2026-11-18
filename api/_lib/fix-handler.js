@@ -1,6 +1,6 @@
 // Rotas das correções de tradução, compartilhadas por `api/state.js` (Vercel) e
 // `server/index.mjs` (dev). Moram no endpoint `state` pelo limite de 12 funções
-// serverless do plano Hobby (ver CLAUDE.md).
+// serverless do plano Hobby (ver AGENTS.md).
 //
 //   GET  ?fixes=1                                → { fixes: [{ kind, name, fields, previous, updatedAt }] }
 //   POST { action: 'fix-save', kind, name, fields } → { fix }   (`fields: {}` = voltar à tradução automática)

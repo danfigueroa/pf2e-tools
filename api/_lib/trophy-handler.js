@@ -1,5 +1,5 @@
 // Rotas dos Troféus do Covil, compartilhadas por `api/state.js` (Vercel) e `server/index.mjs`
-// (dev). Moram no endpoint `state` pelo limite de 12 funções serverless (ver CLAUDE.md).
+// (dev). Moram no endpoint `state` pelo limite de 12 funções serverless (ver AGENTS.md).
 //
 //   GET ?trophies=me        → o meu perfil (avalia antes: o que ficou pendente desbloqueia aqui)
 //   GET ?trophies=<userId>  → o perfil de um colega — só de quem está nesta mesa

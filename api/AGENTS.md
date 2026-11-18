@@ -4,10 +4,10 @@ Dois modos servindo os mesmos endpoints: `api/*.js` (serverless, Vercel) e `serv
 compartilhado em `api/_lib/`. **Nunca crie arquivo novo em `api/`** — limite de 12 funções (ver raiz).
 
 Domínios com doc própria — leia antes de mexer no handler/store deles:
-mapa → `src/modules/battle-map/CLAUDE.md`; encontros → `src/modules/initiative-tracker/CLAUDE.md`; diário →
-`src/modules/campaign-journal/CLAUDE.md`; wiki → `src/modules/wiki/CLAUDE.md`; troféus → `src/modules/trophies/CLAUDE.md`;
-histórico (`?diary=`) → `src/modules/session-diary/CLAUDE.md`; rolagens e estado da mesa (lado cliente) →
-`src/services/CLAUDE.md`.
+mapa → `src/modules/battle-map/AGENTS.md`; encontros → `src/modules/initiative-tracker/AGENTS.md`; diário →
+`src/modules/campaign-journal/AGENTS.md`; wiki → `src/modules/wiki/AGENTS.md`; troféus → `src/modules/trophies/AGENTS.md`;
+histórico (`?diary=`) → `src/modules/session-diary/AGENTS.md`; rolagens e estado da mesa (lado cliente) →
+`src/services/AGENTS.md`.
 
 ## Endpoints
 
@@ -57,7 +57,7 @@ histórico (`?diary=`) → `src/modules/session-diary/CLAUDE.md`; rolagens e est
   - **Paginação por cursor em acertos do índice**: avance pelo `nextOffset`, nunca `página × tamanho` (a deduplicação de
     legacy come acertos). Quem decide o fim é `hasMore`; o `total` é aproximado. Quem acumula páginas deduplica por nome.
   - `creature?name=` = ficha completa para o Escalar Monstro (`monster-core.js` + `creature-parse.js`), com o degrau de
-    benchmark de cada número. Ver `src/modules/monster-scaler/CLAUDE.md` para as armadilhas do índice.
+    benchmark de cada número. Ver `src/modules/monster-scaler/AGENTS.md` para as armadilhas do índice.
   - `pickHit` procura o **nome exato antes** de descartar legacy ("Adult Red Dragon" só existe no Bestiary).
 - `?affliction=` (`affliction-core.js`): só a primeira ocorrência de uma condição vira link no `stage_markdown`; casamento por
   texto contra `conditions.ts`; `flat-footed` = `off-guard`.
@@ -169,6 +169,6 @@ histórico (`?diary=`) → `src/modules/session-diary/CLAUDE.md`; rolagens e est
 - `fix-store.js` (`description_fixes`): correções globais, só prosa (`FIX_FIELDS`), `previous` para desfazer, `fields: {}` volta à automática.
 - `notes-store.js` (`character_notes`): um documento por mesa+slug, 128 KB, escrita condicional com `base` e 409.
 - `images.js`: apagar imagem é do servidor; `imagePath` só aceita URL nossa. `isMapOwnedImage` nunca deixa apagar `tokens/`.
-- `event-handler.js`: `GET ?events=1`; eventos vêm de triggers (ver `src/layouts/CLAUDE.md`).
+- `event-handler.js`: `GET ?events=1`; eventos vêm de triggers (ver `src/layouts/AGENTS.md`).
 - Cada store tem **fallback em memória** (Map por mesa) para rodar sem credenciais.
 - `supabase.js`: chave `SUPABASE_SECRET_KEY` (passa por cima do RLS). Só o servidor escreve.

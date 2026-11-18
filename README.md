@@ -367,9 +367,16 @@ pf2e-tools/
     └── theme/              # paleta verde/pergaminho/ouro, tema claro e escuro
 ```
 
-**Documentação para quem desenvolve**: o `AGENTS.md` da raiz tem as regras que valem para o repositório inteiro, e cada
-área tem o seu (`api/CLAUDE.md`, `supabase/CLAUDE.md`, `src/services/CLAUDE.md`, `src/theme/CLAUDE.md`,
-`src/modules/<módulo>/CLAUDE.md`…), com as decisões, armadilhas e invariantes daquela parte. Leia antes de mexer nela.
+### Instruções para agentes de código
+
+O [`AGENTS.md` da raiz](AGENTS.md) reúne as regras compartilhadas pelo Codex e pelo Claude Code e lista os guias
+por área, como [backend](api/AGENTS.md) e [banco de dados](supabase/AGENTS.md). Consulte os guias das áreas
+afetadas antes de editar.
+
+O Claude Code 2.1.277 ou posterior pode carregar `AGENTS.md` diretamente. Se suas instruções locais tiverem
+um `CLAUDE.md` ou `CLAUDE.local.md` no diretório atual ou acima, selecione `claude-md-and-agents-md` em
+**Project instructions** no `/config`. Você pode conferir os arquivos carregados com `/memory`.
+[Documentação do Claude Code](https://code.claude.com/docs/en/memory#agents-md).
 
 ---
 
@@ -386,7 +393,7 @@ pf2e-tools/
 | `GET /api/health`, `POST /api/clear-cache` | Saúde (e o ping que mantém o banco acordado); limpar o cache em memória            |
 
 Toda chamada leva `?mesa=` (exceto a mesa padrão) e, em inglês, `lang=en`. A autorização é do servidor; o catálogo
-completo das rotas do `state` está em `api/CLAUDE.md`.
+completo das rotas do `state` está em `api/AGENTS.md`.
 
 ---
 
@@ -485,7 +492,7 @@ publicadas), `seed-presets.mjs`, `grant-gm.mjs`.
 
 -   TypeScript com tipagem forte, um módulo por ferramenta em `src/modules/`, lógica em arquivos próprios.
 -   Interface em português **e** inglês (`tr('…', '…')`), código em inglês.
--   Leia o `AGENTS.md` da raiz e o `CLAUDE.md` da área antes de mexer. Rode `npm run build`, `npm run lint` e o script
+-   Leia o `AGENTS.md` da raiz e o `AGENTS.md` da área antes de mexer. Rode `npm run build`, `npm run lint` e o script
     de conferência da área.
 -   Commits pequenos, mensagens em português.
 

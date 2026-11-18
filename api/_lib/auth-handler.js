@@ -1,5 +1,5 @@
 // Conta, membros e convites. Mora no endpoint `state` pelo limite de 12 funções
-// serverless do plano Hobby (ver CLAUDE.md) e vem ANTES do portão geral: quem ainda
+// serverless do plano Hobby (ver AGENTS.md) e vem ANTES do portão geral: quem ainda
 // não é membro precisa conseguir resgatar o convite que o torna um.
 //
 // Login é USUÁRIO + SENHA, sem e-mail nenhum (decisão do usuário: nada de serviço externo).

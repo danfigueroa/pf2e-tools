@@ -1,5 +1,5 @@
 // Rotas da Wiki da Mesa, compartilhadas por `api/state.js` (Vercel) e `server/index.mjs` (dev). Moram
-// no endpoint `state` pelo limite de 12 funções serverless do plano Hobby (ver CLAUDE.md).
+// no endpoint `state` pelo limite de 12 funções serverless do plano Hobby (ver AGENTS.md).
 //
 //   GET  ?wiki=list                   → { pages, authors, gm }        resumo das páginas que a pessoa vê
 //   GET  ?wiki=trash                  → { pages, authors }            a lixeira (GM)

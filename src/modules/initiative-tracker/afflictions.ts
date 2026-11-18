@@ -229,7 +229,7 @@ export function newAffliction(def: AfflictionDef, stage: number): AfflictionStat
  * Junta as condições vindas das aflições às que o GM marcou à mão.
  *
  * As da aflição são DERIVADAS, nunca gravadas — mesma política das condições
- * impostas (Inconsciente → Cego, Desprevenido, Caído), que o CLAUDE.md descreve:
+ * impostas (Inconsciente → Cego, Desprevenido, Caído), que o AGENTS.md descreve:
  * o armazenamento só guarda o que alguém escolheu, então tirar a aflição tira
  * as condições dela junto, sem precisar lembrar o que foi aplicado.
  *

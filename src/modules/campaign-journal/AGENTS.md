@@ -17,7 +17,7 @@ A preparação da campanha, **só do GM** (decisão do usuário). Tabelas `journ
   **Rascunho igual ao do servidor é descartado** (`sameContent`; senão vira conflito falso). Conflito: "Usar a do outro
   aparelho" / "Manter a minha". Eco reconhecido pelo `updatedAt` (as abas do GM são a mesma conta; `by` não serve).
 - **"Mostrar à mesa"** abre a prévia de confirmação (`RevealDialog`) com exatamente o que vai — `forPlayers(texto)`, sem `[[ ]]`.
-  Vira `handout` no feed (ver `src/services/CLAUDE.md`).
+  Vira `handout` no feed (ver `src/services/AGENTS.md`).
 - **Planejador de encontros** (`EncounterPlanner` + `xp.ts`, GM Core pg. 75-76): `AonCreatureSearch` com `onPick`, orçamento
   com ajuste por personagem, nível-alvo por criatura (`PlannedCreature.level`; envio escala com `scaleMonster`/`npcFromScaled`,
   sem ajuste fino). Grupo padrão pelas fichas publicadas (`partyFromLevels`), ajustável por sessão. Criatura a mais de 4 níveis
