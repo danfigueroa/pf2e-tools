@@ -367,7 +367,7 @@ pf2e-tools/
     └── theme/              # paleta verde/pergaminho/ouro, tema claro e escuro
 ```
 
-**Documentação para quem desenvolve**: o `CLAUDE.md` da raiz tem as regras que valem para o repositório inteiro, e cada
+**Documentação para quem desenvolve**: o `AGENTS.md` da raiz tem as regras que valem para o repositório inteiro, e cada
 área tem o seu (`api/CLAUDE.md`, `supabase/CLAUDE.md`, `src/services/CLAUDE.md`, `src/theme/CLAUDE.md`,
 `src/modules/<módulo>/CLAUDE.md`…), com as decisões, armadilhas e invariantes daquela parte. Leia antes de mexer nela.
 
@@ -485,8 +485,8 @@ publicadas), `seed-presets.mjs`, `grant-gm.mjs`.
 
 -   TypeScript com tipagem forte, um módulo por ferramenta em `src/modules/`, lógica em arquivos próprios.
 -   Interface em português **e** inglês (`tr('…', '…')`), código em inglês.
--   Leia o `CLAUDE.md` da raiz e o da área antes de mexer; rode `npm run build`, `npm run lint` e o script de conferência
-    da área.
+-   Leia o `AGENTS.md` da raiz e o `CLAUDE.md` da área antes de mexer. Rode `npm run build`, `npm run lint` e o script
+    de conferência da área.
 -   Commits pequenos, mensagens em português.
 
 ---
