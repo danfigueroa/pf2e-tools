@@ -6,9 +6,10 @@ no celular. Produto e elenco: `README.md`.
 
 ## Onde está o detalhe
 
-Este arquivo tem só o que vale para o repositório inteiro. Cada área tem um `CLAUDE.md` próprio, carregado quando você
-abre arquivos dela. **Vai mexer num arquivo que pertence a outra área** (o handler da wiki em `api/_lib/`, o
-`tableState.ts` a partir da ficha)? **Leia o `CLAUDE.md` daquela área antes.**
+Este arquivo reúne as regras do repositório inteiro. O Claude Code carrega os guias por área ao abrir arquivos delas.
+O Codex segue o [`AGENTS.md`](AGENTS.md) da raiz e consulta os mesmos guias conforme a tarefa.
+**Leia o `CLAUDE.md` de cada área afetada antes de editar**, inclusive quando a mudança cruzar módulos (por exemplo,
+ao alterar o handler da wiki em `api/_lib/` ou o `tableState.ts` a partir da ficha).
 
 | Área | Arquivo |
 | --- | --- |
