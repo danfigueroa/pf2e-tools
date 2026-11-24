@@ -15,5 +15,12 @@
 - **0.6 concluída em `9fcaaaf`.** A regra global 7 agora registra os pares de validação de `sanitizeBuildState`, `MesaRules` e slug do build para a F2.
 - **0.7 concluída em `f5c3f18`.** O export real do Pathbuilder foi preservado em `scripts/rules-data/samples/pathbuilder-inventory-formula.json`. O [contrato da ficha](CONTRATO-FICHA.md#4-equipamento) registra a posição do ID do contêiner e a forma dos grupos de fórmulas.
 - **Verificação.** `npm run build`, `npm run lint` e `git diff --check` passaram. O Vite emitiu o aviso de tamanho de bundles.
-- **Ajustes propostos.** Corrigir para nove o total de classes nos dez exports do elenco. Explicitar na F7 a leitura do catálogo local na publicação do Criador e a propagação do slug estável aos consumidores do estado da mesa.
-- **Próximo passo.** Com o aceite do usuário para a F1, medir `pg_database_size`, apresentar a estimativa da carga, alinhar o critério das nove classes do elenco e preparar a migration e a ingestão em modo de verificação. A carga inicial em produção depende de autorização específica.
+- **Ajuste proposto para a F7.** Explicitar a leitura do catálogo local na publicação do Criador e a propagação do slug estável aos consumidores do estado da mesa.
+
+## F1 — Base de regras no banco em andamento
+
+- **1.1 concluída em `a0bc4a0`.** Migration local criada e validada em `BEGIN…ROLLBACK`. `pg_database_size` retornou 26.523.315 bytes (25 MiB). A estimativa preliminar é ~40 MB de dados brutos, antes dos índices e da mecânica do Foundry. A projeção final depende da amostra normalizada.
+- **1.2 concluída em `c5c5d6a`.** A leitura usa `search_after` e `id.keyword`, com uma requisição por vez e intervalo entre consultas. Verifiquei duas páginas de livros e duas de talentos do Player Core na AON, além de uma falha HTTP simulada com retentativa no mesmo cursor.
+- **Verificação.** Build, lint, checagem de whitespace e validação da migration passaram. Os dez exports do elenco cobrem nove classes, e a análise e o roadmap já refletem a contagem.
+- **Divergência a resolver antes de 1.3.** A AON retorna nomes repetidos dentro de `feat`, `equipment` e `class-feature`. A normalização por nome prevista colide com `rules_entries.id` único. Proposta: derivar a identidade de `tipo` e `aon_id` estável, guardando nome e slug legível para exibição e busca. A proposta aguarda aceite antes da edição dos contratos de IDs.
+- **Próximo passo.** Após definir o identificador, atualizar os contratos e implementar 1.3–1.4 com as categorias e os campos verificados na AON. A migration em produção e a carga inicial continuam pendentes.

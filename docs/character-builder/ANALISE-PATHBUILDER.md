@@ -143,7 +143,7 @@ guias do jogador e volumes de cada Adventure Path.
 
 | Item | Decisão |
 | --- | --- |
-| 27 classes com progressão completa 1–20 | ✅ (MVP: as 8 classes do elenco + as do Player Core 1; demais na fase 5) |
+| 27 classes com progressão completa 1–20 | ✅ (MVP: as nove classes do elenco + as do Player Core 1; demais na fase 5) |
 | Escolhas de classe com sub-escolhas (escola → magias da escola; doutrina → domínios) | ✅ |
 | Class Archetypes | ⏳ |
 | Dual Class | ⏳ |

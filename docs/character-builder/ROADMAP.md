@@ -76,10 +76,10 @@ Regras de execução válidas em todas as fases:
 lendo dele sem tocar a AON. Desenho completo em [BASE-DE-REGRAS.md](BASE-DE-REGRAS.md).
 **Depende de**: F0 (D1 decide de onde vem a mecânica).
 
-- [ ] **1.1** Migration `base_de_regras`: `rules_sources`, `rules_entries`, `rules_mechanics`, `rules_import_jobs`,
+- [x] **1.1** Migration `base_de_regras`: `rules_sources`, `rules_entries`, `rules_mechanics`, `rules_import_jobs`,
       `rules_catalog_versions`, `platform_admins` (semente: a conta `danfigueroa`, D9), extensão `pg_trgm`, grants ao
       `service_role`, bucket público `rules` no Storage (escrita só do servidor). Conferir `pg_database_size` antes.
-- [ ] **1.2** `api/_lib/rules-import.js` (JS puro, usado pelo script e pela tela): ler livros (`category: source`),
+- [x] **1.2** `api/_lib/rules-import.js` (JS puro, usado pelo script e pela tela): ler livros (`category: source`),
       paginar entradas por livro e categoria com `search_after` e ordenação explícita, intervalo entre páginas,
       retomada por `cursor`.
 - [ ] **1.3** Normalização por categoria → `rules_entries` (ids `tipo:slug`, nome canônico, nível, raridade, traços,
@@ -102,7 +102,7 @@ lendo dele sem tocar a AON. Desenho completo em [BASE-DE-REGRAS.md](BASE-DE-REGR
 
 **Entregáveis**: base completa no banco, pacotes no Storage, loader no cliente, script de importação.
 **Rodar**: `check-migrations`, `import-rules --check`, reimportar um livro sem mudança = 0 alteradas, build, lint.
-**Pronto quando**: contagens por livro batem com a AON; as 8 classes do elenco têm progressão 1–20 completa; abrir o
+**Pronto quando**: contagens por livro batem com a AON; as nove classes do elenco têm progressão 1–20 completa; abrir o
 Criador não faz nenhuma chamada à AON (conferir na aba de rede).
 
 ---
@@ -200,7 +200,7 @@ Pathbuilder (conferido criando os mesmos no Pathbuilder).
       `MartialProficiency`, `FlatModifier` sem predicado, `BaseSpeed`, `Sense`, `Resistance`/`Weakness`/`Immunity`;
       predicados avaliáveis na criação; `UNSUPPORTED_EFFECT` para o resto.
 - [ ] **4.3** Escolhas de classe com sub-escolhas (escola, doutrina, causa, instinto, racket, metodologia, consciência,
-      estudo híbrido, grupo de Weapon Mastery…) — conferir cada uma na AON para as 8 classes do elenco primeiro.
+      estudo híbrido, grupo de Weapon Mastery…) — conferir cada uma na AON para as nove classes do elenco primeiro.
 - [ ] **4.4** Proficiências por nível (características "Expertise", talentos) com rank máximo e `specificProficiencies`.
 - [ ] **4.5** Boosts de 5/10/15/20, aumentos de perícia com teto (`SKILL_RANK_CAP`).
 - [ ] **4.6** `prereqs.ts`: parser dos padrões (MOTOR §11), resultado por parte (ok/fail/unknown), motivo legível pt/en;
