@@ -82,13 +82,21 @@ node --env-file=.env scripts/import-rules.mjs --mechanics foundry --ref <commit-
    aventura que não é de jogador (bestiários).
 4. **Normalizar** nomes, categorias e livros para o cruzamento (MODELO-DE-DADOS §4). Separe rule elements suportados
    em `rules` e o restante em `unsupported`.
-5. **Casar com a AON** por nome + categoria (`namesCompatible`) e usar o ID oficial `tipo:aon_id` da entrada casada.
-   Relate entradas sem correspondência ou com correspondência ambígua.
-6. **Aplicar** `corrections.json` e as tabelas curadas.
-7. **Particionar** em arquivos por tipo/lista; gerar `manifest.json` (versão, hash, contagem, bytes).
-8. **Relatório** (`--dry-run` mostra só isto): entradas novas/removidas/alteradas desde a versão anterior, sem AON,
+5. **Casar com a AON** pelo nome exato normalizado (`matchKey`), nunca pelo `namesCompatible`, que é aproximado e serve
+   para descrição, não para regra. Use o ID oficial `tipo:aon_id` da entrada casada. Ordem das tentativas: nome na
+   categoria; nome nas categorias vizinhas (ritual, subclasse, ação ↔ talento); sem o parêntese final, que vira
+   `variant` nos rule elements ("Advanced Vials (Bomber)"); sem o prefixo "X: ". Desempate de homônimos, em ordem:
+   nível, classe/traço, marca Remaster, o grau (`item_parent_id`) e a edição mais recente. Uma característica de classe
+   repetida em várias classes ("Evasion") vale para todas. Casou a versão legada de algo Remaster no Foundry: siga o
+   `replaced_by`. Relate entradas sem correspondência ou com correspondência ambígua.
+6. **Conferir a progressão** de cada classe com a tabela de avanço da AON (`checkProgression`): níveis de talento e de
+   aumento de perícia têm de bater. Os extras de Skillful Lessons e Stylish Tricks contam como talento de perícia.
+   Característica fora da linha é aviso de nome.
+7. **Aplicar** `corrections.json` e as tabelas curadas.
+8. **Particionar** em arquivos por tipo/lista; gerar `manifest.json` (versão, hash, contagem, bytes).
+9. **Relatório** (`--dry-run` mostra só isto): entradas novas/removidas/alteradas desde a versão anterior, sem AON,
    rule elements não suportados mais comuns (prioriza o que implementar).
-9. Rodar `check-builder.mjs` contra a versão nova antes de publicar.
+10. Rodar `check-builder.mjs` contra a versão nova antes de publicar.
 
 **Versão**: `YYYY.MM.n` (`rules_catalog_versions`). Mudou o catálogo → pacotes novos em `rules/<versão>` no Storage; os
 anteriores ficam até nenhum build referenciá-los (o cliente abre builds velhos com a versão deles e oferece "Atualizar

@@ -146,8 +146,12 @@ A mecânica tem três origens:
    dado, tipo de dano (a letra de `damage`, não o primeiro de `damage_type`, que inclui o versátil), grupo e categoria de
    arma; dados de magia. O texto que o parser não entende vai para `derived.unsupported`, para virar aviso no motor. Isso
    inclui o que depende de subclasse, divindade, armas de fogo e Lore à escolha.
-2. **`foundry`** (se a decisão D1 permitir) — rule elements e progressão de classe do sistema PF2e do Foundry, casados por
-   nome + tipo (e `legacy_name`).
+2. **`foundry`** (D1 aprovada): rule elements e progressão de classe do sistema PF2e do Foundry, em `rules_mechanics`.
+   Núcleo puro em `api/_lib/rules-foundry.js` e leitura do pacote em `scripts/rules-data/foundry-packs.mjs`. O casamento
+   está em FONTES-DE-DADOS §4. Em `rules` ficam os rule elements suportados e os situacionais, estes marcados com
+   `situational: true`, que a Ficha mostra como informação e o motor não compila. Os de aparência (`TokenLight`…) são
+   descartados. Os demais vão para `unsupported` com a chave e, no `ActiveEffectLike`/`FlatModifier`, o caminho, para o
+   relatório priorizar.
 3. **`manual`** — tabelas curadas no repositório (slots de magia, riqueza, correções), conferidas na AON.
 
 Entrada sem mecânica **continua escolhível**: o motor aplica o que sabe e mostra "efeito não calculado: <nome>"

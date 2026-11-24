@@ -88,7 +88,7 @@ lendo dele sem tocar a AON. Desenho completo em [BASE-DE-REGRAS.md](BASE-DE-REGR
 - [x] **1.4** Regra Remaster × legado (BASE-DE-REGRAS §8).
 - [x] **1.5** Mecânica `derived` a partir dos campos da AON (ancestralidade, background, classe inicial, armas, magias),
       em `rules_entries.data.derived`.
-- [ ] **1.6** Mecânica `foundry` (se D1 permitir): rule elements e progressão de classe casados por nome/tipo/`legacy_name`;
+- [x] **1.6** Mecânica `foundry` (se D1 permitir): rule elements e progressão de classe casados por nome/tipo/`legacy_name`;
       o resto em `unsupported`; relatório dos não suportados mais frequentes (prioriza a F4).
 - [ ] **1.7** Mecânica `manual`: `spell-slots.json` (cada progressão conferida na AON e com o `perDay` do elenco),
       `wealth.json`, `exports.json` (nomes de conjurador e rótulos de slot do Pathbuilder), `corrections.json`.
