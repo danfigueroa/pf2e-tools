@@ -10,7 +10,7 @@
 //
 //   POST { action: 'register', code, username, password, name? } → { mesa, role, username }  (SEM sessão)
 //   GET  ?me=1                                    → { user, mesas: [{ id, name, role, displayName,
-//                                                     sessionStartedAt, nextSessionAt, members }] }
+//                                                     sessionStartedAt, nextSessionAt, members }], rulesVersion }
 //   GET  ?members=1                               → { members: [...], invites: [...] }   (GM)
 //   POST { action: 'invite-create', role?, maxUses?, days? } → { invite }               (GM)
 //   POST { action: 'invite-revoke', code }                   → { ok }                  (GM)
@@ -34,6 +34,7 @@ import { forbidden, forgetMember, forgetOwner, memberRole } from './access.js'
 import { isValidSlug, readCharacterSlices } from './table-store.js'
 import { deleteImages, imagePath } from './images.js'
 import { endSession, safely, startSession } from './trophy-store.js'
+import { currentRulesVersion } from './rules-core.js'
 
 const ok = (body = {}) => ({ status: 200, body: { ok: true, ...body, storeReady: isSupabaseConfigured() } })
 const fail = (status, error) => ({ status, body: { error } })
@@ -159,6 +160,8 @@ async function readMe(db, access) {
             .map((c) => [c.o_mesa, Number(c.o_accounts)]),
     )
     return {
+        // Versão do catálogo do Criador: mudou, o cliente baixa só as listas que usar (BASE-DE-REGRAS §5).
+        rulesVersion: await currentRulesVersion(),
         user: { id: access.userId, email: access.email, username: usernameOf(access.email) },
         mesas: (rows ?? []).map((r) => ({
             id: r.mesa,

@@ -94,7 +94,7 @@ lendo dele sem tocar a AON. Desenho completo em [BASE-DE-REGRAS.md](BASE-DE-REGR
       `wealth.json`, `exports.json` (nomes de conjurador e rótulos de slot do Pathbuilder), `corrections.json`.
 - [x] **1.8** `scripts/import-rules.mjs` (`--remaster`, `--source`, `--check`) e **carga inicial** de todos os livros
       Remaster (~17,8 mil entradas).
-- [ ] **1.9** Geração dos **pacotes por lista** no Storage (`rules/<versão>/<lista>.json`) + `rulesVersion` no `?me=1`;
+- [x] **1.9** Geração dos **pacotes por lista** no Storage (`rules/<versão>/<lista>.json`) + `rulesVersion` no `?me=1`;
       rota de reserva `api/search.js?rules=` com `Cache-Control` por versão.
 - [ ] **1.10** Cliente: `rules/loader.ts` (pacotes do Storage, cache IndexedDB global `pf2e:rules:<versão>:<lista>`, sem
       `mesaKey`) e `rules/index.ts` (`featsFor`, `spellsFor`, `itemsBy`).

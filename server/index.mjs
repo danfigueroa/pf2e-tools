@@ -16,6 +16,7 @@ import { hasTranslationKey } from '../api/_lib/aon.js'
 import { pingDatabase } from '../api/_lib/supabase.js'
 import { routeState } from '../api/_lib/state-router.js'
 import { langOf, localizeBody } from '../api/_lib/i18n.js'
+import { resolveRulesRequest } from '../api/_lib/rules-core.js'
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3001
 // Gate de tradução: as chaves em si (GEMINI_API_KEY / GROQ_API_KEY) são lidas
@@ -165,6 +166,22 @@ const server = http.createServer(async (req, res) => {
   
   // Busca genérica (habilidades especiais, etc.)
   if (pathname === '/api/search') {
+    // Catálogo do Criador (?rules=<lista>&v= ou ?rules=search&q=), do nosso banco — ver api/search.js.
+    const rulesList = parsedUrl.searchParams.get('rules')
+    if (rulesList) {
+      try {
+        const p = parsedUrl.searchParams
+        const { status, body, cache } = await resolveRulesRequest({ rules: rulesList, v: p.get('v'), q: p.get('q'), limit: p.get('limit') })
+        res.writeHead(status, { 'Content-Type': 'application/json', ...(cache ? { 'Cache-Control': cache } : {}) })
+        res.end(JSON.stringify(localizeBody(body, lang)))
+      } catch (e) {
+        console.error('[/api/search?rules] Error:', e)
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: e.message }))
+      }
+      return
+    }
+
     // Modo aflição (?affliction=): venenos e doenças com estágios, sem tradução.
     // Vive no mesmo endpoint que a busca genérica porque o plano Hobby da Vercel
     // só permite 12 funções serverless — ver api/search.js.

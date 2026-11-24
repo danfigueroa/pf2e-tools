@@ -46,4 +46,9 @@
   - **Progressão.** Os níveis de talento e de perícia batem com a AON nas 29 classes. As características das nove classes do elenco estão todas casadas.
   - **Aliases novos em `corrections.json`.** Ranger Weapon Mastery, Rogue Debilitating Strikes, Witch Hexes e Magus Studious Spells. Eles eram necessários porque, sem os livros legados, o caminho pelo `replaced_by` não existe.
   - **Sem par na AON, fora do elenco.** Inventor (Churning Mind, Perception Expertise, Anvil's Hardness), Oracle (Oracular Curse, Revelation Spells), Sorcerer (Bloodline Spells) e Thaumaturge (Exploit Vulnerability, Reflex Expertise). O motor avisa; os aliases entram conforme essas classes forem conferidas.
-- **Próximo passo.** 1.9: pacotes por lista no Storage (`rules/<versão>/<lista>.json`), `rulesVersion` no `?me=1` e a rota de reserva `api/search.js?rules=`.
+- **1.9 concluída.**
+  - **Pacotes da versão `2026.11.2` no bucket `rules`.** 322 arquivos e 10,2 MB no total. Os maiores: `items/consumables` com 1 MB e `core/actions` com 756 KB; os de classe têm dezenas de KB com gzip.
+  - **Conferido pelo CDN.** `core/classes` traz as 28 classes, com `featLevels`, `skillIncreaseLevels` e as características ligadas a `class-feature:<aon_id>`.
+  - **Rota de reserva.** `?rules=` e `?rules=search` testadas no servidor de dev: 200 com cache imutável, 400 para lista inválida e 404 para lista inexistente, com o erro no idioma do pedido.
+  - **`?me=1`** agora traz `rulesVersion`, com cache de 60 s.
+- **Próximo passo.** 1.10: `src/modules/character-builder/rules/loader.ts` (pacotes do Storage, IndexedDB `pf2e:rules:<versão>:<lista>`) e `rules/index.ts` (`featsFor`, `spellsFor`, `itemsBy`).

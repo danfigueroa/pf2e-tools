@@ -179,11 +179,18 @@ O banco é a **fonte**; a leitura do dia a dia não bate nele a cada toque:
    `spells/<tradição>`, `items/<categoria>`…) e os grava no **Storage** (bucket público `rules`, só o servidor escreve),
    em `rules/<versão>/<lista>.json`. Servidos pelo CDN do Supabase: **nenhuma função e nenhuma consulta ao banco** por
    leitura.
+   Montados por `api/_lib/rules-packages.js` (puro; `ruleEntryView` e `ruleLists`) e gravados pelo `import-rules.mjs`
+   ao fim de cada importação que muda algo (`--packages-only` regera a versão atual). Um talento pode estar em mais
+   de uma lista (classe e arquétipo). O `manifest.json` traz `hash`, `count` e `bytes` de cada lista. O gateway do
+   Supabase serve o bucket com `cache-control: private, no-cache` (igual ao `images`); a versão no caminho e o cache do
+   aparelho (item 2) garantem que nada se baixa de novo.
 2. **Cache no aparelho** — o cliente guarda cada pacote no IndexedDB (`pf2e:rules:<versão>:<lista>`, global, sem
    `mesaKey`). Abrir o Criador de novo não baixa nada.
 3. **Versão atual** — vem no `?me=1` que o app já chama (`rulesVersion`); mudou, o cliente baixa só as listas que usar.
 4. **Consulta pontual** — busca livre no catálogo inteiro (Navegador, F9) e entrada única fora dos pacotes vão por
-   `api/search.js?rules=…` (sem arquivo novo em `api/`), com `Cache-Control` por versão.
+   `api/search.js?rules=…` (sem arquivo novo em `api/`), com `Cache-Control` por versão. Núcleo em `api/_lib/rules-core.js`:
+   `?rules=<lista>&v=<versão>` devolve o pacote (imutável com `v`, 60 s sem), `?rules=manifest` o manifesto,
+   `?rules=search&q=` até 30 entradas pelo nome. Abertas como as outras rotas da AON (`gateLogin` ainda não aplicado).
 5. **Descrições** — o markdown em inglês já está no banco: o detalhe em inglês sai dele, e a tradução pt usa o pipeline
    atual (`descriptions`, cadeia de LLMs, correções humanas) **sem buscar a AON**. Pré-traduzir um livro inteiro é um
    botão opcional (fila lenta, respeitando o limite dos provedores).

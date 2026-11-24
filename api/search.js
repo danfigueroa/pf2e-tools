@@ -8,6 +8,7 @@
 //   ?items=a|b   → traços dos itens do inventário (consumível? cura?), SEM tradução
 //   ?shields=a|b → bônus, Dureza, PV e BT dos escudos, SEM tradução
 //   ?gear=a|b    → traços das armas e penalidade das armaduras (rolagens), SEM tradução
+//   ?rules=<lista>&v=<versão> → pacote do catálogo do Criador (reserva do Storage); ?rules=search&q= → busca no catálogo
 //
 // O modo de aflição mora aqui porque o plano Hobby da Vercel permite 12 funções
 // serverless por deploy e `api/*.js` já está em 12 — arquivo novo passaria do
@@ -26,6 +27,7 @@ import { resolveShields } from './_lib/shield-core.js'
 import { resolveGear } from './_lib/gear-core.js'
 import { hasTranslationKey } from './_lib/aon.js'
 import { apiLang } from './_lib/i18n.js'
+import { resolveRulesRequest } from './_lib/rules-core.js'
 
 export default async function handler(req, res) {
   // CORS
@@ -37,6 +39,20 @@ export default async function handler(req, res) {
     return res.status(200).end()
   }
   const lang = apiLang(req, res)
+
+  // Modo catálogo do Criador: o pacote da lista (reserva do Storage) ou a busca pelo nome, do nosso banco.
+  if (req.query?.rules) {
+    try {
+      const { status, body, cache } = await resolveRulesRequest({
+        rules: String(req.query.rules), v: req.query.v, q: req.query.q, limit: req.query.limit,
+      })
+      if (cache) res.setHeader('Cache-Control', cache)
+      return res.status(status).json(body)
+    } catch (error) {
+      console.error('Rules API error:', error)
+      return res.status(500).json({ error: 'Erro ao buscar regras' })
+    }
+  }
 
   // Modo aflição: lista de venenos/doenças com estágios.
   const affliction = req.query?.affliction ? String(req.query.affliction).trim() : ''
