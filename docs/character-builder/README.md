@@ -56,11 +56,16 @@ Rotas propostas: **`/personagens`** (meus personagens e os da mesa) e **`/ficha-
 9. **Paridade antes de lançar**: o Criador só substitui o Pathbuilder quando reconstruir os 10 personagens do elenco e
    gerar os mesmos números que o export deles (`check-builder.mjs`).
 
+## Decisões da F0
+
+| # | Data | Decisão |
+| --- | --- | --- |
+| D1 | 2026-11-24 | Usar o sistema PF2e do Foundry como complemento para a mecânica e a progressão de classe, com dados sob licença compatível e commit fixo. Casar as entradas com o catálogo da AON. As descrições vêm do catálogo importado da AON. |
+
 ## Decisões em aberto (precisam do usuário)
 
 | # | Pergunta | Recomendação |
 | --- | --- | --- |
-| D1 | O **catálogo** vem da AON para o banco (decidido). A **mecânica** (o que cada talento faz, progressão de classe) completa-se com os dados do sistema PF2e do Foundry (ver licenças) ou só com campos da AON + curadoria à mão? | Foundry como camada de mecânica, casada por nome com a entrada da AON; sem ele o motor funciona, mas avisa mais "efeito não calculado" |
 | D9 | Quem administra a base de regras (é de todas as mesas)? | Tabela `platform_admins`, semeada com a sua conta |
 | D2 | Conteúdo caseiro (homebrew) da mesa entra no MVP? | Não; fase 9 (as relíquias já vivem em catálogo próprio na Ficha) |
 | D3 | O Criador grava rascunho por mesa ou por conta (um personagem em várias mesas)? | Por mesa (igual às fichas publicadas); "Copiar para outra mesa" depois |

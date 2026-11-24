@@ -53,13 +53,13 @@ Regras de execução válidas em todas as fases:
 
 **Objetivo**: fechar as decisões que mudam o desenho e preparar o terreno.
 
-- [ ] **0.1** Decidir D1 (fonte da mecânica: Foundry como entrada vs. catalogação à mão) — registrar a decisão e o
+- [x] **0.1** Decidir D1 (fonte da mecânica: Foundry como entrada vs. catalogação à mão) — registrar a decisão e o
       porquê no `AGENTS.md` do módulo.
 - [ ] **0.2** Decidir D2–D6 (homebrew no MVP, build por mesa, GM cria para jogador, PDF, riqueza inicial).
 - [ ] **0.3** Confirmar com o GM de cada mesa as variantes ligadas (Free Archetype, Mítico, Ancestral Paragon) e os
       livros liberados — vira a semente de `mesa_rules`.
 - [ ] **0.4** Fixar o commit do repositório de dados (se D1 = Foundry) e anotar no `FONTES-DE-DADOS.md`.
-- [ ] **0.5** Criar `src/modules/character-builder/AGENTS.md` (regras do módulo no estilo dos outros: imperativo + porquê
+- [x] **0.5** Criar `src/modules/character-builder/AGENTS.md` (regras do módulo no estilo dos outros: imperativo + porquê
       em uma linha) e a linha dele na tabela "Onde está o detalhe" do `AGENTS.md` raiz.
 - [ ] **0.6** Acrescentar à regra global 7 os pares novos (`sanitizeBuildState`, `MesaRules`, slug do build).
 - [ ] **0.7** Exportar do Pathbuilder **um personagem com contêiner com item dentro e com fórmulas** para fechar os

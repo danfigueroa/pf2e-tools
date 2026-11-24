@@ -22,6 +22,7 @@ ao alterar o handler da wiki em `api/_lib/` ou o `tableState.ts` a partir da fic
 | Início | `src/pages/AGENTS.md` |
 | Tela de entrada (login, vitrine) | `src/modules/account/AGENTS.md` |
 | Ficha Virtual (`/ficha-virtual`) — classes, rolagens, ações, magias, inventário | `src/modules/character-viewer/AGENTS.md` |
+| Criador de Personagem — catálogo de regras, escolhas, compilação e integração com a Ficha | `src/modules/character-builder/AGENTS.md` |
 | Iniciativa (`/iniciativa`) e companheiros de combate | `src/modules/initiative-tracker/AGENTS.md` |
 | Mapa de Combate (`/mapa/:id?`) | `src/modules/battle-map/AGENTS.md` |
 | Estatísticas da Mesa (`/historico`) | `src/modules/session-diary/AGENTS.md` |
