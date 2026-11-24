@@ -86,10 +86,15 @@ Lista de nomes de características (classe, ancestralidade, herança, sentidos):
 | `weapons[]` | `{ name, qty, prof, die, pot, str, mat, display, runes, damageType, attack, damageBonus, extraDamage, increasedDice, isInventor, grade }` | `name` = base canônica ("Longsword"); `display` = nome personalizado ou "+1 Striking Longsword"; `prof` = `simple/martial/advanced/unarmed`; `str` = `""/"striking"/"greaterStriking"/"majorStriking"`; `mat` = `"Cold Iron (Low-Grade)"` ou `null`; `runes` = propriedade (`["Flaming"]`); `damageType` = `S/P/B` ou o nome; `attack`/`damageBonus` **totais** (MOTOR §7) |
 | desarmados | entradas em `weapons[]` com `prof: "unarmed"` | **novo**: o Pathbuilder não exporta. Quando a Ficha passar a ler isto, o catálogo `unarmed.ts` vira só reserva para fichas antigas (fase 7, com casos no `check-rolls`) |
 | `armor[]` | `{ name, qty, prof, pot, res, mat, display, worn, runes, grade }` | `res` = `""/"resilient"/"greaterResilient"/"majorResilient"`; `worn` só uma armadura; escudo também entra aqui (como no export) |
-| `equipment[]` | `[nome, qtd, "Invested"?]` | terceiro elemento só se investido; contêiner: **conferir num export real com item dentro de contêiner** antes de fechar (pode haver 4º elemento com o id) |
-| `equipmentContainers` | `{ "<uuid>": { containerName, bagOfHolding, backpack, augmentations } }` | contêineres do inventário |
+| `equipment[]` | `[nome, qtd, "Invested"?]` no inventário principal. No contêiner, a amostra traz `[nome, qtd, idDoContêiner, "Invested"]`. | Se o terceiro elemento for uma chave de `equipmentContainers`, ele indica o contêiner. O literal `"Invested"` aparece na quarta posição dessa tupla e também na terceira nos exports sem contêiner. |
+| `equipmentContainers` | `{ "<uuid>": { containerName, bagOfHolding, backpack, augmentations } }` | O item aponta para a chave do contêiner. Na amostra, `backpack` é `true` e `bagOfHolding` e `augmentations` são `false`. |
 | `money` | `{ cp, sp, gp, pp }` | `state.money` depois das compras |
-| `formula` | `[]` (lista de fórmulas) | livro de fórmulas — **conferir formato num export** |
+| `formula` | Lista de grupos `{ type, known: string[] }` | A fórmula adquirida de `Bedroll` saiu em `{ "type": "other", "known": ["Bedroll"] }`. Uma lista vazia representa um livro sem fórmulas. |
+
+A [amostra da F0.7](../../scripts/rules-data/samples/pathbuilder-inventory-formula.json) foi exportada pelo Pathbuilder
+Feylines 112.0 de um personagem de teste. O Pathbuilder incluiu `"Invested"` no `Bedroll`, embora o item tenha sido
+apenas movido para a mochila. Ao importar, preserve o vínculo pelo ID do contêiner e só trate o marcador como investimento
+efetivo se o item puder ser investido.
 
 ## 5. Magias
 
