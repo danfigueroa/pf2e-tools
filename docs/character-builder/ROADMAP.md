@@ -99,7 +99,7 @@ lendo dele sem tocar a AON. Desenho completo em [BASE-DE-REGRAS.md](BASE-DE-REGR
 - [x] **1.10** Cliente: `rules/loader.ts` (pacotes do Storage, cache IndexedDB global `pf2e:rules:<versão>:<lista>`, sem
       `mesaKey`) e `rules/index.ts` (`featsFor`, `spellsFor`, `itemsBy`).
 - [x] **1.11** Fixture fixa da base no repo para o `check-builder` (testes sem rede nem banco).
-- [ ] **1.12** Página "Créditos e licenças" (ORC/OGL dos livros importados), bilíngue.
+- [x] **1.12** Página "Créditos e licenças" (ORC/OGL dos livros importados), bilíngue.
 
 **Entregáveis**: base completa no banco, pacotes no Storage, loader no cliente, script de importação.
 **Rodar**: `check-migrations`, `import-rules --check`, reimportar um livro sem mudança = 0 alteradas, build, lint.

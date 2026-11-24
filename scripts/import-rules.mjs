@@ -118,7 +118,7 @@ async function publishPackages(version) {
     const tables = { spellSlots: readTable('spell-slots'), wealth: readTable('wealth'), exports: readTable('exports') }
     const { files, manifest } = buildRulePackages({
         version, entries, mechanics, tables,
-        sources: sources.filter((source) => source.status === 'imported'),
+        sources: sources.filter((source) => source.status === 'imported' && source.our_count > 0),
     })
     await uploadRulePackages(version, files)
     const sizes = Object.values(manifest.files).map((file) => file.bytes)

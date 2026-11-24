@@ -62,4 +62,13 @@
   - **"Specials" compostos do Pathbuilder.** Atributos, perícias e rótulos como "Studious Spell: Blur", "Empiricism Selected Skill: Occultism" e "Standard Cantrip: Shield (Archetype)". O compilador gera esses rótulos; eles não vêm do catálogo.
   - **Caseiros.** Braço Sônico, Miranda's Arm e Loki's Heart, todos do catálogo de relíquias da Ficha (D2).
   - **Opções com outro nome na AON.** "Thief Racket" é "Thief"; "Giant Instinct" é "Giant". Entram no `exports.json` ou no `corrections.json` na F7.
-- **Próximo passo.** 1.12, página "Créditos e licenças". Depois, o "Pronto quando" da F1: abrir o Criador sem chamadas à AON se confere quando houver tela (F2).
+- **1.12 concluída.**
+  - `/creditos` (`src/pages/CreditsPage.tsx`, chunk próprio de 2,8 KB gzip) tem um link no rodapé da sidebar, ao lado do aviso de fã.
+  - O texto da Community Use Policy (paizo.com/licenses/communityuse) e o ORC Notice (paizo.com/orclicense, seção a) estão citados literalmente, em inglês nos dois idiomas, porque são texto legal. A Attribution Notice lista os livros importados como "© Paizo Inc.", lidos de `core/sources`.
+  - Os pacotes passaram a listar só livros com entradas importadas: 80 de 161.
+  - Conferido em 320 px e no desktop pela captura via CDP do Brave; o `--screenshot` do Brave headless trava neste Mac.
+- **F1: estado do "Pronto quando".**
+  - As contagens por livro batem com a AON. A diferença está só nas 45 subações sem nome.
+  - As nove classes do elenco têm progressão 1–20 completa.
+  - O carregador não faz chamada à AON (teste do 1.10). A conferência na aba de rede, com o Criador aberto, fica para a primeira tela (F2).
+- **Próximo passo.** F1B (atualização da base pela plataforma) ou F2 (esqueleto e persistência); pelo ROADMAP, as duas podem andar juntas.

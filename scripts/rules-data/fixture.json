@@ -8499,13 +8499,6 @@
     "remaster": true
    },
    {
-    "id": "source:source-233",
-    "name": "War of Immortals Alternate Mythic Rules",
-    "productLine": "Rulebooks",
-    "releaseDate": "2024-10-30",
-    "remaster": true
-   },
-   {
     "id": "source:source-234",
     "name": "Divine Mysteries",
     "productLine": "Lost Omens",
@@ -8716,20 +8709,6 @@
     "remaster": true
    },
    {
-    "id": "source:source-273",
-    "name": "Pathfinder #217: Death Sails a Wine-Dark Sea",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2025-07-31",
-    "remaster": true
-   },
-   {
-    "id": "source:source-274",
-    "name": "Pathfinder #218: Titanbane",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2025-09-03",
-    "remaster": true
-   },
-   {
     "id": "source:source-275",
     "name": "Pathfinder Game Night: Dawn of the Frogs",
     "productLine": "Adventures",
@@ -8748,34 +8727,6 @@
     "name": "Draconic Codex",
     "productLine": "Lost Omens",
     "releaseDate": "2025-11-05",
-    "remaster": true
-   },
-   {
-    "id": "source:source-278",
-    "name": "PFS Scenario #7-01: Intro to the Year of Battle’s Spark: Enough is Enough",
-    "productLine": "Society",
-    "releaseDate": "2025-08-01",
-    "remaster": true
-   },
-   {
-    "id": "source:source-279",
-    "name": "PFS Scenario #7-02: Shipyard Sabotage",
-    "productLine": "Society",
-    "releaseDate": "2025-08-01",
-    "remaster": true
-   },
-   {
-    "id": "source:source-280",
-    "name": "PFS Scenario #7-03: A Foot in the Door",
-    "productLine": "Society",
-    "releaseDate": "2025-09-01",
-    "remaster": true
-   },
-   {
-    "id": "source:source-281",
-    "name": "PFS Scenario #7-04: Sulfuric Negotiations",
-    "productLine": "Society",
-    "releaseDate": "2025-09-01",
     "remaster": true
    },
    {
@@ -8807,13 +8758,6 @@
     "remaster": true
    },
    {
-    "id": "source:source-286",
-    "name": "PFS Scenario #7-05: Battle of the Thorns",
-    "productLine": "Society",
-    "releaseDate": "2025-10-28",
-    "remaster": true
-   },
-   {
     "id": "source:source-287",
     "name": "Gatewalkers Player's Guide (Remastered)",
     "productLine": "Adventure Paths",
@@ -8821,38 +8765,10 @@
     "remaster": true
    },
    {
-    "id": "source:source-288",
-    "name": "PFS Scenario #7-06: Brastlewark at War Part 1: The Gnome Defection",
-    "productLine": "Society",
-    "releaseDate": "2025-11-19",
-    "remaster": true
-   },
-   {
-    "id": "source:source-289",
-    "name": "PFS Scenario #7-07: Draconic Folly",
-    "productLine": "Society",
-    "releaseDate": "2025-11-19",
-    "remaster": true
-   },
-   {
     "id": "source:source-290",
     "name": "Gatewalkers (Hardcover)",
     "productLine": "Adventure Paths",
     "releaseDate": "2025-07-02",
-    "remaster": true
-   },
-   {
-    "id": "source:source-291",
-    "name": "PFS Scenario #7-08: The Haunted Corridor",
-    "productLine": "Society",
-    "releaseDate": "2025-12-17",
-    "remaster": true
-   },
-   {
-    "id": "source:source-292",
-    "name": "PFS Scenario #7-09: The Chitterwood Walks, Part 1: Scrambling the Tribes",
-    "productLine": "Society",
-    "releaseDate": "2026-01-07",
     "remaster": true
    },
    {
@@ -8870,155 +8786,8 @@
     "remaster": true
    },
    {
-    "id": "source:source-295",
-    "name": "PFS Scenario #7-11: The Darkness Within",
-    "productLine": "Society",
-    "releaseDate": "2026-02-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-296",
-    "name": "PFS Scenario #7-12: The Chitterwood Walks, Part 2: The Battle of Logas",
-    "productLine": "Society",
-    "releaseDate": "2026-02-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-297",
-    "name": "The Beast of Birchfrost",
-    "productLine": "Adventures",
-    "releaseDate": "2026-02-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-298",
-    "name": "Shaking the Helping Hand",
-    "productLine": "Adventures",
-    "releaseDate": "2026-02-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-299",
-    "name": "A Song of Making and Unmaking",
-    "productLine": "Adventures",
-    "releaseDate": "2026-02-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-300",
-    "name": "Lady of the Harvest",
-    "productLine": "Adventures",
-    "releaseDate": "2026-02-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-301",
-    "name": "The Verdure of Iblydos",
-    "productLine": "Adventures",
-    "releaseDate": "2026-02-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-302",
-    "name": "Wishes in Krasnoprudny",
-    "productLine": "Adventures",
-    "releaseDate": "2026-02-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-303",
-    "name": "Tomorrow's Feast",
-    "productLine": "Adventures",
-    "releaseDate": "2026-02-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-304",
-    "name": "The Last Dream",
-    "productLine": "Adventures",
-    "releaseDate": "2026-02-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-305",
-    "name": "PFS Scenario #7-13: Ancient Beyond Imagining",
-    "productLine": "Society",
-    "releaseDate": "2026-03-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-306",
-    "name": "PFS Scenario #7-14: Brastlewark at War, Part 2: The Gnome Liberation",
-    "productLine": "Society",
-    "releaseDate": "2026-03-04",
-    "remaster": true
-   },
-   {
     "id": "source:source-307",
     "name": "Pathfinder #222: Hellbreakers",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-03-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-308",
-    "name": "Against Hell",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-03-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-309",
-    "name": "For the Cause",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-03-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-310",
-    "name": "Devils of Chitterwood",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-03-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-311",
-    "name": "Into the Jaws",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-03-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-312",
-    "name": "Dead Man's Party",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-03-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-313",
-    "name": "One Way Out",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-03-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-314",
-    "name": "Wight Queen's Thaw",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-03-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-315",
-    "name": "Springing Sarini Manor",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-03-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-316",
-    "name": "The Battle of Saringallow",
     "productLine": "Adventure Paths",
     "releaseDate": "2026-03-04",
     "remaster": true
@@ -9034,20 +8803,6 @@
     "id": "source:source-319",
     "name": "Hellfire Dispatches",
     "productLine": "Lost Omens",
-    "releaseDate": "2026-04-01",
-    "remaster": true
-   },
-   {
-    "id": "source:source-321",
-    "name": "PFS Scenario #7-15: Within Antiquated Halls",
-    "productLine": "Society",
-    "releaseDate": "2026-04-01",
-    "remaster": true
-   },
-   {
-    "id": "source:source-322",
-    "name": "PFS Scenario #7-16: A Star's Journey",
-    "productLine": "Society",
     "releaseDate": "2026-04-01",
     "remaster": true
    },
@@ -9073,34 +8828,6 @@
     "remaster": true
    },
    {
-    "id": "source:source-328",
-    "name": "The Path River Peeler",
-    "productLine": "Adventures",
-    "releaseDate": "2026-05-06",
-    "remaster": true
-   },
-   {
-    "id": "source:source-329",
-    "name": "Sabotage!",
-    "productLine": "Adventures",
-    "releaseDate": "2026-05-06",
-    "remaster": true
-   },
-   {
-    "id": "source:source-330",
-    "name": "They Hunger Below",
-    "productLine": "Adventures",
-    "releaseDate": "2026-05-06",
-    "remaster": true
-   },
-   {
-    "id": "source:source-331",
-    "name": "The Disgraced Dollmaker",
-    "productLine": "Adventures",
-    "releaseDate": "2026-05-06",
-    "remaster": true
-   },
-   {
     "id": "source:source-332",
     "name": "Sweet Tooth",
     "productLine": "Adventures",
@@ -9108,121 +8835,9 @@
     "remaster": true
    },
    {
-    "id": "source:source-333",
-    "name": "The Count of Petals",
-    "productLine": "Adventures",
-    "releaseDate": "2026-05-06",
-    "remaster": true
-   },
-   {
-    "id": "source:source-334",
-    "name": "PFS Scenario #7-17: Perch of Liberty",
-    "productLine": "Society",
-    "releaseDate": "2026-05-06",
-    "remaster": true
-   },
-   {
-    "id": "source:source-335",
-    "name": "PFS Scenario #7-18: Freedom on the Sea",
-    "productLine": "Society",
-    "releaseDate": "2026-05-06",
-    "remaster": true
-   },
-   {
     "id": "source:source-336",
     "name": "Pathfinder #223: Hell's Destiny",
     "productLine": "Adventure Paths",
-    "releaseDate": "2026-06-03",
-    "remaster": true
-   },
-   {
-    "id": "source:source-337",
-    "name": "Corentyn",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-06-03",
-    "remaster": true
-   },
-   {
-    "id": "source:source-338",
-    "name": "Operation Broken Key",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-06-03",
-    "remaster": true
-   },
-   {
-    "id": "source:source-339",
-    "name": "Hellcoast Heresies",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-06-03",
-    "remaster": true
-   },
-   {
-    "id": "source:source-340",
-    "name": "The Eye of Khari",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-06-03",
-    "remaster": true
-   },
-   {
-    "id": "source:source-341",
-    "name": "Gathering Allies",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-06-03",
-    "remaster": true
-   },
-   {
-    "id": "source:source-342",
-    "name": "Tip of the Spear",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-06-03",
-    "remaster": true
-   },
-   {
-    "id": "source:source-343",
-    "name": "War is Hell",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-06-03",
-    "remaster": true
-   },
-   {
-    "id": "source:source-344",
-    "name": "Tailors and Traitors",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-06-03",
-    "remaster": true
-   },
-   {
-    "id": "source:source-345",
-    "name": "Among the Thorns",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-06-03",
-    "remaster": true
-   },
-   {
-    "id": "source:source-346",
-    "name": "Midnight Burning",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-06-03",
-    "remaster": true
-   },
-   {
-    "id": "source:source-347",
-    "name": "The Final Damnation",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-06-03",
-    "remaster": true
-   },
-   {
-    "id": "source:source-348",
-    "name": "PFS Scenario #7-19: The Lost Legacy",
-    "productLine": "Society",
-    "releaseDate": "2026-06-03",
-    "remaster": true
-   },
-   {
-    "id": "source:source-349",
-    "name": "PFS Scenario #7-20: The Strings of Hell",
-    "productLine": "Society",
     "releaseDate": "2026-06-03",
     "remaster": true
    },
@@ -9241,27 +8856,6 @@
     "remaster": true
    },
    {
-    "id": "source:source-352",
-    "name": "Things Go to Hell",
-    "productLine": "Adventures",
-    "releaseDate": "2026-06-27",
-    "remaster": true
-   },
-   {
-    "id": "source:source-353",
-    "name": "PFS Scenario #7-21: The Home of Empty Breath",
-    "productLine": "Society",
-    "releaseDate": "2026-07-01",
-    "remaster": true
-   },
-   {
-    "id": "source:source-354",
-    "name": "PFS Scenario #7-22: The Handmaiden's Gaze",
-    "productLine": "Society",
-    "releaseDate": "2026-07-01",
-    "remaster": true
-   },
-   {
     "id": "source:source-355",
     "name": "Impossible Magic",
     "productLine": "Rulebooks",
@@ -9272,69 +8866,6 @@
    {
     "id": "source:source-357",
     "name": "Pathfinder #224: Bastion of Blasphemies",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-07-31",
-    "remaster": true
-   },
-   {
-    "id": "source:source-358",
-    "name": "The Haunted Shore",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-07-31",
-    "remaster": true
-   },
-   {
-    "id": "source:source-359",
-    "name": "Castle Grounds",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-07-31",
-    "remaster": true
-   },
-   {
-    "id": "source:source-360",
-    "name": "The Cellars",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-07-31",
-    "remaster": true
-   },
-   {
-    "id": "source:source-361",
-    "name": "The Reception Halls",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-07-31",
-    "remaster": true
-   },
-   {
-    "id": "source:source-362",
-    "name": "The Dungeon",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-07-31",
-    "remaster": true
-   },
-   {
-    "id": "source:source-363",
-    "name": "The Private Halls",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-07-31",
-    "remaster": true
-   },
-   {
-    "id": "source:source-364",
-    "name": "The Fallen Temple",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-07-31",
-    "remaster": true
-   },
-   {
-    "id": "source:source-365",
-    "name": "The Vault",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-07-31",
-    "remaster": true
-   },
-   {
-    "id": "source:source-366",
-    "name": "The Towers",
     "productLine": "Adventure Paths",
     "releaseDate": "2026-07-31",
     "remaster": true
@@ -9382,34 +8913,6 @@
     "remaster": true
    },
    {
-    "id": "source:source-373",
-    "name": "Pathfinder Game Night: The Dragon's Crown",
-    "productLine": "Adventures",
-    "releaseDate": "2026-10-07",
-    "remaster": true
-   },
-   {
-    "id": "source:source-374",
-    "name": "Shingle Scramble",
-    "productLine": "Adventures",
-    "releaseDate": "2026-10-07",
-    "remaster": true
-   },
-   {
-    "id": "source:source-375",
-    "name": "The Old Korvosa Slum Crawl",
-    "productLine": "Adventures",
-    "releaseDate": "2026-10-07",
-    "remaster": true
-   },
-   {
-    "id": "source:source-376",
-    "name": "Down with King Stankus!",
-    "productLine": "Adventures",
-    "releaseDate": "2026-10-07",
-    "remaster": true
-   },
-   {
     "id": "source:source-377",
     "name": "PFS Scenario #6-05: Silver Bark, Golden Blades",
     "productLine": "Society",
@@ -9433,76 +8936,6 @@
    {
     "id": "source:source-381",
     "name": "Pathfinder #225: Vaultlines",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-11-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-382",
-    "name": "Echoes in the Earth",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-11-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-383",
-    "name": "The Palace of Screaming Flesh",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-11-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-384",
-    "name": "Five Hundred Feet to Freedom",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-11-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-385",
-    "name": "A Vast Abyss Above",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-11-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-386",
-    "name": "Miles Below, Long Ago",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-11-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-387",
-    "name": "Sibilant Rivalry",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-11-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-388",
-    "name": "Coils of the King",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-11-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-389",
-    "name": "A Name that Means Death",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-11-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-390",
-    "name": "Rotten to the Core",
-    "productLine": "Adventure Paths",
-    "releaseDate": "2026-11-04",
-    "remaster": true
-   },
-   {
-    "id": "source:source-391",
-    "name": "The Builder Reborn",
     "productLine": "Adventure Paths",
     "releaseDate": "2026-11-04",
     "remaster": true
