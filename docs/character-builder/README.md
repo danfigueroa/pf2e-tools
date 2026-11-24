@@ -69,9 +69,4 @@ Rotas propostas: **`/personagens`** (meus personagens e os da mesa) e **`/ficha-
 | D6 | 2026-11-24 | Para personagens criados acima do nível 1, mostrar a tabela Character Wealth do GM Core como referência e avisar se o valor escolhido divergir. O jogador pode seguir com o valor que escolher. |
 | D7 | 2026-11-24 | Exigir confirmação em **Aplicar na mesa** após mostrar o resumo das mudanças, durante e fora de sessão. Sair do editor preserva as escolhas no rascunho. |
 | D8 | 2026-11-24 | Atender pedidos das mesas na F9 para variantes legadas como Stamina, Dual Class e Gradual Boosts. As variantes já previstas para o elenco seguem no MVP. |
-
-## Decisões em aberto (precisam do usuário)
-
-| # | Pergunta | Recomendação |
-| --- | --- | --- |
-| D9 | Quem administra a base de regras (é de todas as mesas)? | Tabela `platform_admins`, semeada com a sua conta |
+| D9 | 2026-11-24 | Usar a conta `danfigueroa` como administradora inicial da base global de regras. Resolver seu `user_id` em `auth.users` ao semear `platform_admins` na F1. |

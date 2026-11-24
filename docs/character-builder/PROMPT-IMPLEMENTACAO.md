@@ -37,18 +37,9 @@ os documentos não previram, e os riscos que vê para a F1.
 
 ## 2. Decisões da F0 — pergunte antes de implementar
 
-O README lista decisões em aberto (D1 a D9). Pergunte uma de cada vez, com a recomendação do documento como primeira
-opção. As que mais pesam:
-
-- **D1** — a camada de mecânica (o que cada talento faz) vem também dos dados do sistema PF2e do Foundry (ler a licença
-  em FONTES-DE-DADOS §2) ou só de campos da AON + curadoria à mão?
-- **D9** — admin da plataforma: confirmar que a semente de `platform_admins` é a minha conta (descubra o `user_id` pelo
-  banco, não peça para eu digitar).
-- **Variantes por mesa** (F0.3): confirme comigo quais regras opcionais cada mesa usa antes de semear `mesa_rules`.
-
-Registre cada resposta: atualize a tabela de decisões do README (de "em aberto" para "decidido", com a data) e crie
-`src/modules/character-builder/AGENTS.md` com as regras do módulo no estilo dos outros AGENTS.md (regra no imperativo +
-o porquê em uma linha), mais a linha dele na tabela "Onde está o detalhe" do AGENTS.md raiz.
+Leia as decisões D1 a D9 no README e confira em `PROGRESSO.md` o que ainda está pendente. Confirme comigo as variantes
+e os livros liberados de cada mesa (F0.3) antes de semear `mesa_rules`. Registre as respostas no planejamento e no
+`PROGRESSO.md`.
 
 ## 3. Como trabalhar, em todas as fases
 

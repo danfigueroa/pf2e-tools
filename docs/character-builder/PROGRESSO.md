@@ -10,7 +10,8 @@
 - **D6 aprovada em 2026-11-24.** Acima do nível 1, a tabela Character Wealth do GM Core será exibida como referência. O Criador avisa sobre divergências e permite seguir com o valor escolhido.
 - **D7 aprovada em 2026-11-24.** A ficha publicada muda após revisar e confirmar **Aplicar na mesa**, durante e fora de sessão. As escolhas são salvas no rascunho ao editar.
 - **D8 aprovada em 2026-11-24.** Stamina, Dual Class e Gradual Boosts ficam para a F9 sob pedido de uma mesa.
+- **D9 aprovada em 2026-11-24.** `danfigueroa` será a conta administradora inicial da base. A conta foi conferida em consulta somente leitura. A semente entra na F1.
 - **Verificação.** `npm run build`, `npm run lint` e `git diff --check` passaram. O Vite emitiu o aviso de tamanho de bundles.
 - **Ajustes propostos.** Corrigir para nove o total de classes nos dez exports do elenco. Explicitar na F7 a leitura do catálogo local na publicação do Criador e a propagação do slug estável aos consumidores do estado da mesa.
-- **Pendências.** Fechar D9 e as regras de cada mesa, registrar os pares de validação e obter o export amostral com item dentro de contêiner e fórmulas.
-- **Próximo passo.** Confirmar na D9 a conta `danfigueroa` como admin inicial da base. A conta foi localizada no banco em consulta somente leitura. A F1 aguarda o fechamento da F0 e o aceite do usuário.
+- **Pendências.** Confirmar as variantes e os livros de cada mesa, registrar os pares de validação e obter o export amostral com item dentro de contêiner e fórmulas.
+- **Próximo passo.** Confirmar as variantes da Casa do Gordo Online (0.3) e depois as demais configurações por mesa. A F1 aguarda o fechamento da F0 e o aceite do usuário.

@@ -77,7 +77,7 @@ lendo dele sem tocar a AON. Desenho completo em [BASE-DE-REGRAS.md](BASE-DE-REGR
 **Depende de**: F0 (D1 decide de onde vem a mecânica).
 
 - [ ] **1.1** Migration `base_de_regras`: `rules_sources`, `rules_entries`, `rules_mechanics`, `rules_import_jobs`,
-      `rules_catalog_versions`, `platform_admins` (semente: a conta do usuário), extensão `pg_trgm`, grants ao
+      `rules_catalog_versions`, `platform_admins` (semente: a conta `danfigueroa`, D9), extensão `pg_trgm`, grants ao
       `service_role`, bucket público `rules` no Storage (escrita só do servidor). Conferir `pg_database_size` antes.
 - [ ] **1.2** `api/_lib/rules-import.js` (JS puro, usado pelo script e pela tela): ler livros (`category: source`),
       paginar entradas por livro e categoria com `search_after` e ordenação explícita, intervalo entre páginas,
