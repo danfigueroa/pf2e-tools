@@ -63,13 +63,13 @@ Rotas propostas: **`/personagens`** (meus personagens e os da mesa) e **`/ficha-
 | --- | --- | --- |
 | D1 | 2026-11-24 | Usar o sistema PF2e do Foundry como complemento para a mecânica e a progressão de classe, com dados sob licença compatível e commit fixo. Casar as entradas com o catálogo da AON. As descrições vêm do catálogo importado da AON. |
 | D2 | 2026-11-24 | Adiar o conteúdo caseiro da mesa para a F9. As relíquias atuais continuam no catálogo da Ficha Virtual. |
+| D3 | 2026-11-24 | Salvar rascunhos por mesa, como as fichas publicadas. Copiar um personagem para outra mesa fica para a F9. |
 
 ## Decisões em aberto (precisam do usuário)
 
 | # | Pergunta | Recomendação |
 | --- | --- | --- |
 | D9 | Quem administra a base de regras (é de todas as mesas)? | Tabela `platform_admins`, semeada com a sua conta |
-| D3 | O Criador grava rascunho por mesa ou por conta (um personagem em várias mesas)? | Por mesa (igual às fichas publicadas); "Copiar para outra mesa" depois |
 | D4 | O GM pode criar personagem para um jogador (NPC aliado, pré-gerado)? | Sim — o GM cria e atribui o dono (`sheet-assign` já existe) |
 | D5 | Exportar PDF da ficha? | Fora de escopo (a Ficha em PDF foi removida de propósito) |
 | D6 | Riqueza inicial em nível > 1: usar a tabela "Character Wealth" do GM Core automaticamente ou deixar livre? | Mostrar a tabela como referência e aviso; não travar |
