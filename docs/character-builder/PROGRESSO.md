@@ -11,8 +11,9 @@
 - **D7 aprovada em 2026-11-24.** A ficha publicada muda após revisar e confirmar **Aplicar na mesa**, durante e fora de sessão. As escolhas são salvas no rascunho ao editar.
 - **D8 aprovada em 2026-11-24.** Stamina, Dual Class e Gradual Boosts ficam para a F9 sob pedido de uma mesa.
 - **D9 aprovada em 2026-11-24.** `danfigueroa` será a conta administradora inicial da base. A conta foi conferida em consulta somente leitura. A semente entra na F1.
-- **0.3 em andamento.** Casa do Gordo Online e Arton 1515 confirmaram Free Archetype, Mítico e Ancestral Paragon em 2026-11-24. Casa do Gordo Online também confirmou todos os livros Remaster da carga inicial. Nessa mesa, livros legados e livros importados depois dependem de liberação do GM. Veja a tabela de sementes em [MODELO-DE-DADOS.md](MODELO-DE-DADOS.md#3-mesa_rulesrules).
+- **0.3 concluída em `6794e1d`.** Casa do Gordo Online e Arton 1515 confirmaram Free Archetype, Mítico, Ancestral Paragon e todos os livros Remaster da carga inicial em 2026-11-24. Livros legados e livros importados depois dependem de liberação do GM. Veja a tabela de sementes em [MODELO-DE-DADOS.md](MODELO-DE-DADOS.md#3-mesa_rulesrules).
+- **0.6 concluída em `9fcaaaf`.** A regra global 7 agora registra os pares de validação de `sanitizeBuildState`, `MesaRules` e slug do build para a F2.
 - **Verificação.** `npm run build`, `npm run lint` e `git diff --check` passaram. O Vite emitiu o aviso de tamanho de bundles.
 - **Ajustes propostos.** Corrigir para nove o total de classes nos dez exports do elenco. Explicitar na F7 a leitura do catálogo local na publicação do Criador e a propagação do slug estável aos consumidores do estado da mesa.
-- **Pendências.** Confirmar os livros de Arton 1515, registrar os pares de validação e obter o export amostral com item dentro de contêiner e fórmulas.
-- **Próximo passo.** Confirmar os livros liberados para Arton 1515 (0.3). A F1 aguarda o fechamento da F0 e o aceite do usuário.
+- **Pendência 0.7.** Os exports do elenco e as fichas locais verificadas têm a lista `formula` vazia. A tentativa de abrir o navegador para gerar uma nova amostra expirou.
+- **Próximo passo.** Obter um JSON real do Pathbuilder com item dentro de contêiner e pelo menos uma fórmula, conferir o formato e registrar a amostra e o contrato. A F1 aguarda o fechamento da F0 e o aceite do usuário.
