@@ -25,6 +25,7 @@ Rotas propostas: **`/personagens`** (meus personagens e os da mesa) e **`/ficha-
 | [UX-FLUXOS.md](UX-FLUXOS.md) | Telas, fluxos (criar, subir de nível, editar e jogar, aplicar na mesa, importar), componentes e o comportamento no celular (320px) |
 | [BASE-DE-REGRAS.md](BASE-DE-REGRAS.md) | Todo o Remaster da AON no nosso banco: tabelas, carga inicial, camada de mecânica, leitura por pacotes (sem tocar a AON) e a tela do admin que baixa só livros novos e erratas |
 | [FONTES-DE-DADOS.md](FONTES-DE-DADOS.md) | De onde vêm as regras e o conteúdo (AON + pacotes do sistema PF2e do Foundry), pipeline de ingestão, licenças e riscos |
+| [PROMPT-IMPLEMENTACAO.md](PROMPT-IMPLEMENTACAO.md) | Prompts para o Claude Code implementar o roadmap: o de início (lê tudo, fecha a F0, começa a F1) e o de continuação (retoma pelo `PROGRESSO.md`) |
 | [PLANO-DE-TESTES.md](PLANO-DE-TESTES.md) | `check-builder.mjs`, paridade com os 10 personagens do elenco, invariantes, conferência visual e i18n |
 
 ## Decisões tomadas neste planejamento (podem ser revistas)
