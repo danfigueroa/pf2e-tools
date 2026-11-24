@@ -437,5 +437,6 @@ const TrophyLine = () => {
 
 const Disclaimer = () => (
   <Typography sx={{ px: 0.5, fontSize: '0.75rem', lineHeight: 1.5, color: chrome.label }}>
-    {tr('Ferramenta de fã, gratuita e não oficial. Pathfinder é marca registrada da Paizo Inc.', 'Free, unofficial fan tool. Pathfinder is a registered trademark of Paizo Inc.')}</Typography>
+    {tr('Ferramenta de fã, gratuita e não oficial. Pathfinder é marca registrada da Paizo Inc.', 'Free, unofficial fan tool. Pathfinder is a registered trademark of Paizo Inc.')}{' '}
+    <Box component={Link} to="/creditos" sx={{ color: 'inherit', textDecoration: 'underline' }}>{tr('Créditos e licenças', 'Credits and licenses')}</Box></Typography>
 );
