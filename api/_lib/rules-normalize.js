@@ -5,11 +5,11 @@ export const RULE_CATEGORIES = [
     'action', 'ancestry', 'animal-companion', 'animal-companion-advanced', 'animal-companion-specialization',
     'animal-companion-unique', 'apparition', 'arcane-school', 'arcane-thesis', 'archetype', 'armor', 'armor-group',
     'background', 'bloodline', 'cause', 'class', 'class-feature', 'class-kit', 'condition', 'conscious-mind',
-    'deity', 'deity-category', 'doctrine', 'domain', 'draconic-exemplar', 'druidic-order', 'eidolon', 'equipment',
+    'deity', 'deity-category', 'doctrine', 'domain', 'draconic-exemplar', 'druidic-order', 'eidolon', 'element', 'epithet', 'equipment',
     'familiar-ability', 'familiar-specific', 'feat', 'fey-patronage', 'grim-fascination', 'heritage', 'hunters-edge',
     'hybrid-study', 'ikon', 'implement', 'innovation', 'instinct', 'item-bonus', 'language', 'lesson', 'methodology',
     'muse', 'mystery', 'mythic-calling', 'patron', 'practice', 'racket', 'relic', 'research-field', 'ritual',
-    'runesmith-rune', 'set-relic', 'shield', 'skill', 'skill-general-action', 'spell', 'style', 'subconscious-mind',
+    'runesmith-rune', 'set-relic', 'shield', 'skill', 'skill-general-action', 'spell', 'style', 'subconscious-mind', 'tactic',
     'trait', 'way', 'weapon', 'weapon-group',
 ]
 
