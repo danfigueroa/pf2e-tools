@@ -3,6 +3,8 @@
 import { createHash } from 'node:crypto'
 import { supabase } from './supabase.js'
 
+export const AON_SEARCH_URL = 'https://elasticsearch.aonprd.com/aon/_search'
+
 // Cache em memória (nota: cada invocação serverless pode ter seu próprio cache)
 const cache = new Map()
 
@@ -150,7 +152,7 @@ export async function searchAonRaw({ query = '', category = null, limit = 5, fro
     // arbitrária e a lista mudaria de lugar a cada busca.
     if (sort) searchBody.sort = sort
 
-    const response = await fetch('https://elasticsearch.aonprd.com/aon/_search', {
+    const response = await fetch(AON_SEARCH_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(searchBody)
