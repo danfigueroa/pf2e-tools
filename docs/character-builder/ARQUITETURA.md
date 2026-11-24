@@ -120,13 +120,13 @@ proficiência, `parseFeatEntry`) sobe para `src/pathbuilder/` ou para um `src/ru
 
 ## 3. Ciclo de uma escolha
 
-1. O jogador toca "Talento de Classe (nível 2)" → `ContentPicker` abre com `rules.featsFor(slot, state)`.
+1. O jogador toca "Talento de Ancestralidade (nível 1)" → `ContentPicker` abre com `rules.featsFor(slot, state)`.
 2. A lista mostra cada talento com elegibilidade (`prereqs.evaluate(feat, compiledAtLevel)`) e o motivo.
-3. Aceitar grava `choices['class-feat-2'] = { id: 'feat:power-attack' }` no `BuildState` (estado muda na hora).
+3. Aceitar grava `choices['ancestry-feat-1'] = { id: 'feat:feat-4387' }` no `BuildState` (estado muda na hora).
 4. `useCompiled` recompila (memo por `state` + `rulesVersion`): novos números, pendências e avisos.
 5. `useBuild` agenda `build-save` (1,5 s). Sem rede: fica no rascunho local e reenvia.
 6. Concessões encadeadas: se o talento tem `ChoiceSet`/`GrantItem`, o compilador abre novos slots filhos
-   (`choices['class-feat-2/choice-1']`) e eles aparecem como pendência.
+   (`choices['ancestry-feat-1/choice-1']`) e eles aparecem como pendência.
 
 ## 4. O motor (resumo; detalhe em MOTOR-DE-REGRAS.md)
 
@@ -234,7 +234,7 @@ nome pode mudar sem que o personagem mude:
 ## 9. Segurança e validação
 
 - `sanitizeBuildState` duplicado (cliente TS ↔ servidor JS) — entra na lista da regra global 7 e no `check-builder`.
-- O servidor confere: membro da mesa, dono ou GM, tamanho, forma (ids no formato `tipo:slug`, níveis 1–20, sem campos
+- O servidor confere: membro da mesa, dono ou GM, tamanho, forma (IDs oficiais no formato `tipo:aon_id`, níveis 1–20, sem campos
   desconhecidos), `rev`.
 - O retrato compilado enviado no `build-apply` passa pelo mesmo caminho do upload de hoje (o servidor já aceita JSON do
   Pathbuilder do cliente). **Endurecimento futuro (opcional)**: o servidor recompilar a partir do `BuildState` — exige o

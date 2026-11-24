@@ -132,7 +132,7 @@ comportamento atual quando falta (ficha antiga, upload).
 | --- | --- | --- | --- |
 | `covil.buildId`, `rulesVersion`, `schema` | A Ficha sabe que pode abrir o modo editar | Ficha (botão "Editar") | — |
 | `covil.warnings` | Avisos do motor no momento de aplicar ("aplicada com 2 avisos") | Ficha (Visão Geral) | — |
-| `covil.ids` | `{ "feat:Power Attack": "feat:power-attack", … }` — nome → id de conteúdo | Descrições, `featGroups.ts` | casamentos por nome ambíguos (`namesCompatible` no cliente) |
+| `covil.ids` | `{ "ancestry-feat-1": "feat:feat-4387", … }` — chave da escolha → ID de conteúdo | Descrições, `featGroups.ts` | casamentos por nome ambíguos (`namesCompatible` no cliente) |
 | `covil.breakdown` | Memória de cálculo de cada número (CA, salvaguardas, perícias, ataques) com a origem de cada parcela | `checks.ts`, diálogo de rolagem | parte da reconstrução de parcelas da Ficha |
 | `covil.unarmed` | Ataques desarmados completos (ancestralidade, talento, classe) | `strikes.ts` | `unarmed.ts` (fica como reserva para fichas antigas) |
 | `covil.resistances` com origem | Resistências com o item/talento que as dá | Visão Geral, Iniciativa | `addItemResistances` |

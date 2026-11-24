@@ -12,8 +12,8 @@ Dois mundos:
 
 ## 1. `BuildState` — o que o jogador escolheu
 
-Formato gravado em `character_builds.state` (jsonb). Ids de conteúdo são **estáveis e em inglês**: `tipo:slug`
-(`class:fighter`, `feat:power-attack`, `spell:force-barrage`, `item:longsword`), o mesmo slug do pacote de regras.
+Formato gravado em `character_builds.state` (jsonb). IDs oficiais usam **`tipo:aon_id`**, como `feat:feat-4387`,
+`class:class-32`, `item:equipment-2700` e `source:source-216`. O nome canônico e o slug de busca ficam separados da identidade.
 
 ```ts
 interface BuildState {
@@ -28,13 +28,13 @@ interface BuildState {
     separateKits?: boolean;
   };
   origin: {
-    ancestry?: string;               // 'ancestry:human'
-    heritage?: string;               // 'heritage:skilled-human' ou versátil 'heritage:aiuvarin'
-    background?: string;             // 'background:barkeep'
+    ancestry?: string;               // 'ancestry:ancestry-59'
+    heritage?: string;               // ID de herança comum ou versátil
+    background?: string;             // 'background:background-406'
     alternateBoosts?: boolean;       // dois boosts livres no lugar dos da ancestralidade
     voluntaryFlaws?: AttributeKey[];
-    languages?: string[];            // 'language:draconic'
-    deity?: string;                  // 'deity:sarenrae'
+    languages?: string[];            // IDs de idiomas do catálogo
+    deity?: string;                  // ID de divindade do catálogo
     sanctification?: 'holy' | 'unholy' | null;
   };
   class: { id?: string; keyAttribute?: AttributeKey; dual?: string };
@@ -72,7 +72,7 @@ type Choice =
 
 interface InventoryEntry {
   key: string;                // id local estável ('inv-7f3a') — o apelido e o estado da mesa casam por nome, não por isto
-  item: string;               // 'item:longsword' ou 'custom:<id>'
+  item: string;               // 'item:equipment-2700' ou 'custom:<id>'
   qty: number;
   container?: string;         // key de outro InventoryEntry que é contêiner
   worn?: boolean; invested?: boolean; equipped?: boolean;   // armadura vestida, item investido, arma empunhada
@@ -177,7 +177,7 @@ alter table public.sheets add column build_id uuid references public.character_b
 
 ```ts
 interface MesaRules {
-  sources: { allow: string[]; deny?: string[] };     // ids de livro ('source:player-core', 'source:war-of-immortals'…)
+  sources: { allow: string[]; deny?: string[] };     // IDs de livro, como 'source:source-216' (Player Core)
   legacy: boolean;                                   // conteúdo pré-Remaster liberado
   rarity: { uncommon: 'allow' | 'ask' | 'deny'; rare: 'allow' | 'ask' | 'deny' };  // 'ask' = aviso "precisa do GM"
   variants: MesaVariants;                            // REGRAS-OPCIONAIS §6 (mítico com progressão por nível ou por provações)
@@ -220,13 +220,13 @@ Formato de uma entrada (comum a todos os tipos):
 
 ```ts
 interface RuleEntry {
-  id: string;                 // 'feat:power-attack'
-  name: string;               // nome canônico em inglês (chave da AON e do JSON exportado)
-  type: 'ancestry' | 'heritage' | 'background' | 'class' | 'classFeature' | 'feat' | 'spell' | 'item' | 'deity' | ...;
+  id: string;                 // 'feat:feat-4387'
+  name: string;               // nome canônico em inglês, usado na exibição e no JSON exportado
+  type: 'ancestry' | 'heritage' | 'background' | 'class' | 'class-feature' | 'feat' | 'spell' | 'item' | 'deity' | ...;
   level: number;
   rarity: 'common' | 'uncommon' | 'rare' | 'unique';
   traits: string[];
-  source: { id: string; page?: number };   // 'source:player-core'
+  source: { id: string; page?: number };   // 'source:source-216'
   aon?: { id: string; url: string };       // para descrição/tradução e para "conferir na AON"
   remaster: boolean;
   replaces?: string;                       // id do legado que esta substitui

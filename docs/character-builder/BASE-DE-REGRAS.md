@@ -55,7 +55,7 @@ create table public.rules_sources (
 -- Uma linha por entrada da AON.
 create table public.rules_entries (
     aon_id text primary key,                    -- 'feat-4775' (id estável da AON)
-    id text not null unique,                    -- 'feat:vicious-swing' (id do Criador, MODELO-DE-DADOS)
+    id text not null unique,                    -- 'feat:feat-4387' (tipo:aon_id)
     category text not null,                     -- categoria da AON
     name text not null,                         -- nome canônico em inglês
     level smallint,
@@ -68,7 +68,7 @@ create table public.rules_entries (
     replaced_by text,                           -- se é legado com versão Remaster
     data jsonb not null,                        -- campos estruturados enxutos (§1), sem HTML
     markdown text,                              -- texto da regra em inglês (descrição offline e base da tradução)
-    hash text not null,                         -- sha1 de data+markdown (detectar mudança)
+    hash text not null,                         -- sha1 do conteúdo e dos metadados normalizados
     imported_at timestamptz not null default now(),
     updated_at timestamptz not null default now(),
     removed_at timestamptz                      -- sumiu da AON numa reimportação (não apaga: builds podem usar)
@@ -227,9 +227,10 @@ Mensagens de erro novas em `api/_lib/i18n.js`. `check-auth` cobre: jogador e GM 
 
 ## 8. Remaster × legado
 
-- **Remaster** = livro lançado a partir de 2023-11-15 **ou** entrada com `legacy_id` (é a versão revisada de algo antigo).
-- Entrada com `remaster_id` é legado que tem versão nova: importada só se o livro legado for importado, com `replaced_by`
-  apontando a nova; o seletor mostra só a nova (RN-14).
+- **Remaster** = publicação a partir de 2023-11-15 ou entrada com `legacy_id`. Use a data informada para a entrada e recorra à data do livro quando a entrada não a tiver.
+- `remaster_id` marca uma entrada como legado e tem precedência sobre a data. Guarde os IDs nativos em `data.remaster_ids`.
+  Preencha `replaced_by` com o ID nativo quando houver uma única versão nova. Importe a entrada legada apenas quando o livro
+  legado for selecionado. O seletor mostra a versão nova quando disponível (RN-14).
 - `legacy_name` da AON resolve nomes antigos na importação do Pathbuilder (Power Attack → Vicious Swing, Magic Missile →
   Force Barrage).
 

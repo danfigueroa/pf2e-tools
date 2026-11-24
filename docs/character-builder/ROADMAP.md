@@ -82,10 +82,10 @@ lendo dele sem tocar a AON. Desenho completo em [BASE-DE-REGRAS.md](BASE-DE-REGR
 - [x] **1.2** `api/_lib/rules-import.js` (JS puro, usado pelo script e pela tela): ler livros (`category: source`),
       paginar entradas por livro e categoria com `search_after` e ordenação explícita, intervalo entre páginas,
       retomada por `cursor`.
-- [ ] **1.3** Normalização por categoria → `rules_entries` (ids `tipo:slug`, nome canônico, nível, raridade, traços,
+- [x] **1.3** Normalização por categoria → `rules_entries` (IDs `tipo:aon_id`, nome canônico, nível, raridade, traços,
       livro, `remaster`, `legacy_ids`/`legacy_names`/`replaced_by`, `data` enxuto, `markdown`, `hash`); categorias de
       jogador da lista do BASE-DE-REGRAS §1.
-- [ ] **1.4** Regra Remaster × legado (BASE-DE-REGRAS §8).
+- [x] **1.4** Regra Remaster × legado (BASE-DE-REGRAS §8).
 - [ ] **1.5** Mecânica `derived` a partir dos campos da AON (ancestralidade, background, classe inicial, armas, magias).
 - [ ] **1.6** Mecânica `foundry` (se D1 permitir): rule elements e progressão de classe casados por nome/tipo/`legacy_name`;
       o resto em `unsupported`; relatório dos não suportados mais frequentes (prioriza a F4).

@@ -80,9 +80,10 @@ node --env-file=.env scripts/import-rules.mjs --mechanics foundry --ref <commit-
 2. **Ler** os pacotes necessários; descartar campos visuais (`img`, `description` HTML, `flags` de UI).
 3. **Filtrar**: Remaster por padrão; legado marcado (`remaster: false`) para quando o GM liberar; descartar conteúdo de
    aventura que não é de jogador (bestiários).
-4. **Normalizar** para `RuleEntry` (MODELO-DE-DADOS §4): ids `tipo:slug`, nomes canônicos, traços, fonte (mapear o nome
-   do livro para `source:<slug>`), rule elements suportados em `rules`, o resto em `unsupported`.
-5. **Casar com a AON** por nome + categoria (`namesCompatible`), preenchendo `aon.id/url`; sem casamento = relatório.
+4. **Normalizar** nomes, categorias e livros para o cruzamento (MODELO-DE-DADOS §4). Separe rule elements suportados
+   em `rules` e o restante em `unsupported`.
+5. **Casar com a AON** por nome + categoria (`namesCompatible`) e usar o ID oficial `tipo:aon_id` da entrada casada.
+   Relate entradas sem correspondência ou com correspondência ambígua.
 6. **Aplicar** `corrections.json` e as tabelas curadas.
 7. **Particionar** em arquivos por tipo/lista; gerar `manifest.json` (versão, hash, contagem, bytes).
 8. **Relatório** (`--dry-run` mostra só isto): entradas novas/removidas/alteradas desde a versão anterior, sem AON,
