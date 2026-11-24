@@ -62,13 +62,13 @@ Rotas propostas: **`/personagens`** (meus personagens e os da mesa) e **`/ficha-
 | # | Data | Decisão |
 | --- | --- | --- |
 | D1 | 2026-11-24 | Usar o sistema PF2e do Foundry como complemento para a mecânica e a progressão de classe, com dados sob licença compatível e commit fixo. Casar as entradas com o catálogo da AON. As descrições vêm do catálogo importado da AON. |
+| D2 | 2026-11-24 | Adiar o conteúdo caseiro da mesa para a F9. As relíquias atuais continuam no catálogo da Ficha Virtual. |
 
 ## Decisões em aberto (precisam do usuário)
 
 | # | Pergunta | Recomendação |
 | --- | --- | --- |
 | D9 | Quem administra a base de regras (é de todas as mesas)? | Tabela `platform_admins`, semeada com a sua conta |
-| D2 | Conteúdo caseiro (homebrew) da mesa entra no MVP? | Não; fase 9 (as relíquias já vivem em catálogo próprio na Ficha) |
 | D3 | O Criador grava rascunho por mesa ou por conta (um personagem em várias mesas)? | Por mesa (igual às fichas publicadas); "Copiar para outra mesa" depois |
 | D4 | O GM pode criar personagem para um jogador (NPC aliado, pré-gerado)? | Sim — o GM cria e atribui o dono (`sheet-assign` já existe) |
 | D5 | Exportar PDF da ficha? | Fora de escopo (a Ficha em PDF foi removida de propósito) |
