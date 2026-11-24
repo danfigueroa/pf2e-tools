@@ -111,3 +111,33 @@ export async function createRuleCatalogVersion(jobId, summary) {
     check(await db().from('rules_catalog_versions').insert({ version, job_id: jobId, summary }))
     return version
 }
+
+/** Tudo de `rules_entries` menos o markdown, para montar os pacotes. */
+export function ruleEntriesForPackages() {
+    return selectAll(() => db().from('rules_entries')
+        .select('aon_id, id, category, name, level, rarity, traits, source_id, remaster, legacy_ids, legacy_names, replaced_by, data, removed_at')
+        .order('aon_id'))
+}
+
+export async function ruleMechanicsById() {
+    const rows = await selectAll(() => db().from('rules_mechanics').select('aon_id, origin, rules, unsupported, prereq, progression').order('aon_id'))
+    return new Map(rows.map((row) => [row.aon_id, row]))
+}
+
+/** Versão mais recente do catálogo, ou null antes da primeira importação. */
+export async function latestRuleCatalogVersion() {
+    const rows = check(await db().from('rules_catalog_versions').select('version, created_at').order('created_at', { ascending: false }).limit(1))
+    return rows[0]?.version ?? null
+}
+
+/** Grava os pacotes em `rules/<versão>/` (bucket público). O caminho tem a versão, então o cache do CDN é eterno. */
+export async function uploadRulePackages(version, files) {
+    if (!/^\d{4}\.\d{2}\.\d+$/.test(version)) throw new Error('Base de regras: versão inválida')
+    const bucket = db().storage.from('rules')
+    for (const [path, text] of Object.entries(files)) {
+        const { error } = await bucket.upload(`${version}/${path}`, Buffer.from(text), {
+            contentType: 'application/json', cacheControl: '31536000', upsert: true,
+        })
+        if (error) throw new Error(`Base de regras: falha ao gravar ${path} (${error.message})`)
+    }
+}

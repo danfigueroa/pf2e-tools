@@ -5,6 +5,7 @@
 //   node --env-file=.env scripts/import-rules.mjs --remaster --check      # só compara com a AON, não grava
 //   node --env-file=.env scripts/import-rules.mjs --mechanics-only        # refaz só a mecânica do Foundry
 //   node --env-file=.env scripts/import-rules.mjs --resume <job>          # retoma uma importação que caiu
+//   node --env-file=.env scripts/import-rules.mjs --packages-only         # regera os pacotes da versão atual
 //
 // Roda na máquina de quem administra, sem o limite de 60 s da Vercel. Usa o mesmo núcleo da tela da F1B
 // (`api/_lib/rules-*.js`). Reimportar sem mudança na AON = 0 alteradas (idempotente pelo `hash`).
@@ -15,15 +16,17 @@ import { fileURLToPath } from 'node:url'
 import { readRuleEntriesPage, readRuleSourcesPage } from '../api/_lib/rules-import.js'
 import { normalizeRuleEntry, normalizeRuleSource, RULE_CATEGORIES } from '../api/_lib/rules-normalize.js'
 import { buildFoundryMechanics, checkProgression } from '../api/_lib/rules-foundry.js'
+import { buildRulePackages } from '../api/_lib/rules-packages.js'
 import {
-    createRuleCatalogVersion, listRuleSources, markRuleEntriesRemoved, readRuleImportJob, ruleEntriesForMatching,
-    ruleEntryHashes, saveFoundryMechanics, saveRuleEntries, saveRuleSources, startRuleImportJob, updateRuleImportJob,
-    updateRuleSource,
+    createRuleCatalogVersion, latestRuleCatalogVersion, listRuleSources, markRuleEntriesRemoved, readRuleImportJob,
+    ruleEntriesForMatching, ruleEntriesForPackages, ruleEntryHashes, ruleMechanicsById, saveFoundryMechanics,
+    saveRuleEntries, saveRuleSources, startRuleImportJob, updateRuleImportJob, updateRuleSource, uploadRulePackages,
 } from '../api/_lib/rules-store.js'
 import { FOUNDRY_REF, loadFoundryPacks } from './rules-data/foundry-packs.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
-const CORRECTIONS = JSON.parse(readFileSync(resolve(HERE, 'rules-data/corrections.json'), 'utf8'))
+const readTable = (name) => JSON.parse(readFileSync(resolve(HERE, `rules-data/${name}.json`), 'utf8'))
+const CORRECTIONS = readTable('corrections')
 
 const args = process.argv.slice(2)
 const flag = (name) => args.includes(name)
@@ -31,6 +34,7 @@ const values = (name) => args.flatMap((arg, i) => arg === name && args[i + 1] ? 
 const checkOnly = flag('--check')
 const mechanicsOnly = flag('--mechanics-only')
 const resumeId = values('--resume')[0] ?? null
+const packagesOnly = flag('--packages-only')
 
 async function readAllSources() {
     const sources = []
@@ -108,9 +112,28 @@ async function importMechanics() {
     return { matched: report.matched, ambiguous: report.ambiguous.length, unmatched: report.unmatched.length, saved: saved.saved, sha256 }
 }
 
+/** Pacotes por lista da versão no Storage (BASE-DE-REGRAS §5). */
+async function publishPackages(version) {
+    const [entries, mechanics, sources] = await Promise.all([ruleEntriesForPackages(), ruleMechanicsById(), listRuleSources()])
+    const tables = { spellSlots: readTable('spell-slots'), wealth: readTable('wealth'), exports: readTable('exports') }
+    const { files, manifest } = buildRulePackages({
+        version, entries, mechanics, tables,
+        sources: sources.filter((source) => source.status === 'imported'),
+    })
+    await uploadRulePackages(version, files)
+    const sizes = Object.values(manifest.files).map((file) => file.bytes)
+    const biggest = Object.entries(manifest.files).sort((a, b) => b[1].bytes - a[1].bytes).slice(0, 5)
+        .map(([list, file]) => `${list} ${(file.bytes / 1024).toFixed(0)} KB`)
+    console.log(`Pacotes ${version}: ${Object.keys(files).length} arquivos, ${(sizes.reduce((a, b) => a + b, 0) / 1e6).toFixed(1)} MB; maiores: ${biggest.join(', ')}`)
+    return manifest
+}
+
 async function main() {
-    if (mechanicsOnly) {
-        await importMechanics()
+    if (mechanicsOnly || packagesOnly) {
+        if (mechanicsOnly) await importMechanics()
+        const version = await latestRuleCatalogVersion()
+        if (!version) throw new Error('Nenhuma versão do catálogo ainda: importe um livro primeiro')
+        await publishPackages(version)
         return
     }
     const resumed = resumeId ? await readRuleImportJob(resumeId) : null
@@ -149,6 +172,7 @@ async function main() {
         if (!checkOnly && changedSomething) {
             const version = await createRuleCatalogVersion(jobId, { totals, sources: targets.map((source) => source.name) })
             console.log(`Catálogo: versão ${version}`)
+            await publishPackages(version)
         }
         await updateRuleImportJob(jobId, { status: 'done', counts: totals, report, finished_at: new Date().toISOString() })
         console.log(`\nTotal: ${totals.new} novas, ${totals.changed} alteradas, ${totals.same} sem mudança, ${totals.removed} removidas, ${totals.invalid} inválidas`)
