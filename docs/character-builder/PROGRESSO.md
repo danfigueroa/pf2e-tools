@@ -39,4 +39,11 @@
   - Conferência com o elenco: Magus 10, Psychic 10 e Cleric 7 batem. O Loki (Magus 7) tem um truque a mais no export, que vem de talento e não da tabela.
   - `exports.json` traz os rótulos e nomes de conjurador do Pathbuilder, tirados do elenco.
   - `corrections.json` traz os aliases da progressão (Doctrines do Cleric, Premonition Reflexes, Psychic Weapon Specialization), cada um com o livro e a página. Com eles, as nove classes do elenco têm progressão 1–20 com todas as características casadas.
-- **Próximo passo.** 1.8: `scripts/import-rules.mjs`, que junta 1.2 a 1.7 e grava `rules_sources`, `rules_entries` e `rules_mechanics`. Antes da carga, mostrar `pg_database_size`; a estimativa é ~40 MB de entradas mais ~3 MB de mecânica. A migration ainda não foi aplicada em produção.
+- **1.8 concluída.** `scripts/import-rules.mjs` e `api/_lib/rules-store.js`. Migration `base_de_regras` aplicada em produção em 2026-11-24, com a semente de `platform_admins`: 1 linha.
+  - **Carga inicial feita.** 161 livros Remaster, 17.613 entradas e 11.774 linhas de mecânica do Foundry. Versões do catálogo: `2026.11.1` (Player Core) e `2026.11.2` (carga completa).
+  - **Espaço.** O banco foi de 25 para 67 MB: `rules_entries` ocupa 37 MB e `rules_mechanics` 4,3 MB.
+  - **Idempotência.** Reimportar o Player Core deu 0 alteradas. As 45 inválidas são subações sem nome dentro de itens.
+  - **Progressão.** Os níveis de talento e de perícia batem com a AON nas 29 classes. As características das nove classes do elenco estão todas casadas.
+  - **Aliases novos em `corrections.json`.** Ranger Weapon Mastery, Rogue Debilitating Strikes, Witch Hexes e Magus Studious Spells. Eles eram necessários porque, sem os livros legados, o caminho pelo `replaced_by` não existe.
+  - **Sem par na AON, fora do elenco.** Inventor (Churning Mind, Perception Expertise, Anvil's Hardness), Oracle (Oracular Curse, Revelation Spells), Sorcerer (Bloodline Spells) e Thaumaturge (Exploit Vulnerability, Reflex Expertise). O motor avisa; os aliases entram conforme essas classes forem conferidas.
+- **Próximo passo.** 1.9: pacotes por lista no Storage (`rules/<versão>/<lista>.json`), `rulesVersion` no `?me=1` e a rota de reserva `api/search.js?rules=`.

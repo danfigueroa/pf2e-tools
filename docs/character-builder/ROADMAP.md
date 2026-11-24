@@ -92,7 +92,7 @@ lendo dele sem tocar a AON. Desenho completo em [BASE-DE-REGRAS.md](BASE-DE-REGR
       o resto em `unsupported`; relatório dos não suportados mais frequentes (prioriza a F4).
 - [x] **1.7** Mecânica `manual`: `spell-slots.json` (cada progressão conferida na AON e com o `perDay` do elenco),
       `wealth.json`, `exports.json` (nomes de conjurador e rótulos de slot do Pathbuilder), `corrections.json`.
-- [ ] **1.8** `scripts/import-rules.mjs` (`--remaster`, `--source`, `--check`) e **carga inicial** de todos os livros
+- [x] **1.8** `scripts/import-rules.mjs` (`--remaster`, `--source`, `--check`) e **carga inicial** de todos os livros
       Remaster (~17,8 mil entradas).
 - [ ] **1.9** Geração dos **pacotes por lista** no Storage (`rules/<versão>/<lista>.json`) + `rulesVersion` no `?me=1`;
       rota de reserva `api/search.js?rules=` com `Cache-Control` por versão.

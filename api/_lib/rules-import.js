@@ -65,10 +65,13 @@ export function readRuleSourcesPage(after = null) {
     return readPage([{ term: { category: 'source' } }], after)
 }
 
-/** O livro é o primary_source canônico da entrada, para importar cada ID uma vez. */
+/**
+ * O livro é o primary_source canônico da entrada, para importar cada ID uma vez. `category` aceita uma lista, para
+ * paginar o livro inteiro numa sequência só em vez de uma por categoria.
+ */
 export function readRuleEntriesPage(source, category, after = null) {
     return readPage([
-        { term: { category } },
+        Array.isArray(category) ? { terms: { category } } : { term: { category } },
         { term: { 'primary_source.keyword': source } },
     ], after)
 }

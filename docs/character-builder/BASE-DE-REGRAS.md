@@ -126,9 +126,21 @@ gratuito: 500 MB).
 
 ```
 node --env-file=.env scripts/import-rules.mjs --remaster            # todos os livros Remaster
-node --env-file=.env scripts/import-rules.mjs --source "Player Core" # um livro
-node --env-file=.env scripts/import-rules.mjs --check                # só verifica, não grava
+node --env-file=.env scripts/import-rules.mjs --source "Player Core" # um livro (repita para mais)
+node --env-file=.env scripts/import-rules.mjs --remaster --check     # só compara com a AON, não grava entradas
+node --env-file=.env scripts/import-rules.mjs --mechanics-only       # refaz só a mecânica do Foundry
+node --env-file=.env scripts/import-rules.mjs --resume <job>         # retoma do cursor do job que caiu
 ```
+
+- O livro inteiro é paginado numa sequência só (`terms` com as categorias de `RULE_CATEGORIES`). Só a entrada cujo `hash`
+  mudou é gravada. A entrada que sumiu da AON ganha `removed_at`, nunca é apagada.
+- A persistência fica em `api/_lib/rules-store.js`. Ela é global e não recebe `mesa`, como `translations`.
+- A mecânica do Foundry é refeita a cada importação contra todas as entradas não removidas. Ela nunca passa por cima de
+  `origin: manual`.
+- Entrada da AON sem nome (subações dentro de item, `exclude_from_search: true`) conta como inválida e fica de fora. Por
+  isso `aon_count` = entradas de jogador na AON e `our_count` = importadas.
+- O livro sem versão Remaster nem `legacy_id` e anterior a 2023-11-15 (Rage of Elements, com o Kineticist) não entra
+  no `--remaster`; importe-o com `--source` quando uma mesa o liberar.
 
 - Roda **na máquina de quem administra**, sem o limite de 60 s das funções da Vercel.
 - Usa o mesmo núcleo da tela da plataforma (`api/_lib/rules-import.js`, JS puro), então o resultado é idêntico.
