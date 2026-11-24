@@ -1,0 +1,5 @@
+model = "gpt-6.2-astra"
+review_model = "gpt-6.2-astra"
+
+[agents]
+default_subagent_model = "gpt-6.2-sol"

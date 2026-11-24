@@ -33,6 +33,11 @@ ao alterar o handler da wiki em `api/_lib/` ou o `tableState.ts` a partir da fic
 
 `server/index.mjs` é o mesmo backend de `api/` para dev local — vale o `api/AGENTS.md`.
 
+## Orquestração no Codex
+
+- Use `gpt-6.2-astra` para planejamento e revisão, inclusive quando delegar os papéis de planner e reviewer.
+- Use `gpt-6.2-sol` para os demais subagentes.
+
 ## Mapa do código
 
 - Rotas em `src/App.tsx`. Redirecionam: `/character-sheet` → Início (a Ficha em PDF foi removida), `/diario` → `/historico`.
