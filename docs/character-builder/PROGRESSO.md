@@ -1,6 +1,6 @@
 # Progresso do Criador de Personagem
 
-## F0 — Decisões e preparação
+## F0 — Decisões e preparação concluídas
 
 - **0.1 e 0.5 concluídas em `01c64ee`.** D1 aprovada em 2026-11-24. O sistema PF2e do Foundry complementa a mecânica e a progressão, com dados de licença compatível em um commit fixo. O catálogo e as descrições vêm da AON. O guia do módulo e seu link no guia da raiz foram criados.
 - **0.4 concluída em `9b689b4`.** A fonte complementar foi fixada na release `pf2e-8.7.1` e no SHA completo em [FONTES-DE-DADOS.md](FONTES-DE-DADOS.md). A cobertura das classes será validada na F1.
@@ -13,7 +13,7 @@
 - **D9 aprovada em 2026-11-24.** `danfigueroa` será a conta administradora inicial da base. A conta foi conferida em consulta somente leitura. A semente entra na F1.
 - **0.3 concluída em `6794e1d`.** Casa do Gordo Online e Arton 1515 confirmaram Free Archetype, Mítico, Ancestral Paragon e todos os livros Remaster da carga inicial em 2026-11-24. Livros legados e livros importados depois dependem de liberação do GM. Veja a tabela de sementes em [MODELO-DE-DADOS.md](MODELO-DE-DADOS.md#3-mesa_rulesrules).
 - **0.6 concluída em `9fcaaaf`.** A regra global 7 agora registra os pares de validação de `sanitizeBuildState`, `MesaRules` e slug do build para a F2.
+- **0.7 concluída em `f5c3f18`.** O export real do Pathbuilder foi preservado em `scripts/rules-data/samples/pathbuilder-inventory-formula.json`. O [contrato da ficha](CONTRATO-FICHA.md#4-equipamento) registra a posição do ID do contêiner e a forma dos grupos de fórmulas.
 - **Verificação.** `npm run build`, `npm run lint` e `git diff --check` passaram. O Vite emitiu o aviso de tamanho de bundles.
 - **Ajustes propostos.** Corrigir para nove o total de classes nos dez exports do elenco. Explicitar na F7 a leitura do catálogo local na publicação do Criador e a propagação do slug estável aos consumidores do estado da mesa.
-- **Pendência 0.7.** Os exports do elenco e as fichas locais verificadas têm a lista `formula` vazia. A tentativa de abrir o navegador para gerar uma nova amostra expirou.
-- **Próximo passo.** Obter um JSON real do Pathbuilder com item dentro de contêiner e pelo menos uma fórmula, conferir o formato e registrar a amostra e o contrato. A F1 aguarda o fechamento da F0 e o aceite do usuário.
+- **Próximo passo.** Com o aceite do usuário para a F1, medir `pg_database_size`, apresentar a estimativa da carga, alinhar o critério das nove classes do elenco e preparar a migration e a ingestão em modo de verificação. A carga inicial em produção depende de autorização específica.
