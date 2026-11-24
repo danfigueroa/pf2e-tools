@@ -10,6 +10,10 @@
       "Fifth Doctrine": "class-feature-813",
       "Final Doctrine": "class-feature-813"
     },
+    "Magus": {
+      "_ref": "AON class-feature-1270 Studious Spell (Impossible Magic pg. 9); a linha 7 da tabela de avanço do Magus diz \"studious spells\".",
+      "Studious Spells": "class-feature-1270"
+    },
     "Oracle": {
       "_ref": "AON class-feature-972 Premonition’s Reflexes (Player Core 2 pg. 128), linha 13 da tabela de avanço do Oracle.",
       "Premonition Reflexes": "class-feature-972"
@@ -17,6 +21,18 @@
     "Psychic": {
       "_ref": "AON class-feature-1160 Weapon Specialization (Dark Archive Remastered pg. 9), linha 13 da tabela de avanço do Psychic.",
       "Psychic Weapon Specialization": "class-feature-1160"
+    },
+    "Ranger": {
+      "_ref": "AON class-feature-732 Martial Weapon Mastery (Player Core pg. 152), linha 13 da tabela de avanço do Ranger.",
+      "Weapon Mastery": "class-feature-732"
+    },
+    "Rogue": {
+      "_ref": "AON class-feature-755 Debilitating Strike (Player Core pg. 164), linha 9 da tabela de avanço do Rogue.",
+      "Debilitating Strikes": "class-feature-755"
+    },
+    "Witch": {
+      "_ref": "AON class-feature-773 Hex Spells (Player Core pg. 178); a linha 1 da tabela de avanço do Witch diz \"hexes\".",
+      "Hexes": "class-feature-773"
     }
   }
 }
