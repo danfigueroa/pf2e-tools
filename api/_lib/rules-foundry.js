@@ -200,11 +200,12 @@ export function matchAon(mechanics, index, classHint = null) {
 }
 
 /**
- * Linhas de `rules_mechanics` (origin `foundry`) e o relatório da ingestão. Variantes do Foundry que a AON junta numa
+ * Linhas de `rules_mechanics` (origin `foundry`) e o relatório da ingestão. `corrections` é o
+ * scripts/rules-data/corrections.json (aliases da progressão conferidos na AON). Variantes do Foundry que a AON junta numa
  * entrada só entram na mesma linha, com `variant` em cada rule element. Na classe, cada característica da progressão
  * ganha o `aon_id` casado (ou null, que o motor mostra como aviso).
  */
-export function buildFoundryMechanics(docs, aonEntries) {
+export function buildFoundryMechanics(docs, aonEntries, corrections = {}) {
     const index = buildAonIndex(aonEntries)
     const rows = new Map()
     const report = { matched: 0, shared: 0, variants: 0, unmatched: [], ambiguous: [], duplicate: [], noCategory: 0, unsupported: {} }
@@ -220,7 +221,12 @@ export function buildFoundryMechanics(docs, aonEntries) {
             continue
         }
         if (mechanics.progression) {
+            const aliases = corrections.progressionAliases?.[mechanics.name] ?? {}
             for (const feature of mechanics.progression.features) {
+                if (typeof aliases[feature.name] === 'string' && index.has(`id|${aliases[feature.name]}`)) {
+                    feature.aon_id = aliases[feature.name]
+                    continue
+                }
                 const found = matchAon({ name: feature.name, category: 'class-feature', level: null, remaster: true }, index, mechanics.name)
                 feature.aon_id = found.status === 'matched' && found.entries.length === 1 ? found.entries[0].aon_id : null
             }

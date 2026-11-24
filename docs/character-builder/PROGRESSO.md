@@ -32,4 +32,11 @@
 - **Pendências registradas.**
   - Stylish Tricks também dá um aumento de perícia restrito nos níveis 3, 7 e 15, que o `skillIncreaseLevels` do Foundry não inclui. O motor da F3 trata.
   - Kineticist (Rage of Elements, ago/2023) não tem versão Remaster e sai `remaster: false` pela regra da 1.4. Para a classe entrar, o livro precisa ser liberado na mesa.
-- **Próximo passo.** 1.7, tabelas curadas: `spell-slots.json`, `wealth.json`, `exports.json` e `corrections.json`, com os aliases acima. A migration em produção e a carga inicial continuam pendentes.
+- **1.7 concluída.**
+  - `spell-slots.json` e `wealth.json` são **gerados** da AON por `scripts/fetch-rules-tables.mjs`, não digitados (decisão: mesma razão do `fetch-creature-tables`). Cobrem as 12 classes conjuradoras e a Character Wealth.
+  - As notas de rodapé das tabelas (`*`, `†`) ficam em `notes`. O Animist guarda pares `[classe, aparição]`.
+  - Os benefícios de arquétipo vêm de Player Core pg. 215.
+  - Conferência com o elenco: Magus 10, Psychic 10 e Cleric 7 batem. O Loki (Magus 7) tem um truque a mais no export, que vem de talento e não da tabela.
+  - `exports.json` traz os rótulos e nomes de conjurador do Pathbuilder, tirados do elenco.
+  - `corrections.json` traz os aliases da progressão (Doctrines do Cleric, Premonition Reflexes, Psychic Weapon Specialization), cada um com o livro e a página. Com eles, as nove classes do elenco têm progressão 1–20 com todas as características casadas.
+- **Próximo passo.** 1.8: `scripts/import-rules.mjs`, que junta 1.2 a 1.7 e grava `rules_sources`, `rules_entries` e `rules_mechanics`. Antes da carga, mostrar `pg_database_size`; a estimativa é ~40 MB de entradas mais ~3 MB de mecânica. A migration ainda não foi aplicada em produção.

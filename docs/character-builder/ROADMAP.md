@@ -90,7 +90,7 @@ lendo dele sem tocar a AON. Desenho completo em [BASE-DE-REGRAS.md](BASE-DE-REGR
       em `rules_entries.data.derived`.
 - [x] **1.6** Mecânica `foundry` (se D1 permitir): rule elements e progressão de classe casados por nome/tipo/`legacy_name`;
       o resto em `unsupported`; relatório dos não suportados mais frequentes (prioriza a F4).
-- [ ] **1.7** Mecânica `manual`: `spell-slots.json` (cada progressão conferida na AON e com o `perDay` do elenco),
+- [x] **1.7** Mecânica `manual`: `spell-slots.json` (cada progressão conferida na AON e com o `perDay` do elenco),
       `wealth.json`, `exports.json` (nomes de conjurador e rótulos de slot do Pathbuilder), `corrections.json`.
 - [ ] **1.8** `scripts/import-rules.mjs` (`--remaster`, `--source`, `--check`) e **carga inicial** de todos os livros
       Remaster (~17,8 mil entradas).

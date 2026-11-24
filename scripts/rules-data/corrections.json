@@ -1,0 +1,22 @@
+{
+  "_doc": "Correções da ingestão da base de regras, cada uma conferida na AON. progressionAliases: característica da progressão do Foundry → aon_id da entrada que a AON usa para ela, por classe.",
+  "progressionAliases": {
+    "Cleric": {
+      "_ref": "AON class-feature-813 Doctrine (Player Core pg. 108): a AON descreve as seis etapas numa entrada só.",
+      "First Doctrine": "class-feature-813",
+      "Second Doctrine": "class-feature-813",
+      "Third Doctrine": "class-feature-813",
+      "Fourth Doctrine": "class-feature-813",
+      "Fifth Doctrine": "class-feature-813",
+      "Final Doctrine": "class-feature-813"
+    },
+    "Oracle": {
+      "_ref": "AON class-feature-972 Premonition’s Reflexes (Player Core 2 pg. 128), linha 13 da tabela de avanço do Oracle.",
+      "Premonition Reflexes": "class-feature-972"
+    },
+    "Psychic": {
+      "_ref": "AON class-feature-1160 Weapon Specialization (Dark Archive Remastered pg. 9), linha 13 da tabela de avanço do Psychic.",
+      "Psychic Weapon Specialization": "class-feature-1160"
+    }
+  }
+}

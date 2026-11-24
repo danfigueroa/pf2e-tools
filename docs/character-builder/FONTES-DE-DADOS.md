@@ -61,8 +61,8 @@ Coisas que nenhuma fonte entrega pronto para o motor, ou que a fonte erra:
 
 | Arquivo | Conteúdo | Conferência |
 | --- | --- | --- |
-| `scripts/rules-data/spell-slots.json` | slots por rank e nível para cada progressão (plena, Magus/Summoner, Basic/Expert/Master Spellcasting) | página de cada classe/arquétipo na AON; casos com o `perDay` do elenco |
-| `scripts/rules-data/wealth.json` | riqueza inicial por nível | GM Core, "Character Wealth" |
+| `scripts/rules-data/spell-slots.json` | slots por rank e nível de cada classe conjuradora Remaster e benefícios Basic/Expert/Master Spellcasting | **gerado** por `scripts/fetch-rules-tables.mjs` da tabela da classe na AON; arquétipo transcrito de Player Core pg. 215; o script compara com o `perDay` do elenco |
+| `scripts/rules-data/wealth.json` | riqueza inicial por nível | **gerado** pelo mesmo script da "Table 10-10: Character Wealth" (GM Core pg. 61, `rules-2662`) |
 | `scripts/rules-data/exports.json` | nomes de conjurador e rótulos de slot que o Pathbuilder usa (`"Cleric Font"`, `"Free Archetype"`) | os JSONs do elenco |
 | `scripts/rules-data/corrections.json` | correções pontuais da ingestão (entrada errada, rule element que falta), cada uma com a referência AON | AON |
 | `scripts/rules-data/prereq-patterns.json` | padrões extras do parser de pré-requisitos | casos no `check-builder` |

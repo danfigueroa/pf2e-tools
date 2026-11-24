@@ -1,0 +1,35 @@
+{
+  "_doc": "Rótulos e nomes que o Pathbuilder grava no export e que a Ficha casa por texto (CONTRATO-FICHA §2 e §3). Tirados dos 10 JSONs de public/characters/. <Class> = build.class, <Ancestry> = build.ancestry, N = nível do slot.",
+  "featTypes": {
+    "class": "Class Feat",
+    "ancestry": "Ancestry Feat",
+    "heritage": "Heritage",
+    "skill": "Skill Feat",
+    "general": "General Feat",
+    "archetype": "Archetype Feat",
+    "mythic": "Mythic Feat",
+    "awarded": "Awarded Feat"
+  },
+  "slotLabels": {
+    "class": "<Class> Feat N",
+    "ancestry": "<Ancestry> Feat N",
+    "heritage": "Heritage Feat",
+    "skill": "Skill Feat N",
+    "skillLessons": "Skill Lessons N",
+    "general": "General Feat N",
+    "freeArchetype": "Free Archetype N",
+    "mythic": "Mythic Feat N",
+    "ancestralParagon": "Ancestral Paragon FeatGeneral Feat N"
+  },
+  "_slotLabelsNote": "Escolha dentro de outro talento grava o rótulo do talento-pai colado ao rótulo do slot, sem separador (\"Basic ThoughtformFree Archetype 4\", \"General Training FeatHuman Feat 1\"), com choiceKind childChoice e o rótulo do pai no índice 6.",
+  "choiceKinds": ["standardChoice", "parentChoice", "childChoice"],
+  "casters": {
+    "class": "<Class>",
+    "font": "<Class> Font",
+    "archetype": "Archetype <Class>",
+    "mythic": "Mythic Magic"
+  },
+  "_castersNote": "Inatos levam o nome da fonte: talento, herança ou item (\"Caster Arcane Sense\", \"Aeromancer\", \"Pinch Time\", \"Advanced Targeting System\"), com innate: true.",
+  "spellcastingTypes": ["prepared", "spontaneous"],
+  "focusTraditions": ["arcane", "divine", "occult", "primal"]
+}
