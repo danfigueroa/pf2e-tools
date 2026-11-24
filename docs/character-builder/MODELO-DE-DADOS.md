@@ -187,8 +187,12 @@ interface MesaRules {
 }
 ```
 
-Valores iniciais por mesa (migration semeia): **Casa do Gordo** e **Arton 1515** com `freeArchetype`, `mythic` e
-`ancestralParagon` ligados (é o que o elenco usa — confirmar com o GM antes de semear).
+Valores iniciais para a migration de `mesa_rules` (F0.3):
+
+| Mesa | Variantes | Livros liberados |
+| --- | --- | --- |
+| Casa do Gordo Online (`casa-do-gordo`) | Confirmadas em 2026-11-24: Free Archetype, Mítico e Ancestral Paragon | A confirmar |
+| Arton 1515 (`arton-1515`) | A confirmar. Proposta: Free Archetype, Mítico e Ancestral Paragon | A confirmar |
 
 ## 4. Pacotes de leitura do catálogo (Storage `rules/<versão>/`)
 
