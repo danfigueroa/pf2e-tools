@@ -185,7 +185,8 @@ Erros novos do servidor entram em `api/_lib/i18n.js` (`EXACT`/`PATTERNS`).
 - Por baixo: `build-apply` → o mesmo `draft-create` → preparo (descrições pt/en, guia) → `promote_sheet_draft`. O modo
   jogar mostra "Preparando…" e troca quando o retrato novo fica completo.
 - Quem está com a ficha aberta em outro aparelho vê a faixa "Nova versão" (comportamento atual: nada troca sozinho).
-- Fora de sessão, aplicar pode ser automático ao sair do modo editar (decisão D7); durante a sessão, sempre pelo toque.
+- Exija a confirmação em **Aplicar na mesa** durante e fora de sessão (D7). Sair do modo editar preserva somente o
+  rascunho e mantém o retrato publicado.
 - **Estado da mesa não é tocado**: PV atual, slots gastos, condições, consumíveis e dinheiro acertado continuam em
   `character_state` e casam por slug/nome como hoje (ex.: `consumed.of` e `money.of` já tratam ficha nova com outra
   quantidade).

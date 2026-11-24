@@ -7,5 +7,6 @@
 - Confira cada regra marcada com 🔎 na AON Remaster e cite livro e página no código para tornar os cálculos verificáveis.
 - Salve escolhas em `BuildState` e compile um retrato compatível com `BuildInfo` para preservar a Ficha, o estado da mesa e os uploads do Pathbuilder.
 - Salve os rascunhos por mesa para isolá-los conforme as mesmas regras de acesso das fichas publicadas.
+- Publique somente após a confirmação em **Aplicar na mesa** para que sair do editor preserve a ficha que a mesa usa.
 - Converta pré-requisitos não cumpridos e efeitos sem suporte em avisos para permitir escolhas sem inventar números.
 - Deixe o conteúdo caseiro da mesa para a F9 e use o catálogo atual de relíquias da Ficha para preservar os personagens publicados.

@@ -84,6 +84,9 @@ Na mesa `arton-1515`, slugs `teste-*`, apagados no fim (o `.env` aponta para pro
 - `build-apply` com slug do build (o `build.name` diferente não muda o slug); ficha de outro dono = 403.
 - `mesa-rules-save` exige GM real mesmo com `AUTH_REQUIRED` desligado.
 
+Na F7, durante e fora de sessão, edite o personagem e saia do editor. Confira que o rascunho foi salvo e que a ficha
+publicada só muda depois de revisar e confirmar **Aplicar na mesa**.
+
 ## 4. Migrations
 
 `node --env-file=.env scripts/check-migrations.mjs` (pendentes em `BEGIN…ROLLBACK`); depois do push,

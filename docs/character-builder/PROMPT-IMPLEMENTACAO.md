@@ -42,7 +42,6 @@ opção. As que mais pesam:
 
 - **D1** — a camada de mecânica (o que cada talento faz) vem também dos dados do sistema PF2e do Foundry (ler a licença
   em FONTES-DE-DADOS §2) ou só de campos da AON + curadoria à mão?
-- **D7** — "Aplicar na mesa": automático fora de sessão ou sempre com um toque?
 - **D9** — admin da plataforma: confirmar que a semente de `platform_admins` é a minha conta (descubra o `user_id` pelo
   banco, não peça para eu digitar).
 - **Variantes por mesa** (F0.3): confirme comigo quais regras opcionais cada mesa usa antes de semear `mesa_rules`.
