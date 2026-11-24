@@ -65,13 +65,13 @@ Rotas propostas: **`/personagens`** (meus personagens e os da mesa) e **`/ficha-
 | D2 | 2026-11-24 | Adiar o conteúdo caseiro da mesa para a F9. As relíquias atuais continuam no catálogo da Ficha Virtual. |
 | D3 | 2026-11-24 | Salvar rascunhos por mesa, como as fichas publicadas. Copiar um personagem para outra mesa fica para a F9. |
 | D4 | 2026-11-24 | Permitir que o GM crie um personagem e o atribua a um jogador da mesma mesa. O fluxo entra na F8. |
+| D5 | 2026-11-24 | Deixar a exportação de ficha em PDF fora do escopo. O backup opcional em JSON segue previsto na F7. |
 
 ## Decisões em aberto (precisam do usuário)
 
 | # | Pergunta | Recomendação |
 | --- | --- | --- |
 | D9 | Quem administra a base de regras (é de todas as mesas)? | Tabela `platform_admins`, semeada com a sua conta |
-| D5 | Exportar PDF da ficha? | Fora de escopo (a Ficha em PDF foi removida de propósito) |
 | D6 | Riqueza inicial em nível > 1: usar a tabela "Character Wealth" do GM Core automaticamente ou deixar livre? | Mostrar a tabela como referência e aviso; não travar |
 | D7 | Aplicar as edições na Ficha: automático ou com um toque em "Aplicar na mesa"? | Um toque, com o resumo do que muda. Fora de sessão (`mesas.session_started_at` vazio) pode ser automático; durante a sessão, sempre com o toque e a faixa "Nova versão" para os outros |
 | D8 | Stamina, Dual Class, Gradual Boosts e outras variantes do Gamemastery Guide (legado) entram? | Só sob pedido de uma mesa (F9); Stamina mexe no dano da Ficha, Iniciativa e Mapa |
