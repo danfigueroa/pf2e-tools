@@ -12,6 +12,7 @@
 import { useSyncExternalStore } from 'react'
 import { currentMesa, stateApi, switchMesa } from './mesa'
 import { authHeaders, getAuthClient, isSupabaseConfigured } from './supabase'
+import { setRulesVersion } from './rulesVersion'
 import { isEn, lang, rememberLanguage, storedLanguage, type Lang, tr } from '../i18n'
 
 export type Role = 'player' | 'gm'
@@ -129,6 +130,7 @@ async function fetchMe(): Promise<{ user: { id: string; email: string | null; us
         const res = await fetch(stateApi('?me=1'))
         if (!res.ok) return null
         const data = await res.json()
+        setRulesVersion(typeof data.rulesVersion === 'string' ? data.rulesVersion : null)
         return { user: data.user, mesas: data.mesas ?? [] }
     } catch {
         return null

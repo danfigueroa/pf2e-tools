@@ -51,4 +51,9 @@
   - **Conferido pelo CDN.** `core/classes` traz as 28 classes, com `featLevels`, `skillIncreaseLevels` e as características ligadas a `class-feature:<aon_id>`.
   - **Rota de reserva.** `?rules=` e `?rules=search` testadas no servidor de dev: 200 com cache imutável, 400 para lista inválida e 404 para lista inexistente, com o erro no idioma do pedido.
   - **`?me=1`** agora traz `rulesVersion`, com cache de 60 s.
-- **Próximo passo.** 1.10: `src/modules/character-builder/rules/loader.ts` (pacotes do Storage, IndexedDB `pf2e:rules:<versão>:<lista>`) e `rules/index.ts` (`featsFor`, `spellsFor`, `itemsBy`).
+- **1.10 concluída.**
+  - `rules/loader.ts` carrega na ordem: memória → IndexedDB `pf2e-rules` (chave `pf2e:rules:<versão>:<lista>`) → Storage → reserva `?rules=`. Se o IndexedDB estiver bloqueado, fica só na memória.
+  - `rules/index.ts` traz `featsFor`, `spellsFor`, `itemsBy` e as listas de `core/`. `rules/types.ts` é o `RuleEntry` real dos pacotes.
+  - A versão vem do `?me=1` por `src/services/rulesVersion.ts`, separado do `auth.ts` para o chunk do Criador não puxar a sessão. Sem ela, vem do manifesto.
+  - Teste no Node contra a API de dev: Magus com Human, geral, perícia e Psychic até o nível 7 deu 320 talentos, 411 magias arcanas até o rank 4 e 365 armas. Foram 8 pedidos, só das listas usadas; a segunda consulta saiu da memória. Nenhum pedido à AON.
+- **Próximo passo.** 1.11: fixture fixa da base no repo para o `check-builder`. Depois, 1.12: página de créditos e licenças.

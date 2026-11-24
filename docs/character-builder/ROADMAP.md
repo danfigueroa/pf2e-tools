@@ -96,7 +96,7 @@ lendo dele sem tocar a AON. Desenho completo em [BASE-DE-REGRAS.md](BASE-DE-REGR
       Remaster (~17,8 mil entradas).
 - [x] **1.9** Geração dos **pacotes por lista** no Storage (`rules/<versão>/<lista>.json`) + `rulesVersion` no `?me=1`;
       rota de reserva `api/search.js?rules=` com `Cache-Control` por versão.
-- [ ] **1.10** Cliente: `rules/loader.ts` (pacotes do Storage, cache IndexedDB global `pf2e:rules:<versão>:<lista>`, sem
+- [x] **1.10** Cliente: `rules/loader.ts` (pacotes do Storage, cache IndexedDB global `pf2e:rules:<versão>:<lista>`, sem
       `mesaKey`) e `rules/index.ts` (`featsFor`, `spellsFor`, `itemsBy`).
 - [ ] **1.11** Fixture fixa da base no repo para o `check-builder` (testes sem rede nem banco).
 - [ ] **1.12** Página "Créditos e licenças" (ORC/OGL dos livros importados), bilíngue.
