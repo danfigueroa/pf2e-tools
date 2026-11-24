@@ -56,4 +56,10 @@
   - `rules/index.ts` traz `featsFor`, `spellsFor`, `itemsBy` e as listas de `core/`. `rules/types.ts` é o `RuleEntry` real dos pacotes.
   - A versão vem do `?me=1` por `src/services/rulesVersion.ts`, separado do `auth.ts` para o chunk do Criador não puxar a sessão. Sem ela, vem do manifesto.
   - Teste no Node contra a API de dev: Magus com Human, geral, perícia e Psychic até o nível 7 deu 320 talentos, 411 magias arcanas até o rank 4 e 365 armas. Foram 8 pedidos, só das listas usadas; a segunda consulta saiu da memória. Nenhum pedido à AON.
-- **Próximo passo.** 1.11: fixture fixa da base no repo para o `check-builder`. Depois, 1.12: página de créditos e licenças.
+- **1.11 concluída.** `scripts/build-rules-fixture.mjs` gera `scripts/rules-data/fixture.json` (~0,8 MB, versão `2026.11.2`) a partir dos pacotes publicados. Entram inteiras as listas pequenas do `core`; das demais, só o que os 10 personagens do elenco usam, mais as características da progressão das classes deles.
+- **Achado para a F7 (paridade com o elenco).** 98 nomes do elenco não têm entrada no catálogo Remaster:
+  - **Conteúdo legado.** Android, Fleshwarp e Artisan Android (Impossible Lands), Lesser Scion, Hydra's Bond, Wavetouched Paragon, Genie-Blessed, Mentalist's Staff (Greater)… A paridade vai exigir importar esses livros com `--source` e liberá-los nas mesas (D3/0.3: livro legado depende de liberação do GM).
+  - **"Specials" compostos do Pathbuilder.** Atributos, perícias e rótulos como "Studious Spell: Blur", "Empiricism Selected Skill: Occultism" e "Standard Cantrip: Shield (Archetype)". O compilador gera esses rótulos; eles não vêm do catálogo.
+  - **Caseiros.** Braço Sônico, Miranda's Arm e Loki's Heart, todos do catálogo de relíquias da Ficha (D2).
+  - **Opções com outro nome na AON.** "Thief Racket" é "Thief"; "Giant Instinct" é "Giant". Entram no `exports.json` ou no `corrections.json` na F7.
+- **Próximo passo.** 1.12, página "Créditos e licenças". Depois, o "Pronto quando" da F1: abrir o Criador sem chamadas à AON se confere quando houver tela (F2).
