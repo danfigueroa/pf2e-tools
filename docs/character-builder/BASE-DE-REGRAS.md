@@ -137,10 +137,15 @@ node --env-file=.env scripts/import-rules.mjs --check                # só verif
 
 ## 4. A camada de mecânica
 
-Para cada entrada importada, o importador tenta preencher `rules_mechanics`:
+A mecânica tem três origens:
 
-1. **`derived`** — o que dá para tirar dos campos da AON: boosts e PV da ancestralidade, boosts/perícia/talento do
-   background, proficiências iniciais da classe (texto "Expert in…" → rank), dano/grupo/categoria de arma, dados de magia.
+1. **`derived`**: grave em `rules_entries.data.derived`, nunca em `rules_mechanics`. É uma projeção dos campos da própria
+   AON, então muda junto com o `hash` da entrada e viaja no mesmo pacote. Assim a progressão do Foundry não sobrescreve as
+   proficiências iniciais da classe. Cobre: boosts e PV da ancestralidade; boosts, perícias e talento do background;
+   proficiências iniciais da classe (texto "Expert in…" → rank, "all armor" → leve/média/pesada, escolhas de perícia);
+   dado, tipo de dano (a letra de `damage`, não o primeiro de `damage_type`, que inclui o versátil), grupo e categoria de
+   arma; dados de magia. O texto que o parser não entende vai para `derived.unsupported`, para virar aviso no motor. Isso
+   inclui o que depende de subclasse, divindade, armas de fogo e Lore à escolha.
 2. **`foundry`** (se a decisão D1 permitir) — rule elements e progressão de classe do sistema PF2e do Foundry, casados por
    nome + tipo (e `legacy_name`).
 3. **`manual`** — tabelas curadas no repositório (slots de magia, riqueza, correções), conferidas na AON.

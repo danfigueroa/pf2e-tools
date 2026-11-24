@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { deriveRuleData } from './rules-derived.js'
 
 export const RULE_CATEGORIES = [
     'action', 'ancestry', 'animal-companion', 'animal-companion-advanced', 'animal-companion-specialization',
@@ -84,10 +85,14 @@ export function normalizeRuleEntry(entry, source) {
 
     const { aon_id, name } = identity(entry)
     const replacements = strings(entry.remaster_id)
+    const fields = [...COMMON_FIELDS, ...(CATEGORY_FIELDS[category] ?? []), ...(ITEM_CATEGORIES.has(category) ? ITEM_FIELDS : [])]
+    const normalized = pickData(entry, fields)
+    const derived = deriveRuleData(category, normalized, entry)
     const data = {
-        ...pickData(entry, [...COMMON_FIELDS, ...(CATEGORY_FIELDS[category] ?? []), ...(ITEM_CATEGORIES.has(category) ? ITEM_FIELDS : [])]),
+        ...normalized,
         slug: slug(name),
         ...(replacements.length ? { remaster_ids: replacements } : {}),
+        ...(derived ? { derived } : {}),
     }
     const row = {
         aon_id,
