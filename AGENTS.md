@@ -107,6 +107,8 @@ Scripts de manutenção, à mão: `fetch-creature-tables.mjs` (confira o diff!),
    - `FIELD_RE` (`table-store.js`) ↔ CHECK de `character_state` (migration nova)
    - `MESA_IDS` (`mesas.js`) ↔ `MESAS` (`mesa.ts`) ↔ tabela `mesas` (migration)
    - `SLUG_ALIASES` (`charId.ts` ↔ `sheet-store.js`: o Thalos virou `Thalos Alba` e segue `thalos`)
+   - Criador (F2): `sanitizeBuildState` (`character-builder/sanitize.ts` ↔ `build-sanitize.js`), forma e padrões de
+     `MesaRules` (cliente ↔ `build-store.js`) e `slugify` do build (`charId.ts` ↔ `build-store.js`).
    - `USER_DOMAIN` (`auth-handler.js` ↔ `services/auth.ts`); `FIX_FIELDS` (cliente ↔ `fix-store.js`); tetos de `notes.ts` ↔ `notes-store.js`
    - `summarize` (`stats.ts`) ↔ SQL `diary_summary` ↔ `summarizeRolls` (`roll-store.js`)
    - `namesCompatible` (`aon-parse.js` ↔ `descriptions.ts`); `TRAIT_PT` e `traitName` (`rule-core.js` ↔ `weaponTraits.ts`)

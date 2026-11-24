@@ -61,7 +61,7 @@ Regras de execução válidas em todas as fases:
 - [x] **0.4** Fixar o commit do repositório de dados (se D1 = Foundry) e anotar no `FONTES-DE-DADOS.md`.
 - [x] **0.5** Criar `src/modules/character-builder/AGENTS.md` (regras do módulo no estilo dos outros: imperativo + porquê
       em uma linha) e a linha dele na tabela "Onde está o detalhe" do `AGENTS.md` raiz.
-- [ ] **0.6** Acrescentar à regra global 7 os pares novos (`sanitizeBuildState`, `MesaRules`, slug do build).
+- [x] **0.6** Acrescentar à regra global 7 os pares novos (`sanitizeBuildState`, `MesaRules`, slug do build).
 - [ ] **0.7** Exportar do Pathbuilder **um personagem com contêiner com item dentro e com fórmulas** para fechar os
       formatos pendentes do CONTRATO-FICHA §4.
 
