@@ -17,6 +17,7 @@ Rotas propostas: **`/personagens`** (meus personagens e os da mesa) e **`/ficha-
 | [ANALISE-PATHBUILDER.md](ANALISE-PATHBUILDER.md) | Inventário de tudo o que o Pathbuilder 2e faz (versão *Feylines 112.0*, analisada em 2026-11-24), com a decisão para cada item: adotar, adaptar, já existe na plataforma, ou fora de escopo |
 | [REQUISITOS.md](REQUISITOS.md) | Requisitos funcionais (RF) e não funcionais (RNF), regras de negócio e critérios de aceite |
 | [ROADMAP.md](ROADMAP.md) | Fases, sub-tasks, dependências, entregáveis e "pronto quando" de cada fase |
+| [PROGRESSO.md](PROGRESSO.md) | Fase atual, decisões registradas e próximo passo |
 | [ARQUITETURA.md](ARQUITETURA.md) | Como o módulo se encaixa: pastas, motor de regras, fluxo de dados, rotas da API, chunks, integração com os outros módulos |
 | [MODELO-DE-DADOS.md](MODELO-DE-DADOS.md) | Tabelas, migrations, RLS/grants, Realtime, o formato `BuildState` (escolhas) e o catálogo de regras |
 | [MOTOR-DE-REGRAS.md](MOTOR-DE-REGRAS.md) | O que o motor calcula (atributos, PV, proficiências, CA, magias, carga…), variantes (Free Archetype, Mítico, ABP…), pré-requisitos e as fontes a conferir na AON |
