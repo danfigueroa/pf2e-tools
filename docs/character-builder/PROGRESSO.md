@@ -11,8 +11,8 @@
 - **D7 aprovada em 2026-11-24.** A ficha publicada muda após revisar e confirmar **Aplicar na mesa**, durante e fora de sessão. As escolhas são salvas no rascunho ao editar.
 - **D8 aprovada em 2026-11-24.** Stamina, Dual Class e Gradual Boosts ficam para a F9 sob pedido de uma mesa.
 - **D9 aprovada em 2026-11-24.** `danfigueroa` será a conta administradora inicial da base. A conta foi conferida em consulta somente leitura. A semente entra na F1.
-- **0.3 em andamento.** Casa do Gordo Online confirmou Free Archetype, Mítico e Ancestral Paragon em 2026-11-24. Veja a tabela de sementes em [MODELO-DE-DADOS.md](MODELO-DE-DADOS.md#3-mesa_rulesrules).
+- **0.3 em andamento.** Casa do Gordo Online confirmou Free Archetype, Mítico, Ancestral Paragon e todos os livros Remaster da carga inicial em 2026-11-24. Livros legados e livros importados depois dependem de liberação do GM. Veja a tabela de sementes em [MODELO-DE-DADOS.md](MODELO-DE-DADOS.md#3-mesa_rulesrules).
 - **Verificação.** `npm run build`, `npm run lint` e `git diff --check` passaram. O Vite emitiu o aviso de tamanho de bundles.
 - **Ajustes propostos.** Corrigir para nove o total de classes nos dez exports do elenco. Explicitar na F7 a leitura do catálogo local na publicação do Criador e a propagação do slug estável aos consumidores do estado da mesa.
-- **Pendências.** Confirmar os livros da Casa do Gordo Online, as variantes e os livros de Arton 1515, registrar os pares de validação e obter o export amostral com item dentro de contêiner e fórmulas.
-- **Próximo passo.** Confirmar os livros liberados para a Casa do Gordo Online (0.3). A F1 aguarda o fechamento da F0 e o aceite do usuário.
+- **Pendências.** Confirmar as variantes e os livros de Arton 1515, registrar os pares de validação e obter o export amostral com item dentro de contêiner e fórmulas.
+- **Próximo passo.** Confirmar as variantes de Arton 1515 (0.3). A F1 aguarda o fechamento da F0 e o aceite do usuário.
