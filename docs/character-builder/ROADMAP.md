@@ -58,7 +58,7 @@ Regras de execução válidas em todas as fases:
 - [ ] **0.2** Decidir D2–D6 (homebrew no MVP, build por mesa, GM cria para jogador, PDF, riqueza inicial).
 - [ ] **0.3** Confirmar com o GM de cada mesa as variantes ligadas (Free Archetype, Mítico, Ancestral Paragon) e os
       livros liberados — vira a semente de `mesa_rules`.
-- [ ] **0.4** Fixar o commit do repositório de dados (se D1 = Foundry) e anotar no `FONTES-DE-DADOS.md`.
+- [x] **0.4** Fixar o commit do repositório de dados (se D1 = Foundry) e anotar no `FONTES-DE-DADOS.md`.
 - [x] **0.5** Criar `src/modules/character-builder/AGENTS.md` (regras do módulo no estilo dos outros: imperativo + porquê
       em uma linha) e a linha dele na tabela "Onde está o detalhe" do `AGENTS.md` raiz.
 - [ ] **0.6** Acrescentar à regra global 7 os pares novos (`sanitizeBuildState`, `MesaRules`, slug do build).

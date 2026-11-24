@@ -29,9 +29,11 @@ e não têm licença de reuso.
   - **Remaster vs legado**: `remaster_id`/`legacy_id` para esconder a versão antiga.
   - Ligação `RuleEntry.aon` (id + url) para o botão "Ver na AON".
 
-## 2. Sistema PF2e do Foundry (proposto como entrada da ingestão — decisão D1)
+## 2. Sistema PF2e do Foundry (fonte complementar aprovada na D1)
 
-- Repositório público, branch de desenvolvimento ativa (`v14-dev`, atualizado em 2026-11-24). Pacotes relevantes:
+- Use a release [PF2e 8.7.1](https://github.com/foundryvtt/pf2e/releases/tag/pf2e-8.7.1), fixada no commit
+  [`397f125aea87e6d6fa36e878c9c07d0e672826cf`](https://github.com/foundryvtt/pf2e/commit/397f125aea87e6d6fa36e878c9c07d0e672826cf).
+  Use o SHA completo em `--ref` e no manifesto para reproduzir a ingestão. Pacotes relevantes:
   `ancestries`, `ancestry-features`, `heritages`, `backgrounds`, `classes`, `class-features`, `feats`
   (`ancestry/ archetype/ class/ general/ …`), `spells`, `equipment`, `deities`, `familiar-abilities`, `actions`,
   `conditions`.
@@ -43,9 +45,9 @@ e não têm licença de reuso.
   - Rule elements por entrada (ex.: *Fighter Weapon Mastery* = `ChoiceSet` de grupo de arma + `MartialProficiency`;
     *Arcane School* = `ChoiceSet` filtrado + `GrantItem`).
   - `publication.remaster`, `traits.rarity`, `prerequisites` (texto).
-- **Licença** (README do repositório): código Apache-2.0; "Pathfinder Second Edition information used with permission
-  granted by the license agreement between Paizo Inc. and Foundry Gaming LLC"; mecânica de jogo sob OGL 1.0a (e o
-  conteúdo Remaster da Paizo sai sob ORC). **Antes de ingerir**, decidir com o usuário (D1):
+- **Licenças**: o [README do Foundry](https://github.com/foundryvtt/pf2e#licenses) distingue a licença Apache-2.0 do código,
+  a OGL 1.0a declarada para a mecânica e a permissão concedida ao projeto pela Paizo. A D1 aprova o uso como fonte
+  complementar. Confira a licença aplicável a cada conjunto de dados antes da ingestão:
   - Usar só como **referência de estrutura** e extrair a mecânica (que é regra de jogo, sob ORC/OGL), sem copiar texto
     descritivo nem arte — descrições continuam vindo da AON;
   - Manter o aviso de licença ORC/OGL dos livros na página de créditos (RNF-13);
