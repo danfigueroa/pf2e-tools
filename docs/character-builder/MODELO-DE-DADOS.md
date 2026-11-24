@@ -192,10 +192,10 @@ Valores iniciais para a migration de `mesa_rules` (F0.3):
 | Mesa | Variantes | Livros liberados |
 | --- | --- | --- |
 | Casa do Gordo Online (`casa-do-gordo`) | Confirmadas em 2026-11-24: Free Archetype, Mítico e Ancestral Paragon | Confirmados em 2026-11-24: todos os livros Remaster da carga inicial. Livros legados e livros importados depois exigem liberação do GM. |
-| Arton 1515 (`arton-1515`) | Confirmadas em 2026-11-24: Free Archetype, Mítico e Ancestral Paragon | A confirmar |
+| Arton 1515 (`arton-1515`) | Confirmadas em 2026-11-24: Free Archetype, Mítico e Ancestral Paragon | Confirmados em 2026-11-24: todos os livros Remaster da carga inicial. Livros legados e livros importados depois exigem liberação do GM. |
 
-Para a Casa do Gordo Online, preencha `sources.allow` com os IDs dos livros Remaster da carga inicial concluída na F1
-e semeie `legacy: false`. A importação de livros posteriores não altera a lista da mesa.
+Para as duas mesas, preencha `sources.allow` com os IDs dos livros Remaster da carga inicial concluída na F1 e semeie
+`legacy: false`. A importação de livros posteriores só atualiza o catálogo global.
 
 ## 4. Pacotes de leitura do catálogo (Storage `rules/<versão>/`)
 
