@@ -79,7 +79,7 @@ const memory = new Map<string, Promise<unknown>>()
 
 /** Uma lista do catálogo (`core/classes`, `feats/class/magus`…), da memória, do aparelho ou da rede. */
 export function loadRuleList<T>(list: string, version?: string): Promise<T> {
-    if (list !== 'core/tables' && list !== 'manifest' && !LIST_RE.test(list)) return Promise.reject(new Error(`lista inválida: ${list}`))
+    if (list !== 'core/tables' && list !== 'manifest' && !LIST_RE.test(list)) return Promise.reject(new Error(`lista inválida: ${list}`)) // i18n-ok: erro de programação, não vai para a tela
     const run = async () => {
         const v = version ?? await rulesVersion()
         const key = cacheKey(v, list)
