@@ -1861,7 +1861,7 @@
     ],
     "category": "relic",
     "sourceBook": "GM Core, p. 313",
-    "description": "Ativar Ação Única: (concentrar) Frequência uma vez por dia; Efeito Você negocia com a força maligna que fortalece sua relíquia por uma dádiva, embora precise trocar algo em retorno. Selecione um dos seguintes benefícios para ganhar. Sua relíquia tenta anular uma condição prejudicial que afeta você. Você recupera 3d8+16 Pontos de Vida. Este é um efeito de cura. Você ganha um bônus de status de +2 em testes de ataque por 1 minuto. Um dos seguintes efeitos determinados aleatoriamente ocorre com você como pagamento, após aplicar o benefício. Você fica stupefied 1 por 1 minuto. Você fica clumsy 1 por 1 minuto. Você perde 1d8 Pontos de Vida. Você sofre uma penalidade de –1 em testes de dano por 1 minuto."
+    "description": "Ativar Ação Única: (concentrar) Frequência uma vez por hora; Efeito Você negocia com a força maligna que fortalece sua relíquia por uma dádiva, embora precise trocar algo em retorno. Selecione um dos seguintes benefícios para ganhar. Sua relíquia tenta anular uma condição prejudicial que afeta você. Você recupera 3d8+16 Pontos de Vida. Este é um efeito de cura. Você ganha um bônus de status de +2 em testes de ataque por 1 minuto. Um dos seguintes efeitos determinados aleatoriamente ocorre com você como pagamento, após aplicar o benefício. Você fica stupefied 1 por 1 minuto. Você fica clumsy 1 por 1 minuto. Você perde 1d8 Pontos de Vida. Você sofre uma penalidade de –1 em testes de dano por 1 minuto."
    },
    "Intelligence": {
     "name": "Intelligence",

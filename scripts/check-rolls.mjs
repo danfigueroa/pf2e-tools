@@ -945,7 +945,7 @@ eq(plain.combatants.length, 3, 'Monstro comum (sem dono) pode repetir à vontade
     const sword0 = nat.weapons.find((w) => w.display === 'Zarroc Sheilvean')
     ok(sword.pot === sword0.pot && sword.str === 'striking' && sword.attack === sword0.attack, 'Zarroc Sheilvean: +1 striking, ataque como a ficha')
     ok(zs.gifts.map((g) => g.id).join() === 'death-gaze,curse-wound,fiendish-bargain', 'Zarroc Sheilvean: as três dádivas na ordem 1/5/9')
-    ok(zs.gifts[2].activation.cost === 1 && zs.gifts[2].activation.frequency && zs.gifts[1].activation.cost === 'reaction', 'Zarroc Sheilvean: Fiendish Bargain 1 ação 1×/dia, Curse Wound reação')
+    ok(zs.gifts[2].activation.cost === 1 && zs.gifts[2].activation.frequency && zs.gifts[1].activation.cost === 'reaction', 'Zarroc Sheilvean: Fiendish Bargain 1 ação 1×/hora, Curse Wound reação')
 
     // O Combate mostra o nome da relíquia; o nome técnico (runas) fica no Inventário.
     const inv = await import('../src/modules/character-viewer/inventory.ts')

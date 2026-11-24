@@ -398,13 +398,13 @@ export const RELICS: RelicEntry[] = [
                     trigger: tr('seu Golpe com a relíquia causa dano a uma criatura a até 18 m', 'your Strike with the relic damages a creature within 60 feet'),
                 },
             },
-            // GM Core pg. 313: 1 ação (concentrar), **uma vez por DIA** (o Gamemastery Guide dizia por hora). 3d8+16 PV é fixo.
+            // GM Core pg. 313: 1 ação (concentrar), **uma vez por HORA** (conferido no GM Core do Remaster pelo usuário; a AON/bundle diz por dia). 3d8+16 PV é fixo.
             {
                 id: 'fiendish-bargain',
                 name: 'Fiendish Bargain',
                 tier: 'major',
                 kind: 'power',
-                activation: { cost: 1, frequency: tr('uma vez por dia', 'once per day'), limited: true },
+                activation: { cost: 1, frequency: tr('uma vez por hora', 'once per hour'), limited: true },
                 facts: () => tr('benefício à escolha (neutralizar condição, 3d8+16 PV ou +2 de status nos ataques por 1 min), depois um custo aleatório', 'your choice of boon (counteract a condition, 3d8+16 HP, or +2 status to attack rolls for 1 minute), then a random cost'),
             },
         ],

@@ -331,7 +331,7 @@ const NATHANIEL = `## 🎯 Papel em Combate
 - 🗡️ **Zarroc Sheilvean** (*+1 Striking Longsword*): 2d8+6 cortante, +19. É a sua **relíquia** (aspectos Morte e Demônio), com três dádivas:
   - 💀 **Death Gaze (2 ações):** um alvo visível a até 9 m sofre **1d6 vazio a cada 2 níveis da relíquia** (Fortitude básica). Morto-vivo (ou quem se cura com vazio) é **curado** em vez disso e fica imune por 10 min — não use contra eles.
   - 🩸 **Curse Wound (reação, concentrar):** seu Golpe com a espada causa dano a alguém a até 18 m → Vontade, ou o alvo **não recupera os PV daquele Golpe** até a próxima preparação diária. Reaplicar em quem já está amaldiçoado anula a anterior.
-  - 😈 **Fiendish Bargain (1 ação, 1×/dia):** escolha **neutralizar uma condição**, **curar 3d8+16 PV** ou **+2 de status nos ataques por 1 min**; em troca, um custo aleatório: estupefato 1, desajeitado 1, perder 1d8 PV ou −1 no dano (1 min).
+  - 😈 **Fiendish Bargain (1 ação, 1×/hora):** escolha **neutralizar uma condição**, **curar 3d8+16 PV** ou **+2 de status nos ataques por 1 min**; em troca, um custo aleatório: estupefato 1, desajeitado 1, perder 1d8 PV ou −1 no dano (1 min).
 - 🛡️ **Clockwork Shield** + **Breastplate +1 Resilient de Ferro Frio** — o ferro frio pesa contra feéricos e demônios **na armadura**, não na espada.
 - 💍 **Ring of Wizardry (Type I):** **+1 em Arcanismo** e **dois slots de 1º rank arcanos a mais** por dia. Escolha no preparo diário a qual fonte arcana eles vão (Magus ou o arquétipo de Mago) e prepare magias de 1º do grimório. Tirar o anel, por qualquer motivo, faz perder os slots extras.
 - 🔮 **3 pontos de foco** para *Shielding Strike*, *Runic Impression* e *Hand of the Apprentice* — refocus entre lutas.
