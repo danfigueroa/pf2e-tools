@@ -21,7 +21,7 @@ create table public.rules_sources (
 -- Uma linha por entrada da AON.
 create table public.rules_entries (
     aon_id text primary key,                    -- 'feat-4775' (id estável da AON)
-    id text not null unique,                    -- 'feat:vicious-swing' (id do Criador, MODELO-DE-DADOS)
+    id text not null unique,                    -- 'feat:feat-4387' (tipo:aon_id, MODELO-DE-DADOS)
     category text not null,                     -- categoria da AON
     name text not null,                         -- nome canônico em inglês
     level smallint,
@@ -34,7 +34,7 @@ create table public.rules_entries (
     replaced_by text,                           -- se é legado com versão Remaster
     data jsonb not null,                        -- campos estruturados enxutos (§1), sem HTML
     markdown text,                              -- texto da regra em inglês (descrição offline e base da tradução)
-    hash text not null,                         -- sha1 de data+markdown (detectar mudança)
+    hash text not null,                         -- sha1 da linha normalizada (detectar mudança)
     imported_at timestamptz not null default now(),
     updated_at timestamptz not null default now(),
     removed_at timestamptz                      -- sumiu da AON numa reimportação (não apaga: builds podem usar)
