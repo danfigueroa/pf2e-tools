@@ -58,7 +58,7 @@ Regras base (War of Immortals pg. 76–79, conferidas na AON):
 
 ## 4. Gamemastery Guide (legado, sem versão Remaster)
 
-A mesa pode ligar qualquer uma como **regra da casa**. O Criador só implementa o que alguém usa.
+A mesa pode adotar essas variantes como **regras da casa**. Após o MVP, implemente na F9 as variantes solicitadas por uma mesa (D8).
 
 | Variante | O que muda | Uso atual | Criador | Fase |
 | --- | --- | --- | --- | --- |
@@ -67,7 +67,7 @@ A mesa pode ligar qualquer uma como **regra da casa**. O Criador só implementa 
 | Gradual Ability Boosts (pg. 182) | Os 4 boosts de 5/10/15/20 espalhados pelos níveis | — | Slots de boost por nível | F9 |
 | Point Buy / Alternative Scores (pg. 182–183) | Atributos por pontos ou por rolagem | — | Pontuação 3–18 legada; não combina com o Remaster | — |
 | Skill Points (pg. 199) | Perícias por pontos | — | — | — |
-| Stamina (pg. 200) | Pontos de Vigor e de Determinação, ações de Vigor | — | Compilar Vigor/Determinação | — (sem versão Remaster; a Ficha, a Iniciativa e o Mapa teriam de mudar o dano. Reavaliar se alguém pedir) |
+| Stamina (pg. 200) | Pontos de Vigor e de Determinação, ações de Vigor | — | Compilar Vigor/Determinação e ajustar o dano na Ficha, na Iniciativa e no Mapa | F9 sob pedido |
 | Simplified Ancestries / Simplified Skill Feats (pg. 194) | Menos escolhas | — | — | — |
 | Deep Backgrounds (pg. 186) | Tabelas narrativas | — | Poderia virar gerador de história nas Anotações | — |
 | High-Quality items (pg. 197) | Itens de qualidade | — | — | — |

@@ -329,7 +329,7 @@ personagem no Criador sem divergência não explicada.
 
 - [ ] **9.1** Conteúdo da mesa (homebrew): tabela `mesa_homebrew`, editor do GM (talento, item, runa, background,
       herança, magia), selo "Da mesa"; migrar `customRunes.ts` e `homebrewGear.ts`.
-- [ ] **9.2** Dual Class (variante) — Ficha precisa ler `dualClass`.
+- [ ] **9.2** Dual Class, sob pedido de uma mesa (D8). A Ficha precisa ler `dualClass`.
 - [ ] **9.3** Class Archetypes.
 - [ ] **9.4** Proficiency Without Level — Ficha precisa saber da variante.
 - [ ] **9.5** Eidolon (Summoner) e construto do Inventor (`inventorMods`).
@@ -338,6 +338,7 @@ personagem no Criador sem divergência não explicada.
 - [ ] **9.8** Troféus ("Arquiteto", "Veterano") com `check-trophies`.
 - [ ] **9.9** Wiki: "Criar página do personagem".
 - [ ] **9.10** Conteúdo legado liberável livro a livro + "Converter para o Remaster" (via `remaster_id`).
+- [ ] **9.11** Gradual Boosts e Stamina, sob pedido de uma mesa (D8). Stamina também exige ajustes de dano na Ficha, na Iniciativa e no Mapa.
 
 ---
 
