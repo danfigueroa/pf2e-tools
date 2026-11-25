@@ -4,6 +4,9 @@ import type { AttributeKey, RuleEntry } from '../rules/types'
 import type { MesaRules } from '../types'
 import type { BoostGroup } from './attributes'
 import type { SkillSlot } from './skills'
+import type { ChildSlot, TakenFeat } from './feats'
+import type { FeatSlot } from './slots'
+import type { ClassChoiceSlot } from './classChoices'
 
 export type { AttributeKey } from '../rules/types'
 
@@ -21,6 +24,8 @@ export const SKILL_KEYS = Object.keys(SKILL_ATTRIBUTE) as SkillKey[]
 /** Catálogo que o motor recebe: as entradas já baixadas, por id (`tipo:aon_id`). */
 export interface RulesIndex {
     get(id: string | undefined): RuleEntry | undefined
+    /** Por nome (GrantItem do Foundry, talento do background); prefere Remaster. */
+    byName(name: string, type?: string): RuleEntry | undefined
     /** Idiomas comuns e do catálogo, para validar escolhas. */
     languages: RuleEntry[]
 }
@@ -28,6 +33,8 @@ export interface RulesIndex {
 export interface CompileContext {
     rules: RulesIndex
     mesaRules?: MesaRules
+    /** Opções de escolha de classe (`core/class-features`, tipos como `doctrine`, `racket`…). */
+    classOptions?: RuleEntry[]
 }
 
 export type WarningLevel = 'info' | 'warn' | 'error'
@@ -104,6 +111,8 @@ export interface Compiled {
         reflex: Rank
         will: Rank
         classDC: Rank
+        /** Ataque e CD de magia da classe (magias entram na F5). */
+        spell: Rank
         attacks: Partial<Record<'simple' | 'martial' | 'advanced' | 'unarmed', Rank>>
         defenses: Partial<Record<'light' | 'medium' | 'heavy' | 'unarmored', Rank>>
     }
@@ -121,4 +130,14 @@ export interface Compiled {
     boostGroups: BoostGroup[]
     skillSlots: SkillSlot[]
     automaticSkills: { ref: string; source: string }[]
+    /** Plano 1–20: slots de talento (inclusive futuros), escolhas filhas, o que foi tomado e as características. */
+    featSlots: FeatSlot[]
+    featChildren: ChildSlot[]
+    taken: TakenFeat[]
+    classFeatures: { level: number; name: string; id?: string }[]
+    /** Escolhas de classe (subclasse) e de salvaguarda (Path to Perfection). */
+    classChoices: (ClassChoiceSlot & { chosen?: string })[]
+    saveChoices: { key: string; level: number; label: string; rank: Rank; chosen?: string }[]
+    /** Bônus fixos de talento por perícia (Incredible Initiative não: é situacional). */
+    skillBonus: Partial<Record<SkillKey, number>>
 }

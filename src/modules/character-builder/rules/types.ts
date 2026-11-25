@@ -74,6 +74,8 @@ export interface RuleEntry {
     background?: { boosts?: (AttributeKey | 'free')[]; skills?: string[]; feats?: string[] }
     class?: ClassData
     classOption?: { class: string }
+    /** Característica de classe: proficiências que ela sobe (lidas do texto da AON). */
+    classFeature?: { proficiencies?: { target: string; rank: Rank }[] }
     feat?: { archetype?: string[]; skill?: string[] }
     spell?: { rank?: number; traditions?: string[]; cantrip?: boolean; focus?: boolean; ritual?: boolean; heighten?: string[] }
     item?: ItemData

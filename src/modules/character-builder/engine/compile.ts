@@ -12,6 +12,9 @@ import type { BuildState } from '../types'
 import type { RuleEntry } from '../rules/types'
 import { attributeLabel, compileAttributes } from './attributes'
 import { compileSkills } from './skills'
+import { compileFeats } from './feats'
+import { featSlots, variantFlags } from './slots'
+import { classChoiceSlots, SAVE_CHOICE_FEATURES, UNCOUNTED_CHOICE_TYPES } from './classChoices'
 import type { CompileContext, Compiled, Pending, Rank, Stat, Warning } from './types'
 
 /** As 29 classes Remaster da AON: "Trained in <classe> class DC" (conferido em 2026-11-25). */
@@ -105,16 +108,137 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
         reflex: r(c?.saves?.reflex),
         will: r(c?.saves?.will),
         classDC: cls ? CLASS_DC_RANK : 0,
+        spell: 0,
         attacks: { ...(c?.attacks ?? {}) } as Compiled['proficiency']['attacks'],
         defenses: { ...(c?.defenses ?? {}) } as Compiled['proficiency']['defenses'],
     }
-    if (cls && level > 1) {
-        warnings.push({ code: 'PROGRESSION_PENDING', level: 'info', message: tr('Características de classe acima do 1º nível ainda não entram nos números (próxima etapa do Criador).', 'Class features above 1st level are not in the numbers yet (next stage of the Builder).') })
+    // 4b. Características de classe até o nível atual: proficiências lidas da AON (rank maior vence) e o que concedem.
+    const has = new Set<string>()
+    const awarded: { entry: RuleEntry; level: number; source: string }[] = []
+    const features: Compiled['classFeatures'] = []
+    const extraRanks: Record<string, Rank> = {}
+    const upgrade = (target: string, rank: Rank) => {
+        if (target === 'perception' || target === 'fortitude' || target === 'reflex' || target === 'will' || target === 'classDC') {
+            if (proficiency[target] < rank) proficiency[target] = rank
+        } else if (['simple', 'martial', 'advanced', 'unarmed'].includes(target)) {
+            const k = target as keyof Compiled['proficiency']['attacks']
+            if ((proficiency.attacks[k] ?? 0) < rank) proficiency.attacks[k] = rank
+        } else if (['light', 'medium', 'heavy', 'unarmored'].includes(target)) {
+            const k = target as keyof Compiled['proficiency']['defenses']
+            if ((proficiency.defenses[k] ?? 0) < rank) proficiency.defenses[k] = rank
+        } else if (target === 'spell') {
+            if (proficiency.spell < rank) proficiency.spell = rank
+        } else extraRanks[target] = Math.max(extraRanks[target] ?? 0, rank) as Rank
+    }
+    for (const ref of c?.features ?? []) {
+        const entry = ref.id ? rules.get(ref.id) : undefined
+        features.push({ level: ref.level, name: ref.name, id: ref.id })
+        if (ref.level > level) continue
+        has.add(ref.name.toLowerCase())
+        if (!entry) continue
+        for (const p of entry.classFeature?.proficiencies ?? []) upgrade(p.target, p.rank)
+        for (const note of (entry.unsupported ?? []).filter((u) => u.startsWith('proficiency:'))) {
+            warnings.push({ code: 'UNSUPPORTED_EFFECT', level: 'info', ref: 'class', message: tr(`Efeito não calculado: ${entry.name} (${note.slice(13)}).`, `Effect not calculated: ${entry.name} (${note.slice(13)}).`) })
+        }
+        for (const rule of entry.rules ?? []) {
+            const name = rule.key === 'GrantItem' && typeof rule.uuid === 'string' ? /\.Item\.(.+)$/.exec(rule.uuid)?.[1] : undefined
+            const feat = name ? rules.byName(name, 'feat') : undefined
+            if (feat) awarded.push({ entry: feat, level: ref.level, source: entry.name })
+        }
+    }
+    // Escolhas de classe (subclasse): a escolhida entra como concessão (com os efeitos e escolhas filhas dela).
+    const classChoices: Compiled['classChoices'] = classChoiceSlots(cls, ctx.classOptions ?? []).map((slot) => {
+        const raw = state.choices[slot.key]
+        const chosen = raw && 'id' in raw ? raw.id : undefined
+        if (slot.level <= level) {
+            used.add(slot.key)
+            if (!chosen) pending.push({ key: slot.key, label: slot.label, level: slot.level, missing: 1 })
+            const entry = chosen ? rules.get(chosen) ?? slot.options.find((o) => o.id === chosen) : undefined
+            if (entry) {
+                awarded.push({ entry, level: slot.level, source: slot.label })
+                has.add(entry.name.toLowerCase())
+                if (slot.type === 'doctrine') {
+                    warnings.push({ code: 'UNSUPPORTED_EFFECT', level: 'info', ref: slot.key, message: tr(`Efeito não calculado: a progressão da doutrina ${entry.name} (salvaguardas e armas por nível).`, `Effect not calculated: the ${entry.name} doctrine progression (saves and weapons by level).`) })
+                }
+            }
+        }
+        return { ...slot, chosen }
+    })
+    for (const [type, owner] of Object.entries(UNCOUNTED_CHOICE_TYPES)) {
+        if (cls && owner.toLowerCase() === cls.name.toLowerCase()) {
+            warnings.push({ code: 'UNSUPPORTED_CHOICE', level: 'info', ref: 'class', message: tr(`Escolhas de ${type} ainda não entram no Criador: anote à parte.`, `${type} choices are not in the Builder yet: note them separately.`) })
+        }
+    }
+    // Path to Perfection (Monk): salvaguarda escolhida por nível.
+    const saveChoices: Compiled['saveChoices'] = []
+    for (const ref of c?.features ?? []) {
+        const spec = SAVE_CHOICE_FEATURES.find((f) => f.name.test(ref.name))
+        if (!spec) continue
+        const key = `class-choice:save-${ref.level}`
+        const raw = state.choices[key]
+        const chosen = raw && 'value' in raw ? raw.value : undefined
+        saveChoices.push({ key, level: ref.level, label: ref.name, rank: spec.rank, chosen })
+        if (ref.level > level) continue
+        used.add(key)
+        if (!chosen) pending.push({ key, label: ref.name, level: ref.level, missing: 1 })
+        else if (chosen === 'fortitude' || chosen === 'reflex' || chosen === 'will') upgrade(chosen, spec.rank)
+    }
+    const picked = saveChoices.filter((s) => s.level <= level && s.chosen)
+    if (picked.length >= 2 && picked[0].chosen === picked[1].chosen) {
+        warnings.push({ code: 'SAVE_CHOICE_REPEAT', level: 'warn', ref: picked[1].key, message: tr(`${picked[1].label}: escolha uma salvaguarda diferente da primeira (Player Core 2 pg. 114).`, `${picked[1].label}: choose a different save than the first (Player Core 2 pg. 114).`) })
+    }
+    if (picked.length >= 3 && !picked.slice(0, 2).some((s) => s.chosen === picked[2].chosen)) {
+        warnings.push({ code: 'SAVE_CHOICE_REPEAT', level: 'warn', ref: picked[2].key, message: tr(`${picked[2].label}: precisa ser uma das duas já escolhidas (Player Core 2 pg. 114).`, `${picked[2].label}: must be one of the two already chosen (Player Core 2 pg. 114).`) })
+    }
+
+    // Talento de perícia do background (Player Core pg. 84: "Each background … grants … a skill feat").
+    for (const name of background?.background?.feats ?? []) {
+        const feat = rules.byName(name, 'feat')
+        if (feat) awarded.push({ entry: feat, level: 1, source: background!.name })
+        else warnings.push({ code: 'ENTRY_NOT_FOUND', level: 'info', ref: 'background', message: tr(`Talento do background fora das listas carregadas: ${name}.`, `Background feat not in the loaded lists: ${name}.`) })
     }
 
     // Perícias e idiomas.
     const skills = compileSkills(state, background, cls, attrs.intAt1, attrs.intGains, cls?.class?.skillIncreaseLevels ?? [], pending, warnings)
     for (const s of skills.slots) used.add(s.key)
+
+    // Talentos por nível: slots da classe e das variantes, concessões e efeitos.
+    const flags = variantFlags(state, ctx.mesaRules)
+    const slots = featSlots(cls, flags)
+    const ancestryTraits = [ancestry?.name, ...(heritage && !heritage.heritage?.ancestry ? [heritage.name] : [])].filter((t): t is string => !!t)
+    const feats = compileFeats(state, slots, rules, {
+        level, className: cls?.name, ancestryTraits, awarded, has,
+        prereqContext: () => ({
+            level, className: cls?.name, ancestryName: ancestry?.name, heritageName: heritage?.name, has,
+            skillRank: (s) => skills.result.rank[s], loreRank: (l) => skills.result.lores.find((x) => x.key === `lore:${l.replace(/\s+/g, '-')}`)?.rank ?? 0,
+            stat: { perception: proficiency.perception, fortitude: proficiency.fortitude, reflex: proficiency.reflex, will: proficiency.will },
+            attribute: mod, deity: state.origin.deity,
+        }),
+    }, warnings)
+    for (const slot of slots) {
+        if (slot.level > level) continue
+        used.add(slot.key)
+        const choice = state.choices[slot.key]
+        if (!choice) pending.push({ key: slot.key, label: slot.label, level: slot.level, missing: 1 })
+    }
+    for (const child of feats.children) {
+        used.add(child.key)
+        if (!child.chosen) pending.push({ key: child.key, label: child.label, level: child.level, missing: 1 })
+    }
+    // Ranks concedidos por talentos e características (o maior vence).
+    for (const [target, rank] of Object.entries({ ...extraRanks, ...feats.mods.ranks })) {
+        const best = Math.max(rank, extraRanks[target] ?? 0, feats.mods.ranks[target] ?? 0) as Rank
+        if (target.startsWith('skill:')) {
+            const k = target.slice(6) as keyof typeof skills.result.rank
+            if (k in skills.result.rank && skills.result.rank[k] < best) skills.result.rank[k] = best
+        } else if (target.startsWith('lore:')) {
+            const lore = skills.result.lores.find((l) => l.key === target)
+            if (lore) lore.rank = Math.max(lore.rank, best) as Rank
+            else skills.result.lores.push({ key: target, name: target.slice(5).split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '), rank: best })
+        } else if (target.startsWith('attack:')) upgrade(target.slice(7), best)
+        else if (target.startsWith('defense:')) upgrade(target.slice(8), best)
+        else upgrade(target, best)
+    }
 
     const ancestryLanguages = ancestry?.ancestry?.languages ?? []
     const chosenLanguages = (state.origin.languages ?? []).map((id) => rules.get(id)?.name ?? id)
@@ -138,15 +262,18 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
         ...(cls ? [part(tr(`Classe × ${level}`, `Class × ${level}`), (c?.hp ?? 0) * level), part(tr(`CON × ${level}`, `CON × ${level}`), mod.con * level)] : []),
     ]
     const p = (rank: Rank) => part(rankName(rank), proficiencyBonus(rank, level))
+    const featPart = (key: 'perception' | 'fortitude' | 'reflex' | 'will') => (feats.mods.stat[key] ? [part(tr('Talentos', 'Feats'), feats.mods.stat[key] ?? 0)] : [])
     const stats: Compiled['stats'] = {
-        hp: stat(hpParts),
+        hp: stat([...hpParts, ...(feats.mods.hp ? [part(tr('Talentos', 'Feats'), feats.mods.hp)] : []),
+            ...(feats.mods.hpPerLevel ? [part(tr(`Talentos × ${level}`, `Feats × ${level}`), feats.mods.hpPerLevel * level)] : [])]),
         ac: stat([attrPart('dex'), p(proficiency.defenses.unarmored ?? 0)], 10),
-        fortitude: stat([p(proficiency.fortitude), attrPart('con')]),
-        reflex: stat([p(proficiency.reflex), attrPart('dex')]),
-        will: stat([p(proficiency.will), attrPart('wis')]),
-        perception: stat([p(proficiency.perception), attrPart('wis')]),
+        fortitude: stat([p(proficiency.fortitude), attrPart('con'), ...featPart('fortitude')]),
+        reflex: stat([p(proficiency.reflex), attrPart('dex'), ...featPart('reflex')]),
+        will: stat([p(proficiency.will), attrPart('wis'), ...featPart('will')]),
+        perception: stat([p(proficiency.perception), attrPart('wis'), ...featPart('perception')]),
         classDC: cls && keyAttribute ? stat([p(proficiency.classDC), attrPart(keyAttribute)], 10) : null,
-        speed: stat(ancestry?.ancestry?.speed !== undefined ? [part(tr('Ancestralidade', 'Ancestry'), ancestry.ancestry.speed)] : []),
+        speed: stat([...(ancestry?.ancestry?.speed !== undefined ? [part(tr('Ancestralidade', 'Ancestry'), ancestry.ancestry.speed)] : []),
+            ...(feats.mods.speed ? [part(tr('Talentos', 'Feats'), feats.mods.speed)] : [])]),
     }
 
     // Sentidos: da ancestralidade e os `Sense` da herança (rule element suportado).
@@ -180,5 +307,12 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
         boostGroups: attrs.groups,
         skillSlots: skills.slots,
         automaticSkills: skills.automatic,
+        featSlots: slots,
+        featChildren: feats.children,
+        taken: feats.taken,
+        classFeatures: features,
+        classChoices,
+        saveChoices,
+        skillBonus: feats.mods.skill,
     }
 }
