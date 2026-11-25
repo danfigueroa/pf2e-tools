@@ -10,7 +10,8 @@
 //
 //   POST { action: 'register', code, username, password, name? } → { mesa, role, username }  (SEM sessão)
 //   GET  ?me=1                                    → { user, mesas: [{ id, name, role, displayName,
-//                                                     sessionStartedAt, nextSessionAt, members }], rulesVersion }
+//                                                     sessionStartedAt, nextSessionAt, members }], rulesVersion,
+//                                                     platformAdmin?, rulesNews? }
 //   GET  ?members=1                               → { members: [...], invites: [...] }   (GM)
 //   POST { action: 'invite-create', role?, maxUses?, days? } → { invite }               (GM)
 //   POST { action: 'invite-revoke', code }                   → { ok }                  (GM)
@@ -30,7 +31,8 @@
 
 import { randomInt } from 'node:crypto'
 import { supabase, isSupabaseConfigured } from './supabase.js'
-import { forbidden, forgetMember, forgetOwner, memberRole } from './access.js'
+import { forbidden, forgetMember, forgetOwner, isPlatformAdmin, memberRole } from './access.js'
+import { ruleNewsCount } from './rules-platform.js'
 import { isValidSlug, readCharacterSlices } from './table-store.js'
 import { deleteImages, imagePath } from './images.js'
 import { endSession, safely, startSession } from './trophy-store.js'
@@ -159,9 +161,12 @@ async function readMe(db, access) {
         (check(await db.rpc('mesa_account_counts', { p_user: access.userId })) ?? [])
             .map((c) => [c.o_mesa, Number(c.o_accounts)]),
     )
+    // Admin da plataforma vê a base de regras e o aviso de livros novos/erratas (a verificação semanal marca).
+    const platformAdmin = await isPlatformAdmin(access.userId)
     return {
         // Versão do catálogo do Criador: mudou, o cliente baixa só as listas que usar (BASE-DE-REGRAS §5).
         rulesVersion: await currentRulesVersion(),
+        ...(platformAdmin ? { platformAdmin: true, rulesNews: await ruleNewsCount().catch(() => 0) } : {}),
         user: { id: access.userId, email: access.email, username: usernameOf(access.email) },
         mesas: (rows ?? []).map((r) => ({
             id: r.mesa,
