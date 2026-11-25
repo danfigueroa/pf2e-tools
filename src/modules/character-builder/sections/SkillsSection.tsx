@@ -36,7 +36,7 @@ export function SkillsSection({ state, update, compiled, canEdit }: SectionProps
   const mod = compiled.attributes.mod;
 
   const pick = (slot: SkillSlot, ref: string) => {
-    const single = slot.count === 1 && slot.kind === 'increase' || slot.key.startsWith('class-skill');
+    const single = slot.count === 1 && (slot.kind === 'increase' || slot.key === 'skills-dedication-2') || slot.key.startsWith('class-skill');
     const next = single ? (slot.chosen.includes(ref) ? [] : [ref])
       : slot.chosen.includes(ref) ? slot.chosen.filter((x) => x !== ref) : [...slot.chosen, ref];
     setChoice(update, slot.key, next.length ? { skills: next } : null);
@@ -45,7 +45,7 @@ export function SkillsSection({ state, update, compiled, canEdit }: SectionProps
     const name = (lore[slot.key] ?? '').trim();
     if (!name) return;
     const ref = `lore:${name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
-    if (ref !== 'lore:' && !slot.chosen.includes(ref)) setChoice(update, slot.key, { skills: [...slot.chosen, ref] });
+    if (ref !== 'lore:' && !slot.chosen.includes(ref)) setChoice(update, slot.key, { skills: slot.key === 'skills-dedication-2' ? [ref] : [...slot.chosen, ref] });
     setLore({ ...lore, [slot.key]: '' });
   };
 
@@ -103,7 +103,7 @@ export function SkillsSection({ state, update, compiled, canEdit }: SectionProps
 
       {compiled.skillSlots.filter((s) => s.count > 0).map((slot) => {
         const left = Math.max(0, slot.count - slot.chosen.length);
-        const options = slot.options.length ? slot.options : SKILLS.map((s) => `skill:${s.key}`);
+        const options = slot.loreOnly ? [] : slot.options.length ? slot.options : SKILLS.map((s) => `skill:${s.key}`);
         const customLores = slot.chosen.filter((ref) => ref.startsWith('lore:') && !options.includes(ref));
         return (
           <Paper key={slot.key} variant="outlined" sx={{ p: { xs: 1.5, sm: 2 } }}>

@@ -5,6 +5,7 @@
 //   and Spell DC", com a proficiência de Player Core pg. 11).
 // - Foco (Player Core pg. 298): pool = número de magias de foco que gastam ponto, até 3; truques de foco não contam.
 //   Magias de foco e truques são elevados à metade do nível, arredondada para cima.
+import { BLOODRAGER, CLASS_ARCHETYPES } from './classArchetypes'
 import { tr } from '../../../i18n'
 import type { BuildState } from '../types'
 import type { RuleEntry } from '../rules/types'
@@ -117,7 +118,15 @@ export function checkSpellChoices(state: BuildState, casters: Caster[], spells: 
                 }
             }
         }
-        if (caster.type === 'spontaneous') {
+        if (caster.key === 'archetype:bloodrager') {
+            const cantrips = lists['0'] ?? []
+            if (cantrips.length < 2) pending.push({ key: 'spells:archetype:bloodrager:0', label: tr('Truques de Bloodrager', 'Bloodrager cantrips'), level: 2, missing: 2 - cantrips.length })
+            if (cantrips.length > 2 || !cantrips.some((id) => spells(id)?.traits?.includes('Attack'))) {
+                warnings.push({ code: 'BLOODRAGER_CANTRIPS', level: 'warn', ref: 'spells', message: tr(
+                    'Escolha dois truques de Bloodrager e confira se pelo menos um exige uma rolagem de ataque de magia.',
+                    'Choose two Bloodrager cantrips and check that at least one requires a spell attack roll.') })
+            }
+        } else if (caster.type === 'spontaneous') {
             warnings.push({ code: 'REPERTOIRE_SIZE', level: 'info', ref: `spells:${caster.key}`, message: tr(`${caster.name}: o tamanho do repertório por rank ainda não é conferido (veja a tabela da classe).`, `${caster.name}: repertoire size per rank is not checked yet (see the class table).`) })
         }
     }
@@ -138,7 +147,8 @@ export interface ArchetypeSlotTable { basic?: Record<string, number>; expert?: R
  * Conjuradores de arquétipo (Player Core pg. 215): a dedicação dá os truques, a tradição e o atributo (texto da AON,
  * `feat.casting`); Basic/Expert/Master <Classe> Spellcasting dão os espaços da tabela e perito/mestre.
  */
-export function compileArchetypeCasters(state: BuildState, taken: { entry: RuleEntry }[], ctx: {
+export function compileArchetypeCasters(state: BuildState, taken: { entry: RuleEntry; slot: string }[], ctx: {
+    classArchetype?: string
     level: number
     mod: Record<AttributeKey, number>
     keyAttribute: AttributeKey | null
@@ -147,14 +157,22 @@ export function compileArchetypeCasters(state: BuildState, taken: { entry: RuleE
 }, pending: Pending[], warnings: Warning[], used: Set<string>): Caster[] {
     const names = new Set(taken.map((t) => t.entry.name.toLowerCase()))
     const out: Caster[] = []
-    for (const { entry } of taken) {
-        const casting = entry.feat?.casting
+    const takenIds = new Set(taken.map((t) => t.entry.id))
+    for (const { entry, slot } of taken) {
+        // War of Immortals pp. 60–61: a escolha de tradição da dedicação também dá o treino da perícia.
+        const bloodrager = ctx.classArchetype === BLOODRAGER && entry.id === CLASS_ARCHETYPES[BLOODRAGER].dedication
+        const casting = bloodrager
+            ? { className: 'Bloodrager', type: 'spontaneous' as const, attribute: 'cha' as const, cantrips: 2, tradition: undefined }
+            : entry.feat?.casting
         if (!casting?.type || !casting.className) continue
         const cls = casting.className
         const slug = cls.toLowerCase().replace(/[^a-z0-9]+/g, '-')
         const key = `archetype:${slug}`
         let tradition = (casting.tradition as Tradition | undefined) ?? null
-        if (!tradition) {
+        if (bloodrager) {
+            const skill = state.choices[`${slot}/choice:skill`]
+            if (skill && 'value' in skill) tradition = skill.value === 'arcana' ? 'arcane' : skill.value === 'religion' ? 'divine' : null
+        } else if (!tradition) {
             const options = ctx.classByName(cls)?.class?.casting?.traditions ?? []
             if (options.length === 1) tradition = options[0] as Tradition
             else {
@@ -167,15 +185,20 @@ export function compileArchetypeCasters(state: BuildState, taken: { entry: RuleE
         }
         const attribute = casting.attribute ?? ctx.keyAttribute ?? 'cha'
         if (!casting.attribute) warnings.push({ code: 'ARCHETYPE_ATTRIBUTE', level: 'info', ref: 'spells', message: tr(`${cls} (arquétipo): atributo de conjuração assumido como o atributo-chave; confira.`, `${cls} (archetype): spellcasting attribute assumed to be the key attribute; check it.`) })
-        const tiers: [keyof ArchetypeSlotTable, string][] = [['basic', `basic ${cls} spellcasting`], ['expert', `expert ${cls} spellcasting`], ['master', `master ${cls} spellcasting`]]
+        const tiers = ['basic', 'expert', 'master'] as const
+        const bloodMagic = { basic: 'feat:feat-7241', expert: 'feat:feat-7245', master: 'feat:feat-7246' }
         const perDay = Array.from({ length: 11 }, () => 0)
         perDay[0] = casting.cantrips ?? 0
         let rank: Rank = 1
-        for (const [tier, featName] of tiers) {
-            if (!names.has(featName.toLowerCase())) continue
+        for (const tier of tiers) {
+            const hasTier = bloodrager ? takenIds.has(bloodMagic[tier]) : names.has(`${tier} ${cls.toLowerCase()} spellcasting`)
+            if (!hasTier) continue
             if (tier === 'expert') rank = Math.max(rank, 2) as Rank
             if (tier === 'master') rank = Math.max(rank, 3) as Rank
             for (const [lvl, r] of Object.entries(ctx.table?.[tier] ?? {})) if (Number(lvl) <= ctx.level) perDay[r] = Math.max(perDay[r], 1)
+        }
+        if (bloodrager && takenIds.has(bloodMagic.master)) {
+            for (let r = 1; r < perDay.length; r++) if (perDay[r]) perDay[r]++
         }
         const prof = ctx.level + 2 * rank
         out.push({

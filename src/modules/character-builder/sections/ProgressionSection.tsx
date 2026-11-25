@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
-  Accordion, AccordionDetails, AccordionSummary, Box, Chip, MenuItem, Stack, TextField, Typography,
+  Accordion, AccordionDetails, AccordionSummary, Box, Button, Chip, MenuItem, Stack, TextField, Typography,
 } from '@mui/material';
 import { ExpandMore as ExpandIcon } from '@mui/icons-material';
 import { tr } from '../../../i18n';
@@ -21,6 +21,8 @@ const SAVES = [
 
 /** Rótulo de opção de ChoiceSet: o Foundry manda chave de tradução ("PF2E.SavesWill"); o valor é mais legível. */
 function optionLabel(o: { value: string; label: string }): string {
+  if (o.label === 'PF2E.TraitArcane') return tr('Arcana', 'Arcane');
+  if (o.label === 'PF2E.TraitDivine') return tr('Divina', 'Divine');
   if (!o.label.startsWith('PF2E.')) return o.label;
   const fromPath = /\.(fortitude|reflex|will|perception|[a-z]+)\.rank$/.exec(o.value)?.[1];
   const raw = fromPath ?? o.value.split('.').pop() ?? o.value;
@@ -176,7 +178,8 @@ export function ProgressionSection(props: ProgressionProps) {
                 )}
                 {classChoices.map((c) => (
                   <PickerField key={c.key} label={c.label} value={c.chosen ? c.options.find((o) => o.id === c.chosen)?.name ?? index.get(c.chosen)?.name : undefined}
-                    onOpen={() => setPicking({ kind: 'classChoice', key: c.key })} disabled={!canEdit} />
+                    hint={c.fixed ? tr('Concedida pelo arquétipo de classe', 'Granted by the class archetype') : undefined}
+                    onOpen={() => setPicking({ kind: 'classChoice', key: c.key })} disabled={!canEdit || c.fixed} />
                 ))}
                 {saveChoices.map((c) => (
                   <TextField key={c.key} select size="small" label={c.label} value={c.chosen ?? ''} disabled={!canEdit} error={!c.chosen && !planned}
@@ -195,10 +198,18 @@ export function ProgressionSection(props: ProgressionProps) {
                     const taken = takenBySlot.get(slot.key);
                     const raw = state.choices[slot.key];
                     const name = taken?.entry.name ?? (raw && 'id' in raw ? index.get(raw.id)?.name ?? raw.id : undefined);
+                    const required = index.get(slot.requiredFeat);
                     return (
-                      <PickerField key={slot.key} label={slot.maxLevel ? `${slot.label} (≤ ${slot.maxLevel})` : featKindLabel(slot.kind)} value={name}
-                        hint={taken && taken.prereq.result !== 'ok' ? (taken.prereq.result === 'fail' ? tr('pré-requisito não cumprido', 'prerequisite not met') : tr('confira o pré-requisito', 'check the prerequisite')) : undefined}
-                        onOpen={() => setPicking({ kind: 'feat', slot })} disabled={!canEdit} />
+                      <Box key={slot.key}>
+                        <PickerField label={slot.maxLevel ? `${slot.label} (≤ ${slot.maxLevel})` : featKindLabel(slot.kind)} value={name}
+                          hint={taken && taken.prereq.result !== 'ok' ? (taken.prereq.result === 'fail' ? tr('pré-requisito não cumprido', 'prerequisite not met') : tr('confira o pré-requisito', 'check the prerequisite')) : undefined}
+                          onOpen={() => setPicking({ kind: 'feat', slot })} disabled={!canEdit} />
+                        {required && canEdit && !(raw && 'id' in raw && raw.id === required.id) && (
+                          <Button size="small" onClick={() => pickFeat(slot.key, required.id)}>
+                            {tr(`Escolher ${required.name}`, `Choose ${required.name}`)}
+                          </Button>
+                        )}
+                      </Box>
                     );
                   })}
                 </Box>

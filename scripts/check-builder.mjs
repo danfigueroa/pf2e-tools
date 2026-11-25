@@ -506,6 +506,58 @@ console.log('Paridade com o elenco (importar → recompilar → exportar) e inva
     if (resolved) console.log(`  (${resolved} diferença(s) conhecida(s) já resolvida(s): apague-as do parity-known.json)`)
 }
 
+// Arquétipos de classe: escolhas e efeitos no mesmo caminho que salva, reabre e publica o personagem.
+{
+    console.log('Arquétipos de classe (War of Immortals pg. 60 e Battlecry! pg. 68)')
+    const { exportBuild } = await import('../src/modules/character-builder/engine/export.ts')
+    const { importPathbuilder } = await import('../src/modules/character-builder/engine/import.ts')
+    const draft = (cls, arch, level, choices = {}) => base({ class: { id: cls.id }, level,
+        choices: { 'class-archetype': { id: rules.byName(arch, 'archetype').id }, ...choices } })
+    const barbarian = find('core/classes', 'Barbarian')
+    const blood = draft(barbarian, 'Bloodrager', 1)
+    const compile = (s) => compileBuild(serverSanitize.sanitizeBuildState(s), ctxSpells)
+    const one = compile(blood)
+    expect('treinos iniciais substituídos', [one.skills.rank.athletics, one.skills.rank.medicine, one.skillSlots.find((s) => s.key === 'skills-1').count], [1, 1, 2])
+    expect('instinto fixo e nenhuma dedicação no nível 1', [one.classChoices.find((s) => s.type === 'instinct').chosen,
+        one.taken.some((t) => t.entry.name === 'Bloodrager Dedication')], ['instinct:instinct-14', false])
+    expect('nível 2 vazio pede a dedicação no slot de classe', compile({ ...blood, level: 2 }).pending.find((p) => p.key === 'class-feat-2').label, 'Bloodrager Dedication')
+    const picks = { 'class-feat-2': { id: 'feat:feat-7239' }, 'class-feat-2/choice:skill': { value: 'religion' } }
+    const two = compile(draft(barbarian, 'Bloodrager', 2, picks))
+    expect('dedicação ocupa um só slot e dá dois truques divinos com Carisma', [two.taken.filter((t) => t.entry.id === 'feat:feat-7239').length,
+        two.casters[0].perDay[0], two.casters[0].tradition, two.casters[0].attribute, two.skills.rank.religion], [1, 2, 'divine', 'cha', 1])
+    const overlapping = compile(draft(barbarian, 'Bloodrager', 2, { ...picks, 'skills-1': { skills: ['skill:religion'] },
+        'skills-dedication-2': { skills: ['skill:nature'] } }))
+    expect('treino repetido da dedicação dá uma perícia livre', overlapping.skills.rank.nature, 1)
+    const bloodSheet = exportBuild(draft(barbarian, 'Bloodrager', 2, picks), two, { rules }).build
+    const imported = compile(importPathbuilder(bloodSheet, ctxSpells).state)
+    expect('reimporta a tradição antes de reconstruir os treinos livres', [imported.casters[0].tradition,
+        imported.skillSlots.some((s) => s.key === 'skills-dedication-2')], ['divine', false])
+    const full = compile(draft(barbarian, 'Bloodrager', 20, { ...picks, 'class-feat-4': { id: 'feat:feat-7241' },
+        'class-feat-12': { id: 'feat:feat-7245' }, 'class-feat-18': { id: 'feat:feat-7246' } }))
+    expect('Exultant Blood Magic dobra os espaços de rank 1–8 e mantém os truques', [full.casters[0].rank, full.casters[0].perDay], [3, [2,2,2,2,2,2,2,2,2,0,0]])
+    const free = compile({ ...blood, level: 2, options: { variants: { freeArchetype: true } },
+        choices: { ...blood.choices, 'class-feat-2': { id: fleet.id }, 'archetype-feat-2': picks['class-feat-2'] } })
+    expect('Arquétipo Livre não substitui o talento de classe exigido', free.warnings.some((w) => w.code === 'CLASS_DEDICATION'), true)
+    const previous = find('core/class-features', 'School of Mentalism')
+    const war = draft(wizard, 'War Mage', 11, { 'class-choice:arcane-school': { id: previous.id }, 'class-feat-2': { id: 'feat:feat-7976' } })
+    const warOut = compile(war)
+    expect('War Mage: armaduras e armas no nível 11', [warOut.proficiency.defenses.light, warOut.proficiency.defenses.medium,
+        warOut.proficiency.defenses.unarmored, warOut.proficiency.attacks.martial], [2, 2, 2, 2])
+    const sheet = exportBuild(war, warOut, { rules }).build
+    expect('retrato usa a escola do arquétipo e remove as características substituídas', [sheet.specials.includes('War Magic'),
+        sheet.specials.includes('School of Battle Magic'), sheet.specials.includes(previous.name), sheet.specials.includes('Arcane Thesis'),
+        sheet.specials.includes('Arcane Bond'), warOut.classFeatures.some((f) => f.name === 'Defensive Robes')], [true,true,false,false,false,false])
+    expect('Shield Block concedido e Additional Lore (Warfare) progride', [sheet.feats.some((f) => f[0] === 'Shield Block'), sheet.lores.find(([n]) => n === 'Warfare')], [true, ['Warfare', 6]])
+    expect('exportar e reimportar recupera o arquétipo', importPathbuilder(sheet, ctxSpells).state.choices['class-archetype'], war.choices['class-archetype'])
+    expect('remover o arquétipo recupera a escola anterior', compile({ ...war, choices: { 'class-choice:arcane-school': { id: previous.id } } }).classChoices[0].chosen, previous.id)
+    const otherLore = compile({ ...war, choices: { ...war.choices, 'skills-1': { skills: ['lore:warfare'] }, 'skills-dedication-2': { skills: ['lore:sailing'] } } })
+    expect('treino anterior em Warfare Lore concede outro Lore', otherLore.skills.lores.find((l) => l.key === 'lore:sailing')?.rank, 1)
+    expect('retrato próprio preserva a escola guardada', importPathbuilder(sheet, ctxSpells).state.choices['class-choice:arcane-school'], { id: previous.id })
+    const changed = compile({ ...war, class: { id: fighter.id } })
+    expect('trocar a classe desativa o arquétipo e preserva a escolha como órfã', [changed.classFeatures.some((f) => f.name === 'War Magic'),
+        changed.warnings.some((w) => w.code === 'ORPHAN_CHOICE' && w.ref === 'class-archetype')], [false,true])
+}
+
 // Copiar para outra mesa (9.6), no handler em memória (sem Supabase não há login: usuário local, GM).
 {
     console.log('Copiar para outra mesa')

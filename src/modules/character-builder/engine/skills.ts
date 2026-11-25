@@ -7,6 +7,7 @@
 // - Player Core pg. 89 (Languages): os da ancestralidade, mais tantos quanto a INT positiva.
 // O número de perícias à escolha da classe (`trainedSkills.additional`) é dado do catálogo, somado à INT (texto de cada
 // classe: "equal to N plus your Intelligence modifier").
+import { BLOODRAGER, CLASS_ARCHETYPES, WAR_MAGE } from './classArchetypes'
 import { tr } from '../../../i18n'
 import type { BuildState } from '../types'
 import type { RuleEntry } from '../rules/types'
@@ -42,6 +43,7 @@ export interface SkillSlot {
     count: number
     /** Vazio = qualquer perícia (ou Lore). */
     options: string[]
+    loreOnly?: boolean
     kind: 'train' | 'increase'
     chosen: string[]
 }
@@ -55,7 +57,7 @@ export interface SkillOutcome {
 }
 
 export function compileSkills(state: BuildState, background: RuleEntry | undefined, cls: RuleEntry | undefined, intMod1: number,
-    intGains: Record<number, number>, skillIncreaseLevels: number[], pending: Pending[], warnings: Warning[]): SkillOutcome {
+    intGains: Record<number, number>, skillIncreaseLevels: number[], pending: Pending[], warnings: Warning[], classArchetype?: string): SkillOutcome {
     const rank = Object.fromEntries(SKILL_KEYS.map((s) => [s, 0])) as Record<SkillKey, Rank>
     const lores = new Map<string, Rank>()
     const loreNames: Record<string, string> = {}
@@ -107,6 +109,33 @@ export function compileSkills(state: BuildState, background: RuleEntry | undefin
         for (const ref of chosen.slice(0, count)) train(ref, '', false)
     }
 
+    // A dedicação do 2º nível é posterior aos treinos iniciais e anterior aos aumentos dos níveis seguintes.
+    const dedication = state.choices['class-feat-2']
+    const hasDedication = classArchetype && state.level >= 2 && dedication && 'id' in dedication
+        && dedication.id === CLASS_ARCHETYPES[classArchetype]?.dedication
+    let warfareLore = false
+    if (hasDedication) {
+        const skill = state.choices['class-feat-2/choice:skill']
+        let ref: string | undefined
+        if (classArchetype === WAR_MAGE) ref = 'lore:warfare'
+        if (classArchetype === BLOODRAGER && skill && 'value' in skill && ['arcana', 'religion'].includes(skill.value)) ref = skillRef(skill.value)
+        if (ref) {
+            warfareLore = classArchetype === WAR_MAGE
+            const label = warfareLore ? 'War Mage Dedication' : 'Bloodrager Dedication'
+            if (get(ref) === 0) train(ref, label, true)
+            else {
+                // Battlecry! pg. 68 concede outro Lore; War of Immortals pg. 60 concede uma perícia à escolha.
+                const key = 'skills-dedication-2'
+                const chosen = choiceSkills(state, key)
+                const valid = chosen.filter((s) => (!warfareLore || s.startsWith('lore:')) && get(s) === 0)
+                slots.push({ key, label, level: 2, count: 1, kind: 'train', options: [], loreOnly: warfareLore, chosen })
+                if (valid[0]) train(valid[0], label, false)
+                if (chosen.length && !valid.length) warnings.push({ code: 'SKILL_NOT_ALLOWED', level: 'warn', ref: key,
+                    message: tr('Escolha um novo treino para a dedicação.', 'Choose a new trained skill for your dedication.') })
+            }
+        }
+    }
+
     // INT que sobe nos níveis de boost: uma perícia por ponto (Player Core pg. 29).
     for (const [level, gain] of Object.entries(intGains)) {
         const key = `skills-int-${level}`
@@ -129,6 +158,12 @@ export function compileSkills(state: BuildState, background: RuleEntry | undefin
             }
             set(ref, next)
         }
+    }
+
+    // Additional Lore (Player Core pg. 252), concedido especificamente para Warfare Lore (Battlecry! pg. 68).
+    if (warfareLore) {
+        const rank = 1 + [3, 7, 15].filter((l) => state.level >= l).length
+        set('lore:warfare', Math.max(rank, get('lore:warfare')) as Rank)
     }
 
     // Aumentos de perícia extras à mão, com aviso.

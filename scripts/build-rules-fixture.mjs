@@ -31,7 +31,8 @@ const fetchList = async (list) => {
 }
 
 // Nomes que o elenco usa, em minúsculas (o Pathbuilder grava o nome canônico em inglês).
-const names = new Set()
+const names = new Set(['bloodrager', 'war mage', 'bloodrager dedication', 'war mage dedication',
+    'rising blood magic', 'surging blood magic', 'exultant blood magic'])
 const add = (value) => typeof value === 'string' && value.trim() && names.add(value.trim().toLowerCase())
 const builds = readdirSync(CAST).filter((file) => file.endsWith('.json')).map((file) => JSON.parse(readFileSync(resolve(CAST, file), 'utf8')).build)
 for (const build of builds) {

@@ -17,6 +17,8 @@ export interface FeatSlot {
     kind: FeatKind
     level: number
     label: string
+    /** Dedicação exigida pelo arquétipo de classe no nível 2. */
+    requiredFeat?: string
     /** Escolha concedida por outro talento (ChoiceSet), com o filtro dele. */
     parent?: string
     /** Teto de nível do talento quando menor que o do slot (Combat Flexibility: 8º ou menor). */

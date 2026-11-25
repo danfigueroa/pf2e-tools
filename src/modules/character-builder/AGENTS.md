@@ -30,3 +30,4 @@
 - Copie para outra mesa só pelo `build-copy`, que exige ser membro de lá e cria um build novo com dono = quem copiou, porque regras, exceções do GM e estado da mesa são de cada mesa.
 - Crie conteúdo da mesa só pelo `homebrew-save` (GM real), com id `mesa:<uuid>` e a forma de `RuleEntry` que o `sanitizeHomebrewEntry` deixa passar, porque `custom:` já é o item de texto livre do inventário e o motor lê o caseiro como lê o oficial.
 - Deixe o `customRunes.ts` e o `homebrewGear.ts` na Ficha até ela ler o conteúdo da mesa do banco, porque eles carregam ativações e traços casados pelo nome de personagens já publicados.
+- Guarde o arquétipo de classe em `choices["class-archetype"]` e derive a subclasse concedida no motor, para que remover o arquétipo recupere as escolhas anteriores.

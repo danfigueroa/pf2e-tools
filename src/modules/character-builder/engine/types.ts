@@ -150,7 +150,7 @@ export interface Compiled {
     taken: TakenFeat[]
     classFeatures: { level: number; name: string; id?: string }[]
     /** Escolhas de classe (subclasse) e de salvaguarda (Path to Perfection). */
-    classChoices: (ClassChoiceSlot & { chosen?: string })[]
+    classChoices: (ClassChoiceSlot & { chosen?: string; fixed?: boolean })[]
     saveChoices: { key: string; level: number; label: string; rank: Rank; chosen?: string }[]
     /** Para avaliar a elegibilidade de candidatos no seletor (o mesmo contexto do motor). */
     prereq: PrereqContext

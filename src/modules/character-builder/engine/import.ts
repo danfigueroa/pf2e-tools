@@ -8,6 +8,7 @@ import type { RuleEntry } from '../rules/types'
 import { compileBuild } from './compile'
 import { skillRef } from './skills'
 import { SKILL_KEYS, type AttributeKey, type CompileContext, type SkillKey } from './types'
+import { BLOODRAGER, CLASS_ARCHETYPE, CLASS_ARCHETYPES, WAR_MAGE } from './classArchetypes'
 import { CLASS_CHOICE_TYPES } from './classChoices'
 
 const ATTR: Record<string, AttributeKey> = { Str: 'str', Dex: 'dex', Con: 'con', Int: 'int', Wis: 'wis', Cha: 'cha' }
@@ -109,6 +110,29 @@ export function importPathbuilder(b: BuildInfo, ctx: CompileContext): { state: B
     for (const type of [...types, 'mythic-calling']) {
         const option = (ctx.classOptions ?? []).filter((o) => o.type === type).find((o) => specialKeys.has(o.name.toLowerCase()) || (b.specials ?? []).includes(o.name))
         if (option) choices[`class-choice:${type}`] = { id: option.id }
+    }
+
+    const covil = (b as BuildInfo & { covil?: { ids?: Record<string, string> } }).covil
+    const archetypeId = covil?.ids ? covil.ids[CLASS_ARCHETYPE] : Object.entries(CLASS_ARCHETYPES).find(([id, spec]) =>
+        spec.className === cls?.name && (Object.values(choices).some((c) => 'id' in c && c.id === spec.dedication)
+            || (id === BLOODRAGER && specialKeys.has('bloodrager')) || (id === WAR_MAGE && specialKeys.has('war magic'))))?.[0]
+    if (archetypeId && cls && CLASS_ARCHETYPES[archetypeId]?.className === cls.name) {
+        choices[CLASS_ARCHETYPE] = { id: archetypeId }
+        const fixed = CLASS_ARCHETYPES[archetypeId].subclass
+        const key = `class-choice:${fixed.split(':')[0]}`
+        // O retrato mostra a subclasse efetiva; os ids guardam a escolha original do rascunho.
+        if (covil?.ids?.[key]) choices[key] = { id: covil.ids[key] }
+        else if (choices[key] && 'id' in choices[key] && choices[key].id === fixed) delete choices[key]
+    }
+    if (archetypeId === BLOODRAGER) {
+        const caster = b.spellCasters?.find((c) => c.name === 'Archetype Bloodrager')
+        const slot = Object.keys(choices).find((k) => {
+            const c = choices[k]
+            return 'id' in c && c.id === CLASS_ARCHETYPES[BLOODRAGER].dedication
+        })
+        if (slot && (caster?.magicTradition === 'arcane' || caster?.magicTradition === 'divine')) {
+            choices[`${slot}/choice:skill`] = { value: caster.magicTradition === 'arcane' ? 'arcana' : 'religion' }
+        }
     }
 
     // Path to Perfection: o nome da característica traz a escolha ("Path to Perfection (Will)").

@@ -111,7 +111,7 @@ export function useRules(needs?: FeatListNeeds): UseRules & { feats: RuleEntry[]
     }, [core, homebrew])
     const index = useMemo<RulesIndex | null>(() => {
         if (!merged) return null
-        return buildRulesIndex([merged.ancestries, merged.heritages, merged.backgrounds, merged.classes, merged.languages, merged.classFeatures, feats], merged.languages)
+        return buildRulesIndex([merged.ancestries, merged.heritages, merged.backgrounds, merged.classes, merged.languages, merged.classFeatures, feats, merged.archetypes], merged.languages)
     }, [merged, feats])
 
     return { core: merged, index, mesaRules, error, feats, tables, setMesaRules }

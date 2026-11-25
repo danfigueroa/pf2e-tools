@@ -12,6 +12,7 @@ import { VIEW_OK } from '../character-viewer/sheetAccess';
 import { useBuild, type SaveStatus } from './hooks/useBuild';
 import { useRules, type FeatListNeeds } from './hooks/useRules';
 import { variantFlags } from './engine/slots';
+import { CLASS_ARCHETYPE, selectedClassArchetype } from './engine/classArchetypes';
 import { compileBuild } from './engine/compile';
 import { StatusHeader } from './components/StatusHeader';
 import { PendingPanel } from './components/PendingPanel';
@@ -95,6 +96,9 @@ export function BuilderMode({ buildId }: { buildId: string }) {
     const anc = core.ancestries.find((a) => a.id === state.origin.ancestry);
     const her = core.heritages.find((h) => h.id === state.origin.heritage);
     const archetypes = new Set<string>(browseArchetype ? [browseArchetype] : []);
+    const selected = selectedClassArchetype(state.choices[CLASS_ARCHETYPE], cls);
+    const archetype = core.archetypes.find((a) => a.id === selected);
+    if (archetype) archetypes.add(archetype.name);
     for (const choice of Object.values(state.choices)) {
       if ('qualifier' in choice && choice.qualifier?.startsWith('archetype:')) archetypes.add(choice.qualifier.slice(10));
     }

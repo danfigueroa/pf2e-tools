@@ -15,6 +15,7 @@ import { compileSkills } from './skills'
 import { compileFeats } from './feats'
 import type { PrereqContext } from './prereqs'
 import { checkSpellChoices, compileArchetypeCasters, compileCasters, compileFocus } from './spells'
+import { adjustedClass, BLOODRAGER, CLASS_ARCHETYPE, CLASS_ARCHETYPES, selectedClassArchetype, WAR_MAGE } from './classArchetypes'
 import { armorClass, compileEquipment, GROUP_FEATURES } from './equipment'
 import { abpAt, abpSkillBonus } from './abp'
 import { featSlots, variantFlags } from './slots'
@@ -75,7 +76,16 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
     const ancestry = rules.get(state.origin.ancestry)
     const heritage = rules.get(state.origin.heritage)
     const background = rules.get(state.origin.background)
-    const cls = rules.get(state.class.id)
+    const baseClass = rules.get(state.class.id)
+    const choice = state.choices[CLASS_ARCHETYPE]
+    const archetypeId = selectedClassArchetype(choice, baseClass)
+    const spec = archetypeId ? CLASS_ARCHETYPES[archetypeId] : undefined
+    const archetype = rules.get(archetypeId)
+    const cls = adjustedClass(baseClass, archetypeId)
+    if (archetypeId) {
+        used.add(CLASS_ARCHETYPE)
+        if (archetype) sourceWarnings(archetype, ctx, CLASS_ARCHETYPE, warnings)
+    }
     const missing = (id: string | undefined, entry: RuleEntry | undefined, key: string, label: string) => {
         if (!id) pending.push({ key, label, level: 1, missing: 1 })
         else if (!entry) warnings.push({ code: 'ENTRY_NOT_FOUND', level: 'error', ref: key, message: tr(`${label}: não está no catálogo atual (${id}).`, `${label}: not in the current catalog (${id}).`) })
@@ -152,14 +162,32 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
             if (feat) awarded.push({ entry: feat, level: ref.level, source: entry.name })
         }
     }
-    // Escolhas de classe (subclasse): a escolhida entra como concessão (com os efeitos e escolhas filhas dela).
+    if (archetypeId === WAR_MAGE) {
+        // Battlecry! pg. 68: familiaridade marcial acompanha a proficiência simples da classe.
+        upgrade('martial', proficiency.attacks.simple ?? 0)
+        if (level >= 11) for (const target of ['light', 'medium', 'unarmored']) upgrade(target, 2)
+        const shieldBlock = rules.get('feat:feat-5212')
+        if (shieldBlock) awarded.push({ entry: shieldBlock, level: 1, source: 'War Magic' })
+        else warnings.push({ code: 'ENTRY_NOT_FOUND', level: 'warn', ref: CLASS_ARCHETYPE, message: tr('Shield Block ainda não foi carregado.', 'Shield Block has not loaded yet.') })
+    }
+    // A subclasse entra como concessão, com efeitos e escolhas filhas.
     const classChoices: Compiled['classChoices'] = classChoiceSlots(cls, ctx.classOptions ?? []).map((slot) => {
         const raw = state.choices[slot.key]
-        const chosen = raw && 'id' in raw ? raw.id : undefined
+        const fixed = spec?.subclass.startsWith(slot.type + ':') ? spec.subclass : undefined
+        const saved = raw && 'id' in raw ? raw.id : undefined
+        const chosen = fixed ?? saved
+        if (fixed && saved && fixed !== saved) {
+            warnings.push({ code: 'REPLACED_SUBCLASS', level: 'info', ref: CLASS_ARCHETYPE,
+                message: tr('A subclasse anterior fica guardada enquanto o arquétipo de classe estiver ativo.', 'Your previous subclass is saved while the class archetype is active.') })
+        }
         if (slot.level <= level) {
             used.add(slot.key)
             if (!chosen) pending.push({ key: slot.key, label: slot.label, level: slot.level, missing: 1 })
             const entry = chosen ? rules.get(chosen) ?? slot.options.find((o) => o.id === chosen) : undefined
+            if (chosen === CLASS_ARCHETYPES[BLOODRAGER].subclass && archetypeId !== BLOODRAGER) {
+                warnings.push({ code: 'CLASS_ARCHETYPE_REQUIRED', level: 'warn', ref: CLASS_ARCHETYPE,
+                    message: tr('Escolha Bloodrager na aba Classe para aplicar os ajustes deste instinto.', 'Choose Bloodrager on the Class tab to apply this instinct’s adjustments.') })
+            }
             if (entry) {
                 awarded.push({ entry, level: slot.level, source: slot.label })
                 has.add(entry.name.toLowerCase())
@@ -173,7 +201,7 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
                 }
             }
         }
-        return { ...slot, chosen }
+        return { ...slot, chosen, fixed: !!fixed }
     })
     // Mítico (War of Immortals pg. 77): o chamado vem quando o personagem ganha o poder mítico; no 12º, o talento mítico
     // extra é obrigatoriamente o de destino.
@@ -199,6 +227,7 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
         }
     }
     for (const [type, owner] of Object.entries(UNCOUNTED_CHOICE_TYPES)) {
+        if (archetypeId === WAR_MAGE && type === 'arcane-thesis') continue
         if (cls && owner.toLowerCase() === cls.name.toLowerCase()) {
             warnings.push({ code: 'UNSUPPORTED_CHOICE', level: 'info', ref: 'class', message: tr(`Escolhas de ${type} ainda não entram no Criador: anote à parte.`, `${type} choices are not in the Builder yet: note them separately.`) })
         }
@@ -237,12 +266,22 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
     }
 
     // Perícias e idiomas.
-    const skills = compileSkills(state, background, cls, attrs.intAt1, attrs.intGains, cls?.class?.skillIncreaseLevels ?? [], pending, warnings)
+    const skills = compileSkills(state, background, cls, attrs.intAt1, attrs.intGains, cls?.class?.skillIncreaseLevels ?? [], pending, warnings, archetypeId)
     for (const s of skills.slots) used.add(s.key)
 
     // Talentos por nível: slots da classe e das variantes, concessões e efeitos.
     const flags = variantFlags(state, ctx.mesaRules)
     const slots = featSlots(cls, flags)
+    const dedicationSlot = slots.find((s) => s.key === 'class-feat-2')
+    if (dedicationSlot && spec) {
+        dedicationSlot.requiredFeat = spec.dedication
+        const pick = state.choices[dedicationSlot.key]
+        if (level >= 2 && pick && (!('id' in pick) || pick.id !== spec.dedication)) {
+            warnings.push({ code: 'CLASS_DEDICATION', level: 'warn', ref: dedicationSlot.key,
+                message: tr('O arquétipo exige sua dedicação no talento de classe do nível 2.', 'This archetype requires its dedication in the 2nd-level class feat slot.') })
+        }
+        dedicationSlot.label = rules.get(spec.dedication)?.name ?? tr('Dedicação do arquétipo de classe', 'Class archetype dedication')
+    }
     // Slots de talento extras à mão ("Talento concedido"), com aviso.
     for (const [i, extra] of (state.manual.extraFeatSlots ?? []).entries()) {
         slots.push({ key: `extra-${extra.kind}-feat-${extra.level}-${i + 1}`, kind: extra.kind, level: extra.level, label: tr('Talento concedido (ajuste)', 'Granted feat (adjustment)') })
@@ -256,6 +295,13 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
             attribute: mod, deity: state.origin.deity,
         })
     const feats = compileFeats(state, slots, rules, { level, className: cls?.name, ancestryTraits, awarded, has, prereqContext }, warnings)
+    for (const t of feats.taken) {
+        const required = Object.entries(CLASS_ARCHETYPES).find(([, a]) => a.dedication === t.entry.id)
+        if (required && archetypeId !== required[0]) {
+            warnings.push({ code: 'CLASS_ARCHETYPE_REQUIRED', level: 'warn', ref: CLASS_ARCHETYPE,
+                message: tr(`${t.entry.name} exige o arquétipo correspondente desde o nível 1.`, `${t.entry.name} requires its class archetype from 1st level.`) })
+        }
+    }
     for (const slot of slots) {
         if (slot.level > level) continue
         used.add(slot.key)
@@ -265,6 +311,11 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
     for (const child of feats.children) {
         used.add(child.key)
         if (!child.chosen) pending.push({ key: child.key, label: child.label, level: child.level, missing: 1 })
+    }
+    if (archetypeId === BLOODRAGER) {
+        warnings.push({ code: 'UNSUPPORTED_EFFECT', level: 'info', ref: CLASS_ARCHETYPE, message: tr(
+            'Aplique na mesa os efeitos de fúria e de Harvest Blood que dependem do alvo.',
+            'Apply the target-dependent rage and Harvest Blood effects at the table.') })
     }
     // Ranks concedidos por talentos e características (o maior vence).
     for (const [target, rank] of Object.entries({ ...extraRanks, ...feats.mods.ranks })) {
@@ -347,7 +398,7 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
     // por regra). Guardadas em `spellcasting.focus.repertoire` — "0" truques de foco, "1" magias de foco.
     const casters = compileCasters(state, cls, { level, keyAttribute, mod, spellRank: proficiency.spell, table: ctx.tables?.spellSlots }, pending, warnings, used)
     casters.push(...compileArchetypeCasters(state, feats.taken, {
-        level, mod, keyAttribute, table: ctx.tables?.spellSlots?.archetype, classByName: (n) => rules.byName(n, 'class'),
+        level, mod, keyAttribute, classArchetype: archetypeId, table: ctx.tables?.spellSlots?.archetype, classByName: (n) => rules.byName(n, 'class'),
     }, pending, warnings, used))
     checkSpellChoices(state, casters, (id) => rules.get(id), pending, warnings, level)
     const focusIds = Object.values(state.spellcasting.focus?.repertoire ?? {}).flat()

@@ -7,6 +7,7 @@
 // O resto já vem do catálogo em `unsupported` e vira aviso "efeito não calculado".
 // Dedicação: "can't select a different dedication feat until you complete your dedication by taking two other feats from
 // your current archetype" (Player Core pg. 215).
+import { BLOODRAGER, CLASS_ARCHETYPES } from './classArchetypes'
 import { tr } from '../../../i18n'
 import type { BuildState } from '../types'
 import type { RuleEntry } from '../rules/types'
@@ -152,6 +153,9 @@ export function compileFeats(state: BuildState, slots: FeatSlot[], rules: RulesI
                 continue
             }
             if (rule.key === 'GrantItem' && typeof rule.uuid === 'string' && depth < 2) {
+                // O Foundry concede automaticamente a dedicação de Bloodrager pelo instinto.
+                // Na mesa ela consome o talento de classe do nível 2 (War of Immortals pg. 60).
+                if (entry.id === CLASS_ARCHETYPES[BLOODRAGER].subclass && rule.flag === 'bloodragerDedication') continue
                 const name = UUID_NAME.exec(rule.uuid)?.[1]
                 const granted = name ? rules.byName(name, 'feat') : undefined
                 if (granted && !has.has(granted.name.toLowerCase())) take(granted, `${slot}/grant:${granted.aon.id}`, slotLevel, 'granted', depth + 1)

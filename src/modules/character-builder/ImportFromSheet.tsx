@@ -5,7 +5,7 @@ import { tr } from '../../i18n';
 import { createBuildFromSheet, fetchMesaRules, listBuilds } from '../../services/builds';
 import { fetchPublished } from '../../services/sheets';
 import { parseCharacterJson, parseFeatEntry } from '../../pathbuilder/types';
-import { ancestries, backgrounds, classes, classOptions, heritages, languages, openRules, ruleTables } from './rules';
+import { ancestries, archetypes, backgrounds, classes, classOptions, heritages, languages, openRules, ruleTables } from './rules';
 import { loadRuleList } from './rules/loader';
 import type { RuleEntry } from './rules/types';
 import { buildRulesIndex } from './engine/rulesIndex';
@@ -40,7 +40,7 @@ export function ImportFromSheet({ slug }: { slug: string }) {
       if (!alive) return;
       setStep(tr('Carregando as regras que o personagem usa…', 'Loading the rules the character uses…'));
       await openRules();
-      const [a, h, bg, c, l, cf, tables, mesaOut] = await Promise.all([ancestries(), heritages(), backgrounds(), classes(), languages(), classOptions(), ruleTables().catch(() => null), fetchMesaRules()]);
+      const [a, h, bg, c, l, cf, ar, tables, mesaOut] = await Promise.all([ancestries(), heritages(), backgrounds(), classes(), languages(), classOptions(), archetypes().catch(() => [] as RuleEntry[]), ruleTables().catch(() => null), fetchMesaRules()]);
       const her = h.find((x) => x.name === b.heritage);
       const dedications = b.feats.map((f) => parseFeatEntry(f).name).filter((n) => / Dedication$/.test(n)).map((n) => n.replace(/ Dedication$/, ''));
       const traditions = [...new Set(b.spellCasters.map((x) => x.magicTradition).filter((t) => ['arcane', 'divine', 'occult', 'primal'].includes(t)))];
@@ -49,7 +49,7 @@ export function ImportFromSheet({ slug }: { slug: string }) {
         ...ITEM_LISTS.map((x) => `items/${x}`), 'companions/animal', 'companions/familiar', 'core/deities',
       ];
       const extra = await Promise.all(paths.map((p) => loadRuleList<RuleEntry[]>(p).catch(() => [] as RuleEntry[])));
-      const index = buildRulesIndex([a, h, bg, c, l, cf, ...extra], l);
+      const index = buildRulesIndex([a, h, bg, c, l, cf, ...extra, ar], l);
       const mesaRules = mesaOut.ok ? sanitizeMesaRules(mesaOut.value) : undefined;
       const { state, report: rep } = importPathbuilder(b, { rules: index, mesaRules, classOptions: cf, tables: (tables ?? undefined) as never });
       if (!alive) return;
