@@ -25,7 +25,14 @@ import { staffForTier } from './staff-parse.js'
 const FEAT_CATEGORIES = ['feat', 'heritage', 'ancestry-feature', 'class-feature', 'action']
 // A lista de "special" também atende os itens do inventário (mesmo endpoint,
 // /api/searches), por isso 'equipment' entra antes da rede de segurança.
-const SPECIAL_CATEGORIES = ['class-feature', 'feat', 'action', 'ancestry-feature', 'heritage', 'equipment', null]
+// Armas, armaduras, relíquias e opções de classe (instinto, racket, chamado…) antes da rede de segurança e só por nome
+// exato: o catálogo local as cobre (F10.4), e o acerto aproximado segue vindo da busca sem categoria, como antes.
+const EXACT_ONLY = ['weapon', 'armor', 'shield', 'relic', 'apparition', 'arcane-school', 'arcane-thesis', 'bloodline', 'cause',
+  'class-kit', 'conscious-mind', 'doctrine', 'draconic-exemplar', 'druidic-order', 'eidolon', 'element', 'epithet', 'fey-patronage',
+  'grim-fascination', 'hunters-edge', 'hybrid-study', 'ikon', 'implement', 'innovation', 'instinct', 'lesson', 'methodology', 'muse',
+  'mystery', 'mythic-calling', 'patron', 'practice', 'racket', 'research-field', 'runesmith-rune', 'style', 'subconscious-mind',
+  'tactic', 'way']
+const SPECIAL_CATEGORIES = ['class-feature', 'feat', 'action', 'ancestry-feature', 'heritage', 'equipment', ...EXACT_ONLY, null]
 
 // Pathbuilder anexa qualificadores ao nome ("Assurance (Athletics)",
 // "Scent (imprecise) 30 feet") que não existem no nome do AON.
@@ -52,7 +59,10 @@ function classHint(name) {
 }
 
 // O catálogo local primeiro, a AON depois (F10.4): ver `rules-local.js`.
-const findBestEntry = (name, categories, className = null, item = false) => bestAonHit(name, categories, { className, item })
+/** As categorias da escolha, para o `check-local-aon` rodar exatamente as do pipeline. */
+export const LOOKUP_CATEGORIES = { feat: FEAT_CATEGORIES, special: SPECIAL_CATEGORIES, item: SPECIAL_CATEGORIES, exactOnly: EXACT_ONLY }
+
+const findBestEntry = (name, categories, className = null, item = false) => bestAonHit(name, categories, { className, item, exactOnly: EXACT_ONLY })
 
 function joinField(value) {
   if (Array.isArray(value)) return value.filter(Boolean).join(', ')

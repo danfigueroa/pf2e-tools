@@ -62,9 +62,10 @@ export async function localHitsByNames(category, names) {
 /**
  * A melhor entrada para `name`, categoria por categoria na ordem dada (a mais provável primeiro): o nome exato no
  * catálogo vale primeiro; sem ele, a busca da AON de sempre. Falha do banco não derruba nada: segue a AON.
- * `local: false` força só a AON (o teste compara os dois caminhos).
+ * `local: false` força só a AON (o teste compara os dois caminhos). Em `exactOnly`, a categoria só vale por nome exato.
  */
-export async function bestAonHit(name, categories, { className = null, item = false, local = localEnabled() } = {}) {
+export async function bestAonHit(name, categories, { className = null, item = false, local = localEnabled(), exactOnly = [] } = {}) {
+    const strict = new Set(exactOnly)
     let best = null
     for (const cat of categories) {
         // Sem categoria é a rede de segurança: a AON devolve as 10 mais relevantes e o catálogo devolveria toda entrada de
@@ -81,7 +82,8 @@ export async function bestAonHit(name, categories, { className = null, item = fa
         const results = await searchAon(name, cat, cat === 'class-feature' ? MAX_HITS : 10)
         const pick = pickBestHit(results, name, className, item)
         if (pick && sameName(pick, name)) return pick
-        if (!best && pick) best = pick
+        // Categoria só de nome exato: um acerto aproximado ali ("Wish for Luck" → exemplar dracônico) não vira o melhor.
+        if (!best && pick && !strict.has(cat)) best = pick
     }
     return best
 }
