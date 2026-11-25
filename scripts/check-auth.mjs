@@ -437,6 +437,14 @@ try {
         expect('…e a regra volta sanitizada', savedRules.body.rules?.startingLevel, 3)
     }
 
+    console.log('Base de regras (admin da plataforma)')
+    expect('GM comum não lista os livros → 403', (await call({ token: users.gm.token, query: { rulesSources: '1' } })).status, 403)
+    expect('jogador não verifica novidades → 403', (await call({ token: users.a.token, method: 'POST', body: { action: 'rules-check' } })).status, 403)
+    expect('GM comum não importa → 403', (await call({ token: users.gm.token, method: 'POST', body: { action: 'rules-import', sources: ['source-220'] } })).status, 403)
+    expect('GM comum não corrige mecânica → 403', (await call({ token: users.gm.token, method: 'POST', body: { action: 'rules-mechanics-save', aonId: 'feat-1', rules: [], note: 'Player Core pg. 1' } })).status, 403)
+    expect('GM comum não publica versão → 403', (await call({ token: users.gm.token, method: 'POST', body: { action: 'rules-publish' } })).status, 403)
+    expect('me de quem não é admin não traz platformAdmin', (await call({ token: users.gm.token, query: { me: '1' } })).body.platformAdmin, undefined)
+
     console.log('Iniciativa e papéis')
     expect('jogador não grava encontro', (await call({ token: users.a.token, method: 'POST', body: { action: 'encounter-save', map: null, state: {} } })).status, 403)
     // A mesa de teste é real e pode ter outros GMs (o dono do projeto): aí a trava não se aplica.
@@ -465,6 +473,8 @@ try {
     expect('sem sessão não lê a Wiki (flag desligada)', (await call({ query: { wiki: 'list' } })).status, 403)
     expect('jogador não muda regras da mesa (flag desligada)', (await call({ token: users.b.token, method: 'POST', body: { action: 'mesa-rules-save', rules: {} } })).status, 403)
     expect('sem sessão não muda regras da mesa (flag desligada)', (await call({ method: 'POST', body: { action: 'mesa-rules-save', rules: {} } })).status, 403)
+    expect('GM comum não lista os livros (flag desligada)', (await call({ token: users.a.token, query: { rulesSources: '1' } })).status, 403)
+    expect('sem sessão não importa (flag desligada)', (await call({ method: 'POST', body: { action: 'rules-import', sources: ['source-220'] } })).status, 403)
     expect('sem sessão não cria build (flag desligada)', (await call({ method: 'POST', body: { action: 'build-create', name: 'X' } })).status, 401)
     expect('quem não é membro não grava na Wiki (flag desligada)', (await call({ token: users.out.token, method: 'POST', body: { action: 'wiki-save', page: { id: `w-t${stamp}x`, kind: 'npc', title: 'X', body: '' }, base: null } })).status, 403)
 } catch (error) {
