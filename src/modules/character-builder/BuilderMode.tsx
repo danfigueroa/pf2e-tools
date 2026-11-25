@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Alert, Badge, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Drawer, MenuItem, Paper,
   Skeleton, Stack, Tab, Tabs, TextField, Typography,
@@ -116,6 +116,20 @@ export function BuilderMode({ buildId }: { buildId: string }) {
     : null), [state, rules.index, rules.mesaRules, core, rules.tables]);
   const clsName = rules.index?.get(state?.class.id)?.name ?? null;
   useEffect(() => setClassName(clsName), [clsName]);
+
+  // "Subir de nível" vindo da Ficha (`?subir=1`): um nível a mais e a aba Progressão, uma vez.
+  const [params, setParams] = useSearchParams();
+  const levelUp = params.get('subir') === '1'; // i18n-ok: chave da URL
+  useEffect(() => {
+    if (!levelUp || !state || !canEdit) return;
+    if (state.level < 20) update((s) => ({ ...s, level: s.level + 1 }));
+    setTab('progression');
+    setParams((p) => { p.delete('subir'); return p; }, { replace: true });
+  }, [levelUp, state, canEdit, update, setParams]);
+
+  // O retrato de agora (estável entre renders do mesmo estado, para o diff do diálogo não refazer à toa).
+  const exportSheet = useCallback(() => (state && compiled && rules.index && build
+    ? exportBuild(state, compiled, { rules: rules.index, buildId: build.id }) : null), [state, compiled, rules.index, build]);
 
   if (loading) {
     return (
@@ -308,8 +322,8 @@ export function BuilderMode({ buildId }: { buildId: string }) {
       </Dialog>
 
       {compiled && rules.index && (
-        <ApplyDialog open={applyOpen} onClose={() => setApplyOpen(false)} buildId={build.id} compiled={compiled}
-          sheet={() => exportBuild(state, compiled, { rules: rules.index!, buildId: build.id })} />
+        <ApplyDialog open={applyOpen} onClose={() => setApplyOpen(false)} buildId={build.id} slug={build.slug} compiled={compiled}
+          sheet={exportSheet} />
       )}
 
       <Dialog open={versions !== null} onClose={() => setVersions(null)} fullWidth maxWidth="xs">

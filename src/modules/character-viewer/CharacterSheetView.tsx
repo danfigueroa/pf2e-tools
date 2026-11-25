@@ -363,7 +363,12 @@ const SheetBody = ({ build: source, publication, onReset, onRestore, compact = f
     const builderLink = useMemo(() => {
         if (readOnly || compact) return null
         const buildId = (build as BuildInfo & { covil?: { buildId?: string } }).covil?.buildId
-        if (buildId) return { href: `/personagens/${buildId}`, label: tr('Editar no Criador', 'Edit in the Builder') }
+        if (buildId) {
+            return {
+                href: `/personagens/${buildId}`, label: tr('Editar no Criador', 'Edit in the Builder'),
+                levelUp: build.level < 20 ? `/personagens/${buildId}?subir=1` : undefined,
+            }
+        }
         if (isPublished) return { href: `/personagens?importar=${encodeURIComponent(slug)}`, label: tr('Importar para o Criador', 'Import into the Builder') }
         return null
     }, [build, readOnly, compact, isPublished, slug])

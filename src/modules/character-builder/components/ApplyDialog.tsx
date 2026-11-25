@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import {
   Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, LinearProgress, Stack, Typography,
@@ -9,16 +9,20 @@ import { CACHE_VERSION } from '../../../services/descriptions';
 import { startPreparation, usePreparation } from '../../../services/sheetPreparation';
 import { parseCharacterJson } from '../../../pathbuilder/types';
 import { characterDescriptionNames, companionAnimalNames } from '../../character-viewer/descriptionNames';
+import { diffSheets, type SheetDiff } from '../../character-viewer/sheetDiff';
+import { fetchPublished } from '../../../services/sheets';
 import type { Compiled } from '../engine/types';
 
 /**
  * "Aplicar na mesa" (UX §1.5, D7): o retrato do Criador vira a ficha que a mesa usa, pelo mesmo preparo da publicação
  * (descrições pt/en e guia ficam prontos antes de valer). Mostra os avisos antes; aplicar com aviso é permitido.
  */
-export function ApplyDialog({ open, onClose, buildId, compiled, sheet }: {
+export function ApplyDialog({ open, onClose, buildId, slug: buildSlug, compiled, sheet }: {
   open: boolean;
   onClose: () => void;
   buildId: string;
+  /** Slug do build (= o da ficha na mesa). */
+  slug: string;
   compiled: Compiled;
   /** O retrato `{ success, build }` já exportado. */
   sheet: () => unknown;
@@ -27,6 +31,19 @@ export function ApplyDialog({ open, onClose, buildId, compiled, sheet }: {
   const [error, setError] = useState<string | null>(null);
   const [slug, setSlug] = useState<string | null>(null);
   const prep = usePreparation(slug);
+  // O que muda em relação à ficha que a mesa usa hoje (o mesmo diff do Publicar da Ficha).
+  const [diff, setDiff] = useState<SheetDiff | null | 'new'>(null);
+  useEffect(() => {
+    if (!open) return;
+    let alive = true;
+    setDiff(null);
+    fetchPublished(buildSlug).then((current) => {
+      if (!alive) return;
+      if (!current) { setDiff('new'); return; }
+      try { setDiff(diffSheets(parseCharacterJson(current.json), parseCharacterJson(sheet()))); } catch { setDiff(null); }
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, [open, buildSlug, sheet]);
   const warnings = compiled.warnings.filter((w) => w.level !== 'info');
   const pending = compiled.pending.length;
 
@@ -61,6 +78,20 @@ export function ApplyDialog({ open, onClose, buildId, compiled, sheet }: {
             <DialogContentText sx={{ mb: 1.5 }}>
               {tr('A ficha que a mesa usa passa a ser esta versão. O estado de jogo (PV, magias gastas, condições) não muda.', 'The sheet the table uses becomes this version. Play state (HP, spent spells, conditions) does not change.')}
             </DialogContentText>
+            {diff === 'new' && <Alert severity="info" sx={{ mb: 1 }}>{tr('Personagem novo na mesa.', 'New character at the table.')}</Alert>}
+            {diff && diff !== 'new' && (
+              <Box sx={{ mb: 1.5 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  {diff.levelFrom !== diff.levelTo ? tr(`Nível ${diff.levelFrom} → ${diff.levelTo}`, `Level ${diff.levelFrom} → ${diff.levelTo}`) : tr(`Nível ${diff.levelTo}`, `Level ${diff.levelTo}`)}
+                  {diff.identical ? tr(' · sem mudança visível em talentos, magias e itens', ' · no visible change in feats, spells and items') : ''}
+                </Typography>
+                {diff.changes.map((c) => (
+                  <Typography key={c.label} variant="body2" color="text.secondary">
+                    {c.label}: {[...c.added.map((x) => `+ ${x}`), ...c.removed.map((x) => `− ${x}`)].join(', ')}
+                  </Typography>
+                ))}
+              </Box>
+            )}
             {pending > 0 && <Alert severity="warning" sx={{ mb: 1 }}>{tr(`${pending} escolha(s) pendente(s): a ficha vai sem elas.`, `${pending} pending choice(s): the sheet goes without them.`)}</Alert>}
             {warnings.length > 0 && (
               <Alert severity="info" sx={{ mb: 1 }}>

@@ -17,7 +17,7 @@ interface Props {
     /** Painel estreito (mapa): leiaute de celular, qualquer que seja a janela. */
     compact?: boolean
     /** Modo editar no Criador: o build da ficha, ou importar a ficha publicada para ele. Só para quem edita. */
-    builder?: { href: string; label: string } | null
+    builder?: { href: string; label: string; levelUp?: string } | null
 }
 
 export const CharacterHeader = ({ build, onReset, sizeEffect, compact = false, builder }: Props) => {
@@ -105,6 +105,10 @@ export const CharacterHeader = ({ build, onReset, sizeEffect, compact = false, b
                         {builder && (
                             <Button variant="contained" size="small" startIcon={<EditIcon />} component={RouterLink} to={builder.href} sx={{ flexShrink: 0 }}>
                                 {builder.label}</Button>
+                        )}
+                        {builder?.levelUp && (
+                            <Button variant="outlined" size="small" component={RouterLink} to={builder.levelUp} sx={{ flexShrink: 0 }}>
+                                {tr('Subir de nível', 'Level up')}</Button>
                         )}
                         <Button
                             variant="outlined"
