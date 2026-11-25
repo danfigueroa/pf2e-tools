@@ -313,3 +313,14 @@
 - **9.10 Legado e Remaster.** Em `/mesa`, o GM escolhe os livros de cada edição. O seletor oferece o legado liberado que ainda não tem sucessor publicado. As exceções individuais valem no personagem correspondente.
   - Em **Detalhes → Converter para o Remaster**, o jogador revisa os destinos indicados pela AON. Havendo vários, escolhe um ou mantém a entrada atual. A conversão salva o rascunho. **Aplicar na mesa** atualiza a ficha publicada.
   - A publicação de uma nova versão do catálogo gera `core/remaster` com os vínculos entre entradas importadas. Nos pacotes anteriores, a conversão usa os vínculos disponíveis nas listas carregadas. A versão `2026.11.11` já está publicada com 131 entradas legadas e 134 destinos.
+
+## F10 — Endurecimento
+
+- **10.1 Compilar no servidor: adotado.** No "Aplicar na mesa", o servidor recompila o `BuildState` salvo e usa o próprio retrato.
+  - **Medição.** Carregar no servidor as listas de um personagem típico (núcleo, talentos, magias e as 11 listas de item) leva cerca de 1 s e 5 MB. Para uma ação rara, é aceitável. As listas ficam em cache na função quente, uma versão por vez.
+  - **Como.** O motor TS vira `api/_lib/builder-engine.gen.js` (esbuild, 109 KB, sem dependência externa) por `scripts/build-engine.mjs`. O `check-builder` confere que o pacote está em dia e que ele dá o mesmo retrato do motor TS nos dez personagens do elenco.
+  - **Mesmas listas dos dois lados.** O editor e o servidor decidem as listas por `needsOf`/`featListPaths` (`engine/catalog.ts`), sem React.
+  - **Salvo antes de aplicar.** O cliente grava o pendente (`saveNow`) e manda o `rev`. Outro `rev` devolve 409 `stale`.
+  - **O que fica do cliente.** O retrato não tem texto traduzido; só os avisos ficam os do cliente, no idioma de quem aplicou. Divergência entre o retrato do cliente e o do servidor é registrada no log. Sem catálogo ou com erro no motor, segue o retrato do cliente.
+  - **`core/locations`** (catálogo `2026.11.12`, 12.241 entradas). É o mapa id → lista das entradas fora do núcleo. Com ele, escolhas salvas que moram fora das listas habituais passam a resolver, no editor e no servidor: talento de outro arquétipo, magia de outra tradição e divindade. Antes, a divindade do Eldarion e cinco magias do Thalos saíam como id no retrato.
+  - **Pendente.** Talento concedido por nome por regra do Foundry (o Reactive Strike do Ghan Buri, via a característica de classe) só aparece se a lista dele estiver carregada. Isso vale para o editor e para o servidor.

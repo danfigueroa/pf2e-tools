@@ -33,3 +33,5 @@
 - Guarde o arquétipo de classe em `choices["class-archetype"]` e derive a subclasse concedida no motor, para que remover o arquétipo recupere as escolhas anteriores.
 - Converta somente referências de catálogo ligadas por ID da AON e confirmadas pelo jogador em Detalhes, porque homônimos e textos livres podem pertencer a escolhas diferentes.
 - Leia `sources.legacy` como a lista de livros liberados para o legado. Se ela estiver ausente, use o interruptor e a lista de livros antigos para preservar as regras das mesas existentes.
+- Decida as listas do catálogo só por `needsOf`/`featListPaths` e busque o que a carga habitual não resolve só por `locate` (`engine/catalog.ts`), porque o servidor compila o "Aplicar na mesa" com as mesmas funções e uma lista a mais de um lado mudaria o número.
+- Regere `api/_lib/builder-engine.gen.js` com `node scripts/build-engine.mjs` depois de mudar o motor, porque o servidor roda esse pacote e o `check-builder` falha com ele velho.

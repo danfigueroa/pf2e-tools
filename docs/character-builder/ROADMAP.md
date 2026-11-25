@@ -345,7 +345,7 @@ personagem no Criador sem divergência não explicada.
 
 ## F10 — Endurecimento · M
 
-- [ ] **10.1** Avaliar compilar no servidor a partir do `BuildState` (motor em JS puro compartilhável) para não confiar no
+- [x] **10.1** Avaliar compilar no servidor a partir do `BuildState` (motor em JS puro compartilhável) para não confiar no
       JSON do cliente.
 - [ ] **10.2** Aposentar consertos do `normalizeBuild` que só existem por causa do Pathbuilder — **só** quando nenhuma
       ficha publicada vier mais de upload (os consertos são idempotentes; podem ficar).

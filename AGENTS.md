@@ -70,7 +70,7 @@ npm run lint       # eslint + check-i18n
 | `monster-scaler/scaling.ts` ou tabelas | `node scripts/check-scaling.mjs 200` (sai ≠ 0 se quebrar) |
 | heightening de magias | `node scripts/check-heightening.mjs` |
 | custo de talento/item/ativável, ficha nova publicada | `node scripts/check-economy.mjs` |
-| Criador de Personagem: `sanitize.ts`, `mesaRules.ts`, slug do build, motor (`engine/`) | `node scripts/check-builder.mjs` |
+| Criador de Personagem: `sanitize.ts`, `mesaRules.ts`, slug do build, motor (`engine/`) | `node scripts/build-engine.mjs` (motor) e `node scripts/check-builder.mjs` |
 | troféus | `node scripts/check-trophies.mjs` |
 | `palette.ts` | `node scripts/check-contrast.mjs` |
 | SQL do histórico | `node --env-file=.env scripts/check-diary.mjs` |

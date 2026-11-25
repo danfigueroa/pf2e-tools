@@ -32,7 +32,7 @@ histórico (`?diary=`) → `src/modules/session-diary/AGENTS.md`; rolagens e est
   - Base de regras (só `platform_admins`, `rules-handler.js`): `GET ?rulesSources=1`, `?rulesJob=`, `?rulesEntry=`; POST
     `rules-check`, `rules-import`/`-step`/`-cancel`, `rules-mechanics-save`, `rules-publish`.
   - Criador: `GET ?builds=1`, `?build=<id>`, `?mesaRules=1`; POST `build-create`/`-save` (`rev`, 409, 64 KB)/`-delete`/
-    `-restore`/`-assign`, `mesa-rules-save` (`build-handler.js`, antes da ficha).
+    `-restore`/`-assign`/`-apply`/`-copy`, `mesa-rules-save`, `homebrew-save`/`-delete` (`build-handler.js`, antes da ficha).
   - Anotações: `GET ?notes=<slug>`; POST `notes-save`. Troféus: `GET ?trophies=me|summary|ranking|<userId>`. Eventos: `?events=1`.
   - Conta: `?me=1`, membros, convites, `register`, `member-reset-password`, `mesa-settings`.
 - **Ordem do despacho importa**: `isRollRequest`, `isMapRequest`, encontros, correções, diário, wiki, anotações, troféus vêm
@@ -181,6 +181,13 @@ histórico (`?diary=`) → `src/modules/session-diary/AGENTS.md`; rolagens e est
   GM **real** (`memberRole`) mesmo com `AUTH_REQUIRED` desligado; `mesa-rules-save` também. O slug nasce do nome, é o
   primeiro livre entre builds E `sheets` da mesa, e nunca muda (identidade do estado da mesa). Sem Supabase, o handler usa
   um GM local (`local`) para o dev em memória.
+- **No `build-apply`, o retrato é o do servidor** (`build-compile.js`): o motor do Criador compila o `BuildState` salvo
+  daquele `rev` (outro `rev` = 409 `stale`) com o catálogo publicado, o conteúdo e as regras da mesa, porque a ficha da
+  mesa não pode depender de números que o cliente mandou. Só os avisos do cliente ficam (estão no idioma dele). Sem
+  catálogo ou com erro no motor, segue o retrato do cliente com registro, para a mesa não travar.
+- **O motor vem de `builder-engine.gen.js`, gerado** por `node scripts/build-engine.mjs` a partir de
+  `src/modules/character-builder/engine/` (o servidor não importa TS). Regere ao mudar o motor; o `check-builder` falha com
+  o pacote velho. Nunca edite o `.gen.js`.
 - `notes-store.js` (`character_notes`): um documento por mesa+slug, 128 KB, escrita condicional com `base` e 409.
 - `images.js`: apagar imagem é do servidor; `imagePath` só aceita URL nossa. `isMapOwnedImage` nunca deixa apagar `tokens/`.
 - `event-handler.js`: `GET ?events=1`; eventos vêm de triggers (ver `src/layouts/AGENTS.md`).
