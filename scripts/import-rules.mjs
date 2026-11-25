@@ -3,7 +3,7 @@
 //   node --env-file=.env scripts/import-rules.mjs --remaster              # todos os livros Remaster
 //   node --env-file=.env scripts/import-rules.mjs --source "Player Core"  # um livro (repita para mais)
 //   node --env-file=.env scripts/import-rules.mjs --remaster --check      # só compara com a AON, não grava
-//   node --env-file=.env scripts/import-rules.mjs --mechanics-only        # refaz só a mecânica do Foundry
+//   node --env-file=.env scripts/import-rules.mjs --mechanics-only        # refaz só a mecânica do Foundry (versão nova)
 //   node --env-file=.env scripts/import-rules.mjs --resume <job>          # retoma uma importação que caiu
 //   node --env-file=.env scripts/import-rules.mjs --packages-only         # regera os pacotes da versão atual
 //
@@ -80,8 +80,13 @@ async function publishPackages(version) {
 }
 
 async function main() {
-    if (mechanicsOnly || packagesOnly) {
-        if (mechanicsOnly) await importMechanics()
+    if (mechanicsOnly) {
+        // Mecânica nova = versão nova (o caminho dos pacotes é imutável no CDN e no aparelho).
+        const mechanics = await importMechanics()
+        await publishRuleCatalog({ tables: curatedTables(), summary: { mechanics }, log: console.log })
+        return
+    }
+    if (packagesOnly) {
         const version = await latestRuleCatalogVersion()
         if (!version) throw new Error('Nenhuma versão do catálogo ainda: importe um livro primeiro')
         await publishPackages(version)
