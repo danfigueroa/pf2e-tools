@@ -35,6 +35,7 @@ import { assignSheet, fetchMembers, type MemberRow } from '../../services/member
 import { mesaName, useAuth, useRole } from '../../services/auth';
 import { currentMesa, switchMesa } from '../../services/mesa';
 import { copyBuildToMesa } from '../../services/builds';
+import { setWikiSeed } from '../../services/wiki';
 import { locale, tr } from '../../i18n';
 import type { BuildState } from './types';
 
@@ -384,6 +385,22 @@ export function BuilderMode({ buildId }: { buildId: string }) {
                     const saved = await saveBuild(copy.value.id, copy.value.rev, { ...state, name: copy.value.name }, className);
                     if (saved.ok) navigate(`/personagens/${copy.value.id}`);
                   })()}>{tr('Duplicar', 'Duplicate')}</Button>
+                  {/* Página na Wiki (9.9): NPC com a ficha rápida, o retrato e os detalhes; se já existe, a Wiki só abre. */}
+                  <Button {...VIEW_OK} onClick={() => {
+                    const name = (id?: string) => (id ? rules.index?.get(id)?.name : undefined);
+                    const anc = name(state.origin.ancestry);
+                    const her = name(state.origin.heritage);
+                    const ancestry = her ? (anc && !her.includes(anc) ? `${anc} (${her})` : her) : anc ?? '';
+                    const role = [clsName, tr(`nível ${state.level}`, `level ${state.level}`)].filter(Boolean).join(', ');
+                    const lines = DETAIL_FIELDS.filter(({ key }) => state.details[key]?.trim()).map(({ key, label }) => `- **${label}:** ${state.details[key]!.trim()}`);
+                    setWikiSeed({
+                      summary: tr(`Personagem de jogador${displayName ? ` (${displayName})` : ''}.`, `Player character${displayName ? ` (${displayName})` : ''}.`),
+                      image: state.details.portrait?.trim() || undefined,
+                      fields: { ...(ancestry ? { ancestry } : {}), ...(role ? { role } : {}) },
+                      body: [tr('## Quem é', '## Who they are'), '', ...(lines.length ? lines : [tr('_Escreva aqui._', '_Write here._')])].join('\n'),
+                    });
+                    navigate(`/wiki?nova=${encodeURIComponent(state.name)}&tipo=npc&semente=1`);
+                  }}>{tr('Criar página na Wiki', 'Create wiki page')}</Button>
                   {/* Copiar para outra mesa (9.6): só as mesas de que a pessoa faz parte; abre a cópia lá (troca de mesa recarrega). */}
                   {otherMesas.map((m) => (
                     <Button key={m.id} {...VIEW_OK} onClick={() => void (async () => {
