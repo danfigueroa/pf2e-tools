@@ -219,6 +219,13 @@ export function buildRulePackages({ version, entries, mechanics, sources, tables
         }
     }
     lists.set('core/remaster', links)
+    // Onde mora cada entrada fora do núcleo (id → primeira lista): o editor e o servidor buscam a lista de uma escolha
+    // salva que a carga habitual não resolve (talento de outro arquétipo, magia de outra tradição, divindade).
+    const locations = {}
+    for (const entry of live) {
+        const [list] = ruleLists(entry, names)
+        if (list && (!list.startsWith('core/') || list === 'core/deities')) locations[entry.id] = list
+    }
     lists.set('core/sources', sources.map((source) => compact({
         id: sourceRef(source.aon_id), name: source.name, productLine: source.product_line, releaseDate: source.release_date,
         remaster: source.remaster, errata: source.errata,
@@ -230,6 +237,11 @@ export function buildRulePackages({ version, entries, mechanics, sources, tables
         const text = JSON.stringify(sorted)
         files[`${list}.json`] = text
         manifestFiles[list] = { hash: hashOf(text), count: sorted.length, bytes: Buffer.byteLength(text) }
+    }
+    {
+        const text = JSON.stringify(Object.fromEntries(Object.entries(locations).sort(([a], [b]) => a.localeCompare(b))))
+        files['core/locations.json'] = text
+        manifestFiles['core/locations'] = { hash: hashOf(text), count: Object.keys(locations).length, bytes: Buffer.byteLength(text) }
     }
     const tablesText = JSON.stringify(tables)
     files['core/tables.json'] = tablesText
