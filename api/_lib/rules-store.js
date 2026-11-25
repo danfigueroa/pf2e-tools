@@ -141,3 +141,69 @@ export async function uploadRulePackages(version, files) {
         if (error) throw new Error(`Base de regras: falha ao gravar ${path} (${error.message})`)
     }
 }
+
+/** Um arquivo publicado de uma versão (JSON), lido do Storage. `null` se não existir. */
+export async function readPublishedRuleFile(version, path) {
+    const { data, error } = await db().storage.from('rules').download(`${version}/${path}`)
+    if (error) return null
+    return JSON.parse(await data.text())
+}
+
+/** Copia arquivos de uma versão para outra no próprio Storage (listas que não mudaram), 16 por vez. */
+export async function copyRulePackages(from, to, paths) {
+    const bucket = db().storage.from('rules')
+    for (let i = 0; i < paths.length; i += 16) {
+        await Promise.all(paths.slice(i, i + 16).map(async (path) => {
+            const { error } = await bucket.copy(`${from}/${path}`, `${to}/${path}`)
+            if (error) throw new Error(`Base de regras: falha ao copiar ${path} (${error.message})`)
+        }))
+    }
+}
+
+/** Entradas gravadas desde um instante (as novas e alteradas de um job), para o relatório "sem mecânica". */
+export function ruleEntriesUpdatedSince(since) {
+    return selectAll(() => db().from('rules_entries').select('aon_id, category').gte('updated_at', since).is('removed_at', null).order('aon_id'))
+}
+
+/** Uma entrada com a mecânica atual, para a correção manual. */
+export async function readRuleEntryWithMechanics(aonId) {
+    const entry = check(await db().from('rules_entries').select('aon_id, id, category, name, level, source_id, removed_at').eq('aon_id', aonId).maybeSingle())
+    if (!entry) return null
+    const mechanics = check(await db().from('rules_mechanics').select('origin, rules, unsupported, prereq, progression, foundry_id, foundry_ref, updated_at').eq('aon_id', aonId).maybeSingle())
+    return { entry, mechanics }
+}
+
+/** Correção manual de mecânica (`origin: manual`): o Foundry não passa mais por cima. */
+export async function saveManualMechanics(aonId, { rules, unsupported, note, ref }, by) {
+    check(await db().from('rules_mechanics').upsert({
+        aon_id: aonId, origin: 'manual', rules, unsupported, note, ref, updated_by: by, updated_at: new Date().toISOString(),
+    }, { onConflict: 'aon_id' }))
+}
+
+/** O job em andamento, se houver (só um por vez). */
+export async function runningRuleImportJob() {
+    const rows = check(await db().from('rules_import_jobs').select('*').eq('status', 'running').limit(1))
+    return rows[0] ?? null
+}
+
+/** Os últimos jobs, para o histórico da tela. */
+export function recentRuleImportJobs(limit = 10) {
+    return db().from('rules_import_jobs').select('id, kind, sources, status, counts, report, started_at, finished_at')
+        .order('started_at', { ascending: false }).limit(limit).then(check)
+}
+
+/** É admin da plataforma (`platform_admins`)? */
+export async function isPlatformAdminUser(userId) {
+    if (!userId || !supabase()) return false
+    const rows = check(await db().from('platform_admins').select('user_id').eq('user_id', userId).limit(1))
+    return rows.length > 0
+}
+
+/** Trava curta (`locks`, a mesma do preparo de fichas): um passo de importação por vez, mesmo com duas abas. */
+export async function tryRuleLock(key, seconds) {
+    return check(await db().rpc('try_lock', { p_key: key, p_seconds: seconds })) === true
+}
+
+export async function releaseRuleLock(key) {
+    check(await db().from('locks').delete().eq('key', key))
+}

@@ -75,3 +75,15 @@ export function readRuleEntriesPage(source, category, after = null) {
         { term: { 'primary_source.keyword': source } },
     ], after)
 }
+
+/** Entradas de jogador por livro na AON (`nome do livro → contagem`), numa agregação só. Não baixa conteúdo. */
+export async function countRuleEntriesBySource(categories) {
+    const result = await searchPage({
+        size: 0,
+        query: { bool: { filter: [{ terms: { category: categories } }] } },
+        aggs: { sources: { terms: { field: 'primary_source.keyword', size: 5000 } } },
+    })
+    const buckets = result?.aggregations?.sources?.buckets
+    if (!Array.isArray(buckets) || result?.aggregations?.sources?.sum_other_doc_count) throw new Error('AON: resposta incompleta na contagem por livro')
+    return new Map(buckets.map((bucket) => [bucket.key, bucket.doc_count]))
+}
