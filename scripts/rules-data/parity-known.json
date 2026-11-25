@@ -1,0 +1,93 @@
+{
+ "_doc": "Diferenças conhecidas da paridade (PLANO-DE-TESTES §1.1): importar o export do Pathbuilder, recompilar e exportar. O check-builder falha se aparecer diferença que não está aqui. Ao resolver uma, apague a linha.",
+ "Brukuthur, The Barbarian Android": {
+  "str": "atributos: ancestralidade/herança legada fora do catálogo Remaster ou atributos editados à mão no Pathbuilder",
+  "dex": "atributos: ancestralidade/herança legada fora do catálogo Remaster ou atributos editados à mão no Pathbuilder",
+  "int": "atributos: ancestralidade/herança legada fora do catálogo Remaster ou atributos editados à mão no Pathbuilder",
+  "prof.castingArcane": "conjurador de arquétipo, inato ou de doutrina ainda não calculado (F5 pendente)",
+  "prof.athletics": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "prof.crafting": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "weapon Greataxe": "arma legada/caseira fora do catálogo ou proficiência que depende de arquétipo/doutrina/atributo legado"
+ },
+ "Cerosqualhanthallas": {
+  "prof.castingArcane": "conjurador de arquétipo, inato ou de doutrina ainda não calculado (F5 pendente)",
+  "prof.castingPrimal": "conjurador de arquétipo, inato ou de doutrina ainda não calculado (F5 pendente)",
+  "prof.nature": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "prof.religion": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "prof.society": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "prof.stealth": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "prof.survival": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "acTotal": "armadura específica, item ou ancestralidade legada/caseira (bônus não calculado)"
+ },
+ "Eldarion": {
+  "prof.acrobatics": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "prof.stealth": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "prof.thievery": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "acTotal": "armadura específica, item ou ancestralidade legada/caseira (bônus não calculado)",
+  "weapon Gloom Blade": "arma legada/caseira fora do catálogo ou proficiência que depende de arquétipo/doutrina/atributo legado"
+ },
+ "Ghan Buri": {},
+ "Hearts folly": {
+  "dex": "atributos: ancestralidade/herança legada fora do catálogo Remaster ou atributos editados à mão no Pathbuilder",
+  "con": "atributos: ancestralidade/herança legada fora do catálogo Remaster ou atributos editados à mão no Pathbuilder",
+  "int": "atributos: ancestralidade/herança legada fora do catálogo Remaster ou atributos editados à mão no Pathbuilder",
+  "wis": "atributos: ancestralidade/herança legada fora do catálogo Remaster ou atributos editados à mão no Pathbuilder",
+  "cha": "atributos: ancestralidade/herança legada fora do catálogo Remaster ou atributos editados à mão no Pathbuilder",
+  "prof.will": "proficiência de escolha não modelada (doutrina do Cleric, Path to Perfection sem escolha, talento legado)",
+  "prof.castingOccult": "conjurador de arquétipo, inato ou de doutrina ainda não calculado (F5 pendente)",
+  "prof.castingPrimal": "conjurador de arquétipo, inato ou de doutrina ainda não calculado (F5 pendente)",
+  "prof.athletics": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "prof.stealth": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "acTotal": "armadura específica, item ou ancestralidade legada/caseira (bônus não calculado)",
+  "weapon Longbow": "arma legada/caseira fora do catálogo ou proficiência que depende de arquétipo/doutrina/atributo legado",
+  "weapon Special Unarmed (1d6)": "arma legada/caseira fora do catálogo ou proficiência que depende de arquétipo/doutrina/atributo legado",
+  "focusPoints": "magias de foco legadas/caseiras fora do catálogo Remaster"
+ },
+ "Loki": {
+  "dex": "atributos: ancestralidade/herança legada fora do catálogo Remaster ou atributos editados à mão no Pathbuilder",
+  "con": "atributos: ancestralidade/herança legada fora do catálogo Remaster ou atributos editados à mão no Pathbuilder",
+  "cha": "atributos: ancestralidade/herança legada fora do catálogo Remaster ou atributos editados à mão no Pathbuilder",
+  "prof.castingOccult": "conjurador de arquétipo, inato ou de doutrina ainda não calculado (F5 pendente)",
+  "prof.deception": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "prof.performance": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "prof.thievery": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "acTotal": "armadura específica, item ou ancestralidade legada/caseira (bônus não calculado)",
+  "weapon Exquisite Sword Cane": "arma legada/caseira fora do catálogo ou proficiência que depende de arquétipo/doutrina/atributo legado",
+  "perDay": "truque extra concedido por talento (não pela tabela da classe)",
+  "focusPoints": "magias de foco legadas/caseiras fora do catálogo Remaster"
+ },
+ "Miranda Stormblade": {
+  "dex": "atributos: ancestralidade/herança legada fora do catálogo Remaster ou atributos editados à mão no Pathbuilder",
+  "int": "atributos: ancestralidade/herança legada fora do catálogo Remaster ou atributos editados à mão no Pathbuilder",
+  "prof.fortitude": "proficiência de escolha não modelada (doutrina do Cleric, Path to Perfection sem escolha, talento legado)",
+  "prof.castingArcane": "conjurador de arquétipo, inato ou de doutrina ainda não calculado (F5 pendente)",
+  "prof.acrobatics": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "prof.crafting": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "prof.medicine": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "prof.nature": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "prof.religion": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "acTotal": "armadura específica, item ou ancestralidade legada/caseira (bônus não calculado)",
+  "weapon Braço Sônico": "arma legada/caseira fora do catálogo ou proficiência que depende de arquétipo/doutrina/atributo legado",
+  "weapon Sword Cane": "arma legada/caseira fora do catálogo ou proficiência que depende de arquétipo/doutrina/atributo legado"
+ },
+ "Nathaniel o Magus": {
+  "con": "atributos: ancestralidade/herança legada fora do catálogo Remaster ou atributos editados à mão no Pathbuilder",
+  "int": "atributos: ancestralidade/herança legada fora do catálogo Remaster ou atributos editados à mão no Pathbuilder",
+  "prof.arcana": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "prof.crafting": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "weapon Longsword": "arma legada/caseira fora do catálogo ou proficiência que depende de arquétipo/doutrina/atributo legado"
+ },
+ "Thalos Alba": {
+  "prof.castingArcane": "conjurador de arquétipo, inato ou de doutrina ainda não calculado (F5 pendente)",
+  "prof.nature": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "prof.occultism": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "focusPoints": "magias de foco legadas/caseiras fora do catálogo Remaster"
+ },
+ "Woyd": {
+  "prof.fortitude": "proficiência de escolha não modelada (doutrina do Cleric, Path to Perfection sem escolha, talento legado)",
+  "prof.castingDivine": "conjurador de arquétipo, inato ou de doutrina ainda não calculado (F5 pendente)",
+  "prof.medicine": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "prof.religion": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
+  "weapon Rapier": "arma legada/caseira fora do catálogo ou proficiência que depende de arquétipo/doutrina/atributo legado"
+ }
+}

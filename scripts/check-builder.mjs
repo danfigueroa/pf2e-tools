@@ -429,5 +429,42 @@ console.log('Equipamento: Ghan Buri (gabarito: export do Pathbuilder) e regras d
     expect('mil moedas = 1 Volume (Player Core pg. 269)', compileBuild({ ...hf, money: { pp: 0, gp: 1999, sp: 0, cp: 0 } }, ctx).equipment.bulk.coins, 1)
 }
 
+console.log('Paridade com o elenco (importar → recompilar → exportar) e invariantes do contrato (CONTRATO-FICHA §8)')
+{
+    const { importPathbuilder } = await import('../src/modules/character-builder/engine/import.ts')
+    const { exportBuild } = await import('../src/modules/character-builder/engine/export.ts')
+    const { parseCharacterJson } = await import('../src/pathbuilder/types.ts')
+    const known = JSON.parse(readFileSync(new URL('./rules-data/parity-known.json', import.meta.url), 'utf8'))
+    const pctx = { rules, mesaRules: castMesa, tables, classOptions: fixture['core/class-features'] }
+    let resolved = 0
+    for (const file of readdirSync(new URL('../public/characters/', import.meta.url)).filter((x) => x.endsWith('.json'))) {
+        const b = JSON.parse(readFileSync(new URL(`../public/characters/${file}`, import.meta.url), 'utf8')).build
+        const { state } = importPathbuilder(b, pctx)
+        expect(`${b.name}: o estado importado passa no sanitizador`, serverSanitize.sanitizeBuildState(state) !== null, true)
+        const out = compileBuild(state, pctx)
+        const doc = exportBuild(state, out, { rules })
+        let parsed = null
+        try { parsed = parseCharacterJson(doc) } catch { /* invariante 1 */ }
+        expect(`${b.name}: parseCharacterJson aceita o retrato`, parsed !== null, true)
+        expect(`${b.name}: retrato até 64 KB`, JSON.stringify(doc).length <= 64 * 1024, true)
+        const a = doc.build.acTotal
+        expect(`${b.name}: CA = 10 + proficiência + atributo + item`, a.acTotal, 10 + a.acProfBonus + a.acAbilityBonus + a.acItemBonus)
+        const ex = doc.build
+        const diffs = []
+        const cmp = (label, x, w) => { if (JSON.stringify(x) !== JSON.stringify(w)) diffs.push(label) }
+        for (const k of ['str', 'dex', 'con', 'int', 'wis', 'cha']) cmp(k, ex.abilities[k], b.abilities[k])
+        for (const k of Object.keys(b.proficiencies)) cmp(`prof.${k}`, ex.proficiencies[k] ?? 0, b.proficiencies[k])
+        cmp('acTotal', ex.acTotal.acTotal, b.acTotal?.acTotal)
+        for (const w of b.weapons) { const m = ex.weapons.find((x) => x.name === w.name); cmp(`weapon ${w.name}`, m ? [m.attack, m.damageBonus] : null, [w.attack, w.damageBonus]) }
+        const cc = b.spellCasters.find((c) => c.name === b.class)
+        if (cc) cmp('perDay', ex.spellCasters.find((c) => c.name === b.class)?.perDay, cc.perDay)
+        cmp('focusPoints', ex.focusPoints, b.focusPoints)
+        const allowed = known[b.name] ?? {}
+        expect(`${b.name}: nenhuma diferença nova (parity-known.json)`, diffs.filter((d) => !(d in allowed)), [])
+        resolved += Object.keys(allowed).filter((k) => !diffs.includes(k)).length
+    }
+    if (resolved) console.log(`  (${resolved} diferença(s) conhecida(s) já resolvida(s): apague-as do parity-known.json)`)
+}
+
 console.log(failures === 0 ? `\n${passed} conferências ok.` : `\n${failures} falha(s), ${passed} ok.`)
 process.exit(failures === 0 ? 0 : 1)
