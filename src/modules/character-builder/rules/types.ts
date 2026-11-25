@@ -64,6 +64,7 @@ export interface RuleEntry {
     source: { id: string; page?: number }
     aon: { id: string; url?: string }
     remaster: boolean
+    superseded?: boolean
     replaces?: string
     legacyNames?: string[]
     summary?: string

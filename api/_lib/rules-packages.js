@@ -160,6 +160,28 @@ export function ruleLists(entry, names) {
     return [`other/${category}`]
 }
 
+/** Vínculos entre entradas publicadas. Uma característica pode apontar para a classe inteira como legacy_id. */
+function remasterLinks(entries, names) {
+    const byAon = new Map(entries.map((entry) => [entry.aon_id, entry]))
+    const byOld = new Map()
+    function link(old, target) {
+        if (!old || !target || old.remaster || !target.remaster || old.category !== target.category) return
+        if (!byOld.has(old.id)) byOld.set(old.id, new Set())
+        byOld.get(old.id).add(target)
+    }
+    for (const entry of entries) {
+        for (const id of entry.data.remaster_ids ?? (entry.replaced_by ? [entry.replaced_by] : [])) link(entry, byAon.get(id))
+        for (const id of entry.legacy_ids ?? []) link(byAon.get(id), entry)
+    }
+    return entries.filter((entry) => byOld.has(entry.id)).map((entry) => ({
+        id: entry.id, name: entry.name, list: ruleLists(entry, names)[0],
+        targets: [...byOld.get(entry.id)].sort((a, b) => a.id.localeCompare(b.id)).map((target) => ({
+            id: target.id, name: target.name, list: ruleLists(target, names)[0],
+            source: { id: sourceRef(target.source_id) }, rarity: target.rarity ?? undefined,
+        })),
+    }))
+}
+
 const hashOf = (text) => createHash('sha256').update(text).digest('hex').slice(0, 16)
 
 /**
@@ -175,14 +197,18 @@ export function buildRulePackages({ version, entries, mechanics, sources, tables
         ancestries: new Set(live.filter((entry) => entry.category === 'ancestry' || (entry.category === 'heritage' && !(entry.data.ancestry ?? mechanics.get(entry.aon_id)?.extra?.ancestry)))
             .map((entry) => entry.name.toLowerCase())),
     }
+    const links = remasterLinks(live, names)
+    const replaced = new Set(links.map((row) => row.id))
     const lists = new Map()
     for (const entry of live) {
         const view = ruleEntryView(entry, mechanics.get(entry.aon_id))
+        if (replaced.has(entry.id)) view.superseded = true
         for (const list of ruleLists(entry, names)) {
             if (!lists.has(list)) lists.set(list, [])
             lists.get(list).push(view)
         }
     }
+    lists.set('core/remaster', links)
     lists.set('core/sources', sources.map((source) => compact({
         id: sourceRef(source.aon_id), name: source.name, productLine: source.product_line, releaseDate: source.release_date,
         remaster: source.remaster, errata: source.errata,

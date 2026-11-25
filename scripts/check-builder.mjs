@@ -272,6 +272,23 @@ console.log('F9.10: permissão de legado por livro')
     expect('magia preparada duas vezes avisa uma vez e o livro liberado resolve', [count(noBooks), count(settings)], [1, 0])
 }
 
+console.log('F9.10: vínculos da AON nos pacotes')
+{
+    const { buildRulePackages } = await import('../api/_lib/rules-packages.js')
+    const row = (n, remaster, extra = {}) => ({
+        id: 'feat:feat-' + n, aon_id: 'feat-' + n, category: 'feat', name: 'Teste ' + n,
+        source_id: remaster ? 'source-2' : 'source-1', remaster, traits: ['General'], data: {}, ...extra,
+    })
+    const entries = [row(1, false, { data: { remaster_ids: ['feat-3', 'feat-4', 'feat-5', 'spell-9', 'feat-99'] } }),
+        row(2, false), row(3, true, { legacy_ids: ['feat-1'] }), row(4, true), row(5, true, { removed_at: '2026-01-01' }),
+        row(6, true, { name: 'Teste 2' }), row(9, true, { id: 'spell:spell-9', aon_id: 'spell-9', category: 'spell' })]
+    const { files } = buildRulePackages({ version: 'test', entries, mechanics: new Map(), sources: [], tables: {} })
+    const links = JSON.parse(files['core/remaster.json'])
+    expect('pacote liga todos os sucessores da AON da categoria que estão publicados', links.map((l) => [l.id, l.targets.map((t) => [t.id, t.list])]),
+        [['feat:feat-1', [['feat:feat-3', 'feats/general'], ['feat:feat-4', 'feats/general']]]])
+    expect('seletor recebe indicação da revisão publicada', JSON.parse(files['feats/general.json']).find((e) => e.aon.id === 'feat-1').superseded, true)
+}
+
 console.log('Motor: atributos do elenco (gabarito: export do Pathbuilder)')
 const ATTR = { Str: 'str', Dex: 'dex', Con: 'con', Int: 'int', Wis: 'wis', Cha: 'cha' }
 const lower = (list) => (list ?? []).map((a) => ATTR[a])
