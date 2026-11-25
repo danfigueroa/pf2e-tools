@@ -23,6 +23,7 @@ const CampaignJournalPage = lazy(() =>
   import('./modules/campaign-journal/CampaignJournalPage').then((m) => ({ default: m.CampaignJournalPage })));
 const WikiPage = lazy(() => import('./modules/wiki/WikiPage'));
 const CharactersPage = lazy(() => import('./modules/character-builder/CharactersPage'));
+const RulesAdminPage = lazy(() => import('./modules/platform-admin/RulesAdminPage'));
 
 const MembersPage = lazy(() =>
   import('./modules/account/MembersPage').then((m) => ({ default: m.MembersPage })));
@@ -58,6 +59,7 @@ function App() {
               <Route path="mesa" element={page(<MesaSettingsPage />)} />
               <Route path="trofeus/:user?" element={page(<TrophiesPage />)} />
               <Route path="creditos" element={page(<CreditsPage />)} />
+              <Route path="plataforma/regras" element={page(<RulesAdminPage />)} />
               {/* O nome antigo ("Diário da Sessão") parecia um diário escrito; o link salvo continua valendo. */}
               <Route path="diario" element={<Navigate to="/historico" replace />} />
             </Route>
