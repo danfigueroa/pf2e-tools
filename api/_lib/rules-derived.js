@@ -75,6 +75,30 @@ export function classFeatureProficiencies(markdown, unsupported) {
             for (const target of kept) out.push({ target, rank: RANK_WORDS[rankWord] })
         }
     }
+    // "You gain expert proficiency in X" (Weapon Tricks) e "You become an expert in X" (Expert Overdrive). Frases de
+    // aumento de perícia ("you can use this increase…") e as que escalonam por nível ("At 3rd level, you become…") ficam de fora.
+    for (const [sentence] of text.matchAll(/[^.]*\b(?:gain (?:expert|master|legendary) proficiency (?:in|with)|become (?:an expert|a master|legendary) in)\b[^.]*\./gi)) {
+        const lower = sentence.toLowerCase().trim().replace(/^(?!if\b).*?---\s*(?=you\b)/, '')
+        if (!/^you (gain|become)\b/.test(lower)) continue
+        if (/\b(can use|either)\b/.test(lower)) continue
+        if (/\bat \d+(st|nd|rd|th) level\b/.test(lower)) {
+            unsupported.push(`proficiency: ${sentence.trim().slice(0, 140)}`)
+            continue
+        }
+        const m = /\b(?:gain (expert|master|legendary) proficiency (?:in|with)|become (?:an |a )?(expert|master|legendary) in) (.+?)(?:;| when\b| and on\b| on a\b|\.|$)/.exec(lower)
+        if (!m) continue
+        const rankWord = m[1] ?? m[2]
+        const phrase = m[3]
+        if (NEEDS_CHOICE.test(phrase)) {
+            unsupported.push(`proficiency: ${sentence.trim().slice(0, 140)}`)
+            continue
+        }
+        const targets = PROFICIENCY_TARGETS.filter(([re]) => re.test(phrase)).map(([, target]) => target)
+        for (const skill of SKILLS) if (new RegExp(`\\b${skill}\\b`).test(phrase)) targets.push(`skill:${skill}`)
+        for (const target of targets.filter((t) => !(!/\barmor\b/.test(phrase) && ['light', 'medium', 'heavy'].includes(t)))) {
+            out.push({ target, rank: RANK_WORDS[rankWord] })
+        }
+    }
     return out
 }
 
