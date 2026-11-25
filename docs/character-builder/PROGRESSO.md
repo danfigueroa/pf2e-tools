@@ -328,3 +328,8 @@
 - **10.3 Catálogos por nome da Ficha: avaliado.** O catálogo de regras só cobre os ataques desarmados, e isso já está feito: a Ficha do Criador lê `covil.unarmed`, com caso no `check-rolls`.
   - `magicWeapons.ts` (perfis situacionais, como a Gloom Blade no escuro), `itemActivities.ts` (custo e frequência de ativação) e as relíquias guardam o que o catálogo não tem: o `ItemData` não traz ação nem frequência.
   - Esses catálogos ficam na Ficha, que segue servindo também as fichas de upload do Pathbuilder.
+- **10.4 Base local antes da AON (passo 1 de 3: os dados).**
+  - O que mudou: coluna `rules_entries.aon_source` (migration `fonte_aon_no_catalogo`, aplicada) com o `_source` cru da AON, menos o `markdown` (que já tem coluna) e os campos só de busca e de renderização. As 17.613 entradas Remaster foram reimportadas.
+  - Teste (`scripts/check-local-aon.mjs`): para os 503 nomes de descrição do elenco, acha a entrada na AON como o pipeline acha e compara com a mesma entrada no banco.
+  - Resultado: 436 cobertas, todas com documento e parse idênticos. 53 ficam fora do banco: livros legados (Advanced Player's Guide, Character Guide, Secrets of Magic…), páginas de regra e de categoria. 14 não estão na AON.
+  - Próximos passos: (2) os parsers de descrição consultam o banco no mesmo formato da busca da AON e caem nela quando o banco não tem a entrada; (3) importar os livros legados que o elenco usa.
