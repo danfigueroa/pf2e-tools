@@ -1,8 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import { Box, Chip, FormControlLabel, Paper, Stack, Switch, Typography } from '@mui/material';
 import { displayFont } from '../../../theme';
 import { locale, tr } from '../../../i18n';
 import { ContentPicker } from '../components/ContentPicker';
+import { pickerEditions } from '../remaster';
+import { BuildExceptions } from '../hooks/buildExceptions';
 import { PickerField } from '../components/PickerField';
 import { attributeLabel } from '../engine/attributes';
 import { ATTRIBUTES, type AttributeKey } from '../engine/types';
@@ -71,7 +73,9 @@ export function OriginSection({ state, update, core, mesaRules, compiled, canEdi
   const languageSlots = compiled.languageSlots;
   const chosen = new Set(state.origin.languages ?? []);
   const fixedLanguages = new Set((ancestry?.ancestry?.languages ?? []).map((l) => l.toLowerCase()));
-  const languages = core.languages
+  const exceptions = useContext(BuildExceptions);
+  const offered = new Set(pickerEditions(core.languages, mesaRules, exceptions).map((l) => l.id));
+  const languages = core.languages.filter((l) => offered.has(l.id) || chosen.has(l.id))
     .filter((l) => !fixedLanguages.has(l.name.toLowerCase()))
     .sort((a, b) => (a.rarity === b.rarity ? 0 : a.rarity === 'common' ? -1 : 1) || a.name.localeCompare(b.name, locale));
   const toggleLanguage = (id: string) => {

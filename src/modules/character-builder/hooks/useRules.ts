@@ -2,7 +2,7 @@
 // usa) e as regras de criação da mesa. Só listas de `core/` do Storage/IndexedDB: nenhuma chamada à AON.
 import { useEffect, useMemo, useState } from 'react'
 import { fetchHomebrew, fetchMesaRules } from '../../../services/builds'
-import { ancestries, archetypes, backgrounds, classes, classOptions, heritages, languages, openRules, ruleListSlug, ruleTables } from '../rules'
+import { ancestries, archetypes, backgrounds, classes, classOptions, heritages, languages, openRules, remasterCatalog, ruleListSlug, ruleTables } from '../rules'
 import type { SpellSlotTable } from '../engine/spells'
 import { loadRuleList } from '../rules/loader'
 import { buildRulesIndex } from '../engine/rulesIndex'
@@ -24,6 +24,7 @@ export interface CoreRules {
 
 /** O que o personagem usa e decide quais listas de talento baixar. */
 export interface FeatListNeeds {
+    references?: string[]
     className?: string
     ancestryName?: string
     /** Herança versátil (Aiuvarin, Nephilim…) tem talentos próprios. */
@@ -69,6 +70,7 @@ export function useRules(needs?: FeatListNeeds): UseRules & { feats: RuleEntry[]
     const [core, setCore] = useState<CoreRules | null>(null)
     const [featLists, setFeatLists] = useState<Record<string, RuleEntry[]>>({})
     const [mesaRules, setMesaRules] = useState<MesaRules | null>(null)
+    const [supplement, setSupplement] = useState<RuleEntry[]>([])
     const [homebrew, setHomebrew] = useState<RuleEntry[]>([])
     const [error, setError] = useState(false)
 
@@ -111,8 +113,29 @@ export function useRules(needs?: FeatListNeeds): UseRules & { feats: RuleEntry[]
     }, [core, homebrew])
     const index = useMemo<RulesIndex | null>(() => {
         if (!merged) return null
-        return buildRulesIndex([merged.ancestries, merged.heritages, merged.backgrounds, merged.classes, merged.languages, merged.classFeatures, feats, merged.archetypes], merged.languages)
-    }, [merged, feats])
+        return buildRulesIndex([merged.ancestries, merged.heritages, merged.backgrounds, merged.classes, merged.languages, merged.classFeatures, feats, merged.archetypes, supplement], merged.languages)
+    }, [merged, feats, supplement])
+
+    // Uma revisão pode ter mudado de lista (por exemplo, a tradição de uma magia). Ao reabrir,
+    // busque a lista do destino salvo somente se a carga habitual não resolveu a referência.
+    const missing = (needs?.references ?? []).filter((id) => !id.startsWith('custom:') && !id.startsWith('mesa:') && !index?.get(id)).join('|')
+    const loaded = !!paths && paths.split('|').every((path) => featLists[path])
+    useEffect(() => {
+        if (!core || !loaded || !missing) return
+        let alive = true
+        const ids = new Set(missing.split('|'))
+        void remasterCatalog(core.version).then(async (rows) => {
+            const paths = new Set<string>()
+            for (const row of rows) {
+                if (ids.has(row.id) && row.list) paths.add(row.list)
+                for (const target of row.targets) if (ids.has(target.id) && target.list) paths.add(target.list)
+            }
+            const lists = await Promise.all([...paths].map((path) => loadRuleList<RuleEntry[]>(path, core.version)))
+            const found = lists.flat().filter((entry) => ids.has(entry.id))
+            if (alive && found.length) setSupplement((prev) => [...new Map([...prev, ...found].map((e) => [e.id, e])).values()])
+        }).catch(() => { if (alive) setError(true) })
+        return () => { alive = false }
+    }, [core, loaded, missing])
 
     return { core: merged, index, mesaRules, error, feats, tables, setMesaRules }
 }

@@ -199,10 +199,20 @@ export function buildRulePackages({ version, entries, mechanics, sources, tables
     }
     const links = remasterLinks(live, names)
     const replaced = new Set(links.map((row) => row.id))
+    const oldNames = new Map()
+    for (const row of links) {
+        for (const target of row.targets) {
+            if (target.name === row.name) continue
+            if (!oldNames.has(target.id)) oldNames.set(target.id, new Set())
+            oldNames.get(target.id).add(row.name)
+        }
+    }
     const lists = new Map()
     for (const entry of live) {
         const view = ruleEntryView(entry, mechanics.get(entry.aon_id))
         if (replaced.has(entry.id)) view.superseded = true
+        // A busca pelo nome anterior deve encontrar o sucessor mesmo quando só o legado traz o vínculo.
+        if (oldNames.has(entry.id)) view.previousNames = [...oldNames.get(entry.id)].sort()
         for (const list of ruleLists(entry, names)) {
             if (!lists.has(list)) lists.set(list, [])
             lists.get(list).push(view)

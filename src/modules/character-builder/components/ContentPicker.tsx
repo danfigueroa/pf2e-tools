@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Box, Button, Chip, Dialog, DialogContent, DialogTitle, Drawer, FormControlLabel, IconButton, List, ListItemButton,
   ListItemText, MenuItem, Stack, Switch, TextField, Typography, useMediaQuery, useTheme,
@@ -8,6 +8,9 @@ import { locale, tr } from '../../../i18n';
 import type { RuleEntry } from '../rules/types';
 import type { MesaRules } from '../types';
 import { allowedAtTable } from '../mesaRules';
+
+import { pickerEditions } from '../remaster';
+import { BuildExceptions } from '../hooks/buildExceptions';
 
 const PAGE = 150;
 
@@ -61,14 +64,16 @@ export function ContentPicker({ open, title, entries, value, onPick, onClose, me
     setLimit(PAGE);
   }, [open, value]);
 
+  const exceptions = useContext(BuildExceptions);
+  const editions = useMemo(() => open ? pickerEditions(entries, mesaRules, exceptions) : [], [open, entries, mesaRules, exceptions]);
   const shown = useMemo(() => {
     const term = q.trim().toLowerCase();
-    return entries
-      .filter((e) => !term || e.name.toLowerCase().includes(term) || (e.legacyNames ?? []).some((n) => n.toLowerCase().includes(term)))
+    return editions
+      .filter((e) => !term || e.name.toLowerCase().includes(term) || [...(e.legacyNames ?? []), ...(e.previousNames ?? [])].some((n) => n.toLowerCase().includes(term)))
       .filter((e) => rarity === 'all' || e.rarity === rarity || (rarity === 'rare' && e.rarity === 'unique'))
-      .filter((e) => !onlyAllowed || allowedAtTable(e, mesaRules) !== false)
+      .filter((e) => !onlyAllowed || exceptions.has(e.id) || allowedAtTable(e, mesaRules) !== false)
       .sort((a, b) => a.name.localeCompare(b.name, locale));
-  }, [entries, q, rarity, onlyAllowed, mesaRules]);
+  }, [editions, exceptions, q, rarity, onlyAllowed, mesaRules]);
 
   const focused = shown.find((e) => e.id === focusId) ?? (wide ? shown[0] : undefined);
 
@@ -93,7 +98,7 @@ export function ContentPicker({ open, title, entries, value, onPick, onClose, me
         {focused.rarity && focused.rarity !== 'common' && <Chip size="small" color="warning" variant="outlined" label={RARITY_LABEL[focused.rarity] ?? focused.rarity} />}
         {!focused.remaster && <Chip size="small" variant="outlined" label={tr('Legado', 'Legacy')} />}
         {focused.homebrew && <Chip size="small" color="secondary" label={tr('Da mesa', 'Table homebrew')} />}
-        {allowedAtTable(focused, mesaRules) === false && <Chip size="small" color="error" variant="outlined" label={tr('Fora das regras da mesa', 'Outside table rules')} />}
+        {!exceptions.has(focused.id) && allowedAtTable(focused, mesaRules) === false && <Chip size="small" color="error" variant="outlined" label={tr('Fora das regras da mesa', 'Outside table rules')} />}
         {(focused.traits ?? []).filter((t) => t.toLowerCase() !== (focused.rarity ?? '')).slice(0, 6).map((t) => <Chip key={t} size="small" label={t} />)}
       </Stack>
       {facts?.(focused)}
@@ -111,7 +116,7 @@ export function ContentPicker({ open, title, entries, value, onPick, onClose, me
   const list = (
     <List ref={listRef} dense role="listbox" aria-label={title} sx={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
       {shown.slice(0, limit).map((e) => {
-        const blocked = allowedAtTable(e, mesaRules) === false;
+        const blocked = !exceptions.has(e.id) && allowedAtTable(e, mesaRules) === false;
         return (
           <ListItemButton key={e.id} data-id={e.id} role="option" aria-selected={e.id === value}
             selected={wide ? e.id === focused?.id : e.id === value}

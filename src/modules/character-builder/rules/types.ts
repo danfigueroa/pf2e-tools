@@ -67,6 +67,8 @@ export interface RuleEntry {
     superseded?: boolean
     replaces?: string
     legacyNames?: string[]
+    /** Nomes das entradas substituídas, só para busca. O motor resolve concessões com os nomes da AON. */
+    previousNames?: string[]
     summary?: string
     actions?: '1' | '2' | '3' | 'reaction' | 'free'
     prerequisites?: { text: string }

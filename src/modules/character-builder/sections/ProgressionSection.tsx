@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import {
   Accordion, AccordionDetails, AccordionSummary, Box, Button, Chip, MenuItem, Stack, TextField, Typography,
 } from '@mui/material';
@@ -11,6 +11,8 @@ import { featKindLabel, fitsSlot, type FeatSlot } from '../engine/slots';
 import type { ChildSlot } from '../engine/feats';
 import type { RuleEntry } from '../rules/types';
 import { ruleListSlug } from '../rules';
+import { pickerEditions } from '../remaster';
+import { BuildExceptions } from '../hooks/buildExceptions';
 import { setChoice, type SectionProps } from './types';
 
 const SAVES = [
@@ -58,6 +60,7 @@ export function ProgressionSection(props: ProgressionProps) {
   const levels = Array.from({ length: 20 }, (_, i) => i + 1);
   const takenBySlot = useMemo(() => new Map(compiled.taken.map((t) => [t.slot, t])), [compiled.taken]);
   const pendingKeys = useMemo(() => new Set(compiled.pending.map((p) => p.key)), [compiled.pending]);
+  const exceptions = useContext(BuildExceptions);
   const className = index.get(state.class.id)?.name;
 
   /** Candidatos de um slot: pelo tipo, até o teto de nível; o arquétipo navegado entra nos slots de classe e arquétipo. */
@@ -146,7 +149,7 @@ export function ProgressionSection(props: ProgressionProps) {
         <TextField select size="small" label={tr('Arquétipo para navegar (dedicações e talentos)', 'Archetype to browse (dedications and feats)')}
           value={browseArchetype ?? ''} onChange={(e) => setBrowseArchetype(e.target.value || null)} sx={{ maxWidth: 420 }}>
           <MenuItem value="">{tr('Nenhum', 'None')}</MenuItem>
-          {archetypes.map((a) => <MenuItem key={a.id} value={a.name}>{a.name}</MenuItem>)}
+          {pickerEditions(archetypes, mesaRules, exceptions).map((a) => <MenuItem key={a.id} value={a.name}>{a.name}</MenuItem>)}
         </TextField>
       )}
 

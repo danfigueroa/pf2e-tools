@@ -287,6 +287,33 @@ console.log('F9.10: vínculos da AON nos pacotes')
     expect('pacote liga todos os sucessores da AON da categoria que estão publicados', links.map((l) => [l.id, l.targets.map((t) => [t.id, t.list])]),
         [['feat:feat-1', [['feat:feat-3', 'feats/general'], ['feat:feat-4', 'feats/general']]]])
     expect('seletor recebe indicação da revisão publicada', JSON.parse(files['feats/general.json']).find((e) => e.aon.id === 'feat-1').superseded, true)
+    const { chosenRuleIds, convertRuleIds, legacyLinks, pickerEditions } = await import('../src/modules/character-builder/remaster.ts')
+    const legacyBook = 'source:source-1'
+    const remasterBook = 'source:source-2'
+    const settings = { ...serverStore.DEFAULT_MESA_RULES, sources: { allow: [remasterBook], legacy: [legacyBook] } }
+    const list = JSON.parse(files['feats/general.json'])
+    const old = list.find((e) => e.aon.id === 'feat-2')
+    const revised = list.find((e) => e.aon.id === 'feat-3')
+    expect('busca pelo nome legado alcança o sucessor com vínculo só de ida', list.find((e) => e.aon.id === 'feat-4').previousNames, ['Teste 1'])
+    const offer = (rules, exceptions) => pickerEditions(list, rules, exceptions).map((e) => e.id)
+    expect('seletor omite o legado substituído e mantém homônimo sem vínculo', [offer(settings).includes('feat:feat-1'), offer(settings).includes(old.id)], [false, true])
+    expect('legado só no livro liberado, inclusive sem as regras carregadas', [offer(noBooks).includes(old.id), offer(null).includes(old.id)], [false, false])
+    expect('exceção do personagem libera o livro para esta escolha', offer(noBooks, new Set([old.id])).includes(old.id), true)
+    expect('pacote anterior usa legacy_id e rejeita referência a outra categoria', legacyLinks([revised, { ...revised, id: 'feat:feat-12', replaces: 'class-1' }]).map((l) => l.id), ['feat:feat-1'])
+
+    const legacy = 'spell:spell-1', next = 'spell:spell-2'
+    const draft = { ...empty, name: legacy, choices: { pick: { id: legacy, qualifier: legacy }, text: { value: legacy } },
+        inventory: [{ key: legacy, item: legacy, qty: 3, acquired: 'given', customName: legacy, container: legacy, material: { id: legacy }, runes: { property: [legacy] } }],
+        companions: [{ key: legacy, kind: 'other', name: legacy, type: legacy, choices: { x: { id: legacy } } }],
+        spellcasting: { class: { prepared: { 1: [legacy, next, legacy] }, repertoire: { 1: [next, legacy] }, signature: [legacy], spellbook: [legacy] } },
+        origin: { deity: legacy, languages: [legacy] }, class: { id: legacy, dual: legacy }, formulas: [legacy, next] }
+    const changed = convertRuleIds(draft, new Map([[legacy, next]]))
+    expect('varre os campos de referência', [...chosenRuleIds(changed)], [next])
+    expect('preserva chaves, quantidade e texto livre', [changed.name, changed.inventory[0].key, changed.inventory[0].container, changed.inventory[0].customName, changed.inventory[0].qty,
+        changed.companions[0].name, changed.companions[0].key, changed.choices.pick.qualifier, changed.choices.text.value], [legacy, legacy, legacy, legacy, 3, legacy, legacy, legacy, legacy])
+    expect('preserva espaços preparados repetidos e deduplica coleções', [changed.spellcasting.class.prepared[1], changed.spellcasting.class.repertoire[1], changed.formulas],
+        [[next, next, next], [next], [next]])
+    expect('conversão mantém o rascunho anterior intacto e é idempotente', [draft.spellcasting.class.prepared[1], convertRuleIds(changed, new Map([[legacy, next]]))], [[legacy, next, legacy], changed])
 }
 
 console.log('Motor: atributos do elenco (gabarito: export do Pathbuilder)')

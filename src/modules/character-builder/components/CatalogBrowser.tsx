@@ -8,6 +8,7 @@ import type { CoreRules } from '../hooks/useRules';
 import { ITEM_LISTS, useRules } from '../hooks/useRules';
 import { MenuBook as BrowseIcon } from '@mui/icons-material';
 import type { MesaRules } from '../types';
+import { pickerEditions } from '../remaster';
 import { ContentPicker } from './ContentPicker';
 
 type Kind = 'ancestries' | 'heritages' | 'backgrounds' | 'classes' | 'archetypes'
@@ -45,8 +46,8 @@ const ITEM_LABEL: Record<(typeof ITEM_LISTS)[number], string> = {
 };
 
 /** O que cada categoria pede como segunda escolha (classe, ancestralidade, arquétipo, tradição ou lista de item). */
-function subOptions(kind: Kind, core: CoreRules): { value: string; label: string }[] {
-  const byName = (list: RuleEntry[]) => [...list].sort((a, b) => a.name.localeCompare(b.name, locale)).map((e) => ({ value: e.name, label: e.name }));
+function subOptions(kind: Kind, core: CoreRules, mesaRules: MesaRules | null): { value: string; label: string }[] {
+  const byName = (list: RuleEntry[]) => pickerEditions(list, mesaRules).sort((a, b) => a.name.localeCompare(b.name, locale)).map((e) => ({ value: e.name, label: e.name }));
   if (kind === 'feats-class') return byName(core.classes);
   if (kind === 'feats-ancestry') return byName([...core.ancestries, ...core.heritages.filter((h) => !h.heritage?.ancestry)]);
   if (kind === 'feats-archetype') return byName(core.archetypes);
@@ -80,7 +81,7 @@ export function CatalogBrowser({ open, onClose, core, mesaRules }: { open: boole
   const [sub, setSub] = useState('');
   const [entries, setEntries] = useState<RuleEntry[] | null>(null);
   const [browsing, setBrowsing] = useState(false);
-  const subs = useMemo(() => (core ? subOptions(kind, core) : []), [kind, core]);
+  const subs = useMemo(() => (core ? subOptions(kind, core, mesaRules) : []), [kind, core, mesaRules]);
   const path = listPath(kind, sub);
 
   useEffect(() => { setSub(''); }, [kind]);

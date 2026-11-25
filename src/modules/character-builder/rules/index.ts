@@ -1,6 +1,7 @@
 // Consultas do Criador sobre os pacotes do catálogo. Cada função baixa só as listas de que precisa (MODELO-DE-DADOS §4).
 import { loadRuleList, pruneRuleCache, rulesVersion } from './loader'
-import type { RuleEntry, RuleSource } from './types'
+import type { RuleEntry, RuleSource, RulesManifest } from './types'
+import type { RemasterLink } from '../remaster'
 
 export type { RuleEntry, RuleSource } from './types'
 
@@ -88,3 +89,10 @@ export async function itemsBy(kind: ItemList, maxLevel?: number): Promise<RuleEn
 
 /** Tabelas curadas (slots de magia, riqueza inicial, rótulos do export), geradas da AON. */
 export const ruleTables = () => loadRuleList<{ spellSlots: unknown; wealth: unknown; exports: unknown }>('core/tables')
+
+/** Versões anteriores à F9.10 já são imutáveis. Nelas o seletor usa os legacy_id das listas carregadas. */
+export async function remasterCatalog(version: string) {
+    const manifest = await loadRuleList<RulesManifest>('manifest', version)
+    return manifest.files['core/remaster']
+        ? loadRuleList<RemasterLink[]>('core/remaster', version) : []
+}

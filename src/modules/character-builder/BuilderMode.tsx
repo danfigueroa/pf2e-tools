@@ -26,6 +26,9 @@ import { EquipmentSection } from './sections/EquipmentSection';
 import { CompanionsSection } from './sections/CompanionsSection';
 import type { SectionProps } from './sections/types';
 import { tabOf, type BuilderTab } from './tabs';
+import { chosenRuleIds } from './remaster';
+import { RemasterDialog } from './components/RemasterDialog';
+import { BuildExceptions } from './hooks/buildExceptions';
 import { ApplyDialog } from './components/ApplyDialog';
 import { BackgroundNotes } from './components/BackgroundNotes';
 import { ManualSection } from './sections/ManualSection';
@@ -103,6 +106,7 @@ export function BuilderMode({ buildId }: { buildId: string }) {
       if ('qualifier' in choice && choice.qualifier?.startsWith('archetype:')) archetypes.add(choice.qualifier.slice(10));
     }
     const next: FeatListNeeds = {
+      references: [...chosenRuleIds(state)].sort(),
       className: cls?.name, ancestryName: anc?.name, versatileHeritage: her && !her.heritage?.ancestry ? her.name : undefined,
       mythic: variantFlags(state, rules.mesaRules ?? undefined).mythic, archetypes: [...archetypes].sort(),
       items: state.inventory.length > 0 || state.formulas.length > 0 || itemsWanted,
@@ -120,6 +124,8 @@ export function BuilderMode({ buildId }: { buildId: string }) {
   useEffect(() => { if (needsKey) setNeeds(JSON.parse(needsKey) as FeatListNeeds); }, [needsKey]);
   const [tab, setTab] = useState<BuilderTab>('origin');
   const [pendingOpen, setPendingOpen] = useState(false);
+  const [remasterOpen, setRemasterOpen] = useState(false);
+  const exceptions = useMemo(() => new Set(rules.mesaRules?.exceptions.filter((e) => e.buildId === buildId).flatMap((e) => e.ids)), [rules.mesaRules, buildId]);
   const [applyOpen, setApplyOpen] = useState(false);
   const [versions, setVersions] = useState<BuildVersion[] | null>(null);
   // GM: membros da mesa para escolher o dono (F8.2).
@@ -340,23 +346,25 @@ export function BuilderMode({ buildId }: { buildId: string }) {
               ))}
             </Tabs>
 
-            {!sectionProps && tab !== 'details' && <Skeleton variant="rounded" height={240} />}
-            {sectionProps && tab === 'origin' && <OriginSection {...sectionProps} />}
-            {sectionProps && tab === 'class' && <ClassSection {...sectionProps} />}
-            {sectionProps && tab === 'attributes' && <AttributesSection {...sectionProps} />}
-            {sectionProps && tab === 'skills' && <SkillsSection {...sectionProps} />}
-            {sectionProps && tab === 'equipment' && (
-              <Stack spacing={2}>
-                <EquipmentSection {...sectionProps} entries={rules.feats}
-                  wealth={(rules.tables as { wealth?: { levels: Record<string, { currency: number; lumpSum: number }>; source?: string } } | null)?.wealth} />
-                <CompanionsSection {...sectionProps} entries={rules.feats} />
-              </Stack>
-            )}
-            {sectionProps && tab === 'spells' && <SpellsSection {...sectionProps} spells={rules.feats.filter((e) => e.type === 'spell')} />}
-            {sectionProps && tab === 'progression' && (
-              <ProgressionSection {...sectionProps} feats={rules.feats} archetypes={core?.archetypes ?? []}
-                browseArchetype={browseArchetype} setBrowseArchetype={setBrowseArchetype} initialSlot={swapSlot} />
-            )}
+            <BuildExceptions.Provider value={exceptions}>
+              {!sectionProps && tab !== 'details' && <Skeleton variant="rounded" height={240} />}
+              {sectionProps && tab === 'origin' && <OriginSection {...sectionProps} />}
+              {sectionProps && tab === 'class' && <ClassSection {...sectionProps} />}
+              {sectionProps && tab === 'attributes' && <AttributesSection {...sectionProps} />}
+              {sectionProps && tab === 'skills' && <SkillsSection {...sectionProps} />}
+              {sectionProps && tab === 'equipment' && (
+                <Stack spacing={2}>
+                  <EquipmentSection {...sectionProps} entries={rules.feats}
+                    wealth={(rules.tables as { wealth?: { levels: Record<string, { currency: number; lumpSum: number }>; source?: string } } | null)?.wealth} />
+                  <CompanionsSection {...sectionProps} entries={rules.feats} />
+                </Stack>
+              )}
+              {sectionProps && tab === 'spells' && <SpellsSection {...sectionProps} spells={rules.feats.filter((e) => e.type === 'spell')} />}
+              {sectionProps && tab === 'progression' && (
+                <ProgressionSection {...sectionProps} feats={rules.feats} archetypes={core?.archetypes ?? []}
+                  browseArchetype={browseArchetype} setBrowseArchetype={setBrowseArchetype} initialSlot={swapSlot} />
+              )}
+            </BuildExceptions.Provider>
             {tab === 'details' && (
               <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2.5 } }}>
                 <Typography component="h2" sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.1rem', mb: 1.5 }}>{tr('Detalhes', 'Details')}</Typography>
@@ -378,6 +386,7 @@ export function BuilderMode({ buildId }: { buildId: string }) {
                 )}
                 {build.publishedRev !== null && <Box sx={{ mt: 2 }}><BackgroundNotes slug={build.slug} canEdit={canEdit} /></Box>}
                 <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap', mt: 2 }}>
+                  {canEdit && core && <Button onClick={() => setRemasterOpen(true)}>{tr('Converter para o Remaster', 'Convert to Remaster')}</Button>}
                   {canEdit && (
                     <Button color="error" startIcon={<DeleteIcon />} onClick={() => setConfirmDelete(true)}>
                       {tr('Mandar para a lixeira', 'Move to trash')}</Button>
@@ -473,6 +482,9 @@ export function BuilderMode({ buildId }: { buildId: string }) {
         </DialogContent>
         <DialogActions><Button onClick={() => setVersions(null)}>{tr('Fechar', 'Close')}</Button></DialogActions>
       </Dialog>
+
+      {remasterOpen && canEdit && core && rules.index && <RemasterDialog state={state} core={core} entries={rules.feats}
+        mesaRules={rules.mesaRules} exceptions={exceptions} update={updateWithHistory} onClose={() => setRemasterOpen(false)} />}
 
       <Dialog open={!!conflict}>
         <DialogTitle>{tr('Este personagem mudou em outro aparelho', 'This character changed on another device')}</DialogTitle>
