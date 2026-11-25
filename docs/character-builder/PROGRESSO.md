@@ -274,3 +274,15 @@
 - **8.13.** README com o Criador (funcionalidades, seção própria, `check-builder`, roadmap). O upload do Pathbuilder segue aceito, com "prefira o Criador".
 - **Verificação.** Build, lint, `check-builder` (225), `check-rolls`, `check-economy` e `check-auth` passaram.
 - **Pendente (M4, depende de pessoas).** Um personagem novo por mesa criado do zero no celular; subir de nível em menos de 5 minutos; CA-02 e CA-06 com usuários.
+
+## Lacunas do elenco fechadas depois da F8
+
+- **Doutrina do Cleric.** A progressão por degrau sai do texto da AON (Player Core pg. 112), em `doctrine.steps`, nas formas "trained in", "have expert proficiency in" e as das características. A doutrina escolhida aplica os degraus até o nível atual. Base `2026.11.9`.
+- **Subclasses e chamado mítico na importação.** O export nomeia a subclasse nas características, às vezes com o tipo junto ("Thief Racket", "Giant Instinct", "Hunter's Edge: Precision", "Empiricism Methodology"). O importador casa com as opções do catálogo. O recorte de testes passou a trazer todas as opções de subclasse. O Woyd caiu de 5 para 3 diferenças de paridade.
+- **Conjuradores de arquétipo** (Player Core pg. 215).
+  - A dedicação, lida da AON (`feat.casting`, 13 dedicações), dá os truques: o Witch prepara um, os outros dois, e o psi cantrip não conta. Dá também a tradição e o atributo.
+  - Basic, Expert e Master <Classe> Spellcasting dão os espaços da tabela e o rank perito/mestre. O nome do conjurador segue o do Pathbuilder ("Archetype Wizard").
+  - A importação traz as magias deles. Na paridade, o Druid do Cero e o Psychic do Loki batem com o Pathbuilder; o Wizard do Nathaniel difere pelo Arcane Breadth (efeito de talento). Base `2026.11.10`.
+  - Com duas fontes da mesma tradição (classe e arquétipo), o retrato leva o maior rank.
+- **"Trocar talento" na Ficha.** O retrato leva `covil.slots` (nome → slot). O drawer do talento ganha "Trocar talento no Criador", que abre o seletor daquele slot.
+- **Ainda aberto.** Conjuradores inatos e de talento (ancestralidade, Mythic Magic, Arcane Breadth); Ranger Expertise com magias de warden; dano extra de runas; aceite M3/M4 com usuários.
