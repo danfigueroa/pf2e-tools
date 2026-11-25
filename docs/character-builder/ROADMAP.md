@@ -230,6 +230,7 @@ magias/itens), sem pendência fantasma nem slot faltando.
 
 - [ ] **5.1** `spells.ts`: conjuradores da classe, de arquétipo (Basic/Expert/Master Spellcasting), inatos (ancestralidade,
       talento, item), Mythic Magic; tabela de slots (`spell-slots.json`).
+      Parcial: classe e arquétipo feitos; faltam inatos (ancestralidade, talento, item) e Mythic Magic.
 - [x] **5.2** Preparado de grimório (grimório + preparadas com cópias), espontâneo (repertório + assinatura), truques.
 - [x] **5.3** Foco: magias de foco concedidas, pool pelo Remaster (até 3), truques de foco fora da conta.
 - [ ] **5.4** Magias concedidas por escolhas (escola, domínio, fonte divina, mistério, consciência).

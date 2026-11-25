@@ -343,3 +343,37 @@
   - categorias que o catálogo não guarda (páginas de regra, perícias, páginas de categoria);
   - acertos aproximados, que por desenho seguem na AON.
   - Os livros legados ficam fora de propósito: pela BASE-DE-REGRAS §8, o livro legado só se importa quando uma mesa o libera, e hoje nenhuma das duas libera (`legacy: false`, sem `sources.legacy`). Quando uma liberar, o administrador importa o livro (`import-rules.mjs --source "<livro>"`) e o `check-local-aon` mostra o ganho.
+
+## O que falta (consolidado)
+
+A lista única do que segue aberto. Os "Pendente" de cada fase acima são o registro de quando surgiram; resolvidos
+desde então: progressão da doutrina do Cleric, conjuradores de arquétipo e "Trocar talento" a partir da Ficha.
+
+**Depende de pessoas**
+- M1: criar um nível 1 de cada classe do elenco no Pathbuilder e comparar PV, CA, salvaguardas, Percepção e perícias.
+- M3: aceite com o GM e um jogador de cada mesa.
+- M4: um personagem novo por mesa criado do zero no celular; subir de nível em menos de 5 minutos; CA-02 e CA-06.
+
+**Motor: hoje sai como aviso, não como número**
+- 5.1: conjuradores inatos e de talento (ancestralidade, Mythic Magic, Arcane Breadth, Aeromancer, Caster Arcane Sense).
+- 5.4: magias concedidas por escolha (escola, domínio, mistério, consciência); tamanho do repertório espontâneo; o truque a mais do Loki, que vem de talento.
+- Ranger Expertise "if you have warden spells" (Player Core pg. 152).
+- 4.2: `MartialProficiency` (armas de fogo do Gunslinger).
+- 4.3: contagem de ikons, táticas, runas, aparições e lições.
+- 4.7: qualificador de talento ("Assurance (X)") e talentos repetíveis pela regra do próprio talento.
+- 4.8a: conferir o traço dos talentos de destino (o aviso do 12º nível não confere).
+- ABP: o apex de atributo do nível 17.
+- Equipamento: dano extra das runas de propriedade; materiais além do rótulo; capacidade de contêiner; penalidade de armadura nas perícias; Adventurer's Kit separado.
+- Arquétipos de classe, efeitos situacionais: fúria e Harvest Blood do Bloodrager; vínculo em polearm/spear e cajado da personal rune do Runelord; truques inatos e treino em magia da Esoterica.
+- Diferenças de paridade conhecidas, cada uma com o motivo: `scripts/rules-data/parity-known.json`.
+
+**Ficha e plataforma**
+- 9.1: migrar `customRunes.ts` e `homebrewGear.ts` para o conteúdo da mesa (a Ficha ainda não lê caseiro do banco além do talento).
+- 10.4: livros legados e páginas de regra seguem vindo da AON. Pela BASE-DE-REGRAS §8, o livro legado só se importa quando uma mesa o libera (`import-rules.mjs --source "<livro>"`, conferido com `check-local-aon.mjs`).
+- 10.2: aposentar consertos do `normalizeBuild` só quando nenhuma ficha vier mais de upload do Pathbuilder.
+- 3.10: nomes de conteúdo traduzidos (ancestralidades, classes); dependem do pipeline de descrições.
+- 1B.10 (opcional): pré-traduzir um livro pela fila de descrições.
+
+**Sob pedido de uma mesa (D8) ou com impacto fora do Criador**
+- 9.2 Dual Class; 9.11 Gradual Boosts e Stamina (Stamina mexe no dano da Ficha, da Iniciativa e do Mapa).
+- 9.4 Proficiency Without Level e 9.5 Eidolon e construto do Inventor: a Ficha precisa saber da variante e do companheiro.
