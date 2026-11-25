@@ -256,3 +256,21 @@
 - **Pendente.**
   - "Trocar talento" a partir do drawer da Ficha.
   - Aceite M3 com o GM e um jogador de cada mesa, que precisa de pessoas.
+
+## F8 — Polimento e integrações concluída (falta o aceite com usuários)
+
+- **8.1.** A Início, sem ficha do jogador, leva ao Criador ("Criar meu personagem" ou "Continuar rascunho: <nome>"). O Pathbuilder fica como alternativa.
+- **8.2.** O GM escolhe o dono no editor (`build-assign`, e `sheet-assign` se a ficha já está na mesa) e filtra "Da mesa" por dono.
+- **8.3.** Ajustes manuais na aba Detalhes, todos nos números e com aviso `MANUAL_*`: atributo à mão, boosts e aumentos extras, talento concedido (slot extra) e ajustes permanentes com motivo (PV, deslocamento, resistência, sentido, idioma, proficiência, bônus de item).
+- **8.4. ABP** conferida no GM Core pg. 83 (Table 4-11). Potências de ataque, defesa, Percepção e salvaguarda; ataques devastadores no lugar do striking; potência de perícia pela ordem escolhida. O apex de atributo fica com aviso. Caso: Ghan Buri sem runas, com ABP, iguala o +2 Striking e o Hero's Plate +1 e ganha +1 de Percepção.
+- **8.5.** O GM libera uma entrada só para o personagem com "Liberar" no aviso (exceção em `mesa_rules`, filtrada pelo `buildId`). Livro, legado e raridade agora valem também para talentos e itens.
+- **8.6.** Trocar a escolha de um slot num personagem já aplicado grava `history` (retrain: quem, quando, de quê para quê), listado nos Detalhes.
+- **8.7.** Duplicar cria um build novo com as mesmas escolhas. A lixeira já existia.
+- **8.8.** Trigger `broadcast_builds` (migration `tempo_real_dos_builds`, aplicada) manda `{buildId, rev, by}` em `mesa:<mesa>:builds`. O editor relê quando outro aparelho grava e não há mudança local pendente; relê também a cada SUBSCRIBED.
+- **8.9.** O background dos Detalhes é o das Anotações da Ficha (`character_notes`), sem campo novo, quando o personagem já está na mesa.
+- **8.10.** O seletor desenha 150 linhas por vez, com "Mostrar mais".
+- **8.11.** Link de créditos e licenças nos Detalhes; textos em pt/en (`check-i18n` limpo).
+- **8.12.** Item caseiro (`custom:<nome>`): entra no inventário e no retrato, com aviso de que preço, volume e efeitos não contam.
+- **8.13.** README com o Criador (funcionalidades, seção própria, `check-builder`, roadmap). O upload do Pathbuilder segue aceito, com "prefira o Criador".
+- **Verificação.** Build, lint, `check-builder` (225), `check-rolls`, `check-economy` e `check-auth` passaram.
+- **Pendente (M4, depende de pessoas).** Um personagem novo por mesa criado do zero no celular; subir de nível em menos de 5 minutos; CA-02 e CA-06 com usuários.

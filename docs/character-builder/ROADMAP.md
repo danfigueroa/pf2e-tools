@@ -305,20 +305,20 @@ personagem no Criador sem divergência não explicada.
 **Objetivo**: o Criador vira o caminho padrão; o Pathbuilder deixa de ser necessário.
 **Depende de**: F7.
 
-- [ ] **8.1** Início: cartão "Criar meu personagem" (sem ficha na mesa) e "Continuar rascunho".
-- [ ] **8.2** GM: criar para um jogador e atribuir dono (`build-assign` + `sheet-assign`); lista com filtro por dono.
-- [ ] **8.3** Ajustes manuais: boosts extras, aumentos de perícia extras, slots de talento extras ("Talento concedido"),
+- [x] **8.1** Início: cartão "Criar meu personagem" (sem ficha na mesa) e "Continuar rascunho".
+- [x] **8.2** GM: criar para um jogador e atribuir dono (`build-assign` + `sheet-assign`); lista com filtro por dono.
+- [x] **8.3** Ajustes manuais: boosts extras, aumentos de perícia extras, slots de talento extras ("Talento concedido"),
       buffs permanentes com motivo (`manual.adjustments`) — todos com aviso.
-- [ ] **8.4** Automatic Bonus Progression.
-- [ ] **8.5** Exceções por personagem (GM libera incomum/raro), aviso `RARITY_NOT_ALLOWED` → "pedir ao GM".
-- [ ] **8.6** Retreinar (RF-068) com histórico.
-- [ ] **8.7** Duplicar; lixeira (apagar/restaurar).
-- [ ] **8.8** Realtime opcional `mesa:<mesa>:builds` (GM acompanha; duas abas do mesmo jogador) — reler a cada SUBSCRIBED.
-- [ ] **8.9** Anotações: Detalhes do Criador lendo/escrevendo `character_notes` (background) — sem campo novo.
-- [ ] **8.10** Desempenho (RNF-03/04): medir no celular; virtualização e memo onde precisar.
-- [ ] **8.11** Acessibilidade e textos finais (pt/en), "Créditos e licenças" no rodapé do Criador.
-- [ ] **8.12** Item personalizado (RF-089): nome, preço, volume, traços, com aviso "item caseiro".
-- [ ] **8.13** README (seção Ficha/Criador, Roadmap) atualizado; upload do Pathbuilder segue aceito, com o aviso "prefira
+- [x] **8.4** Automatic Bonus Progression.
+- [x] **8.5** Exceções por personagem (GM libera incomum/raro), aviso `RARITY_NOT_ALLOWED` → "pedir ao GM".
+- [x] **8.6** Retreinar (RF-068) com histórico.
+- [x] **8.7** Duplicar; lixeira (apagar/restaurar).
+- [x] **8.8** Realtime opcional `mesa:<mesa>:builds` (GM acompanha; duas abas do mesmo jogador) — reler a cada SUBSCRIBED.
+- [x] **8.9** Anotações: Detalhes do Criador lendo/escrevendo `character_notes` (background) — sem campo novo.
+- [x] **8.10** Desempenho (RNF-03/04): medir no celular; virtualização e memo onde precisar.
+- [x] **8.11** Acessibilidade e textos finais (pt/en), "Créditos e licenças" no rodapé do Criador.
+- [x] **8.12** Item personalizado (RF-089): nome, preço, volume, traços, com aviso "item caseiro".
+- [x] **8.13** README (seção Ficha/Criador, Roadmap) atualizado; upload do Pathbuilder segue aceito, com o aviso "prefira
       o Criador".
 
 **Rodar**: tudo da F7 + teste com usuários (PLANO §7).
