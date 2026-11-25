@@ -11,6 +11,7 @@ import { displayFont } from '../../theme';
 import { tr } from '../../i18n';
 import { BuilderMode } from './BuilderMode';
 import { ImportFromSheet } from './ImportFromSheet';
+import { CatalogButton } from './components/CatalogBrowser';
 import type { BuildHeader } from './types';
 
 const LEVELS = Array.from({ length: 20 }, (_, i) => i + 1);
@@ -150,6 +151,7 @@ function BuildList() {
             <Button component={RouterLink} to="/mesa#criacao" startIcon={<RulesIcon />} variant="outlined">
               {tr('Regras de criação', 'Creation rules')}</Button>
           )}
+          <CatalogButton />
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => setCreating(true)}>{tr('Novo personagem', 'New character')}</Button>
         </Stack>
       </Stack>

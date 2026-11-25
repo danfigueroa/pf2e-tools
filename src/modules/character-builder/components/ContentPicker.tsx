@@ -25,7 +25,8 @@ export interface ContentPickerProps {
   title: string;
   entries: RuleEntry[];
   value?: string;
-  onPick: (id: string) => void;
+  /** Sem `onPick`, só navega (9.7): sem botão de escolher. */
+  onPick?: (id: string) => void;
   onClose: () => void;
   mesaRules: MesaRules | null;
   /** Fatos mecânicos no detalhe (PV, boosts, proficiências…). */
@@ -80,6 +81,7 @@ export function ContentPicker({ open, title, entries, value, onPick, onClose, me
     }
   };
   const choose = (entry: RuleEntry) => {
+    if (!onPick) return;
     onPick(entry.id);
     onClose();
   };
@@ -99,8 +101,8 @@ export function ContentPicker({ open, title, entries, value, onPick, onClose, me
         {focused.source.page ? tr(`Página ${focused.source.page}`, `Page ${focused.source.page}`) : ''}
       </Typography>
       <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1, mt: 2 }}>
-        <Button variant="contained" onClick={() => choose(focused)}>{focused.id === value ? tr('Manter', 'Keep') : tr('Escolher', 'Choose')}</Button>
-        <Button onClick={() => setDescription(focused)}>{tr('Descrição completa', 'Full description')}</Button>
+        {onPick && <Button variant="contained" onClick={() => choose(focused)}>{focused.id === value ? tr('Manter', 'Keep') : tr('Escolher', 'Choose')}</Button>}
+        <Button variant={onPick ? 'text' : 'contained'} onClick={() => setDescription(focused)}>{tr('Descrição completa', 'Full description')}</Button>
       </Stack>
     </Box>
   );
@@ -177,7 +179,10 @@ export function ContentPicker({ open, title, entries, value, onPick, onClose, me
         slotProps={{ paper: { sx: { width: { xs: '100%', sm: 480 } } } }}>
         {description && (
           <Suspense fallback={null}>
-            <DescriptionContent request={{ type: 'special', name: description.name }} onClose={() => setDescription(null)} />
+            <DescriptionContent request={description.type === 'spell' ? { type: 'spell', name: description.name }
+              : description.type === 'feat' ? { type: 'feat', name: description.name, level: description.level }
+              : ['equipment', 'weapon', 'armor', 'shield'].includes(description.type) ? { type: 'item', name: description.name }
+              : { type: 'special', name: description.name }} onClose={() => setDescription(null)} />
           </Suspense>
         )}
       </Drawer>
