@@ -22,13 +22,9 @@ const verbose = process.argv.includes('--verbose')
 const db = supabase()
 if (!db) { console.error('Sem Supabase: rode com --env-file=.env'); process.exit(1) }
 
-// As mesmas listas de categorias do pipeline (feat-core.js e spells-core.js).
-const CATEGORIES = {
-    feat: ['feat', 'heritage', 'ancestry-feature', 'class-feature', 'action'],
-    special: ['class-feature', 'feat', 'action', 'ancestry-feature', 'heritage', 'equipment', null],
-    item: ['class-feature', 'feat', 'action', 'ancestry-feature', 'heritage', 'equipment', null],
-    spell: ['spell', 'cantrip', 'focus'],
-}
+// As mesmas listas de categorias do pipeline (feat-core.js; a magia é a de spells-core.js).
+const { LOOKUP_CATEGORIES } = await import('../api/_lib/feat-core.js')
+const CATEGORIES = { feat: LOOKUP_CATEGORIES.feat, special: LOOKUP_CATEGORIES.special, item: LOOKUP_CATEGORIES.item, spell: ['spell', 'cantrip', 'focus'] }
 const clean = (name) => String(name || '').replace(/\s*\([^)]*\)\s*/g, ' ').replace(/\d+\s*feet?/gi, '').replace(/\s+/g, ' ').trim()
 
 const wanted = new Map()
@@ -56,7 +52,7 @@ const exact = (hit, name) => hit?._source?.name?.trim().toLowerCase() === String
 const pick = async (name, cats, local, item) => {
     const full = String(name).trim()
     const short = clean(full) || full
-    const opts = { className: hintOf(full), item, local }
+    const opts = { className: hintOf(full), item, local, exactOnly: LOOKUP_CATEGORIES.exactOnly }
     let best = full !== short ? await bestAonHit(full, cats, opts) : null
     if (!exact(best, full)) {
         const alt = await bestAonHit(short, cats, opts)
