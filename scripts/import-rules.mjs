@@ -8,19 +8,20 @@
 //   node --env-file=.env scripts/import-rules.mjs --packages-only         # regera os pacotes da versão atual
 //
 // Roda na máquina de quem administra, sem o limite de 60 s da Vercel. Usa o mesmo núcleo da tela da F1B
-// (`api/_lib/rules-*.js`). Reimportar sem mudança na AON = 0 alteradas (idempotente pelo `hash`).
+// (`api/_lib/rules-platform.js`: os mesmos passos, sem o prazo de 60 s); só o script roda a mecânica do Foundry,
+// que precisa do tarball. Reimportar sem mudança na AON = 0 alteradas (idempotente pelo `hash`).
 
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { readRuleEntriesPage, readRuleSourcesPage } from '../api/_lib/rules-import.js'
-import { normalizeRuleEntry, normalizeRuleSource, RULE_CATEGORIES } from '../api/_lib/rules-normalize.js'
+import { readRuleSourcesPage } from '../api/_lib/rules-import.js'
+import { normalizeRuleSource } from '../api/_lib/rules-normalize.js'
+import { publishRuleCatalog, runRuleImportStep, startRuleImport } from '../api/_lib/rules-platform.js'
 import { buildFoundryMechanics, checkProgression } from '../api/_lib/rules-foundry.js'
 import { buildRulePackages } from '../api/_lib/rules-packages.js'
 import {
-    createRuleCatalogVersion, latestRuleCatalogVersion, listRuleSources, markRuleEntriesRemoved, readRuleImportJob,
-    ruleEntriesForMatching, ruleEntriesForPackages, ruleEntryHashes, ruleMechanicsById, saveFoundryMechanics,
-    saveRuleEntries, saveRuleSources, startRuleImportJob, updateRuleImportJob, updateRuleSource, uploadRulePackages,
+    latestRuleCatalogVersion, listRuleSources, ruleEntriesForMatching, ruleEntriesForPackages, ruleMechanicsById,
+    saveFoundryMechanics, saveRuleSources, updateRuleImportJob, uploadRulePackages,
 } from '../api/_lib/rules-store.js'
 import { FOUNDRY_REF, loadFoundryPacks } from './rules-data/foundry-packs.mjs'
 
@@ -47,54 +48,6 @@ async function readAllSources() {
     return sources
 }
 
-/** Pagina o livro inteiro, compara pelo `hash` e grava só o que mudou. */
-async function importSource(source, jobId, startAfter) {
-    const known = await ruleEntryHashes(source.aon_id)
-    const seen = new Set()
-    const counts = { new: 0, changed: 0, same: 0, removed: 0, invalid: 0 }
-    const invalid = []
-    let after = startAfter
-    do {
-        const page = await readRuleEntriesPage(source.name, RULE_CATEGORIES, after)
-        const changed = []
-        for (const entry of page.entries) {
-            let row
-            try {
-                row = normalizeRuleEntry(entry, source)
-            } catch (error) {
-                counts.invalid++
-                invalid.push(`${entry?.id}: ${error.message}`)
-                continue
-            }
-            seen.add(row.aon_id)
-            const previous = known.get(row.aon_id)
-            if (previous && previous.hash === row.hash && !previous.removed) counts.same++
-            else {
-                counts[previous ? 'changed' : 'new']++
-                changed.push(row)
-            }
-        }
-        if (!checkOnly && changed.length) await saveRuleEntries(changed)
-        after = page.nextCursor
-        if (jobId) await updateRuleImportJob(jobId, { cursor: { source: source.aon_id, after } })
-    } while (after)
-    // Retomada no meio do livro não viu a primeira parte: não dá para concluir o que sumiu.
-    const gone = startAfter ? [] : [...known].filter(([id, state]) => !seen.has(id) && !state.removed).map(([id]) => id)
-    counts.removed = gone.length
-    if (!checkOnly) {
-        if (gone.length) await markRuleEntriesRemoved(gone)
-        const now = new Date().toISOString()
-        await updateRuleSource(source.aon_id, {
-            aon_count: seen.size + counts.invalid,
-            our_count: seen.size + [...known].filter(([id, state]) => !seen.has(id) && !state.removed && !gone.includes(id)).length,
-            status: 'imported',
-            checked_at: now,
-            imported_at: now,
-        })
-    }
-    return { counts, invalid }
-}
-
 async function importMechanics() {
     console.log(`\nMecânica do Foundry (${FOUNDRY_REF.slice(0, 12)})…`)
     const [{ docs, sha256 }, entries] = await Promise.all([loadFoundryPacks(), ruleEntriesForMatching()])
@@ -112,20 +65,18 @@ async function importMechanics() {
     return { matched: report.matched, ambiguous: report.ambiguous.length, unmatched: report.unmatched.length, saved: saved.saved, sha256 }
 }
 
-/** Pacotes por lista da versão no Storage (BASE-DE-REGRAS §5). */
+const curatedTables = () => ({ spellSlots: readTable('spell-slots'), wealth: readTable('wealth'), exports: readTable('exports') })
+
+/** Pacotes da versão atual regenerados por inteiro (`--packages-only`, depois de mudar as tabelas curadas). */
 async function publishPackages(version) {
     const [entries, mechanics, sources] = await Promise.all([ruleEntriesForPackages(), ruleMechanicsById(), listRuleSources()])
-    const tables = { spellSlots: readTable('spell-slots'), wealth: readTable('wealth'), exports: readTable('exports') }
     const { files, manifest } = buildRulePackages({
-        version, entries, mechanics, tables,
-        sources: sources.filter((source) => source.status === 'imported' && source.our_count > 0),
+        version, entries, mechanics, tables: curatedTables(),
+        sources: sources.filter((source) => ['imported', 'outdated'].includes(source.status) && source.our_count > 0),
     })
     await uploadRulePackages(version, files)
     const sizes = Object.values(manifest.files).map((file) => file.bytes)
-    const biggest = Object.entries(manifest.files).sort((a, b) => b[1].bytes - a[1].bytes).slice(0, 5)
-        .map(([list, file]) => `${list} ${(file.bytes / 1024).toFixed(0)} KB`)
-    console.log(`Pacotes ${version}: ${Object.keys(files).length} arquivos, ${(sizes.reduce((a, b) => a + b, 0) / 1e6).toFixed(1)} MB; maiores: ${biggest.join(', ')}`)
-    return manifest
+    console.log(`Pacotes ${version}: ${Object.keys(files).length} arquivos, ${(sizes.reduce((a, b) => a + b, 0) / 1e6).toFixed(1)} MB`)
 }
 
 async function main() {
@@ -136,48 +87,41 @@ async function main() {
         await publishPackages(version)
         return
     }
-    const resumed = resumeId ? await readRuleImportJob(resumeId) : null
     console.log('Lendo os livros da AON…')
     const sources = await readAllSources()
-    if (!checkOnly) await saveRuleSources(sources)
-    const wanted = new Set(values('--source'))
-    const targets = sources
-        .filter((source) => resumed ? resumed.sources.includes(source.aon_id) : (flag('--remaster') && source.remaster) || wanted.has(source.name))
-        .sort((a, b) => a.aon_id.localeCompare(b.aon_id, 'en', { numeric: true }))
-    const unknown = [...wanted].filter((name) => !sources.some((source) => source.name === name))
-    if (unknown.length) throw new Error(`Livro desconhecido na AON: ${unknown.join(', ')}`)
-    if (!targets.length) throw new Error('Nada a importar: use --remaster, --source "<livro>" ou --resume <job>')
+    await saveRuleSources(sources)
+    let jobId = resumeId
+    if (!jobId) {
+        const wanted = new Set(values('--source'))
+        const unknown = [...wanted].filter((name) => !sources.some((source) => source.name === name))
+        if (unknown.length) throw new Error(`Livro desconhecido na AON: ${unknown.join(', ')}`)
+        const targets = sources.filter((source) => (flag('--remaster') && source.remaster) || wanted.has(source.name))
+        if (!targets.length) throw new Error('Nada a importar: use --remaster, --source "<livro>" ou --resume <job>')
+        jobId = await startRuleImport(targets.map((source) => source.aon_id))
+    } else {
+        await updateRuleImportJob(jobId, { status: 'running', finished_at: null })
+    }
+    console.log(`${checkOnly ? 'check' : 'importação'}: job ${jobId}`)
 
-    const imported = new Set((await listRuleSources()).filter((source) => source.status === 'imported').map((source) => source.aon_id))
-    const kind = checkOnly ? 'check' : targets.every((source) => imported.has(source.aon_id)) ? 'reimport' : 'import'
-    const jobId = resumed?.id ?? await startRuleImportJob(kind, targets.map((source) => source.aon_id))
-    if (resumed) await updateRuleImportJob(jobId, { status: 'running', finished_at: null })
-    console.log(`${kind}: ${targets.length} livro(s), job ${jobId}`)
-
-    const totals = { new: 0, changed: 0, same: 0, removed: 0, invalid: 0 }
-    const report = { sources: {} }
+    // Os mesmos passos da tela da plataforma, sem prazo.
     try {
-        let skipping = Boolean(resumed?.cursor?.source)
-        for (const source of targets) {
-            if (skipping && source.aon_id !== resumed.cursor.source) continue
-            const startAfter = skipping ? resumed.cursor.after ?? null : null
-            skipping = false
-            const { counts, invalid } = await importSource(source, jobId, startAfter)
-            for (const key of Object.keys(totals)) totals[key] += counts[key]
-            report.sources[source.aon_id] = { name: source.name, ...counts, ...(invalid.length ? { invalid: invalid.slice(0, 20) } : {}) }
-            console.log(`${source.name}: ${counts.new} novas, ${counts.changed} alteradas, ${counts.same} sem mudança, ${counts.removed} removidas${counts.invalid ? `, ${counts.invalid} inválidas` : ''}`)
+        const job = await runRuleImportStep(jobId, { checkOnly, log: console.log })
+        const { counts } = job
+        if (!checkOnly) {
+            const mechanics = await importMechanics()
+            const changedSomething = counts.new + counts.changed + counts.removed > 0
+            const report = { ...job.report, mechanics }
+            if (changedSomething) {
+                report.catalog = await publishRuleCatalog({
+                    jobId, tables: curatedTables(), since: job.started_at, log: console.log,
+                    summary: { totals: counts, sources: job.sources.map((id) => job.report.sources?.[id]?.name ?? id) },
+                })
+            }
+            await updateRuleImportJob(jobId, { status: 'done', report, cursor: { ...job.cursor, phase: 'done' }, finished_at: new Date().toISOString() })
         }
-        if (!checkOnly) report.mechanics = await importMechanics()
-        const changedSomething = totals.new + totals.changed + totals.removed > 0
-        if (!checkOnly && changedSomething) {
-            const version = await createRuleCatalogVersion(jobId, { totals, sources: targets.map((source) => source.name) })
-            console.log(`Catálogo: versão ${version}`)
-            await publishPackages(version)
-        }
-        await updateRuleImportJob(jobId, { status: 'done', counts: totals, report, finished_at: new Date().toISOString() })
-        console.log(`\nTotal: ${totals.new} novas, ${totals.changed} alteradas, ${totals.same} sem mudança, ${totals.removed} removidas, ${totals.invalid} inválidas`)
+        console.log(`\nTotal: ${counts.new} novas, ${counts.changed} alteradas, ${counts.same} sem mudança, ${counts.removed} removidas, ${counts.invalid} inválidas`)
     } catch (error) {
-        await updateRuleImportJob(jobId, { status: 'failed', counts: totals, report: { ...report, error: error.message }, finished_at: new Date().toISOString() })
+        await updateRuleImportJob(jobId, { status: 'failed', finished_at: new Date().toISOString() })
         console.error(`\nFalhou; retome com: node --env-file=.env scripts/import-rules.mjs --resume ${jobId}`)
         throw error
     }
