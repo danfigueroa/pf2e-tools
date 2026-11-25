@@ -19,7 +19,7 @@ import { isSupabaseConfigured } from './supabase.js'
 import { forbidden, memberRole } from './access.js'
 import { BUILD_SCHEMA, MAX_BUILD_BYTES, buildBytes, emptyBuildState, sanitizeBuildState } from './build-sanitize.js'
 import {
-    assignBuild, createBuild, freeBuildSlug, listBuilds, readBuild, readMesaRules, saveBuild, trashBuild, writeMesaRules,
+    assignBuild, createBuild, freeBuildSlug, listBuilds, memberNames, readBuild, readMesaRules, saveBuild, trashBuild, writeMesaRules,
 } from './build-store.js'
 import { currentRulesVersion } from './rules-core.js'
 
@@ -35,8 +35,13 @@ export function isBuildRequest(method, query, body) {
     return false
 }
 
+/** Sem Supabase (dev local, modo memória) não há login: quem usa é um GM local, como no cliente. */
+const LOCAL_USER = 'local'
+const localMode = () => !isSupabaseConfigured()
+
 /** Papel de verdade na mesa, mesmo com a cobrança desligada (o `access.role` só vem com ela ligada). */
 async function realRole(mesa, access) {
+    if (localMode()) return 'gm'
     if (access?.role) return access.role
     if (!access?.userId) return null
     return memberRole(mesa, access.userId)
@@ -50,16 +55,18 @@ const header = ({ state, ...rest }) => rest
 const className = (v) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, 40) : null)
 
 export async function handleBuildRequest(mesa, method, query, body, ctx = {}) {
-    const { access } = ctx
+    const access = localMode() ? { ...ctx.access, userId: ctx.access?.userId ?? LOCAL_USER } : ctx.access
 
     if (method === 'GET') {
         if (query.mesaRules !== undefined) return ok(await readMesaRules(mesa))
         if (query.builds !== undefined) {
             const role = await realRole(mesa, access)
-            const builds = (await listBuilds(mesa))
+            const all = await listBuilds(mesa)
+            const names = await memberNames(mesa, all.map((b) => b.ownerId))
+            const builds = all
                 // Lixeira: só quem pode restaurar a vê.
                 .filter((b) => !b.deletedAt || canEditBuild(b, access, role))
-                .map((b) => ({ ...b, canEdit: canEditBuild(b, access, role) }))
+                .map((b) => ({ ...b, ownerName: (b.ownerId && names[b.ownerId]) || null, canEdit: canEditBuild(b, access, role) }))
             return ok({ builds })
         }
         const build = await readBuild(mesa, query.build)

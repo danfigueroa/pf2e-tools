@@ -147,6 +147,8 @@ const dbStore = (db) => ({
         const rows = check(await q.select(HEADER))
         return rows.length ? fromRow(rows[0]) : null
     },
+    // Mesma função da autoria da Wiki: o nome na mesa, senão o usuário.
+    names: async (mesa, ids) => (ids.length ? check(await db.rpc('member_names', { p_mesa: mesa, p_ids: ids })) ?? {} : {}),
     readRules: async (mesa) => check(await db.from('mesa_rules').select('rules, updated_at').eq('mesa', mesa).maybeSingle()),
     writeRules: async (mesa, rules, by) => {
         const row = check(await db.from('mesa_rules').upsert({ mesa, rules, updated_at: new Date().toISOString(), updated_by: by })
@@ -192,6 +194,7 @@ const memoryStore = {
         const { state, ...header } = next
         return copy(header)
     },
+    names: async () => ({}),
     readRules: async (mesa) => copy(mem(mesa).rules),
     writeRules: async (mesa, rules) => {
         mem(mesa).rules = { rules: copy(rules), updated_at: new Date().toISOString() }
@@ -206,6 +209,9 @@ const store = () => {
 
 /** Cabeçalhos de todos os builds da mesa (sem o `state`), inclusive os da lixeira. */
 export const listBuilds = (mesa) => store().list(mesa)
+
+/** Nome de cada dono (`userId → nome`), para o "personagem de <dono>" da lista. */
+export const memberNames = (mesa, ids) => store().names(mesa, [...new Set(ids.filter(Boolean))])
 
 /** Build completo (com `state`), ou `null`. */
 export const readBuild = (mesa, id) => (UUID_RE.test(String(id)) ? store().read(mesa, id) : Promise.resolve(null))
