@@ -409,6 +409,7 @@ try {
         const list = await call({ token: users.b.token, query: { builds: '1' } })
         const mine = list.body.builds?.find((b) => b.id === build.id)
         expect('lista não leva o state', mine && 'state' in mine, false)
+        expect('lista traz o nome do dono', typeof mine?.ownerName, 'string')
         expect('quem não é membro não lista → 403', (await call({ token: users.out.token, query: { builds: '1' } })).status, 403)
         expect('quem não é membro não cria → 403', (await call({ token: users.out.token, method: 'POST', body: { action: 'build-create', name: 'X' } })).status, 403)
         expect('GM grava build alheio → 200', (await post('gm', { action: 'build-save', id: build.id, rev: 2, state })).status, 200)
