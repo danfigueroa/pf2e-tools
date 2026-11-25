@@ -87,6 +87,7 @@ async function cleanup() {
     // Builds do Criador: o dono vira nulo quando a conta sai, então saem antes, pelo criador.
     const creators = Object.values(users).map((u) => u.id)
     if (creators.length) await db.from('character_builds').delete().eq('mesa', MESA).in('created_by', creators)
+    if (creators.length) await db.from('mesa_homebrew').delete().eq('mesa', MESA).in('created_by', creators)
     // Troféus que os usuários de teste desbloquearam ("Arquiteto" ao criar build): o aviso fica na mesa, então sai também.
     if (creators.length) await db.from('mesa_events').delete().eq('mesa', MESA).eq('kind', 'trophy-unlocked').in('data->>user', creators)
     if (mesaRulesBefore !== undefined) {
@@ -448,6 +449,14 @@ try {
         expect('colega não aplica build alheio → 403', (await post('a', applyBody)).status, 403)
         expect('versões do build: dono lê → 200', (await call({ token: users.b.token, query: { buildVersions: build.id } })).status, 200)
         expect('versões do build: colega não lê → 403', (await call({ token: users.a.token, query: { buildVersions: build.id } })).status, 403)
+
+        // Conteúdo da mesa (9.1): jogador não escreve; GM cria e apaga; membro lê.
+        expect('jogador não cria conteúdo da mesa → 403', (await post('a', { action: 'homebrew-save', kind: 'feat', entry: { name: 'Teste Homebrew' } })).status, 403)
+        const hb = await post('gm', { action: 'homebrew-save', kind: 'feat', entry: { name: `Teste Homebrew ${stamp}`, traits: ['General'] } })
+        expect('GM cria conteúdo da mesa → 200', hb.status, 200)
+        expect('membro lê o conteúdo da mesa', (await call({ token: users.a.token, query: { homebrew: '1' } })).body.homebrew?.some((h) => h.id === hb.body.homebrew?.id), true)
+        expect('jogador não apaga conteúdo da mesa → 403', (await post('a', { action: 'homebrew-delete', id: hb.body.homebrew?.id })).status, 403)
+        expect('GM apaga conteúdo da mesa', (await post('gm', { action: 'homebrew-delete', id: hb.body.homebrew?.id })).body.deleted, true)
 
         const { data: rulesRow } = await db.from('mesa_rules').select('rules, updated_at, updated_by').eq('mesa', MESA).maybeSingle()
         mesaRulesBefore = rulesRow ?? null

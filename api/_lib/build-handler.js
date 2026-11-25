@@ -13,6 +13,9 @@
 //   GET  ?buildVersions=<id>                           → { versions }                        (dono, GM)
 //   POST { action: 'build-version-restore', id, version, rev } → { build }                   (dono, GM)
 //   POST { action: 'build-copy', id, toMesa }          → { build, mesa }  cópia em outra mesa   (dono, GM; membro da outra)
+//   GET  ?homebrew=1                                   → { homebrew: [{ id, kind, entry }] }  conteúdo da mesa (membro)
+//   POST { action: 'homebrew-save', id?, kind, entry } → { homebrew }                          (GM real, sempre)
+//   POST { action: 'homebrew-delete', id }             → { deleted }                           (GM real, sempre)
 //
 // Vem ANTES da ficha publicada no despacho: a rota da ficha aceita qualquer POST com `action`.
 //
@@ -28,6 +31,7 @@ import {
 } from './build-store.js'
 import { currentRulesVersion } from './rules-core.js'
 import { MESA_IDS } from './mesas.js'
+import { HOMEBREW_KINDS, deleteHomebrew, listHomebrew, saveHomebrew } from './homebrew-store.js'
 import { createSheetDraftFor } from './sheet-handler.js'
 import { recordFeat, safely } from './trophy-store.js'
 
@@ -36,14 +40,14 @@ const builtFeat = (mesa, build, userId) => safely('personagem criado', async () 
     if (build?.ownerId && build.ownerId === userId) await recordFeat(mesa, userId, 'build-created', { slug: build.slug })
 })
 
-const ACTIONS = new Set(['build-create', 'build-save', 'build-delete', 'build-restore', 'build-assign', 'mesa-rules-save', 'build-apply', 'build-version-restore', 'build-copy'])
+const ACTIONS = new Set(['build-create', 'build-save', 'build-delete', 'build-restore', 'build-assign', 'mesa-rules-save', 'build-apply', 'build-version-restore', 'build-copy', 'homebrew-save', 'homebrew-delete'])
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 const ok = (body) => ({ status: 200, body: { ...body, storeReady: isSupabaseConfigured() } })
 const fail = (status, error, extra = {}) => ({ status, body: { error, ...extra } })
 
 export function isBuildRequest(method, query, body) {
-    if (method === 'GET') return query.builds !== undefined || query.build !== undefined || query.mesaRules !== undefined || query.buildVersions !== undefined
+    if (method === 'GET') return query.builds !== undefined || query.build !== undefined || query.mesaRules !== undefined || query.buildVersions !== undefined || query.homebrew !== undefined
     if (method === 'POST') return ACTIONS.has(body?.action)
     return false
 }
@@ -72,6 +76,11 @@ export async function handleBuildRequest(mesa, method, query, body, ctx = {}) {
 
     if (method === 'GET') {
         if (query.mesaRules !== undefined) return ok(await readMesaRules(mesa))
+        if (query.homebrew !== undefined) {
+            // Como o resto da mesa: com a cobrança ligada, só membro lê.
+            if (access?.enforce && !(await realRole(mesa, access))) return forbidden('Você não faz parte desta mesa')
+            return ok({ homebrew: await listHomebrew(mesa) })
+        }
         if (query.builds !== undefined) {
             const role = await realRole(mesa, access)
             const all = await listBuilds(mesa)
@@ -101,6 +110,18 @@ export async function handleBuildRequest(mesa, method, query, body, ctx = {}) {
     if (action === 'mesa-rules-save') {
         if ((await realRole(mesa, access)) !== 'gm') return forbidden()
         return ok(await writeMesaRules(mesa, body.rules, access.userId))
+    }
+
+    // Conteúdo da mesa: como as regras de criação, só o GM de verdade escreve.
+    if (action === 'homebrew-save' || action === 'homebrew-delete') {
+        if ((await realRole(mesa, access)) !== 'gm') return forbidden()
+        if (action === 'homebrew-delete') return ok({ deleted: await deleteHomebrew(mesa, body.id) })
+        if (!HOMEBREW_KINDS.includes(body.kind)) return fail(400, 'Conteúdo inválido')
+        const saved = await saveHomebrew(mesa, { id: body.id, kind: body.kind, entry: body.entry }, access.userId)
+        if (!saved) return fail(404, 'Conteúdo não encontrado')
+        if (saved.invalid) return fail(400, 'Conteúdo inválido')
+        if (saved.full) return fail(409, 'A mesa já tem conteúdo caseiro demais')
+        return ok({ homebrew: saved })
     }
 
     if (!access?.userId) return { status: 401, body: { error: 'Entre na sua conta para continuar', code: 'unauthenticated' } }

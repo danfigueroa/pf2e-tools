@@ -520,5 +520,26 @@ console.log('Paridade com o elenco (importar → recompilar → exportar) e inva
     expect('mesma mesa → 400', (await handleBuildRequest('arton-1515', 'POST', {}, { action: 'build-copy', id, toMesa: 'arton-1515' })).status, 400)
 }
 
+// Conteúdo da mesa (9.1): o sanitizador só deixa o que o motor lê, e o id é do servidor.
+{
+    console.log('Conteúdo da mesa (homebrew)')
+    const { sanitizeHomebrewEntry } = await import('../api/_lib/homebrew-store.js')
+    const { handleBuildRequest } = await import('../api/_lib/build-handler.js')
+    const feat = sanitizeHomebrewEntry('feat', { id: 'feat:1', name: '  Golpe da Casa ', level: 99, traits: ['General', 'General', 'x'.repeat(50)], actions: '2', hp: 999, prerequisites: { text: 'trained in Athletics' } }, 'abc')
+    expect('talento: id do servidor, nível no teto, traços sem repetição', [feat.id, feat.name, feat.level, feat.traits.length, feat.actions, 'hp' in feat], ['mesa:abc', 'Golpe da Casa', 25, 2, '2', false])
+    const bg = sanitizeHomebrewEntry('background', { name: 'Guarda da Torre', background: { boosts: ['str', 'con', 'luck'], skills: ['Athletics'], feats: ['Assurance'] } }, 'b')
+    expect('background: dois boosts válidos e um livre (Player Core pg. 84)', bg.background, { boosts: ['str', 'con', 'free'], skills: ['Athletics'], feats: ['Assurance'] })
+    const spell = sanitizeHomebrewEntry('spell', { name: 'Faísca', spell: { cantrip: true, traditions: ['arcane', 'cosmic'] } }, 's')
+    expect('magia: truque no rank 1, tradição desconhecida sai', [spell.spell, spell.level], [{ rank: 1, traditions: ['arcane'], cantrip: true }, 1])
+    expect('sem nome ou tipo desconhecido → null', [sanitizeHomebrewEntry('feat', { name: ' ' }, 'x'), sanitizeHomebrewEntry('class', { name: 'X' }, 'x')], [null, null])
+    // Em memória (sem Supabase): usuário local, GM.
+    const saved = await handleBuildRequest('arton-1515', 'POST', {}, { action: 'homebrew-save', kind: 'feat', entry: { name: 'Golpe da Casa', traits: ['General'] } })
+    const list = await handleBuildRequest('arton-1515', 'GET', { homebrew: '1' }, null)
+    expect('GM salva e a mesa lê', [saved.status, list.body.homebrew.some((h) => h.entry.id === `mesa:${saved.body.homebrew?.id}`)], [200, true])
+    expect('tipo inválido → 400', (await handleBuildRequest('arton-1515', 'POST', {}, { action: 'homebrew-save', kind: 'class', entry: { name: 'X' } })).status, 400)
+    const del = await handleBuildRequest('arton-1515', 'POST', {}, { action: 'homebrew-delete', id: saved.body.homebrew?.id })
+    expect('GM apaga', del.body.deleted, true)
+}
+
 console.log(failures === 0 ? `\n${passed} conferências ok.` : `\n${failures} falha(s), ${passed} ok.`)
 process.exit(failures === 0 ? 0 : 1)

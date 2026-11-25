@@ -138,6 +138,9 @@ const EXACT = new Map(Object.entries({
   'Versão não encontrada': 'Version not found',
   'Você não faz parte desta mesa': 'You are not part of this table',
   'Mesa inválida': 'Invalid table',
+  'Conteúdo inválido': 'Invalid content',
+  'Conteúdo não encontrado': 'Content not found',
+  'A mesa já tem conteúdo caseiro demais': 'The table already has too much homebrew content',
   'Você só move o seu próprio token': 'You can only move your own token',
   'Muitas tentativas seguidas — espere um minuto': 'Too many attempts in a row — wait a minute',
   // Wiki da Mesa
