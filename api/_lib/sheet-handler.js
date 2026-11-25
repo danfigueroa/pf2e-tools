@@ -99,37 +99,10 @@ export async function handleSheetRequest(mesa, method, query, body, ctx = {}) {
   const action = body.action
 
   if (action === 'draft-create') {
-    const json = body.sheet
-    const info = sheetInfo(json)
+    const info = sheetInfo(body.sheet)
     if (!info) return fail(400, 'Não parece um JSON do Pathbuilder (falta build.name ou build.level)')
-    if (JSON.stringify(json).length > MAX_SHEET_BYTES) return fail(400, 'Ficha grande demais')
-    const names = cleanDescriptionNames(body.names)
-    if (!names) return fail(400, 'Campo "names" inválido')
-    if (!isValidDescriptionVersion(body.version)) return fail(400, 'Campo "version" inválido')
     // O slug sai do nome da própria ficha, como no `publish`.
-    const draftSlug = slugFromName(info.name)
-    const { access } = ctx
-    const existed = access?.enforce ? (await sheetOwner(mesa, draftSlug)).exists : true
-    if (existed && !(await canEditSheet(access, mesa, draftSlug))) {
-      return forbidden('Esta ficha é de outra pessoa — só o dono ou o GM publica por cima')
-    }
-    // Ficha nova que outra pessoa já está preparando: só o GM passa por cima.
-    if (!existed && access?.enforce && access.role !== 'gm') {
-      const other = await draftCreator(mesa, draftSlug)
-      if (other && other.createdBy !== access.userId) return forbidden('Outra pessoa já está preparando esta ficha')
-    }
-    if (await sameAsPublished(mesa, draftSlug, json)) return fail(409, 'Igual à ficha publicada — não há o que atualizar')
-    const draft = await createDraft(mesa, draftSlug, {
-      json,
-      names,
-      version: body.version,
-      companions: body.companions,
-      baseGuide: body.baseGuide,
-      baseGuideEn: body.baseGuideEn,
-      createdBy: ctx.userId ?? null,
-      maxGuideBytes: MAX_GUIDE_BYTES,
-    })
-    return ok({ draft })
+    return createSheetDraftFor(mesa, slugFromName(info.name), body, ctx)
   }
 
   if (action === 'publish') {
@@ -257,4 +230,40 @@ export async function handleSheetRequest(mesa, method, query, body, ctx = {}) {
   }
 
   return fail(400, 'Ação desconhecida')
+}
+
+/**
+ * Cria o rascunho de publicação (o preparo) de uma ficha com o slug dado. O `draft-create` passa o slug do nome; o
+ * Criador (`build-apply`) passa o slug ESTÁVEL do build, que não muda quando o personagem é renomeado.
+ */
+export async function createSheetDraftFor(mesa, draftSlug, body, ctx = {}) {
+  const json = body.sheet
+  const info = sheetInfo(json)
+  if (!info) return fail(400, 'Não parece um JSON do Pathbuilder (falta build.name ou build.level)')
+  if (JSON.stringify(json).length > MAX_SHEET_BYTES) return fail(400, 'Ficha grande demais')
+  const names = cleanDescriptionNames(body.names)
+  if (!names) return fail(400, 'Campo "names" inválido')
+  if (!isValidDescriptionVersion(body.version)) return fail(400, 'Campo "version" inválido')
+  const { access } = ctx
+  const existed = access?.enforce ? (await sheetOwner(mesa, draftSlug)).exists : true
+  if (existed && !(await canEditSheet(access, mesa, draftSlug))) {
+    return forbidden('Esta ficha é de outra pessoa — só o dono ou o GM publica por cima')
+  }
+  // Ficha nova que outra pessoa já está preparando: só o GM passa por cima.
+  if (!existed && access?.enforce && access.role !== 'gm') {
+    const other = await draftCreator(mesa, draftSlug)
+    if (other && other.createdBy !== access.userId) return forbidden('Outra pessoa já está preparando esta ficha')
+  }
+  if (await sameAsPublished(mesa, draftSlug, json)) return fail(409, 'Igual à ficha publicada — não há o que atualizar')
+  const draft = await createDraft(mesa, draftSlug, {
+    json,
+    names,
+    version: body.version,
+    companions: body.companions,
+    baseGuide: body.baseGuide,
+    baseGuideEn: body.baseGuideEn,
+    createdBy: ctx.userId ?? null,
+    maxGuideBytes: MAX_GUIDE_BYTES,
+  })
+  return ok({ draft })
 }
