@@ -21,7 +21,7 @@ type FlagVariant = Exclude<keyof MesaVariants, 'mythic'>;
 const VARIANTS: { key: FlagVariant; label: string; ready: boolean }[] = [
   { key: 'freeArchetype', label: tr('Arquétipo Livre (Free Archetype)', 'Free Archetype'), ready: true },
   { key: 'ancestralParagon', label: tr('Paragão Ancestral (Ancestral Paragon)', 'Ancestral Paragon'), ready: true },
-  { key: 'abp', label: tr('Progressão Automática de Bônus (ABP)', 'Automatic Bonus Progression'), ready: false },
+  { key: 'abp', label: tr('Progressão Automática de Bônus (ABP)', 'Automatic Bonus Progression'), ready: true },
   { key: 'pwl', label: tr('Proficiência sem Nível (PwL)', 'Proficiency without Level'), ready: false },
   { key: 'dualClass', label: tr('Classe Dupla (Dual Class)', 'Dual Class'), ready: false },
   { key: 'gradualBoosts', label: tr('Aumentos Graduais (Gradual Boosts)', 'Gradual Ability Boosts'), ready: false },

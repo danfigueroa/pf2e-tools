@@ -36,6 +36,7 @@ export interface VariantFlags {
     freeArchetype: boolean
     mythic: boolean
     ancestralParagon: boolean
+    abp: boolean
 }
 
 /** Variantes valendo para este personagem: a do personagem, quando definida, senão a da mesa. */
@@ -46,6 +47,7 @@ export function variantFlags(state: BuildState, mesa?: MesaRules): VariantFlags 
         freeArchetype: own.freeArchetype ?? v?.freeArchetype ?? false,
         mythic: state.options.mythic?.enabled ?? v?.mythic.enabled ?? false,
         ancestralParagon: own.ancestralParagon ?? v?.ancestralParagon ?? false,
+        abp: own.abp ?? v?.abp ?? false,
     }
 }
 

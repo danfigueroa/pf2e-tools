@@ -99,6 +99,8 @@ export function compileEquipment(state: BuildState, rules: RulesIndex, ctx: {
     attacks: Partial<Record<'simple' | 'martial' | 'advanced' | 'unarmed', Rank>>
     groupRanks: Record<string, Partial<Record<'simple' | 'martial' | 'advanced' | 'unarmed', Rank>>>
     specialization: 0 | 1 | 2
+    /** ABP (GM Core pg. 83): potência de ataque e dados devastadores no lugar das runas. */
+    abp?: { attack: number; dice: number } | null
 }, warnings: Warning[]): EquipmentResult {
     const items = resolveItems(state, rules, warnings)
     const str = ctx.mod.str
@@ -157,8 +159,8 @@ export function compileEquipment(state: BuildState, rules: RulesIndex, ctx: {
         const ranged = !!w.range && !low.includes('thrown')
         const finesse = low.includes('finesse')
         const attr: AttributeKey = inv?.weapon?.attackAttribute ?? (ranged ? 'dex' : finesse && ctx.mod.dex > ctx.mod.str ? 'dex' : 'str')
-        const potency = inv?.runes?.potency ?? 0
-        const striking = inv?.runes?.striking ?? 0
+        const potency = ctx.abp ? ctx.abp.attack : inv?.runes?.potency ?? 0
+        const striking = ctx.abp ? ctx.abp.dice - 1 : inv?.runes?.striking ?? 0
         const strDamage = ranged ? (low.includes('propulsive') ? (str > 0 ? Math.floor(str / 2) : str) : 0) : str
         const spec = specBonus(rank)
         const attackParts = [{ label: tr('Proficiência', 'Proficiency'), value: prof }, { label: ATTR_LABEL[attr], value: ctx.mod[attr] }, ...(potency ? [{ label: tr('Potência', 'Potency'), value: potency }] : [])]
@@ -197,13 +199,14 @@ export function compileEquipment(state: BuildState, rules: RulesIndex, ctx: {
 }
 
 /** Partes da CA com a armadura (ou sem ela), para o resumo. */
-export function armorClass(eq: EquipmentResult, ctx: { dex: number; level: number; defenses: Partial<Record<string, Rank>>; label: (r: Rank) => string }): Stat {
+export function armorClass(eq: EquipmentResult, ctx: { dex: number; level: number; defenses: Partial<Record<string, Rank>>; label: (r: Rank) => string; unarmoredPotency?: number }): Stat {
     const cat = eq.armor?.category ?? 'unarmored'
     const rank = (ctx.defenses[cat] ?? 0) as Rank
     const prof = rank > 0 ? ctx.level + 2 * rank : 0
     const dex = eq.armor ? Math.min(ctx.dex, eq.armor.dexCap) : ctx.dex
     const parts = [{ label: tr('Base', 'Base'), value: 10 }, { label: tr('DES', 'DEX'), value: dex }, { label: ctx.label(rank), value: prof }]
     if (eq.armor && eq.armor.ac + eq.armor.potency) parts.push({ label: tr('Item', 'Item'), value: eq.armor.ac + eq.armor.potency })
+    if (!eq.armor && ctx.unarmoredPotency) parts.push({ label: tr('Item', 'Item'), value: ctx.unarmoredPotency })
     return { total: parts.reduce((s, p) => s + p.value, 0), parts }
 }
 

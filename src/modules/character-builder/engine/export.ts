@@ -201,7 +201,15 @@ export function exportBuild(state: BuildState, compiled: Compiled, ctx: ExportCo
         equipment, specificProficiencies: { trained: [], expert: [], master: [], legendary: [] },
         weapons, armor, money, spellCasters,
         focusPoints: compiled.focus.points, ...(focus ? { focus } : {}),
-        mods: resilient ? { Fortitude: { 'Item Bonus': resilient }, Reflex: { 'Item Bonus': resilient }, Will: { 'Item Bonus': resilient } } : {},
+        mods: (() => {
+            const m: Record<string, Record<string, number>> = {}
+            const savePot = compiled.stats.fortitude.parts.find((p) => /resil|ABP/i.test(p.label))?.value ?? resilient
+            if (savePot) for (const k of ['Fortitude', 'Reflex', 'Will']) m[k] = { 'Item Bonus': savePot }
+            const percPot = compiled.stats.perception.parts.find((p) => /ABP/.test(p.label))?.value
+            if (percPot) m.Perception = { 'Item Bonus': percPot }
+            for (const [skill, bonus] of Object.entries(compiled.skillBonus)) if (bonus) m[skill.charAt(0).toUpperCase() + skill.slice(1)] = { 'Item Bonus': bonus }
+            return m
+        })(),
         acTotal: { acProfBonus: acProf, acAbilityBonus: acAbility, acItemBonus: acItem, acTotal: ac.total, shieldBonus: eq.shield ? eq.shield.ac : null },
         pets, familiars,
         rituals: (state.spellcasting.rituals?.spellbook ?? []).map(name),

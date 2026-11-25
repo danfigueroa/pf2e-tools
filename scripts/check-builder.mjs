@@ -426,6 +426,13 @@ console.log('Equipamento: Ghan Buri (gabarito: export do Pathbuilder) e regras d
     const heavy = compileBuild({ ...state, inventory: Array.from({ length: 12 }, (_, i) => ({ key: `p-${i}`, item: item('Full Plate').id, qty: 1, acquired: 'bought' })) }, ctx)
     expect('carga acima de 10 + FOR avisa', heavy.warnings.some((w) => w.code === 'OVER_BULK'), true)
     expect('compra acima do dinheiro avisa', heavy.warnings.some((w) => w.code === 'NEGATIVE_MONEY'), true)
+    // ABP (GM Core pg. 83, nível 10): ataque +2, dois dados, defesa +1, salvaguarda +1, Percepção +1 — sem runa nenhuma.
+    const noRunes = { ...state, options: { variants: { abp: true } }, inventory: state.inventory.map((i) => ({ ...i, runes: {} })) }
+    const abpOut = compileBuild(noRunes, ctx)
+    const abpHammer = abpOut.equipment.strikes.find((x) => x.name === 'Warhammer')
+    expect('ABP: martelo sem runa com o ataque e os dados do +2 Striking', [abpHammer?.attack, abpHammer?.dice], [want.attack, 2])
+    expect('ABP: CA igual à do Hero\'s Plate +1', abpOut.stats.ac.total, gb.acTotal.acTotal)
+    expect('ABP: Percepção ganha +1 no nível 7+', abpOut.stats.perception.total - out.stats.perception.total, 1)
     expect('mil moedas = 1 Volume (Player Core pg. 269)', compileBuild({ ...hf, money: { pp: 0, gp: 1999, sp: 0, cp: 0 } }, ctx).equipment.bulk.coins, 1)
 }
 

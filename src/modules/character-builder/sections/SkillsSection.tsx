@@ -29,7 +29,7 @@ const Pips = ({ rank, name }: { rank: Rank; name: string }) => (
 );
 
 /** Aba Perícias: treinos automáticos, escolhas da classe, perícias livres (com Lore), aumentos por nível. */
-export function SkillsSection({ update, compiled, canEdit }: SectionProps) {
+export function SkillsSection({ state, update, compiled, canEdit }: SectionProps) {
   const [lore, setLore] = useState<Record<string, string>>({});
   const { rank, lores } = compiled.skills;
   const level = compiled.level;
@@ -61,7 +61,7 @@ export function SkillsSection({ update, compiled, canEdit }: SectionProps) {
                 title={`${rankName(r)} ${signed(proficiencyBonus(r, level))} · ${attributeLabel(attr)} ${signed(mod[attr])}`}>
                 <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }} noWrap>{s.label}</Typography>
                 <Pips rank={r} name={s.label} />
-                <Typography variant="body2" sx={{ fontWeight: 700, width: 32, textAlign: 'right' }}>{signed(proficiencyBonus(r, level) + mod[attr])}</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 700, width: 32, textAlign: 'right' }}>{signed(proficiencyBonus(r, level) + mod[attr] + (compiled.skillBonus[s.key as SkillKey] ?? 0))}</Typography>
               </Box>
             );
           })}
@@ -74,6 +74,26 @@ export function SkillsSection({ update, compiled, canEdit }: SectionProps) {
           ))}
         </Box>
       </Paper>
+
+      {compiled.pending.some((p) => p.key === 'abp-skills') || 'abp-skills' in state.choices ? (
+        <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 } }}>
+          <Typography component="h3" sx={{ fontFamily: displayFont, fontWeight: 700 }}>{tr('Potência de perícia (ABP)', 'Skill potency (ABP)')}</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            {tr('Escolha na ordem: a primeira recebe a maior potência do nível (GM Core pg. 83).', 'Pick in order: the first gets the level\'s highest potency (GM Core pg. 83).')}
+          </Typography>
+          <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
+            {SKILLS.map((sk) => {
+              const ref = `skill:${sk.key}`;
+              const order = (() => { const c = state.choices['abp-skills']; return c && 'skills' in c ? c.skills : []; })();
+              const i = order.indexOf(ref);
+              return (
+                <Chip key={ref} label={i >= 0 ? `${i + 1}. ${sk.label}` : sk.label} color={i >= 0 ? 'primary' : 'default'} variant={i >= 0 ? 'filled' : 'outlined'}
+                  onClick={canEdit ? () => setChoice(update, 'abp-skills', (() => { const next = i >= 0 ? order.filter((x) => x !== ref) : [...order, ref]; return next.length ? { skills: next } : null; })()) : undefined} />
+              );
+            })}
+          </Stack>
+        </Paper>
+      ) : null}
 
       {compiled.automaticSkills.length > 0 && (
         <Typography variant="body2" color="text.secondary">

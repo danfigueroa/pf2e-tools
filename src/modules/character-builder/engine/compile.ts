@@ -16,6 +16,7 @@ import { compileFeats } from './feats'
 import type { PrereqContext } from './prereqs'
 import { checkSpellChoices, compileCasters, compileFocus } from './spells'
 import { armorClass, compileEquipment, GROUP_FEATURES } from './equipment'
+import { abpAt, abpSkillBonus } from './abp'
 import { featSlots, variantFlags } from './slots'
 import { classChoiceSlots, SAVE_CHOICE_FEATURES, UNCOUNTED_CHOICE_TYPES } from './classChoices'
 import type { CompileContext, Compiled, Pending, Rank, Stat, Warning } from './types'
@@ -312,7 +313,20 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
     }
     const reached = (re: RegExp) => (c?.features ?? []).some((f) => f.level <= level && re.test(f.name))
     const specialization = reached(/^greater weapon specialization$/i) ? 2 : reached(/^weapon specialization$/i) ? 1 : 0
-    const equipment = compileEquipment(state, rules, { level, mod, attacks: proficiency.attacks, groupRanks, specialization }, warnings)
+    // Automatic Bonus Progression (GM Core pg. 83): potência pelo nível no lugar das runas e itens (menos a armadura).
+    const abp = flags.abp ? abpAt(level) : null
+    const equipment = compileEquipment(state, rules, { level, mod, attacks: proficiency.attacks, groupRanks, specialization, abp }, warnings)
+    if (abp && equipment.armor) {
+        equipment.armor.potency = abp.defense
+        equipment.armor.resilient = 0
+    }
+    const abpOrder = (() => { const c = state.choices['abp-skills']; return c && 'skills' in c ? c.skills : [] })()
+    if (abp) {
+        used.add('abp-skills')
+        if (abp.skillSlots.length > abpOrder.length) pending.push({ key: 'abp-skills', label: tr('Potência de perícia (ABP)', 'Skill potency (ABP)'), level, missing: abp.skillSlots.length - abpOrder.length })
+        if (abp.apex) warnings.push({ code: 'UNSUPPORTED_EFFECT', level: 'info', ref: 'abp', message: tr('Efeito não calculado: attribute apex da ABP (nível 17).', 'Effect not calculated: ABP attribute apex (level 17).') })
+        for (const [skill, bonus] of Object.entries(abpSkillBonus(abpOrder, abp.skillSlots))) feats.mods.skill[skill as keyof typeof feats.mods.skill] = Math.max(feats.mods.skill[skill as keyof typeof feats.mods.skill] ?? 0, bonus ?? 0)
+    }
 
     // Livro, legado e raridade também para talentos escolhidos e itens do inventário (sem repetir os efeitos não
     // calculados, que os talentos já avisam).
@@ -360,16 +374,17 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
         ...(cls ? [part(tr(`Classe × ${level}`, `Class × ${level}`), (c?.hp ?? 0) * level), part(tr(`CON × ${level}`, `CON × ${level}`), mod.con * level)] : []),
     ]
     const p = (rank: Rank) => part(rankName(rank), proficiencyBonus(rank, level))
-    const resilient = equipment.armor?.resilient ?? 0
+    const resilient = abp ? abp.save : equipment.armor?.resilient ?? 0
     const featPart = (key: 'perception' | 'fortitude' | 'reflex' | 'will') => [
         ...(feats.mods.stat[key] ? [part(tr('Talentos', 'Feats'), feats.mods.stat[key] ?? 0)] : []),
-        ...(resilient && key !== 'perception' ? [part(tr('Resiliente', 'Resilient'), resilient)] : []),
+        ...(resilient && key !== 'perception' ? [part(abp ? tr('Potência (ABP)', 'Potency (ABP)') : tr('Resiliente', 'Resilient'), resilient)] : []),
+        ...(abp?.perception && key === 'perception' ? [part(tr('Potência (ABP)', 'Potency (ABP)'), abp.perception)] : []),
         ...(adjust.items[key] ? [part(tr('Item (ajuste)', 'Item (adjustment)'), adjust.items[key])] : []),
     ]
     const stats: Compiled['stats'] = {
         hp: stat([...hpParts, ...(adjust.hp ? [part(tr('Ajuste', 'Adjustment'), adjust.hp)] : []), ...(feats.mods.hp ? [part(tr('Talentos', 'Feats'), feats.mods.hp)] : []),
             ...(feats.mods.hpPerLevel ? [part(tr(`Talentos × ${level}`, `Feats × ${level}`), feats.mods.hpPerLevel * level)] : [])]),
-        ac: armorClass(equipment, { dex: mod.dex, level, defenses: proficiency.defenses, label: rankName }),
+        ac: armorClass(equipment, { dex: mod.dex, level, defenses: proficiency.defenses, label: rankName, unarmoredPotency: abp && !equipment.armor ? abp.defense : 0 }),
         fortitude: stat([p(proficiency.fortitude), attrPart('con'), ...featPart('fortitude')]),
         reflex: stat([p(proficiency.reflex), attrPart('dex'), ...featPart('reflex')]),
         will: stat([p(proficiency.will), attrPart('wis'), ...featPart('will')]),
