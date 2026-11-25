@@ -364,7 +364,7 @@ const SheetBody = ({ build: source, publication, onReset, onRestore, compact = f
     // Criador de Personagem: a ficha que veio dele abre o modo editar; a publicada sem build pode ser importada.
     const builderLink = useMemo(() => {
         if (readOnly || compact) return null
-        const buildId = (build as BuildInfo & { covil?: { buildId?: string } }).covil?.buildId
+        const buildId = build.covil?.buildId
         if (buildId) {
             return {
                 href: `/personagens/${buildId}`, label: tr('Editar no Criador', 'Edit in the Builder'),
@@ -417,7 +417,7 @@ const SheetBody = ({ build: source, publication, onReset, onRestore, compact = f
         (req: DescriptionRequest, entry: FeatDescription) => {
             if (readOnly || (req.type !== 'feat' && req.type !== 'special')) return null
             // Ficha do Criador: "Trocar talento" abre o Criador naquele slot (`covil.slots`).
-            const covil = (build as BuildInfo & { covil?: { buildId?: string; slots?: Record<string, string> } }).covil
+            const covil = build.covil
             const slot = req.type === 'feat' && covil?.buildId ? covil.slots?.[req.name] : undefined
             return (
                 <>
@@ -578,6 +578,7 @@ const SheetBody = ({ build: source, publication, onReset, onRestore, compact = f
             )}
 
             <DescriptionDrawer
+                buildId={build.covil?.buildId}
                 request={drawerReq}
                 onClose={closeDrawer}
                 onNavigate={setDrawerReq}

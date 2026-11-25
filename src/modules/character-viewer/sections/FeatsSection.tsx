@@ -1,12 +1,13 @@
 import { Box, Card, CardContent, Stack, Typography, Chip } from '@mui/material'
 import { ChevronRight as ChevronIcon } from '@mui/icons-material'
 import { useMemo, memo } from 'react'
-import { parseFeatEntry, type BuildInfo } from '../../../pathbuilder/types'
+import { parseFeatEntry, type BuildInfo, type HomebrewFeatRef } from '../../../pathbuilder/types'
 import type { DescriptionRequest } from '../components/DescriptionDrawer'
 import type { ConditionModifiers } from '../conditions'
 import type { MythicPointsApi } from '../components/useMythicPoints'
 import { ActivityButton } from '../components/ActivityButton'
 import { getCachedFeat, useDescriptionCacheVersion } from '../../../services/descriptions'
+import { sheetHomebrewFeats } from '../homebrewFeats'
 import { featTypeLabel } from '../featGroups'
 import { tr } from '../../../i18n'
 
@@ -21,14 +22,15 @@ const FeatsSectionView = ({ build, onSelect, mods, mythicPoints }: Props) => {
     // As linhas leem o cache no render (o custo do talento vem da descrição): baixar uma repinta.
     useDescriptionCacheVersion()
     const grouped = useMemo(() => {
-        const map: Record<string, Array<{ name: string; level: number }>> = {}
-        for (const entry of build.feats || []) {
+        const map: Record<string, Array<{ name: string; level: number; homebrew?: HomebrewFeatRef }>> = Object.create(null)
+        const homebrew = sheetHomebrewFeats(build)
+        for (const [index, entry] of (build.feats ?? []).entries()) {
             const { name, type, level } = parseFeatEntry(entry)
             if (!map[type]) map[type] = []
-            map[type].push({ name, level })
+            map[type].push({ name, level, homebrew: homebrew.get(index) })
         }
         return map
-    }, [build.feats])
+    }, [build])
 
     if (Object.keys(grouped).length === 0) {
         return (
@@ -64,8 +66,8 @@ const FeatsSectionView = ({ build, onSelect, mods, mythicPoints }: Props) => {
                                 key={`${f.name}-${idx}`}
                                 name={f.name}
                                 level={f.level}
-                                onClick={() => onSelect({ type: 'feat', name: f.name, level: f.level })}
-                                action={<ActivityButton build={build} mods={mods} mythicPoints={mythicPoints} name={f.name} desc={getCachedFeat(f.name)} />}
+                                onClick={() => onSelect({ type: 'feat', name: f.name, level: f.level, homebrew: f.homebrew })}
+                                action={!f.homebrew && <ActivityButton build={build} mods={mods} mythicPoints={mythicPoints} name={f.name} desc={getCachedFeat(f.name)} />}
                             />
                         ))}
                     </CardContent>

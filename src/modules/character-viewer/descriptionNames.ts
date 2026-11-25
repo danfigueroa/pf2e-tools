@@ -10,6 +10,7 @@
 import { parseFeatEntry, type BuildInfo } from '../../pathbuilder/types'
 import { characterSpellNames } from './spellNames'
 import { inventoryRows } from './inventory'
+import { sheetHomebrewFeats } from './homebrewFeats'
 import { relicsOf } from './relics'
 
 /** Os tipos do cache de descrições (`services/descriptions.ts`), menos companheiro. */
@@ -28,10 +29,11 @@ const relicGiftNames = (build: BuildInfo, kind: 'rune' | 'power'): string[] =>
         .map((g) => g.name)
 
 export function characterDescriptionNames(build: BuildInfo): DescriptionNames {
+    const homebrew = sheetHomebrewFeats(build)
     return {
         spell: characterSpellNames(build),
         // Aba de Talentos.
-        feat: unique((build.feats ?? []).map((f) => parseFeatEntry(f).name)),
+        feat: unique((build.feats ?? []).flatMap((f, index) => homebrew.has(index) ? [] : [parseFeatEntry(f).name])),
         // Aba de Habilidades.
         // Com a classe nas características que várias classes têm (`specialLookupName`): é a chave da descrição.
         special: unique([...(build.specials ?? []).map((s) => specialLookupName(build, String(s))), ...relicGiftNames(build, 'power')]),

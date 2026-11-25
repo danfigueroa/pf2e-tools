@@ -1,14 +1,16 @@
 import { Drawer, useTheme, useMediaQuery } from '@mui/material'
 import { DescriptionContent, type DescriptionContentProps, type DescriptionRequest } from './DescriptionContent'
+import { HomebrewFeatContent } from './HomebrewFeatContent'
 import { drawerEmbedProps, useEmbedContainer } from '../embedContext'
 
 export type { DescriptionRequest, SpellCasterInfo } from './DescriptionContent'
 
 interface Props extends Omit<DescriptionContentProps, 'request'> {
+    buildId?: string
     request: DescriptionRequest | null
 }
 
-export const DescriptionDrawer = ({ request, ...rest }: Props) => {
+export const DescriptionDrawer = ({ request, buildId, ...rest }: Props) => {
     const theme = useTheme()
     const embed = useEmbedContainer()
     // Embutida num painel estreito, a gaveta sobe de baixo como no celular.
@@ -42,7 +44,9 @@ export const DescriptionDrawer = ({ request, ...rest }: Props) => {
                     },
             }}
         >
-            {request && <DescriptionContent request={request} {...rest} />}
+            {request?.type === 'feat' && request.homebrew
+                ? <HomebrewFeatContent key={request.homebrew.id} feat={request.homebrew} buildId={buildId} onClose={rest.onClose} />
+                : request && <DescriptionContent request={request} {...rest} />}
         </Drawer>
     )
 }

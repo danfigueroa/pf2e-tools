@@ -30,7 +30,7 @@ import {
     fetchSpellDescription,
     fetchItemDescription,
 } from '../../../services/descriptions'
-import type { FeatDescription, SpellDescription } from '../../../pathbuilder/types'
+import type { FeatDescription, HomebrewFeatRef, SpellDescription } from '../../../pathbuilder/types'
 import { actionSymbol, getAonSearchUrl, signed, traditionColor } from '../helpers'
 import { parseDescription, type DescriptionPart, type HeightenedEntry } from '../format-description'
 import { StaffSpellList } from './StaffSpellList'
@@ -65,7 +65,7 @@ export interface SpellCasterInfo {
 }
 
 export type DescriptionRequest =
-    | { type: 'feat'; name: string; level?: number }
+    | { type: 'feat'; name: string; level?: number; homebrew?: HomebrewFeatRef }
     | { type: 'special'; name: string }
     | {
         type: 'spell'
