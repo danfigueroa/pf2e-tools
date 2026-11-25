@@ -32,10 +32,10 @@ do diálogo de rolagem da Ficha ("Mestre +16 · CON +4 · Item +1").
 | Regra | Status |
 | --- | --- |
 | Remaster trabalha com **modificadores**; o export guarda "pontuação" (`str: 19`) = `10 + 2 × mod`, +1 quando há boost parcial pendente | 🧪 (Loki DES 19 = +4 com parcial; Thalos INT 19, CAR 20) |
-| Nível 1: boosts da ancestralidade (fixos + livre, ou dois livres na opção alternativa), flaws, background (1 de 2 opções + 1 livre), classe (atributo-chave), 4 livres; dentro de cada grupo, atributos distintos | 🔎 Player Core, "Attribute Boosts" |
+| Nível 1: boosts da ancestralidade (fixos + livre, ou dois livres na opção alternativa), flaws, background (1 de 2 opções + 1 livre), classe (atributo-chave), 4 livres; dentro de cada grupo, atributos distintos | ✅ Player Core pg. 17, 23 e 84 (`engine/attributes.ts`) |
 | Níveis 5, 10, 15, 20: 4 boosts em atributos distintos | 🧪 (`mapLevelledBoosts` com "1","5","10") / 🔎 |
-| Boost em modificador +4 ou maior é **parcial**; dois parciais = +1 | 🔎 Player Core, "Attribute Boosts" (regra de parcial) |
-| Flaw = −1 | 🔎 |
+| Boost em modificador +4 ou maior é **parcial**; dois parciais = +1 | ✅ Player Core pg. 17 |
+| Flaw = −1; flaw voluntário, no máximo um por atributo | ✅ Player Core pg. 17 e 23 |
 | Override manual: substitui o modificador final e gera aviso `ATTR_OVERRIDE` | — |
 | `breakdown` do export: `ancestryFree`, `ancestryBoosts`, `ancestryFlaws`, `backgroundBoosts`, `classBoosts`, `mapLevelledBoosts` (rótulos `Str`/`Dex`…) | 🧪 |
 
@@ -44,10 +44,10 @@ do diálogo de rolagem da Ficha ("Mestre +16 · CON +4 · Item +1").
 | Regra | Status |
 | --- | --- |
 | Rank 0–4 (destreinado, treinado, perito, mestre, lendário); o **export guarda o bônus sem nível** (0/2/4/6/8) em `proficiencies` | 🧪 (Thalos `occultism: 6` = mestre) |
-| Bônus de proficiência = rank × 2 + nível, e 0 se destreinado | 🔎 Player Core, "Proficiency" / 🧪 (`acProfBonus: 12` no Thalos nível 10 treinado) |
+| Bônus de proficiência = rank × 2 + nível, e 0 se destreinado | ✅ Player Core pg. 11 / 🧪 (`acProfBonus: 12` no Thalos nível 10 treinado) |
 | Proficiency Without Level: sem o nível | 🔎 GM Core (variante) |
 | Rank final = maior rank concedido até o nível (nunca soma) | 🔎 |
-| Teto de perícia por nível: mestre a partir do 7, lendário a partir do 15 (aviso `SKILL_RANK_CAP`) | 🔎 Player Core, "Skill Increases" |
+| Teto de perícia por nível: mestre a partir do 7, lendário a partir do 15 (aviso `SKILL_RANK_CAP`) | ✅ Player Core pg. 92 |
 | Fontes de rank: inicial da classe (📦), características por nível (📦, ex. "Weapon Expertise 5"), talentos (rule elements), aumentos de perícia (escolha) | — |
 | `specificProficiencies` (armas/grupos específicos, ex. Weapon Mastery no grupo escolhido) | 🔎 + 📦 (`MartialProficiency` do Foundry) |
 
@@ -55,18 +55,18 @@ do diálogo de rolagem da Ficha ("Mestre +16 · CON +4 · Item +1").
 
 | Regra | Status |
 | --- | --- |
-| Treino inicial: fixas da classe + N da classe + modificador de INT | 📦 (`trainedSkills.additional`) / 🔎 |
-| Perícia que já viria treinada de duas fontes: a segunda vira treino livre | 🔎 Player Core |
+| Treino inicial: fixas da classe + N da classe + modificador de INT | 📦 (`trainedSkills.additional`) / ✅ Player Core pg. 225 |
+| Perícia que já viria treinada de duas fontes: a segunda vira treino livre | ✅ Player Core pg. 84 e 225 |
 | Aumentos de perícia nos níveis da classe (`skillIncreaseLevels`, maioria 3,5,7…19; Ladino e Investigador diferentes) | 📦 |
 | Total da perícia = proficiência + atributo + item (`mods`) − penalidade de armadura (FOR/DES, quando a FOR não alcança) | 🔎 / a Ficha já faz o resto (`checks.ts`) |
 | Lores: background (📦), talentos (Additional Lore), livres; export `lores: [["Nome", bônusSemNível]]` | 🧪 |
-| INT aumentando depois do 1: treino extra? | 🔎 (Remaster: confirmar se aumento de INT concede perícia/idioma extra) |
+| INT aumentando depois do 1: uma perícia treinada e um idioma a mais por ponto | ✅ Player Core pg. 29 (Leveling Up) |
 
 ## 5. Pontos de vida, velocidade, tamanho
 
 | Regra | Status |
 | --- | --- |
-| PV máximo = PV da ancestralidade + (PV da classe + CON) × nível + bônus | 🔎 Player Core, "Hit Points" |
+| PV máximo = PV da ancestralidade + (PV da classe + CON) × nível + bônus | ✅ Player Core pg. 91 |
 | Export: `attributes.ancestryhp`, `classhp`, `bonushp`, `bonushpPerLevel` (Toughness etc.) | 🧪 |
 | Velocidade = da ancestralidade + bônus (`speedBonus`) − penalidade de armadura se FOR insuficiente | 🔎 |
 | Tamanho da ancestralidade (`size`: 0 minúsculo … 5 colossal; `sizeName`) | 🧪 (Ardagar `size: 3`, Large) |
@@ -76,11 +76,11 @@ do diálogo de rolagem da Ficha ("Mestre +16 · CON +4 · Item +1").
 
 | Regra | Status |
 | --- | --- |
-| CA = 10 + DES (limitada pelo teto da armadura) + proficiência da categoria vestida + item (armadura + runa de potência) | 🔎 / 🧪 (`acTotal`: `acProfBonus`, `acAbilityBonus`, `acItemBonus`, `acTotal`) |
+| CA = 10 + DES (limitada pelo teto da armadura) + proficiência da categoria vestida + item (armadura + runa de potência) | ✅ Player Core pg. 271 / 🧪 (`acTotal`: `acProfBonus`, `acAbilityBonus`, `acItemBonus`, `acTotal`) |
 | Escudo: o export **não** soma o escudo na CA (`shieldBonus: null`); a Ficha soma ao erguer | 🧪 + regra da Ficha |
-| Salvaguardas = proficiência + atributo (FORT CON, REF DES, VON SAB) + item (runa resiliente → `mods`) | 🔎 / 🧪 (`mods.Fortitude["Item Bonus"]`) |
-| Percepção = proficiência + SAB + item | 🔎 |
-| CD de classe = 10 + proficiência + atributo-chave | 🔎 |
+| Salvaguardas = proficiência + atributo (FORT CON, REF DES, VON SAB) + item (runa resiliente → `mods`) | ✅ Player Core pg. 26 / 🧪 (`mods.Fortitude["Item Bonus"]`) |
+| Percepção = proficiência + SAB + item | ✅ Player Core pg. 25 |
+| CD de classe = 10 + proficiência + atributo-chave; as 29 classes Remaster começam treinadas | ✅ Player Core pg. 27 e o bloco "Class DC" de cada classe na AON |
 | Resistências/fraquezas de ancestralidade, herança, item, talento → `resistances: ["poison 4"]` | 🧪 + 📦 |
 | Penalidade de teste e de velocidade da armadura, traços (Bulwark, Flexible, Noisy) | 📦 / 🔎 |
 

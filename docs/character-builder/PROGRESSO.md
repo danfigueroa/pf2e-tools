@@ -114,3 +114,36 @@
 - **1B.11.** O `check-auth` confere que jogador e GM comum recebem 403 em todas as rotas de admin, também com a cobrança desligada, e que o `?me=1` deles não traz `platformAdmin`.
 - **Fora.** 1B.10 (pré-traduzir um livro) é opcional e ficou para depois.
 - **"Pronto quando" da F1B.** Reimportar sem mudança não altera nada (conferido). Importar um livro novo pela tela depende de a AON publicar um; hoje não há nenhum Remaster novo. Um livro legado importado pela tela entraria na base sem aparecer nas mesas, até o GM liberar.
+
+## F3 — Origem, classe (nível 1), atributos e perícias concluída (falta a conferência M1 no Pathbuilder)
+
+- **Regras conferidas na AON Remaster antes de codificar, com livro e página no código.** Os 🔎 de nível 1 do MOTOR viraram ✅:
+  - Atributos: Player Core pg. 17 (boost, parcial em +4, grupos distintos), pg. 23 (boosts alternativos, flaws voluntários), pg. 84 (background) e pg. 92 (boosts a cada 5 níveis).
+  - Perícias: Player Core pg. 225 e pg. 84 (treino repetido vira livre) e pg. 92 (aumentos e tetos). pg. 29: aumento de INT dá uma perícia e um idioma a mais.
+  - Idiomas, Player Core pg. 89. Derivados: Player Core pg. 11 (proficiência), pg. 91 (PV), pg. 271 (CA), pg. 26 (salvaguardas), pg. 25 (Percepção) e pg. 27 (CD de classe).
+  - As 29 classes Remaster da AON dizem "Trained in <classe> class DC".
+- **Duas lacunas da derivação, achadas pelo motor e corrigidas na base.**
+  - **Boosts do Humano e do Orc.** A AON escreve "Two free ability boosts", que se perdia. O Player Core foi reimportado pela plataforma: 2 alteradas, versão `2026.11.4`, 1 lista regravada e 320 copiadas, em 11 s. Foi o primeiro uso real da F1B.
+  - **Ancestralidade da herança.** A AON não liga a herança à ancestralidade em campo nenhum. Ela veio do Foundry (`system.ancestry`), na coluna nova `rules_mechanics.extra` (migration `dados_extras_do_foundry`). Depois veio o `--mechanics-only`, que agora publica versão nova (`2026.11.5`) em vez de sobrescrever a atual, cujo caminho é imutável no CDN.
+- **Motor em `engine/`** (`compile.ts`, `attributes.ts`, `skills.ts`, `types.ts`): TS puro, sem rede.
+  - Calcula atributos com parciais e o `breakdown` do export, proficiências iniciais da classe, PV, CA sem armadura, salvaguardas, Percepção, CD de classe, deslocamento, tamanho e sentidos (inclusive o `Sense` da herança).
+  - Calcula também as perícias: automáticas, escolha da classe, livres + INT + repetidas, Lore livre, perícia pela INT e aumentos com teto.
+  - E os idiomas pela INT.
+  - **Avisos.** Boost repetido ou fora das opções, flaw duplo, livro, legado e raridade pelas regras da mesa, herança de outra ancestralidade, efeito não calculado, escolha órfã com "descartar", PV de ancestralidade desconhecido. Acima do nível 1, avisa que as características de classe ainda não entram (F4).
+- **`check-builder`: 105 conferências.**
+  - Um Humano Guerreiro nível 1 com números tirados das regras: PV 20, CA 15, FORT/REF +7, VON +4, Percepção +6, CD 17.
+  - Casos de borda e a herança vinda do Foundry.
+  - **Atributos do elenco.** Ceros, Eldarion, Ghan Buri, Thalos e Woyd batem exatamente com o export do Pathbuilder, parciais incluídos. Brukuthur, Loki, Miranda e Nathaniel usam conteúdo legado. Hearts Folly tem atributos editados à mão (o export não traz a memória dos boosts).
+- **Interface.**
+  - O seletor (`ContentPicker`) tem busca, raridade, "só o liberado na mesa", ↑/↓/Enter, tela cheia no celular com detalhe em segunda camada e duas colunas no desktop. A descrição completa sai do pipeline de descrições, sob demanda.
+  - Abas Origem (com idiomas, boosts alternativos e flaws voluntários), Classe (atributo-chave), Atributos (grupos com "Restam N") e Perícias (pips T/E/M/L, Lore livre).
+  - Resumo fixo com a conta de cada número no `title`. Pendências e avisos ficam ao lado no desktop e numa gaveta no celular.
+  - Conferido no navegador em 320 px e no desktop, com o catálogo real do Storage e builds em memória. Os números da tela batem com o caso do `check-builder`.
+- **Decisões.**
+  - Lista de livros da mesa vazia = sem restrição, para uma mesa nova não esconder o catálogo inteiro.
+  - Heranças versáteis saem do seletor de ancestralidade.
+  - Lista sem virtualização: a maior das listas da F3 tem ~300 itens. A virtualização entra com os talentos (F4), se medir lentidão.
+- **Pendente.**
+  - **3.10.** Os textos de tela são bilíngues. Os nomes do conteúdo (ancestralidades, classes) seguem em inglês canônico, como no export e na AON; a tradução desses nomes depende do pipeline de descrições.
+  - **"Pronto quando" M1.** Criar um nível 1 de cada classe do elenco no Pathbuilder e comparar PV, CA, salvaguardas, Percepção e perícias. O gabarito automático cobre os atributos de 5 personagens e o Guerreiro calculado pelas regras; a conferência no Pathbuilder, pelo Brave, fica para a próxima sessão.
+- **Próximo passo.** F4: progressão 1–20, talentos (com `ContentPicker` e pré-requisitos), características de classe por nível e as variantes (Free Archetype, Mítico, Ancestral Paragon).

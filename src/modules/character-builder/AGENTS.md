@@ -16,3 +16,8 @@
 - Grave escolhas só por `useBuild().update`, que muda o estado na hora, guarda o rascunho local e agenda o `build-save` com o `rev` visto.
 - Deixe o conflito (409) para a pessoa decidir no diálogo, porque gravar por cima sozinho apagaria o que outro aparelho salvou.
 - Leia o slug do build do servidor, porque ele é o primeiro livre na mesa entre builds e fichas publicadas; o `buildSlugFromName` do cliente é só prévia.
+- Mantenha o motor (`engine/`) em TS puro, sem React, rede nem `character-viewer/`, porque o `check-builder` o roda no Node contra o recorte fixo.
+- Cite livro e página da AON ao lado de cada regra do motor e acrescente o caso no `check-builder`, porque número sem fonte é regra inventada.
+- Gere as chaves de slot só no motor (`boosts-1`, `class-skill-1`, `skills-int-5`, `skill-increase-3`…), porque escolhas sem slot viram aviso de órfã em vez de sumir.
+- Trate a lista de livros vazia da mesa como "sem restrição", porque uma mesa nova esconderia todo o catálogo e avisaria em cada escolha.
+- Tire do seletor de ancestralidade o que também é herança versátil, porque a AON publica Aiuvarin, Changeling e afins nas duas categorias.

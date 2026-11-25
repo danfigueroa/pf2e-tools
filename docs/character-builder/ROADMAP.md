@@ -169,18 +169,18 @@ conteúdo novo depois de recarregar, e reimportar o mesmo livro não muda nada.
 **Objetivo**: personagem nível 1 "de corpo" com resumo ao vivo.
 **Depende de**: F1, F2.
 
-- [ ] **3.1** `ContentPicker` (UX §1.3): abas, busca, filtros, ordenação, lista virtualizada, detalhe com
+- [x] **3.1** `ContentPicker` (UX §1.3): abas, busca, filtros, ordenação, lista virtualizada, detalhe com
       `DescriptionContent` (lazy), raridade/elegibilidade por linha, teclado, 320px.
-- [ ] **3.2** Motor — esqueleto de `compileBuild` com as fases (MOTOR §1) e `breakdown`.
-- [ ] **3.3** Motor — atributos (`attributes.ts`): grupos de boosts, alternativos, flaws, parcial, override, `breakdown`
+- [x] **3.2** Motor — esqueleto de `compileBuild` com as fases (MOTOR §1) e `breakdown`.
+- [x] **3.3** Motor — atributos (`attributes.ts`): grupos de boosts, alternativos, flaws, parcial, override, `breakdown`
       do export. Casos no `check-builder`.
-- [ ] **3.4** Motor — proficiências iniciais da classe e derivados de nível 1: PV, CA sem armadura, salvaguardas,
+- [x] **3.4** Motor — proficiências iniciais da classe e derivados de nível 1: PV, CA sem armadura, salvaguardas,
       Percepção, CD de classe, velocidade, tamanho, sentidos.
-- [ ] **3.5** Motor — perícias (`skills.ts`): fixas da classe, adicionais + INT, duplicidade, Lores, background.
-- [ ] **3.6** Telas: Origem (ancestralidade → herança incl. versátil → background), Idiomas, Classe (atributo-chave).
-- [ ] **3.7** Diálogo de atributos (UX §1.4) e de perícias (pílulas T/E/M/L, "Restam N", Lore livre).
-- [ ] **3.8** `StatusHeader` (resumo fixo, compacto no celular) e `PendingPanel` (pendências e avisos).
-- [ ] **3.9** `scripts/check-builder.mjs` (estrutura, invariantes iniciais, casos de atributos/perícias/PV).
+- [x] **3.5** Motor — perícias (`skills.ts`): fixas da classe, adicionais + INT, duplicidade, Lores, background.
+- [x] **3.6** Telas: Origem (ancestralidade → herança incl. versátil → background), Idiomas, Classe (atributo-chave).
+- [x] **3.7** Diálogo de atributos (UX §1.4) e de perícias (pílulas T/E/M/L, "Restam N", Lore livre).
+- [x] **3.8** `StatusHeader` (resumo fixo, compacto no celular) e `PendingPanel` (pendências e avisos).
+- [x] **3.9** `scripts/check-builder.mjs` (estrutura, invariantes iniciais, casos de atributos/perícias/PV).
 - [ ] **3.10** Textos bilíngues (`tr`) e nomes traduzidos conferidos (dicionário de termos do Remaster).
 
 **Entregáveis**: criar um Humano Guerreiro nível 1 completo exceto talentos/itens/magias.
