@@ -6,8 +6,8 @@ import type { RemasterLink } from '../remaster'
 export type { RuleEntry, RuleSource } from './types'
 
 /** Mesmo slug do `rules-packages.js` (`feats/class/<slug>`). */
-export const ruleListSlug = (value: string) => value.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+export { ruleListSlug } from '../engine/catalog'
+import { ruleListSlug } from '../engine/catalog'
 
 const list = (path: string) => loadRuleList<RuleEntry[]>(path)
 

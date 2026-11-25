@@ -59,6 +59,8 @@ export interface UseBuild {
     /** Conflito: descarta o meu e fica com o do servidor. */
     takeTheirs: () => void
     reload: () => void
+    /** Grava o pendente e devolve o `rev` salvo, ou `null`. */
+    saveNow: () => Promise<number | null>
 }
 
 export function useBuild(id: string | undefined, className?: string | null): UseBuild {
@@ -246,5 +248,20 @@ export function useBuild(id: string | undefined, className?: string | null): Use
 
     const reload = useCallback(() => setNonce((n) => n + 1), [])
 
-    return { build, state, canEdit, loading, error, status, conflict, update, keepMine, takeTheirs, reload }
+    /**
+     * Grava já o que estiver pendente e devolve o `rev` do que ficou salvo, ou `null` se não salvou (conflito, sem
+     * rede). O "Aplicar na mesa" usa: o servidor compila o estado SALVO daquele `rev` (F10.1).
+     */
+    const saveNow = useCallback(async (): Promise<number | null> => {
+        if (timer.current) clearTimeout(timer.current)
+        for (let attempt = 0; attempt < 4; attempt += 1) {
+            for (let i = 0; i < 40 && inFlight.current; i += 1) await new Promise((r) => setTimeout(r, 150))
+            if (blocked.current) return null
+            if (latest.current && same(latest.current, saved.current)) return rev.current
+            await flush()
+        }
+        return latest.current && same(latest.current, saved.current) && !inFlight.current ? rev.current : null
+    }, [flush])
+
+    return { build, state, canEdit, loading, error, status, conflict, update, keepMine, takeTheirs, reload, saveNow }
 }

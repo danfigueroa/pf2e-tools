@@ -17,7 +17,7 @@ import type { Compiled } from '../engine/types';
  * "Aplicar na mesa" (UX §1.5, D7): o retrato do Criador vira a ficha que a mesa usa, pelo mesmo preparo da publicação
  * (descrições pt/en e guia ficam prontos antes de valer). Mostra os avisos antes; aplicar com aviso é permitido.
  */
-export function ApplyDialog({ open, onClose, buildId, slug: buildSlug, compiled, sheet }: {
+export function ApplyDialog({ open, onClose, buildId, slug: buildSlug, compiled, sheet, saveNow }: {
   open: boolean;
   onClose: () => void;
   buildId: string;
@@ -26,6 +26,8 @@ export function ApplyDialog({ open, onClose, buildId, slug: buildSlug, compiled,
   compiled: Compiled;
   /** O retrato `{ success, build }` já exportado. */
   sheet: () => unknown;
+  /** Grava o pendente e devolve o `rev` salvo (o servidor compila esse estado), ou `null`. */
+  saveNow: () => Promise<number | null>;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,10 +53,15 @@ export function ApplyDialog({ open, onClose, buildId, slug: buildSlug, compiled,
     setBusy(true);
     setError(null);
     try {
+      const rev = await saveNow();
+      if (rev === null) {
+        setError(tr('Não foi possível salvar as últimas mudanças. Resolva o salvamento e tente de novo.', 'Could not save the latest changes. Fix the save and try again.'));
+        return;
+      }
       const json = sheet();
       const build = parseCharacterJson(json);
       const names = characterDescriptionNames(build);
-      const out = await applyBuild(buildId, json, names, CACHE_VERSION, companionAnimalNames(build));
+      const out = await applyBuild(buildId, json, names, CACHE_VERSION, companionAnimalNames(build), rev);
       if (!out.ok) {
         setError(out.error);
         return;

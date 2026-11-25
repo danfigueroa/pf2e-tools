@@ -58,8 +58,8 @@ export const saveMesaRules = (rules: MesaRules) =>
  * "Aplicar na mesa": o retrato do Criador vira um rascunho de publicação com o slug do build (o preparo de sempre:
  * descrições pt/en, guia). Devolve o rascunho para `startPreparation`.
  */
-export const applyBuild = (id: string, sheet: unknown, names: Record<'spell' | 'feat' | 'special' | 'item', string[]>, version: string, companions: string[]) =>
-    call({ body: { action: 'build-apply', id, sheet, names, version, companions } }, (b) => (b.draft && typeof b.draft === 'object' ? b.draft as import('./sheets').SheetDraft : undefined))
+export const applyBuild = (id: string, sheet: unknown, names: Record<'spell' | 'feat' | 'special' | 'item', string[]>, version: string, companions: string[], rev?: number) =>
+    call({ body: { action: 'build-apply', id, sheet, names, version, companions, ...(rev !== undefined ? { rev } : {}) } }, (b) => (b.draft && typeof b.draft === 'object' ? b.draft as import('./sheets').SheetDraft : undefined))
 
 export interface BuildVersion { id: number; level: number; rulesVersion: string; publishedAt: number; publishedBy: string | null }
 

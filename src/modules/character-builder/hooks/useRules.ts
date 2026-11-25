@@ -2,7 +2,8 @@
 // usa) e as regras de criação da mesa. Só listas de `core/` do Storage/IndexedDB: nenhuma chamada à AON.
 import { useEffect, useMemo, useState } from 'react'
 import { fetchHomebrew, fetchMesaRules } from '../../../services/builds'
-import { ancestries, archetypes, backgrounds, classes, classOptions, heritages, languages, openRules, remasterCatalog, ruleListSlug, ruleTables } from '../rules'
+import { ancestries, archetypes, backgrounds, classes, classOptions, heritages, languages, openRules, ruleTables } from '../rules'
+import { featListPaths, locate, type FeatListNeeds } from '../engine/catalog'
 import type { SpellSlotTable } from '../engine/spells'
 import { loadRuleList } from '../rules/loader'
 import { buildRulesIndex } from '../engine/rulesIndex'
@@ -22,41 +23,8 @@ export interface CoreRules {
     archetypes: RuleEntry[]
 }
 
-/** O que o personagem usa e decide quais listas de talento baixar. */
-export interface FeatListNeeds {
-    references?: string[]
-    className?: string
-    ancestryName?: string
-    /** Herança versátil (Aiuvarin, Nephilim…) tem talentos próprios. */
-    versatileHeritage?: string
-    mythic?: boolean
-    /** Arquétipos dos talentos escolhidos (qualificador `archetype:<slug>`). */
-    archetypes: string[]
-    /** Tradições de magia do personagem (listas `spells/<tradição>`); o foco vem junto quando há alguma. */
-    traditions?: string[]
-    /** Inventário ou aba Equipamento: todas as listas de item (o inventário guarda só o id). */
-    items?: boolean
-    /** Companheiros: tipos de companheiro animal e familiares. */
-    companions?: boolean
-}
-
-export const ITEM_LISTS = ['weapons', 'armor', 'shields', 'runes', 'materials', 'worn', 'held', 'consumables', 'gear', 'staves-wands', 'relics'] as const
-
-/** Caminhos das listas de talento que o personagem pode usar. */
-export function featListPaths(needs: FeatListNeeds): string[] {
-    return [
-        'feats/general', 'feats/skill',
-        needs.mythic ? 'feats/mythic' : null,
-        needs.className ? `feats/class/${ruleListSlug(needs.className)}` : null,
-        needs.ancestryName ? `feats/ancestry/${ruleListSlug(needs.ancestryName)}` : null,
-        needs.versatileHeritage ? `feats/ancestry/${ruleListSlug(needs.versatileHeritage)}` : null,
-        ...needs.archetypes.map((a) => `feats/archetype/${ruleListSlug(a)}`),
-        ...(needs.traditions ?? []).map((t) => `spells/${t}`),
-        'spells/focus', 'spells/rituals',
-        ...(needs.items ? ITEM_LISTS.map((l) => `items/${l}`) : []),
-        ...(needs.companions ? ['companions/animal', 'companions/familiar'] : []),
-    ].filter((p): p is string => Boolean(p))
-}
+// As listas que o personagem usa: a mesma função do servidor (F10.1).
+export { featListPaths, ITEM_LISTS, type FeatListNeeds } from '../engine/catalog'
 
 export interface UseRules {
     core: CoreRules | null
@@ -124,14 +92,10 @@ export function useRules(needs?: FeatListNeeds): UseRules & { feats: RuleEntry[]
         if (!core || !loaded || !missing) return
         let alive = true
         const ids = new Set(missing.split('|'))
-        void remasterCatalog(core.version).then(async (rows) => {
-            const paths = new Set<string>()
-            for (const row of rows) {
-                if (ids.has(row.id) && row.list) paths.add(row.list)
-                for (const target of row.targets) if (ids.has(target.id) && target.list) paths.add(target.list)
-            }
-            const lists = await Promise.all([...paths].map((path) => loadRuleList<RuleEntry[]>(path, core.version)))
-            const found = lists.flat().filter((entry) => ids.has(entry.id))
+        // Mesma busca do servidor (F10.1): `core/locations`, e o `core/remaster` para o legado.
+        const reader = { read: (path: string) => loadRuleList<unknown>(path, core.version).catch(() => null) }
+        const read = (path: string) => loadRuleList<RuleEntry[]>(path, core.version).catch(() => [] as RuleEntry[])
+        void locate(ids, reader, read).then((found) => {
             if (alive && found.length) setSupplement((prev) => [...new Map([...prev, ...found].map((e) => [e.id, e])).values()])
         }).catch(() => { if (alive) setError(true) })
         return () => { alive = false }

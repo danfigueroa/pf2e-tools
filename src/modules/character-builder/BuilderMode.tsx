@@ -11,8 +11,7 @@ import { ReadOnlyTheme } from '../character-viewer/components/ReadOnlyTheme';
 import { VIEW_OK } from '../character-viewer/sheetAccess';
 import { useBuild, type SaveStatus } from './hooks/useBuild';
 import { useRules, type FeatListNeeds } from './hooks/useRules';
-import { variantFlags } from './engine/slots';
-import { CLASS_ARCHETYPE, selectedClassArchetype } from './engine/classArchetypes';
+import { needsOf } from './engine/catalog';
 import { compileBuild } from './engine/compile';
 import { StatusHeader } from './components/StatusHeader';
 import { PendingPanel } from './components/PendingPanel';
@@ -26,7 +25,6 @@ import { EquipmentSection } from './sections/EquipmentSection';
 import { CompanionsSection } from './sections/CompanionsSection';
 import type { SectionProps } from './sections/types';
 import { tabOf, type BuilderTab } from './tabs';
-import { chosenRuleIds } from './remaster';
 import { RemasterDialog } from './components/RemasterDialog';
 import { BuildExceptions } from './hooks/buildExceptions';
 import { ApplyDialog } from './components/ApplyDialog';
@@ -88,38 +86,14 @@ export function BuilderMode({ buildId }: { buildId: string }) {
   const [itemsWanted, setItemsWanted] = useState(false);
   // Tradições dos conjuradores que o motor achou (arquétipo incluído): as listas delas também baixam.
   const [casterTraditions, setCasterTraditions] = useState<string>('');
-  const { build, state, canEdit, loading, error, status, conflict, update, keepMine, takeTheirs, reload } = useBuild(buildId, className);
+  const { build, state, canEdit, loading, error, status, conflict, update, keepMine, takeTheirs, reload, saveNow } = useBuild(buildId, className);
 
   // Listas de talento que este personagem usa: classe, ancestralidade, herança versátil, mítico e os arquétipos dos
   // talentos escolhidos (pelo qualificador) mais o que o seletor está navegando.
   const core = rules.core;
   const needsKey = useMemo(() => {
     if (!core || !state) return '';
-    const cls = core.classes.find((c) => c.id === state.class.id);
-    const anc = core.ancestries.find((a) => a.id === state.origin.ancestry);
-    const her = core.heritages.find((h) => h.id === state.origin.heritage);
-    const archetypes = new Set<string>(browseArchetype ? [browseArchetype] : []);
-    const selected = selectedClassArchetype(state.choices[CLASS_ARCHETYPE], cls);
-    const archetype = core.archetypes.find((a) => a.id === selected);
-    if (archetype) archetypes.add(archetype.name);
-    for (const choice of Object.values(state.choices)) {
-      if ('qualifier' in choice && choice.qualifier?.startsWith('archetype:')) archetypes.add(choice.qualifier.slice(10));
-    }
-    const next: FeatListNeeds = {
-      references: [...chosenRuleIds(state)].sort(),
-      className: cls?.name, ancestryName: anc?.name, versatileHeritage: her && !her.heritage?.ancestry ? her.name : undefined,
-      mythic: variantFlags(state, rules.mesaRules ?? undefined).mythic, archetypes: [...archetypes].sort(),
-      items: state.inventory.length > 0 || state.formulas.length > 0 || itemsWanted,
-      companions: state.companions.length > 0 || itemsWanted,
-      // Tradições: a da classe (uma) ou a escolhida pela subclasse.
-      traditions: (() => {
-        const list = cls?.class?.casting?.traditions ?? [];
-        const chosen = state.choices['spell-tradition'];
-        const own = list.length === 1 ? list : chosen && 'value' in chosen ? [chosen.value] : [];
-        return [...new Set([...own, ...casterTraditions.split(',').filter(Boolean)])];
-      })(),
-    };
-    return JSON.stringify(next);
+    return JSON.stringify(needsOf(state, core, rules.mesaRules, { browseArchetype, itemsWanted, traditions: casterTraditions.split(',').filter(Boolean) }));
   }, [core, state, browseArchetype, rules.mesaRules, itemsWanted, casterTraditions]);
   useEffect(() => { if (needsKey) setNeeds(JSON.parse(needsKey) as FeatListNeeds); }, [needsKey]);
   const [tab, setTab] = useState<BuilderTab>('origin');
@@ -463,7 +437,7 @@ export function BuilderMode({ buildId }: { buildId: string }) {
 
       {compiled && rules.index && (
         <ApplyDialog open={applyOpen} onClose={() => setApplyOpen(false)} buildId={build.id} slug={build.slug} compiled={compiled}
-          sheet={exportSheet} />
+          sheet={exportSheet} saveNow={saveNow} />
       )}
 
       <Dialog open={versions !== null} onClose={() => setVersions(null)} fullWidth maxWidth="xs">
