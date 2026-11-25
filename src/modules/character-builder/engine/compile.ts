@@ -165,6 +165,29 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
         }
         return { ...slot, chosen }
     })
+    // Mítico (War of Immortals pg. 77): o chamado vem quando o personagem ganha o poder mítico; no 12º, o talento mítico
+    // extra é obrigatoriamente o de destino.
+    const mythicOn = variantFlags(state, ctx.mesaRules).mythic
+    if (mythicOn) {
+        const callingLevel = state.options.mythic?.startLevel ?? 1
+        const options = (ctx.classOptions ?? []).filter((o) => o.type === 'mythic-calling')
+        const key = 'class-choice:mythic-calling'
+        const raw = state.choices[key]
+        const chosen = raw && 'id' in raw ? raw.id : undefined
+        if (options.length) classChoices.push({ key, type: 'mythic-calling', level: callingLevel, label: tr('Chamado mítico', 'Mythic calling'), options, chosen })
+        if (options.length && callingLevel <= level) {
+            used.add(key)
+            if (!chosen) pending.push({ key, label: tr('Chamado mítico', 'Mythic calling'), level: callingLevel, missing: 1 })
+            const entry = chosen ? options.find((o) => o.id === chosen) : undefined
+            if (entry) {
+                awarded.push({ entry, level: callingLevel, source: tr('Chamado mítico', 'Mythic calling') })
+                has.add(entry.name.toLowerCase())
+            }
+        }
+        if (level >= 12) {
+            warnings.push({ code: 'MYTHIC_DESTINY', level: 'info', ref: 'mythic-feat-12', message: tr('Nível 12: o talento mítico precisa ser o de um destino mítico (War of Immortals pg. 77).', 'Level 12: the mythic feat must be a mythic destiny feat (War of Immortals pg. 77).') })
+        }
+    }
     for (const [type, owner] of Object.entries(UNCOUNTED_CHOICE_TYPES)) {
         if (cls && owner.toLowerCase() === cls.name.toLowerCase()) {
             warnings.push({ code: 'UNSUPPORTED_CHOICE', level: 'info', ref: 'class', message: tr(`Escolhas de ${type} ainda não entram no Criador: anote à parte.`, `${type} choices are not in the Builder yet: note them separately.`) })
