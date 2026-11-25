@@ -76,6 +76,7 @@ npm run lint       # eslint + check-i18n
 | SQL do histórico | `node --env-file=.env scripts/check-diary.mjs` |
 | acesso, papéis, convites, donos, rascunho de publicação | `node --env-file=.env scripts/check-auth.mjs` (cria e apaga usuários de teste) |
 | migration nova | `node --env-file=.env scripts/check-migrations.mjs` (roda as pendentes em `BEGIN…ROLLBACK`) |
+| importação da base de regras (`rules-normalize.js`) ou parsers de descrição (`aon-parse.js`) | `node --env-file=.env scripts/check-local-aon.mjs` (o banco devolve o mesmo documento da AON) |
 
 Scripts de manutenção, à mão: `fetch-creature-tables.mjs` (confira o diff!), `build-description-bundle.mjs
 [--published <url>] [--all] [--lang en]`, `prepare-sheets.mjs [mesa] [slug] [--lang en] [--guides-pt|--guides-en]`,
