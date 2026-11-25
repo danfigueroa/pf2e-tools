@@ -5,7 +5,7 @@
 // Devolve sempre `{ status, body }`; quem chama só escreve a resposta.
 //
 // Ordem das rotas (importa): conta → [portão] → notificações → troféus → mapa → rolagens → correções → diário
-// de campanha → wiki → anotações → encontro → ficha → estado. A rota da ficha aceita qualquer POST com `action` e engoliria as
+// de campanha → wiki → anotações → encontro → Criador → ficha → estado. A rota da ficha aceita qualquer POST com `action` e engoliria as
 // anteriores, e a da conta vem antes do portão porque quem ainda não é membro precisa
 // poder resgatar o convite que o torna um.
 
@@ -30,6 +30,7 @@ import { handleFixRequest, isFixRequest } from './fix-handler.js'
 import { handleAuthRequest, isAuthRequest } from './auth-handler.js'
 import { handleEventRequest, isEventRequest } from './event-handler.js'
 import { handleTrophyRequest, isTrophyRequest } from './trophy-handler.js'
+import { handleBuildRequest, isBuildRequest } from './build-handler.js'
 import { ownerOf, recordFeat, safely } from './trophy-store.js'
 import { mesaFrom } from './mesas.js'
 import { canEditSheet, forbidden, gate, resolveAccess } from './access.js'
@@ -110,6 +111,10 @@ async function route({ req, method, query, body }) {
     if (isEncounterRequest(method, query, body)) {
         return run('Erro no encontro', 'Erro ao tratar o encontro', () =>
             handleEncounterRequest(mesa, method, query, body, ctx))
+    }
+    if (isBuildRequest(method, query, body)) {
+        return run('Erro no Criador de Personagem', 'Erro ao tratar o personagem', () =>
+            handleBuildRequest(mesa, method, query, body, ctx))
     }
     if (isSheetRequest(method, query, body)) {
         return run('Erro na ficha publicada', 'Erro ao tratar a ficha publicada', () =>

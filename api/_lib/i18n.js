@@ -150,6 +150,14 @@ const EXACT = new Map(Object.entries({
   'Só quem criou a página e o GM a apagam': 'Only whoever created the page and the GM can delete it',
   'Só o GM abre a lixeira da Wiki': 'Only the GM can open the wiki trash',
   'Mande a página para a lixeira antes': 'Move the page to the trash first',
+  // Criador de Personagem
+  'Erro ao tratar o personagem': 'Error handling the character',
+  'Personagem não encontrado': 'Character not found',
+  'Personagem grande demais': 'Character too large',
+  'Personagem na lixeira': 'Character is in the trash',
+  'Nome inválido': 'Invalid name',
+  'Usuário inválido': 'Invalid user',
+  'Já existem personagens demais com esse nome': 'There are too many characters with that name',
 }))
 
 // Mensagens montadas com um valor no meio.
