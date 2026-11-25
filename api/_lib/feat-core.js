@@ -10,13 +10,13 @@
 // o motivo de talentos e habilidades aparecerem em inglês na ficha.
 
 import {
-  searchAon,
   cleanAonText,
   extractMainDescription,
   translateSegments,
   generateFallbackDescription,
 } from './aon.js'
-import { pickBestHit, parseAonText } from './aon-parse.js'
+import { parseAonText } from './aon-parse.js'
+import { bestAonHit } from './rules-local.js'
 import { staffForTier } from './staff-parse.js'
 
 // Ordem de categorias por tipo de consulta: a mais provável primeiro. Heritages
@@ -51,17 +51,8 @@ function classHint(name) {
   return m && CLASS_NAMES.has(m[1].trim().toLowerCase()) ? m[1].trim() : null
 }
 
-async function findBestEntry(name, categories, className = null, item = false) {
-  let best = null
-  for (const cat of categories) {
-    // Característica de classe: uma entrada por classe, e as remaster ficavam depois das 10 primeiras (legacy).
-    const results = await searchAon(name, cat, cat === 'class-feature' ? 60 : 10)
-    const pick = pickBestHit(results, name, className, item)
-    if (pick && pick._source?.name?.toLowerCase() === name.toLowerCase()) return pick
-    if (!best && pick) best = pick
-  }
-  return best
-}
+// O catálogo local primeiro, a AON depois (F10.4): ver `rules-local.js`.
+const findBestEntry = (name, categories, className = null, item = false) => bestAonHit(name, categories, { className, item })
 
 function joinField(value) {
   if (Array.isArray(value)) return value.filter(Boolean).join(', ')
@@ -83,7 +74,7 @@ function emptyEntry(name, description, itemType) {
 async function prepareEntry(rawName, categories, itemType, translationEnabled) {
   const fullName = String(rawName || '').trim()
   const searchName = cleanSearchName(rawName) || fullName
-  const isExact = (hit, name) => hit?._source?.name?.toLowerCase() === String(name).toLowerCase()
+  const isExact = (hit, name) => hit?._source?.name?.trim().toLowerCase() === String(name).trim().toLowerCase()
 
   // O nome CRU vem primeiro quando a limpeza mudou algo, porque o parêntese do
   // Pathbuilder às vezes **é** parte do nome no AON: os degraus de bastão

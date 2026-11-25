@@ -17,6 +17,7 @@
 // palavras de regra, lidas por código, não por gente.
 
 import { searchAonRaw } from './aon.js'
+import { localHitsByNames } from './rules-local.js'
 import { cachedLookup } from './lookup-cache.js'
 import { isLegacy, toArray } from './creature-core.js'
 
@@ -39,12 +40,21 @@ function bestByName(hits) {
 
 async function byNames(category, names) {
   if (names.length === 0) return new Map()
+  // O catálogo local primeiro (F10.4, `rules-local.js`); só o que ele não tem vai à AON.
+  const local = bestByName(await localHitsByNames(category, names).catch((error) => {
+    console.error('[rules-local] busca no catálogo falhou, segue a AON:', error.message)
+    return []
+  }))
+  const rest = names.filter((n) => !local.has(norm(n)))
+  if (rest.length === 0) return local
   const { hits } = await searchAonRaw({
     category,
-    limit: names.length * 4,
-    filters: [{ terms: { 'name.keyword': names } }],
+    limit: rest.length * 4,
+    filters: [{ terms: { 'name.keyword': rest } }],
   })
-  return bestByName(hits)
+  const remote = bestByName(hits)
+  for (const [key, value] of local) remote.set(key, value)
+  return remote
 }
 
 /** "[Shortsword](/Weapons.aspx?ID=43)" ou "Shortsword" → "Shortsword". */
@@ -130,6 +140,9 @@ async function resolveGearUncached(names) {
   }
   return out
 }
+
+/** Sem o cache do banco: o `check-local-aon` compara com e sem o catálogo local. */
+export const resolveGearDirect = resolveGearUncached
 
 /** Cada nome vai à AON uma vez só: o resto sai do banco (`lookup-cache.js`). Subiu o formato? Suba a versão. */
 export const resolveGear = (names) => cachedLookup('gear:v1', names, resolveGearUncached)

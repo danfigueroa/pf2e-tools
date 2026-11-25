@@ -3,9 +3,10 @@
 // Busca no AON, parseia a estrutura em EN (aon-parse.js), traduz SÓ a prosa
 // com validação anti-truncamento e devolve payload estruturado.
 
-import { searchAon, cleanAonText, translateSegments, generateFallbackDescription } from './aon.js'
+import { cleanAonText, translateSegments, generateFallbackDescription } from './aon.js'
 import { translateMetadata } from './metadata-i18n.js'
-import { pickBestHit, parseAonText } from './aon-parse.js'
+import { parseAonText } from './aon-parse.js'
+import { bestAonHit } from './rules-local.js'
 import { extractDamage, translateDamageType, translateHeightenedText } from './spell-parse.js'
 import { buildScaling } from './spell-scaling.js'
 
@@ -32,13 +33,8 @@ function emptySpell(name, description) {
 
 /** Busca no AON e parseia em EN — a parte barata, sem LLM. */
 async function prepareSpell(name, translationEnabled, lang) {
-  let best = null
-  for (const cat of ['spell', 'cantrip', 'focus']) {
-    const results = await searchAon(name, cat, 10)
-    const pick = pickBestHit(results, name)
-    if (pick && pick._source?.name?.toLowerCase() === String(name).toLowerCase()) { best = pick; break }
-    if (!best && pick) best = pick
-  }
+  // O catálogo local primeiro, a AON depois (F10.4): ver `rules-local.js`.
+  const best = await bestAonHit(name, ['spell', 'cantrip', 'focus'])
 
   if (!best) {
     // Magia que a AON não tem fica sem descrição: o texto de uma magia não se inventa.
