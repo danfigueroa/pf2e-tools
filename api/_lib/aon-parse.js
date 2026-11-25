@@ -81,8 +81,9 @@ const classesOf = (source) => (Array.isArray(source?.class) ? source.class : [so
 // - sem match exato, o primeiro hit de nome COMPATÍVEL (`namesCompatible`); se nenhum for, `null`.
 export function pickBestHit(hits, name, className = null, item = false) {
   if (!Array.isArray(hits) || hits.length === 0) return null
-  const lower = String(name).toLowerCase()
-  const exact = hits.filter(h => h._source?.name?.toLowerCase() === lower)
+  const lower = String(name).trim().toLowerCase()
+  // Aparado: a AON tem nome com espaço no fim ("Fortitude Expertise " do Psychic, Dark Archive Remastered).
+  const exact = hits.filter(h => h._source?.name?.trim().toLowerCase() === lower)
   if (exact.length === 0) {
     const compatible = hits.filter((h) => namesCompatible(name, h._source?.name, h._source?.category, item))
     return compatible.find((h) => !isLegacy(h._source)) ?? compatible[0] ?? null
