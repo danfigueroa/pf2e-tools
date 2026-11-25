@@ -105,6 +105,7 @@ export function ruleEntryView(entry, mechanics) {
     if (entry.category === 'background') view.background = derived.background
     if (entry.category === 'class') view.class = classView(entry, mechanics)
     if (CLASS_OPTIONS.has(entry.category) && data.class) view.classOption = { class: data.class }
+    if (entry.category === 'class-feature' && derived.classFeature) view.classFeature = derived.classFeature
     if (entry.category === 'feat') view.feat = compact({ archetype: data.archetype, skill: data.skill })
     if (entry.category === 'spell' || entry.category === 'ritual') {
         view.spell = { ...(derived.spell ?? {}), ritual: entry.category === 'ritual' }

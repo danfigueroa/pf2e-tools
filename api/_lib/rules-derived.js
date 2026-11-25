@@ -17,6 +17,67 @@ const number = (value) => Number.isFinite(value) ? value : undefined
 const compact = (value) => Object.fromEntries(Object.entries(value).filter(([, part]) =>
     part !== undefined && !(Array.isArray(part) && !part.length) && !(part && typeof part === 'object' && !Array.isArray(part) && !Object.keys(part).length)))
 
+const RANK_WORDS = { expert: 2, master: 3, legendary: 4 }
+/** Palavras do alvo da proficiência no texto da AON → alvo do motor. A ordem importa ("unarmored" antes de "unarmed"). */
+const PROFICIENCY_TARGETS = [
+    [/\bfortitude\b/, 'fortitude'], [/\breflex\b/, 'reflex'], [/\bwill\b/, 'will'], [/\bperception\b/, 'perception'],
+    [/\bclass dc\b|\b(?!spell\b)[a-z]+ dc\b/, 'classDC'], [/\bspell (attack|dc)/, 'spell'],
+    [/\bsimple\b/, 'simple'], [/\bmartial\b/, 'martial'], [/\badvanced\b/, 'advanced'], [/\bunarm(ored|ed) defense\b/, 'unarmored'],
+    [/\bunarmed attacks?\b/, 'unarmed'], [/\blight\b/, 'light'], [/\bmedium\b/, 'medium'], [/\bheavy\b/, 'heavy'],
+]
+/** Depende de escolha ou de outro item (grupo de arma, a salvaguarda escolhida, armas de fogo, bombas): fica para o motor avisar. */
+const NEEDS_CHOICE = /\b(that group|chosen|choose)\b/
+/** Armas específicas listadas junto das categorias: saem do alvo (o motor avisa) sem levar as categorias junto. */
+const SPECIFIC_WEAPONS = /\b(?:(?:simple|martial|advanced)(?:,? (?:and |or )?(?:simple|martial|advanced))* )?(?:firearms|crossbows)(?: and (?:firearms|crossbows))?|\balchemical bombs\b/g
+
+/**
+ * Proficiências que uma característica de classe sobe, lidas do texto da AON (Player Core e afins escrevem sempre "Your
+ * proficiency rank(s) for X increase(s) to <rank>" ou "…increase(s) to <rank> for/with X"). Frase condicional ("If you have
+ * … spells") ou que depende de escolha vai para `unsupported`; do companheiro (eidolon) é ignorada.
+ */
+export function classFeatureProficiencies(markdown, unsupported) {
+    const text = String(markdown ?? '').replace(/<[^>]+>/g, ' ').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/\s+/g, ' ')
+    const out = []
+    for (const [sentence] of text.matchAll(/[^.]*\bproficiency ranks?\b[^.]*\bincreases? to (?:expert|master|legendary)\b[^.]*\./gi)) {
+        // Cabeçalho colado na frase ("114 **Class** Monk --- Your…"): começa no "your proficiency".
+        const lower = sentence.toLowerCase().trim().replace(/^(?!if\b).*?---\s*(?=(?:in addition, )?your\b)/, '')
+        if (!/^(your|you|in addition, your|if you have)\b/.test(lower)) continue
+        const conditional = /^if\b|\bif you have\b/.test(lower)
+        // Cláusulas: "…for X increase to R, and your proficiency rank for Y increases to S" / "…to R with X and to S with Y".
+        const clauses = lower.split(/,? and (?=your proficiency|to (?:expert|master|legendary))/)
+        for (const clause of clauses) {
+            // "Your … and your eidolon's … increase to R": vale o seu alvo, com o rank do fim da frase.
+            const own = clause.replace(/^your and your eidolon[’']s\b/, 'your').replace(/\band your eidolon[’']s proficiency ranks? (for|in) [^,]*?(?=\bincreases? to\b)/, ' ')
+            const rankMatch = /\bto (expert|master|legendary)\b/.exec(own)
+            if (!rankMatch) continue
+            const rankWord = rankMatch[1]
+            // "…rank for X increases to R" (alvo antes) ou "…increases to R with/for X" (alvo depois, até a próxima vírgula de frase).
+            const before = own.slice(0, rankMatch.index)
+            const after = own.slice(rankMatch.index + rankMatch[0].length)
+            const phrase = /\branks? (for|in|with)\b/.test(before) ? before : after.split(/,(?= (?:and|or) you\b)|;/)[0]
+            if (NEEDS_CHOICE.test(phrase) || conditional) {
+                unsupported.push(`proficiency: ${sentence.trim().slice(0, 140)}`)
+                continue
+            }
+            const specific = phrase.match(SPECIFIC_WEAPONS) ?? []
+            if (specific.length) unsupported.push(`proficiency: ${specific.join(', ')} → ${rankWord}`)
+            const general = phrase.replace(SPECIFIC_WEAPONS, ' ')
+            const targets = PROFICIENCY_TARGETS.filter(([re]) => re.test(general)).map(([, target]) => target)
+            for (const skill of SKILLS) if (new RegExp(`\\b${skill}\\b`).test(general)) targets.push(`skill:${skill}`)
+            for (const [, lore] of general.matchAll(/\b([a-z]+) lore\b/g)) targets.push(`lore:${lore}`)
+            // "light, medium, and heavy armor" sem a palavra "armor" em cada um: as categorias só valem perto de "armor".
+            const armorless = !/\barmor\b/.test(general)
+            const kept = targets.filter((t) => !(armorless && ['light', 'medium', 'heavy'].includes(t)))
+            if (!kept.length) {
+                if (!specific.length) unsupported.push(`proficiency: ${sentence.trim().slice(0, 140)}`)
+                continue
+            }
+            for (const target of kept) out.push({ target, rank: RANK_WORDS[rankWord] })
+        }
+    }
+    return out
+}
+
 /**
  * Boosts da ancestralidade. A AON escreve o Humano (e afins) como "Two free ability boosts" (Player Core pg. 62:
  * "Attribute Boosts: Two free ability boosts"); o resto vem como nomes de atributo e "Free". Texto desconhecido vai para
@@ -159,6 +220,10 @@ export function deriveRuleData(category, data, entry) {
             defenses: defenseProficiencies(data.defense_proficiency, unsupported),
             trainedSkills: trainedSkills(data.skill_proficiency, unsupported),
         }))
+    }
+    case 'class-feature': {
+        const proficiencies = classFeatureProficiencies(entry?.markdown, unsupported)
+        return proficiencies.length || unsupported.length ? withNotes('classFeature', compact({ proficiencies })) : null
     }
     case 'weapon':
         return withNotes('weapon', compact({
