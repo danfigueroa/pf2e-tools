@@ -1,5 +1,5 @@
 {
- "version": "2026.11.6",
+ "version": "2026.11.7",
  "generatedFrom": "Storage rules/<versão>",
  "lists": {
   "core/classes": [
@@ -23190,6 +23190,22 @@
     ],
     "classOption": {
      "class": "Rogue"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "simple"
+      },
+      {
+       "rank": 2,
+       "target": "martial"
+      },
+      {
+       "rank": 2,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
