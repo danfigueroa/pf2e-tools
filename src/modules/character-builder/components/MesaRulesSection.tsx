@@ -6,7 +6,7 @@ import { fetchMesaRules, saveMesaRules } from '../../../services/builds';
 import { displayFont } from '../../../theme';
 import { locale, tr } from '../../../i18n';
 import { sources, type RuleSource } from '../rules';
-import { sanitizeMesaRules } from '../mesaRules';
+import { allowsLegacyBook, sanitizeMesaRules } from '../mesaRules';
 import type { MesaRules, MesaVariants, Rarity } from '../types';
 
 const RARITY_LABEL: Record<Rarity, string> = {
@@ -36,6 +36,7 @@ const LEVELS = Array.from({ length: 20 }, (_, i) => i + 1);
 export function MesaRulesSection() {
   const [rules, setRules] = useState<MesaRules | null>(null);
   const [books, setBooks] = useState<RuleSource[] | null>(null);
+  const [edition, setEdition] = useState<'allow' | 'legacy'>('allow');
   const [filter, setFilter] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -78,20 +79,18 @@ export function MesaRulesSection() {
     setRules({ ...rules, ...patch });
   };
   const setVariant = (patch: Partial<MesaVariants>) => change({ variants: { ...rules.variants, ...patch } });
-  const allowed = new Set(rules.sources.allow);
-  const toggleBook = (id: string, on: boolean) => {
+  const previousBooks = rules.sources.allow.length ? rules.sources.allow : (books ?? []).map((b) => b.id);
+  const legacyBooks = rules.sources.legacy ?? (rules.legacy ? previousBooks : []);
+  const allowed = new Set(edition === 'allow' ? rules.sources.allow : legacyBooks);
+  const markBooks = (ids: string[], on: boolean) => {
     const next = new Set(allowed);
-    if (on) next.add(id);
-    else next.delete(id);
-    change({ sources: { ...rules.sources, allow: [...next].sort() } });
-  };
-  const setShown = (on: boolean) => {
-    const next = new Set(allowed);
-    for (const b of shown) {
-      if (on) next.add(b.id);
-      else next.delete(b.id);
+    for (const id of ids) {
+      if (rules.sources.deny?.includes(id)) continue;
+      if (on) next.add(id);
+      else next.delete(id);
     }
-    change({ sources: { ...rules.sources, allow: [...next].sort() } });
+    // Fixe o legado antigo antes de mudar a lista Remaster compartilhada pelas mesas anteriores.
+    change({ sources: { ...rules.sources, legacy: legacyBooks, [edition]: [...next].sort() } });
   };
 
   const save = async () => {
@@ -163,16 +162,20 @@ export function MesaRulesSection() {
       </Box>
 
       <Typography sx={{ fontWeight: 600, mb: 0.5 }}>{tr('Livros liberados', 'Allowed books')}</Typography>
+      <TextField select size="small" label={tr('Edição', 'Edition')} value={edition} sx={{ mt: 1, mb: 1, minWidth: 160 }}
+        onChange={(e) => setEdition(e.target.value === 'legacy' ? 'legacy' : 'allow')}>
+        <MenuItem value="allow">{tr('Remaster', 'Remaster')}</MenuItem>
+        <MenuItem value="legacy">{tr('Legado', 'Legacy')}</MenuItem>
+      </TextField>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-        {tr(`${allowed.size} de ${books?.length ?? '…'} livros do catálogo.`, `${allowed.size} of ${books?.length ?? '…'} catalog books.`)}
+        {edition === 'allow' && allowed.size === 0 ? tr('Sem seleção, o Remaster usa todos os livros permitidos.', 'An empty selection includes all permitted books for Remaster content.')
+          : tr(`${allowed.size} de ${books?.length ?? '…'} livros do catálogo.`, `${allowed.size} of ${books?.length ?? '…'} catalog books.`)}
       </Typography>
-      <FormControlLabel control={<Checkbox checked={rules.legacy} onChange={(e) => change({ legacy: e.target.checked })} />}
-        label={tr('Conteúdo pré-Remaster liberado', 'Pre-Remaster content allowed')} />
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ my: 1, alignItems: { sm: 'center' } }}>
         <TextField size="small" label={tr('Filtrar livros', 'Filter books')} value={filter} onChange={(e) => setFilter(e.target.value)} sx={{ flex: 1 }} />
         <Stack direction="row" spacing={1}>
-          <Button size="small" onClick={() => setShown(true)}>{tr('Marcar todos', 'Select all')}</Button>
-          <Button size="small" onClick={() => setShown(false)}>{tr('Desmarcar', 'Clear')}</Button>
+          <Button size="small" disabled={!shown.length} onClick={() => markBooks(shown.map((b) => b.id), true)}>{tr('Marcar todos', 'Select all')}</Button>
+          <Button size="small" disabled={!shown.length} onClick={() => markBooks(shown.map((b) => b.id), false)}>{tr('Desmarcar', 'Clear')}</Button>
         </Stack>
       </Stack>
       {!books ? <Skeleton variant="rounded" height={120} /> : (
@@ -180,7 +183,7 @@ export function MesaRulesSection() {
           display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
           {shown.map((b) => (
             <FormControlLabel key={b.id} sx={{ mr: 0, minWidth: 0, '& .MuiFormControlLabel-label': { overflowWrap: 'anywhere' } }}
-              control={<Checkbox size="small" checked={allowed.has(b.id)} onChange={(e) => toggleBook(b.id, e.target.checked)} />}
+              control={<Checkbox size="small" disabled={rules.sources.deny?.includes(b.id)} checked={edition === 'legacy' ? allowsLegacyBook(rules, b.id) : allowed.has(b.id)} onChange={(e) => markBooks([b.id], e.target.checked)} />}
               label={<Typography variant="body2">{b.name}{b.remaster ? '' : tr(' (legado)', ' (legacy)')}</Typography>} />
           ))}
         </Box>

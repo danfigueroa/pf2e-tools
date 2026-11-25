@@ -17,6 +17,7 @@ import type { PrereqContext } from './prereqs'
 import { checkSpellChoices, compileArchetypeCasters, compileCasters, compileFocus } from './spells'
 import { adjustedClass, BLOODRAGER, CLASS_ARCHETYPE, CLASS_ARCHETYPES, selectedClassArchetype, WAR_MAGE } from './classArchetypes'
 import { armorClass, compileEquipment, GROUP_FEATURES } from './equipment'
+import { allowsBook } from '../mesaRules'
 import { abpAt, abpSkillBonus } from './abp'
 import { featSlots, variantFlags } from './slots'
 import { classChoiceSlots, SAVE_CHOICE_FEATURES, UNCOUNTED_CHOICE_TYPES } from './classChoices'
@@ -40,14 +41,13 @@ const stat = (parts: { label: string; value: number }[], base = 0): Stat => ({
 
 function sourceWarnings(entry: RuleEntry, ctx: CompileContext, ref: string, warnings: Warning[]) {
     const rules = ctx.mesaRules
-    if (rules) {
-        // Lista de livros vazia = o GM ainda não restringiu (mesa nova): não avisa por livro.
-        const allowed = (rules.sources.allow.length === 0 || rules.sources.allow.includes(entry.source.id)) && !(rules.sources.deny ?? []).includes(entry.source.id)
-        const exception = rules.exceptions.some((e) => (!ctx.buildId || e.buildId === ctx.buildId) && e.ids.includes(entry.id))
-        if (!allowed && !exception) {
+    if (rules && entry.source.id !== 'mesa') {
+        const allowed = allowsBook(entry, rules)
+        const exception = rules.exceptions.some((e) => e.buildId === ctx.buildId && e.ids.includes(entry.id))
+        if (entry.remaster && !allowed && !exception) {
             warnings.push({ code: 'SOURCE_NOT_ALLOWED', level: 'warn', ref, entryId: entry.id, message: tr(`${entry.name}: livro não liberado nesta mesa.`, `${entry.name}: book not allowed at this table.`) })
         }
-        if (!entry.remaster && !rules.legacy && !exception) {
+        if (!entry.remaster && !allowed && !exception) {
             warnings.push({ code: 'LEGACY_NOT_ALLOWED', level: 'warn', ref, entryId: entry.id, message: tr(`${entry.name}: conteúdo pré-Remaster não liberado nesta mesa.`, `${entry.name}: pre-Remaster content not allowed at this table.`) })
         }
         const rarity = entry.rarity === 'uncommon' ? rules.rarity.uncommon : entry.rarity === 'rare' || entry.rarity === 'unique' ? rules.rarity.rare : 'allow'
@@ -393,6 +393,18 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
     }
     for (const t of feats.taken) if (t.kind !== 'granted') checkTable(t.entry, t.slot)
     for (const item of equipment.items) if (item.entry) checkTable(item.entry, 'equipment')
+    const checkIds = (ids: Iterable<string | undefined>, ref: string) => {
+        for (const id of new Set(ids)) {
+            const entry = rules.get(id)
+            if (entry) checkTable(entry, ref)
+        }
+    }
+    for (const slot of classChoices) if (!slot.fixed && slot.level <= level) checkIds([slot.chosen], slot.key)
+    checkIds([...state.formulas, ...state.inventory.flatMap((i) => [i.material?.id, ...(i.runes?.property ?? [])]),
+        ...state.companions.flatMap((c) => [c.type, ...Object.values(c.choices).flatMap((v) => 'id' in v ? [v.id] : [])])], 'equipment')
+    checkIds(Object.values(state.spellcasting).flatMap((c) => [
+        ...(c.spellbook ?? []), ...(c.signature ?? []), ...Object.values(c.repertoire ?? {}).flat(), ...Object.values(c.prepared ?? {}).flat(),
+    ]), 'spells')
 
     // 7. Magias: o conjurador da classe e o foco (as magias de foco são escolha do jogador: o Foundry quase nunca as concede
     // por regra). Guardadas em `spellcasting.focus.repertoire` — "0" truques de foco, "1" magias de foco.

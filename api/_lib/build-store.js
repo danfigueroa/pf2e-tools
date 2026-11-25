@@ -65,7 +65,8 @@ export function sanitizeMesaRules(input) {
     const mythic = isObj(variants.mythic) ? variants.mythic : {}
     const deny = sourceList(v.sources?.deny)
     return {
-        sources: { allow: sourceList(v.sources?.allow), ...(deny.length ? { deny } : {}) },
+        sources: { allow: sourceList(v.sources?.allow), ...(deny.length ? { deny } : {}),
+            ...(Array.isArray(v.sources?.legacy) ? { legacy: sourceList(v.sources?.legacy) } : {}) },
         legacy: flag(v.legacy, d.legacy),
         rarity: {
             uncommon: RARITY.includes(v.rarity?.uncommon) ? v.rarity.uncommon : d.rarity.uncommon,

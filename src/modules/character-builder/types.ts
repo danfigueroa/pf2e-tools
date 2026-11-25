@@ -141,7 +141,7 @@ export interface MesaVariants {
 }
 
 export interface MesaRules {
-    sources: { allow: string[]; deny?: string[] }
+    sources: { allow: string[]; deny?: string[]; legacy?: string[] }
     legacy: boolean
     rarity: { uncommon: Rarity; rare: Rarity }
     variants: MesaVariants

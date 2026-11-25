@@ -255,6 +255,23 @@ expect('livro não liberado na mesa avisa', compileBuild(hf, { rules, mesaRules:
 const noBooks = { ...serverStore.DEFAULT_MESA_RULES, sources: { allow: [] } }
 expect('mesa sem livros escolhidos não avisa por livro', compileBuild(hf, { rules, mesaRules: noBooks }).warnings.some((w) => w.code === 'SOURCE_NOT_ALLOWED'), false)
 
+console.log('F9.10: permissão de legado por livro')
+{
+    const legacyBook = 'source:source-1'
+    const remasterBook = 'source:source-2'
+    const settings = { ...serverStore.DEFAULT_MESA_RULES, sources: { allow: [remasterBook], legacy: [legacyBook] } }
+    R('lista de legado valida e remove duplicatas', { sources: { allow: [remasterBook], legacy: [legacyBook, 'errado', legacyBook] } }, settings)
+    const old = { id: 'spell:spell-1', name: 'Teste', type: 'spell', remaster: false, source: { id: legacyBook } }
+    expect('liberação independente do Remaster', clientRules.allowedAtTable(old, settings), true)
+    expect('negação explícita prevalece', clientRules.allowedAtTable(old, { ...settings, sources: { ...settings.sources, deny: [legacyBook] } }), false)
+    expect('regras antigas respeitam interruptor e lista', [clientRules.allowedAtTable(old, { ...noBooks, legacy: true }),
+        clientRules.allowedAtTable(old, { ...settings, legacy: true, sources: { allow: [remasterBook] } })], [true, false])
+    const spell = { ...hf, spellcasting: { class: { prepared: { 1: [old.id, old.id] } } } }
+    const spellRules = { ...rules, get: (id) => id === old.id ? old : rules.get(id) }
+    const count = (mesaRules) => compileBuild(spell, { rules: spellRules, mesaRules }).warnings.filter((w) => w.code === 'LEGACY_NOT_ALLOWED' && w.entryId === old.id).length
+    expect('magia preparada duas vezes avisa uma vez e o livro liberado resolve', [count(noBooks), count(settings)], [1, 0])
+}
+
 console.log('Motor: atributos do elenco (gabarito: export do Pathbuilder)')
 const ATTR = { Str: 'str', Dex: 'dex', Con: 'con', Int: 'int', Wis: 'wis', Cha: 'cha' }
 const lower = (list) => (list ?? []).map((a) => ATTR[a])

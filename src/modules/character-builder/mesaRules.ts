@@ -45,7 +45,8 @@ export function sanitizeMesaRules(input: unknown): MesaRules {
     const mythic = isObj(variants.mythic) ? variants.mythic : {}
     const deny = sourceList(sources.deny)
     return {
-        sources: { allow: sourceList(sources.allow), ...(deny.length ? { deny } : {}) },
+        sources: { allow: sourceList(sources.allow), ...(deny.length ? { deny } : {}),
+            ...(Array.isArray(sources.legacy) ? { legacy: sourceList(sources.legacy) } : {}) },
         legacy: flag(v.legacy, d.legacy),
         rarity: { uncommon: rarity(rar.uncommon, d.rarity.uncommon), rare: rarity(rar.rare, d.rarity.rare) },
         variants: {
@@ -77,13 +78,23 @@ export function sanitizeMesaRules(input: unknown): MesaRules {
 /** A mesa escolheu livros? Lista vazia = o GM ainda não restringiu: nada é filtrado nem avisado por livro. */
 export const restrictsSources = (rules: MesaRules) => rules.sources.allow.length > 0
 
+/** Em regras antigas, o interruptor de legado usava a mesma lista de livros do Remaster. */
+export function allowsLegacyBook(rules: MesaRules, source: string): boolean {
+    return !(rules.sources.deny ?? []).includes(source) && (rules.sources.legacy !== undefined
+        ? rules.sources.legacy.includes(source)
+        : rules.legacy && (!restrictsSources(rules) || rules.sources.allow.includes(source)))
+}
+
+export function allowsBook(entry: Pick<RuleEntry, 'remaster' | 'source'>, rules: MesaRules): boolean {
+    if (!entry.remaster) return allowsLegacyBook(rules, entry.source.id)
+    return (!restrictsSources(rules) || rules.sources.allow.includes(entry.source.id)) && !(rules.sources.deny ?? []).includes(entry.source.id)
+}
+
 /** Liberado na mesa (livro, legado e raridade que não seja "negar")? `null` = sem regras da mesa (modo local). */
-export function allowedAtTable(entry: RuleEntry, rules: MesaRules | null): boolean | null {
+export function allowedAtTable(entry: Pick<RuleEntry, 'remaster' | 'rarity' | 'source'>, rules: MesaRules | null): boolean | null {
     if (!rules) return null
     // Conteúdo da mesa: foi o GM quem criou, então vale sempre.
     if (entry.source.id === 'mesa') return true
-    const source = (!restrictsSources(rules) || rules.sources.allow.includes(entry.source.id)) && !(rules.sources.deny ?? []).includes(entry.source.id)
-    const legacy = entry.remaster || rules.legacy
     const rarity = entry.rarity === 'uncommon' ? rules.rarity.uncommon : entry.rarity === 'rare' || entry.rarity === 'unique' ? rules.rarity.rare : 'allow'
-    return source && legacy && rarity !== 'deny'
+    return allowsBook(entry, rules) && rarity !== 'deny'
 }
