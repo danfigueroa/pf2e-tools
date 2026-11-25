@@ -169,14 +169,14 @@ export function ruleEntriesUpdatedSince(since) {
 export async function readRuleEntryWithMechanics(aonId) {
     const entry = check(await db().from('rules_entries').select('aon_id, id, category, name, level, source_id, removed_at').eq('aon_id', aonId).maybeSingle())
     if (!entry) return null
-    const mechanics = check(await db().from('rules_mechanics').select('origin, rules, unsupported, prereq, progression, foundry_id, foundry_ref, updated_at').eq('aon_id', aonId).maybeSingle())
+    const mechanics = check(await db().from('rules_mechanics').select('origin, rules, unsupported, prereq, progression, reviewed, note, updated_at').eq('aon_id', aonId).maybeSingle())
     return { entry, mechanics }
 }
 
 /** Correção manual de mecânica (`origin: manual`): o Foundry não passa mais por cima. */
-export async function saveManualMechanics(aonId, { rules, unsupported, note, ref }, by) {
+export async function saveManualMechanics(aonId, { rules, unsupported, note }, by) {
     check(await db().from('rules_mechanics').upsert({
-        aon_id: aonId, origin: 'manual', rules, unsupported, note, ref, updated_by: by, updated_at: new Date().toISOString(),
+        aon_id: aonId, origin: 'manual', rules, unsupported, note, reviewed: true, updated_by: by, updated_at: new Date().toISOString(),
     }, { onConflict: 'aon_id' }))
 }
 
