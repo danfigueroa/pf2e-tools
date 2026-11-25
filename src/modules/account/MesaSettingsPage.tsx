@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { Alert, Box, Button, Paper, Stack, TextField, Typography } from '@mui/material';
 import { PlayArrow as StartIcon, Stop as StopIcon } from '@mui/icons-material';
 import { useMesaInfo, useRole } from '../../services/auth';
@@ -6,6 +6,10 @@ import { saveMesaSettings } from '../../services/members';
 import { sessionDate, sessionSince } from '../../layouts/format';
 import { displayFont } from '../../theme';
 import { tr } from '../../i18n';
+
+// Do Criador de Personagem, em chunk próprio (puxa o carregador do catálogo de regras).
+const MesaRulesSection = lazy(() =>
+  import('../character-builder/components/MesaRulesSection').then((m) => ({ default: m.MesaRulesSection })));
 
 const Section = ({ title, hint, children }: { title: string; hint: string; children: React.ReactNode }) => (
   <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2.5 }, mb: 2.5 }}>
@@ -108,6 +112,8 @@ export const MesaSettingsPage = () => {
             {tr('Salvar nome', 'Save name')}</Button>
         </Stack>
       </Section>
+
+      <Suspense fallback={null}><MesaRulesSection /></Suspense>
     </Box>
   );
 };
