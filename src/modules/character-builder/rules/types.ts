@@ -32,6 +32,8 @@ export interface ClassData {
     featLevels?: { ancestry: number[]; class: number[]; general: number[]; skill: number[] }
     skillIncreaseLevels?: number[]
     spellcasting?: number
+    /** Conjuração da classe, lida da AON. `mixed` = preparado e repertório juntos (Animist): o motor avisa. */
+    casting?: { traditions: string[]; type?: 'prepared' | 'spontaneous' | 'mixed'; attribute?: AttributeKey }
     features?: ClassFeatureRef[]
 }
 

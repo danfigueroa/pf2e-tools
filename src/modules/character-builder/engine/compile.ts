@@ -14,6 +14,7 @@ import { attributeLabel, compileAttributes } from './attributes'
 import { compileSkills } from './skills'
 import { compileFeats } from './feats'
 import type { PrereqContext } from './prereqs'
+import { checkSpellChoices, compileCasters, compileFocus } from './spells'
 import { featSlots, variantFlags } from './slots'
 import { classChoiceSlots, SAVE_CHOICE_FEATURES, UNCOUNTED_CHOICE_TYPES } from './classChoices'
 import type { CompileContext, Compiled, Pending, Rank, Stat, Warning } from './types'
@@ -109,7 +110,7 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
         reflex: r(c?.saves?.reflex),
         will: r(c?.saves?.will),
         classDC: cls ? CLASS_DC_RANK : 0,
-        spell: 0,
+        spell: (c?.spellcasting ?? 0) as Rank,
         attacks: { ...(c?.attacks ?? {}) } as Compiled['proficiency']['attacks'],
         defenses: { ...(c?.defenses ?? {}) } as Compiled['proficiency']['defenses'],
     }
@@ -280,6 +281,13 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
         if (entry) sourceWarnings(entry, ctx, 'languages', warnings)
     }
 
+    // 7. Magias: o conjurador da classe e o foco (as magias de foco são escolha do jogador: o Foundry quase nunca as concede
+    // por regra). Guardadas em `spellcasting.focus.repertoire` — "0" truques de foco, "1" magias de foco.
+    const casters = compileCasters(state, cls, { level, keyAttribute, mod, spellRank: proficiency.spell, table: ctx.tables?.spellSlots }, pending, warnings, used)
+    checkSpellChoices(state, casters, (id) => rules.get(id), pending, warnings)
+    const focusIds = Object.values(state.spellcasting.focus?.repertoire ?? {}).flat()
+    const focus = compileFocus(focusIds.map((id) => rules.get(id)).filter((e): e is RuleEntry => !!e), level)
+
     // 5. Derivados.
     const part = (label: string, value: number) => ({ label, value })
     const attrPart = (key: keyof typeof mod) => part(attributeLabel(key), mod[key])
@@ -341,6 +349,8 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
         saveChoices,
         prereq: prereqContext(),
         ancestryTraits,
+        casters,
+        focus,
         skillBonus: feats.mods.skill,
     }
 }

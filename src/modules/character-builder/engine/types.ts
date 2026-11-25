@@ -8,6 +8,7 @@ import type { ChildSlot, TakenFeat } from './feats'
 import type { FeatSlot } from './slots'
 import type { ClassChoiceSlot } from './classChoices'
 import type { PrereqContext } from './prereqs'
+import type { Caster, FocusInfo, SpellSlotTable } from './spells'
 
 export type { AttributeKey } from '../rules/types'
 
@@ -36,6 +37,8 @@ export interface CompileContext {
     mesaRules?: MesaRules
     /** Opções de escolha de classe (`core/class-features`, tipos como `doctrine`, `racket`…). */
     classOptions?: RuleEntry[]
+    /** Tabelas curadas (`core/tables`): magias por dia. */
+    tables?: { spellSlots?: SpellSlotTable }
 }
 
 export type WarningLevel = 'info' | 'warn' | 'error'
@@ -148,6 +151,9 @@ export interface Compiled {
     prereq: PrereqContext
     /** Traços que valem para talentos de ancestralidade (ancestralidade e herança versátil). */
     ancestryTraits: string[]
+    /** Conjuradores e foco (F5). */
+    casters: Caster[]
+    focus: FocusInfo
     /** Bônus fixos de talento por perícia (Incredible Initiative não: é situacional). */
     skillBonus: Partial<Record<SkillKey, number>>
 }
