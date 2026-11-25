@@ -33,7 +33,13 @@ export interface FeatListNeeds {
     archetypes: string[]
     /** Tradições de magia do personagem (listas `spells/<tradição>`); o foco vem junto quando há alguma. */
     traditions?: string[]
+    /** Inventário ou aba Equipamento: todas as listas de item (o inventário guarda só o id). */
+    items?: boolean
+    /** Companheiros: tipos de companheiro animal e familiares. */
+    companions?: boolean
 }
+
+export const ITEM_LISTS = ['weapons', 'armor', 'shields', 'runes', 'materials', 'worn', 'held', 'consumables', 'gear', 'staves-wands', 'relics'] as const
 
 /** Caminhos das listas de talento que o personagem pode usar. */
 export function featListPaths(needs: FeatListNeeds): string[] {
@@ -46,6 +52,8 @@ export function featListPaths(needs: FeatListNeeds): string[] {
         ...needs.archetypes.map((a) => `feats/archetype/${ruleListSlug(a)}`),
         ...(needs.traditions ?? []).map((t) => `spells/${t}`),
         'spells/focus', 'spells/rituals',
+        ...(needs.items ? ITEM_LISTS.map((l) => `items/${l}`) : []),
+        ...(needs.companions ? ['companions/animal', 'companions/familiar'] : []),
     ].filter((p): p is string => Boolean(p))
 }
 

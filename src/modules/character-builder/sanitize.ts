@@ -277,7 +277,7 @@ function cleanHistory(v: unknown): BuildState['history'] {
 export function emptyBuildState(name: string, rulesVersion: string): BuildState {
     return {
         schema: BUILD_SCHEMA, rulesVersion, name, level: 1, xp: 0, options: {}, origin: {}, class: {}, choices: {},
-        manual: {}, inventory: [], money: { pp: 0, gp: 0, sp: 0, cp: 0 }, spellcasting: {}, companions: [], details: {}, history: [],
+        manual: {}, inventory: [], money: { pp: 0, gp: 0, sp: 0, cp: 0 }, formulas: [], spellcasting: {}, companions: [], details: {}, history: [],
     }
 }
 
@@ -305,6 +305,8 @@ export function sanitizeBuildState(input: unknown): BuildState | null {
         manual: cleanManual(v.manual),
         inventory: cleanInventory(v.inventory),
         money: cleanMoney(v.money),
+        // Livro de fórmulas: ids de item do catálogo, sem repetir.
+        formulas: uniq(v.formulas, 300, id) ?? [],
         spellcasting: record(v.spellcasting, (k) => KEY_RE.test(k), 12, cleanCaster) ?? {},
         companions: list(v.companions, 10, cleanCompanion) ?? [],
         details: cleanDetails(v.details),

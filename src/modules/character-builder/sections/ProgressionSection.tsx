@@ -151,10 +151,11 @@ export function ProgressionSection(props: ProgressionProps) {
         const slots = compiled.featSlots.filter((s) => s.level === level);
         const classChoices = compiled.classChoices.filter((c) => c.level === level);
         const saveChoices = compiled.saveChoices.filter((c) => c.level === level);
+        const groupChoices = compiled.groupChoices.filter((c) => c.level === level);
         const children = compiled.featChildren.filter((c) => c.level === level);
-        const missing = [...slots.map((s) => s.key), ...classChoices.map((c) => c.key), ...saveChoices.map((c) => c.key), ...children.map((c) => c.key)]
+        const missing = [...slots.map((s) => s.key), ...classChoices.map((c) => c.key), ...saveChoices.map((c) => c.key), ...groupChoices.map((c) => c.key), ...children.map((c) => c.key)]
           .filter((k) => pendingKeys.has(k)).length;
-        if (!features.length && !slots.length && !classChoices.length && !saveChoices.length) return null;
+        if (!features.length && !slots.length && !classChoices.length && !saveChoices.length && !groupChoices.length) return null;
         return (
           <Accordion key={level} expanded={open === level} onChange={(_, on) => setOpen(on ? level : false)} disableGutters
             slotProps={{ transition: { unmountOnExit: true } }} sx={{ opacity: planned ? 0.6 : 1 }}>
@@ -180,6 +181,11 @@ export function ProgressionSection(props: ProgressionProps) {
                     <MenuItem value="">{tr('Escolher…', 'Choose…')}</MenuItem>
                     {SAVES.map((s) => <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>)}
                   </TextField>
+                ))}
+                {groupChoices.map((c) => (
+                  <TextField key={c.key} size="small" label={`${c.label}: ${tr('grupo de arma', 'weapon group')}`} defaultValue={c.chosen ?? ''}
+                    disabled={!canEdit} error={!c.chosen && !planned} helperText={tr('Em inglês, como na AON (ex.: hammer, sword, bow).', 'As on AON (e.g. hammer, sword, bow).')}
+                    onBlur={(e) => setChoice(update, c.key, e.target.value.trim() ? { value: e.target.value.trim().toLowerCase() } : null)} />
                 ))}
                 <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 1 }}>
                   {slots.map((slot) => {

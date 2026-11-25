@@ -249,21 +249,21 @@ magias/itens), sem pendência fantasma nem slot faltando.
 **Objetivo**: inventário completo com runas, materiais, carga e dinheiro; ataques prontos; companheiros.
 **Depende de**: F4. Paralela à F5.
 
-- [ ] **6.1** `equipment.ts`: itens por categoria, quantidade, comprar/dar, dinheiro (`NEGATIVE_MONEY`), investidos
+- [x] **6.1** `equipment.ts`: itens por categoria, quantidade, comprar/dar, dinheiro (`NEGATIVE_MONEY`), investidos
       (`INVESTED_LIMIT`), contêineres e carga (`ENCUMBERED`), Adventurer's Kit separado.
-- [ ] **6.2** Runas: potência/striking/resiliente/reforço/propriedade (slots), a maior substitui a menor; materiais e graus;
+- [x] **6.2** Runas: potência/striking/resiliente/reforço/propriedade (slots), a maior substitui a menor; materiais e graus;
       preço composto.
-- [ ] **6.3** `defenses.ts`: CA com armadura (teto de DES, potência), penalidades, escudo (fora da CA), resistências de item
+- [x] **6.3** `defenses.ts`: CA com armadura (teto de DES, potência), penalidades, escudo (fora da CA), resistências de item
       (fim do `addItemResistances`), `mods` de item.
-- [ ] **6.4** `strikes.ts`: ataque/dano das armas (FOR/DES/acuidade, propulsivo, striking, especialização pela
+- [x] **6.4** `strikes.ts`: ataque/dano das armas (FOR/DES/acuidade, propulsivo, striking, especialização pela
       característica), **desarmados** (punho + `Strike` de ancestralidade/talento), overrides com aviso.
-- [ ] **6.5** UI: aba Equipamento (dinheiro, volume, lista por contêiner), seletores de arma/armadura/item, diálogo de
+- [x] **6.5** UI: aba Equipamento (dinheiro, volume, lista por contêiner), seletores de arma/armadura/item, diálogo de
       opções da arma e de runas (UX §1.4).
-- [ ] **6.6** Riqueza inicial (nível 1: 15 po; nível N: referência da tabela — D6).
-- [ ] **6.7** `companions.ts` + UI: companheiro animal (tipo, maduro, incrível, especialização, armadura) e familiar
+- [x] **6.6** Riqueza inicial (nível 1: 15 po; nível N: referência da tabela — D6).
+- [x] **6.7** `companions.ts` + UI: companheiro animal (tipo, maduro, incrível, especialização, armadura) e familiar
       (habilidades); export `pets`/`familiars`.
-- [ ] **6.8** Livro de fórmulas (formato fechado na F0.7).
-- [ ] **6.9** Casos: armas e armaduras do elenco (inclui Cold Iron/Silver, Greater Striking), Arachnid Harness
+- [x] **6.8** Livro de fórmulas (formato fechado na F0.7).
+- [x] **6.9** Casos: armas e armaduras do elenco (inclui Cold Iron/Silver, Greater Striking), Arachnid Harness
       (resistência), Ardagar (companheiro Savage Bear).
 
 **Rodar**: `check-builder`, `check-economy` (custos de ativáveis seguem iguais), build, lint.

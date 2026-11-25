@@ -140,7 +140,9 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
         has.add(ref.name.toLowerCase())
         if (!entry) continue
         for (const p of entry.classFeature?.proficiencies ?? []) upgrade(p.target, p.rank)
-        for (const note of (entry.unsupported ?? []).filter((u) => u.startsWith('proficiency:'))) {
+        // Grupo de arma e salvaguarda escolhida viram escolha calculada abaixo: o aviso de "não calculado" não vale para elas.
+        const handled = GROUP_FEATURES.some((g) => g.name.test(ref.name)) || SAVE_CHOICE_FEATURES.some((f) => f.name.test(ref.name))
+        for (const note of handled ? [] : (entry.unsupported ?? []).filter((u) => u.startsWith('proficiency:'))) {
             warnings.push({ code: 'UNSUPPORTED_EFFECT', level: 'info', ref: 'class', message: tr(`Efeito não calculado: ${entry.name} (${note.slice(13)}).`, `Effect not calculated: ${entry.name} (${note.slice(13)}).`) })
         }
         for (const rule of entry.rules ?? []) {

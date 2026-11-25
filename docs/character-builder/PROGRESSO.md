@@ -194,3 +194,29 @@
   - Magias concedidas por escolha (escola, domínio, mistério).
   - Tamanho do repertório espontâneo.
   - O truque extra do Loki, que vem de talento.
+
+## F6 — Equipamento e companheiros concluída (núcleo; pendências registradas)
+
+- **Regras conferidas na AON.**
+  - Player Core: Volume (pg. 269, 5 + FOR e máximo 10 + FOR); moedas (pg. 269, mil = 1 Volume, arredondado para baixo); CA com teto de DES e Força da armadura (pg. 271); ataque e dano com acuidade, arremesso e propulsiva (pg. 275); riqueza inicial de 15 po (pg. 10).
+  - GM Core: investidos até 10 (pg. 219), runas de armadura (pg. 226) e de arma (pg. 236).
+  - Grupo de arma do Fighter Weapon Mastery e da Weapon Legend: Player Core pg. 136. Especialização em armas, 2/3/4 e na versão maior 4/6/8: texto das características na AON.
+- **Motor (`engine/equipment.ts`).**
+  - Itens resolvidos pelo catálogo (o item específico usa os números da base); preço, compras e sobra; Volume com moedas; investidos.
+  - Armadura vestida: CA, teto de DES, Força, penalidades. O escudo fica fora da CA, como no export. O resiliente entra nas salvaguardas.
+  - Golpes das armas e o punho do catálogo: ataque, dados com striking, dano com FOR/propulsiva/especialização e overrides com aviso.
+  - **Avisos.** `ENCUMBERED`, `OVER_BULK`, `INVESTED_LIMIT`, `NEGATIVE_MONEY`, `RUNE_SLOTS`, `SPECIFIC_ITEM` e `WEAPON_OVERRIDE`. Dano extra de runas de propriedade sai como "efeito não calculado".
+  - A escolha de grupo de arma é calculada e aparece na aba Progressão.
+- **Livro de fórmulas:** campo novo `formulas` no `BuildState`, nos dois sanitizadores, com caso no par cliente × servidor.
+- **Companheiros:** companheiro animal (tipo, avanço e especialização do catálogo) e familiar (específico e habilidades). Os números continuam com a Ficha (`companionStats.ts`). O número de habilidades do familiar ainda não é conferido.
+- **Aba Equipamento:**
+  - Dinheiro, com a referência de riqueza (15 po no nível 1; acima, a tabela do GM Core pg. 61).
+  - Inventário por categoria, com quantidade, origem (comprado/ganho), vestido/investido e o diálogo de runas.
+  - Golpes com a conta no `title`, livro de fórmulas e companheiros.
+  - Conferida em 320 px e no desktop com o catálogo real: Fighter 10 com CA 29 e deslocamento 20 (Full Plate com a Força atendida).
+- **`check-builder`: 164 conferências.** Ghan Buri: Warhammer com ataque +23, dano +8 e 2d8; CA 29 com o Hero's Plate +1; resiliente +1; escudo de 3 fora da CA; punho. Também: carga, dinheiro negativo e o Volume das moedas. O recorte passou a incluir a base dos itens específicos e o punho.
+- **Pendente.**
+  - Dano extra das runas de propriedade (o dado de runa não está no catálogo).
+  - Materiais além do rótulo; contêineres (capacidade).
+  - Penalidade de teste da armadura nas perícias; Adventurer's Kit separado.
+  - Arachnid Harness e o companheiro do Ardagar, que ficam para a paridade da F7.

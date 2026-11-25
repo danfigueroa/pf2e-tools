@@ -128,6 +128,7 @@ S('companheiros, detalhes e histórico', {
     details: { age: '27', portrait: 'https://exemplo/img.webp' },
     history: [{ at: '2026-11-24T10:00:00Z', by: 'gm', note: 'Retreino', kind: 'retrain' }],
 })
+S('fórmulas: repetida e fora do formato saem', { ...empty, formulas: ['item:equipment-1', 'item:equipment-1', 'Lantern'] }, { ...empty, formulas: ['item:equipment-1'] })
 S('versão do catálogo fora do formato sai', { ...empty, rulesVersion: 'latest' }, { ...empty, rulesVersion: '' })
 const big = { ...empty, spellcasting: Object.fromEntries(Array.from({ length: 12 }, (_, i) => [`c${i}`, { spellbook: Array.from({ length: 300 }, (_, j) => `spell:spell-${i}${j}`) }])) }
 expect('tamanho: cliente = servidor', clientSanitize.buildBytes(clientSanitize.sanitizeBuildState(big)), serverSanitize.buildBytes(serverSanitize.sanitizeBuildState(big)))

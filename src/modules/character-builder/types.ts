@@ -96,6 +96,8 @@ export interface BuildState {
     }
     inventory: InventoryEntry[]
     money: { pp: number; gp: number; sp: number; cp: number }
+    /** Livro de fórmulas (ids de item). */
+    formulas: string[]
     spellcasting: Record<string, CasterChoices>
     companions: CompanionChoice[]
     details: { age?: string; gender?: string; pronouns?: string; ethnicity?: string; nationality?: string; portrait?: string }

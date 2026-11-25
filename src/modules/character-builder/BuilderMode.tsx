@@ -22,6 +22,8 @@ import { AttributesSection } from './sections/AttributesSection';
 import { SkillsSection } from './sections/SkillsSection';
 import { ProgressionSection } from './sections/ProgressionSection';
 import { SpellsSection } from './sections/SpellsSection';
+import { EquipmentSection } from './sections/EquipmentSection';
+import { CompanionsSection } from './sections/CompanionsSection';
 import type { SectionProps } from './sections/types';
 import { tabOf, type BuilderTab } from './tabs';
 import type { BuildState } from './types';
@@ -44,6 +46,7 @@ const TABS: { key: BuilderTab; label: string }[] = [
   { key: 'skills', label: tr('Perícias', 'Skills') },
   { key: 'progression', label: tr('Progressão', 'Progression') },
   { key: 'spells', label: tr('Magias', 'Spells') },
+  { key: 'equipment', label: tr('Equipamento', 'Equipment') },
   { key: 'details', label: tr('Detalhes', 'Details') },
 ];
 
@@ -66,6 +69,8 @@ export function BuilderMode({ buildId }: { buildId: string }) {
   const rules = useRules(needs);
   const [className, setClassName] = useState<string | null>(null);
   const [browseArchetype, setBrowseArchetype] = useState<string | null>(null);
+  // A aba Equipamento pede as listas de item mesmo com o inventário vazio.
+  const [itemsWanted, setItemsWanted] = useState(false);
   const { build, state, canEdit, loading, error, status, conflict, update, keepMine, takeTheirs, reload } = useBuild(buildId, className);
 
   // Listas de talento que este personagem usa: classe, ancestralidade, herança versátil, mítico e os arquétipos dos
@@ -83,6 +88,8 @@ export function BuilderMode({ buildId }: { buildId: string }) {
     const next: FeatListNeeds = {
       className: cls?.name, ancestryName: anc?.name, versatileHeritage: her && !her.heritage?.ancestry ? her.name : undefined,
       mythic: variantFlags(state, rules.mesaRules ?? undefined).mythic, archetypes: [...archetypes].sort(),
+      items: state.inventory.length > 0 || state.formulas.length > 0 || itemsWanted,
+      companions: state.companions.length > 0 || itemsWanted,
       // Tradições: a da classe (uma) ou a escolhida pela subclasse.
       traditions: (() => {
         const list = cls?.class?.casting?.traditions ?? [];
@@ -92,7 +99,7 @@ export function BuilderMode({ buildId }: { buildId: string }) {
       })(),
     };
     return JSON.stringify(next);
-  }, [core, state, browseArchetype, rules.mesaRules]);
+  }, [core, state, browseArchetype, rules.mesaRules, itemsWanted]);
   useEffect(() => { if (needsKey) setNeeds(JSON.parse(needsKey) as FeatListNeeds); }, [needsKey]);
   const [tab, setTab] = useState<BuilderTab>('origin');
   const [pendingOpen, setPendingOpen] = useState(false);
@@ -152,6 +159,7 @@ export function BuilderMode({ buildId }: { buildId: string }) {
   const pendingCount = compiled ? compiled.pending.length : 0;
   const tabPending = (key: BuilderTab) => compiled?.pending.filter((p) => tabOf(p.key) === key).length ?? 0;
   const go = (next: BuilderTab) => {
+    if (next === 'equipment') setItemsWanted(true);
     setTab(next);
     setPendingOpen(false);
   };
@@ -213,7 +221,7 @@ export function BuilderMode({ buildId }: { buildId: string }) {
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) 300px' }, gap: 2, alignItems: 'start' }}>
           <Box sx={{ minWidth: 0 }}>
-            <Tabs value={tab} onChange={(_, v: BuilderTab) => setTab(v)} variant="scrollable" allowScrollButtonsMobile sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs value={tab} onChange={(_, v: BuilderTab) => { if (v === 'equipment') setItemsWanted(true); setTab(v); }} variant="scrollable" allowScrollButtonsMobile sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}>
               {TABS.map((t) => (
                 <Tab key={t.key} value={t.key} data-view=""
                   label={tabPending(t.key) ? <Badge color="warning" variant="dot">{t.label}</Badge> : t.label} />
@@ -225,6 +233,13 @@ export function BuilderMode({ buildId }: { buildId: string }) {
             {sectionProps && tab === 'class' && <ClassSection {...sectionProps} />}
             {sectionProps && tab === 'attributes' && <AttributesSection {...sectionProps} />}
             {sectionProps && tab === 'skills' && <SkillsSection {...sectionProps} />}
+            {sectionProps && tab === 'equipment' && (
+              <Stack spacing={2}>
+                <EquipmentSection {...sectionProps} entries={rules.feats}
+                  wealth={(rules.tables as { wealth?: { levels: Record<string, { currency: number; lumpSum: number }>; source?: string } } | null)?.wealth} />
+                <CompanionsSection {...sectionProps} entries={rules.feats} />
+              </Stack>
+            )}
             {sectionProps && tab === 'spells' && <SpellsSection {...sectionProps} spells={rules.feats.filter((e) => e.type === 'spell')} />}
             {sectionProps && tab === 'progression' && (
               <ProgressionSection {...sectionProps} feats={rules.feats} archetypes={core?.archetypes ?? []}

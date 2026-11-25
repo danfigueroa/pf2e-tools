@@ -59,6 +59,7 @@ export interface EquipmentResult {
     strikes: Strike[]
 }
 
+const ATTR_LABEL: Record<AttributeKey, string> = { str: tr('FOR', 'STR'), dex: tr('DES', 'DEX'), con: 'CON', int: 'INT', wis: tr('SAB', 'WIS'), cha: tr('CAR', 'CHA') }
 const COINS_GP = (m: BuildState['money']) => m.pp * 10 + m.gp + m.sp / 10 + m.cp / 100
 export const STARTING_GOLD = 15
 
@@ -157,8 +158,8 @@ export function compileEquipment(state: BuildState, rules: RulesIndex, ctx: {
         const striking = inv?.runes?.striking ?? 0
         const strDamage = ranged ? (low.includes('propulsive') ? (str > 0 ? Math.floor(str / 2) : str) : 0) : str
         const spec = specBonus(rank)
-        const attackParts = [{ label: tr('Proficiência', 'Proficiency'), value: prof }, { label: attr.toUpperCase(), value: ctx.mod[attr] }, ...(potency ? [{ label: tr('Potência', 'Potency'), value: potency }] : [])]
-        const damageParts = [...(strDamage ? [{ label: 'FOR', value: strDamage }] : []), ...(spec ? [{ label: tr('Especialização', 'Specialization'), value: spec }] : [])]
+        const attackParts = [{ label: tr('Proficiência', 'Proficiency'), value: prof }, { label: ATTR_LABEL[attr], value: ctx.mod[attr] }, ...(potency ? [{ label: tr('Potência', 'Potency'), value: potency }] : [])]
+        const damageParts = [...(strDamage ? [{ label: tr('FOR', 'STR'), value: strDamage }] : []), ...(spec ? [{ label: tr('Especialização', 'Specialization'), value: spec }] : [])]
         let attack = attackParts.reduce((s, p) => s + p.value, 0)
         let damageBonus = damageParts.reduce((s, p) => s + p.value, 0)
         const o = inv?.weapon?.overrides
@@ -198,7 +199,7 @@ export function armorClass(eq: EquipmentResult, ctx: { dex: number; level: numbe
     const rank = (ctx.defenses[cat] ?? 0) as Rank
     const prof = rank > 0 ? ctx.level + 2 * rank : 0
     const dex = eq.armor ? Math.min(ctx.dex, eq.armor.dexCap) : ctx.dex
-    const parts = [{ label: tr('Base', 'Base'), value: 10 }, { label: 'DES', value: dex }, { label: ctx.label(rank), value: prof }]
+    const parts = [{ label: tr('Base', 'Base'), value: 10 }, { label: tr('DES', 'DEX'), value: dex }, { label: ctx.label(rank), value: prof }]
     if (eq.armor && eq.armor.ac + eq.armor.potency) parts.push({ label: tr('Item', 'Item'), value: eq.armor.ac + eq.armor.potency })
     return { total: parts.reduce((s, p) => s + p.value, 0), parts }
 }
