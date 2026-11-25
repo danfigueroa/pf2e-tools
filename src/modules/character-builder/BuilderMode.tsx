@@ -115,6 +115,14 @@ export function BuilderMode({ buildId }: { buildId: string }) {
         </Alert>
       )}
 
+      {canEdit && rulesVersion && state.rulesVersion && state.rulesVersion !== rulesVersion && (
+        <Alert severity="info" sx={{ mb: 2 }}
+          action={<Button color="inherit" onClick={() => update((s) => ({ ...s, rulesVersion }))}>{tr('Usar as novas', 'Use the new ones')}</Button>}>
+          {tr(`Regras atualizadas desde a última edição (${state.rulesVersion} → ${rulesVersion}). Nada muda até você escolher usar as novas.`,
+            `Rules updated since the last edit (${state.rulesVersion} → ${rulesVersion}). Nothing changes until you choose to use the new ones.`)}
+        </Alert>
+      )}
+
       <ReadOnlyTheme on={!canEdit}>
         <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2.5 }, mb: 2.5 }}>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 120px' }, gap: 1.5 }}>
