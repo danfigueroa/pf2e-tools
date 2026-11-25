@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Box, Chip, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
-import { Add as AddIcon } from '@mui/icons-material';
-import { displayFont } from '../../../theme';
+import { Box, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
+import { displayFont, gold, ink, rule, status, TRADITION_COLORS } from '../../../theme';
 import { tr } from '../../../i18n';
 import { ContentPicker } from '../components/ContentPicker';
 import { attributeLabel } from '../engine/attributes';
@@ -9,12 +9,13 @@ import { rankName } from '../engine/compile';
 import type { Caster } from '../engine/spells';
 import type { RuleEntry } from '../rules/types';
 import type { CasterChoices } from '../types';
+import { BandHead, Label, PendCount, Pill, SectionHead, SlotCard } from '../components/ui';
+import { cardSx, signed } from '../components/uiTokens';
 import { setChoice, type SectionProps } from './types';
 
 const TRADITION_LABEL: Record<string, string> = {
-  arcane: tr('Arcana', 'Arcane'), divine: tr('Divina', 'Divine'), occult: tr('Ocultista', 'Occult'), primal: tr('Primal', 'Primal'),
+  arcane: tr('Arcana', 'Arcane'), divine: tr('Divina', 'Divine'), occult: tr('Oculta', 'Occult'), primal: tr('Primal', 'Primal'),
 };
-const signed = (n: number) => `${n >= 0 ? '+' : ''}${n}`;
 
 type Field = 'repertoire' | 'prepared' | 'spellbook' | 'focus0' | 'focus1' | 'rituals';
 type Picking = { caster: string; field: Field; rank: number } | null;
@@ -86,111 +87,120 @@ export function SpellsSection({ state, update, compiled, canEdit, index, mesaRul
       && (p.field === 'spellbook' ? (s.spell?.rank ?? 0) <= maxRank : (p.rank === 0) === !!s.spell?.cantrip && (s.spell?.rank ?? 0) <= Math.max(p.rank, 1)));
   };
 
+  /** Um chip de magia escolhida (tocar tira) e o convite "+ Escolher". */
+  const spellChips = (ids: string[], onRemove: (i: number) => void, onAdd: () => void, empty = 1) => (
+    <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
+      {ids.map((id, i) => (
+        <Pill key={`${id}-${i}`} onClick={canEdit ? () => onRemove(i) : undefined} title={canEdit ? tr('Tocar para tirar', 'Tap to remove') : undefined}>
+          {name(id)}{canEdit && <CloseIcon sx={{ fontSize: 14, color: ink.secondary }} />}
+        </Pill>
+      ))}
+      {canEdit && Array.from({ length: Math.max(1, empty) }, (_, k) => (
+        <Pill key={`add-${k}`} look="add" onClick={onAdd}>{tr('+ Escolher', '+ Choose')}</Pill>
+      ))}
+    </Box>
+  );
+
   const casterCard = (caster: Caster) => {
     const c = lists(caster.key);
     const field = caster.type === 'spontaneous' ? 'repertoire' : 'prepared';
     const ranks = caster.perDay.map((n, r) => ({ n, r })).filter(({ n }) => n > 0);
     const needsTradition = compiled.pending.some((p) => p.key === 'spell-tradition') || (index.get(state.class.id)?.class?.casting?.traditions.length ?? 0) > 1;
+    const color = caster.tradition ? TRADITION_COLORS[caster.tradition] : ink.secondary;
     return (
-      <Paper key={caster.key} variant="outlined" sx={{ p: { xs: 1.5, sm: 2 } }}>
-        <Typography component="h3" sx={{ fontFamily: displayFont, fontWeight: 700 }}>{caster.name}</Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-          {[caster.tradition ? TRADITION_LABEL[caster.tradition] : tr('tradição a escolher', 'tradition to choose'),
-            caster.type === 'prepared' ? tr('preparado', 'prepared') : tr('espontâneo', 'spontaneous'),
-            `${attributeLabel(caster.attribute)}`, rankName(caster.rank)].join(' · ')}
-        </Typography>
-        {needsTradition && (
-          <TextField select size="small" label={tr('Tradição (pela subclasse)', 'Tradition (from the subclass)')} sx={{ mb: 1.5, minWidth: 220 }}
-            value={caster.tradition ?? ''} disabled={!canEdit}
-            onChange={(e) => setChoice(update, 'spell-tradition', e.target.value ? { value: e.target.value } : null)}>
-            <MenuItem value="">{tr('Escolher…', 'Choose…')}</MenuItem>
-            {(index.get(state.class.id)?.class?.casting?.traditions ?? []).map((t) => <MenuItem key={t} value={t}>{TRADITION_LABEL[t] ?? t}</MenuItem>)}
-          </TextField>
-        )}
-        <Stack direction="row" sx={{ gap: 2, flexWrap: 'wrap', mb: 1.5 }}>
-          <Typography title={`10 + ${rankName(caster.rank)} + ${attributeLabel(caster.attribute)}`}>{tr('CD', 'DC')} <b>{caster.dc}</b></Typography>
-          <Typography>{tr('Ataque', 'Attack')} <b>{signed(caster.attack)}</b></Typography>
-          {caster.source && <Typography variant="caption" color="text.secondary">{tr(`Tabela: ${caster.source}`, `Table: ${caster.source}`)}</Typography>}
-        </Stack>
-
-        {caster.spellbook && (
-          <Box sx={{ mb: 1.5 }}>
-            <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>{tr('Grimório', 'Spellbook')}</Typography>
-            <Stack direction="row" sx={{ gap: 0.5, flexWrap: 'wrap' }}>
-              {(c.spellbook ?? []).map((id, i) => (
-                <Chip key={`${id}-${i}`} size="small" label={name(id)} onDelete={canEdit ? () => removeAt(caster.key, 'spellbook', 0, i) : undefined} />
-              ))}
-              {canEdit && <Chip size="small" icon={<AddIcon />} label={tr('Adicionar', 'Add')} variant="outlined" onClick={() => setPicking({ caster: caster.key, field: 'spellbook', rank: 0 })} />}
-            </Stack>
+      <Box key={caster.key} sx={[cardSx, { overflow: 'hidden' }]}>
+        <BandHead right={caster.tradition ? TRADITION_LABEL[caster.tradition] : tr('tradição a escolher', 'tradition to choose')}>{caster.name}</BandHead>
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', textAlign: 'center', py: 1.25, px: 0.5, borderBottom: `1px solid ${rule}` }}>
+          <Box title={`10 + ${rankName(caster.rank)} + ${attributeLabel(caster.attribute)}`}>
+            <Box sx={{ fontSize: 22, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{caster.dc}</Box><Label>{tr('CD', 'DC')}</Label>
           </Box>
-        )}
-
-        <Stack spacing={1}>
+          <Box><Box sx={{ fontSize: 22, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{signed(caster.attack)}</Box><Label>{tr('Ataque', 'Attack')}</Label></Box>
+          <Box><Box sx={{ fontSize: 15, fontWeight: 700, pt: 0.5 }}>{caster.type === 'prepared' ? tr('Preparado', 'Prepared') : tr('Espontâneo', 'Spontaneous')}</Box><Label>{tr('Lista', 'List')}</Label></Box>
+          <Box><Box sx={{ fontSize: 15, fontWeight: 700, pt: 0.5, color }}>{attributeLabel(caster.attribute)}</Box><Label>{tr('Atributo', 'Attribute')}</Label></Box>
+        </Box>
+        <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          {needsTradition && (
+            <TextField select size="small" label={tr('Tradição (pela subclasse)', 'Tradition (from the subclass)')} sx={{ minWidth: 220, alignSelf: 'flex-start' }}
+              value={caster.tradition ?? ''} disabled={!canEdit}
+              onChange={(e) => setChoice(update, 'spell-tradition', e.target.value ? { value: e.target.value } : null)}>
+              <MenuItem value="">{tr('Escolher…', 'Choose…')}</MenuItem>
+              {(index.get(state.class.id)?.class?.casting?.traditions ?? []).map((t) => <MenuItem key={t} value={t}>{TRADITION_LABEL[t] ?? t}</MenuItem>)}
+            </TextField>
+          )}
+          {caster.source && <Box sx={{ fontSize: 12, color: ink.secondary }}>{tr(`Tabela: ${caster.source} · ${rankName(caster.rank)}`, `Table: ${caster.source} · ${rankName(caster.rank)}`)}</Box>}
+          {caster.spellbook && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+              <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
+                <Box component="b" sx={{ font: `700 15px ${displayFont}` }}>{tr('Grimório', 'Spellbook')}</Box>
+                <Box component="span" sx={{ fontSize: 13, color: ink.secondary }}>{tr(`${(c.spellbook ?? []).length} magias`, `${(c.spellbook ?? []).length} spells`)}</Box>
+              </Box>
+              {spellChips(c.spellbook ?? [], (i) => removeAt(caster.key, 'spellbook', 0, i), () => setPicking({ caster: caster.key, field: 'spellbook', rank: 0 }))}
+            </Box>
+          )}
           {ranks.map(({ n, r }) => {
             const chosen = c[field]?.[String(r)] ?? [];
-            const left = field === 'prepared' ? Math.max(0, n - chosen.length) : null;
+            const left = field === 'prepared' ? Math.max(0, n - chosen.length) : 0;
+            const full = field === 'prepared' && left === 0;
             return (
-              <Box key={r}>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  {r === 0 ? tr('Truques', 'Cantrips') : tr(`Rank ${r}`, `Rank ${r}`)}
-                  <Box component="span" sx={{ color: 'text.secondary', fontWeight: 400 }}>
-                    {' · '}{r > 0 ? tr(`${n} por dia`, `${n} per day`)
-                      : field === 'prepared' ? tr(`${n} preparados`, `${n} prepared`) : tr(`${n} no repertório`, `${n} in the repertoire`)}
-                    {left !== null && left > 0 ? tr(` · restam ${left}`, ` · ${left} left`) : ''}
+              <Box key={r} sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
+                  <Box component="b" sx={{ font: `700 15px ${displayFont}` }}>{r === 0 ? tr('Truques', 'Cantrips') : tr(`Rank ${r}`, `Rank ${r}`)}</Box>
+                  <Box component="span" sx={{ fontSize: 13, color: ink.secondary, flex: 1 }}>
+                    {r > 0 ? tr(`${n} por dia`, `${n} per day`) : field === 'prepared' ? tr(`${n} preparados`, `${n} prepared`) : tr(`${n} no repertório`, `${n} in the repertoire`)}
                   </Box>
-                </Typography>
-                <Stack direction="row" sx={{ gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
-                  {chosen.map((id, i) => (
-                    <Chip key={`${id}-${i}`} size="small" label={name(id)} onDelete={canEdit ? () => removeAt(caster.key, field, r, i) : undefined} />
-                  ))}
-                  {canEdit && <Chip size="small" icon={<AddIcon />} label={tr('Adicionar', 'Add')} variant="outlined" onClick={() => setPicking({ caster: caster.key, field, rank: r })} />}
-                </Stack>
+                  {field === 'prepared' && (
+                    <Box component="span" sx={{ fontSize: 12, fontWeight: 700, color: full ? status.success : gold.deep }}>{`${Math.min(chosen.length, n)}/${n}${full ? ' ✓' : ''}`}</Box>
+                  )}
+                </Box>
+                {spellChips(chosen, (i) => removeAt(caster.key, field, r, i), () => setPicking({ caster: caster.key, field, rank: r }), field === 'prepared' ? left : 1)}
               </Box>
             );
           })}
-        </Stack>
-      </Paper>
+        </Box>
+      </Box>
     );
   };
 
   const focus = compiled.focus;
   const focusChoices = lists('focus').repertoire ?? {};
+  const focusPending = compiled.pending.find((p) => p.key.startsWith('spells-focus') || p.key === 'focus');
   return (
-    <Stack spacing={2}>
+    <Stack spacing={1.5}>
       {compiled.casters.length === 0 && (
         <Typography color="text.secondary">{tr('Esta classe não conjura magias por espaço. Magias de foco ficam abaixo.', 'This class has no spell slots. Focus spells are below.')}</Typography>
       )}
       {compiled.casters.map(casterCard)}
 
-      <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 } }}>
-        <Typography component="h3" sx={{ fontFamily: displayFont, fontWeight: 700 }}>{tr('Magias de foco', 'Focus spells')}</Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-          {tr(`Pool: ${focus.points} ponto(s) — uma por magia de foco, até 3 (Player Core pg. 298). Lançadas no rank ${focus.heightened}.`,
-            `Pool: ${focus.points} point(s) — one per focus spell, up to 3 (Player Core pg. 298). Cast at rank ${focus.heightened}.`)}
-        </Typography>
+      <Box sx={[cardSx, { p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.25 }]}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <Label>{tr('Magias de foco', 'Focus spells')}</Label>
+            <Box component="b">{tr(`Lançadas no rank ${focus.heightened}`, `Cast at rank ${focus.heightened}`)}</Box>
+          </Box>
+          <Box component="span" role="img" aria-label={tr(`${focus.points} ponto(s) de foco`, `${focus.points} focus point(s)`)} sx={{ display: 'flex', gap: '3px' }}>
+            {Array.from({ length: 3 }, (_, i) => (
+              <Box key={i} component="span" sx={{ width: 14, height: 14, borderRadius: '4px', border: `1px solid ${i < focus.points ? TRADITION_COLORS.divine : rule}`, bgcolor: i < focus.points ? TRADITION_COLORS.divine : 'transparent' }} />
+            ))}
+          </Box>
+          <Box component="b" sx={{ fontVariantNumeric: 'tabular-nums' }}>{focus.points}</Box>
+        </Box>
+        <Box sx={{ fontSize: 12, color: ink.secondary }}>
+          {tr('Um ponto por magia de foco, até 3 (Player Core pg. 298).', 'One point per focus spell, up to 3 (Player Core pg. 298).')}
+        </Box>
+        {focusPending && <SlotCard look="todo" kicker={focusPending.label} name={tr('Escolher magia de foco', 'Choose a focus spell')} trailing={<PendCount n={focusPending.missing || 1} />}
+          onClick={canEdit ? () => setPicking({ caster: 'focus', field: 'focus1', rank: 0 }) : undefined} />}
         {([['focus0', tr('Truques de foco (não contam no pool)', 'Focus cantrips (not counted in the pool)')], ['focus1', tr('Magias de foco', 'Focus spells')]] as const).map(([f, label]) => (
-          <Box key={f} sx={{ mb: 1 }}>
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>{label}</Typography>
-            <Stack direction="row" sx={{ gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
-              {(focusChoices[f === 'focus0' ? '0' : '1'] ?? []).map((id, i) => (
-                <Chip key={`${id}-${i}`} size="small" label={name(id)}
-                  onDelete={canEdit ? () => removeAt('focus', 'repertoire', f === 'focus0' ? 0 : 1, i) : undefined} />
-              ))}
-              {canEdit && <Chip size="small" icon={<AddIcon />} label={tr('Adicionar', 'Add')} variant="outlined" onClick={() => setPicking({ caster: 'focus', field: f, rank: 0 })} />}
-            </Stack>
+          <Box key={f} sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+            <Box component="span" sx={{ fontSize: 14, fontWeight: 600 }}>{label}</Box>
+            {spellChips(focusChoices[f === 'focus0' ? '0' : '1'] ?? [], (i) => removeAt('focus', 'repertoire', f === 'focus0' ? 0 : 1, i), () => setPicking({ caster: 'focus', field: f, rank: 0 }))}
           </Box>
         ))}
-      </Paper>
+      </Box>
 
-      <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 } }}>
-        <Typography component="h3" sx={{ fontFamily: displayFont, fontWeight: 700 }}>{tr('Rituais', 'Rituals')}</Typography>
-        <Stack direction="row" sx={{ gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
-          {(lists('rituals').spellbook ?? []).map((id, i) => (
-            <Chip key={`${id}-${i}`} size="small" label={name(id)} onDelete={canEdit ? () => removeAt('rituals', 'spellbook', 0, i) : undefined} />
-          ))}
-          {canEdit && <Chip size="small" icon={<AddIcon />} label={tr('Adicionar', 'Add')} variant="outlined" onClick={() => setPicking({ caster: 'rituals', field: 'rituals', rank: 0 })} />}
-        </Stack>
-      </Paper>
+      <Box sx={[cardSx, { p: 1.5, display: 'flex', flexDirection: 'column', gap: 1 }]}>
+        <SectionHead>{tr('Rituais', 'Rituals')}</SectionHead>
+        {spellChips(lists('rituals').spellbook ?? [], (i) => removeAt('rituals', 'spellbook', 0, i), () => setPicking({ caster: 'rituals', field: 'rituals', rank: 0 }))}
+      </Box>
 
       {picking && (
         <ContentPicker open title={picking.field === 'rituals' ? tr('Rituais', 'Rituals') : picking.field === 'spellbook' ? tr('Grimório', 'Spellbook') : picking.field.startsWith('focus') ? tr('Magias de foco', 'Focus spells') : tr(`Magias — rank ${picking.rank}`, `Spells — rank ${picking.rank}`)}

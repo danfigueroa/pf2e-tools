@@ -1,17 +1,29 @@
 import { useContext, useMemo, useState } from 'react';
-import { Box, Chip, FormControlLabel, Paper, Stack, Switch, Typography } from '@mui/material';
-import { displayFont } from '../../../theme';
+import { Box, Stack, Switch, Typography } from '@mui/material';
+import {
+  ChevronRight as OpenIcon, FaceOutlined as AncestryIcon, ForestOutlined as HeritageIcon, HistoryEduOutlined as BackgroundIcon,
+} from '@mui/icons-material';
+import { ink } from '../../../theme';
 import { locale, tr } from '../../../i18n';
 import { ContentPicker } from '../components/ContentPicker';
 import { pickerEditions } from '../remaster';
 import { BuildExceptions } from '../hooks/buildExceptions';
-import { PickerField } from '../components/PickerField';
+import { ContentBadge, Folio, Label, OptionRow, Pill } from '../components/ui';
+import { cardSx, rarityBadge } from '../components/uiTokens';
 import { attributeLabel } from '../engine/attributes';
 import { ATTRIBUTES, type AttributeKey } from '../engine/types';
 import type { RuleEntry } from '../rules/types';
 import type { SectionProps } from './types';
 
 type Picker = 'ancestry' | 'heritage' | 'background' | null;
+
+/** "2 boosts livres", "FOR, DES e 1 livre". */
+const boostSummary = (list: (AttributeKey | 'free')[] | undefined) => {
+  const free = (list ?? []).filter((b) => b === 'free').length;
+  const fixed = (list ?? []).filter((b): b is AttributeKey => b !== 'free').map(attributeLabel);
+  if (!fixed.length) return free ? tr(`${free} boost${free > 1 ? 's' : ''} livre${free > 1 ? 's' : ''}`, `${free} free boost${free > 1 ? 's' : ''}`) : null;
+  return tr(`${fixed.join(', ')}${free ? ` e ${free} livre${free > 1 ? 's' : ''}` : ''}`, `${fixed.join(', ')}${free ? ` and ${free} free` : ''}`);
+};
 
 const boostText = (list: (AttributeKey | 'free')[] | undefined) =>
   (list ?? []).map((b) => (b === 'free' ? tr('livre', 'free') : attributeLabel(b))).join(', ') || '—';
@@ -93,53 +105,86 @@ export function OriginSection({ state, update, core, mesaRules, compiled, canEdi
     setOrigin({ voluntaryFlaws: [...next] });
   };
 
+  const [flawsOpen, setFlawsOpen] = useState(flaws.size > 0);
+  const [languagePicker, setLanguagePicker] = useState(false);
+  const left = Math.max(0, languageSlots - chosen.size);
+  const ancestryMeta = ancestry?.ancestry
+    ? [ancestry.ancestry.hp !== undefined ? tr(`${ancestry.ancestry.hp} PV`, `${ancestry.ancestry.hp} HP`) : null, ancestry.ancestry.size,
+      ancestry.ancestry.speed ? tr(`${ancestry.ancestry.speed} pés`, `${ancestry.ancestry.speed} ft`) : null, boostSummary(ancestry.ancestry.boosts)].filter(Boolean).join(' · ')
+    : undefined;
+  const backgroundMeta = background?.background
+    ? [background.background.boosts?.some((b) => b !== 'free')
+      ? tr(`${background.background.boosts.filter((b): b is AttributeKey => b !== 'free').map(attributeLabel).join('/')} e 1 livre`, `${background.background.boosts.filter((b): b is AttributeKey => b !== 'free').map(attributeLabel).join('/')} and 1 free`)
+      : boostSummary(background.background.boosts), (background.background.skills ?? []).join(', '), (background.background.feats ?? []).join(', ')].filter(Boolean).join(' · ')
+    : undefined;
+  const chevron = <OpenIcon sx={{ color: ink.secondary }} />;
+
   return (
-    <Stack spacing={2}>
-      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 1.5 }}>
-        <PickerField label={tr('Ancestralidade', 'Ancestry')} value={ancestry?.name} onOpen={() => setPicker('ancestry')} disabled={!canEdit}
-          hint={ancestry ? tr(`${ancestry.ancestry?.hp ?? '—'} PV · ${ancestry.ancestry?.speed ?? '—'} ft`, `${ancestry.ancestry?.hp ?? '—'} HP · ${ancestry.ancestry?.speed ?? '—'} ft`) : undefined} />
-        <PickerField label={tr('Herança', 'Heritage')} value={heritage?.name} onOpen={() => setPicker('heritage')} disabled={!canEdit}
-          hint={heritage && !heritage.heritage?.ancestry ? tr('Herança versátil', 'Versatile heritage') : undefined} />
-        <PickerField label={tr('Background', 'Background')} value={background?.name} onOpen={() => setPicker('background')} disabled={!canEdit} />
-      </Box>
+    <Stack spacing={1.25}>
+      <Folio icon={<AncestryIcon />} label={tr('Ancestralidade', 'Ancestry')} todo={!ancestry} disabled={!canEdit} onClick={() => setPicker('ancestry')}
+        name={ancestry?.name ?? tr('Escolher ancestralidade', 'Choose an ancestry')}
+        meta={ancestryMeta ?? tr('PV, tamanho, deslocamento, boosts e idiomas', 'HP, size, speed, boosts and languages')} trailing={ancestry ? chevron : undefined} />
+      <Folio icon={<HeritageIcon />} label={tr('Herança', 'Heritage')} todo={!heritage} disabled={!canEdit} onClick={() => setPicker('heritage')}
+        name={heritage?.name ?? tr('Escolher herança', 'Choose a heritage')}
+        meta={heritage ? (heritage.heritage?.ancestry ? heritage.summary?.slice(0, 90) : tr('Herança versátil', 'Versatile heritage')) : tr('Da ancestralidade ou versátil', 'From the ancestry or versatile')}
+        trailing={heritage ? chevron : undefined} />
+      <Folio icon={<BackgroundIcon />} label={tr('Background', 'Background')} todo={!background} disabled={!canEdit} onClick={() => setPicker('background')}
+        name={background?.name ?? tr('Escolher background', 'Choose a background')}
+        meta={backgroundMeta ?? tr('2 boosts, 1 perícia e 1 talento de perícia', '2 boosts, 1 skill and 1 skill feat')} trailing={background ? chevron : undefined} />
 
       {ancestry && (
-        <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 } }}>
-          <Typography component="h3" sx={{ fontFamily: displayFont, fontWeight: 700, mb: 1 }}>{tr('Boosts da ancestralidade', 'Ancestry boosts')}</Typography>
-          <FormControlLabel disabled={!canEdit}
-            control={<Switch checked={state.origin.alternateBoosts === true} onChange={(e) => setOrigin({ alternateBoosts: e.target.checked || undefined })} />}
-            label={tr('Boosts alternativos: dois livres no lugar dos boosts e flaws da ancestralidade', 'Alternate boosts: two free boosts instead of the ancestry boosts and flaws')} />
-          <Typography variant="caption" color="text.secondary" component="p" sx={{ mb: 1.5 }}>Player Core pg. 23</Typography>
-          <Typography variant="body2" sx={{ mb: 0.5 }}>{tr('Flaws voluntários (opcional, combine com a mesa):', 'Voluntary flaws (optional, check with your table):')}</Typography>
-          <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
-            {ATTRIBUTES.map((a) => (
-              <Chip key={a} label={attributeLabel(a)} color={flaws.has(a) ? 'error' : 'default'} variant={flaws.has(a) ? 'filled' : 'outlined'}
-                onClick={canEdit ? () => toggleFlaw(a) : undefined} />
+        <Box sx={[cardSx, { px: 1.75, py: 1.5, display: 'flex', flexDirection: 'column', gap: 1 }]}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
+            <Label>{tr('Idiomas', 'Languages')}</Label>
+            <Box component="span" sx={{ fontSize: 12, color: ink.secondary }}>
+              {tr(`da ancestralidade + ${languageSlots} pela INT (Player Core pg. 89)`, `from the ancestry + ${languageSlots} from INT (Player Core pg. 89)`)}
+            </Box>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
+            {(ancestry.ancestry?.languages ?? []).map((l) => <Pill key={l} look="lock">{l}</Pill>)}
+            {languages.filter((l) => chosen.has(l.id)).map((l) => (
+              <Pill key={l.id} look="sel" onClick={canEdit ? () => toggleLanguage(l.id) : undefined}
+                title={canEdit ? tr('Tocar para tirar', 'Tap to remove') : undefined}>
+                {l.name}{l.rarity !== 'common' && <ContentBadge kind={rarityBadge(l.rarity) ?? 'uncommon'} />}
+              </Pill>
             ))}
-          </Stack>
-        </Paper>
+            {canEdit && (left > 0 || languages.length > chosen.size) && (
+              <Pill look="add" onClick={() => setLanguagePicker(true)}>
+                {left > 0 ? tr(`+ Idioma · ${left} restante${left > 1 ? 's' : ''}`, `+ Language · ${left} left`) : tr('+ Idioma', '+ Language')}
+              </Pill>
+            )}
+          </Box>
+          <Box sx={{ fontSize: 12, color: ink.secondary }}>
+            {tr('Idioma incomum normalmente vem da região ou de um talento; combine com o GM.', 'An uncommon language usually comes from your region or a feat; check with the GM.')}
+          </Box>
+        </Box>
       )}
 
       {ancestry && (
-        <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 } }}>
-          <Typography component="h3" sx={{ fontFamily: displayFont, fontWeight: 700 }}>{tr('Idiomas', 'Languages')}</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            {tr(`Da ancestralidade: ${(ancestry.ancestry?.languages ?? []).join(', ') || '—'}. A INT dá mais ${languageSlots} (Player Core pg. 89); restam ${Math.max(0, languageSlots - chosen.size)}.`,
-              `From the ancestry: ${(ancestry.ancestry?.languages ?? []).join(', ') || '—'}. INT grants ${languageSlots} more (Player Core pg. 89); ${Math.max(0, languageSlots - chosen.size)} left.`)}
-          </Typography>
-          <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
-            {languages.map((l) => (
-              <Chip key={l.id} size="small" label={l.rarity !== 'common' ? `${l.name} *` : l.name}
-                color={chosen.has(l.id) ? 'primary' : 'default'} variant={chosen.has(l.id) ? 'filled' : 'outlined'}
-                onClick={canEdit ? () => toggleLanguage(l.id) : undefined} />
-            ))}
-          </Stack>
-          <Typography variant="caption" color="text.secondary" component="p" sx={{ mt: 1 }}>
-            {tr('* incomum: normalmente vem da região ou de um talento; combine com o GM.', '* uncommon: usually from your region or a feat; check with the GM.')}
-          </Typography>
-        </Paper>
+        <Box sx={[cardSx, { display: 'flex', flexDirection: 'column', overflow: 'hidden' }]}>
+          <OptionRow label={<>{tr('Boosts alternativos', 'Alternate boosts')}<Box component="span" sx={{ display: 'block', fontSize: 12, color: ink.secondary }}>
+            {tr('Dois livres no lugar dos boosts e flaws da ancestralidade · Player Core pg. 23', 'Two free boosts instead of the ancestry boosts and flaws · Player Core pg. 23')}</Box></>}
+            control={<Switch checked={state.origin.alternateBoosts === true} disabled={!canEdit}
+              onChange={(e) => setOrigin({ alternateBoosts: e.target.checked || undefined })} slotProps={{ input: { 'aria-label': tr('Boosts alternativos', 'Alternate boosts') } }} />} />
+          <OptionRow label={tr('Flaw voluntário', 'Voluntary flaw')} last={!flawsOpen}
+            value={flaws.size ? [...flaws].map(attributeLabel).join(', ') : tr('nenhum', 'none')}
+            onClick={() => setFlawsOpen(!flawsOpen)} control={<OpenIcon sx={{ color: ink.secondary, transform: flawsOpen ? 'rotate(90deg)' : 'none' }} />} />
+          {flawsOpen && (
+            <Box sx={{ px: 1.75, py: 1.5, display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Box sx={{ fontSize: 13, color: ink.secondary }}>{tr('Opcional, combine com a mesa.', 'Optional, check with your table.')}</Box>
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 0.5 }}>
+                {ATTRIBUTES.map((a) => (
+                  <Pill key={a} look={flaws.has(a) ? 'sel' : 'default'} onClick={canEdit ? () => toggleFlaw(a) : undefined} sx={{ px: 0, fontSize: 13 }}>{attributeLabel(a)}</Pill>
+                ))}
+              </Box>
+            </Box>
+          )}
+        </Box>
       )}
 
+      <ContentPicker open={languagePicker} title={tr('Idioma', 'Language')} entries={languages.filter((l) => !chosen.has(l.id))}
+        onPick={(id) => toggleLanguage(id)} onClose={() => setLanguagePicker(false)} mesaRules={mesaRules}
+        secondary={(e) => (e.rarity && e.rarity !== 'common' ? tr('combine com o GM', 'check with the GM') : undefined)} />
       <ContentPicker open={picker === 'ancestry'} title={tr('Ancestralidade', 'Ancestry')} entries={ancestryList} value={state.origin.ancestry}
         onPick={(id) => pick('ancestry', id)} onClose={() => setPicker(null)} mesaRules={mesaRules} facts={ancestryFacts}
         secondary={(e) => (e.ancestry ? `${e.ancestry.hp ?? '—'} ${tr('PV', 'HP')} · ${boostText(e.ancestry.boosts)}` : undefined)} />

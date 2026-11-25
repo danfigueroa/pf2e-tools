@@ -1,14 +1,16 @@
 import { useMemo, useState } from 'react';
 import {
-  Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Paper, Stack, TextField, Typography,
+  Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography,
 } from '@mui/material';
 import { Add as AddIcon, DeleteOutline as DeleteIcon, AutoFixHigh as RunesIcon } from '@mui/icons-material';
-import { displayFont } from '../../../theme';
+import { displayFont, greenInk, ink, parchment, rule, status } from '../../../theme';
 import { locale, tr } from '../../../i18n';
 import { ContentPicker } from '../components/ContentPicker';
 import { STARTING_GOLD, resilientName, strikingName } from '../engine/equipment';
 import type { RuleEntry } from '../rules/types';
 import type { BuildState, InventoryEntry } from '../types';
+import { ActionGlyph, ContentBadge, Pill, SectionHead } from '../components/ui';
+import { cardSx } from '../components/uiTokens';
 import type { SectionProps } from './types';
 
 const CATEGORY_LABEL: Record<string, string> = {
@@ -67,9 +69,22 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
 
   return (
     <Stack spacing={2}>
-      <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 } }}>
-        <Typography component="h3" sx={{ fontFamily: displayFont, fontWeight: 700, mb: 1 }}>{tr('Dinheiro', 'Money')}</Typography>
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 1, mb: 1 }}>
+      <Box sx={[cardSx, { p: { xs: 1.5, sm: 2 }, display: 'flex', flexDirection: 'column', gap: 1 }]}>
+        <SectionHead note={levelWealth && compiled.level > 1 ? tr(`referência do nível: ${levelWealth.lumpSum.toLocaleString(locale)} po`, `level reference: ${levelWealth.lumpSum.toLocaleString(locale)} gp`) : undefined}>
+          {tr('Dinheiro', 'Money')}</SectionHead>
+        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, flexWrap: 'wrap' }}>
+          <Box component="b" sx={{ font: `700 26px ${displayFont}`, fontVariantNumeric: 'tabular-nums', color: eq.money.remaining < 0 ? status.error : ink.primary }}>
+            {tr(`${eq.money.remaining.toLocaleString(locale)} po`, `${eq.money.remaining.toLocaleString(locale)} gp`)}</Box>
+          <Box component="span" sx={{ fontSize: 13, color: ink.secondary }}>
+            {tr(`livres · ${eq.money.spent.toLocaleString(locale)} po em itens`, `left · ${eq.money.spent.toLocaleString(locale)} gp in items`)}</Box>
+        </Box>
+        {eq.money.start > 0 && (
+          <Box role="progressbar" aria-valuenow={Math.round(100 * Math.min(1, eq.money.spent / eq.money.start))} aria-valuemin={0} aria-valuemax={100}
+            aria-label={tr('Dinheiro gasto', 'Money spent')} sx={{ height: 8, borderRadius: 999, bgcolor: parchment.sunken, overflow: 'hidden' }}>
+            <Box sx={{ height: 1, width: `${Math.round(100 * Math.min(1, eq.money.spent / eq.money.start))}%`, bgcolor: eq.money.remaining < 0 ? status.error : greenInk.mid, borderRadius: 999 }} />
+          </Box>
+        )}
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 1, mt: 0.5 }}>
           {COINS.map((c) => (
             <TextField key={c} size="small" type="number" label={COIN_LABEL[c]} value={state.money[c]} disabled={!canEdit}
               onChange={(e) => setMoney(c, Number(e.target.value))} slotProps={{ htmlInput: { min: 0 } }} />
@@ -90,15 +105,14 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
           <Button size="small" sx={{ mt: 1 }} onClick={() => update((s) => ({ ...s, money: { pp: 0, gp: STARTING_GOLD, sp: 0, cp: 0 } }))}>
             {tr(`Começar com ${STARTING_GOLD} po`, `Start with ${STARTING_GOLD} gp`)}</Button>
         )}
-      </Paper>
+      </Box>
 
-      <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 } }}>
-        <Stack direction="row" sx={{ alignItems: 'baseline', flexWrap: 'wrap', gap: 1, mb: 1 }}>
-          <Typography component="h3" sx={{ fontFamily: displayFont, fontWeight: 700, flex: 1 }}>{tr('Inventário', 'Inventory')}</Typography>
-          <Typography variant="body2" color={eq.bulk.total > eq.bulk.encumberedAt ? 'warning.main' : 'text.secondary'}>
+      <Box sx={[cardSx, { p: { xs: 1.5, sm: 2 } }]}>
+        <Box sx={{ mb: 1 }}>
+          <SectionHead note={<Box component="span" sx={{ color: eq.bulk.total > eq.bulk.encumberedAt ? status.warning : 'inherit' }}>
             {tr(`Volume ${eq.bulk.total} / ${eq.bulk.encumberedAt} (máx. ${eq.bulk.max}) · investidos ${eq.invested}/10`, `Bulk ${eq.bulk.total} / ${eq.bulk.encumberedAt} (max ${eq.bulk.max}) · invested ${eq.invested}/10`)}
-          </Typography>
-        </Stack>
+          </Box>}>{tr('Inventário', 'Inventory')}</SectionHead>
+        </Box>
         <Stack spacing={1}>
           {eq.items.map((it) => {
             const inv = it.inv;
@@ -106,9 +120,14 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
             const runeText = [inv.runes?.potency ? `+${inv.runes.potency}` : '', inv.runes?.striking ? strikingName(inv.runes.striking) : '', inv.runes?.resilient ? resilientName(inv.runes.resilient) : '']
               .filter(Boolean).join(' ');
             return (
-              <Box key={it.key} sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', borderTop: 1, borderColor: 'divider', pt: 1 }}>
+              <Box key={it.key} sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', borderTop: `1px solid ${rule}`, pt: 1 }}>
                 <Box sx={{ flex: '1 1 160px', minWidth: 0 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600, overflowWrap: 'anywhere' }}>{runeText ? `${runeText} ${it.name}` : it.name}</Typography>
+                  <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <Box component="span" sx={{ fontWeight: 600, overflowWrap: 'anywhere' }}>{runeText ? `${runeText} ${it.name}` : it.name}</Box>
+                    {inv.worn && <ContentBadge kind="trait">{it.base?.item?.armor ? tr('vestido', 'worn') : tr('em uso', 'in use')}</ContentBadge>}
+                    {inv.invested && <ContentBadge kind="trait">{tr('investido', 'invested')}</ContentBadge>}
+                    {it.entry?.homebrew && <ContentBadge kind="mesa" />}
+                  </Box>
                   <Typography variant="caption" color="text.secondary">
                     {[it.entry?.level !== undefined ? tr(`nível ${it.entry.level}`, `level ${it.entry.level}`) : null, it.price ? tr(`${it.price} po`, `${it.price} gp`) : null, it.bulk ? tr(`volume ${it.bulk}`, `bulk ${it.bulk}`) : null].filter(Boolean).join(' · ')}
                   </Typography>
@@ -157,33 +176,37 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
               helperText={tr('Enter para adicionar; não entra nos números.', 'Enter to add; not in the numbers.')} />
           </Stack>
         )}
-      </Paper>
+      </Box>
 
-      <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 } }}>
-        <Typography component="h3" sx={{ fontFamily: displayFont, fontWeight: 700, mb: 1 }}>{tr('Golpes', 'Strikes')}</Typography>
-        <Stack spacing={0.75}>
-          {eq.strikes.map((s) => (
-            <Box key={s.key} sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'baseline' }}>
-              <Typography variant="body2" sx={{ fontWeight: 600, flex: '1 1 160px', minWidth: 0, overflowWrap: 'anywhere' }}>{s.display}</Typography>
-              <Typography variant="body2" title={s.attackParts.map((p) => `${p.label} ${p.value >= 0 ? '+' : ''}${p.value}`).join(' · ')}>
-                {s.attack >= 0 ? '+' : ''}{s.attack}</Typography>
-              <Typography variant="body2" color="text.secondary" title={s.damageParts.map((p) => `${p.label} ${p.value >= 0 ? '+' : ''}${p.value}`).join(' · ')}>
-                {s.dice}{s.die}{s.damageBonus ? `${s.damageBonus > 0 ? '+' : ''}${s.damageBonus}` : ''} {s.damageType}</Typography>
+      <Box sx={[cardSx, { p: { xs: 1.5, sm: 2 }, display: 'flex', flexDirection: 'column', gap: 1 }]}>
+        <SectionHead note={tr('calculados das armas', 'from the weapons')}>{tr('Golpes', 'Strikes')}</SectionHead>
+        {eq.strikes.map((s) => (
+          <Box key={s.key} sx={{ display: 'flex', gap: 1.25, alignItems: 'center' }}>
+            <ActionGlyph actions="1" />
+            <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+              <Box component="b" sx={{ overflowWrap: 'anywhere' }}>{s.display}</Box>
+              <Box component="span" sx={{ fontSize: 12, color: ink.secondary }} title={s.damageParts.map((p) => `${p.label} ${p.value >= 0 ? '+' : ''}${p.value}`).join(' · ')}>
+                {s.dice}{s.die}{s.damageBonus ? `${s.damageBonus > 0 ? '+' : ''}${s.damageBonus}` : ''} {s.damageType}{s.traits.length ? ` · ${s.traits.slice(0, 3).join(', ')}` : ''}</Box>
             </Box>
-          ))}
-        </Stack>
-      </Paper>
+            <Box component="b" sx={{ fontSize: 18, fontVariantNumeric: 'tabular-nums' }} title={s.attackParts.map((p) => `${p.label} ${p.value >= 0 ? '+' : ''}${p.value}`).join(' · ')}>
+              {s.attack >= 0 ? '+' : ''}{s.attack}</Box>
+            <Box component="span" sx={{ fontSize: 13, color: ink.secondary, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+              {(s.traits.some((t) => /^agile$/i.test(t)) ? [4, 8] : [5, 10]).map((m) => `${s.attack - m >= 0 ? '+' : ''}${s.attack - m}`).join(' / ')}</Box>
+          </Box>
+        ))}
+        {eq.strikes.length === 0 && <Box sx={{ fontSize: 14, color: ink.secondary }}>{tr('Nenhuma arma ainda.', 'No weapon yet.')}</Box>}
+      </Box>
 
-      <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 } }}>
-        <Typography component="h3" sx={{ fontFamily: displayFont, fontWeight: 700, mb: 1 }}>{tr('Livro de fórmulas', 'Formula book')}</Typography>
+      <Box sx={[cardSx, { p: { xs: 1.5, sm: 2 }, display: 'flex', flexDirection: 'column', gap: 1 }]}>
+        <SectionHead>{tr('Livro de fórmulas', 'Formula book')}</SectionHead>
         <Stack direction="row" sx={{ gap: 0.5, flexWrap: 'wrap' }}>
           {state.formulas.map((id) => (
             <Chip key={id} size="small" label={items.find((e) => e.id === id)?.name ?? id}
               onDelete={canEdit ? () => update((s) => ({ ...s, formulas: s.formulas.filter((x) => x !== id) })) : undefined} />
           ))}
-          {canEdit && <Chip size="small" icon={<AddIcon />} label={tr('Adicionar', 'Add')} variant="outlined" onClick={() => setPicking('formula')} />}
+          {canEdit && <Pill look="add" onClick={() => setPicking('formula')}>{tr('+ Adicionar', '+ Add')}</Pill>}
         </Stack>
-      </Paper>
+      </Box>
 
       <ContentPicker open={picking === 'item' || picking === 'formula'} title={picking === 'formula' ? tr('Fórmula', 'Formula') : CATEGORY_LABEL[category]}
         entries={picking === 'formula' ? items : inCategory}

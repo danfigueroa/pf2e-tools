@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { Box, Button, Chip, Paper, Stack, Typography } from '@mui/material';
-import { displayFont } from '../../../theme';
+import { Box, Button, ButtonBase, Stack } from '@mui/material';
+import { CheckRounded as DoneIcon, ChevronRight as OpenIcon, ShieldOutlined as ClassIcon } from '@mui/icons-material';
+import { greenInk, ink, parchment, rule } from '../../../theme';
 import { tr } from '../../../i18n';
 import { ContentPicker } from '../components/ContentPicker';
-import { PickerField } from '../components/PickerField';
+import { ContentBadge, Folio, Label, PendCount, Pill, ProfPill, SectionHead, SlotCard } from '../components/ui';
+import { cardSx, tint, warmShadow } from '../components/uiTokens';
 import { attributeLabel } from '../engine/attributes';
 import { rankName } from '../engine/compile';
 import type { Rank } from '../engine/types';
@@ -35,9 +37,26 @@ const classFacts = (e: RuleEntry) => {
   );
 };
 
-/** Aba Classe: a classe e o atributo-chave (o boost da classe, Player Core pg. 17). */
-export function ClassSection({ state, update, core, mesaRules, canEdit, index }: SectionProps) {
-  const [picker, setPicker] = useState<'class' | 'archetype' | null>(null);
+const SAVE_KEYS = ['fortitude', 'reflex', 'will'] as const;
+
+/** Seletor segmentado (atributo-chave): dois a três botões do mesmo tamanho. */
+const Segmented = ({ options, value, onChange, disabled }: { options: { value: string; label: string }[]; value?: string; onChange: (v: string) => void; disabled?: boolean }) => (
+  <Box role="radiogroup" sx={{ display: 'grid', gridAutoFlow: 'column', gridAutoColumns: 'minmax(0, 1fr)', bgcolor: parchment.sunken, borderRadius: '8px', p: '3px', gap: '3px' }}>
+    {options.map((o) => {
+      const on = o.value === value;
+      return (
+        <ButtonBase key={o.value} role="radio" aria-checked={on} disabled={disabled} onClick={() => onChange(o.value)} data-view="" sx={{
+          height: 40, borderRadius: '6px', fontSize: 14, fontWeight: 600, gap: 0.75, color: on ? ink.primary : ink.secondary,
+          bgcolor: on ? parchment.paper : 'transparent', boxShadow: on ? warmShadow : 'none',
+        }}>{on && <DoneIcon sx={{ fontSize: 16, color: greenInk.mid }} />}{o.label}</ButtonBase>
+      );
+    })}
+  </Box>
+);
+
+/** Aba Classe: a classe, o atributo-chave (o boost da classe, Player Core pg. 17), a subclasse do 1º nível e o arquétipo de classe. */
+export function ClassSection({ state, update, core, mesaRules, canEdit, index, compiled }: SectionProps) {
+  const [picker, setPicker] = useState<'class' | 'archetype' | string | null>(null);
   const baseClass = index.get(state.class.id);
   const archetypeId = selectedClassArchetype(state.choices[CLASS_ARCHETYPE], baseClass);
   const archetype = index.get(archetypeId);
@@ -45,42 +64,102 @@ export function ClassSection({ state, update, core, mesaRules, canEdit, index }:
   const available = core.archetypes.filter((a) => cls && CLASS_ARCHETYPES[a.id]?.className === cls.name);
   const keys = cls?.class?.keyAttribute ?? [];
   const setClass = (patch: Partial<typeof state.class>) => update((s) => ({ ...s, class: { ...s.class, ...patch } }));
+  const subclasses = compiled.classChoices.filter((c) => c.level === 1);
+  const chevron = <OpenIcon sx={{ color: ink.secondary }} />;
+  const c = cls?.class;
+  const tradition = c?.casting?.traditions?.length ? c.casting.traditions.join('/') : null;
 
   return (
-    <Stack spacing={2}>
-      <PickerField label={tr('Classe', 'Class')} value={cls?.name} onOpen={() => setPicker('class')} disabled={!canEdit}
-        hint={cls?.class?.hp !== undefined ? tr(`${cls.class.hp} PV + CON por nível`, `${cls.class.hp} HP + CON per level`) : undefined} />
-      {available.length > 0 && (
-        <Box>
-          <PickerField label={tr('Arquétipo de classe', 'Class archetype')} value={archetype?.name ?? tr('Nenhum', 'None')}
-            onOpen={() => setPicker('archetype')} disabled={!canEdit}
-            hint={tr('Opcional no nível 1. A dedicação ocupa o talento de classe do nível 2.', 'Optional at 1st level. Its dedication uses the 2nd-level class feat slot.')} />
-          {canEdit && archetype && <Button size="small" onClick={() => setChoice(update, CLASS_ARCHETYPE, null)}>
-            {tr('Remover arquétipo', 'Remove archetype')}</Button>}
+    <Stack spacing={1.5}>
+      <Folio icon={<ClassIcon />} label={tr('Classe', 'Class')} todo={!cls} disabled={!canEdit} onClick={() => setPicker('class')}
+        name={cls?.name ?? tr('Escolher classe', 'Choose a class')}
+        meta={c ? [c.hp !== undefined ? tr(`${c.hp} PV + CON por nível`, `${c.hp} HP + CON per level`) : null, tradition ? tr(`magias (${tradition})`, `spells (${tradition})`) : null].filter(Boolean).join(' · ')
+          : tr('PV, proficiências, perícias e talentos de classe', 'HP, proficiencies, skills and class feats')}
+        trailing={cls ? chevron : undefined} />
+
+      {cls && keys.length > 0 && (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+          <Label>{tr('Atributo-chave', 'Key attribute')}</Label>
+          {keys.length > 1 ? (
+            <Segmented options={keys.map((k) => ({ value: k, label: attributeLabel(k) }))} value={state.class.keyAttribute} disabled={!canEdit}
+              onChange={(k) => setClass({ keyAttribute: k as typeof keys[number] })} />
+          ) : (
+            <Pill look="lock">{attributeLabel(keys[0])}</Pill>
+          )}
         </Box>
       )}
-      {cls && (
-        <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 } }}>
-          <Typography component="h3" sx={{ fontFamily: displayFont, fontWeight: 700, mb: 1 }}>{tr('Atributo-chave', 'Key attribute')}</Typography>
-          {keys.length > 1 ? (
-            <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1 }}>
-              {keys.map((k) => (
-                <Chip key={k} label={attributeLabel(k)} color={state.class.keyAttribute === k ? 'primary' : 'default'}
-                  variant={state.class.keyAttribute === k ? 'filled' : 'outlined'} onClick={canEdit ? () => setClass({ keyAttribute: k }) : undefined} />
-              ))}
-            </Stack>
-          ) : (
-            <Typography variant="body2">{keys[0] ? attributeLabel(keys[0]) : '—'}</Typography>
-          )}
-          <Box sx={{ mt: 2 }}>{classFacts(cls)}</Box>
-        </Paper>
+
+      {subclasses.map((slot) => {
+        const chosen = slot.chosen ? slot.options.find((o) => o.id === slot.chosen) ?? index.get(slot.chosen) : undefined;
+        const head = <SectionHead note={tr('subclasse · nível 1', 'subclass · level 1')}>{slot.label}</SectionHead>;
+        if (slot.fixed || slot.options.length > 12) {
+          return (
+            <Box key={slot.key} sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 0.5 }}>
+              {head}
+              <SlotCard kicker={slot.label} name={chosen?.name ?? tr('Escolher', 'Choose')} look={slot.fixed ? 'auto' : chosen ? 'filled' : 'todo'}
+                trailing={slot.fixed ? <ContentBadge kind="trait">{tr('concedida', 'granted')}</ContentBadge> : chosen ? chevron : <PendCount n={1} />}
+                onClick={canEdit && !slot.fixed ? () => setPicker(slot.key) : undefined} />
+            </Box>
+          );
+        }
+        return (
+          <Box key={slot.key} sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 0.5 }}>
+            {head}
+            <Box role="radiogroup" aria-label={slot.label} sx={[cardSx, { display: 'flex', flexDirection: 'column', overflow: 'hidden' }]}>
+              {slot.options.map((o, i) => {
+                const on = o.id === slot.chosen;
+                return (
+                  <ButtonBase key={o.id} role="radio" aria-checked={on} disabled={!canEdit} data-view=""
+                    onClick={() => setChoice(update, slot.key, on ? null : { id: o.id })} sx={{
+                      display: 'flex', alignItems: 'center', gap: 1.5, minHeight: 48, px: 1.75, width: 1, justifyContent: 'flex-start', textAlign: 'left',
+                      borderBottom: i === slot.options.length - 1 ? 0 : `1px solid ${rule}`, bgcolor: on ? tint.green : 'transparent',
+                    }}>
+                    <Box component="span" aria-hidden sx={{ width: 20, height: 20, borderRadius: '50%', border: `2px solid ${on ? greenInk.mid : ink.disabled}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
+                      {on && <Box component="span" sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: greenInk.mid }} />}
+                    </Box>
+                    <Box component="span" sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                      <Box component="span" sx={{ fontWeight: on ? 700 : 400 }}>{o.name}</Box>
+                      {on && o.summary && <Box component="span" sx={{ fontSize: 13, color: ink.secondary }} lang="en">{o.summary.slice(0, 140)}{o.summary.length > 140 ? '…' : ''}</Box>}
+                    </Box>
+                    {!o.remaster && <ContentBadge kind="legacy" />}
+                  </ButtonBase>
+                );
+              })}
+            </Box>
+          </Box>
+        );
+      })}
+
+      {available.length > 0 && (
+        <Folio label={tr('Arquétipo de classe · opcional', 'Class archetype · optional')} name={archetype?.name ?? tr('Nenhum', 'None')} disabled={!canEdit}
+          onClick={() => setPicker('archetype')}
+          meta={tr('A dedicação ocupa o talento de classe do nível 2.', 'Its dedication uses the 2nd-level class feat slot.')}
+          trailing={canEdit && archetype ? <Button size="small" onClick={(e) => { e.stopPropagation(); setChoice(update, CLASS_ARCHETYPE, null); }}>{tr('Remover', 'Remove')}</Button> : chevron} />
       )}
+
+      {cls && c && (
+        <Box sx={[cardSx, { px: 1.75, py: 1.5, display: 'flex', flexDirection: 'column', gap: 1 }]}>
+          <Label>{tr('O que a classe dá', 'What the class grants')}</Label>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '6px 12px', fontSize: 13, alignItems: 'center' }}>
+            {c.perception !== undefined && <Box component="span" sx={{ display: 'inline-flex', gap: 0.5, alignItems: 'center' }}>{tr('Percepção', 'Perception')} <ProfPill rank={c.perception} short /></Box>}
+            {SAVE_KEYS.map((k) => c.saves?.[k] !== undefined && (
+              <Box key={k} component="span" sx={{ display: 'inline-flex', gap: 0.5, alignItems: 'center' }}>{SAVES[k]} <ProfPill rank={c.saves[k] as Rank} short /></Box>
+            ))}
+          </Box>
+          <Box sx={{ fontSize: 13 }}>{classFacts(cls)}</Box>
+        </Box>
+      )}
+
       <ContentPicker open={picker === 'archetype'} title={tr('Arquétipo de classe', 'Class archetype')} entries={available}
         value={archetypeId} onPick={(id) => setChoice(update, CLASS_ARCHETYPE, { id })}
         onClose={() => setPicker(null)} mesaRules={mesaRules} />
       <ContentPicker open={picker === 'class'} title={tr('Classe', 'Class')} entries={core.classes} value={state.class.id}
         onPick={(id) => setClass({ id, keyAttribute: undefined })} onClose={() => setPicker(null)} mesaRules={mesaRules} facts={classFacts}
         secondary={(e) => (e.class ? `${e.class.hp ?? '—'} ${tr('PV', 'HP')} · ${(e.class.keyAttribute ?? []).map(attributeLabel).join('/')}` : undefined)} />
+      {subclasses.filter((sl) => sl.key === picker).map((sl) => (
+        <ContentPicker key={sl.key} open title={sl.label} entries={sl.options} value={sl.chosen}
+          onPick={(id) => setChoice(update, sl.key, { id })} onClose={() => setPicker(null)} mesaRules={mesaRules} />
+      ))}
     </Stack>
   );
 }

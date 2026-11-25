@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Box, Button, Chip, Paper, Stack, TextField, Typography } from '@mui/material';
-import { displayFont } from '../../../theme';
+import { Box, Button, Stack, TextField, Typography } from '@mui/material';
+import { gold, ink, rule, status } from '../../../theme';
 import { tr } from '../../../i18n';
 import { SKILLS } from '../../character-viewer/checks';
 import { attributeLabel } from '../engine/attributes';
@@ -8,25 +8,13 @@ import { proficiencyBonus, rankName } from '../engine/compile';
 import { loreName } from '../engine/skills';
 import { SKILL_ATTRIBUTE, type Rank, type SkillKey } from '../engine/types';
 import type { SkillSlot } from '../engine/skills';
+import { PendCount, Pill, Pips, SectionHead } from '../components/ui';
+import { cardSx, signed, tint } from '../components/uiTokens';
 import { setChoice, type SectionProps } from './types';
 
 const LABEL = Object.fromEntries(SKILLS.map((s) => [s.key, s.label])) as Record<SkillKey, string>;
-const PIPS = ['T', 'E', 'M', 'L'];
-const signed = (n: number) => `${n >= 0 ? '+' : ''}${n}`;
 
 const refLabel = (ref: string) => (ref.startsWith('skill:') ? LABEL[ref.slice(6) as SkillKey] ?? ref.slice(6) : tr(`Lore (${loreName(ref)})`, `${loreName(ref)} Lore`));
-
-/** Os pips T E M L com rótulo acessível ("Treinado em Atletismo"). */
-const Pips = ({ rank, name }: { rank: Rank; name: string }) => (
-  <Box component="span" aria-label={`${rankName(rank)} ${tr('em', 'in')} ${name}`} sx={{ display: 'inline-flex', gap: 0.25 }}>
-    {PIPS.map((p, i) => (
-      <Box key={p} component="span" aria-hidden sx={{
-        width: 18, height: 18, borderRadius: 0.5, fontSize: 11, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        border: 1, borderColor: i < rank ? 'primary.main' : 'divider', bgcolor: i < rank ? 'primary.main' : 'transparent', color: i < rank ? 'primary.contrastText' : 'text.disabled',
-      }}>{p}</Box>
-    ))}
-  </Box>
-);
 
 /** Aba Perícias: treinos automáticos, escolhas da classe, perícias livres (com Lore), aumentos por nível. */
 export function SkillsSection({ state, update, compiled, canEdit }: SectionProps) {
@@ -49,35 +37,49 @@ export function SkillsSection({ state, update, compiled, canEdit }: SectionProps
     setLore({ ...lore, [slot.key]: '' });
   };
 
+  // De onde veio cada treino (automático pela origem/classe ou a escolha de qual slot).
+  const sourceOf = new Map<string, string>();
+  for (const a of compiled.automaticSkills) sourceOf.set(a.ref, a.source);
+  for (const slot of compiled.skillSlots) for (const ref of slot.chosen) if (!sourceOf.has(ref)) sourceOf.set(ref, slot.label);
+  const trainSlots = compiled.skillSlots.filter((sl) => sl.kind === 'train' && sl.count > 0);
+  const trainLeft = trainSlots.reduce((n, sl) => n + Math.max(0, sl.count - sl.chosen.length), 0);
+  const trainTotal = trainSlots.reduce((n, sl) => n + sl.count, 0);
+  const row = (key: string, name: string, attr: string, r: Rank, total: number, last: boolean) => (
+    <Box key={key} sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minHeight: 48, py: 0.5, px: 1.5, borderBottom: last ? 0 : `1px solid ${rule}` }}>
+      <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+        <Box component="span" sx={{ fontWeight: 600, fontSize: 15, overflowWrap: 'anywhere' }}>{name}</Box>
+        <Box component="span" sx={{ fontSize: 12, color: ink.secondary }}>{[attr, sourceOf.get(key)].filter(Boolean).join(' · ')}</Box>
+      </Box>
+      <Pips rank={r} name={name} />
+      <Box component="b" sx={{ width: 36, textAlign: 'right', fontSize: 16, fontVariantNumeric: 'tabular-nums', color: r ? ink.primary : ink.secondary }}
+        title={`${rankName(r)} ${signed(proficiencyBonus(r, level))} · ${attr}`}>{signed(total)}</Box>
+    </Box>
+  );
+
   return (
-    <Stack spacing={2}>
-      <Paper variant="outlined" sx={{ p: { xs: 1, sm: 1.5 } }}>
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', columnGap: 2, rowGap: 0.5 }}>
-          {SKILLS.map((s) => {
-            const r = rank[s.key as SkillKey] ?? 0;
-            const attr = SKILL_ATTRIBUTE[s.key as SkillKey];
-            return (
-              <Box key={s.key} sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}
-                title={`${rankName(r)} ${signed(proficiencyBonus(r, level))} · ${attributeLabel(attr)} ${signed(mod[attr])}`}>
-                <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }} noWrap>{s.label}</Typography>
-                <Pips rank={r} name={s.label} />
-                <Typography variant="body2" sx={{ fontWeight: 700, width: 32, textAlign: 'right' }}>{signed(proficiencyBonus(r, level) + mod[attr] + (compiled.skillBonus[s.key as SkillKey] ?? 0))}</Typography>
-              </Box>
-            );
-          })}
-          {lores.map((l) => (
-            <Box key={l.key} sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-              <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }} noWrap>{tr(`Lore (${l.name})`, `${l.name} Lore`)}</Typography>
-              <Pips rank={l.rank} name={l.name} />
-              <Typography variant="body2" sx={{ fontWeight: 700, width: 32, textAlign: 'right' }}>{signed(proficiencyBonus(l.rank, level) + mod.int)}</Typography>
-            </Box>
-          ))}
+    <Stack spacing={1.5}>
+      {trainLeft > 0 && (
+        <Box sx={{ px: 1.75, py: 1.5, display: 'flex', alignItems: 'center', gap: 1.5, border: `1.5px dashed ${gold.main}`, bgcolor: tint.gold, borderRadius: '6px' }}>
+          <PendCount n={trainLeft} />
+          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <Box component="b" sx={{ fontSize: 15 }}>{tr(`${trainTotal - trainLeft} de ${trainTotal} treinos escolhidos`, `${trainTotal - trainLeft} of ${trainTotal} trainings chosen`)}</Box>
+            <Box component="span" sx={{ fontSize: 12, color: ink.secondary }}>{tr('Escolha nos cartões abaixo.', 'Choose in the cards below.')}</Box>
+          </Box>
         </Box>
-      </Paper>
+      )}
+      <Box sx={[cardSx, { overflow: 'hidden', display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' }, columnGap: 0 }]}>
+        {SKILLS.map((sk, i) => {
+          const r = rank[sk.key as SkillKey] ?? 0;
+          const attr = SKILL_ATTRIBUTE[sk.key as SkillKey];
+          const total = proficiencyBonus(r, level) + mod[attr] + (compiled.skillBonus[sk.key as SkillKey] ?? 0);
+          return row(`skill:${sk.key}`, sk.label, attributeLabel(attr), r, total, i === SKILLS.length - 1 && !lores.length);
+        })}
+        {lores.map((l, i) => row(l.key, tr(`Lore (${l.name})`, `${l.name} Lore`), attributeLabel('int'), l.rank, proficiencyBonus(l.rank, level) + mod.int, i === lores.length - 1))}
+      </Box>
 
       {compiled.pending.some((p) => p.key === 'abp-skills') || 'abp-skills' in state.choices ? (
-        <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 } }}>
-          <Typography component="h3" sx={{ fontFamily: displayFont, fontWeight: 700 }}>{tr('Potência de perícia (ABP)', 'Skill potency (ABP)')}</Typography>
+        <Box sx={[cardSx, { p: { xs: 1.5, sm: 2 } }]}>
+          <SectionHead>{tr('Potência de perícia (ABP)', 'Skill potency (ABP)')}</SectionHead>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
             {tr('Escolha na ordem: a primeira recebe a maior potência do nível (GM Core pg. 83).', 'Pick in order: the first gets the level\'s highest potency (GM Core pg. 83).')}
           </Typography>
@@ -87,12 +89,13 @@ export function SkillsSection({ state, update, compiled, canEdit }: SectionProps
               const order = (() => { const c = state.choices['abp-skills']; return c && 'skills' in c ? c.skills : []; })();
               const i = order.indexOf(ref);
               return (
-                <Chip key={ref} label={i >= 0 ? `${i + 1}. ${sk.label}` : sk.label} color={i >= 0 ? 'primary' : 'default'} variant={i >= 0 ? 'filled' : 'outlined'}
-                  onClick={canEdit ? () => setChoice(update, 'abp-skills', (() => { const next = i >= 0 ? order.filter((x) => x !== ref) : [...order, ref]; return next.length ? { skills: next } : null; })()) : undefined} />
+                <Pill key={ref} look={i >= 0 ? 'sel' : 'default'}
+                  onClick={canEdit ? () => setChoice(update, 'abp-skills', (() => { const next = i >= 0 ? order.filter((x) => x !== ref) : [...order, ref]; return next.length ? { skills: next } : null; })()) : undefined}>
+                  {i >= 0 ? `${i + 1}. ${sk.label}` : sk.label}</Pill>
               );
             })}
           </Stack>
-        </Paper>
+        </Box>
       ) : null}
 
       {compiled.automaticSkills.length > 0 && (
@@ -106,11 +109,12 @@ export function SkillsSection({ state, update, compiled, canEdit }: SectionProps
         const options = slot.loreOnly ? [] : slot.options.length ? slot.options : SKILLS.map((s) => `skill:${s.key}`);
         const customLores = slot.chosen.filter((ref) => ref.startsWith('lore:') && !options.includes(ref));
         return (
-          <Paper key={slot.key} variant="outlined" sx={{ p: { xs: 1.5, sm: 2 } }}>
-            <Stack direction="row" sx={{ alignItems: 'baseline', gap: 1, mb: 1, flexWrap: 'wrap' }}>
-              <Typography component="h3" sx={{ fontFamily: displayFont, fontWeight: 700, flex: 1, minWidth: 0 }}>{slot.label}</Typography>
-              <Typography variant="body2" color={left ? 'warning.main' : 'text.secondary'}>{left ? tr(`Restam ${left}`, `${left} left`) : tr('Completo', 'Done')}</Typography>
-            </Stack>
+          <Box key={slot.key} sx={[cardSx, { p: 1.5, display: 'flex', flexDirection: 'column', gap: 1 }, left ? { border: `1.5px dashed ${gold.main}` } : {}]}>
+            <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, flexWrap: 'wrap' }}>
+              <Box component="h3" sx={{ m: 0, fontWeight: 600, fontSize: 14, flex: 1, minWidth: 0 }}>{slot.label}</Box>
+              <Box component="span" sx={{ fontSize: 12, fontWeight: 700, color: left ? gold.deep : status.success }}>
+                {left ? tr(`Restam ${left}`, `${left} left`) : `${slot.chosen.length}/${slot.count} ✓`}</Box>
+            </Box>
             {slot.kind === 'increase' && (
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                 {tr('Treina uma perícia nova ou sobe uma treinada; mestre a partir do 7, lendário do 15 (Player Core pg. 92).', 'Train a new skill or raise a trained one; master from 7th, legendary from 15th (Player Core pg. 92).')}
@@ -123,8 +127,8 @@ export function SkillsSection({ state, update, compiled, canEdit }: SectionProps
                 // No treino, a perícia já treinada por outra fonte não aparece como opção (a não ser a desta escolha).
                 const taken = slot.kind === 'train' && !on && ref.startsWith('skill:') && (rank[key] ?? 0) > 0;
                 return (
-                  <Chip key={ref} label={refLabel(ref)} color={on ? 'primary' : 'default'} variant={on ? 'filled' : 'outlined'}
-                    disabled={taken} onClick={canEdit && !taken ? () => pick(slot, ref) : undefined} />
+                  <Pill key={ref} look={on ? 'sel' : taken ? 'lock' : 'default'} disabled={taken}
+                    onClick={canEdit && !taken ? () => pick(slot, ref) : undefined}>{refLabel(ref)}</Pill>
                 );
               })}
             </Stack>
@@ -136,7 +140,7 @@ export function SkillsSection({ state, update, compiled, canEdit }: SectionProps
                 <Button onClick={() => addLore(slot)}>{tr('Adicionar Lore', 'Add Lore')}</Button>
               </Stack>
             )}
-          </Paper>
+          </Box>
         );
       })}
     </Stack>
