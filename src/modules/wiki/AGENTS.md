@@ -1,7 +1,8 @@
 # Wiki da Mesa (`/wiki/:id?`, `src/modules/wiki/`; servidor `wiki-handler.js`, `wiki-store.js`, `wiki-secrets.js`)
 
 O mundo escrito pela mesa inteira. Tabelas `wiki_pages` e `wiki_revisions`. `?nova=<título>&tipo=<tipo>` abre o editor de
-uma página nova (é como o Diário e os links vermelhos chegam).
+uma página nova (é como o Diário e os links vermelhos chegam). Com `&semente=1`, o editor aplica a semente que outro módulo
+gravou (`setWikiSeed`/`takeWikiSeed`, `sessionStorage` desta aba, sanitizada na leitura): é o "Criar página na Wiki" do Criador.
 
 - **Permissões** (decisão do usuário: todos editam, o GM trava), no `wiki-handler.js`, pelo papel **mesmo com
   `AUTH_REQUIRED` desligado**: membro lê as públicas, cria (sempre pública) e edita públicas não travadas; travada ou só do

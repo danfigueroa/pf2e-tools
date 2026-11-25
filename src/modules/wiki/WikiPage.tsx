@@ -7,7 +7,7 @@ import {
 import { ArrowBack } from '@mui/icons-material'
 import { useMesaInfo, useRole } from '../../services/auth'
 import {
-    blankPage, deleteWikiPage, fetchWikiList, fetchWikiMissing, purgeWikiPage, refreshWikiIndex, setWikiFlags, showWikiPage, undeleteWikiPage,
+    blankPage, takeWikiSeed, deleteWikiPage, fetchWikiList, fetchWikiMissing, purgeWikiPage, refreshWikiIndex, setWikiFlags, showWikiPage, undeleteWikiPage,
     useWikiIndex, WIKI_KINDS, type WikiKind, type WikiMissing, type WikiPage as WikiPageData, type WikiSummary,
 } from '../../services/wiki'
 import { linkName } from '../../components/markdown/blocks'
@@ -105,10 +105,16 @@ export function WikiPage() {
         if (existing && index.list) open(existing)
         else if (index.list) {
             const kind = (WIKI_KINDS as readonly string[]).includes(novoTipo ?? '') ? novoTipo as WikiKind : 'npc'
-            setCreating(blankPage(kind, novo.slice(0, 120)))
+            const blank = blankPage(kind, novo.slice(0, 120))
+            // Semente de outro módulo (Criador: "Criar página do personagem"): resumo, ficha rápida, retrato e texto.
+            const seed = params.get('semente') ? takeWikiSeed() : null // i18n-ok: parâmetro da URL
+            setCreating(seed ? {
+                ...blank, summary: seed.summary ?? '', image: seed.image ?? null, body: seed.body ?? '',
+                fields: { ...blank.fields, ...(seed.fields ?? {}) }, tags: seed.tags ?? [],
+            } : blank)
         } else return
-        setParams((p) => { p.delete('nova'); p.delete('tipo'); return p }, { replace: true }) // i18n-ok: parâmetro da URL
-    }, [novo, novoTipo, names, index.list, open, setParams])
+        setParams((p) => { p.delete('nova'); p.delete('tipo'); p.delete('semente'); return p }, { replace: true }) // i18n-ok: parâmetro da URL
+    }, [novo, novoTipo, names, index.list, open, setParams, params])
 
     const resolveLink = useCallback((target: string) => (findPage(names, target) ? 'known' as const : 'missing' as const), [names])
     const onLink = useCallback((target: string) => {

@@ -172,6 +172,35 @@ export function blankPage(kind: WikiKind, title: string, body = ''): WikiPage {
     }
 }
 
+/**
+ * Semente de página nova vinda de outro módulo (9.9, "Criar página do personagem"): o Criador grava e a Wiki aplica ao
+ * abrir `?nova=<título>&semente=1`. Fica no `sessionStorage` (só esta aba) e sai na leitura.
+ */
+export type WikiSeed = Partial<Pick<WikiPage, 'summary' | 'image' | 'fields' | 'body' | 'tags'>>
+const SEED_KEY = 'pf2e:wiki:seed'
+
+export function setWikiSeed(seed: WikiSeed) {
+    try { sessionStorage.setItem(SEED_KEY, JSON.stringify(seed)) } catch { /* sem storage: a página nasce em branco */ }
+}
+
+export function takeWikiSeed(): WikiSeed | null {
+    try {
+        const raw = sessionStorage.getItem(SEED_KEY)
+        sessionStorage.removeItem(SEED_KEY)
+        const v = raw ? JSON.parse(raw) : null
+        if (!v || typeof v !== 'object') return null
+        return {
+            summary: typeof v.summary === 'string' ? v.summary.slice(0, 300) : undefined,
+            image: typeof v.image === 'string' && /^(https?:\/\/|\/|idb:)/.test(v.image) ? v.image : undefined,
+            fields: v.fields && typeof v.fields === 'object' ? Object.fromEntries(Object.entries(v.fields).filter(([, x]) => typeof x === 'string').map(([k, x]) => [k, String(x).slice(0, 200)])) as Record<string, string> : undefined,
+            body: typeof v.body === 'string' ? v.body.slice(0, 20000) : undefined,
+            tags: Array.isArray(v.tags) ? v.tags.filter((t: unknown) => typeof t === 'string').slice(0, 10) : undefined,
+        }
+    } catch {
+        return null
+    }
+}
+
 // ── Leituras ─────────────────────────────────────────────────────────────────
 
 export interface WikiList { pages: WikiSummary[]; authors: Record<string, string>; gm: boolean }
