@@ -21,6 +21,7 @@
 // O estado mora no servidor: fechar a aba e voltar, ou outro aparelho continuar, retoma de onde parou.
 // Falha da IA nunca promove pela metade (decisão do usuário: esperar e tentar de novo).
 
+import { linkPublishedBuild } from './build-store.js'
 import { supabase } from './supabase.js'
 import { sameJson } from './json.js'
 import { hasTranslationKey } from './aon.js'
@@ -378,6 +379,15 @@ export async function stepDraft(mesa, slug, ctx = {}) {
         const owner = ctx.enforce && !current ? publishedBy : null
         const sheet = await db.promote(mesa, slug, publishedBy, owner)
         if (!sheet) return { state: 'gone' }
+        // Ficha que veio do Criador: liga ao build e guarda a versão dele (nunca derruba a promoção já feita).
+        const buildId = draft.json?.build?.covil?.buildId
+        if (buildId) {
+            try {
+                await linkPublishedBuild(mesa, slug, buildId, publishedBy)
+            } catch (error) {
+                console.error('[sheet-draft] vínculo com o build falhou:', error)
+            }
+        }
         return { state: 'ready', sheet, publishedBy, created: !current }
       }
     }

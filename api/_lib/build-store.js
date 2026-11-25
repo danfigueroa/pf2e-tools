@@ -276,3 +276,42 @@ export async function writeMesaRules(mesa, rules, by) {
     const row = await store().writeRules(mesa, sanitizeMesaRules(rules), by)
     return { rules: sanitizeMesaRules(row.rules), updatedAt: ms(row.updated_at) }
 }
+
+// --- Publicação ("Aplicar na mesa") ------------------------------------------------------------------------
+
+/**
+ * A ficha do build foi promovida (fim do preparo): guarda a versão do build que a gerou, marca o `published_rev` e liga
+ * `sheets.build_id`. Sem banco, só marca o `published_rev` na memória.
+ */
+export async function linkPublishedBuild(mesa, slug, buildId, by) {
+    if (!UUID_RE.test(String(buildId))) return
+    const build = await readBuild(mesa, buildId)
+    if (!build || build.slug !== slug) return
+    const db = supabase()
+    if (!db) {
+        const m = mem(mesa).builds.get(buildId)
+        if (m) m.publishedRev = m.rev
+        return
+    }
+    check(await db.from('character_build_versions').insert({
+        build_id: buildId, mesa, state: build.state, rules_version: build.rulesVersion || '', level: build.level, published_by: by,
+    }))
+    check(await db.from('character_builds').update({ published_rev: build.rev }).eq('mesa', mesa).eq('id', buildId))
+    check(await db.from('sheets').update({ build_id: buildId }).eq('mesa', mesa).eq('slug', slug))
+}
+
+/** Versões publicadas de um build (mais nova primeiro), sem o `state`. */
+export async function listBuildVersions(mesa, buildId) {
+    const db = supabase()
+    if (!db) return []
+    return check(await db.from('character_build_versions').select('id, level, rules_version, published_at, published_by')
+        .eq('mesa', mesa).eq('build_id', buildId).order('published_at', { ascending: false }).limit(30))
+        .map((r) => ({ id: Number(r.id), level: r.level, rulesVersion: r.rules_version, publishedAt: Date.parse(r.published_at), publishedBy: r.published_by }))
+}
+
+/** O `state` de uma versão publicada (para restaurar). */
+export async function readBuildVersion(mesa, buildId, versionId) {
+    const db = supabase()
+    if (!db) return null
+    return check(await db.from('character_build_versions').select('state').eq('mesa', mesa).eq('build_id', buildId).eq('id', versionId).maybeSingle())?.state ?? null
+}
