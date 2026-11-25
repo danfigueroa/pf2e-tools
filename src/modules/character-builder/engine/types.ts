@@ -7,6 +7,7 @@ import type { SkillSlot } from './skills'
 import type { ChildSlot, TakenFeat } from './feats'
 import type { FeatSlot } from './slots'
 import type { ClassChoiceSlot } from './classChoices'
+import type { PrereqContext } from './prereqs'
 
 export type { AttributeKey } from '../rules/types'
 
@@ -138,6 +139,10 @@ export interface Compiled {
     /** Escolhas de classe (subclasse) e de salvaguarda (Path to Perfection). */
     classChoices: (ClassChoiceSlot & { chosen?: string })[]
     saveChoices: { key: string; level: number; label: string; rank: Rank; chosen?: string }[]
+    /** Para avaliar a elegibilidade de candidatos no seletor (o mesmo contexto do motor). */
+    prereq: PrereqContext
+    /** Traços que valem para talentos de ancestralidade (ancestralidade e herança versátil). */
+    ancestryTraits: string[]
     /** Bônus fixos de talento por perícia (Incredible Initiative não: é situacional). */
     skillBonus: Partial<Record<SkillKey, number>>
 }

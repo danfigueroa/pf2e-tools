@@ -11,7 +11,8 @@ import { tr } from '../../i18n';
 import { ReadOnlyTheme } from '../character-viewer/components/ReadOnlyTheme';
 import { VIEW_OK } from '../character-viewer/sheetAccess';
 import { useBuild, type SaveStatus } from './hooks/useBuild';
-import { useRules } from './hooks/useRules';
+import { useRules, type FeatListNeeds } from './hooks/useRules';
+import { variantFlags } from './engine/slots';
 import { compileBuild } from './engine/compile';
 import { StatusHeader } from './components/StatusHeader';
 import { PendingPanel } from './components/PendingPanel';
@@ -19,6 +20,7 @@ import { OriginSection } from './sections/OriginSection';
 import { ClassSection } from './sections/ClassSection';
 import { AttributesSection } from './sections/AttributesSection';
 import { SkillsSection } from './sections/SkillsSection';
+import { ProgressionSection } from './sections/ProgressionSection';
 import type { SectionProps } from './sections/types';
 import { tabOf, type BuilderTab } from './tabs';
 import type { BuildState } from './types';
@@ -39,6 +41,7 @@ const TABS: { key: BuilderTab; label: string }[] = [
   { key: 'class', label: tr('Classe', 'Class') },
   { key: 'attributes', label: tr('Atributos', 'Attributes') },
   { key: 'skills', label: tr('Perícias', 'Skills') },
+  { key: 'progression', label: tr('Progressão', 'Progression') },
   { key: 'details', label: tr('Detalhes', 'Details') },
 ];
 
@@ -57,16 +60,39 @@ const DETAIL_FIELDS: { key: DetailKey; label: string }[] = [
  */
 export function BuilderMode({ buildId }: { buildId: string }) {
   const navigate = useNavigate();
-  const rules = useRules();
+  const [needs, setNeeds] = useState<FeatListNeeds | undefined>(undefined);
+  const rules = useRules(needs);
   const [className, setClassName] = useState<string | null>(null);
+  const [browseArchetype, setBrowseArchetype] = useState<string | null>(null);
   const { build, state, canEdit, loading, error, status, conflict, update, keepMine, takeTheirs, reload } = useBuild(buildId, className);
+
+  // Listas de talento que este personagem usa: classe, ancestralidade, herança versátil, mítico e os arquétipos dos
+  // talentos escolhidos (pelo qualificador) mais o que o seletor está navegando.
+  const core = rules.core;
+  const needsKey = useMemo(() => {
+    if (!core || !state) return '';
+    const cls = core.classes.find((c) => c.id === state.class.id);
+    const anc = core.ancestries.find((a) => a.id === state.origin.ancestry);
+    const her = core.heritages.find((h) => h.id === state.origin.heritage);
+    const archetypes = new Set<string>(browseArchetype ? [browseArchetype] : []);
+    for (const choice of Object.values(state.choices)) {
+      if ('qualifier' in choice && choice.qualifier?.startsWith('archetype:')) archetypes.add(choice.qualifier.slice(10));
+    }
+    const next: FeatListNeeds = {
+      className: cls?.name, ancestryName: anc?.name, versatileHeritage: her && !her.heritage?.ancestry ? her.name : undefined,
+      mythic: variantFlags(state, rules.mesaRules ?? undefined).mythic, archetypes: [...archetypes].sort(),
+    };
+    return JSON.stringify(next);
+  }, [core, state, browseArchetype, rules.mesaRules]);
+  useEffect(() => { if (needsKey) setNeeds(JSON.parse(needsKey) as FeatListNeeds); }, [needsKey]);
   const [tab, setTab] = useState<BuilderTab>('origin');
   const [pendingOpen, setPendingOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const compiled = useMemo(() => (state && rules.index ? compileBuild(state, { rules: rules.index, mesaRules: rules.mesaRules ?? undefined }) : null),
-    [state, rules.index, rules.mesaRules]);
+  const compiled = useMemo(() => (state && rules.index && core
+    ? compileBuild(state, { rules: rules.index, mesaRules: rules.mesaRules ?? undefined, classOptions: core.classFeatures })
+    : null), [state, rules.index, rules.mesaRules, core]);
   const clsName = rules.index?.get(state?.class.id)?.name ?? null;
   useEffect(() => setClassName(clsName), [clsName]);
 
@@ -190,6 +216,10 @@ export function BuilderMode({ buildId }: { buildId: string }) {
             {sectionProps && tab === 'class' && <ClassSection {...sectionProps} />}
             {sectionProps && tab === 'attributes' && <AttributesSection {...sectionProps} />}
             {sectionProps && tab === 'skills' && <SkillsSection {...sectionProps} />}
+            {sectionProps && tab === 'progression' && (
+              <ProgressionSection {...sectionProps} feats={rules.feats} archetypes={core?.archetypes ?? []}
+                browseArchetype={browseArchetype} setBrowseArchetype={setBrowseArchetype} />
+            )}
             {tab === 'details' && (
               <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2.5 } }}>
                 <Typography component="h2" sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.1rem', mb: 1.5 }}>{tr('Detalhes', 'Details')}</Typography>

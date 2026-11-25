@@ -2,7 +2,7 @@
 // usa) e as regras de criação da mesa. Só listas de `core/` do Storage/IndexedDB: nenhuma chamada à AON.
 import { useEffect, useMemo, useState } from 'react'
 import { fetchMesaRules } from '../../../services/builds'
-import { ancestries, backgrounds, classes, classOptions, heritages, languages, openRules, ruleListSlug } from '../rules'
+import { ancestries, archetypes, backgrounds, classes, classOptions, heritages, languages, openRules, ruleListSlug } from '../rules'
 import { loadRuleList } from '../rules/loader'
 import { buildRulesIndex } from '../engine/rulesIndex'
 import type { RuleEntry } from '../rules/types'
@@ -18,6 +18,7 @@ export interface CoreRules {
     classes: RuleEntry[]
     languages: RuleEntry[]
     classFeatures: RuleEntry[]
+    archetypes: RuleEntry[]
 }
 
 /** O que o personagem usa e decide quais listas de talento baixar. */
@@ -60,8 +61,8 @@ export function useRules(needs?: FeatListNeeds): UseRules & { feats: RuleEntry[]
         let alive = true
         openRules()
             .then(async (version) => {
-                const [a, h, b, c, l, cf] = await Promise.all([ancestries(), heritages(), backgrounds(), classes(), languages(), classOptions()])
-                if (alive) setCore({ version, ancestries: a, heritages: h, backgrounds: b, classes: c, languages: l, classFeatures: cf })
+                const [a, h, b, c, l, cf, ar] = await Promise.all([ancestries(), heritages(), backgrounds(), classes(), languages(), classOptions(), archetypes().catch(() => [] as RuleEntry[])])
+                if (alive) setCore({ version, ancestries: a, heritages: h, backgrounds: b, classes: c, languages: l, classFeatures: cf, archetypes: ar })
             })
             .catch(() => alive && setError(true))
         void fetchMesaRules().then((out) => {

@@ -27,7 +27,9 @@ export interface PrereqContext {
 }
 
 const RANKS: Record<string, Rank> = { trained: 1, expert: 2, master: 3, legendary: 4 }
-const RANK_PT: Record<string, string> = { trained: 'treinado', expert: 'perito', master: 'mestre', legendary: 'lendário' }
+const RANK_PT: Record<string, string> = {
+    trained: tr('treinado', 'trained'), expert: tr('perito', 'expert'), master: tr('mestre', 'master'), legendary: tr('lendário', 'legendary'),
+}
 const ATTR: Record<string, AttributeKey> = {
     strength: 'str', dexterity: 'dex', constitution: 'con', intelligence: 'int', wisdom: 'wis', charisma: 'cha',
 }
@@ -66,7 +68,7 @@ function evalOne(raw: string, ctx: PrereqContext): PrereqPart {
             if (have >= need) return { text, result: 'ok' }
         }
         if (!anyKnown) return { text, result: 'unknown' }
-        return { text, result: 'fail', reason: tr(`precisa ser ${RANK_PT[rank[1]]} em ${rank[2]}`, `needs ${rank[1]} in ${rank[2]}`) }
+        return { text, result: 'fail', reason: tr(`precisa ser ${RANK_PT[rank[1]]} em ${rank[2]}`, `needs ${RANK_PT[rank[1]]} in ${rank[2]}`) }
     }
     // Atributo: "Strength +2", "Intelligence +3".
     const attr = /^(strength|dexterity|constitution|intelligence|wisdom|charisma) \+?(\d)$/.exec(lower)

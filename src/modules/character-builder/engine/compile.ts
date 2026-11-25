@@ -13,6 +13,7 @@ import type { RuleEntry } from '../rules/types'
 import { attributeLabel, compileAttributes } from './attributes'
 import { compileSkills } from './skills'
 import { compileFeats } from './feats'
+import type { PrereqContext } from './prereqs'
 import { featSlots, variantFlags } from './slots'
 import { classChoiceSlots, SAVE_CHOICE_FEATURES, UNCOUNTED_CHOICE_TYPES } from './classChoices'
 import type { CompileContext, Compiled, Pending, Rank, Stat, Warning } from './types'
@@ -206,15 +207,13 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
     const flags = variantFlags(state, ctx.mesaRules)
     const slots = featSlots(cls, flags)
     const ancestryTraits = [ancestry?.name, ...(heritage && !heritage.heritage?.ancestry ? [heritage.name] : [])].filter((t): t is string => !!t)
-    const feats = compileFeats(state, slots, rules, {
-        level, className: cls?.name, ancestryTraits, awarded, has,
-        prereqContext: () => ({
+    const prereqContext = (): PrereqContext => ({
             level, className: cls?.name, ancestryName: ancestry?.name, heritageName: heritage?.name, has,
             skillRank: (s) => skills.result.rank[s], loreRank: (l) => skills.result.lores.find((x) => x.key === `lore:${l.replace(/\s+/g, '-')}`)?.rank ?? 0,
             stat: { perception: proficiency.perception, fortitude: proficiency.fortitude, reflex: proficiency.reflex, will: proficiency.will },
             attribute: mod, deity: state.origin.deity,
-        }),
-    }, warnings)
+        })
+    const feats = compileFeats(state, slots, rules, { level, className: cls?.name, ancestryTraits, awarded, has, prereqContext }, warnings)
     for (const slot of slots) {
         if (slot.level > level) continue
         used.add(slot.key)
@@ -313,6 +312,8 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
         classFeatures: features,
         classChoices,
         saveChoices,
+        prereq: prereqContext(),
+        ancestryTraits,
         skillBonus: feats.mods.skill,
     }
 }
