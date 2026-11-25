@@ -36,6 +36,16 @@ export const charSlugFromName = (name: string): string => {
     return SLUG_ALIASES[slug] ?? slug
 }
 
+/**
+ * Slug de um build novo do Criador: o mesmo algoritmo, cortado em 48 (CHECK de `character_builds`). PAR de
+ * `buildSlugFromName` em `api/_lib/build-store.js`. Quem decide o slug é o servidor (o primeiro livre na mesa);
+ * aqui é só a prévia.
+ */
+export const buildSlugFromName = (name: string): string => {
+    const slug = slugify(name || '').slice(0, 48).replace(/-+$/g, '') || 'sem-nome'
+    return SLUG_ALIASES[slug] ?? slug
+}
+
 /** Slug do personagem: `Ghan Buri` → `ghan-buri`. */
 export const charSlug = (build: BuildInfo): string => charSlugFromName(build.name)
 
