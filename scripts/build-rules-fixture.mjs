@@ -58,7 +58,8 @@ const used = (entry) => names.has(entry.name.toLowerCase()) || (entry.legacyName
 const manifest = await fetchList('manifest')
 const scanned = Object.keys(manifest.files).filter((list) => /^feats\/(ancestry|archetype)\//.test(list) || list === 'core/actions' || list === 'feats/other')
 for (const list of [...FILTERED, ...scanned]) {
-    const kept = (await fetchList(list)).filter(used)
+    // Opções de subclasse (doutrina, racket, instinto…) entram todas: o export as nomeia com o tipo junto.
+    const kept = (await fetchList(list)).filter((e) => used(e) || (list === 'core/class-features' && e.type !== 'class-feature'))
     if (kept.length || FILTERED.includes(list)) lists[list] = kept
 }
 // Itens específicos usam os números da base (Hero's Plate → Full Plate) e o punho é o desarmado padrão: entram também.

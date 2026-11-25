@@ -8,6 +8,7 @@ import type { RuleEntry } from '../rules/types'
 import { compileBuild } from './compile'
 import { skillRef } from './skills'
 import { SKILL_KEYS, type AttributeKey, type CompileContext, type SkillKey } from './types'
+import { CLASS_CHOICE_TYPES } from './classChoices'
 
 const ATTR: Record<string, AttributeKey> = { Str: 'str', Dex: 'dex', Con: 'con', Int: 'int', Wis: 'wis', Cha: 'cha' }
 const STRIKING: Record<string, number> = { '': 0, striking: 1, greaterStriking: 2, majorStriking: 3 }
@@ -97,6 +98,17 @@ export function importPathbuilder(b: BuildInfo, ctx: CompileContext): { state: B
         const flag = (parent.entry.rules ?? []).find((r) => r.key === 'ChoiceSet' && r.choices && typeof r.choices === 'object' && !Array.isArray(r.choices))?.flag
         if (typeof flag === 'string') choices[`${parent.key}/choice:${flag}`] = { id: child.id }
         else guesses.push(`escolha filha sem lugar: ${f[0]} (de ${parentLabel})`)
+    }
+
+    // Subclasses e chamado mítico: o export lista o nome nas características, às vezes com o tipo junto
+    // ("Thief Racket", "Giant Instinct", "Hunter's Edge: Precision", "Empiricism Methodology").
+    const specialKeys = new Set((b.specials ?? []).map((sp) => sp.toLowerCase()
+        .replace(/^hunter['’]s edge:\s*/, '')
+        .replace(/\s+(racket|instinct|methodology|muse|bloodline|order|mystery|patron|school|style|way|research field|doctrine)$/, '')))
+    const types = Object.entries(CLASS_CHOICE_TYPES).filter(([, spec]) => spec.className.toLowerCase() === b.class.toLowerCase()).map(([t]) => t)
+    for (const type of [...types, 'mythic-calling']) {
+        const option = (ctx.classOptions ?? []).filter((o) => o.type === type).find((o) => specialKeys.has(o.name.toLowerCase()) || (b.specials ?? []).includes(o.name))
+        if (option) choices[`class-choice:${type}`] = { id: option.id }
     }
 
     // Path to Perfection: o nome da característica traz a escolha ("Path to Perfection (Will)").

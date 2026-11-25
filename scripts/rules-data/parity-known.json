@@ -84,8 +84,6 @@
   "focusPoints": "magias de foco legadas/caseiras fora do catálogo Remaster"
  },
  "Woyd": {
-  "prof.fortitude": "proficiência de escolha não modelada (doutrina do Cleric, Path to Perfection sem escolha, talento legado)",
-  "prof.castingDivine": "conjurador de arquétipo, inato ou de doutrina ainda não calculado (F5 pendente)",
   "prof.medicine": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
   "prof.religion": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
   "weapon Rapier": "arma legada/caseira fora do catálogo ou proficiência que depende de arquétipo/doutrina/atributo legado"
