@@ -286,3 +286,19 @@
   - Com duas fontes da mesma tradição (classe e arquétipo), o retrato leva o maior rank.
 - **"Trocar talento" na Ficha.** O retrato leva `covil.slots` (nome → slot). O drawer do talento ganha "Trocar talento no Criador", que abre o seletor daquele slot.
 - **Ainda aberto.** Conjuradores inatos e de talento (ancestralidade, Mythic Magic, Arcane Breadth); Ranger Expertise com magias de warden; dano extra de runas; aceite M3/M4 com usuários.
+
+## F9 — itens feitos
+
+- **9.1 Conteúdo da mesa.**
+  - Tabela `mesa_homebrew` (migration `conteudo_da_mesa`, aplicada). Rotas `?homebrew=1` (lê quem é da mesa) e `homebrew-save`/`homebrew-delete` (só o GM real).
+  - O sanitizador `sanitizeHomebrewEntry` deixa passar só o que o motor lê. O id é `mesa:<uuid>`, porque `custom:` já é o item de texto livre da 8.12.
+  - O editor fica em `/mesa`: talento (slot pelo traço), item, runa de propriedade, background (boosts pela regra do Player Core pg. 84, perícias, talento), herança (ancestralidade ou versátil) e magia.
+  - O conteúdo entra no catálogo do `useRules` com o selo "Da mesa" e vale mesmo fora dos livros liberados. O efeito que muda número vira `UNSUPPORTED_EFFECT`.
+  - **Adiado:** migrar `customRunes.ts` e `homebrewGear.ts`, que carregam mecânica da Ficha casada pelo nome. Também falta a descrição do caseiro no drawer da Ficha, que hoje busca na AON.
+- **9.6 Copiar para outra mesa** (`build-copy`). Exige ser membro da mesa de destino. A cópia nasce com slug livre, dono = quem copiou e sem histórico, e as regras de lá passam a valer. O caminho feliz é testado em memória no `check-builder`; as recusas, no `check-auth`.
+- **9.7 Navegador do catálogo** ("Catálogo" na lista de personagens). Mostra ancestralidades, heranças, backgrounds, classes, arquétipos, talentos por tipo, magias por tradição, foco, rituais e itens por lista, no seletor de sempre, só para leitura.
+- **9.8 Troféus.**
+  - "Arquiteto" (bronze, criar um personagem no Criador) e "Obra entregue" (prata, aplicar na mesa um personagem do Criador). "Veterano" já existia (três níveis).
+  - Só vale para quem criou e é o dono.
+  - O `check-auth` confere o desbloqueio e apaga o aviso da mesa.
+- **9.9 Página na Wiki.** "Criar página na Wiki" nos Detalhes abre `/wiki?nova=<nome>&tipo=npc&semente=1` com ficha rápida (ancestralidade, classe e nível), retrato, resumo e os detalhes. Se a página já existe, a Wiki só a abre.
