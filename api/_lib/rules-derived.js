@@ -123,6 +123,37 @@ function classCasting(entry, unsupported) {
 }
 
 /**
+ * Progressão da doutrina do Cleric (Player Core pg. 112): uma lista "**<Nome> Doctrine (Nº)** <texto>". Cada degrau
+ * vira `{ level, proficiencies }`, lidas pelas mesmas formas das características de classe e por "You're trained in X" e
+ * "you have expert proficiency in X". O que não casa vai para `unsupported`.
+ */
+export function doctrineProgression(markdown, unsupported) {
+    const text = String(markdown ?? '').replace(/<[^>]+>/g, ' ').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/\s+/g, ' ')
+    const steps = []
+    for (const m of text.matchAll(/\*\*[A-Za-z ]*Doctrine \((\d+)(?:st|nd|rd|th)\)\*\*(.*?)(?=- \*\*[A-Za-z ]*Doctrine \(|$)/g)) {
+        const level = Number(m[1])
+        const body = m[2].trim()
+        const own = []
+        const proficiencies = classFeatureProficiencies(body, own)
+        // "You're trained in light and medium armor" / "you have expert proficiency in Fortitude saves".
+        const clauses = body.split(/\.\s*/).flatMap((sentence) => sentence.split(/,? and (?=you have\b|you['’]re\b|you are\b)/i))
+        for (const sentence of clauses.filter((c) => /\b(?:you['’]re|you are) trained in\b|\byou have (?:expert|master|legendary) proficiency in\b/i.test(c))) {
+            const lower = sentence.toLowerCase()
+            if (/\bif\b|\bat \d+(st|nd|rd|th) level\b/.test(lower)) { own.push(`proficiency: ${sentence.trim().slice(0, 140)}`); continue }
+            const rank = /trained in/.test(lower) && !/proficiency in/.test(lower) ? 1 : RANK_WORDS[/(expert|master|legendary) proficiency/.exec(lower)?.[1]]
+            const phrase = lower.replace(/^.*?(?:trained in|proficiency in)/, '')
+            const armorless = !/\barmor\b/.test(phrase)
+            for (const [re, target] of PROFICIENCY_TARGETS) {
+                if (re.test(phrase) && !(armorless && ['light', 'medium', 'heavy'].includes(target))) proficiencies.push({ target, rank })
+            }
+        }
+        unsupported.push(...own.map((u) => `${level}: ${u}`))
+        steps.push({ level, proficiencies })
+    }
+    return steps
+}
+
+/**
  * Boosts da ancestralidade. A AON escreve o Humano (e afins) como "Two free ability boosts" (Player Core pg. 62:
  * "Attribute Boosts: Two free ability boosts"); o resto vem como nomes de atributo e "Free". Texto desconhecido vai para
  * `unsupported`, nunca some.
@@ -265,6 +296,10 @@ export function deriveRuleData(category, data, entry) {
             trainedSkills: trainedSkills(data.skill_proficiency, unsupported),
             casting: classCasting(entry, unsupported),
         }))
+    }
+    case 'doctrine': {
+        const steps = doctrineProgression(entry?.markdown, unsupported)
+        return steps.length ? withNotes('doctrine', { steps }) : null
     }
     case 'class-feature': {
         const proficiencies = classFeatureProficiencies(entry?.markdown, unsupported)

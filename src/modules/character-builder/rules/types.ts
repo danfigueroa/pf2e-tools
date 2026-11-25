@@ -79,6 +79,8 @@ export interface RuleEntry {
     classOption?: { class: string }
     /** Característica de classe: proficiências que ela sobe (lidas do texto da AON). */
     classFeature?: { proficiencies?: { target: string; rank: Rank }[] }
+    /** Doutrina do Cleric: proficiências por degrau (Player Core pg. 112). */
+    doctrine?: { steps: { level: number; proficiencies: { target: string; rank: Rank }[] }[] }
     feat?: { archetype?: string[]; skill?: string[] }
     spell?: { rank?: number; traditions?: string[]; cantrip?: boolean; focus?: boolean; ritual?: boolean; heighten?: string[] }
     item?: ItemData

@@ -164,7 +164,12 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
                 awarded.push({ entry, level: slot.level, source: slot.label })
                 has.add(entry.name.toLowerCase())
                 if (slot.type === 'doctrine') {
-                    warnings.push({ code: 'UNSUPPORTED_EFFECT', level: 'info', ref: slot.key, message: tr(`Efeito não calculado: a progressão da doutrina ${entry.name} (salvaguardas e armas por nível).`, `Effect not calculated: the ${entry.name} doctrine progression (saves and weapons by level).`) })
+                    // Degraus da doutrina até o nível atual (Player Core pg. 112); sem dados derivados, avisa.
+                    if (entry.doctrine?.steps?.length) {
+                        for (const stepDef of entry.doctrine.steps) if (stepDef.level <= level) for (const p of stepDef.proficiencies) upgrade(p.target, p.rank)
+                    } else {
+                        warnings.push({ code: 'UNSUPPORTED_EFFECT', level: 'info', ref: slot.key, message: tr(`Efeito não calculado: a progressão da doutrina ${entry.name} (salvaguardas e armas por nível).`, `Effect not calculated: the ${entry.name} doctrine progression (saves and weapons by level).`) })
+                    }
                 }
             }
         }
