@@ -103,6 +103,26 @@ export function classFeatureProficiencies(markdown, unsupported) {
 }
 
 /**
+ * Conjuração da classe, lida da AON: tradições em `tradition_markdown` (mais de uma = depende da subclasse: linhagem,
+ * patrono, eidolon); o tipo pela seção "Spellcasting" ("repertoire" = espontâneo, "prepare" = preparado; o Animist tem os
+ * dois e fica `mixed`); o atributo pela frase "…spell DC use(s)/calculated using your X modifier" (sem ela, o atributo-chave).
+ */
+function classCasting(entry, unsupported) {
+    const traditions = [...String(entry?.tradition_markdown ?? '').matchAll(/\[(arcane|divine|occult|primal)\]/gi)].map((m) => m[1].toLowerCase())
+    if (!traditions.length) return undefined
+    const text = String(entry?.markdown ?? '').replace(/<[^>]+>/g, ' ').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/\s+/g, ' ')
+    const start = text.search(/Spellcasting /)
+    const section = start >= 0 ? text.slice(start, start + 4000).toLowerCase() : ''
+    const spontaneous = /\brepertoire\b/.test(section)
+    const prepared = /\bprepare/.test(section)
+    const type = spontaneous && prepared && /\bapparition/.test(section) ? 'mixed' : spontaneous ? 'spontaneous' : prepared ? 'prepared' : undefined
+    if (!type || type === 'mixed') unsupported.push(`casting: ${type ?? 'tipo não identificado'}`)
+    const named = /spell dcs? (?:use|are calculated using) your (strength|dexterity|constitution|intelligence|wisdom|charisma) modifier/.exec(section)?.[1]
+    const attribute = named ? ATTRIBUTES[named.charAt(0).toUpperCase() + named.slice(1)] : undefined
+    return compact({ traditions, type, attribute })
+}
+
+/**
  * Boosts da ancestralidade. A AON escreve o Humano (e afins) como "Two free ability boosts" (Player Core pg. 62:
  * "Attribute Boosts: Two free ability boosts"); o resto vem como nomes de atributo e "Free". Texto desconhecido vai para
  * `unsupported`, nunca some.
@@ -243,6 +263,7 @@ export function deriveRuleData(category, data, entry) {
             attacks: attackProficiencies(data.attack_proficiency, unsupported),
             defenses: defenseProficiencies(data.defense_proficiency, unsupported),
             trainedSkills: trainedSkills(data.skill_proficiency, unsupported),
+            casting: classCasting(entry, unsupported),
         }))
     }
     case 'class-feature': {
