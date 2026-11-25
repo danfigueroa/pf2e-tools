@@ -148,14 +148,14 @@
   - **"Pronto quando" M1.** Criar um nível 1 de cada classe do elenco no Pathbuilder e comparar PV, CA, salvaguardas, Percepção e perícias. O gabarito automático cobre os atributos de 5 personagens e o Guerreiro calculado pelas regras; a conferência no Pathbuilder, pelo Brave, fica para a próxima sessão.
 - **Próximo passo.** F4: progressão 1–20, talentos (com `ContentPicker` e pré-requisitos), características de classe por nível e as variantes (Free Archetype, Mítico, Ancestral Paragon).
 
-## F4 — Progressão 1–20, talentos e variantes em andamento (núcleo pronto)
+## F4 — Progressão 1–20, talentos e variantes concluída (com pendências registradas)
 
 - **Variantes conferidas na AON.** Free Archetype: GM Core pg. 84, um talento de arquétipo extra no 2º e em todo par. Mítico: War of Immortals pg. 77, talento mítico extra nos pares e destino obrigatório no 12º. Ancestry Paragon: Gamemastery Guide pg. 194, só legado — dois talentos de ancestralidade no 1º e um em cada ímpar. Arquétipo ocupa slot de classe e a trava da dedicação vêm do Player Core pg. 215. Combat Flexibility e Improved Flexibility: Player Core pg. 136. Path to Perfection: Player Core 2 pg. 114.
 - **Achado sobre a semente das mesas.** O elenco usa o **talento geral** "Ancestral Paragon" (Thalos e Woyd, no 3º), não a variante Ancestry Paragon. Com a variante ligada, sobram slots de ancestralidade no 3/7/11… em todos os personagens. A semente de `mesa_rules` (F0.3) liga a variante nas duas mesas; **o GM deve desligá-la em `/mesa`** se a intenção era o talento. Não mudei a regra em produção porque foi decisão confirmada pelas mesas.
 - **Proficiências por nível.** As regras do Foundry para "Fortitude Expertise", "Juggernaut" e afins vêm vazias. A fonte passou a ser o texto da AON, derivado em `classFeature.proficiencies` (`rules-derived.js`):
   - Formas aceitas: "proficiency rank for X increases to R", "…increases to R with X", "gain expert proficiency in X" e "become an expert in X".
   - Vão para `unsupported`: o que depende de escolha (grupo de arma, a salvaguarda escolhida), frase condicional ("If you have qi spells") e arma específica (armas de fogo, bombas).
-  - Base reimportada inteira duas vezes pelo script: versão `2026.11.6` com 279 alteradas, mais a segunda, ambas só com `core/class-features` regravada.
+  - Base reimportada inteira duas vezes pelo script: `2026.11.6` (279 alteradas) e `2026.11.7` (4 alteradas, Weapon Tricks e afins), ambas só com `core/class-features` regravada. Na segunda, o download do tarball do Foundry estourou o tempo; o loader passou a aceitar `FOUNDRY_TARBALL=<arquivo do mesmo commit>` e o limite subiu para 15 min.
 - **Motor.** `slots.ts` (slots por nível, variantes e slots de característica), `feats.ts` (validações e efeitos), `prereqs.ts` (pré-requisitos por parte, `ok/fail/unknown`), `classChoices.ts` (subclasses e salvaguarda do Path to Perfection) e `rulesIndex.ts` (por id e por nome).
   - **Efeitos suportados.** `FlatModifier` sem predicado (Toughness, Fleet), `ActiveEffectLike` de rank com a escolha do `ChoiceSet` (Canny Acumen, Fighter), `ChoiceSet` (lista, perícias ou talento filtrado → slot filho) e `GrantItem` de talento.
   - **Concessões.** Talento do background e talentos concedidos por característica (Shield Block do Fighter).
@@ -163,10 +163,12 @@
 - **`check-builder`: 132 conferências.**
   - **M2.** Os slots de talento dos 10 personagens do elenco são iguais aos do Pathbuilder. Os talentos do export preenchem os slots sem pendência fantasma; 22 talentos legados ficam fora do recorte.
   - **Ghan Buri nível 10.** Percepção, salvaguardas, armas e armaduras iguais ao export.
-  - **Comparação de proficiências sem talentos.** Seis classes batem no nível atual. Rogue (Weapon Tricks) foi corrigido pela forma "gain expert proficiency". Monk depende do Path to Perfection (escolha). Investigator vem do Canny Acumen (talento). Cleric depende da doutrina, que ainda não é calculada e fica com aviso.
+  - **Comparação de proficiências sem talentos.** Sete das dez classes batem no nível atual, inclusive o Rogue (Weapon Tricks, "gain expert proficiency"). As três diferenças dependem de escolha: Monk (Path to Perfection), Investigator (o talento Canny Acumen) e Cleric (a doutrina, ainda com aviso).
 - **Interface.** Aba Progressão com acordeão por nível (níveis futuros esmaecidos como "planejado") e o seletor de talentos: candidatos pelo tipo e pelo teto de nível, motivo de inelegibilidade na linha e no detalhe. Há ainda escolhas de classe, de salvaguarda e escolhas filhas (lista ou talento) e um navegador de arquétipo que baixa a lista dele. Conferida em 320 px e no desktop: Fighter 3 com Toughness dá PV 47, Vontade +8 (Bravery) e CD 19.
-- **Falta na F4.**
-  - **4.2:** `Sense`, `BaseSpeed`, `Resistance`/`Weakness`/`Immunity` e `MartialProficiency`.
+- **Também feitos.** `Sense`, `BaseSpeed` e `Resistance`/`Weakness`/`Immunity` fixos. Ancestralidade e herança passam pelo caminho dos talentos: Versatile Human abre o talento geral e Cavern Elf dá visão no escuro. O chamado mítico é escolha quando o personagem é mítico; no 12º, um aviso lembra que o talento mítico é o de destino.
+- **Falta (fica para depois, com aviso no motor).**
+  - **4.2:** `MartialProficiency` (armas de fogo do Gunslinger).
   - **4.3:** ikons, táticas, runas, aparições, lições e tese arcana têm contagem por conferir. A progressão da doutrina do Cleric ainda não é calculada.
   - **4.7:** qualificador de talento (Assurance (X)) e repetíveis pela regra do talento.
-  - **4.8a:** mítico completo — chamado, destino no 12º e mítico por personagem na tela.
+  - **4.8a:** conferir o traço dos talentos de destino (o aviso do 12º não confere o traço) e o mítico por personagem na tela.
+- **Próximo passo.** F5: magias.
