@@ -289,7 +289,7 @@ magias/itens), sem pendência fantasma nem slot faltando.
       para o Criador" quando não há.
 - [x] **7.7** Importação dos personagens da mesa: a partir da ficha publicada, com o mesmo slug (respeitar `SLUG_ALIASES`)
       — **não** sobrescreve a ficha até o jogador aplicar.
-- [ ] **7.8** Ficha lendo desarmados do export quando presentes (`unarmed.ts` vira reserva) — com casos no `check-rolls`.
+- [x] **7.8** Ficha lendo desarmados do export quando presentes (`unarmed.ts` vira reserva) — com casos no `check-rolls`.
 - [x] **7.9** Baixar JSON de backup (RF-009, opcional); histórico de versões do build e restaurar (RF-007).
 - [x] **7.10** Documentar no `AGENTS.md` do módulo e no da Ficha: a ficha agora pode vir do Criador (o que muda e o que não).
 

@@ -249,8 +249,10 @@
 - **Decisões.**
   - O modo editar abre na rota do Criador (`/personagens/:id`), em vez de embutido na Ficha em `?modo=editar`: mesmo efeito, sem pôr o Criador no chunk da Ficha. Embutir fica para a F8.
   - O punho não vai em `weapons[]`, porque a Ficha soma o próprio (`unarmed.ts`); vai em `covil.unarmed`.
+- **Completados depois.**
+  - **7.8.** A Ficha usa o ataque e o dano de `covil.unarmed` para o desarmado de mesmo nome; o `unarmed.ts` fica de reserva. Casos no `check-rolls`.
+  - O diálogo de aplicar mostra o diff contra a ficha da mesa (`sheetDiff`).
+  - "Subir de nível" na Ficha abre o Criador no nível seguinte, na aba Progressão.
 - **Pendente.**
-  - **7.8:** a Ficha ler `covil.unarmed` no lugar do `unarmed.ts`, com casos no `check-rolls`.
-  - "Subir de nível" e "Trocar talento" a partir da Ficha.
-  - `sheetDiff` no diálogo de aplicar.
+  - "Trocar talento" a partir do drawer da Ficha.
   - Aceite M3 com o GM e um jogador de cada mesa, que precisa de pessoas.
