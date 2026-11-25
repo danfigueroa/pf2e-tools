@@ -1,5 +1,6 @@
 import { Box, Card, CardContent, Stack, Typography, Chip, Button, useTheme, useMediaQuery } from '@mui/material'
-import { SwapHoriz as SwapIcon } from '@mui/icons-material'
+import { SwapHoriz as SwapIcon, Edit as EditIcon } from '@mui/icons-material'
+import { Link as RouterLink } from 'react-router-dom'
 import { SyncStatus } from './SyncStatus'
 import { TokenAvatar } from './TokenAvatar'
 import { charSlug } from '../charId'
@@ -15,9 +16,11 @@ interface Props {
     sizeEffect?: SizeEffectDef | null
     /** Painel estreito (mapa): leiaute de celular, qualquer que seja a janela. */
     compact?: boolean
+    /** Modo editar no Criador: o build da ficha, ou importar a ficha publicada para ele. Só para quem edita. */
+    builder?: { href: string; label: string } | null
 }
 
-export const CharacterHeader = ({ build, onReset, sizeEffect, compact = false }: Props) => {
+export const CharacterHeader = ({ build, onReset, sizeEffect, compact = false, builder }: Props) => {
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down('sm')) || compact
 
@@ -99,6 +102,10 @@ export const CharacterHeader = ({ build, onReset, sizeEffect, compact = false }:
                         sx={{ flexWrap: 'wrap', gap: 1, flexShrink: 0 }}
                     >
                         <SyncStatus build={build} />
+                        {builder && (
+                            <Button variant="contained" size="small" startIcon={<EditIcon />} component={RouterLink} to={builder.href} sx={{ flexShrink: 0 }}>
+                                {builder.label}</Button>
+                        )}
                         <Button
                             variant="outlined"
                             size="small"

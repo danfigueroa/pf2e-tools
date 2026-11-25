@@ -52,3 +52,22 @@ export const fetchMesaRules = () =>
 
 export const saveMesaRules = (rules: MesaRules) =>
     call({ body: { action: 'mesa-rules-save', rules } }, (b) => (b.rules && typeof b.rules === 'object' ? b.rules as MesaRules : undefined))
+
+/**
+ * "Aplicar na mesa": o retrato do Criador vira um rascunho de publicação com o slug do build (o preparo de sempre:
+ * descrições pt/en, guia). Devolve o rascunho para `startPreparation`.
+ */
+export const applyBuild = (id: string, sheet: unknown, names: Record<'spell' | 'feat' | 'special' | 'item', string[]>, version: string, companions: string[]) =>
+    call({ body: { action: 'build-apply', id, sheet, names, version, companions } }, (b) => (b.draft && typeof b.draft === 'object' ? b.draft as import('./sheets').SheetDraft : undefined))
+
+export interface BuildVersion { id: number; level: number; rulesVersion: string; publishedAt: number; publishedBy: string | null }
+
+export const fetchBuildVersions = (id: string) =>
+    call({ query: `?buildVersions=${encodeURIComponent(id)}` }, (b) => (Array.isArray(b.versions) ? b.versions as BuildVersion[] : undefined))
+
+export const restoreBuildVersion = (id: string, version: number, rev: number) =>
+    call({ body: { action: 'build-version-restore', id, version, rev } }, (b) => asBuild(b.build) as BuildHeader | undefined)
+
+/** Cria o build a partir de uma ficha publicada (importação): herda o slug dela. */
+export const createBuildFromSheet = (slug: string, state: BuildState, className?: string | null) =>
+    call({ body: { action: 'build-create', name: state.name, state, fromSheet: slug, className: className ?? null } }, (b) => asBuild(b.build))

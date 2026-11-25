@@ -3,7 +3,7 @@
 //   GET  ?builds=1                                     → { builds: [cabeçalho] }             (membro)
 //   GET  ?build=<id>                                   → { build, canEdit }                  (membro; edita dono e GM)
 //   GET  ?mesaRules=1                                  → { rules, updatedAt }                (membro)
-//   POST { action: 'build-create', name, state? }      → { build }                           (membro logado)
+//   POST { action: 'build-create', name, state?, fromSheet? } → { build }                    (membro logado; fromSheet: dono da ficha ou GM)
 //   POST { action: 'build-save', id, rev, state, className? } → { build } | 409 { build }    (dono, GM)
 //   POST { action: 'build-delete' | 'build-restore', id }      → { build }                   (dono, GM)
 //   POST { action: 'build-assign', id, user|null }     → { build }                           (GM)
@@ -20,7 +20,7 @@
 // segue aberto como o resto da mesa.
 
 import { isSupabaseConfigured } from './supabase.js'
-import { forbidden, memberRole } from './access.js'
+import { forbidden, memberRole, sheetOwner } from './access.js'
 import { BUILD_SCHEMA, MAX_BUILD_BYTES, buildBytes, emptyBuildState, sanitizeBuildState } from './build-sanitize.js'
 import {
     assignBuild, createBuild, freeBuildSlug, listBuilds, listBuildVersions, memberNames, readBuild, readBuildVersion, readMesaRules, saveBuild, trashBuild, writeMesaRules,
@@ -106,6 +106,16 @@ export async function handleBuildRequest(mesa, method, query, body, ctx = {}) {
         const state = sanitizeBuildState({ ...(body.state && typeof body.state === 'object' ? body.state : emptyBuildState(name, '')), name })
         if (!state.rulesVersion && version) state.rulesVersion = version
         if (buildBytes(state) > MAX_BUILD_BYTES) return fail(413, 'Personagem grande demais')
+        // Importar de uma ficha publicada: o build herda o slug dela (o estado da mesa, o token e as anotações moram nele).
+        if (typeof body.fromSheet === 'string') {
+            if (!/^[a-z0-9-]{1,48}$/.test(body.fromSheet)) return fail(400, 'Personagem inválido')
+            const sheetRow = await sheetOwner(mesa, body.fromSheet)
+            if (!sheetRow.exists) return fail(404, 'Ficha não publicada')
+            if (role !== 'gm' && sheetRow.owner !== access.userId) return forbidden('Este personagem é de outra pessoa')
+            if ((await listBuilds(mesa)).some((b) => b.slug === body.fromSheet)) return fail(409, 'Já existe um personagem do Criador para esta ficha')
+            const build = await createBuild(mesa, { slug: body.fromSheet, state, className: className(body.className), ownerId: sheetRow.owner ?? access.userId, by: access.userId })
+            return build ? ok({ build }) : fail(409, 'Já existe um personagem do Criador para esta ficha')
+        }
         // Duas criações ao mesmo tempo podem escolher o mesmo slug: o unique recusa e tenta o próximo.
         for (let attempt = 0; attempt < 3; attempt += 1) {
             const slug = await freeBuildSlug(mesa, name)

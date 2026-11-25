@@ -317,3 +317,9 @@ O custo vem da **própria AON** (`actions`, `traits`, `trigger`, `frequency`, e 
   `MarkdownEditor` com `plain`. Ficha de outro: só prévia.
 - Descrições sob demanda no `DescriptionDrawer` (o corpo é `DescriptionContent`); última ficha no `sessionStorage`. "Carregar
   todas" traduz em grupos de 6, até 3 passadas.
+
+## Ficha vinda do Criador de Personagem
+
+- Ficha aplicada pelo Criador traz `build.covil` (`buildId`, avisos, ids, desarmados); a Ficha ignora o que não lê, porque o núcleo é o mesmo `BuildInfo` do Pathbuilder e o upload antigo continua valendo.
+- Mostre "Editar no Criador" quando houver `covil.buildId`, e "Importar para o Criador" na ficha publicada sem ele, só para o dono ou o GM e fora do painel do mapa, porque editar é do dono e a importação herda o slug da ficha.
+- Leia os desarmados de `covil.unarmed` só quando o `unarmed.ts` passar a usá-los com casos no `check-rolls` (F7.8 pendente), porque hoje o catálogo por nome continua sendo a fonte.

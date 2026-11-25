@@ -359,6 +359,14 @@ const SheetBody = ({ build: source, publication, onReset, onRestore, compact = f
     const slug = charSlug(build)
     const descriptionNames = useMemo(() => characterDescriptionNames(build), [build])
     const isPublished = !!published
+    // Criador de Personagem: a ficha que veio dele abre o modo editar; a publicada sem build pode ser importada.
+    const builderLink = useMemo(() => {
+        if (readOnly || compact) return null
+        const buildId = (build as BuildInfo & { covil?: { buildId?: string } }).covil?.buildId
+        if (buildId) return { href: `/personagens/${buildId}`, label: tr('Editar no Criador', 'Edit in the Builder') }
+        if (isPublished) return { href: `/personagens?importar=${encodeURIComponent(slug)}`, label: tr('Importar para o Criador', 'Import into the Builder') }
+        return null
+    }, [build, readOnly, compact, isPublished, slug])
     useEffect(() => { void loadDescriptionBundle(slug) }, [slug])
     // Quem está na mesa vê que esta ficha está aberta (sidebar).
     useEffect(() => announceSheet(slug, build.name), [slug, build.name])
@@ -418,7 +426,7 @@ const SheetBody = ({ build: source, publication, onReset, onRestore, compact = f
 
     return (
         <Container maxWidth={compact ? false : 'lg'} disableGutters sx={{ pb: compact ? 2 : 6 }}>
-            <CharacterHeader build={build} onReset={onReset} sizeEffect={sizeEffect.effect} compact={compact} />
+            <CharacterHeader build={build} onReset={onReset} sizeEffect={sizeEffect.effect} compact={compact} builder={builderLink} />
             <GiftArrivalNotice build={build} />
             {onOpenPublished && (
                 <NewVersionBar slug={slug} published={published} onOpen={onOpenPublished} onGuide={attach} />

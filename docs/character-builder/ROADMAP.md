@@ -276,22 +276,22 @@ magias/itens), sem pendência fantasma nem slot faltando.
 **Objetivo**: o Criador vira o modo editar da Ficha; aplicar grava o retrato direto em `sheets` (sem arquivo); os personagens atuais migram.
 **Depende de**: F5, F6.
 
-- [ ] **7.1** `export.ts`: retrato completo (CONTRATO-FICHA) — núcleo `BuildInfo` + extensões `covil` (`buildId`, `warnings`, `ids`, `slots`, `variants`, `mythic`, `unarmed`);
+- [x] **7.1** `export.ts`: retrato completo (CONTRATO-FICHA) — núcleo `BuildInfo` + extensões `covil` (`buildId`, `warnings`, `ids`, `slots`, `variants`, `mythic`, `unarmed`);
       invariantes.
-- [ ] **7.2** `import.ts`: JSON do Pathbuilder → `BuildState` (CONTRATO §9) com relatório "o que não bateu".
-- [ ] **7.3** **Paridade** no `check-builder` (PLANO §1.1) para os 10 + Ardagar; `parity-known.json` com cada diferença
+- [x] **7.2** `import.ts`: JSON do Pathbuilder → `BuildState` (CONTRATO §9) com relatório "o que não bateu".
+- [x] **7.3** **Paridade** no `check-builder` (PLANO §1.1) para os 10 + Ardagar; `parity-known.json` com cada diferença
       explicada.
-- [ ] **7.4** Servidor: `build-apply` (dono/GM, slug do build via `slugOverride` no `sheet-handler`, grava
+- [x] **7.4** Servidor: `build-apply` (dono/GM, slug do build via `slugOverride` no `sheet-handler`, grava
       `character_build_versions` e `sheets.build_id`, chama o `draft-create` existente); `?buildVersions=`.
-- [ ] **7.5** Cliente: "Aplicar na mesa" (UX §1.5) com diff (`sheetDiff.ts`) e avisos; reaproveitar `PublishDialog`/
+- [x] **7.5** Cliente: "Aplicar na mesa" (UX §1.5) com diff (`sheetDiff.ts`) e avisos; reaproveitar `PublishDialog`/
       `PreparingDialog`/`sheetPreparation.ts`; "Abrir na Ficha" ao fim.
-- [ ] **7.6** Ficha Virtual: par **Jogar | Editar** no cabeçalho (dono/GM), `?modo=editar` montando o Criador (lazy) dentro da Ficha, "Subir de nível" abrindo o modo editar no nível novo, "Trocar talento" no drawer, marca "Alterações não aplicadas"; "Importar
+- [x] **7.6** Ficha Virtual: par **Jogar | Editar** no cabeçalho (dono/GM), `?modo=editar` montando o Criador (lazy) dentro da Ficha, "Subir de nível" abrindo o modo editar no nível novo, "Trocar talento" no drawer, marca "Alterações não aplicadas"; "Importar
       para o Criador" quando não há.
-- [ ] **7.7** Importação dos personagens da mesa: a partir da ficha publicada, com o mesmo slug (respeitar `SLUG_ALIASES`)
+- [x] **7.7** Importação dos personagens da mesa: a partir da ficha publicada, com o mesmo slug (respeitar `SLUG_ALIASES`)
       — **não** sobrescreve a ficha até o jogador aplicar.
 - [ ] **7.8** Ficha lendo desarmados do export quando presentes (`unarmed.ts` vira reserva) — com casos no `check-rolls`.
-- [ ] **7.9** Baixar JSON de backup (RF-009, opcional); histórico de versões do build e restaurar (RF-007).
-- [ ] **7.10** Documentar no `AGENTS.md` do módulo e no da Ficha: a ficha agora pode vir do Criador (o que muda e o que não).
+- [x] **7.9** Baixar JSON de backup (RF-009, opcional); histórico de versões do build e restaurar (RF-007).
+- [x] **7.10** Documentar no `AGENTS.md` do módulo e no da Ficha: a ficha agora pode vir do Criador (o que muda e o que não).
 
 **Rodar**: `check-builder` (paridade), `check-rolls`, `check-economy`, `check-auth`, build, lint; abrir as 10 fichas
 republicadas pelo Criador na Ficha, na Iniciativa e no Mapa.

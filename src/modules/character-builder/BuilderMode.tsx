@@ -7,7 +7,6 @@ import {
 import { ArrowBack as BackIcon, DeleteOutline as DeleteIcon, Checklist as PendingIcon } from '@mui/icons-material';
 import { trashBuild } from '../../services/builds';
 import { displayFont } from '../../theme';
-import { tr } from '../../i18n';
 import { ReadOnlyTheme } from '../character-viewer/components/ReadOnlyTheme';
 import { VIEW_OK } from '../character-viewer/sheetAccess';
 import { useBuild, type SaveStatus } from './hooks/useBuild';
@@ -26,6 +25,10 @@ import { EquipmentSection } from './sections/EquipmentSection';
 import { CompanionsSection } from './sections/CompanionsSection';
 import type { SectionProps } from './sections/types';
 import { tabOf, type BuilderTab } from './tabs';
+import { ApplyDialog } from './components/ApplyDialog';
+import { exportBuild } from './engine/export';
+import { fetchBuildVersions, restoreBuildVersion, type BuildVersion } from '../../services/builds';
+import { locale, tr } from '../../i18n';
 import type { BuildState } from './types';
 
 const LEVELS = Array.from({ length: 20 }, (_, i) => i + 1);
@@ -103,6 +106,8 @@ export function BuilderMode({ buildId }: { buildId: string }) {
   useEffect(() => { if (needsKey) setNeeds(JSON.parse(needsKey) as FeatListNeeds); }, [needsKey]);
   const [tab, setTab] = useState<BuilderTab>('origin');
   const [pendingOpen, setPendingOpen] = useState(false);
+  const [applyOpen, setApplyOpen] = useState(false);
+  const [versions, setVersions] = useState<BuildVersion[] | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
@@ -211,6 +216,24 @@ export function BuilderMode({ buildId }: { buildId: string }) {
             )}
             {rulesVersion && <Typography variant="caption" color="text.secondary">{tr(`Regras ${rulesVersion}`, `Rules ${rulesVersion}`)}</Typography>}
             <Box sx={{ flex: 1 }} />
+            {canEdit && compiled && rules.index && (
+              <Button size="small" variant="contained" onClick={() => setApplyOpen(true)}>{tr('Aplicar na mesa', 'Apply to the table')}</Button>
+            )}
+            {compiled && rules.index && (
+              <Button size="small" {...VIEW_OK} onClick={() => {
+                const doc = exportBuild(state, compiled, { rules: rules.index!, buildId: build.id });
+                const url = URL.createObjectURL(new Blob([JSON.stringify(doc, null, 1)], { type: 'application/json' }));
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${build.slug}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}>{tr('Baixar JSON', 'Download JSON')}</Button>
+            )}
+            {canEdit && (
+              <Button size="small" {...VIEW_OK} onClick={() => void fetchBuildVersions(build.id).then((out) => setVersions(out.ok ? out.value : []))}>
+                {tr('Versões', 'Versions')}</Button>
+            )}
             <Button size="small" startIcon={<Badge badgeContent={pendingCount} color="warning"><PendingIcon /></Badge>}
               onClick={() => setPendingOpen(true)} sx={{ display: { md: 'none' } }} {...VIEW_OK}>
               {tr('Pendências', 'To do')}</Button>
@@ -282,6 +305,28 @@ export function BuilderMode({ buildId }: { buildId: string }) {
           <Button onClick={() => setConfirmDelete(false)}>{tr('Cancelar', 'Cancel')}</Button>
           <Button color="error" variant="contained" onClick={() => void remove()}>{tr('Mandar para a lixeira', 'Move to trash')}</Button>
         </DialogActions>
+      </Dialog>
+
+      {compiled && rules.index && (
+        <ApplyDialog open={applyOpen} onClose={() => setApplyOpen(false)} buildId={build.id} compiled={compiled}
+          sheet={() => exportBuild(state, compiled, { rules: rules.index!, buildId: build.id })} />
+      )}
+
+      <Dialog open={versions !== null} onClose={() => setVersions(null)} fullWidth maxWidth="xs">
+        <DialogTitle>{tr('Versões aplicadas na mesa', 'Versions applied to the table')}</DialogTitle>
+        <DialogContent>
+          {versions?.length === 0 && <DialogContentText>{tr('Nenhuma versão aplicada ainda.', 'No version applied yet.')}</DialogContentText>}
+          <Stack spacing={1}>
+            {versions?.map((v) => (
+              <Stack key={v.id} direction="row" sx={{ alignItems: 'center', gap: 1 }}>
+                <Typography sx={{ flex: 1 }}>{new Date(v.publishedAt).toLocaleString(locale)} · {tr(`nível ${v.level}`, `level ${v.level}`)}</Typography>
+                <Button size="small" onClick={() => void restoreBuildVersion(build.id, v.id, build.rev).then((out) => { if (out.ok) { setVersions(null); reload(); } })}>
+                  {tr('Restaurar', 'Restore')}</Button>
+              </Stack>
+            ))}
+          </Stack>
+        </DialogContent>
+        <DialogActions><Button onClick={() => setVersions(null)}>{tr('Fechar', 'Close')}</Button></DialogActions>
       </Dialog>
 
       <Dialog open={!!conflict}>

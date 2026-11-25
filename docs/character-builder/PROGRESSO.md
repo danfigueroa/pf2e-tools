@@ -220,3 +220,37 @@
   - Materiais além do rótulo; contêineres (capacidade).
   - Penalidade de teste da armadura nas perícias; Adventurer's Kit separado.
   - Arachnid Harness e o companheiro do Ardagar, que ficam para a paridade da F7.
+
+## F7 — Modo editar, aplicar na mesa e importação concluída (beta; pendências registradas)
+
+- **Retrato (`engine/export.ts`).** É o `BuildInfo` completo do CONTRATO-FICHA:
+  - Identidade, atributos com o `breakdown`, proficiências sem nível, talentos em tupla com o rótulo do slot do Pathbuilder, `specials` (com Path to Perfection e a escolha).
+  - Armas sem o punho (a Ficha já soma o dela), armaduras e escudos, equipamento, dinheiro depois das compras.
+  - Conjuradores com grimório e preparadas, foco, rituais, companheiros e familiares, `acTotal`, `mods`, resistências e fórmulas.
+  - Extensões em `build.covil`: `buildId`, avisos, ids das escolhas, variantes, chamado mítico e o punho em `unarmed`.
+- **Importação (`engine/import.ts`).**
+  - Origem, boosts (alternativos e flaws), idiomas e talentos pelo rótulo do slot; filhos pelo `ChoiceSet` do pai; Path to Perfection pelo nome; grupo de arma pela proficiência específica.
+  - Perícias: as automáticas, depois as livres, depois os aumentos do nível mais baixo, respeitando os tetos.
+  - Inventário com runas, magias da classe (repertório, grimório e preparadas), foco, rituais e companheiros.
+  - Relatório do que não casou.
+- **Paridade (PLANO §1.1) no `check-builder`: 214 conferências.** Os 10 personagens fazem importar → recompilar → exportar.
+  - Invariantes: `parseCharacterJson` aceita o retrato, até 64 KB, CA = 10 + partes.
+  - Diferenças: o **Ghan Buri não tem nenhuma**. As outras 71 estão em `scripts/rules-data/parity-known.json`, cada uma com a explicação: conteúdo legado ou caseiro fora do catálogo Remaster, ranks de perícia vindos de talentos que o motor não modela (Additional Lore, por exemplo), conjuradores de arquétipo e inatos, doutrina do Cleric, truque extra de talento.
+  - Diferença nova faz o teste falhar.
+- **Servidor.**
+  - `build-apply` (dono ou GM) usa o slug estável do build e o mesmo preparo da publicação: `createSheetDraftFor`, extraído do `draft-create`.
+  - Ao fim do preparo, liga `sheets.build_id`, grava `character_build_versions` e marca `published_rev`.
+  - Também: `?buildVersions=`, `build-version-restore` e `build-create` com `fromSheet` (herda o slug da ficha; só o dono da ficha ou o GM).
+  - O `check-auth` cobre: aplicar com o nome trocado mantém o slug; o colega leva 403 ao aplicar e ao ler as versões.
+- **Cliente.**
+  - "Aplicar na mesa" (avisos e pendências antes, preparo com progresso, "Abrir na Ficha"), "Baixar JSON" (backup) e "Versões" com restaurar.
+  - Na Ficha: "Editar no Criador", quando há `covil.buildId`, ou "Importar para o Criador" na ficha publicada. Só para quem edita e fora do painel do mapa.
+  - A importação (`/personagens?importar=<slug>`) carrega as listas que a ficha usa, importa e cria o build com o mesmo slug; se já existe, só abre. A ficha da mesa não muda até aplicar.
+- **Decisões.**
+  - O modo editar abre na rota do Criador (`/personagens/:id`), em vez de embutido na Ficha em `?modo=editar`: mesmo efeito, sem pôr o Criador no chunk da Ficha. Embutir fica para a F8.
+  - O punho não vai em `weapons[]`, porque a Ficha soma o próprio (`unarmed.ts`); vai em `covil.unarmed`.
+- **Pendente.**
+  - **7.8:** a Ficha ler `covil.unarmed` no lugar do `unarmed.ts`, com casos no `check-rolls`.
+  - "Subir de nível" e "Trocar talento" a partir da Ficha.
+  - `sheetDiff` no diálogo de aplicar.
+  - Aceite M3 com o GM e um jogador de cada mesa, que precisa de pessoas.

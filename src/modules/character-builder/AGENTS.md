@@ -24,3 +24,6 @@
 - Leia as proficiências por nível das características de classe em `classFeature.proficiencies` (derivadas do texto da AON), porque as regras do Foundry para "Expertise" vêm quase sempre vazias.
 - Guarde no qualificador `archetype:<slug>` o arquétipo de um talento de arquétipo escolhido, porque é ele que diz qual lista baixar ao reabrir o personagem.
 - Confira toda mudança de slot contra o M2 do `check-builder` (slots dos 10 personagens iguais aos do export), porque slot a mais vira pendência fantasma para a mesa inteira.
+- Gere a ficha só por `engine/export.ts` (CONTRATO-FICHA) e confira com a paridade do `check-builder`, porque a Ficha, a Iniciativa e o servidor leem esse retrato como se fosse do Pathbuilder.
+- Aplique na mesa só pelo `build-apply`, que usa o slug estável do build e o mesmo preparo da publicação, porque o slug pelo nome quebraria o estado da mesa ao renomear.
+- Registre em `scripts/rules-data/parity-known.json` toda diferença de paridade com a explicação, e apague a linha quando resolvê-la, porque o `check-builder` falha em diferença nova.

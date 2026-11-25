@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   Alert, Box, Button, Card, CardActionArea, Chip, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Paper,
   Skeleton, Stack, TextField, Typography,
@@ -10,6 +10,7 @@ import { createBuild, fetchMesaRules, listBuilds, trashBuild } from '../../servi
 import { displayFont } from '../../theme';
 import { tr } from '../../i18n';
 import { BuilderMode } from './BuilderMode';
+import { ImportFromSheet } from './ImportFromSheet';
 import type { BuildHeader } from './types';
 
 const LEVELS = Array.from({ length: 20 }, (_, i) => i + 1);
@@ -206,6 +207,9 @@ function BuildList() {
 /** `/personagens` (lista) e `/personagens/:buildId` (o editor, até a F7 virar o modo editar da Ficha). */
 export const CharactersPage = () => {
   const { buildId } = useParams();
+  const [params] = useSearchParams();
+  const importing = params.get('importar'); // i18n-ok: chave da URL
+  if (importing && /^[a-z0-9-]{1,64}$/.test(importing)) return <ImportFromSheet slug={importing} />;
   return buildId ? <BuilderMode buildId={buildId} /> : <BuildList />;
 };
 

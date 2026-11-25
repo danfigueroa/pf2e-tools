@@ -165,6 +165,7 @@ const EXACT = new Map(Object.entries({
   'Personagem não encontrado': 'Character not found',
   'Personagem grande demais': 'Character too large',
   'Personagem na lixeira': 'Character is in the trash',
+  'Já existe um personagem do Criador para esta ficha': 'This sheet already has a Builder character',
   'Nome inválido': 'Invalid name',
   'Usuário inválido': 'Invalid user',
   'Já existem personagens demais com esse nome': 'There are too many characters with that name',
