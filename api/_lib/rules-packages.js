@@ -100,7 +100,8 @@ export function ruleEntryView(entry, mechanics) {
         unsupported,
     })
     if (entry.category === 'ancestry') view.ancestry = derived.ancestry
-    if (entry.category === 'heritage') view.heritage = compact({ ancestry: data.ancestry })
+    // Ancestralidade da herança: a AON não traz; vem do Foundry (`extra.ancestry`). Sem ela = versátil.
+    if (entry.category === 'heritage') view.heritage = compact({ ancestry: data.ancestry ?? mechanics?.extra?.ancestry ?? undefined })
     if (entry.category === 'background') view.background = derived.background
     if (entry.category === 'class') view.class = classView(entry, mechanics)
     if (CLASS_OPTIONS.has(entry.category) && data.class) view.classOption = { class: data.class }
@@ -169,7 +170,7 @@ export function buildRulePackages({ version, entries, mechanics, sources, tables
     const names = {
         classes: new Set(live.filter((entry) => entry.category === 'class').map((entry) => entry.name.toLowerCase())),
         // Herança versátil (sem ancestralidade) tem talentos próprios com o traço dela (Nephilim, Aiuvarin…).
-        ancestries: new Set(live.filter((entry) => entry.category === 'ancestry' || (entry.category === 'heritage' && !entry.data.ancestry))
+        ancestries: new Set(live.filter((entry) => entry.category === 'ancestry' || (entry.category === 'heritage' && !(entry.data.ancestry ?? mechanics.get(entry.aon_id)?.extra?.ancestry)))
             .map((entry) => entry.name.toLowerCase())),
     }
     const lists = new Map()

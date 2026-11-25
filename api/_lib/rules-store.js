@@ -120,7 +120,7 @@ export function ruleEntriesForPackages() {
 }
 
 export async function ruleMechanicsById() {
-    const rows = await selectAll(() => db().from('rules_mechanics').select('aon_id, origin, rules, unsupported, prereq, progression').order('aon_id'))
+    const rows = await selectAll(() => db().from('rules_mechanics').select('aon_id, origin, rules, unsupported, prereq, progression, extra').order('aon_id'))
     return new Map(rows.map((row) => [row.aon_id, row]))
 }
 

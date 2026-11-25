@@ -97,6 +97,8 @@ export function foundryMechanics(doc) {
         rules,
         unsupported: [...unsupported].sort(),
         progression: doc?.type === 'class' ? classProgression(system) : null,
+        // A AON não liga a herança à ancestralidade; o Foundry sim (`system.ancestry`, nulo na herança versátil).
+        extra: doc?.type === 'heritage' ? { ancestry: text(system.ancestry?.name) || null } : null,
     }
 }
 
@@ -251,6 +253,7 @@ export function buildFoundryMechanics(docs, aonEntries, corrections = {}) {
                 unsupported: mechanics.unsupported,
                 prereq: null,
                 progression: mechanics.progression,
+                extra: mechanics.extra,
                 reviewed: false,
             })
         }
