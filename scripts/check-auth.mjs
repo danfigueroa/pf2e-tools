@@ -442,6 +442,9 @@ try {
         slugs.push(build.slug)
         const sheet = { success: true, build: { name: `Teste Renomeado ${stamp}`, class: 'Fighter', level: 2 } }
         const applyBody = { action: 'build-apply', id: build.id, sheet, names: { spell: [], feat: [], special: ['Shield Block'], item: [] }, version: 'v13' }
+        // F10.1: o servidor compila o estado SALVO; retrato de um `rev` que não é o atual = ainda salvando (409).
+        const stale = await post('b', { ...applyBody, rev: 1 })
+        expect('aplicar com rev velho → 409 stale', `${stale.status} ${stale.body.code}`, '409 stale')
         const applied = await post('b', applyBody)
         expect('dono aplica na mesa → 200', applied.status, 200)
         if (applied.status !== 200) console.log('    ', applied.body.error)

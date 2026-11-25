@@ -648,6 +648,37 @@ console.log('Paridade com o elenco (importar → recompilar → exportar) e inva
     expect('Palatine: a escolha de perícia pendente quando vazia', compile({ ...pal, choices: { ...pal.choices, 'skills-esoterica': undefined } }).pending.some((x) => x.key === 'skills-esoterica'), true)
 }
 
+// F10.1: o servidor compila pelo pacote gerado, lendo lista por lista; tem de dar o mesmo retrato do editor.
+{
+    console.log('Compilação no servidor (pacote do motor)')
+    const { bundleEngine, ENGINE_OUT } = await import('./build-engine.mjs')
+    expect('api/_lib/builder-engine.gen.js em dia (node scripts/build-engine.mjs)', readFileSync(ENGINE_OUT, 'utf8') === await bundleEngine(), true)
+    const gen = await import('../api/_lib/builder-engine.gen.js')
+    const { compileFromCatalog } = await import('../src/modules/character-builder/engine/catalog.ts')
+    const { importPathbuilder } = await import('../src/modules/character-builder/engine/import.ts')
+    const pctx = { rules, mesaRules: castMesa, tables, classOptions: fixture['core/class-features'] }
+    // `core/locations` do recorte: a primeira lista de cada entrada fora do núcleo (como o `rules-packages.js`).
+    const locations = {}
+    for (const [path, list] of Object.entries(fixture)) {
+        if (!Array.isArray(list) || (path.startsWith('core/') && path !== 'core/deities')) continue
+        for (const e of list) locations[e.id] ??= path
+    }
+    const reads = new Set()
+    const reader = { read: async (path) => { reads.add(path); return path === 'core/tables' ? tables : path === 'core/locations' ? locations : fixture[path] ?? null } }
+    const unresolved = (sheet) => JSON.stringify(sheet).match(/"(feat|spell|deity):[a-z]+-\d+"/g) ?? []
+    for (const file of readdirSync(new URL('../public/characters/', import.meta.url)).filter((x) => x.endsWith('.json'))) {
+        const b = JSON.parse(readFileSync(new URL(`../public/characters/${file}`, import.meta.url), 'utf8')).build
+        const { state } = importPathbuilder(b, pctx)
+        const ts = (await compileFromCatalog(state, { reader, mesaRules: castMesa, buildId: 'b' })).sheet.build
+        const server = (await gen.compileFromCatalog(state, { reader, mesaRules: castMesa, buildId: 'b' })).sheet.build
+        expect(`${b.name}: pacote do servidor = motor TS`, JSON.stringify(server) === JSON.stringify(ts), true)
+        // Escolhas salvas em listas que a carga habitual não traz resolvem pelo `core/locations` (nome, não id).
+        const { covil, ...rest } = server
+        expect(`${b.name}: nenhuma escolha fica como id no retrato`, unresolved(rest), [])
+    }
+    expect('o servidor lê as listas de item só para quem tem inventário', reads.has('items/weapons'), true)
+}
+
 // Copiar para outra mesa (9.6), no handler em memória (sem Supabase não há login: usuário local, GM).
 {
     console.log('Copiar para outra mesa')

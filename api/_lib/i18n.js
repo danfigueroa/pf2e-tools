@@ -139,6 +139,7 @@ const EXACT = new Map(Object.entries({
   'Você não faz parte desta mesa': 'You are not part of this table',
   'Mesa inválida': 'Invalid table',
   'Conteúdo inválido': 'Invalid content',
+  'Ainda salvando: tente de novo em instantes': 'Still saving: try again in a moment',
   'Conteúdo não encontrado': 'Content not found',
   'A mesa já tem conteúdo caseiro demais': 'The table already has too much homebrew content',
   'Você só move o seu próprio token': 'You can only move your own token',

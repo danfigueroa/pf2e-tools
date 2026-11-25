@@ -8,7 +8,7 @@
 //   POST { action: 'build-delete' | 'build-restore', id }      → { build }                   (dono, GM)
 //   POST { action: 'build-assign', id, user|null }     → { build }                           (GM)
 //   POST { action: 'mesa-rules-save', rules }          → { rules, updatedAt }                (GM real, sempre)
-//   POST { action: 'build-apply', id, sheet, names, version, companions?, baseGuide?, baseGuideEn? }
+//   POST { action: 'build-apply', id, rev?, sheet, names, version, companions?, baseGuide?, baseGuideEn? }
 //                                                      → { draft }  "Aplicar na mesa": o preparo de sempre, com o slug do build
 //   GET  ?buildVersions=<id>                           → { versions }                        (dono, GM)
 //   POST { action: 'build-version-restore', id, version, rev } → { build }                   (dono, GM)
@@ -34,6 +34,7 @@ import { MESA_IDS } from './mesas.js'
 import { HOMEBREW_KINDS, deleteHomebrew, listHomebrew, saveHomebrew } from './homebrew-store.js'
 import { createSheetDraftFor } from './sheet-handler.js'
 import { recordFeat, safely } from './trophy-store.js'
+import { serverSheet, sheetDivergence } from './build-compile.js'
 
 /** "Arquiteto": o feito é de quem criou E é o dono (o GM criando para alguém não ganha o troféu do jogador). */
 const builtFeat = (mesa, build, userId) => safely('personagem criado', async () => {
@@ -180,8 +181,25 @@ export async function handleBuildRequest(mesa, method, query, body, ctx = {}) {
         if (current.deletedAt) return fail(409, 'Personagem na lixeira', { code: 'trashed' })
         const sheet = body.sheet
         if (!sheet || typeof sheet !== 'object' || !sheet.build || typeof sheet.build !== 'object') return fail(400, 'Personagem inválido')
+        // O servidor compila o que está SALVO: o retrato do cliente só vale se for do mesmo `rev` (autosave pendente = 409).
+        if (Number.isInteger(body.rev) && body.rev !== current.rev) {
+            return { status: 409, body: { error: 'Ainda salvando: tente de novo em instantes', code: 'stale', build: header(current) } }
+        }
+        // F10.1: o retrato é o do servidor. Os avisos ficam os do cliente (estão no idioma de quem aplicou). Sem catálogo
+        // ou com erro no motor, segue o do cliente e registra: a mesa não trava por isso.
+        let mechanics = sheet.build
+        try {
+            const server = await serverSheet(mesa, current)
+            if (server) {
+                const diff = sheetDivergence(sheet.build, server.sheet.build)
+                if (diff.length) console.warn(`[build-apply] ${mesa}/${current.id}: retrato do cliente difere do servidor em ${diff.join(', ')}`)
+                mechanics = { ...server.sheet.build, covil: { ...server.sheet.build.covil, warnings: sheet.build.covil?.warnings ?? server.sheet.build.covil?.warnings } }
+            }
+        } catch (error) {
+            console.error(`[build-apply] ${mesa}/${current.id}: compilação no servidor falhou, segue o retrato do cliente:`, error)
+        }
         // O vínculo com o build é do servidor: o cliente não escolhe a que build a ficha pertence.
-        const json = { ...sheet, build: { ...sheet.build, covil: { ...(sheet.build.covil ?? {}), buildId: current.id } } }
+        const json = { ...sheet, build: { ...mechanics, covil: { ...(mechanics.covil ?? {}), buildId: current.id } } }
         return createSheetDraftFor(mesa, current.slug, { ...body, sheet: json }, { ...ctx, access, userId: access.userId })
     }
 
