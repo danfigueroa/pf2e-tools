@@ -1,5 +1,5 @@
 {
- "version": "2026.11.2",
+ "version": "2026.11.4",
  "generatedFrom": "Storage rules/<versão>",
  "lists": {
   "core/classes": [
@@ -6630,6 +6630,10 @@
      "hp": 8,
      "size": "Medium",
      "speed": 25,
+     "boosts": [
+      "free",
+      "free"
+     ],
      "languages": [
       "Common"
      ]
@@ -7052,6 +7056,10 @@
      "hp": 10,
      "size": "Medium",
      "speed": 25,
+     "boosts": [
+      "free",
+      "free"
+     ],
      "senses": [
       "Darkvision"
      ],
