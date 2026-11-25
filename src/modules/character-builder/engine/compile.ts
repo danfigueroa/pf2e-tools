@@ -237,6 +237,11 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
     // Talentos por nível: slots da classe e das variantes, concessões e efeitos.
     const flags = variantFlags(state, ctx.mesaRules)
     const slots = featSlots(cls, flags)
+    // Slots de talento extras à mão ("Talento concedido"), com aviso.
+    for (const [i, extra] of (state.manual.extraFeatSlots ?? []).entries()) {
+        slots.push({ key: `extra-${extra.kind}-feat-${extra.level}-${i + 1}`, kind: extra.kind, level: extra.level, label: tr('Talento concedido (ajuste)', 'Granted feat (adjustment)') })
+        if (extra.level <= level) warnings.push({ code: 'MANUAL_FEAT_SLOT', level: 'info', ref: 'manual', message: tr(`Slot de talento extra à mão no nível ${extra.level}.`, `Extra feat slot by hand at level ${extra.level}.`) }) // i18n-ok: código do aviso
+    }
     const ancestryTraits = [ancestry?.name, ...(heritage && !heritage.heritage?.ancestry ? [heritage.name] : [])].filter((t): t is string => !!t)
     const prereqContext = (): PrereqContext => ({
             level, className: cls?.name, ancestryName: ancestry?.name, heritageName: heritage?.name, has,
@@ -271,6 +276,7 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
     }
 
     const ancestryLanguages = ancestry?.ancestry?.languages ?? []
+    const extraLanguages: string[] = []
     const chosenLanguages = (state.origin.languages ?? []).map((id) => rules.get(id)?.name ?? id)
     if (ancestry) {
         if (chosenLanguages.length < skills.languageSlots) {
@@ -315,6 +321,27 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
     const focusIds = Object.values(state.spellcasting.focus?.repertoire ?? {}).flat()
     const focus = compileFocus(focusIds.map((id) => rules.get(id)).filter((e): e is RuleEntry => !!e), level)
 
+    // Ajustes permanentes à mão (com motivo): entram nos números, sempre com aviso.
+    const adjust = { hp: 0, speed: 0, items: {} as Record<string, number> }
+    for (const a of state.manual.adjustments ?? []) {
+        const v = typeof a.effect.value === 'number' ? a.effect.value : Number(a.effect.value)
+        const t = (a.effect.target ?? '').toLowerCase()
+        if (a.effect.kind === 'hp' && Number.isFinite(v)) adjust.hp += v
+        else if (a.effect.kind === 'speed' && Number.isFinite(v)) adjust.speed += v
+        else if (a.effect.kind === 'resistance' && t) feats.mods.resistances.push(Number.isFinite(v) ? `${t} ${v}` : t)
+        else if (a.effect.kind === 'sense' && t) feats.mods.senses.push(a.effect.target!)
+        else if (a.effect.kind === 'language' && t) extraLanguages.push(a.effect.target!)
+        else if (a.effect.kind === 'proficiency' && t && Number.isFinite(v)) upgrade(t.startsWith('skill:') ? t : t, Math.max(0, Math.min(4, v)) as Rank)
+        else if (a.effect.kind === 'itemBonus' && t && Number.isFinite(v)) adjust.items[t] = Math.max(adjust.items[t] ?? 0, v)
+        warnings.push({ code: 'MANUAL_ADJUSTMENT', level: 'info', ref: 'manual', message: tr(`Ajuste à mão: ${a.label} (${a.reason}).`, `Adjustment by hand: ${a.label} (${a.reason}).`) }) // i18n-ok: código do aviso
+    }
+    // Proficiência de perícia vinda de ajuste.
+    for (const [target, rank] of Object.entries(extraRanks)) {
+        if (!target.startsWith('skill:')) continue
+        const k = target.slice(6) as keyof typeof skills.result.rank
+        if (k in skills.result.rank && skills.result.rank[k] < rank) skills.result.rank[k] = rank
+    }
+
     // 5. Derivados.
     const part = (label: string, value: number) => ({ label, value })
     const attrPart = (key: keyof typeof mod) => part(attributeLabel(key), mod[key])
@@ -327,9 +354,10 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
     const featPart = (key: 'perception' | 'fortitude' | 'reflex' | 'will') => [
         ...(feats.mods.stat[key] ? [part(tr('Talentos', 'Feats'), feats.mods.stat[key] ?? 0)] : []),
         ...(resilient && key !== 'perception' ? [part(tr('Resiliente', 'Resilient'), resilient)] : []),
+        ...(adjust.items[key] ? [part(tr('Item (ajuste)', 'Item (adjustment)'), adjust.items[key])] : []),
     ]
     const stats: Compiled['stats'] = {
-        hp: stat([...hpParts, ...(feats.mods.hp ? [part(tr('Talentos', 'Feats'), feats.mods.hp)] : []),
+        hp: stat([...hpParts, ...(adjust.hp ? [part(tr('Ajuste', 'Adjustment'), adjust.hp)] : []), ...(feats.mods.hp ? [part(tr('Talentos', 'Feats'), feats.mods.hp)] : []),
             ...(feats.mods.hpPerLevel ? [part(tr(`Talentos × ${level}`, `Feats × ${level}`), feats.mods.hpPerLevel * level)] : [])]),
         ac: armorClass(equipment, { dex: mod.dex, level, defenses: proficiency.defenses, label: rankName }),
         fortitude: stat([p(proficiency.fortitude), attrPart('con'), ...featPart('fortitude')]),
@@ -339,7 +367,8 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
         classDC: cls && keyAttribute ? stat([p(proficiency.classDC), attrPart(keyAttribute)], 10) : null,
         speed: stat([...(ancestry?.ancestry?.speed !== undefined ? [part(tr('Ancestralidade', 'Ancestry'), ancestry.ancestry.speed)] : []),
             ...(feats.mods.speed ? [part(tr('Talentos', 'Feats'), feats.mods.speed)] : []),
-            ...(equipment.armor?.speedPenalty ? [part(tr('Armadura', 'Armor'), equipment.armor.speedPenalty)] : [])]),
+            ...(equipment.armor?.speedPenalty ? [part(tr('Armadura', 'Armor'), equipment.armor.speedPenalty)] : []),
+            ...(adjust.speed ? [part(tr('Ajuste', 'Adjustment'), adjust.speed)] : [])]),
     }
 
     // Sentidos: os da ancestralidade e os `Sense` de herança, talentos e concessões.
@@ -363,7 +392,7 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
         resistances: feats.mods.resistances,
         weaknesses: feats.mods.weaknesses,
         immunities: feats.mods.immunities,
-        languages: [...ancestryLanguages, ...chosenLanguages],
+        languages: [...ancestryLanguages, ...chosenLanguages, ...extraLanguages],
         languageSlots: skills.languageSlots,
         keyAttribute,
         pending: pending.sort((a, b) => a.level - b.level),

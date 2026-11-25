@@ -130,6 +130,13 @@ export function compileAttributes(state: BuildState, ancestry: RuleEntry | undef
         else breakdown.mapLevelledBoosts[String(group.level)] = picks
     }
 
+    // Boosts extras à mão ("Custom Ability Increases" do Pathbuilder), sempre com aviso.
+    for (const [lvl, list] of Object.entries(state.manual.extraBoosts ?? {})) {
+        if (Number(lvl) > state.level) continue
+        for (const a of new Set(list)) boost(a)
+        warnings.push({ code: 'MANUAL_BOOST', level: 'info', ref: 'manual', message: tr(`Boosts extras à mão no nível ${lvl}: ${list.map(attributeLabel).join(', ')}.`, `Extra boosts by hand at level ${lvl}: ${list.map(attributeLabel).join(', ')}.`) }) // i18n-ok: código do aviso
+    }
+
     if (Object.values(mod).some((v) => v > 4) && state.level === 1) {
         warnings.push({ code: 'ATTR_OVER_4', level: 'warn', message: tr('No nível 1, nenhum modificador passa de +4 (Player Core pg. 17).', 'At 1st level, no modifier goes above +4 (Player Core pg. 17).') })
     }

@@ -26,6 +26,9 @@ import { CompanionsSection } from './sections/CompanionsSection';
 import type { SectionProps } from './sections/types';
 import { tabOf, type BuilderTab } from './tabs';
 import { ApplyDialog } from './components/ApplyDialog';
+import { BackgroundNotes } from './components/BackgroundNotes';
+import { ManualSection } from './sections/ManualSection';
+import { createBuild, saveBuild } from '../../services/builds';
 import { exportBuild } from './engine/export';
 import { assignBuild, fetchBuildVersions, restoreBuildVersion, type BuildVersion } from '../../services/builds';
 import { assignSheet, fetchMembers, type MemberRow } from '../../services/members';
@@ -318,12 +321,27 @@ export function BuilderMode({ buildId }: { buildId: string }) {
                       slotProps={{ htmlInput: { maxLength: 80, readOnly: !canEdit } }} />
                   ))}
                 </Box>
-                {canEdit && (
-                  <Button color="error" startIcon={<DeleteIcon />} onClick={() => setConfirmDelete(true)} sx={{ mt: 2 }}>
-                    {tr('Mandar para a lixeira', 'Move to trash')}</Button>
-                )}
+                {build.publishedRev !== null && <Box sx={{ mt: 2 }}><BackgroundNotes slug={build.slug} canEdit={canEdit} /></Box>}
+                <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap', mt: 2 }}>
+                  {canEdit && (
+                    <Button color="error" startIcon={<DeleteIcon />} onClick={() => setConfirmDelete(true)}>
+                      {tr('Mandar para a lixeira', 'Move to trash')}</Button>
+                  )}
+                  <Button {...VIEW_OK} onClick={() => void (async () => {
+                    // Duplicar (F8.7): um build novo com as mesmas escolhas, slug próprio, sem ficha na mesa.
+                    const copy = await createBuild(tr(`${state.name} (cópia)`, `${state.name} (copy)`).slice(0, 80), state.level);
+                    if (!copy.ok) return;
+                    const saved = await saveBuild(copy.value.id, copy.value.rev, { ...state, name: copy.value.name }, className);
+                    if (saved.ok) navigate(`/personagens/${copy.value.id}`);
+                  })()}>{tr('Duplicar', 'Duplicate')}</Button>
+                </Stack>
+                <Typography variant="caption" color="text.secondary" component="p" sx={{ mt: 2 }}>
+                  {tr('Regras e textos de jogo: ', 'Game rules and text: ')}
+                  <RouterLink to="/creditos">{tr('créditos e licenças', 'credits and licenses')}</RouterLink>
+                </Typography>
               </Paper>
             )}
+            {sectionProps && tab === 'details' && <Box sx={{ mt: 2 }}><ManualSection {...sectionProps} /></Box>}
           </Box>
           <Box sx={{ display: { xs: 'none', md: 'block' }, position: 'sticky', top: 16 }}>{panel}</Box>
         </Box>

@@ -131,6 +131,19 @@ export function compileSkills(state: BuildState, background: RuleEntry | undefin
         }
     }
 
+    // Aumentos de perícia extras à mão, com aviso.
+    for (const [lvl, count] of Object.entries(state.manual.extraSkillIncreases ?? {})) {
+        const level = Number(lvl)
+        if (level > state.level) continue
+        for (let i = 1; i <= count; i++) {
+            const key = `skill-increase-${level}-extra-${i}`
+            const chosen = choiceSkills(state, key).slice(0, 1)
+            slots.push({ key, label: tr(`Aumento extra (nível ${level}, ajuste)`, `Extra increase (level ${level}, adjustment)`), level, count: 1, options: [], kind: 'increase', chosen })
+            for (const ref of chosen) set(ref, Math.min(4, get(ref) + 1) as Rank)
+        }
+        warnings.push({ code: 'MANUAL_SKILL', level: 'info', ref: 'manual', message: tr(`${count} aumento(s) de perícia extra(s) à mão no nível ${level}.`, `${count} extra skill increase(s) by hand at level ${level}.`) }) // i18n-ok: código do aviso
+    }
+
     for (const slot of slots) {
         const missing = slot.count - Math.min(slot.count, slot.chosen.length)
         if (missing > 0) pending.push({ key: slot.key, label: slot.label, level: slot.level, missing })

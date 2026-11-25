@@ -429,6 +429,21 @@ console.log('Equipamento: Ghan Buri (gabarito: export do Pathbuilder) e regras d
     expect('mil moedas = 1 Volume (Player Core pg. 269)', compileBuild({ ...hf, money: { pp: 0, gp: 1999, sp: 0, cp: 0 } }, ctx).equipment.bulk.coins, 1)
 }
 
+console.log('Ajustes manuais (F8.3): entram nos números, sempre com aviso')
+{
+    const adj = compileBuild({ ...hf, manual: {
+        extraBoosts: { 1: ['int'] },
+        extraFeatSlots: [{ level: 1, kind: 'general' }],
+        adjustments: [{ id: 'a1', label: 'Bênção', reason: 'Presente do GM', effect: { kind: 'hp', value: 5 } },
+            { id: 'a2', label: 'Anel', reason: 'Item caseiro', effect: { kind: 'resistance', target: 'fire', value: 5 } }],
+    } }, ctx)
+    expect('boost extra soma na INT', adj.attributes.mod.int, 1)
+    expect('ajuste de PV soma', adj.stats.hp.total, out.stats.hp.total + 5)
+    expect('resistência de ajuste aparece', adj.resistances.includes('fire 5'), true)
+    expect('slot de talento extra vira pendência', adj.pending.some((p) => p.key === 'extra-general-feat-1-1'), true)
+    expect('ajustes avisam', adj.warnings.filter((w) => w.code.startsWith('MANUAL')).length >= 3, true)
+}
+
 console.log('Paridade com o elenco (importar → recompilar → exportar) e invariantes do contrato (CONTRATO-FICHA §8)')
 {
     const { importPathbuilder } = await import('../src/modules/character-builder/engine/import.ts')
