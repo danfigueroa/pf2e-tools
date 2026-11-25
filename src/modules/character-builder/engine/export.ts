@@ -104,7 +104,11 @@ export function exportBuild(state: BuildState, compiled: Compiled, ctx: ExportCo
         advanced: (pr.attacks.advanced ?? 0) * 2, martial: (pr.attacks.martial ?? 0) * 2, simple: (pr.attacks.simple ?? 0) * 2, unarmed: (pr.attacks.unarmed ?? 0) * 2,
         castingArcane: 0, castingDivine: 0, castingOccult: 0, castingPrimal: 0, piloting: 0, computers: 0,
     }
-    for (const c of compiled.casters) if (c.tradition) proficiencies[`casting${c.tradition.charAt(0).toUpperCase()}${c.tradition.slice(1)}`] = c.rank * 2
+    // Duas fontes da mesma tradição (classe e arquétipo): vale o maior rank.
+    for (const c of compiled.casters) if (c.tradition) {
+        const k = `casting${c.tradition.charAt(0).toUpperCase()}${c.tradition.slice(1)}`
+        proficiencies[k] = Math.max(proficiencies[k] ?? 0, c.rank * 2)
+    }
     for (const s of SKILL_KEYS) proficiencies[s] = compiled.skills.rank[s] * 2
 
     // Equipamento.

@@ -493,6 +493,11 @@ console.log('Paridade com o elenco (importar → recompilar → exportar) e inva
         for (const w of b.weapons) { const m = ex.weapons.find((x) => x.name === w.name); cmp(`weapon ${w.name}`, m ? [m.attack, m.damageBonus] : null, [w.attack, w.damageBonus]) }
         const cc = b.spellCasters.find((c) => c.name === b.class)
         if (cc) cmp('perDay', ex.spellCasters.find((c) => c.name === b.class)?.perDay, cc.perDay)
+        // Conjuradores de arquétipo (Player Core pg. 215): tradição, tipo e espaços por dia.
+        for (const ac of b.spellCasters.filter((c) => /^Archetype /.test(c.name))) {
+            const m = ex.spellCasters.find((c) => c.name === ac.name)
+            cmp(`arch ${ac.name}`, m ? [m.magicTradition, m.spellcastingType, m.perDay] : null, [ac.magicTradition, ac.spellcastingType, ac.perDay])
+        }
         cmp('focusPoints', ex.focusPoints, b.focusPoints)
         const allowed = known[b.name] ?? {}
         expect(`${b.name}: nenhuma diferença nova (parity-known.json)`, diffs.filter((d) => !(d in allowed)), [])

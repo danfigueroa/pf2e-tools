@@ -1,5 +1,5 @@
 {
- "version": "2026.11.9",
+ "version": "2026.11.10",
  "generatedFrom": "Storage rules/<versão>",
  "lists": {
   "core/classes": [
@@ -48305,7 +48305,14 @@
     "feat": {
      "archetype": [
       "Druid"
-     ]
+     ],
+     "casting": {
+      "type": "prepared",
+      "cantrips": 2,
+      "attribute": "wis",
+      "className": "Druid",
+      "tradition": "primal"
+     }
     }
    },
    {
@@ -49757,7 +49764,13 @@
     "feat": {
      "archetype": [
       "Psychic"
-     ]
+     ],
+     "casting": {
+      "type": "spontaneous",
+      "cantrips": 0,
+      "className": "Psychic",
+      "tradition": "occult"
+     }
     }
    }
   ],
@@ -51016,7 +51029,14 @@
     "feat": {
      "archetype": [
       "Wizard"
-     ]
+     ],
+     "casting": {
+      "type": "prepared",
+      "cantrips": 2,
+      "attribute": "int",
+      "className": "Wizard",
+      "tradition": "arcane"
+     }
     }
    }
   ],
