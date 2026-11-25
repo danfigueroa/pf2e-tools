@@ -336,6 +336,14 @@ const agileSword = { ...axe, name: 'Shortsword', extraDamage: [] }
 eq(flatOf(strikes.weaponStrike(party.brukuthur, agileSword, GEAR.Shortsword), raging()), axe.damageBonus + 1, 'Arma ágil leva metade da Fúria (+1)')
 eq(flatOf(strikes.weaponStrike(party.brukuthur, { ...axe, name: 'Warhammer' }, GEAR.Warhammer), raging()), axe.damageBonus + 2, 'Outra arma, não a Grande: +2')
 eq(flatOf(strikes.weaponStrike(party.ceros, bow, GEAR['Composite Longbow']), raging()), bow.damageBonus, 'Arma à distância não leva Fúria')
+// Ficha do Criador: o punho vem de `covil.unarmed` (o motor já calculou); sem ele, o catálogo daqui.
+{
+    const withCovil = { ...party.ghan, covil: { unarmed: [{ name: 'Fist', attack: 99, damageBonus: 7, die: 'd4' }] } }
+    const covilFist = unarmedAttacks(withCovil).find((u) => u.en === 'Fist')
+    eq(covilFist.attack, 99, 'Punho do Criador: ataque de covil.unarmed')
+    eq(covilFist.damage, '1d4+7', 'Punho do Criador: dano de covil.unarmed')
+    eq(unarmedAttacks(party.ghan).find((u) => u.en === 'Fist').attack, fist.attack, 'Sem covil, punho do catálogo')
+}
 const brukFist = unarmedAttacks(party.brukuthur).find((u) => u.en === 'Fist')
 eq(flatOf(strikes.unarmedStrike(party.brukuthur, brukFist), raging()), strikes.unarmedStrike(party.brukuthur, brukFist).damageFlat + 1, 'Punho ágil leva metade da Fúria')
 const both = rage.withRage(withSizeEffect(NO_MODIFIERS, SIZE_EFFECTS.enlarge), rage.activeRage({ active: true, titan: true }, spec))

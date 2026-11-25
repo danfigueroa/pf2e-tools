@@ -201,6 +201,11 @@ export function unarmedAttacks(build: BuildInfo): UnarmedAttack[] {
     // Powerful Fist (Monge, Player Core 2 pg. 114): o punho passa de 1d4 para 1d6.
     const powerfulFist = hasSpecial(build, 'Powerful Fist')
 
+    // Ficha aplicada pelo Criador: o motor já calculou os desarmados (`covil.unarmed`, CONTRATO-FICHA §7). O número
+    // dele vale para o ataque de mesmo nome; o catálogo daqui fica como reserva para fichas do Pathbuilder.
+    const fromBuilder = new Map(((build as BuildInfo & { covil?: { unarmed?: { name: string; attack: number; damageBonus: number; die: string }[] } })
+        .covil?.unarmed ?? []).map((u) => [u.name, u]))
+
     return collectGrants(build).map((grant, idx) => {
         const b = grant.base
         const finesse = b.traits.includes('finesse')
@@ -214,12 +219,14 @@ export function unarmedAttacks(build: BuildInfo): UnarmedAttack[] {
         const flat = strMod + specBonus
         const damage = flat === 0 ? dice : `${dice}${flat > 0 ? '+' : ''}${flat}`
 
+        const computed = fromBuilder.get(b.en)
+        const builderDamage = computed ? `${strikingDice(runes.striking)}${computed.die}${computed.damageBonus === 0 ? '' : `${computed.damageBonus > 0 ? '+' : ''}${computed.damageBonus}`}` : null
         return {
             id: `${b.en}-${idx}`,
             name: b.name,
             en: b.en,
-            attack: profMod + attackMod + runes.potency,
-            damage,
+            attack: computed ? computed.attack : profMod + attackMod + runes.potency,
+            damage: builderDamage ?? damage,
             damageType: b.damageType,
             extraDamage: b.extraDamage,
             traits: [...b.traits, 'unarmed'].map((t) => TRAIT_LABELS[t] ?? t),
