@@ -322,5 +322,5 @@ O custo vem da **própria AON** (`actions`, `traits`, `trigger`, `frequency`, e 
 
 - Ficha aplicada pelo Criador traz `build.covil` (`buildId`, avisos, ids, desarmados); a Ficha ignora o que não lê, porque o núcleo é o mesmo `BuildInfo` do Pathbuilder e o upload antigo continua valendo.
 - Mostre "Editar no Criador" quando houver `covil.buildId`, e "Importar para o Criador" na ficha publicada sem ele, só para o dono ou o GM e fora do painel do mapa, porque editar é do dono e a importação herda o slug da ficha.
-- Leia os desarmados de `covil.unarmed` só quando o `unarmed.ts` passar a usá-los com casos no `check-rolls` (F7.8 pendente), porque hoje o catálogo por nome continua sendo a fonte.
+- Leia os desarmados da ficha do Criador de `covil.unarmed` (o motor já calculou) e caia no catálogo do `unarmed.ts` só sem ele, porque a ficha de upload do Pathbuilder não exporta desarmado nenhum.
 - Resolva talentos caseiros por ID na mesa atual e use a mesma identificação ao preparar as descrições, porque um talento oficial pode ter o mesmo nome.

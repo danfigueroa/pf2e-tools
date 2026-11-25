@@ -349,7 +349,7 @@ personagem no Criador sem divergência não explicada.
       JSON do cliente.
 - [ ] **10.2** Aposentar consertos do `normalizeBuild` que só existem por causa do Pathbuilder — **só** quando nenhuma
       ficha publicada vier mais de upload (os consertos são idempotentes; podem ficar).
-- [ ] **10.3** Catálogos por nome da Ficha (`unarmed.ts`, `magicWeapons.ts`, `itemActivities.ts`…) passam a ler do
+- [x] **10.3** Catálogos por nome da Ficha (`unarmed.ts`, `magicWeapons.ts`, `itemActivities.ts`…) passam a ler do
       catálogo de regras onde ele cobre.
 - [ ] **10.4** A plataforma inteira lê a base local antes da AON (`feat-core.js`, `spell-parse.js`, `sheet-warm.js`,
       `gear-core.js`): a Ficha também deixa de depender da AON ao vivo; a AON vira só fonte de atualização.
