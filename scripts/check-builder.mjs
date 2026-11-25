@@ -250,8 +250,10 @@ expect('herança traz a ancestralidade (Foundry)', cavern.heritage.ancestry, 'El
 expect('herança versátil não tem ancestralidade', find('core/heritages', 'Aiuvarin').heritage.ancestry, undefined)
 expect('herança de outra ancestralidade avisa', compileBuild({ ...hf, origin: { ...hf.origin, heritage: cavern.id } }, ctx).warnings.some((w) => w.code === 'HERITAGE_MISMATCH'), true)
 expect('herança versátil serve para o Humano', compileBuild({ ...hf, origin: { ...hf.origin, heritage: find('core/heritages', 'Aiuvarin').id } }, ctx).warnings.some((w) => w.code === 'HERITAGE_MISMATCH'), false)
-const mesaRules = { ...serverStore.DEFAULT_MESA_RULES, sources: { allow: [] } }
-expect('livro não liberado na mesa avisa', compileBuild(hf, { rules, mesaRules }).warnings.some((w) => w.code === 'SOURCE_NOT_ALLOWED'), true)
+const otherBook = { ...serverStore.DEFAULT_MESA_RULES, sources: { allow: ['source:source-1'] } }
+expect('livro não liberado na mesa avisa', compileBuild(hf, { rules, mesaRules: otherBook }).warnings.some((w) => w.code === 'SOURCE_NOT_ALLOWED'), true)
+const noBooks = { ...serverStore.DEFAULT_MESA_RULES, sources: { allow: [] } }
+expect('mesa sem livros escolhidos não avisa por livro', compileBuild(hf, { rules, mesaRules: noBooks }).warnings.some((w) => w.code === 'SOURCE_NOT_ALLOWED'), false)
 
 console.log('Motor: atributos do elenco (gabarito: export do Pathbuilder)')
 const ATTR = { Str: 'str', Dex: 'dex', Con: 'con', Int: 'int', Wis: 'wis', Cha: 'cha' }

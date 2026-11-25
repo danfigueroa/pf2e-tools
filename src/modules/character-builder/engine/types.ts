@@ -2,6 +2,8 @@
 // Tipos do motor (MOTOR-DE-REGRAS). TS puro: nada de React, rede nem `character-viewer/`, para o `check-builder` rodar.
 import type { AttributeKey, RuleEntry } from '../rules/types'
 import type { MesaRules } from '../types'
+import type { BoostGroup } from './attributes'
+import type { SkillSlot } from './skills'
 
 export type { AttributeKey } from '../rules/types'
 
@@ -108,9 +110,15 @@ export interface Compiled {
     size: string | null
     senses: string[]
     languages: string[]
+    /** Idiomas à escolha (INT do 1º nível + aumentos de INT). */
+    languageSlots: number
     keyAttribute: AttributeKey | null
     pending: Pending[]
     warnings: Warning[]
     /** Chaves de `choices` que algum slot usa (as outras são órfãs). */
     usedChoices: string[]
+    /** Para a tela: grupos de boosts, slots de perícia e treinos automáticos (de onde vieram). */
+    boostGroups: BoostGroup[]
+    skillSlots: SkillSlot[]
+    automaticSkills: { ref: string; source: string }[]
 }

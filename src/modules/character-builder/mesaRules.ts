@@ -2,6 +2,7 @@
 // Regras de criação da mesa: forma e padrões. PAR de `DEFAULT_MESA_RULES`/`sanitizeMesaRules` em
 // `api/_lib/build-store.js` (regra global 7); o `check-builder` confere os dois com os mesmos casos.
 import type { MesaRules, Rarity } from './types'
+import type { RuleEntry } from './rules/types'
 
 const RARITY: readonly string[] = ['allow', 'ask', 'deny']
 const SOURCE_RE = /^source:source-[0-9]{1,6}$/
@@ -71,4 +72,16 @@ export function sanitizeMesaRules(input: unknown): MesaRules {
             return [{ buildId: e.buildId, ids, ...(note ? { note } : {}) }]
         }),
     }
+}
+
+/** A mesa escolheu livros? Lista vazia = o GM ainda não restringiu: nada é filtrado nem avisado por livro. */
+export const restrictsSources = (rules: MesaRules) => rules.sources.allow.length > 0
+
+/** Liberado na mesa (livro, legado e raridade que não seja "negar")? `null` = sem regras da mesa (modo local). */
+export function allowedAtTable(entry: RuleEntry, rules: MesaRules | null): boolean | null {
+    if (!rules) return null
+    const source = (!restrictsSources(rules) || rules.sources.allow.includes(entry.source.id)) && !(rules.sources.deny ?? []).includes(entry.source.id)
+    const legacy = entry.remaster || rules.legacy
+    const rarity = entry.rarity === 'uncommon' ? rules.rarity.uncommon : entry.rarity === 'rare' || entry.rarity === 'unique' ? rules.rarity.rare : 'allow'
+    return source && legacy && rarity !== 'deny'
 }

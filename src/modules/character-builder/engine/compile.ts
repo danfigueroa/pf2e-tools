@@ -33,7 +33,8 @@ const stat = (parts: { label: string; value: number }[], base = 0): Stat => ({
 function sourceWarnings(entry: RuleEntry, ctx: CompileContext, ref: string, warnings: Warning[]) {
     const rules = ctx.mesaRules
     if (rules) {
-        const allowed = rules.sources.allow.includes(entry.source.id) && !(rules.sources.deny ?? []).includes(entry.source.id)
+        // Lista de livros vazia = o GM ainda não restringiu (mesa nova): não avisa por livro.
+        const allowed = (rules.sources.allow.length === 0 || rules.sources.allow.includes(entry.source.id)) && !(rules.sources.deny ?? []).includes(entry.source.id)
         const exception = rules.exceptions.some((e) => e.ids.includes(entry.id))
         if (!allowed && !exception) {
             warnings.push({ code: 'SOURCE_NOT_ALLOWED', level: 'warn', ref, message: tr(`${entry.name}: livro não liberado nesta mesa.`, `${entry.name}: book not allowed at this table.`) })
@@ -83,6 +84,10 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
     const heritageOf = heritage?.heritage?.ancestry
     if (heritage && ancestry && heritageOf && heritageOf.toLowerCase() !== ancestry.name.toLowerCase()) {
         warnings.push({ code: 'HERITAGE_MISMATCH', level: 'warn', ref: 'heritage', message: tr(`${heritage.name} é herança de ${heritageOf}, não de ${ancestry.name}.`, `${heritage.name} is a ${heritageOf} heritage, not ${ancestry.name}.`) })
+    }
+
+    if (ancestry && ancestry.ancestry?.hp === undefined) {
+        warnings.push({ code: 'ANCESTRY_HP_UNKNOWN', level: 'warn', ref: 'ancestry', message: tr(`${ancestry.name}: o catálogo não traz os PV da ancestralidade; o total sai sem eles.`, `${ancestry.name}: the catalog has no ancestry HP; the total leaves them out.`) })
     }
 
     // 3. Atributos.
@@ -167,9 +172,13 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
         size: ancestry?.ancestry?.size ?? null,
         senses,
         languages: [...ancestryLanguages, ...chosenLanguages],
+        languageSlots: skills.languageSlots,
         keyAttribute,
         pending: pending.sort((a, b) => a.level - b.level),
         warnings,
         usedChoices: [...used],
+        boostGroups: attrs.groups,
+        skillSlots: skills.slots,
+        automaticSkills: skills.automatic,
     }
 }
