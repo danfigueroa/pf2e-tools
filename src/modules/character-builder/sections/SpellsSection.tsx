@@ -134,7 +134,8 @@ export function SpellsSection({ state, update, compiled, canEdit, index, mesaRul
                 <Typography variant="body2" sx={{ fontWeight: 600 }}>
                   {r === 0 ? tr('Truques', 'Cantrips') : tr(`Rank ${r}`, `Rank ${r}`)}
                   <Box component="span" sx={{ color: 'text.secondary', fontWeight: 400 }}>
-                    {' · '}{r === 0 ? tr(`${n} preparados`, `${n} prepared`) : tr(`${n} por dia`, `${n} per day`)}
+                    {' · '}{r > 0 ? tr(`${n} por dia`, `${n} per day`)
+                      : field === 'prepared' ? tr(`${n} preparados`, `${n} prepared`) : tr(`${n} no repertório`, `${n} in the repertoire`)}
                     {left !== null && left > 0 ? tr(` · restam ${left}`, ` · ${left} left`) : ''}
                   </Box>
                 </Typography>
