@@ -31291,6 +31291,48 @@
       ]
      }
     }
+   },
+   {
+    "id": "item:weapon-356",
+    "name": "Fist",
+    "type": "weapon",
+    "level": 0,
+    "rarity": "common",
+    "traits": [
+     "Agile",
+     "Finesse",
+     "Nonlethal",
+     "Unarmed"
+    ],
+    "source": {
+     "id": "source:source-216",
+     "page": 277
+    },
+    "aon": {
+     "id": "weapon-356",
+     "url": "/Weapons.aspx?ID=356"
+    },
+    "remaster": true,
+    "replaces": "weapon-1",
+    "summary": " Nethys Note: no description was provided for this item ",
+    "item": {
+     "category": "Weapons",
+     "subcategory": "Base Weapons",
+     "bulk": 0,
+     "hands": "1",
+     "weapon": {
+      "die": "1d4",
+      "group": "Brawling",
+      "category": "Unarmed",
+      "damageType": "Bludgeoning",
+      "traitsRaw": [
+       "Agile",
+       "Finesse",
+       "Nonlethal",
+       "Unarmed"
+      ]
+     }
+    }
    }
   ],
   "items/armor": [
@@ -31529,6 +31571,113 @@
       "ac": 2,
       "dexCap": 3,
       "strength": 1,
+      "checkPenalty": -1,
+      "category": "Light",
+      "group": "Leather"
+     }
+    }
+   },
+   {
+    "id": "item:armor-39",
+    "name": "Explorer's Clothing",
+    "type": "armor",
+    "level": 0,
+    "rarity": "common",
+    "traits": [
+     "Comfort"
+    ],
+    "source": {
+     "id": "source:source-216",
+     "page": 273
+    },
+    "aon": {
+     "id": "armor-39",
+     "url": "/Armor.aspx?ID=39"
+    },
+    "remaster": true,
+    "replaces": "armor-2",
+    "summary": "Adventurers who don't wear armor travel in durable clothing. Though it's not armor and uses your unarmored defense proficiency, it still has a Dex …",
+    "item": {
+     "category": "Armor",
+     "subcategory": "Base Armor",
+     "price": {
+      "gp": 0.1
+     },
+     "bulk": "L",
+     "armor": {
+      "ac": 0,
+      "dexCap": 5,
+      "category": "Unarmored",
+      "group": "Cloth"
+     }
+    }
+   },
+   {
+    "id": "item:armor-50",
+    "name": "Full Plate",
+    "type": "armor",
+    "level": 2,
+    "rarity": "common",
+    "traits": [
+     "Bulwark"
+    ],
+    "source": {
+     "id": "source:source-216",
+     "page": 273
+    },
+    "aon": {
+     "id": "armor-50",
+     "url": "/Armor.aspx?ID=50"
+    },
+    "remaster": true,
+    "replaces": "armor-13",
+    "summary": "Plate mail consists of interlocking plates that encase nearly the entire body in a carapace of steel. It is costly and heavy, and the wearer often …",
+    "item": {
+     "category": "Armor",
+     "subcategory": "Base Armor",
+     "price": {
+      "gp": 30
+     },
+     "bulk": 4,
+     "armor": {
+      "ac": 6,
+      "dexCap": 0,
+      "strength": 4,
+      "checkPenalty": -3,
+      "speedPenalty": "-10 ft.",
+      "category": "Heavy",
+      "group": "Plate"
+     }
+    }
+   },
+   {
+    "id": "item:armor-41",
+    "name": "Leather Armor",
+    "type": "armor",
+    "level": 0,
+    "rarity": "common",
+    "source": {
+     "id": "source:source-216",
+     "page": 273
+    },
+    "aon": {
+     "id": "armor-41",
+     "url": "/Armor.aspx?ID=41"
+    },
+    "remaster": true,
+    "replaces": "armor-4",
+    "summary": "A mix of flexible and molded boiled leather, a suit of this type of armor provides some protection with maximum flexibility.",
+    "item": {
+     "category": "Armor",
+     "subcategory": "Base Armor",
+     "price": {
+      "gp": 2
+     },
+     "bulk": 1,
+     "armor": {
+      "ac": 1,
+      "dexCap": 4,
+      "strength": 0,
       "checkPenalty": -1,
       "category": "Light",
       "group": "Leather"

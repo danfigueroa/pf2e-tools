@@ -61,6 +61,15 @@ for (const list of [...FILTERED, ...scanned]) {
     const kept = (await fetchList(list)).filter(used)
     if (kept.length || FILTERED.includes(list)) lists[list] = kept
 }
+// Itens específicos usam os números da base (Hero's Plate → Full Plate) e o punho é o desarmado padrão: entram também.
+for (const entry of Object.values(lists).filter(Array.isArray).flat()) {
+    for (const base of [entry.item?.baseItem ?? []].flat()) names.add(String(base).toLowerCase())
+}
+names.add('fist')
+for (const list of ['items/weapons', 'items/armor', 'items/shields']) {
+    const all = await fetchList(list)
+    lists[list] = [...new Map([...lists[list], ...all.filter(used)].map((e) => [e.id, e])).values()]
+}
 for (const className of castClasses) {
     const list = `feats/class/${className.replace(/[^a-z0-9]+/g, '-')}`
     lists[list] = (await fetchList(list)).filter(used)

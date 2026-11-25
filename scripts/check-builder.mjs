@@ -390,5 +390,43 @@ const focusSpells = focusList.filter((x) => !(x.traits ?? []).includes('Cantrip'
 const fOut = compileBuild({ ...hf, spellcasting: { focus: { repertoire: { 1: focusSpells } } } }, ctxSpells)
 expect('pool de foco = magias de foco, até 3 (Player Core pg. 298)', fOut.focus.points, Math.min(3, focusSpells.length))
 
+console.log('Equipamento: Ghan Buri (gabarito: export do Pathbuilder) e regras de carga')
+{
+    const gb = JSON.parse(readFileSync(new URL('../public/characters/ghanburi10.json', import.meta.url), 'utf8')).build
+    const bd = gb.abilities.breakdown
+    const item = (name, type) => rules.byName(name, type)
+    const state = base({
+        level: gb.level,
+        origin: { ancestry: find('core/ancestries', gb.ancestry)?.id, background: find('core/backgrounds', gb.background)?.id },
+        class: { id: fighter.id, keyAttribute: 'str' },
+        choices: {
+            'boosts-ancestry': { boosts: lower(bd.ancestryFree) },
+            'boosts-background': { boosts: lower(bd.backgroundBoosts) },
+            ...Object.fromEntries(Object.entries(bd.mapLevelledBoosts).map(([lvl, list]) => [`boosts-${lvl}`, { boosts: lower(list) }])),
+            'class-choice:weapon-group-5': { value: 'hammer' },
+        },
+        inventory: [
+            { key: 'inv-1', item: item('Warhammer', 'weapon').id, qty: 1, acquired: 'given', equipped: true, runes: { potency: 2, striking: 1 } },
+            { key: 'inv-2', item: item("Hero's Plate").id, qty: 1, acquired: 'given', worn: true, runes: { potency: 1, resilient: 1 } },
+            { key: 'inv-3', item: item('Fortress Shield').id, qty: 1, acquired: 'given', worn: true },
+        ],
+        money: { pp: 0, gp: 15, sp: 0, cp: 0 },
+    })
+    const out = compileBuild(state, ctx)
+    const hammer = out.equipment.strikes.find((x) => x.name === 'Warhammer')
+    const want = gb.weapons.find((w) => w.name === 'Warhammer')
+    expect('Warhammer: ataque (mestre pelo grupo martelo, FOR, +2)', hammer?.attack, want.attack)
+    expect('Warhammer: dano fixo (FOR + especialização de mestre)', hammer?.damageBonus, want.damageBonus)
+    expect('Warhammer: dado e dados (striking)', [hammer?.die, hammer?.dice], [want.die, 2])
+    expect('CA com Hero\'s Plate +1 (base Full Plate)', out.stats.ac.total, gb.acTotal.acTotal)
+    expect('resiliente soma 1 nas salvaguardas', out.stats.fortitude.parts.find((x) => /resil/i.test(x.label))?.value, gb.mods.Fortitude['Item Bonus'])
+    expect('escudo fica fora da CA', out.equipment.shield?.ac, Number(gb.acTotal.shieldBonus))
+    expect('punho do catálogo entra nos golpes', out.equipment.strikes[0]?.name, 'Fist')
+    const heavy = compileBuild({ ...state, inventory: Array.from({ length: 12 }, (_, i) => ({ key: `p-${i}`, item: item('Full Plate').id, qty: 1, acquired: 'bought' })) }, ctx)
+    expect('carga acima de 10 + FOR avisa', heavy.warnings.some((w) => w.code === 'OVER_BULK'), true)
+    expect('compra acima do dinheiro avisa', heavy.warnings.some((w) => w.code === 'NEGATIVE_MONEY'), true)
+    expect('mil moedas = 1 Volume (Player Core pg. 269)', compileBuild({ ...hf, money: { pp: 0, gp: 1999, sp: 0, cp: 0 } }, ctx).equipment.bulk.coins, 1)
+}
+
 console.log(failures === 0 ? `\n${passed} conferências ok.` : `\n${failures} falha(s), ${passed} ok.`)
 process.exit(failures === 0 ? 0 : 1)
