@@ -1,5 +1,5 @@
 {
- "version": "2026.11.4",
+ "version": "2026.11.5",
  "generatedFrom": "Storage rules/<versão>",
  "lists": {
   "core/classes": [
@@ -12986,7 +12986,9 @@
       "selector": "darkvision"
      }
     ],
-    "heritage": {}
+    "heritage": {
+     "ancestry": "Elf"
+    }
    },
    {
     "id": "heritage:heritage-282",
@@ -13050,7 +13052,9 @@
       "value": "ternary(gte(@actor.level,5),2,1)"
      }
     ],
-    "heritage": {}
+    "heritage": {
+     "ancestry": "Human"
+    }
    },
    {
     "id": "heritage:heritage-262",
@@ -13090,7 +13094,9 @@
       "uuid": "{item|flags.system.rulesSelections.versatileHeritage}"
      }
     ],
-    "heritage": {}
+    "heritage": {
+     "ancestry": "Human"
+    }
    },
    {
     "id": "heritage:heritage-420",
@@ -13117,7 +13123,9 @@
     "unsupported": [
      "ItemAlteration"
     ],
-    "heritage": {}
+    "heritage": {
+     "ancestry": "Jotunborn"
+    }
    },
    {
     "id": "heritage:heritage-243",
@@ -13159,7 +13167,9 @@
       "situational": true
      }
     ],
-    "heritage": {}
+    "heritage": {
+     "ancestry": "Elf"
+    }
    }
   ],
   "core/backgrounds": [
