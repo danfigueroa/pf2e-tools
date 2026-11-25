@@ -6,7 +6,7 @@ O Redis e o Vercel Blob saíram; os stores do servidor mantiveram as mesmas fun�
 
 ## Migrations
 
-- Crie com `npx supabase migration new <nome>`. Não há Docker nem branch de preview (decisão do usuário / plano gratuito).
+- Crie com `npx supabase migration new <nome> < /dev/null` e escreva o SQL no arquivo depois: sem terminal, o comando lê o conteúdo da entrada padrão e fica esperando (ou grava o arquivo vazio). Não há Docker nem branch de preview (decisão do usuário / plano gratuito).
 - **Antes do commit**: `node --env-file=.env scripts/check-migrations.mjs` (roda as pendentes em produção em `BEGIN…ROLLBACK`).
 - **Depois do push**: `npx supabase migration list`. A integração com o GitHub às vezes não aplica; se seguir pendente,
   `npx supabase db push` com o `.env` carregado (o usuário autorizou fazer isso direto).
