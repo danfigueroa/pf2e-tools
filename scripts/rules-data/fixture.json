@@ -1,5 +1,5 @@
 {
- "version": "2026.11.7",
+ "version": "2026.11.8",
  "generatedFrom": "Storage rules/<versão>",
  "lists": {
   "core/classes": [
@@ -222,6 +222,9 @@
     },
     "remaster": true,
     "summary": "Animists gain magical spells from spirits called apparitions that they attune to, choosing new apparitions as the circumstances demand.",
+    "unsupported": [
+     "casting: mixed"
+    ],
     "class": {
      "hp": 8,
      "saves": {
@@ -232,6 +235,13 @@
      "attacks": {
       "simple": 1,
       "unarmed": 1
+     },
+     "casting": {
+      "type": "mixed",
+      "attribute": "wis",
+      "traditions": [
+       "divine"
+      ]
      },
      "defenses": {
       "light": 1,
@@ -606,6 +616,13 @@
       "simple": 1,
       "martial": 1,
       "unarmed": 1
+     },
+     "casting": {
+      "type": "spontaneous",
+      "attribute": "cha",
+      "traditions": [
+       "occult"
+      ]
      },
      "defenses": {
       "light": 1,
@@ -1005,6 +1022,13 @@
       "simple": 1,
       "unarmed": 1
      },
+     "casting": {
+      "type": "prepared",
+      "attribute": "wis",
+      "traditions": [
+       "divine"
+      ]
+     },
      "defenses": {
       "heavy": 0,
       "light": 0,
@@ -1379,6 +1403,13 @@
      "attacks": {
       "simple": 1,
       "unarmed": 1
+     },
+     "casting": {
+      "type": "prepared",
+      "attribute": "wis",
+      "traditions": [
+       "primal"
+      ]
      },
      "defenses": {
       "light": 1,
@@ -2899,6 +2930,13 @@
       "martial": 1,
       "unarmed": 1
      },
+     "casting": {
+      "type": "prepared",
+      "attribute": "int",
+      "traditions": [
+       "arcane"
+      ]
+     },
      "defenses": {
       "light": 1,
       "medium": 1,
@@ -3278,6 +3316,13 @@
       "simple": 1,
       "unarmed": 1
      },
+     "casting": {
+      "type": "prepared",
+      "attribute": "int",
+      "traditions": [
+       "occult"
+      ]
+     },
      "defenses": {
       "light": 1,
       "unarmored": 1
@@ -3472,6 +3517,13 @@
      "attacks": {
       "simple": 1,
       "unarmed": 1
+     },
+     "casting": {
+      "type": "spontaneous",
+      "attribute": "cha",
+      "traditions": [
+       "divine"
+      ]
      },
      "defenses": {
       "light": 1,
@@ -3672,6 +3724,12 @@
      "attacks": {
       "simple": 1,
       "unarmed": 1
+     },
+     "casting": {
+      "type": "spontaneous",
+      "traditions": [
+       "occult"
+      ]
      },
      "defenses": {
       "heavy": 0,
@@ -4535,6 +4593,16 @@
       "simple": 1,
       "unarmed": 1
      },
+     "casting": {
+      "type": "spontaneous",
+      "attribute": "cha",
+      "traditions": [
+       "arcane",
+       "divine",
+       "occult",
+       "primal"
+      ]
+     },
      "defenses": {
       "heavy": 0,
       "light": 0,
@@ -4716,6 +4784,16 @@
      "attacks": {
       "simple": 1,
       "unarmed": 1
+     },
+     "casting": {
+      "type": "spontaneous",
+      "attribute": "cha",
+      "traditions": [
+       "arcane",
+       "divine",
+       "occult",
+       "primal"
+      ]
      },
      "defenses": {
       "unarmored": 1
@@ -5377,6 +5455,16 @@
       "simple": 1,
       "unarmed": 1
      },
+     "casting": {
+      "type": "prepared",
+      "attribute": "int",
+      "traditions": [
+       "arcane",
+       "divine",
+       "occult",
+       "primal"
+      ]
+     },
      "defenses": {
       "heavy": 0,
       "light": 0,
@@ -5547,6 +5635,13 @@
      "attacks": {
       "simple": 1,
       "unarmed": 1
+     },
+     "casting": {
+      "type": "prepared",
+      "attribute": "int",
+      "traditions": [
+       "arcane"
+      ]
      },
      "defenses": {
       "heavy": 0,

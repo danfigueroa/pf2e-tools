@@ -82,7 +82,7 @@ export function SpellsSection({ state, update, compiled, canEdit, index, mesaRul
         .filter((s) => (p.rank === 0) === !!s.spell?.cantrip && (s.spell?.rank ?? 0) <= Math.max(p.rank, 1));
     }
     const maxRank = p.field === 'spellbook' ? caster.perDay.reduce((m, n, r) => (n > 0 ? r : m), 0) : p.rank;
-    return spells.filter((s) => !s.spell?.focus && !s.spell?.ritual && (!caster.tradition || (s.spell?.traditions ?? []).includes(caster.tradition))
+    return spells.filter((s) => !s.spell?.focus && !s.spell?.ritual && (!caster.tradition || (s.spell?.traditions ?? []).some((t) => t.toLowerCase() === caster.tradition))
       && (p.field === 'spellbook' ? (s.spell?.rank ?? 0) <= maxRank : (p.rank === 0) === !!s.spell?.cantrip && (s.spell?.rank ?? 0) <= Math.max(p.rank, 1)));
   };
 

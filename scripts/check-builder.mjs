@@ -362,5 +362,33 @@ const cavernOut = compileBuild({ ...hf, origin: { ancestry: find('core/ancestrie
 expect('Cavern Elf dá visão no escuro (Sense da herança)', cavernOut.senses.some((x) => /darkvision/i.test(x)), true)
 expect('aviso igual não repete', new Set(vh.warnings.map((w) => w.code + w.message)).size, vh.warnings.length)
 
+console.log('Magias: conjurador da classe contra o export (F5)')
+const tables = fixture['core/tables']
+const ctxSpells = { rules, tables, classOptions: fixture['core/class-features'] }
+for (const [file, extraCantrips] of [['thalos10.json', 0], ['woyd7.json', 0], ['nathaniel10.json', 0], ['loki7.json', 1]]) {
+    const b = JSON.parse(readFileSync(new URL(`../public/characters/${file}`, import.meta.url), 'utf8')).build
+    const cls = find('core/classes', b.class)
+    const exp = b.spellCasters.find((c) => c.name === b.class)
+    const key = lower(b.abilities.breakdown.classBoosts)[0]
+    const out = compileBuild(base({ level: b.level, class: { id: cls.id, keyAttribute: key } }), ctxSpells)
+    const caster = out.casters[0]
+    expect(`${b.name}: tradição e tipo`, [caster?.tradition, caster?.type], [exp.magicTradition, exp.spellcastingType])
+    expect(`${b.name}: atributo de conjuração`, caster?.attribute, exp.ability)
+    // Cleric: a proficiência de conjuração segue a doutrina, que ainda não é calculada (aviso no motor).
+    if (b.class !== 'Cleric') expect(`${b.name}: proficiência de conjuração`, caster?.rank, exp.proficiency / 2)
+    // Loki tem um truque a mais que vem de talento, não da tabela (achado da F1).
+    const want = [...exp.perDay]
+    want[0] -= extraCantrips
+    expect(`${b.name}: magias por dia (tabela da AON)`, caster?.perDay.slice(0, want.length), want)
+}
+const alarm = fixture['spells/arcane'].find((x) => x.name === 'Alarm')
+const wizard = find('core/classes', 'Wizard') ?? find('core/classes', 'Magus')
+const alarmOut = compileBuild(base({ level: 1, class: { id: wizard.id, keyAttribute: 'int' }, spellcasting: { class: { prepared: { 1: [alarm.id] } } } }), ctxSpells)
+expect('magia da lista certa não avisa tradição (a AON grava "Arcane")', alarmOut.warnings.some((w) => w.code === 'SPELL_TRADITION'), false)
+const focusList = fixture['spells/focus']
+const focusSpells = focusList.filter((x) => !(x.traits ?? []).includes('Cantrip')).slice(0, 4).map((x) => x.id)
+const fOut = compileBuild({ ...hf, spellcasting: { focus: { repertoire: { 1: focusSpells } } } }, ctxSpells)
+expect('pool de foco = magias de foco, até 3 (Player Core pg. 298)', fOut.focus.points, Math.min(3, focusSpells.length))
+
 console.log(failures === 0 ? `\n${passed} conferências ok.` : `\n${failures} falha(s), ${passed} ok.`)
 process.exit(failures === 0 ? 0 : 1)

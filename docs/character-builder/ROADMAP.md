@@ -230,13 +230,13 @@ magias/itens), sem pendência fantasma nem slot faltando.
 
 - [ ] **5.1** `spells.ts`: conjuradores da classe, de arquétipo (Basic/Expert/Master Spellcasting), inatos (ancestralidade,
       talento, item), Mythic Magic; tabela de slots (`spell-slots.json`).
-- [ ] **5.2** Preparado de grimório (grimório + preparadas com cópias), espontâneo (repertório + assinatura), truques.
-- [ ] **5.3** Foco: magias de foco concedidas, pool pelo Remaster (até 3), truques de foco fora da conta.
+- [x] **5.2** Preparado de grimório (grimório + preparadas com cópias), espontâneo (repertório + assinatura), truques.
+- [x] **5.3** Foco: magias de foco concedidas, pool pelo Remaster (até 3), truques de foco fora da conta.
 - [ ] **5.4** Magias concedidas por escolhas (escola, domínio, fonte divina, mistério, consciência).
-- [ ] **5.5** Proficiência de conjuração por tradição e por conjurador; CD e ataque com `breakdown`.
-- [ ] **5.6** Rituais; slots extras manuais (`bonusSlots`).
-- [ ] **5.7** UI: aba Magias com sub-aba por conjurador (UX), seletor por tradição/rank, contadores "Restam N".
-- [ ] **5.8** Casos: `perDay` do Psíquico 10, Magus 7/10, Clérigo 7 (Cleric Font), arquétipo de Mago, Aeromancer,
+- [x] **5.5** Proficiência de conjuração por tradição e por conjurador; CD e ataque com `breakdown`.
+- [x] **5.6** Rituais; slots extras manuais (`bonusSlots`).
+- [x] **5.7** UI: aba Magias com sub-aba por conjurador (UX), seletor por tradição/rank, contadores "Restam N".
+- [x] **5.8** Casos: `perDay` do Psíquico 10, Magus 7/10, Clérigo 7 (Cleric Font), arquétipo de Mago, Aeromancer,
       Mythic Magic; foco do Loki e do Nathaniel.
 
 **Rodar**: `check-builder`, `check-heightening` (nada deve mudar), build, lint.

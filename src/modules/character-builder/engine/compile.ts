@@ -284,7 +284,7 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
     // 7. Magias: o conjurador da classe e o foco (as magias de foco são escolha do jogador: o Foundry quase nunca as concede
     // por regra). Guardadas em `spellcasting.focus.repertoire` — "0" truques de foco, "1" magias de foco.
     const casters = compileCasters(state, cls, { level, keyAttribute, mod, spellRank: proficiency.spell, table: ctx.tables?.spellSlots }, pending, warnings, used)
-    checkSpellChoices(state, casters, (id) => rules.get(id), pending, warnings)
+    checkSpellChoices(state, casters, (id) => rules.get(id), pending, warnings, level)
     const focusIds = Object.values(state.spellcasting.focus?.repertoire ?? {}).flat()
     const focus = compileFocus(focusIds.map((id) => rules.get(id)).filter((e): e is RuleEntry => !!e), level)
 

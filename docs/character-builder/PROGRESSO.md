@@ -172,3 +172,25 @@
   - **4.7:** qualificador de talento (Assurance (X)) e repetíveis pela regra do talento.
   - **4.8a:** conferir o traço dos talentos de destino (o aviso do 12º não confere o traço) e o mítico por personagem na tela.
 - **Próximo passo.** F5: magias.
+
+## F5 — Magias concluída (núcleo; pendências registradas)
+
+- **Conjuração da classe derivada da AON** (`class.casting` em `rules-derived.js`).
+  - Tradições vêm de `tradition_markdown`; mais de uma significa que a subclasse decide (Witch, Sorcerer, Summoner), e o jogador escolhe a tradição.
+  - O tipo sai da seção "Spellcasting": "repertoire" é espontâneo, "prepare" é preparado.
+  - O atributo sai da frase "spell DC use(s)/calculated using your X modifier"; o Magus conjura com INT, e o Psychic usa o atributo-chave.
+  - O Animist mistura preparado e repertório: fica `mixed`, com aviso.
+- **Motor** (`engine/spells.ts`).
+  - Conjurador da classe: magias por dia pela tabela gerada da AON (`spellSlots`), proficiência inicial (`class.spellcasting`) com as subidas das características ("Expert Spellcaster"…), CD e ataque.
+  - Escolhas: grimório (Wizard, Magus), preparadas com cópias e "Restam N" e repertório. O tamanho do repertório por rank ainda não é conferido e fica com aviso.
+  - Validação de rank e tradição.
+  - Foco: escolha do jogador na lista de foco, porque o Foundry quase nunca concede por regra. O pool é o número de magias de foco que gastam ponto, até 3 (Player Core pg. 298), e elas são lançadas na metade do nível.
+  - Rituais.
+- **Aba Magias.** Um cartão por conjurador (tradição, atributo, CD/ataque, magias por dia, grimório, ranks), mais foco e rituais. Conferida em 320 px e no desktop com um Magus 7: CD 21, ataque +11 e as magias por dia do Impossible Magic pg. 9.
+- **Base reimportada** com `casting`: versão `2026.11.8` (12 classes alteradas, só `core/classes` regravada).
+- **`check-builder`: 152 conferências.** Thalos (Psychic 10), Woyd (Cleric 7), Nathaniel (Magus 10) e Loki (Magus 7) batem em tradição, tipo, atributo e magias por dia. O Loki tem um truque a mais, que vem de talento. A proficiência bate em todos, menos no Woyd, porque segue a doutrina do Cleric. Pool de foco e tradição com maiúscula da AON também têm caso.
+- **Pendente.**
+  - Conjuradores de arquétipo (Basic/Expert/Master Spellcasting) e inatos: o Aeromancer, o Caster Arcane Sense e o Mythic Magic do elenco.
+  - Magias concedidas por escolha (escola, domínio, mistério).
+  - Tamanho do repertório espontâneo.
+  - O truque extra do Loki, que vem de talento.

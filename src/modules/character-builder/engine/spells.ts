@@ -74,7 +74,11 @@ export function compileCasters(state: BuildState, cls: RuleEntry | undefined, ct
         else pending.push({ key, label: tr('Tradição das magias (pela subclasse)', 'Spell tradition (from the subclass)'), level: 1, missing: 1 })
     }
     const attribute = casting.attribute ?? ctx.keyAttribute ?? 'int'
-    const perDay = (row.perDay[String(ctx.level)] ?? []).map((n) => (Array.isArray(n) ? n[0] : n))
+    // Sempre do rank 0 ao 10 (a tabela do Magus e do Summoner para no 9).
+    const perDay = Array.from({ length: 11 }, (_, r) => {
+        const n = row.perDay[String(ctx.level)]?.[r] ?? 0
+        return Array.isArray(n) ? n[0] : n
+    })
     const bonus = state.spellcasting.class?.bonusSlots ?? {}
     for (const [rank, extra] of Object.entries(bonus)) perDay[Number(rank)] = (perDay[Number(rank)] ?? 0) + extra
     const prof = ctx.spellRank > 0 ? ctx.level + 2 * ctx.spellRank : 0
@@ -87,7 +91,7 @@ export function compileCasters(state: BuildState, cls: RuleEntry | undefined, ct
 
 /** Escolhas de magia por conjurador: avisos de contagem e de tradição/rank. */
 export function checkSpellChoices(state: BuildState, casters: Caster[], spells: (id: string) => RuleEntry | undefined,
-    pending: Pending[], warnings: Warning[]) {
+    pending: Pending[], warnings: Warning[], level = 1) {
     for (const caster of casters) {
         const choices = state.spellcasting[caster.key] ?? {}
         const lists = caster.type === 'spontaneous' ? choices.repertoire ?? {} : choices.prepared ?? {}
@@ -96,7 +100,7 @@ export function checkSpellChoices(state: BuildState, casters: Caster[], spells: 
             const chosen = lists[String(rank)] ?? []
             // Preparado: uma magia por espaço. Espontâneo: o tamanho do repertório varia por classe e não está na tabela.
             if (caster.type === 'prepared' && slots > chosen.length) {
-                pending.push({ key: `spells:${caster.key}:${rank}`, label: tr(`${caster.name}: magias de rank ${rank}`, `${caster.name}: rank ${rank} spells`), level: 1, missing: slots - chosen.length })
+                pending.push({ key: `spells:${caster.key}:${rank}`, label: tr(`${caster.name}: magias de rank ${rank}`, `${caster.name}: rank ${rank} spells`), level, missing: slots - chosen.length })
             }
             for (const id of chosen) {
                 const spell = spells(id)
@@ -106,7 +110,8 @@ export function checkSpellChoices(state: BuildState, casters: Caster[], spells: 
                 if ((rank === 0) !== cantrip || (rank > 0 && sr > rank)) {
                     warnings.push({ code: 'SPELL_RANK', level: 'warn', ref: `spells:${caster.key}:${rank}`, message: tr(`${spell.name} não cabe no rank ${rank}.`, `${spell.name} does not fit rank ${rank}.`) })
                 }
-                if (caster.tradition && !(spell.spell?.traditions ?? []).includes(caster.tradition)) {
+                // A AON grava as tradições com inicial maiúscula ("Arcane").
+                if (caster.tradition && !(spell.spell?.traditions ?? []).some((t) => t.toLowerCase() === caster.tradition)) {
                     warnings.push({ code: 'SPELL_TRADITION', level: 'warn', ref: `spells:${caster.key}:${rank}`, message: tr(`${spell.name} não é da tradição ${caster.tradition}.`, `${spell.name} is not on the ${caster.tradition} list.`) })
                 }
             }
