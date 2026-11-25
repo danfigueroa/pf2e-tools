@@ -148,6 +148,8 @@ export interface Compiled {
     featSlots: FeatSlot[]
     featChildren: ChildSlot[]
     taken: TakenFeat[]
+    /** Ids que o motor procurou e não estão nas listas carregadas (talento concedido): quem carrega busca e recompila. */
+    missingRefs: string[]
     classFeatures: { level: number; name: string; id?: string }[]
     /** Escolhas de classe (subclasse) e de salvaguarda (Path to Perfection). */
     classChoices: (ClassChoiceSlot & { chosen?: string; fixed?: boolean })[]

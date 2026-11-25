@@ -69,7 +69,7 @@ export interface CoreLists {
  * Equipamento aberta e as tradições dos conjuradores que a compilação anterior achou (arquétipo incluído).
  */
 export function needsOf(state: BuildState, core: CoreLists, mesaRules: MesaRules | null | undefined,
-    extra: { browseArchetype?: string | null; itemsWanted?: boolean; traditions?: string[] } = {}): FeatListNeeds {
+    extra: { browseArchetype?: string | null; itemsWanted?: boolean; traditions?: string[]; references?: string[] } = {}): FeatListNeeds {
     const cls = core.classes.find((c) => c.id === state.class.id)
     const anc = core.ancestries.find((a) => a.id === state.origin.ancestry)
     const her = core.heritages.find((h) => h.id === state.origin.heritage)
@@ -85,7 +85,7 @@ export function needsOf(state: BuildState, core: CoreLists, mesaRules: MesaRules
     const chosen = state.choices['spell-tradition']
     const own = list.length === 1 ? list : chosen && 'value' in chosen ? [chosen.value] : []
     return {
-        references: [...chosenRuleIds(state)].sort(),
+        references: [...new Set([...chosenRuleIds(state), ...(extra.references ?? [])])].sort(),
         className: cls?.name, ancestryName: anc?.name, versatileHeritage: her && !her.heritage?.ancestry ? her.name : undefined,
         mythic: variantFlags(state, mesaRules ?? undefined).mythic, archetypes: [...archetypes].sort(),
         items: state.inventory.length > 0 || state.formulas.length > 0 || !!extra.itemsWanted,
@@ -158,7 +158,8 @@ export async function compileFromCatalog(state: BuildState, ctx: {
     let traditions: string[] = []
     let result: CatalogCompile | null = null
     let remasterTried = false
-    for (let round = 0; round < 4; round += 1) {
+    const grantsTried = new Set<string>()
+    for (let round = 0; round < 6; round += 1) {
         const needs = needsOf(state, core, ctx.mesaRules, { traditions })
         const loaded = await Promise.all(featListPaths(needs).map(read))
         const index = buildRulesIndex([core.ancestries, core.heritages, core.backgrounds, core.classes, core.languages, core.classFeatures,
@@ -174,6 +175,13 @@ export async function compileFromCatalog(state: BuildState, ctx: {
         const compiled = compileBuild(state, {
             rules: index, mesaRules: ctx.mesaRules ?? undefined, classOptions: core.classFeatures, tables: tables ?? undefined, buildId: ctx.buildId,
         })
+        // Talento concedido (GrantItem) fora das listas carregadas: uma busca, e compila de novo.
+        const granted = new Set(compiled.missingRefs.filter((id) => !grantsTried.has(id)))
+        if (granted.size) {
+            for (const id of granted) grantsTried.add(id)
+            const found = await locate(granted, ctx.reader, read)
+            if (found.length) { supplement.push(...found); continue }
+        }
         result = { compiled, index, sheet: exportBuild(state, compiled, { rules: index, buildId: ctx.buildId }) }
         const next = [...new Set([...traditions, ...compiled.casters.map((c) => c.tradition).filter((t): t is NonNullable<typeof t> => !!t)])].sort()
         if (next.length === traditions.length) break

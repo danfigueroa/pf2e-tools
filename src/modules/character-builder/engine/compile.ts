@@ -7,6 +7,7 @@
 // - CD de classe = 10 + proficiência + atributo-chave (Player Core pg. 27); as 29 classes Remaster da AON começam
 //   "Trained in <classe> class DC".
 // O que o motor ainda não calcula (características de classe acima do 1º nível, talentos, itens) vira aviso, nunca número.
+import { grantedFeat } from './rulesIndex'
 import { tr } from '../../../i18n'
 import type { BuildState } from '../types'
 import type { RuleEntry } from '../rules/types'
@@ -74,6 +75,7 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
     const pending: Pending[] = []
     const warnings: Warning[] = []
     const used = new Set<string>()
+    const missingRefs = new Set<string>()
 
     // 1. Coleta.
     const ancestry = rules.get(state.origin.ancestry)
@@ -160,8 +162,7 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
             warnings.push({ code: 'UNSUPPORTED_EFFECT', level: 'info', ref: 'class', message: tr(`Efeito não calculado: ${entry.name} (${note.slice(13)}).`, `Effect not calculated: ${entry.name} (${note.slice(13)}).`) })
         }
         for (const rule of entry.rules ?? []) {
-            const name = rule.key === 'GrantItem' && typeof rule.uuid === 'string' ? /\.Item\.(.+)$/.exec(rule.uuid)?.[1] : undefined
-            const feat = name ? rules.byName(name, 'feat') : undefined
+            const feat = grantedFeat(rule, rules, missingRefs)
             if (feat) awarded.push({ entry: feat, level: ref.level, source: entry.name })
         }
     }
@@ -309,7 +310,7 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
             stat: { perception: proficiency.perception, fortitude: proficiency.fortitude, reflex: proficiency.reflex, will: proficiency.will },
             attribute: mod, deity: state.origin.deity,
         })
-    const feats = compileFeats(state, slots, rules, { level, className: cls?.name, ancestryTraits, awarded, has, prereqContext }, warnings)
+    const feats = compileFeats(state, slots, rules, { level, className: cls?.name, ancestryTraits, awarded, has, prereqContext, missing: missingRefs }, warnings)
     for (const t of feats.taken) {
         const required = Object.entries(CLASS_ARCHETYPES).find(([, a]) => a.dedication === t.entry.id)
         if (required && archetypeId !== required[0]) {
@@ -513,6 +514,7 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
 
     return {
         level,
+        missingRefs: [...missingRefs].sort(),
         attributes: attrs.result,
         skills: skills.result,
         stats,

@@ -24,6 +24,16 @@ function buildRulesIndex(lists, languages) {
     languages
   };
 }
+function grantedFeat(rule, rules, missing) {
+  if (rule.key !== "GrantItem" || typeof rule.uuid !== "string") return void 0;
+  const id = typeof rule.grantId === "string" ? rule.grantId : void 0;
+  const byId = id ? rules.get(id) : void 0;
+  if (byId) return byId;
+  const name = /^Compendium\.pf2e\.feats-srd\.Item\.(.+)$/.exec(rule.uuid)?.[1];
+  const byName = name ? rules.byName(name, "feat") : void 0;
+  if (!byName && id) missing?.add(id);
+  return byName;
+}
 
 // src/i18n/index.ts
 var LANG_KEY = "pf2e:language";
@@ -526,7 +536,6 @@ function fitsSlot(feat, kind, ctx) {
 
 // src/modules/character-builder/engine/feats.ts
 var STAT_SELECTORS = /* @__PURE__ */ new Set(["perception", "fortitude", "reflex", "will"]);
-var UUID_NAME = /^Compendium\.pf2e\.[\w-]+\.Item\.(.+)$/;
 function numeric(value, level) {
   if (typeof value === "number") return value;
   if (value === "@actor.level") return level;
@@ -599,8 +608,7 @@ function compileFeats(state, slots, rules, ctx, warnings) {
       }
       if (rule.key === "GrantItem" && typeof rule.uuid === "string" && depth < 2) {
         if (entry.id === CLASS_ARCHETYPES[BLOODRAGER].subclass && rule.flag === "bloodragerDedication") continue;
-        const name = UUID_NAME.exec(rule.uuid)?.[1];
-        const granted = name ? rules.byName(name, "feat") : void 0;
+        const granted = grantedFeat(rule, rules, ctx.missing);
         if (granted && !has.has(granted.name.toLowerCase())) take(granted, `${slot}/grant:${granted.aon.id}`, slotLevel, "granted", depth + 1);
         continue;
       }
@@ -1158,6 +1166,7 @@ function compileBuild(state, ctx) {
   const pending = [];
   const warnings = [];
   const used = /* @__PURE__ */ new Set();
+  const missingRefs = /* @__PURE__ */ new Set();
   const ancestry = rules.get(state.origin.ancestry);
   const heritage = rules.get(state.origin.heritage);
   const background = rules.get(state.origin.background);
@@ -1234,8 +1243,7 @@ function compileBuild(state, ctx) {
       warnings.push({ code: "UNSUPPORTED_EFFECT", level: "info", ref: "class", message: tr(`Efeito n\xE3o calculado: ${entry.name} (${note.slice(13)}).`, `Effect not calculated: ${entry.name} (${note.slice(13)}).`) });
     }
     for (const rule of entry.rules ?? []) {
-      const name = rule.key === "GrantItem" && typeof rule.uuid === "string" ? /\.Item\.(.+)$/.exec(rule.uuid)?.[1] : void 0;
-      const feat = name ? rules.byName(name, "feat") : void 0;
+      const feat = grantedFeat(rule, rules, missingRefs);
       if (feat) awarded.push({ entry: feat, level: ref.level, source: entry.name });
     }
   }
@@ -1382,7 +1390,7 @@ function compileBuild(state, ctx) {
     attribute: mod,
     deity: state.origin.deity
   });
-  const feats = compileFeats(state, slots, rules, { level, className: cls?.name, ancestryTraits, awarded, has, prereqContext }, warnings);
+  const feats = compileFeats(state, slots, rules, { level, className: cls?.name, ancestryTraits, awarded, has, prereqContext, missing: missingRefs }, warnings);
   for (const t of feats.taken) {
     const required = Object.entries(CLASS_ARCHETYPES).find(([, a]) => a.dedication === t.entry.id);
     if (required && archetypeId !== required[0]) {
@@ -1589,6 +1597,7 @@ function compileBuild(state, ctx) {
   }
   return {
     level,
+    missingRefs: [...missingRefs].sort(),
     attributes: attrs.result,
     skills: skills.result,
     stats,
@@ -1996,7 +2005,7 @@ function needsOf(state, core, mesaRules, extra = {}) {
   const chosen = state.choices["spell-tradition"];
   const own = list.length === 1 ? list : chosen && "value" in chosen ? [chosen.value] : [];
   return {
-    references: [...chosenRuleIds(state)].sort(),
+    references: [.../* @__PURE__ */ new Set([...chosenRuleIds(state), ...extra.references ?? []])].sort(),
     className: cls?.name,
     ancestryName: anc?.name,
     versatileHeritage: her && !her.heritage?.ancestry ? her.name : void 0,
@@ -2047,7 +2056,8 @@ async function compileFromCatalog(state, ctx) {
   let traditions = [];
   let result = null;
   let remasterTried = false;
-  for (let round = 0; round < 4; round += 1) {
+  const grantsTried = /* @__PURE__ */ new Set();
+  for (let round = 0; round < 6; round += 1) {
     const needs = needsOf(state, core, ctx.mesaRules, { traditions });
     const loaded = await Promise.all(featListPaths(needs).map(read));
     const index = buildRulesIndex([
@@ -2078,6 +2088,15 @@ async function compileFromCatalog(state, ctx) {
       tables: tables ?? void 0,
       buildId: ctx.buildId
     });
+    const granted = new Set(compiled.missingRefs.filter((id) => !grantsTried.has(id)));
+    if (granted.size) {
+      for (const id of granted) grantsTried.add(id);
+      const found = await locate(granted, ctx.reader, read);
+      if (found.length) {
+        supplement.push(...found);
+        continue;
+      }
+    }
     result = { compiled, index, sheet: exportBuild(state, compiled, { rules: index, buildId: ctx.buildId }) };
     const next = [.../* @__PURE__ */ new Set([...traditions, ...compiled.casters.map((c) => c.tradition).filter((t) => !!t)])].sort();
     if (next.length === traditions.length) break;

@@ -86,6 +86,8 @@ export function BuilderMode({ buildId }: { buildId: string }) {
   const [itemsWanted, setItemsWanted] = useState(false);
   // Tradições dos conjuradores que o motor achou (arquétipo incluído): as listas delas também baixam.
   const [casterTraditions, setCasterTraditions] = useState<string>('');
+  // Talentos concedidos que o motor não achou nas listas carregadas: entram nas referências que o `useRules` busca.
+  const [grantRefs, setGrantRefs] = useState<string>('');
   const { build, state, canEdit, loading, error, status, conflict, update, keepMine, takeTheirs, reload, saveNow } = useBuild(buildId, className);
 
   // Listas de talento que este personagem usa: classe, ancestralidade, herança versátil, mítico e os arquétipos dos
@@ -93,8 +95,9 @@ export function BuilderMode({ buildId }: { buildId: string }) {
   const core = rules.core;
   const needsKey = useMemo(() => {
     if (!core || !state) return '';
-    return JSON.stringify(needsOf(state, core, rules.mesaRules, { browseArchetype, itemsWanted, traditions: casterTraditions.split(',').filter(Boolean) }));
-  }, [core, state, browseArchetype, rules.mesaRules, itemsWanted, casterTraditions]);
+    return JSON.stringify(needsOf(state, core, rules.mesaRules, { browseArchetype, itemsWanted, traditions: casterTraditions.split(',').filter(Boolean),
+      references: grantRefs.split(',').filter(Boolean) }));
+  }, [core, state, browseArchetype, rules.mesaRules, itemsWanted, casterTraditions, grantRefs]);
   useEffect(() => { if (needsKey) setNeeds(JSON.parse(needsKey) as FeatListNeeds); }, [needsKey]);
   const [tab, setTab] = useState<BuilderTab>('origin');
   const [pendingOpen, setPendingOpen] = useState(false);
@@ -124,6 +127,8 @@ export function BuilderMode({ buildId }: { buildId: string }) {
     : null), [state, rules.index, rules.mesaRules, core, rules.tables, buildId]);
   const traditionsKey = compiled ? [...new Set(compiled.casters.map((c) => c.tradition).filter(Boolean))].sort().join(',') : '';
   useEffect(() => setCasterTraditions(traditionsKey), [traditionsKey]);
+  const grantKey = compiled ? compiled.missingRefs.join(',') : '';
+  useEffect(() => { if (grantKey) setGrantRefs((prev) => [...new Set([...prev.split(','), ...grantKey.split(',')].filter(Boolean))].sort().join(',')); }, [grantKey]);
   const clsName = rules.index?.get(state?.class.id)?.name ?? null;
   useEffect(() => setClassName(clsName), [clsName]);
 

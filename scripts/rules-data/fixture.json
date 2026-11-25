@@ -1,5 +1,5 @@
 {
- "version": "2026.11.11",
+ "version": "2026.11.13",
  "generatedFrom": "Storage rules/<versão>",
  "lists": {
   "core/classes": [
@@ -13858,7 +13858,8 @@
     "rules": [
      {
       "key": "GrantItem",
-      "uuid": "Compendium.pf2e.feats-srd.Item.Cat Fall"
+      "uuid": "Compendium.pf2e.feats-srd.Item.Cat Fall",
+      "grantId": "feat:feat-5131"
      },
      {
       "key": "RollOption",
@@ -13959,7 +13960,8 @@
       "uuid": "Compendium.pf2e.feats-srd.Item.Whispers of Weakness",
       "predicate": [
        "class:oracle"
-      ]
+      ],
+      "grantId": "feat:feat-6057"
      },
      {
       "key": "GrantItem",
@@ -14636,7 +14638,8 @@
         ]
        }
       ],
-      "reevaluateOnUpdate": true
+      "reevaluateOnUpdate": true,
+      "grantId": "feat:feat-7232"
      }
     ],
     "unsupported": [
@@ -15042,7 +15045,8 @@
       "uuid": "Compendium.pf2e.feats-srd.Item.Oracular Warning",
       "predicate": [
        "class:oracle"
-      ]
+      ],
+      "grantId": "feat:feat-6056"
      },
      {
       "key": "GrantItem",
@@ -15174,7 +15178,8 @@
         ]
        }
       ],
-      "reevaluateOnUpdate": true
+      "reevaluateOnUpdate": true,
+      "grantId": "feat:feat-7505"
      }
     ],
     "unsupported": [
@@ -15314,7 +15319,8 @@
       "uuid": "Compendium.pf2e.feats-srd.Item.Fascinating Performance",
       "predicate": [
        "class:swashbuckler"
-      ]
+      ],
+      "grantId": "feat:feat-5147"
      },
      {
       "key": "Note",
@@ -15467,7 +15473,8 @@
       "uuid": "Compendium.pf2e.feats-srd.Item.Whispers of Weakness",
       "predicate": [
        "class:oracle"
-      ]
+      ],
+      "grantId": "feat:feat-6057"
      },
      {
       "key": "GrantItem",
@@ -15582,7 +15589,8 @@
         ]
        }
       ],
-      "reevaluateOnUpdate": true
+      "reevaluateOnUpdate": true,
+      "grantId": "feat:feat-7239"
      }
     ],
     "unsupported": [
@@ -15725,7 +15733,8 @@
       "uuid": "Compendium.pf2e.feats-srd.Item.Nudge the Scales",
       "predicate": [
        "class:oracle"
-      ]
+      ],
+      "grantId": "feat:feat-6055"
      },
      {
       "key": "GrantItem",
@@ -15797,7 +15806,8 @@
       "uuid": "Compendium.pf2e.feats-srd.Item.Energized Spark",
       "preselectChoices": {
        "energizedSpark": "{item|flags.system.rulesSelections.energizedSpark}"
-      }
+      },
+      "grantId": "feat:feat-7154"
      },
      {
       "key": "RollOption",
@@ -16634,7 +16644,8 @@
       "uuid": "Compendium.pf2e.feats-srd.Item.Oracular Warning",
       "predicate": [
        "class:oracle"
-      ]
+      ],
+      "grantId": "feat:feat-6056"
      },
      {
       "key": "GrantItem",
@@ -16797,7 +16808,8 @@
       "uuid": "Compendium.pf2e.feats-srd.Item.Energized Spark",
       "preselectChoices": {
        "energizedSpark": "{item|flags.system.rulesSelections.energizedSpark}"
-      }
+      },
+      "grantId": "feat:feat-7154"
      },
      {
       "key": "RollOption",
@@ -19546,7 +19558,8 @@
     "rules": [
      {
       "key": "GrantItem",
-      "uuid": "Compendium.pf2e.feats-srd.Item.Bardic Lore"
+      "uuid": "Compendium.pf2e.feats-srd.Item.Bardic Lore",
+      "grantId": "feat:feat-4573"
      }
     ]
    },
@@ -20592,7 +20605,8 @@
       "uuid": "Compendium.pf2e.feats-srd.Item.Foretell Harm",
       "predicate": [
        "class:oracle"
-      ]
+      ],
+      "grantId": "feat:feat-6053"
      },
      {
       "key": "GrantItem",
@@ -22731,7 +22745,8 @@
     "rules": [
      {
       "key": "GrantItem",
-      "uuid": "Compendium.pf2e.feats-srd.Item.Familiar"
+      "uuid": "Compendium.pf2e.feats-srd.Item.Familiar",
+      "grantId": "feat:feat-5024"
      }
     ],
     "unsupported": [
@@ -23807,7 +23822,8 @@
       "uuid": "Compendium.pf2e.feats-srd.Item.Nudge the Scales",
       "predicate": [
        "class:oracle"
-      ]
+      ],
+      "grantId": "feat:feat-6055"
      },
      {
       "key": "GrantItem",
@@ -23997,7 +24013,8 @@
     "rules": [
      {
       "key": "GrantItem",
-      "uuid": "Compendium.pf2e.feats-srd.Item.Circle of Spirits"
+      "uuid": "Compendium.pf2e.feats-srd.Item.Circle of Spirits",
+      "grantId": "feat:feat-7121"
      }
     ]
    },
@@ -24029,7 +24046,8 @@
       "uuid": "Compendium.pf2e.feats-srd.Item.Whispers of Weakness",
       "predicate": [
        "class:oracle"
-      ]
+      ],
+      "grantId": "feat:feat-6057"
      },
      {
       "key": "GrantItem",
@@ -24095,7 +24113,8 @@
     "rules": [
      {
       "key": "GrantItem",
-      "uuid": "Compendium.pf2e.feats-srd.Item.Lingering Composition"
+      "uuid": "Compendium.pf2e.feats-srd.Item.Lingering Composition",
+      "grantId": "feat:feat-4575"
      }
     ]
    },
@@ -24523,7 +24542,8 @@
     "rules": [
      {
       "key": "GrantItem",
-      "uuid": "Compendium.pf2e.feats-srd.Item.Relinquish Control"
+      "uuid": "Compendium.pf2e.feats-srd.Item.Relinquish Control",
+      "grantId": "feat:feat-7122"
      }
     ]
    },
@@ -25837,7 +25857,8 @@
       "uuid": "Compendium.pf2e.feats-srd.Item.Energized Spark",
       "preselectChoices": {
        "energizedSpark": "{item|flags.system.rulesSelections.energizedSpark}"
-      }
+      },
+      "grantId": "feat:feat-7154"
      },
      {
       "key": "RollOption",
@@ -27299,7 +27320,8 @@
     "rules": [
      {
       "key": "GrantItem",
-      "uuid": "Compendium.pf2e.feats-srd.Item.Versatile Performance"
+      "uuid": "Compendium.pf2e.feats-srd.Item.Versatile Performance",
+      "grantId": "feat:feat-4578"
      }
     ]
    },
@@ -28002,7 +28024,8 @@
       "uuid": "Compendium.pf2e.feats-srd.Item.Dirty Trick",
       "predicate": [
        "class:swashbuckler"
-      ]
+      ],
+      "grantId": "feat:feat-6472"
      },
      {
       "key": "Note",
@@ -29826,7 +29849,8 @@
     "rules": [
      {
       "key": "GrantItem",
-      "uuid": "Compendium.pf2e.feats-srd.Item.Apparition Sense"
+      "uuid": "Compendium.pf2e.feats-srd.Item.Apparition Sense",
+      "grantId": "feat:feat-7120"
      },
      {
       "key": "FlatModifier",
@@ -29981,7 +30005,8 @@
     "rules": [
      {
       "key": "GrantItem",
-      "uuid": "Compendium.pf2e.feats-srd.Item.Spirit Familiar (Animist)"
+      "uuid": "Compendium.pf2e.feats-srd.Item.Spirit Familiar (Animist)",
+      "grantId": "feat:feat-7123"
      },
      {
       "key": "GrantItem",
@@ -29994,7 +30019,8 @@
         ]
        }
       ],
-      "reevaluateOnUpdate": true
+      "reevaluateOnUpdate": true,
+      "grantId": "feat:feat-4717"
      },
      {
       "key": "GrantItem",
@@ -30007,7 +30033,8 @@
         ]
        }
       ],
-      "reevaluateOnUpdate": true
+      "reevaluateOnUpdate": true,
+      "grantId": "feat:feat-9420"
      }
     ]
    },
@@ -30177,7 +30204,8 @@
     "rules": [
      {
       "key": "GrantItem",
-      "uuid": "Compendium.pf2e.feats-srd.Item.Shield Block"
+      "uuid": "Compendium.pf2e.feats-srd.Item.Shield Block",
+      "grantId": "feat:feat-5212"
      }
     ],
     "classOption": {
@@ -30225,7 +30253,8 @@
     "rules": [
      {
       "key": "GrantItem",
-      "uuid": "Compendium.pf2e.feats-srd.Item.Shield Block"
+      "uuid": "Compendium.pf2e.feats-srd.Item.Shield Block",
+      "grantId": "feat:feat-5212"
      }
     ],
     "classOption": {
@@ -30252,7 +30281,8 @@
     "rules": [
      {
       "key": "GrantItem",
-      "uuid": "Compendium.pf2e.feats-srd.Item.Shield Block"
+      "uuid": "Compendium.pf2e.feats-srd.Item.Shield Block",
+      "grantId": "feat:feat-5212"
      }
     ],
     "classOption": {
@@ -30812,7 +30842,8 @@
      {
       "key": "GrantItem",
       "uuid": "Compendium.pf2e.feats-srd.Item.Shield Block",
-      "allowDuplicate": false
+      "allowDuplicate": false,
+      "grantId": "feat:feat-5212"
      }
     ],
     "unsupported": [
@@ -31792,7 +31823,8 @@
       "uuid": "Compendium.pf2e.feats-srd.Item.Foretell Harm",
       "predicate": [
        "class:oracle"
-      ]
+      ],
+      "grantId": "feat:feat-6053"
      },
      {
       "key": "GrantItem",
@@ -33061,7 +33093,8 @@
       "uuid": "Compendium.pf2e.feats-srd.Item.Trance of Celerity",
       "predicate": [
        "class:oracle"
-      ]
+      ],
+      "grantId": "feat:feat-8526"
      },
      {
       "key": "GrantItem",
@@ -33352,7 +33385,8 @@
     "rules": [
      {
       "key": "GrantItem",
-      "uuid": "Compendium.pf2e.feats-srd.Item.Bamboozling Performance"
+      "uuid": "Compendium.pf2e.feats-srd.Item.Bamboozling Performance",
+      "grantId": "feat:feat-9562"
      }
     ]
    },
@@ -34622,7 +34656,8 @@
         ]
        }
       ],
-      "reevaluateOnUpdate": true
+      "reevaluateOnUpdate": true,
+      "grantId": "feat:feat-3267"
      },
      {
       "key": "ActiveEffectLike",
@@ -36398,7 +36433,8 @@
       "uuid": "Compendium.pf2e.feats-srd.Item.Energized Spark",
       "preselectChoices": {
        "energizedSpark": "{item|flags.system.rulesSelections.energizedSpark}"
-      }
+      },
+      "grantId": "feat:feat-7154"
      },
      {
       "key": "RollOption",
@@ -36586,7 +36622,8 @@
       "uuid": "Compendium.pf2e.feats-srd.Item.Bon Mot",
       "predicate": [
        "class:swashbuckler"
-      ]
+      ],
+      "grantId": "feat:feat-6466"
      },
      {
       "key": "Note",
@@ -36749,7 +36786,8 @@
     "rules": [
      {
       "key": "GrantItem",
-      "uuid": "Compendium.pf2e.feats-srd.Item.Zoophonic Communication"
+      "uuid": "Compendium.pf2e.feats-srd.Item.Zoophonic Communication",
+      "grantId": "feat:feat-5415"
      }
     ]
    }
@@ -47148,7 +47186,8 @@
     "rules": [
      {
       "key": "GrantItem",
-      "uuid": "Compendium.pf2e.feats-srd.Item.Untrained Improvisation"
+      "uuid": "Compendium.pf2e.feats-srd.Item.Untrained Improvisation",
+      "grantId": "feat:feat-5233"
      }
     ],
     "feat": {}
@@ -47645,6 +47684,50 @@
     }
    }
   ],
+  "feats/archetype/avenger": [
+   {
+    "id": "feat:feat-7232",
+    "name": "Avenger Dedication",
+    "type": "feat",
+    "level": 2,
+    "rarity": "common",
+    "traits": [
+     "Archetype",
+     "Class",
+     "Dedication"
+    ],
+    "source": {
+     "id": "source:source-232",
+     "page": 58
+    },
+    "aon": {
+     "id": "feat-7232",
+     "url": "/Feats.aspx?ID=7232"
+    },
+    "remaster": true,
+    "summary": "Your training regimen has given you particular advantages when it comes to enforcing the interests of your faith.",
+    "prerequisites": {
+     "text": "Avenger"
+    },
+    "rules": [
+     {
+      "key": "FlatModifier",
+      "type": "status",
+      "value": 1,
+      "selector": "saving-throw",
+      "predicate": [
+       "item:trait:divine"
+      ],
+      "situational": true
+     }
+    ],
+    "feat": {
+     "archetype": [
+      "Avenger"
+     ]
+    }
+   }
+  ],
   "feats/archetype/bastion": [
    {
     "id": "feat:feat-6262",
@@ -47673,7 +47756,8 @@
     "rules": [
      {
       "key": "GrantItem",
-      "uuid": "Compendium.pf2e.feats-srd.Item.Reactive Shield"
+      "uuid": "Compendium.pf2e.feats-srd.Item.Reactive Shield",
+      "grantId": "feat:feat-4772"
      }
     ],
     "feat": {
@@ -49586,7 +49670,8 @@
      },
      {
       "key": "GrantItem",
-      "uuid": "Compendium.pf2e.feats-srd.Item.Inventor"
+      "uuid": "Compendium.pf2e.feats-srd.Item.Inventor",
+      "grantId": "feat:feat-5164"
      },
      {
       "key": "ChoiceSet",
@@ -51337,7 +51422,8 @@
     "rules": [
      {
       "key": "GrantItem",
-      "uuid": "Compendium.pf2e.feats-srd.Item.Additional Lore"
+      "uuid": "Compendium.pf2e.feats-srd.Item.Additional Lore",
+      "grantId": "feat:feat-5114"
      }
     ],
     "feat": {
@@ -51621,7 +51707,8 @@
       "uuid": "Compendium.pf2e.feats-srd.Item.Assurance",
       "preselectChoices": {
        "assurance": "{item|flags.system.rulesSelections.skill}"
-      }
+      },
+      "grantId": "feat:feat-5121"
      }
     ],
     "feat": {}

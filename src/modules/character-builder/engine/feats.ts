@@ -7,6 +7,7 @@
 // O resto já vem do catálogo em `unsupported` e vira aviso "efeito não calculado".
 // Dedicação: "can't select a different dedication feat until you complete your dedication by taking two other feats from
 // your current archetype" (Player Core pg. 215).
+import { grantedFeat } from './rulesIndex'
 import { BLOODRAGER, CLASS_ARCHETYPES } from './classArchetypes'
 import { tr } from '../../../i18n'
 import type { BuildState } from '../types'
@@ -53,7 +54,6 @@ export interface Modifiers {
 }
 
 const STAT_SELECTORS = new Set(['perception', 'fortitude', 'reflex', 'will'])
-const UUID_NAME = /^Compendium\.pf2e\.[\w-]+\.Item\.(.+)$/
 
 /** Valor numérico de um rule element: número ou "@actor.level". O resto não é calculado. */
 function numeric(value: unknown, level: number): number | null {
@@ -108,6 +108,8 @@ export function compileFeats(state: BuildState, slots: FeatSlot[], rules: RulesI
     awarded: { entry: RuleEntry; level: number; source: string }[]
     has: Set<string>
     prereqContext: () => PrereqContext
+    /** Ids de talentos concedidos que não estão nas listas carregadas. */
+    missing?: Set<string>
 }, warnings: Warning[]): FeatsOutcome {
     const mods: Modifiers = { hp: 0, hpPerLevel: 0, speed: 0, stat: {}, skill: {}, ranks: {}, sources: [], senses: [], speeds: {}, resistances: [], weaknesses: [], immunities: [] }
     const taken: TakenFeat[] = []
@@ -156,8 +158,7 @@ export function compileFeats(state: BuildState, slots: FeatSlot[], rules: RulesI
                 // O Foundry concede automaticamente a dedicação de Bloodrager pelo instinto.
                 // Na mesa ela consome o talento de classe do nível 2 (War of Immortals pg. 60).
                 if (entry.id === CLASS_ARCHETYPES[BLOODRAGER].subclass && rule.flag === 'bloodragerDedication') continue
-                const name = UUID_NAME.exec(rule.uuid)?.[1]
-                const granted = name ? rules.byName(name, 'feat') : undefined
+                const granted = grantedFeat(rule, rules, ctx.missing)
                 if (granted && !has.has(granted.name.toLowerCase())) take(granted, `${slot}/grant:${granted.aon.id}`, slotLevel, 'granted', depth + 1)
                 continue
             }

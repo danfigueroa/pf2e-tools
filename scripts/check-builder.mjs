@@ -677,6 +677,14 @@ console.log('Paridade com o elenco (importar → recompilar → exportar) e inva
         expect(`${b.name}: nenhuma escolha fica como id no retrato`, unresolved(rest), [])
     }
     expect('o servidor lê as listas de item só para quem tem inventário', reads.has('items/weapons'), true)
+    // Talento concedido por GrantItem numa lista que a classe não carrega: o pacote resolve o id (`grantId`) e o
+    // `core/locations` traz a lista (o racket Avenger concede a Avenger Dedication, War of Immortals pg. 58).
+    const rogue = find('core/classes', 'Rogue')
+    const avenger = base({ class: { id: rogue.id, keyAttribute: 'dex' }, level: 1, choices: { 'class-choice:racket': { id: 'racket:racket-10' } } })
+    const plain = compileBuild(serverSanitize.sanitizeBuildState(avenger), { rules: buildRulesIndex([fixture['core/classes'], fixture['core/class-features']], []), classOptions: fixture['core/class-features'] })
+    expect('motor informa o talento concedido fora das listas', plain.missingRefs, ['feat:feat-7232'])
+    const located = await gen.compileFromCatalog(serverSanitize.sanitizeBuildState(avenger), { reader, mesaRules: castMesa })
+    expect('…e o servidor o busca pelo core/locations', [located.compiled.taken.some((t) => t.entry.id === 'feat:feat-7232'), located.compiled.missingRefs], [true, []])
 }
 
 // Copiar para outra mesa (9.6), no handler em memória (sem Supabase não há login: usuário local, GM).
