@@ -37,12 +37,18 @@ export async function loadFoundryPacks({ ref = FOUNDRY_REF, packs = FOUNDRY_PACK
     if (!/^[0-9a-f]{40}$/.test(ref)) throw new Error('Foundry: use o SHA completo do commit, não branch nem tag')
     const dir = mkdtempSync(join(tmpdir(), 'pf2e-foundry-'))
     try {
-        const response = await fetch(`https://codeload.github.com/foundryvtt/pf2e/tar.gz/${ref}`, {
-            headers: { 'User-Agent': 'PF2e rules catalog' },
-            signal: AbortSignal.timeout(300_000),
-        })
-        if (!response.ok) throw new Error(`Foundry: falha no download (${response.status})`)
-        const tarball = Buffer.from(await response.arrayBuffer())
+        // `FOUNDRY_TARBALL=<caminho>` usa um download anterior do MESMO commit (rede lenta); o sha256 vai no relatório.
+        const local = process.env.FOUNDRY_TARBALL
+        let tarball
+        if (local) tarball = readFileSync(local)
+        else {
+            const response = await fetch(`https://codeload.github.com/foundryvtt/pf2e/tar.gz/${ref}`, {
+                headers: { 'User-Agent': 'PF2e rules catalog' },
+                signal: AbortSignal.timeout(900_000),
+            })
+            if (!response.ok) throw new Error(`Foundry: falha no download (${response.status})`)
+            tarball = Buffer.from(await response.arrayBuffer())
+        }
         const archive = join(dir, 'pf2e.tar.gz')
         writeFileSync(archive, tarball)
         const root = `pf2e-${ref}/packs/pf2e`
