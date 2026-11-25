@@ -67,6 +67,12 @@ test('Wiki do GM: revelar e segredos', () => {
     assert.ok(earned.has('gm-wiki-revelar') && !earned.has('gm-wiki-segredos'))
 })
 
+test('Criador: criar e aplicar personagem', () => {
+    const { earned } = evaluateFacts(deriveFacts({ feats: { 'build-created': 1 } }))
+    assert.ok(earned.has('arquiteto') && !earned.has('obra-entregue'))
+    assert.ok(evaluateFacts(deriveFacts({ feats: { 'build-applied': 1 } })).earned.has('obra-entregue'))
+})
+
 test('do zero: sem fatos, nada desbloqueia', () => {
     const { earned } = evaluateFacts(deriveFacts({}))
     assert.equal(earned.size, 0)

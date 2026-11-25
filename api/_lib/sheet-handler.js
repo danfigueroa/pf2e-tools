@@ -161,10 +161,12 @@ export async function handleSheetRequest(mesa, method, query, body, ctx = {}) {
         if (!owner) return
         const gained = sheet.previous?.level ? sheet.level - sheet.previous.level : 0
         if (gained > 0) await recordFeat(mesa, owner, 'level-up', { slug, level: sheet.level, gained }, false)
+        // Personagem do Criador aplicado na mesa ("Obra entregue").
+        if (out.fromBuild) await recordFeat(mesa, owner, 'build-applied', { slug }, false)
         await recordFeat(mesa, owner, 'sheet-published', { slug, level: sheet.level })
       })
     }
-    const { publishedBy: _by, created: _created, ...reply } = out
+    const { publishedBy: _by, created: _created, fromBuild: _fromBuild, ...reply } = out
     return ok(reply)
   }
 

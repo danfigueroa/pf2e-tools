@@ -42,6 +42,8 @@ export const TROPHIES = [
     t('nivel-10', 'player', 'ficha', 'prata', 'Herói consagrado', 'Publique um personagem de nível 10 ou mais.', 10, (f) => f.maxLevel),
     t('nivel-15', 'player', 'ficha', 'ouro', 'Lenda viva', 'Publique um personagem de nível 15 ou mais.', 15, (f) => f.maxLevel),
     t('nivel-20', 'player', 'ficha', 'ouro', 'Ápice', 'Publique um personagem de nível 20.', 20, (f) => f.maxLevel),
+    t('arquiteto', 'player', 'ficha', 'bronze', 'Arquiteto', 'Crie um personagem no Criador do Covil.', 1, (f) => f.builds),
+    t('obra-entregue', 'player', 'ficha', 'prata', 'Obra entregue', 'Aplique na mesa um personagem feito no Criador.', 1, (f) => f.buildsApplied),
     // --- Jogador: background
     t('background', 'player', 'historia', 'bronze', 'Uma vida antes da aventura', `Escreva o background do personagem (${BACKGROUND_MIN}+ caracteres).`, 1, (f) => (f.backgroundMax >= BACKGROUND_MIN ? 1 : 0)),
     t('background-longo', 'player', 'historia', 'prata', 'Biógrafo', `Tenha um background com ${BACKGROUND_LONG}+ caracteres.`, BACKGROUND_LONG, (f) => f.backgroundMax),
@@ -240,6 +242,8 @@ export function deriveFacts(raw = {}) {
         wikiRead: pagesOf('wiki-read').length,
         wikiReadKinds: kindsOf(pagesOf('wiki-read')),
         sheets: feat('sheet-published'),
+        builds: feat('build-created'),
+        buildsApplied: feat('build-applied'),
         maxLevel: num(raw.maxLevel),
         noteMaxLength: num(raw.noteMaxLength),
         sameSessionHighlights: num(raw.sameSessionHighlights),

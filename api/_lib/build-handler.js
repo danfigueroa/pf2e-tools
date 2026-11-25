@@ -29,6 +29,12 @@ import {
 import { currentRulesVersion } from './rules-core.js'
 import { MESA_IDS } from './mesas.js'
 import { createSheetDraftFor } from './sheet-handler.js'
+import { recordFeat, safely } from './trophy-store.js'
+
+/** "Arquiteto": o feito é de quem criou E é o dono (o GM criando para alguém não ganha o troféu do jogador). */
+const builtFeat = (mesa, build, userId) => safely('personagem criado', async () => {
+    if (build?.ownerId && build.ownerId === userId) await recordFeat(mesa, userId, 'build-created', { slug: build.slug })
+})
 
 const ACTIONS = new Set(['build-create', 'build-save', 'build-delete', 'build-restore', 'build-assign', 'mesa-rules-save', 'build-apply', 'build-version-restore', 'build-copy'])
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
@@ -123,7 +129,10 @@ export async function handleBuildRequest(mesa, method, query, body, ctx = {}) {
             const slug = await freeBuildSlug(mesa, name)
             if (!slug) return fail(409, 'Já existem personagens demais com esse nome')
             const build = await createBuild(mesa, { slug, state, className: className(body.className), ownerId: access.userId, by: access.userId })
-            if (build) return ok({ build })
+            if (build) {
+                await builtFeat(mesa, build, access.userId)
+                return ok({ build })
+            }
         }
         return fail(409, 'Já existem personagens demais com esse nome')
     }

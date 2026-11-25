@@ -87,6 +87,8 @@ async function cleanup() {
     // Builds do Criador: o dono vira nulo quando a conta sai, então saem antes, pelo criador.
     const creators = Object.values(users).map((u) => u.id)
     if (creators.length) await db.from('character_builds').delete().eq('mesa', MESA).in('created_by', creators)
+    // Troféus que os usuários de teste desbloquearam ("Arquiteto" ao criar build): o aviso fica na mesa, então sai também.
+    if (creators.length) await db.from('mesa_events').delete().eq('mesa', MESA).eq('kind', 'trophy-unlocked').in('data->>user', creators)
     if (mesaRulesBefore !== undefined) {
         if (mesaRulesBefore) await db.from('mesa_rules').upsert({ mesa: MESA, ...mesaRulesBefore })
         else await db.from('mesa_rules').delete().eq('mesa', MESA)
@@ -393,6 +395,8 @@ try {
         expect('jogador cria build → 200', created.status, 200)
         const build = created.body.build
         expect('slug nasce do nome', build?.slug, `teste-criador-${stamp}`)
+        const arch = await db.from('account_trophies').select('trophy_id').eq('user_id', users.a.id).eq('trophy_id', 'arquiteto')
+        expect('criar build dá o troféu Arquiteto', arch.data?.length, 1)
         const twin = await post('b', { action: 'build-create', name: `Teste Criador ${stamp}` })
         expect('mesmo nome ganha outro slug', twin.body.build?.slug, `teste-criador-${stamp}-2`)
         const state = { ...build.state, level: 2, name: `Teste Renomeado ${stamp}` }

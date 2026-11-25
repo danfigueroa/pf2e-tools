@@ -388,7 +388,7 @@ export async function stepDraft(mesa, slug, ctx = {}) {
                 console.error('[sheet-draft] vínculo com o build falhou:', error)
             }
         }
-        return { state: 'ready', sheet, publishedBy, created: !current }
+        return { state: 'ready', sheet, publishedBy, created: !current, fromBuild: !!buildId }
       }
     }
 

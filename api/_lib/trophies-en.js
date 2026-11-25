@@ -12,6 +12,8 @@ export const TROPHIES_EN = {
   'nivel-10': ['Renowned hero', 'Publish a character of level 10 or higher.'],
   'nivel-15': ['Living legend', 'Publish a character of level 15 or higher.'],
   'nivel-20': ['Apex', 'Publish a level 20 character.'],
+  arquiteto: ['Architect', 'Create a character in the Covil Builder.'],
+  'obra-entregue': ['Delivered', 'Apply a character made in the Builder to the table.'],
   background: ['A life before the adventure', "Write your character's background (300+ characters)."],
   'background-longo': ['Biographer', 'Have a background with 3000+ characters.'],
   'background-atualizado': ['The story goes on', 'Update your background after leveling up.'],
