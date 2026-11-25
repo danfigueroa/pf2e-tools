@@ -332,4 +332,9 @@
   - O que mudou: coluna `rules_entries.aon_source` (migration `fonte_aon_no_catalogo`, aplicada) com o `_source` cru da AON, menos o `markdown` (que já tem coluna) e os campos só de busca e de renderização. As 17.613 entradas Remaster foram reimportadas.
   - Teste (`scripts/check-local-aon.mjs`): para os 503 nomes de descrição do elenco, acha a entrada na AON como o pipeline acha e compara com a mesma entrada no banco.
   - Resultado: 436 cobertas, todas com documento e parse idênticos. 53 ficam fora do banco: livros legados (Advanced Player's Guide, Character Guide, Secrets of Magic…), páginas de regra e de categoria. 14 não estão na AON.
-  - Próximos passos: (2) os parsers de descrição consultam o banco no mesmo formato da busca da AON e caem nela quando o banco não tem a entrada; (3) importar os livros legados que o elenco usa.
+- **10.4 passo 2: as descrições leem o catálogo primeiro** (`rules-local.js`).
+  - `feat-core.js` (talentos, características, itens) e `spells-core.js` usam `bestAonHit`: por categoria, o nome exato no catálogo e, sem ele, a AON. O `gear-core.js` busca o lote no catálogo e só o que falta vai à AON. A busca sem categoria segue só na AON. `RULES_LOCAL=0` desliga.
+  - `check-local-aon.mjs` roda a mesma escolha com e sem o catálogo. Nos 503 nomes do elenco: 488 com a mesma entrada e o mesmo texto, 0 diferentes, 365 vindos do catálogo e 15 sem entrada. Os 24 equipamentos são iguais.
+  - O teste achou e corrigiu três desvios. Na busca sem categoria, o catálogo trazia homônimos de qualquer categoria ("Occult" traço × exemplar dracônico). Num empate de data entre variantes, a ordem decidia; agora ordena por `aon_id`. E faltava aparar o nome: a AON grava `"Fortitude Expertise "` (Psychic, Dark Archive Remastered), e nenhum caminho reconhecia o nome exato.
+  - De ponta a ponta, um talento e uma magia saíram do catálogo em 162 ms e 56 ms, sem chamada à AON.
+  - Próximo passo (3): importar os livros legados que o elenco usa, para os 123 nomes que ainda vêm só da AON.

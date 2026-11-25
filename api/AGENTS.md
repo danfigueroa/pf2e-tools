@@ -185,6 +185,11 @@ histórico (`?diary=`) → `src/modules/session-diary/AGENTS.md`; rolagens e est
   daquele `rev` (outro `rev` = 409 `stale`) com o catálogo publicado, o conteúdo e as regras da mesa, porque a ficha da
   mesa não pode depender de números que o cliente mandou. Só os avisos do cliente ficam (estão no idioma dele). Sem
   catálogo ou com erro no motor, segue o retrato do cliente com registro, para a mesa não travar.
+- **Descrições leem o catálogo local antes da AON** (`rules-local.js`, `bestAonHit`, `localHitsByNames`): nome exato
+  na categoria, no mesmo formato de hit (`rules_entries.aon_source` + `markdown`); sem entrada (livro legado, categoria
+  não importada), a AON de sempre. A busca sem categoria (a rede de segurança) fica só na AON, porque o catálogo
+  devolveria toda entrada homônima de qualquer categoria. `RULES_LOCAL=0` desliga. Mudou a escolha ou a importação? Rode
+  `scripts/check-local-aon.mjs`: com e sem o catálogo, a mesma entrada e o mesmo texto no elenco inteiro.
 - **O motor vem de `builder-engine.gen.js`, gerado** por `node scripts/build-engine.mjs` a partir de
   `src/modules/character-builder/engine/` (o servidor não importa TS). Regere ao mudar o motor; o `check-builder` falha com
   o pacote velho. Nunca edite o `.gen.js`.
