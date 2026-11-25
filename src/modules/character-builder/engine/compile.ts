@@ -192,6 +192,10 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
         warnings.push({ code: 'SAVE_CHOICE_REPEAT', level: 'warn', ref: picked[2].key, message: tr(`${picked[2].label}: precisa ser uma das duas já escolhidas (Player Core 2 pg. 114).`, `${picked[2].label}: must be one of the two already chosen (Player Core 2 pg. 114).`) })
     }
 
+    // Ancestralidade e herança passam pelo caminho dos talentos: efeitos (sentidos, deslocamentos) e escolhas filhas
+    // (o talento geral do Versatile Human, a perícia do Skilled Human).
+    for (const entry of [ancestry, heritage]) if (entry?.rules?.length) awarded.push({ entry, level: 1, source: entry.name })
+
     // Talento de perícia do background (Player Core pg. 84: "Each background … grants … a skill feat").
     for (const name of background?.background?.feats ?? []) {
         const feat = rules.byName(name, 'feat')
@@ -275,14 +279,9 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
             ...(feats.mods.speed ? [part(tr('Talentos', 'Feats'), feats.mods.speed)] : [])]),
     }
 
-    // Sentidos: da ancestralidade e os `Sense` da herança (rule element suportado).
+    // Sentidos: os da ancestralidade e os `Sense` de herança, talentos e concessões.
     const senses = [...(ancestry?.ancestry?.senses ?? [])]
-    for (const rule of heritage?.rules ?? []) {
-        if (rule.key === 'Sense' && typeof rule.selector === 'string') {
-            const name = rule.selector.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join('-')
-            if (!senses.some((s) => s.toLowerCase() === name.toLowerCase())) senses.push(name)
-        }
-    }
+    for (const sense of feats.mods.senses) if (!senses.some((x) => sense.toLowerCase().startsWith(x.toLowerCase()))) senses.push(sense)
 
     // Escolhas que nenhum slot usa: não some (o jogador não perde trabalho), vira aviso com "descartar".
     for (const key of Object.keys(state.choices)) {
@@ -297,11 +296,16 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
         proficiency,
         size: ancestry?.ancestry?.size ?? null,
         senses,
+        speeds: feats.mods.speeds,
+        resistances: feats.mods.resistances,
+        weaknesses: feats.mods.weaknesses,
+        immunities: feats.mods.immunities,
         languages: [...ancestryLanguages, ...chosenLanguages],
         languageSlots: skills.languageSlots,
         keyAttribute,
         pending: pending.sort((a, b) => a.level - b.level),
-        warnings,
+        // A ancestralidade e a herança passam pelos dois caminhos (origem e concessões): um aviso igual sai uma vez só.
+        warnings: warnings.filter((w, i) => warnings.findIndex((x) => x.code === w.code && x.message === w.message) === i),
         usedChoices: [...used],
         boostGroups: attrs.groups,
         skillSlots: skills.slots,

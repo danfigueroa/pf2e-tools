@@ -119,6 +119,11 @@ export interface Compiled {
     }
     size: string | null
     senses: string[]
+    /** Deslocamentos além do terrestre (nado, voo, escalada). */
+    speeds: Record<string, number>
+    resistances: string[]
+    weaknesses: string[]
+    immunities: string[]
     languages: string[]
     /** Idiomas à escolha (INT do 1º nível + aumentos de INT). */
     languageSlots: number

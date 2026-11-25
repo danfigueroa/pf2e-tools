@@ -42,6 +42,12 @@ export interface Modifiers {
     skill: Partial<Record<SkillKey, number>>
     /** Upgrades de rank: alvo → rank (o maior vence). */
     ranks: Record<string, Rank>
+    /** Sentidos (`Sense`), deslocamentos extras (`BaseSpeed`) e defesas fixas (`Resistance`/`Weakness`/`Immunity`). */
+    senses: string[]
+    speeds: Record<string, number>
+    resistances: string[]
+    weaknesses: string[]
+    immunities: string[]
     sources: { label: string; target: string; value: number }[]
 }
 
@@ -102,7 +108,7 @@ export function compileFeats(state: BuildState, slots: FeatSlot[], rules: RulesI
     has: Set<string>
     prereqContext: () => PrereqContext
 }, warnings: Warning[]): FeatsOutcome {
-    const mods: Modifiers = { hp: 0, hpPerLevel: 0, speed: 0, stat: {}, skill: {}, ranks: {}, sources: [] }
+    const mods: Modifiers = { hp: 0, hpPerLevel: 0, speed: 0, stat: {}, skill: {}, ranks: {}, sources: [], senses: [], speeds: {}, resistances: [], weaknesses: [], immunities: [] }
     const taken: TakenFeat[] = []
     const children: ChildSlot[] = []
     const has = ctx.has
@@ -152,6 +158,25 @@ export function compileFeats(state: BuildState, slots: FeatSlot[], rules: RulesI
                 continue
             }
             if (rule.predicate) continue
+            if (rule.key === 'Sense' && typeof rule.selector === 'string') {
+                const name = rule.selector.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                const range = numeric(rule.range, level)
+                const label = range ? `${name} ${range} ft` : name
+                if (!mods.senses.some((x) => x.toLowerCase().startsWith(name.toLowerCase()))) mods.senses.push(label)
+                continue
+            }
+            if (rule.key === 'BaseSpeed' && typeof rule.selector === 'string') {
+                const value = numeric(rule.value, level)
+                if (value !== null) mods.speeds[rule.selector] = Math.max(mods.speeds[rule.selector] ?? 0, value)
+                continue
+            }
+            if ((rule.key === 'Resistance' || rule.key === 'Weakness' || rule.key === 'Immunity') && typeof rule.type === 'string') {
+                const value = rule.key === 'Immunity' ? 0 : numeric(rule.value, level)
+                if (value === null) continue
+                const list = rule.key === 'Resistance' ? mods.resistances : rule.key === 'Weakness' ? mods.weaknesses : mods.immunities
+                list.push(rule.key === 'Immunity' ? rule.type : `${rule.type} ${value}`)
+                continue
+            }
             if (rule.key === 'FlatModifier' && typeof rule.selector === 'string') {
                 const value = numeric(rule.value, level)
                 const type = typeof rule.type === 'string' ? rule.type : 'untyped'

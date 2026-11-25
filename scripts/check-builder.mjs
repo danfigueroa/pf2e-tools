@@ -355,5 +355,12 @@ expect('Battle Medicine sem treino em Medicina reprova o pré-requisito', bm.war
 const wrong = compileBuild({ ...hf, level: 2, choices: { ...hf.choices, 'class-feat-2': { id: toughness.id } } }, ctx)
 expect('talento geral no slot de classe avisa', wrong.warnings.some((w) => w.code === 'WRONG_SLOT'), true)
 
+const versatile = find('core/heritages', 'Versatile Human')
+const vh = compileBuild({ ...hf, origin: { ...hf.origin, heritage: versatile.id } }, ctx)
+expect('Versatile Human abre a escolha de talento geral', vh.featChildren.some((c) => c.kind === 'feat' && c.parent.startsWith('awarded:')), true)
+const cavernOut = compileBuild({ ...hf, origin: { ancestry: find('core/ancestries', 'Elf').id, heritage: find('core/heritages', 'Cavern Elf').id, background: artist.id } }, ctx)
+expect('Cavern Elf dá visão no escuro (Sense da herança)', cavernOut.senses.some((x) => /darkvision/i.test(x)), true)
+expect('aviso igual não repete', new Set(vh.warnings.map((w) => w.code + w.message)).size, vh.warnings.length)
+
 console.log(failures === 0 ? `\n${passed} conferências ok.` : `\n${failures} falha(s), ${passed} ok.`)
 process.exit(failures === 0 ? 0 : 1)
