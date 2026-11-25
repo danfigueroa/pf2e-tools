@@ -338,7 +338,7 @@ personagem no Criador sem divergência não explicada.
 - [x] **9.7** Navegador de talentos/magias/itens fora de slot.
 - [x] **9.8** Troféus ("Arquiteto", "Veterano") com `check-trophies`.
 - [x] **9.9** Wiki: "Criar página do personagem".
-- [ ] **9.10** Conteúdo legado liberável livro a livro + "Converter para o Remaster" (via `remaster_id`).
+- [x] **9.10** Conteúdo legado liberável livro a livro + "Converter para o Remaster" (via `remaster_id`).
 - [ ] **9.11** Gradual Boosts e Stamina, sob pedido de uma mesa (D8). Stamina também exige ajustes de dano na Ficha, na Iniciativa e no Mapa.
 
 ---

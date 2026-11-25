@@ -306,3 +306,6 @@
   - Só vale para quem criou e é o dono.
   - O `check-auth` confere o desbloqueio e apaga o aviso da mesa.
 - **9.9 Página na Wiki.** "Criar página na Wiki" nos Detalhes abre `/wiki?nova=<nome>&tipo=npc&semente=1` com ficha rápida (ancestralidade, classe e nível), retrato, resumo e os detalhes. Se a página já existe, a Wiki só a abre.
+- **9.10 Legado e Remaster.** Em `/mesa`, o GM escolhe os livros de cada edição. O seletor oferece o legado liberado que ainda não tem sucessor publicado. As exceções individuais valem no personagem correspondente.
+  - Em **Detalhes → Converter para o Remaster**, o jogador revisa os destinos indicados pela AON. Havendo vários, escolhe um ou mantém a entrada atual. A conversão salva o rascunho. **Aplicar na mesa** atualiza a ficha publicada.
+  - A publicação de uma nova versão do catálogo gera `core/remaster` com os vínculos entre entradas importadas. Nos pacotes anteriores, a conversão usa os vínculos disponíveis nas listas carregadas. A implantação do código e a publicação do catálogo são etapas distintas.

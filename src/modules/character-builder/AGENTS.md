@@ -31,3 +31,5 @@
 - Crie conteúdo da mesa só pelo `homebrew-save` (GM real), com id `mesa:<uuid>` e a forma de `RuleEntry` que o `sanitizeHomebrewEntry` deixa passar, porque `custom:` já é o item de texto livre do inventário e o motor lê o caseiro como lê o oficial.
 - Deixe o `customRunes.ts` e o `homebrewGear.ts` na Ficha até ela ler o conteúdo da mesa do banco, porque eles carregam ativações e traços casados pelo nome de personagens já publicados.
 - Guarde o arquétipo de classe em `choices["class-archetype"]` e derive a subclasse concedida no motor, para que remover o arquétipo recupere as escolhas anteriores.
+- Converta somente referências de catálogo ligadas por ID da AON e confirmadas pelo jogador em Detalhes, porque homônimos e textos livres podem pertencer a escolhas diferentes.
+- Leia `sources.legacy` como a lista de livros liberados para o legado. Se ela estiver ausente, use o interruptor e a lista de livros antigos para preservar as regras das mesas existentes.
