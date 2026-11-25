@@ -17,6 +17,21 @@ const number = (value) => Number.isFinite(value) ? value : undefined
 const compact = (value) => Object.fromEntries(Object.entries(value).filter(([, part]) =>
     part !== undefined && !(Array.isArray(part) && !part.length) && !(part && typeof part === 'object' && !Array.isArray(part) && !Object.keys(part).length)))
 
+/**
+ * Boosts da ancestralidade. A AON escreve o Humano (e afins) como "Two free ability boosts" (Player Core pg. 62:
+ * "Attribute Boosts: Two free ability boosts"); o resto vem como nomes de atributo e "Free". Texto desconhecido vai para
+ * `unsupported`, nunca some.
+ */
+function ancestryBoosts(value, unsupported) {
+    return list(value).flatMap((name) => {
+        const key = lookup(ATTRIBUTES, name)
+        if (key) return [key]
+        if (/^two free (ability|attribute) boosts$/i.test(name.trim())) return ['free', 'free']
+        unsupported.push(`attribute: ${name}`)
+        return []
+    })
+}
+
 /** "A, B, and C" / "A and B" / "A or B" → ['A', 'B', 'C']. */
 const splitList = (value) => value.split(/\s*,\s*(?:and\s+|or\s+)?|\s+(?:and|or)\s+/).map((part) => part.trim()).filter(Boolean)
 
@@ -114,7 +129,7 @@ export function deriveRuleData(category, data, entry) {
             hp: number(data.hp),
             size: list(data.size)[0],
             speed: number(entry.speed?.land),
-            boosts: attributes(data.attribute),
+            boosts: ancestryBoosts(data.attribute, unsupported),
             flaws: attributes(data.attribute_flaw),
             languages: list(data.language),
             senses: list(data.vision),
