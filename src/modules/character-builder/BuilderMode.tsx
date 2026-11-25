@@ -21,6 +21,7 @@ import { ClassSection } from './sections/ClassSection';
 import { AttributesSection } from './sections/AttributesSection';
 import { SkillsSection } from './sections/SkillsSection';
 import { ProgressionSection } from './sections/ProgressionSection';
+import { SpellsSection } from './sections/SpellsSection';
 import type { SectionProps } from './sections/types';
 import { tabOf, type BuilderTab } from './tabs';
 import type { BuildState } from './types';
@@ -42,6 +43,7 @@ const TABS: { key: BuilderTab; label: string }[] = [
   { key: 'attributes', label: tr('Atributos', 'Attributes') },
   { key: 'skills', label: tr('Perícias', 'Skills') },
   { key: 'progression', label: tr('Progressão', 'Progression') },
+  { key: 'spells', label: tr('Magias', 'Spells') },
   { key: 'details', label: tr('Detalhes', 'Details') },
 ];
 
@@ -81,6 +83,13 @@ export function BuilderMode({ buildId }: { buildId: string }) {
     const next: FeatListNeeds = {
       className: cls?.name, ancestryName: anc?.name, versatileHeritage: her && !her.heritage?.ancestry ? her.name : undefined,
       mythic: variantFlags(state, rules.mesaRules ?? undefined).mythic, archetypes: [...archetypes].sort(),
+      // Tradições: a da classe (uma) ou a escolhida pela subclasse.
+      traditions: (() => {
+        const list = cls?.class?.casting?.traditions ?? [];
+        const chosen = state.choices['spell-tradition'];
+        if (list.length === 1) return list;
+        return chosen && 'value' in chosen ? [chosen.value] : [];
+      })(),
     };
     return JSON.stringify(next);
   }, [core, state, browseArchetype, rules.mesaRules]);
@@ -91,8 +100,8 @@ export function BuilderMode({ buildId }: { buildId: string }) {
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const compiled = useMemo(() => (state && rules.index && core
-    ? compileBuild(state, { rules: rules.index, mesaRules: rules.mesaRules ?? undefined, classOptions: core.classFeatures })
-    : null), [state, rules.index, rules.mesaRules, core]);
+    ? compileBuild(state, { rules: rules.index, mesaRules: rules.mesaRules ?? undefined, classOptions: core.classFeatures, tables: rules.tables ?? undefined })
+    : null), [state, rules.index, rules.mesaRules, core, rules.tables]);
   const clsName = rules.index?.get(state?.class.id)?.name ?? null;
   useEffect(() => setClassName(clsName), [clsName]);
 
@@ -216,6 +225,7 @@ export function BuilderMode({ buildId }: { buildId: string }) {
             {sectionProps && tab === 'class' && <ClassSection {...sectionProps} />}
             {sectionProps && tab === 'attributes' && <AttributesSection {...sectionProps} />}
             {sectionProps && tab === 'skills' && <SkillsSection {...sectionProps} />}
+            {sectionProps && tab === 'spells' && <SpellsSection {...sectionProps} spells={rules.feats.filter((e) => e.type === 'spell')} />}
             {sectionProps && tab === 'progression' && (
               <ProgressionSection {...sectionProps} feats={rules.feats} archetypes={core?.archetypes ?? []}
                 browseArchetype={browseArchetype} setBrowseArchetype={setBrowseArchetype} />

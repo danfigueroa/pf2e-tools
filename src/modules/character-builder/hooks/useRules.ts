@@ -2,7 +2,8 @@
 // usa) e as regras de criação da mesa. Só listas de `core/` do Storage/IndexedDB: nenhuma chamada à AON.
 import { useEffect, useMemo, useState } from 'react'
 import { fetchMesaRules } from '../../../services/builds'
-import { ancestries, archetypes, backgrounds, classes, classOptions, heritages, languages, openRules, ruleListSlug } from '../rules'
+import { ancestries, archetypes, backgrounds, classes, classOptions, heritages, languages, openRules, ruleListSlug, ruleTables } from '../rules'
+import type { SpellSlotTable } from '../engine/spells'
 import { loadRuleList } from '../rules/loader'
 import { buildRulesIndex } from '../engine/rulesIndex'
 import type { RuleEntry } from '../rules/types'
@@ -30,6 +31,8 @@ export interface FeatListNeeds {
     mythic?: boolean
     /** Arquétipos dos talentos escolhidos (qualificador `archetype:<slug>`). */
     archetypes: string[]
+    /** Tradições de magia do personagem (listas `spells/<tradição>`); o foco vem junto quando há alguma. */
+    traditions?: string[]
 }
 
 /** Caminhos das listas de talento que o personagem pode usar. */
@@ -41,6 +44,8 @@ export function featListPaths(needs: FeatListNeeds): string[] {
         needs.ancestryName ? `feats/ancestry/${ruleListSlug(needs.ancestryName)}` : null,
         needs.versatileHeritage ? `feats/ancestry/${ruleListSlug(needs.versatileHeritage)}` : null,
         ...needs.archetypes.map((a) => `feats/archetype/${ruleListSlug(a)}`),
+        ...(needs.traditions ?? []).map((t) => `spells/${t}`),
+        'spells/focus',
     ].filter((p): p is string => Boolean(p))
 }
 
@@ -51,7 +56,8 @@ export interface UseRules {
     error: boolean
 }
 
-export function useRules(needs?: FeatListNeeds): UseRules & { feats: RuleEntry[] } {
+export function useRules(needs?: FeatListNeeds): UseRules & { feats: RuleEntry[]; tables: { spellSlots?: SpellSlotTable } | null } {
+    const [tables, setTables] = useState<{ spellSlots?: SpellSlotTable } | null>(null)
     const [core, setCore] = useState<CoreRules | null>(null)
     const [featLists, setFeatLists] = useState<Record<string, RuleEntry[]>>({})
     const [mesaRules, setMesaRules] = useState<MesaRules | null>(null)
@@ -65,6 +71,7 @@ export function useRules(needs?: FeatListNeeds): UseRules & { feats: RuleEntry[]
                 if (alive) setCore({ version, ancestries: a, heritages: h, backgrounds: b, classes: c, languages: l, classFeatures: cf, archetypes: ar })
             })
             .catch(() => alive && setError(true))
+        ruleTables().then((t) => alive && setTables(t as { spellSlots?: SpellSlotTable })).catch(() => {})
         void fetchMesaRules().then((out) => {
             if (alive && out.ok) setMesaRules(sanitizeMesaRules(out.value))
         })
@@ -90,5 +97,5 @@ export function useRules(needs?: FeatListNeeds): UseRules & { feats: RuleEntry[]
         return buildRulesIndex([core.ancestries, core.heritages, core.backgrounds, core.classes, core.languages, core.classFeatures, feats], core.languages)
     }, [core, feats])
 
-    return { core, index, mesaRules, error, feats }
+    return { core, index, mesaRules, error, feats, tables }
 }
