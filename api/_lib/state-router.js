@@ -5,7 +5,7 @@
 // Devolve sempre `{ status, body }`; quem chama só escreve a resposta.
 //
 // Ordem das rotas (importa): conta → [portão] → notificações → troféus → mapa → rolagens → correções → diário
-// de campanha → wiki → anotações → encontro → Criador → ficha → estado. A rota da ficha aceita qualquer POST com `action` e engoliria as
+// de campanha → wiki → anotações → encontro → base de regras → Criador → ficha → estado. A rota da ficha aceita qualquer POST com `action` e engoliria as
 // anteriores, e a da conta vem antes do portão porque quem ainda não é membro precisa
 // poder resgatar o convite que o torna um.
 
@@ -31,6 +31,7 @@ import { handleAuthRequest, isAuthRequest } from './auth-handler.js'
 import { handleEventRequest, isEventRequest } from './event-handler.js'
 import { handleTrophyRequest, isTrophyRequest } from './trophy-handler.js'
 import { handleBuildRequest, isBuildRequest } from './build-handler.js'
+import { handleRulesAdminRequest, isRulesAdminRequest } from './rules-handler.js'
 import { ownerOf, recordFeat, safely } from './trophy-store.js'
 import { mesaFrom } from './mesas.js'
 import { canEditSheet, forbidden, gate, resolveAccess } from './access.js'
@@ -111,6 +112,17 @@ async function route({ req, method, query, body }) {
     if (isEncounterRequest(method, query, body)) {
         return run('Erro no encontro', 'Erro ao tratar o encontro', () =>
             handleEncounterRequest(mesa, method, query, body, ctx))
+    }
+    if (isRulesAdminRequest(method, query, body)) {
+        return run('Erro na base de regras', 'Erro ao tratar a base de regras', async () => {
+            try {
+                return await handleRulesAdminRequest(method, query, body, ctx)
+            } catch (error) {
+                // Falha da AON ou do Storage num passo: o job segue `running` com o último cursor; o navegador tenta de novo.
+                if (/^(AON|Base de regras):/.test(error.message)) return { status: 502, body: { error: error.message, code: 'upstream' } }
+                throw error
+            }
+        })
     }
     if (isBuildRequest(method, query, body)) {
         return run('Erro no Criador de Personagem', 'Erro ao tratar o personagem', () =>

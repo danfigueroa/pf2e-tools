@@ -8,6 +8,7 @@
 // entrou por convite. Sem Supabase configurado não há como autenticar, então também não cobra.
 
 import { supabase, isSupabaseConfigured, requestIdentity } from './supabase.js'
+import { isPlatformAdminUser } from './rules-store.js'
 
 export const authRequired = () => process.env.AUTH_REQUIRED === '1' && isSupabaseConfigured()
 
@@ -108,4 +109,17 @@ export async function canEditSheet(access, mesa, slug) {
     if (!access.userId) return false
     const { owner } = await sheetOwner(mesa, slug)
     return owner !== null && owner === access.userId
+}
+
+const ADMIN_TTL_MS = 30_000
+const admins = new Map() // userId → { admin, at }
+
+/** Admin da plataforma (`platform_admins`): a base de regras é de todas as mesas, então não é papel de GM. Cache de 30 s. */
+export async function isPlatformAdmin(userId) {
+    if (!userId || !isSupabaseConfigured()) return false
+    const hit = admins.get(userId)
+    if (hit && Date.now() - hit.at < ADMIN_TTL_MS) return hit.admin
+    const admin = await isPlatformAdminUser(userId)
+    admins.set(userId, { admin, at: Date.now() })
+    return admin
 }
