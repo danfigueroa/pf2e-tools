@@ -48,7 +48,8 @@ Princípios:
 | Ferramenta                       | Rota                    | O que faz                                                                          |
 | -------------------------------- | ----------------------- | ---------------------------------------------------------------------------------- |
 | **Início**                       | `/`                     | A mesa viva: próxima sessão, seu personagem, combate em andamento, grupo e última sessão |
-| **Ficha Virtual**                | `/ficha-virtual`        | Ficha interativa do Pathbuilder que rola, gasta recursos e mostra as regras da AON |
+| **Personagens** (Criador)        | `/personagens/:id?`     | Cria e evolui personagens no próprio Covil (sem Pathbuilder) e aplica a ficha na mesa |
+| **Ficha Virtual**                | `/ficha-virtual`        | Ficha interativa que rola, gasta recursos e mostra as regras da AON (do Criador ou do Pathbuilder) |
 | **Iniciativa**                   | `/iniciativa`           | Ordem de turnos, dano em área, condições, aflições, dano persistente e escudos     |
 | **Mapa de Combate**              | `/mapa/:id?`            | VTT com grid de 5 ft, tokens com PV, régua, áreas de efeito, desenhos e dados      |
 | **Estatísticas da Mesa**         | `/historico`            | As rolagens de cada sessão: média do d20, destaques, ranking e "o d20 é justo?"   |
@@ -81,9 +82,24 @@ Princípios:
 -   **Início por papel**: o GM vê a próxima sessão (Começar combate, Editar data) e "Preparar a sessão" (encontro, mapa,
     Diário); o jogador vê o cartão do seu personagem. Durante o combate, a Início mostra a rodada e de quem é a vez.
 
+### 🧙 Criador de Personagem
+
+Cria e evolui personagens de PF2e Remaster dentro do Covil, no lugar do Pathbuilder. Detalhe em `docs/character-builder/`.
+
+-   **Escolhas, não números**: o personagem guarda só o que o jogador escolheu; o motor calcula tudo (atributos com boost
+    parcial, perícias, proficiências por nível, talentos com pré-requisito, magias por dia, equipamento, golpes, CA).
+-   **Catálogo de regras próprio**: as regras vêm da AON e a mecânica estruturada do sistema PF2e do Foundry, importadas
+    para o banco e servidas em pacotes por lista (o Criador nunca consulta a AON). O admin atualiza a base em
+    `/plataforma/regras`.
+-   **Avisa, não trava**: pré-requisito não cumprido, livro não liberado, raridade, efeito não calculado — tudo vira aviso.
+    O GM define as regras de criação da mesa em `/mesa` (livros, raridade, Free Archetype, Mítico…) e libera exceções.
+-   **Aplicar na mesa**: a ficha que a mesa usa só muda quando o jogador aplica, pelo mesmo preparo da publicação.
+    Ficha publicada do Pathbuilder pode ser **importada** para o Criador mantendo PV, token e anotações.
+
 ### 📜 Ficha Virtual
 
-Ficha do **Pathbuilder 2e** (JSON) pensada para a mesa: **abas** no desktop, **acordeão** no celular.
+Ficha pensada para a mesa: **abas** no desktop, **acordeão** no celular. Vem do Criador ou do JSON do **Pathbuilder 2e**
+(o upload segue aceito; prefira o Criador, que já gera a ficha sem consertos).
 
 **Publicação**
 
@@ -450,6 +466,7 @@ diferente de zero quando algo quebra.
 | `node scripts/check-scaling.mjs 200`               | Motor do Escalar Monstro contra 200 criaturas reais: identidade, monotonia, ida e volta, ajuste fino |
 | `node scripts/check-heightening.mjs`               | Heightening das magias contra o índice inteiro da AON                      |
 | `node scripts/check-economy.mjs`                   | Todo talento/item do elenco que custa ação, reação ou Ponto Mítico tem caminho no app |
+| `node scripts/check-builder.mjs`                   | Motor do Criador contra regras da AON e o elenco (paridade importar → recompilar → exportar), pares cliente × servidor |
 | `node scripts/check-trophies.mjs`                  | Regras e catálogo dos troféus (inclusive em inglês)                        |
 | `node scripts/check-contrast.mjs`                  | Contraste das cores, nos temas claro e escuro                              |
 | `node scripts/check-i18n.mjs`                      | Texto de tela em português fora de `tr()` (roda no `npm run lint`)         |
@@ -475,8 +492,12 @@ publicadas), `seed-presets.mjs`, `grant-gm.mjs`.
 -   Transformação e Escalar Monstro
 -   Contas com usuário e senha, convites, papéis e donos de ficha; várias mesas
 -   Plataforma em português e inglês; tema escuro; Início por papel; notificações; busca ⌘K
+-   **Criador de Personagem** (beta): origem, classe, atributos, perícias, progressão 1–20 com talentos e variantes,
+    magias, equipamento, companheiros, aplicar na mesa e importar do Pathbuilder; base de regras atualizada pela plataforma
 
 ### 🚧 Em andamento
+
+-   Criador de Personagem: conjuradores de arquétipo e inatos, doutrina do Cleric, ABP e o aceite com as mesas
 
 -   **Fechar o login de vez** (`AUTH_REQUIRED=1`, fim das sessões anônimas antigas) e exigir login também nos endpoints da AON
 
