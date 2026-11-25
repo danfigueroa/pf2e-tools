@@ -31,6 +31,7 @@ const revealId = `teste-reveal-${stamp}`
 const wikiIds = { a: `w-t${stamp}a`, g: `w-t${stamp}g` }
 const uploaded = []
 let failures = 0
+let mesaRulesBefore // regras da mesa de teste antes do check (restauradas no fim)
 
 const pass = (name) => console.log(`  ok   ${name}`)
 function expect(name, got, want) {
@@ -82,6 +83,13 @@ async function cleanup() {
         await db.from('sheets').delete().eq('mesa', MESA).eq('slug', slug)
         await db.from('sheet_drafts').delete().eq('mesa', MESA).eq('slug', slug)
         await db.from('sheet_description_sets').delete().eq('mesa', MESA).eq('slug', slug)
+    }
+    // Builds do Criador: o dono vira nulo quando a conta sai, então saem antes, pelo criador.
+    const creators = Object.values(users).map((u) => u.id)
+    if (creators.length) await db.from('character_builds').delete().eq('mesa', MESA).in('created_by', creators)
+    if (mesaRulesBefore !== undefined) {
+        if (mesaRulesBefore) await db.from('mesa_rules').upsert({ mesa: MESA, ...mesaRulesBefore })
+        else await db.from('mesa_rules').delete().eq('mesa', MESA)
     }
     for (const u of Object.values(users)) {
         await db.from('mesa_invites').delete().eq('created_by', u.id)
@@ -378,6 +386,56 @@ try {
     expect('jogador envia imagem à Wiki', await upload(users.a.token, `wiki/teste-${stamp}-a.png`), true)
     expect('quem não é membro não envia à Wiki', await upload(users.out.token, `wiki/teste-${stamp}-out.png`), false)
 
+    console.log('Criador de Personagem')
+    {
+        const post = (who, body) => call({ token: users[who].token, method: 'POST', body })
+        const created = await post('a', { action: 'build-create', name: `Teste Criador ${stamp}` })
+        expect('jogador cria build → 200', created.status, 200)
+        const build = created.body.build
+        expect('slug nasce do nome', build?.slug, `teste-criador-${stamp}`)
+        const twin = await post('b', { action: 'build-create', name: `Teste Criador ${stamp}` })
+        expect('mesmo nome ganha outro slug', twin.body.build?.slug, `teste-criador-${stamp}-2`)
+        const state = { ...build.state, level: 2, name: `Teste Renomeado ${stamp}` }
+        const saved = await post('a', { action: 'build-save', id: build.id, rev: 1, state, className: 'Fighter' })
+        expect('dono salva → 200', saved.status, 200)
+        expect('rev sobe', saved.body.build?.rev, 2)
+        expect('renomear não muda o slug', saved.body.build?.slug, build.slug)
+        expect('rev velho → 409', (await post('a', { action: 'build-save', id: build.id, rev: 1, state })).status, 409)
+        expect('outro jogador não grava → 403', (await post('b', { action: 'build-save', id: build.id, rev: 2, state })).status, 403)
+        const other = await call({ token: users.b.token, query: { build: build.id } })
+        expect('outro jogador lê → 200', other.status, 200)
+        expect('…somente leitura', other.body.canEdit, false)
+        expect('dono lê o próprio com canEdit', (await call({ token: users.a.token, query: { build: build.id } })).body.canEdit, true)
+        const list = await call({ token: users.b.token, query: { builds: '1' } })
+        const mine = list.body.builds?.find((b) => b.id === build.id)
+        expect('lista não leva o state', mine && 'state' in mine, false)
+        expect('quem não é membro não lista → 403', (await call({ token: users.out.token, query: { builds: '1' } })).status, 403)
+        expect('quem não é membro não cria → 403', (await call({ token: users.out.token, method: 'POST', body: { action: 'build-create', name: 'X' } })).status, 403)
+        expect('GM grava build alheio → 200', (await post('gm', { action: 'build-save', id: build.id, rev: 2, state })).status, 200)
+        expect('jogador não atribui dono → 403', (await post('a', { action: 'build-assign', id: build.id, user: users.b.id })).status, 403)
+        expect('GM atribui dono → 200', (await post('gm', { action: 'build-assign', id: build.id, user: users.b.id })).status, 200)
+        expect('novo dono grava → 200', (await post('b', { action: 'build-save', id: build.id, rev: 3, state })).status, 200)
+        expect('antigo dono não grava mais → 403', (await post('a', { action: 'build-save', id: build.id, rev: 4, state })).status, 403)
+        const big = { ...state, history: Array.from({ length: 100 }, () => ({ at: new Date().toISOString(), by: 'x', note: 'y'.repeat(200), kind: 'override' })),
+            spellcasting: Object.fromEntries(Array.from({ length: 12 }, (_, i) => [`c${i}`, { spellbook: Array.from({ length: 300 }, (_, j) => `spell:spell-${i}${j}`) }])) }
+        expect('build grande demais → 413', (await post('b', { action: 'build-save', id: build.id, rev: 4, state: big })).status, 413)
+        expect('jogador não apaga build alheio → 403', (await post('a', { action: 'build-delete', id: twin.body.build.id })).status, 403)
+        expect('B apaga o que agora é dele → 200', (await post('b', { action: 'build-delete', id: build.id })).status, 200)
+        expect('na lixeira não salva → 409', (await post('b', { action: 'build-save', id: build.id, rev: 4, state })).status, 409)
+        expect('colega não vê o da lixeira → 404', (await call({ token: users.a.token, query: { build: build.id } })).status, 404)
+        expect('dono restaura → 200', (await post('b', { action: 'build-restore', id: build.id })).status, 200)
+
+        const { data: rulesRow } = await db.from('mesa_rules').select('rules, updated_at, updated_by').eq('mesa', MESA).maybeSingle()
+        mesaRulesBefore = rulesRow ?? null
+        const rules = await call({ token: users.a.token, query: { mesaRules: '1' } })
+        expect('membro lê regras da mesa → 200', rules.status, 200)
+        expect('jogador não muda regras da mesa → 403', (await post('a', { action: 'mesa-rules-save', rules: rules.body.rules })).status, 403)
+        const changed = { ...rules.body.rules, startingLevel: 3 }
+        const savedRules = await post('gm', { action: 'mesa-rules-save', rules: changed })
+        expect('GM muda regras da mesa → 200', savedRules.status, 200)
+        expect('…e a regra volta sanitizada', savedRules.body.rules?.startingLevel, 3)
+    }
+
     console.log('Iniciativa e papéis')
     expect('jogador não grava encontro', (await call({ token: users.a.token, method: 'POST', body: { action: 'encounter-save', map: null, state: {} } })).status, 403)
     // A mesa de teste é real e pode ter outros GMs (o dono do projeto): aí a trava não se aplica.
@@ -404,6 +462,9 @@ try {
     expect('sem sessão não lê o diário (flag desligada)', (await call({ query: { journal: 'list' } })).status, 403)
     // A Wiki também decide pelo papel na mesa, com a flag desligada.
     expect('sem sessão não lê a Wiki (flag desligada)', (await call({ query: { wiki: 'list' } })).status, 403)
+    expect('jogador não muda regras da mesa (flag desligada)', (await call({ token: users.b.token, method: 'POST', body: { action: 'mesa-rules-save', rules: {} } })).status, 403)
+    expect('sem sessão não muda regras da mesa (flag desligada)', (await call({ method: 'POST', body: { action: 'mesa-rules-save', rules: {} } })).status, 403)
+    expect('sem sessão não cria build (flag desligada)', (await call({ method: 'POST', body: { action: 'build-create', name: 'X' } })).status, 401)
     expect('quem não é membro não grava na Wiki (flag desligada)', (await call({ token: users.out.token, method: 'POST', body: { action: 'wiki-save', page: { id: `w-t${stamp}x`, kind: 'npc', title: 'X', body: '' }, base: null } })).status, 403)
 } catch (error) {
     failures += 1
