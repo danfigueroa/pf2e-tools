@@ -45,9 +45,10 @@ export interface ItemData {
     hands?: string
     usage?: string
     parent?: string
-    baseItem?: string
+    /** Item específico: o nome da base (Hero's Plate → Full Plate). A AON manda lista. */
+    baseItem?: string[] | string
     weapon?: { die?: string; damageType?: string; group?: string; category?: string; range?: number; reload?: number; traitsRaw?: string[] }
-    armor?: { ac?: number; dexCap?: number; strength?: number; checkPenalty?: number; speedPenalty?: number; category?: string; group?: string }
+    armor?: { ac?: number; dexCap?: number; strength?: number; checkPenalty?: number; speedPenalty?: number | string; category?: string; group?: string }
     shield?: { ac?: number; hardness?: number; hp?: number; bt?: number }
 }
 

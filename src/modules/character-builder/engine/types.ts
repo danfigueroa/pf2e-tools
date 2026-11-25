@@ -9,6 +9,7 @@ import type { FeatSlot } from './slots'
 import type { ClassChoiceSlot } from './classChoices'
 import type { PrereqContext } from './prereqs'
 import type { Caster, FocusInfo, SpellSlotTable } from './spells'
+import type { EquipmentResult } from './equipment'
 
 export type { AttributeKey } from '../rules/types'
 
@@ -154,6 +155,10 @@ export interface Compiled {
     /** Conjuradores e foco (F5). */
     casters: Caster[]
     focus: FocusInfo
+    /** Equipamento (F6): itens, volume, dinheiro, armadura, escudo e golpes. */
+    equipment: EquipmentResult
+    /** Grupo de arma escolhido (Fighter Weapon Mastery, Weapon Legend). */
+    groupChoices: { key: string; level: number; label: string; chosen?: string }[]
     /** Bônus fixos de talento por perícia (Incredible Initiative não: é situacional). */
     skillBonus: Partial<Record<SkillKey, number>>
 }

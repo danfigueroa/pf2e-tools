@@ -15,6 +15,7 @@ import { compileSkills } from './skills'
 import { compileFeats } from './feats'
 import type { PrereqContext } from './prereqs'
 import { checkSpellChoices, compileCasters, compileFocus } from './spells'
+import { armorClass, compileEquipment, GROUP_FEATURES } from './equipment'
 import { featSlots, variantFlags } from './slots'
 import { classChoiceSlots, SAVE_CHOICE_FEATURES, UNCOUNTED_CHOICE_TYPES } from './classChoices'
 import type { CompileContext, Compiled, Pending, Rank, Stat, Warning } from './types'
@@ -281,6 +282,30 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
         if (entry) sourceWarnings(entry, ctx, 'languages', warnings)
     }
 
+    // 6. Equipamento: grupo de arma escolhido (Fighter Weapon Mastery e Weapon Legend, Player Core pg. 136), especialização
+    // pelas características alcançadas, armadura, escudo e golpes.
+    const groupRanks: Record<string, Partial<Record<'simple' | 'martial' | 'advanced' | 'unarmed', Rank>>> = {}
+    const groupChoices: Compiled['groupChoices'] = []
+    for (const ref of c?.features ?? []) {
+        const spec = GROUP_FEATURES.find((g) => g.name.test(ref.name))
+        if (!spec) continue
+        const key = `class-choice:weapon-group-${ref.level}`
+        const raw = state.choices[key]
+        const chosen = raw && 'value' in raw ? raw.value.toLowerCase() : undefined
+        groupChoices.push({ key, level: ref.level, label: ref.name, chosen })
+        if (ref.level > level) continue
+        used.add(key)
+        if (!chosen) pending.push({ key, label: ref.name, level: ref.level, missing: 1 })
+        else {
+            const cur = groupRanks[chosen] ?? {}
+            for (const [cat, r] of Object.entries(spec.ranks) as [keyof typeof spec.ranks, Rank][]) cur[cat] = Math.max(cur[cat] ?? 0, r) as Rank
+            groupRanks[chosen] = cur
+        }
+    }
+    const reached = (re: RegExp) => (c?.features ?? []).some((f) => f.level <= level && re.test(f.name))
+    const specialization = reached(/^greater weapon specialization$/i) ? 2 : reached(/^weapon specialization$/i) ? 1 : 0
+    const equipment = compileEquipment(state, rules, { level, mod, attacks: proficiency.attacks, groupRanks, specialization }, warnings)
+
     // 7. Magias: o conjurador da classe e o foco (as magias de foco são escolha do jogador: o Foundry quase nunca as concede
     // por regra). Guardadas em `spellcasting.focus.repertoire` — "0" truques de foco, "1" magias de foco.
     const casters = compileCasters(state, cls, { level, keyAttribute, mod, spellRank: proficiency.spell, table: ctx.tables?.spellSlots }, pending, warnings, used)
@@ -296,18 +321,23 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
         ...(cls ? [part(tr(`Classe × ${level}`, `Class × ${level}`), (c?.hp ?? 0) * level), part(tr(`CON × ${level}`, `CON × ${level}`), mod.con * level)] : []),
     ]
     const p = (rank: Rank) => part(rankName(rank), proficiencyBonus(rank, level))
-    const featPart = (key: 'perception' | 'fortitude' | 'reflex' | 'will') => (feats.mods.stat[key] ? [part(tr('Talentos', 'Feats'), feats.mods.stat[key] ?? 0)] : [])
+    const resilient = equipment.armor?.resilient ?? 0
+    const featPart = (key: 'perception' | 'fortitude' | 'reflex' | 'will') => [
+        ...(feats.mods.stat[key] ? [part(tr('Talentos', 'Feats'), feats.mods.stat[key] ?? 0)] : []),
+        ...(resilient && key !== 'perception' ? [part(tr('Resiliente', 'Resilient'), resilient)] : []),
+    ]
     const stats: Compiled['stats'] = {
         hp: stat([...hpParts, ...(feats.mods.hp ? [part(tr('Talentos', 'Feats'), feats.mods.hp)] : []),
             ...(feats.mods.hpPerLevel ? [part(tr(`Talentos × ${level}`, `Feats × ${level}`), feats.mods.hpPerLevel * level)] : [])]),
-        ac: stat([attrPart('dex'), p(proficiency.defenses.unarmored ?? 0)], 10),
+        ac: armorClass(equipment, { dex: mod.dex, level, defenses: proficiency.defenses, label: rankName }),
         fortitude: stat([p(proficiency.fortitude), attrPart('con'), ...featPart('fortitude')]),
         reflex: stat([p(proficiency.reflex), attrPart('dex'), ...featPart('reflex')]),
         will: stat([p(proficiency.will), attrPart('wis'), ...featPart('will')]),
         perception: stat([p(proficiency.perception), attrPart('wis'), ...featPart('perception')]),
         classDC: cls && keyAttribute ? stat([p(proficiency.classDC), attrPart(keyAttribute)], 10) : null,
         speed: stat([...(ancestry?.ancestry?.speed !== undefined ? [part(tr('Ancestralidade', 'Ancestry'), ancestry.ancestry.speed)] : []),
-            ...(feats.mods.speed ? [part(tr('Talentos', 'Feats'), feats.mods.speed)] : [])]),
+            ...(feats.mods.speed ? [part(tr('Talentos', 'Feats'), feats.mods.speed)] : []),
+            ...(equipment.armor?.speedPenalty ? [part(tr('Armadura', 'Armor'), equipment.armor.speedPenalty)] : [])]),
     }
 
     // Sentidos: os da ancestralidade e os `Sense` de herança, talentos e concessões.
@@ -351,6 +381,8 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
         ancestryTraits,
         casters,
         focus,
+        equipment,
+        groupChoices,
         skillBonus: feats.mods.skill,
     }
 }
