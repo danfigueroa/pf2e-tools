@@ -195,26 +195,26 @@ Pathbuilder (conferido criando os mesmos no Pathbuilder).
 **Objetivo**: o plano completo por nível, com talentos, escolhas de classe, pré-requisitos e as variantes do elenco.
 **Depende de**: F3.
 
-- [ ] **4.1** `slots.ts`: slots por nível a partir da classe (`featLevels`, `skillIncreaseLevels`, características) e das
+- [x] **4.1** `slots.ts`: slots por nível a partir da classe (`featLevels`, `skillIncreaseLevels`, características) e das
       variantes; chaves estáveis (MODELO §1).
 - [ ] **4.2** `rule-elements.ts`: `ChoiceSet`, `GrantItem`, `ActiveEffectLike` (proficiência/idioma/sentido/velocidade),
       `MartialProficiency`, `FlatModifier` sem predicado, `BaseSpeed`, `Sense`, `Resistance`/`Weakness`/`Immunity`;
       predicados avaliáveis na criação; `UNSUPPORTED_EFFECT` para o resto.
 - [ ] **4.3** Escolhas de classe com sub-escolhas (escola, doutrina, causa, instinto, racket, metodologia, consciência,
       estudo híbrido, grupo de Weapon Mastery…) — conferir cada uma na AON para as nove classes do elenco primeiro.
-- [ ] **4.4** Proficiências por nível (características "Expertise", talentos) com rank máximo e `specificProficiencies`.
-- [ ] **4.5** Boosts de 5/10/15/20, aumentos de perícia com teto (`SKILL_RANK_CAP`).
-- [ ] **4.6** `prereqs.ts`: parser dos padrões (MOTOR §11), resultado por parte (ok/fail/unknown), motivo legível pt/en;
+- [x] **4.4** Proficiências por nível (características "Expertise", talentos) com rank máximo e `specificProficiencies`.
+- [x] **4.5** Boosts de 5/10/15/20, aumentos de perícia com teto (`SKILL_RANK_CAP`).
+- [x] **4.6** `prereqs.ts`: parser dos padrões (MOTOR §11), resultado por parte (ok/fail/unknown), motivo legível pt/en;
       casos no `check-builder` com pré-requisitos reais do catálogo.
 - [ ] **4.7** `feats.ts`: qualificadores (Assurance (X)), repetíveis, concessões encadeadas (`parentChoice`/`childChoice`),
       dedicação (`DEDICATION_LOCK`), talentos concedidos ("Awarded Feat").
 - [ ] **4.8a** Mítico completo (REGRAS-OPCIONAIS §1): chamado + Rewrite Fate, talentos míticos nos pares, **destino obrigatório no 12º** e talentos do destino do 14º, mítico por personagem (*Mixed Play*), chamado tardio com pendências liberadas pelo GM.
-- [ ] **4.8** Variantes do MVP (`variants.ts`): **Free Archetype**, **Mítico**, **Ancestral Paragon** (conferir níveis no
+- [x] **4.8** Variantes do MVP (`variants.ts`): **Free Archetype**, **Mítico**, **Ancestral Paragon** (conferir níveis no
       GM Core/War of Immortals; casar com o elenco).
-- [ ] **4.9** UI: `LevelPlan` (desktop) e acordeão por nível (celular); nível atual [−][+]; níveis planejados esmaecidos.
-- [ ] **4.10** UI: seletor de talentos com as abas Classe/Dedicações/Arquétipo/Todos e o motivo de inelegibilidade.
-- [ ] **4.11** Avisos e pendências completos (MOTOR §15) no `PendingPanel`; escolha órfã com "descartar".
-- [ ] **4.12** Casos no `check-builder` para slots, concessões, variantes, pré-requisitos.
+- [x] **4.9** UI: `LevelPlan` (desktop) e acordeão por nível (celular); nível atual [−][+]; níveis planejados esmaecidos.
+- [x] **4.10** UI: seletor de talentos com as abas Classe/Dedicações/Arquétipo/Todos e o motivo de inelegibilidade.
+- [x] **4.11** Avisos e pendências completos (MOTOR §15) no `PendingPanel`; escolha órfã com "descartar".
+- [x] **4.12** Casos no `check-builder` para slots, concessões, variantes, pré-requisitos.
 
 **Entregáveis**: plano 1–20 navegável e editável.
 **Rodar**: `check-builder`, build, lint, 320px.

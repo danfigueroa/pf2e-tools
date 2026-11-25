@@ -21,3 +21,6 @@
 - Gere as chaves de slot só no motor (`boosts-1`, `class-skill-1`, `skills-int-5`, `skill-increase-3`…), porque escolhas sem slot viram aviso de órfã em vez de sumir.
 - Trate a lista de livros vazia da mesa como "sem restrição", porque uma mesa nova esconderia todo o catálogo e avisaria em cada escolha.
 - Tire do seletor de ancestralidade o que também é herança versátil, porque a AON publica Aiuvarin, Changeling e afins nas duas categorias.
+- Leia as proficiências por nível das características de classe em `classFeature.proficiencies` (derivadas do texto da AON), porque as regras do Foundry para "Expertise" vêm quase sempre vazias.
+- Guarde no qualificador `archetype:<slug>` o arquétipo de um talento de arquétipo escolhido, porque é ele que diz qual lista baixar ao reabrir o personagem.
+- Confira toda mudança de slot contra o M2 do `check-builder` (slots dos 10 personagens iguais aos do export), porque slot a mais vira pendência fantasma para a mesa inteira.

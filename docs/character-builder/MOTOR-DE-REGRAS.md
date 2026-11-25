@@ -125,7 +125,7 @@ do diálogo de rolagem da Ficha ("Mestre +16 · CON +4 · Item +1").
 | Talento concedido ("Awarded Feat"): Shield Block do Guerreiro, talento de perícia do background | 📦 / 🧪 |
 | Escolhas aninhadas (`parentChoice`/`childChoice`): General Training, Natural Ambition, Reincarnation Feat, Basic Thoughtform… | 📦 (`GrantItem` + `ChoiceSet`) / 🧪 |
 | Pré-requisitos (§11), raridade liberada, nível ≤ nível do slot | — |
-| Dedicação: não pegar outra antes de 2 talentos do arquétipo atual (aviso `DEDICATION_LOCK`) | 🔎 Player Core, "Archetypes" |
+| Dedicação: não pegar outra antes de 2 talentos do arquétipo atual (aviso `DEDICATION_LOCK`); talento de arquétipo ocupa slot de classe | ✅ Player Core pg. 215 |
 | Talento repetível (`maxTakable`) e com qualificador | 📦 |
 
 ## 10. Rule elements suportados
@@ -195,9 +195,9 @@ Mapa completo (todas as regras opcionais, com fonte e fase): [REGRAS-OPCIONAIS.m
 
 | Variante | O que muda no motor | Status |
 | --- | --- | --- |
-| Free Archetype | Slot `archetype-feat-N` nos níveis pares, filtrado a talentos com traço Archetype | 🧪 / 🔎 |
-| Mítico | Slot `mythic-feat-N`; proficiência mítica é da Ficha (combate); Mythic Magic como conjurador | 🧪 / 🔎 |
-| Ancestral Paragon | Slots extras de ancestralidade | 🧪 / 🔎 |
+| Free Archetype | Slot `archetype-feat-N` nos níveis pares, filtrado a talentos com traço Archetype | ✅ GM Core pg. 84 / 🧪 |
+| Mítico | Slot `mythic-feat-N` nos pares (destino obrigatório no 12º); proficiência mítica é da Ficha; Mythic Magic como conjurador | ✅ War of Immortals pg. 77 / 🧪 |
+| Ancestry Paragon | Dois talentos de ancestralidade no 1º e um em cada ímpar (11 no total); o elenco usa o TALENTO geral Ancestral Paragon, não a variante | ✅ Gamemastery Guide pg. 194 (legado) |
 | ABP | Ver §12 | 🔎 |
 | PwL | Bônus de proficiência sem nível; a Ficha precisa saber (aviso até lá) | 🔎 |
 | Dual Class | Segunda classe: `dualClass` no export, slots e proficiências das duas | 🔎 |
