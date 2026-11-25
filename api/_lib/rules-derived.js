@@ -153,6 +153,27 @@ export function doctrineProgression(markdown, unsupported) {
     return steps
 }
 
+const NUMBER_WORDS = { one: 1, two: 2, three: 3, four: 4 }
+
+/**
+ * Conjuração de arquétipo (Player Core pg. 215), lida do texto da dedicação: "Your key spellcasting attribute for X
+ * archetype spells is Y, and they are <tradição> X spells"; "You can prepare two cantrips each day" (preparado) ou
+ * "a spell repertoire with two … cantrips" (espontâneo). Psi cantrip não conta como truque de espaço.
+ */
+export function dedicationCasting(markdown) {
+    const text = String(markdown ?? '').replace(/<[^>]+>/g, ' ').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/\s+/g, ' ')
+    const key = /key spellcasting attribute for ([a-z]+) archetype spells is ([a-z ]+?)(?:,|\.)/i.exec(text)
+    if (!key) return undefined
+    const attr = ATTRIBUTES[key[2].trim().charAt(0).toUpperCase() + key[2].trim().slice(1)]
+    const tradition = /they are (arcane|divine|occult|primal) /i.exec(text)?.[1]?.toLowerCase()
+    const prepared = /prepare (one|two|three|four) (?:common )?cantrips?\b/i.exec(text)
+    const repertoire = /repertoire with (one|two|three|four) (?:standard psi |common )?cantrips?\b/i.exec(text)
+    const psi = /psi cantrip/i.test(text)
+    const type = prepared ? 'prepared' : repertoire ? 'spontaneous' : undefined
+    const count = prepared ? NUMBER_WORDS[prepared[1].toLowerCase()] : repertoire && !psi ? NUMBER_WORDS[repertoire[1].toLowerCase()] : 0
+    return compact({ className: key[1].charAt(0).toUpperCase() + key[1].slice(1).toLowerCase(), attribute: attr, tradition, type, cantrips: count })
+}
+
 /**
  * Boosts da ancestralidade. A AON escreve o Humano (e afins) como "Two free ability boosts" (Player Core pg. 62:
  * "Attribute Boosts: Two free ability boosts"); o resto vem como nomes de atributo e "Free". Texto desconhecido vai para
@@ -300,6 +321,10 @@ export function deriveRuleData(category, data, entry) {
     case 'doctrine': {
         const steps = doctrineProgression(entry?.markdown, unsupported)
         return steps.length ? withNotes('doctrine', { steps }) : null
+    }
+    case 'feat': {
+        const casting = /dedication$/i.test(String(entry?.name ?? '')) ? dedicationCasting(entry?.markdown) : undefined
+        return casting ? withNotes('feat', { casting }) : null
     }
     case 'class-feature': {
         const proficiencies = classFeatureProficiencies(entry?.markdown, unsupported)
