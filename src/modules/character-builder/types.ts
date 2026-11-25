@@ -117,6 +117,8 @@ export interface BuildHeader {
     updatedBy: string | null
     publishedRev: number | null
     deletedAt: number | null
+    /** Só na lista: nome de exibição do dono na mesa. */
+    ownerName?: string | null
     canEdit?: boolean
 }
 

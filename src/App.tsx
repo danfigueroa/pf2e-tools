@@ -22,6 +22,7 @@ const SessionDiaryPage = lazy(() =>
 const CampaignJournalPage = lazy(() =>
   import('./modules/campaign-journal/CampaignJournalPage').then((m) => ({ default: m.CampaignJournalPage })));
 const WikiPage = lazy(() => import('./modules/wiki/WikiPage'));
+const CharactersPage = lazy(() => import('./modules/character-builder/CharactersPage'));
 
 const MembersPage = lazy(() =>
   import('./modules/account/MembersPage').then((m) => ({ default: m.MembersPage })));
@@ -45,6 +46,7 @@ function App() {
                   tela em branco para quem tiver o link antigo salvo. */}
               <Route path="character-sheet" element={<Navigate to="/" replace />} />
               <Route path="ficha-virtual" element={page(<CharacterViewerPage />)} />
+              <Route path="personagens/:buildId?" element={page(<CharactersPage />)} />
               <Route path="iniciativa" element={page(<InitiativePage />)} />
               <Route path="transformation" element={page(<TransformationPage />)} />
               <Route path="escalar-monstro" element={page(<MonsterScalerPage />)} />

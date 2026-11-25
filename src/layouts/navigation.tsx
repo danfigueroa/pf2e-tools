@@ -12,6 +12,7 @@ import {
   MenuBook as JournalIcon,
   EmojiEvents as TrophyIcon,
   AutoStories as WikiIcon,
+  PersonAddAlt1 as BuilderIcon,
 } from '@mui/icons-material';
 import { tr } from '../i18n';
 
@@ -48,6 +49,10 @@ export const NAV_ITEMS: NavItem[] = [
   {
     text: tr('Ficha Virtual', 'Virtual Sheet'), icon: <ViewerIcon />, path: '/ficha-virtual', section: 'jogo',
     keywords: [tr('ficha', 'sheet'), tr('personagem', 'character'), 'pathbuilder', tr('magias', 'spells'), tr('talentos', 'feats'), 'inventario', 'pv', tr('publicar', 'publish')],
+  },
+  {
+    text: tr('Personagens', 'Characters'), icon: <BuilderIcon />, path: '/personagens', section: 'jogo',
+    keywords: [tr('criar', 'create'), 'criador', 'builder', 'character builder', tr('novo personagem', 'new character'), 'level up', tr('subir de nivel', 'level up'), tr('personagem', 'character'), 'pathbuilder'],
   },
   {
     text: tr('Iniciativa', 'Initiative'), icon: <InitiativeIcon />, path: '/iniciativa', section: 'jogo',
