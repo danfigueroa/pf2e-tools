@@ -207,9 +207,24 @@ export function buildRulePackages({ version, entries, mechanics, sources, tables
             oldNames.get(target.id).add(row.name)
         }
     }
+    // GrantItem do Foundry traz só o nome do talento: o pacote resolve o id (Remaster primeiro) para o motor buscar a
+    // lista dele pelo `core/locations` quando ela não está carregada (Reactive Strike do Fighter, dedicações concedidas).
+    const featByName = new Map()
+    for (const entry of live) {
+        if (entry.category !== 'feat') continue
+        const key = entry.name.toLowerCase()
+        const prev = featByName.get(key)
+        if (!prev || (!prev.remaster && entry.remaster)) featByName.set(key, entry)
+    }
+    const withGrants = (rules) => rules?.map((rule) => {
+        const name = rule?.key === 'GrantItem' && typeof rule.uuid === 'string' ? /^Compendium\.pf2e\.feats-srd\.Item\.(.+)$/.exec(rule.uuid)?.[1] : undefined
+        const feat = name ? featByName.get(name.toLowerCase()) : undefined
+        return feat ? { ...rule, grantId: feat.id } : rule
+    })
     const lists = new Map()
     for (const entry of live) {
         const view = ruleEntryView(entry, mechanics.get(entry.aon_id))
+        if (view.rules) view.rules = withGrants(view.rules)
         if (replaced.has(entry.id)) view.superseded = true
         // A busca pelo nome anterior deve encontrar o sucessor mesmo quando só o legado traz o vínculo.
         if (oldNames.has(entry.id)) view.previousNames = [...oldNames.get(entry.id)].sort()
