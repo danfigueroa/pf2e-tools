@@ -426,6 +426,18 @@ try {
         expect('colega não vê o da lixeira → 404', (await call({ token: users.a.token, query: { build: build.id } })).status, 404)
         expect('dono restaura → 200', (await post('b', { action: 'build-restore', id: build.id })).status, 200)
 
+        // Aplicar na mesa: o preparo de sempre, com o slug ESTÁVEL do build (o nome mudou e o slug não).
+        slugs.push(build.slug)
+        const sheet = { success: true, build: { name: `Teste Renomeado ${stamp}`, class: 'Fighter', level: 2 } }
+        const applyBody = { action: 'build-apply', id: build.id, sheet, names: { spell: [], feat: [], special: ['Shield Block'], item: [] }, version: 'v13' }
+        const applied = await post('b', applyBody)
+        expect('dono aplica na mesa → 200', applied.status, 200)
+        if (applied.status !== 200) console.log('    ', applied.body.error)
+        expect('…com o slug do build, não do nome', applied.body.draft?.slug, build.slug)
+        expect('colega não aplica build alheio → 403', (await post('a', applyBody)).status, 403)
+        expect('versões do build: dono lê → 200', (await call({ token: users.b.token, query: { buildVersions: build.id } })).status, 200)
+        expect('versões do build: colega não lê → 403', (await call({ token: users.a.token, query: { buildVersions: build.id } })).status, 403)
+
         const { data: rulesRow } = await db.from('mesa_rules').select('rules, updated_at, updated_by').eq('mesa', MESA).maybeSingle()
         mesaRulesBefore = rulesRow ?? null
         const rules = await call({ token: users.a.token, query: { mesaRules: '1' } })

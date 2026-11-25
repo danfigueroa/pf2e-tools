@@ -8,6 +8,10 @@
 //   POST { action: 'build-delete' | 'build-restore', id }      → { build }                   (dono, GM)
 //   POST { action: 'build-assign', id, user|null }     → { build }                           (GM)
 //   POST { action: 'mesa-rules-save', rules }          → { rules, updatedAt }                (GM real, sempre)
+//   POST { action: 'build-apply', id, sheet, names, version, companions?, baseGuide?, baseGuideEn? }
+//                                                      → { draft }  "Aplicar na mesa": o preparo de sempre, com o slug do build
+//   GET  ?buildVersions=<id>                           → { versions }                        (dono, GM)
+//   POST { action: 'build-version-restore', id, version, rev } → { build }                   (dono, GM)
 //
 // Vem ANTES da ficha publicada no despacho: a rota da ficha aceita qualquer POST com `action`.
 //
@@ -19,18 +23,19 @@ import { isSupabaseConfigured } from './supabase.js'
 import { forbidden, memberRole } from './access.js'
 import { BUILD_SCHEMA, MAX_BUILD_BYTES, buildBytes, emptyBuildState, sanitizeBuildState } from './build-sanitize.js'
 import {
-    assignBuild, createBuild, freeBuildSlug, listBuilds, memberNames, readBuild, readMesaRules, saveBuild, trashBuild, writeMesaRules,
+    assignBuild, createBuild, freeBuildSlug, listBuilds, listBuildVersions, memberNames, readBuild, readBuildVersion, readMesaRules, saveBuild, trashBuild, writeMesaRules,
 } from './build-store.js'
 import { currentRulesVersion } from './rules-core.js'
+import { createSheetDraftFor } from './sheet-handler.js'
 
-const ACTIONS = new Set(['build-create', 'build-save', 'build-delete', 'build-restore', 'build-assign', 'mesa-rules-save'])
+const ACTIONS = new Set(['build-create', 'build-save', 'build-delete', 'build-restore', 'build-assign', 'mesa-rules-save', 'build-apply', 'build-version-restore'])
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 const ok = (body) => ({ status: 200, body: { ...body, storeReady: isSupabaseConfigured() } })
 const fail = (status, error, extra = {}) => ({ status, body: { error, ...extra } })
 
 export function isBuildRequest(method, query, body) {
-    if (method === 'GET') return query.builds !== undefined || query.build !== undefined || query.mesaRules !== undefined
+    if (method === 'GET') return query.builds !== undefined || query.build !== undefined || query.mesaRules !== undefined || query.buildVersions !== undefined
     if (method === 'POST') return ACTIONS.has(body?.action)
     return false
 }
@@ -68,6 +73,12 @@ export async function handleBuildRequest(mesa, method, query, body, ctx = {}) {
                 .filter((b) => !b.deletedAt || canEditBuild(b, access, role))
                 .map((b) => ({ ...b, ownerName: (b.ownerId && names[b.ownerId]) || null, canEdit: canEditBuild(b, access, role) }))
             return ok({ builds })
+        }
+        if (query.buildVersions !== undefined) {
+            const target = await readBuild(mesa, query.buildVersions)
+            if (!target) return fail(404, 'Personagem não encontrado')
+            if (!canEditBuild(target, access, await realRole(mesa, access))) return forbidden('Este personagem é de outra pessoa')
+            return ok({ versions: await listBuildVersions(mesa, target.id) })
         }
         const build = await readBuild(mesa, query.build)
         if (!build) return fail(404, 'Personagem não encontrado')
@@ -121,6 +132,27 @@ export async function handleBuildRequest(mesa, method, query, body, ctx = {}) {
 
     if (action === 'build-delete' || action === 'build-restore') {
         return ok({ build: await trashBuild(mesa, body.id, action === 'build-delete', access.userId) })
+    }
+
+    if (action === 'build-apply') {
+        if (current.deletedAt) return fail(409, 'Personagem na lixeira', { code: 'trashed' })
+        const sheet = body.sheet
+        if (!sheet || typeof sheet !== 'object' || !sheet.build || typeof sheet.build !== 'object') return fail(400, 'Personagem inválido')
+        // O vínculo com o build é do servidor: o cliente não escolhe a que build a ficha pertence.
+        const json = { ...sheet, build: { ...sheet.build, covil: { ...(sheet.build.covil ?? {}), buildId: current.id } } }
+        return createSheetDraftFor(mesa, current.slug, { ...body, sheet: json }, { ...ctx, access, userId: access.userId })
+    }
+
+    if (action === 'build-version-restore') {
+        const versionId = Number(body.version)
+        if (!Number.isInteger(versionId) || !Number.isInteger(body.rev)) return fail(400, 'Versão inválida')
+        const old = await readBuildVersion(mesa, current.id, versionId)
+        if (!old) return fail(404, 'Versão não encontrada')
+        const state = sanitizeBuildState(old)
+        if (!state) return fail(400, 'Personagem inválido')
+        const saved = await saveBuild(mesa, current.id, body.rev, { state, className: current.className, by: access.userId })
+        if (!saved) return { status: 409, body: { error: 'Editado em outro aparelho', code: 'conflict', build: await readBuild(mesa, current.id) } }
+        return ok({ build: header(saved) })
     }
 
     // build-save
