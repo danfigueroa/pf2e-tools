@@ -29,6 +29,8 @@ histórico (`?diary=`) → `src/modules/session-diary/AGENTS.md`; rolagens e est
   - Diário: `GET ?journal=list|<id>`, `?reveal=<id>`; POST `journal-save`/`journal-delete`/`journal-reveal`.
   - Wiki: `GET ?wiki=list|trash|recent|search|<id>`, `?wikiHistory=`, `?wikiRev=`; POST `wiki-save`/`-restore`/`-delete`/
     `-undelete`/`-purge`/`-flags`/`-show`.
+  - Criador: `GET ?builds=1`, `?build=<id>`, `?mesaRules=1`; POST `build-create`/`-save` (`rev`, 409, 64 KB)/`-delete`/
+    `-restore`/`-assign`, `mesa-rules-save` (`build-handler.js`, antes da ficha).
   - Anotações: `GET ?notes=<slug>`; POST `notes-save`. Troféus: `GET ?trophies=me|summary|ranking|<userId>`. Eventos: `?events=1`.
   - Conta: `?me=1`, membros, convites, `register`, `member-reset-password`, `mesa-settings`.
 - **Ordem do despacho importa**: `isRollRequest`, `isMapRequest`, encontros, correções, diário, wiki, anotações, troféus vêm
@@ -167,6 +169,10 @@ histórico (`?diary=`) → `src/modules/session-diary/AGENTS.md`; rolagens e est
 - `roll-store.js`: tabelas `rolls` e `shares` tiram o `seq` da **mesma sequência** (o `rev` é o maior `seq`); `at` é do
   servidor; GET devolve as últimas 30 (`read_feed`). Teto 8 KB por rolagem.
 - `fix-store.js` (`description_fixes`): correções globais, só prosa (`FIX_FIELDS`), `previous` para desfazer, `fields: {}` volta à automática.
+- `build-store.js` (`character_builds`, `mesa_rules`): o build tem dono desde o `build-create`, então escrever é do dono ou do
+  GM **real** (`memberRole`) mesmo com `AUTH_REQUIRED` desligado; `mesa-rules-save` também. O slug nasce do nome, é o
+  primeiro livre entre builds E `sheets` da mesa, e nunca muda (identidade do estado da mesa). Sem Supabase, o handler usa
+  um GM local (`local`) para o dev em memória.
 - `notes-store.js` (`character_notes`): um documento por mesa+slug, 128 KB, escrita condicional com `base` e 409.
 - `images.js`: apagar imagem é do servidor; `imagePath` só aceita URL nossa. `isMapOwnedImage` nunca deixa apagar `tokens/`.
 - `event-handler.js`: `GET ?events=1`; eventos vêm de triggers (ver `src/layouts/AGENTS.md`).

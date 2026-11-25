@@ -70,5 +70,28 @@
 - **F1: estado do "Pronto quando".**
   - As contagens por livro batem com a AON. A diferença está só nas 45 subações sem nome.
   - As nove classes do elenco têm progressão 1–20 completa.
-  - O carregador não faz chamada à AON (teste do 1.10). A conferência na aba de rede, com o Criador aberto, fica para a primeira tela (F2).
-- **Próximo passo.** F1B (atualização da base pela plataforma) ou F2 (esqueleto e persistência); pelo ROADMAP, as duas podem andar juntas.
+  - O carregador não faz chamada à AON. Conferido na rede com a primeira tela do Criador (F2): abrir "Criação de personagem" em `/mesa` pediu só o manifesto e `core/sources` do nosso catálogo e listou os 80 livros, com 0 pedidos à AON.
+
+## F2 — Esqueleto e persistência concluída
+
+- **2.1** Migration `criador_de_personagem` aplicada em produção em 2026-11-25. `character_builds` (teto de 96 KB no `state`, além dos 64 KB do servidor), `character_build_versions`, `mesa_rules` e `sheets.build_id`.
+  - O teto de 30 versões por build é um trigger no insert, não `pg_cron`: corta na hora, como o `publish_sheet`. A lixeira (30 dias, só sem ficha aplicada) é `pg_cron`.
+  - Semente de `mesa_rules` nas duas mesas: os 80 livros Remaster com entradas, `legacy: false`, Free Archetype, Mítico (progressão por nível) e Ancestral Paragon.
+  - **Decisões.** Raridade padrão `ask` (incomum e raro geram aviso "pedir ao GM", nada é negado). Nível inicial 1 e riqueza pela tabela do GM Core. A chave da variante ficou `ancestralParagon` nos dois tipos; a REGRAS-OPCIONAIS dizia `ancestryParagon`.
+- **2.2–2.5** `build-sanitize.js`, `build-store.js` e `build-handler.js`, despachados antes da ficha. O `server/index.mjs` já usa o mesmo `routeState`, então o dev local ganhou as rotas sem mudança.
+  - Escrever é do dono ou do GM **real** mesmo com `AUTH_REQUIRED` desligado, porque o build tem dono desde o nascimento. Criar exige estar logado.
+  - O slug é o primeiro livre na mesa entre builds e `sheets` (`ana`, `ana-2`…). Renomear não muda o slug.
+  - `build-assign` (GM troca o dono) entrou já, porque o `check-auth` pedia. O "Criar para…" na tela fica para a F8.
+  - A lista traz `ownerName` pela função `member_names`, a mesma da autoria da Wiki.
+  - Sem Supabase, o handler usa um GM local (`local`), para a interface rodar no modo memória.
+- **2.6** `types.ts`, `sanitize.ts` e `mesaRules.ts` no cliente. `buildSlugFromName` em `charId.ts`. `scripts/check-builder.mjs` roda 62 conferências com os mesmos casos nos dois lados.
+- **2.7–2.10** Rota `/personagens/:buildId?` (chunk próprio de 8 KB gzip) e item "Personagens" em JOGO, com palavras-chave na busca.
+  - A lista tem "Meus personagens", "Da mesa" (de quem é) e a lixeira com Restaurar. O estado mostra Rascunho, Publicado ou Alterações não publicadas.
+  - O editor tem nome, nível e Detalhes, além de mandar para a lixeira. O personagem de outra pessoa abre somente leitura, com `ReadOnlyTheme`.
+  - O `useBuild` salva 1,5 s depois da última mudança e guarda o rascunho local por mesa. Ele reenvia quando a rede volta e abre o diálogo de conflito no 409.
+  - Conferido no navegador em 320 px e no desktop. Digitar mudou o estado para "Salvo" e o servidor recebeu o `rev` 2. Uma gravação concorrente abriu o diálogo de conflito.
+  - **Fora da F2.** O retrato no cartão espera os detalhes chegarem ao cabeçalho da lista (F8, com o portrait). "Importar do Pathbuilder" é da F7.
+- **2.11** Seção "Criação de personagem" em `/mesa`, em chunk próprio. Tem as variantes, a raridade, o nível e a riqueza inicial, além dos livros com filtro e o conteúdo legado. Variantes que o motor ainda não calcula (ABP, PwL, Dual Class e Gradual Boosts) podem ser ligadas, com a nota de que saem com aviso.
+- **2.12** O `check-auth` cobre criar, salvar com `rev`, 409, 403 para build alheio, leitura somente leitura e lista sem `state`. Cobre também GM gravando e atribuindo dono, 413, lixeira e regras da mesa: GM real exigido inclusive com a cobrança desligada. Tudo certo, sem sobra de dados de teste.
+- **Verificação.** Build, lint, `check-builder`, `check-auth` e `check-migrations` passaram. Nada do Criador entrou no bundle principal.
+- **Próximo passo.** F3 (origem, classe nível 1, atributos e perícias) e F1B (atualização da base pela plataforma). A F3 depende de F1 e F2, ambas prontas.

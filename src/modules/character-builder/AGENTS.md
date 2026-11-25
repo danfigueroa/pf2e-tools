@@ -11,3 +11,8 @@
 - Publique somente após a confirmação em **Aplicar na mesa** para que sair do editor preserve a ficha que a mesa usa.
 - Converta pré-requisitos não cumpridos e efeitos sem suporte em avisos para permitir escolhas sem inventar números.
 - Deixe o conteúdo caseiro da mesa para a F9 e use o catálogo atual de relíquias da Ficha para preservar os personagens publicados.
+- Valide o `BuildState` com `sanitize.ts` no cliente e `build-sanitize.js` no servidor, com os mesmos casos no `check-builder`, porque o servidor não importa TS.
+- Mude o formato do `BuildState` subindo `schema` e convertendo em `migrateBuildState` dos dois lados, para que builds antigos continuem abrindo.
+- Grave escolhas só por `useBuild().update`, que muda o estado na hora, guarda o rascunho local e agenda o `build-save` com o `rev` visto.
+- Deixe o conflito (409) para a pessoa decidir no diálogo, porque gravar por cima sozinho apagaria o que outro aparelho salvou.
+- Leia o slug do build do servidor, porque ele é o primeiro livre na mesa entre builds e fichas publicadas; o `buildSlugFromName` do cliente é só prévia.

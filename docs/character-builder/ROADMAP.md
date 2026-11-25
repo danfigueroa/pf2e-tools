@@ -141,22 +141,22 @@ conteúdo novo depois de recarregar, e reimportar o mesmo livro não muda nada.
 **Objetivo**: o módulo existe, salva e carrega builds com autorização, e a mesa tem regras de criação.
 **Depende de**: F0. Pode andar junto com F1.
 
-- [ ] **2.1** Migration `criador_de_personagem`: `character_builds`, `character_build_versions`, `mesa_rules`,
+- [x] **2.1** Migration `criador_de_personagem`: `character_builds`, `character_build_versions`, `mesa_rules`,
       `sheets.build_id`, grants ao `service_role`, `pg_cron` da lixeira e do teto de versões, semente de `mesa_rules`
       (F0.3). `check-migrations` antes do commit.
-- [ ] **2.2** `api/_lib/build-store.js` (mesa como 1º parâmetro; fallback em memória) e `build-sanitize.js`.
-- [ ] **2.3** `api/_lib/build-handler.js` + despacho no `state-router.js` **antes** de `isSheetRequest`: `?builds=1`,
+- [x] **2.2** `api/_lib/build-store.js` (mesa como 1º parâmetro; fallback em memória) e `build-sanitize.js`.
+- [x] **2.3** `api/_lib/build-handler.js` + despacho no `state-router.js` **antes** de `isSheetRequest`: `?builds=1`,
       `?build=`, `?mesaRules=1`, `build-create` (slug estável único na mesa, checando `sheets`), `build-save` (rev/409,
       64 KB), `build-delete`/`build-restore`, `mesa-rules-save` (GM real sempre).
-- [ ] **2.4** Mensagens de erro novas em `api/_lib/i18n.js`.
-- [ ] **2.5** `server/index.mjs` servindo as mesmas rotas (dev local).
-- [ ] **2.6** `types.ts` (`BuildState`, `Choice`, `Warning`…), `sanitize.ts` (par do servidor), `migrateBuildState`.
-- [ ] **2.7** Rota `/personagens` em `App.tsx` (lazy), item "Personagens" em `NAV_ITEMS` (JOGO), palavras-chave da busca ⌘K; até a F7 o editor abre em `/personagens/:buildId` (rascunho sem ficha) e depois passa a ser o modo editar da Ficha.
-- [ ] **2.8** `hooks/useBuild.ts`: carregar, salvar com debounce 1,5 s, rascunho local (`mesaKey`), 409 → diálogo.
-- [ ] **2.9** Tela de lista (RF-001/002): cartões, estados, vazio, "Novo personagem".
-- [ ] **2.10** Somente leitura para build alheio (reaproveitar `ReadOnlyTheme` e o padrão `VIEW_OK`).
-- [ ] **2.11** `/mesa` → seção "Criação de personagem" (livros, raridade, variantes, nível/riqueza inicial) — GM.
-- [ ] **2.12** `check-auth.mjs` com os casos do PLANO-DE-TESTES §3.
+- [x] **2.4** Mensagens de erro novas em `api/_lib/i18n.js`.
+- [x] **2.5** `server/index.mjs` servindo as mesmas rotas (dev local).
+- [x] **2.6** `types.ts` (`BuildState`, `Choice`, `Warning`…), `sanitize.ts` (par do servidor), `migrateBuildState`.
+- [x] **2.7** Rota `/personagens` em `App.tsx` (lazy), item "Personagens" em `NAV_ITEMS` (JOGO), palavras-chave da busca ⌘K; até a F7 o editor abre em `/personagens/:buildId` (rascunho sem ficha) e depois passa a ser o modo editar da Ficha.
+- [x] **2.8** `hooks/useBuild.ts`: carregar, salvar com debounce 1,5 s, rascunho local (`mesaKey`), 409 → diálogo.
+- [x] **2.9** Tela de lista (RF-001/002): cartões, estados, vazio, "Novo personagem".
+- [x] **2.10** Somente leitura para build alheio (reaproveitar `ReadOnlyTheme` e o padrão `VIEW_OK`).
+- [x] **2.11** `/mesa` → seção "Criação de personagem" (livros, raridade, variantes, nível/riqueza inicial) — GM.
+- [x] **2.12** `check-auth.mjs` com os casos do PLANO-DE-TESTES §3.
 
 **Entregáveis**: tabelas no ar, rotas, lista e editor vazio funcionando com autosave.
 **Rodar**: `check-migrations`, `check-auth`, build, lint; conferir 320px.

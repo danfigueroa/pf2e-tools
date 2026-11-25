@@ -90,7 +90,7 @@ A mesa pode adotar essas variantes como **regras da casa**. Após o MVP, impleme
 interface MesaVariants {
   freeArchetype: boolean;
   mythic: { enabled: boolean; progression: 'level' | 'trials'; destinyAsArchetype?: boolean };
-  ancestryParagon: boolean;
+  ancestralParagon: boolean;
   abp: boolean;
   pwl: boolean;
   dualClass: boolean;
