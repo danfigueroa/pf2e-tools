@@ -1,5 +1,5 @@
 {
- "version": "2026.11.5",
+ "version": "2026.11.6",
  "generatedFrom": "Storage rules/<versão>",
  "lists": {
   "core/classes": [
@@ -13429,6 +13429,14 @@
     ],
     "classOption": {
      "class": "Rogue"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "will"
+      }
+     ]
     }
    },
    {
@@ -13593,6 +13601,26 @@
     ],
     "classOption": {
      "class": "Fighter"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "unarmored"
+      },
+      {
+       "rank": 2,
+       "target": "light"
+      },
+      {
+       "rank": 2,
+       "target": "medium"
+      },
+      {
+       "rank": 2,
+       "target": "heavy"
+      }
+     ]
     }
    },
    {
@@ -13628,6 +13656,26 @@
     ],
     "classOption": {
      "class": "Fighter"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "unarmored"
+      },
+      {
+       "rank": 3,
+       "target": "light"
+      },
+      {
+       "rank": 3,
+       "target": "medium"
+      },
+      {
+       "rank": 3,
+       "target": "heavy"
+      }
+     ]
     }
    },
    {
@@ -13649,6 +13697,22 @@
     "summary": "Your training and rage deepen your connection to your armor. Your proficiency ranks for light armor, medium armor, and unarmored defense increase to …",
     "classOption": {
      "class": "Barbarian"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "unarmored"
+      },
+      {
+       "rank": 3,
+       "target": "light"
+      },
+      {
+       "rank": 3,
+       "target": "medium"
+      }
+     ]
     }
    },
    {
@@ -13706,6 +13770,14 @@
     ],
     "classOption": {
      "class": "Guardian"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "fortitude"
+      }
+     ]
     }
    },
    {
@@ -13737,6 +13809,14 @@
     ],
     "classOption": {
      "class": "Fighter"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "fortitude"
+      }
+     ]
     }
    },
    {
@@ -13770,6 +13850,14 @@
     ],
     "classOption": {
      "class": "Fighter"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -13831,6 +13919,14 @@
     ],
     "classOption": {
      "class": "Fighter"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "will"
+      }
+     ]
     }
    },
    {
@@ -13861,6 +13957,22 @@
     ],
     "classOption": {
      "class": "Barbarian"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "simple"
+      },
+      {
+       "rank": 2,
+       "target": "martial"
+      },
+      {
+       "rank": 2,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -14651,6 +14763,14 @@
     "summary": "Your Strikes are so devastating that you hardly care about resistance, and your barbarian abilities are unparalleled. Your proficiency rank for your …",
     "classOption": {
      "class": "Barbarian"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "classDC"
+      }
+     ]
     }
    },
    {
@@ -14699,6 +14819,14 @@
     "summary": "Your training and your deity protect you from harm. Your proficiency rank in unarmored defense increases to expert.",
     "classOption": {
      "class": "Cleric"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "unarmored"
+      }
+     ]
     }
    },
    {
@@ -14815,6 +14943,14 @@
     ],
     "classOption": {
      "class": "Investigator"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "will"
+      }
+     ]
     }
    },
    {
@@ -15237,6 +15373,14 @@
     ],
     "classOption": {
      "class": "Rogue"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "reflex"
+      }
+     ]
     }
    },
    {
@@ -15257,6 +15401,14 @@
     "summary": "The magic of the spirits flows freely through you. Your proficiency ranks for spell attack modifier and spell DC increase to expert.",
     "classOption": {
      "class": "Animist"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "spell"
+      }
+     ]
     }
    },
    {
@@ -15281,6 +15433,14 @@
     ],
     "classOption": {
      "class": "Psychic"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "spell"
+      }
+     ]
     }
    },
    {
@@ -15302,6 +15462,14 @@
     "summary": "Your fundamental understanding of magic improves, making your spells harder to resist. Your proficiency ranks for your spell attack modifier and …",
     "classOption": {
      "class": "Magus"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "spell"
+      }
+     ]
     }
    },
    {
@@ -15323,6 +15491,14 @@
     "summary": "As your connection to your eidolon deepens, the power of your spells increases. Your proficiency ranks for the spell attack modifier and spell DC …",
     "classOption": {
      "class": "Summoner"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "spell"
+      }
+     ]
     }
    },
    {
@@ -15347,6 +15523,14 @@
     ],
     "classOption": {
      "class": "Bard"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "spell"
+      }
+     ]
     }
    },
    {
@@ -15371,6 +15555,14 @@
     ],
     "classOption": {
      "class": "Druid"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "spell"
+      }
+     ]
     }
    },
    {
@@ -15395,6 +15587,14 @@
     ],
     "classOption": {
      "class": "Witch"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "spell"
+      }
+     ]
     }
    },
    {
@@ -15419,6 +15619,14 @@
     ],
     "classOption": {
      "class": "Wizard"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "spell"
+      }
+     ]
     }
    },
    {
@@ -15440,6 +15648,14 @@
     "summary": "The intricacy of your divine power has grown clearer over time. Your proficiency ranks for spell attack modifier and spell DC increase to expert.",
     "classOption": {
      "class": "Oracle"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "spell"
+      }
+     ]
     }
    },
    {
@@ -15461,6 +15677,14 @@
     "summary": "Your inherent magic responds easily and powerfully to your command. Your proficiency ranks for spell attack modifier and spell DC increase to expert.",
     "classOption": {
      "class": "Sorcerer"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "spell"
+      }
+     ]
     }
    },
    {
@@ -15491,6 +15715,18 @@
     ],
     "classOption": {
      "class": "Monk"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "simple"
+      },
+      {
+       "rank": 2,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -15512,6 +15748,14 @@
     "summary": "Minor applications of clairvoyance let you know when danger is near. Your proficiency rank for Perception increases to expert.",
     "classOption": {
      "class": "Psychic"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -15533,6 +15777,14 @@
     "summary": "Your practiced techniques have made you even more formidable. Your proficiency rank for your fighter class DC increases to expert.",
     "classOption": {
      "class": "Fighter"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "classDC"
+      }
+     ]
     }
    },
    {
@@ -15597,9 +15849,13 @@
       ]
      }
     ],
+    "unsupported": [
+     "proficiency: Your proficiency rank increases to master with the simple weapons, martial weapons, and unarmed attacks in that group, and to expert with th"
+    ],
     "classOption": {
      "class": "Fighter"
-    }
+    },
+    "classFeature": {}
    },
    {
     "id": "class-feature:class-feature-929",
@@ -15656,6 +15912,14 @@
     "summary": "Your physique has grown hardy in your adventures. Your proficiency rank for Fortitude saves increases to expert.",
     "classOption": {
      "class": "Swashbuckler"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "fortitude"
+      }
+     ]
     }
    },
    {
@@ -15679,6 +15943,14 @@
     ],
     "classOption": {
      "class": "Animist"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "fortitude"
+      }
+     ]
     }
    },
    {
@@ -15699,6 +15971,14 @@
     "summary": "Your physique has grown hardy in your adventures. Your proficiency rank for Fortitude saves increases to expert.",
     "classOption": {
      "class": "Commander"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "fortitude"
+      }
+     ]
     }
    },
    {
@@ -15720,6 +16000,14 @@
     "summary": "Your mind holds your body to a subconscious mental  image of yourself. Your proficiency rank for Fortitude saves increases to expert.",
     "classOption": {
      "class": "Psychic"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "fortitude"
+      }
+     ]
     }
    },
    {
@@ -15741,6 +16029,14 @@
     "summary": "Your physique has grown hardy in your adventures. Your proficiency rank for Fortitude saves increases to expert.",
     "classOption": {
      "class": "Bard"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "fortitude"
+      }
+     ]
     }
    },
    {
@@ -15765,6 +16061,14 @@
     ],
     "classOption": {
      "class": "Druid"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "fortitude"
+      }
+     ]
     }
    },
    {
@@ -15786,6 +16090,14 @@
     "summary": "Your physique has grown hardy in your adventures. Your proficiency rank for Fortitude saves increases to expert.",
     "classOption": {
      "class": "Investigator"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "fortitude"
+      }
+     ]
     }
    },
    {
@@ -15830,6 +16142,14 @@
     ],
     "classOption": {
      "class": "Psychic"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 4,
+       "target": "will"
+      }
+     ]
     }
    },
    {
@@ -15886,8 +16206,23 @@
       "situational": true
      }
     ],
+    "unsupported": [
+     "proficiency: If you have qi spells, your proficiency rank for spell attack modifiers and spell DCs increases to master."
+    ],
     "classOption": {
      "class": "Monk"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 4,
+       "target": "unarmored"
+      },
+      {
+       "rank": 3,
+       "target": "classDC"
+      }
+     ]
     }
    },
    {
@@ -15909,6 +16244,14 @@
     "summary": "You move with perpetual grace, turning aside blows. Your proficiency rank for unarmored defense increases to master.",
     "classOption": {
      "class": "Monk"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "unarmored"
+      }
+     ]
     }
    },
    {
@@ -15953,6 +16296,14 @@
     ],
     "classOption": {
      "class": "Investigator"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 4,
+       "target": "will"
+      }
+     ]
     }
    },
    {
@@ -15997,6 +16348,14 @@
     ],
     "classOption": {
      "class": "Barbarian"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 4,
+       "target": "fortitude"
+      }
+     ]
     }
    },
    {
@@ -16041,6 +16400,14 @@
     ],
     "classOption": {
      "class": "Ranger"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 4,
+       "target": "reflex"
+      }
+     ]
     }
    },
    {
@@ -16085,6 +16452,14 @@
     ],
     "classOption": {
      "class": "Rogue"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 4,
+       "target": "reflex"
+      }
+     ]
     }
    },
    {
@@ -16522,6 +16897,14 @@
     "summary": "You notice things that are almost impossible for an ordinary person to detect. Your proficiency rank for Perception increases to legendary.",
     "classOption": {
      "class": "Investigator"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 4,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -16553,6 +16936,14 @@
     ],
     "classOption": {
      "class": "Barbarian"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "will"
+      }
+     ]
     }
    },
    {
@@ -16640,6 +17031,14 @@
     ],
     "classOption": {
      "class": "Investigator"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "classDC"
+      }
+     ]
     }
    },
    {
@@ -16661,6 +17060,14 @@
     "summary": "Your body is accustomed to physical hardship and resistant to ailments. Your proficiency rank for Fortitude saves increases to master. When you roll …",
     "classOption": {
      "class": "Inventor"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "fortitude"
+      }
+     ]
     }
    },
    {
@@ -16692,6 +17099,14 @@
     ],
     "classOption": {
      "class": "Barbarian"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "fortitude"
+      }
+     ]
     }
    },
    {
@@ -16805,6 +17220,14 @@
     ],
     "classOption": {
      "class": "Psychic"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 4,
+       "target": "spell"
+      }
+     ]
     }
    },
    {
@@ -16826,6 +17249,18 @@
     "summary": "You've learned how to dodge while wearing light or no armor. Your proficiency ranks for light armor and unarmored defense increase to expert.",
     "classOption": {
      "class": "Rogue"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "unarmored"
+      },
+      {
+       "rank": 2,
+       "target": "light"
+      }
+     ]
     }
    },
    {
@@ -16847,6 +17282,18 @@
     "summary": "You’ve learned how to dodge while wearing light or no armor. Your proficiency ranks for light armor and unarmored defense increase to expert.",
     "classOption": {
      "class": "Investigator"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "unarmored"
+      },
+      {
+       "rank": 2,
+       "target": "light"
+      }
+     ]
     }
    },
    {
@@ -16868,6 +17315,18 @@
     "summary": "Your skill with light armor improves, increasing your ability to dodge blows. Your proficiency ranks for light armor and unarmored defense increase …",
     "classOption": {
      "class": "Rogue"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "unarmored"
+      },
+      {
+       "rank": 3,
+       "target": "light"
+      }
+     ]
     }
    },
    {
@@ -16889,6 +17348,18 @@
     "summary": "Your skill with light armor improves, increasing your ability to dodge blows. Your proficiency ranks for light armor and unarmored defense increase …",
     "classOption": {
      "class": "Investigator"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "unarmored"
+      },
+      {
+       "rank": 3,
+       "target": "light"
+      }
+     ]
     }
    },
    {
@@ -16931,6 +17402,22 @@
     "summary": "You fully understand the intricacies of weapons. Your proficiency ranks for unarmed attacks, simple weapons, and martial weapons increase to master.",
     "classOption": {
      "class": "Ranger"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "simple"
+      },
+      {
+       "rank": 3,
+       "target": "martial"
+      },
+      {
+       "rank": 3,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -16952,6 +17439,14 @@
     "summary": "As a master detective, you can solve any case and find all the clues available. Your reputation precedes you, and even the most skilled criminals and …",
     "classOption": {
      "class": "Investigator"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "classDC"
+      }
+     ]
     }
    },
    {
@@ -16976,6 +17471,14 @@
     ],
     "classOption": {
      "class": "Psychic"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "spell"
+      }
+     ]
     }
    },
    {
@@ -16997,6 +17500,14 @@
     "summary": "You fortify your spells with masterful prowess. Your proficiency ranks for your spell attack modifier and spell DC increase to master.",
     "classOption": {
      "class": "Magus"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "spell"
+      }
+     ]
     }
    },
    {
@@ -17024,6 +17535,14 @@
     ],
     "classOption": {
      "class": "Rogue"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "classDC"
+      }
+     ]
     }
    },
    {
@@ -17045,6 +17564,18 @@
     "summary": "You’ve honed your body into an even deadlier weapon. Your proficiency ranks for unarmed attacks and simple weapons increase to master.",
     "classOption": {
      "class": "Monk"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "simple"
+      },
+      {
+       "rank": 3,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -17066,6 +17597,22 @@
     "summary": "You've mastered a rogue's fighting moves. Your proficiency ranks increase to master for all simple weapons, martial weapons, and unarmed attacks.",
     "classOption": {
      "class": "Rogue"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "simple"
+      },
+      {
+       "rank": 3,
+       "target": "martial"
+      },
+      {
+       "rank": 3,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -17115,12 +17662,21 @@
      }
     ],
     "unsupported": [
+     "proficiency: If you have warden spells, your proficiency rank for spell attacks and spell DCs increases to master.",
      "AdjustModifier",
      "DamageAlteration",
      "MultipleAttackPenalty"
     ],
     "classOption": {
      "class": "Ranger"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "classDC"
+      }
+     ]
     }
    },
    {
@@ -17167,6 +17723,22 @@
     ],
     "classOption": {
      "class": "Magus"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "unarmored"
+      },
+      {
+       "rank": 2,
+       "target": "light"
+      },
+      {
+       "rank": 2,
+       "target": "medium"
+      }
+     ]
     }
    },
    {
@@ -17191,6 +17763,22 @@
     ],
     "classOption": {
      "class": "Ranger"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "unarmored"
+      },
+      {
+       "rank": 2,
+       "target": "light"
+      },
+      {
+       "rank": 2,
+       "target": "medium"
+      }
+     ]
     }
    },
    {
@@ -17212,6 +17800,22 @@
     "summary": "You’ve learned to defend yourself better against attacks. Your proficiency ranks for light armor, medium armor, and unarmored defense increase to …",
     "classOption": {
      "class": "Barbarian"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "unarmored"
+      },
+      {
+       "rank": 2,
+       "target": "light"
+      },
+      {
+       "rank": 2,
+       "target": "medium"
+      }
+     ]
     }
    },
    {
@@ -17233,6 +17837,22 @@
     "summary": "Your skill with light and medium armor improves, increasing your ability to avoid blows. Your proficiency ranks for light and medium armor, as well …",
     "classOption": {
      "class": "Magus"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "unarmored"
+      },
+      {
+       "rank": 3,
+       "target": "light"
+      },
+      {
+       "rank": 3,
+       "target": "medium"
+      }
+     ]
     }
    },
    {
@@ -17254,6 +17874,22 @@
     "summary": "Your skill with light and medium armor improves, increasing your ability to avoid blows. Your proficiency ranks for light and medium armor, as well …",
     "classOption": {
      "class": "Ranger"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "unarmored"
+      },
+      {
+       "rank": 3,
+       "target": "light"
+      },
+      {
+       "rank": 3,
+       "target": "medium"
+      }
+     ]
     }
    },
    {
@@ -17393,6 +18029,14 @@
     ],
     "classOption": {
      "class": "Barbarian"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "classDC"
+      }
+     ]
     }
    },
    {
@@ -17445,8 +18089,19 @@
       "situational": true
      }
     ],
+    "unsupported": [
+     "proficiency: If you have qi spells, your proficiency rank for spell attacks and spell DCs increases to expert."
+    ],
     "classOption": {
      "class": "Monk"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "classDC"
+      }
+     ]
     }
    },
    {
@@ -17512,6 +18167,14 @@
     ],
     "classOption": {
      "class": "Ranger"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "reflex"
+      }
+     ]
     }
    },
    {
@@ -17661,11 +18324,13 @@
      }
     ],
     "unsupported": [
+     "proficiency: Your proficiency rank for the chosen saving throw increases to master.",
      "ActiveEffectLike:system.saves.{item|flags"
     ],
     "classOption": {
      "class": "Monk"
-    }
+    },
+    "classFeature": {}
    },
    {
     "id": "class-feature:class-feature-1048",
@@ -17685,6 +18350,14 @@
     "summary": "Your apparitions call attention to minute details you might otherwise overlook. Your proficiency rank for Perception increases to expert.",
     "classOption": {
      "class": "Animist"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -17705,6 +18378,14 @@
     "summary": "You remain alert to threats around you. Your proficiency rank for Perception increases to expert.",
     "classOption": {
      "class": "Exemplar"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -17726,6 +18407,14 @@
     "summary": "You've developed keen awareness and attention to detail. Your proficiency rank for Perception increases to master.",
     "classOption": {
      "class": "Thaumaturge"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -17747,6 +18436,14 @@
     "summary": "You remain alert to threats around you. Your proficiency rank for Perception increases to expert.",
     "classOption": {
      "class": "Magus"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -17767,6 +18464,14 @@
     "summary": "You remain alert to threats around you. Your proficiency rank for Perception increases to expert.",
     "classOption": {
      "class": "Necromancer"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -17787,6 +18492,14 @@
     "summary": "You remain alert to threats around you. Your proficiency rank for Perception increases to expert.",
     "classOption": {
      "class": "Runesmith"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -17808,6 +18521,14 @@
     "summary": "You remain alert to threats around you. Your proficiency rank for Perception increases to expert.",
     "classOption": {
      "class": "Cleric"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -17829,6 +18550,14 @@
     "summary": "You remain alert to threats around you. Your proficiency rank for Perception increases to expert.",
     "classOption": {
      "class": "Druid"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -17850,6 +18579,14 @@
     "summary": "You remain alert to threats around you. Your proficiency rank for Perception increases to expert.",
     "classOption": {
      "class": "Witch"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -17871,6 +18608,14 @@
     "summary": "You remain alert to threats around you. Your proficiency rank for Perception increases to expert.",
     "classOption": {
      "class": "Wizard"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -17892,6 +18637,14 @@
     "summary": "You remain alert to threats around you. Your proficiency rank for Perception increases to expert.",
     "classOption": {
      "class": "Alchemist"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -17913,6 +18666,14 @@
     "summary": "You remain alert to threats around you. Your proficiency rank for Perception increases to expert.",
     "classOption": {
      "class": "Champion"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -17934,6 +18695,14 @@
     "summary": "You remain alert to threats around you. Your proficiency rank for Perception increases to expert.",
     "classOption": {
      "class": "Monk"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -17955,6 +18724,14 @@
     "summary": "You remain alert to threats around you. Your proficiency rank for Perception increases to expert.",
     "classOption": {
      "class": "Sorcerer"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -17976,6 +18753,14 @@
     "summary": "You notice the almost imperceptible. Your proficiency rank for Perception increases to legendary.",
     "classOption": {
      "class": "Ranger"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 4,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -17997,6 +18782,14 @@
     "summary": "You notice things almost impossible for an ordinary person to detect. Your proficiency rank for Perception increases to legendary.",
     "classOption": {
      "class": "Rogue"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 4,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -18018,6 +18811,14 @@
     "summary": "Through your adventures, you’ve developed keen awareness and attention to detail. Your proficiency rank for Perception increases to master.",
     "classOption": {
      "class": "Swashbuckler"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -18038,6 +18839,14 @@
     "summary": "Through your adventures, you've developed keen awareness and attention to detail, the better to watch over your wards and keep an eye out for …",
     "classOption": {
      "class": "Exemplar"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -18058,6 +18867,14 @@
     "summary": "You’ve developed the ability to see a scenario from every side. Your proficiency rank for Perception increases to master.",
     "classOption": {
      "class": "Commander"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -18082,6 +18899,14 @@
     ],
     "classOption": {
      "class": "Gunslinger"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -18103,6 +18928,14 @@
     "summary": "You've developed keen awareness and attention to detail. Your proficiency rank for Perception increases to master.",
     "classOption": {
      "class": "Bard"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -18127,6 +18960,14 @@
     ],
     "classOption": {
      "class": "Ranger"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -18151,6 +18992,14 @@
     ],
     "classOption": {
      "class": "Rogue"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -18172,6 +19021,14 @@
     "summary": "Your instinct heightens each of your senses further. Your proficiency rank for Perception increases to master.",
     "classOption": {
      "class": "Barbarian"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -18214,6 +19071,14 @@
     "summary": "Subtle telekinetic fields dampen and deflect incoming blows. Your proficiency rank in unarmored defense increases to expert.",
     "classOption": {
      "class": "Psychic"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "unarmored"
+      }
+     ]
     }
    },
    {
@@ -18368,6 +19233,14 @@
     "summary": "Minor precognition ensures you can react to threats slightly before they occur. Your proficiency rank for Reflex saves increases to expert.",
     "classOption": {
      "class": "Psychic"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "reflex"
+      }
+     ]
     }
    },
    {
@@ -18535,8 +19408,19 @@
       "situational": true
      }
     ],
+    "unsupported": [
+     "proficiency: If you have warden spells, your proficiency rank for spell attacks and spell DCs increases to expert."
+    ],
     "classOption": {
      "class": "Ranger"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "classDC"
+      }
+     ]
     }
    },
    {
@@ -18573,6 +19457,22 @@
     ],
     "classOption": {
      "class": "Ranger"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "simple"
+      },
+      {
+       "rank": 2,
+       "target": "martial"
+      },
+      {
+       "rank": 2,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -18678,6 +19578,14 @@
     "summary": "Even in the heaviest of armors, you can brace yourself against widespread effects. Your proficiency rank for Reflex saves increases to expert.",
     "classOption": {
      "class": "Guardian"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "reflex"
+      }
+     ]
     }
    },
    {
@@ -18699,6 +19607,14 @@
     "summary": "You’ve developed a knack for dodging danger. Your proficiency rank for Reflex saves increases to expert.",
     "classOption": {
      "class": "Magus"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "reflex"
+      }
+     ]
     }
    },
    {
@@ -18719,6 +19635,14 @@
     "summary": "You’ve developed a knack for dodging danger. Your proficiency rank for Reflex saves increases to expert.",
     "classOption": {
      "class": "Necromancer"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "reflex"
+      }
+     ]
     }
    },
    {
@@ -18739,6 +19663,14 @@
     "summary": "You’ve developed a knack for dodging danger. Your proficiency rank for Reflex saves increases to expert.",
     "classOption": {
      "class": "Runesmith"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "reflex"
+      }
+     ]
     }
    },
    {
@@ -18760,6 +19692,14 @@
     "summary": "Your reflexes are lightning fast. Your proficiency rank for Reflex saves increases to expert.",
     "classOption": {
      "class": "Inventor"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "reflex"
+      }
+     ]
     }
    },
    {
@@ -18781,6 +19721,14 @@
     "summary": "You've developed a knack for dodging danger. Your proficiency rank for Reflex saves increases to expert.",
     "classOption": {
      "class": "Bard"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "reflex"
+      }
+     ]
     }
    },
    {
@@ -18802,6 +19750,14 @@
     "summary": "You've developed a knack for dodging danger. Your proficiency rank for Reflex saves increases to expert.",
     "classOption": {
      "class": "Cleric"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "reflex"
+      }
+     ]
     }
    },
    {
@@ -18823,6 +19779,14 @@
     "summary": "You've honed your ability to dodge dangers. Your proficiency rank for Reflex saves increases to expert.",
     "classOption": {
      "class": "Druid"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "reflex"
+      }
+     ]
     }
    },
    {
@@ -18844,6 +19808,14 @@
     "summary": "Your reflexes are lightning fast, helping you avoid danger. Your proficiency rank for Reflex saves increases to expert.",
     "classOption": {
      "class": "Witch"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "reflex"
+      }
+     ]
     }
    },
    {
@@ -18865,6 +19837,14 @@
     "summary": "You've developed a knack for dodging danger. Your proficiency rank for Reflex saves increases to expert.",
     "classOption": {
      "class": "Wizard"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "reflex"
+      }
+     ]
     }
    },
    {
@@ -18886,6 +19866,14 @@
     "summary": "You’ve developed a knack for dodging danger. Your proficiency rank for Reflex saves increases to expert.",
     "classOption": {
      "class": "Barbarian"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "reflex"
+      }
+     ]
     }
    },
    {
@@ -18907,6 +19895,14 @@
     "summary": "You’ve developed a knack for dodging danger. Your proficiency rank for Reflex saves increases to expert.",
     "classOption": {
      "class": "Champion"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "reflex"
+      }
+     ]
     }
    },
    {
@@ -18928,6 +19924,14 @@
     "summary": "Your reflexes are lightning fast. Your proficiency rank for Reflex saves increases to expert.",
     "classOption": {
      "class": "Sorcerer"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "reflex"
+      }
+     ]
     }
    },
    {
@@ -18959,6 +19963,14 @@
     ],
     "classOption": {
      "class": "Cleric"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "will"
+      }
+     ]
     }
    },
    {
@@ -19001,6 +20013,14 @@
     "summary": "Your techniques are now harder to resist. Your proficiency rank for your rogue class DC increases to expert.",
     "classOption": {
      "class": "Rogue"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "classDC"
+      }
+     ]
     }
    },
    {
@@ -19032,6 +20052,14 @@
     ],
     "classOption": {
      "class": "Rogue"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "fortitude"
+      }
+     ]
     }
    },
    {
@@ -19155,6 +20183,14 @@
     ],
     "classOption": {
      "class": "Investigator"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "reflex"
+      }
+     ]
     }
    },
    {
@@ -19259,11 +20295,13 @@
      }
     ],
     "unsupported": [
+     "proficiency: Your proficiency rank for the chosen saving throw increases to master.",
      "ActiveEffectLike:system.saves.{item|flags"
     ],
     "classOption": {
      "class": "Monk"
-    }
+    },
+    "classFeature": {}
    },
    {
     "id": "implement:implement-11",
@@ -19796,6 +20834,14 @@
     ],
     "classOption": {
      "class": "Magus"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "fortitude"
+      }
+     ]
     }
    },
    {
@@ -20055,6 +21101,14 @@
     ],
     "classOption": {
      "class": "Fighter"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "reflex"
+      }
+     ]
     }
    },
    {
@@ -20302,11 +21356,13 @@
      }
     ],
     "unsupported": [
+     "proficiency: Your proficiency rank for the chosen type of save increases to legendary.",
      "ActiveEffectLike:system.saves.{item|flags"
     ],
     "classOption": {
      "class": "Monk"
-    }
+    },
+    "classFeature": {}
    },
    {
     "id": "class-feature:class-feature-723",
@@ -20358,6 +21414,14 @@
     ],
     "classOption": {
      "class": "Magus"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "will"
+      }
+     ]
     }
    },
    {
@@ -20430,6 +21494,30 @@
     "summary": "You are nigh-unmatched with any weapon. Your proficiency ranks for simple weapons, martial weapons, and unarmed attacks increase to legendary, and …",
     "classOption": {
      "class": "Fighter"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 4,
+       "target": "simple"
+      },
+      {
+       "rank": 4,
+       "target": "martial"
+      },
+      {
+       "rank": 4,
+       "target": "unarmed"
+      },
+      {
+       "rank": 3,
+       "target": "advanced"
+      },
+      {
+       "rank": 3,
+       "target": "classDC"
+      }
+     ]
     }
    },
    {
@@ -20451,6 +21539,14 @@
     "summary": "Through your adventures, you’ve developed keen awareness and attention to detail. Your proficiency rank in Perception increases to master.",
     "classOption": {
      "class": "Investigator"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "perception"
+      }
+     ]
     }
    },
    {
@@ -20482,6 +21578,14 @@
     ],
     "classOption": {
      "class": "Psychic"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "will"
+      }
+     ]
     }
    },
    {
@@ -20537,6 +21641,14 @@
     ],
     "classOption": {
      "class": "Ranger"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "fortitude"
+      }
+     ]
     }
    },
    {
@@ -20589,6 +21701,22 @@
     ],
     "classOption": {
      "class": "Swashbuckler"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "simple"
+      },
+      {
+       "rank": 2,
+       "target": "martial"
+      },
+      {
+       "rank": 2,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -20609,6 +21737,22 @@
     "summary": "You've dedicated yourself to learning the intricacies of your weapons. Your proficiency ranks for unarmed attacks, simple weapons, and martial …",
     "classOption": {
      "class": "Exemplar"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "simple"
+      },
+      {
+       "rank": 2,
+       "target": "martial"
+      },
+      {
+       "rank": 2,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -20629,6 +21773,22 @@
     "summary": "Sometimes, the best defense is a good offense. Your proficiency ranks for simple weapons, martial weapons, and unarmed attacks increase to expert.",
     "classOption": {
      "class": "Guardian"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "simple"
+      },
+      {
+       "rank": 2,
+       "target": "martial"
+      },
+      {
+       "rank": 2,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -20650,6 +21810,18 @@
     "summary": "Training has improved your weapon technique, possibly enhanced by your occult magic. Your proficiency rank   for simple weapons and unarmed attacks …",
     "classOption": {
      "class": "Psychic"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "simple"
+      },
+      {
+       "rank": 2,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -20671,6 +21843,22 @@
     "summary": "You've learned the secret ways your weapons work most effectively. Your proficiency ranks for unarmed attacks, simple weapons, and martial weapons …",
     "classOption": {
      "class": "Thaumaturge"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "simple"
+      },
+      {
+       "rank": 2,
+       "target": "martial"
+      },
+      {
+       "rank": 2,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -20733,6 +21921,22 @@
     ],
     "classOption": {
      "class": "Magus"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "simple"
+      },
+      {
+       "rank": 2,
+       "target": "martial"
+      },
+      {
+       "rank": 2,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -20753,6 +21957,18 @@
     "summary": "You’ve dedicated yourself to learning the intricacies of your weapons. Your proficiency ranks for simple weapons and unarmed attacks increase to …",
     "classOption": {
      "class": "Necromancer"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "simple"
+      },
+      {
+       "rank": 2,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -20814,6 +22030,22 @@
     ],
     "classOption": {
      "class": "Runesmith"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "simple"
+      },
+      {
+       "rank": 2,
+       "target": "martial"
+      },
+      {
+       "rank": 2,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -20849,6 +22081,18 @@
     ],
     "classOption": {
      "class": "Druid"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "simple"
+      },
+      {
+       "rank": 2,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -20884,6 +22128,18 @@
     ],
     "classOption": {
      "class": "Witch"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "simple"
+      },
+      {
+       "rank": 2,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -20919,6 +22175,18 @@
     ],
     "classOption": {
      "class": "Wizard"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "simple"
+      },
+      {
+       "rank": 2,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -20940,6 +22208,22 @@
     "summary": "You’ve dedicated yourself to learning the intricacies of your weapons. Your proficiency ranks for simple weapons, martial weapons, and unarmed …",
     "classOption": {
      "class": "Champion"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "simple"
+      },
+      {
+       "rank": 2,
+       "target": "martial"
+      },
+      {
+       "rank": 2,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -20961,6 +22245,22 @@
     "summary": "You’ve dedicated yourself to learning the intricacies of your weapons. Your proficiency ranks for simple weapons, martial weapons, and unarmed …",
     "classOption": {
      "class": "Investigator"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "simple"
+      },
+      {
+       "rank": 2,
+       "target": "martial"
+      },
+      {
+       "rank": 2,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -20982,6 +22282,18 @@
     "summary": "You’ve dedicated yourself to learning the intricacies of your weapons. Your proficiency ranks for simple weapons and unarmed attacks increase to …",
     "classOption": {
      "class": "Oracle"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "simple"
+      },
+      {
+       "rank": 2,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -21003,6 +22315,18 @@
     "summary": "You’ve improved your combat skill. Your proficiency ranks for simple weapons and unarmed attacks increase to expert.",
     "classOption": {
      "class": "Sorcerer"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "simple"
+      },
+      {
+       "rank": 2,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -21058,6 +22382,26 @@
     ],
     "classOption": {
      "class": "Fighter"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "simple"
+      },
+      {
+       "rank": 3,
+       "target": "martial"
+      },
+      {
+       "rank": 3,
+       "target": "unarmed"
+      },
+      {
+       "rank": 2,
+       "target": "advanced"
+      }
+     ]
     }
    },
    {
@@ -21079,6 +22423,22 @@
     "summary": "You fully understand your weapons. Your proficiency ranks for simple weapons, martial weapons, and unarmed attacks increase to master.",
     "classOption": {
      "class": "Magus"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "simple"
+      },
+      {
+       "rank": 3,
+       "target": "martial"
+      },
+      {
+       "rank": 3,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -21100,6 +22460,22 @@
     "summary": "Your rage makes you even more effective with the weapons you wield. Your proficiency ranks for simple weapons, martial weapons, and unarmed attacks …",
     "classOption": {
      "class": "Barbarian"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "simple"
+      },
+      {
+       "rank": 3,
+       "target": "martial"
+      },
+      {
+       "rank": 3,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -21121,6 +22497,22 @@
     "summary": "You fully understand your weapons. Your proficiency ranks for simple weapons, martial weapons, and unarmed attacks increase to master.",
     "classOption": {
      "class": "Investigator"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 3,
+       "target": "simple"
+      },
+      {
+       "rank": 3,
+       "target": "martial"
+      },
+      {
+       "rank": 3,
+       "target": "unarmed"
+      }
+     ]
     }
    },
    {
@@ -21819,6 +23211,14 @@
     "summary": "Your mental defenses grow stronger. Your proficiency rank for Will saves increases to expert.",
     "classOption": {
      "class": "Ranger"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "will"
+      }
+     ]
     }
    },
    {
@@ -21840,6 +23240,14 @@
     "summary": "Your mental defenses grow stronger. Your proficiency rank for will saves increases to expert.",
     "classOption": {
      "class": "Alchemist"
+    },
+    "classFeature": {
+     "proficiencies": [
+      {
+       "rank": 2,
+       "target": "will"
+      }
+     ]
     }
    }
   ],

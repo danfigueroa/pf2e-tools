@@ -176,9 +176,8 @@ const { compileBuild, proficiencyBonus } = await import('../src/modules/characte
 const { attributeScore } = await import('../src/modules/character-builder/engine/attributes.ts')
 const { readFileSync, readdirSync } = await import('node:fs')
 const fixture = JSON.parse(readFileSync(new URL('./rules-data/fixture.json', import.meta.url), 'utf8')).lists
-const byId = new Map()
-for (const list of Object.values(fixture)) if (Array.isArray(list)) for (const entry of list) if (entry?.id) byId.set(entry.id, entry)
-const rules = { get: (id) => (id ? byId.get(id) : undefined), languages: fixture['core/languages'] }
+const { buildRulesIndex } = await import('../src/modules/character-builder/engine/rulesIndex.ts')
+const rules = buildRulesIndex(Object.values(fixture).filter(Array.isArray), fixture['core/languages'])
 const find = (list, name) => fixture[list].find((e) => e.name === name)
 const ctx = { rules }
 const base = (over = {}) => ({ ...serverSanitize.emptyBuildState('Teste', fixture.version ?? ''), ...over })
@@ -215,7 +214,7 @@ expect('CD de classe', out.stats.classDC?.total, 17)
 expect('velocidade', out.stats.speed.total, 25)
 expect('perícias treinadas', Object.entries(out.skills.rank).filter(([, r]) => r === 1).map(([k]) => k).sort(), ['athletics', 'crafting', 'intimidation', 'survival'])
 expect('Lores', out.skills.lores.map((l) => l.name).sort(), ['Art', 'Warfare'])
-expect('sem pendências de atributo, perícia e origem (só herança e idiomas)', out.pending.map((p) => p.key).sort(), ['heritage'])
+expect('pendências: herança, talentos do nível 1 e a escolha do Specialty Crafting (do Artist)', out.pending.map((p) => p.key).sort(), ['ancestry-feat-1', 'awarded:feat-5216/choice:specialtyCrafting', 'class-feat-1', 'heritage'])
 expect('sem avisos de boost', out.warnings.filter((w) => w.code.startsWith('BOOST')), [])
 expect('bônus de proficiência destreinado = 0', proficiencyBonus(0, 5), 0)
 expect('bônus de proficiência mestre no 7 = 13', proficiencyBonus(3, 7), 13)
@@ -293,6 +292,68 @@ for (const file of readdirSync(new URL('../public/characters/', import.meta.url)
     castChecked++
 }
 expect('elenco conferido (ao menos 5 personagens Remaster)', castChecked >= 5, true)
+
+console.log('Motor: slots de talento do elenco (M2, gabarito: export do Pathbuilder)')
+// As duas mesas usam Free Archetype e Mítico (F0.3). Ancestry Paragon fica desligado: o elenco usa o TALENTO geral
+// "Ancestral Paragon", não a variante (com ela, sobrariam slots no 3/7/11… em todos).
+const castMesa = { ...serverStore.DEFAULT_MESA_RULES, variants: { ...serverStore.DEFAULT_MESA_RULES.variants, freeArchetype: true, mythic: { enabled: true, progression: 'level' } } }
+const SLOT_LABEL = [[/^Free Archetype (\d+)$/, 'archetype'], [/^Mythic Feat (\d+)$/, 'mythic'], [/^Skill Feat (\d+)$/, 'skill'], [/^Skill Lessons (\d+)$/, 'skill'], [/^General Feat (\d+)$/, 'general'], [/^Combat Flexibility$/, 'flexibility']]
+let unknownFeats = 0
+for (const file of readdirSync(new URL('../public/characters/', import.meta.url)).filter((x) => x.endsWith('.json'))) {
+    const b = JSON.parse(readFileSync(new URL(`../public/characters/${file}`, import.meta.url), 'utf8')).build
+    const cls = find('core/classes', b.class)
+    if (!cls) continue
+    const choices = {}
+    for (const ft of b.feats) {
+        const label = ft[4]
+        if (!label || ft[5] === 'childChoice' || label === 'Heritage Feat' || label.startsWith('BACKGROUND_')) continue
+        let key = null
+        for (const [re, kind] of SLOT_LABEL) { const m = re.exec(label); if (m) key = `${kind}-feat-${m[1] ?? ft[3]}` }
+        let m = new RegExp(`^${b.class} Feat (\\d+)$`).exec(label)
+        if (m) key = `class-feat-${m[1]}`
+        m = /^(.+) Feat (\d+)$/.exec(label)
+        if (!key && m) key = `ancestry-feat-${m[2]}`
+        if (!key) continue
+        const entry = rules.byName(ft[0], 'feat')
+        if (entry) choices[key] = { id: entry.id }
+        else unknownFeats++
+        choices[`__expect:${key}`] = true
+    }
+    const expected = Object.keys(choices).filter((k) => k.startsWith('__expect:')).map((k) => k.slice(9))
+    for (const k of Object.keys(choices)) if (k.startsWith('__expect:')) delete choices[k]
+    const fa = expected.some((k) => k.startsWith('archetype-'))
+    const state = base({ level: b.level, class: { id: cls.id }, origin: { ancestry: find('core/ancestries', b.ancestry)?.id }, choices, options: { variants: { freeArchetype: fa } } })
+    const out = compileBuild(state, { rules, mesaRules: castMesa })
+    const got = out.featSlots.filter((x) => x.level <= b.level).map((x) => x.key).sort()
+    expect(`${b.name}: slots de talento iguais aos do Pathbuilder`, got, [...expected].sort())
+    const phantom = out.pending.filter((p) => /-feat-\d+$/.test(p.key) && choices[p.key])
+    expect(`${b.name}: nenhuma pendência fantasma nos slots preenchidos`, phantom.map((p) => p.key), [])
+}
+console.log(`  (${unknownFeats} talentos do elenco fora do recorte Remaster: conteúdo legado)`)
+
+console.log('Motor: progressão da classe e talentos (proficiências por nível)')
+const ghan = JSON.parse(readFileSync(new URL('../public/characters/ghanburi10.json', import.meta.url), 'utf8')).build
+const f10 = compileBuild(base({ level: 10, class: { id: fighter.id } }), ctx)
+const P = ghan.proficiencies
+expect('Fighter 10: Percepção, salvaguardas, armas e armaduras iguais ao Ghan Buri', {
+    perception: f10.proficiency.perception, fortitude: f10.proficiency.fortitude, reflex: f10.proficiency.reflex, will: f10.proficiency.will,
+    simple: f10.proficiency.attacks.simple, martial: f10.proficiency.attacks.martial, heavy: f10.proficiency.defenses.heavy, unarmored: f10.proficiency.defenses.unarmored,
+}, { perception: P.perception / 2, fortitude: P.fortitude / 2, reflex: P.reflex / 2, will: P.will / 2, simple: P.simple / 2, martial: P.martial / 2, heavy: P.heavy / 2, unarmored: P.unarmored / 2 })
+const toughness = rules.byName('Toughness', 'feat')
+const fleet = rules.byName('Fleet', 'feat')
+const withFeats = compileBuild({ ...hf, level: 3, choices: { ...hf.choices, 'general-feat-3': { id: toughness.id } } }, ctx)
+// Toughness: PV máximo + nível (FlatModifier "@actor.level").
+expect('Toughness soma o nível aos PV', withFeats.stats.hp.total - compileBuild({ ...hf, level: 3 }, ctx).stats.hp.total, 3)
+expect('Fleet soma 5 ao deslocamento', compileBuild({ ...hf, level: 3, choices: { ...hf.choices, 'general-feat-3': { id: fleet.id } } }, ctx).stats.speed.total, 30)
+const canny = rules.byName('Canny Acumen', 'feat')
+const cannyOut = compileBuild({ ...hf, level: 3, choices: { ...hf.choices, 'general-feat-3': { id: canny.id }, 'general-feat-3/choice:cannyAcumen': { value: 'system.saves.will.rank' } } }, ctx)
+expect('Canny Acumen (escolha Vontade) deixa Vontade perita', cannyOut.proficiency.will, 2)
+expect('Canny Acumen sem escolha vira pendência', compileBuild({ ...hf, level: 3, choices: { ...hf.choices, 'general-feat-3': { id: canny.id } } }, ctx).pending.some((p) => p.key === 'general-feat-3/choice:cannyAcumen'), true)
+const battleMed = rules.byName('Battle Medicine', 'feat')
+const bm = compileBuild({ ...hf, level: 2, choices: { ...hf.choices, 'skill-feat-2': { id: battleMed.id } } }, ctx)
+expect('Battle Medicine sem treino em Medicina reprova o pré-requisito', bm.warnings.some((w) => w.code === 'PREREQ_FAIL' && w.ref === 'skill-feat-2'), true)
+const wrong = compileBuild({ ...hf, level: 2, choices: { ...hf.choices, 'class-feat-2': { id: toughness.id } } }, ctx)
+expect('talento geral no slot de classe avisa', wrong.warnings.some((w) => w.code === 'WRONG_SLOT'), true)
 
 console.log(failures === 0 ? `\n${passed} conferências ok.` : `\n${failures} falha(s), ${passed} ok.`)
 process.exit(failures === 0 ? 0 : 1)
