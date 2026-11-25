@@ -64,7 +64,7 @@ export interface UseRules {
     error: boolean
 }
 
-export function useRules(needs?: FeatListNeeds): UseRules & { feats: RuleEntry[]; tables: { spellSlots?: SpellSlotTable } | null } {
+export function useRules(needs?: FeatListNeeds): UseRules & { feats: RuleEntry[]; tables: { spellSlots?: SpellSlotTable } | null; setMesaRules: (r: MesaRules) => void } {
     const [tables, setTables] = useState<{ spellSlots?: SpellSlotTable } | null>(null)
     const [core, setCore] = useState<CoreRules | null>(null)
     const [featLists, setFeatLists] = useState<Record<string, RuleEntry[]>>({})
@@ -105,5 +105,5 @@ export function useRules(needs?: FeatListNeeds): UseRules & { feats: RuleEntry[]
         return buildRulesIndex([core.ancestries, core.heritages, core.backgrounds, core.classes, core.languages, core.classFeatures, feats], core.languages)
     }, [core, feats])
 
-    return { core, index, mesaRules, error, feats, tables }
+    return { core, index, mesaRules, error, feats, tables, setMesaRules }
 }

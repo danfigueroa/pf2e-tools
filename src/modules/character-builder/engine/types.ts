@@ -38,6 +38,8 @@ export interface CompileContext {
     mesaRules?: MesaRules
     /** Opções de escolha de classe (`core/class-features`, tipos como `doctrine`, `racket`…). */
     classOptions?: RuleEntry[]
+    /** O build compilado: as exceções da mesa valem só para ele. */
+    buildId?: string
     /** Tabelas curadas (`core/tables`): magias por dia. */
     tables?: { spellSlots?: SpellSlotTable }
 }
@@ -50,6 +52,8 @@ export interface Warning {
     message: string
     /** Slot ou id envolvido (para o painel levar até a escolha). */
     ref?: string
+    /** Entrada do catálogo que o aviso cita (o GM pode liberar só para este personagem). */
+    entryId?: string
 }
 
 /** Uma escolha que falta até o nível atual. */

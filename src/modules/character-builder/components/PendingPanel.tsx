@@ -9,11 +9,13 @@ const SEVERITY: Record<Warning['level'], 'info' | 'warning' | 'error'> = { info:
  * Pendências (escolhas que faltam até o nível atual) e avisos do motor. Avisos não travam nada (regra global 8): mostram
  * o que conferir. "Escolha sem lugar" pode ser descartada.
  */
-export function PendingPanel({ compiled, onGo, onDiscard, canEdit }: {
+export function PendingPanel({ compiled, onGo, onDiscard, canEdit, onAllow }: {
   compiled: Compiled;
   onGo: (tab: BuilderTab) => void;
   onDiscard: (choiceKey: string) => void;
   canEdit: boolean;
+  /** GM: libera a entrada só para este personagem (exceção nas regras da mesa). */
+  onAllow?: (entryId: string) => void;
 }) {
   const { pending, warnings } = compiled;
   const label = (p: Pending) => (p.missing > 1 ? `${p.label} (${p.missing})` : p.label);
@@ -41,7 +43,9 @@ export function PendingPanel({ compiled, onGo, onDiscard, canEdit }: {
               <Alert key={`${w.code}-${w.ref ?? ''}-${i}`} severity={SEVERITY[w.level]} sx={{ py: 0, '& .MuiAlert-message': { overflowWrap: 'anywhere' } }}
                 action={w.code === 'ORPHAN_CHOICE' && w.ref && canEdit
                   ? <Button color="inherit" size="small" onClick={() => onDiscard(w.ref as string)}>{tr('Descartar', 'Discard')}</Button>
-                  : undefined}>
+                  : w.entryId && onAllow
+                    ? <Button color="inherit" size="small" data-view="" onClick={() => onAllow(w.entryId as string)}>{tr('Liberar', 'Allow')}</Button>
+                    : undefined}>
                 <Box component="span" onClick={() => onGo(tabOf(w.ref))} sx={{ cursor: 'pointer' }}>{w.message}</Box>
               </Alert>
             ))}

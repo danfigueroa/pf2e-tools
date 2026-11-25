@@ -41,17 +41,17 @@ function sourceWarnings(entry: RuleEntry, ctx: CompileContext, ref: string, warn
     if (rules) {
         // Lista de livros vazia = o GM ainda não restringiu (mesa nova): não avisa por livro.
         const allowed = (rules.sources.allow.length === 0 || rules.sources.allow.includes(entry.source.id)) && !(rules.sources.deny ?? []).includes(entry.source.id)
-        const exception = rules.exceptions.some((e) => e.ids.includes(entry.id))
+        const exception = rules.exceptions.some((e) => (!ctx.buildId || e.buildId === ctx.buildId) && e.ids.includes(entry.id))
         if (!allowed && !exception) {
-            warnings.push({ code: 'SOURCE_NOT_ALLOWED', level: 'warn', ref, message: tr(`${entry.name}: livro não liberado nesta mesa.`, `${entry.name}: book not allowed at this table.`) })
+            warnings.push({ code: 'SOURCE_NOT_ALLOWED', level: 'warn', ref, entryId: entry.id, message: tr(`${entry.name}: livro não liberado nesta mesa.`, `${entry.name}: book not allowed at this table.`) })
         }
         if (!entry.remaster && !rules.legacy && !exception) {
-            warnings.push({ code: 'LEGACY_NOT_ALLOWED', level: 'warn', ref, message: tr(`${entry.name}: conteúdo pré-Remaster não liberado nesta mesa.`, `${entry.name}: pre-Remaster content not allowed at this table.`) })
+            warnings.push({ code: 'LEGACY_NOT_ALLOWED', level: 'warn', ref, entryId: entry.id, message: tr(`${entry.name}: conteúdo pré-Remaster não liberado nesta mesa.`, `${entry.name}: pre-Remaster content not allowed at this table.`) })
         }
         const rarity = entry.rarity === 'uncommon' ? rules.rarity.uncommon : entry.rarity === 'rare' || entry.rarity === 'unique' ? rules.rarity.rare : 'allow'
         if (rarity !== 'allow' && !exception) {
             warnings.push({
-                code: rarity === 'deny' ? 'RARITY_DENIED' : 'RARITY_ASK', level: 'warn', ref,
+                code: rarity === 'deny' ? 'RARITY_DENIED' : 'RARITY_ASK', level: 'warn', ref, entryId: entry.id,
                 message: rarity === 'deny'
                     ? tr(`${entry.name}: raridade não permitida nesta mesa.`, `${entry.name}: rarity not allowed at this table.`)
                     : tr(`${entry.name}: ${entry.rarity === 'uncommon' ? 'incomum' : 'raro'} — combine com o GM.`, `${entry.name}: ${entry.rarity} — check with the GM.`),
@@ -313,6 +313,16 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
     const reached = (re: RegExp) => (c?.features ?? []).some((f) => f.level <= level && re.test(f.name))
     const specialization = reached(/^greater weapon specialization$/i) ? 2 : reached(/^weapon specialization$/i) ? 1 : 0
     const equipment = compileEquipment(state, rules, { level, mod, attacks: proficiency.attacks, groupRanks, specialization }, warnings)
+
+    // Livro, legado e raridade também para talentos escolhidos e itens do inventário (sem repetir os efeitos não
+    // calculados, que os talentos já avisam).
+    const checkTable = (entry: RuleEntry, ref: string) => {
+        const before = warnings.length
+        sourceWarnings(entry, ctx, ref, warnings)
+        for (let i = warnings.length - 1; i >= before; i--) if (warnings[i].code === 'UNSUPPORTED_EFFECT') warnings.splice(i, 1)
+    }
+    for (const t of feats.taken) if (t.kind !== 'granted') checkTable(t.entry, t.slot)
+    for (const item of equipment.items) if (item.entry) checkTable(item.entry, 'equipment')
 
     // 7. Magias: o conjurador da classe e o foco (as magias de foco são escolha do jogador: o Foundry quase nunca as concede
     // por regra). Guardadas em `spellcasting.focus.repertoire` — "0" truques de foco, "1" magias de foco.

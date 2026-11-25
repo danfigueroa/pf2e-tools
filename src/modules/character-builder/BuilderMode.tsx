@@ -28,7 +28,7 @@ import { tabOf, type BuilderTab } from './tabs';
 import { ApplyDialog } from './components/ApplyDialog';
 import { BackgroundNotes } from './components/BackgroundNotes';
 import { ManualSection } from './sections/ManualSection';
-import { createBuild, saveBuild } from '../../services/builds';
+import { createBuild, saveBuild, saveMesaRules } from '../../services/builds';
 import { exportBuild } from './engine/export';
 import { assignBuild, fetchBuildVersions, restoreBuildVersion, type BuildVersion } from '../../services/builds';
 import { assignSheet, fetchMembers, type MemberRow } from '../../services/members';
@@ -127,8 +127,8 @@ export function BuilderMode({ buildId }: { buildId: string }) {
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const compiled = useMemo(() => (state && rules.index && core
-    ? compileBuild(state, { rules: rules.index, mesaRules: rules.mesaRules ?? undefined, classOptions: core.classFeatures, tables: rules.tables ?? undefined })
-    : null), [state, rules.index, rules.mesaRules, core, rules.tables]);
+    ? compileBuild(state, { rules: rules.index, mesaRules: rules.mesaRules ?? undefined, classOptions: core.classFeatures, tables: rules.tables ?? undefined, buildId })
+    : null), [state, rules.index, rules.mesaRules, core, rules.tables, buildId]);
   const clsName = rules.index?.get(state?.class.id)?.name ?? null;
   useEffect(() => setClassName(clsName), [clsName]);
 
@@ -202,7 +202,16 @@ export function BuilderMode({ buildId }: { buildId: string }) {
     ? { state, update, core: rules.core, index: rules.index, mesaRules: rules.mesaRules, compiled, canEdit }
     : null;
 
-  const panel = compiled && <PendingPanel compiled={compiled} onGo={go} onDiscard={discard} canEdit={canEdit} />;
+  // GM libera uma entrada só para este personagem (F8.5): exceção nas regras da mesa, sem mexer no resto.
+  const allow = isGm ? (entryId: string) => {
+    const current = rules.mesaRules
+    if (!current) return
+    const exceptions = [...current.exceptions]
+    const mine = exceptions.find((e) => e.buildId === build.id)
+    if (mine) { if (!mine.ids.includes(entryId)) mine.ids = [...mine.ids, entryId] } else exceptions.push({ buildId: build.id, ids: [entryId] })
+    void saveMesaRules({ ...current, exceptions }).then((out) => { if (out.ok) rules.setMesaRules(out.value) })
+  } : undefined
+  const panel = compiled && <PendingPanel compiled={compiled} onGo={go} onDiscard={discard} canEdit={canEdit} onAllow={allow} />;
 
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto' }}>

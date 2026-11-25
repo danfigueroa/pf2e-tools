@@ -444,6 +444,19 @@ console.log('Ajustes manuais (F8.3): entram nos números, sempre com aviso')
     expect('ajustes avisam', adj.warnings.filter((w) => w.code.startsWith('MANUAL')).length >= 3, true)
 }
 
+console.log('Exceção do GM (F8.5): incomum avisa; liberado para o personagem, não')
+{
+    const uncommon = Object.values(fixture).filter(Array.isArray).flat().find((e) => e.type === 'feat' && e.rarity === 'uncommon' && (e.level ?? 0) <= 2 && (e.traits ?? []).includes('General'))
+    if (uncommon) {
+        const rulesAsk = { ...serverStore.DEFAULT_MESA_RULES, rarity: { uncommon: 'ask', rare: 'ask' } }
+        const st = { ...hf, level: 3, choices: { ...hf.choices, 'general-feat-3': { id: uncommon.id } } }
+        expect(`${uncommon.name} incomum avisa`, compileBuild(st, { rules, mesaRules: rulesAsk }).warnings.some((w) => w.code === 'RARITY_ASK' && w.entryId === uncommon.id), true)
+        const withException = { ...rulesAsk, exceptions: [{ buildId: '00000000-0000-4000-8000-000000000000', ids: [uncommon.id] }] }
+        expect(`${uncommon.name} liberado não avisa`, compileBuild(st, { rules, mesaRules: withException, buildId: '00000000-0000-4000-8000-000000000000' }).warnings.some((w) => w.code === 'RARITY_ASK'), false)
+        expect(`${uncommon.name}: exceção de outro personagem não vale`, compileBuild(st, { rules, mesaRules: withException, buildId: '00000000-0000-4000-8000-000000000001' }).warnings.some((w) => w.code === 'RARITY_ASK'), true)
+    }
+}
+
 console.log('Paridade com o elenco (importar → recompilar → exportar) e invariantes do contrato (CONTRATO-FICHA §8)')
 {
     const { importPathbuilder } = await import('../src/modules/character-builder/engine/import.ts')
