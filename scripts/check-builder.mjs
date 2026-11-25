@@ -171,5 +171,126 @@ expect('alias mantém o slug antigo', serverStore.buildSlugFromName('Thalos Alba
 expect('corta em 48 sem hífen no fim', serverStore.buildSlugFromName('a'.repeat(47) + ' b'), 'a'.repeat(47))
 expect('acentos saem', serverStore.buildSlugFromName('Ação Ágil'), 'acao-agil')
 
+// --- Motor (F3) contra o recorte fixo do catálogo ---------------------------------------------------------------------
+const { compileBuild, proficiencyBonus } = await import('../src/modules/character-builder/engine/compile.ts')
+const { attributeScore } = await import('../src/modules/character-builder/engine/attributes.ts')
+const { readFileSync, readdirSync } = await import('node:fs')
+const fixture = JSON.parse(readFileSync(new URL('./rules-data/fixture.json', import.meta.url), 'utf8')).lists
+const byId = new Map()
+for (const list of Object.values(fixture)) if (Array.isArray(list)) for (const entry of list) if (entry?.id) byId.set(entry.id, entry)
+const rules = { get: (id) => (id ? byId.get(id) : undefined), languages: fixture['core/languages'] }
+const find = (list, name) => fixture[list].find((e) => e.name === name)
+const ctx = { rules }
+const base = (over = {}) => ({ ...serverSanitize.emptyBuildState('Teste', fixture.version ?? ''), ...over })
+
+console.log('Motor: Humano Guerreiro nível 1 (Player Core)')
+const human = find('core/ancestries', 'Human')
+const fighter = find('core/classes', 'Fighter')
+const artist = find('core/backgrounds', 'Artist')
+const hf = base({
+    origin: { ancestry: human.id, background: artist.id },
+    class: { id: fighter.id, keyAttribute: 'str' },
+    choices: {
+        'boosts-ancestry': { boosts: ['str', 'con'] },
+        'boosts-background': { boosts: ['dex', 'str'] },
+        'boosts-1': { boosts: ['str', 'dex', 'con', 'wis'] },
+        'class-skill-1': { skills: ['skill:athletics'] },
+        'skills-1': { skills: ['skill:intimidation', 'skill:survival', 'lore:warfare'] },
+    },
+})
+const out = compileBuild(hf, ctx)
+expect('Humano tem dois boosts livres', human.ancestry.boosts, ['free', 'free'])
+expect('atributos', out.attributes.mod, { str: 4, dex: 2, con: 2, int: 0, wis: 1, cha: 0 })
+// PV = 8 (Humano) + (10 Guerreiro + 2 CON) × 1 (Player Core pg. 91).
+expect('PV', out.stats.hp.total, 20)
+// CA = 10 + DES 2 + treinado em defesa sem armadura (1 + 2) (Player Core pg. 271).
+expect('CA sem armadura', out.stats.ac.total, 15)
+// Fortitude e Reflexos peritos (1 + 4), Vontade treinada (1 + 2), Percepção perita (Player Core pg. 26 e 25).
+expect('Fortitude', out.stats.fortitude.total, 7)
+expect('Reflexos', out.stats.reflex.total, 7)
+expect('Vontade', out.stats.will.total, 4)
+expect('Percepção', out.stats.perception.total, 6)
+// CD de classe = 10 + treinado (3) + FOR 4 (Player Core pg. 27).
+expect('CD de classe', out.stats.classDC?.total, 17)
+expect('velocidade', out.stats.speed.total, 25)
+expect('perícias treinadas', Object.entries(out.skills.rank).filter(([, r]) => r === 1).map(([k]) => k).sort(), ['athletics', 'crafting', 'intimidation', 'survival'])
+expect('Lores', out.skills.lores.map((l) => l.name).sort(), ['Art', 'Warfare'])
+expect('sem pendências de atributo, perícia e origem (só herança e idiomas)', out.pending.map((p) => p.key).sort(), ['heritage'])
+expect('sem avisos de boost', out.warnings.filter((w) => w.code.startsWith('BOOST')), [])
+expect('bônus de proficiência destreinado = 0', proficiencyBonus(0, 5), 0)
+expect('bônus de proficiência mestre no 7 = 13', proficiencyBonus(3, 7), 13)
+
+console.log('Motor: casos de borda')
+const dwarf = find('core/ancestries', 'Dwarf')
+const alt = compileBuild(base({ origin: { ancestry: dwarf.id, alternateBoosts: true }, choices: { 'boosts-ancestry': { boosts: ['str', 'int'] } } }), ctx)
+expect('boosts alternativos tiram o flaw do Anão', alt.attributes.mod.cha, 0)
+expect('…e trocam os fixos por dois livres', [alt.attributes.mod.str, alt.attributes.mod.con, alt.attributes.mod.int], [1, 0, 1])
+const flaw = compileBuild(base({ origin: { ancestry: dwarf.id, voluntaryFlaws: ['cha'] } }), ctx)
+expect('flaw voluntário no mesmo atributo do flaw da ancestralidade avisa', flaw.warnings.some((w) => w.code === 'FLAW_TWICE'), true)
+const dup = compileBuild({ ...hf, choices: { ...hf.choices, 'boosts-1': { boosts: ['str', 'str', 'con', 'wis'] } } }, ctx)
+expect('boost repetido no grupo avisa (não trava)', dup.warnings.some((w) => w.code === 'BOOST_DUPLICATE' && w.ref === 'boosts-1'), true)
+const badBg = compileBuild({ ...hf, choices: { ...hf.choices, 'boosts-background': { boosts: ['str', 'con'] } } }, ctx)
+expect('background sem DES/CAR avisa', badBg.warnings.some((w) => w.code === 'BOOST_NOT_ALLOWED'), true)
+// Parcial: em +4 o boost marca parcial; o segundo sobe para +5 (Player Core pg. 17).
+const lvl10 = compileBuild({ ...hf, level: 10, choices: { ...hf.choices, 'boosts-5': { boosts: ['str', 'dex', 'con', 'int'] }, 'boosts-10': { boosts: ['str', 'dex', 'con', 'int'] } } }, ctx)
+expect('parcial no 5, +5 no 10', lvl10.attributes.mod.str, 5)
+expect('pontuação do export com parcial = 19', attributeScore(4, true), 19)
+expect('INT que sobe no 5 e no 10 abre perícia e idioma', lvl10.pending.filter((p) => p.key.startsWith('skills-int-')).map((p) => p.key).sort(), ['skills-int-10', 'skills-int-5'])
+const over = compileBuild({ ...hf, choices: { ...hf.choices, 'skill-increase-3': { skills: ['skill:athletics'] }, 'skill-increase-5': { skills: ['skill:athletics'] } }, level: 5 }, ctx)
+expect('aumento de perícia para mestre antes do 7 avisa', over.warnings.some((w) => w.code === 'SKILL_RANK_CAP' && w.ref === 'skill-increase-5'), true)
+const overlap = compileBuild({ ...hf, origin: { ...hf.origin, background: find('core/backgrounds', 'Warrior').id }, choices: { ...hf.choices, 'boosts-background': { boosts: ['str', 'con'] } } }, ctx)
+const warriorSkills = find('core/backgrounds', 'Warrior').background.skills
+if (warriorSkills.map((s) => s.toLowerCase()).includes('athletics')) {
+    expect('treino repetido (background + classe) vira perícia livre a mais', overlap.pending.find((p) => p.key === 'skills-1')?.missing, 1)
+}
+const orphan = compileBuild({ ...hf, choices: { ...hf.choices, 'boosts-15': { boosts: ['str'] } } }, ctx)
+expect('escolha de nível acima do atual fica, com aviso de órfã', orphan.warnings.some((w) => w.code === 'ORPHAN_CHOICE' && w.ref === 'boosts-15'), true)
+const cavern = find('core/heritages', 'Cavern Elf')
+expect('herança traz a ancestralidade (Foundry)', cavern.heritage.ancestry, 'Elf')
+expect('herança versátil não tem ancestralidade', find('core/heritages', 'Aiuvarin').heritage.ancestry, undefined)
+expect('herança de outra ancestralidade avisa', compileBuild({ ...hf, origin: { ...hf.origin, heritage: cavern.id } }, ctx).warnings.some((w) => w.code === 'HERITAGE_MISMATCH'), true)
+expect('herança versátil serve para o Humano', compileBuild({ ...hf, origin: { ...hf.origin, heritage: find('core/heritages', 'Aiuvarin').id } }, ctx).warnings.some((w) => w.code === 'HERITAGE_MISMATCH'), false)
+const mesaRules = { ...serverStore.DEFAULT_MESA_RULES, sources: { allow: [] } }
+expect('livro não liberado na mesa avisa', compileBuild(hf, { rules, mesaRules }).warnings.some((w) => w.code === 'SOURCE_NOT_ALLOWED'), true)
+
+console.log('Motor: atributos do elenco (gabarito: export do Pathbuilder)')
+const ATTR = { Str: 'str', Dex: 'dex', Con: 'con', Int: 'int', Wis: 'wis', Cha: 'cha' }
+const lower = (list) => (list ?? []).map((a) => ATTR[a])
+let castChecked = 0
+for (const file of readdirSync(new URL('../public/characters/', import.meta.url)).filter((f) => f.endsWith('.json'))) {
+    const b = JSON.parse(readFileSync(new URL(`../public/characters/${file}`, import.meta.url), 'utf8')).build
+    const anc = find('core/ancestries', b.ancestry)
+    const bg = find('core/backgrounds', b.background)
+    const cls = find('core/classes', b.class)
+    if (!anc || !bg || !cls) {
+        console.log(`  --   ${b.name}: ${[!anc && b.ancestry, !bg && b.background, !cls && b.class].filter(Boolean).join(', ')} fora do catálogo Remaster (legado)`)
+        continue
+    }
+    const bd = b.abilities.breakdown
+    if (![bd.ancestryFree, bd.ancestryBoosts, bd.backgroundBoosts, bd.classBoosts].some((g) => g?.length)) {
+        console.log(`  --   ${b.name}: export sem a memória dos boosts de origem e classe (atributos editados à mão no Pathbuilder)`)
+        continue
+    }
+    const listedFlaws = anc.ancestry.flaws ?? []
+    const alternate = (bd.ancestryBoosts ?? []).length === 0 && (anc.ancestry.boosts ?? []).some((x) => x !== 'free')
+    const state = base({
+        level: b.level,
+        origin: { ancestry: anc.id, background: bg.id, alternateBoosts: alternate || undefined, voluntaryFlaws: lower(bd.ancestryFlaws).filter((f) => !listedFlaws.includes(f)) },
+        class: { id: cls.id, keyAttribute: lower(bd.classBoosts)[0] },
+        choices: Object.fromEntries([
+            ['boosts-ancestry', { boosts: lower(bd.ancestryFree) }],
+            ['boosts-background', { boosts: lower(bd.backgroundBoosts) }],
+            ...Object.entries(bd.mapLevelledBoosts).map(([lvl, list]) => [`boosts-${lvl}`, { boosts: lower(list) }]),
+        ]),
+    })
+    const got = compileBuild(state, ctx).attributes
+    const scores = Object.fromEntries(Object.keys(got.mod).map((a) => [a, attributeScore(got.mod[a], got.partial[a])]))
+    const want = Object.fromEntries(Object.keys(got.mod).map((a) => [a, b.abilities[a]]))
+    expect(`${b.name}: atributos`, scores, want)
+    expect(`${b.name}: PV da ancestralidade e da classe`, [anc.ancestry.hp, cls.class.hp], [b.attributes.ancestryhp, b.attributes.classhp])
+    castChecked++
+}
+expect('elenco conferido (ao menos 5 personagens Remaster)', castChecked >= 5, true)
+
 console.log(failures === 0 ? `\n${passed} conferências ok.` : `\n${failures} falha(s), ${passed} ok.`)
 process.exit(failures === 0 ? 0 : 1)
