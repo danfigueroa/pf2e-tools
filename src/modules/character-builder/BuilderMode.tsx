@@ -114,7 +114,7 @@ export function BuilderMode({ buildId }: { buildId: string }) {
   const [applyOpen, setApplyOpen] = useState(false);
   const [versions, setVersions] = useState<BuildVersion[] | null>(null);
   // GM: membros da mesa para escolher o dono (F8.2).
-  const { isGm } = useRole();
+  const { isGm, username, displayName } = useRole();
   const [members, setMembers] = useState<MemberRow[] | null>(null);
   const [owner, setOwner] = useState<string | null | undefined>(undefined);
   useEffect(() => {
@@ -198,8 +198,23 @@ export function BuilderMode({ buildId }: { buildId: string }) {
     setPendingOpen(false);
   };
 
+  // Retreino (F8.6): trocar a escolha de um slot que já tinha valor, num personagem já aplicado na mesa, fica no
+  // histórico (quem, quando, de quê para quê). Escolher pela primeira vez não é retreino.
+  const describe = (c: BuildState['choices'][string] | undefined) => !c ? '—'
+    : 'id' in c ? (rules.index?.get(c.id)?.name ?? c.id) : 'boosts' in c ? c.boosts.join(', ') : 'skills' in c ? c.skills.join(', ') : 'lore' in c ? c.lore : c.value;
+  const updateWithHistory: SectionProps['update'] = (change) => update((s) => {
+    const next = change(s);
+    if (build.publishedRev === null || next.choices === s.choices) return next;
+    const retrained = Object.keys(s.choices).filter((k) => s.choices[k] && JSON.stringify(s.choices[k]) !== JSON.stringify(next.choices[k]));
+    if (!retrained.length) return next;
+    const at = new Date().toISOString();
+    const entries = retrained.map((k) => ({ at, by: (displayName ?? username ?? 'local').slice(0, 60), kind: 'retrain' as const,
+      note: `${k}: ${describe(s.choices[k])} → ${describe(next.choices[k])}`.slice(0, 200) }));
+    return { ...next, history: [...next.history, ...entries].slice(-100) };
+  });
+
   const sectionProps: SectionProps | null = compiled && rules.core && rules.index
-    ? { state, update, core: rules.core, index: rules.index, mesaRules: rules.mesaRules, compiled, canEdit }
+    ? { state, update: updateWithHistory, core: rules.core, index: rules.index, mesaRules: rules.mesaRules, compiled, canEdit }
     : null;
 
   // GM libera uma entrada só para este personagem (F8.5): exceção nas regras da mesa, sem mexer no resto.
@@ -330,6 +345,16 @@ export function BuilderMode({ buildId }: { buildId: string }) {
                       slotProps={{ htmlInput: { maxLength: 80, readOnly: !canEdit } }} />
                   ))}
                 </Box>
+                {state.history.some((h) => h.kind === 'retrain') && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography sx={{ fontWeight: 600, mb: 0.5 }}>{tr('Retreinos', 'Retraining')}</Typography>
+                    {state.history.filter((h) => h.kind === 'retrain').slice(-10).reverse().map((h, i) => (
+                      <Typography key={i} variant="body2" color="text.secondary">
+                        {new Date(h.at).toLocaleDateString(locale)} · {h.by} · {h.note}
+                      </Typography>
+                    ))}
+                  </Box>
+                )}
                 {build.publishedRev !== null && <Box sx={{ mt: 2 }}><BackgroundNotes slug={build.slug} canEdit={canEdit} /></Box>}
                 <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap', mt: 2 }}>
                   {canEdit && (
