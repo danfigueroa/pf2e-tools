@@ -15,7 +15,10 @@ import { compileSkills } from './skills'
 import { compileFeats } from './feats'
 import type { PrereqContext } from './prereqs'
 import { checkSpellChoices, compileArchetypeCasters, compileCasters, compileFocus } from './spells'
-import { adjustedClass, BLOODRAGER, CLASS_ARCHETYPE, CLASS_ARCHETYPES, selectedClassArchetype, WAR_MAGE } from './classArchetypes'
+import {
+    ADVANCED_SCHOOL_SPELL, adjustedClass, archetypeOfSubclass, BLOODRAGER, CLASS_ARCHETYPE, CLASS_ARCHETYPES, PALATINE_DETECTIVE,
+    QUICK_IDENTIFICATION, RUNELORD, selectedClassArchetype, WAR_MAGE,
+} from './classArchetypes'
 import { armorClass, compileEquipment, GROUP_FEATURES } from './equipment'
 import { allowsBook } from '../mesaRules'
 import { abpAt, abpSkillBonus } from './abp'
@@ -170,6 +173,15 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
         if (shieldBlock) awarded.push({ entry: shieldBlock, level: 1, source: 'War Magic' })
         else warnings.push({ code: 'ENTRY_NOT_FOUND', level: 'warn', ref: CLASS_ARCHETYPE, message: tr('Shield Block ainda não foi carregado.', 'Shield Block has not loaded yet.') })
     }
+    const grant = (id: string, at: number, source: string) => {
+        const entry = rules.get(id)
+        if (entry) awarded.push({ entry, level: at, source })
+        else warnings.push({ code: 'ENTRY_NOT_FOUND', level: 'warn', ref: CLASS_ARCHETYPE, message: tr(`${source}: talento concedido fora das listas carregadas (${id}).`, `${source}: granted feat not in the loaded lists (${id}).`) })
+    }
+    // Rival Academies pg. 114: "You gain Advanced School Spell as a bonus feat at 8th level".
+    if (archetypeId === RUNELORD) grant(ADVANCED_SCHOOL_SPELL, 8, 'Runelord')
+    // Divine Mysteries pg. 288 (Esoterica): "you gain the Quick Identification skill feat".
+    if (archetypeId === PALATINE_DETECTIVE) grant(QUICK_IDENTIFICATION, 1, 'Esoterica')
     // A subclasse entra como concessão, com efeitos e escolhas filhas.
     const classChoices: Compiled['classChoices'] = classChoiceSlots(cls, ctx.classOptions ?? []).map((slot) => {
         const raw = state.choices[slot.key]
@@ -184,9 +196,12 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
             used.add(slot.key)
             if (!chosen) pending.push({ key: slot.key, label: slot.label, level: slot.level, missing: 1 })
             const entry = chosen ? rules.get(chosen) ?? slot.options.find((o) => o.id === chosen) : undefined
-            if (chosen === CLASS_ARCHETYPES[BLOODRAGER].subclass && archetypeId !== BLOODRAGER) {
+            // A subclasse de um arquétipo de classe só vale com ele (instinto Bloodrager, Esoterica, escola Thassilonian).
+            const owner = archetypeOfSubclass(chosen)
+            if (owner && archetypeId !== owner) {
+                const ownerName = rules.get(owner)?.name ?? owner
                 warnings.push({ code: 'CLASS_ARCHETYPE_REQUIRED', level: 'warn', ref: CLASS_ARCHETYPE,
-                    message: tr('Escolha Bloodrager na aba Classe para aplicar os ajustes deste instinto.', 'Choose Bloodrager on the Class tab to apply this instinct’s adjustments.') })
+                    message: tr(`Escolha ${ownerName} na aba Classe para aplicar os ajustes desta escolha.`, `Choose ${ownerName} on the Class tab to apply this choice’s adjustments.`) })
             }
             if (entry) {
                 awarded.push({ entry, level: slot.level, source: slot.label })
@@ -227,7 +242,7 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
         }
     }
     for (const [type, owner] of Object.entries(UNCOUNTED_CHOICE_TYPES)) {
-        if (archetypeId === WAR_MAGE && type === 'arcane-thesis') continue
+        if ((archetypeId === WAR_MAGE || archetypeId === RUNELORD) && type === 'arcane-thesis') continue
         if (cls && owner.toLowerCase() === cls.name.toLowerCase()) {
             warnings.push({ code: 'UNSUPPORTED_CHOICE', level: 'info', ref: 'class', message: tr(`Escolhas de ${type} ainda não entram no Criador: anote à parte.`, `${type} choices are not in the Builder yet: note them separately.`) })
         }
@@ -312,6 +327,16 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
         used.add(child.key)
         if (!child.chosen) pending.push({ key: child.key, label: child.label, level: child.level, missing: 1 })
     }
+    if (archetypeId === RUNELORD) {
+        warnings.push({ code: 'UNSUPPORTED_EFFECT', level: 'info', ref: CLASS_ARCHETYPE, message: tr(
+            'Runelord: o vínculo arcano é uma polearm ou spear, e a personal rune (cajado com as magias do pecado) não entra nas magias; anote à parte.',
+            'Runelord: your arcane bond is a polearm or spear, and the personal rune (a staff with your sin spells) is not in the spell lists; note it separately.') })
+    }
+    if (archetypeId === PALATINE_DETECTIVE) {
+        warnings.push({ code: 'UNSUPPORTED_EFFECT', level: 'info', ref: CLASS_ARCHETYPE, message: tr(
+            'Esoterica: os dois truques inatos (um divino, um oculto) e o treino em ataque e CD de magia (INT) ainda não entram nas magias; anote à parte.',
+            'Esoterica: the two innate cantrips (one divine, one occult) and trained spell attack and DC (INT) are not in the spell lists yet; note them separately.') })
+    }
     if (archetypeId === BLOODRAGER) {
         warnings.push({ code: 'UNSUPPORTED_EFFECT', level: 'info', ref: CLASS_ARCHETYPE, message: tr(
             'Aplique na mesa os efeitos de fúria e de Harvest Blood que dependem do alvo.',
@@ -334,6 +359,8 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
 
     const ancestryLanguages = ancestry?.ancestry?.languages ?? []
     const extraLanguages: string[] = []
+    // Rival Academies pg. 114: "You learn the Thassilonian language."
+    if (archetypeId === RUNELORD) extraLanguages.push('Thassilonian')
     const chosenLanguages = (state.origin.languages ?? []).map((id) => rules.get(id)?.name ?? id)
     if (ancestry) {
         if (chosenLanguages.length < skills.languageSlots) {
@@ -365,6 +392,14 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
             const cur = groupRanks[chosen] ?? {}
             for (const [cat, r] of Object.entries(spec.ranks) as [keyof typeof spec.ranks, Rank][]) cur[cat] = Math.max(cur[cat] ?? 0, r) as Rank
             groupRanks[chosen] = cur
+        }
+    }
+    // Rival Academies pg. 114: polearms e spears marciais treinados, subindo junto com as armas simples.
+    if (archetypeId === RUNELORD && (proficiency.attacks.simple ?? 0) > 0) {
+        for (const group of ['polearm', 'spear']) {
+            const cur = groupRanks[group] ?? {}
+            cur.martial = Math.max(cur.martial ?? 0, proficiency.attacks.simple ?? 0) as Rank
+            groupRanks[group] = cur
         }
     }
     const reached = (re: RegExp) => (c?.features ?? []).some((f) => f.level <= level && re.test(f.name))

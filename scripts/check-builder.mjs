@@ -617,6 +617,35 @@ console.log('Paridade com o elenco (importar → recompilar → exportar) e inva
     const changed = compile({ ...war, class: { id: fighter.id } })
     expect('trocar a classe desativa o arquétipo e preserva a escolha como órfã', [changed.classFeatures.some((f) => f.name === 'War Magic'),
         changed.warnings.some((w) => w.code === 'ORPHAN_CHOICE' && w.ref === 'class-archetype')], [false,true])
+
+    // Runelord (Rival Academies pg. 114): escola fixa, polearm/spear marciais no rank simples, Thassilonian, Personal Rune
+    // no lugar da Arcane Thesis e Advanced School Spell no 8º.
+    const weapons = (fixture['items/weapons'] ?? []).filter((e) => ['Glaive', 'Trident'].includes(e.name))
+    const armed = { inventory: weapons.map((w, i) => ({ key: `inv-${i}`, item: w.id, qty: 1, acquired: 'given', equipped: true })) }
+    const rune = { ...draft(wizard, 'Runelord', 8, { 'class-feat-2': { id: 'feat:feat-7482' } }), ...armed }
+    const runeOut = compile(rune)
+    const plain = compile({ ...rune, choices: {} })
+    const attack = (out, name) => out.equipment.strikes.find((x) => x.name === name)?.attack
+    expect('Runelord: escola Thassilonian fixa', runeOut.classChoices.find((c) => c.type === 'arcane-school')?.chosen, 'arcane-school:arcane-school-25')
+    expect('Runelord: Glaive e Trident treinados (+nível+2 sobre o destreinado)', weapons.map((w) => attack(runeOut, w.name) - attack(plain, w.name)), [10, 10])
+    const runeSheet = exportBuild(rune, runeOut, { rules }).build
+    expect('Runelord: Thassilonian, Personal Rune e Advanced School Spell no 8º', [runeSheet.languages.includes('Thassilonian'),
+        runeOut.classFeatures.some((f) => f.name === 'Personal Rune'), runeOut.classFeatures.some((f) => f.name === 'Arcane Thesis'),
+        runeSheet.feats.some((f) => f[0] === 'Advanced School Spell')], [true, true, false, true])
+    expect('Runelord: sem Advanced School Spell antes do 8º', compile({ ...rune, level: 7 }).taken.some((t) => t.entry.id === 'feat:feat-5036'), false)
+    expect('Runelord: exportar e reimportar recupera o arquétipo', importPathbuilder(runeSheet, ctxSpells).state.choices['class-archetype'], rune.choices['class-archetype'])
+    const thassWithout = compile(base({ class: { id: wizard.id }, level: 1, choices: { 'class-choice:arcane-school': { id: 'arcane-school:arcane-school-25' } } }))
+    expect('escola Thassilonian sem o arquétipo avisa', thassWithout.warnings.some((w) => w.code === 'CLASS_ARCHETYPE_REQUIRED'), true)
+
+    // Palatine Detective (Divine Mysteries pg. 288): Esoterica fixa, Occultism ou Religion e Quick Identification.
+    const investigator = find('core/classes', 'Investigator')
+    const pal = draft(investigator, 'Palatine Detective', 2, { 'class-feat-2': { id: 'feat:feat-7557' }, 'skills-esoterica': { skills: ['skill:religion'] } })
+    const palOut = compile(pal)
+    expect('Palatine: Esoterica fixa e Religion treinada pela escolha', [palOut.classChoices.find((c) => c.type === 'methodology')?.chosen, palOut.skills.rank.religion,
+        palOut.skillSlots.find((x) => x.key === 'skills-esoterica')?.options], ['methodology:methodology-9', 1, ['skill:occultism', 'skill:religion']])
+    expect('Palatine: Quick Identification concedido; truques inatos avisam', [palOut.taken.some((t) => t.entry.id === 'feat:feat-5195'),
+        palOut.warnings.some((w) => w.code === 'UNSUPPORTED_EFFECT' && w.message.includes('Esoterica'))], [true, true])
+    expect('Palatine: a escolha de perícia pendente quando vazia', compile({ ...pal, choices: { ...pal.choices, 'skills-esoterica': undefined } }).pending.some((x) => x.key === 'skills-esoterica'), true)
 }
 
 // Copiar para outra mesa (9.6), no handler em memória (sem Supabase não há login: usuário local, GM).

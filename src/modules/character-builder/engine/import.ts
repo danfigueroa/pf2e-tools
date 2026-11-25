@@ -8,7 +8,7 @@ import type { RuleEntry } from '../rules/types'
 import { compileBuild } from './compile'
 import { skillRef } from './skills'
 import { SKILL_KEYS, type AttributeKey, type CompileContext, type SkillKey } from './types'
-import { BLOODRAGER, CLASS_ARCHETYPE, CLASS_ARCHETYPES, WAR_MAGE } from './classArchetypes'
+import { BLOODRAGER, CLASS_ARCHETYPE, CLASS_ARCHETYPES, PALATINE_DETECTIVE, RUNELORD, WAR_MAGE } from './classArchetypes'
 import { CLASS_CHOICE_TYPES } from './classChoices'
 
 const ATTR: Record<string, AttributeKey> = { Str: 'str', Dex: 'dex', Con: 'con', Int: 'int', Wis: 'wis', Cha: 'cha' }
@@ -115,7 +115,8 @@ export function importPathbuilder(b: BuildInfo, ctx: CompileContext): { state: B
     const covil = (b as BuildInfo & { covil?: { ids?: Record<string, string> } }).covil
     const archetypeId = covil?.ids ? covil.ids[CLASS_ARCHETYPE] : Object.entries(CLASS_ARCHETYPES).find(([id, spec]) =>
         spec.className === cls?.name && (Object.values(choices).some((c) => 'id' in c && c.id === spec.dedication)
-            || (id === BLOODRAGER && specialKeys.has('bloodrager')) || (id === WAR_MAGE && specialKeys.has('war magic'))))?.[0]
+            || (id === BLOODRAGER && specialKeys.has('bloodrager')) || (id === WAR_MAGE && specialKeys.has('war magic'))
+            || (id === PALATINE_DETECTIVE && specialKeys.has('esoterica')) || (id === RUNELORD && specialKeys.has('school of thassilonian rune magic'))))?.[0]
     if (archetypeId && cls && CLASS_ARCHETYPES[archetypeId]?.className === cls.name) {
         choices[CLASS_ARCHETYPE] = { id: archetypeId }
         const fixed = CLASS_ARCHETYPES[archetypeId].subclass

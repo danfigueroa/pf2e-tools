@@ -7,7 +7,7 @@
 // - Player Core pg. 89 (Languages): os da ancestralidade, mais tantos quanto a INT positiva.
 // O número de perícias à escolha da classe (`trainedSkills.additional`) é dado do catálogo, somado à INT (texto de cada
 // classe: "equal to N plus your Intelligence modifier").
-import { BLOODRAGER, CLASS_ARCHETYPES, WAR_MAGE } from './classArchetypes'
+import { BLOODRAGER, CLASS_ARCHETYPES, PALATINE_DETECTIVE, WAR_MAGE } from './classArchetypes'
 import { tr } from '../../../i18n'
 import type { BuildState } from '../types'
 import type { RuleEntry } from '../rules/types'
@@ -98,6 +98,15 @@ export function compileSkills(state: BuildState, background: RuleEntry | undefin
         }
         for (const ref of chosen) train(ref, cls?.name ?? '', false)
     })
+
+    // Esoterica (Divine Mysteries pg. 288): "You become trained in Occultism or Religion".
+    if (classArchetype === PALATINE_DETECTIVE) {
+        const key = 'skills-esoterica'
+        const options = ['skill:occultism', 'skill:religion']
+        const chosen = choiceSkills(state, key).filter((s) => options.includes(s)).slice(0, 1)
+        slots.push({ key, label: 'Esoterica', level: 1, count: 1, options, kind: 'train', chosen })
+        if (chosen[0]) train(chosen[0], 'Esoterica', false)
+    }
 
     // Livres do 1º nível: as da classe + INT + repetidas (a INT negativa não tira treino: "number of additional skills
     // equal to N plus your Intelligence modifier" — com INT −1 sobra N − 1).

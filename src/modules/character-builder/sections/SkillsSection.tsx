@@ -36,7 +36,7 @@ export function SkillsSection({ state, update, compiled, canEdit }: SectionProps
   const mod = compiled.attributes.mod;
 
   const pick = (slot: SkillSlot, ref: string) => {
-    const single = slot.count === 1 && (slot.kind === 'increase' || slot.key === 'skills-dedication-2') || slot.key.startsWith('class-skill');
+    const single = slot.count === 1 && (slot.kind === 'increase' || slot.key === 'skills-dedication-2' || slot.key === 'skills-esoterica') || slot.key.startsWith('class-skill');
     const next = single ? (slot.chosen.includes(ref) ? [] : [ref])
       : slot.chosen.includes(ref) ? slot.chosen.filter((x) => x !== ref) : [...slot.chosen, ref];
     setChoice(update, slot.key, next.length ? { skills: next } : null);
@@ -128,7 +128,7 @@ export function SkillsSection({ state, update, compiled, canEdit }: SectionProps
                 );
               })}
             </Stack>
-            {slot.kind === 'train' && !slot.key.startsWith('class-skill') && canEdit && (
+            {slot.kind === 'train' && !slot.key.startsWith('class-skill') && slot.key !== 'skills-esoterica' && canEdit && (
               <Stack direction="row" spacing={1} sx={{ mt: 1.5 }}>
                 <TextField size="small" label={tr('Lore (nome)', 'Lore (name)')} value={lore[slot.key] ?? ''} sx={{ flex: 1, maxWidth: 280 }}
                   onChange={(e) => setLore({ ...lore, [slot.key]: e.target.value })} slotProps={{ htmlInput: { maxLength: 40 } }}

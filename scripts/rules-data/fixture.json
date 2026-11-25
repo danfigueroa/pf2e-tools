@@ -1,5 +1,5 @@
 {
- "version": "2026.11.10",
+ "version": "2026.11.11",
  "generatedFrom": "Storage rules/<versão>",
  "lists": {
   "core/classes": [
@@ -36945,6 +36945,29 @@
     }
    },
    {
+    "id": "archetype:archetype-306",
+    "name": "Palatine Detective",
+    "type": "archetype",
+    "level": 2,
+    "rarity": "uncommon",
+    "traits": [
+     "Uncommon"
+    ],
+    "source": {
+     "id": "source:source-234",
+     "page": 288
+    },
+    "aon": {
+     "id": "archetype-306",
+     "url": "/Archetypes.aspx?ID=306"
+    },
+    "remaster": true,
+    "summary": "You are an elite agent of the Esoteric Order of the Palatine Eye. Separated from the regular members of this obscure league of scholars and …",
+    "prerequisites": {
+     "text": "investigator"
+    }
+   },
+   {
     "id": "archetype:archetype-342",
     "name": "Psychic",
     "type": "archetype",
@@ -37005,6 +37028,30 @@
     "summary": "You’ve learned to sneak, steal, and disable traps. With time and luck, you’ll become capable of moving through the shadows, striking unseen, and …",
     "prerequisites": {
      "text": "Dexterity +2"
+    }
+   },
+   {
+    "id": "archetype:archetype-303",
+    "name": "Runelord",
+    "type": "archetype",
+    "level": 2,
+    "rarity": "rare",
+    "traits": [
+     "Rare"
+    ],
+    "source": {
+     "id": "source:source-235",
+     "page": 114
+    },
+    "aon": {
+     "id": "archetype-303",
+     "url": "/Archetypes.aspx?ID=303"
+    },
+    "remaster": true,
+    "replaces": "archetype-103",
+    "summary": "You’ve learned arcane magic, following the path of the runelords. You learn the secrets of runic magic, the building blocks of magic. But be warned: …",
+    "prerequisites": {
+     "text": "runelord"
     }
    },
    {
@@ -38469,6 +38516,43 @@
      "skill": [
       "Thievery",
       "Thievery"
+     ]
+    }
+   },
+   {
+    "id": "feat:feat-5195",
+    "name": "Quick Identification",
+    "type": "feat",
+    "level": 1,
+    "rarity": "common",
+    "traits": [
+     "General",
+     "Skill"
+    ],
+    "source": {
+     "id": "source:source-216",
+     "page": 260
+    },
+    "aon": {
+     "id": "feat-5195",
+     "url": "/Feats.aspx?ID=5195"
+    },
+    "remaster": true,
+    "replaces": "feat-824",
+    "summary": "Identify Magic in 1 minute or less",
+    "prerequisites": {
+     "text": "trained in Arcana, Nature, Occultism, or Religion"
+    },
+    "feat": {
+     "skill": [
+      "Arcana",
+      "Nature",
+      "Occultism",
+      "Religion",
+      "Arcana",
+      "Nature",
+      "Occultism",
+      "Religion"
      ]
     }
    },
@@ -44383,6 +44467,49 @@
     }
    },
    {
+    "id": "item:weapon-375",
+    "name": "Glaive",
+    "type": "weapon",
+    "level": 0,
+    "rarity": "common",
+    "traits": [
+     "Deadly",
+     "Forceful",
+     "Reach"
+    ],
+    "source": {
+     "id": "source:source-230",
+     "page": 127
+    },
+    "aon": {
+     "id": "weapon-375",
+     "url": "/Weapons.aspx?ID=375"
+    },
+    "remaster": true,
+    "replaces": "weapon-20",
+    "summary": "This polearm consists of a long, single-edged blade on the end of a 7-foot pole. It is extremely effective at delivering lethal cuts at a distance.",
+    "item": {
+     "category": "Weapons",
+     "subcategory": "Base Weapons",
+     "price": {
+      "gp": 1
+     },
+     "bulk": 2,
+     "hands": "2",
+     "weapon": {
+      "die": "1d8",
+      "group": "Polearm",
+      "category": "Martial",
+      "damageType": "Slashing",
+      "traitsRaw": [
+       "Deadly d8",
+       "Forceful",
+       "Reach"
+      ]
+     }
+    }
+   },
+   {
     "id": "item:equipment-2866",
     "name": "Gloom Blade",
     "type": "equipment",
@@ -44684,6 +44811,45 @@
        "Agile",
        "Concealable",
        "Finesse"
+      ]
+     }
+    }
+   },
+   {
+    "id": "item:weapon-401",
+    "name": "Trident",
+    "type": "weapon",
+    "level": 0,
+    "rarity": "common",
+    "traits": [
+     "Thrown"
+    ],
+    "source": {
+     "id": "source:source-216",
+     "page": 278
+    },
+    "aon": {
+     "id": "weapon-401",
+     "url": "/Weapons.aspx?ID=401"
+    },
+    "remaster": true,
+    "replaces": "weapon-45",
+    "summary": "This three-pronged, spear-like weapon typically has a 4-foot shaft. Like a spear, it can be wielded with one hand or thrown.",
+    "item": {
+     "category": "Weapons",
+     "subcategory": "Base Weapons",
+     "price": {
+      "gp": 1
+     },
+     "bulk": 1,
+     "hands": "1",
+     "weapon": {
+      "die": "1d8",
+      "group": "Spear",
+      "category": "Martial",
+      "damageType": "Piercing",
+      "traitsRaw": [
+       "Thrown 20 ft."
       ]
      }
     }
@@ -47897,6 +48063,173 @@
     }
    }
   ],
+  "feats/archetype/bloodrager": [
+   {
+    "id": "feat:feat-7239",
+    "name": "Bloodrager Dedication",
+    "type": "feat",
+    "level": 2,
+    "rarity": "common",
+    "traits": [
+     "Archetype",
+     "Class",
+     "Dedication"
+    ],
+    "source": {
+     "id": "source:source-232",
+     "page": 60
+    },
+    "aon": {
+     "id": "feat-7239",
+     "url": "/Feats.aspx?ID=7239"
+    },
+    "remaster": true,
+    "summary": "Drinking powerful blood has awakened magical potential within you.",
+    "prerequisites": {
+     "text": "Bloodrager"
+    },
+    "rules": [
+     {
+      "key": "ChoiceSet",
+      "flag": "skill",
+      "prompt": "PF2E.SpecificRule.Prompt.Tradition",
+      "choices": [
+       {
+        "label": "PF2E.TraitArcane",
+        "value": "arcana"
+       },
+       {
+        "label": "PF2E.TraitDivine",
+        "value": "religion"
+       }
+      ]
+     },
+     {
+      "key": "ActiveEffectLike",
+      "mode": "upgrade",
+      "path": "system.skills.{item|flags.system.rulesSelections.skill}.rank",
+      "value": 1
+     },
+     {
+      "key": "GrantItem",
+      "uuid": "Compendium.pf2e.actionspf2e.Item.Harvest Blood"
+     }
+    ],
+    "unsupported": [
+     "ItemAlteration"
+    ],
+    "feat": {
+     "archetype": [
+      "Bloodrager"
+     ]
+    }
+   },
+   {
+    "id": "feat:feat-7246",
+    "name": "Exultant Blood Magic",
+    "type": "feat",
+    "level": 18,
+    "rarity": "common",
+    "traits": [
+     "Archetype"
+    ],
+    "source": {
+     "id": "source:source-232",
+     "page": 61
+    },
+    "aon": {
+     "id": "feat-7246",
+     "url": "/Feats.aspx?ID=7246"
+    },
+    "remaster": true,
+    "summary": "The magic in your blood sings an exultant song of battle.",
+    "prerequisites": {
+     "text": "Surging Blood Magic; legendary in Arcana or Religion, depending on your chosen tradition"
+    },
+    "unsupported": [
+     "AdjustModifier"
+    ],
+    "feat": {
+     "archetype": [
+      "Bloodrager"
+     ],
+     "skill": [
+      "Occultism",
+      "Religion",
+      "Occultism",
+      "Religion"
+     ]
+    }
+   },
+   {
+    "id": "feat:feat-7241",
+    "name": "Rising Blood Magic",
+    "type": "feat",
+    "level": 4,
+    "rarity": "common",
+    "traits": [
+     "Archetype"
+    ],
+    "source": {
+     "id": "source:source-232",
+     "page": 61
+    },
+    "aon": {
+     "id": "feat-7241",
+     "url": "/Feats.aspx?ID=7241"
+    },
+    "remaster": true,
+    "summary": "The power within your blood grows.",
+    "prerequisites": {
+     "text": "Bloodrager Dedication"
+    },
+    "unsupported": [
+     "AdjustModifier"
+    ],
+    "feat": {
+     "archetype": [
+      "Bloodrager"
+     ]
+    }
+   },
+   {
+    "id": "feat:feat-7245",
+    "name": "Surging Blood Magic",
+    "type": "feat",
+    "level": 12,
+    "rarity": "common",
+    "traits": [
+     "Archetype"
+    ],
+    "source": {
+     "id": "source:source-232",
+     "page": 61
+    },
+    "aon": {
+     "id": "feat-7245",
+     "url": "/Feats.aspx?ID=7245"
+    },
+    "remaster": true,
+    "summary": "Your blood courses with magic.",
+    "prerequisites": {
+     "text": "Rising Blood Magic; master in Arcana or Religion, depending on your chosen tradition"
+    },
+    "unsupported": [
+     "AdjustModifier"
+    ],
+    "feat": {
+     "archetype": [
+      "Bloodrager"
+     ],
+     "skill": [
+      "Occultism",
+      "Religion",
+      "Occultism",
+      "Religion"
+     ]
+    }
+   }
+  ],
   "feats/archetype/bullet-dancer": [
    {
     "id": "feat:feat-5981",
@@ -49581,6 +49914,45 @@
     }
    }
   ],
+  "feats/archetype/palatine-detective": [
+   {
+    "id": "feat:feat-7557",
+    "name": "Palatine Detective Dedication",
+    "type": "feat",
+    "level": 2,
+    "rarity": "uncommon",
+    "traits": [
+     "Archetype",
+     "Class",
+     "Dedication",
+     "Uncommon"
+    ],
+    "source": {
+     "id": "source:source-234",
+     "page": 288
+    },
+    "aon": {
+     "id": "feat-7557",
+     "url": "/Feats.aspx?ID=7557"
+    },
+    "remaster": true,
+    "summary": "You have delved into the study of the occult and divine, becoming exceptionally skilled at identifying when such forces are at work.",
+    "prerequisites": {
+     "text": "investigator"
+    },
+    "rules": [
+     {
+      "key": "GrantItem",
+      "uuid": "Compendium.pf2e.actionspf2e.Item.Mystic Aegis"
+     }
+    ],
+    "feat": {
+     "archetype": [
+      "Palatine Detective"
+     ]
+    }
+   }
+  ],
   "feats/archetype/poisoner": [
    {
     "id": "feat:feat-4951",
@@ -49867,6 +50239,32 @@
   ],
   "feats/archetype/red-mantis-assassin": [
    {
+    "id": "feat:feat-5036",
+    "name": "Advanced School Spell",
+    "type": "feat",
+    "level": 8,
+    "rarity": "common",
+    "traits": [
+     "Wizard"
+    ],
+    "source": {
+     "id": "source:source-216",
+     "page": 203
+    },
+    "aon": {
+     "id": "feat-5036",
+     "url": "/Feats.aspx?ID=5036"
+    },
+    "remaster": true,
+    "replaces": "feat-647",
+    "summary": "You gain access to the advanced teachings of your arcane institution, learning a powerful new school spell.",
+    "feat": {
+     "archetype": [
+      "Red Mantis Assassin"
+     ]
+    }
+   },
+   {
     "id": "feat:feat-4943",
     "name": "Gang Up",
     "type": "feat",
@@ -50041,6 +50439,40 @@
       "Red Mantis Assassin",
       "Eagle Knight",
       "Rose Warden"
+     ]
+    }
+   }
+  ],
+  "feats/archetype/runelord": [
+   {
+    "id": "feat:feat-7482",
+    "name": "Runelord Dedication",
+    "type": "feat",
+    "level": 2,
+    "rarity": "rare",
+    "traits": [
+     "Archetype",
+     "Class",
+     "Dedication",
+     "Rare"
+    ],
+    "source": {
+     "id": "source:source-235",
+     "page": 116
+    },
+    "aon": {
+     "id": "feat-7482",
+     "url": "/Feats.aspx?ID=7482"
+    },
+    "remaster": true,
+    "replaces": "feat-3020",
+    "summary": "Your connection to your sin suffuses all magic you use.",
+    "prerequisites": {
+     "text": "runelord"
+    },
+    "feat": {
+     "archetype": [
+      "Runelord"
      ]
     }
    }
@@ -50876,6 +51308,45 @@
     }
    }
   ],
+  "feats/archetype/war-mage": [
+   {
+    "id": "feat:feat-7976",
+    "name": "War Mage Dedication",
+    "type": "feat",
+    "level": 2,
+    "rarity": "uncommon",
+    "traits": [
+     "Archetype",
+     "Class",
+     "Dedication",
+     "Uncommon"
+    ],
+    "source": {
+     "id": "source:source-268",
+     "page": 68
+    },
+    "aon": {
+     "id": "feat-7976",
+     "url": "/Feats.aspx?ID=7976"
+    },
+    "remaster": true,
+    "summary": "Your studies into the battlefield applications of magic have made your spells particularly effective at disrupting enemy  formations or manipulating enemy troops into positions where they are more vulnerable to wide-scale magical attacks.",
+    "prerequisites": {
+     "text": "You have a spellcasting class feature."
+    },
+    "rules": [
+     {
+      "key": "GrantItem",
+      "uuid": "Compendium.pf2e.feats-srd.Item.Additional Lore"
+     }
+    ],
+    "feat": {
+     "archetype": [
+      "War Mage"
+     ]
+    }
+   }
+  ],
   "feats/archetype/wizard": [
    {
     "id": "feat:feat-5111",
@@ -51105,7 +51576,8 @@
     },
     "remaster": false,
     "summary": "The experience you’ve accumulated over multiple lifetimes envelops you like a weighted blanket.",
-    "feat": {}
+    "feat": {},
+    "superseded": true
    },
    {
     "id": "feat:feat-8195",
@@ -53377,212 +53849,6 @@
     "feat": {
      "archetype": [
       "Hellknight"
-     ]
-    }
-   }
-  ],
-  "feats/archetype/bloodrager": [
-   {
-    "id": "feat:feat-7239",
-    "name": "Bloodrager Dedication",
-    "type": "feat",
-    "level": 2,
-    "rarity": "common",
-    "traits": [
-     "Archetype",
-     "Class",
-     "Dedication"
-    ],
-    "source": {
-     "id": "source:source-232",
-     "page": 60
-    },
-    "aon": {
-     "id": "feat-7239",
-     "url": "/Feats.aspx?ID=7239"
-    },
-    "remaster": true,
-    "summary": "Drinking powerful blood has awakened magical potential within you.",
-    "prerequisites": {
-     "text": "Bloodrager"
-    },
-    "rules": [
-     {
-      "key": "ChoiceSet",
-      "flag": "skill",
-      "prompt": "PF2E.SpecificRule.Prompt.Tradition",
-      "choices": [
-       {
-        "label": "PF2E.TraitArcane",
-        "value": "arcana"
-       },
-       {
-        "label": "PF2E.TraitDivine",
-        "value": "religion"
-       }
-      ]
-     },
-     {
-      "key": "ActiveEffectLike",
-      "mode": "upgrade",
-      "path": "system.skills.{item|flags.system.rulesSelections.skill}.rank",
-      "value": 1
-     },
-     {
-      "key": "GrantItem",
-      "uuid": "Compendium.pf2e.actionspf2e.Item.Harvest Blood"
-     }
-    ],
-    "unsupported": [
-     "ItemAlteration"
-    ],
-    "feat": {
-     "archetype": [
-      "Bloodrager"
-     ]
-    }
-   },
-   {
-    "id": "feat:feat-7246",
-    "name": "Exultant Blood Magic",
-    "type": "feat",
-    "level": 18,
-    "rarity": "common",
-    "traits": [
-     "Archetype"
-    ],
-    "source": {
-     "id": "source:source-232",
-     "page": 61
-    },
-    "aon": {
-     "id": "feat-7246",
-     "url": "/Feats.aspx?ID=7246"
-    },
-    "remaster": true,
-    "summary": "The magic in your blood sings an exultant song of battle.",
-    "prerequisites": {
-     "text": "Surging Blood Magic; legendary in Arcana or Religion, depending on your chosen tradition"
-    },
-    "unsupported": [
-     "AdjustModifier"
-    ],
-    "feat": {
-     "archetype": [
-      "Bloodrager"
-     ],
-     "skill": [
-      "Occultism",
-      "Religion",
-      "Occultism",
-      "Religion"
-     ]
-    }
-   },
-   {
-    "id": "feat:feat-7241",
-    "name": "Rising Blood Magic",
-    "type": "feat",
-    "level": 4,
-    "rarity": "common",
-    "traits": [
-     "Archetype"
-    ],
-    "source": {
-     "id": "source:source-232",
-     "page": 61
-    },
-    "aon": {
-     "id": "feat-7241",
-     "url": "/Feats.aspx?ID=7241"
-    },
-    "remaster": true,
-    "summary": "The power within your blood grows.",
-    "prerequisites": {
-     "text": "Bloodrager Dedication"
-    },
-    "unsupported": [
-     "AdjustModifier"
-    ],
-    "feat": {
-     "archetype": [
-      "Bloodrager"
-     ]
-    }
-   },
-   {
-    "id": "feat:feat-7245",
-    "name": "Surging Blood Magic",
-    "type": "feat",
-    "level": 12,
-    "rarity": "common",
-    "traits": [
-     "Archetype"
-    ],
-    "source": {
-     "id": "source:source-232",
-     "page": 61
-    },
-    "aon": {
-     "id": "feat-7245",
-     "url": "/Feats.aspx?ID=7245"
-    },
-    "remaster": true,
-    "summary": "Your blood courses with magic.",
-    "prerequisites": {
-     "text": "Rising Blood Magic; master in Arcana or Religion, depending on your chosen tradition"
-    },
-    "unsupported": [
-     "AdjustModifier"
-    ],
-    "feat": {
-     "archetype": [
-      "Bloodrager"
-     ],
-     "skill": [
-      "Occultism",
-      "Religion",
-      "Occultism",
-      "Religion"
-     ]
-    }
-   }
-  ],
-  "feats/archetype/war-mage": [
-   {
-    "id": "feat:feat-7976",
-    "name": "War Mage Dedication",
-    "type": "feat",
-    "level": 2,
-    "rarity": "uncommon",
-    "traits": [
-     "Archetype",
-     "Class",
-     "Dedication",
-     "Uncommon"
-    ],
-    "source": {
-     "id": "source:source-268",
-     "page": 68
-    },
-    "aon": {
-     "id": "feat-7976",
-     "url": "/Feats.aspx?ID=7976"
-    },
-    "remaster": true,
-    "summary": "Your studies into the battlefield applications of magic have made your spells particularly effective at disrupting enemy  formations or manipulating enemy troops into positions where they are more vulnerable to wide-scale magical attacks.",
-    "prerequisites": {
-     "text": "You have a spellcasting class feature."
-    },
-    "rules": [
-     {
-      "key": "GrantItem",
-      "uuid": "Compendium.pf2e.feats-srd.Item.Additional Lore"
-     }
-    ],
-    "feat": {
-     "archetype": [
-      "War Mage"
      ]
     }
    }
