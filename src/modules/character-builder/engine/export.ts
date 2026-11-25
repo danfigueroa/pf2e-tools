@@ -2,7 +2,7 @@
 // O retrato aplicado (CONTRATO-FICHA): o personagem compilado no formato `BuildInfo` que a Ficha, a Iniciativa, o Mapa
 // e o servidor já leem, mais as extensões do Criador em `build.covil`. Nomes de conteúdo em inglês canônico (o mesmo
 // que o Pathbuilder grava), para as descrições e os consertos da Ficha seguirem casando.
-import type { BuildInfo, FeatArray, Pet, Familiar, Weapon, Armor, SpellCaster } from '../../../pathbuilder/types'
+import type { BuildInfo, FeatArray, HomebrewFeatRef, Pet, Familiar, Weapon, Armor, SpellCaster } from '../../../pathbuilder/types'
 import type { BuildState } from '../types'
 import type { RuleEntry } from '../rules/types'
 import { attributeScore } from './attributes'
@@ -66,8 +66,12 @@ export function exportBuild(state: BuildState, compiled: Compiled, ctx: ExportCo
     // Talentos: slots, concedidos e filhos.
     const slotByKey = new Map(compiled.featSlots.map((s) => [s.key, s]))
     const feats: FeatArray[] = []
+    const homebrewFeats: Record<string, HomebrewFeatRef> = {}
     if (heritage) feats.push([heritage.name, null, 'Heritage', 1, 'Heritage Feat', 'standardChoice', null])
     for (const t of compiled.taken) {
+        if (t.entry.type === 'feat' && t.entry.homebrew === 'feat') {
+            homebrewFeats[feats.length] = { id: t.entry.id, name: t.entry.name, ...(t.kind === 'granted' ? {} : { slot: t.slot }) }
+        }
         const slot = slotByKey.get(t.slot)
         if (t.kind === 'granted') {
             if (['ancestry', 'heritage', 'class-feature'].includes(t.entry.type) || t.entry.type !== 'feat') continue
@@ -223,6 +227,7 @@ export function exportBuild(state: BuildState, compiled: Compiled, ctx: ExportCo
         covil: {
             schema: 1, buildId: ctx.buildId, rulesVersion: state.rulesVersion,
             warnings: compiled.warnings.filter((w) => w.level !== 'info').slice(0, 40).map((w) => ({ code: w.code, message: w.message })),
+            ...(Object.keys(homebrewFeats).length ? { homebrewFeats } : {}),
             ids: Object.fromEntries(Object.entries(state.choices).flatMap(([k, v]) => ('id' in v ? [[k, v.id]] : []))),
             // Slot de cada talento escolhido (nome → chave), para "Trocar talento" na Ficha.
             slots: Object.fromEntries(compiled.taken.filter((t) => t.kind !== 'granted').map((t) => [t.entry.name, t.slot])),

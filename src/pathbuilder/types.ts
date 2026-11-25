@@ -311,7 +311,20 @@ export interface FocusAbility {
 
 export type FocusTradition = Record<string, FocusAbility>
 
+export interface HomebrewFeatRef {
+  id: string
+  name: string
+  slot?: string
+}
+
 export interface BuildInfo {
+  covil?: {
+    buildId?: string
+    ids?: Record<string, string>
+    slots?: Record<string, string>
+    homebrewFeats?: Record<string, HomebrewFeatRef>
+    [key: string]: unknown
+  }
   name: string;
   class: string;
   dualClass: string | null;

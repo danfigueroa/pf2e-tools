@@ -674,6 +674,13 @@ console.log('Paridade com o elenco (importar → recompilar → exportar) e inva
     const hbOut = compileBuild(serverSanitize.sanitizeBuildState(hbState), { rules: hbRules })
     expect('background da mesa: treina Athletics e dá Assurance', [hbOut.skills.rank.athletics >= 1, hbOut.taken.some((t) => t.entry.name === 'Assurance')], [true, true])
     expect('talento da mesa no slot geral, efeito vira aviso', [hbOut.taken.some((t) => t.entry.id === hbFeat.id), hbOut.warnings.some((w) => w.code === 'UNSUPPORTED_EFFECT' && w.message.includes('Vigia Incansável'))], [true, true])
+    // Retrato: a linha do talento caseiro leva o id da mesa, e a Ficha a reconhece pela posição (homônimo oficial não).
+    const { sheetHomebrewFeats } = await import('../src/modules/character-viewer/homebrewFeats.ts')
+    const { exportBuild } = await import('../src/modules/character-builder/engine/export.ts')
+    const hbSheet = exportBuild(serverSanitize.sanitizeBuildState(hbState), hbOut, { rules: hbRules, buildId: 'b' }).build
+    const hbRefs = sheetHomebrewFeats(hbSheet)
+    const hbIndex = [...hbRefs.keys()][0]
+    expect('retrato: talento da mesa achado pela linha, com id e slot', [hbRefs.size, hbSheet.feats[hbIndex]?.[0], hbRefs.get(hbIndex)?.id, hbRefs.get(hbIndex)?.slot], [1, 'Vigia Incansável', hbFeat.id, 'general-feat-3'])
     expect('regras de livros não barram o conteúdo da mesa', allowedAtTable(hbFeat, { ...serverStore.DEFAULT_MESA_RULES, sources: { allow: ['source-1'], deny: [] } }), true)
 }
 
