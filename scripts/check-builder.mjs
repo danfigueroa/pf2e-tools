@@ -649,6 +649,18 @@ console.log('Paridade com o elenco (importar → recompilar → exportar) e inva
     const saved = await handleBuildRequest('arton-1515', 'POST', {}, { action: 'homebrew-save', kind: 'feat', entry: { name: 'Golpe da Casa', traits: ['General'] } })
     const list = await handleBuildRequest('arton-1515', 'GET', { homebrew: '1' }, null)
     expect('GM salva e a mesa lê', [saved.status, list.body.homebrew.some((h) => h.entry.id === `mesa:${saved.body.homebrew?.id}`)], [200, true])
+    const { fetchHomebrew } = await import('../src/services/builds.ts')
+    const originalFetch = globalThis.fetch
+    try {
+        globalThis.fetch = async (path) => {
+            const url = new URL(path, 'http://localhost')
+            if (url.pathname !== '/api/state') return new Response(null, { status: 404 })
+            const result = await handleBuildRequest('arton-1515', 'GET', Object.fromEntries(url.searchParams), null)
+            return Response.json(result.body, { status: result.status })
+        }
+        const read = await fetchHomebrew(true)
+        expect('cliente lê conteúdo da mesa pela rota de estado', read.ok && read.value.some((r) => r.id === saved.body.homebrew.id), true)
+    } finally { globalThis.fetch = originalFetch }
     expect('tipo inválido → 400', (await handleBuildRequest('arton-1515', 'POST', {}, { action: 'homebrew-save', kind: 'class', entry: { name: 'X' } })).status, 400)
     const del = await handleBuildRequest('arton-1515', 'POST', {}, { action: 'homebrew-delete', id: saved.body.homebrew?.id })
     expect('GM apaga', del.body.deleted, true)

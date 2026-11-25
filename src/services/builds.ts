@@ -95,7 +95,7 @@ const asRows = (v: unknown): HomebrewRow[] | undefined => Array.isArray(v)
 let homebrewCache: Promise<ApiResult<HomebrewRow[]>> | null = null
 export function fetchHomebrew(fresh = false): Promise<ApiResult<HomebrewRow[]>> {
     if (!homebrewCache || fresh) {
-        homebrewCache = call({ query: 'homebrew=1' }, (b) => asRows(b.homebrew))
+        homebrewCache = call({ query: '?homebrew=1' }, (b) => asRows(b.homebrew))
         void homebrewCache.then((r) => { if (!r.ok) homebrewCache = null })
     }
     return homebrewCache
