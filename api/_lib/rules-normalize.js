@@ -59,6 +59,20 @@ function pickData(entry, fields) {
     }))
 }
 
+/**
+ * O documento cru da AON para os parsers de descrição (F10.4): tudo menos o `markdown` (coluna própria) e os campos só
+ * de busca e de renderização. Assim a base local devolve o mesmo `_source` que a busca da AON devolveria.
+ */
+export function aonSource(entry) {
+    const out = {}
+    for (const [key, value] of Object.entries(entry ?? {})) {
+        if (key === 'markdown' || key === 'search_markdown' || key.endsWith('_markdown')) continue
+        if (value === null || value === undefined) continue
+        out[key] = value
+    }
+    return out
+}
+
 /** O ID nativo diferencia homônimos e continua o mesmo quando o nome muda. */
 export function catalogRuleId(category, aonId) {
     return `${ITEM_CATEGORIES.has(category) ? 'item' : category}:${aonId}`
@@ -109,6 +123,7 @@ export function normalizeRuleEntry(entry, source) {
         replaced_by: replacements.length === 1 ? replacements[0] : null,
         data,
         markdown: text(entry.markdown) || null,
+        aon_source: aonSource(entry),
     }
     return { ...row, hash: createHash('sha1').update(JSON.stringify(row)).digest('hex') }
 }
