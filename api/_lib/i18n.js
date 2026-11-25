@@ -137,6 +137,7 @@ const EXACT = new Map(Object.entries({
   'Versão inválida': 'Invalid version',
   'Versão não encontrada': 'Version not found',
   'Você não faz parte desta mesa': 'You are not part of this table',
+  'Mesa inválida': 'Invalid table',
   'Você só move o seu próprio token': 'You can only move your own token',
   'Muitas tentativas seguidas — espere um minuto': 'Too many attempts in a row — wait a minute',
   // Wiki da Mesa

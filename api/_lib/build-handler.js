@@ -12,6 +12,7 @@
 //                                                      → { draft }  "Aplicar na mesa": o preparo de sempre, com o slug do build
 //   GET  ?buildVersions=<id>                           → { versions }                        (dono, GM)
 //   POST { action: 'build-version-restore', id, version, rev } → { build }                   (dono, GM)
+//   POST { action: 'build-copy', id, toMesa }          → { build, mesa }  cópia em outra mesa   (dono, GM; membro da outra)
 //
 // Vem ANTES da ficha publicada no despacho: a rota da ficha aceita qualquer POST com `action`.
 //
@@ -26,9 +27,10 @@ import {
     assignBuild, createBuild, freeBuildSlug, listBuilds, listBuildVersions, memberNames, readBuild, readBuildVersion, readMesaRules, saveBuild, trashBuild, writeMesaRules,
 } from './build-store.js'
 import { currentRulesVersion } from './rules-core.js'
+import { MESA_IDS } from './mesas.js'
 import { createSheetDraftFor } from './sheet-handler.js'
 
-const ACTIONS = new Set(['build-create', 'build-save', 'build-delete', 'build-restore', 'build-assign', 'mesa-rules-save', 'build-apply', 'build-version-restore'])
+const ACTIONS = new Set(['build-create', 'build-save', 'build-delete', 'build-restore', 'build-assign', 'mesa-rules-save', 'build-apply', 'build-version-restore', 'build-copy'])
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 const ok = (body) => ({ status: 200, body: { ...body, storeReady: isSupabaseConfigured() } })
@@ -151,6 +153,23 @@ export async function handleBuildRequest(mesa, method, query, body, ctx = {}) {
         // O vínculo com o build é do servidor: o cliente não escolhe a que build a ficha pertence.
         const json = { ...sheet, build: { ...sheet.build, covil: { ...(sheet.build.covil ?? {}), buildId: current.id } } }
         return createSheetDraftFor(mesa, current.slug, { ...body, sheet: json }, { ...ctx, access, userId: access.userId })
+    }
+
+    // Copiar para outra mesa: nasce lá com slug livre e dono = quem copiou. As regras e as exceções do GM ficam na mesa
+    // de origem (são de `mesa_rules`); o retrato e o estado da mesa não vão junto. O motor avisa o que a outra não libera.
+    if (action === 'build-copy') {
+        const toMesa = body.toMesa
+        if (typeof toMesa !== 'string' || !MESA_IDS.includes(toMesa) || toMesa === mesa) return fail(400, 'Mesa inválida')
+        if (!localMode() && !(await memberRole(toMesa, access.userId))) return forbidden('Você não faz parte desta mesa')
+        const state = sanitizeBuildState({ ...current.state, history: [] })
+        if (!state) return fail(400, 'Personagem inválido')
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+            const slug = await freeBuildSlug(toMesa, state.name)
+            if (!slug) return fail(409, 'Já existem personagens demais com esse nome')
+            const build = await createBuild(toMesa, { slug, state, className: current.className, ownerId: access.userId, by: access.userId })
+            if (build) return ok({ build: header(build), mesa: toMesa })
+        }
+        return fail(409, 'Já existem personagens demais com esse nome')
     }
 
     if (action === 'build-version-restore') {

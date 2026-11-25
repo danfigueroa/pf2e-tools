@@ -426,6 +426,13 @@ try {
         expect('colega não vê o da lixeira → 404', (await call({ token: users.a.token, query: { build: build.id } })).status, 404)
         expect('dono restaura → 200', (await post('b', { action: 'build-restore', id: build.id })).status, 200)
 
+        // Copiar para outra mesa (9.6): sem ser membro de lá, 403; a mesma mesa ou mesa inventada, 400. O caminho feliz
+        // roda no check-builder em memória, para não escrever na mesa legada.
+        expect('copiar para mesa de que não é membro → 403', (await post('b', { action: 'build-copy', id: build.id, toMesa: 'casa-do-gordo' })).status, 403)
+        expect('copiar para a mesma mesa → 400', (await post('b', { action: 'build-copy', id: build.id, toMesa: MESA })).status, 400)
+        expect('copiar para mesa inexistente → 400', (await post('b', { action: 'build-copy', id: build.id, toMesa: 'nada' })).status, 400)
+        expect('colega não copia build alheio → 403', (await post('a', { action: 'build-copy', id: build.id, toMesa: 'casa-do-gordo' })).status, 403)
+
         // Aplicar na mesa: o preparo de sempre, com o slug ESTÁVEL do build (o nome mudou e o slug não).
         slugs.push(build.slug)
         const sheet = { success: true, build: { name: `Teste Renomeado ${stamp}`, class: 'Fighter', level: 2 } }

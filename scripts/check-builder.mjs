@@ -506,5 +506,19 @@ console.log('Paridade com o elenco (importar → recompilar → exportar) e inva
     if (resolved) console.log(`  (${resolved} diferença(s) conhecida(s) já resolvida(s): apague-as do parity-known.json)`)
 }
 
+// Copiar para outra mesa (9.6), no handler em memória (sem Supabase não há login: usuário local, GM).
+{
+    console.log('Copiar para outra mesa')
+    const { handleBuildRequest } = await import('../api/_lib/build-handler.js')
+    const made = await handleBuildRequest('arton-1515', 'POST', {}, { action: 'build-create', name: 'Teste Cópia' })
+    const id = made.body.build?.id
+    const copied = await handleBuildRequest('arton-1515', 'POST', {}, { action: 'build-copy', id, toMesa: 'casa-do-gordo' })
+    expect('cópia nasce na outra mesa', [copied.status, copied.body.mesa, copied.body.build?.name], [200, 'casa-do-gordo', 'Teste Cópia'])
+    expect('…com id próprio e sem o state na resposta', [copied.body.build?.id !== id, 'state' in (copied.body.build ?? {})], [true, false])
+    const there = await handleBuildRequest('casa-do-gordo', 'GET', { builds: '1' }, null)
+    expect('…e aparece na lista de lá', there.body.builds.some((b) => b.id === copied.body.build?.id), true)
+    expect('mesma mesa → 400', (await handleBuildRequest('arton-1515', 'POST', {}, { action: 'build-copy', id, toMesa: 'arton-1515' })).status, 400)
+}
+
 console.log(failures === 0 ? `\n${passed} conferências ok.` : `\n${failures} falha(s), ${passed} ok.`)
 process.exit(failures === 0 ? 0 : 1)
