@@ -80,6 +80,8 @@ export const restrictsSources = (rules: MesaRules) => rules.sources.allow.length
 /** Liberado na mesa (livro, legado e raridade que não seja "negar")? `null` = sem regras da mesa (modo local). */
 export function allowedAtTable(entry: RuleEntry, rules: MesaRules | null): boolean | null {
     if (!rules) return null
+    // Conteúdo da mesa: foi o GM quem criou, então vale sempre.
+    if (entry.source.id === 'mesa') return true
     const source = (!restrictsSources(rules) || rules.sources.allow.includes(entry.source.id)) && !(rules.sources.deny ?? []).includes(entry.source.id)
     const legacy = entry.remaster || rules.legacy
     const rarity = entry.rarity === 'uncommon' ? rules.rarity.uncommon : entry.rarity === 'rare' || entry.rarity === 'unique' ? rules.rarity.rare : 'allow'

@@ -80,6 +80,8 @@ export function sanitizeHomebrewEntry(kind, input, id) {
         const bulk = input.item?.bulk === 'L' ? 'L' : Number(input.item?.bulk)
         entry.item = {
             category: kind === 'rune' ? 'rune' : text(input.item?.category, 30) || 'gear',
+            // Runa de propriedade: o seletor de runas da arma/armadura filtra por esta subcategoria.
+            ...(kind === 'rune' ? { subcategory: input.item?.subcategory === 'Armor Property Rune' ? 'Armor Property Rune' : 'Weapon Property Rune' } : {}),
             ...(Number.isFinite(gp) && gp >= 0 ? { price: { gp: Math.min(1e7, Math.round(gp * 100) / 100) } } : {}),
             ...(bulk === 'L' || (Number.isFinite(bulk) && bulk >= 0) ? { bulk: bulk === 'L' ? 'L' : Math.min(100, bulk) } : {}),
             ...(text(input.item?.usage, 80) ? { usage: text(input.item?.usage, 80) } : {}),

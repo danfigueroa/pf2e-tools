@@ -10,6 +10,8 @@ import { tr } from '../../i18n';
 // Do Criador de Personagem, em chunk próprio (puxa o carregador do catálogo de regras).
 const MesaRulesSection = lazy(() =>
   import('../character-builder/components/MesaRulesSection').then((m) => ({ default: m.MesaRulesSection })));
+const HomebrewSection = lazy(() =>
+  import('../character-builder/components/HomebrewSection').then((m) => ({ default: m.HomebrewSection })));
 
 const Section = ({ title, hint, children }: { title: string; hint: string; children: React.ReactNode }) => (
   <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2.5 }, mb: 2.5 }}>
@@ -114,6 +116,7 @@ export const MesaSettingsPage = () => {
       </Section>
 
       <Suspense fallback={null}><MesaRulesSection /></Suspense>
+      <Suspense fallback={null}><HomebrewSection /></Suspense>
     </Box>
   );
 };

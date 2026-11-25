@@ -539,6 +539,17 @@ console.log('Paridade com o elenco (importar → recompilar → exportar) e inva
     expect('tipo inválido → 400', (await handleBuildRequest('arton-1515', 'POST', {}, { action: 'homebrew-save', kind: 'class', entry: { name: 'X' } })).status, 400)
     const del = await handleBuildRequest('arton-1515', 'POST', {}, { action: 'homebrew-delete', id: saved.body.homebrew?.id })
     expect('GM apaga', del.body.deleted, true)
+    // No motor: o background caseiro dá a perícia e o talento; o talento caseiro cabe no slot geral do nível 3 e o
+    // efeito dele vira aviso; regras de livros não barram o que é da mesa.
+    const { allowedAtTable } = await import('../src/modules/character-builder/mesaRules.ts')
+    const hbBg = sanitizeHomebrewEntry('background', { name: 'Guarda da Torre', background: { boosts: ['str', 'con'], skills: ['Athletics'], feats: ['Assurance'] } }, '00000000-0000-4000-8000-000000000001')
+    const hbFeat = sanitizeHomebrewEntry('feat', { name: 'Vigia Incansável', level: 1, traits: ['General'], unsupported: ['+1 em Percepção para vigiar'] }, '00000000-0000-4000-8000-000000000002')
+    const hbRules = buildRulesIndex([...Object.values(fixture).filter(Array.isArray), [hbBg, hbFeat]], fixture['core/languages'])
+    const hbState = { ...hf, level: 3, origin: { ...hf.origin, background: hbBg.id }, choices: { ...hf.choices, 'boosts-background': { boosts: ['str', 'con'] }, 'general-feat-3': { id: hbFeat.id } } }
+    const hbOut = compileBuild(serverSanitize.sanitizeBuildState(hbState), { rules: hbRules })
+    expect('background da mesa: treina Athletics e dá Assurance', [hbOut.skills.rank.athletics >= 1, hbOut.taken.some((t) => t.entry.name === 'Assurance')], [true, true])
+    expect('talento da mesa no slot geral, efeito vira aviso', [hbOut.taken.some((t) => t.entry.id === hbFeat.id), hbOut.warnings.some((w) => w.code === 'UNSUPPORTED_EFFECT' && w.message.includes('Vigia Incansável'))], [true, true])
+    expect('regras de livros não barram o conteúdo da mesa', allowedAtTable(hbFeat, { ...serverStore.DEFAULT_MESA_RULES, sources: { allow: ['source-1'], deny: [] } }), true)
 }
 
 console.log(failures === 0 ? `\n${passed} conferências ok.` : `\n${failures} falha(s), ${passed} ok.`)

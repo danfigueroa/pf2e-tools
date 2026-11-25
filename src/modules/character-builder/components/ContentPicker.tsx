@@ -92,17 +92,18 @@ export function ContentPicker({ open, title, entries, value, onPick, onClose, me
       <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.5, my: 1 }}>
         {focused.rarity && focused.rarity !== 'common' && <Chip size="small" color="warning" variant="outlined" label={RARITY_LABEL[focused.rarity] ?? focused.rarity} />}
         {!focused.remaster && <Chip size="small" variant="outlined" label={tr('Legado', 'Legacy')} />}
+        {focused.homebrew && <Chip size="small" color="secondary" label={tr('Da mesa', 'Table homebrew')} />}
         {allowedAtTable(focused, mesaRules) === false && <Chip size="small" color="error" variant="outlined" label={tr('Fora das regras da mesa', 'Outside table rules')} />}
         {(focused.traits ?? []).filter((t) => t.toLowerCase() !== (focused.rarity ?? '')).slice(0, 6).map((t) => <Chip key={t} size="small" label={t} />)}
       </Stack>
       {facts?.(focused)}
-      {focused.summary && <Typography variant="body2" sx={{ mt: 1.5 }} lang="en">{focused.summary}</Typography>}
+      {focused.summary && <Typography variant="body2" sx={{ mt: 1.5, whiteSpace: focused.homebrew ? "pre-line" : undefined }} lang={focused.homebrew ? undefined : "en"}>{focused.summary}</Typography>}
       <Typography variant="caption" color="text.secondary" component="p" sx={{ mt: 1 }}>
-        {focused.source.page ? tr(`Página ${focused.source.page}`, `Page ${focused.source.page}`) : ''}
+        {focused.homebrew ? tr('Criado pelo GM desta mesa.', 'Created by this table\'s GM.') : focused.source.page ? tr(`Página ${focused.source.page}`, `Page ${focused.source.page}`) : ''}
       </Typography>
       <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1, mt: 2 }}>
         {onPick && <Button variant="contained" onClick={() => choose(focused)}>{focused.id === value ? tr('Manter', 'Keep') : tr('Escolher', 'Choose')}</Button>}
-        <Button variant={onPick ? 'text' : 'contained'} onClick={() => setDescription(focused)}>{tr('Descrição completa', 'Full description')}</Button>
+        {!focused.homebrew && <Button variant={onPick ? 'text' : 'contained'} onClick={() => setDescription(focused)}>{tr('Descrição completa', 'Full description')}</Button>}
       </Stack>
     </Box>
   );
@@ -118,7 +119,7 @@ export function ContentPicker({ open, title, entries, value, onPick, onClose, me
             onDoubleClick={() => choose(e)}>
             <ListItemText
               primary={<>{e.name}{e.id === value ? ' ✓' : ''}</>}
-              secondary={[secondary?.(e), e.rarity && e.rarity !== 'common' ? RARITY_LABEL[e.rarity] : null, blocked ? tr('fora das regras', 'outside rules') : null].filter(Boolean).join(' · ') || undefined}
+              secondary={[e.homebrew ? tr('da mesa', 'homebrew') : null, secondary?.(e), e.rarity && e.rarity !== 'common' ? RARITY_LABEL[e.rarity] : null, blocked ? tr('fora das regras', 'outside rules') : null].filter(Boolean).join(' · ') || undefined}
               slotProps={{ primary: { sx: { overflowWrap: 'anywhere' } } }} />
           </ListItemButton>
         );

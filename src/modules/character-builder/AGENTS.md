@@ -28,3 +28,5 @@
 - Aplique na mesa só pelo `build-apply`, que usa o slug estável do build e o mesmo preparo da publicação, porque o slug pelo nome quebraria o estado da mesa ao renomear.
 - Registre em `scripts/rules-data/parity-known.json` toda diferença de paridade com a explicação, e apague a linha quando resolvê-la, porque o `check-builder` falha em diferença nova.
 - Copie para outra mesa só pelo `build-copy`, que exige ser membro de lá e cria um build novo com dono = quem copiou, porque regras, exceções do GM e estado da mesa são de cada mesa.
+- Crie conteúdo da mesa só pelo `homebrew-save` (GM real), com id `mesa:<uuid>` e a forma de `RuleEntry` que o `sanitizeHomebrewEntry` deixa passar, porque `custom:` já é o item de texto livre do inventário e o motor lê o caseiro como lê o oficial.
+- Deixe o `customRunes.ts` e o `homebrewGear.ts` na Ficha até ela ler o conteúdo da mesa do banco, porque eles carregam ativações e traços casados pelo nome de personagens já publicados.

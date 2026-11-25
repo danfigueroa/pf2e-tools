@@ -5,6 +5,7 @@ import { stateApi } from './mesa'
 import { authHeaderNow } from './supabase'
 import { tr } from '../i18n'
 import type { BuildHeader, BuildRecord, BuildState, MesaRules } from '../modules/character-builder/types'
+import type { RuleEntry } from '../modules/character-builder/rules/types'
 
 export type ApiResult<T> = { ok: true; value: T } | { ok: false; status: number; error: string; code?: string; body?: unknown }
 
@@ -79,3 +80,29 @@ export const assignBuild = (id: string, user: string | null) =>
 /** Cópia do build em outra mesa de que a pessoa faz parte (9.6). Nasce lá com slug livre e dono = quem copiou. */
 export const copyBuildToMesa = (id: string, toMesa: string) =>
     call({ body: { action: 'build-copy', id, toMesa } }, (b) => asBuild(b.build) as BuildHeader | undefined)
+
+// ── Conteúdo da mesa (9.1) ──────────────────────────────────────────────────
+
+export type HomebrewKind = 'feat' | 'item' | 'background' | 'heritage' | 'spell' | 'rune'
+export interface HomebrewRow { id: string; kind: HomebrewKind; entry: RuleEntry; updatedAt: number }
+
+const asRows = (v: unknown): HomebrewRow[] | undefined => Array.isArray(v)
+    ? v.filter((r): r is HomebrewRow => !!r && typeof r === 'object' && typeof r.id === 'string' && !!r.entry && typeof r.entry === 'object'
+        && typeof r.entry.id === 'string' && r.entry.id.startsWith('mesa:') && typeof r.entry.name === 'string')
+    : undefined
+
+/** O conteúdo caseiro da mesa (cache por página: o seletor e o editor leem o mesmo). */
+let homebrewCache: Promise<ApiResult<HomebrewRow[]>> | null = null
+export function fetchHomebrew(fresh = false): Promise<ApiResult<HomebrewRow[]>> {
+    if (!homebrewCache || fresh) {
+        homebrewCache = call({ query: 'homebrew=1' }, (b) => asRows(b.homebrew))
+        void homebrewCache.then((r) => { if (!r.ok) homebrewCache = null })
+    }
+    return homebrewCache
+}
+
+export const saveHomebrew = (row: { id?: string; kind: HomebrewKind; entry: Partial<RuleEntry> }) =>
+    call({ body: { action: 'homebrew-save', ...row } }, (b) => asRows([b.homebrew])?.[0]).then((r) => { homebrewCache = null; return r })
+
+export const deleteHomebrew = (id: string) =>
+    call({ body: { action: 'homebrew-delete', id } }, (b) => (b.deleted === true ? true : undefined)).then((r) => { homebrewCache = null; return r })

@@ -1,7 +1,7 @@
 // O catálogo que o motor precisa (núcleo de `core/`, características de classe e as listas de talento que o personagem
 // usa) e as regras de criação da mesa. Só listas de `core/` do Storage/IndexedDB: nenhuma chamada à AON.
 import { useEffect, useMemo, useState } from 'react'
-import { fetchMesaRules } from '../../../services/builds'
+import { fetchHomebrew, fetchMesaRules } from '../../../services/builds'
 import { ancestries, archetypes, backgrounds, classes, classOptions, heritages, languages, openRules, ruleListSlug, ruleTables } from '../rules'
 import type { SpellSlotTable } from '../engine/spells'
 import { loadRuleList } from '../rules/loader'
@@ -69,6 +69,7 @@ export function useRules(needs?: FeatListNeeds): UseRules & { feats: RuleEntry[]
     const [core, setCore] = useState<CoreRules | null>(null)
     const [featLists, setFeatLists] = useState<Record<string, RuleEntry[]>>({})
     const [mesaRules, setMesaRules] = useState<MesaRules | null>(null)
+    const [homebrew, setHomebrew] = useState<RuleEntry[]>([])
     const [error, setError] = useState(false)
 
     useEffect(() => {
@@ -80,6 +81,8 @@ export function useRules(needs?: FeatListNeeds): UseRules & { feats: RuleEntry[]
             })
             .catch(() => alive && setError(true))
         ruleTables().then((t) => alive && setTables(t as { spellSlots?: SpellSlotTable })).catch(() => {})
+        // Conteúdo da mesa (9.1): entra no catálogo com o selo "Da mesa". Falhou = segue só o oficial.
+        void fetchHomebrew().then((out) => { if (alive && out.ok) setHomebrew(out.value.map((r) => r.entry)) })
         void fetchMesaRules().then((out) => {
             if (alive && out.ok) setMesaRules(sanitizeMesaRules(out.value))
         })
@@ -99,11 +102,17 @@ export function useRules(needs?: FeatListNeeds): UseRules & { feats: RuleEntry[]
         return () => { alive = false }
     }, [paths, featLists])
 
-    const feats = useMemo(() => Object.values(featLists).flat(), [featLists])
+    // Talentos, magias e itens da mesa vão junto das listas baixadas (os seletores filtram por tipo e traço).
+    const feats = useMemo(() => [...Object.values(featLists).flat(), ...homebrew.filter((e) => e.type !== 'background' && e.type !== 'heritage')], [featLists, homebrew])
+    const merged = useMemo<CoreRules | null>(() => {
+        if (!core || homebrew.length === 0) return core
+        const of = (type: string) => homebrew.filter((e) => e.type === type)
+        return { ...core, backgrounds: [...core.backgrounds, ...of('background')], heritages: [...core.heritages, ...of('heritage')] }
+    }, [core, homebrew])
     const index = useMemo<RulesIndex | null>(() => {
-        if (!core) return null
-        return buildRulesIndex([core.ancestries, core.heritages, core.backgrounds, core.classes, core.languages, core.classFeatures, feats], core.languages)
-    }, [core, feats])
+        if (!merged) return null
+        return buildRulesIndex([merged.ancestries, merged.heritages, merged.backgrounds, merged.classes, merged.languages, merged.classFeatures, feats], merged.languages)
+    }, [merged, feats])
 
-    return { core, index, mesaRules, error, feats, tables, setMesaRules }
+    return { core: merged, index, mesaRules, error, feats, tables, setMesaRules }
 }

@@ -86,6 +86,8 @@ export interface RuleEntry {
         casting?: { className?: string; attribute?: AttributeKey; tradition?: string; type?: 'prepared' | 'spontaneous'; cantrips?: number } }
     spell?: { rank?: number; traditions?: string[]; cantrip?: boolean; focus?: boolean; ritual?: boolean; heighten?: string[] }
     item?: ItemData
+    /** Conteúdo da mesa (9.1, id `mesa:<uuid>`): o tipo de conteúdo caseiro. */
+    homebrew?: string
 }
 
 export interface RuleSource {
