@@ -58,11 +58,12 @@ function resolve(): Mesa {
 
 export const currentMesa: Mesa = resolve()
 
-/** Troca a mesa deste aparelho e recarrega a página inteira nela. */
-export function switchMesa(id: string) {
+/** Troca a mesa deste aparelho e recarrega a página inteira nela (em `path`, se vier: um caminho do próprio site). */
+export function switchMesa(id: string, path?: string) {
     if (!byId(id) || id === currentMesa.id) return
     store(id)
-    window.location.reload()
+    if (path?.startsWith('/')) window.location.assign(path)
+    else window.location.reload()
 }
 
 /** O link que entra direto na mesa, para mandar no grupo. */

@@ -75,3 +75,7 @@ export const createBuildFromSheet = (slug: string, state: BuildState, className?
 /** GM: troca o dono do build. */
 export const assignBuild = (id: string, user: string | null) =>
     call({ body: { action: 'build-assign', id, user } }, (b) => asBuild(b.build) as BuildHeader | undefined)
+
+/** Cópia do build em outra mesa de que a pessoa faz parte (9.6). Nasce lá com slug livre e dono = quem copiou. */
+export const copyBuildToMesa = (id: string, toMesa: string) =>
+    call({ body: { action: 'build-copy', id, toMesa } }, (b) => asBuild(b.build) as BuildHeader | undefined)

@@ -32,7 +32,9 @@ import { createBuild, saveBuild, saveMesaRules } from '../../services/builds';
 import { exportBuild } from './engine/export';
 import { assignBuild, fetchBuildVersions, restoreBuildVersion, type BuildVersion } from '../../services/builds';
 import { assignSheet, fetchMembers, type MemberRow } from '../../services/members';
-import { useRole } from '../../services/auth';
+import { mesaName, useAuth, useRole } from '../../services/auth';
+import { currentMesa, switchMesa } from '../../services/mesa';
+import { copyBuildToMesa } from '../../services/builds';
 import { locale, tr } from '../../i18n';
 import type { BuildState } from './types';
 
@@ -117,6 +119,10 @@ export function BuilderMode({ buildId }: { buildId: string }) {
   const [versions, setVersions] = useState<BuildVersion[] | null>(null);
   // GM: membros da mesa para escolher o dono (F8.2).
   const { isGm, username, displayName } = useRole();
+  const auth = useAuth();
+  const otherMesas = auth.status === 'in' ? auth.mesas.filter((m) => m.id !== currentMesa.id) : [];
+  const [copyError, setCopyError] = useState<string | null>(null);
+  const [copied, setCopied] = useState<{ mesa: string; id: string } | null>(null);
   const [members, setMembers] = useState<MemberRow[] | null>(null);
   const [owner, setOwner] = useState<string | null | undefined>(undefined);
   useEffect(() => {
@@ -378,7 +384,22 @@ export function BuilderMode({ buildId }: { buildId: string }) {
                     const saved = await saveBuild(copy.value.id, copy.value.rev, { ...state, name: copy.value.name }, className);
                     if (saved.ok) navigate(`/personagens/${copy.value.id}`);
                   })()}>{tr('Duplicar', 'Duplicate')}</Button>
+                  {/* Copiar para outra mesa (9.6): só as mesas de que a pessoa faz parte; abre a cópia lá (troca de mesa recarrega). */}
+                  {otherMesas.map((m) => (
+                    <Button key={m.id} {...VIEW_OK} onClick={() => void (async () => {
+                      const out = await copyBuildToMesa(build.id, m.id);
+                      if (!out.ok) { setCopyError(out.error); return; }
+                      if (out.value) setCopied({ mesa: m.id, id: out.value.id });
+                    })()}>{tr(`Copiar para ${mesaName(auth, m.id, m.id)}`, `Copy to ${mesaName(auth, m.id, m.id)}`)}</Button>
+                  ))}
                 </Stack>
+                {copyError && <Alert severity="error" sx={{ mt: 1 }} onClose={() => setCopyError(null)}>{copyError}</Alert>}
+                {copied && (
+                  <Alert severity="success" sx={{ mt: 1 }} onClose={() => setCopied(null)}
+                    action={<Button color="inherit" onClick={() => switchMesa(copied.mesa, `/personagens/${copied.id}`)}>{tr('Abrir lá', 'Open there')}</Button>}>
+                    {tr(`Cópia criada em ${mesaName(auth, copied.mesa, copied.mesa)}. As regras de lá passam a valer.`, `Copy created in ${mesaName(auth, copied.mesa, copied.mesa)}. Its rules now apply.`)}
+                  </Alert>
+                )}
                 <Typography variant="caption" color="text.secondary" component="p" sx={{ mt: 2 }}>
                   {tr('Regras e textos de jogo: ', 'Game rules and text: ')}
                   <RouterLink to="/creditos">{tr('créditos e licenças', 'credits and licenses')}</RouterLink>

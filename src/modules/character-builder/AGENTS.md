@@ -27,3 +27,4 @@
 - Gere a ficha só por `engine/export.ts` (CONTRATO-FICHA) e confira com a paridade do `check-builder`, porque a Ficha, a Iniciativa e o servidor leem esse retrato como se fosse do Pathbuilder.
 - Aplique na mesa só pelo `build-apply`, que usa o slug estável do build e o mesmo preparo da publicação, porque o slug pelo nome quebraria o estado da mesa ao renomear.
 - Registre em `scripts/rules-data/parity-known.json` toda diferença de paridade com a explicação, e apague a linha quando resolvê-la, porque o `check-builder` falha em diferença nova.
+- Copie para outra mesa só pelo `build-copy`, que exige ser membro de lá e cria um build novo com dono = quem copiou, porque regras, exceções do GM e estado da mesa são de cada mesa.
