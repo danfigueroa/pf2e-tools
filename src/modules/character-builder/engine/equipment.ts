@@ -79,7 +79,10 @@ export function resolveItems(state: BuildState, rules: RulesIndex, warnings: War
         const entry = rules.get(inv.item) ?? null
         const baseName = entry?.item?.baseItem ? [entry.item.baseItem].flat()[0] : undefined
         const base = entry && (entry.item?.weapon || entry.item?.armor || entry.item?.shield) ? entry : baseName ? rules.byName(baseName) ?? null : null
-        if (!entry) warnings.push({ code: 'ENTRY_NOT_FOUND', level: 'warn', ref: 'equipment', message: tr(`Item fora do catálogo atual: ${inv.customName ?? inv.item}.`, `Item not in the current catalog: ${inv.customName ?? inv.item}.`) })
+        // Item caseiro (F8.12): só o nome; preço, volume e efeitos não entram nos números.
+        if (!entry && inv.item.startsWith('custom:')) {
+            warnings.push({ code: 'CUSTOM_ITEM', level: 'info', ref: 'equipment', message: tr(`${inv.customName ?? inv.item}: item caseiro — preço, volume e efeitos não entram nos números.`, `${inv.customName ?? inv.item}: homebrew item — price, bulk and effects are not in the numbers.`) })
+        } else if (!entry) warnings.push({ code: 'ENTRY_NOT_FOUND', level: 'warn', ref: 'equipment', message: tr(`Item fora do catálogo atual: ${inv.customName ?? inv.item}.`, `Item not in the current catalog: ${inv.customName ?? inv.item}.`) })
         if (entry && baseName && entry.item?.subcategory?.startsWith('Specific')) {
             warnings.push({ code: 'SPECIFIC_ITEM', level: 'info', ref: 'equipment', message: tr(`${entry.name}: item específico — confira as runas e efeitos próprios dele.`, `${entry.name}: specific item — check its own runes and effects.`) })
         }

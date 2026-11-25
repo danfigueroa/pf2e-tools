@@ -9,6 +9,8 @@ import type { RuleEntry } from '../rules/types';
 import type { MesaRules } from '../types';
 import { allowedAtTable } from '../mesaRules';
 
+const PAGE = 150;
+
 const DescriptionContent = lazy(() =>
   import('../../character-viewer/components/DescriptionContent').then((m) => ({ default: m.DescriptionContent })));
 
@@ -46,6 +48,8 @@ export function ContentPicker({ open, title, entries, value, onPick, onClose, me
   const [focusId, setFocusId] = useState<string | undefined>(value);
   const [detailOpen, setDetailOpen] = useState(false);
   const [description, setDescription] = useState<RuleEntry | null>(null);
+  // Listas longas (1.700 consumíveis) desenham em páginas: o celular não monta milhares de linhas de uma vez.
+  const [limit, setLimit] = useState(PAGE);
   const listRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
@@ -53,6 +57,7 @@ export function ContentPicker({ open, title, entries, value, onPick, onClose, me
     setQ('');
     setFocusId(value);
     setDetailOpen(false);
+    setLimit(PAGE);
   }, [open, value]);
 
   const shown = useMemo(() => {
@@ -102,7 +107,7 @@ export function ContentPicker({ open, title, entries, value, onPick, onClose, me
 
   const list = (
     <List ref={listRef} dense role="listbox" aria-label={title} sx={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
-      {shown.map((e) => {
+      {shown.slice(0, limit).map((e) => {
         const blocked = allowedAtTable(e, mesaRules) === false;
         return (
           <ListItemButton key={e.id} data-id={e.id} role="option" aria-selected={e.id === value}
@@ -116,6 +121,14 @@ export function ContentPicker({ open, title, entries, value, onPick, onClose, me
           </ListItemButton>
         );
       })}
+      {shown.length > limit && (
+        <Box sx={{ p: 1.5, textAlign: 'center' }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            {tr(`Mostrando ${limit} de ${shown.length}. Refine a busca ou`, `Showing ${limit} of ${shown.length}. Refine the search or`)}
+          </Typography>
+          <Button size="small" data-view="" onClick={() => setLimit((n) => n + PAGE)}>{tr('Mostrar mais', 'Show more')}</Button>
+        </Box>
+      )}
       {shown.length === 0 && <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>{tr('Nada encontrado.', 'Nothing found.')}</Typography>}
     </List>
   );

@@ -144,6 +144,17 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
             </TextField>
             <Button startIcon={<AddIcon />} variant="outlined" onClick={() => setPicking('item')} disabled={!items.length}>
               {items.length ? tr('Adicionar item', 'Add item') : tr('Carregando itens…', 'Loading items…')}</Button>
+            <TextField size="small" label={tr('Item caseiro (nome)', 'Homebrew item (name)')} sx={{ minWidth: 180 }}
+              slotProps={{ htmlInput: { maxLength: 80 } }}
+              onKeyDown={(e) => {
+                const input = e.target as HTMLInputElement;
+                if (e.key !== 'Enter' || !input.value.trim()) return;
+                const name = input.value.trim();
+                const id = `custom:${name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'item'}`;
+                setInventory((inv) => [...inv, { key: newKey(), item: id, qty: 1, acquired: 'given', customName: name }]);
+                input.value = '';
+              }}
+              helperText={tr('Enter para adicionar; não entra nos números.', 'Enter to add; not in the numbers.')} />
           </Stack>
         )}
       </Paper>
