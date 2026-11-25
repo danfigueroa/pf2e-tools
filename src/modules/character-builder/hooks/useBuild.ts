@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetchBuild, saveBuild } from '../../../services/builds'
 import { mesaKey } from '../../../services/mesa'
 import { sanitizeBuildState } from '../sanitize'
+import { currentUserId, listenMesaChannel } from '../../../services/supabase'
 import type { BuildRecord, BuildState } from '../types'
 
 const SAVE_DELAY_MS = 1500
@@ -172,6 +173,27 @@ export function useBuild(id: string | undefined, className?: string | null): Use
             alive = false
         }
     }, [id, nonce, schedule])
+
+    // Tempo real (F8.8, canal `mesa:<mesa>:builds`): outro aparelho gravou este build. Sem mudança local pendente,
+    // relê; com mudança pendente, o próximo salvamento cai no conflito (a pessoa decide). Relê a cada SUBSCRIBED
+    // (aviso perdido não volta — regra global 9).
+    useEffect(() => {
+        if (!id) return
+        let stop: (() => void) | null = null
+        let alive = true
+        const onChange = (payload: unknown) => {
+            const p = payload as { buildId?: string; rev?: number; by?: string | null }
+            if (p.buildId !== id || typeof p.rev !== 'number' || p.rev <= rev.current) return
+            if (p.by && p.by === currentUserId() && inFlight.current) return
+            if (same(latest.current, saved.current) && !blocked.current) setNonce((n) => n + 1)
+        }
+        void listenMesaChannel('builds', { builds: onChange }, (live) => {
+            if (live && alive && same(latest.current, saved.current) && !blocked.current) {
+                void fetchBuild(id).then((out) => { if (alive && out.ok && out.value.build.rev > rev.current) setNonce((n) => n + 1) })
+            }
+        }).then((fn) => { if (alive) stop = fn; else fn?.() })
+        return () => { alive = false; stop?.() }
+    }, [id])
 
     // Volta a rede: manda o que ficou.
     useEffect(() => {
