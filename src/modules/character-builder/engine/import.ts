@@ -220,6 +220,17 @@ export function importPathbuilder(b: BuildInfo, ctx: CompileContext): { state: B
         }
         if (cls?.class?.casting && cls.class.casting.traditions.length > 1) choices['spell-tradition'] = { value: classCaster.magicTradition }
     }
+    // Conjuradores de arquétipo ("Archetype Wizard"): mesma forma, chave `archetype:<classe>`.
+    for (const caster of (b.spellCasters ?? []).filter((c) => /^Archetype /.test(c.name))) {
+        const slug = caster.name.replace(/^Archetype /, '').toLowerCase().replace(/[^a-z0-9]+/g, '-')
+        const byRank = (lists: { spellLevel: number; list: string[] }[] | undefined) =>
+            Object.fromEntries((lists ?? []).filter((l) => l.list.length).map((l) => [String(l.spellLevel), l.list.map(spellId).filter((x): x is string => !!x)]))
+        if (caster.spellcastingType === 'spontaneous') spellcasting[`archetype:${slug}`] = { repertoire: byRank(caster.spells) }
+        else {
+            const book = Object.values(byRank(caster.spells)).flat()
+            spellcasting[`archetype:${slug}`] = { prepared: byRank(caster.prepared?.length ? caster.prepared : caster.spells), ...(book.length ? { spellbook: book } : {}) }
+        }
+    }
     const focusNames = Object.values(b.focus ?? {}).flatMap((byAttr) => Object.values(byAttr))
     const focusCantrips = focusNames.flatMap((f) => f.focusCantrips ?? []).map(spellId).filter((x): x is string => !!x)
     const focusSpells = focusNames.flatMap((f) => f.focusSpells ?? []).map(spellId).filter((x): x is string => !!x)

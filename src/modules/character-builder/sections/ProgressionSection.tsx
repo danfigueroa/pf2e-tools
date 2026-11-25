@@ -39,6 +39,8 @@ export interface ProgressionProps extends SectionProps {
   /** Arquétipo que o seletor está navegando (carrega a lista dele). */
   browseArchetype: string | null;
   setBrowseArchetype: (name: string | null) => void;
+  /** Slot a abrir direto (vindo de "Trocar talento" na Ficha). */
+  initialSlot?: string | null;
 }
 
 /**
@@ -46,9 +48,10 @@ export interface ProgressionProps extends SectionProps {
  * (texto), os slots de talento e as escolhas filhas. Níveis acima do atual aparecem esmaecidos ("planejado").
  */
 export function ProgressionSection(props: ProgressionProps) {
-  const { state, update, compiled, mesaRules, canEdit, index, feats, archetypes, browseArchetype, setBrowseArchetype } = props;
-  const [open, setOpen] = useState<number | false>(compiled.level);
-  const [picking, setPicking] = useState<Picking>(null);
+  const { state, update, compiled, mesaRules, canEdit, index, feats, archetypes, browseArchetype, setBrowseArchetype, initialSlot } = props;
+  const initial = initialSlot ? compiled.featSlots.find((s) => s.key === initialSlot) : undefined;
+  const [open, setOpen] = useState<number | false>(initial?.level ?? compiled.level);
+  const [picking, setPicking] = useState<Picking>(initial && canEdit ? { kind: 'feat', slot: initial } : null);
 
   const levels = Array.from({ length: 20 }, (_, i) => i + 1);
   const takenBySlot = useMemo(() => new Map(compiled.taken.map((t) => [t.slot, t])), [compiled.taken]);

@@ -14,6 +14,7 @@ export type Tradition = 'arcane' | 'divine' | 'occult' | 'primal'
 
 export interface SpellSlotTable {
     classes: Record<string, { source?: string; maxRank?: number; perDay: Record<string, (number | number[])[]> }>
+    archetype?: ArchetypeSlotTable
 }
 
 export interface Caster {
@@ -128,4 +129,60 @@ export function compileFocus(granted: RuleEntry[], level: number): FocusInfo {
     const cantrips = unique.filter((s) => s.spell?.cantrip || (s.traits ?? []).includes('Cantrip'))
     const spells = unique.filter((s) => !cantrips.includes(s))
     return { spells, cantrips, points: Math.min(3, spells.length), heightened: Math.ceil(level / 2) }
+}
+
+/** Tabela de arquétipo (Player Core pg. 215): nível → rank do espaço, por patamar (Basic, Expert, Master). */
+export interface ArchetypeSlotTable { basic?: Record<string, number>; expert?: Record<string, number>; master?: Record<string, number> }
+
+/**
+ * Conjuradores de arquétipo (Player Core pg. 215): a dedicação dá os truques, a tradição e o atributo (texto da AON,
+ * `feat.casting`); Basic/Expert/Master <Classe> Spellcasting dão os espaços da tabela e perito/mestre.
+ */
+export function compileArchetypeCasters(state: BuildState, taken: { entry: RuleEntry }[], ctx: {
+    level: number
+    mod: Record<AttributeKey, number>
+    keyAttribute: AttributeKey | null
+    table?: ArchetypeSlotTable
+    classByName: (name: string) => RuleEntry | undefined
+}, pending: Pending[], warnings: Warning[], used: Set<string>): Caster[] {
+    const names = new Set(taken.map((t) => t.entry.name.toLowerCase()))
+    const out: Caster[] = []
+    for (const { entry } of taken) {
+        const casting = entry.feat?.casting
+        if (!casting?.type || !casting.className) continue
+        const cls = casting.className
+        const slug = cls.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+        const key = `archetype:${slug}`
+        let tradition = (casting.tradition as Tradition | undefined) ?? null
+        if (!tradition) {
+            const options = ctx.classByName(cls)?.class?.casting?.traditions ?? []
+            if (options.length === 1) tradition = options[0] as Tradition
+            else {
+                const choiceKey = `spell-tradition-${slug}`
+                used.add(choiceKey)
+                const raw = state.choices[choiceKey]
+                if (raw && 'value' in raw && (TRADITIONS as string[]).includes(raw.value)) tradition = raw.value as Tradition
+                else pending.push({ key: choiceKey, label: tr(`Tradição do arquétipo ${cls}`, `${cls} archetype tradition`), level: 1, missing: 1 })
+            }
+        }
+        const attribute = casting.attribute ?? ctx.keyAttribute ?? 'cha'
+        if (!casting.attribute) warnings.push({ code: 'ARCHETYPE_ATTRIBUTE', level: 'info', ref: 'spells', message: tr(`${cls} (arquétipo): atributo de conjuração assumido como o atributo-chave; confira.`, `${cls} (archetype): spellcasting attribute assumed to be the key attribute; check it.`) })
+        const tiers: [keyof ArchetypeSlotTable, string][] = [['basic', `basic ${cls} spellcasting`], ['expert', `expert ${cls} spellcasting`], ['master', `master ${cls} spellcasting`]]
+        const perDay = Array.from({ length: 11 }, () => 0)
+        perDay[0] = casting.cantrips ?? 0
+        let rank: Rank = 1
+        for (const [tier, featName] of tiers) {
+            if (!names.has(featName.toLowerCase())) continue
+            if (tier === 'expert') rank = Math.max(rank, 2) as Rank
+            if (tier === 'master') rank = Math.max(rank, 3) as Rank
+            for (const [lvl, r] of Object.entries(ctx.table?.[tier] ?? {})) if (Number(lvl) <= ctx.level) perDay[r] = Math.max(perDay[r], 1)
+        }
+        const prof = ctx.level + 2 * rank
+        out.push({
+            key, name: `Archetype ${cls}`, tradition, type: casting.type, attribute, rank, perDay,
+            dc: 10 + prof + ctx.mod[attribute], attack: prof + ctx.mod[attribute],
+            spellbook: casting.type === 'prepared' && SPELLBOOK_CLASSES.has(cls.toLowerCase()), source: 'Player Core pg. 215',
+        })
+    }
+    return out
 }

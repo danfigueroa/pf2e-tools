@@ -79,6 +79,8 @@ export function BuilderMode({ buildId }: { buildId: string }) {
   const [browseArchetype, setBrowseArchetype] = useState<string | null>(null);
   // A aba Equipamento pede as listas de item mesmo com o inventário vazio.
   const [itemsWanted, setItemsWanted] = useState(false);
+  // Tradições dos conjuradores que o motor achou (arquétipo incluído): as listas delas também baixam.
+  const [casterTraditions, setCasterTraditions] = useState<string>('');
   const { build, state, canEdit, loading, error, status, conflict, update, keepMine, takeTheirs, reload } = useBuild(buildId, className);
 
   // Listas de talento que este personagem usa: classe, ancestralidade, herança versátil, mítico e os arquétipos dos
@@ -102,12 +104,12 @@ export function BuilderMode({ buildId }: { buildId: string }) {
       traditions: (() => {
         const list = cls?.class?.casting?.traditions ?? [];
         const chosen = state.choices['spell-tradition'];
-        if (list.length === 1) return list;
-        return chosen && 'value' in chosen ? [chosen.value] : [];
+        const own = list.length === 1 ? list : chosen && 'value' in chosen ? [chosen.value] : [];
+        return [...new Set([...own, ...casterTraditions.split(',').filter(Boolean)])];
       })(),
     };
     return JSON.stringify(next);
-  }, [core, state, browseArchetype, rules.mesaRules, itemsWanted]);
+  }, [core, state, browseArchetype, rules.mesaRules, itemsWanted, casterTraditions]);
   useEffect(() => { if (needsKey) setNeeds(JSON.parse(needsKey) as FeatListNeeds); }, [needsKey]);
   const [tab, setTab] = useState<BuilderTab>('origin');
   const [pendingOpen, setPendingOpen] = useState(false);
@@ -129,12 +131,20 @@ export function BuilderMode({ buildId }: { buildId: string }) {
   const compiled = useMemo(() => (state && rules.index && core
     ? compileBuild(state, { rules: rules.index, mesaRules: rules.mesaRules ?? undefined, classOptions: core.classFeatures, tables: rules.tables ?? undefined, buildId })
     : null), [state, rules.index, rules.mesaRules, core, rules.tables, buildId]);
+  const traditionsKey = compiled ? [...new Set(compiled.casters.map((c) => c.tradition).filter(Boolean))].sort().join(',') : '';
+  useEffect(() => setCasterTraditions(traditionsKey), [traditionsKey]);
   const clsName = rules.index?.get(state?.class.id)?.name ?? null;
   useEffect(() => setClassName(clsName), [clsName]);
 
   // "Subir de nível" vindo da Ficha (`?subir=1`): um nível a mais e a aba Progressão, uma vez.
   const [params, setParams] = useSearchParams();
   const levelUp = params.get('subir') === '1'; // i18n-ok: chave da URL
+  const [swapSlot] = useState(() => params.get('trocar')); // i18n-ok: chave da URL
+  useEffect(() => {
+    if (!swapSlot) return;
+    setTab('progression');
+    setParams((p) => { p.delete('trocar'); return p; }, { replace: true }); // i18n-ok: chave da URL
+  }, [swapSlot, setParams]);
   useEffect(() => {
     if (!levelUp || !state || !canEdit) return;
     if (state.level < 20) update((s) => ({ ...s, level: s.level + 1 }));
@@ -334,7 +344,7 @@ export function BuilderMode({ buildId }: { buildId: string }) {
             {sectionProps && tab === 'spells' && <SpellsSection {...sectionProps} spells={rules.feats.filter((e) => e.type === 'spell')} />}
             {sectionProps && tab === 'progression' && (
               <ProgressionSection {...sectionProps} feats={rules.feats} archetypes={core?.archetypes ?? []}
-                browseArchetype={browseArchetype} setBrowseArchetype={setBrowseArchetype} />
+                browseArchetype={browseArchetype} setBrowseArchetype={setBrowseArchetype} initialSlot={swapSlot} />
             )}
             {tab === 'details' && (
               <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2.5 } }}>

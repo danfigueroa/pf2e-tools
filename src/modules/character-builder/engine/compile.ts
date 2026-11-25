@@ -14,7 +14,7 @@ import { attributeLabel, compileAttributes } from './attributes'
 import { compileSkills } from './skills'
 import { compileFeats } from './feats'
 import type { PrereqContext } from './prereqs'
-import { checkSpellChoices, compileCasters, compileFocus } from './spells'
+import { checkSpellChoices, compileArchetypeCasters, compileCasters, compileFocus } from './spells'
 import { armorClass, compileEquipment, GROUP_FEATURES } from './equipment'
 import { abpAt, abpSkillBonus } from './abp'
 import { featSlots, variantFlags } from './slots'
@@ -346,6 +346,9 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
     // 7. Magias: o conjurador da classe e o foco (as magias de foco são escolha do jogador: o Foundry quase nunca as concede
     // por regra). Guardadas em `spellcasting.focus.repertoire` — "0" truques de foco, "1" magias de foco.
     const casters = compileCasters(state, cls, { level, keyAttribute, mod, spellRank: proficiency.spell, table: ctx.tables?.spellSlots }, pending, warnings, used)
+    casters.push(...compileArchetypeCasters(state, feats.taken, {
+        level, mod, keyAttribute, table: ctx.tables?.spellSlots?.archetype, classByName: (n) => rules.byName(n, 'class'),
+    }, pending, warnings, used))
     checkSpellChoices(state, casters, (id) => rules.get(id), pending, warnings, level)
     const focusIds = Object.values(state.spellcasting.focus?.repertoire ?? {}).flat()
     const focus = compileFocus(focusIds.map((id) => rules.get(id)).filter((e): e is RuleEntry => !!e), level)

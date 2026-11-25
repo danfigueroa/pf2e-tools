@@ -12,6 +12,7 @@ import {
     Typography,
     useTheme,
     useMediaQuery,
+    Button,
 } from '@mui/material'
 import { ExpandMore as ExpandIcon, Lock as LockIcon } from '@mui/icons-material'
 import { checkApiAvailable, fetchCompanionStats, loadDescriptionBundle, loadSheetDescriptionsBoth } from '../../services/descriptions'
@@ -30,6 +31,7 @@ import {
 
 import { green, gold, displayFont, onFrame } from '../../theme'
 import type { BuildInfo, FeatDescription } from '../../pathbuilder/types'
+import { Link as RouterLink } from 'react-router-dom'
 import { PublishedBar } from './components/PublishedBar'
 import { canEditSheet, useRole } from '../../services/auth'
 import { usePublishedSheets } from './usePublishedSheets'
@@ -412,10 +414,21 @@ const SheetBody = ({ build: source, publication, onReset, onRestore, compact = f
     // O "Usar" das abas Talentos e Habilidades também dentro do drawer: quem foi ler a
     // regra usa dali. Os dois botões leem a mesma fatia da mesa (ações, usos do dia).
     const drawerActions = useCallback(
-        (req: DescriptionRequest, entry: FeatDescription) =>
-            !readOnly && (req.type === 'feat' || req.type === 'special')
-                ? <ActivityButton build={build} mods={mods} mythicPoints={mythicPoints} name={req.name} desc={entry} fullWidth />
-                : null,
+        (req: DescriptionRequest, entry: FeatDescription) => {
+            if (readOnly || (req.type !== 'feat' && req.type !== 'special')) return null
+            // Ficha do Criador: "Trocar talento" abre o Criador naquele slot (`covil.slots`).
+            const covil = (build as BuildInfo & { covil?: { buildId?: string; slots?: Record<string, string> } }).covil
+            const slot = req.type === 'feat' && covil?.buildId ? covil.slots?.[req.name] : undefined
+            return (
+                <>
+                    <ActivityButton build={build} mods={mods} mythicPoints={mythicPoints} name={req.name} desc={entry} fullWidth />
+                    {slot && (
+                        <Button component={RouterLink} to={`/personagens/${covil!.buildId}?trocar=${encodeURIComponent(slot)}`} variant="outlined" fullWidth sx={{ mt: 1 }}>
+                            {tr('Trocar talento no Criador', 'Swap feat in the Builder')}</Button>
+                    )}
+                </>
+            )
+        },
         [build, mods, mythicPoints, readOnly],
     )
     const shareDrawer = useCallback(

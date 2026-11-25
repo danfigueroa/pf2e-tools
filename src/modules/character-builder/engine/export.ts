@@ -220,6 +220,8 @@ export function exportBuild(state: BuildState, compiled: Compiled, ctx: ExportCo
             schema: 1, buildId: ctx.buildId, rulesVersion: state.rulesVersion,
             warnings: compiled.warnings.filter((w) => w.level !== 'info').slice(0, 40).map((w) => ({ code: w.code, message: w.message })),
             ids: Object.fromEntries(Object.entries(state.choices).flatMap(([k, v]) => ('id' in v ? [[k, v.id]] : []))),
+            // Slot de cada talento escolhido (nome → chave), para "Trocar talento" na Ficha.
+            slots: Object.fromEntries(compiled.taken.filter((t) => t.kind !== 'granted').map((t) => [t.entry.name, t.slot])),
             variants: compiled.featSlots.some((s) => s.kind === 'archetype') ? ['freeArchetype'] : [],
             mythic: compiled.classChoices.find((c) => c.type === 'mythic-calling')?.chosen ? { calling: name(compiled.classChoices.find((c) => c.type === 'mythic-calling')!.chosen!) } : null,
             unarmed: eq.strikes.filter((s) => s.key === 'fist').map((s) => ({ name: s.name, die: s.die, attack: s.attack, damageBonus: s.damageBonus, damageType: s.damageType, traits: s.traits })),

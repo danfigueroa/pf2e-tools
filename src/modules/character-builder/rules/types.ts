@@ -81,7 +81,9 @@ export interface RuleEntry {
     classFeature?: { proficiencies?: { target: string; rank: Rank }[] }
     /** Doutrina do Cleric: proficiências por degrau (Player Core pg. 112). */
     doctrine?: { steps: { level: number; proficiencies: { target: string; rank: Rank }[] }[] }
-    feat?: { archetype?: string[]; skill?: string[] }
+    feat?: { archetype?: string[]; skill?: string[]
+        /** Dedicação de arquétipo conjurador (Player Core pg. 215), lida do texto da AON. */
+        casting?: { className?: string; attribute?: AttributeKey; tradition?: string; type?: 'prepared' | 'spontaneous'; cantrips?: number } }
     spell?: { rank?: number; traditions?: string[]; cantrip?: boolean; focus?: boolean; ritual?: boolean; heighten?: string[] }
     item?: ItemData
 }
