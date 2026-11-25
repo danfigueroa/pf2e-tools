@@ -45,7 +45,7 @@ export function featListPaths(needs: FeatListNeeds): string[] {
         needs.versatileHeritage ? `feats/ancestry/${ruleListSlug(needs.versatileHeritage)}` : null,
         ...needs.archetypes.map((a) => `feats/archetype/${ruleListSlug(a)}`),
         ...(needs.traditions ?? []).map((t) => `spells/${t}`),
-        'spells/focus',
+        'spells/focus', 'spells/rituals',
     ].filter((p): p is string => Boolean(p))
 }
 

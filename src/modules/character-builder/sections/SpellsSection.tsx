@@ -16,7 +16,7 @@ const TRADITION_LABEL: Record<string, string> = {
 };
 const signed = (n: number) => `${n >= 0 ? '+' : ''}${n}`;
 
-type Field = 'repertoire' | 'prepared' | 'spellbook' | 'focus0' | 'focus1';
+type Field = 'repertoire' | 'prepared' | 'spellbook' | 'focus0' | 'focus1' | 'rituals';
 type Picking = { caster: string; field: Field; rank: number } | null;
 
 export interface SpellsProps extends SectionProps {
@@ -41,6 +41,11 @@ export function SpellsSection({ state, update, compiled, canEdit, index, mesaRul
       return { ...s, spellcasting: { ...s.spellcasting, [key]: current } };
     });
   const add = (p: NonNullable<Picking>, id: string) => {
+    if (p.field === 'rituals') {
+      const prev = lists('rituals').spellbook ?? [];
+      if (!prev.includes(id)) setList('rituals', 'spellbook', 0, [...prev, id]);
+      return;
+    }
     if (p.field === 'focus0' || p.field === 'focus1') {
       const rank = p.field === 'focus0' ? 0 : 1;
       const prev = lists('focus').repertoire?.[String(rank)] ?? [];
@@ -65,6 +70,7 @@ export function SpellsSection({ state, update, compiled, canEdit, index, mesaRul
 
   /** Candidatos: da tradição, até o rank (truque só no 0); preparado de grimório escolhe do grimório. */
   const candidates = (p: NonNullable<Picking>): RuleEntry[] => {
+    if (p.field === 'rituals') return spells.filter((s) => s.spell?.ritual);
     if (p.field === 'focus0' || p.field === 'focus1') {
       const wantCantrip = p.field === 'focus0';
       return spells.filter((s) => (s.spell?.focus || (s.traits ?? []).includes('Focus')) && !!(s.spell?.cantrip || (s.traits ?? []).includes('Cantrip')) === wantCantrip);
@@ -175,8 +181,18 @@ export function SpellsSection({ state, update, compiled, canEdit, index, mesaRul
         ))}
       </Paper>
 
+      <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 } }}>
+        <Typography component="h3" sx={{ fontFamily: displayFont, fontWeight: 700 }}>{tr('Rituais', 'Rituals')}</Typography>
+        <Stack direction="row" sx={{ gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
+          {(lists('rituals').spellbook ?? []).map((id, i) => (
+            <Chip key={`${id}-${i}`} size="small" label={name(id)} onDelete={canEdit ? () => removeAt('rituals', 'spellbook', 0, i) : undefined} />
+          ))}
+          {canEdit && <Chip size="small" icon={<AddIcon />} label={tr('Adicionar', 'Add')} variant="outlined" onClick={() => setPicking({ caster: 'rituals', field: 'rituals', rank: 0 })} />}
+        </Stack>
+      </Paper>
+
       {picking && (
-        <ContentPicker open title={picking.field === 'spellbook' ? tr('Grimório', 'Spellbook') : picking.field.startsWith('focus') ? tr('Magias de foco', 'Focus spells') : tr(`Magias — rank ${picking.rank}`, `Spells — rank ${picking.rank}`)}
+        <ContentPicker open title={picking.field === 'rituals' ? tr('Rituais', 'Rituals') : picking.field === 'spellbook' ? tr('Grimório', 'Spellbook') : picking.field.startsWith('focus') ? tr('Magias de foco', 'Focus spells') : tr(`Magias — rank ${picking.rank}`, `Spells — rank ${picking.rank}`)}
           entries={candidates(picking)} onPick={(id) => add(picking, id)} onClose={() => setPicking(null)} mesaRules={mesaRules}
           secondary={(e) => [e.spell?.cantrip ? tr('truque', 'cantrip') : tr(`rank ${e.spell?.rank ?? e.level ?? 0}`, `rank ${e.spell?.rank ?? e.level ?? 0}`), (e.spell?.traditions ?? []).join('/')].filter(Boolean).join(' · ')} />
       )}
