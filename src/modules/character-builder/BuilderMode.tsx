@@ -27,7 +27,9 @@ import type { SectionProps } from './sections/types';
 import { tabOf, type BuilderTab } from './tabs';
 import { ApplyDialog } from './components/ApplyDialog';
 import { exportBuild } from './engine/export';
-import { fetchBuildVersions, restoreBuildVersion, type BuildVersion } from '../../services/builds';
+import { assignBuild, fetchBuildVersions, restoreBuildVersion, type BuildVersion } from '../../services/builds';
+import { assignSheet, fetchMembers, type MemberRow } from '../../services/members';
+import { useRole } from '../../services/auth';
 import { locale, tr } from '../../i18n';
 import type { BuildState } from './types';
 
@@ -108,6 +110,16 @@ export function BuilderMode({ buildId }: { buildId: string }) {
   const [pendingOpen, setPendingOpen] = useState(false);
   const [applyOpen, setApplyOpen] = useState(false);
   const [versions, setVersions] = useState<BuildVersion[] | null>(null);
+  // GM: membros da mesa para escolher o dono (F8.2).
+  const { isGm } = useRole();
+  const [members, setMembers] = useState<MemberRow[] | null>(null);
+  const [owner, setOwner] = useState<string | null | undefined>(undefined);
+  useEffect(() => {
+    if (!isGm) return;
+    let alive = true;
+    void fetchMembers().then((out) => { if (alive && out.ok) setMembers(out.data.members.filter((m) => !m.anonymous)); });
+    return () => { alive = false; };
+  }, [isGm]);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
@@ -243,6 +255,21 @@ export function BuilderMode({ buildId }: { buildId: string }) {
                 a.click();
                 URL.revokeObjectURL(url);
               }}>{tr('Baixar JSON', 'Download JSON')}</Button>
+            )}
+            {isGm && members && (
+              <TextField select size="small" label={tr('Dono', 'Owner')} sx={{ minWidth: 160 }}
+                value={(owner === undefined ? build.ownerId : owner) ?? ''}
+                onChange={(e) => {
+                  const user = e.target.value || null;
+                  setOwner(user);
+                  void assignBuild(build.id, user).then((out) => {
+                    // A ficha que já está na mesa acompanha o dono do build.
+                    if (out.ok && build.publishedRev !== null) void assignSheet(build.slug, user);
+                  });
+                }}>
+                <MenuItem value="">{tr('Sem dono', 'No owner')}</MenuItem>
+                {members.map((m) => <MenuItem key={m.userId} value={m.userId}>{m.displayName ?? m.username ?? m.userId.slice(0, 8)}</MenuItem>)}
+              </TextField>
             )}
             {canEdit && (
               <Button size="small" {...VIEW_OK} onClick={() => void fetchBuildVersions(build.id).then((out) => setVersions(out.ok ? out.value : []))}>

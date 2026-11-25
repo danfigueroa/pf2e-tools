@@ -71,3 +71,7 @@ export const restoreBuildVersion = (id: string, version: number, rev: number) =>
 /** Cria o build a partir de uma ficha publicada (importação): herda o slug dela. */
 export const createBuildFromSheet = (slug: string, state: BuildState, className?: string | null) =>
     call({ body: { action: 'build-create', name: state.name, state, fromSheet: slug, className: className ?? null } }, (b) => asBuild(b.build))
+
+/** GM: troca o dono do build. */
+export const assignBuild = (id: string, user: string | null) =>
+    call({ body: { action: 'build-assign', id, user } }, (b) => asBuild(b.build) as BuildHeader | undefined)

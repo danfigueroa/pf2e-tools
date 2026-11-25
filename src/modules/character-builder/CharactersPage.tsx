@@ -106,6 +106,7 @@ function BuildList() {
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [startingLevel, setStartingLevel] = useState(1);
+  const [ownerFilter, setOwnerFilter] = useState('');
 
   const load = useCallback(() => {
     void listBuilds().then((out) => {
@@ -124,10 +125,12 @@ function BuildList() {
     const isMine = (b: BuildHeader) => (userId ? b.ownerId === userId : b.canEdit === true);
     return {
       mine: live.filter(isMine),
-      others: live.filter((b) => !isMine(b)),
+      others: live.filter((b) => !isMine(b) && (!ownerFilter || (b.ownerName ?? '') === ownerFilter)),
+      anyOthers: live.some((b) => !isMine(b)),
       trash: (builds ?? []).filter((b) => b.deletedAt),
     };
-  }, [builds, userId]);
+  }, [builds, userId, ownerFilter]);
+  const owners = useMemo(() => [...new Set((builds ?? []).map((b) => b.ownerName).filter((n): n is string => !!n))].sort(), [builds]);
 
   const restore = async (id: string) => {
     const out = await trashBuild(id, false);
@@ -170,9 +173,17 @@ function BuildList() {
             </Paper>
           )}
 
-          {groups.others.length > 0 && (
+          {groups.anyOthers && (
             <>
-              <SectionTitle>{tr('Da mesa', 'From the table')}</SectionTitle>
+              <Stack direction="row" sx={{ alignItems: 'center', gap: 1.5, flexWrap: 'wrap', mb: 1 }}>
+                <Box sx={{ flex: 1 }}><SectionTitle>{tr('Da mesa', 'From the table')}</SectionTitle></Box>
+                {isGm && owners.length > 1 && (
+                  <TextField select size="small" label={tr('Dono', 'Owner')} value={ownerFilter} onChange={(e) => setOwnerFilter(e.target.value)} sx={{ minWidth: 160 }}>
+                    <MenuItem value="">{tr('Todos', 'All')}</MenuItem>
+                    {owners.map((o) => <MenuItem key={o} value={o}>{o}</MenuItem>)}
+                  </TextField>
+                )}
+              </Stack>
               <Grid>{groups.others.map((b) => <BuildCard key={b.id} build={b} showOwner />)}</Grid>
             </>
           )}
