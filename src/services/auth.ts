@@ -39,11 +39,21 @@ export type AuthState =
     | { status: 'error' }
     | {
           status: 'in'
-          user: { id: string; email: string | null; username: string | null }
+          user: AuthUser
           mesas: Membership[]
           /** Por que o convite do link não valeu, quando não valeu. */
           notice: string | null
       }
+
+export interface AuthUser {
+    id: string
+    email: string | null
+    username: string | null
+    /** Está em `platform_admins`: vê a base de regras do Criador (o servidor confere de novo). */
+    platformAdmin?: boolean
+    /** Livros novos e erratas na AON ainda não importados (só para admin). */
+    rulesNews?: number
+}
 
 let state: AuthState = { status: 'loading' }
 const listeners = new Set<() => void>()
@@ -125,13 +135,17 @@ export async function acceptInvite(code: string): Promise<{ mesa: string; role: 
     return { mesa: String(data.mesa), role: data.role === 'gm' ? 'gm' : 'player' }
 }
 
-async function fetchMe(): Promise<{ user: { id: string; email: string | null; username: string | null }; mesas: Membership[] } | null> {
+async function fetchMe(): Promise<{ user: AuthUser; mesas: Membership[] } | null> {
     try {
         const res = await fetch(stateApi('?me=1'))
         if (!res.ok) return null
         const data = await res.json()
         setRulesVersion(typeof data.rulesVersion === 'string' ? data.rulesVersion : null)
-        return { user: data.user, mesas: data.mesas ?? [] }
+        const platformAdmin = data.platformAdmin === true
+        return {
+            user: { ...data.user, platformAdmin, rulesNews: platformAdmin && typeof data.rulesNews === 'number' ? data.rulesNews : 0 },
+            mesas: data.mesas ?? [],
+        }
     } catch {
         return null
     }
@@ -321,12 +335,14 @@ export interface RoleInfo {
     email: string | null
     username: string | null
     displayName: string | null
+    isPlatformAdmin: boolean
+    rulesNews: number
 }
 
 export function roleOf(auth: AuthState): RoleInfo {
     // Sem Supabase não há quem barre: dev local fica com todas as permissões.
-    if (auth.status === 'local') return { role: 'gm', isGm: true, userId: null, email: null, username: null, displayName: null }
-    if (auth.status !== 'in') return { role: null, isGm: false, userId: null, email: null, username: null, displayName: null }
+    if (auth.status === 'local') return { role: 'gm', isGm: true, userId: null, email: null, username: null, displayName: null, isPlatformAdmin: true, rulesNews: 0 }
+    if (auth.status !== 'in') return { role: null, isGm: false, userId: null, email: null, username: null, displayName: null, isPlatformAdmin: false, rulesNews: 0 }
     const member = auth.mesas.find((m) => m.id === currentMesa.id)
     return {
         role: member?.role ?? null,
@@ -335,6 +351,8 @@ export function roleOf(auth: AuthState): RoleInfo {
         email: auth.user.email,
         username: auth.user.username,
         displayName: member?.displayName ?? null,
+        isPlatformAdmin: auth.user.platformAdmin === true,
+        rulesNews: auth.user.rulesNews ?? 0,
     }
 }
 

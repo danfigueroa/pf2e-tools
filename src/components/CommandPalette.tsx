@@ -23,19 +23,19 @@ function score(item: NavItem, query: string): number {
 }
 
 export default function CommandPalette({ onClose }: { onClose: () => void }) {
-  const { isGm } = useRole();
+  const { isGm, isPlatformAdmin } = useRole();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [index, setIndex] = useState(0);
 
   const results = useMemo(() => {
     const q = fold(query.trim());
-    return visibleNav(isGm)
+    return visibleNav(isGm, isPlatformAdmin)
       .map((item) => ({ item, s: score(item, q) }))
       .filter((r) => r.s > 0)
       .sort((a, b) => b.s - a.s)
       .map((r) => r.item);
-  }, [query, isGm]);
+  }, [query, isGm, isPlatformAdmin]);
   const current = Math.min(index, Math.max(0, results.length - 1));
 
   const go = (item: NavItem | undefined) => {

@@ -66,7 +66,7 @@ interface SidebarProps {
  */
 export const Sidebar = ({ collapsed, onToggleCollapse, onNavigate, onOpenHistory, onOpenPassword, onOpenPhoto }: SidebarProps) => {
   const role = useRole();
-  const items = visibleNav(role.isGm);
+  const items = visibleNav(role.isGm, role.isPlatformAdmin);
   const sections = (['jogo', 'gm', 'mesa'] as NavSection[])
     .map((s) => ({ section: s, items: items.filter((i) => i.section === s) }))
     .filter((s) => s.items.length > 0);
@@ -251,7 +251,11 @@ const NavLink = ({ item, collapsed, onNavigate }: { item: NavItem; collapsed: bo
   const { pathname } = useLocation();
   const active = isCurrent(pathname, item.path);
   const combat = useCombatStatus();
+  const { rulesNews } = useRole();
   const round = item.path === '/iniciativa' && combat && combat.round > 0 ? combat.round : null;
+  // Livros novos ou erratas na AON (verificação semanal): o selo da Base de regras, só para admin.
+  const news = item.path === '/plataforma/regras' && rulesNews > 0 ? rulesNews : null;
+  const badge = round ? tr(`Rodada ${round}`, `Round ${round}`) : news ? tr(`${news} novidade${news > 1 ? 's' : ''}`, `${news} new`) : null;
 
   const link = (
     <ButtonBase
@@ -260,7 +264,7 @@ const NavLink = ({ item, collapsed, onNavigate }: { item: NavItem; collapsed: bo
       onClick={onNavigate}
       aria-current={active ? 'page' : undefined}
       aria-label={collapsed ? item.text : undefined}
-      title={collapsed ? (round ? tr(`${item.text} · rodada ${round}`, `${item.text} · round ${round}`) : item.text) : undefined}
+      title={collapsed ? (badge ? `${item.text} · ${badge}` : item.text) : undefined}
       sx={{
         display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'flex-start', gap: 1.5,
         minHeight: 48, pl: collapsed ? 0 : 0.75, pr: collapsed ? 0 : 1.5, borderRadius: 1.75,
@@ -278,20 +282,20 @@ const NavLink = ({ item, collapsed, onNavigate }: { item: NavItem; collapsed: bo
         '& svg': { fontSize: 20 },
       }}>
         {item.icon}
-        {collapsed && round && (
+        {collapsed && badge && (
           <Box sx={{ position: 'absolute', top: 2, right: 2, width: 8, height: 8, borderRadius: '50%', bgcolor: gold.bright, border: `2px solid ${green.deepest}` }} />
         )}
       </Box>
       {!collapsed && (
         <>
           <Box component="span" sx={{ flex: 1, minWidth: 0, textAlign: 'left' }}>{item.text}</Box>
-          {round && (
+          {badge && (
             <Box component="span" sx={{
               display: 'flex', alignItems: 'center', gap: 0.75, fontSize: '0.75rem', fontWeight: 700,
               px: 1.125, py: 0.375, borderRadius: 99, bgcolor: `${gold.bright}29`, color: chrome.text, whiteSpace: 'nowrap',
             }}>
               <Box component="span" sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: gold.bright }} />
-              {tr('Rodada ', 'Round ')}{round}
+              {badge}
             </Box>
           )}
         </>

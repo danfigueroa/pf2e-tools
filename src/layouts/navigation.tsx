@@ -13,6 +13,7 @@ import {
   EmojiEvents as TrophyIcon,
   AutoStories as WikiIcon,
   PersonAddAlt1 as BuilderIcon,
+  LibraryBooks as RulesIcon,
 } from '@mui/icons-material';
 import { tr } from '../i18n';
 
@@ -42,6 +43,8 @@ export interface NavItem {
   keywords: string[];
   /** Só o GM vê (o servidor também confere). Sem isso, um item de BASTIDORES vai para JOGO no jogador. */
   gmOnly?: boolean;
+  /** Só a administração da plataforma (`platform_admins`), em qualquer mesa e com qualquer papel nela. */
+  adminOnly?: boolean;
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -97,15 +100,20 @@ export const NAV_ITEMS: NavItem[] = [
     text: tr('Configurações da mesa', 'Table settings'), icon: <SettingsIcon />, path: '/mesa', section: 'mesa',
     keywords: ['configuracoes', 'mesa', tr('nome', 'name'), tr('sessao', 'session'), tr('proxima sessao', 'next session')],
   },
+  {
+    text: tr('Base de regras', 'Rules base'), icon: <RulesIcon />, path: '/plataforma/regras', section: 'mesa', adminOnly: true,
+    keywords: [tr('regras', 'rules'), tr('livros', 'books'), 'aon', tr('importar', 'import'), 'errata', 'catalogo', 'plataforma', 'admin'],
+  },
 ];
 
 /**
  * O que a pessoa vê, por seção. Jogador não tem as seções do GM, mas o Escalar Monstro continua
  * aberto a ele: vai para JOGO, como a rota, que nunca foi fechada. O que é `gmOnly` some.
  */
-export function visibleNav(isGm: boolean): NavItem[] {
-  if (isGm) return NAV_ITEMS;
-  return NAV_ITEMS.filter((i) => i.section !== 'mesa' && !i.gmOnly).map((i) => (i.section === 'gm' ? { ...i, section: 'jogo' } : i));
+export function visibleNav(isGm: boolean, isAdmin = false): NavItem[] {
+  const items = NAV_ITEMS.filter((i) => !i.adminOnly || isAdmin);
+  if (isGm) return items;
+  return items.filter((i) => (i.section !== 'mesa' || i.adminOnly) && !i.gmOnly).map((i) => (i.section === 'gm' ? { ...i, section: 'jogo' } : i));
 }
 
 export const SECTION_LABEL: Record<NavSection, string> = {
