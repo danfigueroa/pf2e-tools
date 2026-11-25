@@ -353,6 +353,8 @@ personagem no Criador sem divergência não explicada.
       catálogo de regras onde ele cobre.
 - [ ] **10.4** A plataforma inteira lê a base local antes da AON (`feat-core.js`, `spell-parse.js`, `sheet-warm.js`,
       `gear-core.js`): a Ficha também deixa de depender da AON ao vivo; a AON vira só fonte de atualização.
+      Parcial: descrições e equipamento leem o catálogo primeiro (411 de 503 nomes do elenco); legado e páginas de regra
+      seguem na AON até uma mesa liberar o livro.
 
 ---
 

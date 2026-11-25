@@ -337,4 +337,9 @@
   - `check-local-aon.mjs` roda a mesma escolha com e sem o catálogo. Nos 503 nomes do elenco: 488 com a mesma entrada e o mesmo texto, 0 diferentes, 365 vindos do catálogo e 15 sem entrada. Os 24 equipamentos são iguais.
   - O teste achou e corrigiu três desvios. Na busca sem categoria, o catálogo trazia homônimos de qualquer categoria ("Occult" traço × exemplar dracônico). Num empate de data entre variantes, a ordem decidia; agora ordena por `aon_id`. E faltava aparar o nome: a AON grava `"Fortitude Expertise "` (Psychic, Dark Archive Remastered), e nenhum caminho reconhecia o nome exato.
   - De ponta a ponta, um talento e uma magia saíram do catálogo em 162 ms e 56 ms, sem chamada à AON.
-  - Próximo passo (3): importar os livros legados que o elenco usa, para os 123 nomes que ainda vêm só da AON.
+  - Antes da busca sem categoria entram, só por nome exato, armas, armaduras, escudos, relíquias e opções de classe (instinto, racket, chamado, ordem, estudo híbrido…). O catálogo passou a cobrir 411 nomes, contra 365 antes. Medi contra o comportamento antigo, com a lista velha e só a AON: a única mudança foi o Scroll Robes do Woyd (Treasure Vault Remastered), que antes ficava sem descrição. Se as categorias novas também aceitassem acerto aproximado, cinco escolhas piorariam ("Wish for Luck" viraria exemplar dracônico); por isso só nome exato.
+- **10.4: onde parou.** 411 dos 503 nomes do elenco vêm do catálogo, e 78 ainda da AON:
+  - livros legados (Core Rulebook, Advanced Player's Guide, Character Guide, World Guide, Ancestry Guide, Secrets of Magic, Rage of Elements…);
+  - categorias que o catálogo não guarda (páginas de regra, perícias, páginas de categoria);
+  - acertos aproximados, que por desenho seguem na AON.
+  - Os livros legados ficam fora de propósito: pela BASE-DE-REGRAS §8, o livro legado só se importa quando uma mesa o libera, e hoje nenhuma das duas libera (`legacy: false`, sem `sources.legacy`). Quando uma liberar, o administrador importa o livro (`import-rules.mjs --source "<livro>"`) e o `check-local-aon` mostra o ganho.
