@@ -29,6 +29,8 @@ histórico (`?diary=`) → `src/modules/session-diary/AGENTS.md`; rolagens e est
   - Diário: `GET ?journal=list|<id>`, `?reveal=<id>`; POST `journal-save`/`journal-delete`/`journal-reveal`.
   - Wiki: `GET ?wiki=list|trash|recent|search|<id>`, `?wikiHistory=`, `?wikiRev=`; POST `wiki-save`/`-restore`/`-delete`/
     `-undelete`/`-purge`/`-flags`/`-show`.
+  - Base de regras (só `platform_admins`, `rules-handler.js`): `GET ?rulesSources=1`, `?rulesJob=`, `?rulesEntry=`; POST
+    `rules-check`, `rules-import`/`-step`/`-cancel`, `rules-mechanics-save`, `rules-publish`.
   - Criador: `GET ?builds=1`, `?build=<id>`, `?mesaRules=1`; POST `build-create`/`-save` (`rev`, 409, 64 KB)/`-delete`/
     `-restore`/`-assign`, `mesa-rules-save` (`build-handler.js`, antes da ficha).
   - Anotações: `GET ?notes=<slug>`; POST `notes-save`. Troféus: `GET ?trophies=me|summary|ranking|<userId>`. Eventos: `?events=1`.
@@ -169,6 +171,12 @@ histórico (`?diary=`) → `src/modules/session-diary/AGENTS.md`; rolagens e est
 - `roll-store.js`: tabelas `rolls` e `shares` tiram o `seq` da **mesma sequência** (o `rev` é o maior `seq`); `at` é do
   servidor; GET devolve as últimas 30 (`read_feed`). Teto 8 KB por rolagem.
 - `fix-store.js` (`description_fixes`): correções globais, só prosa (`FIX_FIELDS`), `previous` para desfazer, `fields: {}` volta à automática.
+- Base de regras pela plataforma (`rules-platform.js`): importar é um job em passos (`runRuleImportStep` até o prazo, cursor
+  salvo a cada página de 100) que o navegador do admin repete; a tela e o `import-rules.mjs` usam os mesmos passos. Publicar
+  monta todos os pacotes (~2 s), grava só as listas cujo hash mudou e **copia** as outras da versão anterior; o manifesto sobe
+  por último. A mecânica do Foundry precisa do tarball e roda só no script; as tabelas curadas, na tela, vêm da versão anterior.
+  Admin é `platform_admins` (`isPlatformAdmin`), nunca papel de GM. O `/api/health` verifica novidades uma vez por semana e
+  nunca importa sozinho.
 - `build-store.js` (`character_builds`, `mesa_rules`): o build tem dono desde o `build-create`, então escrever é do dono ou do
   GM **real** (`memberRole`) mesmo com `AUTH_REQUIRED` desligado; `mesa-rules-save` também. O slug nasce do nome, é o
   primeiro livre entre builds E `sheets` da mesa, e nunca muda (identidade do estado da mesa). Sem Supabase, o handler usa

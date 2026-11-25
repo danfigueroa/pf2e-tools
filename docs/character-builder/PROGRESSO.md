@@ -95,3 +95,22 @@
 - **2.12** O `check-auth` cobre criar, salvar com `rev`, 409, 403 para build alheio, leitura somente leitura e lista sem `state`. Cobre também GM gravando e atribuindo dono, 413, lixeira e regras da mesa: GM real exigido inclusive com a cobrança desligada. Tudo certo, sem sobra de dados de teste.
 - **Verificação.** Build, lint, `check-builder`, `check-auth` e `check-migrations` passaram. Nada do Criador entrou no bundle principal.
 - **Próximo passo.** F3 (origem, classe nível 1, atributos e perícias) e F1B (atualização da base pela plataforma). A F3 depende de F1 e F2, ambas prontas.
+
+## F1B — Atualização da base pela plataforma concluída (exceto 1B.10, opcional)
+
+- **Núcleo em `api/_lib/rules-platform.js`.** Verificar, importar em passos e publicar. O `import-rules.mjs` passou a usar os mesmos passos sem prazo, então só existe uma lógica de importação.
+  - **Verificar novidades.** Os livros vêm em 4 páginas da AON e a contagem por livro numa agregação só, em ~4 s. Um livro importado vira "errata nova" (`status = 'outdated'`) quando o texto da errata ou a contagem na AON muda. Primeira verificação em produção: 161 importados, 137 legados, 45 sem conteúdo de jogador e nada novo.
+  - **Importar.** O passo lê páginas por até 35 s e grava o cursor a cada página; o navegador repete até acabar. Reimportar Wake the Dead #5 pela API de passos deu 0 alteradas e nenhuma versão nova.
+  - **Publicar.** Montar os 322 pacotes leva ~2 s. Só as listas com hash novo são gravadas; as outras são copiadas da versão anterior (16 por vez). Teste em produção: a versão `2026.11.3`, idêntica à `2026.11.2`, copiou 321 listas em 20 s, com 8 por vez na época.
+  - **Decisão: o Foundry fica só no script.** A mecânica do Foundry precisa do tarball fixado e não roda na Vercel. Pela tela, as entradas novas entram com a mecânica derivada da própria AON; o relatório conta as "sem mecânica". O admin preenche o que faltar pela correção manual ou roda `--mechanics-only` quando o commit do Foundry subir. As tabelas curadas vêm da versão anterior.
+- **Rotas de admin em `rules-handler.js`.** Ficam no `state`, antes do Criador, e são só para `platform_admins`. Um passo por vez usa a trava `rules-import:<job>`. Falha da AON ou do Storage devolve 502 e o job segue com o cursor salvo.
+- **1B.7 Correção manual de mecânica.** Exige a referência (livro e página) e grava `origin = 'manual'` com `reviewed`; o Foundry não passa mais por cima. Para chegar ao Criador, a tela tem "Publicar versão nova".
+  - **Migrations.** A `correcao_manual_de_mecanica` foi aplicada **vazia**: o comando que a escrevia foi interrompido. Como migration aplicada não se edita, as colunas `note` e `updated_by` vieram na `nota_da_correcao_de_mecanica`.
+- **1B.8 Verificação semanal.** O cron diário do `/api/health` verifica de novo quando a última verificação tem mais de 7 dias. Ela nunca importa sozinha. O aviso ao admin é o selo "N novidades" no item Base de regras (`?me=1` traz `platformAdmin` e `rulesNews`), em vez de notificação de mesa, porque a base não é de mesa nenhuma.
+- **1B.6 Tela `/plataforma/regras`.** Fica em chunk próprio, com item só para admin na seção MESA, visível em qualquer mesa e com qualquer papel.
+  - Mostra a versão, as entradas e quando foi a última verificação. Tem filtros por estado e linha de produto, busca, seleção, barra de progresso com "Continuar" e "Cancelar", o relatório das últimas importações e o editor de mecânica.
+  - Conferida em 320 px e no desktop, com a resposta da API real interceptada no navegador de teste, porque o modo local não tem login.
+- **1B.9 Faixa "Regras atualizadas" no editor.** Aparece quando a `rulesVersion` do build difere da atual. "Usar as novas" atualiza o build. O "N números mudaram" depende do motor (F3+).
+- **1B.11.** O `check-auth` confere que jogador e GM comum recebem 403 em todas as rotas de admin, também com a cobrança desligada, e que o `?me=1` deles não traz `platformAdmin`.
+- **Fora.** 1B.10 (pré-traduzir um livro) é opcional e ficou para depois.
+- **"Pronto quando" da F1B.** Reimportar sem mudança não altera nada (conferido). Importar um livro novo pela tela depende de a AON publicar um; hoje não há nenhum Remaster novo. Um livro legado importado pela tela entraria na base sem aparecer nas mesas, até o GM liberar.

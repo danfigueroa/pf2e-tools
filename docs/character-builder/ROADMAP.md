@@ -113,23 +113,23 @@ Criador não faz nenhuma chamada à AON (conferir na aba de rede).
 **Objetivo**: o admin baixa só o que é novo — livros novos e erratas — por uma tela, sem script.
 **Depende de**: F1. Pode andar junto com F2–F4; precisa estar pronta antes do lançamento (F8).
 
-- [ ] **1B.1** Papel de admin da plataforma no servidor (`platform_admins`, conferido em `access.js`); rota
+- [x] **1B.1** Papel de admin da plataforma no servidor (`platform_admins`, conferido em `access.js`); rota
       `/plataforma/regras` (lazy) visível só para admin; item em `NAV_ITEMS` na seção MESA com `adminOnly`.
-- [ ] **1B.2** `rules-check`: lista os livros da AON com data, errata e contagem; marca NOVO / ERRATA NOVA / Importado /
+- [x] **1B.2** `rules-check`: lista os livros da AON com data, errata e contagem; marca NOVO / ERRATA NOVA / Importado /
       Legado (BASE-DE-REGRAS §6).
-- [ ] **1B.3** `rules-import` + `rules-import-step` + `rules-import-cancel`: job por livros selecionados, passos ≤ 45 s,
+- [x] **1B.3** `rules-import` + `rules-import-step` + `rules-import-cancel`: job por livros selecionados, passos ≤ 45 s,
       trava, laço conduzido pelo navegador do admin com "Continuar" (mesmo padrão do `sheetPreparation.ts`).
-- [ ] **1B.4** Diferença por `hash`: novas / alteradas / iguais / removidas (`removed_at`, nunca apagar).
-- [ ] **1B.5** Fim do job: nova `rules_catalog_versions`, pacotes regenerados só das listas afetadas, relatório e
+- [x] **1B.4** Diferença por `hash`: novas / alteradas / iguais / removidas (`removed_at`, nunca apagar).
+- [x] **1B.5** Fim do job: nova `rules_catalog_versions`, pacotes regenerados só das listas afetadas, relatório e
       notificação aos admins (`mesa_events` ou notificação local).
-- [ ] **1B.6** Tela: lista de livros com filtros (Remaster/legado, linha de produto), seleção, barra de progresso,
+- [x] **1B.6** Tela: lista de livros com filtros (Remaster/legado, linha de produto), seleção, barra de progresso,
       relatório legível ("412 novas · 9 sem mecânica"), entradas sem mecânica por livro.
-- [ ] **1B.7** `rules-mechanics-save`: corrigir/preencher a mecânica de uma entrada à mão, com referência AON.
-- [ ] **1B.8** Verificação semanal automática no cron de `/api/health` → notificação "livros novos na AON" (nunca
+- [x] **1B.7** `rules-mechanics-save`: corrigir/preencher a mecânica de uma entrada à mão, com referência AON.
+- [x] **1B.8** Verificação semanal automática no cron de `/api/health` → notificação "livros novos na AON" (nunca
       importa sozinho).
-- [ ] **1B.9** Builds com `rulesVersion` antiga: faixa "Regras atualizadas" no modo editar (RN-13).
+- [x] **1B.9** Builds com `rulesVersion` antiga: faixa "Regras atualizadas" no modo editar (RN-13).
 - [ ] **1B.10** Pré-traduzir um livro (opcional): fila lenta pelo pipeline de `descriptions`.
-- [ ] **1B.11** `check-auth`: jogador e GM comuns recebem 403 nas rotas de admin; erros novos em `api/_lib/i18n.js`.
+- [x] **1B.11** `check-auth`: jogador e GM comuns recebem 403 nas rotas de admin; erros novos em `api/_lib/i18n.js`.
 
 **Pronto quando**: importar um livro novo pela tela (ex.: o mais recente da AON) termina sem script, o Criador mostra o
 conteúdo novo depois de recarregar, e reimportar o mesmo livro não muda nada.
