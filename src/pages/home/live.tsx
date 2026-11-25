@@ -15,6 +15,7 @@ import {
 } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { useRole } from '../../services/auth';
+import { listBuilds } from '../../services/builds';
 import { useTableRolls } from '../../services/rolls';
 import { useCombatStatus, type CombatEntry } from '../../services/combatStatus';
 import { useMapData } from '../../services/maps';
@@ -193,22 +194,7 @@ export function PlayerCard() {
 
   if (!ready) return <Skeleton variant="rounded" height={260} sx={{ flex: '3 1 480px', borderRadius: 3 }} />;
 
-  if (!mine) {
-    return (
-      <Box component="section" sx={{ ...card, flex: '3 1 480px', minWidth: 0, p: { xs: 2.5, sm: 3.25 }, display: 'flex', flexDirection: 'column', gap: 1.5, justifyContent: 'center' }}>
-        <Typography sx={eyebrow}>{tr('Seu personagem', 'Your character')}</Typography>
-        <Typography component="h2" sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.5rem' }}>{tr('Nenhuma ficha sua ainda', 'No sheet of yours yet')}</Typography>
-        <Typography sx={{ color: ink.secondary, lineHeight: 1.5 }}>
-          {tr('Importe o personagem do Pathbuilder e publique pela Ficha Virtual: ele aparece aqui, com PV e condições ao vivo.', 'Import your character from Pathbuilder and publish it through the Virtual Sheet: it shows up here, with live HP and conditions.')}</Typography>
-        <ButtonBase component={Link} to="/ficha-virtual" sx={{
-          alignSelf: 'flex-start', height: 48, px: 2.5, borderRadius: 1.75, bgcolor: green.deepest, color: chrome.text, fontWeight: 700, gap: 1.25,
-        }}>
-          {tr('Abrir a Ficha Virtual', 'Open the Virtual Sheet')}<ArrowIcon sx={{ color: gold.bright }} fontSize="small" />
-        </ButtonBase>
-      </Box>
-    );
-  }
-
+  if (!mine) return <NoSheetCard userId={userId} />;
   return (
     <Box component="section" aria-labelledby="home-personagem" sx={{ ...card, flex: '3 1 480px', minWidth: 0, p: { xs: 2.25, sm: 3.25 }, display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 2.75 } }}>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 2.25 }}>
@@ -738,5 +724,41 @@ export function TrophyShowcase() {
       </Box>
       <ChevronIcon sx={{ color: gold.deep, display: { xs: 'none', sm: 'block' } }} />
     </ButtonBase>
+  );
+}
+
+/**
+ * Sem ficha na mesa (F8.1): o caminho principal é o Criador de Personagem; com rascunho, "Continuar rascunho". O upload
+ * do Pathbuilder segue aceito, como alternativa.
+ */
+function NoSheetCard({ userId }: { userId: string | null }) {
+  const [draft, setDraft] = useState<{ id: string; name: string } | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void listBuilds().then((out) => {
+      if (!alive || !out.ok) return;
+      const own = out.value.filter((b) => !b.deletedAt && (userId ? b.ownerId === userId : b.canEdit) && b.publishedRev === null)
+        .sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0))[0];
+      if (own) setDraft({ id: own.id, name: own.name });
+    });
+    return () => { alive = false; };
+  }, [userId]);
+  return (
+    <Box component="section" sx={{ ...card, flex: '3 1 480px', minWidth: 0, p: { xs: 2.5, sm: 3.25 }, display: 'flex', flexDirection: 'column', gap: 1.5, justifyContent: 'center' }}>
+      <Typography sx={eyebrow}>{tr('Seu personagem', 'Your character')}</Typography>
+      <Typography component="h2" sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.5rem' }}>{tr('Nenhuma ficha sua ainda', 'No sheet of yours yet')}</Typography>
+      <Typography sx={{ color: ink.secondary, lineHeight: 1.5 }}>
+        {tr('Crie o personagem no Criador e aplique na mesa: ele aparece aqui, com PV e condições ao vivo.', 'Create your character in the Builder and apply it to the table: it shows up here, with live HP and conditions.')}</Typography>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.25 }}>
+        <ButtonBase component={Link} to={draft ? `/personagens/${draft.id}` : '/personagens'} sx={{
+          height: 48, px: 2.5, borderRadius: 1.75, bgcolor: green.deepest, color: chrome.text, fontWeight: 700, gap: 1.25,
+        }}>
+          {draft ? tr(`Continuar rascunho: ${draft.name}`, `Continue draft: ${draft.name}`) : tr('Criar meu personagem', 'Create my character')}<ArrowIcon sx={{ color: gold.bright }} fontSize="small" />
+        </ButtonBase>
+        <ButtonBase component={Link} to="/ficha-virtual" sx={{ height: 48, px: 2, borderRadius: 1.75, color: ink.secondary, fontWeight: 600 }}>
+          {tr('Ou importar do Pathbuilder', 'Or import from Pathbuilder')}
+        </ButtonBase>
+      </Box>
+    </Box>
   );
 }
