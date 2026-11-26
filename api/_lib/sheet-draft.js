@@ -22,6 +22,7 @@
 // Falha da IA nunca promove pela metade (decisão do usuário: esperar e tentar de novo).
 
 import { linkPublishedBuild } from './build-store.js'
+import { importSheetToBuild } from './build-compile.js'
 import { supabase } from './supabase.js'
 import { sameJson } from './json.js'
 import { hasTranslationKey } from './aon.js'
@@ -386,6 +387,13 @@ export async function stepDraft(mesa, slug, ctx = {}) {
                 await linkPublishedBuild(mesa, slug, buildId, publishedBy)
             } catch (error) {
                 console.error('[sheet-draft] vínculo com o build falhou:', error)
+            }
+        } else {
+            // Ficha do Pathbuilder: vira (ou atualiza) o build de mesmo slug, para a evolução seguir no Criador.
+            try {
+                await importSheetToBuild(mesa, slug, draft.json, { ownerId: sheet.ownerId ?? owner ?? publishedBy, by: publishedBy })
+            } catch (error) {
+                console.error('[sheet-draft] importar para o Criador falhou:', error)
             }
         }
         return { state: 'ready', sheet, publishedBy, created: !current, fromBuild: !!buildId }

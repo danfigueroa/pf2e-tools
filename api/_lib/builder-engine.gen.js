@@ -247,9 +247,9 @@ var SKILL_SET = new Set(SKILL_KEYS);
 var SKILL_INCREASE_CAP = [{ level: 15, rank: 4 }, { level: 7, rank: 3 }, { level: 1, rank: 2 }];
 function skillRef(name) {
   const raw = name.trim();
-  const lower = raw.toLowerCase();
-  if (SKILL_SET.has(lower)) return `skill:${lower}`;
-  const lore = lower.replace(/\s*lore$/, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const lower2 = raw.toLowerCase();
+  if (SKILL_SET.has(lower2)) return `skill:${lower2}`;
+  const lore = lower2.replace(/\s*lore$/, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   return `lore:${lore || "lore"}`;
 }
 function loreName(ref, names = {}) {
@@ -412,14 +412,14 @@ function splitParts(text) {
 }
 function evalOne(raw, ctx) {
   const text = raw.trim();
-  const lower = text.toLowerCase().replace(/\.$/, "");
-  if (/\bor\b/.test(lower) && !/^(trained|expert|master|legendary) in \w+ or \w+$/.test(lower)) {
-    const alts = lower.split(/\s*,?\s*\bor\b\s*/).filter(Boolean);
+  const lower2 = text.toLowerCase().replace(/\.$/, "");
+  if (/\bor\b/.test(lower2) && !/^(trained|expert|master|legendary) in \w+ or \w+$/.test(lower2)) {
+    const alts = lower2.split(/\s*,?\s*\bor\b\s*/).filter(Boolean);
     const results = alts.map((a) => evalOne(a, ctx).result);
     const result = results.includes("ok") ? "ok" : results.every((r) => r === "fail") ? "fail" : "unknown";
     return { text, result, ...result === "fail" ? { reason: tr(`nenhuma das op\xE7\xF5es: ${text}`, `none of: ${text}`) } : {} };
   }
-  const rank = /^(trained|expert|master|legendary) in (?:the )?(.+)$/.exec(lower);
+  const rank = /^(trained|expert|master|legendary) in (?:the )?(.+)$/.exec(lower2);
   if (rank) {
     const need = RANKS[rank[1]];
     const targets = rank[2].split(/\s+or\s+/);
@@ -439,20 +439,20 @@ function evalOne(raw, ctx) {
     if (!anyKnown) return { text, result: "unknown" };
     return { text, result: "fail", reason: tr(`precisa ser ${RANK_PT[rank[1]]} em ${rank[2]}`, `needs ${RANK_PT[rank[1]]} in ${rank[2]}`) };
   }
-  const attr = /^(strength|dexterity|constitution|intelligence|wisdom|charisma) \+?(\d)$/.exec(lower);
+  const attr = /^(strength|dexterity|constitution|intelligence|wisdom|charisma) \+?(\d)$/.exec(lower2);
   if (attr) {
     const have = ctx.attribute[ATTR[attr[1]]];
     return have >= Number(attr[2]) ? { text, result: "ok" } : { text, result: "fail", reason: tr(`${text} (tem ${have >= 0 ? "+" : ""}${have})`, `${text} (has ${have >= 0 ? "+" : ""}${have})`) };
   }
-  const heritage = /^(.+?) (heritage|ancestry)$/.exec(lower);
+  const heritage = /^(.+?) (heritage|ancestry)$/.exec(lower2);
   if (heritage) {
     const name = heritage[1];
     const mine = [ctx.heritageName, ctx.ancestryName].filter(Boolean).map((n) => n.toLowerCase());
     return mine.includes(name) ? { text, result: "ok" } : { text, result: "fail", reason: tr(`precisa de ${text}`, `needs ${text}`) };
   }
-  if (ctx.ancestryName && lower === ctx.ancestryName.toLowerCase()) return { text, result: "ok" };
-  if (/^(you )?(follow|worship) a deity$/.test(lower)) return ctx.deity ? { text, result: "ok" } : { text, result: "fail", reason: tr("precisa de uma divindade", "needs a deity") };
-  if (ctx.has.has(lower)) return { text, result: "ok" };
+  if (ctx.ancestryName && lower2 === ctx.ancestryName.toLowerCase()) return { text, result: "ok" };
+  if (/^(you )?(follow|worship) a deity$/.test(lower2)) return ctx.deity ? { text, result: "ok" } : { text, result: "fail", reason: tr("precisa de uma divindade", "needs a deity") };
+  if (ctx.has.has(lower2)) return { text, result: "ok" };
   if (/^[A-Z][\w'’-]*( [A-Z(][\w'’()-]*)*$/.test(text) && text.split(" ").length <= 5) {
     return { text, result: "fail", reason: tr(`precisa de ${text}`, `needs ${text}`) };
   }
@@ -2104,9 +2104,395 @@ async function compileFromCatalog(state, ctx) {
   }
   return result;
 }
+
+// src/pathbuilder/types.ts
+function parseFeatEntry(f) {
+  if (Array.isArray(f)) {
+    return {
+      name: String(f[0] ?? ""),
+      type: String(f[2] ?? tr("Outro", "Other")),
+      level: Number(f[3] ?? 1)
+    };
+  }
+  return {
+    name: String(f.name ?? ""),
+    type: String(f.type ?? tr("Outro", "Other")),
+    level: Number(f.level ?? 1)
+  };
+}
+function parseCharacterJson(json) {
+  const obj = json;
+  if (!obj || !obj.success || !obj.build) {
+    throw new Error(tr('JSON de personagem inv\xE1lido: campo "build" ausente.', 'Invalid character JSON: missing "build" field.'));
+  }
+  return normalizeBuild(obj.build);
+}
+var hasSpells = (lists) => Array.isArray(lists) && lists.some((l) => Array.isArray(l?.list) && l.list.length > 0);
+function normalizeSpellCasters(build) {
+  if (!build.spellCasters?.some((c) => hasSpells(c.prepared))) return build;
+  return {
+    ...build,
+    spellCasters: build.spellCasters.map(
+      (c) => hasSpells(c.prepared) ? { ...c, spells: c.prepared } : c
+    )
+  };
+}
+var WEAPON_EXPORT_FIXES = [
+  // Longsword +1 striking do Nathaniel: o export dá 18 (10 + Perito 4 + FOR 4); o certo é 19.
+  { character: /^nathaniel/i, weapon: "zarroc sheilvean" }
+  // i18n-ok: nome
+];
+function fixWeaponExports(build) {
+  const fixes = WEAPON_EXPORT_FIXES.filter((f) => f.character.test(build.name ?? ""));
+  if (fixes.length === 0 || !Array.isArray(build.weapons)) return build;
+  let changed = false;
+  const weapons = build.weapons.map((w) => {
+    const label = (w.display || w.name || "").trim().toLowerCase();
+    if (!fixes.some((f) => f.weapon === label)) return w;
+    const prof = build.proficiencies[w.prof] ?? 0;
+    const str = Math.floor(((build.abilities?.str ?? 10) - 10) / 2);
+    const expected = build.level + (prof > 0 ? prof : 0) + str + (w.pot || 0);
+    if (w.attack !== expected - 1) return w;
+    changed = true;
+    return { ...w, attack: expected };
+  });
+  return changed ? { ...build, weapons } : build;
+}
+var SIZE_SPECIALS = /* @__PURE__ */ new Set(["Tiny", "Small", "Medium", "Large", "Huge", "Gargantuan"]);
+function dropSizeSpecials(build) {
+  if (!build.specials?.some((s) => SIZE_SPECIALS.has(s))) return build;
+  return { ...build, specials: build.specials.filter((s) => !SIZE_SPECIALS.has(s)) };
+}
+var PATHS = ["Path to Perfection", "Second Path to Perfection", "Third Path to Perfection"];
+var SAVE_NAMES = /* @__PURE__ */ new Set(["Fortitude", "Reflex", "Will"]);
+function fixPathToPerfection(build) {
+  if (!/^monk$/i.test(build.class ?? "") || !build.specials) return build;
+  if (build.specials.some((s) => /path to perfection/i.test(s))) return build;
+  const allowed = build.level >= 15 ? 3 : build.level >= 11 ? 2 : build.level >= 7 ? 1 : 0;
+  let used = 0;
+  let changed = false;
+  const specials = build.specials.map((s) => {
+    if (!SAVE_NAMES.has(s) || used >= allowed) return s;
+    changed = true;
+    return `${PATHS[used++]} (${s})`;
+  });
+  return changed ? { ...build, specials } : build;
+}
+function fixFocusPool(build) {
+  if (!build.focusPoints || /^psychic$/i.test(build.class ?? "")) return build;
+  let spells = 0;
+  for (const byAttr of Object.values(build.focus ?? {})) {
+    for (const group of Object.values(byAttr ?? {})) spells += group?.focusSpells?.length ?? 0;
+  }
+  const pool = Math.min(3, spells);
+  if (spells === 0 || build.focusPoints <= pool) return build;
+  return { ...build, focusPoints: pool };
+}
+var ITEM_RESISTANCES = {
+  "arachnid harness": "poison 2"
+  // Treasure Vault (Remastered) pg. 14
+};
+function addItemResistances(build) {
+  const have = new Set((build.resistances ?? []).map((r) => String(r).trim().toLowerCase()));
+  const add = (build.armor ?? []).filter((a) => a.worn).map((a) => ITEM_RESISTANCES[String(a.name ?? "").trim().toLowerCase()]).filter((r) => !!r && !have.has(r));
+  return add.length ? { ...build, resistances: [...build.resistances ?? [], ...add] } : build;
+}
+function normalizeBuild(build) {
+  return addItemResistances(fixFocusPool(fixPathToPerfection(dropSizeSpecials(fixWeaponExports(normalizeSpellCasters(build))))));
+}
+
+// src/modules/character-builder/engine/import.ts
+var ATTR2 = { Str: "str", Dex: "dex", Con: "con", Int: "int", Wis: "wis", Cha: "cha" };
+var STRIKING2 = { "": 0, striking: 1, greaterStriking: 2, majorStriking: 3 };
+var RESILIENT2 = { "": 0, resilient: 1, greaterResilient: 2, majorResilient: 3 };
+var lower = (list) => (list ?? []).map((a) => ATTR2[a]).filter(Boolean);
+function slotKeyFromLabel(label, className, level) {
+  let m = /^Free Archetype (\d+)$/.exec(label);
+  if (m) return `archetype-feat-${m[1]}`;
+  m = /^Mythic Feat (\d+)$/.exec(label);
+  if (m) return `mythic-feat-${m[1]}`;
+  m = /^(?:Skill Feat|Skill Lessons) (\d+)$/.exec(label);
+  if (m) return `skill-feat-${m[1]}`;
+  m = /^General Feat (\d+)$/.exec(label);
+  if (m) return `general-feat-${m[1]}`;
+  if (label === "Combat Flexibility" || label === "Improved Flexibility") return `flexibility-feat-${level}`;
+  m = new RegExp(`^${className.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} Feat (\\d+)$`).exec(label);
+  if (m) return `class-feat-${m[1]}`;
+  m = /^Ancestral Paragon Feat (\d+)$/.exec(label);
+  if (m) return `paragon-feat-${m[1]}`;
+  m = /^(.+) Feat (\d+)$/.exec(label);
+  if (m) return `ancestry-feat-${m[2]}`;
+  return null;
+}
+function importPathbuilder(b, ctx) {
+  const { rules } = ctx;
+  const notFound = [];
+  const guesses = [];
+  const find = (name, type) => {
+    if (!name || name === "Not set" || name === "None selected") return void 0;
+    const e = rules.byName(name, type);
+    if (!e) notFound.push(name);
+    return e;
+  };
+  const ancestry = find(b.ancestry, "ancestry");
+  const heritage = find(b.heritage, "heritage");
+  const background = find(b.background, "background");
+  const cls = find(b.class, "class");
+  const bd = b.abilities.breakdown;
+  const listedFlaws = ancestry?.ancestry?.flaws ?? [];
+  const alternate = !!bd && (bd.ancestryBoosts ?? []).length === 0 && (ancestry?.ancestry?.boosts ?? []).some((x) => x !== "free");
+  const choices = {};
+  if (bd) {
+    if (bd.ancestryFree?.length) choices["boosts-ancestry"] = { boosts: lower(bd.ancestryFree) };
+    if (bd.backgroundBoosts?.length) choices["boosts-background"] = { boosts: lower(bd.backgroundBoosts) };
+    for (const [lvl, list] of Object.entries(bd.mapLevelledBoosts ?? {})) choices[`boosts-${lvl}`] = { boosts: lower(list) };
+  } else guesses.push("atributos sem mem\xF3ria dos boosts no export");
+  const languages = (b.languages ?? []).filter((l) => l !== "None selected" && !(ancestry?.ancestry?.languages ?? []).includes(l)).map((l) => rules.languages.find((x) => x.name === l || (x.legacyNames ?? []).includes(l))?.id).filter((x) => !!x);
+  const parentByLabel = /* @__PURE__ */ new Map();
+  for (const f of b.feats) {
+    if (!Array.isArray(f)) continue;
+    const [name, qualifier, , level, label, kind] = f;
+    if (!label || kind === "childChoice" || label.startsWith("BACKGROUND_")) continue;
+    if (label === "Heritage Feat") {
+      if (heritage) parentByLabel.set(label, { key: `awarded:${heritage.aon.id}`, entry: heritage });
+      continue;
+    }
+    const key2 = slotKeyFromLabel(label, b.class, Number(level));
+    const entry = find(name, "feat");
+    if (!key2 || !entry) continue;
+    const q = qualifier ? `skill:${qualifier.toLowerCase().replace(/[^a-z0-9]+/g, "-")}` : void 0;
+    const archetype = entry.feat?.archetype?.[0];
+    choices[key2] = { id: entry.id, ...q && /^skill:[a-z0-9-]+$/.test(q) ? { qualifier: q } : archetype ? { qualifier: `archetype:${archetype.toLowerCase().replace(/[^a-z0-9]+/g, "-")}` } : {} };
+    parentByLabel.set(label, { key: key2, entry });
+  }
+  for (const f of b.feats) {
+    if (!Array.isArray(f) || f[5] !== "childChoice") continue;
+    const parentLabel = String(f[6] ?? "");
+    const parent = parentByLabel.get(parentLabel);
+    const child = find(String(f[0]), "feat");
+    if (!parent || !child) continue;
+    const flag = (parent.entry.rules ?? []).find((r) => r.key === "ChoiceSet" && r.choices && typeof r.choices === "object" && !Array.isArray(r.choices))?.flag;
+    if (typeof flag === "string") choices[`${parent.key}/choice:${flag}`] = { id: child.id };
+    else guesses.push(`escolha filha sem lugar: ${f[0]} (de ${parentLabel})`);
+  }
+  const specialKeys = new Set((b.specials ?? []).map((sp) => sp.toLowerCase().replace(/^hunter['’]s edge:\s*/, "").replace(/\s+(racket|instinct|methodology|muse|bloodline|order|mystery|patron|school|style|way|research field|doctrine)$/, "")));
+  const types = Object.entries(CLASS_CHOICE_TYPES).filter(([, spec]) => spec.className.toLowerCase() === b.class.toLowerCase()).map(([t]) => t);
+  for (const type of [...types, "mythic-calling"]) {
+    const option = (ctx.classOptions ?? []).filter((o) => o.type === type).find((o) => specialKeys.has(o.name.toLowerCase()) || (b.specials ?? []).includes(o.name));
+    if (option) choices[`class-choice:${type}`] = { id: option.id };
+  }
+  const covil = b.covil;
+  const archetypeId = covil?.ids ? covil.ids[CLASS_ARCHETYPE] : Object.entries(CLASS_ARCHETYPES).find(([id, spec]) => spec.className === cls?.name && (Object.values(choices).some((c) => "id" in c && c.id === spec.dedication) || id === BLOODRAGER && specialKeys.has("bloodrager") || id === WAR_MAGE && specialKeys.has("war magic") || id === PALATINE_DETECTIVE && specialKeys.has("esoterica") || id === RUNELORD && specialKeys.has("school of thassilonian rune magic")))?.[0];
+  if (archetypeId && cls && CLASS_ARCHETYPES[archetypeId]?.className === cls.name) {
+    choices[CLASS_ARCHETYPE] = { id: archetypeId };
+    const fixed = CLASS_ARCHETYPES[archetypeId].subclass;
+    const key2 = `class-choice:${fixed.split(":")[0]}`;
+    if (covil?.ids?.[key2]) choices[key2] = { id: covil.ids[key2] };
+    else if (choices[key2] && "id" in choices[key2] && choices[key2].id === fixed) delete choices[key2];
+  }
+  if (archetypeId === BLOODRAGER) {
+    const caster = b.spellCasters?.find((c) => c.name === "Archetype Bloodrager");
+    const slot = Object.keys(choices).find((k) => {
+      const c = choices[k];
+      return "id" in c && c.id === CLASS_ARCHETYPES[BLOODRAGER].dedication;
+    });
+    if (slot && (caster?.magicTradition === "arcane" || caster?.magicTradition === "divine")) {
+      choices[`${slot}/choice:skill`] = { value: caster.magicTradition === "arcane" ? "arcana" : "religion" };
+    }
+  }
+  for (const sp of b.specials ?? []) {
+    const m = /^(Path to Perfection|Second Path to Perfection|Third Path to Perfection) \((Fortitude|Reflex|Will)\)$/.exec(sp);
+    const ref = m && cls?.class?.features?.find((x) => x.name === m[1]);
+    if (ref) choices[`class-choice:save-${ref.level}`] = { value: m[2].toLowerCase() };
+  }
+  const groupFeatures = (cls?.class?.features ?? []).filter((x) => /^(fighter weapon mastery|weapon legend)$/i.test(x.name) && x.level <= b.level);
+  for (const [i, ref] of groupFeatures.entries()) {
+    const names = i === 0 ? [...b.specificProficiencies?.master ?? [], ...b.specificProficiencies?.legendary ?? []] : b.specificProficiencies?.legendary ?? [];
+    const group = names.map((n2) => rules.byName(n2)?.item?.weapon?.group).find(Boolean);
+    if (group) choices[`class-choice:weapon-group-${ref.level}`] = { value: group.toLowerCase() };
+    else guesses.push(`${ref.name}: grupo de arma n\xE3o identificado no export`);
+  }
+  const base = {
+    schema: 1,
+    rulesVersion: "",
+    name: b.name,
+    level: b.level,
+    xp: b.xp ?? 0,
+    options: {},
+    origin: {
+      ancestry: ancestry?.id,
+      heritage: heritage?.id,
+      background: background?.id,
+      alternateBoosts: alternate || void 0,
+      voluntaryFlaws: lower(bd?.ancestryFlaws).filter((f) => !listedFlaws.includes(f)),
+      languages,
+      deity: find(b.deity, "deity")?.id
+    },
+    class: { id: cls?.id, keyAttribute: lower(bd?.classBoosts)[0] ?? b.keyability },
+    choices,
+    manual: {},
+    inventory: [],
+    money: { ...b.money },
+    formulas: [],
+    spellcasting: {},
+    companions: [],
+    details: (() => {
+      const x = b;
+      return { ...x.gender && x.gender !== "Not set" ? { gender: x.gender } : {}, ...x.age && x.age !== "Not set" ? { age: String(x.age) } : {} };
+    })(),
+    history: [{ at: (/* @__PURE__ */ new Date()).toISOString(), by: "import", note: "Importado do Pathbuilder", kind: "override" }]
+  };
+  if (!b.feats.some((f) => Array.isArray(f) && /^Free Archetype/.test(String(f[4] ?? "")))) base.options.variants = { freeArchetype: false };
+  const auto = compileBuild(base, ctx);
+  const want = Object.fromEntries(SKILL_KEYS.map((s) => [s, Math.round((b.proficiencies[s] ?? 0) / 2)]));
+  const have = auto.skills.rank;
+  const classSlots = auto.skillSlots.filter((s) => s.key.startsWith("class-skill-"));
+  for (const slot of classSlots) {
+    const pick = slot.options.find((o) => o.startsWith("skill:") && want[o.slice(6)] >= 1);
+    if (pick) choices[slot.key] = { skills: [pick] };
+  }
+  const trained = new Set(Object.entries(have).filter(([, r]) => r >= 1).map(([k]) => k));
+  for (const slot of classSlots) for (const s of choices[slot.key]?.skills ?? []) trained.add(s.slice(6));
+  const toTrain = SKILL_KEYS.filter((s) => want[s] >= 1 && !trained.has(s)).map((s) => `skill:${s}`);
+  const lores = (b.lores ?? []).map(([n2, bonus]) => ({ ref: skillRef(`${n2} Lore`), rank: Math.round(bonus / 2) })).filter((l) => !auto.skills.lores.some((x) => x.key === l.ref));
+  const freeSlots = auto.skillSlots.filter((s) => s.kind === "train" && !s.key.startsWith("class-skill-"));
+  const queue = [...toTrain, ...lores.filter((l) => l.rank >= 1).map((l) => l.ref)];
+  for (const slot of freeSlots) {
+    const take = queue.splice(0, slot.count);
+    if (take.length) choices[slot.key] = { skills: take };
+  }
+  const increases = (cls?.class?.skillIncreaseLevels ?? []).filter((l) => l <= b.level);
+  const steps = [];
+  for (const s of SKILL_KEYS) for (let r = 2; r <= want[s]; r++) steps.push({ ref: `skill:${s}`, to: r });
+  for (const l of lores) for (let r = 2; r <= l.rank; r++) steps.push({ ref: l.ref, to: r });
+  for (const ref of queue) steps.unshift({ ref, to: 1 });
+  steps.sort((a, b2) => a.to - b2.to);
+  const used = /* @__PURE__ */ new Set();
+  for (const step2 of steps) {
+    const minLevel = step2.to === 4 ? 15 : step2.to === 3 ? 7 : 1;
+    const lvl = increases.find((l) => l >= minLevel && !used.has(l));
+    if (lvl === void 0) {
+      guesses.push(`aumento sem lugar: ${step2.ref} \u2192 ${step2.to}`);
+      continue;
+    }
+    used.add(lvl);
+    choices[`skill-increase-${lvl}`] = { skills: [step2.ref] };
+  }
+  if (steps.length) guesses.push("ordem dos aumentos de per\xEDcia deduzida (do n\xEDvel mais baixo)");
+  let n = 0;
+  const key = () => `inv-imp${(n++).toString(36)}`;
+  const inventory = [];
+  for (const w of b.weapons ?? []) {
+    const e = find(w.name);
+    if (!e) continue;
+    inventory.push({
+      key: key(),
+      item: e.id,
+      qty: w.qty || 1,
+      acquired: "given",
+      equipped: true,
+      runes: { potency: w.pot || 0, striking: STRIKING2[w.str ?? ""] ?? 0, property: (w.runes ?? []).map((r) => rules.byName(r)?.id).filter((x) => !!x) }
+    });
+  }
+  for (const a of b.armor ?? []) {
+    const e = find(a.name);
+    if (!e) continue;
+    inventory.push({
+      key: key(),
+      item: e.id,
+      qty: a.qty || 1,
+      acquired: "given",
+      worn: !!a.worn,
+      runes: { potency: a.pot || 0, resilient: RESILIENT2[a.res ?? ""] ?? 0, property: (a.runes ?? []).map((r) => rules.byName(r)?.id).filter((x) => !!x) }
+    });
+  }
+  for (const [name, qty, ...rest] of b.equipment ?? []) {
+    const e = find(name);
+    if (!e) continue;
+    inventory.push({ key: key(), item: e.id, qty: qty || 1, acquired: "given", invested: rest.includes("Invested") && (e.traits ?? []).includes("Invested") });
+  }
+  const spellcasting = {};
+  const spellId = (name) => find(name.replace(/ \(Amped\)$/, ""), "spell")?.id;
+  const classCaster = (b.spellCasters ?? []).find((c) => c.name === b.class);
+  if (classCaster) {
+    const byRank = (lists) => Object.fromEntries((lists ?? []).filter((l) => l.list.length).map((l) => [String(l.spellLevel), l.list.map(spellId).filter((x) => !!x)]));
+    if (classCaster.spellcastingType === "spontaneous") spellcasting.class = { repertoire: byRank(classCaster.spells) };
+    else {
+      const prepared = byRank(classCaster.prepared?.length ? classCaster.prepared : classCaster.spells);
+      const book = Object.values(byRank(classCaster.spells)).flat();
+      spellcasting.class = { prepared, ...book.length ? { spellbook: book } : {} };
+    }
+    if (cls?.class?.casting && cls.class.casting.traditions.length > 1) choices["spell-tradition"] = { value: classCaster.magicTradition };
+  }
+  for (const caster of (b.spellCasters ?? []).filter((c) => /^Archetype /.test(c.name))) {
+    const slug = caster.name.replace(/^Archetype /, "").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const byRank = (lists) => Object.fromEntries((lists ?? []).filter((l) => l.list.length).map((l) => [String(l.spellLevel), l.list.map(spellId).filter((x) => !!x)]));
+    if (caster.spellcastingType === "spontaneous") spellcasting[`archetype:${slug}`] = { repertoire: byRank(caster.spells) };
+    else {
+      const book = Object.values(byRank(caster.spells)).flat();
+      spellcasting[`archetype:${slug}`] = { prepared: byRank(caster.prepared?.length ? caster.prepared : caster.spells), ...book.length ? { spellbook: book } : {} };
+    }
+  }
+  const focusNames = Object.values(b.focus ?? {}).flatMap((byAttr) => Object.values(byAttr));
+  const focusCantrips = focusNames.flatMap((f) => f.focusCantrips ?? []).map(spellId).filter((x) => !!x);
+  const focusSpells = focusNames.flatMap((f) => f.focusSpells ?? []).map(spellId).filter((x) => !!x);
+  if (focusCantrips.length || focusSpells.length) spellcasting.focus = { repertoire: { 0: focusCantrips, 1: focusSpells } };
+  const rituals = (b.rituals ?? []).map((r) => find(r, "spell")?.id ?? find(r)?.id).filter((x) => !!x);
+  if (rituals.length) spellcasting.rituals = { spellbook: rituals };
+  const companions = [];
+  for (const p of b.pets ?? []) {
+    if (p.type !== "Animal Companion") continue;
+    const type = p.animal ? rules.byName(p.animal)?.id : void 0;
+    companions.push({ key: `pet-imp${companions.length}`, kind: "animal", name: p.name || p.animal || "Companion", ...type ? { type } : {}, choices: {} });
+  }
+  for (const f of b.familiars ?? []) {
+    const abilities = (f.abilities ?? []).map((a) => rules.byName(a)?.id).filter((x) => !!x);
+    companions.push({ key: `pet-imp${companions.length}`, kind: "familiar", name: f.name || "Familiar", choices: Object.fromEntries(abilities.map((id, i) => [`ability-${i + 1}`, { id }])) });
+  }
+  return {
+    state: { ...base, choices, inventory, spellcasting, companions },
+    report: { notFound: [...new Set(notFound)].sort(), guesses }
+  };
+}
+
+// src/modules/character-builder/engine/importCatalog.ts
+async function importFromCatalog(json, ctx) {
+  const b = parseCharacterJson(json);
+  const read = async (path) => {
+    const raw = await ctx.reader.read(path).catch(() => null);
+    return Array.isArray(raw) ? raw : [];
+  };
+  const [a, h, bg, c, l, cf, ar] = await Promise.all(
+    ["core/ancestries", "core/heritages", "core/backgrounds", "core/classes", "core/languages", "core/class-features", "core/archetypes"].map(read)
+  );
+  const tables = await ctx.reader.read("core/tables").catch(() => null);
+  const her = h.find((x) => x.name === b.heritage);
+  const dedications = b.feats.map((f) => parseFeatEntry(f).name).filter((n) => / Dedication$/.test(n)).map((n) => n.replace(/ Dedication$/, ""));
+  const traditions = [...new Set(b.spellCasters.map((x) => x.magicTradition).filter((t) => ["arcane", "divine", "occult", "primal"].includes(t)))];
+  const paths = [
+    ...featListPaths({
+      className: b.class,
+      ancestryName: b.ancestry,
+      versatileHeritage: her && !her.heritage?.ancestry ? her.name : void 0,
+      mythic: true,
+      archetypes: dedications.map(ruleListSlug),
+      traditions
+    }),
+    ...ITEM_LISTS.map((x) => `items/${x}`),
+    "companions/animal",
+    "companions/familiar",
+    "core/deities"
+  ];
+  const extra = await Promise.all(paths.map(read));
+  const homebrew = ctx.homebrew ?? [];
+  const index = buildRulesIndex([a, h, bg, c, l, cf, ...extra, ar, homebrew], l);
+  const { state, report } = importPathbuilder(b, { rules: index, mesaRules: ctx.mesaRules ?? void 0, classOptions: cf, tables: tables ?? void 0 });
+  return { state, report, className: b.class || null, name: b.name };
+}
 export {
   compileFromCatalog,
   exportBuild,
   featListPaths,
+  importFromCatalog,
   needsOf
 };
