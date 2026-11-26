@@ -27,8 +27,13 @@ export interface PendingPanelProps {
 
 type Filter = 'all' | 'pending' | 'warnings';
 
+/** Avisos de verdade (regra, mesa) × notas ("efeito não calculado", item específico): a Ficha aplica em jogo o que é situacional. */
+const split = (c: Compiled) => ({ warnings: c.warnings.filter((w) => w.level !== 'info'), notes: c.warnings.filter((w) => w.level === 'info') });
+
 function Lists({ compiled, onGo, onDiscard, canEdit, onAllow, name, filter }: PendingPanelProps & { filter: Filter }) {
-  const { pending, warnings } = compiled;
+  const { pending } = compiled;
+  const { warnings, notes } = split(compiled);
+  const [notesOpen, setNotesOpen] = useState(false);
   const label = (p: Pending) => (p.missing > 1 ? `${p.label} (${p.missing})` : p.label);
   const allowLabel = name.trim() ? tr(`Liberar para ${name.trim()}`, `Allow for ${name.trim()}`) : tr('Liberar para este personagem', 'Allow for this character');
   const action = (w: Warning) => w.code === 'ORPHAN_CHOICE' && w.ref && canEdit
@@ -60,6 +65,26 @@ function Lists({ compiled, onGo, onDiscard, canEdit, onAllow, name, filter }: Pe
           ))}
         </>
       )}
+      {filter !== 'pending' && notes.length > 0 && (
+        <>
+          <ButtonBase onClick={() => setNotesOpen(!notesOpen)} aria-expanded={notesOpen} data-view=""
+            sx={{ justifyContent: 'flex-start', gap: 0.5, mt: 0.75, color: ink.secondary }}>
+            <Label>{tr(`Notas · ${notes.length}`, `Notes · ${notes.length}`)}</Label>
+            <OpenIcon sx={{ fontSize: 18, transform: notesOpen ? 'none' : 'rotate(180deg)' }} />
+          </ButtonBase>
+          {!notesOpen && (
+            <Box sx={{ fontSize: 12, color: ink.secondary }}>
+              {tr('Efeitos que o Criador não soma nos números (situacionais, aplicados na Ficha em jogo). Não são erro.', 'Effects the Builder does not add to the numbers (situational, applied on the Sheet in play). Not errors.')}
+            </Box>
+          )}
+          {notesOpen && notes.map((w, i) => (
+            <Notice key={`${w.code}-${w.ref ?? ''}-${i}`} tone="info" icon={ICON.info}>
+              <Box component={w.ref ? ButtonBase : 'span'} onClick={w.ref ? () => onGo(tabOf(w.ref), w.ref) : undefined}
+                sx={{ textAlign: 'left', font: 'inherit', color: 'inherit', justifyContent: 'flex-start' }}>{w.message}</Box>
+            </Notice>
+          ))}
+        </>
+      )}
       <Box sx={{ fontSize: 12, color: ink.secondary }}>{tr('Nada aqui impede aplicar na mesa.', 'Nothing here blocks applying to the table.')}</Box>
     </Box>
   );
@@ -67,7 +92,8 @@ function Lists({ compiled, onGo, onDiscard, canEdit, onAllow, name, filter }: Pe
 
 /** Painel lateral do desktop: cabeçalho verde com os dois contadores. */
 export function PendingAside(props: PendingPanelProps) {
-  const { pending, warnings } = props.compiled;
+  const { pending } = props.compiled;
+  const { warnings } = split(props.compiled);
   return (
     <Box component="aside" aria-label={tr('Pendências e avisos', 'To do and warnings')} sx={{ bgcolor: parchment.paper, border: `1px solid ${rule}`, borderRadius: '6px', boxShadow: warmShadow, overflow: 'hidden' }}>
       <BandHead right={<><PendCount n={pending.length} /><PendCount n={warnings.length} sx={{ bgcolor: chrome.line, color: chrome.text }} /></>}>
@@ -84,9 +110,10 @@ export function PendingAside(props: PendingPanelProps) {
  */
 export function PendingSheet(props: PendingPanelProps & { open: boolean; onOpen: () => void; onClose: () => void }) {
   const { open, onOpen, onClose, ...panel } = props;
-  const { pending, warnings } = panel.compiled;
+  const { pending } = panel.compiled;
+  const { warnings } = split(panel.compiled);
   const [filter, setFilter] = useState<Filter>('all');
-  if (!pending.length && !warnings.length) return null;
+  if (!pending.length && !panel.compiled.warnings.length) return null;
   const summary = [
     pending.length ? tr(`pendência${pending.length > 1 ? 's' : ''}`, 'to do') : tr('nada pendente', 'nothing to do'),
     warnings.length ? tr(`${warnings.length} aviso${warnings.length > 1 ? 's' : ''}`, `${warnings.length} warning${warnings.length > 1 ? 's' : ''}`) : null,
