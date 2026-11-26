@@ -3,6 +3,7 @@
 // não casou. A ordem por nível de perícias nem sempre é recuperável: o importador distribui pelo nível mais baixo
 // possível (respeitando os tetos do Player Core pg. 92) e marca no histórico.
 import type { BuildInfo } from '../../../pathbuilder/types'
+import { tr } from '../../../i18n'
 import type { BuildState, Choice, InventoryEntry } from '../types'
 import type { RuleEntry } from '../rules/types'
 import { compileBuild } from './compile'
@@ -22,6 +23,10 @@ export interface ImportReport {
     /** O que foi deduzido sem certeza (ordem das perícias, tradição…). */
     guesses: string[]
 }
+
+const SIZES = ['tiny', 'small', 'medium', 'large', 'huge', 'gargantuan']
+/** Id caseiro pelo nome (`custom:cognitive-crossover`). */
+const customId = (name: string) => `custom:${name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'item'}`
 
 const lower = (list: string[] | undefined) => (list ?? []).map((a) => ATTR[a]).filter(Boolean)
 
@@ -58,7 +63,18 @@ export function importPathbuilder(b: BuildInfo, ctx: CompileContext, opts: { rec
 
     const ancestry = find(b.ancestry, 'ancestry')
     const heritage = find(b.heritage, 'heritage')
-    const background = find(b.background, 'background')
+    // "Scholar (Arcana)": o background com a escolha entre parênteses.
+    const background = find(b.background, 'background') ?? (/\(.+\)$/.test(b.background ?? '') ? rules.byName(b.background.replace(/\s*\(.+\)$/, ''), 'background') : undefined)
+    // Origem fora do catálogo (livro legado não importado): entra caseira, com o que o export diz dela.
+    const valid = (n: string | undefined | null): n is string => !!n && n !== 'Not set' && n !== 'None selected' && n !== 'None'
+    const customOrigin: NonNullable<BuildState['origin']['custom']> = {}
+    const attrs = (b.attributes ?? {}) as { ancestryhp?: number; speed?: number }
+    if (!ancestry && valid(b.ancestry)) {
+        const size = String((b as BuildInfo & { sizeName?: string }).sizeName ?? '').toLowerCase()
+        customOrigin.ancestry = { name: b.ancestry, ...(attrs.ancestryhp !== undefined ? { hp: attrs.ancestryhp } : {}), ...(SIZES.includes(size) ? { size } : {}), ...(attrs.speed ? { speed: attrs.speed } : {}) }
+    }
+    if (!heritage && valid(b.heritage)) customOrigin.heritage = { name: b.heritage }
+    if (!background && valid(b.background)) customOrigin.background = { name: b.background }
     const cls = find(b.class, 'class')
     const bd = b.abilities.breakdown
     const listedFlaws = ancestry?.ancestry?.flaws ?? []
@@ -85,7 +101,9 @@ export function importPathbuilder(b: BuildInfo, ctx: CompileContext, opts: { rec
         }
         const key = slotKeyFromLabel(label, b.class, Number(level))
         const entry = find(name, 'feat')
-        if (!key || !entry) continue
+        if (!key) continue
+        // Talento fora do catálogo (livro não importado): o slot fica com o talento caseiro, e o retrato leva o nome.
+        if (!entry) { if (valid(name)) choices[key] = { id: customId(name), name: String(name).slice(0, 80) }; continue }
         const q = qualifier ? `skill:${qualifier.toLowerCase().replace(/[^a-z0-9]+/g, '-')}` : undefined
         const archetype = entry.feat?.archetype?.[0]
         choices[key] = { id: entry.id, ...(q && /^skill:[a-z0-9-]+$/.test(q) ? { qualifier: q } : archetype ? { qualifier: `archetype:${archetype.toLowerCase().replace(/[^a-z0-9]+/g, '-')}` } : {}) }
@@ -95,7 +113,7 @@ export function importPathbuilder(b: BuildInfo, ctx: CompileContext, opts: { rec
         if (!Array.isArray(f) || f[5] !== 'childChoice') continue
         const parentLabel = String(f[6] ?? '')
         const parent = parentByLabel.get(parentLabel)
-        const child = find(String(f[0]), 'feat')
+        const child = rules.byName(String(f[0]), 'feat') ?? find(String(f[0]))
         if (!parent || !child) continue
         const flag = (parent.entry.rules ?? []).find((r) => r.key === 'ChoiceSet' && r.choices && typeof r.choices === 'object' && !Array.isArray(r.choices))?.flag
         if (typeof flag === 'string') choices[`${parent.key}/choice:${flag}`] = { id: child.id }
@@ -156,7 +174,11 @@ export function importPathbuilder(b: BuildInfo, ctx: CompileContext, opts: { rec
     const base: BuildState = {
         schema: 1, rulesVersion: '', name: b.name, level: b.level, xp: b.xp ?? 0,
         options: {}, origin: {
-            ancestry: ancestry?.id, heritage: heritage?.id, background: background?.id, alternateBoosts: alternate || undefined,
+            ancestry: ancestry?.id ?? (customOrigin.ancestry ? customId(customOrigin.ancestry.name) : undefined),
+            heritage: heritage?.id ?? (customOrigin.heritage ? customId(customOrigin.heritage.name) : undefined),
+            background: background?.id ?? (customOrigin.background ? customId(customOrigin.background.name) : undefined),
+            ...(Object.keys(customOrigin).length ? { custom: customOrigin } : {}),
+            alternateBoosts: alternate || undefined,
             voluntaryFlaws: lower(bd?.ancestryFlaws).filter((f) => !listedFlaws.includes(f)), languages,
             deity: find(b.deity, 'deity')?.id,
         },
@@ -169,7 +191,9 @@ export function importPathbuilder(b: BuildInfo, ctx: CompileContext, opts: { rec
         history: [{ at: new Date().toISOString(), by: 'import', note: 'Importado do Pathbuilder', kind: 'override' }],
     }
     // Free Archetype só se o export tem talentos dele.
-    if (!b.feats.some((f) => Array.isArray(f) && /^Free Archetype/.test(String(f[4] ?? '')))) base.options.variants = { freeArchetype: false }
+    if (!b.feats.some((f) => Array.isArray(f) && /^Free Archetype/.test(String(f[4] ?? '')))) base.options.variants = { ...base.options.variants, freeArchetype: false }
+    // Ancestral Paragon só se o export tem talento nele (a mesa pode ter ligado a variante depois da ficha).
+    if (!b.feats.some((f) => Array.isArray(f) && f[5] !== 'childChoice' && /^Ancestral Paragon Feat \d+$/.test(String(f[4] ?? '')))) base.options.variants = { ...base.options.variants, ancestralParagon: false }
 
     const want = Object.fromEntries(SKILL_KEYS.map((s) => [s, Math.round(((b.proficiencies as unknown as Record<string, number>)[s] ?? 0) / 2)])) as Record<SkillKey, number>
 
@@ -178,20 +202,57 @@ export function importPathbuilder(b: BuildInfo, ctx: CompileContext, opts: { rec
     // treino que o talento dá não gastar um treino livre.
     const children = compileBuild(base, ctx).featChildren.filter((c) => !choices[c.key])
     const specialNames = new Set((b.specials ?? []).map((sp) => sp.toLowerCase()))
-    for (const child of children) {
-        const flag = child.key.split('/choice:')[1]?.toLowerCase() ?? ''
-        if (child.kind === 'feat') {
-            const option = (ctx.classOptions ?? []).find((o) => specialNames.has(o.name.toLowerCase()) && flag.includes(o.type.toLowerCase()))
-            if (option) { choices[child.key] = { id: option.id }; continue }
-            // Basic Flair & cia.: o export lista o talento como "Swashbuckler Feat" no nível do pai.
-            const traits = (child.filter?.traits ?? []).filter((t) => !t.includes('{'))
-            const row = traits.length ? b.feats.find((f) => Array.isArray(f) && Number(f[3]) === child.level
-                && traits.some((t) => String(f[2] ?? '').toLowerCase() === `${t.toLowerCase()} feat`)) : undefined
-            const entry = row ? rules.byName(String((row as unknown as unknown[])[0]), 'feat') : undefined
-            if (entry) choices[child.key] = { id: entry.id }
-        } else if (child.kind === 'value' && child.options?.length && child.options.every((o) => SKILL_KEYS.includes(o.value as SkillKey))) {
-            const pick = child.options.find((o) => want[o.value as SkillKey] >= 1)
-            if (pick) choices[child.key] = { value: pick.value }
+    for (const k of specialKeys) specialNames.add(k.replace(/\s+innovation$/, ''))
+    // O tamanho da ficha responde a escolha de tamanho (Adopted Ancestry: Automaton).
+    const sizeName = String((b as BuildInfo & { sizeName?: string }).sizeName ?? '').toLowerCase()
+    if (sizeName) specialNames.add(sizeName)
+    // O qualificador do talento pai no export ("Assurance" + "Athletics", "Canny Acumen" + "Fortitude").
+    const keyByLabel = new Map([...parentByLabel].map(([label, v]) => [v.key, label]))
+    const qualifierOf = (slotKey: string) => {
+        const label = keyByLabel.get(slotKey)
+        const row = label ? b.feats.find((f) => Array.isArray(f) && f[4] === label) as unknown[] | undefined : undefined
+        return row && typeof row[1] === 'string' ? row[1].toLowerCase() : null
+    }
+    const usedSpecials = new Set<string>()
+    // Escolha dentro de escolha (o tamanho do Automaton do Adopted Ancestry) só aparece depois da de cima: até 3 passadas.
+    for (let pass = 0; pass < 3; pass++) {
+        const open = pass === 0 ? children : compileBuild(base, ctx).featChildren.filter((c) => !choices[c.key])
+        if (!open.length) break
+        for (const child of open) {
+            // A última escolha da chave é a desta filha; o qualificador do export é do talento do slot (só a filha direta).
+            const parts = child.key.split('/choice:')
+            const flag = parts[parts.length - 1].toLowerCase()
+            const q = parts.length === 2 ? qualifierOf(parts[0]) : null
+            if (child.kind === 'feat') {
+                const option = (ctx.classOptions ?? []).find((o) => specialNames.has(o.name.toLowerCase()) && flag.includes(o.type.toLowerCase().replace(/-/g, '')))
+                if (option) { choices[child.key] = { id: option.id }; continue }
+                // Adopted Ancestry e afins: o qualificador é o nome da ancestralidade.
+                const named = q ? rules.byName(q, flag === 'ancestry' ? 'ancestry' : undefined) : undefined
+                if (named && (flag !== 'ancestry' || named.type === 'ancestry')) { choices[child.key] = { id: named.id }; continue }
+                // Basic Flair & cia.: o export lista o talento como "Swashbuckler Feat" no nível do pai.
+                const traits = (child.filter?.traits ?? []).filter((t) => !t.includes('{'))
+                const row = traits.length ? b.feats.find((f) => Array.isArray(f) && Number(f[3]) === child.level
+                    && traits.some((t) => String(f[2] ?? '').toLowerCase() === `${t.toLowerCase()} feat`)) : undefined
+                const entry = row ? rules.byName(String((row as unknown as unknown[])[0]), 'feat') : undefined
+                if (entry) choices[child.key] = { id: entry.id }
+            } else if (child.options?.length) {
+                const opts = child.options
+                const norm = (x: string) => x.toLowerCase()
+                // 1. O qualificador do pai no export. 2. Uma característica do export com o nome da opção (Terrain "Forest",
+                // as perícias do Natural Skill e do Skilled Human), sem repetir a que outra escolha já usou.
+                const byQualifier = q ? opts.find((o) => norm(o.value) === q || norm(o.value).includes(`.${q}.`) || norm(o.label ?? '') === q) : undefined
+                const bySpecial = byQualifier ? undefined : opts.find((o) => !usedSpecials.has(norm(o.value)) && (specialNames.has(norm(o.value)) || specialNames.has(norm(o.label ?? ''))))
+                // O atributo de uma dedicação (Fighter Dedication: FOR ou DES) que o export não guarda: o maior da ficha.
+                const attrScore = (a: string) => (b.abilities as unknown as Record<string, number>)[a] ?? 0
+                const byAttribute = flag === 'attribute' && opts.every((o) => (Object.values(ATTR) as string[]).includes(o.value))
+                    ? [...opts].sort((x, y) => attrScore(y.value) - attrScore(x.value))[0] : undefined
+                const pick = byQualifier ?? bySpecial ?? byAttribute ?? (opts.every((o) => SKILL_KEYS.includes(o.value as SkillKey)) ? opts.find((o) => want[o.value as SkillKey] >= 1 && !usedSpecials.has(o.value)) : undefined)
+                if (pick) {
+                    usedSpecials.add(norm(pick.value))
+                    choices[child.key] = { value: pick.value }
+                    if (!byQualifier && !bySpecial) guesses.push(`escolha deduzida da ficha (${byAttribute ? 'atributo maior' : 'perícia treinada'}): ${child.key}`)
+                }
+            }
         }
     }
 
@@ -243,7 +304,6 @@ export function importPathbuilder(b: BuildInfo, ctx: CompileContext, opts: { rec
     let n = 0
     const key = () => `inv-imp${(n++).toString(36)}`
     const inventory: InventoryEntry[] = []
-    const customId = (name: string) => `custom:${name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'item'}`
     // A runa de propriedade com preço ("Shock" também é o grupo sem preço, que o `byName` devolveria).
     const runeIds = (names: string[] | undefined) => (names ?? []).filter((r) => !/^reinforcing\b/i.test(r)).map((r) => {
         const all = rules.named(r).filter((x) => /^runes?$/i.test(x.item?.category ?? ''))
@@ -308,7 +368,8 @@ export function importPathbuilder(b: BuildInfo, ctx: CompileContext, opts: { rec
 
     // Magias: conjurador da classe e foco.
     const spellcasting: BuildState['spellcasting'] = {}
-    const spellId = (name: string) => find(name.replace(/ \(Amped\)$/, ''), 'spell')?.id
+    // Magia fora do catálogo (legada, de livro não importado): entra caseira pelo nome, para o retrato levá-la à Ficha.
+    const spellId = (name: string) => find(name.replace(/ \(Amped\)$/, ''), 'spell')?.id ?? (valid(name) ? customId(name.replace(/ \(Amped\)$/, '')) : undefined)
     const classCaster = (b.spellCasters ?? []).find((c) => c.name === b.class)
     if (classCaster) {
         const byRank = (lists: { spellLevel: number; list: string[] }[] | undefined) =>
@@ -352,7 +413,7 @@ export function importPathbuilder(b: BuildInfo, ctx: CompileContext, opts: { rec
     }
 
     const draft: BuildState = { ...base, choices, inventory, spellcasting, companions }
-    if (opts.reconcile !== false) reconcileWithSheet(draft, b, ctx)
+    if (opts.reconcile !== false) reconcileWithSheet(draft, b, ctx, guesses)
     reconcileWeapons(draft, ctx, sheetWeapon, opts.reconcile !== false)
 
     return {
@@ -362,6 +423,19 @@ export function importPathbuilder(b: BuildInfo, ctx: CompileContext, opts: { rec
 }
 
 const SAVE_KEYS = ['perception', 'fortitude', 'reflex', 'will', 'classDC'] as const
+/** Rótulos dos ajustes importados (os mesmos nomes da Ficha, `character-viewer/checks.ts`; o motor não importa a Ficha). */
+const LABEL: Record<string, string> = {
+    acrobatics: tr('Acrobacia', 'Acrobatics'), arcana: tr('Arcanismo', 'Arcana'), athletics: tr('Atletismo', 'Athletics'), crafting: tr('Ofício', 'Crafting'),
+    deception: tr('Engano', 'Deception'), diplomacy: tr('Diplomacia', 'Diplomacy'), intimidation: tr('Intimidação', 'Intimidation'), medicine: tr('Medicina', 'Medicine'),
+    nature: tr('Natureza', 'Nature'), occultism: tr('Ocultismo', 'Occultism'), performance: 'Performance', religion: tr('Religião', 'Religion'),
+    society: tr('Sociedade', 'Society'), stealth: tr('Furtividade', 'Stealth'), survival: tr('Sobrevivência', 'Survival'), thievery: tr('Roubo', 'Thievery'),
+    perception: tr('Percepção', 'Perception'), fortitude: tr('Fortitude', 'Fortitude'), reflex: tr('Reflexos', 'Reflex'), will: tr('Vontade', 'Will'), classDC: tr('CD de classe', 'Class DC'),
+    simple: tr('Armas simples', 'Simple weapons'), martial: tr('Armas marciais', 'Martial weapons'), advanced: tr('Armas avançadas', 'Advanced weapons'), unarmed: tr('Ataques desarmados', 'Unarmed attacks'),
+    unarmored: tr('Sem armadura', 'Unarmored'), light: tr('Armadura leve', 'Light armor'), medium: tr('Armadura média', 'Medium armor'), heavy: tr('Armadura pesada', 'Heavy armor'),
+    castingArcane: tr('Conjuração arcana', 'Arcane spellcasting'), castingDivine: tr('Conjuração divina', 'Divine spellcasting'),
+    castingOccult: tr('Conjuração oculta', 'Occult spellcasting'), castingPrimal: tr('Conjuração primal', 'Primal spellcasting'),
+}
+const label = (k: string) => tr(`${LABEL[k] ?? k} (da Ficha)`, `${LABEL[k] ?? k} (from the Sheet)`)
 const CATEGORY_KEYS = ['simple', 'martial', 'advanced', 'unarmed', 'unarmored', 'light', 'medium', 'heavy'] as const
 
 /**
@@ -369,11 +443,24 @@ const CATEGORY_KEYS = ['simple', 'martial', 'advanced', 'unarmed', 'unarmored', 
  * talento, arma da divindade…) vira ajuste à mão com o motivo "Importado da Ficha", para o Criador mostrar os mesmos
  * números. Só sobe, nunca rebaixa: número menor no export que no motor fica para a pessoa conferir.
  */
-function reconcileWithSheet(state: BuildState, b: BuildInfo, ctx: CompileContext) {
-    const reason = 'Importado da Ficha Virtual: o Criador ainda não calcula isto sozinho'
+function reconcileWithSheet(state: BuildState, b: BuildInfo, ctx: CompileContext, guesses: string[]) {
+    const reason = tr('Importado da Ficha Virtual: o Criador ainda não calcula isto sozinho', 'Imported from the Virtual Sheet: the Builder does not calculate this on its own yet')
     const adjustments: NonNullable<BuildState['manual']['adjustments']> = []
     const add = (id: string, label: string, kind: 'proficiency' | 'itemBonus', target: string, value: number) =>
         adjustments.push({ id: `imp-${id}`.toLowerCase().replace(/[^a-z0-9:_-]+/g, '-').slice(0, 60), label, reason, effect: { kind, target, value } })
+
+    // 0. Aumentos de origem que o export não guardou (breakdown vazio): os atributos mais altos da ficha, dentro do que o
+    // grupo aceita. O número final vem do passo 1; isto só tira a pendência.
+    const score = (a: AttributeKey) => (b.abilities as unknown as Record<string, number>)[a] ?? 10
+    for (const g of compileBuild(state, ctx).boostGroups) {
+        if (!['boosts-ancestry', 'boosts-background'].includes(g.key) || g.chosen.length >= g.count) continue
+        const order = (Object.values(ATTR) as AttributeKey[]).filter((a) => !g.fixed.includes(a)).sort((x, y) => score(y) - score(x))
+        const picks: AttributeKey[] = []
+        if (g.oneOf && g.options.length) picks.push([...g.options].sort((x, y) => score(y) - score(x))[0])
+        for (const a of order) if (picks.length < g.count && !picks.includes(a) && (g.oneOf || !g.options.length || g.options.includes(a))) picks.push(a)
+        state.choices = { ...state.choices, [g.key]: { boosts: picks } }
+        guesses.push(`aumentos deduzidos dos atributos da ficha: ${g.key}`)
+    }
 
     // 1. Atributos (o modificador da ficha).
     let out = compileBuild(state, ctx)
@@ -392,16 +479,16 @@ function reconcileWithSheet(state: BuildState, b: BuildInfo, ctx: CompileContext
     const prof = b.proficiencies as unknown as Record<string, number>
     for (const s of SKILL_KEYS) {
         const want = Math.round((prof[s] ?? 0) / 2)
-        if (want > out.skills.rank[s]) add(`skill-${s}`, `${s} (Ficha)`, 'proficiency', `skill:${s}`, want)
+        if (want > out.skills.rank[s]) add(`skill-${s}`, label(s), 'proficiency', `skill:${s}`, want)
     }
     for (const k of SAVE_KEYS) {
         const want = Math.round((prof[k] ?? 0) / 2)
-        if (want > out.proficiency[k]) add(k, `${k} (Ficha)`, 'proficiency', k, want)
+        if (want > out.proficiency[k]) add(k, label(k), 'proficiency', k, want)
     }
     for (const k of CATEGORY_KEYS) {
         const want = Math.round((prof[k] ?? 0) / 2)
         const have = (k in out.proficiency.attacks ? out.proficiency.attacks[k as keyof typeof out.proficiency.attacks] : out.proficiency.defenses[k as keyof typeof out.proficiency.defenses]) ?? 0
-        if (want > have) add(k, `${k} (Ficha)`, 'proficiency', k, want)
+        if (want > have) add(k, label(k), 'proficiency', k, want)
     }
     // Conjuração inata ou de talento (ancestralidade, Mythic Magic…): o retrato leva o rank da Ficha.
     const casters = new Map<string, number>()
@@ -409,7 +496,7 @@ function reconcileWithSheet(state: BuildState, b: BuildInfo, ctx: CompileContext
     for (const t of ['arcane', 'divine', 'occult', 'primal']) {
         const k = `casting${t[0].toUpperCase()}${t.slice(1)}`
         const want = Math.round((prof[k] ?? 0) / 2)
-        if (want > (casters.get(t) ?? 0)) add(k, `${k} (Ficha)`, 'proficiency', k, want)
+        if (want > (casters.get(t) ?? 0)) add(k, label(k), 'proficiency', k, want)
     }
     // Proficiência numa arma só (a `specificProficiencies` do Pathbuilder: arma da divindade, Monastic Archer…).
     const specific = (b as BuildInfo & { specificProficiencies?: Record<string, string[]> }).specificProficiencies ?? {}
@@ -417,7 +504,7 @@ function reconcileWithSheet(state: BuildState, b: BuildInfo, ctx: CompileContext
         for (const name of specific[rankName] ?? []) {
             const st = out.equipment.strikes.find((x) => x.name.toLowerCase() === name.toLowerCase() || out.equipment.items.find((i) => i.key === x.key)?.base?.name.toLowerCase() === name.toLowerCase())
             const have = st ? Math.max(0, Math.round(((st.attackParts.find((p) => p.label === 'Proficiência' || p.label === 'Proficiency')?.value ?? 0) - out.level) / 2)) : 0
-            if (!st || have < rank) add(`weapon-${name}`, `${name} (Ficha)`, 'proficiency', `weapon:${name.toLowerCase()}`, rank)
+            if (!st || have < rank) add(`weapon-${name}`, tr(`${name} (da Ficha)`, `${name} (from the Sheet)`), 'proficiency', `weapon:${name.toLowerCase()}`, rank)
         }
     }
     if (adjustments.length) state.manual = { ...state.manual, adjustments: [...(state.manual.adjustments ?? []), ...adjustments] }
@@ -427,7 +514,7 @@ function reconcileWithSheet(state: BuildState, b: BuildInfo, ctx: CompileContext
     const acWant = b.acTotal?.acTotal
     if (typeof acWant === 'number' && acWant > out.stats.ac.total) {
         state.manual = { ...state.manual, adjustments: [...(state.manual.adjustments ?? []),
-            { id: 'imp-ac', label: 'CA (Ficha)', reason, effect: { kind: 'itemBonus', target: 'ac', value: acWant - out.stats.ac.total } }] }
+            { id: 'imp-ac', label: tr('CA (da Ficha)', 'AC (from the Sheet)'), reason, effect: { kind: 'itemBonus', target: 'ac', value: acWant - out.stats.ac.total } }] }
     }
 }
 

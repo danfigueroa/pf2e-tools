@@ -94,6 +94,21 @@ S('inventário: chave repetida e contêiner de si mesmo', {
         { key: 'inv-3', item: 'item:equipment-4', qty: 3, acquired: 'bought', material: { id: 'item:equipment-9' } },
     ],
 })
+S('item caseiro com números: arma e armadura passam; dado e categoria inválidos caem',
+    { ...empty, inventory: [
+        { key: 'inv-1', item: 'custom:braco-sonico', qty: 1, acquired: 'given', customName: 'Braço Sônico', custom: { weapon: { name: 'Braço Sônico', die: 'd6', damageType: 'sonic', category: 'simple' } } },
+        { key: 'inv-2', item: 'custom:veste', qty: 1, acquired: 'given', custom: { armor: { category: 'light', ac: 1, dexCap: 5 }, weapon: { die: 'd7', category: 'simple' } } },
+    ] },
+    { ...empty, inventory: [
+        { key: 'inv-1', item: 'custom:braco-sonico', qty: 1, acquired: 'given', customName: 'Braço Sônico', custom: { weapon: { name: 'Braço Sônico', die: 'd6', damageType: 'sonic', category: 'simple' } } },
+        { key: 'inv-2', item: 'custom:veste', qty: 1, acquired: 'given', custom: { armor: { category: 'light', ac: 1, dexCap: 5 } } },
+    ] })
+S('talento caseiro guarda o nome; talento do catálogo não',
+    { ...empty, choices: { 'skill-feat-4': { id: 'custom:cognitive-crossover', name: 'Cognitive Crossover' }, 'class-feat-1': { id: 'feat:feat-1', name: 'x' } } },
+    { ...empty, choices: { 'skill-feat-4': { id: 'custom:cognitive-crossover', name: 'Cognitive Crossover' }, 'class-feat-1': { id: 'feat:feat-1' } } })
+S('origem caseira: nome, PV, tamanho e deslocamento; tamanho inválido cai',
+    { ...empty, origin: { ancestry: 'custom:android', custom: { ancestry: { name: 'Android', hp: 8, size: 'enorme', speed: 25 }, background: { name: 'Lesser Scion' }, heritage: {} } } },
+    { ...empty, origin: { ancestry: 'custom:android', custom: { ancestry: { name: 'Android', hp: 8, speed: 25 }, background: { name: 'Lesser Scion' } } } })
 S('dinheiro: negativo e texto viram 0', { ...empty, money: { gp: 15, sp: -1, cp: '3' } }, { ...empty, money: { pp: 0, gp: 15, sp: 0, cp: 0 } })
 S('magias: preparadas repetem, grimório não', {
     ...empty,
@@ -510,6 +525,11 @@ console.log('Equipamento: Ghan Buri (gabarito: export do Pathbuilder) e regras d
     expect('runa fundamental usa a variante com preço', bought.equipment.items[0].runes.map((r) => r.price), [935, 65, 500])
     const given = compileBuild({ ...state, inventory: [{ key: 'inv-1', item: hammerId, qty: 1, acquired: 'given', runes: { potency: 2 } }] }, { rules: runeRules })
     expect('item ganho não desconta as runas', given.equipment.money.spent, 0)
+    // Conteúdo caseiro (custom:): origem e talento fora do catálogo contam como escolhidos e vão ao retrato pelo nome.
+    const homemade = compileBuild({ ...hf, origin: { ...hf.origin, ancestry: 'custom:android', custom: { ancestry: { name: 'Android', hp: 8, size: 'medium', speed: 25 } } },
+        choices: { ...hf.choices, 'ancestry-feat-1': { id: 'custom:radiant-circuitry', name: 'Radiant Circuitry' } } }, ctx)
+    expect('ancestralidade caseira não fica pendente e dá os PV do export', [homemade.pending.some((p) => p.key === 'ancestry'), homemade.stats.hp.parts.find((p) => /ancestr/i.test(p.label))?.value], [false, 8])
+    expect('talento caseiro ocupa o slot de ancestralidade', homemade.pending.some((p) => p.key === 'ancestry-feat-1'), false)
 }
 
 console.log('Ajustes manuais (F8.3): entram nos números, sempre com aviso')

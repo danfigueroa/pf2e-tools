@@ -330,14 +330,14 @@ function compileSkills(state, background, cls, intMod1, intGains, skillIncreaseL
     if (classArchetype === BLOODRAGER && skill && "value" in skill && ["arcana", "religion"].includes(skill.value)) ref = skillRef(skill.value);
     if (ref) {
       warfareLore = classArchetype === WAR_MAGE;
-      const label = warfareLore ? "War Mage Dedication" : "Bloodrager Dedication";
-      if (get(ref) === 0) train(ref, label, true);
+      const label2 = warfareLore ? "War Mage Dedication" : "Bloodrager Dedication";
+      if (get(ref) === 0) train(ref, label2, true);
       else {
         const key = "skills-dedication-2";
         const chosen = choiceSkills(state, key);
         const valid = chosen.filter((s) => (!warfareLore || s.startsWith("lore:")) && get(s) === 0);
-        slots.push({ key, label, level: 2, count: 1, kind: "train", options: [], loreOnly: warfareLore, chosen });
-        if (valid[0]) train(valid[0], label, false);
+        slots.push({ key, label: label2, level: 2, count: 1, kind: "train", options: [], loreOnly: warfareLore, chosen });
+        if (valid[0]) train(valid[0], label2, false);
         if (chosen.length && !valid.length) warnings.push({
           code: "SKILL_NOT_ALLOWED",
           level: "warn",
@@ -639,8 +639,8 @@ function compileFeats(state, slots, rules, ctx, warnings) {
       if (rule.key === "Sense" && typeof rule.selector === "string") {
         const name = rule.selector.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
         const range = numeric(rule.range, level);
-        const label = range ? `${name} ${range} ft` : name;
-        if (!mods.senses.some((x) => x.toLowerCase().startsWith(name.toLowerCase()))) mods.senses.push(label);
+        const label2 = range ? `${name} ${range} ft` : name;
+        if (!mods.senses.some((x) => x.toLowerCase().startsWith(name.toLowerCase()))) mods.senses.push(label2);
         continue;
       }
       if (rule.key === "BaseSpeed" && typeof rule.selector === "string") {
@@ -924,23 +924,23 @@ function fundamentalRune(rules, kind, tier) {
   const all = rules.named(name).filter((e) => /^runes?$/i.test(e.item?.category ?? ""));
   return all.find((e) => e.item?.price && e.remaster) ?? all.find((e) => e.item?.price) ?? all[0];
 }
-function itemRunes(inv, base, rules) {
+function itemRunes(inv, base2, rules) {
   const r = inv.runes;
-  if (!r || !base?.item) return [];
+  if (!r || !base2?.item) return [];
   const out = [];
   const fundamental = (kind, tier) => {
     if (!tier) return;
     const e = fundamentalRune(rules, kind, tier);
     out.push({ kind, tier, id: e?.id, name: e?.name ?? FUNDAMENTAL_NAMES[kind][tier] ?? "", level: e?.level, price: e?.item?.price?.gp ?? 0, known: !!e?.item?.price });
   };
-  if (base.item.weapon) {
+  if (base2.item.weapon) {
     fundamental("potency", r.potency);
     fundamental("striking", r.striking);
-  } else if (base.item.armor) {
+  } else if (base2.item.armor) {
     fundamental("armorPotency", r.potency);
     fundamental("resilient", r.resilient);
-  } else if (base.item.shield) fundamental("reinforcing", r.reinforcing);
-  if (base.item.weapon || base.item.armor) {
+  } else if (base2.item.shield) fundamental("reinforcing", r.reinforcing);
+  if (base2.item.weapon || base2.item.armor) {
     for (const id of r.property ?? []) {
       const got = rules.get(id);
       const e = got && !got.item?.price ? rules.named(got.name).find((x) => x.item?.price && /^runes?$/i.test(x.item?.category ?? "")) ?? got : got;
@@ -970,7 +970,7 @@ function resolveItems(state, rules, warnings) {
   return state.inventory.map((inv) => {
     const entry = rules.get(inv.item) ?? null;
     const baseName = entry?.item?.baseItem ? [entry.item.baseItem].flat()[0] : void 0;
-    const base = entry && (entry.item?.weapon || entry.item?.armor || entry.item?.shield) ? entry : baseName ? rules.byName(baseName) ?? null : !entry && inv.custom ? customBase(inv) : null;
+    const base2 = entry && (entry.item?.weapon || entry.item?.armor || entry.item?.shield) ? entry : baseName ? rules.byName(baseName) ?? null : !entry && inv.custom ? customBase(inv) : null;
     if (!entry && inv.item.startsWith("custom:") && inv.custom) {
       warnings.push({ code: "CUSTOM_ITEM", level: "info", ref: "equipment", message: tr(`${inv.customName ?? inv.item}: item caseiro \u2014 os n\xFAmeros v\xEAm dos dados dele; pre\xE7o, volume e efeitos n\xE3o entram.`, `${inv.customName ?? inv.item}: homebrew item \u2014 numbers come from its stats; price, bulk and effects are not in.`) });
     } else if (!entry && inv.item.startsWith("custom:")) {
@@ -979,11 +979,11 @@ function resolveItems(state, rules, warnings) {
     if (entry && baseName && entry.item?.subcategory?.startsWith("Specific")) {
       warnings.push({ code: "SPECIFIC_ITEM", level: "info", ref: "equipment", message: tr(`${entry.name}: item espec\xEDfico \u2014 confira as runas e efeitos pr\xF3prios dele.`, `${entry.name}: specific item \u2014 check its own runes and effects.`) });
     }
-    const runes = itemRunes(inv, base, rules);
+    const runes = itemRunes(inv, base2, rules);
     return {
       key: inv.key,
       entry,
-      base,
+      base: base2,
       name: inv.customName ?? entry?.name ?? inv.item,
       qty: inv.qty,
       bulk: bulkOf(entry?.item?.bulk) * inv.qty,
@@ -1043,8 +1043,8 @@ function compileEquipment(state, rules, ctx, warnings) {
   const shield = shieldItem ? { item: shieldItem, ac: shieldItem.base.item.shield.ac ?? 0, hardness: shieldItem.base.item.shield.hardness, hp: shieldItem.base.item.shield.hp } : null;
   const strikes = [];
   const specBonus = (rank) => ctx.specialization === 0 || rank < 2 ? 0 : [0, 0, 2, 3, 4][rank] * ctx.specialization;
-  const weaponStrike = (key, name, base, inv) => {
-    const w = base.item?.weapon;
+  const weaponStrike = (key, name, base2, inv) => {
+    const w = base2.item?.weapon;
     if (!w) return null;
     const traits = (w.traitsRaw ?? []).map((t) => t);
     const low = traits.map(TRAIT);
@@ -1053,7 +1053,7 @@ function compileEquipment(state, rules, ctx, warnings) {
     const rank = Math.max(
       ctx.attacks[category] ?? 0,
       (group ? ctx.groupRanks[group]?.[category] : 0) ?? 0,
-      ctx.weaponRanks?.[base.name.toLowerCase()] ?? 0,
+      ctx.weaponRanks?.[base2.name.toLowerCase()] ?? 0,
       ctx.weaponRanks?.[name.toLowerCase()] ?? 0
     );
     const prof = rank > 0 ? ctx.level + 2 * rank : 0;
@@ -1135,6 +1135,75 @@ function armorClass(eq, ctx) {
   if (eq.armor && eq.armor.ac + eq.armor.potency) parts.push({ label: tr("Item", "Item"), value: eq.armor.ac + eq.armor.potency });
   if (!eq.armor && ctx.unarmoredPotency) parts.push({ label: tr("Item", "Item"), value: ctx.unarmoredPotency });
   return { total: parts.reduce((s, p) => s + p.value, 0), parts };
+}
+
+// src/modules/character-builder/engine/custom.ts
+var base = (id, name, type) => ({ id, name, type, source: { id: "mesa" }, aon: { id }, remaster: true, traits: [] });
+function slotTraits(key, ancestryTraits, className) {
+  const m = /^([a-z]+)-feat-(\d+)$/.exec(key);
+  if (!m) return { traits: [] };
+  const level = Number(m[2]);
+  const traits = {
+    ancestry: ancestryTraits.slice(0, 1),
+    paragon: ancestryTraits.slice(0, 1),
+    class: className ? [className] : [],
+    skill: ["General", "Skill"],
+    general: ["General"],
+    archetype: ["Archetype"],
+    mythic: ["Mythic"],
+    flexibility: className ? [className] : []
+  }[m[1]] ?? [];
+  return { traits, level };
+}
+function customEntries(state, rules) {
+  const out = [];
+  const o = state.origin;
+  const c = o.custom;
+  if (c?.ancestry && o.ancestry?.startsWith("custom:")) {
+    const chosen = state.choices["boosts-ancestry"];
+    const free = chosen && "boosts" in chosen ? chosen.boosts.length : 2;
+    out.push({
+      ...base(o.ancestry, c.ancestry.name, "ancestry"),
+      traits: [c.ancestry.name],
+      ancestry: { hp: c.ancestry.hp, size: c.ancestry.size, speed: c.ancestry.speed, boosts: Array.from({ length: free }, () => "free"), flaws: [] }
+    });
+  }
+  const ancestryName = c?.ancestry?.name ?? rules.get(o.ancestry)?.name;
+  if (c?.heritage && o.heritage?.startsWith("custom:")) out.push({ ...base(o.heritage, c.heritage.name, "heritage"), heritage: { ancestry: ancestryName } });
+  if (c?.background && o.background?.startsWith("custom:")) out.push({ ...base(o.background, c.background.name, "background"), background: { boosts: [], skills: [] } });
+  const ancestryTraits = ancestryName ? [ancestryName] : [];
+  const className = rules.get(state.class.id)?.name;
+  for (const [key, choice] of Object.entries(state.choices)) {
+    if (!("id" in choice) || !choice.id.startsWith("custom:") || !choice.name) continue;
+    const { traits, level } = slotTraits(key, ancestryTraits, className);
+    out.push({ ...base(choice.id, choice.name, "feat"), level, traits, unsupported: ["efeitos do talento caseiro"] });
+  }
+  const seen = new Set(out.map((e) => e.id));
+  const spell = (id, rank) => {
+    if (!id.startsWith("custom:") || seen.has(id) || rules.get(id)) return;
+    seen.add(id);
+    const name = id.slice(7).split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+    out.push({ ...base(id, name, "spell"), level: rank, spell: { rank, cantrip: rank === 0, traditions: ["arcane", "divine", "occult", "primal"] }, unsupported: ["magia caseira"] });
+  };
+  for (const caster of Object.values(state.spellcasting)) {
+    for (const byRank of [caster.repertoire, caster.prepared]) for (const [r, ids] of Object.entries(byRank ?? {})) for (const id of ids) spell(id, Number(r) || 0);
+    for (const id of [...caster.spellbook ?? [], ...caster.signature ?? []]) spell(id, 1);
+  }
+  return out;
+}
+function withCustom(rules, state) {
+  const extra = customEntries(state, rules);
+  if (!extra.length) return rules;
+  const byId = new Map(extra.map((e) => [e.id, e]));
+  return {
+    get: (id) => id ? byId.get(id) ?? rules.get(id) : void 0,
+    byName: (name, type) => rules.byName(name, type) ?? extra.find((e) => e.name.toLowerCase() === name.toLowerCase() && (!type || e.type === type)),
+    named: (name) => {
+      const a = rules.named(name);
+      return a.length ? a : extra.filter((e) => e.name.toLowerCase() === name.toLowerCase());
+    },
+    languages: rules.languages
+  };
 }
 
 // src/modules/character-builder/mesaRules.ts
@@ -1258,9 +1327,9 @@ var RANK_NAME = {
 };
 var rankName = (rank) => RANK_NAME[rank];
 var proficiencyBonus = (rank, level) => rank > 0 ? level + 2 * rank : 0;
-var stat = (parts, base = 0) => ({
-  total: base + parts.reduce((sum, p) => sum + p.value, 0),
-  parts: base ? [{ label: tr("Base", "Base"), value: base }, ...parts] : parts
+var stat = (parts, base2 = 0) => ({
+  total: base2 + parts.reduce((sum, p) => sum + p.value, 0),
+  parts: base2 ? [{ label: tr("Base", "Base"), value: base2 }, ...parts] : parts
 });
 function sourceWarnings(entry, ctx, ref, warnings) {
   const rules = ctx.mesaRules;
@@ -1290,7 +1359,8 @@ function sourceWarnings(entry, ctx, ref, warnings) {
     warnings.push({ code: "UNSUPPORTED_EFFECT", level: "info", ref, message: tr(`Efeito n\xE3o calculado: ${entry.name} (${effect}).`, `Effect not calculated: ${entry.name} (${effect}).`) });
   }
 }
-function compileBuild(state, ctx) {
+function compileBuild(state, baseCtx) {
+  const ctx = { ...baseCtx, rules: withCustom(baseCtx.rules, state) };
   const { rules } = ctx;
   const level = Math.min(20, Math.max(1, state.level));
   const pending = [];
@@ -1310,9 +1380,9 @@ function compileBuild(state, ctx) {
     used.add(CLASS_ARCHETYPE);
     if (archetype) sourceWarnings(archetype, ctx, CLASS_ARCHETYPE, warnings);
   }
-  const missing = (id, entry, key, label) => {
-    if (!id) pending.push({ key, label, level: 1, missing: 1 });
-    else if (!entry) warnings.push({ code: "ENTRY_NOT_FOUND", level: "error", ref: key, message: tr(`${label}: n\xE3o est\xE1 no cat\xE1logo atual (${id}).`, `${label}: not in the current catalog (${id}).`) });
+  const missing = (id, entry, key, label2) => {
+    if (!id) pending.push({ key, label: label2, level: 1, missing: 1 });
+    else if (!entry) warnings.push({ code: "ENTRY_NOT_FOUND", level: "error", ref: key, message: tr(`${label2}: n\xE3o est\xE1 no cat\xE1logo atual (${id}).`, `${label2}: not in the current catalog (${id}).`) });
   };
   missing(state.origin.ancestry, ancestry, "ancestry", tr("Ancestralidade", "Ancestry"));
   missing(state.origin.heritage, heritage, "heritage", tr("Heran\xE7a", "Heritage"));
@@ -1718,7 +1788,7 @@ function compileBuild(state, ctx) {
     const k = target.slice(6);
     if (k in skills.result.rank && skills.result.rank[k] < rank) skills.result.rank[k] = rank;
   }
-  const part = (label, value) => ({ label, value });
+  const part = (label2, value) => ({ label: label2, value });
   const attrPart = (key) => part(attributeLabel(key), mod[key]);
   const hpParts = [
     ...ancestry ? [part(tr("Ancestralidade", "Ancestry"), ancestry.ancestry?.hp ?? 0)] : [],
@@ -1841,7 +1911,7 @@ function featType(entry, slot, className) {
 }
 var spellLists = (byRank, name) => Object.entries(byRank ?? {}).map(([rank, ids]) => ({ spellLevel: Number(rank), list: ids.map(name) })).sort((a, b) => a.spellLevel - b.spellLevel);
 function exportBuild(state, compiled, ctx) {
-  const { rules } = ctx;
+  const rules = withCustom(ctx.rules, state);
   const name = (id) => rules.get(id)?.name ?? id;
   const ancestry = rules.get(state.origin.ancestry);
   const heritage = rules.get(state.origin.heritage);
@@ -1850,7 +1920,7 @@ function exportBuild(state, compiled, ctx) {
   const className = cls?.name ?? "";
   const ancestryName = ancestry?.name ?? "";
   const { mod, partial, breakdown } = compiled.attributes;
-  const label = (list) => list.map((a) => ATTR_LABEL3[a]);
+  const label2 = (list) => list.map((a) => ATTR_LABEL3[a]);
   const level = compiled.level;
   const pr = compiled.proficiency;
   const slotByKey = new Map(compiled.featSlots.map((s) => [s.key, s]));
@@ -2039,12 +2109,12 @@ function exportBuild(state, compiled, ctx) {
     abilities: {
       ...Object.fromEntries(ATTRIBUTES.map((a) => [a, attributeScore(mod[a], partial[a])])),
       breakdown: {
-        ancestryFree: label(breakdown.ancestryFree),
-        ancestryBoosts: label(breakdown.ancestryBoosts),
-        ancestryFlaws: label(breakdown.ancestryFlaws),
-        backgroundBoosts: label(breakdown.backgroundBoosts),
-        classBoosts: label(breakdown.classBoosts),
-        mapLevelledBoosts: Object.fromEntries(Object.entries(breakdown.mapLevelledBoosts).map(([k, v]) => [k, label(v)]))
+        ancestryFree: label2(breakdown.ancestryFree),
+        ancestryBoosts: label2(breakdown.ancestryBoosts),
+        ancestryFlaws: label2(breakdown.ancestryFlaws),
+        backgroundBoosts: label2(breakdown.backgroundBoosts),
+        classBoosts: label2(breakdown.classBoosts),
+        mapLevelledBoosts: Object.fromEntries(Object.entries(breakdown.mapLevelledBoosts).map(([k, v]) => [k, label2(v)]))
       }
     },
     attributes: {
@@ -2326,8 +2396,8 @@ function fixWeaponExports(build) {
   if (fixes.length === 0 || !Array.isArray(build.weapons)) return build;
   let changed = false;
   const weapons = build.weapons.map((w) => {
-    const label = (w.display || w.name || "").trim().toLowerCase();
-    if (!fixes.some((f) => f.weapon === label)) return w;
+    const label2 = (w.display || w.name || "").trim().toLowerCase();
+    if (!fixes.some((f) => f.weapon === label2)) return w;
     const prof = build.proficiencies[w.prof] ?? 0;
     const str = Math.floor(((build.abilities?.str ?? 10) - 10) / 2);
     const expected = build.level + (prof > 0 ? prof : 0) + str + (w.pot || 0);
@@ -2384,22 +2454,24 @@ function normalizeBuild(build) {
 var ATTR2 = { Str: "str", Dex: "dex", Con: "con", Int: "int", Wis: "wis", Cha: "cha" };
 var STRIKING2 = { "": 0, striking: 1, greaterStriking: 2, majorStriking: 3 };
 var RESILIENT2 = { "": 0, resilient: 1, greaterResilient: 2, majorResilient: 3 };
+var SIZES = ["tiny", "small", "medium", "large", "huge", "gargantuan"];
+var customId = (name) => `custom:${name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "item"}`;
 var lower = (list) => (list ?? []).map((a) => ATTR2[a]).filter(Boolean);
-function slotKeyFromLabel(label, className, level) {
-  let m = /^Free Archetype (\d+)$/.exec(label);
+function slotKeyFromLabel(label2, className, level) {
+  let m = /^Free Archetype (\d+)$/.exec(label2);
   if (m) return `archetype-feat-${m[1]}`;
-  m = /^Mythic Feat (\d+)$/.exec(label);
+  m = /^Mythic Feat (\d+)$/.exec(label2);
   if (m) return `mythic-feat-${m[1]}`;
-  m = /^(?:Skill Feat|Skill Lessons) (\d+)$/.exec(label);
+  m = /^(?:Skill Feat|Skill Lessons) (\d+)$/.exec(label2);
   if (m) return `skill-feat-${m[1]}`;
-  m = /^General Feat (\d+)$/.exec(label);
+  m = /^General Feat (\d+)$/.exec(label2);
   if (m) return `general-feat-${m[1]}`;
-  if (label === "Combat Flexibility" || label === "Improved Flexibility") return `flexibility-feat-${level}`;
-  m = new RegExp(`^${className.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} Feat (\\d+)$`).exec(label);
+  if (label2 === "Combat Flexibility" || label2 === "Improved Flexibility") return `flexibility-feat-${level}`;
+  m = new RegExp(`^${className.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} Feat (\\d+)$`).exec(label2);
   if (m) return `class-feat-${m[1]}`;
-  m = /^Ancestral Paragon Feat (\d+)$/.exec(label);
+  m = /^Ancestral Paragon Feat (\d+)$/.exec(label2);
   if (m) return `paragon-feat-${m[1]}`;
-  m = /^(.+) Feat (\d+)$/.exec(label);
+  m = /^(.+) Feat (\d+)$/.exec(label2);
   if (m) return `ancestry-feat-${m[2]}`;
   return null;
 }
@@ -2415,7 +2487,16 @@ function importPathbuilder(b, ctx, opts = {}) {
   };
   const ancestry = find(b.ancestry, "ancestry");
   const heritage = find(b.heritage, "heritage");
-  const background = find(b.background, "background");
+  const background = find(b.background, "background") ?? (/\(.+\)$/.test(b.background ?? "") ? rules.byName(b.background.replace(/\s*\(.+\)$/, ""), "background") : void 0);
+  const valid = (n2) => !!n2 && n2 !== "Not set" && n2 !== "None selected" && n2 !== "None";
+  const customOrigin = {};
+  const attrs = b.attributes ?? {};
+  if (!ancestry && valid(b.ancestry)) {
+    const size = String(b.sizeName ?? "").toLowerCase();
+    customOrigin.ancestry = { name: b.ancestry, ...attrs.ancestryhp !== void 0 ? { hp: attrs.ancestryhp } : {}, ...SIZES.includes(size) ? { size } : {}, ...attrs.speed ? { speed: attrs.speed } : {} };
+  }
+  if (!heritage && valid(b.heritage)) customOrigin.heritage = { name: b.heritage };
+  if (!background && valid(b.background)) customOrigin.background = { name: b.background };
   const cls = find(b.class, "class");
   const bd = b.abilities.breakdown;
   const listedFlaws = ancestry?.ancestry?.flaws ?? [];
@@ -2430,25 +2511,29 @@ function importPathbuilder(b, ctx, opts = {}) {
   const parentByLabel = /* @__PURE__ */ new Map();
   for (const f of b.feats) {
     if (!Array.isArray(f)) continue;
-    const [name, qualifier, , level, label, kind] = f;
-    if (!label || kind === "childChoice" || label.startsWith("BACKGROUND_")) continue;
-    if (label === "Heritage Feat") {
-      if (heritage) parentByLabel.set(label, { key: `awarded:${heritage.aon.id}`, entry: heritage });
+    const [name, qualifier, , level, label2, kind] = f;
+    if (!label2 || kind === "childChoice" || label2.startsWith("BACKGROUND_")) continue;
+    if (label2 === "Heritage Feat") {
+      if (heritage) parentByLabel.set(label2, { key: `awarded:${heritage.aon.id}`, entry: heritage });
       continue;
     }
-    const key2 = slotKeyFromLabel(label, b.class, Number(level));
+    const key2 = slotKeyFromLabel(label2, b.class, Number(level));
     const entry = find(name, "feat");
-    if (!key2 || !entry) continue;
+    if (!key2) continue;
+    if (!entry) {
+      if (valid(name)) choices[key2] = { id: customId(name), name: String(name).slice(0, 80) };
+      continue;
+    }
     const q = qualifier ? `skill:${qualifier.toLowerCase().replace(/[^a-z0-9]+/g, "-")}` : void 0;
     const archetype = entry.feat?.archetype?.[0];
     choices[key2] = { id: entry.id, ...q && /^skill:[a-z0-9-]+$/.test(q) ? { qualifier: q } : archetype ? { qualifier: `archetype:${archetype.toLowerCase().replace(/[^a-z0-9]+/g, "-")}` } : {} };
-    parentByLabel.set(label, { key: key2, entry });
+    parentByLabel.set(label2, { key: key2, entry });
   }
   for (const f of b.feats) {
     if (!Array.isArray(f) || f[5] !== "childChoice") continue;
     const parentLabel = String(f[6] ?? "");
     const parent = parentByLabel.get(parentLabel);
-    const child = find(String(f[0]), "feat");
+    const child = rules.byName(String(f[0]), "feat") ?? find(String(f[0]));
     if (!parent || !child) continue;
     const flag = (parent.entry.rules ?? []).find((r) => r.key === "ChoiceSet" && r.choices && typeof r.choices === "object" && !Array.isArray(r.choices))?.flag;
     if (typeof flag === "string") choices[`${parent.key}/choice:${flag}`] = { id: child.id };
@@ -2491,7 +2576,7 @@ function importPathbuilder(b, ctx, opts = {}) {
     if (group) choices[`class-choice:weapon-group-${ref.level}`] = { value: group.toLowerCase() };
     else guesses.push(`${ref.name}: grupo de arma n\xE3o identificado no export`);
   }
-  const base = {
+  const base2 = {
     schema: 1,
     rulesVersion: "",
     name: b.name,
@@ -2499,9 +2584,10 @@ function importPathbuilder(b, ctx, opts = {}) {
     xp: b.xp ?? 0,
     options: {},
     origin: {
-      ancestry: ancestry?.id,
-      heritage: heritage?.id,
-      background: background?.id,
+      ancestry: ancestry?.id ?? (customOrigin.ancestry ? customId(customOrigin.ancestry.name) : void 0),
+      heritage: heritage?.id ?? (customOrigin.heritage ? customId(customOrigin.heritage.name) : void 0),
+      background: background?.id ?? (customOrigin.background ? customId(customOrigin.background.name) : void 0),
+      ...Object.keys(customOrigin).length ? { custom: customOrigin } : {},
       alternateBoosts: alternate || void 0,
       voluntaryFlaws: lower(bd?.ancestryFlaws).filter((f) => !listedFlaws.includes(f)),
       languages,
@@ -2521,28 +2607,60 @@ function importPathbuilder(b, ctx, opts = {}) {
     })(),
     history: [{ at: (/* @__PURE__ */ new Date()).toISOString(), by: "import", note: "Importado do Pathbuilder", kind: "override" }]
   };
-  if (!b.feats.some((f) => Array.isArray(f) && /^Free Archetype/.test(String(f[4] ?? "")))) base.options.variants = { freeArchetype: false };
+  if (!b.feats.some((f) => Array.isArray(f) && /^Free Archetype/.test(String(f[4] ?? "")))) base2.options.variants = { ...base2.options.variants, freeArchetype: false };
+  if (!b.feats.some((f) => Array.isArray(f) && f[5] !== "childChoice" && /^Ancestral Paragon Feat \d+$/.test(String(f[4] ?? "")))) base2.options.variants = { ...base2.options.variants, ancestralParagon: false };
   const want = Object.fromEntries(SKILL_KEYS.map((s) => [s, Math.round((b.proficiencies[s] ?? 0) / 2)]));
-  const children = compileBuild(base, ctx).featChildren.filter((c) => !choices[c.key]);
+  const children = compileBuild(base2, ctx).featChildren.filter((c) => !choices[c.key]);
   const specialNames = new Set((b.specials ?? []).map((sp) => sp.toLowerCase()));
-  for (const child of children) {
-    const flag = child.key.split("/choice:")[1]?.toLowerCase() ?? "";
-    if (child.kind === "feat") {
-      const option = (ctx.classOptions ?? []).find((o) => specialNames.has(o.name.toLowerCase()) && flag.includes(o.type.toLowerCase()));
-      if (option) {
-        choices[child.key] = { id: option.id };
-        continue;
+  for (const k of specialKeys) specialNames.add(k.replace(/\s+innovation$/, ""));
+  const sizeName = String(b.sizeName ?? "").toLowerCase();
+  if (sizeName) specialNames.add(sizeName);
+  const keyByLabel = new Map([...parentByLabel].map(([label2, v]) => [v.key, label2]));
+  const qualifierOf = (slotKey) => {
+    const label2 = keyByLabel.get(slotKey);
+    const row = label2 ? b.feats.find((f) => Array.isArray(f) && f[4] === label2) : void 0;
+    return row && typeof row[1] === "string" ? row[1].toLowerCase() : null;
+  };
+  const usedSpecials = /* @__PURE__ */ new Set();
+  for (let pass = 0; pass < 3; pass++) {
+    const open = pass === 0 ? children : compileBuild(base2, ctx).featChildren.filter((c) => !choices[c.key]);
+    if (!open.length) break;
+    for (const child of open) {
+      const parts = child.key.split("/choice:");
+      const flag = parts[parts.length - 1].toLowerCase();
+      const q = parts.length === 2 ? qualifierOf(parts[0]) : null;
+      if (child.kind === "feat") {
+        const option = (ctx.classOptions ?? []).find((o) => specialNames.has(o.name.toLowerCase()) && flag.includes(o.type.toLowerCase().replace(/-/g, "")));
+        if (option) {
+          choices[child.key] = { id: option.id };
+          continue;
+        }
+        const named = q ? rules.byName(q, flag === "ancestry" ? "ancestry" : void 0) : void 0;
+        if (named && (flag !== "ancestry" || named.type === "ancestry")) {
+          choices[child.key] = { id: named.id };
+          continue;
+        }
+        const traits = (child.filter?.traits ?? []).filter((t) => !t.includes("{"));
+        const row = traits.length ? b.feats.find((f) => Array.isArray(f) && Number(f[3]) === child.level && traits.some((t) => String(f[2] ?? "").toLowerCase() === `${t.toLowerCase()} feat`)) : void 0;
+        const entry = row ? rules.byName(String(row[0]), "feat") : void 0;
+        if (entry) choices[child.key] = { id: entry.id };
+      } else if (child.options?.length) {
+        const opts2 = child.options;
+        const norm = (x) => x.toLowerCase();
+        const byQualifier = q ? opts2.find((o) => norm(o.value) === q || norm(o.value).includes(`.${q}.`) || norm(o.label ?? "") === q) : void 0;
+        const bySpecial = byQualifier ? void 0 : opts2.find((o) => !usedSpecials.has(norm(o.value)) && (specialNames.has(norm(o.value)) || specialNames.has(norm(o.label ?? ""))));
+        const attrScore = (a) => b.abilities[a] ?? 0;
+        const byAttribute = flag === "attribute" && opts2.every((o) => Object.values(ATTR2).includes(o.value)) ? [...opts2].sort((x, y) => attrScore(y.value) - attrScore(x.value))[0] : void 0;
+        const pick = byQualifier ?? bySpecial ?? byAttribute ?? (opts2.every((o) => SKILL_KEYS.includes(o.value)) ? opts2.find((o) => want[o.value] >= 1 && !usedSpecials.has(o.value)) : void 0);
+        if (pick) {
+          usedSpecials.add(norm(pick.value));
+          choices[child.key] = { value: pick.value };
+          if (!byQualifier && !bySpecial) guesses.push(`escolha deduzida da ficha (${byAttribute ? "atributo maior" : "per\xEDcia treinada"}): ${child.key}`);
+        }
       }
-      const traits = (child.filter?.traits ?? []).filter((t) => !t.includes("{"));
-      const row = traits.length ? b.feats.find((f) => Array.isArray(f) && Number(f[3]) === child.level && traits.some((t) => String(f[2] ?? "").toLowerCase() === `${t.toLowerCase()} feat`)) : void 0;
-      const entry = row ? rules.byName(String(row[0]), "feat") : void 0;
-      if (entry) choices[child.key] = { id: entry.id };
-    } else if (child.kind === "value" && child.options?.length && child.options.every((o) => SKILL_KEYS.includes(o.value))) {
-      const pick = child.options.find((o) => want[o.value] >= 1);
-      if (pick) choices[child.key] = { value: pick.value };
     }
   }
-  const auto = compileBuild(base, ctx);
+  const auto = compileBuild(base2, ctx);
   const have = auto.skills.rank;
   const classSlots = auto.skillSlots.filter((s) => s.key.startsWith("class-skill-"));
   for (const slot of classSlots) {
@@ -2585,7 +2703,6 @@ function importPathbuilder(b, ctx, opts = {}) {
   let n = 0;
   const key = () => `inv-imp${(n++).toString(36)}`;
   const inventory = [];
-  const customId = (name) => `custom:${name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "item"}`;
   const runeIds = (names) => (names ?? []).filter((r) => !/^reinforcing\b/i.test(r)).map((r) => {
     const all = rules.named(r).filter((x) => /^runes?$/i.test(x.item?.category ?? ""));
     return (all.find((x) => x.item?.price && x.remaster) ?? all.find((x) => x.item?.price) ?? rules.byName(r))?.id;
@@ -2664,7 +2781,7 @@ function importPathbuilder(b, ctx, opts = {}) {
     inventory.push({ key: key(), item: e.id, qty: qty || 1, acquired: "given", invested: rest.includes("Invested") && (e.traits ?? []).includes("Invested") });
   }
   const spellcasting = {};
-  const spellId = (name) => find(name.replace(/ \(Amped\)$/, ""), "spell")?.id;
+  const spellId = (name) => find(name.replace(/ \(Amped\)$/, ""), "spell")?.id ?? (valid(name) ? customId(name.replace(/ \(Amped\)$/, "")) : void 0);
   const classCaster = (b.spellCasters ?? []).find((c) => c.name === b.class);
   if (classCaster) {
     const byRank = (lists) => Object.fromEntries((lists ?? []).filter((l) => l.list.length).map((l) => [String(l.spellLevel), l.list.map(spellId).filter((x) => !!x)]));
@@ -2701,8 +2818,8 @@ function importPathbuilder(b, ctx, opts = {}) {
     const abilities = (f.abilities ?? []).map((a) => rules.byName(a)?.id).filter((x) => !!x);
     companions.push({ key: `pet-imp${companions.length}`, kind: "familiar", name: f.name || "Familiar", choices: Object.fromEntries(abilities.map((id, i) => [`ability-${i + 1}`, { id }])) });
   }
-  const draft = { ...base, choices, inventory, spellcasting, companions };
-  if (opts.reconcile !== false) reconcileWithSheet(draft, b, ctx);
+  const draft = { ...base2, choices, inventory, spellcasting, companions };
+  if (opts.reconcile !== false) reconcileWithSheet(draft, b, ctx, guesses);
   reconcileWeapons(draft, ctx, sheetWeapon, opts.reconcile !== false);
   return {
     state: draft,
@@ -2710,17 +2827,63 @@ function importPathbuilder(b, ctx, opts = {}) {
   };
 }
 var SAVE_KEYS = ["perception", "fortitude", "reflex", "will", "classDC"];
+var LABEL = {
+  acrobatics: tr("Acrobacia", "Acrobatics"),
+  arcana: tr("Arcanismo", "Arcana"),
+  athletics: tr("Atletismo", "Athletics"),
+  crafting: tr("Of\xEDcio", "Crafting"),
+  deception: tr("Engano", "Deception"),
+  diplomacy: tr("Diplomacia", "Diplomacy"),
+  intimidation: tr("Intimida\xE7\xE3o", "Intimidation"),
+  medicine: tr("Medicina", "Medicine"),
+  nature: tr("Natureza", "Nature"),
+  occultism: tr("Ocultismo", "Occultism"),
+  performance: "Performance",
+  religion: tr("Religi\xE3o", "Religion"),
+  society: tr("Sociedade", "Society"),
+  stealth: tr("Furtividade", "Stealth"),
+  survival: tr("Sobreviv\xEAncia", "Survival"),
+  thievery: tr("Roubo", "Thievery"),
+  perception: tr("Percep\xE7\xE3o", "Perception"),
+  fortitude: tr("Fortitude", "Fortitude"),
+  reflex: tr("Reflexos", "Reflex"),
+  will: tr("Vontade", "Will"),
+  classDC: tr("CD de classe", "Class DC"),
+  simple: tr("Armas simples", "Simple weapons"),
+  martial: tr("Armas marciais", "Martial weapons"),
+  advanced: tr("Armas avan\xE7adas", "Advanced weapons"),
+  unarmed: tr("Ataques desarmados", "Unarmed attacks"),
+  unarmored: tr("Sem armadura", "Unarmored"),
+  light: tr("Armadura leve", "Light armor"),
+  medium: tr("Armadura m\xE9dia", "Medium armor"),
+  heavy: tr("Armadura pesada", "Heavy armor"),
+  castingArcane: tr("Conjura\xE7\xE3o arcana", "Arcane spellcasting"),
+  castingDivine: tr("Conjura\xE7\xE3o divina", "Divine spellcasting"),
+  castingOccult: tr("Conjura\xE7\xE3o oculta", "Occult spellcasting"),
+  castingPrimal: tr("Conjura\xE7\xE3o primal", "Primal spellcasting")
+};
+var label = (k) => tr(`${LABEL[k] ?? k} (da Ficha)`, `${LABEL[k] ?? k} (from the Sheet)`);
 var CATEGORY_KEYS = ["simple", "martial", "advanced", "unarmed", "unarmored", "light", "medium", "heavy"];
-function reconcileWithSheet(state, b, ctx) {
-  const reason = "Importado da Ficha Virtual: o Criador ainda n\xE3o calcula isto sozinho";
+function reconcileWithSheet(state, b, ctx, guesses) {
+  const reason = tr("Importado da Ficha Virtual: o Criador ainda n\xE3o calcula isto sozinho", "Imported from the Virtual Sheet: the Builder does not calculate this on its own yet");
   const adjustments = [];
-  const add = (id, label, kind, target, value) => adjustments.push({ id: `imp-${id}`.toLowerCase().replace(/[^a-z0-9:_-]+/g, "-").slice(0, 60), label, reason, effect: { kind, target, value } });
+  const add = (id, label2, kind, target, value) => adjustments.push({ id: `imp-${id}`.toLowerCase().replace(/[^a-z0-9:_-]+/g, "-").slice(0, 60), label: label2, reason, effect: { kind, target, value } });
+  const score = (a) => b.abilities[a] ?? 10;
+  for (const g of compileBuild(state, ctx).boostGroups) {
+    if (!["boosts-ancestry", "boosts-background"].includes(g.key) || g.chosen.length >= g.count) continue;
+    const order = Object.values(ATTR2).filter((a) => !g.fixed.includes(a)).sort((x, y) => score(y) - score(x));
+    const picks = [];
+    if (g.oneOf && g.options.length) picks.push([...g.options].sort((x, y) => score(y) - score(x))[0]);
+    for (const a of order) if (picks.length < g.count && !picks.includes(a) && (g.oneOf || !g.options.length || g.options.includes(a))) picks.push(a);
+    state.choices = { ...state.choices, [g.key]: { boosts: picks } };
+    guesses.push(`aumentos deduzidos dos atributos da ficha: ${g.key}`);
+  }
   let out = compileBuild(state, ctx);
   const override = {};
   for (const [short, a] of Object.entries(ATTR2)) {
-    const score = b.abilities[a];
-    if (typeof score !== "number") continue;
-    const want = Math.floor((score - 10) / 2);
+    const score2 = b.abilities[a];
+    if (typeof score2 !== "number") continue;
+    const want = Math.floor((score2 - 10) / 2);
     if (out.attributes.mod[a] !== want) override[a] = want;
   }
   if (Object.keys(override).length) state.manual = { ...state.manual, attributeOverride: { ...state.manual.attributeOverride, ...override } };
@@ -2728,30 +2891,30 @@ function reconcileWithSheet(state, b, ctx) {
   const prof = b.proficiencies;
   for (const s of SKILL_KEYS) {
     const want = Math.round((prof[s] ?? 0) / 2);
-    if (want > out.skills.rank[s]) add(`skill-${s}`, `${s} (Ficha)`, "proficiency", `skill:${s}`, want);
+    if (want > out.skills.rank[s]) add(`skill-${s}`, label(s), "proficiency", `skill:${s}`, want);
   }
   for (const k of SAVE_KEYS) {
     const want = Math.round((prof[k] ?? 0) / 2);
-    if (want > out.proficiency[k]) add(k, `${k} (Ficha)`, "proficiency", k, want);
+    if (want > out.proficiency[k]) add(k, label(k), "proficiency", k, want);
   }
   for (const k of CATEGORY_KEYS) {
     const want = Math.round((prof[k] ?? 0) / 2);
     const have = (k in out.proficiency.attacks ? out.proficiency.attacks[k] : out.proficiency.defenses[k]) ?? 0;
-    if (want > have) add(k, `${k} (Ficha)`, "proficiency", k, want);
+    if (want > have) add(k, label(k), "proficiency", k, want);
   }
   const casters = /* @__PURE__ */ new Map();
   for (const c of out.casters) if (c.tradition) casters.set(c.tradition, Math.max(casters.get(c.tradition) ?? 0, c.rank));
   for (const t of ["arcane", "divine", "occult", "primal"]) {
     const k = `casting${t[0].toUpperCase()}${t.slice(1)}`;
     const want = Math.round((prof[k] ?? 0) / 2);
-    if (want > (casters.get(t) ?? 0)) add(k, `${k} (Ficha)`, "proficiency", k, want);
+    if (want > (casters.get(t) ?? 0)) add(k, label(k), "proficiency", k, want);
   }
   const specific = b.specificProficiencies ?? {};
   for (const [rankName2, rank] of [["trained", 1], ["expert", 2], ["master", 3], ["legendary", 4]]) {
     for (const name of specific[rankName2] ?? []) {
       const st = out.equipment.strikes.find((x) => x.name.toLowerCase() === name.toLowerCase() || out.equipment.items.find((i) => i.key === x.key)?.base?.name.toLowerCase() === name.toLowerCase());
       const have = st ? Math.max(0, Math.round(((st.attackParts.find((p) => p.label === "Profici\xEAncia" || p.label === "Proficiency")?.value ?? 0) - out.level) / 2)) : 0;
-      if (!st || have < rank) add(`weapon-${name}`, `${name} (Ficha)`, "proficiency", `weapon:${name.toLowerCase()}`, rank);
+      if (!st || have < rank) add(`weapon-${name}`, tr(`${name} (da Ficha)`, `${name} (from the Sheet)`), "proficiency", `weapon:${name.toLowerCase()}`, rank);
     }
   }
   if (adjustments.length) state.manual = { ...state.manual, adjustments: [...state.manual.adjustments ?? [], ...adjustments] };
@@ -2760,7 +2923,7 @@ function reconcileWithSheet(state, b, ctx) {
   if (typeof acWant === "number" && acWant > out.stats.ac.total) {
     state.manual = { ...state.manual, adjustments: [
       ...state.manual.adjustments ?? [],
-      { id: "imp-ac", label: "CA (Ficha)", reason, effect: { kind: "itemBonus", target: "ac", value: acWant - out.stats.ac.total } }
+      { id: "imp-ac", label: tr("CA (da Ficha)", "AC (from the Sheet)"), reason, effect: { kind: "itemBonus", target: "ac", value: acWant - out.stats.ac.total } }
     ] };
   }
 }
@@ -2828,8 +2991,8 @@ async function importFromCatalog(json, ctx) {
   const extra = await Promise.all(paths.map(read));
   const homebrew = ctx.homebrew ?? [];
   const index = buildRulesIndex([a, h, bg, c, l, cf, ...extra, ar, homebrew, flair], l);
-  const base = { mesaRules: ctx.mesaRules ?? void 0, classOptions: cf, tables: tables ?? void 0 };
-  const first = importPathbuilder(b, { rules: index, ...base }, { reconcile: false });
+  const base2 = { mesaRules: ctx.mesaRules ?? void 0, classOptions: cf, tables: tables ?? void 0 };
+  const first = importPathbuilder(b, { rules: index, ...base2 }, { reconcile: false });
   const compiled = await compileFromCatalog(first.state, { reader: ctx.reader, mesaRules: ctx.mesaRules, homebrew });
   const merged = {
     get: (id) => compiled.index.get(id) ?? index.get(id),
@@ -2840,7 +3003,7 @@ async function importFromCatalog(json, ctx) {
     },
     languages: index.languages
   };
-  const { state, report } = importPathbuilder(b, { rules: merged, ...base });
+  const { state, report } = importPathbuilder(b, { rules: merged, ...base2 });
   return { state, report, className: b.class || null, name: b.name };
 }
 export {

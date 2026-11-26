@@ -21,6 +21,7 @@ import {
     QUICK_IDENTIFICATION, RUNELORD, selectedClassArchetype, WAR_MAGE,
 } from './classArchetypes'
 import { armorClass, compileEquipment, GROUP_FEATURES } from './equipment'
+import { withCustom } from './custom'
 import { allowsBook } from '../mesaRules'
 import { abpAt, abpSkillBonus } from './abp'
 import { featSlots, variantFlags } from './slots'
@@ -74,7 +75,9 @@ function sourceWarnings(entry: RuleEntry, ctx: CompileContext, ref: string, warn
     }
 }
 
-export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
+export function compileBuild(state: BuildState, baseCtx: CompileContext): Compiled {
+    // Conteúdo caseiro do build (origem e talentos `custom:`) por cima do catálogo.
+    const ctx: CompileContext = { ...baseCtx, rules: withCustom(baseCtx.rules, state) }
     const { rules } = ctx
     const level = Math.min(20, Math.max(1, state.level))
     const pending: Pending[] = []

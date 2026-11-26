@@ -9,7 +9,8 @@ export type { AttributeKey } from './rules/types'
 export type VariantKey = 'freeArchetype' | 'ancestralParagon' | 'abp' | 'pwl' | 'dualClass' | 'gradualBoosts'
 
 export type Choice =
-    | { id: string; qualifier?: string }
+    /** `name`: o nome do talento caseiro (`custom:`), o que o catálogo não tem e o Pathbuilder exportou. */
+    | { id: string; qualifier?: string; name?: string }
     | { boosts: AttributeKey[] }
     | { skills: string[] }
     | { lore: string }
@@ -93,6 +94,12 @@ export interface BuildState {
         languages?: string[]
         deity?: string
         sanctification?: 'holy' | 'unholy' | null
+        /** Origem fora do catálogo (Android, Fleshwarp…), com o que o export diz dela; os ids são `custom:`. */
+        custom?: {
+            ancestry?: { name: string; hp?: number; size?: string; speed?: number }
+            heritage?: { name: string }
+            background?: { name: string }
+        }
     }
     class: { id?: string; keyAttribute?: AttributeKey; dual?: string }
     choices: Record<string, Choice>

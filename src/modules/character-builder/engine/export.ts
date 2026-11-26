@@ -9,6 +9,7 @@ import { attributeScore } from './attributes'
 import { ATTRIBUTES, SKILL_KEYS, type AttributeKey, type Compiled, type RulesIndex } from './types'
 import { featKindLabel, type FeatSlot } from './slots'
 import { GRADE_LABEL, REINFORCING_NAME } from './equipment'
+import { withCustom } from './custom'
 
 const ATTR_LABEL: Record<AttributeKey, string> = { str: 'Str', dex: 'Dex', con: 'Con', int: 'Int', wis: 'Wis', cha: 'Cha' }
 const SIZE: Record<string, number> = { tiny: 0, small: 1, medium: 2, large: 3, huge: 4, gargantuan: 5 }
@@ -62,7 +63,7 @@ const spellLists = (byRank: Record<string, string[]> | undefined, name: (id: str
 
 /** O retrato `{ success: true, build }` com as extensões `covil`. */
 export function exportBuild(state: BuildState, compiled: Compiled, ctx: ExportContext): { success: true; build: BuildInfo & { covil: Record<string, unknown> } } {
-    const { rules } = ctx
+    const rules = withCustom(ctx.rules, state)
     const name = (id: string) => rules.get(id)?.name ?? id
     const ancestry = rules.get(state.origin.ancestry)
     const heritage = rules.get(state.origin.heritage)

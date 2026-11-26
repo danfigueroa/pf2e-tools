@@ -79,7 +79,8 @@ export function cleanChoice(v) {
         const choiceId = id(v.id)
         if (!choiceId) return undefined
         const qualifier = typeof v.qualifier === 'string' && REF_RE.test(v.qualifier) ? v.qualifier : undefined
-        return compact({ id: choiceId, qualifier })
+        const name = choiceId.startsWith('custom:') ? text(v.name, 80) : undefined
+        return compact({ id: choiceId, qualifier, name })
     }
     if (v.boosts !== undefined) {
         const boosts = list(v.boosts, 6, attr)
@@ -116,6 +117,22 @@ function cleanOptions(v) {
     })
 }
 
+const SIZES = ['tiny', 'small', 'medium', 'large', 'huge', 'gargantuan']
+
+function cleanCustomOrigin(v) {
+    if (!isObj(v)) return undefined
+    const named = (x) => (isObj(x) && text(x.name, 80) ? x : null)
+    const a = named(v.ancestry)
+    const h = named(v.heritage)
+    const b = named(v.background)
+    const out = compact({
+        ancestry: a ? compact({ name: text(a.name, 80), hp: int(a.hp, 0, 20), size: typeof a.size === 'string' && SIZES.includes(a.size) ? a.size : undefined, speed: int(a.speed, 0, 120) }) : undefined,
+        heritage: h ? { name: text(h.name, 80) } : undefined,
+        background: b ? { name: text(b.name, 80) } : undefined,
+    })
+    return Object.keys(out).length ? out : undefined
+}
+
 function cleanOrigin(v) {
     if (!isObj(v)) return {}
     return compact({
@@ -128,6 +145,7 @@ function cleanOrigin(v) {
         deity: id(v.deity),
         sanctification: v.sanctification === 'holy' || v.sanctification === 'unholy' || v.sanctification === null
             ? v.sanctification : undefined,
+        custom: cleanCustomOrigin(v.custom),
     })
 }
 
