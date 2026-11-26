@@ -19,6 +19,27 @@ export const TAB_LABEL: Record<BuilderTab, string> = {
     details: tr('Detalhes', 'Details'),
 }
 
+export const TAB_HELP: Record<BuilderTab, string> = {
+    progression: tr('Escolha talentos e opções de classe a partir do nível 1. Revise os pré-requisitos antes de avançar.',
+        'Choose feats and class options starting at level 1. Review prerequisites before moving on.'),
+    origin: tr('Escolha a ancestralidade, a herança e o antecedente do personagem. Complete as escolhas que sua origem oferece.',
+        'Choose your character’s ancestry, heritage, and background. Fill in any choices they grant.'),
+    class: tr('Escolha a classe e defina o atributo-chave e as opções iniciais que ela oferece.',
+        'Choose a class and set its key attribute and any starting options it offers.'),
+    attributes: tr('Distribua os aumentos de atributo da criação e dos níveis que o personagem já alcançou.',
+        'Assign attribute boosts from character creation and from the levels your character has reached.'),
+    skills: tr('Escolha as perícias treinadas, preencha os Saberes e distribua os aumentos de perícia por nível.',
+        'Choose trained skills, fill in Lore skills, and assign skill increases by level.'),
+    spells: tr('Escolha truques e magias. Use as seções de cada conjurador para montar o repertório ou preencher os espaços de preparação.',
+        'Choose cantrips and spells. Use each caster’s section to build a repertoire or fill prepared spell slots.'),
+    equipment: tr('Compre itens ou adicione os que ganhou. Equipe o que for usar e gerencie runas, dinheiro e Volume.',
+        'Buy items or add gear you received. Equip what you’ll use and manage runes, money, and Bulk.'),
+    companions: tr('Adicione um familiar ou companheiro animal e escolha as habilidades ou avanços disponíveis.',
+        'Add a familiar or animal companion and choose its available abilities or advancements.'),
+    details: tr('Preencha a identidade e a história do personagem. Registre ajustes manuais que sua mesa usa.',
+        'Fill in your character’s identity and backstory. Record any manual adjustments your table uses.'),
+}
+
 const ATTRS = new Set(['str', 'dex', 'con', 'int', 'wis', 'cha'])
 
 export function tabOf(ref: string | undefined): BuilderTab {

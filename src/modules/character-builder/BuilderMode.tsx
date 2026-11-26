@@ -31,7 +31,7 @@ import { CompanionsSection } from './sections/CompanionsSection';
 import { DetailsSection } from './sections/DetailsSection';
 import { DETAIL_FIELDS } from './sections/detailFields';
 import type { SectionProps } from './sections/types';
-import { TAB_LABEL, TABS, tabOf, type BuilderTab } from './tabs';
+import { TAB_HELP, TAB_LABEL, TABS, tabOf, type BuilderTab } from './tabs';
 import { RemasterDialog } from './components/RemasterDialog';
 import { BuildExceptions } from './hooks/buildExceptions';
 import { ApplyDialog } from './components/ApplyDialog';
@@ -596,6 +596,9 @@ export function BuilderMode({ buildId }: { buildId: string }) {
             {stepHeader}
             {!guided && chips}
             <BuildExceptions.Provider value={exceptions}>
+              {current !== 'start' && current !== 'review' && (
+                <Box component="p" sx={{ mt: 0, mb: 1.5, fontSize: 14, color: ink.secondary }}>{TAB_HELP[current]}</Box>
+              )}
               {guided ? (step === 'start' ? startStep : step === 'review' ? reviewStep : renderSection(step)) : renderSection(section)}
             </BuildExceptions.Provider>
             {stepBar}
