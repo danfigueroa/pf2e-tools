@@ -35,6 +35,15 @@ export interface InventoryEntry {
         overrides?: { attack?: number; damage?: number; proficiency?: number }
     }
     customName?: string
+    /**
+     * Números de um item caseiro (`custom:`) que entra nas contas: a arma ou armadura que o Pathbuilder exporta sem
+     * estar no catálogo (o Braço Sônico, as vestes de uma relíquia). Sem isso, o caseiro é só o nome.
+     */
+    custom?: {
+        /** `name`: o nome do item no Pathbuilder, quando o `customName` é o apelido ("Mirage Edge"). */
+        weapon?: { name?: string; die: string; damageType: string; category: 'simple' | 'martial' | 'advanced' | 'unarmed'; range?: number }
+        armor?: { category: 'unarmored' | 'light' | 'medium' | 'heavy'; ac: number; dexCap?: number }
+    }
 }
 
 export interface CasterChoices {

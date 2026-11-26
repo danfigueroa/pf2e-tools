@@ -194,6 +194,24 @@ function cleanWeaponOptions(v) {
     return Object.keys(weapon).length ? weapon : undefined
 }
 
+const WEAPON_CATEGORIES = ['simple', 'martial', 'advanced', 'unarmed']
+const ARMOR_CATEGORIES = ['unarmored', 'light', 'medium', 'heavy']
+
+function cleanCustomStats(v) {
+    if (!isObj(v)) return undefined
+    const nonEmpty = (o) => (o && Object.keys(o).length ? o : undefined)
+    const w = isObj(v.weapon) ? v.weapon : null
+    const a = isObj(v.armor) ? v.armor : null
+    const die = w && typeof w.die === 'string' && /^d(4|6|8|10|12)$/.test(w.die) ? w.die : undefined
+    const wcat = w && WEAPON_CATEGORIES.includes(w.category) ? w.category : undefined
+    const acat = a && ARMOR_CATEGORIES.includes(a.category) ? a.category : undefined
+    const ac = a ? int(a.ac, 0, 10) : undefined
+    return nonEmpty(compact({
+        weapon: w && die && wcat ? compact({ name: text(w.name, 80), die, damageType: text(w.damageType, 20) ?? '', category: wcat, range: int(w.range, 1, 1000) }) : undefined,
+        armor: a && acat && ac !== undefined ? compact({ category: acat, ac, dexCap: int(a.dexCap, 0, 10) }) : undefined,
+    }))
+}
+
 function cleanInventoryEntry(v) {
     if (!isObj(v)) return undefined
     const key = typeof v.key === 'string' && KEY_RE.test(v.key) ? v.key : undefined
@@ -215,6 +233,7 @@ function cleanInventoryEntry(v) {
         material,
         weapon: cleanWeaponOptions(v.weapon),
         customName: text(v.customName, 80),
+        custom: cleanCustomStats(v.custom),
     })
 }
 

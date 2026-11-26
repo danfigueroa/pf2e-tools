@@ -434,7 +434,23 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
     const specialization = reached(/^greater weapon specialization$/i) ? 2 : reached(/^weapon specialization$/i) ? 1 : 0
     // Automatic Bonus Progression (GM Core pg. 83): potência pelo nível no lugar das runas e itens (menos a armadura).
     const abp = flags.abp ? abpAt(level) : null
-    const equipment = compileEquipment(state, rules, { level, mod, attacks: proficiency.attacks, groupRanks, specialization, abp }, warnings)
+    // Proficiências de ajuste à mão entram antes do equipamento (a arma usa o rank); `weapon:<nome>` é a proficiência de
+    // uma arma só, como a `specificProficiencies` do Pathbuilder (arma da divindade, por exemplo).
+    const weaponRanks: Record<string, Rank> = {}
+    for (const a of state.manual.adjustments ?? []) {
+        const v = typeof a.effect.value === 'number' ? a.effect.value : Number(a.effect.value)
+        const t = (a.effect.target ?? '').toLowerCase()
+        if (a.effect.kind !== 'proficiency' || !t || !Number.isFinite(v)) continue
+        const r = Math.max(0, Math.min(4, v)) as Rank
+        if (t.startsWith('weapon:')) weaponRanks[t.slice(7)] = Math.max(weaponRanks[t.slice(7)] ?? 0, r) as Rank
+        else upgrade(t, r)
+    }
+    // Características e subclasses que mudam o golpe (Sneak Attack, Thief, Hunter's Edge: Precision).
+    const strikeFeatures = [
+        ...(c?.features ?? []).filter((f) => f.level <= level).map((f) => f.name.toLowerCase()),
+        ...classChoices.filter((x) => x.chosen && x.level <= level).map((x) => (rules.get(x.chosen)?.name ?? '').toLowerCase()),
+    ]
+    const equipment = compileEquipment(state, rules, { level, mod, attacks: proficiency.attacks, groupRanks, specialization, abp, features: strikeFeatures, weaponRanks }, warnings)
     if (abp && equipment.armor) {
         equipment.armor.potency = abp.defense
         equipment.armor.resilient = 0
@@ -489,7 +505,6 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
         else if (a.effect.kind === 'resistance' && t) feats.mods.resistances.push(Number.isFinite(v) ? `${t} ${v}` : t)
         else if (a.effect.kind === 'sense' && t) feats.mods.senses.push(a.effect.target!)
         else if (a.effect.kind === 'language' && t) extraLanguages.push(a.effect.target!)
-        else if (a.effect.kind === 'proficiency' && t && Number.isFinite(v)) upgrade(t.startsWith('skill:') ? t : t, Math.max(0, Math.min(4, v)) as Rank)
         else if (a.effect.kind === 'itemBonus' && t && Number.isFinite(v)) adjust.items[t] = Math.max(adjust.items[t] ?? 0, v)
         warnings.push({ code: 'MANUAL_ADJUSTMENT', level: 'info', ref: 'manual', message: tr(`Ajuste à mão: ${a.label} (${a.reason}).`, `Adjustment by hand: ${a.label} (${a.reason}).`) }) // i18n-ok: código do aviso
     }
@@ -511,14 +526,17 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
     const resilient = abp ? abp.save : equipment.armor?.resilient ?? 0
     const featPart = (key: 'perception' | 'fortitude' | 'reflex' | 'will') => [
         ...(feats.mods.stat[key] ? [part(tr('Talentos', 'Feats'), feats.mods.stat[key] ?? 0)] : []),
-        ...(resilient && key !== 'perception' ? [part(abp ? tr('Potência (ABP)', 'Potency (ABP)') : tr('Resiliente', 'Resilient'), resilient)] : []),
+        ...(resilient && key !== 'perception' ? [part(abp ? tr('Potência (ABP)', 'Potency (ABP)') : equipment.armor?.saveLabel ?? tr('Resiliente', 'Resilient'), resilient)] : []),
         ...(abp?.perception && key === 'perception' ? [part(tr('Potência (ABP)', 'Potency (ABP)'), abp.perception)] : []),
         ...(adjust.items[key] ? [part(tr('Item (ajuste)', 'Item (adjustment)'), adjust.items[key])] : []),
     ]
     const stats: Compiled['stats'] = {
         hp: stat([...hpParts, ...(adjust.hp ? [part(tr('Ajuste', 'Adjustment'), adjust.hp)] : []), ...(feats.mods.hp ? [part(tr('Talentos', 'Feats'), feats.mods.hp)] : []),
             ...(feats.mods.hpPerLevel ? [part(tr(`Talentos × ${level}`, `Feats × ${level}`), feats.mods.hpPerLevel * level)] : [])]),
-        ac: armorClass(equipment, { dex: mod.dex, level, defenses: proficiency.defenses, label: rankName, unarmoredPotency: abp && !equipment.armor ? abp.defense : 0 }),
+        ac: (() => {
+            const ac = armorClass(equipment, { dex: mod.dex, level, defenses: proficiency.defenses, label: rankName, unarmoredPotency: abp && !equipment.armor ? abp.defense : 0 })
+            return adjust.items.ac ? { total: ac.total + adjust.items.ac, parts: [...ac.parts, part(tr('Item (ajuste)', 'Item (adjustment)'), adjust.items.ac)] } : ac
+        })(),
         fortitude: stat([p(proficiency.fortitude), attrPart('con'), ...featPart('fortitude')]),
         reflex: stat([p(proficiency.reflex), attrPart('dex'), ...featPart('reflex')]),
         will: stat([p(proficiency.will), attrPart('wis'), ...featPart('will')]),

@@ -12,6 +12,12 @@
 // - Especialização: +2/+3/+4 (perito/mestre/lendário); a maior dobra para 4/6/8 (texto das características na AON).
 // - Preço de runa: o item vale a base mais o preço de cada runa gravada, no degrau em que está (GM Core pg. 223–224,
 //   upgrade custa a diferença de preço); os preços vêm do catálogo (Weapon Potency (+N), Striking, Resilient, Reinforcing Rune…).
+// - Dano extra no acerto (o `extraDamage` do export, que a Ficha soma): runas de propriedade com dano fixo no acerto
+//   (GM Core pg. 236–239: Flaming, Frost, Shock, Thundering, Corrosive, Astral e Impactful 1d6; Decaying, Holy, Unholy e
+//   Brilliant 1d4); Hunter's Edge: Precision 1d8, 2d8 no 11º e 3d8 no 19º (Player Core pg. 154); Sneak Attack 1d6, +1d6 no
+//   5º, 11º e 17º, com arma ágil ou de acuidade corpo a corpo, ou à distância (Player Core pg. 164).
+// - Thief: com arma corpo a corpo de acuidade, DES no dano no lugar da FOR (Player Core pg. 167).
+// - Bands of Force: +1/+2/+3 de item na CA e nas salvaguardas, DES máx. +5 como armadura (GM Core pg. 286).
 // - Riqueza inicial: 15 po no nível 1 (Player Core pg. 10); acima, a tabela Character Wealth do GM Core é referência (D6).
 import { tr } from '../../../i18n'
 import type { BuildState, InventoryEntry } from '../types'
@@ -65,6 +71,8 @@ export interface Strike {
     striking: number
     runes: string[]
     material?: string
+    /** Dano extra no acerto, no formato do Pathbuilder ("1d6 Fire", "1d8 precision"). */
+    extraDamage: string[]
 }
 
 export interface EquipmentResult {
@@ -72,7 +80,7 @@ export interface EquipmentResult {
     bulk: { total: number; encumberedAt: number; max: number; coins: number }
     invested: number
     money: { start: number; spent: number; remaining: number }
-    armor: { item: ResolvedItem; category: string; ac: number; dexCap: number; potency: number; resilient: number; checkPenalty: number; speedPenalty: number; strengthMet: boolean } | null
+    armor: { item: ResolvedItem; category: string; ac: number; dexCap: number; potency: number; resilient: number; checkPenalty: number; speedPenalty: number; strengthMet: boolean; saveLabel?: string } | null
     shield: { item: ResolvedItem; ac: number; hardness?: number; hp?: number } | null
     strikes: Strike[]
 }
@@ -85,6 +93,17 @@ const bulkOf = (b: number | 'L' | undefined) => (b === 'L' ? 0.1 : typeof b === 
 const TRAIT = (t: string) => t.toLowerCase().split(' ')[0]
 const STRIKING_NAME = ['', 'Striking', 'Greater Striking', 'Major Striking']
 const RESILIENT_NAME = ['', 'resilient', 'greater resilient', 'major resilient']
+
+/** Graus de material como o Pathbuilder escreve ("Cold Iron (Standard-Grade)"). */
+export const GRADE_LABEL: Record<'low' | 'standard' | 'high', string> = { low: 'Low-Grade', standard: 'Standard-Grade', high: 'High-Grade' }
+export const REINFORCING_NAME = ['', 'Minor', 'Lesser', 'Moderate', 'Greater', 'Major', 'Supreme']
+
+/** Dano no acerto das runas de propriedade (GM Core pg. 236–239); a versão maior não muda esse dano. */
+const RUNE_HIT: Record<string, string> = {
+    flaming: '1d6 Fire', frost: '1d6 Cold', shock: '1d6 Electricity', thundering: '1d6 Sonic', corrosive: '1d6 Acid',
+    astral: '1d6 Spirit', impactful: '1d6 Force', decaying: '1d4 Void', holy: '1d4 Spirit', unholy: '1d4 Spirit', brilliant: '1d4 Fire',
+}
+export const runeBase = (name: string) => name.toLowerCase().replace(/\((greater|major|true)\)|\b(greater|major|true)\b/g, '').replace(/\s+/g, ' ').trim()
 
 /** Nome da runa fundamental no catálogo da AON, por degrau (o índice 0 é "sem runa"). */
 const FUNDAMENTAL_NAMES: Record<FundamentalKind, string[]> = {
@@ -133,13 +152,28 @@ export const GROUP_FEATURES: { name: RegExp; ranks: { simple: Rank; martial: Ran
     { name: /^weapon legend$/i, ranks: { simple: 4, martial: 4, unarmed: 4, advanced: 3 } },
 ]
 
+/** Item caseiro com números (arma ou armadura importada do Pathbuilder): uma entrada sintética para o motor. */
+function customBase(inv: InventoryEntry): RuleEntry | null {
+    const c = inv.custom
+    if (!c?.weapon && !c?.armor) return null
+    return {
+        id: inv.item, name: c.weapon?.name ?? inv.customName ?? inv.item, type: c.weapon ? 'weapon' : 'armor', source: { id: 'custom' }, aon: { id: inv.item }, remaster: true,
+        item: c.weapon
+            ? { category: 'Weapons', weapon: { die: c.weapon.die, damageType: c.weapon.damageType, category: c.weapon.category, range: c.weapon.range, traitsRaw: inv.weapon?.extraTraits } }
+            : { category: 'Armor', armor: { ac: c.armor!.ac, dexCap: c.armor!.dexCap, category: c.armor!.category } },
+    }
+}
+
 export function resolveItems(state: BuildState, rules: RulesIndex, warnings: Warning[]): ResolvedItem[] {
     return state.inventory.map((inv) => {
         const entry = rules.get(inv.item) ?? null
         const baseName = entry?.item?.baseItem ? [entry.item.baseItem].flat()[0] : undefined
-        const base = entry && (entry.item?.weapon || entry.item?.armor || entry.item?.shield) ? entry : baseName ? rules.byName(baseName) ?? null : null
+        const base = entry && (entry.item?.weapon || entry.item?.armor || entry.item?.shield) ? entry : baseName ? rules.byName(baseName) ?? null
+            : !entry && inv.custom ? customBase(inv) : null
         // Item caseiro (F8.12): só o nome; preço, volume e efeitos não entram nos números.
-        if (!entry && inv.item.startsWith('custom:')) {
+        if (!entry && inv.item.startsWith('custom:') && inv.custom) {
+            warnings.push({ code: 'CUSTOM_ITEM', level: 'info', ref: 'equipment', message: tr(`${inv.customName ?? inv.item}: item caseiro — os números vêm dos dados dele; preço, volume e efeitos não entram.`, `${inv.customName ?? inv.item}: homebrew item — numbers come from its stats; price, bulk and effects are not in.`) })
+        } else if (!entry && inv.item.startsWith('custom:')) {
             warnings.push({ code: 'CUSTOM_ITEM', level: 'info', ref: 'equipment', message: tr(`${inv.customName ?? inv.item}: item caseiro — preço, volume e efeitos não entram nos números.`, `${inv.customName ?? inv.item}: homebrew item — price, bulk and effects are not in the numbers.`) })
         } else if (!entry) warnings.push({ code: 'ENTRY_NOT_FOUND', level: 'warn', ref: 'equipment', message: tr(`Item fora do catálogo atual: ${inv.customName ?? inv.item}.`, `Item not in the current catalog: ${inv.customName ?? inv.item}.`) })
         if (entry && baseName && entry.item?.subcategory?.startsWith('Specific')) {
@@ -162,9 +196,14 @@ export function compileEquipment(state: BuildState, rules: RulesIndex, ctx: {
     specialization: 0 | 1 | 2
     /** ABP (GM Core pg. 83): potência de ataque e dados devastadores no lugar das runas. */
     abp?: { attack: number; dice: number } | null
+    /** Nomes (minúsculos) das características e subclasses que mudam o golpe: "sneak attack", "thief", "precision". */
+    features?: string[]
+    /** Proficiência numa arma só (nome minúsculo), por ajuste: vale o maior entre ela e a da categoria. */
+    weaponRanks?: Record<string, Rank>
 }, warnings: Warning[]): EquipmentResult {
     const items = resolveItems(state, rules, warnings)
     const str = ctx.mod.str
+    const features = new Set(ctx.features ?? [])
 
     // Volume e moedas.
     const coins = Math.floor((state.money.pp + state.money.gp + state.money.sp + state.money.cp) / 1000)
@@ -199,6 +238,12 @@ export function compileEquipment(state: BuildState, rules: RulesIndex, ctx: {
             warnings.push({ code: 'RUNE_SLOTS', level: 'warn', ref: 'equipment', message: tr(`${wornArmor.name}: mais runas de propriedade que a potência permite.`, `${wornArmor.name}: more property runes than the potency allows.`) })
         }
     }
+    // Bands of Force investidas, sem armadura vestida: bônus de item na CA e nas salvaguardas, DES máx. +5 (GM Core pg. 286).
+    const bands = armor ? undefined : items.find((i) => i.inv.invested && /^bands of force\b/i.test(i.entry?.name ?? ''))
+    if (bands) {
+        const tier = /\(major\)/i.test(bands.entry!.name) ? 3 : /\(greater\)/i.test(bands.entry!.name) ? 2 : 1
+        armor = { item: bands, category: 'unarmored', ac: 0, dexCap: 5, potency: tier, resilient: tier, checkPenalty: 0, speedPenalty: 0, strengthMet: true, saveLabel: bands.entry!.name }
+    }
     if (items.filter((i) => i.inv.worn && i.base?.item?.armor).length > 1) {
         warnings.push({ code: 'TWO_ARMORS', level: 'warn', ref: 'equipment', message: tr('Mais de uma armadura vestida; vale a primeira.', 'More than one armor worn; the first one counts.') })
     }
@@ -215,17 +260,20 @@ export function compileEquipment(state: BuildState, rules: RulesIndex, ctx: {
         const low = traits.map(TRAIT)
         const category = (w.category ?? 'simple').toLowerCase() as 'simple' | 'martial' | 'advanced' | 'unarmed'
         const group = w.group?.toLowerCase()
-        const rank = Math.max(ctx.attacks[category] ?? 0, (group ? ctx.groupRanks[group]?.[category] : 0) ?? 0) as Rank
+        const rank = Math.max(ctx.attacks[category] ?? 0, (group ? ctx.groupRanks[group]?.[category] : 0) ?? 0,
+            ctx.weaponRanks?.[base.name.toLowerCase()] ?? 0, ctx.weaponRanks?.[name.toLowerCase()] ?? 0) as Rank
         const prof = rank > 0 ? ctx.level + 2 * rank : 0
         const ranged = !!w.range && !low.includes('thrown')
         const finesse = low.includes('finesse')
         const attr: AttributeKey = inv?.weapon?.attackAttribute ?? (ranged ? 'dex' : finesse && ctx.mod.dex > ctx.mod.str ? 'dex' : 'str')
         const potency = ctx.abp ? ctx.abp.attack : inv?.runes?.potency ?? 0
         const striking = ctx.abp ? ctx.abp.dice - 1 : inv?.runes?.striking ?? 0
-        const strDamage = ranged ? (low.includes('propulsive') ? (str > 0 ? Math.floor(str / 2) : str) : 0) : str
+        // Thief (Player Core pg. 167): corpo a corpo com acuidade, DES no dano no lugar da FOR.
+        const thiefDex = !ranged && finesse && features.has('thief') && ctx.mod.dex > str
+        const strDamage = ranged ? (low.includes('propulsive') ? (str > 0 ? Math.floor(str / 2) : str) : 0) : thiefDex ? ctx.mod.dex : str
         const spec = specBonus(rank)
         const attackParts = [{ label: tr('Proficiência', 'Proficiency'), value: prof }, { label: ATTR_LABEL[attr], value: ctx.mod[attr] }, ...(potency ? [{ label: tr('Potência', 'Potency'), value: potency }] : [])]
-        const damageParts = [...(strDamage ? [{ label: tr('FOR', 'STR'), value: strDamage }] : []), ...(spec ? [{ label: tr('Especialização', 'Specialization'), value: spec }] : [])]
+        const damageParts = [...(strDamage ? [{ label: thiefDex ? tr('DES (Thief)', 'DEX (Thief)') : tr('FOR', 'STR'), value: strDamage }] : []), ...(spec ? [{ label: tr('Especialização', 'Specialization'), value: spec }] : [])]
         let attack = attackParts.reduce((s, p) => s + p.value, 0)
         let damageBonus = damageParts.reduce((s, p) => s + p.value, 0)
         const o = inv?.weapon?.overrides
@@ -236,13 +284,23 @@ export function compileEquipment(state: BuildState, rules: RulesIndex, ctx: {
         }
         const runes = (inv?.runes?.property ?? []).map((id) => rules.get(id)?.name ?? id)
         if (runes.length > potency) warnings.push({ code: 'RUNE_SLOTS', level: 'warn', ref: 'equipment', message: tr(`${name}: mais runas de propriedade que a potência permite (GM Core pg. 236).`, `${name}: more property runes than the potency allows (GM Core pg. 236).`) })
-        if (runes.length) warnings.push({ code: 'UNSUPPORTED_EFFECT', level: 'info', ref: 'equipment', message: tr(`Efeito não calculado: dano extra das runas de ${name} (${runes.join(', ')}).`, `Effect not calculated: extra damage from ${name}'s runes (${runes.join(', ')}).`) })
-        const material = inv?.material ? rules.get(inv.material.id)?.name : undefined
+        // Dano extra no acerto: runas com dano fixo, Precision e Sneak Attack (o que a Ficha soma pelo `extraDamage`).
+        const extraDamage: string[] = []
+        const noHit = runes.filter((r) => !RUNE_HIT[runeBase(r)])
+        for (const r of runes) { const hit = RUNE_HIT[runeBase(r)]; if (hit && !extraDamage.includes(hit)) extraDamage.push(hit) }
+        if (noHit.length) warnings.push({ code: 'UNSUPPORTED_EFFECT', level: 'info', ref: 'equipment', message: tr(`Efeito não calculado: runas de ${name} sem dano fixo no acerto (${noHit.join(', ')}).`, `Effect not calculated: ${name}'s runes without flat hit damage (${noHit.join(', ')}).`) })
+        if (features.has('precision') && key !== 'fist') extraDamage.push(`${ctx.level >= 19 ? 3 : ctx.level >= 11 ? 2 : 1}d8 precision`)
+        if (features.has('sneak attack') && key !== 'fist' && (ranged || finesse || low.includes('agile'))) {
+            extraDamage.push(`${1 + [5, 11, 17].filter((l) => ctx.level >= l).length}d6 precision`)
+        }
+        for (const extra of inv?.weapon?.extraDamage ?? []) if (!extraDamage.includes(extra)) extraDamage.push(extra)
+        const matEntry = inv?.material ? rules.get(inv.material.id) : undefined
+        const material = matEntry ? (inv?.material?.grade ? `${matEntry.name} (${GRADE_LABEL[inv.material.grade]})` : matEntry.name) : undefined
         const display = [potency ? `+${potency}` : '', STRIKING_NAME[striking] ?? '', ...runes, material ?? '', name].filter(Boolean).join(' ')
         return {
             key, name, display, category, group: w.group, die: (w.die ?? 'd4').replace(/^1/, ''), dice: 1 + striking,
             damageType: w.damageType ?? '', attack, damageBonus, traits, attackParts, damageParts, range: w.range,
-            potency, striking, runes, material,
+            potency, striking, runes, material, extraDamage,
         }
     }
     for (const item of items) {

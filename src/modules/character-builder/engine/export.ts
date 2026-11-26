@@ -8,12 +8,24 @@ import type { RuleEntry } from '../rules/types'
 import { attributeScore } from './attributes'
 import { ATTRIBUTES, SKILL_KEYS, type AttributeKey, type Compiled, type RulesIndex } from './types'
 import { featKindLabel, type FeatSlot } from './slots'
+import { GRADE_LABEL, REINFORCING_NAME } from './equipment'
 
 const ATTR_LABEL: Record<AttributeKey, string> = { str: 'Str', dex: 'Dex', con: 'Con', int: 'Int', wis: 'Wis', cha: 'Cha' }
 const SIZE: Record<string, number> = { tiny: 0, small: 1, medium: 2, large: 3, huge: 4, gargantuan: 5 }
 const STRIKING = ['', 'striking', 'greaterStriking', 'majorStriking']
 const RESILIENT = ['', 'resilient', 'greaterResilient', 'majorResilient']
 const DAMAGE_LETTER: Record<string, string> = { Bludgeoning: 'B', Piercing: 'P', Slashing: 'S' }
+
+/**
+ * O nome da arma como o Pathbuilder escreve em `display`: o apelido do jogador (é por ele que a Ficha acha a relíquia),
+ * o nome do item específico ("Gloom Blade") ou o nome montado com as runas ("+2 Striking (Greater) Composite Longbow").
+ */
+function weaponDisplay(item: Compiled['equipment']['items'][number] | undefined, built: string): string {
+    const custom = item?.inv.custom?.weapon?.name
+    if (item?.inv.customName && (item.entry || (custom && custom !== item.inv.customName))) return item.inv.customName
+    if (item?.entry?.item?.baseItem) return item.entry.name
+    return built.replace(/\b(Greater|Major) Striking\b/, 'Striking ($1)')
+}
 
 export interface ExportContext {
     rules: RulesIndex
@@ -114,21 +126,33 @@ export function exportBuild(state: BuildState, compiled: Compiled, ctx: ExportCo
         proficiencies[k] = Math.max(proficiencies[k] ?? 0, c.rank * 2)
     }
     for (const s of SKILL_KEYS) proficiencies[s] = compiled.skills.rank[s] * 2
+    // Conjuração inata ou de talento que o motor não calcula, trazida da Ficha por ajuste ("castingArcane").
+    for (const a of state.manual.adjustments ?? []) {
+        const t = a.effect.target ?? ''
+        if (a.effect.kind === 'proficiency' && /^casting(arcane|divine|occult|primal)$/i.test(t)) {
+            const k = `casting${t.slice(7, 8).toUpperCase()}${t.slice(8).toLowerCase()}`
+            proficiencies[k] = Math.max(proficiencies[k] ?? 0, Math.max(0, Math.min(4, Number(a.effect.value) || 0)) * 2)
+        }
+    }
 
     // Equipamento.
     const eq = compiled.equipment
     const weapons: (Weapon & { grade: string })[] = eq.strikes.filter((s) => s.key !== 'fist').map((s) => {
         const item = eq.items.find((i) => i.key === s.key)
         return {
-            name: item?.base?.name ?? s.name, qty: item?.qty ?? 1, prof: s.category, die: s.die, pot: s.potency, str: STRIKING[s.striking] ?? '',
-            mat: s.material ?? null, display: s.display, runes: s.runes, damageType: DAMAGE_LETTER[s.damageType] ?? s.damageType,
-            attack: s.attack, damageBonus: s.damageBonus, extraDamage: [], increasedDice: false, isInventor: false, grade: '',
+            name: item?.entry?.name ?? item?.base?.name ?? s.name, qty: item?.qty ?? 1, prof: s.category, die: s.die, pot: s.potency, str: STRIKING[s.striking] ?? '',
+            // O nome que o jogador deu (o Pathbuilder põe em `display`) é o que a Ficha usa para achar a relíquia.
+            mat: s.material ?? null, display: weaponDisplay(item, s.display), runes: s.runes,
+            damageType: DAMAGE_LETTER[s.damageType] ?? s.damageType,
+            attack: s.attack, damageBonus: s.damageBonus, extraDamage: s.extraDamage, increasedDice: false, isInventor: false, grade: '',
         }
     })
     const armor: (Armor & { grade: string })[] = eq.items.filter((i) => i.base?.item?.armor || i.base?.item?.shield).map((i) => ({
         name: i.entry?.name ?? i.name, qty: i.qty, prof: i.base?.item?.shield ? 'shield' : (i.base?.item?.armor?.category ?? 'unarmored').toLowerCase(),
-        pot: i.inv.runes?.potency ?? 0, res: RESILIENT[i.inv.runes?.resilient ?? 0] ?? '', mat: i.inv.material ? name(i.inv.material.id) : null,
-        display: i.inv.customName ?? '', worn: !!i.inv.worn, runes: (i.inv.runes?.property ?? []).map(name), grade: '',
+        pot: i.inv.runes?.potency ?? 0, res: RESILIENT[i.inv.runes?.resilient ?? 0] ?? '',
+        mat: i.inv.material ? (i.inv.material.grade ? `${name(i.inv.material.id)} (${GRADE_LABEL[i.inv.material.grade]})` : name(i.inv.material.id)) : null,
+        display: i.inv.customName ?? '', worn: !!i.inv.worn,
+        runes: [...(i.inv.runes?.reinforcing ? [`Reinforcing (${REINFORCING_NAME[i.inv.runes.reinforcing]})`] : []), ...(i.inv.runes?.property ?? []).map(name)], grade: '',
     }))
     const equipment: [string, number, string?][] = eq.items.filter((i) => !i.base?.item?.weapon && !i.base?.item?.armor && !i.base?.item?.shield)
         .map((i) => (i.inv.invested ? [i.name, i.qty, 'Invested'] : [i.name, i.qty]))
