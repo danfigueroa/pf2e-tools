@@ -444,6 +444,15 @@ expect('treino em Medicina por ajuste aprova o Battle Medicine', bmAdj.warnings.
     expect('fonte divina: qualquer uma das duas', res('harmful font or healing font'), 'ok')
     expect('"can\'t have a patron deity" com divindade reprova', res('can’t have a patron deity', { deity: 'deity:1' }), 'fail')
 }
+{
+    // Pedido de descrição: a opção do catálogo vai com a categoria da AON (o material "Bone" ≠ o fascínio "Bone").
+    const { descriptionRequest } = await import('../src/modules/character-builder/components/descriptionRequest.ts')
+    const { splitCategoryTag } = await import('../api/_lib/feat-core.js')
+    const bone = { id: 'grim-fascination:grim-fascination-1', name: 'Bone', type: 'grim-fascination', aon: { id: 'grim-fascination-1' }, source: { id: 's' }, remaster: true }
+    expect('opção de classe pede com a categoria', descriptionRequest(bone), { type: 'special', name: 'Bone [grim-fascination]' })
+    expect('talento continua pelo nome', descriptionRequest({ ...bone, type: 'feat', level: 2 }).name, 'Bone')
+    expect('o servidor separa a etiqueta e só aceita categoria conhecida', [splitCategoryTag('Bone [grim-fascination]'), splitCategoryTag('Bone [qualquer-coisa]')], [{ name: 'Bone', category: 'grim-fascination' }, null])
+}
 const wrong = compileBuild({ ...hf, level: 2, choices: { ...hf.choices, 'class-feat-2': { id: toughness.id } } }, ctx)
 expect('talento geral no slot de classe avisa', wrong.warnings.some((w) => w.code === 'WRONG_SLOT'), true)
 

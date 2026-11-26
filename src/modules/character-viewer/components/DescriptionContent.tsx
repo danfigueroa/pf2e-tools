@@ -65,6 +65,9 @@ export interface SpellCasterInfo {
     psychic?: boolean
 }
 
+/** O nome para mostrar: o Criador pede a opção do catálogo com a categoria junto ("Bone [grim-fascination]"), só para a busca. */
+const shownName = (name: string) => name.replace(/ \[[a-z][a-z-]*\]$/, '')
+
 export type DescriptionRequest =
     | { type: 'feat'; name: string; level?: number; homebrew?: HomebrewFeatRef }
     | { type: 'special'; name: string }
@@ -193,7 +196,7 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
         const raw = spell?.description ?? entry?.description ?? undefined
         // Tudo chega com prosa limpa do backend (v10+) — sem strip heurístico,
         // que comia a primeira oração de descrições começando por "Você …".
-        return parseDescription(raw, request.name, { stripMetadata: false })
+        return parseDescription(raw, shownName(request.name), { stripMetadata: false })
     }, [request, entry, spell])
 
     // Modo "nível-ciente": sabemos o rank conjurado (request.level) e o rank
@@ -287,7 +290,7 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                             }}
                         />
                         <Typography variant="h5" sx={{ fontWeight: 700, lineHeight: 1.2, wordBreak: 'break-word' }}>
-                            {request.name}
+                            {shownName(request.name)}
                             {(spell?.actions || entry?.actions) && (
                                 <Box component="span" sx={{ ml: 1, color: accent, fontSize: '0.85em' }}>
                                     {actionSymbol(spell?.actions || entry?.actions)}

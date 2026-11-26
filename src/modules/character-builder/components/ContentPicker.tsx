@@ -17,6 +17,7 @@ import { PickerFilters } from './PickerFilters';
 import { activeCount, compareBy, EMPTY_FILTERS, facetsOf, passes, SORT_LABEL, type PickerFilterState } from './filterModel';
 import { pickerEditions } from '../remaster';
 import { prefetchStoredDescriptions } from '../../../services/descriptions';
+import { descriptionRequest } from './descriptionRequest';
 import { BuildExceptions } from '../hooks/buildExceptions';
 import { ActionGlyph, ContentBadge, LevelBox, Notice, PrereqMark, SectionHead } from './ui';
 import { rarityBadge, tint, warmShadow } from './uiTokens';
@@ -55,12 +56,6 @@ export interface ContentPickerProps {
   /** Teto de nível do slot: vira o filtro "Até nível N". */
   levelCap?: number;
 }
-
-/** O pedido de descrição de uma entrada do catálogo (o mesmo pipeline da Ficha). */
-const descriptionRequest = (e: RuleEntry) => e.type === 'spell' ? { type: 'spell' as const, name: e.name }
-  : e.type === 'feat' ? { type: 'feat' as const, name: e.name, level: e.level }
-    : ['equipment', 'weapon', 'armor', 'shield'].includes(e.type) ? { type: 'item' as const, name: e.name }
-      : { type: 'special' as const, name: e.name };
 
 const traitsOf = (e: RuleEntry) => (e.traits ?? []).filter((t) => !['common', 'uncommon', 'rare', 'unique'].includes(t.toLowerCase()));
 

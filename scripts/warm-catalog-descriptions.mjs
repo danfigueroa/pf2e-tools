@@ -26,9 +26,9 @@ const LANGS = arg('--lang') ? [arg('--lang')] : ['en', 'pt']
 const KINDS = arg('--kind') ? [arg('--kind')] : ['spell', 'feat', 'special', 'item']
 const LIMIT = arg('--limit') ? Number(arg('--limit')) : Infinity
 
-const ITEM_TYPES = new Set(['equipment', 'weapon', 'armor', 'shield'])
-/** O mesmo pedido que a tela faz (`descriptionRequest` do seletor). */
-const kindOf = (e) => (e.type === 'spell' ? 'spell' : e.type === 'feat' ? 'feat' : ITEM_TYPES.has(e.type) ? 'item' : 'special')
+// O mesmo pedido que o seletor faz: a chave no banco é a do clique (opções de classe e origem com a categoria junto,
+// "Bone [grim-fascination]", para não casar o material de mesmo nome).
+const { descriptionRequest } = await import('../src/modules/character-builder/components/descriptionRequest.ts')
 
 const version = await currentRulesVersion()
 const manifest = await readPublishedRuleFile(version, 'manifest.json')
@@ -37,7 +37,7 @@ const LIST_RE = /^(spells|feats|items|companions)\/|^core\/(ancestries|heritages
 for (const path of Object.keys(manifest.files).filter((p) => LIST_RE.test(p))) {
     const list = await readPublishedRuleFile(version, `${path}.json`).catch(() => null)
     if (!Array.isArray(list)) continue
-    for (const e of list) if (e?.name && !String(e.id).startsWith('mesa:')) names[kindOf(e)].add(e.name)
+    for (const e of list) if (e?.name && !String(e.id).startsWith('mesa:')) { const r = descriptionRequest(e); names[r.type].add(r.name) }
 }
 console.log(`catálogo ${version} · descrições ${CACHE_VERSION} ·`, Object.fromEntries(Object.entries(names).map(([k, v]) => [k, v.size])))
 
