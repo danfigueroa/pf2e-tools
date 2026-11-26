@@ -55,6 +55,12 @@ export interface ContentPickerProps {
   note?: (entry: RuleEntry) => string | undefined;
   /** Teto de nível do slot: vira o filtro "Até nível N". */
   levelCap?: number;
+  /** Escolher não fecha (grimório, rituais): marca e desmarca vários seguidos. */
+  keepOpen?: boolean;
+  /** Selo de "já está" sem apagar a linha (o `note` apaga): "no grimório", "aprendido". */
+  picked?: (entry: RuleEntry) => string | undefined;
+  /** Rótulo do botão de escolher ("Aprendi", "Esquecer"); sem ele, "Escolher". */
+  pickLabel?: (entry: RuleEntry) => string;
 }
 
 const traitsOf = (e: RuleEntry) => (e.traits ?? []).filter((t) => !['common', 'uncommon', 'rare', 'unique'].includes(t.toLowerCase()));
@@ -77,7 +83,7 @@ function whyText(el: Eligibility): { text: string; unknown: boolean } | null {
  * ("Escolher mesmo assim" vira aviso). Celular: lista em tela cheia e o detalhe numa folha que sobe. Desktop: as duas
  * colunas. ↑/↓ andam, Enter escolhe, Esc fecha. A descrição completa (pt/en) vem do pipeline de descrições, sob demanda.
  */
-export function ContentPicker({ open, title, subtitle, entries, value, onPick, onClose, mesaRules, facts, secondary, prereq, note, levelCap }: ContentPickerProps) {
+export function ContentPicker({ open, title, subtitle, entries, value, onPick, onClose, mesaRules, facts, secondary, prereq, note, levelCap, keepOpen, pickLabel, picked }: ContentPickerProps) {
   const theme = useTheme();
   const wide = useMediaQuery(theme.breakpoints.up('md'));
   const [q, setQ] = useState('');
@@ -145,7 +151,7 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
   const choose = (entry: RuleEntry) => {
     if (!onPick) return;
     onPick(entry.id);
-    onClose();
+    if (!keepOpen) onClose();
   };
 
   const countLabel = tr(`${shown.length.toLocaleString(locale)} ${shown.length === 1 ? 'item' : 'itens'}`, `${shown.length.toLocaleString(locale)} ${shown.length === 1 ? 'item' : 'items'}`)
@@ -213,6 +219,7 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
       isOut ? <ContentBadge key="o" kind="out" /> : null,
       note?.(e) ? <ContentBadge key="n" kind="trait">{note(e)}</ContentBadge> : null,
       e.id === value ? <ContentBadge key="v" kind="trait">{tr('escolhido', 'chosen')}</ContentBadge> : null,
+      picked?.(e) ? <Box key="p" component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.375, fontSize: 12, fontWeight: 700, color: status.success }}><OkIcon sx={{ fontSize: 14 }} />{picked(e)}</Box> : null,
     ].filter(Boolean);
     const meta = secondary ? secondary(e) : traitsOf(e).slice(0, 4).map(traitText).join(' · ');
     return (
@@ -337,6 +344,7 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
   };
 
   const chooseLabel = (e: RuleEntry) => {
+    if (pickLabel) return pickLabel(e);
     const el = eligibility.get(e.id);
     if (e.id === value) return tr('Manter', 'Keep');
     if ((el && el.result !== 'ok') || blocked(e)) return tr('Escolher mesmo assim', 'Choose anyway');
