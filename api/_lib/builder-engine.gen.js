@@ -754,6 +754,55 @@ function prereqWarnings(taken, context, warnings) {
 }
 
 // src/modules/character-builder/engine/spells.ts
+var BOOKS = {
+  // Player Core pg. 192, "Spellbook": 10 truques e cinco de 1º rank, mais duas do currículo da escola.
+  wizard: {
+    name: tr("Grim\xF3rio", "Spellbook"),
+    source: "Player Core pg. 192",
+    cantrips: 10,
+    spells: 5,
+    note: tr("Mais as magias do curr\xEDculo da escola (duas no 1\xBA n\xEDvel e uma a cada rank novo), fora desta conta.", "Plus your school's curriculum spells (two at 1st level and one per new rank), outside this count.")
+  },
+  // Impossible Magic pg. 9, "Spellbook": oito truques e cinco de 1º rank.
+  magus: { name: tr("Grim\xF3rio", "Spellbook"), source: "Impossible Magic pg. 9", cantrips: 8, spells: 5 },
+  // Player Core pg. 178, "Familiar": 10 truques, cinco de 1º rank e uma da lição inicial do patrono.
+  witch: {
+    name: tr("Familiar", "Familiar"),
+    source: "Player Core pg. 178",
+    cantrips: 10,
+    spells: 5,
+    note: tr("Mais a magia da li\xE7\xE3o inicial do patrono e as de talentos, fora desta conta.", "Plus the spell from your patron's initial lesson and any from feats, outside this count.")
+  },
+  // Impossible Magic pg. 27, "Dirge": oito truques, Harm e quatro outras de 1º rank.
+  necromancer: {
+    name: tr("Dirge", "Dirge"),
+    source: "Impossible Magic pg. 27",
+    cantrips: 8,
+    spells: 5,
+    note: tr("As cinco de 1\xBA rank incluem Harm, que a dirge sempre tem.", "The five 1st-rank spells include harm, which the dirge always has.")
+  }
+};
+var WHOLE_LIST = { cleric: "Player Core pg. 108", druid: "Player Core pg. 122" };
+var REPERTOIRE_NOTE = {
+  sorcerer: tr("Em cada rank novo, a primeira magia \xE9 a da linhagem (Player Core 2 pg. 144).", "At each new rank, the first spell is your bloodline's (Player Core 2 pg. 144)."),
+  psychic: tr("A mente consciente soma magias ao repert\xF3rio, fora desta conta (Dark Archive pg. 9).", "Your conscious mind adds spells to the repertoire, outside this count (Dark Archive pg. 9).")
+};
+var TRADITION_LIST = {
+  arcane: tr("Lista arcana", "Arcane list"),
+  divine: tr("Lista divina", "Divine list"),
+  occult: tr("Lista oculta", "Occult list"),
+  primal: tr("Lista primal", "Primal list")
+};
+function knownSpells(cls, type, tradition, perDay, level, source) {
+  const slug = cls.name.toLowerCase();
+  if (type === "spontaneous") {
+    return { kind: "repertoire", name: tr("Repert\xF3rio", "Repertoire"), source: source ?? "", perRank: [...perDay], note: REPERTOIRE_NOTE[slug] };
+  }
+  const book = BOOKS[slug];
+  if (book) return { kind: "book", name: book.name, source: book.source, cantrips: book.cantrips, spells: book.spells + 2 * Math.max(0, level - 1), note: book.note };
+  if (WHOLE_LIST[slug]) return { kind: "list", name: tradition ? TRADITION_LIST[tradition] : tr("Lista da tradi\xE7\xE3o", "Tradition list"), source: WHOLE_LIST[slug] };
+  return void 0;
+}
 var TRADITIONS = ["arcane", "divine", "occult", "primal"];
 var SPELLBOOK_CLASSES = /* @__PURE__ */ new Set(["wizard", "magus"]);
 function compileCasters(state, cls, ctx, pending, warnings, used) {
@@ -782,6 +831,7 @@ function compileCasters(state, cls, ctx, pending, warnings, used) {
     const n = row.perDay[String(ctx.level)]?.[r] ?? 0;
     return Array.isArray(n) ? n[0] : n;
   });
+  const known = knownSpells(cls, casting.type, tradition, perDay, ctx.level, row.source);
   const bonus = state.spellcasting.class?.bonusSlots ?? {};
   for (const [rank, extra] of Object.entries(bonus)) perDay[Number(rank)] = (perDay[Number(rank)] ?? 0) + extra;
   const prof = ctx.spellRank > 0 ? ctx.level + 2 * ctx.spellRank : 0;
@@ -796,7 +846,8 @@ function compileCasters(state, cls, ctx, pending, warnings, used) {
     dc: 10 + prof + ctx.mod[attribute],
     attack: prof + ctx.mod[attribute],
     spellbook: casting.type === "prepared" && SPELLBOOK_CLASSES.has(cls.name.toLowerCase()),
-    source: row.source
+    source: row.source,
+    known
   }];
 }
 function checkSpellChoices(state, casters, spells, pending, warnings, level = 1) {
@@ -831,8 +882,25 @@ function checkSpellChoices(state, casters, spells, pending, warnings, level = 1)
           "Choose two Bloodrager cantrips and check that at least one requires a spell attack roll."
         ) });
       }
+    } else if (caster.type === "spontaneous" && caster.known?.perRank) {
+      for (let rank = 0; rank <= 10; rank++) {
+        const want = caster.known.perRank[rank] ?? 0;
+        const have = (lists[String(rank)] ?? []).length;
+        if (have > want) warnings.push({ code: "REPERTOIRE_SIZE", level: "info", ref: `spells:${caster.key}:${rank}`, message: tr(`${caster.name}: ${have} magias de rank ${rank} no repert\xF3rio; a tabela d\xE1 ${want}. Confira se o resto vem de talento ou da subclasse.`, `${caster.name}: ${have} rank ${rank} spells in the repertoire; the table gives ${want}. Check that the rest come from a feat or the subclass.`) });
+      }
     } else if (caster.type === "spontaneous") {
       warnings.push({ code: "REPERTOIRE_SIZE", level: "info", ref: `spells:${caster.key}`, message: tr(`${caster.name}: o tamanho do repert\xF3rio por rank ainda n\xE3o \xE9 conferido (veja a tabela da classe).`, `${caster.name}: repertoire size per rank is not checked yet (see the class table).`) });
+    }
+    if (caster.known?.kind === "book") {
+      const book = choices.spellbook ?? [];
+      const cantrips = book.filter((id) => spells(id)?.spell?.cantrip).length;
+      const leveled = book.length - cantrips;
+      if (cantrips > (caster.known.cantrips ?? 0) || leveled > (caster.known.spells ?? 0)) {
+        warnings.push({ code: "SPELLBOOK_SIZE", level: "info", ref: `spells:${caster.key}`, message: tr(
+          `${caster.known.name}: ${cantrips} truques e ${leveled} magias; a regra d\xE1 ${caster.known.cantrips} e ${caster.known.spells}. O resto precisa vir de Aprender Magia, talento ou subclasse.`,
+          `${caster.known.name}: ${cantrips} cantrips and ${leveled} spells; the rule gives ${caster.known.cantrips} and ${caster.known.spells}. The rest must come from Learn a Spell, a feat or the subclass.`
+        ) });
+      }
     }
   }
 }

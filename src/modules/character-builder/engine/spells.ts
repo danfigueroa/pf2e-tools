@@ -32,6 +32,67 @@ export interface Caster {
     /** Preparado de grimório (Wizard, Magus…): tem grimório além das preparadas. */
     spellbook: boolean
     source?: string
+    /** Como o conjurador conhece as magias que prepara ou lança (só a classe; arquétipo fica sem). */
+    known?: KnownSpells
+}
+
+/**
+ * Magias conhecidas, pela regra de cada classe (texto da AON):
+ * - `list`: prepara de todas as comuns da lista da tradição (Cleric, Druid);
+ * - `book`: prepara do que guardou num grimório, familiar ou dirge, que cresce duas magias por nível;
+ * - `repertoire`: lança do repertório, uma magia por espaço da tabela em cada rank.
+ */
+export interface KnownSpells {
+    kind: 'list' | 'book' | 'repertoire'
+    /** Onde as magias ficam: "Grimório", "Familiar", "Dirge", "Repertório", "Lista divina". */
+    name: string
+    source: string
+    /** Livro: truques e magias com rank que a regra dá até o nível atual (sem os extras da subclasse). */
+    cantrips?: number
+    spells?: number
+    /** Repertório: quantas por rank (= espaços da tabela, sem bônus de item ou talento). */
+    perRank?: number[]
+    /** O que a regra soma por fora e o app não conta (currículo, linhagem, mente consciente). */
+    note?: string
+}
+
+/** Livros: truques e magias de 1º rank no 1º nível; depois, duas magias por nível de qualquer rank com espaço. */
+const BOOKS: Record<string, { name: string; source: string; cantrips: number; spells: number; note?: string }> = {
+    // Player Core pg. 192, "Spellbook": 10 truques e cinco de 1º rank, mais duas do currículo da escola.
+    wizard: { name: tr('Grimório', 'Spellbook'), source: 'Player Core pg. 192', cantrips: 10, spells: 5,
+        note: tr('Mais as magias do currículo da escola (duas no 1º nível e uma a cada rank novo), fora desta conta.', 'Plus your school\'s curriculum spells (two at 1st level and one per new rank), outside this count.') },
+    // Impossible Magic pg. 9, "Spellbook": oito truques e cinco de 1º rank.
+    magus: { name: tr('Grimório', 'Spellbook'), source: 'Impossible Magic pg. 9', cantrips: 8, spells: 5 },
+    // Player Core pg. 178, "Familiar": 10 truques, cinco de 1º rank e uma da lição inicial do patrono.
+    witch: { name: tr('Familiar', 'Familiar'), source: 'Player Core pg. 178', cantrips: 10, spells: 5,
+        note: tr('Mais a magia da lição inicial do patrono e as de talentos, fora desta conta.', 'Plus the spell from your patron\'s initial lesson and any from feats, outside this count.') },
+    // Impossible Magic pg. 27, "Dirge": oito truques, Harm e quatro outras de 1º rank.
+    necromancer: { name: tr('Dirge', 'Dirge'), source: 'Impossible Magic pg. 27', cantrips: 8, spells: 5,
+        note: tr('As cinco de 1º rank incluem Harm, que a dirge sempre tem.', 'The five 1st-rank spells include harm, which the dirge always has.') },
+}
+
+/** Prepara de toda a lista comum da tradição (Player Core pg. 108 e 122, "Spellcasting"). */
+const WHOLE_LIST: Record<string, string> = { cleric: 'Player Core pg. 108', druid: 'Player Core pg. 122' }
+
+/** O que o repertório soma por fora da tabela (texto de "Spell Repertoire" de cada classe). */
+const REPERTOIRE_NOTE: Record<string, string> = {
+    sorcerer: tr('Em cada rank novo, a primeira magia é a da linhagem (Player Core 2 pg. 144).', 'At each new rank, the first spell is your bloodline\'s (Player Core 2 pg. 144).'),
+    psychic: tr('A mente consciente soma magias ao repertório, fora desta conta (Dark Archive pg. 9).', 'Your conscious mind adds spells to the repertoire, outside this count (Dark Archive pg. 9).'),
+}
+
+const TRADITION_LIST: Record<Tradition, string> = {
+    arcane: tr('Lista arcana', 'Arcane list'), divine: tr('Lista divina', 'Divine list'), occult: tr('Lista oculta', 'Occult list'), primal: tr('Lista primal', 'Primal list'),
+}
+
+function knownSpells(cls: RuleEntry, type: 'prepared' | 'spontaneous', tradition: Tradition | null, perDay: number[], level: number, source?: string): KnownSpells | undefined {
+    const slug = cls.name.toLowerCase()
+    if (type === 'spontaneous') {
+        return { kind: 'repertoire', name: tr('Repertório', 'Repertoire'), source: source ?? '', perRank: [...perDay], note: REPERTOIRE_NOTE[slug] }
+    }
+    const book = BOOKS[slug]
+    if (book) return { kind: 'book', name: book.name, source: book.source, cantrips: book.cantrips, spells: book.spells + 2 * Math.max(0, level - 1), note: book.note }
+    if (WHOLE_LIST[slug]) return { kind: 'list', name: tradition ? TRADITION_LIST[tradition] : tr('Lista da tradição', 'Tradition list'), source: WHOLE_LIST[slug] }
+    return undefined
 }
 
 export interface FocusInfo {
@@ -81,13 +142,14 @@ export function compileCasters(state: BuildState, cls: RuleEntry | undefined, ct
         const n = row.perDay[String(ctx.level)]?.[r] ?? 0
         return Array.isArray(n) ? n[0] : n
     })
+    const known = knownSpells(cls, casting.type, tradition, perDay, ctx.level, row.source)
     const bonus = state.spellcasting.class?.bonusSlots ?? {}
     for (const [rank, extra] of Object.entries(bonus)) perDay[Number(rank)] = (perDay[Number(rank)] ?? 0) + extra
     const prof = ctx.spellRank > 0 ? ctx.level + 2 * ctx.spellRank : 0
     return [{
         key: 'class', name: cls.name, tradition, type: casting.type, attribute, rank: ctx.spellRank, perDay,
         dc: 10 + prof + ctx.mod[attribute], attack: prof + ctx.mod[attribute],
-        spellbook: casting.type === 'prepared' && SPELLBOOK_CLASSES.has(cls.name.toLowerCase()), source: row.source,
+        spellbook: casting.type === 'prepared' && SPELLBOOK_CLASSES.has(cls.name.toLowerCase()), source: row.source, known,
     }]
 }
 
@@ -126,8 +188,26 @@ export function checkSpellChoices(state: BuildState, casters: Caster[], spells: 
                     'Escolha dois truques de Bloodrager e confira se pelo menos um exige uma rolagem de ataque de magia.',
                     'Choose two Bloodrager cantrips and check that at least one requires a spell attack roll.') })
             }
+        } else if (caster.type === 'spontaneous' && caster.known?.perRank) {
+            // Uma magia no repertório por espaço da tabela (Spell Repertoire de cada classe). A mais é aviso, não trava:
+            // talentos e a subclasse também somam magias ao repertório.
+            for (let rank = 0; rank <= 10; rank++) {
+                const want = caster.known.perRank[rank] ?? 0
+                const have = (lists[String(rank)] ?? []).length
+                if (have > want) warnings.push({ code: 'REPERTOIRE_SIZE', level: 'info', ref: `spells:${caster.key}:${rank}`, message: tr(`${caster.name}: ${have} magias de rank ${rank} no repertório; a tabela dá ${want}. Confira se o resto vem de talento ou da subclasse.`, `${caster.name}: ${have} rank ${rank} spells in the repertoire; the table gives ${want}. Check that the rest come from a feat or the subclass.`) })
+            }
         } else if (caster.type === 'spontaneous') {
             warnings.push({ code: 'REPERTOIRE_SIZE', level: 'info', ref: `spells:${caster.key}`, message: tr(`${caster.name}: o tamanho do repertório por rank ainda não é conferido (veja a tabela da classe).`, `${caster.name}: repertoire size per rank is not checked yet (see the class table).`) })
+        }
+        if (caster.known?.kind === 'book') {
+            const book = choices.spellbook ?? []
+            const cantrips = book.filter((id) => spells(id)?.spell?.cantrip).length
+            const leveled = book.length - cantrips
+            if (cantrips > (caster.known.cantrips ?? 0) || leveled > (caster.known.spells ?? 0)) {
+                warnings.push({ code: 'SPELLBOOK_SIZE', level: 'info', ref: `spells:${caster.key}`, message: tr(
+                    `${caster.known.name}: ${cantrips} truques e ${leveled} magias; a regra dá ${caster.known.cantrips} e ${caster.known.spells}. O resto precisa vir de Aprender Magia, talento ou subclasse.`,
+                    `${caster.known.name}: ${cantrips} cantrips and ${leveled} spells; the rule gives ${caster.known.cantrips} and ${caster.known.spells}. The rest must come from Learn a Spell, a feat or the subclass.`) })
+            }
         }
     }
 }

@@ -490,6 +490,20 @@ const focusList = fixture['spells/focus']
 const focusSpells = focusList.filter((x) => !(x.traits ?? []).includes('Cantrip')).slice(0, 4).map((x) => x.id)
 const fOut = compileBuild({ ...hf, spellcasting: { focus: { repertoire: { 1: focusSpells } } } }, ctxSpells)
 expect('pool de foco = magias de foco, até 3 (Player Core pg. 298)', fOut.focus.points, Math.min(3, focusSpells.length))
+// Magias conhecidas pela regra de cada classe (texto da AON de "Spellcasting", "Spellbook", "Familiar", "Dirge" e "Spell Repertoire").
+const knownOf = (className, level, keyAttribute) => {
+    const cls = find('core/classes', className)
+    if (!cls) return undefined
+    return compileBuild(base({ level, class: { id: cls.id, keyAttribute } }), ctxSpells).casters[0]?.known
+}
+expect('Cleric conhece a lista divina inteira (Player Core pg. 108)', knownOf('Cleric', 1, 'wis')?.kind, 'list')
+expect('Wizard: grimório com 10 truques e 5 magias no 1º nível (Player Core pg. 192)', [knownOf('Wizard', 1, 'int')?.cantrips, knownOf('Wizard', 1, 'int')?.spells], [10, 5])
+expect('Wizard: duas magias a mais por nível (5 + 2 × 4 no 5º)', knownOf('Wizard', 5, 'int')?.spells, 13)
+if (find('core/classes', 'Witch')) expect('Witch: o familiar é o livro (Player Core pg. 178)', [knownOf('Witch', 1, 'int')?.kind, knownOf('Witch', 1, 'int')?.cantrips], ['book', 10])
+if (find('core/classes', 'Bard')) {
+    const bard = compileBuild(base({ level: 5, class: { id: find('core/classes', 'Bard').id, keyAttribute: 'cha' } }), ctxSpells).casters[0]
+    expect('Bard: repertório = espaços da tabela por rank (Player Core pg. 94)', bard?.known?.perRank, bard?.perDay)
+}
 
 console.log('Equipamento: Ghan Buri (gabarito: export do Pathbuilder) e regras de carga')
 {
