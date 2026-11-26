@@ -169,6 +169,7 @@ histórico (`?diary=`) → `src/modules/session-diary/AGENTS.md`; rolagens e est
   no corpo) antes da AON e gravam o que resolverem, porque o usuário quer tudo pronto no banco, sem AON a cada toque.
 - A carga do catálogo inteiro (pt e en) é `node --env-file=.env scripts/warm-catalog-descriptions.mjs`, retomável; rode de
   novo depois de subir a `CACHE_VERSION` ou importar um catálogo novo.
+- Confira a cobertura de magias com `node --env-file=.env scripts/warm-catalog-descriptions.mjs --lang pt --kind spell --coverage`. Retire `--coverage` para preparar as descrições faltantes, preservando as já gravadas na versão atual.
 - Nunca grave payload sem `description` ou com `translationPending` (regra 11).
 - Pré-carga em lote com `storedOnly: true` no corpo: devolve só o que está no banco (até 400 nomes), sem AON nem tradutor, porque o seletor pede a lista inteira e não pode disparar tradução de tudo.
 

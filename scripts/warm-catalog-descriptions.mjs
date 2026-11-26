@@ -2,7 +2,7 @@
 // origem/classe do catálogo publicado vai para a tabela global `descriptions`, em português e em inglês. Depois disso,
 // abrir qualquer entrada no Criador ou na Ficha lê do banco (`description-store.js`), sem AON nem tradutor.
 //
-//   node --env-file=.env scripts/warm-catalog-descriptions.mjs [--lang pt|en] [--kind spell|feat|item|special] [--limit N]
+//   node --env-file=.env scripts/warm-catalog-descriptions.mjs [--lang pt|en] [--kind spell|feat|item|special] [--limit N] [--coverage]
 //
 // - Retomável: o que já está no banco (na `CACHE_VERSION` atual) é pulado; pode parar e rodar de novo.
 // - Português em grupos de 6 por chamada ao tradutor (o mesmo `resolveSpells`/`resolveEntries` da API); nunca grava
@@ -25,6 +25,7 @@ const arg = (k) => (cli.includes(k) ? cli[cli.indexOf(k) + 1] : null)
 const LANGS = arg('--lang') ? [arg('--lang')] : ['en', 'pt']
 const KINDS = arg('--kind') ? [arg('--kind')] : ['spell', 'feat', 'special', 'item']
 const LIMIT = arg('--limit') ? Number(arg('--limit')) : Infinity
+const COVERAGE = cli.includes('--coverage')
 
 // O mesmo pedido que o seletor faz: a chave no banco é a do clique (opções de classe e origem com a categoria junto,
 // "Bone [grim-fascination]", para não casar o material de mesmo nome).
@@ -33,7 +34,8 @@ const { descriptionRequest } = await import('../src/modules/character-builder/co
 const version = await currentRulesVersion()
 const manifest = await readPublishedRuleFile(version, 'manifest.json')
 const names = { spell: new Set(), feat: new Set(), item: new Set(), special: new Set() }
-const LIST_RE = /^(spells|feats|items|companions)\/|^core\/(ancestries|heritages|backgrounds|classes|class-features|archetypes|deities)$/
+const LIST_RE = KINDS.length === 1 && KINDS[0] === 'spell' ? /^spells\//
+    : /^(spells|feats|items|companions)\/|^core\/(ancestries|heritages|backgrounds|classes|class-features|archetypes|deities)$/
 for (const path of Object.keys(manifest.files).filter((p) => LIST_RE.test(p))) {
     const list = await readPublishedRuleFile(version, `${path}.json`).catch(() => null)
     if (!Array.isArray(list)) continue
@@ -61,10 +63,14 @@ const RESOLVE = {
 
 for (const lang of LANGS) {
     const translate = lang === 'pt' && hasTranslationKey()
-    if (lang === 'pt' && !translate) { console.error('Sem chave de tradução: o português fica para depois.'); continue }
+    if (lang === 'pt' && !translate && !COVERAGE) { console.error('Sem chave de tradução: o português fica para depois.'); continue }
     for (const kind of KINDS) {
         const all = [...names[kind]].sort()
         const have = await known(lang, kind, all)
+        if (COVERAGE) {
+            console.log(`[${lang}/${kind}] ${have.size}/${all.length} no banco, faltam ${all.length - have.size}`)
+            continue
+        }
         const todo = all.filter((n) => !have.has(n)).slice(0, LIMIT)
         console.log(`\n[${lang}/${kind}] ${have.size} no banco, ${todo.length} a resolver`)
         const GROUP = lang === 'pt' ? 6 : 12
@@ -87,6 +93,8 @@ for (const lang of LANGS) {
             }
         }
         console.log(`[${lang}/${kind}] gravadas ${saved}, pendentes de tradução ${pending}, sem texto na AON ${empty}`)
+        const confirmed = await known(lang, kind, all)
+        console.log(`[${lang}/${kind}] ${confirmed.size}/${all.length} no banco, faltam ${all.length - confirmed.size}`)
     }
 }
 process.exit(0)
