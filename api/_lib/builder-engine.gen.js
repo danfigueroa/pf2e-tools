@@ -21,6 +21,7 @@ function buildRulesIndex(lists, languages) {
       const all = (byName.get(name.toLowerCase()) ?? []).filter((e) => !type || e.type === type);
       return all.find((e) => e.remaster) ?? all[0];
     },
+    named: (name) => byName.get(name.toLowerCase()) ?? [],
     languages
   };
 }
@@ -886,6 +887,51 @@ var COINS_GP = (m) => m.pp * 10 + m.gp + m.sp / 10 + m.cp / 100;
 var bulkOf = (b) => b === "L" ? 0.1 : typeof b === "number" ? b : 0;
 var TRAIT = (t) => t.toLowerCase().split(" ")[0];
 var STRIKING_NAME = ["", "Striking", "Greater Striking", "Major Striking"];
+var FUNDAMENTAL_NAMES = {
+  potency: ["", "Weapon Potency (+1)", "Weapon Potency (+2)", "Weapon Potency (+3)"],
+  striking: ["", "Striking", "Striking (Greater)", "Striking (Major)"],
+  armorPotency: ["", "Armor Potency (+1)", "Armor Potency (+2)", "Armor Potency (+3)"],
+  resilient: ["", "Resilient", "Resilient (Greater)", "Resilient (Major)"],
+  reinforcing: [
+    "",
+    "Reinforcing Rune (Minor)",
+    "Reinforcing Rune (Lesser)",
+    "Reinforcing Rune (Moderate)",
+    "Reinforcing Rune (Greater)",
+    "Reinforcing Rune (Major)",
+    "Reinforcing Rune (Supreme)"
+  ]
+};
+function fundamentalRune(rules, kind, tier) {
+  const name = FUNDAMENTAL_NAMES[kind][tier];
+  if (!name) return void 0;
+  const all = rules.named(name).filter((e) => /^runes?$/i.test(e.item?.category ?? ""));
+  return all.find((e) => e.item?.price && e.remaster) ?? all.find((e) => e.item?.price) ?? all[0];
+}
+function itemRunes(inv, base, rules) {
+  const r = inv.runes;
+  if (!r || !base?.item) return [];
+  const out = [];
+  const fundamental = (kind, tier) => {
+    if (!tier) return;
+    const e = fundamentalRune(rules, kind, tier);
+    out.push({ kind, tier, id: e?.id, name: e?.name ?? FUNDAMENTAL_NAMES[kind][tier] ?? "", level: e?.level, price: e?.item?.price?.gp ?? 0, known: !!e?.item?.price });
+  };
+  if (base.item.weapon) {
+    fundamental("potency", r.potency);
+    fundamental("striking", r.striking);
+  } else if (base.item.armor) {
+    fundamental("armorPotency", r.potency);
+    fundamental("resilient", r.resilient);
+  } else if (base.item.shield) fundamental("reinforcing", r.reinforcing);
+  if (base.item.weapon || base.item.armor) {
+    for (const id of r.property ?? []) {
+      const e = rules.get(id);
+      out.push({ kind: "property", tier: 0, id, name: e?.name ?? id, level: e?.level, price: e?.item?.price?.gp ?? 0, known: !!e?.item?.price });
+    }
+  }
+  return out;
+}
 var GROUP_FEATURES = [
   { name: /^fighter weapon mastery$/i, ranks: { simple: 3, martial: 3, unarmed: 3, advanced: 2 } },
   { name: /^weapon legend$/i, ranks: { simple: 4, martial: 4, unarmed: 4, advanced: 3 } }
@@ -901,6 +947,7 @@ function resolveItems(state, rules, warnings) {
     if (entry && baseName && entry.item?.subcategory?.startsWith("Specific")) {
       warnings.push({ code: "SPECIFIC_ITEM", level: "info", ref: "equipment", message: tr(`${entry.name}: item espec\xEDfico \u2014 confira as runas e efeitos pr\xF3prios dele.`, `${entry.name}: specific item \u2014 check its own runes and effects.`) });
     }
+    const runes = itemRunes(inv, base, rules);
     return {
       key: inv.key,
       entry,
@@ -909,6 +956,8 @@ function resolveItems(state, rules, warnings) {
       qty: inv.qty,
       bulk: bulkOf(entry?.item?.bulk) * inv.qty,
       price: (entry?.item?.price?.gp ?? 0) * inv.qty,
+      runes,
+      runePrice: runes.reduce((sum, rune) => sum + rune.price, 0) * inv.qty,
       inv
     };
   });
@@ -924,7 +973,7 @@ function compileEquipment(state, rules, ctx, warnings) {
   else if (total > encumberedAt) warnings.push({ code: "ENCUMBERED", level: "warn", ref: "equipment", message: tr(`Volume ${total} acima de ${encumberedAt}: sobrecarregado (desajeitado 1, \u221210 p\xE9s).`, `Bulk ${total} over ${encumberedAt}: encumbered (clumsy 1, \u221210 feet).`) });
   const invested = items.filter((i) => i.inv.invested).length;
   if (invested > 10) warnings.push({ code: "INVESTED_LIMIT", level: "warn", ref: "equipment", message: tr(`${invested} itens investidos; o limite \xE9 10 (GM Core pg. 219).`, `${invested} invested items; the limit is 10 (GM Core pg. 219).`) });
-  const spent = items.filter((i) => i.inv.acquired === "bought").reduce((sum, i) => sum + i.price, 0);
+  const spent = Math.round(items.filter((i) => i.inv.acquired === "bought").reduce((sum, i) => sum + i.price + i.runePrice, 0) * 100) / 100;
   const start = COINS_GP(state.money);
   const remaining = Math.round((start - spent) * 100) / 100;
   if (remaining < 0) warnings.push({ code: "NEGATIVE_MONEY", level: "warn", ref: "equipment", message: tr(`Compras passam do dinheiro em ${-remaining} po.`, `Purchases exceed the money by ${-remaining} gp.`) });

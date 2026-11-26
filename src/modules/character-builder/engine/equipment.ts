@@ -10,11 +10,26 @@
 // - Ataque corpo a corpo: FOR, ou DES com acuidade; à distância: DES. Dano corpo a corpo: + FOR; arremesso: + FOR;
 //   propulsiva: + metade da FOR (a FOR inteira se negativa) (Player Core pg. 275).
 // - Especialização: +2/+3/+4 (perito/mestre/lendário); a maior dobra para 4/6/8 (texto das características na AON).
+// - Preço de runa: o item vale a base mais o preço de cada runa gravada, no degrau em que está (GM Core pg. 223–224,
+//   upgrade custa a diferença de preço); os preços vêm do catálogo (Weapon Potency (+N), Striking, Resilient, Reinforcing Rune…).
 // - Riqueza inicial: 15 po no nível 1 (Player Core pg. 10); acima, a tabela Character Wealth do GM Core é referência (D6).
 import { tr } from '../../../i18n'
 import type { BuildState, InventoryEntry } from '../types'
 import type { RuleEntry } from '../rules/types'
 import type { AttributeKey, Rank, RulesIndex, Stat, Warning } from './types'
+
+export type FundamentalKind = 'potency' | 'striking' | 'armorPotency' | 'resilient' | 'reinforcing'
+
+/** Uma runa gravada no item, com o preço do catálogo (`known: false` = a runa não está nas listas carregadas). */
+export interface RuneLine {
+    kind: FundamentalKind | 'property'
+    tier: number
+    id?: string
+    name: string
+    level?: number
+    price: number
+    known: boolean
+}
 
 export interface ResolvedItem {
     key: string
@@ -25,6 +40,9 @@ export interface ResolvedItem {
     qty: number
     bulk: number
     price: number
+    /** Runas gravadas (fundamentais e de propriedade) e o preço delas, já vezes a quantidade. */
+    runes: RuneLine[]
+    runePrice: number
     inv: InventoryEntry
 }
 
@@ -68,6 +86,47 @@ const TRAIT = (t: string) => t.toLowerCase().split(' ')[0]
 const STRIKING_NAME = ['', 'Striking', 'Greater Striking', 'Major Striking']
 const RESILIENT_NAME = ['', 'resilient', 'greater resilient', 'major resilient']
 
+/** Nome da runa fundamental no catálogo da AON, por degrau (o índice 0 é "sem runa"). */
+const FUNDAMENTAL_NAMES: Record<FundamentalKind, string[]> = {
+    potency: ['', 'Weapon Potency (+1)', 'Weapon Potency (+2)', 'Weapon Potency (+3)'],
+    striking: ['', 'Striking', 'Striking (Greater)', 'Striking (Major)'],
+    armorPotency: ['', 'Armor Potency (+1)', 'Armor Potency (+2)', 'Armor Potency (+3)'],
+    resilient: ['', 'Resilient', 'Resilient (Greater)', 'Resilient (Major)'],
+    reinforcing: ['', 'Reinforcing Rune (Minor)', 'Reinforcing Rune (Lesser)', 'Reinforcing Rune (Moderate)', 'Reinforcing Rune (Greater)',
+        'Reinforcing Rune (Major)', 'Reinforcing Rune (Supreme)'],
+}
+export const FUNDAMENTAL_TIERS = (kind: FundamentalKind) => FUNDAMENTAL_NAMES[kind].length - 1
+
+/** A entrada da runa fundamental no degrau: a variante com preço ("Striking" também é o grupo, sem preço). */
+export function fundamentalRune(rules: Pick<RulesIndex, 'named'>, kind: FundamentalKind, tier: number): RuleEntry | undefined {
+    const name = FUNDAMENTAL_NAMES[kind][tier]
+    if (!name) return undefined
+    const all = rules.named(name).filter((e) => /^runes?$/i.test(e.item?.category ?? ''))
+    return all.find((e) => e.item?.price && e.remaster) ?? all.find((e) => e.item?.price) ?? all[0]
+}
+
+/** As runas gravadas no item: arma (potência, striking), armadura (potência, resiliente), escudo (reforço) e propriedade. */
+export function itemRunes(inv: InventoryEntry, base: RuleEntry | null, rules: RulesIndex): RuneLine[] {
+    const r = inv.runes
+    if (!r || !base?.item) return []
+    const out: RuneLine[] = []
+    const fundamental = (kind: FundamentalKind, tier: number | undefined) => {
+        if (!tier) return
+        const e = fundamentalRune(rules, kind, tier)
+        out.push({ kind, tier, id: e?.id, name: e?.name ?? FUNDAMENTAL_NAMES[kind][tier] ?? '', level: e?.level, price: e?.item?.price?.gp ?? 0, known: !!e?.item?.price })
+    }
+    if (base.item.weapon) { fundamental('potency', r.potency); fundamental('striking', r.striking) }
+    else if (base.item.armor) { fundamental('armorPotency', r.potency); fundamental('resilient', r.resilient) }
+    else if (base.item.shield) fundamental('reinforcing', r.reinforcing)
+    if (base.item.weapon || base.item.armor) {
+        for (const id of r.property ?? []) {
+            const e = rules.get(id)
+            out.push({ kind: 'property', tier: 0, id, name: e?.name ?? id, level: e?.level, price: e?.item?.price?.gp ?? 0, known: !!e?.item?.price })
+        }
+    }
+    return out
+}
+
 /** Grupo escolhido nas características de grupo de arma (Player Core pg. 136). */
 export const GROUP_FEATURES: { name: RegExp; ranks: { simple: Rank; martial: Rank; unarmed: Rank; advanced: Rank } }[] = [
     { name: /^fighter weapon mastery$/i, ranks: { simple: 3, martial: 3, unarmed: 3, advanced: 2 } },
@@ -86,9 +145,11 @@ export function resolveItems(state: BuildState, rules: RulesIndex, warnings: War
         if (entry && baseName && entry.item?.subcategory?.startsWith('Specific')) {
             warnings.push({ code: 'SPECIFIC_ITEM', level: 'info', ref: 'equipment', message: tr(`${entry.name}: item específico — confira as runas e efeitos próprios dele.`, `${entry.name}: specific item — check its own runes and effects.`) })
         }
+        const runes = itemRunes(inv, base, rules)
         return {
             key: inv.key, entry, base, name: inv.customName ?? entry?.name ?? inv.item, qty: inv.qty,
-            bulk: bulkOf(entry?.item?.bulk) * inv.qty, price: (entry?.item?.price?.gp ?? 0) * inv.qty, inv,
+            bulk: bulkOf(entry?.item?.bulk) * inv.qty, price: (entry?.item?.price?.gp ?? 0) * inv.qty,
+            runes, runePrice: runes.reduce((sum, rune) => sum + rune.price, 0) * inv.qty, inv,
         }
     })
 }
@@ -116,7 +177,7 @@ export function compileEquipment(state: BuildState, rules: RulesIndex, ctx: {
     const invested = items.filter((i) => i.inv.invested).length
     if (invested > 10) warnings.push({ code: 'INVESTED_LIMIT', level: 'warn', ref: 'equipment', message: tr(`${invested} itens investidos; o limite é 10 (GM Core pg. 219).`, `${invested} invested items; the limit is 10 (GM Core pg. 219).`) })
 
-    const spent = items.filter((i) => i.inv.acquired === 'bought').reduce((sum, i) => sum + i.price, 0)
+    const spent = Math.round(items.filter((i) => i.inv.acquired === 'bought').reduce((sum, i) => sum + i.price + i.runePrice, 0) * 100) / 100
     const start = COINS_GP(state.money)
     const remaining = Math.round((start - spent) * 100) / 100
     if (remaining < 0) warnings.push({ code: 'NEGATIVE_MONEY', level: 'warn', ref: 'equipment', message: tr(`Compras passam do dinheiro em ${-remaining} po.`, `Purchases exceed the money by ${-remaining} gp.`) })

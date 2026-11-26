@@ -495,6 +495,21 @@ console.log('Equipamento: Ghan Buri (gabarito: export do Pathbuilder) e regras d
     expect('ABP: CA igual à do Hero\'s Plate +1', abpOut.stats.ac.total, gb.acTotal.acTotal)
     expect('ABP: Percepção ganha +1 no nível 7+', abpOut.stats.perception.total - out.stats.perception.total, 1)
     expect('mil moedas = 1 Volume (Player Core pg. 269)', compileBuild({ ...hf, money: { pp: 0, gp: 1999, sp: 0, cp: 0 } }, ctx).equipment.bulk.coins, 1)
+    // Preço de runa (GM Core pg. 223–224): o item vale a base + cada runa no degrau atual; preços do catálogo da AON.
+    // "Striking" é também o grupo sem preço: vale a variante com preço.
+    const rune = (id, name, level, gp, sub = 'Fundamental Weapon Runes') => ({ id, name, type: 'equipment', level, rarity: 'common', traits: [], source: { id: 'source:test' }, aon: { id }, remaster: true,
+        item: { category: 'Runes', subcategory: sub, ...(gp ? { price: { gp } } : {}) } })
+    const runeRules = buildRulesIndex([...Object.values(fixture).filter(Array.isArray), [
+        rune('item:equipment-2829', 'Striking', 4, 0), rune('item:equipment-2829-2659', 'Striking', 4, 65),
+        rune('item:equipment-2830-2663', 'Weapon Potency (+2)', 10, 935), rune('item:equipment-2838-x', 'Flaming', 8, 500, 'Weapon Property Runes'),
+    ]], fixture['core/languages'])
+    const hammerId = item('Warhammer', 'weapon').id
+    const bought = compileBuild({ ...state, inventory: [{ key: 'inv-1', item: hammerId, qty: 1, acquired: 'bought', equipped: true, runes: { potency: 2, striking: 1, property: ['item:equipment-2838-x'] } }], money: { pp: 0, gp: 2000, sp: 0, cp: 0 } }, { rules: runeRules })
+    const warhammerGp = rules.get(hammerId)?.item?.price?.gp ?? 0
+    expect('runas compradas saem do dinheiro (+2, Striking, Flaming)', bought.equipment.money.spent, warhammerGp + 935 + 65 + 500)
+    expect('runa fundamental usa a variante com preço', bought.equipment.items[0].runes.map((r) => r.price), [935, 65, 500])
+    const given = compileBuild({ ...state, inventory: [{ key: 'inv-1', item: hammerId, qty: 1, acquired: 'given', runes: { potency: 2 } }] }, { rules: runeRules })
+    expect('item ganho não desconta as runas', given.equipment.money.spent, 0)
 }
 
 console.log('Ajustes manuais (F8.3): entram nos números, sempre com aviso')

@@ -29,6 +29,8 @@ export interface RulesIndex {
     get(id: string | undefined): RuleEntry | undefined
     /** Por nome (GrantItem do Foundry, talento do background); prefere Remaster. */
     byName(name: string, type?: string): RuleEntry | undefined
+    /** Todas as entradas com o nome (a runa "Striking" é o grupo sem preço e a variante com preço). */
+    named(name: string): RuleEntry[]
     /** Idiomas comuns e do catálogo, para validar escolhas. */
     languages: RuleEntry[]
 }

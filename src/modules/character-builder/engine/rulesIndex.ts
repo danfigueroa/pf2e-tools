@@ -22,6 +22,7 @@ export function buildRulesIndex(lists: RuleEntry[][], languages: RuleEntry[]): R
             const all = (byName.get(name.toLowerCase()) ?? []).filter((e) => !type || e.type === type)
             return all.find((e) => e.remaster) ?? all[0]
         },
+        named: (name) => byName.get(name.toLowerCase()) ?? [],
         languages,
     }
 }
