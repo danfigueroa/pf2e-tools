@@ -22,7 +22,7 @@ export default async function handler(req, res) {
   try {
     // `?kind=item`: item do inventário (o acerto parcial só vale se for item também).
     const resolver = req.query?.kind === 'item' ? resolveItem : resolveSpecial
-    const results = await withStoredDescriptions({ kind: req.query?.kind === 'item' ? 'item' : 'special', names, version: req.body?.version, lang },
+    const results = await withStoredDescriptions({ kind: req.query?.kind === 'item' ? 'item' : 'special', names, version: req.body?.version, lang, storedOnly: req.body?.storedOnly === true },
       (missing) => resolveMany(missing, lang === 'en' ? false : hasTranslationKey(), resolver, 3, lang))
     return res.status(200).json(results)
   } catch (error) {

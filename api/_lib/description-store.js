@@ -35,15 +35,20 @@ export async function writeStoredDescriptions(version, lang, kind, bag) {
   return rows.length
 }
 
+/** Teto do pré-carregamento em lote (`storedOnly`): uma lista do seletor de uma vez, só leitura do banco. */
+export const STORED_ONLY_MAX = 400
+
 /**
  * O banco primeiro; o que faltar, `resolve(missing)` (AON + tradução) e grava. `resolve` devolve `{ nome: payload }`
- * chaveado pelo nome de entrada. Sem versão válida, só resolve (cliente antigo).
+ * chaveado pelo nome de entrada. Sem versão válida, só resolve (cliente antigo). `storedOnly`: só o que já está no
+ * banco, sem AON nem tradutor (o seletor pré-carrega a lista inteira assim e o clique fica instantâneo).
  */
-export async function withStoredDescriptions({ kind, names, version, lang }, resolve) {
-  const found = await readStoredDescriptions(version, lang, kind, names).catch((e) => {
+export async function withStoredDescriptions({ kind, names, version, lang, storedOnly = false }, resolve) {
+  const found = await readStoredDescriptions(version, lang, kind, storedOnly ? names.slice(0, STORED_ONLY_MAX) : names).catch((e) => {
     console.error('[descriptions] leitura falhou:', e?.message ?? e)
     return {}
   })
+  if (storedOnly) return found
   const missing = names.filter((n) => !found[n])
   const resolved = missing.length ? await resolve(missing) : {}
   if (missing.length) {

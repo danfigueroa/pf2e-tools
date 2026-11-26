@@ -459,7 +459,7 @@ const server = http.createServer(async (req, res) => {
     }
     try {
       const CONCURRENCY = 3
-      const results = await withStoredDescriptions({ kind: 'feat', names, version: body?.version, lang }, async (missing) => {
+      const results = await withStoredDescriptions({ kind: 'feat', names, version: body?.version, lang, storedOnly: body?.storedOnly === true }, async (missing) => {
         const out = {}
         for (let i = 0; i < missing.length; i += CONCURRENCY) {
           const chunk = missing.slice(i, i + CONCURRENCY)
@@ -493,7 +493,7 @@ const server = http.createServer(async (req, res) => {
     try {
       const CONCURRENCY = 3
       const kind = parsedUrl.searchParams.get('kind') === 'item' ? 'item' : 'special'
-      const results = await withStoredDescriptions({ kind, names, version: body?.version, lang }, async (missing) => {
+      const results = await withStoredDescriptions({ kind, names, version: body?.version, lang, storedOnly: body?.storedOnly === true }, async (missing) => {
         const out = {}
         for (let i = 0; i < missing.length; i += CONCURRENCY) {
           const chunk = missing.slice(i, i + CONCURRENCY)
@@ -528,6 +528,11 @@ const server = http.createServer(async (req, res) => {
       // em memória atende o que já veio; só o resto vai ao núcleo.
       const GROUP = 6
       const stored = await readStoredDescriptions(body?.version, lang, 'spell', names).catch(() => ({}))
+      if (body?.storedOnly === true) {
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify(stored))
+        return
+      }
       const results = { ...stored }
       const missing = []
       for (const n of names.filter((x) => !stored[x])) {

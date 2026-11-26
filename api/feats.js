@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const results = await withStoredDescriptions({ kind: 'feat', names, version: req.body?.version, lang },
+    const results = await withStoredDescriptions({ kind: 'feat', names, version: req.body?.version, lang, storedOnly: req.body?.storedOnly === true },
       (missing) => resolveMany(missing, lang === 'en' ? false : hasTranslationKey(), resolveFeat, 3, lang))
     return res.status(200).json(results)
   } catch (error) {
