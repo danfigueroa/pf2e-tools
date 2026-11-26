@@ -170,6 +170,7 @@ histórico (`?diary=`) → `src/modules/session-diary/AGENTS.md`; rolagens e est
 - A carga do catálogo inteiro (pt e en) é `node --env-file=.env scripts/warm-catalog-descriptions.mjs`, retomável; rode de
   novo depois de subir a `CACHE_VERSION` ou importar um catálogo novo.
 - Nunca grave payload sem `description` ou com `translationPending` (regra 11).
+- Pré-carga em lote com `storedOnly: true` no corpo: devolve só o que está no banco (até 400 nomes), sem AON nem tradutor, porque o seletor pede a lista inteira e não pode disparar tradução de tudo.
 
 ## Outros stores
 
