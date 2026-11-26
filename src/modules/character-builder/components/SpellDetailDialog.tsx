@@ -4,7 +4,8 @@ import { Close as CloseIcon, DeleteOutline as RemoveIcon } from '@mui/icons-mate
 import { chrome, displayFont, gold, green, ink, parchment, rule, status } from '../../../theme';
 import { tr } from '../../../i18n';
 import type { RuleEntry } from '../rules/types';
-import { descriptionRequest } from './descriptionRequest';
+import { descriptionRequest, type SpellCast } from './descriptionRequest';
+import { HeightenNote } from './HeightenNote';
 import { ActionGlyph, ContentBadge, LevelBox } from './ui';
 import { rarityBadge, warmShadow } from './uiTokens';
 import { spellKind } from './spellText';
@@ -18,8 +19,10 @@ const TRADITION: Record<string, string> = { arcane: tr('Arcana', 'Arcane'), divi
  * A magia já escolhida, para reler: nome, rank, tradições, traços e a descrição completa. Tirar fica num botão à parte,
  * porque tocar no nome para ler não pode apagar a escolha. Celular: folha que sobe; desktop: diálogo.
  */
-export function SpellDetailDialog({ entry, onClose, onRemove, removeLabel }: {
+export function SpellDetailDialog({ entry, cast, onClose, onRemove, removeLabel }: {
   entry: RuleEntry | null;
+  /** Rank em que é lançada (espaço, ou metade do nível em truque e foco): a descrição vem elevada. */
+  cast?: SpellCast;
   onClose: () => void;
   /** Sem ele (só leitura), não há botão de tirar. */
   onRemove?: () => void;
@@ -44,13 +47,14 @@ export function SpellDetailDialog({ entry, onClose, onRemove, removeLabel }: {
         {!entry.remaster && !entry.homebrew && <ContentBadge kind="legacy" />}
         {entry.homebrew && <ContentBadge kind="mesa" />}
       </Box>
+      {cast && <HeightenNote entry={entry} cast={cast} />}
       {/* A descrição completa já traz traços, fonte e alcance; aqui só o que ela não diz (rank e tradições). */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         {entry.homebrew ? (
           <Box component="p" sx={{ m: 0, fontSize: 15, whiteSpace: 'pre-line' }}>{entry.summary}</Box>
         ) : (
           <Suspense fallback={<Box sx={{ fontSize: 14, color: ink.secondary }}>{entry.summary ?? tr('Carregando…', 'Loading…')}</Box>}>
-            <DescriptionContent key={entry.id} embedded request={descriptionRequest(entry)} onClose={() => {}} />
+            <DescriptionContent key={`${entry.id}-${cast?.rank ?? ''}`} embedded request={descriptionRequest(entry, cast)} onClose={() => {}} />
           </Suspense>
         )}
       </Box>

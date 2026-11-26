@@ -17,7 +17,8 @@ import { PickerFilters } from './PickerFilters';
 import { activeCount, compareBy, EMPTY_FILTERS, facetsOf, passes, SORT_LABEL, type PickerFilterState } from './filterModel';
 import { pickerEditions } from '../remaster';
 import { prefetchStoredDescriptions } from '../../../services/descriptions';
-import { descriptionRequest } from './descriptionRequest';
+import { descriptionRequest, type SpellCast } from './descriptionRequest';
+import { HeightenNote } from './HeightenNote';
 import { BuildExceptions } from '../hooks/buildExceptions';
 import { ActionGlyph, ContentBadge, LevelBox, Notice, PrereqMark, SectionHead } from './ui';
 import { rarityBadge, tint, warmShadow } from './uiTokens';
@@ -61,6 +62,10 @@ export interface ContentPickerProps {
   picked?: (entry: RuleEntry) => string | undefined;
   /** Rótulo do botão de escolher ("Aprendi", "Esquecer"); sem ele, "Escolher". */
   pickLabel?: (entry: RuleEntry) => string;
+  /** Magias: o rank em que a escolha vai ser lançada; o detalhe mostra os números já elevados. */
+  cast?: (entry: RuleEntry) => SpellCast | undefined;
+  /** Filtros já ligados ao abrir (magias de foco: o traço da classe). A pessoa limpa se quiser. */
+  initialFilters?: Partial<PickerFilterState>;
 }
 
 const traitsOf = (e: RuleEntry) => (e.traits ?? []).filter((t) => !['common', 'uncommon', 'rare', 'unique'].includes(t.toLowerCase()));
@@ -83,7 +88,7 @@ function whyText(el: Eligibility): { text: string; unknown: boolean } | null {
  * ("Escolher mesmo assim" vira aviso). Celular: lista em tela cheia e o detalhe numa folha que sobe. Desktop: as duas
  * colunas. ↑/↓ andam, Enter escolhe, Esc fecha. A descrição completa (pt/en) vem do pipeline de descrições, sob demanda.
  */
-export function ContentPicker({ open, title, subtitle, entries, value, onPick, onClose, mesaRules, facts, secondary, prereq, note, levelCap, keepOpen, pickLabel, picked }: ContentPickerProps) {
+export function ContentPicker({ open, title, subtitle, entries, value, onPick, onClose, mesaRules, facts, secondary, prereq, note, levelCap, keepOpen, pickLabel, picked, cast, initialFilters }: ContentPickerProps) {
   const theme = useTheme();
   const wide = useMediaQuery(theme.breakpoints.up('md'));
   const [q, setQ] = useState('');
@@ -100,11 +105,12 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
   useEffect(() => {
     if (!open) return;
     setQ('');
-    setFilters(EMPTY_FILTERS);
+    setFilters({ ...EMPTY_FILTERS, ...initialFilters });
     setFiltersOpen(false);
     setFocusId(value);
     setDetailOpen(false);
     setLimit(PAGE);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- só ao abrir: o objeto novo a cada render apagaria o que a pessoa mexeu.
   }, [open, value]);
 
   const exceptions = useContext(BuildExceptions);
@@ -300,6 +306,7 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
           <Notice tone="ok" icon={<OkIcon />}><b>{tr('Elegível — todos os pré-requisitos cumpridos.', 'Eligible — all prerequisites met.')}</b></Notice>
         )}
         {facts && <Box sx={{ fontSize: 14 }}>{facts(e)}</Box>}
+        {cast?.(e) && <HeightenNote entry={e} cast={cast(e)!} />}
         {el && el.parts.length > 0 && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             <SectionHead note={tr(`${met} de ${el.parts.length} cumprido${el.parts.length > 1 ? 's' : ''}`, `${met} of ${el.parts.length} met`)}>{tr('Pré-requisitos', 'Prerequisites')}</SectionHead>
@@ -325,11 +332,11 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
           </Box>
         )) : (
           // A descrição completa (pt/en) já no detalhe: nada de abrir outra tela para ler o talento ou a magia.
+          // O título "Descrição" vem da própria descrição; aqui seria o segundo.
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <SectionHead>{tr('Descrição', 'Description')}</SectionHead>
             <Box sx={{ maxWidth: 720 }}>
               <Suspense fallback={<Box sx={{ fontSize: 14, color: ink.secondary }}>{e.summary ?? tr('Carregando…', 'Loading…')}</Box>}>
-                <DescriptionContent key={e.id} embedded request={descriptionRequest(e)} onClose={() => {}} />
+                <DescriptionContent key={`${e.id}-${cast?.(e)?.rank ?? ''}`} embedded request={descriptionRequest(e, cast?.(e))} onClose={() => {}} />
               </Suspense>
             </Box>
           </Box>
