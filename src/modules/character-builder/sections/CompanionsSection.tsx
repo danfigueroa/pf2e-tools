@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { Box, Button, Chip, IconButton, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
-import { Add as AddIcon, DeleteOutline as DeleteIcon } from '@mui/icons-material';
-import { displayFont } from '../../../theme';
+import { Box, Button, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Add as AddIcon, Close as CloseIcon, DeleteOutline as DeleteIcon } from '@mui/icons-material';
+import { chrome, ink } from '../../../theme';
+import { BandHead, Folio, Pill, SectionHead } from '../components/ui';
+import { cardSx } from '../components/uiTokens';
 import { tr } from '../../../i18n';
 import { ContentPicker } from '../components/ContentPicker';
 import type { RuleEntry } from '../rules/types';
@@ -35,13 +37,22 @@ export function CompanionsSection({ state, update, canEdit, mesaRules, entries }
       : [...byType('animal-companion-advanced'), ...byType('animal-companion-specialization')];
 
   return (
-    <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 } }}>
-      <Typography component="h3" sx={{ fontFamily: displayFont, fontWeight: 700, mb: 1 }}>{tr('Companheiros', 'Companions')}</Typography>
-      <Stack spacing={1.5}>
+    <Stack spacing={1.5}>
+      {state.companions.length === 0 && (
+        <Box sx={[cardSx, { p: 2, display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'flex-start' }]}>
+          <SectionHead>{tr('Companheiros', 'Companions')}</SectionHead>
+          <Box sx={{ fontSize: 14, color: ink.secondary }}>{tr('Companheiro animal ou familiar, quando a classe ou um talento dá.', 'An animal companion or familiar, when your class or a feat grants one.')}</Box>
+        </Box>
+      )}
         {state.companions.map((c) => {
           const chosen = Object.entries(c.choices).filter(([, v]) => 'id' in v) as [string, { id: string }][];
           return (
-            <Box key={c.key} sx={{ borderTop: 1, borderColor: 'divider', pt: 1 }}>
+            <Box key={c.key} sx={[cardSx, { overflow: 'hidden' }]}>
+              <BandHead right={canEdit ? (
+                <IconButton size="small" aria-label={tr('Remover', 'Remove')} title={tr('Remover', 'Remove')} sx={{ color: chrome.text }}
+                  onClick={() => setCompanions((l) => l.filter((x) => x.key !== c.key))}><DeleteIcon fontSize="small" /></IconButton>
+              ) : undefined}>{c.name || (c.kind === 'animal' ? tr('Companheiro animal', 'Animal companion') : tr('Familiar', 'Familiar'))}</BandHead>
+              <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.25 }}>
               <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 1, alignItems: 'center' }}>
                 <TextField size="small" label={tr('Nome', 'Name')} defaultValue={c.name} disabled={!canEdit}
                   onBlur={(e) => e.target.value.trim() && patch(c.key, { name: e.target.value.trim().slice(0, 80) })} />
@@ -50,37 +61,36 @@ export function CompanionsSection({ state, update, canEdit, mesaRules, entries }
                   <MenuItem value="animal">{tr('Companheiro animal', 'Animal companion')}</MenuItem>
                   <MenuItem value="familiar">{tr('Familiar', 'Familiar')}</MenuItem>
                 </TextField>
-                <Button variant="outlined" onClick={() => setPicking({ key: c.key, field: 'type' })} disabled={!canEdit}>
-                  {c.type ? name(c.type) : c.kind === 'animal' ? tr('Escolher animal', 'Choose animal') : tr('Familiar específico (opcional)', 'Specific familiar (optional)')}</Button>
               </Box>
+              <Folio label={c.kind === 'animal' ? tr('Animal', 'Animal') : tr('Familiar específico · opcional', 'Specific familiar · optional')}
+                name={c.type ? name(c.type) : c.kind === 'animal' ? tr('Escolher animal', 'Choose animal') : tr('Nenhum', 'None')}
+                todo={!c.type && c.kind === 'animal'} disabled={!canEdit} onClick={() => setPicking({ key: c.key, field: 'type' })} />
               <Stack direction="row" sx={{ gap: 0.5, flexWrap: 'wrap', mt: 1, alignItems: 'center' }}>
                 {chosen.map(([k, v]) => (
-                  <Chip key={k} size="small" label={name(v.id)} onDelete={canEdit ? () => {
+                  <Pill key={k} title={canEdit ? tr('Tocar para tirar', 'Tap to remove') : undefined} onClick={canEdit ? () => {
                     const { [k]: _drop, ...rest } = c.choices;
                     void _drop;
                     patch(c.key, { choices: rest });
-                  } : undefined} />
+                  } : undefined}>{name(v.id)}{canEdit && <CloseIcon sx={{ fontSize: 14, color: ink.secondary }} />}</Pill>
                 ))}
                 {canEdit && (
-                  <Chip size="small" icon={<AddIcon />} variant="outlined"
-                    label={c.kind === 'familiar' ? tr('Habilidade', 'Ability') : tr('Avanço/especialização', 'Advancement/specialization')}
-                    onClick={() => setPicking({ key: c.key, field: c.kind === 'familiar' ? 'ability' : 'advance' })} />
+                  <Pill look="add" onClick={() => setPicking({ key: c.key, field: c.kind === 'familiar' ? 'ability' : 'advance' })}>
+                    {c.kind === 'familiar' ? tr('+ Habilidade', '+ Ability') : tr('+ Avanço/especialização', '+ Advancement/specialization')}</Pill>
                 )}
                 {c.kind === 'familiar' && (
                   <Typography variant="caption" color="text.secondary">
                     {tr(`${chosen.length} habilidade(s); o número permitido depende dos talentos e da classe.`, `${chosen.length} ability(ies); the allowed number depends on feats and class.`)}
                   </Typography>
                 )}
-                {canEdit && <IconButton aria-label={tr('Remover', 'Remove')} title={tr('Remover', 'Remove')} onClick={() => setCompanions((l) => l.filter((x) => x.key !== c.key))}><DeleteIcon /></IconButton>}
               </Stack>
+              </Box>
             </Box>
           );
         })}
         {canEdit && state.companions.length < 10 && (
-          <Button startIcon={<AddIcon />} onClick={() => setCompanions((l) => [...l, { key: newKey(), kind: 'animal', name: tr('Companheiro', 'Companion'), choices: {} }])}>
+          <Button variant="outlined" sx={{ alignSelf: 'flex-start' }} startIcon={<AddIcon />} onClick={() => setCompanions((l) => [...l, { key: newKey(), kind: 'animal', name: tr('Companheiro', 'Companion'), choices: {} }])}>
             {tr('Adicionar companheiro', 'Add companion')}</Button>
         )}
-      </Stack>
       <ContentPicker open={!!picking} title={picking?.field === 'ability' ? tr('Habilidade de familiar', 'Familiar ability') : picking?.field === 'advance' ? tr('Avanço do companheiro', 'Companion advancement') : tr('Tipo', 'Type')}
         entries={pickerEntries} mesaRules={mesaRules} onClose={() => setPicking(null)}
         onPick={(id) => {
@@ -88,6 +98,6 @@ export function CompanionsSection({ state, update, canEdit, mesaRules, entries }
           if (picking.field === 'type') patch(current.key, { type: id });
           else addChoice(current, picking.field, id);
         }} />
-    </Paper>
+    </Stack>
   );
 }
