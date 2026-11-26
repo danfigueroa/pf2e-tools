@@ -387,7 +387,7 @@ export function BuilderMode({ buildId }: { buildId: string }) {
       case 'class': return <ClassSection {...sectionProps} />;
       case 'attributes': return <AttributesSection {...sectionProps} />;
       case 'skills': return <SkillsSection {...sectionProps} />;
-      case 'spells': return <SpellsSection {...sectionProps} spells={rules.feats.filter((e) => e.type === 'spell')} />;
+      case 'spells': return <SpellsSection {...sectionProps} spells={rules.feats.filter((e) => e.type === 'spell' || e.type === 'ritual')} />;
       case 'equipment':
         return <EquipmentSection {...sectionProps} entries={rules.feats} sheet={exportSheet}
           wealth={(rules.tables as { wealth?: { levels: Record<string, { currency: number; lumpSum: number }>; source?: string } } | null)?.wealth} />;
