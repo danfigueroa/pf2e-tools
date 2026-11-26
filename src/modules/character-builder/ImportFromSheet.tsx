@@ -18,7 +18,7 @@ import { ruleListSlug } from './rules';
  * Importar para o Criador (F7.7, CONTRATO-FICHA §9): a ficha publicada vira um build com o MESMO slug (o estado da mesa
  * continua ligado). A ficha da mesa não muda até alguém aplicar o build.
  */
-export function ImportFromSheet({ slug }: { slug: string }) {
+export function ImportFromSheet({ slug, levelUp }: { slug: string; levelUp?: boolean }) {
   const navigate = useNavigate();
   const [step, setStep] = useState(tr('Lendo a ficha publicada…', 'Reading the published sheet…'));
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +31,7 @@ export function ImportFromSheet({ slug }: { slug: string }) {
       const existing = await listBuilds();
       const same = existing.ok ? existing.value.find((x) => x.slug === slug && !x.deletedAt) : undefined;
       if (same) {
-        if (alive) navigate(`/personagens/${same.id}`, { replace: true });
+        if (alive) navigate(`/personagens/${same.id}${levelUp ? '?subir=1' : ''}`, { replace: true });
         return;
       }
       const sheet = await fetchPublished(slug);
@@ -57,10 +57,10 @@ export function ImportFromSheet({ slug }: { slug: string }) {
       setStep(tr('Criando o personagem no Criador…', 'Creating the character in the Builder…'));
       const out = await createBuildFromSheet(slug, state, b.class);
       if (!out.ok) throw new Error(out.error);
-      if (alive) navigate(`/personagens/${out.value.id}`, { replace: true, state: { importReport: rep } });
+      if (alive) navigate(`/personagens/${out.value.id}${levelUp ? '?subir=1' : ''}`, { replace: true, state: { importReport: rep } });
     })().catch((e) => alive && setError(e instanceof Error ? e.message : String(e)));
     return () => { alive = false; };
-  }, [slug, navigate]);
+  }, [slug, navigate, levelUp]);
 
   return (
     <Box sx={{ maxWidth: 720, mx: 'auto' }}>

@@ -371,7 +371,11 @@ const SheetBody = ({ build: source, publication, onReset, onRestore, compact = f
                 levelUp: build.level < 20 ? `/personagens/${buildId}?subir=1` : undefined,
             }
         }
-        if (isPublished) return { href: `/personagens?importar=${encodeURIComponent(slug)}`, label: tr('Importar para o Criador', 'Import into the Builder') }
+        // Ficha do Pathbuilder: o servidor já criou o build de mesmo slug; o `?importar=` só abre (ou importa, se faltar).
+        if (isPublished) {
+            const href = `/personagens?importar=${encodeURIComponent(slug)}`
+            return { href, label: tr('Editar no Criador', 'Edit in the Builder'), levelUp: build.level < 20 ? `${href}&subir=1` : undefined }
+        }
         return null
     }, [build, readOnly, compact, isPublished, slug])
     useEffect(() => { void loadDescriptionBundle(slug) }, [slug])

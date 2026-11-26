@@ -366,7 +366,7 @@ export const CharactersPage = () => {
   const { buildId } = useParams();
   const [params] = useSearchParams();
   const importing = params.get('importar'); // i18n-ok: chave da URL
-  if (importing && /^[a-z0-9-]{1,64}$/.test(importing)) return <ImportFromSheet slug={importing} />;
+  if (importing && /^[a-z0-9-]{1,64}$/.test(importing)) return <ImportFromSheet slug={importing} levelUp={params.get('subir') === '1'} />; // i18n-ok: chave da URL
   return buildId ? <BuilderMode buildId={buildId} /> : <BuildList />;
 };
 
