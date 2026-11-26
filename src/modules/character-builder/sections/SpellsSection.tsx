@@ -9,7 +9,7 @@ import { spellKind } from '../components/spellText';
 import type { SpellCast } from '../components/descriptionRequest';
 import { attributeLabel } from '../engine/attributes';
 import { rankName } from '../engine/compile';
-import type { Caster } from '../engine/spells';
+import { heightenGain, type Caster } from '../engine/spells';
 import type { RuleEntry } from '../rules/types';
 import type { CasterChoices } from '../types';
 import { BandHead, Label, PendCount, Pill, SectionHead, SlotCard } from '../components/ui';
@@ -35,7 +35,7 @@ const rankOf = (s: RuleEntry) => (isCantrip(s) ? 0 : s.spell?.rank ?? s.level ??
 const isRitual = (s: RuleEntry) => !!s.spell?.ritual || s.type === 'ritual';
 
 /** Magia escolhida: tocar no nome abre a descrição; o × à parte tira. */
-function SpellChip({ name, onOpen, onRemove, up, from }: { name: string; onOpen: () => void; onRemove?: () => void; up?: number; from?: string }) {
+function SpellChip({ name, onOpen, onRemove, up, from }: { name: string; onOpen: () => void; onRemove?: () => void; up?: { rank: number; gains: boolean; next?: number }; from?: string }) {
   return (
     <Box component="span" sx={{
       display: 'inline-flex', alignItems: 'stretch', minHeight: { xs: 40, sm: 32 }, borderRadius: 999, border: `1px solid ${rule}`,
@@ -46,9 +46,11 @@ function SpellChip({ name, onOpen, onRemove, up, from }: { name: string; onOpen:
         <Box component="span" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</Box>
         {from && <Box component="span" sx={{ fontSize: 12, color: ink.secondary, whiteSpace: 'nowrap' }}>· {from}</Box>}
         {up !== undefined && (
-          <Box component="span" title={tr(`Elevada ao rank ${up}`, `Heightened to rank ${up}`)}
-            sx={{ fontSize: 11, fontWeight: 800, color: gold.deep, bgcolor: tint.gold, border: `1px solid ${gold.main}`, borderRadius: '4px', px: 0.5, lineHeight: 1.5, flex: 'none' }}>
-            ↑{up}
+          <Box component="span" title={up.gains ? tr(`Elevada ao rank ${up.rank}`, `Heightened to rank ${up.rank}`)
+            : tr(`Rank ${up.rank} sem ganho da elevação${up.next ? `; o próximo é no rank ${up.next}` : ''}`, `Rank ${up.rank} with no heightening benefit${up.next ? `; the next is at rank ${up.next}` : ''}`)}
+            sx={{ fontSize: 11, fontWeight: 800, borderRadius: '4px', px: 0.5, lineHeight: 1.5, flex: 'none',
+              ...(up.gains ? { color: gold.deep, bgcolor: tint.gold, border: `1px solid ${gold.main}` } : { color: status.warning, border: `1px dashed ${status.warning}` }) }}>
+            ↑{up.rank}{up.gains ? '' : ' ⚠'}
           </Box>
         )}
       </ButtonBase>
@@ -95,7 +97,9 @@ export function SpellsSection({ state, update, compiled, canEdit, index, mesaRul
   const upOf = (id: string, slotRank?: number) => {
     const e = entryOf(id);
     const c = castFor(e, slotRank);
-    return c && e && !c.auto && c.rank > rankOf(e) ? c.rank : undefined;
+    if (!c || !e || c.auto || c.rank <= rankOf(e)) return undefined;
+    const gain = heightenGain(e, c.rank);
+    return { rank: c.rank, gains: gain ? gain.gains : true, next: gain?.next };
   };
 
   const lists = (key: string): CasterChoices => state.spellcasting[key] ?? {};
@@ -429,7 +433,12 @@ export function SpellsSection({ state, update, compiled, canEdit, index, mesaRul
           cast={picking.field === 'rituals' ? undefined : (e) => castFor(e, picking.field === 'prepared' || picking.field === 'repertoire' ? picking.rank || undefined : undefined)}
           secondary={(e) => {
             const slot = picking.field === 'prepared' || picking.field === 'repertoire' ? picking.rank : 0;
-            const up = slot > 0 && !isCantrip(e) && rankOf(e) < slot ? tr(`↑ sobe ao rank ${slot}`, `↑ heightened to rank ${slot}`) : null;
+            const gain = slot > 0 && !isCantrip(e) && rankOf(e) < slot ? heightenGain(e, slot) : null;
+            const up = slot > 0 && !isCantrip(e) && rankOf(e) < slot
+              ? gain && !gain.gains
+                ? tr(`↑ rank ${slot} sem ganho${gain.next ? ` (próximo no ${gain.next})` : ''}`, `↑ rank ${slot}, no benefit${gain.next ? ` (next at ${gain.next})` : ''}`)
+                : tr(`↑ sobe ao rank ${slot}`, `↑ heightened to rank ${slot}`)
+              : null;
             return [spellKind(e), up, (e.spell?.traditions ?? []).map((t) => TRADITION_LABEL[t.toLowerCase()] ?? t).join('/')].filter(Boolean).join(' · ');
           }} />
       )}

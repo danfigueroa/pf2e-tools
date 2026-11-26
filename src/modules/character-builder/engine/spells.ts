@@ -211,6 +211,22 @@ export function compileCasters(state: BuildState, cls: RuleEntry | undefined, ct
     }]
 }
 
+/**
+ * O que a elevação dá no rank conjurado (Player Core pg. 297, "Heightened Spells"): "Heightened (+N)" ganha a cada N
+ * ranks acima do rank base; "Heightened (3rd)" só a partir daquele rank. O rank da magia sobe com o espaço de qualquer
+ * jeito (conta para contra-atacar), então espaço sem ganho é permitido: vira aviso, não trava.
+ */
+export function heightenGain(spell: RuleEntry, rank: number): { gains: boolean; next?: number } | null {
+    const base = spell.spell?.rank ?? spell.level ?? 1
+    const entries = spell.spell?.heighten ?? []
+    if (spell.spell?.cantrip || rank <= base || !entries.length) return null
+    const steps = entries.flatMap((h) => { const m = /^\+(\d+)$/.exec(h); return m ? [Number(m[1])] : [] })
+    const fixed = entries.flatMap((h) => { const m = /^(\d+)(?:st|nd|rd|th)$/.exec(h); return m ? [Number(m[1])] : [] })
+    const gains = steps.some((n) => rank - base >= n) || fixed.some((r) => r <= rank)
+    const nexts = [...steps.map((n) => base + n * (Math.floor((rank - base) / n) + 1)), ...fixed.filter((r) => r > rank)].filter((r) => r <= 10)
+    return { gains, next: nexts.length ? Math.min(...nexts) : undefined }
+}
+
 /** Escolhas de magia por conjurador: avisos de contagem e de tradição/rank. */
 export function checkSpellChoices(state: BuildState, casters: Caster[], spells: (id: string) => RuleEntry | undefined,
     pending: Pending[], warnings: Warning[], level = 1) {
@@ -233,6 +249,13 @@ export function checkSpellChoices(state: BuildState, casters: Caster[], spells: 
                     warnings.push({ code: 'SPELL_RANK', level: 'warn', ref: `spells:${caster.key}:${rank}`, message: tr(`${spell.name} não cabe no rank ${rank}.`, `${spell.name} does not fit rank ${rank}.`) })
                 }
                 // A AON grava as tradições com inicial maiúscula ("Arcane").
+                // Rank 1 com Heightened (+2) num espaço de rank 2: vale (o rank sobe), mas ainda sem o ganho da elevação.
+                const gain = heightenGain(spell, rank)
+                if (gain && !gain.gains) {
+                    warnings.push({ code: 'HEIGHTEN_NO_GAIN', level: 'info', ref: `spells:${caster.key}:${rank}`, message: tr(
+                        `${spell.name} no rank ${rank} não ganha nada da elevação${gain.next ? ` (o próximo ganho é no rank ${gain.next})` : ''}; o rank da magia sobe mesmo assim (Player Core pg. 297).`,
+                        `${spell.name} at rank ${rank} gets nothing from heightening${gain.next ? ` (the next benefit is at rank ${gain.next})` : ''}; the spell's rank still rises (Player Core pg. 297).`) })
+                }
                 if (caster.tradition && !(spell.spell?.traditions ?? []).some((t) => t.toLowerCase() === caster.tradition)) {
                     warnings.push({ code: 'SPELL_TRADITION', level: 'warn', ref: `spells:${caster.key}:${rank}`, message: tr(`${spell.name} não é da tradição ${caster.tradition}.`, `${spell.name} is not on the ${caster.tradition} list.`) })
                 }

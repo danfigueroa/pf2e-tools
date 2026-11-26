@@ -500,6 +500,14 @@ expect('Cleric conhece a lista divina inteira (Player Core pg. 108)', knownOf('C
 expect('Wizard: grimório com 10 truques e 5 magias no 1º nível (Player Core pg. 192)', [knownOf('Wizard', 1, 'int')?.cantrips, knownOf('Wizard', 1, 'int')?.spells], [10, 5])
 expect('Wizard: duas magias a mais por nível (5 + 2 × 4 no 5º)', knownOf('Wizard', 5, 'int')?.spells, 13)
 if (find('core/classes', 'Witch')) expect('Witch: o familiar é o livro (Player Core pg. 178)', [knownOf('Witch', 1, 'int')?.kind, knownOf('Witch', 1, 'int')?.cantrips], ['book', 10])
+// Elevação sem ganho (Player Core pg. 297): Echo Jump (rank 3, Heightened +2) num espaço de rank 4 vale, mas avisa; no 5, ganha.
+{
+    const wiz = find('core/classes', 'Wizard')
+    const at = (rank) => compileBuild(base({ level: 9, class: { id: wiz.id, keyAttribute: 'int' }, spellcasting: { class: { prepared: { [rank]: ['spell:spell-2481'] } } } }), ctxSpells)
+        .warnings.some((w) => w.code === 'HEIGHTEN_NO_GAIN')
+    expect('Echo Jump (+2) no rank 4: aviso de elevação sem ganho', at(4), true)
+    expect('Echo Jump (+2) no rank 5: ganha, sem aviso', at(5), false)
+}
 // Foco concedido pelo texto da AON (focusGrants.gen.ts): Grave Spells dá Necrotic Bomb e os truques Create Thrall e
 // Thrall Charge, e a fascinação Bone dá Bone Spear ("you start with a focus pool of 2 Focus Points", Impossible Magic pg. 27).
 {

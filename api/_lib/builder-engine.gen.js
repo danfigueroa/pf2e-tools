@@ -3139,6 +3139,22 @@ function compileCasters(state, cls, ctx, pending, warnings, used) {
     known
   }];
 }
+function heightenGain(spell, rank) {
+  const base2 = spell.spell?.rank ?? spell.level ?? 1;
+  const entries = spell.spell?.heighten ?? [];
+  if (spell.spell?.cantrip || rank <= base2 || !entries.length) return null;
+  const steps = entries.flatMap((h) => {
+    const m = /^\+(\d+)$/.exec(h);
+    return m ? [Number(m[1])] : [];
+  });
+  const fixed = entries.flatMap((h) => {
+    const m = /^(\d+)(?:st|nd|rd|th)$/.exec(h);
+    return m ? [Number(m[1])] : [];
+  });
+  const gains = steps.some((n) => rank - base2 >= n) || fixed.some((r) => r <= rank);
+  const nexts = [...steps.map((n) => base2 + n * (Math.floor((rank - base2) / n) + 1)), ...fixed.filter((r) => r > rank)].filter((r) => r <= 10);
+  return { gains, next: nexts.length ? Math.min(...nexts) : void 0 };
+}
 function checkSpellChoices(state, casters, spells, pending, warnings, level = 1) {
   for (const caster of casters) {
     const choices = state.spellcasting[caster.key] ?? {};
@@ -3156,6 +3172,13 @@ function checkSpellChoices(state, casters, spells, pending, warnings, level = 1)
         const cantrip = spell.spell?.cantrip ?? false;
         if (rank === 0 !== cantrip || rank > 0 && sr > rank) {
           warnings.push({ code: "SPELL_RANK", level: "warn", ref: `spells:${caster.key}:${rank}`, message: tr(`${spell.name} n\xE3o cabe no rank ${rank}.`, `${spell.name} does not fit rank ${rank}.`) });
+        }
+        const gain = heightenGain(spell, rank);
+        if (gain && !gain.gains) {
+          warnings.push({ code: "HEIGHTEN_NO_GAIN", level: "info", ref: `spells:${caster.key}:${rank}`, message: tr(
+            `${spell.name} no rank ${rank} n\xE3o ganha nada da eleva\xE7\xE3o${gain.next ? ` (o pr\xF3ximo ganho \xE9 no rank ${gain.next})` : ""}; o rank da magia sobe mesmo assim (Player Core pg. 297).`,
+            `${spell.name} at rank ${rank} gets nothing from heightening${gain.next ? ` (the next benefit is at rank ${gain.next})` : ""}; the spell's rank still rises (Player Core pg. 297).`
+          ) });
         }
         if (caster.tradition && !(spell.spell?.traditions ?? []).some((t) => t.toLowerCase() === caster.tradition)) {
           warnings.push({ code: "SPELL_TRADITION", level: "warn", ref: `spells:${caster.key}:${rank}`, message: tr(`${spell.name} n\xE3o \xE9 da tradi\xE7\xE3o ${caster.tradition}.`, `${spell.name} is not on the ${caster.tradition} list.`) });
