@@ -187,8 +187,6 @@ const armorWord = (c: string) => ({ light: tr('leve', 'light'), medium: tr('méd
 export interface CatalogCategory {
     key: string
     label: string
-    /** Subcategoria filha (recuada na lista). */
-    sub?: boolean
     test: (e: RuleEntry) => boolean
 }
 
@@ -201,13 +199,6 @@ export const CATALOG_CATEGORIES: CatalogCategory[] = [
     { key: 'armor', label: tr('Armaduras', 'Armor'), test: (e) => cat(e).startsWith('armor') },
     { key: 'shields', label: tr('Escudos', 'Shields'), test: (e) => cat(e).startsWith('shield') },
     { key: 'consumables', label: tr('Consumíveis', 'Consumables'), test: (e) => /consumable|alchemical|snare/.test(cat(e)) },
-    { key: 'potions', label: tr('Poções', 'Potions'), sub: true, test: (e) => subcat(e).includes('potion') },
-    { key: 'elixirs', label: tr('Elixires', 'Elixirs'), sub: true, test: (e) => subcat(e).includes('elixir') },
-    { key: 'bombs', label: tr('Bombas', 'Bombs'), sub: true, test: (e) => subcat(e).includes('bomb') },
-    { key: 'talismans', label: tr('Talismãs', 'Talismans'), sub: true, test: (e) => subcat(e).includes('talisman') },
-    { key: 'scrolls', label: tr('Pergaminhos', 'Scrolls'), sub: true, test: (e) => subcat(e).includes('scroll') },
-    { key: 'oils', label: tr('Óleos', 'Oils'), sub: true, test: (e) => subcat(e).includes('oil') },
-    { key: 'ammo', label: tr('Munição', 'Ammunition'), sub: true, test: (e) => subcat(e).includes('ammunition') },
     { key: 'worn', label: tr('Vestíveis', 'Worn items'), test: (e) => cat(e).startsWith('worn') || cat(e).startsWith('tattoo') },
     { key: 'held', label: tr('Empunhados', 'Held items'), test: (e) => cat(e).startsWith('held') },
     { key: 'staves', label: tr('Cajados e varinhas', 'Staves and wands'), test: (e) => /staff|staves|wand/.test(cat(e)) },
@@ -216,6 +207,83 @@ export const CATALOG_CATEGORIES: CatalogCategory[] = [
     { key: 'gear', label: tr('Equipamento', 'Gear'), test: (e) => /adventuring gear|^gear|tool|kit|clothing|container|services|animal|vehicle/.test(cat(e)) },
     { key: 'relics', label: tr('Relíquias', 'Relics'), test: (e) => cat(e).startsWith('relic') },
 ]
+
+const CONSUMABLE_TYPES: CatalogCategory[] = [
+    { key: 'potions', label: tr('Poções', 'Potions'), test: (e) => subcat(e).includes('potion') },
+    { key: 'elixirs', label: tr('Elixires', 'Elixirs'), test: (e) => subcat(e).includes('elixir') },
+    { key: 'bombs', label: tr('Bombas', 'Bombs'), test: (e) => subcat(e).includes('bomb') },
+    { key: 'talismans', label: tr('Talismãs', 'Talismans'), test: (e) => subcat(e).includes('talisman') },
+    { key: 'scrolls', label: tr('Pergaminhos', 'Scrolls'), test: (e) => subcat(e).includes('scroll') },
+    { key: 'oils', label: tr('Óleos', 'Oils'), test: (e) => subcat(e).includes('oil') },
+    { key: 'ammo', label: tr('Munição', 'Ammunition'), test: (e) => subcat(e).includes('ammunition') },
+    { key: 'poisons', label: tr('Venenos', 'Poisons'), test: (e) => subcat(e).includes('poison') },
+    { key: 'snares', label: tr('Armadilhas', 'Snares'), test: (e) => cat(e) === 'snares' },
+]
+
+// A AON lista Reinforcing em Shield Runes; a tabela de runas fundamentais inclui a de reforço (GM Core, p. 224).
+const shieldRune = (e: RuleEntry) => subcat(e) === 'shield runes'
+const RUNE_TYPES: CatalogCategory[] = [
+    { key: 'fundamental', label: tr('Fundamentais', 'Fundamental'), test: (e) => subcat(e).startsWith('fundamental ') || shieldRune(e) },
+    { key: 'property', label: tr('De propriedade', 'Property'), test: (e) => subcat(e).includes('property runes') },
+    { key: 'shield', label: tr('De escudo', 'Shield'), test: shieldRune },
+]
+
+const SPELLCASTING_ITEM_TYPES: CatalogCategory[] = [
+    { key: 'staff', label: tr('Cajados', 'Staves'), test: (e) => /staff|staves/.test(cat(e)) },
+    { key: 'wand', label: tr('Varinhas', 'Wands'), test: (e) => cat(e).startsWith('wand') },
+]
+
+const ARMOR_TYPES: Record<string, string> = {
+    light: tr('Leves', 'Light'), medium: tr('Médias', 'Medium'), heavy: tr('Pesadas', 'Heavy'), unarmored: tr('Sem armadura', 'Unarmored'),
+}
+
+const WEAPON_GROUPS: Record<string, string> = {
+    axe: tr('Machados', 'Axes'), bomb: tr('Bombas', 'Bombs'), bow: tr('Arcos', 'Bows'), brawling: tr('Briga', 'Brawling'),
+    club: tr('Clavas', 'Clubs'), crossbow: tr('Bestas', 'Crossbows'), dart: tr('Dardos', 'Darts'), firearm: tr('Armas de fogo', 'Firearms'),
+    flail: tr('Manguais', 'Flails'), hammer: tr('Martelos', 'Hammers'), knife: tr('Facas', 'Knives'), pick: tr('Picaretas', 'Picks'),
+    polearm: tr('Armas de haste', 'Polearms'), shield: tr('Escudos', 'Shields'), sling: tr('Fundas', 'Slings'),
+    spear: tr('Lanças', 'Spears'), sword: tr('Espadas', 'Swords'),
+}
+
+export function catalogSubtypes(category: string, entries: RuleEntry[]): CatalogCategory[] {
+    if (category === 'consumables') return CONSUMABLE_TYPES
+    if (category === 'runes') return RUNE_TYPES
+    if (category === 'staves') return SPELLCASTING_ITEM_TYPES
+    if (category !== 'weapons' && category !== 'armor') return []
+
+    const armor = category === 'armor'
+    const typeOf = (entry: RuleEntry) => armor ? entry.item?.armor?.category : entry.item?.weapon?.group
+    const byName = new Map<string, Set<string>>()
+    for (const entry of entries) {
+        const type = typeOf(entry)
+        if (!type) continue
+        const name = entry.name.toLowerCase()
+        const values = byName.get(name) ?? new Set<string>()
+        values.add(type)
+        byName.set(name, values)
+    }
+    // Um item específico pode ter mais de uma base na AON. Use todas as categorias que os dados confirmam.
+    const byType = new Map<string, { label: string; ids: Set<string> }>()
+    const labels = armor ? ARMOR_TYPES : WEAPON_GROUPS
+    for (const entry of entries) {
+        const own = typeOf(entry)
+        const types = own ? [own] : [entry.item?.baseItem ?? []].flat().flatMap((name) => [...(byName.get(name.toLowerCase()) ?? [])])
+        for (const type of types.length ? types : ['']) {
+            const key = type.toLowerCase() || 'unspecified'
+            const label = labels[key] ?? (type || (armor ? tr('Sem categoria', 'No category') : tr('Sem grupo', 'No group')))
+            const group = byType.get(key) ?? { label, ids: new Set<string>() }
+            group.ids.add(entry.id)
+            byType.set(key, group)
+        }
+    }
+    const options = [...byType].map(([key, { label, ids }]) => ({ key, label, test: (e: RuleEntry) => ids.has(e.id) }))
+    const order = Object.keys(ARMOR_TYPES)
+    const rank = (key: string) => armor && order.includes(key) ? order.indexOf(key) : key === 'unspecified' ? order.length + 1 : order.length
+    return options.sort((a, b) => rank(a.key) - rank(b.key) || a.label.localeCompare(b.label, locale))
+}
+
+export const isMagicalItem = (e: RuleEntry) => /\bmagic\b/.test(subcat(e)) ||
+    (e.traits ?? []).some((t) => /^(magical|arcane|divine|occult|primal)$/i.test(t))
 
 /**
  * O que o catálogo lista: itens com preço ou variantes. Some o grupo sem preço que tem variantes ("Healing Potion" sem

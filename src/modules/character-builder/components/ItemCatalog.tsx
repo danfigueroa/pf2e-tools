@@ -1,7 +1,7 @@
 import { lazy, Suspense, useMemo, useRef, useState } from 'react';
 import { Box, Button, ButtonBase, Dialog, Drawer, IconButton, InputBase, MenuItem, TextField, useMediaQuery, useTheme } from '@mui/material';
 import { chrome, displayFont, gold, green, greenInk, ink, parchment, rule, status } from '../../../theme';
-import { tr } from '../../../i18n';
+import { locale, tr } from '../../../i18n';
 import type { RuleEntry } from '../rules/types';
 import type { MesaRules } from '../types';
 import type { ResolvedItem } from '../engine/equipment';
@@ -9,7 +9,7 @@ import { allowedAtTable } from '../mesaRules';
 import { ActionGlyph, ContentBadge, Label, LevelBox, Pill } from './ui';
 import { goldButtonSx, tint } from './uiTokens';
 import { ItemGlyph, PlusButton, Segmented, Stepper, StrokeIcon } from './equipUi';
-import { CATALOG_CATEGORIES, formatBulk, formatGp, ICON_PATH, itemFacts, itemKind } from './equipmentModel';
+import { CATALOG_CATEGORIES, catalogSubtypes, formatBulk, formatGp, ICON_PATH, isMagicalItem, itemFacts, itemKind } from './equipmentModel';
 
 const DescriptionContent = lazy(() =>
   import('../../character-viewer/components/DescriptionContent').then((m) => ({ default: m.DescriptionContent })));
@@ -28,7 +28,7 @@ const SORT_LABEL: Record<Sort, string> = { level: tr('nível', 'level'), name: t
 const NEXT_SORT: Record<Sort, Sort> = { level: 'name', name: 'price', price: 'level' };
 
 /**
- * Catálogo com sacola (redesign): categorias e subcategorias de consumíveis, busca, "até o nível", "permitido na mesa" e
+ * Catálogo com sacola: categorias, filtros por tipo, busca, "até o nível", "permitido na mesa" e
  * ordem; o "+" põe na sacola e vira contador; a ficha do item tem quantidade, Comprar/Ganhei e onde guardar. A sacola
  * mostra o total e quanto sobra, e adiciona tudo de uma vez. Ficar sem dinheiro avisa, não trava.
  */
@@ -52,11 +52,14 @@ export function ItemCatalog({ open, entries, level, remaining, mesaRules, contai
   const phone = useMediaQuery(theme.breakpoints.down('md'));
   const [tab, setTab] = useState<'catalog' | 'custom'>(startTab);
   const [q, setQ] = useState('');
-  const [category, setCategory] = useState('all');
+  const [category, setCategory] = useState(CATALOG_CATEGORIES[0]);
+  const [subtype, setSubtype] = useState('');
+  const [magic, setMagic] = useState('');
   const [capLevel, setCapLevel] = useState(true);
   const [tableOnly, setTableOnly] = useState(true);
   const [sort, setSort] = useState<Sort>('level');
   const [limit, setLimit] = useState(PAGE);
+  const resultList = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [bag, setBag] = useState<BagLine[]>([]);
   const [draft, setDraft] = useState<{ qty: number; acquired: 'bought' | 'given'; container: string }>({ qty: 1, acquired: 'bought', container: '' });
@@ -66,22 +69,36 @@ export function ItemCatalog({ open, entries, level, remaining, mesaRules, contai
   const [customAcq, setCustomAcq] = useState<'bought' | 'given'>('given');
 
   const byId = useMemo(() => new Map(entries.map((e) => [e.id, e])), [entries]);
-  const base = useMemo(() => entries.filter((e) => (!capLevel || (e.level ?? 0) <= level) && (!tableOnly || allowedAtTable(e, mesaRules) !== false)), [entries, capLevel, level, tableOnly, mesaRules]);
-  const counts = useMemo(() => {
-    const term = q.trim().toLowerCase();
-    const matched = term ? base.filter((e) => e.name.toLowerCase().includes(term)) : base;
-    return new Map(CATALOG_CATEGORIES.map((c) => [c.key, matched.filter(c.test).length]));
-  }, [base, q]);
+  const term = q.trim().toLowerCase();
+  const matched = useMemo(() => entries.filter((e) => (
+    (!capLevel || (e.level ?? 0) <= level) && (!tableOnly || allowedAtTable(e, mesaRules) !== false) &&
+    (!term || e.name.toLowerCase().includes(term) || (e.previousNames ?? []).some((n) => n.toLowerCase().includes(term)))
+  )), [entries, capLevel, level, tableOnly, mesaRules, term]);
+  const counts = useMemo(() => new Map(CATALOG_CATEGORIES.map((c) => [c.key, matched.filter(c.test).length])), [matched]);
+  const subtypes = useMemo(() => catalogSubtypes(category.key, entries.filter(category.test)), [category, entries]);
+  const typeFilter = subtypes.find((c) => c.key === subtype);
+  const showMagic = category.key === 'armor' || category.key === 'weapons';
   const results = useMemo(() => {
-    const term = q.trim().toLowerCase();
-    const test = CATALOG_CATEGORIES.find((c) => c.key === category)?.test ?? (() => true);
-    const list = base.filter((e) => test(e) && (!term || e.name.toLowerCase().includes(term) || (e.previousNames ?? []).some((n) => n.toLowerCase().includes(term))));
+    const list = matched.filter((e) => category.test(e) && (!typeFilter || typeFilter.test(e)) &&
+      (!magic || isMagicalItem(e) === (magic === 'magical')));
     const starts = (e: RuleEntry) => (term && e.name.toLowerCase().startsWith(term) ? 0 : 1);
     const cmp = sort === 'name' ? (a: RuleEntry, b: RuleEntry) => a.name.localeCompare(b.name)
       : sort === 'price' ? (a: RuleEntry, b: RuleEntry) => (a.item?.price?.gp ?? 0) - (b.item?.price?.gp ?? 0) || a.name.localeCompare(b.name)
         : (a: RuleEntry, b: RuleEntry) => (a.level ?? 0) - (b.level ?? 0) || a.name.localeCompare(b.name);
     return list.sort((a, b) => starts(a) - starts(b) || cmp(a, b));
-  }, [base, q, category, sort]);
+  }, [matched, category, typeFilter, magic, sort, term]);
+
+  const resetResults = () => {
+    setLimit(PAGE);
+    if (resultList.current) resultList.current.scrollTop = 0;
+  };
+  const changeCategory = (next: typeof category) => {
+    if (next === category) return;
+    setCategory(next);
+    setSubtype('');
+    setMagic('');
+    resetResults();
+  };
 
   const lineOf = (id: string) => bag.find((l) => l.id === id);
   const setLine = (id: string, patch: Partial<BagLine> | null) => setBag((prev) => {
@@ -161,20 +178,20 @@ export function ItemCatalog({ open, entries, level, remaining, mesaRules, contai
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', px: { xs: 1.5, sm: 2.5 }, pb: 1.25, borderBottom: `1px solid ${rule}`, flexWrap: 'wrap' }}>
             <Box sx={{ flex: '1 1 220px', display: 'flex', alignItems: 'center', gap: 1, height: 42, px: 1.25, border: `1px solid ${rule}`, borderRadius: '6px', bgcolor: parchment.paper, '&:focus-within': { borderColor: greenInk.mid, boxShadow: `0 0 0 2px ${tint.green}` } }}>
               <StrokeIcon d={ICON_PATH.search} size={16} sx={{ color: ink.secondary }} />
-              <InputBase autoFocus={!phone} fullWidth value={q} onChange={(e) => { setQ(e.target.value); setLimit(PAGE); }} placeholder={tr('Buscar item (healing, longsword…)', 'Search items (healing, longsword…)')}
+              <InputBase autoFocus={!phone} fullWidth value={q} onChange={(e) => { setQ(e.target.value); resetResults(); }} placeholder={tr('Buscar item (healing, longsword…)', 'Search items (healing, longsword…)')}
                 inputProps={{ 'aria-label': tr('Buscar item', 'Search items') }} />
             </Box>
             <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
-              <Pill look={capLevel ? 'sel' : 'default'} onClick={() => setCapLevel((v) => !v)}>{tr(`Até o nível ${level}`, `Up to level ${level}`)}</Pill>
-              <Pill look={tableOnly ? 'sel' : 'default'} onClick={() => setTableOnly((v) => !v)}>{tr('Permitido na mesa', 'Allowed at the table')}</Pill>
-              <Pill onClick={() => setSort(NEXT_SORT[sort])}>{tr(`Ordem: ${SORT_LABEL[sort]}`, `Sort: ${SORT_LABEL[sort]}`)}</Pill>
+              <Pill look={capLevel ? 'sel' : 'default'} onClick={() => { setCapLevel((v) => !v); resetResults(); }}>{tr(`Até o nível ${level}`, `Up to level ${level}`)}</Pill>
+              <Pill look={tableOnly ? 'sel' : 'default'} onClick={() => { setTableOnly((v) => !v); resetResults(); }}>{tr('Permitido na mesa', 'Allowed at the table')}</Pill>
+              <Pill onClick={() => { setSort(NEXT_SORT[sort]); resetResults(); }}>{tr(`Ordem: ${SORT_LABEL[sort]}`, `Sort: ${SORT_LABEL[sort]}`)}</Pill>
             </Box>
           </Box>
 
           {phone && (
             <Box sx={{ display: 'flex', gap: 0.75, overflowX: 'auto', px: 1.5, py: 1, borderBottom: `1px solid ${rule}`, flex: 'none' }}>
-              {CATALOG_CATEGORIES.filter((c) => c.key === 'all' || (counts.get(c.key) ?? 0) > 0).map((c) => (
-                <Pill key={c.key} look={category === c.key ? 'sel' : 'default'} onClick={() => { setCategory(c.key); setLimit(PAGE); }}>
+              {CATALOG_CATEGORIES.filter((c) => c === category || c.key === 'all' || (counts.get(c.key) ?? 0) > 0).map((c) => (
+                <Pill key={c.key} look={category === c ? 'sel' : 'default'} onClick={() => changeCategory(c)}>
                   {c.label}{c.key !== 'all' ? ` · ${counts.get(c.key) ?? 0}` : ''}</Pill>
               ))}
             </Box>
@@ -184,12 +201,12 @@ export function ItemCatalog({ open, entries, level, remaining, mesaRules, contai
             {!phone && (
               <Box component="nav" aria-label={tr('Categorias', 'Categories')} sx={{ borderRight: `1px solid ${rule}`, p: 1, display: 'flex', flexDirection: 'column', gap: '2px', bgcolor: parchment.page, overflowY: 'auto' }}>
                 {CATALOG_CATEGORIES.map((c) => {
-                  const on = category === c.key;
+                  const on = category === c;
                   const n = counts.get(c.key) ?? 0;
                   return (
-                    <ButtonBase key={c.key} onClick={() => { setCategory(c.key); setLimit(PAGE); }} aria-current={on ? 'true' : undefined} data-view="" sx={{
-                      display: 'flex', alignItems: 'center', gap: 1, minHeight: c.sub ? 34 : 40, px: 1.25, ml: c.sub ? 2 : 0, borderRadius: '6px', justifyContent: 'flex-start',
-                      bgcolor: on ? greenInk.main : 'transparent', color: on ? parchment.paper : n ? ink.primary : ink.disabled, fontWeight: on ? 700 : 500, fontSize: c.sub ? 13 : 14,
+                    <ButtonBase key={c.key} onClick={() => changeCategory(c)} aria-current={on ? 'true' : undefined} data-view="" sx={{
+                      display: 'flex', alignItems: 'center', gap: 1, minHeight: 40, px: 1.25, borderRadius: '6px', justifyContent: 'flex-start',
+                      bgcolor: on ? greenInk.main : 'transparent', color: on ? parchment.paper : n ? ink.primary : ink.disabled, fontWeight: on ? 700 : 500, fontSize: 14,
                     }}>
                       <Box component="span" sx={{ flex: 1, textAlign: 'left' }}>{c.label}</Box>
                       <Box component="span" sx={{ fontSize: 12, opacity: 0.8, fontVariantNumeric: 'tabular-nums' }}>{n}</Box>
@@ -199,11 +216,33 @@ export function ItemCatalog({ open, entries, level, remaining, mesaRules, contai
               </Box>
             )}
 
-            <Box sx={{ minWidth: 0, overflowY: 'auto' }}>
+            <Box ref={resultList} sx={{ minWidth: 0, overflowY: 'auto' }}>
+              {(subtypes.length > 0 || showMagic) && (
+                <Box sx={{ position: 'sticky', top: 0, zIndex: 1, bgcolor: parchment.paper, borderBottom: `1px solid ${rule}`, p: 1.5, pt: 2,
+                  display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(128px, 1fr))', gap: 1 }}>
+                  {subtypes.length > 0 && (
+                    <TextField select size="small" label={category.key === 'weapons' ? tr('Grupo de armas', 'Weapon group') : tr('Tipo', 'Type')}
+                      value={typeFilter?.key ?? ''} onChange={(e) => { setSubtype(e.target.value); resetResults(); }}
+                      slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}>
+                      <option value="">{tr('Qualquer tipo', 'Any type')}</option>
+                      {subtypes.map((type) => <option key={type.key} value={type.key}>{type.label}</option>)}
+                    </TextField>
+                  )}
+                  {showMagic && (
+                    <TextField select size="small" label={tr('Magia', 'Magic')} value={magic}
+                      onChange={(e) => { setMagic(e.target.value); resetResults(); }}
+                      slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}>
+                      <option value="">{tr('Qualquer', 'Any')}</option>
+                      <option value="magical">{tr('Mágicos', 'Magical')}</option>
+                      <option value="mundane">{tr('Mundanos', 'Mundane')}</option>
+                    </TextField>
+                  )}
+                </Box>
+              )}
               <Box sx={{ fontSize: 13, color: ink.secondary, px: 2, pt: 1.25, pb: 0.75 }}>
                 {loading && !entries.length ? tr('Carregando o catálogo de itens…', 'Loading the item catalog…')
-                  : tr(`${CATALOG_CATEGORIES.find((c) => c.key === category)?.label} · ${results.length} resultado${results.length === 1 ? '' : 's'}`,
-                    `${CATALOG_CATEGORIES.find((c) => c.key === category)?.label} · ${results.length} result${results.length === 1 ? '' : 's'}`)}
+                  : tr(`${category.label} · ${results.length.toLocaleString(locale)} resultado${results.length === 1 ? '' : 's'}`,
+                    `${category.label} · ${results.length.toLocaleString(locale)} result${results.length === 1 ? '' : 's'}`)}
               </Box>
               {results.slice(0, limit).map((e) => {
                 const line = lineOf(e.id);
@@ -239,7 +278,7 @@ export function ItemCatalog({ open, entries, level, remaining, mesaRules, contai
               )}
               {!loading && results.length === 0 && (
                 <Box sx={{ p: 3, textAlign: 'center', color: ink.secondary, fontSize: 14 }}>
-                  {tr('Nada com esses filtros. Tente tirar "Até o nível" ou trocar de categoria.', 'Nothing with these filters. Try removing "Up to level" or another category.')}</Box>
+                  {tr('Nenhum item encontrado. Experimente ajustar a busca ou os filtros.', 'No items found. Try adjusting your search or filters.')}</Box>
               )}
             </Box>
 
