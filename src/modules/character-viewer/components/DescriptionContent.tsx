@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { TYPE_ACCENT as PALETTE_TYPE_ACCENT } from '../../../theme/palette'
+import { displayFont } from '../../../theme'
 import {
     Box,
     Button,
@@ -262,7 +263,7 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                 .filter((e) => e.applies)
                 .filter((e) => !heightenedDamage || !isPureDamageEntry(e.text))
         if (visible.length === 0) return null
-        return { title: `NESTE RANK (${request?.type === 'spell' ? request.level : ''})`, entries: visible, levelAware: true }
+        return { title: tr(`NESTE RANK (${request?.type === 'spell' ? request.level : ''})`, `AT THIS RANK (${request?.type === 'spell' ? request.level : ''})`), entries: visible, levelAware: true }
     }, [heightenedEntries, levelAware, heightenedDamage, request, scaled])
 
     return (
@@ -451,7 +452,8 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
                 ) : (
                     <>
                     {/* A AON não tem uma entrada com este nome: avisa de qual é o texto, em vez de passar por ele. */}
-                    {entry?.matchedName && (
+                    {/* A etiqueta de categoria do Criador ("Bone [grim-fascination]") não é parte do nome. */}
+                    {entry?.matchedName && entry.matchedName.toLowerCase() !== request.name.replace(/ \[[a-z-]+\]$/, '').toLowerCase() && (
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontStyle: 'italic' }}>
                             {tr('A AON não tem uma entrada chamada “', 'AON has no entry called “')}{request.name}{tr('”; esta é a descrição de “', '”; this is the description of “')}{entry.matchedName}”.
                         </Typography>
@@ -888,17 +890,21 @@ const DescriptionBody = ({
         <Box sx={{ '& > * + *': { mt: 1.5 } }}>
             {parts.length > 0 && (
                 <Typography
-                    variant="overline"
+                    component="h4"
                     sx={{
                         display: 'block',
-                        color: 'text.secondary',
+                        color: accent,
+                        fontFamily: displayFont,
                         fontWeight: 700,
-                        letterSpacing: '0.06em',
-                        fontSize: '0.62rem',
-                        mb: 0.5,
+                        fontSize: 17,
+                        letterSpacing: '0.02em',
+                        pb: 0.5,
+                        mb: 0.75,
+                        borderBottom: '1px solid',
+                        borderColor: accent + '40',
                     }}
                 >
-                    {tr('DESCRIÇÃO', 'DESCRIPTION')}</Typography>
+                    {tr('Descrição', 'Description')}</Typography>
             )}
             {parts.map((p, idx) => {
                 const partHits = hits[idx]
