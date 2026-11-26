@@ -12,6 +12,7 @@ import type { RuleEntry } from '../rules/types';
 import type { MesaRules } from '../types';
 import type { PrereqPart, PrereqResult } from '../engine/prereqs';
 import { allowedAtTable } from '../mesaRules';
+import { useTraitLabels } from '../../character-viewer/components/useTraitLabels';
 import { pickerEditions } from '../remaster';
 import { BuildExceptions } from '../hooks/buildExceptions';
 import { ActionGlyph, ContentBadge, LevelBox, Notice, PrereqMark, SectionHead } from './ui';
@@ -119,6 +120,8 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
       .filter((e) => !capOn || levelCap === undefined || (e.level ?? 0) <= levelCap)
       .sort((a, b) => (prereq ? rank(a) - rank(b) : 0) || a.name.localeCompare(b.name, locale));
   }, [editions, exceptions, q, rarity, onlyAllowed, mesaRules, eligibility, prereq, capOn, levelCap]);
+  const traitText = useTraitLabels(useMemo(() => [...new Set([...shown.slice(0, limit), ...(focusId ? editions.filter((e) => e.id === focusId) : [])]
+    .flatMap((e) => traitsOf(e).slice(0, 8)))], [shown, limit, focusId, editions]));
   const eligibleCount = prereq ? shown.filter((e) => eligibility.get(e.id)?.result === 'ok').length : null;
 
   const focused = shown.find((e) => e.id === focusId) ?? (wide ? shown[0] : undefined);
@@ -203,7 +206,7 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
       note?.(e) ? <ContentBadge key="n" kind="trait">{note(e)}</ContentBadge> : null,
       e.id === value ? <ContentBadge key="v" kind="trait">{tr('escolhido', 'chosen')}</ContentBadge> : null,
     ].filter(Boolean);
-    const meta = secondary ? secondary(e) : traitsOf(e).slice(0, 4).join(' · ');
+    const meta = secondary ? secondary(e) : traitsOf(e).slice(0, 4).map(traitText).join(' · ');
     return (
       <ButtonBase key={e.id} data-id={e.id} role="option" aria-selected={e.id === value}
         onClick={() => { setFocusId(e.id); if (!wide) setDetailOpen(true); }} onDoubleClick={() => choose(e)}
@@ -272,7 +275,7 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
             </Box>
             {traitsOf(e).length > 0 && (
               <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
-                {traitsOf(e).slice(0, 8).map((t) => <ContentBadge key={t} kind="trait">{t}</ContentBadge>)}
+                {traitsOf(e).slice(0, 8).map((t) => <ContentBadge key={t} kind="trait">{traitText(t)}</ContentBadge>)}
               </Box>
             )}
           </Box>

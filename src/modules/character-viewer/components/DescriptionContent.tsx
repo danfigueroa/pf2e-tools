@@ -51,6 +51,7 @@ import {
     type AppliedHeightened,
     type ScaledSpell,
 } from '../heightening'
+import { useTraitLabels } from './useTraitLabels'
 import { VIEW_OK } from '../sheetAccess'
 
 export interface SpellCasterInfo {
@@ -532,6 +533,7 @@ const ShareButton = ({ onShare }: { onShare: () => Promise<boolean> }) => {
 // da descrição — antes eles vinham colados no meio do texto ou eram perdidos
 // pelo strip heurístico de metadados.
 const EntryMetadata = ({ entry, accent }: { entry: FeatDescription; accent: string }) => {
+    const traitText = useTraitLabels(entry.traits ?? [])
     const rows: [string, string][] = []
     if (entry.className) rows.push([tr('Classe', 'Class'), entry.className])
     if (entry.archetype?.length) rows.push([tr('Arquétipo', 'Archetype'), entry.archetype.join(', ')])
@@ -565,7 +567,7 @@ const EntryMetadata = ({ entry, accent }: { entry: FeatDescription; accent: stri
                     {entry.traits?.map((t) => (
                         <Chip
                             key={t}
-                            label={t}
+                            label={traitText(t)}
                             size="small"
                             sx={{
                                 backgroundColor: 'action.hover',
@@ -653,6 +655,7 @@ const SpellMetadata = ({
     scaled?: ScaledSpell | null
     castLevel?: number
 }) => {
+    const traitText = useTraitLabels(spell.traits ?? [])
     const dmg = scaled ? damageComponents(scaled) : []
     const named = scaled ? scaled.components.filter((c) => !dmg.includes(c)) : []
     const hasNumbers = scaled ? dmg.length + named.length > 0 : Boolean(spell.damage || heightenedDamage)
@@ -663,7 +666,7 @@ const SpellMetadata = ({
                 {spell.traits.map((t) => (
                     <Chip
                         key={t}
-                        label={t}
+                        label={traitText(t)}
                         size="small"
                         sx={{
                             backgroundColor: traditionColor(t) + '1f',

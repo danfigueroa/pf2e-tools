@@ -205,7 +205,7 @@ export function SpellsSection({ state, update, compiled, canEdit, index, mesaRul
       {picking && (
         <ContentPicker open title={picking.field === 'rituals' ? tr('Rituais', 'Rituals') : picking.field === 'spellbook' ? tr('Grimório', 'Spellbook') : picking.field.startsWith('focus') ? tr('Magias de foco', 'Focus spells') : tr(`Magias — rank ${picking.rank}`, `Spells — rank ${picking.rank}`)}
           entries={candidates(picking)} onPick={(id) => add(picking, id)} onClose={() => setPicking(null)} mesaRules={mesaRules}
-          secondary={(e) => [e.spell?.cantrip ? tr('truque', 'cantrip') : tr(`rank ${e.spell?.rank ?? e.level ?? 0}`, `rank ${e.spell?.rank ?? e.level ?? 0}`), (e.spell?.traditions ?? []).join('/')].filter(Boolean).join(' · ')} />
+          secondary={(e) => [e.spell?.cantrip ? tr('truque', 'cantrip') : tr(`rank ${e.spell?.rank ?? e.level ?? 0}`, `rank ${e.spell?.rank ?? e.level ?? 0}`), (e.spell?.traditions ?? []).map((t) => TRADITION_LABEL[t.toLowerCase()] ?? t).join('/')].filter(Boolean).join(' · ')} />
       )}
     </Stack>
   );
