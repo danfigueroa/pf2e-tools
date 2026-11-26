@@ -135,6 +135,8 @@ export interface BuildHeader {
     updatedBy: string | null
     publishedRev: number | null
     deletedAt: number | null
+    /** O retrato do build (`details.portrait`); a lista usa quando a mesa ainda não tem o token. */
+    portrait?: string | null
     /** Só na lista: nome de exibição do dono na mesa. */
     ownerName?: string | null
     canEdit?: boolean

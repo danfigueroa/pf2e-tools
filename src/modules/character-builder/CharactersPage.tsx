@@ -15,6 +15,7 @@ import { locale, tr } from '../../i18n';
 import { BuilderMode } from './BuilderMode';
 import { ImportFromSheet } from './ImportFromSheet';
 import { CatalogButton } from './components/CatalogBrowser';
+import { BuildMedallion } from './components/BuildMedallion';
 import { Medallion, SectionHead, SlotCard, StateBadge, type PublishState } from './components/ui';
 import { cardSx, tint, warmShadow } from './components/uiTokens';
 import type { BuildHeader } from './types';
@@ -51,7 +52,7 @@ const BuildCard = ({ build, mine }: { build: BuildHeader; mine: boolean }) => (
   <ButtonBase component={RouterLink} to={`/personagens/${build.id}`} sx={[cardSx, { display: 'flex', flexDirection: 'column', alignItems: 'stretch', overflow: 'hidden', textAlign: 'left', width: 1 }]}>
     <Box sx={{ display: 'flex', gap: { xs: 1.5, md: 1.75 }, alignItems: 'center', px: { xs: 1.75, md: 2.25 }, py: { xs: 1.5, md: 2 },
       bgcolor: { md: chrome.hero }, borderBottom: { md: `2px solid ${gold.main}` } }}>
-      <Medallion name={build.name} size={56} />
+      <BuildMedallion slug={build.slug} name={build.name} portrait={build.portrait} size={56} />
       <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '1px' }}>
         <Box component="span" sx={{ font: `700 19px ${displayFont}`, fontSize: { md: 21 }, color: { md: chrome.text }, overflowWrap: 'anywhere' }}>{build.name}</Box>
         <Box component="span" sx={{ fontSize: 14, color: { xs: ink.secondary, md: chrome.textSoft } }}>{subtitle(build)}</Box>
@@ -250,7 +251,7 @@ function BuildList() {
           borderBottom: `1px solid ${rule}`, fontSize: 14, '&:last-of-type': { borderBottom: 0 },
         }}>
           <Box component="span" sx={{ display: 'flex', gap: 1.25, alignItems: 'center', minWidth: 0 }}>
-            <Medallion name={b.name} size={34} /><Box component="b" sx={{ font: `700 15px ${displayFont}`, overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.name}</Box>
+            <BuildMedallion slug={b.slug} name={b.name} portrait={b.portrait} size={34} /><Box component="b" sx={{ font: `700 15px ${displayFont}`, overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.name}</Box>
           </Box>
           <span>{subtitle(b)}</span>
           <Box component="span" sx={{ color: ink.secondary }}>{b.ownerName ?? tr('sem dono', 'no owner')}</Box>
@@ -344,7 +345,7 @@ function BuildList() {
           {groups.trash.length === 0 && <Box sx={{ fontSize: 15, color: ink.secondary, py: 2 }}>{tr('A lixeira está vazia.', 'The trash is empty.')}</Box>}
           {groups.trash.map((b) => (
             <Box key={b.id} sx={[cardSx, { p: 1.5, display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }]}>
-              <Medallion name={b.name} size={40} dashed />
+              <BuildMedallion slug={b.slug} name={b.name} portrait={b.portrait} size={40} dashed />
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Box sx={{ font: `700 16px ${displayFont}`, overflowWrap: 'anywhere' }}>{b.name}</Box>
                 <Box sx={{ fontSize: 14, color: ink.secondary }}>{subtitle(b)}</Box>
