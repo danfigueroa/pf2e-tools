@@ -4,7 +4,7 @@ import { tr } from '../../i18n'
 // Seções do editor e em qual delas cada pendência/aviso do motor se resolve (pela chave do slot).
 export type BuilderTab = 'progression' | 'origin' | 'class' | 'attributes' | 'skills' | 'actions' | 'spells' | 'equipment' | 'companions' | 'details'
 
-export const TABS: BuilderTab[] = ['origin', 'class', 'attributes', 'progression', 'skills', 'actions', 'spells', 'equipment', 'companions', 'details']
+export const TABS: BuilderTab[] = ['origin', 'class', 'attributes', 'progression', 'skills', 'spells', 'equipment', 'companions', 'details', 'actions']
 
 export const TAB_LABEL: Record<BuilderTab, string> = {
     progression: tr('Talentos', 'Feats'),
