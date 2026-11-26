@@ -942,7 +942,8 @@ function itemRunes(inv, base, rules) {
   } else if (base.item.shield) fundamental("reinforcing", r.reinforcing);
   if (base.item.weapon || base.item.armor) {
     for (const id of r.property ?? []) {
-      const e = rules.get(id);
+      const got = rules.get(id);
+      const e = got && !got.item?.price ? rules.named(got.name).find((x) => x.item?.price && /^runes?$/i.test(x.item?.category ?? "")) ?? got : got;
       out.push({ kind: "property", tier: 0, id, name: e?.name ?? id, level: e?.level, price: e?.item?.price?.gp ?? 0, known: !!e?.item?.price });
     }
   }
@@ -2585,7 +2586,10 @@ function importPathbuilder(b, ctx, opts = {}) {
   const key = () => `inv-imp${(n++).toString(36)}`;
   const inventory = [];
   const customId = (name) => `custom:${name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "item"}`;
-  const runeIds = (names) => (names ?? []).filter((r) => !/^reinforcing\b/i.test(r)).map((r) => rules.byName(r)?.id).filter((x) => !!x);
+  const runeIds = (names) => (names ?? []).filter((r) => !/^reinforcing\b/i.test(r)).map((r) => {
+    const all = rules.named(r).filter((x) => /^runes?$/i.test(x.item?.category ?? ""));
+    return (all.find((x) => x.item?.price && x.remaster) ?? all.find((x) => x.item?.price) ?? rules.byName(r))?.id;
+  }).filter((x) => !!x);
   const reinforcing = (names) => {
     const m = (names ?? []).map((r) => /^Reinforcing(?: Rune)? \((\w+)\)$/i.exec(r)?.[1]).find(Boolean);
     return m ? Math.max(0, REINFORCING_NAME.findIndex((x) => x.toLowerCase() === m.toLowerCase())) : 0;

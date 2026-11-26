@@ -244,7 +244,11 @@ export function importPathbuilder(b: BuildInfo, ctx: CompileContext, opts: { rec
     const key = () => `inv-imp${(n++).toString(36)}`
     const inventory: InventoryEntry[] = []
     const customId = (name: string) => `custom:${name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'item'}`
-    const runeIds = (names: string[] | undefined) => (names ?? []).filter((r) => !/^reinforcing\b/i.test(r)).map((r) => rules.byName(r)?.id).filter((x): x is string => !!x)
+    // A runa de propriedade com preço ("Shock" também é o grupo sem preço, que o `byName` devolveria).
+    const runeIds = (names: string[] | undefined) => (names ?? []).filter((r) => !/^reinforcing\b/i.test(r)).map((r) => {
+        const all = rules.named(r).filter((x) => /^runes?$/i.test(x.item?.category ?? ''))
+        return (all.find((x) => x.item?.price && x.remaster) ?? all.find((x) => x.item?.price) ?? rules.byName(r))?.id
+    }).filter((x): x is string => !!x)
     const reinforcing = (names: string[] | undefined) => {
         const m = (names ?? []).map((r) => /^Reinforcing(?: Rune)? \((\w+)\)$/i.exec(r)?.[1]).find(Boolean)
         return m ? Math.max(0, REINFORCING_NAME.findIndex((x) => x.toLowerCase() === m.toLowerCase())) : 0

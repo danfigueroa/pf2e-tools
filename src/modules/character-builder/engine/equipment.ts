@@ -139,7 +139,9 @@ export function itemRunes(inv: InventoryEntry, base: RuleEntry | null, rules: Ru
     else if (base.item.shield) fundamental('reinforcing', r.reinforcing)
     if (base.item.weapon || base.item.armor) {
         for (const id of r.property ?? []) {
-            const e = rules.get(id)
+            // A runa "Shock" é também o grupo sem preço: vale a variante com preço de mesmo nome.
+            const got = rules.get(id)
+            const e = got && !got.item?.price ? rules.named(got.name).find((x) => x.item?.price && /^runes?$/i.test(x.item?.category ?? '')) ?? got : got
             out.push({ kind: 'property', tier: 0, id, name: e?.name ?? id, level: e?.level, price: e?.item?.price?.gp ?? 0, known: !!e?.item?.price })
         }
     }
