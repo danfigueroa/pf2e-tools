@@ -99,7 +99,8 @@ export function sanitizeMesaRules(input) {
 
 // --- Armazenamento ------------------------------------------------------------------------------------------
 
-const HEADER = 'id, slug, owner_id, name, class_name, level, rules_version, rev, updated_at, updated_by, published_rev, deleted_at, created_at'
+// O retrato (`details.portrait`) vai no cabeçalho para a lista mostrar a foto sem baixar o estado inteiro.
+const HEADER = 'id, slug, owner_id, name, class_name, level, rules_version, rev, updated_at, updated_by, published_rev, deleted_at, created_at, portrait:state->details->>portrait'
 
 const ms = (v) => (v ? Date.parse(v) : null)
 const fromRow = (row) => row && {
@@ -116,6 +117,7 @@ const fromRow = (row) => row && {
     updatedBy: row.updated_by ?? null,
     publishedRev: row.published_rev ?? null,
     deletedAt: ms(row.deleted_at),
+    portrait: (typeof row.portrait === 'string' && row.portrait) || (typeof row.state?.details?.portrait === 'string' && row.state.details.portrait) || null,
     ...(row.state !== undefined ? { state: row.state } : {}),
 }
 
@@ -166,7 +168,7 @@ const mem = (mesa) => {
 const copy = (v) => (v === undefined ? v : JSON.parse(JSON.stringify(v)))
 
 const memoryStore = {
-    list: async (mesa) => [...mem(mesa).builds.values()].map(({ state, ...header }) => copy(header))
+    list: async (mesa) => [...mem(mesa).builds.values()].map(({ state, ...header }) => copy({ ...header, portrait: state?.details?.portrait ?? null }))
         .sort((a, b) => b.updatedAt - a.updatedAt),
     read: async (mesa, id) => copy(mem(mesa).builds.get(id)) ?? null,
     slugTaken: async (mesa, slug) => [...mem(mesa).builds.values()].some((b) => b.slug === slug),
