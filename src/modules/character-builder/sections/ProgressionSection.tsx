@@ -61,9 +61,8 @@ export interface ProgressionProps extends SectionProps {
 const levelId = (n: number) => `plano-nivel-${n}`; // i18n-ok: id de âncora
 
 /**
- * Plano (redesign): a trilha 1–20 é a casa do personagem. Em cima, a trilha (pronto, atual, próximo, planejado, com o
- * ponto de pendência) e o "Subir de nível"; depois o cartão do próximo nível (o que ele pede e o que muda sozinho) e a linha
- * do tempo do nível atual para baixo, com os cartões de slot. Os níveis futuros ficam recolhidos até a pessoa pedir.
+ * A trilha leva aos níveis em ordem crescente. Depois do nível atual vem a prévia do próximo nível.
+ * O restante do plano fica recolhido até a pessoa pedir.
  */
 export function ProgressionSection(props: ProgressionProps) {
   const { state, update, compiled, mesaRules, canEdit, index, feats, archetypes, browseArchetype, setBrowseArchetype, initialSlot, focusNonce, next, onLevelUp, who } = props;
@@ -179,6 +178,7 @@ export function ProgressionSection(props: ProgressionProps) {
     const saveChoices = compiled.saveChoices.filter((c) => c.level === lvl);
     const groupChoices = compiled.groupChoices.filter((c) => c.level === lvl);
     const children = compiled.featChildren.filter((c) => c.level === lvl);
+    if (!features.length && !slots.length && !classChoices.length && !saveChoices.length && !groupChoices.length && !children.length) return null;
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }, gap: 1 }}>
@@ -242,9 +242,6 @@ export function ProgressionSection(props: ProgressionProps) {
     );
   };
 
-  const hasContent = (lvl: number) => compiled.classFeatures.some((f) => f.level === lvl) || compiled.featSlots.some((s) => s.level === lvl)
-    || compiled.classChoices.some((c) => c.level === lvl) || compiled.saveChoices.some((c) => c.level === lvl) || compiled.groupChoices.some((c) => c.level === lvl);
-
   const look = (n: number): RibbonLook => (n < level ? 'done' : n === level ? 'cur' : n === level + 1 ? 'next' : 'plan');
   const goTo = (n: number) => {
     if (n > level + 1) setShowFuture(true);
@@ -268,14 +265,14 @@ export function ProgressionSection(props: ProgressionProps) {
             {note && <Box component="span" sx={{ fontSize: 13, color: ink.secondary }}>{note}</Box>}
             {lk === 'done' && !missing && <DoneIcon aria-label={tr('pronto', 'done')} sx={{ fontSize: 18, color: greenInk.mid }} />}
           </Box>
-          {levelBody(lvl)}
+          {levelBody(lvl) ?? <Box sx={{ fontSize: 14, color: ink.secondary }}>{tr('Sem talentos ou opções de classe neste nível.', 'No feats or class options at this level.')}</Box>}
         </Box>
       </Box>
     );
   };
 
-  const past = Array.from({ length: level }, (_, i) => level - i).filter(hasContent);
-  const future = Array.from({ length: Math.max(0, 20 - level - 1) }, (_, i) => level + 2 + i).filter(hasContent);
+  const reached = Array.from({ length: level }, (_, i) => i + 1);
+  const future = Array.from({ length: Math.max(0, 20 - level - 1) }, (_, i) => level + 2 + i);
   const nextLevel = level < 20 ? level + 1 : null;
   const nextAsks = nextLevel ? compiled.featSlots.filter((s) => s.level === nextLevel) : [];
 
@@ -306,6 +303,10 @@ export function ProgressionSection(props: ProgressionProps) {
           {pickerEditions(archetypes, mesaRules, exceptions).map((a) => <MenuItem key={a.id} value={a.name}>{a.name}</MenuItem>)}
         </TextField>
       )}
+
+      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+        {reached.map((lvl) => levelRow(lvl, lvl === level))}
+      </Box>
 
       {nextLevel && (
         <Box id={levelId(nextLevel)} sx={{ border: `1.5px dashed ${gold.main}`, bgcolor: tint.gold, borderRadius: '6px', p: { xs: 1.5, sm: 2 }, display: 'flex', flexDirection: 'column', gap: 1.5, scrollMarginTop: { xs: 72, md: 16 } }}>
@@ -352,10 +353,6 @@ export function ProgressionSection(props: ProgressionProps) {
           </Box>
         </Box>
       )}
-
-      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-        {past.map((lvl, i) => levelRow(lvl, i === past.length - 1 && !showFuture))}
-      </Box>
 
       {future.length > 0 && (
         showFuture ? (
