@@ -52,9 +52,18 @@ export function PickerFilters({ facets, value, onChange, traitText, hasPrereq, s
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))', md: 'repeat(3, minmax(0, 1fr))' }, gap: 2 }}>
-        {facets.maxLevel > facets.minLevel && (
+        {facets.spells && facets.maxLevel > facets.minLevel && (
+          <Group label={tr('Rank · os marcados', 'Rank · any selected')}>
+            {levels.map((n) => (
+              <Pill key={n} look={value.ranks.includes(n) ? 'sel' : 'default'} onClick={() => set({ ranks: toggle(value.ranks, n) })} sx={{ minWidth: 40 }}>
+                {n === 0 ? tr('Truque', 'Cantrip') : n}
+              </Pill>
+            ))}
+          </Group>
+        )}
+        {!facets.spells && facets.maxLevel > facets.minLevel && (
           <Box role="group" aria-label={tr('Nível', 'Level')} sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-            <Label>{facets.spells ? tr('Rank / nível', 'Rank / level') : tr('Nível', 'Level')}</Label>
+            <Label>{tr('Nível', 'Level')}</Label>
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
               <TextField select size="small" label={tr('De', 'From')} value={value.minLevel ?? ''} onChange={(e) => set({ minLevel: e.target.value === '' ? null : Number(e.target.value) })}>
                 <MenuItem value="">{tr('Qualquer', 'Any')}</MenuItem>

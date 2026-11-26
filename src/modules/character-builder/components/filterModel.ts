@@ -12,6 +12,8 @@ export type SortKey = 'name' | 'level-asc' | 'level-desc'
 export interface PickerFilterState {
     minLevel: number | null
     maxLevel: number | null
+    /** Magias: os ranks marcados (0 = truque), qualquer um deles. */
+    ranks: number[]
     rarities: string[]
     actions: ActionKey[]
     traits: string[]
@@ -25,7 +27,7 @@ export interface PickerFilterState {
 }
 
 export const EMPTY_FILTERS: PickerFilterState = {
-    minLevel: null, maxLevel: null, rarities: [], actions: [], traits: [], editions: [], eligible: 'all',
+    minLevel: null, maxLevel: null, ranks: [], rarities: [], actions: [], traits: [], editions: [], eligible: 'all',
     traditions: [], cantrip: 'all', categories: [], maxPrice: null, sort: 'name',
 }
 
@@ -85,7 +87,7 @@ export function facetsOf(list: RuleEntry[]): Facets {
 
 /** Quantos filtros estão ligados (a ordenação não conta). */
 export function activeCount(f: PickerFilterState): number {
-    return [f.minLevel !== null || f.maxLevel !== null, f.rarities.length, f.actions.length, f.traits.length, f.editions.length,
+    return [f.minLevel !== null || f.maxLevel !== null, f.ranks.length, f.rarities.length, f.actions.length, f.traits.length, f.editions.length,
         f.eligible !== 'all', f.traditions.length, f.cantrip !== 'all', f.categories.length, f.maxPrice !== null].filter(Boolean).length
 }
 
@@ -94,6 +96,7 @@ export function passes(e: RuleEntry, f: PickerFilterState, eligibility?: PrereqR
     const lvl = levelOf(e)
     if (f.minLevel !== null && lvl < f.minLevel) return false
     if (f.maxLevel !== null && lvl > f.maxLevel) return false
+    if (f.ranks.length && !f.ranks.includes(lvl)) return false
     if (f.rarities.length && !f.rarities.includes(rarityOf(e))) return false
     if (f.actions.length && !f.actions.includes(actionOf(e))) return false
     if (f.traits.length) {
