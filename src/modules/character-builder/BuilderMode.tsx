@@ -389,7 +389,7 @@ export function BuilderMode({ buildId }: { buildId: string }) {
       case 'skills': return <SkillsSection {...sectionProps} />;
       case 'spells': return <SpellsSection {...sectionProps} spells={rules.feats.filter((e) => e.type === 'spell')} />;
       case 'equipment':
-        return <EquipmentSection {...sectionProps} entries={rules.feats}
+        return <EquipmentSection {...sectionProps} entries={rules.feats} sheet={exportSheet}
           wealth={(rules.tables as { wealth?: { levels: Record<string, { currency: number; lumpSum: number }>; source?: string } } | null)?.wealth} />;
       case 'companions': return <CompanionsSection {...sectionProps} entries={rules.feats} />;
       case 'progression':

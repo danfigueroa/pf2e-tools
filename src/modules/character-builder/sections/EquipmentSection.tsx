@@ -16,6 +16,9 @@ import {
 import { ItemBench } from '../components/ItemBench';
 import { ItemCatalog, type BagLine } from '../components/ItemCatalog';
 import { RunePicker } from '../components/RunePicker';
+import { RelicPanel } from '../components/RelicPanel';
+import { relicViews } from '../components/relicView';
+import type { BuildInfo } from '../../../pathbuilder/types';
 import type { SectionProps } from './types';
 
 const COINS: (keyof BuildState['money'])[] = ['pp', 'gp', 'sp', 'cp']; // i18n-ok: chaves do dinheiro
@@ -30,6 +33,8 @@ export interface EquipmentProps extends SectionProps {
   /** Todas as entradas carregadas (itens e companheiros entre elas). */
   entries: RuleEntry[];
   wealth?: { levels: Record<string, { currency: number; lumpSum: number }>; source?: string };
+  /** O retrato de agora (o que a Ficha vai ler): as relíquias casam por ele, com o catálogo da Ficha. */
+  sheet?: () => { build: BuildInfo } | null;
 }
 
 /** Os encaixes do item: fundamentais em ouro, propriedade em verde, espaço livre tracejado, runa a mais em âmbar. */
@@ -52,7 +57,7 @@ function socketsOf(it: ResolvedItem, kind: ItemKind): SocketLook[] {
  * muda a quantidade ali mesmo), a bancada do item, o catálogo com sacola e o "Gravar runa". Os números vêm do motor
  * (`engine/equipment.ts`) e os itens do catálogo importado; nada aqui consulta a AON.
  */
-export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, entries, wealth, index }: EquipmentProps) {
+export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, entries, wealth, index, sheet }: EquipmentProps) {
   const [view, setView] = useState<'kind' | 'place'>('kind');
   const [query, setQuery] = useState('');
   const [benchKey, setBenchKey] = useState<string | null>(null);
@@ -69,6 +74,8 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
   const kinds = useMemo(() => new Map(eq.items.map((it) => [it.key, itemKind(it.entry, it.base, it.inv)])), [eq.items]);
   const kindOf = (it: ResolvedItem) => kinds.get(it.key) ?? 'gear';
   const containers = useMemo(() => eq.items.filter((it) => isContainer(it.entry)), [eq.items]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- o retrato muda com o compilado
+  const relics = useMemo(() => relicViews(sheet?.()?.build ?? null, eq.items), [sheet, compiled]);
 
   const setInventory = (fn: (inv: InventoryEntry[]) => InventoryEntry[]) => update((s) => ({ ...s, inventory: fn(s.inventory) }));
   const patch = (key: string, p: Partial<InventoryEntry>) => setInventory((inv) => inv.map((i) => (i.key === key ? { ...i, ...p } : i)));
@@ -235,7 +242,9 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
                   const strike = eq.strikes.find((s) => s.key === it.key);
                   const ac = eq.armor?.item.key === it.key ? compiled.stats.ac.total : null;
                   const shieldAc = it.base?.item?.shield;
-                  const meta = strike ? tr(`Golpe ${signed(strike.attack)} · ${strike.dice}${strike.die}${strike.damageBonus ? signed(strike.damageBonus) : ''}`, `Strike ${signed(strike.attack)} · ${strike.dice}${strike.die}${strike.damageBonus ? signed(strike.damageBonus) : ''}`)
+                  const rw = relics.byItem.get(it.key)?.weapon;
+                  const meta = rw ? tr(`Golpe ${signed(rw.attack)} · ${rw.dice}${rw.die}${rw.damageBonus ? signed(rw.damageBonus) : ''}`, `Strike ${signed(rw.attack)} · ${rw.dice}${rw.die}${rw.damageBonus ? signed(rw.damageBonus) : ''}`)
+                    : strike ? tr(`Golpe ${signed(strike.attack)} · ${strike.dice}${strike.die}${strike.damageBonus ? signed(strike.damageBonus) : ''}`, `Strike ${signed(strike.attack)} · ${strike.dice}${strike.die}${strike.damageBonus ? signed(strike.damageBonus) : ''}`)
                     : ac !== null ? tr(`CA ${ac}${it.inv.runes?.resilient ? ` · salvaguardas +${it.inv.runes.resilient}` : ''}`, `AC ${ac}${it.inv.runes?.resilient ? ` · saves +${it.inv.runes.resilient}` : ''}`)
                       : shieldAc ? tr(`+${shieldAc.ac ?? 0} CA erguido · dureza ${shieldAc.hardness ?? '—'}`, `+${shieldAc.ac ?? 0} AC raised · hardness ${shieldAc.hardness ?? '—'}`) : '';
                   const on = benchKey === it.key;
@@ -247,7 +256,7 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
                       <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.75, fontSize: 11, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: ink.secondary }}>
                         <ItemGlyph kind={kind} size={20} />{USE_KICKER[kind] ?? ''}
                       </Box>
-                      <Box component="span" sx={{ fontWeight: 700, fontSize: { xs: 14, sm: 15 }, lineHeight: 1.25, overflowWrap: 'anywhere' }}>{strike?.display ?? itemDisplayName(it)}</Box>
+                      <Box component="span" sx={{ fontWeight: 700, fontSize: { xs: 14, sm: 15 }, lineHeight: 1.25, overflowWrap: 'anywhere' }}>{relics.byItem.get(it.key)?.relic.name ?? strike?.display ?? itemDisplayName(it)}</Box>
                       <Box component="span" sx={{ fontSize: { xs: 12, sm: 13 }, color: ink.secondary, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                         <Sockets looks={socketsOf(it, kind)} />{meta}
                       </Box>
@@ -282,6 +291,7 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
                   const step = stacks(kind) && canEdit;
                   const each = it.qty > 1 && it.entry?.item?.price ? tr(`${formatGp(it.entry.item.price.gp)} cada`, `${formatGp(it.entry.item.price.gp)} each`) : null;
                   const meta = [
+                    relics.byItem.has(it.key) ? itemDisplayName(it) : null,
                     itemLevel(it) !== undefined ? tr(`nível ${itemLevel(it)}`, `level ${itemLevel(it)}`) : null,
                     it.inv.acquired === 'given' ? tr('ganho', 'given') : each ?? (it.price + it.runePrice ? formatGp(it.price + it.runePrice) : null),
                     it.entry?.item?.bulk !== undefined ? tr(`volume ${formatBulk(it.entry.item.bulk)}`, `bulk ${formatBulk(it.entry.item.bulk)}`) : null,
@@ -299,7 +309,8 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
                         <ItemGlyph kind={kind} />
                         <Box component="span" sx={{ minWidth: 0 }}>
                           <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', fontWeight: 600, fontSize: 15, lineHeight: 1.25 }}>
-                            <Box component="span" sx={{ overflowWrap: 'anywhere' }}>{itemDisplayName(it)}</Box>
+                            <Box component="span" sx={{ overflowWrap: 'anywhere' }}>{relics.byItem.get(it.key)?.relic.name ?? itemDisplayName(it)}</Box>
+                            {relics.byItem.has(it.key) && <Box component="span" sx={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: gold.deep, border: `1px solid ${gold.main}`, borderRadius: '4px', px: 0.625, lineHeight: '18px' }}>{tr('Relíquia', 'Relic')}</Box>}
                             <Sockets looks={socketsOf(it, kind)} />
                           </Box>
                           <Box component="span" sx={{ display: 'block', fontSize: 13, color: ink.secondary, mt: '2px' }}>{meta}</Box>
@@ -320,21 +331,33 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
         </>
       )}
 
+      {relics.loose.length > 0 && (
+        <Box sx={[cardSx, { p: { xs: 1.5, sm: 2 }, display: 'flex', flexDirection: 'column', gap: 1.25 }]}>
+          <SectionHead note={tr('do catálogo da Ficha', "from the Sheet's catalog")}>{tr('Relíquias', 'Relics')}</SectionHead>
+          {relics.loose.map((v) => <RelicPanel key={v.relic.id} view={v} />)}
+        </Box>
+      )}
+
       <Box sx={[cardSx, { p: { xs: 1.5, sm: 2 }, display: 'flex', flexDirection: 'column', gap: 1 }]}>
         <SectionHead note={tr('calculados das armas', 'from the weapons')}>{tr('Golpes', 'Strikes')}</SectionHead>
-        {eq.strikes.map((s) => (
+        {eq.strikes.map((raw) => {
+          const rv = relics.byItem.get(raw.key);
+          // Arma de relíquia: o golpe como a Ficha mostra, com as runas das dádivas e da regra da mesa.
+          const s = rv?.weapon ? { ...raw, display: rv.relic.name, attack: rv.weapon.attack, damageBonus: rv.weapon.damageBonus, dice: rv.weapon.dice } : raw;
+          return (
           <ButtonBase key={s.key} disabled={s.key === 'fist'} onClick={() => setBenchKey(s.key)} data-view="" sx={{ display: 'flex', gap: 1.25, alignItems: 'center', textAlign: 'left', justifyContent: 'flex-start', borderRadius: '6px', py: 0.5, '&.Mui-disabled': { opacity: 1 } }}>
             <ActionGlyph actions="1" />
             <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
               <Box component="b" sx={{ overflowWrap: 'anywhere' }}>{s.display}</Box>
               <Box component="span" sx={{ fontSize: 12, color: ink.secondary }} title={s.damageParts.map((p) => `${p.label} ${signed(p.value)}`).join(' · ')}>
-                {s.dice}{s.die}{s.damageBonus ? signed(s.damageBonus) : ''} {s.damageType}{s.traits.length ? ` · ${s.traits.slice(0, 3).join(', ')}` : ''}</Box>
+                {s.dice}{s.die}{s.damageBonus ? signed(s.damageBonus) : ''} {s.damageType}{(rv?.weapon?.extraDamage ?? s.extraDamage).length ? ` + ${(rv?.weapon?.extraDamage ?? s.extraDamage).join(' + ')}` : ''}{s.traits.length ? ` · ${s.traits.slice(0, 3).join(', ')}` : ''}</Box>
             </Box>
             <Box component="b" sx={{ fontSize: 18, fontVariantNumeric: 'tabular-nums' }} title={s.attackParts.map((p) => `${p.label} ${signed(p.value)}`).join(' · ')}>{signed(s.attack)}</Box>
             <Box component="span" sx={{ fontSize: 13, color: ink.secondary, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
               {(s.traits.some((t) => /^agile$/i.test(t)) ? [4, 8] : [5, 10]).map((m) => signed(s.attack - m)).join(' / ')}</Box>
           </ButtonBase>
-        ))}
+          );
+        })}
         {eq.strikes.length === 0 && <Box sx={{ fontSize: 14, color: ink.secondary }}>{tr('Nenhuma arma ainda.', 'No weapon yet.')}</Box>}
       </Box>
 
@@ -371,7 +394,7 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
             onTransfer={(to) => transfer(bench.key, to)}
             onDuplicate={() => duplicate(bench.key)}
             onRemove={() => remove(bench.key)}
-            onClose={() => setBenchKey(null)} />
+            onClose={() => setBenchKey(null)} relic={relics.byItem.get(bench.key)} />
         )}
       </Drawer>
 

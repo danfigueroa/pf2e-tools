@@ -12,11 +12,12 @@ const CONSUMABLE_RE = /consumable|alchemical|potion|scroll|talisman|oil|ammuniti
 
 /** O tipo do item para ícone, grupo e o que a bancada mostra. */
 export function itemKind(entry: RuleEntry | null, base: RuleEntry | null, inv?: InventoryEntry): ItemKind {
-    if (!entry) return inv?.item.startsWith('custom:') ? 'custom' : 'gear'
-    const it = base?.item ?? entry.item
+    const it = base?.item ?? entry?.item
+    if (!entry && !it?.weapon && !it?.armor && !it?.shield) return inv?.item.startsWith('custom:') ? 'custom' : 'gear'
     if (it?.weapon) return 'weapon'
     if (it?.armor) return 'armor'
     if (it?.shield) return 'shield'
+    if (!entry) return 'custom'
     // Item específico sem os números (a base vem por `baseItem`): a categoria da AON ainda diz o tipo.
     if (/^weapons?$/i.test(entry.item?.category ?? '')) return 'weapon'
     if (/^armor$/i.test(entry.item?.category ?? '')) return 'armor'

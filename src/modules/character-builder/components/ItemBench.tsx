@@ -7,6 +7,8 @@ import type { AttributeKey, Compiled, RulesIndex } from '../engine/types';
 import type { InventoryEntry } from '../types';
 import { FUNDAMENTAL_TIERS, fundamentalRune, type FundamentalKind, type ResolvedItem, type RuneLine } from '../engine/equipment';
 import { ActionGlyph, BandHead, ContentBadge, Label } from './ui';
+import { RelicPanel } from './RelicPanel';
+import { relicRuneLabel, type RelicView } from './relicView';
 import { signed, tint } from './uiTokens';
 import { Gem, ItemGlyph, Segmented, Stepper, StrokeIcon, TierPicker, type TierOption } from './equipUi';
 import {
@@ -43,6 +45,8 @@ export interface ItemBenchProps {
   onDuplicate: () => void;
   onRemove: () => void;
   onClose: () => void;
+  /** A relíquia que mora neste item (catálogo da Ficha), com o golpe como a Ficha mostra. */
+  relic?: RelicView;
 }
 
 /**
@@ -50,7 +54,7 @@ export interface ItemBenchProps {
  * de propriedade (um por ponto de potência, GM Core pg. 224), material, ajustes do golpe, o golpe ou a CA calculados na
  * hora e o custo com Comprado/Ganho. Acima do nível do personagem vira ⚠, nunca trava.
  */
-export function ItemBench({ item, compiled, index, materials, containers, transferTargets, canEdit, patch, onEtch, onRemoveRune, onTransfer, onDuplicate, onRemove, onClose }: ItemBenchProps) {
+export function ItemBench({ item, compiled, index, materials, containers, transferTargets, canEdit, patch, onEtch, onRemoveRune, onTransfer, onDuplicate, onRemove, onClose, relic }: ItemBenchProps) {
   const [tune, setTune] = useState(false);
   const [transferAnchor, setTransferAnchor] = useState<HTMLElement | null>(null);
   const inv = item.inv;
@@ -103,8 +107,8 @@ export function ItemBench({ item, compiled, index, materials, containers, transf
         <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
           <ItemGlyph kind={kind} size={48} />
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Box component="h2" sx={{ m: 0, font: `700 18px/1.2 ${displayFont}`, overflowWrap: 'anywhere' }}>{strike?.display ?? itemDisplayName(item)}</Box>
-            <Box sx={{ fontSize: 13, color: ink.secondary, mt: 0.25 }}>{meta}</Box>
+            <Box component="h2" sx={{ m: 0, font: `700 18px/1.2 ${displayFont}`, overflowWrap: 'anywhere' }}>{relic?.relic.name ?? strike?.display ?? itemDisplayName(item)}</Box>
+            <Box sx={{ fontSize: 13, color: ink.secondary, mt: 0.25 }}>{relic ? tr(`Relíquia — ${itemDisplayName(item)} · `, `Relic — ${itemDisplayName(item)} · `) : ''}{meta}</Box>
           </Box>
         </Box>
         {(traits.length > 0 || entry?.homebrew) && (
@@ -115,8 +119,12 @@ export function ItemBench({ item, compiled, index, materials, containers, transf
         )}
         {!entry && inv.item.startsWith('custom:') && (
           <Box sx={{ fontSize: 13, color: ink.secondary, bgcolor: tint.gold, borderRadius: '6px', p: 1.25 }}>
-            {tr('Item caseiro: preço, volume e efeitos não entram nos números.', 'Homebrew item: price, bulk and effects are not in the numbers.')}</Box>
+            {inv.custom
+              ? tr('Item caseiro com os números da Ficha (dado, tipo e categoria); preço e volume não entram.', 'Homebrew item with the Sheet numbers (die, type and category); price and bulk are not in.')
+              : tr('Item caseiro: preço, volume e efeitos não entram nos números.', 'Homebrew item: price, bulk and effects are not in the numbers.')}</Box>
         )}
+
+        {relic && <RelicPanel view={relic} compact />}
 
         {canUse(kind, entry) && (
           <Segmented label={tr('Onde está', 'Where it is')} value={inUse(kind, inv) ? 'on' : 'off'} disabled={!canEdit}
@@ -172,6 +180,15 @@ export function ItemBench({ item, compiled, index, materials, containers, transf
                       <StrokeIcon d={ICON_PATH.close} size={16} />
                     </IconButton>
                   )}
+                </Box>
+              ))}
+              {relic?.runeGifts.filter((g) => g.gift.rune?.property?.length).map((g) => (
+                <Box key={`relic-${g.gift.id}`} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: '8px 10px', border: `1px solid ${gold.main}`, borderRadius: '8px', bgcolor: tint.gold, minHeight: 54 }}>
+                  <Box sx={{ width: 28, display: 'flex', justifyContent: 'center' }}><Gem look="f" size={16} /></Box>
+                  <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                    <Box component="b" sx={{ fontSize: 15 }}>{relicRuneLabel(g.gift.rune!)}</Box>
+                    <Box component="span" sx={{ fontSize: 13, color: ink.secondary }}>{tr('dádiva da relíquia · não ocupa espaço nem sai do dinheiro', 'relic gift · takes no slot and costs nothing')}</Box>
+                  </Box>
                 </Box>
               ))}
               {canEdit && Array.from({ length: Math.max(0, slots - property.length) }, (_, i) => (
@@ -234,6 +251,20 @@ export function ItemBench({ item, compiled, index, materials, containers, transf
           </Collapse>
         )}
 
+        {relic?.weapon && (!strike || relic.weapon.attack !== strike.attack || relic.weapon.dice !== strike.dice || relic.weapon.damageBonus !== strike.damageBonus) && (
+          <Box sx={{ bgcolor: tint.gold, border: `1px solid ${gold.main}`, borderRadius: '8px', p: '10px 12px', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+              <ActionGlyph actions="1" />
+              <Box component="b" sx={{ flex: 1 }}>{tr('Golpe na Ficha (com a relíquia)', 'Strike on the Sheet (with the relic)')}</Box>
+              <Box component="b" sx={{ fontSize: 20, fontVariantNumeric: 'tabular-nums' }}>{signed(relic.weapon.attack)}</Box>
+            </Box>
+            <Box sx={{ fontSize: 13, color: ink.secondary }}>
+              <Box component="b" sx={{ color: ink.primary }}>{relic.weapon.dice}{relic.weapon.die}{relic.weapon.damageBonus ? signed(relic.weapon.damageBonus) : ''}</Box>
+              {relic.weapon.extraDamage.length > 0 && ` + ${relic.weapon.extraDamage.join(' + ')}`}
+              {relic.weapon.runes.length > 0 && tr(` · runas: ${relic.weapon.runes.join(', ')}`, ` · runes: ${relic.weapon.runes.join(', ')}`)}
+            </Box>
+          </Box>
+        )}
         {strike && (
           <Box sx={{ bgcolor: parchment.sunken, borderRadius: '8px', p: '10px 12px', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
@@ -246,7 +277,7 @@ export function ItemBench({ item, compiled, index, materials, containers, transf
             <Box sx={{ fontSize: 13, color: ink.secondary }}>
               {strike.attackParts.map((p) => `${p.label} ${signed(p.value)}`).join(' · ')} — {tr('dano', 'damage')}{' '}
               <Box component="b" sx={{ color: ink.primary }}>{strike.dice}{strike.die}{strike.damageBonus ? signed(strike.damageBonus) : ''}</Box> {strike.damageType}
-              {strike.runes.length > 0 && <Box component="span" sx={{ color: status.info, fontWeight: 600 }}>{tr(` + ${strike.runes.join(', ')} (não somado)`, ` + ${strike.runes.join(', ')} (not added)`)}</Box>}
+              {strike.extraDamage.length > 0 && <Box component="span" sx={{ color: ink.primary, fontWeight: 600 }}>{` + ${strike.extraDamage.join(' + ')}`}</Box>}
             </Box>
           </Box>
         )}
