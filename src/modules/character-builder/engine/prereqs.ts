@@ -24,7 +24,13 @@ export interface PrereqContext {
     stat: Partial<Record<'perception' | 'fortitude' | 'reflex' | 'will', Rank>>
     attribute: Record<AttributeKey, number>
     deity?: string
+    /** Só com os números finais (a reavaliação depois de compilar): tem pontos de foco, e os sentidos. */
+    focusPool?: boolean
+    senses?: string[]
 }
+
+/** Tipos de subclasse que o texto do pré-requisito põe depois do nome ("Giant instinct", "storm order"). */
+const SUBCLASS_WORDS = /^(.+?) (instinct|order|muse|mystery|patron|racket|bloodline|doctrine|style|way|methodology|school|cause|innovation|implement|research field|hunter['’]s edge|edge|conscious mind|subconscious mind|ikon|lesson|practice|hybrid study)$/
 
 const RANKS: Record<string, Rank> = { trained: 1, expert: 2, master: 3, legendary: 4 }
 const RANK_PT: Record<string, string> = {
@@ -36,16 +42,29 @@ const ATTR: Record<string, AttributeKey> = {
 
 /** Divide "A; B" e "A, B" (mas não "A or B", que é alternativa). */
 function splitParts(text: string): string[] {
-    return text.split(/;|,(?![^()]*\))/).map((p) => p.trim()).filter(Boolean)
+    // ";" separa sempre; a vírgula separa requisitos ("trained in Athletics, expert in Crafting"), salvo numa série que
+    // termina em "or" ("Master in Occultism, Master in Nature, or Master in Religion"), que é uma alternativa só.
+    return text.split(';').flatMap((group) => {
+        const items = group.split(/,(?![^()]*\))/).map((p) => p.trim()).filter(Boolean)
+        return items.length > 1 && /^or\b/i.test(items[items.length - 1]) ? [items.join(', ')] : items
+    })
 }
 
 function evalOne(raw: string, ctx: PrereqContext): PrereqPart {
     const text = raw.trim()
     const lower = text.toLowerCase().replace(/\.$/, '')
+    // Fonte divina do clérigo: qualquer uma das duas basta (Divine Font, Player Core pg. 108).
+    if (/^(harmful font or healing font|healing font or harmful font)$/.test(lower) && ctx.has.has('divine font')) return { text, result: 'ok' }
     // Alternativas: basta uma.
     if (/\bor\b/.test(lower) && !/^(trained|expert|master|legendary) in \w+ or \w+$/.test(lower)) {
-        const alts = lower.split(/\s*,?\s*\bor\b\s*/).filter(Boolean)
-        const results = alts.map((a) => evalOne(a, ctx).result)
+        const alts = lower.split(/\s*,\s*(?:or\b\s*)?|\s+\bor\b\s*/).map((a) => a.trim()).filter(Boolean)
+        // "master in Nature, Occultism, or Religion": a opção sem rank herda o da anterior.
+        let prefix = ''
+        const results = alts.map((a) => {
+            const m = /^((?:trained|expert|master|legendary) in )/.exec(a)
+            if (m) prefix = m[1]
+            return evalOne(!m && prefix && !/\bin\b/.test(a) ? prefix + a : a, ctx).result
+        })
         const result: PrereqResult = results.includes('ok') ? 'ok' : results.every((r) => r === 'fail') ? 'fail' : 'unknown'
         return { text, result, ...(result === 'fail' ? { reason: tr(`nenhuma das opções: ${text}`, `none of: ${text}`) } : {}) }
     }
@@ -88,6 +107,14 @@ function evalOne(raw: string, ctx: PrereqContext): PrereqPart {
     if (/^(you )?(follow|worship) a deity$/.test(lower)) return ctx.deity ? { text, result: 'ok' } : { text, result: 'fail', reason: tr('precisa de uma divindade', 'needs a deity') }
     // Talento ou característica possuída, pelo nome (inclui dedicação: "Wizard Dedication").
     if (ctx.has.has(lower)) return { text, result: 'ok' }
+    // Subclasse pelo nome da opção: "Giant instinct" = a opção Giant escolhida. Só aprova; não achar fica para conferir.
+    const sub = SUBCLASS_WORDS.exec(lower)
+    if (sub && ctx.has.has(sub[1])) return { text, result: 'ok' }
+    // Só aprovam (o motor pode não ver toda fonte de foco ou de sentido): o que não achar fica para conferir.
+    if (lower === 'focus pool' && ctx.focusPool) return { text, result: 'ok' }
+    if (/^(low-light vision|darkvision|greater darkvision|scent|tremorsense)$/.test(lower) && (ctx.senses ?? []).some((s) => s.toLowerCase().startsWith(lower))) return { text, result: 'ok' }
+    // "can't have a patron deity" (Godless Healing): a divindade é escolha do build.
+    if (/^(you )?can['’]?t have a (patron )?deity$/.test(lower)) return ctx.deity ? { text, result: 'fail', reason: tr('não pode ter divindade', "can't have a deity") } : { text, result: 'ok' }
     // Nome com cara de talento (palavras com inicial maiúscula, sem verbo) que o personagem não tem: reprova.
     if (/^[A-Z][\w'’-]*( [A-Z(][\w'’()-]*)*$/.test(text) && text.split(' ').length <= 5) {
         return { text, result: 'fail', reason: tr(`precisa de ${text}`, `needs ${text}`) }

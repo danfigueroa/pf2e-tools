@@ -263,13 +263,24 @@ export function compileFeats(state: BuildState, slots: FeatSlot[], rules: RulesI
     }
 
     for (const feat of taken) {
-        for (const part of feat.prereq.parts) {
-            if (part.result === 'fail') warnings.push({ code: 'PREREQ_FAIL', level: 'warn', ref: feat.slot, message: tr(`${feat.entry.name}: ${part.reason ?? part.text}.`, `${feat.entry.name}: ${part.reason ?? part.text}.`) })
-            else if (part.result === 'unknown') warnings.push({ code: 'PREREQ_UNKNOWN', level: 'info', ref: feat.slot, message: tr(`${feat.entry.name}: confira o pré-requisito "${part.text}".`, `${feat.entry.name}: check the prerequisite "${part.text}".`) })
-        }
         for (const effect of feat.entry.unsupported ?? []) {
             warnings.push({ code: 'UNSUPPORTED_EFFECT', level: 'info', ref: feat.slot, message: tr(`Efeito não calculado: ${feat.entry.name} (${effect}).`, `Effect not calculated: ${feat.entry.name} (${effect}).`) })
         }
     }
     return { taken, children, mods, has }
+}
+
+/**
+ * Reavalia os pré-requisitos dos talentos tomados com os números finais (ranks dados por talentos, características e
+ * ajustes à mão já somados) e emite os avisos. Na hora de tomar, esses ranks ainda não existem, e o seletor (que avalia
+ * com o compilado pronto) diria "elegível" para o mesmo talento.
+ */
+export function prereqWarnings(taken: TakenFeat[], context: PrereqContext, warnings: Warning[]) {
+    for (const feat of taken) {
+        feat.prereq = evaluatePrereqs(feat.entry.prerequisites?.text, context)
+        for (const part of feat.prereq.parts) {
+            if (part.result === 'fail') warnings.push({ code: 'PREREQ_FAIL', level: 'warn', ref: feat.slot, message: tr(`${feat.entry.name}: ${part.reason ?? part.text}.`, `${feat.entry.name}: ${part.reason ?? part.text}.`) })
+            else if (part.result === 'unknown') warnings.push({ code: 'PREREQ_UNKNOWN', level: 'info', ref: feat.slot, message: tr(`${feat.entry.name}: confira o pré-requisito "${part.text}".`, `${feat.entry.name}: check the prerequisite "${part.text}".`) })
+        }
+    }
 }

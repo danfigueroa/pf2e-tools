@@ -54,3 +54,4 @@
 - Exporte o `extraDamage` do golpe (runas, Precision, Sneak Attack e o que a importação guardou na arma), porque a Ficha soma o dano do acerto só por ele.
 - Leia relíquias só pelo catálogo da Ficha (`character-viewer/relics.ts`, via `components/relicView.ts`) e nunca as some ao gasto, porque runa de dádiva e regra da mesa não são compradas.
 - Aplique da opção de subclasse escolhida numa dedicação multiclasse (escola, ordem, linhagem, estilo…) só o treino de perícia, porque as dedicações do Remaster dizem que as outras habilidades da opção não vêm e o Foundry as concede inteiras.
+- Avalie os pré-requisitos com os números finais (`prereqWarnings`, depois dos ranks de talentos, características e ajustes), porque o seletor avalia com o compilado pronto e os dois precisam concordar.

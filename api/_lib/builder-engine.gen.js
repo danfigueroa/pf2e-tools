@@ -415,6 +415,7 @@ function backgroundLoreChoice(background) {
 }
 
 // src/modules/character-builder/engine/prereqs.ts
+var SUBCLASS_WORDS = /^(.+?) (instinct|order|muse|mystery|patron|racket|bloodline|doctrine|style|way|methodology|school|cause|innovation|implement|research field|hunter['’]s edge|edge|conscious mind|subconscious mind|ikon|lesson|practice|hybrid study)$/;
 var RANKS = { trained: 1, expert: 2, master: 3, legendary: 4 };
 var RANK_PT = {
   trained: tr("treinado", "trained"),
@@ -431,14 +432,23 @@ var ATTR = {
   charisma: "cha"
 };
 function splitParts(text) {
-  return text.split(/;|,(?![^()]*\))/).map((p) => p.trim()).filter(Boolean);
+  return text.split(";").flatMap((group) => {
+    const items = group.split(/,(?![^()]*\))/).map((p) => p.trim()).filter(Boolean);
+    return items.length > 1 && /^or\b/i.test(items[items.length - 1]) ? [items.join(", ")] : items;
+  });
 }
 function evalOne(raw, ctx) {
   const text = raw.trim();
   const lower2 = text.toLowerCase().replace(/\.$/, "");
+  if (/^(harmful font or healing font|healing font or harmful font)$/.test(lower2) && ctx.has.has("divine font")) return { text, result: "ok" };
   if (/\bor\b/.test(lower2) && !/^(trained|expert|master|legendary) in \w+ or \w+$/.test(lower2)) {
-    const alts = lower2.split(/\s*,?\s*\bor\b\s*/).filter(Boolean);
-    const results = alts.map((a) => evalOne(a, ctx).result);
+    const alts = lower2.split(/\s*,\s*(?:or\b\s*)?|\s+\bor\b\s*/).map((a) => a.trim()).filter(Boolean);
+    let prefix = "";
+    const results = alts.map((a) => {
+      const m = /^((?:trained|expert|master|legendary) in )/.exec(a);
+      if (m) prefix = m[1];
+      return evalOne(!m && prefix && !/\bin\b/.test(a) ? prefix + a : a, ctx).result;
+    });
     const result = results.includes("ok") ? "ok" : results.every((r) => r === "fail") ? "fail" : "unknown";
     return { text, result, ...result === "fail" ? { reason: tr(`nenhuma das op\xE7\xF5es: ${text}`, `none of: ${text}`) } : {} };
   }
@@ -476,6 +486,11 @@ function evalOne(raw, ctx) {
   if (ctx.ancestryName && lower2 === ctx.ancestryName.toLowerCase()) return { text, result: "ok" };
   if (/^(you )?(follow|worship) a deity$/.test(lower2)) return ctx.deity ? { text, result: "ok" } : { text, result: "fail", reason: tr("precisa de uma divindade", "needs a deity") };
   if (ctx.has.has(lower2)) return { text, result: "ok" };
+  const sub = SUBCLASS_WORDS.exec(lower2);
+  if (sub && ctx.has.has(sub[1])) return { text, result: "ok" };
+  if (lower2 === "focus pool" && ctx.focusPool) return { text, result: "ok" };
+  if (/^(low-light vision|darkvision|greater darkvision|scent|tremorsense)$/.test(lower2) && (ctx.senses ?? []).some((s) => s.toLowerCase().startsWith(lower2))) return { text, result: "ok" };
+  if (/^(you )?can['’]?t have a (patron )?deity$/.test(lower2)) return ctx.deity ? { text, result: "fail", reason: tr("n\xE3o pode ter divindade", "can't have a deity") } : { text, result: "ok" };
   if (/^[A-Z][\w'’-]*( [A-Z(][\w'’()-]*)*$/.test(text) && text.split(" ").length <= 5) {
     return { text, result: "fail", reason: tr(`precisa de ${text}`, `needs ${text}`) };
   }
@@ -722,15 +737,20 @@ function compileFeats(state, slots, rules, ctx, warnings) {
     take(entry, slot.key, slot.level, slot.kind, 0);
   }
   for (const feat of taken) {
-    for (const part of feat.prereq.parts) {
-      if (part.result === "fail") warnings.push({ code: "PREREQ_FAIL", level: "warn", ref: feat.slot, message: tr(`${feat.entry.name}: ${part.reason ?? part.text}.`, `${feat.entry.name}: ${part.reason ?? part.text}.`) });
-      else if (part.result === "unknown") warnings.push({ code: "PREREQ_UNKNOWN", level: "info", ref: feat.slot, message: tr(`${feat.entry.name}: confira o pr\xE9-requisito "${part.text}".`, `${feat.entry.name}: check the prerequisite "${part.text}".`) });
-    }
     for (const effect of feat.entry.unsupported ?? []) {
       warnings.push({ code: "UNSUPPORTED_EFFECT", level: "info", ref: feat.slot, message: tr(`Efeito n\xE3o calculado: ${feat.entry.name} (${effect}).`, `Effect not calculated: ${feat.entry.name} (${effect}).`) });
     }
   }
   return { taken, children, mods, has };
+}
+function prereqWarnings(taken, context, warnings) {
+  for (const feat of taken) {
+    feat.prereq = evaluatePrereqs(feat.entry.prerequisites?.text, context);
+    for (const part of feat.prereq.parts) {
+      if (part.result === "fail") warnings.push({ code: "PREREQ_FAIL", level: "warn", ref: feat.slot, message: tr(`${feat.entry.name}: ${part.reason ?? part.text}.`, `${feat.entry.name}: ${part.reason ?? part.text}.`) });
+      else if (part.result === "unknown") warnings.push({ code: "PREREQ_UNKNOWN", level: "info", ref: feat.slot, message: tr(`${feat.entry.name}: confira o pr\xE9-requisito "${part.text}".`, `${feat.entry.name}: check the prerequisite "${part.text}".`) });
+    }
+  }
 }
 
 // src/modules/character-builder/engine/spells.ts
@@ -1790,6 +1810,11 @@ function compileBuild(state, baseCtx) {
     const k = target.slice(6);
     if (k in skills.result.rank && skills.result.rank[k] < rank) skills.result.rank[k] = rank;
   }
+  prereqWarnings(feats.taken, {
+    ...prereqContext(),
+    focusPool: focus.points > 0,
+    senses: [...ancestry?.ancestry?.senses ?? [], ...heritage?.ancestry?.senses ?? [], ...feats.mods.senses]
+  }, warnings);
   const part = (label2, value) => ({ label: label2, value });
   const attrPart = (key) => part(attributeLabel(key), mod[key]);
   const hpParts = [

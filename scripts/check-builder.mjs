@@ -429,6 +429,21 @@ expect('Canny Acumen sem escolha vira pendência', compileBuild({ ...hf, level: 
 const battleMed = rules.byName('Battle Medicine', 'feat')
 const bm = compileBuild({ ...hf, level: 2, choices: { ...hf.choices, 'skill-feat-2': { id: battleMed.id } } }, ctx)
 expect('Battle Medicine sem treino em Medicina reprova o pré-requisito', bm.warnings.some((w) => w.code === 'PREREQ_FAIL' && w.ref === 'skill-feat-2'), true)
+// O pré-requisito vale com os números finais: perícia dada por ajuste à mão (a importação da Ficha) aprova o talento.
+const bmAdj = compileBuild({ ...hf, level: 2, choices: { ...hf.choices, 'skill-feat-2': { id: battleMed.id } },
+    manual: { adjustments: [{ id: 'imp-skill-medicine', label: 'Medicina', reason: 'teste', effect: { kind: 'proficiency', target: 'skill:medicine', value: 1 } }] } }, ctx)
+expect('treino em Medicina por ajuste aprova o Battle Medicine', bmAdj.warnings.some((w) => w.code === 'PREREQ_FAIL' && w.ref === 'skill-feat-2'), false)
+{
+    const { evaluatePrereqs } = await import('../src/modules/character-builder/engine/prereqs.ts')
+    const pctx = { level: 10, has: new Set(['giant', 'divine font']), skillRank: (s) => ({ nature: 3, occultism: 3 })[s] ?? 0, loreRank: () => 0, stat: {}, attribute: {} }
+    const res = (t, extra = {}) => evaluatePrereqs(t, { ...pctx, ...extra }).result
+    expect('série com "or" é uma alternativa só ("A, B, or C")', res('Master in Occultism, Master in Nature, or Master in Religion'), 'ok')
+    expect('a opção sem rank herda o da anterior ("master in Nature, Occultism, or Religion")', res('master in Religion, Occultism, or Arcana'), 'ok')
+    expect('vírgula sem "or" continua exigindo os dois', res('master in Nature, master in Religion'), 'fail')
+    expect('subclasse pelo nome da opção ("Giant instinct")', res('Giant instinct'), 'ok')
+    expect('fonte divina: qualquer uma das duas', res('harmful font or healing font'), 'ok')
+    expect('"can\'t have a patron deity" com divindade reprova', res('can’t have a patron deity', { deity: 'deity:1' }), 'fail')
+}
 const wrong = compileBuild({ ...hf, level: 2, choices: { ...hf.choices, 'class-feat-2': { id: toughness.id } } }, ctx)
 expect('talento geral no slot de classe avisa', wrong.warnings.some((w) => w.code === 'WRONG_SLOT'), true)
 

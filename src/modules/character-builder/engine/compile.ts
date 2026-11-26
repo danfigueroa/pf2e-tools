@@ -13,7 +13,7 @@ import type { BuildState } from '../types'
 import type { RuleEntry } from '../rules/types'
 import { attributeLabel, compileAttributes } from './attributes'
 import { backgroundLoreChoice, compileSkills } from './skills'
-import { compileFeats } from './feats'
+import { compileFeats, prereqWarnings } from './feats'
 import type { PrereqContext } from './prereqs'
 import { checkSpellChoices, compileArchetypeCasters, compileCasters, compileFocus } from './spells'
 import {
@@ -517,6 +517,9 @@ export function compileBuild(state: BuildState, baseCtx: CompileContext): Compil
         const k = target.slice(6) as keyof typeof skills.result.rank
         if (k in skills.result.rank && skills.result.rank[k] < rank) skills.result.rank[k] = rank
     }
+    // Pré-requisitos com os ranks finais (os de talentos, características e ajustes já entraram acima).
+    prereqWarnings(feats.taken, { ...prereqContext(), focusPool: focus.points > 0,
+        senses: [...(ancestry?.ancestry?.senses ?? []), ...(heritage?.ancestry?.senses ?? []), ...feats.mods.senses] }, warnings)
 
     // 5. Derivados.
     const part = (label: string, value: number) => ({ label, value })
