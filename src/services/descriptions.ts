@@ -162,11 +162,13 @@ export function useDescriptionCacheVersion(): number {
     return useSyncExternalStore(subscribeCache, () => cacheVersion)
 }
 
-function writeCache(kind: Kind, name: string, value: unknown) {
+function writeCache(kind: Kind, name: string, value: unknown, notify = true) {
     const k = key(kind, name)
     memory.set(k, value)
-    cacheVersion++
-    cacheListeners.forEach((l) => l())
+    if (notify) {
+        cacheVersion++
+        cacheListeners.forEach((l) => l())
+    }
     try {
         localStorage.setItem(k, JSON.stringify(value))
     } catch {
@@ -312,6 +314,44 @@ export async function prefetchSpellDescriptions(
         pending = stillPending
     }
     onProgress?.(total - notCached().length, total)
+}
+
+const STORED_ENDPOINT: Record<'feat' | 'special' | 'item' | 'spell', string> = {
+    feat: '/api/feats', special: '/api/searches', item: '/api/searches?kind=item', spell: '/api/spells',
+}
+
+/**
+ * Pré-carrega do BANCO, de uma vez, as descrições de uma lista (o seletor ao abrir): o servidor devolve só o que já
+ * está guardado, sem AON nem tradutor (`storedOnly`). O que vier entra no mesmo cache do clique, que fica instantâneo;
+ * o que faltar continua indo pelo caminho de sempre quando alguém abrir.
+ */
+const askedStored = new Set<string>()
+
+export async function prefetchStoredDescriptions(kind: 'feat' | 'special' | 'item' | 'spell', names: string[]): Promise<void> {
+    // O que já foi perguntado nesta sessão não volta a ser (a busca do seletor muda a lista a cada tecla).
+    const missing = Array.from(new Set(names)).filter((n) => n && !readRaw(kind, n) && !askedStored.has(`${kind}:${n}`))
+    for (const n of missing) askedStored.add(`${kind}:${n}`)
+    for (let i = 0; i < missing.length; i += 200) {
+        const chunk = missing.slice(i, i + 200)
+        try {
+            const r = await fetch(STORED_ENDPOINT[kind], {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ names: chunk, version: CACHE_VERSION, storedOnly: true }),
+            })
+            if (!r.ok) continue
+            const data = (await r.json()) as Record<string, { description?: unknown; translationPending?: boolean } | undefined>
+            let wrote = false
+            for (const name of chunk) {
+                const item = data[name]
+                if (item && isValidString(item.description) && !item.translationPending) { writeCache(kind, name, item, false); wrote = true }
+            }
+            // Um aviso só por lote (cada aviso re-renderiza quem lê o cache).
+            if (wrote) { cacheVersion++; cacheListeners.forEach((l) => l()) }
+        } catch {
+            // sem rede: o clique busca do jeito de sempre
+        }
+    }
 }
 
 export function fetchItemDescription(name: string) {

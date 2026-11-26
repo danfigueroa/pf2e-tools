@@ -16,6 +16,7 @@ import { useTraitLabels } from '../../character-viewer/components/useTraitLabels
 import { PickerFilters } from './PickerFilters';
 import { activeCount, compareBy, EMPTY_FILTERS, facetsOf, passes, SORT_LABEL, type PickerFilterState } from './filterModel';
 import { pickerEditions } from '../remaster';
+import { prefetchStoredDescriptions } from '../../../services/descriptions';
 import { BuildExceptions } from '../hooks/buildExceptions';
 import { ActionGlyph, ContentBadge, LevelBox, Notice, PrereqMark, SectionHead } from './ui';
 import { rarityBadge, tint, warmShadow } from './uiTokens';
@@ -124,6 +125,13 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
       .sort((a, b) => (prereq ? rank(a) - rank(b) : 0) || compareBy(filters.sort)(a, b) || a.name.localeCompare(b.name, locale));
   }, [editions, exceptions, q, onlyAllowed, mesaRules, eligibility, prereq, capOn, levelCap, filters]);
   const facets = useMemo(() => facetsOf(editions), [editions]);
+  // As descrições da lista que aparece, do banco e de uma vez: o clique em qualquer item abre na hora.
+  useEffect(() => {
+    if (!open) return;
+    const byKind: Record<'feat' | 'spell' | 'item' | 'special', string[]> = { feat: [], spell: [], item: [], special: [] };
+    for (const e of shown.slice(0, limit)) byKind[descriptionRequest(e).type].push(e.name);
+    for (const [kind, names] of Object.entries(byKind) as [keyof typeof byKind, string[]][]) if (names.length) void prefetchStoredDescriptions(kind, names);
+  }, [open, shown, limit]);
   const nFilters = activeCount(filters);
   const traitText = useTraitLabels(useMemo(() => [...new Set([...shown.slice(0, limit), ...(focusId ? editions.filter((e) => e.id === focusId) : [])]
     .flatMap((e) => traitsOf(e).slice(0, 8)).concat(filtersOpen ? facets.traits.map((t) => t.name) : []))], [shown, limit, focusId, editions, filtersOpen, facets]));
