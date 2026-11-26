@@ -16,16 +16,9 @@
   "prof.religion": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
   "prof.society": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
   "prof.stealth": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
-  "prof.survival": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
-  "acTotal": "armadura específica, item ou ancestralidade legada/caseira (bônus não calculado)"
+  "prof.survival": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles"
  },
- "Eldarion": {
-  "prof.acrobatics": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
-  "prof.stealth": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
-  "prof.thievery": "ranks de perícia dados por talentos/características que o motor não modela (Additional Lore escala sozinho, perícia de arquétipo…) — o importador não acha aumento livre para eles",
-  "acTotal": "armadura específica, item ou ancestralidade legada/caseira (bônus não calculado)",
-  "weapon Gloom Blade": "arma legada/caseira fora do catálogo ou proficiência que depende de arquétipo/doutrina/atributo legado"
- },
+ "Eldarion": {},
  "Ghan Buri": {},
  "Hearts folly": {
   "dex": "atributos: ancestralidade/herança legada fora do catálogo Remaster ou atributos editados à mão no Pathbuilder",

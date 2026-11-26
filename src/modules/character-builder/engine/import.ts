@@ -10,6 +10,7 @@ import { skillRef } from './skills'
 import { SKILL_KEYS, type AttributeKey, type CompileContext, type SkillKey } from './types'
 import { BLOODRAGER, CLASS_ARCHETYPE, CLASS_ARCHETYPES, PALATINE_DETECTIVE, RUNELORD, WAR_MAGE } from './classArchetypes'
 import { CLASS_CHOICE_TYPES } from './classChoices'
+import { REINFORCING_NAME } from './equipment'
 
 const ATTR: Record<string, AttributeKey> = { Str: 'str', Dex: 'dex', Con: 'con', Int: 'int', Wis: 'wis', Cha: 'cha' }
 const STRIKING: Record<string, number> = { '': 0, striking: 1, greaterStriking: 2, majorStriking: 3 }
@@ -44,7 +45,7 @@ export function slotKeyFromLabel(label: string, className: string, level: number
     return null
 }
 
-export function importPathbuilder(b: BuildInfo, ctx: CompileContext): { state: BuildState; report: ImportReport } {
+export function importPathbuilder(b: BuildInfo, ctx: CompileContext, opts: { reconcile?: boolean } = {}): { state: BuildState; report: ImportReport } {
     const { rules } = ctx
     const notFound: string[] = []
     const guesses: string[] = []
@@ -237,25 +238,67 @@ export function importPathbuilder(b: BuildInfo, ctx: CompileContext): { state: B
     }
     if (steps.length) guesses.push('ordem dos aumentos de perícia deduzida (do nível mais baixo)')
 
-    // Inventário.
+    // Inventário. O que o catálogo não tem entra como item caseiro com o nome (e, arma ou armadura, os números do export),
+    // para a Ficha seguir achando a relíquia, o Braço Sônico e os itens da mesa pelo nome.
     let n = 0
     const key = () => `inv-imp${(n++).toString(36)}`
     const inventory: InventoryEntry[] = []
+    const customId = (name: string) => `custom:${name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'item'}`
+    const runeIds = (names: string[] | undefined) => (names ?? []).filter((r) => !/^reinforcing\b/i.test(r)).map((r) => rules.byName(r)?.id).filter((x): x is string => !!x)
+    const reinforcing = (names: string[] | undefined) => {
+        const m = (names ?? []).map((r) => /^Reinforcing(?: Rune)? \((\w+)\)$/i.exec(r)?.[1]).find(Boolean)
+        return m ? Math.max(0, REINFORCING_NAME.findIndex((x) => x.toLowerCase() === m.toLowerCase())) : 0
+    }
+    // "Cold Iron (Standard-Grade)" → o material do catálogo e o grau.
+    const material = (mat: string | null | undefined): InventoryEntry['material'] => {
+        const m = mat ? /^(.+?)(?: \((Low|Standard|High)-Grade\))?$/.exec(mat) : null
+        if (!m) return undefined
+        const e = rules.named(m[1]).find((x) => /^materials?$/i.test(x.item?.category ?? '') && !x.item?.parent)
+        if (!e) { notFound.push(mat!); return undefined }
+        return { id: e.id, ...(m[2] ? { grade: m[2].toLowerCase() as 'low' | 'standard' | 'high' } : {}) }
+    }
+    // O Pathbuilder põe o apelido do jogador em `display` ("Solar Bloodthirsty"); o nome montado traz o do item.
+    const nickname = (display: string | undefined, name: string) => (display && !display.toLowerCase().includes(name.toLowerCase()) ? display : undefined)
+    const LETTER: Record<string, string> = { B: 'Bludgeoning', P: 'Piercing', S: 'Slashing' }
+    const dexMod = Math.floor(((b.abilities as unknown as Record<string, number>).dex - 10) / 2)
+    const sheetWeapon = new Map<string, BuildInfo['weapons'][number]>()
     for (const w of b.weapons ?? []) {
-        const e = find(w.name)
-        if (!e) continue
-        inventory.push({ key: key(), item: e.id, qty: w.qty || 1, acquired: 'given', equipped: true,
-            runes: { potency: w.pot || 0, striking: STRIKING[w.str ?? ''] ?? 0, property: (w.runes ?? []).map((r) => rules.byName(r)?.id).filter((x): x is string => !!x) } })
+        const e = rules.byName(w.name)
+        const k = key()
+        sheetWeapon.set(k, w)
+        const runes = { potency: w.pot || 0, striking: STRIKING[w.str ?? ''] ?? 0, property: runeIds(w.runes) }
+        if (e) {
+            inventory.push({ key: k, item: e.id, qty: w.qty || 1, acquired: 'given', equipped: true, runes, material: material(w.mat), customName: nickname(w.display, w.name) })
+            continue
+        }
+        notFound.push(w.name)
+        const category = (['simple', 'martial', 'advanced', 'unarmed'] as const).find((c) => c === w.prof) ?? 'simple'
+        inventory.push({ key: k, item: customId(w.name), qty: w.qty || 1, acquired: 'given', equipped: true, runes, material: material(w.mat), customName: nickname(w.display, w.name) ?? w.name,
+            custom: { weapon: { name: w.name.slice(0, 80), die: /^d(4|6|8|10|12)$/.test(w.die) ? w.die : 'd4', damageType: (LETTER[w.damageType] ?? w.damageType ?? '').slice(0, 20), category } } })
     }
     for (const a of b.armor ?? []) {
-        const e = find(a.name)
-        if (!e) continue
-        inventory.push({ key: key(), item: e.id, qty: a.qty || 1, acquired: 'given', worn: !!a.worn,
-            runes: { potency: a.pot || 0, resilient: RESILIENT[a.res ?? ''] ?? 0, property: (a.runes ?? []).map((r) => rules.byName(r)?.id).filter((x): x is string => !!x) } })
+        const e = rules.byName(a.name)
+        const runes = { potency: a.pot || 0, resilient: RESILIENT[a.res ?? ''] ?? 0, reinforcing: reinforcing(a.runes), property: runeIds(a.runes) }
+        if (e) {
+            const invested = !!a.worn && (e.traits ?? []).includes('Invested')
+            inventory.push({ key: key(), item: e.id, qty: a.qty || 1, acquired: 'given', worn: !!a.worn, ...(invested ? { invested } : {}), runes, material: material(a.mat), customName: nickname(a.display, a.name) })
+            continue
+        }
+        notFound.push(a.name)
+        // Armadura fora do catálogo: a CA base sai do bônus de item do export, menos a potência; o teto de DES, do que ele somou.
+        const category = (['unarmored', 'light', 'medium', 'heavy'] as const).find((c) => c === a.prof)
+        const ac = a.worn ? Math.max(0, (b.acTotal?.acItemBonus ?? 0) - (a.pot || 0)) : 0
+        const cap = a.worn && (b.acTotal?.acAbilityBonus ?? dexMod) < dexMod ? b.acTotal!.acAbilityBonus : undefined
+        inventory.push({ key: key(), item: customId(a.name), qty: a.qty || 1, acquired: 'given', worn: !!a.worn, runes, customName: a.name,
+            ...(category ? { custom: { armor: { category, ac, ...(cap !== undefined ? { dexCap: cap } : {}) } } } : {}) })
     }
     for (const [name, qty, ...rest] of b.equipment ?? []) {
-        const e = find(name)
-        if (!e) continue
+        const e = rules.byName(name)
+        if (!e) {
+            notFound.push(name)
+            inventory.push({ key: key(), item: customId(name), qty: qty || 1, acquired: 'given', customName: name })
+            continue
+        }
         inventory.push({ key: key(), item: e.id, qty: qty || 1, acquired: 'given', invested: rest.includes('Invested') && (e.traits ?? []).includes('Invested') })
     }
 
@@ -304,8 +347,114 @@ export function importPathbuilder(b: BuildInfo, ctx: CompileContext): { state: B
         companions.push({ key: `pet-imp${companions.length}`, kind: 'familiar', name: f.name || 'Familiar', choices: Object.fromEntries(abilities.map((id, i) => [`ability-${i + 1}`, { id }])) })
     }
 
+    const draft: BuildState = { ...base, choices, inventory, spellcasting, companions }
+    if (opts.reconcile !== false) reconcileWithSheet(draft, b, ctx)
+    reconcileWeapons(draft, ctx, sheetWeapon, opts.reconcile !== false)
+
     return {
-        state: { ...base, choices, inventory, spellcasting, companions },
+        state: draft,
         report: { notFound: [...new Set(notFound)].sort(), guesses },
+    }
+}
+
+const SAVE_KEYS = ['perception', 'fortitude', 'reflex', 'will', 'classDC'] as const
+const CATEGORY_KEYS = ['simple', 'martial', 'advanced', 'unarmed', 'unarmored', 'light', 'medium', 'heavy'] as const
+
+/**
+ * A Ficha Virtual é a referência: o que o motor ainda não calcula (ancestralidade fora do catálogo, perícia dada por
+ * talento, arma da divindade…) vira ajuste à mão com o motivo "Importado da Ficha", para o Criador mostrar os mesmos
+ * números. Só sobe, nunca rebaixa: número menor no export que no motor fica para a pessoa conferir.
+ */
+function reconcileWithSheet(state: BuildState, b: BuildInfo, ctx: CompileContext) {
+    const reason = 'Importado da Ficha Virtual: o Criador ainda não calcula isto sozinho'
+    const adjustments: NonNullable<BuildState['manual']['adjustments']> = []
+    const add = (id: string, label: string, kind: 'proficiency' | 'itemBonus', target: string, value: number) =>
+        adjustments.push({ id: `imp-${id}`.toLowerCase().replace(/[^a-z0-9:_-]+/g, '-').slice(0, 60), label, reason, effect: { kind, target, value } })
+
+    // 1. Atributos (o modificador da ficha).
+    let out = compileBuild(state, ctx)
+    const override: Partial<Record<AttributeKey, number>> = {}
+    for (const [short, a] of Object.entries(ATTR)) {
+        const score = (b.abilities as unknown as Record<string, number>)[a]
+        if (typeof score !== 'number') continue
+        const want = Math.floor((score - 10) / 2)
+        if (out.attributes.mod[a] !== want) override[a] = want
+        void short
+    }
+    if (Object.keys(override).length) state.manual = { ...state.manual, attributeOverride: { ...state.manual.attributeOverride, ...override } }
+
+    // 2. Proficiências que o export tem acima do motor.
+    out = compileBuild(state, ctx)
+    const prof = b.proficiencies as unknown as Record<string, number>
+    for (const s of SKILL_KEYS) {
+        const want = Math.round((prof[s] ?? 0) / 2)
+        if (want > out.skills.rank[s]) add(`skill-${s}`, `${s} (Ficha)`, 'proficiency', `skill:${s}`, want)
+    }
+    for (const k of SAVE_KEYS) {
+        const want = Math.round((prof[k] ?? 0) / 2)
+        if (want > out.proficiency[k]) add(k, `${k} (Ficha)`, 'proficiency', k, want)
+    }
+    for (const k of CATEGORY_KEYS) {
+        const want = Math.round((prof[k] ?? 0) / 2)
+        const have = (k in out.proficiency.attacks ? out.proficiency.attacks[k as keyof typeof out.proficiency.attacks] : out.proficiency.defenses[k as keyof typeof out.proficiency.defenses]) ?? 0
+        if (want > have) add(k, `${k} (Ficha)`, 'proficiency', k, want)
+    }
+    // Conjuração inata ou de talento (ancestralidade, Mythic Magic…): o retrato leva o rank da Ficha.
+    const casters = new Map<string, number>()
+    for (const c of out.casters) if (c.tradition) casters.set(c.tradition, Math.max(casters.get(c.tradition) ?? 0, c.rank))
+    for (const t of ['arcane', 'divine', 'occult', 'primal']) {
+        const k = `casting${t[0].toUpperCase()}${t.slice(1)}`
+        const want = Math.round((prof[k] ?? 0) / 2)
+        if (want > (casters.get(t) ?? 0)) add(k, `${k} (Ficha)`, 'proficiency', k, want)
+    }
+    // Proficiência numa arma só (a `specificProficiencies` do Pathbuilder: arma da divindade, Monastic Archer…).
+    const specific = (b as BuildInfo & { specificProficiencies?: Record<string, string[]> }).specificProficiencies ?? {}
+    for (const [rankName, rank] of [['trained', 1], ['expert', 2], ['master', 3], ['legendary', 4]] as const) {
+        for (const name of specific[rankName] ?? []) {
+            const st = out.equipment.strikes.find((x) => x.name.toLowerCase() === name.toLowerCase() || out.equipment.items.find((i) => i.key === x.key)?.base?.name.toLowerCase() === name.toLowerCase())
+            const have = st ? Math.max(0, Math.round(((st.attackParts.find((p) => p.label === 'Proficiência' || p.label === 'Proficiency')?.value ?? 0) - out.level) / 2)) : 0
+            if (!st || have < rank) add(`weapon-${name}`, `${name} (Ficha)`, 'proficiency', `weapon:${name.toLowerCase()}`, rank)
+        }
+    }
+    if (adjustments.length) state.manual = { ...state.manual, adjustments: [...(state.manual.adjustments ?? []), ...adjustments] }
+
+    // 3. CA: o que ainda falta vira bônus de item por ajuste (armadura ou item que o motor não lê).
+    out = compileBuild(state, ctx)
+    const acWant = b.acTotal?.acTotal
+    if (typeof acWant === 'number' && acWant > out.stats.ac.total) {
+        state.manual = { ...state.manual, adjustments: [...(state.manual.adjustments ?? []),
+            { id: 'imp-ac', label: 'CA (Ficha)', reason, effect: { kind: 'itemBonus', target: 'ac', value: acWant - out.stats.ac.total } }] }
+    }
+}
+
+/**
+ * Armas: o atributo do ataque que bate com o export (arma caseira de acuidade, por exemplo) e o dano extra que o export
+ * traz e o motor não calcula (fica guardado na arma, como no Pathbuilder). Com `exact`, o golpe que ainda difere fica
+ * com o valor da Ficha, definido à mão (aviso), porque a Ficha é a referência.
+ */
+function reconcileWeapons(draft: BuildState, ctx: CompileContext, sheetWeapon: Map<string, BuildInfo['weapons'][number]>, exact: boolean) {
+    const strikesOf = (st: BuildState) => compileBuild(st, ctx).equipment.strikes
+    const strikes = strikesOf(draft)
+    for (const inv of draft.inventory) {
+        const w = sheetWeapon.get(inv.key)
+        const st = strikes.find((x) => x.key === inv.key)
+        if (!w || !st) continue
+        if (st.attack !== w.attack) {
+            for (const alt of ['dex', 'str'] as const) {
+                const tried = strikesOf({ ...draft, inventory: draft.inventory.map((i) => (i.key === inv.key ? { ...i, weapon: { ...i.weapon, attackAttribute: alt } } : i)) })
+                if (tried.find((x) => x.key === inv.key)?.attack === w.attack) { inv.weapon = { ...inv.weapon, attackAttribute: alt }; break }
+            }
+        }
+        const extra = (w.extraDamage ?? []).filter((d) => !st.extraDamage.some((x) => x.toLowerCase() === d.toLowerCase()))
+        if (extra.length) inv.weapon = { ...inv.weapon, extraDamage: extra.slice(0, 6).map((d) => d.slice(0, 40)) }
+    }
+    if (!exact) return
+    const after = strikesOf(draft)
+    for (const inv of draft.inventory) {
+        const w = sheetWeapon.get(inv.key)
+        const st = after.find((x) => x.key === inv.key)
+        if (!w || !st) continue
+        const overrides = { ...(st.attack !== w.attack ? { attack: w.attack } : {}), ...(st.damageBonus !== w.damageBonus ? { damage: w.damageBonus } : {}) }
+        if (Object.keys(overrides).length) inv.weapon = { ...inv.weapon, overrides: { ...inv.weapon?.overrides, ...overrides } }
     }
 }

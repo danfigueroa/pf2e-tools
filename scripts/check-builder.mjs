@@ -542,6 +542,7 @@ console.log('Exceção do GM (F8.5): incomum avisa; liberado para o personagem, 
 
 console.log('Paridade com o elenco (importar → recompilar → exportar) e invariantes do contrato (CONTRATO-FICHA §8)')
 {
+    const SKILLS = ['acrobatics', 'arcana', 'athletics', 'crafting', 'deception', 'diplomacy', 'intimidation', 'medicine', 'nature', 'occultism', 'performance', 'religion', 'society', 'stealth', 'survival', 'thievery']
     const { importPathbuilder } = await import('../src/modules/character-builder/engine/import.ts')
     const { exportBuild } = await import('../src/modules/character-builder/engine/export.ts')
     const { parseCharacterJson } = await import('../src/pathbuilder/types.ts')
@@ -550,7 +551,7 @@ console.log('Paridade com o elenco (importar → recompilar → exportar) e inva
     let resolved = 0
     for (const file of readdirSync(new URL('../public/characters/', import.meta.url)).filter((x) => x.endsWith('.json'))) {
         const b = JSON.parse(readFileSync(new URL(`../public/characters/${file}`, import.meta.url), 'utf8')).build
-        const { state } = importPathbuilder(b, pctx)
+        const { state } = importPathbuilder(b, pctx, { reconcile: false })
         expect(`${b.name}: o estado importado passa no sanitizador`, serverSanitize.sanitizeBuildState(state) !== null, true)
         const out = compileBuild(state, pctx)
         const doc = exportBuild(state, out, { rules })
@@ -577,7 +578,18 @@ console.log('Paridade com o elenco (importar → recompilar → exportar) e inva
         cmp('focusPoints', ex.focusPoints, b.focusPoints)
         const allowed = known[b.name] ?? {}
         expect(`${b.name}: nenhuma diferença nova (parity-known.json)`, diffs.filter((d) => !(d in allowed)), [])
-        resolved += Object.keys(allowed).filter((k) => !diffs.includes(k)).length
+        const gone = Object.keys(allowed).filter((k) => !diffs.includes(k))
+        resolved += gone.length
+        if (gone.length) console.log(`  resolvida(s) em ${b.name}: ${gone.join(', ')}`)
+        // Com a reconciliação (o padrão da importação), o que o motor não calcula vira ajuste e os números batem com a Ficha.
+        const rec = importPathbuilder(b, pctx).state
+        const recDoc = exportBuild(rec, compileBuild(rec, pctx), { rules }).build
+        const mods = (ab) => ['str', 'dex', 'con', 'int', 'wis', 'cha'].map((k) => Math.floor((ab[k] - 10) / 2))
+        expect(`${b.name}: importado, os modificadores batem com a Ficha`, mods(recDoc.abilities), mods(b.abilities))
+        expect(`${b.name}: importado, a CA não fica abaixo da Ficha`, recDoc.acTotal.acTotal >= b.acTotal.acTotal, true)
+        expect(`${b.name}: importado, nenhuma perícia abaixo da Ficha`, SKILLS.filter((k) => (recDoc.proficiencies[k] ?? 0) < (b.proficiencies[k] ?? 0)), [])
+        expect(`${b.name}: importado, toda arma da Ficha continua no retrato`, b.weapons.filter((w) => !recDoc.weapons.some((x) => x.name === w.name)).map((w) => w.name), [])
+        expect(`${b.name}: importado, todo item da Ficha continua no retrato`, b.equipment.filter(([n]) => !recDoc.equipment.some(([x]) => x === n) && !recDoc.armor.some((a) => a.name === n)).map(([n]) => n), [])
     }
     if (resolved) console.log(`  (${resolved} diferença(s) conhecida(s) já resolvida(s): apague-as do parity-known.json)`)
 }

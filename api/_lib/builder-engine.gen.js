@@ -887,6 +887,22 @@ var COINS_GP = (m) => m.pp * 10 + m.gp + m.sp / 10 + m.cp / 100;
 var bulkOf = (b) => b === "L" ? 0.1 : typeof b === "number" ? b : 0;
 var TRAIT = (t) => t.toLowerCase().split(" ")[0];
 var STRIKING_NAME = ["", "Striking", "Greater Striking", "Major Striking"];
+var GRADE_LABEL = { low: "Low-Grade", standard: "Standard-Grade", high: "High-Grade" };
+var REINFORCING_NAME = ["", "Minor", "Lesser", "Moderate", "Greater", "Major", "Supreme"];
+var RUNE_HIT = {
+  flaming: "1d6 Fire",
+  frost: "1d6 Cold",
+  shock: "1d6 Electricity",
+  thundering: "1d6 Sonic",
+  corrosive: "1d6 Acid",
+  astral: "1d6 Spirit",
+  impactful: "1d6 Force",
+  decaying: "1d4 Void",
+  holy: "1d4 Spirit",
+  unholy: "1d4 Spirit",
+  brilliant: "1d4 Fire"
+};
+var runeBase = (name) => name.toLowerCase().replace(/\((greater|major|true)\)|\b(greater|major|true)\b/g, "").replace(/\s+/g, " ").trim();
 var FUNDAMENTAL_NAMES = {
   potency: ["", "Weapon Potency (+1)", "Weapon Potency (+2)", "Weapon Potency (+3)"],
   striking: ["", "Striking", "Striking (Greater)", "Striking (Major)"],
@@ -936,12 +952,27 @@ var GROUP_FEATURES = [
   { name: /^fighter weapon mastery$/i, ranks: { simple: 3, martial: 3, unarmed: 3, advanced: 2 } },
   { name: /^weapon legend$/i, ranks: { simple: 4, martial: 4, unarmed: 4, advanced: 3 } }
 ];
+function customBase(inv) {
+  const c = inv.custom;
+  if (!c?.weapon && !c?.armor) return null;
+  return {
+    id: inv.item,
+    name: c.weapon?.name ?? inv.customName ?? inv.item,
+    type: c.weapon ? "weapon" : "armor",
+    source: { id: "custom" },
+    aon: { id: inv.item },
+    remaster: true,
+    item: c.weapon ? { category: "Weapons", weapon: { die: c.weapon.die, damageType: c.weapon.damageType, category: c.weapon.category, range: c.weapon.range, traitsRaw: inv.weapon?.extraTraits } } : { category: "Armor", armor: { ac: c.armor.ac, dexCap: c.armor.dexCap, category: c.armor.category } }
+  };
+}
 function resolveItems(state, rules, warnings) {
   return state.inventory.map((inv) => {
     const entry = rules.get(inv.item) ?? null;
     const baseName = entry?.item?.baseItem ? [entry.item.baseItem].flat()[0] : void 0;
-    const base = entry && (entry.item?.weapon || entry.item?.armor || entry.item?.shield) ? entry : baseName ? rules.byName(baseName) ?? null : null;
-    if (!entry && inv.item.startsWith("custom:")) {
+    const base = entry && (entry.item?.weapon || entry.item?.armor || entry.item?.shield) ? entry : baseName ? rules.byName(baseName) ?? null : !entry && inv.custom ? customBase(inv) : null;
+    if (!entry && inv.item.startsWith("custom:") && inv.custom) {
+      warnings.push({ code: "CUSTOM_ITEM", level: "info", ref: "equipment", message: tr(`${inv.customName ?? inv.item}: item caseiro \u2014 os n\xFAmeros v\xEAm dos dados dele; pre\xE7o, volume e efeitos n\xE3o entram.`, `${inv.customName ?? inv.item}: homebrew item \u2014 numbers come from its stats; price, bulk and effects are not in.`) });
+    } else if (!entry && inv.item.startsWith("custom:")) {
       warnings.push({ code: "CUSTOM_ITEM", level: "info", ref: "equipment", message: tr(`${inv.customName ?? inv.item}: item caseiro \u2014 pre\xE7o, volume e efeitos n\xE3o entram nos n\xFAmeros.`, `${inv.customName ?? inv.item}: homebrew item \u2014 price, bulk and effects are not in the numbers.`) });
     } else if (!entry) warnings.push({ code: "ENTRY_NOT_FOUND", level: "warn", ref: "equipment", message: tr(`Item fora do cat\xE1logo atual: ${inv.customName ?? inv.item}.`, `Item not in the current catalog: ${inv.customName ?? inv.item}.`) });
     if (entry && baseName && entry.item?.subcategory?.startsWith("Specific")) {
@@ -965,6 +996,7 @@ function resolveItems(state, rules, warnings) {
 function compileEquipment(state, rules, ctx, warnings) {
   const items = resolveItems(state, rules, warnings);
   const str = ctx.mod.str;
+  const features = new Set(ctx.features ?? []);
   const coins = Math.floor((state.money.pp + state.money.gp + state.money.sp + state.money.cp) / 1e3);
   const total = Math.floor(items.reduce((sum, i) => sum + i.bulk, 0) * 10) / 10 + coins;
   const encumberedAt = 5 + str;
@@ -998,6 +1030,11 @@ function compileEquipment(state, rules, ctx, warnings) {
       warnings.push({ code: "RUNE_SLOTS", level: "warn", ref: "equipment", message: tr(`${wornArmor.name}: mais runas de propriedade que a pot\xEAncia permite.`, `${wornArmor.name}: more property runes than the potency allows.`) });
     }
   }
+  const bands = armor ? void 0 : items.find((i) => i.inv.invested && /^bands of force\b/i.test(i.entry?.name ?? ""));
+  if (bands) {
+    const tier = /\(major\)/i.test(bands.entry.name) ? 3 : /\(greater\)/i.test(bands.entry.name) ? 2 : 1;
+    armor = { item: bands, category: "unarmored", ac: 0, dexCap: 5, potency: tier, resilient: tier, checkPenalty: 0, speedPenalty: 0, strengthMet: true, saveLabel: bands.entry.name };
+  }
   if (items.filter((i) => i.inv.worn && i.base?.item?.armor).length > 1) {
     warnings.push({ code: "TWO_ARMORS", level: "warn", ref: "equipment", message: tr("Mais de uma armadura vestida; vale a primeira.", "More than one armor worn; the first one counts.") });
   }
@@ -1012,17 +1049,23 @@ function compileEquipment(state, rules, ctx, warnings) {
     const low = traits.map(TRAIT);
     const category = (w.category ?? "simple").toLowerCase();
     const group = w.group?.toLowerCase();
-    const rank = Math.max(ctx.attacks[category] ?? 0, (group ? ctx.groupRanks[group]?.[category] : 0) ?? 0);
+    const rank = Math.max(
+      ctx.attacks[category] ?? 0,
+      (group ? ctx.groupRanks[group]?.[category] : 0) ?? 0,
+      ctx.weaponRanks?.[base.name.toLowerCase()] ?? 0,
+      ctx.weaponRanks?.[name.toLowerCase()] ?? 0
+    );
     const prof = rank > 0 ? ctx.level + 2 * rank : 0;
     const ranged = !!w.range && !low.includes("thrown");
     const finesse = low.includes("finesse");
     const attr = inv?.weapon?.attackAttribute ?? (ranged ? "dex" : finesse && ctx.mod.dex > ctx.mod.str ? "dex" : "str");
     const potency = ctx.abp ? ctx.abp.attack : inv?.runes?.potency ?? 0;
     const striking = ctx.abp ? ctx.abp.dice - 1 : inv?.runes?.striking ?? 0;
-    const strDamage = ranged ? low.includes("propulsive") ? str > 0 ? Math.floor(str / 2) : str : 0 : str;
+    const thiefDex = !ranged && finesse && features.has("thief") && ctx.mod.dex > str;
+    const strDamage = ranged ? low.includes("propulsive") ? str > 0 ? Math.floor(str / 2) : str : 0 : thiefDex ? ctx.mod.dex : str;
     const spec = specBonus(rank);
     const attackParts = [{ label: tr("Profici\xEAncia", "Proficiency"), value: prof }, { label: ATTR_LABEL2[attr], value: ctx.mod[attr] }, ...potency ? [{ label: tr("Pot\xEAncia", "Potency"), value: potency }] : []];
-    const damageParts = [...strDamage ? [{ label: tr("FOR", "STR"), value: strDamage }] : [], ...spec ? [{ label: tr("Especializa\xE7\xE3o", "Specialization"), value: spec }] : []];
+    const damageParts = [...strDamage ? [{ label: thiefDex ? tr("DES (Thief)", "DEX (Thief)") : tr("FOR", "STR"), value: strDamage }] : [], ...spec ? [{ label: tr("Especializa\xE7\xE3o", "Specialization"), value: spec }] : []];
     let attack = attackParts.reduce((s, p) => s + p.value, 0);
     let damageBonus = damageParts.reduce((s, p) => s + p.value, 0);
     const o = inv?.weapon?.overrides;
@@ -1033,8 +1076,20 @@ function compileEquipment(state, rules, ctx, warnings) {
     }
     const runes = (inv?.runes?.property ?? []).map((id) => rules.get(id)?.name ?? id);
     if (runes.length > potency) warnings.push({ code: "RUNE_SLOTS", level: "warn", ref: "equipment", message: tr(`${name}: mais runas de propriedade que a pot\xEAncia permite (GM Core pg. 236).`, `${name}: more property runes than the potency allows (GM Core pg. 236).`) });
-    if (runes.length) warnings.push({ code: "UNSUPPORTED_EFFECT", level: "info", ref: "equipment", message: tr(`Efeito n\xE3o calculado: dano extra das runas de ${name} (${runes.join(", ")}).`, `Effect not calculated: extra damage from ${name}'s runes (${runes.join(", ")}).`) });
-    const material = inv?.material ? rules.get(inv.material.id)?.name : void 0;
+    const extraDamage = [];
+    const noHit = runes.filter((r) => !RUNE_HIT[runeBase(r)]);
+    for (const r of runes) {
+      const hit = RUNE_HIT[runeBase(r)];
+      if (hit && !extraDamage.includes(hit)) extraDamage.push(hit);
+    }
+    if (noHit.length) warnings.push({ code: "UNSUPPORTED_EFFECT", level: "info", ref: "equipment", message: tr(`Efeito n\xE3o calculado: runas de ${name} sem dano fixo no acerto (${noHit.join(", ")}).`, `Effect not calculated: ${name}'s runes without flat hit damage (${noHit.join(", ")}).`) });
+    if (features.has("precision") && key !== "fist") extraDamage.push(`${ctx.level >= 19 ? 3 : ctx.level >= 11 ? 2 : 1}d8 precision`);
+    if (features.has("sneak attack") && key !== "fist" && (ranged || finesse || low.includes("agile"))) {
+      extraDamage.push(`${1 + [5, 11, 17].filter((l) => ctx.level >= l).length}d6 precision`);
+    }
+    for (const extra of inv?.weapon?.extraDamage ?? []) if (!extraDamage.includes(extra)) extraDamage.push(extra);
+    const matEntry = inv?.material ? rules.get(inv.material.id) : void 0;
+    const material = matEntry ? inv?.material?.grade ? `${matEntry.name} (${GRADE_LABEL[inv.material.grade]})` : matEntry.name : void 0;
     const display = [potency ? `+${potency}` : "", STRIKING_NAME[striking] ?? "", ...runes, material ?? "", name].filter(Boolean).join(" ");
     return {
       key,
@@ -1054,7 +1109,8 @@ function compileEquipment(state, rules, ctx, warnings) {
       potency,
       striking,
       runes,
-      material
+      material,
+      extraDamage
     };
   };
   for (const item of items) {
@@ -1579,7 +1635,20 @@ function compileBuild(state, ctx) {
   const reached = (re) => (c?.features ?? []).some((f) => f.level <= level && re.test(f.name));
   const specialization = reached(/^greater weapon specialization$/i) ? 2 : reached(/^weapon specialization$/i) ? 1 : 0;
   const abp = flags.abp ? abpAt(level) : null;
-  const equipment = compileEquipment(state, rules, { level, mod, attacks: proficiency.attacks, groupRanks, specialization, abp }, warnings);
+  const weaponRanks = {};
+  for (const a of state.manual.adjustments ?? []) {
+    const v = typeof a.effect.value === "number" ? a.effect.value : Number(a.effect.value);
+    const t = (a.effect.target ?? "").toLowerCase();
+    if (a.effect.kind !== "proficiency" || !t || !Number.isFinite(v)) continue;
+    const r2 = Math.max(0, Math.min(4, v));
+    if (t.startsWith("weapon:")) weaponRanks[t.slice(7)] = Math.max(weaponRanks[t.slice(7)] ?? 0, r2);
+    else upgrade(t, r2);
+  }
+  const strikeFeatures = [
+    ...(c?.features ?? []).filter((f) => f.level <= level).map((f) => f.name.toLowerCase()),
+    ...classChoices.filter((x) => x.chosen && x.level <= level).map((x) => (rules.get(x.chosen)?.name ?? "").toLowerCase())
+  ];
+  const equipment = compileEquipment(state, rules, { level, mod, attacks: proficiency.attacks, groupRanks, specialization, abp, features: strikeFeatures, weaponRanks }, warnings);
   if (abp && equipment.armor) {
     equipment.armor.potency = abp.defense;
     equipment.armor.resilient = 0;
@@ -1640,7 +1709,6 @@ function compileBuild(state, ctx) {
     else if (a.effect.kind === "resistance" && t) feats.mods.resistances.push(Number.isFinite(v) ? `${t} ${v}` : t);
     else if (a.effect.kind === "sense" && t) feats.mods.senses.push(a.effect.target);
     else if (a.effect.kind === "language" && t) extraLanguages.push(a.effect.target);
-    else if (a.effect.kind === "proficiency" && t && Number.isFinite(v)) upgrade(t.startsWith("skill:") ? t : t, Math.max(0, Math.min(4, v)));
     else if (a.effect.kind === "itemBonus" && t && Number.isFinite(v)) adjust.items[t] = Math.max(adjust.items[t] ?? 0, v);
     warnings.push({ code: "MANUAL_ADJUSTMENT", level: "info", ref: "manual", message: tr(`Ajuste \xE0 m\xE3o: ${a.label} (${a.reason}).`, `Adjustment by hand: ${a.label} (${a.reason}).`) });
   }
@@ -1659,7 +1727,7 @@ function compileBuild(state, ctx) {
   const resilient = abp ? abp.save : equipment.armor?.resilient ?? 0;
   const featPart = (key) => [
     ...feats.mods.stat[key] ? [part(tr("Talentos", "Feats"), feats.mods.stat[key] ?? 0)] : [],
-    ...resilient && key !== "perception" ? [part(abp ? tr("Pot\xEAncia (ABP)", "Potency (ABP)") : tr("Resiliente", "Resilient"), resilient)] : [],
+    ...resilient && key !== "perception" ? [part(abp ? tr("Pot\xEAncia (ABP)", "Potency (ABP)") : equipment.armor?.saveLabel ?? tr("Resiliente", "Resilient"), resilient)] : [],
     ...abp?.perception && key === "perception" ? [part(tr("Pot\xEAncia (ABP)", "Potency (ABP)"), abp.perception)] : [],
     ...adjust.items[key] ? [part(tr("Item (ajuste)", "Item (adjustment)"), adjust.items[key])] : []
   ];
@@ -1670,7 +1738,10 @@ function compileBuild(state, ctx) {
       ...feats.mods.hp ? [part(tr("Talentos", "Feats"), feats.mods.hp)] : [],
       ...feats.mods.hpPerLevel ? [part(tr(`Talentos \xD7 ${level}`, `Feats \xD7 ${level}`), feats.mods.hpPerLevel * level)] : []
     ]),
-    ac: armorClass(equipment, { dex: mod.dex, level, defenses: proficiency.defenses, label: rankName, unarmoredPotency: abp && !equipment.armor ? abp.defense : 0 }),
+    ac: (() => {
+      const ac = armorClass(equipment, { dex: mod.dex, level, defenses: proficiency.defenses, label: rankName, unarmoredPotency: abp && !equipment.armor ? abp.defense : 0 });
+      return adjust.items.ac ? { total: ac.total + adjust.items.ac, parts: [...ac.parts, part(tr("Item (ajuste)", "Item (adjustment)"), adjust.items.ac)] } : ac;
+    })(),
     fortitude: stat([p(proficiency.fortitude), attrPart("con"), ...featPart("fortitude")]),
     reflex: stat([p(proficiency.reflex), attrPart("dex"), ...featPart("reflex")]),
     will: stat([p(proficiency.will), attrPart("wis"), ...featPart("will")]),
@@ -1733,6 +1804,12 @@ var SIZE = { tiny: 0, small: 1, medium: 2, large: 3, huge: 4, gargantuan: 5 };
 var STRIKING = ["", "striking", "greaterStriking", "majorStriking"];
 var RESILIENT = ["", "resilient", "greaterResilient", "majorResilient"];
 var DAMAGE_LETTER = { Bludgeoning: "B", Piercing: "P", Slashing: "S" };
+function weaponDisplay(item, built) {
+  const custom = item?.inv.custom?.weapon?.name;
+  if (item?.inv.customName && (item.entry || custom && custom !== item.inv.customName)) return item.inv.customName;
+  if (item?.entry?.item?.baseItem) return item.entry.name;
+  return built.replace(/\b(Greater|Major) Striking\b/, "Striking ($1)");
+}
 function slotLabel(slot, className, ancestryName) {
   switch (slot.kind) {
     case "class":
@@ -1835,23 +1912,31 @@ function exportBuild(state, compiled, ctx) {
     proficiencies[k] = Math.max(proficiencies[k] ?? 0, c.rank * 2);
   }
   for (const s of SKILL_KEYS) proficiencies[s] = compiled.skills.rank[s] * 2;
+  for (const a of state.manual.adjustments ?? []) {
+    const t = a.effect.target ?? "";
+    if (a.effect.kind === "proficiency" && /^casting(arcane|divine|occult|primal)$/i.test(t)) {
+      const k = `casting${t.slice(7, 8).toUpperCase()}${t.slice(8).toLowerCase()}`;
+      proficiencies[k] = Math.max(proficiencies[k] ?? 0, Math.max(0, Math.min(4, Number(a.effect.value) || 0)) * 2);
+    }
+  }
   const eq = compiled.equipment;
   const weapons = eq.strikes.filter((s) => s.key !== "fist").map((s) => {
     const item = eq.items.find((i) => i.key === s.key);
     return {
-      name: item?.base?.name ?? s.name,
+      name: item?.entry?.name ?? item?.base?.name ?? s.name,
       qty: item?.qty ?? 1,
       prof: s.category,
       die: s.die,
       pot: s.potency,
       str: STRIKING[s.striking] ?? "",
+      // O nome que o jogador deu (o Pathbuilder põe em `display`) é o que a Ficha usa para achar a relíquia.
       mat: s.material ?? null,
-      display: s.display,
+      display: weaponDisplay(item, s.display),
       runes: s.runes,
       damageType: DAMAGE_LETTER[s.damageType] ?? s.damageType,
       attack: s.attack,
       damageBonus: s.damageBonus,
-      extraDamage: [],
+      extraDamage: s.extraDamage,
       increasedDice: false,
       isInventor: false,
       grade: ""
@@ -1863,10 +1948,10 @@ function exportBuild(state, compiled, ctx) {
     prof: i.base?.item?.shield ? "shield" : (i.base?.item?.armor?.category ?? "unarmored").toLowerCase(),
     pot: i.inv.runes?.potency ?? 0,
     res: RESILIENT[i.inv.runes?.resilient ?? 0] ?? "",
-    mat: i.inv.material ? name(i.inv.material.id) : null,
+    mat: i.inv.material ? i.inv.material.grade ? `${name(i.inv.material.id)} (${GRADE_LABEL[i.inv.material.grade]})` : name(i.inv.material.id) : null,
     display: i.inv.customName ?? "",
     worn: !!i.inv.worn,
-    runes: (i.inv.runes?.property ?? []).map(name),
+    runes: [...i.inv.runes?.reinforcing ? [`Reinforcing (${REINFORCING_NAME[i.inv.runes.reinforcing]})`] : [], ...(i.inv.runes?.property ?? []).map(name)],
     grade: ""
   }));
   const equipment = eq.items.filter((i) => !i.base?.item?.weapon && !i.base?.item?.armor && !i.base?.item?.shield).map((i) => i.inv.invested ? [i.name, i.qty, "Invested"] : [i.name, i.qty]);
@@ -2317,7 +2402,7 @@ function slotKeyFromLabel(label, className, level) {
   if (m) return `ancestry-feat-${m[2]}`;
   return null;
 }
-function importPathbuilder(b, ctx) {
+function importPathbuilder(b, ctx, opts = {}) {
   const { rules } = ctx;
   const notFound = [];
   const guesses = [];
@@ -2499,33 +2584,79 @@ function importPathbuilder(b, ctx) {
   let n = 0;
   const key = () => `inv-imp${(n++).toString(36)}`;
   const inventory = [];
+  const customId = (name) => `custom:${name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "item"}`;
+  const runeIds = (names) => (names ?? []).filter((r) => !/^reinforcing\b/i.test(r)).map((r) => rules.byName(r)?.id).filter((x) => !!x);
+  const reinforcing = (names) => {
+    const m = (names ?? []).map((r) => /^Reinforcing(?: Rune)? \((\w+)\)$/i.exec(r)?.[1]).find(Boolean);
+    return m ? Math.max(0, REINFORCING_NAME.findIndex((x) => x.toLowerCase() === m.toLowerCase())) : 0;
+  };
+  const material = (mat) => {
+    const m = mat ? /^(.+?)(?: \((Low|Standard|High)-Grade\))?$/.exec(mat) : null;
+    if (!m) return void 0;
+    const e = rules.named(m[1]).find((x) => /^materials?$/i.test(x.item?.category ?? "") && !x.item?.parent);
+    if (!e) {
+      notFound.push(mat);
+      return void 0;
+    }
+    return { id: e.id, ...m[2] ? { grade: m[2].toLowerCase() } : {} };
+  };
+  const nickname = (display, name) => display && !display.toLowerCase().includes(name.toLowerCase()) ? display : void 0;
+  const LETTER = { B: "Bludgeoning", P: "Piercing", S: "Slashing" };
+  const dexMod = Math.floor((b.abilities.dex - 10) / 2);
+  const sheetWeapon = /* @__PURE__ */ new Map();
   for (const w of b.weapons ?? []) {
-    const e = find(w.name);
-    if (!e) continue;
+    const e = rules.byName(w.name);
+    const k = key();
+    sheetWeapon.set(k, w);
+    const runes = { potency: w.pot || 0, striking: STRIKING2[w.str ?? ""] ?? 0, property: runeIds(w.runes) };
+    if (e) {
+      inventory.push({ key: k, item: e.id, qty: w.qty || 1, acquired: "given", equipped: true, runes, material: material(w.mat), customName: nickname(w.display, w.name) });
+      continue;
+    }
+    notFound.push(w.name);
+    const category = ["simple", "martial", "advanced", "unarmed"].find((c) => c === w.prof) ?? "simple";
     inventory.push({
-      key: key(),
-      item: e.id,
+      key: k,
+      item: customId(w.name),
       qty: w.qty || 1,
       acquired: "given",
       equipped: true,
-      runes: { potency: w.pot || 0, striking: STRIKING2[w.str ?? ""] ?? 0, property: (w.runes ?? []).map((r) => rules.byName(r)?.id).filter((x) => !!x) }
+      runes,
+      material: material(w.mat),
+      customName: nickname(w.display, w.name) ?? w.name,
+      custom: { weapon: { name: w.name.slice(0, 80), die: /^d(4|6|8|10|12)$/.test(w.die) ? w.die : "d4", damageType: (LETTER[w.damageType] ?? w.damageType ?? "").slice(0, 20), category } }
     });
   }
   for (const a of b.armor ?? []) {
-    const e = find(a.name);
-    if (!e) continue;
+    const e = rules.byName(a.name);
+    const runes = { potency: a.pot || 0, resilient: RESILIENT2[a.res ?? ""] ?? 0, reinforcing: reinforcing(a.runes), property: runeIds(a.runes) };
+    if (e) {
+      const invested = !!a.worn && (e.traits ?? []).includes("Invested");
+      inventory.push({ key: key(), item: e.id, qty: a.qty || 1, acquired: "given", worn: !!a.worn, ...invested ? { invested } : {}, runes, material: material(a.mat), customName: nickname(a.display, a.name) });
+      continue;
+    }
+    notFound.push(a.name);
+    const category = ["unarmored", "light", "medium", "heavy"].find((c) => c === a.prof);
+    const ac = a.worn ? Math.max(0, (b.acTotal?.acItemBonus ?? 0) - (a.pot || 0)) : 0;
+    const cap = a.worn && (b.acTotal?.acAbilityBonus ?? dexMod) < dexMod ? b.acTotal.acAbilityBonus : void 0;
     inventory.push({
       key: key(),
-      item: e.id,
+      item: customId(a.name),
       qty: a.qty || 1,
       acquired: "given",
       worn: !!a.worn,
-      runes: { potency: a.pot || 0, resilient: RESILIENT2[a.res ?? ""] ?? 0, property: (a.runes ?? []).map((r) => rules.byName(r)?.id).filter((x) => !!x) }
+      runes,
+      customName: a.name,
+      ...category ? { custom: { armor: { category, ac, ...cap !== void 0 ? { dexCap: cap } : {} } } } : {}
     });
   }
   for (const [name, qty, ...rest] of b.equipment ?? []) {
-    const e = find(name);
-    if (!e) continue;
+    const e = rules.byName(name);
+    if (!e) {
+      notFound.push(name);
+      inventory.push({ key: key(), item: customId(name), qty: qty || 1, acquired: "given", customName: name });
+      continue;
+    }
     inventory.push({ key: key(), item: e.id, qty: qty || 1, acquired: "given", invested: rest.includes("Invested") && (e.traits ?? []).includes("Invested") });
   }
   const spellcasting = {};
@@ -2566,10 +2697,97 @@ function importPathbuilder(b, ctx) {
     const abilities = (f.abilities ?? []).map((a) => rules.byName(a)?.id).filter((x) => !!x);
     companions.push({ key: `pet-imp${companions.length}`, kind: "familiar", name: f.name || "Familiar", choices: Object.fromEntries(abilities.map((id, i) => [`ability-${i + 1}`, { id }])) });
   }
+  const draft = { ...base, choices, inventory, spellcasting, companions };
+  if (opts.reconcile !== false) reconcileWithSheet(draft, b, ctx);
+  reconcileWeapons(draft, ctx, sheetWeapon, opts.reconcile !== false);
   return {
-    state: { ...base, choices, inventory, spellcasting, companions },
+    state: draft,
     report: { notFound: [...new Set(notFound)].sort(), guesses }
   };
+}
+var SAVE_KEYS = ["perception", "fortitude", "reflex", "will", "classDC"];
+var CATEGORY_KEYS = ["simple", "martial", "advanced", "unarmed", "unarmored", "light", "medium", "heavy"];
+function reconcileWithSheet(state, b, ctx) {
+  const reason = "Importado da Ficha Virtual: o Criador ainda n\xE3o calcula isto sozinho";
+  const adjustments = [];
+  const add = (id, label, kind, target, value) => adjustments.push({ id: `imp-${id}`.toLowerCase().replace(/[^a-z0-9:_-]+/g, "-").slice(0, 60), label, reason, effect: { kind, target, value } });
+  let out = compileBuild(state, ctx);
+  const override = {};
+  for (const [short, a] of Object.entries(ATTR2)) {
+    const score = b.abilities[a];
+    if (typeof score !== "number") continue;
+    const want = Math.floor((score - 10) / 2);
+    if (out.attributes.mod[a] !== want) override[a] = want;
+  }
+  if (Object.keys(override).length) state.manual = { ...state.manual, attributeOverride: { ...state.manual.attributeOverride, ...override } };
+  out = compileBuild(state, ctx);
+  const prof = b.proficiencies;
+  for (const s of SKILL_KEYS) {
+    const want = Math.round((prof[s] ?? 0) / 2);
+    if (want > out.skills.rank[s]) add(`skill-${s}`, `${s} (Ficha)`, "proficiency", `skill:${s}`, want);
+  }
+  for (const k of SAVE_KEYS) {
+    const want = Math.round((prof[k] ?? 0) / 2);
+    if (want > out.proficiency[k]) add(k, `${k} (Ficha)`, "proficiency", k, want);
+  }
+  for (const k of CATEGORY_KEYS) {
+    const want = Math.round((prof[k] ?? 0) / 2);
+    const have = (k in out.proficiency.attacks ? out.proficiency.attacks[k] : out.proficiency.defenses[k]) ?? 0;
+    if (want > have) add(k, `${k} (Ficha)`, "proficiency", k, want);
+  }
+  const casters = /* @__PURE__ */ new Map();
+  for (const c of out.casters) if (c.tradition) casters.set(c.tradition, Math.max(casters.get(c.tradition) ?? 0, c.rank));
+  for (const t of ["arcane", "divine", "occult", "primal"]) {
+    const k = `casting${t[0].toUpperCase()}${t.slice(1)}`;
+    const want = Math.round((prof[k] ?? 0) / 2);
+    if (want > (casters.get(t) ?? 0)) add(k, `${k} (Ficha)`, "proficiency", k, want);
+  }
+  const specific = b.specificProficiencies ?? {};
+  for (const [rankName2, rank] of [["trained", 1], ["expert", 2], ["master", 3], ["legendary", 4]]) {
+    for (const name of specific[rankName2] ?? []) {
+      const st = out.equipment.strikes.find((x) => x.name.toLowerCase() === name.toLowerCase() || out.equipment.items.find((i) => i.key === x.key)?.base?.name.toLowerCase() === name.toLowerCase());
+      const have = st ? Math.max(0, Math.round(((st.attackParts.find((p) => p.label === "Profici\xEAncia" || p.label === "Proficiency")?.value ?? 0) - out.level) / 2)) : 0;
+      if (!st || have < rank) add(`weapon-${name}`, `${name} (Ficha)`, "proficiency", `weapon:${name.toLowerCase()}`, rank);
+    }
+  }
+  if (adjustments.length) state.manual = { ...state.manual, adjustments: [...state.manual.adjustments ?? [], ...adjustments] };
+  out = compileBuild(state, ctx);
+  const acWant = b.acTotal?.acTotal;
+  if (typeof acWant === "number" && acWant > out.stats.ac.total) {
+    state.manual = { ...state.manual, adjustments: [
+      ...state.manual.adjustments ?? [],
+      { id: "imp-ac", label: "CA (Ficha)", reason, effect: { kind: "itemBonus", target: "ac", value: acWant - out.stats.ac.total } }
+    ] };
+  }
+}
+function reconcileWeapons(draft, ctx, sheetWeapon, exact) {
+  const strikesOf = (st) => compileBuild(st, ctx).equipment.strikes;
+  const strikes = strikesOf(draft);
+  for (const inv of draft.inventory) {
+    const w = sheetWeapon.get(inv.key);
+    const st = strikes.find((x) => x.key === inv.key);
+    if (!w || !st) continue;
+    if (st.attack !== w.attack) {
+      for (const alt of ["dex", "str"]) {
+        const tried = strikesOf({ ...draft, inventory: draft.inventory.map((i) => i.key === inv.key ? { ...i, weapon: { ...i.weapon, attackAttribute: alt } } : i) });
+        if (tried.find((x) => x.key === inv.key)?.attack === w.attack) {
+          inv.weapon = { ...inv.weapon, attackAttribute: alt };
+          break;
+        }
+      }
+    }
+    const extra = (w.extraDamage ?? []).filter((d) => !st.extraDamage.some((x) => x.toLowerCase() === d.toLowerCase()));
+    if (extra.length) inv.weapon = { ...inv.weapon, extraDamage: extra.slice(0, 6).map((d) => d.slice(0, 40)) };
+  }
+  if (!exact) return;
+  const after = strikesOf(draft);
+  for (const inv of draft.inventory) {
+    const w = sheetWeapon.get(inv.key);
+    const st = after.find((x) => x.key === inv.key);
+    if (!w || !st) continue;
+    const overrides = { ...st.attack !== w.attack ? { attack: w.attack } : {}, ...st.damageBonus !== w.damageBonus ? { damage: w.damageBonus } : {} };
+    if (Object.keys(overrides).length) inv.weapon = { ...inv.weapon, overrides: { ...inv.weapon?.overrides, ...overrides } };
+  }
 }
 
 // src/modules/character-builder/engine/importCatalog.ts
@@ -2606,7 +2824,19 @@ async function importFromCatalog(json, ctx) {
   const extra = await Promise.all(paths.map(read));
   const homebrew = ctx.homebrew ?? [];
   const index = buildRulesIndex([a, h, bg, c, l, cf, ...extra, ar, homebrew, flair], l);
-  const { state, report } = importPathbuilder(b, { rules: index, mesaRules: ctx.mesaRules ?? void 0, classOptions: cf, tables: tables ?? void 0 });
+  const base = { mesaRules: ctx.mesaRules ?? void 0, classOptions: cf, tables: tables ?? void 0 };
+  const first = importPathbuilder(b, { rules: index, ...base }, { reconcile: false });
+  const compiled = await compileFromCatalog(first.state, { reader: ctx.reader, mesaRules: ctx.mesaRules, homebrew });
+  const merged = {
+    get: (id) => compiled.index.get(id) ?? index.get(id),
+    byName: (name, type) => compiled.index.byName(name, type) ?? index.byName(name, type),
+    named: (name) => {
+      const a2 = compiled.index.named(name);
+      return a2.length ? a2 : index.named(name);
+    },
+    languages: index.languages
+  };
+  const { state, report } = importPathbuilder(b, { rules: merged, ...base });
   return { state, report, className: b.class || null, name: b.name };
 }
 export {

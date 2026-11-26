@@ -8,7 +8,8 @@ import type { RuleEntry } from '../rules/types'
 import type { SpellSlotTable } from './spells'
 import { buildRulesIndex } from './rulesIndex'
 import { importPathbuilder, type ImportReport } from './import'
-import { featListPaths, ITEM_LISTS, ruleListSlug, type CatalogReader } from './catalog'
+import { compileFromCatalog, featListPaths, ITEM_LISTS, ruleListSlug, type CatalogReader } from './catalog'
+import type { RulesIndex } from './types'
 
 export interface CatalogImport {
     state: BuildState
@@ -45,6 +46,17 @@ export async function importFromCatalog(json: unknown, ctx: { reader: CatalogRea
     const extra = await Promise.all(paths.map(read))
     const homebrew = ctx.homebrew ?? []
     const index = buildRulesIndex([a, h, bg, c, l, cf, ...extra, ar, homebrew, flair], l)
-    const { state, report } = importPathbuilder(b, { rules: index, mesaRules: ctx.mesaRules ?? undefined, classOptions: cf, tables: tables ?? undefined })
+    const base = { mesaRules: ctx.mesaRules ?? undefined, classOptions: cf, tables: tables ?? undefined }
+    const first = importPathbuilder(b, { rules: index, ...base }, { reconcile: false })
+    // A reconciliação com a Ficha usa o índice da compilação de verdade (a do "Aplicar na mesa", com as listas que o
+    // `locate` acrescenta), senão o número reconciliado aqui muda ao compilar.
+    const compiled = await compileFromCatalog(first.state, { reader: ctx.reader, mesaRules: ctx.mesaRules, homebrew })
+    const merged: RulesIndex = {
+        get: (id) => compiled.index.get(id) ?? index.get(id),
+        byName: (name, type) => compiled.index.byName(name, type) ?? index.byName(name, type),
+        named: (name) => { const a = compiled.index.named(name); return a.length ? a : index.named(name) },
+        languages: index.languages,
+    }
+    const { state, report } = importPathbuilder(b, { rules: merged, ...base })
     return { state, report, className: b.class || null, name: b.name }
 }
