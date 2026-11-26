@@ -41,7 +41,9 @@
 - Calcule o "muda sozinho" do próximo nível compilando o estado com `level + 1` (`levelDiff.ts`), porque número previsto à mão seria regra inventada.
 - Abra a criação guiada só por `?guiado=1` (o "Novo personagem" já manda), porque um personagem existente entra direto no Plano.
 - Use como imagem do personagem o token da Ficha (`<slug>/token` no estado da mesa, `HeroPortrait`) e guarde a mesma URL em `details.portrait`, porque a imagem é uma só no mapa, na Ficha e no Criador.
-- Traduza traços pelo `useTraitLabels` (nome guardado no banco pelo `?traitRules=`) e deixe os nomes de talentos e magias em inglês canônico, porque são a chave da AON e do catálogo.
+- Traduza traços pelo `useTraitLabels` (nome guardado no banco pelo `?traitRules=`) e títulos de magias pelo `spellName` na tela. Preserve o nome canônico para IDs, exportação e consultas de descrição, e aceite ambos na busca.
+- Atualize `spellNames.pt.json` com `node --env-file=.env scripts/build-spell-names-pt.mjs` após publicar novas magias ou rituais no catálogo. Revise as traduções no arquivo e preserve nomes de conteúdo da mesa.
+- Trate os títulos em português como traduções da plataforma. A primeira carga usa o tradutor do projeto e [OPUS-MT](https://aclanthology.org/2020.eamt-1.61/) de Jörg Tiedemann e Santhosh Thottingal, via Argos `translate-en_pt-1_9` ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)), com revisão por amostragem.
 - Monte a aba Equipamento com `components/equipUi.tsx` (ícone, encaixes em losango, medidores, contador, degraus) e as regras de `equipmentModel.ts`, porque mochila, bancada, catálogo e "Gravar runa" mostram o mesmo item do mesmo jeito.
 - Leia o preço da runa fundamental só por `fundamentalRune` (`engine/equipment.ts`), porque "Striking" e "Resilient" também são o grupo sem preço e o `byName` devolveria o grupo.
 - Some no gasto o preço de cada runa no degrau atual, nunca a soma dos degraus, porque o upgrade custa a diferença (GM Core pg. 223–224).
@@ -56,6 +58,8 @@
 - Aplique da opção de subclasse escolhida numa dedicação multiclasse (escola, ordem, linhagem, estilo…) só o treino de perícia, porque as dedicações do Remaster dizem que as outras habilidades da opção não vêm e o Foundry as concede inteiras.
 - Avalie os pré-requisitos com os números finais (`prereqWarnings`, depois dos ranks de talentos, características e ajustes), porque o seletor avalia com o compilado pronto e os dois precisam concordar.
 - Separe na aba Magias as conhecidas (`caster.known`: lista inteira, grimório/familiar/dirge ou repertório, pela regra da classe na AON) das preparadas nos espaços, porque preparar de lista e de livro são regras diferentes.
+- Limite novas escolhas de preparação e repertório às vagas calculadas por conjurador e rank. Preserve escolhas antigas acima do limite para revisão e remoção. Permita cópias de magias preparadas de rank 1 a 10 e mantenha o livro, o foco e os rituais em contagens separadas (Player Core p. 297–298).
+- Abra o seletor no rank da vaga e deixe os ranks de origem inferiores em abas próprias, com ↑ indicando a elevação. Rotule as colunas Ações, Nome e Rank e explique na aba os mesmos símbolos usados na lista.
 - Deixe o Familiar da Witch e a Dirge do Necromancer em `spellbook` sem ligar `caster.spellbook`, porque esse sinal muda o export e a Ficha das bruxas publicadas perderia as preparadas.
 - Abra a descrição ao tocar numa magia escolhida e tire só pelo × à parte, porque reler não pode apagar a escolha.
 - Passe para a aba Magias as entradas `type: 'ritual'` além de `spell`, porque os rituais da AON vêm com tipo próprio.

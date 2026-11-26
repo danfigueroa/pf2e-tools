@@ -10,6 +10,7 @@ import { MenuBook as BrowseIcon } from '@mui/icons-material';
 import type { MesaRules } from '../types';
 import { pickerEditions } from '../remaster';
 import { ContentPicker } from './ContentPicker';
+import { spellKind, spellName } from './spellText';
 
 type Kind = 'ancestries' | 'heritages' | 'backgrounds' | 'classes' | 'archetypes'
   | 'feats-general' | 'feats-skill' | 'feats-mythic' | 'feats-class' | 'feats-ancestry' | 'feats-archetype'
@@ -100,6 +101,7 @@ export function CatalogBrowser({ open, onClose, core, mesaRules }: { open: boole
 
   const ready = !!core && (subs.length === 0 || !!sub);
   const title = [KINDS.find((k) => k.value === kind)?.label, subs.find((s) => s.value === sub)?.label].filter(Boolean).join(' · ');
+  const spellList = kind === 'spells' || kind === 'spells-focus' || kind === 'spells-rituals';
 
   return (
     <>
@@ -124,7 +126,8 @@ export function CatalogBrowser({ open, onClose, core, mesaRules }: { open: boole
       </Dialog>
       {browsing && (entries ? (
         <ContentPicker open title={title} entries={entries} mesaRules={mesaRules} onClose={() => setBrowsing(false)}
-          secondary={(e) => (e.level !== undefined ? tr(`Nível ${e.level}`, `Level ${e.level}`) : undefined)} />
+          entryName={spellList ? spellName : undefined} spellColumns={spellList}
+          secondary={spellList ? spellKind : (e) => (e.level !== undefined ? tr(`Nível ${e.level}`, `Level ${e.level}`) : undefined)} />
       ) : (
         <Dialog open onClose={() => setBrowsing(false)}>
           <Box role="status" sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 2 }}>

@@ -142,7 +142,7 @@ const ACTION_LABEL: Record<string, string> = {
 export function ActionGlyph({ actions, size = 12 }: { actions?: string; size?: number }) {
   const glyph = actions ? ACTION_GLYPH[actions] : undefined;
   return (
-    <Box component="span" aria-label={glyph ? ACTION_LABEL[actions!] : undefined} aria-hidden={glyph ? undefined : true}
+    <Box component="span" role={glyph ? 'img' : undefined} aria-label={glyph ? ACTION_LABEL[actions!] : undefined} aria-hidden={glyph ? undefined : true}
       sx={{ fontSize: size, color: greenInk.main, letterSpacing: '1px', whiteSpace: 'nowrap', fontWeight: 700 }}>
       {glyph ?? '—'}
     </Box>

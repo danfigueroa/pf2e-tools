@@ -1,18 +1,18 @@
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Box, ButtonBase, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { Close as CloseIcon, MenuBookOutlined as BookIcon } from '@mui/icons-material';
 import { displayFont, gold, ink, parchment, rule, status, TRADITION_COLORS } from '../../../theme';
 import { tr } from '../../../i18n';
 import { ContentPicker } from '../components/ContentPicker';
 import { SpellDetailDialog } from '../components/SpellDetailDialog';
-import { spellKind } from '../components/spellText';
+import { spellKind, spellName } from '../components/spellText';
 import type { SpellCast } from '../components/descriptionRequest';
 import { attributeLabel } from '../engine/attributes';
 import { rankName } from '../engine/compile';
 import { heightenGain, type Caster } from '../engine/spells';
 import type { RuleEntry } from '../rules/types';
 import type { CasterChoices } from '../types';
-import { BandHead, Label, PendCount, Pill, SectionHead, SlotCard } from '../components/ui';
+import { ActionGlyph, BandHead, Label, PendCount, Pill, SectionHead, SlotCard } from '../components/ui';
 import { cardSx, signed, tint } from '../components/uiTokens';
 import { setChoice, type SectionProps } from './types';
 
@@ -21,6 +21,7 @@ const TRADITION_LABEL: Record<string, string> = {
 };
 
 type Field = 'repertoire' | 'prepared' | 'spellbook' | 'focus0' | 'focus1' | 'rituals' | 'browse' | 'focusChoice';
+type SlotField = 'repertoire' | 'prepared';
 /** `choice`: a chave `focus-choice:<aon_id>` quando a escolha é de uma concessão com opções. */
 type Picking = { caster: string; field: Field; rank: number; choice?: string } | null;
 type Viewing = { id: string; cast?: SpellCast; onRemove?: () => void; removeLabel?: string } | null;
@@ -33,6 +34,19 @@ export interface SpellsProps extends SectionProps {
 const isCantrip = (s: RuleEntry) => !!(s.spell?.cantrip || (s.traits ?? []).includes('Cantrip'));
 const rankOf = (s: RuleEntry) => (isCantrip(s) ? 0 : s.spell?.rank ?? s.level ?? 0);
 const isRitual = (s: RuleEntry) => !!s.spell?.ritual || s.type === 'ritual';
+
+/** Player Core p. 297–298: espaços por rank, com truques preparados ou conhecidos contados à parte. */
+const slotLimit = (caster: Caster, field: SlotField, rank: number) =>
+  (field === 'repertoire' ? caster.known?.perRank?.[rank] : undefined) ?? caster.perDay[rank] ?? 0;
+
+const ACTION_LEGEND = [
+  { action: '1', label: tr('1 ação', '1 action') },
+  { action: '2', label: tr('2 ações', '2 actions') },
+  { action: '3', label: tr('3 ações', '3 actions') },
+  { action: 'reaction', label: tr('Reação', 'Reaction') },
+  { action: 'free', label: tr('Ação livre', 'Free action') },
+  { action: undefined, label: tr('Tempo de conjuração na descrição', 'Casting time in the description') },
+];
 
 /** Magia escolhida: tocar no nome abre a descrição; o × à parte tira. */
 function SpellChip({ name, onOpen, onRemove, up, from }: { name: string; onOpen: () => void; onRemove?: () => void; up?: { rank: number; gains: boolean; next?: number }; from?: string }) {
@@ -65,12 +79,13 @@ function SpellChip({ name, onOpen, onRemove, up, from }: { name: string; onOpen:
 }
 
 /** Cabeçalho de uma fileira: título, linha de apoio e o contador "2/3". */
-function RowHead({ title, note, count, full }: { title: ReactNode; note?: ReactNode; count?: string; full?: boolean }) {
+function RowHead({ title, note, count, full, over }: { title: ReactNode; note?: ReactNode; count?: string; full?: boolean; over?: boolean }) {
   return (
     <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, flexWrap: 'wrap' }}>
       <Box component="b" sx={{ font: `700 15px ${displayFont}` }}>{title}</Box>
       {note && <Box component="span" sx={{ fontSize: 13, color: ink.secondary, flex: 1 }}>{note}</Box>}
-      {count && <Box component="span" sx={{ fontSize: 12, fontWeight: 700, color: full ? status.success : gold.deep, ml: 'auto' }}>{count}{full ? ' ✓' : ''}</Box>}
+      {count && <Box component="span" sx={{ fontSize: 12, fontWeight: 700, color: over ? status.warning : full ? status.success : gold.deep, ml: 'auto' }}>
+        {count}{over ? tr(' · acima do limite', ' · over limit') : full ? ' ✓' : ''}</Box>}
     </Box>
   );
 }
@@ -80,11 +95,12 @@ function RowHead({ title, note, count, full }: { title: ReactNode; note?: ReactN
  * (lista inteira, grimório/familiar/dirge ou repertório, pela regra da classe) e, nos preparados, as PREPARADAS nos
  * espaços do dia. Embaixo, foco e rituais. Tocar numa magia escolhida abre a descrição; tirar é o × à parte.
  */
-export function SpellsSection({ state, update, compiled, canEdit, index, mesaRules, spells }: SpellsProps) {
+export function SpellsSection({ state, update, compiled, canEdit, index, mesaRules, spells: entries }: SpellsProps) {
   const [picking, setPicking] = useState<Picking>(null);
   const [viewing, setViewing] = useState<Viewing>(null);
-  const name = (id: string) => index.get(id)?.name ?? spells.find((s) => s.id === id)?.name ?? id;
+  const spells = useMemo(() => [...new Map(entries.map((entry) => [entry.id, entry])).values()], [entries]);
   const entryOf = (id: string) => index.get(id) ?? spells.find((s) => s.id === id);
+  const name = (id: string) => { const entry = entryOf(id); return entry ? spellName(entry) : id; };
   /** Truques e magias de foco sobem sozinhos à metade do nível, para cima (texto "Spellcasting" de cada classe). */
   const autoRank = compiled.focus.heightened;
   /** Rank em que a magia é lançada: o do espaço, ou o automático em truque e foco. Sem espaço (livro, lista), nada. */
@@ -103,18 +119,19 @@ export function SpellsSection({ state, update, compiled, canEdit, index, mesaRul
   };
 
   const lists = (key: string): CasterChoices => state.spellcasting[key] ?? {};
-  const setList = (key: string, field: 'repertoire' | 'prepared' | 'spellbook', rank: number, ids: string[]) =>
+  const changeList = (key: string, field: SlotField | 'spellbook', rank: number, change: (ids: string[]) => string[]) =>
     update((s) => {
       const current = { ...(s.spellcasting[key] ?? {}) };
-      if (field === 'spellbook') current.spellbook = ids;
-      else current[field] = { ...(current[field] ?? {}), [String(rank)]: ids };
+      const previous = (field === 'spellbook' ? current.spellbook : current[field]?.[String(rank)]) ?? [];
+      const next = change(previous);
+      if (previous === next) return s;
+      if (field === 'spellbook') current.spellbook = next;
+      else current[field] = { ...(current[field] ?? {}), [String(rank)]: next };
       return { ...s, spellcasting: { ...s.spellcasting, [key]: current } };
     });
   /** Grimório e rituais: escolher de novo tira (o seletor fica aberto para marcar vários). */
-  const toggleBook = (key: string, id: string) => {
-    const prev = lists(key).spellbook ?? [];
-    setList(key, 'spellbook', 0, prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
-  };
+  const toggleBook = (key: string, id: string) => changeList(key, 'spellbook', 0,
+    (prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
   const add = (p: NonNullable<Picking>, id: string) => {
     if (p.field === 'browse') return;
     if (p.field === 'focusChoice') {
@@ -125,20 +142,17 @@ export function SpellsSection({ state, update, compiled, canEdit, index, mesaRul
     if (p.field === 'spellbook') return toggleBook(p.caster, id);
     if (p.field === 'focus0' || p.field === 'focus1') {
       const rank = p.field === 'focus0' ? 0 : 1;
-      const prev = lists('focus').repertoire?.[String(rank)] ?? [];
-      if (!prev.includes(id)) setList('focus', 'repertoire', rank, [...prev, id]);
+      changeList('focus', 'repertoire', rank, (prev) => prev.includes(id) ? prev : [...prev, id]);
       return;
     }
-    const prev = lists(p.caster)[p.field]?.[String(p.rank)] ?? [];
-    // Preparadas repetem de propósito (várias cópias); repertório não.
-    if (p.field === 'repertoire' && prev.includes(id)) return;
-    setList(p.caster, p.field, p.rank, [...prev, id]);
+    const caster = compiled.casters.find((c) => c.key === p.caster);
+    if (!caster) return;
+    const limit = slotLimit(caster, p.field, p.rank);
+    const unique = p.field === 'repertoire' || p.rank === 0;
+    changeList(p.caster, p.field, p.rank, (prev) => prev.length >= limit || (unique && prev.includes(id)) ? prev : [...prev, id]);
   };
-  const removeAt = (caster: string, field: 'repertoire' | 'prepared' | 'spellbook', rank: number, i: number) => {
-    const c = lists(caster);
-    const prev = field === 'spellbook' ? c.spellbook ?? [] : c[field]?.[String(rank)] ?? [];
-    setList(caster, field, rank, prev.filter((_, j) => j !== i));
-  };
+  const removeAt = (caster: string, field: SlotField | 'spellbook', rank: number, i: number) =>
+    changeList(caster, field, rank, (prev) => prev.filter((_, j) => j !== i));
 
   const topRank = (caster: Caster) => caster.perDay.reduce((m, n, r) => (n > 0 ? r : m), 0);
   const ofTradition = (caster: Caster) => spells.filter((s) => s.type === 'spell' && !s.spell?.focus && !isRitual(s)
@@ -161,22 +175,22 @@ export function SpellsSection({ state, update, compiled, canEdit, index, mesaRul
     const caster = compiled.casters.find((c) => c.key === p.caster);
     if (!caster) return [];
     const fits = (s: RuleEntry) => (p.rank === 0) === isCantrip(s) && rankOf(s) <= Math.max(p.rank, 1);
-    if (p.field === 'prepared' && fromBook(caster)) return bookEntries(caster).filter(fits);
+    const chosen = lists(caster.key)[p.field === 'repertoire' ? 'repertoire' : 'prepared']?.[String(p.rank)] ?? [];
+    const available = (s: RuleEntry) => fits(s) && (!(p.field === 'repertoire' || p.rank === 0) || !chosen.includes(s.id));
+    if (p.field === 'prepared' && fromBook(caster)) return bookEntries(caster).filter(available);
     if (p.field === 'spellbook' || p.field === 'browse') return ofTradition(caster).filter((s) => rankOf(s) <= topRank(caster));
-    return ofTradition(caster).filter(fits);
+    return ofTradition(caster).filter(available);
   };
 
   const view = (id: string, onRemove?: () => void, removeLabel?: string, slotRank?: number) =>
     setViewing({ id, cast: castFor(entryOf(id), slotRank), onRemove: canEdit ? onRemove : undefined, removeLabel });
-  /** As magias escolhidas e os convites "+ Escolher" (quantos faltam; pelo menos um). `slotRank` = rank do espaço. */
+  /** As magias escolhidas e um botão para preencher uma vaga livre. */
   const spellChips = (ids: string[], onRemove: (i: number) => void, onAdd: () => void, empty = 1, slotRank?: number) => (
     <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
       {ids.map((id, i) => (
         <SpellChip key={`${id}-${i}`} name={name(id)} up={upOf(id, slotRank)} onOpen={() => view(id, () => onRemove(i), undefined, slotRank)} onRemove={canEdit ? () => onRemove(i) : undefined} />
       ))}
-      {canEdit && Array.from({ length: Math.max(1, empty) }, (_, k) => (
-        <Pill key={`add-${k}`} look="add" onClick={onAdd}>{tr('+ Escolher', '+ Choose')}</Pill>
-      ))}
+      {canEdit && empty > 0 && <Pill look="add" onClick={onAdd}>{tr('+ Escolher', '+ Choose')}</Pill>}
     </Box>
   );
 
@@ -245,18 +259,20 @@ export function SpellsSection({ state, update, compiled, canEdit, index, mesaRul
     }
 
     if (caster.type === 'spontaneous') {
-      const rows = caster.perDay.map((n, r) => ({ n, r, want: known?.perRank?.[r] ?? 0 })).filter(({ n, want }) => n > 0 || want > 0);
+      const rows = caster.perDay.map((n, r) => ({ n, r, want: slotLimit(caster, 'repertoire', r) }))
+        .filter(({ n, r, want }) => n > 0 || want > 0 || c.repertoire?.[String(r)]?.length);
       return wrap(<>
         {head(known?.name ?? tr('Repertório', 'Repertoire'))}
-        <Box sx={{ fontSize: 14 }}>{tr('Você só lança o que está no repertório, usando um espaço do rank certo.', 'You can only cast what is in your repertoire, using a slot of the right rank.')}</Box>
+        <Box sx={{ fontSize: 14 }}>{tr('Escolha as magias que você conhece em cada rank. Para trocar uma escolha, use × e preencha a vaga que abriu.',
+          'Choose the spells you know at each rank. To replace a choice, use × and fill the space it leaves.')}</Box>
         {rows.map(({ n, r, want }) => {
           const chosen = c.repertoire?.[String(r)] ?? [];
-          const left = known ? Math.max(0, want - chosen.length) : 1;
+          const left = want - chosen.length;
           return (
             <Box key={r} sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
               <RowHead title={r === 0 ? tr('Truques', 'Cantrips') : tr(`Rank ${r}`, `Rank ${r}`)}
                 note={r > 0 ? tr(`${n} espaço${n === 1 ? '' : 's'} por dia`, `${n} slot${n === 1 ? '' : 's'} per day`) : tr(`à vontade · elevados ao rank ${autoRank}`, `at will · heightened to rank ${autoRank}`)}
-                count={known ? `${Math.min(chosen.length, want)}/${want}` : undefined} full={!!known && chosen.length >= want} />
+                count={`${chosen.length}/${want}`} full={left === 0} over={left < 0} />
               {spellChips(chosen, (i) => removeAt(caster.key, 'repertoire', r, i), () => setPicking({ caster: caster.key, field: 'repertoire', rank: r }), left, r || undefined)}
             </Box>
           );
@@ -269,7 +285,7 @@ export function SpellsSection({ state, update, compiled, canEdit, index, mesaRul
 
   const preparedBlock = (caster: Caster) => {
     const c = lists(caster.key);
-    const ranks = caster.perDay.map((n, r) => ({ n, r })).filter(({ n }) => n > 0);
+    const ranks = caster.perDay.map((n, r) => ({ n, r })).filter(({ n, r }) => n > 0 || c.prepared?.[String(r)]?.length);
     const book = caster.known?.kind === 'book' || caster.spellbook;
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
@@ -278,18 +294,20 @@ export function SpellsSection({ state, update, compiled, canEdit, index, mesaRul
           <Box sx={{ fontSize: 13, color: ink.secondary }}>
             {book && !fromBook(caster)
               ? tr(`Anote magias no ${(caster.known?.name ?? tr('Grimório', 'Spellbook')).toLowerCase()} para preparar só delas; por ora, a lista toda.`, `Add spells to your ${(caster.known?.name ?? 'spellbook').toLowerCase()} to prepare only from it; for now, the whole list.`)
-              : book ? tr(`Uma magia por espaço, do ${(caster.known?.name ?? tr('Grimório', 'Spellbook')).toLowerCase()}. Pode repetir.`, `One spell per slot, from your ${(caster.known?.name ?? 'spellbook').toLowerCase()}. Repeats allowed.`)
-                : tr('Uma magia por espaço, da lista. Pode repetir.', 'One spell per slot, from the list. Repeats allowed.')}
+              : book ? tr(`Escolha uma magia por vaga do ${(caster.known?.name ?? tr('Grimório', 'Spellbook')).toLowerCase()}.`, `Choose one spell from your ${(caster.known?.name ?? 'spellbook').toLowerCase()} per slot.`)
+                : tr('Escolha uma magia da lista por vaga.', 'Choose one spell from the list per slot.')}
+            {' '}{tr('Escolha truques diferentes. Magias de rank 1 ou maior podem ocupar mais de uma vaga.', 'Choose distinct cantrips. Spells of rank 1 or higher can fill more than one slot.')}
             {' '}{tr('Magia de rank menor num espaço maior sobe para o rank do espaço (↑).', 'A lower-rank spell in a higher slot is heightened to the slot\'s rank (↑).')}
+            {' '}{tr('Use × para liberar uma vaga.', 'Use × to free up a slot.')}
           </Box>
         </Box>
         {ranks.map(({ n, r }) => {
           const chosen = c.prepared?.[String(r)] ?? [];
-          const left = Math.max(0, n - chosen.length);
+          const left = n - chosen.length;
           return (
             <Box key={r} sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
               <RowHead title={r === 0 ? tr('Truques', 'Cantrips') : tr(`Rank ${r}`, `Rank ${r}`)}
-                note={r > 0 ? tr(`${n} por dia`, `${n} per day`) : tr(`${n} preparados · elevados ao rank ${autoRank}`, `${n} prepared · heightened to rank ${autoRank}`)} count={`${Math.min(chosen.length, n)}/${n}`} full={left === 0} />
+                note={r > 0 ? tr(`${n} por dia`, `${n} per day`) : tr(`${n} preparados · elevados ao rank ${autoRank}`, `${n} prepared · heightened to rank ${autoRank}`)} count={`${chosen.length}/${n}`} full={left === 0} over={left < 0} />
               {spellChips(chosen, (i) => removeAt(caster.key, 'prepared', r, i), () => setPicking({ caster: caster.key, field: 'prepared', rank: r }), left, r || undefined)}
             </Box>
           );
@@ -344,8 +362,24 @@ export function SpellsSection({ state, update, compiled, canEdit, index, mesaRul
     return p.rank === 0 ? tr('Preparar — truques', 'Prepare — cantrips') : tr(`Preparar — rank ${p.rank}`, `Prepare — rank ${p.rank}`);
   };
   const toggling = picking && (picking.field === 'rituals' || picking.field === 'spellbook');
+  const selectedRank = picking && (picking.field === 'prepared' || picking.field === 'repertoire') ? picking.rank : 0;
+  const rankGroups = selectedRank > 1 ? Array.from({ length: selectedRank }, (_, i) => {
+    const rank = selectedRank - i;
+    return { key: rank, label: rank === selectedRank ? tr(`Rank ${rank}`, `Rank ${rank}`) : tr(`Rank ${rank} ↑`, `Rank ${rank} ↑`),
+      matches: (e: RuleEntry) => rankOf(e) === rank };
+  }) : undefined;
   return (
     <Stack spacing={1.5}>
+      <Box sx={[cardSx, { px: 1.5, py: 1.25 }]}>
+        <Label>{tr('Símbolos de conjuração', 'Cast symbols')}</Label>
+        <Box component="ul" sx={{ m: 0, mt: 0.5, p: 0, listStyle: 'none', display: 'flex', gap: '4px 16px', flexWrap: 'wrap', fontSize: 13 }}>
+          {ACTION_LEGEND.map(({ action, label }) => (
+            <Box component="li" key={label} sx={{ display: 'flex', alignItems: 'baseline', gap: 0.75 }}>
+              <Box component="span" aria-hidden><ActionGlyph actions={action} /></Box>{label}
+            </Box>
+          ))}
+        </Box>
+      </Box>
       {compiled.casters.length === 0 && (
         <Typography color="text.secondary">{tr('Esta classe não conjura magias por espaço. Magias de foco ficam abaixo.', 'This class has no spell slots. Focus spells are below.')}</Typography>
       )}
@@ -419,9 +453,10 @@ export function SpellsSection({ state, update, compiled, canEdit, index, mesaRul
       </Box>
 
       {picking && (
-        <ContentPicker open title={pickerTitle(picking)} entries={candidates(picking)} mesaRules={mesaRules} onClose={() => setPicking(null)}
+        <ContentPicker open title={pickerTitle(picking)} entries={candidates(picking)} entryName={spellName} groups={rankGroups} spellColumns mesaRules={mesaRules} onClose={() => setPicking(null)}
           subtitle={picking.field === 'spellbook' ? tr('Escolher marca; escolher de novo tira. O seletor fica aberto.', 'Choosing adds; choosing again removes. The picker stays open.')
-            : picking.field === 'rituals' ? tr('Marque os rituais que o personagem aprendeu.', 'Mark the rituals the character learned.') : undefined}
+            : picking.field === 'rituals' ? tr('Marque os rituais que o personagem aprendeu.', 'Mark the rituals the character learned.')
+              : rankGroups ? tr(`↑ eleva a magia ao rank ${selectedRank} desta vaga.`, `↑ heightens the spell to this slot’s rank ${selectedRank}.`) : undefined}
           onPick={canEdit && picking.field !== 'browse' ? (id) => add(picking, id) : undefined}
           keepOpen={!!toggling}
           picked={toggling ? (e) => (bookOf(picking).has(e.id) ? (picking.field === 'rituals' ? tr('aprendido', 'learned') : tr('anotada', 'recorded')) : undefined) : undefined}

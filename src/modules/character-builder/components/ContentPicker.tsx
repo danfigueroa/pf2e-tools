@@ -69,9 +69,14 @@ export interface ContentPickerProps {
   /** Atalho para continuar a escolha em outra lista. */
   browseAction?: { label: string; onClick: () => void };
   emptyText?: string;
+  entryName?: (entry: RuleEntry) => string;
+  groups?: { key: number; label: string; matches: (entry: RuleEntry) => boolean }[];
+  spellColumns?: boolean;
 }
 
 const traitsOf = (e: RuleEntry) => (e.traits ?? []).filter((t) => !['common', 'uncommon', 'rare', 'unique'].includes(t.toLowerCase()));
+const canonicalName = (e: RuleEntry) => e.name;
+const fold = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
 
 /** "Requer: Perito em Atletismo" — o motivo de inelegibilidade, escrito na própria linha. */
 function whyText(el: Eligibility): { text: string; unknown: boolean } | null {
@@ -91,7 +96,7 @@ function whyText(el: Eligibility): { text: string; unknown: boolean } | null {
  * ("Escolher mesmo assim" vira aviso). Celular: lista em tela cheia e o detalhe numa folha que sobe. Desktop: as duas
  * colunas. ↑/↓ andam, Enter escolhe, Esc fecha. A descrição completa (pt/en) vem do pipeline de descrições, sob demanda.
  */
-export function ContentPicker({ open, title, subtitle, entries, value, onPick, onClose, mesaRules, facts, secondary, prereq, note, levelCap, keepOpen, pickLabel, picked, cast, initialFilters, browseAction, emptyText }: ContentPickerProps) {
+export function ContentPicker({ open, title, subtitle, entries, value, onPick, onClose, mesaRules, facts, secondary, prereq, note, levelCap, keepOpen, pickLabel, picked, cast, initialFilters, browseAction, emptyText, entryName = canonicalName, groups, spellColumns }: ContentPickerProps) {
   const theme = useTheme();
   const wide = useMediaQuery(theme.breakpoints.up('md'));
   const [q, setQ] = useState('');
@@ -103,6 +108,7 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
   const [detailOpen, setDetailOpen] = useState(false);
   // Listas longas (1.700 consumíveis) desenham em páginas: o celular não monta milhares de linhas de uma vez.
   const [limit, setLimit] = useState(PAGE);
+  const [groupKey, setGroupKey] = useState(groups?.[0]?.key);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -118,6 +124,8 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
 
   const exceptions = useContext(BuildExceptions);
   const editions = useMemo(() => open ? pickerEditions(entries, mesaRules, exceptions) : [], [open, entries, mesaRules, exceptions]);
+  const group = groups?.find((g) => g.key === groupKey) ?? groups?.[0];
+  const visibleGroup = useMemo(() => group ? editions.filter(group.matches) : editions, [editions, group]);
   const eligibility = useMemo(() => {
     const map = new Map<string, Eligibility>();
     if (prereq && open) for (const e of editions) map.set(e.id, prereq(e));
@@ -125,21 +133,26 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
   }, [prereq, editions, open]);
   const blocked = (e: RuleEntry) => !exceptions.has(e.id) && allowedAtTable(e, mesaRules) === false;
   const shown = useMemo(() => {
-    const term = q.trim().toLowerCase();
+    const term = fold(q.trim());
     const rank = (e: RuleEntry) => ({ ok: 0, unknown: 1, fail: 2 }[eligibility.get(e.id)?.result ?? 'ok']);
-    return editions
-      .filter((e) => !term || e.name.toLowerCase().includes(term) || [...(e.legacyNames ?? []), ...(e.previousNames ?? [])].some((n) => n.toLowerCase().includes(term)))
+    const byName = (a: RuleEntry, b: RuleEntry) => entryName(a).localeCompare(entryName(b), locale);
+    const compare = filters.sort === 'name' ? byName : compareBy(filters.sort);
+    return visibleGroup
+      .filter((e) => !term || [entryName(e), e.name, ...(e.legacyNames ?? []), ...(e.previousNames ?? [])].some((n) => fold(n).includes(term)))
       .filter((e) => !onlyAllowed || exceptions.has(e.id) || allowedAtTable(e, mesaRules) !== false)
       .filter((e) => !capOn || levelCap === undefined || (e.level ?? 0) <= levelCap)
       .filter((e) => passes(e, filters, eligibility.get(e.id)?.result))
-      .sort((a, b) => (prereq ? rank(a) - rank(b) : 0) || compareBy(filters.sort)(a, b) || a.name.localeCompare(b.name, locale));
-  }, [editions, exceptions, q, onlyAllowed, mesaRules, eligibility, prereq, capOn, levelCap, filters]);
+      .sort((a, b) => (prereq ? rank(a) - rank(b) : 0) || compare(a, b) || byName(a, b));
+  }, [visibleGroup, exceptions, q, onlyAllowed, mesaRules, eligibility, prereq, capOn, levelCap, filters, entryName]);
   const facets = useMemo(() => facetsOf(editions), [editions]);
   // As descrições da lista que aparece, do banco e de uma vez: o clique em qualquer item abre na hora.
   useEffect(() => {
     if (!open) return;
     const byKind: Record<'feat' | 'spell' | 'item' | 'special', string[]> = { feat: [], spell: [], item: [], special: [] };
-    for (const e of shown.slice(0, limit)) byKind[descriptionRequest(e).type].push(e.name);
+    for (const e of shown.slice(0, limit)) if (!e.homebrew) {
+      const request = descriptionRequest(e);
+      byKind[request.type].push(request.name);
+    }
     for (const [kind, names] of Object.entries(byKind) as [keyof typeof byKind, string[]][]) if (names.length) void prefetchStoredDescriptions(kind, names);
   }, [open, shown, limit]);
   const nFilters = activeCount(filters);
@@ -148,6 +161,7 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
   const eligibleCount = prereq ? shown.filter((e) => eligibility.get(e.id)?.result === 'ok').length : null;
 
   const focused = shown.find((e) => e.id === focusId) ?? (wide ? shown[0] : undefined);
+  const columns = spellColumns ? '44px minmax(0, 1fr) auto' : '34px minmax(0, 1fr) auto';
 
   const move = (delta: number) => {
     const i = Math.max(0, shown.findIndex((e) => e.id === focused?.id));
@@ -195,7 +209,7 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
       }}>
         <SearchIcon aria-hidden />
         <InputBase autoFocus fullWidth value={q} onChange={(e) => setQ(e.target.value)}
-          placeholder={tr(`Buscar entre ${editions.length.toLocaleString(locale)}`, `Search ${editions.length.toLocaleString(locale)}`)}
+          placeholder={tr(`Buscar entre ${visibleGroup.length.toLocaleString(locale)}`, `Search ${visibleGroup.length.toLocaleString(locale)}`)}
           inputProps={{ 'aria-label': tr('Buscar', 'Search') }} sx={{ color: ink.primary }}
           onKeyDown={(e) => {
             if (e.key === 'ArrowDown') { e.preventDefault(); move(1); }
@@ -212,6 +226,15 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
           <MoreIcon sx={{ fontSize: 16, transform: filtersOpen && wide ? 'rotate(180deg)' : 'none' }} /></>, () => setFiltersOpen(!filtersOpen), filtersOpen)}
         {nFilters > 0 && chip(false, tr('Limpar', 'Clear'), () => setFilters(EMPTY_FILTERS))}
       </Box>
+    </Box>
+  );
+  const groupBar = groups && groups.length > 1 && (
+    <Box role="group" aria-label={tr('Rank de origem', 'Base rank')}
+      sx={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 0.75, overflowX: 'auto', px: { xs: 2, md: 2.75 }, py: 0.75, borderBottom: `1px solid ${rule}` }}>
+      <Box component="span" sx={{ fontSize: 13, flex: 'none', color: ink.secondary }}>{tr('Rank de origem', 'Base rank')}</Box>
+      {groups.map((g) => <Box key={g.key} sx={{ flex: 'none' }}>{chip(group?.key === g.key, g.label, () => {
+        setGroupKey(g.key); setFocusId(undefined); setDetailOpen(false); setLimit(PAGE); listRef.current?.scrollTo({ top: 0 });
+      }, group?.key === g.key)}</Box>)}
     </Box>
   );
   const filterPanel = (onDone?: () => void) => (
@@ -237,14 +260,14 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
       <ButtonBase key={e.id} data-id={e.id} role="option" aria-selected={e.id === value}
         onClick={() => { setFocusId(e.id); if (!wide) setDetailOpen(true); }} onDoubleClick={() => choose(e)}
         sx={{
-          display: 'grid', gridTemplateColumns: '34px minmax(0, 1fr) auto', gap: 1.25, alignItems: 'start', py: 1.25, px: 1.75, width: 1, textAlign: 'left',
+          display: 'grid', gridTemplateColumns: columns, gap: 1.25, alignItems: 'start', py: 1.25, px: 1.75, width: 1, textAlign: 'left',
           borderBottom: `1px solid ${rule}`, justifyContent: 'stretch', color: 'inherit',
           ...(sel && { bgcolor: tint.green, outline: `2px solid ${greenInk.mid}`, outlineOffset: '-2px' }),
           ...(note?.(e) && { opacity: 0.72 }),
         }}>
         <Box component="span" sx={{ pt: '3px' }}><ActionGlyph actions={e.actions} /></Box>
         <Box component="span" sx={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0 }}>
-          <Box component="span" sx={{ fontWeight: 600, fontSize: 15, color: el && el.result !== 'ok' ? ink.secondary : ink.primary, overflowWrap: 'anywhere' }}>{e.name}</Box>
+          <Box component="span" sx={{ fontWeight: 600, fontSize: 15, color: el && el.result !== 'ok' ? ink.secondary : ink.primary, overflowWrap: 'anywhere' }}>{entryName(e)}</Box>
           {meta && <Box component="span" sx={{ fontSize: 13, color: ink.secondary }}>{meta}</Box>}
           {badges.length > 0 && <Box component="span" sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>{badges}</Box>}
           {why && (
@@ -264,6 +287,12 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
         <span>{countLabel}</span>
         <span>{[prereq ? tr('elegíveis primeiro', 'eligible first') : null, filters.sort !== 'name' ? SORT_LABEL[filters.sort] : null].filter(Boolean).join(' · ')}</span>
       </Box>
+      {spellColumns && (
+        <Box aria-hidden sx={{ display: 'grid', gridTemplateColumns: columns, gap: 1.25, px: 1.75, py: 0.5,
+          fontSize: 12, fontWeight: 700, color: ink.secondary, borderBottom: `1px solid ${rule}` }}>
+          <span>{tr('Ações', 'Actions')}</span><span>{tr('Nome', 'Name')}</span><span>{tr('Rank', 'Rank')}</span>
+        </Box>
+      )}
       <Box ref={listRef} role="listbox" aria-label={title} sx={{ overflowY: 'auto', flex: 1, minHeight: 0, bgcolor: parchment.paper }}>
         {shown.slice(0, limit).map(row)}
         {shown.length > limit && (
@@ -289,7 +318,7 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.75 }}>
           <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
-              <Box component="h3" sx={{ m: 0, flex: 1, font: `700 24px/1.1 ${displayFont}`, fontSize: { md: 30 }, overflowWrap: 'anywhere' }}>{e.name}</Box>
+              <Box component="h3" sx={{ m: 0, flex: 1, font: `700 24px/1.1 ${displayFont}`, fontSize: { md: 30 }, overflowWrap: 'anywhere' }}>{entryName(e)}</Box>
               {e.actions && <ActionGlyph actions={e.actions} size={16} />}
             </Box>
             <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -307,6 +336,7 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
           </Box>
           {!e.homebrew && e.source.page ? <Box component="span" sx={{ fontSize: 13, color: ink.secondary, pt: 1.25, whiteSpace: 'nowrap' }}>{tr(`pg. ${e.source.page}`, `p. ${e.source.page}`)}</Box> : null}
         </Box>
+        {entryName(e) !== e.name && <Box sx={{ fontSize: 13, color: ink.secondary }}>{e.name}</Box>}
         {el?.result === 'ok' && el.parts.length > 0 && (
           <Notice tone="ok" icon={<OkIcon />}><b>{tr('Elegível — todos os pré-requisitos cumpridos.', 'Eligible — all prerequisites met.')}</b></Notice>
         )}
@@ -360,7 +390,7 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
     const el = eligibility.get(e.id);
     if (e.id === value) return tr('Manter', 'Keep');
     if ((el && el.result !== 'ok') || blocked(e)) return tr('Escolher mesmo assim', 'Choose anyway');
-    return wide ? tr(`Escolher ${e.name}`, `Choose ${e.name}`) : tr('Escolher', 'Choose');
+    return wide ? tr(`Escolher ${entryName(e)}`, `Choose ${entryName(e)}`) : tr('Escolher', 'Choose');
   };
 
   const kbd = (k: string) => (
@@ -372,6 +402,7 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
       slotProps={{ paper: { sx: { height: { md: '88vh' }, bgcolor: parchment.paper, borderRadius: { md: '10px' }, overflow: 'hidden', display: 'flex', flexDirection: 'column' } } }}>
       {head}
       {filterBar}
+      {groupBar}
       {wide && filtersOpen && (
         <Box sx={{ flex: 'none', maxHeight: '42vh', overflowY: 'auto', px: 2.75, py: 2, bgcolor: parchment.page, borderBottom: `1px solid ${rule}` }}>{filterPanel()}</Box>
       )}
@@ -406,7 +437,7 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
         <Drawer anchor="bottom" open={detailOpen && !!focused} onClose={() => setDetailOpen(false)}
           slotProps={{ paper: { sx: { maxHeight: '86vh', bgcolor: parchment.paper, borderRadius: '16px 16px 0 0', borderTop: `2px solid ${gold.main}`, boxShadow: warmShadow } } }}>
           {focused && (
-            <Box role="dialog" aria-label={focused.name} sx={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <Box role="dialog" aria-label={entryName(focused)} sx={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
               <Box aria-hidden sx={{ width: 40, height: 4, borderRadius: 2, bgcolor: rule, mx: 'auto', mt: 1, mb: 0.5, flex: 'none' }} />
               <Box sx={{ overflowY: 'auto', px: 2.25, pt: 0.75, pb: 1.5 }}>{detail(focused)}</Box>
               <Box sx={{ px: 2.25, pt: 1.5, pb: 'calc(14px + env(safe-area-inset-bottom))', borderTop: `1px solid ${rule}`, display: 'flex', gap: 1, flex: 'none' }}>
