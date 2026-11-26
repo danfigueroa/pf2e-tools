@@ -35,3 +35,8 @@
 - Leia `sources.legacy` como a lista de livros liberados para o legado. Se ela estiver ausente, use o interruptor e a lista de livros antigos para preservar as regras das mesas existentes.
 - Decida as listas do catálogo só por `needsOf`/`featListPaths` e busque o que a carga habitual não resolve só por `locate` (`engine/catalog.ts`), porque o servidor compila o "Aplicar na mesa" com as mesmas funções e uma lista a mais de um lado mudaria o número.
 - Regere `api/_lib/builder-engine.gen.js` com `node scripts/build-engine.mjs` depois de mudar o motor, porque o servidor roda esse pacote e o `check-builder` falha com ele velho.
+- Monte a tela com as primitivas de `components/ui.tsx` (fólio, cartão de slot, selos, pips, trilha) e os tokens de `components/uiTokens.ts`, porque o redesign é um sistema só e cor solta foge do `palette.ts`.
+- Deixe constantes e funções fora de `ui.tsx` (em `uiTokens.ts`, `heroText.ts`, `detailFields.ts`), porque o fast refresh do lint recusa arquivo de componente que exporta outra coisa.
+- Mostre a descrição completa dentro do detalhe do seletor (`DescriptionContent` com `embedded`), porque abrir outra tela para ler o talento é navegação à toa.
+- Calcule o "muda sozinho" do próximo nível compilando o estado com `level + 1` (`levelDiff.ts`), porque número previsto à mão seria regra inventada.
+- Abra a criação guiada só por `?guiado=1` (o "Novo personagem" já manda), porque um personagem existente entra direto no Plano.
