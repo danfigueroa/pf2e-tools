@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { Box, Button, ButtonBase, Stack } from '@mui/material';
-import { CheckRounded as DoneIcon, ChevronRight as OpenIcon, ShieldOutlined as ClassIcon } from '@mui/icons-material';
+import { CheckRounded as DoneIcon, ChevronRight as OpenIcon, ShieldOutlined as ClassIcon, AutoAwesomeOutlined as SubclassIcon } from '@mui/icons-material';
 import { greenInk, ink, parchment } from '../../../theme';
 import { tr } from '../../../i18n';
 import { ContentPicker } from '../components/ContentPicker';
-import { SubclassOptions } from '../components/SubclassOptions';
-import { ContentBadge, Folio, Label, PendCount, Pill, ProfPill, SectionHead, SlotCard } from '../components/ui';
+import { ContentBadge, Folio, Label, PendCount, Pill, ProfPill, SectionHead } from '../components/ui';
 import { cardSx, warmShadow } from '../components/uiTokens';
 import { attributeLabel } from '../engine/attributes';
 import { rankName } from '../engine/compile';
@@ -72,7 +71,7 @@ export function ClassSection({ state, update, core, mesaRules, canEdit, index, c
 
   return (
     <Stack spacing={1.5}>
-      <Folio icon={<ClassIcon />} label={tr('Classe', 'Class')} todo={!cls} disabled={!canEdit} onClick={() => setPicker('class')}
+      <Folio icon={<ClassIcon />} label={tr('Classe', 'Class')} todo={!cls && canEdit} disabled={!canEdit && !cls} onClick={() => setPicker('class')}
         name={cls?.name ?? tr('Escolher classe', 'Choose a class')}
         meta={c ? [c.hp !== undefined ? tr(`${c.hp} PV + CON por nível`, `${c.hp} HP + CON per level`) : null, tradition ? tr(`magias (${tradition})`, `spells (${tradition})`) : null].filter(Boolean).join(' · ')
           : tr('PV, proficiências, perícias e talentos de classe', 'HP, proficiencies, skills and class feats')}
@@ -92,22 +91,17 @@ export function ClassSection({ state, update, core, mesaRules, canEdit, index, c
 
       {subclasses.map((slot) => {
         const chosen = slot.chosen ? slot.options.find((o) => o.id === slot.chosen) ?? index.get(slot.chosen) : undefined;
-        const head = <SectionHead note={tr('subclasse · nível 1', 'subclass · level 1')}>{slot.label}</SectionHead>;
-        if (slot.fixed || slot.options.length > 12) {
-          return (
-            <Box key={slot.key} sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 0.5 }}>
-              {head}
-              <SlotCard kicker={slot.label} name={chosen?.name ?? tr('Escolher', 'Choose')} look={slot.fixed ? 'auto' : chosen ? 'filled' : 'todo'}
-                trailing={slot.fixed ? <ContentBadge kind="trait">{tr('concedida', 'granted')}</ContentBadge> : chosen ? chevron : <PendCount n={1} />}
-                onClick={canEdit && !slot.fixed ? () => setPicker(slot.key) : undefined} />
-            </Box>
-          );
-        }
+        // Como a classe: o campo mostra a escolha e abre o seletor completo (lista, descrição e fatos de cada opção).
         return (
           <Box key={slot.key} sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 0.5 }}>
-            {head}
-            <SubclassOptions label={slot.label} options={slot.options} chosen={slot.chosen} disabled={!canEdit}
-              onChoose={(id) => setChoice(update, slot.key, id ? { id } : null)} />
+            <SectionHead note={tr('subclasse · nível 1', 'subclass · level 1')}>{slot.label}</SectionHead>
+            <Folio icon={<SubclassIcon />} label={slot.label} todo={!chosen && canEdit} disabled={!!slot.fixed && !chosen}
+              onClick={() => setPicker(slot.key)}
+              name={chosen?.name ?? tr(`Escolher ${slot.label.toLowerCase()}`, `Choose ${slot.label.toLowerCase()}`)}
+              meta={slot.fixed ? tr('Concedida pelo arquétipo de classe', 'Granted by the class archetype')
+                : chosen ? (canEdit ? tr('Toque para ver a descrição ou trocar', 'Tap to read the description or change it') : tr('Toque para ver a descrição', 'Tap to read the description'))
+                  : tr(`${slot.options.length} opções, com a descrição de cada uma`, `${slot.options.length} options, each with its description`)}
+              trailing={slot.fixed ? <ContentBadge kind="trait">{tr('concedida', 'granted')}</ContentBadge> : chosen ? chevron : <PendCount n={1} />} />
           </Box>
         );
       })}
@@ -136,11 +130,11 @@ export function ClassSection({ state, update, core, mesaRules, canEdit, index, c
         value={archetypeId} onPick={(id) => setChoice(update, CLASS_ARCHETYPE, { id })}
         onClose={() => setPicker(null)} mesaRules={mesaRules} />
       <ContentPicker open={picker === 'class'} title={tr('Classe', 'Class')} entries={core.classes} value={state.class.id}
-        onPick={(id) => setClass({ id, keyAttribute: undefined })} onClose={() => setPicker(null)} mesaRules={mesaRules} facts={classFacts}
+        onPick={canEdit ? (id) => setClass({ id, keyAttribute: undefined }) : undefined} onClose={() => setPicker(null)} mesaRules={mesaRules} facts={classFacts}
         secondary={(e) => (e.class ? `${e.class.hp ?? '—'} ${tr('PV', 'HP')} · ${(e.class.keyAttribute ?? []).map(attributeLabel).join('/')}` : undefined)} />
       {subclasses.filter((sl) => sl.key === picker).map((sl) => (
         <ContentPicker key={sl.key} open title={sl.label} entries={sl.options} value={sl.chosen}
-          onPick={(id) => setChoice(update, sl.key, { id })} onClose={() => setPicker(null)} mesaRules={mesaRules} />
+          onPick={canEdit && !sl.fixed ? (id) => setChoice(update, sl.key, { id }) : undefined} onClose={() => setPicker(null)} mesaRules={mesaRules} />
       ))}
     </Stack>
   );
