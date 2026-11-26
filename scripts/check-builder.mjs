@@ -896,5 +896,13 @@ console.log('Paridade com o elenco (importar → recompilar → exportar) e inva
     expect('regras de livros não barram o conteúdo da mesa', allowedAtTable(hbFeat, { ...serverStore.DEFAULT_MESA_RULES, sources: { allow: ['source-1'], deny: [] } }), true)
 }
 
+{
+    const { itemTraits } = await import('../src/modules/character-builder/components/equipmentModel.ts')
+    expect('todos os traços, com parâmetros, herança e opções extras', itemTraits({ traits: ['Magical', 'Rare'] },
+        { traits: ['Reach', 'Deadly', 'Jousting'], item: { weapon: { traitsRaw: ['Deadly d8', 'Jousting 1d6', 'Reach'] } } }, ['Agile']),
+        ['Deadly d8', 'Jousting 1d6', 'Reach', 'Agile', 'Magical'])
+    expect('traço parametrizado em equipamento que não é arma', itemTraits({ traits: ['Capacity', 'Invested'], item: { traitsRaw: ['Capacity 4'] } }), ['Capacity 4', 'Invested'])
+}
+
 console.log(failures === 0 ? `\n${passed} conferências ok.` : `\n${failures} falha(s), ${passed} ok.`)
 process.exit(failures === 0 ? 0 : 1)

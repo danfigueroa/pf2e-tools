@@ -37,6 +37,7 @@ function itemView(entry) {
     const base = compact({
         category: entry.category === 'equipment' ? data.item_category : { weapon: 'Weapons', armor: 'Armor', shield: 'Shields' }[entry.category],
         subcategory: data.item_subcategory,
+        traitsRaw: entry.category === 'weapon' ? undefined : data.trait_raw,
         price: Number.isFinite(data.price) ? { gp: data.price / 100 } : undefined,
         bulk: data.bulk_raw === 'L' ? 'L' : Number.isFinite(data.bulk) ? data.bulk : undefined,
         hands: data.hands,

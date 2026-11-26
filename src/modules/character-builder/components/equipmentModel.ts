@@ -3,6 +3,34 @@ import type { RuleEntry } from '../rules/types'
 import type { InventoryEntry } from '../types'
 import type { ResolvedItem } from '../engine/equipment'
 
+// Pacotes já publicados trazem só o nome genérico nestes itens. Use o trait_raw da mesma entrada da AON.
+const previousItemTraits: Record<string, string[]> = {
+    'item:armor-17': ["Bulwark", "Entrench Melee", "Hindering"],
+    'item:armor-18': ["Adjusted Storage", "Noisy"],
+    'item:armor-19': ["Adjusted Armor Latches", "Noisy"],
+    'item:armor-21': ["Bulwark", "Entrench Ranged", "Ponderous"],
+    'item:armor-30': ["Adjusted Weapon Harness", "Uncommon"],
+    'item:shield-11': ["Deflecting Bludgeoning"],
+    'item:shield-12': ["Integrated 1d6 S (Versatile P)"],
+    'item:shield-13': ["Shield Throw 30 ft."],
+    'item:shield-14': ["Integrated 1d6 S", "Shield Throw 20 ft."],
+    'item:shield-15': ["Deflecting Physical Ranged"],
+    'item:shield-16': ["Deflecting Slashing"],
+    'item:shield-6': ["Launching Dart"],
+    'item:shield-7': ["Hefty +2"],
+}
+
+/** Mostre cada traço com seus parâmetros, inclusive os herdados da base e os do jogador. */
+export function itemTraits(entry?: RuleEntry | null, base?: RuleEntry | null, extra: string[] = []): string[] {
+    const sources = [base, entry].filter((e): e is RuleEntry => !!e)
+    const raw = [...sources.flatMap((e) => e.item?.weapon?.traitsRaw ?? e.item?.traitsRaw ?? previousItemTraits[e.id] ?? []), ...extra]
+    const detailed = raw.map((t) => t.toLowerCase())
+    const generic = sources.flatMap((e) => e.traits ?? []).filter((t) =>
+        !detailed.some((full) => full.startsWith(t.toLowerCase() + ' ')))
+    const unique = new Map([...raw, ...generic].map((t) => [t.toLowerCase(), t]))
+    return [...unique].filter(([key]) => !['common', 'uncommon', 'rare', 'unique'].includes(key)).map(([, trait]) => trait)
+}
+
 // Modelo da aba Equipamento (mochila, bancada, gravar runa e catálogo): classificação, onde o item está, se a runa cabe
 // e as categorias do catálogo. Puro, sem React, para o fast refresh aceitar os componentes.
 

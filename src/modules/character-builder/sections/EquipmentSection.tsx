@@ -6,12 +6,13 @@ import { ContentPicker } from '../components/ContentPicker';
 import { STARTING_GOLD, type ResolvedItem } from '../engine/equipment';
 import type { RuleEntry } from '../rules/types';
 import type { BuildState, InventoryEntry } from '../types';
-import { ActionGlyph, Label, Notice, Pill, SectionHead } from '../components/ui';
+import { useTraitLabels } from '../../character-viewer/components/useTraitLabels';
+import { ActionGlyph, ContentBadge, Label, Notice, Pill, SectionHead } from '../components/ui';
 import { cardSx, goldButtonSx, signed, tint, warmShadow } from '../components/uiTokens';
 import { GroupBar, Gauge, InvestPips, ItemGlyph, Meter, Segmented, Sockets, Stepper, StrokeIcon, WherePill, type SocketLook } from '../components/equipUi';
 import {
   catalogItems, customItemId, formatBulk, formatGp, groupByKind, groupByPlace, ICON_PATH, inUse, isContainer, isRunic, itemDisplayName, itemLevel,
-  itemKind, newInventoryKey, stacks, whereLabel, type ItemKind,
+  itemTraits, itemKind, newInventoryKey, stacks, whereLabel, type ItemKind,
 } from '../components/equipmentModel';
 import { ItemBench } from '../components/ItemBench';
 import { ItemCatalog, type BagLine } from '../components/ItemCatalog';
@@ -66,6 +67,8 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
   const [formulaOpen, setFormulaOpen] = useState(false);
   const [moneyOpen, setMoneyOpen] = useState(false);
   const eq = compiled.equipment;
+  const bagTraits = useMemo(() => new Map(eq.items.map((it) => [it.key, itemTraits(it.entry, it.base, it.inv.weapon?.extraTraits)])), [eq.items]);
+  const traitText = useTraitLabels([...bagTraits.values()].flat().concat(eq.strikes.flatMap((s) => s.traits)));
   const level = compiled.level;
 
   const items = useMemo(() => entries.filter((e) => e.item), [entries]);
@@ -314,6 +317,9 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
                             <Sockets looks={socketsOf(it, kind)} />
                           </Box>
                           <Box component="span" sx={{ display: 'block', fontSize: 13, color: ink.secondary, mt: '2px' }}>{meta}</Box>
+                          <Box component="span" sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            {bagTraits.get(it.key)?.map((t) => <ContentBadge key={t} kind="trait">{traitText(t)}</ContentBadge>)}
+                          </Box>
                         </Box>
                         <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           {where && <Box component="span" sx={{ display: { xs: step ? 'none' : 'inline-flex', sm: 'inline-flex' } }}><WherePill text={where.text} tone={where.tone} /></Box>}
@@ -350,7 +356,7 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
             <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
               <Box component="b" sx={{ overflowWrap: 'anywhere' }}>{s.display}</Box>
               <Box component="span" sx={{ fontSize: 12, color: ink.secondary }} title={s.damageParts.map((p) => `${p.label} ${signed(p.value)}`).join(' · ')}>
-                {s.dice}{s.die}{s.damageBonus ? signed(s.damageBonus) : ''} {s.damageType}{(rv?.weapon?.extraDamage ?? s.extraDamage).length ? ` + ${(rv?.weapon?.extraDamage ?? s.extraDamage).join(' + ')}` : ''}{s.traits.length ? ` · ${s.traits.slice(0, 3).join(', ')}` : ''}</Box>
+                {s.dice}{s.die}{s.damageBonus ? signed(s.damageBonus) : ''} {s.damageType}{(rv?.weapon?.extraDamage ?? s.extraDamage).length ? ` + ${(rv?.weapon?.extraDamage ?? s.extraDamage).join(' + ')}` : ''}{s.traits.length ? ` · ${s.traits.map(traitText).join(', ')}` : ''}</Box>
             </Box>
             <Box component="b" sx={{ fontSize: 18, fontVariantNumeric: 'tabular-nums' }} title={s.attackParts.map((p) => `${p.label} ${signed(p.value)}`).join(' · ')}>{signed(s.attack)}</Box>
             <Box component="span" sx={{ fontSize: 13, color: ink.secondary, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>

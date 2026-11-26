@@ -12,6 +12,7 @@ import type { RuleEntry } from '../rules/types';
 import type { MesaRules } from '../types';
 import type { PrereqPart, PrereqResult } from '../engine/prereqs';
 import { allowedAtTable } from '../mesaRules';
+import { itemTraits } from './equipmentModel';
 import { useTraitLabels } from '../../character-viewer/components/useTraitLabels';
 import { PickerFilters } from './PickerFilters';
 import { activeCount, compareBy, EMPTY_FILTERS, facetsOf, passes, SORT_LABEL, type PickerFilterState } from './filterModel';
@@ -74,7 +75,7 @@ export interface ContentPickerProps {
   spellColumns?: boolean;
 }
 
-const traitsOf = (e: RuleEntry) => (e.traits ?? []).filter((t) => !['common', 'uncommon', 'rare', 'unique'].includes(t.toLowerCase()));
+const traitsOf = (e: RuleEntry) => e.item ? itemTraits(e) : (e.traits ?? []).filter((t) => !['common', 'uncommon', 'rare', 'unique'].includes(t.toLowerCase()));
 const canonicalName = (e: RuleEntry) => e.name;
 const fold = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
 
@@ -157,7 +158,7 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
   }, [open, shown, limit]);
   const nFilters = activeCount(filters);
   const traitText = useTraitLabels(useMemo(() => [...new Set([...shown.slice(0, limit), ...(focusId ? editions.filter((e) => e.id === focusId) : [])]
-    .flatMap((e) => traitsOf(e).slice(0, 8)).concat(filtersOpen ? facets.traits.map((t) => t.name) : []))], [shown, limit, focusId, editions, filtersOpen, facets]));
+    .flatMap((e) => traitsOf(e)).concat(filtersOpen ? facets.traits.map((t) => t.name) : []))], [shown, limit, focusId, editions, filtersOpen, facets]));
   const eligibleCount = prereq ? shown.filter((e) => eligibility.get(e.id)?.result === 'ok').length : null;
 
   const focused = shown.find((e) => e.id === focusId) ?? (wide ? shown[0] : undefined);
@@ -330,7 +331,7 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
             </Box>
             {traitsOf(e).length > 0 && (
               <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
-                {traitsOf(e).slice(0, 8).map((t) => <ContentBadge key={t} kind="trait">{traitText(t)}</ContentBadge>)}
+                {traitsOf(e).map((t) => <ContentBadge key={t} kind="trait">{traitText(t)}</ContentBadge>)}
               </Box>
             )}
           </Box>

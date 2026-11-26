@@ -6,10 +6,11 @@ import type { RuleEntry } from '../rules/types';
 import type { MesaRules } from '../types';
 import type { ResolvedItem } from '../engine/equipment';
 import { allowedAtTable } from '../mesaRules';
+import { useTraitLabels } from '../../character-viewer/components/useTraitLabels';
 import { ActionGlyph, ContentBadge, Label, LevelBox, Pill } from './ui';
 import { goldButtonSx, tint } from './uiTokens';
 import { ItemGlyph, PlusButton, Segmented, Stepper, StrokeIcon } from './equipUi';
-import { CATALOG_CATEGORIES, catalogSubtypes, formatBulk, formatGp, ICON_PATH, isMagicalItem, itemFacts, itemKind } from './equipmentModel';
+import { CATALOG_CATEGORIES, catalogSubtypes, formatBulk, formatGp, ICON_PATH, isMagicalItem, itemFacts, itemTraits, itemKind } from './equipmentModel';
 
 const DescriptionContent = lazy(() =>
   import('../../character-viewer/components/DescriptionContent').then((m) => ({ default: m.DescriptionContent })));
@@ -138,8 +139,10 @@ export function ItemCatalog({ open, entries, level, remaining, mesaRules, contai
     setCustomQty(1);
   };
 
+  const baseName = [sel?.item?.baseItem].flat()[0];
+  const base = baseName ? entries.find((e) => e.name === baseName && (e.item?.weapon || e.item?.armor || e.item?.shield)) : undefined;
   const detail = sel && (
-    <ItemDetail entry={sel} level={level} draft={draft} setDraft={setDraft} containers={containers} inBag={!!lineOf(sel.id)} onCommit={commitDraft} />
+    <ItemDetail entry={sel} base={base} level={level} draft={draft} setDraft={setDraft} containers={containers} inBag={!!lineOf(sel.id)} onCommit={commitDraft} />
   );
 
   return (
@@ -326,8 +329,9 @@ export function ItemCatalog({ open, entries, level, remaining, mesaRules, contai
   );
 }
 
-function ItemDetail({ entry, level, draft, setDraft, containers, inBag, onCommit }: {
+function ItemDetail({ entry, base, level, draft, setDraft, containers, inBag, onCommit }: {
   entry: RuleEntry;
+  base?: RuleEntry;
   level: number;
   draft: { qty: number; acquired: 'bought' | 'given'; container: string };
   setDraft: (d: { qty: number; acquired: 'bought' | 'given'; container: string }) => void;
@@ -336,7 +340,8 @@ function ItemDetail({ entry, level, draft, setDraft, containers, inBag, onCommit
   onCommit: () => void;
 }) {
   const [fullText, setFullText] = useState(false);
-  const traits = (entry.traits ?? []).filter((t) => !['common', 'uncommon', 'rare', 'unique'].includes(t.toLowerCase()));
+  const traits = itemTraits(entry, base);
+  const traitText = useTraitLabels(traits);
   const price = entry.item?.price?.gp ?? 0;
   const high = (entry.level ?? 0) > level;
   return (
@@ -349,7 +354,7 @@ function ItemDetail({ entry, level, draft, setDraft, containers, inBag, onCommit
         </Box>
       </Box>
       {high && <Box sx={{ fontSize: 13, color: status.warning, fontWeight: 700 }}>{tr(`⚠ Acima do nível ${level}: dá para adicionar, a mesa decide.`, `⚠ Above level ${level}: you can add it, the table decides.`)}</Box>}
-      {traits.length > 0 && <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>{traits.map((t) => <ContentBadge key={t} kind="trait">{t}</ContentBadge>)}</Box>}
+      {traits.length > 0 && <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>{traits.map((t) => <ContentBadge key={t} kind="trait">{traitText(t)}</ContentBadge>)}</Box>}
       <Box component="dl" sx={{ m: 0, display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr)', gap: '6px 14px', fontSize: 14 }}>
         {itemFacts(entry).map((f) => (
           <Box key={f.k} sx={{ display: 'contents' }}>

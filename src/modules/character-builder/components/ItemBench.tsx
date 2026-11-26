@@ -6,13 +6,14 @@ import type { RuleEntry } from '../rules/types';
 import type { AttributeKey, Compiled, RulesIndex } from '../engine/types';
 import type { InventoryEntry } from '../types';
 import { FUNDAMENTAL_TIERS, fundamentalRune, type FundamentalKind, type ResolvedItem, type RuneLine } from '../engine/equipment';
+import { useTraitLabels } from '../../character-viewer/components/useTraitLabels';
 import { ActionGlyph, BandHead, ContentBadge, Label } from './ui';
 import { RelicPanel } from './RelicPanel';
 import { relicRuneLabel, type RelicView } from './relicView';
 import { signed, tint } from './uiTokens';
 import { Gem, ItemGlyph, Segmented, Stepper, StrokeIcon, TierPicker, type TierOption } from './equipUi';
 import {
-  canUse, formatBulk, handsText, itemDisplayName, itemLevel, formatGp, ICON_PATH, inUse, isInvestable, isRunic, itemKind, USE_LABEL, patchForUse, type ItemKind,
+  canUse, formatBulk, handsText, itemDisplayName, itemLevel, itemTraits, formatGp, ICON_PATH, inUse, isInvestable, isRunic, itemKind, USE_LABEL, patchForUse, type ItemKind,
 } from './equipmentModel';
 
 const TIER_LABEL: Record<FundamentalKind, string[]> = {
@@ -81,7 +82,8 @@ export function ItemBench({ item, compiled, index, materials, containers, transf
   const property = runes.property ?? [];
   const slots = kind === 'shield' ? 0 : potency;
   const propertyLines = item.runes.filter((r) => r.kind === 'property');
-  const traits = (entry?.traits ?? []).filter((t) => !['common', 'uncommon', 'rare', 'unique'].includes(t.toLowerCase()));
+  const traits = itemTraits(entry, item.base, inv.weapon?.extraTraits);
+  const traitText = useTraitLabels(traits);
   const lvl = itemLevel(item);
   const w = item.base?.item?.weapon;
   const a = item.base?.item?.armor;
@@ -111,10 +113,11 @@ export function ItemBench({ item, compiled, index, materials, containers, transf
             <Box sx={{ fontSize: 13, color: ink.secondary, mt: 0.25 }}>{relic ? tr(`Relíquia — ${itemDisplayName(item)} · `, `Relic — ${itemDisplayName(item)} · `) : ''}{meta}</Box>
           </Box>
         </Box>
-        {(traits.length > 0 || entry?.homebrew) && (
+        {(traits.length > 0 || entry?.homebrew || entry?.rarity && entry.rarity !== 'common') && (
           <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
+            {(entry?.rarity === 'uncommon' || entry?.rarity === 'rare' || entry?.rarity === 'unique') && <ContentBadge kind={entry.rarity} />}
             {entry?.homebrew && <ContentBadge kind="mesa" />}
-            {traits.map((t) => <ContentBadge key={t} kind="trait">{t}</ContentBadge>)}
+            {traits.map((t) => <ContentBadge key={t} kind="trait">{traitText(t)}</ContentBadge>)}
           </Box>
         )}
         {!entry && inv.item.startsWith('custom:') && (

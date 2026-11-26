@@ -38,6 +38,7 @@ export interface ClassData {
 }
 
 export interface ItemData {
+    traitsRaw?: string[]
     category?: string
     subcategory?: string
     price?: { gp: number }
