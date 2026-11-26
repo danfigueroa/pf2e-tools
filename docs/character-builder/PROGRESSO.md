@@ -215,7 +215,16 @@
   - Golpes com a conta no `title`, livro de fórmulas e companheiros.
   - Conferida em 320 px e no desktop com o catálogo real: Fighter 10 com CA 29 e deslocamento 20 (Full Plate com a Força atendida).
 - **`check-builder`: 164 conferências.** Ghan Buri: Warhammer com ataque +23, dano +8 e 2d8; CA 29 com o Hero's Plate +1; resiliente +1; escudo de 3 fora da CA; punho. Também: carga, dinheiro negativo e o Volume das moedas. O recorte passou a incluir a base dos itens específicos e o punho.
+- **Redesign da aba (Mochila e bancada, canvas "Equipamento").**
+  - Medidores de dinheiro livre, Volume (com a marca de sobrecarga em 5 + FOR) e investidos; cartões "Em uso" com os encaixes de runa em losango; mochila por tipo ou por onde está, com − e + nos consumíveis.
+  - Bancada: degraus de potência, striking, resiliente e reforço com nível e preço do catálogo (⚠ acima do nível, sem travar); encaixes de propriedade; material; ajustes do golpe; golpe e CA na hora; custo; transferir runas, duplicar e remover.
+  - "Gravar runa": runas de propriedade do tipo do item, com ✗ e o motivo quando o "Usage" da AON não cabe (arremesso, corpo a corpo, tipo de dano, traço, categoria de armadura).
+  - Catálogo com sacola: categorias e subcategorias de consumíveis, "até o nível", "permitido na mesa", ordem, Comprar/Ganhei e onde guardar; o grupo sem preço some quando tem variantes. Item caseiro na mesma janela.
+  - **Motor:** runa comprada entra no gasto, pelo preço da variante no catálogo (GM Core pg. 223–224: upgrade custa a diferença, então o item vale a base mais cada runa no degrau atual). `check-builder` com o caso do +2 Striking Flaming.
+  - Sem conferência no navegador nesta rodada (renderizado em SSR com o catálogo real).
 - **Pendente.**
+  - Comprado/Ganho por runa (hoje a runa segue o item).
+  - Custo da transferência de runa (10% do preço, GM Core pg. 224) e do material: aparecem como texto, não descontam.
   - Dano extra das runas de propriedade (o dado de runa não está no catálogo).
   - Materiais além do rótulo; contêineres (capacidade).
   - Penalidade de teste da armadura nas perícias; Adventurer's Kit separado.
@@ -363,7 +372,7 @@ desde então: progressão da doutrina do Cleric, conjuradores de arquétipo e "T
 - 4.7: qualificador de talento ("Assurance (X)") e talentos repetíveis pela regra do próprio talento.
 - 4.8a: conferir o traço dos talentos de destino (o aviso do 12º nível não confere).
 - ABP: o apex de atributo do nível 17.
-- Equipamento: dano extra das runas de propriedade; materiais além do rótulo; capacidade de contêiner; penalidade de armadura nas perícias; Adventurer's Kit separado.
+- Equipamento: dano extra das runas de propriedade; preço do material e da transferência de runa; Comprado/Ganho por runa; materiais além do rótulo; capacidade de contêiner; penalidade de armadura nas perícias; Adventurer's Kit separado.
 - Arquétipos de classe, efeitos situacionais: fúria e Harvest Blood do Bloodrager; vínculo em polearm/spear e cajado da personal rune do Runelord; truques inatos e treino em magia da Esoterica.
 - Diferenças de paridade conhecidas, cada uma com o motivo: `scripts/rules-data/parity-known.json`.
 

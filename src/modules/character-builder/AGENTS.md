@@ -42,3 +42,8 @@
 - Abra a criação guiada só por `?guiado=1` (o "Novo personagem" já manda), porque um personagem existente entra direto no Plano.
 - Use como imagem do personagem o token da Ficha (`<slug>/token` no estado da mesa, `HeroPortrait`) e guarde a mesma URL em `details.portrait`, porque a imagem é uma só no mapa, na Ficha e no Criador.
 - Traduza traços pelo `useTraitLabels` (nome guardado no banco pelo `?traitRules=`) e deixe os nomes de talentos e magias em inglês canônico, porque são a chave da AON e do catálogo.
+- Monte a aba Equipamento com `components/equipUi.tsx` (ícone, encaixes em losango, medidores, contador, degraus) e as regras de `equipmentModel.ts`, porque mochila, bancada, catálogo e "Gravar runa" mostram o mesmo item do mesmo jeito.
+- Leia o preço da runa fundamental só por `fundamentalRune` (`engine/equipment.ts`), porque "Striking" e "Resilient" também são o grupo sem preço e o `byName` devolveria o grupo.
+- Some no gasto o preço de cada runa no degrau atual, nunca a soma dos degraus, porque o upgrade custa a diferença (GM Core pg. 223–224).
+- Decida se a runa de propriedade cabe pelo `runeFits` (o "Usage" da AON) e mostre o motivo; o que o texto não deixa conferir vira "o GM confere", porque recusar sem certeza é regra inventada.
+- Esconda no catálogo o grupo sem preço que tem variantes (`catalogItems`), porque comprar "Healing Potion" sem grau não diz quanto custa.
