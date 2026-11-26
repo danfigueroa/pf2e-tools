@@ -222,10 +222,17 @@
   - Catálogo com sacola: categorias e subcategorias de consumíveis, "até o nível", "permitido na mesa", ordem, Comprar/Ganhei e onde guardar; o grupo sem preço some quando tem variantes. Item caseiro na mesma janela.
   - **Motor:** runa comprada entra no gasto, pelo preço da variante no catálogo (GM Core pg. 223–224: upgrade custa a diferença, então o item vale a base mais cada runa no degrau atual). `check-builder` com o caso do +2 Striking Flaming.
   - Sem conferência no navegador nesta rodada (renderizado em SSR com o catálogo real).
+- **Compatibilidade com a Ficha (importação e retrato).**
+  - O retrato leva o que a Ficha lê: `extraDamage` (runas com dano no acerto, GM Core pg. 236–239; Hunter's Edge: Precision, Player Core pg. 154; Sneak Attack, pg. 164), material com o grau, runa de reforço do escudo, apelido da arma (é por ele que a relíquia casa) e o nome do item específico.
+  - O motor passou a calcular Thief (DES no dano, Player Core pg. 167) e Bands of Force (GM Core pg. 286), e aceita proficiência numa arma só (`weapon:<nome>`) e bônus de CA por ajuste.
+  - Origem, talento, magia, arma, armadura e item fora do catálogo entram como `custom:` com o nome (e os números do export); escolhas filhas saem do qualificador do talento e das características do export; Ancestral Paragon segue a ficha.
+  - O que o motor ainda não calcula vira ajuste "Importado da Ficha Virtual". Nos 10 personagens, a reimportação deixa CA, atributos, perícias, salvaguardas, conjuração e golpes iguais aos da Ficha (com o `normalizeBuild` dela).
+  - Relíquias da Ficha na aba Equipamento: nome, aspectos, dádivas, regra da mesa e o golpe com as runas da relíquia.
+  - Pendências que ficam são escolhas que a própria ficha não tem: idiomas não escolhidos, Specialty Crafting, perícia do aumento de INT do Ghan Buri, magias de rank 1–3 do Nathaniel, o talento da escola do Wizard e o Ancestral Paragon da Hearts Folly.
 - **Pendente.**
   - Comprado/Ganho por runa (hoje a runa segue o item).
   - Custo da transferência de runa (10% do preço, GM Core pg. 224) e do material: aparecem como texto, não descontam.
-  - Dano extra das runas de propriedade (o dado de runa não está no catálogo).
+  - Dano de runa condicional (Vitalizing contra morto-vivo, Wounding persistente, Bane): fica como aviso.
   - Materiais além do rótulo; contêineres (capacidade).
   - Penalidade de teste da armadura nas perícias; Adventurer's Kit separado.
   - Arachnid Harness e o companheiro do Ardagar, que ficam para a paridade da F7.
@@ -372,7 +379,7 @@ desde então: progressão da doutrina do Cleric, conjuradores de arquétipo e "T
 - 4.7: qualificador de talento ("Assurance (X)") e talentos repetíveis pela regra do próprio talento.
 - 4.8a: conferir o traço dos talentos de destino (o aviso do 12º nível não confere).
 - ABP: o apex de atributo do nível 17.
-- Equipamento: dano extra das runas de propriedade; preço do material e da transferência de runa; Comprado/Ganho por runa; materiais além do rótulo; capacidade de contêiner; penalidade de armadura nas perícias; Adventurer's Kit separado.
+- Equipamento: dano condicional de runa (Vitalizing, Wounding, Bane); preço do material e da transferência de runa; Comprado/Ganho por runa; materiais além do rótulo; capacidade de contêiner; penalidade de armadura nas perícias; Adventurer's Kit separado.
 - Arquétipos de classe, efeitos situacionais: fúria e Harvest Blood do Bloodrager; vínculo em polearm/spear e cajado da personal rune do Runelord; truques inatos e treino em magia da Esoterica.
 - Diferenças de paridade conhecidas, cada uma com o motivo: `scripts/rules-data/parity-known.json`.
 

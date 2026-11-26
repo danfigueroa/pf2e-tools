@@ -47,3 +47,9 @@
 - Some no gasto o preço de cada runa no degrau atual, nunca a soma dos degraus, porque o upgrade custa a diferença (GM Core pg. 223–224).
 - Decida se a runa de propriedade cabe pelo `runeFits` (o "Usage" da AON) e mostre o motivo; o que o texto não deixa conferir vira "o GM confere", porque recusar sem certeza é regra inventada.
 - Esconda no catálogo o grupo sem preço que tem variantes (`catalogItems`), porque comprar "Healing Potion" sem grau não diz quanto custa.
+- Trate a Ficha Virtual como a referência na importação: o que o motor não alcança vira ajuste à mão "Importado da Ficha Virtual" (`reconcileWithSheet`), e só sobe, porque rebaixar esconderia um número que a mesa usa.
+- Meça o motor no teste de paridade com `importPathbuilder(…, { reconcile: false })`, porque a reconciliação faria toda diferença sumir do `parity-known.json`.
+- Reconcilie com o índice da compilação do "Aplicar na mesa" (`importFromCatalog` compila antes), porque o índice da importação não traz as listas do `locate` e o número reconciliado mudaria ao aplicar.
+- Guarde como `custom:` (nome e, se houver, os números do export) a origem, o talento, a magia e o item que o catálogo não tem, e monte a entrada pelo `engine/custom.ts`, porque o retrato precisa levar o nome para a Ficha achar a relíquia, o talento e a magia.
+- Exporte o `extraDamage` do golpe (runas, Precision, Sneak Attack e o que a importação guardou na arma), porque a Ficha soma o dano do acerto só por ele.
+- Leia relíquias só pelo catálogo da Ficha (`character-viewer/relics.ts`, via `components/relicView.ts`) e nunca as some ao gasto, porque runa de dádiva e regra da mesa não são compradas.
