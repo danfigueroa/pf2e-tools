@@ -2,9 +2,9 @@ import { tr } from '../../i18n'
 
 /* i18n-ignore-file */
 // Seções do editor e em qual delas cada pendência/aviso do motor se resolve (pela chave do slot).
-export type BuilderTab = 'progression' | 'origin' | 'class' | 'attributes' | 'skills' | 'spells' | 'equipment' | 'companions' | 'details'
+export type BuilderTab = 'progression' | 'origin' | 'class' | 'attributes' | 'skills' | 'actions' | 'spells' | 'equipment' | 'companions' | 'details'
 
-export const TABS: BuilderTab[] = ['origin', 'class', 'attributes', 'progression', 'skills', 'spells', 'equipment', 'companions', 'details']
+export const TABS: BuilderTab[] = ['origin', 'class', 'attributes', 'progression', 'skills', 'actions', 'spells', 'equipment', 'companions', 'details']
 
 export const TAB_LABEL: Record<BuilderTab, string> = {
     progression: tr('Talentos', 'Feats'),
@@ -12,6 +12,7 @@ export const TAB_LABEL: Record<BuilderTab, string> = {
     class: tr('Classe', 'Class'),
     attributes: tr('Atributos', 'Attributes'),
     skills: tr('Perícias', 'Skills'),
+    actions: tr('Ações', 'Actions'),
     spells: tr('Magias', 'Spells'),
     equipment: tr('Equipamento', 'Equipment'),
     companions: tr('Companheiros', 'Companions'),
@@ -29,6 +30,8 @@ export const TAB_HELP: Record<BuilderTab, string> = {
         'Assign attribute boosts from character creation and from the levels your character has reached.'),
     skills: tr('Escolha as perícias treinadas, preencha os Saberes e distribua os aumentos de perícia por nível.',
         'Choose trained skills, fill in Lore skills, and assign skill increases by level.'),
+    actions: tr('Consulte as ações, reações e atividades que sua origem, classe e talentos concedem. Toque em uma opção para ler como usá-la.',
+        'Review the actions, reactions, and activities your origin, class, and feats grant. Tap one to learn how to use it.'),
     spells: tr('Escolha truques e magias. Use as seções de cada conjurador para montar o repertório ou preencher os espaços de preparação.',
         'Choose cantrips and spells. Use each caster’s section to build a repertoire or fill prepared spell slots.'),
     equipment: tr('Compre itens ou adicione os que ganhou. Equipe o que for usar e gerencie runas, dinheiro e Volume.',

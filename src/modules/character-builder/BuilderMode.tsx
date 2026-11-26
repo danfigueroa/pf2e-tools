@@ -28,6 +28,7 @@ import { AttributesSection } from './sections/AttributesSection';
 import { SkillsSection } from './sections/SkillsSection';
 import { ProgressionSection } from './sections/ProgressionSection';
 import { SpellsSection } from './sections/SpellsSection';
+import { ActionsSection } from './sections/ActionsSection';
 import { EquipmentSection } from './sections/EquipmentSection';
 import { CompanionsSection } from './sections/CompanionsSection';
 import { DetailsSection } from './sections/DetailsSection';
@@ -55,7 +56,7 @@ import { Label, PendDot, StateBadge, type PublishState } from './components/ui';
 import { cardSx, goldButtonSx, tint, warmShadow } from './components/uiTokens';
 
 /** Os passos da criação guiada: o começo, as seções na ordem do livro e a revisão. */
-type Step = 'start' | Exclude<BuilderTab, 'companions'> | 'review';
+type Step = 'start' | Exclude<BuilderTab, 'companions' | 'actions'> | 'review';
 const STEPS: Step[] = ['start', 'origin', 'class', 'attributes', 'progression', 'skills', 'spells', 'equipment', 'details', 'review'];
 const STEP_LABEL: Record<Step, string> = {
   start: tr('Começo', 'Start'), origin: TAB_LABEL.origin, class: TAB_LABEL.class, attributes: TAB_LABEL.attributes, skills: TAB_LABEL.skills,
@@ -396,6 +397,7 @@ export function BuilderMode({ buildId }: { buildId: string }) {
       case 'class': return <ClassSection {...sectionProps} freeArchetype={firstFreeArchetype} onChooseDedication={chooseDedication} />;
       case 'attributes': return <AttributesSection {...sectionProps} />;
       case 'skills': return <SkillsSection {...sectionProps} />;
+      case 'actions': return <ActionsSection {...sectionProps} />;
       case 'spells': return <SpellsSection {...sectionProps} spells={rules.feats.filter((e) => e.type === 'spell' || e.type === 'ritual')} />;
       case 'equipment':
         return <EquipmentSection {...sectionProps} entries={rules.feats} sheet={exportSheet}
@@ -412,6 +414,7 @@ export function BuilderMode({ buildId }: { buildId: string }) {
 
   // Marca de cada seção na navegação: pendências em ouro ou ✓.
   const mark = (key: BuilderTab) => {
+    if (key === 'actions') return null;
     const n = tabPending(key);
     return n ? { text: String(n), color: gold.deep } : key === 'companions' && !state.companions.length ? { text: '—', color: ink.secondary } : { text: '✓', color: status.success };
   };
@@ -446,7 +449,7 @@ export function BuilderMode({ buildId }: { buildId: string }) {
             bgcolor: on ? greenInk.main : 'transparent', color: on ? parchment.paper : ink.primary, fontWeight: on ? 700 : 500, fontSize: 15,
           }}>
             <Box component="span" sx={{ flex: 1, textAlign: 'left' }}>{TAB_LABEL[key]}</Box>
-            <Box component="span" sx={{ fontSize: 12, fontWeight: 700, color: on ? parchment.paper : m.color }}>{m.text}</Box>
+            {m && <Box component="span" sx={{ fontSize: 12, fontWeight: 700, color: on ? parchment.paper : m.color }}>{m.text}</Box>}
           </ButtonBase>
         );
       })}

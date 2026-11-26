@@ -409,6 +409,38 @@ for (const file of readdirSync(new URL('../public/characters/', import.meta.url)
 console.log(`  (${unknownFeats} talentos do elenco fora do recorte Remaster: conteúdo legado)`)
 
 console.log('Motor: progressão da classe e talentos (proficiências por nível)')
+{
+    const { characterActions } = await import('../src/modules/character-builder/sections/characterActions.ts')
+    const { BOUNTY_HUNTER_DEDICATION, MONSTER_HUNTER } = await import('../src/modules/character-builder/engine/feats.ts')
+    const hunter = find('core/classes', 'Ranger')
+    const huntPrey = find('core/actions', 'Hunt Prey')
+    const grantHuntPrey = { key: 'GrantItem', uuid: 'Compendium.pf2e.actionspf2e.Item.Hunt Prey' }
+    const bounty = { id: BOUNTY_HUNTER_DEDICATION, name: 'Bounty Hunter Dedication', type: 'feat', level: 2, aon: { id: 'feat-6281' },
+        remaster: true, source: { id: 'source:source-227', page: 191 }, traits: ['Archetype', 'Dedication'], rules: [
+            grantHuntPrey, { key: 'GrantItem', uuid: 'Compendium.pf2e.feats-srd.Item.Monster Hunter', grantId: MONSTER_HUNTER, predicate: ['feature:hunt-prey'] },
+        ] }
+    const monster = { id: MONSTER_HUNTER, name: 'Monster Hunter', type: 'feat', level: 1, aon: { id: 'feat-4863' },
+        remaster: true, source: { id: huntPrey.source.id, page: 157 }, traits: ['Ranger'] }
+    const rangerDedication = { ...bounty, id: 'feat:feat-5087', name: 'Ranger Dedication', aon: { id: 'feat-5087' }, rules: [grantHuntPrey] }
+    const actionIndex = buildRulesIndex([[bounty, monster, rangerDedication], ...Object.values(fixture).filter(Array.isArray)], fixture['core/languages'])
+    const bountyBuild = (classId, level = 2, extra = {}) => base({ level, class: { id: classId }, choices: { 'class-feat-2': { id: bounty.id }, ...extra } })
+    const summarize = (state) => {
+        const compiled = compileBuild(state, { rules: actionIndex })
+        const actions = characterActions({ state, compiled, index: actionIndex }, fixture['core/actions'])
+        return { compiled, actions, hunt: actions.find((a) => a.entry.id === huntPrey.id) }
+    }
+    const fighterBounty = summarize(bountyBuild(fighter.id))
+    expect('Bounty Hunter concede Hunt Prey de 1 ação', fighterBounty.hunt?.entry.actions, '1')
+    expect('Bounty Hunter sem Hunt Prey prévio não recebe Monster Hunter', fighterBounty.compiled.taken.some((t) => t.entry.id === monster.id), false)
+    expect('Bounty Hunter ainda planejado não concede Hunt Prey', summarize(bountyBuild(fighter.id, 1)).hunt, undefined)
+    const rangerBounty = summarize(bountyBuild(hunter.id))
+    expect('Patrulheiro tem Hunt Prey e ganha a melhoria Monster Hunter', rangerBounty.hunt?.monsterHunter, true)
+    expect('Hunt Prey aparece uma vez com as duas fontes', rangerBounty.hunt?.sources.map((s) => s.name), [hunter.name, bounty.name])
+    expect('Monster Hunter é melhoria e não ação à parte', rangerBounty.actions.some((a) => a.entry.id === monster.id), false)
+    expect('Bounty Hunter também reconhece a ação da Ranger Dedication anterior',
+        summarize(bountyBuild(fighter.id, 4, { 'class-feat-2': { id: rangerDedication.id }, 'class-feat-4': { id: bounty.id } })).hunt?.monsterHunter, true)
+    expect('Reactive Strike do Guerreiro aparece como reação', fighterBounty.actions.find((a) => a.entry.name === 'Reactive Strike')?.entry.actions, 'reaction')
+}
 const ghan = JSON.parse(readFileSync(new URL('../public/characters/ghanburi10.json', import.meta.url), 'utf8')).build
 const f10 = compileBuild(base({ level: 10, class: { id: fighter.id } }), ctx)
 const P = ghan.proficiencies
