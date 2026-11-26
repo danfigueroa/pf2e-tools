@@ -32,14 +32,18 @@ export default async function handler(req, res) {
     // Cada grupo traduz tudo numa chamada só (ver resolveSpells): o espaço entre
     // chamadas do Gemini é o que fazia o "Carregar todas" levar ~10 s por magia.
     const GROUP = 6
-    const results = {}
-    for (let i = 0; i < names.length; i += GROUP) {
-      const group = names.slice(i, i + GROUP)
-      const resolved = await resolveSpells(group, translationEnabled, lang)
-      // Chavear pelo nome de INPUT (não pelo nome retornado do AON), assim o
-      // frontend encontra a magia mesmo quando o AON normaliza capitalização/sufixo.
-      resolved.forEach((r, idx) => { results[group[idx]] = r })
-    }
+    // O banco primeiro (o import existia, a leitura não: toda magia ia à AON e ao tradutor a cada pedido).
+    const results = await withStoredDescriptions({ kind: 'spell', names, version: req.body?.version, lang, storedOnly: req.body?.storedOnly === true }, async (missing) => {
+      const out = {}
+      for (let i = 0; i < missing.length; i += GROUP) {
+        const group = missing.slice(i, i + GROUP)
+        const resolved = await resolveSpells(group, translationEnabled, lang)
+        // Chavear pelo nome de INPUT (não pelo nome retornado do AON), assim o
+        // frontend encontra a magia mesmo quando o AON normaliza capitalização/sufixo.
+        resolved.forEach((r, idx) => { out[group[idx]] = r })
+      }
+      return out
+    })
     return res.status(200).json(results)
   } catch (error) {
     console.error('Spells batch API error:', error)
