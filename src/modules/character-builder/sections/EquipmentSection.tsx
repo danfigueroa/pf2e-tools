@@ -1,27 +1,29 @@
 import { useMemo, useState } from 'react';
-import {
-  Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography,
-} from '@mui/material';
-import { Add as AddIcon, DeleteOutline as DeleteIcon, AutoFixHigh as RunesIcon } from '@mui/icons-material';
-import { displayFont, greenInk, ink, parchment, rule, status } from '../../../theme';
+import { Box, Button, ButtonBase, Chip, Collapse, Drawer, InputBase, Stack, TextField, Typography } from '@mui/material';
+import { displayFont, gold, green, greenInk, ink, parchment, rule } from '../../../theme';
 import { locale, tr } from '../../../i18n';
 import { ContentPicker } from '../components/ContentPicker';
-import { STARTING_GOLD, resilientName, strikingName } from '../engine/equipment';
+import { STARTING_GOLD, type ResolvedItem } from '../engine/equipment';
 import type { RuleEntry } from '../rules/types';
 import type { BuildState, InventoryEntry } from '../types';
-import { ActionGlyph, ContentBadge, Pill, SectionHead } from '../components/ui';
-import { cardSx } from '../components/uiTokens';
+import { ActionGlyph, Label, Notice, Pill, SectionHead } from '../components/ui';
+import { cardSx, goldButtonSx, signed, tint, warmShadow } from '../components/uiTokens';
+import { GroupBar, Gauge, InvestPips, ItemGlyph, Meter, Segmented, Sockets, Stepper, StrokeIcon, WherePill, type SocketLook } from '../components/equipUi';
+import {
+  catalogItems, customItemId, formatBulk, formatGp, groupByKind, groupByPlace, ICON_PATH, inUse, isContainer, isRunic, itemDisplayName, itemLevel,
+  itemKind, newInventoryKey, stacks, whereLabel, type ItemKind,
+} from '../components/equipmentModel';
+import { ItemBench } from '../components/ItemBench';
+import { ItemCatalog, type BagLine } from '../components/ItemCatalog';
+import { RunePicker } from '../components/RunePicker';
 import type { SectionProps } from './types';
 
-const CATEGORY_LABEL: Record<string, string> = {
-  weapons: tr('Armas', 'Weapons'), armor: tr('Armaduras', 'Armor'), shields: tr('Escudos', 'Shields'), worn: tr('Vestíveis', 'Worn'),
-  held: tr('Empunhados', 'Held'), consumables: tr('Consumíveis', 'Consumables'), gear: tr('Equipamento', 'Gear'),
-  'staves-wands': tr('Cajados e varinhas', 'Staves and wands'), runes: tr('Runas', 'Runes'), materials: tr('Materiais', 'Materials'),
-  relics: tr('Relíquias', 'Relics'),
-};
 const COINS: (keyof BuildState['money'])[] = ['pp', 'gp', 'sp', 'cp']; // i18n-ok: chaves do dinheiro
 const COIN_LABEL: Record<string, string> = {
   pp: tr('PL (platina)', 'pp'), gp: tr('PO (ouro)', 'gp'), sp: tr('PP (prata)', 'sp'), cp: tr('PC (cobre)', 'cp'),
+};
+const USE_KICKER: Partial<Record<ItemKind, string>> = {
+  weapon: tr('Mãos', 'Hands'), shield: tr('Escudo', 'Shield'), armor: tr('Armadura', 'Armor'), worn: tr('Vestido', 'Worn'),
 };
 
 export interface EquipmentProps extends SectionProps {
@@ -30,169 +32,308 @@ export interface EquipmentProps extends SectionProps {
   wealth?: { levels: Record<string, { currency: number; lumpSum: number }>; source?: string };
 }
 
-let seq = 0;
-const newKey = () => `inv-${Date.now().toString(36)}${(seq++).toString(36)}`;
+/** Os encaixes do item: fundamentais em ouro, propriedade em verde, espaço livre tracejado, runa a mais em âmbar. */
+function socketsOf(it: ResolvedItem, kind: ItemKind): SocketLook[] {
+  if (!isRunic(kind)) return [];
+  const r = it.inv.runes ?? {};
+  if (kind === 'shield') return r.reinforcing ? ['f'] : [];
+  const out: SocketLook[] = [];
+  if (r.potency) out.push('f');
+  if (kind === 'weapon' ? r.striking : r.resilient) out.push('f');
+  const slots = r.potency ?? 0;
+  const prop = r.property?.length ?? 0;
+  for (let i = 0; i < Math.max(slots, prop); i++) out.push(i < prop ? (i < slots ? 'p' : 'x') : 'e');
+  return out;
+}
 
 /**
- * Aba Equipamento (UX §1.2): dinheiro e riqueza inicial, volume e investidos, inventário com runas e os golpes que saem
- * dele; abaixo, companheiros e o livro de fórmulas.
+ * Aba Equipamento (redesign "Mochila e bancada"): três medidores (dinheiro, volume com a marca de sobrecarga e
+ * investidos), os cartões do que está em uso com os encaixes de runa, a mochila por tipo ou por onde está (consumível
+ * muda a quantidade ali mesmo), a bancada do item, o catálogo com sacola e o "Gravar runa". Os números vêm do motor
+ * (`engine/equipment.ts`) e os itens do catálogo importado; nada aqui consulta a AON.
  */
-export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, entries, wealth }: EquipmentProps) {
-  const [category, setCategory] = useState('weapons');
-  const [picking, setPicking] = useState<'item' | 'formula' | 'rune' | null>(null);
-  const [runesFor, setRunesFor] = useState<string | null>(null);
+export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, entries, wealth, index }: EquipmentProps) {
+  const [view, setView] = useState<'kind' | 'place'>('kind');
+  const [query, setQuery] = useState('');
+  const [benchKey, setBenchKey] = useState<string | null>(null);
+  const [catalog, setCatalog] = useState<'catalog' | 'custom' | null>(null);
+  const [etchFor, setEtchFor] = useState<string | null>(null);
+  const [formulaOpen, setFormulaOpen] = useState(false);
+  const [moneyOpen, setMoneyOpen] = useState(false);
   const eq = compiled.equipment;
+  const level = compiled.level;
 
   const items = useMemo(() => entries.filter((e) => e.item), [entries]);
-  const inCategory = useMemo(() => items.filter((e) => {
-    const c = (e.item?.category ?? '').toLowerCase();
-    const map: Record<string, (c: string, e: RuleEntry) => boolean> = {
-      weapons: (c) => c.startsWith('weapon'), armor: (c) => c.startsWith('armor'), shields: (c) => c.startsWith('shield'),
-      worn: (c) => c.startsWith('worn'), held: (c) => c.startsWith('held'), consumables: (c) => /consumable|alchemical|potion|scroll|talisman|oil|ammunition|snare|bomb/.test(c),
-      gear: (c) => /adventuring gear|gear|tool|kit|clothing|container|services|animals/.test(c), 'staves-wands': (c) => /staff|staves|wand/.test(c),
-      runes: (c) => c.startsWith('rune'), materials: (c) => c.startsWith('material'), relics: (c) => c.startsWith('relic'),
-    };
-    return (map[category] ?? (() => true))(c, e);
-  }), [items, category]);
+  const catalogList = useMemo(() => catalogItems(items), [items]);
+  const materials = useMemo(() => items.filter((e) => /^materials?/i.test(e.item?.category ?? '') && !e.item?.parent).sort((a, b) => a.name.localeCompare(b.name)), [items]);
+  const kinds = useMemo(() => new Map(eq.items.map((it) => [it.key, itemKind(it.entry, it.base, it.inv)])), [eq.items]);
+  const kindOf = (it: ResolvedItem) => kinds.get(it.key) ?? 'gear';
+  const containers = useMemo(() => eq.items.filter((it) => isContainer(it.entry)), [eq.items]);
 
   const setInventory = (fn: (inv: InventoryEntry[]) => InventoryEntry[]) => update((s) => ({ ...s, inventory: fn(s.inventory) }));
   const patch = (key: string, p: Partial<InventoryEntry>) => setInventory((inv) => inv.map((i) => (i.key === key ? { ...i, ...p } : i)));
-  const addItem = (id: string) => setInventory((inv) => [...inv, { key: newKey(), item: id, qty: 1, acquired: 'bought' }]);
-  const remove = (key: string) => setInventory((inv) => inv.filter((i) => i.key !== key));
+  const remove = (key: string) => { setBenchKey(null); setInventory((inv) => inv.filter((i) => i.key !== key).map((i) => (i.container === key ? { ...i, container: undefined } : i))); };
+  const duplicate = (key: string) => setInventory((inv) => {
+    const src = inv.find((i) => i.key === key);
+    return src ? [...inv, { ...structuredClone(src), key: newInventoryKey(), equipped: undefined, worn: undefined, invested: undefined }] : inv;
+  });
+  const transfer = (from: string, to: string) => setInventory((inv) => {
+    const runes = inv.find((i) => i.key === from)?.runes;
+    return inv.map((i) => (i.key === to ? { ...i, runes } : i.key === from ? { ...i, runes: undefined } : i));
+  });
   const setMoney = (coin: keyof BuildState['money'], value: number) => update((s) => ({ ...s, money: { ...s.money, [coin]: Math.max(0, Math.floor(value) || 0) } }));
 
-  const levelWealth = wealth?.levels[String(compiled.level)];
-  const runesItem = runesFor ? state.inventory.find((i) => i.key === runesFor) : undefined;
-  const runesBase = runesFor ? eq.items.find((i) => i.key === runesFor)?.base : undefined;
-  const isWeapon = !!runesBase?.item?.weapon;
-  const setRunes = (p: Partial<NonNullable<InventoryEntry['runes']>>) => runesItem && patch(runesItem.key, { runes: { ...(runesItem.runes ?? {}), ...p } });
+  /** Põe a sacola na mochila: consumível igual empilha; a primeira arma vai para as mãos e a primeira armadura é vestida. */
+  const addLines = (lines: BagLine[]) => setInventory((inv) => {
+    const next = [...inv];
+    let armorWorn = eq.items.some((i) => kindOf(i) === 'armor' && i.inv.worn);
+    let weaponHeld = eq.items.some((i) => kindOf(i) === 'weapon' && i.inv.equipped);
+    for (const l of lines) {
+      const entry = index.get(l.id) ?? items.find((e) => e.id === l.id) ?? null;
+      const kind = itemKind(entry, entry);
+      const same = stacks(kind) ? next.findIndex((i) => i.item === l.id && i.acquired === l.acquired && !i.runes && (i.container ?? '') === (l.container ?? '')) : -1;
+      if (same >= 0) { next[same] = { ...next[same], qty: Math.min(999, next[same].qty + l.qty) }; continue; }
+      const row: InventoryEntry = { key: newInventoryKey(), item: l.id, qty: l.qty, acquired: l.acquired, container: l.container };
+      if (kind === 'armor' && !armorWorn) { row.worn = true; armorWorn = true; }
+      if (kind === 'weapon' && !weaponHeld) { row.equipped = true; weaponHeld = true; }
+      next.push(row);
+    }
+    return next;
+  });
+  const addCustom = (name: string, qty: number, acquired: 'bought' | 'given') =>
+    setInventory((inv) => [...inv, { key: newInventoryKey(), item: customItemId(name), qty, acquired, customName: name }]);
+
+  const levelWealth = wealth?.levels[String(level)];
+  const term = query.trim().toLowerCase();
+  const shown = term ? eq.items.filter((it) => it.name.toLowerCase().includes(term) || itemDisplayName(it).toLowerCase().includes(term)) : eq.items;
+  const groups = view === 'kind' ? groupByKind(shown) : groupByPlace(shown);
+  const using = eq.items.filter((it) => inUse(kindOf(it), it.inv) && kindOf(it) !== 'worn');
+  const investedNames = eq.items.filter((it) => it.inv.invested).map((it) => it.name);
+  const bench = benchKey ? eq.items.find((i) => i.key === benchKey) ?? null : null;
+  const etchItem = etchFor ? eq.items.find((i) => i.key === etchFor) ?? null : null;
+  const etchRunes = useMemo(() => {
+    if (!etchItem) return [];
+    const weapon = !!etchItem.base?.item?.weapon;
+    return catalogList.filter((e) => new RegExp(weapon ? 'weapon property' : 'armor property', 'i').test(e.item?.subcategory ?? ''));
+  }, [etchItem, catalogList]);
+
+  const moneyTone = eq.money.remaining < 0 ? 'error' : 'ok';
+  const bulkTone = eq.bulk.total > eq.bulk.max ? 'error' : eq.bulk.total > eq.bulk.encumberedAt ? 'warn' : 'ok';
+  const investTone = eq.invested > 10 ? 'warn' : 'ok';
+  const openCatalog = (tab: 'catalog' | 'custom' = 'catalog') => setCatalog(tab);
+  const loadingItems = !items.length;
 
   return (
     <Stack spacing={2}>
-      <Box sx={[cardSx, { p: { xs: 1.5, sm: 2 }, display: 'flex', flexDirection: 'column', gap: 1 }]}>
-        <SectionHead note={levelWealth && compiled.level > 1 ? tr(`referência do nível: ${levelWealth.lumpSum.toLocaleString(locale)} po`, `level reference: ${levelWealth.lumpSum.toLocaleString(locale)} gp`) : undefined}>
-          {tr('Dinheiro', 'Money')}</SectionHead>
-        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, flexWrap: 'wrap' }}>
-          <Box component="b" sx={{ font: `700 26px ${displayFont}`, fontVariantNumeric: 'tabular-nums', color: eq.money.remaining < 0 ? status.error : ink.primary }}>
-            {tr(`${eq.money.remaining.toLocaleString(locale)} po`, `${eq.money.remaining.toLocaleString(locale)} gp`)}</Box>
-          <Box component="span" sx={{ fontSize: 13, color: ink.secondary }}>
-            {tr(`livres · ${eq.money.spent.toLocaleString(locale)} po em itens`, `left · ${eq.money.spent.toLocaleString(locale)} gp in items`)}</Box>
-        </Box>
-        {eq.money.start > 0 && (
-          <Box role="progressbar" aria-valuenow={Math.round(100 * Math.min(1, eq.money.spent / eq.money.start))} aria-valuemin={0} aria-valuemax={100}
-            aria-label={tr('Dinheiro gasto', 'Money spent')} sx={{ height: 8, borderRadius: 999, bgcolor: parchment.sunken, overflow: 'hidden' }}>
-            <Box sx={{ height: 1, width: `${Math.round(100 * Math.min(1, eq.money.spent / eq.money.start))}%`, bgcolor: eq.money.remaining < 0 ? status.error : greenInk.mid, borderRadius: 999 }} />
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, flexWrap: 'wrap' }}>
+        <Box component="h2" sx={{ m: 0, font: `700 20px ${displayFont}`, flex: 1 }}>{tr('Equipamento', 'Equipment')}</Box>
+        {eq.items.length > 0 && (
+          <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 1, height: 40, width: 220, px: 1.25, border: `1px solid ${rule}`, borderRadius: '6px', bgcolor: parchment.paper, '&:focus-within': { borderColor: greenInk.mid } }}>
+            <StrokeIcon d={ICON_PATH.search} size={16} sx={{ color: ink.secondary }} />
+            <InputBase fullWidth value={query} onChange={(e) => setQuery(e.target.value)} placeholder={tr('Buscar na mochila', 'Search the pack')} inputProps={{ 'aria-label': tr('Buscar na mochila', 'Search the pack') }} sx={{ fontSize: 14 }} />
           </Box>
         )}
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 1, mt: 0.5 }}>
-          {COINS.map((c) => (
-            <TextField key={c} size="small" type="number" label={COIN_LABEL[c]} value={state.money[c]} disabled={!canEdit}
-              onChange={(e) => setMoney(c, Number(e.target.value))} slotProps={{ htmlInput: { min: 0 } }} />
-          ))}
-        </Box>
-        <Typography variant="body2" color={eq.money.remaining < 0 ? 'error.main' : 'text.secondary'}>
-          {tr(`Total ${eq.money.start.toLocaleString(locale)} po · compras ${eq.money.spent.toLocaleString(locale)} po · sobra ${eq.money.remaining.toLocaleString(locale)} po`,
-            `Total ${eq.money.start.toLocaleString(locale)} gp · purchases ${eq.money.spent.toLocaleString(locale)} gp · left ${eq.money.remaining.toLocaleString(locale)} gp`)}
-        </Typography>
-        <Typography variant="caption" color="text.secondary" component="p" sx={{ mt: 0.5 }}>
-          {compiled.level === 1 || !levelWealth
-            ? tr(`Riqueza inicial no nível 1: ${STARTING_GOLD} po (Player Core pg. 10).`, `Starting wealth at level 1: ${STARTING_GOLD} gp (Player Core pg. 10).`)
-            : tr(`Referência para o nível ${compiled.level}: ${levelWealth.lumpSum} po em dinheiro, ou itens + ${levelWealth.currency} po (${wealth?.source ?? 'GM Core'}).`,
-              `Reference for level ${compiled.level}: ${levelWealth.lumpSum} gp lump sum, or items + ${levelWealth.currency} gp (${wealth?.source ?? 'GM Core'}).`)}
-          {mesaRules?.wealth === 'free' ? tr(' A mesa usa riqueza livre.', ' The table uses free wealth.') : ''}
-        </Typography>
-        {canEdit && compiled.level === 1 && eq.money.start === 0 && (
-          <Button size="small" sx={{ mt: 1 }} onClick={() => update((s) => ({ ...s, money: { pp: 0, gp: STARTING_GOLD, sp: 0, cp: 0 } }))}>
-            {tr(`Começar com ${STARTING_GOLD} po`, `Start with ${STARTING_GOLD} gp`)}</Button>
+        {canEdit && (
+          <Button onClick={() => openCatalog()} startIcon={<StrokeIcon d={ICON_PATH.plus} size={16} />} sx={[goldButtonSx, { display: { xs: 'none', md: 'inline-flex' } }]}>
+            {tr('Adicionar item', 'Add item')}</Button>
         )}
       </Box>
 
-      <Box sx={[cardSx, { p: { xs: 1.5, sm: 2 } }]}>
-        <Box sx={{ mb: 1 }}>
-          <SectionHead note={<Box component="span" sx={{ color: eq.bulk.total > eq.bulk.encumberedAt ? status.warning : 'inherit' }}>
-            {tr(`Volume ${eq.bulk.total} / ${eq.bulk.encumberedAt} (máx. ${eq.bulk.max}) · investidos ${eq.invested}/10`, `Bulk ${eq.bulk.total} / ${eq.bulk.encumberedAt} (max ${eq.bulk.max}) · invested ${eq.invested}/10`)}
-          </Box>}>{tr('Inventário', 'Inventory')}</SectionHead>
-        </Box>
-        <Stack spacing={1}>
-          {eq.items.map((it) => {
-            const inv = it.inv;
-            const runic = !!(it.base?.item?.weapon || it.base?.item?.armor);
-            const runeText = [inv.runes?.potency ? `+${inv.runes.potency}` : '', inv.runes?.striking ? strikingName(inv.runes.striking) : '', inv.runes?.resilient ? resilientName(inv.runes.resilient) : '']
-              .filter(Boolean).join(' ');
-            return (
-              <Box key={it.key} sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', borderTop: `1px solid ${rule}`, pt: 1 }}>
-                <Box sx={{ flex: '1 1 160px', minWidth: 0 }}>
-                  <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', flexWrap: 'wrap' }}>
-                    <Box component="span" sx={{ fontWeight: 600, overflowWrap: 'anywhere' }}>{runeText ? `${runeText} ${it.name}` : it.name}</Box>
-                    {inv.worn && <ContentBadge kind="trait">{it.base?.item?.armor ? tr('vestido', 'worn') : tr('em uso', 'in use')}</ContentBadge>}
-                    {inv.invested && <ContentBadge kind="trait">{tr('investido', 'invested')}</ContentBadge>}
-                    {it.entry?.homebrew && <ContentBadge kind="mesa" />}
-                  </Box>
-                  <Typography variant="caption" color="text.secondary">
-                    {[it.entry?.level !== undefined ? tr(`nível ${it.entry.level}`, `level ${it.entry.level}`) : null, it.price ? tr(`${it.price} po`, `${it.price} gp`) : null, it.bulk ? tr(`volume ${it.bulk}`, `bulk ${it.bulk}`) : null].filter(Boolean).join(' · ')}
-                  </Typography>
-                </Box>
-                <TextField size="small" type="number" label={tr('Qtd', 'Qty')} value={inv.qty} disabled={!canEdit} sx={{ width: 76 }}
-                  onChange={(e) => patch(it.key, { qty: Math.max(0, Math.floor(Number(e.target.value)) || 0) })} />
-                <TextField size="small" select label={tr('Origem', 'Source')} value={inv.acquired} disabled={!canEdit} sx={{ width: 120 }}
-                  onChange={(e) => patch(it.key, { acquired: e.target.value === 'given' ? 'given' : 'bought' })}>
-                  <MenuItem value="bought">{tr('Comprado', 'Bought')}</MenuItem>
-                  <MenuItem value="given">{tr('Ganho', 'Given')}</MenuItem>
-                </TextField>
-                <Stack direction="row" sx={{ gap: 0.5, flexWrap: 'wrap' }}>
-                  {(it.base?.item?.armor || it.base?.item?.shield || it.entry?.item?.usage?.startsWith('worn')) && (
-                    <Chip size="small" label={tr('Vestido', 'Worn')} color={inv.worn ? 'primary' : 'default'} variant={inv.worn ? 'filled' : 'outlined'}
-                      onClick={canEdit ? () => patch(it.key, { worn: !inv.worn }) : undefined} />
-                  )}
-                  {(it.entry?.traits ?? []).includes('Invested') && (
-                    <Chip size="small" label={tr('Investido', 'Invested')} color={inv.invested ? 'primary' : 'default'} variant={inv.invested ? 'filled' : 'outlined'}
-                      onClick={canEdit ? () => patch(it.key, { invested: !inv.invested }) : undefined} />
-                  )}
-                </Stack>
-                {runic && canEdit && <IconButton aria-label={tr('Runas', 'Runes')} title={tr('Runas', 'Runes')} onClick={() => setRunesFor(it.key)}><RunesIcon /></IconButton>}
-                {canEdit && <IconButton aria-label={tr('Remover', 'Remove')} title={tr('Remover', 'Remove')} onClick={() => remove(it.key)}><DeleteIcon /></IconButton>}
-              </Box>
-            );
-          })}
-          {eq.items.length === 0 && <Typography variant="body2" color="text.secondary">{tr('Nenhum item ainda.', 'No items yet.')}</Typography>}
-        </Stack>
-        {canEdit && (
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mt: 1.5 }}>
-            <TextField select size="small" label={tr('Categoria', 'Category')} value={category} onChange={(e) => setCategory(e.target.value)} sx={{ minWidth: 200 }}>
-              {Object.entries(CATEGORY_LABEL).map(([k, v]) => <MenuItem key={k} value={k}>{v}</MenuItem>)}
-            </TextField>
-            <Button startIcon={<AddIcon />} variant="outlined" onClick={() => setPicking('item')} disabled={!items.length}>
-              {items.length ? tr('Adicionar item', 'Add item') : tr('Carregando itens…', 'Loading items…')}</Button>
-            <TextField size="small" label={tr('Item caseiro (nome)', 'Homebrew item (name)')} sx={{ minWidth: 180 }}
-              slotProps={{ htmlInput: { maxLength: 80 } }}
-              onKeyDown={(e) => {
-                const input = e.target as HTMLInputElement;
-                if (e.key !== 'Enter' || !input.value.trim()) return;
-                const name = input.value.trim();
-                const id = `custom:${name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'item'}`;
-                setInventory((inv) => [...inv, { key: newKey(), item: id, qty: 1, acquired: 'given', customName: name }]);
-                input.value = '';
-              }}
-              helperText={tr('Enter para adicionar; não entra nos números.', 'Enter to add; not in the numbers.')} />
-          </Stack>
-        )}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(3, minmax(0, 1fr))', sm: '1.1fr 1fr 0.9fr' }, gap: { xs: 1, sm: 1.25 } }}>
+        <Gauge icon={ICON_PATH.coin} label={tr('Dinheiro livre', 'Money left')} tone={moneyTone} value={formatGp(eq.money.remaining)}
+          foot={eq.money.start > 0
+            ? tr(`gasto ${formatGp(eq.money.spent)} de ${formatGp(eq.money.start)}${levelWealth && level > 1 ? ` · referência do nível ${level}: ${formatGp(levelWealth.lumpSum)}` : ''}`,
+              `spent ${formatGp(eq.money.spent)} of ${formatGp(eq.money.start)}${levelWealth && level > 1 ? ` · level ${level} reference: ${formatGp(levelWealth.lumpSum)}` : ''}`)
+            : tr('toque para lançar as moedas', 'tap to enter the coins')}
+          onClick={canEdit ? () => setMoneyOpen((v) => !v) : undefined}>
+          <Meter label={tr('Dinheiro gasto', 'Money spent')} tone={moneyTone} fraction={eq.money.start > 0 ? eq.money.spent / eq.money.start : 0} />
+        </Gauge>
+        <Gauge icon={ICON_PATH.bulk} label={tr('Volume', 'Bulk')} tone={bulkTone} value={eq.bulk.total.toLocaleString(locale)}
+          small={tr(`/ ${eq.bulk.encumberedAt} · máx. ${eq.bulk.max}`, `/ ${eq.bulk.encumberedAt} · max ${eq.bulk.max}`)}
+          foot={tr(`sobrecarregado acima de ${eq.bulk.encumberedAt} (5 + FOR)`, `encumbered over ${eq.bulk.encumberedAt} (5 + STR)`)}>
+          <Meter label={tr('Volume carregado', 'Bulk carried')} tone={bulkTone} fraction={eq.bulk.max > 0 ? eq.bulk.total / eq.bulk.max : 1} mark={eq.bulk.max > 0 ? eq.bulk.encumberedAt / eq.bulk.max : undefined} />
+        </Gauge>
+        <Gauge icon={ICON_PATH.invested} label={tr('Investidos', 'Invested')} tone={investTone} value={String(eq.invested)} small="/ 10"
+          foot={investedNames.length ? investedNames.join(', ') : tr('nenhum item investido', 'no invested item')}>
+          <InvestPips used={eq.invested} />
+        </Gauge>
       </Box>
+
+      <Collapse in={moneyOpen} unmountOnExit>
+        <Box sx={[cardSx, { p: { xs: 1.5, sm: 2 }, display: 'flex', flexDirection: 'column', gap: 1 }]}>
+          <SectionHead note={tr(`total ${formatGp(eq.money.start)}`, `total ${formatGp(eq.money.start)}`)}>{tr('Moedas', 'Coins')}</SectionHead>
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 1 }}>
+            {COINS.map((c) => (
+              <TextField key={c} size="small" type="number" label={COIN_LABEL[c]} value={state.money[c]} disabled={!canEdit}
+                onChange={(e) => setMoney(c, Number(e.target.value))} slotProps={{ htmlInput: { min: 0 } }} />
+            ))}
+          </Box>
+          <Typography variant="caption" component="p" sx={{ color: ink.secondary }}>
+            {level === 1 || !levelWealth
+              ? tr(`Riqueza inicial no nível 1: ${STARTING_GOLD} po (Player Core pg. 10).`, `Starting wealth at level 1: ${STARTING_GOLD} gp (Player Core pg. 10).`)
+              : tr(`Referência para o nível ${level}: ${levelWealth.lumpSum} po em dinheiro, ou itens + ${levelWealth.currency} po (${wealth?.source ?? 'GM Core'}).`,
+                `Reference for level ${level}: ${levelWealth.lumpSum} gp lump sum, or items + ${levelWealth.currency} gp (${wealth?.source ?? 'GM Core'}).`)}
+            {mesaRules?.wealth === 'free' ? tr(' A mesa usa riqueza livre.', ' The table uses free wealth.') : ''}
+            {tr(' Comprado sai do dinheiro (item e runas); ganho não.', ' Bought comes out of the money (item and runes); given does not.')}
+          </Typography>
+          {canEdit && eq.money.start === 0 && (
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              {level === 1 && <Button size="small" variant="outlined" onClick={() => update((s) => ({ ...s, money: { pp: 0, gp: STARTING_GOLD, sp: 0, cp: 0 } }))}>{tr(`Começar com ${STARTING_GOLD} po`, `Start with ${STARTING_GOLD} gp`)}</Button>}
+              {level > 1 && levelWealth && <Button size="small" variant="outlined" onClick={() => update((s) => ({ ...s, money: { pp: 0, gp: levelWealth.lumpSum, sp: 0, cp: 0 } }))}>{tr(`Usar a referência: ${levelWealth.lumpSum} po`, `Use the reference: ${levelWealth.lumpSum} gp`)}</Button>}
+            </Box>
+          )}
+        </Box>
+      </Collapse>
+
+      {(eq.money.remaining < 0 || bulkTone !== 'ok' || eq.invested > 10) && (
+        <Stack spacing={1}>
+          {eq.money.remaining < 0 && (
+            <Notice tone="error"><span><b>{tr(`Compras passam do dinheiro em ${formatGp(-eq.money.remaining)}.`, `Purchases exceed the money by ${formatGp(-eq.money.remaining)}.`)}</b>{' '}
+              {tr('Marque como "Ganho" o que veio da mesa, ou lance mais moedas.', 'Mark what came from the table as "Given", or enter more coins.')}</span></Notice>
+          )}
+          {bulkTone !== 'ok' && (
+            <Notice tone="warn">{eq.bulk.total > eq.bulk.max
+              ? tr(`Volume ${eq.bulk.total} passa do máximo de ${eq.bulk.max} (Player Core pg. 269).`, `Bulk ${eq.bulk.total} is over the maximum of ${eq.bulk.max} (Player Core pg. 269).`)
+              : tr(`Volume ${eq.bulk.total} acima de ${eq.bulk.encumberedAt}: sobrecarregado (desajeitado 1, −10 pés).`, `Bulk ${eq.bulk.total} over ${eq.bulk.encumberedAt}: encumbered (clumsy 1, −10 feet).`)}</Notice>
+          )}
+          {eq.invested > 10 && <Notice tone="warn">{tr(`${eq.invested} itens investidos; o limite é 10 (GM Core pg. 219).`, `${eq.invested} invested items; the limit is 10 (GM Core pg. 219).`)}</Notice>}
+          <Box sx={{ fontSize: 12, color: ink.secondary }}>{tr('Nada aqui impede salvar ou aplicar na mesa.', 'Nothing here stops saving or applying to the table.')}</Box>
+        </Stack>
+      )}
+
+      {eq.items.length === 0 ? (
+        <Box sx={[cardSx, { p: { xs: 3, sm: 4 }, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 1.5 }]}>
+          <Box sx={{ width: 72, height: 72, borderRadius: '50%', bgcolor: tint.gold, color: gold.deep, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <StrokeIcon d={ICON_PATH.bag} size={32} />
+          </Box>
+          <Box sx={{ font: `700 20px ${displayFont}` }}>{tr('A mochila está vazia', 'The pack is empty')}</Box>
+          <Box sx={{ fontSize: 14, color: ink.secondary, maxWidth: 340 }}>
+            {eq.money.start > 0
+              ? tr(`Você tem ${formatGp(eq.money.remaining)} para gastar. Compre do catálogo ou marque o que ganhou na mesa.`, `You have ${formatGp(eq.money.remaining)} to spend. Buy from the catalog or mark what you got at the table.`)
+              : level === 1
+                ? tr(`No nível 1 são ${STARTING_GOLD} po para gastar. Compre do catálogo ou marque o que ganhou na mesa.`, `At level 1 you get ${STARTING_GOLD} gp to spend. Buy from the catalog or mark what you got at the table.`)
+                : tr('Lance as moedas no medidor de dinheiro, compre do catálogo ou marque o que ganhou na mesa.', 'Enter the coins in the money gauge, buy from the catalog or mark what you got at the table.')}
+          </Box>
+          {canEdit && (
+            <>
+              <Button onClick={() => openCatalog()} startIcon={<StrokeIcon d={ICON_PATH.plus} size={16} />} sx={[goldButtonSx, { width: 260, maxWidth: 1 }]}>{tr('Abrir o catálogo', 'Open the catalog')}</Button>
+              <Button size="small" onClick={() => openCatalog('custom')}>{tr('Item caseiro', 'Homebrew item')}</Button>
+            </>
+          )}
+        </Box>
+      ) : (
+        <>
+          {using.length > 0 && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+              <Label>{tr('Em uso', 'In use')}</Label>
+              <Box sx={{
+                display: { xs: 'flex', sm: 'grid' }, gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 1.25,
+                overflowX: { xs: 'auto', sm: 'visible' }, mx: { xs: -1.5, sm: 0 }, px: { xs: 1.5, sm: 0 }, pb: { xs: 0.5, sm: 0 },
+              }}>
+                {using.map((it) => {
+                  const kind = kindOf(it);
+                  const strike = eq.strikes.find((s) => s.key === it.key);
+                  const ac = eq.armor?.item.key === it.key ? compiled.stats.ac.total : null;
+                  const shieldAc = it.base?.item?.shield;
+                  const meta = strike ? tr(`Golpe ${signed(strike.attack)} · ${strike.dice}${strike.die}${strike.damageBonus ? signed(strike.damageBonus) : ''}`, `Strike ${signed(strike.attack)} · ${strike.dice}${strike.die}${strike.damageBonus ? signed(strike.damageBonus) : ''}`)
+                    : ac !== null ? tr(`CA ${ac}${it.inv.runes?.resilient ? ` · salvaguardas +${it.inv.runes.resilient}` : ''}`, `AC ${ac}${it.inv.runes?.resilient ? ` · saves +${it.inv.runes.resilient}` : ''}`)
+                      : shieldAc ? tr(`+${shieldAc.ac ?? 0} CA erguido · dureza ${shieldAc.hardness ?? '—'}`, `+${shieldAc.ac ?? 0} AC raised · hardness ${shieldAc.hardness ?? '—'}`) : '';
+                  const on = benchKey === it.key;
+                  return (
+                    <ButtonBase key={it.key} onClick={() => setBenchKey(it.key)} data-view="" sx={{
+                      flex: { xs: '0 0 170px', sm: 'initial' }, bgcolor: parchment.paper, border: `1px solid ${on ? greenInk.mid : rule}`, outline: on ? `1px solid ${greenInk.mid}` : 'none',
+                      borderRadius: '8px', boxShadow: warmShadow, p: '10px 12px', display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 0.625, textAlign: 'left', minWidth: 0,
+                    }}>
+                      <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.75, fontSize: 11, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: ink.secondary }}>
+                        <ItemGlyph kind={kind} size={20} />{USE_KICKER[kind] ?? ''}
+                      </Box>
+                      <Box component="span" sx={{ fontWeight: 700, fontSize: { xs: 14, sm: 15 }, lineHeight: 1.25, overflowWrap: 'anywhere' }}>{strike?.display ?? itemDisplayName(it)}</Box>
+                      <Box component="span" sx={{ fontSize: { xs: 12, sm: 13 }, color: ink.secondary, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                        <Sockets looks={socketsOf(it, kind)} />{meta}
+                      </Box>
+                    </ButtonBase>
+                  );
+                })}
+              </Box>
+            </Box>
+          )}
+
+          <Box sx={[cardSx, { overflow: 'hidden' }]}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, px: 1.5, py: 1, borderBottom: `1px solid ${rule}`, flexWrap: 'wrap' }}>
+              <Box component="h3" sx={{ m: 0, font: `700 15px ${displayFont}`, flex: 1, whiteSpace: 'nowrap' }}>
+                {tr('Mochila', 'Pack')} <Box component="span" sx={{ font: '500 13px "Source Sans 3", sans-serif', color: ink.secondary }}>
+                  · {tr(`${eq.items.length} ite${eq.items.length === 1 ? 'm' : 'ns'}`, `${eq.items.length} item${eq.items.length === 1 ? '' : 's'}`)}</Box>
+              </Box>
+              <Box sx={{ width: { xs: 1, sm: 240 }, order: { xs: 2, sm: 0 } }}>
+                <Segmented label={tr('Agrupar', 'Group')} height={32} value={view} onChange={setView}
+                  options={[{ value: 'kind', label: tr('Por tipo', 'By type') }, { value: 'place', label: tr('Onde está', 'Where it is') }]} />
+              </Box>
+              <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', gap: 1, height: 40, width: 1, order: 3, px: 1.25, border: `1px solid ${rule}`, borderRadius: '6px' }}>
+                <StrokeIcon d={ICON_PATH.search} size={16} sx={{ color: ink.secondary }} />
+                <InputBase fullWidth value={query} onChange={(e) => setQuery(e.target.value)} placeholder={tr('Buscar na mochila', 'Search the pack')} inputProps={{ 'aria-label': tr('Buscar na mochila', 'Search the pack') }} sx={{ fontSize: 14 }} />
+              </Box>
+            </Box>
+            {groups.map((g) => (
+              <Box key={g.key}>
+                <GroupBar title={g.title} count={g.items.length} right={g.value > 0 ? formatGp(g.value) : undefined} />
+                {g.items.map((it) => {
+                  const kind = kindOf(it);
+                  const where = whereLabel(kind, it.inv);
+                  const step = stacks(kind) && canEdit;
+                  const each = it.qty > 1 && it.entry?.item?.price ? tr(`${formatGp(it.entry.item.price.gp)} cada`, `${formatGp(it.entry.item.price.gp)} each`) : null;
+                  const meta = [
+                    itemLevel(it) !== undefined ? tr(`nível ${itemLevel(it)}`, `level ${itemLevel(it)}`) : null,
+                    it.inv.acquired === 'given' ? tr('ganho', 'given') : each ?? (it.price + it.runePrice ? formatGp(it.price + it.runePrice) : null),
+                    it.entry?.item?.bulk !== undefined ? tr(`volume ${formatBulk(it.entry.item.bulk)}`, `bulk ${formatBulk(it.entry.item.bulk)}`) : null,
+                    !stacks(kind) && it.qty > 1 ? `×${it.qty}` : null,
+                    it.inv.item.startsWith('custom:') ? tr('caseiro', 'homebrew') : null,
+                    !it.entry && !it.inv.item.startsWith('custom:') ? tr('fora do catálogo', 'not in catalog') : null,
+                  ].filter(Boolean).join(' · ');
+                  const on = benchKey === it.key;
+                  return (
+                    <Box key={it.key} sx={{ display: 'flex', alignItems: 'center', borderBottom: `1px solid ${rule}`, bgcolor: on ? tint.green : 'transparent', boxShadow: on ? `inset 3px 0 0 ${greenInk.mid}` : 'none' }}>
+                      <ButtonBase onClick={() => setBenchKey(it.key)} data-view="" aria-label={tr(`Abrir ${itemDisplayName(it)} na bancada`, `Open ${itemDisplayName(it)} on the workbench`)} sx={{
+                        flex: 1, minWidth: 0, display: 'grid', gridTemplateColumns: '40px minmax(0, 1fr) auto', gap: 1.5, alignItems: 'center', textAlign: 'left',
+                        pl: 1.5, pr: step ? 0.5 : 1, py: 1.125, minHeight: 62, justifyContent: 'stretch',
+                      }}>
+                        <ItemGlyph kind={kind} />
+                        <Box component="span" sx={{ minWidth: 0 }}>
+                          <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', fontWeight: 600, fontSize: 15, lineHeight: 1.25 }}>
+                            <Box component="span" sx={{ overflowWrap: 'anywhere' }}>{itemDisplayName(it)}</Box>
+                            <Sockets looks={socketsOf(it, kind)} />
+                          </Box>
+                          <Box component="span" sx={{ display: 'block', fontSize: 13, color: ink.secondary, mt: '2px' }}>{meta}</Box>
+                        </Box>
+                        <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          {where && <Box component="span" sx={{ display: { xs: step ? 'none' : 'inline-flex', sm: 'inline-flex' } }}><WherePill text={where.text} tone={where.tone} /></Box>}
+                          {!step && <StrokeIcon d={ICON_PATH.chevron} size={16} sx={{ color: ink.secondary }} />}
+                        </Box>
+                      </ButtonBase>
+                      {step && <Box sx={{ pr: 1.25 }}><Stepper label={tr(`Quantidade de ${it.name}`, `${it.name} quantity`)} value={it.qty} min={1} onChange={(n) => patch(it.key, { qty: n })} /></Box>}
+                    </Box>
+                  );
+                })}
+              </Box>
+            ))}
+            {groups.length === 0 && <Box sx={{ p: 2, fontSize: 14, color: ink.secondary }}>{tr('Nada na mochila com essa busca.', 'Nothing in the pack for this search.')}</Box>}
+          </Box>
+        </>
+      )}
 
       <Box sx={[cardSx, { p: { xs: 1.5, sm: 2 }, display: 'flex', flexDirection: 'column', gap: 1 }]}>
         <SectionHead note={tr('calculados das armas', 'from the weapons')}>{tr('Golpes', 'Strikes')}</SectionHead>
         {eq.strikes.map((s) => (
-          <Box key={s.key} sx={{ display: 'flex', gap: 1.25, alignItems: 'center' }}>
+          <ButtonBase key={s.key} disabled={s.key === 'fist'} onClick={() => setBenchKey(s.key)} data-view="" sx={{ display: 'flex', gap: 1.25, alignItems: 'center', textAlign: 'left', justifyContent: 'flex-start', borderRadius: '6px', py: 0.5, '&.Mui-disabled': { opacity: 1 } }}>
             <ActionGlyph actions="1" />
             <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
               <Box component="b" sx={{ overflowWrap: 'anywhere' }}>{s.display}</Box>
-              <Box component="span" sx={{ fontSize: 12, color: ink.secondary }} title={s.damageParts.map((p) => `${p.label} ${p.value >= 0 ? '+' : ''}${p.value}`).join(' · ')}>
-                {s.dice}{s.die}{s.damageBonus ? `${s.damageBonus > 0 ? '+' : ''}${s.damageBonus}` : ''} {s.damageType}{s.traits.length ? ` · ${s.traits.slice(0, 3).join(', ')}` : ''}</Box>
+              <Box component="span" sx={{ fontSize: 12, color: ink.secondary }} title={s.damageParts.map((p) => `${p.label} ${signed(p.value)}`).join(' · ')}>
+                {s.dice}{s.die}{s.damageBonus ? signed(s.damageBonus) : ''} {s.damageType}{s.traits.length ? ` · ${s.traits.slice(0, 3).join(', ')}` : ''}</Box>
             </Box>
-            <Box component="b" sx={{ fontSize: 18, fontVariantNumeric: 'tabular-nums' }} title={s.attackParts.map((p) => `${p.label} ${p.value >= 0 ? '+' : ''}${p.value}`).join(' · ')}>
-              {s.attack >= 0 ? '+' : ''}{s.attack}</Box>
+            <Box component="b" sx={{ fontSize: 18, fontVariantNumeric: 'tabular-nums' }} title={s.attackParts.map((p) => `${p.label} ${signed(p.value)}`).join(' · ')}>{signed(s.attack)}</Box>
             <Box component="span" sx={{ fontSize: 13, color: ink.secondary, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-              {(s.traits.some((t) => /^agile$/i.test(t)) ? [4, 8] : [5, 10]).map((m) => `${s.attack - m >= 0 ? '+' : ''}${s.attack - m}`).join(' / ')}</Box>
-          </Box>
+              {(s.traits.some((t) => /^agile$/i.test(t)) ? [4, 8] : [5, 10]).map((m) => signed(s.attack - m)).join(' / ')}</Box>
+          </ButtonBase>
         ))}
         {eq.strikes.length === 0 && <Box sx={{ fontSize: 14, color: ink.secondary }}>{tr('Nenhuma arma ainda.', 'No weapon yet.')}</Box>}
       </Box>
@@ -204,49 +345,48 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
             <Chip key={id} size="small" label={items.find((e) => e.id === id)?.name ?? id}
               onDelete={canEdit ? () => update((s) => ({ ...s, formulas: s.formulas.filter((x) => x !== id) })) : undefined} />
           ))}
-          {canEdit && <Pill look="add" onClick={() => setPicking('formula')}>{tr('+ Adicionar', '+ Add')}</Pill>}
+          {canEdit && <Pill look="add" onClick={() => setFormulaOpen(true)}>{tr('+ Adicionar', '+ Add')}</Pill>}
         </Stack>
       </Box>
 
-      <ContentPicker open={picking === 'item' || picking === 'formula'} title={picking === 'formula' ? tr('Fórmula', 'Formula') : CATEGORY_LABEL[category]}
-        entries={picking === 'formula' ? items : inCategory}
-        onPick={(id) => (picking === 'formula' ? update((s) => ({ ...s, formulas: s.formulas.includes(id) ? s.formulas : [...s.formulas, id] })) : addItem(id))}
-        onClose={() => setPicking(null)} mesaRules={mesaRules}
-        secondary={(e) => [e.level !== undefined ? tr(`nível ${e.level}`, `level ${e.level}`) : null, e.item?.price ? tr(`${e.item.price.gp} po`, `${e.item.price.gp} gp`) : null].filter(Boolean).join(' · ')} />
-      <ContentPicker open={picking === 'rune'} title={tr('Runa de propriedade', 'Property rune')}
-        entries={items.filter((e) => /property rune/i.test(e.item?.subcategory ?? '') && (isWeapon ? /weapon/i.test(e.item?.subcategory ?? '') : /armor/i.test(e.item?.subcategory ?? '')))}
-        onPick={(id) => setRunes({ property: [...(runesItem?.runes?.property ?? []), id] })} onClose={() => setPicking(null)} mesaRules={mesaRules} />
+      {canEdit && (
+        <ButtonBase onClick={() => openCatalog()} data-view="" aria-label={tr('Adicionar item', 'Add item')} sx={{
+          display: { xs: 'flex', md: 'none' }, position: 'fixed', right: 16, bottom: 'calc(var(--tabbar-h) + 72px)', zIndex: 1049,
+          height: 52, px: 2.25, gap: 1, borderRadius: 26, bgcolor: gold.bright, color: green.deepest, border: `1px solid ${gold.main}`,
+          fontWeight: 700, fontSize: 15, boxShadow: '0 8px 20px #00000040',
+        }}>
+          <StrokeIcon d={ICON_PATH.plus} size={20} />{tr('Adicionar', 'Add')}
+        </ButtonBase>
+      )}
 
-      <Dialog open={!!runesItem && picking !== 'rune'} onClose={() => setRunesFor(null)} fullWidth maxWidth="xs">
-        <DialogTitle>{tr('Runas', 'Runes')}</DialogTitle>
-        <DialogContent>
-          <Stack spacing={1.5} sx={{ pt: 1 }}>
-            <TextField select size="small" label={tr('Potência', 'Potency')} value={runesItem?.runes?.potency ?? 0} onChange={(e) => setRunes({ potency: Number(e.target.value) })}>
-              {[0, 1, 2, 3].map((n) => <MenuItem key={n} value={n}>{n ? `+${n}` : '—'}</MenuItem>)}
-            </TextField>
-            {isWeapon ? (
-              <TextField select size="small" label="Striking" value={runesItem?.runes?.striking ?? 0} onChange={(e) => setRunes({ striking: Number(e.target.value) })}>
-                {[0, 1, 2, 3].map((n) => <MenuItem key={n} value={n}>{strikingName(n) || '—'}</MenuItem>)}
-              </TextField>
-            ) : (
-              <TextField select size="small" label={tr('Resiliente', 'Resilient')} value={runesItem?.runes?.resilient ?? 0} onChange={(e) => setRunes({ resilient: Number(e.target.value) })}>
-                {[0, 1, 2, 3].map((n) => <MenuItem key={n} value={n}>{resilientName(n) || '—'}</MenuItem>)}
-              </TextField>
-            )}
-            <Typography variant="body2" color="text.secondary">
-              {tr(`Runas de propriedade: até ${runesItem?.runes?.potency ?? 0} (uma por ponto de potência, GM Core pg. 226 e 236).`, `Property runes: up to ${runesItem?.runes?.potency ?? 0} (one per potency point, GM Core pg. 226 and 236).`)}
-            </Typography>
-            <Stack direction="row" sx={{ gap: 0.5, flexWrap: 'wrap' }}>
-              {(runesItem?.runes?.property ?? []).map((id, i) => (
-                <Chip key={`${id}-${i}`} size="small" label={items.find((e) => e.id === id)?.name ?? id}
-                  onDelete={() => setRunes({ property: (runesItem?.runes?.property ?? []).filter((_, j) => j !== i) })} />
-              ))}
-              <Chip size="small" icon={<AddIcon />} label={tr('Adicionar', 'Add')} variant="outlined" onClick={() => setPicking('rune')} />
-            </Stack>
-          </Stack>
-        </DialogContent>
-        <DialogActions><Button onClick={() => setRunesFor(null)}>{tr('Fechar', 'Close')}</Button></DialogActions>
-      </Dialog>
+      <Drawer anchor="right" open={!!bench} onClose={() => setBenchKey(null)}
+        slotProps={{ paper: { sx: { width: { xs: '100%', sm: 440 }, maxWidth: '100%', bgcolor: parchment.paper } } }}>
+        {bench && (
+          <ItemBench item={bench} compiled={compiled} index={index} materials={materials} canEdit={canEdit}
+            containers={containers}
+            transferTargets={eq.items.filter((o) => o.key !== bench.key && kindOf(o) === kindOf(bench))}
+            patch={(p) => patch(bench.key, p)}
+            onEtch={() => setEtchFor(bench.key)}
+            onRemoveRune={(i) => patch(bench.key, { runes: { ...bench.inv.runes, property: (bench.inv.runes?.property ?? []).filter((_, j) => j !== i) } })}
+            onTransfer={(to) => transfer(bench.key, to)}
+            onDuplicate={() => duplicate(bench.key)}
+            onRemove={() => remove(bench.key)}
+            onClose={() => setBenchKey(null)} />
+        )}
+      </Drawer>
+
+      <RunePicker open={!!etchItem} item={etchItem} runes={etchRunes} level={level} mesaRules={mesaRules} onClose={() => setEtchFor(null)}
+        onPick={(id) => etchItem && patch(etchItem.key, { runes: { ...etchItem.inv.runes, property: [...(etchItem.inv.runes?.property ?? []), id] } })} />
+
+      {catalog && (
+        <ItemCatalog open startTab={catalog} entries={catalogList} level={level} remaining={eq.money.remaining} mesaRules={mesaRules}
+          containers={containers} loading={loadingItems} onAdd={addLines} onAddCustom={addCustom} onClose={() => setCatalog(null)} />
+      )}
+
+      <ContentPicker open={formulaOpen} title={tr('Fórmula', 'Formula')} entries={catalogList}
+        onPick={(id) => update((s) => ({ ...s, formulas: s.formulas.includes(id) ? s.formulas : [...s.formulas, id] }))}
+        onClose={() => setFormulaOpen(false)} mesaRules={mesaRules}
+        secondary={(e) => [e.level !== undefined ? tr(`nível ${e.level}`, `level ${e.level}`) : null, e.item?.price ? formatGp(e.item.price.gp) : null].filter(Boolean).join(' · ')} />
     </Stack>
   );
 }
