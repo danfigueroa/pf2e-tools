@@ -40,3 +40,5 @@
 - Mostre a descrição completa dentro do detalhe do seletor (`DescriptionContent` com `embedded`), porque abrir outra tela para ler o talento é navegação à toa.
 - Calcule o "muda sozinho" do próximo nível compilando o estado com `level + 1` (`levelDiff.ts`), porque número previsto à mão seria regra inventada.
 - Abra a criação guiada só por `?guiado=1` (o "Novo personagem" já manda), porque um personagem existente entra direto no Plano.
+- Use como imagem do personagem o token da Ficha (`<slug>/token` no estado da mesa, `HeroPortrait`) e guarde a mesma URL em `details.portrait`, porque a imagem é uma só no mapa, na Ficha e no Criador.
+- Traduza traços pelo `useTraitLabels` (nome guardado no banco pelo `?traitRules=`) e deixe os nomes de talentos e magias em inglês canônico, porque são a chave da AON e do catálogo.

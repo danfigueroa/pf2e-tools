@@ -163,6 +163,14 @@ histórico (`?diary=`) → `src/modules/session-diary/AGENTS.md`; rolagens e est
 - **Mudou o payload (parse, `scaling`, heightening, bastão)? Suba a `CACHE_VERSION` (`src/services/descriptions.ts`) E
   regere os estáticos.**
 
+## Descrições do catálogo no banco (`description-store.js`)
+
+- `/api/feats`, `/api/searches` e `/api/spells` leem a tabela `descriptions` (versão = `CACHE_VERSION` que o cliente manda
+  no corpo) antes da AON e gravam o que resolverem, porque o usuário quer tudo pronto no banco, sem AON a cada toque.
+- A carga do catálogo inteiro (pt e en) é `node --env-file=.env scripts/warm-catalog-descriptions.mjs`, retomável; rode de
+  novo depois de subir a `CACHE_VERSION` ou importar um catálogo novo.
+- Nunca grave payload sem `description` ou com `translationPending` (regra 11).
+
 ## Outros stores
 
 - `table-store.js` (estado da mesa): uma linha por (slug, campo); campo novo = `FIELD_RE` + CHECK em migration. Valida
@@ -190,6 +198,9 @@ histórico (`?diary=`) → `src/modules/session-diary/AGENTS.md`; rolagens e est
   não importada), a AON de sempre. A busca sem categoria (a rede de segurança) fica só na AON, porque o catálogo
   devolveria toda entrada homônima de qualquer categoria. `RULES_LOCAL=0` desliga. Mudou a escolha ou a importação? Rode
   `scripts/check-local-aon.mjs`: com e sem o catálogo, a mesma entrada e o mesmo texto no elenco inteiro.
+- **Ficha do Pathbuilder promovida vira build** (`importSheetToBuild`, chamado no `finish` do `sheet-draft.js` quando a
+  ficha não veio do Criador): cria o build de mesmo slug ou troca as escolhas do existente, mantendo os detalhes, e liga
+  como aplicado, porque a Ficha e o Criador alimentam um ao outro. Fichas antigas: `scripts/import-sheets-to-builder.mjs`.
 - **O motor vem de `builder-engine.gen.js`, gerado** por `node scripts/build-engine.mjs` a partir de
   `src/modules/character-builder/engine/` (o servidor não importa TS). Regere ao mudar o motor; o `check-builder` falha com
   o pacote velho. Nunca edite o `.gen.js`.
