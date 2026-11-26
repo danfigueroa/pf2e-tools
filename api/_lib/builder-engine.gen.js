@@ -2721,7 +2721,11 @@ function importPathbuilder(b, ctx, opts = {}) {
     }
     return { id: e.id, ...m[2] ? { grade: m[2].toLowerCase() } : {} };
   };
-  const nickname = (display, name) => display && !display.toLowerCase().includes(name.toLowerCase()) ? display : void 0;
+  const nickname = (display, name) => {
+    const d = (display ?? "").toLowerCase();
+    const n2 = name.toLowerCase();
+    return display && !d.includes(n2) && !d.includes(n2.replace(/\s+armor$/, "")) ? display : void 0;
+  };
   const LETTER = { B: "Bludgeoning", P: "Piercing", S: "Slashing" };
   const dexMod = Math.floor((b.abilities.dex - 10) / 2);
   const sheetWeapon = /* @__PURE__ */ new Map();

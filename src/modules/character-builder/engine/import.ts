@@ -322,7 +322,12 @@ export function importPathbuilder(b: BuildInfo, ctx: CompileContext, opts: { rec
         return { id: e.id, ...(m[2] ? { grade: m[2].toLowerCase() as 'low' | 'standard' | 'high' } : {}) }
     }
     // O Pathbuilder põe o apelido do jogador em `display` ("Solar Bloodthirsty"); o nome montado traz o do item.
-    const nickname = (display: string | undefined, name: string) => (display && !display.toLowerCase().includes(name.toLowerCase()) ? display : undefined)
+    // ("Studded Leather Armor" sai como "+1 Armor Resilient Studded Leather": o "Armor" do fim não conta).
+    const nickname = (display: string | undefined, name: string) => {
+        const d = (display ?? '').toLowerCase()
+        const n = name.toLowerCase()
+        return display && !d.includes(n) && !d.includes(n.replace(/\s+armor$/, '')) ? display : undefined
+    }
     const LETTER: Record<string, string> = { B: 'Bludgeoning', P: 'Piercing', S: 'Slashing' }
     const dexMod = Math.floor(((b.abilities as unknown as Record<string, number>).dex - 10) / 2)
     const sheetWeapon = new Map<string, BuildInfo['weapons'][number]>()
