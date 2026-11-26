@@ -1,6 +1,6 @@
 /* i18n-ignore-file */
 // Índice do catálogo para o motor: por id e por nome (o GrantItem do Foundry e o talento do background vêm por nome).
-import type { RuleEntry } from '../rules/types'
+import type { RuleElement, RuleEntry } from '../rules/types'
 import type { RulesIndex } from './types'
 
 export function buildRulesIndex(lists: RuleEntry[][], languages: RuleEntry[]): RulesIndex {
@@ -43,4 +43,11 @@ export function grantedFeat(rule: { key: string; uuid?: unknown; grantId?: unkno
     const byName = name ? rules.byName(name, 'feat') : undefined
     if (!byName && id) missing?.add(id)
     return byName
+}
+
+/** Ação concedida diretamente pelo compêndio do Foundry. Predicados exigem avaliação própria. */
+export function grantedActionName(rule: RuleElement): string | undefined {
+    if (rule.key !== 'GrantItem' || rule.situational || typeof rule.uuid !== 'string') return undefined
+    if (rule.predicate && !(Array.isArray(rule.predicate) && rule.predicate.length === 0)) return undefined
+    return /^Compendium\.pf2e\.actionspf2e\.Item\.(.+)$/.exec(rule.uuid)?.[1]
 }

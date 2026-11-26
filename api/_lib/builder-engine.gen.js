@@ -35,6 +35,11 @@ function grantedFeat(rule, rules, missing) {
   if (!byName && id) missing?.add(id);
   return byName;
 }
+function grantedActionName(rule) {
+  if (rule.key !== "GrantItem" || rule.situational || typeof rule.uuid !== "string") return void 0;
+  if (rule.predicate && !(Array.isArray(rule.predicate) && rule.predicate.length === 0)) return void 0;
+  return /^Compendium\.pf2e\.actionspf2e\.Item\.(.+)$/.exec(rule.uuid)?.[1];
+}
 
 // src/i18n/index.ts
 var LANG_KEY = "pf2e:language";
@@ -573,6 +578,8 @@ function fitsSlot(feat, kind, ctx) {
 }
 
 // src/modules/character-builder/engine/feats.ts
+var BOUNTY_HUNTER_DEDICATION = "feat:feat-6281";
+var MONSTER_HUNTER = "feat:feat-4863";
 var STAT_SELECTORS = /* @__PURE__ */ new Set(["perception", "fortitude", "reflex", "will"]);
 function numeric(value, level) {
   if (typeof value === "number") return value;
@@ -610,6 +617,7 @@ function compileFeats(state, slots, rules, ctx, warnings) {
   const taken = [];
   const children = [];
   const has = ctx.has;
+  let hasHuntPrey = has.has("hunt prey");
   const level = ctx.level;
   const upgrade = (target, value) => {
     const rank = Math.max(0, Math.min(4, value));
@@ -617,6 +625,7 @@ function compileFeats(state, slots, rules, ctx, warnings) {
   };
   const apply = (entry, slot, slotLevel, depth, limited = false) => {
     const selections = {};
+    const hadHuntPrey = hasHuntPrey;
     for (const rule of entry.rules ?? []) {
       if (rule.situational) continue;
       if (limited && !(rule.key === "ActiveEffectLike" && typeof rule.path === "string" && /^system\.skills\./.test(rule.path))) continue;
@@ -647,8 +656,10 @@ function compileFeats(state, slots, rules, ctx, warnings) {
         continue;
       }
       if (rule.key === "GrantItem" && typeof rule.uuid === "string" && depth < 2) {
+        if (grantedActionName(rule)?.toLowerCase() === "hunt prey") hasHuntPrey = true;
         if (entry.id === CLASS_ARCHETYPES[BLOODRAGER].subclass && rule.flag === "bloodragerDedication") continue;
         const granted = grantedFeat(rule, rules, ctx.missing);
+        if (entry.id === BOUNTY_HUNTER_DEDICATION && granted?.id === MONSTER_HUNTER && !hadHuntPrey) continue;
         if (granted && !has.has(granted.name.toLowerCase())) take(granted, `${slot}/grant:${granted.aon.id}`, slotLevel, "granted", depth + 1);
         continue;
       }
@@ -696,7 +707,7 @@ function compileFeats(state, slots, rules, ctx, warnings) {
   };
   const take = (entry, slot, slotLevel, kind, depth, limited = false) => {
     const prereq = evaluatePrereqs(entry.prerequisites?.text, ctx.prereqContext());
-    taken.push({ slot, level: slotLevel, entry, kind, prereq });
+    taken.push({ slot, level: slotLevel, entry, kind, prereq, ...limited ? { limited: true } : {} });
     has.add(entry.name.toLowerCase());
     apply(entry, slot, slotLevel, depth, limited);
   };

@@ -7,7 +7,7 @@
 // O resto já vem do catálogo em `unsupported` e vira aviso "efeito não calculado".
 // Dedicação: "can't select a different dedication feat until you complete your dedication by taking two other feats from
 // your current archetype" (Player Core pg. 215).
-import { grantedFeat } from './rulesIndex'
+import { grantedActionName, grantedFeat } from './rulesIndex'
 import { BLOODRAGER, CLASS_ARCHETYPES } from './classArchetypes'
 import { tr } from '../../../i18n'
 import type { BuildState } from '../types'
@@ -33,8 +33,14 @@ export interface TakenFeat {
     level: number
     entry: RuleEntry
     kind: FeatKind | 'granted' | 'child'
+    /** Opção que só concede o treino de perícia da dedicação multiclasse. */
+    limited?: boolean
     prereq: { result: 'ok' | 'fail' | 'unknown'; parts: PrereqPart[] }
 }
+
+// Bounty Hunter Dedication (Player Core 2 p. 191) concede Hunt Prey e só dá Monster Hunter a quem já tinha a ação.
+export const BOUNTY_HUNTER_DEDICATION = 'feat:feat-6281'
+export const MONSTER_HUNTER = 'feat:feat-4863'
 
 export interface Modifiers {
     hp: number
@@ -115,6 +121,7 @@ export function compileFeats(state: BuildState, slots: FeatSlot[], rules: RulesI
     const taken: TakenFeat[] = []
     const children: ChildSlot[] = []
     const has = ctx.has
+    let hasHuntPrey = has.has('hunt prey')
     const level = ctx.level
 
     const upgrade = (target: string, value: number) => {
@@ -128,6 +135,7 @@ export function compileFeats(state: BuildState, slots: FeatSlot[], rules: RulesI
      */
     const apply = (entry: RuleEntry, slot: string, slotLevel: number, depth: number, limited = false) => {
         const selections: Record<string, string> = {}
+        const hadHuntPrey = hasHuntPrey
         for (const rule of entry.rules ?? []) {
             if (rule.situational) continue
             if (limited && !(rule.key === 'ActiveEffectLike' && typeof rule.path === 'string' && /^system\.skills\./.test(rule.path))) continue
@@ -165,10 +173,12 @@ export function compileFeats(state: BuildState, slots: FeatSlot[], rules: RulesI
                 continue
             }
             if (rule.key === 'GrantItem' && typeof rule.uuid === 'string' && depth < 2) {
+                if (grantedActionName(rule)?.toLowerCase() === 'hunt prey') hasHuntPrey = true
                 // O Foundry concede automaticamente a dedicação de Bloodrager pelo instinto.
                 // Na mesa ela consome o talento de classe do nível 2 (War of Immortals pg. 60).
                 if (entry.id === CLASS_ARCHETYPES[BLOODRAGER].subclass && rule.flag === 'bloodragerDedication') continue
                 const granted = grantedFeat(rule, rules, ctx.missing)
+                if (entry.id === BOUNTY_HUNTER_DEDICATION && granted?.id === MONSTER_HUNTER && !hadHuntPrey) continue
                 if (granted && !has.has(granted.name.toLowerCase())) take(granted, `${slot}/grant:${granted.aon.id}`, slotLevel, 'granted', depth + 1)
                 continue
             }
@@ -218,7 +228,7 @@ export function compileFeats(state: BuildState, slots: FeatSlot[], rules: RulesI
 
     const take = (entry: RuleEntry, slot: string, slotLevel: number, kind: TakenFeat['kind'], depth: number, limited = false) => {
         const prereq = evaluatePrereqs(entry.prerequisites?.text, ctx.prereqContext())
-        taken.push({ slot, level: slotLevel, entry, kind, prereq })
+        taken.push({ slot, level: slotLevel, entry, kind, prereq, ...(limited ? { limited: true } : {}) })
         has.add(entry.name.toLowerCase())
         apply(entry, slot, slotLevel, depth, limited)
     }
