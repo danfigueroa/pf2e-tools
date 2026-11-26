@@ -18,9 +18,6 @@ type StatKey = keyof Compiled['stats'];
 const STATS: { key: StatKey; label: string; long: string; flat?: boolean }[] = [
   { key: 'hp', label: tr('PV', 'HP'), long: tr('Pontos de vida', 'Hit points'), flat: true },
   { key: 'ac', label: tr('CA', 'AC'), long: tr('Classe de armadura', 'Armor class'), flat: true },
-  { key: 'fortitude', label: tr('Fort', 'Fort'), long: tr('Fortitude', 'Fortitude') },
-  { key: 'reflex', label: tr('Ref', 'Ref'), long: tr('Reflexos', 'Reflex') },
-  { key: 'will', label: tr('Von', 'Will'), long: tr('Vontade', 'Will') },
   { key: 'perception', label: tr('Perc', 'Perc'), long: tr('Percepção', 'Perception') },
   { key: 'classDC', label: tr('CD', 'DC'), long: tr('CD de classe', 'Class DC'), flat: true },
   { key: 'speed', label: tr('Desl', 'Speed'), long: tr('Deslocamento', 'Speed'), flat: true },
@@ -133,12 +130,12 @@ export function CharacterHero({ name, subtitle, portrait, compiled, save, action
       {!compact && (
         <Box sx={{
           mt: { xs: 1.5, md: 2 }, display: 'grid', gap: '1px', bgcolor: chrome.line, borderTop: `1px solid ${chrome.line}`,
-          gridTemplateColumns: { xs: 'repeat(6, minmax(0, 1fr))', lg: 'repeat(14, minmax(0, 1fr))' },
+          gridTemplateColumns: { xs: 'repeat(6, minmax(0, 1fr))', lg: 'repeat(11, minmax(0, 1fr))' },
         }}>
           {ATTRIBUTES.map((a) => (
             <AttrCell key={a} attr={a} mod={mods?.[a] ?? 0} partial={!!compiled?.attributes.partial[a]} isKey={compiled?.keyAttribute === a} />
           ))}
-          <Box sx={{ gridColumn: { xs: '1 / -1', lg: 'span 8' }, display: 'grid', gap: '1px', gridTemplateColumns: { xs: 'repeat(4, minmax(0, 1fr))', sm: 'repeat(8, minmax(0, 1fr))' } }}>
+          <Box sx={{ gridColumn: { xs: '1 / -1', lg: 'span 5' }, display: 'grid', gap: '1px', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))' }}>
             {STATS.map((s) => {
               const stat = compiled ? compiled.stats[s.key] : null;
               return <StatCell key={s.key} label={s.label} long={s.long} value={compiled ? statValue(s.key, stat) : '—'} stat={stat} />;
