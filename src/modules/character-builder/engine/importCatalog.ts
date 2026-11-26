@@ -30,6 +30,13 @@ export async function importFromCatalog(json: unknown, ctx: { reader: CatalogRea
     const her = h.find((x) => x.name === b.heritage)
     const dedications = b.feats.map((f) => parseFeatEntry(f).name).filter((n) => / Dedication$/.test(n)).map((n) => n.replace(/ Dedication$/, ''))
     const traditions = [...new Set(b.spellCasters.map((x) => x.magicTradition).filter((t) => ['arcane', 'divine', 'occult', 'primal'].includes(t)))]
+    // Dedicação de classe (Swashbuckler Dedication): Basic/Advanced Flair escolhem talentos da lista dessa classe.
+    // Só os talentos que a ficha marca como "<Classe> Feat": a lista inteira traria homônimos (Flashy Dodge, antes Nimble
+    // Dodge) para o índice e trocaria talentos da própria classe.
+    const flairNames = new Set(b.feats.filter((f) => Array.isArray(f) && / Feat$/.test(String(f[2] ?? ''))
+        && dedications.some((d) => String(f[2]).toLowerCase() === `${d.toLowerCase()} feat`)).map((f) => String((f as unknown as unknown[])[0])))
+    const dedicatedClasses = dedications.filter((d) => c.some((x) => x.name.toLowerCase() === d.toLowerCase())).map((d) => `feats/class/${ruleListSlug(d)}`)
+    const flair = (await Promise.all(dedicatedClasses.map(read))).flat().filter((e) => flairNames.has(e.name))
     const paths = [
         ...featListPaths({ className: b.class, ancestryName: b.ancestry, versatileHeritage: her && !her.heritage?.ancestry ? her.name : undefined, mythic: true,
             archetypes: dedications.map(ruleListSlug), traditions }),
@@ -37,7 +44,7 @@ export async function importFromCatalog(json: unknown, ctx: { reader: CatalogRea
     ]
     const extra = await Promise.all(paths.map(read))
     const homebrew = ctx.homebrew ?? []
-    const index = buildRulesIndex([a, h, bg, c, l, cf, ...extra, ar, homebrew], l)
+    const index = buildRulesIndex([a, h, bg, c, l, cf, ...extra, ar, homebrew, flair], l)
     const { state, report } = importPathbuilder(b, { rules: index, mesaRules: ctx.mesaRules ?? undefined, classOptions: cf, tables: tables ?? undefined })
     return { state, report, className: b.class || null, name: b.name }
 }

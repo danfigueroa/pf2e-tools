@@ -2,9 +2,10 @@
 // estado da mesa continua ligado), o dono da ficha e marcado como aplicado. É o mesmo caminho que o servidor faz sozinho
 // quando chega uma ficha nova do Pathbuilder (`importSheetToBuild`).
 //
-//   node --env-file=.env scripts/import-sheets-to-builder.mjs [--mesa <id>] [--dry]
+//   node --env-file=.env scripts/import-sheets-to-builder.mjs [--mesa <id>] [--dry] [--refresh]
 //
-// `--dry` só lista o que faria. Idempotente: ficha que já tem build fica como está.
+// `--dry` só lista o que faria. Idempotente: ficha que já tem build fica como está. `--refresh` reimporta também os builds
+// que ninguém editou depois da importação (a versão aplicada é a atual), para pegar uma correção do importador sem apagar edição.
 import { MESA_IDS } from '../api/_lib/mesas.js'
 import { listSheets, readSheet } from '../api/_lib/sheet-store.js'
 import { listBuilds } from '../api/_lib/build-store.js'
@@ -12,13 +13,16 @@ import { importSheetToBuild } from '../api/_lib/build-compile.js'
 
 const cli = process.argv.slice(2)
 const dry = cli.includes('--dry')
+const refresh = cli.includes('--refresh')
 const only = cli.includes('--mesa') ? cli[cli.indexOf('--mesa') + 1] : null
 let failed = 0
 
 for (const mesa of MESA_IDS.filter((m) => !only || m === only)) {
     const [sheets, builds] = await Promise.all([listSheets(mesa), listBuilds(mesa)])
-    const taken = new Set(builds.filter((b) => !b.deletedAt).map((b) => b.slug))
-    const todo = sheets.filter((s) => !taken.has(s.slug))
+    const live = builds.filter((b) => !b.deletedAt)
+    const untouched = new Set(live.filter((b) => b.publishedRev === b.rev).map((b) => b.slug))
+    const taken = new Set(live.map((b) => b.slug))
+    const todo = sheets.filter((s) => !taken.has(s.slug) || (refresh && untouched.has(s.slug)))
     console.log(`\n${mesa}: ${sheets.length} fichas, ${taken.size} já no Criador, ${todo.length} a importar`)
     for (const s of todo) {
         if (dry) { console.log(`  · ${s.slug} (${s.className} ${s.level})`); continue }

@@ -170,9 +170,32 @@ export function importPathbuilder(b: BuildInfo, ctx: CompileContext): { state: B
     // Free Archetype só se o export tem talentos dele.
     if (!b.feats.some((f) => Array.isArray(f) && /^Free Archetype/.test(String(f[4] ?? '')))) base.options.variants = { freeArchetype: false }
 
+    const want = Object.fromEntries(SKILL_KEYS.map((s) => [s, Math.round(((b.proficiencies as unknown as Record<string, number>)[s] ?? 0) / 2)])) as Record<SkillKey, number>
+
+    // Escolhas filhas que o export não lista como filhas: o estilo da Swashbuckler Dedication vem nas características
+    // ("Rascal"); a perícia de um ChoiceSet de valor, pela perícia que a ficha tem treinada. Antes das perícias, para o
+    // treino que o talento dá não gastar um treino livre.
+    const children = compileBuild(base, ctx).featChildren.filter((c) => !choices[c.key])
+    const specialNames = new Set((b.specials ?? []).map((sp) => sp.toLowerCase()))
+    for (const child of children) {
+        const flag = child.key.split('/choice:')[1]?.toLowerCase() ?? ''
+        if (child.kind === 'feat') {
+            const option = (ctx.classOptions ?? []).find((o) => specialNames.has(o.name.toLowerCase()) && flag.includes(o.type.toLowerCase()))
+            if (option) { choices[child.key] = { id: option.id }; continue }
+            // Basic Flair & cia.: o export lista o talento como "Swashbuckler Feat" no nível do pai.
+            const traits = (child.filter?.traits ?? []).filter((t) => !t.includes('{'))
+            const row = traits.length ? b.feats.find((f) => Array.isArray(f) && Number(f[3]) === child.level
+                && traits.some((t) => String(f[2] ?? '').toLowerCase() === `${t.toLowerCase()} feat`)) : undefined
+            const entry = row ? rules.byName(String((row as unknown as unknown[])[0]), 'feat') : undefined
+            if (entry) choices[child.key] = { id: entry.id }
+        } else if (child.kind === 'value' && child.options?.length && child.options.every((o) => SKILL_KEYS.includes(o.value as SkillKey))) {
+            const pick = child.options.find((o) => want[o.value as SkillKey] >= 1)
+            if (pick) choices[child.key] = { value: pick.value }
+        }
+    }
+
     // Perícias: o que a origem e a classe dão é automático; o resto vira treino livre e aumentos, do nível mais baixo.
     const auto = compileBuild(base, ctx)
-    const want = Object.fromEntries(SKILL_KEYS.map((s) => [s, Math.round(((b.proficiencies as unknown as Record<string, number>)[s] ?? 0) / 2)])) as Record<SkillKey, number>
     const have = auto.skills.rank
     const classSlots = auto.skillSlots.filter((s) => s.key.startsWith('class-skill-'))
     for (const slot of classSlots) {
@@ -186,7 +209,13 @@ export function importPathbuilder(b: BuildInfo, ctx: CompileContext): { state: B
         .filter((l) => !auto.skills.lores.some((x) => x.key === l.ref))
     const freeSlots = auto.skillSlots.filter((s) => s.kind === 'train' && !s.key.startsWith('class-skill-'))
     const queue = [...toTrain, ...lores.filter((l) => l.rank >= 1).map((l) => l.ref)]
-    for (const slot of freeSlots) {
+    // O slot só de Lore (o do background) pega o Lore primeiro; os outros, na ordem.
+    for (const slot of freeSlots.filter((s) => s.loreOnly)) {
+        const take = queue.filter((r) => r.startsWith('lore:')).slice(0, slot.count)
+        for (const r of take) queue.splice(queue.indexOf(r), 1)
+        if (take.length) choices[slot.key] = { skills: take }
+    }
+    for (const slot of freeSlots.filter((s) => !s.loreOnly)) {
         const take = queue.splice(0, slot.count)
         if (take.length) choices[slot.key] = { skills: take }
     }
