@@ -59,3 +59,5 @@
 - Deixe o Familiar da Witch e a Dirge do Necromancer em `spellbook` sem ligar `caster.spellbook`, porque esse sinal muda o export e a Ficha das bruxas publicadas perderia as preparadas.
 - Abra a descrição ao tocar numa magia escolhida e tire só pelo × à parte, porque reler não pode apagar a escolha.
 - Passe para a aba Magias as entradas `type: 'ritual'` além de `spell`, porque os rituais da AON vêm com tipo próprio.
+- Conceda as magias de foco só pela tabela `engine/focusGrants.gen.ts` (gerada do texto da AON por `scripts/fetch-focus-grants.mjs`, confira o diff), porque o catálogo e o Foundry não trazem a concessão; o que oferece opções vira pendência `focus-choice:<aon_id>`.
+- Mostre a magia no rank em que é lançada mandando o rank no pedido de descrição (`descriptionRequest(e, cast)`), porque o `DescriptionContent` já eleva e destaca os dados como na Ficha; truque e foco usam metade do nível, para cima.
