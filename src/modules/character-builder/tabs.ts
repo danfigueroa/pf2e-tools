@@ -4,11 +4,10 @@ import { tr } from '../../i18n'
 // Seções do editor e em qual delas cada pendência/aviso do motor se resolve (pela chave do slot).
 export type BuilderTab = 'progression' | 'origin' | 'class' | 'attributes' | 'skills' | 'spells' | 'equipment' | 'companions' | 'details'
 
-/** A ordem das seções: o Plano (trilha 1–20) é a casa do personagem; as outras seguem o livro. */
-export const TABS: BuilderTab[] = ['progression', 'origin', 'class', 'attributes', 'skills', 'spells', 'equipment', 'companions', 'details']
+export const TABS: BuilderTab[] = ['origin', 'class', 'attributes', 'progression', 'skills', 'spells', 'equipment', 'companions', 'details']
 
 export const TAB_LABEL: Record<BuilderTab, string> = {
-    progression: tr('Plano', 'Plan'),
+    progression: tr('Talentos', 'Feats'),
     origin: tr('Origem', 'Origin'),
     class: tr('Classe', 'Class'),
     attributes: tr('Atributos', 'Attributes'),

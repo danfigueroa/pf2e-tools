@@ -54,10 +54,10 @@ import { cardSx, goldButtonSx, tint, warmShadow } from './components/uiTokens';
 
 /** Os passos da criação guiada: o começo, as seções na ordem do livro e a revisão. */
 type Step = 'start' | Exclude<BuilderTab, 'companions'> | 'review';
-const STEPS: Step[] = ['start', 'origin', 'class', 'attributes', 'skills', 'progression', 'spells', 'equipment', 'details', 'review'];
+const STEPS: Step[] = ['start', 'origin', 'class', 'attributes', 'progression', 'skills', 'spells', 'equipment', 'details', 'review'];
 const STEP_LABEL: Record<Step, string> = {
   start: tr('Começo', 'Start'), origin: TAB_LABEL.origin, class: TAB_LABEL.class, attributes: TAB_LABEL.attributes, skills: TAB_LABEL.skills,
-  progression: tr('Talentos', 'Feats'), spells: TAB_LABEL.spells, equipment: TAB_LABEL.equipment, details: TAB_LABEL.details, review: tr('Revisão', 'Review'),
+  progression: TAB_LABEL.progression, spells: TAB_LABEL.spells, equipment: TAB_LABEL.equipment, details: TAB_LABEL.details, review: tr('Revisão', 'Review'),
 };
 
 const publishOf = (b: { publishedRev: number | null; rev: number }): PublishState =>
@@ -133,7 +133,7 @@ export function BuilderMode({ buildId }: { buildId: string }) {
   const clsName = rules.index?.get(state?.class.id)?.name ?? null;
   useEffect(() => setClassName(clsName), [clsName]);
 
-  // A seção aberta: o Plano para quem já tem classe, a Origem para um personagem vazio.
+  // A seção aberta: Talentos para quem já tem classe, Origem para um personagem vazio.
   const section: BuilderTab = tab ?? (state?.class.id ? 'progression' : 'origin');
   const current: Step | BuilderTab = guided ? step : section;
 
@@ -462,7 +462,7 @@ export function BuilderMode({ buildId }: { buildId: string }) {
   };
   const back = () => {
     const prev = STEPS[stepIndex - 1];
-    if (prev) goStep(prev === 'spells' && compiled && !compiled.casters.length && !compiled.focus.points ? 'progression' : prev);
+    if (prev) goStep(prev === 'spells' && compiled && !compiled.casters.length && !compiled.focus.points ? 'skills' : prev);
   };
   const stepHeader = guided && (
     <Box sx={[cardSx, { px: 2, py: 1.25, mb: 2, display: 'flex', flexDirection: 'column', gap: 1 }]}>
@@ -530,7 +530,7 @@ export function BuilderMode({ buildId }: { buildId: string }) {
       </Box>
       <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
         <Button variant="contained" disabled={!canApply} startIcon={<ApplyIcon />} onClick={() => setApplyOpen(true)}>{tr('Revisar e aplicar', 'Review and apply')}</Button>
-        <Button variant="outlined" onClick={() => { setGuided(false); setTab('progression'); }}>{tr('Ir para o Plano', 'Go to the Plan')}</Button>
+        <Button variant="outlined" onClick={() => { setGuided(false); setTab('progression'); }}>{tr('Ir para Talentos', 'Go to Feats')}</Button>
       </Box>
     </Box>
   );

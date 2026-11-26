@@ -286,7 +286,7 @@ export function ApplyDialog({ open, onClose, buildId, slug: buildSlug, compiled,
         <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'center', fontSize: 14 }}>
           <TodoIcon sx={{ fontSize: 20, color: gold.deep }} />
           <Box component="span" sx={{ flex: 1 }}>{tr(`${pending.length} escolha${pending.length > 1 ? 's' : ''} pendente${pending.length > 1 ? 's' : ''}: a ficha vai sem elas`, `${pending.length} pending choice${pending.length > 1 ? 's' : ''}: the sheet goes without them`)}</Box>
-          <Box component="span" sx={{ fontSize: 12, color: ink.secondary }}>{tr('Plano', 'Plan')}</Box>
+          <Box component="span" sx={{ fontSize: 12, color: ink.secondary }}>{tr('Talentos', 'Feats')}</Box>
         </Box>
       )}
       {needsAnyway && (
