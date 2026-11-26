@@ -82,7 +82,8 @@ function emptyEntry(name, description, itemType) {
 
 /** Busca no AON e parseia em EN — a parte barata, sem LLM. Ver `resolveEntries`. */
 /** Categorias da AON que um nome pode trazer entre colchetes ("Bone [grim-fascination]"). */
-const TAGGABLE = new Set([...SPECIAL_CATEGORIES.filter(Boolean), 'ancestry', 'background', 'class', 'deity', 'archetype'])
+// `ritual`: o Criador pede o ritual com a etiqueta, e só a categoria dele casa ("Animate Object" também é magia).
+const TAGGABLE = new Set([...SPECIAL_CATEGORIES.filter(Boolean), 'ancestry', 'background', 'class', 'deity', 'archetype', 'ritual'])
 
 /**
  * "Bone [grim-fascination]": o Criador pede a opção do catálogo com a categoria junto, porque só pelo nome a busca
