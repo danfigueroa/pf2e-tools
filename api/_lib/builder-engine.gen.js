@@ -260,7 +260,7 @@ var choiceSkills = (state, key) => {
   const choice = state.choices[key];
   return choice && "skills" in choice ? choice.skills : [];
 };
-function compileSkills(state, background, cls, intMod1, intGains, skillIncreaseLevels, pending, warnings, classArchetype) {
+function compileSkills(state, background, cls, intMod1, intGains, skillIncreaseLevels, pending, warnings, classArchetype, subclassTrained = [], featTrained = []) {
   const rank = Object.fromEntries(SKILL_KEYS.map((s) => [s, 0]));
   const lores = /* @__PURE__ */ new Map();
   const loreNames = {};
@@ -287,7 +287,15 @@ function compileSkills(state, background, cls, intMod1, intGains, skillIncreaseL
     train(ref, background?.name ?? "", true);
   }
   for (const skill of cls?.class?.trainedSkills?.fixed ?? []) train(skillRef(skill), cls?.name ?? "", true);
+  for (const t of subclassTrained) train(t.ref, t.source, true);
   const slots = [];
+  if (backgroundLoreChoice(background)) {
+    const key = "lore-background";
+    const chosen = choiceSkills(state, key).filter((s) => s.startsWith("lore:")).slice(0, 1);
+    slots.push({ key, label: tr(`${background.name}: Lore`, `${background.name}: Lore`), level: 1, count: 1, options: [], loreOnly: true, kind: "train", chosen });
+    for (const ref of chosen) train(ref, background.name, false);
+  }
+  ;
   (cls?.class?.trainedSkills?.choices ?? []).forEach((options, i) => {
     const key = `class-skill-${i + 1}`;
     const chosen = choiceSkills(state, key).slice(0, 1);
@@ -344,8 +352,16 @@ function compileSkills(state, background, cls, intMod1, intGains, skillIncreaseL
     slots.push({ key, label: tr(`Per\xEDcia pela INT (n\xEDvel ${level})`, `Skill from INT (level ${level})`), level: Number(level), count: gain, options: [], kind: "train", chosen });
     for (const ref of chosen.slice(0, gain)) train(ref, "", false);
   }
+  const pendingFeatTraining = [...featTrained].filter((t) => t.level <= state.level).sort((a, b) => a.level - b.level);
+  const featTrainUpTo = (level) => {
+    while (pendingFeatTraining.length && pendingFeatTraining[0].level <= level) {
+      const t = pendingFeatTraining.shift();
+      if (get(t.ref) === 0) set(t.ref, 1);
+    }
+  };
   for (const level of skillIncreaseLevels) {
     if (level > state.level) break;
+    featTrainUpTo(level);
     const key = `skill-increase-${level}`;
     const chosen = choiceSkills(state, key).slice(0, 1);
     slots.push({ key, label: tr(`Aumento de per\xEDcia (n\xEDvel ${level})`, `Skill increase (level ${level})`), level, count: 1, options: [], kind: "increase", chosen });
@@ -358,6 +374,7 @@ function compileSkills(state, background, cls, intMod1, intGains, skillIncreaseL
       set(ref, next);
     }
   }
+  featTrainUpTo(20);
   if (warfareLore) {
     const rank2 = 1 + [3, 7, 15].filter((l) => state.level >= l).length;
     set("lore:warfare", Math.max(rank2, get("lore:warfare")));
@@ -389,6 +406,11 @@ function compileSkills(state, background, cls, intMod1, intGains, skillIncreaseL
     automatic,
     languageSlots: Math.max(0, intMod1) + Object.values(intGains).reduce((a, b) => a + b, 0)
   };
+}
+function backgroundLoreChoice(background) {
+  if (!background) return false;
+  if ((background.background?.skills ?? []).some((n) => /lore/i.test(n))) return false;
+  return (background.unsupported ?? []).some((u) => /^Lore\b/i.test(u.trim()) || /\bLore for\b/i.test(u));
 }
 
 // src/modules/character-builder/engine/prereqs.ts
@@ -1157,6 +1179,8 @@ function sourceWarnings(entry, ctx, ref, warnings) {
     }
   }
   for (const effect of entry.unsupported ?? []) {
+    if (entry.background && backgroundLoreChoice(entry) && (/^Lore\b/i.test(effect.trim()) || /\bLore for\b/i.test(effect))) continue;
+    if (entry.class && (/^attribute:/i.test(effect) || /skills? determined by your/i.test(effect))) continue;
     warnings.push({ code: "UNSUPPORTED_EFFECT", level: "info", ref, message: tr(`Efeito n\xE3o calculado: ${entry.name} (${effect}).`, `Effect not calculated: ${entry.name} (${effect}).`) });
   }
 }
@@ -1355,7 +1379,27 @@ function compileBuild(state, ctx) {
     if (feat) awarded.push({ entry: feat, level: 1, source: background.name });
     else warnings.push({ code: "ENTRY_NOT_FOUND", level: "info", ref: "background", message: tr(`Talento do background fora das listas carregadas: ${name}.`, `Background feat not in the loaded lists: ${name}.`) });
   }
-  const skills = compileSkills(state, background, cls, attrs.intAt1, attrs.intGains, cls?.class?.skillIncreaseLevels ?? [], pending, warnings, archetypeId);
+  const subclassTrained = classChoices.filter((c2) => c2.level === 1 && c2.chosen).flatMap((c2) => {
+    const entry = rules.get(c2.chosen) ?? c2.options.find((o) => o.id === c2.chosen);
+    return (entry?.rules ?? []).flatMap((r2) => {
+      const path = typeof r2.path === "string" ? /^system\.skills\.([a-z]+)\.rank$/.exec(r2.path) : null;
+      return r2.key === "ActiveEffectLike" && r2.mode === "upgrade" && r2.value === 1 && path && !r2.predicate && !r2.situational ? [{ ref: `skill:${path[1]}`, source: entry.name }] : [];
+    });
+  });
+  const featTrained = Object.entries(state.choices).flatMap(([key, choice2]) => {
+    const m = /-feat-(\d+)$/.exec(key);
+    if (!m || !("id" in choice2)) return [];
+    const entry = rules.get(choice2.id);
+    return (entry?.rules ?? []).flatMap((r2) => {
+      if (r2.key !== "ActiveEffectLike" || r2.mode !== "upgrade" || r2.value !== 1 || r2.predicate || r2.situational || typeof r2.path !== "string") return [];
+      const fixed = /^system\.skills\.([a-z]+)\.rank$/.exec(r2.path)?.[1];
+      const flag = /^system\.skills\.\{item\|flags\.system\.rulesSelections\.([A-Za-z]+)\}\.rank$/.exec(r2.path)?.[1];
+      const picked2 = flag ? state.choices[`${key}/choice:${flag}`] : void 0;
+      const skill = fixed ?? (picked2 && "value" in picked2 ? picked2.value : void 0);
+      return skill ? [{ ref: `skill:${skill}`, level: Number(m[1]), source: entry.name }] : [];
+    });
+  });
+  const skills = compileSkills(state, background, cls, attrs.intAt1, attrs.intGains, cls?.class?.skillIncreaseLevels ?? [], pending, warnings, archetypeId, subclassTrained, featTrained);
   for (const s of skills.slots) used.add(s.key);
   const flags = variantFlags(state, ctx.mesaRules);
   const slots = featSlots(cls, flags);
@@ -2343,8 +2387,27 @@ function importPathbuilder(b, ctx) {
     history: [{ at: (/* @__PURE__ */ new Date()).toISOString(), by: "import", note: "Importado do Pathbuilder", kind: "override" }]
   };
   if (!b.feats.some((f) => Array.isArray(f) && /^Free Archetype/.test(String(f[4] ?? "")))) base.options.variants = { freeArchetype: false };
-  const auto = compileBuild(base, ctx);
   const want = Object.fromEntries(SKILL_KEYS.map((s) => [s, Math.round((b.proficiencies[s] ?? 0) / 2)]));
+  const children = compileBuild(base, ctx).featChildren.filter((c) => !choices[c.key]);
+  const specialNames = new Set((b.specials ?? []).map((sp) => sp.toLowerCase()));
+  for (const child of children) {
+    const flag = child.key.split("/choice:")[1]?.toLowerCase() ?? "";
+    if (child.kind === "feat") {
+      const option = (ctx.classOptions ?? []).find((o) => specialNames.has(o.name.toLowerCase()) && flag.includes(o.type.toLowerCase()));
+      if (option) {
+        choices[child.key] = { id: option.id };
+        continue;
+      }
+      const traits = (child.filter?.traits ?? []).filter((t) => !t.includes("{"));
+      const row = traits.length ? b.feats.find((f) => Array.isArray(f) && Number(f[3]) === child.level && traits.some((t) => String(f[2] ?? "").toLowerCase() === `${t.toLowerCase()} feat`)) : void 0;
+      const entry = row ? rules.byName(String(row[0]), "feat") : void 0;
+      if (entry) choices[child.key] = { id: entry.id };
+    } else if (child.kind === "value" && child.options?.length && child.options.every((o) => SKILL_KEYS.includes(o.value))) {
+      const pick = child.options.find((o) => want[o.value] >= 1);
+      if (pick) choices[child.key] = { value: pick.value };
+    }
+  }
+  const auto = compileBuild(base, ctx);
   const have = auto.skills.rank;
   const classSlots = auto.skillSlots.filter((s) => s.key.startsWith("class-skill-"));
   for (const slot of classSlots) {
@@ -2357,7 +2420,12 @@ function importPathbuilder(b, ctx) {
   const lores = (b.lores ?? []).map(([n2, bonus]) => ({ ref: skillRef(`${n2} Lore`), rank: Math.round(bonus / 2) })).filter((l) => !auto.skills.lores.some((x) => x.key === l.ref));
   const freeSlots = auto.skillSlots.filter((s) => s.kind === "train" && !s.key.startsWith("class-skill-"));
   const queue = [...toTrain, ...lores.filter((l) => l.rank >= 1).map((l) => l.ref)];
-  for (const slot of freeSlots) {
+  for (const slot of freeSlots.filter((s) => s.loreOnly)) {
+    const take = queue.filter((r) => r.startsWith("lore:")).slice(0, slot.count);
+    for (const r of take) queue.splice(queue.indexOf(r), 1);
+    if (take.length) choices[slot.key] = { skills: take };
+  }
+  for (const slot of freeSlots.filter((s) => !s.loreOnly)) {
     const take = queue.splice(0, slot.count);
     if (take.length) choices[slot.key] = { skills: take };
   }
@@ -2469,6 +2537,9 @@ async function importFromCatalog(json, ctx) {
   const her = h.find((x) => x.name === b.heritage);
   const dedications = b.feats.map((f) => parseFeatEntry(f).name).filter((n) => / Dedication$/.test(n)).map((n) => n.replace(/ Dedication$/, ""));
   const traditions = [...new Set(b.spellCasters.map((x) => x.magicTradition).filter((t) => ["arcane", "divine", "occult", "primal"].includes(t)))];
+  const flairNames = new Set(b.feats.filter((f) => Array.isArray(f) && / Feat$/.test(String(f[2] ?? "")) && dedications.some((d) => String(f[2]).toLowerCase() === `${d.toLowerCase()} feat`)).map((f) => String(f[0])));
+  const dedicatedClasses = dedications.filter((d) => c.some((x) => x.name.toLowerCase() === d.toLowerCase())).map((d) => `feats/class/${ruleListSlug(d)}`);
+  const flair = (await Promise.all(dedicatedClasses.map(read))).flat().filter((e) => flairNames.has(e.name));
   const paths = [
     ...featListPaths({
       className: b.class,
@@ -2485,7 +2556,7 @@ async function importFromCatalog(json, ctx) {
   ];
   const extra = await Promise.all(paths.map(read));
   const homebrew = ctx.homebrew ?? [];
-  const index = buildRulesIndex([a, h, bg, c, l, cf, ...extra, ar, homebrew], l);
+  const index = buildRulesIndex([a, h, bg, c, l, cf, ...extra, ar, homebrew, flair], l);
   const { state, report } = importPathbuilder(b, { rules: index, mesaRules: ctx.mesaRules ?? void 0, classOptions: cf, tables: tables ?? void 0 });
   return { state, report, className: b.class || null, name: b.name };
 }

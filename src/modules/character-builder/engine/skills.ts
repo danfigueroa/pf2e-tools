@@ -57,7 +57,8 @@ export interface SkillOutcome {
 }
 
 export function compileSkills(state: BuildState, background: RuleEntry | undefined, cls: RuleEntry | undefined, intMod1: number,
-    intGains: Record<number, number>, skillIncreaseLevels: number[], pending: Pending[], warnings: Warning[], classArchetype?: string): SkillOutcome {
+    intGains: Record<number, number>, skillIncreaseLevels: number[], pending: Pending[], warnings: Warning[], classArchetype?: string,
+    subclassTrained: { ref: string; source: string }[] = [], featTrained: { ref: string; level: number; source: string }[] = []): SkillOutcome {
     const rank = Object.fromEntries(SKILL_KEYS.map((s) => [s, 0])) as Record<SkillKey, Rank>
     const lores = new Map<string, Rank>()
     const loreNames: Record<string, string> = {}
@@ -86,8 +87,19 @@ export function compileSkills(state: BuildState, background: RuleEntry | undefin
         train(ref, background?.name ?? '', true)
     }
     for (const skill of cls?.class?.trainedSkills?.fixed ?? []) train(skillRef(skill), cls?.name ?? '', true)
+    // O treino da subclasse do 1º nível (racket Thief: Thievery) também é da classe: repetido com o background vira treino
+    // livre (Player Core pg. 225, "Skills": "If you would become trained in a skill from your class… choose another").
+    for (const t of subclassTrained) train(t.ref, t.source, true)
 
     const slots: SkillSlot[] = []
+    // Background cujo Lore é à escolha ("Lore for the city you lived in", Street Urchin): um treino de Lore, à escolha
+    // (Player Core pg. 84: cada background treina em duas perícias, uma delas Lore).
+    if (backgroundLoreChoice(background)) {
+        const key = 'lore-background'
+        const chosen = choiceSkills(state, key).filter((s) => s.startsWith('lore:')).slice(0, 1)
+        slots.push({ key, label: tr(`${background!.name}: Lore`, `${background!.name}: Lore`), level: 1, count: 1, options: [], loreOnly: true, kind: 'train', chosen })
+        for (const ref of chosen) train(ref, background!.name, false)
+    }
     // Escolhas da classe entre opções ("Acrobatics or Athletics").
     ;(cls?.class?.trainedSkills?.choices ?? []).forEach((options, i) => {
         const key = `class-skill-${i + 1}`
@@ -153,9 +165,20 @@ export function compileSkills(state: BuildState, background: RuleEntry | undefin
         for (const ref of chosen.slice(0, gain)) train(ref, '', false)
     }
 
+    // Treino dado por talento (dedicação, Skill Training) vale a partir do nível do talento: entra antes dos aumentos
+    // daquele nível em diante, senão o aumento seguinte viraria o próprio treino.
+    const pendingFeatTraining = [...featTrained].filter((t) => t.level <= state.level).sort((a, b) => a.level - b.level)
+    const featTrainUpTo = (level: number) => {
+        while (pendingFeatTraining.length && pendingFeatTraining[0].level <= level) {
+            const t = pendingFeatTraining.shift()!
+            if (get(t.ref) === 0) set(t.ref, 1)
+        }
+    }
+
     // Aumentos de perícia nos níveis da classe (Player Core pg. 92).
     for (const level of skillIncreaseLevels) {
         if (level > state.level) break
+        featTrainUpTo(level)
         const key = `skill-increase-${level}`
         const chosen = choiceSkills(state, key).slice(0, 1)
         slots.push({ key, label: tr(`Aumento de perícia (nível ${level})`, `Skill increase (level ${level})`), level, count: 1, options: [], kind: 'increase', chosen })
@@ -168,6 +191,8 @@ export function compileSkills(state: BuildState, background: RuleEntry | undefin
             set(ref, next)
         }
     }
+
+    featTrainUpTo(20)
 
     // Additional Lore (Player Core pg. 252), concedido especificamente para Warfare Lore (Battlecry! pg. 68).
     if (warfareLore) {
@@ -204,4 +229,11 @@ export function compileSkills(state: BuildState, background: RuleEntry | undefin
         automatic,
         languageSlots: Math.max(0, intMod1) + Object.values(intGains).reduce((a, b) => a + b, 0),
     }
+}
+
+/** O background dá um Lore à escolha que a AON escreve só em texto (fica em `unsupported`, "Lore for …"). */
+export function backgroundLoreChoice(background: RuleEntry | undefined): boolean {
+    if (!background) return false
+    if ((background.background?.skills ?? []).some((n) => /lore/i.test(n))) return false
+    return (background.unsupported ?? []).some((u) => /^Lore\b/i.test(u.trim()) || /\bLore for\b/i.test(u))
 }

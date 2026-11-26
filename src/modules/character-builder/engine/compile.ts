@@ -12,7 +12,7 @@ import { tr } from '../../../i18n'
 import type { BuildState } from '../types'
 import type { RuleEntry } from '../rules/types'
 import { attributeLabel, compileAttributes } from './attributes'
-import { compileSkills } from './skills'
+import { backgroundLoreChoice, compileSkills } from './skills'
 import { compileFeats } from './feats'
 import type { PrereqContext } from './prereqs'
 import { checkSpellChoices, compileArchetypeCasters, compileCasters, compileFocus } from './spells'
@@ -65,6 +65,11 @@ function sourceWarnings(entry: RuleEntry, ctx: CompileContext, ref: string, warn
         }
     }
     for (const effect of entry.unsupported ?? []) {
+        // O Lore à escolha do background vira o slot `lore-background` (compileSkills).
+        if (entry.background && backgroundLoreChoice(entry) && (/^Lore\b/i.test(effect.trim()) || /\bLore for\b/i.test(effect))) continue
+        // Da classe, o que o Criador já resolve por escolha: o atributo-chave "other" (vem da subclasse e é escolhido na
+        // aba Classe) e os treinos da subclasse (racket, instinto…), lidos das regras dela em `compileSkills`.
+        if (entry.class && (/^attribute:/i.test(effect) || /skills? determined by your/i.test(effect))) continue
         warnings.push({ code: 'UNSUPPORTED_EFFECT', level: 'info', ref, message: tr(`Efeito não calculado: ${entry.name} (${effect}).`, `Effect not calculated: ${entry.name} (${effect}).`) })
     }
 }
@@ -282,7 +287,29 @@ export function compileBuild(state: BuildState, ctx: CompileContext): Compiled {
     }
 
     // Perícias e idiomas.
-    const skills = compileSkills(state, background, cls, attrs.intAt1, attrs.intGains, cls?.class?.skillIncreaseLevels ?? [], pending, warnings, archetypeId)
+    const subclassTrained = classChoices.filter((c) => c.level === 1 && c.chosen).flatMap((c) => {
+        const entry = rules.get(c.chosen) ?? c.options.find((o) => o.id === c.chosen)
+        return (entry?.rules ?? []).flatMap((r) => {
+            const path = typeof r.path === 'string' ? /^system\.skills\.([a-z]+)\.rank$/.exec(r.path) : null
+            return r.key === 'ActiveEffectLike' && r.mode === 'upgrade' && r.value === 1 && path && !r.predicate && !r.situational
+                ? [{ ref: `skill:${path[1]}`, source: entry!.name }] : []
+        })
+    })
+    // Treinos fixos ou à escolha dos talentos escolhidos ("ActiveEffectLike upgrade system.skills.X.rank 1"), no nível do slot.
+    const featTrained = Object.entries(state.choices).flatMap(([key, choice]) => {
+        const m = /-feat-(\d+)$/.exec(key)
+        if (!m || !('id' in choice)) return []
+        const entry = rules.get(choice.id)
+        return (entry?.rules ?? []).flatMap((r) => {
+            if (r.key !== 'ActiveEffectLike' || r.mode !== 'upgrade' || r.value !== 1 || r.predicate || r.situational || typeof r.path !== 'string') return []
+            const fixed = /^system\.skills\.([a-z]+)\.rank$/.exec(r.path)?.[1]
+            const flag = /^system\.skills\.\{item\|flags\.system\.rulesSelections\.([A-Za-z]+)\}\.rank$/.exec(r.path)?.[1]
+            const picked = flag ? state.choices[`${key}/choice:${flag}`] : undefined
+            const skill = fixed ?? (picked && 'value' in picked ? picked.value : undefined)
+            return skill ? [{ ref: `skill:${skill}`, level: Number(m[1]), source: entry!.name }] : []
+        })
+    })
+    const skills = compileSkills(state, background, cls, attrs.intAt1, attrs.intGains, cls?.class?.skillIncreaseLevels ?? [], pending, warnings, archetypeId, subclassTrained, featTrained)
     for (const s of skills.slots) used.add(s.key)
 
     // Talentos por nível: slots da classe e das variantes, concessões e efeitos.
