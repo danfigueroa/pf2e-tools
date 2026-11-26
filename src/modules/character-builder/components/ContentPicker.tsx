@@ -1,10 +1,10 @@
 import { lazy, Suspense, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Box, Button, ButtonBase, Dialog, Drawer, IconButton, InputBase, Menu, MenuItem, useMediaQuery, useTheme,
+  Box, Button, ButtonBase, Dialog, Drawer, IconButton, InputBase, useMediaQuery, useTheme,
 } from '@mui/material';
 import {
   Close as CloseIcon, ExpandMore as MoreIcon, HelpOutlineRounded as UnknownIcon, InfoOutlined as InfoIcon, Search as SearchIcon,
-  CheckCircleOutline as OkIcon, CloseRounded as FailIcon,
+  CheckCircleOutline as OkIcon, CloseRounded as FailIcon, TuneRounded as TuneIcon,
 } from '@mui/icons-material';
 import { chrome, displayFont, gold, green, greenInk, ink, parchment, rule, status } from '../../../theme';
 import { locale, tr } from '../../../i18n';
@@ -13,6 +13,8 @@ import type { MesaRules } from '../types';
 import type { PrereqPart, PrereqResult } from '../engine/prereqs';
 import { allowedAtTable } from '../mesaRules';
 import { useTraitLabels } from '../../character-viewer/components/useTraitLabels';
+import { PickerFilters } from './PickerFilters';
+import { activeCount, compareBy, EMPTY_FILTERS, facetsOf, passes, SORT_LABEL, type PickerFilterState } from './filterModel';
 import { pickerEditions } from '../remaster';
 import { BuildExceptions } from '../hooks/buildExceptions';
 import { ActionGlyph, ContentBadge, LevelBox, Notice, PrereqMark, SectionHead } from './ui';
@@ -23,7 +25,6 @@ const PAGE = 150;
 const DescriptionContent = lazy(() =>
   import('../../character-viewer/components/DescriptionContent').then((m) => ({ default: m.DescriptionContent })));
 
-type RarityFilter = 'all' | 'common' | 'uncommon' | 'rare';
 
 const RARITY_LABEL: Record<string, string> = {
   common: tr('Comum', 'Common'), uncommon: tr('Incomum', 'Uncommon'), rare: tr('Raro', 'Rare'), unique: tr('Único', 'Unique'),
@@ -84,8 +85,8 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
   const theme = useTheme();
   const wide = useMediaQuery(theme.breakpoints.up('md'));
   const [q, setQ] = useState('');
-  const [rarity, setRarity] = useState<RarityFilter>('all');
-  const [rarityMenu, setRarityMenu] = useState<HTMLElement | null>(null);
+  const [filters, setFilters] = useState<PickerFilterState>(EMPTY_FILTERS);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [onlyAllowed, setOnlyAllowed] = useState(true);
   const [capOn, setCapOn] = useState(true);
   const [focusId, setFocusId] = useState<string | undefined>(value);
@@ -97,6 +98,8 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
   useEffect(() => {
     if (!open) return;
     setQ('');
+    setFilters(EMPTY_FILTERS);
+    setFiltersOpen(false);
     setFocusId(value);
     setDetailOpen(false);
     setLimit(PAGE);
@@ -115,13 +118,15 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
     const rank = (e: RuleEntry) => ({ ok: 0, unknown: 1, fail: 2 }[eligibility.get(e.id)?.result ?? 'ok']);
     return editions
       .filter((e) => !term || e.name.toLowerCase().includes(term) || [...(e.legacyNames ?? []), ...(e.previousNames ?? [])].some((n) => n.toLowerCase().includes(term)))
-      .filter((e) => rarity === 'all' || e.rarity === rarity || (rarity === 'rare' && e.rarity === 'unique') || (rarity === 'common' && !e.rarity))
       .filter((e) => !onlyAllowed || exceptions.has(e.id) || allowedAtTable(e, mesaRules) !== false)
       .filter((e) => !capOn || levelCap === undefined || (e.level ?? 0) <= levelCap)
-      .sort((a, b) => (prereq ? rank(a) - rank(b) : 0) || a.name.localeCompare(b.name, locale));
-  }, [editions, exceptions, q, rarity, onlyAllowed, mesaRules, eligibility, prereq, capOn, levelCap]);
+      .filter((e) => passes(e, filters, eligibility.get(e.id)?.result))
+      .sort((a, b) => (prereq ? rank(a) - rank(b) : 0) || compareBy(filters.sort)(a, b) || a.name.localeCompare(b.name, locale));
+  }, [editions, exceptions, q, onlyAllowed, mesaRules, eligibility, prereq, capOn, levelCap, filters]);
+  const facets = useMemo(() => facetsOf(editions), [editions]);
+  const nFilters = activeCount(filters);
   const traitText = useTraitLabels(useMemo(() => [...new Set([...shown.slice(0, limit), ...(focusId ? editions.filter((e) => e.id === focusId) : [])]
-    .flatMap((e) => traitsOf(e).slice(0, 8)))], [shown, limit, focusId, editions]));
+    .flatMap((e) => traitsOf(e).slice(0, 8)).concat(filtersOpen ? facets.traits.map((t) => t.name) : []))], [shown, limit, focusId, editions, filtersOpen, facets]));
   const eligibleCount = prereq ? shown.filter((e) => eligibility.get(e.id)?.result === 'ok').length : null;
 
   const focused = shown.find((e) => e.id === focusId) ?? (wide ? shown[0] : undefined);
@@ -161,7 +166,7 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
     </Box>
   );
 
-  const filters = (
+  const filterBar = (
     <Box sx={{ px: { xs: 2, md: 2.75 }, py: { xs: 1.5, md: 1.75 }, bgcolor: parchment.paper, borderBottom: `1px solid ${rule}`, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 1.25, alignItems: { md: 'center' }, flex: 'none', flexWrap: 'wrap' }}>
       <Box component="label" sx={{
         display: 'flex', alignItems: 'center', gap: 1, height: 46, px: '11px', border: `1px solid ${rule}`, borderRadius: '6px', bgcolor: parchment.paper,
@@ -183,14 +188,14 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
       <Box sx={{ display: 'flex', gap: 0.75, overflowX: 'auto', mx: { xs: -2, md: 0 }, px: { xs: 2, md: 0 }, pb: { xs: 0.25, md: 0 } }}>
         {levelCap !== undefined && chip(capOn, tr(`Até nível ${levelCap}`, `Up to level ${levelCap}`), () => setCapOn(!capOn), capOn)}
         {mesaRules && chip(onlyAllowed, tr('Só o liberado', 'Only allowed'), () => setOnlyAllowed(!onlyAllowed), onlyAllowed)}
-        {chip(rarity !== 'all', <>{rarity === 'all' ? tr('Raridade', 'Rarity') : RARITY_LABEL[rarity]}<MoreIcon sx={{ fontSize: 16 }} /></>, (e) => setRarityMenu(e.currentTarget))}
+        {chip(nFilters > 0 || filtersOpen, <><TuneIcon sx={{ fontSize: 16 }} />{nFilters ? tr(`Filtros · ${nFilters}`, `Filters · ${nFilters}`) : tr('Filtros', 'Filters')}
+          <MoreIcon sx={{ fontSize: 16, transform: filtersOpen && wide ? 'rotate(180deg)' : 'none' }} /></>, () => setFiltersOpen(!filtersOpen), filtersOpen)}
+        {nFilters > 0 && chip(false, tr('Limpar', 'Clear'), () => setFilters(EMPTY_FILTERS))}
       </Box>
-      <Menu anchorEl={rarityMenu} open={!!rarityMenu} onClose={() => setRarityMenu(null)}>
-        {(['all', 'common', 'uncommon', 'rare'] as const).map((r) => (
-          <MenuItem key={r} selected={rarity === r} onClick={() => { setRarity(r); setRarityMenu(null); }}>{r === 'all' ? tr('Todas', 'All') : RARITY_LABEL[r]}</MenuItem>
-        ))}
-      </Menu>
     </Box>
+  );
+  const filterPanel = (onDone?: () => void) => (
+    <PickerFilters facets={facets} value={filters} onChange={setFilters} traitText={traitText} hasPrereq={!!prereq} shownCount={shown.length} onDone={onDone} />
   );
 
   const row = (e: RuleEntry) => {
@@ -236,7 +241,7 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', px: { xs: 2, md: 1.75 }, py: 1, fontSize: 13, color: ink.secondary, borderBottom: `1px solid ${rule}`, flex: 'none' }}>
         <span>{countLabel}</span>
-        {prereq && <span>{tr('Elegíveis primeiro', 'Eligible first')}</span>}
+        <span>{[prereq ? tr('elegíveis primeiro', 'eligible first') : null, filters.sort !== 'name' ? SORT_LABEL[filters.sort] : null].filter(Boolean).join(' · ')}</span>
       </Box>
       <Box ref={listRef} role="listbox" aria-label={title} sx={{ overflowY: 'auto', flex: 1, minHeight: 0, bgcolor: parchment.paper }}>
         {shown.slice(0, limit).map(row)}
@@ -343,7 +348,10 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
     <Dialog open={open} onClose={onClose} fullScreen={!wide} fullWidth maxWidth="lg"
       slotProps={{ paper: { sx: { height: { md: '88vh' }, bgcolor: parchment.paper, borderRadius: { md: '10px' }, overflow: 'hidden', display: 'flex', flexDirection: 'column' } } }}>
       {head}
-      {filters}
+      {filterBar}
+      {wide && filtersOpen && (
+        <Box sx={{ flex: 'none', maxHeight: '42vh', overflowY: 'auto', px: 2.75, py: 2, bgcolor: parchment.page, borderBottom: `1px solid ${rule}` }}>{filterPanel()}</Box>
+      )}
       {wide ? (
         <Box sx={{ flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: 'minmax(320px, 460px) minmax(0, 1fr)' }}>
           <Box sx={{ borderRight: `1px solid ${rule}`, display: 'flex', minHeight: 0 }}>{list}</Box>
@@ -360,6 +368,17 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
         </Box>
       ) : list}
 
+      {!wide && (
+        <Drawer anchor="bottom" open={filtersOpen} onClose={() => setFiltersOpen(false)}
+          slotProps={{ paper: { sx: { maxHeight: '88vh', bgcolor: parchment.paper, borderRadius: '16px 16px 0 0', borderTop: `2px solid ${gold.main}` } } }}>
+          <Box aria-hidden sx={{ width: 40, height: 4, borderRadius: 2, bgcolor: rule, mx: 'auto', mt: 1, mb: 0.5, flex: 'none' }} />
+          <Box sx={{ display: 'flex', alignItems: 'center', pl: 2.25, pr: 1 }}>
+            <Box component="h3" sx={{ m: 0, flex: 1, font: `700 20px ${displayFont}` }}>{tr('Filtros', 'Filters')}</Box>
+            <IconButton aria-label={tr('Fechar', 'Close')} onClick={() => setFiltersOpen(false)}><CloseIcon /></IconButton>
+          </Box>
+          <Box sx={{ overflowY: 'auto', px: 2.25, pb: 'calc(16px + env(safe-area-inset-bottom))' }}>{filterPanel(() => setFiltersOpen(false))}</Box>
+        </Drawer>
+      )}
       {!wide && (
         <Drawer anchor="bottom" open={detailOpen && !!focused} onClose={() => setDetailOpen(false)}
           slotProps={{ paper: { sx: { maxHeight: '86vh', bgcolor: parchment.paper, borderRadius: '16px 16px 0 0', borderTop: `2px solid ${gold.main}`, boxShadow: warmShadow } } }}>

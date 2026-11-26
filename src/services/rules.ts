@@ -106,17 +106,20 @@ export function peekTraitRule(term: string): AonRule | null {
 export async function prefetchTraitRules(terms: string[]): Promise<void> {
     const missing = [...new Set(terms.map((t) => t.trim()).filter(Boolean))].filter((t) => !peekTraitRule(t))
     if (missing.length === 0) return
-    try {
-        const r = await fetch(`/api/search?${new URLSearchParams({ traitRules: missing.join('|') }).toString()}`)
-        if (!r.ok) return
-        const { rules } = (await r.json()) as { rules?: Record<string, AonRule> }
-        for (const [term, rule] of Object.entries(rules ?? {})) {
-            if (rule.translationPending) continue
-            const key = ptKey(term)
-            memory.set(key, rule)
-            try { localStorage.setItem(key, JSON.stringify(rule)) } catch { /* cota cheia */ }
-        }
-    } catch { /* sem rede: o toque no chip tenta sozinho */ }
+    // O servidor resolve até 30 por pedido (`MAX_TRAIT_RULES` em `rule-core.js`): listas grandes (filtros do Criador) vão em partes.
+    for (let i = 0; i < missing.length; i += 30) {
+        try {
+            const r = await fetch(`/api/search?${new URLSearchParams({ traitRules: missing.slice(i, i + 30).join('|') }).toString()}`)
+            if (!r.ok) return
+            const { rules } = (await r.json()) as { rules?: Record<string, AonRule> }
+            for (const [term, rule] of Object.entries(rules ?? {})) {
+                if (rule.translationPending) continue
+                const key = ptKey(term)
+                memory.set(key, rule)
+                try { localStorage.setItem(key, JSON.stringify(rule)) } catch { /* cota cheia */ }
+            }
+        } catch { return /* sem rede: o toque no chip tenta sozinho */ }
+    }
 }
 
 /** A regra de UM traço, em português: do cache, senão do servidor. `null` = a AON não tem. */
