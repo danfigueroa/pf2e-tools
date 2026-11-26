@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  Alert, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, MenuItem, Paper, Skeleton,
+  Alert, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, MenuItem, Skeleton,
   Stack, Switch, TextField, Typography,
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
@@ -10,6 +10,7 @@ import { locale, tr } from '../../../i18n';
 import { attributeLabel } from '../engine/attributes';
 import { ATTRIBUTES, type AttributeKey } from '../engine/types';
 import type { RuleEntry } from '../rules/types';
+import { cardSx } from './uiTokens';
 
 const KINDS: { value: HomebrewKind; label: string }[] = [
   { value: 'feat', label: tr('Talento', 'Feat') },
@@ -158,9 +159,9 @@ export function HomebrewSection() {
   const d = draft;
 
   return (
-    <Paper id="conteudo" variant="outlined" sx={{ p: { xs: 1.5, sm: 2.5 }, mb: 2.5 }}>
+    <Box id="conteudo" sx={[cardSx, { p: { xs: 1.5, sm: 2.5 }, mb: 2.5 }]}>
       <Stack direction="row" sx={{ alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 1 }}>
-        <Typography component="h2" sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.1rem', flex: 1, minWidth: 0 }}>
+        <Typography component="h2" sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.25rem', flex: 1, minWidth: 0 }}>
           {tr('Conteúdo da mesa', 'Table homebrew')}</Typography>
         <Button startIcon={<AddIcon />} variant="outlined" onClick={() => setDraft(empty())}>{tr('Criar', 'Create')}</Button>
       </Stack>
@@ -292,6 +293,6 @@ export function HomebrewSection() {
           <Button color="error" onClick={() => confirmDelete && void remove(confirmDelete)}>{tr('Apagar', 'Delete')}</Button>
         </DialogActions>
       </Dialog>
-    </Paper>
+    </Box>
   );
 }

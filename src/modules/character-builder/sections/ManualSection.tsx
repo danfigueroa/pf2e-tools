@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { Box, Button, Chip, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Chip, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
-import { displayFont } from '../../../theme';
 import { tr } from '../../../i18n';
 import { attributeLabel } from '../engine/attributes';
 import { ATTRIBUTES, type AttributeKey } from '../engine/types';
 import type { Adjustment, BuildState } from '../types';
 import type { SectionProps } from './types';
+import { SectionHead } from '../components/ui';
+import { cardSx } from '../components/uiTokens';
 
 const KINDS: { value: Adjustment['effect']['kind']; label: string; target?: string }[] = [
   { value: 'hp', label: tr('PV', 'HP') },
@@ -53,8 +54,8 @@ export function ManualSection({ state, update, canEdit }: SectionProps) {
   };
 
   return (
-    <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2.5 } }}>
-      <Typography component="h2" sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.1rem' }}>{tr('Ajustes manuais', 'Manual adjustments')}</Typography>
+    <Box sx={[cardSx, { p: { xs: 1.5, sm: 2 } }]}>
+      <SectionHead component="h2">{tr('Ajustes manuais', 'Manual adjustments')}</SectionHead>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         {tr('Para o que a regra não cobre e a mesa combinou. Entra nos números, sempre com aviso.', 'For what the rules do not cover and the table agreed on. It goes into the numbers, always with a warning.')}
       </Typography>
@@ -113,6 +114,6 @@ export function ManualSection({ state, update, canEdit }: SectionProps) {
           <Button startIcon={<AddIcon />} onClick={addAdjustment} disabled={!label.trim() || !reason.trim()}>{tr('Adicionar ajuste', 'Add adjustment')}</Button>
         </Box>
       )}
-    </Paper>
+    </Box>
   );
 }

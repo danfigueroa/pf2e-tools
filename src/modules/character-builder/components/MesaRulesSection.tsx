@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Alert, Box, Button, Checkbox, FormControlLabel, MenuItem, Paper, Skeleton, Stack, Switch, TextField, Typography,
+  Alert, Box, Button, Checkbox, FormControlLabel, MenuItem, Skeleton, Stack, Switch, TextField, Typography,
 } from '@mui/material';
 import { fetchMesaRules, saveMesaRules } from '../../../services/builds';
 import { displayFont } from '../../../theme';
@@ -8,6 +8,8 @@ import { locale, tr } from '../../../i18n';
 import { sources, type RuleSource } from '../rules';
 import { allowsLegacyBook, sanitizeMesaRules } from '../mesaRules';
 import type { MesaRules, MesaVariants, Rarity } from '../types';
+import { SectionHead } from './ui';
+import { cardSx } from './uiTokens';
 
 const RARITY_LABEL: Record<Rarity, string> = {
   allow: tr('Permitir', 'Allow'),
@@ -68,9 +70,9 @@ export function MesaRulesSection() {
 
   if (!rules) {
     return (
-      <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2.5 }, mb: 2.5 }}>
+      <Box sx={[cardSx, { p: { xs: 1.5, sm: 2.5 }, mb: 2.5 }]}>
         {error ? <Alert severity="error">{error}</Alert> : <Skeleton variant="rounded" height={160} />}
-      </Paper>
+      </Box>
     );
   }
 
@@ -105,8 +107,8 @@ export function MesaRulesSection() {
   };
 
   return (
-    <Paper id="criacao" variant="outlined" sx={{ p: { xs: 1.5, sm: 2.5 }, mb: 2.5, scrollMarginTop: 80 }}>
-      <Typography component="h2" sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.1rem', mb: 0.5 }}>
+    <Box id="criacao" sx={[cardSx, { p: { xs: 1.5, sm: 2.5 }, mb: 2.5, scrollMarginTop: 80 }]}>
+      <Typography component="h2" sx={{ fontFamily: displayFont, fontWeight: 700, fontSize: '1.25rem', mb: 0.5 }}>
         {tr('Criação de personagem', 'Character creation')}</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         {tr('O que o Criador de Personagem oferece nesta mesa. Fora disso, o Criador avisa — não trava.', 'What the Character Builder offers at this table. Anything else gets a warning — it never blocks.')}
@@ -115,7 +117,7 @@ export function MesaRulesSection() {
       {error && <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 2 }}>{error}</Alert>}
       {saved && <Alert severity="success" onClose={() => setSaved(false)} sx={{ mb: 2 }}>{tr('Regras de criação salvas.', 'Creation rules saved.')}</Alert>}
 
-      <Typography sx={{ fontWeight: 600, mb: 1 }}>{tr('Variantes', 'Variant rules')}</Typography>
+      <Box sx={{ mb: 1 }}><SectionHead>{tr('Variantes', 'Variant rules')}</SectionHead></Box>
       <Stack sx={{ mb: 2 }}>
         {VARIANTS.map((v) => (
           <Box key={v.key}>
@@ -161,7 +163,7 @@ export function MesaRulesSection() {
         </TextField>
       </Box>
 
-      <Typography sx={{ fontWeight: 600, mb: 0.5 }}>{tr('Livros liberados', 'Allowed books')}</Typography>
+      <SectionHead note={tr(`${allowed.size} marcados`, `${allowed.size} selected`)}>{tr('Livros liberados', 'Allowed books')}</SectionHead>
       <TextField select size="small" label={tr('Edição', 'Edition')} value={edition} sx={{ mt: 1, mb: 1, minWidth: 160 }}
         onChange={(e) => setEdition(e.target.value === 'legacy' ? 'legacy' : 'allow')}>
         <MenuItem value="allow">{tr('Remaster', 'Remaster')}</MenuItem>
@@ -190,6 +192,6 @@ export function MesaRulesSection() {
       )}
 
       <Button variant="contained" onClick={() => void save()} disabled={busy}>{tr('Salvar regras de criação', 'Save creation rules')}</Button>
-    </Paper>
+    </Box>
   );
 }
