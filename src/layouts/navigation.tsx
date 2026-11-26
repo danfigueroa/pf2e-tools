@@ -54,8 +54,8 @@ export const NAV_ITEMS: NavItem[] = [
     keywords: [tr('ficha', 'sheet'), tr('personagem', 'character'), 'pathbuilder', tr('magias', 'spells'), tr('talentos', 'feats'), 'inventario', 'pv', tr('publicar', 'publish')],
   },
   {
-    text: tr('Character Builder (Criador de Personagem)', 'Character Builder'), icon: <BuilderIcon />, path: '/personagens', section: 'jogo',
-    keywords: [tr('criar', 'create'), 'criador', tr('novo personagem', 'new character'), 'level up', tr('subir de nivel', 'level up'), tr('personagens', 'characters'), 'pathbuilder'],
+    text: tr('Criador de Personagem', 'Character Builder'), icon: <BuilderIcon />, path: '/personagens', section: 'jogo',
+    keywords: [tr('criar', 'create'), 'criador', 'character builder', tr('novo personagem', 'new character'), 'level up', tr('subir de nivel', 'level up'), tr('personagens', 'characters'), 'pathbuilder'],
   },
   {
     text: tr('Iniciativa', 'Initiative'), icon: <InitiativeIcon />, path: '/iniciativa', section: 'jogo',
