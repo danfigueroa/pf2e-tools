@@ -53,6 +53,12 @@ export interface ContentPickerProps {
   levelCap?: number;
 }
 
+/** O pedido de descrição de uma entrada do catálogo (o mesmo pipeline da Ficha). */
+const descriptionRequest = (e: RuleEntry) => e.type === 'spell' ? { type: 'spell' as const, name: e.name }
+  : e.type === 'feat' ? { type: 'feat' as const, name: e.name, level: e.level }
+    : ['equipment', 'weapon', 'armor', 'shield'].includes(e.type) ? { type: 'item' as const, name: e.name }
+      : { type: 'special' as const, name: e.name };
+
 const traitsOf = (e: RuleEntry) => (e.traits ?? []).filter((t) => !['common', 'uncommon', 'rare', 'unique'].includes(t.toLowerCase()));
 
 /** "Requer: Perito em Atletismo" — o motivo de inelegibilidade, escrito na própria linha. */
@@ -83,7 +89,6 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
   const [capOn, setCapOn] = useState(true);
   const [focusId, setFocusId] = useState<string | undefined>(value);
   const [detailOpen, setDetailOpen] = useState(false);
-  const [description, setDescription] = useState<RuleEntry | null>(null);
   // Listas longas (1.700 consumíveis) desenham em páginas: o celular não monta milhares de linhas de uma vez.
   const [limit, setLimit] = useState(PAGE);
   const listRef = useRef<HTMLDivElement>(null);
@@ -156,8 +161,11 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
   const filters = (
     <Box sx={{ px: { xs: 2, md: 2.75 }, py: { xs: 1.5, md: 1.75 }, bgcolor: parchment.paper, borderBottom: `1px solid ${rule}`, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 1.25, alignItems: { md: 'center' }, flex: 'none', flexWrap: 'wrap' }}>
       <Box component="label" sx={{
-        display: 'flex', alignItems: 'center', gap: 1, height: 46, px: '11px', border: `2px solid ${greenInk.mid}`, borderRadius: '6px', bgcolor: parchment.paper,
-        color: ink.secondary, flex: { md: 1 }, minWidth: { md: 280 },
+        display: 'flex', alignItems: 'center', gap: 1, height: 46, px: '11px', border: `1px solid ${rule}`, borderRadius: '6px', bgcolor: parchment.paper,
+        color: ink.secondary, flex: { md: 1 }, minWidth: { md: 280 }, cursor: 'text', transition: 'border-color 120ms, box-shadow 120ms',
+        '&:hover': { borderColor: ink.secondary },
+        // Focado: borda verde de 2px e halo, para a pessoa ver que já pode digitar.
+        '&:focus-within': { borderColor: greenInk.mid, boxShadow: `0 0 0 1px ${greenInk.mid}, 0 0 0 4px ${tint.green}`, color: greenInk.mid },
       }}>
         <SearchIcon aria-hidden />
         <InputBase autoFocus fullWidth value={q} onChange={(e) => setQ(e.target.value)}
@@ -292,14 +300,20 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
         {!el && e.prerequisites?.text && (
           <Box sx={{ fontSize: 14 }}><Box component="span" sx={{ color: ink.secondary }}>{tr('Pré-requisitos', 'Prerequisites')}: </Box>{e.prerequisites.text}</Box>
         )}
-        {(e.summary || !e.homebrew) && (
+        {e.homebrew ? (e.summary && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-            <SectionHead note={e.homebrew ? tr('Conteúdo da mesa', 'Table content') : undefined}>{tr('Resumo', 'Summary')}</SectionHead>
-            {e.summary && <Box component="p" sx={{ m: 0, fontSize: { xs: 15, md: 16 }, maxWidth: 620, whiteSpace: e.homebrew ? 'pre-line' : undefined }} lang={e.homebrew ? undefined : 'en'}>{e.summary}</Box>}
-            {!e.homebrew && (
-              <Button size="small" endIcon={<MoreIcon />} sx={{ alignSelf: 'flex-start', px: 0 }} onClick={() => setDescription(e)}>
-                {tr('Descrição completa', 'Full description')}</Button>
-            )}
+            <SectionHead note={tr('Conteúdo da mesa', 'Table content')}>{tr('Descrição', 'Description')}</SectionHead>
+            <Box component="p" sx={{ m: 0, fontSize: { xs: 15, md: 16 }, maxWidth: 680, whiteSpace: 'pre-line' }}>{e.summary}</Box>
+          </Box>
+        )) : (
+          // A descrição completa (pt/en) já no detalhe: nada de abrir outra tela para ler o talento ou a magia.
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <SectionHead>{tr('Descrição', 'Description')}</SectionHead>
+            <Box sx={{ maxWidth: 720 }}>
+              <Suspense fallback={<Box sx={{ fontSize: 14, color: ink.secondary }}>{e.summary ?? tr('Carregando…', 'Loading…')}</Box>}>
+                <DescriptionContent key={e.id} embedded request={descriptionRequest(e)} onClose={() => {}} />
+              </Suspense>
+            </Box>
           </Box>
         )}
         {risky && onPick && (
@@ -359,17 +373,6 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
         </Drawer>
       )}
 
-      <Drawer anchor="right" open={!!description} onClose={() => setDescription(null)}
-        slotProps={{ paper: { sx: { width: { xs: '100%', sm: 480 } } } }}>
-        {description && (
-          <Suspense fallback={null}>
-            <DescriptionContent request={description.type === 'spell' ? { type: 'spell', name: description.name }
-              : description.type === 'feat' ? { type: 'feat', name: description.name, level: description.level }
-              : ['equipment', 'weapon', 'armor', 'shield'].includes(description.type) ? { type: 'item', name: description.name }
-              : { type: 'special', name: description.name }} onClose={() => setDescription(null)} />
-          </Suspense>
-        )}
-      </Drawer>
     </Dialog>
   );
 }

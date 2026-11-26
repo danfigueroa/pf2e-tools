@@ -97,6 +97,8 @@ export interface DescriptionContentProps {
      * (o "Usar" das abas). Fora da ficha — o cartão compartilhado — não há.
      */
     renderActions?: (req: DescriptionRequest, entry: FeatDescription) => ReactNode
+    /** Dentro de outra tela (detalhe do seletor do Criador): sem faixa, cabeçalho nem rolagem própria. */
+    embedded?: boolean
 }
 
 interface State {
@@ -119,7 +121,7 @@ const TYPE_ACCENT: Record<DescriptionRequest['type'], string> = PALETTE_TYPE_ACC
  * O conteúdo da descrição (carga, heightening e o texto), sem a gaveta: o
  * drawer da ficha e o cartão da regra compartilhada com a mesa desenham o mesmo.
  */
-export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onShare, renderActions }: DescriptionContentProps) => {
+export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onShare, renderActions, embedded }: DescriptionContentProps) => {
     const [state, setState] = useState<State>({ loading: false })
 
     useEffect(() => {
@@ -260,13 +262,13 @@ export const DescriptionContent = ({ request, onClose, onNavigate, onRoll, onSha
     }, [heightenedEntries, levelAware, heightenedDamage, request, scaled])
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: embedded ? 'auto' : '100%', minHeight: 0 }}>
             {/* Faixa de accent no topo (visual de tipo) */}
-            <Box sx={{ height: 4, backgroundColor: accent, flexShrink: 0 }} />
+            {!embedded && <Box sx={{ height: 4, backgroundColor: accent, flexShrink: 0 }} />}
 
-            <Box sx={{ p: { xs: 2.5, md: 3 }, overflowY: 'auto', flex: 1 }}>
+            <Box sx={embedded ? {} : { p: { xs: 2.5, md: 3 }, overflowY: 'auto', flex: 1 }}>
                 {/* Header */}
-                <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1} sx={{ mb: 2 }}>
+                <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1} sx={{ mb: 2, display: embedded ? 'none' : 'flex' }}>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Chip
                             label={TYPE_LABEL[request.type]}
