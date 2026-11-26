@@ -122,11 +122,15 @@ export function compileFeats(state: BuildState, slots: FeatSlot[], rules: RulesI
         if ((mods.ranks[target] ?? 0) < rank) mods.ranks[target] = rank
     }
 
-    /** Aplica os rule elements de uma entrada (o slot dá a chave dos filhos). */
-    const apply = (entry: RuleEntry, slot: string, slotLevel: number, depth: number) => {
+    /**
+     * Aplica os rule elements de uma entrada (o slot dá a chave dos filhos). `limited`: a opção de subclasse escolhida
+     * numa dedicação multiclasse, que só dá o treino de perícia associado (ver `take`).
+     */
+    const apply = (entry: RuleEntry, slot: string, slotLevel: number, depth: number, limited = false) => {
         const selections: Record<string, string> = {}
         for (const rule of entry.rules ?? []) {
             if (rule.situational) continue
+            if (limited && !(rule.key === 'ActiveEffectLike' && typeof rule.path === 'string' && /^system\.skills\./.test(rule.path))) continue
             if (rule.key === 'ChoiceSet' && typeof rule.flag === 'string') {
                 const key = choiceKey(slot, rule.flag)
                 const raw = state.choices[key]
@@ -150,7 +154,13 @@ export function compileFeats(state: BuildState, slots: FeatSlot[], rules: RulesI
                 if (chosen) selections[rule.flag] = chosen
                 if (chosen && child.kind === 'feat' && depth < 2) {
                     const feat = rules.get(chosen)
-                    if (feat) take(feat, key, slotLevel, 'child', depth + 1)
+                    // Dedicação multiclasse: a escola, ordem, linhagem, estilo… escolhidos dão só a perícia associada; as
+                    // outras habilidades da opção não vêm (Wizard Dedication, Player Core pg. 223: "you don't gain any
+                    // abilities from your choice of school"; Druid pg. 218, Bard pg. 216, Witch pg. 222; Sorcerer pg. 181 e
+                    // Swashbuckler pg. 182 do Player Core 2, e lá também Barbarian, Champion e Oracle; Gunslinger e Inventor no Guns & Gears Remastered;
+                    // Psychic e Thaumaturge no Dark Archive Remastered). O Foundry concede a opção inteira.
+                    const multiclass = (entry.traits ?? []).some((t) => /^multiclass$/i.test(t)) && (entry.traits ?? []).some((t) => /^dedication$/i.test(t))
+                    if (feat) take(feat, key, slotLevel, 'child', depth + 1, multiclass && feat.type !== 'feat')
                 }
                 continue
             }
@@ -206,11 +216,11 @@ export function compileFeats(state: BuildState, slots: FeatSlot[], rules: RulesI
         }
     }
 
-    const take = (entry: RuleEntry, slot: string, slotLevel: number, kind: TakenFeat['kind'], depth: number) => {
+    const take = (entry: RuleEntry, slot: string, slotLevel: number, kind: TakenFeat['kind'], depth: number, limited = false) => {
         const prereq = evaluatePrereqs(entry.prerequisites?.text, ctx.prereqContext())
         taken.push({ slot, level: slotLevel, entry, kind, prereq })
         has.add(entry.name.toLowerCase())
-        apply(entry, slot, slotLevel, depth)
+        apply(entry, slot, slotLevel, depth, limited)
     }
 
     for (const award of ctx.awarded) if (award.level <= level) take(award.entry, `awarded:${award.entry.aon.id}`, award.level, 'granted', 0)

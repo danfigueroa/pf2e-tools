@@ -525,6 +525,12 @@ console.log('Equipamento: Ghan Buri (gabarito: export do Pathbuilder) e regras d
     expect('runa fundamental usa a variante com preço', bought.equipment.items[0].runes.map((r) => r.price), [935, 65, 500])
     const given = compileBuild({ ...state, inventory: [{ key: 'inv-1', item: hammerId, qty: 1, acquired: 'given', runes: { potency: 2 } }] }, { rules: runeRules })
     expect('item ganho não desconta as runas', given.equipment.money.spent, 0)
+    // Dedicação multiclasse (Wizard Dedication, Player Core pg. 223): a escola escolhida não dá as habilidades dela —
+    // a School of Unified Magical Theory não pede o talento de wizard extra.
+    const wizDed = compileBuild({ ...hf, level: 2, options: { variants: { freeArchetype: true } },
+        choices: { ...hf.choices, 'archetype-feat-2': { id: 'feat:feat-5106' }, 'archetype-feat-2/choice:arcaneSchool': { id: 'arcane-school:arcane-school-21' } } }, ctx)
+    expect('escola da Wizard Dedication não pede o talento da Unified Magical Theory', wizDed.pending.filter((p) => p.key.startsWith('archetype-feat-2/')).map((p) => p.key), [])
+    expect('a escola continua escolhida (membro, para os talentos)', wizDed.taken.some((t) => t.entry.id === 'arcane-school:arcane-school-21'), true)
     // Conteúdo caseiro (custom:): origem e talento fora do catálogo contam como escolhidos e vão ao retrato pelo nome.
     const homemade = compileBuild({ ...hf, origin: { ...hf.origin, ancestry: 'custom:android', custom: { ancestry: { name: 'Android', hp: 8, size: 'medium', speed: 25 } } },
         choices: { ...hf.choices, 'ancestry-feat-1': { id: 'custom:radiant-circuitry', name: 'Radiant Circuitry' } } }, ctx)

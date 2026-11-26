@@ -600,10 +600,11 @@ function compileFeats(state, slots, rules, ctx, warnings) {
     const rank = Math.max(0, Math.min(4, value));
     if ((mods.ranks[target] ?? 0) < rank) mods.ranks[target] = rank;
   };
-  const apply = (entry, slot, slotLevel, depth) => {
+  const apply = (entry, slot, slotLevel, depth, limited = false) => {
     const selections = {};
     for (const rule of entry.rules ?? []) {
       if (rule.situational) continue;
+      if (limited && !(rule.key === "ActiveEffectLike" && typeof rule.path === "string" && /^system\.skills\./.test(rule.path))) continue;
       if (rule.key === "ChoiceSet" && typeof rule.flag === "string") {
         const key = choiceKey(slot, rule.flag);
         const raw = state.choices[key];
@@ -625,7 +626,8 @@ function compileFeats(state, slots, rules, ctx, warnings) {
         if (chosen) selections[rule.flag] = chosen;
         if (chosen && child.kind === "feat" && depth < 2) {
           const feat = rules.get(chosen);
-          if (feat) take(feat, key, slotLevel, "child", depth + 1);
+          const multiclass = (entry.traits ?? []).some((t) => /^multiclass$/i.test(t)) && (entry.traits ?? []).some((t) => /^dedication$/i.test(t));
+          if (feat) take(feat, key, slotLevel, "child", depth + 1, multiclass && feat.type !== "feat");
         }
         continue;
       }
@@ -677,11 +679,11 @@ function compileFeats(state, slots, rules, ctx, warnings) {
       }
     }
   };
-  const take = (entry, slot, slotLevel, kind, depth) => {
+  const take = (entry, slot, slotLevel, kind, depth, limited = false) => {
     const prereq = evaluatePrereqs(entry.prerequisites?.text, ctx.prereqContext());
     taken.push({ slot, level: slotLevel, entry, kind, prereq });
     has.add(entry.name.toLowerCase());
-    apply(entry, slot, slotLevel, depth);
+    apply(entry, slot, slotLevel, depth, limited);
   };
   for (const award of ctx.awarded) if (award.level <= level) take(award.entry, `awarded:${award.entry.aon.id}`, award.level, "granted", 0);
   const seen = /* @__PURE__ */ new Map();
