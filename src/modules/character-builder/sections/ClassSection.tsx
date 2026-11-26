@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Box, Button, ButtonBase, Stack } from '@mui/material';
 import { CheckRounded as DoneIcon, ChevronRight as OpenIcon, ShieldOutlined as ClassIcon } from '@mui/icons-material';
-import { greenInk, ink, parchment, rule } from '../../../theme';
+import { greenInk, ink, parchment } from '../../../theme';
 import { tr } from '../../../i18n';
 import { ContentPicker } from '../components/ContentPicker';
+import { SubclassOptions } from '../components/SubclassOptions';
 import { ContentBadge, Folio, Label, PendCount, Pill, ProfPill, SectionHead, SlotCard } from '../components/ui';
-import { cardSx, tint, warmShadow } from '../components/uiTokens';
+import { cardSx, warmShadow } from '../components/uiTokens';
 import { attributeLabel } from '../engine/attributes';
 import { rankName } from '../engine/compile';
 import type { Rank } from '../engine/types';
@@ -105,27 +106,8 @@ export function ClassSection({ state, update, core, mesaRules, canEdit, index, c
         return (
           <Box key={slot.key} sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 0.5 }}>
             {head}
-            <Box role="radiogroup" aria-label={slot.label} sx={[cardSx, { display: 'flex', flexDirection: 'column', overflow: 'hidden' }]}>
-              {slot.options.map((o, i) => {
-                const on = o.id === slot.chosen;
-                return (
-                  <ButtonBase key={o.id} role="radio" aria-checked={on} disabled={!canEdit} data-view=""
-                    onClick={() => setChoice(update, slot.key, on ? null : { id: o.id })} sx={{
-                      display: 'flex', alignItems: 'center', gap: 1.5, minHeight: 48, px: 1.75, width: 1, justifyContent: 'flex-start', textAlign: 'left',
-                      borderBottom: i === slot.options.length - 1 ? 0 : `1px solid ${rule}`, bgcolor: on ? tint.green : 'transparent',
-                    }}>
-                    <Box component="span" aria-hidden sx={{ width: 20, height: 20, borderRadius: '50%', border: `2px solid ${on ? greenInk.mid : ink.disabled}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
-                      {on && <Box component="span" sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: greenInk.mid }} />}
-                    </Box>
-                    <Box component="span" sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                      <Box component="span" sx={{ fontWeight: on ? 700 : 400 }}>{o.name}</Box>
-                      {on && o.summary && <Box component="span" sx={{ fontSize: 13, color: ink.secondary }} lang="en">{o.summary.slice(0, 140)}{o.summary.length > 140 ? '…' : ''}</Box>}
-                    </Box>
-                    {!o.remaster && <ContentBadge kind="legacy" />}
-                  </ButtonBase>
-                );
-              })}
-            </Box>
+            <SubclassOptions label={slot.label} options={slot.options} chosen={slot.chosen} disabled={!canEdit}
+              onChoose={(id) => setChoice(update, slot.key, id ? { id } : null)} />
           </Box>
         );
       })}
