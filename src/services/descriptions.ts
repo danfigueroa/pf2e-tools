@@ -192,7 +192,7 @@ async function fetchOne<T>(
             const r = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ names: [name] }),
+                body: JSON.stringify({ names: [name], version: CACHE_VERSION }),
             })
             if (!r.ok) return null
             const data = await r.json()
@@ -291,7 +291,7 @@ export async function prefetchSpellDescriptions(
                 const r = await fetch('/api/spells', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ names: chunk }),
+                    body: JSON.stringify({ names: chunk, version: CACHE_VERSION }),
                 })
                 if (r.ok) {
                     const data = (await r.json()) as Record<string, SpellDescription | undefined>

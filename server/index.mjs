@@ -2,6 +2,7 @@ import 'dotenv/config'
 import http from 'node:http'
 import { URL } from 'node:url'
 import { resolveSpell, resolveSpells } from '../api/_lib/spells-core.js'
+import { readStoredDescriptions, withStoredDescriptions, writeStoredDescriptions } from '../api/_lib/description-store.js'
 import { resolveFeat, resolveItem, resolveSpecial } from '../api/_lib/feat-core.js'
 import { resolveCompanions } from '../api/_lib/companion-core.js'
 import { resolveCreatures } from '../api/_lib/creature-core.js'
@@ -458,15 +459,18 @@ const server = http.createServer(async (req, res) => {
     }
     try {
       const CONCURRENCY = 3
-      const results = {}
-      for (let i = 0; i < names.length; i += CONCURRENCY) {
-        const chunk = names.slice(i, i + CONCURRENCY)
-        const resolved = await Promise.all(chunk.map(async n => {
-          return (await resolveEntryCached(n, 'feat', lang)) || { name: n, description: null }
-        }))
-        // Chavear pelo nome de INPUT (não pelo nome do AON), como no serverless.
-        resolved.forEach((r, idx) => { results[chunk[idx]] = r })
-      }
+      const results = await withStoredDescriptions({ kind: 'feat', names, version: body?.version, lang }, async (missing) => {
+        const out = {}
+        for (let i = 0; i < missing.length; i += CONCURRENCY) {
+          const chunk = missing.slice(i, i + CONCURRENCY)
+          const resolved = await Promise.all(chunk.map(async n => {
+            return (await resolveEntryCached(n, 'feat', lang)) || { name: n, description: null }
+          }))
+          // Chavear pelo nome de INPUT (não pelo nome do AON), como no serverless.
+          resolved.forEach((r, idx) => { out[chunk[idx]] = r })
+        }
+        return out
+      })
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify(results))
     } catch (e) {
@@ -488,14 +492,18 @@ const server = http.createServer(async (req, res) => {
     }
     try {
       const CONCURRENCY = 3
-      const results = {}
-      for (let i = 0; i < names.length; i += CONCURRENCY) {
-        const chunk = names.slice(i, i + CONCURRENCY)
-        const resolved = await Promise.all(chunk.map(async n => {
-          return (await resolveEntryCached(n, parsedUrl.searchParams.get('kind') === 'item' ? 'item' : 'special', lang)) || { name: n, description: null }
-        }))
-        resolved.forEach((r, idx) => { results[chunk[idx]] = r })
-      }
+      const kind = parsedUrl.searchParams.get('kind') === 'item' ? 'item' : 'special'
+      const results = await withStoredDescriptions({ kind, names, version: body?.version, lang }, async (missing) => {
+        const out = {}
+        for (let i = 0; i < missing.length; i += CONCURRENCY) {
+          const chunk = missing.slice(i, i + CONCURRENCY)
+          const resolved = await Promise.all(chunk.map(async n => {
+            return (await resolveEntryCached(n, kind, lang)) || { name: n, description: null }
+          }))
+          resolved.forEach((r, idx) => { out[chunk[idx]] = r })
+        }
+        return out
+      })
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify(results))
     } catch (e) {
@@ -519,9 +527,10 @@ const server = http.createServer(async (req, res) => {
       // Mesmo caminho do serverless: um grupo traduz numa chamada só. O cache
       // em memória atende o que já veio; só o resto vai ao núcleo.
       const GROUP = 6
-      const results = {}
+      const stored = await readStoredDescriptions(body?.version, lang, 'spell', names).catch(() => ({}))
+      const results = { ...stored }
       const missing = []
-      for (const n of names) {
+      for (const n of names.filter((x) => !stored[x])) {
         const hit = CACHE.get(`${langKey(lang)}spell:${n}`)
         if (hit) results[n] = hit
         else missing.push(n)
@@ -536,6 +545,7 @@ const server = http.createServer(async (req, res) => {
           results[group[idx]] = r || { name: group[idx], description: null }
         })
       }
+      await writeStoredDescriptions(body?.version, lang, 'spell', Object.fromEntries(missing.map((n) => [n, results[n]]))).catch(() => {})
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify(results))
     } catch (e) {

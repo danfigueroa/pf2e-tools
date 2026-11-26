@@ -4,6 +4,7 @@
 import { resolveSpells } from './_lib/spells-core.js'
 import { hasTranslationKey } from './_lib/aon.js'
 import { apiLang } from './_lib/i18n.js'
+import { withStoredDescriptions } from './_lib/description-store.js'
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')

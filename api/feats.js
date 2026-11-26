@@ -3,6 +3,7 @@
 import { resolveFeat, resolveMany } from './_lib/feat-core.js'
 import { hasTranslationKey } from './_lib/aon.js'
 import { apiLang } from './_lib/i18n.js'
+import { withStoredDescriptions } from './_lib/description-store.js'
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -19,7 +20,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const results = await resolveMany(names, lang === 'en' ? false : hasTranslationKey(), resolveFeat, 3, lang)
+    const results = await withStoredDescriptions({ kind: 'feat', names, version: req.body?.version, lang },
+      (missing) => resolveMany(missing, lang === 'en' ? false : hasTranslationKey(), resolveFeat, 3, lang))
     return res.status(200).json(results)
   } catch (error) {
     console.error('Feats batch API error:', error)
