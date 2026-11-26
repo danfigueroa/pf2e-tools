@@ -89,7 +89,7 @@ function AttrCell({ attr, mod, partial, isKey, big }: { attr: AttributeKey; mod:
  * atributos (o chave em ouro com losango) e os números principais. Tocar num número abre a conta. Moldura verde nos dois
  * temas; no celular encosta nas bordas.
  */
-export function CharacterHero({ name, subtitle, portrait, compiled, save, actions, badge, back, compact }: {
+export function CharacterHero({ name, subtitle, portrait, compiled, save, actions, badge, back, compact, avatar }: {
   name: string;
   subtitle: string;
   portrait?: string;
@@ -101,6 +101,8 @@ export function CharacterHero({ name, subtitle, portrait, compiled, save, action
   back?: ReactNode;
   /** Só a linha do nome (revisão, painel). */
   compact?: boolean;
+  /** O medalhão no lugar do padrão (o que troca a imagem do personagem). */
+  avatar?: (size: number) => ReactNode;
 }) {
   const src = useImageUrl(portrait);
   const mods = compiled?.attributes.mod;
@@ -112,8 +114,8 @@ export function CharacterHero({ name, subtitle, portrait, compiled, save, action
       <Box sx={{ px: { xs: 2, md: 4 }, pt: { xs: 1.75, md: 2 }, pb: compact ? 1.75 : 0 }}>
         {back}
         <Box sx={{ display: 'flex', gap: { xs: 1.5, md: 2.5 }, alignItems: 'center', flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
-          <Box sx={{ display: { xs: 'none', md: 'block' } }}><Medallion name={name} src={src} size={84} /></Box>
-          <Box sx={{ display: { xs: 'block', md: 'none' } }}><Medallion name={name} src={src} size={56} /></Box>
+          <Box sx={{ display: { xs: 'none', md: 'block' } }}>{avatar ? avatar(84) : <Medallion name={name} src={src} size={84} />}</Box>
+          <Box sx={{ display: { xs: 'block', md: 'none' } }}>{avatar ? avatar(56) : <Medallion name={name} src={src} size={56} />}</Box>
           <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: { md: 0.5 } }}>
             <Box component="h1" sx={{ m: 0, font: `700 22px/1.1 ${displayFont}`, fontSize: { md: 34 }, color: chrome.text, overflowWrap: 'anywhere' }}>
               {name || tr('Sem nome', 'Unnamed')}

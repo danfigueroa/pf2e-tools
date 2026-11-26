@@ -36,6 +36,7 @@ import { RemasterDialog } from './components/RemasterDialog';
 import { BuildExceptions } from './hooks/buildExceptions';
 import { ApplyDialog } from './components/ApplyDialog';
 import { LevelUpDialog } from './components/LevelUpDialog';
+import { HeroPortrait } from './components/HeroPortrait';
 import { statDiff } from './components/levelDiff';
 import { ManualSection } from './sections/ManualSection';
 import { createBuild, saveBuild, saveMesaRules } from '../../services/builds';
@@ -203,6 +204,7 @@ export function BuilderMode({ buildId }: { buildId: string }) {
   };
 
   const rulesVersion = rules.core?.version ?? null;
+  const setPortrait = (url: string) => update((s) => ({ ...s, details: { ...s.details, portrait: url } }));
   const tabPending = (key: BuilderTab) => compiled?.pending.filter((p) => tabOf(p.key) === key).length ?? 0;
   const open = (nextTab: BuilderTab, key?: string) => {
     if (nextTab === 'equipment') setItemsWanted(true);
@@ -546,7 +548,11 @@ export function BuilderMode({ buildId }: { buildId: string }) {
           )}
           save={<SaveIndicator status={saveStatus} conflict={!!conflict} />}
           badge={<Box sx={{ display: { xs: 'none', md: 'block' } }}><StateBadge state={publish} onFrameBg={publish === 'changed'} /></Box>}
-          actions={heroActions} />
+          actions={heroActions}
+          avatar={(size) => (
+            <HeroPortrait slug={build.slug} name={state.name} portrait={state.details.portrait} published={build.publishedRev !== null}
+              canEdit={canEdit} onPortrait={setPortrait} size={size} />
+          )} />
 
         {!canEdit && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, px: 2, py: 1.25, bgcolor: tint.info, borderBottom: `1px solid ${rule}`, mx: { xs: -1.5, sm: 0 }, fontSize: 14 }}>

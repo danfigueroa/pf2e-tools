@@ -60,7 +60,7 @@ export function DetailsSection({ state, build, update, canEdit, members, owner, 
         </Box>
         <TextField size="small" label={tr('Retrato (endereço da imagem)', 'Portrait (image address)')} value={state.details.portrait ?? ''}
           onChange={(e) => setDetail('portrait', e.target.value.trim())} slotProps={{ htmlInput: { maxLength: 500, readOnly: !canEdit, inputMode: 'url' } }}
-          helperText={tr('Aparece no medalhão do resumo e na página da Wiki.', 'Shows in the summary medallion and on the wiki page.')} />
+          helperText={tr('É o token do personagem na Ficha e no mapa. Para enviar uma imagem, toque no medalhão do resumo.', 'It is the character token on the Sheet and the map. To upload an image, tap the summary medallion.')} />
         {members && onOwner && (
           <TextField select size="small" label={tr('Dono', 'Owner')} sx={{ maxWidth: 280 }} value={owner ?? ''}
             onChange={(e) => onOwner(e.target.value || null)}>
