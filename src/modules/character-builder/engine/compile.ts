@@ -15,7 +15,7 @@ import { attributeLabel, compileAttributes } from './attributes'
 import { backgroundLoreChoice, compileSkills } from './skills'
 import { compileFeats, prereqWarnings } from './feats'
 import type { PrereqContext } from './prereqs'
-import { checkSpellChoices, compileArchetypeCasters, compileCasters, compileFocus } from './spells'
+import { checkSpellChoices, compileArchetypeCasters, compileCasters, compileFocus, focusGrants } from './spells'
 import {
     ADVANCED_SCHOOL_SPELL, adjustedClass, archetypeOfSubclass, BLOODRAGER, CLASS_ARCHETYPE, CLASS_ARCHETYPES, PALATINE_DETECTIVE,
     QUICK_IDENTIFICATION, RUNELORD, selectedClassArchetype, WAR_MAGE,
@@ -495,8 +495,16 @@ export function compileBuild(state: BuildState, baseCtx: CompileContext): Compil
         level, mod, keyAttribute, classArchetype: archetypeId, table: ctx.tables?.spellSlots?.archetype, classByName: (n) => rules.byName(n, 'class'),
     }, pending, warnings, used))
     checkSpellChoices(state, casters, (id) => rules.get(id), pending, warnings, level)
-    const focusIds = Object.values(state.spellcasting.focus?.repertoire ?? {}).flat()
-    const focus = compileFocus(focusIds.map((id) => rules.get(id)).filter((e): e is RuleEntry => !!e), level)
+    // Foco: o que a classe, a subclasse e os talentos concedem (texto da AON) mais o que o jogador escolheu à mão.
+    const focusSources = [
+        // O id do catálogo é `tipo:aon_id`: a característica vale mesmo fora das listas carregadas.
+        ...(c?.features ?? []).map((f) => ({ aon: f.id?.split(':')[1], name: f.name, level: f.level })),
+        ...classChoices.flatMap((slot) => slot.chosen ? [{ aon: slot.chosen.split(':')[1], name: rules.get(slot.chosen)?.name ?? slot.chosen, level: slot.level, subclass: true }] : []),
+        ...feats.taken.map((t) => ({ aon: t.entry.aon?.id, name: t.entry.name, level: 0 })),
+    ]
+    const grants = focusGrants(state, focusSources, level, (id) => rules.get(id), pending, used, missingRefs)
+    const focusIds = [...grants.granted.map((g) => g.id), ...Object.values(state.spellcasting.focus?.repertoire ?? {}).flat()]
+    const focus = { ...compileFocus(focusIds.map((id) => rules.get(id)).filter((e): e is RuleEntry => !!e), level), granted: grants.granted, choices: grants.choices }
 
     // Ajustes permanentes à mão (com motivo): entram nos números, sempre com aviso.
     const adjust = { hp: 0, speed: 0, items: {} as Record<string, number> }

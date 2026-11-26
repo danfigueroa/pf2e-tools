@@ -500,6 +500,19 @@ expect('Cleric conhece a lista divina inteira (Player Core pg. 108)', knownOf('C
 expect('Wizard: grimório com 10 truques e 5 magias no 1º nível (Player Core pg. 192)', [knownOf('Wizard', 1, 'int')?.cantrips, knownOf('Wizard', 1, 'int')?.spells], [10, 5])
 expect('Wizard: duas magias a mais por nível (5 + 2 × 4 no 5º)', knownOf('Wizard', 5, 'int')?.spells, 13)
 if (find('core/classes', 'Witch')) expect('Witch: o familiar é o livro (Player Core pg. 178)', [knownOf('Witch', 1, 'int')?.kind, knownOf('Witch', 1, 'int')?.cantrips], ['book', 10])
+// Foco concedido pelo texto da AON (focusGrants.gen.ts): Grave Spells dá Necrotic Bomb e os truques Create Thrall e
+// Thrall Charge, e a fascinação Bone dá Bone Spear ("you start with a focus pool of 2 Focus Points", Impossible Magic pg. 27).
+{
+    const necro = find('core/classes', 'Necromancer')
+    const out = compileBuild(base({ level: 1, class: { id: necro.id, keyAttribute: 'int' }, choices: { 'class-choice:grim-fascination': { id: 'grim-fascination:grim-fascination-2' } } }), ctxSpells)
+    expect('Necromancer 1 (Bone): 4 magias de foco concedidas', out.focus.granted.map((g) => g.from).sort(), ['Bone', 'Grave Spells', 'Grave Spells', 'Grave Spells'])
+    const sorc = find('core/classes', 'Sorcerer')
+    const s1 = compileBuild(base({ level: 1, class: { id: sorc.id, keyAttribute: 'cha' }, choices: { 'class-choice:bloodline': { id: 'bloodline:bloodline-19' } } }), ctxSpells)
+    expect('Sorcerer Aberrant 1: só a magia inicial da linhagem (Player Core 2 pg. 149)', s1.focus.granted.length, 1)
+    const witch = find('core/classes', 'Witch')
+    const w1 = compileBuild(base({ level: 1, class: { id: witch.id, keyAttribute: 'int' } }), ctxSpells)
+    expect('Witch: Hex Spells pede a escolha entre os dois hexes', w1.pending.some((p) => p.key === 'focus-choice:class-feature-773'), true)
+}
 if (find('core/classes', 'Bard')) {
     const bard = compileBuild(base({ level: 5, class: { id: find('core/classes', 'Bard').id, keyAttribute: 'cha' } }), ctxSpells).casters[0]
     expect('Bard: repertório = espaços da tabela por rank (Player Core pg. 94)', bard?.known?.perRank, bard?.perDay)

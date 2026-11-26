@@ -6,6 +6,7 @@
 // - Foco (Player Core pg. 298): pool = número de magias de foco que gastam ponto, até 3; truques de foco não contam.
 //   Magias de foco e truques são elevados à metade do nível, arredondada para cima.
 import { BLOODRAGER, CLASS_ARCHETYPES } from './classArchetypes'
+import { FOCUS_GRANTS } from './focusGrants.gen'
 import { tr } from '../../../i18n'
 import type { BuildState } from '../types'
 import type { RuleEntry } from '../rules/types'
@@ -101,6 +102,63 @@ export interface FocusInfo {
     points: number
     /** Rank em que magias de foco e truques são lançados. */
     heightened: number
+    /** As que vêm sozinhas (característica, subclasse, talento), com o nome de quem concede. */
+    granted: { id: string; from: string }[]
+    /** Concessões com escolha ("your choice of X or Y"): a aba Magias pergunta. */
+    choices: FocusChoice[]
+}
+
+export interface FocusChoice {
+    key: string
+    from: string
+    level: number
+    options: string[]
+    chosen?: string
+}
+
+/**
+ * Talentos que sobem o degrau da magia da subclasse (texto da AON): "You gain the advanced bloodline spell associated
+ * with your bloodline" (Advanced Bloodline, feat-6099), Greater Bloodline (feat-6108), Advanced Revelation (feat-6063),
+ * Greater Revelation (feat-6076) e Advanced School Spell (feat-5036).
+ */
+const TIER_FEATS: Record<string, 'advanced' | 'greater'> = {
+    'feat-6099': 'advanced', 'feat-6108': 'greater', 'feat-6063': 'advanced', 'feat-6076': 'greater', 'feat-5036': 'advanced',
+}
+
+/**
+ * Magias de foco concedidas, pela tabela lida do texto da AON (`focusGrants.gen.ts`, de `fetch-focus-grants.mjs`): as
+ * características de classe até o nível, a subclasse escolhida (inicial, e avançada/maior com o talento que a sobe) e os
+ * talentos. Concessão com escolha vira pendência `focus-choice:<aon_id>`. Id fora das listas carregadas vai para
+ * `missing`, que o carregador busca e recompila.
+ */
+export function focusGrants(state: BuildState, sources: { aon?: string; name: string; level: number; subclass?: boolean }[], level: number,
+    rules: (id: string) => RuleEntry | undefined, pending: Pending[], used: Set<string>, missing: Set<string>) {
+    const granted: { id: string; from: string }[] = []
+    const choices: FocusChoice[] = []
+    const taken = new Set(sources.map((s) => s.aon))
+    const tiers = new Set(Object.entries(TIER_FEATS).filter(([id]) => taken.has(id)).map(([, tier]) => tier))
+    const add = (id: string, from: string) => {
+        if (!rules(id)) missing.add(id)
+        if (!granted.some((g) => g.id === id)) granted.push({ id, from })
+    }
+    for (const { aon, name, level: at, subclass } of sources) {
+        const g = aon ? FOCUS_GRANTS[aon] : undefined
+        if (!g || at > level) continue
+        const reached = (id: string) => (g.atLevel?.[id] ?? 0) <= level
+        for (const id of g.initial ?? []) if (reached(id)) add(id, name)
+        if (subclass) for (const tier of tiers) for (const id of g[tier] ?? []) add(id, name)
+        if (g.choice?.length) {
+            const key = `focus-choice:${aon}`
+            used.add(key)
+            const raw = state.choices[key]
+            const chosen = raw && 'id' in raw && g.choice.includes(raw.id) ? raw.id : undefined
+            for (const id of g.choice) if (!rules(id)) missing.add(id)
+            choices.push({ key, from: name, level: at, options: g.choice, chosen })
+            if (chosen) add(chosen, name)
+            else pending.push({ key, label: tr(`Magia de foco: ${name}`, `Focus spell: ${name}`), level: at, missing: 1 })
+        }
+    }
+    return { granted, choices }
 }
 
 const TRADITIONS: Tradition[] = ['arcane', 'divine', 'occult', 'primal']
@@ -217,7 +275,7 @@ export function compileFocus(granted: RuleEntry[], level: number): FocusInfo {
     const unique = [...new Map(granted.filter((s) => s.spell?.focus || (s.traits ?? []).includes('Focus')).map((s) => [s.id, s])).values()]
     const cantrips = unique.filter((s) => s.spell?.cantrip || (s.traits ?? []).includes('Cantrip'))
     const spells = unique.filter((s) => !cantrips.includes(s))
-    return { spells, cantrips, points: Math.min(3, spells.length), heightened: Math.ceil(level / 2) }
+    return { spells, cantrips, points: Math.min(3, spells.length), heightened: Math.ceil(level / 2), granted: [], choices: [] }
 }
 
 /** Tabela de arquétipo (Player Core pg. 215): nível → rank do espaço, por patamar (Basic, Expert, Master). */
