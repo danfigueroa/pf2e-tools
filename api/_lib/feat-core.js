@@ -81,7 +81,23 @@ function emptyEntry(name, description, itemType) {
 }
 
 /** Busca no AON e parseia em EN — a parte barata, sem LLM. Ver `resolveEntries`. */
-async function prepareEntry(rawName, categories, itemType, translationEnabled) {
+/** Categorias da AON que um nome pode trazer entre colchetes ("Bone [grim-fascination]"). */
+const TAGGABLE = new Set([...SPECIAL_CATEGORIES.filter(Boolean), 'ancestry', 'background', 'class', 'deity', 'archetype'])
+
+/**
+ * "Bone [grim-fascination]": o Criador pede a opção do catálogo com a categoria junto, porque só pelo nome a busca
+ * casava outra coisa (o material "Bone" no lugar do fascínio do Necromancer). Com a etiqueta, só aquela categoria vale;
+ * o nome com a etiqueta é a chave no banco, então não colide com o "Bone" da ficha do Pathbuilder.
+ */
+export function splitCategoryTag(raw) {
+  const m = /^(.*\S) \[([a-z][a-z-]{1,30})\]$/.exec(String(raw || '').trim())
+  return m && TAGGABLE.has(m[2]) ? { name: m[1], category: m[2] } : null
+}
+
+async function prepareEntry(rawInput, baseCategories, itemType, translationEnabled) {
+  const tag = splitCategoryTag(rawInput)
+  const rawName = tag ? tag.name : rawInput
+  const categories = tag ? [tag.category] : baseCategories
   const fullName = String(rawName || '').trim()
   const searchName = cleanSearchName(rawName) || fullName
   const isExact = (hit, name) => hit?._source?.name?.trim().toLowerCase() === String(name).trim().toLowerCase()
