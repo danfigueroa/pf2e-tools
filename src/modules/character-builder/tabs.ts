@@ -43,7 +43,7 @@ const ATTRS = new Set(['str', 'dex', 'con', 'int', 'wis', 'cha'])
 
 export function tabOf(ref: string | undefined): BuilderTab {
     if (!ref) return 'origin'
-    if (ref === 'class' || ref === 'class-key' || ref === 'class-archetype') return 'class'
+    if (ref === 'class' || ref === 'class-key' || ref === 'class-archetype' || ref === 'archetype-feat-2') return 'class'
     if (ref.startsWith('spells') || ref.startsWith('focus-choice:') || ref === 'spell-tradition') return 'spells'
     if (ref === 'equipment') return 'equipment'
     if (ref.startsWith('companion')) return 'companions'

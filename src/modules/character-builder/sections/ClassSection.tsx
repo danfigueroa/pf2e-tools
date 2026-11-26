@@ -8,6 +8,7 @@ import { ContentBadge, Folio, Label, PendCount, Pill, ProfPill, SectionHead } fr
 import { cardSx, warmShadow } from '../components/uiTokens';
 import { attributeLabel } from '../engine/attributes';
 import { rankName } from '../engine/compile';
+import type { FeatSlot } from '../engine/slots';
 import type { Rank } from '../engine/types';
 import type { RuleEntry } from '../rules/types';
 import { Fact } from './OriginSection';
@@ -55,7 +56,10 @@ const Segmented = ({ options, value, onChange, disabled }: { options: { value: s
 );
 
 /** Aba Classe: a classe, o atributo-chave (o boost da classe, Player Core pg. 17), a subclasse do 1º nível e o arquétipo de classe. */
-export function ClassSection({ state, update, core, mesaRules, canEdit, index, compiled }: SectionProps) {
+export function ClassSection({ state, update, core, mesaRules, canEdit, index, compiled, freeArchetype, onChooseDedication }: SectionProps & {
+  freeArchetype?: FeatSlot;
+  onChooseDedication: (slot: FeatSlot) => void;
+}) {
   const [picker, setPicker] = useState<'class' | 'archetype' | string | null>(null);
   const baseClass = index.get(state.class.id);
   const archetypeId = selectedClassArchetype(state.choices[CLASS_ARCHETYPE], baseClass);
@@ -68,6 +72,9 @@ export function ClassSection({ state, update, core, mesaRules, canEdit, index, c
   const chevron = <OpenIcon sx={{ color: ink.secondary }} />;
   const c = cls?.class;
   const tradition = c?.casting?.traditions?.length ? c.casting.traditions.join('/') : null;
+  const freeChoice = freeArchetype ? state.choices[freeArchetype.key] : undefined;
+  const freeId = freeChoice && 'id' in freeChoice ? freeChoice.id : undefined;
+  const freeName = freeId ? index.get(freeId)?.name ?? freeId : undefined;
 
   return (
     <Stack spacing={1.5}>
@@ -111,6 +118,14 @@ export function ClassSection({ state, update, core, mesaRules, canEdit, index, c
           onClick={() => setPicker('archetype')}
           meta={tr('A dedicação ocupa o talento de classe do nível 2.', 'Its dedication uses the 2nd-level class feat slot.')}
           trailing={canEdit && archetype ? <Button size="small" onClick={(e) => { e.stopPropagation(); setChoice(update, CLASS_ARCHETYPE, null); }}>{tr('Remover', 'Remove')}</Button> : chevron} />
+      )}
+
+      {freeArchetype && (
+        <Folio label={tr(`Arquétipo livre · nível ${freeArchetype.level}`, `Free archetype · level ${freeArchetype.level}`)}
+          name={freeName ?? tr('Escolher dedicação', 'Choose a dedication')} todo={!freeChoice && canEdit}
+          onClick={canEdit ? () => onChooseDedication(freeArchetype) : undefined} trailing={canEdit ? chevron : undefined}
+          meta={tr('Escolha a dedicação para a primeira vaga de Arquétipo Livre. Os próximos talentos ficam na aba Talentos.',
+            'Choose a dedication for the first Free Archetype slot. Further feats are in the Feats tab.')} />
       )}
 
       {cls && c && (

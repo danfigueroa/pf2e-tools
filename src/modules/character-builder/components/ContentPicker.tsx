@@ -66,6 +66,9 @@ export interface ContentPickerProps {
   cast?: (entry: RuleEntry) => SpellCast | undefined;
   /** Filtros já ligados ao abrir (magias de foco: o traço da classe). A pessoa limpa se quiser. */
   initialFilters?: Partial<PickerFilterState>;
+  /** Atalho para continuar a escolha em outra lista. */
+  browseAction?: { label: string; onClick: () => void };
+  emptyText?: string;
 }
 
 const traitsOf = (e: RuleEntry) => (e.traits ?? []).filter((t) => !['common', 'uncommon', 'rare', 'unique'].includes(t.toLowerCase()));
@@ -88,7 +91,7 @@ function whyText(el: Eligibility): { text: string; unknown: boolean } | null {
  * ("Escolher mesmo assim" vira aviso). Celular: lista em tela cheia e o detalhe numa folha que sobe. Desktop: as duas
  * colunas. ↑/↓ andam, Enter escolhe, Esc fecha. A descrição completa (pt/en) vem do pipeline de descrições, sob demanda.
  */
-export function ContentPicker({ open, title, subtitle, entries, value, onPick, onClose, mesaRules, facts, secondary, prereq, note, levelCap, keepOpen, pickLabel, picked, cast, initialFilters }: ContentPickerProps) {
+export function ContentPicker({ open, title, subtitle, entries, value, onPick, onClose, mesaRules, facts, secondary, prereq, note, levelCap, keepOpen, pickLabel, picked, cast, initialFilters, browseAction, emptyText }: ContentPickerProps) {
   const theme = useTheme();
   const wide = useMediaQuery(theme.breakpoints.up('md'));
   const [q, setQ] = useState('');
@@ -200,7 +203,9 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
             if (e.key === 'Enter' && focused) { e.preventDefault(); choose(focused); }
           }} />
       </Box>
-      <Box sx={{ display: 'flex', gap: 0.75, overflowX: 'auto', mx: { xs: -2, md: 0 }, px: { xs: 2, md: 0 }, pb: { xs: 0.25, md: 0 } }}>
+      <Box sx={{ display: 'flex', gap: 0.75, flexWrap: browseAction ? { xs: 'wrap', md: 'nowrap' } : 'nowrap', overflowX: 'auto',
+        mx: { xs: -2, md: 0 }, px: { xs: 2, md: 0 }, pb: { xs: 0.25, md: 0 } }}>
+        {browseAction && chip(false, browseAction.label, browseAction.onClick)}
         {levelCap !== undefined && chip(capOn, tr(`Até nível ${levelCap}`, `Up to level ${levelCap}`), () => setCapOn(!capOn), capOn)}
         {mesaRules && chip(onlyAllowed, tr('Só o liberado', 'Only allowed'), () => setOnlyAllowed(!onlyAllowed), onlyAllowed)}
         {chip(nFilters > 0 || filtersOpen, <><TuneIcon sx={{ fontSize: 16 }} />{nFilters ? tr(`Filtros · ${nFilters}`, `Filters · ${nFilters}`) : tr('Filtros', 'Filters')}
@@ -269,7 +274,7 @@ export function ContentPicker({ open, title, subtitle, entries, value, onPick, o
             <Button size="small" data-view="" onClick={() => setLimit((n) => n + PAGE)}>{tr('Mostrar mais', 'Show more')}</Button>
           </Box>
         )}
-        {shown.length === 0 && <Box sx={{ p: 2, fontSize: 14, color: ink.secondary }}>{tr('Nada encontrado.', 'Nothing found.')}</Box>}
+        {shown.length === 0 && <Box sx={{ p: 2, fontSize: 14, color: ink.secondary }}>{!entries.length && emptyText ? emptyText : tr('Nada encontrado.', 'Nothing found.')}</Box>}
       </Box>
     </Box>
   );

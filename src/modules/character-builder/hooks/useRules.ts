@@ -33,7 +33,7 @@ export interface UseRules {
     error: boolean
 }
 
-export function useRules(needs?: FeatListNeeds): UseRules & { feats: RuleEntry[]; tables: { spellSlots?: SpellSlotTable } | null; setMesaRules: (r: MesaRules) => void } {
+export function useRules(needs?: FeatListNeeds): UseRules & { feats: RuleEntry[]; featLists: Readonly<Record<string, RuleEntry[]>>; tables: { spellSlots?: SpellSlotTable } | null; setMesaRules: (r: MesaRules) => void } {
     const [tables, setTables] = useState<{ spellSlots?: SpellSlotTable } | null>(null)
     const [core, setCore] = useState<CoreRules | null>(null)
     const [featLists, setFeatLists] = useState<Record<string, RuleEntry[]>>({})
@@ -101,5 +101,5 @@ export function useRules(needs?: FeatListNeeds): UseRules & { feats: RuleEntry[]
         return () => { alive = false }
     }, [core, loaded, missing])
 
-    return { core: merged, index, mesaRules, error, feats, tables, setMesaRules }
+    return { core: merged, index, mesaRules, error, feats, featLists, tables, setMesaRules }
 }

@@ -17,6 +17,8 @@ import { useBuild } from './hooks/useBuild';
 import { useRules, type FeatListNeeds } from './hooks/useRules';
 import { needsOf } from './engine/catalog';
 import { compileBuild } from './engine/compile';
+import type { FeatSlot } from './engine/slots';
+import { ArchetypeDedicationPicker } from './components/ArchetypeDedicationPicker';
 import { CharacterHero, SaveIndicator } from './components/CharacterHero';
 import { heroSubtitle } from './components/heroText';
 import { PendingAside, PendingSheet } from './components/PendingPanel';
@@ -74,6 +76,9 @@ export function BuilderMode({ buildId }: { buildId: string }) {
   const rules = useRules(needs);
   const [className, setClassName] = useState<string | null>(null);
   const [browseArchetype, setBrowseArchetype] = useState<string | null>(null);
+  const [dedicationSlot, setDedicationSlot] = useState<FeatSlot | null>(null);
+  const chooseDedication = (slot: FeatSlot) => { setBrowseArchetype(null); setDedicationSlot(slot); };
+  const closeDedication = () => { setBrowseArchetype(null); setDedicationSlot(null); };
   // A seção Equipamento pede as listas de item mesmo com o inventário vazio.
   const [itemsWanted, setItemsWanted] = useState(false);
   // Tradições dos conjuradores que o motor achou (arquétipo incluído): as listas delas também baixam.
@@ -206,13 +211,17 @@ export function BuilderMode({ buildId }: { buildId: string }) {
   const rulesVersion = rules.core?.version ?? null;
   const setPortrait = (url: string) => update((s) => ({ ...s, details: { ...s.details, portrait: url } }));
   const tabPending = (key: BuilderTab) => compiled?.pending.filter((p) => tabOf(p.key) === key).length ?? 0;
+  const firstFreeArchetype = state.class.id ? compiled?.featSlots.find((slot) => slot.kind === 'archetype') : undefined;
   const open = (nextTab: BuilderTab, key?: string) => {
     if (nextTab === 'equipment') setItemsWanted(true);
     if (guided) setGuided(false);
     setTab(nextTab);
     setPendingOpen(false);
     if (key && nextTab === 'progression') setFocus((f) => ({ key, n: (f?.n ?? 0) + 1 }));
-    else window.scrollTo({ top: 0, behavior: 'smooth' });
+    else {
+      if (canEdit && key && key === firstFreeArchetype?.key) chooseDedication(firstFreeArchetype);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   // Retreino (F8.6): trocar a escolha de um slot que já tinha valor, num personagem já aplicado na mesa, fica no
@@ -384,7 +393,7 @@ export function BuilderMode({ buildId }: { buildId: string }) {
     }
     switch (key) {
       case 'origin': return <OriginSection {...sectionProps} />;
-      case 'class': return <ClassSection {...sectionProps} />;
+      case 'class': return <ClassSection {...sectionProps} freeArchetype={firstFreeArchetype} onChooseDedication={chooseDedication} />;
       case 'attributes': return <AttributesSection {...sectionProps} />;
       case 'skills': return <SkillsSection {...sectionProps} />;
       case 'spells': return <SpellsSection {...sectionProps} spells={rules.feats.filter((e) => e.type === 'spell' || e.type === 'ritual')} />;
@@ -394,8 +403,8 @@ export function BuilderMode({ buildId }: { buildId: string }) {
       case 'companions': return <CompanionsSection {...sectionProps} entries={rules.feats} />;
       case 'progression':
         return (
-          <ProgressionSection {...sectionProps} feats={rules.feats} archetypes={core?.archetypes ?? []} who={who}
-            browseArchetype={browseArchetype} setBrowseArchetype={setBrowseArchetype} initialSlot={focus?.key} focusNonce={focus?.n}
+          <ProgressionSection {...sectionProps} feats={rules.feats} who={who} onChooseDedication={chooseDedication}
+            initialSlot={focus?.key} focusNonce={focus?.n}
             next={next} onLevelUp={state.level < 20 ? () => setLevelUpOpen(true) : undefined} />
         );
     }
@@ -600,6 +609,10 @@ export function BuilderMode({ buildId }: { buildId: string }) {
                 <Box component="p" sx={{ mt: 0, mb: 1.5, fontSize: 14, color: ink.secondary }}>{TAB_HELP[current]}</Box>
               )}
               {guided ? (step === 'start' ? startStep : step === 'review' ? reviewStep : renderSection(step)) : renderSection(section)}
+              {canEdit && sectionProps && dedicationSlot && (
+                <ArchetypeDedicationPicker {...sectionProps} slot={dedicationSlot} archetype={browseArchetype}
+                  onBrowse={setBrowseArchetype} onClose={closeDedication} featLists={rules.featLists} feats={rules.feats} />
+              )}
             </BuildExceptions.Provider>
             {stepBar}
           </Box>

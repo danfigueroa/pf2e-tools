@@ -2,6 +2,8 @@
 import type { Compiled, RulesIndex } from '../engine/types'
 import type { CoreRules } from '../hooks/useRules'
 import type { BuildState, MesaRules } from '../types'
+import type { RuleEntry } from '../rules/types'
+import { ruleListSlug } from '../engine/catalog'
 
 /** O que toda aba do modo editar recebe. */
 export interface SectionProps {
@@ -22,4 +24,9 @@ export function setChoice(update: SectionProps['update'], key: string, value: Bu
         else choices[key] = value
         return { ...s, choices }
     })
+}
+
+export function setFeatChoice(update: SectionProps['update'], key: string, id: string, entry: RuleEntry | undefined) {
+    const archetype = entry?.feat?.archetype?.[0]
+    setChoice(update, key, { id, ...(archetype ? { qualifier: `archetype:${ruleListSlug(archetype)}` } : {}) })
 }

@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Box, Button, MenuItem, TextField } from '@mui/material';
 import {
   ArrowUpwardRounded as UpIcon, CheckRounded as DoneIcon, ChevronRight as OpenIcon, WarningAmberRounded as WarnIcon,
@@ -11,13 +11,11 @@ import { featKindLabel, fitsSlot, type FeatSlot } from '../engine/slots';
 import type { ChildSlot } from '../engine/feats';
 import type { Compiled } from '../engine/types';
 import type { RuleEntry } from '../rules/types';
-import { ruleListSlug } from '../rules';
-import { pickerEditions } from '../remaster';
-import { BuildExceptions } from '../hooks/buildExceptions';
+import { ruleListSlug } from '../engine/catalog';
 import { ChildRow, ContentBadge, LevelDisc, PendCount, RibbonCell, SlotCard, type RibbonLook } from '../components/ui';
 import { cardSx, goldButtonSx, tint } from '../components/uiTokens';
 import type { DiffRow } from '../components/levelDiff';
-import { setChoice, type SectionProps } from './types';
+import { setChoice, setFeatChoice, type SectionProps } from './types';
 
 const SAVES = [
   { value: 'fortitude', label: tr('Fortitude', 'Fortitude') },
@@ -43,10 +41,7 @@ type Picking =
 
 export interface ProgressionProps extends SectionProps {
   feats: RuleEntry[];
-  archetypes: RuleEntry[];
-  /** Arquétipo que o seletor está navegando (carrega a lista dele). */
-  browseArchetype: string | null;
-  setBrowseArchetype: (name: string | null) => void;
+  onChooseDedication: (slot: FeatSlot) => void;
   /** Slot a abrir direto (vindo de "Trocar talento" na Ficha ou de uma pendência). */
   initialSlot?: string | null;
   /** Muda a cada pedido, para reabrir o mesmo slot. */
@@ -65,7 +60,7 @@ const levelId = (n: number) => `plano-nivel-${n}`; // i18n-ok: id de âncora
  * O restante do plano fica recolhido até a pessoa pedir.
  */
 export function ProgressionSection(props: ProgressionProps) {
-  const { state, update, compiled, mesaRules, canEdit, index, feats, archetypes, browseArchetype, setBrowseArchetype, initialSlot, focusNonce, next, onLevelUp, who } = props;
+  const { state, update, compiled, mesaRules, canEdit, index, feats, core, onChooseDedication, initialSlot, focusNonce, next, onLevelUp, who } = props;
   const initial = initialSlot ? compiled.featSlots.find((s) => s.key === initialSlot) : undefined;
   const [picking, setPicking] = useState<Picking>(initial && canEdit ? { kind: 'feat', slot: initial } : null);
   const [showFuture, setShowFuture] = useState(!!initial && initial.level > compiled.level + 1);
@@ -73,7 +68,22 @@ export function ProgressionSection(props: ProgressionProps) {
   const takenBySlot = useMemo(() => new Map(compiled.taken.map((t) => [t.slot, t])), [compiled.taken]);
   const takenById = useMemo(() => new Map(compiled.taken.map((t) => [t.entry.id, t])), [compiled.taken]);
   const pendingLevels = useMemo(() => new Set(compiled.pending.map((p) => p.level)), [compiled.pending]);
-  const exceptions = useContext(BuildExceptions);
+  const dedicationLevels = useMemo(() => {
+    const levels = new Map<string, number>();
+    const add = (entry: RuleEntry | undefined, at: number) => {
+      if (!entry?.traits?.some((t) => /^dedication$/i.test(t))) return;
+      for (const name of entry.feat?.archetype ?? []) {
+        const slug = ruleListSlug(name);
+        levels.set(slug, Math.min(at, levels.get(slug) ?? Infinity));
+      }
+    };
+    for (const { entry, level } of compiled.taken) add(entry, level);
+    for (const { key, level } of compiled.featSlots) {
+      const choice = state.choices[key];
+      if (choice && 'id' in choice) add(index.get(choice.id), level);
+    }
+    return levels;
+  }, [compiled.featSlots, compiled.taken, index, state.choices]);
   const className = index.get(state.class.id)?.name;
   const level = compiled.level;
 
@@ -88,7 +98,7 @@ export function ProgressionSection(props: ProgressionProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialSlot, focusNonce]);
 
-  /** Candidatos de um slot: pelo tipo, até o teto de nível; o arquétipo navegado entra nos slots de classe e arquétipo. */
+  /** Candidatos de um slot pelo tipo e teto de nível. */
   const candidates = (kind: FeatSlot['kind'], cap: number, filter?: ChildSlot['filter']) => feats.filter((f) => {
     if ((f.level ?? 0) > cap) return false;
     if (filter) {
@@ -110,9 +120,7 @@ export function ProgressionSection(props: ProgressionProps) {
 
   const pickFeat = (slotKey: string, id: string) => {
     const entry = feats.find((f) => f.id === id);
-    const archetype = entry?.feat?.archetype?.[0];
-    // O arquétipo vai no qualificador: é ele que diz qual lista baixar ao reabrir o personagem.
-    setChoice(update, slotKey, { id, ...(archetype ? { qualifier: `archetype:${ruleListSlug(archetype)}` } : {}) });
+    setFeatChoice(update, slotKey, id, entry ?? index.get(id));
   };
 
   const subtitle = (lvl: number) => tr(`Nível ${lvl} · ${who}`, `Level ${lvl} · ${who}`);
@@ -120,13 +128,22 @@ export function ProgressionSection(props: ProgressionProps) {
     if (!picking) return null;
     if (picking.kind === 'feat') {
       const { slot } = picking;
-      const entries = candidates(slot.kind, slot.maxLevel ?? slot.level);
       const raw = state.choices[slot.key];
+      const value = raw && 'id' in raw ? raw.id : undefined;
+      const cap = slot.maxLevel ?? slot.level;
+      const belongsToDedication = (e: RuleEntry) => e.feat?.archetype?.some((a) => (dedicationLevels.get(ruleListSlug(a)) ?? Infinity) <= slot.level);
+      const entries = candidates(slot.kind, cap).filter((e) => e.id === value || e.id === slot.requiredFeat || e.homebrew ||
+        !e.traits?.some((t) => /^archetype$/i.test(t)) || belongsToDedication(e));
+      const saved = index.get(value);
+      if (saved && !entries.some((e) => e.id === saved.id)) entries.push(saved);
+      const canBrowse = !slot.requiredFeat && (slot.kind === 'class' || slot.kind === 'archetype') && core.archetypes.some((a) => (a.level ?? Infinity) <= cap);
       return (
         <ContentPicker open title={`${slot.maxLevel ? `${slot.label} (≤ ${slot.maxLevel})` : featKindLabel(slot.kind)} — ${tr(`nível ${slot.level}`, `level ${slot.level}`)}`}
           subtitle={subtitle(slot.level)} entries={entries}
-          value={raw && 'id' in raw ? raw.id : undefined} onPick={(id) => pickFeat(slot.key, id)} onClose={() => setPicking(null)}
-          mesaRules={mesaRules} prereq={prereq} note={takenNote(slot.key)} />
+          value={value} onPick={(id) => pickFeat(slot.key, id)} onClose={() => setPicking(null)}
+          mesaRules={mesaRules} prereq={prereq} note={takenNote(slot.key)}
+          browseAction={canBrowse ? { label: tr('Buscar dedicação', 'Browse dedications'), onClick: () => { setPicking(null); onChooseDedication(slot); } } : undefined}
+          emptyText={canBrowse ? tr('Busque uma dedicação para começar um arquétipo nesta vaga.', 'Browse dedications to start an archetype in this slot.') : undefined} />
       );
     }
     if (picking.kind === 'child') {
@@ -295,14 +312,6 @@ export function ProgressionSection(props: ProgressionProps) {
           </Button>
         )}
       </Box>
-
-      {compiled.featSlots.some((s) => s.kind === 'archetype' || s.kind === 'class') && canEdit && (
-        <TextField select size="small" label={tr('Arquétipo para navegar (dedicações e talentos)', 'Archetype to browse (dedications and feats)')}
-          value={browseArchetype ?? ''} onChange={(e) => setBrowseArchetype(e.target.value || null)} sx={{ maxWidth: 420 }}>
-          <MenuItem value="">{tr('Nenhum', 'None')}</MenuItem>
-          {pickerEditions(archetypes, mesaRules, exceptions).map((a) => <MenuItem key={a.id} value={a.name}>{a.name}</MenuItem>)}
-        </TextField>
-      )}
 
       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
         {reached.map((lvl) => levelRow(lvl, lvl === level))}
