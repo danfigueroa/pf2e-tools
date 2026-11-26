@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField } from '@mui/material';
+import { Box, Button, type ButtonProps, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField } from '@mui/material';
 import { locale, tr } from '../../../i18n';
 import { ruleListSlug } from '../rules';
 import { loadRuleList } from '../rules/loader';
@@ -142,11 +142,11 @@ function LoadedBrowser({ onClose }: { onClose: () => void }) {
 }
 
 /** Botão da lista de personagens: o catálogo só baixa quando a pessoa abre. */
-export function CatalogButton() {
+export function CatalogButton({ children, ...props }: ButtonProps) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Button variant="outlined" startIcon={<BrowseIcon />} onClick={() => setOpen(true)}>{tr('Catálogo', 'Catalog')}</Button>
+      <Button variant="outlined" startIcon={<BrowseIcon />} {...props} onClick={() => setOpen(true)}>{children ?? tr('Catálogo', 'Catalog')}</Button>
       {open && <LoadedBrowser onClose={() => setOpen(false)} />}
     </>
   );
