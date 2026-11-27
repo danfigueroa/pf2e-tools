@@ -56,6 +56,7 @@
 - Exporte o `extraDamage` do golpe (runas, Precision, Sneak Attack e o que a importação guardou na arma), porque a Ficha soma o dano do acerto só por ele.
 - Guarde a relíquia criada em `inventory[].relic` e publique o vínculo em `covil.relics` para duas cópias do mesmo item poderem ter dádivas diferentes.
 - Preserve as dádivas e runas caseiras já atribuídas pela Ficha ao editar um personagem antigo. Aplique as escolhas do jogador só nas posições alteradas.
+- Mostre nome, aspectos e descrição completa de cada dádiva antes de gravar a escolha para que o jogador possa comparar poderes e runas.
 - Mostre os traços completos com `itemTraits` na mochila, na bancada e no catálogo para preservar os dados, distâncias e tipos de dano da entrada original.
 - Aplique da opção de subclasse escolhida numa dedicação multiclasse (escola, ordem, linhagem, estilo…) só o treino de perícia, porque as dedicações do Remaster dizem que as outras habilidades da opção não vêm e o Foundry as concede inteiras.
 - Avalie os pré-requisitos com os números finais (`prereqWarnings`, depois dos ranks de talentos, características e ajustes), porque o seletor avalia com o compilado pronto e os dois precisam concordar.

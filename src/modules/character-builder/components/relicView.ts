@@ -1,3 +1,4 @@
+import { tr } from '../../../i18n'
 import type { BuildInfo, Weapon } from '../../../pathbuilder/types'
 import { strikingDice } from '../../../pathbuilder/weapon'
 import {
@@ -74,3 +75,12 @@ export function relicViews(build: BuildInfo | null | undefined, items: ResolvedI
 /** "+1 · striking": as runas de uma dádiva ou da regra da mesa, para o cartão. */
 export const relicRuneLabel = (r: RelicRune): string =>
     [r.potency && `+${r.potency}`, r.striking, ...(r.property ?? []), r.armorPotency && `+${r.armorPotency}`, r.resilient].filter(Boolean).join(' · ')
+
+const aspects: Record<string, string> = {
+  Air: tr('Ar', 'Air'), Beast: tr('Fera', 'Beast'), Celestial: tr('Celestial', 'Celestial'),
+  Death: tr('Morte', 'Death'), Earth: tr('Terra', 'Earth'), Fiend: tr('Ínfero', 'Fiend'),
+  Fire: tr('Fogo', 'Fire'), Life: tr('Vida', 'Life'), Mind: tr('Mente', 'Mind'),
+  Plant: tr('Planta', 'Plant'), Shadow: tr('Sombra', 'Shadow'), Water: tr('Água', 'Water'),
+};
+
+export const relicAspectLabel = (aspect: string) => aspects[aspect] ?? aspect
