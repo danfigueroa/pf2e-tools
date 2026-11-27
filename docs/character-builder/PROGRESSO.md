@@ -330,6 +330,14 @@
   - Em **Detalhes → Converter para o Remaster**, o jogador revisa os destinos indicados pela AON. Havendo vários, escolhe um ou mantém a entrada atual. A conversão salva o rascunho. **Aplicar na mesa** atualiza a ficha publicada.
   - A publicação de uma nova versão do catálogo gera `core/remaster` com os vínculos entre entradas importadas. Nos pacotes anteriores, a conversão usa os vínculos disponíveis nas listas carregadas. A versão `2026.11.11` já está publicada com 131 entradas legadas e 134 destinos.
 
+### 9.12 — Relíquias do jogador e traços no equipamento
+
+- `efccde4` implementa a semente por item, as 72 dádivas dos 12 aspectos do GM Core e as runas sugeridas para armas e armaduras. Cada escolha tem um nível de despertar e segue para a Ficha ao aplicar. A importação recupera a semente e distingue as runas concedidas das gravadas.
+- O jogador pode substituir um poder por uma runa. A mesa usa essa opção também na variante conduzida pelo jogador. Os personagens novos começam sem as concessões caseiras do elenco. Os rascunhos antigos conservam as dádivas e ativações atribuídas pela mesa até o jogador alterá-las.
+- `e87cacf` mostra os traços completos da entrada, da base e dos ajustes do jogador na mochila e na bancada. Os detalhes do catálogo exibem os parâmetros antes de adicionar o item. Os pacotes antigos também recuperam os qualificadores de armaduras e escudos já publicados.
+- Build e lint concluídos. O motor passou nas 418 conferências do Criador, incluindo paridade com os dez personagens. Rolagens, economia e elevação de magias passaram. No navegador, foram conferidos o catálogo, a troca entre poder e runa, a reabertura e a leitura por outro jogador. Desktop e iframe de 320 px passaram nos temas claro e escuro.
+- Os efeitos situacionais das dádivas ficam disponíveis pela descrição. A conferência foi local, sem gravação no banco de produção. As demais pendências da F9 e da F10 seguem na lista consolidada abaixo.
+
 ## F10 — Endurecimento
 
 - **10.1 Compilar no servidor: adotado.** No "Aplicar na mesa", o servidor recompila o `BuildState` salvo e usa o próprio retrato.
