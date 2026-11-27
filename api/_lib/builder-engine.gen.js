@@ -3,12 +3,12 @@
 
 // src/modules/character-builder/engine/rulesIndex.ts
 function buildRulesIndex(lists, languages) {
-  const byId = /* @__PURE__ */ new Map();
+  const byId2 = /* @__PURE__ */ new Map();
   const byName = /* @__PURE__ */ new Map();
   for (const list of lists) {
     for (const entry of list) {
-      if (byId.has(entry.id)) continue;
-      byId.set(entry.id, entry);
+      if (byId2.has(entry.id)) continue;
+      byId2.set(entry.id, entry);
       for (const name of [entry.name, ...entry.legacyNames ?? []]) {
         const key = name.toLowerCase();
         byName.set(key, [...byName.get(key) ?? [], entry]);
@@ -16,7 +16,7 @@ function buildRulesIndex(lists, languages) {
     }
   }
   return {
-    get: (id) => id ? byId.get(id) : void 0,
+    get: (id) => id ? byId2.get(id) : void 0,
     byName: (name, type) => {
       const all = (byName.get(name.toLowerCase()) ?? []).filter((e) => !type || e.type === type);
       return all.find((e) => e.remaster) ?? all[0];
@@ -28,8 +28,8 @@ function buildRulesIndex(lists, languages) {
 function grantedFeat(rule, rules, missing) {
   if (rule.key !== "GrantItem" || typeof rule.uuid !== "string") return void 0;
   const id = typeof rule.grantId === "string" ? rule.grantId : void 0;
-  const byId = id ? rules.get(id) : void 0;
-  if (byId) return byId;
+  const byId2 = id ? rules.get(id) : void 0;
+  if (byId2) return byId2;
   const name = /^Compendium\.pf2e\.feats-srd\.Item\.(.+)$/.exec(rule.uuid)?.[1];
   const byName = name ? rules.byName(name, "feat") : void 0;
   if (!byName && id) missing?.add(id);
@@ -3294,6 +3294,146 @@ function compileArchetypeCasters(state, taken, ctx, pending, warnings, used) {
   return out;
 }
 
+// src/pathbuilder/relicOptions.ts
+var RELIC_OPTIONS = [
+  { "id": "relic:relic-124", "name": "Deadly Spark", "tier": "minor", "aspects": ["Air"], "page": 309 },
+  { "id": "relic:relic-125", "name": "Feather Steps", "tier": "minor", "aspects": ["Air"], "page": 310, "prerequisite": "The relic is a worn item." },
+  { "id": "relic:relic-126", "name": "Wind Barrier", "tier": "minor", "aspects": ["Air"], "page": 310 },
+  { "id": "relic:relic-127", "name": "Lightning Storm", "tier": "major", "aspects": ["Air"], "page": 310 },
+  { "id": "relic:relic-128", "name": "Propelling Winds", "tier": "major", "aspects": ["Air"], "page": 310 },
+  { "id": "relic:relic-129", "name": "Living Storm", "tier": "grand", "aspects": ["Air"], "page": 310 },
+  { "id": "relic:relic-130", "name": "Beast Senses", "tier": "minor", "aspects": ["Beast"], "page": 310, "prerequisite": "The relic is a worn item." },
+  { "id": "relic:relic-131", "name": "Call of the Wild", "tier": "minor", "aspects": ["Beast"], "page": 310 },
+  { "id": "relic:relic-132", "name": "Feral Claws", "tier": "minor", "aspects": ["Beast"], "page": 310, "prerequisite": "The relic is a worn item." },
+  { "id": "relic:relic-133", "name": "Form of Fury", "tier": "major", "aspects": ["Beast"], "page": 310, "prerequisite": "The relic is a worn item." },
+  { "id": "relic:relic-134", "name": "Track of the Beast", "tier": "major", "aspects": ["Beast"], "page": 310 },
+  { "id": "relic:relic-135", "name": "Form of Vengeance", "tier": "grand", "aspects": ["Beast"], "page": 310, "prerequisite": "form of fury gift" },
+  { "id": "relic:relic-136", "name": "Divine Retribution", "tier": "minor", "aspects": ["Celestial"], "page": 310, "prerequisite": "The relic is a weapon." },
+  { "id": "relic:relic-137", "name": "Heaven's Grace", "tier": "minor", "aspects": ["Celestial"], "page": 311, "prerequisite": "The relic is a worn item." },
+  { "id": "relic:relic-138", "name": "Word of Faith", "tier": "minor", "aspects": ["Celestial"], "page": 311 },
+  { "id": "relic:relic-139", "name": "Righteous Call", "tier": "major", "aspects": ["Celestial"], "page": 311 },
+  { "id": "relic:relic-140", "name": "Sacred Glow", "tier": "major", "aspects": ["Celestial"], "page": 311 },
+  { "id": "relic:relic-141", "name": "Angelic Vessel", "tier": "grand", "aspects": ["Celestial"], "page": 311 },
+  { "id": "relic:relic-142", "name": "Death Gaze", "tier": "minor", "aspects": ["Death"], "page": 312 },
+  { "id": "relic:relic-143", "name": "Living Death", "tier": "minor", "aspects": ["Death"], "page": 312 },
+  { "id": "relic:relic-144", "name": "Shroud of the Afterlife", "tier": "minor", "aspects": ["Death"], "page": 312 },
+  { "id": "relic:relic-145", "name": "Pierce the Veil", "tier": "major", "aspects": ["Death"], "page": 312, "prerequisite": "living death gift" },
+  { "id": "relic:relic-146", "name": "Tide of Death", "tier": "major", "aspects": ["Death"], "page": 312, "prerequisite": "death gaze gift" },
+  { "id": "relic:relic-147", "name": "Grim Specter", "tier": "grand", "aspects": ["Death"], "page": 312 },
+  { "id": "relic:relic-148", "name": "Ease Burden", "tier": "minor", "aspects": ["Earth"], "page": 312 },
+  { "id": "relic:relic-149", "name": "Rolling Geode", "tier": "minor", "aspects": ["Earth"], "page": 312 },
+  { "id": "relic:relic-150", "name": "Shattered Earth", "tier": "minor", "aspects": ["Earth"], "page": 313 },
+  { "id": "relic:relic-151", "name": "Raise Ramparts", "tier": "major", "aspects": ["Earth"], "page": 313 },
+  { "id": "relic:relic-152", "name": "Underground Bounty", "tier": "major", "aspects": ["Earth"], "page": 313 },
+  { "id": "relic:relic-153", "name": "Living Statue", "tier": "grand", "aspects": ["Earth"], "page": 313 },
+  { "id": "relic:relic-154", "name": "Curse Wound", "tier": "minor", "aspects": ["Fiend"], "page": 313, "prerequisite": "The relic is a weapon." },
+  { "id": "relic:relic-155", "name": "Fiendish Defiance", "tier": "minor", "aspects": ["Fiend"], "page": 313, "prerequisite": "The relic is a worn item." },
+  { "id": "relic:relic-156", "name": "Little Helper", "tier": "minor", "aspects": ["Fiend"], "page": 313 },
+  { "id": "relic:relic-157", "name": "Fiendish Bargain", "tier": "major", "aspects": ["Fiend"], "page": 313 },
+  { "id": "relic:relic-158", "name": "Profane Fervor", "tier": "major", "aspects": ["Fiend"], "page": 314 },
+  { "id": "relic:relic-159", "name": "Command Legion", "tier": "grand", "aspects": ["Fiend"], "page": 314 },
+  { "id": "relic:relic-160", "name": "Flare Bolt", "tier": "minor", "aspects": ["Fire"], "page": 314 },
+  { "id": "relic:relic-161", "name": "Heat Haze", "tier": "minor", "aspects": ["Fire"], "page": 314 },
+  { "id": "relic:relic-162", "name": "Incandescent Sight", "tier": "minor", "aspects": ["Fire"], "page": 314 },
+  { "id": "relic:relic-163", "name": "Jet Propulsion", "tier": "major", "aspects": ["Fire"], "page": 314 },
+  { "id": "relic:relic-164", "name": "Searing Wave", "tier": "major", "aspects": ["Fire"], "page": 314 },
+  { "id": "relic:relic-165", "name": "Blazing Soul", "tier": "grand", "aspects": ["Fire"], "page": 314 },
+  { "id": "relic:relic-166", "name": "Bestow Life", "tier": "minor", "aspects": ["Life"], "page": 315 },
+  { "id": "relic:relic-167", "name": "Healing Wave", "tier": "minor", "aspects": ["Life"], "page": 315 },
+  { "id": "relic:relic-168", "name": "Overflowing Life", "tier": "minor", "aspects": ["Life"], "page": 315 },
+  { "id": "relic:relic-169", "name": "Inextinguishable", "tier": "major", "aspects": ["Life"], "page": 315 },
+  { "id": "relic:relic-170", "name": "Vitality Siphon", "tier": "major", "aspects": ["Life"], "page": 315 },
+  { "id": "relic:relic-171", "name": "Life Everlasting", "tier": "grand", "aspects": ["Life"], "page": 316 },
+  { "id": "relic:relic-172", "name": "Linguistic Nexus", "tier": "minor", "aspects": ["Mind"], "page": 316 },
+  { "id": "relic:relic-173", "name": "Recalculate", "tier": "minor", "aspects": ["Mind"], "page": 316 },
+  { "id": "relic:relic-174", "name": "Repository of Knowledge", "tier": "minor", "aspects": ["Mind"], "page": 316 },
+  { "id": "relic:relic-175", "name": "Perception Filter", "tier": "major", "aspects": ["Mind"], "page": 316 },
+  { "id": "relic:relic-176", "name": "Psychic Scream", "tier": "major", "aspects": ["Mind"], "page": 316 },
+  { "id": "relic:relic-177", "name": "Mental Bastion", "tier": "grand", "aspects": ["Mind"], "page": 316 },
+  { "id": "relic:relic-178", "name": "Apothecary's Garden", "tier": "minor", "aspects": ["Plant"], "page": 316 },
+  { "id": "relic:relic-179", "name": "Pollen Spray", "tier": "minor", "aspects": ["Plant"], "page": 317 },
+  { "id": "relic:relic-180", "name": "Sprout Ally", "tier": "minor", "aspects": ["Plant"], "page": 317 },
+  { "id": "relic:relic-181", "name": "Grappling Vine", "tier": "major", "aspects": ["Plant"], "page": 317 },
+  { "id": "relic:relic-182", "name": "Petal Dance", "tier": "major", "aspects": ["Plant"], "page": 317 },
+  { "id": "relic:relic-183", "name": "Megaflora", "tier": "grand", "aspects": ["Plant"], "page": 317 },
+  { "id": "relic:relic-184", "name": "Encompassing Darkness", "tier": "minor", "aspects": ["Shadow"], "page": 317 },
+  { "id": "relic:relic-185", "name": "Obscure", "tier": "minor", "aspects": ["Shadow"], "page": 317 },
+  { "id": "relic:relic-186", "name": "Shadow Smith", "tier": "minor", "aspects": ["Shadow"], "page": 317 },
+  { "id": "relic:relic-187", "name": "Dancing Shadow", "tier": "major", "aspects": ["Shadow"], "page": 318, "prerequisite": "The relic is a weapon." },
+  { "id": "relic:relic-188", "name": "Dark Roads", "tier": "major", "aspects": ["Shadow"], "page": 318 },
+  { "id": "relic:relic-189", "name": "Umbral Body", "tier": "grand", "aspects": ["Shadow"], "page": 318 },
+  { "id": "relic:relic-190", "name": "Lashing Currents", "tier": "minor", "aspects": ["Water"], "page": 318, "prerequisite": "The relic is a weapon." },
+  { "id": "relic:relic-191", "name": "Monsoon Curtain", "tier": "minor", "aspects": ["Water"], "page": 318 },
+  { "id": "relic:relic-192", "name": "Tidal Crash", "tier": "minor", "aspects": ["Water"], "page": 318 },
+  { "id": "relic:relic-193", "name": "Bottomless Reservoir", "tier": "major", "aspects": ["Water"], "page": 319 },
+  { "id": "relic:relic-194", "name": "Flowing Footsteps", "tier": "major", "aspects": ["Water"], "page": 319 },
+  { "id": "relic:relic-195", "name": "Ripples and Waves", "tier": "grand", "aspects": ["Water"], "page": 319 },
+  { "id": "item:equipment-2788-2576-cold-major", "name": "Energy-Resistant \xB7 Cold", "tier": "major", "aspects": ["Air"], "host": "armor", "rune": "Energy-Resistant", "catalogId": "item:equipment-2788-2576" },
+  { "id": "item:equipment-2788-2576-electricity-major", "name": "Energy-Resistant \xB7 Electricity", "tier": "major", "aspects": ["Air"], "host": "armor", "rune": "Energy-Resistant", "catalogId": "item:equipment-2788-2576" },
+  { "id": "item:equipment-2788-2577-cold-major", "name": "Energy-Resistant (Greater) \xB7 Cold", "tier": "major", "aspects": ["Air"], "host": "armor", "rune": "Energy-Resistant (Greater)", "catalogId": "item:equipment-2788-2577" },
+  { "id": "item:equipment-2788-2577-electricity-major", "name": "Energy-Resistant (Greater) \xB7 Electricity", "tier": "major", "aspects": ["Air"], "host": "armor", "rune": "Energy-Resistant (Greater)", "catalogId": "item:equipment-2788-2577" },
+  { "id": "item:equipment-2790-2580-major", "name": "Invisibility", "tier": "major", "aspects": ["Air", "Mind"], "host": "armor", "rune": "Invisibility", "catalogId": "item:equipment-2790-2580" },
+  { "id": "item:equipment-2796-2590-grand", "name": "Winged", "tier": "grand", "aspects": ["Air"], "host": "armor", "rune": "Winged", "catalogId": "item:equipment-2796-2590" },
+  { "id": "item:equipment-2845-minor", "name": "Returning", "tier": "minor", "aspects": ["Air"], "host": "weapon", "rune": "Returning", "catalogId": "item:equipment-2845" },
+  { "id": "item:equipment-2831-major", "name": "Animated", "tier": "major", "aspects": ["Air"], "host": "weapon", "rune": "Animated", "catalogId": "item:equipment-2831" },
+  { "id": "item:equipment-2847-2679-major", "name": "Shock", "tier": "major", "aspects": ["Air"], "host": "weapon", "rune": "Shock", "catalogId": "item:equipment-2847-2679" },
+  { "id": "item:equipment-2850-2681-major", "name": "Thundering", "tier": "major", "aspects": ["Air"], "host": "weapon", "rune": "Thundering", "catalogId": "item:equipment-2850-2681" },
+  { "id": "item:equipment-2847-2680-grand", "name": "Shock (Greater)", "tier": "grand", "aspects": ["Air"], "host": "weapon", "rune": "Shock (Greater)", "catalogId": "item:equipment-2847-2680" },
+  { "id": "item:equipment-2850-2682-grand", "name": "Thundering (Greater)", "tier": "grand", "aspects": ["Air"], "host": "weapon", "rune": "Thundering (Greater)", "catalogId": "item:equipment-2850-2682" },
+  { "id": "item:equipment-2837-2673-minor", "name": "Fearsome", "tier": "minor", "aspects": ["Beast"], "host": "weapon", "rune": "Fearsome", "catalogId": "item:equipment-2837-2673" },
+  { "id": "item:equipment-2854-minor", "name": "Wounding", "tier": "minor", "aspects": ["Beast", "Death"], "host": "weapon", "rune": "Wounding", "catalogId": "item:equipment-2854" },
+  { "id": "item:equipment-2837-2674-major", "name": "Fearsome (Greater)", "tier": "major", "aspects": ["Beast"], "host": "weapon", "rune": "Fearsome (Greater)", "catalogId": "item:equipment-2837-2674" },
+  { "id": "item:equipment-2844-major", "name": "Quickstrike", "tier": "major", "aspects": ["Beast"], "host": "weapon", "rune": "Quickstrike", "catalogId": "item:equipment-2844" },
+  { "id": "item:equipment-2842-major", "name": "Holy", "tier": "major", "aspects": ["Celestial"], "host": "weapon", "rune": "Holy", "catalogId": "item:equipment-2842" },
+  { "id": "item:equipment-2840-minor", "name": "Ghost Touch", "tier": "minor", "aspects": ["Death"], "host": "weapon", "rune": "Ghost Touch", "catalogId": "item:equipment-2840" },
+  { "id": "item:equipment-2788-2576-acid-minor", "name": "Energy-Resistant \xB7 Acid", "tier": "minor", "aspects": ["Earth", "Fiend"], "host": "armor", "rune": "Energy-Resistant", "catalogId": "item:equipment-2788-2576" },
+  { "id": "item:equipment-2788-2577-acid-minor", "name": "Energy-Resistant (Greater) \xB7 Acid", "tier": "minor", "aspects": ["Earth", "Fiend"], "host": "armor", "rune": "Energy-Resistant (Greater)", "catalogId": "item:equipment-2788-2577" },
+  { "id": "item:equipment-2789-2578-major", "name": "Fortification", "tier": "major", "aspects": ["Earth"], "host": "armor", "rune": "Fortification", "catalogId": "item:equipment-2789-2578" },
+  { "id": "item:equipment-2789-2579-grand", "name": "Fortification (Greater)", "tier": "grand", "aspects": ["Earth"], "host": "armor", "rune": "Fortification (Greater)", "catalogId": "item:equipment-2789-2579" },
+  { "id": "item:equipment-2846-minor", "name": "Shifting", "tier": "minor", "aspects": ["Earth", "Plant", "Water"], "host": "weapon", "rune": "Shifting", "catalogId": "item:equipment-2846" },
+  { "id": "item:equipment-2788-2576-cold-minor", "name": "Energy-Resistant \xB7 Cold", "tier": "minor", "aspects": ["Fiend", "Water"], "host": "armor", "rune": "Energy-Resistant", "catalogId": "item:equipment-2788-2576" },
+  { "id": "item:equipment-2788-2576-fire-minor", "name": "Energy-Resistant \xB7 Fire", "tier": "minor", "aspects": ["Fiend", "Fire", "Water"], "host": "armor", "rune": "Energy-Resistant", "catalogId": "item:equipment-2788-2576" },
+  { "id": "item:equipment-2788-2577-cold-minor", "name": "Energy-Resistant (Greater) \xB7 Cold", "tier": "minor", "aspects": ["Fiend", "Water"], "host": "armor", "rune": "Energy-Resistant (Greater)", "catalogId": "item:equipment-2788-2577" },
+  { "id": "item:equipment-2788-2577-fire-minor", "name": "Energy-Resistant (Greater) \xB7 Fire", "tier": "minor", "aspects": ["Fiend", "Fire", "Water"], "host": "armor", "rune": "Energy-Resistant (Greater)", "catalogId": "item:equipment-2788-2577" },
+  { "id": "item:equipment-2851-major", "name": "Unholy", "tier": "major", "aspects": ["Fiend"], "host": "weapon", "rune": "Unholy", "catalogId": "item:equipment-2851" },
+  { "id": "item:equipment-2838-2675-minor", "name": "Flaming", "tier": "minor", "aspects": ["Fire"], "host": "weapon", "rune": "Flaming", "catalogId": "item:equipment-2838-2675" },
+  { "id": "item:equipment-2838-2676-major", "name": "Flaming (Greater)", "tier": "major", "aspects": ["Fire"], "host": "weapon", "rune": "Flaming (Greater)", "catalogId": "item:equipment-2838-2676" },
+  { "id": "item:equipment-2852-2683-minor", "name": "Vitalizing", "tier": "minor", "aspects": ["Life"], "host": "weapon", "rune": "Vitalizing", "catalogId": "item:equipment-2852-2683" },
+  { "id": "item:equipment-2852-2684-major", "name": "Vitalizing (Greater)", "tier": "major", "aspects": ["Life"], "host": "weapon", "rune": "Vitalizing (Greater)", "catalogId": "item:equipment-2852-2684" },
+  { "id": "item:equipment-2791-minor", "name": "Raiment", "tier": "minor", "aspects": ["Mind"], "host": "armor", "rune": "Raiment", "catalogId": "item:equipment-2791" },
+  { "id": "item:equipment-2793-2584-minor", "name": "Shadow", "tier": "minor", "aspects": ["Shadow"], "host": "armor", "rune": "Shadow", "catalogId": "item:equipment-2793-2584" },
+  { "id": "item:equipment-2793-2585-major", "name": "Shadow (Greater)", "tier": "major", "aspects": ["Shadow"], "host": "armor", "rune": "Shadow (Greater)", "catalogId": "item:equipment-2793-2585" },
+  { "id": "item:equipment-2793-2586-grand", "name": "Shadow (Major)", "tier": "grand", "aspects": ["Shadow"], "host": "armor", "rune": "Shadow (Major)", "catalogId": "item:equipment-2793-2586" },
+  { "id": "item:equipment-2794-2587-minor", "name": "Slick", "tier": "minor", "aspects": ["Water"], "host": "armor", "rune": "Slick", "catalogId": "item:equipment-2794-2587" },
+  { "id": "item:equipment-2794-2588-major", "name": "Slick (Greater)", "tier": "major", "aspects": ["Water"], "host": "armor", "rune": "Slick (Greater)", "catalogId": "item:equipment-2794-2588" },
+  { "id": "item:equipment-2794-2589-major", "name": "Slick (Major)", "tier": "major", "aspects": ["Water"], "host": "armor", "rune": "Slick (Major)", "catalogId": "item:equipment-2794-2589" }
+];
+
+// src/pathbuilder/playerRelic.ts
+var RELIC_STAGES = [
+  { level: 1, tier: "minor", gp: 20 },
+  { level: 5, tier: "minor", gp: 160 },
+  { level: 9, tier: "major", gp: 700 },
+  { level: 13, tier: "major", gp: 3e3 },
+  { level: 17, tier: "grand", gp: 15e3 }
+];
+var RELIC_ASPECTS = [...new Set(RELIC_OPTIONS.flatMap((g) => g.aspects))].sort();
+var byId = new Map(RELIC_OPTIONS.map((g) => [g.id, g]));
+function chosenGifts(seed) {
+  return RELIC_STAGES.flatMap((stage) => {
+    const gift = byId.get(seed?.gifts?.[stage.level] ?? "");
+    return gift ? [{ ...stage, slot: stage.level, level: seed?.levels?.[stage.level] ?? stage.level, gift }] : [];
+  });
+}
+function activeRuneGifts(seed, level, host) {
+  return chosenGifts(seed).flatMap((s) => s.level <= level && s.gift.rune && s.gift.host === host ? [s.gift] : []);
+}
+function publishedRelics(build) {
+  const rows = build.covil?.relics;
+  if (!Array.isArray(rows)) return [];
+  return rows.slice(0, 300).filter((r) => r && typeof r.key === "string" && typeof r.name === "string" && ["weapons", "armor", "equipment"].includes(r.section) && Number.isInteger(r.index) && r.index >= 0 && Array.isArray(build[r.section]) && r.index < build[r.section].length && (r.seed?.legacyId === void 0 || typeof r.seed.legacyId === "string") && (!r.seed?.levels || typeof r.seed.levels === "object" && Object.values(r.seed.levels).every((l) => Number.isInteger(l) && l >= 1 && l <= 20)) && Array.isArray(r.seed?.aspects) && r.seed.aspects.every((a) => typeof a === "string") && r.seed.gifts && typeof r.seed.gifts === "object" && !Array.isArray(r.seed.gifts) && Array.isArray(r.etched) && r.etched.every((id) => typeof id === "string"));
+}
+
 // src/modules/character-builder/engine/equipment.ts
 var ATTR_LABEL2 = { str: tr("FOR", "STR"), dex: tr("DES", "DEX"), con: "CON", int: "INT", wis: tr("SAB", "WIS"), cha: tr("CAR", "CHA") };
 var COINS_GP = (m) => m.pp * 10 + m.gp + m.sp / 10 + m.cp / 100;
@@ -3392,6 +3532,14 @@ function resolveItems(state, rules, warnings) {
     if (entry && baseName && entry.item?.subcategory?.startsWith("Specific")) {
       warnings.push({ code: "SPECIFIC_ITEM", level: "info", ref: "equipment", message: tr(`${entry.name}: item espec\xEDfico \u2014 confira as runas e efeitos pr\xF3prios dele.`, `${entry.name}: specific item \u2014 check its own runes and effects.`) });
     }
+    if (inv.relic && !inv.relic.allowEtching && inv.runes?.property?.length) {
+      warnings.push({ code: "RUNE_SLOTS", level: "warn", ref: "equipment", message: tr(`${entry?.name ?? inv.customName}: gravar propriedades em rel\xEDquias exige permiss\xE3o do GM.`, `${entry?.name ?? inv.customName}: etching properties on relics requires GM permission.`) });
+    }
+    const manualGifts = chosenGifts(inv.relic).filter(({ level, gift }) => level <= state.level && (!gift.rune || !base2?.item?.weapon || !RUNE_HIT[runeBase(gift.rune)]));
+    if (manualGifts.length) {
+      const names = manualGifts.map(({ gift }) => gift.name).join(", ");
+      warnings.push({ code: "UNSUPPORTED_EFFECT", level: "info", ref: "equipment", message: tr(`Consulte os efeitos da rel\xEDquia: ${names}.`, `Resolve these relic effects from their descriptions: ${names}.`) });
+    }
     const runes = itemRunes(inv, base2, rules);
     return {
       key: inv.key,
@@ -3440,7 +3588,7 @@ function compileEquipment(state, rules, ctx, warnings) {
       speedPenalty: strengthMet ? Math.min(0, rawSpeed + 5) : rawSpeed,
       strengthMet
     };
-    if (wornArmor.inv.runes?.property?.length && wornArmor.inv.runes.property.length > armor.potency) {
+    if ((wornArmor.inv.runes?.property?.length ?? 0) + (wornArmor.inv.relic?.allowEtching ? activeRuneGifts(wornArmor.inv.relic, ctx.level, "armor").length : 0) > armor.potency) {
       warnings.push({ code: "RUNE_SLOTS", level: "warn", ref: "equipment", message: tr(`${wornArmor.name}: mais runas de propriedade que a pot\xEAncia permite.`, `${wornArmor.name}: more property runes than the potency allows.`) });
     }
   }
@@ -3488,8 +3636,10 @@ function compileEquipment(state, rules, ctx, warnings) {
       if (o.attack !== void 0) attack = o.attack;
       if (o.damage !== void 0) damageBonus = o.damage;
     }
-    const runes = (inv?.runes?.property ?? []).map((id) => rules.get(id)?.name ?? id);
-    if (runes.length > potency) warnings.push({ code: "RUNE_SLOTS", level: "warn", ref: "equipment", message: tr(`${name}: mais runas de propriedade que a pot\xEAncia permite (GM Core pg. 236).`, `${name}: more property runes than the potency allows (GM Core pg. 236).`) });
+    const etched = (inv?.runes?.property ?? []).map((id) => rules.get(id)?.name ?? id);
+    const gifts = activeRuneGifts(inv?.relic, ctx.level, "weapon");
+    const runes = gifts.length ? [.../* @__PURE__ */ new Set([...etched, ...gifts.map((g) => g.rune)])] : etched;
+    if (etched.length + (inv?.relic?.allowEtching ? gifts.length : 0) > potency) warnings.push({ code: "RUNE_SLOTS", level: "warn", ref: "equipment", message: tr(`${name}: mais runas de propriedade que a pot\xEAncia permite (GM Core pg. 236).`, `${name}: more property runes than the potency allows (GM Core pg. 236).`) });
     const extraDamage = [];
     const noHit = runes.filter((r) => !RUNE_HIT[runeBase(r)]);
     for (const r of runes) {
@@ -3607,9 +3757,9 @@ function customEntries(state, rules) {
 function withCustom(rules, state) {
   const extra = customEntries(state, rules);
   if (!extra.length) return rules;
-  const byId = new Map(extra.map((e) => [e.id, e]));
+  const byId2 = new Map(extra.map((e) => [e.id, e]));
   return {
-    get: (id) => id ? byId.get(id) ?? rules.get(id) : void 0,
+    get: (id) => id ? byId2.get(id) ?? rules.get(id) : void 0,
     byName: (name, type) => rules.byName(name, type) ?? extra.find((e) => e.name.toLowerCase() === name.toLowerCase() && (!type || e.type === type)),
     named: (name) => {
       const a = rules.named(name);
@@ -4416,8 +4566,20 @@ function exportBuild(state, compiled, ctx) {
     }
   }
   const eq = compiled.equipment;
-  const weapons = eq.strikes.filter((s) => s.key !== "fist").map((s) => {
-    const item = eq.items.find((i) => i.key === s.key);
+  const relics = [];
+  const recordRelic = (item, section, index) => {
+    if (item?.inv.relic) relics.push({
+      key: item.inv.relic.id ?? item.key,
+      section,
+      index,
+      name: item.inv.customName ?? item.name,
+      seed: item.inv.relic,
+      etched: item.inv.runes?.property ?? []
+    });
+  };
+  const weapons = eq.strikes.filter((s) => s.key !== "fist").map((s, i) => {
+    const item = eq.items.find((i2) => i2.key === s.key);
+    recordRelic(item, "weapons", i);
     return {
       name: item?.entry?.name ?? item?.base?.name ?? s.name,
       qty: item?.qty ?? 1,
@@ -4438,19 +4600,25 @@ function exportBuild(state, compiled, ctx) {
       grade: ""
     };
   });
-  const armor = eq.items.filter((i) => i.base?.item?.armor || i.base?.item?.shield).map((i) => ({
-    name: i.entry?.name ?? i.name,
-    qty: i.qty,
-    prof: i.base?.item?.shield ? "shield" : (i.base?.item?.armor?.category ?? "unarmored").toLowerCase(),
-    pot: i.inv.runes?.potency ?? 0,
-    res: RESILIENT[i.inv.runes?.resilient ?? 0] ?? "",
-    mat: i.inv.material ? i.inv.material.grade ? `${name(i.inv.material.id)} (${GRADE_LABEL[i.inv.material.grade]})` : name(i.inv.material.id) : null,
-    display: i.inv.customName ?? "",
-    worn: !!i.inv.worn,
-    runes: [...i.inv.runes?.reinforcing ? [`Reinforcing (${REINFORCING_NAME[i.inv.runes.reinforcing]})`] : [], ...(i.inv.runes?.property ?? []).map(name)],
-    grade: ""
-  }));
-  const equipment = eq.items.filter((i) => !i.base?.item?.weapon && !i.base?.item?.armor && !i.base?.item?.shield).map((i) => i.inv.invested ? [i.name, i.qty, "Invested"] : [i.name, i.qty]);
+  const armor = eq.items.filter((i) => i.base?.item?.armor || i.base?.item?.shield).map((i, idx) => {
+    recordRelic(i, "armor", idx);
+    return {
+      name: i.entry?.name ?? i.name,
+      qty: i.qty,
+      prof: i.base?.item?.shield ? "shield" : (i.base?.item?.armor?.category ?? "unarmored").toLowerCase(),
+      pot: i.inv.runes?.potency ?? 0,
+      res: RESILIENT[i.inv.runes?.resilient ?? 0] ?? "",
+      mat: i.inv.material ? i.inv.material.grade ? `${name(i.inv.material.id)} (${GRADE_LABEL[i.inv.material.grade]})` : name(i.inv.material.id) : null,
+      display: i.inv.customName ?? "",
+      worn: !!i.inv.worn,
+      runes: [...i.inv.runes?.reinforcing ? [`Reinforcing (${REINFORCING_NAME[i.inv.runes.reinforcing]})`] : [], ...(i.inv.runes?.property ?? []).map(name), ...activeRuneGifts(i.inv.relic, state.level, "armor").map((g) => g.name)],
+      grade: ""
+    };
+  });
+  const equipment = eq.items.filter((i) => !i.base?.item?.weapon && !i.base?.item?.armor && !i.base?.item?.shield).map((i, idx) => {
+    recordRelic(i, "equipment", idx);
+    return i.inv.invested ? [i.name, i.qty, "Invested"] : [i.name, i.qty];
+  });
   const gp = Math.max(0, eq.money.remaining);
   const money = { pp: 0, gp: Math.floor(gp), sp: Math.floor(gp * 10 % 10), cp: Math.round(gp * 100 % 10) };
   const spellCasters = compiled.casters.map((c) => {
@@ -4580,6 +4748,8 @@ function exportBuild(state, compiled, ctx) {
     inventorMods: [],
     equipmentContainers: {},
     covil: {
+      legacyRelics: state.options.legacyRelics ?? Number(state.schema) === 1,
+      ...relics.length ? { relics } : {},
       schema: 1,
       buildId: ctx.buildId,
       rulesVersion: state.rulesVersion,
@@ -5002,12 +5172,12 @@ function importPathbuilder(b, ctx, opts = {}) {
     else guesses.push(`${ref.name}: grupo de arma n\xE3o identificado no export`);
   }
   const base2 = {
-    schema: 1,
+    schema: 2,
     rulesVersion: "",
     name: b.name,
     level: b.level,
     xp: b.xp ?? 0,
-    options: {},
+    options: { legacyRelics: b.covil?.legacyRelics ?? true },
     origin: {
       ancestry: ancestry?.id ?? (customOrigin.ancestry ? customId(customOrigin.ancestry.name) : void 0),
       heritage: heritage?.id ?? (customOrigin.heritage ? customId(customOrigin.heritage.name) : void 0),
@@ -5208,6 +5378,14 @@ function importPathbuilder(b, ctx, opts = {}) {
       continue;
     }
     inventory.push({ key: key(), item: e.id, qty: qty || 1, acquired: "given", invested: rest.includes("Invested") && (e.traits ?? []).includes("Invested") });
+  }
+  for (const row of publishedRelics(b)) {
+    const offset = row.section === "weapons" ? 0 : b.weapons.length + (row.section === "equipment" ? b.armor.length : 0);
+    const item = inventory[offset + row.index];
+    if (!item) continue;
+    item.relic = { ...row.seed, id: row.key };
+    item.customName = row.name;
+    if (item.runes) item.runes.property = row.etched;
   }
   const spellcasting = {};
   const spellId = (name) => find(name.replace(/ \(Amped\)$/, ""), "spell")?.id ?? (valid(name) ? customId(name.replace(/ \(Amped\)$/, "")) : void 0);

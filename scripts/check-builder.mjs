@@ -896,6 +896,49 @@ console.log('Paridade com o elenco (importar → recompilar → exportar) e inva
     expect('regras de livros não barram o conteúdo da mesa', allowedAtTable(hbFeat, { ...serverStore.DEFAULT_MESA_RULES, sources: { allow: ['source-1'], deny: [] } }), true)
 }
 
+console.log('Relíquias do GM Core e traços de equipamento')
+{
+    const { RELIC_OPTIONS } = await import('../src/pathbuilder/relicOptions.ts')
+    const { chosenGifts, RELIC_STAGES } = await import('../src/pathbuilder/playerRelic.ts')
+    const { exportBuild } = await import('../src/modules/character-builder/engine/export.ts')
+    const { importPathbuilder } = await import('../src/modules/character-builder/engine/import.ts')
+    const { relicsOf } = await import('../src/modules/character-viewer/relics.ts')
+    const { normalizeBuild } = await import('../src/pathbuilder/types.ts')
+    const flaming = RELIC_OPTIONS.find((g) => g.rune === 'Flaming')
+    const grand = RELIC_OPTIONS.find((g) => !g.rune && g.tier === 'grand')
+    const seed = { aspects: ['Fire'], gifts: { 5: flaming.id, 17: grand.id } }
+    const host = { key: 'relic-a', item: rules.byName('Warhammer', 'weapon').id, qty: 1, acquired: 'bought', relic: seed }
+    const draft = { ...hf, name: 'Miranda Nova', inventory: [host, { ...host, key: 'ordinary', relic: undefined }] }
+    const compileAt = (level, inventory = draft.inventory) => compileBuild({ ...draft, level, inventory }, ctx)
+    expect('GM Core: 72 dádivas', RELIC_OPTIONS.filter((g) => !g.rune).length, 72)
+    expect('dois menores, dois maiores e uma grandiosa', RELIC_STAGES.map((s) => [s.level, s.tier]), [[1, 'minor'], [5, 'minor'], [9, 'major'], [13, 'major'], [17, 'grand']])
+    expect('nível 4 conserva o plano, sem a runa', compileAt(4).equipment.strikes.find((s) => s.key === host.key).runes, [])
+    const active = compileAt(5)
+    expect('nível 5 ativa apenas a arma escolhida', active.equipment.strikes.filter((s) => s.key !== 'fist').map((s) => s.runes), [['Flaming'], []])
+    expect('dano da runa uma vez', active.equipment.strikes.find((s) => s.key === host.key).extraDamage, ['1d6 Fire'])
+    expect('dádiva não custa dinheiro', active.equipment.money.spent, compileAt(4).equipment.money.spent)
+    expect('dádiva não requer potência por padrão', active.warnings.some((w) => w.code === 'RUNE_SLOTS'), false)
+    expect('se o GM libera gravação, a dádiva usa espaço', compileAt(5, [{ ...host, relic: { ...seed, allowEtching: true } }]).warnings.some((w) => w.code === 'RUNE_SLOTS'), true)
+    const doc = exportBuild({ ...draft, level: 5 }, active, ctx).build
+    expect('personagem novo com nome parecido não herda relíquia da mesa', relicsOf(doc).map((r) => r.id), ['player:relic-a'])
+    expect('retrato normalizado é idempotente', normalizeBuild(normalizeBuild(doc)), normalizeBuild(doc))
+    const imported = importPathbuilder(doc, ctx, { reconcile: false }).state
+    expect('reimportação conserva o hospedeiro e as dádivas', imported.inventory.filter((i) => i.relic).map((i) => i.relic), [{ ...seed, id: host.key }])
+    expect('runa concedida não vira gravação paga ao reimportar', imported.inventory[0].runes.property, [])
+    const nathaniel = { ...doc, name: 'Nathaniel', covil: { ...doc.covil, legacyRelics: true, relics: [
+        { ...doc.covil.relics[0], seed: { ...seed, legacyId: 'zarroc-sheilvean' } },
+    ] } }
+    const legacy = relicsOf(nathaniel).find((r) => r.id === 'zarroc-sheilvean')
+    expect('substituir dádiva da mesa mantém as demais e suas ativações', legacy.gifts.slice(0, 3).map((g) => [g.name, g.kind]), [
+        ['Death Gaze', 'power'], ['Flaming', 'rune'], ['Fiendish Bargain', 'power'],
+    ])
+    expect('ativação herdada sobrevive à publicação', legacy.gifts[0].activation.cost, 2)
+    const early = { ...seed, levels: { 5: 3 } }
+    expect('despertar da campanha', chosenGifts(early)[0].level, 3)
+    S('cliente e servidor conservam o despertar e os IDs', { ...hf, inventory: [{ ...host, relic: early }] }, { ...hf, inventory: [{ ...host, relic: early }] })
+    expect('rascunho de esquema 1 preserva o catálogo anterior', clientSanitize.sanitizeBuildState({ ...hf, schema: 1 }).options.legacyRelics, true)
+}
+
 {
     const { itemTraits } = await import('../src/modules/character-builder/components/equipmentModel.ts')
     expect('todos os traços, com parâmetros, herança e opções extras', itemTraits({ traits: ['Magical', 'Rare'] },

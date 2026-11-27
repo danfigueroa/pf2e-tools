@@ -78,11 +78,19 @@ A mesa pode adotar essas variantes como **regras da casa**. Após o MVP, impleme
 
 | Subsistema | Fonte | Uso atual | Criador | Fase |
 | --- | --- | --- | --- | --- |
-| **Relíquias** | GM Core | **Todos os personagens** têm relíquia (catálogo `RELICS` na Ficha) | Item de inventário "Relíquia" com aspectos e dádivas por nível; até lá o catálogo da Ficha continua | F9 (a Ficha já resolve) |
+| **Relíquias** | GM Core | **Todos os personagens** têm relíquia (catálogo `RELICS` na Ficha) | Semente no item da mochila, aspectos, despertar de cada dádiva e opção de runa no mesmo espaço de escolha | F9.12 |
 | Habilidades desviantes (*Deviant Abilities*) e talentos *Aftermath* | Dark Archive (Remastered) | — | Talentos raros, liberados pela mesa | F9 |
 | Arquétipos de classe (*Class Archetypes*) | Vários | — | Substituição de características | F9 |
 | Livros e Adventure Paths liberados | Pathbuilder: Rulebooks/Setting/Adventures | — | Regras da mesa (`sources`) | MVP |
 | Conteúdo de terceiros (Battlezoo) | Pathbuilder | — | — | — |
+
+### Relíquias escolhidas pelo jogador
+
+A relíquia acompanha o nível do dono. Os marcos típicos são duas dádivas menores (níveis 1 e 5), duas maiores (9 e 13) e uma grandiosa (17). O jogador pode planejar as escolhas futuras e registrar o nível de despertar combinado com o GM. A semente costuma ter dois aspectos. [GM Core, pp. 308–309](https://2e.aonprd.com/Rules.aspx?ID=3248)
+
+A plataforma permite escolher uma runa no lugar do poder, por decisão da mesa. O GM Core recomenda omitir essa combinação na variante conduzida pelo jogador. Use a lista de runas por aspecto, grau e item. Para ajustar o tesouro, use o preço e nível próprios da runa. As dádivas ocupam espaços de propriedade quando o GM permite gravar propriedades na relíquia. As armas, armaduras e escudos seguem aceitando runas fundamentais normalmente. [GM Core, Runes as Gifts](https://2e.aonprd.com/Rules.aspx?ID=3248)
+
+Os personagens novos começam com as escolhas do jogador. As concessões caseiras do elenco continuam vinculadas às relíquias antigas. Ao editar uma delas, cada dádiva herdada fica disponível até o jogador escolher uma substituta.
 
 ## 6. Como fica na configuração da mesa
 

@@ -5,7 +5,7 @@
 // Campo desconhecido sai; valor fora da forma sai (a entrada inteira, não o build). O build nunca é recusado por
 // forma: só por tamanho (`MAX_BUILD_BYTES`, o handler responde 413) ou por não ser um objeto.
 
-export const BUILD_SCHEMA = 1
+export const BUILD_SCHEMA = 2
 export const MAX_BUILD_BYTES = 64 * 1024
 
 const ATTRS = ['str', 'dex', 'con', 'int', 'wis', 'cha']
@@ -25,6 +25,7 @@ const SLOT_RE = /^[a-z0-9][a-z0-9:/_-]{0,95}$/
 const KEY_RE = /^[a-z0-9][a-z0-9:_-]{0,59}$/
 const VERSION_RE = /^[0-9]{4}\.[0-9]{2}\.[0-9]{1,4}$/
 
+const nonEmpty = (o) => (o && Object.keys(o).length ? o : undefined)
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v)
 const text = (v, max) => {
     if (typeof v !== 'string') return undefined
@@ -113,6 +114,7 @@ function cleanOptions(v) {
     return compact({
         variants: variants && Object.keys(variants).length ? variants : undefined,
         mythic,
+        legacyRelics: bool(v.legacyRelics),
         separateKits: bool(v.separateKits),
     })
 }
@@ -172,7 +174,6 @@ function cleanManual(v) {
     const extraFeatSlots = list(v.extraFeatSlots, 40, (s) => (isObj(s) && int(s.level, 1, 20) && FEAT_KINDS.includes(s.kind)
         ? { level: s.level, kind: s.kind } : undefined))
     const adjustments = list(v.adjustments, 50, cleanAdjustment)
-    const nonEmpty = (o) => (o && Object.keys(o).length ? o : undefined)
     return compact({
         attributeOverride: nonEmpty(override),
         extraBoosts: nonEmpty(extraBoosts),
@@ -217,7 +218,6 @@ const ARMOR_CATEGORIES = ['unarmored', 'light', 'medium', 'heavy']
 
 function cleanCustomStats(v) {
     if (!isObj(v)) return undefined
-    const nonEmpty = (o) => (o && Object.keys(o).length ? o : undefined)
     const w = isObj(v.weapon) ? v.weapon : null
     const a = isObj(v.armor) ? v.armor : null
     const die = w && typeof w.die === 'string' && /^d(4|6|8|10|12)$/.test(w.die) ? w.die : undefined
@@ -228,6 +228,18 @@ function cleanCustomStats(v) {
         weapon: w && die && wcat ? compact({ name: text(w.name, 80), die, damageType: text(w.damageType, 20) ?? '', category: wcat, range: int(w.range, 1, 1000) }) : undefined,
         armor: a && acat && ac !== undefined ? compact({ category: acat, ac, dexCap: int(a.dexCap, 0, 10) }) : undefined,
     }))
+}
+
+export function cleanPlayerRelic(v) {
+    if (!isObj(v)) return undefined
+    return compact({
+        id: typeof v.id === 'string' && KEY_RE.test(v.id) ? v.id : undefined,
+        legacyId: text(v.legacyId, 60),
+        aspects: uniq(v.aspects, 12, (a) => text(a, 40)) ?? [],
+        gifts: record(v.gifts, (key) => ['1', '5', '9', '13', '17'].includes(key), 5, (g) => text(g, 96)) ?? {},
+        levels: nonEmpty(record(v.levels, (key) => ['1', '5', '9', '13', '17'].includes(key), 5, (level) => int(level, 1, 20))),
+        allowEtching: bool(v.allowEtching),
+    })
 }
 
 function cleanInventoryEntry(v) {
@@ -251,6 +263,7 @@ function cleanInventoryEntry(v) {
         material,
         weapon: cleanWeaponOptions(v.weapon),
         customName: text(v.customName, 80),
+        relic: cleanPlayerRelic(v.relic),
         custom: cleanCustomStats(v.custom),
     })
 }
@@ -318,8 +331,9 @@ export function emptyBuildState(name, rulesVersion) {
     }
 }
 
-/** Converte formatos antigos (`schema` menor) para o atual. Hoje só existe o 1. */
+/** Converte formatos antigos (`schema` menor) para o atual. Rascunhos antigos preservam as relíquias atribuídas pela mesa. */
 export function migrateBuildState(state) {
+    if (state.schema === 1) return { ...state, schema: BUILD_SCHEMA, options: { ...(isObj(state.options) ? state.options : {}), legacyRelics: true } }
     return state
 }
 

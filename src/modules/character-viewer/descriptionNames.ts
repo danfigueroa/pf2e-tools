@@ -26,7 +26,7 @@ const unique = (names: string[]) => [...new Set(names.map((n) => n.trim()).filte
 const relicGiftNames = (build: BuildInfo, kind: 'rune' | 'power'): string[] =>
     relicsOf(build).flatMap((r) => r.gifts)
         .filter((g) => !g.description && (g.kind === 'rune') === (kind === 'rune'))
-        .map((g) => g.name)
+        .map((g) => g.lookupName ?? g.name)
 
 export function characterDescriptionNames(build: BuildInfo): DescriptionNames {
     const homebrew = sheetHomebrewFeats(build)

@@ -2,6 +2,7 @@
 // O retrato aplicado (CONTRATO-FICHA): o personagem compilado no formato `BuildInfo` que a Ficha, a Iniciativa, o Mapa
 // e o servidor já leem, mais as extensões do Criador em `build.covil`. Nomes de conteúdo em inglês canônico (o mesmo
 // que o Pathbuilder grava), para as descrições e os consertos da Ficha seguirem casando.
+import { activeRuneGifts, type PublishedRelic } from '../../../pathbuilder/playerRelic'
 import type { BuildInfo, FeatArray, HomebrewFeatRef, Pet, Familiar, Weapon, Armor, SpellCaster } from '../../../pathbuilder/types'
 import type { BuildState } from '../types'
 import type { RuleEntry } from '../rules/types'
@@ -138,8 +139,14 @@ export function exportBuild(state: BuildState, compiled: Compiled, ctx: ExportCo
 
     // Equipamento.
     const eq = compiled.equipment
-    const weapons: (Weapon & { grade: string })[] = eq.strikes.filter((s) => s.key !== 'fist').map((s) => {
+    const relics: PublishedRelic[] = []
+    const recordRelic = (item: typeof eq.items[number] | undefined, section: PublishedRelic['section'], index: number) => {
+        if (item?.inv.relic) relics.push({ key: item.inv.relic.id ?? item.key, section, index, name: item.inv.customName ?? item.name,
+            seed: item.inv.relic, etched: item.inv.runes?.property ?? [] })
+    }
+    const weapons: (Weapon & { grade: string })[] = eq.strikes.filter((s) => s.key !== 'fist').map((s, i) => {
         const item = eq.items.find((i) => i.key === s.key)
+        recordRelic(item, 'weapons', i)
         return {
             name: item?.entry?.name ?? item?.base?.name ?? s.name, qty: item?.qty ?? 1, prof: s.category, die: s.die, pot: s.potency, str: STRIKING[s.striking] ?? '',
             // O nome que o jogador deu (o Pathbuilder põe em `display`) é o que a Ficha usa para achar a relíquia.
@@ -148,15 +155,21 @@ export function exportBuild(state: BuildState, compiled: Compiled, ctx: ExportCo
             attack: s.attack, damageBonus: s.damageBonus, extraDamage: s.extraDamage, increasedDice: false, isInventor: false, grade: '',
         }
     })
-    const armor: (Armor & { grade: string })[] = eq.items.filter((i) => i.base?.item?.armor || i.base?.item?.shield).map((i) => ({
-        name: i.entry?.name ?? i.name, qty: i.qty, prof: i.base?.item?.shield ? 'shield' : (i.base?.item?.armor?.category ?? 'unarmored').toLowerCase(),
-        pot: i.inv.runes?.potency ?? 0, res: RESILIENT[i.inv.runes?.resilient ?? 0] ?? '',
-        mat: i.inv.material ? (i.inv.material.grade ? `${name(i.inv.material.id)} (${GRADE_LABEL[i.inv.material.grade]})` : name(i.inv.material.id)) : null,
-        display: i.inv.customName ?? '', worn: !!i.inv.worn,
-        runes: [...(i.inv.runes?.reinforcing ? [`Reinforcing (${REINFORCING_NAME[i.inv.runes.reinforcing]})`] : []), ...(i.inv.runes?.property ?? []).map(name)], grade: '',
-    }))
+    const armor: (Armor & { grade: string })[] = eq.items.filter((i) => i.base?.item?.armor || i.base?.item?.shield).map((i, idx) => {
+        recordRelic(i, 'armor', idx)
+        return {
+            name: i.entry?.name ?? i.name, qty: i.qty, prof: i.base?.item?.shield ? 'shield' : (i.base?.item?.armor?.category ?? 'unarmored').toLowerCase(),
+            pot: i.inv.runes?.potency ?? 0, res: RESILIENT[i.inv.runes?.resilient ?? 0] ?? '',
+            mat: i.inv.material ? (i.inv.material.grade ? `${name(i.inv.material.id)} (${GRADE_LABEL[i.inv.material.grade]})` : name(i.inv.material.id)) : null,
+            display: i.inv.customName ?? '', worn: !!i.inv.worn,
+            runes: [...(i.inv.runes?.reinforcing ? [`Reinforcing (${REINFORCING_NAME[i.inv.runes.reinforcing]})`] : []), ...(i.inv.runes?.property ?? []).map(name), ...activeRuneGifts(i.inv.relic, state.level, 'armor').map((g) => g.name)], grade: '',
+        }
+    })
     const equipment: [string, number, string?][] = eq.items.filter((i) => !i.base?.item?.weapon && !i.base?.item?.armor && !i.base?.item?.shield)
-        .map((i) => (i.inv.invested ? [i.name, i.qty, 'Invested'] : [i.name, i.qty]))
+        .map((i, idx) => {
+            recordRelic(i, 'equipment', idx)
+            return i.inv.invested ? [i.name, i.qty, 'Invested'] : [i.name, i.qty]
+        })
     const gp = Math.max(0, eq.money.remaining)
     const money = { pp: 0, gp: Math.floor(gp), sp: Math.floor((gp * 10) % 10), cp: Math.round((gp * 100) % 10) }
 
@@ -250,6 +263,8 @@ export function exportBuild(state: BuildState, compiled: Compiled, ctx: ExportCo
         formula: state.formulas.length ? [{ type: 'other', known: state.formulas.map(name) }] : [],
         inventorMods: [], equipmentContainers: {},
         covil: {
+            legacyRelics: state.options.legacyRelics ?? (Number(state.schema) === 1),
+            ...(relics.length ? { relics } : {}),
             schema: 1, buildId: ctx.buildId, rulesVersion: state.rulesVersion,
             warnings: compiled.warnings.filter((w) => w.level !== 'info').slice(0, 40).map((w) => ({ code: w.code, message: w.message })),
             ...(Object.keys(homebrewFeats).length ? { homebrewFeats } : {}),

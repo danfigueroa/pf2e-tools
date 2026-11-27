@@ -6,6 +6,9 @@ import type { RuleEntry } from '../rules/types';
 import type { AttributeKey, Compiled, RulesIndex } from '../engine/types';
 import type { InventoryEntry } from '../types';
 import { FUNDAMENTAL_TIERS, fundamentalRune, type FundamentalKind, type ResolvedItem, type RuneLine } from '../engine/equipment';
+import { activeRuneGifts } from '../../../pathbuilder/playerRelic';
+import { RELICS } from '../../character-viewer/relics';
+import { PlayerRelicEditor } from './PlayerRelicEditor';
 import { useTraitLabels } from '../../character-viewer/components/useTraitLabels';
 import { ActionGlyph, BandHead, ContentBadge, Label } from './ui';
 import { RelicPanel } from './RelicPanel';
@@ -81,6 +84,8 @@ export function ItemBench({ item, compiled, index, materials, containers, transf
   const potency = runes.potency ?? 0;
   const property = runes.property ?? [];
   const slots = kind === 'shield' ? 0 : potency;
+  const gifts = activeRuneGifts(inv.relic, level, kind === 'weapon' || kind === 'armor' ? kind : undefined);
+  const usedSlots = property.length + (inv.relic?.allowEtching ? gifts.length : 0);
   const propertyLines = item.runes.filter((r) => r.kind === 'property');
   const traits = itemTraits(entry, item.base, inv.weapon?.extraTraits);
   const traitText = useTraitLabels(traits);
@@ -128,6 +133,8 @@ export function ItemBench({ item, compiled, index, materials, containers, transf
         )}
 
         {relic && <RelicPanel view={relic} compact />}
+        <PlayerRelicEditor preset={relic && RELICS.find((r) => r.id === relic.relic.id)} seed={inv.relic} level={level} kind={kind}
+          index={index} canEdit={canEdit} change={(value) => patch({ relic: value })} />
 
         {canUse(kind, entry) && (
           <Segmented label={tr('Onde está', 'Where it is')} value={inUse(kind, inv) ? 'on' : 'off'} disabled={!canEdit}
@@ -163,8 +170,8 @@ export function ItemBench({ item, compiled, index, materials, containers, transf
 
         {runic && kind !== 'shield' && (
           <Field label={tr('Propriedade', 'Property')} note={
-            <Box component="span" sx={{ color: property.length > slots ? status.warning : gold.deep, fontWeight: 700 }}>
-              {property.length > slots ? '⚠ ' : ''}{tr(`${property.length} de ${slots} espaço${slots === 1 ? '' : 's'}`, `${property.length} of ${slots} slot${slots === 1 ? '' : 's'}`)}
+            <Box component="span" sx={{ color: usedSlots > slots ? status.warning : gold.deep, fontWeight: 700 }}>
+              {usedSlots > slots ? '⚠ ' : ''}{tr(`${usedSlots} de ${slots} espaço${slots === 1 ? '' : 's'}`, `${usedSlots} of ${slots} slot${slots === 1 ? '' : 's'}`)}
             </Box>
           }>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
@@ -194,7 +201,7 @@ export function ItemBench({ item, compiled, index, materials, containers, transf
                   </Box>
                 </Box>
               ))}
-              {canEdit && Array.from({ length: Math.max(0, slots - property.length) }, (_, i) => (
+              {canEdit && Array.from({ length: Math.max(0, slots - usedSlots) }, (_, i) => (
                 <ButtonBase key={`free-${i}`} onClick={onEtch} data-view="" sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: '8px 10px', border: `1.5px dashed ${gold.main}`, borderRadius: '8px', bgcolor: tint.gold, minHeight: 54, justifyContent: 'flex-start', textAlign: 'left' }}>
                   <Box sx={{ width: 28, display: 'flex', justifyContent: 'center' }}><Gem look="e" size={16} /></Box>
                   <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -204,6 +211,7 @@ export function ItemBench({ item, compiled, index, materials, containers, transf
                   <StrokeIcon d={ICON_PATH.plus} sx={{ color: gold.deep }} />
                 </ButtonBase>
               ))}
+              {gifts.map((g) => <Box key={g.id} sx={{ fontSize: 13 }}>{g.name} · {tr('dádiva da relíquia', 'relic gift')}</Box>)}
               {slots === 0 && property.length === 0 && (
                 <Box sx={{ fontSize: 13, color: ink.secondary, p: 1.25, border: `1px dashed ${rule}`, borderRadius: '8px' }}>
                   {tr('Grave uma runa de potência para liberar o primeiro espaço.', 'Etch a potency rune to open the first slot.')}</Box>

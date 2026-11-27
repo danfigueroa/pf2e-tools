@@ -2,6 +2,7 @@
 // Importação reversa (CONTRATO-FICHA §9): um export do Pathbuilder vira um BuildState editável, com relatório do que
 // não casou. A ordem por nível de perícias nem sempre é recuperável: o importador distribui pelo nível mais baixo
 // possível (respeitando os tetos do Player Core pg. 92) e marca no histórico.
+import { publishedRelics } from '../../../pathbuilder/playerRelic'
 import type { BuildInfo } from '../../../pathbuilder/types'
 import { tr } from '../../../i18n'
 import type { BuildState, Choice, InventoryEntry } from '../types'
@@ -172,8 +173,8 @@ export function importPathbuilder(b: BuildInfo, ctx: CompileContext, opts: { rec
     }
 
     const base: BuildState = {
-        schema: 1, rulesVersion: '', name: b.name, level: b.level, xp: b.xp ?? 0,
-        options: {}, origin: {
+        schema: 2, rulesVersion: '', name: b.name, level: b.level, xp: b.xp ?? 0,
+        options: { legacyRelics: b.covil?.legacyRelics ?? true }, origin: {
             ancestry: ancestry?.id ?? (customOrigin.ancestry ? customId(customOrigin.ancestry.name) : undefined),
             heritage: heritage?.id ?? (customOrigin.heritage ? customId(customOrigin.heritage.name) : undefined),
             background: background?.id ?? (customOrigin.background ? customId(customOrigin.background.name) : undefined),
@@ -369,6 +370,15 @@ export function importPathbuilder(b: BuildInfo, ctx: CompileContext, opts: { rec
             continue
         }
         inventory.push({ key: key(), item: e.id, qty: qty || 1, acquired: 'given', invested: rest.includes('Invested') && (e.traits ?? []).includes('Invested') })
+    }
+
+    for (const row of publishedRelics(b)) {
+        const offset = row.section === 'weapons' ? 0 : b.weapons.length + (row.section === 'equipment' ? b.armor.length : 0)
+        const item = inventory[offset + row.index]
+        if (!item) continue
+        item.relic = { ...row.seed, id: row.key }
+        item.customName = row.name
+        if (item.runes) item.runes.property = row.etched
     }
 
     // Magias: conjurador da classe e foco.

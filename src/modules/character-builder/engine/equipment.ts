@@ -1,3 +1,4 @@
+import { activeRuneGifts, chosenGifts } from '../../../pathbuilder/playerRelic'
 // Equipamento (MOTOR-DE-REGRAS §6, §7 e §12). Regras conferidas na AON, Remaster:
 // - Volume: 5 + FOR sem penalidade; acima disso, sobrecarregado; nunca mais que 10 + FOR (Player Core pg. 269). L = 1/10.
 //   Moedas: mil de qualquer tipo = 1 Volume, frações de mil arredondadas para baixo (Player Core pg. 269).
@@ -181,6 +182,15 @@ export function resolveItems(state: BuildState, rules: RulesIndex, warnings: War
         if (entry && baseName && entry.item?.subcategory?.startsWith('Specific')) {
             warnings.push({ code: 'SPECIFIC_ITEM', level: 'info', ref: 'equipment', message: tr(`${entry.name}: item específico — confira as runas e efeitos próprios dele.`, `${entry.name}: specific item — check its own runes and effects.`) })
         }
+        if (inv.relic && !inv.relic.allowEtching && inv.runes?.property?.length) {
+            warnings.push({ code: 'RUNE_SLOTS', level: 'warn', ref: 'equipment', message: tr(`${entry?.name ?? inv.customName}: gravar propriedades em relíquias exige permissão do GM.`, `${entry?.name ?? inv.customName}: etching properties on relics requires GM permission.`) })
+        }
+        const manualGifts = chosenGifts(inv.relic).filter(({ level, gift }) => level <= state.level &&
+            (!gift.rune || !base?.item?.weapon || !RUNE_HIT[runeBase(gift.rune)]))
+        if (manualGifts.length) {
+            const names = manualGifts.map(({ gift }) => gift.name).join(', ')
+            warnings.push({ code: 'UNSUPPORTED_EFFECT', level: 'info', ref: 'equipment', message: tr(`Consulte os efeitos da relíquia: ${names}.`, `Resolve these relic effects from their descriptions: ${names}.`) })
+        }
         const runes = itemRunes(inv, base, rules)
         return {
             key: inv.key, entry, base, name: inv.customName ?? entry?.name ?? inv.item, qty: inv.qty,
@@ -236,7 +246,7 @@ export function compileEquipment(state: BuildState, rules: RulesIndex, ctx: {
             checkPenalty: strengthMet ? 0 : a.checkPenalty ?? 0,
             speedPenalty: strengthMet ? Math.min(0, rawSpeed + 5) : rawSpeed, strengthMet,
         }
-        if (wornArmor.inv.runes?.property?.length && (wornArmor.inv.runes.property.length > armor.potency)) {
+        if ((wornArmor.inv.runes?.property?.length ?? 0) + (wornArmor.inv.relic?.allowEtching ? activeRuneGifts(wornArmor.inv.relic, ctx.level, 'armor').length : 0) > armor.potency) {
             warnings.push({ code: 'RUNE_SLOTS', level: 'warn', ref: 'equipment', message: tr(`${wornArmor.name}: mais runas de propriedade que a potência permite.`, `${wornArmor.name}: more property runes than the potency allows.`) })
         }
     }
@@ -284,8 +294,10 @@ export function compileEquipment(state: BuildState, rules: RulesIndex, ctx: {
             if (o.attack !== undefined) attack = o.attack
             if (o.damage !== undefined) damageBonus = o.damage
         }
-        const runes = (inv?.runes?.property ?? []).map((id) => rules.get(id)?.name ?? id)
-        if (runes.length > potency) warnings.push({ code: 'RUNE_SLOTS', level: 'warn', ref: 'equipment', message: tr(`${name}: mais runas de propriedade que a potência permite (GM Core pg. 236).`, `${name}: more property runes than the potency allows (GM Core pg. 236).`) })
+        const etched = (inv?.runes?.property ?? []).map((id) => rules.get(id)?.name ?? id)
+        const gifts = activeRuneGifts(inv?.relic, ctx.level, 'weapon')
+        const runes = gifts.length ? [...new Set([...etched, ...gifts.map((g) => g.rune!)])] : etched
+        if (etched.length + (inv?.relic?.allowEtching ? gifts.length : 0) > potency) warnings.push({ code: 'RUNE_SLOTS', level: 'warn', ref: 'equipment', message: tr(`${name}: mais runas de propriedade que a potência permite (GM Core pg. 236).`, `${name}: more property runes than the potency allows (GM Core pg. 236).`) })
         // Dano extra no acerto: runas com dano fixo, Precision e Sneak Attack (o que a Ficha soma pelo `extraDamage`).
         const extraDamage: string[] = []
         const noHit = runes.filter((r) => !RUNE_HIT[runeBase(r)])

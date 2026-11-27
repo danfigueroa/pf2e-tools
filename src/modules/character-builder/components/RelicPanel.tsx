@@ -28,7 +28,7 @@ export function RelicPanel({ view, compact }: { view: RelicView; compact?: boole
       )}
       {house && (
         <Box sx={{ fontSize: 13, color: ink.secondary }}>
-          {tr(`Regra da mesa: toda relíquia que é arma tem ${relicRuneLabel(house)}. Não sai do dinheiro.`, `Table rule: every relic that is a weapon has ${relicRuneLabel(house)}. Not paid for.`)}
+          {tr(`Concessão da mesa para esta arma: ${relicRuneLabel(house)}. Não sai do dinheiro.`, `Table grant for this weapon: ${relicRuneLabel(house)}. Not paid for.`)}
         </Box>
       )}
       <Box sx={{ display: 'flex', flexDirection: 'column', borderTop: `1px solid ${rule}` }}>
@@ -51,8 +51,8 @@ export function RelicPanel({ view, compact }: { view: RelicView; compact?: boole
         ))}
       </Box>
       <Box sx={{ fontSize: 12, color: ink.secondary, bgcolor: parchment.paper, borderRadius: '6px', p: 1 }}>
-        {tr('As dádivas e a regra da mesa vêm do catálogo de relíquias da Ficha Virtual; usar as ativações é na Ficha.',
-          "The gifts and the table rule come from the Virtual Sheet's relic catalog; you use the activations on the Sheet.")}
+        {tr('As ativações desta relíquia ficam na Ficha Virtual.',
+          "Use this relic’s activations on the Virtual Sheet.")}
       </Box>
     </Box>
   );

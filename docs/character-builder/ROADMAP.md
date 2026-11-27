@@ -341,6 +341,7 @@ personagem no Criador sem divergência não explicada.
 - [x] **9.9** Wiki: "Criar página do personagem".
 - [x] **9.10** Conteúdo legado liberável livro a livro + "Converter para o Remaster" (via `remaster_id`).
 - [ ] **9.11** Gradual Boosts e Stamina, sob pedido de uma mesa (D8). Stamina também exige ajustes de dano na Ficha, na Iniciativa e no Mapa.
+- [x] **9.12** Relíquias criadas pelo jogador no equipamento, poderes e runas por aspecto e grau, compatibilidade com as concessões caseiras do elenco.
 
 ---
 

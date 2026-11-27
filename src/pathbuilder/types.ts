@@ -322,6 +322,8 @@ export interface BuildInfo {
     buildId?: string
     ids?: Record<string, string>
     slots?: Record<string, string>
+    legacyRelics?: boolean
+    relics?: import('./playerRelic').PublishedRelic[]
     homebrewFeats?: Record<string, HomebrewFeatRef>
     [key: string]: unknown
   }

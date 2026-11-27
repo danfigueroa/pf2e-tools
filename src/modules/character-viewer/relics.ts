@@ -15,6 +15,7 @@
 // sempre) a menos que a entrada traga `description`; o que o app não sabe ler da AON —
 // custo e frequência da ativação — é escrito aqui, conferido contra o texto dela.
 
+import { chosenGifts, publishedRelics, RELIC_STAGES } from '../../pathbuilder/playerRelic'
 import type { BuildInfo, Weapon } from '../../pathbuilder/types'
 import { strikingDice } from '../../pathbuilder/weapon'
 import { nameStarts } from './customRunes'
@@ -29,7 +30,7 @@ export type RelicTier = 'minor' | 'major' | 'grand'
 export type RelicCost = 1 | 2 | 3 | 'reaction' | 'free'
 
 /** Nível mínimo típico de cada dádiva, pela ordem em que a relíquia as ganha (Tabela 2–22). */
-export const GIFT_LEVELS = [1, 5, 9, 13, 17] as const
+export const GIFT_LEVELS = RELIC_STAGES.map((s) => s.level)
 
 export interface RelicActivation {
     cost: RelicCost
@@ -56,6 +57,7 @@ export interface RelicGift {
     id: string
     /** O nome da AON (dádiva) ou da runa; é também o que se busca ao abrir a descrição. */
     name: string
+    lookupName?: string
     tier: RelicTier
     kind: 'power' | 'rune'
     /** Sobrepõe o nível típico da posição. */
@@ -508,7 +510,24 @@ export const scrapShotDice = (level: number): number => Math.max(1, Math.floor(l
 export const relicLevel = (build: BuildInfo): number => build.level
 
 export function relicsOf(build: BuildInfo, catalog: RelicEntry[] = RELICS): RelicEntry[] {
-    return catalog.filter((r) => r.character(build))
+    const legacy = build.covil?.legacyRelics === false ? [] : catalog.filter((r) => r.character(build))
+    const result = [...legacy]
+    for (const row of publishedRelics(build)) {
+        const position = legacy.findIndex((r) => r.id === row.seed.legacyId)
+        const preset = legacy[position]
+        const replacements = new Map(chosenGifts(row.seed).map(({ slot, level, gift }) => [slot, {
+            id: gift.id, name: gift.name, lookupName: gift.rune ?? `${gift.name} [relic]`, tier: gift.tier, kind: gift.rune ? 'rune' : 'power', minLevel: level,
+        } satisfies RelicGift]))
+        const gifts = RELIC_STAGES.flatMap((s, i) => {
+            const original = preset?.gifts[i]
+            const selected = replacements.get(s.level)
+            return selected ? [{ ...(selected.name === original?.name ? original : {}), ...selected }] : original ? [{ ...original, minLevel: giftMinLevel(original, i) }] : []
+        })
+        if (preset) result[position] = { ...preset, aspects: row.seed.aspects, gifts: [...gifts, ...preset.gifts.slice(RELIC_STAGES.length)] }
+        else result.push({ id: `player:${row.key}`, name: row.name, character: () => true, aspects: row.seed.aspects,
+            on: { kind: 'item', name: row.name }, gifts })
+    }
+    return result
 }
 
 /**

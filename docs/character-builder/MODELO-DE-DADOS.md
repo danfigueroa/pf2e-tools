@@ -17,7 +17,7 @@ Formato gravado em `character_builds.state` (jsonb). IDs oficiais usam **`tipo:a
 
 ```ts
 interface BuildState {
-  schema: 1;                         // versão do formato (migração de BuildState no cliente e no servidor)
+  schema: 2;                         // versão do formato (migração de BuildState no cliente e no servidor)
   rulesVersion: string;              // versão do catálogo usada na última compilação ("2026.12.1")
   name: string;                      // nome exibido (pode mudar; o slug do build não muda)
   level: number;                     // nível atual 1–20
@@ -25,6 +25,7 @@ interface BuildState {
   options: {
     variants?: Partial<Record<'freeArchetype' | 'ancestralParagon' | 'abp' | 'pwl' | 'dualClass' | 'gradualBoosts', boolean>>; // sobrescreve a mesa só se o GM permitir
     mythic?: { enabled: boolean; startLevel?: number; rank?: number };  // Mixed Play, chamado tardio, progressão por provações (REGRAS-OPCIONAIS §1)
+    legacyRelics?: boolean;         // esquema 1 e uploads anteriores preservam as concessões por personagem
     separateKits?: boolean;
   };
   origin: {
@@ -74,6 +75,7 @@ interface InventoryEntry {
   key: string;                // id local estável ('inv-7f3a') — o apelido e o estado da mesa casam por nome, não por isto
   item: string;               // 'item:equipment-2700' ou 'custom:<id>'
   qty: number;
+  relic?: { id?: string; legacyId?: string; aspects: string[]; gifts: Record<string, string>; levels?: Record<string, number>; allowEtching?: boolean };
   container?: string;         // key de outro InventoryEntry que é contêiner
   worn?: boolean; invested?: boolean; equipped?: boolean;   // armadura vestida, item investido, arma empunhada
   acquired: 'bought' | 'given';                              // comprado desconta do dinheiro

@@ -131,6 +131,7 @@ comportamento atual quando falta (ficha antiga, upload).
 | Campo | Para quê | Quem passa a ler | Aposenta |
 | --- | --- | --- | --- |
 | `covil.buildId`, `rulesVersion`, `schema` | A Ficha sabe que pode abrir o modo editar | Ficha (botão "Editar") | — |
+| `covil.relics`, `covil.legacyRelics` | Sementes por seção e posição do item no retrato, com ID estável da relíquia e lista de runas gravadas para reimportação | Ficha e Criador | Permite relíquias criadas pelo jogador ao lado das antigas |
 | `covil.warnings` | Avisos do motor no momento de aplicar ("aplicada com 2 avisos") | Ficha (Visão Geral) | — |
 | `covil.ids` | `{ "ancestry-feat-1": "feat:feat-4387", … }` — chave da escolha → ID de conteúdo | Descrições, `featGroups.ts` | casamentos por nome ambíguos (`namesCompatible` no cliente) |
 | `covil.breakdown` | Memória de cálculo de cada número (CA, salvaguardas, perícias, ataques) com a origem de cada parcela | `checks.ts`, diálogo de rolagem | parte da reconstrução de parcelas da Ficha |

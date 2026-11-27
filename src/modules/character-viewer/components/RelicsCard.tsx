@@ -29,9 +29,10 @@ interface Props {
 /** A regra do poder para o cartão da mesa: o texto do catálogo, ou a descrição da AON (traduzida) do poder. */
 const giftRule = async (gift: RelicGift): Promise<string | null> => {
     if (gift.description) return gift.description
+    const lookup = gift.lookupName ?? gift.name
     const d = gift.kind === 'rune'
-        ? (getCachedItem(gift.name) ?? await fetchItemDescription(gift.name))
-        : (getCachedSpecial(gift.name) ?? await fetchSpecialDescription(gift.name))
+        ? (getCachedItem(lookup) ?? await fetchItemDescription(lookup))
+        : (getCachedSpecial(lookup) ?? await fetchSpecialDescription(lookup))
     if (!d?.description || d.translationPending) return null
     return [d.requirements && tr(`Requisitos: ${d.requirements}`, `Requirements: ${d.requirements}`), d.trigger && tr(`Gatilho: ${d.trigger}`, `Trigger: ${d.trigger}`), d.description].filter(Boolean).join('\n')
 }
@@ -82,7 +83,7 @@ const Gift = ({ relic, gift, index, build, mods, mythicPoints, onSelect }: Props
                     <Button
                         size="small"
                         variant="outlined"
-                        onClick={() => onSelect({ type: gift.kind === 'rune' ? 'item' : 'special', name: gift.name })}
+                        onClick={() => onSelect({ type: gift.kind === 'rune' ? 'item' : 'special', name: gift.lookupName ?? gift.name })}
                     >
                         {tr('Ver descrição', 'See description')}</Button>
                 )}
@@ -136,7 +137,7 @@ export const RelicsCard = (props: Props) => {
                         )}
                         {houseRelicRunes(relic) && (
                             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
-                                {tr(`Regra da mesa: toda relíquia que é arma tem ${houseLabel(houseRelicRunes(relic)!)} (já no ataque e no dano da aba Combate).`, `Table rule: every relic that is a weapon has ${houseLabel(houseRelicRunes(relic)!)} (already in the Combat tab's attack and damage).`)}
+                                {tr(`Concessão da mesa para esta arma: ${houseLabel(houseRelicRunes(relic)!)} (já no ataque e no dano da aba Combate).`, `Table grant for this weapon: ${houseLabel(houseRelicRunes(relic)!)} (already in the Combat tab's attack and damage).`)}
                             </Typography>
                         )}
                         <Stack divider={<Box sx={{ borderBottom: '1px solid', borderColor: 'divider' }} />} sx={{ mt: 1 }}>

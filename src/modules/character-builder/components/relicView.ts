@@ -50,19 +50,20 @@ export function relicViews(build: BuildInfo | null | undefined, items: ResolvedI
     const byItem = new Map<string, RelicView>()
     const loose: RelicView[] = []
     if (!build) return { byItem, loose }
-    const relics = relicsOf(build)
+    const relics = relicsOf(build).filter((r) => !r.id.startsWith('player:'))
     if (!relics.length) return { byItem, loose }
     const finalBuild = withRelicRunes(build)
     for (const relic of relics) {
         const on = relic.on
         const names = (it: ResolvedItem) => [it.inv.customName, it.entry?.name, it.base?.name, it.name]
-        const item = !on ? undefined : items.find((it) => {
+        const attached = items.find((it) => it.inv.relic?.legacyId === relic.id)
+        const item = attached ?? (!on ? undefined : items.find((it) => {
             const ok = names(it).some((n) => same(n, on.kind === 'weapon' ? on.weapon : on.kind === 'armor' ? on.armor : on.name))
             if (!ok) return false
             if (on.kind === 'weapon') return !!it.base?.item?.weapon
             if (on.kind === 'armor') return !!it.base?.item?.armor
             return true
-        })
+        }))
         const view = viewOf(relic, build, finalBuild)
         if (item && !byItem.has(item.key)) byItem.set(item.key, view)
         else loose.push(view)

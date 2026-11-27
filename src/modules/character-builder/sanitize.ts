@@ -6,7 +6,7 @@
 // não tem nome. O tamanho (`MAX_BUILD_BYTES`) é conferido por quem grava.
 import type { AttributeKey, BuildState, Choice } from './types'
 
-export const BUILD_SCHEMA = 1
+export const BUILD_SCHEMA = 2
 export const MAX_BUILD_BYTES = 64 * 1024
 
 type Obj = Record<string, unknown>
@@ -113,6 +113,7 @@ function cleanOptions(v: unknown): BuildState['options'] {
     return compact({
         variants: variants && Object.keys(variants).length ? variants : undefined,
         mythic,
+        legacyRelics: bool(v.legacyRelics),
         separateKits: bool(v.separateKits),
     })
 }
@@ -227,6 +228,18 @@ function cleanCustomStats(v: unknown): BuildState['inventory'][number]['custom']
     }))
 }
 
+export function cleanPlayerRelic(v: unknown): BuildState['inventory'][number]['relic'] {
+    if (!isObj(v)) return undefined
+    return compact({
+        id: typeof v.id === 'string' && KEY_RE.test(v.id) ? v.id : undefined,
+        legacyId: text(v.legacyId, 60),
+        aspects: uniq(v.aspects, 12, (a) => text(a, 40)) ?? [],
+        gifts: record(v.gifts, (key) => ['1', '5', '9', '13', '17'].includes(key), 5, (g) => text(g, 96)) ?? {},
+        levels: nonEmpty(record(v.levels, (key) => ['1', '5', '9', '13', '17'].includes(key), 5, (level) => int(level, 1, 20))),
+        allowEtching: bool(v.allowEtching),
+    })
+}
+
 function cleanInventoryEntry(v: unknown): BuildState['inventory'][number] | undefined {
     if (!isObj(v)) return undefined
     const key = typeof v.key === 'string' && KEY_RE.test(v.key) ? v.key : undefined
@@ -249,6 +262,7 @@ function cleanInventoryEntry(v: unknown): BuildState['inventory'][number] | unde
         material,
         weapon: cleanWeaponOptions(v.weapon),
         customName: text(v.customName, 80),
+        relic: cleanPlayerRelic(v.relic),
         custom: cleanCustomStats(v.custom),
     })
 }
@@ -317,8 +331,9 @@ export function emptyBuildState(name: string, rulesVersion: string): BuildState 
     }
 }
 
-/** Converte formatos antigos (`schema` menor) para o atual. Hoje só existe o 1. */
+/** Converte formatos antigos (`schema` menor) para o atual. Rascunhos antigos preservam as relíquias atribuídas pela mesa. */
 export function migrateBuildState(state: Obj): Obj {
+    if (state.schema === 1) return { ...state, schema: BUILD_SCHEMA, options: { ...(isObj(state.options) ? state.options : {}), legacyRelics: true } }
     return state
 }
 

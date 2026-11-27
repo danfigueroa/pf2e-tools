@@ -35,6 +35,7 @@ export interface InventoryEntry {
         increaseDice?: boolean
         overrides?: { attack?: number; damage?: number; proficiency?: number }
     }
+    relic?: import('../../pathbuilder/playerRelic').PlayerRelic
     customName?: string
     /**
      * Números de um item caseiro (`custom:`) que entra nas contas: a arma ou armadura que o Pathbuilder exporta sem
@@ -75,7 +76,7 @@ export interface CompanionChoice {
 }
 
 export interface BuildState {
-    schema: 1
+    schema: 2
     rulesVersion: string
     name: string
     level: number
@@ -83,6 +84,7 @@ export interface BuildState {
     options: {
         variants?: Partial<Record<VariantKey, boolean>>
         mythic?: { enabled: boolean; startLevel?: number; rank?: number }
+        legacyRelics?: boolean
         separateKits?: boolean
     }
     origin: {

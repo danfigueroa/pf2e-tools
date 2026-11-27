@@ -245,6 +245,7 @@ O custo vem da **própria AON** (`actions`, `traits`, `trigger`, `frequency`, e 
   (`activation`, `facts`). Usar = `ActivityBody` com `giftActivity`; uso limitado em `uses` (`relic:<relíquia>:<dádiva>`).
   Runas de arma entram no `build` uma vez (`withRelicRunes`), potência/striking pelo **maior**; a versão maior de uma runa
   troca a menor (Greater Flaming no lugar da Flaming), e a Flaming põe o 1d6 fogo no `extraDamage` se a ficha não tem.
+  Leia as escolhas publicadas em `covil.relics` para respeitar o despertar de cada dádiva e preserve as concessões anteriores quando `legacyRelics` estiver ativo.
   **Regra da casa por mesa** (`HOUSE_RELIC_WEAPON_RUNES`): na Casa do Gordo toda relíquia que é arma tem +1 striking,
   aplicado antes das dádivas e mostrado no cartão. Runa de dádiva pode ter `activation` (Shifting). **Arma de relíquia** (`relicNameOfWeapon`): o Combate e o título da rolagem mostram o nome da relíquia (o apelido do jogador vence); o nome técnico do Pathbuilder com as runas fica no Inventário ("Relíquia — nome técnico"). Só apresentação.
   O cartão fica fora do

@@ -18,6 +18,7 @@ import { ItemBench } from '../components/ItemBench';
 import { ItemCatalog, type BagLine } from '../components/ItemCatalog';
 import { RunePicker } from '../components/RunePicker';
 import { RelicPanel } from '../components/RelicPanel';
+import { activeRuneGifts } from '../../../pathbuilder/playerRelic';
 import { relicViews } from '../components/relicView';
 import type { BuildInfo } from '../../../pathbuilder/types';
 import type { SectionProps } from './types';
@@ -39,7 +40,7 @@ export interface EquipmentProps extends SectionProps {
 }
 
 /** Os encaixes do item: fundamentais em ouro, propriedade em verde, espaço livre tracejado, runa a mais em âmbar. */
-function socketsOf(it: ResolvedItem, kind: ItemKind): SocketLook[] {
+function socketsOf(it: ResolvedItem, kind: ItemKind, level: number): SocketLook[] {
   if (!isRunic(kind)) return [];
   const r = it.inv.runes ?? {};
   if (kind === 'shield') return r.reinforcing ? ['f'] : [];
@@ -47,7 +48,8 @@ function socketsOf(it: ResolvedItem, kind: ItemKind): SocketLook[] {
   if (r.potency) out.push('f');
   if (kind === 'weapon' ? r.striking : r.resilient) out.push('f');
   const slots = r.potency ?? 0;
-  const prop = r.property?.length ?? 0;
+  const gifts = it.inv.relic?.allowEtching && (kind === 'armor' || kind === 'weapon') ? activeRuneGifts(it.inv.relic, level, kind).length : 0;
+  const prop = (r.property?.length ?? 0) + gifts;
   for (let i = 0; i < Math.max(slots, prop); i++) out.push(i < prop ? (i < slots ? 'p' : 'x') : 'e');
   return out;
 }
@@ -85,7 +87,7 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
   const remove = (key: string) => { setBenchKey(null); setInventory((inv) => inv.filter((i) => i.key !== key).map((i) => (i.container === key ? { ...i, container: undefined } : i))); };
   const duplicate = (key: string) => setInventory((inv) => {
     const src = inv.find((i) => i.key === key);
-    return src ? [...inv, { ...structuredClone(src), key: newInventoryKey(), equipped: undefined, worn: undefined, invested: undefined }] : inv;
+    return src ? [...inv, { ...structuredClone(src), relic: undefined, key: newInventoryKey(), equipped: undefined, worn: undefined, invested: undefined }] : inv;
   });
   const transfer = (from: string, to: string) => setInventory((inv) => {
     const runes = inv.find((i) => i.key === from)?.runes;
@@ -101,7 +103,7 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
     for (const l of lines) {
       const entry = index.get(l.id) ?? items.find((e) => e.id === l.id) ?? null;
       const kind = itemKind(entry, entry);
-      const same = stacks(kind) ? next.findIndex((i) => i.item === l.id && i.acquired === l.acquired && !i.runes && (i.container ?? '') === (l.container ?? '')) : -1;
+      const same = stacks(kind) ? next.findIndex((i) => i.item === l.id && i.acquired === l.acquired && !i.runes && !i.relic && (i.container ?? '') === (l.container ?? '')) : -1;
       if (same >= 0) { next[same] = { ...next[same], qty: Math.min(999, next[same].qty + l.qty) }; continue; }
       const row: InventoryEntry = { key: newInventoryKey(), item: l.id, qty: l.qty, acquired: l.acquired, container: l.container };
       if (kind === 'armor' && !armorWorn) { row.worn = true; armorWorn = true; }
@@ -261,7 +263,7 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
                       </Box>
                       <Box component="span" sx={{ fontWeight: 700, fontSize: { xs: 14, sm: 15 }, lineHeight: 1.25, overflowWrap: 'anywhere' }}>{relics.byItem.get(it.key)?.relic.name ?? strike?.display ?? itemDisplayName(it)}</Box>
                       <Box component="span" sx={{ fontSize: { xs: 12, sm: 13 }, color: ink.secondary, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                        <Sockets looks={socketsOf(it, kind)} />{meta}
+                        <Sockets looks={socketsOf(it, kind, level)} />{meta}
                       </Box>
                     </ButtonBase>
                   );
@@ -313,8 +315,8 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
                         <Box component="span" sx={{ minWidth: 0 }}>
                           <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', fontWeight: 600, fontSize: 15, lineHeight: 1.25 }}>
                             <Box component="span" sx={{ overflowWrap: 'anywhere' }}>{relics.byItem.get(it.key)?.relic.name ?? itemDisplayName(it)}</Box>
-                            {relics.byItem.has(it.key) && <Box component="span" sx={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: gold.deep, border: `1px solid ${gold.main}`, borderRadius: '4px', px: 0.625, lineHeight: '18px' }}>{tr('Relíquia', 'Relic')}</Box>}
-                            <Sockets looks={socketsOf(it, kind)} />
+                            {(it.inv.relic || relics.byItem.has(it.key)) && <Box component="span" sx={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: gold.deep, border: `1px solid ${gold.main}`, borderRadius: '4px', px: 0.625, lineHeight: '18px' }}>{tr('Relíquia', 'Relic')}</Box>}
+                            <Sockets looks={socketsOf(it, kind, level)} />
                           </Box>
                           <Box component="span" sx={{ display: 'block', fontSize: 13, color: ink.secondary, mt: '2px' }}>{meta}</Box>
                           <Box component="span" sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
@@ -340,7 +342,15 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
       {relics.loose.length > 0 && (
         <Box sx={[cardSx, { p: { xs: 1.5, sm: 2 }, display: 'flex', flexDirection: 'column', gap: 1.25 }]}>
           <SectionHead note={tr('do catálogo da Ficha', "from the Sheet's catalog")}>{tr('Relíquias', 'Relics')}</SectionHead>
-          {relics.loose.map((v) => <RelicPanel key={v.relic.id} view={v} />)}
+          {relics.loose.map((v) => <Box key={v.relic.id}>
+            <RelicPanel view={v} />
+            {canEdit && <Button onClick={() => {
+              const key = newInventoryKey();
+              setInventory((inv) => [...inv, { key, item: customItemId(v.relic.name), customName: v.relic.name, qty: 1, acquired: 'given',
+                relic: { legacyId: v.relic.id, aspects: v.relic.aspects ?? [], gifts: {} } }]);
+              setBenchKey(key);
+            }}>{tr('Editar na mochila', 'Edit in pack')}</Button>}
+          </Box>)}
         </Box>
       )}
 
