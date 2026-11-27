@@ -9,7 +9,7 @@ import { Label } from './ui';
 
 const Description = lazy(() => import('../../character-viewer/components/DescriptionContent').then((m) => ({ default: m.DescriptionContent })));
 const tiers = { minor: tr('menor', 'minor'), major: tr('maior', 'major'), grand: tr('grandiosa', 'grand') };
-const nativeSelect = { select: { native: true } };
+const nativeSelect = { select: { native: true }, inputLabel: { shrink: true } };
 
 export function PlayerRelicEditor({ seed, level, kind, index, canEdit, change, preset }: {
   seed?: PlayerRelic; level: number; kind: ItemKind; index: RulesIndex; canEdit: boolean;

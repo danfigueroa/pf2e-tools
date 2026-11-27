@@ -336,6 +336,7 @@
 - O jogador pode substituir um poder por uma runa. A mesa usa essa opção também na variante conduzida pelo jogador. Os personagens novos começam sem as concessões caseiras do elenco. Os rascunhos antigos conservam as dádivas e ativações atribuídas pela mesa até o jogador alterá-las.
 - `e87cacf` mostra os traços completos da entrada, da base e dos ajustes do jogador na mochila e na bancada. Os detalhes do catálogo exibem os parâmetros antes de adicionar o item. Os pacotes antigos também recuperam os qualificadores de armaduras e escudos já publicados.
 - Build e lint concluídos. O motor passou nas 418 conferências do Criador, incluindo paridade com os dez personagens. Rolagens, economia e elevação de magias passaram. No navegador, foram conferidos o catálogo, a troca entre poder e runa, a reabertura e a leitura por outro jogador. Desktop e iframe de 320 px passaram nos temas claro e escuro.
+- Na bancada, os rótulos das cinco dádivas ficam acima de “Escolher…” mesmo com o campo vazio e sem foco. A conferência em português e inglês cobriu escolher e limpar uma dádiva, no desktop e a 320 px, em temas claro e escuro.
 - Os efeitos situacionais das dádivas ficam disponíveis pela descrição. A conferência foi local, sem gravação no banco de produção. As demais pendências da F9 e da F10 seguem na lista consolidada abaixo.
 
 ## F10 — Endurecimento
