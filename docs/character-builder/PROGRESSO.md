@@ -352,6 +352,11 @@
 - `0533294`, `8944b79`, `a3643e2`: aba **Ações** (última, depois de Detalhes) com as ações concedidas e a fonte de cada uma; Bounty Hunter Dedication só dá Monster Hunter a quem já tem Hunt Prey (Player Core 2 p. 191).
 - Build, lint, `check-builder`, `check-heightening` e `check-rolls` passaram; conferido no Brave em desktop e a 320 px.
 
+### 9.14 — Leitura de runas na bancada
+
+- `667f08c`: a runa selecionada abre a descrição completa no próprio seletor. No desktop, a lista e o texto ficam lado a lado. No celular, a tela de leitura preserva a busca e os filtros ao voltar. O custo e a confirmação ficam abaixo da área de rolagem.
+- Build, lint, `check-builder` e `check-economy` passaram. O teste local no navegador cobriu Energy Vulnerability, runa de armadura, descrição longa de runa da mesa e confirmação a 320 px.
+
 ## F10 — Endurecimento
 
 - **10.1 Compilar no servidor: adotado.** No "Aplicar na mesa", o servidor recompila o `BuildState` salvo e usa o próprio retrato.

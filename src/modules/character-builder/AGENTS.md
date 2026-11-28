@@ -51,6 +51,7 @@
 - Atualize `spellNames.pt.json` com `node --env-file=.env scripts/build-spell-names-pt.mjs` após publicar novas magias ou rituais no catálogo. Revise as traduções no arquivo e preserve nomes de conteúdo da mesa.
 - Trate os títulos em português como traduções da plataforma. A primeira carga usa o tradutor do projeto e [OPUS-MT](https://aclanthology.org/2020.eamt-1.61/) de Jörg Tiedemann e Santhosh Thottingal, via Argos `translate-en_pt-1_9` ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)), com revisão por amostragem.
 - Monte a aba Equipamento com `components/equipUi.tsx` (ícone, encaixes em losango, medidores, contador, degraus) e as regras de `equipmentModel.ts`, porque mochila, bancada, catálogo e "Gravar runa" mostram o mesmo item do mesmo jeito.
+- Mostre a descrição completa ao selecionar uma runa e mantenha o custo e o botão de gravar fora da área de rolagem, para que o rodapé nunca cubra os efeitos.
 - Leia o preço da runa fundamental só por `fundamentalRune` (`engine/equipment.ts`), porque "Striking" e "Resilient" também são o grupo sem preço e o `byName` devolveria o grupo.
 - Some no gasto o preço de cada runa no degrau atual, nunca a soma dos degraus, porque o upgrade custa a diferença (GM Core pg. 223–224).
 - Decida se a runa de propriedade cabe pelo `runeFits` (o "Usage" da AON) e mostre o motivo; o que o texto não deixa conferir vira "o GM confere", porque recusar sem certeza é regra inventada.
