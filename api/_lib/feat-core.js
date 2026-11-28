@@ -17,6 +17,7 @@ import {
 } from './aon.js'
 import { parseAonText } from './aon-parse.js'
 import { bestAonHit } from './rules-local.js'
+import relicSupplement from '../../scripts/rules-data/relic-supplement.json' with { type: 'json' }
 import { staffForTier } from './staff-parse.js'
 
 // Ordem de categorias por tipo de consulta: a mais provável primeiro. Heritages
@@ -110,8 +111,10 @@ async function prepareEntry(rawInput, baseCategories, itemType, translationEnabl
   // Só quando o nome cru não casa exato vale a limpeza, que é o caminho de
   // "Assurance (Athletics)" e "Scent (imprecise) 30 feet".
   const hint = classHint(fullName)
-  let best = null
-  if (fullName && fullName !== searchName) {
+  // Livros ainda fora da carga de rules_entries: o recorte importado atende a descrição sem consulta ao vivo à AON.
+  const supplemental = tag?.category === 'relic' && relicSupplement.find((row) => row.name === fullName)
+  let best = supplemental ? { _source: supplemental } : null
+  if (!best && fullName && fullName !== searchName) {
     best = await findBestEntry(fullName, categories, hint, itemType === 'item')
   }
   if (!isExact(best, fullName)) {

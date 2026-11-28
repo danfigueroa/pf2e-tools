@@ -1,0 +1,229 @@
+[
+  {
+    "id": "relic-73",
+    "name": "Breath of Dragons",
+    "category": "relic",
+    "trait": [
+      "Evocation"
+    ],
+    "markdown": "<title level=\"1\" right=\"Relic Minor Gift\">[Breath of Dragons](/Relics.aspx?ID=73)</title>\n\n<traits>\n<trait label=\"Evocation\" url=\"/Traits.aspx?ID=65\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Secrets of Magic](/Sources.aspx?ID=96) pg. 230\n\n<row gap=\"medium\">\n**Aspect** Dragon\n\n</row>\n\n</column>\n\n---\n\n**Activate** <actions string=\"Two Actions\" /> command, envision;  **Frequency** once per day;   **Effect** You breathe out a cone or line of energy. You deal 2d6 damage for every 2 levels of the soul seed to all creatures in either a 30-foot cone or an 80-foot line, with a basic Reflex save. The shape is whichever is appropriate for the soul seed's draconic origin, as is the damage type. This ability has the trait matching the damage type."
+  },
+  {
+    "id": "relic-74",
+    "name": "Draconic Resistance",
+    "category": "relic",
+    "trait": [
+      "Abjuration"
+    ],
+    "markdown": "<title level=\"1\" right=\"Relic Minor Gift\">[Draconic Resistance](/Relics.aspx?ID=74)</title>\n\n<traits>\n<trait label=\"Abjuration\" url=\"/Traits.aspx?ID=2\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Secrets of Magic](/Sources.aspx?ID=96) pg. 230\n\n<row gap=\"medium\">\n**Aspect** Dragon\n\n</row>\n\n</column>\n\n---\n\nYou grow scales that guard against draconic attacks. You gain a +1 status bonus to AC against attacks from [dragons](/Traits.aspx?ID=50) and resistance to an energy type corresponding to the soul seed's draconic origin (such as fire resistance from a [red dragon](/MonsterFamilies.aspx?ID=168)) equal to half the relic's level (minimum resistance 1). "
+  },
+  {
+    "id": "relic-75",
+    "name": "Dragon Strike",
+    "category": "relic",
+    "trait": [
+      "Evocation"
+    ],
+    "markdown": "<title level=\"1\" right=\"Relic Minor Gift\">[Dragon Strike](/Relics.aspx?ID=75)</title>\n\n<traits>\n<trait label=\"Evocation\" url=\"/Traits.aspx?ID=65\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Secrets of Magic](/Sources.aspx?ID=96) pg. 230\n\n<row gap=\"medium\">\n**Aspect** Dragon\n\n</row>\n\n</column>\n\n---\n\n**Activate** <actions string=\"Single Action\" /> command;  **Frequency** once per hour;   **Effect** Ghostly images of draconic claws form around your hands and linger in the air when you attack. For 1 minute, when you make a successful [unarmed](/Traits.aspx?ID=199) melee Strike, you deal an additional 1d6 slashing damage. At 11th level, you can use the ability once per 10 minutes instead of once per hour."
+  },
+  {
+    "id": "relic-76",
+    "name": "Draconic Arrogance",
+    "category": "relic",
+    "trait": [
+      "Fortune"
+    ],
+    "markdown": "<title level=\"1\" right=\"Relic Major Gift\">[Draconic Arrogance](/Relics.aspx?ID=76)</title>\n\n<traits>\n<trait label=\"Fortune\" url=\"/Traits.aspx?ID=76\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Secrets of Magic](/Sources.aspx?ID=96) pg. 230\n\n<row gap=\"medium\">\n**Aspect** Dragon\n\n</row>\n\n</column>\n\n---\n\n**Activate** <actions string=\"Reaction\" /> command;  **Frequency** once per day; **Trigger** You're about to roll a saving throw;  **Effect** You laugh at fate and revel in your draconic arrogance. If you roll a critical success on the saving throw, you can attempt to [Demoralize](/Actions.aspx?ID=53) the creature that created the effect that forced you to roll the saving throw (if any). If you roll a success, you critically succeed instead. If you roll a failure (but not a critical failure), you succeed instead. If you roll a critical failure, however, you're forced to face your own hubris and become [frightened 2](/Conditions.aspx?ID=19)."
+  },
+  {
+    "id": "relic-77",
+    "name": "Wyrm's Flight",
+    "category": "relic",
+    "trait": [
+      "Transmutation"
+    ],
+    "markdown": "<title level=\"1\" right=\"Relic Major Gift\">[Wyrm's Flight](/Relics.aspx?ID=77)</title>\n\n<traits>\n<trait label=\"Transmutation\" url=\"/Traits.aspx?ID=157\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Secrets of Magic](/Sources.aspx?ID=96) pg. 230\n\n<row gap=\"medium\">\n**Aspect** Dragon\n\n</row>\n\n</column>\n\n---\n\n**Activate** <actions string=\"Two Actions\" /> command, envision;  **Frequency** once per day;   **Effect** Ghostly draconic wings grant you a fly Speed equal to your Speed or 20 feet, whichever is greater. This lasts for 10 minutes or until you Dismiss the effect. At 17th level, you can Activate and Dismiss the ability as often as you want, and it has unlimited duration."
+  },
+  {
+    "id": "relic-78",
+    "name": "Draconic Ascendance",
+    "category": "relic",
+    "trait": [
+      "Transmutation"
+    ],
+    "markdown": "<title level=\"1\" right=\"Relic Grand Gift\">[Draconic Ascendance](/Relics.aspx?ID=78)</title>\n\n<traits>\n<trait label=\"Transmutation\" url=\"/Traits.aspx?ID=157\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Secrets of Magic](/Sources.aspx?ID=96) pg. 231\n\n<row gap=\"medium\">\n**Aspect** Dragon\n\n</row>\n\n</column>\n\n---\n\n**Activate** <actions string=\"Two Actions\" /> command, envision;  **Frequency** once per hour;   **Effect** The soul seed casts 8th-level [_dragon form_](/Spells.aspx?ID=88) targeting you; you must take the dragon form corresponding to the soul seed's draconic origin."
+  },
+  {
+    "id": "relic-79",
+    "name": "Absorb Injury",
+    "category": "relic",
+    "trait": [
+      "Necromancy"
+    ],
+    "markdown": "<title level=\"1\" right=\"Relic Minor Gift\">[Absorb Injury](/Relics.aspx?ID=79)</title>\n\n<traits>\n<trait label=\"Necromancy\" url=\"/Traits.aspx?ID=117\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Secrets of Magic](/Sources.aspx?ID=96) pg. 231\n\n<row gap=\"medium\">\n**Aspect** Soul\n\n</row>\n\n</column>\n\n---\n\n**Activate** <actions string=\"Reaction\" /> envision;  **Frequency** once per day; **Trigger** an ally within 30 feet takes damage;  **Effect** You forge a conduit to your ally's soul and absorb the injury to protect them. You receive the damage instead of your ally; you also take any additional effects associated with the transferred damage, such as [poison](/Traits.aspx?ID=126) on the blade, conditions, or [persistent fire damage](/Conditions.aspx?ID=29) from a critical hit with a _[flaming](/Equipment.aspx?ID=295)_ rune."
+  },
+  {
+    "id": "relic-80",
+    "name": "Force Blast",
+    "category": "relic",
+    "trait": [
+      "Evocation"
+    ],
+    "markdown": "<title level=\"1\" right=\"Relic Minor Gift\">[Force Blast](/Relics.aspx?ID=80)</title>\n\n<traits>\n<trait label=\"Evocation\" url=\"/Traits.aspx?ID=65\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Secrets of Magic](/Sources.aspx?ID=96) pg. 231\n\n<row gap=\"medium\">\n**Aspect** Soul\n\n</row>\n\n</column>\n\n---\n\n**Activate** <actions string=\"Two Actions\" /> command, envision;     **Effect** A blast of force envelops a creature of your choosing within 30 feet. This blast deals 1d6 force damage, with a basic Fortitude save.\n\n The damage increases by 1d6 at 3rd level and every 2 levels thereafter."
+  },
+  {
+    "id": "relic-81",
+    "name": "Soul Puppet",
+    "category": "relic",
+    "trait": [
+      "Necromancy"
+    ],
+    "markdown": "<title level=\"1\" right=\"Relic Minor Gift\">[Soul Puppet](/Relics.aspx?ID=81)</title>\n\n<traits>\n<trait label=\"Necromancy\" url=\"/Traits.aspx?ID=117\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Secrets of Magic](/Sources.aspx?ID=96) pg. 231\n\n<row gap=\"medium\">\n**Aspect** Soul\n\n</row>\n\n</column>\n\n---\n\n**Activate** <actions string=\"Three Actions\" /> command, envision;  **Frequency** once per day;   **Effect** You bind loose souls, briefly animating an undead creature. The soul seed casts [_animate dead_](/Spells.aspx?ID=666) at a level equal to half the soul seed's level rounded up. You can Sustain this Activation as you would the spell."
+  },
+  {
+    "id": "relic-82",
+    "name": "Cleanse Soul",
+    "category": "relic",
+    "trait": [
+      "Necromancy"
+    ],
+    "markdown": "<title level=\"1\" right=\"Relic Major Gift\">[Cleanse Soul](/Relics.aspx?ID=82)</title>\n\n<traits>\n<trait label=\"Necromancy\" url=\"/Traits.aspx?ID=117\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Secrets of Magic](/Sources.aspx?ID=96) pg. 231\n\n<row gap=\"medium\">\n**Aspect** Soul\n\n</row>\n\n</column>\n\n---\n\n**Activate** <actions string=\"\" /> 1 minute (command, envision);  **Frequency** once per day;   **Effect** You cleanse a soul of curses. The soul seed attempts to [counteract](/Rules.aspx?ID=371) all [curses](/Traits.aspx?ID=38) on you or another creature you touch throughout the activation. The target's soul is bolstered against further curses, and they gain a +2 status bonus to saving throws against curses for 1 hour."
+  },
+  {
+    "id": "relic-83",
+    "name": "Spirit Blink",
+    "category": "relic",
+    "trait": [
+      "Conjuration",
+      "Teleportation"
+    ],
+    "markdown": "<title level=\"1\" right=\"Relic Major Gift\">[Spirit Blink](/Relics.aspx?ID=83)</title>\n\n<traits>\n<trait label=\"Conjuration\" url=\"/Traits.aspx?ID=33\" />\n<trait label=\"Teleportation\" url=\"/Traits.aspx?ID=156\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Secrets of Magic](/Sources.aspx?ID=96) pg. 231\n\n<row gap=\"medium\">\n**Aspect** Soul\n\n</row>\n\n</column>\n\n---\n\n**Activate** <actions string=\"Two Actions\" /> command, envision;  **Frequency** once per day;   **Effect** You blink between the realm of mortals and the [Ethereal Plane](/Planes.aspx?ID=9). This grants you the effects of [_blink_](/Spells.aspx?ID=27), except the resistance is equal to the soul seed's level instead of 5."
+  },
+  {
+    "id": "relic-84",
+    "name": "Soul Magic",
+    "category": "relic",
+    "trait": [
+      "Enchantment",
+      "Mental"
+    ],
+    "markdown": "<title level=\"1\" right=\"Relic Grand Gift\">[Soul Magic](/Relics.aspx?ID=84)</title>\n\n<traits>\n<trait label=\"Enchantment\" url=\"/Traits.aspx?ID=61\" />\n<trait label=\"Mental\" url=\"/Traits.aspx?ID=106\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Secrets of Magic](/Sources.aspx?ID=96) pg. 231\n\n<row gap=\"medium\">\n**Aspect** Soul\n\n</row>\n\n</column>\n\n---\n\n**Activate** <actions string=\"Single Action\" /> envision;  **Frequency** once per day;   **Effect** You infuse yourself or a willing creature that you touch with spiritual energy. This has the effect of [_divine inspiration_](/Spells.aspx?ID=83)."
+  },
+  {
+    "id": "relic-110",
+    "name": "Creative Spark",
+    "category": "relic",
+    "trait": [
+      "Conjuration",
+      "Fire"
+    ],
+    "markdown": "<title level=\"1\" right=\"Relic Minor Gift\">[Creative Spark](/Relics.aspx?ID=110)</title>\n\n<traits>\n<trait label=\"Conjuration\" url=\"/Traits.aspx?ID=33\" />\n<trait label=\"Fire\" url=\"/Traits.aspx?ID=72\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Highhelm](/Sources.aspx?ID=204) pg. 114\n\n<row gap=\"medium\">\n**Aspect** Forge\n\n</row>\n\n</column>\n\n---\n\n**Activate** <actions string=\"Two Actions\" /> command, Interact;  **Frequency** once per day;   **Effect** You strike the relic against a piece of flint and summon a [fire wisp](/Monsters.aspx?ID=1144) to assist you, which appears in an unoccupied square next to you. The fire wisp doesn't act in combat, but it can assist you while you [Craft](/Actions.aspx?ID=43) items. You gain a +1 bonus to [Crafting](/Skills.aspx?ID=4) checks involving blacksmithing and general metalworking, increasing to +2 at 9th level and +3 at 17th level. Once per day, when you roll a critical failure on a Crafting check related to blacksmithing, you get a failure instead. The wisp replaces the need for a forge while blacksmithing, but you still require other equipment and tools. The wisp remains for up to 10 minutes or until you Dismiss it. You can extend this duration by an additional 10 minutes if you feed the wisp one light Bulk worth of charcoal or firewood, or one pint of oil."
+  },
+  {
+    "id": "relic-111",
+    "name": "Forge Weld",
+    "category": "relic",
+    "trait": [
+      "Transmutation"
+    ],
+    "markdown": "<title level=\"1\" right=\"Relic Minor Gift\">[Forge Weld](/Relics.aspx?ID=111)</title>\n\n<traits>\n<trait label=\"Transmutation\" url=\"/Traits.aspx?ID=157\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Highhelm](/Sources.aspx?ID=204) pg. 114\n\n<row gap=\"medium\">\n**Aspect** Forge\n\n</row>\n\n</column>\n\n---\n\n**Activate** <actions string=\"Two Actions\" /> command, Interact;  **Frequency** once per day;   **Effect** You strike the relic against a non-magical metal object of 4 Bulk or less, repairing it. The object's edges glow white hot, and you restore 5 Hit Points to the object per level of the relic. If this repairs the item above its Broken Threshold, it is no longer [broken](/Conditions.aspx?ID=2). This ability cannot replace lost pieces or restore something that's been completely destroyed."
+  },
+  {
+    "id": "relic-112",
+    "name": "Work Harden",
+    "category": "relic",
+    "trait": [
+      "Abjuration"
+    ],
+    "markdown": "<title level=\"1\" right=\"Relic Minor Gift\">[Work Harden](/Relics.aspx?ID=112)</title>\n\n<traits>\n<trait label=\"Abjuration\" url=\"/Traits.aspx?ID=2\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Highhelm](/Sources.aspx?ID=204) pg. 114\n\n<row gap=\"medium\">\n**Aspect** Forge\n\n</row>\n\n</column>\n\n---\n\n**Activate** <actions string=\"Two Actions\" /> command, Interact;  **Frequency** once per day;   **Effect** You strike the relic against a shield or armor made of metal, and steam pours from it like it's just been quenched. The target item hardens for 10 minutes, increasing its item bonus to AC by 1 if it's armor or its Hardness by 5 if it's a shield."
+  },
+  {
+    "id": "relic-113",
+    "name": "Elements of Creation",
+    "category": "relic",
+    "trait": [
+      "Air",
+      "Conjuration",
+      "Earth",
+      "Water"
+    ],
+    "prerequisite": "creative spark gift",
+    "markdown": "<title level=\"1\" right=\"Relic Major Gift\">[Elements of Creation](/Relics.aspx?ID=113)</title>\n\n<traits>\n<trait label=\"Air\" url=\"/Traits.aspx?ID=5\" />\n<trait label=\"Conjuration\" url=\"/Traits.aspx?ID=33\" />\n<trait label=\"Earth\" url=\"/Traits.aspx?ID=55\" />\n<trait label=\"Water\" url=\"/Traits.aspx?ID=165\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Highhelm](/Sources.aspx?ID=204) pg. 114\n\n<row gap=\"medium\">\n**Aspect** Forge\n\n**Prerequisite** creative spark gift\n</row>\n\n</column>\n\n---\n\nWhen you activate creative spark, you can choose to summon an [air wisp](/Monsters.aspx?ID=1142), a [water wisp](/Monsters.aspx?ID=1145), and an [earth wisp](/Monsters.aspx?ID=1143) in unoccupied squares next to you, in addition to the fire wisp. Unlike a typical earth wisp, the summoned earth wisp takes the form of a small iron creature resembling an anvil crossed with a horned beetle. Like the fire wisp, these additional wisps don't act in combat but can assist you while you [Craft](/Actions.aspx?ID=43) items. While all four wisps are assisting you, the bonus you gain from creative spark is doubled, and your outcome for [Crafting](/Skills.aspx?ID=4) checks related to blacksmithing is one degree of success better than your roll. In addition, being assisted by all four wisps replaces the need for any equipment other than blacksmithing tools when crafting metal items. The wisps last for up to 10 minutes or until you Dismiss them all together as an action. If you extend the duration of the fire wisp, it also extends the duration for the other wisps."
+  },
+  {
+    "id": "relic-114",
+    "name": "Molten Crucible",
+    "category": "relic",
+    "trait": [
+      "Fire",
+      "Transmutation"
+    ],
+    "markdown": "<title level=\"1\" right=\"Relic Major Gift\">[Molten Crucible](/Relics.aspx?ID=114)</title>\n\n<traits>\n<trait label=\"Fire\" url=\"/Traits.aspx?ID=72\" />\n<trait label=\"Transmutation\" url=\"/Traits.aspx?ID=157\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Highhelm](/Sources.aspx?ID=204) pg. 114\n\n<row gap=\"medium\">\n**Aspect** Forge\n\n</row>\n\n</column>\n\n---\n\n**Activate** <actions string=\"Three Actions\" /> command, Interact;  **Frequency** once per day;   **Effect** You strike your relic against a weapon, armor, or shield made of metal. The item becomes red hot and, over the next 10 minutes, transforms into a different base item from the same category. This changes the item's base form while retaining its same materials, runes, and magical properties. Both base items must have an item level of 1 or less, and weapons must require the same number of hands. Specific items can't be changed in this way unless the GM expressly allows it. For example, a _+2 [cold iron](/Equipment.aspx?ID=375) [mace](/Weapons.aspx?ID=7)_ can become a _+2 cold iron [longsword](/Weapons.aspx?ID=31)_, or [chain mail](/Armor.aspx?ID=9) can become [half plate](/Armor.aspx?ID=12), but a [moonlit chain](/Equipment.aspx?ID=156) can't be affected in this way."
+  },
+  {
+    "id": "relic-115",
+    "name": "Living Forge",
+    "category": "relic",
+    "trait": [
+      "Polymorph",
+      "Transmutation"
+    ],
+    "markdown": "<title level=\"1\" right=\"Relic Grand Gift\">[Living Forge](/Relics.aspx?ID=115)</title>\n\n<traits>\n<trait label=\"Polymorph\" url=\"/Traits.aspx?ID=127\" />\n<trait label=\"Transmutation\" url=\"/Traits.aspx?ID=157\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Highhelm](/Sources.aspx?ID=204) pg. 114\n\n<row gap=\"medium\">\n**Aspect** Forge\n\n</row>\n\n</column>\n\n---\n\n**Activate** <actions string=\"Two Actions\" /> command, Interact;  **Frequency** once per day;   **Effect** The relic is absorbed into your body, and you transform into an elemental being of red-hot steel. You gain the effects of 7th-level [_elemental form_](/Spells.aspx?ID=98) and use the statistics for the forge battle form below. In this form, you can re-shape your limbs into different objects, such as a blade or hammer, by using an Interact action. Changing your limbs in this way allows you to choose between bludgeoning, physical, or slashing damage. \n\n<ul><li>**Forge Speed** 30 feet; fire resistance 10, weakness 5 to cold and water; **Melee** <actions string=\"Single Action\" /> forgestrike, **Damage** 1d10 modular; 1d4 [persistent fire](/Conditions.aspx?ID=29).</li></ul>"
+  },
+  {
+    "id": "relic-116",
+    "name": "Enhancing Circuitry",
+    "category": "relic",
+    "trait": [
+      "Metal"
+    ],
+    "markdown": "<title level=\"1\" right=\"Relic Minor Gift\">[Enhancing Circuitry](/Relics.aspx?ID=116)</title>\n\n<traits>\n<trait label=\"Metal\" url=\"/Traits.aspx?ID=505\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Rage of Elements](/Sources.aspx?ID=205) pg. 148\n\n<row gap=\"medium\">\n**Aspect** Metal\n\n</row>\n\n</column>\n\n---\n\nYour relic is engraved with nodes and elements only visible from up close, lacking only a source of current for its machinations. You gain resistance to electricity equal to half the level of your relic (minimum 1).\n\n**Activate—Complete the Circuit** <actions string=\"Reaction\" /> ([manipulate](/Traits.aspx?ID=104))  **Trigger** You are targeted by or are in the area of an [electricity](/Traits.aspx?ID=56) effect;  **Effect** Your relic uses the triggering effect to complete its circuit. You choose which path the electricity takes down the circuit, gaining the corresponding benefit. \n\n<ul><li>**Capacitor** You become electrically charged, gaining a +1 status bonus to attack and damage rolls until the end of your next turn.</li><li>**Inductor** Your resistance against electricity damage increases to the level of your relic until the end of your next turn.</li><li>**Resistor** Your relic attempts to [counteract](/Rules.aspx?ID=371) the effect. On a failure, your relic overheats, dealing fire damage to you equal to the counteract rank of the effect (or double the counteract rank on a critical failure).</li></ul>"
+  },
+  {
+    "id": "relic-117",
+    "name": "Scrap Shot",
+    "category": "relic",
+    "trait": [
+      "Metal"
+    ],
+    "markdown": "<title level=\"1\" right=\"Relic Minor Gift\">[Scrap Shot](/Relics.aspx?ID=117)</title>\n\n<traits>\n<trait label=\"Metal\" url=\"/Traits.aspx?ID=505\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Rage of Elements](/Sources.aspx?ID=205) pg. 148\n\n<row gap=\"medium\">\n**Aspect** Metal\n\n</row>\n\n</column>\n\n---\n\n**Activate** <actions string=\"Two Actions\" /> ([concentrate](/Traits.aspx?ID=32), [manipulate](/Traits.aspx?ID=104))    **Effect** Magnetic repulsion sends a sharp chunk of metal scrap flying from your relic. Make a spell attack roll with your relic against a target within 30 feet. The chunk deals 1d6 piercing damage for every 2 levels the relic has (minimum 1d6). If the target is wearing metal armor or is made of metal, you gain a +1 circumstance bonus to your spell attack roll, and the target becomes [clumsy 1](/Conditions.aspx?ID=3) until the start of your next turn as the scrap adheres to the target. If your relic is made of a [precious](/Traits.aspx?ID=131) metal, the shot is also made of or coated in that metal, bypassing resistances and the like accordingly. The scrap left behind by the shot rusts or crumbles quickly and isn't worth anything if sold."
+  },
+  {
+    "id": "relic-118",
+    "name": "Precious Anodization",
+    "category": "relic",
+    "trait": [
+      "Metal"
+    ],
+    "markdown": "<title level=\"1\" right=\"Relic Major Gift\">[Precious Anodization](/Relics.aspx?ID=118)</title>\n\n<traits>\n<trait label=\"Metal\" url=\"/Traits.aspx?ID=505\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Rage of Elements](/Sources.aspx?ID=205) pg. 148\n\n<row gap=\"medium\">\n**Aspect** Metal\n\n</row>\n\n</column>\n\n---\n\n**Activate** <actions string=\"Single Action\" /> ([concentrate](/Traits.aspx?ID=32)) **Frequency** once per day;   **Effect** For one minute, your relic is affected by a [_clad in metal_](/Spells.aspx?ID=1366) spell of a rank equal to half the relic's level, rounded up. You can choose [uncommon](/Traits.aspx?ID=159) metals in addition to common ones."
+  },
+  {
+    "id": "relic-120",
+    "name": "Rail Dash",
+    "category": "relic",
+    "trait": [
+      "Metal"
+    ],
+    "markdown": "<title level=\"1\" right=\"Relic Major Gift\">[Rail Dash](/Relics.aspx?ID=120)</title>\n\n<traits>\n<trait label=\"Metal\" url=\"/Traits.aspx?ID=505\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Rage of Elements](/Sources.aspx?ID=205) pg. 148\n\n<row gap=\"medium\">\n**Aspect** Metal\n\n</row>\n\n</column>\n\n---\n\n**Activate** <actions string=\"Two Actions\" />  ;  **Frequency** once per hour;   **Effect** Your relic conjures a guideway of magnets beneath you, creating a frictionless path for you to rush forward at high speeds. You Stride up to three times in a straight line. If you end your final Stride adjacent to an object or creature, you ram into it, dealing 1d12 bludgeoning damage for every 2 levels of the relic, with a [basic](/Rules.aspx?ID=329) Reflex save."
+  },
+  {
+    "id": "relic-121",
+    "name": "All Will Decay",
+    "category": "relic",
+    "trait": [
+      "Metal"
+    ],
+    "markdown": "<title level=\"1\" right=\"Relic Grand Gift\">[All Will Decay](/Relics.aspx?ID=121)</title>\n\n<traits>\n<trait label=\"Metal\" url=\"/Traits.aspx?ID=505\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Rage of Elements](/Sources.aspx?ID=205) pg. 148\n\n<row gap=\"medium\">\n**Aspect** Metal\n\n</row>\n\n</column>\n\n---\n\nYour relic's link to the [Plane of Metal](/Planes.aspx?ID=24) tunes it in to the inevitability of rust and decay. You can cast 5th-rank [_rust cloud_](/Spells.aspx?ID=1377) at will as an innate spell.\n\n**Activate** <actions string=\"Two Actions\" /> ([aura](/Traits.aspx?ID=206), [concentrate](/Traits.aspx?ID=32)) **Frequency** once per day;   **Effect** Rusted flakes swirl in a cloud around you, creating a 15-foot emanation that lasts for 1 minute. You're [concealed](/Conditions.aspx?ID=4) to anyone outside the cloud. An enemy that starts its turn in the cloud takes 15 slashing damage with a [basic](/Rules.aspx?ID=329) Fortitude save. If the target has the [metal](/Traits.aspx?ID=505) trait or is primarily made of metal, the damage is 30 instead. Unattended non-magical metal items within the cloud automatically become broken."
+  },
+  {
+    "id": "relic-123",
+    "name": "Ancestors' Call",
+    "category": "relic",
+    "trait": [
+      "Divination",
+      "Dwarf",
+      "Mental"
+    ],
+    "markdown": "<title level=\"1\" right=\"Relic Minor Gift\">[Ancestors' Call](/Relics.aspx?ID=123)</title>\n\n<traits>\n<trait label=\"Divination\" url=\"/Traits.aspx?ID=47\" />\n<trait label=\"Dwarf\" url=\"/Traits.aspx?ID=54\" />\n<trait label=\"Mental\" url=\"/Traits.aspx?ID=106\" />\n</traits>\n\n<column gap=\"tiny\">\n\n**Source** [Pathfinder #193: Mantle of Gold](/Sources.aspx?ID=206) pg. 85\n\n<row gap=\"medium\">\n**Aspect** Mind\n\n</row>\n\n</column>\n\n---\n\n Dwarven spirits gravitate toward this relic, and you can call upon them to inhabit you and your allies to impart ancestral secrets. When you gain this gift, choose three common 1st-level dwarf ancestry feats. \n\n**Activate** <actions string=\"Single Action\" /> envision;  **Frequency** once per hour;   **Effect** Select one of the three ancestry feats. You and each ally in a 10-foot-radius burst centered on you gain that feat and the dwarf trait for 1 minute."
+  }
+]
