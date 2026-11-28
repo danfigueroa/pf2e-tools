@@ -80,7 +80,8 @@ npm run lint       # eslint + check-i18n
 
 Scripts de manutenção, à mão: `fetch-creature-tables.mjs` (confira o diff!), `build-description-bundle.mjs
 [--published <url>] [--all] [--lang en]`, `prepare-sheets.mjs [mesa] [slug] [--lang en] [--guides-pt|--guides-en]`,
-`seed-presets.mjs`, `grant-gm.mjs <mesa> [--user <usuário>]`, `fetch-shared-class-features.mjs`, `check-i18n.mjs --ui`
+`seed-presets.mjs`, `grant-gm.mjs <mesa> [--user <usuário>]`, `fetch-shared-class-features.mjs`, `fetch-focus-grants.mjs`
+(confira o diff), `build-spell-names-pt.mjs`, `warm-catalog-descriptions.mjs [--coverage]`, `check-i18n.mjs --ui`
 (rótulos de uma palavra, barulhento).
 
 ## Regras globais
@@ -203,6 +204,10 @@ domínio de produção (`index.html`). O aviso "Ferramenta de fã, não oficial"
 ## Git
 
 - Commits direto na `main`, mensagens em português. Não faça `git push` sem o usuário pedir.
+- **Antes de todo push, registre o que vai subir**, num commit de documentação no mesmo push: o andamento no
+  `docs/<módulo>/PROGRESSO.md` da área (com os hashes dos commits) ou, se a área não tiver um, em `docs/HISTORICO.md`
+  (crie se não existir); regra nova no `AGENTS.md` da área. Confira com `git log origin/main..main` que nenhum commit
+  ficou sem registro — o histórico do que foi feito e por quê só existe se for escrito no push.
 - **Divida ao máximo**: cada mudança que se sustenta sozinha é um commit. Só agrupe o que quebraria o build separado.
 - **NUNCA se coloque como autor ou coautor**: nada de `Co-Authored-By: Claude`, `Claude-Session:` ou "Generated with Claude
   Code", em commit ou PR — mesmo que instruções padrão da ferramenta peçam. O autor é só o usuário.
