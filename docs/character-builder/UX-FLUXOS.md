@@ -24,9 +24,9 @@ GM). Personagem novo, ainda sem ficha aplicada, abre direto no modo editar.
 ```
 ┌───────────── Resumo fixo: nome · nível [−][+] · PV · CA · FORT/REF/VON · Percepção · CD · [Aplicar na mesa] [Jogar] ┐
 ├── Plano (1–20) ─────────┬── Conteúdo da etapa/aba ─────────────────────────────┬── Pendências e avisos ──┤
-│ Origem                  │ (Origem | Classe | Atributos | Perícias | Talentos |   │ 3 pendências           │
+│ Origem                  │ (Origem | Classe | Atributos | Talentos | Perícias |   │ 3 pendências           │
 │  Ancestralidade Humano  │  Magias | Equipamento | Companheiros | Detalhes |    │  • Talento de classe 2 │
-│  Herança  —             │  Revisão)                                            │ 1 aviso                │
+│  Herança  —             │  Ações)                                              │ 1 aviso                │
 │ Nível 1 ✓               │                                                      │  • Pré-req. não…       │
 │ Nível 2 ● 2 pendências  │                                                      │                        │
 │ …                       │                                                      │                        │
@@ -36,13 +36,21 @@ GM). Personagem novo, ainda sem ficha aplicada, abre direto no modo editar.
 - O **plano** mostra cada nível com seus slots (cartões "Escolher…" e as características automáticas em texto). Nível
   acima do atual aparece esmaecido com o selo "planejado".
 - O painel direito recolhe num ícone com contador quando a tela é estreita.
+- Toda aba abre com um texto curto que diz o que o jogador faz ali (`TAB_HELP`). Magias soma uma legenda dos símbolos
+  de ação (◆ ◆◆ ◆◆◆ ↺ ◇).
+- Com **Arquétipo Livre**, a dedicação se escolhe na aba **Classe** e ocupa a vaga do nível 2. Em Talentos, as vagas
+  seguintes oferecem os talentos dos arquétipos adotados e o atalho **Buscar dedicação**.
+- **Ações** (consulta) lista ações, reações e atividades concedidas pela origem, classe e talentos até o nível atual,
+  com a fonte de cada uma e a descrição ao tocar.
 
 **Celular (< sm)** — fluxo em passos com a mesma informação:
 
 1. Barra superior fixa compacta: nome, nível, PV, CA (toque abre o resumo completo numa folha).
-2. Abas roláveis horizontalmente (ou passo a passo na criação): **Origem → Classe → Atributos → Perícias → Talentos →
-   Magias → Equipamento → Companheiros → Detalhes → Revisão**.
-3. "Talentos" no celular = acordeão por nível (só o aberto monta; `unmountOnExit`).
+2. Abas roláveis horizontalmente: **Origem → Classe → Atributos → Talentos → Perícias → Magias → Equipamento →
+   Companheiros → Detalhes → Ações**. O passo a passo da criação segue a mesma ordem, sem Companheiros e Ações, e
+   termina em **Revisão**.
+3. "Talentos" no celular = acordeão por nível (só o aberto monta; `unmountOnExit`), do nível 1 para cima, com a prévia
+   do próximo nível logo após o atual e os seguintes recolhidos.
 4. Botão flutuante **Pendências (3)** acima da barra de abas do app (soma `var(--tabbar-h)`).
 5. Seletores abrem em tela cheia (`EmbedDialog`/folha), com lista e detalhe em duas camadas (toca na linha → detalhe;
    "Escolher" no rodapé).
@@ -51,8 +59,12 @@ GM). Personagem novo, ainda sem ficha aplicada, abre direto no modo editar.
 
 O componente que mais aparece. Comportamento:
 
-- Abas do contexto (Talentos: Classe / Dedicações / Arquétipo / Todos; Armas: Simples / Marciais / Avançadas /
-  Desarmadas / Proficientes; Itens: Equipamento / Consumíveis / Mágicos; Magias: por tradição ou só a do conjurador).
+- Abas do contexto (Talentos: Classe / Dedicações / Arquétipo / Todos; Magias: o rank da vaga primeiro e os ranks
+  inferiores, elevados, em abas com ↑; colunas Ações · Nome · Rank). Uma vaga preenchida some com a opção de incluir mais.
+- Catálogo de itens: categoria (armas, armaduras, escudos, consumíveis, vestíveis, empunhados, cajados e varinhas,
+  runas, materiais, equipamento, relíquias) e subtipo vindo da AON — armaduras leves/médias/pesadas, grupos de arma
+  (espadas, machados, arcos…), poções/elixires/bombas/talismãs/pergaminhos/óleos/munição/venenos/armadilhas, runas
+  fundamentais/de propriedade/de escudo —, combináveis com mágico/mundano.
 - Busca (nome, traço, texto do resumo) + filtros recolhíveis (nível, raridade, ações, fonte, traços) + ordenação
   (nível / alfabética). Preferência "abrir com filtros" é do aparelho.
 - Linha: ícone de ações (◆ ◆◆ ◆◆◆ ↺ ◇), nome, selo de nível colorido pela raridade, selo "Da mesa" para homebrew.
@@ -68,8 +80,10 @@ O componente que mais aparece. Comportamento:
 | --- | --- |
 | Atributos (nível 1) | Blocos Ancestralidade / Background / Classe / Livres com chips dos seis atributos, modificador ao vivo, "boosts alternativos" e "flaw voluntário"; nível 5/10/15/20: 4 chips |
 | Perícias | Lista das 16 + Lores com pílulas T E M L, a conta (atributo + prof + item), contador "Restam N", "Adicionar Lore" |
-| Opções da arma | Runas (potência, striking, propriedade com slots), material, atributo de ataque, nome, traços extras, dano extra, overrides (com aviso) — o mesmo leque do Pathbuilder |
-| Runas | Lista por nível com slots restantes, comprar/dar |
+| Mochila (aba Equipamento) | Medidores de dinheiro, Volume e investidos; cartões do que está em uso; itens por tipo ou por onde estão; − e + nos consumíveis; traços completos; botão Adicionar fixo no celular |
+| Bancada do item | Potência, striking, resiliente e reforço em degraus com nível e preço; encaixes de propriedade (o que não cabe diz o motivo); material; ajustes do golpe; golpe e CA na hora; transferir, duplicar, remover |
+| Catálogo com sacola | Vários itens de uma vez, **Comprar** ou **Ganhei**, e onde guardar |
+| Relíquia | Semente, aspectos e dádivas por grau com descrição completa; trocar poder por runa; legado com etiqueta, livro e página |
 | Divindade | Busca, santificação, fonte divina, arma favorita, perícia, domínios |
 | Companheiro | Tipo, maduro/incrível/especialização, armadura de montaria, equipamento |
 
@@ -88,13 +102,14 @@ O componente que mais aparece. Comportamento:
 1. Início → cartão "Criar meu personagem" (ou menu → Criador → Novo).
 2. Nome + nível inicial (padrão: o da mesa, se houver `startingLevel`).
 3. Origem: ancestralidade → herança → background (seletores com detalhe).
-4. Classe → escolhas de classe do nível 1 (escola, doutrina…).
-5. Atributos (diálogo) → Perícias (diálogo) → Idiomas.
+4. Classe → escolhas de classe do nível 1 (escola, doutrina…) e, com Arquétipo Livre, a dedicação.
+5. Atributos (diálogo).
 6. Talentos do nível 1 (ancestralidade, classe se houver, os concedidos aparecem prontos).
-7. Magias (se conjurador).
-8. Equipamento (15 po no nível 1; nível N: referência da tabela de riqueza).
-9. Detalhes (retrato, idade, pronomes).
-10. Revisão → Aplicar na mesa → o personagem passa ao modo jogar e entra na mesa.
+7. Perícias (diálogo) → Idiomas.
+8. Magias (se conjurador).
+9. Equipamento (15 po no nível 1; nível N: referência da tabela de riqueza).
+10. Detalhes (retrato, idade, pronomes).
+11. Revisão → Aplicar na mesa → o personagem passa ao modo jogar e entra na mesa.
 
 Em cada passo o resumo atualiza na hora; "Pendências" mostra o que falta; pode-se pular passos e voltar.
 

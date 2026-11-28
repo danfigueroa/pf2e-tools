@@ -37,9 +37,15 @@
 - Regere `api/_lib/builder-engine.gen.js` com `node scripts/build-engine.mjs` depois de mudar o motor, porque o servidor roda esse pacote e o `check-builder` falha com ele velho.
 - Monte a tela com as primitivas de `components/ui.tsx` (fólio, cartão de slot, selos, pips, trilha) e os tokens de `components/uiTokens.ts`, porque o redesign é um sistema só e cor solta foge do `palette.ts`.
 - Deixe constantes e funções fora de `ui.tsx` (em `uiTokens.ts`, `heroText.ts`, `detailFields.ts`), porque o fast refresh do lint recusa arquivo de componente que exporta outra coisa.
+- Mantenha a ordem das abas em `TABS` (`tabs.ts`) e a do passo a passo em `STEPS` (`BuilderMode.tsx`) iguais: Origem, Classe, Atributos, Talentos, Perícias, Magias, Equipamento, Companheiros, Detalhes e Ações. Talentos vem logo após Atributos porque os pré-requisitos dependem deles, e Ações fica por último porque só consulta.
+- Deixe Companheiros e Ações fora do passo a passo, porque são opcionais e não bloqueiam a criação.
+- Abra cada aba com o texto de `TAB_HELP` (pt e en). Aba nova ganha texto próprio, porque o jogador monta a ficha sem consultar o livro.
+- Ordene a aba Talentos do nível 1 para cima, com a prévia do próximo nível logo depois do atual e os níveis seguintes recolhidos, porque se escolhe de baixo para cima por causa dos pré-requisitos.
+- Escolha a dedicação de Arquétipo Livre na aba Classe pela primeira vaga `archetype` (`archetype-feat-2`, que o `tabOf` manda para Classe). As vagas seguintes ficam em Talentos, com os talentos dos arquétipos já adotados e o atalho **Buscar dedicação**, porque o arquétipo é uma decisão de conceito tomada junto da classe (GM Core p. 84).
+- Derive os subtipos do catálogo da mochila só dos dados da AON em `catalogSubtypes` (`equipmentModel.ts`): categoria da armadura, grupo da arma, `subcategory` de consumíveis e runas. O subtipo se combina com o filtro mágico/mundano. Grupo novo da AON precisa de rótulo em `WEAPON_GROUPS`, senão aparece em inglês.
 - Mostre a descrição completa dentro do detalhe do seletor (`DescriptionContent` com `embedded`), porque abrir outra tela para ler o talento é navegação à toa.
 - Calcule o "muda sozinho" do próximo nível compilando o estado com `level + 1` (`levelDiff.ts`), porque número previsto à mão seria regra inventada.
-- Abra a criação guiada só por `?guiado=1` (o "Novo personagem" já manda), porque um personagem existente entra direto no Plano.
+- Abra a criação guiada só por `?guiado=1` (o "Novo personagem" já manda), porque um personagem existente entra direto em Talentos.
 - Use como imagem do personagem o token da Ficha (`<slug>/token` no estado da mesa, `HeroPortrait`) e guarde a mesma URL em `details.portrait`, porque a imagem é uma só no mapa, na Ficha e no Criador.
 - Traduza traços pelo `useTraitLabels` (nome guardado no banco pelo `?traitRules=`) e títulos de magias pelo `spellName` na tela. Preserve o nome canônico para IDs, exportação e consultas de descrição, e aceite ambos na busca.
 - Atualize `spellNames.pt.json` com `node --env-file=.env scripts/build-spell-names-pt.mjs` após publicar novas magias ou rituais no catálogo. Revise as traduções no arquivo e preserve nomes de conteúdo da mesa.
