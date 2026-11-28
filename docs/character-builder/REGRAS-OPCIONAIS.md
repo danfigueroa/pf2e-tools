@@ -92,6 +92,10 @@ A plataforma permite escolher uma runa no lugar do poder, por decisão da mesa. 
 
 Os personagens novos começam com as escolhas do jogador. As concessões caseiras do elenco continuam vinculadas às relíquias antigas. Ao editar uma delas, cada dádiva herdada fica disponível até o jogador escolher uma substituta.
 
+Use a edição Remaster de cada dádiva republicada. As dádivas que só existem no legado podem ser escolhidas e recebem a etiqueta **Legado**, o livro e a página. Dragão e Alma vêm das sementes de alma e podem aparecer em outras relíquias quando fizer sentido para a mesa. [Aspectos na AON](https://2e.aonprd.com/Relics.aspx) · [Secrets of Magic, p. 229](https://2e.aonprd.com/Rules.aspx?ID=1558)
+
+Na regra comum, cada +1 de potência da arma ou armadura abre um espaço de propriedade. Armas e armaduras de oricalco +3 comportam quatro propriedades. Striking e Resiliente concedem outros benefícios. Quando o GM permite gravar propriedades na relíquia, a bancada reserva os espaços primeiro para as runas gravadas e depois para as dádivas despertas, na ordem dos marcos. A escolha excedente fica salva e dormente até ter espaço. Quando o GM concede runas somente como dádivas, elas dispensam esses espaços. [GM Core, pp. 224–225](https://2e.aonprd.com/Rules.aspx?ID=3162) · [Runas como dádivas](https://2e.aonprd.com/Rules.aspx?ID=3256) · [Armadura de oricalco](https://2e.aonprd.com/Equipment.aspx?ID=2802) · [Arma de oricalco](https://2e.aonprd.com/Equipment.aspx?ID=2859)
+
 ## 6. Como fica na configuração da mesa
 
 ```ts
