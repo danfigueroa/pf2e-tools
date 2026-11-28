@@ -4,9 +4,9 @@ import { displayFont, gold, greenInk, ink, parchment, rule, status } from '../..
 import { tr } from '../../../i18n';
 import type { RuleEntry } from '../rules/types';
 import type { AttributeKey, Compiled, RulesIndex } from '../engine/types';
-import type { InventoryEntry } from '../types';
-import { FUNDAMENTAL_TIERS, fundamentalRune, type FundamentalKind, type ResolvedItem, type RuneLine } from '../engine/equipment';
-import { activeRuneGifts } from '../../../pathbuilder/playerRelic';
+import type { InventoryEntry, MesaRules } from '../types';
+import { FUNDAMENTAL_TIERS, fundamentalRune, propertyRuneSlots, type FundamentalKind, type ResolvedItem, type RuneLine } from '../engine/equipment';
+import { relicRuneCapacity } from '../../../pathbuilder/playerRelic';
 import { RELICS } from '../../character-viewer/relics';
 import { PlayerRelicEditor } from './PlayerRelicEditor';
 import { useTraitLabels } from '../../character-viewer/components/useTraitLabels';
@@ -37,6 +37,7 @@ export interface ItemBenchProps {
   index: RulesIndex;
   /** Materiais preciosos do catálogo (os grupos, sem as barras e lingotes). */
   materials: RuleEntry[];
+  mesaRules: MesaRules | null;
   /** Contêineres da mochila (onde guardar). */
   containers: ResolvedItem[];
   /** Itens do mesmo tipo que podem receber as runas. */
@@ -58,7 +59,7 @@ export interface ItemBenchProps {
  * de propriedade (um por ponto de potência, GM Core pg. 224), material, ajustes do golpe, o golpe ou a CA calculados na
  * hora e o custo com Comprado/Ganho. Acima do nível do personagem vira ⚠, nunca trava.
  */
-export function ItemBench({ item, compiled, index, materials, containers, transferTargets, canEdit, patch, onEtch, onRemoveRune, onTransfer, onDuplicate, onRemove, onClose, relic }: ItemBenchProps) {
+export function ItemBench({ item, compiled, index, materials, mesaRules, containers, transferTargets, canEdit, patch, onEtch, onRemoveRune, onTransfer, onDuplicate, onRemove, onClose, relic }: ItemBenchProps) {
   const [tune, setTune] = useState(false);
   const [transferAnchor, setTransferAnchor] = useState<HTMLElement | null>(null);
   const inv = item.inv;
@@ -83,9 +84,8 @@ export function ItemBench({ item, compiled, index, materials, containers, transf
   const potencyKind: FundamentalKind = kind === 'armor' ? 'armorPotency' : 'potency';
   const potency = runes.potency ?? 0;
   const property = runes.property ?? [];
-  const slots = kind === 'shield' ? 0 : potency;
-  const gifts = activeRuneGifts(inv.relic, level, kind === 'weapon' || kind === 'armor' ? kind : undefined);
-  const usedSlots = property.length + (inv.relic?.allowEtching ? gifts.length : 0);
+  const slots = kind === 'shield' ? 0 : propertyRuneSlots(potency, inv.material?.id, index);
+  const { gifts, activeEtched, activeGifts, used: usedSlots } = relicRuneCapacity(inv.relic, level, kind === 'weapon' || kind === 'armor' ? kind : undefined, slots, property);
   const propertyLines = item.runes.filter((r) => r.kind === 'property');
   const traits = itemTraits(entry, item.base, inv.weapon?.extraTraits);
   const traitText = useTraitLabels(traits);
@@ -134,7 +134,7 @@ export function ItemBench({ item, compiled, index, materials, containers, transf
 
         {relic && <RelicPanel view={relic} compact />}
         <PlayerRelicEditor preset={relic && RELICS.find((r) => r.id === relic.relic.id)} seed={inv.relic} level={level} kind={kind}
-          index={index} canEdit={canEdit} change={(value) => patch({ relic: value })} />
+          index={index} base={item.base} mesaRules={mesaRules} canEdit={canEdit} change={(value) => patch({ relic: value })} />
 
         {canUse(kind, entry) && (
           <Segmented label={tr('Onde está', 'Where it is')} value={inUse(kind, inv) ? 'on' : 'off'} disabled={!canEdit}
@@ -148,7 +148,7 @@ export function ItemBench({ item, compiled, index, materials, containers, transf
         )}
 
         {runic && kind !== 'shield' && (
-          <Field label={tr('Potência', 'Potency')} note={tr('+1 espaço de propriedade por ponto', '+1 property slot per point')}>
+          <Field label={tr('Potência', 'Potency')} note={slots > potency ? tr('Oricalco +3: quatro espaços', '+3 orichalcum: four slots') : tr('+1 espaço de propriedade por ponto', '+1 property slot per point')}>
             <TierPicker label={tr('Potência', 'Potency')} value={potency} options={tiers(potencyKind)} disabled={!canEdit} onChange={(t) => setRunes({ potency: t })} />
           </Field>
         )}
@@ -182,7 +182,8 @@ export function ItemBench({ item, compiled, index, materials, containers, transf
                     <Box component="b" sx={{ fontSize: 15 }}>{r.name}</Box>
                     <Box component="span" sx={{ fontSize: 13, color: ink.secondary }}>
                       {runeMeta(r)}{r.level !== undefined && r.level > level ? <Box component="span" sx={{ color: status.warning, fontWeight: 700 }}>{tr(' · ⚠ acima do nível', ' · ⚠ above level')}</Box> : null}
-                      {i >= slots ? <Box component="span" sx={{ color: status.warning, fontWeight: 700 }}>{tr(' · sem espaço (dormente)', ' · no slot (dormant)')}</Box> : null}
+                      {inv.relic && i >= activeEtched.length && i < slots ? <Box component="span" sx={{ color: status.warning, fontWeight: 700 }}>{tr(' · dormente até o GM permitir a gravação', ' · dormant until the GM allows etching')}</Box>
+                        : i >= slots ? <Box component="span" sx={{ color: status.warning, fontWeight: 700 }}>{tr(' · sem espaço (dormente)', ' · no slot (dormant)')}</Box> : null}
                     </Box>
                   </Box>
                   {canEdit && (
@@ -211,7 +212,10 @@ export function ItemBench({ item, compiled, index, materials, containers, transf
                   <StrokeIcon d={ICON_PATH.plus} sx={{ color: gold.deep }} />
                 </ButtonBase>
               ))}
-              {gifts.map((g) => <Box key={g.id} sx={{ fontSize: 13 }}>{g.name} · {tr('dádiva da relíquia', 'relic gift')}</Box>)}
+              {gifts.map((g, i) => <Box key={`${g.id}-${i}`} sx={{ fontSize: 13 }}>
+                {g.name} · {i >= activeGifts.length ? tr('dádiva dormente · falta espaço de potência', 'dormant gift · needs a potency slot')
+                  : inv.relic?.allowEtching ? tr('dádiva · ocupa um espaço', 'gift · uses one slot') : tr('dádiva · dispensa espaço de potência', 'gift · needs no potency slot')}
+              </Box>)}
               {slots === 0 && property.length === 0 && (
                 <Box sx={{ fontSize: 13, color: ink.secondary, p: 1.25, border: `1px dashed ${rule}`, borderRadius: '8px' }}>
                   {tr('Grave uma runa de potência para liberar o primeiro espaço.', 'Etch a potency rune to open the first slot.')}</Box>

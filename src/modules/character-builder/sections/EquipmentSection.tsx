@@ -3,7 +3,7 @@ import { Box, Button, ButtonBase, Chip, Collapse, Drawer, InputBase, Stack, Text
 import { displayFont, gold, green, greenInk, ink, parchment, rule } from '../../../theme';
 import { locale, tr } from '../../../i18n';
 import { ContentPicker } from '../components/ContentPicker';
-import { STARTING_GOLD, type ResolvedItem } from '../engine/equipment';
+import { STARTING_GOLD, propertyRuneSlots, type ResolvedItem } from '../engine/equipment';
 import type { RuleEntry } from '../rules/types';
 import type { BuildState, InventoryEntry } from '../types';
 import { useTraitLabels } from '../../character-viewer/components/useTraitLabels';
@@ -40,14 +40,14 @@ export interface EquipmentProps extends SectionProps {
 }
 
 /** Os encaixes do item: fundamentais em ouro, propriedade em verde, espaço livre tracejado, runa a mais em âmbar. */
-function socketsOf(it: ResolvedItem, kind: ItemKind, level: number): SocketLook[] {
+function socketsOf(it: ResolvedItem, kind: ItemKind, level: number, index: SectionProps['index']): SocketLook[] {
   if (!isRunic(kind)) return [];
   const r = it.inv.runes ?? {};
   if (kind === 'shield') return r.reinforcing ? ['f'] : [];
   const out: SocketLook[] = [];
   if (r.potency) out.push('f');
   if (kind === 'weapon' ? r.striking : r.resilient) out.push('f');
-  const slots = r.potency ?? 0;
+  const slots = propertyRuneSlots(r.potency ?? 0, it.inv.material?.id, index);
   const gifts = it.inv.relic?.allowEtching && (kind === 'armor' || kind === 'weapon') ? activeRuneGifts(it.inv.relic, level, kind).length : 0;
   const prop = (r.property?.length ?? 0) + gifts;
   for (let i = 0; i < Math.max(slots, prop); i++) out.push(i < prop ? (i < slots ? 'p' : 'x') : 'e');
@@ -263,7 +263,7 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
                       </Box>
                       <Box component="span" sx={{ fontWeight: 700, fontSize: { xs: 14, sm: 15 }, lineHeight: 1.25, overflowWrap: 'anywhere' }}>{relics.byItem.get(it.key)?.relic.name ?? strike?.display ?? itemDisplayName(it)}</Box>
                       <Box component="span" sx={{ fontSize: { xs: 12, sm: 13 }, color: ink.secondary, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                        <Sockets looks={socketsOf(it, kind, level)} />{meta}
+                        <Sockets looks={socketsOf(it, kind, level, index)} />{meta}
                       </Box>
                     </ButtonBase>
                   );
@@ -316,7 +316,7 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
                           <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', fontWeight: 600, fontSize: 15, lineHeight: 1.25 }}>
                             <Box component="span" sx={{ overflowWrap: 'anywhere' }}>{relics.byItem.get(it.key)?.relic.name ?? itemDisplayName(it)}</Box>
                             {(it.inv.relic || relics.byItem.has(it.key)) && <Box component="span" sx={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: gold.deep, border: `1px solid ${gold.main}`, borderRadius: '4px', px: 0.625, lineHeight: '18px' }}>{tr('Relíquia', 'Relic')}</Box>}
-                            <Sockets looks={socketsOf(it, kind, level)} />
+                            <Sockets looks={socketsOf(it, kind, level, index)} />
                           </Box>
                           <Box component="span" sx={{ display: 'block', fontSize: 13, color: ink.secondary, mt: '2px' }}>{meta}</Box>
                           <Box component="span" sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
@@ -401,7 +401,7 @@ export function EquipmentSection({ state, update, compiled, canEdit, mesaRules, 
       <Drawer anchor="right" open={!!bench} onClose={() => setBenchKey(null)}
         slotProps={{ paper: { sx: { width: { xs: '100%', sm: 440 }, maxWidth: '100%', bgcolor: parchment.paper } } }}>
         {bench && (
-          <ItemBench item={bench} compiled={compiled} index={index} materials={materials} canEdit={canEdit}
+          <ItemBench mesaRules={mesaRules} item={bench} compiled={compiled} index={index} materials={materials} canEdit={canEdit}
             containers={containers}
             transferTargets={eq.items.filter((o) => o.key !== bench.key && kindOf(o) === kindOf(bench))}
             patch={(p) => patch(bench.key, p)}

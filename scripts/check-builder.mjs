@@ -899,7 +899,7 @@ console.log('Paridade com o elenco (importar → recompilar → exportar) e inva
 console.log('Relíquias do GM Core e traços de equipamento')
 {
     const { RELIC_OPTIONS } = await import('../src/pathbuilder/relicOptions.ts')
-    const { chosenGifts, RELIC_STAGES } = await import('../src/pathbuilder/playerRelic.ts')
+    const { chosenGifts, RELIC_STAGES, RELIC_ASPECTS, LEGACY_RELIC_ASPECTS } = await import('../src/pathbuilder/playerRelic.ts')
     const { exportBuild } = await import('../src/modules/character-builder/engine/export.ts')
     const { importPathbuilder } = await import('../src/modules/character-builder/engine/import.ts')
     const { relicsOf } = await import('../src/modules/character-viewer/relics.ts')
@@ -910,7 +910,19 @@ console.log('Relíquias do GM Core e traços de equipamento')
     const host = { key: 'relic-a', item: rules.byName('Warhammer', 'weapon').id, qty: 1, acquired: 'bought', relic: seed }
     const draft = { ...hf, name: 'Miranda Nova', inventory: [host, { ...host, key: 'ordinary', relic: undefined }] }
     const compileAt = (level, inventory = draft.inventory) => compileBuild({ ...draft, level, inventory }, ctx)
-    expect('GM Core: 72 dádivas', RELIC_OPTIONS.filter((g) => !g.rune).length, 72)
+    expect('GM Core: 72 dádivas', RELIC_OPTIONS.filter((g) => !g.rune && !g.sourceId).length, 72)
+    expect('AON: 122 poderes distintos e 21 aspectos, sem duplicar as reedições', [new Set(RELIC_OPTIONS.filter((g) => !g.rune).map((g) => g.name)).size, RELIC_ASPECTS.length], [122, 21])
+    expect('apenas três aspectos inteiramente legados', [...LEGACY_RELIC_ASPECTS], ['Dragon', 'Forge', 'Soul'])
+    expect('Muse é a reedição do Treasure Vault', RELIC_OPTIONS.filter((g) => g.name === 'Muse').map((g) => [g.id, g.sourceId]), [['relic:relic-87', 191]])
+    pair('todos os aspectos sobrevivem aos sanitizadores', serverSanitize.cleanPlayerRelic, clientSanitize.cleanPlayerRelic,
+        { aspects: RELIC_ASPECTS, gifts: {} }, { aspects: RELIC_ASPECTS, gifts: {} })
+    // GM Core p. 309, Runes as Gifts. A mesma resistência pode ser menor ou maior conforme o aspecto.
+    const runeChoices = (aspect, host, tier) => RELIC_OPTIONS.filter((g) => g.host === host && g.tier === tier && g.aspects.includes(aspect)).map((g) => g.name).sort()
+    expect('Ar na armadura: resistência a frio e eletricidade é dádiva maior', runeChoices('Air', 'armor', 'major'), [
+        'Energy-Resistant (Greater) · Cold', 'Energy-Resistant (Greater) · Electricity', 'Energy-Resistant · Cold', 'Energy-Resistant · Electricity', 'Invisibility'])
+    expect('Fogo na armadura: os dois graus de resistência são dádivas menores', runeChoices('Fire', 'armor', 'minor'), [
+        'Energy-Resistant (Greater) · Fire', 'Energy-Resistant · Fire'])
+    expect('Aspectos suplementares não ganham runas inventadas', runeChoices('Metal', 'weapon', 'minor'), [])
     expect('dois menores, dois maiores e uma grandiosa', RELIC_STAGES.map((s) => [s.level, s.tier]), [[1, 'minor'], [5, 'minor'], [9, 'major'], [13, 'major'], [17, 'grand']])
     expect('nível 4 conserva o plano, sem a runa', compileAt(4).equipment.strikes.find((s) => s.key === host.key).runes, [])
     const active = compileAt(5)
@@ -919,6 +931,24 @@ console.log('Relíquias do GM Core e traços de equipamento')
     expect('dádiva não custa dinheiro', active.equipment.money.spent, compileAt(4).equipment.money.spent)
     expect('dádiva não requer potência por padrão', active.warnings.some((w) => w.code === 'RUNE_SLOTS'), false)
     expect('se o GM libera gravação, a dádiva usa espaço', compileAt(5, [{ ...host, relic: { ...seed, allowEtching: true } }]).warnings.some((w) => w.code === 'RUNE_SLOTS'), true)
+    const plannedEtch = compileAt(5, [{ ...host, runes: { potency: 1, property: ['Frost'] } }])
+    expect('a potência por si só não autoriza gravar outra propriedade na relíquia', plannedEtch.equipment.strikes.find((s) => s.key === host.key).runes, ['Flaming'])
+    const slotted = { ...host, relic: { ...seed, allowEtching: true } }
+    const strikeWith = (runes) => compileAt(5, [{ ...slotted, runes }]).equipment.strikes.find((s) => s.key === host.key)
+    expect('Striking sem potência: a dádiva fica dormente, sem dano', strikeWith({ striking: 1 }).extraDamage, [])
+    expect('potência +1 desperta a dádiva', strikeWith({ potency: 1 }).extraDamage, ['1d6 Fire'])
+    expect('a gravação ocupa o único espaço antes da dádiva', strikeWith({ potency: 1, property: ['Frost'] }).runes, ['Frost'])
+    expect('potência +2 acomoda a gravação e a dádiva', strikeWith({ potency: 2, property: ['Frost'] }).runes, ['Frost', 'Flaming'])
+    const orichalcum = { ...slotted, material: { id: 'item:equipment-2919', grade: 'high' }, runes: { potency: 3, property: ['Frost', 'Shock', 'Thundering'] } }
+    expect('oricalco +3 admite a dádiva no quarto espaço', compileAt(5, [orichalcum]).equipment.strikes.find((s) => s.key === host.key).runes, ['Frost', 'Shock', 'Thundering', 'Flaming'])
+    const armorGift = RELIC_OPTIONS.find((g) => g.rune === 'Shadow')
+    const armorHost = { ...host, item: rules.byName('Leather Armor').id, worn: true, relic: { aspects: ['Shadow'], gifts: { 1: armorGift.id }, allowEtching: true } }
+    const armorDoc = (runes) => {
+        const inventory = [{ ...armorHost, runes }]
+        return exportBuild({ ...draft, level: 5, inventory }, compileAt(5, inventory), ctx).build
+    }
+    expect('Resiliente sem potência conserva a escolha, sem exportar o efeito', [armorDoc({ resilient: 1 }).armor[0].runes, armorDoc({ resilient: 1 }).covil.relics[0].seed.gifts], [[], { 1: armorGift.id }])
+    expect('potência +1 na armadura exporta a dádiva', armorDoc({ potency: 1 }).armor[0].runes, ['Shadow'])
     const doc = exportBuild({ ...draft, level: 5 }, active, ctx).build
     expect('personagem novo com nome parecido não herda relíquia da mesa', relicsOf(doc).map((r) => r.id), ['player:relic-a'])
     expect('retrato normalizado é idempotente', normalizeBuild(normalizeBuild(doc)), normalizeBuild(doc))

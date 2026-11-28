@@ -1,7 +1,12 @@
 import { lazy, Suspense, useId, useMemo, useState } from 'react';
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, Tab, Tabs, TextField, useMediaQuery, useTheme } from '@mui/material';
 import { tr } from '../../../i18n';
-import type { RelicOption } from '../../../pathbuilder/relicOptions';
+import type { RulesIndex } from '../engine/types';
+import type { RuleEntry } from '../rules/types';
+import { runeFits } from './equipmentModel';
+import type { MesaRules } from '../types';
+import { allowsBook } from '../mesaRules';
+import { RELIC_BOOKS, type RelicOption } from '../../../pathbuilder/relicOptions';
 import { VIEW_OK } from '../../character-viewer/sheetAccess';
 import { relicAspectLabel } from './relicView';
 import { cardSx } from './uiTokens';
@@ -16,6 +21,20 @@ export function RelicAspectTags({ names }: { names: string[] }) {
   </Box>;
 }
 
+export function RelicGiftSource({ gift, mesaRules, index, base }: { gift: RelicOption; mesaRules: MesaRules | null; index: RulesIndex; base: RuleEntry | null }) {
+  const id = gift.sourceId ?? 218;
+  const book = RELIC_BOOKS[id];
+  const rune = gift.catalogId ? index.get(gift.catalogId) : undefined;
+  const fit = rune && runeFits(rune, base);
+  const outside = mesaRules && !allowsBook({ remaster: !book.legacy, source: { id: `source-${id}` } }, mesaRules);
+  return <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.75 }}>
+    {book.legacy && <ContentBadge kind="legacy" />}
+    {fit && fit.ok !== true && <small>{tr('Confira o uso da runa', 'Check rune usage')} · {fit.why}</small>}
+    {outside && <ContentBadge kind="out" />}
+    <small>{book.name} · {tr('pág.', 'p.')} {gift.page ?? 309}</small>
+  </Box>;
+}
+
 export function RelicGiftDescription({ name, rune }: { name: string; rune?: string }) {
   const request = useMemo(() => rune
     ? { type: 'item' as const, name: `${rune} [equipment]` }
@@ -26,8 +45,8 @@ export function RelicGiftDescription({ name, rune }: { name: string; rune?: stri
 }
 
 /** Abrir, buscar e ler mantém a escolha atual. Só o botão do cartão grava a dádiva. */
-export function RelicGiftPicker({ title, options, value, onPick, onClose }: {
-  title: string; options: RelicOption[]; value: string; onPick?: (id: string) => void; onClose: () => void;
+export function RelicGiftPicker({ title, options, value, aspects, mesaRules, index, base, onPick, onClose }: {
+  aspects: string[]; index: RulesIndex; base: RuleEntry | null; mesaRules: MesaRules | null; title: string; options: RelicOption[]; value: string; onPick?: (id: string) => void; onClose: () => void;
 }) {
   const titleId = useId();
   const fullScreen = useMediaQuery(useTheme().breakpoints.down('sm'));
@@ -51,6 +70,9 @@ export function RelicGiftPicker({ title, options, value, onPick, onClose }: {
           <Stack spacing={1}>
             <Box component="h3" sx={{ m: 0 }}>{g.name}</Box>
             <RelicAspectTags names={g.aspects} />
+            {aspects.length > 0 && !g.aspects.some((a) => aspects.includes(a)) &&
+              <small>{tr('Aspecto diferente da semente. Confira com o GM.', 'Different from the seed’s aspects. Check with the GM.')}</small>}
+            <RelicGiftSource gift={g} mesaRules={mesaRules} index={index} base={base} />
             <RelicGiftDescription name={g.name} rune={g.rune} />
             {onPick && <Button variant="outlined" disabled={g.id === value} onClick={() => onPick(g.id)}>
               {g.id === value ? tr('Dádiva atual', 'Current gift') : tr(`Escolher ${g.name}`, `Choose ${g.name}`)}

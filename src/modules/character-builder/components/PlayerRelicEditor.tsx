@@ -1,20 +1,22 @@
 import { useState } from 'react';
 import { Box, Button, Checkbox, FormControlLabel, Stack, TextField } from '@mui/material';
 import { tr } from '../../../i18n';
-import { RELIC_ASPECTS, RELIC_STAGES, type PlayerRelic } from '../../../pathbuilder/playerRelic';
+import { LEGACY_RELIC_ASPECTS, RELIC_ASPECTS, RELIC_STAGES, type PlayerRelic } from '../../../pathbuilder/playerRelic';
+import type { MesaRules } from '../types';
 import { RELIC_OPTIONS } from '../../../pathbuilder/relicOptions';
+import type { RuleEntry } from '../rules/types';
 import type { RulesIndex } from '../engine/types';
 import { formatGp, type ItemKind } from './equipmentModel';
-import { Label } from './ui';
+import { ContentBadge, Label } from './ui';
 import { relicAspectLabel } from './relicView';
-import { RelicAspectTags, RelicGiftDescription, RelicGiftPicker } from './RelicGiftPicker';
+import { RelicAspectTags, RelicGiftDescription, RelicGiftPicker, RelicGiftSource } from './RelicGiftPicker';
 import { VIEW_OK } from '../../character-viewer/sheetAccess';
 
 const tiers = { minor: tr('menor', 'minor'), major: tr('maior', 'major'), grand: tr('grandiosa', 'grand') };
 const nativeSelect = { select: { native: true }, inputLabel: { shrink: true } };
 
-export function PlayerRelicEditor({ seed, level, kind, index, canEdit, change, preset }: {
-  seed?: PlayerRelic; level: number; kind: ItemKind; index: RulesIndex; canEdit: boolean;
+export function PlayerRelicEditor({ seed, level, kind, index, canEdit, change, preset, mesaRules, base }: {
+  base: RuleEntry | null; mesaRules: MesaRules | null; seed?: PlayerRelic; level: number; kind: ItemKind; index: RulesIndex; canEdit: boolean;
   preset?: { id: string; aspects?: string[]; gifts: { name: string; kind: 'power' | 'rune'; description?: string }[] };
   change: (value?: PlayerRelic) => void;
 }) {
@@ -29,9 +31,12 @@ export function PlayerRelicEditor({ seed, level, kind, index, canEdit, change, p
     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
       {[...new Set([...RELIC_ASPECTS, ...seed.aspects])].map((a) => <Button key={a} size="small" variant={seed.aspects.includes(a) ? 'contained' : 'outlined'}
         disabled={!canEdit} aria-pressed={seed.aspects.includes(a)}
-        onClick={() => change({ ...seed, aspects: seed.aspects.includes(a) ? seed.aspects.filter((v) => v !== a) : [...seed.aspects, a] })}>{relicAspectLabel(a)}</Button>)}
+        onClick={() => change({ ...seed, aspects: seed.aspects.includes(a) ? seed.aspects.filter((v) => v !== a) : [...seed.aspects, a] })}>{relicAspectLabel(a)}{LEGACY_RELIC_ASPECTS.has(a) && <Box component="span" sx={{ ml: 0.5 }}><ContentBadge kind="legacy" /></Box>}</Button>)}
     </Box>
     {(kind === 'weapon' || kind === 'armor') && <small>{tr('A mesa permite escolher uma runa no lugar da dádiva. O GM Core recomenda reservar essa opção às relíquias conduzidas pelo GM.', 'This table allows a rune instead of a gift. GM Core recommends reserving that option for GM-driven relics.')}</small>}
+    {(kind === 'weapon' || kind === 'armor') && <small>{seed.allowEtching
+      ? tr('Cada +1 de potência concede um espaço compartilhado entre propriedades gravadas e dádivas de runa. As gravadas usam os espaços primeiro. Striking e Resiliente não concedem espaços.', 'Each +1 of potency grants one slot shared by etched properties and rune gifts. Etched runes use slots first. Striking and resilient grant no slots.')
+      : tr('Por padrão, o GM pode conceder uma runa como dádiva mesmo sem potência. Para gravar outras propriedades nesta relíquia, é preciso permissão do GM e espaço de potência.', 'By default, the GM can grant a rune as a gift even without potency. Etching other properties on this relic requires GM permission and a potency slot.')}</small>}
     {RELIC_STAGES.map((stage, slotIndex) => {
       const value = seed.gifts[stage.level] ?? '';
       const gift = RELIC_OPTIONS.find((g) => g.id === value);
@@ -53,7 +58,7 @@ export function PlayerRelicEditor({ seed, level, kind, index, canEdit, change, p
       return <Stack spacing={1} key={stage.level}>
         <Label>{label}</Label>
         {(name || value) && <Box component="strong">{name ?? value}</Box>}
-        {displayed && <RelicAspectTags names={displayed.aspects} />}
+        {displayed && <><RelicAspectTags names={displayed.aspects} /><RelicGiftSource gift={displayed} mesaRules={mesaRules} index={index} base={base} /></>}
         {inherited?.description ? <Box sx={{ whiteSpace: 'pre-line' }}>{inherited.description}</Box> : name &&
           <RelicGiftDescription name={name} rune={displayed?.rune ?? (inherited?.kind === 'rune' ? inherited.name : undefined)} />}
         <Button {...VIEW_OK} variant="outlined" onClick={() => setBrowsing(stage.level)}
@@ -62,7 +67,7 @@ export function PlayerRelicEditor({ seed, level, kind, index, canEdit, change, p
         </Button>
         {canEdit && value && <Button onClick={() => choose('')}>{preset?.gifts[slotIndex]
           ? tr('Restaurar dádiva da mesa', 'Restore table gift') : tr('Limpar escolha', 'Clear choice')}</Button>}
-        {browsing === stage.level && <RelicGiftPicker title={label} options={options} value={value}
+        {browsing === stage.level && <RelicGiftPicker title={label} aspects={seed.aspects} options={options} value={value} mesaRules={mesaRules} index={index} base={base}
           onPick={canEdit ? choose : undefined} onClose={() => setBrowsing(null)} />}
         {gift && <>
           <TextField select size="small" label={tr('Nível de despertar', 'Awakening level')} slotProps={nativeSelect} value={at} disabled={!canEdit}

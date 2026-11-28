@@ -2,14 +2,14 @@
 // O retrato aplicado (CONTRATO-FICHA): o personagem compilado no formato `BuildInfo` que a Ficha, a Iniciativa, o Mapa
 // e o servidor já leem, mais as extensões do Criador em `build.covil`. Nomes de conteúdo em inglês canônico (o mesmo
 // que o Pathbuilder grava), para as descrições e os consertos da Ficha seguirem casando.
-import { activeRuneGifts, type PublishedRelic } from '../../../pathbuilder/playerRelic'
+import { relicRuneCapacity, type PublishedRelic } from '../../../pathbuilder/playerRelic'
 import type { BuildInfo, FeatArray, HomebrewFeatRef, Pet, Familiar, Weapon, Armor, SpellCaster } from '../../../pathbuilder/types'
 import type { BuildState } from '../types'
 import type { RuleEntry } from '../rules/types'
 import { attributeScore } from './attributes'
 import { ATTRIBUTES, SKILL_KEYS, type AttributeKey, type Compiled, type RulesIndex } from './types'
 import { featKindLabel, type FeatSlot } from './slots'
-import { GRADE_LABEL, REINFORCING_NAME } from './equipment'
+import { GRADE_LABEL, propertyRuneSlots, REINFORCING_NAME } from './equipment'
 import { withCustom } from './custom'
 
 const ATTR_LABEL: Record<AttributeKey, string> = { str: 'Str', dex: 'Dex', con: 'Con', int: 'Int', wis: 'Wis', cha: 'Cha' }
@@ -157,12 +157,14 @@ export function exportBuild(state: BuildState, compiled: Compiled, ctx: ExportCo
     })
     const armor: (Armor & { grade: string })[] = eq.items.filter((i) => i.base?.item?.armor || i.base?.item?.shield).map((i, idx) => {
         recordRelic(i, 'armor', idx)
+        const slots = propertyRuneSlots(i.inv.runes?.potency ?? 0, i.inv.material?.id, rules)
+        const capacity = relicRuneCapacity(i.inv.relic, state.level, i.base?.item?.armor ? 'armor' : undefined, slots, i.inv.runes?.property ?? [])
         return {
             name: i.entry?.name ?? i.name, qty: i.qty, prof: i.base?.item?.shield ? 'shield' : (i.base?.item?.armor?.category ?? 'unarmored').toLowerCase(),
             pot: i.inv.runes?.potency ?? 0, res: RESILIENT[i.inv.runes?.resilient ?? 0] ?? '',
             mat: i.inv.material ? (i.inv.material.grade ? `${name(i.inv.material.id)} (${GRADE_LABEL[i.inv.material.grade]})` : name(i.inv.material.id)) : null,
             display: i.inv.customName ?? '', worn: !!i.inv.worn,
-            runes: [...(i.inv.runes?.reinforcing ? [`Reinforcing (${REINFORCING_NAME[i.inv.runes.reinforcing]})`] : []), ...(i.inv.runes?.property ?? []).map(name), ...activeRuneGifts(i.inv.relic, state.level, 'armor').map((g) => g.name)], grade: '',
+            runes: [...(i.inv.runes?.reinforcing ? [`Reinforcing (${REINFORCING_NAME[i.inv.runes.reinforcing]})`] : []), ...capacity.activeEtched.map(name), ...capacity.activeGifts.map((g) => g.name)], grade: '',
         }
     })
     const equipment: [string, number, string?][] = eq.items.filter((i) => !i.base?.item?.weapon && !i.base?.item?.armor && !i.base?.item?.shield)

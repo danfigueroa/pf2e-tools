@@ -1,4 +1,4 @@
-import { activeRuneGifts, chosenGifts } from '../../../pathbuilder/playerRelic'
+import { relicRuneCapacity, chosenGifts } from '../../../pathbuilder/playerRelic'
 // Equipamento (MOTOR-DE-REGRAS §6, §7 e §12). Regras conferidas na AON, Remaster:
 // - Volume: 5 + FOR sem penalidade; acima disso, sobrecarregado; nunca mais que 10 + FOR (Player Core pg. 269). L = 1/10.
 //   Moedas: mil de qualquer tipo = 1 Volume, frações de mil arredondadas para baixo (Player Core pg. 269).
@@ -24,6 +24,11 @@ import { tr } from '../../../i18n'
 import type { BuildState, InventoryEntry } from '../types'
 import type { RuleEntry } from '../rules/types'
 import type { AttributeKey, Rank, RulesIndex, Stat, Warning } from './types'
+
+/** GM Core pp. 224, 228 e 240: armas e armaduras de oricalco comportam quatro propriedades em vez de três. */
+export function propertyRuneSlots(potency: number, materialId: string | undefined, rules: RulesIndex) {
+    return potency === 3 && (materialId === 'item:equipment-2919' || rules.get(materialId)?.name === 'Orichalcum') ? 4 : potency
+}
 
 export type FundamentalKind = 'potency' | 'striking' | 'armorPotency' | 'resilient' | 'reinforcing'
 
@@ -246,7 +251,8 @@ export function compileEquipment(state: BuildState, rules: RulesIndex, ctx: {
             checkPenalty: strengthMet ? 0 : a.checkPenalty ?? 0,
             speedPenalty: strengthMet ? Math.min(0, rawSpeed + 5) : rawSpeed, strengthMet,
         }
-        if ((wornArmor.inv.runes?.property?.length ?? 0) + (wornArmor.inv.relic?.allowEtching ? activeRuneGifts(wornArmor.inv.relic, ctx.level, 'armor').length : 0) > armor.potency) {
+        const slots = propertyRuneSlots(armor.potency, wornArmor.inv.material?.id, rules)
+        if (relicRuneCapacity(wornArmor.inv.relic, ctx.level, 'armor', slots, wornArmor.inv.runes?.property ?? []).used > slots) {
             warnings.push({ code: 'RUNE_SLOTS', level: 'warn', ref: 'equipment', message: tr(`${wornArmor.name}: mais runas de propriedade que a potência permite.`, `${wornArmor.name}: more property runes than the potency allows.`) })
         }
     }
@@ -295,9 +301,10 @@ export function compileEquipment(state: BuildState, rules: RulesIndex, ctx: {
             if (o.damage !== undefined) damageBonus = o.damage
         }
         const etched = (inv?.runes?.property ?? []).map((id) => rules.get(id)?.name ?? id)
-        const gifts = activeRuneGifts(inv?.relic, ctx.level, 'weapon')
-        const runes = gifts.length ? [...new Set([...etched, ...gifts.map((g) => g.rune!)])] : etched
-        if (etched.length + (inv?.relic?.allowEtching ? gifts.length : 0) > potency) warnings.push({ code: 'RUNE_SLOTS', level: 'warn', ref: 'equipment', message: tr(`${name}: mais runas de propriedade que a potência permite (GM Core pg. 236).`, `${name}: more property runes than the potency allows (GM Core pg. 236).`) })
+        const slots = propertyRuneSlots(inv?.relic ? inv.runes?.potency ?? 0 : potency, inv?.material?.id, rules)
+        const capacity = relicRuneCapacity(inv?.relic, ctx.level, 'weapon', slots, etched)
+        const runes = capacity.activeGifts.length ? [...new Set([...capacity.activeEtched, ...capacity.activeGifts.map((g) => g.rune!)])] : capacity.activeEtched
+        if (capacity.used > slots) warnings.push({ code: 'RUNE_SLOTS', level: 'warn', ref: 'equipment', message: tr(`${name}: mais runas de propriedade que a potência permite (GM Core pp. 224–225).`, `${name}: more property runes than the potency allows (GM Core pp. 224–225).`) })
         // Dano extra no acerto: runas com dano fixo, Precision e Sneak Attack (o que a Ficha soma pelo `extraDamage`).
         const extraDamage: string[] = []
         const noHit = runes.filter((r) => !RUNE_HIT[runeBase(r)])

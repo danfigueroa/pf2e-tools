@@ -235,7 +235,7 @@ export function cleanPlayerRelic(v) {
     return compact({
         id: typeof v.id === 'string' && KEY_RE.test(v.id) ? v.id : undefined,
         legacyId: text(v.legacyId, 60),
-        aspects: uniq(v.aspects, 12, (a) => text(a, 40)) ?? [],
+        aspects: uniq(v.aspects, 32, (a) => text(a, 40)) ?? [],
         gifts: record(v.gifts, (key) => ['1', '5', '9', '13', '17'].includes(key), 5, (g) => text(g, 96)) ?? {},
         levels: nonEmpty(record(v.levels, (key) => ['1', '5', '9', '13', '17'].includes(key), 5, (level) => int(level, 1, 20))),
         allowEtching: bool(v.allowEtching),

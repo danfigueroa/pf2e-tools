@@ -5,12 +5,24 @@ export interface RelicOption {
     name: string
     aspects: string[]
     tier: 'minor' | 'major' | 'grand'
+    sourceId?: keyof typeof RELIC_BOOKS
     page?: number
     prerequisite?: string
     host?: 'armor' | 'weapon'
     rune?: string
     catalogId?: string
 }
+
+// Os IDs são os das fontes na AON. Guarde apenas a versão Remaster quando a dádiva foi republicada.
+export const RELIC_BOOKS = {
+    218: { name: 'GM Core', legacy: false },
+    191: { name: 'Treasure Vault (Remastered)', legacy: false },
+    204: { name: 'Highhelm', legacy: true },
+    205: { name: 'Rage of Elements', legacy: false },
+    96: { name: 'Secrets of Magic', legacy: true },
+    206: { name: 'Pathfinder #193: Mantle of Gold', legacy: true },
+    229: { name: 'Pathfinder #200: Seven Dooms for Sandpoint', legacy: true },
+} as const
 
 export const RELIC_OPTIONS: RelicOption[] = [
     {"id": "relic:relic-124", "name": "Deadly Spark", "tier": "minor", "aspects": ["Air"], "page": 309},
@@ -85,6 +97,56 @@ export const RELIC_OPTIONS: RelicOption[] = [
     {"id": "relic:relic-193", "name": "Bottomless Reservoir", "tier": "major", "aspects": ["Water"], "page": 319},
     {"id": "relic:relic-194", "name": "Flowing Footsteps", "tier": "major", "aspects": ["Water"], "page": 319},
     {"id": "relic:relic-195", "name": "Ripples and Waves", "tier": "grand", "aspects": ["Water"], "page": 319},
+    {"id": "relic:relic-73", "name": "Breath of Dragons", "tier": "minor", "aspects": ["Dragon"], "page": 230, "sourceId": 96},
+    {"id": "relic:relic-74", "name": "Draconic Resistance", "tier": "minor", "aspects": ["Dragon"], "page": 230, "sourceId": 96},
+    {"id": "relic:relic-75", "name": "Dragon Strike", "tier": "minor", "aspects": ["Dragon"], "page": 230, "sourceId": 96},
+    {"id": "relic:relic-76", "name": "Draconic Arrogance", "tier": "major", "aspects": ["Dragon"], "page": 230, "sourceId": 96},
+    {"id": "relic:relic-77", "name": "Wyrm's Flight", "tier": "major", "aspects": ["Dragon"], "page": 230, "sourceId": 96},
+    {"id": "relic:relic-78", "name": "Draconic Ascendance", "tier": "grand", "aspects": ["Dragon"], "page": 231, "sourceId": 96},
+    {"id": "relic:relic-79", "name": "Absorb Injury", "tier": "minor", "aspects": ["Soul"], "page": 231, "sourceId": 96},
+    {"id": "relic:relic-80", "name": "Force Blast", "tier": "minor", "aspects": ["Soul"], "page": 231, "sourceId": 96},
+    {"id": "relic:relic-81", "name": "Soul Puppet", "tier": "minor", "aspects": ["Soul"], "page": 231, "sourceId": 96},
+    {"id": "relic:relic-82", "name": "Cleanse Soul", "tier": "major", "aspects": ["Soul"], "page": 231, "sourceId": 96},
+    {"id": "relic:relic-83", "name": "Spirit Blink", "tier": "major", "aspects": ["Soul"], "page": 231, "sourceId": 96},
+    {"id": "relic:relic-84", "name": "Soul Magic", "tier": "grand", "aspects": ["Soul"], "page": 231, "sourceId": 96},
+    {"id": "relic:relic-85", "name": "Fascinating", "tier": "minor", "aspects": ["Artistry"], "page": 198, "sourceId": 191},
+    {"id": "relic:relic-86", "name": "Inspiring", "tier": "minor", "aspects": ["Artistry"], "page": 198, "sourceId": 191},
+    {"id": "relic:relic-87", "name": "Muse", "tier": "minor", "aspects": ["Artistry"], "page": 198, "sourceId": 191, "prerequisite": "The relic is 3rd level or higher."},
+    {"id": "relic:relic-88", "name": "Charming", "tier": "major", "aspects": ["Artistry"], "page": 198, "sourceId": 191},
+    {"id": "relic:relic-89", "name": "Enthralling", "tier": "major", "aspects": ["Artistry"], "page": 198, "sourceId": 191},
+    {"id": "relic:relic-90", "name": "Artistic Perfection", "tier": "grand", "aspects": ["Artistry"], "page": 198, "sourceId": 191},
+    {"id": "relic:relic-91", "name": "Dominant Emotion", "tier": "minor", "aspects": ["Emotion"], "page": 198, "sourceId": 191},
+    {"id": "relic:relic-92", "name": "Emotion Surge", "tier": "minor", "aspects": ["Emotion"], "page": 199, "sourceId": 191},
+    {"id": "relic:relic-93", "name": "Fervor", "tier": "minor", "aspects": ["Emotion"], "page": 199, "sourceId": 191},
+    {"id": "relic:relic-94", "name": "Emotion Conduit", "tier": "major", "aspects": ["Emotion"], "page": 199, "sourceId": 191},
+    {"id": "relic:relic-95", "name": "Fervent Spell", "tier": "major", "aspects": ["Emotion"], "page": 199, "sourceId": 191, "prerequisite": "fervor gift"},
+    {"id": "relic:relic-96", "name": "Quickening Emotion", "tier": "grand", "aspects": ["Emotion"], "page": 199, "sourceId": 191},
+    {"id": "relic:relic-97", "name": "Beginner's Luck", "tier": "minor", "aspects": ["Luck"], "page": 199, "sourceId": 191},
+    {"id": "relic:relic-98", "name": "Swap Luck", "tier": "minor", "aspects": ["Luck"], "page": 199, "sourceId": 191},
+    {"id": "relic:relic-99", "name": "Whammy", "tier": "minor", "aspects": ["Luck"], "page": 199, "sourceId": 191},
+    {"id": "relic:relic-100", "name": "Clean Luck", "tier": "major", "aspects": ["Luck"], "page": 199, "sourceId": 191},
+    {"id": "relic:relic-101", "name": "Steal Luck", "tier": "major", "aspects": ["Luck"], "page": 199, "sourceId": 191},
+    {"id": "relic:relic-102", "name": "Against All Odds", "tier": "grand", "aspects": ["Luck"], "page": 200, "sourceId": 191},
+    {"id": "relic:relic-103", "name": "Borrow Time", "tier": "minor", "aspects": ["Time"], "page": 200, "sourceId": 191},
+    {"id": "relic:relic-104", "name": "Sands of the Hourglass", "tier": "minor", "aspects": ["Time"], "page": 200, "sourceId": 191, "prerequisite": "The relic is 5th level or higher."},
+    {"id": "relic:relic-105", "name": "Precognition", "tier": "major", "aspects": ["Time"], "page": 200, "sourceId": 191},
+    {"id": "relic:relic-106", "name": "Temporal Pulse", "tier": "major", "aspects": ["Time"], "page": 200, "sourceId": 191},
+    {"id": "relic:relic-107", "name": "Time Jump", "tier": "major", "aspects": ["Time"], "page": 200, "sourceId": 191},
+    {"id": "relic:relic-108", "name": "Time Reversal", "tier": "grand", "aspects": ["Time"], "page": 200, "sourceId": 191},
+    {"id": "relic:relic-109", "name": "Intelligent Relic", "tier": "minor", "aspects": ["Intelligent Relic"], "page": 200, "sourceId": 191},
+    {"id": "relic:relic-110", "name": "Creative Spark", "tier": "minor", "aspects": ["Forge"], "page": 114, "sourceId": 204},
+    {"id": "relic:relic-111", "name": "Forge Weld", "tier": "minor", "aspects": ["Forge"], "page": 114, "sourceId": 204},
+    {"id": "relic:relic-112", "name": "Work Harden", "tier": "minor", "aspects": ["Forge"], "page": 114, "sourceId": 204},
+    {"id": "relic:relic-113", "name": "Elements of Creation", "tier": "major", "aspects": ["Forge"], "page": 114, "sourceId": 204, "prerequisite": "creative spark gift"},
+    {"id": "relic:relic-114", "name": "Molten Crucible", "tier": "major", "aspects": ["Forge"], "page": 114, "sourceId": 204},
+    {"id": "relic:relic-115", "name": "Living Forge", "tier": "grand", "aspects": ["Forge"], "page": 114, "sourceId": 204},
+    {"id": "relic:relic-116", "name": "Enhancing Circuitry", "tier": "minor", "aspects": ["Metal"], "page": 148, "sourceId": 205},
+    {"id": "relic:relic-117", "name": "Scrap Shot", "tier": "minor", "aspects": ["Metal"], "page": 148, "sourceId": 205},
+    {"id": "relic:relic-118", "name": "Precious Anodization", "tier": "major", "aspects": ["Metal"], "page": 148, "sourceId": 205},
+    {"id": "relic:relic-120", "name": "Rail Dash", "tier": "major", "aspects": ["Metal"], "page": 148, "sourceId": 205},
+    {"id": "relic:relic-121", "name": "All Will Decay", "tier": "grand", "aspects": ["Metal"], "page": 148, "sourceId": 205},
+    {"id": "relic:relic-123", "name": "Ancestors' Call", "tier": "minor", "aspects": ["Mind"], "page": 85, "sourceId": 206},
+    {"id": "relic:relic-196", "name": "Azata's Grace", "tier": "grand", "aspects": ["Celestial"], "page": 185, "sourceId": 229},
     {"id": "item:equipment-2788-2576-cold-major", "name": "Energy-Resistant · Cold", "tier": "major", "aspects": ["Air"], "host": "armor", "rune": "Energy-Resistant", "catalogId": "item:equipment-2788-2576"},
     {"id": "item:equipment-2788-2576-electricity-major", "name": "Energy-Resistant · Electricity", "tier": "major", "aspects": ["Air"], "host": "armor", "rune": "Energy-Resistant", "catalogId": "item:equipment-2788-2576"},
     {"id": "item:equipment-2788-2577-cold-major", "name": "Energy-Resistant (Greater) · Cold", "tier": "major", "aspects": ["Air"], "host": "armor", "rune": "Energy-Resistant (Greater)", "catalogId": "item:equipment-2788-2577"},

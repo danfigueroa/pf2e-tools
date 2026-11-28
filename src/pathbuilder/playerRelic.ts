@@ -1,5 +1,5 @@
 // GM Core p. 309, Advancing a Relic / Adjusting Treasure. Os marcos são os níveis típicos da campanha.
-import { RELIC_OPTIONS, type RelicOption } from './relicOptions'
+import { RELIC_BOOKS, RELIC_OPTIONS, type RelicOption } from './relicOptions'
 
 export const RELIC_STAGES = [
     { level: 1, tier: 'minor', gp: 20 }, { level: 5, tier: 'minor', gp: 160 },
@@ -25,6 +25,8 @@ export interface PublishedRelic {
 }
 
 export const RELIC_ASPECTS = [...new Set(RELIC_OPTIONS.flatMap((g) => g.aspects))].sort()
+export const LEGACY_RELIC_ASPECTS = new Set(RELIC_ASPECTS.filter((aspect) =>
+    RELIC_OPTIONS.filter((g) => g.aspects.includes(aspect)).every((g) => RELIC_BOOKS[g.sourceId ?? 218].legacy)))
 const byId = new Map(RELIC_OPTIONS.map((g) => [g.id, g]))
 
 export function chosenGifts(seed?: PlayerRelic) {
@@ -36,6 +38,19 @@ export function chosenGifts(seed?: PlayerRelic) {
 
 export function activeRuneGifts(seed: PlayerRelic | undefined, level: number, host: RelicOption['host']) {
     return chosenGifts(seed).flatMap((s) => s.level <= level && s.gift.rune && s.gift.host === host ? [s.gift] : [])
+}
+
+/** GM Core pp. 224–225 e 309. Em relíquias com gravação, os encaixes são compartilhados.
+ * Preserve a ordem da bancada: primeiro as runas gravadas, depois as dádivas despertas na ordem dos marcos. */
+export function relicRuneCapacity(seed: PlayerRelic | undefined, level: number, host: RelicOption['host'], slots: number, etched: string[]) {
+    const gifts = activeRuneGifts(seed, level, host)
+    const used = etched.length + (seed?.allowEtching ? gifts.length : 0)
+    const permittedEtched = !seed || seed.allowEtching || seed.legacyId
+    return {
+        gifts, used,
+        activeEtched: !permittedEtched ? [] : seed ? etched.slice(0, slots) : etched,
+        activeGifts: seed?.allowEtching ? gifts.slice(0, Math.max(0, slots - etched.length)) : gifts,
+    }
 }
 
 /** Um upload pode trazer qualquer JSON em covil. Ignore referências inválidas antes de ler as escolhas na Ficha. */

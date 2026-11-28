@@ -77,6 +77,9 @@ export const relicRuneLabel = (r: RelicRune): string =>
     [r.potency && `+${r.potency}`, r.striking, ...(r.property ?? []), r.armorPotency && `+${r.armorPotency}`, r.resilient].filter(Boolean).join(' · ')
 
 const aspects: Record<string, string> = {
+  Artistry: tr('Arte', 'Artistry'), Dragon: tr('Dragão', 'Dragon'), Emotion: tr('Emoção', 'Emotion'),
+  Forge: tr('Forja', 'Forge'), 'Intelligent Relic': tr('Relíquia inteligente', 'Intelligent Relic'),
+  Luck: tr('Sorte', 'Luck'), Metal: tr('Metal', 'Metal'), Soul: tr('Alma', 'Soul'), Time: tr('Tempo', 'Time'),
   Air: tr('Ar', 'Air'), Beast: tr('Fera', 'Beast'), Celestial: tr('Celestial', 'Celestial'),
   Death: tr('Morte', 'Death'), Earth: tr('Terra', 'Earth'), Fiend: tr('Ínfero', 'Fiend'),
   Fire: tr('Fogo', 'Fire'), Life: tr('Vida', 'Life'), Mind: tr('Mente', 'Mind'),

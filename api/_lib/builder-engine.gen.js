@@ -3295,6 +3295,15 @@ function compileArchetypeCasters(state, taken, ctx, pending, warnings, used) {
 }
 
 // src/pathbuilder/relicOptions.ts
+var RELIC_BOOKS = {
+  218: { name: "GM Core", legacy: false },
+  191: { name: "Treasure Vault (Remastered)", legacy: false },
+  204: { name: "Highhelm", legacy: true },
+  205: { name: "Rage of Elements", legacy: false },
+  96: { name: "Secrets of Magic", legacy: true },
+  206: { name: "Pathfinder #193: Mantle of Gold", legacy: true },
+  229: { name: "Pathfinder #200: Seven Dooms for Sandpoint", legacy: true }
+};
 var RELIC_OPTIONS = [
   { "id": "relic:relic-124", "name": "Deadly Spark", "tier": "minor", "aspects": ["Air"], "page": 309 },
   { "id": "relic:relic-125", "name": "Feather Steps", "tier": "minor", "aspects": ["Air"], "page": 310, "prerequisite": "The relic is a worn item." },
@@ -3368,6 +3377,56 @@ var RELIC_OPTIONS = [
   { "id": "relic:relic-193", "name": "Bottomless Reservoir", "tier": "major", "aspects": ["Water"], "page": 319 },
   { "id": "relic:relic-194", "name": "Flowing Footsteps", "tier": "major", "aspects": ["Water"], "page": 319 },
   { "id": "relic:relic-195", "name": "Ripples and Waves", "tier": "grand", "aspects": ["Water"], "page": 319 },
+  { "id": "relic:relic-73", "name": "Breath of Dragons", "tier": "minor", "aspects": ["Dragon"], "page": 230, "sourceId": 96 },
+  { "id": "relic:relic-74", "name": "Draconic Resistance", "tier": "minor", "aspects": ["Dragon"], "page": 230, "sourceId": 96 },
+  { "id": "relic:relic-75", "name": "Dragon Strike", "tier": "minor", "aspects": ["Dragon"], "page": 230, "sourceId": 96 },
+  { "id": "relic:relic-76", "name": "Draconic Arrogance", "tier": "major", "aspects": ["Dragon"], "page": 230, "sourceId": 96 },
+  { "id": "relic:relic-77", "name": "Wyrm's Flight", "tier": "major", "aspects": ["Dragon"], "page": 230, "sourceId": 96 },
+  { "id": "relic:relic-78", "name": "Draconic Ascendance", "tier": "grand", "aspects": ["Dragon"], "page": 231, "sourceId": 96 },
+  { "id": "relic:relic-79", "name": "Absorb Injury", "tier": "minor", "aspects": ["Soul"], "page": 231, "sourceId": 96 },
+  { "id": "relic:relic-80", "name": "Force Blast", "tier": "minor", "aspects": ["Soul"], "page": 231, "sourceId": 96 },
+  { "id": "relic:relic-81", "name": "Soul Puppet", "tier": "minor", "aspects": ["Soul"], "page": 231, "sourceId": 96 },
+  { "id": "relic:relic-82", "name": "Cleanse Soul", "tier": "major", "aspects": ["Soul"], "page": 231, "sourceId": 96 },
+  { "id": "relic:relic-83", "name": "Spirit Blink", "tier": "major", "aspects": ["Soul"], "page": 231, "sourceId": 96 },
+  { "id": "relic:relic-84", "name": "Soul Magic", "tier": "grand", "aspects": ["Soul"], "page": 231, "sourceId": 96 },
+  { "id": "relic:relic-85", "name": "Fascinating", "tier": "minor", "aspects": ["Artistry"], "page": 198, "sourceId": 191 },
+  { "id": "relic:relic-86", "name": "Inspiring", "tier": "minor", "aspects": ["Artistry"], "page": 198, "sourceId": 191 },
+  { "id": "relic:relic-87", "name": "Muse", "tier": "minor", "aspects": ["Artistry"], "page": 198, "sourceId": 191, "prerequisite": "The relic is 3rd level or higher." },
+  { "id": "relic:relic-88", "name": "Charming", "tier": "major", "aspects": ["Artistry"], "page": 198, "sourceId": 191 },
+  { "id": "relic:relic-89", "name": "Enthralling", "tier": "major", "aspects": ["Artistry"], "page": 198, "sourceId": 191 },
+  { "id": "relic:relic-90", "name": "Artistic Perfection", "tier": "grand", "aspects": ["Artistry"], "page": 198, "sourceId": 191 },
+  { "id": "relic:relic-91", "name": "Dominant Emotion", "tier": "minor", "aspects": ["Emotion"], "page": 198, "sourceId": 191 },
+  { "id": "relic:relic-92", "name": "Emotion Surge", "tier": "minor", "aspects": ["Emotion"], "page": 199, "sourceId": 191 },
+  { "id": "relic:relic-93", "name": "Fervor", "tier": "minor", "aspects": ["Emotion"], "page": 199, "sourceId": 191 },
+  { "id": "relic:relic-94", "name": "Emotion Conduit", "tier": "major", "aspects": ["Emotion"], "page": 199, "sourceId": 191 },
+  { "id": "relic:relic-95", "name": "Fervent Spell", "tier": "major", "aspects": ["Emotion"], "page": 199, "sourceId": 191, "prerequisite": "fervor gift" },
+  { "id": "relic:relic-96", "name": "Quickening Emotion", "tier": "grand", "aspects": ["Emotion"], "page": 199, "sourceId": 191 },
+  { "id": "relic:relic-97", "name": "Beginner's Luck", "tier": "minor", "aspects": ["Luck"], "page": 199, "sourceId": 191 },
+  { "id": "relic:relic-98", "name": "Swap Luck", "tier": "minor", "aspects": ["Luck"], "page": 199, "sourceId": 191 },
+  { "id": "relic:relic-99", "name": "Whammy", "tier": "minor", "aspects": ["Luck"], "page": 199, "sourceId": 191 },
+  { "id": "relic:relic-100", "name": "Clean Luck", "tier": "major", "aspects": ["Luck"], "page": 199, "sourceId": 191 },
+  { "id": "relic:relic-101", "name": "Steal Luck", "tier": "major", "aspects": ["Luck"], "page": 199, "sourceId": 191 },
+  { "id": "relic:relic-102", "name": "Against All Odds", "tier": "grand", "aspects": ["Luck"], "page": 200, "sourceId": 191 },
+  { "id": "relic:relic-103", "name": "Borrow Time", "tier": "minor", "aspects": ["Time"], "page": 200, "sourceId": 191 },
+  { "id": "relic:relic-104", "name": "Sands of the Hourglass", "tier": "minor", "aspects": ["Time"], "page": 200, "sourceId": 191, "prerequisite": "The relic is 5th level or higher." },
+  { "id": "relic:relic-105", "name": "Precognition", "tier": "major", "aspects": ["Time"], "page": 200, "sourceId": 191 },
+  { "id": "relic:relic-106", "name": "Temporal Pulse", "tier": "major", "aspects": ["Time"], "page": 200, "sourceId": 191 },
+  { "id": "relic:relic-107", "name": "Time Jump", "tier": "major", "aspects": ["Time"], "page": 200, "sourceId": 191 },
+  { "id": "relic:relic-108", "name": "Time Reversal", "tier": "grand", "aspects": ["Time"], "page": 200, "sourceId": 191 },
+  { "id": "relic:relic-109", "name": "Intelligent Relic", "tier": "minor", "aspects": ["Intelligent Relic"], "page": 200, "sourceId": 191 },
+  { "id": "relic:relic-110", "name": "Creative Spark", "tier": "minor", "aspects": ["Forge"], "page": 114, "sourceId": 204 },
+  { "id": "relic:relic-111", "name": "Forge Weld", "tier": "minor", "aspects": ["Forge"], "page": 114, "sourceId": 204 },
+  { "id": "relic:relic-112", "name": "Work Harden", "tier": "minor", "aspects": ["Forge"], "page": 114, "sourceId": 204 },
+  { "id": "relic:relic-113", "name": "Elements of Creation", "tier": "major", "aspects": ["Forge"], "page": 114, "sourceId": 204, "prerequisite": "creative spark gift" },
+  { "id": "relic:relic-114", "name": "Molten Crucible", "tier": "major", "aspects": ["Forge"], "page": 114, "sourceId": 204 },
+  { "id": "relic:relic-115", "name": "Living Forge", "tier": "grand", "aspects": ["Forge"], "page": 114, "sourceId": 204 },
+  { "id": "relic:relic-116", "name": "Enhancing Circuitry", "tier": "minor", "aspects": ["Metal"], "page": 148, "sourceId": 205 },
+  { "id": "relic:relic-117", "name": "Scrap Shot", "tier": "minor", "aspects": ["Metal"], "page": 148, "sourceId": 205 },
+  { "id": "relic:relic-118", "name": "Precious Anodization", "tier": "major", "aspects": ["Metal"], "page": 148, "sourceId": 205 },
+  { "id": "relic:relic-120", "name": "Rail Dash", "tier": "major", "aspects": ["Metal"], "page": 148, "sourceId": 205 },
+  { "id": "relic:relic-121", "name": "All Will Decay", "tier": "grand", "aspects": ["Metal"], "page": 148, "sourceId": 205 },
+  { "id": "relic:relic-123", "name": "Ancestors' Call", "tier": "minor", "aspects": ["Mind"], "page": 85, "sourceId": 206 },
+  { "id": "relic:relic-196", "name": "Azata's Grace", "tier": "grand", "aspects": ["Celestial"], "page": 185, "sourceId": 229 },
   { "id": "item:equipment-2788-2576-cold-major", "name": "Energy-Resistant \xB7 Cold", "tier": "major", "aspects": ["Air"], "host": "armor", "rune": "Energy-Resistant", "catalogId": "item:equipment-2788-2576" },
   { "id": "item:equipment-2788-2576-electricity-major", "name": "Energy-Resistant \xB7 Electricity", "tier": "major", "aspects": ["Air"], "host": "armor", "rune": "Energy-Resistant", "catalogId": "item:equipment-2788-2576" },
   { "id": "item:equipment-2788-2577-cold-major", "name": "Energy-Resistant (Greater) \xB7 Cold", "tier": "major", "aspects": ["Air"], "host": "armor", "rune": "Energy-Resistant (Greater)", "catalogId": "item:equipment-2788-2577" },
@@ -3418,6 +3477,7 @@ var RELIC_STAGES = [
   { level: 17, tier: "grand", gp: 15e3 }
 ];
 var RELIC_ASPECTS = [...new Set(RELIC_OPTIONS.flatMap((g) => g.aspects))].sort();
+var LEGACY_RELIC_ASPECTS = new Set(RELIC_ASPECTS.filter((aspect) => RELIC_OPTIONS.filter((g) => g.aspects.includes(aspect)).every((g) => RELIC_BOOKS[g.sourceId ?? 218].legacy)));
 var byId = new Map(RELIC_OPTIONS.map((g) => [g.id, g]));
 function chosenGifts(seed) {
   return RELIC_STAGES.flatMap((stage) => {
@@ -3428,6 +3488,17 @@ function chosenGifts(seed) {
 function activeRuneGifts(seed, level, host) {
   return chosenGifts(seed).flatMap((s) => s.level <= level && s.gift.rune && s.gift.host === host ? [s.gift] : []);
 }
+function relicRuneCapacity(seed, level, host, slots, etched) {
+  const gifts = activeRuneGifts(seed, level, host);
+  const used = etched.length + (seed?.allowEtching ? gifts.length : 0);
+  const permittedEtched = !seed || seed.allowEtching || seed.legacyId;
+  return {
+    gifts,
+    used,
+    activeEtched: !permittedEtched ? [] : seed ? etched.slice(0, slots) : etched,
+    activeGifts: seed?.allowEtching ? gifts.slice(0, Math.max(0, slots - etched.length)) : gifts
+  };
+}
 function publishedRelics(build) {
   const rows = build.covil?.relics;
   if (!Array.isArray(rows)) return [];
@@ -3435,6 +3506,9 @@ function publishedRelics(build) {
 }
 
 // src/modules/character-builder/engine/equipment.ts
+function propertyRuneSlots(potency, materialId, rules) {
+  return potency === 3 && (materialId === "item:equipment-2919" || rules.get(materialId)?.name === "Orichalcum") ? 4 : potency;
+}
 var ATTR_LABEL2 = { str: tr("FOR", "STR"), dex: tr("DES", "DEX"), con: "CON", int: "INT", wis: tr("SAB", "WIS"), cha: tr("CAR", "CHA") };
 var COINS_GP = (m) => m.pp * 10 + m.gp + m.sp / 10 + m.cp / 100;
 var bulkOf = (b) => b === "L" ? 0.1 : typeof b === "number" ? b : 0;
@@ -3588,7 +3662,8 @@ function compileEquipment(state, rules, ctx, warnings) {
       speedPenalty: strengthMet ? Math.min(0, rawSpeed + 5) : rawSpeed,
       strengthMet
     };
-    if ((wornArmor.inv.runes?.property?.length ?? 0) + (wornArmor.inv.relic?.allowEtching ? activeRuneGifts(wornArmor.inv.relic, ctx.level, "armor").length : 0) > armor.potency) {
+    const slots = propertyRuneSlots(armor.potency, wornArmor.inv.material?.id, rules);
+    if (relicRuneCapacity(wornArmor.inv.relic, ctx.level, "armor", slots, wornArmor.inv.runes?.property ?? []).used > slots) {
       warnings.push({ code: "RUNE_SLOTS", level: "warn", ref: "equipment", message: tr(`${wornArmor.name}: mais runas de propriedade que a pot\xEAncia permite.`, `${wornArmor.name}: more property runes than the potency allows.`) });
     }
   }
@@ -3637,9 +3712,10 @@ function compileEquipment(state, rules, ctx, warnings) {
       if (o.damage !== void 0) damageBonus = o.damage;
     }
     const etched = (inv?.runes?.property ?? []).map((id) => rules.get(id)?.name ?? id);
-    const gifts = activeRuneGifts(inv?.relic, ctx.level, "weapon");
-    const runes = gifts.length ? [.../* @__PURE__ */ new Set([...etched, ...gifts.map((g) => g.rune)])] : etched;
-    if (etched.length + (inv?.relic?.allowEtching ? gifts.length : 0) > potency) warnings.push({ code: "RUNE_SLOTS", level: "warn", ref: "equipment", message: tr(`${name}: mais runas de propriedade que a pot\xEAncia permite (GM Core pg. 236).`, `${name}: more property runes than the potency allows (GM Core pg. 236).`) });
+    const slots = propertyRuneSlots(inv?.relic ? inv.runes?.potency ?? 0 : potency, inv?.material?.id, rules);
+    const capacity = relicRuneCapacity(inv?.relic, ctx.level, "weapon", slots, etched);
+    const runes = capacity.activeGifts.length ? [.../* @__PURE__ */ new Set([...capacity.activeEtched, ...capacity.activeGifts.map((g) => g.rune)])] : capacity.activeEtched;
+    if (capacity.used > slots) warnings.push({ code: "RUNE_SLOTS", level: "warn", ref: "equipment", message: tr(`${name}: mais runas de propriedade que a pot\xEAncia permite (GM Core pp. 224\u2013225).`, `${name}: more property runes than the potency allows (GM Core pp. 224\u2013225).`) });
     const extraDamage = [];
     const noHit = runes.filter((r) => !RUNE_HIT[runeBase(r)]);
     for (const r of runes) {
@@ -4602,6 +4678,8 @@ function exportBuild(state, compiled, ctx) {
   });
   const armor = eq.items.filter((i) => i.base?.item?.armor || i.base?.item?.shield).map((i, idx) => {
     recordRelic(i, "armor", idx);
+    const slots = propertyRuneSlots(i.inv.runes?.potency ?? 0, i.inv.material?.id, rules);
+    const capacity = relicRuneCapacity(i.inv.relic, state.level, i.base?.item?.armor ? "armor" : void 0, slots, i.inv.runes?.property ?? []);
     return {
       name: i.entry?.name ?? i.name,
       qty: i.qty,
@@ -4611,7 +4689,7 @@ function exportBuild(state, compiled, ctx) {
       mat: i.inv.material ? i.inv.material.grade ? `${name(i.inv.material.id)} (${GRADE_LABEL[i.inv.material.grade]})` : name(i.inv.material.id) : null,
       display: i.inv.customName ?? "",
       worn: !!i.inv.worn,
-      runes: [...i.inv.runes?.reinforcing ? [`Reinforcing (${REINFORCING_NAME[i.inv.runes.reinforcing]})`] : [], ...(i.inv.runes?.property ?? []).map(name), ...activeRuneGifts(i.inv.relic, state.level, "armor").map((g) => g.name)],
+      runes: [...i.inv.runes?.reinforcing ? [`Reinforcing (${REINFORCING_NAME[i.inv.runes.reinforcing]})`] : [], ...capacity.activeEtched.map(name), ...capacity.activeGifts.map((g) => g.name)],
       grade: ""
     };
   });
