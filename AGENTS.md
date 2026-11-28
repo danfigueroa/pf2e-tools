@@ -117,9 +117,12 @@ Scripts de manutenção, à mão: `fetch-creature-tables.mjs` (confira o diff!),
    - `foldName` ↔ `fold` ↔ `wiki_fold`; links de `blocks.ts` ↔ `wiki-secrets.js`
    - as duas cores inline do `index.html` ↔ `palette.ts`
    O `check-rolls` confere a maioria desses pares com os mesmos casos.
-8. **Nunca invente número nem regra.** Regra de PF2e se confere na AON (Remaster; a revisada é a entrada com
-   `legacy_id`), nunca de memória. O que o app não sabe calcular com segurança vira **aviso**, não número. O app **conta e
-   avisa, não trava**: gastar ação/slot/ponto além do que há é permitido, com aviso.
+8. **Pesquise a regra na AON antes de escrever código ou preencher dados.** Levante as opções do escopo em todas as fontes
+   pertinentes, incluindo suplementos. Leia as tabelas, os pré-requisitos e as exceções que mudam o resultado.
+   Use a versão Remaster quando houver. Quando só houver material legado compatível, inclua-o com a etiqueta **Legado / Legacy**,
+   livro e página, respeitando os livros liberados pela mesa. Antes de concluir, compare as entradas entregues com as da
+   fonte e teste a regra e suas exceções. O app permite escolhas além dos limites e avisa. Efeito que o motor não sabe
+   calcular com segurança também vira aviso.
 9. **Tempo real vem do banco** (trigger → `realtime.send` no canal privado `mesa:<mesa>:<nome>`). O cliente não transmite,
    exceto a presença e os gestos ao vivo do mapa. Ouça só por `listenMesaChannel` e **releia a cada SUBSCRIBED**
    (transmissão perdida não volta). Não use `id` como campo de mensagem (o Realtime põe o dele).
