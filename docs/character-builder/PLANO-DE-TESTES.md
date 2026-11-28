@@ -68,6 +68,9 @@ Rodados sobre **todo** build gerado nos casos acima:
 
 - Toda entrada tem `aon_id`, `id`, `name`, `category`, `level`, `rarity`, `source_id`, `hash`.
 - Contagem por livro igual à da AON (o `--check` lista as diferenças).
+- Para a funcionalidade em revisão, compare os conjuntos de IDs por categoria e variante com o levantamento da AON.
+  Uma troca de item pode manter a contagem igual. Confira uma reedição, uma entrada exclusivamente legada com sua
+  etiqueta e as exceções mecânicas aplicáveis. [Como conferir o escopo de uma entrega](FONTES-DE-DADOS.md#como-conferir-o-escopo-de-uma-entrega)
 - Reimportar um livro sem mudança = 0 alteradas (idempotência pelo `hash`); entrada que sumiu ganha `removed_at`.
 - Nenhum id duplicado; nenhum `GrantItem` apontando para entrada inexistente.
 - Contagem por categoria não cai mais de 2% entre versões sem explicação no relatório.

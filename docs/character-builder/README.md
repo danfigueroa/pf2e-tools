@@ -45,7 +45,8 @@ Rotas propostas: **`/personagens`** (meus personagens e os da mesa) e **`/ficha-
    recalcula tudo.
 4. **O app conta e avisa, não trava** (regra global 8): pré-requisito não cumprido, boost a mais, ouro negativo — tudo
    permitido, com aviso. O que o motor não sabe calcular com segurança vira aviso, não número.
-5. **Remaster só.** Conteúdo legado (pré-Remaster) fica fora por padrão; o GM pode liberar livro a livro.
+5. **Use a versão Remaster quando existir.** Inclua o material compatível que só existe no legado, identifique a edição
+   e respeite os livros liberados pelo GM. [Política de edições](BASE-DE-REGRAS.md#8-remaster--legado)
 6. **Variantes do elenco entram no MVP**: Free Archetype, Mítico completo (chamado, talentos, destino no 12º) e Ancestry
    Paragon — todos os 10 personagens atuais usam ao menos uma delas. O mapa de todas as regras opcionais está em
    [REGRAS-OPCIONAIS.md](REGRAS-OPCIONAIS.md).

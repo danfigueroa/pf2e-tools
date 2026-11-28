@@ -5,7 +5,7 @@
 - Identifique conteúdo oficial por `tipo:aon_id` para distinguir homônimos e preservar os vínculos quando o nome mudar.
 - Complemente a mecânica e a progressão com dados estruturados de licença compatível do sistema PF2e do Foundry, em commit fixo, para cobrir efeitos ausentes na AON.
 - Leia somente os JSONs do pacote do Foundry em diretório isolado para manter a ingestão reproduzível e evitar executar código externo.
-- Confira cada regra marcada com 🔎 na AON Remaster e cite livro e página no código para tornar os cálculos verificáveis.
+- Siga o levantamento de [fontes e cobertura](../../../docs/character-builder/FONTES-DE-DADOS.md#como-conferir-o-escopo-de-uma-entrega) para identificar opções de outros livros e testar as exceções antes de concluir a entrega. Cite livro e página no código para tornar os cálculos verificáveis.
 - Salve escolhas em `BuildState` e compile um retrato compatível com `BuildInfo` para preservar a Ficha, o estado da mesa e os uploads do Pathbuilder.
 - Salve os rascunhos por mesa para isolá-los conforme as mesmas regras de acesso das fichas publicadas.
 - Publique somente após a confirmação em **Aplicar na mesa** para que sair do editor preserve a ficha que a mesa usa.

@@ -186,8 +186,8 @@ A coluna "Fase" aponta o [ROADMAP](ROADMAP.md).
   ter fonte confiável própria, ver ARQUITETURA §6).
 - **RN-13 (regras versionadas)**: cada build guarda `rulesVersion`. Abrir um build com dados mais novos recompila e
   mostra o que mudou nos números antes de aplicar.
-- **RN-14 (Remaster)**: conteúdo legado só aparece se a mesa liberar o livro; com `remaster_id` na AON, o seletor mostra
-  a versão Remaster e esconde a antiga.
+- **RN-14 (edição do conteúdo)**: para novas escolhas, ofereça a versão Remaster quando houver sucessor. Inclua o legado
+  compatível sem sucessor conforme as regras da mesa, com etiqueta **Legado / Legacy**, livro e página na seleção e no detalhe.
 - **RN-20 (base global)**: a base de regras é da plataforma, não da mesa; só admin importa. Importar um livro não o
   libera para nenhuma mesa — liberar continua com o GM (`mesa_rules.sources`).
 - **RN-15 (mesa)**: build, regras da mesa e homebrew são por mesa (`mesa` como primeiro parâmetro de todo store). O

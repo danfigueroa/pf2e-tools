@@ -255,6 +255,12 @@ Mensagens de erro novas em `api/_lib/i18n.js`. `check-auth` cobre: jogador e GM 
 
 ## 8. Remaster × legado
 
+- Para cada regra ou opção pedida, procure na AON uma revisão, inclusive sob outro nome. Confira os vínculos entre
+  as entradas e o texto da publicação. Quando houver sucessor confirmado, use a versão Remaster nas novas escolhas.
+  Quando só existir material legado compatível, inclua-o na cobertura da funcionalidade e identifique-o na seleção
+  e no detalhe com **Legado / Legacy**, livro e página. A liberação do livro para cada mesa continua regida pela RN-20.
+- Se houver homônimos ou vários sucessores possíveis, confira categoria e referências antes de associar os IDs.
+  Preserve os vínculos dos personagens existentes até a conversão confirmada pelo jogador.
 - **Remaster** = publicação a partir de 2023-11-15 ou entrada com `legacy_id`. Use a data informada para a entrada e recorra à data do livro quando a entrada não a tiver.
 - `remaster_id` marca uma entrada como legado e tem precedência sobre a data. Guarde os IDs nativos em `data.remaster_ids`.
   Preencha `replaced_by` com o ID nativo quando houver uma única versão nova. Importe a entrada legada apenas quando o livro

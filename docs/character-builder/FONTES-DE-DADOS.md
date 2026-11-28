@@ -26,8 +26,22 @@ e não têm licença de reuso.
   - **Descrição** no detalhe do seletor (pt via cadeia de tradução, en direto) — pipeline atual, `descriptions`,
     correções humanas.
   - **Conferência** de regras (regra global 8) e de nomes (o nome exportado precisa resolver na AON para a Ficha).
-  - **Remaster vs legado**: `remaster_id`/`legacy_id` para esconder a versão antiga.
+  - **Edição de cada entrada** conforme a política de [Remaster e legado](BASE-DE-REGRAS.md#8-remaster--legado).
   - Ligação `RuleEntry.aon` (id + url) para o botão "Ver na AON".
+
+### Como conferir o escopo de uma entrega
+
+1. Antes de codar ou preencher o catálogo, abra a regra e o índice da categoria na AON. Siga os links para suplementos,
+   tabelas e exceções. Nas buscas paginadas, percorra todas as páginas. O elenco e a carga local servem para testar o que já existe.
+2. Identifique as entradas esperadas por ID da AON e agrupe-as pelas distinções que mudam a escolha do jogador, como
+   aspecto, grau, tipo de item ou nível. Resolva as reedições e anote a fonte de cada exclusão. Para a mecânica, registre
+   o que ativa o efeito, o que o limita e quais exceções se aplicam, com livro e página.
+3. Antes de encerrar, compare os IDs esperados com os entregues para localizar omissões, duplicatas e entradas indevidas.
+   Confira os campos que afetam o uso e exercite a regra no fluxo do jogador. Por exemplo, para relíquias, confira as
+   dádivas de cada aspecto e grau e teste a mesma runa quando ela dispensa espaço, quando está dormente e quando volta a funcionar.
+4. Registre no progresso da tarefa as fontes consultadas, o resultado da comparação e os testes executados. Corrija as
+   lacunas de escopo antes de marcar a tarefa como pronta. Se a fonte contradisser o planejamento, apresente a divergência
+   e proponha a correção do documento antes de prosseguir.
 
 ## 2. Sistema PF2e do Foundry (fonte complementar aprovada na D1)
 
