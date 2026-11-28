@@ -341,6 +341,17 @@
 - Conferidos os IDs, nomes, graus e aspectos dos 122 poderes contra a AON, a presença das 122 descrições no catálogo local, as 434 verificações do Criador e a paridade do elenco. Build, lint, rolagens, economia e elevação de magias passaram. No navegador foram conferidas a identificação do legado, a descrição de Metal e a mudança de estado de Flaming com e sem espaço de potência.
 - Os efeitos situacionais das dádivas ficam disponíveis pela descrição. A conferência foi local, sem gravação no banco de produção. As demais pendências da F9 e da F10 seguem na lista consolidada abaixo.
 
+### 9.13 — Navegação, magias e ações do Criador
+
+- `1131ea1`, `1d53e84`: o menu diz **Criador de Personagem** (pt) e **Character Builder** (en).
+- `9e4ab8b`, `54ffe99`: Talentos começa no nível 1, com a prévia do próximo nível logo após o atual; toda aba abre com um texto que explica o que fazer ali.
+- `0fa8413`: o catálogo da mochila ganhou subtipos da AON (armaduras por categoria, armas por grupo, consumíveis, cajados e varinhas, runas fundamentais, de propriedade e de escudo), combináveis com mágico/mundano.
+- `c96603a`, `f5f3543`: **Plano** virou **Talentos** e veio para depois de Atributos; a dedicação de Arquétipo Livre se escolhe na aba Classe (GM Core p. 84) e as vagas seguintes oferecem os talentos dos arquétipos adotados e **Buscar dedicação**.
+- `062e7f2`: as vagas de magia limitam novas escolhas; o seletor abre no rank da vaga com os ranks inferiores elevados em abas (↑); colunas Ações · Nome · Rank e legenda dos símbolos; 1.507 títulos de magias e rituais com nome em português (`spellNames.pt.json`), busca nos dois idiomas.
+- `7c78948`: medição e carga das descrições do catálogo (`warm-catalog-descriptions.mjs --coverage`). A carga parou na cota dos tradutores (ver "O que falta").
+- `0533294`, `8944b79`, `a3643e2`: aba **Ações** (última, depois de Detalhes) com as ações concedidas e a fonte de cada uma; Bounty Hunter Dedication só dá Monster Hunter a quem já tem Hunt Prey (Player Core 2 p. 191).
+- Build, lint, `check-builder`, `check-heightening` e `check-rolls` passaram; conferido no Brave em desktop e a 320 px.
+
 ## F10 — Endurecimento
 
 - **10.1 Compilar no servidor: adotado.** No "Aplicar na mesa", o servidor recompila o `BuildState` salvo e usa o próprio retrato.
@@ -400,6 +411,7 @@ desde então: progressão da doutrina do Cleric, conjuradores de arquétipo e "T
 - 10.2: aposentar consertos do `normalizeBuild` só quando nenhuma ficha vier mais de upload do Pathbuilder.
 - 3.10: nomes de conteúdo traduzidos (ancestralidades, classes); dependem do pipeline de descrições.
 - 1B.10 (opcional): pré-traduzir um livro pela fila de descrições.
+- Descrições em português das magias: a carga parou na cota dos tradutores, e a maioria ainda vem sob demanda. Medir e retomar com `warm-catalog-descriptions.mjs --lang pt --kind spell` (`api/AGENTS.md`).
 
 **Sob pedido de uma mesa (D8) ou com impacto fora do Criador**
 - 9.2 Dual Class; 9.11 Gradual Boosts e Stamina (Stamina mexe no dano da Ficha, da Iniciativa e do Mapa).
